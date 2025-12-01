@@ -22,7 +22,9 @@ import { NzSpinComponent } from "ng-zorro-antd/spin";
 import { PonccDetailComponent } from './poncc-detail/poncc-detail.component';
 import { PonccSummaryComponent } from './poncc-summary/poncc-summary.component';
 import { HasPermissionDirective } from '../../../directives/has-permission.directive';
-
+import { NzDropDownModule } from "ng-zorro-antd/dropdown";
+import { BillImportDetailComponent } from '../../old/Sale/BillImport/Modal/bill-import-detail/bill-import-detail.component';
+import { firstValueFrom } from 'rxjs';
 @Component({
   selector: 'app-poncc',
   standalone: true,
@@ -40,7 +42,8 @@ import { HasPermissionDirective } from '../../../directives/has-permission.direc
     NzTabComponent,
     NzSpinComponent,
     NzModalModule,
-    HasPermissionDirective
+    HasPermissionDirective,
+    NzDropDownModule
   ],
   templateUrl: './poncc.component.html',
   styleUrls: ['./poncc.component.css'],
@@ -69,6 +72,10 @@ export class PONCCComponent implements OnInit, AfterViewInit {
   suppliers: any[] = [];
   employees: any[] = [];
   isLoading: boolean = false;
+  listAllID: string[] = [];
+  checkList: boolean[] = [];
+
+  listDetail: any[] = [];
 
   constructor(
     private srv: PONCCService,
@@ -169,6 +176,8 @@ export class PONCCComponent implements OnInit, AfterViewInit {
       next: (res: any) => {
         console.log(res);
         this.tableDetail?.setData(res.data.data || []);
+        this.listAllID = res.data.listAllID;
+        this.checkList = res.data.checkList;
         this.isLoading = false;
       },
       error: () => {
@@ -344,7 +353,17 @@ export class PONCCComponent implements OnInit, AfterViewInit {
         data: [],
         pagination: false,
       });
+
+      this.tableDetail.on('rowSelectionChanged', (data: any[], rows: any[]) => {
+        this.handleSelectionChange(data);
+      });
     }
+  }
+
+  handleSelectionChange(selectedRows: any[]) {
+    const selectedIds = selectedRows.map(r => r.ID);
+    this.listDetail = selectedIds;
+    console.log("listDetail:", this.listDetail);
   }
 
   private formatNumberEnUS(v: any, digits: number = 2): string {
@@ -817,6 +836,116 @@ export class PONCCComponent implements OnInit, AfterViewInit {
     window.URL.revokeObjectURL(url);
   }
 
+  onImportWareHouse(warehouseID: number) {
+
+    const currentTable = this.activeTabIndex === 0 ? this.tablePoThuongMai : this.tablePoMuon;
+    const selectedRows = currentTable?.getSelectedData();
+    const selectedRowDetail = this.tableDetail.getSelectedData();
+    // Validate selection
+    if (!selectedRows || selectedRows.length != 1) {
+      this.notification.warning(NOTIFICATION_TITLE.warning, 'Vui lòng chọn một PO!');
+      return;
+    }
+
+    for (const po of selectedRows) {
+      const id = po.ID || 0;
+      if (id <= 0) continue;
+
+      const status = po.Status || 0;
+      const statusText = po.StatusText || '';
+      const code = po.POCode || '';
+
+      if (status !== 0 && status !== 5) {
+        this.modal.warning({
+          nzTitle: 'Thông báo',
+          nzContent: `PO [${code}] đã ${statusText}.\nBạn không thể yêu cầu nhập kho!`,
+          nzOkText: 'Đóng'
+        });
+        return;
+      }
+    }
+
+    this.modal.confirm({
+      nzTitle: `Xác nhận yêu cầu nhập kho`,
+      nzContent: `Bạn có chắc muốn yêu cầu nhập kho danh sách PO đã chọn không?`,
+      nzOkText: 'OK',
+      nzOkType: 'primary',
+      nzCancelText: 'Hủy',
+      nzOnOk: () => {
+        const ids = selectedRows.map(x => x.ID).join(',');
+
+        this.srv.getPonccDetail(ids, warehouseID, this.listDetail.join(',')).subscribe((res) => {
+          let dataSale = res.data.dataSale || [];
+          let dataDemo = res.data.dataDemo || [];
+          let listSaleDetail = res.data.listSaleDetail || [];
+          let listDemoDetail = res.data.listDemoDetail || [];
+          let listDemoPonccId = res.data.listDemoPonccId || [];
+          let listSalePonccId = res.data.listSalePonccId || [];
+
+          if (dataSale.length > 0) {
+            this.openBillImportModalSequentially(dataSale, listSaleDetail, listSalePonccId, warehouseID, 0);
+          }
+
+          if (dataDemo.length > 0) {
+            this.openBillImportModalSequentially(dataDemo, listDemoDetail, listDemoPonccId, warehouseID, 0);
+          }
+
+        });
+      }
+    });
+  }
+
+  private openBillImportModalSequentially(listData: any[], listDetail: any[], listPonccId: any[], warehouseID: number, index: number) {
+    let warehouseCode = '';
+    switch (warehouseID) {
+      case 1: warehouseCode = 'HN'; break;
+      case 2: warehouseCode = 'HCM'; break;
+      case 3: warehouseCode = 'BN'; break;
+      case 4: warehouseCode = 'HP'; break;
+      case 6: warehouseCode = 'DP'; break;
+      default: warehouseCode = ''; break;
+    }
+
+    if (index >= listData.length) {
+      console.log('Đã hoàn thành việc mở danh sách modal.');
+      return;
+    }
+
+    let dataMaster = listData[index];
+    let dataDetail = listDetail[index];
+    let ponccId = listPonccId[index];
+
+    console.log('Mở modal thứ', index + 1);
+    console.log('Data master:', dataMaster);
+    console.log('Data detail:', dataDetail);
+    console.log('PO NCC ID:', ponccId);
+    
+    const modalRef = this.modalService.open(BillImportDetailComponent, {
+      backdrop: 'static',
+      keyboard: false,
+      centered: true,
+      windowClass: 'full-screen-modal',
+    });
+
+    modalRef.componentInstance.newBillImport = dataMaster;
+    modalRef.componentInstance.WarehouseCode = warehouseCode;
+    modalRef.componentInstance.selectedList = dataDetail;
+    modalRef.componentInstance.id = dataMaster.ID ?? 0;
+    modalRef.componentInstance.poNCCId = ponccId ?? 0;
+
+    modalRef.result
+      .then((result) => {
+        console.log(`Modal thứ ${index + 1} đã đóng. Kết quả:`, result);
+
+        this.openBillImportModalSequentially(listData, listDetail, listPonccId, warehouseID, index + 1);
+      })
+      .catch((reason) => {
+        console.log(`Modal thứ ${index + 1} bị tắt (dismiss):`, reason);
+
+        this.openBillImportModalSequentially(listData, listDetail, listPonccId, warehouseID, index + 1);
+      });
+  }
+
   onOpenSummary() {
     const modalRef = this.modalService.open(PonccSummaryComponent, {
       backdrop: 'static',
@@ -827,3 +956,4 @@ export class PONCCComponent implements OnInit, AfterViewInit {
     });
   }
 }
+  

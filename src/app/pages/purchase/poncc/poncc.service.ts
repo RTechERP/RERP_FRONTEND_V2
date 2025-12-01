@@ -49,6 +49,14 @@ export class PONCCService {
     return this.http.get<any>(`${this.baseUrl}poncc?ponccId=${ponccId}`);
   }
 
+  getPonccDetail(idText: string, warehouseID: number, detailId: string): Observable<any> {
+    return this.http.get<any>(`${this.baseUrl}poncc-detail?idText=${idText}&warehouseID=${warehouseID}&detailId=${detailId}`);
+  }
+
+  getReceivedId(warehouseID: number, productGroupID: number): Observable<any> {
+    return this.http.get<any>(`${this.baseUrl}receivedId?warehouseID=${warehouseID}&productGroupID=${productGroupID}`);
+  }
+
   approve(ids: number[], isApproved: boolean): Observable<any> {
     return this.http.post<any>(`${this.baseUrl}approve-multiple`, {
       IDs: ids,

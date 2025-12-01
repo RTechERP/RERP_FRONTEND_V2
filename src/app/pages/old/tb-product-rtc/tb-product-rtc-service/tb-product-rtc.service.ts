@@ -24,8 +24,10 @@ export class TbProductRtcService {
     const url = `${this.url + `get-location`}?warehouseID=${id}`;
     return this.http.get<any>(url);
   }
-  getProductRTCGroup(): Observable<any> {
-    return this.http.get<any>(`${this.url + `get-productRTC-group`}`);
+  getProductRTCGroup(warehouseType: number): Observable<any> {
+    return this.http.get<any>(
+      `${this.url + `get-productRTC-group/${warehouseType}`}`
+    );
   }
   saveData(payload: any): Observable<any> {
     return this.http.post(`${this.url + `save-data`}`, payload);
@@ -33,16 +35,16 @@ export class TbProductRtcService {
   saveDataExcel(payload: any): Observable<any> {
     return this.http.post(`${this.url + `save-data-excel`}`, payload);
   }
-  uploadImage(file: File, path:string): Observable<any> {
+  uploadImage(file: File, path: string): Observable<any> {
     const formData = new FormData();
     formData.append('file', file);
-    formData.append('path',path);
+    formData.append('path', path);
     return this.http.post<any>(`${this.url}upload`, formData);
   }
   getProductAjax(): string {
     return `${this.url}get-productRTC`;
   }
-    // Thêm mới: upload-multiple với key PathProductRTC và subPath
+  // Thêm mới: upload-multiple với key PathProductRTC và subPath
   uploadMultipleFiles(files: File[], subPath?: string): Observable<any> {
     const formData = new FormData();
     files.forEach((file) => formData.append('files', file));
@@ -50,7 +52,10 @@ export class TbProductRtcService {
     if (subPath && subPath.trim()) {
       formData.append('subPath', subPath.trim());
     }
-    return this.http.post<any>(`${environment.host}api/Home/upload-multiple`, formData);
+    return this.http.post<any>(
+      `${environment.host}api/Home/upload-multiple`,
+      formData
+    );
   }
   downloadFile(path: string): Observable<ArrayBuffer> {
     return this.http.get<ArrayBuffer>(`${environment.host}api/Home/download`, {

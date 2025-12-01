@@ -144,27 +144,84 @@
                         </div>
                         <div class="card-body p-1" style="height: 24.5rem; overflow: auto;">
 
-                            <nz-collapse style="height: 22.7rem; overflow: auto;">
+                            <ul nz-menu nzMode="inline">
                                 @for (m of menuQuickAccess; track m.key) {
-                                <nz-collapse-panel class="fw-bold" [nzHeader]="m.title" [nzActive]="true">
+                                @for (c1 of m.children; track c1.key) {
+                                <!-- <li nz-menu-item *ngIf="isLeaf(c1) && c1.isPermission && c1.isOpen" (click)="(c1.router || '') === '' 
+                            ? newTab(c1.comp, c1.title, c1.data) 
+                            : menuService.goToOldLink((c1.router ||''),c1.data)">
+                                            <img [src]="c1.icon" class="menu-icon" *ngIf="(c1.icon || '') != ''"
+                                                width="24px" />
+                                            <nz-icon nzType="caret-right" nzTheme="outline"
+                                                *ngIf="(c1.icon || '') == ''" />
+                                            {{c1.title}}
+                                        </li> -->
 
-                                    <nz-list nzSize="small" class="fw-normal">
-                                        @for (c1 of m.children; track c1;let i = $index) {
-                                        <nz-list-item *ngIf="c1.isPermission && c1.isOpen && (c1.router || '') != ''">
-                                            <nz-list-item-meta class="m-0">
-                                                <nz-list-item-meta-avatar [nzSrc]=""></nz-list-item-meta-avatar>
-                                                <nz-list-item-meta-title>
-                                                    <a (click)="menuService.goToOldLink(c1.router,c1.data)"
-                                                        target="_blank">{{m.title}}</a>
-                                                </nz-list-item-meta-title>
-                                            </nz-list-item-meta>
-                                        </nz-list-item>
+                                <ng-template #nzTitle1 style="padding: 0 16px;">
+                                    <img [src]="c1.icon" class="menu-icon" *ngIf="(c1.icon || '') != ''" width="24px"
+                                        style="margin-right: 8px; vertical-align: middle;" />
+                                    <nz-icon nzType="caret-right" nzTheme="outline" *ngIf="(c1.icon || '') == ''" />
+                                    <p class="m-0 fw-bold" style="white-space: pre-line;">{{ c1.title }}</p>
+                                </ng-template>
+                                <li nz-submenu [nzTitle]="nzTitle1"
+                                    *ngIf="isGroup(c1) && c1.isPermission && c1.isOpen && (c1.key == 'dailyreport' || c1.key == 'registercommon')">
+                                    <ul>
+                                        @for (c2 of c1.children; track c2.key) {
+                                        <li nz-menu-item *ngIf="isLeaf(c2) && c2.isPermission && c2.isOpen" (click)="(c2.router || '') === '' 
+                            ? newTab(c2.comp, c2.title, c2.data) 
+                            : menuService.goToOldLink((c2.router ||''),c2.data)">
+                                            <img [src]="c2.icon" class="menu-icon" *ngIf="(c2.icon || '') != ''"
+                                                width="24px" />
+                                            <nz-icon nzType="caret-right" nzTheme="outline"
+                                                *ngIf="(c2.icon || '') == ''" />
+                                            {{c2.title}}
+                                        </li>
 
+
+                                        <ng-template #nzTitle2 style="padding: 0 16px;">
+                                            <img [src]="c2.icon" class="menu-icon" *ngIf="(c2.icon || '') != ''"
+                                                width="24px" style="margin-right: 8px; vertical-align: middle;" />
+                                            <nz-icon nzType="caret-right" nzTheme="outline"
+                                                *ngIf="(c2.icon || '') == ''" />
+                                            <p class="m-0" style="white-space: pre-line;">{{ c2.title }}</p>
+                                        </ng-template>
+                                        <li nz-submenu [nzTitle]="nzTitle2"
+                                            *ngIf="isGroup(c2) && c2.isPermission && c2.isOpen">
+                                            <ul>
+                                                @for (c3 of c2.children; track c3.key) {
+                                                <li nz-menu-item *ngIf="isLeaf(c3) && c3.isPermission && c3.isOpen"
+                                                    (click)="(c3.router || '') === '' 
+                            ? newTab(c3.comp, c3.title, c3.data) 
+                            : menuService.goToOldLink((c3.router ||''),c3.data)">
+                                                    <img [src]="c3.icon" class="menu-icon" *ngIf="(c3.icon || '') != ''"
+                                                        width="24px" />
+                                                    <nz-icon nzType="caret-right" nzTheme="outline"
+                                                        *ngIf="(c3.icon || '') == ''" />
+                                                    {{c3.title}}
+                                                </li>
+                                                }
+
+                                            </ul>
+                                        </li>
                                         }
-                                    </nz-list>
-                                </nz-collapse-panel>
+
+                                    </ul>
+                                </li>
                                 }
-                            </nz-collapse>
+                                <!-- <ng-template #nzTitle style="padding: 0 16px;">
+                                    <img [src]="m.icon" class="menu-icon" *ngIf="(m.icon || '') != ''" width="24px"
+                                        style="margin-right: 8px; vertical-align: bottom;" />
+                                    <nz-icon nzType="caret-right" nzTheme="outline" *ngIf="(m.icon || '') == ''" />
+                                    <p class="m-0 fw-bold">{{ m.title }}</p>
+                                </ng-template>
+                                <li nz-submenu [nzTitle]="nzTitle" *ngIf="isGroup(m) && m.isPermission && m.isOpen"
+                                    nzOpen="">
+                                    <ul>
+                                        
+                                    </ul>
+                                </li> -->
+                                }
+                            </ul>
 
                             <!-- <nz-list nzItemLayout="vertical">
 

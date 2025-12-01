@@ -1,4 +1,4 @@
-import { NzNotificationService } from 'ng-zorro-antd/notification'
+import { NzNotificationService } from 'ng-zorro-antd/notification';
 import {
   Component,
   OnInit,
@@ -6,10 +6,14 @@ import {
   Output,
   EventEmitter,
   inject,
-  AfterViewInit
+  AfterViewInit,
 } from '@angular/core';
 
-import { TabulatorFull as Tabulator, CellComponent, ColumnDefinition } from 'tabulator-tables';
+import {
+  TabulatorFull as Tabulator,
+  CellComponent,
+  ColumnDefinition,
+} from 'tabulator-tables';
 import * as ExcelJS from 'exceljs';
 import { DateTime } from 'luxon';
 import { CommonModule } from '@angular/common';
@@ -25,7 +29,7 @@ import { TbProductRtcService } from '../tb-product-rtc-service/tb-product-rtc.se
 import { UnitService } from '../../../hrm/asset/asset/ts-asset-unitcount/ts-asset-unit-service/ts-asset-unit.service';
 export const SERVER_PATH = `D:\RTC_Sw\RTC\ProductRTC`;
 import { NzProgressModule } from 'ng-zorro-antd/progress';
-import { NzSplitterModule } from 'ng-zorro-antd/splitter';  
+import { NzSplitterModule } from 'ng-zorro-antd/splitter';
 import { HasPermissionDirective } from '../../../../directives/has-permission.directive';
 import { NOTIFICATION_TITLE } from '../../../../app.config';
 
@@ -45,18 +49,19 @@ function formatDate(value: any): string | null {
     NzSplitterModule,
     NzInputModule,
     NzSelectModule,
-    NzProgressModule
-    ,HasPermissionDirective
+    NzProgressModule,
+    HasPermissionDirective,
   ],
   selector: 'app-tb-product-rtc-import-excel',
   templateUrl: './tb-product-rtc-import-excel.component.html',
-  styleUrls: ['./tb-product-rtc-import-excel.component.css']
+  styleUrls: ['./tb-product-rtc-import-excel.component.css'],
 })
 export class TbProductRtcImportExcelComponent implements OnInit {
   @Input() table: any;
   @Input() lastAddedIdProduct: number | null = null;
   @Input() searchText: string = '';
   @Input() id: number = 0;
+  @Input() warehouseType: number = 1;
   emPloyeeLists: any[] = [];
   filePath: string = '';
   excelSheets: string[] = [];
@@ -81,11 +86,10 @@ export class TbProductRtcImportExcelComponent implements OnInit {
   constructor(private notification: NzNotificationService,
     private modalService: NgbModal,
     private unitService: UnitService,
-    private tbProductRtcService: TbProductRtcService,
-  ) { }
+    private tbProductRtcService: TbProductRtcService
+  ) {}
   ngOnInit() {
     this.loadUnit();
- 
   }
   drawTable() {
     if (!this.tableExcel) {
@@ -99,60 +103,77 @@ export class TbProductRtcImportExcelComponent implements OnInit {
         reactiveData: true,
         autoColumns: true,
         autoColumnsDefinitions: {
-          ID: { title: "ID", field: "ID" },
-          ProductCode: { title: "Mã sản phẩm", field: "ProductCode" },
-          ProductName: { title: "Tên sản phẩm", field: "ProductName" },
-          ProductGroupName: { title: "Tên nhóm", field: "ProductGroupName",},
-          ProductCodeRTC: { title: "Code RTC", field: "ProductCodeRTC" },
-          LocationName: { title: "Vị trí", field: "LocationName" },
-          FirmName: { title: "FirmName", field: "FirmName" },
-          Serial: { title: "Serial", field: "Serial" },
-          SerialNumber: { title: "Serial Number", field: "SerialNumber" },
-          PartNumber: { title: "Part Number", field: "PartNumber" },
-          UnitName: { title: "ĐVT", field: "UnitName" }, // đổi title cho dễ nhìn
-          Number: { title: "Số lượng", field: "Number" },
-          NumberInStore: { title: "SL tồn kho", field: "NumberInStore" },
-          SLKiemKe: { title: "SL kiểm kê", field: "SLKiemKe" },
-          BorrowCustomer: { title: "Mượn KH?", field: "BorrowCustomer", formatter: "tickCross" },
-          StatusProduct: { title: "Trạng thái", field: "StatusProduct", formatter: "tickCross" },
-          Note: { title: "Ghi chú", field: "Note" },
-          CreatedBy: { title: "Người tạo", field: "CreatedBy" },
-          CreateDate: {
-            title: "Ngày tạo",
-            field: "CreateDate",
-            formatter: "datetime",
-            formatterParams: { outputFormat: "DD/MM/YYYY HH:mm" }
+          ID: { title: 'ID', field: 'ID' },
+          ProductCode: { title: 'Mã sản phẩm', field: 'ProductCode' },
+          ProductName: { title: 'Tên sản phẩm', field: 'ProductName' },
+          ProductGroupName: { title: 'Tên nhóm', field: 'ProductGroupName' },
+          ProductCodeRTC: { title: 'Code RTC', field: 'ProductCodeRTC' },
+          LocationName: { title: 'Vị trí', field: 'LocationName' },
+          FirmName: { title: 'FirmName', field: 'FirmName' },
+          Serial: { title: 'Serial', field: 'Serial' },
+          SerialNumber: { title: 'Serial Number', field: 'SerialNumber' },
+          PartNumber: { title: 'Part Number', field: 'PartNumber' },
+          UnitName: { title: 'ĐVT', field: 'UnitName' }, // đổi title cho dễ nhìn
+          Number: { title: 'Số lượng', field: 'Number' },
+          NumberInStore: { title: 'SL tồn kho', field: 'NumberInStore' },
+          SLKiemKe: { title: 'SL kiểm kê', field: 'SLKiemKe' },
+          BorrowCustomer: {
+            title: 'Mượn KH?',
+            field: 'BorrowCustomer',
+            formatter: 'tickCross',
           },
-          LensMount: { title: "Lens Mount", field: "LensMount" },
-          FocalLength: { title: "Focal Length", field: "FocalLength" },
-          MOD: { title: "MOD", field: "MOD" },
-          Magnification: { title: "Magnification", field: "Magnification" },
-          SensorSize: { title: "Sensor Size", field: "SensorSize" },
-          SensorSizeMax: { title: "Sensor Size Max", field: "SensorSizeMax" },
-          Resolution: { title: "Resolution", field: "Resolution" },
-          ShutterMode: { title: "Shutter Mode", field: "ShutterMode" },
-          MonoColor: { title: "Mono/Color", field: "MonoColor" },
-          PixelSize: { title: "Pixel Size", field: "PixelSize" },
-          LampType: { title: "LampType", field: "LampType" },
-          LampPower: { title: "LampPower", field: "LampPower" },
-          LampWattage: { title: "LampWattage", field: "LampWattage" },
-          LampColor: { title: "LampColor", field: "LampColor" },
-          DataInterface: { title: "Data Interface", field: "DataInterface" },
-          InputValue: { title: "Input Value", field: "InputValue" },
-          OutputValue: { title: "Output Value", field: "OutputValue" },
-          CurrentIntensityMax: { title: "Cường độ dòng tối đa", field: "CurrentIntensityMax" },
-          Size: { title: "Kích thước", field: "Size" },
-          LocationImg: { title: "Ảnh vị trí", field: "LocationImg" },
-          AddressBox: { title: "AddressBox", field: "AddressBox" },
-          WarehouseID: { title: "Kho", field: "WarehouseID", visible: false },
-          FNo: { title: "FNo", field: "FNo", visible: false },
-          WD: { title: "WD", field: "WD", visible: false },
-          Status: { title: "Trạng thái thiết bị", field: "Status", visible: false },
-          FirmID: { title: "Hãng thiết bị (ID)", field: "FirmID", visible: false },
-          CodeHCM: { title: "Code HCM", field: "CodeHCM", visible: false }
-        }
-
-
+          StatusProduct: {
+            title: 'Trạng thái',
+            field: 'StatusProduct',
+            formatter: 'tickCross',
+          },
+          Note: { title: 'Ghi chú', field: 'Note' },
+          CreatedBy: { title: 'Người tạo', field: 'CreatedBy' },
+          CreateDate: {
+            title: 'Ngày tạo',
+            field: 'CreateDate',
+            formatter: 'datetime',
+            formatterParams: { outputFormat: 'DD/MM/YYYY HH:mm' },
+          },
+          LensMount: { title: 'Lens Mount', field: 'LensMount' },
+          FocalLength: { title: 'Focal Length', field: 'FocalLength' },
+          MOD: { title: 'MOD', field: 'MOD' },
+          Magnification: { title: 'Magnification', field: 'Magnification' },
+          SensorSize: { title: 'Sensor Size', field: 'SensorSize' },
+          SensorSizeMax: { title: 'Sensor Size Max', field: 'SensorSizeMax' },
+          Resolution: { title: 'Resolution', field: 'Resolution' },
+          ShutterMode: { title: 'Shutter Mode', field: 'ShutterMode' },
+          MonoColor: { title: 'Mono/Color', field: 'MonoColor' },
+          PixelSize: { title: 'Pixel Size', field: 'PixelSize' },
+          LampType: { title: 'LampType', field: 'LampType' },
+          LampPower: { title: 'LampPower', field: 'LampPower' },
+          LampWattage: { title: 'LampWattage', field: 'LampWattage' },
+          LampColor: { title: 'LampColor', field: 'LampColor' },
+          DataInterface: { title: 'Data Interface', field: 'DataInterface' },
+          InputValue: { title: 'Input Value', field: 'InputValue' },
+          OutputValue: { title: 'Output Value', field: 'OutputValue' },
+          CurrentIntensityMax: {
+            title: 'Cường độ dòng tối đa',
+            field: 'CurrentIntensityMax',
+          },
+          Size: { title: 'Kích thước', field: 'Size' },
+          LocationImg: { title: 'Ảnh vị trí', field: 'LocationImg' },
+          AddressBox: { title: 'AddressBox', field: 'AddressBox' },
+          WarehouseID: { title: 'Kho', field: 'WarehouseID', visible: false },
+          FNo: { title: 'FNo', field: 'FNo', visible: false },
+          WD: { title: 'WD', field: 'WD', visible: false },
+          Status: {
+            title: 'Trạng thái thiết bị',
+            field: 'Status',
+            visible: false,
+          },
+          FirmID: {
+            title: 'Hãng thiết bị (ID)',
+            field: 'FirmID',
+            visible: false,
+          },
+          CodeHCM: { title: 'Code HCM', field: 'CodeHCM', visible: false },
+        },
       });
     } else {
       this.tableExcel.setData(this.dataTableExcel || []);
@@ -160,12 +181,15 @@ export class TbProductRtcImportExcelComponent implements OnInit {
   }
   formatProgressText = (percent: number): string => {
     return this.displayText;
-  }
+  };
   importFromExcel(): void {
     if (this.table) {
-      this.table.import("xlsx", [".xlsx", ".csv", ".ods"], "buffer");
+      this.table.import('xlsx', ['.xlsx', '.csv', '.ods'], 'buffer');
     } else {
-      this.notification.warning(NOTIFICATION_TITLE.warning, 'Bảng chưa được khởi tạo!');
+      this.notification.warning(
+        NOTIFICATION_TITLE.warning,
+        'Bảng chưa được khởi tạo!'
+      );
     }
   }
   openFileExplorer() {
@@ -180,7 +204,10 @@ export class TbProductRtcImportExcelComponent implements OnInit {
       console.log('File đã chọn:', file.name); // Log để kiểm tra
       console.log('Phần mở rộng:', fileExtension); // Log để kiểm tra
       if (fileExtension !== 'xlsx' && fileExtension !== 'xls') {
-        this.notification.warning(NOTIFICATION_TITLE.warning, 'Vui lòng chọn tệp Excel (.xlsx hoặc .xls)!');
+        this.notification.warning(
+          NOTIFICATION_TITLE.warning,
+          'Vui lòng chọn tệp Excel (.xlsx hoặc .xls)!'
+        );
         input.value = '';
         this.resetExcelImportState();
         return;
@@ -208,7 +235,7 @@ export class TbProductRtcImportExcelComponent implements OnInit {
           const workbook = new ExcelJS.Workbook();
           await workbook.xlsx.load(data);
           console.log('Workbook đã được tải bởi ExcelJS.');
-          this.excelSheets = workbook.worksheets.map(sheet => sheet.name);
+          this.excelSheets = workbook.worksheets.map((sheet) => sheet.name);
           console.log('Danh sách sheets tìm thấy:', this.excelSheets);
           if (this.excelSheets.length > 0) {
             this.selectedSheet = this.excelSheets[0];
@@ -224,7 +251,9 @@ export class TbProductRtcImportExcelComponent implements OnInit {
                 } else {
                   this.displayText = `0/${this.totalRowsAfterFileRead} bản ghi`;
                 }
-                console.log('Dữ liệu đã được đọc và bảng Excel preview đã được cập nhật (sau delay).');
+                console.log(
+                  'Dữ liệu đã được đọc và bảng Excel preview đã được cập nhật (sau delay).'
+                );
               }, minDisplayTime - elapsedTime);
             } else {
               // Nếu quá trình xử lý đã đủ lâu, cập nhật ngay lập tức
@@ -234,16 +263,27 @@ export class TbProductRtcImportExcelComponent implements OnInit {
               } else {
                 this.displayText = `0/${this.totalRowsAfterFileRead} bản ghi`;
               }
-              console.log('Dữ liệu đã được đọc và bảng Excel preview đã được cập nhật.');
+              console.log(
+                'Dữ liệu đã được đọc và bảng Excel preview đã được cập nhật.'
+              );
             }
           } else {
             console.warn('File Excel không chứa bất kỳ sheet nào.'); // Log
-            this.notification.warning(NOTIFICATION_TITLE.warning, 'File Excel không có sheet nào!');
+            this.notification.warning(
+              NOTIFICATION_TITLE.warning,
+              'File Excel không có sheet nào!'
+            );
             this.resetExcelImportState();
           }
         } catch (error) {
-          console.error('Lỗi khi đọc tệp Excel trong FileReader.onload:', error); // Log chi tiết lỗi
-          this.notification.error(NOTIFICATION_TITLE.error, 'Không thể đọc tệp Excel. Vui lòng đảm bảo tệp không bị hỏng và đúng định dạng.');
+          console.error(
+            'Lỗi khi đọc tệp Excel trong FileReader.onload:',
+            error
+          ); // Log chi tiết lỗi
+          this.notification.error(
+            NOTIFICATION_TITLE.error,
+            'Không thể đọc tệp Excel. Vui lòng đảm bảo tệp không bị hỏng và đúng định dạng.'
+          );
           this.resetExcelImportState();
         }
         input.value = '';
@@ -254,7 +294,9 @@ export class TbProductRtcImportExcelComponent implements OnInit {
   onSheetChange() {
     console.log('Sheet đã thay đổi thành:', this.selectedSheet);
     if (this.filePath) {
-      const fileInput = document.getElementById('fileInput') as HTMLInputElement;
+      const fileInput = document.getElementById(
+        'fileInput'
+      ) as HTMLInputElement;
       if (fileInput.files && fileInput.files.length > 0) {
         const file = fileInput.files[0];
         const reader = new FileReader();
@@ -268,7 +310,10 @@ export class TbProductRtcImportExcelComponent implements OnInit {
             console.log('Dữ liệu đã được đọc lại sau khi thay đổi sheet.'); // Log
           } catch (error) {
             console.error('Lỗi khi đọc tệp Excel khi thay đổi sheet:', error);
-            this.notification.error(NOTIFICATION_TITLE.error, 'Không thể đọc dữ liệu từ sheet đã chọn!');
+            this.notification.error(
+              NOTIFICATION_TITLE.error,
+              'Không thể đọc dữ liệu từ sheet đã chọn!'
+            );
             this.resetExcelImportState();
           }
         };
@@ -296,7 +341,9 @@ export class TbProductRtcImportExcelComponent implements OnInit {
     this.modalService.dismissAll(true);
   }
   private normalizeHeader(h: any): string {
-    const s = (typeof h === 'string' ? h : h?.toString() || '').trim().toLowerCase();
+    const s = (typeof h === 'string' ? h : h?.toString() || '')
+      .trim()
+      .toLowerCase();
     return s.normalize('NFD').replace(/[\u0300-\u036f]/g, ''); // bỏ dấu
   }
 
@@ -307,24 +354,24 @@ export class TbProductRtcImportExcelComponent implements OnInit {
     'ten san pham': 'ProductName',
     'ten thiet bi': 'ProductName',
     // Nhóm / Kho / Vị trí
-    'productgroupname': 'ProductGroupName',
+    productgroupname: 'ProductGroupName',
     'ten nhom': 'ProductGroupName',
     'vi tri': 'LocationName',
-    'kho': 'WarehouseID',
+    kho: 'WarehouseID',
     // Đơn vị / Hãng
     // 'unitname': 'UnitName',
     // 'don vi': 'UnitName',
-    'đvt': 'UnitName',   // thêm: ĐVT
-    'dvt': 'UnitName',   // thêm: DVT
-    'DVT': 'UnitName',
-    'firmname': 'FirmName',
-    'hang': 'FirmName',
+    đvt: 'UnitName', // thêm: ĐVT
+    dvt: 'UnitName', // thêm: DVT
+    DVT: 'UnitName',
+    firmname: 'FirmName',
+    hang: 'FirmName',
     'hang thiet bi (id)': 'FirmID',
     // Code
     'code rtc': 'ProductCodeRTC',
     'code hcm': 'CodeHCM',
     // Thông số, số lượng, trạng thái
-    'serial': 'Serial',
+    serial: 'Serial',
     'serial number': 'SerialNumber',
     'part number': 'PartNumber',
     'so luong': 'Number',
@@ -340,11 +387,11 @@ export class TbProductRtcImportExcelComponent implements OnInit {
     // Quang học, camera
     'lens mount': 'LensMount',
     'focal length': 'FocalLength',
-    'mod': 'MOD',
-    'magnification': 'Magnification',
+    mod: 'MOD',
+    magnification: 'Magnification',
     'sensor size': 'SensorSize',
     'sensor size max': 'SensorSizeMax',
-    'resolution': 'Resolution',
+    resolution: 'Resolution',
     'shutter mode': 'ShutterMode',
     'mono/color': 'MonoColor',
     'mono color': 'MonoColor',
@@ -361,9 +408,9 @@ export class TbProductRtcImportExcelComponent implements OnInit {
     'cuong do dong toi da': 'CurrentIntensityMax',
     'kich thuoc': 'Size',
     'anh vi tri': 'LocationImg',
-    'addressbox': 'AddressBox',
-    'fno': 'FNo',
-    'wd': 'WD'
+    addressbox: 'AddressBox',
+    fno: 'FNo',
+    wd: 'WD',
   };
 
   async readExcelData(workbook: ExcelJS.Workbook, sheetName: string) {
@@ -375,11 +422,24 @@ export class TbProductRtcImportExcelComponent implements OnInit {
       const headerRow = worksheet.getRow(1);
       const fieldToCol: Record<string, number> = {};
       for (let c = 1; c <= headerRow.cellCount; c++) {
-        const raw = (headerRow.getCell(c)?.text ?? headerRow.getCell(c)?.value ?? '').toString();
+        const raw = (
+          headerRow.getCell(c)?.text ??
+          headerRow.getCell(c)?.value ??
+          ''
+        ).toString();
         const norm = this.normalizeHeader(raw);
         const field = this.headerSynonyms[norm] || norm; // nếu trùng sẵn field chuẩn thì dùng trực tiếp
         if (field) fieldToCol[field] = c;
       }
+
+      //   const headerRow = worksheet.getRow(1);
+      //   const fieldToCol: Record<string, number> = {};
+      //   for (let c = 1; c <= headerRow.cellCount; c++) {
+      //     const raw = (headerRow.getCell(c)?.text ?? headerRow.getCell(c)?.value ?? '').toString();
+      //     const norm = this.normalizeHeader(raw);
+      //     const field = this.headerSynonyms[norm] || norm; // nếu trùng sẵn field chuẩn thì dùng trực tiếp
+      //     if (field) fieldToCol[field] = c;
+      //   }
 
       const data: any[] = [];
       let validRecords = 0;
@@ -389,8 +449,12 @@ export class TbProductRtcImportExcelComponent implements OnInit {
 
         // yêu cầu có ít nhất mã hoặc tên để coi là bản ghi hợp lệ
         const firstVal =
-          (fieldToCol['ProductCode'] ? row.getCell(fieldToCol['ProductCode']).value : null) ||
-          (fieldToCol['ProductName'] ? row.getCell(fieldToCol['ProductName']).value : null);
+          (fieldToCol['ProductCode']
+            ? row.getCell(fieldToCol['ProductCode']).value
+            : null) ||
+          (fieldToCol['ProductName']
+            ? row.getCell(fieldToCol['ProductName']).value
+            : null);
         if (!firstVal) return;
 
         const getValueByField = (field: string) => {
@@ -417,7 +481,15 @@ export class TbProductRtcImportExcelComponent implements OnInit {
         };
         const getBoolByField = (field: string) => {
           const v = getValueByField(field).toLowerCase();
-          return v === 'true' || v === '1' || v === 'x' || v === 'yes' || v === 'y' || v === 'co' || v === 'có';
+          return (
+            v === 'true' ||
+            v === '1' ||
+            v === 'x' ||
+            v === 'yes' ||
+            v === 'y' ||
+            v === 'co' ||
+            v === 'có'
+          );
         };
 
         const rowData = {
@@ -465,19 +537,21 @@ export class TbProductRtcImportExcelComponent implements OnInit {
           WD: getValueByField('WD'),
           Status: getValueByField('Status'),
           FirmID: getValueByField('FirmID'),
-          CodeHCM: getValueByField('CodeHCM')
+          CodeHCM: getValueByField('CodeHCM'),
         };
 
         data.push(rowData);
         validRecords++;
       });
 
+      console.log('data import:', data);
       this.dataTableExcel = data;
       this.totalRowsAfterFileRead = validRecords;
       this.displayProgress = 0;
-      this.displayText = validRecords === 0
-        ? 'Không có dữ liệu hợp lệ trong sheet.'
-        : `0/${validRecords} bản ghi`;
+      this.displayText =
+        validRecords === 0
+          ? 'Không có dữ liệu hợp lệ trong sheet.'
+          : `0/${validRecords} bản ghi`;
 
       if (this.tableExcel) {
         this.tableExcel.replaceData(data);
@@ -488,7 +562,10 @@ export class TbProductRtcImportExcelComponent implements OnInit {
       console.log(`Đã load ${validRecords} bản ghi hợp lệ.`);
     } catch (error) {
       console.error('Lỗi khi đọc dữ liệu từ sheet:', error);
-      this.notification.error(NOTIFICATION_TITLE.error, 'Không thể đọc dữ liệu từ sheet!');
+      this.notification.error(
+        NOTIFICATION_TITLE.error,
+        'Không thể đọc dữ liệu từ sheet!'
+      );
       this.resetExcelImportState();
     }
   }
@@ -498,10 +575,7 @@ export class TbProductRtcImportExcelComponent implements OnInit {
     const code = normalize(row.ProductCode);
 
     const isDuplicate = existingList.some((item: any) => {
-      return (
-        (normalize(item.ProductCode) === code)
-
-      );
+      return normalize(item.ProductCode) === code;
     });
 
     return isDuplicate;
@@ -510,22 +584,31 @@ export class TbProductRtcImportExcelComponent implements OnInit {
   async saveExcelData() {
     if (this.isSaving) return;
     if (!this.dataTableExcel || this.dataTableExcel.length === 0) {
-      this.notification.warning(NOTIFICATION_TITLE.warning, 'Không có dữ liệu để lưu!');
+      this.notification.warning(
+        NOTIFICATION_TITLE.warning,
+        'Không có dữ liệu để lưu!'
+      );
       return;
     }
 
-    const validDataToSave = this.dataTableExcel.filter(row => row.ProductCode && row.ProductName);
+    const validDataToSave = this.dataTableExcel.filter(
+      (row) => row.ProductCode && row.ProductName
+    );
     if (validDataToSave.length === 0) {
-      this.notification.warning(NOTIFICATION_TITLE.warning, 'Không có dữ liệu thiết bị hợp lệ để lưu!');
+      this.notification.warning(
+        NOTIFICATION_TITLE.warning,
+        'Không có dữ liệu thiết bị hợp lệ để lưu!'
+      );
       this.displayProgress = 0;
       this.displayText = `0/${this.totalRowsAfterFileRead} bản ghi`;
       return;
     }
 
     // Map toàn bộ rows sang DTO theo API
-    const productRTCs = validDataToSave.map(row => ({
+    const productRTCs = validDataToSave.map((row) => ({
       ID: 0,
-      ProductGroupRTCID: this.getProductGroupIdByName(row.ProductGroupName) || 0,
+      ProductGroupRTCID:
+        this.getProductGroupIdByName(row.ProductGroupName) || 0,
       ProductCode: row.ProductCode || '',
       ProductName: row.ProductName || '',
       UnitCountID: this.getUnitIdByName(row.UnitName) || 0,
@@ -569,15 +652,15 @@ export class TbProductRtcImportExcelComponent implements OnInit {
       CurrentIntensityMax: row.CurrentIntensityMax || '',
       Status: 0,
       Size: row.Size || '',
-      CodeHCM: row.CodeHCM || ''
-      ,IsDeleted: false
-      ,IsDelete: false
+      CodeHCM: row.CodeHCM || '',
+      IsDeleted: false,
+      IsDelete: false,
     }));
 
     const payload = {
       // Có thể truyền productGroupRTC nếu cần server tạo/cập nhật nhóm
       // productGroupRTC: { ... },
-      productRTCs
+      productRTCs,
     };
 
     this.displayText = `Đang lưu: ${validDataToSave.length}/${validDataToSave.length} bản ghi`;
@@ -588,10 +671,16 @@ export class TbProductRtcImportExcelComponent implements OnInit {
       next: (res: any) => {
         // Hiển thị chính xác message từ API
         if (res.status === 1) {
-          this.notification.success('Thông báo', res.message || 'Lưu dữ liệu thành công.');
+          this.notification.success(
+            'Thông báo',
+            res.message || 'Lưu dữ liệu thành công.'
+          );
           this.closeExcelModal(); // đóng modal khi thành công
         } else {
-          this.notification.warning('Thông báo', res.message || 'Lưu dữ liệu có lỗi.');
+          this.notification.warning(
+            'Thông báo',
+            res.message || 'Lưu dữ liệu có lỗi.'
+          );
         }
 
         this.displayProgress = 100;
@@ -618,116 +707,135 @@ export class TbProductRtcImportExcelComponent implements OnInit {
   private loadUnit() {
     this.unitService.getUnit().subscribe((res: any) => {
       this.unitData = res.data;
-      console.log("unit:", this.unitData);
+      console.log('unit:', this.unitData);
     });
     this.tbProductRtcService.getFirm().subscribe((response: any) => {
       this.firmData = response.data;
-      console.log("Firm:", this.firmData);
+      console.log('Firm:', this.firmData);
     });
     this.tbProductRtcService.getLocation(1).subscribe((response: any) => {
       this.locationData = response.data.location;
-      console.log("Location", this.locationData);
+      console.log('Location', this.locationData);
     });
-    this.tbProductRtcService.getProductRTCGroup().subscribe((resppon: any) => {
-      this.productGroupData = resppon.data;
-      console.log("Group", this.productGroupData);
-    });
+    this.tbProductRtcService
+      .getProductRTCGroup(this.warehouseType)
+      .subscribe((resppon: any) => {
+        this.productGroupData = resppon.data;
+        console.log('Group', this.productGroupData);
+      });
   }
   private getUnitIdByName(unitName: string): number {
     const key = (unitName || '').trim().toLowerCase();
-    const unit = this.unitData.find(u => (u.UnitName || '').trim().toLowerCase() === key);
+    const unit = this.unitData.find(
+      (u) => (u.UnitName || '').trim().toLowerCase() === key
+    );
     return unit ? unit.ID : 0;
   }
 
   private getFirmIdByName(firmName: string): number {
-    const firm = this.firmData.find(f => f.FirmName.trim().toLowerCase() === firmName.trim().toLowerCase());
+    const firm = this.firmData.find(
+      (f) => f.FirmName.trim().toLowerCase() === firmName.trim().toLowerCase()
+    );
     return firm ? firm.ID : 0;
   }
 
   private getLocationIdByName(locationName: string): number {
-    const location = this.locationData.find(l => l.LocationName.trim().toLowerCase() === locationName.trim().toLowerCase());
+    const location = this.locationData.find(
+      (l) =>
+        l.LocationName.trim().toLowerCase() ===
+        locationName.trim().toLowerCase()
+    );
     return location ? location.ID : 0;
   }
   private getProductGroupIdByName(ProductGroupName: string): number {
-    const group = this.productGroupData.find(g => g.ProductGroupName.trim().toLowerCase() === ProductGroupName.trim().toLowerCase());
-    console.log("group:", group);
-    
+    const group = this.productGroupData.find(
+      (g) =>
+        g.ProductGroupName.trim().toLowerCase() ===
+        ProductGroupName.trim().toLowerCase()
+    );
+    console.log('group:', group);
+
     return group ? group.ID : 0;
   }
-async exportToExcelProduct() {
-  if (!this.tableExcel) return;
+  async exportToExcelProduct() {
+    if (!this.tableExcel) return;
 
-  const selectedData = [...this.dataTableExcel];
-  if (!selectedData || selectedData.length === 0) {
-    this.notification.info('Thông báo', 'Không có dữ liệu để xuất Excel.');
-    return;
-  }
+    const selectedData = [...this.dataTableExcel];
+    if (!selectedData || selectedData.length === 0) {
+      this.notification.info('Thông báo', 'Không có dữ liệu để xuất Excel.');
+      return;
+    }
 
-  const workbook = new ExcelJS.Workbook();
-  const worksheet = workbook.addWorksheet('Danh sách thiết bị');
+    const workbook = new ExcelJS.Workbook();
+    const worksheet = workbook.addWorksheet('Danh sách thiết bị');
 
-  const columns: ColumnDefinition[] = this.tableExcel
-    .getColumnDefinitions()
-    .filter((col: ColumnDefinition) =>
-      col.visible !== false && col.field && col.field.trim() !== ''
+    const columns: ColumnDefinition[] = this.tableExcel
+      .getColumnDefinitions()
+      .filter(
+        (col: ColumnDefinition) =>
+          col.visible !== false && col.field && col.field.trim() !== ''
+      );
+
+    // Header
+    const headerRow = worksheet.addRow(
+      columns.map((col) => col.title || col.field)
     );
+    headerRow.font = { bold: true };
+    headerRow.fill = {
+      type: 'pattern',
+      pattern: 'solid',
+      fgColor: { argb: 'FFE0E0E0' },
+    };
 
-  // Header
-  const headerRow = worksheet.addRow(columns.map(col => col.title || col.field));
-  headerRow.font = { bold: true };
-  headerRow.fill = {
-    type: 'pattern',
-    pattern: 'solid',
-    fgColor: { argb: 'FFE0E0E0' },
-  };
-
-  // Data rows
-  selectedData.forEach((row: any) => {
-    const rowData = columns.map((col: ColumnDefinition) => {
-      const value = row[col.field as string]; // Cast để tránh lỗi
-      switch (col.field) {
-        case 'BorrowCustomer':
-          return value ? 'Có' : 'Không';
-        case 'CreateDate':
-          return value ? new Date(value).toLocaleDateString('vi-VN') : '';
-        default:
-          return value !== null && value !== undefined ? value : '';
-      }
+    // Data rows
+    selectedData.forEach((row: any) => {
+      const rowData = columns.map((col: ColumnDefinition) => {
+        const value = row[col.field as string]; // Cast để tránh lỗi
+        switch (col.field) {
+          case 'BorrowCustomer':
+            return value ? 'Có' : 'Không';
+          case 'CreateDate':
+            return value ? new Date(value).toLocaleDateString('vi-VN') : '';
+          default:
+            return value !== null && value !== undefined ? value : '';
+        }
+      });
+      worksheet.addRow(rowData);
     });
-    worksheet.addRow(rowData);
-  });
 
-  // Column width
-  worksheet.columns.forEach(col => {
-    col.width = 20;
-  });
-
-  // Border + alignment
-  worksheet.eachRow((row, rowNumber) => {
-    row.eachCell(cell => {
-      cell.border = {
-        top: { style: 'thin' },
-        left: { style: 'thin' },
-        bottom: { style: 'thin' },
-        right: { style: 'thin' },
-      };
-      if (rowNumber === 1) {
-        cell.alignment = { horizontal: 'center', vertical: 'middle' };
-      }
+    // Column width
+    worksheet.columns.forEach((col) => {
+      col.width = 20;
     });
-  });
 
-  // Tạo và tải file
-  const buffer = await workbook.xlsx.writeBuffer();
-  const blob = new Blob([buffer], {
-    type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
-  });
-  const link = document.createElement('a');
-  link.href = URL.createObjectURL(blob);
-  link.download = `danh-sach-thiet-bi-loi-${new Date().toISOString().split('T')[0]}.xlsx`;
-  document.body.appendChild(link);
-  link.click();
-  document.body.removeChild(link);
-  URL.revokeObjectURL(link.href);
-}
+    // Border + alignment
+    worksheet.eachRow((row, rowNumber) => {
+      row.eachCell((cell) => {
+        cell.border = {
+          top: { style: 'thin' },
+          left: { style: 'thin' },
+          bottom: { style: 'thin' },
+          right: { style: 'thin' },
+        };
+        if (rowNumber === 1) {
+          cell.alignment = { horizontal: 'center', vertical: 'middle' };
+        }
+      });
+    });
+
+    // Tạo và tải file
+    const buffer = await workbook.xlsx.writeBuffer();
+    const blob = new Blob([buffer], {
+      type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+    });
+    const link = document.createElement('a');
+    link.href = URL.createObjectURL(blob);
+    link.download = `danh-sach-thiet-bi-loi-${
+      new Date().toISOString().split('T')[0]
+    }.xlsx`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(link.href);
+  }
 }

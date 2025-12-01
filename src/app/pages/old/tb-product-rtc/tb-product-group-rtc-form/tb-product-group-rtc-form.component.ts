@@ -1,5 +1,18 @@
-import { Component, OnInit, Input, Output, EventEmitter, inject, AfterViewInit } from '@angular/core';
-import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
+import {
+  Component,
+  OnInit,
+  Input,
+  Output,
+  EventEmitter,
+  inject,
+  AfterViewInit,
+} from '@angular/core';
+import {
+  FormBuilder,
+  FormGroup,
+  Validators,
+  ReactiveFormsModule,
+} from '@angular/forms';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { NzNotificationService } from 'ng-zorro-antd/notification';
@@ -32,14 +45,16 @@ import { NOTIFICATION_TITLE } from '../../../../app.config';
     NzButtonModule,
     NzModalModule,
     NzFormModule,
-    HasPermissionDirective
+    HasPermissionDirective,
   ],
   selector: 'app-tb-product-group-rtc-form',
   templateUrl: './tb-product-group-rtc-form.component.html',
-  styleUrls: ['./tb-product-group-rtc-form.component.css']
+  styleUrls: ['./tb-product-group-rtc-form.component.css'],
 })
 export class TbProductGroupRtcFormComponent implements OnInit, AfterViewInit {
   @Input() dataInput: any;
+  @Input() warehouseType: number = 1;
+
   @Output() closeModal = new EventEmitter<void>();
   @Output() formSubmitted = new EventEmitter<void>();
 
@@ -54,7 +69,7 @@ export class TbProductGroupRtcFormComponent implements OnInit, AfterViewInit {
     this.formGroup = this.fb.group({
       NumberOrder: [null, [Validators.required]],
       ProductGroupNo: ['', [Validators.required, Validators.maxLength(20)]],
-      ProductGroupName: ['', [Validators.required, Validators.maxLength(100)]]
+      ProductGroupName: ['', [Validators.required, Validators.maxLength(100)]],
     });
   }
 
@@ -80,32 +95,41 @@ export class TbProductGroupRtcFormComponent implements OnInit, AfterViewInit {
         ProductGroupName: formValue.ProductGroupName,
         ProductGroupNo: formValue.ProductGroupNo,
         WarehouseID: this.dataInput?.WarehouseID || 1,
-        IsDeleted: false
+        IsDeleted: false,
+        WarehouseType: this.warehouseType,
       },
-      productRTCs: []
+      productRTCs: [],
     };
-    console.log("Payload", payload);
+    console.log('Payload', payload);
     this.tbProductRtcService.saveData(payload).subscribe({
       next: (res) => {
-        if (res.status === 1)
-          {
-            if(payload.productGroupRTC.ID <=0)
-              {
-                this.notification.success(NOTIFICATION_TITLE.success, 'Thêm mới thành công!');
-              }else
-              {
-                this.notification.success(NOTIFICATION_TITLE.success, 'Cập nhật thành công!');
-              }
-              this.formSubmitted.emit();
-              this.activeModal.close(true);
-         }else
-         {
-          this.notification.warning(NOTIFICATION_TITLE.warning, res.message || 'Không thể cập nhật sản phẩm!');
-         }
+        if (res.status === 1) {
+          if (payload.productGroupRTC.ID <= 0) {
+            this.notification.success(
+              NOTIFICATION_TITLE.success,
+              'Thêm mới thành công!'
+            );
+          } else {
+            this.notification.success(
+              NOTIFICATION_TITLE.success,
+              'Cập nhật thành công!'
+            );
+          }
+          this.formSubmitted.emit();
+          this.activeModal.close(true);
+        } else {
+          this.notification.warning(
+            NOTIFICATION_TITLE.warning,
+            res.message || 'Không thể cập nhật sản phẩm!'
+          );
+        }
       },
       error: () => {
-        this.notification.error( NOTIFICATION_TITLE.error, 'Không thể lưu nhóm TB');
-      }
+        this.notification.error(
+          NOTIFICATION_TITLE.error,
+          'Không thể lưu nhóm TB'
+        );
+      },
     });
   }
 

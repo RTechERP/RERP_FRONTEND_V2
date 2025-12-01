@@ -264,3 +264,17 @@ body {
 .card-body .img-fluid {
   width: 50% !important;
 }
+
+/* Fullscreen spinner overlay */
+.fullscreen-spinner-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(0, 0, 0, 0.35);
+  z-index: 9999;
+}

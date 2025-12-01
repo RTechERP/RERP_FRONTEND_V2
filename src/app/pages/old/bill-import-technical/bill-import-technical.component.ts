@@ -95,7 +95,7 @@ export class BillImportTechnicalComponent implements OnInit, AfterViewInit {
     { ID: 0, Name: 'Chưa duyệt' },
     { ID: 1, Name: 'Đã duyệt' }
   ];
-
+  warehouseType: number = 0;
   @ViewChild('billImportTechnicalTableRef', { static: true }) billImportTechnicalTableRef!: ElementRef;
   @ViewChild('billImportTechnicalDetailTableRef', { static: true }) billImportTechnicalDetailTableRef!: ElementRef;
 
@@ -106,6 +106,7 @@ export class BillImportTechnicalComponent implements OnInit, AfterViewInit {
     this.dateEnd = new Date(); // Hôm nay
     if (this.tabData?.warehouseID) {
       this.warehouseID = this.tabData.warehouseID;
+      this.warehouseType = this.tabData.warehouseType;
     }
   }
   ngAfterViewInit(): void {

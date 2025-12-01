@@ -11,8 +11,8 @@ export class ProjectPartlistPriceRequestService {
   private http = inject(HttpClient);
   private baseUrl = `${environment.host}api/ProjectPartlistPriceRequest`;
 
-  // Sửa đổi method getAllPartlist để có thể lấy nhiều dữ liệu hơn
-  getAllPartlist(
+  // Method mới với đầy đủ tham số theo backend API
+  getAllPriceRequests(
     dateStart: string,
     dateEnd: string,
     statusRequest: number,
@@ -21,9 +21,9 @@ export class ProjectPartlistPriceRequestService {
     isDeleted: number,
     projectTypeID: number,
     poKHID: number,
-    isCommercialProduct = -1,
-    page: number = 1,
-    size: number = 10000 // Tăng size mặc định để lấy nhiều dữ liệu
+    isCommercialProduct: number = -1,
+    isJobRequirement: number = -1,
+    projectPartlistPriceRequestTypeID: number = -1
   ): Observable<any> {
     let params = new HttpParams()
       .set('dateStart', dateStart)
@@ -35,8 +35,36 @@ export class ProjectPartlistPriceRequestService {
       .set('projectTypeID', projectTypeID.toString())
       .set('poKHID', poKHID.toString())
       .set('isCommercialProduct', isCommercialProduct.toString())
-      .set('page', page.toString())
-      .set('size', size.toString());
+      .set('isJobRequirement', isJobRequirement.toString())
+      .set('projectPartlistPriceRequestTypeID', projectPartlistPriceRequestTypeID.toString());
+
+    return this.http.get<any>(`${this.baseUrl}/get-partlist`, { params });
+  }
+
+  // Sửa đổi method getAllPartlist để có thể lấy nhiều dữ liệu hơn
+  getAllPartlist(
+    dateStart: string,
+    dateEnd: string,
+    statusRequest: number,
+    projectId: number,
+    keyword: string,
+    isDeleted: number,
+    projectTypeID: number,
+    poKHID: number,
+    isCommercialProduct = -1,
+    isJobRequirement = -1,
+  ): Observable<any> {
+    let params = new HttpParams()
+      .set('dateStart', dateStart)
+      .set('dateEnd', dateEnd)
+      .set('statusRequest', statusRequest.toString())
+      .set('projectId', projectId.toString())
+      .set('keyword', keyword)
+      .set('isDeleted', isDeleted.toString())
+      .set('projectTypeID', projectTypeID.toString())
+      .set('poKHID', poKHID.toString())
+      .set('isCommercialProduct', isCommercialProduct.toString())
+      .set('isJobRequirement', isJobRequirement.toString());
 
     return this.http.get<any>(
       `${this.baseUrl}/get-all-project-parList-price-request`,
@@ -47,8 +75,10 @@ export class ProjectPartlistPriceRequestService {
     return this.baseUrl + '/get-all-project-parList-price-request';
   }
   // Gọi API lấy danh sách types
-  getTypes(employeeID: number): Observable<any> {
-    const params = new HttpParams().set('employeeID', employeeID.toString());
+  getTypes(employeeID: number, projectTypeId: number): Observable<any> {
+    const params = new HttpParams()
+      .set('employeeID', employeeID.toString())
+      .set('projectTypeID', projectTypeId.toString());
     return this.http.get<any>(`${this.baseUrl}/get-type`, { params });
   }
   getProject(): Observable<any> {

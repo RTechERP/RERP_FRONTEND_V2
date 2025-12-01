@@ -84,9 +84,9 @@
             <button nz-button nzType="default" nzSize="small" (click)="toggleSearchPanel()">
               <nz-icon nzType="search" />
             </button>
-            <button nz-button nzType="default" nzSize="small"
+            <button nz-button nzType="default"*hasPermission="'N27,N1,N33,N34,N69'" nzSize="small"
               (click)=" openModalBillImportDetail(false)">
-              <img class="btn-action-icon" src="assets/icon/action_add_item_16.png" *hasPermission="'N27,N1,N33,N34,N69'" alt="Thêm" /> Thêm
+              <img class="btn-action-icon" src="assets/icon/action_add_item_16.png"  alt="Thêm" /> Thêm
             </button>
             <button class="btn-edit" nz-button nzType="default" nzSize="small" *hasPermission="'N27,N1,N33,N34,N69'"
               (click)=" openModalBillImportDetail(true)">

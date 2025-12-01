@@ -63,7 +63,7 @@
             <button class="fs-12" nz-button nzType="default" nzSize="small" (click)="exportToExcelProduct()">
               <nz-icon nzType="file-excel" nzTheme="outline" /> Xuất Excel
             </button>
-            <button class="fs-12" nz-button nzType="default" nzSize="small" (click)="onUpdateQrCode()">
+            <button *hasPermission="'N26,N1,N80'" class="fs-12" nz-button nzType="default" nzSize="small" (click)="onUpdateQrCode()">
               <nz-icon nzType="qrcode" nzTheme="outline" />Update QRCode
             </button>
             <button class="fs-12" nz-button nzType="default" nzSize="small" (click)="onReportNCC()">

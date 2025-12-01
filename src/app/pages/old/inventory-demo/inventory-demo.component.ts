@@ -46,6 +46,7 @@ import { NOTIFICATION_TITLE } from '../../../app.config';
 import { DEFAULT_TABLE_CONFIG } from '../../../tabulator-default.config';
 import { MaterialDetailOfProductRtcComponent } from './material-detail-of-product-rtc/material-detail-of-product-rtc.component';
 import { MenuEventService } from '../../systems/menus/menu-service/menu-event.service';
+import { HasPermissionDirective } from '../../../directives/has-permission.directive';
 
 @Component({
   standalone: true,
@@ -70,6 +71,7 @@ import { MenuEventService } from '../../systems/menus/menu-service/menu-event.se
     NzTableModule,
     NzTabsModule,
     NgbModalModule,
+    HasPermissionDirective,
   ],
   selector: 'app-inventory-demo',
   templateUrl: './inventory-demo.component.html',
@@ -96,6 +98,7 @@ export class InventoryDemoComponent implements OnInit, AfterViewInit {
   listBillType: number[] = [0, 3]; 
   // tb sản phẩm kho Demo
   productTable: Tabulator | null = null;
+  warehouseType: number = 0;
   
   @ViewChild('tableDeviceTemp') tableDeviceTemp!: ElementRef;
   @ViewChild('productTableRef', { static: true }) productTableRef!: ElementRef;
@@ -118,6 +121,7 @@ export class InventoryDemoComponent implements OnInit, AfterViewInit {
   ngOnInit(): void {
     if (this.tabData?.warehouseID) {
       this.warehouseID = this.tabData.warehouseID;
+      this.warehouseType = this.tabData.warehouseType;
     }
   }
   getGroup() {

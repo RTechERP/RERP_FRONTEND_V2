@@ -30,6 +30,7 @@ import { NzNotificationService } from 'ng-zorro-antd/notification';
 import { BillExportTechnicalService } from './bill-export-technical-service/bill-export-technical.service';
 import { AppUserService } from '../../../services/app-user.service';
 import { NOTIFICATION_TITLE } from '../../../app.config';
+import { HasPermissionDirective } from '../../../directives/has-permission.directive';
 function formatDateCell(cell: CellComponent): string {
   const val = cell.getValue();
   return val ? DateTime.fromISO(val).toFormat('dd/MM/yyyy') : '';
@@ -55,7 +56,8 @@ function formatDateCell(cell: CellComponent): string {
     NzSelectModule,
     NzTableModule,
     NzTabsModule,
-    NgbModalModule
+    NgbModalModule,
+    HasPermissionDirective,
   ],
   selector: 'app-bill-export-technical',
   templateUrl: './bill-export-technical.component.html',
@@ -95,12 +97,14 @@ export class BillExportTechnicalComponent implements OnInit, AfterViewInit {
     { ID: 0, Name: 'Chưa duyệt' },
     { ID: 1, Name: 'Đã duyệt' }
   ];
+  warehouseType: number = 0;
   @ViewChild('billExportTechnicalTableRef', { static: true }) billExportTechnicalTableRef!: ElementRef;
   @ViewChild('billExportTechnicalDetailTableRef', { static: true }) billExportTechnicalDetailTableRef!: ElementRef;
 
   ngOnInit() {
     if (this.tabData?.warehouseID) {
       this.warehouseID = this.tabData.warehouseID;
+      this.warehouseType = this.tabData.warehouseType;
     }
   }
   ngAfterViewInit(): void {

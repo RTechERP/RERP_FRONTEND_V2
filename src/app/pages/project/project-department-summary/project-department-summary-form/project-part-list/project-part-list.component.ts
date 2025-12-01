@@ -322,24 +322,24 @@ export class ProjectPartListComponent implements OnInit, AfterViewInit {
     }
     this.startLoading();
     this.projectPartListService.getProjectPartListVersion(this.projectSolutionId, false).subscribe({
-        next: (response: any) => {
-          if (response.status === 1) {
-            console.log('dataSolutionVersion', response.data);
-            this.dataSolutionVersion = response.data;
-            if (this.tb_projectPartListVersion) {
-              this.tb_projectPartListVersion.setData(this.dataSolutionVersion);
-            }
-          } else {
-            this.notification.error('Lỗi', response.message);
+      next: (response: any) => {
+        if (response.status === 1) {
+          console.log('dataSolutionVersion', response.data);
+          this.dataSolutionVersion = response.data;
+          if (this.tb_projectPartListVersion) {
+            this.tb_projectPartListVersion.setData(this.dataSolutionVersion);
           }
-          this.stopLoading();
-        },
-        error: (error: any) => {
-          console.error('Error loading project part list version:', error);
-          this.notification.error('Lỗi', error.message);
-          this.stopLoading();
+        } else {
+          this.notification.error('Lỗi', response.message);
         }
-      });
+        this.stopLoading();
+      },
+      error: (error: any) => {
+        console.error('Error loading project part list version:', error);
+        this.notification.error('Lỗi', error.message);
+        this.stopLoading();
+      }
+    });
   }
   searchDataProjectWorker(): void {
     this.loadDataProjectPartList();
@@ -434,7 +434,7 @@ export class ProjectPartListComponent implements OnInit, AfterViewInit {
                 this.applyCellColors();
                 this.stopLoading();
               }, 100);
-            }); 
+            });
           } else {
             this.stopLoading();
           }
@@ -1152,8 +1152,8 @@ export class ProjectPartListComponent implements OnInit, AfterViewInit {
       }
       // Kiểm tra quyền: chỉ người tạo yêu cầu hoặc admin mới được hủy
       if (row.EmployeeIDRequestPrice &&
-          row.EmployeeIDRequestPrice !== currentUser.EmployeeID &&
-          !currentUser.IsAdmin) {
+        row.EmployeeIDRequestPrice !== currentUser.EmployeeID &&
+        !currentUser.IsAdmin) {
         this.notification.warning('Thông báo', `Bạn không thể hủy yêu cầu báo giá của người khác!`);
         return;
       }
@@ -1472,8 +1472,8 @@ export class ProjectPartListComponent implements OnInit, AfterViewInit {
           this.notification.success('Thành công', response.message || 'Yêu cầu mua hàng thành công!');
           this.loadDataProjectPartList();
           this.deadlinePurchaseRequest = null;
-        } 
-         else {
+        }
+        else {
           this.notification.error('Lỗi', response.message || 'Không thể yêu cầu mua hàng');
         }
       },
@@ -1764,8 +1764,8 @@ export class ProjectPartListComponent implements OnInit, AfterViewInit {
         }
         // 3. Format các cột tiền tệ (sử dụng formatMoney đã có)
         const moneyFields = ['Price', 'Amount', 'UnitPriceQuote', 'TotalPriceQuote1',
-                            'UnitPricePurchase', 'TotalPricePurchase',
-                            'TotalPriceExchangeQuote', 'TotalPriceExchangePurchase'];
+          'UnitPricePurchase', 'TotalPricePurchase',
+          'TotalPriceExchangeQuote', 'TotalPriceExchangePurchase'];
         if (moneyFields.includes(field)) {
           const numValue = parseFloat(value);
           if (!isNaN(numValue)) {
@@ -2795,8 +2795,8 @@ export class ProjectPartListComponent implements OnInit, AfterViewInit {
                   if (cellElement) {
                     // Chỉ tô màu hồng nếu chưa có màu khác
                     const currentBgColor = cellElement.style.backgroundColor;
-                    const hasOtherColor = currentBgColor && 
-                      currentBgColor !== 'transparent' && 
+                    const hasOtherColor = currentBgColor &&
+                      currentBgColor !== 'transparent' &&
                       currentBgColor !== 'rgba(0, 0, 0, 0)' &&
                       currentBgColor !== '';
                     if (!hasOtherColor) {
@@ -2833,19 +2833,19 @@ export class ProjectPartListComponent implements OnInit, AfterViewInit {
           this.lastClickedPartListRow = row;
           this.getPriceHistory();
         },
-      },  
+      },
       {
         label: '<span style="font-size: 0.75rem;"><img src="assets/icon/revert_16.png" alt="Khôi phục" class="me-1" /> Khôi phục</span>',
         action: (e: any, row: any) => {
           this.lastClickedPartListRow = row;
           this.restoreDelete();
         }
-      }, 
-       {
+      },
+      {
         label: '<span style="font-size: 0.75rem;"><img src="assets/icon/add_PO_16.png" alt="Hủy đã mua" class="me-1" />Bổ sung vào PO</span>',
         action: (e: any, row: any) => {
           this.lastClickedPartListRow = row;
-         this.additionalPartListPO();
+          this.additionalPartListPO();
         },
       }
     ];
@@ -2866,7 +2866,7 @@ export class ProjectPartListComponent implements OnInit, AfterViewInit {
             this.unTechBought();
           },
         },
-      
+
       );
     }
     return menuItems;
@@ -3201,10 +3201,12 @@ export class ProjectPartListComponent implements OnInit, AfterViewInit {
                 },
               },
               { title: 'Loại tiền', field: 'CurrencyQuote', hozAlign: 'center' },
-              { title: 'Tỷ giá báo', field: 'CurrencyRateQuote', hozAlign: 'right', formatter: (cell: any) => {
-                const value = cell.getValue();
-                return value != null && value !== '' ? parseFloat(value).toFixed(1) : '';
-              }},
+              {
+                title: 'Tỷ giá báo', field: 'CurrencyRateQuote', hozAlign: 'right', formatter: (cell: any) => {
+                  const value = cell.getValue();
+                  return value != null && value !== '' ? parseFloat(value).toFixed(1) : '';
+                }
+              },
               {
                 title: 'Thành tiền quy đổi báo giá (VND)',
                 field: 'TotalPriceExchangeQuote',
@@ -3238,8 +3240,9 @@ export class ProjectPartListComponent implements OnInit, AfterViewInit {
             headerHozAlign: 'center',
             hozAlign: 'center',
             columns: [
-              { title: 'Yêu cầu mua', field: 'IsApprovedPurchase',
-                hozAlign:'center',
+              {
+                title: 'Yêu cầu mua', field: 'IsApprovedPurchase',
+                hozAlign: 'center',
                 formatter: (cell: any) => {
                   const value = cell.getValue();
                   return `<input type="checkbox" ${(value === 'Đã ' || value === true ? 'checked' : '')} onclick="return false;">`;
@@ -3307,10 +3310,12 @@ export class ProjectPartListComponent implements OnInit, AfterViewInit {
                 },
               },
               { title: 'Loại tiền', field: 'CurrencyPurchase', hozAlign: 'center' },
-              { title: 'Tỷ giá mua', field: 'CurrencyRatePurchase', hozAlign: 'right', formatter: (cell: any) => {
-                const value = cell.getValue();
-                return value != null && value !== '' ? parseFloat(value).toFixed(1) : '';
-              }},
+              {
+                title: 'Tỷ giá mua', field: 'CurrencyRatePurchase', hozAlign: 'right', formatter: (cell: any) => {
+                  const value = cell.getValue();
+                  return value != null && value !== '' ? parseFloat(value).toFixed(1) : '';
+                }
+              },
               {
                 title: 'Thành tiền quy đổi mua hàng (VND)',
                 field: 'TotalPriceExchangePurchase',
@@ -3350,10 +3355,12 @@ export class ProjectPartListComponent implements OnInit, AfterViewInit {
               },  // Sửa
               { title: 'Mã nội bộ', field: 'ProductNewCode', hozAlign: 'center' },  // Sửa
               { title: 'Phiếu xuất', field: 'BillExportCode', hozAlign: 'center' },  // Sửa
-              { title: 'Ngày nhận hàng', field: 'DateImport', hozAlign: 'center', formatter: (cell: any) => {
-                const value = cell.getValue();
-                return value ? DateTime.fromISO(value).toFormat('dd/MM/yyyy') : '';
-              }, },  // Sửa
+              {
+                title: 'Ngày nhận hàng', field: 'DateImport', hozAlign: 'center', formatter: (cell: any) => {
+                  const value = cell.getValue();
+                  return value ? DateTime.fromISO(value).toFormat('dd/MM/yyyy') : '';
+                },
+              },  // Sửa
               { title: 'Ghi chú mua', field: 'NotePurchase', formatter: 'textarea' },
             ]
           },
@@ -3414,56 +3421,56 @@ export class ProjectPartListComponent implements OnInit, AfterViewInit {
         ],
       }
     );
-  this.tb_projectWorker.on('dataLoaded', () => {
-    setTimeout(() => {
-      this.applyDeletedRowStyle();
-      // Áp dụng màu cho các cell
-      this.applyCellColors();
-    }, 50); // Đảm bảo DOM đã render xong
-  });
-  // Lưu row khi chuột phải (context menu) - để có thể lấy productCode
-  this.tb_projectWorker.on('rowContext', (e: any, row: any) => {
-    this.lastClickedPartListRow = row;
-  });
-  this.tb_projectWorker.on('cellClick', (e: any, cell: any) => {
-    const field = cell.getField();
-    if (field === 'rowSelection') return;
-    // Xóa highlight cũ
-    if (this.lastClickedPartListRow) {
-      const oldElement = this.lastClickedPartListRow.getElement();
-      if (oldElement) {
-        oldElement.style.outline = '';
+    this.tb_projectWorker.on('dataLoaded', () => {
+      setTimeout(() => {
+        this.applyDeletedRowStyle();
+        // Áp dụng màu cho các cell
+        this.applyCellColors();
+      }, 50); // Đảm bảo DOM đã render xong
+    });
+    // Lưu row khi chuột phải (context menu) - để có thể lấy productCode
+    this.tb_projectWorker.on('rowContext', (e: any, row: any) => {
+      this.lastClickedPartListRow = row;
+    });
+    this.tb_projectWorker.on('cellClick', (e: any, cell: any) => {
+      const field = cell.getField();
+      if (field === 'rowSelection') return;
+      // Xóa highlight cũ
+      if (this.lastClickedPartListRow) {
+        const oldElement = this.lastClickedPartListRow.getElement();
+        if (oldElement) {
+          oldElement.style.outline = '';
+        }
       }
-    }
-    // Lưu và highlight dòng mới
-    this.lastClickedPartListRow = cell.getRow();
-    const rowData = this.lastClickedPartListRow.getData();
-    const newElement = this.lastClickedPartListRow.getElement();
-    if (newElement) {
-      newElement.style.outline = '3px solid rgb(119, 133, 29)';
-      newElement.style.outlineOffset = '2px';
-    }
-    console.log('Cell clicked - Row TT:', rowData.TT, 'ID:', rowData.ID);
-  });
-  // Thêm event cellRendered để áp dụng màu sau khi cell được render
-  this.tb_projectWorker.on('cellRendered', (cell: any) => {
-    const field = cell.getField();
-    const data = cell.getData();
-    // Chỉ áp dụng cho các cột cần vẽ màu (giống WinForm: GroupMaterial, ProductCode, Manufacturer, Unit)
-    if (field === 'GroupMaterial') {
-      this.applyCellColor(cell, 'GroupMaterial', 'IsSameProductName');
-    } else if (field === 'ProductCode') {
-      this.applyCellColor(cell, 'ProductCode', 'IsSameProductCode');
-      // Áp dụng màu xanh nước biển nếu IsFix = true (ưu tiên cao nhất)
-      this.applyIsFixColor(cell);
-      // Áp dụng màu light yellow nếu IsProductSale không null/empty và IsFix không bằng true
-      this.applyIsProductSaleColor(cell);
-    } else if (field === 'Manufacturer') {
-      this.applyCellColor(cell, 'Manufacturer', 'IsSameMaker');
-    } else if (field === 'Unit') {
-      this.applyCellColor(cell, 'Unit', 'IsSameUnit');
-    }
-  });
+      // Lưu và highlight dòng mới
+      this.lastClickedPartListRow = cell.getRow();
+      const rowData = this.lastClickedPartListRow.getData();
+      const newElement = this.lastClickedPartListRow.getElement();
+      if (newElement) {
+        newElement.style.outline = '3px solid rgb(119, 133, 29)';
+        newElement.style.outlineOffset = '2px';
+      }
+      console.log('Cell clicked - Row TT:', rowData.TT, 'ID:', rowData.ID);
+    });
+    // Thêm event cellRendered để áp dụng màu sau khi cell được render
+    this.tb_projectWorker.on('cellRendered', (cell: any) => {
+      const field = cell.getField();
+      const data = cell.getData();
+      // Chỉ áp dụng cho các cột cần vẽ màu (giống WinForm: GroupMaterial, ProductCode, Manufacturer, Unit)
+      if (field === 'GroupMaterial') {
+        this.applyCellColor(cell, 'GroupMaterial', 'IsSameProductName');
+      } else if (field === 'ProductCode') {
+        this.applyCellColor(cell, 'ProductCode', 'IsSameProductCode');
+        // Áp dụng màu xanh nước biển nếu IsFix = true (ưu tiên cao nhất)
+        this.applyIsFixColor(cell);
+        // Áp dụng màu light yellow nếu IsProductSale không null/empty và IsFix không bằng true
+        this.applyIsProductSaleColor(cell);
+      } else if (field === 'Manufacturer') {
+        this.applyCellColor(cell, 'Manufacturer', 'IsSameMaker');
+      } else if (field === 'Unit') {
+        this.applyCellColor(cell, 'Unit', 'IsSameUnit');
+      }
+    });
     // Thêm logic: khi chọn nút cha, tự động chọn tất cả nút con
     // Xử lý cả chọn và bỏ chọn
     this.tb_projectWorker.on('rowSelectionChanged', (data: any[], rows: any[]) => {
@@ -3811,29 +3818,29 @@ export class ProjectPartListComponent implements OnInit, AfterViewInit {
     // }
     // Nếu là edit mode, lấy ID từ row đã chọn và gọi API
     if (isEdit) {
-        // Thử 3 cách lấy dòng theo thứ tự ưu tiên
-        let targetRow: any = null;
-        // Cách 1: Lấy từ biến đã lưu (khi click vào cell)
-        if (this.lastClickedPartListRow) {
-          targetRow = this.lastClickedPartListRow;
-          console.log('Lấy từ lastClickedWorkerRow');
+      // Thử 3 cách lấy dòng theo thứ tự ưu tiên
+      let targetRow: any = null;
+      // Cách 1: Lấy từ biến đã lưu (khi click vào cell)
+      if (this.lastClickedPartListRow) {
+        targetRow = this.lastClickedPartListRow;
+        console.log('Lấy từ lastClickedWorkerRow');
+      }
+      // Cách 2: Lấy dòng đầu tiên trong selected rows (nếu chỉ chọn 1 dòng)
+      else {
+        const selectedRows = this.tb_projectWorker?.getSelectedRows();
+        if (selectedRows && selectedRows.length === 1) {
+          targetRow = selectedRows[0];
+          console.log('Lấy từ selectedRows (1 dòng)');
         }
-        // Cách 2: Lấy dòng đầu tiên trong selected rows (nếu chỉ chọn 1 dòng)
-        else {
-          const selectedRows = this.tb_projectWorker?.getSelectedRows();
-          if (selectedRows && selectedRows.length === 1) {
-            targetRow = selectedRows[0];
-            console.log('Lấy từ selectedRows (1 dòng)');
-          }
-        }
-        if (!targetRow) {
-          this.notification.warning(
-            'Thông báo',
-           'Vui lòng chọn vật tư cần sửa'
-          );
-          return;
-        }
-        const focusedRow = targetRow.getData();
+      }
+      if (!targetRow) {
+        this.notification.warning(
+          'Thông báo',
+          'Vui lòng chọn vật tư cần sửa'
+        );
+        return;
+      }
+      const focusedRow = targetRow.getData();
       const partListID = focusedRow.ID || 0;
       // Gọi API để lấy dữ liệu partlist theo ID
       this.projectPartListService.getPartListByID(partListID).subscribe({
@@ -3906,11 +3913,11 @@ export class ProjectPartListComponent implements OnInit, AfterViewInit {
         ReasonProblem: partListData.ReasonProblem || '',
         // Thông tin báo giá
         SupplierSaleID: partListData.SupplierSaleID || null,
-        NCC:partListData.NCC || '',
-        Price:partListData.Price || 0,
-        Amount:partListData.Amount || 0,
-        UnitMoney:partListData.UnitMoney || '',
-        LeadTime:partListData.LeadTime || "",
+        NCC: partListData.NCC || '',
+        Price: partListData.Price || 0,
+        Amount: partListData.Amount || 0,
+        UnitMoney: partListData.UnitMoney || '',
+        LeadTime: partListData.LeadTime || "",
         // Thông tin đặt mua
         OrderCode: partListData.OrderCode || '',
         NCCFinal: partListData.NCCFinal || '',
@@ -4375,7 +4382,7 @@ export class ProjectPartListComponent implements OnInit, AfterViewInit {
       ProjectPartListID: selectedRow.ID,
       ProductSaleID: selectedRow.ProductSaleID || 0,
       ProductCode: selectedRow.ProductCode || '',
-      ProductName: selectedRow.ProductName || '',
+      ProductName: selectedRow.GroupMaterial || '',
       UnitName: selectedRow.Unit || '',
       Manufacturer: selectedRow.Maker || '',
       Quantity: selectedRow.QtyFull || 0,
@@ -4394,29 +4401,29 @@ export class ProjectPartListComponent implements OnInit, AfterViewInit {
       this.notification.warning('Thông báo', 'Vui lòng chọn vật tư mua!');
       return;
     }
-   const selectedRow = selectedRows[0];
-  if(selectedRow.BillCodePurchase.length >0) {
-    this.notification.warning('Thông báo', `Mã sản phẩm ${selectedRow.ProductCode} đã được có đơn mua ${selectedRow.BillCodePurchase}, bạn không thể hủy!`);
-    return;
-  }
-  this.modal.confirm({
-    nzTitle: 'Xác nhận hủy đã mua',
-    nzContent: `Bạn có chắc muốn hủy đã mua mã sản phẩm ${selectedRow.ProductCode} không?`,
-    nzOkText: 'Xác nhận',
-    nzCancelText: 'Hủy',
-    nzOkType: 'primary',
-    nzOkDanger: true,
-    nzOnOk: () => {
-      this.projectPartListService.cancelTechBought(selectedRow.ID).subscribe({  
-        next: (response: any) => {
-          if(response.status === 1) {
-            this.notification.success('Thành công', 'Hủy đã mua thành công!');
-            this.loadDataProjectPartList();
-          }
-        }
-      });
+    const selectedRow = selectedRows[0];
+    if (selectedRow.BillCodePurchase.length > 0) {
+      this.notification.warning('Thông báo', `Mã sản phẩm ${selectedRow.ProductCode} đã được có đơn mua ${selectedRow.BillCodePurchase}, bạn không thể hủy!`);
+      return;
     }
-  });
+    this.modal.confirm({
+      nzTitle: 'Xác nhận hủy đã mua',
+      nzContent: `Bạn có chắc muốn hủy đã mua mã sản phẩm ${selectedRow.ProductCode} không?`,
+      nzOkText: 'Xác nhận',
+      nzCancelText: 'Hủy',
+      nzOkType: 'primary',
+      nzOkDanger: true,
+      nzOnOk: () => {
+        this.projectPartListService.cancelTechBought(selectedRow.ID).subscribe({
+          next: (response: any) => {
+            if (response.status === 1) {
+              this.notification.success('Thành công', 'Hủy đã mua thành công!');
+              this.loadDataProjectPartList();
+            }
+          }
+        });
+      }
+    });
   }
   // Helper function để flatten tree rows
   private flattenAllRows(rows: any[]): any[] {
@@ -4897,9 +4904,9 @@ export class ProjectPartListComponent implements OnInit, AfterViewInit {
       backdrop: 'static',
       keyboard: false,
     });
-    console.log('billExportForModal:',billExportForModal);
-    console.log('isPOKH:',bill.IsPOKH);
-    console.log('wareHouseCode:',bill.wareHouseCode);
+    console.log('billExportForModal:', billExportForModal);
+    console.log('isPOKH:', bill.IsPOKH);
+    console.log('wareHouseCode:', bill.wareHouseCode);
     // Truyền dữ liệu vào modal
     modalRef.componentInstance.newBillExport = billExportForModal;
     modalRef.componentInstance.isCheckmode = false; // Tạo mới
@@ -5067,7 +5074,7 @@ export class ProjectPartListComponent implements OnInit, AfterViewInit {
     const treeData = this.tb_projectWorker.getData('tree') || [];
     // Flatten tree data để export tất cả các node
     const data = this.flattenTreeDataForExport(treeData);
-    
+
     if (!data || data.length === 0) {
       this.notification.warning(
         'Thông báo',
@@ -5087,7 +5094,7 @@ export class ProjectPartListComponent implements OnInit, AfterViewInit {
     worksheet.mergeCells('A4:B4');
     worksheet.mergeCells('A5:B5');
 
-    worksheet.mergeCells('C1:F1'); 
+    worksheet.mergeCells('C1:F1');
     worksheet.mergeCells('G2:I2');
     worksheet.mergeCells('G3:I3');
 
@@ -5132,7 +5139,7 @@ export class ProjectPartListComponent implements OnInit, AfterViewInit {
       { header: 'Tiến độ', field: 'LeadTime', width: 15 },
       { header: 'Nhà cung cấp', field: 'NameNCCPriceQuote', width: 20 },
       { header: 'Ngày yêu cầu đặt hàng', field: 'RequestDate', width: 20, isDate: true },
-      { header: 'Tiến độ yêu cầu', field: 'LeadTimePurchase', width: 18 },  
+      { header: 'Tiến độ yêu cầu', field: 'LeadTimePurchase', width: 18 },
       { header: 'SL đặt thực tế', field: 'QtyOrderActual', width: 15, isNumber: true },
       { header: 'NCC mua hàng', field: 'SupplierNamePurchase', width: 18 },
       { header: 'Giá đặt mua', field: 'PriceOrder', width: 15, isNumber: true },

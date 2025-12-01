@@ -25,6 +25,8 @@ import { HasPermissionDirective } from '../../../directives/has-permission.direc
 import { NzDropDownModule } from "ng-zorro-antd/dropdown";
 import { BillImportDetailComponent } from '../../old/Sale/BillImport/Modal/bill-import-detail/bill-import-detail.component';
 import { firstValueFrom } from 'rxjs';
+import { BillImportTechnicalComponent } from '../../old/bill-import-technical/bill-import-technical.component';
+import { BillImportTechnicalFormComponent } from '../../old/bill-import-technical/bill-import-technical-form/bill-import-technical-form.component';
 @Component({
   selector: 'app-poncc',
   standalone: true,
@@ -76,6 +78,9 @@ export class PONCCComponent implements OnInit, AfterViewInit {
   checkList: boolean[] = [];
 
   listDetail: any[] = [];
+
+  // Map to store details for each master PONCC ID
+  private masterDetailsMap: Map<number, any[]> = new Map();
 
   constructor(
     private srv: PONCCService,
@@ -175,7 +180,9 @@ export class PONCCComponent implements OnInit, AfterViewInit {
     this.srv.getDetails(poid).subscribe({
       next: (res: any) => {
         console.log(res);
-        this.tableDetail?.setData(res.data.data || []);
+        this.tableDetail?.setData(res.data.data || []).then(() => {
+          this.tableDetail?.selectRow();
+        });
         this.listAllID = res.data.listAllID;
         this.checkList = res.data.checkList;
         this.isLoading = false;
@@ -186,6 +193,88 @@ export class PONCCComponent implements OnInit, AfterViewInit {
       },
     });
   }
+
+  /**
+   * Handle master table selection changes
+   * - Detail table: Shows only the latest selected master's details  
+   * - Map: Stores all details from all selected masters (for other operations)
+   */
+  private handleMasterSelectionChange(selectedMasters: any[]): void {
+    const selectedIds = selectedMasters.map(m => m.ID);
+
+    // If no selection, clear everything
+    if (selectedIds.length === 0) {
+      this.masterDetailsMap.clear();
+      this.tableDetail?.clearData();
+      this.sizeTbDetail = '0';
+      return;
+    }
+
+    // Show detail panel
+    this.sizeTbDetail = '35%';
+
+    // Find which masters are newly selected (not in map yet)
+    const newMasterIds = selectedIds.filter(id => !this.masterDetailsMap.has(id));
+
+    // Find which masters were deselected (in map but not in selection)
+    const deselectedIds = Array.from(this.masterDetailsMap.keys()).filter(id => !selectedIds.includes(id));
+
+    // Remove deselected masters from map
+    deselectedIds.forEach(id => this.masterDetailsMap.delete(id));
+
+    // Load details for new masters
+    if (newMasterIds.length > 0) {
+      // Get the latest selected master ID (last one in newMasterIds)
+      const latestMasterId = newMasterIds[newMasterIds.length - 1];
+
+      this.isLoading = true;
+      let loadedCount = 0;
+
+      newMasterIds.forEach(masterId => {
+        this.srv.getDetails(masterId).subscribe({
+          next: (res: any) => {
+            // Store details for this master in map
+            this.masterDetailsMap.set(masterId, res.data.data || []);
+            console.log(this.masterDetailsMap);
+            loadedCount++;
+
+            // After all new masters are loaded, display only the latest one's details
+            if (loadedCount === newMasterIds.length) {
+              this.displayDetailsForMaster(latestMasterId);
+              this.isLoading = false;
+            }
+          },
+          error: () => {
+            loadedCount++;
+            if (loadedCount === newMasterIds.length) {
+              this.displayDetailsForMaster(latestMasterId);
+              this.isLoading = false;
+            }
+            this.notify.error('Lỗi', `Không tải được chi tiết cho PO ID: ${masterId}`);
+          },
+        });
+      });
+    } else {
+      // No new masters, display the last selected master's details
+      const lastSelectedId = selectedIds[selectedIds.length - 1];
+      this.displayDetailsForMaster(lastSelectedId);
+    }
+  }
+
+  /**
+   * Display details for a specific master in the detail table
+   * Note: masterDetailsMap stores all details, but table only shows the specified master's details
+   */
+
+  private displayDetailsForMaster(masterId: number): void {
+    const details = this.masterDetailsMap.get(masterId) || [];
+
+    // Update detail table with only this master's details
+    this.tableDetail?.setData(details).then(() => {
+      this.tableDetail?.selectRow();
+    });
+  }
+
 
   private initTables() {
     const columns: ColumnDefinition[] = [
@@ -260,14 +349,7 @@ export class PONCCComponent implements OnInit, AfterViewInit {
         paginationMode: 'local',
       } as any);
       this.tablePoThuongMai.on('rowSelectionChanged', (data: any[], rows: any[]) => {
-        if (data.length > 0) {
-          console.log(data[0].ID);
-          this.loadDetails(data[0].ID);
-          this.sizeTbDetail = '35%';
-        } else {
-          this.sizeTbDetail = '0';
-          this.tableDetail?.clearData();
-        }
+        this.handleMasterSelectionChange(data);
       });
     }
 
@@ -282,13 +364,7 @@ export class PONCCComponent implements OnInit, AfterViewInit {
         paginationMode: 'local',
       });
       this.tablePoMuon.on('rowSelectionChanged', (data: any[], rows: any[]) => {
-        if (data.length > 0) {
-          this.loadDetails(data[0].ID);
-          this.sizeTbDetail = '35%';
-        } else {
-          this.sizeTbDetail = '0';
-          this.tableDetail?.clearData();
-        }
+        this.handleMasterSelectionChange(data);
       });
     }
   }
@@ -842,8 +918,8 @@ export class PONCCComponent implements OnInit, AfterViewInit {
     const selectedRows = currentTable?.getSelectedData();
     const selectedRowDetail = this.tableDetail.getSelectedData();
     // Validate selection
-    if (!selectedRows || selectedRows.length != 1) {
-      this.notification.warning(NOTIFICATION_TITLE.warning, 'Vui lòng chọn một PO!');
+    if (!selectedRows || selectedRows.length <= 0) {
+      this.notification.warning(NOTIFICATION_TITLE.warning, 'Vui lòng chọn PO!');
       return;
     }
 
@@ -873,8 +949,12 @@ export class PONCCComponent implements OnInit, AfterViewInit {
       nzCancelText: 'Hủy',
       nzOnOk: () => {
         const ids = selectedRows.map(x => x.ID).join(',');
-
-        this.srv.getPonccDetail(ids, warehouseID, this.listDetail.join(',')).subscribe((res) => {
+        const idString = Array.from(this.masterDetailsMap.values())
+          .flat()
+          .map(x => x.ID)
+          .filter(id => id != null)
+          .join(',');
+        this.srv.getPonccDetail(ids, warehouseID, idString).subscribe((res) => {
           let dataSale = res.data.dataSale || [];
           let dataDemo = res.data.dataDemo || [];
           let listSaleDetail = res.data.listSaleDetail || [];
@@ -883,11 +963,11 @@ export class PONCCComponent implements OnInit, AfterViewInit {
           let listSalePonccId = res.data.listSalePonccId || [];
 
           if (dataSale.length > 0) {
-            this.openBillImportModalSequentially(dataSale, listSaleDetail, listSalePonccId, warehouseID, 0);
+            this.openBillImportModalSequentially(dataSale, listSaleDetail, listSalePonccId, warehouseID, 0, 0);
           }
 
           if (dataDemo.length > 0) {
-            this.openBillImportModalSequentially(dataDemo, listDemoDetail, listDemoPonccId, warehouseID, 0);
+            this.openBillImportModalSequentially(dataDemo, listDemoDetail, listDemoPonccId, warehouseID, 0, 1);
           }
 
         });
@@ -895,7 +975,8 @@ export class PONCCComponent implements OnInit, AfterViewInit {
     });
   }
 
-  private openBillImportModalSequentially(listData: any[], listDetail: any[], listPonccId: any[], warehouseID: number, index: number) {
+  private openBillImportModalSequentially(listData: any[], listDetail: any[], listPonccId: any[],
+    warehouseID: number, index: number, type: number) {
     let warehouseCode = '';
     switch (warehouseID) {
       case 1: warehouseCode = 'HN'; break;
@@ -919,31 +1000,74 @@ export class PONCCComponent implements OnInit, AfterViewInit {
     console.log('Data master:', dataMaster);
     console.log('Data detail:', dataDetail);
     console.log('PO NCC ID:', ponccId);
-    
-    const modalRef = this.modalService.open(BillImportDetailComponent, {
-      backdrop: 'static',
-      keyboard: false,
-      centered: true,
-      windowClass: 'full-screen-modal',
-    });
 
-    modalRef.componentInstance.newBillImport = dataMaster;
-    modalRef.componentInstance.WarehouseCode = warehouseCode;
-    modalRef.componentInstance.selectedList = dataDetail;
-    modalRef.componentInstance.id = dataMaster.ID ?? 0;
-    modalRef.componentInstance.poNCCId = ponccId ?? 0;
-
-    modalRef.result
-      .then((result) => {
-        console.log(`Modal thứ ${index + 1} đã đóng. Kết quả:`, result);
-
-        this.openBillImportModalSequentially(listData, listDetail, listPonccId, warehouseID, index + 1);
-      })
-      .catch((reason) => {
-        console.log(`Modal thứ ${index + 1} bị tắt (dismiss):`, reason);
-
-        this.openBillImportModalSequentially(listData, listDetail, listPonccId, warehouseID, index + 1);
+    if (type === 0) {
+      const modalRef = this.modalService.open(BillImportDetailComponent, {
+        backdrop: 'static',
+        keyboard: false,
+        centered: true,
+        windowClass: 'full-screen-modal',
       });
+
+      console.log('Sale', index + 1);
+      console.log('Mở modal thứ', index + 1);
+      console.log('Data master:', dataMaster);
+      console.log('Data detail:', dataDetail);
+      console.log('PO NCC ID:', ponccId);
+
+      modalRef.componentInstance.newBillImport = dataMaster;
+      modalRef.componentInstance.WarehouseCode = warehouseCode;
+      modalRef.componentInstance.selectedList = dataDetail;
+      modalRef.componentInstance.id = dataMaster.ID ?? 0;
+      modalRef.componentInstance.poNCCId = ponccId ?? 0;
+
+      modalRef.result
+        .then((result) => {
+          console.log(`Modal thứ ${index + 1} đã đóng. Kết quả:`, result);
+
+          this.openBillImportModalSequentially(listData, listDetail, listPonccId, warehouseID, index + 1, type);
+        })
+        .catch((reason) => {
+          console.log(`Modal thứ ${index + 1} bị tắt (dismiss):`, reason);
+
+          this.openBillImportModalSequentially(listData, listDetail, listPonccId, warehouseID, index + 1, type);
+        });
+    }
+
+    if (type === 1) {
+      const modalRef = this.modalService.open(BillImportTechnicalFormComponent, {
+        backdrop: 'static',
+        keyboard: false,
+        centered: true,
+        windowClass: 'full-screen-modal',
+      });
+
+      console.log('demo', index + 1);
+      console.log('Mở modal thứ', index + 1);
+      console.log('Data master:', dataMaster);
+      console.log('Data detail:', dataDetail);
+      console.log('PO NCC ID:', ponccId)
+
+      modalRef.componentInstance.newBillImport = dataMaster;
+      modalRef.componentInstance.warehouseID = warehouseID;
+      modalRef.componentInstance.flag = 1;
+      modalRef.componentInstance.dtDetails = dataDetail;
+      modalRef.componentInstance.PonccID = ponccId ?? 0;
+
+      modalRef.result
+        .then((result) => {
+          console.log(`Modal thứ ${index + 1} đã đóng. Kết quả:`, result);
+
+          this.openBillImportModalSequentially(listData, listDetail, listPonccId, warehouseID, index + 1, type);
+        })
+        .catch((reason) => {
+          console.log(`Modal thứ ${index + 1} bị tắt (dismiss):`, reason);
+
+          this.openBillImportModalSequentially(listData, listDetail, listPonccId, warehouseID, index + 1, type);
+        });
+    }
+
+
   }
 
   onOpenSummary() {
@@ -956,4 +1080,4 @@ export class PONCCComponent implements OnInit, AfterViewInit {
     });
   }
 }
-  
+

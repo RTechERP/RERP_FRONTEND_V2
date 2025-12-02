@@ -33,130 +33,17 @@
     <div class="row">
         <div class="col-xl-6 col-md-12 col-sm-12 col-12">
             <div class="row">
-
-                <div class="col-xl-6 col-md-12 col-sm-12 col-12 pt-2">
-                    <div class="card mb-2">
-                        <div class="card-header">
-                            <h5 class="card-title m-0 text-uppercase fw-bold py-1">Thông báo</h5>
-                        </div>
-                        <div class="card-body" style="height: 22rem; overflow: auto;">
-                            <nz-list nzItemLayout="vertical">
-                                @for (item of notifItems; track item) {
-                                <nz-list-item>
-                                    <nz-list-item-meta class="m-0">
-                                        <nz-list-item-meta-avatar [nzSrc]="item.icon"></nz-list-item-meta-avatar>
-                                        <nz-list-item-meta-title>
-                                            <a href="">{{ item.title }}</a>
-                                        </nz-list-item-meta-title>
-                                        <nz-list-item-meta-description>
-                                            {{ item.detail }}
-                                        </nz-list-item-meta-description>
-                                    </nz-list-item-meta>
-                                </nz-list-item>
-                                }
-                            </nz-list>
-                        </div>
-                    </div>
-
-                </div>
-                <div class="col-xl-6 col-md-12 col-sm-12 col-12 pt-2">
-                    <div class="card mb-2">
-                        <div class="card-header d-flex align-items-center">
-                            <h5 class="card-title m-0 text-uppercase fw-bold py-1">Lịch làm việc</h5>
-                            <span class="badge bg-danger ms-auto">Ngày nghỉ</span>
-                        </div>
-                        <div class="card-body" style="height: 22rem; overflow: auto;">
-                            <nz-calendar [nzFullscreen]="false" [(ngModel)]="today" [nzCustomHeader]=""
-                                [nzDateFullCell]="dateCell" (nzSelectChange)="onValueChange($event)"
-                                (nzPanelChange)="onPanelChange($event)">
-                            </nz-calendar>
-
-                            <ng-template #dateCell let-date>
-                                <div class="custom-date-cell"
-                                    [ngClass]="{holiday: isHoliday(date) || isSaturday(date)}">
-                                    {{ date.getDate() }}
-                                </div>
-                            </ng-template>
-                        </div>
-                    </div>
-
-                </div>
-
-                <div class="col-xl-6 col-md-12 col-sm-12 col-12 pt-2">
-                    <div class="card mb-2">
-                        <div class="card-header">
-                            <h5 class="card-title m-0 text-uppercase fw-bold py-1">Nghỉ</h5>
-                        </div>
-                        <div class="card-body py-0 pe-0">
-                            <nz-tabset style="font-size: 12px;">
-                                <nz-tab [nzTitle]="titleTemplateOnleave">
-                                    <nz-collapse style="height: 22.7rem; overflow: auto;">
-                                        @for (panel of employeeOnleaves; track panel) {
-                                        <nz-collapse-panel class="fw-bold"
-                                            [nzHeader]="panel.DepartmentName + ' (' + panel.Employees.length + ')'"
-                                            [nzActive]="true">
-
-                                            <nz-list nzSize="small" class="fw-normal ">
-                                                @for (item of panel.Employees; track item;let i = $index) {
-                                                <nz-list-item>{{i + 1}}. {{
-                                                    item.EmployeeLeave}}{{item.TimeOnLeaveText}}</nz-list-item>
-                                                }
-                                            </nz-list>
-                                        </nz-collapse-panel>
-                                        }
-                                    </nz-collapse>
-                                </nz-tab>
-                                <nz-tab [nzTitle]="titleTemplateWFH">
-                                    <nz-collapse style="height: 22.7rem; overflow: auto;">
-                                        @for (panel of employeeWfhs; track panel) {
-                                        <nz-collapse-panel class="fw-bold"
-                                            [nzHeader]="panel.DepartmentName + ' (' + panel.Employees.length + ')'"
-                                            [nzActive]="true">
-
-                                            <nz-list nzSize="small" class="fw-normal">
-                                                @for (item of panel.Employees; track item;let i = $index) {
-                                                <nz-list-item>{{i + 1}}. {{ item.EmployeeName
-                                                    }}{{item.TimeWFHText}}{{item.IsApprovedBGDText}}</nz-list-item>
-
-                                                }
-                                            </nz-list>
-                                        </nz-collapse-panel>
-                                        }
-                                    </nz-collapse>
-                                </nz-tab>
-                            </nz-tabset>
-
-                            <ng-template class="panel-title" #titleTemplateOnleave>
-                                NGHỈ PHÉP {{totalEmployeeOnleave == 0 ? '':`(${totalEmployeeOnleave})`}} -
-                                {{today|date:'dd/MM/yyyy' }}
-                            </ng-template>
-                            <ng-template class="panel-title" #titleTemplateWFH>WFH {{totalEmployeeWfh == 0 ?
-                                '':`(${totalEmployeeWfh})`}} - {{ today |
-                                date:'dd/MM/yyyy' }}</ng-template>
-                        </div>
-                    </div>
-
-                </div>
                 <div class="col-xl-6 col-md-12 col-sm-12 col-12 pt-2">
                     <div class="card mb-2">
                         <div class="card-header">
                             <h5 class="card-title m-0 text-uppercase fw-bold py-1">truy cập nhanh</h5>
                         </div>
-                        <div class="card-body p-1" style="height: 24.5rem; overflow: auto;">
+
+                        <div class="card-body p-0" style="height: 22rem; overflow: auto;">
 
                             <ul nz-menu nzMode="inline">
                                 @for (m of menuQuickAccess; track m.key) {
                                 @for (c1 of m.children; track c1.key) {
-                                <!-- <li nz-menu-item *ngIf="isLeaf(c1) && c1.isPermission && c1.isOpen" (click)="(c1.router || '') === '' 
-                            ? newTab(c1.comp, c1.title, c1.data) 
-                            : menuService.goToOldLink((c1.router ||''),c1.data)">
-                                            <img [src]="c1.icon" class="menu-icon" *ngIf="(c1.icon || '') != ''"
-                                                width="24px" />
-                                            <nz-icon nzType="caret-right" nzTheme="outline"
-                                                *ngIf="(c1.icon || '') == ''" />
-                                            {{c1.title}}
-                                        </li> -->
-
                                 <ng-template #nzTitle1 style="padding: 0 16px;">
                                     <img [src]="c1.icon" class="menu-icon" *ngIf="(c1.icon || '') != ''" width="24px"
                                         style="margin-right: 8px; vertical-align: middle;" />
@@ -208,74 +95,117 @@
                                     </ul>
                                 </li>
                                 }
-                                <!-- <ng-template #nzTitle style="padding: 0 16px;">
-                                    <img [src]="m.icon" class="menu-icon" *ngIf="(m.icon || '') != ''" width="24px"
-                                        style="margin-right: 8px; vertical-align: bottom;" />
-                                    <nz-icon nzType="caret-right" nzTheme="outline" *ngIf="(m.icon || '') == ''" />
-                                    <p class="m-0 fw-bold">{{ m.title }}</p>
-                                </ng-template>
-                                <li nz-submenu [nzTitle]="nzTitle" *ngIf="isGroup(m) && m.isPermission && m.isOpen"
-                                    nzOpen="">
-                                    <ul>
-                                        
-                                    </ul>
-                                </li> -->
+
                                 }
                             </ul>
 
-                            <!-- <nz-list nzItemLayout="vertical">
 
-                                @for (m of menuPersons; track m.key) {
-                                <nz-list-item *ngIf="m.isPermission && m.isOpen && (m.router || '') != ''">
-                                    <nz-list-item-meta class="m-0">
-                                        <nz-list-item-meta-avatar [nzSrc]=""></nz-list-item-meta-avatar>
-                                        <nz-list-item-meta-title>
-                                            <a (click)="menuService.goToOldLink(m.router,m.data)"
-                                                target="_blank">{{m.title}}</a>
-                                        </nz-list-item-meta-title>
-                                    </nz-list-item-meta>
-                                </nz-list-item>
-                                @for (c1 of m.children; track c1.key) {
-                                <nz-list-item *ngIf="c1.isPermission && c1.isOpen && (c1.router || '') != ''">
-                                    <nz-list-item-meta class="m-0">
-                                        <nz-list-item-meta-avatar [nzSrc]=""></nz-list-item-meta-avatar>
-                                        <nz-list-item-meta-title>
-                                            <a (click)="menuService.goToOldLink(c1.router,c1.data)"
-                                                target="_blank">{{c1.title}}</a>
-                                        </nz-list-item-meta-title>
-                                    </nz-list-item-meta>
-                                </nz-list-item>
-                                @for (c2 of c1.children; track c2.key) {
-                                <nz-list-item *ngIf="c2.isPermission && c2.isOpen && (c2.router || '') != ''">
-                                    <nz-list-item-meta class="m-0">
-                                        <nz-list-item-meta-avatar [nzSrc]=""></nz-list-item-meta-avatar>
-                                        <nz-list-item-meta-title>
-                                            <a (click)="menuService.goToOldLink(c2.router,c2.data)"
-                                                target="_blank">{{c2.title}}</a>
-                                        </nz-list-item-meta-title>
-                                    </nz-list-item-meta>
-                                </nz-list-item>
-                                @for (c3 of c2.children; track c3.key) {
-                                <nz-list-item *ngIf="c3.isPermission && c3.isOpen && (c3.router || '') != ''">
-                                    <nz-list-item-meta class="m-0">
-                                        <nz-list-item-meta-avatar [nzSrc]=""></nz-list-item-meta-avatar>
-                                        <nz-list-item-meta-title>
-                                            <a (click)="menuService.goToOldLink(c3.router,c3.data)"
-                                                target="_blank">{{c3.title}}</a>
-                                        </nz-list-item-meta-title>
-                                    </nz-list-item-meta>
-                                </nz-list-item>
-                                }
-                                }
-                                }
-                                }
-                                
-
-                            </nz-list> -->
                         </div>
                     </div>
 
                 </div>
+
+                <div class="col-xl-6 col-md-12 col-sm-12 col-12 pt-2">
+                    <div class="card mb-2">
+                        <div class="card-header d-flex align-items-center">
+                            <h5 class="card-title m-0 text-uppercase fw-bold py-1">Lịch làm việc</h5>
+                            <span class="badge bg-danger ms-auto">Ngày nghỉ</span>
+                        </div>
+                        <div class="card-body" style="height: 22rem; overflow: auto;">
+                            <nz-calendar [nzFullscreen]="false" [(ngModel)]="today" [nzCustomHeader]=""
+                                [nzDateFullCell]="dateCell" (nzSelectChange)="onValueChange($event)"
+                                (nzPanelChange)="onPanelChange($event)">
+                            </nz-calendar>
+
+                            <ng-template #dateCell let-date>
+                                <div class="custom-date-cell"
+                                    [ngClass]="{holiday: isHoliday(date) || isSaturday(date)}">
+                                    {{ date.getDate() }}
+                                </div>
+                            </ng-template>
+                        </div>
+                    </div>
+
+                </div>
+                <div class="col-xl-6 col-md-12 col-sm-12 col-12 pt-2">
+                    <div class="card mb-2">
+                        <div class="card-header">
+                            <h5 class="card-title m-0 text-uppercase fw-bold py-1">Thông báo</h5>
+                        </div>
+                        <div class="card-body p-1" style="height: 24.5rem; overflow: auto;">
+                            <nz-list nzItemLayout="vertical">
+                                @for (item of notifItems; track item) {
+                                <nz-list-item>
+                                    <nz-list-item-meta class="m-0">
+                                        <nz-list-item-meta-avatar [nzSrc]="item.icon"></nz-list-item-meta-avatar>
+                                        <nz-list-item-meta-title>
+                                            <a href="">{{ item.title }}</a>
+                                        </nz-list-item-meta-title>
+                                        <nz-list-item-meta-description>
+                                            {{ item.detail }}
+                                        </nz-list-item-meta-description>
+                                    </nz-list-item-meta>
+                                </nz-list-item>
+                                }
+                            </nz-list>
+                        </div>
+                    </div>
+
+                </div>
+                <div class="col-xl-6 col-md-12 col-sm-12 col-12 pt-2">
+                    <div class="card mb-2">
+                        <div class="card-header">
+                            <h5 class="card-title m-0 text-uppercase fw-bold py-1">Nghỉ</h5>
+                        </div>
+                        <div class="card-body py-0 pe-0">
+                            <nz-tabset style="font-size: 12px;">
+                                <nz-tab [nzTitle]="titleTemplateOnleave">
+                                    <nz-collapse style="height: 22.7rem; overflow: auto;">
+                                        @for (panel of employeeOnleaves; track panel) {
+                                        <nz-collapse-panel class="fw-bold"
+                                            [nzHeader]="panel.DepartmentName + ' (' + panel.Employees.length + ')'"
+                                            [nzActive]="true">
+
+                                            <nz-list nzSize="small" class="fw-normal ">
+                                                @for (item of panel.Employees; track item;let i = $index) {
+                                                <nz-list-item>{{i + 1}}. {{
+                                                    item.EmployeeLeave}}{{item.TimeOnLeaveText}}</nz-list-item>
+                                                }
+                                            </nz-list>
+                                        </nz-collapse-panel>
+                                        }
+                                    </nz-collapse>
+                                </nz-tab>
+                                <nz-tab [nzTitle]="titleTemplateWFH">
+                                    <nz-collapse style="height: 22.7rem; overflow: auto;">
+                                        @for (panel of employeeWfhs; track panel) {
+                                        <nz-collapse-panel class="fw-bold"
+                                            [nzHeader]="panel.DepartmentName + ' (' + panel.Employees.length + ')'"
+                                            [nzActive]="true">
+
+                                            <nz-list nzSize="small" class="fw-normal">
+                                                @for (item of panel.Employees; track item;let i = $index) {
+                                                <nz-list-item>{{i + 1}}. {{ item.EmployeeName
+                                                    }}{{item.TimeWFHText}}{{item.IsApprovedBGDText}}</nz-list-item>
+
+                                                }
+                                            </nz-list>
+                                        </nz-collapse-panel>
+                                        }
+                                    </nz-collapse>
+                                </nz-tab>
+                            </nz-tabset>
+
+                            <ng-template class="panel-title" #titleTemplateOnleave>
+                                NGHỈ PHÉP {{totalEmployeeOnleave == 0 ? '':`(${totalEmployeeOnleave})`}}
+                            </ng-template>
+                            <ng-template class="panel-title" #titleTemplateWFH>WFH {{totalEmployeeWfh == 0 ?
+                                '':`(${totalEmployeeWfh})`}}</ng-template>
+                        </div>
+                    </div>
+
+                </div>
+
             </div>
 
         </div>

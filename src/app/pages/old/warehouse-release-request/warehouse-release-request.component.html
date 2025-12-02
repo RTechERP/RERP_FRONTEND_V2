@@ -1,7 +1,7 @@
 <div style="display: flex; flex-direction: column; height: 100vh; position: relative;">
   <!-- Modal Dialog -->
   <div class="modal-header bg-primary text-uppercase py-2">
-    <h6 class="modal-title text-white">CHI TIẾT PO KHÁCH HÀNG</h6>
+    <h6 class="modal-title text-white">YÊU CẦU XUẤT KHO</h6>
     <button type="button" class="btn-close" (click)="closeModal()" aria-label="Close"></button>
   </div>
 
@@ -31,7 +31,7 @@
       <div class="col-md-3">
         <label class="form-label mb-2">Khách hàng</label>
         <nz-select style="width: 100%;" nzPlaceHolder="Chọn khách hàng" [(ngModel)]="selectedCustomer"
-          (ngModelChange)="onCustomerChange($event)" nzAllowClear>
+          (ngModelChange)="onCustomerChange($event)" nzAllowClear nzShowSearch>
           <nz-option *ngFor="let customer of customers" [nzValue]="customer.ID"
             [nzLabel]="customer.CustomerName"></nz-option>
         </nz-select>

@@ -130,7 +130,6 @@ export class ProjectPartlistPriceRequestComponent implements OnInit {
   private modal = inject(NzModalService);
   injector = inject(EnvironmentInjector);
   appRef = inject(ApplicationRef);
-
   appUserService = inject(AppUserService);
   private ngbModal = inject(NgbModal);
 
@@ -197,7 +196,8 @@ export class ProjectPartlistPriceRequestComponent implements OnInit {
       isDeleted: 0,
       projectTypeID: this.activeTabId,
       poKHID: 0,
-      isCommercialProd: -1,
+      isCommercialProduct: -1,
+      isJobRequirement: -1,
     };
 
     this.GetCurrency();
@@ -208,10 +208,17 @@ export class ProjectPartlistPriceRequestComponent implements OnInit {
     this.GetAllPOKH();
   }
 
-  get restrictedView(): boolean { return (this.jobRequirementID > 0) || this.isVPP || this.projectPartlistPriceRequestTypeID === 4; }
+  get restrictedView(): boolean {
+     return (this.jobRequirementID > 0) || this.isVPP || this.projectPartlistPriceRequestTypeID === 4; 
+    }
   get isHRDept(): boolean { const d = this.appUserService.departmentID ?? 0; return d === 4 && !this.appUserService.isAdmin; }
-  shouldShowProjectType(id: number): boolean { if (this.poKHID > 0 && id !== -1) return false; if (this.projectPartlistPriceRequestTypeID === 3) return id === -2; if (this.projectPartlistPriceRequestTypeID === 4) return id === -3; return true; }
-  getVisibleProjectTypes(): any[] { return (this.projectTypes || []).filter((t: any) => this.shouldShowProjectType(t.ProjectTypeID)); }
+  shouldShowProjectType(id: number): boolean { if (this.poKHID > 0 && id !== -1) return false;
+     if (this.projectPartlistPriceRequestTypeID === 3) return id === -2; 
+     if (this.projectPartlistPriceRequestTypeID === 4) return id === -3; 
+     return true; }
+  getVisibleProjectTypes(): any[] {
+     return (this.projectTypes || []).filter((t: any) => this.shouldShowProjectType(t.ProjectTypeID)); 
+    }
 
   OnFormSubmit(): void {
     this.LoadPriceRequests();
@@ -509,13 +516,12 @@ export class ProjectPartlistPriceRequestComponent implements OnInit {
       });
   }
   private LoadProjectTypes(): void {
-    const employeeID = 0;
-    this.PriceRequetsService.getTypes(employeeID).subscribe((response) => {
+    const employeeID = this.appUserService.employeeID ?? 0;
+    let projectTypeIdHR = 0;
+    if(this.jobRequirementID > 0 || this.isVPP) projectTypeIdHR=-2
+    this.PriceRequetsService.getTypes(employeeID, projectTypeIdHR).subscribe((response) => {
       this.projectTypes = response.data.dtType;
-      console.log('Types:', this.projectTypes);
-
       setTimeout(() => {
-        // Tạo tables tuần tự để tránh conflict khi load data đồng thời
         let delay = 0;
         this.projectTypes.forEach((type, index) => {
           setTimeout(() => {
@@ -659,17 +665,32 @@ export class ProjectPartlistPriceRequestComponent implements OnInit {
       let projectTypeID = typeId;
       let isCommercialProduct = -1;
       let poKHID = this.filters.poKHID;
+      let isJobRequirement = -1;
+      let projectPartlistPriceRequestTypeID = -1;
+      let employeeID = 0;
 
-      // Xử lý logic cho các tab đặc biệt
+      // Áp dụng logic giống WinForm
       if (typeId === -1) {
-        // Tab "Sản phẩm thương mại"
         projectTypeID = -1;
         isCommercialProduct = 1;
         poKHID = 0;
       } else if (typeId === -2) {
-        // Tab "HCNS"
-        projectTypeID = 0;
+        projectTypeID = -1;
+        isJobRequirement = 1;
         isCommercialProduct = -1;
+      } else if (typeId === -3) {
+        projectPartlistPriceRequestTypeID = 4;
+        isCommercialProduct = 0;
+        // employeeID = this.appUserService.employeeID ?? 0; // Can be enabled if needed for filtering by employee
+      } else if (typeId === 0) {
+        isCommercialProduct = 0;
+        isJobRequirement = 0;
+      }
+
+      poKHID = 0;
+
+      if (this.jobRequirementID > 0 || this.isVPP) {
+        isJobRequirement = 1;
       }
 
       return {
@@ -682,6 +703,9 @@ export class ProjectPartlistPriceRequestComponent implements OnInit {
         projectTypeID: projectTypeID,
         poKHID: poKHID,
         isCommercialProduct: isCommercialProduct,
+        isJobRequirement: isJobRequirement,
+        projectPartlistPriceRequestTypeID: projectPartlistPriceRequestTypeID,
+        employeeID: employeeID,
       };
     };
 
@@ -722,7 +746,7 @@ export class ProjectPartlistPriceRequestComponent implements OnInit {
       next: (response) => {
         if ((response as any).status === 1) {
           this.LoadPriceRequests();
-          this.notification.success(
+          this.notification.success(  
             'Thông báo',
             (response as any).message || successMessage
           );

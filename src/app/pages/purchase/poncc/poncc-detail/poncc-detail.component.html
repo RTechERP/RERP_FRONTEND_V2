@@ -13,10 +13,10 @@
         <div class="card h-100 border-0 rounded-0" style="display: flex; flex-direction: column; height: 100%;">
             <div class="card-header bg-white p-1" style="flex-shrink: 0;">
                 <div class="d-flex gap-1 ms-1">
-                    <button class="fs-12" nz-button nzType="default" nzSize="small" (click)="saveData()"
+                    <!-- <button class="fs-12" nz-button nzType="default" nzSize="small" (click)="saveData()"
                         *hasPermission="'N33,N35,N1,N36'">
                         <img class="btn-action-icon" src="assets/icon/action_save_24.svg" alt="Lưu" />Lưu
-                    </button>
+                    </button> -->
                     <!-- <button class="fs-12" nz-button nzType="default" nzSize="small">
                         <img class="btn-action-icon" src="assets/icon/action_add_24.svg" alt="Chọn yêu cầu mua" />Chọn
                         yêu cầu mua
@@ -68,7 +68,8 @@
                                             </nz-form-label>
                                             <nz-form-control nzErrorTip="Vui lòng chọn NCC!">
                                                 <nz-select name="SupplierSaleID" formControlName="SupplierSaleID"
-                                                    (ngModelChange)="onSupplierChange($event)" nzPlaceHolder="Chọn NCC">
+                                                    nzShowSearch nzAllowClear (ngModelChange)="onSupplierChange($event)"
+                                                    nzPlaceHolder="Chọn NCC">
                                                     <nz-option *ngFor="let item of supplierSales" [nzValue]="item.ID"
                                                         [nzLabel]="item.CodeNCC+' - '+ item.NameNCC">
                                                     </nz-option>
@@ -223,7 +224,7 @@
                     </div>
                     <div nz-col [nzSpan]="6">
                         <fieldset class="reset m-0 mb-2">
-                            <legend class="reset fs-12 p-0 mb-2">HÃNG</legend>
+                            <legend class="reset fs-12 p-0 mb-2">HÀNG</legend>
                             <form nz-form [formGroup]="companyForm" class="container-fluid" nzLayout="vertical">
                                 <div nz-row [nzGutter]="16">
                                     <div nz-col [nzSpan]="12">
@@ -324,12 +325,12 @@
 
                         <nz-tabset nzSize="small" [nzAnimated]="false" (nzSelectedIndexChange)="onTabChange($event)">
                             <nz-tab nzTitle="Hàng tiền" nzForceRender="true">
-                                <div class="position-relative" style="height: 46vh;">
+                                <div class="position-relative" style="height: 42vh;">
                                     <div #tb_HangTien style="height: 100%;"></div>
                                 </div>
                             </nz-tab>
                             <nz-tab nzTitle="Khác" nzForceRender="true">
-                                <div class="position-relative" style="height: 46vh;">
+                                <div class="position-relative" style="height: 42vh;">
                                     <form nz-form [formGroup]="diffForm" class="container-fluid"
                                         style="overflow-x: hidden;" nzLayout="vertical">
                                         <div nz-row [nzGutter]="24">
@@ -365,7 +366,7 @@
                                 </div>
                             </nz-tab>
                             <nz-tab nzTitle="Thông tin bổ sung" nzForceRender="true">
-                                <div class="position-relative" style="height: 46vh;">
+                                <div class="position-relative" style="height: 42vh;">
                                     <form nz-form [formGroup]="extraForm" class="container-fluid"
                                         style="overflow-x: hidden;" nzLayout="vertical">
                                         <div nz-row [nzGutter]="16">
@@ -489,7 +490,7 @@
                                 </div>
                             </nz-tab>
                             <!-- <nz-tab nzTitle="Hồ sơ đi kèm" nzForceRender="true">
-                                <div class="position-relative" style="height: 46vh;">
+                                <div class="position-relative" style="height: 42vh;">
                                     <div #tb_HoSoDiKem style="height: 100%;"></div>
                                 </div>
                             </nz-tab> -->
@@ -502,4 +503,10 @@
     </div>
 
     <!-- Modal Footer -->
+    <div class="modal-footer py-1">
+        <button nz-button nzType="default" nzDanger (click)="activeModal.dismiss()" >Đóng</button>
+        <button nz-button nzType="primary" (click)="saveData()" *hasPermission="'N33,N35,N1,N36'" >
+            <i class="fas fa-save me-1"></i> Lưu
+        </button>
+    </div>
 </div>

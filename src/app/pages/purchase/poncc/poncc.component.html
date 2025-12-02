@@ -119,9 +119,34 @@
               *hasPermission="'N35,N33,N1'">
               <img class="btn-action-icon" src="assets/icon/action_export_excel_24.svg" alt="Xuất excel" />Xuất excel
             </button>
-            <!-- <button class="fs-12" nz-button nzType="default" nzSize="small" *hasPermission="'N35,N33,N1'">
-              <img class="btn-action-icon" src="assets/icon/action_import_24.svg" alt="Nhập kho" />Nhập kho
-            </button>
+
+            <ng-container *hasPermission="'N38,N1,N64'">
+              <button class="fs-12" nz-button nzType="default" nzSize="small" nz-dropdown
+                [nzDropdownMenu]="menuNhapkho">
+                <img src="assets/icon/action_confirm_tbp_16.png" alt="Nhập kho" />Yêu cầu nhập kho
+                <i nz-icon nzType="down"></i>
+              </button>
+            </ng-container>
+            <nz-dropdown-menu #menuNhapkho="nzDropdownMenu">
+              <ul nz-menu>
+                <li nz-menu-item (click)="onImportWareHouse(1)">
+                  <span class="ms-1">Kho HN</span>
+                </li>
+                <li nz-menu-item (click)="onImportWareHouse(2)">
+                  <span class="ms-1">Kho HCM</span>
+                </li>
+                <li nz-menu-item (click)="onImportWareHouse(3)" >
+                  <span class="ms-1">Kho BN</span>
+                </li>
+                <li nz-menu-item (click)="onImportWareHouse(4)">
+                  <span class="ms-1">Kho HP</span>
+                </li>
+                <li nz-menu-item (click)="onImportWareHouse(6)">
+                  <span class="ms-1"> Kho ĐP</span>
+                </li>
+              </ul>
+            </nz-dropdown-menu>
+            <!-- 
             <button class="fs-12" nz-button nzType="default" nzSize="small" *hasPermission="'N35,N33,N1'">
               <img class="btn-action-icon" src="assets/icon/action_money_24.svg" alt="Đề nghị thanh toán" />Đề nghị
               thanh toán

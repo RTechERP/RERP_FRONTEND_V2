@@ -114,7 +114,6 @@ import { ProjectPartlistPurchaseRequestComponent } from '../../../purchase/proje
 import { ProjectPartlistPriceRequestComponent } from '../../../old/project-partlist-price-request/project-partlist-price-request.component';
 import { PONCCComponent } from '../../../purchase/poncc/poncc.component';
 import { EmployeeSaleManagerComponent } from '../../../old/employee-sale-manager/employee-sale-manager.component';
-
 import { RequestInvoiceComponent } from '../../../old/request-invoice/request-invoice.component';
 import { AssignWorkComponent } from '../../../purchase/assign-work/assign-work.component';
 import { PersonComponent } from '../../../person/person.component';
@@ -419,6 +418,7 @@ export class MenuService {
                     comp: BorrowProductHistoryComponent,
                     data: {
                       warehouseID: 1,
+                      warehouseType:1
                     },
                   },
                   {
@@ -444,7 +444,138 @@ export class MenuService {
                     },
                   },
                 ],
-              },
+              },              
+              // {
+              //   kind: 'group',
+              //   key: 'AGV',
+              //   title: 'Phòng AGV',
+              //   isOpen: true,
+              //   isPermission: this.permissionService.hasPermission(''),
+              //   //   icon: 'assets/icon/layers.png',
+              //   children: [
+                  // {
+                  //   kind: 'leaf',
+                  //   key: 'InventoryAGVComponent_HN',
+                  //   title: 'TỒN KHO AGV',
+                  //   isOpen: true,
+                  //   isPermission: this.permissionService.hasPermission(''),
+                  //   comp: InventoryDemoComponent,
+                  //   data: {
+                  //     warehouseID: 1,
+                  //     warehouseType:2
+                  //   }
+                  //   //   icon: 'assets/icon/layers.png',
+                  // },
+
+                  // {
+                  //   kind: 'leaf',
+                  //   key: 'BillImportTechnicalComponent_HN',
+                  //   title: 'PHIẾU NHẬP KHO AGV',
+                  //   isOpen: true,
+                  //   isPermission: this.permissionService.hasPermission(''),
+                  //   comp: BillImportTechnicalComponent,
+                  //   data: {
+                  //     warehouseID: 1,
+                  //     warehouseType:2
+                  //   }
+                  //   //   icon: 'assets/icon/layers.png',
+                  // },
+                  // {
+                  //   kind: 'leaf',
+                  //   key: 'BillExportTechnicalComponent_HN',
+                  //   title: 'PHIẾU XUẤT KHO AGV',
+                  //   isOpen: true,
+                  //   isPermission: this.permissionService.hasPermission(''),
+                  //   comp: BillExportTechnicalComponent,
+                  //   data: {
+                  //     warehouseID: 1,
+                  //     warehouseType:2
+                  //   }
+                  //   //   icon: 'assets/icon/layers.png',
+                  // },
+                  // {
+                  //   kind: 'leaf',
+                  //   key: 'InventoryBorrowNCCComponent',
+                  //   title: 'BÁO CÁO MƯỢN',
+                  //   isOpen: true,
+                  //   isPermission: this.permissionService.hasPermission(''),
+                  //   comp: InventoryBorrowNCCComponent,
+                  //   //   icon: 'assets/icon/layers.png',
+                  // },
+                  // {
+                  //   kind: 'leaf',
+                  //   key: 'ProductReportNewRtcComponent_AGV',
+                  //   title: 'LỊCH SỬ NHÂP XUẤT AGV',
+                  //   isOpen: true,
+                  //   isPermission: this.permissionService.hasPermission(''),
+                  //   comp: ProductReportNewComponent,
+                  //   data: {
+                  //     warehouseID: 1,
+                  //     warehouseType:2
+                  //   }
+                  // },
+                  // {
+                  //   kind: 'leaf',
+                  //   key: 'ProductExportAndBorrowComponent_AGV',
+                  //   title: 'DANH SÁCH SẢN PHẨM KHÔNG DÙNG ',
+                  //   isOpen: true,
+                  //   isPermission: this.permissionService.hasPermission(''),
+                  //   comp: ProductExportAndBorrowComponent,
+                  //   data: {
+                  //     warehouseID: 1,
+                  //     warehouseType:2
+                  //   }
+                  // },
+                  // {
+                  //   kind: 'leaf',
+                  //   key: 'BorrowReportComponent_AGV',
+                  //   title: 'BÁO CÁO MƯỢN AGV',
+                  //   isOpen: true,
+                  //   isPermission: this.permissionService.hasPermission(''),
+                  //   comp: BorrowReportComponent,
+                  //   data: {
+                  //     warehouseID: 1,
+                  //     warehouseType:2
+                  //   }
+                  // },
+                  // {
+                  //   kind: 'leaf',
+                  //   key: 'BorrowProductHistoryComponent_AGV',
+                  //   title: 'LỊCH SỬ MƯỢN AGV',
+                  //   isOpen: true,
+                  //   isPermission: this.permissionService.hasPermission(''),
+                  //   comp: BorrowProductHistoryComponent,
+                  //   data: {
+                  //     warehouseID: 1,
+                  //     warehouseType:2
+                  //   }
+                  // },
+                  // {
+                  //   kind: 'leaf',
+                  //   key: 'SearchProductTechSerialComponentAGV_HN',
+                  //   title: 'TRA CỨU SERIALNUMBER AGV',
+                  //   isOpen: true,
+                  //   isPermission: this.permissionService.hasPermission(''),
+                  //   comp: SearchProductTechSerialComponent,
+                  //   data: {
+                  //     warehouseID: 1,
+                  //     warehouseType:2
+                  //   }
+                  // },
+                  // {
+                  //   kind: 'leaf',
+                  //   key: 'ProductRtcQrCodeComponent_AGV',
+                  //   title: 'Quản lý QR Code AGV',
+                  //   isOpen: true,
+                  //   isPermission: this.permissionService.hasPermission(''),
+                  //   comp: ProductRtcQrCodeComponent,
+                  //   data: {
+                  //     warehouseID: 1,
+                  //     warehouseType:2
+                  //   }
+                  // }
+              //   ],
+              // },
 
               {
                 kind: 'group',
@@ -527,7 +658,7 @@ export class MenuService {
                     title: 'TỒN KHO',
                     isOpen: true,
                     isPermission: this.permissionService.hasPermission(
-                      'N27,N29,N31,N30,N1,N36'
+                      'N27,N31,N30,N33,N29,N54,N1,N36'
                     ),
                     comp: InventoryComponent,
                     data: { warehouseCode: 'HCM' },
@@ -549,7 +680,7 @@ export class MenuService {
                     title: 'PHIẾU XUẤT',
                     isOpen: true,
                     isPermission: this.permissionService.hasPermission(
-                      'N27,N29,N50,N1,N36,N52,N35,N33,N34,N69'
+                      'N27,N29,N50,N54,N1,N36,N35'
                     ),
                     comp: BillExportComponent,
                     data: { warehouseCode: 'HCM' },
@@ -561,7 +692,7 @@ export class MenuService {
                     isOpen: true,
                     isPermission:
                       this.permissionService.hasPermission(
-                        'N27,N29,N1,N36,N35'
+                        'N27,N29,N54,N1,N36'
                       ),
                     comp: HistoryImportExportComponent,
                     data: { warehouseCode: 'HCM' },
@@ -582,7 +713,7 @@ export class MenuService {
                     isOpen: true,
                     isPermission:
                       this.permissionService.hasPermission(
-                        'N27,N29,N1,N36,N35'
+                        'N27,N29,N54,N1,N36'
                       ),
                     comp: ReportImportExportComponent,
                     data: { warehousecode: 'HCM' }, // giữ nguyên lowercase như HN
@@ -619,7 +750,7 @@ export class MenuService {
                     key: 'InventoryDemoComponent_HCM',
                     title: 'TỒN KHO DEMO',
                     isOpen: true,
-                    isPermission: this.permissionService.hasPermission(''),
+                    isPermission: this.permissionService.hasPermission('N26,N36,N29,N54,N1'),
                     comp: InventoryDemoComponent,
                     data: { warehouseID: 2 },
                   },
@@ -628,7 +759,7 @@ export class MenuService {
                     key: 'BillImportTechnicalComponent_HCM',
                     title: 'PHIẾU NHẬP DEMO',
                     isOpen: true,
-                    isPermission: this.permissionService.hasPermission(''),
+                    isPermission: this.permissionService.hasPermission('N19,N18,N26,N36,N29,N50,N54,N1'),
                     comp: BillImportTechnicalComponent,
                     data: { warehouseID: 2 },
                   },
@@ -637,7 +768,7 @@ export class MenuService {
                     key: 'BillExportTechnicalComponent_HCM',
                     title: 'PHIẾU XUẤT DEMO',
                     isOpen: true,
-                    isPermission: this.permissionService.hasPermission(''),
+                    isPermission: this.permissionService.hasPermission('N19,N18,N26,N36,N29,N50,N54,N1'),
                     comp: BillExportTechnicalComponent,
                     data: { warehouseID: 2 },
                   },
@@ -646,7 +777,7 @@ export class MenuService {
                     key: 'ProductReportNewRtcComponent_HCM',
                     title: 'LỊCH SỬ NHẬP - XUẤT DEMO',
                     isOpen: true,
-                    isPermission: this.permissionService.hasPermission(''),
+                    isPermission: this.permissionService.hasPermission('N26,N36,N29,N54,N1'),
                     comp: ProductReportNewComponent,
                     data: { warehouseID: 2 },
                   },
@@ -664,7 +795,7 @@ export class MenuService {
                     key: 'BorrowReportComponent_HCM',
                     title: 'BÁO CÁO MƯỢN DEMO',
                     isOpen: true,
-                    isPermission: this.permissionService.hasPermission(''),
+                    isPermission: this.permissionService.hasPermission('N26,N36,N29,N54,N1'),
                     comp: BorrowReportComponent,
                     data: { warehouseID: 2 },
                   },
@@ -673,7 +804,7 @@ export class MenuService {
                     key: 'BorrowProductHistoryComponent_HCM',
                     title: 'LỊCH SỬ MƯỢN DEMO',
                     isOpen: true,
-                    isPermission: this.permissionService.hasPermission(''),
+                    isPermission: this.permissionService.hasPermission('N26,N36,N29,N54,N1'),
                     comp: BorrowProductHistoryComponent,
                     data: { warehouseID: 2 },
                   },
@@ -682,7 +813,7 @@ export class MenuService {
                     key: 'SearchProductTechSerialComponent_HCM',
                     title: 'TRA CỨU SERIAL NUMBER DEMO',
                     isOpen: true,
-                    isPermission: this.permissionService.hasPermission(''),
+                    isPermission: this.permissionService.hasPermission('N26,N36,N54,N1'),
                     comp: SearchProductTechSerialComponent,
                     data: { wearHouseID: 2 }, // giữ nguyên spelling sai
                   },
@@ -691,7 +822,7 @@ export class MenuService {
                     key: 'ProductRtcQrCodeComponent_HCM',
                     title: 'QR Code',
                     isOpen: true,
-                    isPermission: this.permissionService.hasPermission(''),
+                    isPermission: this.permissionService.hasPermission('N26,N54,N1'),
                     comp: ProductRtcQrCodeComponent,
                     data: { warehouseID: 2 },
                   },

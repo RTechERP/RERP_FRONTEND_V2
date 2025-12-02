@@ -100,8 +100,7 @@ import { TsAssetManagementFormComponent } from '../../../hrm/asset/asset/ts-asse
   styleUrl: './project-partlist-purchase-request-detail.component.css',
 })
 export class ProjectPartlistPurchaseRequestDetailComponent
-  implements OnInit, AfterViewInit
-{
+  implements OnInit, AfterViewInit {
   //#region Khai báo biến
   constructor(
     public activeModal: NgbActiveModal,
@@ -115,7 +114,7 @@ export class ProjectPartlistPurchaseRequestDetailComponent
     private whService: WarehouseReleaseRequestService,
     private currencyService: CurrencyService,
     private projectPartlistPurchaseRequestService: ProjectPartlistPurchaseRequestService
-  ) {}
+  ) { }
 
   @Input() projectPartlistDetail: any;
   validateForm!: FormGroup;
@@ -129,6 +128,7 @@ export class ProjectPartlistPurchaseRequestDetailComponent
   supplierSales: any[] = [];
   isDisable: any = false;
   IsTechBought: any = false;
+  isLoadingData: boolean = false; // Flag để tránh trigger valueChanges khi đang load data
 
   private initForm() {
     this.validateForm = this.fb.group({
@@ -200,7 +200,7 @@ export class ProjectPartlistPurchaseRequestDetailComponent
     this.loadData();
   }
 
-  ngAfterViewInit(): void {}
+  ngAfterViewInit(): void { }
 
   loadData() {
     if (this.projectPartlistDetail != null) {
@@ -210,6 +210,10 @@ export class ProjectPartlistPurchaseRequestDetailComponent
       this.isDisable = id > 0;
 
       this.IsTechBought = data.IsTechBought;
+
+      // Set flag để tránh trigger valueChanges khi đang load
+      this.isLoadingData = true;
+
       this.validateForm.setValue({
         CustomerID: data.CustomerID ?? 0,
         Maker: data.Manufacturer ?? '',
@@ -246,6 +250,9 @@ export class ProjectPartlistPurchaseRequestDetailComponent
         IsImport: data.IsImport ?? false,
       });
 
+      // Reset flag sau khi setValue xong
+      this.isLoadingData = false;
+
       // Disable các control khi isDisable = true
       if (this.isDisable) {
         const controlsToDisable = [
@@ -274,6 +281,11 @@ export class ProjectPartlistPurchaseRequestDetailComponent
           'LeadTime',
         ];
         this.updateEditForm(controlsToDisable, false);
+      }
+
+      // Disable ProductName nếu có ProductSaleID
+      if (data.ProductSaleID && data.ProductSaleID > 0) {
+        this.validateForm.get('ProductName')?.disable();
       }
     } else this.isDisable = false;
   }
@@ -368,7 +380,7 @@ export class ProjectPartlistPurchaseRequestDetailComponent
     });
   }
 
-  onSubmit() {}
+  onSubmit() { }
 
   onStatusChange(value: any) {
     let noteValue = '';
@@ -396,7 +408,7 @@ export class ProjectPartlistPurchaseRequestDetailComponent
 
   //#region Tình toán
   updatePrice() {
-    const data = this.validateForm.value;
+    const data = this.validateForm.getRawValue(); // Dùng getRawValue() để lấy cả disabled fields
 
     const unitPrice = data.UnitPrice ?? 0;
     const quantity = data.Quantity ?? 0;
@@ -415,7 +427,8 @@ export class ProjectPartlistPurchaseRequestDetailComponent
   }
 
   updateDisableByIsImport() {
-    let isImport = this.validateForm.value.IsImport;
+    let data = this.validateForm.getRawValue(); // Dùng getRawValue() để lấy cả disabled fields
+    let isImport = data.IsImport;
     let controlsToDisable = [
       'UnitFactoryExportPrice',
       'UnitImportPrice',
@@ -445,11 +458,16 @@ export class ProjectPartlistPurchaseRequestDetailComponent
       });
 
       this.updatePrice();
-    } catch (ex: any) {}
+    } catch (ex: any) { }
   }
 
   getProductSale() {
-    let data = this.validateForm.value;
+    // Nếu đang load data ban đầu, không gọi API để tránh ghi đè giá trị
+    if (this.isLoadingData) {
+      return;
+    }
+
+    let data = this.validateForm.getRawValue(); // Dùng getRawValue() để lấy cả disabled fields
     const productSaleId = data.ProductSaleID;
     if (productSaleId > 0) {
       this.validateForm.get('ProductName')?.disable();
@@ -513,7 +531,7 @@ export class ProjectPartlistPurchaseRequestDetailComponent
 
     modalRef.result.then(
       () => this.getProducts(),
-      () => {}
+      () => { }
     );
   }
 
@@ -524,7 +542,7 @@ export class ProjectPartlistPurchaseRequestDetailComponent
     if (this.validateForm.invalid) {
       return; // dừng lại nếu form lỗi
     }
-    let data = this.validateForm.value;
+    let data = this.validateForm.getRawValue(); // Dùng getRawValue() để lấy cả disabled fields
 
     // Kiểm tra người mua
     if (this.projectPartlistDetail?.ID <= 0 && data.EmployeeBuyID <= 0) {

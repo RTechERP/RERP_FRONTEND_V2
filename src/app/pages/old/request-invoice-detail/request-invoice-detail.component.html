@@ -1,116 +1,147 @@
-<!-- Form yêu cầu xuất hóa đơn với bố cục cân đối -->
-<div class="modal-header bg-primary text-uppercase py-2">
-    <h6 class="modal-title text-white">YÊU CẦU XUẤT HÓA ĐƠN</h6>
-    <button type="button" class="btn-close" (click)="closeModal()" aria-label="Close"></button>
-</div>
+<div style="display: flex; flex-direction: column; height: 99.6vh; position: relative;">
+    <div class="modal-header bg-primary text-uppercase py-2">
+        <h6 class="modal-title text-white">YÊU CẦU XUẤT HÓA ĐƠN</h6>
+        <button type="button" class="btn-close" (click)="closeModal()" aria-label="Close"></button>
+    </div>
 
-<!-- Thông báo khi mở từ POKH -->
-<!-- <div *ngIf="isFromPOKH && customerName" class="alert alert-info m-2 py-2" style="font-size: 12px;">
+    <!-- Thông báo khi mở từ POKH -->
+    <!-- <div *ngIf="isFromPOKH && customerName" class="alert alert-info m-2 py-2" style="font-size: 12px;">
     <i class="bi bi-info-circle me-2"></i>
     Đang tạo yêu cầu xuất hóa đơn cho khách hàng: <strong>{{ customerName }}</strong>
 </div> -->
 
-<div class="modal-body">
-    <form>
-        <div class="row">
-            <!-- Column 1: Customer Info -->
-            <div class="col-md-4 pe-2">
-                <div class="row">
-                    <div class="col-md-6 mb-2">
-                        <label class="mb-0 fs-12">Số phiếu</label>
-                        <input type="text" class="form-control form-control-sm fs-12" [(ngModel)]="formData.Code"
-                            name="Code" disabled>
+    <nz-spin [nzSpinning]="isLoading" [nzSize]="'large'">
+    <div class="modal-body">
+        <form>
+            <div class="row">
+                <!-- Column 1: Customer Info -->
+                <div class="col-md-4 pe-2">
+                    <div class="row">
+                        <div class="col-md-6 mb-2">
+                            <label class="mb-0 fs-12">Số phiếu</label>
+                            <input type="text" class="form-control form-control-sm fs-12" [(ngModel)]="formData.Code"
+                                name="Code" disabled>
+                        </div>
+                        <div class="col-md-6 mb-2">
+                            <label class="mb-0 fs-12">Công ty bán</label>
+                            <nz-select nzShowSearch name="taxCompany" nzPlaceHolder="Chọn công ty bán" nzAllowClear
+                                nzSize="default" class="w-100" [(ngModel)]="formData.taxCompanyId">
+                                <nz-option *ngFor="let item of taxCompanyOptions" [nzValue]="item.value"
+                                    [nzLabel]="item.label"></nz-option>
+                            </nz-select>
+                        </div>
+                        <div class="col-md-12 mb-2">
+                            <label class="mb-0 fs-12">Khách hàng</label>
+                            <nz-select nzShowSearch name="customerId" nzPlaceHolder="Chọn khách hàng" nzAllowClear
+                                nzSize="default" class="w-100" [(ngModel)]="formData.customerId"
+                                (ngModelChange)="onCustomerChange($event)">
+                                <nz-option *ngFor="let customer of customers" [nzValue]="customer.ID"
+                                    [nzLabel]="customer.CustomerName"></nz-option>
+                            </nz-select>
+                        </div>
+                        <div class="col-md-12 mb-2">
+                            <label class="mb-0 fs-12">Địa chỉ</label>
+                            <textarea class="form-control form-control-sm fs-12" [(ngModel)]="formData.address"
+                                name="address" rows="3" style="height: 10px; " disabled></textarea>
+                        </div>
+                        <div class="col-md-12 mb-2">
+                            <label class="mb-0 fs-12">Ghi chú</label>
+                            <textarea class="form-control form-control-sm fs-12" [(ngModel)]="formData.note" name="note"
+                                rows="1" placeholder="Nhập ghi chú"></textarea>
+                        </div>
+
+                        <div class="col-md-6 mb-2 mt-4 d-flex align-items-center">
+                            <input type="checkbox" [(ngModel)]="formData.isCustomsDeclared" name="isCustomsDeclared"
+                                class="form-check-input me-2" />
+                            <label class="mb-0 fs-12">Tờ khai hải quan</label>
+                        </div>
+
+                        <div class="col-md-6 mb-2 mt-4 d-flex align-items-center">
+                            <input type="checkbox" [(ngModel)]="formData.isUrgency" name="isUrgency"
+                                class="form-check-input me-2" (change)="onUrgencyChange()" />
+                            <label class="mb-0 fs-12">Cần gấp</label>
+                        </div>
                     </div>
-                    <div class="col-md-6 mb-2">
-                        <label class="mb-0 fs-12">Công ty bán</label>
-                        <nz-select nzShowSearch name="taxCompany" nzPlaceHolder="Chọn công ty bán" nzAllowClear
-                            nzSize="default" class="w-100" [(ngModel)]="formData.taxCompanyId">
-                            <nz-option *ngFor="let item of taxCompanyOptions" [nzValue]="item.value"
-                                [nzLabel]="item.label"></nz-option>
-                        </nz-select>
+                </div>
+
+                <!-- Column 2: Request Info -->
+                <div class="col-md-4 px-2">
+                    <div class="row">
+                        <div class="col-md-12 mb-2">
+                            <label class="mb-0 fs-12">Người yêu cầu</label>
+                            <nz-select nzShowSearch name="userId" nzPlaceHolder="Chọn người yêu cầu" nzAllowClear
+                                nzSize="default" class="w-100" [(ngModel)]="formData.userId">
+                                <nz-option *ngFor="let user of employees" [nzValue]="user.ID"
+                                    [nzLabel]="user.FullName"></nz-option>
+                            </nz-select>
+                        </div>
+                        <div class="col-md-12 mb-2">
+                            <label class="mb-0 fs-12">Ngày yêu cầu</label>
+                            <input type="date" class="form-control form-control-sm fs-12"
+                                [(ngModel)]="formData.requestDate" name="requestDate">
+                        </div>
+                        <div class="col-md-12 mb-2">
+                            <label class="mb-0 fs-12">Ngày xuất</label>
+                            <input type="date" class="form-control form-control-sm fs-12"
+                                [(ngModel)]="formData.exportDate" name="createDate">
+                        </div>
+                        <div class="col-md-12 mb-2">
+                            <label class="mb-0 fs-12">Trạng thái</label>
+                            <nz-select nzShowSearch name="status" nzPlaceHolder="Chọn trạng thái" nzAllowClear
+                                nzSize="default" class="w-100" [(ngModel)]="formData.status">
+                                <nz-option *ngFor="let item of statuses" [nzValue]="item.value"
+                                    [nzLabel]="item.label"></nz-option>
+                            </nz-select>
+                        </div>
+
+                        <div class="col-md-12 mb-2">
+                            <label class="mb-0 fs-12">Deadline</label>
+                            <input type="date" class="form-control form-control-sm fs-12"
+                                [(ngModel)]="formData.deadline" name="deadline" [disabled]="!formData.isUrgency">
+                        </div>
+
                     </div>
-                    <div class="col-md-12 mb-2">
-                        <label class="mb-0 fs-12">Khách hàng</label>
-                        <nz-select nzShowSearch name="customerId" nzPlaceHolder="Chọn khách hàng" nzAllowClear
-                            nzSize="default" class="w-100" [(ngModel)]="formData.customerId"
-                            (ngModelChange)="onCustomerChange($event)">
-                            <nz-option *ngFor="let customer of customers" [nzValue]="customer.ID"
-                                [nzLabel]="customer.CustomerName"></nz-option>
-                        </nz-select>
-                    </div>
-                    <div class="col-md-12 mb-2">
-                        <label class="mb-0 fs-12">Địa chỉ</label>
-                        <textarea class="form-control form-control-sm fs-12" [(ngModel)]="formData.address"
-                            name="address" rows="3" style="height: 10px; " disabled></textarea>
-                    </div>
-                    <div class="col-md-12 mb-2">
-                        <label class="mb-0 fs-12">Ghi chú</label>
-                        <textarea class="form-control form-control-sm fs-12" [(ngModel)]="formData.note" name="note"
-                            rows="1" placeholder="Nhập ghi chú"></textarea>
+                </div>
+
+                <!-- Column 3: Tax Info -->
+                <div class="col-md-4 ps-2">
+                    <div class="row">
+                        <h6>File đính kèm</h6>
+                        <div class="mb-3 d-flex align-items-center">
+                            <input type="file" multiple class="form-control" #fileInput
+                                style="max-width: 300px; height: 30px; font-size: 11px;"
+                                (change)="onFileSelected($event)">
+                        </div>
+                        <div #tb_InvoiceFile id="tb_InvoiceFile"></div>
                     </div>
                 </div>
             </div>
 
-            <!-- Column 2: Request Info -->
-            <div class="col-md-4 px-2">
-                <div class="row">
-                    <div class="col-md-12 mb-2">
-                        <label class="mb-0 fs-12">Người yêu cầu</label>
-                        <nz-select nzShowSearch name="userId" nzPlaceHolder="Chọn người yêu cầu" nzAllowClear
-                            nzSize="default" class="w-100" [(ngModel)]="formData.userId">
-                            <nz-option *ngFor="let user of employees" [nzValue]="user.ID"
-                                [nzLabel]="user.FullName"></nz-option>
-                        </nz-select>
-                    </div>
-                    <div class="col-md-12 mb-2">
-                        <label class="mb-0 fs-12">Ngày yêu cầu</label>
-                        <input type="date" class="form-control form-control-sm fs-12" [(ngModel)]="formData.requestDate"
-                            name="requestDate">
-                    </div>
-                    <div class="col-md-12 mb-2">
-                        <label class="mb-0 fs-12">Ngày xuất</label>
-                        <input type="date" class="form-control form-control-sm fs-12" [(ngModel)]="formData.exportDate"
-                            name="createDate">
-                    </div>
-                    <div class="col-md-12 mb-2">
-                        <label class="mb-0 fs-12">Trạng thái</label>
-                        <nz-select nzShowSearch name="status" nzPlaceHolder="Chọn trạng thái" nzAllowClear
-                            nzSize="default" class="w-100" [(ngModel)]="formData.status">
-                            <nz-option *ngFor="let item of statuses" [nzValue]="item.value"
-                                [nzLabel]="item.label"></nz-option>
-                        </nz-select>
-                    </div>
+            <!-- Grid for Products -->
+            <div class="mt-3">
+                <div class="d-flex justify-content-between mb-2">
+                    <!-- <button nz-button nzType="primary" nzSize="small" (click)="addNewRow()">
+                        <i nz-icon nzType="plus"></i> Thêm sản phẩm
+                    </button> -->
                 </div>
+                <nz-splitter>
+                    <nz-splitter-panel>
+                        <h6 class="mb-0 fs-14">Danh sách sản phẩm</h6>
+                        <div #tb_DataTable id="tb_DataTable"></div>
+                    </nz-splitter-panel>
+                    <nz-splitter-panel nzDefaultSize="20%" [nzCollapsible]="true" nzResizable="true">
+                        <h6 class="mb-0 fs-14">Danh sách file PO đính kèm</h6>
+                        <div #tb_POFile id="tb_POFile"></div>
+                    </nz-splitter-panel>
+                </nz-splitter>
             </div>
+        </form>
 
-            <!-- Column 3: Tax Info -->
-            <div class="col-md-4 ps-2">
-                <div class="row">
-                    <h6>File đính kèm</h6>
-                    <div class="mb-3 d-flex align-items-center">
-                        <input type="file" multiple class="form-control" #fileInput
-                            style="max-width: 300px; height: 30px; font-size: 11px;" (change)="onFileSelected($event)">
-                    </div>
-                    <div #tb_InvoiceFile id="tb_InvoiceFile"></div>
-                </div>
-            </div>
+        <div class="modal-footer py-1">
+            <button nz-button nzType="default" nzDanger="true" nzSize="default" (click)="closeModal()">Đóng</button>
+            <button nz-button nzType="primary" nzSize="default" (click)="saveAndClose()">Lưu</button>
+
         </div>
-
-        <!-- Grid for Products -->
-        <div class="mt-3">
-            <div class="d-flex justify-content-between mb-2">
-                <h6 class="mb-0 fs-14">Danh sách sản phẩm</h6>
-                <button nz-button nzType="primary" nzSize="small" (click)="addNewRow()">
-                    <i nz-icon nzType="plus"></i> Thêm sản phẩm
-                </button>
-            </div>
-            <div #tb_DataTable id="tb_DataTable"></div>
-        </div>
-    </form>
-
-    <div class="modal-footer py-1">
-        <button nz-button nzType="default" nzDanger="true" nzSize="default" (click)="closeModal()">Đóng</button>
-        <button nz-button nzType="primary" nzSize="default" (click)="saveAndClose()">Lưu</button>
-
     </div>
+    </nz-spin>
 </div>

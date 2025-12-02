@@ -1122,7 +1122,7 @@ export class ProjectPartlistPurchaseRequestComponent implements OnInit, AfterVie
     // Danh sách các trường có thể chỉnh sửa (editable fields)
     const editableFields = [
       'Quantity', 'UnitPrice', 'UnitImportPrice', 'VAT', 'TargetPrice',
-      'CurrencyID', 'ProductGroupID', 'SupplierSaleID', 'Note',
+      'CurrencyID', 'ProductGroupID', 'SupplierSaleID', 'WarehouseID', 'Note',
       'CurrencyRate', 'UnitMoney', 'IsPaidLater'
     ];
 

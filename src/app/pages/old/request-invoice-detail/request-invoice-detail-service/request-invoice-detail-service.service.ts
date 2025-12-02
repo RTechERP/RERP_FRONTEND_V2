@@ -8,7 +8,7 @@ import { environment } from '../../../../../environments/environment';
 })
 export class RequestInvoiceDetailService {
   private _url = environment.host + 'api/RequestInvoiceDetail/';
-  constructor(private http: HttpClient) {}
+  constructor(private http: HttpClient) { }
 
   loadEmployee(): Observable<any> {
     return this.http.get<any>(this._url + 'get-employee');
@@ -28,9 +28,9 @@ export class RequestInvoiceDetailService {
   deleteFiles(fileIds: number[]): Observable<any> {
     return this.http.post<any>(this._url + 'delete-file', fileIds);
   }
-  uploadFiles(formData: FormData, RIID: number): Observable<any> {
+  uploadFiles(formData: FormData, RIID: number, fileType: number): Observable<any> {
     return this.http.post<any>(
-      `${this._url}upload?RequestInvoiceID=${RIID}`,
+      `${this._url}upload?RequestInvoiceID=${RIID}&fileType=${fileType}`,
       formData
     );
   }

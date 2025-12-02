@@ -255,11 +255,8 @@ export class HomeLayoutComponent implements OnInit, AfterViewInit {
   isLeaf = (m: MenuItem): m is LeafItem => m.kind === 'leaf';
 
   ngOnInit(): void {
-    // console.log('this.menuQuickAccess', this.menuQuickAccess);
-    // console.log('this.menus', this.menus);
     this.setResponsivePageSize();
     this.getMenuParents();
-    // this.generateCalendarDays();
     this.getEmployeeOnleaveAndWFH();
     this.getHoliday(this.today.getFullYear(), this.today.getMonth());
 

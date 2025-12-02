@@ -56,9 +56,9 @@ export class BorrowService {
     );
   }
 
-  getProductRTCDetail(productGroupID: number, keyword: string, checkAll: number, filter: string, warehouseID: number): Observable<any> {
+  getProductRTCDetail(productGroupID: number, keyword: string, checkAll: number, filter: string, warehouseID: number, warehouseType:number): Observable<any> {
     return this.http.get<any>(
-      this.apiUrl + `borrow/get-productrtc-detail?productGroupID=${productGroupID}&keyword=${keyword}&checkAll=${checkAll}&filter=${filter}&warehouseID=${warehouseID}`,
+      this.apiUrl + `borrow/get-productrtc-detail?productGroupID=${productGroupID}&keyword=${keyword}&checkAll=${checkAll}&filter=${filter}&warehouseID=${warehouseID}&warehouseType=${warehouseType}`,
     );
   }
   getHistoryProductBorrowDetail(historyId: number): Observable<any> {

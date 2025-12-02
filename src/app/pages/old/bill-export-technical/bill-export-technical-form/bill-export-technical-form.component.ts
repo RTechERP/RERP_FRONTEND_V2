@@ -28,6 +28,7 @@ import { BillImportChoseProductFormComponent } from '../../bill-import-technical
 import { CustomerServiceService } from '../../customer/customer-service/customer-service.service';
 import { NOTIFICATION_TITLE } from '../../../../app.config';
 import { AppUserService } from '../../../../services/app-user.service';
+import { HasPermissionDirective } from '../../../../directives/has-permission.directive';
 @Component({
   standalone: true,
   imports: [
@@ -44,6 +45,7 @@ import { AppUserService } from '../../../../services/app-user.service';
     NzButtonModule,
     NzModalModule,
     NzFormModule,
+    HasPermissionDirective
   ],
   selector: 'app-bill-export-technical-form',
   templateUrl: './bill-export-technical-form.component.html',

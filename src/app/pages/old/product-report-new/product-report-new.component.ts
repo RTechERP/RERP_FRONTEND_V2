@@ -99,6 +99,7 @@ export class ProductReportNewComponent implements OnInit, AfterViewInit {
     { ID: 1, Name: "Phiếu Xuất" },
     { ID: 0, Name: "Phiếu Nhập" }
   ];
+  warehouseType: number = 0;
     billImportCode: string = '';
   billExportCode: string = '';
     private ngbModal = inject(NgbModal);
@@ -112,6 +113,7 @@ export class ProductReportNewComponent implements OnInit, AfterViewInit {
   ngOnInit() {
     if (this.tabData?.warehouseID) {
       this.warehouseID = this.tabData.warehouseID;
+      this.warehouseType = this.tabData.warehouseType;
     }
   }
   ngAfterViewInit(): void {

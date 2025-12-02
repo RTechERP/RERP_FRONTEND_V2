@@ -71,6 +71,7 @@ export class ProductExportAndBorrowComponent implements OnInit, AfterViewInit {
   sizeTbDetail: any = '0';
   isSearchVisible: boolean = false;
     productData: any[] = [];
+  warehouseType: number = 0;
   constructor(
     private notification: NzNotificationService,
     private modalService: NgbModal,
@@ -80,6 +81,7 @@ export class ProductExportAndBorrowComponent implements OnInit, AfterViewInit {
   ngOnInit() {
     if (this.tabData?.warehouseID) {
       this.warehouseID = this.tabData.warehouseID;
+      this.warehouseType = this.tabData.warehouseType;
     }
   }
   ngAfterViewInit(): void {

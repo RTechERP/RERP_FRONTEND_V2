@@ -125,7 +125,9 @@ export class BillImportTechnicalFormComponent implements OnInit, AfterViewInit {
   @Input() body: string = '';
   @Input() receiverMailID: number = 0;
   @Input() warehouseIDNew: number = 0;
+  @Input() PonccID: number = 0;
   @Input() WarehouseCode: string = 'HN';
+
   employeeSelectOptions: { label: string; value: number }[] = [];
   documentBillImport: any[] = [];
   selectedDevices: any[] = [];
@@ -182,7 +184,7 @@ export class BillImportTechnicalFormComponent implements OnInit, AfterViewInit {
     private appUserService: AppUserService,
     // REFACTOR: Inject TabulatorPopupService
     private tabulatorPopupService: TabulatorPopupService
-  ) {}
+  ) { }
 
   supplierOrCustomerValidator(
     control: AbstractControl
@@ -384,9 +386,9 @@ export class BillImportTechnicalFormComponent implements OnInit, AfterViewInit {
     // Logic cho StatusPur: chỉ cho edit khi:
     // 1. DeliverID = currentUserID (người giao là người đăng nhập)
     // 2. DepartmentID = 4 HOẶC isAdmin = true
-    this.activePur =true;
-      // this.currentUserID === deliverID ||
-      // (this.currentDepartmentID === 4 || this.isAdmin);
+    this.activePur = true;
+    // this.currentUserID === deliverID ||
+    // (this.currentDepartmentID === 4 || this.isAdmin);
 
     console.log('Form Permissions:', {
       deliverID: deliverID,
@@ -585,7 +587,7 @@ export class BillImportTechnicalFormComponent implements OnInit, AfterViewInit {
           }
           this.isLoading = false;
         },
-        error: (err) => { 
+        error: (err) => {
           console.error('Error loading document import:', err);
           this.isLoading = false;
         },
@@ -664,12 +666,12 @@ export class BillImportTechnicalFormComponent implements OnInit, AfterViewInit {
             const row = cell.getRow();
             const rowData = row.getData();
             const rowUID = rowData['UID'];
-            
+
             // FIX: Xóa khỏi selectedDevices array trước khi xóa khỏi Tabulator
             this.selectedDevices = this.selectedDevices.filter(
               (device) => device['UID'] !== rowUID
             );
-            
+
             // Sau đó xóa khỏi Tabulator
             row.delete();
           },
@@ -686,12 +688,10 @@ export class BillImportTechnicalFormComponent implements OnInit, AfterViewInit {
             const product = this.productOptions.find((p) => p.ID === productId);
             const productCode = product ? product.ProductCode : '';
             return `
-              <button class="btn-toggle-detail w-100 h-100" title="${
-                productCode || 'Chọn sản phẩm'
+              <button class="btn-toggle-detail w-100 h-100" title="${productCode || 'Chọn sản phẩm'
               }">
-                <span class="product-code-text">${
-                  productCode || 'Chọn SP'
-                }</span>
+                <span class="product-code-text">${productCode || 'Chọn SP'
+              }</span>
                 <span class="arrow">&#9662;</span>
               </button>
             `;
@@ -929,7 +929,7 @@ export class BillImportTechnicalFormComponent implements OnInit, AfterViewInit {
         rowData['SerialIDs'] = serialIDs;
         row.update(rowData);
       })
-      .catch(() => {});
+      .catch(() => { });
   }
   // Thêm dòng mới vào bảng tạm
   addRow() {
@@ -947,7 +947,7 @@ export class BillImportTechnicalFormComponent implements OnInit, AfterViewInit {
         TotalQuantity: 0,
       };
       this.selectedDevices.push(newRow);
-      
+
       // FIX: Sử dụng addRow() thay vì setData() để tránh re-render toàn bộ table
       this.deviceTempTable.addRow(newRow);
     }
@@ -1407,7 +1407,7 @@ export class BillImportTechnicalFormComponent implements OnInit, AfterViewInit {
         StatusPurchase: doc.DocumentStatusPur === true ? 1 : 2,
         UpdatedDate: new Date().toISOString(),
       })),
-      PonccID: null, // Sẽ được set khi vớt từ PO sang
+      PonccID: this.PonccID, // Sẽ được set khi vớt từ PO sang
     };
 
     console.log('========== PAYLOAD BEING SENT ==========');
@@ -1583,7 +1583,7 @@ export class BillImportTechnicalFormComponent implements OnInit, AfterViewInit {
   // Code mới: 43 dòng, đơn giản, tự động cleanup
   showProductPopup(cell: CellComponent) {
     const cellElement = cell.getElement();
-    
+
     // Toggle: nếu đang mở thì đóng
     if (cellElement.classList.contains('popup-open')) {
       this.tabulatorPopupService.close();

@@ -575,6 +575,7 @@ export class PonccDetailComponent implements OnInit, AfterViewInit {
       height: '100%',
       layout: 'fitDataStretch',
       selectableRows: true,
+      pagination: false,
       columns: [
         {
           title: '',
@@ -728,6 +729,11 @@ export class PonccDetailComponent implements OnInit, AfterViewInit {
             const checked = value === true || value === 'true' || value === 1 || value === '1';
             return `<input type="checkbox" ${checked ? 'checked' : ''} style="accent-color: #1677ff;" />`;
           },
+          cellClick: (e: any, cell: any) => {
+            const currentValue = cell.getValue();
+            const newValue = !(currentValue === true || currentValue === 'true' || currentValue === 1 || currentValue === '1');
+            cell.setValue(newValue);
+          }
         },
         {
           title: '% Chiết khấu',
@@ -796,6 +802,11 @@ export class PonccDetailComponent implements OnInit, AfterViewInit {
             const checked = value === true || value === 'true' || value === 1 || value === '1';
             return `<input type="checkbox" ${checked ? 'checked' : ''} style="accent-color: #1677ff;" />`;
           },
+          cellClick: (e: any, cell: any) => {
+            const currentValue = cell.getValue();
+            const newValue = !(currentValue === true || currentValue === 'true' || currentValue === 1 || currentValue === '1');
+            cell.setValue(newValue);
+          }
         },
         {
           title: 'Deadline giao hàng',

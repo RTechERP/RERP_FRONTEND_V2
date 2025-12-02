@@ -55,6 +55,7 @@ import { AppUserService } from '../../../../services/app-user.service';
 import { NzSpinModule } from 'ng-zorro-antd/spin';
 // REFACTOR: Import TabulatorPopupService để sử dụng reusable popup component
 import { TabulatorPopupService } from '../../../../shared/components/tabulator-popup';
+import { HasPermissionDirective } from '../../../../directives/has-permission.directive';
 
 
 @Component({
@@ -74,6 +75,7 @@ import { TabulatorPopupService } from '../../../../shared/components/tabulator-p
     NzModalModule,
     NzFormModule,
     NzSpinModule,
+    HasPermissionDirective
   ],
   selector: 'app-bill-import-technical-form',
   templateUrl: './bill-import-technical-form.component.html',
@@ -113,6 +115,7 @@ export class BillImportTechnicalFormComponent implements OnInit, AfterViewInit {
   @Input() dataEdit: any;
   @Input() dataInput: any;
   @Input() billImport: any;
+  @Input() newBillImport: any; // Master data từ PONCC
 
   @Input() IsEdit: boolean = false;
   formDeviceInfo!: FormGroup;
@@ -478,6 +481,22 @@ export class BillImportTechnicalFormComponent implements OnInit, AfterViewInit {
     if (currentUser?.ID && !this.dataEdit) {
       this.formDeviceInfo.patchValue({ ReceiverID: currentUser.ID });
     }
+
+    // LUỒNG PONCC - Xử lý dữ liệu từ PONCC
+    if (this.flag === 1 && this.PonccID > 0 && this.newBillImport) {
+      // console.log('🔵 Luồng PONCC Technical detected');
+      // console.log('🔵 PonccID:', this.PonccID);
+      // console.log('🔵 Master data:', this.newBillImport);
+      // console.log('🔵 Detail data (dtDetails):', this.dtDetails);
+      
+      // Patch master data từ PONCC sau khi các lookups đã load
+      this.patchDataFromPONCC();
+      
+      // Map detail data từ PONCC
+      if (this.dtDetails && this.dtDetails.length > 0) {
+        this.mapDataFromPONCCToTable();
+      }
+    }
   }
   //#endregion
   changeStatus() {
@@ -556,6 +575,103 @@ export class BillImportTechnicalFormComponent implements OnInit, AfterViewInit {
       this.deviceTempTable.setData(this.selectedDevices);
     }
   }
+
+  /**
+   * PONCC FLOW: Patch master data từ PONCC vào form
+   */
+  private patchDataFromPONCC() {
+    if (!this.newBillImport) {
+      console.warn('⚠️ patchDataFromPONCC: Không có dữ liệu master từ PONCC');
+      return;
+    }
+
+    console.log('🔵 Đang patch masterdata từ PONCC:', this.newBillImport);
+
+    // Patch dữ liệu master từ PONCC vào form
+    this.formDeviceInfo.patchValue({
+      BillCode: this.newBillImport.BillImportCode || '',
+      BillTypeNew: this.newBillImport.BillTypeNew || 5, // Y/c nhập kho
+      ReceiverID: this.newBillImport.ReciverID || 0,
+      DeliverID: this.newBillImport.DeliverID || 0,
+      WarehouseID: this.newBillImport.WarehouseID || this.warehouseID,
+      SupplierSaleID: this.newBillImport.SupplierID || 0,
+      RulePayID: this.newBillImport.RulePayID || 34,
+      CreatDate: this.newBillImport.CreatDate ? new Date(this.newBillImport.CreatDate) : new Date(),
+      DateRequestImport: this.newBillImport.DateRequestImport 
+        ? new Date(this.newBillImport.DateRequestImport) 
+        : new Date(),
+    });
+
+    console.log('✅ Master data từ PONCC đã được patch vào form');
+  }
+
+  /**
+   * PONCC FLOW: Map detail data từ PONCC vào table
+   */
+  private mapDataFromPONCCToTable() {
+    if (!this.dtDetails || this.dtDetails.length === 0) {
+      console.warn('⚠️ mapDataFromPONCCToTable: Không có dữ liệu detail từ PONCC');
+      return;
+    }
+
+    console.log('🔵 Đang map detail data từ PONCC:', this.dtDetails);
+
+    // Map dữ liệu từ dtDetails sang format của BillImportTechnical
+    const mappedProducts = this.dtDetails.map((item: any, index: number) => {
+      // // Log cấu trúc item đầu tiên để debug
+      // if (index === 0) {
+      //   console.log('🔍 Cấu trúc item đầu tiên từ PONCC (Technical):', item);
+      //   console.log('🔍 Các keys có sẵn:', Object.keys(item));
+      // }
+
+      // Tìm thông tin sản phẩm từ productOptions
+      const productInfo = this.productOptions.find((p: any) => p.ID === item.ProductRTCID) || {};
+
+      // if (index === 0) {
+      //   console.log('🔍 Lookup ProductInfo result:', productInfo);
+      //   console.log('🔍 Using ProductRTCID:', item.ProductRTCID);
+      //   console.log('🔍 Using ProductSaleID:', item.ProductSaleID);
+      // }
+
+      return {
+        UID: Date.now() + Math.random(),
+        ProductID: item.ProductRTCID || item.ProductSaleID || 0,
+        ProductCode: item.ProductCode || productInfo.ProductCode || '',
+        ProductName: item.ProductName || productInfo.ProductName || '',
+        ProductCodeRTC: item.ProductNewCode || productInfo.ProductCodeRTC || '',
+        UnitCountName: item.UnitName || item.Unit || productInfo.UnitCountName || '',
+        UnitCountID: productInfo.UnitCountID || 0,
+        Maker: item.Maker || productInfo.Maker || '',
+        NumberInStore: productInfo.NumberInStore || 0,
+        Quantity: item.QtyRequest || item.QuantityRemain || 1,
+        Price: item.UnitPrice || 0,
+        TotalPrice: (item.QtyRequest || 1) * (item.UnitPrice || 0),
+        TotalQuantity: item.QtyRequest || item.QuantityRemain || 1,
+        SerialNumber: '',
+        PartNumber: '',
+        Serial: '',
+        Note: item.Note || '',
+        EmployeeIDBorrow: 0,
+        DeadlineReturnNCC: null,
+        BillCodePO: item.BillCode || '', // Mã đơn mua hàng
+        PONCCDetailID: item.ID || 0, // Lưu ID để trace back
+      };
+    });
+
+    console.log('🔵 Dữ liệu đã map:', mappedProducts);
+
+    // Thêm vào selectedDevices
+    this.selectedDevices = [...this.selectedDevices, ...mappedProducts];
+
+    // Refresh table
+    if (this.deviceTempTable) {
+      this.deviceTempTable.setData(this.selectedDevices);
+      console.log('✅ Detail data từ PONCC đã được load vào table');
+    } else {
+      console.warn('⚠️ Table chưa được khởi tạo, dữ liệu sẽ được load sau');
+    }
+  }
+
   getDocumentImport() {
     this.billImportTechnicalService
       .getDocumentBillImport(0, this.masterId || 0)

@@ -82,8 +82,8 @@ export class TbProductRtcImportExcelComponent implements OnInit {
   displayText: string = '0/0'; // Text hiển thị trên thanh
   totalRowsAfterFileRead: number = 0; // Tổng số dòng dữ liệu hợp lệ sau khi đọc file
   processedRowsForSave: number = 0;
-  constructor(
-    private notification: NzNotificationService,
+  isSaving: boolean = false;
+  constructor(private notification: NzNotificationService,
     private modalService: NgbModal,
     private unitService: UnitService,
     private tbProductRtcService: TbProductRtcService
@@ -582,6 +582,7 @@ export class TbProductRtcImportExcelComponent implements OnInit {
   }
 
   async saveExcelData() {
+    if (this.isSaving) return;
     if (!this.dataTableExcel || this.dataTableExcel.length === 0) {
       this.notification.warning(
         NOTIFICATION_TITLE.warning,
@@ -664,6 +665,7 @@ export class TbProductRtcImportExcelComponent implements OnInit {
 
     this.displayText = `Đang lưu: ${validDataToSave.length}/${validDataToSave.length} bản ghi`;
     this.displayProgress = 50;
+    this.isSaving = true;
 
     this.tbProductRtcService.saveDataExcel(payload).subscribe({
       next: (res: any) => {
@@ -687,13 +689,18 @@ export class TbProductRtcImportExcelComponent implements OnInit {
         } else {
           this.displayText = 'Hoàn tất';
         }
+        this.isSaving = false;
       },
       error: (err) => {
-        this.notification.error('Thông báo', 'Không thể lưu dữ liệu Excel!');
+        this.notification.error('Thông báo', err.error.message || 'Không thể lưu dữ liệu Excel!');
         console.error('Lỗi API save-data-excel:', err);
         this.displayProgress = 0;
         this.displayText = `0/${validDataToSave.length} bản ghi`;
+        this.isSaving = false;
       },
+      complete: () => {
+        this.isSaving = false;
+      }
     });
   }
 

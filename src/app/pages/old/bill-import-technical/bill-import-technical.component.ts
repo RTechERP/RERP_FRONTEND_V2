@@ -33,6 +33,7 @@ import { NzNotificationService } from 'ng-zorro-antd/notification';
 import { NzModalService } from 'ng-zorro-antd/modal';
 import { BillImportTechnicalFormComponent } from './bill-import-technical-form/bill-import-technical-form.component';
 import { NOTIFICATION_TITLE } from '../../../app.config';
+import { HasPermissionDirective } from '../../../directives/has-permission.directive';
 function formatDateCell(cell: CellComponent): string {
   const val = cell.getValue();
   return val ? DateTime.fromISO(val).toFormat('dd/MM/yyyy') : '';
@@ -59,7 +60,7 @@ function formatDateCell(cell: CellComponent): string {
     NzTableModule,
     NzTabsModule,
     NzModalModule,
-    NgbModalModule
+    HasPermissionDirective
   ],
   selector: 'app-bill-import-technical',
   templateUrl: './bill-import-technical.component.html',
@@ -95,7 +96,7 @@ export class BillImportTechnicalComponent implements OnInit, AfterViewInit {
     { ID: 0, Name: 'Chưa duyệt' },
     { ID: 1, Name: 'Đã duyệt' }
   ];
-
+  warehouseType: number = 0;
   @ViewChild('billImportTechnicalTableRef', { static: true }) billImportTechnicalTableRef!: ElementRef;
   @ViewChild('billImportTechnicalDetailTableRef', { static: true }) billImportTechnicalDetailTableRef!: ElementRef;
 
@@ -106,6 +107,7 @@ export class BillImportTechnicalComponent implements OnInit, AfterViewInit {
     this.dateEnd = new Date(); // Hôm nay
     if (this.tabData?.warehouseID) {
       this.warehouseID = this.tabData.warehouseID;
+      this.warehouseType = this.tabData.warehouseType;
     }
   }
   ngAfterViewInit(): void {

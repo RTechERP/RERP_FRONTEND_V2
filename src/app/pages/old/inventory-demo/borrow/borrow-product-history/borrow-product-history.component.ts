@@ -77,7 +77,8 @@ export class BorrowProductHistoryComponent implements OnInit {
   @Input() isModalMode: boolean = false; // Chế độ modal hay standalone
   @Output() productsExported = new EventEmitter<any[]>(); // Emit data khi xuất
   public activeModal = inject(NgbActiveModal, { optional: true }); // Để đóng modal
-
+  warehouseType: number = 0;
+  
   constructor(
     private injector: EnvironmentInjector,
     private appRef: ApplicationRef,
@@ -117,8 +118,9 @@ export class BorrowProductHistoryComponent implements OnInit {
   //#endregion
   //#region Hàm chạy khi mở chương trình
   ngOnInit(): void {
-    if (this.tabData?.warehouseID) {
+    if (this.tabData) {
       this.warehouseID = this.tabData.warehouseID;
+      this.warehouseType = this.tabData.warehouseType;
     }
     this.loadDate();
     this.loadEmployee();
@@ -277,26 +279,26 @@ export class BorrowProductHistoryComponent implements OnInit {
           const arrIds = Array.from(this.selectedArrHistoryProductID);
           const tasks = arrIds.map((id) =>
             firstValueFrom(this.borrowService.postReturnProductRTC(id, isAdmin))
-              .then(() => ({ id, success: true }))
+              .then(() => ({ id, success: true, message: null }))
               .catch((error) => {
-                console.error(`Lỗi khi thêm thiết bị ${id}:`, error);
-                return { id, success: false };
+                const message = error?.error?.message || 'Lỗi không xác định!';
+                console.error(`Lỗi khi trả thiết bị ${id}:`, message);
+                return { id, success: false, message };
               })
           );
           return Promise.all(tasks).then((results) => {
             const ok = results.filter((r) => r.success).length;
-            const fail = results.length - ok;
+            const failed = results.filter((r) => !r.success);
 
             if (ok)
               this.notification.success(
                 'Thông báo',
                 `Trả thành công ${ok} sản phẩm.`
               );
-            if (fail)
-              this.notification.error(
-                'Thông báo',
-                `Trả thất bại ${fail} sản phẩm.`
-              );
+            if (failed.length)
+              failed.forEach((item) => {
+                this.notification.error('Trả thất bại', item.message);
+              });
             this.drawTbProductHistory(
               this.tb_productHistoryContainer.nativeElement
             );
@@ -521,6 +523,7 @@ export class BorrowProductHistoryComponent implements OnInit {
             : '1',
 
         isDeleted: 0,
+        warehouseType: this.warehouseType ?? 0,
       },
       ajaxResponse: (url, params, res) => {
         let totalPage = 0;
@@ -825,6 +828,7 @@ formatter: function (cell: any) {
       size: 'xl',
     });
     modalRef.componentInstance.HistoryProductID = ID;
+    modalRef.componentInstance.warehouseType = this.warehouseType;
   }
   addErrorPersonal(ID: number) {
     const modalRef = this.modalService.open(
@@ -935,6 +939,8 @@ formatter: function (cell: any) {
         modalDialogClass: 'modal-fullscreen modal-dialog-scrollable',
       }
     );
+    modalRef.componentInstance.warehouseType = this.warehouseType;
+    
     modalRef.result.finally(() => {
       this.drawTbProductHistory(this.tb_productHistoryContainer.nativeElement);
     });

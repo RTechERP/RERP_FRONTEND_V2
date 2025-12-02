@@ -192,7 +192,5 @@
 <!-- Footer nút -->
 <div class="modal-footer">
   <button nz-button nzType="default" (click)="close()">Đóng</button>
-  <!-- <button nz-button nzType="primary" (click)="openModalChoseProduct()">Chọn sản phẩm</button> -->
-  <!-- <button nz-button nzType="primary" (click)="openModalAddProduct()">Thêm sản phẩm</button> -->
-  <button nz-button nzType="primary" (click)="saveData()">Lưu</button>
+  <button *hasPermission="'N26,N35,N1,N73,N80'" nz-button nzType="primary" (click)="saveData()">Lưu</button>
 </div>

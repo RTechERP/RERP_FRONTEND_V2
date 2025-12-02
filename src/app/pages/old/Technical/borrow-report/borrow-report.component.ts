@@ -25,6 +25,7 @@ import { DEFAULT_TABLE_CONFIG } from '../../../../tabulator-default.config';
 export class BorrowReportComponent implements OnInit {
   @ViewChild('table', { static: true }) table!: ElementRef;
   warehouseID: number = 1;
+  warehouseType: number = 0;
   searchText: string = '';
   data: any[] = [];
   warehouseData: any[] = [];
@@ -38,6 +39,7 @@ export class BorrowReportComponent implements OnInit {
   ngOnInit() {
     if (this.tabData?.warehouseID) {
       this.warehouseID = this.tabData.warehouseID;
+      this.warehouseType = this.tabData.warehouseType;
     }
     this.drawtable();
     this.loadData();

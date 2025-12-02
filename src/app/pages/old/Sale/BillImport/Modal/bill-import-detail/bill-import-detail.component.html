@@ -294,6 +294,7 @@
 
 <div class="modal-footer flex-shrink-0">
   <button class="fs-12 btn" nz-button nzDanger (click)="closeModal()">Đóng</button>
-  <button class="fs-12 btn"  [hidden]="isApproved" nz-button nzType="primary" (click)="saveDataBillImport()">Lưu</button>
+  <button class="fs-12 btn" *hasPermission="'N27,N1,N33,N34,N69'" [hidden]="isApproved" nz-button nzType="primary" (click)="saveDataBillImport()">Lưu</button>
 </div>
 
+  

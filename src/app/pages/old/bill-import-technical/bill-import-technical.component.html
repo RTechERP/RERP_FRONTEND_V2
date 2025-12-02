@@ -61,19 +61,19 @@
             <button title="btn" nz-button nzType="default" nzSize="small" (click)="toggleSearchPanel()">
               <nz-icon nzType="search" />
             </button>
-            <button class="btn-add fs-12" nz-button nzType="default" nzSize="small" (click)="openModalImportExcel()">
+            <button class="btn-add fs-12" *hasPermission="'N26,N1,N73,N80'" nz-button nzType="default" nzSize="small" (click)="openModalImportExcel()">
               <img alt="img" src="assets/icon/action_add_item_16.png" /> Thêm
             </button>
-            <button class="btn-edit fs-12" nz-button nzType="default" nzSize="small" (click)="onEditBillImportTechnical()">
+            <button class="btn-edit fs-12" *hasPermission="'N26,N1,N73,N80'" nz-button nzType="default" nzSize="small" (click)="onEditBillImportTechnical()">
                 <img alt="img" src="assets/icon/action_edit_item_16.png" />Sửa
             </button>
-            <button class="btn-delete fs-12" nz-button nzType="default" nzSize="small" (click)="onDeleteBillImportTechnical()">
+            <button class="btn-delete fs-12" *hasPermission="'N26,N1,N73,N80'" nz-button nzType="default" nzSize="small" (click)="onDeleteBillImportTechnical()">
               <img alt="img" src="assets/icon/action_delete_item_16.png" />Xóa
             </button>
-            <button class="fs-12" nz-button nzType="default" nzSize="small" (click)="onApprove()" >
+            <button class="fs-12" *hasPermission="'N19,N50,N52,N1,N80'" nz-button nzType="default" nzSize="small" (click)="onApprove()" >
               <img alt="img" src="assets/icon/action_approved_16.png" /> Duyệt
             </button>
-            <button class="fs-12" nz-button nzType="default" nzSize="small" (click)="onUnApprove()">
+            <button class="fs-12" *hasPermission="'N18,N52,N1,N80'" nz-button nzType="default" nzSize="small" (click)="onUnApprove()">
               <img alt="img" src="assets/icon/action_unapproved_16.png" /> Hủy duyệt
             </button>
 

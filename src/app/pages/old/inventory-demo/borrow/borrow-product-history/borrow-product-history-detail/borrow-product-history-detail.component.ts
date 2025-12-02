@@ -97,6 +97,7 @@ export class BorrowProductHistoryDetailComponent implements OnInit {
   checkAll: any = 1;
   filter: any = '';
   warehouseID: any = 1;
+  @Input() warehouseType: number = 1;
 
   users: any[] = []; // get user select option
 
@@ -142,7 +143,7 @@ export class BorrowProductHistoryDetailComponent implements OnInit {
 
   }
   getProductRTCDetail() {
-    this.borrowService.getProductRTCDetail(this.productGroupID, this.keyword, this.checkAll, this.filter, this.warehouseID).subscribe({
+    this.borrowService.getProductRTCDetail(this.productGroupID, this.keyword, this.checkAll, this.filter, this.warehouseID, this.warehouseType).subscribe({
       next: (response: any) => {
         this.tb_productRTCDetailBody.setData(response.data);
       },
@@ -166,7 +167,7 @@ export class BorrowProductHistoryDetailComponent implements OnInit {
         { field: "Serial", type: "like", value: keyword },
         { field: "Maker", type: "like", value: keyword },
         { field: "AddressBox", type: "like", value: keyword },
-        { field: "Note", type: "like", value: keyword }
+        // { field: "Note", type: "like", value: keyword }
       ]
     ]);
   }
@@ -193,7 +194,7 @@ export class BorrowProductHistoryDetailComponent implements OnInit {
         { title: 'Hãng', field: 'Maker', hozAlign: 'left', headerHozAlign: 'center' },
         { title: 'Số lượng hiện có', field: 'InventoryReal', hozAlign: 'right', headerHozAlign: 'center' },
         { title: 'Vị trí (Hộp)', field: 'AddressBox', hozAlign: 'left', headerHozAlign: 'center' },
-        { title: 'Note', field: 'Note', hozAlign: 'left', headerHozAlign: 'center', width:200 },
+        // { title: 'Note', field: 'Note', hozAlign: 'left', headerHozAlign: 'center', width:200 },
       ],
     });
     // Lắng nghe sự kiện chọn
@@ -400,12 +401,12 @@ export class BorrowProductHistoryDetailComponent implements OnInit {
               HistoryProductRTCID: 0,
               PeopleID: this.PeopleID,
               Project: this.Project,
-              Note: this.Note,
+              Note: this.Note || '',
               Status: 7, // trạng thái đăng kí mượn
               DateReturnExpected: this.DateReturnExpected.toISOString(),
               DateBorrow: this.DateBorrow.toISOString(),
               Quantity: item.NumberBorrow,
-              SerialNumber: item.SerialNumber,
+              SerialNumber: item.SerialNumber || '',
               IsDelete: false
             };
               console.log('data',data);
@@ -414,26 +415,31 @@ export class BorrowProductHistoryDetailComponent implements OnInit {
             if (this.borrowService.ISADMIN || this.borrowService.GlobalEmployeeId == 78) {
               data.Status = 1;
             }
+            console.log('data',data);
+            
             return this.borrowService.postSaveHistoryProductRTC(data).toPromise()
               .then(() => {
-                return { item, success: true }
+                return { item, success: true, message: null }
               })
               .catch(error => {
-                console.error(`Lỗi khi thêm thiết bị ${item.ID}:`, error);
-                return { item, success: false };
+                const message = error?.error?.message || 'Lỗi không xác định!';
+                console.error(`Lỗi khi thêm thiết bị ${item.ID}:`, message);
+                return { item, success: false, message };
               });
           });
 
           Promise.all(deleteRequests).then(results => {
             const successCount = results.filter(r => r.success).length;
-            const failed = results.filter(r => !r.success).map(r => r.item.ID);
+            const failed = results.filter(r => !r.success);
 
             if (successCount > 0) {
               this.notification.success('Thành công', `Đã thêm ${successCount} thiết bị thành công!`);
             }
 
             if (failed.length > 0) {
-              this.notification.error('Lỗi', `Không thể thêm các thiết bị có id: ${failed.join(', ')}`);
+              failed.forEach(f => {
+                this.notification.error('Lỗi', f.message);
+              });
             }
           });
           this.activeModal.close();

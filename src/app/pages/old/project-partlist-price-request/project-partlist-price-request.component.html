@@ -36,6 +36,8 @@
                                     <nz-option [nzValue]="2" nzLabel="Yêu cầu báo giá"></nz-option>
                                     <nz-option [nzValue]="3" nzLabel="Đã báo giá"></nz-option>
                                     <nz-option [nzValue]="4" nzLabel="Đã hoàn thành"></nz-option>
+                                    <nz-option [nzValue]="5" nzLabel="Yêu cầu check lại"></nz-option>
+                                    <nz-option [nzValue]="6" nzLabel="Từ chối báo giá"></nz-option>
                                 </nz-select>
                             </nz-form-control>
                         </nz-form-item>
@@ -88,27 +90,40 @@
                         </button>
                         <button *hasPermission="'N27,N34,N69,N80'" nz-button class="btn-add" nzType="default"
                             (click)="OnAddClick()" nzSize="small">
-                            <img class="btn-action-icon" src="assets/icon/action_add_item_16.png" /> Thêm
+                            <img src="assets/icon/action_add_item_16.png" /> Thêm
                         </button>
                         <button *hasPermission="'N27,N34,N69,N80'" nz-button class="btn-edit" nzType="default"
                             (click)="OnEditClick()" nzSize="small">
-                            <img class="btn-action-icon" src="assets/icon/action_edit_item_16.png" />Sửa
+                            <img src="assets/icon/action_edit_item_16.png" />Sửa
                         </button>
                         <button *hasPermission="'N35,N1'" nz-button nzType="default" (click)="OnSaveData()"
                             nzSize="small">
                             <img class="btn-action-icon" src="assets/icon/action_save_24.svg" />Lưu dữ liệu
                         </button>
+
                         <button *hasPermission="'N35,N1'" nz-button nzType="default" (click)="CheckPrice(true)"
                             nzSize="small">
                             <img class="btn-action-icon" src="assets/icon/action_check_24.svg" />Check giá
                         </button>
+                        <button *hasPermission="'N35,N1'" nz-button nzType="default" (click)="CheckPrice(false)"
+                            nzSize="small">
+                            <img class="btn-action-icon" src="assets/icon/action_cancle_24.svg" />Hủy check giá
+                        </button>
                         <button nz-button nzType="default" (click)="QuotePrice()" *hasPermission="'N35,N1'"
                             nzSize="small">
-                            <img class="btn-action-icon" src="assets/icon/action_check_order_24.svg" />Báo giá
+                            <img class="btn-action-icon" src="assets/icon/action_check_24.svg" />Báo giá
                         </button>
                         <button nz-button nzType="default" (click)="QuotePrice(1)" *hasPermission="'N35,N1'"
                             nzSize="small">
                             <img class="btn-action-icon" src="assets/icon/action_cancle_24.svg" />Hủy báo giá
+                        </button>
+                        <button nz-button nzType="default" (click)="RejectPriceRequest()" *hasPermission="'N35,N1'"
+                            nzSize="small">
+                            <img class="btn-action-icon" src="assets/icon/action_check_order_24.svg" />Từ chối báo giá
+                        </button>
+                        <button nz-button nzType="default" (click)="CancelRejectPriceRequest()"
+                            *hasPermission="'N35,N1'" nzSize="small">
+                            <img class="btn-action-icon" src="assets/icon/action_cancle_24.svg" />Hủy từ chối báo giá
                         </button>
                         <button nz-button nzType="default" (click)="QuotePrice(3)" *hasPermission="'N35,N1'"
                             nzSize="small">
@@ -120,7 +135,7 @@
                         </button>
                         <button nz-button nzType="default" class="btn-delete" (click)="OnDeleteClick()"
                             *hasPermission="'N35,N1'" nzSize="small">
-                            <img class="btn-action-icon" src="assets/icon/action_delete_item_16.png" />Xóa
+                            <img src="assets/icon/action_delete_item_16.png" />Xóa
                         </button>
                         <button nz-button nzType="default" (click)="DownloadFile()" *hasPermission="'N35,N1'"
                             nzSize="small">
@@ -136,7 +151,7 @@
                         </button>
                         <button nz-button nzType="default" (click)="OpenImportExcel()"
                             *hasPermission="'N27,N34,N69,N80'" nzSize="small">
-                            <img class="btn-action-icon" src="assets/icon/action_add_24.svg" />Nhập Excel
+                            <img class="btn-action-icon" src="assets/icon/action_import_excel_24.svg" />Nhập Excel
                         </button>
                         <div class="btn-group">
                             <button *hasPermission="'N27,N34,N69,N80'" nz-button nzType="default" nzSize="small"
@@ -149,7 +164,7 @@
                                 <ul nz-menu>
                                     <li nz-menu-item (click)="ExportToExcelAdvanced()">
                                         <img src="assets/icon/row_16.png" />
-                                       Theo dòng đã
+                                        Theo dòng đã
                                         chọn
                                     </li>
                                     <li nz-menu-item (click)="ExportToExcelTab()">

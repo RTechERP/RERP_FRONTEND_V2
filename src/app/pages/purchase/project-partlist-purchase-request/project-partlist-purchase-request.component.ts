@@ -105,6 +105,8 @@ export class ProjectPartlistPurchaseRequestComponent implements OnInit, AfterVie
   changedRows: any[] = [];
   originalDataMap: Map<number, any> = new Map(); // Lưu dữ liệu gốc theo ID
   duplicateIdList: number[] = []; // Danh sách các DuplicateID để kiểm tra editable
+  selectedRowIds: number[] = []; // Lưu các ID đã chọn để khôi phục sau khi reload
+  selectedTabIndex: number = -1; // Lưu tab index của các dòng đã chọn
   // Option lists for selects
   statusOptions = [
     { value: 0, label: '--Tất cả--' },
@@ -261,6 +263,7 @@ export class ProjectPartlistPurchaseRequestComponent implements OnInit, AfterVie
     'IsApprovedBGD',
     'TT',
     'CustomerName',
+    'ProjectCode',
     'ProductCode',
     'ProductName',
     'ProductNewCode',
@@ -600,7 +603,7 @@ export class ProjectPartlistPurchaseRequestComponent implements OnInit, AfterVie
         data: [],
         selectableRows: 'highlight',
         columnCalcs: 'both', // Hiển thị cả footer cho group và footer tổng cho toàn bảng
-        groupBy: (data) => `Dự án: ${data.ProjectCode ?? ""}`,
+        groupBy: (data) => `Dự án: ${data.ProjectCode ?? ""} - ${data.ProjectName ?? ""}`,
         groupHeader: function (value, count, data, group) {
           return `${value} (${count})`; // Hiển thị: Dự án: ABC (5)
         },
@@ -1341,9 +1344,17 @@ export class ProjectPartlistPurchaseRequestComponent implements OnInit, AfterVie
     // Use try-catch to handle table initialization timing
     try {
       table.setData(data);
+      // Tự động chọn lại các dòng đã lưu nếu đúng tab
+      if (this.selectedRowIds.length > 0 && this.selectedTabIndex === idx) {
+        this.restoreSelectedRows(idx);
+      }
     } catch (error) {
       table.on('tableBuilt', () => {
         table.setData(data);
+        // Tự động chọn lại các dòng đã lưu nếu đúng tab
+        if (this.selectedRowIds.length > 0 && this.selectedTabIndex === idx) {
+          this.restoreSelectedRows(idx);
+        }
       });
     }
   }
@@ -1360,6 +1371,33 @@ export class ProjectPartlistPurchaseRequestComponent implements OnInit, AfterVie
     const table = this.tables?.[idx];
     if (!table) return [];
     return (table.getSelectedData() as any[]) || [];
+  }
+
+  private restoreSelectedRows(idx: number): void {
+    const table = this.tables?.[idx];
+    if (!table || this.selectedRowIds.length === 0) return;
+
+    // Đợi một chút để table render xong
+    setTimeout(() => {
+      try {
+        // Lấy tất cả các rows trong table
+        const rows = table.getRows();
+
+        // Chọn lại các dòng có ID trong danh sách selectedRowIds
+        rows.forEach((row: any) => {
+          const rowData = row.getData();
+          if (this.selectedRowIds.includes(rowData.ID)) {
+            row.select();
+          }
+        });
+
+        // Xóa danh sách sau khi đã chọn lại
+        this.selectedRowIds = [];
+        this.selectedTabIndex = -1;
+      } catch (error) {
+        console.error('Error restoring selected rows:', error);
+      }
+    }, 100);
   }
 
   onCheckOrder(idx: number, status: boolean): void {
@@ -1383,13 +1421,22 @@ export class ProjectPartlistPurchaseRequestComponent implements OnInit, AfterVie
       nzOkDanger: false,
       nzClosable: false,
       nzOnOk: () => {
+        // Lưu lại các ID đã chọn và tab index trước khi gọi API
+        this.selectedRowIds = rows.map(r => r.ID);
+        this.selectedTabIndex = idx;
+
         const payload = rows.map(r => r.ID);
         this.srv.checkOrder(payload, status).subscribe({
           next: (rs) => {
             this.notify.success(NOTIFICATION_TITLE.success, rs.message);
             this.onSearch();
           },
-          error: (error) => this.notify.error(NOTIFICATION_TITLE.error, error.error.message),
+          error: (error) => {
+            this.notify.error(NOTIFICATION_TITLE.error, error.error.message);
+            // Xóa selectedRowIds nếu có lỗi
+            this.selectedRowIds = [];
+            this.selectedTabIndex = -1;
+          },
         });
       },
     });
@@ -1409,6 +1456,8 @@ export class ProjectPartlistPurchaseRequestComponent implements OnInit, AfterVie
       this.notify.warning(NOTIFICATION_TITLE.warning, `Vui lòng chọn dòng cần ${textStatus}!`);
       return;
     }
+    this.selectedRowIds = rows.map(r => r.ID);
+    this.selectedTabIndex = idx;
 
     this.modal.confirm({
       nzTitle: `Bạn có chắc chắn muốn ${textStatus} danh sách đang chọn không?
@@ -1424,7 +1473,11 @@ export class ProjectPartlistPurchaseRequestComponent implements OnInit, AfterVie
             this.notify.success(NOTIFICATION_TITLE.success, rs.message);
             this.onSearch();
           },
-          error: (error) => this.notify.error(NOTIFICATION_TITLE.error, error.error.message),
+          error: (error) => {
+            this.notify.error(NOTIFICATION_TITLE.error, error.error.message);
+            this.selectedRowIds = [];
+            this.selectedTabIndex = -1;
+          },
         });
       },
     });
@@ -1445,6 +1498,9 @@ export class ProjectPartlistPurchaseRequestComponent implements OnInit, AfterVie
       return;
     }
 
+    this.selectedRowIds = rows.map(r => r.ID);
+    this.selectedTabIndex = idx;
+
     this.modal.confirm({
       nzTitle: `Bạn có chắc chắn muốn ${textStatus} danh sách đang chọn không?
       \nNhững sản phẩm đã có NV mua không phải bạn sẽ tự động được bỏ qua!`,
@@ -1459,7 +1515,11 @@ export class ProjectPartlistPurchaseRequestComponent implements OnInit, AfterVie
             this.notify.success(NOTIFICATION_TITLE.success, rs.message);
             this.onSearch();
           },
-          error: (error) => this.notify.error(NOTIFICATION_TITLE.error, error.error.message),
+          error: (error) => {
+            this.notify.error(NOTIFICATION_TITLE.error, error.error.message);
+            this.selectedRowIds = [];
+            this.selectedTabIndex = -1;
+          },
         });
       },
     });
@@ -1479,6 +1539,8 @@ export class ProjectPartlistPurchaseRequestComponent implements OnInit, AfterVie
       this.notify.warning(NOTIFICATION_TITLE.warning, `Vui lòng chọn dòng cần ${textStatus}!`);
       return;
     }
+    this.selectedRowIds = rows.map(r => r.ID);
+    this.selectedTabIndex = idx;
 
     this.modal.confirm({
       nzTitle: `Bạn có chắc chắn muốn ${textStatus} danh sách đang chọn không?
@@ -1494,7 +1556,11 @@ export class ProjectPartlistPurchaseRequestComponent implements OnInit, AfterVie
             this.notify.success(NOTIFICATION_TITLE.success, rs.message);
             this.onSearch();
           },
-          error: (error) => this.notify.error(NOTIFICATION_TITLE.error, error.error.message),
+          error: (error) => {
+            this.notify.error(NOTIFICATION_TITLE.error, error.error.message);
+            this.selectedRowIds = [];
+            this.selectedTabIndex = -1;
+          },
         });
       },
     });
@@ -1506,7 +1572,6 @@ export class ProjectPartlistPurchaseRequestComponent implements OnInit, AfterVie
     const modalRef = this.modalService.open(SupplierSaleDetailComponent, {
       backdrop: 'static',
       keyboard: false,
-      centered: true,
       windowClass: 'full-screen-modal',
     });
     modalRef.componentInstance.supplierSaleID = 0;
@@ -1823,11 +1888,13 @@ export class ProjectPartlistPurchaseRequestComponent implements OnInit, AfterVie
   //#endregion
 
   //#region Chức năng Save Data (Lưu dữ liệu)
-  async onSaveData() {
+  async onSaveData(idx: number) {
     if (this.changedRows.length <= 0 || this.changedRows == null) {
       this.notify.warning(NOTIFICATION_TITLE.warning, "Không có dữ liệu thay đổi!");
       return;
     }
+    this.selectedRowIds = this.changedRows.map(r => r.ID);
+    this.selectedTabIndex = idx;
 
     // Lấy danh sách các dòng cần lưu (bao gồm cả các dòng duplicate liên quan)
     const dataToSave = this.getDataToSave();
@@ -1841,6 +1908,7 @@ export class ProjectPartlistPurchaseRequestComponent implements OnInit, AfterVie
       nzClosable: false,
       nzOnOk: () => {
         this.isLoading = true;
+
         this.srv.saveData(dataToSave).subscribe({
           next: (rs) => {
             this.notify.success(NOTIFICATION_TITLE.success, rs.message);
@@ -1851,6 +1919,8 @@ export class ProjectPartlistPurchaseRequestComponent implements OnInit, AfterVie
           error: (error) => {
             this.notify.error(NOTIFICATION_TITLE.error, error.error.message);
             this.isLoading = false;
+            this.selectedRowIds = [];
+            this.selectedTabIndex = -1;
           },
         });
       },
@@ -1963,6 +2033,9 @@ export class ProjectPartlistPurchaseRequestComponent implements OnInit, AfterVie
       return;
     }
 
+    this.selectedRowIds = rows.map(r => r.ID);
+    this.selectedTabIndex = idx;
+
     this.srv.getDetailByID(rows[0].ID).subscribe({
       next: (rs) => {
         const modalRef = this.modalService.open(ProjectPartlistPurchaseRequestDetailComponent, {
@@ -1986,6 +2059,8 @@ export class ProjectPartlistPurchaseRequestComponent implements OnInit, AfterVie
       error: (error) => {
         this.isLoading = false;
         this.notify.error(NOTIFICATION_TITLE.error, error.error.message || 'Lỗi khi lấy dữ liệu chi tiết!');
+        this.selectedRowIds = [];
+        this.selectedTabIndex = -1;
       }
     });
   }
@@ -2166,6 +2241,9 @@ export class ProjectPartlistPurchaseRequestComponent implements OnInit, AfterVie
       return;
     }
 
+    this.selectedRowIds = rows.map(r => r.ID);
+    this.selectedTabIndex = idx;
+
     this.srv.downloadFiles(rows).subscribe({
       next: (blob: Blob) => {
         const url = window.URL.createObjectURL(blob);
@@ -2180,6 +2258,8 @@ export class ProjectPartlistPurchaseRequestComponent implements OnInit, AfterVie
       },
       error: (error) => {
         if (error.error instanceof Blob) {
+          this.selectedRowIds = [];
+          this.selectedTabIndex = -1;
           error.error.text().then((text: string) => {
             try {
               const errorObj = JSON.parse(text);

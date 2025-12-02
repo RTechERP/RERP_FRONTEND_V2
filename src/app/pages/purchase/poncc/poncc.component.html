@@ -108,9 +108,9 @@
               *hasPermission="'N35,N33,N1'">
               <img class="btn-action-icon" src="assets/icon/action_cancle_24.svg" alt="Hủy duyệt" />Hủy duyệt
             </button>
-            <button class="fs-12" nz-button nzType="default" nzSize="small">
+            <!-- <button class="fs-12" nz-button nzType="default" nzSize="small">
               <img class="btn-action-icon" src="assets/icon/action_print_24.svg" alt="Hủy duyệt" />In PO
-            </button>
+            </button> -->
             <button class="fs-12" nz-button nzType="default" nzSize="small" (click)="onCopyPO()"
               *hasPermission="'N35,N33,N1'">
               <img class="btn-action-icon" src="assets/icon/action_copy_24.svg" alt="Copy" />Copy
@@ -135,7 +135,7 @@
                 <li nz-menu-item (click)="onImportWareHouse(2)">
                   <span class="ms-1">Kho HCM</span>
                 </li>
-                <li nz-menu-item (click)="onImportWareHouse(3)" >
+                <li nz-menu-item (click)="onImportWareHouse(3)">
                   <span class="ms-1">Kho BN</span>
                 </li>
                 <li nz-menu-item (click)="onImportWareHouse(4)">
@@ -154,7 +154,8 @@
             <button class="fs-12" nz-button nzType="default" nzSize="small" *hasPermission="'N35,N33,N1'">
               <img class="btn-action-icon" src="assets/icon/action_summary_24.svg" alt="Tổng hợp" />Tổng hợp
             </button> -->
-            <button class="fs-12" nz-button nzType="default" nzSize="small" (click)="onOpenSummary()" *hasPermission="'N35,N33,N1'">
+            <button class="fs-12" nz-button nzType="default" nzSize="small" (click)="onOpenSummary()"
+              *hasPermission="'N35,N33,N1'">
               <img class="btn-action-icon" src="assets/icon/action_summary_24.svg" alt="Tổng hợp" />Tổng hợp
             </button>
           </div>
@@ -176,7 +177,7 @@
           </div>
           <nz-splitter nzLayout="vertical">
             <!-- Panel trên: chứa 2 tab -->
-            <nz-splitter-panel [nzSize]="'65%'">
+            <nz-splitter-panel [nzSize]="">
               <nz-tabset [(nzSelectedIndex)]="activeTabIndex" (nzSelectedIndexChange)="onTabChange($event)">
                 <nz-tab nzTitle="PO Thương mại">
                   <div class="tab-content-container">
@@ -192,7 +193,10 @@
             </nz-splitter-panel>
 
             <!-- Panel dưới: chi tiết -->
-            <nz-splitter-panel [nzSize]="'35%'">
+            <nz-splitter-panel [nzSize]="sizeTbDetail" nzResizable="false">
+              <div style="padding: 4px 2px; background: #f5f5f5; color: #377ced;">
+                Chi tiết PO: {{ poCode }}
+              </div>
               <div #table_ponccdetail style="height: 100%;"></div>
             </nz-splitter-panel>
           </nz-splitter>

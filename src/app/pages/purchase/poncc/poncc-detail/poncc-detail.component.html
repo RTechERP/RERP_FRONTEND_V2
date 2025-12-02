@@ -382,9 +382,9 @@
                                             </div>
                                             <div nz-col [nzSpan]="6">
                                                 <nz-form-item>
-                                                    <nz-form-label>BankChange</nz-form-label>
+                                                    <nz-form-label>BankCharge</nz-form-label>
                                                     <nz-form-control>
-                                                        <input nz-input name="BankChange" formControlName="BankChange"
+                                                        <input nz-input name="BankChange" formControlName="BankCharge"
                                                             placeholder="All bank changes on Buyer's account" />
                                                     </nz-form-control>
                                                 </nz-form-item>
@@ -403,7 +403,7 @@
                                                 <nz-form-item>
                                                     <nz-form-label>Điều khoản Incoterms</nz-form-label>
                                                     <nz-form-control>
-                                                        <input nz-input formControlName="RuleIncoterms" rows="3"
+                                                        <input nz-input formControlName="RuleIncoterm" rows="3"
                                                             placeholder="Điều khoản Incoterms">
                                                     </nz-form-control>
                                                 </nz-form-item>
@@ -421,7 +421,7 @@
                                                 <nz-form-item>
                                                     <nz-form-label>Chỉ tiêu đơn hàng</nz-form-label>
                                                     <nz-form-control>
-                                                        <input nz-input formControlName="OrderTarget" rows="3"
+                                                        <input nz-input formControlName="OrderTargets" rows="3"
                                                             placeholder="Chỉ tiêu đơn hàng">
                                                     </nz-form-control>
                                                 </nz-form-item>
@@ -449,7 +449,7 @@
                                                 <nz-form-item>
                                                     <nz-form-label>Lý do</nz-form-label>
                                                     <nz-form-control>
-                                                        <input nz-input formControlName="ResionForFailure" rows="3"
+                                                        <input nz-input formControlName="ReasonForFailure" rows="3"
                                                             placeholder="Lý do">
                                                     </nz-form-control>
                                                 </nz-form-item>
@@ -504,8 +504,8 @@
 
     <!-- Modal Footer -->
     <div class="modal-footer py-1">
-        <button nz-button nzType="default" nzDanger (click)="activeModal.dismiss()" >Đóng</button>
-        <button nz-button nzType="primary" (click)="saveData()" *hasPermission="'N33,N35,N1,N36'" >
+        <button nz-button nzType="default" nzDanger (click)="activeModal.dismiss()">Đóng</button>
+        <button nz-button nzType="primary" (click)="saveData()" *hasPermission="'N33,N35,N1,N36'">
             <i class="fas fa-save me-1"></i> Lưu
         </button>
     </div>

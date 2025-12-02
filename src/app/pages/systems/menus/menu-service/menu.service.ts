@@ -442,14 +442,15 @@ export class MenuService {
                     },
                   },
                 ],
-              },              {
-                kind: 'group',
-                key: 'AGV',
-                title: 'Phòng AGV',
-                isOpen: true,
-                isPermission: this.permissionService.hasPermission(''),
-                //   icon: 'assets/icon/layers.png',
-                children: [
+              },              
+              // {
+              //   kind: 'group',
+              //   key: 'AGV',
+              //   title: 'Phòng AGV',
+              //   isOpen: true,
+              //   isPermission: this.permissionService.hasPermission(''),
+              //   //   icon: 'assets/icon/layers.png',
+              //   children: [
                   // {
                   //   kind: 'leaf',
                   //   key: 'InventoryAGVComponent_HN',
@@ -535,18 +536,18 @@ export class MenuService {
                   //     warehouseType:2
                   //   }
                   // },
-                  {
-                    kind: 'leaf',
-                    key: 'BorrowProductHistoryComponent_AGV',
-                    title: 'LỊCH SỬ MƯỢN AGV',
-                    isOpen: true,
-                    isPermission: this.permissionService.hasPermission(''),
-                    comp: BorrowProductHistoryComponent,
-                    data: {
-                      warehouseID: 1,
-                      warehouseType:2
-                    }
-                  },
+                  // {
+                  //   kind: 'leaf',
+                  //   key: 'BorrowProductHistoryComponent_AGV',
+                  //   title: 'LỊCH SỬ MƯỢN AGV',
+                  //   isOpen: true,
+                  //   isPermission: this.permissionService.hasPermission(''),
+                  //   comp: BorrowProductHistoryComponent,
+                  //   data: {
+                  //     warehouseID: 1,
+                  //     warehouseType:2
+                  //   }
+                  // },
                   // {
                   //   kind: 'leaf',
                   //   key: 'SearchProductTechSerialComponentAGV_HN',
@@ -571,8 +572,8 @@ export class MenuService {
                   //     warehouseType:2
                   //   }
                   // }
-                ],
-              },
+              //   ],
+              // },
 
               {
                 kind: 'group',

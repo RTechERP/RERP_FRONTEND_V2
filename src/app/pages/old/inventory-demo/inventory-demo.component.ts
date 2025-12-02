@@ -147,6 +147,7 @@ export class InventoryDemoComponent implements OnInit, AfterViewInit {
       checkAll: 1,
       warehouseID: this.warehouseID || 1,
       productRTCID: this.productRTCID || 0,
+      warehouseType: this.warehouseType || 1,
     };
     this.inventoryDemoService
       .getInventoryDemo(request)

@@ -401,12 +401,12 @@ export class BorrowProductHistoryDetailComponent implements OnInit {
               HistoryProductRTCID: 0,
               PeopleID: this.PeopleID,
               Project: this.Project,
-              Note: this.Note,
+              Note: this.Note || '',
               Status: 7, // trạng thái đăng kí mượn
               DateReturnExpected: this.DateReturnExpected.toISOString(),
               DateBorrow: this.DateBorrow.toISOString(),
               Quantity: item.NumberBorrow,
-              SerialNumber: item.SerialNumber,
+              SerialNumber: item.SerialNumber || '',
               IsDelete: false
             };
               console.log('data',data);
@@ -415,26 +415,31 @@ export class BorrowProductHistoryDetailComponent implements OnInit {
             if (this.borrowService.ISADMIN || this.borrowService.GlobalEmployeeId == 78) {
               data.Status = 1;
             }
+            console.log('data',data);
+            
             return this.borrowService.postSaveHistoryProductRTC(data).toPromise()
               .then(() => {
-                return { item, success: true }
+                return { item, success: true, message: null }
               })
               .catch(error => {
-                console.error(`Lỗi khi thêm thiết bị ${item.ID}:`, error);
-                return { item, success: false };
+                const message = error?.error?.message || 'Lỗi không xác định!';
+                console.error(`Lỗi khi thêm thiết bị ${item.ID}:`, message);
+                return { item, success: false, message };
               });
           });
 
           Promise.all(deleteRequests).then(results => {
             const successCount = results.filter(r => r.success).length;
-            const failed = results.filter(r => !r.success).map(r => r.item.ID);
+            const failed = results.filter(r => !r.success);
 
             if (successCount > 0) {
               this.notification.success('Thành công', `Đã thêm ${successCount} thiết bị thành công!`);
             }
 
             if (failed.length > 0) {
-              this.notification.error('Lỗi', `Không thể thêm các thiết bị có id: ${failed.join(', ')}`);
+              failed.forEach(f => {
+                this.notification.error('Lỗi', f.message);
+              });
             }
           });
           this.activeModal.close();

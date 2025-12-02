@@ -279,26 +279,26 @@ export class BorrowProductHistoryComponent implements OnInit {
           const arrIds = Array.from(this.selectedArrHistoryProductID);
           const tasks = arrIds.map((id) =>
             firstValueFrom(this.borrowService.postReturnProductRTC(id, isAdmin))
-              .then(() => ({ id, success: true }))
+              .then(() => ({ id, success: true, message: null }))
               .catch((error) => {
-                console.error(`Lỗi khi thêm thiết bị ${id}:`, error);
-                return { id, success: false };
+                const message = error?.error?.message || 'Lỗi không xác định!';
+                console.error(`Lỗi khi trả thiết bị ${id}:`, message);
+                return { id, success: false, message };
               })
           );
           return Promise.all(tasks).then((results) => {
             const ok = results.filter((r) => r.success).length;
-            const fail = results.length - ok;
+            const failed = results.filter((r) => !r.success);
 
             if (ok)
               this.notification.success(
                 'Thông báo',
                 `Trả thành công ${ok} sản phẩm.`
               );
-            if (fail)
-              this.notification.error(
-                'Thông báo',
-                `Trả thất bại ${fail} sản phẩm.`
-              );
+            if (failed.length)
+              failed.forEach((item) => {
+                this.notification.error('Trả thất bại', item.message);
+              });
             this.drawTbProductHistory(
               this.tb_productHistoryContainer.nativeElement
             );

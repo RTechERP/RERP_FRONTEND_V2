@@ -71,6 +71,7 @@ import {
 } from '../../pages/systems/menus/menu-service/menu.service';
 import { NOTIFICATION_TITLE } from '../../app.config';
 import { BehaviorSubject } from 'rxjs';
+import { PermissionService } from '../../services/permission.service';
 
 interface dynamicApps {
   MenuName: string;
@@ -239,15 +240,15 @@ export class HomeLayoutComponent implements OnInit, AfterViewInit {
     private router: Router,
     private appUserService: AppUserService,
     public menuService: MenuService,
-    private injector: Injector
+    private injector: Injector,
+    private permissionService: PermissionService
   ) {
-    this.menus = this.menuService
-      .getMenus()
-      .sort((a, b) => (a.stt ?? 1) - (b.stt ?? 1));
-
-    this.menuQuickAccess = this.menuService
-      .getMenus()
-      .filter((x) => x.key == 'person');
+    // this.menus = this.menuService
+    //   .getMenus()
+    //   .sort((a, b) => (a.stt ?? 1) - (b.stt ?? 1));
+    // this.menuQuickAccess = this.menuService
+    //   .getMenus()
+    //   .filter((x) => x.key == 'person');
   }
 
   isGroup = (m: MenuItem): m is GroupItem => m.kind === 'group';
@@ -261,6 +262,17 @@ export class HomeLayoutComponent implements OnInit, AfterViewInit {
     // this.generateCalendarDays();
     this.getEmployeeOnleaveAndWFH();
     this.getHoliday(this.today.getFullYear(), this.today.getMonth());
+
+    this.appUserService.user$.subscribe(() => {
+      this.permissionService.refreshPermissions();
+      this.menus = this.menuService
+        .getMenus()
+        .sort((a, b) => (a.stt ?? 1) - (b.stt ?? 1));
+      this.menuQuickAccess = this.menuService
+        .getMenus()
+        .filter((x) => x.key == 'person');
+      this.cdr.markForCheck?.();
+    });
   }
 
   ngAfterViewInit(): void {}

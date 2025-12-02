@@ -133,47 +133,47 @@ export class MainLayoutComponent implements OnInit {
   menu: any = {};
   //#endregion
   notifItems: NotifyItem[] = [
-    {
-      id: 1,
-      title: 'Phiếu xe #A123 đã duyệt',
-      detail: 'Xe VP Hà Nội',
-      time: '09:12',
-      group: 'today',
-      icon: 'car',
-    },
-    {
-      id: 2,
-      title: 'Bàn giao TS BM-09 hoàn tất',
-      detail: 'Phòng IT • BB556',
-      time: '08:55',
-      group: 'today',
-      icon: 'file-done',
-    },
-    {
-      id: 3,
-      title: 'Đơn cấp phát #CP-778 tạo mới',
-      detail: 'Kho TB • 5 mục',
-      time: '16:40',
-      group: 'yesterday',
-      icon: 'plus-square',
-    },
-    {
-      id: 1,
-      title: 'Phiếu xe #A123 đã duyệt',
-      detail: 'Xe VP Hà Nội',
-      time: '09:12',
-      group: 'today',
-      icon: 'car',
-    },
-    {
-      id: 2,
-      title: 'Bàn giao TS BM-09 hoàn tất',
-      detail:
-        'Phòng IT • BB556Phòng IT • BB556Phòng IT • BB556Phòng IT • BB556Phòng IT • BB556Phòng IT • BB556Phòng IT • BB556Phòng IT • BB556Phòng IT • BB556Phòng IT • BB556Phòng IT • BB556Phòng IT • BB556',
-      time: '08:55',
-      group: 'today',
-      icon: 'file-done',
-    },
+    // {
+    //   id: 1,
+    //   title: 'Phiếu xe #A123 đã duyệt',
+    //   detail: 'Xe VP Hà Nội',
+    //   time: '09:12',
+    //   group: 'today',
+    //   icon: 'car',
+    // },
+    // {
+    //   id: 2,
+    //   title: 'Bàn giao TS BM-09 hoàn tất',
+    //   detail: 'Phòng IT • BB556',
+    //   time: '08:55',
+    //   group: 'today',
+    //   icon: 'file-done',
+    // },
+    // {
+    //   id: 3,
+    //   title: 'Đơn cấp phát #CP-778 tạo mới',
+    //   detail: 'Kho TB • 5 mục',
+    //   time: '16:40',
+    //   group: 'yesterday',
+    //   icon: 'plus-square',
+    // },
+    // {
+    //   id: 1,
+    //   title: 'Phiếu xe #A123 đã duyệt',
+    //   detail: 'Xe VP Hà Nội',
+    //   time: '09:12',
+    //   group: 'today',
+    //   icon: 'car',
+    // },
+    // {
+    //   id: 2,
+    //   title: 'Bàn giao TS BM-09 hoàn tất',
+    //   detail:
+    //     'Phòng IT • BB556Phòng IT • BB556Phòng IT • BB556Phòng IT • BB556Phòng IT • BB556Phòng IT • BB556Phòng IT • BB556Phòng IT • BB556Phòng IT • BB556Phòng IT • BB556Phòng IT • BB556Phòng IT • BB556',
+    //   time: '08:55',
+    //   group: 'today',
+    //   icon: 'file-done',
+    // },
   ];
 
   menuKey: string = '';

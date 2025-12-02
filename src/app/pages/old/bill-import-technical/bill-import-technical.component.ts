@@ -300,6 +300,7 @@ getListEmployee() {
     this.billImportTechnicalTable.on('rowClick', (evt, row: RowComponent) => {
       const rowData = row.getData();
       const id = rowData['ID'];
+      const billcode = rowData['BillCode'];
       this.billImportTechnicalService.getBillImportDetail(id).subscribe(res => {
         const details = Array.isArray(res.billDetail)
           ? res.billDetail

@@ -9,9 +9,16 @@ import { environment } from '../../../../../../environments/environment';
 })
 export class HistoryBorrowSaleService {
   constructor(private http: HttpClient) {}
-  getCbbEmployee(): Observable<any> {
-    return this.http.get(environment.host + `api/employee/get-all`);
-  }
+getCbbEmployee(): Observable<any> {
+  const params = {
+    status: 0,
+    departmentid: 0,
+    keyword: ''
+  };
+
+  return this.http.get<any>(environment.host + 'api/employee', { params });
+}
+
   getHistoryBorrowSale(
     status: number,
     dateStart: DateTime,

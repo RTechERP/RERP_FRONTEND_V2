@@ -757,7 +757,7 @@ export class BillImportTechnicalFormComponent implements OnInit, AfterViewInit {
       layout: 'fitColumns',
       data: this.selectedDevices,
       selectableRows: true,
-      height: '50vh',
+      height: '40vh',
       columnDefaults: {
         headerWordWrap: true,
         headerVertical: false,
@@ -813,7 +813,6 @@ export class BillImportTechnicalFormComponent implements OnInit, AfterViewInit {
             `;
           },
           cellClick: (e, cell) => {
-            // REFACTOR: Gọi hàm mới showProductPopup thay vì toggleProductTable
             this.showProductPopup(cell);
           },
         },

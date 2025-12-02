@@ -295,11 +295,11 @@
   </form>
   <nz-tabset class="mt-2" [nzAnimated]="false" (nzSelectedIndexChange)="onTabChange($event)">
     <nz-tab nzTitle="Danh sách sản phẩm" nzForceRender="true">
-      <div #tableDeviceTemp style="height:38vh;"></div>
+      <div #tableDeviceTemp ></div>
     </nz-tab>
     <nz-tab nzTitle="Hồ sơ đi kèm" nzForceRender="true">
       <nz-spin [nzSpinning]="isLoading" nzTip="Đang tải..." style="height: 100%;">
-        <div #table_DocumnetImport style="height: 38vh;"></div>
+        <div #table_DocumnetImport></div>
       </nz-spin>
     </nz-tab>
   </nz-tabset>

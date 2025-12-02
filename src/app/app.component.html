@@ -17,7 +17,7 @@
             <ng-template #nzTitle style="padding: 0 16px;">
                 <img [src]="m.icon" class="menu-icon" *ngIf="(m.icon || '') != ''" width="24px"
                     style="margin-right: 8px; vertical-align: bottom;" />
-                <nz-icon nzType="caret-right" nzTheme="outline" *ngIf="(m.icon || '') == ''" />
+                <nz-icon nzType="caret-down" nzTheme="outline" *ngIf="(m.icon || '') == ''" />
                 <p class="m-0 fw-bold">{{ m.title }}</p>
             </ng-template>
             <li nz-submenu [nzTitle]="nzTitle" *ngIf="isGroup(m) && m.isPermission && m.isOpen"
@@ -35,7 +35,7 @@
                     <ng-template #nzTitle1 style="padding: 0 16px;">
                         <img [src]="c1.icon" class="menu-icon" *ngIf="(c1.icon || '') != ''" width="24px"
                             style="margin-right: 8px; vertical-align: middle;" />
-                        <nz-icon nzType="caret-right" nzTheme="outline" *ngIf="(c1.icon || '') == ''" />
+                        <nz-icon nzType="caret-down" nzTheme="outline" *ngIf="(c1.icon || '') == ''" />
                         <p class="m-0" style="white-space: pre-line;">{{ c1.title }}</p>
                     </ng-template>
                     <li nz-submenu [nzTitle]="nzTitle1" *ngIf="isGroup(c1) && c1.isPermission && c1.isOpen">
@@ -43,7 +43,7 @@
                             @for (c2 of c1.children; track c2.key) {
                             <li nz-menu-item *ngIf="isLeaf(c2) && c2.isPermission && c2.isOpen" (click)="(c2.router || '') === '' 
                             ? newTab(c2.comp, c2.title, c2.data) 
-                            : menuService.goToOldLink((c2.router ||''),c2.data)">
+                            : menuService.goToOldLink((c2.router ||''),c2.data)" style="font-size: 11px !important;">
                                 <img [src]="c2.icon" class="menu-icon" *ngIf="(c2.icon || '') != ''" width="24px" />
                                 <nz-icon nzType="caret-right" nzTheme="outline" *ngIf="(c2.icon || '') == ''" />
                                 {{c2.title}}
@@ -53,15 +53,18 @@
                             <ng-template #nzTitle2 style="padding: 0 16px;">
                                 <img [src]="c2.icon" class="menu-icon" *ngIf="(c2.icon || '') != ''" width="24px"
                                     style="margin-right: 8px; vertical-align: middle;" />
-                                <nz-icon nzType="caret-right" nzTheme="outline" *ngIf="(c2.icon || '') == ''" />
-                                <p class="m-0" style="white-space: pre-line;">{{ c2.title }}</p>
+                                <nz-icon nzType="caret-down" nzTheme="outline" *ngIf="(c2.icon || '') == ''" />
+                                <p class="m-0" style="white-space: pre-line !important;font-size: 11px !important;">{{
+                                    c2.title }} </p>
+
+
                             </ng-template>
                             <li nz-submenu [nzTitle]="nzTitle2" *ngIf="isGroup(c2) && c2.isPermission && c2.isOpen">
                                 <ul>
                                     @for (c3 of c2.children; track c3.key) {
                                     <li nz-menu-item *ngIf="isLeaf(c3) && c3.isPermission && c3.isOpen" (click)="(c3.router || '') === '' 
                             ? newTab(c3.comp, c3.title, c3.data) 
-                            : menuService.goToOldLink((c3.router ||''),c3.data)">
+                            : menuService.goToOldLink((c3.router ||''),c3.data)" style="font-size: 10px !important;">
                                         <img [src]="c3.icon" class="menu-icon" *ngIf="(c3.icon || '') != ''"
                                             width="24px" />
                                         <nz-icon nzType="caret-right" nzTheme="outline" *ngIf="(c3.icon || '') == ''" />

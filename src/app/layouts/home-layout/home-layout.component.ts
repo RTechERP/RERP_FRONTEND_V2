@@ -240,14 +240,15 @@ export class HomeLayoutComponent implements OnInit, AfterViewInit {
     private router: Router,
     private appUserService: AppUserService,
     public menuService: MenuService,
-    private permissionService: PermissionService,
-    private injector: Injector
+    private injector: Injector,
+    private permissionService: PermissionService
   ) {
-    this.menus = this.menuService
-      .getMenus()
-      .sort((a, b) => (a.stt ?? 1) - (b.stt ?? 1));
-
-    this.menuQuickAccess = this.menuService.getMenuQuickAccess();
+    // this.menus = this.menuService
+    //   .getMenus()
+    //   .sort((a, b) => (a.stt ?? 1) - (b.stt ?? 1));
+    // this.menuQuickAccess = this.menuService
+    //   .getMenus()
+    //   .filter((x) => x.key == 'person');
   }
 
   isGroup = (m: MenuItem): m is GroupItem => m.kind === 'group';
@@ -264,7 +265,9 @@ export class HomeLayoutComponent implements OnInit, AfterViewInit {
       this.menus = this.menuService
         .getMenus()
         .sort((a, b) => (a.stt ?? 1) - (b.stt ?? 1));
-      this.menuQuickAccess = this.menuService.getMenuQuickAccess();
+      this.menuQuickAccess = this.menuService
+        .getMenus()
+        .filter((x) => x.key == 'person');
       this.cdr.markForCheck?.();
     });
   }

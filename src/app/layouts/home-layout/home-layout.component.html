@@ -163,7 +163,7 @@
                                     <nz-icon nzType="caret-right" nzTheme="outline" *ngIf="(c1.icon || '') == ''" />
                                     <p class="m-0 fw-bold" style="white-space: pre-line;">{{ c1.title }}</p>
                                 </ng-template>
-                                <li nz-submenu [nzTitle]="nzTitle1"
+                                <li nz-submenu [nzTitle]="nzTitle1" nzOpen=""
                                     *ngIf="isGroup(c1) && c1.isPermission && c1.isOpen && (c1.key == 'dailyreport' || c1.key == 'registercommon')">
                                     <ul>
                                         @for (c2 of c1.children; track c2.key) {
@@ -186,7 +186,7 @@
                                             <p class="m-0" style="white-space: pre-line;">{{ c2.title }}</p>
                                         </ng-template>
                                         <li nz-submenu [nzTitle]="nzTitle2"
-                                            *ngIf="isGroup(c2) && c2.isPermission && c2.isOpen">
+                                            *ngIf="isGroup(c2) && c2.isPermission && c2.isOpen" nzOpen="">
                                             <ul>
                                                 @for (c3 of c2.children; track c3.key) {
                                                 <li nz-menu-item *ngIf="isLeaf(c3) && c3.isPermission && c3.isOpen"
@@ -291,7 +291,7 @@
                         <div nz-row [nzGutter]="[16, 16]">
                             @for (m of menus; track $index) {
                             <div nz-col class="gutter-row" [nzXs]="12" [nzMd]="8" [nzLg]="6"
-                                (click)="openModule(m.key)">
+                                *ngIf="m.isPermission && m.isOpen" (click)="openModule(m.key)">
                                 <div class="grid-config text-center py-2 shadow">
                                     <img width="64" [src]="m.icon?.replace('24','64')" alt="">
                                     <p class="m-0 mt-2 fw-bold">{{m.title}}</p>

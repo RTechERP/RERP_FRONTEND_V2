@@ -11,7 +11,7 @@ import { environment } from '../../../../../../environments/environment';
 })
 export class PlanWeekService {
   private _url = environment.host + 'api/PlanWeek/';
-  constructor(private http: HttpClient) {}
+  constructor(private http: HttpClient) { }
 
   getDepartment(): Observable<any> {
     return this.http.get<any>(this._url + 'get-department');
@@ -23,7 +23,7 @@ export class PlanWeekService {
 
   getEmployees(status: number): Observable<any> {
     return this.http.get<any>(
-      environment.host + 'api/Employee/get-employees',
+      environment.host + 'api/Employee/employees',
       { params: { status: status.toString() } }
     );
   }
@@ -66,7 +66,7 @@ export class PlanWeekService {
     );
   }
 
-  delete(userId: number, datePlan: Date): Observable<any>{
+  delete(userId: number, datePlan: Date): Observable<any> {
     const dto = {
       userId: userId,
       datePlan: datePlan

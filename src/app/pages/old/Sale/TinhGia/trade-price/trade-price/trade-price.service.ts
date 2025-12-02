@@ -9,7 +9,7 @@ import { environment } from '../../../../../../../environments/environment';
 })
 export class TradePriceService {
   private _url = environment.host + 'api/TradePrice/';
-  constructor(private http: HttpClient) {}
+  constructor(private http: HttpClient) { }
   getTradePrice(
     employeeId: number,
     saleAdminId: number,
@@ -36,8 +36,7 @@ export class TradePriceService {
     });
   }
   getEmployees(status: number): Observable<any> {
-    return this.http.get<any>(
-      'https://localhost:7187/api/Employee/get-employees',
+    return this.http.get<any>(environment.host + 'api/Employee/' + 'employees',
       {
         params: {
           status: status.toString(),

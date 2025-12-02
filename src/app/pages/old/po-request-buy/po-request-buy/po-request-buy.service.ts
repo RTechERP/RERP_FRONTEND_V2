@@ -8,13 +8,13 @@ import { environment } from '../../../../../environments/environment';
 })
 export class PoRequestBuyService {
   private _url = environment.host + 'api/PORequestBuy/';
-  constructor(private http: HttpClient) {}
+  constructor(private http: HttpClient) { }
   saveData(data: any): Observable<any> {
     return this.http.post<any>(this._url + 'save-data', data);
   }
   getEmployees(status: number): Observable<any> {
     return this.http.get<any>(
-      environment.host + 'api/Employee/' + 'get-employees',
+      environment.host + 'api/Employee/' + 'employees',
       {
         params: {
           status: status.toString(),

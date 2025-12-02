@@ -460,6 +460,7 @@ export class RequestInvoiceComponent implements OnInit, AfterViewInit {
           title: 'Trạng thái',
           field: 'StatusText',
           sorter: 'string',
+          formatter: 'textarea',
           width: 200,
         },
         {

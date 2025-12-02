@@ -90,6 +90,7 @@ export class BillImportTechnicalComponent implements OnInit, AfterViewInit {
   warehouseID: number =1;
   selectedApproval: number | null = null;
   isSearchVisible: boolean = false;
+  title: string = '';
   // Danh sách nhân viên
   emPloyeeLists: any[] = [];
   statusData = [

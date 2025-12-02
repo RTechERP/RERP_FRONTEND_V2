@@ -2105,7 +2105,13 @@ export class ProjectPartlistPriceRequestComponent implements OnInit {
 
     return input;
   }
+// Thêm property để quản lý hiển thị filter bar
+showSearchBar: boolean = false;
 
+// Sửa lại hàm ToggleSearchPanel
+ToggleSearchPanelNew() {
+    this.showSearchBar = !this.showSearchBar;
+}
   createLables(
     data: any[],
     keyField: string = 'ID',
@@ -2136,24 +2142,7 @@ export class ProjectPartlistPriceRequestComponent implements OnInit {
       ...DEFAULT_TABLE_CONFIG,
       layout: 'fitDataStretch',
       height: '96%',
-      virtualDom: true,
-      virtualDomBuffer: 300, // Thêm buffer để giảm lag
-
-      // Cải thiện performance
-      renderVertical: 'virtual',
-      renderHorizontal: 'virtual',
-      // rowHeader: {
-      //   headerSort: false,
-      //   resizable: false,
-      //   frozen: true,
-      //   headerHozAlign: 'center',
-      //   hozAlign: 'center',
-      //   formatter: 'rowSelection',
-      //   titleFormatter: 'rowSelection',
-      //   cellClick: function (e: any, cell: any) {
-      //     cell.getRow().toggleSelect();
-      //   },
-      // },
+     
       ajaxURL: this.PriceRequetsService.getAPIPricerequest(),
       ajaxParams: () => {
         const filters = this.filters;
@@ -2227,16 +2216,6 @@ export class ProjectPartlistPriceRequestComponent implements OnInit {
       groupHeader: function (value: any, count: number, data: any) {
         return `${value} <span>(${count})</span>`;
       },
-      columnDefaults: {
-        headerContextMenu: [
-          {
-            label: 'Xoá sắp xếp',
-            action: (e: MouseEvent, column: ColumnComponent) => {
-              column.getTable().clearSort();
-            },
-          },
-        ] as MenuObject<ColumnComponent>[],
-      },
       rowContextMenu: [
         {
           label: 'Xem chi tiết',
@@ -2255,13 +2234,6 @@ export class ProjectPartlistPriceRequestComponent implements OnInit {
           frozen: true,
         },
         {
-          title: 'TT',
-          field: 'TT',
-          headerHozAlign: 'center',
-          frozen: true,
-          width: 100,
-        },
-        {
           title: 'Check giá',
           field: 'IsCheckPrice',
           hozAlign: 'center',
@@ -2275,6 +2247,14 @@ export class ProjectPartlistPriceRequestComponent implements OnInit {
           frozen: true,
           width: 100,
         },
+        {
+          title: 'TT',
+          field: 'TT',
+          headerHozAlign: 'center',
+          frozen: true,
+          width: 70,
+        },
+        
         // {
         //   title: ' ',
         //   field: 'ProjectFullName',
@@ -2287,7 +2267,8 @@ export class ProjectPartlistPriceRequestComponent implements OnInit {
           headerHozAlign: 'center',
           frozen: true,
           hozAlign: 'left',
-          width: 50,
+          width: 150,
+          formatter:'textarea'
         },
         {
           title: 'Mã sản phẩm',
@@ -2296,7 +2277,9 @@ export class ProjectPartlistPriceRequestComponent implements OnInit {
           frozen: true,
           hozAlign: 'left',
           width: 150,
-          bottomCalc: 'count'
+          bottomCalc: 'count',
+          formatter:'textarea'
+
         },
         {
           title: 'Tên sản phẩm',
@@ -2305,6 +2288,8 @@ export class ProjectPartlistPriceRequestComponent implements OnInit {
           frozen: true,
           hozAlign: 'left',
           width: 150,
+          formatter:'textarea'
+
         },
         {
           title: 'Hãng',
@@ -2312,7 +2297,8 @@ export class ProjectPartlistPriceRequestComponent implements OnInit {
           headerHozAlign: 'center',
           frozen: true,
           hozAlign: 'left',
-          width: 150,
+          width: 50,
+          formatter:'textarea'
         },
         {
           title: 'Số lượng',
@@ -2335,6 +2321,7 @@ export class ProjectPartlistPriceRequestComponent implements OnInit {
           headerHozAlign: 'center',
           hozAlign: 'left',
           width: 150,
+          formatter:'textarea'
         },
         {
           title: 'Người yêu cầu',
@@ -2342,6 +2329,7 @@ export class ProjectPartlistPriceRequestComponent implements OnInit {
           headerHozAlign: 'center',
           hozAlign: 'left',
           width: 150,
+          formatter:'textarea'
         },
         {
           title: 'Sale phụ trách',
@@ -2349,6 +2337,7 @@ export class ProjectPartlistPriceRequestComponent implements OnInit {
           headerHozAlign: 'center',
           hozAlign: 'left',
           width: 150,
+          formatter:'textarea'
         },
         {
           title: 'NV báo giá',
@@ -2356,6 +2345,7 @@ export class ProjectPartlistPriceRequestComponent implements OnInit {
           hozAlign: 'left',
           headerHozAlign: 'center',
           width: 150,
+          formatter:'textarea'
         },
         {
           title: 'Ngày yêu cầu',

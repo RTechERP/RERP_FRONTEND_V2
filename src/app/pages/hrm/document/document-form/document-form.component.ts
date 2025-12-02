@@ -24,6 +24,7 @@ import { NzCheckboxModule } from 'ng-zorro-antd/checkbox';
 import { combineLatest } from 'rxjs';
 
 import { DocumentService } from '../document-service/document.service';
+import { NOTIFICATION_TITLE } from '../../../../app.config';
 
 
 interface Document {
@@ -37,6 +38,8 @@ interface Document {
   GroupType: number;
   IsPromulgated?: boolean;
   IsOnWeb?: boolean;
+  SignedEmployeeID?: number;
+  AffectedScope?: string;
 }
 
 @Component({
@@ -69,9 +72,11 @@ export class DocumentFormComponent implements OnInit, AfterViewInit {
     DocumentTypeID: 0,
     DatePromulgate: null,
     DateEffective: null,
+    SignedEmployeeID:0,
+      AffectedScope:'',
     GroupType: 1,
   };
-
+  employees: { department: string, list: any[] }[] = [];
   @Input() documentID: number = 0;
   @Input() dataDepartment: any[] = [];
   @Input() searchParams = {
@@ -99,6 +104,8 @@ export class DocumentFormComponent implements OnInit, AfterViewInit {
       DocumentTypeID: ['', [Validators.required]],
       DatePromulgate: ['', [Validators.required]],
       DateEffective: ['', [Validators.required]],
+      SignedEmployeeID: [0],
+      AffectedScope: [''],
       GroupType: 1,
       IsPromulgated: [false],
       IsOnWeb: [false],
@@ -114,6 +121,8 @@ export class DocumentFormComponent implements OnInit, AfterViewInit {
       DocumentTypeID: ['', Validators.required],
       DatePromulgate: ['', Validators.required],
       DateEffective: ['', Validators.required],
+      SignedEmployeeID: [0],
+      AffectedScope: [''],
       GroupType: [1],
       IsPromulgated: [false],
       IsOnWeb: [false],
@@ -138,6 +147,8 @@ export class DocumentFormComponent implements OnInit, AfterViewInit {
         DatePromulgate: this.formatDateForInput(this.dataInput.DatePromulgate),
         DateEffective: this.formatDateForInput(this.dataInput.DateEffective),
         GroupType: this.dataInput.GroupType || 1,
+        SignedEmployeeID: this.dataInput.SignedEmployeeID || 0,
+        AffectedScope: this.dataInput.AffectedScope || '',
         IsPromulgated: this.dataInput.IsPromulgated || false,
         IsOnWeb: this.dataInput.IsOnWeb || false,
       });
@@ -153,9 +164,16 @@ export class DocumentFormComponent implements OnInit, AfterViewInit {
         this.onTypeOrDepartmentChange(typeId, deptId);
       });
     }
+    this.loadEmployees();
     this.getdataDepartment();
     this.getDataDocumentType();
   }
+  filterOption = (input: string, option: any): boolean => {
+    if (!input) return true;
+    const searchText = input.toLowerCase();
+    const label = option.nzLabel?.toLowerCase() || '';
+    return label.includes(searchText);
+  };
 
   ngAfterViewInit(): void {}
 
@@ -251,6 +269,8 @@ export class DocumentFormComponent implements OnInit, AfterViewInit {
       DatePromulgate: formValue.DatePromulgate,
       DateEffective: formValue.DateEffective,
       GroupType: formValue.GroupType,
+      SignedEmployeeID: formValue.SignedEmployeeID || 0,
+      AffectedScope: formValue.AffectedScope || '',
       IsPromulgated: formValue.IsPromulgated || false,
       IsOnWeb: formValue.IsOnWeb || false,
     };
@@ -297,4 +317,30 @@ export class DocumentFormComponent implements OnInit, AfterViewInit {
   close() {
     this.activeModal.close(true);
   }
+    loadEmployees(): void {
+      const request = { status: 0, departmentid: 0, keyword: '' };
+      this.documentService.getEmployee(request).subscribe({
+        next: (res: any) => {
+          const rawEmployees = (res?.data || []).filter((emp: any) => emp.Status === 0);
+  
+          // Group by DepartmentName
+          const grouped = rawEmployees.reduce((acc: any, curr: any) => {
+            const dept = curr.DepartmentName || 'Khác';
+            if (!acc[dept]) {
+              acc[dept] = [];
+            }
+            acc[dept].push(curr);
+            return acc;
+          }, {});
+  
+          this.employees = Object.keys(grouped).map(dept => ({
+            department: dept,
+            list: grouped[dept]
+          }));
+        },
+        error: (res: any) => {
+          this.notification.error(NOTIFICATION_TITLE.error, res.error.message || 'Không thể tải danh sách nhân viên');
+        },
+      });
+    }
 }

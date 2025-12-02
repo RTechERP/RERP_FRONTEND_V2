@@ -657,7 +657,7 @@ export class TsAssetManagementComponent implements OnInit, AfterViewInit {
     this.assetDetailtable = new Tabulator(this.datatableEmployeeRef.nativeElement, {
       data: this.assetManagementDetail,
       ...DEFAULT_TABLE_CONFIG,
-      layout: 'fitDataFill',
+      layout: 'fitDataStretch',
       height:'30vh',
       paginationSize: 10,
       paginationMode: 'local',

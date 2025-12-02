@@ -410,12 +410,17 @@ export class DocumentComponent implements OnInit, AfterViewInit {
     modalRef.componentInstance.dataInput = null;
     modalRef.componentInstance.mode = 'add';
 
-    modalRef.result.catch((result) => {
-      if (result == true) {
-        // Reload dữ liệu từ server
-        this.getDocument();
+    modalRef.result.then(
+      (result) => {
+        if (result == true) {
+          // Reload dữ liệu từ server
+          this.getDocument();
+        }
+      },
+      (reason) => {
+        // Modal dismissed - không làm gì
       }
-    });
+    );
   }
 
   editDocument(documentData?: any) {
@@ -441,12 +446,17 @@ export class DocumentComponent implements OnInit, AfterViewInit {
     modalRef.componentInstance.dataInput = dataToEdit;
     modalRef.componentInstance.mode = 'edit';
 
-    modalRef.result.catch((result) => {
-      if (result == true) {
-        // Reload dữ liệu từ server
-        this.getDocument();
+    modalRef.result.then(
+      (result) => {
+        if (result == true) {
+          // Reload dữ liệu từ server
+          this.getDocument();
+        }
+      },
+      (reason) => {
+        // Modal dismissed - không làm gì
       }
-    });
+    );
   }
 
   onDeleteDocument() {

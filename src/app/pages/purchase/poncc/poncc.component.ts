@@ -59,7 +59,7 @@ export class PONCCComponent implements OnInit, AfterViewInit {
   tablePoMuon!: Tabulator;
   tableDetail!: Tabulator;
   activeTabIndex: number = 0;
-
+  lastMasterId: number | null = null;
   // Filters
   dateStart: Date = new Date(new Date().getFullYear(), new Date().getMonth(), 1);
   dateEnd: Date = new Date(new Date().getFullYear(), new Date().getMonth() + 1, 0);
@@ -175,24 +175,24 @@ export class PONCCComponent implements OnInit, AfterViewInit {
     this.onSearch();
   }
 
-  private loadDetails(poid: number): void {
-    this.isLoading = true;
-    this.srv.getDetails(poid).subscribe({
-      next: (res: any) => {
-        console.log(res);
-        this.tableDetail?.setData(res.data.data || []).then(() => {
-          this.tableDetail?.selectRow();
-        });
-        this.listAllID = res.data.listAllID;
-        this.checkList = res.data.checkList;
-        this.isLoading = false;
-      },
-      error: () => {
-        this.isLoading = false;
-        this.notify.error('Lỗi', 'Không tải được chi tiết');
-      },
-    });
-  }
+  // private loadDetails(poid: number): void {
+  //   this.isLoading = true;
+  //   this.srv.getDetails(poid).subscribe({
+  //     next: (res: any) => {
+  //       console.log(res);
+  //       this.tableDetail?.setData(res.data.data || []).then(() => {
+  //         this.tableDetail?.selectRow();
+  //       });
+  //       this.listAllID = res.data.listAllID;
+  //       this.checkList = res.data.checkList;
+  //       this.isLoading = false;
+  //     },
+  //     error: () => {
+  //       this.isLoading = false;
+  //       this.notify.error('Lỗi', 'Không tải được chi tiết');
+  //     },
+  //   });
+  // }
 
   /**
    * Handle master table selection changes
@@ -202,43 +202,50 @@ export class PONCCComponent implements OnInit, AfterViewInit {
   private handleMasterSelectionChange(selectedMasters: any[]): void {
     const selectedIds = selectedMasters.map(m => m.ID);
 
-    // If no selection, clear everything
+    // Nếu không còn master nào → clear hết
     if (selectedIds.length === 0) {
       this.masterDetailsMap.clear();
+      this.lastMasterId = null;
       this.tableDetail?.clearData();
       this.sizeTbDetail = '0';
       return;
     }
 
-    // Show detail panel
     this.sizeTbDetail = '35%';
 
-    // Find which masters are newly selected (not in map yet)
     const newMasterIds = selectedIds.filter(id => !this.masterDetailsMap.has(id));
-
-    // Find which masters were deselected (in map but not in selection)
     const deselectedIds = Array.from(this.masterDetailsMap.keys()).filter(id => !selectedIds.includes(id));
-
-    // Remove deselected masters from map
     deselectedIds.forEach(id => this.masterDetailsMap.delete(id));
 
-    // Load details for new masters
     if (newMasterIds.length > 0) {
-      // Get the latest selected master ID (last one in newMasterIds)
+
       const latestMasterId = newMasterIds[newMasterIds.length - 1];
+
+      if (this.lastMasterId && this.masterDetailsMap.has(this.lastMasterId)) {
+        const currentSelectedDetails = this.tableDetail?.getSelectedData() || [];
+        const selectedDetailIds = new Set(currentSelectedDetails.map((d: any) => d.ID));
+
+        const oldDetails = this.masterDetailsMap.get(this.lastMasterId) || [];
+        const filtered = oldDetails.filter(d => selectedDetailIds.has(d.ID));
+
+        if (filtered.length > 0) {
+          this.masterDetailsMap.set(this.lastMasterId, filtered);
+        } else {
+          this.masterDetailsMap.delete(this.lastMasterId);
+        }
+      }
+      this.lastMasterId = latestMasterId;
 
       this.isLoading = true;
       let loadedCount = 0;
 
+      // Load detail cho master mới
       newMasterIds.forEach(masterId => {
         this.srv.getDetails(masterId).subscribe({
           next: (res: any) => {
-            // Store details for this master in map
             this.masterDetailsMap.set(masterId, res.data.data || []);
-            console.log(this.masterDetailsMap);
             loadedCount++;
 
-            // After all new masters are loaded, display only the latest one's details
             if (loadedCount === newMasterIds.length) {
               this.displayDetailsForMaster(latestMasterId);
               this.isLoading = false;
@@ -246,25 +253,26 @@ export class PONCCComponent implements OnInit, AfterViewInit {
           },
           error: () => {
             loadedCount++;
+
             if (loadedCount === newMasterIds.length) {
               this.displayDetailsForMaster(latestMasterId);
               this.isLoading = false;
             }
+
             this.notify.error('Lỗi', `Không tải được chi tiết cho PO ID: ${masterId}`);
           },
         });
       });
+
     } else {
-      // No new masters, display the last selected master's details
       const lastSelectedId = selectedIds[selectedIds.length - 1];
+      this.lastMasterId = lastSelectedId;
       this.displayDetailsForMaster(lastSelectedId);
     }
+
+    console.log(this.masterDetailsMap);
   }
 
-  /**
-   * Display details for a specific master in the detail table
-   * Note: masterDetailsMap stores all details, but table only shows the specified master's details
-   */
 
   private displayDetailsForMaster(masterId: number): void {
     const details = this.masterDetailsMap.get(masterId) || [];
@@ -439,7 +447,6 @@ export class PONCCComponent implements OnInit, AfterViewInit {
   handleSelectionChange(selectedRows: any[]) {
     const selectedIds = selectedRows.map(r => r.ID);
     this.listDetail = selectedIds;
-    console.log("listDetail:", this.listDetail);
   }
 
   private formatNumberEnUS(v: any, digits: number = 2): string {

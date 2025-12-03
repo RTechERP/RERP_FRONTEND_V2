@@ -462,58 +462,71 @@ export class TsAssetManagementComponent implements OnInit, AfterViewInit {
           title: 'Trạng thái',
           field: 'Status',
           formatter: (cell: CellComponent) => {
-            const val = cell.getValue() as string;
+            const rowData: any = cell.getRow().getData() || {};
+            const statusId: number = Number(rowData.StatusID ?? rowData.StatusId ?? rowData.statusId ?? rowData.statusID ?? 0);
             const el = cell.getElement();
+            // reset
             el.style.backgroundColor = '';
             el.style.color = '';
-            if (val === 'Chưa sử dụng') {
-              el.style.backgroundColor = '#AAAAAA';
-              el.style.outline = '1px solid #EEEE';
-              el.style.color = '#fff';
-              el.style.borderRadius = '5px';
+            el.style.borderRadius = '5px';
+            el.style.outline = '';
 
-            } else if (val === 'Đang sử dụng') {
-              el.style.backgroundColor = '#b4ecb4ff';
-              el.style.color = '#2cb55aff';
-              el.style.outline = '1px solid #e0e0e0';
-              el.style.borderRadius = '5px';
-            } else if (val === 'Đã thu hồi') {
-              el.style.backgroundColor = '#FFCCCC';
-              el.style.color = '#000000';
-              el.style.borderRadius = '5px';
-              el.style.outline = '1px solid #e0e0e0';
-            } else if (val === 'Mất') {
-              el.style.backgroundColor = '#fbc4c4ff';
-              el.style.color = '#d40000ff';
-              el.style.borderRadius = '5px';
-              el.style.outline = '1px solid #e0e0e0';
-            } else if (val === 'Hỏng') {
-              el.style.backgroundColor = '#cadfffff';
-              el.style.color = '#4147f2ff';
-              el.style.outline = '1px solid #e0e0e0';
-              el.style.borderRadius = '5px';
-            } else if (val === 'Thanh lý') {
-              el.style.backgroundColor = '#d4fbffff';
-              el.style.color = '#08aabfff';
-              el.style.borderRadius = '5px';
-              el.style.outline = '1px solidrgb(196, 35, 35)';
-            } else if (val === 'Đề nghị thanh lý') {
-              el.style.backgroundColor = '#fde3c1ff';
-              el.style.color = '#f79346ff';
-              el.style.borderRadius = '5px';
-              el.style.outline = '1px solidrgb(20, 177, 177)';
+            // Map StatusID to label (for display fallback)
+            const statusLabelMap: Record<number, string> = {
+              1: 'Chưa sử dụng',
+              2: 'Đã cấp phát',
+              3: 'Sữa chữa, Bảo dưỡng',
+              4: 'Mất',
+              5: 'Hỏng',
+              6: 'Thanh lý',
+              7: 'Đề nghị thanh lý',
+            };
+
+            const label = statusLabelMap[statusId] ?? (cell.getValue() as string) ?? '';
+
+            switch (statusId) {
+              case 1: // Chưa sử dụng
+                el.style.backgroundColor = '#AAAAAA';
+                el.style.outline = '1px solid #EEEE';
+                el.style.color = '#fff';
+                break;
+              case 2: // Đã cấp phát
+                el.style.backgroundColor = '#b4ecb4ff';
+                el.style.color = '#2cb55aff';
+                el.style.outline = '1px solid #e0e0e0';
+                break;
+              case 3: // Sữa chữa, Bảo dưỡng
+                el.style.backgroundColor = '#bcaa93ff';
+                el.style.color = '#c37031ff';
+                el.style.outline = '1px solid #14b1b1';
+                break;
+              case 4: // Mất
+                el.style.backgroundColor = '#fbc4c4ff';
+                el.style.color = '#d40000ff';
+                el.style.outline = '1px solid #e0e0e0';
+                break;
+              case 5: // Hỏng
+                el.style.backgroundColor = '#cadfffff';
+                el.style.color = '#4147f2ff';
+                el.style.outline = '1px solid #e0e0e0';
+                break;
+              case 6: // Thanh lý
+                el.style.backgroundColor = '#d4fbffff';
+                el.style.color = '#08aabfff';
+                el.style.outline = '1px solid rgb(196, 35, 35)';
+                break;
+              case 7: // Đề nghị thanh lý
+                el.style.backgroundColor = '#fde3c1ff';
+                el.style.color = '#f79346ff';
+                el.style.outline = '1px solid rgb(20, 177, 177)';
+                break;
+              default:
+                el.style.backgroundColor = '#e0e0e0';
+                el.style.color = '';
+                break;
             }
-            else if (val === 'Sữa chữa, Bảo dưỡng') {
-              el.style.backgroundColor = '#bcaa93ff';
-              el.style.color = '#c37031ff';
-              el.style.borderRadius = '5px';
-              el.style.outline = '1px solidrgb(20, 177, 177)';
-            }
-            else {
-              el.style.backgroundColor = '#e0e0e0';
-              el.style.borderRadius = '5px';
-            }
-            return val; // vẫn hiển thị chữ
+
+            return label; // hiển thị nhãn phù hợp
           },
           headerHozAlign: 'center',
         },
@@ -657,7 +670,7 @@ export class TsAssetManagementComponent implements OnInit, AfterViewInit {
     this.assetDetailtable = new Tabulator(this.datatableEmployeeRef.nativeElement, {
       data: this.assetManagementDetail,
       ...DEFAULT_TABLE_CONFIG,
-      layout: 'fitDataFill',
+      layout: 'fitDataStretch',
       height:'30vh',
       paginationSize: 10,
       paginationMode: 'local',

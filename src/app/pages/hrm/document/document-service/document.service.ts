@@ -13,6 +13,7 @@ import { DateTime } from 'luxon';
 export class DocumentService {
   constructor(private http: HttpClient) {}
 apiUrl: string = environment.host + 'api';
+  private urlEmployee = `${environment.host}api/employee/`;
 
  getNextStt(documentTypeID: number, departmentID: number): Observable<any> {
     const url = environment.host + `api/document/get-next-stt?documentTypeID=${documentTypeID}&departmentID=${departmentID}`;
@@ -85,5 +86,7 @@ apiUrl: string = environment.host + 'api';
       responseType: 'blob', 
     });
   }
-
+  getEmployee(request: any): Observable<any> {
+    return this.http.get<any>(`${this.urlEmployee}`, request);
+  }
 }

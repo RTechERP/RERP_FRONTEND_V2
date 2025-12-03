@@ -59,7 +59,7 @@
                   @for (item of projects; track $index) {
                     <nz-option
                       nzCustomContent="true"
-                      [nzLabel]="item.ProjectCode"
+                      [nzLabel]="item.ProjectCode + ' - ' + item.ProjectName"
                       [nzValue]="item.ID"
                     >
                       {{ item.ProjectCode + " - " + item.ProjectName }}
@@ -85,7 +85,7 @@
                       @for (child of parent.options; track $index) {
                         <nz-option
                           nzCustomContent="true"
-                          [nzLabel]="child.item.FullName"
+                          [nzLabel]="child.item?.Code + ' - ' + child.item?.FullName"
                           [nzValue]="child.item.ID"
                         >
                           {{ child.item.Code + " - " + child.item.FullName }}
@@ -113,7 +113,7 @@
                       @for (child of parent.options; track $index) {
                         <nz-option
                           nzCustomContent="true"
-                          [nzLabel]="child.item.FullName"
+                          [nzLabel]="child.item?.Code + ' - ' + child.item?.FullName"
                           [nzValue]="child.item.ID"
                         >
                           {{ child.item.Code + " - " + child.item.FullName }}
@@ -122,17 +122,6 @@
                     </nz-option-group>
                   }
                 </nz-select>
-              </nz-form-control>
-            </nz-form-item>
-            <nz-form-item class="mt-2">
-              <nz-form-label class="fs-12" [nzSpan]="24">Từ khóa</nz-form-label>
-              <nz-form-control [nzSpan]="24">
-                <input
-                  name="keyword"
-                  nz-input
-                  placeholder="Nhập từ khóa"
-                  [(ngModel)]="keyword"
-                />
               </nz-form-control>
             </nz-form-item>
           </form>
@@ -156,7 +145,8 @@
     <!-- BẢNG DỮ LIỆU -->
     <nz-splitter-panel nzDefaultSize="100%">
       <div class="card h-100 border-0 rounded-0">
-        <div class="card-header bg-white p-2 border-bottom">
+        <div class="card-header bg-white p-2 border-bottom d-flex align-items-center justify-content-between">
+          <!-- Bên trái: Các nút hành động -->
           <div class="d-flex gap-1 flex-wrap">
             <button
               nz-button
@@ -200,6 +190,22 @@
               (click)="surveyResult()"
             >
             <img src="assets/icon/surver_16.png" alt="Kết quả khảo sát" class="me-1" /> Kết quả khảo sát
+            </button>
+          </div>
+          
+          <!-- Bên phải: Tìm kiếm -->
+          <div class="d-flex gap-1 align-items-center">
+            <input
+              nz-input
+              nzSize="small"
+              nzAllowClear
+              placeholder="Nhập từ khóa"
+              style="width: 250px"
+              [(ngModel)]="keyword"
+              (keyup.enter)="getDataProjectSurvey()"
+            />
+            <button nz-button nzType="default" nzSize="small" (click)="getDataProjectSurvey()" class="btn">
+              <nz-icon nzType="search" />
             </button>
           </div>
         </div>

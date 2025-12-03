@@ -75,20 +75,6 @@
               </nz-form-control>
             </nz-form-control>
           </nz-form-item>
-          <nz-form-item class="mt-2">
-            <nz-form-label class="fs-12" [nzSpan]="24">Từ khóa</nz-form-label>
-            <nz-form-control [nzSpan]="24">
-              <input
-                class="w-100"
-                nz-input
-                nzSize="default"
-                placeholder="Nhập từ khóa"
-                [(ngModel)]="searchParams.Keywords"
-                name="keyword"
-                
-              />
-            </nz-form-control>
-          </nz-form-item>
         </form>
       </div>
       <div class="card-footer bg-white p-1 d-flex gap-1 justify-content-end">
@@ -108,7 +94,8 @@
   </nz-splitter-panel>
   <nz-splitter-panel>
       <div class="card border-0 rounded-0">
-          <div class="card-header bg-white p-1" style="overflow-x: auto">
+          <div class="card-header bg-white p-1 d-flex align-items-center justify-content-between" style="overflow-x: auto">
+            <!-- Bên trái: Các nút hành động -->
             <div class="d-flex gap-1">
               <button
                 nz-button
@@ -143,6 +130,23 @@
               <img src="assets/icon/action_export_excel_16.png" alt="Xuất Excel" class="me-1" /> Xuất Excel
               </button>
             </div>
+            
+            <!-- Bên phải: Tìm kiếm -->
+            <div class="d-flex gap-1 align-items-center">
+              <input
+                nz-input
+                nzSize="small"
+                nzAllowClear
+                placeholder="Nhập từ khóa"
+                style="width: 250px"
+                [(ngModel)]="searchParams.Keywords"
+                (keyup.enter)="searchData()"
+                (ngModelChange)="onSearchChange($event)"
+              />
+              <button nz-button nzType="default" nzSize="small" (click)="searchData()" class="btn">
+                <nz-icon nzType="search" />
+              </button>
+            </div>
           </div>       
           <div class="card-body p-0" style="height: calc(100vh - 120px);">
             <nz-splitter nzLayout="vertical" style="height: 100%;">   
@@ -150,9 +154,9 @@
              <div id="MeetingMinutes" style="height: 100%; min-height: 300px;"></div>
             </nz-splitter-panel>
            <nz-splitter-panel nzDefaultSize="50%" nzMin="30%" nzMax="70%">
-          <nz-tabset (nzSelectedIndexChange)="onMainTabChange($event)" style="height: 100%;">
+          <nz-tabset [nzSelectedIndex]="mainTabIndex" (nzSelectedIndexChange)="onMainTabChange($event)" style="height: 100%;">
             <nz-tab nzTitle="Nhân viên">
-                <nz-tabset (nzSelectedIndexChange)="onTabChange($event)" style="height: 100%;">
+                <nz-tabset [nzSelectedIndex]="activeTab" (nzSelectedIndexChange)="onTabChange($event)" style="height: 100%;">
                   <nz-tab nzTitle="Nhân viên tham gia">
                       <div id="Employee" style="height: 100%; min-height: 350px;"></div>
                   </nz-tab>

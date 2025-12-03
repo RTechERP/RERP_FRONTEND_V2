@@ -3,11 +3,17 @@
     <h6 class="text-light text-uppercase m-0" style="padding: 0, 5rem">
       Trạng thái dự án
     </h6>
+    <button
+      type="button"
+      class="btn-close"
+      (click)="activeModal.dismiss()"
+      aria-label="Close"
+    ></button>
   </div>
 
   <div
     class="modal-body p-0 w-100"
-    style="min-height: 50vh"
+    style="max-height: 80vh !important; overflow-y: auto;"
   >
     <div class="border">
       <div class="" id="tb_projectStatus"></div>

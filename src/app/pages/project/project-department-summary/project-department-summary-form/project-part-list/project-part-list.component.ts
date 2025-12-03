@@ -163,6 +163,7 @@ export class ProjectPartListComponent implements OnInit, AfterViewInit {
   dataProjectWorker: any[] = [];
   isTogglingChildren: boolean = false; // Flag để tránh vòng lặp vô hạn khi toggle children
   previousSelectedRows: Set<number> = new Set(); // Lưu lại các row đã được chọn trước đó
+  independentlyDeselectedNodes: Set<number> = new Set(); // Lưu các node đã được bỏ chọn độc lập (không tự động chọn lại)
   dataSolution: any[] = [];
   dataSolutionVersion: any[] = [];
   dataPOVersion: any[] = [];
@@ -665,10 +666,10 @@ export class ProjectPartListComponent implements OnInit, AfterViewInit {
       }
     } else {
       const versionRows = this.tb_projectPartListVersionPO?.getSelectedData();
-      if (!versionRows || versionRows.length === 0) {
-        this.notification.warning('Thông báo', 'Vui lòng chọn phiên bản PO để cập nhật');
-        return;
-      }
+      // if (!versionRows || versionRows.length === 0) {
+      //   this.notification.warning('Thông báo', 'Vui lòng chọn phiên bản PO để cập nhật');
+      //   return;
+      // }
       selectedVersion = versionRows[0];
       if (selectedVersion['IsActive'] == false || selectedVersion['IsActive'] == null) {
         this.notification.warning('Thông báo', `Vui lòng chọn sử dụng phiên bản PO [${selectedVersion.Code}] trước!`);
@@ -725,7 +726,7 @@ export class ProjectPartListComponent implements OnInit, AfterViewInit {
     }
     // Kiểm tra có item nào để xử lý không
     if (requestItems.length === 0) {
-      this.notification.warning('Thông báo', `Không có vật tư hợp lệ để ${isApprovedText} mã mới.\nVui lòng chọn các vật tư có mã mới (node lá)`);
+      this.notification.warning('Thông báo', `Không có vật tư hợp lệ để ${isApprovedText} mã mới.\nVui lòng chọn các vật tư có mã mới`);
       return;
     }
     // Hiển thị modal xác nhận
@@ -1168,7 +1169,7 @@ export class ProjectPartListComponent implements OnInit, AfterViewInit {
     }
     // Kiểm tra có item nào để hủy không
     if (requestItems.length === 0) {
-      this.notification.warning('Thông báo', 'Không có vật tư hợp lệ để hủy yêu cầu báo giá.\nVui lòng chọn các vật tư đã được yêu cầu báo giá (node lá)');
+      this.notification.warning('Thông báo', 'Không có vật tư hợp lệ để hủy yêu cầu báo giá.\nVui lòng chọn các vật tư đã được yêu cầu báo giá');
       return;
     }
     // Hiển thị modal xác nhận
@@ -1311,7 +1312,7 @@ export class ProjectPartListComponent implements OnInit, AfterViewInit {
     }
     // Kiểm tra có item nào để yêu cầu không
     if (requestItems.length === 0) {
-      this.notification.warning('Thông báo', 'Không có vật tư hợp lệ để yêu cầu mua hàng.\nVui lòng chọn các vật tư đã được TBP duyệt (node lá)');
+      this.notification.warning('Thông báo', 'Không có vật tư hợp lệ để yêu cầu mua hàng.\nVui lòng chọn các vật tư đã được TBP duyệt ');
       return;
     }
     // Reset deadline và mở modal chọn deadline
@@ -1540,7 +1541,7 @@ export class ProjectPartListComponent implements OnInit, AfterViewInit {
     }
     // Kiểm tra có item nào để hủy không
     if (requestItems.length === 0) {
-      this.notification.warning('Thông báo', 'Không có vật tư hợp lệ để hủy yêu cầu mua hàng.\nVui lòng chọn các vật tư đã được yêu cầu mua hàng (node lá)');
+      this.notification.warning('Thông báo', 'Không có vật tư hợp lệ để hủy yêu cầu mua hàng.\nVui lòng chọn các vật tư đã được yêu cầu mua hàng');
       return;
     }
     // Hiển thị modal xác nhận
@@ -2243,6 +2244,7 @@ export class ProjectPartListComponent implements OnInit, AfterViewInit {
       return;
     }
     this.tb_solution = new Tabulator(this.tb_solutionContainer.nativeElement, {
+      ...DEFAULT_TABLE_CONFIG,
       paginationMode: 'local',
       pagination: false,
       data: this.dataSolution,
@@ -2259,6 +2261,7 @@ export class ProjectPartListComponent implements OnInit, AfterViewInit {
           field: 'STT',
           hozAlign: 'center',
           headerHozAlign: 'center',
+          width: 30,
           // Tự động đánh số thứ tự
         },
         {
@@ -2266,58 +2269,42 @@ export class ProjectPartListComponent implements OnInit, AfterViewInit {
           field: 'StatusSolution',
           hozAlign: 'center',
           headerHozAlign: 'center',
+          width: 30,
+          headerSort: false,
           formatter: (cell: any) => {
             const value = cell.getValue();
             return `<input type="checkbox" ${(value === 1 ? 'checked' : '')} onclick="return false;">`;
           },
         },
-        // {
-        //   title: 'Duyệt báo giá',
-        //   field: 'IsApprovedPrice',
-        //   hozAlign: 'center',
-        //   headerHozAlign: 'center',
-        //   formatter: (cell: any) => {
-        //     const value = cell.getValue();
-        //     return value === true
-        //       ? '<i class="fa fa-check text-success"></i>'
-        //       : '<i class="fa fa-times text-danger"></i>';
-        //   },
-        // },
         {
           title: 'Duyệt PO',
           field: 'IsApprovedPO',
           hozAlign: 'center',
           headerHozAlign: 'center',
+          width: 30,
+          headerSort: false,
           formatter: (cell: any) => {
             const value = cell.getValue();
             return `<input type="checkbox" ${(value === true ? 'checked' : '')} onclick="return false;">`;
           },
         },
         {
-          title: 'Ngày lên GP',
+          title: 'Ngày GP',
           field: 'DateSolution',
           hozAlign: 'center',
           headerHozAlign: 'center',
+          headerSort: false,
           formatter: (cell: any) => {
             const value = cell.getValue();
             return value ? DateTime.fromISO(value).toFormat('dd/MM/yyyy') : '';
           },
         },
-        // {
-        //   title: 'Deadline báo giá',
-        //   field: 'PriceReportDeadline',
-        //   hozAlign: 'center',
-        //   headerHozAlign: 'center',
-        //   formatter: (cell: any) => {
-        //     const value = cell.getValue();
-        //     return value ? DateTime.fromISO(value).toFormat('dd/MM/yyyy') : '';
-        //   },
-        // },
         {
-          title: 'Mã giải pháp',
+          title: 'Mã',
           field: 'CodeSolution',
           hozAlign: 'left',
           headerHozAlign: 'center',
+          width: 40, headerSort: false,
         },
         {
           title: 'Nội dung',
@@ -2326,6 +2313,7 @@ export class ProjectPartListComponent implements OnInit, AfterViewInit {
           headerHozAlign: 'center',
           editor: 'textarea',
           formatter: 'textarea', // Hiển thị multiline
+          width: 300,
         },
       ],
     });
@@ -2336,6 +2324,10 @@ export class ProjectPartListComponent implements OnInit, AfterViewInit {
       this.selectionProjectSolutionName = data.CodeSolution;
       this.loadDataProjectPartListVersion();
       this.loadDataProjectPartListVersionPO();
+      this.dataProjectWorker = [];
+      if (this.tb_projectWorker) {
+        this.tb_projectWorker.setData([]);
+            }
     });
   }
   drawTbProjectPartListVersion(): void {
@@ -2352,6 +2344,7 @@ export class ProjectPartListComponent implements OnInit, AfterViewInit {
     this.tb_projectPartListVersion = new Tabulator(
       this.tb_projectPartListVersionContainer.nativeElement,
       {
+        ...DEFAULT_TABLE_CONFIG,
         pagination: false,
         paginationMode: 'local',
         data: this.dataSolutionVersion,
@@ -2361,11 +2354,14 @@ export class ProjectPartListComponent implements OnInit, AfterViewInit {
         groupBy: 'ProjectTypeName',
         groupStartOpen: true,
         selectableRows: 1,
+        rowHeader: false,
+        headerSort: false,
         groupHeader: (value: any) => `Danh mục: ${value}`,
         columns: [
           {
             title: 'STT',
             field: 'STT',
+            width: 30,
             hozAlign: 'center',
             headerHozAlign: 'center',
           },
@@ -2381,6 +2377,7 @@ export class ProjectPartListComponent implements OnInit, AfterViewInit {
             field: 'IsActive',
             hozAlign: 'center',
             headerHozAlign: 'center',
+            width: 30,
             formatter: (cell: any) => {
               const value = cell.getValue();
               return `<input type="checkbox" ${(value === true ? 'checked' : '')} onclick="return false;">`;
@@ -2391,6 +2388,7 @@ export class ProjectPartListComponent implements OnInit, AfterViewInit {
             field: 'Code',
             hozAlign: 'center',
             headerHozAlign: 'center',
+            width: 30,
           },
           {
             title: 'Mô tả',
@@ -2398,7 +2396,9 @@ export class ProjectPartListComponent implements OnInit, AfterViewInit {
             hozAlign: 'left',
             headerHozAlign: 'center',
             formatter: 'textarea',
+            headerSort: false,
             variableHeight: true,
+            width: 300,
           },
           {
             title: 'Người tạo',
@@ -2428,19 +2428,46 @@ export class ProjectPartListComponent implements OnInit, AfterViewInit {
     );
     this.tb_projectPartListVersion.on('rowClick', (e: any, row: any) => {
       console.log('row', row);
-      const data = row.getData();
-      this.selectionCode = data.Code;
-      this.versionID = data.ID || 0;
-      this.projectTypeID = data.ProjectTypeID;
-      this.projectTypeName = data.ProjectTypeName;
-      this.type = 1; // Giải pháp
-      this.CodeName = data.Code;
-      const selectedRows = this.tb_projectPartListVersionPO.getSelectedRows();
-      selectedRows.forEach((selectedRow: any) => {
-        selectedRow.deselect();
-      });
-      this.toggleTBPColumn();
-      this.loadDataProjectPartList();
+      // Kiểm tra nếu row đang được chọn hay bị bỏ chọn
+      const isSelected = row.isSelected();
+      
+      if (isSelected) {
+        // Row được chọn
+        const data = row.getData();
+        this.selectionCode = data.Code;
+        this.versionID = data.ID || 0;
+        this.projectTypeID = data.ProjectTypeID;
+        this.projectTypeName = data.ProjectTypeName;
+        this.type = 1; // Giải pháp
+        this.CodeName = data.Code;
+        const selectedRows = this.tb_projectPartListVersionPO.getSelectedRows();
+        selectedRows.forEach((selectedRow: any) => {
+          selectedRow.deselect();
+        });
+        this.toggleTBPColumn();
+        this.loadDataProjectPartList();
+      } else {
+        // Row bị bỏ chọn - reset các biến về giá trị mặc định
+        const selectedRows = this.tb_projectPartListVersion.getSelectedRows();
+        if (selectedRows.length === 0) {
+          // Không còn row nào được chọn
+          this.type = 0;
+          this.versionID = 0;
+          this.versionPOID = 0;
+          this.selectionCode = '';
+          this.projectTypeID = 0;
+          this.projectTypeName = '';
+          this.projectCode = '';
+          this.CodeName = '';
+          console.log('type reset to:', this.type);
+          this.toggleTBPColumn();
+          //  this.loadDataProjectPartList();
+          this.dataProjectWorker = [];
+          if (this.tb_projectWorker) {
+            this.tb_projectWorker.setData([]);
+          }
+        }
+      }
     });
   }
   //set data tree cho bảng
@@ -2478,6 +2505,7 @@ export class ProjectPartListComponent implements OnInit, AfterViewInit {
     this.tb_projectPartListVersionPO = new Tabulator(
       this.tb_projectPartListVersionPOContainer.nativeElement,
       {
+        ...DEFAULT_TABLE_CONFIG,
         pagination: false,
         paginationMode: 'local',
         data: this.dataPOVersion,
@@ -2487,12 +2515,14 @@ export class ProjectPartListComponent implements OnInit, AfterViewInit {
         groupBy: 'ProjectTypeName',
         groupStartOpen: true,
         selectableRows: 1,
+        rowHeader: false,
+        headerSort: false,
         groupHeader: (value: any) => `Danh mục: ${value}`,
         columns: [
           {
             title: 'STT',
             field: 'STT',
-            width: 60,
+            width: 30,
             hozAlign: 'center',
             headerHozAlign: 'center',
           },
@@ -2508,7 +2538,8 @@ export class ProjectPartListComponent implements OnInit, AfterViewInit {
             field: 'IsActive',
             hozAlign: 'center',
             headerHozAlign: 'center',
-            width: 90,
+            headerSort: false,
+            width: 30,
             formatter: (cell: any) => {
               const value = cell.getValue();
               return `<input type="checkbox" ${(value === true ? 'checked' : '')} onclick="return false;">`;
@@ -2528,6 +2559,7 @@ export class ProjectPartListComponent implements OnInit, AfterViewInit {
             headerHozAlign: 'center',
             formatter: 'textarea',
             variableHeight: true,
+            headerSort: false,
             width: 300,
           },
           {
@@ -2558,24 +2590,51 @@ export class ProjectPartListComponent implements OnInit, AfterViewInit {
     );
     this.tb_projectPartListVersionPO.on('rowClick', (e: any, row: any) => {
       console.log('row', row);
-      const data = row.getData();
-      this.selectionCode = data.Code;
-      this.projectTypeID = data.ProjectTypeID;
-      this.projectTypeName = data.ProjectTypeName;
-      this.projectCode = data.ProjectCode;
-      this.versionID = data.ID || 0;
-      this.type = 2; // PO
-      this.CodeName = data.Code;
-      // Bỏ chọn tất cả các dòng đã chọn trong bảng solutionVersion (nếu bảng tồn tại)
-      if (this.tb_projectPartListVersion) {
-        const selectedRows = this.tb_projectPartListVersion.getSelectedRows();
-        selectedRows.forEach((selectedRow: any) => {
-          selectedRow.deselect();
-        });
+      // Kiểm tra nếu row đang được chọn hay bị bỏ chọn
+      const isSelected = row.isSelected();
+      
+      if (isSelected) {
+        // Row được chọn
+        const data = row.getData();
+        this.selectionCode = data.Code;
+        this.projectTypeID = data.ProjectTypeID;
+        this.projectTypeName = data.ProjectTypeName;
+        this.projectCode = data.ProjectCode;
+        this.versionPOID = data.ID || 0;
+        this.type = 2; // PO
+        this.CodeName = data.Code;
+        // Bỏ chọn tất cả các dòng đã chọn trong bảng solutionVersion (nếu bảng tồn tại)
+        if (this.tb_projectPartListVersion) {
+          const selectedRows = this.tb_projectPartListVersion.getSelectedRows();
+          selectedRows.forEach((selectedRow: any) => {
+            selectedRow.deselect();
+          });
+        }
+        console.log('type', this.type);
+        this.toggleTBPColumn();
+        this.loadDataProjectPartList();
+      } else {
+        // Row bị bỏ chọn - reset các biến về giá trị mặc định
+        const selectedRows = this.tb_projectPartListVersionPO.getSelectedRows();
+        if (selectedRows.length === 0) {
+          // Không còn row nào được chọn
+          this.type = 0;
+          this.versionID = 0;
+          this.versionPOID = 0;
+          this.selectionCode = '';
+          this.projectTypeID = 0;
+          this.projectTypeName = '';
+          this.projectCode = '';
+          this.CodeName = '';
+          console.log('type reset to:', this.type);
+          this.toggleTBPColumn();
+        //  this.loadDataProjectPartList();
+        this.dataProjectWorker = [];
+        if (this.tb_projectWorker) {
+          this.tb_projectWorker.setData([]);
+        }
+        }
       }
-      console.log('type', this.type);
-      this.toggleTBPColumn();
-      this.loadDataProjectPartList();
     });
   }
   // Helper function: Vẽ màu cho cell giống CustomDrawNodeCell trong WinForm
@@ -3160,14 +3219,14 @@ export class ProjectPartListComponent implements OnInit, AfterViewInit {
                 },
               },
               { title: 'Trạng thái báo giá', field: 'StatusPriceRequestText', hozAlign: 'center' },
-              { title: 'NV báo giá', field: 'FullNameRequestPrice' },
+              { title: 'NV báo giá', field: 'FullNameQuote' },
               {
                 title: 'Ngày yêu cầu', hozAlign: 'center', field: 'DatePriceRequest', formatter: (cell: any) => {
                   const value = cell.getValue();
                   return value ? DateTime.fromISO(value).toFormat('dd/MM/yyyy') : '';
                 },
               },
-              { title: 'Người yêu cầu', field: 'FullNameRequestPurchase' },
+              { title: 'Người yêu cầu', field: 'FullNameRequestPrice' },
               {
                 title: 'Deadline Báo giá', hozAlign: 'center', field: 'DeadlinePriceRequest', formatter: (cell: any) => {
                   const value = cell.getValue();
@@ -3474,8 +3533,33 @@ export class ProjectPartListComponent implements OnInit, AfterViewInit {
     // Thêm logic: khi chọn nút cha, tự động chọn tất cả nút con
     // Xử lý cả chọn và bỏ chọn
     this.tb_projectWorker.on('rowSelectionChanged', (data: any[], rows: any[]) => {
+      // Nếu đang toggle children, bỏ qua xử lý để tránh vòng lặp
+      if (this.isTogglingChildren) {
+        return;
+      }
+      
+      const allRows = this.tb_projectWorker.getRows();
+      
       // Lấy danh sách các row ID hiện tại đang được chọn
+      // Sử dụng getSelectedRows() để đảm bảo lấy đúng các rows đang được chọn
       const currentSelectedIds = new Set<number>();
+      try {
+        const selectedRows = this.tb_projectWorker.getSelectedRows();
+        selectedRows.forEach((row: any) => {
+          const rowData = row.getData();
+          currentSelectedIds.add(rowData.ID);
+        });
+      } catch (e) {
+        // Fallback: duyệt tất cả rows
+        allRows.forEach((row: any) => {
+          if (row.isSelected()) {
+            const rowData = row.getData();
+            currentSelectedIds.add(rowData.ID);
+          }
+        });
+      }
+      
+      // Cũng kiểm tra tham số rows từ event (có thể chứa rows vừa được chọn/bỏ chọn)
       if (rows && rows.length > 0) {
         rows.forEach((row: any) => {
           const rowData = row.getData();
@@ -3484,6 +3568,7 @@ export class ProjectPartListComponent implements OnInit, AfterViewInit {
           }
         });
       }
+      
       // Tìm các row đã bị bỏ chọn (có trong previous nhưng không có trong current)
       const deselectedIds = new Set<number>();
       this.previousSelectedRows.forEach((id: number) => {
@@ -3491,58 +3576,167 @@ export class ProjectPartListComponent implements OnInit, AfterViewInit {
           deselectedIds.add(id);
         }
       });
-      // Kiểm tra xem có đang bỏ chọn node lá không (node không có children - ở bất kỳ cấp nào)
-      // Ví dụ: 1.1.1 là node lá, 1.1 có thể là node cha (có 1.1.1, 1.1.2)
-      let isDeselectingLeaf = false;
-      if (deselectedIds.size > 0) {
-        const allRows = this.tb_projectWorker.getRows();
-        for (const deselectedId of deselectedIds) {
-          for (const row of allRows) {
-            const rowData = row.getData();
-            if (rowData.ID === deselectedId) {
-              // Kiểm tra xem row có phải là node lá không (không có children)
-              // Sử dụng cả getTreeChildren() và _children để đảm bảo chính xác
-              let hasChildren = false;
-              try {
-                const treeChildren = row.getTreeChildren();
-                hasChildren = treeChildren && treeChildren.length > 0;
-              } catch (e) {
-                // Fallback: kiểm tra _children trong data
-                hasChildren = rowData._children && Array.isArray(rowData._children) && rowData._children.length > 0;
-              }
-              // Nếu không có children → là node lá đang bị bỏ chọn (có thể là 1.1.1, 1.2.1, etc.)
-              if (!hasChildren) {
-                isDeselectingLeaf = true;
-                console.log(`Detected deselection of leaf node ID: ${rowData.ID}, TT: ${rowData.TT}`);
-                break;
-              }
+      
+      // Tìm các row mới được chọn (có trong current nhưng không có trong previous)
+      const selectedIds = new Set<number>();
+      currentSelectedIds.forEach((id: number) => {
+        if (!this.previousSelectedRows.has(id)) {
+          selectedIds.add(id);
+        }
+      });
+      
+      // Logic 1: Chọn cha → các con được chọn
+      // Xử lý cho tất cả node mới được chọn (selectedIds) - bao gồm cả node cha cấp 1, cấp 2, cấp 3...
+      // Lấy selected rows trực tiếp từ Tabulator
+      let selectedRows: any[] = [];
+      try {
+        selectedRows = this.tb_projectWorker.getSelectedRows();
+      } catch (e) {
+        // Fallback
+      }
+      
+      // Sắp xếp selectedIds để xử lý các node cha trước (node không có parent hoặc có parent nhưng parent không có trong selectedIds)
+      // Điều này đảm bảo khi xử lý children, parent đã được xử lý và children đã được chọn
+      const sortedSelectedIds = Array.from(selectedIds).sort((a, b) => {
+        // Tìm parent của mỗi node
+        let aParent: any = null;
+        let bParent: any = null;
+        allRows.forEach((row: any) => {
+          const rowData = row.getData();
+          if (rowData.ID === a) {
+            if (rowData.ParentID) {
+              allRows.forEach((r: any) => {
+                if (r.getData().ID === rowData.ParentID) {
+                  aParent = r.getData();
+                }
+              });
             }
           }
-          if (isDeselectingLeaf) break;
-        }
-      }
-      // Tránh xử lý lại nếu đang trong quá trình toggle children (để tránh vòng lặp)
-      // NHƯNG LUÔN cho phép bỏ chọn node lá độc lập (ở bất kỳ cấp nào: 1.1, 1.1.1, etc.)
-      // Nếu đang bỏ chọn node lá, reset flag NGAY LẬP TỨC và tiếp tục xử lý
-      if (isDeselectingLeaf) {
-        // Đang bỏ chọn node lá → LUÔN cho phép, reset flag nếu cần
-        if (this.isTogglingChildren) {
-          console.log('Resetting isTogglingChildren because deselecting leaf node');
-          this.isTogglingChildren = false;
-        }
-        // Tiếp tục xử lý bình thường (không return)
-      } else if (this.isTogglingChildren) {
-        // Đang toggle children và KHÔNG phải đang bỏ chọn node lá → return
-        console.log('Blocked: isTogglingChildren = true and not deselecting leaf');
-        return;
-      }
-      // Xử lý các row mới được chọn
-      if (rows && rows.length > 0) {
-        rows.forEach((row: any) => {
+          if (rowData.ID === b) {
+            if (rowData.ParentID) {
+              allRows.forEach((r: any) => {
+                if (r.getData().ID === rowData.ParentID) {
+                  bParent = r.getData();
+                }
+              });
+            }
+          }
+        });
+        
+        // Node không có parent hoặc parent không có trong selectedIds → xử lý trước
+        const aIsParent = !aParent || !selectedIds.has(aParent.ID);
+        const bIsParent = !bParent || !selectedIds.has(bParent.ID);
+        
+        if (aIsParent && !bIsParent) return -1;
+        if (!aIsParent && bIsParent) return 1;
+        return 0;
+      });
+      
+      sortedSelectedIds.forEach((selectedId: number) => {
+        let foundRow = false;
+        let targetRow: any = null;
+        
+        // Thử tìm trong selectedRows trước (nhanh hơn)
+        selectedRows.forEach((row: any) => {
           const rowData = row.getData();
-          const isSelected = row.isSelected();
-          // Chỉ xử lý nếu row mới được chọn (không có trong previous)
-          if (isSelected && !this.previousSelectedRows.has(rowData.ID)) {
+          if (rowData.ID === selectedId) {
+            targetRow = row;
+            foundRow = true;
+          }
+        });
+        
+        // Nếu không tìm thấy, tìm trong allRows
+        if (!foundRow) {
+          allRows.forEach((row: any) => {
+            const rowData = row.getData();
+            if (rowData.ID === selectedId) {
+              targetRow = row;
+              foundRow = true;
+            }
+          });
+        }
+        
+        if (foundRow && targetRow) {
+          const rowData = targetRow.getData();
+          
+          // QUAN TRỌNG: Kiểm tra xem node này đã có trong previousSelectedRows chưa
+          // Nếu đã có, có nghĩa là nó đã được chọn bởi toggleChildrenSelection trong event trước đó
+          // Bỏ qua để tránh xử lý lại
+          if (this.previousSelectedRows.has(selectedId)) {
+            return; // Bỏ qua node này
+          }
+          
+          // QUAN TRỌNG: Kiểm tra xem node này có phải là child của một node cha đang được xử lý không
+          // Nếu có, bỏ qua xử lý để tránh xử lý lại các children đã được chọn bởi toggleChildrenSelection
+          let isChildOfProcessingParent = false;
+          if (rowData.ParentID) {
+            // Kiểm tra xem parent của node này có trong selectedIds không (đang được xử lý)
+            if (selectedIds.has(rowData.ParentID)) {
+              // Kiểm tra xem parent có phải là parent node (có children) không
+              allRows.forEach((r: any) => {
+                const rData = r.getData();
+                if (rData.ID === rowData.ParentID) {
+                  let parentHasChildren = false;
+                  try {
+                    const parentChildren = r.getTreeChildren();
+                    parentHasChildren = parentChildren && parentChildren.length > 0;
+                  } catch (e) {
+                    parentHasChildren = rData._children && rData._children.length > 0;
+                  }
+                  if (parentHasChildren) {
+                    isChildOfProcessingParent = true;
+                  }
+                }
+              });
+            }
+          }
+          
+          if (isChildOfProcessingParent) {
+            return; // Bỏ qua node này
+          }
+          
+          // Kiểm tra xem row có phải là parent không (có children)
+          let hasChildren = false;
+          try {
+            const treeChildren = targetRow.getTreeChildren();
+            hasChildren = treeChildren && treeChildren.length > 0;
+          } catch (e) {
+            hasChildren = rowData._children && rowData._children.length > 0;
+          }
+          
+          // QUAN TRỌNG: Thêm node vào previousSelectedRows ngay lập tức để tránh xử lý lại trong event tiếp theo
+          this.previousSelectedRows.add(rowData.ID);
+          
+          if (hasChildren) {
+            this.isTogglingChildren = true;
+            this.toggleChildrenSelection(targetRow, true);
+            // Không cần gọi updatePreviousSelectedRows() ở đây vì toggleChildrenSelection đã thêm children vào previousSelectedRows
+            // Chỉ cần set isTogglingChildren về false sau một chút
+            setTimeout(() => {
+              this.isTogglingChildren = false;
+            }, 50);
+          }
+        }
+      });
+      
+      // Logic 1b: Xử lý đặc biệt cho node cha cấp 2+ (có cả parent và children)
+      // Khi một node cha cấp 2+ được chọn (có thể do parent chọn nó thông qua toggleChildrenSelection),
+      // đảm bảo children của nó cũng được chọn
+      // Chỉ kiểm tra các node đang được chọn nhưng không có trong selectedIds (tức là được chọn bởi parent)
+      // Lưu ý: Logic này chủ yếu là backup, vì toggleChildrenSelection đã xử lý đệ quy
+      // Nhưng vẫn cần để xử lý các trường hợp edge case
+      currentSelectedIds.forEach((nodeId: number) => {
+        // Bỏ qua nếu đã xử lý trong Logic 1 (selectedIds)
+        if (selectedIds.has(nodeId)) {
+          return;
+        }
+        
+        allRows.forEach((row: any) => {
+          const rowData = row.getData();
+          // Chỉ xử lý node có parent (tức là node cha cấp 2+) và đang được chọn
+          // Kiểm tra ParentID: có thể là số, null, undefined, hoặc 0
+          const hasParent = rowData.ParentID != null && rowData.ParentID !== 0 && rowData.ParentID !== '';
+          if (rowData.ID === nodeId && row.isSelected() && hasParent) {
             // Kiểm tra xem row có phải là parent không (có children)
             let hasChildren = false;
             try {
@@ -3551,114 +3745,213 @@ export class ProjectPartListComponent implements OnInit, AfterViewInit {
             } catch (e) {
               hasChildren = rowData._children && rowData._children.length > 0;
             }
+            
             if (hasChildren) {
-              console.log(`rowSelectionChanged - Selecting children of parent ID: ${rowData.ID}`);
-              // Lưu lại ID của parent đang được toggle để chỉ block các event từ children của parent này
-              const parentIdBeingToggled = rowData.ID;
-              this.isTogglingChildren = true;
-              this.toggleChildrenSelection(row, true);
-              // Cập nhật previousSelectedRows ngay sau khi toggle children xong
-              setTimeout(() => {
-                this.isTogglingChildren = false;
-                // Cập nhật previousSelectedRows với tất cả các node đã được chọn (bao gồm cả parent và children)
-                const allRows = this.tb_projectWorker.getRows();
-                const finalSelectedIds = new Set<number>();
+              // Kiểm tra xem tất cả children đã được chọn chưa
+              let allChildrenSelected = true;
+              let childRows: any[] = [];
+              try {
+                childRows = row.getTreeChildren();
+                if (childRows && childRows.length > 0) {
+                  childRows.forEach((childRow: any) => {
+                    if (!childRow.isSelected()) {
+                      allChildrenSelected = false;
+                    }
+                  });
+                }
+              } catch (e) {
+                // Fallback: kiểm tra qua ParentID
                 allRows.forEach((r: any) => {
-                  if (r.isSelected()) {
-                    const rData = r.getData();
-                    finalSelectedIds.add(rData.ID);
+                  const rData = r.getData();
+                  if (rData.ParentID === rowData.ID) {
+                    childRows.push(r);
+                    if (!r.isSelected()) {
+                      allChildrenSelected = false;
+                    }
                   }
                 });
-                this.previousSelectedRows = finalSelectedIds;
-                console.log(`Updated previousSelectedRows (after toggle children): ${Array.from(finalSelectedIds).join(', ')}`);
-              }, 200); // Tăng timeout lên 200ms để đảm bảo toggle xong
+              }
+              
+              // Nếu node cha cấp 2+ được chọn nhưng không phải tất cả children đã được chọn
+              // Kiểm tra xem có children nào đã được bỏ chọn độc lập không
+              const childrenToSelect: any[] = [];
+              childRows.forEach((childRow: any) => {
+                const childData = childRow.getData();
+                // Chỉ chọn children chưa được chọn VÀ không nằm trong danh sách đã bỏ chọn độc lập
+                if (!childRow.isSelected() && !this.independentlyDeselectedNodes.has(childData.ID)) {
+                  childrenToSelect.push(childRow);
+                }
+              });
+              
+              if (childrenToSelect.length > 0) {
+                this.isTogglingChildren = true;
+                // Chọn từng child một (không dùng toggleChildrenSelection vì nó sẽ chọn tất cả)
+                childrenToSelect.forEach((childRow: any) => {
+                  childRow.select();
+                  const childData = childRow.getData();
+                  this.previousSelectedRows.add(childData.ID);
+                });
+                setTimeout(() => {
+                  this.isTogglingChildren = false;
+                  this.updatePreviousSelectedRows();
+                }, 100);
+              }
             }
           }
         });
-      }
-      // Xử lý các row đã bị bỏ chọn
-      // CHỈ tự động bỏ chọn children khi bỏ chọn node CHA (có children)
-      // KHÔNG tự động bỏ chọn khi bỏ chọn node CON (không có children)
-      if (deselectedIds.size > 0) {
-        const allRows = this.tb_projectWorker.getRows();
-        deselectedIds.forEach((deselectedId: number) => {
-          // Tìm row tương ứng với ID
-          allRows.forEach((row: any) => {
-            const rowData = row.getData();
-            if (rowData.ID === deselectedId) {
-              // Kiểm tra xem row có phải là parent không (có children)
-              let hasChildren = false;
-              try {
-                const treeChildren = row.getTreeChildren();
-                hasChildren = treeChildren && treeChildren.length > 0;
-              } catch (e) {
-                hasChildren = rowData._children && rowData._children.length > 0;
-              }
-              // CHỈ xử lý nếu là node CHA (có children)
-              // Nếu là node CON (không có children) → cho phép bỏ chọn bình thường, không làm gì
-              if (hasChildren) {
-                console.log(`rowSelectionChanged - Deselecting children of parent ID: ${rowData.ID}`);
-                this.isTogglingChildren = true;
-                this.toggleChildrenSelection(row, false);
-                // Cập nhật previousSelectedRows ngay sau khi toggle children xong
-                setTimeout(() => {
-                  this.isTogglingChildren = false;
-                  // Cập nhật previousSelectedRows với tất cả các node đã được chọn (sau khi bỏ chọn children)
-                  const allRows = this.tb_projectWorker.getRows();
-                  const finalSelectedIds = new Set<number>();
-                  allRows.forEach((r: any) => {
-                    if (r.isSelected()) {
-                      const rData = r.getData();
-                      finalSelectedIds.add(rData.ID);
-                    }
-                  });
-                  this.previousSelectedRows = finalSelectedIds;
-                  console.log(`Updated previousSelectedRows (after deselect children): ${Array.from(finalSelectedIds).join(', ')}`);
-                }, 200);
-              } else {
-                // Node con bị bỏ chọn → cho phép bỏ chọn bình thường, không làm gì
-                console.log(`rowSelectionChanged - Deselecting child node ID: ${rowData.ID} (no children, allowing normal deselection)`);
+      });
+      
+      // Logic 2: Bỏ chọn cha → các con cũng được bỏ chọn
+      // Logic 3: Bỏ chọn con độc lập khi vẫn chọn cha → chỉ bỏ chọn con đó
+      deselectedIds.forEach((deselectedId: number) => {
+        let foundRow = false;
+        let targetRow: any = null;
+        
+        // Tìm row trong allRows
+        allRows.forEach((row: any) => {
+          const rowData = row.getData();
+          if (rowData.ID === deselectedId) {
+            targetRow = row;
+            foundRow = true;
+          }
+        });
+        
+        if (!foundRow || !targetRow) {
+          return;
+        }
+        
+        const rowData = targetRow.getData();
+        
+        // Kiểm tra xem row có phải là parent không (có children)
+        let hasChildren = false;
+        try {
+          const treeChildren = targetRow.getTreeChildren();
+          hasChildren = treeChildren && treeChildren.length > 0;
+        } catch (e) {
+          hasChildren = rowData._children && rowData._children.length > 0;
+        }
+        
+        // Kiểm tra xem node này có parent đang được chọn không
+        let hasSelectedParent = false;
+        let parentRow: any = null;
+        if (rowData.ParentID) {
+          // Tìm parent trong allRows
+          allRows.forEach((r: any) => {
+            const rData = r.getData();
+            if (rData.ID === rowData.ParentID) {
+              parentRow = r;
+              if (r.isSelected()) {
+                hasSelectedParent = true;
               }
             }
           });
-        });
-      }
-      // Cập nhật previousSelectedRows
-      // QUAN TRỌNG: Cập nhật ngay lập tức để đảm bảo khi bỏ chọn nhiều node cùng lúc,
-      // previousSelectedRows luôn phản ánh đúng trạng thái hiện tại
-      // Điều này ngăn chặn việc logic tự động chọn lại các node cũ khi chọn node khác
-      // LƯU Ý: Khi đang toggle children, previousSelectedRows sẽ được cập nhật trong setTimeout của toggleChildrenSelection
-      // Nên ở đây chỉ cập nhật khi KHÔNG đang toggle children
-      if (!this.isTogglingChildren || isDeselectingLeaf) {
-        // Cập nhật ngay lập tức khi không đang toggle children hoặc đang bỏ chọn node lá
-        const allRows = this.tb_projectWorker.getRows();
-        const finalSelectedIds = new Set<number>();
-        allRows.forEach((row: any) => {
-          if (row.isSelected()) {
-            const rowData = row.getData();
-            finalSelectedIds.add(rowData.ID);
+          // Nếu không tìm thấy trong allRows, thử dùng getSelectedRows
+          if (!parentRow) {
+            try {
+              const selectedRows = this.tb_projectWorker.getSelectedRows();
+              selectedRows.forEach((r: any) => {
+                const rData = r.getData();
+                if (rData.ID === rowData.ParentID) {
+                  parentRow = r;
+                  hasSelectedParent = true;
+                }
+              });
+            } catch (e) {
+              // Error getting selected rows
+            }
           }
-        });
-        this.previousSelectedRows = finalSelectedIds;
-        console.log(`Updated previousSelectedRows (immediate): ${Array.from(finalSelectedIds).join(', ')}`);
-      }
-      // KHÔNG cập nhật ở đây nếu đang toggle children - sẽ được cập nhật trong setTimeout của toggleChildrenSelection
+        }
+        
+            // Nếu có children và KHÔNG có parent được chọn → bỏ chọn tất cả children
+            if (hasChildren && !hasSelectedParent) {
+              // Xóa tất cả children khỏi independentlyDeselectedNodes (vì parent đã bị bỏ chọn)
+              try {
+                const treeChildren = targetRow.getTreeChildren();
+                if (treeChildren && treeChildren.length > 0) {
+                  treeChildren.forEach((childRow: any) => {
+                    const childData = childRow.getData();
+                    this.independentlyDeselectedNodes.delete(childData.ID);
+                  });
+                }
+              } catch (e) {
+                // Fallback: xóa qua ParentID
+                allRows.forEach((r: any) => {
+                  const rData = r.getData();
+                  if (rData.ParentID === rowData.ID) {
+                    this.independentlyDeselectedNodes.delete(rData.ID);
+                  }
+                });
+              }
+              this.isTogglingChildren = true;
+              this.toggleChildrenSelection(targetRow, false);
+              // Cập nhật previousSelectedRows sau khi toggle xong
+              setTimeout(() => {
+                this.isTogglingChildren = false;
+                this.updatePreviousSelectedRows();
+              }, 100);
+            } else {
+          // Logic 3: Bỏ chọn con độc lập (có parent được chọn hoặc không có children) → chỉ bỏ chọn node đó
+          // QUAN TRỌNG: Cho phép bỏ chọn node con độc lập, không tự động chọn lại
+          // Lưu node này vào danh sách các node đã được bỏ chọn độc lập
+          // Để Logic 1b không tự động chọn lại nó
+          if (hasSelectedParent) {
+            this.independentlyDeselectedNodes.add(rowData.ID);
+          }
+        }
+      });
+      
+      // Cập nhật previousSelectedRows
+      this.updatePreviousSelectedRows();
     });
   }
   //#endregion
+  // Helper function để cập nhật previousSelectedRows
+  private updatePreviousSelectedRows(): void {
+    // QUAN TRỌNG: Không ghi đè previousSelectedRows, mà merge với các rows đang được chọn
+    // Điều này đảm bảo các children đã được thêm vào previousSelectedRows trong toggleChildrenSelection
+    // không bị mất khi getRows() không trả về đủ rows (do collapsed hoặc chưa render)
+    const allRows = this.tb_projectWorker.getRows();
+    allRows.forEach((row: any) => {
+      if (row.isSelected()) {
+        const rowData = row.getData();
+        this.previousSelectedRows.add(rowData.ID);
+      }
+    });
+    // Cũng cần xóa các rows không còn được chọn
+    const currentSelectedIds = new Set<number>();
+    try {
+      const selectedRows = this.tb_projectWorker.getSelectedRows();
+      selectedRows.forEach((row: any) => {
+        const rowData = row.getData();
+        currentSelectedIds.add(rowData.ID);
+      });
+    } catch (e) {
+      // Fallback: dùng allRows
+      allRows.forEach((row: any) => {
+        if (row.isSelected()) {
+          const rowData = row.getData();
+          currentSelectedIds.add(rowData.ID);
+        }
+      });
+    }
+    // Xóa các rows không còn được chọn khỏi previousSelectedRows
+    this.previousSelectedRows.forEach((id: number) => {
+      if (!currentSelectedIds.has(id)) {
+        this.previousSelectedRows.delete(id);
+      }
+    });
+  }
+  
   // Hàm đệ quy để chọn/bỏ chọn tất cả node con
   toggleChildrenSelection(parentRow: any, isSelected: boolean): void {
     try {
       const parentData = parentRow.getData();
-      console.log(`Toggle children for parent ID: ${parentData.ID}, TT: ${parentData.TT}, isSelected: ${isSelected}`);
       // Sử dụng getTreeChildren() của Tabulator để lấy children
       let childRows: any[] = [];
       try {
         // Thử dùng getTreeChildren() - method chính thức của Tabulator
         childRows = parentRow.getTreeChildren();
-        console.log(`Found ${childRows.length} children using getTreeChildren()`);
       } catch (e) {
-        console.log('getTreeChildren() not available, using fallback method');
         // Fallback: nếu không có getTreeChildren(), dùng cách khác
         const parentID = parentData.ID;
         const allRows = this.tb_projectWorker.getRows();
@@ -3668,25 +3961,15 @@ export class ProjectPartListComponent implements OnInit, AfterViewInit {
             childRows.push(row);
           }
         });
-        console.log(`Found ${childRows.length} children using fallback method`);
       }
       if (!childRows || childRows.length === 0) {
-        console.log('No children found');
         return;
       }
       // Xử lý từng child
       childRows.forEach((childRow: any) => {
         const childData = childRow.getData();
-        console.log(`Processing child ID: ${childData.ID}, TT: ${childData.TT}`);
-        // Chọn hoặc bỏ chọn node con
-        if (isSelected) {
-          childRow.select();
-          console.log(`Selected child ID: ${childData.ID}`);
-        } else {
-          childRow.deselect();
-          console.log(`Deselected child ID: ${childData.ID}`);
-        }
-        // Đệ quy: kiểm tra xem node con có con không
+        
+        // Kiểm tra xem node con có con không (trước khi chọn/bỏ chọn)
         let hasGrandChildren = false;
         try {
           const grandChildren = childRow.getTreeChildren();
@@ -3694,9 +3977,33 @@ export class ProjectPartListComponent implements OnInit, AfterViewInit {
         } catch (e) {
           hasGrandChildren = childData._children && childData._children.length > 0;
         }
-        if (hasGrandChildren) {
-          console.log(`Child ID: ${childData.ID} has children, recursing...`);
-          this.toggleChildrenSelection(childRow, isSelected);
+        
+        // Chọn hoặc bỏ chọn node con
+        if (isSelected) {
+          // QUAN TRỌNG: Không chọn lại các node đã được bỏ chọn độc lập
+          if (!this.independentlyDeselectedNodes.has(childData.ID)) {
+            childRow.select();
+            // Thêm child vào previousSelectedRows ngay lập tức để tránh nó được coi là "mới được chọn"
+            this.previousSelectedRows.add(childData.ID);
+            // Xóa khỏi independentlyDeselectedNodes nếu có (khi được chọn lại bởi parent)
+            this.independentlyDeselectedNodes.delete(childData.ID);
+            
+            // QUAN TRỌNG: Nếu child này cũng là parent (node cha cấp 2+), đệ quy chọn children của nó ngay lập tức
+            // Điều này đảm bảo khi node cha cấp 2 được chọn bởi parent, children của nó cũng được chọn
+            if (hasGrandChildren) {
+              // Đệ quy chọn children của child này
+              this.toggleChildrenSelection(childRow, isSelected);
+            }
+          }
+        } else {
+          childRow.deselect();
+          // Xóa child khỏi previousSelectedRows
+          this.previousSelectedRows.delete(childData.ID);
+          
+          // Nếu bỏ chọn và child này cũng là parent, đệ quy bỏ chọn children của nó
+          if (hasGrandChildren) {
+            this.toggleChildrenSelection(childRow, isSelected);
+          }
         }
       });
     } catch (error) {
@@ -4752,7 +5059,7 @@ export class ProjectPartListComponent implements OnInit, AfterViewInit {
       return !hasChildren;
     });
     if (leafNodes.length === 0) {
-      this.notification.warning('Thông báo', 'Vui lòng chọn các sản phẩm (node lá) để yêu cầu xuất kho!');
+      this.notification.warning('Thông báo', 'Vui lòng chọn các sản phẩm  để yêu cầu xuất kho!');
       return;
     }
     // Nếu đã có warehouseCode, xử lý trực tiếp

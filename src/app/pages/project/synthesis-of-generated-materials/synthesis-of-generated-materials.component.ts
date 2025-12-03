@@ -132,6 +132,9 @@ export class SynthesisOfGeneratedMaterialsComponent
   toggleSearchPanel() {
     this.sizeSearch = this.sizeSearch == '0' ? '22%' : '0';
   }
+  onSearchChange(value: string) {
+    this.getDataProjectSurvey();
+  }
   //#endregion
   //#region Xử lý bảng tổng hợp vật tư
   drawTbSynthesisOfGeneratedMaterials(container: HTMLElement) {
@@ -314,7 +317,7 @@ export class SynthesisOfGeneratedMaterialsComponent
         ? DateTime.fromJSDate(new Date(this.dateEnd)).toISO()
         : null,
       projectId: this.projectId ? this.projectId : 0,
-    keyword: this.keyword.trim() ? this.keyword.trim() : '',
+    keyword: this.keyword?.trim() ?? '',
     };
 
     this.projectService.getSynthesisOfGeneratedMaterials(data).subscribe({

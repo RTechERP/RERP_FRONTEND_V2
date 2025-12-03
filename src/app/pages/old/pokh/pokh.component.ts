@@ -5,6 +5,8 @@ import {
   TemplateRef,
   ElementRef,
   Input,
+  Optional,
+  Inject,
 } from '@angular/core';
 import { NzCardModule } from 'ng-zorro-antd/card';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
@@ -124,7 +126,8 @@ export class PokhComponent implements OnInit, AfterViewInit {
     private customerPartService: CustomerPartService,
     private modalService: NgbModal,
     private notification: NzNotificationService,
-    private viewPOKHService: ViewPokhService
+    private viewPOKHService: ViewPokhService,
+    @Optional() @Inject('tabData') private tabData: any
   ) {}
 
   //#region : Khai báo
@@ -172,7 +175,7 @@ export class PokhComponent implements OnInit, AfterViewInit {
     POType: 0,
     status: 0,
     group: 0,
-    warehouseId: 1,
+    warehouseId: 0,
     employeeTeamSaleId: 0,
     startDate: new Date(),
     endDate: new Date(),
@@ -188,6 +191,9 @@ export class PokhComponent implements OnInit, AfterViewInit {
   //#endregion
   //#region : Hàm khởi tạo
   ngOnInit(): void {
+    if (this.tabData?.warehouseId) {
+      this.filters.warehouseId = this.tabData.warehouseId;
+    }
     const endDate = new Date();
     endDate.setHours(23, 59, 59, 999);
 
@@ -1302,7 +1308,7 @@ export class PokhComponent implements OnInit, AfterViewInit {
       windowClass: 'full-screen-modal',
       backdrop: 'static',
     });
-    this.modalRef.componentInstance.warehouseId = 1; //Kho HN
+    this.modalRef.componentInstance.warehouseId = this.filters.warehouseId; //Kho HN
   }
 
   openWarehouseReleaseRequestModal() {

@@ -150,13 +150,14 @@ export class RequestInvoiceComponent implements OnInit, AfterViewInit {
       this.warehouseId = this.tabData.warehouseId;
     }
 
-    const endDate = new Date();
-    const startDate = new Date();
-    startDate.setDate(startDate.getDate() - 1); // Lấy dữ liệu 1000 ngày trước tạm thời
-    startDate.setHours(0, 0, 0, 0);
-    endDate.setHours(23, 59, 59, 999);
-    this.filters.startDate = startDate;
-    this.filters.endDate = endDate;
+  // Set startDate to first day and endDate to last day of current month
+  const now = new Date();
+  const startDate = new Date(now.getFullYear(), now.getMonth(), 1);
+  const endDate = new Date(now.getFullYear(), now.getMonth() + 1, 0);
+  startDate.setHours(0, 0, 0, 0);
+  endDate.setHours(23, 59, 59, 999);
+  this.filters.startDate = startDate;
+  this.filters.endDate = endDate;
     this.loadMainData(
       this.filters.startDate,
       this.filters.endDate,

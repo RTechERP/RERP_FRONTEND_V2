@@ -61,7 +61,7 @@ import { RequestInvoiceDetailService } from './request-invoice-detail-service/re
 import { NOTIFICATION_TITLE } from '../../../app.config';
 import { DEFAULT_TABLE_CONFIG } from '../../../tabulator-default.config';
 import { RequestInvoiceService } from '../request-invoice/request-invoice-service/request-invoice-service.service';
-
+import { AppUserService } from '../../../services/app-user.service';
 @Component({
   selector: 'app-request-invoice-detail',
   templateUrl: './request-invoice-detail.component.html',
@@ -155,7 +155,8 @@ export class RequestInvoiceDetailComponent implements OnInit {
     private viewPokhService: ViewPokhService,
     private RIDService: RequestInvoiceDetailService,
     private modal: NzModalService,
-    private requestInvoiceService: RequestInvoiceService
+    private requestInvoiceService: RequestInvoiceService,
+    private appUserService: AppUserService
   ) { }
 
   ngOnInit(): void {
@@ -273,6 +274,12 @@ export class RequestInvoiceDetailComponent implements OnInit {
       (response) => {
         if (response.status === 1) {
           this.employees = response.data;
+          if (!this.isEditMode) {
+            const currentUser = this.employees.find(e => e.UserID === this.appUserService.id);
+            if (currentUser) {
+              this.formData.userId = currentUser.ID;
+            }
+          }
         } else {
           console.error('Lỗi khi tải Employees:', response.message);
         }
@@ -314,6 +321,9 @@ export class RequestInvoiceDetailComponent implements OnInit {
   }
 
   saveAndClose(): void {
+    if (!this.validateDetails()) {
+      return;
+    }
     const requestInvoices = {
       ID: this.selectedId || 0,
       Code: this.formData.Code,
@@ -354,8 +364,38 @@ export class RequestInvoiceDetailComponent implements OnInit {
       error: (err) => {
         const message = err.error?.message || 'Có lỗi xảy ra khi lưu dữ liệu!';
         this.notification.error(NOTIFICATION_TITLE.error, message);
-      },      
+      },
     });
+  }
+  /**
+   * Validate
+   */
+  validateDetails(): boolean {
+    for (let i = 0; i < this.details.length; i++) {
+      const row = this.details[i];
+      const isStock = !!row.IsStock;
+      const billCode = row.BillImportCode ? row.BillImportCode.toString() : '';
+      const productNewCode = row.ProductNewCode || '';
+      const stt = row.STT || (i + 1);
+      if (!isStock) {
+        const someBill = row.SomeBill || '';
+        const productName = row.ProductName || '';
+        if (!someBill || someBill.trim() === '') {
+          this.notification.error(
+            'Thông báo',
+            `Vì không là hàng lấy từ Tồn kho, bắt buộc phải có Hóa đơn đầu vào cho mã sản phẩm ${productNewCode} - STT: ${stt}`
+          );
+          return false;
+        }
+      } else if (billCode && billCode.trim() !== '') {
+        this.notification.error(
+          'Thông báo',
+          `Bạn không thể chọn Tồn kho vì đã có Phiếu nhập kho [${billCode}] cho mã sản phẩm ${productNewCode} - STT: ${stt}`
+        );
+        return false;
+      }
+    }
+    return true;
   }
   handleSuccess(response: any) {
     const ID = response.data.id;
@@ -1017,11 +1057,15 @@ export class RequestInvoiceDetailComponent implements OnInit {
               sorter: 'boolean',
               width: 80,
               hozAlign: 'center',
+              editor: undefined,
               formatter: (cell) => {
                 const checked = cell.getValue() ? 'checked' : '';
                 return `<div style="text-align: center;">
-            <input type="checkbox" ${checked} disabled style="opacity: 1; pointer-events: none; cursor: default; width: 16px; height: 16px;"/>
+            <input type="checkbox" ${checked} style="width: 16px; height: 16px;"/>
           </div>`;
+              },
+              cellClick: (e, cell) => {
+                cell.setValue(!cell.getValue());
               },
             },
             {

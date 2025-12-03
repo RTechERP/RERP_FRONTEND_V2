@@ -60,6 +60,8 @@ import { RequestInvoiceDetailComponent } from '../request-invoice-detail/request
 import { HandoverMinutesDetailComponent } from '../handover-minutes-detail/handover-minutes-detail.component';
 import { DEFAULT_TABLE_CONFIG } from '../../../tabulator-default.config';
 
+import { EmployeeService } from '../../hrm/employee/employee-service/employee.service';
+
 interface GroupedData {
   CustomerName: string;
   EFullName: string;
@@ -114,6 +116,8 @@ export class ViewPokhComponent implements OnInit, AfterViewInit {
   dataInvoice: any[] = [];
   dataAfterGroupNested: any[] = [];
   selectedRows: any[] = [];
+  selectedRowsAll: any[] = []; // Lưu toàn bộ các dòng đã chọn, không phụ thuộc data hiện tại
+  selectedExportRowsAll: any[] = []; // Lưu toàn bộ các dòng detail export đã chọn, không phụ thuộc data hiện tại
   filters: any = {
     groupId: 0,
     customerId: 0,
@@ -132,7 +136,8 @@ export class ViewPokhComponent implements OnInit, AfterViewInit {
     private viewPokhService: ViewPokhService,
     private HandoverMinutesDetailService: HandoverMinutesDetailService,
     private modalService: NgbModal,
-    private notification: NzNotificationService
+    private notification: NzNotificationService,
+    private employeeService: EmployeeService
   ) { }
 
   ngOnInit(): void {
@@ -223,9 +228,9 @@ export class ViewPokhComponent implements OnInit, AfterViewInit {
 
     // Thêm event listener cho việc chọn toàn bộ (header checkbox)
     this.viewPOKH.on('rowSelectionChanged', (data, rows) => {
-      // Cập nhật selectedRows khi có thay đổi selection từ header checkbox
       this.selectedRows = data;
       console.log('Selection changed - Selected Rows:', this.selectedRows);
+      console.log('SelectedRowsAll:', this.selectedRowsAll);
     });
   }
   //#region Hàm xử lý modal
@@ -326,8 +331,8 @@ export class ViewPokhComponent implements OnInit, AfterViewInit {
       return;
     }
 
-    // Nhóm dữ liệu theo CustomerID
-    const groupedData = this.selectedRows.reduce<Record<string, any[]>>(
+    // Nhóm dữ liệu theo CustomerID từ selectedRowsAll
+    const groupedData = this.selectedRowsAll.reduce<Record<string, any[]>>(
       (acc, row) => {
 
         // if (!row.selectedExports || row.selectedExports.length === 0) {
@@ -336,12 +341,9 @@ export class ViewPokhComponent implements OnInit, AfterViewInit {
 
         const customerID = row.CustomerID;
         const key = `${customerID}`;
-
         if (!acc[key]) acc[key] = [];
-
         const hasExports =
           row.selectedExports && Array.isArray(row.selectedExports) && row.selectedExports.length > 0;
-
         // Nếu KHÔNG có dòng con → tạo 1 export rỗng mặc định
         const exportsToProcess = hasExports
           ? row.selectedExports
@@ -352,7 +354,6 @@ export class ViewPokhComponent implements OnInit, AfterViewInit {
               TotalQty: 0
             }
           ];
-
         exportsToProcess.forEach((ex: any) => {
           acc[key].push({
             // from parent
@@ -375,7 +376,6 @@ export class ViewPokhComponent implements OnInit, AfterViewInit {
             ProjectID: row.ProjectID,
             PONumber: row.PONumber,
             GuestCode: row.GuestCode,
-
             // from nested export
             Quantity: ex.Qty || row.Qty,
             Code: ex.Code || '',
@@ -392,11 +392,9 @@ export class ViewPokhComponent implements OnInit, AfterViewInit {
             InvoiceNumber: null,
           });
         });
-
         return acc;
       }, {}
     );
-
 
     if (Object.keys(groupedData).length === 0) {
       this.notification.warning(
@@ -410,9 +408,7 @@ export class ViewPokhComponent implements OnInit, AfterViewInit {
     if (Object.keys(groupedData).length > 1) {
       this.notification.info(
         'Thông báo',
-        `Bạn chọn sản phẩm từ ${Object.keys(groupedData).length
-        } khách hàng. Phần mềm sẽ tự động tạo ${Object.keys(groupedData).length
-        } hóa đơn xuất.`
+        `Bạn chọn sản phẩm từ ${Object.keys(groupedData).length} khách hàng. Phần mềm sẽ tự động tạo ${Object.keys(groupedData).length} hóa đơn xuất.`
       );
     }
 
@@ -436,7 +432,8 @@ export class ViewPokhComponent implements OnInit, AfterViewInit {
     const currentGroup = groupedArray[index];
 
     const modalRef = this.modalService.open(RequestInvoiceDetailComponent, {
-      size: 'xl',
+      // size: 'xl',
+      windowClass: "full-screen-modal",
       backdrop: 'static',
       keyboard: false,
     });
@@ -496,12 +493,38 @@ export class ViewPokhComponent implements OnInit, AfterViewInit {
         params.warehouseId
       )
       .subscribe((response) => {
+        // Remove synchronization of selectedRowsAll with current data
         this.data = response.data.data;
         this.dataExport = response.data.dataExport;
         this.dataInvoice = response.data.dataInvoice;
         this.dataAfterGroupNested = this.groupNested(this.data, this.dataExport, this.dataInvoice, 'ID', 'POKHDetailID');
         if (this.viewPOKH) {
           this.viewPOKH.setData(this.dataAfterGroupNested);
+          // Select lại các dòng có trong selectedRowsAll
+          const selectedIds = this.selectedRowsAll.map(r => r['ID']);
+          this.viewPOKH.getRows().forEach(row => {
+            const rowData = row.getData();
+            if (selectedIds.includes(rowData['ID'])) {
+              row.select();
+            }
+          });
+
+          //Select lại các dòng con trong nested table export
+          setTimeout(() => {
+            this.viewPOKH.getRows().forEach(row => {
+              const rowData = row.getData();
+              const nestedTable = this.nestedExportTables.get(rowData['ID']);
+              if (nestedTable) {
+                const exportIds = this.selectedExportRowsAll.map(x => x['BillExportDetailID']);
+                nestedTable.getRows().forEach(nestedRow => {
+                  const nestedData = nestedRow.getData();
+                  if (exportIds.includes(nestedData['BillExportDetailID'])) {
+                    nestedRow.select();
+                  }
+                });
+              }
+            });
+          }, 200);
         }
       });
   }
@@ -575,6 +598,22 @@ export class ViewPokhComponent implements OnInit, AfterViewInit {
       },
       (error) => {
         this.notification.error('Lỗi kết nối khi tải users:', error);
+      }
+    );
+  }
+
+  loadEmployeeByTeamSale(teamId: number | null): void {
+    this.filters.userId = 0;
+    this.viewPokhService.loadEmployeeByTeamSale(teamId || 0).subscribe(
+      (response) => {
+        if (response.status === 1) {
+          this.users = response.data;
+        } else {
+          this.notification.error('Lỗi khi tải EmployeeByTeamSale:', response.message);
+        }
+      },
+      (error) => {
+        this.notification.error('Lỗi kết nối khi tải EmployeeByTeamSale:', error);
       }
     );
   }
@@ -693,8 +732,8 @@ export class ViewPokhComponent implements OnInit, AfterViewInit {
       resizableRows: true,
       reactiveData: true,
       groupBy: 'PONumber',
-      selectableRows: true,
-      selectableRange: true,
+      // selectableRows: true,
+      // selectableRange: true,
       // langs: {
       //   vi: {
       //     pagination: {
@@ -785,6 +824,7 @@ export class ViewPokhComponent implements OnInit, AfterViewInit {
 
           cellClick: (e, cell) => {
             // Logic xử lý click nếu cần
+            cell.getRow().toggleSelect();
           }
         },
 
@@ -1132,15 +1172,70 @@ export class ViewPokhComponent implements OnInit, AfterViewInit {
                 width: 40,
                 cellClick: (e, cell) => {
                   console.log('Selected Rows:', this.selectedRows);
+                  cell.getRow().toggleSelect();
                 },
               },
               { title: 'DetailID', field: 'ID', width: 80, visible: false },
+              { title: 'POKHDETAILID', field: 'POKHDetailID', width: 80, visible: false },
+              { title: 'BillExportDetailID', field: 'BillExportDetailID', width: 80, visible: false },
               { title: 'Mã phiếu xuất', field: 'Code', width: 200 },
               { title: 'Tổng số lượng PO', field: 'TotalQty', width: 200 },
               { title: 'Số lượng xuất', field: 'Qty', width: 200 },
             ]
           });
           this.nestedExportTables.set(data['ID'], exportTable);
+
+          
+          // Chọn lại các dòng export đã lưu
+          const selectedExportIds = this.selectedExportRowsAll.map(x => x['BillExportDetailID']);
+          exportTable.getRows().forEach(row => {
+            const rowData = row.getData();
+            if (selectedExportIds.includes(rowData['BillExportDetailID'])) {
+              row.select();
+            }
+          });
+
+          // Sự kiện chọn dòng export
+          exportTable.on("rowSelectionChanged", (selected, rows) => {
+            const parentData = row.getData();
+
+            const selectedIdsFromThisParent = selected.map(s => s.BillExportDetailID);
+
+            // Xóa export chỉ thuộc cha hiện tại
+            this.selectedExportRowsAll = this.selectedExportRowsAll.filter(
+              x => !(x.POKHDetailID === parentData['ID'] && !selectedIdsFromThisParent.includes(x.BillExportDetailID))
+            );
+
+            // Thêm các export mới được chọn
+            const addedExports = selected
+              .filter(s => !this.selectedExportRowsAll.some(x => x.BillExportDetailID === s.BillExportDetailID))
+              .map(s => ({
+                POKHDetailID: parentData['ID'],
+                BillExportDetailID: s.BillExportDetailID,
+              }));
+
+            this.selectedExportRowsAll.push(...addedExports);
+
+            // Đồng bộ chọn cha-con
+            if (selected.length > 0) {
+              if (!row.isSelected()) {
+                this.skipChildUpdate = true;
+                row.select();
+                this.skipChildUpdate = false;
+              }
+            } else {
+              if (row.isSelected()) {
+                this.skipChildUpdate = true;
+                row.deselect();
+                this.skipChildUpdate = false;
+              }
+            }
+
+            console.log("selectedExportRowsAll:", this.selectedExportRowsAll);
+          });
+
+
+
 
           // Đồng bộ trạng thái chọn ban đầu
           const selectedExports = data['selectedExports'];
@@ -1167,6 +1262,10 @@ export class ViewPokhComponent implements OnInit, AfterViewInit {
                 if (!this.selectedRows.some(r => r.ID === rowData['ID'])) {
                   this.selectedRows.push(rowData);
                 }
+                // Đẩy dòng cha vào selectedRowsAll nếu chưa có
+                if (!this.selectedRowsAll.some(r => r['ID'] === rowData['ID'])) {
+                  this.selectedRowsAll.push({ ...rowData });
+                }
               }
             } else {
               // Nếu bỏ chọn hết dòng con -> bỏ chọn dòng cha
@@ -1178,6 +1277,8 @@ export class ViewPokhComponent implements OnInit, AfterViewInit {
                 // Ensure parent is removed from selectedRows
                 const rowData = row.getData();
                 this.selectedRows = this.selectedRows.filter(r => r.ID !== rowData['ID']);
+                // Loại khỏi selectedRowsAll nếu không còn dòng con nào được chọn
+                this.selectedRowsAll = this.selectedRowsAll.filter(r => r['ID'] !== rowData['ID']);
               }
             }
           });
@@ -1272,6 +1373,11 @@ export class ViewPokhComponent implements OnInit, AfterViewInit {
 
       const rowData = row.getData();
 
+      // Thêm vào selectedRowsAll nếu chưa có
+      if (!this.selectedRowsAll.some(r => r['ID'] === rowData['ID'])) {
+        this.selectedRowsAll.push({ ...rowData });
+      }
+
       const nestedTable = this.nestedExportTables.get(rowData['ID']);
       if (nestedTable) {
         nestedTable.selectRow();
@@ -1285,9 +1391,21 @@ export class ViewPokhComponent implements OnInit, AfterViewInit {
 
       const rowData = row.getData();
 
+      // Loại bỏ khỏi selectedRowsAll theo ID
+      this.selectedRowsAll = this.selectedRowsAll.filter(r => r['ID'] !== rowData['ID']);
+
       const nestedTable = this.nestedExportTables.get(rowData['ID']);
       if (nestedTable) {
         nestedTable.deselectRow();
+      }
+
+      // Remove các export thuộc parent bị unselect
+      if (rowData['exportDetails']) {
+        this.selectedExportRowsAll = this.selectedExportRowsAll.filter(
+          x => !rowData['exportDetails'].some(
+            (ex: any) => ex.BillExportDetailID === x.BillExportDetailID
+          )
+        );
       }
 
       rowData['selectedExports'] = [];

@@ -9,15 +9,30 @@
     <!-- Toolbar -->
     <div class="toolbar mb-3">
       <div class="btn-group">
-        <button nz-button nz-dropdown [nzDropdownMenu]="menu">
+        <button nz-button nz-dropdown [nzDropdownMenu]="menuRelease">
           <nz-icon nzType="export">
           </nz-icon>
-          Yêu cầu xuất kho
+          Yêu cầu xuất kho từ
           <nz-icon nzType="down" />
         </button>
-        <nz-dropdown-menu #menu="nzDropdownMenu">
-          <ul nz-menu>
+        <nz-dropdown-menu #menuRelease="nzDropdownMenu">
+          <ul nz-menu style="min-width: 250px;">
             <li nz-menu-item *ngFor="let warehouse of warehouses" (click)="onWarehouseSelect(warehouse)">
+              {{warehouse.WarehouseName}}
+            </li>
+          </ul>
+        </nz-dropdown-menu>
+      </div>
+      <div class="btn-group">
+        <button nz-button nz-dropdown [nzDropdownMenu]="menuTransfer">
+          <nz-icon nzType="export">
+          </nz-icon>
+          Yêu cầu chuyển kho từ
+          <nz-icon nzType="down" />
+        </button>
+        <nz-dropdown-menu #menuTransfer="nzDropdownMenu">
+          <ul nz-menu style="min-width: 250px;">
+            <li nz-menu-item *ngFor="let warehouse of warehouses" (click)="onWarehouseTranferSelect(warehouse)">
               {{warehouse.WarehouseName}}
             </li>
           </ul>
@@ -41,7 +56,7 @@
         <nz-select style="width: 100%;" nzPlaceHolder="Chọn dự án" [(ngModel)]="selectedProject"
           (ngModelChange)="onProjectChange($event)" nzAllowClear nzShowSearch>
           <nz-option *ngFor="let project of projects" [nzValue]="project.ID"
-            [nzLabel]="project.ProjectName"></nz-option>
+            [nzLabel]="project.ProjectCode + '-' + project.ProjectName"></nz-option>
         </nz-select>
       </div>
       <div class="col-md-3">

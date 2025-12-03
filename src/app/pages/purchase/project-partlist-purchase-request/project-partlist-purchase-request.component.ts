@@ -2434,73 +2434,98 @@ export class ProjectPartlistPurchaseRequestComponent implements OnInit, AfterVie
       return;
     }
 
-    // Gọi API validate
-    this.isLoading = true;
-    this.srv.validateAddPoncc(validData).subscribe({
-      next: (rs) => {
-        this.isLoading = false;
+    if (this.isYCMH) {
+      for (const row of selectedData) {
+        const id = Number(row.ID || 0);
+        if (id <= 0) continue;
 
-        this.modal.confirm({
-          nzTitle: `Bạn có chắc muốn tạo PO NCC danh sách sản phẩm đã chọn không?
-          \nNhững sản phẩm chưa được BGĐ duyệt sẽ tự động được bỏ qua!`,
-          nzOkText: 'Ok',
-          nzOkType: 'primary',
-          nzCancelText: 'Hủy',
-          nzOkDanger: false,
-          nzClosable: false,
-          nzOnOk: () => {
-            const { listRequest, currencys } = this.preparePonccData(validData);
+        const code = String(row.ProductNewCode || '').trim();
 
-            const uniqueCurrencies = [...new Set(currencys)]; // Lọc distinct
-            const currencyID = uniqueCurrencies.length > 1 ? 0 : (uniqueCurrencies[0] || 0);
-            this.suplierSaleService.getSupplierSaleByID(listSupplierSale[0]).subscribe({
-              next: (rs) => {
-                this.isLoading = false;
-                let data = rs.data;
-                let poncc = {
-                  SupplierSaleID: listSupplierSale[0],
-                  AccountNumberSupplier: data.SoTK,
-                  BankSupplier: data.NganHang,
-                  AddressSupplier: data.AddressNCC,
-                  MaSoThueNCC: data.MaSoThue,
-                  EmployeeID: this.appUserService.employeeID,
-                  CurrencyID: currencyID,
-                }
+        // Chỉ kiểm tra khi không phải tab 5 hoặc 6 (activeTabIndex 4 hoặc 5)
+        if (this.activeTabIndex !== 4 && this.activeTabIndex !== 5) {
+          const isBGDApproved = Boolean(row.IsApprovedBGD);
+          const isTechBought = Boolean(row.IsTechBought);
 
-                const modalRef = this.modalService.open(PonccDetailComponent, {
-                  backdrop: 'static',
-                  keyboard: false,
-                  centered: true,
-                  windowClass: 'full-screen-modal',
-                });
+          // Kiểm tra BGD approval hoặc Tech Bought
+          if (!isBGDApproved && !isTechBought) {
+            this.notify.warning(NOTIFICATION_TITLE.warning, 'Sản phẩm chưa được BGĐ duyệt!');
+            return;
+          }
 
-                // Pass data to modal component
-                modalRef.componentInstance.poncc = poncc;
-                modalRef.componentInstance.ponccDetail = listRequest || [];
-                modalRef.componentInstance.isAddPoYCMH = true;
-
-                // Reload table after modal closes
-                modalRef.result.finally(() => {
-                  this.onSearch();
-                });
-
-
-              },
-              error: (error) => {
-                this.isLoading = false;
-                this.notify.error(NOTIFICATION_TITLE.error, error.error?.message || 'Lỗi khi validate dữ liệu!');
-              }
-            });
-          },
-        });
-
-      },
-      error: (error) => {
-        this.isLoading = false;
-        this.notify.error(NOTIFICATION_TITLE.error, error.error?.message || 'Lỗi khi validate dữ liệu!');
+          // Kiểm tra mã nội bộ
+          if (!code) {
+            this.notify.warning(NOTIFICATION_TITLE.warning, 'Sản phẩm chưa có mã nội bộ!');
+            return;
+          }
+        }
       }
-    });
+    } else {
+      this.isLoading = true;
+      this.srv.validateAddPoncc(validData).subscribe({
+        next: (rs) => {
+          this.isLoading = false;
 
+          this.modal.confirm({
+            nzTitle: `Bạn có chắc muốn tạo PO NCC danh sách sản phẩm đã chọn không?
+          \nNhững sản phẩm chưa được BGĐ duyệt sẽ tự động được bỏ qua!`,
+            nzOkText: 'Ok',
+            nzOkType: 'primary',
+            nzCancelText: 'Hủy',
+            nzOkDanger: false,
+            nzClosable: false,
+            nzOnOk: () => {
+              const { listRequest, currencys } = this.preparePonccData(validData);
+
+              const uniqueCurrencies = [...new Set(currencys)]; // Lọc distinct
+              const currencyID = uniqueCurrencies.length > 1 ? 0 : (uniqueCurrencies[0] || 0);
+              this.suplierSaleService.getSupplierSaleByID(listSupplierSale[0]).subscribe({
+                next: (rs) => {
+                  this.isLoading = false;
+                  let data = rs.data;
+                  let poncc = {
+                    SupplierSaleID: listSupplierSale[0],
+                    AccountNumberSupplier: data.SoTK,
+                    BankSupplier: data.NganHang,
+                    AddressSupplier: data.AddressNCC,
+                    MaSoThueNCC: data.MaSoThue,
+                    EmployeeID: this.appUserService.employeeID,
+                    CurrencyID: currencyID,
+                  }
+
+                  const modalRef = this.modalService.open(PonccDetailComponent, {
+                    backdrop: 'static',
+                    keyboard: false,
+                    centered: true,
+                    windowClass: 'full-screen-modal',
+                  });
+
+                  // Pass data to modal component
+                  modalRef.componentInstance.poncc = poncc;
+                  modalRef.componentInstance.ponccDetail = listRequest || [];
+                  modalRef.componentInstance.isAddPoYCMH = true;
+
+                  // Reload table after modal closes
+                  modalRef.result.finally(() => {
+                    this.onSearch();
+                  });
+
+
+                },
+                error: (error) => {
+                  this.isLoading = false;
+                  this.notify.error(NOTIFICATION_TITLE.error, error.error?.message || 'Lỗi khi validate dữ liệu!');
+                }
+              });
+            },
+          });
+
+        },
+        error: (error) => {
+          this.isLoading = false;
+          this.notify.error(NOTIFICATION_TITLE.error, error.error?.message || 'Lỗi khi validate dữ liệu!');
+        }
+      });
+    }
   }
 
   private preparePonccData(selectedData: any[]): { listRequest: any[], currencys: number[] } {

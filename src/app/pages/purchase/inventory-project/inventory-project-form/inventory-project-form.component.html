@@ -1,0 +1,165 @@
+<div class="modal-header bg-primary p-2">
+  <h6 class="modal-title text-white fs-12">
+    <span *ngIf="isViewMode">CHI TIẾT HÀNG GIỮ</span>
+    <span *ngIf="isRejectMode">NHẢ GIỮ HÀNG</span>
+  </h6>
+  <button type="button" class="btn-close" aria-label="Close" (click)="close()"></button>
+</div>
+
+<div class="modal-body p-2" style="max-height: 70vh; overflow-y: auto; overflow-x: hidden;">
+  <form nz-form [formGroup]="formGroup" nzLayout="vertical">
+    <nz-row [nzGutter]="16">
+      <!-- Mã sản phẩm -->
+      <nz-col [nzSpan]="12">
+        <nz-form-item>
+          <nz-form-label class="fs-12" [nzSpan]="24">Mã sản phẩm</nz-form-label>
+          <nz-form-control [nzSpan]="24">
+            <input nz-input formControlName="productCode" nzSize="default" class="fs-12" />
+          </nz-form-control>
+        </nz-form-item>
+      </nz-col>
+
+      <!-- Mã sản phẩm mới -->
+      <nz-col [nzSpan]="12">
+        <nz-form-item>
+          <nz-form-label class="fs-12" [nzSpan]="24">Mã nội bộ</nz-form-label>
+          <nz-form-control [nzSpan]="24">
+            <input nz-input formControlName="productNewCode" nzSize="default" class="fs-12" />
+          </nz-form-control>
+        </nz-form-item>
+      </nz-col>
+    </nz-row>
+
+    <nz-row [nzGutter]="16">
+      <!-- Tên sản phẩm -->
+      <nz-col [nzSpan]="18">
+        <nz-form-item>
+          <nz-form-label class="fs-12" [nzSpan]="24">Tên sản phẩm</nz-form-label>
+          <nz-form-control [nzSpan]="24">
+            <input nz-input formControlName="productName" nzSize="default" class="fs-12" />
+          </nz-form-control>
+        </nz-form-item>
+      </nz-col>
+
+      <!-- Đơn vị tính -->
+      <nz-col [nzSpan]="6">
+        <nz-form-item>
+          <nz-form-label class="fs-12" [nzSpan]="24">ĐVT</nz-form-label>
+          <nz-form-control [nzSpan]="24">
+            <input nz-input formControlName="unit" nzSize="default" class="fs-12" />
+          </nz-form-control>
+        </nz-form-item>
+      </nz-col>
+    </nz-row>
+
+    <nz-row [nzGutter]="16">
+      <!-- Số lượng giữ -->
+      <nz-col [nzSpan]="12">
+        <nz-form-item>
+          <nz-form-label class="fs-12" [nzSpan]="24">Số lượng giữ</nz-form-label>
+          <nz-form-control [nzSpan]="24">
+            <nz-input-number 
+              formControlName="quantityOrigin"
+              [nzMin]="0"
+              [nzStep]="1"
+              [nzPrecision]="2"
+              nzSize="default"
+              class="fs-12 w-100">
+            </nz-input-number>
+          </nz-form-control>
+        </nz-form-item>
+      </nz-col>
+
+      <!-- Số lượng nhả giữ -->
+      <nz-col [nzSpan]="12" *ngIf="isRejectMode">
+        <nz-form-item>
+          <nz-form-label class="fs-12" [nzSpan]="24" nzRequired>Số lượng nhả giữ</nz-form-label>
+          <nz-form-control [nzSpan]="24" [nzErrorTip]="getQuantityError()">
+            <nz-input-number 
+              formControlName="quantity"
+              [nzMin]="0"
+              [nzStep]="1"
+              [nzPrecision]="2"
+              nzPlaceHolder="Nhập số lượng nhả giữ"
+              nzSize="default"
+              class="fs-12 w-100">
+            </nz-input-number>
+          </nz-form-control>
+        </nz-form-item>
+      </nz-col>
+    </nz-row>
+
+    <nz-row [nzGutter]="16" *ngIf="isRejectMode">
+      <!-- Từ POKH -->
+      <nz-col [nzSpan]="12">
+        <nz-form-item>
+          <nz-form-label class="fs-12" [nzSpan]="24">Từ POKH</nz-form-label>
+          <nz-form-control [nzSpan]="24">
+            <nz-select 
+              formControlName="pokhDetailIDFrom"
+              nzShowSearch
+              nzPlaceHolder="Chọn POKH nguồn"
+              nzSize="default"
+              class="fs-12 w-100">
+              <nz-option 
+                *ngFor="let pokh of pokhList" 
+                [nzValue]="pokh.ID" 
+                [nzLabel]="pokh.DisplayText">
+              </nz-option>
+            </nz-select>
+          </nz-form-control>
+        </nz-form-item>
+      </nz-col>
+
+      <!-- Đến POKH -->
+      <nz-col [nzSpan]="12">
+        <nz-form-item>
+          <nz-form-label class="fs-12" [nzSpan]="24" nzRequired>Đến POKH</nz-form-label>
+          <nz-form-control [nzSpan]="24" [nzErrorTip]="getPOKHToError()">
+            <button 
+              type="button"
+              #pokhButton
+              nzSize="default"
+              class="btn-toggle-pokh w-100" 
+              [title]="getSelectedPOKHText() || 'Chọn POKH đích'"
+              (click)="togglePOKHPopup()"
+              [disabled]="!isRejectMode">
+              <span class="pokh-text">{{ getSelectedPOKHText() || 'Chọn POKH' }}</span>
+              <span class="arrow">&#9662;</span>
+            </button>
+          </nz-form-control>
+        </nz-form-item>
+      </nz-col>
+    </nz-row>
+  </form>
+</div>
+
+<!-- POKH Popup with Tabulator -->
+<div *ngIf="showPOKHPopup" 
+     class="pokh-popup-container"
+     [style.top]="pokhPopupPosition.top"
+     [style.left]="pokhPopupPosition.left">
+  <div class="pokh-popup-content">
+    <div class="pokh-popup-header">
+      <input 
+        type="text" 
+        class="pokh-search-input fs-12" 
+        placeholder="Tìm kiếm POKH..."
+        [(ngModel)]="pokhSearchText"
+        (input)="onPOKHSearchChange(pokhSearchText)"
+        autocomplete="off">
+      <button type="button" class="pokh-close-btn" (click)="closePOKHPopup()">×</button>
+    </div>
+    <div id="pokhTableContainer" class="pokh-table-wrapper"></div>
+  </div>
+</div>
+
+<div class="modal-footer p-2">
+  <button nz-button nzType="default" nzSize="default" nzDanger (click)="close()">Đóng</button>
+  <button 
+    *ngIf="isRejectMode" 
+    nz-button 
+    nzType="primary" 
+    nzSize="default"
+    (click)="saveStatus()">Lưu</button>
+</div>

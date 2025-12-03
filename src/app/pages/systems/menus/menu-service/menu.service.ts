@@ -117,6 +117,9 @@ import { EmployeeSaleManagerComponent } from '../../../old/employee-sale-manager
 import { RequestInvoiceComponent } from '../../../old/request-invoice/request-invoice.component';
 import { AssignWorkComponent } from '../../../purchase/assign-work/assign-work.component';
 import { PersonComponent } from '../../../person/person.component';
+import { InventoryProjectComponent } from '../../../purchase/inventory-project/inventory-project/inventory-project.component';
+import { WarehouseComponent } from '../../../warehouse/warehouse.component';
+import { WarehouseComponent1 } from '../../../general-category/wearhouse/warehouse/warehouse.component';
 @Injectable({
   providedIn: 'root',
 })
@@ -1670,6 +1673,54 @@ export class MenuService {
               //   //   icon: 'assets/icon/layers.png',
               // },
 
+           
+              //   {
+              //     kind: 'leaf',
+              //     key: 'EmployeeAttendanceComponent',
+              //     title: 'Thu hộ phòng ban',
+              //     isOpen: true,
+              //     comp:
+              //     //   icon: 'assets/icon/layers.png',
+              //   },
+              //   {
+              //     kind: 'leaf',
+              //     key: 'EmployeeAttendanceComponent',
+              //     title: 'Vân tay',
+              //     isOpen: true,
+              //     comp: ,
+              //     //   icon: 'assets/icon/layers.png',
+              //   },
+              //   {
+              //     kind: 'leaf',
+              //     key: 'VehicleCategoryComponent',
+              //     title: 'Loại xe',
+              //     isOpen: true,
+              //     comp: VehicleCategoryComponent,
+              //     //   icon: 'assets/icon/layers.png',
+              //   },
+
+              {
+                kind: 'leaf',
+                key: 'HandoverComponent',
+                title: 'Biên bản bàn giao',
+                isOpen: true,
+                isPermission: this.permissionService.hasPermission('N1,N2,N34'),
+                comp: HandoverComponent,
+                //   icon: 'assets/icon/layers.png',
+              },
+
+            
+              //#endregion
+            ],
+          },
+          {
+            kind: 'group',
+            key: 'Employee',
+            title: 'Quản lí chấm công-lương',
+            isOpen: true,
+            isPermission: this.permissionService.hasPermission(''),
+            children: [
+           
               {
                 kind: 'leaf',
                 key: 'HolidayComponent',
@@ -1806,15 +1857,7 @@ export class MenuService {
               //     //   icon: 'assets/icon/layers.png',
               //   },
 
-              {
-                kind: 'leaf',
-                key: 'HandoverComponent',
-                title: 'Biên bản bàn giao',
-                isOpen: true,
-                isPermission: this.permissionService.hasPermission('N1,N2,N34'),
-                comp: HandoverComponent,
-                //   icon: 'assets/icon/layers.png',
-              },
+           
 
               {
                 kind: 'leaf',
@@ -1945,6 +1988,15 @@ export class MenuService {
             comp: AppComponent,
             router: '/vanbanchung',
           },
+          {
+            kind: 'leaf',
+            key: 'WearHouseeComponent',
+            title: 'Danh sách kho',
+            isOpen: true,
+            isPermission: this.permissionService.hasPermission('N1'),
+            comp: WarehouseComponent1,
+        
+          },
         ],
       },
 
@@ -2026,6 +2078,14 @@ export class MenuService {
             ),
             comp: PONCCComponent,
             //   icon: 'assets/icon/layers.png',
+          },
+          {
+            kind: 'leaf',
+            key: 'InventoryProjectComponent',
+            title: 'Hàng giữ dự án',
+            isOpen: true,
+            isPermission: this.permissionService.hasPermission('N1'),
+            comp: InventoryProjectComponent,
           },
           {
             kind: 'leaf',

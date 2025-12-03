@@ -1,4 +1,11 @@
-import { Component, OnInit, AfterViewInit, ViewChild, ElementRef, OnDestroy } from '@angular/core';
+import {
+  Component,
+  OnInit,
+  AfterViewInit,
+  ViewChild,
+  ElementRef,
+  OnDestroy,
+} from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { NzButtonModule } from 'ng-zorro-antd/button';
@@ -22,6 +29,7 @@ import { ProjectService } from '../../../../project/project-service/project.serv
 import { NOTIFICATION_TITLE } from '../../../../../app.config';
 import * as ExcelJS from 'exceljs';
 import { saveAs } from 'file-saver';
+import { DEFAULT_TABLE_CONFIG } from '../../../../../tabulator-default.config';
 
 @Component({
   selector: 'app-employee-bussiness-summary',
@@ -36,12 +44,14 @@ import { saveAs } from 'file-saver';
     NzSelectModule,
     NzInputModule,
     NzSpinModule,
-    NzFormModule
+    NzFormModule,
   ],
   templateUrl: './employee-bussiness-summary.component.html',
-  styleUrl: './employee-bussiness-summary.component.css'
+  styleUrl: './employee-bussiness-summary.component.css',
 })
-export class EmployeeBussinessSummaryComponent implements OnInit, AfterViewInit, OnDestroy {
+export class EmployeeBussinessSummaryComponent
+  implements OnInit, AfterViewInit, OnDestroy
+{
   @ViewChild('tb_work', { static: false }) tbWorkContainer!: ElementRef;
   @ViewChild('tb_early', { static: false }) tbEarlyContainer!: ElementRef;
   @ViewChild('tb_vehicle', { static: false }) tbVehicleContainer!: ElementRef;
@@ -58,7 +68,7 @@ export class EmployeeBussinessSummaryComponent implements OnInit, AfterViewInit,
 
   departments: any[] = [];
   allEmployees: any[] = [];
-  
+
   workData: any[] = [];
   earlyData: any[] = [];
   vehicleData: any[] = [];
@@ -98,8 +108,11 @@ export class EmployeeBussinessSummaryComponent implements OnInit, AfterViewInit,
         this.departments = data.data || [];
       },
       error: () => {
-        this.notification.error(NOTIFICATION_TITLE.error, 'Lỗi tải danh sách phòng ban');
-      }
+        this.notification.error(
+          NOTIFICATION_TITLE.error,
+          'Lỗi tải danh sách phòng ban'
+        );
+      },
     });
   }
 
@@ -107,17 +120,24 @@ export class EmployeeBussinessSummaryComponent implements OnInit, AfterViewInit,
     const request = { status: 0, departmentid: 0, keyword: '' };
     this.vehicleRepairService.getEmployee(request).subscribe({
       next: (res: any) => {
-        this.allEmployees = (res?.data || []).filter((emp: any) => emp.Status === 0);
+        this.allEmployees = (res?.data || []).filter(
+          (emp: any) => emp.Status === 0
+        );
       },
       error: () => {
-        this.notification.error(NOTIFICATION_TITLE.error, 'Lỗi tải danh sách nhân viên');
-      }
+        this.notification.error(
+          NOTIFICATION_TITLE.error,
+          'Lỗi tải danh sách nhân viên'
+        );
+      },
     });
   }
 
   getFilteredEmployees(): any[] {
     if (this.departmentId && this.departmentId > 0) {
-      return this.allEmployees.filter((x: any) => Number(x.DepartmentID) === Number(this.departmentId));
+      return this.allEmployees.filter(
+        (x: any) => Number(x.DepartmentID) === Number(this.departmentId)
+      );
     }
     return this.allEmployees;
   }
@@ -128,8 +148,9 @@ export class EmployeeBussinessSummaryComponent implements OnInit, AfterViewInit,
 
   loadData(): void {
     this.isLoading = true;
-    
-    const month = this.selectedMonthYear?.getMonth() + 1 || DateTime.now().month;
+
+    const month =
+      this.selectedMonthYear?.getMonth() + 1 || DateTime.now().month;
     const year = this.selectedMonthYear?.getFullYear() || DateTime.now().year;
 
     const params = {
@@ -137,7 +158,7 @@ export class EmployeeBussinessSummaryComponent implements OnInit, AfterViewInit,
       Year: year,
       DepartmentID: this.departmentId || 0,
       EmployeeID: this.employeeId || 0,
-      KeyWord: this.keyword || ''
+      KeyWord: this.keyword || '',
     };
 
     console.log('Request params:', params);
@@ -145,36 +166,49 @@ export class EmployeeBussinessSummaryComponent implements OnInit, AfterViewInit,
     this.bussinessService.getWorkManagement(params).subscribe({
       next: (res: any) => {
         console.log('Full API Response:', res);
-        
+
         if (res?.status === 1) {
           // Check if data is directly in res.data or nested
           const responseData = res.data;
           console.log('Response data object:', responseData);
-          
+
           this.workData = responseData?.workData || [];
           this.earlyData = responseData?.earlyData || [];
           this.vehicleData = responseData?.vehicleData || [];
-          
+
           console.log('Work data:', this.workData);
           console.log('Early data:', this.earlyData);
           console.log('Vehicle data:', this.vehicleData);
-          
+
           this.updateTables();
-          
-          if (this.workData.length === 0 && this.earlyData.length === 0 && this.vehicleData.length === 0) {
-            this.notification.warning(NOTIFICATION_TITLE.warning, 'Không có dữ liệu');
+
+          if (
+            this.workData.length === 0 &&
+            this.earlyData.length === 0 &&
+            this.vehicleData.length === 0
+          ) {
+            this.notification.warning(
+              NOTIFICATION_TITLE.warning,
+              'Không có dữ liệu'
+            );
           }
         } else {
           console.log('Status is not 1 or no data');
-          this.notification.warning(NOTIFICATION_TITLE.warning, res?.message || 'Không có dữ liệu');
+          this.notification.warning(
+            NOTIFICATION_TITLE.warning,
+            res?.message || 'Không có dữ liệu'
+          );
         }
         this.isLoading = false;
       },
       error: (err) => {
         console.error('API Error:', err);
         this.isLoading = false;
-        this.notification.error(NOTIFICATION_TITLE.error, 'Không thể tải dữ liệu báo cáo công tác');
-      }
+        this.notification.error(
+          NOTIFICATION_TITLE.error,
+          'Không thể tải dữ liệu báo cáo công tác'
+        );
+      },
     });
   }
 
@@ -198,7 +232,7 @@ export class EmployeeBussinessSummaryComponent implements OnInit, AfterViewInit,
     console.log('tbWorkContainer exists?', !!this.tbWorkContainer);
     console.log('tbEarlyContainer exists?', !!this.tbEarlyContainer);
     console.log('tbVehicleContainer exists?', !!this.tbVehicleContainer);
-    
+
     if (this.tbWorkContainer?.nativeElement) {
       console.log('Creating work table...');
       this.tb_work = new Tabulator(this.tbWorkContainer.nativeElement, {
@@ -207,7 +241,7 @@ export class EmployeeBussinessSummaryComponent implements OnInit, AfterViewInit,
         height: '80vh',
         placeholder: 'Không có dữ liệu',
         locale: 'vi',
-        columns: this.buildWorkColumns()
+        columns: this.buildWorkColumns(),
       });
       console.log('Work table created');
     } else {
@@ -215,33 +249,35 @@ export class EmployeeBussinessSummaryComponent implements OnInit, AfterViewInit,
     }
 
     if (this.tbEarlyContainer?.nativeElement) {
-      console.log('Creating early table...');
+      //   console.log('Creating early table...');
       this.tb_early = new Tabulator(this.tbEarlyContainer.nativeElement, {
         data: [],
+        ...DEFAULT_TABLE_CONFIG,
         layout: 'fitDataStretch',
         height: '80vh',
         placeholder: 'Không có dữ liệu',
         locale: 'vi',
-        columns: this.buildEarlyColumns()
+        columns: this.buildEarlyColumns(),
       });
-      console.log('Early table created');
+      //   console.log('Early table created');
     } else {
-      console.error('tbEarlyContainer not available');
+      //   console.error('tbEarlyContainer not available');
     }
 
     if (this.tbVehicleContainer?.nativeElement) {
-      console.log('Creating vehicle table...');
+      //   console.log('Creating vehicle table...');
       this.tb_vehicle = new Tabulator(this.tbVehicleContainer.nativeElement, {
         data: [],
+        ...DEFAULT_TABLE_CONFIG,
         layout: 'fitDataStretch',
         height: '80vh',
         placeholder: 'Không có dữ liệu',
         locale: 'vi',
-        columns: this.buildVehicleColumns()
+        columns: this.buildVehicleColumns(),
       });
-      console.log('Vehicle table created');
+      //   console.log('Vehicle table created');
     } else {
-      console.error('tbVehicleContainer not available');
+      //   console.error('tbVehicleContainer not available');
     }
   }
 
@@ -250,7 +286,8 @@ export class EmployeeBussinessSummaryComponent implements OnInit, AfterViewInit,
     const ALIGN_LEFT: ColumnDefinition['hozAlign'] = 'left';
 
     // Tính toán tháng/năm từ selectedMonthYear
-    const month = this.selectedMonthYear?.getMonth() + 1 || DateTime.now().month;
+    const month =
+      this.selectedMonthYear?.getMonth() + 1 || DateTime.now().month;
     const year = this.selectedMonthYear?.getFullYear() || DateTime.now().year;
     const monthStr = String(month).padStart(2, '0');
     const yearStr = year.toString();
@@ -265,7 +302,9 @@ export class EmployeeBussinessSummaryComponent implements OnInit, AfterViewInit,
       return (cell: any) => {
         const value = cell.getValue();
         if (!value) return '';
-        return `<div style="white-space: pre-wrap; font-size: 12px;">${String(value)}</div>`;
+        return `<div style="white-space: pre-wrap; font-size: 12px;">${String(
+          value
+        )}</div>`;
       };
     };
 
@@ -278,13 +317,13 @@ export class EmployeeBussinessSummaryComponent implements OnInit, AfterViewInit,
       const fieldName = `D${day}`;
 
       dayGroups.push({
-        title: isWeekend 
+        title: isWeekend
           ? `<span style="background-color: #e9b003; padding: 2px 4px; border-radius: 2px; font-weight: bold;">${dayName}</span>`
           : dayName,
         headerHozAlign: ALIGN_CENTER,
         columns: [
           {
-            title: isWeekend 
+            title: isWeekend
               ? `<span style="background-color: #e9b003; padding: 2px 4px; border-radius: 2px; font-weight: bold;">${day}</span>`
               : day.toString(),
             field: fieldName,
@@ -304,10 +343,36 @@ export class EmployeeBussinessSummaryComponent implements OnInit, AfterViewInit,
         headerHozAlign: ALIGN_CENTER,
         frozen: true,
         columns: [
-          { title: 'STT', field: 'STT', width: 60, hozAlign: ALIGN_CENTER, headerHozAlign: ALIGN_CENTER },
-          { title: 'Mã nhân viên', field: 'Code', width: 100, hozAlign: ALIGN_LEFT, headerHozAlign: ALIGN_CENTER },
-          { title: 'Tên nhân viên', field: 'FullName', width: 200, hozAlign: ALIGN_LEFT, headerHozAlign: ALIGN_CENTER, formatter: 'textarea' },
-          { title: 'Chức vụ', field: 'Name', width: 200, hozAlign: ALIGN_LEFT, headerHozAlign: ALIGN_CENTER, formatter: 'textarea' },
+          {
+            title: 'STT',
+            field: 'STT',
+            width: 60,
+            hozAlign: ALIGN_CENTER,
+            headerHozAlign: ALIGN_CENTER,
+          },
+          {
+            title: 'Mã nhân viên',
+            field: 'Code',
+            width: 100,
+            hozAlign: ALIGN_LEFT,
+            headerHozAlign: ALIGN_CENTER,
+          },
+          {
+            title: 'Tên nhân viên',
+            field: 'FullName',
+            width: 200,
+            hozAlign: ALIGN_LEFT,
+            headerHozAlign: ALIGN_CENTER,
+            formatter: 'textarea',
+          },
+          {
+            title: 'Chức vụ',
+            field: 'Name',
+            width: 200,
+            hozAlign: ALIGN_LEFT,
+            headerHozAlign: ALIGN_CENTER,
+            formatter: 'textarea',
+          },
         ],
       },
       {
@@ -319,11 +384,11 @@ export class EmployeeBussinessSummaryComponent implements OnInit, AfterViewInit,
         title: 'Tổng hợp',
         headerHozAlign: ALIGN_CENTER,
         columns: [
-          { 
-            title: 'Công tác ngày', 
-            field: 'countCTN', 
-            width: 120, 
-            hozAlign: ALIGN_CENTER, 
+          {
+            title: 'Công tác ngày',
+            field: 'countCTN',
+            width: 120,
+            hozAlign: ALIGN_CENTER,
             headerHozAlign: ALIGN_CENTER,
             formatter: (cell) => {
               const value = cell.getValue();
@@ -333,13 +398,13 @@ export class EmployeeBussinessSummaryComponent implements OnInit, AfterViewInit,
             bottomCalcFormatter: (cell: any) => {
               const value = cell.getValue();
               return value || 0;
-            }
+            },
           },
-          { 
-            title: 'Công tác đêm', 
-            field: 'countCTD', 
-            width: 120, 
-            hozAlign: ALIGN_CENTER, 
+          {
+            title: 'Công tác đêm',
+            field: 'countCTD',
+            width: 120,
+            hozAlign: ALIGN_CENTER,
             headerHozAlign: ALIGN_CENTER,
             formatter: (cell) => {
               const value = cell.getValue();
@@ -349,13 +414,13 @@ export class EmployeeBussinessSummaryComponent implements OnInit, AfterViewInit,
             bottomCalcFormatter: (cell: any) => {
               const value = cell.getValue();
               return value || 0;
-            }
+            },
           },
-          { 
-            title: 'Công tác gần', 
-            field: 'countCTG', 
-            width: 120, 
-            hozAlign: ALIGN_CENTER, 
+          {
+            title: 'Công tác gần',
+            field: 'countCTG',
+            width: 120,
+            hozAlign: ALIGN_CENTER,
             headerHozAlign: ALIGN_CENTER,
             formatter: (cell) => {
               const value = cell.getValue();
@@ -365,13 +430,13 @@ export class EmployeeBussinessSummaryComponent implements OnInit, AfterViewInit,
             bottomCalcFormatter: (cell: any) => {
               const value = cell.getValue();
               return value || 0;
-            }
+            },
           },
-          { 
-            title: 'Công tác xa', 
-            field: 'countCTX', 
-            width: 120, 
-            hozAlign: ALIGN_CENTER, 
+          {
+            title: 'Công tác xa',
+            field: 'countCTX',
+            width: 120,
+            hozAlign: ALIGN_CENTER,
             headerHozAlign: ALIGN_CENTER,
             formatter: (cell) => {
               const value = cell.getValue();
@@ -381,13 +446,13 @@ export class EmployeeBussinessSummaryComponent implements OnInit, AfterViewInit,
             bottomCalcFormatter: (cell: any) => {
               const value = cell.getValue();
               return value || 0;
-            }
+            },
           },
-          { 
-            title: 'Công tác nước ngoài', 
-            field: 'countCTNN', 
-            width: 150, 
-            hozAlign: ALIGN_CENTER, 
+          {
+            title: 'Công tác nước ngoài',
+            field: 'countCTNN',
+            width: 150,
+            hozAlign: ALIGN_CENTER,
             headerHozAlign: ALIGN_CENTER,
             formatter: (cell) => {
               const value = cell.getValue();
@@ -397,13 +462,13 @@ export class EmployeeBussinessSummaryComponent implements OnInit, AfterViewInit,
             bottomCalcFormatter: (cell: any) => {
               const value = cell.getValue();
               return value || 0;
-            }
+            },
           },
-          { 
-            title: 'Công tác', 
-            field: 'countCT', 
-            width: 120, 
-            hozAlign: ALIGN_CENTER, 
+          {
+            title: 'Công tác',
+            field: 'countCT',
+            width: 120,
+            hozAlign: ALIGN_CENTER,
             headerHozAlign: ALIGN_CENTER,
             formatter: (cell) => {
               const value = cell.getValue();
@@ -413,9 +478,16 @@ export class EmployeeBussinessSummaryComponent implements OnInit, AfterViewInit,
             bottomCalcFormatter: (cell: any) => {
               const value = cell.getValue();
               return value || 0;
-            }
+            },
           },
-          { title: 'Ghi chú', field: 'Note', width: 200, hozAlign: ALIGN_LEFT, headerHozAlign: ALIGN_CENTER, formatter: 'textarea' }
+          {
+            title: 'Ghi chú',
+            field: 'Note',
+            width: 200,
+            hozAlign: ALIGN_LEFT,
+            headerHozAlign: ALIGN_CENTER,
+            formatter: 'textarea',
+          },
         ],
       },
     ];
@@ -423,121 +495,243 @@ export class EmployeeBussinessSummaryComponent implements OnInit, AfterViewInit,
 
   buildEarlyColumns(): ColumnDefinition[] {
     return [
-      { title: 'STT', field: 'STT', width: 60, hozAlign: 'center', headerHozAlign: 'center' },
-      { title: 'Mã NV', field: 'Code', width: 100, hozAlign: 'left', headerHozAlign: 'center' },
-      { title: 'Tên nhân viên', field: 'FullName', width: 200, hozAlign: 'left', headerHozAlign: 'center', formatter: 'textarea' },
-      { title: 'Phòng ban', field: 'DepartmentName', width: 150, hozAlign: 'left', headerHozAlign: 'center' },
-      { 
-        title: 'Ngày', 
-        field: 'DayBussiness', 
-        width: 120, 
-        hozAlign: 'center', 
+      {
+        title: 'STT',
+        field: 'STT',
+        width: 60,
+        hozAlign: 'center',
+        headerHozAlign: 'center',
+        bottomCalc: 'count',
+        bottomCalcFormatter: (cell) => {
+          const value = cell.getValue();
+          return typeof value === 'number'
+            ? value.toLocaleString('vi-VN') + ''
+            : '';
+        },
+      },
+      {
+        title: 'Mã NV',
+        field: 'Code',
+        width: 100,
+        hozAlign: 'left',
+        headerHozAlign: 'center',
+      },
+      {
+        title: 'Tên nhân viên',
+        field: 'FullName',
+        width: 200,
+        hozAlign: 'left',
+        headerHozAlign: 'center',
+        formatter: 'textarea',
+      },
+      {
+        title: 'Phòng ban',
+        field: 'DepartmentName',
+        width: 150,
+        hozAlign: 'left',
+        headerHozAlign: 'center',
+      },
+      {
+        title: 'Ngày',
+        field: 'DayBussiness',
+        width: 120,
+        hozAlign: 'center',
         headerHozAlign: 'center',
         formatter: (cell) => {
           const value = cell.getValue();
           return value ? DateTime.fromISO(value).toFormat('dd/MM/yyyy') : '';
-        }
+        },
       },
-      { 
-        title: 'Phụ cấp đi làm sớm', 
-        field: 'CostWorkEarly', 
-        width: 150, 
-        hozAlign: 'right', 
+      {
+        title: 'Phụ cấp đi làm sớm',
+        field: 'CostWorkEarly',
+        width: 150,
+        hozAlign: 'right',
         headerHozAlign: 'center',
         formatter: (cell) => {
           const value = cell.getValue();
-          return typeof value === 'number' ? value.toLocaleString('vi-VN') + ' ₫' : '0 ₫';
-        }
-        ,
+          return typeof value === 'number'
+            ? value.toLocaleString('vi-VN') + ' ₫'
+            : '0 ₫';
+        },
         bottomCalc: 'sum',
+        bottomCalcFormatter: (cell) => {
+          const value = cell.getValue();
+          return typeof value === 'number'
+            ? value.toLocaleString('vi-VN') + ' ₫'
+            : '0 ₫';
+        },
       },
-      { title: 'Ghi chú', field: 'Note', width: 200, hozAlign: 'left', headerHozAlign: 'center', formatter: 'textarea' }
+      {
+        title: 'Xuất phát sớm',
+        field: 'IsEarly',
+        width: 150,
+        hozAlign: 'center',
+        formatter: 'tickCross',
+      },
+      {
+        title: 'Ghi chú',
+        field: 'Note',
+        width: 200,
+        hozAlign: 'left',
+        headerHozAlign: 'center',
+        formatter: 'textarea',
+      },
     ];
   }
 
   buildVehicleColumns(): ColumnDefinition[] {
     return [
-      { title: 'STT', field: 'STT', width: 60, hozAlign: 'center', headerHozAlign: 'center' },
-      { title: 'Mã NV', field: 'Code', width: 100, hozAlign: 'left', headerHozAlign: 'center' },
-      { title: 'Tên nhân viên', field: 'FullName', width: 200, hozAlign: 'left', headerHozAlign: 'center', formatter: 'textarea' },
-      { title: 'Phòng ban', field: 'DepartmentName', width: 150, hozAlign: 'left', headerHozAlign: 'center' },
-      { 
-        title: 'Ngày', 
-        field: 'DayBussiness', 
-        width: 120, 
-        hozAlign: 'center', 
+      {
+        title: 'STT',
+        field: 'STT',
+        width: 60,
+        hozAlign: 'center',
+        headerHozAlign: 'center',
+        bottomCalc: 'count',
+        bottomCalcFormatter: (cell) => {
+          const value = cell.getValue();
+          return typeof value === 'number'
+            ? value.toLocaleString('vi-VN') + ''
+            : '';
+        },
+      },
+      {
+        title: 'Mã NV',
+        field: 'Code',
+        width: 100,
+        hozAlign: 'left',
+        headerHozAlign: 'center',
+      },
+      {
+        title: 'Tên nhân viên',
+        field: 'FullName',
+        width: 200,
+        hozAlign: 'left',
+        headerHozAlign: 'center',
+        formatter: 'textarea',
+      },
+      {
+        title: 'Phòng ban',
+        field: 'DepartmentName',
+        width: 150,
+        hozAlign: 'left',
+        headerHozAlign: 'center',
+      },
+      {
+        title: 'Ngày',
+        field: 'DayBussiness',
+        width: 120,
+        hozAlign: 'center',
         headerHozAlign: 'center',
         formatter: (cell) => {
           const value = cell.getValue();
           return value ? DateTime.fromISO(value).toFormat('dd/MM/yyyy') : '';
-        }
+        },
       },
-      { title: 'Phương tiện', field: 'VehicleName', width: 150, hozAlign: 'left', headerHozAlign: 'center' },
-      { 
-        title: 'Phụ cấp phương tiện', 
-        field: 'Cost', 
-        width: 150, 
-        hozAlign: 'right', 
+      {
+        title: 'Phương tiện',
+        field: 'VehicleName',
+        width: 150,
+        hozAlign: 'left',
+        headerHozAlign: 'center',
+      },
+      {
+        title: 'Phụ cấp phương tiện',
+        field: 'Cost',
+        width: 150,
+        hozAlign: 'right',
         headerHozAlign: 'center',
         formatter: (cell) => {
           const value = cell.getValue();
-          return typeof value === 'number' ? value.toLocaleString('vi-VN') + ' ₫' : '0 ₫';
-        }
-        ,
+          return typeof value === 'number'
+            ? value.toLocaleString('vi-VN') + ' ₫'
+            : '0 ₫';
+        },
         bottomCalc: 'sum',
+        bottomCalcFormatter: (cell) => {
+          const value = cell.getValue();
+          return typeof value === 'number'
+            ? value.toLocaleString('vi-VN') + ' ₫'
+            : '0 ₫';
+        },
       },
-      { title: 'Ghi chú', field: 'Note', width: 200, hozAlign: 'left', headerHozAlign: 'center', formatter: 'textarea' }
+      {
+        title: 'Đặt xe',
+        field: 'IsVehicleBooking',
+        width: 150,
+        hozAlign: 'center',
+        formatter: 'tickCross',
+      },
+      {
+        title: 'Ghi chú',
+        field: 'Note',
+        width: 200,
+        hozAlign: 'left',
+        headerHozAlign: 'center',
+        formatter: 'textarea',
+      },
     ];
   }
 
   updateTables(): void {
-    console.log('Updating tables...');
-    console.log('tb_work exists?', !!this.tb_work);
-    console.log('tb_early exists?', !!this.tb_early);
-    console.log('tb_vehicle exists?', !!this.tb_vehicle);
-    
+    // console.log('Updating tables...');
+    // console.log('tb_work exists?', !!this.tb_work);
+    // console.log('tb_early exists?', !!this.tb_early);
+    // console.log('tb_vehicle exists?', !!this.tb_vehicle);
+
     if (this.tb_work) {
-      console.log('Setting work data:', this.workData.length, 'rows');
+      //   console.log('Setting work data:', this.workData.length, 'rows');
       // Rebuild columns khi tháng/năm thay đổi
       this.tb_work.setColumns(this.buildWorkColumns());
       this.tb_work.setData(this.workData);
     }
     if (this.tb_early) {
-      console.log('Setting early data:', this.earlyData.length, 'rows');
+      //   console.log('Setting early data:', this.earlyData.length, 'rows');
       this.tb_early.setData(this.earlyData);
     }
     if (this.tb_vehicle) {
-      console.log('Setting vehicle data:', this.vehicleData.length, 'rows');
+      //   console.log('Setting vehicle data:', this.vehicleData.length, 'rows');
       this.tb_vehicle.setData(this.vehicleData);
     }
   }
 
   exportExcel(): void {
-    const month = this.selectedMonthYear?.getMonth() + 1 || DateTime.now().month;
+    const month =
+      this.selectedMonthYear?.getMonth() + 1 || DateTime.now().month;
     const year = this.selectedMonthYear?.getFullYear() || DateTime.now().year;
     const monthStr = String(month).padStart(2, '0');
-    
+
     const workbook = new ExcelJS.Workbook();
-    
+
     // Sheet 1: Chấm công
     this.createWorkSheet(workbook, this.workData, 'Chấm công');
-    
+
     // Sheet 2: Đi làm sớm
     this.createEarlySheet(workbook, this.earlyData, 'Đi làm sớm');
-    
+
     // Sheet 3: Tiền xe
     this.createVehicleSheet(workbook, this.vehicleData, 'Tiền xe đi công tác');
-    
+
     workbook.xlsx.writeBuffer().then((buffer) => {
-      const blob = new Blob([buffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+      const blob = new Blob([buffer], {
+        type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+      });
       saveAs(blob, `BaoCaoCongTac_${monthStr}_${year}.xlsx`);
-      this.notification.success(NOTIFICATION_TITLE.success, 'Xuất excel thành công');
+      this.notification.success(
+        NOTIFICATION_TITLE.success,
+        'Xuất excel thành công'
+      );
     });
   }
 
-  private createWorkSheet(workbook: ExcelJS.Workbook, data: any[], sheetName: string): void {
+  private createWorkSheet(
+    workbook: ExcelJS.Workbook,
+    data: any[],
+    sheetName: string
+  ): void {
     const worksheet = workbook.addWorksheet(sheetName);
-    
+
     worksheet.columns = [
       { header: 'STT', key: 'STT', width: 10 },
       { header: 'Mã nhân viên', key: 'Code', width: 15 },
@@ -550,23 +744,25 @@ export class EmployeeBussinessSummaryComponent implements OnInit, AfterViewInit,
       { header: 'Công tác xa', key: 'countCTX', width: 15 },
       { header: 'Công tác nước ngoài', key: 'countCTNN', width: 18 },
       { header: 'Công tác', key: 'countCT', width: 15 },
-      { header: 'Ghi chú', key: 'Note', width: 30 }
+      { header: 'Ghi chú', key: 'Note', width: 30 },
     ];
 
     data.forEach((item, index) => {
       worksheet.addRow({
-        STT: item.STT || (index + 1),
+        STT: item.STT || index + 1,
         Code: item.Code || '',
         FullName: item.FullName || '',
         Name: item.Name || '',
-        DayBussiness: item.DayBussiness ? DateTime.fromISO(item.DayBussiness).toFormat('dd/MM/yyyy') : '',
+        DayBussiness: item.DayBussiness
+          ? DateTime.fromISO(item.DayBussiness).toFormat('dd/MM/yyyy')
+          : '',
         countCTN: item.countCTN || 0,
         countCTD: item.countCTD || 0,
         countCTG: item.countCTG || 0,
         countCTX: item.countCTX || 0,
         countCTNN: item.countCTNN || 0,
         countCT: item.countCT || 0,
-        Note: item.Note || ''
+        Note: item.Note || '',
       });
     });
 
@@ -575,13 +771,17 @@ export class EmployeeBussinessSummaryComponent implements OnInit, AfterViewInit,
     worksheet.getRow(1).fill = {
       type: 'pattern',
       pattern: 'solid',
-      fgColor: { argb: 'FFD9D9D9' }
+      fgColor: { argb: 'FFD9D9D9' },
     };
   }
 
-  private createEarlySheet(workbook: ExcelJS.Workbook, data: any[], sheetName: string): void {
+  private createEarlySheet(
+    workbook: ExcelJS.Workbook,
+    data: any[],
+    sheetName: string
+  ): void {
     const worksheet = workbook.addWorksheet(sheetName);
-    
+
     worksheet.columns = [
       { header: 'STT', key: 'STT', width: 10 },
       { header: 'Mã NV', key: 'Code', width: 15 },
@@ -589,7 +789,8 @@ export class EmployeeBussinessSummaryComponent implements OnInit, AfterViewInit,
       { header: 'Phòng ban', key: 'DepartmentName', width: 20 },
       { header: 'Ngày', key: 'DayBussiness', width: 15 },
       { header: 'Phụ cấp đi làm sớm', key: 'CostWorkEarly', width: 20 },
-      { header: 'Ghi chú', key: 'Note', width: 30 }
+      { header: 'Xuất phát sớm', key: 'IsEarly', width: 20 },
+      { header: 'Ghi chú', key: 'Note', width: 30 },
     ];
 
     data.forEach((item, index) => {
@@ -598,9 +799,12 @@ export class EmployeeBussinessSummaryComponent implements OnInit, AfterViewInit,
         Code: item.Code,
         FullName: item.FullName,
         DepartmentName: item.DepartmentName,
-        DayBussiness: item.DayBussiness ? DateTime.fromISO(item.DayBussiness).toFormat('dd/MM/yyyy') : '',
+        DayBussiness: item.DayBussiness
+          ? DateTime.fromISO(item.DayBussiness).toFormat('dd/MM/yyyy')
+          : '',
         CostWorkEarly: item.CostWorkEarly,
-        Note: item.Note
+        IsEarly: item.IsEarly ? '✓' : 'x',
+        Note: item.Note,
       });
     });
 
@@ -608,13 +812,17 @@ export class EmployeeBussinessSummaryComponent implements OnInit, AfterViewInit,
     worksheet.getRow(1).fill = {
       type: 'pattern',
       pattern: 'solid',
-      fgColor: { argb: 'FFD9D9D9' }
+      fgColor: { argb: 'FFD9D9D9' },
     };
   }
 
-  private createVehicleSheet(workbook: ExcelJS.Workbook, data: any[], sheetName: string): void {
+  private createVehicleSheet(
+    workbook: ExcelJS.Workbook,
+    data: any[],
+    sheetName: string
+  ): void {
     const worksheet = workbook.addWorksheet(sheetName);
-    
+
     worksheet.columns = [
       { header: 'STT', key: 'STT', width: 10 },
       { header: 'Mã NV', key: 'Code', width: 15 },
@@ -623,7 +831,8 @@ export class EmployeeBussinessSummaryComponent implements OnInit, AfterViewInit,
       { header: 'Ngày', key: 'DayBussiness', width: 15 },
       { header: 'Phương tiện', key: 'VehicleName', width: 20 },
       { header: 'Phụ cấp phương tiện', key: 'Cost', width: 20 },
-      { header: 'Ghi chú', key: 'Note', width: 30 }
+      { header: 'Đặt xe', key: 'IsVehicleBooking', width: 20 },
+      { header: 'Ghi chú', key: 'Note', width: 30 },
     ];
 
     data.forEach((item, index) => {
@@ -632,10 +841,13 @@ export class EmployeeBussinessSummaryComponent implements OnInit, AfterViewInit,
         Code: item.Code,
         FullName: item.FullName,
         DepartmentName: item.DepartmentName,
-        DayBussiness: item.DayBussiness ? DateTime.fromISO(item.DayBussiness).toFormat('dd/MM/yyyy') : '',
+        DayBussiness: item.DayBussiness
+          ? DateTime.fromISO(item.DayBussiness).toFormat('dd/MM/yyyy')
+          : '',
         VehicleName: item.VehicleName,
         Cost: item.Cost,
-        Note: item.Note
+        IsVehicleBooking: item.IsVehicleBooking ? '✓' : 'x',
+        Note: item.Note,
       });
     });
 
@@ -643,7 +855,7 @@ export class EmployeeBussinessSummaryComponent implements OnInit, AfterViewInit,
     worksheet.getRow(1).fill = {
       type: 'pattern',
       pattern: 'solid',
-      fgColor: { argb: 'FFD9D9D9' }
+      fgColor: { argb: 'FFD9D9D9' },
     };
   }
 

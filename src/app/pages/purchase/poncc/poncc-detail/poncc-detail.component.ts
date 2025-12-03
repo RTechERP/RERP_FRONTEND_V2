@@ -247,7 +247,7 @@ export class PonccDetailComponent implements OnInit, AfterViewInit {
       RequestDate: this.poncc.RequestDate ? new Date(this.poncc.RequestDate) : new Date(),
       DeliveryDate: this.poncc.DeliveryDate ? new Date(this.poncc.DeliveryDate) : new Date(),
       BillCode: this.poncc.BillCode || '',
-      Status: this.poncc.Status ?? 1,
+      Status: this.poncc.Status ?? 0,
       TotalMoneyPO: this.poncc.TotalMoneyPO || 0,
       CurrencyID: this.poncc.CurrencyID || null,
       CurrencyRate: this.poncc.CurrencyRate || 0

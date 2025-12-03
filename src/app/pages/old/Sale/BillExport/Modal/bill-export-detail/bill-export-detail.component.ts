@@ -763,7 +763,7 @@ export class BillExportDetailComponent
           };
           this.validateForm.patchValue(this.newBillExport);
           this.changeProductGroup(this.newBillExport.KhoTypeID);
- this.changeCustomer();
+          this.changeCustomer();
           // Make Code and Address readonly and grayed out
           this.validateForm.get('Code')?.disable();
           this.validateForm.get('Address')?.disable();
@@ -1602,7 +1602,7 @@ export class BillExportDetailComponent
       ProductCode: selectedProduct.ProductCode,
       ProductNewCode: selectedProduct.ProductNewCode,
       Unit: selectedProduct.Unit || '',
-      TotalInventory: selectedProduct.TotalInventory || 0,
+      TotalInventory: (selectedProduct.TotalQuantityLast ?? selectedProduct.TotalInventory ?? 0),
       ProductName: selectedProduct.ProductName,
     });
 

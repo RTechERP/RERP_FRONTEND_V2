@@ -56,6 +56,7 @@ import { NzSpinModule } from 'ng-zorro-antd/spin';
 // REFACTOR: Import TabulatorPopupService để sử dụng reusable popup component
 import { TabulatorPopupService } from '../../../../shared/components/tabulator-popup';
 import { HasPermissionDirective } from '../../../../directives/has-permission.directive';
+import { BillExportService } from '../../Sale/BillExport/bill-export-service/bill-export.service';
 
 
 @Component({
@@ -185,8 +186,8 @@ export class BillImportTechnicalFormComponent implements OnInit, AfterViewInit {
     private notification: NzNotificationService,
     private tbProductRtcService: TbProductRtcService,
     private appUserService: AppUserService,
-    // REFACTOR: Inject TabulatorPopupService
-    private tabulatorPopupService: TabulatorPopupService
+    private tabulatorPopupService: TabulatorPopupService,
+    private billExportService: BillExportService
   ) { }
 
   supplierOrCustomerValidator(
@@ -263,6 +264,16 @@ export class BillImportTechnicalFormComponent implements OnInit, AfterViewInit {
       this.nccList = res.data || [];
       console.log('NCC List:', this.nccList);
     });
+
+    this.billExportService.getCbbSupplierSale().subscribe({
+      next: (res: any) => {
+        this.nccList = res.data;
+      },
+      error: (err: any) => {
+        this.notification.error('Thông báo', 'Có lỗi xảy ra khi lấy dữ liệu');
+      },
+    });
+  
   }
   getRulepay() {
     this.billImportTechnicalService.getRulepay().subscribe((res: any) => {
@@ -1364,14 +1375,6 @@ export class BillImportTechnicalFormComponent implements OnInit, AfterViewInit {
     }
     // Sử dụng getRawValue() để lấy cả field bị disable như BillCode
     const formValue = this.formDeviceInfo.getRawValue();
-
-    // Debug: Log giá trị WarehouseID
-    console.log('DEBUG - WarehouseID values:', {
-      fromForm: formValue.WarehouseID,
-      fromInstance: this.warehouseID,
-      finalValue: formValue.WarehouseID || this.warehouseID || 1
-    });
-
     // Validate that all devices have ProductID
     const invalidProduct = this.selectedDevices.find(
       (d: any) => !d.ProductID || d.ProductID <= 0
@@ -1398,11 +1401,9 @@ export class BillImportTechnicalFormComponent implements OnInit, AfterViewInit {
       }
     }
 
-    // Lấy text hiển thị từ dropdown (giống WinForm: cboDeliver.Text, cboReceiver.Text)
     const deliverEmployee = this.emPloyeeLists.find(e => e.ID === formValue.DeliverID);
     const receiverEmployee = this.emPloyeeLists.find(e => e.ID === formValue.ReceiverID);
 
-    // Nếu có textbox Deliver thì ưu tiên textbox, không thì lấy từ dropdown
     const deliverText = formValue.Deliver || deliverEmployee?.FullName || '';
     const receiverText = receiverEmployee?.FullName || '';
 
@@ -1522,17 +1523,9 @@ export class BillImportTechnicalFormComponent implements OnInit, AfterViewInit {
         StatusPurchase: doc.DocumentStatusPur === true ? 1 : 2,
         UpdatedDate: new Date().toISOString(),
       })),
-      PonccID: this.PonccID, // Sẽ được set khi vớt từ PO sang
+      PonccID: this.PonccID || 0, // Sẽ được set khi vớt từ PO sang
     };
 
-    console.log('========== PAYLOAD BEING SENT ==========');
-    console.log('BillImportTechnical:', {
-      WarehouseID: payload.billImportTechnical.WarehouseID,
-      Deliver: payload.billImportTechnical.Deliver,
-      Receiver: payload.billImportTechnical.Receiver,
-      DeliverID: payload.billImportTechnical.DeliverID,
-      ReceiverID: payload.billImportTechnical.ReceiverID,
-    });
     console.log('Full Payload:', JSON.stringify(payload, null, 2));
     console.log('========================================');
 

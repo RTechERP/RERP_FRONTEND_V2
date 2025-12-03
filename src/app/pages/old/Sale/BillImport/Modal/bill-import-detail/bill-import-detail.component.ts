@@ -1648,6 +1648,7 @@ export class BillImportDetailComponent
         billDocumentImports: this.mapTableDataToDocumentImports(
           documentsFromTable || []
         ),
+        pONCCID: this.poNCCId || 0,
       },
     ];
 

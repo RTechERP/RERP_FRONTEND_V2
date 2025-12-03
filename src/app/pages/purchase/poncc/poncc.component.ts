@@ -25,6 +25,7 @@ import { HasPermissionDirective } from '../../../directives/has-permission.direc
 import { NzDropDownModule } from "ng-zorro-antd/dropdown";
 import { BillImportDetailComponent } from '../../old/Sale/BillImport/Modal/bill-import-detail/bill-import-detail.component';
 import { firstValueFrom } from 'rxjs';
+import ExcelJS from 'exceljs';
 import { BillImportTechnicalComponent } from '../../old/bill-import-technical/bill-import-technical.component';
 import { BillImportTechnicalFormComponent } from '../../old/bill-import-technical/bill-import-technical-form/bill-import-technical-form.component';
 @Component({
@@ -79,6 +80,13 @@ export class PONCCComponent implements OnInit, AfterViewInit {
 
   listDetail: any[] = [];
 
+  poCode: string = 'hihi';
+
+  // Lưu trạng thái bảng để khôi phục sau khi reload
+  private savedScrollPosition: number = 0;
+  private savedSelectedRowIds: number[] = [];
+  private savedTabIndex: number = -1;
+
   // Map to store details for each master PONCC ID
   private masterDetailsMap: Map<number, any[]> = new Map();
 
@@ -106,6 +114,87 @@ export class PONCCComponent implements OnInit, AfterViewInit {
 
   toggleSearchPanel() {
     this.sizeSearch = this.sizeSearch == '0' ? '22%' : '0';
+  }
+
+  // Lưu trạng thái bảng (scroll position và selected rows)
+  private saveTableState(): void {
+    const currentTable = this.activeTabIndex === 0 ? this.tablePoThuongMai : this.tablePoMuon;
+    if (!currentTable) return;
+
+    try {
+      // Lưu scroll position
+      const scrollElement = currentTable.element.querySelector('.tabulator-tableholder');
+      if (scrollElement) {
+        this.savedScrollPosition = scrollElement.scrollTop;
+      }
+
+      // Lưu selected row IDs
+      const selectedRows = currentTable.getSelectedRows();
+      this.savedSelectedRowIds = selectedRows.map((row: any) => row.getData().ID).filter((id: number) => id > 0);
+
+      // Lưu tab index
+      this.savedTabIndex = this.activeTabIndex;
+
+      console.log('Saved table state:', {
+        scrollPosition: this.savedScrollPosition,
+        selectedRowIds: this.savedSelectedRowIds,
+        tabIndex: this.savedTabIndex
+      });
+    } catch (error) {
+      console.error('Error saving table state:', error);
+    }
+  }
+
+  // Khôi phục trạng thái bảng (scroll position và selected rows)
+  private restoreTableState(): void {
+    const currentTable = this.activeTabIndex === 0 ? this.tablePoThuongMai : this.tablePoMuon;
+    if (!currentTable) return;
+
+    // Chỉ restore nếu đúng tab
+    if (this.savedTabIndex !== this.activeTabIndex) {
+      this.clearSavedState();
+      return;
+    }
+
+    try {
+      // Restore scroll position
+      if (this.savedScrollPosition > 0) {
+        const scrollElement = currentTable.element.querySelector('.tabulator-tableholder');
+        if (scrollElement) {
+          scrollElement.scrollTop = this.savedScrollPosition;
+        }
+      }
+
+      // Restore selected rows
+      if (this.savedSelectedRowIds.length > 0) {
+        const allRows = currentTable.getRows();
+        allRows.forEach((row: any) => {
+          const rowData = row.getData();
+          if (this.savedSelectedRowIds.includes(rowData.ID)) {
+            row.select();
+          }
+        });
+      }
+
+      console.log('Restored table state:', {
+        scrollPosition: this.savedScrollPosition,
+        selectedRowIds: this.savedSelectedRowIds,
+        tabIndex: this.savedTabIndex
+      });
+
+      // Clear saved state after restoration
+      this.clearSavedState();
+    } catch (error) {
+      console.error('Error restoring table state:', error);
+      this.clearSavedState();
+    }
+  }
+
+  // Xóa trạng thái đã lưu
+  private clearSavedState(): void {
+    this.savedScrollPosition = 0;
+    this.savedSelectedRowIds = [];
+    this.savedTabIndex = -1;
   }
 
   /**
@@ -201,7 +290,6 @@ export class PONCCComponent implements OnInit, AfterViewInit {
    */
   private handleMasterSelectionChange(selectedMasters: any[]): void {
     const selectedIds = selectedMasters.map(m => m.ID);
-
     // Nếu không còn master nào → clear hết
     if (selectedIds.length === 0) {
       this.masterDetailsMap.clear();
@@ -211,7 +299,12 @@ export class PONCCComponent implements OnInit, AfterViewInit {
       return;
     }
 
-    this.sizeTbDetail = '35%';
+    this.sizeTbDetail = '38%';
+
+    const latestMaster = selectedMasters[selectedMasters.length - 1];
+    if (latestMaster) {
+      this.poCode = latestMaster.POCode;
+    }
 
     const newMasterIds = selectedIds.filter(id => !this.masterDetailsMap.has(id));
     const deselectedIds = Array.from(this.masterDetailsMap.keys()).filter(id => !selectedIds.includes(id));
@@ -303,10 +396,10 @@ export class PONCCComponent implements OnInit, AfterViewInit {
         title: 'Ngày giao hàng', field: 'DeliveryDate', width: 100, headerSort: false, hozAlign: 'center', frozen: true,
         formatter: (cell: any) => this.formatDateDDMMYYYY(cell.getValue())
       },
-      { title: 'Số PO', field: 'POCode', width: 120, headerSort: false, hozAlign: 'left', formatter: 'textarea', bottomCalc: 'count' },
-      { title: 'Số đơn hàng', field: 'BillCode', width: 120, headerSort: false, hozAlign: 'left', formatter: 'textarea', bottomCalc: 'count' },
+      { title: 'Số PO', field: 'POCode', width: 120, headerSort: false, hozAlign: 'left', formatter: 'textarea', frozen: true, bottomCalc: 'count' },
+      { title: 'Số đơn hàng', field: 'BillCode', width: 120, headerSort: false, hozAlign: 'left', formatter: 'textarea', frozen: true, bottomCalc: 'count' },
       {
-        title: 'Tổng tiền', field: 'TotalMoneyPO', width: 120, headerSort: false, hozAlign: 'right',
+        title: 'Tổng tiền', field: 'TotalMoneyPO', width: 120, headerSort: false, hozAlign: 'right', frozen: true,
         bottomCalc: 'sum', bottomCalcFormatter: (cell: any) => this.formatNumberEnUS(cell.getValue()),
         formatter: (cell: any) => this.formatNumberEnUS(cell.getValue())
       },
@@ -329,7 +422,7 @@ export class PONCCComponent implements OnInit, AfterViewInit {
         },
       },
       {
-        title: 'Phí ngân hàng', field: 'BankCharge', width: 120, headerSort: false, hozAlign: 'right',
+        title: 'Bank charge', field: 'BankCharge', width: 120, headerSort: false, hozAlign: 'right',
         bottomCalc: 'sum', bottomCalcFormatter: (cell: any) => this.formatNumberEnUS(cell.getValue()),
         formatter: (cell: any) => this.formatNumberEnUS(cell.getValue())
       },
@@ -350,7 +443,7 @@ export class PONCCComponent implements OnInit, AfterViewInit {
       this.tablePoThuongMai = new Tabulator(this.tablePoThuongMaiRef.nativeElement, {
         ...DEFAULT_TABLE_CONFIG,
         columns: columns,
-        height: '52vh',
+        height: '100%',
         data: [],
         layout: 'fitDataStretch',
         selectableRows: true,
@@ -365,7 +458,7 @@ export class PONCCComponent implements OnInit, AfterViewInit {
       this.tablePoMuon = new Tabulator(this.tablePoMuonRef.nativeElement, {
         ...DEFAULT_TABLE_CONFIG,
         columns: columns,
-        height: '52vh',
+        height: '100%',
         layout: 'fitDataStretch',
         data: [],
         selectableRows: true,
@@ -384,7 +477,7 @@ export class PONCCComponent implements OnInit, AfterViewInit {
       { title: 'Tên sản phẩm', field: 'ProductName', width: 200, headerSort: false, frozen: true, hozAlign: 'left', formatter: 'textarea' },
       { title: 'Mã nội bộ', field: 'ProductNewCode', width: 120, headerSort: false, hozAlign: 'left', formatter: 'textarea' },
       { title: 'Tên nhóm', field: 'ProductGroupName', width: 120, headerSort: false, hozAlign: 'left', formatter: 'textarea' },
-      { title: 'Mã SP NCC', field: 'ProductCodeOfSupplier', width: 120, headerSort: false, hozAlign: 'left', formatter: 'textarea' },
+      { title: 'Mã SP NCC', field: 'ProductCodeOfSupplier', width: 200, headerSort: false, hozAlign: 'left', formatter: 'textarea' },
       { title: 'Mã cha', field: 'ParentProductCode', width: 120, headerSort: false, hozAlign: 'left', formatter: 'textarea' },
       { title: 'Mã dự án', field: 'ProjectCode', width: 120, headerSort: false, hozAlign: 'left', formatter: 'textarea' },
       { title: 'Tên dự án', field: 'ProjectName', width: 200, headerSort: false, hozAlign: 'left', formatter: 'textarea' },
@@ -433,7 +526,7 @@ export class PONCCComponent implements OnInit, AfterViewInit {
         ...DEFAULT_TABLE_CONFIG,
         columns: columns,
         layout: 'fitDataStretch',
-        height: '100%',
+        height: '30vh',
         data: [],
         pagination: false,
       });
@@ -518,7 +611,14 @@ export class PONCCComponent implements OnInit, AfterViewInit {
 
         // Reload table after modal closes
         modalRef.result.finally(() => {
+          // Lưu trạng thái trước khi reload
+          this.saveTableState();
+
+          // Reload data
           this.onSearch();
+
+          // Restore trạng thái sau khi load xong (delay để đảm bảo data đã load)
+          setTimeout(() => this.restoreTableState(), 300);
         });
       },
       error: (err) => {
@@ -606,8 +706,14 @@ export class PONCCComponent implements OnInit, AfterViewInit {
 
             this.notification.success(NOTIFICATION_TITLE.success, message);
 
+            // Lưu trạng thái trước khi reload
+            this.saveTableState();
+
             // Reload table
             this.onSearch();
+
+            // Restore trạng thái sau khi load xong
+            setTimeout(() => this.restoreTableState(), 300);
           },
           error: (err) => {
             this.isLoading = false;
@@ -675,7 +781,13 @@ export class PONCCComponent implements OnInit, AfterViewInit {
               `Đã ${isApproveText} thành công ${listPONCC.length} PO`
             );
 
+            // Lưu trạng thái trước khi reload
+            this.saveTableState();
+
             this.onSearch();
+
+            // Restore trạng thái sau khi load xong
+            setTimeout(() => this.restoreTableState(), 300);
           },
           error: (err: any) => {
             this.isLoading = false;
@@ -733,7 +845,13 @@ export class PONCCComponent implements OnInit, AfterViewInit {
 
         // Reload table after modal closes
         modalRef.result.finally(() => {
+          // Lưu trạng thái trước khi reload
+          this.saveTableState();
+
           this.onSearch();
+
+          // Restore trạng thái sau khi load xong
+          setTimeout(() => this.restoreTableState(), 300);
         });
       },
       error: (err) => {
@@ -777,7 +895,7 @@ export class PONCCComponent implements OnInit, AfterViewInit {
     const fileName = `DanhSachPO_${dateStartStr}_${dateEndStr}.xlsx`;
 
     // Use ExcelJS to create workbook
-    const ExcelJS = await import('exceljs');
+    //const ExcelJS = await import('exceljs');
     const workbook = new ExcelJS.Workbook();
     const worksheet = workbook.addWorksheet(tabName);
 
@@ -923,7 +1041,6 @@ export class PONCCComponent implements OnInit, AfterViewInit {
 
     const currentTable = this.activeTabIndex === 0 ? this.tablePoThuongMai : this.tablePoMuon;
     const selectedRows = currentTable?.getSelectedData();
-    const selectedRowDetail = this.tableDetail.getSelectedData();
     // Validate selection
     if (!selectedRows || selectedRows.length <= 0) {
       this.notification.warning(NOTIFICATION_TITLE.warning, 'Vui lòng chọn PO!');
@@ -968,6 +1085,13 @@ export class PONCCComponent implements OnInit, AfterViewInit {
           let listDemoDetail = res.data.listDemoDetail || [];
           let listDemoPonccId = res.data.listDemoPonccId || [];
           let listSalePonccId = res.data.listSalePonccId || [];
+
+          console.log('dataSale', dataSale);
+          console.log('listSaleDetail', listSaleDetail);
+          console.log('listSalePonccId', listSalePonccId);
+          console.log('dataDemo', dataDemo);
+          console.log('listDemoDetail', listDemoDetail);
+          console.log('listDemoPonccId', listDemoPonccId);
 
           if (dataSale.length > 0) {
             this.openBillImportModalSequentially(dataSale, listSaleDetail, listSalePonccId, warehouseID, 0, 0);
@@ -1016,12 +1140,6 @@ export class PONCCComponent implements OnInit, AfterViewInit {
         windowClass: 'full-screen-modal',
       });
 
-      console.log('Sale', index + 1);
-      console.log('Mở modal thứ', index + 1);
-      console.log('Data master:', dataMaster);
-      console.log('Data detail:', dataDetail);
-      console.log('PO NCC ID:', ponccId);
-
       modalRef.componentInstance.newBillImport = dataMaster;
       modalRef.componentInstance.WarehouseCode = warehouseCode;
       modalRef.componentInstance.selectedList = dataDetail;
@@ -1048,12 +1166,6 @@ export class PONCCComponent implements OnInit, AfterViewInit {
         centered: true,
         windowClass: 'full-screen-modal',
       });
-
-      console.log('demo', index + 1);
-      console.log('Mở modal thứ', index + 1);
-      console.log('Data master:', dataMaster);
-      console.log('Data detail:', dataDetail);
-      console.log('PO NCC ID:', ponccId)
 
       modalRef.componentInstance.newBillImport = dataMaster;
       modalRef.componentInstance.warehouseID = warehouseID;

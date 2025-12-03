@@ -57,6 +57,7 @@
 .tabulator {
   font-size: 0.75rem !important;
   width: 100% !important;
+  /* position: absolute; */
 }
 
 /* Đảm bảo tabset và tab content có chiều cao đầy đủ */
@@ -87,4 +88,12 @@
 /* Detail table container needs to scroll */
 :host ::ng-deep .tabulator-tableholder {
   overflow: auto !important;
+}
+
+::ng-deep .tab-content-container {
+  height: 100% !important;
+}
+
+::ng-deep .ant-tabs-content {
+  height: 100% !important;
 }

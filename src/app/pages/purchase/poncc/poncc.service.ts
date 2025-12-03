@@ -53,6 +53,14 @@ export class PONCCService {
     return this.http.get<any>(`${this.baseUrl}poncc-detail?idText=${idText}&warehouseID=${warehouseID}&detailId=${detailId}`);
   }
 
+  getWarehouseCode(warehouseID: number): Observable<any> {
+    return this.http.get<any>(`${this.baseUrl}warehouse-code?warehouseId=${warehouseID}`);
+  }
+  
+  getBillImportTech(billimportTechId: number): Observable<any> {
+    return this.http.get<any>(`${this.baseUrl}bill-import-tech?billimportTechId=${billimportTechId}`);
+  }
+
   getReceivedId(warehouseID: number, productGroupID: number): Observable<any> {
     return this.http.get<any>(`${this.baseUrl}receivedId?warehouseID=${warehouseID}&productGroupID=${productGroupID}`);
   }

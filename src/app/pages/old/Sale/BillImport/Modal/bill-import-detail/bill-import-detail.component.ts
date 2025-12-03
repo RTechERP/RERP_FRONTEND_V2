@@ -184,6 +184,7 @@ export class BillImportDetailComponent
 
   @Input() WarehouseCode = 'HN';
   @Input() poNCCId = 0;
+  @Input() warehouseID = 0;
   @Output() saveSuccess = new EventEmitter<void>(); // Emit khi save thành công trong chế độ embedded
 
   @Input() newBillImport: BillImport = {
@@ -406,7 +407,7 @@ export class BillImportDetailComponent
       console.log('🔵 Luồng PONCC detected - poNCCId:', this.poNCCId);
       console.log('🔵 Master data:', this.newBillImport);
       console.log('🔵 Detail data (selectedList):', this.selectedList);
-      
+
       this.initialBillTypeNew = this.newBillImport.BillTypeNew || 4;
       this.isInitialLoad = false;
 
@@ -457,7 +458,7 @@ export class BillImportDetailComponent
     if (this.poNCCId > 0 && this.newBillImport && this.newBillImport.BillImportCode) {
       // Patch master data từ PONCC vào form
       this.patchDataFromPONCC();
-      
+
       // Sau đó gọi changeProductGroup để load product options và map detail data
       // changeProductGroup sẽ detect luồng PONCC và gọi mapDataFromPONCCToTable()
       if (this.newBillImport.KhoTypeID && this.newBillImport.KhoTypeID > 0) {
@@ -532,8 +533,8 @@ export class BillImportDetailComponent
         CreatDate: this.newBillImport.CreatDate ? new Date(this.newBillImport.CreatDate) : null,
         KhoTypeID: this.newBillImport.KhoTypeID || 0,
         RulePayID: this.newBillImport.RulePayID || 0,
-        DateRequestImport: this.newBillImport.DateRequestImport 
-          ? new Date(this.newBillImport.DateRequestImport) 
+        DateRequestImport: this.newBillImport.DateRequestImport
+          ? new Date(this.newBillImport.DateRequestImport)
           : new Date(),
       },
       { emitEvent: false }
@@ -636,12 +637,12 @@ export class BillImportDetailComponent
         console.log('🔍 Cấu trúc item đầu tiên từ PONCC:', item);
         console.log('🔍 Các keys có sẵn:', Object.keys(item));
       }
-      
+
       // Tìm thông tin sản phẩm từ productOptions dựa trên ProductSaleID
       // ProductID trong PONCC data thực chất là ProductSaleID
       const productInfo =
         this.productOptions.find((p: any) => p.value === item.ProductSaleID) || {};
-      
+
       // Tìm thông tin dự án từ projectOptions nếu có
       const projectInfo =
         this.projectOptions.find((p: any) => p.value === item.ProjectID) || {};
@@ -649,37 +650,37 @@ export class BillImportDetailComponent
       return {
         ID: 0, // Mới tạo, chưa có ID
         PONCCDetailID: item.ID || 0, // Lưu ID của PO detail để trace back
-        
+
         // ProductID map từ ProductSaleID trong data PONCC
         ProductID: item.ProductSaleID || null,
-        
+
         // Các trường sản phẩm: ưu tiên từ item, fallback về productInfo
         ProductNewCode: item.ProductNewCode || productInfo.ProductNewCode || '',
         ProductCode: item.ProductCode || productInfo.ProductCode || '',
         ProductName: item.ProductName || productInfo.ProductName || '',
         Unit: item.UnitName || item.Unit || productInfo.Unit || '',
         TotalInventory: productInfo.TotalInventory || 0,
-        
+
         // Số lượng yêu cầu từ PO
         Qty: item.QtyRequest || item.QuantityRemain || 0,
         QuantityRemain: item.QuantityRemain || 0,
         QtyRequest: item.QtyRequest || 0,
-        
+
         // Thông tin dự án
         ProjectID: item.ProjectID || 0,
         ProjectCodeExport: item.ProjectCode || projectInfo.ProjectCode || '',
         ProjectNameText: item.ProjectName || projectInfo.label || '',
-        
+
         // Giá và thông tin khác từ PO
         ProductFullName: item.ProductName || '',
         // Note: item.Note || '',
         UnitPricePOKH: item.UnitPrice || 0,
         UnitPricePurchase: item.UnitPrice || 0,
-        
+
         // Mã đơn hàng
         Note: item.POCode || '', // Để trống, sẽ được tạo khi lưu phiếu nhập
         BillCodePO: item.BillCode || '', // Mã đơn mua hàng từ PONCC
-        
+
         // Thông tin khác
         Specifications: item.Specifications || '',
         GroupExport: '',
@@ -696,7 +697,7 @@ export class BillImportDetailComponent
         BillImportDetailID: 0,
         ExpectReturnDate: new Date(),
         InventoryProjectIDs: item.ProjectID ? [item.ProjectID] : [],
-        
+
         // Thông tin thuế và giảm giá
         SomeBill: '',
         DateSomeBill: null,
@@ -708,7 +709,7 @@ export class BillImportDetailComponent
         BillExportDetailID: 0,
         CodeMaPhieuMuon: '',
         ProjectCode: item.ProjectCode || '',
-        
+
         // Thêm các trường từ PO NCC
         PONCCCode: item.POCode || '',
         VAT: item.VAT || 0,
@@ -1943,10 +1944,10 @@ export class BillImportDetailComponent
         if (this.poNCCId > 0 && this.selectedList && this.selectedList.length > 0) {
           console.log('🔵 changeProductGroup: Xử lý luồng PONCC');
           this.isEditPM = false; // Không cho phép chỉnh sửa PM
-          
+
           // Patch master data từ PONCC (đã có sẵn trong newBillImport)
           this.patchDataFromPONCC();
-          
+
           // Map detail data từ PONCC vào table
           this.mapDataFromPONCCToTable();
         }
@@ -1958,7 +1959,7 @@ export class BillImportDetailComponent
         ) {
           this.isEditPM = false;
           this.mapDataHistoryToTable();
-        } 
+        }
         // LUỒNG CHỈNH SỬA - Load dữ liệu từ ID
         else if (this.isCheckmode) {
           this.getBillImportDetailID();

@@ -126,7 +126,7 @@
                         <button nz-button nzType="default" nzSize="small" (click)="onCheckOrder(activeTabIndex, false)">
                             <img class="btn-action-icon" src="assets/icon/action_cancle_24.svg" />Hủy Check đặt
                             hàng</button>
-                        <button nz-button nzType="default" nzSize="small" (click)="onSaveData()"
+                        <button nz-button nzType="default" nzSize="small" (click)="onSaveData(activeTabIndex)"
                             *hasPermission="'N35,N1'"><img class="btn-action-icon"
                                 src="assets/icon/action_save_24.svg" />Lưu thay
                             đổi</button>

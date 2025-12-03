@@ -128,7 +128,7 @@ export class MenuService {
     private permissionService: PermissionService,
     private appUserService: AppUserService,
     private notification: NzNotificationService
-  ) {}
+  ) { }
 
   private menuKeySource = new BehaviorSubject<string>('');
   menuKey$ = this.menuKeySource.asObservable();
@@ -2225,7 +2225,7 @@ export class MenuService {
         children: [
           {
             kind: 'group',
-            key: 'POKHComponent',
+            key: 'POKHComponentGroup',
             title: 'PO KHÁCH HÀNG',
             isOpen: true,
             isPermission: this.permissionService.hasPermission(''),
@@ -2238,6 +2238,7 @@ export class MenuService {
                 isPermission:
                   this.permissionService.hasPermission('N27,N36,N1,N31'),
                 comp: PokhComponent,
+                data: { warehouseId: 1 },
               },
               {
                 kind: 'leaf',
@@ -2292,6 +2293,16 @@ export class MenuService {
                 isPermission: this.permissionService.hasPermission(''),
                 comp: FollowProjectBaseComponent,
               },
+              {
+                kind: 'leaf',
+                key: 'CustomerComponent',
+                title: 'Khách hàng',
+                isOpen: true,
+                isPermission:
+                  this.permissionService.hasPermission('N1,N27,N53,N31,N69'),
+                comp: CustomerComponent,
+                // icon: 'assets/icon/menu_crm.svg',
+              },
             ],
           },
           {
@@ -2328,6 +2339,17 @@ export class MenuService {
             comp: RequestInvoiceComponent,
             data: { warehouseId: 1 },
           },
+          // {
+          //   kind: 'leaf',
+          //   key: 'POKHComponent_HCM',
+          //   title: 'PO KHÁCH HÀNG - HCM',
+          //   isOpen: true,
+          //   isPermission:
+          //     this.permissionService.hasPermission('N54,N1,N36'),
+          //   comp: PokhComponent,
+          //   data: { warehouseId: 2 },
+          // },
+
         ],
       },
       //#endregion

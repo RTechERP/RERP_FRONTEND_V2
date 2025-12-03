@@ -38,6 +38,14 @@ export class ViewPokhService {
   loadUser(): Observable<any> {
     return this.http.get<any>(this._url + 'get-user');
   }
+
+  loadEmployeeByTeamSale(teamId: number): Observable<any> {
+    return this.http.get<any>(this._url + 'get-employee-by-teamsale', {
+      params: {
+        teamId: teamId.toString(),
+      },
+    });
+  }
   loadCustomer(): Observable<any> {
     return this.http.get<any>(this._url + 'get-customer');
   }

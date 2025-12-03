@@ -582,6 +582,10 @@ export class WarehouseReleaseRequestComponent implements OnInit {
     });
   }
 
+  onWarehouseTranferSelect(warehouse: any) {
+    this.notification.warning('Thông báo!', "Chức năng đang phát triển")
+  }
+
   /**
    * Mở modal chi tiết cho từng bill export tuần tự
    * @param index - Index của bill export hiện tại trong mảng billExports
@@ -756,8 +760,8 @@ export class WarehouseReleaseRequestComponent implements OnInit {
       reactiveData: true,
       resizableRows: true,
       movableColumns: true,
-      selectableRows: true,
-      selectableRange: true,
+      // selectableRows: true,
+      // selectableRange: true,
       pagination: true,
       paginationSize: 500,
       rowHeader: false,
@@ -770,6 +774,10 @@ export class WarehouseReleaseRequestComponent implements OnInit {
           formatter: 'rowSelection',
           titleFormatter: 'rowSelection',
           frozen: true,
+          cellClick: (e, cell) => {
+            // Only toggle selection when clicking the checkbox
+            cell.getRow().toggleSelect();
+          },
         },
         {
           title: 'ID',
@@ -777,6 +785,7 @@ export class WarehouseReleaseRequestComponent implements OnInit {
           width: 120,
           hozAlign: 'center',
           visible: false,
+          frozen: true,
         },
         {
           title: 'ID cha',
@@ -784,9 +793,11 @@ export class WarehouseReleaseRequestComponent implements OnInit {
           width: 120,
           hozAlign: 'center',
           visible: false,
+          frozen: true,
         },
         {
           title: 'Trạng thái',
+          formatter: 'textarea',
           field: 'StatusText',
           width: 120,
           frozen: true,
@@ -800,6 +811,7 @@ export class WarehouseReleaseRequestComponent implements OnInit {
         {
           title: 'Khách hàng',
           field: 'CustomerName',
+          formatter: 'textarea',
           width: 250,
           frozen: true,
         },
@@ -827,6 +839,7 @@ export class WarehouseReleaseRequestComponent implements OnInit {
         },
         {
           title: 'Tên sản phẩm',
+          formatter: 'textarea',
           field: 'ProductName',
           width: 250,
         },

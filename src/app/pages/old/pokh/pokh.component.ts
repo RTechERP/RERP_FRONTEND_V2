@@ -165,7 +165,7 @@ export class PokhComponent implements OnInit, AfterViewInit {
   dataPOKHDetailUser: any[] = [];
   selectedCustomer: any = null;
   mainIndexes: any[] = [];
-
+  warehouseId: number = 0;
   filters: any = {
     filterText: '',
     pageNumber: 1,
@@ -1308,16 +1308,18 @@ export class PokhComponent implements OnInit, AfterViewInit {
       windowClass: 'full-screen-modal',
       backdrop: 'static',
     });
-    this.modalRef.componentInstance.warehouseId = this.filters.warehouseId; //Kho HN
+    this.modalRef.componentInstance.warehouseId = this.filters.warehouseId; 
   }
 
   openWarehouseReleaseRequestModal() {
-    this.modalService.open(WarehouseReleaseRequestComponent, {
+    this.modalRef = this.modalService.open(WarehouseReleaseRequestComponent, {
       centered: true,
       backdrop: 'static',
       windowClass: 'full-screen-modal',
     });
+    this.modalRef.componentInstance.warehouseId = this.filters.warehouseId;
   }
+  
   openPORequestBuyModal() {
     if (!this.selectedId) {
       this.notification.warning(
@@ -1359,6 +1361,7 @@ export class PokhComponent implements OnInit, AfterViewInit {
     // Truyền dữ liệu sang modal con
     this.modalRef.componentInstance.isEditMode = this.isEditMode;
     this.modalRef.componentInstance.selectedId = this.selectedId;
+    this.modalRef.componentInstance.warehouseId = this.filters.warehouseId;
 
     this.modalRef.result.then(
       (result: any) => {

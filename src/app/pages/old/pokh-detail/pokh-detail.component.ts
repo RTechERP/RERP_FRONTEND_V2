@@ -111,7 +111,8 @@ export class PokhDetailComponent implements OnInit, AfterViewInit {
   pokhForm!: NgForm;
   @Input() isEditMode: boolean = false;
   @Input() selectedId: number = 0;
-
+  @Input() warehouseId: number = 0;
+  
   sizeSearch: string = '0';
   toggleSearchPanel() {
     this.sizeSearch = this.sizeSearch == '0' ? '22%' : '0';

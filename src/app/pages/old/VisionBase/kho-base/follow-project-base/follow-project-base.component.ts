@@ -1,4 +1,4 @@
-import { Component, ViewEncapsulation } from '@angular/core';
+import { Component, Inject, Optional, ViewEncapsulation } from '@angular/core';
 import { NzCardModule } from 'ng-zorro-antd/card';
 import { FormsModule } from '@angular/forms';
 import { NzButtonModule, NzButtonSize } from 'ng-zorro-antd/button';
@@ -93,7 +93,7 @@ export class FollowProjectBaseComponent implements OnInit {
   user: number = 0;
   customerID: number = 0;
   pm: number = 0;
-  warehouseID: number = 1;
+  warehouseID: number = 0;
   groupSaleID: number = 0;
 
 
@@ -111,10 +111,13 @@ export class FollowProjectBaseComponent implements OnInit {
     private modal: NzModalService,
     private modalService: NgbModal,
     private khoBaseService: KhoBaseService,
+    @Optional() @Inject('tabData') private tabData: any
   ) { }
 
   ngOnInit() {
-
+    if (this.tabData) {
+      this.warehouseID = this.tabData.warehouseId;
+    }
   }
   ngAfterViewInit(): void {
     this.drawTbFollowProject(this.tb_followProjectContainer.nativeElement);

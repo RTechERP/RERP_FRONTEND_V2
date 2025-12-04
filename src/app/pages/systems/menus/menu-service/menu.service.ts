@@ -113,13 +113,14 @@ import { ProductRtcQrCodeComponent } from '../../../old/product-rtc-qr-code/prod
 import { ProjectPartlistPurchaseRequestComponent } from '../../../purchase/project-partlist-purchase-request/project-partlist-purchase-request.component';
 import { ProjectPartlistPriceRequestComponent } from '../../../old/project-partlist-price-request/project-partlist-price-request.component';
 import { PONCCComponent } from '../../../purchase/poncc/poncc.component';
-import { EmployeeSaleManagerComponent } from '../../../old/employee-sale-manager/employee-sale-manager.component';
+import { EmployeeSaleManagerComponent } from '../../../old/KPISale/employee-sale-manager/employee-sale-manager.component';
 import { RequestInvoiceComponent } from '../../../old/request-invoice/request-invoice.component';
 import { AssignWorkComponent } from '../../../purchase/assign-work/assign-work.component';
 import { PersonComponent } from '../../../person/person.component';
 import { InventoryProjectComponent } from '../../../purchase/inventory-project/inventory-project/inventory-project.component';
 import { WarehouseComponent } from '../../../warehouse/warehouse.component';
 import { WarehouseComponent1 } from '../../../general-category/wearhouse/warehouse/warehouse.component';
+import { DailyReportSaleComponent } from '../../../old/KPISale/daily-report-sale/daily-report-sale.component';
 @Injectable({
   providedIn: 'root',
 })
@@ -2285,131 +2286,188 @@ export class MenuService {
         children: [
           {
             kind: 'group',
-            key: 'POKHComponentGroup',
-            title: 'PO KHÁCH HÀNG',
+            key: 'Warehouse_HN',
+            title: 'Văn phòng Hà Nội',
+            isOpen: true,
+            isPermission: this.permissionService.hasPermission(''),
+            children: [
+              {
+                kind: 'group',
+                key: 'POKHComponentGroup',
+                title: 'PO KHÁCH HÀNG',
+                isOpen: true,
+                isPermission: this.permissionService.hasPermission(''),
+                children: [
+                  {
+                    kind: 'leaf',
+                    key: 'POKHComponent',
+                    title: 'DANH SÁCH PO',
+                    isOpen: true,
+                    isPermission:
+                      this.permissionService.hasPermission('N27,N36,N1,N31'),
+                    comp: PokhComponent,
+                    data: { warehouseId: 1 },
+                  },
+                  {
+                    kind: 'leaf',
+                    key: 'QuotationKhComponent',
+                    title: 'BÁO GIÁ KHÁCH HÀNG',
+                    isOpen: true,
+                    isPermission:
+                      this.permissionService.hasPermission('N27,N36,N1'),
+                    comp: QuotationKhComponent,
+                  },
+                  {
+                    kind: 'leaf',
+                    key: 'PokhKpiComponent',
+                    title: 'XUẤT PO KHÁCH HÀNG CHI TIẾT',
+                    isOpen: true,
+                    isPermission:
+                      this.permissionService.hasPermission('N27,N36,N1'),
+                    comp: PokhKpiComponent,
+                  },
+                  {
+                    kind: 'leaf',
+                    key: 'POKHHistoryComponent',
+                    title: 'LỊCH SỬ PO KHÁCH HÀNG',
+                    isOpen: true,
+                    isPermission: this.permissionService.hasPermission(''),
+                    comp: PokhHistoryComponent,
+                  },
+                ],
+              },
+              {
+                kind: 'group',
+                key: 'ProjectComponent',
+                title: 'Vision Base',
+                isOpen: true,
+                isPermission: this.permissionService.hasPermission(''),
+                children: [
+                  {
+                    kind: 'leaf',
+                    key: 'PlanWeekComponent',
+                    title: 'Kế hoạch tuần',
+                    isOpen: true,
+                    isPermission: this.permissionService.hasPermission(
+                      "'N1,N27,N53,N31,N69'"
+                    ),
+                    comp: PlanWeekComponent,
+                  },
+                  {
+                    kind: 'leaf',
+                    key: 'FollowProjectBaseComponent',
+                    title: 'Follow dự án',
+                    isOpen: true,
+                    isPermission: this.permissionService.hasPermission(''),
+                    comp: FollowProjectBaseComponent,
+                    data: { warehouseId: 1 },
+                  },
+                  {
+                    kind: 'leaf',
+                    key: 'CustomerComponent',
+                    title: 'Khách hàng',
+                    isOpen: true,
+                    isPermission:
+                      this.permissionService.hasPermission('N1,N27,N53,N31,N69'),
+                    comp: CustomerComponent,
+                    // icon: 'assets/icon/menu_crm.svg',
+                  },
+                ],
+              },
+              // {
+              //   kind: 'group',
+              //   key: 'KPIComponent',
+              //   title: 'KPI',
+              //   isOpen: true,
+              //   isPermission: this.permissionService.hasPermission(''),
+              //   children: [
+              //     {
+              //       kind: 'leaf',
+              //       key: 'BonusCoefficientComponent',
+              //       title: 'Tổng hợp báo cáo',
+              //       isOpen: true,
+              //       isPermission: this.permissionService.hasPermission("''"),
+              //       comp: BonusCoefficientComponent,
+              //     },
+              //     // {
+              //     //   kind: 'leaf',
+              //     //   key: 'EmployeeSaleManagerComponent',
+              //     //   title: 'Nhân viên Sale',
+              //     //   isOpen: true,
+              //     //   isPermission: this.permissionService.hasPermission("''"),
+              //     //   comp: EmployeeSaleManagerComponent,
+              //     // },
+              //     {
+              //       kind: 'leaf',
+              //       key: 'DailyReportSaleComponent',
+              //       title: 'Báo cáo hàng ngày',
+              //       isOpen: true,
+              //       isPermission: this.permissionService.hasPermission("''"),
+              //       comp: DailyReportSaleComponent,
+              //     },
+              //   ],
+              // },
+              {
+                kind: 'leaf',
+                key: 'RequestInvoiceComponent',
+                title: 'YÊU CẦU XUẤT HÓA ĐƠN',
+                isOpen: true,
+                isPermission: this.permissionService.hasPermission(''),
+                comp: RequestInvoiceComponent,
+                data: { warehouseId: 1 },
+              },
+            ]
+          },
+          {
+            kind: 'group',
+            key: 'Warehouse_HCM',
+            title: 'Văn phòng Hồ Chí Minh',
             isOpen: true,
             isPermission: this.permissionService.hasPermission(''),
             children: [
               {
                 kind: 'leaf',
-                key: 'POKHComponent',
+                key: 'RequestInvoiceComponent_HCM',
+                title: 'YÊU CẦU XUẤT HÓA ĐƠN',
+                isOpen: true,
+                isPermission: this.permissionService.hasPermission(''),
+                comp: RequestInvoiceComponent,
+                data: { warehouseId: 2 },
+              },
+              {
+                kind: 'leaf',
+                key: 'POKHComponent_HCM',
                 title: 'PO KHÁCH HÀNG',
                 isOpen: true,
                 isPermission:
-                  this.permissionService.hasPermission('N27,N36,N1,N31'),
+                  this.permissionService.hasPermission('N54,N1,N36'),
                 comp: PokhComponent,
-                data: { warehouseId: 1 },
+                data: { warehouseId: 2 },
               },
-              {
-                kind: 'leaf',
-                key: 'QuotationKhComponent',
-                title: 'BÁO GIÁ KHÁCH HÀNG',
-                isOpen: true,
-                isPermission:
-                  this.permissionService.hasPermission('N27,N36,N1'),
-                comp: QuotationKhComponent,
-              },
-              {
-                kind: 'leaf',
-                key: 'PokhKpiComponent',
-                title: 'XUẤT PO KHÁCH HÀNG CHI TIẾT',
-                isOpen: true,
-                isPermission:
-                  this.permissionService.hasPermission('N27,N36,N1'),
-                comp: PokhKpiComponent,
-              },
-              {
-                kind: 'leaf',
-                key: 'POKHHistoryComponent',
-                title: 'LỊCH SỬ PO KHÁCH HÀNG',
-                isOpen: true,
-                isPermission: this.permissionService.hasPermission(''),
-                comp: PokhHistoryComponent,
-              },
-            ],
-          },
-          {
-            kind: 'group',
-            key: 'ProjectComponent',
-            title: 'Vision Base',
-            isOpen: true,
-            isPermission: this.permissionService.hasPermission(''),
-            children: [
-              {
-                kind: 'leaf',
-                key: 'PlanWeekComponent',
-                title: 'Kế hoạch tuần',
-                isOpen: true,
-                isPermission: this.permissionService.hasPermission(
-                  "'N1,N27,N53,N31,N69'"
-                ),
-                comp: PlanWeekComponent,
-              },
-              {
-                kind: 'leaf',
-                key: 'FollowProjectBaseComponent',
-                title: 'Follow dự án',
-                isOpen: true,
-                isPermission: this.permissionService.hasPermission(''),
-                comp: FollowProjectBaseComponent,
-              },
-              {
-                kind: 'leaf',
-                key: 'CustomerComponent',
-                title: 'Khách hàng',
-                isOpen: true,
-                isPermission:
-                  this.permissionService.hasPermission('N1,N27,N53,N31,N69'),
-                comp: CustomerComponent,
-                // icon: 'assets/icon/menu_crm.svg',
-              },
-            ],
-          },
-          {
-            kind: 'group',
-            key: 'KPIComponent',
-            title: 'KPI',
-            isOpen: true,
-            isPermission: this.permissionService.hasPermission(''),
-            children: [
-              {
-                kind: 'leaf',
-                key: 'BonusCoefficientComponent',
-                title: 'Tổng hợp báo cáo',
-                isOpen: true,
-                isPermission: this.permissionService.hasPermission("''"),
-                comp: BonusCoefficientComponent,
-              },
-              {
-                kind: 'leaf',
-                key: 'EmployeeSaleManagerComponent',
-                title: 'Nhân viên Sale',
-                isOpen: true,
-                isPermission: this.permissionService.hasPermission("''"),
-                comp: EmployeeSaleManagerComponent,
-              },
-            ],
-          },
+            ]
+          }
+        ],
+      },
+      //#endregion
+
+      //#region Phòng Kế Toán
+      {
+        kind: 'group',
+        key: 'KT',
+        title: 'PHÒNG KẾ TOÁN',
+        isOpen: true,
+        isPermission: this.permissionService.hasPermission(''),
+        icon: 'assets/icon/menu_sale.svg',
+        children: [
           {
             kind: 'leaf',
-            key: 'RequestInvoiceComponent',
+            key: 'RequestInvoiceComponent_KT',
             title: 'YÊU CẦU XUẤT HÓA ĐƠN',
             isOpen: true,
             isPermission: this.permissionService.hasPermission(''),
             comp: RequestInvoiceComponent,
-            data: { warehouseId: 1 },
+            data: { warehouseId: 0 },
           },
-          // {
-          //   kind: 'leaf',
-          //   key: 'POKHComponent_HCM',
-          //   title: 'PO KHÁCH HÀNG - HCM',
-          //   isOpen: true,
-          //   isPermission:
-          //     this.permissionService.hasPermission('N54,N1,N36'),
-          //   comp: PokhComponent,
-          //   data: { warehouseId: 2 },
-          // },
-
         ],
       },
       //#endregion

@@ -54,14 +54,13 @@ import { NgbActiveModal } from '@ng-bootstrap/ng-bootstrap';
 import { NzNotificationService } from 'ng-zorro-antd/notification';
 import * as ExcelJS from 'exceljs';
 
-import { PokhService } from '../pokh/pokh-service/pokh.service';
-import { HasPermissionDirective } from '../../../directives/has-permission.directive';
-import { NOTIFICATION_TITLE } from '../../../app.config';
+import { HasPermissionDirective } from '../../../../directives/has-permission.directive';
+import { NOTIFICATION_TITLE } from '../../../../app.config';
+import { AppUserService } from '../../../../services/app-user.service';
 
-import { EmployeeSaleManagerService } from './employee-sale-manager-service/employee-sale-manager.service';
-
+import { DailyReportSaleService } from './daily-report-sale-service/daily-report-sale.service';
 @Component({
-  selector: 'app-employee-sale-manager',
+  selector: 'app-daily-report-sale',
   imports: [
     NzCardModule,
     FormsModule,
@@ -89,127 +88,133 @@ import { EmployeeSaleManagerService } from './employee-sale-manager-service/empl
     CommonModule,
     HasPermissionDirective,
   ],
-  templateUrl: './employee-sale-manager.component.html',
-  styleUrl: './employee-sale-manager.component.css'
+  templateUrl: './daily-report-sale.component.html',
+  styleUrl: './daily-report-sale.component.css'
 })
-export class EmployeeSaleManagerComponent implements OnInit, AfterViewInit {
+export class DailyReportSaleComponent implements OnInit, AfterViewInit {
   @ViewChild('tb_Master', { static: false }) tb_MasterElement!: ElementRef;
-  @ViewChild('tb_Detail', { static: false }) tb_DetailElement!: ElementRef;
-
+  
   tb_Master!: Tabulator;
-  tb_Detail!: Tabulator;
 
-  dataGroupSale: any[] = [];
-  dataEmployeeSale: any[] = [];
-  selectedGroupSaleId: number = 0;
+
+  projects: any[] = [];
+  customers: any[] = [];
+  employees: any[] = [];
+  // groupTypes: any[] = [];
+  groupTypes: any[] = [
+    { value: 0, label: 'Telesales' },
+    { value: 1, label: 'Visit' },
+    { value: 2, label: 'Demo/Test SP' },
+  ];
+  teamSales: any[] = [];
+  filterTextSearch: string = '';
+  mainData: any[] = [];
+
+  filters: any = {
+    dateStart: new Date(),
+    dateEnd: new Date(),
+    projectId: 0,
+    customerId: 0,
+    groupTypeId: -1,
+    teamId: 0,
+    employeeId: 0,
+  };
+  sizeSearch: string = '0';
+  toggleSearchPanel() {
+    this.sizeSearch = this.sizeSearch == '0' ? '22%' : '0';
+  }
   constructor(
-    private POKHService: PokhService,
+    private dailyReportSaleService: DailyReportSaleService,
     private notification: NzNotificationService,
-    private employeeSaleManagerService: EmployeeSaleManagerService
+    private appUserService: AppUserService,
   ) { }
+
   ngOnInit(): void {
+    this.loadProjects();
+    this.loadCustomers();
+    this.loadEmployeeTeamSale();
     this.loadGroupSale();
-    this.loadEmployeeSale(1);
   }
 
   ngAfterViewInit(): void {
-    this.initGroupSaleTable();
-    this.initEmployeeSaleTable();
   }
 
-  loadGroupSale() {
-    this.employeeSaleManagerService.getGroupSale().subscribe(
+  searchPOKH(): void {}
+
+  loadProjects(): void {
+    this.dailyReportSaleService.getProjects().subscribe(
       (response) => {
         if (response.status === 1) {
-          this.dataGroupSale = response.data;
-          this.dataGroupSale = this.convertToTreeData(this.dataGroupSale);
-          this.tb_Master.replaceData(this.dataGroupSale);
+          this.projects = response.data || [];
         } else {
-          this.notification.error('Lỗi khi tải Team:', response.message);
-          return;
+          this.notification.error('Lỗi', response.message || 'Không thể tải danh sách dự án');
         }
       },
       (error) => {
-        this.notification.error('Lỗi kết nối khi tải Team:', error);
-        return;
+        this.notification.error('Lỗi', 'Lỗi kết nối khi tải danh sách dự án');
+        console.error('Error loading projects:', error);
       }
     );
   }
 
-  loadEmployeeSale(groupId: number) {
-    this.employeeSaleManagerService.getEmployeeSale(groupId).subscribe(
+  loadCustomers(): void {
+    this.dailyReportSaleService.getCustomers().subscribe(
       (response) => {
         if (response.status === 1) {
-          this.dataEmployeeSale = response.data;
-          this.tb_Detail.replaceData(this.dataEmployeeSale);
+          this.customers = response.data || [];
         } else {
-          this.notification.error('Lỗi khi tải Nhân viên:', response.message);
-          return;
+          this.notification.error('Lỗi', response.message || 'Không thể tải danh sách khách hàng');
         }
       },
       (error) => {
-        this.notification.error('Lỗi kết nối khi tải Nhân viên:', error);
-        return;
+        this.notification.error('Lỗi', 'Lỗi kết nối khi tải danh sách khách hàng');
+        console.error('Error loading customers:', error);
       }
     );
   }
 
-  onAddGroupSale() {
-
-  }
-  onEditGroupSale() {
-
-  }
-  onDeleteGroupSale() {
-
-  }
-  onAddEmployeeSale() {
-
-  }
-  onDeleteEmployeeSale() {
-
-  }
-
-
-  private convertToTreeData(flatData: any[]): any[] {
-    const treeData: any[] = [];
-    const map = new Map();
-
-    // Đầu tiên, tạo map với key là ID của mỗi item
-    flatData.forEach((item) => {
-      map.set(item.ID, { ...item, _children: [] });
-    });
-
-    // Sau đó, xây dựng cấu trúc cây
-    flatData.forEach((item) => {
-      const node = map.get(item.ID);
-      if (item.ParentID === 0 || item.ParentID === null) {
-        // Nếu là node gốc (không có parent)
-        treeData.push(node);
-      } else {
-        // Nếu là node con, thêm vào mảng _children của parent
-        const parent = map.get(item.ParentID);
-        if (parent) {
-          parent._children.push(node);
+  loadEmployeeTeamSale(): void {
+    this.dailyReportSaleService.getEmployeeTeamSale().subscribe(
+      (response) => {
+        if (response.status === 1) {
+          this.teamSales = response.data || [];
+        } else {
+          this.notification.error('Lỗi', response.message || 'Không thể tải danh sách team sale');
         }
+      },
+      (error) => {
+        this.notification.error('Lỗi', 'Lỗi kết nối khi tải danh sách team sale');
+        console.error('Error loading employee team sale:', error);
       }
-    });
-
-    return treeData;
+    );
   }
 
-  initGroupSaleTable(): void {
+  loadGroupSale(): void {
+    const userId = this.appUserService.id || 0;
+    this.dailyReportSaleService.getGroupSale(userId).subscribe(
+      (response) => {
+        if (response.status === 1) {
+          this.groupTypes = response.data || [];
+        } else {
+          this.notification.error('Lỗi', response.message || 'Không thể tải danh sách group sale');
+        }
+      },
+      (error) => {
+        this.notification.error('Lỗi', 'Lỗi kết nối khi tải danh sách group sale');
+        console.error('Error loading group sale:', error);
+      }
+    );
+  }
+
+  initMainTable(): void {
     if (!this.tb_MasterElement) {
       console.error('tb_Master element not found');
       return;
     }
     this.tb_Master = new Tabulator(this.tb_MasterElement.nativeElement, {
-      data: this.dataGroupSale,
+      data: this.mainData,
       layout: 'fitColumns',
       pagination: true,
-      dataTree: true,
-      dataTreeChildField: '_children',
-      dataTreeStartExpanded: true,
       selectableRows: 1,
       paginationSize: 50,
       height: '100%',
@@ -244,65 +249,6 @@ export class EmployeeSaleManagerComponent implements OnInit, AfterViewInit {
           title: 'Team/ Chức vụ',
           field: 'Name',
           sorter: 'string',
-        },
-      ],
-    });
-
-    this.tb_Master.on('rowClick', (e: UIEvent, row: RowComponent) => {
-      const data = row.getData();
-      this.selectedGroupSaleId = data['ID'];
-      this.loadEmployeeSale(data['ID']);
-    });
-  }
-  initEmployeeSaleTable(): void {
-    if (!this.tb_DetailElement) {
-      console.error('tb_Detail element not found');
-      return;
-    }
-    this.tb_Detail = new Tabulator(this.tb_DetailElement.nativeElement, {
-      data: this.dataEmployeeSale,
-      layout: 'fitColumns',
-      pagination: true,
-      paginationSize: 50,
-      height: '100%',
-      movableColumns: true,
-      resizableRows: true,
-      langs: {
-        vi: {
-          pagination: {
-            first: '<<',
-            last: '>>',
-            prev: '<',
-            next: '>',
-          },
-        },
-      },
-      locale: 'vi',
-      reactiveData: true,
-      columnDefaults: {
-        headerWordWrap: true,
-        headerVertical: false,
-        headerHozAlign: 'center',
-        minWidth: 60,
-        resizable: true,
-      },
-      groupBy: 'TeamName',
-      columns: [
-        {
-          title: 'Mã nhân viên',
-          field: 'EmployeeCode',
-          sorter: 'string',
-        },
-        {
-          title: 'Tên nhân viên',
-          field: 'FullName',
-          sorter: 'string',
-        },
-        {
-          title: 'Chức vụ',
-          field: 'TeamName',
-          sorter: 'string',
-          visible: false,
         },
       ],
     });

@@ -55,4 +55,9 @@ export class WarehouseReleaseRequestService {
       productNewCode: productNewCode || '',
     });
   }
+
+  validateKeepNew(data: any): Observable<any> {
+    return this.http.post(this._url + 'validate-keep-new', data);
+  }
+  
 }

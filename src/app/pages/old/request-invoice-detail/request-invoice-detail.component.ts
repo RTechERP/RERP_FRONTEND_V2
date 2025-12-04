@@ -827,7 +827,7 @@ export class RequestInvoiceDetailComponent implements OnInit {
       pagination: false,
       layout: 'fitColumns',
       movableColumns: true,
-      height: '40vh',
+      height: '42vh',
       rowHeader: false,
       selectableRows: 1,
       rowContextMenu: contextMenuItems,
@@ -871,7 +871,7 @@ export class RequestInvoiceDetailComponent implements OnInit {
       layout: 'fitDataFill',
       movableColumns: true,
       pagination: true,
-      height: '40vh',
+      height: '42vh',
       paginationSize: 20,
       columnDefaults: {
         headerWordWrap: true,

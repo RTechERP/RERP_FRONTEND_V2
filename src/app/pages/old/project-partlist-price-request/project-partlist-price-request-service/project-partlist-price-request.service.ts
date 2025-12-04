@@ -41,7 +41,7 @@ export class ProjectPartlistPriceRequestService {
     return this.http.get<any>(`${this.baseUrl}/get-partlist`, { params });
   }
 
-  // Sửa đổi method getAllPartlist để có thể lấy nhiều dữ liệu hơn
+  // Method getAllPartlist với đầy đủ parameters cho phân trang
   getAllPartlist(
     dateStart: string,
     dateEnd: string,
@@ -53,6 +53,10 @@ export class ProjectPartlistPriceRequestService {
     poKHID: number,
     isCommercialProduct = -1,
     isJobRequirement = -1,
+    projectPartlistPriceRequestTypeID = -1,
+    employeeID = 0,
+    page = 1,
+    size = 1000
   ): Observable<any> {
     let params = new HttpParams()
       .set('dateStart', dateStart)
@@ -60,11 +64,15 @@ export class ProjectPartlistPriceRequestService {
       .set('statusRequest', statusRequest.toString())
       .set('projectId', projectId.toString())
       .set('keyword', keyword)
+      .set('employeeID', employeeID.toString())
       .set('isDeleted', isDeleted.toString())
       .set('projectTypeID', projectTypeID.toString())
       .set('poKHID', poKHID.toString())
+      .set('isJobRequirement', isJobRequirement.toString())
+      .set('projectPartlistPriceRequestTypeID', projectPartlistPriceRequestTypeID.toString())
       .set('isCommercialProduct', isCommercialProduct.toString())
-      .set('isJobRequirement', isJobRequirement.toString());
+      .set('page', page.toString())
+      .set('size', size.toString());
 
     return this.http.get<any>(
       `${this.baseUrl}/get-all-project-parList-price-request`,
@@ -73,6 +81,35 @@ export class ProjectPartlistPriceRequestService {
   }
   getAPIPricerequest() {
     return this.baseUrl + '/get-all-project-parList-price-request';
+  }
+
+  getTabsPartlist(
+    dateStart: string,
+    dateEnd: string,
+    statusRequest: number,
+    projectId: number,
+    keyword: string,
+    isDeleted: number,
+    poKHID: number = 0,
+    jobRequirementID: number = 0,
+    isVPP: boolean = false,
+    projectPartlistPriceRequestTypeID: number = 0,
+    employeeID: number = 0
+  ): Observable<any> {
+    let params = new HttpParams()
+      .set('dateStart', dateStart)
+      .set('dateEnd', dateEnd)
+      .set('statusRequest', statusRequest.toString())
+      .set('projectId', projectId.toString())
+      .set('keyword', keyword)
+      .set('isDeleted', isDeleted.toString())
+      .set('poKHID', poKHID.toString())
+      .set('jobRequirementID', jobRequirementID.toString())
+      .set('isVPP', String(isVPP))
+      .set('projectPartlistPriceRequestTypeID', projectPartlistPriceRequestTypeID.toString())
+      .set('employeeID', employeeID.toString());
+
+    return this.http.get<any>(`${this.baseUrl}/get-partlist`, { params });
   }
   // Gọi API lấy danh sách types
   getTypes(employeeID: number, projectTypeId: number): Observable<any> {
@@ -131,5 +168,9 @@ export class ProjectPartlistPriceRequestService {
   }
   requestBuy(payload: any): Observable<any> {
     return this.http.post(`${this.baseUrl}/request-buy`, payload);
+  }
+
+  checkPrice(lstModel: any[]): Observable<any> {
+    return this.http.post(`${this.baseUrl}/check-price`, lstModel);
   }
 }

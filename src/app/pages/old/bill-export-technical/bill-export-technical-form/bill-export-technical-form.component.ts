@@ -21,6 +21,7 @@ import { TbProductRtcFormComponent } from '../../tb-product-rtc/tb-product-rtc-f
 import { TbProductRtcService } from '../../tb-product-rtc/tb-product-rtc-service/tb-product-rtc.service';
 import { BillImportTechnicalService } from '../../bill-import-technical/bill-import-technical-service/bill-import-technical.service';
 import { BillExportTechnicalService } from '../bill-export-technical-service/bill-export-technical.service';
+import { BillExportService } from '../../Sale/BillExport/bill-export-service/bill-export.service';
 import { NzFormModule } from 'ng-zorro-antd/form'; //
 import { FormGroup, FormBuilder, Validators } from '@angular/forms';
 import { BillExportChoseSerialComponent } from '../bill-export-chose-serial/bill-export-chose-serial.component';
@@ -75,6 +76,7 @@ export class BillExportTechnicalFormComponent implements OnInit, AfterViewInit {
   emPloyeeLists: any[] = [];
   employeeSelectOptions: { label: string, value: number }[] = [];
   approveEmployee: any[] = [];
+  IsApproved: boolean = false;
   @Input() IDDetail: number = 0;
 @Input() warehouseID: number = 0;
 @Input() openFrmSummary: boolean = false;
@@ -85,7 +87,8 @@ export class BillExportTechnicalFormComponent implements OnInit, AfterViewInit {
   private ngbModal = inject(NgbModal);
   private appUserService = inject(AppUserService);
   constructor(private billExportTechnicalService: BillExportTechnicalService,
-    private billImportTechnicalService: BillImportTechnicalService) { }
+    private billImportTechnicalService: BillImportTechnicalService,
+    private billExportService: BillExportService) { }
   close() {
     this.closeModal.emit();
     this.activeModal.dismiss('cancel');
@@ -102,22 +105,39 @@ export class BillExportTechnicalFormComponent implements OnInit, AfterViewInit {
     this.getEmployeeApprove();
 
     // Patch dữ liệu edit sau một chút để đảm bảo API đã load
+    this.formDeviceInfo.patchValue({Deliver:this.appUserService.fullName || 'ADMIN'});
     if (this.dataEdit) {
+      if(this.dataEdit.Status==1 && !this.appUserService.isAdmin) this.IsApproved = true;
       setTimeout(() => {
         this.formDeviceInfo.patchValue({
           ...this.dataEdit,
           CreatedDate: this.dataEdit.CreatedDate ? new Date(this.dataEdit.CreatedDate) : null,
           ExpectedDate: this.dataEdit.ExpectedDate ? new Date(this.dataEdit.ExpectedDate) : null,
         });
+        // Disable form nếu đã được duyệt
+        if (this.IsApproved) {
+          this.formDeviceInfo.disable();
+          // Vẽ lại bảng để disable các editor (sau khi bảng đã được vẽ trong ngAfterViewInit)
+          setTimeout(() => {
+            if (this.deviceTempTable) {
+              const currentData = this.deviceTempTable.getData();
+              this.selectedDevices = currentData;
+              this.deviceTempTable.destroy();
+              this.drawTableSelectedDevices();
+            }
+          }, 500);
+        }
       }, 300);
     } else if (this.dataInput) {
       setTimeout(() => {
         this.formDeviceInfo.patchValue(this.dataInput);
       }, 300);
     }
-
-    // Lấy mã phiếu nếu chưa có
-    if (!this.dataEdit) {
+    console.log('dataEdit:',this.dataEdit);
+    
+    if(this.warehouseID===2) this.formDeviceInfo.patchValue({Deliver:'Nguyễn Thị Phương Thủy'});
+    // Lấy mã phiếu nếu chưa có (chỉ khi tạo mới, không phải khi sửa)
+    if (!this.dataEdit || !this.dataEdit.ID || this.dataEdit.ID <= 0) {
       this.getNewCode();
     }
   }
@@ -254,10 +274,16 @@ export class BillExportTechnicalFormComponent implements OnInit, AfterViewInit {
   }
   //Lấy thông tin nhà cung cấp
   getNCC() {
-    this.billExportTechnicalService.getNCC().subscribe((res: any) => {
-      // API returns { status, data: [] } - using ApiResponseFactory
-      this.nccList = res.data || [];
-      console.log('NCC List:', this.nccList);
+    // Sử dụng API endpoint mới từ BillExportService giống như các component khác
+    this.billExportService.getCbbSupplierSale().subscribe({
+      next: (res: any) => {
+        this.nccList = res.data || [];
+        console.log('NCC List:', this.nccList);
+      },
+      error: (err: any) => {
+        console.error('Error loading NCC:', err);
+        this.notification.error('Thông báo', 'Có lỗi xảy ra khi lấy dữ liệu nhà cung cấp');
+      },
     });
   }
   //Lấy danh sách dự án
@@ -313,9 +339,9 @@ export class BillExportTechnicalFormComponent implements OnInit, AfterViewInit {
           headerSort: false,
           titleFormatter: () => `
   <div style="display: flex; justify-content: center; align-items: center; height: 100%;"><i class="fas fa-plus text-success cursor-pointer" title="Thêm dòng"></i> </div>`,
-          headerClick: () => { this.addRow(); },
+          headerClick: () => { if (!this.IsApproved) this.addRow(); },
           formatter: () => `<i class="fas fa-times text-danger cursor-pointer" title="Xóa dòng"></i>`,
-          cellClick: (e, cell) => { cell.getRow().delete(); },
+          cellClick: (e, cell) => { if (!this.IsApproved) cell.getRow().delete(); },
         },
         { title: "STT", formatter: "rownum", hozAlign: "center", width: 60 },
         {
@@ -340,7 +366,7 @@ export class BillExportTechnicalFormComponent implements OnInit, AfterViewInit {
             `;
           },
           cellClick: (e, cell) => {
-            this.toggleProductTable(cell);
+            if (!this.IsApproved) this.toggleProductTable(cell);
           },
         },
          { title: "Mã sản phẩm", field: "ProductCode", visible: false },
@@ -350,7 +376,7 @@ export class BillExportTechnicalFormComponent implements OnInit, AfterViewInit {
         {
           title: "Số lượng xuất",
           field: "Quantity",
-          editor: "number",
+          editor: this.IsApproved ? undefined : "number",
           editorParams: {
             min: 0,
             step: 1,
@@ -380,12 +406,12 @@ export class BillExportTechnicalFormComponent implements OnInit, AfterViewInit {
             `;
           },
           cellClick: (e, cell) => {
-            this.toggleProjectTable(cell);
+            if (!this.IsApproved) this.toggleProjectTable(cell);
           },
         },
         { title: "Tên dự án", field: "ProjectName", width: 300 },
 
-        { title: "Ghi chú", field: "Note", editor: "input", width:300 },
+        { title: "Ghi chú", field: "Note", editor: this.IsApproved ? undefined : "input", width:300 },
         // { title: "Serial IDs", field: "SerialIDs" },
         // { title: "UnitCountID", field: "UnitCountID" },
         {
@@ -402,6 +428,7 @@ export class BillExportTechnicalFormComponent implements OnInit, AfterViewInit {
   <i class="fas fa-plus text-success cursor-pointer" title="Thêm serial"></i>
   `,
           cellClick: (e, cell) => {
+            if (this.IsApproved) return;
             const row = cell.getRow();
             const rowData = row.getData();
             const quantity = rowData['Quantity'];
@@ -972,18 +999,22 @@ export class BillExportTechnicalFormComponent implements OnInit, AfterViewInit {
     }
     expectedDateControl?.updateValueAndValidity();
     receiverIDControl?.updateValueAndValidity();
-    this.billExportTechnicalService.getBillCode(billType).subscribe({
-      next: (res: any) => {
-        this.formDeviceInfo.patchValue({ Code: res.data });
-      },
-      error: (err: any) => {
-        console.error(err);
-        this.notification.error(NOTIFICATION_TITLE.error, 'Có lỗi xảy ra khi lấy mã phiếu');
-      }
-    });
+    // Chỉ lấy mã mới khi tạo mới, không phải khi sửa
+    if (!this.dataEdit || !this.dataEdit.ID || this.dataEdit.ID <= 0) {
+      this.billExportTechnicalService.getBillCode(billType).subscribe({
+        next: (res: any) => {
+          this.formDeviceInfo.patchValue({ Code: res.data });
+        },
+        error: (err: any) => {
+          console.error(err);
+          this.notification.error(NOTIFICATION_TITLE.error, 'Có lỗi xảy ra khi lấy mã phiếu');
+        }
+      });
+    }
   }
   async saveData() {
-    const formValue = this.formDeviceInfo.value;
+    // Sử dụng getRawValue() để lấy giá trị của các trường disabled (như Code)
+    const formValue = this.formDeviceInfo.getRawValue();
     const isBorrow = formValue.BillType === 1;
     const expectedDateControl = this.formDeviceInfo.get('ExpectedDate');
     const receiverIDControl = this.formDeviceInfo.get('ReceiverID');
@@ -1010,15 +1041,18 @@ export class BillExportTechnicalFormComponent implements OnInit, AfterViewInit {
       return;
     }
 
+    // Lấy dữ liệu trực tiếp từ bảng Tabulator để đảm bảo có dữ liệu mới nhất (bao gồm ProjectID)
+    const tableData = this.deviceTempTable?.getData() || this.selectedDevices;
+
     // 2. Validate chi tiết phiếu
-    if (!this.selectedDevices || this.selectedDevices.length === 0) {
+    if (!tableData || tableData.length === 0) {
       this.notification.warning(NOTIFICATION_TITLE.warning, 'Vui lòng thêm ít nhất 1 sản phẩm vào phiếu xuất');
       return;
     }
 
     // 3. Validate từng dòng sản phẩm
     const invalidRows: number[] = [];
-    this.selectedDevices.forEach((device, index) => {
+    tableData.forEach((device: any, index: number) => {
       if (!device.ProductID || device.ProductID <= 0) {
         invalidRows.push(index + 1);
       }
@@ -1089,7 +1123,7 @@ export class BillExportTechnicalFormComponent implements OnInit, AfterViewInit {
         CreatedDate: formatDate(formValue.CreatedDate),
         ExpectedDate: isBorrow ? formatDate(formValue.ExpectedDate) : null, // Chỉ gửi khi là phiếu mượn
         BillType: formValue.BillType,
-        Status: 0,
+        Status: formValue.Status ?? (isBorrow ? 1 : 0), // Lấy Status từ form, nếu không có thì mặc định theo BillType
         Addres: "",
         Note: "",
         Image: "",
@@ -1100,7 +1134,7 @@ export class BillExportTechnicalFormComponent implements OnInit, AfterViewInit {
         SupplierName: "",
         CheckAddHistoryProductRTC: isBorrow
       },
-      billExportDetailTechnicals: this.selectedDevices.map((device, index) => ({
+      billExportDetailTechnicals: tableData.map((device: any, index: number) => ({
         ID: device.ID || 0,
         STT: index + 1,
         UnitID: device.UnitCountID || 0,
@@ -1113,12 +1147,7 @@ export class BillExportTechnicalFormComponent implements OnInit, AfterViewInit {
         TotalQuantity: device.Quantity || 0,
         BillImportDetailTechnicalID: device.BillImportDetailTechnicalID || 0
       })),
-      inentoryDemos: this.selectedDevices.map((device, index) => ({
-        ID: 0,
-        ProductRTCID: device.ProductID,
-        WarehouseID: 1,
-      })),
-      billExportTechDetailSerials: this.selectedDevices.flatMap(device => {
+      billExportTechDetailSerials: tableData.flatMap((device: any) => {
         const detailID = device.ID || 0;
         const serialIDs = (device.SerialIDs || '')
           .split(',')
@@ -1131,23 +1160,6 @@ export class BillExportTechnicalFormComponent implements OnInit, AfterViewInit {
         }));
       })
     };
-
-    if (isBorrow) {
-      payload.historyProductRTCs = this.selectedDevices.map(device => ({
-        ID: 0,
-        ProductRTCID: device.ProductID,
-        DateBorrow: formatDate(formValue.CreatedDate),
-        DateReturnExpected: formatDate(formValue.ExpectedDate),
-        PeopleID: formValue.ReceiverID,
-        Note: `Phiếu xuất ${formValue.Code}${device.Note ? ':\n' + device.Note : ''}`,
-        Project: formValue.ProjectName,
-        Status: 1,
-        BillExportTechnicalID: formValue.ID || 0,
-        NumberBorrow: device.Quantity,
-        WarehouseID: 1,
-        IsDelete: false
-      }));
-    }
 
     console.log('Payload gửi lên backend:', JSON.stringify(payload, null, 2));
 

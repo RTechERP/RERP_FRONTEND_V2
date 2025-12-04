@@ -56,7 +56,7 @@
                             <nz-form-label class="fs-12" [nzSpan]="24">Từ khóa</nz-form-label>
                             <nz-form-control [nzSpan]="24">
                                 <input nz-input placeholder="Nhập từ khóa" nzSize="small" [(ngModel)]="filters.keyword"
-                                    name="keyword" />
+                                    name="keyword" (keyup.enter)="ApplyFilters()" />
                             </nz-form-control>
                         </nz-form-item>
                         <nz-form-item class="mt-2">
@@ -343,7 +343,7 @@
                             style="width: 150px" nzSize="small"></nz-date-picker>
                     </nz-form-control>
                 </nz-form-item>
-                
+
                 <nz-form-item class="mb-0">
                     <nz-form-label class="fs-12">Đến ngày</nz-form-label>
                     <nz-form-control>
@@ -351,7 +351,7 @@
                             style="width: 150px" nzSize="small"></nz-date-picker>
                     </nz-form-control>
                 </nz-form-item>
-                
+
                 <nz-form-item class="mb-0">
                     <nz-form-label class="fs-12">Trạng thái</nz-form-label>
                     <nz-form-control>
@@ -366,7 +366,7 @@
                         </nz-select>
                     </nz-form-control>
                 </nz-form-item>
-                
+
                 <nz-form-item class="mb-0">
                     <nz-form-label class="fs-12">Chọn dự án</nz-form-label>
                     <nz-form-control>
@@ -378,15 +378,15 @@
                         </nz-select>
                     </nz-form-control>
                 </nz-form-item>
-                
+
                 <nz-form-item class="mb-0">
                     <nz-form-label class="fs-12">Từ khóa</nz-form-label>
                     <nz-form-control>
                         <input nz-input placeholder="Nhập từ khóa" nzSize="small" [(ngModel)]="filters.keyword"
-                            name="keyword" style="width: 150px" />
+                            name="keyword" style="width: 150px" (keyup.enter)="ApplyFilters()" />
                     </nz-form-control>
                 </nz-form-item>
-                
+
                 <nz-form-item class="mb-0">
                     <nz-form-label class="fs-12">PO:</nz-form-label>
                     <nz-form-control>
@@ -397,7 +397,7 @@
                         </nz-select>
                     </nz-form-control>
                 </nz-form-item>
-                
+
                 <nz-form-item class="mb-0">
                     <nz-form-control>
                         <div class="d-flex gap-1">
@@ -437,8 +437,93 @@
                         [id]="'pane-' + type.ProjectTypeID" role="tabpanel"
                         [attr.aria-labelledby]="'tab-' + type.ProjectTypeID">
                         <div class="table-container p-1">
-                            <div [id]="'datatable-' + type.ProjectTypeID"
-                                class="tabulator-container container-fluid p-0"></div>
+                            @if (tables.get(type.ProjectTypeID); as table) {
+                                <div class="tanstack-table-wrapper" style="overflow-x: auto;">
+                                    <table class="table table-bordered table-hover" style="min-width: 100%;">
+                                        <thead>
+                                            @for (headerGroup of table.getHeaderGroups(); track headerGroup.id) {
+                                                <!-- Header row với tên cột và sort -->
+                                                <tr>
+                                                    @for (header of headerGroup.headers; track header.id) {
+                                                        <th [style.width.px]="header.getSize()" 
+                                                            [style.min-width.px]="header.getSize()">
+                                                            @if (header.id === 'select') {
+                                                                <input 
+                                                                    type="checkbox" 
+                                                                    [checked]="areAllRowsSelected(type.ProjectTypeID)"
+                                                                    (change)="toggleAllRowsSelection(type.ProjectTypeID)"
+                                                                    style="accent-color: #1677ff;" />
+                                                            } @else {
+                                                                <div 
+                                                                    [class.cursor-pointer]="header.column.getCanSort()"
+                                                                    (click)="header.column.getToggleSortingHandler()?.($event)">
+                                                                    {{ header.column.columnDef.header }}
+                                                                    @if (header.column.getIsSorted() === 'asc') { ↑ }
+                                                                    @if (header.column.getIsSorted() === 'desc') { ↓ }
+                                                                </div>
+                                                            }
+                                                        </th>
+                                                    }
+                                                </tr>
+                                                <!-- Filter row -->
+                                                <tr class="filter-row">
+                                                    @for (header of headerGroup.headers; track header.id) {
+                                                        <th [style.width.px]="header.getSize()">
+                                                            @if (header.column.getCanFilter() && header.id !== 'select') {
+                                                                <div class="d-flex flex-column gap-1">
+                                                                    <select 
+                                                                        class="form-select form-select-sm"
+                                                                        [value]="getFilterOperator(type.ProjectTypeID, header.id) || 'contains'"
+                                                                        (change)="setFilterOperator(type.ProjectTypeID, header.id, $any($event.target).value); updateFilterValue(type.ProjectTypeID, header, $any($event.target).value, getFilterInputValue(header.column.getFilterValue()))"
+                                                                        style="font-size: 11px; padding: 2px 4px;">
+                                                                        <option value="contains">Chứa</option>
+                                                                        <option value="notContains">Không chứa</option>
+                                                                        <option value="equals">Bằng</option>
+                                                                        <option value="notEquals">Khác</option>
+                                                                        <option value="startsWith">Bắt đầu</option>
+                                                                        <option value="endsWith">Kết thúc</option>
+                                                                    </select>
+                                                                    <input 
+                                                                        type="text" 
+                                                                        class="form-control form-control-sm"
+                                                                        [value]="getFilterInputValue(header.column.getFilterValue())"
+                                                                        (input)="updateFilterValue(type.ProjectTypeID, header, getFilterOperator(type.ProjectTypeID, header.id), $any($event.target).value)"
+                                                                        placeholder="Nhập giá trị..."
+                                                                        style="width: 100%; font-size: 12px; padding: 2px 4px;" />
+                                                                </div>
+                                                            }
+                                                        </th>
+                                                    }
+                                                </tr>
+                                            }
+                                        </thead>
+                                        <tbody>
+                                            @for (row of table.getRowModel().rows; track row.id) {
+                                                <tr [class.selected]="isRowSelected(type.ProjectTypeID, row.original.ID)">
+                                                    @for (cell of row.getVisibleCells(); track cell.id) {
+                                                        <td [style.width.px]="cell.column.getSize()">
+                                                            @if (cell.column.id === 'select') {
+                                                                <input 
+                                                                    type="checkbox" 
+                                                                    [checked]="isRowSelected(type.ProjectTypeID, row.original.ID)"
+                                                                    (change)="toggleRowSelection(type.ProjectTypeID, row.original.ID)"
+                                                                    style="accent-color: #1677ff;" />
+                                                            } @else if (cell.column.id === 'IsCheckPrice') {
+                                                                <input 
+                                                                    type="checkbox" 
+                                                                    [checked]="row.original.IsCheckPrice"
+                                                                    style="pointer-events: none; accent-color: #1677ff;" />
+                                                            } @else {
+                                                                {{ getCellValue(cell) }}
+                                                            }
+                                                        </td>
+                                                    }
+                                                </tr>
+                                            }
+                                        </tbody>
+                                    </table>
+                                </div>
+                            }
                         </div>
                     </div>
                 </div>
@@ -460,11 +545,11 @@
     </div>
     <div class="text-muted">Chỉ cần nhập Deadline. Các thông tin khác (VPP, JobRequirementID) đã có sẵn từ Input.</div>
 </ng-template>
-
+<!-- 
 <app-tabulator-popup *ngIf="showSupplierPopup" [data]="dtSupplierSale" [columns]="supplierColumns"
     [searchFields]="supplierSearchFields" [height]="'300px'" (rowSelected)="onSupplierSelected($event)"
     (closed)="onSupplierPopupClosed()" [style.position]="'absolute'" [style.top]="supplierPopupPosition.top"
-    [style.left]="supplierPopupPosition.left" [style.zIndex]="1000" [style.width]="'500px'"></app-tabulator-popup>
+    [style.left]="supplierPopupPosition.left" [style.zIndex]="1000" [style.width]="'500px'"></app-tabulator-popup> -->
 
 <app-project-partlist-price-request-form *ngIf="showDetailModal" [dataInput]="modalData"
     (formSubmitted)="OnFormSubmit()" (closeModal)="showDetailModal = false">

@@ -868,6 +868,7 @@ export class InventoryComponent implements OnInit, AfterViewInit {
           field: 'ProductGroupName',
           hozAlign: 'left',
           headerHozAlign: 'center',
+          frozen: true,
         },
                 {
           title: 'Tích xanh',
@@ -885,26 +886,30 @@ export class InventoryComponent implements OnInit, AfterViewInit {
                 checked ? 'checked' : ''
               } style="pointer-events: none; accent-color: #1677ff;" />`;
             },
+            frozen: true,
         },
         {
           title: 'Mã sản phẩm',
           field: 'ProductCode',
           hozAlign: 'left',
           headerHozAlign: 'center',
-          formatter:'textarea'
+          formatter:'textarea',
+          frozen: true,
         },
                 {
           title: 'Tên sản phẩm',
           field: 'ProductName',
           hozAlign: 'left',
           headerHozAlign: 'center',
-          formatter:'textarea'
+          formatter:'textarea',
+          frozen: true,
         },
         {
           title: 'Mã nội bộ',
           field: 'ProductNewCode',
           hozAlign: 'left',
           headerHozAlign: 'center',
+          frozen: true,
         },
 
         {

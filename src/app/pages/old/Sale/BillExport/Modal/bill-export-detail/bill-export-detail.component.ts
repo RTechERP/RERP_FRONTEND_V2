@@ -233,10 +233,10 @@ export class BillExportDetailComponent
   // Project popup columns
   projectPopupColumns: ColumnDefinition[] = [
     { title: 'Mã dự án', field: 'ProjectCode', width: 150, headerHozAlign: 'center' },
-    { title: 'Tên dự án', field: 'ProjectName', width: 300, headerHozAlign: 'center' },
+    { title: 'Tên dự án', field: 'label', width: 300, headerHozAlign: 'center' },
   ];
 
-  projectSearchFields: string[] = ['ProjectCode', 'ProjectName'];
+  projectSearchFields: string[] = ['ProjectCode', 'label'];
 
   constructor(
     private modalService: NgbModal,
@@ -411,7 +411,7 @@ export class BillExportDetailComponent
 
     // LUỒNG RIÊNG: ProjectPartList → BillExport (Yêu cầu xuất kho từ dự án)
     if (this.isFromProjectPartList) {
-      
+
 
       // Matching C# frmBillExportDetail_Load + loadBillExportDetail logic when isPOKH = true
       // Bind ALL form fields from newBillExport (matching C# code)
@@ -1542,12 +1542,12 @@ export class BillExportDetailComponent
     this.currentEditingCell = cell;
     const cellElement = cell.getElement();
     const rect = cellElement.getBoundingClientRect();
-    
+
     // Calculate position
     const viewportHeight = window.innerHeight;
     const popupHeight = 350;
     const spaceBelow = viewportHeight - rect.bottom;
-    
+
     if (spaceBelow >= popupHeight) {
       this.popupPosition = {
         top: `${rect.bottom + window.scrollY}px`,
@@ -1559,7 +1559,7 @@ export class BillExportDetailComponent
         left: `${rect.left + window.scrollX}px`
       };
     }
-    
+
     this.showProductPopup = true;
   }
 
@@ -1568,12 +1568,12 @@ export class BillExportDetailComponent
     this.currentEditingCell = cell;
     const cellElement = cell.getElement();
     const rect = cellElement.getBoundingClientRect();
-    
+
     // Calculate position
     const viewportHeight = window.innerHeight;
     const popupHeight = 350;
     const spaceBelow = viewportHeight - rect.bottom;
-    
+
     if (spaceBelow >= popupHeight) {
       this.popupPosition = {
         top: `${rect.bottom + window.scrollY}px`,
@@ -1585,17 +1585,17 @@ export class BillExportDetailComponent
         left: `${rect.left + window.scrollX}px`
       };
     }
-    
+
     this.showProjectPopup = true;
   }
 
   // Handle Product Selection
   onProductSelected(selectedProduct: any) {
     if (!this.currentEditingCell) return;
-    
+
     const row = this.currentEditingCell.getRow();
     const productValue = selectedProduct.value || selectedProduct.ID;
-    
+
     // Update row with selected product data
     row.update({
       ProductID: productValue,
@@ -1619,15 +1619,16 @@ export class BillExportDetailComponent
   // Handle Project Selection
   onProjectSelected(selectedProject: any) {
     if (!this.currentEditingCell) return;
-    
+
     const row = this.currentEditingCell.getRow();
     const projectValue = selectedProject.value || selectedProject.ID;
-    
+
     // Update row with selected project data
     row.update({
       ProjectID: projectValue,
       ProjectCodeExport: selectedProject.ProjectCode,
       InventoryProjectIDs: [projectValue],
+      ProjectName:selectedProject.label || selectedProject.ProjectName
     });
 
     // Trigger inventory loading if needed
@@ -1879,6 +1880,7 @@ export class BillExportDetailComponent
             field: 'ExpectReturnDate',
             hozAlign: 'left',
             headerHozAlign: 'center',
+            visible: true,
             formatter: (cell) => {
                 const value = cell.getValue();
                 if (!value) return '';

@@ -1,4 +1,4 @@
-import { DEFAULT_TABLE_CONFIG } from './../../../tabulator-default.config';
+
 import {
   Component,
   inject,
@@ -16,19 +16,26 @@ import {
   ViewChild,
   Optional,
   Inject,
+  OnDestroy,
 } from '@angular/core';
-import { ProjectPartlistPriceRequestService } from './project-partlist-price-request-service/project-partlist-price-request.service';
-import { ProjectPartlistPriceRequestFormComponent } from './project-partlist-price-request-form/project-partlist-price-request-form.component';
-import { ImportExcelProjectPartlistPriceRequestComponent } from './import-excel-project-partlist-price-request/import-excel-project-partlist-price-request.component';
+import { ProjectPartlistPriceRequestService } from '../project-partlist-price-request-service/project-partlist-price-request.service';
+import { ProjectPartlistPriceRequestFormComponent } from '../project-partlist-price-request-form/project-partlist-price-request-form.component';
+import { ImportExcelProjectPartlistPriceRequestComponent } from '../import-excel-project-partlist-price-request/import-excel-project-partlist-price-request.component';
+import { SelectEditorComponent } from './../../SelectEditor/SelectEditor.component';
+import { NSelectComponent } from '../../n-select/n-select.component';
+
+// TanStack Table imports
 import {
-  TabulatorFull as Tabulator,
-  ColumnComponent,
-  MenuObject,
-  RowComponent,
-} from 'tabulator-tables';
-import { SelectEditorComponent } from '../SelectEditor/SelectEditor.component';
-import { NSelectComponent } from '../n-select/n-select.component';
-import 'tabulator-tables/dist/css/tabulator_simple.min.css'; // Import Tabulator stylesheet
+  createAngularTable,
+  type ColumnDef,
+  type Table,
+  getCoreRowModel,
+  getSortedRowModel,
+  getFilteredRowModel,
+  type SortingState,
+  type ColumnFiltersState,
+  FilterFn,
+} from '@tanstack/angular-table';
 import { FormsModule } from '@angular/forms';
 import { CommonModule } from '@angular/common';
 import { NzCardModule } from 'ng-zorro-antd/card';
@@ -58,52 +65,51 @@ import { NzModalModule } from 'ng-zorro-antd/modal';
 import { DateTime } from 'luxon';
 import * as ExcelJS from 'exceljs';
 import { NgbModal, NgbModalModule } from '@ng-bootstrap/ng-bootstrap';
-import { AppUserService } from '../../../services/app-user.service';
+import { AppUserService } from '../../../../services/app-user.service';
 import { bottom } from '@popperjs/core';
-import { NOTIFICATION_TITLE } from '../../../app.config';
-import { TabulatorPopupComponent } from '../../../shared/components/tabulator-popup';
+import { NOTIFICATION_TITLE } from '../../../../app.config';
+// Tabulator imports removed - migrated to Angular-SlickGrid
+import { TabulatorPopupComponent } from '../../../../shared/components/tabulator-popup/tabulator-popup.component';
 import { ColumnDefinition } from 'tabulator-tables';
-import { SupplierSaleDetailComponent } from '../../purchase/supplier-sale/supplier-sale-detail/supplier-sale-detail.component';
-import { HasPermissionDirective } from '../../../directives/has-permission.directive';
-
+import { SupplierSaleDetailComponent } from '../../../purchase/supplier-sale/supplier-sale-detail/supplier-sale-detail.component';
+import { HasPermissionDirective } from '../../../../directives/has-permission.directive';
 @Component({
-  selector: 'app-project-partlist-price-request',
-  templateUrl: './project-partlist-price-request.component.html',
-  styleUrls: ['./project-partlist-price-request.component.css'],
-  standalone: true,
-  //encapsulation: ViewEncapsulation.None,
-  imports: [
-    CommonModule,
-    FormsModule,
-    ProjectPartlistPriceRequestFormComponent,
-    NzFormModule,
-    NzSelectModule,
-    NzButtonModule,
-    NzIconModule,
-    NzDropDownModule,
-    NzModalModule,
-    NzSplitterModule,
-    NzGridModule,
-    NzDatePickerModule,
-    NzAutocompleteModule,
-    NzInputModule,
-    NzTableModule,
-    NzTabsModule,
-    NzFlexModule,
-    NzDrawerModule,
-    NzRadioModule,
-    NzSpaceModule,
-    NzLayoutModule,
-    NzCardModule,
-    NSelectComponent,
-    NgbModalModule,
-    TabulatorPopupComponent,
-    ImportExcelProjectPartlistPriceRequestComponent,
-    HasPermissionDirective
-  ],
+  selector: 'app-project-partlist-price-request-new',
+  templateUrl: './project-partlist-price-request-new.component.html',
+   standalone: true,
+    imports: [
+      CommonModule,
+      FormsModule,
+      ProjectPartlistPriceRequestFormComponent,
+      NzFormModule,
+      NzSelectModule,
+      NzButtonModule,
+      NzIconModule,
+      NzDropDownModule,
+      NzModalModule,
+      NzSplitterModule,
+      NzGridModule,
+      NzDatePickerModule,
+      NzAutocompleteModule,
+      NzInputModule,
+      NzTableModule,
+      NzTabsModule,
+      NzFlexModule,
+      NzDrawerModule,
+      NzRadioModule,
+      NzSpaceModule,
+      NzLayoutModule,
+      NzCardModule,
+      NSelectComponent,
+      NgbModalModule,
+      ImportExcelProjectPartlistPriceRequestComponent,
+      HasPermissionDirective,
+      TabulatorPopupComponent
+    ],
+  styleUrls: ['./project-partlist-price-request-new.component.css']
 })
-export class ProjectPartlistPriceRequestComponent implements OnInit {
-  @Output() openModal = new EventEmitter<any>();
+export class ProjectPartlistPriceRequestNewComponent implements OnInit, OnDestroy {
+@Output() openModal = new EventEmitter<any>();
   @Input() poKHID: number = 0;
   @Input() jobRequirementID: number = 0;
   @Input() isVPP: boolean = false;
@@ -117,12 +123,33 @@ export class ProjectPartlistPriceRequestComponent implements OnInit {
   loading = false;
   dtprojectPartlistPriceRequest: any[] = [];
   projectTypes: any[] = [];
-  tables: Map<number, Tabulator> = new Map();
+  // TanStack Table instances and config
+  tables: Map<number, Table<any>> = new Map();
+  gridColumns: Map<number, ColumnDef<any>[]> = new Map();
+  gridDatasets: Map<number, any[]> = new Map();
+  sorting: Map<number, SortingState> = new Map();
+  columnFilters: Map<number, ColumnFiltersState> = new Map();
+  selectedRows: Map<number, Set<number>> = new Map();
+  // Track filter operators: typeId -> columnId -> operator
+  filterOperators: Map<number, Map<string, string>> = new Map();
+  // Track edited rows by typeId -> Set of row IDs
+  editedRows: Map<number, Set<number>> = new Map();
   modalData: any[] = [];
   dtcurrency: any[] = [];
   showDetailModal = false;
-  // Filters
-  filters: any;
+  // Filters - khởi tạo giá trị mặc định
+  filters: any = {
+    dateStart: DateTime.local().startOf('month').toJSDate(),
+    dateEnd: DateTime.local().toJSDate(),
+    statusRequest: 1,
+    projectId: 0,
+    keyword: '',
+    isDeleted: 0,
+    projectTypeID: 0,
+    poKHID: 0,
+    isCommercialProduct: -1,
+    isJobRequirement: -1,
+  };
   dtSupplierSale: any[] = [];
   dtProductSale: any[] = [];
   PriceRequetsService = inject(ProjectPartlistPriceRequestService);
@@ -138,7 +165,7 @@ export class ProjectPartlistPriceRequestComponent implements OnInit {
   currentSuccess?: (value: any) => void;
   currentCancel?: () => void;
   supplierPopupPosition: { top: string; left: string } = { top: '0px', left: '0px' };
-  supplierColumns: ColumnDefinition[] = [
+  supplierColumns: any[] = [
     { title: 'Mã', field: 'Code', width: 120, headerSort: false },
     { title: 'Tên nhà cung cấp', field: 'NameNCC', width: 200, headerSort: false },
   ];
@@ -188,18 +215,10 @@ export class ProjectPartlistPriceRequestComponent implements OnInit {
       this.activeTabId = -3; // Tab tương ứng với type 4
     }
 
-    this.filters = {
-      dateStart: DateTime.local().startOf('month').toJSDate(), // Ngày đầu tháng hiện tại
-      dateEnd: DateTime.local().toJSDate(), // Ngày hiện tại
-      statusRequest: 1,
-      projectId: 0,
-      keyword: '',
-      isDeleted: 0,
-      projectTypeID: this.activeTabId,
-      poKHID: 0,
-      isCommercialProduct: -1,
-      isJobRequirement: -1,
-    };
+    // Cập nhật projectTypeID trong filters (filters đã được khởi tạo khi khai báo)
+    this.filters.projectTypeID = this.activeTabId;
+    
+    console.log('Filters initialized:', this.filters);
 
     this.GetCurrency();
     this.GetSupplierSale();
@@ -274,7 +293,6 @@ export class ProjectPartlistPriceRequestComponent implements OnInit {
 
   OnEditClick() {
     const lstTypeAccept = [-1, -2];
-    const table = this.tables.get(this.activeTabId);
 
     if (!lstTypeAccept.includes(this.activeTabId)) {
       this.notification.info(
@@ -284,9 +302,7 @@ export class ProjectPartlistPriceRequestComponent implements OnInit {
       return;
     }
 
-    if (!table) return;
-
-    const selectedRows = table.getSelectedData();
+    const selectedRows = this.getSelectedData();
 
     if (selectedRows.length === 0) {
       this.notification.info(
@@ -359,10 +375,7 @@ export class ProjectPartlistPriceRequestComponent implements OnInit {
     });
   }
   OnDeleteClick() {
-    const table = this.tables.get(this.activeTabId);
-    if (!table) return;
-
-    const selectedRows = table.getSelectedRows();
+    const selectedRows = this.getSelectedRows();
 
     if (selectedRows.length === 0) {
       this.notification.info(
@@ -558,13 +571,89 @@ export class ProjectPartlistPriceRequestComponent implements OnInit {
   }
 
   private LoadAllTablesData(): void {
-    // Load dữ liệu cho tất cả các bảng tuần tự
-    let delay = 0;
-    this.tables.forEach((table) => {
-      setTimeout(() => {
-        table.setData();
-      }, delay);
-      delay += 200; // Chờ 200ms giữa mỗi request
+    // Gọi API cho TỪNG tab (vì API mới có phân trang và chỉ trả về 1 tab/query)
+    // Load dữ liệu cho các tabs đã được tạo
+    this.tables.forEach((table, typeId) => {
+      this.LoadGridDataForType(typeId);
+    });
+  }
+
+  // Load data cho 1 tab cụ thể với phân trang
+  private LoadGridDataForType(typeId: number, page: number = 1, pageSize: number = 1000): void {
+    const dateStart =
+      typeof this.filters.dateStart === 'string'
+        ? this.filters.dateStart
+        : DateTime.fromJSDate(this.filters.dateStart).toFormat('yyyy/MM/dd');
+
+    const dateEnd =
+      typeof this.filters.dateEnd === 'string'
+        ? this.filters.dateEnd
+        : DateTime.fromJSDate(this.filters.dateEnd).toFormat('yyyy/MM/dd');
+
+    // Xác định parameters dựa trên typeId
+    let projectTypeID = typeId;
+    let isCommercialProduct = -1;
+    let poKHID = this.filters.poKHID;
+    let isJobRequirement = -1;
+    let projectPartlistPriceRequestTypeID = -1;
+
+    // Áp dụng logic giống backend
+    if (typeId === -1) {
+      projectTypeID = -1;
+      isCommercialProduct = 1;
+      poKHID = 0;
+    } else if (typeId === -2) {
+      projectTypeID = -1;
+      isJobRequirement = 1;
+      isCommercialProduct = -1;
+    } else if (typeId === -3) {
+      projectPartlistPriceRequestTypeID = 4;
+      isCommercialProduct = 0;
+    } else if (typeId === 0) {
+      isCommercialProduct = 0;
+      isJobRequirement = 0;
+    }
+
+    poKHID = 0;
+
+    if (this.jobRequirementID > 0 || this.isVPP) {
+      isJobRequirement = 1;
+    }
+
+    this.PriceRequetsService.getAllPartlist(
+      dateStart,
+      dateEnd,
+      this.filters.statusRequest,
+      this.filters.projectId,
+      this.filters.keyword,
+      this.filters.isDeleted,
+      projectTypeID,
+      poKHID,
+      isCommercialProduct,
+      isJobRequirement,
+      projectPartlistPriceRequestTypeID,
+      0, // employeeID
+      page,
+      pageSize
+    ).subscribe({
+      next: (response: any) => {
+        const data = response.data?.dtData || [];
+        const totalPages = response.data?.totalPages || 1;
+        
+        // Cập nhật dataset cho tab này
+        this.gridDatasets.set(typeId, data);
+        
+        // Recreate table instance with new data
+        if (this.tables.has(typeId)) {
+          this.createTableInstance(typeId);
+        }
+        
+        console.log(`Loaded data for tab ${typeId}:`, data.length, 'rows, totalPages:', totalPages);
+      },
+      error: (error: any) => {
+        console.error(`Error loading data for tab ${typeId}:`, error);
+        this.notification.error('Lỗi', 'Không thể tải dữ liệu');
+      },
     });
   }
   ToggleSearchPanel() {
@@ -591,10 +680,8 @@ export class ProjectPartlistPriceRequestComponent implements OnInit {
   }
 
   private LoadPriceRequests(): void {
-    const activeTable = this.tables.get(this.activeTabId);
-    if (activeTable) {
-      activeTable.setData();
-    }
+    // Gọi API 1 lần để load tất cả tabs
+    this.LoadAllTablesData();
   }
 
   public ApplyFilters(): void {
@@ -624,93 +711,652 @@ export class ProjectPartlistPriceRequestComponent implements OnInit {
     this.activeTabId = typeId;
     this.filters.projectTypeID = typeId;
 
-    // Kiểm tra nếu bảng đã tồn tại
+    // Kiểm tra nếu bảng chưa được tạo
     if (!this.tables.has(typeId)) {
       this.CreateTableForType(typeId);
+    } else {
+      // Nếu tab đã tồn tại, kiểm tra xem có data chưa
+      const currentData = this.gridDatasets.get(typeId) || [];
+      if (currentData.length === 0) {
+        // Chưa có data, load lại
+        this.LoadGridDataForType(typeId);
+      }
     }
-
-    // Table sẽ tự động load dữ liệu qua AJAX
   }
+
   private CreateTableForType(typeId: number): void {
-    const tableId = `datatable-${typeId}`;
-    const element = document.getElementById(tableId);
-
-    if (!element) {
-      console.error(`Table container not found: ${tableId}`);
-      return;
+    // Initialize columns and dataset for this type
+    this.gridColumns.set(typeId, this.GetColumnsForType(typeId));
+    
+    // Khởi tạo dataset rỗng
+    if (!this.gridDatasets.has(typeId)) {
+    this.gridDatasets.set(typeId, []);
     }
+    
+    this.sorting.set(typeId, []);
+    this.columnFilters.set(typeId, []);
+    this.selectedRows.set(typeId, new Set());
 
-    const table = new Tabulator(
-      `#${tableId}`,
-      this.GetTableConfigForType(typeId)
-    );
+    // Create TanStack Table instance
+    this.createTableInstance(typeId);
+    
+    // Load data cho tab này
+    setTimeout(() => {
+      this.LoadGridDataForType(typeId);
+    }, 100);
+  }
+
+  // Create TanStack Table instance for a type
+  private createTableInstance(typeId: number): void {
+    const component = this;
+    const table = createAngularTable(() => ({
+      data: component.gridDatasets.get(typeId) || [],
+      columns: component.gridColumns.get(typeId) || [],
+      getCoreRowModel: getCoreRowModel(),
+      getSortedRowModel: getSortedRowModel(),
+      getFilteredRowModel: getFilteredRowModel(),
+      state: {
+        sorting: component.sorting.get(typeId) || [],
+        columnFilters: component.columnFilters.get(typeId) || [],
+      },
+      onSortingChange: (updater) => {
+        const current = component.sorting.get(typeId) || [];
+        const next = typeof updater === 'function' ? updater(current) : updater;
+        component.sorting.set(typeId, next);
+      },
+      onColumnFiltersChange: (updater) => {
+        const current = component.columnFilters.get(typeId) || [];
+        const next = typeof updater === 'function' ? updater(current) : updater;
+        component.columnFilters.set(typeId, next);
+      },
+    }));
+    
     this.tables.set(typeId, table);
   }
 
-  // Tạo cấu hình table riêng cho từng type
-  private GetTableConfigForType(typeId: number): any {
-    const baseConfig = this.GetTableConfig();
+  // Helper methods for table data management
+  private getSelectedRows(typeId: number = this.activeTabId): any[] {
+    const dataset = this.gridDatasets.get(typeId) || [];
+    const selected = this.selectedRows.get(typeId) || new Set();
+    return dataset.filter(row => selected.has(row.ID));
+  }
 
-    // Override ajaxParams để truyền đúng tham số cho từng type
-    baseConfig.ajaxParams = () => {
-      const dateStart =
-        typeof this.filters.dateStart === 'string'
-          ? this.filters.dateStart
-          : DateTime.fromJSDate(this.filters.dateStart).toFormat('yyyy/MM/dd');
+  private getSelectedData(typeId: number = this.activeTabId): any[] {
+    return this.getSelectedRows(typeId);
+  }
 
-      const dateEnd =
-        typeof this.filters.dateEnd === 'string'
-          ? this.filters.dateEnd
-          : DateTime.fromJSDate(this.filters.dateEnd).toFormat('yyyy/MM/dd');
+  private getEditedCells(typeId: number = this.activeTabId): any[] {
+    // Return edited rows based on editedRows tracking
+    const dataset = this.gridDatasets.get(typeId) || [];
+    const edited = this.editedRows.get(typeId) || new Set();
+    return dataset.filter(row => edited.has(row.ID));
+  }
 
-      let projectTypeID = typeId;
-      let isCommercialProduct = -1;
-      let poKHID = this.filters.poKHID;
-      let isJobRequirement = -1;
-      let projectPartlistPriceRequestTypeID = -1;
-      let employeeID = 0;
+  private getAllData(typeId: number = this.activeTabId): any[] {
+    return this.gridDatasets.get(typeId) || [];
+  }
 
-      // Áp dụng logic giống WinForm
-      if (typeId === -1) {
-        projectTypeID = -1;
-        isCommercialProduct = 1;
-        poKHID = 0;
-      } else if (typeId === -2) {
-        projectTypeID = -1;
-        isJobRequirement = 1;
-        isCommercialProduct = -1;
-      } else if (typeId === -3) {
-        projectPartlistPriceRequestTypeID = 4;
-        isCommercialProduct = 0;
-        // employeeID = this.appUserService.employeeID ?? 0; // Can be enabled if needed for filtering by employee
-      } else if (typeId === 0) {
-        isCommercialProduct = 0;
-        isJobRequirement = 0;
-      }
+  private updateRow(typeId: number, rowId: any, data: any): void {
+    const dataset = this.gridDatasets.get(typeId) || [];
+    const rowIndex = dataset.findIndex(row => row.ID === rowId);
+    if (rowIndex !== -1) {
+      dataset[rowIndex] = { ...dataset[rowIndex], ...data };
+      this.gridDatasets.set(typeId, [...dataset]); // Trigger change detection
+    }
+  }
 
+  // Toggle row selection
+  toggleRowSelection(typeId: number, rowId: number): void {
+    const selected = this.selectedRows.get(typeId) || new Set();
+    if (selected.has(rowId)) {
+      selected.delete(rowId);
+    } else {
+      selected.add(rowId);
+    }
+    this.selectedRows.set(typeId, selected);
+  }
+
+  // Toggle all rows selection
+  toggleAllRowsSelection(typeId: number): void {
+    const dataset = this.gridDatasets.get(typeId) || [];
+    const selected = this.selectedRows.get(typeId) || new Set();
+    
+    if (selected.size === dataset.length) {
+      // Deselect all
+      selected.clear();
+    } else {
+      // Select all
+      dataset.forEach(row => selected.add(row.ID));
+    }
+    this.selectedRows.set(typeId, selected);
+  }
+
+  // Check if row is selected
+  isRowSelected(typeId: number, rowId: number): boolean {
+    const selected = this.selectedRows.get(typeId) || new Set();
+    return selected.has(rowId);
+  }
+
+  // Check if all rows are selected
+  areAllRowsSelected(typeId: number): boolean {
+    const dataset = this.gridDatasets.get(typeId) || [];
+    const selected = this.selectedRows.get(typeId) || new Set();
+    return dataset.length > 0 && selected.size === dataset.length;
+  }
+
+  // Get cell value by calling the cell function
+  getCellValue(cell: any): any {
+    const cellDef = cell.column.columnDef.cell;
+    if (typeof cellDef === 'function') {
+      return cellDef(cell.getContext());
+    }
+    return cell.getValue();
+  }
+
+  // Helper để get filter input value từ filter object
+  getFilterInputValue(filterValue: any): string {
+    if (!filterValue) return '';
+    if (typeof filterValue === 'string') return filterValue;
+    if (filterValue.value) return filterValue.value;
+    return '';
+  }
+
+  // Update filter value với operator
+  updateFilterValue(typeId: number, header: any, operator: string, value: string): void {
+    if (!value || value.trim() === '') {
+      header.column.setFilterValue(undefined);
+      return;
+    }
+    
+    header.column.setFilterValue({
+      operator: operator,
+      value: value.trim()
+    });
+  }
+
+  // Load data for specific grid
+  private LoadGridData(typeId: number): void {
+    const dateStart =
+      typeof this.filters.dateStart === 'string'
+        ? this.filters.dateStart
+        : DateTime.fromJSDate(this.filters.dateStart).toFormat('yyyy/MM/dd');
+
+    const dateEnd =
+      typeof this.filters.dateEnd === 'string'
+        ? this.filters.dateEnd
+        : DateTime.fromJSDate(this.filters.dateEnd).toFormat('yyyy/MM/dd');
+
+    let projectTypeID = typeId;
+    let isCommercialProduct = -1;
+    let poKHID = this.filters.poKHID;
+    let isJobRequirement = -1;
+    let projectPartlistPriceRequestTypeID = -1;
+    let employeeID = 0;
+
+    // Áp dụng logic giống WinForm
+    if (typeId === -1) {
+      projectTypeID = -1;
+      isCommercialProduct = 1;
       poKHID = 0;
+    } else if (typeId === -2) {
+      projectTypeID = -1;
+      isJobRequirement = 1;
+      isCommercialProduct = -1;
+    } else if (typeId === -3) {
+      projectPartlistPriceRequestTypeID = 4;
+      isCommercialProduct = 0;
+    } else if (typeId === 0) {
+      isCommercialProduct = 0;
+      isJobRequirement = 0;
+    }
 
-      if (this.jobRequirementID > 0 || this.isVPP) {
-        isJobRequirement = 1;
+    poKHID = 0;
+
+    if (this.jobRequirementID > 0 || this.isVPP) {
+      isJobRequirement = 1;
+    }
+
+    this.PriceRequetsService.getAllPriceRequests(
+      dateStart,
+      dateEnd,
+      this.filters.statusRequest - 1,
+      this.filters.projectId,
+      this.filters.keyword || '',
+      this.filters.isDeleted,
+      projectTypeID,
+      poKHID,
+      isCommercialProduct,
+      isJobRequirement,
+      projectPartlistPriceRequestTypeID
+    ).subscribe({
+      next: (response: any) => {
+        const data = response.data?.dtData || [];
+        this.gridDatasets.set(typeId, data);
+
+        // Recreate table instance with new data
+        this.createTableInstance(typeId);
+      },
+      error: (error: any) => {
+        console.error('Error loading grid data:', error);
+        this.notification.error('Lỗi', 'Không thể tải dữ liệu');
+      },
+    });
+  }
+
+  // Custom filter function với support cho nhiều operators
+  private getFilterFunction(typeId: number): FilterFn<any> {
+    return (row, columnId, filterValue) => {
+      if (!filterValue || !filterValue.value) return true;
+      
+      const value = row.getValue(columnId);
+      if (value === null || value === undefined) return false;
+      
+      const operator = filterValue.operator || 'contains';
+      const searchValue = String(filterValue.value).toLowerCase();
+      const cellValue = String(value).toLowerCase();
+      
+      switch (operator) {
+        case 'equals':
+          return cellValue === searchValue;
+        case 'notEquals':
+          return cellValue !== searchValue;
+        case 'contains':
+          return cellValue.includes(searchValue);
+        case 'notContains':
+          return !cellValue.includes(searchValue);
+        case 'startsWith':
+          return cellValue.startsWith(searchValue);
+        case 'endsWith':
+          return cellValue.endsWith(searchValue);
+        default:
+          return cellValue.includes(searchValue);
       }
-
-      return {
-        dateStart: dateStart,
-        dateEnd: dateEnd,
-        statusRequest: this.filters.statusRequest - 1,
-        projectId: this.filters.projectId,
-        keyword: this.filters.keyword || '',
-        isDeleted: this.filters.isDeleted,
-        projectTypeID: projectTypeID,
-        poKHID: poKHID,
-        isCommercialProduct: isCommercialProduct,
-        isJobRequirement: isJobRequirement,
-        projectPartlistPriceRequestTypeID: projectPartlistPriceRequestTypeID,
-        employeeID: employeeID,
-      };
     };
+  }
 
-    return baseConfig;
+  // Helper để get/set filter operator
+  getFilterOperator(typeId: number, columnId: string): string {
+    if (!this.filterOperators.has(typeId)) {
+      this.filterOperators.set(typeId, new Map());
+    }
+    const operator = this.filterOperators.get(typeId)?.get(columnId);
+    if (!operator) {
+      // Set mặc định là 'contains' nếu chưa có
+      this.filterOperators.get(typeId)!.set(columnId, 'contains');
+      return 'contains';
+    }
+    return operator;
+  }
+
+  setFilterOperator(typeId: number, columnId: string, operator: string): void {
+    if (!this.filterOperators.has(typeId)) {
+      this.filterOperators.set(typeId, new Map());
+    }
+    this.filterOperators.get(typeId)!.set(columnId, operator);
+  }
+
+  // Get columns configuration for SlickGrid
+  private GetColumnsForType(typeId: number): ColumnDef<any>[] {
+    const columns: ColumnDef<any>[] = [
+      {
+        id: 'select',
+        header: () => '', // Checkbox column for selection
+        cell: ({ row }) => row.original,
+        size: 50,
+        enableColumnFilter: false,
+      },
+      {
+        accessorKey: 'ID',
+        id: 'ID',
+        header: 'ID',
+        size: 0,
+        enableSorting: false,
+        enableColumnFilter: false,
+      },
+      {
+        accessorKey: 'IsCheckPrice',
+        id: 'IsCheckPrice',
+        header: 'Check giá',
+        size: 100,
+        enableColumnFilter: false,
+        cell: ({ getValue }) => {
+          const value = getValue();
+          const checked = value === true || value === 'true' || value === 1 || value === '1';
+          return checked;
+        },
+      },
+      {
+        accessorKey: 'TT',
+        id: 'TT',
+        header: 'TT',
+        size: 70,
+      },
+      {
+        accessorKey: 'ProjectCode',
+        id: 'ProjectCode',
+        header: 'Mã dự án',
+        size: 150,
+      },
+      {
+        accessorKey: 'ProductCode',
+        id: 'ProductCode',
+        header: 'Mã sản phẩm',
+        size: 150,
+      },
+      {
+        accessorKey: 'ProductName',
+        id: 'ProductName',
+        header: 'Tên sản phẩm',
+        size: 200,
+      },
+      {
+        accessorKey: 'Manufacturer',
+        id: 'Manufacturer',
+        header: 'Hãng',
+        size: 100,
+        cell: ({ getValue, row }) => getValue(),
+      },
+      {
+        accessorKey: 'Quantity',
+        id: 'Quantity',
+        header: 'Số lượng',
+        size: 100,
+        cell: ({ getValue }) => getValue(),
+      },
+      {
+        accessorKey: 'UnitCount',
+        id: 'UnitCount',
+        header: 'ĐVT',
+        size: 100,
+      },
+      {
+        accessorKey: 'StatusRequestText',
+        id: 'StatusRequestText',
+        header: 'Trạng thái',
+        size: 150,
+      },
+      {
+        accessorKey: 'FullName',
+        id: 'FullName',
+        header: 'Người yêu cầu',
+        size: 150,
+      },
+      {
+        accessorKey: 'FullNameSale',
+        id: 'FullNameSale',
+        header: 'Sale phụ trách',
+        size: 150,
+      },
+      {
+        accessorKey: 'QuoteEmployee',
+        id: 'QuoteEmployee',
+        header: 'NV báo giá',
+        size: 150,
+      },
+      {
+        accessorKey: 'DateRequest',
+        id: 'DateRequest',
+        header: 'Ngày yêu cầu',
+        size: 120,
+        cell: ({ getValue }) => {
+          const value = getValue();
+          if (!value) return '';
+          const dateTime = DateTime.fromISO(value as string);
+          return dateTime.isValid ? dateTime.toFormat('dd/MM/yyyy') : '';
+        },
+      },
+      {
+        accessorKey: 'Deadline',
+        id: 'Deadline',
+        header: 'Deadline',
+        size: 120,
+        cell: ({ getValue }) => {
+          const value = getValue();
+          if (!value) return '';
+          const dateTime = DateTime.fromISO(value as string);
+          return dateTime.isValid ? dateTime.toFormat('dd/MM/yyyy') : '';
+        },
+      },
+      {
+        accessorKey: 'DatePriceQuote',
+        id: 'DatePriceQuote',
+        header: 'Ngày báo giá',
+        size: 120,
+        cell: ({ getValue }) => {
+          const value = getValue();
+          if (!value) return '';
+          const dateTime = DateTime.fromISO(value as string);
+          return dateTime.isValid ? dateTime.toFormat('dd/MM/yyyy') : '';
+        },
+      },
+      {
+        accessorKey: 'CurrencyID',
+        id: 'CurrencyID',
+        header: 'Loại tiền',
+        size: 120,
+        cell: ({ getValue }) => {
+          const value = getValue();
+          if (!value || !this.labels) return 'Chọn loại tiền';
+          return this.labels[value as number] || 'Chọn loại tiền';
+        },
+      },
+      {
+        accessorKey: 'CurrencyRate',
+        id: 'CurrencyRate',
+        header: 'Tỷ giá',
+        size: 100,
+        cell: ({ getValue }) => {
+          const value = getValue() as number;
+          return value ? value.toLocaleString('vi-VN', { maximumFractionDigits: 2 }) : '';
+        },
+      },
+      {
+        accessorKey: 'UnitPrice',
+        id: 'UnitPrice',
+        header: 'Đơn giá',
+        size: 120,
+        cell: ({ getValue }) => {
+          const value = getValue() as number;
+          return value ? value.toLocaleString('vi-VN', { maximumFractionDigits: 2 }) : '';
+        },
+      },
+      {
+        accessorKey: 'HistoryPrice',
+        id: 'HistoryPrice',
+        header: 'Giá lịch sử',
+        size: 120,
+        cell: ({ getValue }) => {
+          const value = getValue() as number;
+          return value ? value.toLocaleString('vi-VN', { maximumFractionDigits: 2 }) : '';
+        },
+      },
+      {
+        accessorKey: 'TotalPrice',
+        id: 'TotalPrice',
+        header: 'Thành tiền chưa VAT',
+        size: 150,
+        cell: ({ getValue }) => {
+          const value = getValue() as number;
+          return value ? value.toLocaleString('vi-VN', { maximumFractionDigits: 2 }) : '';
+        },
+      },
+      {
+        accessorKey: 'TotalPriceExchange',
+        id: 'TotalPriceExchange',
+        header: 'Thành tiền quy đổi (VNĐ)',
+        size: 180,
+        cell: ({ getValue }) => {
+          const value = getValue() as number;
+          return value ? value.toLocaleString('vi-VN', { maximumFractionDigits: 2 }) : '';
+        },
+      },
+      {
+        accessorKey: 'VAT',
+        id: 'VAT',
+        header: '% VAT',
+        size: 100,
+        cell: ({ getValue }) => getValue(),
+      },
+      {
+        accessorKey: 'TotaMoneyVAT',
+        id: 'TotaMoneyVAT',
+        header: 'Thành tiền có VAT',
+        size: 150,
+        cell: ({ getValue }) => {
+          const value = getValue() as number;
+          return value ? value.toLocaleString('vi-VN', { maximumFractionDigits: 2 }) : '';
+        },
+      },
+      {
+        accessorKey: 'CodeNCC',
+        id: 'CodeNCC',
+        header: 'Mã NCC',
+        size: 100,
+      },
+      {
+        accessorKey: 'SupplierSaleID',
+        id: 'SupplierSaleID',
+        header: 'Nhà cung cấp',
+        size: 200,
+        cell: ({ getValue }) => {
+          const value = getValue();
+          if (!value) return 'Chọn nhà cung cấp';
+          const supplier = this.dtSupplierSale.find(s => s.ID === value);
+          return supplier ? supplier.NameNCC : 'Chọn nhà cung cấp';
+        },
+      },
+      {
+        accessorKey: 'TotalDayLeadTime',
+        id: 'TotalDayLeadTime',
+        header: 'Lead Time (Ngày làm việc)',
+        size: 180,
+      },
+      {
+        accessorKey: 'DateExpected',
+        id: 'DateExpected',
+        header: 'Ngày dự kiến hàng về',
+        size: 150,
+        cell: ({ getValue }) => {
+          const value = getValue();
+          if (!value) return '';
+          const dateTime = DateTime.fromISO(value as string);
+          return dateTime.isValid ? dateTime.toFormat('dd/MM/yyyy') : '';
+        },
+      },
+      {
+        accessorKey: 'Note',
+        id: 'Note',
+        header: 'Ghi chú Pur',
+        size: 200,
+      },
+      {
+        accessorKey: 'NotePartlist',
+        id: 'NotePartlist',
+        header: 'Ghi chú (Người Y/C)',
+        size: 200,
+      },
+      {
+        accessorKey: 'Model',
+        id: 'Model',
+        header: 'Thông số kỹ thuật',
+        size: 150,
+      },
+      {
+        accessorKey: 'SpecialCode',
+        id: 'SpecialCode',
+        header: 'Mã đặc biệt',
+        size: 120,
+      },
+      {
+        accessorKey: 'IsImport',
+        id: 'IsImport',
+        header: 'Hàng nhập khẩu',
+        size: 120,
+      },
+      {
+        accessorKey: 'UnitFactoryExportPrice',
+        id: 'UnitFactoryExportPrice',
+        header: 'Đơn giá xuất xưởng',
+        size: 150,
+        cell: ({ getValue }) => {
+          const value = getValue() as number;
+          return value ? value.toLocaleString('vi-VN', { maximumFractionDigits: 2 }) : '';
+        },
+      },
+      {
+        accessorKey: 'UnitImportPrice',
+        id: 'UnitImportPrice',
+        header: 'Đơn giá nhập khẩu',
+        size: 150,
+        cell: ({ getValue }) => {
+          const value = getValue() as number;
+          return value ? value.toLocaleString('vi-VN', { maximumFractionDigits: 2 }) : '';
+        },
+      },
+      {
+        accessorKey: 'TotalImportPrice',
+        id: 'TotalImportPrice',
+        header: 'Thành tiền nhập khẩu',
+        size: 150,
+        cell: ({ getValue }) => {
+          const value = getValue() as number;
+          return value ? value.toLocaleString('vi-VN', { maximumFractionDigits: 2 }) : '';
+        },
+      },
+      {
+        accessorKey: 'LeadTime',
+        id: 'LeadTime',
+        header: 'Lead Time',
+        size: 120,
+        cell: ({ getValue }) => {
+          const value = getValue();
+          if (!value) return '';
+          const dateTime = DateTime.fromISO(value as string);
+          return dateTime.isValid ? dateTime.toFormat('dd/MM/yyyy') : '';
+        },
+      },
+      {
+        accessorKey: 'ReasonDeleted',
+        id: 'ReasonDeleted',
+        header: 'Lý do xoá',
+        size: 150,
+      },
+    ];
+
+    // Apply filter function to all columns with accessorKey (except disabled ones)
+    const filterFn = this.getFilterFunction(typeId);
+    columns.forEach((col: any) => {
+      if (col.accessorKey && col.enableColumnFilter !== false && col.id !== 'select' && col.id !== 'ID' && col.id !== 'IsCheckPrice') {
+        col.filterFn = filterFn;
+      }
+    });
+
+    return columns;
+  }
+
+  // Removed GetGridOptionsForType - no longer needed with TanStack Table
+
+  // Track cell changes - called when data is edited
+  onCellChanged(typeId: number, item: any, fieldName: string): void {
+    if (!item || !item.ID) return;
+
+    const rowId = item.ID;
+
+    // Initialize Set if not exists
+    if (!this.editedRows.has(typeId)) {
+      this.editedRows.set(typeId, new Set());
+    }
+
+    // Add row to edited set
+    this.editedRows.get(typeId)!.add(rowId);
+
+    // Recalculate values if needed
+    if (['UnitPrice', 'Quantity', 'VAT', 'UnitImportPrice', 'TotalDayLeadTime'].includes(fieldName)) {
+      this.UpdateValue(item);
+
+      // Update the row in dataset
+      this.updateRow(typeId, rowId, item);
+    }
   }
 
   private UpdateActiveTable(): void {
@@ -718,22 +1364,14 @@ export class ProjectPartlistPriceRequestComponent implements OnInit {
     if (!this.tables.has(tableId)) {
       this.CreateTableForType(tableId);
     }
-
-    const table = this.tables.get(tableId);
-    if (table) {
-      table.setData(this.dtprojectPartlistPriceRequest);
-    }
+    // Không cần load data vì đã có sẵn từ LoadAllTablesData()
   }
   CalculateTotalPriceExchange(rowData: any, currencyRate: number): number {
     const totalMoney = Number(rowData.TotalPrice) || 0;
     return totalMoney * currencyRate;
   }
-  GetDataChanged() {
-    const tableId = this.activeTabId;
-    const table = this.tables.get(tableId);
-    if (!table) return;
-    table.on('dataChanged', function (data) { });
-  }
+  // GetDataChanged() method removed - no longer needed with SlickGrid
+  // Data changes are tracked automatically via onCellChanged() method
   private SaveDataCommon(
     data: any[],
     successMessage: string = 'Dữ liệu đã được lưu.'
@@ -767,24 +1405,20 @@ export class ProjectPartlistPriceRequestComponent implements OnInit {
   }
 
   OnSaveData(): void {
-    const table = this.tables.get(this.activeTabId);
-    if (!table) return;
+    const grid = this.tables.get(this.activeTabId);
+    if (!grid) return;
 
-    const editedCells = table.getEditedCells();
-    const changedRowsMap = new Map<number, any>();
+    // Get edited rows from tracking
+    const editedRowIds = this.editedRows.get(this.activeTabId);
 
-    editedCells.forEach((cell) => {
-      const row = cell.getRow();
-      const data = row.getData();
-      changedRowsMap.set(Number(data['ID']), data);
-    });
-
-    const changedData = Array.from(changedRowsMap.values());
-
-    if (changedData.length === 0) {
+    if (!editedRowIds || editedRowIds.size === 0) {
       this.notification.info('Thông báo', 'Không có dữ liệu thay đổi.');
       return;
     }
+
+    // Get all data and filter by edited IDs
+    const allData = this.getAllData();
+    const changedData = allData.filter(row => editedRowIds.has(row.ID));
 
     // Chỉ giữ lại các trường hợp lệ
     const validFields = [
@@ -997,8 +1631,8 @@ export class ProjectPartlistPriceRequestComponent implements OnInit {
     }
   }
   QuotePrice(status: number = 2): void {
-    const table = this.tables.get(this.activeTabId);
-    if (!table) return;
+    const grid = this.tables.get(this.activeTabId);
+    if (!grid) return;
 
     // Map trạng thái
     const STATUS_TEXT: { [key: number]: string } = {
@@ -1009,7 +1643,7 @@ export class ProjectPartlistPriceRequestComponent implements OnInit {
     };
 
     const statusText = STATUS_TEXT[status] || '';
-    const selectedRows = table.getSelectedRows();
+    const selectedRows = this.getSelectedRows();
 
     // Validate chọn dòng
     if (selectedRows.length === 0) {
@@ -1136,11 +1770,11 @@ export class ProjectPartlistPriceRequestComponent implements OnInit {
 
   // Cập nhật phương thức CheckPrice để sử dụng hàm chung
   CheckPrice(isCheckPrice: boolean): void {
-    const table = this.tables.get(this.activeTabId);
-    if (!table) return;
+    const grid = this.tables.get(this.activeTabId);
+    if (!grid) return;
 
     const isCheckText = isCheckPrice ? 'Check giá' : 'Huỷ check giá';
-    const selectedRows = table.getSelectedRows();
+    const selectedRows = this.getSelectedRows();
 
     if (selectedRows.length <= 0) {
       this.notification.info(
@@ -1220,9 +1854,9 @@ export class ProjectPartlistPriceRequestComponent implements OnInit {
   }
 
   RejectPriceRequest(status: number = 3): void {
-    const table = this.tables.get(this.activeTabId);
-    if (!table) return;
-    const selectedRows = table.getSelectedRows();
+    const grid = this.tables.get(this.activeTabId);
+    if (!grid) return;
+    const selectedRows = this.getSelectedRows();
     if (selectedRows.length === 0) {
       this.notification.info('Thông báo', 'Vui lòng chọn sản phẩm muốn từ chối!');
       return;
@@ -1261,9 +1895,9 @@ export class ProjectPartlistPriceRequestComponent implements OnInit {
   }
 
   CancelRejectPriceRequest(): void {
-    const table = this.tables.get(this.activeTabId);
-    if (!table) return;
-    const selectedRows = table.getSelectedRows();
+    const grid = this.tables.get(this.activeTabId);
+    if (!grid) return;
+    const selectedRows = this.getSelectedRows();
     if (selectedRows.length === 0) {
       this.notification.info('Thông báo', 'Vui lòng chọn sản phẩm muốn hủy từ chối!');
       return;
@@ -1359,9 +1993,9 @@ export class ProjectPartlistPriceRequestComponent implements OnInit {
   }
 
   OpenRequestBuyModal(): void {
-    const table = this.tables.get(this.activeTabId);
-    if (!table) return;
-    const selectedRows = table.getSelectedRows();
+    const grid = this.tables.get(this.activeTabId);
+    if (!grid) return;
+    const selectedRows = this.getSelectedRows();
     if (selectedRows.length === 0) {
       this.notification.info('Thông báo', 'Vui lòng chọn ít nhất một dòng để yêu cầu mua.');
       return;
@@ -1492,8 +2126,8 @@ export class ProjectPartlistPriceRequestComponent implements OnInit {
   }
 
   async ExportToExcelAdvanced() {
-    const table = this.tables.get(this.activeTabId);
-    if (!table) return;
+    const grid = this.tables.get(this.activeTabId);
+    if (!grid) return;
 
     const workbook = new ExcelJS.Workbook();
     const type = this.projectTypes.find(
@@ -1506,15 +2140,13 @@ export class ProjectPartlistPriceRequestComponent implements OnInit {
     const worksheet = workbook.addWorksheet(sanitizedName);
 
     // Lấy dữ liệu
-    const data = table.getSelectedData();
+    const data = this.getSelectedData();
 
     if (data.length === 0) {
       this.notification.info('Thông báo', 'Không có dữ liệu để xuất Excel.');
       return;
     }
-    const columns = table
-      .getColumnDefinitions()
-      .filter((col: any) => col.visible !== false);
+    const columns = this.gridColumns.get(this.activeTabId) || [];
 
     // Thêm headers
     const headerRow = worksheet.addRow(columns.map((col: any) => col.title));
@@ -1598,19 +2230,9 @@ export class ProjectPartlistPriceRequestComponent implements OnInit {
     // Auto-fit columns với xử lý an toàn
     worksheet.columns.forEach((column, index) => {
       const col = columns[index];
-      if (col.width) {
-        // Kiểm tra nếu width là string và chứa 'vh'
-        if (typeof col.width === 'string' && col.width.includes('vh')) {
-          column.width = parseFloat(col.width.replace('vh', '')) * 2;
-        }
-        // Nếu width là number
-        else if (typeof col.width === 'number') {
-          column.width = col.width;
-        }
-        // Nếu width là string nhưng không chứa 'vh'
-        else if (typeof col.width === 'string') {
-          column.width = parseFloat(col.width) || 15;
-        }
+      if (col && col.size) {
+        // Use size from TanStack Table column definition
+        column.width = col.size / 5; // Convert pixels to Excel width units (approximate)
       } else {
         column.width = 15;
       }
@@ -1654,8 +2276,8 @@ export class ProjectPartlistPriceRequestComponent implements OnInit {
     window.URL.revokeObjectURL(link.href);
   }
   async ExportToExcelTab() {
-    const table = this.tables.get(this.activeTabId);
-    if (!table) return;
+    const grid = this.tables.get(this.activeTabId);
+    if (!grid) return;
 
     const url = this.PriceRequetsService.getAPIPricerequest();
     const filters = this.filters;
@@ -1695,9 +2317,7 @@ export class ProjectPartlistPriceRequestComponent implements OnInit {
         return;
       }
 
-      const columns = table
-        .getColumnDefinitions()
-        .filter((col: any) => col.visible !== false);
+      const columns = this.gridColumns.get(this.activeTabId) || [];
       const workbook = new ExcelJS.Workbook();
       const worksheet = workbook.addWorksheet('Danh sách báo giá');
 
@@ -1784,14 +2404,8 @@ export class ProjectPartlistPriceRequestComponent implements OnInit {
       // Auto-fit width
       worksheet.columns.forEach((column, index) => {
         const col = columns[index];
-        if (col?.width) {
-          if (typeof col.width === 'string' && col.width.includes('vh')) {
-            column.width = parseFloat(col.width.replace('vh', '')) * 2;
-          } else if (typeof col.width === 'number') {
-            column.width = col.width;
-          } else {
-            column.width = parseFloat(col.width) || 15;
-          }
+        if (col && col.size) {
+          column.width = col.size / 5; // Convert pixels to Excel width units
         } else {
           column.width = 15;
         }
@@ -1872,12 +2486,8 @@ export class ProjectPartlistPriceRequestComponent implements OnInit {
         const rawData = result.data?.dtData || [];
         if (rawData.length === 0) continue;
 
-        const table = this.tables.get(projectTypeID);
-        if (!table) continue;
-
-        const columns = table
-          .getColumnDefinitions()
-          .filter((col: any) => col.visible !== false);
+        const columns = this.gridColumns.get(projectTypeID) || [];
+        if (columns.length === 0) continue;
         const sheetName = (
           type.ProjectTypeName || `Sheet-${projectTypeID}`
         ).replace(/[\\/?*[\]]/g, '');
@@ -1987,11 +2597,8 @@ export class ProjectPartlistPriceRequestComponent implements OnInit {
         // Auto-fit và border
         sheet.columns.forEach((column, index) => {
           const col = columns[index];
-          if (col?.width) {
-            if (typeof col.width === 'string' && col.width.includes('vh'))
-              column.width = parseFloat(col.width.replace('vh', '')) * 2;
-            else if (typeof col.width === 'number') column.width = col.width;
-            else column.width = parseFloat(col.width) || 15;
+          if (col && col.size) {
+            column.width = col.size / 5; // Convert pixels to Excel width units
           } else {
             column.width = 15;
           }
@@ -2028,10 +2635,10 @@ export class ProjectPartlistPriceRequestComponent implements OnInit {
   }
 
   DownloadFile() {
-    const table = this.tables.get(this.activeTabId);
-    if (!table) return;
+    const grid = this.tables.get(this.activeTabId);
+    if (!grid) return;
 
-    const selectedRows = table.getSelectedData();
+    const selectedRows = this.getSelectedData();
     if (selectedRows.length <= 0) {
       this.notification.warning(
         'Thông báo',
@@ -2210,528 +2817,539 @@ ToggleSearchPanelNew() {
       }
     });
   }
-  private GetTableConfig(): any {
-    return {
-      // data: this.dtprojectPartlistPriceRequest,
-      ...DEFAULT_TABLE_CONFIG,
-      layout: 'fitDataStretch',
-      height: '96%',
+  // private GetTableConfig(): any {
+  //   return {
+  //     // data: this.dtprojectPartlistPriceRequest,
+  //     ...DEFAULT_TABLE_CONFIG,
+  //     layout: 'fitDataStretch',
+  //     height: '96%',
 
-      ajaxURL: this.PriceRequetsService.getAPIPricerequest(),
-      ajaxParams: () => {
-        const filters = this.filters;
+  //     ajaxURL: this.PriceRequetsService.getAPIPricerequest(),
+  //     ajaxParams: () => {
+  //       const filters = this.filters;
 
-        // Sửa statusRequest = -1 nếu không muốn lọc, hoặc truyền đúng
-        let statusRequest = filters.statusRequest - 1;
-        if (statusRequest < 0) statusRequest = 0;
+  //       // Sửa statusRequest = -1 nếu không muốn lọc, hoặc truyền đúng
+  //       let statusRequest = filters.statusRequest - 1;
+  //       if (statusRequest < 0) statusRequest = 0;
 
-        // Xử lý projectTypeID và isCommercialProduct logic giống như ở backend
-        let isCommercialProduct =
-          filters.projectTypeID === -1 ? 1 : filters.isCommercialProd;
-        let poKHID = filters.projectTypeID >= 0 ? 0 : filters.poKHID;
+  //       // Xử lý projectTypeID và isCommercialProduct logic giống như ở backend
+  //       let isCommercialProduct =
+  //         filters.projectTypeID === -1 ? 1 : filters.isCommercialProd;
+  //       let poKHID = filters.projectTypeID >= 0 ? 0 : filters.poKHID;
 
-        // Kiểm tra nếu dateStart và dateEnd là chuỗi thì sử dụng trực tiếp
-        // nếu là Date thì chuyển đổi
-        const dateStart =
-          typeof filters.dateStart === 'string'
-            ? filters.dateStart
-            : DateTime.fromJSDate(filters.dateStart).toFormat('yyyy/MM/dd');
+  //       // Kiểm tra nếu dateStart và dateEnd là chuỗi thì sử dụng trực tiếp
+  //       // nếu là Date thì chuyển đổi
+  //       const dateStart =
+  //         typeof filters.dateStart === 'string'
+  //           ? filters.dateStart
+  //           : DateTime.fromJSDate(filters.dateStart).toFormat('yyyy/MM/dd');
 
-        const dateEnd =
-          typeof filters.dateEnd === 'string'
-            ? filters.dateEnd
-            : DateTime.fromJSDate(filters.dateEnd).toFormat('yyyy/MM/dd');
+  //       const dateEnd =
+  //         typeof filters.dateEnd === 'string'
+  //           ? filters.dateEnd
+  //           : DateTime.fromJSDate(filters.dateEnd).toFormat('yyyy/MM/dd');
 
-        return {
-          page: 1,
-          size: 25,
-        };
-      },
-      ajaxConfig: {
-        method: 'GET',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-      },
+  //       return {
+  //         page: 1,
+  //         size: 25,
+  //       };
+  //     },
+  //     ajaxConfig: {
+  //       method: 'GET',
+  //       headers: {
+  //         'Content-Type': 'application/json',
+  //       },
+  //     },
 
-      paginationMode: 'remote',
-      pagination: true,
-      paginationSize: 25,
-      paginationSizeSelector: [10, 25, 50, 100],
-      paginationInitialPage: 1,
-      ajaxResponse: function (url: string, params: any, response: any) {
-        // Xử lý dữ liệu trả về từ API
-        const dtData = response.data.dtData || [];
-        const totalPages = dtData.length > 0 ? dtData[0].TotalPage : 1;
-        return {
-          data: dtData,
-          last_page: totalPages,
-        };
-      },
-      ajaxError: function (xhr: any, textStatus: any, errorThrown: any) {
-        console.error('Lỗi AJAX:', textStatus, errorThrown);
-        this.notification.error(NOTIFICATION_TITLE.error,
-          'Đã xảy ra lỗi khi tải dữ liệu. Vui lòng thử lại sau.'
-        );
-      },
-      // langs: {
-      //   vi: {
-      //     pagination: {
-      //       first: '<<',
-      //       last: '>>',
-      //       prev: '<',
-      //       next: '>',
-      //     },
-      //   },
-      // },
-      // locale: 'vi',
-      columnCalcs: 'both',
-      groupBy: 'ProjectFullName',
-      groupHeader: function (value: any, count: number, data: any) {
-        return `${value} <span>(${count})</span>`;
-      },
-      rowContextMenu: [
-        {
-          label: 'Xem chi tiết',
-          action: (e: MouseEvent, row: RowComponent) => {
-            this.OnEditClick();
-          },
-        },
-        { separator: true },
-      ] as MenuObject<RowComponent>[],
-      columns: [
-        {
-          title: 'ID',
-          field: 'ID',
-          visible: false,
-          headerHozAlign: 'center',
-          frozen: true,
-        },
-        {
-          title: 'Check giá',
-          field: 'IsCheckPrice',
-          hozAlign: 'center',
-          headerSort: false,
-          headerHozAlign: 'center',
-          formatter: function (cell: any) {
-            const value = cell.getValue();
-            const checked = value === true || value === 'true' || value === 1 || value === '1';
-            return `<input type="checkbox" ${checked ? 'checked' : ''} style="pointer-events: none; accent-color: #1677ff;" />`;
-          },
-          frozen: true,
-          width: 100,
-        },
-        {
-          title: 'TT',
-          field: 'TT',
-          headerHozAlign: 'center',
-          frozen: true,
-          width: 70,
-          headerFilter: 'input',
-        },
+  //     paginationMode: 'remote',
+  //     pagination: true,
+  //     paginationSize: 25,
+  //     paginationSizeSelector: [10, 25, 50, 100],
+  //     paginationInitialPage: 1,
+  //     ajaxResponse: function (url: string, params: any, response: any) {
+  //       // Xử lý dữ liệu trả về từ API
+  //       const dtData = response.data.dtData || [];
+  //       const totalPages = dtData.length > 0 ? dtData[0].TotalPage : 1;
+  //       return {
+  //         data: dtData,
+  //         last_page: totalPages,
+  //       };
+  //     },
+  //     ajaxError: function (xhr: any, textStatus: any, errorThrown: any) {
+  //       console.error('Lỗi AJAX:', textStatus, errorThrown);
+  //       this.notification.error(NOTIFICATION_TITLE.error,
+  //         'Đã xảy ra lỗi khi tải dữ liệu. Vui lòng thử lại sau.'
+  //       );
+  //     },
+  //     // langs: {
+  //     //   vi: {
+  //     //     pagination: {
+  //     //       first: '<<',
+  //     //       last: '>>',
+  //     //       prev: '<',
+  //     //       next: '>',
+  //     //     },
+  //     //   },
+  //     // },
+  //     // locale: 'vi',
+  //     columnCalcs: 'both',
+  //     groupBy: 'ProjectFullName',
+  //     groupHeader: function (value: any, count: number, data: any) {
+  //       return `${value} <span>(${count})</span>`;
+  //     },
+  //     rowContextMenu: [
+  //       {
+  //         label: 'Xem chi tiết',
+  //         action: (e: MouseEvent, row: RowComponent) => {
+  //           this.OnEditClick();
+  //         },
+  //       },
+  //       { separator: true },
+  //     ] as MenuObject<RowComponent>[],
+  //     columns: [
+  //       {
+  //         title: 'ID',
+  //         field: 'ID',
+  //         visible: false,
+  //         headerHozAlign: 'center',
+  //         frozen: true,
+  //       },
+  //       {
+  //         title: 'Check giá',
+  //         field: 'IsCheckPrice',
+  //         hozAlign: 'center',
+  //         headerSort: false,
+  //         headerHozAlign: 'center',
+  //         formatter: function (cell: any) {
+  //           const value = cell.getValue();
+  //           const checked = value === true || value === 'true' || value === 1 || value === '1';
+  //           return `<input type="checkbox" ${checked ? 'checked' : ''} style="pointer-events: none; accent-color: #1677ff;" />`;
+  //         },
+  //         frozen: true,
+  //         width: 100,
+  //       },
+  //       {
+  //         title: 'TT',
+  //         field: 'TT',
+  //         headerHozAlign: 'center',
+  //         frozen: true,
+  //         width: 70,
+  //         headerFilter: 'input',
+  //       },
 
-        // {
-        //   title: ' ',
-        //   field: 'ProjectFullName',
-        //   hozAlign: 'center',
-        //   headerSort: false,
-        // },
-        {
-          title: 'Mã dự án',
-          field: 'ProjectCode',
-          headerHozAlign: 'center',
-          frozen: true,
-          hozAlign: 'left',
-          width: 150,
-          formatter:'textarea',
-        },
-        {
-          title: 'Mã sản phẩm',
-          field: 'ProductCode',
-          headerHozAlign: 'center',
-          frozen: true,
-          hozAlign: 'left',
-          width: 150,
-          bottomCalc: 'count',
-          formatter:'textarea'
-        },
-        {
-          title: 'Tên sản phẩm',
-          field: 'ProductName',
-          headerHozAlign: 'center',
-          frozen: true,
-          hozAlign: 'left',
-          width: 150,
-          formatter:'textarea'
-        },
-        {
-          title: 'Hãng',
-          field: 'Manufacturer',
-          headerHozAlign: 'center',
-          frozen: true,
-          hozAlign: 'left',
-          width: 50,
-          formatter:'textarea'
-        },
-        {
-          title: 'Số lượng',
-          field: 'Quantity',
-          hozAlign: 'right',
-          headerHozAlign: 'center',
-          width: 100,
-          bottomCalc: 'sum'
-        },
-        {
-          title: 'ĐVT',
-          field: 'UnitCount',
-          headerHozAlign: 'center',
-          width: 100,
-          hozAlign: 'left',
-        },
-        {
-          title: 'Trạng thái',
-          field: 'StatusRequestText',
-          headerHozAlign: 'center',
-          hozAlign: 'left',
-          width: 150,
-          formatter:'textarea'
-        },
-        {
-          title: 'Người yêu cầu',
-          field: 'FullName',
-          headerHozAlign: 'center',
-          hozAlign: 'left',
-          width: 150,
-          formatter:'textarea'
-        },
-        {
-          title: 'Sale phụ trách',
-          field: 'FullNameSale',
-          headerHozAlign: 'center',
-          hozAlign: 'left',
-          width: 150,
-          formatter:'textarea'
-        },
-        {
-          title: 'NV báo giá',
-          field: 'QuoteEmployee',
-          hozAlign: 'left',
-          headerHozAlign: 'center',
-          width: 150,
-          formatter:'textarea'
-        },
-        {
-          title: 'Ngày yêu cầu',
-          field: 'DateRequest',
-          headerHozAlign: 'center',
-          formatter: function (
-            cell: any,
-            formatterParams: any[],
-            onRendered: any
-          ) {
-            let value = cell.getValue() || '';
-            const dateTime = DateTime.fromISO(value);
-            value = dateTime.isValid ? dateTime.toFormat('dd/MM/yyyy') : '';
-            return value;
-          },
-          hozAlign: 'center',
-          width: 100,
-        },
-        {
-          title: 'Deadline',
-          field: 'Deadline',
-          headerHozAlign: 'center',
-          formatter: function (
-            cell: any,
-            formatterParams: any[],
-            onRendered: any
-          ) {
-            let value = cell.getValue() || '';
-            const dateTime = DateTime.fromISO(value);
-            value = dateTime.isValid ? dateTime.toFormat('dd/MM/yyyy') : '';
-            return value;
-          },
-          hozAlign: 'center',
-          width: 100,
-        },
-        {
-          title: 'Ngày báo giá',
-          field: 'DatePriceQuote',
-          formatter: function (
-            cell: any,
-            formatterParams: any[],
-            onRendered: any
-          ) {
-            let value = cell.getValue() || '';
-            const dateTime = DateTime.fromISO(value);
-            value = dateTime.isValid ? dateTime.toFormat('dd/MM/yyyy') : '';
-            return value;
-          },
-          headerHozAlign: 'center',
-          hozAlign: 'center',
-          width: 100,
-        },
-        {
-          title: 'Loại tiền',
-          field: 'CurrencyID',
-          hozAlign: 'left',
-          editor: this.createdControl(
-            SelectEditorComponent,
-            this.injector,
-            this.appRef
-          ),
-          formatter: (cell: any) => {
-            const val = cell.getValue();
+  //       // {
+  //       //   title: ' ',
+  //       //   field: 'ProjectFullName',
+  //       //   hozAlign: 'center',
+  //       //   headerSort: false,
+  //       // },
+  //       {
+  //         title: 'Mã dự án',
+  //         field: 'ProjectCode',
+  //         headerHozAlign: 'center',
+  //         frozen: true,
+  //         hozAlign: 'left',
+  //         width: 150,
+  //         formatter:'textarea',
+  //       },
+  //       {
+  //         title: 'Mã sản phẩm',
+  //         field: 'ProductCode',
+  //         headerHozAlign: 'center',
+  //         frozen: true,
+  //         hozAlign: 'left',
+  //         width: 150,
+  //         bottomCalc: 'count',
+  //         formatter:'textarea'
+  //       },
+  //       {
+  //         title: 'Tên sản phẩm',
+  //         field: 'ProductName',
+  //         headerHozAlign: 'center',
+  //         frozen: true,
+  //         hozAlign: 'left',
+  //         width: 150,
+  //         formatter:'textarea'
+  //       },
+  //       {
+  //         title: 'Hãng',
+  //         field: 'Manufacturer',
+  //         headerHozAlign: 'center',
+  //         frozen: true,
+  //         hozAlign: 'left',
+  //         width: 50,
+  //         formatter:'textarea'
+  //       },
+  //       {
+  //         title: 'Số lượng',
+  //         field: 'Quantity',
+  //         hozAlign: 'right',
+  //         headerHozAlign: 'center',
+  //         width: 100,
+  //         bottomCalc: 'sum'
+  //       },
+  //       {
+  //         title: 'ĐVT',
+  //         field: 'UnitCount',
+  //         headerHozAlign: 'center',
+  //         width: 100,
+  //         hozAlign: 'left',
+  //       },
+  //       {
+  //         title: 'Trạng thái',
+  //         field: 'StatusRequestText',
+  //         headerHozAlign: 'center',
+  //         hozAlign: 'left',
+  //         width: 150,
+  //         formatter:'textarea'
+  //       },
+  //       {
+  //         title: 'Người yêu cầu',
+  //         field: 'FullName',
+  //         headerHozAlign: 'center',
+  //         hozAlign: 'left',
+  //         width: 150,
+  //         formatter:'textarea'
+  //       },
+  //       {
+  //         title: 'Sale phụ trách',
+  //         field: 'FullNameSale',
+  //         headerHozAlign: 'center',
+  //         hozAlign: 'left',
+  //         width: 150,
+  //         formatter:'textarea'
+  //       },
+  //       {
+  //         title: 'NV báo giá',
+  //         field: 'QuoteEmployee',
+  //         hozAlign: 'left',
+  //         headerHozAlign: 'center',
+  //         width: 150,
+  //         formatter:'textarea'
+  //       },
+  //       {
+  //         title: 'Ngày yêu cầu',
+  //         field: 'DateRequest',
+  //         headerHozAlign: 'center',
+  //         formatter: function (
+  //           cell: any,
+  //           formatterParams: any[],
+  //           onRendered: any
+  //         ) {
+  //           let value = cell.getValue() || '';
+  //           const dateTime = DateTime.fromISO(value);
+  //           value = dateTime.isValid ? dateTime.toFormat('dd/MM/yyyy') : '';
+  //           return value;
+  //         },
+  //         hozAlign: 'center',
+  //         width: 100,
+  //       },
+  //       {
+  //         title: 'Deadline',
+  //         field: 'Deadline',
+  //         headerHozAlign: 'center',
+  //         formatter: function (
+  //           cell: any,
+  //           formatterParams: any[],
+  //           onRendered: any
+  //         ) {
+  //           let value = cell.getValue() || '';
+  //           const dateTime = DateTime.fromISO(value);
+  //           value = dateTime.isValid ? dateTime.toFormat('dd/MM/yyyy') : '';
+  //           return value;
+  //         },
+  //         hozAlign: 'center',
+  //         width: 100,
+  //       },
+  //       {
+  //         title: 'Ngày báo giá',
+  //         field: 'DatePriceQuote',
+  //         formatter: function (
+  //           cell: any,
+  //           formatterParams: any[],
+  //           onRendered: any
+  //         ) {
+  //           let value = cell.getValue() || '';
+  //           const dateTime = DateTime.fromISO(value);
+  //           value = dateTime.isValid ? dateTime.toFormat('dd/MM/yyyy') : '';
+  //           return value;
+  //         },
+  //         headerHozAlign: 'center',
+  //         hozAlign: 'center',
+  //         width: 100,
+  //       },
+  //       {
+  //         title: 'Loại tiền',
+  //         field: 'CurrencyID',
+  //         hozAlign: 'left',
+  //         editor: this.createdControl(
+  //           SelectEditorComponent,
+  //           this.injector,
+  //           this.appRef
+  //         ),
+  //         formatter: (cell: any) => {
+  //           const val = cell.getValue();
 
-            return `<div class="d-flex justify-content-between align-items-center"><p class="w-100 m-0">${val ? this.labels[val] : 'Chọn loại tiền'
-              }</p> <i class="fas fa-angle-down"></i> <div>`;
-          },
-          cellEdited: (cell: any) => this.OnCurrencyChanged(cell),
-          width: 100,
-        },
-        {
-          title: 'Tỷ giá',
-          field: 'CurrencyRate',
-          headerHozAlign: 'center',
-          width: '100',
-          hozAlign: 'right',
-        },
-        {
-          title: 'Đơn giá',
-          field: 'UnitPrice',
-          headerHozAlign: 'center',
-          editor: this.moneyEditor.bind(this),
-          formatter: 'money',
-          hozAlign: 'right',
-          formatterParams: {
-            thousand: ',',
-            decimal: '.',
-            precision: 0,
-          },
-          cellEdited: (cell: any) => this.HandleCellEdited(cell),
-          width: 100,
-        },
-        {
-          title: 'Giá lịch sử',
-          field: 'HistoryPrice',
-          headerHozAlign: 'center',
-          editor: this.moneyEditor.bind(this),
-          formatter: 'money',
-          hozAlign: 'right',
-          formatterParams: {
-            thousand: ',',
-            decimal: '.',
-            precision: 0,
-          },
-          width: 100,
-        },
-        {
-          title: 'Thành tiền chưa VAT',
-          field: 'TotalPrice',
-          headerHozAlign: 'center',
-          formatter: 'money',
-          hozAlign: 'right',
-          width: 100,
-          formatterParams: {
-            thousand: ',',
-            decimal: '.',
-            precision: 0,
-          },
-          bottomCalc: 'sum',
-          bottomCalcFormatter: 'money',
-          bottomCalcFormatterParams: {
-            thousand: ',',
-            decimal: '.',
-            precision: 0,
-          },
-        },
-        {
-          title: 'Thành tiền quy đổi (VNĐ)',
-          field: 'TotalPriceExchange',
-          headerHozAlign: 'center',
-          formatter: 'money',
-          hozAlign: 'right',
-          headerFilter: 'input',
-          formatterParams: {
-            thousand: ',',
-            decimal: '.',
-            precision: 0,
-          },
-          width: 100,
-        },
-        {
-          title: '% VAT',
-          field: 'VAT',
-          headerHozAlign: 'center',
-          editor: 'input',
-          width: 100,
-          hozAlign: 'right',
-          cellEdited: (cell: any) => this.HandleCellEdited(cell),
-        },
-        {
-          title: 'Thành tiền có VAT',
-          field: 'TotaMoneyVAT',
-          headerHozAlign: 'center',
-          formatter: 'money',
-          hozAlign: 'right',
-          width: 100,
-          formatterParams: {
-            thousand: ',',
-            decimal: '.',
-            precision: 0,
-          },
-        },
-        {
-          title: 'Mã NCC',
-          field: 'CodeNCC',
-          hozAlign: 'left',
-          headerHozAlign: 'center',
-          width: 100,
-        },
-        {
-          title: 'Nhà cung cấp',
-          field: 'SupplierSaleID',
-          headerHozAlign: 'center',
-          width: 150,
-          hozAlign: 'left',
-          editor: this.supplierEditor.bind(this),
-          formatter: (cell: any) => {
-            const val = cell.getValue();
-            const supplier = this.dtSupplierSale.find((s) => s.ID === val);
-            return `<div class="d-flex justify-content-between align-items-center"><p class="w-100 m-0">${supplier ? supplier.NameNCC : 'Chọn nhà cung cấp'
-              }</p> <i class="fas fa-angle-down"></i> <div>`;
-          },
-          cellEdited: (cell: any) => this.OnSupplierSaleChanged(cell),
-        },
-        {
-          title: 'Lead Time (Ngày làm việc)',
-          field: 'TotalDayLeadTime',
-          headerHozAlign: 'center',
-          hozAlign: 'right',
-          bottomCalc: 'sum',
-          cellEdited: (cell: any) => this.HandleCellEdited(cell),
-          width: 100,
+  //           return `<div class="d-flex justify-content-between align-items-center"><p class="w-100 m-0">${val ? this.labels[val] : 'Chọn loại tiền'
+  //             }</p> <i class="fas fa-angle-down"></i> <div>`;
+  //         },
+  //         cellEdited: (cell: any) => this.OnCurrencyChanged(cell),
+  //         width: 100,
+  //       },
+  //       {
+  //         title: 'Tỷ giá',
+  //         field: 'CurrencyRate',
+  //         headerHozAlign: 'center',
+  //         width: '100',
+  //         hozAlign: 'right',
+  //       },
+  //       {
+  //         title: 'Đơn giá',
+  //         field: 'UnitPrice',
+  //         headerHozAlign: 'center',
+  //         editor: this.moneyEditor.bind(this),
+  //         formatter: 'money',
+  //         hozAlign: 'right',
+  //         formatterParams: {
+  //           thousand: ',',
+  //           decimal: '.',
+  //           precision: 0,
+  //         },
+  //         cellEdited: (cell: any) => this.HandleCellEdited(cell),
+  //         width: 100,
+  //       },
+  //       {
+  //         title: 'Giá lịch sử',
+  //         field: 'HistoryPrice',
+  //         headerHozAlign: 'center',
+  //         editor: this.moneyEditor.bind(this),
+  //         formatter: 'money',
+  //         hozAlign: 'right',
+  //         formatterParams: {
+  //           thousand: ',',
+  //           decimal: '.',
+  //           precision: 0,
+  //         },
+  //         width: 100,
+  //       },
+  //       {
+  //         title: 'Thành tiền chưa VAT',
+  //         field: 'TotalPrice',
+  //         headerHozAlign: 'center',
+  //         formatter: 'money',
+  //         hozAlign: 'right',
+  //         width: 100,
+  //         formatterParams: {
+  //           thousand: ',',
+  //           decimal: '.',
+  //           precision: 0,
+  //         },
+  //         bottomCalc: 'sum',
+  //         bottomCalcFormatter: 'money',
+  //         bottomCalcFormatterParams: {
+  //           thousand: ',',
+  //           decimal: '.',
+  //           precision: 0,
+  //         },
+  //       },
+  //       {
+  //         title: 'Thành tiền quy đổi (VNĐ)',
+  //         field: 'TotalPriceExchange',
+  //         headerHozAlign: 'center',
+  //         formatter: 'money',
+  //         hozAlign: 'right',
+  //         headerFilter: 'input',
+  //         formatterParams: {
+  //           thousand: ',',
+  //           decimal: '.',
+  //           precision: 0,
+  //         },
+  //         width: 100,
+  //       },
+  //       {
+  //         title: '% VAT',
+  //         field: 'VAT',
+  //         headerHozAlign: 'center',
+  //         editor: 'input',
+  //         width: 100,
+  //         hozAlign: 'right',
+  //         cellEdited: (cell: any) => this.HandleCellEdited(cell),
+  //       },
+  //       {
+  //         title: 'Thành tiền có VAT',
+  //         field: 'TotaMoneyVAT',
+  //         headerHozAlign: 'center',
+  //         formatter: 'money',
+  //         hozAlign: 'right',
+  //         width: 100,
+  //         formatterParams: {
+  //           thousand: ',',
+  //           decimal: '.',
+  //           precision: 0,
+  //         },
+  //       },
+  //       {
+  //         title: 'Mã NCC',
+  //         field: 'CodeNCC',
+  //         hozAlign: 'left',
+  //         headerHozAlign: 'center',
+  //         width: 100,
+  //       },
+  //       {
+  //         title: 'Nhà cung cấp',
+  //         field: 'SupplierSaleID',
+  //         headerHozAlign: 'center',
+  //         width: 150,
+  //         hozAlign: 'left',
+  //         editor: this.supplierEditor.bind(this),
+  //         formatter: (cell: any) => {
+  //           const val = cell.getValue();
+  //           const supplier = this.dtSupplierSale.find((s) => s.ID === val);
+  //           return `<div class="d-flex justify-content-between align-items-center"><p class="w-100 m-0">${supplier ? supplier.NameNCC : 'Chọn nhà cung cấp'
+  //             }</p> <i class="fas fa-angle-down"></i> <div>`;
+  //         },
+  //         cellEdited: (cell: any) => this.OnSupplierSaleChanged(cell),
+  //       },
+  //       {
+  //         title: 'Lead Time (Ngày làm việc)',
+  //         field: 'TotalDayLeadTime',
+  //         headerHozAlign: 'center',
+  //         hozAlign: 'right',
+  //         bottomCalc: 'sum',
+  //         cellEdited: (cell: any) => this.HandleCellEdited(cell),
+  //         width: 100,
 
-        },
-        {
-          title: 'Ngày dự kiến hàng về',
-          field: 'DateExpected',
-          headerHozAlign: 'center',
-          hozAlign: 'center',
-          formatter: function (
-            cell: any,
-            formatterParams: any[],
-            onRendered: any
-          ) {
-            let value = cell.getValue() || '';
-            const dateTime = DateTime.fromISO(value);
-            value = dateTime.isValid ? dateTime.toFormat('dd/MM/yyyy') : '';
-            return value;
-          },
-          width: 100,
-        },
-        {
-          title: 'Ghi chú Pur',
-          field: 'Note',
-          headerHozAlign: 'center',
-          width: 100,
-          hozAlign: 'left',
-        },
-        {
-          title: 'Ghi chú (Người Y/C)',
-          field: 'NotePartlist',
-          width: 200,
-          headerHozAlign: 'center',
-          hozAlign: 'left',
-        },
-        {
-          title: 'Thông số kỹ thuật',
-          field: 'Model',
-          headerHozAlign: 'center',
-          hozAlign: 'left',
-          width: 100,
-        },
-        {
-          title: 'Mã đặc biệt',
-          field: 'SpecialCode',
-          headerHozAlign: 'center',
-          hozAlign: 'left',
-          width: 100,
-        },
-        {
-          title: 'Hàng nhập khẩu',
-          field: 'IsImport',
-          headerHozAlign: 'center',
-          hozAlign: 'left',
-          width: 100,
-        },
-        {
-          title: 'Đơn giá xuất xưởng',
-          field: 'UnitFactoryExportPrice',
-          editor: this.moneyEditor.bind(this),
-          formatter: 'money',
-          headerHozAlign: 'center',
-          formatterParams: {
-            thousand: ',',
-            decimal: '.',
-            precision: 0,
-          },
-          width: 100,
-          hozAlign: 'right',
-        },
-        {
-          title: 'Đơn giá nhập khẩu',
-          field: 'UnitImportPrice',
-          editor: this.moneyEditor.bind(this),
-          formatter: 'money',
-          headerHozAlign: 'center',
-          formatterParams: {
-            thousand: ',',
-            decimal: '.',
-            precision: 0,
-          },
-          width: 100,
-          cellEdited: (cell: any) => this.HandleCellEdited(cell),
-          hozAlign: 'right',
-        },
-        {
-          title: 'Thành tiền nhập khẩu',
-          field: 'TotalImportPrice',
-          hozAlign: 'right',
-          headerHozAlign: 'center',
-          formatter: 'money',
-          width: 100,
-          formatterParams: {
-            thousand: ',',
-            decimal: '.',
-            precision: 0,
-          },
-        },
-        {
-          title: 'Lead Time',
-          field: 'LeadTime',
-          hozAlign: 'center',
-          width: 100,
-          headerHozAlign: 'center',
-          formatter: function (
-            cell: any,
-            formatterParams: any[],
-            onRendered: any
-          ) {
-            let value = cell.getValue() || '';
-            const dateTime = DateTime.fromISO(value);
-            value = dateTime.isValid ? dateTime.toFormat('dd/MM/yyyy') : '';
-            return value;
-          },
-        },
-        {
-          title: 'Lý do xoá',
-          field: 'ReasonDeleted',
-          hozAlign: 'left',
-          width: 100,
-          headerHozAlign: 'center',
-        },
-      ],
-    };
+  //       },
+  //       {
+  //         title: 'Ngày dự kiến hàng về',
+  //         field: 'DateExpected',
+  //         headerHozAlign: 'center',
+  //         hozAlign: 'center',
+  //         formatter: function (
+  //           cell: any,
+  //           formatterParams: any[],
+  //           onRendered: any
+  //         ) {
+  //           let value = cell.getValue() || '';
+  //           const dateTime = DateTime.fromISO(value);
+  //           value = dateTime.isValid ? dateTime.toFormat('dd/MM/yyyy') : '';
+  //           return value;
+  //         },
+  //         width: 100,
+  //       },
+  //       {
+  //         title: 'Ghi chú Pur',
+  //         field: 'Note',
+  //         headerHozAlign: 'center',
+  //         width: 100,
+  //         hozAlign: 'left',
+  //       },
+  //       {
+  //         title: 'Ghi chú (Người Y/C)',
+  //         field: 'NotePartlist',
+  //         width: 200,
+  //         headerHozAlign: 'center',
+  //         hozAlign: 'left',
+  //       },
+  //       {
+  //         title: 'Thông số kỹ thuật',
+  //         field: 'Model',
+  //         headerHozAlign: 'center',
+  //         hozAlign: 'left',
+  //         width: 100,
+  //       },
+  //       {
+  //         title: 'Mã đặc biệt',
+  //         field: 'SpecialCode',
+  //         headerHozAlign: 'center',
+  //         hozAlign: 'left',
+  //         width: 100,
+  //       },
+  //       {
+  //         title: 'Hàng nhập khẩu',
+  //         field: 'IsImport',
+  //         headerHozAlign: 'center',
+  //         hozAlign: 'left',
+  //         width: 100,
+  //       },
+  //       {
+  //         title: 'Đơn giá xuất xưởng',
+  //         field: 'UnitFactoryExportPrice',
+  //         editor: this.moneyEditor.bind(this),
+  //         formatter: 'money',
+  //         headerHozAlign: 'center',
+  //         formatterParams: {
+  //           thousand: ',',
+  //           decimal: '.',
+  //           precision: 0,
+  //         },
+  //         width: 100,
+  //         hozAlign: 'right',
+  //       },
+  //       {
+  //         title: 'Đơn giá nhập khẩu',
+  //         field: 'UnitImportPrice',
+  //         editor: this.moneyEditor.bind(this),
+  //         formatter: 'money',
+  //         headerHozAlign: 'center',
+  //         formatterParams: {
+  //           thousand: ',',
+  //           decimal: '.',
+  //           precision: 0,
+  //         },
+  //         width: 100,
+  //         cellEdited: (cell: any) => this.HandleCellEdited(cell),
+  //         hozAlign: 'right',
+  //       },
+  //       {
+  //         title: 'Thành tiền nhập khẩu',
+  //         field: 'TotalImportPrice',
+  //         hozAlign: 'right',
+  //         headerHozAlign: 'center',
+  //         formatter: 'money',
+  //         width: 100,
+  //         formatterParams: {
+  //           thousand: ',',
+  //           decimal: '.',
+  //           precision: 0,
+  //         },
+  //       },
+  //       {
+  //         title: 'Lead Time',
+  //         field: 'LeadTime',
+  //         hozAlign: 'center',
+  //         width: 100,
+  //         headerHozAlign: 'center',
+  //         formatter: function (
+  //           cell: any,
+  //           formatterParams: any[],
+  //           onRendered: any
+  //         ) {
+  //           let value = cell.getValue() || '';
+  //           const dateTime = DateTime.fromISO(value);
+  //           value = dateTime.isValid ? dateTime.toFormat('dd/MM/yyyy') : '';
+  //           return value;
+  //         },
+  //       },
+  //       {
+  //         title: 'Lý do xoá',
+  //         field: 'ReasonDeleted',
+  //         hozAlign: 'left',
+  //         width: 100,
+  //         headerHozAlign: 'center',
+  //       },
+  //     ],
+  //   };
+  // }
+
+  ngOnDestroy(): void {
+    // Cleanup tables
+    this.tables.clear();
+    this.gridColumns.clear();
+    this.sorting.clear();
+    this.columnFilters.clear();
+    this.gridDatasets.clear();
+    this.selectedRows.clear();
+    this.editedRows.clear();
   }
 }

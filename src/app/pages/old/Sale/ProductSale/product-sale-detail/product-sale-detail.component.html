@@ -6,7 +6,7 @@
     <div class="modal-body" style="overflow: visible;">
       <form  nz-form [formGroup]="formGroup" class="g-3 needs-validation was-validated" >
         <div class="row">
-          <div class="col-md-6 ">
+          <div class="col-md-4">
             <nz-form-label class="fs-12">Mã kho<span class="text-danger ps-1 me-1"> * </span></nz-form-label>
             <nz-form-control [nzSpan]="24" [nzErrorTip]="formGroup.get('ProductGroupID')?.invalid && (formGroup.get('ProductGroupID')?.dirty || formGroup.get('ProductGroupID')?.touched)
             ? 'Vui lòng chọn kho!' : ''">
@@ -27,6 +27,12 @@
                   ></nz-option>
                 </nz-select>
               </nz-input-group>
+            </nz-form-control>
+          </div>
+          <div class="col-md-2 pb-3">
+            <nz-form-label class="fs-12">Tích xanh</nz-form-label>
+            <nz-form-control>
+              <label nz-checkbox formControlName="IsFix"></label>
             </nz-form-control>
           </div>
           <!-- <nz-form-label class="fs-12 d-flex align-items-center">

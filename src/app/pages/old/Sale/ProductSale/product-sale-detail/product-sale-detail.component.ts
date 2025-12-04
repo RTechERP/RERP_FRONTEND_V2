@@ -14,6 +14,7 @@ import { NzProgressModule } from 'ng-zorro-antd/progress';
 import { NzInputModule } from 'ng-zorro-antd/input';
 import { NzFormModule } from 'ng-zorro-antd/form';
 import { NzInputNumberModule } from 'ng-zorro-antd/input-number';
+import { NzCheckboxModule } from 'ng-zorro-antd/checkbox';
 import { NgbActiveModal, NgbModal } from '@ng-bootstrap/ng-bootstrap';
 import { ProductsaleServiceService } from '../product-sale-service/product-sale-service.service';
 import { FirmDetailComponent } from '../firm-detail/firm-detail.component';
@@ -37,6 +38,7 @@ interface ProductSale {
   LocationID: number;
   FirmID: number;
   Note: string;
+  IsFix?: boolean;
 }
 
 // Custom validator để kiểm tra ký tự tiếng Việt
@@ -89,6 +91,7 @@ function inStringListValidator(getList: () => any[], key: string): ValidatorFn {
     NzInputModule,
     NzFormModule,
     NzInputNumberModule,
+    NzCheckboxModule,
     HasPermissionDirective
   ],
   templateUrl: './product-sale-detail.component.html',
@@ -106,7 +109,8 @@ export class ProductSaleDetailComponent implements OnInit, AfterViewInit {
     ProductGroupID: 0,
     LocationID: 0,
     FirmID: 0,
-    Note: ''
+    Note: '',
+    IsFix: false
   };
   //list lấy dữ liệu đơn vị productsale
   listUnitCount: any[] = [];
@@ -139,7 +143,8 @@ export class ProductSaleDetailComponent implements OnInit, AfterViewInit {
       NumberInStoreCuoiKy: [{ value: 0, disabled: true }],
       LocationID: [null, [Validators.required, inIdListValidator(() => this.listLocation, 'ID')]],
       Maker: ['', [Validators.required, inStringListValidator(() => this.listFirm, 'FirmName')]],
-      Note: ['',[Validators.maxLength(500)]]
+      Note: ['',[Validators.maxLength(500)]],
+      IsFix: [false]
     });
   }
 
@@ -159,7 +164,8 @@ export class ProductSaleDetailComponent implements OnInit, AfterViewInit {
       NumberInStoreCuoiKy: this.newProductSale.NumberInStoreCuoiKy || 0,
       LocationID: this.newProductSale.LocationID || null,
       Maker: this.newProductSale.Maker || '',
-      Note: this.newProductSale.Note || ''
+      Note: this.newProductSale.Note || '',
+      IsFix: this.newProductSale.IsFix || false
     });
   }
   ngAfterViewInit(): void {
@@ -250,6 +256,9 @@ export class ProductSaleDetailComponent implements OnInit, AfterViewInit {
     const location = this.listLocation.find((p: any) => p.ID === formValue.LocationID);
     const addressbox = location ? location.LocationName : '';
 
+    // Đảm bảo IsFix có giá trị mặc định là false nếu không có
+    const isFix = formValue.IsFix !== null && formValue.IsFix !== undefined ? formValue.IsFix : false;
+
     if (this.isCheckmode == true) {
       // Update existing product sale
 
@@ -268,6 +277,7 @@ export class ProductSaleDetailComponent implements OnInit, AfterViewInit {
           AddressBox: addressbox,
           LocationID: formValue.LocationID,
           Note: formValue.Note,
+          IsFix: isFix,
           UpdatedBy: 'admin',
           UpdatedDate: new Date()
         },
@@ -306,6 +316,7 @@ export class ProductSaleDetailComponent implements OnInit, AfterViewInit {
           Maker: formValue.Maker,
           AddressBox: addressbox,
           Note: formValue.Note,
+          IsFix: isFix,
           CreatedBy: 'admin',
           CreatedDate: new Date(),
           UpdatedBy: 'admin',

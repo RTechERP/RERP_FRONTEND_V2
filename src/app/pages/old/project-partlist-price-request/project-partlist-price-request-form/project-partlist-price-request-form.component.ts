@@ -41,6 +41,7 @@ import { FirmService } from '../../../general-category/firm/firm-service/firm.se
 import { SelectControlComponent } from '../../select-control/select-control.component';
 import { TabulatorPopupComponent } from '../../../../shared/components/tabulator-popup/tabulator-popup.component';
 import { DEFAULT_TABLE_CONFIG } from '../../../../tabulator-default.config';
+import { BillExportService } from '../../Sale/BillExport/bill-export-service/bill-export.service';
 
 
 @Component({
@@ -70,6 +71,7 @@ export class ProjectPartlistPriceRequestFormComponent
   private notification = inject(NzNotificationService);
   private authService = inject(AuthService);
   private firmService = inject(FirmService);
+  private billExportService = inject(BillExportService);
   injector = inject(EnvironmentInjector);
   appRef = inject(ApplicationRef);
 
@@ -88,12 +90,14 @@ export class ProjectPartlistPriceRequestFormComponent
   requester: Number = 0;
   requestDate: Date | null = null;
   priceRequestTypeID: number | null = null;
+  customerID: number = 0;
 
   users: any[] = [];
   employeeGroups: Array<{ department: string; items: any[] }> = [];
   priceRequestTypes: any[] = [];
   dtProductSale: any[] = [];
   firms: any[] = [];
+  customers: any[] = [];
   lstSave: any[] = [];
   requesterLoading: boolean = false;
   priceRequestTypeLoading: boolean = false;
@@ -156,6 +160,7 @@ export class ProjectPartlistPriceRequestFormComponent
     this.getPriceRequestType();
     this.getProductSale();
     this.getFirms();
+    this.getCustomers();
 
     if (!this.dataInput || this.dataInput.length === 0) {
       // Khi thêm mới: set priceRequestTypeID từ initialPriceRequestTypeID
@@ -179,6 +184,7 @@ export class ProjectPartlistPriceRequestFormComponent
     this.requestDate = this.dataInput[0]['DateRequest']
       ? new Date(this.dataInput[0]['DateRequest'])
       : new Date();
+    this.customerID = Number(this.dataInput[0]['CustomerID']) || 0;
 
     // Lưu tạm giá trị, sẽ bind lại sau khi priceRequestTypes load xong
     const tempTypeID = Number(this.dataInput[0]['ProjectPartlistPriceRequestTypeID']
@@ -354,6 +360,21 @@ export class ProjectPartlistPriceRequestFormComponent
       }
     });
   }
+
+  getCustomers() {
+    this.billExportService.getCbbCustomer().subscribe({
+      next: (res: any) => {
+        this.customers = Array.isArray(res.data) ? res.data : [];
+      },
+      error: (err) => {
+        this.notification.error(
+          NOTIFICATION_TITLE.error,
+          'Có lỗi xảy ra khi lấy dữ liệu khách hàng'
+        );
+      }
+    });
+  }
+
   ngAfterViewInit(): void {
   }
   createdControl1(
@@ -912,6 +933,10 @@ export class ProjectPartlistPriceRequestFormComponent
       this.notification.warning(NOTIFICATION_TITLE.warning, 'Vui lòng chọn Loại yêu cầu!');
       return false;
     }
+    if (!this.customerID || this.customerID <= 0) {
+      this.notification.warning(NOTIFICATION_TITLE.warning, 'Vui lòng chọn Khách hàng!');
+      return false;
+    }
     const rows = this.table.getRows();
     if (rows.length <= 0) {
       this.notification.warning(NOTIFICATION_TITLE.warning, 'Vui lòng tạo ít nhất một yêu cầu!');
@@ -1028,6 +1053,7 @@ export class ProjectPartlistPriceRequestFormComponent
         Note: note,
         DateRequest: this.requestDate ? new Date(this.requestDate) : null,
         EmployeeID: Number(this.requester) || null,
+        CustomerID: Number(this.customerID) || null,
         IsJobRequirement: isJobRequirement,
         IsCommercialProduct: isCommercialProduct,
         ProjectPartlistID: projectPartlistId,

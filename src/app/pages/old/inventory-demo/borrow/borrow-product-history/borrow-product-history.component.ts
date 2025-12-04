@@ -915,6 +915,14 @@ formatter: function (cell: any) {
     // Đóng modal (chỉ khi được mở như modal)
     this.activeModal?.close(selectedProducts);
   }
+
+  // INTEGRATION: Đóng modal khi click nút đóng
+  closeModal() {
+    if (this.activeModal) {
+      this.activeModal.dismiss('cancel');
+    }
+  }
+
   productHistoryBorrowDetail() {
     const modalRef = this.modalService.open(
       BorrowProductHistoryBorrowDetailAdminComponent,

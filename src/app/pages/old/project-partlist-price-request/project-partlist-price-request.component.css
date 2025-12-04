@@ -35,8 +35,94 @@
   height: 90vh;
 }
 
+/* Header buttons container - scrollable horizontally */
 .card-header .d-flex {
   flex-wrap: nowrap;
-  min-width: fit-content;
+  overflow-x: auto;
+  overflow-y: hidden;
+  max-width: 100%;
+  -webkit-overflow-scrolling: touch; /* smooth scrolling on iOS */
+  scrollbar-width: thin; /* Firefox */
 }
 
+/* Custom scrollbar for webkit browsers */
+.card-header .d-flex::-webkit-scrollbar {
+  height: 6px;
+}
+
+.card-header .d-flex::-webkit-scrollbar-track {
+  background: #f1f1f1;
+  border-radius: 3px;
+}
+
+.card-header .d-flex::-webkit-scrollbar-thumb {
+  background: #888;
+  border-radius: 3px;
+}
+
+.card-header .d-flex::-webkit-scrollbar-thumb:hover {
+  background: #555;
+}
+
+/* Ensure buttons don't shrink */
+.card-header button,
+.card-header .btn-group {
+  flex-shrink: 0;
+  white-space: nowrap;
+}
+
+/* Filter bar styling */
+.filter-bar {
+  transition: all 0.3s ease;
+}
+
+/* Dynamic table height based on search panel visibility */
+.table-container {
+  transition: height 0.3s ease;
+}
+
+/* When search bar is visible, reduce table height */
+.card-body.with-search-bar .table-container {
+  height: calc(90vh - 80px);
+}
+
+.card-body.with-search-bar #customTabContent {
+  height: calc(90vh - 80px);
+}
+
+/* When search bar is hidden, use full height */
+.card-body.without-search-bar .table-container {
+  height: 90vh;
+}
+
+.card-body.without-search-bar #customTabContent {
+  height: 90vh;
+}
+
+::ng-deep .tabulator .tabulator-header .tabulator-col {
+  background-color: #e9ecef !important;
+  color: #212529 !important; /* Dark text */
+  border-right: 1px solid #dee2e6;
+}
+
+/* Tabulator header sort arrows */
+::ng-deep .tabulator .tabulator-header .tabulator-col .tabulator-arrow {
+  border-bottom-color: #212529; /* Dark arrows */
+}
+
+::ng-deep .tabulator .tabulator-header .tabulator-col[aria-sort="asc"] .tabulator-arrow {
+  border-bottom-color: #212529;
+}
+
+::ng-deep .tabulator .tabulator-header .tabulator-col[aria-sort="desc"] .tabulator-arrow {
+  border-top-color: #212529;
+}
+
+::ng-deep .tabulator .tabulator-header-filter input::placeholder {
+  color: #6c757d !important; /* Gray placeholder */
+}
+
+::ng-deep .tabulator .tabulator-header-filter input,
+.tabulator .tabulator-header-filter select {
+    color: black !important;
+}

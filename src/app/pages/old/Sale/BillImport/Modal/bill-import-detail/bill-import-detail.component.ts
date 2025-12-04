@@ -345,7 +345,7 @@ export class BillImportDetailComponent
     if (this.id > 0) {
       this.billImportService.getBillImportByID(this.id).subscribe((res) => {
         const data = res.data;
-        if (data && (data.Status === true || data.Status === 1)) {
+        if (data && (data.Status === true || data.Status === 1)  && !this.appUserService.isAdmin) {
           this.isApproved = true;
         }
       });

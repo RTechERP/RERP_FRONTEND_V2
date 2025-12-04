@@ -54,6 +54,7 @@ interface ProductSale {
   LocationID: number;
   FirmID: number;
   Note: string;
+  IsFix?: boolean;
 }
 
 @Component({
@@ -153,6 +154,7 @@ export class ProductSaleComponent implements OnInit, AfterViewInit {
     LocationID: 0,
     FirmID: 0,
     Note: '',
+    IsFix: false,
   };
 
   constructor(
@@ -424,6 +426,7 @@ export class ProductSaleComponent implements OnInit, AfterViewInit {
               LocationID: data.LocationID,
               FirmID: data.FirmID,
               Note: data.Note,
+              IsFix: data.IsFix !== null && data.IsFix !== undefined ? data.IsFix : false,
             };
 
             // Tải dữ liệu location cho nhóm sản phẩm đã chọn
@@ -879,6 +882,7 @@ export class ProductSaleComponent implements OnInit, AfterViewInit {
       LocationID: 0,
       FirmID: 0,
       Note: '',
+      IsFix: false,
     };
     this.openModalProductSale();
   }

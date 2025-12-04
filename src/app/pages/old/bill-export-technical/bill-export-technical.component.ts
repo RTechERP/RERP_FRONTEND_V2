@@ -345,7 +345,7 @@ formatter: function (cell: any) {
       keyboard: false,
       windowClass: 'full-screen-modal',
     });
-
+    modalRef.componentInstance.warehouseID = this.warehouseID;
     // Lắng nghe sự kiện lưu dữ liệu thành công để reload table
     modalRef.componentInstance.formSubmitted.subscribe(() => {
       this.billExportTechnicalTable?.setData();
@@ -415,6 +415,7 @@ formatter: function (cell: any) {
     });
     modalRef.componentInstance.masterId = selectedRow.ID; // Để form tự gọi chi tiết
     modalRef.componentInstance.dataEdit = selectedRow;
+    modalRef.componentInstance.warehouseID = this.warehouseID;
     const currentDetails = this.billExportTechnicalDetailTable?.getData?.() || [];
     modalRef.componentInstance.dataInput = { details: currentDetails };
 

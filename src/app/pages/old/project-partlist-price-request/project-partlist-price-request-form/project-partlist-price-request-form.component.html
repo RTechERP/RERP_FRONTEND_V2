@@ -86,6 +86,35 @@
       </nz-col>
     </nz-row>
     
+    <nz-row [nzGutter]="16" class="mt-2">
+      <nz-col [nzXs]="24" [nzSm]="24" [nzMd]="8" [nzLg]="8">
+        <nz-form-item class="col-md-12" required>
+          <nz-form-label [nzSpan]="24">Khách hàng<span class="text-danger ps-1 me-1"> (*)
+            </span>
+          </nz-form-label>
+          <nz-form-control [nzSpan]="24" [nzErrorTip]="'Chọn khách hàng'">
+            <nz-select
+              nzSize="default"
+              id="customerSelect"
+              [(ngModel)]="customerID"
+              name="customerID"
+              nzPlaceHolder="Chọn khách hàng"
+              class="fs-12 w-100"
+              required
+              nzShowSearch
+              nzAllowClear
+            >
+              <nz-option
+                *ngFor="let item of customers"
+                [nzValue]="item.ID"
+                [nzLabel]="(item.CustomerShortName || '') + ' - ' + (item.CustomerName || '')"
+              ></nz-option>
+            </nz-select>
+          </nz-form-control>
+        </nz-form-item>
+      </nz-col>
+    </nz-row>
+    
     <nz-row [nzGutter]="5" class="mt-2">
       <nz-col [nzXs]="24" [nzSm]="24" [nzMd]="24">
         <div class="d-flex gap-2 mb-1">

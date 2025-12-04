@@ -271,7 +271,7 @@ export class BillExportDetailComponent
     },
   ];
 
-  projectSearchFields: string[] = ['ProjectCode', 'ProjectName'];
+  projectSearchFields: string[] = ['ProjectCode', 'label'];
 
   constructor(
     private modalService: NgbModal,
@@ -1729,6 +1729,7 @@ export class BillExportDetailComponent
       ProjectID: projectValue,
       ProjectCodeExport: selectedProject.ProjectCode,
       InventoryProjectIDs: [projectValue],
+      ProjectName: selectedProject.label || selectedProject.ProjectName,
     });
 
     // Trigger inventory loading if needed
@@ -1981,6 +1982,7 @@ export class BillExportDetailComponent
             field: 'ExpectReturnDate',
             hozAlign: 'left',
             headerHozAlign: 'center',
+            visible: true,
             formatter: (cell) => {
               const value = cell.getValue();
               if (!value) return '';

@@ -1068,22 +1068,27 @@ export class ProjectPartlistPriceRequestComponent implements OnInit {
       return;
     }
 
-    // Xử lý dữ liệu
-    const updateData: any[] = [];
-    const shouldValidate = ![1, 3].includes(status);
+    // Validate dữ liệu trước (chỉ validate những dòng của mình hoặc admin)
+    const shouldValidate = ![1, 3].includes(status); // Chỉ validate khi Báo giá (2) hoặc Hủy hoàn thành (0)
 
     for (const row of selectedRows) {
       const rowData = row.getData();
       const id = Number(rowData['ID']);
-
-      // Bỏ qua các dòng không hợp lệ
       if (id <= 0) continue;
+
+      // Kiểm tra quyền: chỉ validate những sản phẩm của mình (hoặc admin)
+      const quoteEmployeeID = Number(rowData['QuoteEmployeeID'] || 0);
+      const currentEmployeeID = this.appUserService.employeeID || 0;
+      const isAdmin = this.appUserService.isAdmin || false;
+
+      if (quoteEmployeeID !== currentEmployeeID && !isAdmin) {
+        continue; // Bỏ qua sản phẩm không phải của mình
+      }
 
       // Validate cho các trường hợp cần kiểm tra
       if (shouldValidate) {
         const productCode = rowData['ProductCode'] || '';
         const currencyId = Number(rowData['CurrencyID']);
-        const currencyCode = rowData['CurrencyCode'] || '';
         const currencyRate = Number(rowData['CurrencyRate']);
         const unitPrice = Number(rowData['UnitPrice']);
         const supplierSaleId = Number(rowData['SupplierSaleID']);
@@ -1093,14 +1098,13 @@ export class ProjectPartlistPriceRequestComponent implements OnInit {
             'Thông báo',
             `Vui lòng chọn Loại tiền mã sản phẩm [${productCode}]!`
           );
-
           return;
         }
 
         if (currencyRate <= 0) {
           this.notification.info(
             'Thông báo',
-            `Vui lòng nhập Tỷ giá mã sản phẩm [${productCode}]!`
+            `Tỷ giá của loại tiền phải > 0.\nVui lòng kiểm tra lại mã sản phẩm [${productCode}]!`
           );
           return;
         }
@@ -1110,7 +1114,6 @@ export class ProjectPartlistPriceRequestComponent implements OnInit {
             'Thông báo',
             `Vui lòng nhập Đơn giá mã sản phẩm [${productCode}]!`
           );
-
           return;
         }
 
@@ -1122,10 +1125,28 @@ export class ProjectPartlistPriceRequestComponent implements OnInit {
           return;
         }
       }
+    }
+
+    // Xử lý dữ liệu update (chỉ update những dòng của mình hoặc admin)
+    const updateData: any[] = [];
+    const isAdmin = this.appUserService.isAdmin || false;
+    const currentEmployeeID = this.appUserService.employeeID || 0;
+
+    for (const row of selectedRows) {
+      const rowData = row.getData();
+      const id = Number(rowData['ID']);
+
+      if (id <= 0) continue;
+
+      // Lọc theo QuoteEmployeeID (chỉ update những sản phẩm của mình hoặc admin)
+      const quoteEmployeeID = Number(rowData['QuoteEmployeeID'] || 0);
+      if (quoteEmployeeID !== currentEmployeeID && !isAdmin) {
+        continue; // Bỏ qua sản phẩm không phải của mình
+      }
 
       // Cập nhật dữ liệu
       Object.assign(rowData, {
-        StatusRequest: status,
+        StatusRequest: status === 0 ? 1 : status, // Nếu status = 0 (Hủy hoàn thành) thì set về 1 (Yêu cầu báo giá)
         UpdatedBy: this.appUserService.loginName,
         UpdatedDate: new Date(),
         QuoteEmployeeID: !this.appUserService.isAdmin
@@ -1141,15 +1162,24 @@ export class ProjectPartlistPriceRequestComponent implements OnInit {
 
       updateData.push(rowData);
     }
+
+    // Kiểm tra nếu không có dòng nào hợp lệ
+    if (updateData.length === 0) {
+      this.notification.warning(
+        'Thông báo',
+        'Không có sản phẩm nào hợp lệ để cập nhật!'
+      );
+      return;
+    }
+
+    // Confirm trước khi update
     this.modal.confirm({
       nzTitle: 'Thông báo',
       nzContent: `Bạn có chắc muốn ${statusText} danh sách sản phẩm đã chọn không?\nNhững sản phẩm NV mua không phải bạn sẽ tự động được bỏ qua!`,
       nzOkText: 'Đồng ý',
       nzCancelText: 'Hủy',
       nzOnOk: () => {
-        if (updateData.length > 0) {
-          this.SaveDataCommon(updateData, `${statusText} thành công`);
-        }
+        this.SaveDataCommon(updateData, `${statusText} thành công`);
       },
     });
   }
@@ -1170,28 +1200,82 @@ export class ProjectPartlistPriceRequestComponent implements OnInit {
       return;
     }
 
+    // Message xác nhận với thông báo đặc biệt khi check giá
+    const message = isCheckPrice
+      ? '\nNhững sản phẩm đã có NV mua check sẽ tự động được bỏ qua!'
+      : '';
+
     // Xác nhận thao tác
     this.modal.confirm({
       nzTitle: 'Thông báo',
-      nzContent: `Bạn có chắc muốn ${isCheckText} danh sách sản phẩm đã chọn không?`,
+      nzContent: `Bạn có chắc muốn ${isCheckText} danh sách sản phẩm đã chọn không?${message}`,
       nzOkText: 'Đồng ý',
       nzCancelText: 'Hủy',
       nzOnOk: () => {
-        // Xử lý khi người dùng xác nhận
-        // Lấy dữ liệu từ các dòng đã chọn
-        const updateData = selectedRows.map((row) => {
+        // Lọc các dòng hợp lệ ở frontend (validate trước khi gửi lên backend)
+        const updateData: any[] = [];
+
+        selectedRows.forEach((row) => {
           const rowData = row.getData();
-          return {
-            ID: Number(rowData['ID']),
+          const id = Number(rowData['ID']);
+
+          if (id <= 0) return; // Bỏ qua ID không hợp lệ
+
+          // Validate ở frontend: Khi check giá, chỉ cho phép check nếu chưa có QuoteEmployeeID hoặc QuoteEmployeeID là của mình
+          if (isCheckPrice) {
+            const quoteEmployeeID = Number(rowData['QuoteEmployeeID'] || 0);
+            const currentEmployeeID = this.appUserService.employeeID || 0;
+
+            // Nếu đã có người khác check rồi thì bỏ qua (giống WinForm và backend logic)
+            if (quoteEmployeeID > 0 && quoteEmployeeID !== currentEmployeeID) {
+              return;
+            }
+          }
+
+          // Thêm vào danh sách update (gửi đúng format cho backend)
+          updateData.push({
+            ID: id,
             IsCheckPrice: isCheckPrice,
-            QuoteEmployeeID: isCheckPrice ? this.appUserService.employeeID : 0,
+            QuoteEmployeeID: Number(rowData['QuoteEmployeeID'] || 0), // Giữ nguyên QuoteEmployeeID hiện tại
+            EmployeeID: this.appUserService.employeeID, // Backend dùng field này để set QuoteEmployeeID mới
             UpdatedBy: this.appUserService.loginName,
             UpdatedDate: DateTime.local().toJSDate(),
-          };
+          });
         });
 
-        // Sử dụng hàm chung để lưu dữ liệu
-        this.SaveDataCommon(updateData, `${isCheckText} thành công`);
+        // Kiểm tra nếu không có dòng nào hợp lệ sau khi validate
+        if (updateData.length <= 0) {
+          this.notification.warning(
+            'Thông báo',
+            'Không có sản phẩm nào hợp lệ để cập nhật!'
+          );
+          return;
+        }
+
+        // Gọi API check-price (backend sẽ validate thêm một lần nữa)
+        this.PriceRequetsService.checkPrice(updateData).subscribe({
+          next: (response) => {
+            if (response.success) {
+              this.notification.success(
+                'Thông báo',
+                `${isCheckText} thành công!`
+              );
+              this.LoadPriceRequests(); // Reload data
+            } else {
+              this.notification.error(
+                'Lỗi',
+                response.message || `${isCheckText} thất bại!`
+              );
+            }
+          },
+          error: (error) => {
+            console.error('Error checking price:', error);
+            this.notification.error(
+              'Lỗi',
+              error?.error?.message || `Có lỗi xảy ra khi ${isCheckText}!`
+            );
+          },
+        });
       },
     });
   }
@@ -2408,6 +2492,7 @@ export class ProjectPartlistPriceRequestComponent implements OnInit {
           headerHozAlign: 'center',
           frozen: true,
           width: 70,
+          headerFilter: 'input',
         },
 
         // {
@@ -2551,26 +2636,6 @@ export class ProjectPartlistPriceRequestComponent implements OnInit {
           hozAlign: 'center',
           width: 100,
         },
-        // {
-        //   title: 'Loại tiền',
-        //   field: 'CurrencyID',
-        //   editor: 'list',
-        //   formatter: (cell: any) => {
-        //     const value = cell.getValue();
-        //     const match = this.dtcurrency.find((c) => c.ID === value);
-        //     return match ? match.Code : '';
-        //   },
-        //   editorParams: {
-        //     values: this.dtcurrency.map((s) => ({
-        //       value: s.ID,
-        //       label: s.Code,
-        //     })),
-
-        //     autocomplete: true,
-        //   },
-        //   cellEdited: (cell: any) => this.OnCurrencyChanged(cell),
-        //   width: '10vw',
-        // },
         {
           title: 'Loại tiền',
           field: 'CurrencyID',
@@ -2652,6 +2717,7 @@ export class ProjectPartlistPriceRequestComponent implements OnInit {
           headerHozAlign: 'center',
           formatter: 'money',
           hozAlign: 'right',
+          headerFilter: 'input',
           formatterParams: {
             thousand: ',',
             decimal: '.',
@@ -2688,50 +2754,6 @@ export class ProjectPartlistPriceRequestComponent implements OnInit {
           headerHozAlign: 'center',
           width: 100,
         },
-        // {
-        //   title: 'Nhà cung cấp',
-        //   field: 'SupplierSaleID',
-        //   headerHozAlign: 'center',
-        //   editor: 'list',
-        //   formatter: (cell: any) => {
-        //     const value = cell.getValue();
-        //     const match = this.dtSupplierSale.find((s) => s.ID === value);
-        //     return match ? match.NameNCC : '';
-        //   },
-        //   editorParams: {
-        //     values: this.dtSupplierSale.map((sup) => ({
-        //       value: sup.ID,
-        //       label: sup.NameNCC,
-        //     })),
-        //     autocomplete: true,
-        //     width: '10vw',
-        //   },
-        //   cellEdited: (cell: any) => this.OnSupplierSaleChanged(cell),
-        // },
-        // {
-        //   title: 'Nhà cung cấp',
-        //   field: 'SupplierSaleID',
-        //   headerHozAlign: 'center',
-        //   hozAlign: 'left',
-        // editor: this.createdControl1(
-        //   NSelectComponent,
-        //   this.injector,
-        //   this.appRef,
-        //   this.dtSupplierSale,
-        //   'NameNCC',
-        //   'NameNCC',
-        //   'ID'
-        // ),
-        // formatter: (cell:any) => {
-        //   const val = cell.getValue();
-        //   const supplier = this.dtSupplierSale.find(s => s.ID === val);
-        //   return (
-        //     `<div class="d-flex justify-content-between align-items-center"><p class="w-100 m-0">${supplier ? supplier.NameNCC : 'Chọn nhà cung cấp'}</p> <i class="fas fa-angle-down"></i> <div>`
-        //   );
-        // },
-        //   width:100 ,
-        //   cellEdited: (cell: any) => this.OnSupplierSaleChanged(cell),
-        // },
         {
           title: 'Nhà cung cấp',
           field: 'SupplierSaleID',
@@ -2754,7 +2776,6 @@ export class ProjectPartlistPriceRequestComponent implements OnInit {
           headerHozAlign: 'center',
           hozAlign: 'right',
           bottomCalc: 'sum',
-          editor: 'input',
           cellEdited: (cell: any) => this.HandleCellEdited(cell),
           width: 100,
         },
@@ -2773,7 +2794,6 @@ export class ProjectPartlistPriceRequestComponent implements OnInit {
             value = dateTime.isValid ? dateTime.toFormat('dd/MM/yyyy') : '';
             return value;
           },
-
           width: 100,
         },
         {
@@ -2799,14 +2819,14 @@ export class ProjectPartlistPriceRequestComponent implements OnInit {
         },
         {
           title: 'Mã đặc biệt',
-          field: 'Model',
+          field: 'SpecialCode',
           headerHozAlign: 'center',
           hozAlign: 'left',
           width: 100,
         },
         {
           title: 'Hàng nhập khẩu',
-          field: 'Model',
+          field: 'IsImport',
           headerHozAlign: 'center',
           hozAlign: 'left',
           width: 100,

@@ -114,7 +114,7 @@ export class MainLayoutComponent implements OnInit {
     public menuService: MenuService,
     private notification: NzNotificationService,
     private injector: Injector,
-    private menuEventService: MenuEventService
+    private menuEventService: MenuEventService,
   ) {
     this.menus = this.menuService.getMenus();
   }

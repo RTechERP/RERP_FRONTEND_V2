@@ -219,7 +219,7 @@ export class ProjectSurveyComponent implements AfterViewInit {
       projectId: this.projectId ? this.projectId : 0,
       technicalId: this.technicalId ? this.technicalId : 0,
       saleId: this.saleId ? this.saleId : 0,
-      keyword: this.keyword.trim() ? this.keyword.trim() : '',
+      keyword:  this.keyword?.trim() ?? '',
     };
 
     this.projectService.getDataProjectSurvey(data).subscribe({
@@ -302,51 +302,12 @@ export class ProjectSurveyComponent implements AfterViewInit {
           title: 'THÔNG TIN YÊU CẦU KHẢO SÁT',
           headerHozAlign: 'center',
           columns: [
-            // {
-            //   title: 'Chọn',
-            //   titleFormatter: () => `<input type="checkbox" />`,
-            //   field: 'Selected',
-            //   formatter: function (cell, formatterParams, onRendered) {
-            //     const checked = cell.getValue() ? 'checked' : '';
-            //     return `<input type='checkbox' ${checked} />`;
-            //   },
-            //   headerClick: (e, column) => {
-            //     // Toggle trạng thái (nếu cần)
-            //     const isChecked = (e.target as HTMLInputElement).checked;
-
-            //     // Cập nhật toàn bộ giá trị cột 'Selected'
-            //     column
-            //       .getTable()
-            //       .getRows()
-            //       .forEach((row) => {
-            //         row.update({ Selected: isChecked });
-            //       });
-            //   },
-            //   cellClick: (e, cell) => {
-            //     const newValue = !cell.getValue();
-            //     const row = cell.getRow();
-
-            //     if (row.getTreeChildren && row.getTreeChildren().length > 0) {
-            //       const children = row.getTreeChildren();
-
-            //       children.forEach((childRow) => {
-            //         const childData = childRow.getData();
-            //         childRow.update({ Selected: newValue });
-            //       });
-            //     }
-            //     cell.setValue(newValue);
-            //   },
-            //   hozAlign: 'center',
-            //   headerHozAlign: 'center',
-            //   headerSort: false,
-            //   width: '5px',
-            //   frozen: true,
-            // },
             {
               title: 'Khảo sát gấp',
               field: 'IsUrgent',
-              width: 150,
+              width: 50,
               frozen:true,
+              headerSort: false,
               headerHozAlign: 'center',
               formatter: function (cell, formatterParams, onRendered) {
                 const checked = cell.getValue()
@@ -362,8 +323,9 @@ export class ProjectSurveyComponent implements AfterViewInit {
             {
               title: 'Duyệt gấp',
               field: 'IsApprovedUrgent',
-              width: 150,
+              width: 50,
               frozen:true,
+              headerSort: false,
               headerHozAlign: 'center',
               formatter: function (cell, formatterParams, onRendered) {
                 const checked = cell.getValue()
@@ -385,13 +347,15 @@ export class ProjectSurveyComponent implements AfterViewInit {
             {
               title: 'SĐT người yêu cầu',
               field: 'SDTCaNhan',
-              width: 150,
+              width: 100,
+              headerSort: false,
               headerHozAlign: 'center',
             },
             {
               title: 'Từ ngày',
               field: 'DateStart',
-              width: 150,
+              width: 100,
+              headerSort: false,
               headerHozAlign: 'center',
               formatter: function (cell, formatterParams, onRendered) {
                 let value = cell.getValue() || '';
@@ -404,7 +368,8 @@ export class ProjectSurveyComponent implements AfterViewInit {
             {
               title: 'Đến ngày',
               field: 'DateEnd',
-              width: 150,
+              width: 100,
+              headerSort: false,
               headerHozAlign: 'center',
               formatter: function (cell, formatterParams, onRendered) {
                 let value = cell.getValue() || '';
@@ -417,21 +382,39 @@ export class ProjectSurveyComponent implements AfterViewInit {
             {
               title: 'Khách hàng',
               field: 'CustomerName',
-              width: 300,
+              width: 250,
               headerHozAlign: 'center',
               formatter: 'textarea',
             },
             {
               title: 'Địa chỉ',
               field: 'Address',
-              width: 400,
+              width: 250,
               headerHozAlign: 'center',
               formatter: 'textarea',
             },
             {
+              title: 'Kiểu khảo sát',
+              field: 'ProjectTypeName',
+              width: 80,
+              headerHozAlign: 'center',
+            },
+            {
+              title: 'Leader Kỹ thuật',
+              field: 'FullNameLeaderTBP',
+              width: 150,
+              headerHozAlign: 'center',
+            },
+            {
+              title: 'Trạng thái',
+              field: 'StatusText',
+              width: 80,
+              headerHozAlign: 'center',
+            },
+            {
               title: 'PIC',
               field: 'PIC',
-              width: 300,
+              width: 200,
               headerHozAlign: 'center',
               formatter: 'textarea',
             },
@@ -461,24 +444,7 @@ export class ProjectSurveyComponent implements AfterViewInit {
           title: 'THÔNG TIN KỸ THUẬT KHẢO SÁT',
           headerHozAlign: 'center',
           columns: [
-            {
-              title: 'Kiểu khảo sát',
-              field: 'ProjectTypeName',
-              width: 150,
-              headerHozAlign: 'center',
-            },
-            {
-              title: 'Leader Kỹ thuật',
-              field: 'FullNameLeaderTBP',
-              width: 150,
-              headerHozAlign: 'center',
-            },
-            {
-              title: 'Trạng thái',
-              field: 'StatusText',
-              width: 150,
-              headerHozAlign: 'center',
-            },
+           
             {
               title: 'Kỹ thuật phụ trách',
               field: 'FullNameTechnical',

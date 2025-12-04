@@ -113,6 +113,9 @@ export class PriceHistoryPartlistComponent implements OnInit, AfterViewInit{
   toggleSearchPanel() {
     this.sizeSearch = this.sizeSearch == '0' ? '22%' : '0';
   }
+  onSearchChange(value: string) {
+    this.getPriceHistoryPartlist();
+  }
 
   resetSearch() {
     this.employeeRequestId = 0;
@@ -127,7 +130,7 @@ export class PriceHistoryPartlistComponent implements OnInit, AfterViewInit{
       projectId: this.projectId ? this.projectId : 0,
       supplierSaleId: this.supplierId ? this.supplierId : 0,
       employeeRequestId: this.employeeRequestId ? this.employeeRequestId : 0,
-      keyword: this.keyword.trim() ? this.keyword.trim() : '',
+      keyword: this.keyword?.trim() ?? '',
     };
 
     this.projectService.getPriceHistoryPartlist(data).subscribe({

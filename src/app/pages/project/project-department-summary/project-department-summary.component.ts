@@ -156,6 +156,7 @@ export class ProjectDepartmentSummaryComponent implements AfterViewInit {
   users:any;
   departments:any;
   teams:any;
+  savedPage: number = 1; // Lưu page hiện tại khi reload
   searchParams: any = {
     dateTimeS: new Date(new Date().setMonth(new Date().getMonth() - 1))
     .toISOString()
@@ -241,6 +242,14 @@ getUserTeam() {
     });
   }
   loadProjects() {
+    // Lưu page hiện tại trước khi reload (chỉ lưu nếu đang có page > 1)
+    if (this.tb_projects) {
+      const currentPage = this.tb_projects.getPage() || 1;
+      if (currentPage > 1) {
+        this.savedPage = currentPage;
+      }
+    }
+
     const dateStart = DateTime.fromJSDate(new Date(this.searchParams.dateTimeS)
     );
     const dateEnd = DateTime.fromJSDate(new Date(this.searchParams.dateTimeE));
@@ -254,7 +263,6 @@ getUserTeam() {
       next: (res:any) => {
         if (res.status===1) {
           this.project = res.data;
-          console.log('Dự án:', res.data);
           // Nếu dùng Tabulator → reload data
           if (this.tb_projects) {
             this.tb_projects.replaceData(this.project);
@@ -621,6 +629,16 @@ getUserTeam() {
     this.tb_projects.on('dataLoading', () => {
       this.tb_projects.deselectRow();
       this.sizeTbDetail = '0';
+    });
+
+    // Lắng nghe event dataLoaded để set lại page sau khi reload
+    this.tb_projects.on('dataLoaded', () => {
+      if (this.savedPage > 0) {
+        const maxPage = this.tb_projects.getPageMax() || 1;
+        const targetPage = this.savedPage > maxPage ? maxPage : this.savedPage;
+        this.tb_projects.setPage(targetPage);
+        this.savedPage = 0; // Reset sau khi đã set
+      }
     });
 
     this.tb_projects.on('rowClick', (e: any, row: any) => {
@@ -1038,6 +1056,7 @@ getUserTeam() {
       departmentID: 0,
       userTeamID: 0,
     }
+    this.savedPage = 0; // Reset savedPage khi reset search params
   }
   //#region thêm/sửa dự án 0 thêm 1 sửa
   updateProject(status: number) {

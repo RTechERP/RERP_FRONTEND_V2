@@ -168,7 +168,8 @@ export class MeetingMinuteComponent implements OnInit, AfterViewInit {
 
   customerTable: Tabulator | null = null;
   customerData: any[] = [];
-  activeTab = 0;
+  activeTab = 0; // Tab con trong "Nhân viên": 0 = "Nhân viên tham gia", 1 = "Nội dung"
+  mainTabIndex = 0; // Tab chính: 0 = "Nhân viên", 1 = "Khách hàng", 2 = "File đính kèm"
 
   customerContentTable: Tabulator | null = null;
   customerContentData: any[] = [];
@@ -374,8 +375,12 @@ export class MeetingMinuteComponent implements OnInit, AfterViewInit {
         if (this.employeeContentTable) {
           this.employeeContentTable.setData(this.employeeContentData);
         } else {
-          if (this.activeTab === 1) {
-            this.draw_employeeContentTable();
+          // Nếu đang ở tab "Nội dung" (activeTab = 1) và tab chính là "Nhân viên" (mainTabIndex = 0)
+          if (this.activeTab === 1 && this.mainTabIndex === 0) {
+            // Đợi DOM cập nhật trước khi vẽ bảng
+            setTimeout(() => {
+              this.draw_employeeContentTable();
+            }, 100);
           }
         }
 
@@ -414,6 +419,9 @@ export class MeetingMinuteComponent implements OnInit, AfterViewInit {
     if (this.activeTab === 1 && this.MeetingMinutesID) {
       this.getMeetingMinutesDetailsByID(this.MeetingMinutesID);
     }
+  }
+  onSearchChange(value: string) {
+    this.searchData();
   }
   toggleSearchPanel() {
     this.sizeSearch = this.sizeSearch == '0' ? '22%' : '0';
@@ -834,6 +842,14 @@ export class MeetingMinuteComponent implements OnInit, AfterViewInit {
           // Nếu cần dùng property riêng của chuột thì ép kiểu:
           const mouseEvent = e as MouseEvent;
           console.log(mouseEvent.clientX, mouseEvent.clientY);
+          // Chuyển sang tab "Nhân viên" và tab con "Nội dung"
+          this.mainTabIndex = 0; // Tab "Nhân viên"
+          this.activeTab = 1; // Tab "Nội dung"
+          // Đợi DOM cập nhật rồi mới gọi onTabChange để đảm bảo tab được chuyển
+          setTimeout(() => {
+            this.onTabChange(1);
+            this.cdr.detectChanges();
+          }, 50);
           this.getMeetingMinutesDetailsByID(rowData['ID']);
           console.log('Status của row:', rowData['ID']);
         }
@@ -843,6 +859,14 @@ export class MeetingMinuteComponent implements OnInit, AfterViewInit {
         const rowData = row.getData();
         this.data = [rowData]; // Giả sử bạn luôn muốn this.data chứa mảng 1 phần tử
         this.MeetingMinutesID = this.data[0].ID;
+        // Chuyển sang tab "Nhân viên" và tab con "Nội dung"
+        this.mainTabIndex = 0; // Tab "Nhân viên"
+        this.activeTab = 1; // Tab "Nội dung"
+        // Đợi DOM cập nhật rồi mới gọi onTabChange để đảm bảo tab được chuyển
+        setTimeout(() => {
+          this.onTabChange(1);
+          this.cdr.detectChanges();
+        }, 50);
         console.log('Selected Row Data: ', this.data);
       });
       this.meetingMinutesTable.on('rowDeselected', (row: RowComponent) => {

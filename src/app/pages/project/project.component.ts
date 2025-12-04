@@ -57,10 +57,13 @@ import { ProjectPartListComponent } from './project-department-summary/project-d
 import { ProjectCurrentSituationComponent } from './project-current-situation/project-current-situation.component';
 import { ProjectPartlistProblemComponent } from './project-partlist-problem/project-partlist-problem.component';
 import { ProjectTypeLinkDetailComponent } from './project-type-link-detail/project-type-link-detail.component';
+import { ProjectHistoryProblemComponent } from './project-history-problem/project-history-problem.component';
 
 
 import { PermissionService } from '../../services/permission.service';
 import { environment } from '../../../environments/environment';
+import { debounceTime } from 'rxjs/operators';
+import { Subject } from 'rxjs';
 @Component({
   selector: 'app-projects',
   standalone: true,
@@ -94,12 +97,7 @@ import { environment } from '../../../environments/environment';
 })
 export class ProjectComponent implements OnInit, AfterViewInit {
   // Khai báo format ngày giờ
-  /**
-   console.log(now.toFormat('yyyy-MM-dd')); // 👉 2025-06-05
-    console.log(now.toFormat('dd/MM/yyyy')); // 👉 05/06/2025
-    console.log(now.toFormat('HH:mm:ss dd-MM-yyyy')); // 👉 14:30:59 05-06-2025
-    console.log(now.toFormat('EEEE, dd LLL yyyy')); // 👉 Thursday, 05 Jun 2025
-   */
+  private searchSubject = new Subject<string>();
   @Input() value: string = '';
   @Output() valueChange = new EventEmitter<string>();
 
@@ -120,8 +118,14 @@ export class ProjectComponent implements OnInit, AfterViewInit {
     private router: Router,
     private route: ActivatedRoute,
     private authService: AuthService,
-    private permissionService: PermissionService
-  ) {}
+    private permissionService: PermissionService,
+  ) {
+    this.searchSubject
+      .pipe(debounceTime(800)) // 800ms debounce
+      .subscribe(value => {
+        this.searchProjects(); 
+      });
+  }
   //Ga
   //#region Khai báo biến
   @ViewChild('tb_projects', { static: false })
@@ -157,6 +161,7 @@ export class ProjectComponent implements OnInit, AfterViewInit {
   projectId: any = 0;
   projectCode: any = '';
   currentUser: any = null;
+  savedPage: number = 1; // Lưu page hiện tại khi reload
   dateStart: any = DateTime.local()
     .set({ hour: 0, minute: 0, second: 0, year: 2024, month: 1, day: 1 })
     .toISO();
@@ -282,9 +287,16 @@ export class ProjectComponent implements OnInit, AfterViewInit {
       },
       {
         label:
-          '<span style="font-size: 0.75rem;"><img src="assets/icon/solution_16.png" alt=="Cập nhật Leader" class="me-1" /> Cập nhật Leader</span>',
+          '<span style="font-size: 0.75rem;"><img src="assets/icon/update_leader_16.png" alt=="Cập nhật Leader" class="me-1" /> Cập nhật Leader</span>',
         action: (e: any, row: any) => {
           this.openProjectTypeLinkDetail();
+        },
+      },
+      {
+        label:
+          '<span style="font-size: 0.75rem;"><img src="assets/icon/problem_history_16.png" alt=="Lịch sử phát sinh" class="me-1" /> Lịch sử phát sinh</span>',
+        action: (e: any, row: any) => {
+          this.openProjectHistoryProblemModal();
         },
       },
     ];
@@ -622,6 +634,16 @@ export class ProjectComponent implements OnInit, AfterViewInit {
     this.tb_projects.on('dataLoading', () => {
       this.tb_projects.deselectRow();
       this.sizeTbDetail = '0';
+    });
+
+    // Lắng nghe event dataLoaded để set lại page sau khi reload
+    this.tb_projects.on('dataLoaded', () => {
+      if (this.savedPage > 0) {
+        const maxPage = this.tb_projects.getPageMax() || 1;
+        const targetPage = this.savedPage > maxPage ? maxPage : this.savedPage;
+        this.tb_projects.setPage(targetPage);
+        this.savedPage = 0; // Reset sau khi đã set
+      }
     });
 
     this.tb_projects.on('rowClick', (e: any, row: any) => {
@@ -1082,8 +1104,16 @@ export class ProjectComponent implements OnInit, AfterViewInit {
       },
     });
   }
-
+  onSearchChange(value: string) {
+    this.searchSubject.next(value);
+  }
   searchProjects() {
+    // Lưu page hiện tại trước khi reload (chỉ lưu nếu đang có page > 1)
+    const currentPage = this.tb_projects.getPage() || 1;
+    if (currentPage > 1) {
+      this.savedPage = currentPage;
+    }
+    
     this.tb_projects.setData(
       this.projectService.getAPIProjects(),
       this.getProjectAjaxParams()
@@ -1106,6 +1136,7 @@ export class ProjectComponent implements OnInit, AfterViewInit {
     this.technicalId = 0;
     this.customerId = 0;
     this.keyword = '';
+    this.savedPage = 0; // Reset savedPage khi reset search params
   }
   //#endregion
   openFolder() {
@@ -1687,4 +1718,35 @@ export class ProjectComponent implements OnInit, AfterViewInit {
   });
 }
 //#endregion
+
+  //#region Lịch sử phát sinh
+  openProjectHistoryProblemModal() {
+    let selectedRows = this.tb_projects.getSelectedRows();
+    let selectedIDs = selectedRows.map((row: any) => row.getData().ID);
+
+    if (selectedIDs.length != 1) {
+      this.notification.error('Thông báo', 'Vui lòng chọn 1 dự án!');
+      return;
+    }
+
+    const modalRef = this.modalService.open(ProjectHistoryProblemComponent, {
+      centered: true,
+      backdrop: 'static',
+      keyboard: false,
+      windowClass: 'full-screen-modal',
+    });
+
+    modalRef.componentInstance.projectId = this.projectId;
+    modalRef.componentInstance.projectCode = this.projectCode;
+
+    modalRef.result.then((result) => {
+      if (result == true) {
+        //this.searchProjects();
+      }
+    }).catch((reason) => {
+      // Handle modal dismissal
+      console.log('Modal dismissed:', reason);
+    });
+  }
+  //#endregion
 }

@@ -102,7 +102,7 @@ export class ProjectWorkTimelineComponent implements OnInit, AfterViewInit, OnDe
   typeIds: any[] = [1, 2, 3];
 
   dateStart = DateTime.local().startOf('month').toFormat('yyyy-MM-dd');
-  dateEnd = DateTime.local().endOf('month').toFormat('yyyy-MM-dd');
+  dateEnd = DateTime.local().startOf('month').plus({ days: 7 }).toFormat('yyyy-MM-dd');
 
   dataCell: any;
   dataTitle: any;
@@ -197,11 +197,16 @@ export class ProjectWorkTimelineComponent implements OnInit, AfterViewInit, OnDe
 
   getDataWorkTimeline() {
     this.isLoadTable = true;
-    setTimeout(() => {
-      this.drawTbProjectWorkTimeline(
-        this.tb_projectWorkTimelineContainer.nativeElement
-      );
-    }, 100);
+    
+    // Destroy bảng cũ nếu đã tồn tại
+    if (this.tb_projectWorkTimeline) {
+      try {
+        this.tb_projectWorkTimeline.destroy();
+      } catch (e) {
+        console.warn('Lỗi khi destroy bảng cũ:', e);
+      }
+      this.tb_projectWorkTimeline = null;
+    }
 
     let data = {
       dateStart: this.dateStart
@@ -216,20 +221,55 @@ export class ProjectWorkTimelineComponent implements OnInit, AfterViewInit, OnDe
       typeNumber: this.typeIds,
     };
 
+    // Tạo bảng trước (với columns dựa trên dateStart/dateEnd hiện tại)
+    setTimeout(() => {
+      if (!this.tb_projectWorkTimeline && this.tb_projectWorkTimelineContainer?.nativeElement) {
+        this.drawTbProjectWorkTimeline(
+          this.tb_projectWorkTimelineContainer.nativeElement
+        );
+      }
+    }, 50);
+
+    // Gọi API
     this.projectService.getDataWorkTimeline(data).subscribe({
       next: (response: any) => {
-        if (this.tb_projectWorkTimeline) {
-          this.tb_projectWorkTimeline.setData(response.data);
-          // Redraw sau khi set data để đảm bảo hiển thị đúng
-          setTimeout(() => {
-            this.tb_projectWorkTimeline.redraw(true);
-          }, 100);
-        }
-        this.isLoadTable = false;
+        // Đảm bảo bảng đã được tạo xong trước khi set data
+        let retryCount = 0;
+        const maxRetries = 10; // Tối đa 10 lần thử (tổng cộng ~1 giây)
+        
+        const setDataToTable = () => {
+          if (this.tb_projectWorkTimeline) {
+            this.tb_projectWorkTimeline.setData(response.data || []);
+            // Redraw sau khi set data để đảm bảo hiển thị đúng
+            setTimeout(() => {
+              if (this.tb_projectWorkTimeline) {
+                this.tb_projectWorkTimeline.redraw(true);
+              }
+              this.isLoadTable = false;
+            }, 100);
+          } else if (retryCount < maxRetries) {
+            // Nếu bảng chưa sẵn sàng, thử lại sau
+            retryCount++;
+            setTimeout(() => {
+              setDataToTable();
+            }, 100);
+          } else {
+            // Nếu đã thử quá nhiều lần mà vẫn không có bảng, báo lỗi
+            console.error('Không thể tạo bảng sau nhiều lần thử');
+            this.isLoadTable = false;
+            this.notification.error(NOTIFICATION_TITLE.error, 'Không thể hiển thị dữ liệu!');
+          }
+        };
+
+        // Đợi một chút để đảm bảo bảng đã được tạo
+        setTimeout(() => {
+          setDataToTable();
+        }, 200);
       },
       error: (error) => {
         console.error('Lỗi:', error);
         this.isLoadTable = false;
+        this.notification.error(NOTIFICATION_TITLE.error, 'Không thể tải dữ liệu!');
       },
     });
   }
@@ -262,7 +302,7 @@ export class ProjectWorkTimelineComponent implements OnInit, AfterViewInit, OnDe
         headerHozAlign: 'center',
         headerSort: false,
         // width: 150,
-        minWidth: 100,
+        minWidth: 150,
         cssClass: 'date-column', // ← Thêm class
         formatter: 'textarea',
         cellClick: async (e: MouseEvent, cell: any) => {

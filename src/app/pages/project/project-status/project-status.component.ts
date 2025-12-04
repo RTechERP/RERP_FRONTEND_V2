@@ -36,9 +36,9 @@ export class ProjectStatusComponent implements OnInit {
     if (this.tb_projectStatus) this.tb_projectStatus.destroy();
     this.tb_projectStatus = new Tabulator(`#tb_projectStatus`, {
       ...DEFAULT_TABLE_CONFIG,
-      height: 'auto',
       layout: 'fitDataStretch',
       locale: 'vi',
+      height: 'calc(80vh - 120px)', // Trừ đi header và footer
       rowHeader: false,
       paginationMode: 'local',
       columns: [
@@ -146,7 +146,6 @@ export class ProjectStatusComponent implements OnInit {
           },
           cellEdited: (cell: any) => {
             const value = cell.getValue();
-            console.log('[DEBUG] EstimatedEndDate cellEdited - Value:', value, 'Type:', typeof value);
             let dt: DateTime | null = null;
             
             if (value instanceof Date) {
@@ -163,10 +162,7 @@ export class ProjectStatusComponent implements OnInit {
             
             if (dt && dt.isValid) {
               const formattedValue = dt.toFormat('yyyy-MM-dd');
-              console.log('[DEBUG] Setting value to:', formattedValue);
               cell.setValue(formattedValue);
-            } else {
-              console.log('[DEBUG] Invalid date, keeping value as is');
             }
           },
           formatter: function (cell, formatterParams, onRendered) {
@@ -199,7 +195,6 @@ export class ProjectStatusComponent implements OnInit {
           },
           cellEdited: (cell: any) => {
             const value = cell.getValue();
-            console.log('[DEBUG] ActualStartDate cellEdited - Value:', value, 'Type:', typeof value);
             let dt: DateTime | null = null;
             
             if (value instanceof Date) {
@@ -216,10 +211,7 @@ export class ProjectStatusComponent implements OnInit {
             
             if (dt && dt.isValid) {
               const formattedValue = dt.toFormat('yyyy-MM-dd');
-              console.log('[DEBUG] Setting value to:', formattedValue);
               cell.setValue(formattedValue);
-            } else {
-              console.log('[DEBUG] Invalid date, keeping value as is');
             }
           },
           formatter: function (cell, formatterParams, onRendered) {
@@ -252,7 +244,6 @@ export class ProjectStatusComponent implements OnInit {
           },
           cellEdited: (cell: any) => {
             const value = cell.getValue();
-            console.log('[DEBUG] ActualEndDate cellEdited - Value:', value, 'Type:', typeof value);
             let dt: DateTime | null = null;
             
             if (value instanceof Date) {
@@ -269,10 +260,7 @@ export class ProjectStatusComponent implements OnInit {
             
             if (dt && dt.isValid) {
               const formattedValue = dt.toFormat('yyyy-MM-dd');
-              console.log('[DEBUG] Setting value to:', formattedValue);
               cell.setValue(formattedValue);
-            } else {
-              console.log('[DEBUG] Invalid date, keeping value as is');
             }
           },
           formatter: function (cell, formatterParams, onRendered) {

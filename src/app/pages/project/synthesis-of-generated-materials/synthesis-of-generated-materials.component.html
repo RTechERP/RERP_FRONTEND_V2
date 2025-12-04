@@ -72,17 +72,6 @@
                 </nz-select>
               </nz-form-control>
             </nz-form-item>
-            <nz-form-item class="mt-2">
-              <nz-form-label class="fs-12" [nzSpan]="24">Từ khóa</nz-form-label>
-              <nz-form-control [nzSpan]="24">
-                <input
-                  name="keyword"
-                  nz-input
-                  placeholder="Nhập từ khóa"
-                  [(ngModel)]="keyword"
-                />
-              </nz-form-control>
-            </nz-form-item>
           </form>
         </div>
         <div class="card-footer bg-white p-1 d-flex gap-1 justify-content-end">
@@ -103,6 +92,7 @@
         <div
           class="card-header bg-white p-1 d-flex align-items-center justify-content-between"
         >
+          <!-- Bên trái: Các nút hành động -->
           <div class="d-flex gap-1">
             <button
               nz-button
@@ -114,6 +104,23 @@
             </button>
             <button class="fs-12" nz-button nzType="default" nzSize="small" (click)="exportExcel()">
               <img src="assets/icon/action_export_excel_16.png" alt="Xuất Excel" class="me-1" />Xuất excel
+            </button>
+          </div>
+          
+          <!-- Bên phải: Tìm kiếm -->
+          <div class="d-flex gap-1 align-items-center">
+            <input
+              nz-input
+              nzSize="small"
+              nzAllowClear
+              placeholder="Nhập từ khóa"
+              style="width: 250px"
+              [(ngModel)]="keyword"
+              (keyup.enter)="getDataProjectSurvey()"
+              (ngModelChange)="onSearchChange($event)"
+            />
+            <button nz-button nzType="default" nzSize="small" (click)="getDataProjectSurvey()" class="btn">
+              <nz-icon nzType="search" />
             </button>
           </div>
         </div>

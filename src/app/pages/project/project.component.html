@@ -13,7 +13,7 @@
                 </div>
                 <div class="card-body">
                     <form nz-form nzLayout="vertical">
-                        <nz-form-item>
+                        <nz-form-item class="mt-2">
                             <nz-form-label class="fs-12" [nzSpan]="24">Từ ngày</nz-form-label>
                             <nz-form-control [nzSpan]="24"><nz-date-picker name="dateStart" class="w-100"
                                     nzFormat="dd/MM/yyyy" [(ngModel)]="dateStart" nzAllowClear="false"
@@ -35,8 +35,11 @@
                                     @for (parent of users; track $index) {
                                     <nz-option-group [nzLabel]="parent.label">
                                         @for (child of parent.options; track $index) {
-                                        <nz-option nzCustomContent="true" [nzLabel]="child.item.FullName"
-                                            [nzValue]="child.item.ID">{{
+                                        <nz-option nzCustomContent="true"
+                                         [nzLabel]="child.item?.Code + ' - ' + child.item?.FullName"
+                                            [nzValue]="child.item.ID"
+                                            >
+                                            {{
                                             child.item.Code + " - " + child.item.FullName
                                             }}</nz-option>
                                         }
@@ -53,7 +56,7 @@
                                     @for (parent of pms; track $index) {
                                     <nz-option-group [nzLabel]="parent.label">
                                         @for (child of parent.options; track $index) {
-                                        <nz-option nzCustomContent="true" [nzLabel]="child.item.FullName"
+                                        <nz-option nzCustomContent="true" [nzLabel]="child.item?.Code + ' - ' + child.item?.FullName"
                                             [nzValue]="child.item.EmployeeID">{{
                                             child.item.Code + " - " + child.item.FullName
                                             }}</nz-option>
@@ -71,7 +74,7 @@
                                     @for (parent of users; track $index) {
                                     <nz-option-group [nzLabel]="parent.label">
                                         @for (child of parent.options; track $index) {
-                                        <nz-option nzCustomContent="true" [nzLabel]="child.item.FullName"
+                                        <nz-option nzCustomContent="true" [nzLabel]="child.item?.Code + ' - ' + child.item?.FullName"
                                             [nzValue]="child.item.ID">{{
                                             child.item.Code + " - " + child.item.FullName
                                             }}</nz-option>
@@ -87,7 +90,7 @@
                                 <nz-select name="businessFieldId" class="w-100" nzShowSearch nzAllowClear
                                     nzPlaceHolder="Chọn lĩnh vực dự án" [(ngModel)]="businessFieldId">
                                     @for (item of businessFields; track $index) {
-                                    <nz-option nzCustomContent="true" [nzLabel]="item.Name + ' - ' + item.Code"
+                                    <nz-option nzCustomContent="true" [nzLabel]="item.Code + ' - ' + item.Name"
                                         [nzValue]="item.ID">{{
                                         item.Code + " - " + item.Name }}</nz-option>
                                     }
@@ -100,7 +103,7 @@
                                 <nz-select name="customerId" class="w-100" nzShowSearch nzAllowClear
                                     nzPlaceHolder="Chọn khách hàng" [(ngModel)]="customerId">
                                     @for (item of customers; track $index) {
-                                    <nz-option nzCustomContent="true" [nzLabel]="item.CustomerName"
+                                    <nz-option nzCustomContent="true" [nzLabel]="item.CustomerCode + ' - ' + item.CustomerName"
                                         [nzValue]="item.ID">{{
                                         item.CustomerCode + " - " + item.CustomerName
                                         }}</nz-option>
@@ -115,7 +118,7 @@
                                     [nzMaxTagPlaceholder]="tagPlaceHolder" nzMode="multiple"
                                     nzPlaceHolder="Chọn kiểu dự án" [(ngModel)]="projectTypeIds">
                                     @for (item of projectTypes; track $index) {
-                                    <nz-option [nzLabel]="item.ProjectTypeName" [nzValue]="item.ID"></nz-option>
+                                    <nz-option [nzLabel]="item.ProjectTypeCode + ' - ' + item.ProjectTypeName" [nzValue]="item.ID"></nz-option>
                                     }
                                 </nz-select>
                                 <ng-template #tagPlaceHolder let-selectedList>...</ng-template>
@@ -134,13 +137,7 @@
                                 <ng-template #tagPlaceHolder let-selectedList>...</ng-template>
                             </nz-form-control>
                         </nz-form-item>
-                        <nz-form-item class="mt-2">
-                            <nz-form-label class="fs-12" [nzSpan]="24">Từ khóa</nz-form-label>
-                            <nz-form-control [nzSpan]="24">
-                                <input nzAllowClear name="keyword" nz-input placeholder="Nhập từ khóa"
-                                    [(ngModel)]="keyword" />
-                            </nz-form-control>
-                        </nz-form-item>
+                     
                     </form>
                 </div>
                 <div class="card-footer bg-white p-1 d-flex gap-1 justify-content-end">
@@ -155,7 +152,8 @@
         </nz-splitter-panel>
         <nz-splitter-panel nzDefaultSize="100%">
             <div class="card border-0 rounded-0">
-                <div class="card-header bg-white p-1">
+                <div class="card-header bg-white p-1 d-flex align-items-center justify-content-between">
+                    <!-- Bên trái: Các nút hành động -->
                     <div class="d-flex gap-1">
                         <button nz-button nzType="default" nzSize="small" (click)="toggleSearchPanel()">
                             <nz-icon nzType="search" />
@@ -190,13 +188,30 @@
                             công việc
                         </button>
                         <button class="fs-12" nz-button nzType="default" nzSize="small"
-                            (click)="openProjectWorkerModal()"  *hasPermission="'N1'">
+                            (click)="openProjectWorkerModal()">
                             <img src="assets/icon/project_woker_16.png" alt="Nhân công dự án" class="me-1" /> Nhân công
                             dự án
                         </button>
                         <button class="fs-12" nz-button nzType="default" nzSize="small"
                             (click)="openProjectPartListModal()">
                             <img src="assets/icon/partlist_16.png" alt="Danh mục vật tư" class="me-1" /> Danh mục vật tư
+                        </button>
+                    </div>
+                    
+                    <!-- Bên phải: Tìm kiếm -->
+                    <div class="d-flex gap-1 align-items-center">
+                        <input
+                            nz-input
+                            nzSize="small"
+                            nzAllowClear
+                            placeholder="Nhập từ khóa"
+                            style="width: 250px"
+                            [(ngModel)]="keyword"
+                            (keyup.enter)="searchProjects()"
+                            (ngModelChange)="onSearchChange($event)"
+                        />
+                        <button nz-button nzType="default" nzSize="small" (click)="searchProjects()" class="btn">
+                            <nz-icon nzType="search" />
                         </button>
                     </div>
                 </div>

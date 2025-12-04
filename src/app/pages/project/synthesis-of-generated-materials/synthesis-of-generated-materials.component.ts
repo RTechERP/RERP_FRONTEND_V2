@@ -18,7 +18,13 @@ import { NzSelectModule } from 'ng-zorro-antd/select';
 import { NzTableModule } from 'ng-zorro-antd/table';
 import { TabulatorFull as Tabulator } from 'tabulator-tables';
 import 'tabulator-tables/dist/css/tabulator_simple.min.css';
-import { OnInit, AfterViewInit, ViewChild, ElementRef, ChangeDetectorRef } from '@angular/core';
+import {
+  OnInit,
+  AfterViewInit,
+  ViewChild,
+  ElementRef,
+  ChangeDetectorRef,
+} from '@angular/core';
 import { ApplicationRef, createComponent, Type } from '@angular/core';
 import { setThrowInvalidWriteToSignalError } from '@angular/core/primitives/signals';
 import { EnvironmentInjector } from '@angular/core';
@@ -63,7 +69,7 @@ import { NOTIFICATION_TITLE } from '../../../app.config';
     NzTreeSelectModule,
     NzModalModule,
     CommonModule,
-    HasPermissionDirective
+    // HasPermissionDirective
   ],
   //encapsulation: ViewEncapsulation.None,
   templateUrl: './synthesis-of-generated-materials.component.html',
@@ -317,14 +323,14 @@ export class SynthesisOfGeneratedMaterialsComponent
         ? DateTime.fromJSDate(new Date(this.dateEnd)).toISO()
         : null,
       projectId: this.projectId ? this.projectId : 0,
-    keyword: this.keyword?.trim() ?? '',
+      keyword: this.keyword?.trim() ?? '',
     };
 
     this.projectService.getSynthesisOfGeneratedMaterials(data).subscribe({
       next: (response: any) => {
         // Đảm bảo response.data là array trước khi set vào Tabulator
         let dataArray: any[] = [];
-        
+
         if (Array.isArray(response.data)) {
           dataArray = response.data;
         } else if (response.data && Array.isArray(response.data.dt)) {
@@ -334,11 +340,11 @@ export class SynthesisOfGeneratedMaterialsComponent
           // Nếu response.data là object, thử lấy các thuộc tính có thể là array
           dataArray = [];
         }
-        
+
         if (this.tb_synthesisOfGeneratedMaterials) {
           this.tb_synthesisOfGeneratedMaterials.setData(dataArray);
         }
-        
+
         // Sử dụng setTimeout để tránh ExpressionChangedAfterItHasBeenCheckedError
         setTimeout(() => {
           this.isLoadTable = false;
@@ -364,7 +370,10 @@ export class SynthesisOfGeneratedMaterialsComponent
 
     let datatable = this.tb_synthesisOfGeneratedMaterials.getData();
     if (!datatable || datatable.length === 0) {
-      this.notification.error(NOTIFICATION_TITLE.error, 'Không có dữ liệu để xuất excel!');
+      this.notification.error(
+        NOTIFICATION_TITLE.error,
+        'Không có dữ liệu để xuất excel!'
+      );
       return;
     }
     this.projectService.exportExcel(

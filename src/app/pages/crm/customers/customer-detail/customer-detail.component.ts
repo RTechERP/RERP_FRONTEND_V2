@@ -92,7 +92,7 @@ import { NOTIFICATION_TITLE } from '../../../../app.config';
     NzFormModule,
     CommonModule,
     NzTreeSelectModule,
-    HasPermissionDirective,
+    // HasPermissionDirective,
   ],
   templateUrl: './customer-detail.component.html',
   styleUrl: './customer-detail.component.css',
@@ -121,8 +121,8 @@ export class CustomerDetailComponent implements OnInit, AfterViewInit {
   majorData: any[] = [];
 
   listIdsContact: any[] = [];
-  listIdsAdress: any[]=[];
-  listIdsEmp: any[]=[];
+  listIdsAdress: any[] = [];
+  listIdsEmp: any[] = [];
 
   dictCustomer: { [key: number]: string } = {};
 
@@ -172,7 +172,7 @@ export class CustomerDetailComponent implements OnInit, AfterViewInit {
   ) {
     this.formGroup = this.fb.group({
       province: [null, [Validators.required]],
-      provinceCode: [{value: '', disabled: true}],
+      provinceCode: [{ value: '', disabled: true }],
       customerCode: [''],
       customerShortName: ['', [Validators.required]],
       taxCode: [''],
@@ -188,7 +188,7 @@ export class CustomerDetailComponent implements OnInit, AfterViewInit {
       productDetails: [''],
       checkVoucher: [''],
       noteDelivery: [''],
-      closingDateDebt: [new Date()]
+      closingDateDebt: [new Date()],
     });
   }
 
@@ -303,17 +303,17 @@ export class CustomerDetailComponent implements OnInit, AfterViewInit {
       this.formGroup.markAsUntouched();
     }
 
- if (this.tb_SaleTable) {
-  this.tb_SaleTable.clearData();
-}
+    if (this.tb_SaleTable) {
+      this.tb_SaleTable.clearData();
+    }
 
-if (this.tb_DataTable) {
-  this.tb_DataTable.clearData();
-}
+    if (this.tb_DataTable) {
+      this.tb_DataTable.clearData();
+    }
 
-if (this.tb_AddressTable) {
-  this.tb_AddressTable.clearData();
-}
+    if (this.tb_AddressTable) {
+      this.tb_AddressTable.clearData();
+    }
 
     this.activeModal.close({ success: false, reloadData: false });
   }
@@ -394,7 +394,8 @@ if (this.tb_AddressTable) {
       },
       error: (err: any) => {
         console.error(err);
-        this.notification.error(NOTIFICATION_TITLE.error,
+        this.notification.error(
+          NOTIFICATION_TITLE.error,
           'Có lỗi xảy ra khi lấy danh sách nhân viên'
         );
         this.cboEmployeeDataTable = [];
@@ -489,38 +490,34 @@ if (this.tb_AddressTable) {
     const saleRows = this.tb_SaleTable ? this.tb_SaleTable.getData() : [];
 
     const customerContacts = (contactRows || [])
-    .filter((r: any) =>
-      r?.ContactName?.trim()
-    )
-    .map((r: any) => ({
-      ID: r?.ID ?? 0,
-      ContactName: r?.ContactName ?? '',
-      CustomerPart:r?.CustomerPart ?? '',
-      CustomerPosition:r?.CustomerPosition ?? '',
-      CustomerTeam:r?.CustomerTeam ?? '',
-      ContactPhone:r?.ContactPhone ?? '',
-      ContactEmail:r?.ContactEmail ?? ''
-    }));
-  const addressStocks = (addressRows || [])
-    .filter((r: any) => r?.Address?.trim())
-    .map((r: any) => ({
-      ID: r?.ID ?? 0,
-      Address: r?.Address ?? '',
-    }));
+      .filter((r: any) => r?.ContactName?.trim())
+      .map((r: any) => ({
+        ID: r?.ID ?? 0,
+        ContactName: r?.ContactName ?? '',
+        CustomerPart: r?.CustomerPart ?? '',
+        CustomerPosition: r?.CustomerPosition ?? '',
+        CustomerTeam: r?.CustomerTeam ?? '',
+        ContactPhone: r?.ContactPhone ?? '',
+        ContactEmail: r?.ContactEmail ?? '',
+      }));
+    const addressStocks = (addressRows || [])
+      .filter((r: any) => r?.Address?.trim())
+      .map((r: any) => ({
+        ID: r?.ID ?? 0,
+        Address: r?.Address ?? '',
+      }));
 
-  const customerEmployees = (saleRows || [])
-    .filter((r: any) => r?.EmployeeID)
-    .map((r: any) => ({
-      ID: r?.ID ?? 0,
-      EmployeeID: r?.EmployeeID ?? null,
-    }));
+    const customerEmployees = (saleRows || [])
+      .filter((r: any) => r?.EmployeeID)
+      .map((r: any) => ({
+        ID: r?.ID ?? 0,
+        EmployeeID: r?.EmployeeID ?? null,
+      }));
 
-
-   // Lấy giá trị từ form controls, bao gồm cả các trường disabled
-  const formValues = this.formGroup.getRawValue(); // Sử dụng getRawValue thay vì value
+    // Lấy giá trị từ form controls, bao gồm cả các trường disabled
+    const formValues = this.formGroup.getRawValue(); // Sử dụng getRawValue thay vì value
     const isEditing = this.isEditMode && !!this.EditID && this.EditID > 0;
     const customer = {
-
       ID: isEditing ? this.EditID : 0,
       Province: formValues.province ?? '',
       CustomerCode: formValues.provinceCode + '-' + formValues.customerCode,
@@ -547,16 +544,19 @@ if (this.tb_AddressTable) {
       CustomerContacts: customerContacts,
       AddressStocks: addressStocks,
       CustomerEmployees: customerEmployees,
-      deletedIdsEmp : this.listIdsEmp,
+      deletedIdsEmp: this.listIdsEmp,
       deletedIdsAdrress: this.listIdsAdress,
       deletedIdsContact: this.listIdsContact,
       BusinessFieldID: formValues.businessField,
     };
-    console.log("payloadB: ", payload);
+    console.log('payloadB: ', payload);
     this.customerService.save(payload).subscribe({
       next: (res: any) => {
         if (res?.status === 1) {
-          this.notification.success(NOTIFICATION_TITLE.success, 'Lưu thành công');
+          this.notification.success(
+            NOTIFICATION_TITLE.success,
+            'Lưu thành công'
+          );
           this.activeModal.close({ success: true, reloadData: true });
         } else {
           this.notification.error(
@@ -566,7 +566,10 @@ if (this.tb_AddressTable) {
         }
       },
       error: (err: any) => {
-        this.notification.error(NOTIFICATION_TITLE.error, err?.message || 'Không thể lưu dữ liệu');
+        this.notification.error(
+          NOTIFICATION_TITLE.error,
+          err?.message || 'Không thể lưu dữ liệu'
+        );
       },
     });
   }
@@ -585,7 +588,7 @@ if (this.tb_AddressTable) {
       //height:'40vh',
       data: this.data,
       // layout: 'fitColumns',
-       height: '100%',
+      height: '100%',
       // selectableRows: 1,
       // pagination: true,
       // paginationSize: 100,
@@ -593,9 +596,9 @@ if (this.tb_AddressTable) {
       // resizableRows: true,
       // reactiveData: true,
       rowHeader: false,
-      selectableRows:1,
-     layout:"fitColumns",
-     pagination: false,
+      selectableRows: 1,
+      layout: 'fitColumns',
+      pagination: false,
 
       columns: [
         {
@@ -603,7 +606,7 @@ if (this.tb_AddressTable) {
           field: 'addRow',
           hozAlign: 'center',
           width: 40,
-          frozen:true,
+          frozen: true,
           headerSort: false,
           titleFormatter: () =>
             `<div style="display: flex; justify-content: center; align-items: center; height: 100%;"><i class="fas fa-plus text-success cursor-pointer" title="Thêm dòng"></i></div>`,
@@ -618,9 +621,8 @@ if (this.tb_AddressTable) {
               : '';
           },
           cellClick: (e, cell) => {
-
             let data = cell.getRow().getData();
-            console.log("hahah",data)
+            console.log('hahah', data);
             let id = data['ID'];
             let contactName = data['ContactName'];
             let isDeleted = data['IsDeleted'];
@@ -636,7 +638,8 @@ if (this.tb_AddressTable) {
               nzOkDanger: true,
               nzOnOk: () => {
                 if (id > 0) {
-                  if (!this.listIdsContact.includes(id)) this.listIdsContact.push(id);
+                  if (!this.listIdsContact.includes(id))
+                    this.listIdsContact.push(id);
                   this.tb_DataTable.deleteRow(cell.getRow());
                 } else {
                   this.tb_DataTable.deleteRow(cell.getRow());
@@ -647,7 +650,7 @@ if (this.tb_AddressTable) {
           },
         },
         { title: 'ID', field: 'ID', visible: false },
-        { title: 'Họ tên', field: 'ContactName', editor: true,   frozen:true, },
+        { title: 'Họ tên', field: 'ContactName', editor: true, frozen: true },
         { title: 'Bộ phận', field: 'CustomerPart', editor: true },
         { title: 'Chức vụ', field: 'CustomerPosition', editor: true },
         { title: 'Team', field: 'CustomerTeam', editor: true },
@@ -680,16 +683,16 @@ if (this.tb_AddressTable) {
         // resizableRows: true,
         // reactiveData: true,
         rowHeader: false,
-        selectableRows:1,
-       layout:"fitColumns",
-       pagination: false,
+        selectableRows: 1,
+        layout: 'fitColumns',
+        pagination: false,
         columns: [
           {
             title: '',
             field: 'addRow',
             hozAlign: 'center',
             width: 40,
-            frozen:true,
+            frozen: true,
             headerSort: false,
             titleFormatter: () =>
               `<div style="display: flex; justify-content: center; align-items: center; height: 100%;"><i class="fas fa-plus text-success cursor-pointer" title="Thêm dòng"></i></div>`,
@@ -718,7 +721,8 @@ if (this.tb_AddressTable) {
                 nzOkDanger: true,
                 nzOnOk: () => {
                   if (id > 0) {
-                    if (!this.listIdsAdress.includes(id)) this.listIdsAdress.push(id);
+                    if (!this.listIdsAdress.includes(id))
+                      this.listIdsAdress.push(id);
                     this.tb_AddressTable.deleteRow(cell.getRow());
                   } else {
                     this.tb_AddressTable.deleteRow(cell.getRow());
@@ -748,10 +752,10 @@ if (this.tb_AddressTable) {
       data: this.customerSaleTableData,
 
       // layout: 'fitColumns',
-       height: '100%',
-       rowHeader: false,
-       selectableRows:1,
-      layout:"fitColumns",
+      height: '100%',
+      rowHeader: false,
+      selectableRows: 1,
+      layout: 'fitColumns',
       pagination: false,
       // pagination: true,
       // paginationSize: 100,
@@ -771,7 +775,7 @@ if (this.tb_AddressTable) {
           field: 'addRow',
           hozAlign: 'center',
           width: 40,
-          frozen:true,
+          frozen: true,
           headerSort: false,
           titleFormatter: () =>
             `<div style="display: flex; justify-content: center; align-items: center; height: 100%;"><i class="fas fa-plus text-success cursor-pointer" title="Thêm dòng"></i></div>`,
@@ -788,7 +792,7 @@ if (this.tb_AddressTable) {
           cellClick: (e, cell) => {
             let data = cell.getRow().getData();
             let id = data['ID'];
-            let fullName = data['FullName']
+            let fullName = data['FullName'];
             let isDeleted = data['IsDeleted'];
             if (isDeleted) {
               return;
@@ -804,7 +808,7 @@ if (this.tb_AddressTable) {
                 if (id > 0) {
                   if (!this.listIdsEmp.includes(id)) this.listIdsEmp.push(id);
                   this.tb_SaleTable.deleteRow(cell.getRow());
-                  console.log("this: ", this.listIdsEmp)
+                  console.log('this: ', this.listIdsEmp);
                 } else {
                   this.tb_SaleTable.deleteRow(cell.getRow());
                 }
@@ -813,7 +817,7 @@ if (this.tb_AddressTable) {
             //this.updateSTTColumn();
           },
         },
-        { title: 'ID', field: 'EmployeeID', visible:false },
+        { title: 'ID', field: 'EmployeeID', visible: false },
         {
           title: 'Nhân viên Sale',
           field: 'FullName',
@@ -860,7 +864,7 @@ if (this.tb_AddressTable) {
 
   //#region Validation methods
   private trimAllStringControls() {
-    Object.keys(this.formGroup.controls).forEach(k => {
+    Object.keys(this.formGroup.controls).forEach((k) => {
       const c = this.formGroup.get(k);
       const v = c?.value;
       if (typeof v === 'string') c!.setValue(v.trim(), { emitEvent: false });
@@ -899,11 +903,16 @@ if (this.tb_AddressTable) {
       'customerShortName',
       'fullName',
       'address',
-      'majorId'
+      'majorId',
     ];
-    const invalidFields = requiredFields.filter(key => {
+    const invalidFields = requiredFields.filter((key) => {
       const control = this.formGroup.get(key);
-      return !control || control.invalid || control.value === '' || control.value == null;
+      return (
+        !control ||
+        control.invalid ||
+        control.value === '' ||
+        control.value == null
+      );
     });
     if (invalidFields.length > 0) {
       this.formGroup.markAllAsTouched();

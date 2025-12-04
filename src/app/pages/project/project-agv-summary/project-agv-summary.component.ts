@@ -4,7 +4,7 @@ import {
   Input,
   Output,
   ViewEncapsulation,
-  ChangeDetectorRef
+  ChangeDetectorRef,
 } from '@angular/core';
 import { NzCardModule } from 'ng-zorro-antd/card';
 import { FormsModule } from '@angular/forms';
@@ -69,11 +69,12 @@ import { AuthService } from '../../../auth/auth.service';
     NzSpinModule,
     NzTreeSelectModule,
     NzModalModule,
-    CommonModule,HasPermissionDirective
+    CommonModule,
+    // HasPermissionDirective
   ],
   templateUrl: './project-agv-summary.component.html',
   styleUrl: './project-agv-summary.component.css',
-//   encapsulation: ViewEncapsulation.None,
+  //   encapsulation: ViewEncapsulation.None,
 })
 export class ProjectAgvSummaryComponent implements OnInit, AfterViewInit {
   @Input() value: string = '';
@@ -132,14 +133,14 @@ export class ProjectAgvSummaryComponent implements OnInit, AfterViewInit {
   keyword: string = '';
   projectId: any = 0;
   currentUser: any = null;
-  pageId: number =2;
+  pageId: number = 2;
   dateStart: any = DateTime.local()
     .set({ hour: 0, minute: 0, second: 0, year: 2024, month: 1, day: 1 })
     .toISO();
   dateEnd: any = DateTime.local()
     .set({ hour: 0, minute: 0, second: 0 })
     .toISO();
-    globalID : number =0;
+  globalID: number = 0;
   //#endregion
 
   //#region chạy khi mở chương trình
@@ -149,11 +150,11 @@ export class ProjectAgvSummaryComponent implements OnInit, AfterViewInit {
       this.isHide = id !== 2;
     });
   }
-  getCurrent(){
+  getCurrent() {
     this.authService.getCurrentUser().subscribe({
       next: (response: any) => {
         this.globalID = response.data.ID;
-        console.log("binh xem",this.globalID);
+        console.log('binh xem', this.globalID);
       },
       error: (error) => {
         console.error('Lỗi:', error);
@@ -165,20 +166,22 @@ export class ProjectAgvSummaryComponent implements OnInit, AfterViewInit {
     // 1. Vẽ bảng (không load data)
     this.drawTbProjects(this.tb_projectsContainer.nativeElement);
     this.drawTbProjectTypeLinks(this.tb_projectTypeLinkContainer.nativeElement);
-    this.drawTbProjectWorkReports(this.tb_projectWorkReportContainer.nativeElement);
-  
+    this.drawTbProjectWorkReports(
+      this.tb_projectWorkReportContainer.nativeElement
+    );
+
     // 2. Load dropdown
     this.getUsers();
     this.getPms();
     this.getBusinessFields();
     this.getCustomers();
     this.getProjectStatus();
-  
+
     // 3. Set giá trị mặc định cho projectTypeIds nếu pageId === 2 (set sớm để đảm bảo có giá trị khi search)
     if (this.pageId === 2) {
       this.projectTypeIds = [2];
     }
-  
+
     // 4. Chờ getCurrent và getProjectTypes hoàn thành → mới search
     this.getCurrent();
     this.getProjectTypes();
@@ -208,19 +211,19 @@ export class ProjectAgvSummaryComponent implements OnInit, AfterViewInit {
       //   layout: 'fitColumns',
 
       ...DEFAULT_TABLE_CONFIG,
-      rowHeader:false,
+      rowHeader: false,
       selectableRows: 1,
-      layout:'fitDataStretch',
+      layout: 'fitDataStretch',
       height: '85vh',
       ajaxURL: this.projectService.getAPIProjects(),
-     ajaxParams: this.getProjectAjaxParams(),
-     ajaxConfig: {
-      method: "GET",
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${token}`
-      }
-    },
+      ajaxParams: this.getProjectAjaxParams(),
+      ajaxConfig: {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+        },
+      },
       ajaxResponse: (url, params, res) => {
         // console.log('total', res.totalPage);
         return {
@@ -302,29 +305,26 @@ export class ProjectAgvSummaryComponent implements OnInit, AfterViewInit {
           //   hozAlign: 'left',
           bottomCalc: 'count',
           //   headerHozAlign: 'center',
-       
         },
         {
           title: 'Trạng thái dự án',
           field: 'ProjectProcessType',
           hozAlign: 'left',
           //   headerHozAlign: 'center',
-     
         },
         {
           title: 'Nội dung công việc',
           field: 'UserMission',
           hozAlign: 'left',
-          formatter:'textarea',
+          formatter: 'textarea',
           //   headerHozAlign: 'center',
-       
         },
         // {
         //   title: 'Tên dự án',
         //   field: 'ProjectName',
         //   //   hozAlign: 'left',
         //   //   headerHozAlign: 'center',
-        
+
         //   formatter: 'textarea',
         // },
         {
@@ -332,7 +332,7 @@ export class ProjectAgvSummaryComponent implements OnInit, AfterViewInit {
           field: 'EndUserName',
           //   hozAlign: 'left',
           //   headerHozAlign: 'center',
-        
+
           formatter: 'textarea',
         },
         { title: 'PO', field: 'PO', hozAlign: 'center', width: 100 },
@@ -347,14 +347,13 @@ export class ProjectAgvSummaryComponent implements OnInit, AfterViewInit {
           },
           hozAlign: 'center',
           //   headerHozAlign: 'center',
-         
         },
         {
           title: 'Người phụ trách(sale)',
           field: 'FullNameSale',
           //   hozAlign: 'left',
           //   headerHozAlign: 'center',
-         
+
           formatter: 'textarea',
         },
         {
@@ -362,7 +361,7 @@ export class ProjectAgvSummaryComponent implements OnInit, AfterViewInit {
           field: 'FullNameTech',
           //   hozAlign: 'left',
           //   headerHozAlign: 'center',
-        
+
           formatter: 'textarea',
         },
         {
@@ -370,7 +369,7 @@ export class ProjectAgvSummaryComponent implements OnInit, AfterViewInit {
           field: 'FullNamePM',
           //   hozAlign: 'left',
           //   headerHozAlign: 'center',
-       
+
           formatter: 'textarea',
         },
         {
@@ -378,7 +377,7 @@ export class ProjectAgvSummaryComponent implements OnInit, AfterViewInit {
           field: 'BussinessField',
           //   hozAlign: 'left',
           //   headerHozAlign: 'center',
-         
+
           formatter: 'textarea',
         },
         {
@@ -386,7 +385,7 @@ export class ProjectAgvSummaryComponent implements OnInit, AfterViewInit {
           field: 'CurrentSituation',
           //   hozAlign: 'left',
           //   headerHozAlign: 'center',
-         
+
           formatter: 'textarea',
         },
         {
@@ -394,7 +393,7 @@ export class ProjectAgvSummaryComponent implements OnInit, AfterViewInit {
           field: 'CustomerName',
           //   hozAlign: 'left',
           //   headerHozAlign: 'center',
-         
+
           formatter: 'textarea',
         },
 
@@ -413,7 +412,6 @@ export class ProjectAgvSummaryComponent implements OnInit, AfterViewInit {
               },
               hozAlign: 'center',
               //   headerHozAlign: 'center',
-           
             },
             {
               title: 'Ngày kết thúc',
@@ -426,7 +424,6 @@ export class ProjectAgvSummaryComponent implements OnInit, AfterViewInit {
               },
               hozAlign: 'center',
               //   headerHozAlign: 'center',
-            
             },
           ],
         },
@@ -446,7 +443,6 @@ export class ProjectAgvSummaryComponent implements OnInit, AfterViewInit {
               },
               hozAlign: 'center',
               //   headerHozAlign: 'center',
-           
             },
             {
               title: 'Ngày kết thúc',
@@ -459,7 +455,6 @@ export class ProjectAgvSummaryComponent implements OnInit, AfterViewInit {
               },
               hozAlign: 'center',
               //   headerHozAlign: 'center',
-            
             },
           ],
         },
@@ -469,14 +464,12 @@ export class ProjectAgvSummaryComponent implements OnInit, AfterViewInit {
           field: 'CreatedBy',
           //   headerHozAlign: 'center',
           //   hozAlign: 'left',
-         
         },
         {
           title: 'Người sửa',
           field: 'UpdatedBy',
           //   headerHozAlign: 'center',
           //   hozAlign: 'left',
-        
         },
       ],
     });
@@ -556,11 +549,11 @@ export class ProjectAgvSummaryComponent implements OnInit, AfterViewInit {
       ajaxURL: this.projectService.getProjectItems(),
       ajaxParams: { id: this.projectId },
       ajaxConfig: {
-        method: "GET",
+        method: 'GET',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
-        }
+          Authorization: `Bearer ${token}`,
+        },
       },
       ajaxResponse: (url, params, res) => {
         return res.data;
@@ -767,7 +760,6 @@ export class ProjectAgvSummaryComponent implements OnInit, AfterViewInit {
 
   //#region xử lý bảng kiểu dự án
   drawTbProjectTypeLinks(container: HTMLElement) {
-    
     this.tb_projectTypeLinks = new Tabulator(container, {
       columnDefaults: {
         headerWordWrap: true,
@@ -790,8 +782,10 @@ export class ProjectAgvSummaryComponent implements OnInit, AfterViewInit {
           headerHozAlign: 'center',
           formatter: (cell: any) => {
             const value = cell.getValue();
-            return `<input type="checkbox" ${(value === true ? 'checked' : '')} onclick="return false;">`;
-          }
+            return `<input type="checkbox" ${
+              value === true ? 'checked' : ''
+            } onclick="return false;">`;
+          },
         },
         {
           title: 'Kiểu dự án',
@@ -884,10 +878,10 @@ export class ProjectAgvSummaryComponent implements OnInit, AfterViewInit {
           } else {
             this.projectTypeIds = [];
           }
-  
+
           // Ép Angular cập nhật lại select (cách chắc chắn)
           this.projectTypeIds = [...this.projectTypeIds];
-          
+
           // Sau khi getProjectTypes hoàn thành và projectTypeIds đã được set, mới gọi searchProjects
           // Đợi một chút để đảm bảo getCurrent cũng có thể hoàn thành
           setTimeout(() => {
@@ -896,12 +890,12 @@ export class ProjectAgvSummaryComponent implements OnInit, AfterViewInit {
         }
       },
       error: (err) => {
-        console.log("Lỗi khi lấy project types", err);
+        console.log('Lỗi khi lấy project types', err);
         // Vẫn search ngay cả khi có lỗi
         setTimeout(() => {
           this.searchProjects();
         }, 100);
-      }
+      },
     });
   }
 
@@ -1058,9 +1052,9 @@ export class ProjectAgvSummaryComponent implements OnInit, AfterViewInit {
 
     const dataSave = {
       ID: 0,
-      UserID: this.currentUser?.EmployeeID ?? 0, 
-      ProjectID: selectedIDs[0],                 
-      Priotity: priority,                          
+      UserID: this.currentUser?.EmployeeID ?? 0,
+      ProjectID: selectedIDs[0],
+      Priotity: priority,
     };
     this.projectService.saveProjectPersonalPriority(dataSave).subscribe({
       next: (response: any) => {
@@ -1084,7 +1078,7 @@ export class ProjectAgvSummaryComponent implements OnInit, AfterViewInit {
   //#endregion
 
   //#region đóng panel
-  closePanel(){
+  closePanel() {
     this.sizeTbDetail = '0';
   }
   //#endregion

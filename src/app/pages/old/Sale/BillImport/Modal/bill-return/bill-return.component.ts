@@ -8,7 +8,11 @@ import {
   EventEmitter,
   ElementRef,
 } from '@angular/core';
-import { NgbActiveModal, NgbModal, NgbModule } from '@ng-bootstrap/ng-bootstrap';
+import {
+  NgbActiveModal,
+  NgbModal,
+  NgbModule,
+} from '@ng-bootstrap/ng-bootstrap';
 import { NzModalModule, NzModalService } from 'ng-zorro-antd/modal';
 // import * as bootstrap from 'bootstrap';
 
@@ -47,9 +51,9 @@ import { NOTIFICATION_TITLE } from '../../../../../../app.config';
 import { HasPermissionDirective } from '../../../../../../directives/has-permission.directive';
 import { environment } from '../../../../../../../environments/environment';
 @Component({
-  standalone:true,
+  standalone: true,
   selector: 'app-bill-return',
-   imports: [
+  imports: [
     CommonModule,
     FormsModule,
     ReactiveFormsModule,
@@ -69,26 +73,26 @@ import { environment } from '../../../../../../../environments/environment';
     NzMenuModule,
     NzSpinModule,
     NzTabsModule,
-    HasPermissionDirective,
+    // HasPermissionDirective,
   ],
   templateUrl: './bill-return.component.html',
-  styleUrls: ['./bill-return.component.css']
+  styleUrls: ['./bill-return.component.css'],
 })
 export class BillReturnComponent implements OnInit, AfterViewInit {
-  @ViewChild('tableReturn',{static:false}) tableReturn!:ElementRef
-  table!:Tabulator;
-  dataReturn:any[]=[];
-  @Input() billImportDetailModel:any;
-  @Input() productID:number=0;
-  @Input() Type:number=0;
-  @Input() maphieu:string='';
+  @ViewChild('tableReturn', { static: false }) tableReturn!: ElementRef;
+  table!: Tabulator;
+  dataReturn: any[] = [];
+  @Input() billImportDetailModel: any;
+  @Input() productID: number = 0;
+  @Input() Type: number = 0;
+  @Input() maphieu: string = '';
   @Output() maphieuSelected = new EventEmitter<string>();
-  selectedCode:string='';
+  selectedCode: string = '';
 
   constructor(
     private srv: BillImportServiceService,
     private activeModal: NgbActiveModal
-  ) { }
+  ) {}
 
   ngOnInit() {
     this.loadPhieuTra();
@@ -98,7 +102,7 @@ export class BillReturnComponent implements OnInit, AfterViewInit {
     this.drawTable();
   }
 
-  loadPhieuTra(){
+  loadPhieuTra() {
     this.srv.getPhieutra(this.productID).subscribe(
       (res: any) => {
         this.dataReturn = res.data;
@@ -112,38 +116,38 @@ export class BillReturnComponent implements OnInit, AfterViewInit {
     );
   }
 
-  drawTable(){
+  drawTable() {
     this.table = new Tabulator(this.tableReturn.nativeElement, {
-          data: this.dataReturn,
-          layout: 'fitDataStretch',
-          reactiveData: true,
-          selectableRows: 1,
-          height: '65vh',
-          placeholder: 'Không có dữ liệu',
-          rowFormatter: (row) => {
-            const remain = row.getData()['Remain'];
-            if (remain !== 0) {
-              row.getElement().style.backgroundColor = '#FFFF00';
-            }
-          },
-          columns: [
-            {
-              title: 'Ngày tạo',
-              hozAlign: 'center',
-              width: 150,
-              field:'CreatedDate',
-            },
-            { title: 'Mã phiếu mượn', field: 'Code', width:150 },
-            { title: 'Người mượn', field: 'FullName',width:150 },
-            { title: 'Số lượng mượn', field: 'Qty',width:150 },
-            { title: 'Số lượng trả', field: 'ReturnAmount',width:150 },
-            { title: 'Đang mượn', field: 'Remain',width:150 },
-          ],
-        } );
+      data: this.dataReturn,
+      layout: 'fitDataStretch',
+      reactiveData: true,
+      selectableRows: 1,
+      height: '65vh',
+      placeholder: 'Không có dữ liệu',
+      rowFormatter: (row) => {
+        const remain = row.getData()['Remain'];
+        if (remain !== 0) {
+          row.getElement().style.backgroundColor = '#FFFF00';
+        }
+      },
+      columns: [
+        {
+          title: 'Ngày tạo',
+          hozAlign: 'center',
+          width: 150,
+          field: 'CreatedDate',
+        },
+        { title: 'Mã phiếu mượn', field: 'Code', width: 150 },
+        { title: 'Người mượn', field: 'FullName', width: 150 },
+        { title: 'Số lượng mượn', field: 'Qty', width: 150 },
+        { title: 'Số lượng trả', field: 'ReturnAmount', width: 150 },
+        { title: 'Đang mượn', field: 'Remain', width: 150 },
+      ],
+    });
 
-      this.table.on('rowDblClick', (_e: any, row: any) => {
-        this.selectPhieuTra(row.getData());
-      });
+    this.table.on('rowDblClick', (_e: any, row: any) => {
+      this.selectPhieuTra(row.getData());
+    });
   }
 
   selectPhieuTra(rowData: any) {
@@ -168,5 +172,4 @@ export class BillReturnComponent implements OnInit, AfterViewInit {
     }
     return null;
   }
-
 }

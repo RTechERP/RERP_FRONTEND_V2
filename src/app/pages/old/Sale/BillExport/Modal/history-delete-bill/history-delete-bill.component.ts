@@ -66,7 +66,7 @@ import { ProjectComponent } from '../../../../../project/project.component';
     NgbModule,
     NzDividerModule,
     NzDatePickerModule,
-    SelectControlComponent,
+    // SelectControlComponent,
   ],
   templateUrl: './history-delete-bill.component.html',
   styleUrl: './history-delete-bill.component.css',

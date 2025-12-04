@@ -76,8 +76,8 @@ interface DocumentImportPoNCC {
     NgbModule,
     NzDividerModule,
     NzDatePickerModule,
-    ProductSaleDetailComponent,
-    SelectControlComponent,
+    // ProductSaleDetailComponent,
+    // SelectControlComponent,
   ],
   templateUrl: './bill-document-import.component.html',
   styleUrls: ['./bill-document-import.component.css'],
@@ -88,7 +88,8 @@ export class BillDocumentImportComponent implements OnInit, AfterViewInit {
   @Output() dataSaved = new EventEmitter<void>(); // To notify parent to reload
 
   @ViewChild('tableBillDocumentImport') tableBillDocumentImportRef!: ElementRef;
-  @ViewChild('tableBillDocumentImportLog') tableBillDocumentImportLogRef!: ElementRef;
+  @ViewChild('tableBillDocumentImportLog')
+  tableBillDocumentImportLogRef!: ElementRef;
 
   displayedData: any;
   flag: boolean = true;
@@ -158,11 +159,13 @@ export class BillDocumentImportComponent implements OnInit, AfterViewInit {
           // this.dataBillDocumentImport = res.data;
           // this.table_billDocumentImport?.replaceData(this.dataBillDocumentImport);
           // this.getBillDocumentImportLog(this.id, res.data[0].DocumentImportID);
-
         }
       },
       error: (err) => {
-        this.notification.error(NOTIFICATION_TITLE.error, 'Lỗi khi lấy chứng từ');
+        this.notification.error(
+          NOTIFICATION_TITLE.error,
+          'Lỗi khi lấy chứng từ'
+        );
         console.error('Lỗi khi lấy chứng từ', err);
       },
     });
@@ -175,7 +178,7 @@ export class BillDocumentImportComponent implements OnInit, AfterViewInit {
         next: (res) => {
           if (res?.data && Array.isArray(res.data)) {
             this.dataBillDocumentImportLog = res.data;
-            console.log('datalog:',this.dataBillDocumentImportLog);
+            console.log('datalog:', this.dataBillDocumentImportLog);
 
             this.table_billDocumentImportLog?.replaceData(
               this.dataBillDocumentImportLog
@@ -183,7 +186,10 @@ export class BillDocumentImportComponent implements OnInit, AfterViewInit {
           }
         },
         error: (err) => {
-          this.notification.error(NOTIFICATION_TITLE.error, 'Lỗi khi lấy lịch sử chứng từ');
+          this.notification.error(
+            NOTIFICATION_TITLE.error,
+            'Lỗi khi lấy lịch sử chứng từ'
+          );
           console.error('Lỗi khi lấy lịch sử chứng từ', err);
         },
       });
@@ -249,7 +255,10 @@ export class BillDocumentImportComponent implements OnInit, AfterViewInit {
     this.billImportService.saveBillDocumentImport(changedData).subscribe({
       next: (res) => {
         if (res.status === 1) {
-          this.notification.success(NOTIFICATION_TITLE.success, 'Dữ liệu đã được lưu.');
+          this.notification.success(
+            NOTIFICATION_TITLE.success,
+            'Dữ liệu đã được lưu.'
+          );
           this.flag = true;
           this.getBillDocumentImport(); // load lại bảng + reset cờ _edited
           this.dataSaved.emit();
@@ -449,7 +458,7 @@ export class BillDocumentImportComponent implements OnInit, AfterViewInit {
       this.table_billDocumentImport.on('rowSelected', (row: RowComponent) => {
         const rowData = row.getData();
         this.id = rowData['ID'] || 0;
-        console.log('documentimportid',this.id);
+        console.log('documentimportid', this.id);
 
         this.documentImportID = rowData['DocumentImportID'] || 0;
 

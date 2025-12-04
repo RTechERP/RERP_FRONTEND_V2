@@ -62,8 +62,8 @@ import { NOTIFICATION_TITLE } from '../../../app.config';
     NzSelectModule,
     NzTableModule,
     NzTabsModule,
-    DisablePermissionDirective,
-    HasPermissionDirective
+    // DisablePermissionDirective,
+    HasPermissionDirective,
   ],
 
   selector: 'app-ts-asset-allocation-personal',
@@ -667,7 +667,10 @@ export class TsAssetAllocationPersonalComponent
   validateAllocationForm(): boolean {
     let isValid = true;
     if (!this.allocationDate) {
-      this.notification.warning(NOTIFICATION_TITLE.warning, 'Vui lòng chọn ngày cấp!');
+      this.notification.warning(
+        NOTIFICATION_TITLE.warning,
+        'Vui lòng chọn ngày cấp!'
+      );
       isValid = false;
     }
     if (!this.employeeID) {
@@ -726,7 +729,10 @@ export class TsAssetAllocationPersonalComponent
     this.assetAllocationService.saveAssetAllocationPerson(payload).subscribe({
       next: (res) => {
         if (res.status === 1) {
-          this.notification.success(NOTIFICATION_TITLE.success, 'Lưu thành công');
+          this.notification.success(
+            NOTIFICATION_TITLE.success,
+            'Lưu thành công'
+          );
           this.formNote = '';
           this.closeModal();
           this.getAssetAllocationPersonals();
@@ -736,7 +742,10 @@ export class TsAssetAllocationPersonalComponent
       },
       error: (err) => {
         console.error(err);
-        this.notification.warning(NOTIFICATION_TITLE.warning, 'Lỗi kết nối máy chủ');
+        this.notification.warning(
+          NOTIFICATION_TITLE.warning,
+          'Lỗi kết nối máy chủ'
+        );
       },
     });
   }
@@ -749,7 +758,10 @@ export class TsAssetAllocationPersonalComponent
       | 'PERSONAL_CANCEL'
   ): boolean {
     if (!this.tbAssetAllocationPersonal) {
-      this.notification.warning(NOTIFICATION_TITLE.warning, 'Chọn một hàng để duyệt');
+      this.notification.warning(
+        NOTIFICATION_TITLE.warning,
+        'Chọn một hàng để duyệt'
+      );
       return false;
     }
     const selectedRow = this.tbAssetAllocationPersonal.getSelectedData();
@@ -866,7 +878,10 @@ export class TsAssetAllocationPersonalComponent
       },
       error: (res) => {
         console.error(res);
-        this.notification.warning(NOTIFICATION_TITLE.warning, res.error.message);
+        this.notification.warning(
+          NOTIFICATION_TITLE.warning,
+          res.error.message
+        );
       },
     });
   }
@@ -958,7 +973,10 @@ export class TsAssetAllocationPersonalComponent
       },
       error: (res) => {
         console.error(res);
-        this.notification.warning(NOTIFICATION_TITLE.warning, res.error.message);
+        this.notification.warning(
+          NOTIFICATION_TITLE.warning,
+          res.error.message
+        );
       },
     });
   }

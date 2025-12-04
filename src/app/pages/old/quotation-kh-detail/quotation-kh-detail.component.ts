@@ -88,7 +88,7 @@ import { NOTIFICATION_TITLE } from '../../../app.config';
     NzSwitchModule,
     NzCheckboxModule,
     CommonModule,
-    HasPermissionDirective,
+    // HasPermissionDirective,
   ],
   templateUrl: './quotation-kh-detail.component.html',
   styleUrl: './quotation-kh-detail.component.css',
@@ -99,7 +99,7 @@ export class QuotationKhDetailComponent implements OnInit, AfterViewInit {
 
   private mainTable!: Tabulator;
 
-  @Input() groupedData: any[] = []; 
+  @Input() groupedData: any[] = [];
   @Input() isEditMode: boolean = false;
 
   constructor(
@@ -115,7 +115,7 @@ export class QuotationKhDetailComponent implements OnInit, AfterViewInit {
 
   quotationForm!: FormGroup;
   isSubmitted: boolean = false;
-  
+
   formData: any = this.getDefaultFormData();
   data: any[] = [];
   customers: any[] = [];
@@ -155,11 +155,13 @@ export class QuotationKhDetailComponent implements OnInit, AfterViewInit {
 
   //Setup hàm cho các trường form nếu có thay đổi
   setupFormSubscriptions(): void {
-    this.quotationForm.get('customerId')?.valueChanges.subscribe((customerId) => {
-      if (customerId) {
-        this.onCustomerChange(customerId);
-      }
-    });
+    this.quotationForm
+      .get('customerId')
+      ?.valueChanges.subscribe((customerId) => {
+        if (customerId) {
+          this.onCustomerChange(customerId);
+        }
+      });
 
     this.quotationForm.get('projectId')?.valueChanges.subscribe((projectId) => {
       if (projectId) {
@@ -229,7 +231,7 @@ export class QuotationKhDetailComponent implements OnInit, AfterViewInit {
     console.log(mainData);
     const detailItems = firstGroup.items || [];
 
-    // Đổ dữ liệu lên form 
+    // Đổ dữ liệu lên form
     this.quotationForm.patchValue({
       id: mainData.ID,
       status: mainData.Status,
@@ -272,7 +274,10 @@ export class QuotationKhDetailComponent implements OnInit, AfterViewInit {
           (c: any) => c.ID === mainData.ContactID
         );
         if (contactItem) {
-          this.quotationForm.patchValue({ contactId: contactItem.ID }, { emitEvent: false });
+          this.quotationForm.patchValue(
+            { contactId: contactItem.ID },
+            { emitEvent: false }
+          );
         }
       }, 300);
     }
@@ -321,7 +326,7 @@ export class QuotationKhDetailComponent implements OnInit, AfterViewInit {
   validateForm(): boolean {
     this.isSubmitted = true;
 
-    Object.keys(this.quotationForm.controls).forEach(key => {
+    Object.keys(this.quotationForm.controls).forEach((key) => {
       this.quotationForm.get(key)?.markAsTouched();
     });
 
@@ -330,13 +335,17 @@ export class QuotationKhDetailComponent implements OnInit, AfterViewInit {
         this.notification.error('Lỗi', 'Vui lòng điền mã báo giá.');
         return false;
       }
-      if (this.quotationForm.get('customerId')?.hasError('required') || 
-          this.quotationForm.get('customerId')?.hasError('min')) {
+      if (
+        this.quotationForm.get('customerId')?.hasError('required') ||
+        this.quotationForm.get('customerId')?.hasError('min')
+      ) {
         this.notification.error('Lỗi', 'Vui lòng chọn một khách hàng.');
         return false;
       }
-      if (this.quotationForm.get('userId')?.hasError('required') || 
-          this.quotationForm.get('userId')?.hasError('min')) {
+      if (
+        this.quotationForm.get('userId')?.hasError('required') ||
+        this.quotationForm.get('userId')?.hasError('min')
+      ) {
         this.notification.error('Lỗi', 'Vui lòng chọn một người phụ trách.');
         return false;
       }
@@ -351,7 +360,10 @@ export class QuotationKhDetailComponent implements OnInit, AfterViewInit {
     for (let i = 0; i < tableData.length; i++) {
       const code = tableData[i].ProductNewCode;
       if (!code || code.trim() === '') {
-        this.notification.error('Lỗi', 'Mã nội bộ không thể để trống, vui lòng kiểm tra lại !');
+        this.notification.error(
+          'Lỗi',
+          'Mã nội bộ không thể để trống, vui lòng kiểm tra lại !'
+        );
         return false;
       }
     }
@@ -508,7 +520,10 @@ export class QuotationKhDetailComponent implements OnInit, AfterViewInit {
       .subscribe(
         (response) => {
           if (response.status === 1) {
-            this.quotationForm.patchValue({ code: response.data }, { emitEvent: false });
+            this.quotationForm.patchValue(
+              { code: response.data },
+              { emitEvent: false }
+            );
           } else {
             this.notification.error(
               'Lỗi khi tải dữ liệu contact:',
@@ -545,18 +560,24 @@ export class QuotationKhDetailComponent implements OnInit, AfterViewInit {
     this.loadCode(customerId, this.quotationForm.get('createDate')?.value);
     this.loadContact(customerId);
     if (contactId !== undefined) {
-      this.quotationForm.patchValue({ contactId: contactId ?? -1 }, { emitEvent: false });
+      this.quotationForm.patchValue(
+        { contactId: contactId ?? -1 },
+        { emitEvent: false }
+      );
     }
   }
-  
+
   onProjectChange(projectId: number): void {
     if (!projectId) return;
     const project = this.projects.find((p: any) => p.ID === projectId);
     if (project) {
-      this.quotationForm.patchValue({ 
-        userId: project.UserID,
-        customerId: project.CustomerID 
-      }, { emitEvent: false });
+      this.quotationForm.patchValue(
+        {
+          userId: project.UserID,
+          customerId: project.CustomerID,
+        },
+        { emitEvent: false }
+      );
       this.onCustomerChange(project.CustomerID, project.ContactID);
     }
   }
@@ -565,7 +586,10 @@ export class QuotationKhDetailComponent implements OnInit, AfterViewInit {
     if (ITEM == null || ITEM == undefined) {
       return;
     } else {
-      this.quotationForm.patchValue({ customerPhone: ITEM.ContactPhone }, { emitEvent: false });
+      this.quotationForm.patchValue(
+        { customerPhone: ITEM.ContactPhone },
+        { emitEvent: false }
+      );
     }
   }
   getDefaultFormData(): any {
@@ -942,7 +966,10 @@ export class QuotationKhDetailComponent implements OnInit, AfterViewInit {
     });
 
     // Cập nhật tổng tiền vào form
-    this.quotationForm.patchValue({ totalPrice: totalIntoMoney }, { emitEvent: false });
+    this.quotationForm.patchValue(
+      { totalPrice: totalIntoMoney },
+      { emitEvent: false }
+    );
 
     // Tính toán commission money
     const comPercent = Number(this.quotationForm.get('comPercent')?.value) || 0;
@@ -958,10 +985,12 @@ export class QuotationKhDetailComponent implements OnInit, AfterViewInit {
     }
 
     // Format commission money để hiển thị
-    this.quotationForm.patchValue({ comMoney: Number(comMoney.toFixed(0)) }, { emitEvent: false });
+    this.quotationForm.patchValue(
+      { comMoney: Number(comMoney.toFixed(0)) },
+      { emitEvent: false }
+    );
 
     console.log('Tổng thành tiền:', totalIntoMoney);
     console.log('Tổng giá NET:', totalGiaNet);
   }
-  
 }

@@ -90,7 +90,7 @@ import { ProjectService } from '../../project/project-service/project.service';
     NzSwitchModule,
     NzCheckboxModule,
     CommonModule,
-    HasPermissionDirective,
+    // HasPermissionDirective,
   ],
   templateUrl: './pokh-kpi.component.html',
   styleUrl: './pokh-kpi.component.css',
@@ -176,7 +176,7 @@ export class PokhKpiComponent implements OnInit, AfterViewInit {
     private quotationKhDetailService: QuotationKhDetailServiceService,
     private viewPokhService: ViewPokhService,
     private projectService: ProjectService
-  ) { }
+  ) {}
   ngOnInit(): void {
     const endDate = new Date();
     const startDate = new Date();
@@ -187,7 +187,6 @@ export class PokhKpiComponent implements OnInit, AfterViewInit {
     this.loadFilterUserData();
     this.loadFilterGroupSales();
     this.loadFilterMainIndexes();
-
   }
   ngAfterViewInit(): void {
     this.drawPOKHTable();
@@ -254,7 +253,10 @@ export class PokhKpiComponent implements OnInit, AfterViewInit {
         if (response.status === 1) {
           this.filterUserData = response.data;
         } else {
-          this.notification.error('Lỗi khi tải người phụ trách:', response.message);
+          this.notification.error(
+            'Lỗi khi tải người phụ trách:',
+            response.message
+          );
           return;
         }
       },
@@ -287,7 +289,7 @@ export class PokhKpiComponent implements OnInit, AfterViewInit {
       (response) => {
         if (response.status === 1) {
           this.mainIndexes = response.data;
-          console.log("main", this.mainIndexes)
+          console.log('main', this.mainIndexes);
         } else {
           this.notification.error('Lỗi khi tải Lọc:', response.message);
           return;
@@ -340,7 +342,7 @@ export class PokhKpiComponent implements OnInit, AfterViewInit {
   searchPOKH() {
     this.loadPOKH();
   }
-  exportExcel() { }
+  exportExcel() {}
   getPOKHAjaxParams(): any {
     return (params: any) => {
       console.log('Params từ Tabulator:', params);
@@ -362,19 +364,22 @@ export class PokhKpiComponent implements OnInit, AfterViewInit {
     };
   }
   async exportDetailTableToExcel() {
-
-
     const selectedRows = this.tb_POKH.getSelectedRows();
     if (!selectedRows || selectedRows.length === 0) {
-      this.notification.error(NOTIFICATION_TITLE.error, 'Vui lòng chọn ít nhất một dòng để xuất Excel');
+      this.notification.error(
+        NOTIFICATION_TITLE.error,
+        'Vui lòng chọn ít nhất một dòng để xuất Excel'
+      );
       return;
     }
 
     if (!this.tb_Detail) {
-      this.notification.error(NOTIFICATION_TITLE.error, 'Không có dữ liệu để xuất Excel');
+      this.notification.error(
+        NOTIFICATION_TITLE.error,
+        'Không có dữ liệu để xuất Excel'
+      );
       return;
     }
-
 
     const workbook = new ExcelJS.Workbook();
     const worksheet = workbook.addWorksheet('POKH_KPI_List_Detail');
@@ -410,7 +415,11 @@ export class PokhKpiComponent implements OnInit, AfterViewInit {
         const column = col.getDefinition();
         let value = rowData[field];
 
-        if (column.formatter === 'money' && value !== null && value !== undefined) {
+        if (
+          column.formatter === 'money' &&
+          value !== null &&
+          value !== undefined
+        ) {
           const numValue = typeof value === 'number' ? value : Number(value);
           if (!isNaN(numValue)) {
             value = numValue;
@@ -422,7 +431,16 @@ export class PokhKpiComponent implements OnInit, AfterViewInit {
           if (dateTime.isValid) {
             // Tạo Date object với UTC time nhưng với date đúng để Excel hiểu đúng
             // Excel xử lý Date object theo UTC, nên cần tạo với UTC time
-            const date = new Date(Date.UTC(dateTime.year, dateTime.month - 1, dateTime.day, 12, 0, 0));
+            const date = new Date(
+              Date.UTC(
+                dateTime.year,
+                dateTime.month - 1,
+                dateTime.day,
+                12,
+                0,
+                0
+              )
+            );
             value = date;
           }
         }
@@ -501,8 +519,9 @@ export class PokhKpiComponent implements OnInit, AfterViewInit {
     const url = window.URL.createObjectURL(blob);
     const link = document.createElement('a');
     link.href = url;
-    link.download = `POKHKPIDetail_List_Page_${currentPage}_${new Date().toISOString().split('T')[0]
-      }.xlsx`;
+    link.download = `POKHKPIDetail_List_Page_${currentPage}_${
+      new Date().toISOString().split('T')[0]
+    }.xlsx`;
     link.click();
     window.URL.revokeObjectURL(url);
   }
@@ -523,11 +542,11 @@ export class PokhKpiComponent implements OnInit, AfterViewInit {
       ajaxURL: this.POKHService.getPOKHAjax(),
       ajaxParams: this.getPOKHAjaxParams(),
       ajaxConfig: {
-        method: "GET",
+        method: 'GET',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
-        }
+          Authorization: `Bearer ${token}`,
+        },
       },
       ajaxResponse: (url, params, res) => {
         console.log('total', res.totalPages[0].TotalPage);
@@ -629,7 +648,8 @@ export class PokhKpiComponent implements OnInit, AfterViewInit {
             if (backgroundColor) {
               const cellElement = cell.getElement();
               if (cellElement) {
-                (cellElement as HTMLElement).style.backgroundColor = backgroundColor;
+                (cellElement as HTMLElement).style.backgroundColor =
+                  backgroundColor;
               }
             }
 
@@ -649,7 +669,13 @@ export class PokhKpiComponent implements OnInit, AfterViewInit {
           </div>`;
           },
         },
-        { title: 'Số POKH', field: 'ID', sorter: 'number', width: 100, visible: false },
+        {
+          title: 'Số POKH',
+          field: 'ID',
+          sorter: 'number',
+          width: 100,
+          visible: false,
+        },
         { title: 'Mã PO', field: 'POCode', sorter: 'string', width: 150 },
         {
           title: 'Khách hàng',
@@ -808,7 +834,9 @@ export class PokhKpiComponent implements OnInit, AfterViewInit {
       const rowData = row.getData();
       const id = rowData.ID;
       // Xóa ID khỏi danh sách khi người dùng tự bỏ chọn
-      this.selectedIds = this.selectedIds.filter(selectedId => selectedId !== id);
+      this.selectedIds = this.selectedIds.filter(
+        (selectedId) => selectedId !== id
+      );
       // Load lại detail với danh sách ID còn lại
       if (this.selectedIds.length > 0) {
         this.loadMultiplePOKHKPIDetail(this.selectedIds);

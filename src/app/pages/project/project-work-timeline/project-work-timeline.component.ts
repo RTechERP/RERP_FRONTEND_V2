@@ -18,7 +18,13 @@ import { NzSelectModule } from 'ng-zorro-antd/select';
 import { NzTableModule } from 'ng-zorro-antd/table';
 import { TabulatorFull as Tabulator } from 'tabulator-tables';
 import 'tabulator-tables/dist/css/tabulator_simple.min.css';
-import { OnInit, AfterViewInit, OnDestroy, ViewChild, ElementRef } from '@angular/core';
+import {
+  OnInit,
+  AfterViewInit,
+  OnDestroy,
+  ViewChild,
+  ElementRef,
+} from '@angular/core';
 import { ApplicationRef, createComponent, Type } from '@angular/core';
 import { setThrowInvalidWriteToSignalError } from '@angular/core/primitives/signals';
 import { EnvironmentInjector } from '@angular/core';
@@ -62,13 +68,15 @@ import { DEFAULT_TABLE_CONFIG } from '../../../tabulator-default.config';
     NzTreeSelectModule,
     NzModalModule,
     CommonModule,
-    HasPermissionDirective
+    // HasPermissionDirective
   ],
   //encapsulation: ViewEncapsulation.None,
   templateUrl: './project-work-timeline.component.html',
   styleUrl: './project-work-timeline.component.css',
 })
-export class ProjectWorkTimelineComponent implements OnInit, AfterViewInit, OnDestroy {
+export class ProjectWorkTimelineComponent
+  implements OnInit, AfterViewInit, OnDestroy
+{
   //#region Khai báo các biến
   constructor(
     private injector: EnvironmentInjector,
@@ -102,7 +110,10 @@ export class ProjectWorkTimelineComponent implements OnInit, AfterViewInit, OnDe
   typeIds: any[] = [1, 2, 3];
 
   dateStart = DateTime.local().startOf('month').toFormat('yyyy-MM-dd');
-  dateEnd = DateTime.local().startOf('month').plus({ days: 7 }).toFormat('yyyy-MM-dd');
+  dateEnd = DateTime.local()
+    .startOf('month')
+    .plus({ days: 7 })
+    .toFormat('yyyy-MM-dd');
 
   dataCell: any;
   dataTitle: any;
@@ -123,7 +134,7 @@ export class ProjectWorkTimelineComponent implements OnInit, AfterViewInit, OnDe
     this.getUserTeam();
 
     this.getDataWorkTimeline();
-    
+
     // Thêm event listener cho window resize
     this.resizeListener = () => {
       if (this.tb_projectWorkTimeline) {
@@ -186,7 +197,7 @@ export class ProjectWorkTimelineComponent implements OnInit, AfterViewInit, OnDe
       this.projectService.getUserTeam(this.departmentId).subscribe({
         next: (response: any) => {
           this.teams = response.data;
-          console.log("skss", this.teams)
+          console.log('skss', this.teams);
         },
         error: (error) => {
           console.error('Lỗi:', error);
@@ -197,7 +208,7 @@ export class ProjectWorkTimelineComponent implements OnInit, AfterViewInit, OnDe
 
   getDataWorkTimeline() {
     this.isLoadTable = true;
-    
+
     // Destroy bảng cũ nếu đã tồn tại
     if (this.tb_projectWorkTimeline) {
       try {
@@ -223,7 +234,10 @@ export class ProjectWorkTimelineComponent implements OnInit, AfterViewInit, OnDe
 
     // Tạo bảng trước (với columns dựa trên dateStart/dateEnd hiện tại)
     setTimeout(() => {
-      if (!this.tb_projectWorkTimeline && this.tb_projectWorkTimelineContainer?.nativeElement) {
+      if (
+        !this.tb_projectWorkTimeline &&
+        this.tb_projectWorkTimelineContainer?.nativeElement
+      ) {
         this.drawTbProjectWorkTimeline(
           this.tb_projectWorkTimelineContainer.nativeElement
         );
@@ -236,7 +250,7 @@ export class ProjectWorkTimelineComponent implements OnInit, AfterViewInit, OnDe
         // Đảm bảo bảng đã được tạo xong trước khi set data
         let retryCount = 0;
         const maxRetries = 10; // Tối đa 10 lần thử (tổng cộng ~1 giây)
-        
+
         const setDataToTable = () => {
           if (this.tb_projectWorkTimeline) {
             this.tb_projectWorkTimeline.setData(response.data || []);
@@ -257,7 +271,10 @@ export class ProjectWorkTimelineComponent implements OnInit, AfterViewInit, OnDe
             // Nếu đã thử quá nhiều lần mà vẫn không có bảng, báo lỗi
             console.error('Không thể tạo bảng sau nhiều lần thử');
             this.isLoadTable = false;
-            this.notification.error(NOTIFICATION_TITLE.error, 'Không thể hiển thị dữ liệu!');
+            this.notification.error(
+              NOTIFICATION_TITLE.error,
+              'Không thể hiển thị dữ liệu!'
+            );
           }
         };
 
@@ -269,7 +286,10 @@ export class ProjectWorkTimelineComponent implements OnInit, AfterViewInit, OnDe
       error: (error) => {
         console.error('Lỗi:', error);
         this.isLoadTable = false;
-        this.notification.error(NOTIFICATION_TITLE.error, 'Không thể tải dữ liệu!');
+        this.notification.error(
+          NOTIFICATION_TITLE.error,
+          'Không thể tải dữ liệu!'
+        );
       },
     });
   }
@@ -380,30 +400,29 @@ export class ProjectWorkTimelineComponent implements OnInit, AfterViewInit, OnDe
 
     this.tb_projectWorkTimeline = new Tabulator(container, {
       ...DEFAULT_TABLE_CONFIG,
-      rowHeader:false,
+      rowHeader: false,
       pagination: true,
-      paginationMode:'local',
+      paginationMode: 'local',
       height: '100%',
       layout: 'fitColumns',
       locale: 'vi',
       columns: col,
 
       // BẬT LẠI BORDER CHO CỘT CUỐI
-  columnDefaults: {
-    resizable: true,
-  },
+      columnDefaults: {
+        resizable: true,
+      },
 
-  // QUAN TRỌNG: Bật virtual DOM và thêm border
-  renderHorizontal: "virtual",
-  ajaxFiltering: false,
-
+      // QUAN TRỌNG: Bật virtual DOM và thêm border
+      renderHorizontal: 'virtual',
+      ajaxFiltering: false,
     });
-    this.tb_projectWorkTimeline.on("pageLoaded", () => {
+    this.tb_projectWorkTimeline.on('pageLoaded', () => {
       this.tb_projectWorkTimeline.redraw(true);
     });
-    
+
     // Redraw khi bảng được render xong
-    this.tb_projectWorkTimeline.on("tableBuilt", () => {
+    this.tb_projectWorkTimeline.on('tableBuilt', () => {
       setTimeout(() => {
         this.tb_projectWorkTimeline.redraw(true);
       }, 100);

@@ -47,7 +47,11 @@ import { NzFormModule } from 'ng-zorro-antd/form';
 import { AuthService } from '../../../auth/auth.service';
 import { DEFAULT_TABLE_CONFIG } from '../../../tabulator-default.config';
 import { HasPermissionDirective } from '../../../directives/has-permission.directive';
-import { ReactiveFormsModule, NonNullableFormBuilder, Validators } from '@angular/forms';
+import {
+  ReactiveFormsModule,
+  NonNullableFormBuilder,
+  Validators,
+} from '@angular/forms';
 import { NOTIFICATION_TITLE } from '../../../app.config';
 
 @Component({
@@ -77,7 +81,7 @@ import { NOTIFICATION_TITLE } from '../../../app.config';
     NzUploadModule,
     NzFormModule,
     ReactiveFormsModule,
-    HasPermissionDirective
+    // HasPermissionDirective
   ],
   //encapsulation: ViewEncapsulation.None,
   templateUrl: './project-survey.component.html',
@@ -86,13 +90,15 @@ import { NOTIFICATION_TITLE } from '../../../app.config';
 export class ProjectSurveyComponent implements AfterViewInit {
   //#region Khai báo biến
   private fb = inject(NonNullableFormBuilder);
-  
+
   // FormGroup cho modal approval
   approvalForm = this.fb.group({
-    technicalRequestId: this.fb.control<number | null>(null, [Validators.required]),
+    technicalRequestId: this.fb.control<number | null>(null, [
+      Validators.required,
+    ]),
     dateSurvey: this.fb.control<string>('', [Validators.required]),
     partOfDayId: this.fb.control<number>(0),
-    reason: this.fb.control<string>('')
+    reason: this.fb.control<string>(''),
   });
 
   constructor(
@@ -103,7 +109,7 @@ export class ProjectSurveyComponent implements AfterViewInit {
     private modal: NzModalService,
     private modalService: NgbModal,
     private router: Router,
-    private authService:AuthService
+    private authService: AuthService
   ) {}
 
   @ViewChild('tb_projectSurvey', { static: false })
@@ -130,7 +136,7 @@ export class ProjectSurveyComponent implements AfterViewInit {
   saleId: any;
   keyword: any;
 
-  currentUser:any;
+  currentUser: any;
 
   partOfDayId: any = 0;
   reason: any = '';
@@ -151,17 +157,17 @@ export class ProjectSurveyComponent implements AfterViewInit {
   toggleSearchPanel() {
     this.sizeSearch = this.sizeSearch == '0' ? '22%' : '0';
   }
-  getCurrentUser(){
+  getCurrentUser() {
     this.authService.getCurrentUser().subscribe({
-    next: (response: any) => {
-      this.currentUser = response.data;
-    },
-    error: (error: any) => {
-      const msg = error.message || 'Lỗi không xác định';
-      this.notification.error(NOTIFICATION_TITLE.error, msg);
-      console.error('Lỗi:', error.error);
-    },
-  })
+      next: (response: any) => {
+        this.currentUser = response.data;
+      },
+      error: (error: any) => {
+        const msg = error.message || 'Lỗi không xác định';
+        this.notification.error(NOTIFICATION_TITLE.error, msg);
+        console.error('Lỗi:', error.error);
+      },
+    });
   }
 
   async getEmployees() {
@@ -219,13 +225,13 @@ export class ProjectSurveyComponent implements AfterViewInit {
       projectId: this.projectId ? this.projectId : 0,
       technicalId: this.technicalId ? this.technicalId : 0,
       saleId: this.saleId ? this.saleId : 0,
-      keyword:  this.keyword?.trim() ?? '',
+      keyword: this.keyword?.trim() ?? '',
     };
 
     this.projectService.getDataProjectSurvey(data).subscribe({
       next: (response: any) => {
         this.tb_projectSurvey.setData(response.data);
-        console.log("kết quả khairoe sát", response.data);
+        console.log('kết quả khairoe sát', response.data);
         this.isLoadTable = false;
       },
       error: (error) => {
@@ -285,13 +291,13 @@ export class ProjectSurveyComponent implements AfterViewInit {
 
     this.tb_projectSurvey = new Tabulator(container, {
       ...DEFAULT_TABLE_CONFIG,
-      
-        height: '100%',
-        layout: 'fitColumns',
-        locale: 'vi',
-        selectableRows:1,
-        rowHeader: false,
-   paginationMode: 'local',
+
+      height: '100%',
+      layout: 'fitColumns',
+      locale: 'vi',
+      selectableRows: 1,
+      rowHeader: false,
+      paginationMode: 'local',
       groupBy: 'ProjectCode',
       groupHeader: function (value, count, data, group) {
         return `Mã dự án: ${value}`;
@@ -306,7 +312,7 @@ export class ProjectSurveyComponent implements AfterViewInit {
               title: 'Khảo sát gấp',
               field: 'IsUrgent',
               width: 50,
-              frozen:true,
+              frozen: true,
               headerSort: false,
               headerHozAlign: 'center',
               formatter: function (cell, formatterParams, onRendered) {
@@ -324,7 +330,7 @@ export class ProjectSurveyComponent implements AfterViewInit {
               title: 'Duyệt gấp',
               field: 'IsApprovedUrgent',
               width: 50,
-              frozen:true,
+              frozen: true,
               headerSort: false,
               headerHozAlign: 'center',
               formatter: function (cell, formatterParams, onRendered) {
@@ -444,7 +450,6 @@ export class ProjectSurveyComponent implements AfterViewInit {
           title: 'THÔNG TIN KỸ THUẬT KHẢO SÁT',
           headerHozAlign: 'center',
           columns: [
-           
             {
               title: 'Kỹ thuật phụ trách',
               field: 'FullNameTechnical',
@@ -526,13 +531,13 @@ export class ProjectSurveyComponent implements AfterViewInit {
 
     let selectedRows: any[] = [];
     let canEdit: boolean = true; // Mặc định có quyền sửa
-    
-    if(status !=0){
-      debugger
+
+    if (status != 0) {
+      debugger;
       selectedRows = this.tb_projectSurvey.getSelectedData();
       // this.selectedList = dataSelect; // Cập nhật lại selectedList với dữ liệu mới nhất
       // const ids = this.selectedList.map((item) => item.ID);
-      if (selectedRows.length == 0 || selectedRows.length >1) {
+      if (selectedRows.length == 0 || selectedRows.length > 1) {
         this.notification.warning(
           'Thông báo',
           'Vui lòng chọn 1 yêu cầu để sửa!'
@@ -541,10 +546,16 @@ export class ProjectSurveyComponent implements AfterViewInit {
       }
       debugger;
       // Kiểm tra quyền sửa: nếu không phải chủ sở hữu và không phải admin thì không có quyền
-      if(selectedRows[0].EmployeeID != this.currentUser.EmployeeID && !this.currentUser.IsAdmin){
+      if (
+        selectedRows[0].EmployeeID != this.currentUser.EmployeeID &&
+        !this.currentUser.IsAdmin
+      ) {
         canEdit = false; // Không có quyền sửa, nhưng vẫn mở modal để xem
       }
-      if(selectedRows[0].EmployeeID1 != this.currentUser.EmployeeID && !this.currentUser.IsAdmin){
+      if (
+        selectedRows[0].EmployeeID1 != this.currentUser.EmployeeID &&
+        !this.currentUser.IsAdmin
+      ) {
         canEdit = false;
       }
     }
@@ -561,7 +572,9 @@ export class ProjectSurveyComponent implements AfterViewInit {
         ? selectedRows[0]['ProjectID']
         : 0;
     modalRef.componentInstance.projectSurveyId =
-      selectedRows.length > 0 && selectedRows[0]['ID'] > 0 && status == 1 ? selectedRows[0]['ID'] : 0;
+      selectedRows.length > 0 && selectedRows[0]['ID'] > 0 && status == 1
+        ? selectedRows[0]['ID']
+        : 0;
     modalRef.componentInstance.isEdit = status;
     modalRef.componentInstance.canEdit = canEdit; // Truyền quyền sửa vào form detail
     modalRef.result.catch((reason) => {
@@ -577,7 +590,7 @@ export class ProjectSurveyComponent implements AfterViewInit {
     var selectedRows = this.tb_projectSurvey.getSelectedData();
     if (selectedRows.length <= 0) {
       this.notification.error(
-       NOTIFICATION_TITLE.error,
+        NOTIFICATION_TITLE.error,
         `Vui lòng chọn yêu cầu cần ${statusText}!`,
         {
           nzStyle: { fontSize: '0.75rem' },
@@ -586,8 +599,9 @@ export class ProjectSurveyComponent implements AfterViewInit {
       return;
     }
     debugger;
-    if(this.currentUser.EmployeeID != selectedRows[0].LeaderID){
-      this.notification.error(NOTIFICATION_TITLE.error,
+    if (this.currentUser.EmployeeID != selectedRows[0].LeaderID) {
+      this.notification.error(
+        NOTIFICATION_TITLE.error,
         `Bạn không thể ${statusText} yêu cầu của leader [${selectedRows[0].FullNameLeaderTBP}]!`,
         {
           nzStyle: { fontSize: '0.75rem' },
@@ -605,7 +619,7 @@ export class ProjectSurveyComponent implements AfterViewInit {
         nzContent: `Bạn có chắc muốn ${statusText} yêu cầu đã chọn không?`,
         nzOkText: 'Ok',
         nzOkType: 'primary',
-       
+
         nzOnOk: () => {
           let data = {
             approvedStatus: approvedStatus,
@@ -636,7 +650,8 @@ export class ProjectSurveyComponent implements AfterViewInit {
     } else {
       if (approvedStatus == false) this.isDisableReasion = true;
       if (selectedRows.length > 1) {
-        this.notification.error(NOTIFICATION_TITLE.error,
+        this.notification.error(
+          NOTIFICATION_TITLE.error,
           `Vui lòng chỉ chọn 1 yêu cầu cần ${statusText}!`,
           {
             nzStyle: { fontSize: '0.75rem' },
@@ -655,17 +670,16 @@ export class ProjectSurveyComponent implements AfterViewInit {
       } else {
         initialDateSurvey = new Date();
       }
-      
+
       // Lấy ID kỹ thuật phụ trách từ selected row
       // Có thể là TechnicalID, EmployeeIDTechnical, hoặc field khác tùy vào cấu trúc dữ liệu
-      const technicalId = selectedRows[0].EmployeeID1 || 
-                          null
-      
+      const technicalId = selectedRows[0].EmployeeID1 || null;
+
       this.approvalForm.patchValue({
-        technicalRequestId: selectedRows[0].EmployeeID1|| null,
+        technicalRequestId: selectedRows[0].EmployeeID1 || null,
         partOfDayId: selectedRows[0].SurveySession || 0,
         reason: selectedRows[0].ReasonCancel || '',
-        dateSurvey: initialDateSurvey as any // Cast to any vì form control type là string nhưng nz-date-picker trả về Date
+        dateSurvey: initialDateSurvey as any, // Cast to any vì form control type là string nhưng nz-date-picker trả về Date
       });
 
       // Set required validator cho reason nếu là hủy duyệt
@@ -681,7 +695,8 @@ export class ProjectSurveyComponent implements AfterViewInit {
       let leaderID = selectedRows[0].LeaderID;
       let leaderName = selectedRows[0].FullNameLeaderTBP;
       if (this.currentUser.EmployeeID != leaderID) {
-        this.notification.error(NOTIFICATION_TITLE.error,
+        this.notification.error(
+          NOTIFICATION_TITLE.error,
           `Bạn không thể ${statusText} yêu cầu của leader [${leaderName}]!`,
           {
             nzStyle: { fontSize: '0.75rem' },
@@ -710,10 +725,11 @@ export class ProjectSurveyComponent implements AfterViewInit {
               // Validate form
               if (this.approvalForm.invalid) {
                 this.approvalForm.markAllAsTouched();
-                const technicalControl = this.approvalForm.get('technicalRequestId');
+                const technicalControl =
+                  this.approvalForm.get('technicalRequestId');
                 const dateControl = this.approvalForm.get('dateEnd');
                 const reasonControl = this.approvalForm.get('reason');
-                
+
                 if (technicalControl?.hasError('required')) {
                   this.notification.error(
                     'Thông báo',
@@ -739,24 +755,33 @@ export class ProjectSurveyComponent implements AfterViewInit {
               const formValue = this.approvalForm.getRawValue();
               // Xử lý dateSurvey: nz-date-picker trả về Date object, nhưng form control type là string
               const dateSurveyRaw = formValue.dateSurvey as any;
-              
+
               // Validate và convert dateSurvey
               if (!dateSurveyRaw) {
-                this.notification.error('Thông báo', 'Vui lòng chọn ngày khảo sát!');
+                this.notification.error(
+                  'Thông báo',
+                  'Vui lòng chọn ngày khảo sát!'
+                );
                 return;
               }
 
               let dateSurveyValue: DateTime;
               let dateSurveyISO: string;
-              
+
               if (dateSurveyRaw instanceof Date) {
-                dateSurveyValue = DateTime.fromJSDate(dateSurveyRaw).startOf('day');
-                dateSurveyISO = DateTime.fromJSDate(dateSurveyRaw).toISO() || '';
+                dateSurveyValue =
+                  DateTime.fromJSDate(dateSurveyRaw).startOf('day');
+                dateSurveyISO =
+                  DateTime.fromJSDate(dateSurveyRaw).toISO() || '';
               } else if (typeof dateSurveyRaw === 'string' && dateSurveyRaw) {
-                dateSurveyValue = DateTime.fromISO(dateSurveyRaw).startOf('day');
+                dateSurveyValue =
+                  DateTime.fromISO(dateSurveyRaw).startOf('day');
                 dateSurveyISO = DateTime.fromISO(dateSurveyRaw).toISO() || '';
               } else {
-                this.notification.error('Thông báo', 'Ngày khảo sát không hợp lệ!');
+                this.notification.error(
+                  'Thông báo',
+                  'Ngày khảo sát không hợp lệ!'
+                );
                 return;
               }
 
@@ -814,7 +839,10 @@ export class ProjectSurveyComponent implements AfterViewInit {
                   }
                 },
                 error: (error) => {
-                  this.notification.error(NOTIFICATION_TITLE.error, error.error.message);
+                  this.notification.error(
+                    NOTIFICATION_TITLE.error,
+                    error.error.message
+                  );
                 },
               });
             },
@@ -833,7 +861,10 @@ export class ProjectSurveyComponent implements AfterViewInit {
     const data = table.getData();
     if (!data || data.length === 0) {
       if (!data || data.length === 0) {
-        this.notification.error(NOTIFICATION_TITLE.error, 'Không có dữ liệu để xuất!');
+        this.notification.error(
+          NOTIFICATION_TITLE.error,
+          'Không có dữ liệu để xuất!'
+        );
         return;
       }
     }
@@ -1009,7 +1040,7 @@ export class ProjectSurveyComponent implements AfterViewInit {
     var selectedRows = this.tb_projectSurvey.getSelectedData();
     // this.selectedList = dataSelect; // Cập nhật lại selectedList với dữ liệu mới nhất
     // const ids = this.selectedList.map((item) => item.ID);
-    if (selectedRows.length == 0 || selectedRows.length >1) {
+    if (selectedRows.length == 0 || selectedRows.length > 1) {
       this.notification.warning(
         'Thông báo',
         'Vui lòng chọn ít nhất 1 yêu cầu để xóa!'
@@ -1017,10 +1048,7 @@ export class ProjectSurveyComponent implements AfterViewInit {
       return;
     }
     let emID = selectedRows[0]['EmployeeID'];
-    if (
-      emID != this.currentUser.ID &&
-      !this.currentUser.IsAdmin
-    ) {
+    if (emID != this.currentUser.ID && !this.currentUser.IsAdmin) {
       this.notification.error(
         'Thông báo',
         `Bạn không thể xóa yêu cầu khảo sát của người khác!`,
@@ -1030,55 +1058,50 @@ export class ProjectSurveyComponent implements AfterViewInit {
       );
       return;
     }
-     // if (response.data == true && !this.projectService.ISADMIN) {
-        //   this.notification.error(
-        //     'Thông báo',
-        //     `Bạn không thể xóa yêu cầu khảo sát vì Leader Kỹ thuật đã xác nhận!`,
-        //     {
-        //       nzStyle: { fontSize: '0.75rem' },
-        //     }
-        //   );
-        //   return;
-        // } else {
+    // if (response.data == true && !this.projectService.ISADMIN) {
+    //   this.notification.error(
+    //     'Thông báo',
+    //     `Bạn không thể xóa yêu cầu khảo sát vì Leader Kỹ thuật đã xác nhận!`,
+    //     {
+    //       nzStyle: { fontSize: '0.75rem' },
+    //     }
+    //   );
+    //   return;
+    // } else {
 
     let dataSave = {
       projectSurveyId: selectedRows[0]['ID'],
     };
     this.projectService.checkStatusDetail(dataSave).subscribe({
       next: (response: any) => {
-       
-          this.modal.confirm({
-            nzTitle: `Thông báo`,
-            nzContent: `Bạn có chắc muốn xóa yêu cầu khảo sát dự án đã chọn?`,
-            nzOkText: 'Ok',
-            nzOkType: 'primary',
-            nzCancelText: 'Hủy',
-            nzOnOk: () => {
-              this.projectService.deletedProjectSurvey(dataSave).subscribe({
-                next: (response: any) => {
-                  if (response.status == 1) {
-                    this.notification.success(
-                      'Thông báo',
-                      `Đã xóa yêu cầu khảo sát dự án!`
-                    );
-                    this.getDataProjectSurvey();
-                  }else if(response.status == 2){
-                    this.notification.error(
-                      'Thông báo',
-                      response.message
-                    );
-                  }
-                },
-                error: (error: any) => {
-                  const msg = error.message || 'Lỗi không xác định';
-                  this.notification.error(NOTIFICATION_TITLE.error, msg);
-                  console.error('Lỗi:', error.error);
-                },
-              });
-            },
-          });
-        }
-      
+        this.modal.confirm({
+          nzTitle: `Thông báo`,
+          nzContent: `Bạn có chắc muốn xóa yêu cầu khảo sát dự án đã chọn?`,
+          nzOkText: 'Ok',
+          nzOkType: 'primary',
+          nzCancelText: 'Hủy',
+          nzOnOk: () => {
+            this.projectService.deletedProjectSurvey(dataSave).subscribe({
+              next: (response: any) => {
+                if (response.status == 1) {
+                  this.notification.success(
+                    'Thông báo',
+                    `Đã xóa yêu cầu khảo sát dự án!`
+                  );
+                  this.getDataProjectSurvey();
+                } else if (response.status == 2) {
+                  this.notification.error('Thông báo', response.message);
+                }
+              },
+              error: (error: any) => {
+                const msg = error.message || 'Lỗi không xác định';
+                this.notification.error(NOTIFICATION_TITLE.error, msg);
+                console.error('Lỗi:', error.error);
+              },
+            });
+          },
+        });
+      },
     });
   }
   //#endregion
@@ -1088,7 +1111,7 @@ export class ProjectSurveyComponent implements AfterViewInit {
     var selectedRows = this.tb_projectSurvey.getSelectedData();
     if (selectedRows.length <= 0) {
       this.notification.error(
-       NOTIFICATION_TITLE.error,
+        NOTIFICATION_TITLE.error,
         `Vui lòng chọn 1 yêu cầu khảo sát!`,
         {
           nzStyle: { fontSize: '0.75rem' },
@@ -1127,8 +1150,8 @@ export class ProjectSurveyComponent implements AfterViewInit {
     var selectedRows = this.tb_projectSurvey.getSelectedData();
     if (selectedRows.length != 1) {
       this.notification.error(
-       NOTIFICATION_TITLE.error,
-        `Vui lòng chọn 1 yêu cầu khảo sát!`,
+        NOTIFICATION_TITLE.error,
+        `Vui lòng chọn 1 yêu cầu khảo sát!`
       );
       return;
     }
@@ -1147,7 +1170,10 @@ export class ProjectSurveyComponent implements AfterViewInit {
     //   );
     //   return;
     // }
-    if(selectedRows[0].EmployeeID1 != this.currentUser.EmployeeID && !this.currentUser.IsAdmin){
+    if (
+      selectedRows[0].EmployeeID1 != this.currentUser.EmployeeID &&
+      !this.currentUser.IsAdmin
+    ) {
       canEdit = false;
     }
     let modalRef = this.modalService.open(ProjectSurverResultComponent, {

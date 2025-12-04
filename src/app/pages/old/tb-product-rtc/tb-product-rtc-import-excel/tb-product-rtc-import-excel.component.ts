@@ -50,7 +50,7 @@ function formatDate(value: any): string | null {
     NzInputModule,
     NzSelectModule,
     NzProgressModule,
-    HasPermissionDirective,
+    // HasPermissionDirective,
   ],
   selector: 'app-tb-product-rtc-import-excel',
   templateUrl: './tb-product-rtc-import-excel.component.html',
@@ -83,7 +83,8 @@ export class TbProductRtcImportExcelComponent implements OnInit {
   totalRowsAfterFileRead: number = 0; // Tổng số dòng dữ liệu hợp lệ sau khi đọc file
   processedRowsForSave: number = 0;
   isSaving: boolean = false;
-  constructor(private notification: NzNotificationService,
+  constructor(
+    private notification: NzNotificationService,
     private modalService: NgbModal,
     private unitService: UnitService,
     private tbProductRtcService: TbProductRtcService
@@ -692,7 +693,10 @@ export class TbProductRtcImportExcelComponent implements OnInit {
         this.isSaving = false;
       },
       error: (err) => {
-        this.notification.error('Thông báo', err.error.message || 'Không thể lưu dữ liệu Excel!');
+        this.notification.error(
+          'Thông báo',
+          err.error.message || 'Không thể lưu dữ liệu Excel!'
+        );
         console.error('Lỗi API save-data-excel:', err);
         this.displayProgress = 0;
         this.displayText = `0/${validDataToSave.length} bản ghi`;
@@ -700,7 +704,7 @@ export class TbProductRtcImportExcelComponent implements OnInit {
       },
       complete: () => {
         this.isSaving = false;
-      }
+      },
     });
   }
 

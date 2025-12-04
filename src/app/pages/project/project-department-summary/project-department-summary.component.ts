@@ -46,7 +46,7 @@ import { ActivatedRoute } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { DEFAULT_TABLE_CONFIG } from '../../../tabulator-default.config';
 import { ProjectService } from '../project-service/project.service';
-import { NzFormModule } from 'ng-zorro-antd/form'; 
+import { NzFormModule } from 'ng-zorro-antd/form';
 import { AuthService } from '../../../auth/auth.service';
 import { ProjectWorkerSyntheticComponent } from './project-department-summary-form/project-worker-synthetic/project-worker-synthetic.component';
 import { ProjectListWorkReportComponent } from '../project-list-work-report/project-list-work-report.component';
@@ -88,11 +88,11 @@ import { ProjectTypeLinkDetailComponent } from '../project-type-link-detail/proj
     NzModalModule,
     CommonModule,
     NzFormModule,
-    ProjectWorkerComponent,
-    HasPermissionDirective
+    // ProjectWorkerComponent,
+    // HasPermissionDirective
   ],
   templateUrl: './project-department-summary.component.html',
-  styleUrl: './project-department-summary.component.css'
+  styleUrl: './project-department-summary.component.css',
 })
 export class ProjectDepartmentSummaryComponent implements AfterViewInit {
   @Input() value: string = '';
@@ -118,7 +118,7 @@ export class ProjectDepartmentSummaryComponent implements AfterViewInit {
     private router: Router,
     private route: ActivatedRoute,
     private authService: AuthService,
-    private permissionService: PermissionService,
+    private permissionService: PermissionService
   ) {}
   //Ga
   //#region Khai báo biến
@@ -151,16 +151,16 @@ export class ProjectDepartmentSummaryComponent implements AfterViewInit {
   customerId: any;
   keyword: string = '';
   projectId: any = 0;
-  projectCode :any = '';
+  projectCode: any = '';
   currentUser: any = null;
-  users:any;
-  departments:any;
-  teams:any;
+  users: any;
+  departments: any;
+  teams: any;
   savedPage: number = 1; // Lưu page hiện tại khi reload
   searchParams: any = {
     dateTimeS: new Date(new Date().setMonth(new Date().getMonth() - 1))
-    .toISOString()
-    .split('T')[0],
+      .toISOString()
+      .split('T')[0],
     dateTimeE: new Date().toISOString().split('T')[0],
     keyword: '',
     userID: 0,
@@ -168,7 +168,6 @@ export class ProjectDepartmentSummaryComponent implements AfterViewInit {
     departmentID: 0,
     userTeamID: 0,
   };
- 
 
   dateStart: Date | null = null;
   dateEnd: Date | null = null;
@@ -176,7 +175,6 @@ export class ProjectDepartmentSummaryComponent implements AfterViewInit {
 
   //#region chạy khi mở chương trình
   ngOnInit(): void {
-    
     this.route.paramMap.subscribe((params) => {
       let id = params.get('id');
       if (Number(id) == 2) {
@@ -197,39 +195,45 @@ export class ProjectDepartmentSummaryComponent implements AfterViewInit {
       //   console.log(this.isHide);
     });
   }
-  
+
   ngAfterViewInit(): void {
     this.drawTbProjects(this.tb_projectsummaryContainer.nativeElement);
-    this.drawTbProjectTypeLinks(this.tb_projectsummaryTypeLinkContainer.nativeElement);
+    this.drawTbProjectTypeLinks(
+      this.tb_projectsummaryTypeLinkContainer.nativeElement
+    );
     this.drawTbProjectWorkReports(
       this.tb_projectsummaryWorkReportContainer.nativeElement
     );
-    this.drawTbProjectSituation(this.tb_projectSituationContainer.nativeElement);
+    this.drawTbProjectSituation(
+      this.tb_projectSituationContainer.nativeElement
+    );
     this.loadProjects();
     this.getDepartment();
     this.getUserTeam();
     this.getProjectTypes();
     this.getProjectStatus();
   }
- 
-getUserTeam() {
-  this.teams = [];
-  if (this.searchParams.departmentID > 0) {
-    this.projectService.getUserTeam(this.searchParams.departmentID).subscribe({
-      next: (response: any) => {
-        this.teams = response.data;
-        console.log("jhaa", this.teams)
-      },
-      error: (error) => {
-        console.error('Lỗi:', error);
-      },
-    });
-  } else {
-    // Reset team khi không chọn phòng ban
-    this.searchParams.userTeamID = 0;
+
+  getUserTeam() {
+    this.teams = [];
+    if (this.searchParams.departmentID > 0) {
+      this.projectService
+        .getUserTeam(this.searchParams.departmentID)
+        .subscribe({
+          next: (response: any) => {
+            this.teams = response.data;
+            console.log('jhaa', this.teams);
+          },
+          error: (error) => {
+            console.error('Lỗi:', error);
+          },
+        });
+    } else {
+      // Reset team khi không chọn phòng ban
+      this.searchParams.userTeamID = 0;
+    }
   }
-}
- getDepartment() {
+  getDepartment() {
     this.projectService.getDepartment().subscribe({
       next: (response: any) => {
         this.departments = response.data;
@@ -250,30 +254,38 @@ getUserTeam() {
       }
     }
 
-    const dateStart = DateTime.fromJSDate(new Date(this.searchParams.dateTimeS)
+    const dateStart = DateTime.fromJSDate(
+      new Date(this.searchParams.dateTimeS)
     );
     const dateEnd = DateTime.fromJSDate(new Date(this.searchParams.dateTimeE));
-  
-    this.projectService.getProjectSummary(dateStart,dateEnd,
-      this.searchParams.departmentID,
-      this.searchParams.userID,
-      this.searchParams.projectTypeID, 
-      this.searchParams.keyword.trim() ? this.searchParams.keyword.trim() : '',
-      this.searchParams.userTeamID).subscribe({
-      next: (res:any) => {
-        if (res.status===1) {
-          this.project = res.data;
-          // Nếu dùng Tabulator → reload data
-          if (this.tb_projects) {
-            this.tb_projects.replaceData(this.project);
+
+    this.projectService
+      .getProjectSummary(
+        dateStart,
+        dateEnd,
+        this.searchParams.departmentID,
+        this.searchParams.userID,
+        this.searchParams.projectTypeID,
+        this.searchParams.keyword.trim()
+          ? this.searchParams.keyword.trim()
+          : '',
+        this.searchParams.userTeamID
+      )
+      .subscribe({
+        next: (res: any) => {
+          if (res.status === 1) {
+            this.project = res.data;
+            // Nếu dùng Tabulator → reload data
+            if (this.tb_projects) {
+              this.tb_projects.replaceData(this.project);
+            }
           }
-        }
-      },
-      error: (err:any) => {
-        console.error('Lỗi API:', err);
-        alert('Không tải được dữ liệu dự án!');
-      }
-    });
+        },
+        error: (err: any) => {
+          console.error('Lỗi API:', err);
+          alert('Không tải được dữ liệu dự án!');
+        },
+      });
   }
 
   onChange(val: string) {
@@ -304,7 +316,7 @@ getUserTeam() {
         })),
       },
       {
-        label:  
+        label:
           '<span style="font-size: 0.75rem;"><img src="assets/icon/action_export_excel_16.png" alt="Xuất Excel" class="me-1" /> Xuất excel</span>',
         action: (e: any, row: any) => {
           this.exportExcel();
@@ -402,16 +414,16 @@ getUserTeam() {
       //   layout: 'fitColumns',
 
       ...DEFAULT_TABLE_CONFIG,
-      data:this.project,
+      data: this.project,
       rowHeader: false,
-      selectableRows:1,
+      selectableRows: 1,
       layout: 'fitDataStretch',
       height: '85vh',
       paginationMode: 'local',
-        // pagination: true,
-        // paginationMode: 'remote',
-        // paginationSize: 100,
-        // paginationSizeSelector: [100, 200, 400, 800, 1000],
+      // pagination: true,
+      // paginationMode: 'remote',
+      // paginationSize: 100,
+      // paginationSizeSelector: [100, 200, 400, 800, 1000],
       rowContextMenu: contextMenuProject,
       columns: [
         {
@@ -622,7 +634,6 @@ getUserTeam() {
           hozAlign: 'center',
           //   headerHozAlign: 'center',
         },
-
       ],
     });
 
@@ -657,14 +668,14 @@ getUserTeam() {
 
   getProjectSituation() {
     this.projectService.getProjectSituation(this.projectId).subscribe((res) => {
-      if(res.status === 1) {
+      if (res.status === 1) {
         this.projectSituations = res.data;
         this.tb_projectSituation.setData(this.projectSituations);
       } else {
         this.notification.error('Lỗi', res.message);
         this.projectSituations = [];
         this.tb_projectSituation.setData([]);
-      } 
+      }
     });
   }
 
@@ -677,17 +688,18 @@ getUserTeam() {
         ? dt.startOf('day').toFormat('yyyy-MM-dd HH:mm:ss')
         : dt.endOf('day').toFormat('yyyy-MM-dd HH:mm:ss');
     };
-  
+
     const filter = {
       dateTimeS: safeDate(this.dateStart, true),
       dateTimeE: safeDate(this.dateEnd, false),
       departmentID: 0,
       userTeamID: 0,
       userID: this.customerId ?? 0,
-      projectTypeID: this.projectTypeIds?.length > 0 ? this.projectTypeIds.join(',') : '',
+      projectTypeID:
+        this.projectTypeIds?.length > 0 ? this.projectTypeIds.join(',') : '',
       keyword: (this.keyword ?? '').trim(),
     };
-  
+
     return { filter }; // ← ĐÚNG FORMAT: { filter: { ... } }
   }
   getDay() {
@@ -696,17 +708,19 @@ getUserTeam() {
         console.log(`${label}: null`);
         return;
       }
-  
+
       const dt = DateTime.fromISO(isoDate);
       if (!dt.isValid) {
         console.log(`${label}: Invalid DateTime →`, isoDate);
         return;
       }
-  
-      const formatted = dt.set({ hour: 23, minute: 59, second: 59 }).toFormat('yyyy-MM-dd HH:mm:ss');
+
+      const formatted = dt
+        .set({ hour: 23, minute: 59, second: 59 })
+        .toFormat('yyyy-MM-dd HH:mm:ss');
       console.log(`${label}:`, formatted);
     };
-  
+
     safeLog(this.dateStart, 'dateStart → 23:59:59');
     safeLog(this.dateEnd, 'dateEnd → 23:59:59');
   }
@@ -738,23 +752,21 @@ getUserTeam() {
             return;
           }
 
-          this.projectService
-            .getProjectItemsData(this.projectId)
-            .subscribe({
-              next: (res) => {
-                if (res?.data) {
-                  // Tabulator expects array data directly
-                  const dataArray = Array.isArray(res.data) ? res.data : [];
-                  resolve(dataArray);
-                } else {
-                  resolve([]);
-                }
-              },
-              error: (err) => {
-                console.error('Error loading project work reports data:', err);
-                reject(err);
-              },
-            });
+          this.projectService.getProjectItemsData(this.projectId).subscribe({
+            next: (res) => {
+              if (res?.data) {
+                // Tabulator expects array data directly
+                const dataArray = Array.isArray(res.data) ? res.data : [];
+                resolve(dataArray);
+              } else {
+                resolve([]);
+              }
+            },
+            error: (err) => {
+              console.error('Error loading project work reports data:', err);
+              reject(err);
+            },
+          });
         });
       },
       locale: 'vi',
@@ -982,8 +994,10 @@ getUserTeam() {
           headerHozAlign: 'center',
           formatter: (cell: any) => {
             const value = cell.getValue();
-            return `<input type="checkbox" ${(value === true ? 'checked' : '')} onclick="return false;">`;
-          }
+            return `<input type="checkbox" ${
+              value === true ? 'checked' : ''
+            } onclick="return false;">`;
+          },
         },
         {
           title: 'Kiểu dự án',
@@ -1016,8 +1030,6 @@ getUserTeam() {
 
   //#region tìm kiếm
 
- 
-
   getProjectTypes() {
     this.projectService.getProjectTypes().subscribe({
       next: (response: any) => {
@@ -1044,18 +1056,18 @@ getUserTeam() {
     this.loadProjects();
   }
   //#endregion
-  setDefautSearch(){
-    this.searchParams={
+  setDefautSearch() {
+    this.searchParams = {
       dateTimeS: new Date(new Date().setMonth(new Date().getMonth() - 1))
-      .toISOString()
-      .split('T')[0],
+        .toISOString()
+        .split('T')[0],
       dateTimeE: new Date().toISOString().split('T')[0],
       keyword: '',
       userID: 0,
       projectTypeID: '',
       departmentID: 0,
       userTeamID: 0,
-    }
+    };
     this.savedPage = 0; // Reset savedPage khi reset search params
   }
   //#region thêm/sửa dự án 0 thêm 1 sửa
@@ -1064,9 +1076,13 @@ getUserTeam() {
     let selectedIDs = selectedRows.map((row: any) => row.getData().ID);
     if (status == 1) {
       if (selectedIDs.length != 1) {
-        this.notification.error('Thông báo', this.createdText('Vui lòng chọn dự án!'), {
-          nzStyle: { fontSize: '0.75rem' },
-        });
+        this.notification.error(
+          'Thông báo',
+          this.createdText('Vui lòng chọn dự án!'),
+          {
+            nzStyle: { fontSize: '0.75rem' },
+          }
+        );
         return;
       }
     }
@@ -1109,13 +1125,16 @@ getUserTeam() {
 
     const data = table.getData();
     if (!data || data.length === 0) {
-      this.notification.error('Thông báo',
-        'Không có dữ liệu xuất excel!',
-      );
+      this.notification.error('Thông báo', 'Không có dữ liệu xuất excel!');
       return;
     }
 
-    this.projectService.exportExcel(table, data, 'Tổng hợp danh sách phòng ban', 'Tổng hợp danh sách phòng ban');
+    this.projectService.exportExcel(
+      table,
+      data,
+      'Tổng hợp danh sách phòng ban',
+      'Tổng hợp danh sách phòng ban'
+    );
   }
 
   //#endregion
@@ -1161,36 +1180,33 @@ getUserTeam() {
     });
   }
   //#endregion
- 
+
   //#region độ ưu tiên cá nhân
   getCurrentUser() {
     this.authService.getCurrentUser().subscribe((res: any) => {
       this.currentUser = res.data;
-      console.log("CurentUser:",this.currentUser);
+      console.log('CurentUser:', this.currentUser);
     });
   }
   setPersionalPriority(priority: number) {
     let selectedRows = this.tb_projects.getSelectedRows();
     let selectedIDs = selectedRows.map((row: any) => row.getData().ID);
     if (selectedIDs.length <= 0) {
-      this.notification.error('Thông báo','Vui lòng chọn dự án!')
+      this.notification.error('Thông báo', 'Vui lòng chọn dự án!');
       return;
     }
 
     const dataSave = {
       ID: 0,
-      UserID: this.currentUser?.EmployeeID ?? 0, 
-      ProjectID: selectedIDs[0],                 
-      Priotity: priority,                          
+      UserID: this.currentUser?.EmployeeID ?? 0,
+      ProjectID: selectedIDs[0],
+      Priotity: priority,
     };
-    console.log("dataSaveuutien", dataSave);
+    console.log('dataSaveuutien', dataSave);
     this.projectService.saveProjectPersonalPriority(dataSave).subscribe({
       next: (response: any) => {
         if (response.status === 1) {
-          this.notification.success(
-            'Thông báo',
-            'Đã đổi độ ưu tiên cá nhân!'
-          );
+          this.notification.success('Thông báo', 'Đã đổi độ ưu tiên cá nhân!');
           this.searchProjects();
         }
       },
@@ -1207,9 +1223,13 @@ getUserTeam() {
     let selectedIDs = selectedRows.map((row: any) => row.getData().ID);
 
     if (selectedIDs.length != 1) {
-      this.notification.error('Thông báo', 'Vui lòng chọn 1 dự án cần chuyển!', {
-        nzStyle: { fontSize: '0.75rem' },
-      });
+      this.notification.error(
+        'Thông báo',
+        'Vui lòng chọn 1 dự án cần chuyển!',
+        {
+          nzStyle: { fontSize: '0.75rem' },
+        }
+      );
       return;
     }
 
@@ -1265,17 +1285,19 @@ getUserTeam() {
 
     modalRef.componentInstance.projectId = selectedIDs[0] ?? 0;
 
-    modalRef.result.then((result) => {
-      // Xử lý khi modal đóng bằng close() (resolve)
-      if (result?.success) {
-        this.searchProjects();
-      }
-    }).catch((reason) => {
-      // Xử lý khi modal đóng bằng dismiss() (reject)
-      if (reason == true || reason?.success) {
-        this.searchProjects();
-      }
-    });
+    modalRef.result
+      .then((result) => {
+        // Xử lý khi modal đóng bằng close() (resolve)
+        if (result?.success) {
+          this.searchProjects();
+        }
+      })
+      .catch((reason) => {
+        // Xử lý khi modal đóng bằng dismiss() (reject)
+        if (reason == true || reason?.success) {
+          this.searchProjects();
+        }
+      });
   }
   //#endregion
   //#region Yêu cầu - Giải pháp
@@ -1350,7 +1372,7 @@ getUserTeam() {
   //#endregion
 
   //#region đóng panel
-  closePanel(){
+  closePanel() {
     this.sizeTbDetail = '0';
   }
   //#endregion
@@ -1416,15 +1438,19 @@ getUserTeam() {
           field: 'DateSituation',
           width: 200,
           formatter: (cell) => {
-            return cell.getValue() ? DateTime.fromISO(cell.getValue()).toFormat('dd/MM/yyyy:HH:mm:ss'):'';
-          }
+            return cell.getValue()
+              ? DateTime.fromISO(cell.getValue()).toFormat(
+                  'dd/MM/yyyy:HH:mm:ss'
+                )
+              : '';
+          },
         },
         {
           title: 'Nội dung',
           field: 'ContentSituation',
           width: 200,
           formatter: 'textarea',
-        }
+        },
       ],
     });
   }
@@ -1490,18 +1516,18 @@ getUserTeam() {
     let selectedIDs = selectedRows.map((row: any) => row.getData().ID);
 
     if (selectedIDs.length != 1) {
-      this.notification.error('Thông báo','Vui lòng chọn 1 dự án!')
+      this.notification.error('Thông báo', 'Vui lòng chọn 1 dự án!');
       return;
     }
 
     const modalRef = this.modalService.open(ProjectListWorkReportComponent, {
       centered: true,
-      windowClass: 'full-screen-modal', 
+      windowClass: 'full-screen-modal',
     });
     modalRef.componentInstance.projectId = this.projectId;
     modalRef.result.then((result) => {
       if (result == true) {
-       // this.searchProjects();
+        // this.searchProjects();
       }
     });
   }
@@ -1526,7 +1552,7 @@ getUserTeam() {
     let selectedIDs = selectedRows.map((row: any) => row.getData().ID);
 
     if (selectedIDs.length != 1) {
-      this.notification.error('Thông báo','Vui lòng chọn 1 dự án!')
+      this.notification.error('Thông báo', 'Vui lòng chọn 1 dự án!');
       return;
     }
     const modalRef = this.modalService.open(WorkItemComponent, {
@@ -1550,7 +1576,7 @@ getUserTeam() {
     let selectedIDs = selectedRows.map((row: any) => row.getData().ID);
 
     if (selectedIDs.length != 1) {
-      this.notification.error('Thông báo','Vui lòng chọn 1 dự án!')
+      this.notification.error('Thông báo', 'Vui lòng chọn 1 dự án!');
       return;
     }
     const modalRef = this.modalService.open(ProjectWorkerComponent, {
@@ -1560,7 +1586,8 @@ getUserTeam() {
       windowClass: 'full-screen-modal',
     });
     modalRef.componentInstance.projectId = this.projectId;
-    modalRef.componentInstance.projectCodex = this.tb_projects.getSelectedData()[0].ProjectCode;
+    modalRef.componentInstance.projectCodex =
+      this.tb_projects.getSelectedData()[0].ProjectCode;
     modalRef.result.then((result) => {
       if (result == true) {
         //this.searchProjects();
@@ -1574,7 +1601,7 @@ getUserTeam() {
     let selectedIDs = selectedRows.map((row: any) => row.getData().ID);
 
     if (selectedIDs.length != 1) {
-      this.notification.error('Thông báo','Vui lòng chọn 1 dự án!')
+      this.notification.error('Thông báo', 'Vui lòng chọn 1 dự án!');
       return;
     }
     const modalRef = this.modalService.open(ProjectPartListComponent, {
@@ -1585,14 +1612,15 @@ getUserTeam() {
     });
     modalRef.componentInstance.project = selectedRows[0];
     modalRef.componentInstance.projectId = this.projectId;
-    modalRef.componentInstance.projectNameX = this.tb_projects.getSelectedData()[0].ProjectName;
-    modalRef.componentInstance.projectCodex = this.tb_projects.getSelectedData()[0].ProjectCode;
+    modalRef.componentInstance.projectNameX =
+      this.tb_projects.getSelectedData()[0].ProjectName;
+    modalRef.componentInstance.projectCodex =
+      this.tb_projects.getSelectedData()[0].ProjectCode;
     modalRef.result.then((result) => {
       if (result == true) {
-      //this.searchProjects();
-    }
-  });
-}
+        //this.searchProjects();
+      }
+    });
+  }
 }
 //#endregion
-

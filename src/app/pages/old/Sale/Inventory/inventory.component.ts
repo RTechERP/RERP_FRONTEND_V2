@@ -88,11 +88,11 @@ interface ProductSale {
     NzCheckboxModule,
     NzSpinModule,
     NgbModule,
-    ProductSaleDetailComponent,
-    ImportExcelProductSaleComponent,
-    ProductGroupDetailComponent,
-    InventoryBorrowNCCComponent,
-    HasPermissionDirective,
+    // ProductSaleDetailComponent,
+    // ImportExcelProductSaleComponent,
+    // ProductGroupDetailComponent,
+    // InventoryBorrowNCCComponent,
+    // HasPermissionDirective,
   ],
   templateUrl: './inventory.component.html',
   styleUrl: './inventory.component.css',
@@ -250,7 +250,7 @@ export class InventoryComponent implements OnInit, AfterViewInit {
 
       // Open bill-export-detail modal for each group
       groupedData.forEach((groupRows: any[], key: string) => {
-        const [warehouseID, khoTypeID] = key.split('_').map(x => parseInt(x));
+        const [warehouseID, khoTypeID] = key.split('_').map((x) => parseInt(x));
 
         // Prepare data table with selected rows
         const dtDetail = this.prepareDetailData(groupRows);
@@ -260,7 +260,12 @@ export class InventoryComponent implements OnInit, AfterViewInit {
 
         // Create newBillExport object
         // Open modal
-        this.openBillExportDetailModal(dtDetail, lstTonCk, warehouseID,khoTypeID);
+        this.openBillExportDetailModal(
+          dtDetail,
+          lstTonCk,
+          warehouseID,
+          khoTypeID
+        );
       });
     } catch (error) {
       console.error('Error in requestBorrow:', error);
@@ -313,7 +318,7 @@ export class InventoryComponent implements OnInit, AfterViewInit {
     dtDetail: any[],
     lstTonCk: any[],
     warehouseID: number,
-    khoTypeID:number
+    khoTypeID: number
   ) {
     const modalRef = this.modalService.open(BillExportDetailComponent, {
       centered: true,
@@ -327,7 +332,8 @@ export class InventoryComponent implements OnInit, AfterViewInit {
     modalRef.componentInstance.selectedList = dtDetail;
     modalRef.componentInstance.lstTonCk = lstTonCk;
     modalRef.componentInstance.KhoTypeID = khoTypeID;
-    modalRef.componentInstance.wareHouseCode = this.getWarehouseCode(warehouseID);
+    modalRef.componentInstance.wareHouseCode =
+      this.getWarehouseCode(warehouseID);
 
     modalRef.componentInstance.newBillExport = {
       ...modalRef.componentInstance.newBillExport,
@@ -345,8 +351,7 @@ export class InventoryComponent implements OnInit, AfterViewInit {
           this.getAllProductSale();
         }
       })
-      .catch((error) => {
-      });
+      .catch((error) => {});
   }
 
   /**
@@ -673,7 +678,6 @@ export class InventoryComponent implements OnInit, AfterViewInit {
   @ViewChild('tablePGWarehouse') tablePGWarehouseRef!: ElementRef;
   @ViewChild('tableInventory') tableInventoryRef!: ElementRef;
   drawTable_ProductGroup() {
-
     this.table_productgroupInven = new Tabulator(
       this.tableProductGroupRef.nativeElement,
       {
@@ -869,36 +873,36 @@ export class InventoryComponent implements OnInit, AfterViewInit {
           hozAlign: 'left',
           headerHozAlign: 'center',
         },
-                {
+        {
           title: 'Tích xanh',
           field: 'IsFix',
           hozAlign: 'center',
           headerHozAlign: 'center',
-        formatter: function (cell: any) {
-              const value = cell.getValue();
-              const checked =
-                value === true ||
-                value === 'true' ||
-                value === 1 ||
-                value === '1';
-              return `<input type="checkbox" ${
-                checked ? 'checked' : ''
-              } style="pointer-events: none; accent-color: #1677ff;" />`;
-            },
+          formatter: function (cell: any) {
+            const value = cell.getValue();
+            const checked =
+              value === true ||
+              value === 'true' ||
+              value === 1 ||
+              value === '1';
+            return `<input type="checkbox" ${
+              checked ? 'checked' : ''
+            } style="pointer-events: none; accent-color: #1677ff;" />`;
+          },
         },
         {
           title: 'Mã sản phẩm',
           field: 'ProductCode',
           hozAlign: 'left',
           headerHozAlign: 'center',
-          formatter:'textarea'
+          formatter: 'textarea',
         },
-                {
+        {
           title: 'Tên sản phẩm',
           field: 'ProductName',
           hozAlign: 'left',
           headerHozAlign: 'center',
-          formatter:'textarea'
+          formatter: 'textarea',
         },
         {
           title: 'Mã nội bộ',
@@ -912,14 +916,14 @@ export class InventoryComponent implements OnInit, AfterViewInit {
           field: 'NameNCC',
           hozAlign: 'left',
           headerHozAlign: 'center',
-          formatter:'textarea'
+          formatter: 'textarea',
         },
         {
           title: 'Người nhập',
           field: 'Deliver',
           hozAlign: 'left',
           headerHozAlign: 'center',
-          formatter:'textarea'
+          formatter: 'textarea',
         },
         {
           title: 'Hãng',
@@ -957,7 +961,7 @@ export class InventoryComponent implements OnInit, AfterViewInit {
           hozAlign: 'right',
           headerHozAlign: 'center',
         },
-                {
+        {
           title: 'SL yêu cầu xuất',
           field: 'QuantityRequestExport',
           hozAlign: 'right',
@@ -982,7 +986,7 @@ export class InventoryComponent implements OnInit, AfterViewInit {
           hozAlign: 'right',
           headerHozAlign: 'center',
         },
-                        {
+        {
           title: 'Tồn sử dụng',
           field: 'QuantityUse',
           hozAlign: 'right',
@@ -1025,12 +1029,12 @@ export class InventoryComponent implements OnInit, AfterViewInit {
           hozAlign: 'right',
           headerHozAlign: 'center',
         },
-                {
+        {
           title: 'Vị trí',
           field: 'AddressBox',
           hozAlign: 'left',
           headerHozAlign: 'center',
-          formatter:'textarea'
+          formatter: 'textarea',
         },
         {
           title: 'Chi tiết nhập',
@@ -1044,7 +1048,7 @@ export class InventoryComponent implements OnInit, AfterViewInit {
           field: 'Note',
           hozAlign: 'left',
           headerHozAlign: 'center',
-          formatter:'textarea'
+          formatter: 'textarea',
         },
       ],
     });

@@ -62,7 +62,8 @@ import { NOTIFICATION_TITLE } from '../../../app.config';
     NzSpinModule,
     NzTreeSelectModule,
     NzModalModule,
-    CommonModule,HasPermissionDirective
+    CommonModule,
+    // HasPermissionDirective
   ],
   //encapsulation: ViewEncapsulation.None,
   templateUrl: './project-work-propress.component.html',
@@ -329,18 +330,15 @@ export class ProjectWorkPropressComponent implements OnInit, AfterViewInit {
       ...DEFAULT_TABLE_CONFIG,
       pagination: false,
       rowHeader: {
-        formatter: "",
+        formatter: '',
         headerSort: false,
         width: 1,
         resizable: false,
-        hozAlign: "center" as const,
-        visible: false, 
-      } as any,  // Hoặc: as any
-     
-     
-      rowFormatter: function (row) {
+        hozAlign: 'center' as const,
+        visible: false,
+      } as any, // Hoặc: as any
 
-      },
+      rowFormatter: function (row) {},
       groupBy: 'ProjectTypeName',
       groupHeader: function (value, count, data, group) {
         return value;
@@ -491,7 +489,10 @@ export class ProjectWorkPropressComponent implements OnInit, AfterViewInit {
     const columns = table.getColumns();
     console.log(columns);
     if (!data || data.length === 0) {
-      this.notification.error(NOTIFICATION_TITLE.error, 'Không có dữ liệu để xuất!');
+      this.notification.error(
+        NOTIFICATION_TITLE.error,
+        'Không có dữ liệu để xuất!'
+      );
       return;
     }
 

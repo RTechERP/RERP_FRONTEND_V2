@@ -18,7 +18,13 @@ import { NzSelectModule } from 'ng-zorro-antd/select';
 import { NzTableModule } from 'ng-zorro-antd/table';
 import { TabulatorFull as Tabulator } from 'tabulator-tables';
 import 'tabulator-tables/dist/css/tabulator_simple.min.css';
-import { OnInit, AfterViewInit, ViewChild, ElementRef, ChangeDetectorRef } from '@angular/core';
+import {
+  OnInit,
+  AfterViewInit,
+  ViewChild,
+  ElementRef,
+  ChangeDetectorRef,
+} from '@angular/core';
 import { ApplicationRef, createComponent, Type } from '@angular/core';
 import { setThrowInvalidWriteToSignalError } from '@angular/core/primitives/signals';
 import { EnvironmentInjector } from '@angular/core';
@@ -62,7 +68,8 @@ import { NOTIFICATION_TITLE } from '../../../app.config';
     NzSpinModule,
     NzTreeSelectModule,
     NzModalModule,
-    CommonModule,HasPermissionDirective
+    CommonModule,
+    // HasPermissionDirective
   ],
   templateUrl: './project-work-item-timeline.component.html',
   styleUrl: './project-work-item-timeline.component.css',
@@ -171,7 +178,7 @@ export class ProjectWorkItemTimelineComponent implements OnInit, AfterViewInit {
       this.projectService.getUserTeam(this.departmentId).subscribe({
         next: (response: any) => {
           this.teams = response.data;
-          console.log("jhaa", this.teams)
+          console.log('jhaa', this.teams);
         },
         error: (error) => {
           console.error('Lỗi:', error);
@@ -183,7 +190,7 @@ export class ProjectWorkItemTimelineComponent implements OnInit, AfterViewInit {
   async getProjectWorkItemTimeline() {
     this.isLoadTable = true;
     this.cdr.detectChanges();
-    
+
     // Chỉ tạo Tabulator mới nếu chưa tồn tại
     if (!this.tb_projectWorkItemTimeline) {
       this.drawTbProjectWorkItemTimeline(
@@ -218,7 +225,7 @@ export class ProjectWorkItemTimelineComponent implements OnInit, AfterViewInit {
       employeeId: this.employeeId ? this.employeeId : 0,
       status: this.statusId,
     };
-    
+
     try {
       const response: any = await firstValueFrom(
         this.projectService.getProjectWorkItemTimeline(data)
@@ -226,13 +233,13 @@ export class ProjectWorkItemTimelineComponent implements OnInit, AfterViewInit {
 
       this.dataMonth = response.data.dtMonth;
       this.dataMission = response.data.dtAllDate;
-      
+
       // Thêm cột mới
       await this.addColunmTable(this.dataMission, this.dataMonth);
-      
+
       // Set data
       await this.tb_projectWorkItemTimeline.setData(response.data.dt);
-      
+
       // Redraw table để đảm bảo render đúng
       setTimeout(() => {
         this.tb_projectWorkItemTimeline.redraw(true);
@@ -253,16 +260,16 @@ export class ProjectWorkItemTimelineComponent implements OnInit, AfterViewInit {
   drawTbProjectWorkItemTimeline(container: HTMLElement) {
     this.tb_projectWorkItemTimeline = new Tabulator(container, {
       ...DEFAULT_TABLE_CONFIG,
-     
-      layout: 'fitColumns',  
+
+      layout: 'fitColumns',
       pagination: true,
       paginationMode: 'local',
       paginationSize: 50,
       paginationSizeSelector: [10, 30, 50, 100, 300, 500],
-     // columnMinWidth: 35,          // Cột ngày nhỏ nhất 35px
-      maxHeight: '100%',           // Tùy chọn: giới hạn chiều cao
+      // columnMinWidth: 35,          // Cột ngày nhỏ nhất 35px
+      maxHeight: '100%', // Tùy chọn: giới hạn chiều cao
       renderHorizontal: 'virtual', // Tối ưu hiệu năng khi nhiều cột
-      rowHeader:false,
+      rowHeader: false,
       groupHeader: function (value, count, data, group) {
         return value;
       },
@@ -347,7 +354,7 @@ export class ProjectWorkItemTimelineComponent implements OnInit, AfterViewInit {
         },
       ],
     });
-    this.tb_projectWorkItemTimeline.on("pageLoaded", () => {
+    this.tb_projectWorkItemTimeline.on('pageLoaded', () => {
       this.tb_projectWorkItemTimeline.redraw();
     });
   }
@@ -490,7 +497,10 @@ export class ProjectWorkItemTimelineComponent implements OnInit, AfterViewInit {
     const columns = table.getColumns();
     console.log(columns);
     if (!data || data.length === 0) {
-      this.notification.error(NOTIFICATION_TITLE.error, 'Không có dữ liệu để xuất!');
+      this.notification.error(
+        NOTIFICATION_TITLE.error,
+        'Không có dữ liệu để xuất!'
+      );
       return;
     }
     this.isExport = true;

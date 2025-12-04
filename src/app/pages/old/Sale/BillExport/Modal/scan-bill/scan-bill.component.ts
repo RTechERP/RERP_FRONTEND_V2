@@ -71,8 +71,8 @@ import { NOTIFICATION_TITLE } from '../../../../../../app.config';
     NzFormModule,
     NzDividerModule,
     NzDatePickerModule,
-    ProductSaleDetailComponent,
-    SelectControlComponent,
+    // ProductSaleDetailComponent,
+    // SelectControlComponent,
     NzCheckboxModule,
   ],
   templateUrl: './scan-bill.component.html',
@@ -150,7 +150,10 @@ export class ScanBillComponent implements OnInit, AfterViewInit {
         },
         error: (err) => {
           console.error('Lỗi khi lấy phiếu xuất', err);
-          this.notification.error(NOTIFICATION_TITLE.error, 'Không thể lấy dữ liệu phiếu xuất!');
+          this.notification.error(
+            NOTIFICATION_TITLE.error,
+            'Không thể lấy dữ liệu phiếu xuất!'
+          );
         },
       });
   }
@@ -164,7 +167,10 @@ export class ScanBillComponent implements OnInit, AfterViewInit {
         );
       },
       error: (err) => {
-        this.notification.error(NOTIFICATION_TITLE.error, 'Có lỗi xảy ra khi lấy chi tiết');
+        this.notification.error(
+          NOTIFICATION_TITLE.error,
+          'Có lỗi xảy ra khi lấy chi tiết'
+        );
       },
     });
   }
@@ -205,7 +211,10 @@ export class ScanBillComponent implements OnInit, AfterViewInit {
         const fullBillExport = fullResponse?.data;
 
         if (!fullBillExport || !fullBillExport.ID) {
-          this.notification.error(NOTIFICATION_TITLE.error, `Không tìm thấy phiếu ${row.Code}`);
+          this.notification.error(
+            NOTIFICATION_TITLE.error,
+            `Không tìm thấy phiếu ${row.Code}`
+          );
           continue;
         }
 
@@ -227,7 +236,10 @@ export class ScanBillComponent implements OnInit, AfterViewInit {
         }
       } catch (error) {
         console.error(`Lỗi xử lý phiếu ${row.Code}:`, error);
-        this.notification.error(NOTIFICATION_TITLE.error, `Không thể xử lý phiếu ${row.Code}`);
+        this.notification.error(
+          NOTIFICATION_TITLE.error,
+          `Không thể xử lý phiếu ${row.Code}`
+        );
       }
     }
 

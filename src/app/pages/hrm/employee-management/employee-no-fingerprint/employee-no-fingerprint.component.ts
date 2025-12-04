@@ -58,7 +58,7 @@ import { AuthService } from '../../../../auth/auth.service';
     NzSplitterModule,
     NzModalModule,
     NgbModalModule, //
-    ENFDetailComponent, 
+    // ENFDetailComponent,
     HasPermissionDirective,
     NzDropDownModule,
   ],
@@ -132,8 +132,8 @@ export class EmployeeNoFingerprintComponent
         this.currentEmployeeId = data.EmployeeID || 0;
         this.currentDepartmentId = data?.DepartmentID || 0;
         this.currentDepartmentName = data?.DepartmentName || '';
-        this.isAdmin = data?.IsAdmin === true || data?.ISADMIN === true || false;
-      
+        this.isAdmin =
+          data?.IsAdmin === true || data?.ISADMIN === true || false;
       }
     });
   }
@@ -191,7 +191,7 @@ export class EmployeeNoFingerprintComponent
     console.log('Creating enf table...');
 
     this.tb_ENF = new Tabulator(container, {
-   ...DEFAULT_TABLE_CONFIG,
+      ...DEFAULT_TABLE_CONFIG,
       ajaxURL: this.enfService.getENFListURL(),
       ajaxConfig: 'POST',
       ajaxRequestFunc: (url: any, config: any, params: any) => {
@@ -219,7 +219,8 @@ export class EmployeeNoFingerprintComponent
           // totalPage có thể là array hoặc number
           let totalPage = 1;
           if (Array.isArray(res.data.totalPage)) {
-            totalPage = res.data.totalPage[0]?.TotalPage || res.data.totalPage[0] || 1;
+            totalPage =
+              res.data.totalPage[0]?.TotalPage || res.data.totalPage[0] || 1;
           } else if (typeof res.data.totalPage === 'number') {
             totalPage = res.data.totalPage;
           }
@@ -288,7 +289,6 @@ export class EmployeeNoFingerprintComponent
 
   private getTableColumns(): any[] {
     return [
-
       {
         title: 'TBP Duyệt',
         field: 'StatusText',
@@ -306,13 +306,13 @@ export class EmployeeNoFingerprintComponent
           } else if (typeof value === 'string') {
             // Map string sang number
             if (value === 'Đã duyệt') numValue = 1;
-            else if (value === 'Từ chối' || value === 'Không duyệt') numValue = 2;
+            else if (value === 'Từ chối' || value === 'Không duyệt')
+              numValue = 2;
             else numValue = 0; // Chưa duyệt hoặc giá trị khác
           }
           return this.formatApprovalBadge(numValue);
         },
         frozen: true,
-     
       },
       {
         title: 'HR Duyệt',
@@ -331,13 +331,13 @@ export class EmployeeNoFingerprintComponent
           } else if (typeof value === 'string') {
             // Map string sang number
             if (value === 'Đã duyệt') numValue = 1;
-            else if (value === 'Từ chối' || value === 'Không duyệt') numValue = 2;
+            else if (value === 'Từ chối' || value === 'Không duyệt')
+              numValue = 2;
             else numValue = 0; // Chưa duyệt hoặc giá trị khác
           }
           return this.formatApprovalBadge(numValue);
         },
         frozen: true,
-      
       },
       {
         title: 'Mã nhân viên',
@@ -376,7 +376,7 @@ export class EmployeeNoFingerprintComponent
         headerHozAlign: 'center',
         hozAlign: 'left',
       },
-     
+
       {
         title: 'Lý do sửa',
         field: 'ReasonHREdit',
@@ -514,7 +514,6 @@ export class EmployeeNoFingerprintComponent
       this.tb_ENF.clearData();
       this.tb_ENF.setPage(1);
     }
-    
   }
 
   toggleSearchPanel(): void {
@@ -628,11 +627,9 @@ export class EmployeeNoFingerprintComponent
     const selectedRows = this.getSelectedRows();
 
     if (selectedRows.length === 0) {
-      this.notification.error(
-        'Thông báo',
-        'Vui lòng chọn bản ghi cần xóa!',
-        { nzStyle: { fontSize: '0.75rem' } }
-      );
+      this.notification.error('Thông báo', 'Vui lòng chọn bản ghi cần xóa!', {
+        nzStyle: { fontSize: '0.75rem' },
+      });
       return;
     }
 
@@ -651,7 +648,7 @@ export class EmployeeNoFingerprintComponent
       return;
     }
 
-    const count = selectedRows.length;    
+    const count = selectedRows.length;
     const confirmMessage =
       count === 1
         ? `Bạn có chắc chắn muốn xóa bản ghi của <strong>"${selectedRows[0].FullName}"</strong> không?`
@@ -670,7 +667,10 @@ export class EmployeeNoFingerprintComponent
 
   private confirmDeleteenf(selectedRows: any[] = []): void {
     if (selectedRows.length === 0) {
-      this.notification.error('Thông báo', 'Các bản ghi đã duyệt, không thể xóa!');
+      this.notification.error(
+        'Thông báo',
+        'Các bản ghi đã duyệt, không thể xóa!'
+      );
       return;
     }
 
@@ -736,26 +736,25 @@ export class EmployeeNoFingerprintComponent
   approvedTBP(): void {
     const selectedRows = this.getSelectedRows();
     const rowCount = selectedRows.length;
-    
+
     if (rowCount === 0) {
-      this.notification.error(
-        'Thông báo',
-        'Vui lòng chọn nhân viên để duyệt!'
-      );
+      this.notification.error('Thông báo', 'Vui lòng chọn nhân viên để duyệt!');
       return;
     }
-    
+
     // Lấy tên nhân viên đầu tiên (focused row)
     const focusedRow = this.tb_ENF?.getSelectedRows()[0];
-    const employeeName = focusedRow ? focusedRow.getData()['FullName'] : selectedRows[0]?.['FullName'] || '';
-    
+    const employeeName = focusedRow
+      ? focusedRow.getData()['FullName']
+      : selectedRows[0]?.['FullName'] || '';
+
     let confirmMessage = '';
     if (rowCount === 1) {
       confirmMessage = `Bạn có chắc muốn duyệt cho nhân viên ${employeeName} hay không!`;
     } else {
       confirmMessage = `Bạn có chắc muốn duyệt cho những nhân viên này hay không!`;
     }
-    
+
     this.nzModal.confirm({
       nzTitle: 'Xác nhận duyệt TBP',
       nzContent: confirmMessage,
@@ -773,10 +772,7 @@ export class EmployeeNoFingerprintComponent
     const approveNext = (index: number) => {
       if (index >= selectedRows.length) {
         if (successCount > 0) {
-          this.notification.success(
-            'Thông báo',
-            `Duyệt thành công!`
-          );
+          this.notification.success('Thông báo', `Duyệt thành công!`);
         }
         if (failedCount > 0) {
           this.notification.warning(
@@ -788,7 +784,7 @@ export class EmployeeNoFingerprintComponent
         this.clearSelection();
         return;
       }
-      
+
       const item = selectedRows[index];
       const departmentId = item.DepartmentID || 0;
       const employeeName = item.FullName || '';
@@ -804,7 +800,10 @@ export class EmployeeNoFingerprintComponent
         }
 
         // Kiểm tra phòng ban
-        if (departmentId !== this.currentDepartmentId && this.currentDepartmentId !== 1) {
+        if (
+          departmentId !== this.currentDepartmentId &&
+          this.currentDepartmentId !== 1
+        ) {
           this.notification.warning(
             'Thông báo',
             `Nhân viên ${employeeName} không thuộc phòng ${this.currentDepartmentName.toUpperCase()}.\nVui lòng kiểm tra lại!`
@@ -850,30 +849,23 @@ export class EmployeeNoFingerprintComponent
         },
       });
     };
-    
+
     approveNext(0);
   }
 
   approvedHR(): void {
     const selectedRows = this.getSelectedRows();
     const rowCount = selectedRows.length;
-    
+
     if (rowCount === 0) {
-      this.notification.error(
-        'Thông báo',
-        'Vui lòng chọn nhân viên để duyệt!'
-      );
+      this.notification.error('Thông báo', 'Vui lòng chọn nhân viên để duyệt!');
       return;
     }
-    
+
     // Lọc ra những bản ghi hợp lệ (đã được TBP duyệt) và không hợp lệ
-    const validRows = selectedRows.filter(
-      (x) => x.StatusText === 'Đã duyệt'
-    );
-    const invalidRows = selectedRows.filter(
-      (x) => x.StatusText !== 'Đã duyệt'
-    );
-    
+    const validRows = selectedRows.filter((x) => x.StatusText === 'Đã duyệt');
+    const invalidRows = selectedRows.filter((x) => x.StatusText !== 'Đã duyệt');
+
     // Cảnh báo về những bản ghi không hợp lệ nhưng vẫn tiếp tục duyệt những bản ghi hợp lệ
     if (invalidRows.length > 0) {
       this.notification.warning(
@@ -881,7 +873,7 @@ export class EmployeeNoFingerprintComponent
         `Có ${invalidRows.length} bản ghi chưa được TBP duyệt sẽ được bỏ qua. Chỉ duyệt ${validRows.length} bản ghi hợp lệ.`
       );
     }
-    
+
     // Nếu không có bản ghi hợp lệ nào thì dừng lại
     if (validRows.length === 0) {
       this.notification.error(
@@ -890,18 +882,20 @@ export class EmployeeNoFingerprintComponent
       );
       return;
     }
-    
+
     // Lấy tên nhân viên đầu tiên (focused row)
     const focusedRow = this.tb_ENF?.getSelectedRows()[0];
-    const employeeName = focusedRow ? focusedRow.getData()['FullName'] : validRows[0]?.['FullName'] || '';
-    
+    const employeeName = focusedRow
+      ? focusedRow.getData()['FullName']
+      : validRows[0]?.['FullName'] || '';
+
     let confirmMessage = '';
     if (validRows.length === 1) {
       confirmMessage = `Bạn có chắc muốn duyệt nhân viên ${employeeName}?`;
     } else {
       confirmMessage = `Bạn có chắc muốn duyệt ${validRows.length} nhân viên hợp lệ không?`;
     }
-    
+
     this.nzModal.confirm({
       nzTitle: 'Xác nhận duyệt HR',
       nzContent: confirmMessage,
@@ -912,7 +906,10 @@ export class EmployeeNoFingerprintComponent
     });
   }
 
-  private confirmApproveHR(selectedRows: any[], isApproved: boolean = true): void {
+  private confirmApproveHR(
+    selectedRows: any[],
+    isApproved: boolean = true
+  ): void {
     let successCount = 0;
     let failedCount = 0;
     const approved = isApproved ? 'duyệt' : 'hủy duyệt';
@@ -935,7 +932,7 @@ export class EmployeeNoFingerprintComponent
         this.clearSelection();
         return;
       }
-      
+
       const item = selectedRows[index];
       const departmentId = item.DepartmentID || 0;
       const approvedTP = item.ApprovedTP || 0;
@@ -965,7 +962,10 @@ export class EmployeeNoFingerprintComponent
       // Nếu HR chưa duyệt thì không có gì để hủy
       if (!isApproved) {
         // Kiểm tra HR đã duyệt chưa (có thể check bằng StatusHRText hoặc IsApprovedHR)
-        const isHRApproved = item.StatusHRText === 'Đã duyệt' || item.IsApprovedHR === true || item.StatusHR === 1;
+        const isHRApproved =
+          item.StatusHRText === 'Đã duyệt' ||
+          item.IsApprovedHR === true ||
+          item.StatusHR === 1;
         if (!isHRApproved) {
           // HR chưa duyệt thì không thể hủy duyệt
           console.log('HR chưa duyệt, không thể hủy:', item);
@@ -975,15 +975,15 @@ export class EmployeeNoFingerprintComponent
         console.log('Hủy duyệt HR cho item:', item, 'approveData sẽ là:', {
           ...item,
           StatusHR: 2,
-          IsApprovedHR: false
+          IsApprovedHR: false,
         });
       }
 
       // Gọi API duyệt/hủy duyệt HR
-      const approveData = { 
-        ...item, 
+      const approveData = {
+        ...item,
         StatusHR: isApproved ? 1 : 2, // 1: Đã duyệt, 2: Không duyệt (hủy duyệt)
-        IsApprovedHR: isApproved 
+        IsApprovedHR: isApproved,
       };
       this.enfService.saveData(approveData).subscribe({
         next: (res: any) => {
@@ -997,7 +997,7 @@ export class EmployeeNoFingerprintComponent
         },
       });
     };
-    
+
     approveNext(0);
   }
 
@@ -1074,10 +1074,15 @@ export class EmployeeNoFingerprintComponent
 
       // Nếu không phải admin, kiểm tra phòng ban và người duyệt
       if (!this.isAdmin) {
-        if (item.DepartmentID !== this.currentDepartmentId && this.currentDepartmentId !== 1) {
+        if (
+          item.DepartmentID !== this.currentDepartmentId &&
+          this.currentDepartmentId !== 1
+        ) {
           this.notification.warning(
             'Thông báo',
-            `Nhân viên ${item.FullName} không thuộc phòng ${this.currentDepartmentName.toUpperCase()}. Vui lòng kiểm tra lại!`
+            `Nhân viên ${
+              item.FullName
+            } không thuộc phòng ${this.currentDepartmentName.toUpperCase()}. Vui lòng kiểm tra lại!`
           );
           cancelNext(index + 1);
           return;
@@ -1273,8 +1278,9 @@ export class EmployeeNoFingerprintComponent
   }
   private formatApprovalBadge(status: number): string {
     // 0 hoặc null: Chưa duyệt, 1: Đã duyệt, 2: Không duyệt
-    const numStatus = status === null || status === undefined ? 0 : Number(status);
-    
+    const numStatus =
+      status === null || status === undefined ? 0 : Number(status);
+
     switch (numStatus) {
       case 0:
         return '<span class="badge bg-warning text-dark" style="display: inline-block; text-align: center;">Chưa duyệt</span>';

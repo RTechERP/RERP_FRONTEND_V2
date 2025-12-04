@@ -178,6 +178,7 @@ export class BillImportTechnicalFormComponent implements OnInit, AfterViewInit {
   canEditRestrictedFields: boolean = false;
   isFormDisabled: boolean = false;
   approveEmployee: any[] = [];
+  pendingPONCCMapping: boolean = false; // Flag để map data sau khi load xong lookups
   private ngbModal = inject(NgbModal);
   public activeModal = inject(NgbActiveModal);
   constructor(
@@ -248,6 +249,38 @@ export class BillImportTechnicalFormComponent implements OnInit, AfterViewInit {
         .get('SupplierSaleID')
         ?.updateValueAndValidity({ onlySelf: true, emitEvent: false });
     });
+
+    // Subscribe to BillTypeNew changes to update column visibility
+    this.formDeviceInfo.get('BillTypeNew')?.valueChanges.subscribe((billType: number) => {
+      this.updateColumnVisibility(billType);
+    });
+  }
+
+  // Method to update column visibility based on BillTypeNew
+  updateColumnVisibility(billType: number) {
+    if (!this.deviceTempTable) return;
+
+    const isBorrowNCC = billType === 1; // ID: 1 = "Mượn NCC"
+
+    // Update "Người mượn" column visibility
+    const employeeBorrowColumn = this.deviceTempTable.getColumn('EmployeeIDBorrow');
+    if (employeeBorrowColumn) {
+      if (isBorrowNCC) {
+        employeeBorrowColumn.show();
+      } else {
+        employeeBorrowColumn.hide();
+      }
+    }
+
+    // Update "Hạn trả NCC" column visibility
+    const deadlineReturnColumn = this.deviceTempTable.getColumn('DeadlineReturnNCC');
+    if (deadlineReturnColumn) {
+      if (isBorrowNCC) {
+        deadlineReturnColumn.show();
+      } else {
+        deadlineReturnColumn.hide();
+      }
+    }
   }
   getCustomer() {
     this.billImportTechnicalService
@@ -259,21 +292,17 @@ export class BillImportTechnicalFormComponent implements OnInit, AfterViewInit {
       });
   }
   getNCC() {
-    this.billImportTechnicalService.getNCC().subscribe((res: any) => {
-      // API returns { status, data: [] } - using ApiResponseFactory
-      this.nccList = res.data || [];
-      console.log('NCC List:', this.nccList);
-    });
-
+    // Sử dụng API endpoint mới từ BillExportService
     this.billExportService.getCbbSupplierSale().subscribe({
       next: (res: any) => {
-        this.nccList = res.data;
+        this.nccList = res.data || [];
+        console.log('NCC List:', this.nccList);
       },
       error: (err: any) => {
-        this.notification.error('Thông báo', 'Có lỗi xảy ra khi lấy dữ liệu');
+        console.error('Error loading NCC:', err);
+        this.notification.error('Thông báo', 'Có lỗi xảy ra khi lấy dữ liệu nhà cung cấp');
       },
     });
-  
   }
   getRulepay() {
     this.billImportTechnicalService.getRulepay().subscribe((res: any) => {
@@ -301,15 +330,11 @@ export class BillImportTechnicalFormComponent implements OnInit, AfterViewInit {
         currentId = currentWarehouse?.ID ?? 0;
       }
 
-      console.log('DEBUG getWarehouse - Current WarehouseID:', currentId);
-      console.log('DEBUG getWarehouse - this.warehouseID before:', this.warehouseID);
-
       // Set WarehouseID và disable control để người dùng không thay đổi
       if (currentId > 0) {
         this.formDeviceInfo.patchValue({ WarehouseID: currentId });
         // Lưu giá trị WarehouseID vào biến instance để sử dụng khi lưu
         this.warehouseID = currentId;
-        console.log('DEBUG getWarehouse - this.warehouseID after:', this.warehouseID);
         this.formDeviceInfo.get('WarehouseID')?.disable();
       }
     });
@@ -326,10 +351,15 @@ export class BillImportTechnicalFormComponent implements OnInit, AfterViewInit {
       }));
 
       // Force update table columns to refresh employee dropdown
-      if (this.deviceTempTable) {
-        this.deviceTempTable.setColumns(
-          this.deviceTempTable.getColumnDefinitions()
-        );
+      // Chỉ update nếu table đã được khởi tạo
+      if (this.deviceTempTable && this.deviceTempTable.getColumnDefinitions) {
+        try {
+          this.deviceTempTable.setColumns(
+            this.deviceTempTable.getColumnDefinitions()
+          );
+        } catch (err) {
+          console.warn('Unable to update table columns:', err);
+        }
       }
     });
   }
@@ -361,21 +391,27 @@ export class BillImportTechnicalFormComponent implements OnInit, AfterViewInit {
             UnitCountName: p.UnitCountName,
             NumberInStore: p.NumberInStore,
           }));
-          console.log('product', this.productOptions);
+          console.log('✅ Product options loaded:', this.productOptions);
 
+          // PONCC FLOW: Map detail data sau khi productOptions đã load
+          if (this.pendingPONCCMapping && this.dtDetails && this.dtDetails.length > 0) {
+            this.mapDataFromPONCCToTable();
+            this.pendingPONCCMapping = false;
+          }
           if (this.deviceTempTable) {
             this.deviceTempTable.redraw(true);
           }
-          // Force update table columns nếu table đã được tạo
-          // if (this.deviceTempTable) {
-          //   this.deviceTempTable.setColumns(this.deviceTempTable.getColumnDefinitions());
-          // }
         }
       });
   }
 
   ngAfterViewInit(): void {
     this.drawTableSelectedDevices();
+    // Set initial column visibility based on current BillTypeNew value
+    const currentBillType = this.formDeviceInfo.get('BillTypeNew')?.value ?? 0;
+    setTimeout(() => {
+      this.updateColumnVisibility(currentBillType);
+    }, 100);
   }
 
   //#region load quyền người dùng
@@ -404,14 +440,14 @@ export class BillImportTechnicalFormComponent implements OnInit, AfterViewInit {
     // this.currentUserID === deliverID ||
     // (this.currentDepartmentID === 4 || this.isAdmin);
 
-    console.log('Form Permissions:', {
-      deliverID: deliverID,
-      canEditRestrictedFields: this.canEditRestrictedFields,
-      isFormDisabled: this.isFormDisabled,
-      isApproved: isApproved,
-      activePur: this.activePur,
-      currentDepartmentID: this.currentDepartmentID,
-    });
+    // console.log('Form Permissions:', {
+    //   deliverID: deliverID,
+    //   canEditRestrictedFields: this.canEditRestrictedFields,
+    //   isFormDisabled: this.isFormDisabled,
+    //   isApproved: isApproved,
+    //   activePur: this.activePur,
+    //   currentDepartmentID: this.currentDepartmentID,
+    // });
 
     if (this.isFormDisabled) {
       this.formDeviceInfo.disable();
@@ -464,6 +500,11 @@ export class BillImportTechnicalFormComponent implements OnInit, AfterViewInit {
           ? DateTime.fromISO(this.dataEdit.DateRequestImport).toJSDate()
           : null,
       });
+      // Update column visibility after data is loaded
+      setTimeout(() => {
+        const billType = this.formDeviceInfo.get('BillTypeNew')?.value ?? 0;
+        this.updateColumnVisibility(billType);
+      }, 200);
     }
 
     if (this.masterId) {
@@ -472,6 +513,11 @@ export class BillImportTechnicalFormComponent implements OnInit, AfterViewInit {
         .subscribe((res) => {
           this.selectedDevices = res.billDetail || [];
           this.drawTableSelectedDevices();
+          // Update column visibility after data is loaded
+          setTimeout(() => {
+            const billType = this.formDeviceInfo.get('BillTypeNew')?.value ?? 0;
+            this.updateColumnVisibility(billType);
+          }, 200);
         });
     }
 
@@ -499,14 +545,13 @@ export class BillImportTechnicalFormComponent implements OnInit, AfterViewInit {
       // console.log('🔵 PonccID:', this.PonccID);
       // console.log('🔵 Master data:', this.newBillImport);
       // console.log('🔵 Detail data (dtDetails):', this.dtDetails);
-      
-      // Patch master data từ PONCC sau khi các lookups đã load
+
+      // Patch master data từ PONCC ngay lập tức
       this.patchDataFromPONCC();
-      
-      // Map detail data từ PONCC
-      if (this.dtDetails && this.dtDetails.length > 0) {
-        this.mapDataFromPONCCToTable();
-      }
+
+      // Map detail data từ PONCC SAU KHI productOptions đã load
+      // Sử dụng flag để đánh dấu cần map data sau khi load xong
+      this.pendingPONCCMapping = true;
     }
   }
   //#endregion
@@ -596,24 +641,39 @@ export class BillImportTechnicalFormComponent implements OnInit, AfterViewInit {
       return;
     }
 
-    console.log('🔵 Đang patch masterdata từ PONCC:', this.newBillImport);
+    console.log('🔵 Đang patch master data từ PONCC:', this.newBillImport);
+
+    // Xác định giá trị cho các trường
+    const receiverID = this.newBillImport.ReceiverID || this.newBillImport.ReciverID || 0;
+    const deliverID = this.newBillImport.DeliverID || 0;
+    const supplierSaleID = this.newBillImport.SupplierSaleID || 0;
+    const rulePayID = this.newBillImport.RulePayID || 0;
+
+    console.log('🔍 Binding values:', {
+      ReceiverID: receiverID,
+      DeliverID: deliverID,
+      SupplierSaleID: supplierSaleID,
+      RulePayID: rulePayID
+    });
 
     // Patch dữ liệu master từ PONCC vào form
     this.formDeviceInfo.patchValue({
-      BillCode: this.newBillImport.BillImportCode || '',
+      BillCode: this.newBillImport.BillCode || '',
       BillTypeNew: this.newBillImport.BillTypeNew || 5, // Y/c nhập kho
-      ReceiverID: this.newBillImport.ReciverID || 0,
-      DeliverID: this.newBillImport.DeliverID || 0,
+      ReceiverID: receiverID,
+      DeliverID: deliverID,
       WarehouseID: this.newBillImport.WarehouseID || this.warehouseID,
-      SupplierSaleID: this.newBillImport.SupplierID || 0,
-      RulePayID: this.newBillImport.RulePayID || 34,
+      SupplierSaleID: supplierSaleID,
+      CustomerID: this.newBillImport.CustomerID || 0,
+      RulePayID: rulePayID,
       CreatDate: this.newBillImport.CreatDate ? new Date(this.newBillImport.CreatDate) : new Date(),
-      DateRequestImport: this.newBillImport.DateRequestImport 
-        ? new Date(this.newBillImport.DateRequestImport) 
+      DateRequestImport: this.newBillImport.DateRequestImport
+        ? new Date(this.newBillImport.DateRequestImport)
         : new Date(),
     });
 
     console.log('✅ Master data từ PONCC đã được patch vào form');
+    console.log('📋 Form values after patch:', this.formDeviceInfo.value);
   }
 
   /**
@@ -626,32 +686,42 @@ export class BillImportTechnicalFormComponent implements OnInit, AfterViewInit {
     }
 
     console.log('🔵 Đang map detail data từ PONCC:', this.dtDetails);
+    console.log('🔵 Product options available:', this.productOptions.length);
 
     // Map dữ liệu từ dtDetails sang format của BillImportTechnical
     const mappedProducts = this.dtDetails.map((item: any, index: number) => {
-      // // Log cấu trúc item đầu tiên để debug
-      // if (index === 0) {
-      //   console.log('🔍 Cấu trúc item đầu tiên từ PONCC (Technical):', item);
-      //   console.log('🔍 Các keys có sẵn:', Object.keys(item));
-      // }
+      // Log cấu trúc item đầu tiên để debug
+      if (index === 0) {
+        console.log('🔍 Cấu trúc item đầu tiên từ PONCC (Technical):', item);
+        console.log('🔍 Các keys có sẵn:', Object.keys(item));
+      }
+
+      // Ưu tiên ProductRTCID cho kho kỹ thuật
+      const productID = item.ProductRTCID || item.ProductSaleID || 0;
 
       // Tìm thông tin sản phẩm từ productOptions
-      const productInfo = this.productOptions.find((p: any) => p.ID === item.ProductRTCID) || {};
+      const productInfo = this.productOptions.find((p: any) => p.ID === productID) || {};
 
-      // if (index === 0) {
-      //   console.log('🔍 Lookup ProductInfo result:', productInfo);
-      //   console.log('🔍 Using ProductRTCID:', item.ProductRTCID);
-      //   console.log('🔍 Using ProductSaleID:', item.ProductSaleID);
-      // }
+      if (index === 0) {
+        console.log('🔍 Lookup ProductID:', productID);
+        console.log('🔍 ProductInfo found:', productInfo);
+        console.log('🔍 UnitCountName from item:', item.UnitName, '/', item.Unit);
+        console.log('🔍 UnitCountName from productInfo:', productInfo.UnitCountName);
+      }
+
+      // Ưu tiên lấy unit từ item trước, nếu không có thì lấy từ productInfo
+      const unitCountName = item.UnitName || item.Unit || productInfo.UnitCountName || '';
+      const unitCountID = productInfo.UnitCountID || 0;
+console.log('unitcountnhat:',unitCountName);
 
       return {
         UID: Date.now() + Math.random(),
-        ProductID: item.ProductRTCID || item.ProductSaleID || 0,
+        ProductID: productID,
         ProductCode: item.ProductCode || productInfo.ProductCode || '',
         ProductName: item.ProductName || productInfo.ProductName || '',
         ProductCodeRTC: item.ProductNewCode || productInfo.ProductCodeRTC || '',
-        UnitCountName: item.UnitName || item.Unit || productInfo.UnitCountName || '',
-        UnitCountID: productInfo.UnitCountID || 0,
+        UnitCountName: unitCountName, // ⭐ Đơn vị tính
+        UnitCountID: unitCountID,
         Maker: item.Maker || productInfo.Maker || '',
         NumberInStore: productInfo.NumberInStore || 0,
         Quantity: item.QtyRequest || item.QuantityRemain || 1,
@@ -669,7 +739,7 @@ export class BillImportTechnicalFormComponent implements OnInit, AfterViewInit {
       };
     });
 
-    console.log('🔵 Dữ liệu đã map:', mappedProducts);
+    console.log('✅ Dữ liệu đã map:', mappedProducts);
 
     // Thêm vào selectedDevices
     this.selectedDevices = [...this.selectedDevices, ...mappedProducts];
@@ -914,6 +984,7 @@ export class BillImportTechnicalFormComponent implements OnInit, AfterViewInit {
           field: 'EmployeeIDBorrow',
           editor: 'list',
           width: 150,
+          visible: false, // Mặc định ẩn, sẽ được cập nhật bởi updateColumnVisibility()
           editorParams: () => {
             const values: any = {};
             this.employeeSelectOptions.forEach((p) => {
@@ -944,6 +1015,7 @@ export class BillImportTechnicalFormComponent implements OnInit, AfterViewInit {
           field: 'DeadlineReturnNCC',
           editor: 'input',
           width: 130,
+          visible: false, // Mặc định ẩn, sẽ được cập nhật bởi updateColumnVisibility()
           editorParams: {
             elementAttributes: { type: 'date' },
           },
@@ -1751,14 +1823,14 @@ export class BillImportTechnicalFormComponent implements OnInit, AfterViewInit {
           tabulatorInstance.destroy();
           // console.log('✅ Destroyed Tabulator instance');
         }
-        
+
         // FIX: Remove click event listener để tránh memory leak
         const clickHandler = (existingChild as any)._clickHandler;
         if (clickHandler) {
           document.removeEventListener('click', clickHandler);
           // console.log('✅ Removed click event listener');
         }
-        
+
         const viewRef = (existingChild as any)._viewRef;
         if (viewRef) {
           viewRef.destroy();
@@ -1817,7 +1889,7 @@ export class BillImportTechnicalFormComponent implements OnInit, AfterViewInit {
             tabulatorInstance.destroy();
             // console.log('✅ Destroyed Tabulator instance on click outside');
           }
-          
+
           const viewRef = (existingChild as any)._viewRef;
           if (viewRef) {
             viewRef.destroy();
@@ -1946,14 +2018,14 @@ export class BillImportTechnicalFormComponent implements OnInit, AfterViewInit {
               tabulatorInstance.destroy();
               // console.log('✅ Destroyed Tabulator instance on product select');
             }
-            
+
             // FIX: Remove click event listener để tránh memory leak
             const clickHandler = (existingChild as any)._clickHandler;
             if (clickHandler) {
               document.removeEventListener('click', clickHandler);
               // console.log('✅ Removed click event listener on product select');
             }
-            
+
             const viewRef = (existingChild as any)._viewRef;
             if (viewRef) {
               viewRef.destroy();

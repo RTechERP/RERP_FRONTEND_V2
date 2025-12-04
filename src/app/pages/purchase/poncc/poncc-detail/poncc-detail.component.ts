@@ -1460,80 +1460,310 @@ export class PonccDetailComponent implements OnInit, AfterViewInit {
     let ponccId = this.poncc?.ID;
 
     if (warehouseType.toLowerCase() == 'sale') {
-      this.billImportService.getBillImportByID(billImportId).subscribe({
-        next: (data) => {
-          let billImport = data.data;
-          this.ponccService.getWarehouseCode(billImport.WarehouseID).subscribe({
-            next: (data) => {
-              let warehouseCode = data.data || '';
-              const modalRef = this.modalService.open(BillImportDetailComponent, {
-                backdrop: 'static',
-                keyboard: false,
-                centered: true,
-                windowClass: 'full-screen-modal',
-              });
-
-              modalRef.componentInstance.newBillImport = billImport;
-              modalRef.componentInstance.WarehouseCode = warehouseCode;
-              modalRef.componentInstance.warehouseID = billImport.WarehouseID;
-              modalRef.componentInstance.id = billImport.ID ?? 0;
-              modalRef.componentInstance.poNCCId = ponccId ?? 0;
-
-              modalRef.result
-                .then((result) => {
-                })
-                .catch((reason) => {
-                });
-            },
-            error: (err) => this.notification.error(
-              NOTIFICATION_TITLE.error,
-              `Lỗi khi lấy thông tin kho nhập kho: ${err}`
-            )
-          });
-        },
-        error: (err) => this.notification.error(
-          NOTIFICATION_TITLE.error,
-          `Lỗi khi lấy thông tin phiếu nhập kho: ${err}`
-        )
-      });
+      this.openBillImportSaleModal(billImportId, ponccId);
     }
     else {
-      this.ponccService.getBillImportTech(billImportId).subscribe({
-        next: (data) => {
-          let billImport = data.data;
-          this.ponccService.getWarehouseCode(billImport.WarehouseID).subscribe({
-            next: (data) => {
-              let warehouseCode = data.data || '';
-              const modalRef = this.modalService.open(BillImportTechnicalFormComponent, {
-                backdrop: 'static',
-                keyboard: false,
-                centered: true,
-                windowClass: 'full-screen-modal',
+      this.openBillImportTechnicalModal(billImportId, ponccId);
+    }
+  }
+
+  // Luồng riêng để load chi tiết từ PONCC sang BillImport
+  private loadPONCCDetailForBillImport(callback: (ponccDetails: any[]) => void): void {
+    // Ưu tiên: Lấy chi tiết PONCC từ bảng hiện tại (dữ liệu mới nhất)
+    if (this.tabulatorHangTien) {
+      const ponccDetails = this.tabulatorHangTien.getData() || [];
+      console.log('🔵 [PONCC->BillImport] Loaded details from table:', ponccDetails.length, 'items');
+      callback(ponccDetails);
+      return;
+    }
+
+    // Fallback: Sử dụng ponccDetail từ Input nếu table chưa khởi tạo
+    if (this.ponccDetail && this.ponccDetail.length > 0) {
+      console.log('🔵 [PONCC->BillImport] Loaded details from ponccDetail input:', this.ponccDetail.length, 'items');
+      callback(this.ponccDetail);
+      return;
+    }
+
+    // Nếu không có dữ liệu, trả về mảng rỗng
+    console.warn('⚠️ [PONCC->BillImport] Không tìm thấy dữ liệu chi tiết PONCC');
+    callback([]);
+  }
+
+  // Luồng riêng để xử lý BillImportDetail (kho sale)
+  private openBillImportSaleModal(billImportId: number, ponccId: number): void {
+    // Kiểm tra: Nếu có billImportId thì xem phiếu đã tạo, ngược lại tạo mới từ PONCC
+    if (billImportId > 0) {
+      // Luồng 1: Xem phiếu nhập kho đã tạo
+      this.openExistingBillImportModal(billImportId, ponccId);
+    } else {
+      // Luồng 2: Tạo phiếu nhập kho mới từ PONCC
+      this.openNewBillImportFromPONCC(ponccId);
+    }
+  }
+
+  // Luồng 1: Xem phiếu nhập kho đã tạo
+  private openExistingBillImportModal(billImportId: number, ponccId: number): void {
+    // Chỉ cần lấy warehouseCode, phần còn lại để component tự load
+    this.billImportService.getBillImportByID(billImportId).subscribe({
+      next: (response) => {
+        const billImport = response.data;
+
+        this.ponccService.getWarehouseCode(billImport.WarehouseID).subscribe({
+          next: (warehouseResponse) => {
+            const warehouseCode = warehouseResponse.data || '';
+
+            console.log('🔵 [Existing BillImport] Opening modal for ID:', billImportId);
+
+            const modalRef = this.modalService.open(BillImportDetailComponent, {
+              backdrop: 'static',
+              keyboard: false,
+              centered: true,
+              windowClass: 'full-screen-modal',
+            });
+
+            // Set isCheckmode = true để component tự động load dữ liệu
+            modalRef.componentInstance.isCheckmode = true;
+            modalRef.componentInstance.id = billImportId;
+            modalRef.componentInstance.WarehouseCode = warehouseCode;
+            modalRef.componentInstance.warehouseID = billImport.WarehouseID;
+            modalRef.componentInstance.poNCCId = ponccId ?? 0;
+
+            modalRef.result
+              .then(() => {
+                // Reload danh sách tham chiếu sau khi cập nhật
+                if (this.poncc && this.poncc.ID > 0) {
+                  this.loadReferenceLinks();
+                }
+              })
+              .catch(() => {
+                // Xử lý khi modal bị hủy
               });
+          },
+          error: (err) => this.notification.error(
+            NOTIFICATION_TITLE.error,
+            `Lỗi khi lấy thông tin kho: ${err}`
+          )
+        });
+      },
+      error: (err) => this.notification.error(
+        NOTIFICATION_TITLE.error,
+        `Lỗi khi lấy thông tin phiếu nhập kho: ${err}`
+      )
+    });
+  }
 
-              modalRef.componentInstance.newBillImport = billImport;
-              modalRef.componentInstance.warehouseID = billImport.WarehouseID;
-              modalRef.componentInstance.PonccID = ponccId ?? 0;
-              modalRef.componentInstance.id = billImport.ID ?? 0;
+  // Luồng 2: Tạo phiếu nhập kho mới từ PONCC
+  private openNewBillImportFromPONCC(ponccId: number): void {
+    this.loadPONCCDetailForBillImport((ponccDetails) => {
+      if (!this.poncc) {
+        this.notification.error(NOTIFICATION_TITLE.error, 'Không tìm thấy thông tin PONCC');
+        return;
+      }
 
-              modalRef.result
-                .then((result) => {
-                })
-                .catch((reason) => {
-                });
-            },
-            error: (err) => this.notification.error(
-              NOTIFICATION_TITLE.error,
-              `Lỗi khi lấy thông tin kho nhập kho: ${err}`
-            )
+      // Xác định WarehouseID: ưu tiên từ PONCC, fallback về mặc định
+      const warehouseID = this.poncc.WarehouseID || 1; // 1 là ID kho HN mặc định
+
+      // Chuẩn bị dữ liệu master cho phiếu nhập kho mới
+      const newBillImport = {
+        Id: 0,
+        BillImportCode: '', // Sẽ tự động tạo
+        ReciverID: 0,
+        Reciver: '',
+        DeliverID: this.poncc.EmployeeID || 0,
+        Deliver: '',
+        KhoType: '',
+        KhoTypeID: 0, // Sẽ được set dựa vào sản phẩm
+        WarehouseID: warehouseID,
+        BillTypeNew: 4, // Yêu cầu nhập kho
+        SupplierID: this.poncc.SupplierSaleID || 0,
+        Supplier: '',
+        CreatDate: new Date(),
+        RulePayID: this.informationForm.get('RulePayID')?.value || 0,
+        DateRequestImport: new Date(),
+      };
+
+      // Lấy mã kho
+      this.ponccService.getWarehouseCode(warehouseID).subscribe({
+        next: (response) => {
+          const warehouseCode = response.data || 'HN';
+
+          console.log('🔵 [PONCC->BillImport] Opening modal with:', {
+            ponccId,
+            warehouseCode,
+            warehouseID,
+            detailCount: ponccDetails.length,
+            supplierID: newBillImport.SupplierID
           });
+
+          // Mở modal với dữ liệu từ PONCC
+          const modalRef = this.modalService.open(BillImportDetailComponent, {
+            backdrop: 'static',
+            keyboard: false,
+            centered: true,
+            windowClass: 'full-screen-modal',
+          });
+
+          modalRef.componentInstance.newBillImport = newBillImport;
+          modalRef.componentInstance.WarehouseCode = warehouseCode;
+          modalRef.componentInstance.warehouseID = warehouseID;
+          modalRef.componentInstance.id = 0; // ID = 0 cho phiếu mới
+          modalRef.componentInstance.poNCCId = ponccId ?? 0;
+          modalRef.componentInstance.selectedList = ponccDetails; // Dùng selectedList cho phiếu tạo từ PONCC
+
+          modalRef.result
+            .then(() => {
+              // Reload lại danh sách tham chiếu sau khi tạo phiếu thành công
+              if (this.poncc && this.poncc.ID > 0) {
+                this.loadReferenceLinks();
+              }
+            })
+            .catch(() => {
+              // Xử lý khi modal bị hủy
+            });
         },
         error: (err) => this.notification.error(
           NOTIFICATION_TITLE.error,
-          `Lỗi khi lấy thông tin phiếu nhập kho: ${err}`
+          `Lỗi khi lấy thông tin kho: ${err}`
         )
       });
+    });
+  }
+
+  // Luồng riêng để xử lý BillImportTechnical (kho kỹ thuật)
+  private openBillImportTechnicalModal(billImportId: number, ponccId: number): void {
+    // Kiểm tra: Nếu có billImportId thì xem phiếu đã tạo, ngược lại tạo mới từ PONCC
+    if (billImportId > 0) {
+      // Luồng 1: Xem phiếu nhập kho kỹ thuật đã tạo
+      this.openExistingBillImportTechnicalModal(billImportId, ponccId);
+    } else {
+      // Luồng 2: Tạo phiếu nhập kho kỹ thuật mới từ PONCC
+      this.openNewBillImportTechnicalFromPONCC(ponccId);
     }
+  }
+
+  // Luồng 1: Xem phiếu nhập kho kỹ thuật đã tạo
+  private openExistingBillImportTechnicalModal(billImportId: number, ponccId: number): void {
+    this.ponccService.getBillImportTech(billImportId).subscribe({
+      next: (response) => {
+        const billImport = response.data;
+
+        this.ponccService.getWarehouseCode(billImport.WarehouseID).subscribe({
+          next: (warehouseResponse) => {
+            const warehouseCode = warehouseResponse.data || '';
+
+            console.log('🔵 [Existing BillImportTech] Opening modal for ID:', billImportId);
+
+            const modalRef = this.modalService.open(BillImportTechnicalFormComponent, {
+              backdrop: 'static',
+              keyboard: false,
+              centered: true,
+              windowClass: 'full-screen-modal',
+            });
+
+            // Set masterId để component tự động load chi tiết
+            modalRef.componentInstance.masterId = billImportId;
+            modalRef.componentInstance.dataEdit = billImport;
+            modalRef.componentInstance.IsEdit = true;
+            modalRef.componentInstance.warehouseID = billImport.WarehouseID;
+            modalRef.componentInstance.WarehouseCode = warehouseCode;
+            modalRef.componentInstance.PonccID = ponccId ?? 0;
+
+            modalRef.result
+              .then(() => {
+                // Reload danh sách tham chiếu sau khi cập nhật
+                if (this.poncc && this.poncc.ID > 0) {
+                  this.loadReferenceLinks();
+                }
+              })
+              .catch(() => {
+                // Xử lý khi modal bị hủy
+              });
+          },
+          error: (err) => this.notification.error(
+            NOTIFICATION_TITLE.error,
+            `Lỗi khi lấy thông tin kho: ${err}`
+          )
+        });
+      },
+      error: (err) => this.notification.error(
+        NOTIFICATION_TITLE.error,
+        `Lỗi khi lấy thông tin phiếu nhập kho kỹ thuật: ${err}`
+      )
+    });
+  }
+
+  // Luồng 2: Tạo phiếu nhập kho kỹ thuật mới từ PONCC
+  private openNewBillImportTechnicalFromPONCC(ponccId: number): void {
+    this.loadPONCCDetailForBillImport((ponccDetails) => {
+      if (!this.poncc) {
+        this.notification.error(NOTIFICATION_TITLE.error, 'Không tìm thấy thông tin PONCC');
+        return;
+      }
+
+      // Xác định WarehouseID
+      const warehouseID = this.poncc.WarehouseID || 1;
+
+      // Chuẩn bị dữ liệu master cho phiếu nhập kho kỹ thuật mới
+      const newBillImport = {
+        ID: 0,
+        BillCode: '', // Sẽ tự động tạo
+        BillTypeNew: 5, // Y/c nhập kho
+        ReceiverID: 0,
+        DeliverID: this.poncc.EmployeeID || 0,
+        SupplierSaleID: this.poncc.SupplierSaleID || 0,
+        CustomerID: 0,
+        WarehouseID: warehouseID,
+        CreatDate: new Date(),
+        RulePayID: this.informationForm.get('RulePayID')?.value || 0,
+        DateRequestImport: new Date(),
+        Status: false,
+      };
+
+      // Lấy mã kho
+      this.ponccService.getWarehouseCode(warehouseID).subscribe({
+        next: (response) => {
+          const warehouseCode = response.data || 'HN';
+
+          console.log('🔵 [PONCC->BillImportTech] Opening modal with:', {
+            ponccId,
+            warehouseCode,
+            warehouseID,
+            detailCount: ponccDetails.length,
+            supplierID: newBillImport.SupplierSaleID
+          });
+
+          const modalRef = this.modalService.open(BillImportTechnicalFormComponent, {
+            backdrop: 'static',
+            keyboard: false,
+            centered: true,
+            windowClass: 'full-screen-modal',
+          });
+
+          // Truyền dữ liệu vào component
+          modalRef.componentInstance.newBillImport = newBillImport;
+          modalRef.componentInstance.warehouseID = warehouseID;
+          modalRef.componentInstance.WarehouseCode = warehouseCode;
+          modalRef.componentInstance.PonccID = ponccId ?? 0;
+          modalRef.componentInstance.flag = 1; // Kích hoạt luồng PONCC
+          modalRef.componentInstance.dtDetails = ponccDetails; // Chi tiết từ PONCC
+
+          modalRef.result
+            .then(() => {
+              // Reload danh sách tham chiếu sau khi tạo phiếu thành công
+              if (this.poncc && this.poncc.ID > 0) {
+                this.loadReferenceLinks();
+              }
+            })
+            .catch(() => {
+              // Xử lý khi modal bị hủy
+            });
+        },
+        error: (err) => this.notification.error(
+          NOTIFICATION_TITLE.error,
+          `Lỗi khi lấy thông tin kho: ${err}`
+        )
+      });
+    });
   }
 
   openModalProductSale() {

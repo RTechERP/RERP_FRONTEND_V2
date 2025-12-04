@@ -54,4 +54,24 @@ export class DayOffService {
       checkExist
     );
   }
+
+  getEmployeeOnLeavePerson(request: {
+    Page?: number;
+    Size?: number;
+    Keyword?: string;
+    DateStart?: string | null;
+    DateEnd?: string | null;
+    IDApprovedTP?: number;
+    Status?: number;
+    DepartmentID?: number;
+  }): Observable<any> {
+    return this.http.post<any>(
+      this._url + 'EmployeeOnLeave/get-employee-onleave-person',
+      request
+    );
+  }
+
+  getEmployeeOnLeavePersonAjax(): string {
+    return this._url + 'EmployeeOnLeave/get-employee-onleave-person';
+  }
 }

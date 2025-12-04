@@ -16,7 +16,7 @@ export class EmployeeService {
   }
  
   getAllEmployee(): Observable<any> {
-    return this.http.get(this._url + 'Employee/get-all');
+    return this.http.get(this._url + 'Employee/');
   }
 
   getEmployees(): Observable<any> {

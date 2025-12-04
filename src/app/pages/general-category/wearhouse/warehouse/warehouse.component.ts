@@ -68,7 +68,8 @@ export class WarehouseComponent1 implements OnInit, AfterViewInit {
       ...DEFAULT_TABLE_CONFIG,
       paginationMode: 'local',
       layout: 'fitDataStretch',
-      selectableRows: true,
+      
+      selectableRows: 1,
       data: this.warehouseList,
       columns: [
         {
@@ -98,6 +99,11 @@ export class WarehouseComponent1 implements OnInit, AfterViewInit {
 
     this.warehouseTable.on('rowSelectionChanged', (data: any[]) => {
       this.selectedRows = data;
+      if (data && data.length > 0) {
+        this.selectedRow = data[0];
+      } else {
+        this.selectedRow = null;
+      }
     });
 
     this.warehouseTable.on('rowDblClick', (_e, row) => {
@@ -166,6 +172,11 @@ export class WarehouseComponent1 implements OnInit, AfterViewInit {
   }
 
   onEdit(): void {
+
+    if (!this.selectedRow && this.selectedRows && this.selectedRows.length > 0) {
+      this.selectedRow = this.selectedRows[0];
+    }
+    
     if (!this.selectedRow) {
       this.notification.warning(NOTIFICATION_TITLE.warning, 'Vui lòng chọn một dòng để sửa!');
       return;

@@ -19,7 +19,7 @@
                 [(ngModel)]="selectedMonthYear"
                 (ngModelChange)="onMonthYearChange()"
                 nzAllowClear="false"
-                nzSize="small"
+                nzSize="default"
                 style="width: 150px;"
               ></nz-date-picker>
             </nz-form-control>
@@ -35,7 +35,7 @@
                 nzPlaceHolder="Chọn phòng ban"
                 [(ngModel)]="departmentId"
                 (ngModelChange)="onDepartmentChange()"
-                nzSize="small"
+                nzSize="default"
                 style="width: 200px;"
               >
                 <nz-option *ngFor="let dept of departments" [nzValue]="dept.ID" [nzLabel]="dept.Name"></nz-option>
@@ -52,7 +52,7 @@
                 nzAllowClear
                 nzPlaceHolder="Chọn nhân viên"
                 [(ngModel)]="employeeId"
-                nzSize="small"
+                nzSize="default"
                 style="width: 200px;"
               >
                 <nz-option 
@@ -72,7 +72,7 @@
                 nz-input
                 placeholder="Nhập từ khóa"
                 [(ngModel)]="keyword"
-                nzSize="small"
+                nzSize="default"
                 style="width: 200px;"
                 (keyup.enter)="loadData()"
               />

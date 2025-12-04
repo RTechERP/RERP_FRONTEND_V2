@@ -235,6 +235,13 @@ export class EmployeeBussinessSummaryComponent
         layout: 'fitDataStretch',
         height: '80vh',
         placeholder: 'Không có dữ liệu',
+        groupBy:"DepartmentName",
+    
+      
+        groupHeader: (value, count, data, group) => {
+          return `<span>Phòng ban: ${value} (${count})</span>`;
+        },
+
         locale: 'vi',
         columns: this.buildWorkColumns(),
       });
@@ -248,6 +255,7 @@ export class EmployeeBussinessSummaryComponent
       this.tb_early = new Tabulator(this.tbEarlyContainer.nativeElement, {
         data: [],
         ...DEFAULT_TABLE_CONFIG,
+        paginationMode: 'local',
         layout: 'fitDataStretch',
         height: '80vh',
         placeholder: 'Không có dữ liệu',
@@ -265,6 +273,7 @@ export class EmployeeBussinessSummaryComponent
         data: [],
         ...DEFAULT_TABLE_CONFIG,
         layout: 'fitDataStretch',
+        paginationMode: 'local',
         height: '80vh',
         placeholder: 'Không có dữ liệu',
         locale: 'vi',
@@ -507,14 +516,14 @@ export class EmployeeBussinessSummaryComponent
       {
         title: 'Mã NV',
         field: 'Code',
-        width: 100,
+        width: 200,
         hozAlign: 'left',
         headerHozAlign: 'center',
       },
       {
         title: 'Tên nhân viên',
         field: 'FullName',
-        width: 200,
+        width: 300,
         hozAlign: 'left',
         headerHozAlign: 'center',
         formatter: 'textarea',
@@ -523,7 +532,7 @@ export class EmployeeBussinessSummaryComponent
       {
         title: 'Ngày',
         field: 'DayBussiness',
-        width: 120,
+        width: 220,
         hozAlign: 'center',
         headerHozAlign: 'center',
         formatter: (cell) => {
@@ -534,7 +543,7 @@ export class EmployeeBussinessSummaryComponent
       {
         title: 'Địa điểm',
         field: 'Location',
-        width: 200,
+        width: 500,
         hozAlign: 'left',
         headerHozAlign: 'center',
         formatter: 'textarea',
@@ -542,7 +551,7 @@ export class EmployeeBussinessSummaryComponent
       {
         title: 'Số tiền',
         field: 'CostWorkEarly',
-        width: 150,
+        width: 250,
         hozAlign: 'right',
         headerHozAlign: 'center',
         formatter: (cell) => {
@@ -653,7 +662,13 @@ export class EmployeeBussinessSummaryComponent
             : '0 ₫';
         },
       },
-     
+      {
+        title: 'Đặt xe',
+        field: 'IsVehicleBooking',
+        width: 150,
+        hozAlign: 'center',
+        formatter: 'tickCross',
+      },
       {
         title: 'Ghi chú',
         field: 'Note',

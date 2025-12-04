@@ -89,9 +89,9 @@ export class EmployeeBussinessSummaryComponent
 
   ngAfterViewInit(): void {
     setTimeout(() => {
-      console.log('Initializing tables...');
+
       this.initializeTables();
-      console.log('Tables initialized, loading data...');
+
       this.loadData();
     }, 300);
   }
@@ -165,20 +165,17 @@ export class EmployeeBussinessSummaryComponent
 
     this.bussinessService.getWorkManagement(params).subscribe({
       next: (res: any) => {
-        console.log('Full API Response:', res);
+    
 
         if (res?.status === 1) {
           // Check if data is directly in res.data or nested
           const responseData = res.data;
-          console.log('Response data object:', responseData);
+      
 
           this.workData = responseData?.workData || [];
           this.earlyData = responseData?.earlyData || [];
           this.vehicleData = responseData?.vehicleData || [];
 
-          console.log('Work data:', this.workData);
-          console.log('Early data:', this.earlyData);
-          console.log('Vehicle data:', this.vehicleData);
 
           this.updateTables();
 
@@ -193,7 +190,7 @@ export class EmployeeBussinessSummaryComponent
             );
           }
         } else {
-          console.log('Status is not 1 or no data');
+        
           this.notification.warning(
             NOTIFICATION_TITLE.warning,
             res?.message || 'Không có dữ liệu'
@@ -201,11 +198,11 @@ export class EmployeeBussinessSummaryComponent
         }
         this.isLoading = false;
       },
-      error: (err) => {
-        console.error('API Error:', err);
+      error: (err:any) => {
+      
         this.isLoading = false;
         this.notification.error(
-          NOTIFICATION_TITLE.error,
+          NOTIFICATION_TITLE.error,err.error.message||
           'Không thể tải dữ liệu báo cáo công tác'
         );
       },
@@ -229,12 +226,10 @@ export class EmployeeBussinessSummaryComponent
   }
 
   initializeTables(): void {
-    console.log('tbWorkContainer exists?', !!this.tbWorkContainer);
-    console.log('tbEarlyContainer exists?', !!this.tbEarlyContainer);
-    console.log('tbVehicleContainer exists?', !!this.tbVehicleContainer);
+
 
     if (this.tbWorkContainer?.nativeElement) {
-      console.log('Creating work table...');
+
       this.tb_work = new Tabulator(this.tbWorkContainer.nativeElement, {
         data: [],
         layout: 'fitDataStretch',
@@ -243,9 +238,9 @@ export class EmployeeBussinessSummaryComponent
         locale: 'vi',
         columns: this.buildWorkColumns(),
       });
-      console.log('Work table created');
+      
     } else {
-      console.error('tbWorkContainer not available');
+
     }
 
     if (this.tbEarlyContainer?.nativeElement) {

@@ -1,0 +1,180 @@
+<div class="modal-header bg-primary p-2">
+  <h6 class="modal-title text-white fs-12">
+    CHI TIẾT HÀNG GIỮ
+  </h6>
+  <button type="button" class="btn-close" aria-label="Close" (click)="close()"></button>
+</div>
+
+<div class="modal-body p-2" style="max-height: 70vh; overflow-y: auto; overflow-x: hidden;">
+  <form nz-form [formGroup]="formGroup" nzLayout="vertical">
+    <!-- Dự án (span 24) -->
+    <nz-row [nzGutter]="16">
+      <nz-col [nzSpan]="24">
+        <nz-form-item>
+          <nz-form-label class="fs-12" [nzSpan]="24">Dự án</nz-form-label>
+          <nz-form-control [nzSpan]="24">
+            <input nz-input nzSize="default" formControlName="projectInfo" class="fs-12" />
+          </nz-form-control>
+        </nz-form-item>
+      </nz-col>
+    </nz-row>
+
+    <!-- Khách hàng 12, POKH 12 -->
+    <nz-row [nzGutter]="16">
+      <nz-col [nzSpan]="12">
+        <nz-form-item>
+          <nz-form-label class="fs-12" [nzSpan]="24">Khách hàng</nz-form-label>
+          <nz-form-control [nzSpan]="24">
+            <nz-select
+              nzSize="default"
+              formControlName="customerID"
+              nzShowSearch
+              nzAllowClear
+              nzPlaceHolder="Chọn khách hàng..."
+              class="fs-12 w-100">
+              <nz-option
+                *ngFor="let c of customers"
+                [nzValue]="c.ID"
+                [nzLabel]="c.CustomerName">
+              </nz-option>
+            </nz-select>
+          </nz-form-control>
+        </nz-form-item>
+      </nz-col>
+      <nz-col [nzSpan]="12">
+        <nz-form-item>
+          <nz-form-label class="fs-12" [nzSpan]="24">Số POKH</nz-form-label>
+          <nz-form-control [nzSpan]="24">
+            <nz-select
+              nzSize="default"
+              formControlName="pokhDetailID"
+              nzShowSearch
+              nzAllowClear
+              nzPlaceHolder="Chọn POKH..."
+              class="fs-12 w-100">
+              <nz-option
+                *ngFor="let p of pokhList"
+                [nzValue]="p.ID"
+                [nzLabel]="p.PONumber || p.POCode || p.DisplayText">
+              </nz-option>
+            </nz-select>
+          </nz-form-control>
+        </nz-form-item>
+      </nz-col>
+    </nz-row>
+
+    <!-- Mã sản phẩm 8 , Mã nội bộ 8, Tồn cuối kỳ 8 -->
+    <nz-row [nzGutter]="16">
+      <nz-col [nzSpan]="8">
+        <nz-form-item>
+          <nz-form-label class="fs-12" [nzSpan]="24">Mã sản phẩm</nz-form-label>
+          <nz-form-control [nzSpan]="24">
+            <input nz-input nzSize="default" formControlName="productCode" class="fs-12" />
+          </nz-form-control>
+        </nz-form-item>
+      </nz-col>
+
+      <nz-col [nzSpan]="8">
+        <nz-form-item>
+          <nz-form-label class="fs-12" [nzSpan]="24">Mã nội bộ</nz-form-label>
+          <nz-form-control [nzSpan]="24">
+            <input nz-input nzSize="default" formControlName="productNewCode" class="fs-12" />
+          </nz-form-control>
+        </nz-form-item>
+      </nz-col>
+
+      <nz-col [nzSpan]="8">
+        <nz-form-item>
+          <nz-form-label class="fs-12" [nzSpan]="24">Tồn cuối kỳ</nz-form-label>
+          <nz-form-control [nzSpan]="24">
+            <nz-input-number
+              formControlName="totalQuantityLast"
+              [nzMin]="0"
+              [nzStep]="1"
+              [nzPrecision]="2"
+              nzSize="default"
+              class="fs-12 w-100">
+            </nz-input-number>
+          </nz-form-control>
+        </nz-form-item>
+      </nz-col>
+    </nz-row>
+
+    <!-- Tên sản phẩm 24 -->
+    <nz-row [nzGutter]="16">
+      <nz-col [nzSpan]="24">
+        <nz-form-item>
+          <nz-form-label class="fs-12" [nzSpan]="24">Tên sản phẩm</nz-form-label>
+          <nz-form-control [nzSpan]="24">
+            <input nz-input nzSize="default" formControlName="productName" class="fs-12" />
+          </nz-form-control>
+        </nz-form-item>
+      </nz-col>
+    </nz-row>
+
+    <!-- SL Giữ 12, Kho 12 -->
+    <nz-row [nzGutter]="16">
+      <nz-col [nzSpan]="12">
+        <nz-form-item>
+          <nz-form-label class="fs-12" [nzSpan]="24">SL Giữ</nz-form-label>
+          <nz-form-control [nzSpan]="24">
+            <nz-input-number
+              formControlName="quantityOrigin"
+              [nzMin]="0"
+              [nzStep]="1"
+              [nzPrecision]="2"
+              nzSize="default"
+              class="fs-12 w-100">
+            </nz-input-number>
+          </nz-form-control>
+        </nz-form-item>
+      </nz-col>
+
+      <nz-col [nzSpan]="12">
+        <nz-form-item>
+          <nz-form-label class="fs-12" [nzSpan]="24">Kho</nz-form-label>
+          <nz-form-control [nzSpan]="24">
+            <nz-select
+              nzSize="default"
+              formControlName="warehouseID"
+              nzShowSearch
+              nzAllowClear
+              nzPlaceHolder="Chọn kho..."
+              class="fs-12 w-100">
+              <nz-option
+                *ngFor="let w of warehouses"
+                [nzValue]="w.ID"
+                [nzLabel]="w.WarehouseName || w.WarehouseCode">
+              </nz-option>
+            </nz-select>
+          </nz-form-control>
+        </nz-form-item>
+      </nz-col>
+    </nz-row>
+
+    <!-- Ghi chú 24 -->
+    <nz-row [nzGutter]="16">
+      <nz-col [nzSpan]="24">
+        <nz-form-item>
+          <nz-form-label class="fs-12" [nzSpan]="24">Ghi chú</nz-form-label>
+          <nz-form-control [nzSpan]="24">
+            <textarea
+              nz-input
+              rows="2"
+              formControlName="note"
+              nzSize="default"
+              class="fs-12">
+            </textarea>
+          </nz-form-control>
+        </nz-form-item>
+      </nz-col>
+    </nz-row>
+  </form>
+</div>
+
+<div class="modal-footer p-2">
+  <button nz-button nzType="default" nzSize="default" nzDanger (click)="close()">Đóng</button>
+  <button nz-button nzType="primary" nzSize="default" (click)="save()">Lưu</button>
+</div>
+
+

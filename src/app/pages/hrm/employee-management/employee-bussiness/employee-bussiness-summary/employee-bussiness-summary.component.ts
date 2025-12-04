@@ -519,13 +519,7 @@ export class EmployeeBussinessSummaryComponent
         headerHozAlign: 'center',
         formatter: 'textarea',
       },
-      {
-        title: 'Phòng ban',
-        field: 'DepartmentName',
-        width: 150,
-        hozAlign: 'left',
-        headerHozAlign: 'center',
-      },
+    
       {
         title: 'Ngày',
         field: 'DayBussiness',
@@ -538,7 +532,15 @@ export class EmployeeBussinessSummaryComponent
         },
       },
       {
-        title: 'Phụ cấp đi làm sớm',
+        title: 'Địa điểm',
+        field: 'Location',
+        width: 200,
+        hozAlign: 'left',
+        headerHozAlign: 'center',
+        formatter: 'textarea',
+      },
+      {
+        title: 'Số tiền',
         field: 'CostWorkEarly',
         width: 150,
         hozAlign: 'right',
@@ -564,14 +566,7 @@ export class EmployeeBussinessSummaryComponent
         hozAlign: 'center',
         formatter: 'tickCross',
       },
-      {
-        title: 'Ghi chú',
-        field: 'Note',
-        width: 200,
-        hozAlign: 'left',
-        headerHozAlign: 'center',
-        formatter: 'textarea',
-      },
+     
     ];
   }
 
@@ -607,13 +602,6 @@ export class EmployeeBussinessSummaryComponent
         formatter: 'textarea',
       },
       {
-        title: 'Phòng ban',
-        field: 'DepartmentName',
-        width: 150,
-        hozAlign: 'left',
-        headerHozAlign: 'center',
-      },
-      {
         title: 'Ngày',
         field: 'DayBussiness',
         width: 120,
@@ -625,6 +613,20 @@ export class EmployeeBussinessSummaryComponent
         },
       },
       {
+        title: 'Loại công tác',
+        field: 'TypeName',
+        width: 150,
+        hozAlign: 'left',
+        headerHozAlign: 'center',
+      },
+      {
+        title: 'Địa điểm',
+        field: 'Location',
+        width: 150,
+        hozAlign: 'left',
+        headerHozAlign: 'center',
+      },
+      {
         title: 'Phương tiện',
         field: 'VehicleName',
         width: 150,
@@ -632,7 +634,7 @@ export class EmployeeBussinessSummaryComponent
         headerHozAlign: 'center',
       },
       {
-        title: 'Phụ cấp phương tiện',
+        title: 'Số tiền',
         field: 'Cost',
         width: 150,
         hozAlign: 'right',
@@ -651,13 +653,7 @@ export class EmployeeBussinessSummaryComponent
             : '0 ₫';
         },
       },
-      {
-        title: 'Đặt xe',
-        field: 'IsVehicleBooking',
-        width: 150,
-        hozAlign: 'center',
-        formatter: 'tickCross',
-      },
+     
       {
         title: 'Ghi chú',
         field: 'Note',
@@ -668,7 +664,6 @@ export class EmployeeBussinessSummaryComponent
       },
     ];
   }
-
   updateTables(): void {
     // console.log('Updating tables...');
     // console.log('tb_work exists?', !!this.tb_work);

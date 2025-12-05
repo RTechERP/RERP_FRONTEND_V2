@@ -1612,10 +1612,9 @@ export class ProjectDepartmentSummaryComponent implements AfterViewInit {
     });
     modalRef.componentInstance.project = selectedRows[0];
     modalRef.componentInstance.projectId = this.projectId;
-    modalRef.componentInstance.projectNameX =
-      this.tb_projects.getSelectedData()[0].ProjectName;
-    modalRef.componentInstance.projectCodex =
-      this.tb_projects.getSelectedData()[0].ProjectCode;
+    modalRef.componentInstance.projectNameX = this.tb_projects.getSelectedData()[0].ProjectName;
+    modalRef.componentInstance.projectCodex = this.tb_projects.getSelectedData()[0].ProjectCode;
+    modalRef.componentInstance.tbp = false;
     modalRef.result.then((result) => {
       if (result == true) {
         //this.searchProjects();

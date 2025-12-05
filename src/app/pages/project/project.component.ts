@@ -1140,27 +1140,60 @@ export class ProjectComponent implements OnInit, AfterViewInit {
   }
   //#endregion
   openFolder() {
+    // Kiểm tra đã chọn dự án chưa
     if(this.tb_projects.getSelectedRows().length == 0) {
       this.notification.error('Thông báo', 'Vui lòng chọn dự án!');
       return;
-    };
+    }
+    
     let selectedRows = this.tb_projects.getSelectedRows();
     let projectId = selectedRows[0].getData().ID;
     
-    this.projectService.openProjectFolder(projectId).subscribe({
+    // Lấy danh sách ID các kiểu dự án được chọn từ bảng kiểu dự án
+    let selectedProjectTypeIds: number[] = [];
+    
+    if (this.tb_projectTypeLinks) {
+      // Lấy tất cả dữ liệu từ bảng (bao gồm cả cây)
+      const allData = this.tb_projectTypeLinks.getData();
+      
+      // Hàm đệ quy để lấy các ID được chọn
+      const getSelectedIds = (data: any[]): void => {
+        data.forEach((row: any) => {
+          // Kiểm tra nếu dòng được chọn (Selected === true)
+          if (row.Selected === true && row.ID) {
+            selectedProjectTypeIds.push(row.ID);
+          }
+          // Đệ quy kiểm tra children nếu có
+          if (row._children && row._children.length > 0) {
+            getSelectedIds(row._children);
+          }
+        });
+      };
+      
+      getSelectedIds(allData);
+    }
+    
+    // Kiểm tra đã chọn ít nhất 1 kiểu dự án chưa
+    if (selectedProjectTypeIds.length === 0) {
+      this.notification.error('Thông báo', 'Vui lòng chọn ít nhất 1 kiểu dự án!');
+      return;
+    }
+    
+    // Gọi API tạo cây thư mục
+    this.projectService.createProjectTree(projectId, selectedProjectTypeIds).subscribe({
       next: (response: any) => {
-        debugger;
-        if (response.status==1 && response.data) {
+        if (response.status == 1 && response.data) {
           // Xử lý URL: loại bỏ dấu / đầu tiên nếu có để tránh double slash
           let path = response.data.startsWith('/') ? response.data.substring(1) : response.data;
           let url = environment.host + path;
           window.open(url, '_blank');
+          //this.notification.success('Thông báo', 'Tạo cây thư mục thành công!');
         } else {
-          this.notification.error('Thông báo', response.message || 'Không thể mở thư mục dự án!');
+          this.notification.error('Thông báo', response.message || 'Không thể tạo cây thư mục dự án!');
         }
       },
       error: (error) => {
-        this.notification.error('Thông báo', error.error.message || 'Lỗi khi mở thư mục dự án!');
+        this.notification.error('Thông báo', error.error?.message || 'Lỗi khi tạo cây thư mục dự án!');
         console.error('Lỗi:', error);
       }
     });
@@ -1711,6 +1744,7 @@ export class ProjectComponent implements OnInit, AfterViewInit {
     modalRef.componentInstance.projectId = this.projectId;
     modalRef.componentInstance.projectNameX = this.tb_projects.getSelectedData()[0].ProjectName;
     modalRef.componentInstance.projectCodex = this.tb_projects.getSelectedData()[0].ProjectCode;
+    modalRef.componentInstance.tbp = false;
     modalRef.result.then((result) => {
       if (result == true) {
       //this.searchProjects();

@@ -1,8 +1,9 @@
-<div style="display: flex; flex-direction: column; height: 100vh; position: relative;">
+<div style="display: flex; flex-direction: column; position: relative;" [style.height]="tbp ? '93vh' : '100vh'">
     <!-- Modal Header -->
+   
     <div
       class="modal-header bg-primary align-items-center ps-2"
-      style="flex-shrink: 0"
+      style="flex-shrink: 0" *ngIf="!tbp"
     >
       <h6 class="text-light text-uppercase m-0" style="padding: 0 0.5rem">
         Danh mục vật tư dự án {{ projectCodex }}
@@ -44,7 +45,7 @@
                     <i nz-icon nzType="close"></i>
                   </button>
                 </div>
-                <div class="card-header bg-white p-1 d-flex gap-1">
+                <div class="card-header bg-white p-1 d-flex gap-1" *ngIf="!tbp">
                   <button
                     nz-button
                     nzSize="small"
@@ -105,7 +106,7 @@
             </nz-splitter-panel>
   
             <!-- Bảng 2: Phiên bản giải pháp -->
-            <nz-splitter-panel nzDefaultSize="33.33%" *ngIf="!isPOKH">
+            <nz-splitter-panel nzDefaultSize="33.33%" *ngIf="!isPOKH && !tbp">
               <div class="card h-100 border-0 rounded-0 d-flex flex-column">
                 <div class="card-header bg-white p-1" style=" font-weight: bold !important; background-color: #efebebe7 !important;">
                   <p class="m-0">Phiên bản giải pháp</p>
@@ -116,6 +117,7 @@
                     nzSize="small"
                     class="fs-12 button button-succes btn-add"
                     (click)="openProjectSolutionVersionDetail(1, false)" *hasPermission="'N1,N27,N38,N62,N28'"
+                  
                   >
                     <img
                       src="assets/icon/action_add_item_16.png"
@@ -164,12 +166,12 @@
             </nz-splitter-panel>
   
             <!-- Bảng 3: Phiên bản PO -->
-            <nz-splitter-panel nzDefaultSize="33.33%">
+            <nz-splitter-panel nzDefaultSize="33.33%" >
               <div class="card h-100 border-0 rounded-0 d-flex flex-column">
                 <div class="card-header bg-white p-1 d-flex gap-1" style=" font-weight: bold !important; background-color: #efebebe7 !important;">
                   <p class="m-0">Phiên bản PO</p>
                 </div>
-                <div class="card-header bg-white p-1 d-flex gap-1">
+                <div class="card-header bg-white p-1 d-flex gap-1" *ngIf="!tbp">
                   <button
                     nz-button
                     nzSize="small"
@@ -232,6 +234,38 @@
           nzMax="100%" 
           nzResizable="true">
           <div class="card h-100 border-0 rounded-0 d-flex flex-column">
+            <div class="card-header bg-white p-1 d-flex gap-1" *ngIf="tbp">
+              <div
+                style="min-width: 400px"
+                class="d-flex gap-1 align-items-center"
+              >
+                <label class="fs-12 ">Dự án: </label>
+                <nz-select
+                  name="projectId"
+                  nzShowSearch
+                  nzAllowClear
+                  nzPlaceHolder="Chọn dự án"
+                  nzSize="small"
+                  [(ngModel)]="projectId"
+                  (ngModelChange)="onProjectIdChange($event)"
+                  style="width: 500px;"
+                >
+                  @for (item of projects; track $index) {
+                    <nz-option [nzValue]="item.ID" [nzLabel]="item.ProjectCode + ' - ' + item.ProjectName"></nz-option>
+                  }
+                </nz-select>
+                <button
+                  type="button"
+                  nz-button
+                  nzType="primary"
+                  nzSize="small"
+                  (click)="searchDataProjectWorker()"
+                >
+                  <i nz-icon nzType="search"></i>
+                  Tìm kiếm
+                </button>
+              </div>
+            </div>
             <div class="card-header bg-white p-1 d-flex justify-content-between align-items-center" style=" font-weight: bold !important; background-color: #efebebe7 !important;">
               <div class="d-flex align-items-center gap-1">
                 <button
@@ -320,15 +354,15 @@
               </ng-container>
               <nz-dropdown-menu #menuYeuCau="nzDropdownMenu">
                 <ul nz-menu>
-                  <li nz-menu-item (click)="requestPriceQuote()">
+                  <li nz-menu-item (click)="requestPriceQuote()" *ngIf="!tbp">
                     <img src="assets/icon/action_approved_16.png" />
                     <span class="ms-1">Yêu cầu báo giá</span>
                   </li>
-                  <li nz-menu-item (click)="cancelPriceRequest()">
+                  <li nz-menu-item (click)="cancelPriceRequest()" *ngIf="!tbp">
                     <img src="assets/icon/action_unapproved_16.png" />
                     <span class="ms-1">Hủy yêu cầu báo giá</span>
                   </li>
-                  <li nz-menu-item (click)="requestPurchase()" *ngIf="type == 2">
+                  <li nz-menu-item (click)="requestPurchase()" *ngIf="type == 2 && !tbp">
                     <img src="assets/icon/purchase_16.png" />
                     <span class="ms-1">Yêu cầu mua hàng</span>
                   </li>
@@ -357,11 +391,11 @@
               </ng-container>
               <nz-dropdown-menu #menuTBPduyetmoi="nzDropdownMenu">
                 <ul nz-menu>
-                  <li nz-menu-item (click)="approveNewCode(true)">
+                  <li nz-menu-item (click)="approveNewCode(true)" *ngIf="!tbp">
                     <img src="assets/icon/action_approved_16.png" />
                     <span class="ms-1">TBP duyệt mới</span>
                   </li>
-                  <li nz-menu-item (click)="approveNewCode(false)">
+                  <li nz-menu-item (click)="approveNewCode(false)" *ngIf="!tbp">
                     <img src="assets/icon/action_unapproved_16.png" />
                     <span class="ms-1">TBP hủy duyệt mới</span>
                   </li>
@@ -369,7 +403,7 @@
                     <img src="assets/icon/action_approved_16.png" />
                     <span class="ms-1">TBP duyệt</span>
                   </li>
-                  <li nz-menu-item (click)="updateApprove(2)"  *ngIf="type == 2">
+                  <li nz-menu-item (click)="updateApprove(2)"  *ngIf="type == 2 && !tbp">
                     <img src="assets/icon/action_unapproved_16.png" />
                     <span class="ms-1">TBP hủy duyệt</span>
                   </li>
@@ -441,7 +475,7 @@
             nz-button
             nzType="default"
             nzSize="small"
-            (click)="openImportExcelProjectPartList()"
+            (click)="openImportExcelProjectPartList()" *ngIf="!tbp"
           >
             <img src="assets/icon/action_import_16.png" /> Nhập Excel
           </button>

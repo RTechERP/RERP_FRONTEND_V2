@@ -53,6 +53,7 @@ import {
   Validators,
 } from '@angular/forms';
 import { NOTIFICATION_TITLE } from '../../../app.config';
+import { environment } from '../../../../environments/environment';
 
 @Component({
   selector: 'app-project-survey',
@@ -1120,28 +1121,46 @@ export class ProjectSurveyComponent implements AfterViewInit {
       return;
     }
 
-    let prjId = selectedRows[0]['ProjectID'];
-    let data = this.projects.find((p: any) => p.ID === prjId);
-    if (data.CreatedDate) {
-      let year = new Date(data.CreatedDate).getFullYear();
-      let dt = {
-        year: year,
-        projectCode: data.ProjectCode,
-      };
-      this.projectService.openFolder(dt).subscribe({
-        next: (response: any) => {},
-        error: (error) => {
-          console.error('Lỗi:', error);
+    let projectId = selectedRows[0]['ProjectID'];
+    if (!projectId || projectId === 0) {
+      this.notification.error(
+        NOTIFICATION_TITLE.error,
+        'Yêu cầu khảo sát chưa có thông tin dự án!',
+        {
+          nzStyle: { fontSize: '0.75rem' },
+        }
+      );
+      return;
+    }
+
+    this.projectService.openSurveyFolder(projectId).subscribe({
+      next: (response: any) => {
+        if (response.status == 1 && response.data) {
+          // Xử lý URL: loại bỏ dấu / đầu tiên nếu có để tránh double slash
+          let path = response.data.startsWith('/') ? response.data.substring(1) : response.data;
+          let url = environment.host + path;
+          window.open(url, '_blank');
+        } else {
           this.notification.error(
             NOTIFICATION_TITLE.error,
-            `Lỗi mở cây thư mục dự án ${data.ProjectCode}!`,
+            response.message || 'Không thể mở thư mục khảo sát dự án!',
             {
               nzStyle: { fontSize: '0.75rem' },
             }
           );
-        },
-      });
-    }
+        }
+      },
+      error: (error) => {
+        console.error('Lỗi:', error);
+        this.notification.error(
+          NOTIFICATION_TITLE.error,
+          error.error?.message || 'Lỗi khi mở thư mục khảo sát dự án!',
+          {
+            nzStyle: { fontSize: '0.75rem' },
+          }
+        );
+      },
+    });
   }
   //#endregion
 

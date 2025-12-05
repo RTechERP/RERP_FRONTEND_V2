@@ -47,15 +47,31 @@
                 </nz-select>
               </nz-form-control>
             </nz-form-item>
-            <nz-form-item>
+            <nz-form-item class="mt-2">
               <nz-form-label class="fs-12 d-flex align-items-center">
-                Năm
+                Từ năm
               </nz-form-label>
               <nz-form-control [nzSpan]="24">
                 <nz-date-picker
                   class="w-100"
-                  name="year"
-                  [(ngModel)]="year"
+                  name="yearStart"
+                  [(ngModel)]="yearStart"
+                  [nzMode]="'year'"
+                  [nzFormat]="'YYYY'"
+                  (ngModelChange)="getProject()"
+                  nzAllowClear="false"
+                ></nz-date-picker>
+              </nz-form-control>
+            </nz-form-item>
+            <nz-form-item class="mt-2">
+              <nz-form-label class="fs-12 d-flex align-items-center">
+                Đến năm
+              </nz-form-label>
+              <nz-form-control [nzSpan]="24">
+                <nz-date-picker
+                  class="w-100"
+                  name="yearEnd"
+                  [(ngModel)]="yearEnd"
                   [nzMode]="'year'"
                   [nzFormat]="'YYYY'"
                   (ngModelChange)="getProject()"

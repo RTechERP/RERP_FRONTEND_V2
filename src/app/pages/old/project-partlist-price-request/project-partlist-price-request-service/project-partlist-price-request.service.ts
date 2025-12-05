@@ -154,10 +154,8 @@ export class ProjectPartlistPriceRequestService {
     projectId: number;
     partListId: number;
     productCode: string;
-  }): Observable<Blob> {
-    return this.http.post(`${this.baseUrl}/download`, payload, {
-      responseType: 'blob',
-    });
+  }): Observable<any> {
+    return this.http.post(`${this.baseUrl}/download`, payload);
   }
   saveRequestNote(notes: any[]): Observable<any> {
     return this.http.post(`${this.baseUrl}/save-request-note`, notes);
@@ -172,5 +170,9 @@ export class ProjectPartlistPriceRequestService {
 
   checkPrice(lstModel: any[]): Observable<any> {
     return this.http.post(`${this.baseUrl}/check-price`, lstModel);
+  }
+
+  quotePrice(lstModel: any[]): Observable<any> {
+    return this.http.post(`${this.baseUrl}/quote-price`, lstModel);
   }
 }

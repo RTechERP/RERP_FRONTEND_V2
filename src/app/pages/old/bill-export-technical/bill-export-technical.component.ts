@@ -77,8 +77,9 @@ export class BillExportTechnicalComponent implements OnInit, AfterViewInit {
   private ngbModal = inject(NgbModal);
   selectedRow: any = '';
   sizeTbDetail: any = '0';
-  dateStart: string = '';
-  dateEnd: string = '';
+  dateStart: Date | null = null;
+  dateEnd: Date | null = null;
+  
   employeeID: number | null = null;
   status: number[] = [];
   filterText: string = '';
@@ -114,6 +115,12 @@ export class BillExportTechnicalComponent implements OnInit, AfterViewInit {
       this.warehouseType = this.tabData.warehouseType || 1;
     }
   }
+  
+  private formatDate(date: Date | null): string {
+    if (!date) return '';
+    return date.toISOString().split('T')[0];
+  }
+  
   ngAfterViewInit(): void {
     this.drawTable();
   }

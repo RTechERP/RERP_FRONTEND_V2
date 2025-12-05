@@ -1114,7 +1114,7 @@ export class ProjectPartlistPriceRequestFormComponent
         Note: note,
         DateRequest: this.requestDate ? new Date(this.requestDate) : null,
         EmployeeID: Number(this.requester) || null,
-        CustomerID: Number(this.customerID) || null,
+       // CustomerID: Number(this.customerID) || null,
         IsJobRequirement: isJobRequirement,
         IsCommercialProduct: isCommercialProduct,
         ProjectPartlistID: projectPartlistId,

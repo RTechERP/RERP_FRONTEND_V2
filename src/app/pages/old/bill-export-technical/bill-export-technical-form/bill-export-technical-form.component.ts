@@ -83,6 +83,8 @@ export class BillExportTechnicalFormComponent implements OnInit, AfterViewInit {
   childTableTemplate!: TemplateRef<any>;
   @ViewChild('vcHost', { read: ViewContainerRef, static: true })
   vcr!: ViewContainerRef;
+  @ViewChild('deviceTempTable', { static: false })
+  deviceTempTableRef!: ElementRef;
   productOptions: any[] = [];
   productOptionsLoaded: boolean = false;
   employeesLoaded: boolean = false;
@@ -372,7 +374,8 @@ export class BillExportTechnicalFormComponent implements OnInit, AfterViewInit {
   }
   //Vẽ bảng tạm để chọn sản phẩm
   drawTableSelectedDevices() {
-    this.deviceTempTable = new Tabulator('#deviceTempTable', {
+    if (!this.deviceTempTableRef?.nativeElement) return;
+    this.deviceTempTable = new Tabulator(this.deviceTempTableRef.nativeElement, {
       layout: 'fitDataStretch',
       data: this.selectedDevices,
       selectableRows: true,

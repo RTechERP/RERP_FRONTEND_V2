@@ -2005,12 +2005,14 @@ export class MenuService {
           },
           {
             kind: 'leaf',
-            key: 'ProjectPartlistPriceRequestComponent',
+            key: 'ProjectPartlistPriceRequestNewComponent',
             title: 'Yêu cầu báo giá',
             isOpen: true,
             isPermission:
               this.permissionService.hasPermission('N33,N35,N1,N36'),
             comp: ProjectPartlistPriceRequestComponent,
+            // comp: ProjectPartlistPriceRequestNewComponent,
+
             //   icon: 'assets/icon/layers.png',
           },
           {

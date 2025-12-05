@@ -293,7 +293,7 @@ export class BillExportTechnicalFormComponent implements OnInit, AfterViewInit {
       UpdatedDate: [null],
       SupplierSaleID: [0, Validators.required],
       BillDocumentExportType: [null],
-      ApproverID: [54, Validators.required],
+      ApproverID: [this.warehouseType === 2 ? 97 : 54, Validators.required],//54:Phạm Văn Quyền; 97:Bùi Mạnh Cần
       IsDeleted: [false],
       QRCode: [''],
     });

@@ -373,6 +373,7 @@ export class TbProductRtcComponent implements OnInit, AfterViewInit {
       centered: true,
     });
     modalRef.componentInstance.dataInput = this.modalData;
+    modalRef.componentInstance.warehouseType = this.warehouseType;
     modalRef.result.then(
       (result) => {
         this.getGroup();

@@ -46,32 +46,53 @@ export class BillExportTechnicalService {
     });
   }
   approveAction(ids: number[], action: 'approve' | 'unapprove') {
-    return this.http.post<any>(`${this.url}approve-action`, { IDs: ids, Action: action });
+    return this.http.post<any>(`${this.url}approve-action`, {
+      IDs: ids,
+      Action: action,
+    });
   }
   approveBill(billID: number, isApproved: boolean) {
-    return this.http.post<any>(`${this.url}approve-bill`, { BillID: billID, IsApproved: isApproved });
+    return this.http.post<any>(`${this.url}approve-bill`, {
+      BillID: billID,
+      IsApproved: isApproved,
+    });
   }
-  getEmployees(request: { status: number; departmentid: number; keyword: string }): Observable<any> {
+  getEmployees(request: {
+    status: number;
+    departmentid: number;
+    keyword: string;
+  }): Observable<any> {
     const params = new HttpParams()
       .set('status', String(request.status ?? 0))
       .set('departmentid', String(request.departmentid ?? 0))
       .set('keyword', String(request.keyword ?? ''));
-    return this.http.get<any>(`${environment.host}api/Employee/getemployees`, { params });
+    return this.http.get<any>(`${environment.host}api/Employee/getemployees`, {
+      params,
+    });
   }
-  getCustomers(page: number, size: number, filterText: string, employeeId: number, groupId: number): Observable<any> {
+  getCustomers(
+    page: number,
+    size: number,
+    filterText: string,
+    employeeId: number,
+    groupId: number
+  ): Observable<any> {
     const params = new HttpParams()
       .set('page', String(page))
       .set('size', String(size))
       .set('filterText', String(filterText ?? ''))
       .set('employeeId', String(employeeId ?? 0))
       .set('groupId', String(groupId ?? 0));
-    return this.http.get<any>(`${environment.host}api/Customer/get-data-by-procedure`, { params });
+    return this.http.get<any>(
+      `${environment.host}api/Customer/get-data-by-procedure`,
+      { params }
+    );
   }
   getNCC(): Observable<any> {
     return this.http.get<any>(`${environment.host}api/SupplierSale`);
   }
-  getProject(){
-    return this.http.get<any>(`${this.url}get-all-project/`)
+  getProject() {
+    return this.http.get<any>(`${this.url}get-all-project/`);
   }
   getemployee(): Observable<any> {
     return this.http.get<any>(`${environment.host}api/Employee`);
@@ -79,7 +100,11 @@ export class BillExportTechnicalService {
   getUser(): Observable<any> {
     return this.http.get<any>(`${environment.host}api/Users/cbb-user`);
   }
-  loadProduct(status: number, warehouseID: number): Observable<any> {
+  loadProduct(
+    status: number,
+    warehouseID: number,
+    warehouseType: number
+  ): Observable<any> {
     const params = new HttpParams()
       .set('status', String(status))
       .set('warehouseID', String(warehouseID));

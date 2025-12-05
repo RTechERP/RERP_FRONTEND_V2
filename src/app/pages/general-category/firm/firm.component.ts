@@ -2,7 +2,15 @@ import { inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { NgbModal, NgbModalModule } from '@ng-bootstrap/ng-bootstrap';
-import { AfterViewInit, Component, OnInit, ViewEncapsulation, ViewChild, ElementRef, Input } from '@angular/core';
+import {
+  AfterViewInit,
+  Component,
+  OnInit,
+  ViewEncapsulation,
+  ViewChild,
+  ElementRef,
+  Input,
+} from '@angular/core';
 import { NzCardModule } from 'ng-zorro-antd/card';
 import { NzButtonModule, NzButtonSize } from 'ng-zorro-antd/button';
 import { NzIconModule } from 'ng-zorro-antd/icon';
@@ -18,11 +26,16 @@ import { NzAutocompleteModule } from 'ng-zorro-antd/auto-complete';
 import { NzInputModule } from 'ng-zorro-antd/input';
 import { NzSelectModule } from 'ng-zorro-antd/select';
 import { NzTableModule } from 'ng-zorro-antd/table';
-import { TabulatorFull as Tabulator, CellComponent, ColumnDefinition, RowComponent } from 'tabulator-tables';
+import {
+  TabulatorFull as Tabulator,
+  CellComponent,
+  ColumnDefinition,
+  RowComponent,
+} from 'tabulator-tables';
 import 'tabulator-tables/dist/css/tabulator_simple.min.css';
 import { NzTabsModule } from 'ng-zorro-antd/tabs';
 import { NzNotificationService } from 'ng-zorro-antd/notification';
-import { NzModalService, NzModalModule  } from 'ng-zorro-antd/modal';
+import { NzModalService, NzModalModule } from 'ng-zorro-antd/modal';
 import { FirmService } from './firm-service/firm.service';
 import { FirmFormComponent } from './firm-form/firm-form.component';
 import { HasPermissionDirective } from '../../../directives/has-permission.directive';
@@ -56,7 +69,7 @@ import { NOTIFICATION_TITLE } from '../../../app.config';
     NgbModalModule,
     HasPermissionDirective,
     NzModalModule,
-  ]
+  ],
 })
 export class FirmComponent implements OnInit, AfterViewInit {
   private ngbModal = inject(NgbModal);
@@ -70,11 +83,10 @@ export class FirmComponent implements OnInit, AfterViewInit {
   constructor(
     private firmService: FirmService,
     private notification: NzNotificationService,
-    private modal: NzModalService,
-  ) { }
+    private modal: NzModalService
+  ) {}
 
-  ngOnInit() {
-  }
+  ngOnInit() {}
 
   ngAfterViewInit(): void {
     this.getFirms();
@@ -95,9 +107,10 @@ export class FirmComponent implements OnInit, AfterViewInit {
     } else {
       // Lọc dữ liệu theo mã hoặc tên
       const searchTerm = this.searchText.toLowerCase().trim();
-      this.firmData = this.originalData.filter(firm =>
-        (firm.FirmCode && firm.FirmCode.toLowerCase().includes(searchTerm)) ||
-        (firm.FirmName && firm.FirmName.toLowerCase().includes(searchTerm))
+      this.firmData = this.originalData.filter(
+        (firm) =>
+          (firm.FirmCode && firm.FirmCode.toLowerCase().includes(searchTerm)) ||
+          (firm.FirmName && firm.FirmName.toLowerCase().includes(searchTerm))
       );
     }
 
@@ -115,28 +128,57 @@ export class FirmComponent implements OnInit, AfterViewInit {
         data: this.firmData,
         ...DEFAULT_TABLE_CONFIG,
         paginationMode: 'local', // Override để sử dụng local pagination thay vì remote
-        layout: "fitDataStretch",
-        groupBy: "FirmType", // Nhóm theo FirmType
-        groupHeader: function(value: number, count: number, data: any[], group: any) {
+        layout: 'fitDataStretch',
+        groupBy: 'FirmType', // Nhóm theo FirmType
+        groupHeader: function (
+          value: number,
+          count: number,
+          data: any[],
+          group: any
+        ) {
           let displayValue = '';
           if (value === 1) {
             displayValue = 'Sale';
           } else if (value === 2) {
             displayValue = 'Demo';
+          } else if (value === 3) {
+            displayValue = 'AGV';
           } else {
             displayValue = 'Chưa phân loại';
           }
-          return displayValue + ' <span class="group-count">(' + count + ' nhà cung cấp)</span>';
+          return (
+            displayValue +
+            ' <span class="group-count">(' +
+            count +
+            ' nhà cung cấp)</span>'
+          );
         },
         columns: [
-          { title: 'ID', field: 'ID', headerHozAlign: 'center', width: 90, visible: false },
-          { title: 'Mã hãng', field: 'FirmCode', width: 300, headerHozAlign: 'center', formatter: 'textarea' },
-          { title: 'Tên hãng', field: 'FirmName', headerHozAlign: 'center', formatter: 'textarea' },
+          {
+            title: 'ID',
+            field: 'ID',
+            headerHozAlign: 'center',
+            width: 90,
+            visible: false,
+          },
+          {
+            title: 'Mã hãng',
+            field: 'FirmCode',
+            width: 300,
+            headerHozAlign: 'center',
+            formatter: 'textarea',
+          },
+          {
+            title: 'Tên hãng',
+            field: 'FirmName',
+            headerHozAlign: 'center',
+            formatter: 'textarea',
+          },
           {
             title: 'Loại',
             field: 'FirmType',
             headerHozAlign: 'center',
-            formatter: function(cell: CellComponent) {
+            formatter: function (cell: CellComponent) {
               const value = cell.getValue();
               if (value === 1) {
                 return 'Sale';
@@ -145,12 +187,12 @@ export class FirmComponent implements OnInit, AfterViewInit {
               } else {
                 return '';
               }
-            }
-            ,visible: false
+            },
+            visible: false,
           },
         ],
         rowClick: (e: MouseEvent, row: RowComponent) => {
-          this.firmTable!.getSelectedRows().forEach(r => r.deselect());
+          this.firmTable!.getSelectedRows().forEach((r) => r.deselect());
           row.select();
           this.selectedFirm = row.getData();
         },
@@ -163,7 +205,7 @@ export class FirmComponent implements OnInit, AfterViewInit {
       size: 'lg',
       backdrop: 'static',
       keyboard: false,
-      centered: true
+      centered: true,
     });
     modalRef.componentInstance.dataInput = this.modalData;
     modalRef.result.then(
@@ -181,13 +223,19 @@ export class FirmComponent implements OnInit, AfterViewInit {
   onEditFirm(): void {
     const selected = this.firmTable?.getSelectedData();
     if (!selected || selected.length === 0) {
-      this.notification.warning(NOTIFICATION_TITLE.warning, 'Vui lòng chọn một hãng để sửa!');
+      this.notification.warning(
+        NOTIFICATION_TITLE.warning,
+        'Vui lòng chọn một hãng để sửa!'
+      );
       return;
     }
 
     // Chỉ cho phép sửa 1 dòng
     if (selected.length > 1) {
-      this.notification.warning(NOTIFICATION_TITLE.warning, 'Vui lòng chỉ chọn một hãng để sửa!');
+      this.notification.warning(
+        NOTIFICATION_TITLE.warning,
+        'Vui lòng chỉ chọn một hãng để sửa!'
+      );
       return;
     }
 
@@ -196,7 +244,7 @@ export class FirmComponent implements OnInit, AfterViewInit {
       size: 'lg',
       backdrop: 'static',
       keyboard: false,
-      centered: true
+      centered: true,
     });
     modalRef.componentInstance.dataInput = selectedFirm;
     modalRef.result.then(
@@ -214,7 +262,10 @@ export class FirmComponent implements OnInit, AfterViewInit {
   onDeleteFirm() {
     const selected = this.firmTable?.getSelectedData();
     if (!selected || selected.length === 0) {
-      this.notification.warning(NOTIFICATION_TITLE.warning, 'Vui lòng chọn hãng để xóa!');
+      this.notification.warning(
+        NOTIFICATION_TITLE.warning,
+        'Vui lòng chọn hãng để xóa!'
+      );
       return;
     }
 
@@ -222,7 +273,6 @@ export class FirmComponent implements OnInit, AfterViewInit {
     const firmCodes = selected.map((x: any) => x.FirmCode).join(', ');
     const ids = selected.map((x: any) => x['ID']);
     const numberIds = ids.map((id: number) => Number(id));
-
 
     // Sử dụng NZ Modal thay vì confirm
     this.modal.confirm({
@@ -233,18 +283,23 @@ export class FirmComponent implements OnInit, AfterViewInit {
       nzOkDanger: true,
       nzCancelText: 'Hủy',
       nzOnOk: () => {
-
-    this.firmService.deleteFirm(numberIds).subscribe({
-      next: () => {
-        this.notification.success(NOTIFICATION_TITLE.success, 'Xóa thành công!');
-        this.getFirms();
+        this.firmService.deleteFirm(numberIds).subscribe({
+          next: () => {
+            this.notification.success(
+              NOTIFICATION_TITLE.success,
+              'Xóa thành công!'
+            );
+            this.getFirms();
+          },
+          error: (err) => {
+            console.error(err);
+            this.notification.warning(
+              NOTIFICATION_TITLE.warning,
+              'Có lỗi xảy ra khi xóa!'
+            );
+          },
+        });
       },
-      error: (err) => {
-        console.error(err);
-        this.notification.warning(NOTIFICATION_TITLE.warning, 'Có lỗi xảy ra khi xóa!');
-      }
-    });
-      }
     });
   }
 }

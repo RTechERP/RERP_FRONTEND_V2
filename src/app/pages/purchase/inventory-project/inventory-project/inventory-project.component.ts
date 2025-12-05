@@ -197,6 +197,7 @@ export class InventoryProjectComponent implements OnInit, AfterViewInit {
   drawTable() {
     this.inventoryProjectTable = new Tabulator('#inventoryProjectTable', {
       ...DEFAULT_TABLE_CONFIG,
+      layout:'fitDataStretch',
       groupBy: 'WarehouseCode',
       groupHeader: function (value, count, data, group) {
         return `Mã kho: ${value}`;
@@ -219,6 +220,7 @@ export class InventoryProjectComponent implements OnInit, AfterViewInit {
           field: 'ProductName',
           minWidth: 250,
           bottomCalc: 'count',
+          formatter: 'textarea',
         },
         {
           title: 'Mã nội bộ',

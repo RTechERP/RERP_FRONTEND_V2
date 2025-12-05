@@ -2432,7 +2432,7 @@ export class MenuService {
       //#region Cá nhân
       {
         kind: 'group',
-        key: 'tonghopcong',
+        key: 'person',
         title: 'CÁ NHÂN',
         isOpen: true,
         isPermission: this.permissionService.hasPermission(''),

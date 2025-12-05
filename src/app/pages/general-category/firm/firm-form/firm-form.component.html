@@ -1,61 +1,47 @@
 <div class="modal-header bg-primary p-2">
-  <h6 class="modal-title text-white text-uppercase" id="firmModalLabel">
-    {{ dataInput.ID ? 'Sửa hãng' : 'Thêm mới hãng' }}
-  </h6>
-  <button type="button" class="btn-close" aria-label="Close" (click)="closeModal()"></button>
+    <h6 class="modal-title text-white text-uppercase" id="firmModalLabel">
+        {{ dataInput.ID ? 'Sửa hãng' : 'Thêm mới hãng' }}
+    </h6>
+    <button type="button" class="btn-close" aria-label="Close" (click)="closeModal()"></button>
 </div>
 
 <div class="modal-body">
-  <form class="row g-3" [formGroup]="firmForm">
-    <div class="col-md-12">
-      <label for="firmCodeInput" class="form-label">Mã hãng<span class="text-danger">*</span></label>
-      <nz-input-group>
-        <input 
-          id="firmCodeInput" 
-          nz-input 
-          formControlName="firmCode" 
-          placeholder="Nhập mã hãng" />
-        <ng-template #prefixIcon><i nz-icon nzType="apartment"></i></ng-template>
-      </nz-input-group>
-      <div *ngIf="isFieldInvalid('firmCode')" class="text-danger mt-1">
-        {{ getFieldError('firmCode') }}
-      </div>
-    </div>
-    <div class="col-md-12">
-      <label for="firmNameInput" class="form-label">Tên hãng<span class="text-danger">*</span></label>
-      <nz-input-group>
-        <input 
-          id="firmNameInput" 
-          nz-input 
-          formControlName="firmName" 
-          placeholder="Nhập tên hãng" />
-        <ng-template #prefixIcon><i nz-icon nzType="apartment"></i></ng-template>
-      </nz-input-group>
-      <div *ngIf="isFieldInvalid('firmName')" class="text-danger mt-1">
-        {{ getFieldError('firmName') }}
-      </div>
-    </div>
-    <div class="col-md-12">
-      <label for="firmTypeSelect" class="form-label">Loại hãng<span class="text-danger">*</span></label>
-      <nz-select 
-        id="firmTypeSelect"
-        nzPlaceHolder="Chọn loại hãng" 
-        formControlName="firmType" 
-        style="width: 100%;">
-        <nz-option 
-          *ngFor="let type of firmTypes" 
-          [nzValue]="type.value" 
-          [nzLabel]="type.label">
-        </nz-option>
-      </nz-select>
-      <div *ngIf="isFieldInvalid('firmType')" class="text-danger mt-1">
-        {{ getFieldError('firmType') }}
-      </div>
-    </div>
-  </form>
+    <form class="row g-3" [formGroup]="firmForm">
+        <div class="col-md-12">
+            <label for="firmCodeInput" class="form-label">Mã hãng<span class="text-danger">*</span></label>
+            <nz-input-group>
+                <input id="firmCodeInput" nz-input formControlName="firmCode" placeholder="Nhập mã hãng" />
+                <ng-template #prefixIcon><i nz-icon nzType="apartment"></i></ng-template>
+            </nz-input-group>
+            <div *ngIf="isFieldInvalid('firmCode')" class="text-danger mt-1">
+                {{ getFieldError('firmCode') }}
+            </div>
+        </div>
+        <div class="col-md-12">
+            <label for="firmNameInput" class="form-label">Tên hãng<span class="text-danger">*</span></label>
+            <nz-input-group>
+                <input id="firmNameInput" nz-input formControlName="firmName" placeholder="Nhập tên hãng" />
+                <ng-template #prefixIcon><i nz-icon nzType="apartment"></i></ng-template>
+            </nz-input-group>
+            <div *ngIf="isFieldInvalid('firmName')" class="text-danger mt-1">
+                {{ getFieldError('firmName') }}
+            </div>
+        </div>
+        <div class="col-md-12">
+            <label for="firmTypeSelect" class="form-label">Loại hãng<span class="text-danger">*</span></label>
+            <nz-select id="firmTypeSelect" nzPlaceHolder="Chọn loại hãng" formControlName="firmType"
+                style="width: 100%;">
+                <nz-option *ngFor="let type of firmTypes" [nzValue]="type.value" [nzLabel]="type.label">
+                </nz-option>
+            </nz-select>
+            <div *ngIf="isFieldInvalid('firmType')" class="text-danger mt-1">
+                {{ getFieldError('firmType') }}
+            </div>
+        </div>
+    </form>
 </div>
 
 <div class="modal-footer">
-  <button nz-button nzType="default" (click)="closeModal()">Đóng</button>
-  <button nz-button nzType="primary" (click)="saveData()" *hasPermission="'N27,N31,N1,N35'">Lưu</button>
+    <button nz-button nzType="default" (click)="closeModal()">Đóng</button>
+    <button nz-button nzType="primary" (click)="saveData()" *hasPermission="'N27,N31,N1,N35'">Lưu</button>
 </div>

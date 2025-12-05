@@ -17,8 +17,8 @@ export class TbProductRtcService {
   getProductRTCCode() {
     return this.http.get<any>(`${this.url + `get-product-code`}`);
   }
-  getFirm() {
-    return this.http.get<any>(`${this.urlFirm}`);
+  getFirm(firmType: number) {
+    return this.http.get<any>(`${this.urlFirm}?firmType=${firmType}`);
   }
   getLocation(id: number): Observable<any> {
     const url = `${this.url + `get-location`}?warehouseID=${id}`;

@@ -281,7 +281,11 @@ export class TbProductRtcFormComponent implements OnInit, AfterViewInit {
   }
 
   getFirm() {
-    this.tbProductRtcService.getFirm().subscribe((response: any) => {
+    let firmType = 1;
+    if (this.warehouseType == 1) firmType = 2;
+    else if (this.warehouseType == 2) firmType = 3;
+
+    this.tbProductRtcService.getFirm(firmType).subscribe((response: any) => {
       this.firmData = response.data;
       console.log('Firm:', this.firmData);
       this.revalidateSelects();

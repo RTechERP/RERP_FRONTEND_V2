@@ -85,7 +85,6 @@ export class InventoryDemoComponent implements OnInit, AfterViewInit {
   isSearchVisible: boolean = false;
   // nhận data
   productGroupData: any[] = [];
-  productData: any[] = [];
   // lọc theo Store
   productGroupID: number = 0;
   keyWord: string = '';
@@ -113,10 +112,10 @@ export class InventoryDemoComponent implements OnInit, AfterViewInit {
   ) {}
   ngAfterViewInit(): void {
     this.getGroup();
-    this.getProduct();
     // Delay nhỏ để đảm bảo DOM có thể render xong
     setTimeout(() => {
       this.drawTable();
+      // Tabulator sẽ tự động load data qua ajax khi khởi tạo
     }, 0);
   }
   ngOnInit(): void {
@@ -138,35 +137,50 @@ export class InventoryDemoComponent implements OnInit, AfterViewInit {
   }
   onKeywordChange(value: string): void {
     this.keyWord = value;
-    this.getProduct();
+    this.reloadTableData();
   }
-  getProduct() {
-    const request = {
-      productGroupID: this.productGroupID || 0,
-      keyWord: this.keyWord || '',
-      checkAll: 1,
-      warehouseID: this.warehouseID || 1,
-      productRTCID: this.productRTCID || 0,
-      warehouseType: this.warehouseType || 1,
-    };
-    this.inventoryDemoService
-      .getInventoryDemo(request)
-      .subscribe((response: any) => {
-        this.productData = response.products || [];
-        console.log('product', this.productData);
-        this.productTable?.setData(this.productData);
-      });
-  }
+  
   onGroupChange(groupID: number): void {
     this.productGroupID = groupID;
-    this.getProduct();
+    this.reloadTableData();
   }
+  
   onSearchModeChange(mode: string): void {
     this.searchMode = mode;
     if (mode === 'all') {
       this.productGroupID = 0;
     }
-    this.getProduct();
+    this.reloadTableData();
+  }
+
+  // Reload data bằng cách trigger ajax request của Tabulator
+  reloadTableData(): void {
+    if (this.productTable) {
+      // Với paginationMode: 'remote', cần force reload bằng cách set page về 1 hoặc gọi setData()
+      const currentPage = this.productTable.getPage();
+      if (currentPage === 1) {
+        // Nếu đang ở trang 1, force reload bằng cách replaceData rồi setPage
+        this.productTable.replaceData([]).then(() => {
+          this.productTable?.setPage(1);
+        });
+      } else {
+        // Nếu không ở trang 1, set về trang 1 sẽ tự động trigger ajax reload
+        this.productTable.setPage(1);
+      }
+    }
+  }
+
+  // Hàm tìm kiếm - reload data với filter hiện tại
+  onSearch(): void {
+    this.reloadTableData();
+  }
+
+  // Hàm đặt lại filter về mặc định
+  onReset(): void {
+    this.productGroupID = 0;
+    this.keyWord = '';
+    this.searchMode = 'group';
+    this.reloadTableData();
   }
 
   cellColorFormatter(cell: any): any {
@@ -201,9 +215,7 @@ export class InventoryDemoComponent implements OnInit, AfterViewInit {
       },
     ];
 
-    if (this.productTable) {
-      this.productTable.setData(this.productData);
-    } else {
+    if (!this.productTable) {
       this.productTable = new Tabulator(this.productTableRef.nativeElement, {
         ...DEFAULT_TABLE_CONFIG,
         layout: 'fitDataStretch',
@@ -213,21 +225,51 @@ export class InventoryDemoComponent implements OnInit, AfterViewInit {
         paginationSize: 30,
         paginationSizeSelector: [5, 10, 20, 50, 100],
         reactiveData: true,
-        paginationMode: 'local',
+        paginationMode: 'remote',
         placeholder: 'Không có dữ liệu',
         dataTree: true,
         history: true,
         rowContextMenu: rowMenu,
+        ajaxURL: this.inventoryDemoService.getProductAjax(),
+        ajaxConfig: 'POST',
+        ajaxRequestFunc: (url: string, config: any, params: any) => {
+          const request = {
+            productGroupID: this.productGroupID || 0,
+            keyWord: this.keyWord || '',
+            checkAll: 1,
+            warehouseID: this.warehouseID || 1,
+            productRTCID: this.productRTCID || 0,
+            warehouseType: this.warehouseType || 1,
+          };
+          return this.inventoryDemoService.getInventoryDemo(request).toPromise().then((response: any) => {
+            // Trả về response gốc từ API để ajaxResponse xử lý
+            return response;
+          });
+        },
+        ajaxResponse: (url: string, params: any, response: any) => {
+          // Kiểm tra nếu response đã có format { data: [...], last_page: ... } thì trả về trực tiếp
+          if (response && Array.isArray(response.data) && typeof response.last_page === 'number') {
+            return response;
+          }
+          
+          // Xử lý format cũ: response.products
+          return {
+            data: response?.products || response?.data || [],
+            last_page: response?.TotalPage?.[0]?.TotalPage || response?.last_page || 1,
+          };
+        },
         columns: [
           {
             title: 'Mã sản phẩm',
             field: 'ProductCode',
             formatter: this.cellColorFormatter.bind(this),
+            frozen: true,
           },
           {
             title: 'Tên sản phẩm',
             field: 'ProductName',
             formatter: this.cellColorFormatter.bind(this),
+            frozen: true,
           },
           {
             title: 'Vị trí (Hộp)',
@@ -415,6 +457,8 @@ export class InventoryDemoComponent implements OnInit, AfterViewInit {
     modalRef.result.then(
       (result) => {
         this.getGroup();
+        // Reload table data sau khi update QR code
+        this.reloadTableData();
       },
       (dismissed) => {
         console.log('Modal dismissed');
@@ -423,7 +467,7 @@ export class InventoryDemoComponent implements OnInit, AfterViewInit {
   }
   onReportNCC() {
     const modalRef = this.ngbModal.open(InventoryBorrowSupplierDemoComponent, {
-      centered: true,
+      // centered: true,
       backdrop: 'static',
       keyboard: false,
       windowClass: 'full-screen-modal',
@@ -431,6 +475,8 @@ export class InventoryDemoComponent implements OnInit, AfterViewInit {
     modalRef.result.then(
       (result) => {
         this.getGroup();
+        // Reload table data sau khi report NCC
+        this.reloadTableData();
       },
       (dismissed) => {
         console.log('Modal dismissed');
@@ -440,7 +486,8 @@ export class InventoryDemoComponent implements OnInit, AfterViewInit {
   async exportToExcelProduct() {
     if (!this.productTable) return;
 
-    const selectedData = [...this.productData];
+    // Lấy dữ liệu từ table thay vì productData
+    const selectedData = this.productTable.getData();
     if (!selectedData || selectedData.length === 0) {
       this.notification.info('Thông báo', 'Không có dữ liệu để xuất Excel.');
       return;

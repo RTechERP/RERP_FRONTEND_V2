@@ -156,7 +156,7 @@
               </ng-template>
               <nz-tabset style=" padding-left: 10px !important;" [nzTabBarExtraContent]="tabClose">
 
-                <nz-tab  nzTitle="Thông tin phiếu nhập">
+                <nz-tab [nzTitle]="tabDetailTitle">
                   <nz-spin [nzSpinning]="isDetailLoad" nzTip="Đang tải dữ liệu...">
                     <div #tableBillImportDetailRef></div>
                   </nz-spin>

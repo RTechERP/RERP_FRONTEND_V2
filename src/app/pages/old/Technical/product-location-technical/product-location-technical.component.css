@@ -1,0 +1,62 @@
+/* ProductLocation Technical Component Styles */
+/* Set font-size 12px (0.75rem) for entire component */
+:host {
+  font-size: 0.75rem;
+}
+
+.card {
+  font-size: 0.75rem;
+}
+
+.card-header {
+  font-size: 0.75rem;
+}
+
+.card-body {
+  font-size: 0.75rem;
+}
+
+/* Buttons */
+.btn-add,
+.btn-edit,
+.btn-delete,
+.btn-refresh,
+nz-button {
+  font-size: 0.75rem;
+}
+
+::ng-deep .ant-btn {
+  font-size: 0.75rem;
+}
+
+/* Input fields */
+.form-control {
+  font-size: 0.75rem;
+}
+
+.form-control-sm {
+  font-size: 0.75rem;
+}
+
+/* Tabulator table */
+.tabulator {
+  font-size: 0.75rem;
+}
+
+::ng-deep .tabulator .tabulator-header {
+  font-size: 0.75rem;
+}
+
+::ng-deep .tabulator .tabulator-cell {
+  font-size: 0.75rem;
+}
+
+/* Icons */
+nz-icon {
+  font-size: 0.75rem;
+}
+
+::ng-deep .anticon {
+  font-size: 0.75rem;
+}
+

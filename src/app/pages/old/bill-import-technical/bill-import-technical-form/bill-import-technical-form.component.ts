@@ -188,7 +188,7 @@ export class BillImportTechnicalFormComponent implements OnInit, AfterViewInit {
     private appUserService: AppUserService,
     private tabulatorPopupService: TabulatorPopupService,
     private billExportService: BillExportService
-  ) {}
+  ) { }
 
   supplierOrCustomerValidator(
     control: AbstractControl
@@ -223,7 +223,7 @@ export class BillImportTechnicalFormComponent implements OnInit, AfterViewInit {
       SupplierSaleID: [null, this.supplierOrCustomerValidator.bind(this)],
       RulePayID: [34, Validators.required],
       CustomerID: [null, this.supplierOrCustomerValidator.bind(this)],
-      ApproverID: [54, Validators.required],
+      ApproverID: [this.warehouseType === 2 ? 97 : 54, Validators.required],//54:Phạm Văn Quyền; 97:Bùi Mạnh Cần
       Receiver: [''],
       Status: [false],
       Suplier: [''],
@@ -258,6 +258,19 @@ export class BillImportTechnicalFormComponent implements OnInit, AfterViewInit {
       ?.valueChanges.subscribe((billType: number) => {
         this.updateColumnVisibility(billType);
       });
+
+    // Subscribe to DeliverID changes to auto-fill Deliver (FullName)
+    this.formDeviceInfo.get('DeliverID')?.valueChanges.subscribe((deliverID: number) => {
+      if (deliverID && this.emPloyeeLists && this.emPloyeeLists.length > 0) {
+        const employee = this.emPloyeeLists.find((e: any) => e.ID === deliverID);
+        if (employee && employee.FullName) {
+          this.formDeviceInfo.patchValue({ Deliver: employee.FullName }, { emitEvent: false });
+        }
+      }
+    });
+
+    // Disable WarehouseType field - không cho sửa
+    this.formDeviceInfo.get('WarehouseType')?.disable();
   }
 
   // Method to update column visibility based on BillTypeNew
@@ -479,6 +492,15 @@ export class BillImportTechnicalFormComponent implements OnInit, AfterViewInit {
   }
   onDeliverIDChanged() {
     this.applyFormPermissions();
+
+    // Auto-fill Deliver (FullName) when DeliverID changes
+    const deliverID = this.formDeviceInfo.get('DeliverID')?.value;
+    if (deliverID && this.emPloyeeLists && this.emPloyeeLists.length > 0) {
+      const employee = this.emPloyeeLists.find((e: any) => e.ID === deliverID);
+      if (employee && employee.FullName) {
+        this.formDeviceInfo.patchValue({ Deliver: employee.FullName }, { emitEvent: false });
+      }
+    }
   }
   //#endregion
 
@@ -864,7 +886,7 @@ export class BillImportTechnicalFormComponent implements OnInit, AfterViewInit {
   // Vẽ bảng tạm chọn thiết bị
   drawTableSelectedDevices() {
     this.deviceTempTable = new Tabulator(this.tableDeviceTemp.nativeElement, {
-      layout: 'fitColumns',
+      layout: 'fitDataStretch',
       data: this.selectedDevices,
       selectableRows: true,
       height: '40vh',
@@ -914,12 +936,10 @@ export class BillImportTechnicalFormComponent implements OnInit, AfterViewInit {
             const product = this.productOptions.find((p) => p.ID === productId);
             const productCode = product ? product.ProductCode : '';
             return `
-              <button class="btn-toggle-detail w-100 h-100" title="${
-                productCode || 'Chọn sản phẩm'
+              <button class="btn-toggle-detail w-100 h-100" title="${productCode || 'Chọn sản phẩm'
               }">
-                <span class="product-code-text">${
-                  productCode || 'Chọn SP'
-                }</span>
+                <span class="product-code-text">${productCode || 'Chọn SP'
+              }</span>
                 <span class="arrow">&#9662;</span>
               </button>
             `;
@@ -1068,6 +1088,7 @@ export class BillImportTechnicalFormComponent implements OnInit, AfterViewInit {
           hozAlign: 'center',
           width: 40,
           headerSort: false,
+          visible: false,
           titleFormatter: () => `
     <div style="display: flex; justify-content: center; align-items: center; height: 100%;">
       <i class="fas fa-plus text-success cursor-pointer" title="Thêm dòng"></i>
@@ -1158,7 +1179,7 @@ export class BillImportTechnicalFormComponent implements OnInit, AfterViewInit {
         rowData['SerialIDs'] = serialIDs;
         row.update(rowData);
       })
-      .catch(() => {});
+      .catch(() => { });
   }
   // Thêm dòng mới vào bảng tạm
   addRow() {

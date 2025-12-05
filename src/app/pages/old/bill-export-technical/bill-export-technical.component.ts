@@ -26,6 +26,7 @@ import {
 } from 'tabulator-tables';
 import 'tabulator-tables/dist/css/tabulator_simple.min.css';
 import { NzTabsModule } from 'ng-zorro-antd/tabs';
+import { NzSpinModule } from 'ng-zorro-antd/spin';
 import { DateTime } from 'luxon';
 // @ts-ignore
 import { saveAs } from 'file-saver';
@@ -60,6 +61,7 @@ function formatDateCell(cell: CellComponent): string {
     NzSelectModule,
     NzTableModule,
     NzTabsModule,
+    NzSpinModule,
     NgbModalModule,
     HasPermissionDirective,
   ],
@@ -88,6 +90,8 @@ export class BillExportTechnicalComponent implements OnInit, AfterViewInit {
   warehouseID: number = 1;
   selectedApproval: number | null = null;
   isSearchVisible: boolean = false;
+  isDetailLoad: boolean = false;
+  tabDetailTitle: string = 'Thông tin phiếu xuất';
   //List  Dữ liệu phiếu xuất
   billExportTechnicalData: any[] = [];
   // Bảng Tabulator của phiếu xuất
@@ -240,13 +244,21 @@ export class BillExportTechnicalComponent implements OnInit, AfterViewInit {
         const rowData = row.getData();
         this.selectedRow = rowData;
         this.sizeTbDetail = null;
+        this.updateTabDetailTitle();
         const id = rowData['ID'];
+        this.isDetailLoad = true;
         this.billExportTechnicalService
           .getBillExportDetail(id)
-          .subscribe((res) => {
-            const details = Array.isArray(res.billDetail) ? res.billDetail : [];
-            this.billExportTechnicalDetailData = details;
-            this.drawDetailTable();
+          .subscribe({
+            next: (res) => {
+              const details = Array.isArray(res.billDetail) ? res.billDetail : [];
+              this.billExportTechnicalDetailData = details;
+              this.drawDetailTable();
+              this.isDetailLoad = false;
+            },
+            error: () => {
+              this.isDetailLoad = false;
+            }
           });
       }
     );
@@ -522,5 +534,15 @@ export class BillExportTechnicalComponent implements OnInit, AfterViewInit {
     modalRef.componentInstance.formSubmitted.subscribe(() => {
       this.billExportTechnicalTable?.setData();
     });
+  }
+  closePanel() {
+    this.sizeTbDetail = '0';
+  }
+  updateTabDetailTitle(): void {
+    if (this.selectedRow?.Code) {
+      this.tabDetailTitle = `Thông tin phiếu xuất - ${this.selectedRow.Code}`;
+    } else {
+      this.tabDetailTitle = 'Thông tin phiếu xuất';
+    }
   }
 }

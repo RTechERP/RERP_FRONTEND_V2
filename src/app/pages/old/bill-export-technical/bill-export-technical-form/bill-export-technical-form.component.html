@@ -14,9 +14,9 @@
 <div class="modal-body">
   <!-- === PHẦN TRÊN: FORM THIẾT BỊ === -->
   <form nz-form [formGroup]="formDeviceInfo" nzLayout="vertical" class="fs-7 mt-1 tab-content-equal-height" style="font-size: 12px;">
-    <!-- Row 1: Số phiếu (16) Người mượn(8) -->
+    <!-- Row 1: Số phiếu (24 nếu isBorrowType, 16 nếu không) Người mượn(8) -->
     <nz-row [nzGutter]="24">
-      <nz-col [nzSpan]="16">
+      <nz-col [nzSpan]="!isBorrowType ? 24 : 16">
         <nz-form-item>
           <nz-form-label required>Số phiếu<span style="color: red">(*)</span></nz-form-label>
           <nz-form-control [nzErrorTip]="'Vui lòng nhập số phiếu'">
@@ -24,7 +24,7 @@
           </nz-form-control>
         </nz-form-item>
       </nz-col>
-      <nz-col [nzSpan]="8">
+      <nz-col [nzSpan]="8" *ngIf="isBorrowType">
         <nz-form-item>
           <nz-form-label required>Người mượn<span style="color: red">(*)</span></nz-form-label>
           <nz-form-control [nzErrorTip]="'Vui lòng chọn người mượn'">
@@ -114,7 +114,7 @@
           </nz-form-control>
         </nz-form-item>
       </nz-col>
-      <nz-col [nzSpan]="4">
+      <nz-col [nzSpan]="!isBorrowType ? 8 : 4">
         <nz-form-item>
           <nz-form-label>QR Code</nz-form-label>
           <nz-form-control>
@@ -122,7 +122,7 @@
           </nz-form-control>
         </nz-form-item>
       </nz-col>
-      <nz-col [nzSpan]="4">
+      <nz-col [nzSpan]="4" *ngIf="isBorrowType">
         <nz-form-item>
           <nz-form-label>Ngày dự kiến trả<span style="color: red">(*)</span></nz-form-label>
           <nz-form-control [nzErrorTip]="'Vui lòng chọn ngày dự kiến trả'">
@@ -131,7 +131,7 @@
           </nz-form-control>
         </nz-form-item>
       </nz-col>
-      <nz-col [nzSpan]="8">
+      <nz-col [nzSpan]="8" >
         <nz-form-item>
           <nz-form-label required>Người nhận<span style="color: red">(*)</span></nz-form-label>
           <nz-form-control [nzErrorTip]="'Vui lòng chọn người nhận'">
@@ -183,7 +183,7 @@
     </nz-row>
   </form>
   <div class="mt-4">
-    <div #deviceTempTable style="height: 44vh;"></div>
+    <div #deviceTempTable style="height: 37vh;"></div>
   </div>
 
 </div>

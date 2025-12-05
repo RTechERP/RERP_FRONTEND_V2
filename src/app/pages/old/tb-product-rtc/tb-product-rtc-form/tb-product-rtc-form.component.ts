@@ -104,7 +104,7 @@ export class TbProductRtcFormComponent implements OnInit, AfterViewInit {
     if (!this.dataInput) {
       this.dataInput = {};
     }
-    if (this.dataInput) {
+    if (this.dataInput && this.dataInput.ID) {
       // Chế độ sửa
       this.patchFormData(this.dataInput);
       this.dataInput.BorrowCustomer = this.dataInput.BorrowCustomer ?? false;
@@ -114,10 +114,11 @@ export class TbProductRtcFormComponent implements OnInit, AfterViewInit {
     } else {
       // Chế độ thêm mới
       this.formDeviceInfo.reset();
+      // Chỉ tạo code mới khi thêm mới
+      this.getProductCode();
     }
     // this.getProduct();
     this.getunit();
-    this.getProductCode();
     this.getGroup();
     this.getFirm();
     this.getLocation();
@@ -202,6 +203,10 @@ export class TbProductRtcFormComponent implements OnInit, AfterViewInit {
   }
   patchFormData(data: any) {
     if (!data) return;
+    // Giữ nguyên ProductCodeRTC khi sửa
+    if (data.ProductCodeRTC) {
+      this.productCode = data.ProductCodeRTC;
+    }
     this.formDeviceInfo.patchValue({
       ...data,
       ProductGroupRTCID: this.toNumberOrNull(data.ProductGroupRTCID),
@@ -246,6 +251,7 @@ export class TbProductRtcFormComponent implements OnInit, AfterViewInit {
     this.unitService.getUnit().subscribe((res: any) => {
       this.unitData = res.data;
       console.log('unit:', this.unitData);
+      this.revalidateSelects();
     });
   }
   getGroup() {
@@ -255,7 +261,10 @@ export class TbProductRtcFormComponent implements OnInit, AfterViewInit {
         this.productGroupData = resppon.data;
         // Bảo vệ khi dataInput là null hoặc thiếu ProductGroupRTCID
         const incomingID = +this.dataInput?.ProductGroupRTCID;
-        if (!incomingID) return;
+        if (!incomingID) {
+          this.revalidateSelects();
+          return;
+        }
 
         setTimeout(() => {
           const matched = this.productGroupData.find(
@@ -264,9 +273,9 @@ export class TbProductRtcFormComponent implements OnInit, AfterViewInit {
           if (matched) {
             this.dataInput.ProductGroupRTCID = matched.ID;
           }
+          this.revalidateSelects();
         });
       });
-    this.revalidateSelects();
   }
   getLocation() {
     const warehouseID = this.dataInput?.WarehouseID ?? 1;
@@ -275,6 +284,9 @@ export class TbProductRtcFormComponent implements OnInit, AfterViewInit {
       .getLocation(warehouseID)
       .subscribe((response: any) => {
         this.locationData = response.data.location;
+        if(this.warehouseType === 2){
+          this.locationData = this.locationData.filter((item: any) => item.LocationType === 4);
+        }
         console.log('Location', this.locationData);
         this.revalidateSelects();
       });
@@ -339,7 +351,8 @@ export class TbProductRtcFormComponent implements OnInit, AfterViewInit {
     }
   }
   getProductCode() {
-    this.tbProductRtcService.getProductRTCCode().subscribe((resppon: any) => {
+    let productGroupID = this.formDeviceInfo.get('ProductGroupRTCID')?.value;
+      this.tbProductRtcService.getProductRTCCode(productGroupID).subscribe((resppon: any) => {
       this.productCode = resppon.data;
       console.log('Code', this.productCode);
     });
@@ -535,12 +548,13 @@ export class TbProductRtcFormComponent implements OnInit, AfterViewInit {
       return;
     }
     const formValue = this.formDeviceInfo.value;
+    const currentProductID = this.dataInput?.ID || 0;
     const isDuplicate = await this.checkDuplicateProduct(
       formValue.ProductCode,
       formValue.SerialNumber,
       formValue.Serial,
       formValue.PartNumber,
-      0
+      currentProductID
     );
     if (isDuplicate) {
       return; // Ngừng lưu nếu bị trùng mã
@@ -643,7 +657,10 @@ export class TbProductRtcFormComponent implements OnInit, AfterViewInit {
           PartNumber: formValue.PartNumber,
           LocationImg: finalLocationImg,
           // LocationImg: formValue.LocationImg || '',
-          ProductCodeRTC: this.productCode,
+          // Khi sửa: giữ nguyên ProductCodeRTC cũ, khi thêm mới: dùng code mới
+          ProductCodeRTC: (this.dataInput?.ID && this.dataInput?.ProductCodeRTC) 
+            ? this.dataInput.ProductCodeRTC 
+            : this.productCode,
           BorrowCustomer: formValue.BorrowCustomer,
           ProductLocationID: formValue.ProductLocationID,
           NumberInStore: formValue.NumberInStore || 0,

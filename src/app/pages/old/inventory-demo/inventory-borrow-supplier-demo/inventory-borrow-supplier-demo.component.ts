@@ -24,6 +24,7 @@ import { InventoryDemoService } from '../inventory-demo-service/inventory-demo.s
 import { BillImportTechnicalFormComponent } from '../../bill-import-technical/bill-import-technical-form/bill-import-technical-form.component';
 import { BillExportTechnicalFormComponent } from '../../bill-export-technical/bill-export-technical-form/bill-export-technical-form.component';
 import { BillExportTechnicalService } from '../../bill-export-technical/bill-export-technical-service/bill-export-technical.service';
+import { BillExportService } from '../../Sale/BillExport/bill-export-service/bill-export.service';
 import { NOTIFICATION_TITLE } from '../../../../app.config';
 @Component({
   standalone: true,
@@ -74,7 +75,8 @@ export class InventoryBorrowSupplierDemoComponent implements OnInit, AfterViewIn
   constructor(private inventoryDemoService: InventoryDemoService,
     private billImportTechnicalService: BillImportTechnicalService,
     private notification: NzNotificationService,
-    private billExportTechnicalService: BillExportTechnicalService
+    private billExportTechnicalService: BillExportTechnicalService,
+    private billExportService: BillExportService
   ) { }
   ngAfterViewInit(): void {
     //Get danh sách NCC
@@ -89,8 +91,19 @@ export class InventoryBorrowSupplierDemoComponent implements OnInit, AfterViewIn
   }
   //lấy ds ncc
   getNCC() {
-    this.billImportTechnicalService.getNCC().subscribe((res: any) => {
-      this.nccList = res.data;
+    // Sử dụng API endpoint mới từ BillExportService
+    this.billExportService.getCbbSupplierSale().subscribe({
+      next: (res: any) => {
+        this.nccList = res.data || [];
+        console.log('NCC List:', this.nccList);
+      },
+      error: (err: any) => {
+        console.error('Error loading NCC:', err);
+        this.notification.error(
+          'Thông báo',
+          'Có lỗi xảy ra khi lấy dữ liệu nhà cung cấp'
+        );
+      },
     });
   }
   // Đóng modal

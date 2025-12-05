@@ -45,7 +45,7 @@
               <nz-form-label [nzSpan]="24">Lọc phiếu</nz-form-label>
               <nz-form-control [nzSpan]="24">
                 <nz-select class="w-100" [(ngModel)]="selectedStatus" (ngModelChange)="onSearch()"
-                  name="isApprovedStatus" nzAllowClear nzSize="small" nzPlaceHolder="Chọn kiểu phiếu">
+                  name="isApprovedStatus" nzSize="small" nzPlaceHolder="Chọn kiểu phiếu">
                   <nz-option *ngFor="let item of statusList" [nzValue]="item.ID" [nzLabel]="item.Name"></nz-option>
                 </nz-select>
               </nz-form-control>
@@ -84,13 +84,13 @@
               <nz-icon nzType="search" />
             </button>
             <button class="fs-12" nz-button nzType="default" nzSize="small" (click)="exportToExcelProduct()">
-              <nz-icon nzType="file-excel" nzTheme="outline" /> Xuất Excel
+              <img class="btn-action-icon" src="assets\icon\action_export_excel_24.svg" /> Xuất Excel
             </button>
           </div>
         </div>
 
         <div class="card-body p-0 d-flex align-items-center justify-content-center" style="position: relative">
-          <div id="dataTableHistoryBill" class="w-100 h-100"></div>
+          <div #dataTableHistoryBillRef class="w-100 h-100"></div>
         </div>
       </div>
     </nz-splitter-panel>

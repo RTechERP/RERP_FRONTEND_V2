@@ -176,6 +176,7 @@ export class TbProductRtcComponent implements OnInit, AfterViewInit {
     const isMobile = window.matchMedia('(max-width: 768px)').matches;
     this.productTable = new Tabulator('#dataTableProduct', {
       ...DEFAULT_TABLE_CONFIG,
+      layout: 'fitDataStretch',
       //   layout: 'fitDataFill',
       //   pagination: true,
       //   selectableRows: 1,
@@ -350,7 +351,7 @@ export class TbProductRtcComponent implements OnInit, AfterViewInit {
       ],
     });
     this.productTable.on('rowDblClick', (e: UIEvent, row: RowComponent) => {
-      const selectedProduct = row.getData();
+      const selectedProduct = { ...row.getData() };
       const modalRef = this.ngbModal.open(TbProductRtcFormComponent, {
         size: 'xl',
         backdrop: 'static',
@@ -358,6 +359,7 @@ export class TbProductRtcComponent implements OnInit, AfterViewInit {
         centered: true,
       });
       modalRef.componentInstance.dataInput = selectedProduct;
+      modalRef.componentInstance.warehouseType = this.warehouseType;
       modalRef.result.then(
         (result) => {
           this.getProduct();

@@ -123,6 +123,7 @@ import { WarehouseComponent1 } from '../../../general-category/wearhouse/warehou
 import { DailyReportSaleComponent } from '../../../old/KPISale/daily-report-sale/daily-report-sale.component';
 import { InventoryByProductComponent } from '../../../purchase/inventory-by-product/inventory-by-product.component';
 import { PersonDayOffComponent } from '../../../hrm/day-off/person-day-off/person-day-off.component';
+import { ProductLocationTechnicalComponent } from '../../../old/Technical/product-location-technical/product-location-technical.component';
 @Injectable({
   providedIn: 'root',
 })
@@ -437,6 +438,18 @@ export class MenuService {
                   },
                   {
                     kind: 'leaf',
+                    key: 'ProductLocationTechnicalComponent',
+                    title: 'Vị trí',
+                    isOpen: true,
+                    isPermission: this.permissionService.hasPermission(''),
+                    comp: ProductLocationTechnicalComponent,
+                    data: {
+                      warehouseID: 1,
+                      warehouseType: 1,
+                    },
+                  },
+                  {
+                    kind: 'leaf',
                     key: 'ProductRtcQrCodeComponent_HN',
                     title: 'QR Code',
                     isOpen: true,
@@ -542,6 +555,18 @@ export class MenuService {
                     isOpen: true,
                     isPermission: this.permissionService.hasPermission(''),
                     comp: BorrowProductHistoryComponent,
+                    data: {
+                      warehouseID: 1,
+                      warehouseType: 2,
+                    },
+                  },
+                  {
+                    kind: 'leaf',
+                    key: 'ProductLocationTechnicalComponent',
+                    title: 'Vị trí',
+                    isOpen: true,
+                    isPermission: this.permissionService.hasPermission(''),
+                    comp: ProductLocationTechnicalComponent,
                     data: {
                       warehouseID: 1,
                       warehouseType: 2,
@@ -1203,6 +1228,7 @@ export class MenuService {
                 isPermission: this.permissionService.hasPermission(''),
                 comp: ProductLocationComponent,
               },
+
               {
                 kind: 'leaf',
                 key: 'FirmComponent',

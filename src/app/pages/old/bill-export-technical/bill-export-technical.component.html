@@ -74,12 +74,12 @@
               <img src="assets/icon/action_approved_16.png" /> Duyệt
             </button>
             <button class="fs-12" *hasPermission="'N18,N52,N1,N80'" nz-button nzType="default" nzSize="small" (click)="onUnApprove()">
-              <img src="assets/icon/action_unapproved_16.png" /> Hủy duyệt
+              <img class="btn-action-icon" src="assets/icon/action_unapproved_16.png" /> Hủy duyệt
             </button>
 
 
             <button class="fs-12" *hasPermission="'N26,N1,N73,N80'" nz-button nzType="default" nzSize="small" (click)="onExportExcel()" >
-              <nz-icon src="assets/icon/action_export_excel_16.png" nzType="file-excel" nzTheme="outline" /> Xuất Phiếu
+              <img class="btn-action-icon" src="assets\icon\action_export_excel_24.svg" /> Xuất Phiếu
             </button>
           </div>
         </div>
@@ -89,7 +89,19 @@
                         <div #billExportTechnicalTableRef></div>
                     </nz-splitter-panel>
                     <nz-splitter-panel [nzCollapsible]="true" nzResizable="true" [nzSize]="sizeTbDetail">
-                        <div #billExportTechnicalDetailTableRef></div>
+                        <!-- bảng chi tiết -->
+                        <ng-template #tabClose>
+                            <button nz-button nzType="text" class="btn-close-panel" style="color: red;" (click)="closePanel()">
+                                <i nz-icon nzType="close"></i>  
+                            </button>
+                        </ng-template>
+                        <nz-tabset style=" padding-left: 10px !important;" [nzTabBarExtraContent]="tabClose">
+                            <nz-tab [nzTitle]="tabDetailTitle">
+                                <nz-spin [nzSpinning]="isDetailLoad" nzTip="Đang tải dữ liệu...">
+                                    <div #billExportTechnicalDetailTableRef></div>
+                                </nz-spin>
+                            </nz-tab>
+                        </nz-tabset>
                     </nz-splitter-panel>
                 </nz-splitter>
             </div>

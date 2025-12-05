@@ -121,6 +121,8 @@ import { InventoryProjectComponent } from '../../../purchase/inventory-project/i
 import { WarehouseComponent } from '../../../warehouse/warehouse.component';
 import { WarehouseComponent1 } from '../../../general-category/wearhouse/warehouse/warehouse.component';
 import { DailyReportSaleComponent } from '../../../old/KPISale/daily-report-sale/daily-report-sale.component';
+import { InventoryByProductComponent } from '../../../purchase/inventory-by-product/inventory-by-product.component';
+import { PersonDayOffComponent } from '../../../hrm/day-off/person-day-off/person-day-off.component';
 @Injectable({
   providedIn: 'root',
 })
@@ -1998,6 +2000,15 @@ export class MenuService {
             comp: WarehouseComponent1,
         
           },
+          {
+            kind: 'leaf',
+            key: 'InventoryByProductComponent',
+            title: 'Tồn kho theo sản phẩm',
+            isOpen: true,
+            isPermission: this.permissionService.hasPermission('N1'),
+            comp: InventoryByProductComponent,
+        
+          },
         ],
       },
 
@@ -2475,12 +2486,29 @@ export class MenuService {
       //#region Cá nhân
       {
         kind: 'group',
-        key: 'person',
+        key: 'tonghopcong',
         title: 'CÁ NHÂN',
         isOpen: true,
         isPermission: this.permissionService.hasPermission(''),
         icon: 'assets/icon/menu_person.svg',
         children: [
+          {
+            kind: 'group',
+            key: 'Tonghopdangkynghi',
+            title: 'Tổng hợp công',
+            isOpen: true,
+            isPermission: this.permissionService.hasPermission(''),
+            children: [
+              {
+                kind: 'leaf',
+                key: 'Tonghopdangkynghi',
+                title: 'Tổng hợp đăng ký nghỉ',
+                isOpen: true,
+                isPermission: this.permissionService.hasPermission('N1'),
+                comp: PersonDayOffComponent,
+              },
+            ]
+          },
           //#region Duyệt cá nhân
           //   {
           //     kind: 'group',
@@ -3084,7 +3112,7 @@ export class MenuService {
             key: 'tbpapproved',
             title: 'Trưởng bộ phận duyệt',
             isOpen: true,
-            isPermission: this.permissionService.hasPermission('N57'),
+            isPermission: this.permissionService.hasPermission('N57,N1'),
             children: [
               {
                 kind: 'leaf',
@@ -3104,6 +3132,7 @@ export class MenuService {
                 comp: PersonComponent,
                 router: '/tbpduyetyccv',
               },
+            
             ],
           },
 
@@ -3200,6 +3229,15 @@ export class MenuService {
             isPermission: this.permissionService.hasPermission('N32'),
             comp: PersonComponent,
             router: '/duyetcanhan',
+          },
+          {
+            kind: 'leaf',
+            key: 'tbpduyetdangkypp',
+            title: 'TBP duyệt đăng ký VPP',
+            isOpen: true,
+            isPermission: this.permissionService.hasPermission('N57,N1'),
+            comp: OfficeSupplyRequestsComponent,
+           
           },
         ],
       },

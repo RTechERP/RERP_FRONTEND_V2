@@ -1,0 +1,42 @@
+.fs-12 {
+  font-size: 12px;
+}
+
+::ng-deep .modal-fullscreen {
+  max-width: 100%;
+  margin: 0;
+  height: 100vh;
+}
+
+::ng-deep .modal-fullscreen .modal-content {
+  height: 100vh;
+  border-radius: 0;
+}
+
+::ng-deep .tabulator {
+  font-size: 12px !important;
+}
+
+::ng-deep .tabulator-header {
+  background-color: #f5f5f5;
+  font-weight: bold;
+  font-size: 12px !important;
+}
+
+::ng-deep .tabulator-col {
+  font-size: 12px !important;
+}
+
+::ng-deep .tabulator-col-title {
+  font-size: 12px !important;
+}
+
+::ng-deep .tabulator-row {
+  min-height: 30px;
+  font-size: 12px !important;
+}
+
+::ng-deep .tabulator-cell {
+  padding: 4px 8px;
+  font-size: 12px !important;
+}

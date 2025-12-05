@@ -132,22 +132,24 @@ export class TbProductRtcComponent implements OnInit, AfterViewInit {
       });
   }
   getProduct() {
-    const request = {
-      productGroupID: this.productGroupID || 0,
-      keyWord: this.keyWord || '',
-      checkAll: 1,
-      warehouseID: this.warehouseID || 1,
-      productRTCID: this.productRTCID || 0,
-      productGroupNo: this.productGroupNo || '',
-      page: this.Page,
-      size: this.Size,
-    };
-    this.tbProductRtcService
-      .getProductRTC(request)
-      .subscribe((response: any) => {
-        this.productData = response.data.products || [];
-        this.drawTable();
-      });
+    this.drawTable();
+    // const request = {
+    //   productGroupID: this.productGroupID || 0,
+    //   keyWord: this.keyWord || '',
+    //   checkAll: 1,
+    //   warehouseID: this.warehouseID || 1,
+    //   productRTCID: this.productRTCID || 0,
+    //   productGroupNo: this.productGroupNo || '',
+    //   page: this.Page,
+    //   size: this.Size,
+    //   warehouseType: this.warehouseType,
+    // };
+    // this.tbProductRtcService
+    //   .getProductRTC(request)
+    //   .subscribe((response: any) => {
+    //     this.productData = response.data.products || [];
+    //     this.drawTable();
+    //   });
   }
   onGroupChange(groupID: number): void {
     this.productGroupID = groupID;
@@ -202,6 +204,7 @@ export class TbProductRtcComponent implements OnInit, AfterViewInit {
           productGroupNo: this.productGroupNo || '',
           page: params.page || 1,
           size: params.size || 50,
+          WarehouseType: this.warehouseType,
         };
         return this.tbProductRtcService.getProductRTC(request).toPromise();
       },

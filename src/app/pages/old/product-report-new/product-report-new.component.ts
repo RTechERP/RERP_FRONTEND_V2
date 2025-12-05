@@ -3,7 +3,17 @@ import { CommonModule } from '@angular/common';
 import { BillImportTechnicalService } from '../bill-import-technical/bill-import-technical-service/bill-import-technical.service';
 import { FormsModule } from '@angular/forms';
 import { NgbModal, NgbModalModule } from '@ng-bootstrap/ng-bootstrap';
-import { AfterViewInit, Component, OnInit,inject, ViewEncapsulation, ViewChild, ElementRef, Inject, Optional } from '@angular/core';
+import {
+  AfterViewInit,
+  Component,
+  OnInit,
+  inject,
+  ViewEncapsulation,
+  ViewChild,
+  ElementRef,
+  Inject,
+  Optional,
+} from '@angular/core';
 import { NzCardModule } from 'ng-zorro-antd/card';
 import { NzButtonModule, NzButtonSize } from 'ng-zorro-antd/button';
 import { NzIconModule } from 'ng-zorro-antd/icon';
@@ -19,14 +29,19 @@ import { NzAutocompleteModule } from 'ng-zorro-antd/auto-complete';
 import { NzInputModule } from 'ng-zorro-antd/input';
 import { NzSelectModule } from 'ng-zorro-antd/select';
 import { NzTableModule } from 'ng-zorro-antd/table';
-import { TabulatorFull as Tabulator, CellComponent, ColumnDefinition, RowComponent } from 'tabulator-tables';
+import {
+  TabulatorFull as Tabulator,
+  CellComponent,
+  ColumnDefinition,
+  RowComponent,
+} from 'tabulator-tables';
 import 'tabulator-tables/dist/css/tabulator_simple.min.css';
 import { NzTabsModule } from 'ng-zorro-antd/tabs';
 import { DateTime } from 'luxon';
 import { NzUploadModule } from 'ng-zorro-antd/upload';
 import { NzCheckboxModule } from 'ng-zorro-antd/checkbox';
 import { ProductReportNewService } from './product-report-new-service/product-report-new.service';
-import { NzNotificationService } from 'ng-zorro-antd/notification'
+import { NzNotificationService } from 'ng-zorro-antd/notification';
 import { BillImportTechnicalFormComponent } from '../bill-import-technical/bill-import-technical-form/bill-import-technical-form.component';
 import { BillExportTechnicalFormComponent } from '../bill-export-technical/bill-export-technical-form/bill-export-technical-form.component';
 import { BillExportTechnicalService } from '../bill-export-technical/bill-export-technical-service/bill-export-technical.service';
@@ -59,18 +74,17 @@ import { DEFAULT_TABLE_CONFIG } from '../../../tabulator-default.config';
   ],
   selector: 'app-product-report-new',
   templateUrl: './product-report-new.component.html',
-  styleUrls: ['./product-report-new.component.css']
+  styleUrls: ['./product-report-new.component.css'],
 })
-
 export class ProductReportNewComponent implements OnInit, AfterViewInit {
   //biến phân loại phiếu nhập, xuất
-  selectedStatus: number =0;
+  selectedStatus: number = 0;
   //Biến phân loại kiểu phiếu
   selectedBillType: number | null = null;
   //Bảng lịch sử nhập xuất
   historyBillTable: Tabulator | null = null;
   selectedAll: number[] = []; // hoặc string[] nếu ID là chuỗi
-  allData: { ID: number, Name: string, Date: string }[] = [];
+  allData: { ID: number; Name: string; Date: string }[] = [];
   //request param gửi API
   Size: number = 100000;
   Page: number = 1;
@@ -87,33 +101,34 @@ export class ProductReportNewComponent implements OnInit, AfterViewInit {
   isSearchVisible: boolean = false;
   // danh sách loại phiếu nhập kĩ thuật
   billTypeList: any = [
-    { ID: 1, Name: "Mượn NCC" },
-    { ID: 2, Name: "Mua NCC" },
-    { ID: 3, Name: "Trả" },
-    { ID: 4, Name: "Nhập nội bộ" },
-    { ID: 5, Name: "Y/c nhập kho" },
-    { ID: 6, Name: "Nhập hàng bảo hành" },
-    { ID: 7, Name: "NCC tặng/cho" },
+    { ID: 1, Name: 'Mượn NCC' },
+    { ID: 2, Name: 'Mua NCC' },
+    { ID: 3, Name: 'Trả' },
+    { ID: 4, Name: 'Nhập nội bộ' },
+    { ID: 5, Name: 'Y/c nhập kho' },
+    { ID: 6, Name: 'Nhập hàng bảo hành' },
+    { ID: 7, Name: 'NCC tặng/cho' },
   ];
   statusList: any = [
-    { ID: 1, Name: "Phiếu Xuất" },
-    { ID: 0, Name: "Phiếu Nhập" }
+    { ID: 1, Name: 'Phiếu Xuất' },
+    { ID: 0, Name: 'Phiếu Nhập' },
   ];
   warehouseType: number = 0;
-    billImportCode: string = '';
+  billImportCode: string = '';
   billExportCode: string = '';
-    private ngbModal = inject(NgbModal);
-  constructor(private productReportNewService: ProductReportNewService,
+  private ngbModal = inject(NgbModal);
+  constructor(
+    private productReportNewService: ProductReportNewService,
     private notification: NzNotificationService,
     private modalService: NgbModal,
-     private billImportTechnicalService: BillImportTechnicalService,
-     private billExportTechnicalService: BillExportTechnicalService,
-     @Optional() @Inject('tabData') private tabData: any
-  ) { }
+    private billImportTechnicalService: BillImportTechnicalService,
+    private billExportTechnicalService: BillExportTechnicalService,
+    @Optional() @Inject('tabData') private tabData: any
+  ) {}
   ngOnInit() {
-    if (this.tabData?.warehouseID) {
-      this.warehouseID = this.tabData.warehouseID;
-      this.warehouseType = this.tabData.warehouseType;
+    if (this.tabData) {
+      this.warehouseID = this.tabData.warehouseID || 1;
+      this.warehouseType = this.tabData.warehouseType || 1;
     }
   }
   ngAfterViewInit(): void {
@@ -126,70 +141,86 @@ export class ProductReportNewComponent implements OnInit, AfterViewInit {
   drawTable() {
     //Menu khi click chuột phải vào dòng
     const rowMenu = [
-  {
-  label: "Chi tiết",
-  action: (e: any, row: any) => {
-    const statusText = row.getData().StatusText?.trim();
-    console.log("StatusText:", statusText);
-
-    if (statusText === "Phiếu nhập") {
-      // Phiếu nhập
-      this.billImportCode = row.getData().Code;
-      this.billImportTechnicalService.getBillImportByCode(this.billImportCode).subscribe((response: any) => {
-        const selectedRow = response.master?.[0];
-        if (!selectedRow) {
-          this.notification.error(NOTIFICATION_TITLE.error, 'Không tìm thấy biên bản trong hệ thống!');
-          return;
-        }
-        const modalRef = this.ngbModal.open(BillImportTechnicalFormComponent, {
-          centered: true,
-          backdrop: 'static',
-          keyboard: false,
-          windowClass: 'full-screen-modal',
-        });
-        modalRef.componentInstance.masterId = selectedRow.ID;
-        modalRef.componentInstance.dataEdit = selectedRow;
-      });
-
-    } else if (statusText === "Phiếu xuất") {
-      // Phiếu xuất
-      this.billExportCode = row.getData().Code;
-      this.billExportTechnicalService.getBillExportByCode(this.billExportCode).subscribe((response: any) => {
-        const selectedRow = response.master?.[0];
-        if (!selectedRow) {
-          this.notification.error(NOTIFICATION_TITLE.error, 'Không tìm thấy biên bản trong hệ thống!');
-          return;
-        }
-        const modalRef = this.ngbModal.open(BillExportTechnicalFormComponent, {
-          centered: true,
-          backdrop: 'static',
-          keyboard: false,
-          windowClass: 'full-screen-modal',
-        });
-        modalRef.componentInstance.masterId = selectedRow.ID;
-        modalRef.componentInstance.dataEdit = selectedRow;
-      });
-    } else {
-      this.notification.error(NOTIFICATION_TITLE.error, 'Không xác định được loại phiếu!');
-    }
-  },
-}
-
-,
       {
-        label: "Đồ mất",
+        label: 'Chi tiết',
+        action: (e: any, row: any) => {
+          const statusText = row.getData().StatusText?.trim();
+          console.log('StatusText:', statusText);
 
-      }
+          if (statusText === 'Phiếu nhập') {
+            // Phiếu nhập
+            this.billImportCode = row.getData().Code;
+            this.billImportTechnicalService
+              .getBillImportByCode(this.billImportCode)
+              .subscribe((response: any) => {
+                const selectedRow = response.master?.[0];
+                if (!selectedRow) {
+                  this.notification.error(
+                    NOTIFICATION_TITLE.error,
+                    'Không tìm thấy biên bản trong hệ thống!'
+                  );
+                  return;
+                }
+                const modalRef = this.ngbModal.open(
+                  BillImportTechnicalFormComponent,
+                  {
+                    centered: true,
+                    backdrop: 'static',
+                    keyboard: false,
+                    windowClass: 'full-screen-modal',
+                  }
+                );
+                modalRef.componentInstance.masterId = selectedRow.ID;
+                modalRef.componentInstance.dataEdit = selectedRow;
+              });
+          } else if (statusText === 'Phiếu xuất') {
+            // Phiếu xuất
+            this.billExportCode = row.getData().Code;
+            this.billExportTechnicalService
+              .getBillExportByCode(this.billExportCode)
+              .subscribe((response: any) => {
+                const selectedRow = response.master?.[0];
+                if (!selectedRow) {
+                  this.notification.error(
+                    NOTIFICATION_TITLE.error,
+                    'Không tìm thấy biên bản trong hệ thống!'
+                  );
+                  return;
+                }
+                const modalRef = this.ngbModal.open(
+                  BillExportTechnicalFormComponent,
+                  {
+                    centered: true,
+                    backdrop: 'static',
+                    keyboard: false,
+                    windowClass: 'full-screen-modal',
+                  }
+                );
+                modalRef.componentInstance.masterId = selectedRow.ID;
+                modalRef.componentInstance.dataEdit = selectedRow;
+              });
+          } else {
+            this.notification.error(
+              NOTIFICATION_TITLE.error,
+              'Không xác định được loại phiếu!'
+            );
+          }
+        },
+      },
+
+      {
+        label: 'Đồ mất',
+      },
     ];
     //Vẽ bảng lịch sử nhập xuất
     this.historyBillTable = new Tabulator('#dataTableHistoryBill', {
       ...DEFAULT_TABLE_CONFIG,
       rowContextMenu: rowMenu,
       ajaxURL: this.productReportNewService.getInventoryNCCAjax(),
-      ajaxConfig: "POST",
+      ajaxConfig: 'POST',
       paginationMode: 'remote',
       height: '100%',
-     
+
       ajaxRequestFunc: (url, config, params) => {
         // lấy ngày đầu tháng và cuối tháng
         const now = DateTime.now();
@@ -198,16 +229,22 @@ export class ProductReportNewComponent implements OnInit, AfterViewInit {
         const request = {
           Page: params.page || 1,
           Size: params.size || 30,
-          FilterText: this.filterText || "",
-          DateStart: this.dateStart ? DateTime.fromJSDate(this.dateStart).toFormat('yyyy-MM-dd') : firstDayOfMonth,
-          DateEnd: this.dateEnd ? DateTime.fromJSDate(this.dateEnd).toFormat('yyyy-MM-dd') : lastDayOfMonth,
+          FilterText: this.filterText || '',
+          DateStart: this.dateStart
+            ? DateTime.fromJSDate(this.dateStart).toFormat('yyyy-MM-dd')
+            : firstDayOfMonth,
+          DateEnd: this.dateEnd
+            ? DateTime.fromJSDate(this.dateEnd).toFormat('yyyy-MM-dd')
+            : lastDayOfMonth,
           Status: this.selectedStatus || 0,
           WarehouseID: this.warehouseID || 1,
           BillType: this.selectedBillType || 0,
-          ReceiverID: this.receiverID || 0
-
+          ReceiverID: this.receiverID || 0,
+          WarehouseType: this.warehouseType,
         };
-        return this.productReportNewService.getHistoryBillTechnical(request).toPromise();
+        return this.productReportNewService
+          .getHistoryBillTechnical(request)
+          .toPromise();
       },
       ajaxResponse: (url, params, response) => {
         return {
@@ -228,9 +265,9 @@ export class ProductReportNewComponent implements OnInit, AfterViewInit {
       },
       locale: 'vi',
       dataTree: true,
-      addRowPos: "bottom",
+      addRowPos: 'bottom',
       history: true,
-      columns: this.getColumnsByStatus(this.selectedStatus!)
+      columns: this.getColumnsByStatus(this.selectedStatus!),
     });
   }
   // phân loại cột theo trạng thái phiếu nhập/xuất
@@ -242,7 +279,7 @@ export class ProductReportNewComponent implements OnInit, AfterViewInit {
       { title: 'Trạng thái', field: 'StatusText' },
       { title: 'Trạng thái duyệt', field: 'ApproveText' },
       { title: 'ID', field: 'ID', visible: false },
-      { title: 'Số phiếu', field:'BillCode', visible:isNhap },
+      { title: 'Số phiếu', field: 'BillCode', visible: isNhap },
       // { title: 'Số phiếu', field:'Code', visible:isXuat },
 
       { title: 'Nhà cung cấp', field: 'Suplier' },
@@ -253,7 +290,7 @@ export class ProductReportNewComponent implements OnInit, AfterViewInit {
         formatter: (cell) => {
           const value = cell.getValue();
           return value ? DateTime.fromISO(value).toFormat('dd/MM/yyyy') : '';
-        }
+        },
       },
       { title: 'Mã nội bộ RTC', field: 'ProductCodeRTC' },
       { title: 'Mã sản phẩm', field: 'ProductCode' },
@@ -282,17 +319,19 @@ export class ProductReportNewComponent implements OnInit, AfterViewInit {
     if (checked) {
       this.selectedAll = [...this.selectedAll, id];
     } else {
-      this.selectedAll = this.selectedAll.filter(x => x !== id);
+      this.selectedAll = this.selectedAll.filter((x) => x !== id);
     }
 
     if (this.selectedAll.length > 0) {
-      const selectedItems = this.allData.filter(x => this.selectedAll.includes(x.ID));
+      const selectedItems = this.allData.filter((x) =>
+        this.selectedAll.includes(x.ID)
+      );
       const dates = selectedItems
-        .map(x => DateTime.fromISO(x.Date))
-        .filter(x => x.isValid);
+        .map((x) => DateTime.fromISO(x.Date))
+        .filter((x) => x.isValid);
 
       if (dates.length > 0) {
-        this.dateStart = DateTime.fromISO('2000-01-01').toJSDate();  // Dùng Luxon
+        this.dateStart = DateTime.fromISO('2000-01-01').toJSDate(); // Dùng Luxon
         this.dateEnd = DateTime.fromISO('2029-01-01').toJSDate();
       }
     } else {
@@ -312,10 +351,15 @@ export class ProductReportNewComponent implements OnInit, AfterViewInit {
     const ExcelJS = await import('exceljs');
     const workbook = new ExcelJS.Workbook();
     const worksheet = workbook.addWorksheet('Danh sách thiết bị');
-    const columns = this.historyBillTable.getColumnDefinitions().filter((col: any) =>
-      col.visible !== false && col.field && col.field.trim() !== ''
+    const columns = this.historyBillTable
+      .getColumnDefinitions()
+      .filter(
+        (col: any) =>
+          col.visible !== false && col.field && col.field.trim() !== ''
+      );
+    const headerRow = worksheet.addRow(
+      columns.map((col) => col.title || col.field)
     );
-    const headerRow = worksheet.addRow(columns.map(col => col.title || col.field));
     headerRow.font = { bold: true };
     headerRow.fill = {
       type: 'pattern',
@@ -358,7 +402,9 @@ export class ProductReportNewComponent implements OnInit, AfterViewInit {
     });
     const link = document.createElement('a');
     link.href = URL.createObjectURL(blob);
-    link.download = `lich-su-nhap-xuat-${new Date().toISOString().split('T')[0]}.xlsx`;
+    link.download = `lich-su-nhap-xuat-${
+      new Date().toISOString().split('T')[0]
+    }.xlsx`;
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);

@@ -1,4 +1,11 @@
-import { Component, ViewEncapsulation, Input, Output, EventEmitter, inject } from '@angular/core';
+import {
+  Component,
+  ViewEncapsulation,
+  Input,
+  Output,
+  EventEmitter,
+  inject,
+} from '@angular/core';
 import { NzCardModule } from 'ng-zorro-antd/card';
 import { FormsModule } from '@angular/forms';
 import { NzButtonModule, NzButtonSize } from 'ng-zorro-antd/button';
@@ -78,7 +85,7 @@ export class BorrowProductHistoryComponent implements OnInit {
   @Output() productsExported = new EventEmitter<any[]>(); // Emit data khi xuất
   public activeModal = inject(NgbActiveModal, { optional: true }); // Để đóng modal
   warehouseType: number = 0;
-  
+
   constructor(
     private injector: EnvironmentInjector,
     private appRef: ApplicationRef,
@@ -523,7 +530,7 @@ export class BorrowProductHistoryComponent implements OnInit {
             : '1',
 
         isDeleted: 0,
-        warehouseType: this.warehouseType ?? 0,
+        warehouseType: this.warehouseType ?? 1,
       },
       ajaxResponse: (url, params, res) => {
         let totalPage = 0;
@@ -595,17 +602,17 @@ export class BorrowProductHistoryComponent implements OnInit {
         {
           title: 'Duyệt',
           field: 'AdminConfirm',
-formatter: function (cell: any) {
-              const value = cell.getValue();
-              const checked =
-                value === true ||
-                value === 'true' ||
-                value === 1 ||
-                value === '1';
-              return `<input type="checkbox" ${
-                checked ? 'checked' : ''
-              } style="pointer-events: none; accent-color: #1677ff;" />`;
-            },
+          formatter: function (cell: any) {
+            const value = cell.getValue();
+            const checked =
+              value === true ||
+              value === 'true' ||
+              value === 1 ||
+              value === '1';
+            return `<input type="checkbox" ${
+              checked ? 'checked' : ''
+            } style="pointer-events: none; accent-color: #1677ff;" />`;
+          },
           hozAlign: 'center',
           headerHozAlign: 'center',
         },
@@ -897,9 +904,11 @@ formatter: function (cell: any) {
     }
 
     // Lấy data từ selectedProductsMap
-    const selectedProducts = Array.from(this.selectedArrHistoryProductID).map(id => {
-      return this.selectedProductsMap.get(id);
-    }).filter(product => product != null);
+    const selectedProducts = Array.from(this.selectedArrHistoryProductID)
+      .map((id) => {
+        return this.selectedProductsMap.get(id);
+      })
+      .filter((product) => product != null);
 
     if (selectedProducts.length === 0) {
       this.notification.warning(
@@ -911,7 +920,7 @@ formatter: function (cell: any) {
 
     // Emit data về parent component
     this.productsExported.emit(selectedProducts);
-    
+
     // Đóng modal (chỉ khi được mở như modal)
     this.activeModal?.close(selectedProducts);
   }
@@ -948,7 +957,7 @@ formatter: function (cell: any) {
       }
     );
     modalRef.componentInstance.warehouseType = this.warehouseType;
-    
+
     modalRef.result.finally(() => {
       this.drawTbProductHistory(this.tb_productHistoryContainer.nativeElement);
     });

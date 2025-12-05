@@ -226,6 +226,7 @@ export class BillImportTechnicalComponent implements OnInit, AfterViewInit {
                 : '-1',
             filterText: this.filterText || '',
             warehouseID: this.warehouseID || 1,
+            BillType: (this.warehouseType || 1) == 2,
           };
           console.log(' POST Request:', request);
           return this.billImportTechnicalService

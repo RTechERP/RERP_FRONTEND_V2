@@ -1,10 +1,21 @@
 import { FormsModule } from '@angular/forms';
-import { Component, Input, OnInit, ViewChild, ElementRef, Inject, Optional } from '@angular/core';
 import {
-  CommonModule
-} from '@angular/common';
+  Component,
+  Input,
+  OnInit,
+  ViewChild,
+  ElementRef,
+  Inject,
+  Optional,
+} from '@angular/core';
+import { CommonModule } from '@angular/common';
 import { ProductExportAndBorrowService } from '../product-export-and-borrow/product-export-and-borrow-service/product-export-and-borrow.service';
-import { TabulatorFull as Tabulator, CellComponent, ColumnDefinition, RowComponent } from 'tabulator-tables';
+import {
+  TabulatorFull as Tabulator,
+  CellComponent,
+  ColumnDefinition,
+  RowComponent,
+} from 'tabulator-tables';
 import * as ExcelJS from 'exceljs';
 
 import { NzNotificationService } from 'ng-zorro-antd/notification';
@@ -17,7 +28,16 @@ import { NzSpinModule } from 'ng-zorro-antd/spin';
 import { DEFAULT_TABLE_CONFIG } from '../../../../tabulator-default.config';
 @Component({
   standalone: true,
-  imports: [FormsModule, CommonModule,NzSplitterModule, NzButtonModule, NzIconModule, NzInputModule, NzGridModule, NzSpinModule],
+  imports: [
+    FormsModule,
+    CommonModule,
+    NzSplitterModule,
+    NzButtonModule,
+    NzIconModule,
+    NzInputModule,
+    NzGridModule,
+    NzSpinModule,
+  ],
   selector: 'app-borrow-report',
   templateUrl: './borrow-report.component.html',
   styleUrls: ['./borrow-report.component.css'],
@@ -32,12 +52,14 @@ export class BorrowReportComponent implements OnInit {
   productTable: Tabulator | null = null;
   title: string = 'BÁO CÁO MƯỢN THIẾT BỊ';
   isLoading: boolean = false;
-  constructor(private service: ProductExportAndBorrowService, private notification: NzNotificationService,
+  constructor(
+    private service: ProductExportAndBorrowService,
+    private notification: NzNotificationService,
     @Optional() @Inject('tabData') private tabData: any
-  ) { }
+  ) {}
 
   ngOnInit() {
-    if (this.tabData?.warehouseID) {
+    if (this.tabData) {
       this.warehouseID = this.tabData.warehouseID;
       this.warehouseType = this.tabData.warehouseType;
     }
@@ -48,22 +70,26 @@ export class BorrowReportComponent implements OnInit {
 
   loadData() {
     this.isLoading = true;
-    this.service.getborrowReport(this.warehouseID).subscribe({
-      next: (res) => {
-        this.data = res.data;
-        this.productTable?.setData(this.data);
-        this.isLoading = false;
-      },
-      error: () => {
-        this.isLoading = false;
-        this.notification.error('Thông báo', 'Không thể tải dữ liệu');
-      }
-    });
+    this.service
+      .getborrowReport(this.warehouseID, this.warehouseType)
+      .subscribe({
+        next: (res) => {
+          this.data = res.data;
+          this.productTable?.setData(this.data);
+          this.isLoading = false;
+        },
+        error: () => {
+          this.isLoading = false;
+          this.notification.error('Thông báo', 'Không thể tải dữ liệu');
+        },
+      });
   }
   loadWarehouse() {
     this.service.getWarehouse().subscribe((res) => {
       this.warehouseData = res.data;
-      const warehouse = this.warehouseData.find((w) => w.ID === this.warehouseID);
+      const warehouse = this.warehouseData.find(
+        (w) => w.ID === this.warehouseID
+      );
       if (warehouse) {
         this.title = `BÁO CÁO MƯỢN THIẾT BỊ - ${warehouse.WarehouseCode}`;
       }
@@ -83,50 +109,202 @@ export class BorrowReportComponent implements OnInit {
 
     this.productTable = new Tabulator(this.table.nativeElement, {
       ...DEFAULT_TABLE_CONFIG,
-      layout: "fitDataStretch",
+      layout: 'fitDataStretch',
       pagination: true,
       selectableRows: 5,
-      rowHeader:false,
+      rowHeader: false,
       paginationMode: 'local',
 
       columns: [
-        { title: "Tổng số ngày", field: "TotalDay", sorter: "number", hozAlign: "right" },
-        { title: "Ngày nhập", field: "CreateDate", sorter: "datetime", hozAlign: "center", formatter: dateFormatter },
-        { title: "SL mượn", field: "BorrowCount", sorter: "number", hozAlign: "right" },
-        { title: "Ngày mượn gần nhất", field: "MaxDateBorrow", sorter: "datetime", hozAlign: "center", formatter: dateFormatter },
-        { title: "Mã sản phẩm", field: "ProductCode", sorter: "string", hozAlign: "left",bottomCalc: "count" , formatter: "textarea"},
-        { title: "Tên", field: "ProductName", sorter: "string", hozAlign: "left",bottomCalc: "count" , formatter: "textarea"},
-        { title: "Vị trí (Hộp)", field: "AddressBox", sorter: "string", hozAlign: "left" },
-        { title: "Hãng", field: "Maker", sorter: "string", hozAlign: "left" },
-        { title: "ĐVT", field: "UnitCountName", sorter: "string", hozAlign: "left" },
-        { title: "Số lượng", field: "Inventory", sorter: "number", hozAlign: "right" },
-        { title: "Hình ảnh", field: "LocationImg", formatter: "image", hozAlign: "center" },
-        { title: "Tên nhóm", field: "ProductGroupName", sorter: "string", hozAlign: "left" },
-        { title: "Mã Nhóm", field: "ProductGroupNo", sorter: "string", hozAlign: "left" },
-        { title: "Ghi chú", field: "note", sorter: "string", hozAlign: "left" },
-        { title: "Đồ mượn khách", field: "BorrowCustomerText", sorter: "string", hozAlign: "left" },
-        { title: "Part number", field: "PartNumber", sorter: "string", formatter: "textarea", hozAlign: "left" },
-        { title: "Số serial", field: "SerialNumber", sorter: "string", formatter: "textarea", hozAlign: "left" },
-        { title: "Code", field: "Serial", sorter: "string", hozAlign: "left" },
-        { title: "Mã kế toàn", visible: false, field: "ProductCodeRTC", sorter: "string", hozAlign: "left" },
+        {
+          title: 'Tổng số ngày',
+          field: 'TotalDay',
+          sorter: 'number',
+          hozAlign: 'right',
+        },
+        {
+          title: 'Ngày nhập',
+          field: 'CreateDate',
+          sorter: 'datetime',
+          hozAlign: 'center',
+          formatter: dateFormatter,
+        },
+        {
+          title: 'SL mượn',
+          field: 'BorrowCount',
+          sorter: 'number',
+          hozAlign: 'right',
+        },
+        {
+          title: 'Ngày mượn gần nhất',
+          field: 'MaxDateBorrow',
+          sorter: 'datetime',
+          hozAlign: 'center',
+          formatter: dateFormatter,
+        },
+        {
+          title: 'Mã sản phẩm',
+          field: 'ProductCode',
+          sorter: 'string',
+          hozAlign: 'left',
+          bottomCalc: 'count',
+          formatter: 'textarea',
+        },
+        {
+          title: 'Tên',
+          field: 'ProductName',
+          sorter: 'string',
+          hozAlign: 'left',
+          bottomCalc: 'count',
+          formatter: 'textarea',
+        },
+        {
+          title: 'Vị trí (Hộp)',
+          field: 'AddressBox',
+          sorter: 'string',
+          hozAlign: 'left',
+        },
+        { title: 'Hãng', field: 'Maker', sorter: 'string', hozAlign: 'left' },
+        {
+          title: 'ĐVT',
+          field: 'UnitCountName',
+          sorter: 'string',
+          hozAlign: 'left',
+        },
+        {
+          title: 'Số lượng',
+          field: 'Inventory',
+          sorter: 'number',
+          hozAlign: 'right',
+        },
+        {
+          title: 'Hình ảnh',
+          field: 'LocationImg',
+          formatter: 'image',
+          hozAlign: 'center',
+        },
+        {
+          title: 'Tên nhóm',
+          field: 'ProductGroupName',
+          sorter: 'string',
+          hozAlign: 'left',
+        },
+        {
+          title: 'Mã Nhóm',
+          field: 'ProductGroupNo',
+          sorter: 'string',
+          hozAlign: 'left',
+        },
+        { title: 'Ghi chú', field: 'note', sorter: 'string', hozAlign: 'left' },
+        {
+          title: 'Đồ mượn khách',
+          field: 'BorrowCustomerText',
+          sorter: 'string',
+          hozAlign: 'left',
+        },
+        {
+          title: 'Part number',
+          field: 'PartNumber',
+          sorter: 'string',
+          formatter: 'textarea',
+          hozAlign: 'left',
+        },
+        {
+          title: 'Số serial',
+          field: 'SerialNumber',
+          sorter: 'string',
+          formatter: 'textarea',
+          hozAlign: 'left',
+        },
+        { title: 'Code', field: 'Serial', sorter: 'string', hozAlign: 'left' },
+        {
+          title: 'Mã kế toàn',
+          visible: false,
+          field: 'ProductCodeRTC',
+          sorter: 'string',
+          hozAlign: 'left',
+        },
 
-        { title: "Trạng thái", field: "StatusProduct",   formatter: function (cell: any) {
+        {
+          title: 'Trạng thái',
+          field: 'StatusProduct',
+          formatter: function (cell: any) {
             const value = cell.getValue();
-            const checked = value === true || value === 'true' || value === 1 || value === '1';
-            return `<input type="checkbox" ${checked ? 'checked' : ''} style="pointer-events: none; accent-color: #1677ff;" />`;
-          }, hozAlign: "center" },
-        { title: "SL kiểm", field: "SLKiemKe", sorter: "number", hozAlign: "right" },
-        { title: "Người tạo", field: "CreatedBy", sorter: "string", hozAlign: "left" },
+            const checked =
+              value === true ||
+              value === 'true' ||
+              value === 1 ||
+              value === '1';
+            return `<input type="checkbox" ${
+              checked ? 'checked' : ''
+            } style="pointer-events: none; accent-color: #1677ff;" />`;
+          },
+          hozAlign: 'center',
+        },
+        {
+          title: 'SL kiểm',
+          field: 'SLKiemKe',
+          sorter: 'number',
+          hozAlign: 'right',
+        },
+        {
+          title: 'Người tạo',
+          field: 'CreatedBy',
+          sorter: 'string',
+          hozAlign: 'left',
+        },
 
-        { title: "ID", field: "ID", sorter: "number", visible: false, hozAlign: "right" },
-        { title: "Số lượng tồn đầu", field: "Number", sorter: "number", visible: false, hozAlign: "right" },
-        { title: "Số lượng tồn kho", field: "NumberInStore", sorter: "number", visible: false, hozAlign: "right" },
-        { title: "Mã vị trí", visible: false, field: "LocationID", sorter: "string", hozAlign: "left" },
+        {
+          title: 'ID',
+          field: 'ID',
+          sorter: 'number',
+          visible: false,
+          hozAlign: 'right',
+        },
+        {
+          title: 'Số lượng tồn đầu',
+          field: 'Number',
+          sorter: 'number',
+          visible: false,
+          hozAlign: 'right',
+        },
+        {
+          title: 'Số lượng tồn kho',
+          field: 'NumberInStore',
+          sorter: 'number',
+          visible: false,
+          hozAlign: 'right',
+        },
+        {
+          title: 'Mã vị trí',
+          visible: false,
+          field: 'LocationID',
+          sorter: 'string',
+          hozAlign: 'left',
+        },
 
-        { title: "Tên khách", field: "CustomerName", visible: false, sorter: "string", hozAlign: "left" },
-        { title: "Xuất", field: "NumberExport", sorter: "number", visible: false, hozAlign: "right" },
-        { title: "Số lượng thực", field: "NumberReal", visible: false, sorter: "number", hozAlign: "right" },
-      ]
+        {
+          title: 'Tên khách',
+          field: 'CustomerName',
+          visible: false,
+          sorter: 'string',
+          hozAlign: 'left',
+        },
+        {
+          title: 'Xuất',
+          field: 'NumberExport',
+          sorter: 'number',
+          visible: false,
+          hozAlign: 'right',
+        },
+        {
+          title: 'Số lượng thực',
+          field: 'NumberReal',
+          visible: false,
+          sorter: 'number',
+          hozAlign: 'right',
+        },
+      ],
     });
   }
 
@@ -165,11 +343,11 @@ export class BorrowReportComponent implements OnInit {
 
     const wb = new ExcelJS.Workbook();
     const ws = wb.addWorksheet(this.title);
-    ws.columns = headers.map(h => ({ header: h.title, key: h.key }));
+    ws.columns = headers.map((h) => ({ header: h.title, key: h.key }));
 
     (this.data || []).forEach((row: any) => {
       const r: any = {};
-      headers.forEach(h => {
+      headers.forEach((h) => {
         let v = row[h.key];
         if (h.key === 'CreateDate' || h.key === 'MaxDateBorrow') {
           r[h.key] = v ? new Date(v) : null;
@@ -181,7 +359,7 @@ export class BorrowReportComponent implements OnInit {
     });
 
     const setDateFmt = (key: string) => {
-      const idx = headers.findIndex(h => h.key === key) + 1;
+      const idx = headers.findIndex((h) => h.key === key) + 1;
       if (idx > 0) ws.getColumn(idx).numFmt = 'dd/mm/yyyy';
     };
     setDateFmt('CreateDate');
@@ -189,7 +367,7 @@ export class BorrowReportComponent implements OnInit {
 
     const columns = ws.columns || [];
     columns.forEach((col: any) => {
-      let max = (col.header ? String(col.header).length : 10);
+      let max = col.header ? String(col.header).length : 10;
       col.eachCell?.({ includeEmpty: true }, (cell: any) => {
         const val: any = cell.value;
         let len = 0;
@@ -209,17 +387,24 @@ export class BorrowReportComponent implements OnInit {
     const dd = String(d.getDate()).padStart(2, '0');
     const fileName = `borrow-report_${this.warehouseID}_${yyyy}-${mm}-${dd}.xlsx`;
 
-    wb.xlsx.writeBuffer().then(buffer => {
-      const blob = new Blob([buffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
-      const url = window.URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = fileName;
-      a.click();
-      window.URL.revokeObjectURL(url);
-    }).catch(() => {
-      this.notification.error('Thông báo', 'Xuất Excel thất bại');
-    });
+    wb.xlsx
+      .writeBuffer()
+      .then((buffer) => {
+        const blob = new Blob([buffer], {
+          type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+        });
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = fileName;
+        a.click();
+        window.URL.revokeObjectURL(url);
+      })
+      .catch(() => {
+        this.notification.error('Thông báo', 'Xuất Excel thất bại');
+      });
   }
-  reset() { this.loadData() }
+  reset() {
+    this.loadData();
+  }
 }

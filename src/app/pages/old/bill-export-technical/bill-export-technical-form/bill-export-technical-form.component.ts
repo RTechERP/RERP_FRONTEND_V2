@@ -268,7 +268,10 @@ export class BillExportTechnicalFormComponent implements OnInit, AfterViewInit {
       ],
       Addres: [null],
       Status: [null],
-      WarehouseType: [{ value: 'Demo', disabled: false }, Validators.required],
+      WarehouseType: [
+        { value: this.warehouseType == 1 ? 'Demo' : 'AGV', disabled: false },
+        Validators.required,
+      ],
       Note: [null],
       Image: [null],
       ReceiverID: [null], // Chỉ required khi BillType = 1 (Cho mượn)
@@ -280,7 +283,7 @@ export class BillExportTechnicalFormComponent implements OnInit, AfterViewInit {
       ExpectedDate: [null], // Chỉ required khi BillType = 1 (Cho mượn)
       ProjectName: [''],
       ProjectID: [null],
-      WarehouseID: [0],
+      WarehouseID: this.warehouseID,
       CreatedBy: [''],
       CreatedDate: [null, Validators.required],
       UpdatedBy: [''],
@@ -1193,15 +1196,15 @@ export class BillExportTechnicalFormComponent implements OnInit, AfterViewInit {
         // ASP.NET Core thường chấp nhận ISO 8601
         return d.toISOString();
       } catch (e) {
-        console.error('Lỗi format date:', date, e);
+        // console.error('Lỗi format date:', date, e);
         return null;
       }
     };
 
-    console.log('CreatedDate raw:', formValue.CreatedDate);
-    console.log('ExpectedDate raw:', formValue.ExpectedDate);
-    console.log('CreatedDate formatted:', formatDate(formValue.CreatedDate));
-    console.log('ExpectedDate formatted:', formatDate(formValue.ExpectedDate));
+    // console.log('CreatedDate raw:', formValue.CreatedDate);
+    // console.log('ExpectedDate raw:', formValue.ExpectedDate);
+    // console.log('CreatedDate formatted:', formatDate(formValue.CreatedDate));
+    // console.log('ExpectedDate formatted:', formatDate(formValue.ExpectedDate));
 
     const payload: any = {
       billExportTechnical: {
@@ -1228,6 +1231,8 @@ export class BillExportTechnicalFormComponent implements OnInit, AfterViewInit {
         CustomerNam: '',
         SupplierName: '',
         CheckAddHistoryProductRTC: isBorrow,
+        WarehouseTypeBill: this.warehouseType,
+        WarehouseID: this.warehouseID,
       },
       billExportDetailTechnicals: tableData.map(
         (device: any, index: number) => ({

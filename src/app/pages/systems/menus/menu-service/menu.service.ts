@@ -461,7 +461,7 @@ export class MenuService {
                 children: [
                   {
                     kind: 'leaf',
-                    key: 'InventoryDemoComponent_HN',
+                    key: 'InventoryDemoComponent_AGV',
                     title: 'TỒN KHO AGV',
                     isOpen: true,
                     isPermission: this.permissionService.hasPermission(''),
@@ -474,8 +474,8 @@ export class MenuService {
                   },
                   {
                     kind: 'leaf',
-                    key: 'BillImportTechnicalComponent_HN',
-                    title: 'PHIẾU NHẬP DEMO',
+                    key: 'BillImportTechnicalComponent_AGV',
+                    title: 'PHIẾU NHẬP AGV',
                     isOpen: true,
                     isPermission: this.permissionService.hasPermission(''),
                     comp: BillImportTechnicalComponent,
@@ -487,8 +487,8 @@ export class MenuService {
                   },
                   {
                     kind: 'leaf',
-                    key: 'BillExportTechnicalComponent_HN',
-                    title: 'PHIẾU XUẤT DEMO',
+                    key: 'BillExportTechnicalComponent_AGV',
+                    title: 'PHIẾU XUẤT AGV',
                     isOpen: true,
                     isPermission: this.permissionService.hasPermission(''),
                     comp: BillExportTechnicalComponent,
@@ -501,8 +501,8 @@ export class MenuService {
 
                   {
                     kind: 'leaf',
-                    key: 'ProductReportNewRtcComponent_HN',
-                    title: 'LỊCH SỬ NHÂP - XUẤT DEMO',
+                    key: 'ProductReportNewRtcComponent_AGV',
+                    title: 'LỊCH SỬ NHÂP - XUẤT AGV',
                     isOpen: true,
                     isPermission: this.permissionService.hasPermission(''),
                     comp: ProductReportNewComponent,
@@ -511,22 +511,22 @@ export class MenuService {
                       warehouseType: 2,
                     },
                   },
+                  //   {
+                  //     kind: 'leaf',
+                  //     key: 'ProductExportAndBorrowComponent_AGV',
+                  //     title: 'SẢN PHẨM KHÔNG DÙNG',
+                  //     isOpen: true,
+                  //     isPermission: this.permissionService.hasPermission(''),
+                  //     comp: ProductExportAndBorrowComponent,
+                  //     data: {
+                  //       warehouseID: 1,
+                  //       warehouseType: 2,
+                  //     },
+                  //   },
                   {
                     kind: 'leaf',
-                    key: 'ProductExportAndBorrowComponent_HN',
-                    title: 'SẢN PHẨM KHÔNG DÙNG',
-                    isOpen: true,
-                    isPermission: this.permissionService.hasPermission(''),
-                    comp: ProductExportAndBorrowComponent,
-                    data: {
-                      warehouseID: 1,
-                      warehouseType: 2,
-                    },
-                  },
-                  {
-                    kind: 'leaf',
-                    key: 'BorrowReportComponent_HN',
-                    title: 'BÁO CÁO MƯỢN DEMO',
+                    key: 'BorrowReportComponent_AGV',
+                    title: 'BÁO CÁO MƯỢN AGV',
                     isOpen: true,
                     isPermission: this.permissionService.hasPermission(''),
                     comp: BorrowReportComponent,
@@ -537,7 +537,7 @@ export class MenuService {
                   },
                   {
                     kind: 'leaf',
-                    key: 'BorrowProductHistoryComponent_HN',
+                    key: 'BorrowProductHistoryComponent_AGV',
                     title: 'LỊCH SỬ MƯỢN AGV',
                     isOpen: true,
                     isPermission: this.permissionService.hasPermission(''),
@@ -1186,6 +1186,7 @@ export class MenuService {
           },
           //#region
 
+          //#region Cài đặt kho
           {
             kind: 'group',
             key: 'Settings',
@@ -1223,7 +1224,7 @@ export class MenuService {
               },
               {
                 kind: 'leaf',
-                key: 'ProductSaleComponent_BN',
+                key: 'ProductSaleComponent',
                 title: 'SẢN PHẨM KHO SALE',
                 isOpen: true,
                 isPermission:
@@ -1232,20 +1233,20 @@ export class MenuService {
               },
               {
                 kind: 'leaf',
-                key: 'TbProductRtcComponent_BN',
+                key: 'TbProductRtcComponent_HN',
                 title: 'SẢN PHẨM KHO DEMO',
                 isOpen: true,
                 isPermission:
                   this.permissionService.hasPermission('N26,N1,N36,N73,N30'),
                 comp: TbProductRtcComponent,
                 data: {
-                  warehouseType: 2,
+                  warehouseType: 1,
                 },
               },
 
               {
                 kind: 'leaf',
-                key: 'TbProductRtcComponent_BN',
+                key: 'TbProductRtcComponent_AGV',
                 title: 'SẢN PHẨM KHO AGV',
                 isOpen: true,
                 isPermission:
@@ -1257,36 +1258,8 @@ export class MenuService {
               },
             ],
           },
-          //   {
-          //     kind: 'group',
-          //     key: 'agv',
-          //     title: 'AGV',
-          //     isOpen: true,
-          //     isPermission: this.permissionService.hasPermission(''),
-          //     //   icon: 'assets/icon/layers.png',
-          //     children: [
-          //       {
-          //         kind: 'leaf',
-          //         key: 'AgvProductComponent',
-          //         title: 'Sản phẩm',
-          //         isOpen: true,
-          //         isPermission: this.permissionService.hasPermission(''),
-          //         comp: AgvProductComponent,
-          //         //   icon: 'assets/icon/layers.png',
-          //       },
 
-          //       {
-          //         kind: 'leaf',
-          //         key: 'AgvProductComponent1',
-          //         title: 'Sản phẩm lọc',
-          //         isOpen: true,
-          //         isPermission: this.permissionService.hasPermission(''),
-          //         comp: AgvProductComponent,
-          //         //   icon: 'assets/icon/layers.png',
-          //         data: { isDeleted: true },
-          //       },
-          //     ],
-          //   },
+          //#endregion
         ],
       },
       //#endregion
@@ -1977,7 +1950,6 @@ export class MenuService {
             isOpen: true,
             isPermission: this.permissionService.hasPermission('N1'),
             comp: InventoryByProductComponent,
-        
           },
         ],
       },
@@ -2479,7 +2451,7 @@ export class MenuService {
                 isPermission: this.permissionService.hasPermission('N1'),
                 comp: PersonDayOffComponent,
               },
-            ]
+            ],
           },
           //#region Duyệt cá nhân
           //   {
@@ -3104,7 +3076,6 @@ export class MenuService {
                 comp: PersonComponent,
                 router: '/tbpduyetyccv',
               },
-            
             ],
           },
 
@@ -3209,7 +3180,6 @@ export class MenuService {
             isOpen: true,
             isPermission: this.permissionService.hasPermission('N57,N1'),
             comp: OfficeSupplyRequestsComponent,
-           
           },
         ],
       },

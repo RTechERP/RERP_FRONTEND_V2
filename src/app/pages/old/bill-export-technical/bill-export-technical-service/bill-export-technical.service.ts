@@ -107,7 +107,8 @@ export class BillExportTechnicalService {
   ): Observable<any> {
     const params = new HttpParams()
       .set('status', String(status))
-      .set('warehouseID', String(warehouseID));
+      .set('warehouseID', String(warehouseID))
+      .set('warehouseType', String(warehouseType));
     return this.http.get<any>(`${this.url}load-product`, { params });
   }
 }

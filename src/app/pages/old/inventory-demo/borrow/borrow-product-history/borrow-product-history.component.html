@@ -1,150 +1,142 @@
 <ng-container class="w-100">
-  <nz-splitter>
-    <nz-splitter-panel [nzSize]="sizeSearch" nzResizable="false">
-      <div class="card h-100 border-0 rounded-0">
-        <div class="card-header bg-white p-1">
-          <div class="d-flex justify-content-between align-items-center">
-            <h6 class="m-0 ms-2">Tìm kiếm</h6>
-            <button class="border-0 me-2" nz-button nzSize="small" nzType="default" nzDanger
-              (click)="toggleSearchPanel()">
-              <nz-icon nzType="close" nzTheme="outline" />
-            </button>
-          </div>
-        </div>
-        <div class="card-body">
-          <form nz-form nzLayout="vertical">
-            <nz-form-item>
-              <nz-form-label class="fs-12" [nzSpan]="24">Từ ngày</nz-form-label>
-              <nz-form-control [nzSpan]="24"><nz-date-picker name="dateStart" nzFormat="dd/MM/yyyy" class="w-100"
-                  [(ngModel)]="dateStart" nzAllowClear="false"></nz-date-picker>
-              </nz-form-control>
-            </nz-form-item>
-            <nz-form-item class="mt-2">
-              <nz-form-label class="fs-12" [nzSpan]="24">Đến ngày</nz-form-label>
-              <nz-form-control [nzSpan]="24">
-                <nz-date-picker name="dateEnd" class="w-100" nzFormat="dd/MM/yyyy" [(ngModel)]="dateEnd"
-                  nzAllowClear="false"></nz-date-picker>
-              </nz-form-control>
-            </nz-form-item>
-            <nz-form-item>
-              <nz-form-label class="fs-12" [nzSpan]="24">Nhân viên</nz-form-label>
-              <nz-form-control [nzSpan]="24">
-                <nz-select class="w-100" nzShowSearch nzPlaceHolder="Chọn nhân viên" [(ngModel)]="userID" name="userID"
-                  (ngModelChange)="onEmployeeChange($event)">
-                  <ng-container *ngFor="let group of employees">
-                    <nz-option-group [nzLabel]="'-- Phòng ban: ' + group.label">
-                      <nz-option *ngFor="let option of group.options"
-                        [nzLabel]="option.item.Code +' - '+ option.item.FullName" [nzValue]="option.item.EmployeeeID">
-                      </nz-option>
-                    </nz-option-group>
-                  </ng-container>
-                </nz-select>
-              </nz-form-control>
-            </nz-form-item>
+    <nz-splitter>
+        <nz-splitter-panel [nzSize]="sizeSearch" nzResizable="false">
+            <div class="card h-100 border-0 rounded-0">
+                <div class="card-header bg-white p-1">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <h6 class="m-0 ms-2">Tìm kiếm</h6>
+                        <button class="border-0 me-2" nz-button nzSize="small" nzType="default" nzDanger
+                            (click)="toggleSearchPanel()">
+                            <nz-icon nzType="close" nzTheme="outline" />
+                        </button>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <form nz-form nzLayout="vertical">
+                        <nz-form-item>
+                            <nz-form-label class="fs-12" [nzSpan]="24">Từ ngày</nz-form-label>
+                            <nz-form-control [nzSpan]="24"><nz-date-picker name="dateStart" nzFormat="dd/MM/yyyy"
+                                    class="w-100" [(ngModel)]="dateStart" nzAllowClear="false"></nz-date-picker>
+                            </nz-form-control>
+                        </nz-form-item>
+                        <nz-form-item class="mt-2">
+                            <nz-form-label class="fs-12" [nzSpan]="24">Đến ngày</nz-form-label>
+                            <nz-form-control [nzSpan]="24">
+                                <nz-date-picker name="dateEnd" class="w-100" nzFormat="dd/MM/yyyy" [(ngModel)]="dateEnd"
+                                    nzAllowClear="false"></nz-date-picker>
+                            </nz-form-control>
+                        </nz-form-item>
+                        <nz-form-item>
+                            <nz-form-label class="fs-12" [nzSpan]="24">Nhân viên</nz-form-label>
+                            <nz-form-control [nzSpan]="24">
+                                <nz-select class="w-100" nzShowSearch nzPlaceHolder="Chọn nhân viên"
+                                    [(ngModel)]="userID" name="userID" (ngModelChange)="onEmployeeChange($event)">
+                                    <ng-container *ngFor="let group of employees">
+                                        <nz-option-group [nzLabel]="'-- Phòng ban: ' + group.label">
+                                            <nz-option *ngFor="let option of group.options"
+                                                [nzLabel]="option.item.Code +' - '+ option.item.FullName"
+                                                [nzValue]="option.item.EmployeeeID">
+                                            </nz-option>
+                                        </nz-option-group>
+                                    </ng-container>
+                                </nz-select>
+                            </nz-form-control>
+                        </nz-form-item>
 
-            <nz-form-item class="mt-2">
-              <nz-form-label class="fs-12" [nzSpan]="24">Trạng thái</nz-form-label>
-              <nz-form-control [nzSpan]="24">
-                <nz-select [(ngModel)]="selectedStatus" (ngModelChange)="onStatusChange($event)" [nzMode]="'multiple'"
-                  [nzPlaceHolder]="'Chọn trạng thái'" [nzMaxTagCount]="1" class="w-100" name="selectedStatus">
-                  <nz-option nzLabel="Đã trả" nzValue="0"></nz-option>
-                  <nz-option nzLabel="Đang mượn" nzValue="1"></nz-option>
-                  <nz-option nzLabel="Thiết bị đã mất" nzValue="2"></nz-option>
-                  <nz-option nzLabel="Thiết bị hỏng" nzValue="3"></nz-option>
-                  <nz-option nzLabel="Đăng ký trả" nzValue="4"></nz-option>
-                  <nz-option nzLabel="Quá hạn" nzValue="5"></nz-option>
-                  <nz-option nzLabel="Sắp hết hạn" nzValue="6"></nz-option>
-                  <nz-option nzLabel="Đăng ký mượn" nzValue="7"></nz-option>
-                  <nz-option nzLabel="Đăng ký gia hạn" nzValue="8"></nz-option>
-                </nz-select>
-              </nz-form-control>
-            </nz-form-item>
-            <nz-form-item class="mt-2">
-              <nz-form-label class="fs-12" [nzSpan]="24">Từ khóa</nz-form-label>
-              <nz-form-control [nzSpan]="24">
-                <input name="keyword" nz-input placeholder="Nhập từ khóa" [(ngModel)]="keyWords" />
-              </nz-form-control>
-            </nz-form-item>
-          </form>
-        </div>
-        <div class="card-footer bg-white p-1 d-flex gap-1 justify-content-end">
-          <button nz-button nzType="default" nzSize="small" (click)="resetFilter()">Đặt lại</button>
-          <button nz-button nzType="primary" nzSize="small" (click)="filter()">Tìm kiếm</button>
-        </div>
-      </div>
-    </nz-splitter-panel>
-    <nz-splitter-panel nzDefaultSize="100%">
-      <div class="card h-100 border-0 rounded-0">
-        <div class="card-header bg-white p-1">
-          <div class="d-flex gap-1 align-items-center">
-            <button nz-button nzType="default" nzSize="small" (click)="toggleSearchPanel()">
-              <nz-icon nzType="search" />
-            </button>
-            <button nz-button nzSize="small" class="fs-12 button button-succes btn-add"
-              (click)="productHistoryDetail()">
-              <img src="assets/icon/action_add_item_16.png" alt="Thêm mới " />
-              Đăng ký mượn
-            </button>
-            <button class="fs-12" nz-button nzType="default" nzSize="small" (click)="returnProduct()">
-              <img src="assets/icon/return_16.png" alt="Trả thiết bị" class="me-1" /> Trả thiết bị
-            </button>
-            <button class="fs-12" nz-button nzType="default" nzSize="small" (click)="approveBorrowing()">
-              <img src="assets/icon/action_approved_16.png" alt="Duyệt mượn" class="me-1" /> Duyệt mượn
-            </button>
-            <button class="fs-12" nz-button nzType="default" nzSize="small" (click)="refresh()">
-              <img src="assets/icon/refresh_16.png" alt="làm mới" class="me-1" /> Làm mới
-            </button>
-            <button class="fs-12" nz-button nzType="default" nzSize="small" (click)="editBorrower()">
-              <img src="assets/icon/person_edit_16.png" alt="làm mới" class="me-1" /> Sửa người mượn
-            </button>
-            <button class="fs-12" nz-button nzType="default" nzSize="small" (click)="expiredProduct()">
-              <img src="assets/icon/expire_16.png" alt="làm mới" class="me-1" /> Quá hạn
-            </button>
-              <button
-              class="fs-12"
-              nz-button
-              nzType="default"
-              nzSize="small"
-              (click)="exportExcel()"
-            >
-                <img src="assets/icon/action_export_excel_16.png" alt="Xuất Excel" class="me-1" /> Xuất Excel
-            </button>
-            <button class="fs-12" nz-button nzType="default" nzSize="small" (click)="historyError()">
-              <img src="assets/icon/error_list_16.png" alt="làm mới" class="me-1" /> Danh sách lỗi
-            </button>
-
-              <!-- INTEGRATION: Nút Xuất chỉ hiển thị khi mở từ bill import technical -->
-              <button *ngIf="isModalMode" class="fs-12" nz-button nzType="primary" nzSize="small"
-                (click)="exportSelectedProducts()">
-                <nz-icon nzType="export" nzTheme="outline" /> Xuất
-              </button>
-
-              <span class="ms-auto d-flex align-items-center gap-1">
-                <nz-form-label class="mb-0" style="text-align: right;padding-right: 5px;"><span>Gia hạn đến: </span></nz-form-label>
-                <nz-date-picker name="dateExtend" [(ngModel)]="dateExtend" class="fs-12" nzSize="small"
-                  nzFormat="dd/MM/yyyy" nzAllowClear="false"></nz-date-picker>
-                <button type="button" nz-button nzType="primary" nzSize="small" (click)="extendBorrowing()">
-                  Gia hạn
-                </button>
-              </span>
-              <!-- Nút đóng modal - chỉ hiển thị khi ở chế độ modal -->
-              <button *ngIf="isModalMode && activeModal" 
-                class="border-0 ms-2" 
-                nz-button 
-                nzSize="small" 
-                nzType="default" 
-                nzDanger
-                (click)="closeModal()"
-                title="Đóng">
-                <nz-icon nzType="close" nzTheme="outline" />
-              </button>
+                        <nz-form-item class="mt-2">
+                            <nz-form-label class="fs-12" [nzSpan]="24">Trạng thái</nz-form-label>
+                            <nz-form-control [nzSpan]="24">
+                                <nz-select [(ngModel)]="selectedStatus" (ngModelChange)="onStatusChange($event)"
+                                    [nzMode]="'multiple'" [nzPlaceHolder]="'Chọn trạng thái'" [nzMaxTagCount]="1"
+                                    class="w-100" name="selectedStatus">
+                                    <nz-option nzLabel="Đã trả" nzValue="0"></nz-option>
+                                    <nz-option nzLabel="Đang mượn" nzValue="1"></nz-option>
+                                    <nz-option nzLabel="Thiết bị đã mất" nzValue="2"></nz-option>
+                                    <nz-option nzLabel="Thiết bị hỏng" nzValue="3"></nz-option>
+                                    <nz-option nzLabel="Đăng ký trả" nzValue="4"></nz-option>
+                                    <nz-option nzLabel="Quá hạn" nzValue="5"></nz-option>
+                                    <nz-option nzLabel="Sắp hết hạn" nzValue="6"></nz-option>
+                                    <nz-option nzLabel="Đăng ký mượn" nzValue="7"></nz-option>
+                                    <nz-option nzLabel="Đăng ký gia hạn" nzValue="8"></nz-option>
+                                </nz-select>
+                            </nz-form-control>
+                        </nz-form-item>
+                        <nz-form-item class="mt-2">
+                            <nz-form-label class="fs-12" [nzSpan]="24">Từ khóa</nz-form-label>
+                            <nz-form-control [nzSpan]="24">
+                                <input name="keyword" nz-input placeholder="Nhập từ khóa" [(ngModel)]="keyWords" />
+                            </nz-form-control>
+                        </nz-form-item>
+                    </form>
+                </div>
+                <div class="card-footer bg-white p-1 d-flex gap-1 justify-content-end">
+                    <button nz-button nzType="default" nzSize="small" (click)="resetFilter()">Đặt lại</button>
+                    <button nz-button nzType="primary" nzSize="small" (click)="filter()">Tìm kiếm</button>
+                </div>
             </div>
-          </div>
-                  <div class="card-body p-0">
-          <div #tb_productHistory></div>
-      </div>
-        </div>
+        </nz-splitter-panel>
+        <nz-splitter-panel nzDefaultSize="100%">
+            <div class="card h-100 border-0 rounded-0">
+                <div class="card-header bg-white p-1">
+                    <div class="d-flex gap-1 align-items-center">
+                        <button nz-button nzType="default" nzSize="small" (click)="toggleSearchPanel()">
+                            <nz-icon nzType="search" />
+                        </button>
+                        <button nz-button nzSize="small" class="fs-12 button button-succes btn-add"
+                            (click)="productHistoryDetail()">
+                            <img src="assets/icon/action_add_item_16.png" alt="Thêm mới " />
+                            Đăng ký mượn
+                        </button>
+                        <button class="fs-12" nz-button nzType="default" nzSize="small" (click)="returnProduct()">
+                            <img src="assets/icon/return_16.png" alt="Trả thiết bị" class="me-1" /> Trả thiết bị
+                        </button>
+                        <button class="fs-12" nz-button nzType="default" nzSize="small" (click)="approveBorrowing()">
+                            <img src="assets/icon/action_approved_16.png" alt="Duyệt mượn" class="me-1" /> Duyệt mượn
+                        </button>
+                        <button class="fs-12" nz-button nzType="default" nzSize="small" (click)="refresh()">
+                            <img src="assets/icon/refresh_16.png" alt="làm mới" class="me-1" /> Làm mới
+                        </button>
+                        <button class="fs-12" nz-button nzType="default" nzSize="small" (click)="editBorrower()">
+                            <img src="assets/icon/person_edit_16.png" alt="làm mới" class="me-1" /> Sửa người mượn
+                        </button>
+                        <button class="fs-12" nz-button nzType="default" nzSize="small" (click)="expiredProduct()">
+                            <img src="assets/icon/expire_16.png" alt="làm mới" class="me-1" /> Quá hạn
+                        </button>
+                        <button class="fs-12" nz-button nzType="default" nzSize="small" (click)="exportExcel()">
+                            <img src="assets/icon/action_export_excel_16.png" alt="Xuất Excel" class="me-1" /> Xuất
+                            Excel
+                        </button>
+                        <button class="fs-12" nz-button nzType="default" nzSize="small" (click)="historyError()">
+                            <img src="assets/icon/error_list_16.png" alt="làm mới" class="me-1" /> Danh sách lỗi
+                        </button>
 
-    </nz-splitter-panel>
-  </nz-splitter>
+                        <!-- INTEGRATION: Nút Xuất chỉ hiển thị khi mở từ bill import technical -->
+                        <button *ngIf="isModalMode" class="fs-12" nz-button nzType="primary" nzSize="small"
+                            (click)="exportSelectedProducts()">
+                            <nz-icon nzType="export" nzTheme="outline" /> Xuất
+                        </button>
+
+                        <span class="ms-auto d-flex align-items-center gap-1">
+                            <nz-form-label class="mb-0" style="text-align: right;padding-right: 5px;"><span>Gia hạn đến:
+                                </span></nz-form-label>
+                            <nz-date-picker name="dateExtend" [(ngModel)]="dateExtend" class="fs-12" nzSize="small"
+                                nzFormat="dd/MM/yyyy" nzAllowClear="false"></nz-date-picker>
+                            <button type="button" nz-button nzType="primary" nzSize="small" (click)="extendBorrowing()">
+                                Gia hạn
+                            </button>
+                        </span>
+                        <!-- Nút đóng modal - chỉ hiển thị khi ở chế độ modal -->
+                        <button *ngIf="isModalMode && activeModal" class="border-0 ms-2" nz-button nzSize="small"
+                            nzType="default" nzDanger (click)="closeModal()" title="Đóng">
+                            <nz-icon nzType="close" nzTheme="outline" />
+                        </button>
+                    </div>
+                </div>
+                <div class="card-body p-0">
+                    <div #tb_productHistory></div>
+                </div>
+            </div>
+
+        </nz-splitter-panel>
+    </nz-splitter>
 </ng-container>

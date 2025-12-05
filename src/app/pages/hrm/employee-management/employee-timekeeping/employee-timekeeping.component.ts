@@ -49,7 +49,7 @@ import { EmployeeTimekeepingManagementComponent } from './employee-timekeeping-m
     NzSplitterModule,
     NzModalModule,
     NgbModalModule,
-    EmployeeTimekeepingManagementComponent, // Cần import để dùng trong modal
+    // EmployeeTimekeepingManagementComponent, // Cần import để dùng trong modal
   ],
   templateUrl: './employee-timekeeping.component.html',
   styleUrls: ['./employee-timekeeping.component.css'],
@@ -107,7 +107,7 @@ export class EmployeeTimekeepingComponent
       this.notification.error('Thông báo', 'Vui lòng chọn 1 bảng chấm công!');
       return;
     }
-    
+
     // Mở modal fullscreen thay vì navigate
     const modalRef = this.ngbModal.open(
       EmployeeTimekeepingManagementComponent,
@@ -159,7 +159,7 @@ export class EmployeeTimekeepingComponent
       ajaxResponse: (url: any, params: any, response: any) => {
         console.log('API Response:', response);
         let rows: any[] = [];
-        
+
         // Response structure: { status: 1, data: [...] } từ procedure spGetEmployeeChamCongMaster
         if (response && typeof response === 'object') {
           if (response.status === 1 && response.data) {
@@ -219,7 +219,6 @@ export class EmployeeTimekeepingComponent
     ];
   }
 
-  
   private getTableColumns(): any[] {
     return [
       {
@@ -227,12 +226,12 @@ export class EmployeeTimekeepingComponent
         field: 'isApproved',
         headerHozAlign: 'center',
         hozAlign: 'center',
-         formatter: function (cell: any) {
-            let value = cell.getValue();
-            return value
-              ? "<input type='checkbox' checked readonly style='pointer-events:none'>"
-              : "<input type='checkbox' readonly style='pointer-events:none'>";
-          },
+        formatter: function (cell: any) {
+          let value = cell.getValue();
+          return value
+            ? "<input type='checkbox' checked readonly style='pointer-events:none'>"
+            : "<input type='checkbox' readonly style='pointer-events:none'>";
+        },
         headerSort: false,
         minWidth: 40,
         width: 60,
@@ -436,9 +435,13 @@ export class EmployeeTimekeepingComponent
     modalRef.result.then((result) => {
       if (result?.action === 'save') {
         this.searchET();
-        this.notification.success('Thông báo', 'Thêm bảng chấm công  thành công!', {
-          nzStyle: { fontSize: '0.75rem' },
-        });
+        this.notification.success(
+          'Thông báo',
+          'Thêm bảng chấm công  thành công!',
+          {
+            nzStyle: { fontSize: '0.75rem' },
+          }
+        );
       }
     });
   }
@@ -473,9 +476,13 @@ export class EmployeeTimekeepingComponent
     modalRef.result.then((result) => {
       if (result?.action === 'save') {
         this.searchET();
-        this.notification.success('Thông báo', 'Sửa bảng chấm công  thành công!', {
-          nzStyle: { fontSize: '0.75rem' },
-        });
+        this.notification.success(
+          'Thông báo',
+          'Sửa bảng chấm công  thành công!',
+          {
+            nzStyle: { fontSize: '0.75rem' },
+          }
+        );
       }
     });
   }
@@ -495,7 +502,7 @@ export class EmployeeTimekeepingComponent
     // Lọc ra các bản ghi chưa duyệt (chỉ xóa những cái này)
     const notApprovedRows = selectedRows.filter((row) => !row.isApproved);
     const approvedRows = selectedRows.filter((row) => row.isApproved);
-    
+
     // Nếu không có bản ghi nào chưa duyệt thì báo lỗi
     if (notApprovedRows.length === 0) {
       this.notification.warning(
@@ -532,7 +539,10 @@ export class EmployeeTimekeepingComponent
     });
   }
 
-  private confirmDeleteET(selectedRows: any[] = [], skippedCount: number = 0): void {
+  private confirmDeleteET(
+    selectedRows: any[] = [],
+    skippedCount: number = 0
+  ): void {
     if (!selectedRows || selectedRows.length === 0) {
       this.notification.error('Thông báo', 'Không có bản ghi hợp lệ để xóa!');
       return;
@@ -544,7 +554,12 @@ export class EmployeeTimekeepingComponent
 
     const deleteNext = (index: number) => {
       if (index >= selectedRows.length) {
-        this.handleDeleteComplete(successCount, failedCount, totalCount, skippedCount);
+        this.handleDeleteComplete(
+          successCount,
+          failedCount,
+          totalCount,
+          skippedCount
+        );
         return;
       }
 
@@ -554,7 +569,6 @@ export class EmployeeTimekeepingComponent
         Name: item.Name,
         ID: item.ID,
         IsDeleted: true,
-        
       };
 
       this.etService.saveData(deleteData).subscribe({
@@ -584,11 +598,9 @@ export class EmployeeTimekeepingComponent
       if (skippedCount > 0) {
         message += ` (${skippedCount} bản ghi đã duyệt được bỏ qua)`;
       }
-      this.notification.success(
-        'Thông báo',
-        message,
-        { nzStyle: { fontSize: '0.75rem' } }
-      );
+      this.notification.success('Thông báo', message, {
+        nzStyle: { fontSize: '0.75rem' },
+      });
       this.searchET();
       this.clearSelection();
     } else if (totalCount > 0) {
@@ -651,30 +663,32 @@ export class EmployeeTimekeepingComponent
   approvedET(): void {
     const selectedRows = this.getSelectedRows();
     const rowCount = selectedRows.length;
-    
+
     if (rowCount === 0) {
       this.notification.error('Thông báo', 'Vui lòng chọn bản ghi để duyệt!');
       return;
     }
-    
+
     // Lọc ra các bản ghi chưa duyệt
     const notApprovedRows = selectedRows.filter((row) => !row.isApproved);
     if (notApprovedRows.length === 0) {
       this.notification.warning('Thông báo', 'Tất cả bản ghi đã được duyệt!');
       return;
     }
-    
+
     // Lấy tên bảng chấm công đầu tiên (focused row)
     const focusedRow = this.tb_ET?.getSelectedRows()[0];
-    const timekeepingName = focusedRow ? focusedRow.getData()['Name'] : selectedRows[0]?.['Name'] || '';
-    
+    const timekeepingName = focusedRow
+      ? focusedRow.getData()['Name']
+      : selectedRows[0]?.['Name'] || '';
+
     let confirmMessage = '';
     if (notApprovedRows.length === 1) {
       confirmMessage = `Bạn có chắc chắn muốn duyệt bảng chấm công <strong>"${notApprovedRows[0].Name}"</strong> không?`;
     } else {
       confirmMessage = `Bạn có chắc chắn muốn duyệt <strong>${notApprovedRows.length}</strong> bản ghi đã chọn không?`;
     }
-    
+
     this.nzModal.confirm({
       nzTitle: 'Xác nhận duyệt',
       nzContent: confirmMessage,
@@ -692,18 +706,24 @@ export class EmployeeTimekeepingComponent
     const approveNext = (index: number) => {
       if (index >= selectedRows.length) {
         if (successCount > 0) {
-          this.notification.success('Thông báo', `Duyệt thành công ${successCount}/${selectedRows.length} bản ghi!`);
+          this.notification.success(
+            'Thông báo',
+            `Duyệt thành công ${successCount}/${selectedRows.length} bản ghi!`
+          );
         }
         if (failedCount > 0) {
-          this.notification.warning('Thông báo', `${failedCount} bản ghi duyệt thất bại!`);
+          this.notification.warning(
+            'Thông báo',
+            `${failedCount} bản ghi duyệt thất bại!`
+          );
         }
         this.searchET();
         this.clearSelection();
         return;
       }
-      
+
       const item = selectedRows[index];
-      
+
       // Kiểm tra đã duyệt chưa
       if (item.isApproved) {
         approveNext(index + 1);
@@ -716,7 +736,7 @@ export class EmployeeTimekeepingComponent
         UpdatedBy: this.etService.LoginName,
         UpdatedDate: new Date().toISOString(),
       };
-      
+
       this.etService.saveData(approveData).subscribe({
         next: (res: any) => {
           if (res?.status === 1) successCount++;
@@ -729,33 +749,39 @@ export class EmployeeTimekeepingComponent
         },
       });
     };
-    
+
     approveNext(0);
   }
 
   cancelApprovedET(): void {
     const selectedRows = this.getSelectedRows();
     const rowCount = selectedRows.length;
-    
+
     if (rowCount === 0) {
-      this.notification.error('Thông báo', 'Vui lòng chọn bản ghi để hủy duyệt!');
+      this.notification.error(
+        'Thông báo',
+        'Vui lòng chọn bản ghi để hủy duyệt!'
+      );
       return;
     }
-    
+
     // Lọc ra các bản ghi đã duyệt
     const approvedRows = selectedRows.filter((row) => row.isApproved);
     if (approvedRows.length === 0) {
-      this.notification.warning('Thông báo', 'Không có bản ghi nào đã được duyệt!');
+      this.notification.warning(
+        'Thông báo',
+        'Không có bản ghi nào đã được duyệt!'
+      );
       return;
     }
-    
+
     let confirmMessage = '';
     if (approvedRows.length === 1) {
       confirmMessage = `Bạn có chắc chắn muốn hủy duyệt bảng chấm công <strong>"${approvedRows[0].Name}"</strong> không?`;
     } else {
       confirmMessage = `Bạn có chắc chắn muốn hủy duyệt <strong>${approvedRows.length}</strong> bản ghi đã chọn không?`;
     }
-    
+
     this.nzModal.confirm({
       nzTitle: 'Xác nhận hủy duyệt',
       nzContent: confirmMessage,
@@ -773,18 +799,24 @@ export class EmployeeTimekeepingComponent
     const cancelNext = (index: number) => {
       if (index >= selectedRows.length) {
         if (successCount > 0) {
-          this.notification.success('Thông báo', `Hủy duyệt thành công ${successCount}/${selectedRows.length} bản ghi!`);
+          this.notification.success(
+            'Thông báo',
+            `Hủy duyệt thành công ${successCount}/${selectedRows.length} bản ghi!`
+          );
         }
         if (failedCount > 0) {
-          this.notification.warning('Thông báo', `${failedCount} bản ghi hủy duyệt thất bại!`);
+          this.notification.warning(
+            'Thông báo',
+            `${failedCount} bản ghi hủy duyệt thất bại!`
+          );
         }
         this.searchET();
         this.clearSelection();
         return;
       }
-      
+
       const item = selectedRows[index];
-      
+
       // Kiểm tra đã duyệt chưa
       if (!item.isApproved) {
         cancelNext(index + 1);
@@ -797,7 +829,7 @@ export class EmployeeTimekeepingComponent
         UpdatedBy: this.etService.LoginName,
         UpdatedDate: new Date().toISOString(),
       };
-      
+
       this.etService.saveData(cancelData).subscribe({
         next: (res: any) => {
           if (res?.status === 1) successCount++;
@@ -810,7 +842,7 @@ export class EmployeeTimekeepingComponent
         },
       });
     };
-    
+
     cancelNext(0);
   }
 }

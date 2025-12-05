@@ -70,14 +70,14 @@ import { ProjectItemProblemComponent } from './work-item-form/project-item-probl
     NzSpinModule,
     NzTreeSelectModule,
     NzModalModule,
-    SelectControlComponent,
+    // SelectControlComponent,
   ],
   templateUrl: './work-item.component.html',
-  styleUrl: './work-item.component.css'
+  styleUrl: './work-item.component.css',
 })
 export class WorkItemComponent implements OnInit, AfterViewInit {
-@Input() projectId: number = 0;
-@Input() projectCode: string ='';
+  @Input() projectId: number = 0;
+  @Input() projectCode: string = '';
   constructor(
     private injector: EnvironmentInjector,
     private appRef: ApplicationRef,
@@ -96,7 +96,7 @@ export class WorkItemComponent implements OnInit, AfterViewInit {
   tb_workItemElement!: ElementRef;
   tb_workItem: any;
 
-  dataStatus: any[] = []; // trạng thái duyệt 
+  dataStatus: any[] = []; // trạng thái duyệt
   dataStatusApproved: any[] = []; // trạng thái duyệt kế hoạch
   cbbEmployeeRequest: any[] = []; // người giao việc
   cbbTypeProject: any[] = []; // loại dự án
@@ -107,22 +107,22 @@ export class WorkItemComponent implements OnInit, AfterViewInit {
   deletedIdsWorkItem: number[] = []; // ID của hạng mục đã xóa
   currentUser: any = null;
   //tree
-  treeWorkItemData:any=[];
+  treeWorkItemData: any = [];
   filterStatus: string = '0,1,2'; // Mặc định hiển thị cả "Chưa làm" (0) và "Đang làm" (1)
   // Giá trị: 'all' = Tất cả, '0,1' = Chưa làm và Đang làm, '0' = Chưa làm, '1' = Đang làm, v.v.
 
   ngOnInit(): void {
     this.dataStatus = [
-      { id: 0, name: "Chưa làm" },
-      { id: 1, name: "Đang làm" },
-      { id: 2, name: "Hoàn thành" },
-      { id: 3, name: "Pending" },
+      { id: 0, name: 'Chưa làm' },
+      { id: 1, name: 'Đang làm' },
+      { id: 2, name: 'Hoàn thành' },
+      { id: 3, name: 'Pending' },
     ];
     this.dataStatusApproved = [
-      { id: 0, name: "Chờ duyệt kế hoạch" },
-      { id: 1, name: "Duyệt thực tế" },
-      { id: 2, name: "Chờ duyệt thực tế" },
-      { id: 3, name: "Duyệt thực tế" },
+      { id: 0, name: 'Chờ duyệt kế hoạch' },
+      { id: 1, name: 'Duyệt thực tế' },
+      { id: 2, name: 'Chờ duyệt thực tế' },
+      { id: 3, name: 'Duyệt thực tế' },
     ];
     this.getCurrentUser();
     // Load tất cả dropdown trước, sau đó mới load data bảng
@@ -133,11 +133,11 @@ export class WorkItemComponent implements OnInit, AfterViewInit {
   ngAfterViewInit(): void {
     this.drawTbWorkItem(this.tb_workItemElement!.nativeElement);
   }
-  
-  toggleSearchPanel(){
+
+  toggleSearchPanel() {
     this.sizeSearch = this.sizeSearch === '0' ? '250px' : '0';
   }
-  resetSearch(){
+  resetSearch() {
     this.keyword = '';
   }
   getCurrentUser() {
@@ -149,28 +149,36 @@ export class WorkItemComponent implements OnInit, AfterViewInit {
   }
 
   // Kiểm tra quyền edit - tương tự checkIsPermission trong WinForm
-  checkIsPermission(createdBy: string, userID: number, employeeIDRequest: number): boolean {
+  checkIsPermission(
+    createdBy: string,
+    userID: number,
+    employeeIDRequest: number
+  ): boolean {
     if (!this.currentUser) return false;
-    
+
     const currentUserID = this.currentUser.UserID || this.currentUser.ID || 0;
     const currentEmployeeID = this.currentUser.EmployeeID || 0;
-    const currentUserName = (this.currentUser.UserName || this.currentUser.FullName || '').trim();
-    
+    const currentUserName = (
+      this.currentUser.UserName ||
+      this.currentUser.FullName ||
+      ''
+    ).trim();
+
     // Kiểm tra nếu là người tạo
     if (createdBy && createdBy.trim() === currentUserName) {
       return true;
     }
-    
+
     // Kiểm tra nếu là người phụ trách
     if (userID && userID === currentUserID) {
       return true;
     }
-    
+
     // Kiểm tra nếu là người giao việc
     if (employeeIDRequest && employeeIDRequest === currentEmployeeID) {
       return true;
     }
-    
+
     return false;
   }
 
@@ -178,47 +186,47 @@ export class WorkItemComponent implements OnInit, AfterViewInit {
   validateCellEditing(cell: any): { valid: boolean; errorText?: string } {
     const row = cell.getRow();
     if (!row) return { valid: true };
-    
+
     const rowData = row.getData();
     const fieldName = cell.getField();
     const id = rowData.ID || 0;
-    
+
     // Chỉ validate cho row có ID > 0 (đã lưu vào DB)
     if (id <= 0) {
       return { valid: true };
     }
-    
+
     // Kiểm tra IsAdmin
     const isAdmin = this.currentUser?.IsAdmin || false;
     if (isAdmin) {
       return { valid: true };
     }
-    
+
     const isApproved = rowData.IsApproved || 0;
     const createdBy = (rowData.CreatedBy || '').trim();
     const userID = rowData.UserID || 0;
     const employeeIDRequest = rowData.EmployeeIDRequest || 0;
-    
+
     // Kiểm tra nếu đã duyệt thực tế (IsApproved == 3)
     if (isApproved === 3) {
       return {
         valid: false,
-        errorText: 'Đã duyệt thực tế.\nBạn không thể cập nhật!'
+        errorText: 'Đã duyệt thực tế.\nBạn không thể cập nhật!',
       };
     }
-    
+
     // Kiểm tra quyền
     if (!this.checkIsPermission(createdBy, userID, employeeIDRequest)) {
       return {
         valid: false,
-        errorText: 'Bạn không thể cập nhật hạng mục của người khác!'
+        errorText: 'Bạn không thể cập nhật hạng mục của người khác!',
       };
     }
-    
+
     // Kiểm tra các cột Mission và Plan (PlanStartDate, PlanEndDate)
     const isMissionColumn = fieldName === 'Mission';
     const isPlanColumn = ['PlanStartDate', 'PlanEndDate'].includes(fieldName);
-    
+
     if (isMissionColumn || isPlanColumn) {
       const statusUpdate = rowData.StatusUpdate || 0;
       if (statusUpdate !== 2 && statusUpdate !== 1) {
@@ -226,7 +234,7 @@ export class WorkItemComponent implements OnInit, AfterViewInit {
         row.update({ StatusUpdate: 2 });
       }
     }
-    
+
     return { valid: true };
   }
 
@@ -234,19 +242,23 @@ export class WorkItemComponent implements OnInit, AfterViewInit {
   handleCellValueChanged(cell: any): void {
     const row = cell.getRow();
     if (!row) return;
-    
+
     const rowData = row.getData();
     const fieldName = cell.getField();
     const id = rowData.ID || 0;
     const now = DateTime.now();
-    
+
     console.log(`📝 Cell changed: Field="${fieldName}", ID=${id}`);
-    
+
     // Cập nhật StatusUpdate cho Mission và Plan columns
     if (id > 0) {
       const isMissionColumn = fieldName === 'Mission';
-      const isPlanColumn = ['PlanStartDate', 'PlanEndDate', 'TotalDayPlan'].includes(fieldName);
-      
+      const isPlanColumn = [
+        'PlanStartDate',
+        'PlanEndDate',
+        'TotalDayPlan',
+      ].includes(fieldName);
+
       if (isMissionColumn || isPlanColumn) {
         const statusUpdate = rowData.StatusUpdate || 0;
         if (statusUpdate !== 2 && statusUpdate !== 1) {
@@ -254,12 +266,16 @@ export class WorkItemComponent implements OnInit, AfterViewInit {
         }
       }
     }
-  
+
     // Xử lý các cột ngày tháng Plan
-    const planStartDate = rowData.PlanStartDate ? DateTime.fromISO(rowData.PlanStartDate) : null;
-    const planEndDate = rowData.PlanEndDate ? DateTime.fromISO(rowData.PlanEndDate) : null;
+    const planStartDate = rowData.PlanStartDate
+      ? DateTime.fromISO(rowData.PlanStartDate)
+      : null;
+    const planEndDate = rowData.PlanEndDate
+      ? DateTime.fromISO(rowData.PlanEndDate)
+      : null;
     const totalDayPlan = rowData.TotalDayPlan || 0;
-  
+
     // Xử lý thay đổi ngày bắt đầu
     if (fieldName === 'PlanStartDate') {
       if (planStartDate && planStartDate.isValid) {
@@ -268,14 +284,17 @@ export class WorkItemComponent implements OnInit, AfterViewInit {
           const daysDiff = planEndDate.diff(planStartDate, 'days').days;
           if (daysDiff < 0) {
             // Ngày bắt đầu lớn hơn ngày kết thúc - không hợp lệ
-            this.notification.warning('Cảnh báo', 'Ngày bắt đầu phải nhỏ hơn hoặc bằng ngày kết thúc!');
+            this.notification.warning(
+              'Cảnh báo',
+              'Ngày bắt đầu phải nhỏ hơn hoặc bằng ngày kết thúc!'
+            );
             // Revert về giá trị cũ
             const oldValue = cell.getOldValue();
             cell.setValue(oldValue);
             return;
           }
         }
-        
+
         if (totalDayPlan > 0) {
           const newEndDate = planStartDate.plus({ days: totalDayPlan - 1 });
           row.update({ PlanEndDate: newEndDate.toISO() });
@@ -307,7 +326,10 @@ export class WorkItemComponent implements OnInit, AfterViewInit {
           const daysDiff = planEndDate.diff(planStartDate, 'days').days;
           if (daysDiff < 0) {
             // Ngày kết thúc nhỏ hơn ngày bắt đầu - không hợp lệ
-            this.notification.warning('Cảnh báo', 'Ngày kết thúc phải lớn hơn hoặc bằng ngày bắt đầu!');
+            this.notification.warning(
+              'Cảnh báo',
+              'Ngày kết thúc phải lớn hơn hoặc bằng ngày bắt đầu!'
+            );
             // Revert về giá trị cũ
             const oldValue = cell.getOldValue();
             cell.setValue(oldValue);
@@ -322,25 +344,39 @@ export class WorkItemComponent implements OnInit, AfterViewInit {
       }
       this.updatePercent();
     }
-  
+
     // Tính toán ItemLate cho tất cả rows (sau khi thay đổi dữ liệu)
     // Sử dụng setTimeout để đảm bảo dữ liệu đã được cập nhật
     setTimeout(() => {
       this.updateItemLate();
     }, 0);
-  
+
     // Cập nhật trạng thái hoàn thành
     if (fieldName === 'ActualStartDate' || fieldName === 'ActualEndDate') {
-      const newActualStartDate = rowData.ActualStartDate ? DateTime.fromISO(rowData.ActualStartDate) : null;
-      const newActualEndDate = rowData.ActualEndDate ? DateTime.fromISO(rowData.ActualEndDate) : null;
-      
+      const newActualStartDate = rowData.ActualStartDate
+        ? DateTime.fromISO(rowData.ActualStartDate)
+        : null;
+      const newActualEndDate = rowData.ActualEndDate
+        ? DateTime.fromISO(rowData.ActualEndDate)
+        : null;
+
       // Validate: ngày kết thúc thực tế phải lớn hơn hoặc bằng ngày bắt đầu thực tế
-      if (fieldName === 'ActualEndDate' && newActualEndDate && newActualEndDate.isValid) {
+      if (
+        fieldName === 'ActualEndDate' &&
+        newActualEndDate &&
+        newActualEndDate.isValid
+      ) {
         if (newActualStartDate && newActualStartDate.isValid) {
-          const daysDiff = newActualEndDate.diff(newActualStartDate, 'days').days;
+          const daysDiff = newActualEndDate.diff(
+            newActualStartDate,
+            'days'
+          ).days;
           if (daysDiff < 0) {
             // Ngày kết thúc nhỏ hơn ngày bắt đầu - không hợp lệ
-            this.notification.warning('Cảnh báo', 'Ngày kết thúc thực tế phải lớn hơn hoặc bằng ngày bắt đầu thực tế!');
+            this.notification.warning(
+              'Cảnh báo',
+              'Ngày kết thúc thực tế phải lớn hơn hoặc bằng ngày bắt đầu thực tế!'
+            );
             // Revert về giá trị cũ
             const oldValue = cell.getOldValue();
             cell.setValue(oldValue);
@@ -348,14 +384,24 @@ export class WorkItemComponent implements OnInit, AfterViewInit {
           }
         }
       }
-      
+
       // Validate: ngày bắt đầu thực tế phải nhỏ hơn hoặc bằng ngày kết thúc thực tế
-      if (fieldName === 'ActualStartDate' && newActualStartDate && newActualStartDate.isValid) {
+      if (
+        fieldName === 'ActualStartDate' &&
+        newActualStartDate &&
+        newActualStartDate.isValid
+      ) {
         if (newActualEndDate && newActualEndDate.isValid) {
-          const daysDiff = newActualEndDate.diff(newActualStartDate, 'days').days;
+          const daysDiff = newActualEndDate.diff(
+            newActualStartDate,
+            'days'
+          ).days;
           if (daysDiff < 0) {
             // Ngày bắt đầu lớn hơn ngày kết thúc - không hợp lệ
-            this.notification.warning('Cảnh báo', 'Ngày bắt đầu thực tế phải nhỏ hơn hoặc bằng ngày kết thúc thực tế!');
+            this.notification.warning(
+              'Cảnh báo',
+              'Ngày bắt đầu thực tế phải nhỏ hơn hoặc bằng ngày kết thúc thực tế!'
+            );
             // Revert về giá trị cũ
             const oldValue = cell.getOldValue();
             cell.setValue(oldValue);
@@ -363,15 +409,17 @@ export class WorkItemComponent implements OnInit, AfterViewInit {
           }
         }
       }
-      
+
       if (newActualEndDate && newActualEndDate.isValid) {
         row.update({
           UpdatedDateActual: now.toISO(),
-          Status: 2
+          Status: 2,
         });
-   
+
         if (planEndDate && planEndDate.isValid) {
-          const endDiff = newActualEndDate.startOf('day').diff(planEndDate.startOf('day'), 'days').days;
+          const endDiff = newActualEndDate
+            .startOf('day')
+            .diff(planEndDate.startOf('day'), 'days').days;
           if (endDiff > 0) {
             row.update({ IsUpdateLate: true });
           }
@@ -380,11 +428,11 @@ export class WorkItemComponent implements OnInit, AfterViewInit {
         const hasActualStart = newActualStartDate && newActualStartDate.isValid;
         row.update({
           UpdatedDateActual: null,
-          Status: hasActualStart ? 1 : 0
+          Status: hasActualStart ? 1 : 0,
         });
       }
     }
-  
+
     // Xử lý thay đổi trạng thái
     if (fieldName === 'Status') {
       const status = rowData.Status || 0;
@@ -397,144 +445,185 @@ export class WorkItemComponent implements OnInit, AfterViewInit {
   }
 
   // Tính toán phần trăm - tương tự updatePercent trong WinForm
- // Thay thế phương thức updatePercent() của bạn bằng code này:
+  // Thay thế phương thức updatePercent() của bạn bằng code này:
 
- updatePercent(): void {
-  console.log('🔄 BẮT ĐẦU TÍNH PHẦN TRĂM...');
-  
-  try {
-    // Lấy root rows
-    const rootRows = this.tb_workItem.getRows();
-    
-    if (!rootRows || rootRows.length === 0) {
-      console.log('⚠️ Không có rows trong table');
-      return;
-    }
+  updatePercent(): void {
+    console.log('🔄 BẮT ĐẦU TÍNH PHẦN TRĂM...');
 
-    // ✅ QUAN TRỌNG: Flatten tree để lấy TẤT CẢ rows (bao gồm children)
-    const allRows = this.flattenTreeRows(rootRows);
+    try {
+      // Lấy root rows
+      const rootRows = this.tb_workItem.getRows();
 
-    console.log(`📊 Root rows: ${rootRows.length}, Tổng tất cả rows: ${allRows.length}`);
-
-    // Thu thập dữ liệu từ tất cả rows
-    let totalDays = 0;
-    const rowsInfo: Array<{row: any, data: any, days: number}> = [];
-
-    allRows.forEach((row: any) => {
-      const data = row.getData();
-      const days = parseFloat(data.TotalDayPlan) || 0;
-      
-      totalDays += days;
-      rowsInfo.push({ row, data, days });
-      
-      if (days > 0) {
-        console.log(`  ├─ ID: ${data.ID}, Code: ${data.Code}, Ngày: ${days}`);
+      if (!rootRows || rootRows.length === 0) {
+        console.log('⚠️ Không có rows trong table');
+        return;
       }
-    });
 
-    console.log(`📈 TỔNG SỐ NGÀY: ${totalDays}`);
-    console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+      // ✅ QUAN TRỌNG: Flatten tree để lấy TẤT CẢ rows (bao gồm children)
+      const allRows = this.flattenTreeRows(rootRows);
 
-    // Cập nhật phần trăm
-    if (totalDays > 0) {
-      let updatedCount = 0;
-      
-      rowsInfo.forEach(({ row, data, days }) => {
-        const percent = (days * 100) / totalDays;
-        const roundedPercent = Math.round(percent * 100) / 100;
-        const currentPercent = parseFloat(data.PercentItem) || 0;
-        
-        // Chỉ update nếu khác biệt > 0.01%
-        if (Math.abs(currentPercent - roundedPercent) > 0.01) {
-          row.update({ PercentItem: roundedPercent });
-          updatedCount++;
-          console.log(`  ✓ Updated ID ${data.ID}: ${roundedPercent}%`);
+      console.log(
+        `📊 Root rows: ${rootRows.length}, Tổng tất cả rows: ${allRows.length}`
+      );
+
+      // Thu thập dữ liệu từ tất cả rows
+      let totalDays = 0;
+      const rowsInfo: Array<{ row: any; data: any; days: number }> = [];
+
+      allRows.forEach((row: any) => {
+        const data = row.getData();
+        const days = parseFloat(data.TotalDayPlan) || 0;
+
+        totalDays += days;
+        rowsInfo.push({ row, data, days });
+
+        if (days > 0) {
+          console.log(`  ├─ ID: ${data.ID}, Code: ${data.Code}, Ngày: ${days}`);
         }
       });
-      
-      console.log(`✅ Đã cập nhật ${updatedCount} rows!`);
-    } else {
-      // Reset tất cả về 0
-      rowsInfo.forEach(({ row }) => {
-        row.update({ PercentItem: 0 });
-      });
-      console.log('⚠️ Tổng ngày = 0, reset tất cả về 0%');
+
+      console.log(`📈 TỔNG SỐ NGÀY: ${totalDays}`);
+      console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+
+      // Cập nhật phần trăm
+      if (totalDays > 0) {
+        let updatedCount = 0;
+
+        rowsInfo.forEach(({ row, data, days }) => {
+          const percent = (days * 100) / totalDays;
+          const roundedPercent = Math.round(percent * 100) / 100;
+          const currentPercent = parseFloat(data.PercentItem) || 0;
+
+          // Chỉ update nếu khác biệt > 0.01%
+          if (Math.abs(currentPercent - roundedPercent) > 0.01) {
+            row.update({ PercentItem: roundedPercent });
+            updatedCount++;
+            console.log(`  ✓ Updated ID ${data.ID}: ${roundedPercent}%`);
+          }
+        });
+
+        console.log(`✅ Đã cập nhật ${updatedCount} rows!`);
+      } else {
+        // Reset tất cả về 0
+        rowsInfo.forEach(({ row }) => {
+          row.update({ PercentItem: 0 });
+        });
+        console.log('⚠️ Tổng ngày = 0, reset tất cả về 0%');
+      }
+    } catch (error) {
+      console.error('❌ LỖI khi tính phần trăm:', error);
     }
-    
-  } catch (error) {
-    console.error('❌ LỖI khi tính phần trăm:', error);
   }
-}
 
   // Tính toán ItemLate cho tất cả rows - tương tự updateItemLate trong WinForm
   updateItemLate(): void {
     if (!this.tb_workItem) return;
-    
+
     try {
       // Lấy tất cả rows (bao gồm children)
       const rootRows = this.tb_workItem.getRows();
       if (!rootRows || rootRows.length === 0) {
         return;
       }
-      
+
       const allRows = this.flattenTreeRows(rootRows);
       const now = DateTime.now();
-      
+
       allRows.forEach((row: any) => {
         const data = row.getData();
-        
-        const planStartDate = data.PlanStartDate ? DateTime.fromISO(data.PlanStartDate) : null;
-        const planEndDate = data.PlanEndDate ? DateTime.fromISO(data.PlanEndDate) : null;
-        const actualStartDate = data.ActualStartDate ? DateTime.fromISO(data.ActualStartDate) : null;
-        const actualEndDate = data.ActualEndDate ? DateTime.fromISO(data.ActualEndDate) : null;
-        
+
+        const planStartDate = data.PlanStartDate
+          ? DateTime.fromISO(data.PlanStartDate)
+          : null;
+        const planEndDate = data.PlanEndDate
+          ? DateTime.fromISO(data.PlanEndDate)
+          : null;
+        const actualStartDate = data.ActualStartDate
+          ? DateTime.fromISO(data.ActualStartDate)
+          : null;
+        const actualEndDate = data.ActualEndDate
+          ? DateTime.fromISO(data.ActualEndDate)
+          : null;
+
         let itemLate = 0;
-        
+
         // Logic xử lý trễ - giống WinForm
-        if (actualStartDate && actualStartDate.isValid && !actualEndDate && planEndDate && planEndDate.isValid) {
-          const startDiff = actualStartDate.startOf('day').diff(planEndDate.startOf('day'), 'days').days;
-          const nowDiff = now.startOf('day').diff(planEndDate.startOf('day'), 'days').days;
+        if (
+          actualStartDate &&
+          actualStartDate.isValid &&
+          !actualEndDate &&
+          planEndDate &&
+          planEndDate.isValid
+        ) {
+          const startDiff = actualStartDate
+            .startOf('day')
+            .diff(planEndDate.startOf('day'), 'days').days;
+          const nowDiff = now
+            .startOf('day')
+            .diff(planEndDate.startOf('day'), 'days').days;
           if (startDiff > 0 || nowDiff > 0) {
             itemLate = 2;
           }
         }
-        
-        if (actualStartDate && actualStartDate.isValid && actualEndDate && actualEndDate.isValid && planEndDate && planEndDate.isValid) {
-          const endDiff = actualEndDate.startOf('day').diff(planEndDate.startOf('day'), 'days').days;
+
+        if (
+          actualStartDate &&
+          actualStartDate.isValid &&
+          actualEndDate &&
+          actualEndDate.isValid &&
+          planEndDate &&
+          planEndDate.isValid
+        ) {
+          const endDiff = actualEndDate
+            .startOf('day')
+            .diff(planEndDate.startOf('day'), 'days').days;
           if (endDiff > 0) {
             itemLate = 1;
           }
         }
-        
-        if (!actualStartDate && !actualEndDate && planEndDate && planEndDate.isValid) {
-          const nowDiff = now.startOf('day').diff(planEndDate.startOf('day'), 'days').days;
+
+        if (
+          !actualStartDate &&
+          !actualEndDate &&
+          planEndDate &&
+          planEndDate.isValid
+        ) {
+          const nowDiff = now
+            .startOf('day')
+            .diff(planEndDate.startOf('day'), 'days').days;
           if (nowDiff > 0) {
             itemLate = 2;
           }
         }
-        
-        if (planStartDate && planStartDate.isValid && !planEndDate && !actualStartDate && !actualEndDate) {
-          const nowDiff = now.startOf('day').diff(planStartDate.startOf('day'), 'days').days;
+
+        if (
+          planStartDate &&
+          planStartDate.isValid &&
+          !planEndDate &&
+          !actualStartDate &&
+          !actualEndDate
+        ) {
+          const nowDiff = now
+            .startOf('day')
+            .diff(planStartDate.startOf('day'), 'days').days;
           if (nowDiff > 0) {
             itemLate = 2;
           }
         }
-        
+
         // Cập nhật ItemLate cho row
         const currentItemLate = data.ItemLate || 0;
         if (currentItemLate !== itemLate) {
           row.update({ ItemLate: itemLate });
         }
       });
-      
+
       // Redraw để áp dụng màu
       this.tb_workItem.redraw(true);
     } catch (error) {
       console.error('❌ LỖI khi tính ItemLate:', error);
     }
   }
-
-  
 
   // Method để tạo dropdown control trong tabulator
   createdControl(
@@ -587,7 +676,7 @@ export class WorkItemComponent implements OnInit, AfterViewInit {
   dateEditor(cell: any, onRendered: any, success: any, cancel: any) {
     const input = document.createElement('input');
     input.type = 'date';
-    
+
     // Lấy giá trị hiện tại và chuyển đổi sang format yyyy-MM-dd
     const currentValue = cell.getValue();
     if (currentValue) {
@@ -663,7 +752,7 @@ export class WorkItemComponent implements OnInit, AfterViewInit {
     return new Promise((resolve) => {
       let completedCount = 0;
       const totalCount = 3; // Số lượng dropdown cần load
-      
+
       const checkComplete = () => {
         completedCount++;
         if (completedCount === totalCount) {
@@ -671,57 +760,66 @@ export class WorkItemComponent implements OnInit, AfterViewInit {
           resolve();
         }
       };
-      
+
       // Load EmployeeRequest
-      this.workItemService.cbbEmployeeRequest().subscribe((response: any) => {
-        if(response.status === 1){
-          console.log('cbbEmployeeRequest', response.data);
-          this.cbbEmployeeRequest = response.data.map((item: any) => ({
-            id: item.ID,
-            name: item.FullName,
-          }));
-        }
-        checkComplete();
-      }, () => checkComplete()); // Hoàn thành ngay cả khi lỗi
-      
+      this.workItemService.cbbEmployeeRequest().subscribe(
+        (response: any) => {
+          if (response.status === 1) {
+            console.log('cbbEmployeeRequest', response.data);
+            this.cbbEmployeeRequest = response.data.map((item: any) => ({
+              id: item.ID,
+              name: item.FullName,
+            }));
+          }
+          checkComplete();
+        },
+        () => checkComplete()
+      ); // Hoàn thành ngay cả khi lỗi
+
       // Load TypeProject
-      this.workItemService.cbbTypeProject().subscribe((response: any) => {
-        if(response.status === 1){
-          console.log('cbbTypeProject response.data', response.data);
-          this.cbbTypeProject = response.data.map((item: any) => ({
-            id: item.ID,
-            name: item.ProjectTypeName,
-          }));
-          console.log('cbbTypeProject mapped', this.cbbTypeProject);
-        }
-        checkComplete();
-      }, () => checkComplete());
-      
+      this.workItemService.cbbTypeProject().subscribe(
+        (response: any) => {
+          if (response.status === 1) {
+            console.log('cbbTypeProject response.data', response.data);
+            this.cbbTypeProject = response.data.map((item: any) => ({
+              id: item.ID,
+              name: item.ProjectTypeName,
+            }));
+            console.log('cbbTypeProject mapped', this.cbbTypeProject);
+          }
+          checkComplete();
+        },
+        () => checkComplete()
+      );
+
       // Load Employee/User
-      this.workItemService.cbbUser().subscribe((response: any) => {
-        if(response.status === 1){
-          console.log('cbbUser response.data', response.data);
-          // Map cả ID và UserID để hỗ trợ cả hai trường hợp
-          this.cbbEmployee = response.data.map((item: any) => ({
-            id: item.UserID || item.ID, // Ưu tiên UserID, nếu không có thì dùng ID
-            name: item.FullName,
-          }));
-          this.cbbUser = response.data.map((item: any) => ({
-            id: item.ID,
-            name: item.Code + ' - ' + item.FullName,
-            code:item.Code,
-            fullName:item.FullName,
-          }));
-          console.log('cbbUser', this.cbbUser);
-        }
-        checkComplete();
-      }, () => checkComplete());
+      this.workItemService.cbbUser().subscribe(
+        (response: any) => {
+          if (response.status === 1) {
+            console.log('cbbUser response.data', response.data);
+            // Map cả ID và UserID để hỗ trợ cả hai trường hợp
+            this.cbbEmployee = response.data.map((item: any) => ({
+              id: item.UserID || item.ID, // Ưu tiên UserID, nếu không có thì dùng ID
+              name: item.FullName,
+            }));
+            this.cbbUser = response.data.map((item: any) => ({
+              id: item.ID,
+              name: item.Code + ' - ' + item.FullName,
+              code: item.Code,
+              fullName: item.FullName,
+            }));
+            console.log('cbbUser', this.cbbUser);
+          }
+          checkComplete();
+        },
+        () => checkComplete()
+      );
     });
   }
 
   loadCbbEmployeeRequest(): void {
     this.workItemService.cbbEmployeeRequest().subscribe((response: any) => {
-      if(response.status === 1){
+      if (response.status === 1) {
         console.log('cbbEmployeeRequest', response.data);
         this.cbbEmployeeRequest = response.data.map((item: any) => ({
           id: item.ID,
@@ -734,7 +832,7 @@ export class WorkItemComponent implements OnInit, AfterViewInit {
   }
   loadCbbTypeProject(): void {
     this.workItemService.cbbTypeProject().subscribe((response: any) => {
-      if(response.status === 1){
+      if (response.status === 1) {
         console.log('cbbTypeProject response.data', response.data);
         this.cbbTypeProject = response.data.map((item: any) => ({
           id: item.ID,
@@ -748,7 +846,7 @@ export class WorkItemComponent implements OnInit, AfterViewInit {
   }
   loadCbbEmployee(): void {
     this.workItemService.cbbUser().subscribe((response: any) => {
-      if(response.status === 1){
+      if (response.status === 1) {
         console.log('cbbUser response.data', response.data);
         // Map cả ID và UserID để hỗ trợ cả hai trường hợp
         this.cbbEmployee = response.data.map((item: any) => ({
@@ -758,8 +856,8 @@ export class WorkItemComponent implements OnInit, AfterViewInit {
         this.cbbUser = response.data.map((item: any) => ({
           id: item.ID,
           name: item.Code + ' - ' + item.FullName,
-          code:item.Code,
-          fullName:item.FullName,
+          code: item.Code,
+          fullName: item.FullName,
         }));
         console.log('cbbUser', this.cbbUser);
         // Reload bảng để cập nhật label
@@ -767,78 +865,96 @@ export class WorkItemComponent implements OnInit, AfterViewInit {
       }
     });
   }
-  
+
   // Reload lại dữ liệu bảng để cập nhật label của dropdown
   reloadTableData(): void {
-    if (this.tb_workItem && this.dataTableWorkItem && this.dataTableWorkItem.length > 0) {
+    if (
+      this.tb_workItem &&
+      this.dataTableWorkItem &&
+      this.dataTableWorkItem.length > 0
+    ) {
       // Redraw để formatter chạy lại và hiển thị label đúng
       this.tb_workItem.redraw(true);
     }
   }
   loadData(): void {
     this.isLoadTable = true;
-    this.workItemService.getWorkItems(this.projectId).subscribe((response: any) => {
-      if(response.status === 1){
-        const flatData = response.data || [];
-        this.dataTableWorkItem = this.buildTree(flatData, 'ID', 'ParentID', '_children'); // Chuyển sang tree
-        console.log('Tree data:', this.dataTableWorkItem);
-  
-        if(this.tb_workItem){
-          this.tb_workItem.setData(this.dataTableWorkItem).then(() => {
-            // Redraw để formatter chạy lại với dropdown data đã load
-            setTimeout(() => {
-              this.tb_workItem.redraw(true);
-              // Tính toán ItemLate cho tất cả rows
-              this.updateItemLate();
-              // Áp dụng filter trạng thái sau khi load dữ liệu
-              this.filterByStatus();
-            }, 100);
-          });
+    this.workItemService
+      .getWorkItems(this.projectId)
+      .subscribe((response: any) => {
+        if (response.status === 1) {
+          const flatData = response.data || [];
+          this.dataTableWorkItem = this.buildTree(
+            flatData,
+            'ID',
+            'ParentID',
+            '_children'
+          ); // Chuyển sang tree
+          console.log('Tree data:', this.dataTableWorkItem);
+
+          if (this.tb_workItem) {
+            this.tb_workItem.setData(this.dataTableWorkItem).then(() => {
+              // Redraw để formatter chạy lại với dropdown data đã load
+              setTimeout(() => {
+                this.tb_workItem.redraw(true);
+                // Tính toán ItemLate cho tất cả rows
+                this.updateItemLate();
+                // Áp dụng filter trạng thái sau khi load dữ liệu
+                this.filterByStatus();
+              }, 100);
+            });
+          }
+        } else {
+          this.notification.error('Lỗi', response.message);
         }
-      } else {
-        this.notification.error('Lỗi', response.message);
-      }
-      this.isLoadTable = false;
-    });
+        this.isLoadTable = false;
+      });
   }
-  openModalReson(){
-    this.notification.info("dhjd","thêm")
+  openModalReson() {
+    this.notification.info('dhjd', 'thêm');
   }
-  openModalProjectItemFile(){
-    this.notification.info("dhjd","File")
+  openModalProjectItemFile() {
+    this.notification.info('dhjd', 'File');
   }
   // Hàm flatten tree data thành flat array
-  private flattenTreeData(treeData: any[], flatList: any[] = [], parentId: number | null = null): any[] {
+  private flattenTreeData(
+    treeData: any[],
+    flatList: any[] = [],
+    parentId: number | null = null
+  ): any[] {
     treeData.forEach((item: any) => {
       // Lấy dữ liệu từ item, loại bỏ _children
       const { _children, ...itemData } = item;
-      
+
       // Tạo item mới với ParentID đúng
       const flatItem = {
         ...itemData,
-        ParentID: parentId !== null ? parentId : (itemData.ParentID || 0)
+        ParentID: parentId !== null ? parentId : itemData.ParentID || 0,
       };
-      
+
       flatList.push(flatItem);
-      
+
       // Đệ quy xử lý children nếu có
       if (_children && Array.isArray(_children) && _children.length > 0) {
         this.flattenTreeData(_children, flatList, itemData.ID);
       }
     });
-    
+
     return flatList;
   }
 
   saveData(): void {
     if (!this.tb_workItem) {
-      this.notification.warning('Thông báo', 'Bảng dữ liệu chưa được khởi tạo!');
+      this.notification.warning(
+        'Thông báo',
+        'Bảng dữ liệu chưa được khởi tạo!'
+      );
       return;
     }
 
     // Lấy tất cả dữ liệu từ Tabulator (tree structure)
     const treeData = this.tb_workItem.getData('tree');
-    
+
     if (!treeData || treeData.length === 0) {
       this.notification.warning('Thông báo', 'Không có dữ liệu để lưu!');
       return;
@@ -848,7 +964,7 @@ export class WorkItemComponent implements OnInit, AfterViewInit {
 
     // Flatten tree thành flat array
     const flatData = this.flattenTreeData(treeData);
-    
+
     console.log('Flat data:', flatData);
 
     // Map dữ liệu theo format API yêu cầu
@@ -856,14 +972,23 @@ export class WorkItemComponent implements OnInit, AfterViewInit {
       return {
         ID: item.ID || 0,
         Status: item.Status ?? 0,
-        STT: (item.STT !== null && item.STT !== undefined) ? String(item.STT) : '',
+        STT:
+          item.STT !== null && item.STT !== undefined ? String(item.STT) : '',
         UserID: item.UserID ?? 0,
         ProjectID: this.projectId,
         Mission: item.Mission || '',
-        PlanStartDate: item.PlanStartDate ? new Date(item.PlanStartDate).toISOString() : null,
-        PlanEndDate: item.PlanEndDate ? new Date(item.PlanEndDate).toISOString() : null,
-        ActualStartDate: item.ActualStartDate ? new Date(item.ActualStartDate).toISOString() : null,
-        ActualEndDate: item.ActualEndDate ? new Date(item.ActualEndDate).toISOString() : null,
+        PlanStartDate: item.PlanStartDate
+          ? new Date(item.PlanStartDate).toISOString()
+          : null,
+        PlanEndDate: item.PlanEndDate
+          ? new Date(item.PlanEndDate).toISOString()
+          : null,
+        ActualStartDate: item.ActualStartDate
+          ? new Date(item.ActualStartDate).toISOString()
+          : null,
+        ActualEndDate: item.ActualEndDate
+          ? new Date(item.ActualEndDate).toISOString()
+          : null,
         Note: item.Note || '',
         TotalDayPlan: item.TotalDayPlan ?? 0,
         PercentItem: item.PercentItem ?? 0,
@@ -874,20 +999,28 @@ export class WorkItemComponent implements OnInit, AfterViewInit {
         TypeProjectItem: item.TypeProjectItem ?? 0,
         PercentageActual: item.PercentageActual ?? 0,
         EmployeeIDRequest: item.EmployeeIDRequest ?? 0,
-        UpdatedDateActual: item.UpdatedDateActual ? new Date(item.UpdatedDateActual).toISOString() : null,
+        UpdatedDateActual: item.UpdatedDateActual
+          ? new Date(item.UpdatedDateActual).toISOString()
+          : null,
         IsApproved: item.IsApproved ?? 0,
         Code: item.Code || '',
-        CreatedDate: item.CreatedDate ? new Date(item.CreatedDate).toISOString() : null,
+        CreatedDate: item.CreatedDate
+          ? new Date(item.CreatedDate).toISOString()
+          : null,
         CreatedBy: item.CreatedBy || '',
-        UpdatedDate: item.UpdatedDate ? new Date(item.UpdatedDate).toISOString() : null,
+        UpdatedDate: item.UpdatedDate
+          ? new Date(item.UpdatedDate).toISOString()
+          : null,
         UpdatedBy: item.UpdatedBy || '',
         IsUpdateLate: item.IsUpdateLate ?? false,
         ReasonLate: item.ReasonLate || '',
-        UpdatedDateReasonLate: item.UpdatedDateReasonLate ? new Date(item.UpdatedDateReasonLate).toISOString() : null,
+        UpdatedDateReasonLate: item.UpdatedDateReasonLate
+          ? new Date(item.UpdatedDateReasonLate).toISOString()
+          : null,
         IsApprovedLate: item.IsApprovedLate ?? false,
         EmployeeRequestID: item.EmployeeRequestID ?? 0,
         EmployeeRequestName: item.EmployeeRequestName || '',
-        IsDeleted: item.IsDeleted ?? false
+        IsDeleted: item.IsDeleted ?? false,
       };
     });
 
@@ -895,7 +1028,7 @@ export class WorkItemComponent implements OnInit, AfterViewInit {
     const payload = {
       projectItem: projectItems,
       ProjectID: this.projectId,
-      DeletedIdsprojectItem: this.deletedIdsWorkItem
+      DeletedIdsprojectItem: this.deletedIdsWorkItem,
     };
 
     console.log('Payload to send:', payload);
@@ -910,22 +1043,28 @@ export class WorkItemComponent implements OnInit, AfterViewInit {
           // Reload data sau khi lưu thành công
           this.loadData();
         } else {
-          this.notification.error('Lỗi', response.message || 'Có lỗi xảy ra khi lưu dữ liệu!');
+          this.notification.error(
+            'Lỗi',
+            response.message || 'Có lỗi xảy ra khi lưu dữ liệu!'
+          );
         }
       },
       error: (error: any) => {
         this.isLoadTable = false;
         console.error('Error saving data:', error);
-        this.notification.error('Lỗi', error.error?.message || 'Có lỗi xảy ra khi lưu dữ liệu!');
-      }
+        this.notification.error(
+          'Lỗi',
+          error.error?.message || 'Có lỗi xảy ra khi lưu dữ liệu!'
+        );
+      },
     });
   }
   private flattenTreeRows(rows: any[]): any[] {
     const result: any[] = [];
-    
+
     rows.forEach((row: any) => {
       result.push(row);
-      
+
       // Lấy tree children từ Tabulator
       const treeChildren = row.getTreeChildren();
       if (treeChildren && treeChildren.length > 0) {
@@ -934,7 +1073,7 @@ export class WorkItemComponent implements OnInit, AfterViewInit {
         result.push(...flatChildren);
       }
     });
-    
+
     return result;
   }
 
@@ -954,8 +1093,10 @@ export class WorkItemComponent implements OnInit, AfterViewInit {
       return codes;
     };
 
-    const allCodes = this.dataTableWorkItem ? getAllCodes(this.dataTableWorkItem) : [];
-    
+    const allCodes = this.dataTableWorkItem
+      ? getAllCodes(this.dataTableWorkItem)
+      : [];
+
     // Tách số sau dấu "_" từ mỗi Code
     const codeNumbers: number[] = [];
     allCodes.forEach((code: string) => {
@@ -976,69 +1117,69 @@ export class WorkItemComponent implements OnInit, AfterViewInit {
     return `${this.projectCode}_${newCodeNumber}`;
   }
 
-addNewRow(): void {
-  let maxSTT = 0;
+  addNewRow(): void {
+    let maxSTT = 0;
 
-  if (this.dataTableWorkItem && this.dataTableWorkItem.length > 0) {
-    const sttValues = this.dataTableWorkItem
-      .map((item: any) => parseInt(item.STT, 10))
-      .filter((stt: number) => !isNaN(stt) && stt > 0);
+    if (this.dataTableWorkItem && this.dataTableWorkItem.length > 0) {
+      const sttValues = this.dataTableWorkItem
+        .map((item: any) => parseInt(item.STT, 10))
+        .filter((stt: number) => !isNaN(stt) && stt > 0);
 
-    if (sttValues.length > 0) {
-      maxSTT = Math.max(...sttValues);
+      if (sttValues.length > 0) {
+        maxSTT = Math.max(...sttValues);
+      }
+    }
+
+    const newSTT = maxSTT + 1;
+    this.nextRowId = this.nextRowId - 1;
+
+    // Tính Code mới dựa trên số lớn nhất trong tất cả Code hiện có
+    const newCode = this.getNewCode();
+
+    const newRow = {
+      ParentID: 0,
+      ID: this.nextRowId,
+      STT: newSTT,
+      TotalDayPlan: 0,
+      PercentItem: 0,
+      Status: 0,
+      UserID: this.currentUser.ID,
+      IsApprovedText: 'Chờ duyệt kế hoạch',
+      Code: newCode,
+      _children: [],
+    };
+
+    console.log('✅ Đã thêm row mới:', newRow);
+
+    this.dataTableWorkItem = [...this.dataTableWorkItem, newRow];
+
+    // Reload table
+    if (this.tb_workItem) {
+      this.tb_workItem.setData(this.dataTableWorkItem);
+
+      // Đợi table render xong rồi focus vào row mới
+      setTimeout(() => {
+        // Tìm row mới theo ID
+        const newRowInstance = this.tb_workItem.getRow(this.nextRowId);
+        if (newRowInstance) {
+          // Select và scroll đến row mới
+          newRowInstance.select();
+          newRowInstance.scrollTo();
+          // Cập nhật selectedRow để có thể thêm con ngay
+          this.selectedRow = newRowInstance;
+          // Trigger click để focus
+          const rowElement = newRowInstance.getElement();
+          if (rowElement) {
+            rowElement.click();
+          }
+          console.log('✅ Đã focus vào row mới:', this.nextRowId);
+        }
+
+        // Tính lại phần trăm
+        this.updatePercent();
+      }, 150);
     }
   }
-
-  const newSTT = maxSTT + 1;
-  this.nextRowId = this.nextRowId - 1;
-
-  // Tính Code mới dựa trên số lớn nhất trong tất cả Code hiện có
-  const newCode = this.getNewCode();
-
-  const newRow = {
-    ParentID: 0,
-    ID: this.nextRowId,
-    STT: newSTT,
-    TotalDayPlan: 0,
-    PercentItem: 0,
-    Status:0,
-    UserID: this.currentUser.ID,
-    IsApprovedText: 'Chờ duyệt kế hoạch',
-    Code: newCode,
-    _children: []
-  };
-
-  console.log('✅ Đã thêm row mới:', newRow);
-  
-  this.dataTableWorkItem = [...this.dataTableWorkItem, newRow];
-  
-  // Reload table
-  if (this.tb_workItem) {
-    this.tb_workItem.setData(this.dataTableWorkItem);
-    
-    // Đợi table render xong rồi focus vào row mới
-    setTimeout(() => {
-      // Tìm row mới theo ID
-      const newRowInstance = this.tb_workItem.getRow(this.nextRowId);
-      if (newRowInstance) {
-        // Select và scroll đến row mới
-        newRowInstance.select();
-        newRowInstance.scrollTo();
-        // Cập nhật selectedRow để có thể thêm con ngay
-        this.selectedRow = newRowInstance;
-        // Trigger click để focus
-        const rowElement = newRowInstance.getElement();
-        if (rowElement) {
-          rowElement.click();
-        }
-        console.log('✅ Đã focus vào row mới:', this.nextRowId);
-      }
-      
-      // Tính lại phần trăm
-      this.updatePercent();
-    }, 150);
-  }
-}
 
   // Helper function để tìm node trong tree data
   private findNodeInTree(items: any[], targetId: number): any | null {
@@ -1060,12 +1201,12 @@ addNewRow(): void {
         'Thông báo',
         'Vui lòng chọn một hạng mục trước khi thêm hạng mục con!'
       );
-        return;
+      return;
     }
-  
+
     const parentData = this.selectedRow.getData();
     const parentId = parentData.ID;
-    
+
     // Kiểm tra cấp độ: chỉ cho phép thêm con đến cấp < 2
     // Nếu parent đã có ParentID > 0 (tức là parent đã là con - cấp 1), thì không cho thêm con (cấp 2)
     const parentParentID = parentData.ParentID || 0;
@@ -1076,135 +1217,141 @@ addNewRow(): void {
       );
       return;
     }
-    
+
     this.nextRowId = this.nextRowId - 1;
-    
+
     console.log('🔨 Thêm child vào parent ID:', parentId);
-    
+
     // ✅ QUAN TRỌNG: Lấy children từ dataTableWorkItem (source data) để đảm bảo dữ liệu mới nhất
     const parentNode = this.findNodeInTree(this.dataTableWorkItem, parentId);
-    const currentChildren = parentNode ? (parentNode._children || []) : [];
-    
-    console.log('📋 Children hiện tại:', currentChildren.length, currentChildren.map((c: any) => ({ ID: c.ID, STT: c.STT })));
-    
+    const currentChildren = parentNode ? parentNode._children || [] : [];
+
+    console.log(
+      '📋 Children hiện tại:',
+      currentChildren.length,
+      currentChildren.map((c: any) => ({ ID: c.ID, STT: c.STT }))
+    );
+
     // Tìm STT lớn nhất trong các anh em (children cùng parent)
     let maxSTT = 0;
     if (currentChildren.length > 0) {
       const sttValues = currentChildren
         .map((child: any) => {
           const stt = parseInt(child.STT, 10);
-          console.log(`  - Child ID: ${child.ID}, STT: ${child.STT} (parsed: ${stt})`);
+          console.log(
+            `  - Child ID: ${child.ID}, STT: ${child.STT} (parsed: ${stt})`
+          );
           return stt;
         })
         .filter((stt: number) => !isNaN(stt) && stt > 0);
-      
+
       if (sttValues.length > 0) {
         maxSTT = Math.max(...sttValues);
         console.log(`📊 Max STT trong children: ${maxSTT}`);
       }
     }
-    
+
     // STT mới = STT lớn nhất của anh em + 1
     const newSTT = maxSTT + 1;
     console.log(`✅ STT mới sẽ là: ${newSTT}`);
-    
+
     // Tính Code mới dựa trên số lớn nhất trong tất cả Code hiện có (không phân biệt cha hay con)
     const newCode = this.getNewCode();
-    
+
     const childRow: any = {
       ID: this.nextRowId,
-        STT: newSTT, 
+      STT: newSTT,
       ParentID: parentData.ID || 0,
       Code: newCode,
       TotalDayPlan: 0,
       PercentItem: 0,
-      Status:0,
+      Status: 0,
       UserID: this.currentUser.ID,
-        IsApprovedText: 'Chờ duyệt kế hoạch',
+      IsApprovedText: 'Chờ duyệt kế hoạch',
       IsDeleted: false,
       Mission: '',
       ReasonLate: '',
-        _children: [],
+      _children: [],
       // Không copy các trường này từ cha để row con có màu trắng (mặc định)
       ItemLate: 0,
       ItemLateActual: 0,
       ActualEndDate: null,
       PlanEndDate: null,
-      TotalDayExpridSoon: 0
+      TotalDayExpridSoon: 0,
     };
-    
+
     // Copy các trường từ parent (loại trừ các trường không cần copy)
-    Object.keys(parentData).forEach(key => {
+    Object.keys(parentData).forEach((key) => {
       // Loại trừ các trường không nên copy từ parent
       const excludeFields = [
-        'ID', 
-        'STT', 
-        'ParentID', 
-        'Code', 
-        '_children', 
-        'IsDeleted', 
-        'IsApprovedText', 
-        'TotalDayPlan', 
+        'ID',
+        'STT',
+        'ParentID',
+        'Code',
+        '_children',
+        'IsDeleted',
+        'IsApprovedText',
+        'TotalDayPlan',
         'PercentItem',
-        'ItemLate',           // Không copy ItemLate từ cha
-        'ItemLateActual',     // Không copy ItemLateActual từ cha
-        'ActualEndDate',      // Không copy ActualEndDate từ cha
-        'PlanEndDate',        // Không copy PlanEndDate từ cha
-        'TotalDayExpridSoon'  // Không copy TotalDayExpridSoon từ cha
+        'ItemLate', // Không copy ItemLate từ cha
+        'ItemLateActual', // Không copy ItemLateActual từ cha
+        'ActualEndDate', // Không copy ActualEndDate từ cha
+        'PlanEndDate', // Không copy PlanEndDate từ cha
+        'TotalDayExpridSoon', // Không copy TotalDayExpridSoon từ cha
       ];
-      
+
       if (!excludeFields.includes(key)) {
         childRow[key] = parentData[key];
       }
-    }); 
-    
+    });
+
     console.log('✅ Đã tạo child row:', childRow);
-    
+
     // Update tree data
     const updateTreeData = (items: any[]): any[] => {
-      return items.map(item => {
+      return items.map((item) => {
         if (item.ID === parentId) {
           return {
             ...item,
-            _children: [...(item._children || []), childRow]
+            _children: [...(item._children || []), childRow],
           };
         } else if (item._children && item._children.length > 0) {
           return {
             ...item,
-            _children: updateTreeData(item._children)
+            _children: updateTreeData(item._children),
           };
         }
         return item;
       });
     };
-    
+
     this.dataTableWorkItem = updateTreeData(this.dataTableWorkItem);
-    
+
     console.log('🔄 Reloading table với data mới...');
     this.tb_workItem.setData(this.dataTableWorkItem);
-    
+
     // ✅ QUAN TRỌNG: Đợi table render xong rồi expand và tính lại
     setTimeout(() => {
       console.log('🔍 Tìm parent row để expand...');
       const parentRow = this.tb_workItem.getRow(parentId);
-      
+
       if (parentRow) {
         console.log('✓ Tìm thấy parent, expanding...');
         parentRow.treeExpand();
         this.selectedRow = parentRow;
-        
+
         // Đợi expand xong
         setTimeout(() => {
           console.log('🔍 Tìm child row mới...');
-          
+
           // Kiểm tra xem child đã được render chưa
           const treeChildren = parentRow.getTreeChildren();
           console.log('Tree children:', treeChildren.length);
-          
+
           if (treeChildren && treeChildren.length > 0) {
             const newChildRow = treeChildren[treeChildren.length - 1];
             console.log('✓ Tìm thấy child row mới');
-            
+
             // Select và scroll đến child row mới
             newChildRow.select();
             newChildRow.scrollTo();
@@ -1215,31 +1362,39 @@ addNewRow(): void {
             if (rowElement) {
               rowElement.click();
             }
-            console.log('✅ Đã focus vào child row mới:', newChildRow.getData().ID);
+            console.log(
+              '✅ Đã focus vào child row mới:',
+              newChildRow.getData().ID
+            );
           }
-          
+
           // ✅ TÍNH LẠI PHẦN TRĂM SAU KHI EXPAND
           console.log('📊 Tính lại phần trăm...');
           this.updatePercent();
         }, 150);
-    } else {
+      } else {
         console.error('❌ Không tìm thấy parent row!');
         // Vẫn tính phần trăm dù không tìm thấy parent
         this.updatePercent();
-    }
+      }
     }, 100);
-}
-  buildTree(data: any[], idField = 'ID', parentField = 'ParentID', childrenField = '_children') {
+  }
+  buildTree(
+    data: any[],
+    idField = 'ID',
+    parentField = 'ParentID',
+    childrenField = '_children'
+  ) {
     const tree: any[] = [];
     const lookup: { [key: string]: any } = {};
-  
+
     // Tạo lookup nhanh theo ID
-    data.forEach(item => {
+    data.forEach((item) => {
       lookup[item[idField]] = { ...item, [childrenField]: [] };
     });
-  
+
     // Duyệt data để gán con vào cha
-    data.forEach(item => {
+    data.forEach((item) => {
       const parentId = item[parentField];
       if (parentId && lookup[parentId]) {
         lookup[parentId][childrenField].push(lookup[item[idField]]);
@@ -1247,90 +1402,99 @@ addNewRow(): void {
         tree.push(lookup[item[idField]]);
       }
     });
-  
+
     return tree;
   }
   private removeFromTree(items: any[], idToRemove: number): any[] {
     return items
-      .filter(item => item.ID !== idToRemove) // Lọc bỏ item có ID trùng
-      .map(item => {
+      .filter((item) => item.ID !== idToRemove) // Lọc bỏ item có ID trùng
+      .map((item) => {
         // Nếu có children, đệ quy xóa trong children
         if (item._children && item._children.length > 0) {
           return {
             ...item,
-            _children: this.removeFromTree(item._children, idToRemove)
+            _children: this.removeFromTree(item._children, idToRemove),
           };
         }
         return item;
       });
   }
   // Method 1: Thu thập tất cả ID trong cây (cha + con + con của con...)
-private collectAllIds(item: any): number[] {
-  const ids: number[] = [item.ID]; // Bắt đầu với ID của cha
-  
-  // Nếu có children, đệ quy thu thập ID của children
-  if (item._children && item._children.length > 0) {
-    item._children.forEach((child: any) => {
-      ids.push(...this.collectAllIds(child)); // Đệ quy
-    });
+  private collectAllIds(item: any): number[] {
+    const ids: number[] = [item.ID]; // Bắt đầu với ID của cha
+
+    // Nếu có children, đệ quy thu thập ID của children
+    if (item._children && item._children.length > 0) {
+      item._children.forEach((child: any) => {
+        ids.push(...this.collectAllIds(child)); // Đệ quy
+      });
+    }
+
+    return ids;
   }
-  
-  return ids;
-}
   drawTbWorkItem(container: HTMLElement) {
     this.tb_workItem = new Tabulator(container, {
       ...DEFAULT_TABLE_CONFIG,
       //data: this.dataTableWorkItem,
       dataTree: true,
-        dataTreeStartExpanded: true,
-        dataTreeChildField: '_children', // Quan trọng: dùng _children
+      dataTreeStartExpanded: true,
+      dataTreeChildField: '_children', // Quan trọng: dùng _children
       paginationMode: 'local',
-      layout: "fitDataStretch",
+      layout: 'fitDataStretch',
       selectableRows: 1,
       history: true,
       rowFormatter: (row: any) => {
         const data = row.getData();
-        
+
         // Reset màu mặc định
         row.getElement().style.backgroundColor = '';
         row.getElement().style.color = '';
-        
+
         // Kiểm tra xem có children không (parent node)
         const hasChildren = data._children && data._children.length > 0;
-        
+
         // Lấy giá trị ItemLate và ItemLateActual
         const itemLate = parseInt(data['ItemLate'] || '0');
         const itemLateActual = parseInt(data['ItemLateActual'] || '0');
         const totalDayExpridSoon = parseInt(data['TotalDayExpridSoon'] || '0');
-        const planEndDate = data['PlanEndDate'] ? DateTime.fromISO(data['PlanEndDate']) : null;
-        const actualEndDate = data['ActualEndDate'] ? DateTime.fromISO(data['ActualEndDate']) : null;
+        const planEndDate = data['PlanEndDate']
+          ? DateTime.fromISO(data['PlanEndDate'])
+          : null;
+        const actualEndDate = data['ActualEndDate']
+          ? DateTime.fromISO(data['ActualEndDate'])
+          : null;
         const hasActualEndDate = actualEndDate && actualEndDate.isValid;
-        
+
         // Áp dụng màu theo thứ tự ưu tiên (giống WinForm)
         // Lưu ý: Màu đỏ (ItemLate = 2) ưu tiên cao nhất, kể cả parent nodes
-        
+
         // 1. ItemLate = 2 hoặc ItemLateActual = 2: Red + White text (ưu tiên cao nhất, kể cả parent)
         if (itemLate === 2 || itemLateActual === 2) {
           row.getElement().style.backgroundColor = 'Red';
           row.getElement().style.color = 'White';
           return; // Dừng lại
         }
-        
+
         // 2. ItemLate = 1 hoặc ItemLateActual = 1: Orange (ưu tiên cao hơn parent)
         if (itemLate === 1 || itemLateActual === 1) {
           row.getElement().style.backgroundColor = 'Orange';
           return; // Dừng lại
         }
-        
+
         // 3. Parent nodes: LightGray (chỉ khi không có ItemLate = 1 hoặc 2)
         if (hasChildren) {
           row.getElement().style.backgroundColor = 'LightGray';
           return; // Dừng lại
         }
-        
+
         // 4. Sắp hết hạn: LightYellow (ưu tiên thấp nhất)
         // Điều kiện: PlanEndDate != null AND TotalDayExpridSoon <= 3 AND (ActualEndDate is null or empty)
-        if (planEndDate && planEndDate.isValid && totalDayExpridSoon <= 3 && !hasActualEndDate) {
+        if (
+          planEndDate &&
+          planEndDate.isValid &&
+          totalDayExpridSoon <= 3 &&
+          !hasActualEndDate
+        ) {
           row.getElement().style.backgroundColor = 'LightYellow';
         }
       },
@@ -1340,115 +1504,150 @@ private collectAllIds(item: any): number[] {
           field: 'addRow',
           hozAlign: 'center',
           width: 40,
-        frozen: true,
+          frozen: true,
           headerSort: false,
           titleFormatter: () =>
-          `<div style="display: flex; justify-content: center; align-items: center; height: 100%;"><i class="fas fa-plus text-white cursor-pointer" title="Thêm dòng"></i></div>`,
+            `<div style="display: flex; justify-content: center; align-items: center; height: 100%;"><i class="fas fa-plus text-white cursor-pointer" title="Thêm dòng"></i></div>`,
           headerClick: () => {
-          this.addNewRow();
-        },
-        formatter: (cell) => {
-          const data = cell.getRow().getData();
-          let isDeleted = data['IsDeleted'];
-          if (isDeleted) {
-            return '';
-          }
-          
-          // Kiểm tra màu nền của row để set màu button phù hợp
-          const itemLate = parseInt(data['ItemLate'] || '0');
-          const itemLateActual = parseInt(data['ItemLateActual'] || '0');
-          
-          // Nếu row có nền đỏ (ItemLate = 2) hoặc cam (ItemLate = 1), button phải màu trắng
-          let buttonColor = 'text-danger'; // Mặc định màu đỏ
-          if (itemLate === 1 || itemLate === 2 || itemLateActual === 1 || itemLateActual === 2) {
-            buttonColor = 'text-white'; // Màu trắng cho nền đỏ/cam
-          }
-          
-          return `<button id="btn-header-click" class="btn ${buttonColor} p-0 border-0" style="font-size: 0.75rem;"><i class="fas fa-trash"></i></button>`;
-        },
-        cellClick: (e, cell) => {
-          let data = cell.getRow().getData();
-          let id = data['ID'];
-          let isDeleted = data['IsDeleted'];
-          
-          if (isDeleted) {
-            return;
-          }
-          
-          this.modal.confirm({
-            nzTitle: `Bạn có chắc chắn muốn xóa hạng mục`,
-            nzContent: `${data['Code']}?`,
-            nzOkText: 'Xóa',
-            nzOkType: 'primary',
-            nzCancelText: 'Hủy',
-            nzOkDanger: true,
-            nzOnOk: () => {
-              // Kiểm tra quyền trước
-              if(data['ID'] > 0) {       
-                if(data['IsApproved'] > 0) {
-                  this.notification.warning('Thông báo', `Hạng mục này đang ${data['IsApprovedText']}`);
-                  return;
+            this.addNewRow();
+          },
+          formatter: (cell) => {
+            const data = cell.getRow().getData();
+            let isDeleted = data['IsDeleted'];
+            if (isDeleted) {
+              return '';
+            }
+
+            // Kiểm tra màu nền của row để set màu button phù hợp
+            const itemLate = parseInt(data['ItemLate'] || '0');
+            const itemLateActual = parseInt(data['ItemLateActual'] || '0');
+
+            // Nếu row có nền đỏ (ItemLate = 2) hoặc cam (ItemLate = 1), button phải màu trắng
+            let buttonColor = 'text-danger'; // Mặc định màu đỏ
+            if (
+              itemLate === 1 ||
+              itemLate === 2 ||
+              itemLateActual === 1 ||
+              itemLateActual === 2
+            ) {
+              buttonColor = 'text-white'; // Màu trắng cho nền đỏ/cam
+            }
+
+            return `<button id="btn-header-click" class="btn ${buttonColor} p-0 border-0" style="font-size: 0.75rem;"><i class="fas fa-trash"></i></button>`;
+          },
+          cellClick: (e, cell) => {
+            let data = cell.getRow().getData();
+            let id = data['ID'];
+            let isDeleted = data['IsDeleted'];
+
+            if (isDeleted) {
+              return;
+            }
+
+            this.modal.confirm({
+              nzTitle: `Bạn có chắc chắn muốn xóa hạng mục`,
+              nzContent: `${data['Code']}?`,
+              nzOkText: 'Xóa',
+              nzOkType: 'primary',
+              nzCancelText: 'Hủy',
+              nzOkDanger: true,
+              nzOnOk: () => {
+                // Kiểm tra quyền trước
+                if (data['ID'] > 0) {
+                  if (data['IsApproved'] > 0) {
+                    this.notification.warning(
+                      'Thông báo',
+                      `Hạng mục này đang ${data['IsApprovedText']}`
+                    );
+                    return;
+                  }
+
+                  const isTBP =
+                    this.currentUser.employee == 54 ||
+                    this.currentUser.EmployeeID ==
+                      this.currentUser.HeadofDepartment;
+                  const isPBP =
+                    this.currentUser.PositionCode == 'CV5' ||
+                    this.currentUser.PositionCode == 'CV28';
+
+                  if (!isTBP && !isPBP) {
+                    this.notification.warning(
+                      'Thông báo',
+                      'Bạn không có quyền xóa hạng mục\nVui lòng liên hệ với TBP'
+                    );
+                    return;
+                  }
                 }
-                
-                const isTBP = this.currentUser.employee == 54 || this.currentUser.EmployeeID == this.currentUser.HeadofDepartment; 
-                const isPBP = this.currentUser.PositionCode == "CV5" || this.currentUser.PositionCode == "CV28"; 
-                
-                if(!isTBP && !isPBP) {
-                  this.notification.warning('Thông báo', 'Bạn không có quyền xóa hạng mục\nVui lòng liên hệ với TBP');
-                  return;
-                }
-              } 
-              const idsToDelete = this.collectAllIds(data);
-              console.log('IDs sẽ xóa (bao gồm children):', idsToDelete);
-              idsToDelete.forEach(deleteId => {
-                if (deleteId > 0 && !this.deletedIdsWorkItem.includes(deleteId)) {
-                  this.deletedIdsWorkItem.push(deleteId);
-                }
-              });
-              
-              //  Xóa trong source data
-              this.dataTableWorkItem = this.removeFromTree(this.dataTableWorkItem, id);
-              
-              // Dùng setData thay vì deleteRow để tránh lỗi
-              this.tb_workItem.setData(this.dataTableWorkItem);
-              
-              // Tính lại phần trăm sau khi table render xong
-              setTimeout(() => {
-                this.updatePercent();
-              }, 100);
-              
-              console.log('deletedIdsWorkItem:', this.deletedIdsWorkItem);
-              console.log('dataTableWorkItem sau khi xóa:', this.dataTableWorkItem);
-            },
-          });
+                const idsToDelete = this.collectAllIds(data);
+                console.log('IDs sẽ xóa (bao gồm children):', idsToDelete);
+                idsToDelete.forEach((deleteId) => {
+                  if (
+                    deleteId > 0 &&
+                    !this.deletedIdsWorkItem.includes(deleteId)
+                  ) {
+                    this.deletedIdsWorkItem.push(deleteId);
+                  }
+                });
+
+                //  Xóa trong source data
+                this.dataTableWorkItem = this.removeFromTree(
+                  this.dataTableWorkItem,
+                  id
+                );
+
+                // Dùng setData thay vì deleteRow để tránh lỗi
+                this.tb_workItem.setData(this.dataTableWorkItem);
+
+                // Tính lại phần trăm sau khi table render xong
+                setTimeout(() => {
+                  this.updatePercent();
+                }, 100);
+
+                console.log('deletedIdsWorkItem:', this.deletedIdsWorkItem);
+                console.log(
+                  'dataTableWorkItem sau khi xóa:',
+                  this.dataTableWorkItem
+                );
+              },
+            });
+          },
         },
-      },
-      {
-        title:'ID', field:'ID', visible: false
-      },
-      {
-        title:'STT', field:'STT', 
-        hozAlign: 'center',
-      },
-      {
-        title:'ParentID', field:'ParentID', visible: false
-      },
-        { title: "Tình trạng", field: "IsApprovedText", hozAlign: "center",  width: 200,  },
-        { title: "Mã", field: "Code", hozAlign: "center", width: 150  },
-        { 
-          title: "Kiểu dự án", 
-          field: "TypeProjectItem", 
-          hozAlign: "center",
-          width:250,
+        {
+          title: 'ID',
+          field: 'ID',
+          visible: false,
+        },
+        {
+          title: 'STT',
+          field: 'STT',
+          hozAlign: 'center',
+        },
+        {
+          title: 'ParentID',
+          field: 'ParentID',
+          visible: false,
+        },
+        {
+          title: 'Tình trạng',
+          field: 'IsApprovedText',
+          hozAlign: 'center',
+          width: 200,
+        },
+        { title: 'Mã', field: 'Code', hozAlign: 'center', width: 150 },
+        {
+          title: 'Kiểu dự án',
+          field: 'TypeProjectItem',
+          hozAlign: 'center',
+          width: 250,
           editor: this.createdControl(
-            SelectControlComponent, 
-            this.injector, 
-            this.appRef, 
-            () => this.cbbTypeProject, 
+            SelectControlComponent,
+            this.injector,
+            this.appRef,
+            () => this.cbbTypeProject,
             {
               valueField: 'id',
               labelField: 'name',
-              placeholder: 'Chọn kiểu dự án'
+              placeholder: 'Chọn kiểu dự án',
             }
           ),
           formatter: (cell: any) => {
@@ -1462,29 +1661,39 @@ private collectAllIds(item: any): number[] {
             const typeProject = this.cbbTypeProject.find((t: any) => {
               const tIdNum = Number(t.id);
               const tIdStr = String(t.id);
-              return t.id == val || t.id === val || tIdNum === valNum || tIdStr === valStr;
+              return (
+                t.id == val ||
+                t.id === val ||
+                tIdNum === valNum ||
+                tIdStr === valStr
+              );
             });
             if (!typeProject) {
-              console.log('Không tìm thấy typeProject với val:', val, 'cbbTypeProject:', this.cbbTypeProject);
+              console.log(
+                'Không tìm thấy typeProject với val:',
+                val,
+                'cbbTypeProject:',
+                this.cbbTypeProject
+              );
               return '<div class="d-flex justify-content-between align-items-center"><p class="w-100 m-0 text-muted"></p> <i class="fas fa-angle-down"></i></div>';
             }
             const typeProjectName = typeProject.name;
             return `<div class="d-flex justify-content-between align-items-center"><p class="w-100 m-0">${typeProjectName}</p> <i class="fas fa-angle-down"></i></div>`;
           },
         },
-        { 
-          title: "Trạng thái", 
-          field: "Status", 
-          hozAlign: "center",
+        {
+          title: 'Trạng thái',
+          field: 'Status',
+          hozAlign: 'center',
           editor: this.createdControl(
-            SelectControlComponent, 
-            this.injector, 
-            this.appRef, 
-            () => this.dataStatus, 
+            SelectControlComponent,
+            this.injector,
+            this.appRef,
+            () => this.dataStatus,
             {
               valueField: 'id',
               labelField: 'name',
-              placeholder: 'Chọn trạng thái'
+              placeholder: 'Chọn trạng thái',
             }
           ),
           formatter: (cell: any) => {
@@ -1500,19 +1709,19 @@ private collectAllIds(item: any): number[] {
             return `<div class="d-flex justify-content-between align-items-center"><p class="w-100 m-0">${statusName}</p> <i class="fas fa-angle-down"></i></div>`;
           },
         },
-        { 
-          title: "Người phụ trách", 
-          field: "UserID", 
-          hozAlign: "center",
+        {
+          title: 'Người phụ trách',
+          field: 'UserID',
+          hozAlign: 'center',
           editor: this.createdControl(
-            SelectControlComponent, 
-            this.injector, 
-            this.appRef, 
-            () => this.cbbEmployee, 
+            SelectControlComponent,
+            this.injector,
+            this.appRef,
+            () => this.cbbEmployee,
             {
               valueField: 'id',
               labelField: 'name',
-              placeholder: 'Chọn người phụ trách'
+              placeholder: 'Chọn người phụ trách',
             }
           ),
           formatter: (cell: any) => {
@@ -1526,30 +1735,40 @@ private collectAllIds(item: any): number[] {
             const employee = this.cbbEmployee.find((e: any) => {
               const eIdNum = Number(e.id);
               const eIdStr = String(e.id);
-              return e.id == val || e.id === val || eIdNum === valNum || eIdStr === valStr;
+              return (
+                e.id == val ||
+                e.id === val ||
+                eIdNum === valNum ||
+                eIdStr === valStr
+              );
             });
             if (!employee) {
-              console.log('Không tìm thấy employee với val:', val, 'cbbEmployee:', this.cbbEmployee);
+              console.log(
+                'Không tìm thấy employee với val:',
+                val,
+                'cbbEmployee:',
+                this.cbbEmployee
+              );
               return '<div class="d-flex justify-content-between align-items-center"><p class="w-100 m-0 text-muted"></p> <i class="fas fa-angle-down"></i></div>';
             }
             const employeeName = employee.name;
             return `<div class="d-flex justify-content-between align-items-center"><p class="w-100 m-0">${employeeName}</p> <i class="fas fa-angle-down"></i></div>`;
           },
         },
-        { 
-          title: "Người giao việc", 
-          field: "EmployeeIDRequest", 
-          hozAlign: "center",
-          width:250,
+        {
+          title: 'Người giao việc',
+          field: 'EmployeeIDRequest',
+          hozAlign: 'center',
+          width: 250,
           editor: this.createdControl(
-            SelectControlComponent, 
-            this.injector, 
-            this.appRef, 
-            () => this.cbbEmployeeRequest, 
+            SelectControlComponent,
+            this.injector,
+            this.appRef,
+            () => this.cbbEmployeeRequest,
             {
               valueField: 'id',
               labelField: 'name',
-              placeholder: 'Chọn người giao việc'
+              placeholder: 'Chọn người giao việc',
             }
           ),
           formatter: (cell: any) => {
@@ -1557,7 +1776,9 @@ private collectAllIds(item: any): number[] {
             if (!val) {
               return '<div class="d-flex justify-content-between align-items-center"><p class="w-100 m-0 text-muted">Chọn người giao việc</p> <i class="fas fa-angle-down"></i></div>';
             }
-            const employee = this.cbbEmployeeRequest.find((e: any) => e.id === val);
+            const employee = this.cbbEmployeeRequest.find(
+              (e: any) => e.id === val
+            );
             if (!employee) {
               return '<div class="d-flex justify-content-between align-items-center"><p class="w-100 m-0 text-muted"></p> <i class="fas fa-angle-down"></i></div>';
             }
@@ -1576,15 +1797,15 @@ private collectAllIds(item: any): number[] {
           //   }
           // },
         },
-        { 
-          title: "Mã người yêu cầu", 
-          field: "EmployeeRequestID", 
-          hozAlign: "center",
+        {
+          title: 'Mã người yêu cầu',
+          field: 'EmployeeRequestID',
+          hozAlign: 'center',
           editor: this.createdControl(
-            SelectControlComponent, 
-            this.injector, 
-            this.appRef, 
-            () => this.cbbUser, 
+            SelectControlComponent,
+            this.injector,
+            this.appRef,
+            () => this.cbbUser,
             {
               valueField: 'id',
               labelField: 'name',
@@ -1605,7 +1826,9 @@ private collectAllIds(item: any): number[] {
           cellEdited: (cell: any) => {
             const row = cell.getRow();
             const newValue = cell.getValue();
-            const selectedUser = this.cbbUser.find((u: any) => u.id === newValue);
+            const selectedUser = this.cbbUser.find(
+              (u: any) => u.id === newValue
+            );
             if (selectedUser) {
               row.update({
                 EmployeeRequestName: selectedUser.fullName,
@@ -1613,12 +1836,16 @@ private collectAllIds(item: any): number[] {
             }
           },
         },
-        { title: "Tên người yêu cầu", field: "EmployeeRequestName", hozAlign: "left",  },
-       
-        { 
-          title: "%", 
-          field: "PercentItem", 
-          hozAlign: "right", 
+        {
+          title: 'Tên người yêu cầu',
+          field: 'EmployeeRequestName',
+          hozAlign: 'left',
+        },
+
+        {
+          title: '%',
+          field: 'PercentItem',
+          hozAlign: 'right',
           editor: 'input',
           formatter: (cell: any) => {
             const value = cell.getValue();
@@ -1630,123 +1857,163 @@ private collectAllIds(item: any): number[] {
               return value;
             }
             return numValue.toFixed(2) + '%';
-          }
+          },
         },
-        { title: "Công việc", field: "Mission", hozAlign: "left", editor: 'input', formatter: 'textarea' , width: 300},
-  
+        {
+          title: 'Công việc',
+          field: 'Mission',
+          hozAlign: 'left',
+          editor: 'input',
+          formatter: 'textarea',
+          width: 300,
+        },
+
         // --- KẾ HOẠCH ---
         {
-          title: "KẾ HOẠCH",
+          title: 'KẾ HOẠCH',
           columns: [
-            { 
-              title: "Ngày bắt đầu", 
-              field: "PlanStartDate", 
-              hozAlign: "center", 
+            {
+              title: 'Ngày bắt đầu',
+              field: 'PlanStartDate',
+              hozAlign: 'center',
               editor: this.dateEditor.bind(this),
               formatter: (cell: any) => {
                 const value = cell.getValue();
                 if (!value) return '';
                 const dt = DateTime.fromISO(value);
                 return dt.isValid ? dt.toFormat('dd/MM/yyyy') : value;
-              }
+              },
             },
-            { title: "Số ngày", field: "TotalDayPlan", hozAlign: "center" },
-            { 
-              title: "Ngày kết thúc", 
-              field: "PlanEndDate", 
-              hozAlign: "center", 
+            { title: 'Số ngày', field: 'TotalDayPlan', hozAlign: 'center' },
+            {
+              title: 'Ngày kết thúc',
+              field: 'PlanEndDate',
+              hozAlign: 'center',
               editor: this.dateEditor.bind(this),
               formatter: (cell: any) => {
                 const value = cell.getValue();
                 if (!value) return '';
                 const dt = DateTime.fromISO(value);
                 return dt.isValid ? dt.toFormat('dd/MM/yyyy') : value;
-              }
+              },
             },
           ],
         },
-  
+
         // --- THỰC TẾ ---
         {
-          title: "THỰC TẾ",
+          title: 'THỰC TẾ',
           columns: [
-            { 
-              title: "Ngày bắt đầu", 
-              field: "ActualStartDate", 
-              hozAlign: "center", 
+            {
+              title: 'Ngày bắt đầu',
+              field: 'ActualStartDate',
+              hozAlign: 'center',
               editor: this.dateEditor.bind(this),
               formatter: (cell: any) => {
                 const value = cell.getValue();
                 if (!value) return '';
                 const dt = DateTime.fromISO(value);
                 return dt.isValid ? dt.toFormat('dd/MM/yyyy') : value;
-              }
+              },
             },
-            { 
-              title: "Ngày kết thúc", 
-              field: "ActualEndDate", 
-              hozAlign: "center", 
+            {
+              title: 'Ngày kết thúc',
+              field: 'ActualEndDate',
+              hozAlign: 'center',
               editor: this.dateEditor.bind(this),
               formatter: (cell: any) => {
                 const value = cell.getValue();
                 if (!value) return '';
                 const dt = DateTime.fromISO(value);
                 return dt.isValid ? dt.toFormat('dd/MM/yyyy') : value;
-              }
+              },
             },
-            { title: "%", field: "PercentageActual", hozAlign: "right", editor: 'input', },
+            {
+              title: '%',
+              field: 'PercentageActual',
+              hozAlign: 'right',
+              editor: 'input',
+            },
           ],
         },
-  
-        { title: "Lý do phát sinh", field: "ReasonLate", hozAlign: "left", formatter: 'textarea' , width: 300},
-        { title: "Thêm phát sinh",  field: 'openModalReson',
+
+        {
+          title: 'Lý do phát sinh',
+          field: 'ReasonLate',
+          hozAlign: 'left',
+          formatter: 'textarea',
+          width: 300,
+        },
+        {
+          title: 'Thêm phát sinh',
+          field: 'openModalReson',
           hozAlign: 'center',
           width: 40,
           headerSort: false,
-        formatter: (cell) => {
-          const data = cell.getRow().getData();
-          let isDeleted = data['IsDeleted'];
-          return !isDeleted
-            ? `<div style="display: flex; justify-content: center; align-items: center; height: 100%;"><i class="fas fa-plus text-success cursor-pointer" title="Thêm dòng"></i></div>`
-            : '';
-        },
-        cellClick: (e, cell) => {
-          let data = cell.getRow().getData();
-          let projectItemId = data['ID'];
-          if(projectItemId > 0){
-            this.openProjectItemProblemDetail(projectItemId);
-          } else {
-            this.notification.warning('Thông báo', 'Hạng mục chưa được thêm vào dự án');
-            return
-          }
-          }
-      },
-        { title: "Ghi chú", field: "Note", hozAlign: "left", editor: 'input', formatter: 'textarea' },
-        { title: "Ngày cập nhật", field: "UpdatedDateActual", hozAlign: "center", formatter: "datetime", formatterParams: { outputFormat: "dd/MM/yyyy HH:mm" } },
-        { title: "Người tạo", field: "CreatedName", hozAlign: "left" },
-        {title: "IsApproved", field: "IsApproved", hozAlign: "center" },
-        { title: "File đính kèm",  field: 'openModalProjectItemFile',
-          hozAlign: 'center',
-          width: 40,
-          headerSort: false,
-        formatter: (cell) => {
-          const data = cell.getRow().getData();
-          let isDeleted = data['IsDeleted'];
-          return !isDeleted
-            ? `<div style="display: flex; justify-content: center; align-items: center; height: 100%;"><i class="fas fa-plus text-success cursor-pointer" title="Thêm tệp đính kèm"></i></div>`
-            : '';
-        },
+          formatter: (cell) => {
+            const data = cell.getRow().getData();
+            let isDeleted = data['IsDeleted'];
+            return !isDeleted
+              ? `<div style="display: flex; justify-content: center; align-items: center; height: 100%;"><i class="fas fa-plus text-success cursor-pointer" title="Thêm dòng"></i></div>`
+              : '';
+          },
           cellClick: (e, cell) => {
-          let data = cell.getRow().getData();
-          let projectItemId = data['ID'];
-          if(projectItemId > 0){
-            this.openProjectItemFileDetail(projectItemId);
-          } else {
-            this.notification.warning('Thông báo', 'Hạng mục chưa được thêm vào dự án');
-            return
-          }
-          }
-      },
+            let data = cell.getRow().getData();
+            let projectItemId = data['ID'];
+            if (projectItemId > 0) {
+              this.openProjectItemProblemDetail(projectItemId);
+            } else {
+              this.notification.warning(
+                'Thông báo',
+                'Hạng mục chưa được thêm vào dự án'
+              );
+              return;
+            }
+          },
+        },
+        {
+          title: 'Ghi chú',
+          field: 'Note',
+          hozAlign: 'left',
+          editor: 'input',
+          formatter: 'textarea',
+        },
+        {
+          title: 'Ngày cập nhật',
+          field: 'UpdatedDateActual',
+          hozAlign: 'center',
+          formatter: 'datetime',
+          formatterParams: { outputFormat: 'dd/MM/yyyy HH:mm' },
+        },
+        { title: 'Người tạo', field: 'CreatedName', hozAlign: 'left' },
+        { title: 'IsApproved', field: 'IsApproved', hozAlign: 'center' },
+        {
+          title: 'File đính kèm',
+          field: 'openModalProjectItemFile',
+          hozAlign: 'center',
+          width: 40,
+          headerSort: false,
+          formatter: (cell) => {
+            const data = cell.getRow().getData();
+            let isDeleted = data['IsDeleted'];
+            return !isDeleted
+              ? `<div style="display: flex; justify-content: center; align-items: center; height: 100%;"><i class="fas fa-plus text-success cursor-pointer" title="Thêm tệp đính kèm"></i></div>`
+              : '';
+          },
+          cellClick: (e, cell) => {
+            let data = cell.getRow().getData();
+            let projectItemId = data['ID'];
+            if (projectItemId > 0) {
+              this.openProjectItemFileDetail(projectItemId);
+            } else {
+              this.notification.warning(
+                'Thông báo',
+                'Hạng mục chưa được thêm vào dự án'
+              );
+              return;
+            }
+          },
+        },
       ],
     });
 
@@ -1762,7 +2029,10 @@ private collectAllIds(item: any): number[] {
       const validation = this.validateCellEditing(cell);
       if (!validation.valid) {
         // Prevent edit và hiển thị thông báo lỗi
-        this.notification.warning('Cảnh báo', validation.errorText || 'Không thể chỉnh sửa!');
+        this.notification.warning(
+          'Cảnh báo',
+          validation.errorText || 'Không thể chỉnh sửa!'
+        );
         // Cancel edit
         setTimeout(() => {
           cell.cancelEdit();
@@ -1775,17 +2045,16 @@ private collectAllIds(item: any): number[] {
       this.handleCellValueChanged(cell);
     });
   }
-  
-  
+
   exportExcel(): void {
     if (!this.tb_workItem) return;
-  
+
     const treeData = this.tb_workItem.getData('tree');
     if (!treeData || treeData.length === 0) {
       this.notification.warning('Thông báo', 'Không có dữ liệu để xuất Excel!');
       return;
     }
-  
+
     const allColumns = this.tb_workItem.getColumns();
     const visibleColumns = allColumns.filter((col: any, index: number) => {
       // Bỏ qua cột đầu tiên (cột action) và các cột ẩn
@@ -1793,35 +2062,44 @@ private collectAllIds(item: any): number[] {
       const colDef = col.getDefinition();
       return colDef.visible !== false && colDef.field !== 'addRow';
     });
-  
+
     const workbook = new ExcelJS.Workbook();
     const worksheet = workbook.addWorksheet('Hạng mục công việc');
-  
+
     // === HEADER ===
     const headerRow = worksheet.addRow(
       visibleColumns.map((col: any) => col.getDefinition().title)
     );
-    headerRow.font = { bold: true, color: { argb: 'FFFFFF' }, name: 'Times New Roman', size: 12 };
-    headerRow.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFD700' } };
+    headerRow.font = {
+      bold: true,
+      color: { argb: 'FFFFFF' },
+      name: 'Times New Roman',
+      size: 12,
+    };
+    headerRow.fill = {
+      type: 'pattern',
+      pattern: 'solid',
+      fgColor: { argb: 'FFD700' },
+    };
     headerRow.alignment = { vertical: 'middle', horizontal: 'center' };
     headerRow.height = 25;
-  
+
     // === Hàm thêm node (đệ quy) ===
     const addNodeToSheet = (node: any, level: number = 0) => {
       const row = worksheet.addRow([]);
-  
+
       visibleColumns.forEach((col: any, idx: any) => {
         const field = col.getDefinition().field;
         let value = node[field] ?? '';
-  
+
         const cell = row.getCell(idx + 1);
         cell.font = { name: 'Times New Roman', size: 11 };
-  
+
         // 1. Thụt lề cho cột Code và STT (tree structure)
         if ((field === 'Code' || field === 'STT') && level > 0) {
           value = '  '.repeat(level * 2) + value;
         }
-  
+
         // 2. Xử lý ngày tháng
         if (typeof value === 'string' && /^\d{4}-\d{2}-\d{2}T/.test(value)) {
           try {
@@ -1834,7 +2112,7 @@ private collectAllIds(item: any): number[] {
             // Giữ nguyên giá trị string nếu không parse được
           }
         }
-  
+
         // 3. Xử lý datetime (UpdatedDateActual)
         if (field === 'UpdatedDateActual' && value) {
           try {
@@ -1847,9 +2125,17 @@ private collectAllIds(item: any): number[] {
             // Giữ nguyên giá trị string
           }
         }
-  
+
         // 4. Cột số: TotalDayPlan, TotalDayActual, PercentItem, PercentageActual, ItemLate
-        const numberFields = ['TotalDayPlan', 'TotalDayActual', 'PercentItem', 'PercentageActual', 'ItemLate', 'Status', 'IsApproved'];
+        const numberFields = [
+          'TotalDayPlan',
+          'TotalDayActual',
+          'PercentItem',
+          'PercentageActual',
+          'ItemLate',
+          'Status',
+          'IsApproved',
+        ];
         if (numberFields.includes(field)) {
           const num = parseFloat(value);
           if (!isNaN(num)) {
@@ -1865,18 +2151,25 @@ private collectAllIds(item: any): number[] {
             value = '';
           }
         }
-  
+
         // 5. Format phần trăm với dấu %
-        if ((field === 'PercentItem' || field === 'PercentageActual') && value !== '') {
+        if (
+          (field === 'PercentItem' || field === 'PercentageActual') &&
+          value !== ''
+        ) {
           const num = parseFloat(value);
           if (!isNaN(num)) {
             cell.numFmt = '0.00"%"';
           }
         }
-  
+
         // 6. Căn chỉnh text
         if (field === 'Mission' || field === 'Note' || field === 'ReasonLate') {
-          cell.alignment = { horizontal: 'left', vertical: 'top', wrapText: true };
+          cell.alignment = {
+            horizontal: 'left',
+            vertical: 'top',
+            wrapText: true,
+          };
           row.height = Math.max(row.height || 20, 30); // Tăng chiều cao cho textarea
         } else if (['Code', 'STT', 'IsApprovedText'].includes(field)) {
           cell.alignment = { horizontal: 'center' };
@@ -1885,19 +2178,21 @@ private collectAllIds(item: any): number[] {
         } else {
           cell.alignment = { horizontal: 'left' };
         }
-  
+
         cell.value = value;
       });
-  
+
       // Thêm con
       if (node._children && node._children.length > 0) {
-        node._children.forEach((child: any) => addNodeToSheet(child, level + 1));
+        node._children.forEach((child: any) =>
+          addNodeToSheet(child, level + 1)
+        );
       }
     };
-  
+
     // === Duyệt root ===
     treeData.forEach((root: any) => addNodeToSheet(root));
-  
+
     // === Tự động width ===
     worksheet.columns.forEach((column: any, index: number) => {
       let maxLength = 10;
@@ -1917,13 +2212,13 @@ private collectAllIds(item: any): number[] {
         column.width = Math.min(Math.max(maxLength, 10), 50);
       }
     });
-  
+
     // === Auto filter ===
     worksheet.autoFilter = {
       from: { row: 1, column: 1 },
       to: { row: 1, column: visibleColumns.length },
     };
-  
+
     // === Freeze header row ===
     worksheet.views = [
       {
@@ -1931,26 +2226,27 @@ private collectAllIds(item: any): number[] {
         ySplit: 1,
       },
     ];
-  
-    // === Xuất file ===
-    workbook.xlsx.writeBuffer().then(buffer => {
-      const blob = new Blob([buffer], {
-        type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
-      });
-      const link = document.createElement('a');
-      link.href = URL.createObjectURL(blob);
-      link.download = `HangMucCongViec_${this.projectCode || 'DuAn'}.xlsx`;
-      link.click();
-      URL.revokeObjectURL(link.href);
-      this.notification.success('Thành công', 'Xuất Excel thành công!');
-    }).catch((error) => {
-      console.error('Error exporting Excel:', error);
-      this.notification.error('Lỗi', 'Không thể xuất Excel!');
-    });
-  }
-  onsearchData(){
 
+    // === Xuất file ===
+    workbook.xlsx
+      .writeBuffer()
+      .then((buffer) => {
+        const blob = new Blob([buffer], {
+          type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+        });
+        const link = document.createElement('a');
+        link.href = URL.createObjectURL(blob);
+        link.download = `HangMucCongViec_${this.projectCode || 'DuAn'}.xlsx`;
+        link.click();
+        URL.revokeObjectURL(link.href);
+        this.notification.success('Thành công', 'Xuất Excel thành công!');
+      })
+      .catch((error) => {
+        console.error('Error exporting Excel:', error);
+        this.notification.error('Lỗi', 'Không thể xuất Excel!');
+      });
   }
+  onsearchData() {}
   onCloseModal(): void {
     this.modalService.dismissAll();
   }
@@ -1960,14 +2256,21 @@ private collectAllIds(item: any): number[] {
     if (!this.tb_workItem) return;
 
     // Nếu chọn "Tất cả" (value = 'all' hoặc rỗng), hiển thị tất cả
-    if (!this.filterStatus || this.filterStatus === 'all' || this.filterStatus === '') {
+    if (
+      !this.filterStatus ||
+      this.filterStatus === 'all' ||
+      this.filterStatus === ''
+    ) {
       this.tb_workItem.clearFilter();
       return;
     }
 
     // Chuyển đổi string "0,1" thành array [0, 1]
-    const statusArray = this.filterStatus.split(',').map(s => parseInt(s.trim())).filter(n => !isNaN(n));
-    
+    const statusArray = this.filterStatus
+      .split(',')
+      .map((s) => parseInt(s.trim()))
+      .filter((n) => !isNaN(n));
+
     if (statusArray.length > 0) {
       // Filter theo nhiều giá trị Status sử dụng custom filter function
       this.tb_workItem.setFilter((data: any) => {
@@ -1982,7 +2285,7 @@ private collectAllIds(item: any): number[] {
   }
   //#endregion
 
-  //#region mở modal 
+  //#region mở modal
   openProjectItemFileDetail(projectItemId: number): void {
     const modalRef = this.modalService.open(ProjectItemFileComponent, {
       centered: true,
@@ -2017,13 +2320,13 @@ private collectAllIds(item: any): number[] {
             // Flatten tất cả rows (bao gồm children) để tìm row có ID tương ứng
             const rootRows = this.tb_workItem.getRows();
             const allRows = this.flattenTreeRows(rootRows);
-            
+
             // Tìm row có ID tương ứng với projectItemId
             const targetRow = allRows.find((row: any) => {
               const rowData = row.getData();
               return rowData.ID === projectItemId;
             });
-            
+
             if (targetRow) {
               // Cập nhật cột ReasonLate với chuỗi đã nối
               targetRow.update({ ReasonLate: result.contentProblem });
@@ -2035,6 +2338,5 @@ private collectAllIds(item: any): number[] {
         console.error('Error opening project item problem detail:', error);
       });
   }
-//#endregion
-
+  //#endregion
 }

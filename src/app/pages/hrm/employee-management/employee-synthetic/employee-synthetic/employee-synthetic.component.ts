@@ -26,7 +26,10 @@ import 'tabulator-tables/dist/css/tabulator_simple.min.css';
 import { DateTime } from 'luxon';
 import * as XLSX from 'xlsx';
 
-import { EmployeeSyntheticService, EmployeeSyntheticRequestParam } from '../employee-synthetic.service';
+import {
+  EmployeeSyntheticService,
+  EmployeeSyntheticRequestParam,
+} from '../employee-synthetic.service';
 import { ProjectService } from '../../../../project/project-service/project.service';
 import { VehicleRepairService } from '../../../vehicle/vehicle-repair/vehicle-repair-service/vehicle-repair.service';
 import { NOTIFICATION_TITLE } from '../../../../../app.config';
@@ -47,21 +50,24 @@ import { DEFAULT_TABLE_CONFIG } from '../../../../../tabulator-default.config';
     NzInputModule,
     NzSpinModule,
     NzFormModule,
-    HasPermissionDirective,
+    // HasPermissionDirective,
   ],
   templateUrl: './employee-synthetic.component.html',
   styleUrls: ['./employee-synthetic.component.css'],
 })
-export class EmployeeSyntheticComponent implements OnInit, AfterViewInit, OnDestroy {
+export class EmployeeSyntheticComponent
+  implements OnInit, AfterViewInit, OnDestroy
+{
   constructor(
     private syntheticService: EmployeeSyntheticService,
     private notification: NzNotificationService,
     private message: NzMessageService,
     private projectService: ProjectService,
-    private vehicleRepairService: VehicleRepairService,
+    private vehicleRepairService: VehicleRepairService
   ) {}
 
-  @ViewChild('tb_synthetic', { static: false }) tbSyntheticContainer!: ElementRef;
+  @ViewChild('tb_synthetic', { static: false })
+  tbSyntheticContainer!: ElementRef;
   tb_synthetic!: Tabulator;
 
   sizeSearch = '22%';
@@ -106,7 +112,10 @@ export class EmployeeSyntheticComponent implements OnInit, AfterViewInit, OnDest
         if (res?.status === 1) this.departments = res.data || [];
       },
       error: (res: any) =>
-        this.notification.error(NOTIFICATION_TITLE.error, res.error?.message || 'Không thể tải danh sách phòng ban'),
+        this.notification.error(
+          NOTIFICATION_TITLE.error,
+          res.error?.message || 'Không thể tải danh sách phòng ban'
+        ),
     });
   }
 
@@ -125,10 +134,16 @@ export class EmployeeSyntheticComponent implements OnInit, AfterViewInit, OnDest
               )
             : all;
 
-        this.employees = this.syntheticService.createdDataGroup(filtered, 'DepartmentName');
+        this.employees = this.syntheticService.createdDataGroup(
+          filtered,
+          'DepartmentName'
+        );
       },
       error: (res: any) =>
-        this.notification.error(NOTIFICATION_TITLE.error, res.error?.message || 'Không thể tải danh sách nhân viên'),
+        this.notification.error(
+          NOTIFICATION_TITLE.error,
+          res.error?.message || 'Không thể tải danh sách nhân viên'
+        ),
     });
   }
 
@@ -196,7 +211,8 @@ export class EmployeeSyntheticComponent implements OnInit, AfterViewInit, OnDest
   getEmployeeSynthetic(): void {
     this.isLoadTable = true;
 
-    const month = this.selectedMonthYear?.getMonth() + 1 || DateTime.now().month;
+    const month =
+      this.selectedMonthYear?.getMonth() + 1 || DateTime.now().month;
     const year = this.selectedMonthYear?.getFullYear() || DateTime.now().year;
 
     const requestParams: EmployeeSyntheticRequestParam = {
@@ -222,7 +238,10 @@ export class EmployeeSyntheticComponent implements OnInit, AfterViewInit, OnDest
       error: () => {
         this.syntheticData = [];
         this.updateTableData();
-        this.notification.error(NOTIFICATION_TITLE.error, 'Không thể tải dữ liệu tổng hợp công');
+        this.notification.error(
+          NOTIFICATION_TITLE.error,
+          'Không thể tải dữ liệu tổng hợp công'
+        );
       },
       complete: () => (this.isLoadTable = false),
     });
@@ -258,11 +277,14 @@ export class EmployeeSyntheticComponent implements OnInit, AfterViewInit, OnDest
       return (cell: any) => {
         const value = cell.getValue();
         if (!value) return '';
-        return `<div style="white-space: pre-wrap; font-size: 12px;">${String(value)}</div>`;
+        return `<div style="white-space: pre-wrap; font-size: 12px;">${String(
+          value
+        )}</div>`;
       };
     };
 
-    const month = this.selectedMonthYear?.getMonth() + 1 || DateTime.now().month;
+    const month =
+      this.selectedMonthYear?.getMonth() + 1 || DateTime.now().month;
     const year = this.selectedMonthYear?.getFullYear() || DateTime.now().year;
     const monthStr = String(month).padStart(2, '0');
     const yearStr = year.toString();
@@ -280,14 +302,14 @@ export class EmployeeSyntheticComponent implements OnInit, AfterViewInit, OnDest
       const isWeekend = dayOfWeek === 0 || dayOfWeek === 6;
 
       dayGroups.push({
-        title: isWeekend 
+        title: isWeekend
           ? `<span style="background-color: #e9b003; padding: 2px 4px; border-radius: 2px; font-weight: bold;">${dayName}</span>`
           : dayName,
         headerHozAlign: ALIGN_CENTER,
         cssClass: isWeekend ? 'weekend-header-group' : '',
         columns: [
           {
-            title: isWeekend 
+            title: isWeekend
               ? `<span style="background-color: #e9b003; padding: 2px 4px; border-radius: 2px; font-weight: bold;">${day}</span>`
               : day.toString(),
             field: day.toString(),
@@ -319,10 +341,9 @@ export class EmployeeSyntheticComponent implements OnInit, AfterViewInit, OnDest
             title: 'Tên Nhân Viên',
             field: 'FullName',
             width: 160,
-            formatter:'textarea', 
+            formatter: 'textarea',
             headerHozAlign: ALIGN_CENTER,
             hozAlign: ALIGN_LEFT,
-           
           },
           {
             title: 'Chức vụ',
@@ -372,7 +393,8 @@ export class EmployeeSyntheticComponent implements OnInit, AfterViewInit, OnDest
       worksheet['!cols'] = this.getExcelColumnWidths();
 
       const workbook = XLSX.utils.book_new();
-      const month = this.selectedMonthYear?.getMonth() + 1 || DateTime.now().month;
+      const month =
+        this.selectedMonthYear?.getMonth() + 1 || DateTime.now().month;
       const year = this.selectedMonthYear?.getFullYear() || DateTime.now().year;
       const monthStr = String(month).padStart(2, '0');
       const sheetName = `T${monthStr}_${year}`;
@@ -399,7 +421,8 @@ export class EmployeeSyntheticComponent implements OnInit, AfterViewInit, OnDest
   }
 
   private prepareExportData(allData: any[]): any[] {
-    const month = this.selectedMonthYear?.getMonth() + 1 || DateTime.now().month;
+    const month =
+      this.selectedMonthYear?.getMonth() + 1 || DateTime.now().month;
     const year = this.selectedMonthYear?.getFullYear() || DateTime.now().year;
     const daysInMonth = new Date(year, month, 0).getDate();
     const firstDayOfMonth = new Date(year, month - 1, 1).getDay();
@@ -425,14 +448,15 @@ export class EmployeeSyntheticComponent implements OnInit, AfterViewInit, OnDest
   }
 
   private getExcelColumnWidths(): any[] {
-    const month = this.selectedMonthYear?.getMonth() + 1 || DateTime.now().month;
+    const month =
+      this.selectedMonthYear?.getMonth() + 1 || DateTime.now().month;
     const year = this.selectedMonthYear?.getFullYear() || DateTime.now().year;
     const daysInMonth = new Date(year, month, 0).getDate();
 
     const widths: any[] = [
-      { wch: 5 },   // STT
-      { wch: 25 },  // Tên Nhân Viên
-      { wch: 20 },  // Chức vụ
+      { wch: 5 }, // STT
+      { wch: 25 }, // Tên Nhân Viên
+      { wch: 20 }, // Chức vụ
     ];
 
     // Thêm width cho mỗi ngày
@@ -444,7 +468,8 @@ export class EmployeeSyntheticComponent implements OnInit, AfterViewInit, OnDest
   }
 
   private generateExcelFilename(): string {
-    const month = this.selectedMonthYear?.getMonth() + 1 || DateTime.now().month;
+    const month =
+      this.selectedMonthYear?.getMonth() + 1 || DateTime.now().month;
     const year = this.selectedMonthYear?.getFullYear() || DateTime.now().year;
     const monthStr = String(month).padStart(2, '0');
     return `BangTongHopCong_T${monthStr}_${year}.xlsx`;

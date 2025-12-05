@@ -72,7 +72,7 @@ import { NOTIFICATION_TITLE } from '../../../app.config';
     NzSpinModule,
     NzTreeSelectModule,
     NzModalModule,
-    HasPermissionDirective,
+    // HasPermissionDirective,
   ],
 })
 export class ProjectLeaderProjectTypeComponent implements OnInit {
@@ -334,7 +334,10 @@ export class ProjectLeaderProjectTypeComponent implements OnInit {
       this.tb_projectLeaderProjectTypeLinks.getSelectedData();
 
     if (!selectedRows || selectedRows.length === 0) {
-      this.notification.warning(NOTIFICATION_TITLE.warning, 'Vui lòng chọn leader để xóa!');
+      this.notification.warning(
+        NOTIFICATION_TITLE.warning,
+        'Vui lòng chọn leader để xóa!'
+      );
       return;
     }
 

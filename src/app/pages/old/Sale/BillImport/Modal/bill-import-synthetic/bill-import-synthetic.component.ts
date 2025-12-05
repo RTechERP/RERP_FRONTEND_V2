@@ -78,8 +78,8 @@ interface data {
     NzDividerModule,
     NzDatePickerModule,
     NzSpinModule,
-    ProductSaleDetailComponent,
-    SelectControlComponent,
+    // ProductSaleDetailComponent,
+    // SelectControlComponent,
     NzCheckboxModule,
   ],
   templateUrl: './bill-import-synthetic.component.html',
@@ -602,7 +602,7 @@ export class BillImportSyntheticComponent implements OnInit, AfterViewInit {
       data: this.dataTable,
       layout: 'fitDataFill',
       height: '100%',
-      maxHeight:'100%',
+      maxHeight: '100%',
       pagination: true,
       paginationSize: 50,
       paginationMode: 'local',
@@ -693,7 +693,7 @@ export class BillImportSyntheticComponent implements OnInit, AfterViewInit {
           title: 'Hóa đơn',
           field: 'IsBill',
           width: 150,
-          hozAlign:'center',
+          hozAlign: 'center',
           formatter: function (cell) {
             const value = cell.getValue();
             const input = document.createElement('input');

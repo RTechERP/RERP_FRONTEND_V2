@@ -86,27 +86,29 @@ import { RequestInvoiceStatusLinkService } from '../../request-invoice-status-li
     NzSwitchModule,
     NzCheckboxModule,
     CommonModule,
-    HasPermissionDirective
+    // HasPermissionDirective
   ],
   templateUrl: './request-invoice-status-detail.component.html',
-  styleUrl: './request-invoice-status-detail.component.css'
+  styleUrl: './request-invoice-status-detail.component.css',
 })
-export class RequestInvoiceStatusDetailComponent implements OnInit, AfterViewInit {
+export class RequestInvoiceStatusDetailComponent
+  implements OnInit, AfterViewInit
+{
   @Input() isEditMode = false;
   @Input() dataEdit: any;
 
-  StatusCode: string = "";
-  StatusName: string = "";
+  StatusCode: string = '';
+  StatusName: string = '';
   ID: number = 0;
-  
+
   constructor(
     public activeModal: NgbActiveModal,
     private modal: NzModalService,
     private notification: NzNotificationService,
     private fb: FormBuilder,
     private requestInvoiceStatusLinkService: RequestInvoiceStatusLinkService
-  ){}
-  
+  ) {}
+
   ngOnInit(): void {
     if (this.isEditMode && this.dataEdit) {
       this.ID = this.dataEdit.ID;
@@ -115,9 +117,7 @@ export class RequestInvoiceStatusDetailComponent implements OnInit, AfterViewIni
     }
   }
 
-  ngAfterViewInit(): void {
-
-  }
+  ngAfterViewInit(): void {}
 
   closeModal() {
     this.activeModal.close();
@@ -127,22 +127,22 @@ export class RequestInvoiceStatusDetailComponent implements OnInit, AfterViewIni
     const payload = {
       ID: this.ID ?? 0,
       StatusCode: this.StatusCode,
-      StatusName: this.StatusName
+      StatusName: this.StatusName,
     };
-  
+
     if (!payload.StatusCode || !payload.StatusName) {
-      this.notification.error("Lỗi", "Vui lòng nhập đầy đủ thông tin!");
+      this.notification.error('Lỗi', 'Vui lòng nhập đầy đủ thông tin!');
       return;
     }
-  
+
     this.requestInvoiceStatusLinkService.saveStatus(payload).subscribe({
       next: (res) => {
-        this.notification.success("Thành công", "Lưu trạng thái thành công!");
+        this.notification.success('Thành công', 'Lưu trạng thái thành công!');
         this.activeModal.close({ success: true, reloadData: true });
       },
       error: () => {
-        this.notification.error("Lỗi", "Lưu dữ liệu thất bại!");
-      }
+        this.notification.error('Lỗi', 'Lưu dữ liệu thất bại!');
+      },
     });
   }
 }

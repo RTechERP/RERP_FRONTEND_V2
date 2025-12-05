@@ -86,7 +86,7 @@ const COMPONENT_TO_KEY: Map<Type<any>, string> = new Map(
   imports: [
     RouterLink,
     NzBadgeModule,
-    RouterOutlet,
+    // RouterOutlet,
     NzIconModule,
     NzLayoutModule,
     NzMenuModule,

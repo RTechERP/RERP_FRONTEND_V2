@@ -67,7 +67,8 @@ import { NOTIFICATION_TITLE } from '../../../app.config';
     NzSpinModule,
     NzTreeSelectModule,
     NzModalModule,
-    CommonModule,HasPermissionDirective
+    CommonModule,
+    // HasPermissionDirective
   ],
   //encapsulation: ViewEncapsulation.None,
   templateUrl: './project-item-late.component.html',
@@ -181,12 +182,12 @@ export class ProjectItemLateComponent implements OnInit, AfterViewInit {
       //   layout: 'fitColumns',
 
       ...DEFAULT_TABLE_CONFIG,
-      rowHeader:false,
+      rowHeader: false,
       columnCalcs: 'both',
       pagination: true,
-      layout:'fitDataStretch',
+      layout: 'fitDataStretch',
       height: '87vh',
-      paginationMode:'local',
+      paginationMode: 'local',
       groupBy: 'ProjectCode',
       groupHeader: function (value) {
         return value ? `Mã dự án ${value}` : `Chưa có mã dự án`;
@@ -326,7 +327,7 @@ export class ProjectItemLateComponent implements OnInit, AfterViewInit {
             const value = cell.getValue() || '';
             let backgroundColor = '';
             let textColor = '';
-            
+
             if (isLateActual === 1 || isLateActual === '1') {
               backgroundColor = '#ffd700'; // Màu vàng
               textColor = '#000000';
@@ -337,10 +338,10 @@ export class ProjectItemLateComponent implements OnInit, AfterViewInit {
               backgroundColor = 'red'; // Màu đỏ
               textColor = 'white';
             }
-            
+
             // Tô màu toàn bộ ô
             if (onRendered) {
-              onRendered(function() {
+              onRendered(function () {
                 const cellElement = cell.getElement();
                 if (cellElement && backgroundColor) {
                   cellElement.style.backgroundColor = backgroundColor;
@@ -348,13 +349,13 @@ export class ProjectItemLateComponent implements OnInit, AfterViewInit {
                 }
               });
             }
-            
+
             return value;
           },
         },
       ],
     });
-    this.tb_projectItemlate.on("pageLoaded", () => {
+    this.tb_projectItemlate.on('pageLoaded', () => {
       this.tb_projectItemlate.redraw();
     });
   }

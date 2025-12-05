@@ -13,10 +13,7 @@ import {
   ApplicationRef,
   Type,
 } from '@angular/core';
-import {
-  TabulatorFull as Tabulator,
-  ColumnDefinition,
-} from 'tabulator-tables';
+import { TabulatorFull as Tabulator, ColumnDefinition } from 'tabulator-tables';
 import 'tabulator-tables/dist/css/tabulator_simple.min.css';
 import { FormsModule } from '@angular/forms';
 import { ProjectPartlistPriceRequestService } from '../project-partlist-price-request-service/project-partlist-price-request.service';
@@ -24,9 +21,7 @@ import { ReactiveFormsModule } from '@angular/forms';
 import { NzSelectModule } from 'ng-zorro-antd/select';
 import { NzFormModule } from 'ng-zorro-antd/form';
 import { DateTime } from 'luxon';
-import {
-  NzNotificationService,
-} from 'ng-zorro-antd/notification';
+import { NzNotificationService } from 'ng-zorro-antd/notification';
 import { NzModalModule } from 'ng-zorro-antd/modal';
 import { CommonModule } from '@angular/common';
 import { NgbActiveModal } from '@ng-bootstrap/ng-bootstrap';
@@ -43,7 +38,6 @@ import { TabulatorPopupComponent } from '../../../../shared/components/tabulator
 import { DEFAULT_TABLE_CONFIG } from '../../../../tabulator-default.config';
 import { BillExportService } from '../../Sale/BillExport/bill-export-service/bill-export.service';
 
-
 @Component({
   standalone: true,
   imports: [
@@ -58,15 +52,16 @@ import { BillExportService } from '../../Sale/BillExport/bill-export-service/bil
     NzButtonModule,
     NzIconModule,
     NgbModalModule,
-    SelectControlComponent,
-    TabulatorPopupComponent
+    // SelectControlComponent,
+    TabulatorPopupComponent,
   ],
   selector: 'app-project-partlist-price-request-form',
   templateUrl: './project-partlist-price-request-form.component.html',
   styleUrls: ['./project-partlist-price-request-form.component.css'],
 })
 export class ProjectPartlistPriceRequestFormComponent
-  implements OnInit, AfterViewInit {
+  implements OnInit, AfterViewInit
+{
   private priceRequestService = inject(ProjectPartlistPriceRequestService);
   private notification = inject(NzNotificationService);
   private authService = inject(AuthService);
@@ -118,16 +113,33 @@ export class ProjectPartlistPriceRequestFormComponent
   // Popup state management
   showProductPopup: boolean = false;
   currentEditingCell: any = null;
-  productPopupPosition: { top: string; left: string } = { top: '0px', left: '0px' };
+  productPopupPosition: { top: string; left: string } = {
+    top: '0px',
+    left: '0px',
+  };
   productColumns: ColumnDefinition[] = [
     { title: 'Mã SP', field: 'ProductCode', width: 120, headerSort: false },
-    { title: 'Tên sản phẩm', field: 'ProductName', width: 200, headerSort: false },
-    { title: 'Mã nội bộ', field: 'ProductNewCode', width: 120, headerSort: false },
+    {
+      title: 'Tên sản phẩm',
+      field: 'ProductName',
+      width: 200,
+      headerSort: false,
+    },
+    {
+      title: 'Mã nội bộ',
+      field: 'ProductNewCode',
+      width: 120,
+      headerSort: false,
+    },
     { title: 'ĐVT', field: 'Unit', width: 80, headerSort: false },
   ];
-  productSearchFields: string[] = ['ProductCode', 'ProductName', 'ProductNewCode'];
+  productSearchFields: string[] = [
+    'ProductCode',
+    'ProductName',
+    'ProductNewCode',
+  ];
 
-  constructor(public activeModal: NgbActiveModal) { }
+  constructor(public activeModal: NgbActiveModal) {}
 
   get isEditMode(): boolean {
     return !!(this.dataInput && this.dataInput.length > 0);
@@ -146,13 +158,16 @@ export class ProjectPartlistPriceRequestFormComponent
           );
 
           this.isAdmin = Boolean(
-            this.currentUser.IsAdmin ?? this.currentUser.isAdmin ?? this.currentUser.IsSystemAdmin ?? false
+            this.currentUser.IsAdmin ??
+              this.currentUser.isAdmin ??
+              this.currentUser.IsSystemAdmin ??
+              false
           );
         }
       },
       error: (err: any) => {
         console.error('Error getting current user:', err);
-      }
+      },
     });
 
     this.lstSave = [];
@@ -164,7 +179,10 @@ export class ProjectPartlistPriceRequestFormComponent
 
     if (!this.dataInput || this.dataInput.length === 0) {
       // Khi thêm mới: set priceRequestTypeID từ initialPriceRequestTypeID
-      if (this.initialPriceRequestTypeID !== null && this.initialPriceRequestTypeID > 0) {
+      if (
+        this.initialPriceRequestTypeID !== null &&
+        this.initialPriceRequestTypeID > 0
+      ) {
         this.priceRequestTypeID = this.initialPriceRequestTypeID;
       }
       this.requestDate = new Date();
@@ -187,9 +205,11 @@ export class ProjectPartlistPriceRequestFormComponent
     this.customerID = Number(this.dataInput[0]['CustomerID']) || 0;
 
     // Lưu tạm giá trị, sẽ bind lại sau khi priceRequestTypes load xong
-    const tempTypeID = Number(this.dataInput[0]['ProjectPartlistPriceRequestTypeID']
-      || this.dataInput[0]['PriceRequestTypeID']
-      || 0);
+    const tempTypeID = Number(
+      this.dataInput[0]['ProjectPartlistPriceRequestTypeID'] ||
+        this.dataInput[0]['PriceRequestTypeID'] ||
+        0
+    );
 
     // Chỉ set ngay nếu có giá trị, sẽ được bind lại chính xác trong getPriceRequestType
     if (tempTypeID > 0) {
@@ -199,7 +219,7 @@ export class ProjectPartlistPriceRequestFormComponent
     this.tableData = this.dataInput.map((row: any) => {
       return {
         ...row,
-        NoteHR: row.NoteHR || row.HRNote || ''
+        NoteHR: row.NoteHR || row.HRNote || '',
       };
     });
 
@@ -208,7 +228,7 @@ export class ProjectPartlistPriceRequestFormComponent
       if (row.ID > 0 && (row.NoteHR || row.HRNote)) {
         this.hrNotesMap.set(row.ID, {
           id: row.HRNoteID || 0,
-          note: row.NoteHR || row.HRNote || ''
+          note: row.NoteHR || row.HRNote || '',
         });
       }
     });
@@ -219,7 +239,7 @@ export class ProjectPartlistPriceRequestFormComponent
       next: (response) => {
         const list = response.data.dtEmployee || [];
         this.users = list;
-        this.createLabels("lbusers", this.users, 'ID', 'FullName');
+        this.createLabels('lbusers', this.users, 'ID', 'FullName');
 
         const map = new Map<string, any[]>();
         for (const emp of list) {
@@ -256,13 +276,17 @@ export class ProjectPartlistPriceRequestFormComponent
         setTimeout(() => {
           if (this.dataInput && this.dataInput.length > 0) {
             // Khi sửa: bind từ dataInput, đảm bảo giá trị tồn tại trong danh sách
-            const typeId = Number(this.dataInput[0]['ProjectPartlistPriceRequestTypeID']
-              || this.dataInput[0]['PriceRequestTypeID']
-              || 0);
+            const typeId = Number(
+              this.dataInput[0]['ProjectPartlistPriceRequestTypeID'] ||
+                this.dataInput[0]['PriceRequestTypeID'] ||
+                0
+            );
 
             if (typeId > 0) {
               // Kiểm tra xem typeId có tồn tại trong danh sách không
-              const exists = this.priceRequestTypes.some((t: any) => t.ID === typeId);
+              const exists = this.priceRequestTypes.some(
+                (t: any) => t.ID === typeId
+              );
               if (exists) {
                 this.priceRequestTypeID = typeId;
               } else {
@@ -271,8 +295,13 @@ export class ProjectPartlistPriceRequestFormComponent
               }
             } else {
               // Nếu không có giá trị từ dataInput, dùng giá trị mặc định từ initialPriceRequestTypeID
-              if (this.initialPriceRequestTypeID !== null && this.initialPriceRequestTypeID > 0) {
-                const exists = this.priceRequestTypes.some((t: any) => t.ID === this.initialPriceRequestTypeID);
+              if (
+                this.initialPriceRequestTypeID !== null &&
+                this.initialPriceRequestTypeID > 0
+              ) {
+                const exists = this.priceRequestTypes.some(
+                  (t: any) => t.ID === this.initialPriceRequestTypeID
+                );
                 if (exists) {
                   this.priceRequestTypeID = this.initialPriceRequestTypeID;
                 }
@@ -280,8 +309,13 @@ export class ProjectPartlistPriceRequestFormComponent
             }
           } else {
             // Khi thêm mới: set từ initialPriceRequestTypeID
-            if (this.initialPriceRequestTypeID !== null && this.initialPriceRequestTypeID > 0) {
-              const exists = this.priceRequestTypes.some((t: any) => t.ID === this.initialPriceRequestTypeID);
+            if (
+              this.initialPriceRequestTypeID !== null &&
+              this.initialPriceRequestTypeID > 0
+            ) {
+              const exists = this.priceRequestTypes.some(
+                (t: any) => t.ID === this.initialPriceRequestTypeID
+              );
               if (exists) {
                 this.priceRequestTypeID = this.initialPriceRequestTypeID;
               }
@@ -298,11 +332,13 @@ export class ProjectPartlistPriceRequestFormComponent
       },
       error: (err: any) => {
         this.priceRequestTypeLoading = false;
-        this.notification.error(NOTIFICATION_TITLE.error, err.error?.message || 'Có lỗi xảy ra');
+        this.notification.error(
+          NOTIFICATION_TITLE.error,
+          err.error?.message || 'Có lỗi xảy ra'
+        );
       },
     });
   }
-
 
   dismiss() {
     this.activeModal.dismiss();
@@ -340,13 +376,17 @@ export class ProjectPartlistPriceRequestFormComponent
     this.priceRequestService.getProductSale().subscribe({
       next: (response) => {
         this.dtProductSale = response.data;
-        this.createLabels('productSale', this.dtProductSale, 'ID', 'ProductNewCode');
+        this.createLabels(
+          'productSale',
+          this.dtProductSale,
+          'ID',
+          'ProductNewCode'
+        );
         setTimeout(() => {
           this.drawTable();
         }, 0);
       },
-      error: (err) => {
-      }
+      error: (err) => {},
     });
   }
 
@@ -357,7 +397,7 @@ export class ProjectPartlistPriceRequestFormComponent
       },
       error: (err) => {
         console.error('Error loading firms:', err);
-      }
+      },
     });
   }
 
@@ -371,12 +411,11 @@ export class ProjectPartlistPriceRequestFormComponent
           NOTIFICATION_TITLE.error,
           'Có lỗi xảy ra khi lấy dữ liệu khách hàng'
         );
-      }
+      },
     });
   }
 
-  ngAfterViewInit(): void {
-  }
+  ngAfterViewInit(): void {}
   createdControl1(
     component: Type<any>,
     injector: EnvironmentInjector,
@@ -443,9 +482,9 @@ export class ProjectPartlistPriceRequestFormComponent
 
       const cellValue = cell.getValue();
       const firmsData = this.firms.map((firm: any) => ({
-        value: firm.FirmName ,
-        label: firm.FirmName ,
-        ...firm
+        value: firm.FirmName,
+        label: firm.FirmName,
+        ...firm,
       }));
 
       componentRef.instance.id = cellValue;
@@ -493,10 +532,11 @@ export class ProjectPartlistPriceRequestFormComponent
       this.priceRequestService.getEmployee().subscribe({
         next: (response) => {
           const list = response.data.dtEmployee || [];
-          const filtered = list.filter((user: any) =>
-            user.ID === Number(searchText) ||
-            user.FullName?.toLowerCase().includes(searchText.toLowerCase()) ||
-            user.Code?.toLowerCase().includes(searchText.toLowerCase())
+          const filtered = list.filter(
+            (user: any) =>
+              user.ID === Number(searchText) ||
+              user.FullName?.toLowerCase().includes(searchText.toLowerCase()) ||
+              user.Code?.toLowerCase().includes(searchText.toLowerCase())
           );
 
           this.users = filtered;
@@ -534,9 +574,11 @@ export class ProjectPartlistPriceRequestFormComponent
 
     if (status === 2 || status === 3 || isCheckPrice) return false;
 
-    if (!this.isAdmin &&
+    if (
+      !this.isAdmin &&
       rowData['EmployeeID'] &&
-      Number(rowData['EmployeeID']) !== this.currentUserId) {
+      Number(rowData['EmployeeID']) !== this.currentUserId
+    ) {
       return false;
     }
 
@@ -589,9 +631,11 @@ export class ProjectPartlistPriceRequestFormComponent
               return;
             }
 
-            if (!this.isAdmin &&
+            if (
+              !this.isAdmin &&
               rowData['EmployeeID'] &&
-              Number(rowData['EmployeeID']) !== this.currentUserId) {
+              Number(rowData['EmployeeID']) !== this.currentUserId
+            ) {
               this.notification.warning(
                 'Thông báo',
                 'Bạn không có quyền xóa yêu cầu của người khác!'
@@ -632,10 +676,12 @@ export class ProjectPartlistPriceRequestFormComponent
             );
             const productCode = product ? product.ProductNewCode : '';
             return `
-              <button class="btn-toggle-detail w-100 h-100" title="${productCode || 'Chọn sản phẩm'
+              <button class="btn-toggle-detail w-100 h-100" title="${
+                productCode || 'Chọn sản phẩm'
               }">
-                <span class="product-code-text">${productCode || 'Chọn SP'
-              }</span>
+                <span class="product-code-text">${
+                  productCode || 'Chọn SP'
+                }</span>
                 <span class="arrow">&#9662;</span>
               </button>
             `;
@@ -683,10 +729,10 @@ export class ProjectPartlistPriceRequestFormComponent
           formatter: (cell: any) => {
             const val = cell.getValue();
             if (!val) return '';
-            const firm = this.firms.find((f: any) =>
-              (f.Code || f.FirmCode || f.Name) === val
+            const firm = this.firms.find(
+              (f: any) => (f.Code || f.FirmCode || f.Name) === val
             );
-            return firm ? (firm.Code || firm.FirmCode || firm.Name) : val;
+            return firm ? firm.Code || firm.FirmCode || firm.Name : val;
           },
           editable: (cell: any) => {
             const rowData = cell.getRow().getData();
@@ -773,7 +819,6 @@ export class ProjectPartlistPriceRequestFormComponent
       height: '30vh',
       headerSort: false,
       reactiveData: true,
-    
     });
 
     // Sau khi table được vẽ, update column visibility dựa trên priceRequestTypeID hiện tại
@@ -795,7 +840,7 @@ export class ProjectPartlistPriceRequestFormComponent
       } else {
         colNoteHR.hide();
         const rows = this.table.getRows();
-        rows.forEach(r => {
+        rows.forEach((r) => {
           const data = r.getData();
           if (data['NoteHR']) {
             r.update({ NoteHR: null });
@@ -824,12 +869,12 @@ export class ProjectPartlistPriceRequestFormComponent
     if (spaceBelow < 300 && spaceAbove > spaceBelow) {
       this.productPopupPosition = {
         top: 'auto',
-        left: cellRect.left + 'px'
+        left: cellRect.left + 'px',
       };
     } else {
       this.productPopupPosition = {
         top: cellRect.bottom + 'px',
-        left: cellRect.left + 'px'
+        left: cellRect.left + 'px',
       };
     }
 
@@ -926,20 +971,32 @@ export class ProjectPartlistPriceRequestFormComponent
   validate(): boolean {
     const employeeID = Number(this.requester);
     if (employeeID <= 0) {
-      this.notification.warning(NOTIFICATION_TITLE.warning, 'Vui lòng chọn Người yêu cầu!');
+      this.notification.warning(
+        NOTIFICATION_TITLE.warning,
+        'Vui lòng chọn Người yêu cầu!'
+      );
       return false;
     }
     if (!this.priceRequestTypeID || this.priceRequestTypeID <= 0) {
-      this.notification.warning(NOTIFICATION_TITLE.warning, 'Vui lòng chọn Loại yêu cầu!');
+      this.notification.warning(
+        NOTIFICATION_TITLE.warning,
+        'Vui lòng chọn Loại yêu cầu!'
+      );
       return false;
     }
     if (!this.customerID || this.customerID <= 0) {
-      this.notification.warning(NOTIFICATION_TITLE.warning, 'Vui lòng chọn Khách hàng!');
+      this.notification.warning(
+        NOTIFICATION_TITLE.warning,
+        'Vui lòng chọn Khách hàng!'
+      );
       return false;
     }
     const rows = this.table.getRows();
     if (rows.length <= 0) {
-      this.notification.warning(NOTIFICATION_TITLE.warning, 'Vui lòng tạo ít nhất một yêu cầu!');
+      this.notification.warning(
+        NOTIFICATION_TITLE.warning,
+        'Vui lòng tạo ít nhất một yêu cầu!'
+      );
       return false;
     }
     for (let i = 0; i < rows.length; i++) {
@@ -1008,36 +1065,40 @@ export class ProjectPartlistPriceRequestFormComponent
   }
   saveAndClose() {
     if (!this.validate()) return;
-    const baseInput = Array.isArray(this.dataInput) ? (this.dataInput[0] || {}) : (this.dataInput || {});
+    const baseInput = Array.isArray(this.dataInput)
+      ? this.dataInput[0] || {}
+      : this.dataInput || {};
     const baseProjectPartlistId = Number(baseInput['ProjectPartlistID']) || 0;
     const baseJobRequirementId = Number(baseInput['JobRequirementID']) || 0;
     const baseIsJobRequirement = !!baseInput['IsJobRequirement'];
     const baseIsCommercialProduct = !!baseInput['IsCommercialProduct'];
     const rows = this.table.getRows();
     const recordsToSave: any[] = [];
-    rows.forEach(row => {
+    rows.forEach((row) => {
       const data = row.getData();
       const isNew = !data['ID'] || data['ID'] === 0;
-      const original = data['ID'] && data['ID'] > 0
-        ? (this.originalRowsMap.get(data['ID']) || {})
-        : {};
+      const original =
+        data['ID'] && data['ID'] > 0
+          ? this.originalRowsMap.get(data['ID']) || {}
+          : {};
       const oldStatus = Number(
         original['StatusRequest'] ?? data['StatusRequest'] ?? 1
       );
-      const isCheckPrice = !!(
-        original['IsCheckPrice'] ?? data['IsCheckPrice']
-      );
+      const isCheckPrice = !!(original['IsCheckPrice'] ?? data['IsCheckPrice']);
       if (!isNew && (oldStatus === 2 || oldStatus === 3 || isCheckPrice)) {
         return;
       }
 
       const note = (data['RequestNote'] || data['Note'] || '').toString();
-      const projectPartlistId = Number(data['ProjectPartlistID'] ?? baseProjectPartlistId) || 0;
-      const jobRequirementId = this.jobRequirementID > 0
-        ? this.jobRequirementID
-        : (Number(data['JobRequirementID'] ?? baseJobRequirementId) || null);
+      const projectPartlistId =
+        Number(data['ProjectPartlistID'] ?? baseProjectPartlistId) || 0;
+      const jobRequirementId =
+        this.jobRequirementID > 0
+          ? this.jobRequirementID
+          : Number(data['JobRequirementID'] ?? baseJobRequirementId) || null;
       const isJobRequirement = data['IsJobRequirement'] ?? baseIsJobRequirement;
-      const isCommercialProduct = data['IsCommercialProduct'] ?? baseIsCommercialProduct;
+      const isCommercialProduct =
+        data['IsCommercialProduct'] ?? baseIsCommercialProduct;
 
       const record: any = {
         ...(original || {}),
@@ -1064,7 +1125,11 @@ export class ProjectPartlistPriceRequestFormComponent
         IsDeleted: false,
       };
 
-      if (isNew && record['ProjectPartlistPriceRequestTypeID'] !== 4&& record['ProjectPartlistPriceRequestTypeID'] !== 3) {
+      if (
+        isNew &&
+        record['ProjectPartlistPriceRequestTypeID'] !== 4 &&
+        record['ProjectPartlistPriceRequestTypeID'] !== 3
+      ) {
         if (jobRequirementId && jobRequirementId > 0) {
           record['IsJobRequirement'] = true;
           record['IsCommercialProduct'] = false;
@@ -1078,14 +1143,14 @@ export class ProjectPartlistPriceRequestFormComponent
     });
 
     const currentIds = rows
-      .map(r => r.getData()['ID'])
+      .map((r) => r.getData()['ID'])
       .filter((id: any) => id && id > 0) as number[];
 
     const removedIds = this.originalIds.filter(
-      id => !currentIds.includes(id)
+      (id) => !currentIds.includes(id)
     );
 
-    removedIds.forEach(id => {
+    removedIds.forEach((id) => {
       const original = this.originalRowsMap.get(id);
       if (!original) return;
 
@@ -1101,7 +1166,10 @@ export class ProjectPartlistPriceRequestFormComponent
         if (this.priceRequestTypeID === 3) {
           this.saveHRNotes(recordsToSave, response);
         } else {
-          this.notification.success(NOTIFICATION_TITLE.success, 'Lưu dữ liệu thành công!');
+          this.notification.success(
+            NOTIFICATION_TITLE.success,
+            'Lưu dữ liệu thành công!'
+          );
           this.formSubmitted.emit();
           this.activeModal.close('saved');
         }
@@ -1113,7 +1181,9 @@ export class ProjectPartlistPriceRequestFormComponent
         }
         if (e.error && e.error.errors) {
           const errors = e.error.errors;
-          const errorDetails = Object.keys(errors).map(key => `${key}: ${errors[key].join(', ')}`).join('; ');
+          const errorDetails = Object.keys(errors)
+            .map((key) => `${key}: ${errors[key].join(', ')}`)
+            .join('; ');
           errorMessage += ` ${errorDetails}`;
         }
 
@@ -1186,7 +1256,10 @@ export class ProjectPartlistPriceRequestFormComponent
     });
 
     if (notesToSave.length === 0) {
-      this.notification.success(NOTIFICATION_TITLE.success, 'Lưu dữ liệu thành công!');
+      this.notification.success(
+        NOTIFICATION_TITLE.success,
+        'Lưu dữ liệu thành công!'
+      );
       this.formSubmitted.emit();
       this.activeModal.close('saved');
       return;
@@ -1194,7 +1267,10 @@ export class ProjectPartlistPriceRequestFormComponent
 
     this.priceRequestService.saveRequestNote(notesToSave).subscribe({
       next: () => {
-        this.notification.success(NOTIFICATION_TITLE.success, 'Lưu dữ liệu thành công!');
+        this.notification.success(
+          NOTIFICATION_TITLE.success,
+          'Lưu dữ liệu thành công!'
+        );
         this.formSubmitted.emit();
         this.activeModal.close('saved');
       },

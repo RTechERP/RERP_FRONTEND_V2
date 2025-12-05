@@ -65,7 +65,7 @@ import { NOTIFICATION_TITLE } from '../../../app.config';
     NzTabsModule,
     NzCheckboxModule,
     DisablePermissionDirective,
-    HasPermissionDirective
+    // HasPermissionDirective
   ],
   templateUrl: './factory-visit-registration.component.html',
   styleUrl: './factory-visit-registration.component.css',
@@ -814,7 +814,10 @@ export class FactoryVisitRegistrationComponent
         .createRegistration(this.registrationForm, detailsPayload)
         .subscribe({
           next: (newRegistration) => {
-            this.notification.success(NOTIFICATION_TITLE.success, 'Tạo đăng ký thành công');
+            this.notification.success(
+              NOTIFICATION_TITLE.success,
+              'Tạo đăng ký thành công'
+            );
             this.isRegistrationModalVisible = false;
             this.loadData();
 
@@ -888,7 +891,10 @@ export class FactoryVisitRegistrationComponent
 
   deleteRegistration(): void {
     if (!this.selectedRegistration) {
-      this.notification.warning(NOTIFICATION_TITLE.warning, 'Vui lòng chọn một đăng ký để xóa');
+      this.notification.warning(
+        NOTIFICATION_TITLE.warning,
+        'Vui lòng chọn một đăng ký để xóa'
+      );
       return;
     }
 
@@ -902,7 +908,10 @@ export class FactoryVisitRegistrationComponent
           .deleteRegistration(this.selectedRegistration.id)
           .subscribe({
             next: () => {
-              this.notification.success(NOTIFICATION_TITLE.success, 'Xóa đăng ký thành công');
+              this.notification.success(
+                NOTIFICATION_TITLE.success,
+                'Xóa đăng ký thành công'
+              );
               this.loadData();
               this.selectedRegistration = null;
               this.participants = [];
@@ -911,7 +920,10 @@ export class FactoryVisitRegistrationComponent
               }
             },
             error: (error) => {
-              this.notification.error(NOTIFICATION_TITLE.error, 'Có lỗi xảy ra khi xóa đăng ký');
+              this.notification.error(
+                NOTIFICATION_TITLE.error,
+                'Có lỗi xảy ra khi xóa đăng ký'
+              );
             },
           });
       },
@@ -966,7 +978,10 @@ export class FactoryVisitRegistrationComponent
 
   openParticipantModal(): void {
     if (!this.selectedRegistration) {
-      this.notification.warning(NOTIFICATION_TITLE.warning, 'Vui lòng chọn một đăng ký trước');
+      this.notification.warning(
+        NOTIFICATION_TITLE.warning,
+        'Vui lòng chọn một đăng ký trước'
+      );
       return;
     }
     this.selectedParticipant = null;
@@ -998,7 +1013,8 @@ export class FactoryVisitRegistrationComponent
 
     this.factoryVisitService.createParticipant(payload).subscribe({
       next: () => {
-        this.notification.success(NOTIFICATION_TITLE.success,
+        this.notification.success(
+          NOTIFICATION_TITLE.success,
           'Thêm người tham gia thành công'
         );
         this.isParticipantModalVisible = false;
@@ -1042,7 +1058,7 @@ export class FactoryVisitRegistrationComponent
 
     if (selectedIds.length === 0) {
       this.notification.warning(
-       NOTIFICATION_TITLE.warning,
+        NOTIFICATION_TITLE.warning,
         'Vui lòng chọn ít nhất một người tham gia để xóa'
       );
       return;
@@ -1056,7 +1072,8 @@ export class FactoryVisitRegistrationComponent
       nzOnOk: () => {
         this.factoryVisitService.deleteParticipants(selectedIds).subscribe({
           next: () => {
-            this.notification.success(NOTIFICATION_TITLE.success,
+            this.notification.success(
+              NOTIFICATION_TITLE.success,
               'Xóa người tham gia thành công'
             );
             this.loadParticipants(this.selectedRegistration.id);

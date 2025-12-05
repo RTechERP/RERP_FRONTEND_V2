@@ -58,7 +58,6 @@ import { TabulatorPopupService } from '../../../../shared/components/tabulator-p
 import { HasPermissionDirective } from '../../../../directives/has-permission.directive';
 import { BillExportService } from '../../Sale/BillExport/bill-export-service/bill-export.service';
 
-
 @Component({
   standalone: true,
   imports: [
@@ -76,7 +75,7 @@ import { BillExportService } from '../../Sale/BillExport/bill-export-service/bil
     NzModalModule,
     NzFormModule,
     NzSpinModule,
-    HasPermissionDirective
+    HasPermissionDirective,
   ],
   selector: 'app-bill-import-technical-form',
   templateUrl: './bill-import-technical-form.component.html',
@@ -110,7 +109,6 @@ export class BillImportTechnicalFormComponent implements OnInit, AfterViewInit {
   // @ViewChild('vcHost', { read: ViewContainerRef, static: true })
   // vcr!: ViewContainerRef;
 
-
   isLoading: boolean = false;
   @Input() masterId!: number; //IDDetail
   @Input() dataEdit: any;
@@ -123,6 +121,7 @@ export class BillImportTechnicalFormComponent implements OnInit, AfterViewInit {
   @Output() closeModal = new EventEmitter<void>();
   @Output() formSubmitted = new EventEmitter<void>();
   @Input() warehouseID: number = 1;
+  @Input() warehouseType: number = 1;
   @Input() dtDetails: any[] = [];
   @Input() flag: number = 0;
   @Input() POCode: string = '';
@@ -189,7 +188,7 @@ export class BillImportTechnicalFormComponent implements OnInit, AfterViewInit {
     private appUserService: AppUserService,
     private tabulatorPopupService: TabulatorPopupService,
     private billExportService: BillExportService
-  ) { }
+  ) {}
 
   supplierOrCustomerValidator(
     control: AbstractControl
@@ -251,9 +250,11 @@ export class BillImportTechnicalFormComponent implements OnInit, AfterViewInit {
     });
 
     // Subscribe to BillTypeNew changes to update column visibility
-    this.formDeviceInfo.get('BillTypeNew')?.valueChanges.subscribe((billType: number) => {
-      this.updateColumnVisibility(billType);
-    });
+    this.formDeviceInfo
+      .get('BillTypeNew')
+      ?.valueChanges.subscribe((billType: number) => {
+        this.updateColumnVisibility(billType);
+      });
   }
 
   // Method to update column visibility based on BillTypeNew
@@ -263,7 +264,8 @@ export class BillImportTechnicalFormComponent implements OnInit, AfterViewInit {
     const isBorrowNCC = billType === 1; // ID: 1 = "Mượn NCC"
 
     // Update "Người mượn" column visibility
-    const employeeBorrowColumn = this.deviceTempTable.getColumn('EmployeeIDBorrow');
+    const employeeBorrowColumn =
+      this.deviceTempTable.getColumn('EmployeeIDBorrow');
     if (employeeBorrowColumn) {
       if (isBorrowNCC) {
         employeeBorrowColumn.show();
@@ -273,7 +275,8 @@ export class BillImportTechnicalFormComponent implements OnInit, AfterViewInit {
     }
 
     // Update "Hạn trả NCC" column visibility
-    const deadlineReturnColumn = this.deviceTempTable.getColumn('DeadlineReturnNCC');
+    const deadlineReturnColumn =
+      this.deviceTempTable.getColumn('DeadlineReturnNCC');
     if (deadlineReturnColumn) {
       if (isBorrowNCC) {
         deadlineReturnColumn.show();
@@ -300,7 +303,10 @@ export class BillImportTechnicalFormComponent implements OnInit, AfterViewInit {
       },
       error: (err: any) => {
         console.error('Error loading NCC:', err);
-        this.notification.error('Thông báo', 'Có lỗi xảy ra khi lấy dữ liệu nhà cung cấp');
+        this.notification.error(
+          'Thông báo',
+          'Có lỗi xảy ra khi lấy dữ liệu nhà cung cấp'
+        );
       },
     });
   }
@@ -375,6 +381,7 @@ export class BillImportTechnicalFormComponent implements OnInit, AfterViewInit {
       productGroupNo: '',
       page: 1,
       size: 100000, // Load tất cả sản phẩm
+      warehouseType: 1,
     };
 
     this.tbProductRtcService
@@ -394,7 +401,11 @@ export class BillImportTechnicalFormComponent implements OnInit, AfterViewInit {
           console.log('✅ Product options loaded:', this.productOptions);
 
           // PONCC FLOW: Map detail data sau khi productOptions đã load
-          if (this.pendingPONCCMapping && this.dtDetails && this.dtDetails.length > 0) {
+          if (
+            this.pendingPONCCMapping &&
+            this.dtDetails &&
+            this.dtDetails.length > 0
+          ) {
             this.mapDataFromPONCCToTable();
             this.pendingPONCCMapping = false;
           }
@@ -644,7 +655,8 @@ export class BillImportTechnicalFormComponent implements OnInit, AfterViewInit {
     console.log('🔵 Đang patch master data từ PONCC:', this.newBillImport);
 
     // Xác định giá trị cho các trường
-    const receiverID = this.newBillImport.ReceiverID || this.newBillImport.ReciverID || 0;
+    const receiverID =
+      this.newBillImport.ReceiverID || this.newBillImport.ReciverID || 0;
     const deliverID = this.newBillImport.DeliverID || 0;
     const supplierSaleID = this.newBillImport.SupplierSaleID || 0;
     const rulePayID = this.newBillImport.RulePayID || 0;
@@ -653,7 +665,7 @@ export class BillImportTechnicalFormComponent implements OnInit, AfterViewInit {
       ReceiverID: receiverID,
       DeliverID: deliverID,
       SupplierSaleID: supplierSaleID,
-      RulePayID: rulePayID
+      RulePayID: rulePayID,
     });
 
     // Patch dữ liệu master từ PONCC vào form
@@ -666,7 +678,9 @@ export class BillImportTechnicalFormComponent implements OnInit, AfterViewInit {
       SupplierSaleID: supplierSaleID,
       CustomerID: this.newBillImport.CustomerID || 0,
       RulePayID: rulePayID,
-      CreatDate: this.newBillImport.CreatDate ? new Date(this.newBillImport.CreatDate) : new Date(),
+      CreatDate: this.newBillImport.CreatDate
+        ? new Date(this.newBillImport.CreatDate)
+        : new Date(),
       DateRequestImport: this.newBillImport.DateRequestImport
         ? new Date(this.newBillImport.DateRequestImport)
         : new Date(),
@@ -681,7 +695,9 @@ export class BillImportTechnicalFormComponent implements OnInit, AfterViewInit {
    */
   private mapDataFromPONCCToTable() {
     if (!this.dtDetails || this.dtDetails.length === 0) {
-      console.warn('⚠️ mapDataFromPONCCToTable: Không có dữ liệu detail từ PONCC');
+      console.warn(
+        '⚠️ mapDataFromPONCCToTable: Không có dữ liệu detail từ PONCC'
+      );
       return;
     }
 
@@ -700,19 +716,29 @@ export class BillImportTechnicalFormComponent implements OnInit, AfterViewInit {
       const productID = item.ProductRTCID || item.ProductSaleID || 0;
 
       // Tìm thông tin sản phẩm từ productOptions
-      const productInfo = this.productOptions.find((p: any) => p.ID === productID) || {};
+      const productInfo =
+        this.productOptions.find((p: any) => p.ID === productID) || {};
 
       if (index === 0) {
         console.log('🔍 Lookup ProductID:', productID);
         console.log('🔍 ProductInfo found:', productInfo);
-        console.log('🔍 UnitCountName from item:', item.UnitName, '/', item.Unit);
-        console.log('🔍 UnitCountName from productInfo:', productInfo.UnitCountName);
+        console.log(
+          '🔍 UnitCountName from item:',
+          item.UnitName,
+          '/',
+          item.Unit
+        );
+        console.log(
+          '🔍 UnitCountName from productInfo:',
+          productInfo.UnitCountName
+        );
       }
 
       // Ưu tiên lấy unit từ item trước, nếu không có thì lấy từ productInfo
-      const unitCountName = item.UnitName || item.Unit || productInfo.UnitCountName || '';
+      const unitCountName =
+        item.UnitName || item.Unit || productInfo.UnitCountName || '';
       const unitCountID = productInfo.UnitCountID || 0;
-console.log('unitcountnhat:',unitCountName);
+      console.log('unitcountnhat:', unitCountName);
 
       return {
         UID: Date.now() + Math.random(),
@@ -885,10 +911,12 @@ console.log('unitcountnhat:',unitCountName);
             const product = this.productOptions.find((p) => p.ID === productId);
             const productCode = product ? product.ProductCode : '';
             return `
-              <button class="btn-toggle-detail w-100 h-100" title="${productCode || 'Chọn sản phẩm'
+              <button class="btn-toggle-detail w-100 h-100" title="${
+                productCode || 'Chọn sản phẩm'
               }">
-                <span class="product-code-text">${productCode || 'Chọn SP'
-              }</span>
+                <span class="product-code-text">${
+                  productCode || 'Chọn SP'
+                }</span>
                 <span class="arrow">&#9662;</span>
               </button>
             `;
@@ -1127,7 +1155,7 @@ console.log('unitcountnhat:',unitCountName);
         rowData['SerialIDs'] = serialIDs;
         row.update(rowData);
       })
-      .catch(() => { });
+      .catch(() => {});
   }
   // Thêm dòng mới vào bảng tạm
   addRow() {
@@ -1473,8 +1501,12 @@ console.log('unitcountnhat:',unitCountName);
       }
     }
 
-    const deliverEmployee = this.emPloyeeLists.find(e => e.ID === formValue.DeliverID);
-    const receiverEmployee = this.emPloyeeLists.find(e => e.ID === formValue.ReceiverID);
+    const deliverEmployee = this.emPloyeeLists.find(
+      (e) => e.ID === formValue.DeliverID
+    );
+    const receiverEmployee = this.emPloyeeLists.find(
+      (e) => e.ID === formValue.ReceiverID
+    );
 
     const deliverText = formValue.Deliver || deliverEmployee?.FullName || '';
     const receiverText = receiverEmployee?.FullName || '';
@@ -1585,16 +1617,18 @@ console.log('unitcountnhat:',unitCountName);
           }));
         })
         .flat(),
-      documentImportPONCCs: (this.table_DocumnetImport?.getData() || []).map((doc: any) => ({
-        ID: doc.ID || 0,
-        DocumentImportID: doc.DocumentImportID || 0,
-        ReasonCancel: doc.ReasonCancel || '',
-        Note: doc.Note || '',
-        BillImportTechnicalID: formValue.ID || 0,
-        Status: doc.Status || 0,
-        StatusPurchase: doc.DocumentStatusPur === true ? 1 : 2,
-        UpdatedDate: new Date().toISOString(),
-      })),
+      documentImportPONCCs: (this.table_DocumnetImport?.getData() || []).map(
+        (doc: any) => ({
+          ID: doc.ID || 0,
+          DocumentImportID: doc.DocumentImportID || 0,
+          ReasonCancel: doc.ReasonCancel || '',
+          Note: doc.Note || '',
+          BillImportTechnicalID: formValue.ID || 0,
+          Status: doc.Status || 0,
+          StatusPurchase: doc.DocumentStatusPur === true ? 1 : 2,
+          UpdatedDate: new Date().toISOString(),
+        })
+      ),
       PonccID: this.PonccID || 0, // Sẽ được set khi vớt từ PO sang
     };
 
@@ -1685,7 +1719,7 @@ console.log('unitcountnhat:',unitCountName);
                   console.log('StatusPur changed:', {
                     oldValue: value,
                     newValue: newValue,
-                    row: cell.getRow().getData()
+                    row: cell.getRow().getData(),
                   });
                   success(newValue);
                 });
@@ -1771,37 +1805,40 @@ console.log('unitcountnhat:',unitCountName);
     }
 
     // Mở popup mới với TabulatorPopupService
-    this.tabulatorPopupService.open({
-      data: this.productOptions || [],
-      columns: this.productPopupColumns,
-      searchFields: ['ProductCode', 'ProductName', 'ProductCodeRTC'],
-      searchPlaceholder: 'Tìm kiếm sản phẩm...',
-      height: '300px',
-      selectableRows: 1,
-      layout: 'fitColumns',
-      minWidth: '500px',
-      maxWidth: '700px',
-      onRowSelected: (selectedProduct) => {
-        // Fill dữ liệu vào row cha
-        const parentRow = cell.getRow();
-        parentRow.update({
-          ProductID: selectedProduct.ID,
-          ProductCode: selectedProduct.ProductCode,
-          ProductName: selectedProduct.ProductName,
-          ProductCodeRTC: selectedProduct.ProductCodeRTC,
-          UnitCountName: selectedProduct.UnitCountName,
-          UnitCountID: selectedProduct.UnitCountID,
-          Maker: selectedProduct.Maker,
-          NumberInStore: selectedProduct.NumberInStore,
-        });
+    this.tabulatorPopupService.open(
+      {
+        data: this.productOptions || [],
+        columns: this.productPopupColumns,
+        searchFields: ['ProductCode', 'ProductName', 'ProductCodeRTC'],
+        searchPlaceholder: 'Tìm kiếm sản phẩm...',
+        height: '300px',
+        selectableRows: 1,
+        layout: 'fitColumns',
+        minWidth: '500px',
+        maxWidth: '700px',
+        onRowSelected: (selectedProduct) => {
+          // Fill dữ liệu vào row cha
+          const parentRow = cell.getRow();
+          parentRow.update({
+            ProductID: selectedProduct.ID,
+            ProductCode: selectedProduct.ProductCode,
+            ProductName: selectedProduct.ProductName,
+            ProductCodeRTC: selectedProduct.ProductCodeRTC,
+            UnitCountName: selectedProduct.UnitCountName,
+            UnitCountID: selectedProduct.UnitCountID,
+            Maker: selectedProduct.Maker,
+            NumberInStore: selectedProduct.NumberInStore,
+          });
 
-        // Đóng popup
-        this.tabulatorPopupService.close();
+          // Đóng popup
+          this.tabulatorPopupService.close();
+        },
+        onClosed: () => {
+          // Optional: xử lý khi popup đóng
+        },
       },
-      onClosed: () => {
-        // Optional: xử lý khi popup đóng
-      }
-    }, cellElement);
+      cellElement
+    );
   }
 
   /* REFACTOR NOTE: Code cũ đã được comment lại bên dưới để tham khảo

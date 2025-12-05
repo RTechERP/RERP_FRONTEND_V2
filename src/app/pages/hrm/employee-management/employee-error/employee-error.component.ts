@@ -30,7 +30,10 @@ import 'tabulator-tables/dist/css/tabulator_simple.min.css';
 import * as XLSX from 'xlsx';
 import { DateTime } from 'luxon';
 
-import { EmployeeErrorService, EmployeeErrorDto } from './employee-error-service/employee-error.service';
+import {
+  EmployeeErrorService,
+  EmployeeErrorDto,
+} from './employee-error-service/employee-error.service';
 import { EmployeeErrorDetailComponent } from './employee-error-detail/employee-error-detail.component';
 import { DEFAULT_TABLE_CONFIG } from '../../../../tabulator-default.config';
 import { NOTIFICATION_TITLE } from '../../../../app.config';
@@ -52,14 +55,16 @@ import { HasPermissionDirective } from '../../../../directives/has-permission.di
     NzSplitterModule,
     NzModalModule,
     NgbModalModule,
-    EmployeeErrorDetailComponent,
+    // EmployeeErrorDetailComponent,
     HasPermissionDirective,
     NzDropDownModule,
   ],
   templateUrl: './employee-error.component.html',
   styleUrls: ['./employee-error.component.css'],
 })
-export class EmployeeErrorComponent implements OnInit, AfterViewInit, OnDestroy {
+export class EmployeeErrorComponent
+  implements OnInit, AfterViewInit, OnDestroy
+{
   @ViewChild('tb_Error', { static: false }) tb_ErrorRef!: ElementRef;
 
   tb_Error!: Tabulator;
@@ -118,8 +123,10 @@ export class EmployeeErrorComponent implements OnInit, AfterViewInit, OnDestroy 
       ajaxURL: this.errorService.getEmployeeErrorListURL(),
       ajaxConfig: 'POST',
       ajaxRequestFunc: (url: any, config: any, params: any) => {
-        const dateStart = this.dateStart || DateTime.local().startOf('month').toJSDate();
-        const dateEnd = this.dateEnd || DateTime.local().endOf('month').toJSDate();
+        const dateStart =
+          this.dateStart || DateTime.local().startOf('month').toJSDate();
+        const dateEnd =
+          this.dateEnd || DateTime.local().endOf('month').toJSDate();
         const requestParams: any = {
           Page: params.page || 1,
           Size: params.size || 50,
@@ -134,7 +141,8 @@ export class EmployeeErrorComponent implements OnInit, AfterViewInit, OnDestroy 
           const data = res.data.data || [];
           let totalPage = 1;
           if (Array.isArray(res.data.totalPage)) {
-            totalPage = res.data.totalPage[0]?.TotalPage || res.data.totalPage[0] || 1;
+            totalPage =
+              res.data.totalPage[0]?.TotalPage || res.data.totalPage[0] || 1;
           } else if (typeof res.data.totalPage === 'number') {
             totalPage = res.data.totalPage;
           }
@@ -181,14 +189,15 @@ export class EmployeeErrorComponent implements OnInit, AfterViewInit, OnDestroy 
         hozAlign: 'center',
         formatter: (cell: any) => {
           const value = cell.getValue();
-          const isApproved = cell.getRow().getData().IsApproved === true || value === 'Đã duyệt';
+          const isApproved =
+            cell.getRow().getData().IsApproved === true || value === 'Đã duyệt';
           if (isApproved) {
             return '<span class="badge bg-success">Đã duyệt</span>';
           }
           return '<span class="badge bg-warning text-dark">Chưa duyệt</span>';
         },
       },
-  
+
       {
         title: 'Mã nhân viên',
         field: 'Code',
@@ -203,7 +212,7 @@ export class EmployeeErrorComponent implements OnInit, AfterViewInit, OnDestroy 
         headerHozAlign: 'center',
         hozAlign: 'left',
       },
-  
+
       {
         title: 'Số tiền',
         field: 'Money',
@@ -232,8 +241,6 @@ export class EmployeeErrorComponent implements OnInit, AfterViewInit, OnDestroy 
         hozAlign: 'left',
         formatter: 'textarea',
       },
-    
-  
     ];
   }
 
@@ -249,7 +256,9 @@ export class EmployeeErrorComponent implements OnInit, AfterViewInit, OnDestroy 
 
     this.tb_Error.on('dataLoadError', (error: any) => {
       this.isLoadTable = false;
-      this.message.error('Lỗi khi tải dữ liệu: ' + (error.message || 'Unknown error'));
+      this.message.error(
+        'Lỗi khi tải dữ liệu: ' + (error.message || 'Unknown error')
+      );
     });
 
     this.tb_Error.on('rowClick', (e: any, row: any) => {
@@ -360,7 +369,10 @@ export class EmployeeErrorComponent implements OnInit, AfterViewInit, OnDestroy 
     modalRef.result.then((result) => {
       if (result?.action === 'save') {
         this.searchError();
-        this.notification.success(NOTIFICATION_TITLE.success, 'Thêm lỗi thành công!');
+        this.notification.success(
+          NOTIFICATION_TITLE.success,
+          'Thêm lỗi thành công!'
+        );
       }
     });
   }
@@ -369,7 +381,10 @@ export class EmployeeErrorComponent implements OnInit, AfterViewInit, OnDestroy 
     const errorToEdit = this.getCurrentSelectedError();
 
     if (!errorToEdit) {
-      this.notification.error(NOTIFICATION_TITLE.error, 'Vui lòng chọn bản ghi cần sửa!');
+      this.notification.error(
+        NOTIFICATION_TITLE.error,
+        'Vui lòng chọn bản ghi cần sửa!'
+      );
       return;
     }
 
@@ -386,7 +401,10 @@ export class EmployeeErrorComponent implements OnInit, AfterViewInit, OnDestroy 
     modalRef.result.then((result) => {
       if (result?.action === 'save') {
         this.searchError();
-        this.notification.success(NOTIFICATION_TITLE.success, 'Sửa lỗi thành công!');
+        this.notification.success(
+          NOTIFICATION_TITLE.success,
+          'Sửa lỗi thành công!'
+        );
       }
     });
   }
@@ -395,7 +413,10 @@ export class EmployeeErrorComponent implements OnInit, AfterViewInit, OnDestroy 
     const selectedRows = this.getSelectedRows();
 
     if (selectedRows.length === 0) {
-      this.notification.error(NOTIFICATION_TITLE.error, 'Vui lòng chọn bản ghi cần xóa!');
+      this.notification.error(
+        NOTIFICATION_TITLE.error,
+        'Vui lòng chọn bản ghi cần xóa!'
+      );
       return;
     }
 
@@ -495,7 +516,10 @@ export class EmployeeErrorComponent implements OnInit, AfterViewInit, OnDestroy 
     const rowCount = selectedRows.length;
 
     if (rowCount === 0) {
-      this.notification.error(NOTIFICATION_TITLE.error, 'Vui lòng chọn bản ghi để duyệt!');
+      this.notification.error(
+        NOTIFICATION_TITLE.error,
+        'Vui lòng chọn bản ghi để duyệt!'
+      );
       return;
     }
 
@@ -503,7 +527,10 @@ export class EmployeeErrorComponent implements OnInit, AfterViewInit, OnDestroy 
       (row) => row.IsApproved === true || row.IsApprovedText === 'Đã duyệt'
     );
     if (alreadyApproved.length > 0) {
-      this.notification.warning(NOTIFICATION_TITLE.warning, 'Có bản ghi đã được duyệt!');
+      this.notification.warning(
+        NOTIFICATION_TITLE.warning,
+        'Có bản ghi đã được duyệt!'
+      );
       return;
     }
 
@@ -531,10 +558,16 @@ export class EmployeeErrorComponent implements OnInit, AfterViewInit, OnDestroy 
     const approveNext = (index: number) => {
       if (index >= selectedRows.length) {
         if (successCount > 0) {
-          this.notification.success(NOTIFICATION_TITLE.success, `Duyệt thành công ${successCount} bản ghi!`);
+          this.notification.success(
+            NOTIFICATION_TITLE.success,
+            `Duyệt thành công ${successCount} bản ghi!`
+          );
         }
         if (failedCount > 0) {
-          this.notification.warning(NOTIFICATION_TITLE.warning, `${failedCount} bản ghi duyệt thất bại!`);
+          this.notification.warning(
+            NOTIFICATION_TITLE.warning,
+            `${failedCount} bản ghi duyệt thất bại!`
+          );
         }
         this.searchError();
         this.clearSelection();
@@ -566,7 +599,10 @@ export class EmployeeErrorComponent implements OnInit, AfterViewInit, OnDestroy 
   cancelApproveError(): void {
     const selectedRows = this.getSelectedRows();
     if (selectedRows.length === 0) {
-      this.notification.error(NOTIFICATION_TITLE.error, 'Vui lòng chọn ít nhất 1 bản ghi cần hủy duyệt!');
+      this.notification.error(
+        NOTIFICATION_TITLE.error,
+        'Vui lòng chọn ít nhất 1 bản ghi cần hủy duyệt!'
+      );
       return;
     }
 
@@ -574,7 +610,10 @@ export class EmployeeErrorComponent implements OnInit, AfterViewInit, OnDestroy 
       (row) => row.IsApproved !== true && row.IsApprovedText !== 'Đã duyệt'
     );
     if (notApproved.length > 0) {
-      this.notification.warning(NOTIFICATION_TITLE.warning, 'Có bản ghi chưa được duyệt!');
+      this.notification.warning(
+        NOTIFICATION_TITLE.warning,
+        'Có bản ghi chưa được duyệt!'
+      );
       return;
     }
 
@@ -593,7 +632,7 @@ export class EmployeeErrorComponent implements OnInit, AfterViewInit, OnDestroy 
     });
   }
 
-  private confirmCancelApproveError(selectedRows: any[]): void   {
+  private confirmCancelApproveError(selectedRows: any[]): void {
     let successCount = 0;
     let failedCount = 0;
     const totalCount = selectedRows.length;
@@ -641,14 +680,20 @@ export class EmployeeErrorComponent implements OnInit, AfterViewInit, OnDestroy 
 
   exportExcel(): void {
     if (!this.tb_Error) {
-      this.notification.error(NOTIFICATION_TITLE.error, 'Bảng dữ liệu chưa sẵn sàng!');
+      this.notification.error(
+        NOTIFICATION_TITLE.error,
+        'Bảng dữ liệu chưa sẵn sàng!'
+      );
       return;
     }
 
     const allData = this.tb_Error.getData();
 
     if (allData.length === 0) {
-      this.notification.warning(NOTIFICATION_TITLE.warning, 'Không có dữ liệu để xuất!');
+      this.notification.warning(
+        NOTIFICATION_TITLE.warning,
+        'Không có dữ liệu để xuất!'
+      );
       return;
     }
 
@@ -675,7 +720,8 @@ export class EmployeeErrorComponent implements OnInit, AfterViewInit, OnDestroy 
     } catch (error) {
       this.notification.error(
         NOTIFICATION_TITLE.error,
-        'Lỗi khi xuất file Excel: ' + (error instanceof Error ? error.message : 'Lỗi không xác định')
+        'Lỗi khi xuất file Excel: ' +
+          (error instanceof Error ? error.message : 'Lỗi không xác định')
       );
     }
   }
@@ -686,10 +732,13 @@ export class EmployeeErrorComponent implements OnInit, AfterViewInit, OnDestroy 
       'Mã nhân viên': item.EmployeeCode || '',
       'Tên nhân viên': item.EmployeeName || '',
       'Phòng ban': item.DepartmentName || '',
-      'Số tiền': item.Money ? Number(item.Money).toLocaleString('vi-VN') + 'đ' : '',
-      'Ngày': this.formatDateOnlyForExcel(item.DateError),
+      'Số tiền': item.Money
+        ? Number(item.Money).toLocaleString('vi-VN') + 'đ'
+        : '',
+      Ngày: this.formatDateOnlyForExcel(item.DateError),
       'Ghi chú': item.Note || '',
-      'Trạng thái duyệt': item.IsApprovedText || (item.IsApproved ? 'Đã duyệt' : 'Chưa duyệt'),
+      'Trạng thái duyệt':
+        item.IsApprovedText || (item.IsApproved ? 'Đã duyệt' : 'Chưa duyệt'),
       'Người duyệt': item.ApprovedByName || '',
       'Ngày duyệt': this.formatDateOnlyForExcel(item.ApprovedDate),
       'Ngày tạo': this.formatDateTimeForExcel(item.CreatedDate),

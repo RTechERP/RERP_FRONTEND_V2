@@ -59,13 +59,13 @@ import { ProjectService } from '../../project-service/project.service';
     NzTreeSelectModule,
     NzModalModule,
     CommonModule,
-    HasPermissionDirective,
+    // HasPermissionDirective,
   ],
   templateUrl: './meeting-minute-type.component.html',
-  styleUrl: './meeting-minute-type.component.css'
+  styleUrl: './meeting-minute-type.component.css',
 })
-export class MeetingMinuteTypeComponent implements OnInit, AfterViewInit{
-//#region Khai báo biến 
+export class MeetingMinuteTypeComponent implements OnInit, AfterViewInit {
+  //#region Khai báo biến
   constructor(
     private injector: EnvironmentInjector,
     private appRef: ApplicationRef,
@@ -74,8 +74,8 @@ export class MeetingMinuteTypeComponent implements OnInit, AfterViewInit{
     private modal: NzModalService,
     private modalService: NgbModal,
     private router: Router,
-    private meetingMinuteService: MeetingMinuteService,
-  ) { }
+    private meetingMinuteService: MeetingMinuteService
+  ) {}
 
   @ViewChild('tb_meetingMinuteType', { static: false })
   tb_meetingMinuteTypeContainer!: ElementRef;
@@ -88,22 +88,22 @@ export class MeetingMinuteTypeComponent implements OnInit, AfterViewInit{
   //#endregion
 
   //#region Load dữ liệu
-  ngOnInit(): void {
-  }
+  ngOnInit(): void {}
   ngAfterViewInit(): void {
-    this.drawTbMeetingType(
-      this.tb_meetingMinuteTypeContainer.nativeElement
-    );
-      this.getAllMeetingType();
+    this.drawTbMeetingType(this.tb_meetingMinuteTypeContainer.nativeElement);
+    this.getAllMeetingType();
   }
   //#endregion
 
   openModalAddMeetingType(isEdit: boolean) {
     let selectedData;
-    if(isEdit == true){
+    if (isEdit == true) {
       selectedData = this.tb_meetingMinuteType?.getSelectedData();
       if (!selectedData && selectedData.length < 0) {
-        this.notification.warning('Thông báo', 'Vui lòng chọn 1 loại biên bản cuộc họp để sửa!')
+        this.notification.warning(
+          'Thông báo',
+          'Vui lòng chọn 1 loại biên bản cuộc họp để sửa!'
+        );
         return;
       }
     }
@@ -116,10 +116,9 @@ export class MeetingMinuteTypeComponent implements OnInit, AfterViewInit{
     modalRef.componentInstance.meetingtype = selectedData[0];
     modalRef.result.then(
       (result) => {
-
         if (result === true) {
           this.getAllMeetingType();
-        } 
+        }
       },
       (reason) => {
         console.log('Modal dismissed with reason:', reason);
@@ -181,12 +180,15 @@ export class MeetingMinuteTypeComponent implements OnInit, AfterViewInit{
   }
   onDeleteLeaders() {
     const selectedRows = this.tb_meetingMinuteType.getSelectedRows();
-    
+
     if (selectedRows.length === 0) {
-      this.notification.warning('Thông báo', 'Vui lòng chọn loại biên bản để xóa!');
+      this.notification.warning(
+        'Thông báo',
+        'Vui lòng chọn loại biên bản để xóa!'
+      );
       return;
     }
-    console.log("selectedRows", selectedRows);
+    console.log('selectedRows', selectedRows);
     this.modal.confirm({
       nzTitle: 'Xác nhận xóa',
       nzContent: 'Bạn có chắc chắn muốn xóa loại biên bản đã chọn?',
@@ -195,27 +197,35 @@ export class MeetingMinuteTypeComponent implements OnInit, AfterViewInit{
       nzOkDanger: true,
       nzOnOk: () => {
         const meetingtypeDeleted = selectedRows.map((row: any) => {
-          const data = row.getData(); 
+          const data = row.getData();
           return {
             ID: data.ID,
-            IsDeleted: true
+            IsDeleted: true,
           };
         });
         // Gọi API với payload xóa (IsDeleted = true)
-        this.meetingMinuteService.saveDataMeetingType(meetingtypeDeleted).subscribe({
-          next: (res) => {
-            this.notification.success('Thành công', 'Đã xóa các loại biên bản cuộc họp thành công!');
-            this.getAllMeetingType();
-            // Bỏ chọn dòng đã xóa
-            this.tb_meetingMinuteType.deselectRow();
-          },
-          error: (error) => {
-            console.error('Lỗi khi xóa:', error);
-            const errorMessage = error?.error?.message || error?.message || 'Không thể xóa nhân viên, vui lòng thử lại!';
-            this.notification.error('Lỗi', errorMessage);
-          }
-        });
-      }
+        this.meetingMinuteService
+          .saveDataMeetingType(meetingtypeDeleted)
+          .subscribe({
+            next: (res) => {
+              this.notification.success(
+                'Thành công',
+                'Đã xóa các loại biên bản cuộc họp thành công!'
+              );
+              this.getAllMeetingType();
+              // Bỏ chọn dòng đã xóa
+              this.tb_meetingMinuteType.deselectRow();
+            },
+            error: (error) => {
+              console.error('Lỗi khi xóa:', error);
+              const errorMessage =
+                error?.error?.message ||
+                error?.message ||
+                'Không thể xóa nhân viên, vui lòng thử lại!';
+              this.notification.error('Lỗi', errorMessage);
+            },
+          });
+      },
     });
   }
 
@@ -243,32 +253,35 @@ export class MeetingMinuteTypeComponent implements OnInit, AfterViewInit{
       ...DEFAULT_TABLE_CONFIG,
       pagination: true,
       layout: 'fitDataStretch',
-      paginationMode:'local',
-      groupBy: "GroupID",
-     groupHeader: function(value, count, data) {
-        return "Thành phần tham gia: " + (value==1 ? 'Nội bộ' : value==2 ? 'Khách hàng' : 'Khác');
+      paginationMode: 'local',
+      groupBy: 'GroupID',
+      groupHeader: function (value, count, data) {
+        return (
+          'Thành phần tham gia: ' +
+          (value == 1 ? 'Nội bộ' : value == 2 ? 'Khách hàng' : 'Khác')
+        );
       },
-      groupToggleElement: "header",
-      selectableRows:true,
+      groupToggleElement: 'header',
+      selectableRows: true,
       columns: [
         {
           title: 'STT',
           field: 'STT',
-          width:70,
+          width: 70,
           headerHozAlign: 'center',
           formatter: 'rownum',
         },
         {
           title: 'ID',
           field: 'ID',
-          width:70,
+          width: 70,
           headerHozAlign: 'center',
-          visible:false,
+          visible: false,
         },
         {
           title: 'Mã loại cuộc họp',
           field: 'TypeCode',
-          width:300,
+          width: 300,
           headerHozAlign: 'center',
           hozAlign: 'left',
         },
@@ -287,10 +300,9 @@ export class MeetingMinuteTypeComponent implements OnInit, AfterViewInit{
         },
       ],
     });
-    this.tb_meetingMinuteType.on("pageLoaded", () => {
+    this.tb_meetingMinuteType.on('pageLoaded', () => {
       this.tb_meetingMinuteType.redraw();
     });
-    
   }
 
   //#endregion

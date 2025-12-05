@@ -64,12 +64,14 @@ import { NgZone } from '@angular/core';
     NzTabsModule,
     NzCardModule,
     FormsModule,
-    HasPermissionDirective,
+    // HasPermissionDirective,
   ],
   templateUrl: './chi-tiet-san-pham-sale.component.html',
   styleUrls: ['./chi-tiet-san-pham-sale.component.css'],
 })
-export class ChiTietSanPhamSaleComponent implements OnInit, AfterViewInit, OnChanges {
+export class ChiTietSanPhamSaleComponent
+  implements OnInit, AfterViewInit, OnChanges
+{
   @ViewChild('tbl_DataImport', { static: true }) tbl_DataImport!: any;
   @ViewChild('tbl_DataExport', { static: true }) tbl_DataExport!: any;
   @ViewChild('tbl_DataRequestImport', { static: true })
@@ -99,7 +101,6 @@ export class ChiTietSanPhamSaleComponent implements OnInit, AfterViewInit, OnCha
   ) {
     // When opened from inventory via menuEventService, data comes through injector
     if (this.tabData) {
-
       this.code = this.tabData.code || '';
       this.suplier = this.tabData.suplier || '';
       this.productName = this.tabData.productName || '';
@@ -135,17 +136,12 @@ export class ChiTietSanPhamSaleComponent implements OnInit, AfterViewInit, OnCha
   totalLast: number = 0;
 
   ngOnInit() {
-
     // Data will be loaded in ngAfterViewInit after tables are initialized
   }
 
   ngOnChanges(changes: SimpleChanges) {
-  
-
     // Update from oProductSaleModel if provided (has priority)
     if (changes['oProductSaleModel'] && this.oProductSaleModel) {
-     
-
       // Try to access ProductSaleID (capital P)
       if (this.oProductSaleModel.ProductSaleID !== undefined) {
         this.productSaleID = this.oProductSaleModel.ProductSaleID;
@@ -158,34 +154,30 @@ export class ChiTietSanPhamSaleComponent implements OnInit, AfterViewInit, OnCha
 
     // Check for direct productSaleID input
     if (changes['productSaleID'] && this.productSaleID) {
-      
     }
 
     // Check for wareHouseCode input
     if (changes['wareHouseCode'] && this.wareHouseCode) {
-
     }
-
-    
 
     // Check if productSaleID or wareHouseCode changed and both have values
-    if ((changes['productSaleID'] || changes['wareHouseCode'] || changes['oProductSaleModel']) &&
-        this.productSaleID && this.wareHouseCode) {
-      
+    if (
+      (changes['productSaleID'] ||
+        changes['wareHouseCode'] ||
+        changes['oProductSaleModel']) &&
+      this.productSaleID &&
+      this.wareHouseCode
+    ) {
       // Only load if tables are already initialized
       if (this.table_DataImport) {
-        
         this.loaddata();
-      } 
-         
+      }
     }
-  
   }
 
   ngAfterViewInit() {
     // Initialize tables after view is ready
     this.initializeTables();
-
 
     if (this.productSaleID && this.wareHouseCode) {
       this.loaddata();
@@ -216,8 +208,6 @@ export class ChiTietSanPhamSaleComponent implements OnInit, AfterViewInit, OnCha
               this.numberCuoiKy = product.TotalQuantityLast?.toString() || '0';
               this.import = product.TotalImport?.toString() || '0';
               this.export = product.TotalExport?.toString() || '0';
-
-
             }
 
             this.updateTableData();
@@ -225,8 +215,12 @@ export class ChiTietSanPhamSaleComponent implements OnInit, AfterViewInit, OnCha
         },
         error: (err) => {
           console.error('Error loading data:', err);
-          this.notificationService.error('Lỗi', err.error.message||'Không thể tải dữ liệu lịch sử nhập xuất sản phẩm.');
-        }
+          this.notificationService.error(
+            'Lỗi',
+            err.error.message ||
+              'Không thể tải dữ liệu lịch sử nhập xuất sản phẩm.'
+          );
+        },
       });
   }
 
@@ -252,22 +246,43 @@ export class ChiTietSanPhamSaleComponent implements OnInit, AfterViewInit, OnCha
   }
 
   calculator() {
-    this.totalImport = this.dtImport.reduce((sum, row) => sum + (parseFloat(row.Qty) || 0), 0);
-    this.totalExport = this.dtExport.reduce((sum, row) => sum + (parseFloat(row.Qty) || 0), 0);
-    this.totalRequestExport = this.dtRequestExport.reduce((sum, row) => sum + (parseFloat(row.Qty) || 0), 0);
-    this.totalKeep = this.dtHold.reduce((sum, row) => sum + (parseFloat(row.TotalQuantityRemain) || 0), 0);
+    this.totalImport = this.dtImport.reduce(
+      (sum, row) => sum + (parseFloat(row.Qty) || 0),
+      0
+    );
+    this.totalExport = this.dtExport.reduce(
+      (sum, row) => sum + (parseFloat(row.Qty) || 0),
+      0
+    );
+    this.totalRequestExport = this.dtRequestExport.reduce(
+      (sum, row) => sum + (parseFloat(row.Qty) || 0),
+      0
+    );
+    this.totalKeep = this.dtHold.reduce(
+      (sum, row) => sum + (parseFloat(row.TotalQuantityRemain) || 0),
+      0
+    );
     const numberDauKy = parseFloat(this.numberDauKy) || 0;
-    this.totalLast = numberDauKy + this.totalImport - this.totalExport - this.totalRequestExport - this.totalKeep;
+    this.totalLast =
+      numberDauKy +
+      this.totalImport -
+      this.totalExport -
+      this.totalRequestExport -
+      this.totalKeep;
   }
 
   onProductChange(productSaleID: number) {
     if (productSaleID) {
       this.productSaleID = productSaleID;
 
-      const selectedProduct = this.dtProduct.find(p => p.ProductSaleID === productSaleID);
+      const selectedProduct = this.dtProduct.find(
+        (p) => p.ProductSaleID === productSaleID
+      );
       if (selectedProduct) {
-        this.productName = selectedProduct.ProductName || selectedProduct.productname || '';
-        this.code = selectedProduct.ProductCode || selectedProduct.productcode || '';
+        this.productName =
+          selectedProduct.ProductName || selectedProduct.productname || '';
+        this.code =
+          selectedProduct.ProductCode || selectedProduct.productcode || '';
       }
 
       this.loaddata();
@@ -278,7 +293,6 @@ export class ChiTietSanPhamSaleComponent implements OnInit, AfterViewInit, OnCha
     this.loaddata();
   }
   openBillImportDetail(rowData: any) {
-
     const modalRef = this.modalService.open(BillImportDetailComponent, {
       centered: true,
       size: 'xl',
@@ -324,8 +338,8 @@ export class ChiTietSanPhamSaleComponent implements OnInit, AfterViewInit, OnCha
         action: (e: any, row: RowComponent) => {
           const rowData = row.getData();
           this.openBillImportDetail(rowData);
-        }
-      }
+        },
+      },
     ];
 
     // Context menu for export tables
@@ -335,8 +349,8 @@ export class ChiTietSanPhamSaleComponent implements OnInit, AfterViewInit, OnCha
         action: (e: any, row: RowComponent) => {
           const rowData = row.getData();
           this.openBillExportDetail(rowData);
-        }
-      }
+        },
+      },
     ];
 
     // Table 1: Phiếu nhập
@@ -371,7 +385,9 @@ export class ChiTietSanPhamSaleComponent implements OnInit, AfterViewInit, OnCha
             headerHozAlign: 'center',
             formatter: (cell) => {
               const value = cell.getValue();
-              return value ? DateTime.fromISO(value).toFormat('dd/MM/yyyy') : '';
+              return value
+                ? DateTime.fromISO(value).toFormat('dd/MM/yyyy')
+                : '';
             },
           },
           {
@@ -412,7 +428,9 @@ export class ChiTietSanPhamSaleComponent implements OnInit, AfterViewInit, OnCha
             headerHozAlign: 'center',
             formatter: (cell) => {
               const value = cell.getValue();
-              return `<input type="checkbox" ${value === true ? 'checked' : ''} disabled />`;
+              return `<input type="checkbox" ${
+                value === true ? 'checked' : ''
+              } disabled />`;
             },
           },
           {
@@ -422,7 +440,9 @@ export class ChiTietSanPhamSaleComponent implements OnInit, AfterViewInit, OnCha
             headerHozAlign: 'center',
             formatter: (cell) => {
               const value = cell.getValue();
-              return value ? DateTime.fromISO(value).toFormat('dd/MM/yyyy') : '';
+              return value
+                ? DateTime.fromISO(value).toFormat('dd/MM/yyyy')
+                : '';
             },
           },
           {
@@ -432,7 +452,9 @@ export class ChiTietSanPhamSaleComponent implements OnInit, AfterViewInit, OnCha
             headerHozAlign: 'center',
             formatter: (cell) => {
               const value = cell.getValue();
-              return value ? DateTime.fromISO(value).toFormat('dd/MM/yyyy HH:mm') : '';
+              return value
+                ? DateTime.fromISO(value).toFormat('dd/MM/yyyy HH:mm')
+                : '';
             },
           },
         ],
@@ -485,7 +507,9 @@ export class ChiTietSanPhamSaleComponent implements OnInit, AfterViewInit, OnCha
             headerHozAlign: 'center',
             formatter: (cell) => {
               const value = cell.getValue();
-              return value ? DateTime.fromISO(value).toFormat('dd/MM/yyyy') : '';
+              return value
+                ? DateTime.fromISO(value).toFormat('dd/MM/yyyy')
+                : '';
             },
           },
           {
@@ -540,7 +564,9 @@ export class ChiTietSanPhamSaleComponent implements OnInit, AfterViewInit, OnCha
             headerHozAlign: 'center',
             formatter: (cell) => {
               const value = cell.getValue();
-              return `<input type="checkbox" ${value === true ? 'checked' : ''} disabled />`;
+              return `<input type="checkbox" ${
+                value === true ? 'checked' : ''
+              } disabled />`;
             },
           },
           {
@@ -550,7 +576,9 @@ export class ChiTietSanPhamSaleComponent implements OnInit, AfterViewInit, OnCha
             headerHozAlign: 'center',
             formatter: (cell) => {
               const value = cell.getValue();
-              return value ? DateTime.fromISO(value).toFormat('dd/MM/yyyy') : '';
+              return value
+                ? DateTime.fromISO(value).toFormat('dd/MM/yyyy')
+                : '';
             },
           },
           {
@@ -560,7 +588,9 @@ export class ChiTietSanPhamSaleComponent implements OnInit, AfterViewInit, OnCha
             headerHozAlign: 'center',
             formatter: (cell) => {
               const value = cell.getValue();
-              return value ? DateTime.fromISO(value).toFormat('dd/MM/yyyy HH:mm') : '';
+              return value
+                ? DateTime.fromISO(value).toFormat('dd/MM/yyyy HH:mm')
+                : '';
             },
           },
         ],
@@ -575,228 +605,256 @@ export class ChiTietSanPhamSaleComponent implements OnInit, AfterViewInit, OnCha
 
     // Table 3: Phiếu yêu cầu xuất
     if (!this.table_DataRequestExport) {
-      this.table_DataRequestExport = new Tabulator(this.tbl_DataRequestExport.nativeElement, {
-        ...DEFAULT_TABLE_CONFIG,
-        data: this.dtRequestExport,
-        height: '100%',
-        layout: 'fitDataStretch',
-        pagination: false,
-        rowHeader: false,
-        rowContextMenu: contextMenuExport,
-        columns: [
-          {
-            title: 'Trạng thái',
-            field: 'nameStatus',
-            hozAlign: 'left',
-            headerHozAlign: 'center',
-            frozen: true,
-          },
-          {
-            title: 'Số phiếu',
-            field: 'Code',
-            hozAlign: 'left',
-            headerHozAlign: 'center',
-            frozen: true,
-          },
-          {
-            title: 'Ngày xuất',
-            field: 'CreatDate',
-            hozAlign: 'center',
-            headerHozAlign: 'center',
-            formatter: (cell) => {
-              const value = cell.getValue();
-              return value ? DateTime.fromISO(value).toFormat('dd/MM/yyyy') : '';
+      this.table_DataRequestExport = new Tabulator(
+        this.tbl_DataRequestExport.nativeElement,
+        {
+          ...DEFAULT_TABLE_CONFIG,
+          data: this.dtRequestExport,
+          height: '100%',
+          layout: 'fitDataStretch',
+          pagination: false,
+          rowHeader: false,
+          rowContextMenu: contextMenuExport,
+          columns: [
+            {
+              title: 'Trạng thái',
+              field: 'nameStatus',
+              hozAlign: 'left',
+              headerHozAlign: 'center',
+              frozen: true,
             },
-          },
-          {
-            title: 'Người nhận',
-            field: 'Receiver',
-            hozAlign: 'left',
-            headerHozAlign: 'center',
-          },
-          {
-            title: 'Người giao',
-            field: 'Deliver',
-            hozAlign: 'left',
-            headerHozAlign: 'center',
-          },
-          {
-            title: 'Số lượng',
-            field: 'Qty',
-            hozAlign: 'right',
-            headerHozAlign: 'center',
-            bottomCalc: 'sum',
-          },
-          {
-            title: 'Số lượng trả',
-            field: 'ReturnAmount',
-            hozAlign: 'right',
-            headerHozAlign: 'center',
-            bottomCalc: 'sum',
-          },
-          {
-            title: 'Số lượng chưa trả',
-            field: 'Remain',
-            hozAlign: 'right',
-            headerHozAlign: 'center',
-            bottomCalc: 'sum',
-          },
-          {
-            title: 'Khách hàng',
-            field: 'CustomerName',
-            hozAlign: 'left',
-            headerHozAlign: 'center',
-          },
-          {
-            title: 'Dự án',
-            field: 'Project',
-            hozAlign: 'left',
-            headerHozAlign: 'center',
-          },
-          {
-            title: 'Nhận chứng từ',
-            field: 'IsApproved',
-            hozAlign: 'center',
-            headerHozAlign: 'center',
-            formatter: (cell) => {
-              const value = cell.getValue();
-              return `<input type="checkbox" ${value === true ? 'checked' : ''} disabled />`;
+            {
+              title: 'Số phiếu',
+              field: 'Code',
+              hozAlign: 'left',
+              headerHozAlign: 'center',
+              frozen: true,
             },
-          },
-          {
-            title: 'Ngày nhận CT',
-            field: 'DateStatusE',
-            hozAlign: 'center',
-            headerHozAlign: 'center',
-            formatter: (cell) => {
-              const value = cell.getValue();
-              return value ? DateTime.fromISO(value).toFormat('dd/MM/yyyy') : '';
+            {
+              title: 'Ngày xuất',
+              field: 'CreatDate',
+              hozAlign: 'center',
+              headerHozAlign: 'center',
+              formatter: (cell) => {
+                const value = cell.getValue();
+                return value
+                  ? DateTime.fromISO(value).toFormat('dd/MM/yyyy')
+                  : '';
+              },
             },
-          },
-          {
-            title: 'Ngày tạo',
-            field: 'CreatedDate',
-            hozAlign: 'center',
-            headerHozAlign: 'center',
-            formatter: (cell) => {
-              const value = cell.getValue();
-              return value ? DateTime.fromISO(value).toFormat('dd/MM/yyyy HH:mm') : '';
+            {
+              title: 'Người nhận',
+              field: 'Receiver',
+              hozAlign: 'left',
+              headerHozAlign: 'center',
             },
-          },
-        ],
-      });
+            {
+              title: 'Người giao',
+              field: 'Deliver',
+              hozAlign: 'left',
+              headerHozAlign: 'center',
+            },
+            {
+              title: 'Số lượng',
+              field: 'Qty',
+              hozAlign: 'right',
+              headerHozAlign: 'center',
+              bottomCalc: 'sum',
+            },
+            {
+              title: 'Số lượng trả',
+              field: 'ReturnAmount',
+              hozAlign: 'right',
+              headerHozAlign: 'center',
+              bottomCalc: 'sum',
+            },
+            {
+              title: 'Số lượng chưa trả',
+              field: 'Remain',
+              hozAlign: 'right',
+              headerHozAlign: 'center',
+              bottomCalc: 'sum',
+            },
+            {
+              title: 'Khách hàng',
+              field: 'CustomerName',
+              hozAlign: 'left',
+              headerHozAlign: 'center',
+            },
+            {
+              title: 'Dự án',
+              field: 'Project',
+              hozAlign: 'left',
+              headerHozAlign: 'center',
+            },
+            {
+              title: 'Nhận chứng từ',
+              field: 'IsApproved',
+              hozAlign: 'center',
+              headerHozAlign: 'center',
+              formatter: (cell) => {
+                const value = cell.getValue();
+                return `<input type="checkbox" ${
+                  value === true ? 'checked' : ''
+                } disabled />`;
+              },
+            },
+            {
+              title: 'Ngày nhận CT',
+              field: 'DateStatusE',
+              hozAlign: 'center',
+              headerHozAlign: 'center',
+              formatter: (cell) => {
+                const value = cell.getValue();
+                return value
+                  ? DateTime.fromISO(value).toFormat('dd/MM/yyyy')
+                  : '';
+              },
+            },
+            {
+              title: 'Ngày tạo',
+              field: 'CreatedDate',
+              hozAlign: 'center',
+              headerHozAlign: 'center',
+              formatter: (cell) => {
+                const value = cell.getValue();
+                return value
+                  ? DateTime.fromISO(value).toFormat('dd/MM/yyyy HH:mm')
+                  : '';
+              },
+            },
+          ],
+        }
+      );
 
       // Add double-click event for request export table
-      this.table_DataRequestExport.on('rowDblClick', (_e: any, row: RowComponent) => {
-        const rowData = row.getData();
-        this.openBillExportDetail(rowData);
-      });
+      this.table_DataRequestExport.on(
+        'rowDblClick',
+        (_e: any, row: RowComponent) => {
+          const rowData = row.getData();
+          this.openBillExportDetail(rowData);
+        }
+      );
     }
 
     // Table 4: Phiếu yêu cầu nhập
     if (!this.table_DataRequestImport) {
-      this.table_DataRequestImport = new Tabulator(this.tbl_DataRequestImport.nativeElement, {
-        ...DEFAULT_TABLE_CONFIG,
-        data: this.dtRequestImport,
-        height: '100%',
-        layout: 'fitDataStretch',
-        pagination: false,
-        rowHeader: false,
-        rowContextMenu: contextMenuImport,
-        columns: [
-          {
-            title: 'Trạng thái',
-            field: 'BillTypeText',
-            hozAlign: 'left',
-            headerHozAlign: 'center',
-            frozen: true,
-          },
-          {
-            title: 'Số phiếu',
-            field: 'BillImportCode',
-            hozAlign: 'left',
-            headerHozAlign: 'center',
-            frozen: true,
-          },
-          {
-            title: 'Ngày nhập',
-            field: 'CreatDate',
-            hozAlign: 'center',
-            headerHozAlign: 'center',
-            formatter: (cell) => {
-              const value = cell.getValue();
-              return value ? DateTime.fromISO(value).toFormat('dd/MM/yyyy') : '';
+      this.table_DataRequestImport = new Tabulator(
+        this.tbl_DataRequestImport.nativeElement,
+        {
+          ...DEFAULT_TABLE_CONFIG,
+          data: this.dtRequestImport,
+          height: '100%',
+          layout: 'fitDataStretch',
+          pagination: false,
+          rowHeader: false,
+          rowContextMenu: contextMenuImport,
+          columns: [
+            {
+              title: 'Trạng thái',
+              field: 'BillTypeText',
+              hozAlign: 'left',
+              headerHozAlign: 'center',
+              frozen: true,
             },
-          },
-          {
-            title: 'Người nhận',
-            field: 'Reciver',
-            hozAlign: 'left',
-            headerHozAlign: 'center',
-          },
-          {
-            title: 'Người giao',
-            field: 'Deliver',
-            hozAlign: 'left',
-            headerHozAlign: 'center',
-          },
-          {
-            title: 'Nhà cung cấp',
-            field: 'Suplier',
-            hozAlign: 'left',
-            headerHozAlign: 'center',
-          },
-          {
-            title: 'Số lượng',
-            field: 'Qty',
-            hozAlign: 'right',
-            headerHozAlign: 'center',
-            bottomCalc: 'sum',
-          },
-          {
-            title: 'Dự án',
-            field: 'Project',
-            hozAlign: 'left',
-            headerHozAlign: 'center',
-          },
-          {
-            title: 'Nhận chứng từ',
-            field: 'Status',
-            hozAlign: 'center',
-            headerHozAlign: 'center',
-            formatter: (cell) => {
-              const value = cell.getValue();
-              return `<input type="checkbox" ${value === true ? 'checked' : ''} disabled />`;
+            {
+              title: 'Số phiếu',
+              field: 'BillImportCode',
+              hozAlign: 'left',
+              headerHozAlign: 'center',
+              frozen: true,
             },
-          },
-          {
-            title: 'Ngày nhận CT',
-            field: 'DateStatus',
-            hozAlign: 'center',
-            headerHozAlign: 'center',
-            formatter: (cell) => {
-              const value = cell.getValue();
-              return value ? DateTime.fromISO(value).toFormat('dd/MM/yyyy') : '';
+            {
+              title: 'Ngày nhập',
+              field: 'CreatDate',
+              hozAlign: 'center',
+              headerHozAlign: 'center',
+              formatter: (cell) => {
+                const value = cell.getValue();
+                return value
+                  ? DateTime.fromISO(value).toFormat('dd/MM/yyyy')
+                  : '';
+              },
             },
-          },
-          {
-            title: 'Ngày tạo',
-            field: 'CreatedDate',
-            hozAlign: 'center',
-            headerHozAlign: 'center',
-            formatter: (cell) => {
-              const value = cell.getValue();
-              return value ? DateTime.fromISO(value).toFormat('dd/MM/yyyy HH:mm') : '';
+            {
+              title: 'Người nhận',
+              field: 'Reciver',
+              hozAlign: 'left',
+              headerHozAlign: 'center',
             },
-          },
-        ],
-      });
+            {
+              title: 'Người giao',
+              field: 'Deliver',
+              hozAlign: 'left',
+              headerHozAlign: 'center',
+            },
+            {
+              title: 'Nhà cung cấp',
+              field: 'Suplier',
+              hozAlign: 'left',
+              headerHozAlign: 'center',
+            },
+            {
+              title: 'Số lượng',
+              field: 'Qty',
+              hozAlign: 'right',
+              headerHozAlign: 'center',
+              bottomCalc: 'sum',
+            },
+            {
+              title: 'Dự án',
+              field: 'Project',
+              hozAlign: 'left',
+              headerHozAlign: 'center',
+            },
+            {
+              title: 'Nhận chứng từ',
+              field: 'Status',
+              hozAlign: 'center',
+              headerHozAlign: 'center',
+              formatter: (cell) => {
+                const value = cell.getValue();
+                return `<input type="checkbox" ${
+                  value === true ? 'checked' : ''
+                } disabled />`;
+              },
+            },
+            {
+              title: 'Ngày nhận CT',
+              field: 'DateStatus',
+              hozAlign: 'center',
+              headerHozAlign: 'center',
+              formatter: (cell) => {
+                const value = cell.getValue();
+                return value
+                  ? DateTime.fromISO(value).toFormat('dd/MM/yyyy')
+                  : '';
+              },
+            },
+            {
+              title: 'Ngày tạo',
+              field: 'CreatedDate',
+              hozAlign: 'center',
+              headerHozAlign: 'center',
+              formatter: (cell) => {
+                const value = cell.getValue();
+                return value
+                  ? DateTime.fromISO(value).toFormat('dd/MM/yyyy HH:mm')
+                  : '';
+              },
+            },
+          ],
+        }
+      );
 
       // Add double-click event for request import table
-      this.table_DataRequestImport.on('rowDblClick', (_e: any, row: RowComponent) => {
-        const rowData = row.getData();
-        this.openBillImportDetail(rowData);
-      });
+      this.table_DataRequestImport.on(
+        'rowDblClick',
+        (_e: any, row: RowComponent) => {
+          const rowData = row.getData();
+          this.openBillImportDetail(rowData);
+        }
+      );
     }
 
     // Table 5: Hàng giữ
@@ -918,7 +976,9 @@ export class ChiTietSanPhamSaleComponent implements OnInit, AfterViewInit, OnCha
             headerHozAlign: 'center',
             formatter: (cell) => {
               const value = cell.getValue();
-              return value ? DateTime.fromISO(value).toFormat('dd/MM/yyyy HH:mm') : '';
+              return value
+                ? DateTime.fromISO(value).toFormat('dd/MM/yyyy HH:mm')
+                : '';
             },
           },
         ],

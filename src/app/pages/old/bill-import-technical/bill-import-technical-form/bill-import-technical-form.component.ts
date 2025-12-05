@@ -212,8 +212,11 @@ export class BillImportTechnicalFormComponent implements OnInit, AfterViewInit {
       BillCode: ['', Validators.required],
       CreatDate: [new Date(), Validators.required],
       Deliver: ['', Validators.required],
-      BillType: [null],
-      WarehouseType: ['demo', Validators.required],
+      BillType: this.warehouseType == 2,
+      WarehouseType: [
+        this.warehouseType == 1 ? 'demo' : 'agv',
+        Validators.required,
+      ],
       DeliverID: [null, Validators.required],
       ReceiverID: [null, Validators.required],
       WarehouseID: [this.warehouseID, Validators.required],
@@ -381,7 +384,7 @@ export class BillImportTechnicalFormComponent implements OnInit, AfterViewInit {
       productGroupNo: '',
       page: 1,
       size: 100000, // Load tất cả sản phẩm
-      warehouseType: 1,
+      warehouseType: this.warehouseType,
     };
 
     this.tbProductRtcService
@@ -1520,7 +1523,7 @@ export class BillImportTechnicalFormComponent implements OnInit, AfterViewInit {
         Receiver: receiverText,
         Status: formValue.Status || false,
         Suplier: formValue.Suplier || '',
-        BillType: false,
+        BillType: this.warehouseType == 2,
         WarehouseType: formValue.WarehouseType,
         DeliverID: formValue.DeliverID,
         ReceiverID: formValue.ReceiverID,

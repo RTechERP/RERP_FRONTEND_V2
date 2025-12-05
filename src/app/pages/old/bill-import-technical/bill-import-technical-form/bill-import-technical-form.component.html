@@ -1,313 +1,197 @@
 <div class="modal-header bg-primary p-2">
-  <h6 class="modal-title text-white" id="assetModalLabel">
-    Phiếu nhập tồn kho DEMO
-  </h6>
-  <button
-    type="button"
-    class="btn-close"
-    aria-label="Close"
-    (click)="close()"
-  ></button>
+    <h6 class="modal-title text-white" id="assetModalLabel">
+        Phiếu nhập tồn kho DEMO
+    </h6>
+    <button type="button" class="btn-close" aria-label="Close" (click)="close()"></button>
 </div>
 
 <div class="modal-body">
-  <form
-    nz-form
-    [formGroup]="formDeviceInfo"
-    nzLayout="vertical"
-    class="fs-7 mt-1 tab-content-equal-height"
-  >
-    <nz-row [nzGutter]="24">
-      <!-- Số phiếu -->
-      <nz-col [nzSpan]="8">
-        <nz-form-item>
-          <nz-form-label required
-            >Số phiếu<span style="color: red">(*)</span></nz-form-label
-          >
-          <nz-form-control [nzErrorTip]="'Vui lòng nhập số phiếu'">
-            <input
-              nz-input
-              formControlName="BillCode"
-              name="BillCode"
-              [disabled]="true"
-            />
-          </nz-form-control>
-        </nz-form-item>
-      </nz-col>
-      <!-- Loại phiếu -->
-      <nz-col [nzSpan]="8">
-        <nz-form-item>
-          <nz-form-label required
-            >Loại phiếu <span style="color: red">(*)</span></nz-form-label
-          >
-          <nz-form-control [nzErrorTip]="'Vui lòng chọn loại phiếu'">
-            <nz-select
-              formControlName="BillTypeNew"
-              placeholder="Chọn loại phiếu"
-            >
-              <nz-option
-                *ngFor="let item of billType"
-                [nzLabel]="item.Name"
-                [nzValue]="item.ID"
-              ></nz-option>
-            </nz-select>
-          </nz-form-control>
-        </nz-form-item>
-      </nz-col>
-      <nz-col [nzSpan]="4">
-        <nz-form-item>
-          <nz-form-label required
-            >Điều khoản TT<span style="color: red">(*)</span></nz-form-label
-          >
-          <nz-form-control [nzErrorTip]="'Vui lòng chọn điều khoản'">
-            <nz-select
-              formControlName="RulePayID"
-              nzPlaceHolder="Chọn điều khoản"
-            >
-              <nz-option
-                *ngFor="let item of rulePayList"
-                [nzValue]="item.ID"
-                [nzLabel]="item.Code + '-' + item.Note"
-              ></nz-option>
-            </nz-select>
-          </nz-form-control>
-        </nz-form-item>
-      </nz-col>
+    <form nz-form [formGroup]="formDeviceInfo" nzLayout="vertical" class="fs-7 mt-1 tab-content-equal-height">
+        <nz-row [nzGutter]="24">
+            <!-- Số phiếu -->
+            <nz-col [nzSpan]="8">
+                <nz-form-item>
+                    <nz-form-label required>Số phiếu<span style="color: red">(*)</span></nz-form-label>
+                    <nz-form-control [nzErrorTip]="'Vui lòng nhập số phiếu'">
+                        <input nz-input formControlName="BillCode" name="BillCode" [disabled]="true" />
+                    </nz-form-control>
+                </nz-form-item>
+            </nz-col>
+            <!-- Loại phiếu -->
+            <nz-col [nzSpan]="8">
+                <nz-form-item>
+                    <nz-form-label required>Loại phiếu <span style="color: red">(*)</span></nz-form-label>
+                    <nz-form-control [nzErrorTip]="'Vui lòng chọn loại phiếu'">
+                        <nz-select formControlName="BillTypeNew" placeholder="Chọn loại phiếu">
+                            <nz-option *ngFor="let item of billType" [nzLabel]="item.Name"
+                                [nzValue]="item.ID"></nz-option>
+                        </nz-select>
+                    </nz-form-control>
+                </nz-form-item>
+            </nz-col>
+            <nz-col [nzSpan]="4">
+                <nz-form-item>
+                    <nz-form-label required>Điều khoản TT<span style="color: red">(*)</span></nz-form-label>
+                    <nz-form-control [nzErrorTip]="'Vui lòng chọn điều khoản'">
+                        <nz-select formControlName="RulePayID" nzPlaceHolder="Chọn điều khoản">
+                            <nz-option *ngFor="let item of rulePayList" [nzValue]="item.ID"
+                                [nzLabel]="item.Code + '-' + item.Note"></nz-option>
+                        </nz-select>
+                    </nz-form-control>
+                </nz-form-item>
+            </nz-col>
 
-      <nz-col [nzSpan]="4">
-        <nz-form-item>
-          <nz-form-label>&nbsp;</nz-form-label>
-          <nz-form-control>
-            <label class="form-check-label d-flex align-items-center">
-              <input
-                type="checkbox"
-                formControlName="IsNormalize"
-                class="form-check-input me-2"
-              />
-              Chuẩn hóa
-            </label>
-          </nz-form-control>
-        </nz-form-item>
-      </nz-col>
-    </nz-row>
+            <nz-col [nzSpan]="4">
+                <nz-form-item>
+                    <nz-form-label>&nbsp;</nz-form-label>
+                    <nz-form-control>
+                        <label class="form-check-label d-flex align-items-center">
+                            <input type="checkbox" formControlName="IsNormalize" class="form-check-input me-2" />
+                            Chuẩn hóa
+                        </label>
+                    </nz-form-control>
+                </nz-form-item>
+            </nz-col>
+        </nz-row>
 
-    <nz-row [nzGutter]="24">
-      <!-- Người nhận -->
-      <nz-col [nzSpan]="8">
-        <nz-form-item>
-          <nz-form-label required
-            >Người nhận<span style="color: red">(*)</span></nz-form-label
-          >
-          <nz-form-control [nzErrorTip]="'Vui lòng chọn người nhận'">
-            <nz-select
-              formControlName="ReceiverID"
-              nzPlaceHolder="Chọn người nhận"
-              nzShowSearch
-              name="ReceiverID"
+        <nz-row [nzGutter]="24">
+            <!-- Người nhận -->
+            <nz-col [nzSpan]="8">
+                <nz-form-item>
+                    <nz-form-label required>Người nhận<span style="color: red">(*)</span></nz-form-label>
+                    <nz-form-control [nzErrorTip]="'Vui lòng chọn người nhận'">
+                        <nz-select formControlName="ReceiverID" nzPlaceHolder="Chọn người nhận" nzShowSearch
+                            name="ReceiverID">
+                            <nz-option *ngFor="let item of emPloyeeLists" [nzValue]="item.ID" [nzLabel]="item.FullName"
+                                nzCustomContent>
+                                {{ item.EmployeeCode }} - {{ item.FullName }}
+                            </nz-option>
+                        </nz-select>
+                    </nz-form-control>
+                </nz-form-item>
+            </nz-col>
+            <!-- Người giao -->
+            <nz-col [nzSpan]="8">
+                <nz-form-item>
+                    <nz-form-label>Người giao<span style="color: red">(*)</span></nz-form-label>
+                    <nz-form-control [nzErrorTip]="'Vui lòng chọn người giao'">
+                        <nz-select formControlName="DeliverID" nzPlaceHolder="Chọn người giao" name="DeliverID"
+                            nzShowSearch (ngModelChange)="onDeliverIDChanged()">
+                            <nz-option *ngFor="let item of emPloyeeLists" [nzValue]="item.ID" [nzLabel]="item.FullName"
+                                nzCustomContent>
+                                {{ item.EmployeeCode }} - {{ item.FullName }}
+                            </nz-option>
+                        </nz-select>
+                    </nz-form-control>
+                </nz-form-item>
+            </nz-col>
+            <nz-col [nzSpan]="8">
+                <nz-form-item>
+                    <nz-form-label required>Tên người giao<span style="color: red">(*)</span></nz-form-label>
+                    <nz-form-control [nzErrorTip]="'Vui lòng nhập tên người giao'">
+                        <input nz-input formControlName="Deliver" />
+                    </nz-form-control>
+                </nz-form-item>
+            </nz-col>
+        </nz-row>
 
-            >
-              <nz-option
-                *ngFor="let item of emPloyeeLists"
-                [nzValue]="item.ID"
-                [nzLabel]="item.FullName"
-                nzCustomContent
-              >
-                {{ item.EmployeeCode }} - {{ item.FullName }}
-              </nz-option>
-            </nz-select>
-          </nz-form-control>
-        </nz-form-item>
-      </nz-col>
-      <!-- Người giao -->
-      <nz-col [nzSpan]="8">
-        <nz-form-item>
-          <nz-form-label
-            >Người giao<span style="color: red">(*)</span></nz-form-label
-          >
-          <nz-form-control [nzErrorTip]="'Vui lòng chọn người giao'">
-            <nz-select
-              formControlName="DeliverID"
-              nzPlaceHolder="Chọn người giao"
-              name="DeliverID"
-              nzShowSearch
-              (ngModelChange)="onDeliverIDChanged()"
-            >
-              <nz-option
-                *ngFor="let item of emPloyeeLists"
-                [nzValue]="item.ID"
-                [nzLabel]="item.FullName"
-                nzCustomContent
-              >
-                {{ item.EmployeeCode }} - {{ item.FullName }}
-              </nz-option>
-            </nz-select>
-          </nz-form-control>
-        </nz-form-item>
-      </nz-col>
-      <nz-col [nzSpan]="8">
-        <nz-form-item>
-          <nz-form-label required
-            >Tên người giao<span style="color: red">(*)</span></nz-form-label
-          >
-          <nz-form-control [nzErrorTip]="'Vui lòng nhập tên người giao'">
-            <input nz-input formControlName="Deliver" />
-          </nz-form-control>
-        </nz-form-item>
-      </nz-col>
-    </nz-row>
+        <nz-row [nzGutter]="24">
+            <!-- Nhà cung cấp -->
+            <nz-col [nzSpan]="8">
+                <nz-form-item>
+                    <nz-form-label required>Nhà cung cấp<span style="color: red">(*)</span></nz-form-label>
+                    <nz-form-control [nzErrorTip]="'Vui lòng chọn nhà cung cấp hoặc khách hàng'">
+                        <nz-select formControlName="SupplierSaleID" nzPlaceHolder="Chọn nhà cung cấp" nzShowSearch
+                            name="SupplierSaleID">
+                            <nz-option *ngFor="let item of nccList" [nzValue]="item.ID" [nzLabel]="item.NameNCC"
+                                nzCustomContent>
+                                {{ item.CodeNCC }} - {{ item.NameNCC }}
+                            </nz-option>
+                        </nz-select>
+                    </nz-form-control>
+                </nz-form-item>
+            </nz-col>
+            <nz-col [nzSpan]="8">
+                <nz-form-item>
+                    <nz-form-label required>Kho<span style="color: red">(*)</span></nz-form-label>
+                    <nz-form-control [nzErrorTip]="'Vui lòng chọn kho'">
+                        <nz-select formControlName="WarehouseID" nzShowSearch nzPlaceHolder="Chọn kho">
+                            <nz-option *ngFor="let wh of warehouses" [nzValue]="wh.ID"
+                                [nzLabel]="wh.WarehouseName"></nz-option>
+                        </nz-select>
+                    </nz-form-control>
+                </nz-form-item>
+            </nz-col>
+            <!-- Loại kho -->
+            <nz-col [nzSpan]="8">
+                <nz-form-item required>
+                    <nz-form-label>Loại kho<span style="color: red">(*)</span></nz-form-label>
+                    <nz-form-control>
+                        <input nz-input value="Demo" formControlName="WarehouseType" name="WarehouseType" />
+                    </nz-form-control>
+                </nz-form-item>
+            </nz-col>
+        </nz-row>
 
-    <nz-row [nzGutter]="24">
-      <!-- Nhà cung cấp -->
-      <nz-col [nzSpan]="8">
-        <nz-form-item>
-          <nz-form-label required
-            >Nhà cung cấp<span style="color: red">(*)</span></nz-form-label
-          >
-          <nz-form-control
-            [nzErrorTip]="'Vui lòng chọn nhà cung cấp hoặc khách hàng'"
-          >
-            <nz-select
-              formControlName="SupplierSaleID"
-              nzPlaceHolder="Chọn nhà cung cấp"
-              nzShowSearch
-              name="SupplierSaleID"
-            >
-              <nz-option
-                *ngFor="let item of nccList"
-                [nzValue]="item.ID"
-                [nzLabel]="item.NameNCC"
-                nzCustomContent
-              >
-                {{ item.CodeNCC }} - {{ item.NameNCC }}
-              </nz-option>
-            </nz-select>
-          </nz-form-control>
-        </nz-form-item>
-      </nz-col>
-      <nz-col [nzSpan]="8">
-        <nz-form-item>
-          <nz-form-label required
-            >Kho<span style="color: red">(*)</span></nz-form-label
-          >
-          <nz-form-control [nzErrorTip]="'Vui lòng chọn kho'">
-            <nz-select
-              formControlName="WarehouseID"
-              nzShowSearch
-              nzPlaceHolder="Chọn kho"
-            >
-              <nz-option
-                *ngFor="let wh of warehouses"
-                [nzValue]="wh.ID"
-                [nzLabel]="wh.WarehouseName"
-              ></nz-option>
-            </nz-select>
-          </nz-form-control>
-        </nz-form-item>
-      </nz-col>
-      <!-- Loại kho -->
-      <nz-col [nzSpan]="8">
-        <nz-form-item required>
-          <nz-form-label
-            >Loại kho<span style="color: red">(*)</span></nz-form-label
-          >
-          <nz-form-control>
-            <input
-              nz-input
-              value="Demo"
-              formControlName="WarehouseType"
-              name="WarehouseType"
-            />
-          </nz-form-control>
-        </nz-form-item>
-      </nz-col>
-    </nz-row>
+        <nz-row [nzGutter]="24">
+            <nz-col [nzSpan]="8">
+                <nz-form-item required>
+                    <nz-form-label>Khách hàng<span style="color: red">(*)</span></nz-form-label>
+                    <nz-form-control [nzErrorTip]="'Vui lòng chọn khách hàng'">
+                        <nz-select formControlName="CustomerID" nzPlaceHolder="Chọn khách hàng" name="CustomerID"
+                            nzShowSearch>
+                            <nz-option *ngFor="let item of customerList" [nzValue]="item.ID"
+                                [nzLabel]="item.CustomerName" nzCustomContent>
+                                {{ item.CustomerShortName }} - {{ item.CustomerName }}
+                            </nz-option>
+                        </nz-select>
+                    </nz-form-control>
+                </nz-form-item>
+            </nz-col>
 
-    <nz-row [nzGutter]="24">
-      <nz-col [nzSpan]="8">
-        <nz-form-item required>
-          <nz-form-label
-            >Khách hàng<span style="color: red">(*)</span></nz-form-label
-          >
-          <nz-form-control [nzErrorTip]="'Vui lòng chọn khách hàng'">
-            <nz-select
-              formControlName="CustomerID"
-              nzPlaceHolder="Chọn khách hàng"
-              name="CustomerID"
-              nzShowSearch
-            >
-              <nz-option
-                *ngFor="let item of customerList"
-                [nzValue]="item.ID"
-                [nzLabel]="item.CustomerName"
-                nzCustomContent
-              >
-                {{ item.CustomerShortName }} - {{ item.CustomerName }}
-              </nz-option>
-            </nz-select>
-          </nz-form-control>
-        </nz-form-item>
-      </nz-col>
+            <!-- Ngày nhập -->
+            <nz-col [nzSpan]="8">
+                <nz-form-item>
+                    <nz-form-label required>Ngày nhập<span style="color: red">(*)</span></nz-form-label>
+                    <nz-form-control [nzErrorTip]="'Vui lòng chọn ngày nhập'">
+                        <nz-date-picker class="w-100" formControlName="CreatDate" nzFormat="dd/MM/YYYY"
+                            name="CreatDate">
+                        </nz-date-picker>
+                    </nz-form-control>
+                </nz-form-item>
+            </nz-col>
+            <nz-col [nzSpan]="8">
+                <nz-form-item>
+                    <nz-form-label required>Người duyệt<span style="color: red">(*)</span></nz-form-label>
 
-      <!-- Ngày nhập -->
-      <nz-col [nzSpan]="8">
-        <nz-form-item>
-          <nz-form-label required
-            >Ngày nhập<span style="color: red">(*)</span></nz-form-label
-          >
-          <nz-form-control [nzErrorTip]="'Vui lòng chọn ngày nhập'">
-            <nz-date-picker
-              class="w-100"
-              formControlName="CreatDate"
-              nzFormat="dd/MM/YYYY"
-              name="CreatDate"
-            >
-            </nz-date-picker>
-          </nz-form-control>
-        </nz-form-item>
-      </nz-col>
-      <nz-col [nzSpan]="8">
-        <nz-form-item>
-          <nz-form-label required
-            >Người duyệt<span style="color: red">(*)</span></nz-form-label
-          >
-
-          <nz-form-control [nzErrorTip]="'Vui lòng chọn người duyệt'">
-            <nz-select
-              formControlName="ApproverID"
-              nzPlaceHolder="Chọn người duyệt"
-              name="ApproverID"
-              nzShowSearch
-            >
-              <nz-option
-                *ngFor="let item of approveEmployee"
-                [nzValue]="item.ID"
-                [nzLabel]="item.FullName"
-                nzCustomContent
-              >
-                {{ item.Code }} - {{ item.FullName }}
-              </nz-option
-            ></nz-select>
-          </nz-form-control>
-        </nz-form-item>
-      </nz-col>
-      <!-- Điều khoản thanh toán -->
-    </nz-row>
-  </form>
-  <nz-tabset class="mt-2" [nzAnimated]="false" (nzSelectedIndexChange)="onTabChange($event)">
-    <nz-tab nzTitle="Danh sách sản phẩm" nzForceRender="true">
-      <div #tableDeviceTemp ></div>
-    </nz-tab>
-    <nz-tab nzTitle="Hồ sơ đi kèm" nzForceRender="true">
-      <nz-spin [nzSpinning]="isLoading" nzTip="Đang tải..." style="height: 100%;">
-        <div #table_DocumnetImport></div>
-      </nz-spin>
-    </nz-tab>
-  </nz-tabset>
+                    <nz-form-control [nzErrorTip]="'Vui lòng chọn người duyệt'">
+                        <nz-select formControlName="ApproverID" nzPlaceHolder="Chọn người duyệt" name="ApproverID"
+                            nzShowSearch>
+                            <nz-option *ngFor="let item of approveEmployee" [nzValue]="item.ID"
+                                [nzLabel]="item.FullName" nzCustomContent>
+                                {{ item.Code }} - {{ item.FullName }}
+                            </nz-option></nz-select>
+                    </nz-form-control>
+                </nz-form-item>
+            </nz-col>
+            <!-- Điều khoản thanh toán -->
+        </nz-row>
+    </form>
+    <nz-tabset class="mt-2" [nzAnimated]="false" (nzSelectedIndexChange)="onTabChange($event)">
+        <nz-tab nzTitle="Danh sách sản phẩm" nzForceRender="true">
+            <div #tableDeviceTemp></div>
+        </nz-tab>
+        <nz-tab nzTitle="Hồ sơ đi kèm" nzForceRender="true">
+            <nz-spin [nzSpinning]="isLoading" nzTip="Đang tải..." style="height: 100%;">
+                <div #table_DocumnetImport></div>
+            </nz-spin>
+        </nz-tab>
+    </nz-tabset>
 </div>
 <!-- Footer nút -->
 <div class="modal-footer">
-  <button nz-button nzType="default" (click)="close()">Đóng</button>
-  <button *hasPermission="'N26,N35,N1,N73,N80'" nz-button nzType="default" (click)="openBorrowHistory()">Lịch sử mượn</button>
-  <button *hasPermission="'N26,N35,N1,N73,N80'" nz-button nzType="primary" (click)="saveData()">Lưu</button>
+    <button nz-button nzType="default" (click)="close()">Đóng</button>
+    <button *hasPermission="'N26,N35,N1,N73,N80'" nz-button nzType="default" (click)="openBorrowHistory()">Lịch sử
+        mượn</button>
+    <button *hasPermission="'N26,N35,N1,N73,N80'" nz-button nzType="primary" (click)="saveData()">Lưu</button>
 </div>
-

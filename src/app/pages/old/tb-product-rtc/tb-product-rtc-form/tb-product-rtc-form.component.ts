@@ -115,7 +115,7 @@ export class TbProductRtcFormComponent implements OnInit, AfterViewInit {
       // Chế độ thêm mới
       this.formDeviceInfo.reset();
     }
-    this.getProduct();
+    // this.getProduct();
     this.getunit();
     this.getProductCode();
     this.getGroup();
@@ -123,22 +123,22 @@ export class TbProductRtcFormComponent implements OnInit, AfterViewInit {
     this.getLocation();
   }
 
-  getProduct() {
-    const request = {
-      productGroupID: 0,
-      keyWord: '',
-      checkAll: 1,
-      warehouseID: 0,
-      productRTCID: 0,
-      productGroupNo: '',
-    };
-    this.tbProductRtcService
-      .getProductRTC(request)
-      .subscribe((response: any) => {
-        this.productData = response.products || [];
-        console.log('product', this.productData);
-      });
-  }
+  //   getProduct() {
+  //     const request = {
+  //       productGroupID: 0,
+  //       keyWord: '',
+  //       checkAll: 1,
+  //       warehouseID: 0,
+  //       productRTCID: 0,
+  //       productGroupNo: '',
+  //     };
+  //     this.tbProductRtcService
+  //       .getProductRTC(request)
+  //       .subscribe((response: any) => {
+  //         this.productData = response.products || [];
+  //         console.log('product', this.productData);
+  //       });
+  //   }
   initForm() {
     this.formDeviceInfo = new FormBuilder().group({
       ProductGroupRTCID: [

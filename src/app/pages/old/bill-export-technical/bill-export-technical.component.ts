@@ -109,9 +109,9 @@ export class BillExportTechnicalComponent implements OnInit, AfterViewInit {
   billExportTechnicalDetailTableRef!: ElementRef;
 
   ngOnInit() {
-    if (this.tabData?.warehouseID) {
-      this.warehouseID = this.tabData.warehouseID;
-      this.warehouseType = this.tabData.warehouseType;
+    if (this.tabData) {
+      this.warehouseID = this.tabData.warehouseID || 1;
+      this.warehouseType = this.tabData.warehouseType || 1;
     }
   }
   ngAfterViewInit(): void {
@@ -154,6 +154,7 @@ export class BillExportTechnicalComponent implements OnInit, AfterViewInit {
                 : '-1',
             filterText: this.filterText || '',
             warehouseID: this.warehouseID || 1,
+            WarehouseTypeBill: this.warehouseType || 1,
           };
           return this.billExportTechnicalService
             .getBillExportTechnical(request)

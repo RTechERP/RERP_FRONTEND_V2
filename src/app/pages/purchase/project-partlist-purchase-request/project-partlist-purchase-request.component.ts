@@ -574,9 +574,38 @@ export class ProjectPartlistPurchaseRequestComponent implements OnInit, AfterVie
           editorParams: { values: this.currencies.map((c) => ({ value: c.ID, label: c.Code })) },
         } as any);
 
-        const productGroupData = (index === 2 || index === 3) ? this.productRTC : this.productGroups;
+        const tabIndex = index; // Lưu tabIndex vào closure
+        
         t.updateColumnDefinition('ProductGroupID', {
-          editorParams: { values: productGroupData.map((g) => ({ value: g.ID, label: g.ProductGroupName })) },
+          editorParams: (cell: any) => {
+            const rowData = cell.getRow().getData();
+            const ticketType = Number(rowData?.['TicketType'] || 0);
+            const isBorrowDemo = this.isPurchaseRequestDemo && ticketType === 1;
+            const isRTCTab = tabIndex === 2 || tabIndex === 3;
+            
+            // Nếu là mượn demo hoặc tab RTC: dùng productRTC, ngược lại dùng productGroups
+            const productGroupData = (isBorrowDemo || isRTCTab) ? this.productRTC : this.productGroups;
+            
+            return {
+              values: productGroupData.map((g) => ({ value: g.ID, label: g.ProductGroupName })),
+            };
+          },
+          formatter: (cell: any) => {
+            const rowData = cell.getRow().getData();
+            const ticketType = Number(rowData?.['TicketType'] || 0);
+            const isBorrowDemo = this.isPurchaseRequestDemo && ticketType === 1;
+            
+            // Đọc từ đúng field
+            const id = isBorrowDemo ? (rowData?.['ProductGroupRTCID'] || 0) : (rowData?.['ProductGroupID'] || 0);
+            if (!id || id === 0) return '';
+            
+            // Sử dụng productRTC cho mượn demo, ngược lại dựa trên tab index
+            const productGroupDataForFormatter = isBorrowDemo || (tabIndex === 2 || tabIndex === 3) 
+              ? this.productRTC 
+              : this.productGroups;
+            const g = productGroupDataForFormatter.find((x: any) => x.ID === id);
+            return g?.ProductGroupName || '';
+          },
         } as any);
 
         t.updateColumnDefinition('SupplierSaleID', {
@@ -659,26 +688,23 @@ export class ProjectPartlistPurchaseRequestComponent implements OnInit, AfterVie
   }
 
   private buildColumns(tabIndex: number = 0): ColumnDefinition[] {
-    // ⚡ Chỉ tạo các cột trong FORM_COLUMN_ORDER để tối ưu hiệu năng
-    // Không tạo các cột ẩn - giảm lag đáng kể
     const columnsMap = new Map<string, ColumnDefinition>();
 
-    // Tạo cột theo thứ tự FORM_COLUMN_ORDER
     this.FORM_COLUMN_ORDER.forEach((field) => {
-      // Xác định visibility dựa trên tab index
       let visible = true;
-
-      // Tab 4 (index 3): chỉ hiển thị IsApprovedTBP, ApprovedTBPName, DateApprovedTBP
-      // Ẩn IsRequestApproved, IsApprovedBGD, TT
       if (tabIndex === 3) {
         if (['IsRequestApproved', 'IsApprovedBGD', 'TT'].includes(field)) {
           visible = false;
         }
       } else {
-        // Các tab khác: ẩn IsApprovedTBP, ApprovedTBPName, DateApprovedTBP
         if (['IsApprovedTBP', 'ApprovedTBPName', 'DateApprovedTBP'].includes(field)) {
           visible = false;
         }
+      }
+
+      // Ẩn cột ProductGroupID cho mua hàng demo (sẽ hiện lại trong refreshTable nếu có dòng mượn hàng)
+      if (field === 'ProductGroupID' && this.isPurchaseRequestDemo) {
+        visible = false;
       }
 
       columnsMap.set(field, {
@@ -968,16 +994,56 @@ export class ProjectPartlistPurchaseRequestComponent implements OnInit, AfterVie
 
     const pgCol = columnsMap.get('ProductGroupID');
     if (pgCol) {
+      // Accessor để đọc giá trị từ đúng field dựa trên loại request
+      (pgCol as any).accessor = (value: any, data: any, type: string, params: any, column: any) => {
+        const ticketType = Number(data?.['TicketType'] || 0);
+        const isBorrowDemo = this.isPurchaseRequestDemo && ticketType === 1;
+        // Nếu là mượn demo: đọc từ ProductGroupRTCID, ngược lại đọc từ ProductGroupID
+        return isBorrowDemo ? (data?.['ProductGroupRTCID'] || 0) : (data?.['ProductGroupID'] || 0);
+      };
+      
+      // Mutator để ghi vào đúng field
+      (pgCol as any).mutator = (value: any, data: any, type: string, params: any, column: any) => {
+        const ticketType = Number(data?.['TicketType'] || 0);
+        const isBorrowDemo = this.isPurchaseRequestDemo && ticketType === 1;
+        // Nếu là mượn demo: ghi vào ProductGroupRTCID, ngược lại ghi vào ProductGroupID
+        if (isBorrowDemo) {
+          data['ProductGroupRTCID'] = value;
+        } else {
+          data['ProductGroupID'] = value;
+        }
+        return value;
+      };
+      
+      // Editor params động dựa trên từng dòng
       pgCol.editor = 'list';
-      pgCol.editorParams = {
-        values: this.productGroups.map((g) => ({ value: g.ID, label: g.ProductGroupName })),
+      (pgCol.editorParams as any) = (cell: any) => {
+        const rowData = cell.getRow().getData();
+        const ticketType = Number(rowData?.['TicketType'] || 0);
+        const isBorrowDemo = this.isPurchaseRequestDemo && ticketType === 1;
+        const isRTCTab = tabIndex === 2 || tabIndex === 3;
+        
+        // Nếu là mượn demo hoặc tab RTC: dùng productRTC, ngược lại dùng productGroups
+        const productGroupData = (isBorrowDemo || isRTCTab) ? this.productRTC : this.productGroups;
+        
+        return {
+          values: productGroupData.map((g) => ({ value: g.ID, label: g.ProductGroupName })),
+        };
       };
       pgCol.formatter = (cell) => {
-        const id = cell.getValue();
-        // Kiểm tra tab hiện tại để chọn đúng danh sách
-        const isRTCTab = this.activeTabIndex === 2 || this.activeTabIndex === 3;
-        const productGroupData = isRTCTab ? this.productRTC : this.productGroups;
-        const g = productGroupData.find((x) => x.ID === id);
+        const rowData = cell.getRow().getData();
+        const ticketType = Number(rowData?.['TicketType'] || 0);
+        const isBorrowDemo = this.isPurchaseRequestDemo && ticketType === 1;
+        
+        // Đọc từ đúng field
+        const id = isBorrowDemo ? (rowData?.['ProductGroupRTCID'] || 0) : (rowData?.['ProductGroupID'] || 0);
+        if (!id || id === 0) return '';
+        
+        // Sử dụng productRTC cho mượn demo, ngược lại dựa trên tab index
+        const productGroupDataForFormatter = isBorrowDemo || (tabIndex === 2 || tabIndex === 3) 
+          ? this.productRTC 
+          : this.productGroups;
+        const g = productGroupDataForFormatter.find((x: any) => x.ID === id);
         return g?.ProductGroupName || '';
       };
     }
@@ -1341,6 +1407,37 @@ export class ProjectPartlistPurchaseRequestComponent implements OnInit, AfterVie
     const table = this.tables?.[idx];
     if (!tab || !table) return;
     const data = this.dataByType.get(tab.id) || [];
+    
+    // Kiểm tra và ẩn/hiện cột ProductGroupID cho mua hàng demo
+    if (this.isPurchaseRequestDemo) {
+      try {
+        const pgCol = table.getColumn('ProductGroupID');
+        if (pgCol) {
+          let shouldShow = false;
+          
+          if (data.length > 0) {
+            // Kiểm tra xem có dòng nào là mượn hàng (TicketType = 1) không
+            const hasBorrowRow = data.some((row: any) => {
+              const ticketType = Number(row.TicketType || 0);
+              return ticketType === 1; // 1 = mượn
+            });
+            
+            // Chỉ hiện cột nếu có ít nhất một dòng mượn hàng
+            shouldShow = hasBorrowRow;
+          }
+          
+          // Sử dụng setVisible để đảm bảo cột được ẩn/hiện đúng
+          if (shouldShow) {
+            pgCol.show();
+          } else {
+            pgCol.hide();
+          }
+        }
+      } catch (e) {
+        // Ignore nếu cột chưa được khởi tạo
+      }
+    }
+    
     // Use try-catch to handle table initialization timing
     try {
       table.setData(data);
@@ -1361,6 +1458,8 @@ export class ProjectPartlistPurchaseRequestComponent implements OnInit, AfterVie
 
   onTabChange(index: number) {
     this.activeTabIndex = index;
+    // Cập nhật editor lookups khi chuyển tab để đảm bảo formatter đúng
+    this.updateEditorLookups();
     // cập nhật dữ liệu hiển thị
     this.refreshTable(index);
   }

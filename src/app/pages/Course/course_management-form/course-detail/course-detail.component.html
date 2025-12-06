@@ -1,0 +1,342 @@
+<div class="modal-header bg-primary p-2">
+  <h6 class="modal-title text-white" id="courseModalLabel">Khóa học</h6>
+  <button
+    type="button"
+    class="btn-close"
+    aria-label="Close"
+    (click)="close()"
+  ></button>
+</div>
+<div class="modal-body modal-body-scrollable" style="max-height: 83vh !important; overflow-y: auto;">
+  <form nz-form [formGroup]="formGroup" nzLayout="vertical" class="fs-7 mt-2">
+    
+    <!-- Fieldset 1: Copy -->
+     
+    <fieldset class="reset m-0 mb-3">
+      <legend class="reset fs-12 p-0  d-flex align-items-center gap-2">Copy    <nz-switch  
+        [(ngModel)]="disabled" 
+        [ngModelOptions]="{standalone: true}"
+        nzCheckedChildren="Hiện" 
+        nzUnCheckedChildren="Ẩn">
+      </nz-switch>
+    </legend>
+      <nz-row [nzGutter]="24">
+        <nz-col [nzSpan]="12">
+          <nz-form-item>
+            <nz-form-label class="fs-12 p-0" [nzSpan]="24"
+              >Danh mục<span class="text-danger ps-1">(*) </span></nz-form-label
+            >
+            <nz-form-control [nzSpan]="24">
+              <nz-select
+                formControlName="CopyCategoryID"
+                [nzPlaceHolder]="'Chọn danh mục'"
+                style="width: 100%"
+                name="CopyCategoryID"
+                nzAllowClear
+                nzShowSearch
+                [nzDisabled]="disabled"
+              >
+                <nz-option
+                  *ngFor="let item of dataCategory"
+                  [nzLabel]="item.Name"
+                  [nzValue]="item.ID"
+                ></nz-option>
+              </nz-select>
+            </nz-form-control>
+          </nz-form-item>
+        </nz-col>
+        <nz-col [nzSpan]="12">
+          <nz-form-item>
+            <nz-form-label class="fs-12 p-0" [nzSpan]="24"
+              >Khóa học<span class="text-danger ps-1">(*) </span></nz-form-label
+            >
+            <nz-form-control [nzSpan]="24">
+              <nz-select
+                formControlName="CopyCourseID"
+                [nzPlaceHolder]="'Chọn khóa học'"
+                style="width: 100%"
+                name="CopyCourseID"
+                nzAllowClear
+                nzShowSearch
+                [nzDisabled]="disabled"
+              >
+                <nz-option
+                  *ngFor="let item of dataCourse"
+                  [nzLabel]="item.Name"
+                  [nzValue]="item.ID"
+                ></nz-option>
+              </nz-select>
+            </nz-form-control>
+          </nz-form-item>
+        </nz-col>
+      </nz-row>
+    </fieldset>
+
+    <!-- Fieldset 2: Khóa học -->
+    <fieldset class="reset m-0 mb-3">
+      <legend class="reset fs-12 p-0 ">Khóa học</legend>
+      <nz-row [nzGutter]="24">
+        <nz-col [nzSpan]="12">
+          <nz-form-item>
+            <nz-form-label class="fs-12 p-0" [nzSpan]="24"
+              >Danh mục<span class="text-danger ps-1">(*) </span></nz-form-label
+            >
+            <nz-form-control
+              [nzSpan]="24"
+              [nzErrorTip]="
+                formGroup.get('CategoryID')?.hasError('required') &&
+                (formGroup.get('CategoryID')?.dirty || formGroup.get('CategoryID')?.touched)
+                  ? 'Vui lòng chọn danh mục!'
+                  : undefined
+              "
+            >
+              <nz-select
+                formControlName="CategoryID"
+                [nzPlaceHolder]="'Chọn danh mục'"
+                style="width: 100%"
+                name="CategoryID"
+                nzAllowClear
+                nzShowSearch
+              >
+                <nz-option
+                  *ngFor="let item of dataCategory"
+                  [nzLabel]="item.Name"
+                  [nzValue]="item.ID"
+                ></nz-option>
+              </nz-select>
+            </nz-form-control>
+          </nz-form-item>
+        </nz-col>
+        <nz-col [nzSpan]="12">
+          <nz-form-item>
+            <nz-form-label for="codeInput" class="fs-12 p-0"
+              >Mã khóa học<span class="text-danger ps-1">(*) </span></nz-form-label
+            >
+            <nz-form-control
+              [nzSpan]="24"
+              [nzErrorTip]="
+                formGroup.get('Code')?.hasError('required') &&
+                (formGroup.get('Code')?.dirty || formGroup.get('Code')?.touched)
+                  ? 'Vui lòng nhập mã khóa học!'
+                  : formGroup.get('Code')?.hasError('maxlength')
+                  ? 'Mã khóa học tối đa 100 ký tự!'
+                  : undefined
+              "
+            >
+              <input
+                id="codeInput"
+                nz-input
+                name="Code"
+                placeholder="Nhập mã khóa học"
+                formControlName="Code"
+              />
+            </nz-form-control>
+          </nz-form-item>
+        </nz-col>
+      </nz-row>
+
+      <nz-row [nzGutter]="24">
+        <nz-col [nzSpan]="12">
+          <nz-form-item>
+            <nz-form-label for="nameInput" class="fs-12 p-0"
+              >Tên khóa học<span class="text-danger ps-1">(*) </span></nz-form-label
+            >
+            <nz-form-control
+              [nzSpan]="24"
+              [nzErrorTip]="
+                formGroup.get('Name')?.hasError('required') &&
+                (formGroup.get('Name')?.dirty || formGroup.get('Name')?.touched)
+                  ? 'Vui lòng nhập tên khóa học!'
+                  : formGroup.get('Name')?.hasError('maxlength')
+                  ? 'Tên khóa học tối đa 200 ký tự!'
+                  : undefined
+              "
+            >
+              <input
+                id="nameInput"
+                nz-input
+                name="Name"
+                placeholder="Nhập tên khóa học"
+                formControlName="Name"
+              />
+            </nz-form-control>
+          </nz-form-item>
+        </nz-col>
+        <nz-col [nzSpan]="6">
+          <nz-form-item>
+            <nz-form-label for="sttInput" class="fs-12 p-0">STT</nz-form-label>
+            <nz-form-control [nzSpan]="24">
+              <input
+                id="sttInput"
+                nz-input
+                name="STT"
+                placeholder="STT"
+                formControlName="STT"
+                readonly
+              />
+            </nz-form-control>
+          </nz-form-item>
+        </nz-col>
+        <nz-col [nzSpan]="6">
+          <nz-form-item>
+            <nz-form-label class="fs-12 p-0" [style.visibility]="'hidden'">.</nz-form-label>
+            <nz-form-control [nzSpan]="24">
+              <label nz-checkbox formControlName="IsActive"> Hoạt động</label>
+            </nz-form-control>
+          </nz-form-item>
+        </nz-col>
+      </nz-row>
+
+      <nz-row [nzGutter]="24">
+        <nz-col [nzSpan]="12">
+          <nz-form-item>
+            <nz-form-label class="fs-12 p-0" [nzSpan]="24"
+              >Thời gian học (ngày)<span class="text-danger ps-1">(*) </span></nz-form-label
+            >
+            <nz-form-control
+              [nzSpan]="24"
+              [nzErrorTip]="
+                formGroup.get('StudyDays')?.hasError('min')
+                  ? 'Thời gian học phải lớn hơn hoặc bằng 0!'
+                  : undefined
+              "
+            >
+              <nz-input-number
+                formControlName="StudyDays"
+                [nzMin]="0"
+                [nzStep]="0.1"
+                [nzPrecision]="1"
+                style="width: 100%"
+                placeholder="Nhập thời gian học"
+              ></nz-input-number>
+            </nz-form-control>
+          </nz-form-item>
+        </nz-col>
+        <nz-col [nzSpan]="12">
+          <nz-form-item>
+            <nz-form-label class="fs-12 p-0" [nzSpan]="24"
+              >Loại<span class="text-danger ps-1">(*) </span>
+              <nz-tooltip nzTitle="Tooltip cho dropdown loại">
+                <i nz-icon nzType="question-circle" class="ms-1" style="color: #1890ff; cursor: pointer;"></i>
+              </nz-tooltip>
+            </nz-form-label>
+            <nz-form-control
+              [nzSpan]="24"
+              [nzErrorTip]="
+                formGroup.get('TypeID')?.hasError('required') &&
+                (formGroup.get('TypeID')?.dirty || formGroup.get('TypeID')?.touched)
+                  ? 'Vui lòng chọn loại!'
+                  : undefined
+              "
+            >
+              <nz-select
+                formControlName="TypeID"
+                [nzPlaceHolder]="'Chọn loại'"
+                style="width: 100%"
+                name="TypeID"
+                nzAllowClear
+                nzShowSearch
+              >
+                <nz-option
+                  *ngFor="let item of typeData"
+                  [nzLabel]="item.Name"
+                  [nzValue]="item.ID"
+                ></nz-option>
+              </nz-select>
+            </nz-form-control>
+          </nz-form-item>
+        </nz-col>
+      </nz-row>
+    </fieldset>
+
+    <!-- Fieldset 3: Thi quý -->
+    <fieldset class="reset m-0 mb-3">
+      <legend class="reset fs-12 p-0 ">Thi quý</legend>
+      <nz-row [nzGutter]="24">
+        <nz-col [nzSpan]="24">
+          <nz-form-item>
+            <nz-form-label class="fs-12 p-0" [nzSpan]="24">Tổng số câu hỏi đã tạo</nz-form-label>
+            <nz-form-control
+              [nzSpan]="24"
+              [nzErrorTip]="
+                formGroup.get('TotalQuestions')?.hasError('min')
+                  ? 'Tổng số câu hỏi phải lớn hơn hoặc bằng 0!'
+                  : undefined
+              "
+            >
+              <nz-input-number
+                formControlName="TotalQuestions"
+                [nzMin]="0"
+                [nzStep]="1"
+                [nzPrecision]="0"
+                style="width: 100%"
+                placeholder="Nhập tổng số câu hỏi"
+              ></nz-input-number>
+            </nz-form-control>
+          </nz-form-item>
+        </nz-col>
+      </nz-row>
+
+      <nz-row [nzGutter]="24">
+        <nz-col [nzSpan]="24">
+          <nz-form-item>
+            <nz-form-label class="fs-12 p-0" [nzSpan]="24">Số câu hỏi trắc nghiệm random cho thi quý</nz-form-label>
+            <nz-form-control
+              [nzSpan]="24"
+              [nzErrorTip]="
+                formGroup.get('RandomQuizQuestions')?.hasError('min')
+                  ? 'Số câu hỏi phải lớn hơn hoặc bằng 0!'
+                  : undefined
+              "
+            >
+              <nz-input-number
+                formControlName="RandomQuizQuestions"
+                [nzMin]="0"
+                [nzStep]="1"
+                [nzPrecision]="0"
+                style="width: 100%"
+                placeholder="Nhập số câu hỏi trắc nghiệm"
+              ></nz-input-number>
+            </nz-form-control>
+          </nz-form-item>
+        </nz-col>
+      </nz-row>
+
+      <nz-row [nzGutter]="24">
+        <nz-col [nzSpan]="24">
+          <nz-form-item>
+            <nz-form-label class="fs-12 p-0" [nzSpan]="24">Thời lượng 1 câu (phút)</nz-form-label>
+            <nz-form-control
+              [nzSpan]="24"
+              [nzErrorTip]="
+                formGroup.get('QuestionDuration')?.hasError('min')
+                  ? 'Thời lượng phải lớn hơn hoặc bằng 0!'
+                  : undefined
+              "
+            >
+              <nz-input-number
+                formControlName="QuestionDuration"
+                [nzMin]="0"
+                [nzStep]="0.1"
+                [nzPrecision]="1"
+                style="width: 100%"
+                placeholder="Nhập thời lượng 1 câu"
+              ></nz-input-number>
+            </nz-form-control>
+          </nz-form-item>
+        </nz-col>
+      </nz-row>
+    </fieldset>
+
+   
+  </form>
+</div>
+<div class="modal-footer">
+    <button nz-button nzDanger nzType="default" (click)="close()" [disabled]="saving">
+      Đóng
+    </button>
+    <button nz-button nzType="primary" (click)="saveCourse()" [disabled]="saving">
+      <i *ngIf="saving" nz-icon nzType="loading" class="me-2"></i>
+      {{ saving ? 'Đang lưu...' : 'Lưu' }}
+    </button>
+  </div>

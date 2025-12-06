@@ -23,4 +23,24 @@ export class EarlyLateService {
       employeeEarlyLate
     );
   }
+
+  getEmployeeEarlyLatePerson(request: {
+    Page?: number;
+    Size?: number;
+    Keyword?: string;
+    DateStart?: string | null;
+    DateEnd?: string | null;
+    IDApprovedTP?: number;
+    Status?: number;
+    DepartmentID?: number;
+  }): Observable<any> {
+    return this.http.post<any>(
+      this._url + 'EmployeeEarlyLate/get-employee-early-late-person',
+      request
+    );
+  }
+
+  getEmployeeEarlyLatePersonAjax(): string {
+    return this._url + 'EmployeeEarlyLate/get-employee-early-late-person';
+  }
 }

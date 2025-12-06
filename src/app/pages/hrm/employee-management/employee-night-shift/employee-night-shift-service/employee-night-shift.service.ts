@@ -53,4 +53,12 @@ export class EmployeeNightShiftService {
   saveApproveTBP(payload: any): Observable<any> {
     return this.http.post(`${this.url}save-approve-tbp`, payload);
   }
+
+  getEmployeeNightShiftPerson(request: EmployeeNightShiftRequestParam): Observable<any> {
+    return this.http.post<any>(`${this.url}get-employee-night-shift-person`, request);
+  }
+
+  getEmployeeNightShiftPersonAjax(): string {
+    return `${this.url}get-employee-night-shift-person`;
+  }
 }

@@ -215,23 +215,42 @@ export class InventoryProjectFormComponent implements OnInit, AfterViewInit {
       headerSort: true,
       columns: [
         {
-          title: 'Mã POKH',
-          field: 'POCode',
+          title: 'Mã nội bộ',
+          field: 'ProductNewCode',
           width: 120,
           headerSort: true,
         },
         {
-          title: 'Số POKH',
-          field: 'PONumber',
+          title: 'Mã sản phẩm',
+          field: 'ProductCode',
           width: 120,
           headerSort: true,
         },
         {
-          title: 'Thông tin',
-          field: 'DisplayText',
+          title: 'Tên sản phẩm',
+          field: 'ProductName',
           minWidth: 250,
           headerSort: true,
         },
+        {
+          title: 'Số lượng',
+          field: 'Qty',
+          minWidth: 250,
+          headerSort: true,
+        },
+        {
+          title: 'Số PO',
+          field: 'PONumber',
+          minWidth: 250,
+          headerSort: true,
+        },
+        {
+          title: 'Mã PO',
+          field: 'POCode',
+          minWidth: 250,
+          headerSort: true,
+        },
+
       ],
     });
 
@@ -393,7 +412,11 @@ export class InventoryProjectFormComponent implements OnInit, AfterViewInit {
               ID: 0,
               ParentID: this.dataInput.ID,
               ProductSaleID: this.dataInput.ProductSaleID,
+              WarehouseID: this.dataInput.WarehouseID || 1,
               Quantity: quantity,
+              ProjectID:0,
+              CustomerID:0,
+              Note:"",
               QuantityOrigin: quantity,
               POKHDetailID: pokhDetailIDTo,
               EmployeeID: this.currentUser?.EmployeeID || 0,

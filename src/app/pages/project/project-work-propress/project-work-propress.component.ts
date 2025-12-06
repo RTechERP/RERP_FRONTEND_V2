@@ -90,7 +90,8 @@ export class ProjectWorkPropressComponent implements OnInit, AfterViewInit {
   dataMission: any;
   dataMonth: any;
   projects: any[] = [];
-  year: any = DateTime.now().toJSDate();
+  yearStart = DateTime.now().minus({ years: 1 }).toJSDate();
+  yearEnd: any = DateTime.now().toJSDate();
 
   projectName: any = '';
   projectCode: any = '';
@@ -111,16 +112,12 @@ export class ProjectWorkPropressComponent implements OnInit, AfterViewInit {
   }
 
   getProject() {
-    this.projectService.getProjectModal().subscribe({
+    const yearS = this.yearStart ? DateTime.fromJSDate(this.yearStart).year : undefined;
+    const yearE = this.yearEnd ? DateTime.fromJSDate(this.yearEnd).year : undefined;
+    
+    this.projectService.getProjectModal2(yearS, yearE).subscribe({
       next: (response: any) => {
-        let selectedYear = DateTime.fromJSDate(this.year).year;
-        this.projects = response.data.filter((project: any) => {
-          let createdDate = DateTime.fromISO(project.CreatedDate);
-          return (
-            createdDate.isValid &&
-            Number(createdDate.year) === Number(selectedYear)
-          );
-        });
+        this.projects = response.data || [];
         console.log(this.projects);
       },
       error: (error: any) => {
@@ -320,7 +317,9 @@ export class ProjectWorkPropressComponent implements OnInit, AfterViewInit {
   search() {}
   resetSearch() {
     this.projectId = 0;
-    this.year = null;
+    this.yearStart = DateTime.now().minus({ years: 1 }).toJSDate();
+    this.yearEnd = DateTime.now().toJSDate();
+    this.getProject();
   }
   //#endregion
 

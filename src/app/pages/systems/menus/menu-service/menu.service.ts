@@ -124,6 +124,13 @@ import { DailyReportSaleComponent } from '../../../old/KPISale/daily-report-sale
 import { InventoryByProductComponent } from '../../../purchase/inventory-by-product/inventory-by-product.component';
 import { PersonDayOffComponent } from '../../../hrm/day-off/person-day-off/person-day-off.component';
 import { ProductLocationTechnicalComponent } from '../../../old/Technical/product-location-technical/product-location-technical.component';
+import { ProjectPartListComponent } from '../../../project/project-department-summary/project-department-summary-form/project-part-list/project-part-list.component';
+import { CourseManagementComponent } from '../../../Course/course-management/course-management.component';
+import { EarlyLateSummaryComponent } from '../../../hrm/early-late/early-late-summary/early-late-summary.component';
+import { WFHSummaryComponent } from '../../../hrm/employee-management/employee-wfh/WFH-summary/wfh-summary.component';
+import { EmployeeNoFingerSummaryComponent } from '../../../hrm/employee-management/employee-no-fingerprint/employee-no-finger-summary/employee-no-finger-summary.component';
+import { EmployeeNightShiftPersonSummaryComponent } from '../../../hrm/employee-management/employee-night-shift/employee-night-shift-person-summary/employee-night-shift-person-summary.component';
+import { EmployeeBussinessPersonSummaryComponent } from '../../../hrm/employee-management/employee-bussiness/employee-bussiness-person-summary/employee-bussiness-person-summary.component';
 @Injectable({
   providedIn: 'root',
 })
@@ -2250,6 +2257,14 @@ export class MenuService {
                 isPermission: this.permissionService.hasPermission('N13,N1'),
                 comp: MeetingMinuteTypeComponent,
               },
+              // {
+              //   kind: 'leaf',
+              //   key: 'CourseManagementComponent',
+              //   title: 'Quản lý khóa học',
+              //   isOpen: true,
+              //   isPermission: this.permissionService.hasPermission(''),
+              //   comp: CourseManagementComponent,
+              // }
             ],
           },
         ],
@@ -2476,10 +2491,50 @@ export class MenuService {
                 key: 'Tonghopdangkynghi',
                 title: 'Tổng hợp đăng ký nghỉ',
                 isOpen: true,
-                isPermission: this.permissionService.hasPermission('N1'),
+                isPermission: this.permissionService.hasPermission(''),
                 comp: PersonDayOffComponent,
               },
-            ],
+              {
+                kind: 'leaf',
+                key: 'Tonghopdimuonvesom',
+                title: 'Tổng hợp đi muộn về sớm',
+                isOpen: true,
+                isPermission: this.permissionService.hasPermission(''),
+                comp: EarlyLateSummaryComponent,
+              },
+              {
+                kind: 'leaf',
+                key: 'Tonghopwfh',
+                title: 'Tổng hợp WFH',
+                isOpen: true,
+                isPermission: this.permissionService.hasPermission(''),
+                comp: WFHSummaryComponent,
+              },
+              {
+                kind: 'leaf',
+                key: 'Tonghopquenvantay',
+                title: 'Tổng hợp quên vân tay',
+                isOpen: true,
+                isPermission: this.permissionService.hasPermission(''),
+                comp: EmployeeNoFingerSummaryComponent,
+              },
+              {
+                kind: 'leaf',
+                key: 'Tonghopcongtac',
+                title: 'Tổng hợp công tác',
+                isOpen: true,
+                isPermission: this.permissionService.hasPermission(''),
+                comp: EmployeeBussinessPersonSummaryComponent,
+              },
+              {
+                kind: 'leaf',
+                key: 'Tonghoplamdem',
+                title: 'Tổng hợp làm đêm',
+                isOpen: true,
+                isPermission: this.permissionService.hasPermission(''),
+                comp: EmployeeNightShiftPersonSummaryComponent,
+              },
+            ]
           },
           //#region Duyệt cá nhân
           //   {
@@ -3208,6 +3263,17 @@ export class MenuService {
             isOpen: true,
             isPermission: this.permissionService.hasPermission('N57,N1'),
             comp: OfficeSupplyRequestsComponent,
+          },
+          {
+            kind: 'leaf',
+            key: 'duyetpartlist',
+            title: 'Duyệt PartList',
+            isOpen: true,
+            isPermission: this.permissionService.hasPermission(''),
+            comp: ProjectPartListComponent,
+            data: {
+              tbp: true,
+            },
           },
         ],
       },

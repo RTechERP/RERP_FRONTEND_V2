@@ -77,4 +77,12 @@ export class EmployeeBussinessService {
     });
     return this.http.post<any>(this._url + 'EmployeeBussiness/save-approve-hr', data, { headers });
   }
+
+  getEmployeeBussinessPerson(request: any): Observable<any> {
+    return this.http.post<any>(this._url + 'EmployeeBussiness/get-employee-bussiness-person', request);
+  }
+
+  getEmployeeBussinessPersonAjax(): string {
+    return this._url + 'EmployeeBussiness/get-employee-bussiness-person';
+  }
 }

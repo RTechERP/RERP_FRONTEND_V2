@@ -624,9 +624,10 @@ export class EmployeeBussinessSummaryComponent
       {
         title: 'Loại công tác',
         field: 'TypeName',
-        width: 200,
+        width: 250,
         hozAlign: 'left',
         headerHozAlign: 'center',
+        formatter: 'textarea',
       },
       {
         title: 'Địa điểm',

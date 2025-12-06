@@ -11,6 +11,8 @@ import {
   Output,
   EventEmitter,
   ChangeDetectorRef,
+  Inject,
+  Optional,
 } from '@angular/core';
 import { NzCardModule } from 'ng-zorro-antd/card';
 import { FormsModule } from '@angular/forms';
@@ -104,6 +106,7 @@ import { ProjectPartlistPurchaseRequestDetailComponent } from '../../../../purch
   styleUrl: './project-part-list.component.css',
 })
 export class ProjectPartListComponent implements OnInit, AfterViewInit {
+  @Input() tbp: boolean = false;
   @Input() projectId: number = 0;
   @Input() projectCodex: string = '';
   @Input() projectNameX: string = '';
@@ -125,12 +128,13 @@ export class ProjectPartListComponent implements OnInit, AfterViewInit {
     private projectPartListService: ProjectPartListService,
     private notification: NzNotificationService,
     private modal: NzModalService,
-    public activeModal: NgbActiveModal,
+    @Optional() public activeModal: NgbActiveModal,
     private ngbModal: NgbModal,
     private cdr: ChangeDetectorRef,
     private appUserService: AppUserService,
     private billExportService: BillExportService,
-    private authService: AuthService
+    private authService: AuthService,
+    @Optional() @Inject('tabData') private tabData: any
   ) { }
   sizeLeftPanel: string = ''; // Khởi tạo rỗng
   sizeRightPanel: string = ''; // Khởi tạo rỗng
@@ -168,6 +172,7 @@ export class ProjectPartListComponent implements OnInit, AfterViewInit {
   dataSolutionVersion: any[] = [];
   dataPOVersion: any[] = [];
   dataProject: any[] = [];
+  projects: any[] = []; // Danh sách dự án cho combobox
   treeWorkerData: any[] = []; // Dữ liệu tree worker để lấy parent list
   projectworkertypeID: number = 0;
   searchKeyword: string = '';
@@ -196,6 +201,14 @@ export class ProjectPartListComponent implements OnInit, AfterViewInit {
   private loadingCounter: number = 0; // Counter để track số lượng request đang chạy
   private loadingTimeout: any = null; // Timeout để đảm bảo loading không bị kẹt
   ngOnInit(): void {
+    if (this.tabData?.tbp) {
+      this.tbp = this.tabData.tbp;
+      // cập nhật ẩn hiện 
+      if(this.tbp) {
+        
+      }
+    
+    }
     this.isDeleted = 0;
     this.isApprovedTBP = -1;
     this.isApprovedPurchase = -1;
@@ -213,6 +226,8 @@ export class ProjectPartListComponent implements OnInit, AfterViewInit {
       }
       this.drawTbProjectPartListVersionPO();
       this.drawTbProjectPartList();
+      // Load danh sách dự án cho combobox
+      this.loadProjects();
       // Sau khi bảng đã được khởi tạo, mới load data
       this.loadDataSolution();
       // Load danh sách kho để phục vụ yêu cầu xuất kho
@@ -236,6 +251,72 @@ export class ProjectPartListComponent implements OnInit, AfterViewInit {
         console.error('Error loading warehouses:', error);
       }
     });
+  }
+  // Load danh sách dự án cho combobox
+  loadProjects(): void {
+    this.projectService.getProjectModal().subscribe({
+      next: (response: any) => {
+        if (response && response.data) {
+          this.projects = response.data;
+        } else {
+          this.projects = [];
+        }
+      },
+      error: (error: any) => {
+        console.error('Error loading projects:', error);
+        this.notification.error('Lỗi', 'Không thể tải danh sách dự án');
+        this.projects = [];
+      }
+    });
+  }
+  // Xử lý khi projectId thay đổi
+  onProjectIdChange(projectId: number | null): void {
+    // Cập nhật projectId
+    this.projectId = projectId || 0;
+    
+    // Reset các biến liên quan đến version khi projectId thay đổi
+    this.versionID = 0;
+    this.versionPOID = 0;
+    this.type = 0;
+    this.selectionCode = '';
+    this.projectTypeID = 0;
+    this.projectTypeName = '';
+    this.projectCode = '';
+    this.CodeName = '';
+    
+    if (this.projectId > 0) {
+      // Tìm project tương ứng trong danh sách
+      const selectedProject = this.projects.find(p => p.ID === this.projectId);
+      if (selectedProject) {
+        // Cập nhật projectCodex
+        this.projectCodex = selectedProject.ProjectCode || '';
+      }
+      // Gọi lại các hàm load cần projectId
+      // loadDataSolution() sẽ tự động gọi loadDataProjectPartListVersion() và loadDataProjectPartListVersionPO()
+      this.loadDataSolution();
+    } else {
+      // Nếu projectId = null hoặc 0, reset các giá trị
+      this.projectCodex = '';
+      // Clear dữ liệu
+      this.dataSolution = [];
+      this.dataSolutionVersion = [];
+      this.dataPOVersion = [];
+      this.dataProjectWorker = [];
+      this.projectSolutionId = 0;
+      // Clear bảng
+      if (this.tb_solution) {
+        this.tb_solution.setData([]);
+      }
+      if (this.tb_projectPartListVersion) {
+        this.tb_projectPartListVersion.setData([]);
+      }
+      if (this.tb_projectPartListVersionPO) {
+        this.tb_projectPartListVersionPO.setData([]);
+      }
+      if (this.tb_projectWorker) {
+        this.tb_projectWorker.setData([]);
+      }
+    }
   }
   // Helper methods để quản lý loading state
   private startLoading(): void {
@@ -838,7 +919,13 @@ export class ProjectPartListComponent implements OnInit, AfterViewInit {
           return;
         }
         // Kiểm tra đã yêu cầu báo giá chưa
-        if (row.StatusRequest > 0) {
+        const threeMonthsAgo = new Date();
+        threeMonthsAgo.setMonth(threeMonthsAgo.getMonth() - 3);
+        const datePriceQuote = row.DatePriceQuote ? new Date(row.DatePriceQuote) : null;
+        // Kiểm tra đã yêu cầu báo giá chưa
+        debugger;
+        if (row.StatusPriceRequest > 0 
+          && (datePriceQuote == null || datePriceQuote > threeMonthsAgo)) {
           this.notification.warning('Thông báo', `Vật tư Stt [${row.TT}] đã được yêu cầu báo giá.\nVui lòng kiểm tra lại!`);
           return;
         }
@@ -879,6 +966,7 @@ export class ProjectPartListComponent implements OnInit, AfterViewInit {
         IsApprovedTBPNewCode: row.IsApprovedTBPNewCode ?? false,
         StatusPriceRequest: row.StatusPriceRequest,
         IsLeaf: isLeaf,
+        DatePriceQuote: row.DatePriceQuote || null,
         DeadlinePriceRequest: null // Sẽ được set sau khi chọn ngày
       });
     }
@@ -1290,6 +1378,18 @@ export class ProjectPartListComponent implements OnInit, AfterViewInit {
         this.notification.warning('Thông báo', `Vật tư thứ tự [${row.TT || row.STT || row.ID}] đã được Y/c mua.\nVui lòng kiểm tra lại!`);
         return;
       }
+      debugger;
+      const threeMonthsAgo = new Date();
+      threeMonthsAgo.setMonth(threeMonthsAgo.getMonth() - 3);
+      const datePriceQuote = row.DatePriceQuote ? new Date(row.DatePriceQuote) : null;
+      if(datePriceQuote == null) {
+        this.notification.warning('Thông báo', `Vật tư thứ tự [${row.TT || row.STT || row.ID}] chưa được báo giá!\nVui lòng kiểm tra lại!`  );
+        return;
+      }
+      if(datePriceQuote < threeMonthsAgo) {
+        this.notification.warning('Thông báo', `Vật tư thứ tự [${row.TT || row.STT || row.ID}] đã được báo giá từ hơn 3 tháng trước!\nVui lòng yêu cầu báo giá lại!`  );
+        return;
+      }
       // Thêm vào danh sách yêu cầu
       requestItems.push({
         ID: row.ID,
@@ -1307,7 +1407,8 @@ export class ProjectPartListComponent implements OnInit, AfterViewInit {
         TotalPriceOrder: row.TotalPriceOrder || 0,
         QtyFull: row.QtyFull || 0,
         LeadTime: row.LeadTime || "",
-        UnitMoney: row.UnitMoney || ""
+        UnitMoney: row.UnitMoney || "",
+        DatePriceQuote: row.DatePriceQuote || null,
       });
     }
     // Kiểm tra có item nào để yêu cầu không
@@ -1461,9 +1562,6 @@ export class ProjectPartListComponent implements OnInit, AfterViewInit {
   }
   // Hàm xác nhận và gọi API yêu cầu mua hàng
   confirmPurchaseRequest(requestItems: any[], projectTypeID: number): void {
-    console.log('=== SENDING PURCHASE REQUEST TO API ===');
-    console.log('Total items:', requestItems.length);
-    console.log('Payload:', JSON.stringify(requestItems, null, 2));
     const projectSolutionID = this.projectSolutionId || 0;
     const projectID = this.projectId || 0;
     this.projectPartListService.approvePurchaseRequest(requestItems, true, projectTypeID, projectSolutionID, projectID).subscribe({
@@ -3234,7 +3332,7 @@ export class ProjectPartListComponent implements OnInit, AfterViewInit {
                 },
               },
               {
-                title: 'Ngày báo giá', hozAlign: 'center', field: 'DatePriceQuote1', formatter: (cell: any) => {
+                title: 'Ngày báo giá', hozAlign: 'center', field: 'DatePriceQuote', formatter: (cell: any) => {
                   const value = cell.getValue();
                   return value ? DateTime.fromISO(value).toFormat('dd/MM/yyyy') : '';
                 },
@@ -4624,12 +4722,14 @@ export class ProjectPartListComponent implements OnInit, AfterViewInit {
     }
     console.log("Dữ liệu trả về POKHDetail: ", this.selectProductPOData);
     // Đóng modal và trả dữ liệu về POKHDetail
-    this.activeModal.close({
-      success: true,
-      dtAddDetail: mergedData,
-      listIDInsert: listIDInsert,
-      isPartlist: true
-    });
+    if (this.activeModal) {
+      this.activeModal.close({
+        success: true,
+        dtAddDetail: mergedData,
+        listIDInsert: listIDInsert,
+        isPartlist: true
+      });
+    }
   }
   //#endregion
   //#region mở modal xem lịch sử giá và tồn kho
@@ -5024,6 +5124,9 @@ export class ProjectPartListComponent implements OnInit, AfterViewInit {
     this.sizeRightPanel = '100%'; // Mở rộng panel vật tư lên 100%
   }
   closeModal(): void {
+    if (!this.activeModal) {
+      return;
+    }
     // Nếu có dữ liệu từ SelectProroduct, trả về khi đóng modal
     if (this.selectProductPOData) {
       this.activeModal.close({

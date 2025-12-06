@@ -40,21 +40,45 @@ import ExcelJS from 'exceljs';
 import { BillImportTechnicalComponent } from '../../old/bill-import-technical/bill-import-technical.component';
 import { BillImportTechnicalFormComponent } from '../../old/bill-import-technical/bill-import-technical-form/bill-import-technical-form.component';
 // component.ts
+// import pdfMake from 'pdfmake/build/pdfmake';
+// // import pdfFonts from 'pdfmake/build/vfs_fonts';
+// import pdfFonts from '../../../shared/pdf/vfs_fonts_custom.js';
+
 import pdfMake from 'pdfmake/build/pdfmake';
-import pdfFonts from 'pdfmake/build/vfs_fonts';
-import { style } from '@angular/animations';
+import vfs from '../../../shared/pdf/vfs_fonts_custom.js';
 
 import { DateTime } from 'luxon';
 import { environment } from '../../../../environments/environment';
 
-// Create a wrapper to access pdfMake with fonts initialized
-const getPdfMake = () => {
-  const pdfMakeInstance = pdfMake as any;
-  if (!pdfMakeInstance.vfs) {
-    pdfMakeInstance.vfs = (pdfFonts as any).pdfMake?.vfs || pdfFonts;
-  }
-  return pdfMakeInstance;
+(pdfMake as any).vfs = vfs;
+(pdfMake as any).fonts = {
+  Times: {
+    normal: 'TIMES.ttf',
+    bold: 'TIMESBD.ttf',
+    bolditalics: 'TIMESBI.ttf',
+    italics: 'TIMESI.ttf',
+  },
 };
+
+// // Create a wrapper to access pdfMake with fonts initialized
+// const getPdfMake = () => {
+//   const pdfMakeInstance = pdfMake as any;
+//   if (!pdfMakeInstance.vfs) {
+//     pdfMakeInstance.vfs = (pdfFonts as any).pdfMake?.vfs || pdfFonts;
+//   }
+//   return pdfMakeInstance;
+// };
+
+// (pdfMake as any).fonts = {
+//   Times: {
+//     normal: 'TIMES.ttf',
+//     bold: 'TIMESBD.ttf',
+//     // italics: 'Roboto-Regular.ttf',
+//     // bolditalics: 'Roboto-Bold.ttf',
+//   },
+// };
+
+// (pdfMake as any).vfs = pdfFonts.pdfMake.vfs;
 
 @Component({
   selector: 'app-poncc',
@@ -1766,23 +1790,24 @@ export class PONCCComponent implements OnInit, AfterViewInit {
             docDefinition = this.onCreatePDFLanguageVi(respose.data);
 
           // Hiển thị PDF trực tiếp trong trình duyệt
-          pdfMake.createPdf(docDefinition).getDataUrl((dataUrl: any) => {
-            const newWindow = window.open('');
-            if (newWindow) {
-              newWindow.document.write(`
-                                        <html>
-                                        <head>
-                                            <title>${billCode}</title>
-                                            <link rel="icon" type="image/x-icon" href="icon-logo-RTC-2023.png" />
-                                        </head>
-                                        <body style="margin:0">
-                                            <iframe src="${dataUrl}" style="width:100%;height:100vh;" frameborder="0"></iframe>
-                                        </body>
-                                        </html>
-                                    `);
-              newWindow.document.close();
-            }
-          });
+          pdfMake.createPdf(docDefinition).open();
+          //   pdfMake.createPdf(docDefinition).getDataUrl((dataUrl: any) => {
+          //     const newWindow = window.open('');
+          //     if (newWindow) {
+          //       newWindow.document.write(`
+          //                                 <html>
+          //                                 <head>
+          //                                     <title>${billCode}</title>
+          //                                     <link rel="icon" type="image/x-icon" href="icon-logo-RTC-2023.png" />
+          //                                 </head>
+          //                                 <body style="margin:0">
+          //                                     <iframe src="${dataUrl}" style="width:100%;height:100vh;" frameborder="0"></iframe>
+          //                                 </body>
+          //                                 </html>
+          //                             `);
+          //       newWindow.document.close();
+          //     }
+          //   });
         },
         error: (err) => {
           this.notification.error(NOTIFICATION_TITLE.error, err.error.message);
@@ -1841,7 +1866,11 @@ export class PONCCComponent implements OnInit, AfterViewInit {
     for (let i = 0; i < poDetails.length; i++) {
       let item = [
         { text: poDetails[i].STT, alignment: 'center' },
-        { text: poDetails[i].ProductCodeOfSupplier, alignment: '' },
+        // { text: poDetails[i].ProductCodeOfSupplier, alignment: '' },
+        {
+          text: 'ưqehiu ưqjhwgeuqhgebjqwe qưge qưgeuqgeq gq qiegqjwegqgehjkqwheqhwe qjweg q qjkwe qjgejqehqweuhqwehqiuwehqwe quiwegqiu eiquweh iquhweiq ew',
+          alignment: '',
+        },
         { text: poDetails[i].UnitName, alignment: '' },
         {
           text: this.formatNumber(poDetails[i].QtyRequest),
@@ -1887,7 +1916,9 @@ export class PONCCComponent implements OnInit, AfterViewInit {
       //     }
       //     return ''; // trang khác không có footer
       //   },
-
+      info: {
+        title: 'Awesome PDF document from pdfmake',
+      },
       content: [
         {
           alignment: '',
@@ -2034,6 +2065,10 @@ export class PONCCComponent implements OnInit, AfterViewInit {
               ],
             ],
           },
+          layout: {
+            paddingTop: () => 5,
+            paddingBottom: () => 5,
+          },
         },
         {
           style: 'tableExample',
@@ -2097,8 +2132,9 @@ export class PONCCComponent implements OnInit, AfterViewInit {
         },
       },
       defaultStyle: {
-        fontSize: 12,
+        fontSize: 10,
         alignment: 'justify',
+        font: 'Times',
       },
     };
 

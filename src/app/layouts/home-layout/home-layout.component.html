@@ -51,7 +51,7 @@
                                     <p class="m-0 fw-bold" style="white-space: pre-line;">{{ c1.title }}</p>
                                 </ng-template>
                                 <li nz-submenu [nzTitle]="nzTitle1" nzOpen=""
-                                    *ngIf="isGroup(c1) && c1.isPermission && c1.isOpen && (c1.key == 'dailyreport' || c1.key == 'registercommon')">
+                                    *ngIf="isGroup(c1) && c1.isPermission && c1.isOpen && (c1.key == 'dailyreport' || c1.key == 'registerpayroll')">
                                     <ul>
                                         @for (c2 of c1.children; track c2.key) {
                                         <li nz-menu-item *ngIf="isLeaf(c2) && c2.isPermission && c2.isOpen" (click)="(c2.router || '') === '' 

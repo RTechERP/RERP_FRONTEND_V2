@@ -60,14 +60,14 @@
               <nz-form-label class="fs-12" [nzSpan]="24">Từ khóa</nz-form-label>
               <nz-form-control [nzSpan]="24">
                 <input nz-input placeholder="Nhập từ khóa" nzSize="default" formControlName="keyWord"
-                  (keyup.enter)="loadEmployeeOnLeave()" />
+                  (keyup.enter)="loadEmployeeNoFingerprintPerson()" />
               </nz-form-control>
             </nz-form-item>
           </form>
         </div>
         <div class="card-footer bg-white p-1 d-flex gap-1 justify-content-end">
           <button nz-button nzType="default" nzSize="small" (click)="resetSearch()">Đặt lại</button>
-          <button nz-button nzType="primary" nzSize="small" (click)="loadEmployeeOnLeave()">Tìm kiếm</button>
+          <button nz-button nzType="primary" nzSize="small" (click)="loadEmployeeNoFingerprintPerson()">Tìm kiếm</button>
         </div>
       </div>
     </nz-splitter-panel>
@@ -87,9 +87,10 @@
         </div>
 
         <div class="card-body p-0 d-flex align-items-center justify-content-center" style="position: relative">
-          <div class="w-100" #tb_person_day_off></div>
+          <div class="w-100" id="tb_employee_no_finger_summary" #tb_employee_no_finger_summary></div>
         </div>
       </div>
     </nz-splitter-panel>
   </nz-splitter>
 </ng-container>
+

@@ -265,4 +265,35 @@ export class WFHService {
       `${this.apiUrl}check-duplicate-wfh/${id}/${employeeId}/${date}/${timeWFH}`
     );
   }
+
+  /**
+   * Get WFH person list for summary (similar to early-late-person)
+   * @param request Request parameters matching EmployeeOnLeavePersonParam
+   * @returns Observable with response data
+   */
+  getWFHPerson(request: {
+    Page?: number;
+    Size?: number;
+    Keyword?: string;
+    DateStart?: string | null;
+    DateEnd?: string | null;
+    IDApprovedTP?: number;
+    Status?: number;
+    DepartmentID?: number;
+  }): Observable<any> {
+    const headers = new HttpHeaders({
+      'Content-Type': 'application/json',
+      Accept: 'application/json',
+    });
+
+    return this.http.post<any>(this.apiUrl + 'get-wfh-person', request, { headers });
+  }
+
+  /**
+   * Get WFH person URL for Tabulator AJAX
+   * @returns string
+   */
+  getWFHPersonAjax(): string {
+    return this.apiUrl + 'get-wfh-person';
+  }
 }

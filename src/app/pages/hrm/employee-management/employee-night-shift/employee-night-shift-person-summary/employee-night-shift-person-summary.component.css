@@ -1,0 +1,78 @@
+.fs-12 {
+  font-size: 12px;
+}
+
+/* Font size 12px cho tất cả các phần tử trong bảng Tabulator */
+::ng-deep #tb_employee_night_shift_person_summary,
+::ng-deep #tb_employee_night_shift_person_summary *,
+::ng-deep #tb_employee_night_shift_person_summary .tabulator,
+::ng-deep #tb_employee_night_shift_person_summary .tabulator * {
+  font-size: 12px !important;
+}
+
+/* Font size 12px cho header và tất cả phần tử con */
+::ng-deep #tb_employee_night_shift_person_summary .tabulator-header,
+::ng-deep #tb_employee_night_shift_person_summary .tabulator-header *,
+::ng-deep #tb_employee_night_shift_person_summary .tabulator .tabulator-header,
+::ng-deep #tb_employee_night_shift_person_summary .tabulator .tabulator-header *,
+::ng-deep #tb_employee_night_shift_person_summary .tabulator-col,
+::ng-deep #tb_employee_night_shift_person_summary .tabulator-col *,
+::ng-deep #tb_employee_night_shift_person_summary .tabulator-col-title,
+::ng-deep #tb_employee_night_shift_person_summary .tabulator-col-content {
+  font-size: 12px !important;
+}
+
+/* Font size 12px cho các cell và nội dung cell */
+::ng-deep #tb_employee_night_shift_person_summary .tabulator-cell,
+::ng-deep #tb_employee_night_shift_person_summary .tabulator-cell *,
+::ng-deep #tb_employee_night_shift_person_summary .tabulator .tabulator-cell,
+::ng-deep #tb_employee_night_shift_person_summary .tabulator .tabulator-cell *,
+::ng-deep #tb_employee_night_shift_person_summary .tabulator-cell-content,
+::ng-deep #tb_employee_night_shift_person_summary .tabulator-row,
+::ng-deep #tb_employee_night_shift_person_summary .tabulator-row * {
+  font-size: 12px !important;
+}
+
+/* Font size 12px cho footer và pagination */
+::ng-deep #tb_employee_night_shift_person_summary .tabulator-footer,
+::ng-deep #tb_employee_night_shift_person_summary .tabulator-footer *,
+::ng-deep #tb_employee_night_shift_person_summary .tabulator-paginator,
+::ng-deep #tb_employee_night_shift_person_summary .tabulator-paginator *,
+::ng-deep #tb_employee_night_shift_person_summary .tabulator .tabulator-footer,
+::ng-deep #tb_employee_night_shift_person_summary .tabulator .tabulator-footer *,
+::ng-deep #tb_employee_night_shift_person_summary .tabulator .tabulator-paginator,
+::ng-deep #tb_employee_night_shift_person_summary .tabulator .tabulator-paginator * {
+  font-size: 12px !important;
+}
+
+/* Font size 12px cho group header */
+::ng-deep #tb_employee_night_shift_person_summary .tabulator-group-header,
+::ng-deep #tb_employee_night_shift_person_summary .tabulator-group-header *,
+::ng-deep #tb_employee_night_shift_person_summary .tabulator .tabulator-group-header,
+::ng-deep #tb_employee_night_shift_person_summary .tabulator .tabulator-group-header *,
+::ng-deep #tb_employee_night_shift_person_summary .tabulator-group-title {
+  font-size: 12px !important;
+}
+
+/* Font size 12px cho các nút và input */
+::ng-deep #tb_employee_night_shift_person_summary .tabulator-paginator button,
+::ng-deep #tb_employee_night_shift_person_summary .tabulator-paginator .tabulator-page,
+::ng-deep #tb_employee_night_shift_person_summary .tabulator input,
+::ng-deep #tb_employee_night_shift_person_summary .tabulator input[type="checkbox"],
+::ng-deep #tb_employee_night_shift_person_summary input,
+::ng-deep #tb_employee_night_shift_person_summary button {
+  font-size: 12px !important;
+}
+
+/* Font size 12px cho table và table holder */
+::ng-deep #tb_employee_night_shift_person_summary .tabulator-table,
+::ng-deep #tb_employee_night_shift_person_summary .tabulator-table *,
+::ng-deep #tb_employee_night_shift_person_summary .tabulator-tableHolder,
+::ng-deep #tb_employee_night_shift_person_summary .tabulator-tableHolder * {
+  font-size: 12px !important;
+}
+
+.ant-splitter{
+  height: 94vh !important;
+}
+

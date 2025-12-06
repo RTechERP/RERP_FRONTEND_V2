@@ -30,7 +30,7 @@
         <div class="col-md-12">
             <label for="firmTypeSelect" class="form-label">Loại hãng<span class="text-danger">*</span></label>
             <nz-select id="firmTypeSelect" nzPlaceHolder="Chọn loại hãng" formControlName="firmType"
-                style="width: 100%;">
+                [nzDisabled]="warehouseType === 2" style="width: 100%;">
                 <nz-option *ngFor="let type of firmTypes" [nzValue]="type.value" [nzLabel]="type.label">
                 </nz-option>
             </nz-select>

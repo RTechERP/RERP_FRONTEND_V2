@@ -136,7 +136,7 @@ export class ProjectPartlistPriceRequestService {
     });
   }
   saveData(lstModel: any[]) {
-    return this.http.post(`${this.baseUrl}/save-data`, lstModel);
+    return this.http.post(`${this.baseUrl}/save-data`, { projectPartlistPriceRequest: lstModel });
   }
   getCurrency(): Observable<any> {
     return this.http.get(`${this.baseUrl}/get-Currency`);
@@ -148,7 +148,7 @@ export class ProjectPartlistPriceRequestService {
     return this.http.get(`${this.baseUrl}/get-price-request-type`);
   }
   saveChangedData(data: any[]) {
-    return this.http.post(`${this.baseUrl}/save-data`, data);
+    return this.http.post(`${this.baseUrl}/save-data`, { projectPartlistPriceRequest: data });
   }
   downloadFile(payload: {
     projectId: number;

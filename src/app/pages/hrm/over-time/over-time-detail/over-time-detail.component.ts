@@ -51,7 +51,6 @@ import { HasPermissionDirective } from "../../../../directives/has-permission.di
     NzSplitterModule,
     NgIf,
     NzSpinModule,
-    OverTimeDetailComponent,
     HasPermissionDirective
   ]
 })

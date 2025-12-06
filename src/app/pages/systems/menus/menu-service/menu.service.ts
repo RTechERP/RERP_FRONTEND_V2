@@ -123,6 +123,8 @@ import { WarehouseComponent1 } from '../../../general-category/wearhouse/warehou
 import { DailyReportSaleComponent } from '../../../old/KPISale/daily-report-sale/daily-report-sale.component';
 import { InventoryByProductComponent } from '../../../purchase/inventory-by-product/inventory-by-product.component';
 import { PersonDayOffComponent } from '../../../hrm/day-off/person-day-off/person-day-off.component';
+import { ProjectPartListComponent } from '../../../project/project-department-summary/project-department-summary-form/project-part-list/project-part-list.component';
+import { CourseManagementComponent } from '../../../Course/course-management/course-management.component';
 import { EarlyLateSummaryComponent } from '../../../hrm/early-late/early-late-summary/early-late-summary.component';
 import { WFHSummaryComponent } from '../../../hrm/employee-management/employee-wfh/WFH-summary/wfh-summary.component';
 import { EmployeeNoFingerSummaryComponent } from '../../../hrm/employee-management/employee-no-fingerprint/employee-no-finger-summary/employee-no-finger-summary.component';
@@ -2227,6 +2229,14 @@ export class MenuService {
                 isPermission: this.permissionService.hasPermission('N13,N1'),
                 comp: MeetingMinuteTypeComponent,
               },
+              // {
+              //   kind: 'leaf',
+              //   key: 'CourseManagementComponent',
+              //   title: 'Quản lý khóa học',
+              //   isOpen: true,
+              //   isPermission: this.permissionService.hasPermission(''),
+              //   comp: CourseManagementComponent,
+              // }
             ],
           },
         ],
@@ -3225,6 +3235,17 @@ export class MenuService {
             isOpen: true,
             isPermission: this.permissionService.hasPermission('N57,N1'),
             comp: OfficeSupplyRequestsComponent,
+          },
+          {
+            kind: 'leaf',
+            key: 'duyetpartlist',
+            title: 'Duyệt PartList',
+            isOpen: true,
+            isPermission: this.permissionService.hasPermission(''),
+            comp: ProjectPartListComponent,
+            data: {
+              tbp: true,
+            },
           },
         ],
       },

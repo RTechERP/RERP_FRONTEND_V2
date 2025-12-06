@@ -1,0 +1,48 @@
+.fs-12 {
+  font-size: 0.75rem;
+}
+:host {
+  font-size: 12px !important;
+}
+
+.tabulator {
+    font-size: 12px;
+}
+
+.box {
+  height: 100%;
+  width: 100%;
+}
+
+.card {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+.card-body {
+  flex: 1;
+  overflow: hidden;
+}
+
+.btn-add,
+.btn-edit,
+.btn-delete {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.btn-add img,
+.btn-edit img,
+.btn-delete img {
+  width: 16px;
+  height: 16px;
+}
+.ant-splitter-panel {
+  position: relative;
+}
+
+.ant-splitter {
+    height: 100% !important;
+  }

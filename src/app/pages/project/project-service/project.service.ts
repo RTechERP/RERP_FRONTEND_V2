@@ -154,9 +154,25 @@ export class ProjectService {
   getProjectDetails(id: number): Observable<any> {
     return this.http.get<any>(this.urlProject + `get-project-details?id=${id}`);
   }
-  // Mở thư mục dự án
+  // Mở thư mục dự án (cũ - không dùng nữa)
   openProjectFolder(projectId: number): Observable<any> {
     return this.http.get<any>(this.urlProject + `open/${projectId}`);
+  }
+
+  // Tạo cây thư mục dự án
+  createProjectTree(projectId: number, selectedProjectTypeIds: number[]): Observable<any> {
+    return this.http.post<any>(this.urlProject + `create-tree`, {
+      ProjectId: projectId,
+      SelectedProjectTypeIds: selectedProjectTypeIds
+    });
+  }
+
+  // Mở thư mục khảo sát dự án
+  openSurveyFolder(projectId: number): Observable<any> {
+    return this.http.post<any>(
+      `${this.urlProjectSurvey}create-survey-folder/${projectId}`,
+      {}
+    );
   }
   // lấy chi tiết dự án
   getProject(id: number): Observable<any> {
@@ -190,6 +206,17 @@ export class ProjectService {
   // lấy dự án
   getProjectModal(): Observable<any> {
     return this.http.get<any>(this.urlProject + `get-project-modal`);
+  }
+  // lấy dự án
+  getProjectModal2(dateS?: number, dateE?: number): Observable<any> {
+    let params = new HttpParams();
+    if (dateS !== undefined && dateS !== null) {
+      params = params.set('dateS', dateS.toString());
+    }
+    if (dateE !== undefined && dateE !== null) {
+      params = params.set('dateE', dateE.toString());
+    }
+    return this.http.get<any>(this.urlProject + `get-project-modal2`, { params });
   }
   // lấy ưu tiên dự án
   getProjectPriorityModal(id: any): Observable<any> {

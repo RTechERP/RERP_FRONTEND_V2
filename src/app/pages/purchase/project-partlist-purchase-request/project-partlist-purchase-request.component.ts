@@ -1240,15 +1240,21 @@ export class ProjectPartlistPurchaseRequestComponent implements OnInit, AfterVie
     const selectedRows = table?.getSelectedRows() || [];
     const hasSelectedRows = selectedRows.length > 0;
 
-    // Nếu có dòng được chọn, cập nhật tất cả các dòng đã chọn
-    if (hasSelectedRows) {
+    // Kiểm tra xem dòng đang được edit có nằm trong danh sách các dòng được chọn không
+    const currentRowId = data['ID'];
+    const isCurrentRowSelected = hasSelectedRows && selectedRows.some((selectedRow: any) => {
+      return selectedRow.getData()['ID'] === currentRowId;
+    });
+
+    // Chỉ cập nhật các dòng được chọn nếu dòng đang edit cũng nằm trong danh sách được chọn
+    if (hasSelectedRows && isCurrentRowSelected) {
       // Cập nhật tất cả các dòng đã chọn với giá trị mới (trừ dòng đang edit)
       selectedRows.forEach((selectedRow: any) => {
         const rowData = selectedRow.getData();
-        const currentRowId = rowData['ID'];
+        const selectedRowId = rowData['ID'];
 
         // Bỏ qua dòng đang được edit (vì nó đã được Tabulator tự động cập nhật)
-        if (currentRowId === data['ID']) {
+        if (selectedRowId === currentRowId) {
           return;
         }
 
@@ -1302,16 +1308,67 @@ export class ProjectPartlistPurchaseRequestComponent implements OnInit, AfterVie
         }
       });
 
+      // Track dòng đang edit vào changedRows
+      const originalData = this.originalDataMap.get(currentRowId);
+      if (originalData) {
+        const hasChanges = this.hasRowChanged(row.getData(), originalData);
+        const index = this.changedRows.findIndex(r => r.ID === currentRowId);
+
+        if (hasChanges) {
+          const newRow = {
+            ...row.getData(),
+            IsMarketing: this.activeTabIndex === 7 || this.activeTabIndex === 1
+          };
+
+          if (index !== -1) {
+            this.changedRows[index] = newRow;
+          } else {
+            this.changedRows.push(newRow);
+          }
+        } else {
+          if (index !== -1) {
+            this.changedRows.splice(index, 1);
+          }
+        }
+      }
+
       // Track dòng đang edit vào editedMap
       const id = Number(data['ID']);
       if (id > 0) this.editedMap.set(id, row.getData());
     } else {
-      // Logic cho trường hợp không có dòng nào được chọn
-      this.recalculateRow(row);
+      // Logic cho trường hợp không có dòng nào được chọn HOẶC dòng đang edit không nằm trong danh sách được chọn
+      // Tính toán lại cho dòng đang edit
+      if (['Quantity', 'UnitPrice', 'CurrencyRate', 'UnitImportPrice', 'VAT', 'CurrencyID'].includes(field)) {
+        this.recalculateRow(row);
+      }
 
       // Track edited
       const id = Number(data['ID']);
       if (id > 0) this.editedMap.set(id, row.getData());
+
+      // Track vào changedRows
+      const originalData = this.originalDataMap.get(id);
+      if (originalData) {
+        const hasChanges = this.hasRowChanged(row.getData(), originalData);
+        const index = this.changedRows.findIndex(r => r.ID === id);
+
+        if (hasChanges) {
+          const newRow = {
+            ...row.getData(),
+            IsMarketing: this.activeTabIndex === 7 || this.activeTabIndex === 1
+          };
+
+          if (index !== -1) {
+            this.changedRows[index] = newRow;
+          } else {
+            this.changedRows.push(newRow);
+          }
+        } else {
+          if (index !== -1) {
+            this.changedRows.splice(index, 1);
+          }
+        }
+      }
     }
   }
 

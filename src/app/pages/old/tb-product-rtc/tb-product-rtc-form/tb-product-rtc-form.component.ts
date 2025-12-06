@@ -23,6 +23,7 @@ import { NzModalModule } from 'ng-zorro-antd/modal';
 import { TsAssetManagementPersonalService } from '../../ts-asset-management-personal/ts-asset-management-personal-service/ts-asset-management-personal.service';
 import { Tabulator } from 'tabulator-tables';
 import { NgbModal, NgbModalModule } from '@ng-bootstrap/ng-bootstrap';
+import { NzModalService } from 'ng-zorro-antd/modal';
 import { NzUploadModule } from 'ng-zorro-antd/upload';
 import type { NzUploadFile } from 'ng-zorro-antd/upload';
 import { TbProductRtcService } from '../tb-product-rtc-service/tb-product-rtc.service';
@@ -46,6 +47,7 @@ import { UnitCountDetailComponent } from '../../Sale/ProductSale/unit-count-deta
 import { HasPermissionDirective } from '../../../../directives/has-permission.directive';
 import { FirmFormComponent } from '../../../general-category/firm/firm-form/firm-form.component';
 import { NOTIFICATION_TITLE } from '../../../../app.config';
+import { ProductLocationTechnicalDetailComponent } from '../../Technical/product-location-technical/product-location-technical-detail/product-location-technical-detail.component';
 @Component({
   standalone: true,
   selector: 'app-tb-product-rtc-form',
@@ -75,6 +77,7 @@ export class TbProductRtcFormComponent implements OnInit, AfterViewInit {
   fileToUpload: File | null = null;
   @Input() warehouseType: number = 1;
   private ngbModal = inject(NgbModal);
+  private nzModal = inject(NzModalService);
   public activeModal = inject(NgbActiveModal);
   @Output() closeModal = new EventEmitter<void>();
   @Output() formSubmitted = new EventEmitter<void>();
@@ -351,7 +354,7 @@ export class TbProductRtcFormComponent implements OnInit, AfterViewInit {
     }
   }
   getProductCode() {
-    let productGroupID = this.formDeviceInfo.get('ProductGroupRTCID')?.value;
+    let productGroupID = this.formDeviceInfo.get('ProductGroupRTCID')?.value || this.dataInput?.ProductGroupRTCID || 0;
       this.tbProductRtcService.getProductRTCCode(productGroupID).subscribe((resppon: any) => {
       this.productCode = resppon.data;
       console.log('Code', this.productCode);
@@ -726,6 +729,7 @@ export class TbProductRtcFormComponent implements OnInit, AfterViewInit {
       centered: true,
     });
     modalRef.componentInstance.dataInput = this.modalData;
+    modalRef.componentInstance.warehouseType = this.warehouseType;
     modalRef.result.finally(() => {
       this.getGroup();
     });
@@ -743,22 +747,31 @@ export class TbProductRtcFormComponent implements OnInit, AfterViewInit {
 
     modalRef.result.finally(() => {
       this.getFirm();
-      modalRef.result.finally(() => {
-        this.getFirm();
-      });
     });
   }
   // hàm gọi modal location
   openModalLocationDetail() {
-    const modalRef = this.ngbModal.open(LocationDetailComponent, {
-      centered: true,
-      backdrop: 'static',
-      keyboard: false,
+    const warehouseID = this.dataInput?.WarehouseID ?? 1;
+    
+    const modalRef = this.nzModal.create({
+      nzTitle: 'Thêm vị trí',
+      nzContent: ProductLocationTechnicalDetailComponent,
+      nzWidth: '800px',
+      nzCentered: true,
+      nzFooter: null,
+      nzData: {
+        warehouseID: warehouseID,
+        warehouseType: this.warehouseType || 1,
+        isEdit: false,
+        model: null
+      }
     });
-    modalRef.componentInstance.listProductGroupcbb = this.productGroupData;
 
-    modalRef.result.finally(() => {
-      this.getLocation();
+    // Xử lý khi modal đóng
+    modalRef.afterClose.subscribe((result) => {
+      if (result === 'OK') {
+        this.getLocation();
+      }
     });
   }
   // hàm gọi modal unitcount

@@ -606,12 +606,59 @@ export class ProjectPartlistPriceRequestComponent implements OnInit {
   private LoadAllTablesData(): void {
     // Load dữ liệu cho tất cả các bảng tuần tự
     let delay = 0;
+    const tableCount = this.tables.size;
+    let loadedCount = 0;
+    
     this.tables.forEach((table) => {
       setTimeout(() => {
         table.setData();
+        loadedCount++;
+        
+        // Sau khi tất cả tables đã load xong, nếu có jobRequirementID thì focus vào row tương ứng
+        if (loadedCount === tableCount && this.jobRequirementID > 0) {
+          setTimeout(() => {
+            this.LoadViewToJobRequirement();
+          }, 500);
+        }
       }, delay);
       delay += 200; // Chờ 200ms giữa mỗi request
     });
+  }
+
+  /**
+   * Load view theo Job Requirement - ẩn/hiện các nút và focus vào row tương ứng
+   * Logic này được xử lý trong HTML thông qua restrictedView và isHRDept
+   * Hàm này chỉ focus vào row có jobRequirementID tương ứng
+   */
+  private LoadViewToJobRequirement(): void {
+    // Focus vào row có jobRequirementID tương ứng
+    if (this.jobRequirementID > 0) {
+      const table = this.tables.get(this.activeTabId);
+      if (table) {
+        // Đợi table render xong
+        setTimeout(() => {
+          // Tìm row có JobRequirementID tương ứng
+          const rows = table.getRows();
+          const targetRow = rows.find((row: any) => {
+            const rowData = row.getData();
+            return Number(rowData['JobRequirementID'] || 0) === this.jobRequirementID;
+          });
+
+          if (targetRow) {
+            // Scroll đến row và select nó
+            targetRow.scrollTo();
+            targetRow.select();
+            // Focus vào row
+            setTimeout(() => {
+              const cells = targetRow.getCells();
+              if (cells && cells.length > 0) {
+                cells[0].getElement().focus();
+              }
+            }, 100);
+          }
+        }, 300);
+      }
+    }
   }
   ToggleSearchPanel() {
     this.sizeSearch = this.sizeSearch == '0' ? '22%' : '0';
@@ -634,6 +681,37 @@ export class ProjectPartlistPriceRequestComponent implements OnInit {
       this.dtPOKH = response.data;
       console.log('POKH:', this.dtPOKH);
     });
+  }
+
+  /**
+   * Refresh toàn bộ dữ liệu: combobox, bảng, projecttype
+   */
+  RefreshAll(): void {
+    // Xóa tất cả các tables hiện tại
+    this.tables.forEach((table) => {
+      try {
+        table.destroy();
+      } catch (e) {
+        console.warn('Error destroying table:', e);
+      }
+    });
+    this.tables.clear();
+
+    // Clear editedRowsMap
+    this.editedRowsMap.clear();
+
+    // Load lại tất cả các combobox
+    this.GetCurrency();
+    this.GetSupplierSale();
+    this.GetProductSale();
+    this.GetallProject();
+    this.GetAllPOKH();
+
+    // Load lại ProjectTypes (sẽ tự động tạo lại tables và load data)
+    this.LoadProjectTypes();
+
+    // Hiển thị thông báo
+    this.notification.success('Thông báo', 'Đang làm mới dữ liệu...');
   }
 
   private LoadPriceRequests(): void {
@@ -1392,15 +1470,20 @@ export class ProjectPartlistPriceRequestComponent implements OnInit {
     const selectedRows = table.getSelectedRows() || [];
     const hasSelectedRows = selectedRows.length > 0;
 
-    // Nếu có dòng được chọn, cập nhật tất cả các dòng đã chọn
-    if (hasSelectedRows) {
+    // Kiểm tra xem dòng đang được edit có nằm trong danh sách các dòng được chọn không
+    const isCurrentRowSelected = hasSelectedRows && selectedRows.some((selectedRow: any) => {
+      return Number(selectedRow.getData()['ID']) === currentRowId;
+    });
+
+    // Chỉ cập nhật các dòng được chọn nếu dòng đang edit cũng nằm trong danh sách được chọn
+    if (hasSelectedRows && isCurrentRowSelected) {
       // Cập nhật tất cả các dòng đã chọn với giá trị mới (trừ dòng đang edit)
       selectedRows.forEach((selectedRow: any) => {
         const rowData = selectedRow.getData();
-        const currentRowId = Number(rowData['ID']);
+        const selectedRowId = Number(rowData['ID']);
 
         // Bỏ qua dòng đang được edit (vì nó đã được Tabulator tự động cập nhật)
-        if (currentRowId === Number(data['ID'])) {
+        if (selectedRowId === currentRowId) {
           return;
         }
 
@@ -1416,13 +1499,13 @@ export class ProjectPartlistPriceRequestComponent implements OnInit {
         selectedRow.update(updateData);
 
         // Track row đã được cập nhật
-        if (currentRowId > 0) {
+        if (selectedRowId > 0) {
           if (!this.editedRowsMap.has(this.activeTabId)) {
             this.editedRowsMap.set(this.activeTabId, new Map());
           }
           // Lấy dữ liệu mới nhất sau khi update
           const updatedRowData = selectedRow.getData();
-          this.editedRowsMap.get(this.activeTabId)!.set(currentRowId, updatedRowData);
+          this.editedRowsMap.get(this.activeTabId)!.set(selectedRowId, updatedRowData);
         }
       });
 
@@ -1433,8 +1516,11 @@ export class ProjectPartlistPriceRequestComponent implements OnInit {
         });
       }
     } else {
-      // Nếu không có dòng nào được chọn, chỉ tính toán lại cho dòng đang edit
-      this.recalculateRow(row);
+      // Nếu không có dòng nào được chọn HOẶC dòng đang edit không nằm trong danh sách được chọn
+      // Chỉ tính toán lại cho dòng đang edit
+      if (['Quantity', 'UnitPrice', 'CurrencyRate', 'UnitImportPrice', 'VAT', 'TotalDayLeadTime'].includes(field)) {
+        this.recalculateRow(row);
+      }
     }
   }
 
@@ -1497,8 +1583,13 @@ export class ProjectPartlistPriceRequestComponent implements OnInit {
         this.editedRowsMap.get(this.activeTabId)!.set(currentRowId, rowData);
       }
 
-      // Nếu có dòng được chọn, cập nhật tất cả các dòng đã chọn
-      if (hasSelectedRows) {
+      // Kiểm tra xem dòng đang được edit có nằm trong danh sách các dòng được chọn không
+      const isCurrentRowSelected = hasSelectedRows && selectedRows.some((selectedRow: any) => {
+        return Number(selectedRow.getData()['ID']) === currentRowId;
+      });
+
+      // Chỉ cập nhật các dòng được chọn nếu dòng đang edit cũng nằm trong danh sách được chọn
+      if (hasSelectedRows && isCurrentRowSelected) {
         selectedRows.forEach((selectedRow: any) => {
           const selectedRowData = selectedRow.getData();
           const selectedTotalPrice = this.CalculateTotalPriceExchange(selectedRowData, rate);
@@ -1520,7 +1611,8 @@ export class ProjectPartlistPriceRequestComponent implements OnInit {
           }
         });
       } else {
-        // Nếu không có dòng nào được chọn, chỉ cập nhật dòng đang edit
+        // Nếu không có dòng nào được chọn HOẶC dòng đang edit không nằm trong danh sách được chọn
+        // Chỉ cập nhật dòng đang edit
         row.update({
           CurrencyID: currency.ID,
           CurrencyRate: currency.CurrencyRate,
@@ -1556,8 +1648,13 @@ export class ProjectPartlistPriceRequestComponent implements OnInit {
         this.editedRowsMap.get(this.activeTabId)!.set(currentRowId, rowData);
       }
 
-      // Nếu có dòng được chọn, cập nhật tất cả các dòng đã chọn
-      if (hasSelectedRows) {
+      // Kiểm tra xem dòng đang được edit có nằm trong danh sách các dòng được chọn không
+      const isCurrentRowSelected = hasSelectedRows && selectedRows.some((selectedRow: any) => {
+        return Number(selectedRow.getData()['ID']) === currentRowId;
+      });
+
+      // Chỉ cập nhật các dòng được chọn nếu dòng đang edit cũng nằm trong danh sách được chọn
+      if (hasSelectedRows && isCurrentRowSelected) {
         selectedRows.forEach((selectedRow: any) => {
           const selectedRowData = selectedRow.getData();
           const selectedRowId = Number(selectedRowData['ID']);
@@ -1577,7 +1674,8 @@ export class ProjectPartlistPriceRequestComponent implements OnInit {
           }
         });
       } else {
-        // Nếu không có dòng nào được chọn, chỉ cập nhật dòng đang edit
+        // Nếu không có dòng nào được chọn HOẶC dòng đang edit không nằm trong danh sách được chọn
+        // Chỉ cập nhật dòng đang edit
         row.update({
           SupplierSaleID: supplierId,
           CodeNCC: supplier.CodeNCC

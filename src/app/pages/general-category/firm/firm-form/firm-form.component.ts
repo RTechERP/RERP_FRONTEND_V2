@@ -1,4 +1,4 @@
-import { Component, Inject, OnInit } from '@angular/core';
+import { Component, Inject, Input, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import {
   FormsModule,
@@ -45,6 +45,7 @@ import { NOTIFICATION_TITLE } from '../../../../app.config';
 export class FirmFormComponent implements OnInit {
   dataInput: any = {};
   firmForm!: FormGroup;
+  @Input() warehouseType: number = 1;
   firmTypes = [
     { value: 0, label: 'Chọn loại' },
     { value: 1, label: 'Sale' },
@@ -65,10 +66,17 @@ export class FirmFormComponent implements OnInit {
     if (this.dataInput && this.dataInput.ID) {
       // Editing existing firm
       this.patchFormValues();
+    } else {
+      // Thêm mới: nếu warehouseType === 2 thì tự động set FirmType = 3
+      if (this.warehouseType === 2) {
+        this.firmForm.patchValue({ firmType: 3 });
+      }
     }
   }
 
   initForm() {
+    const initialFirmType = this.warehouseType === 2 ? 3 : null;
+    
     this.firmForm = this.fb.group({
       id: [0],
       firmCode: [
@@ -80,8 +88,13 @@ export class FirmFormComponent implements OnInit {
         },
       ],
       firmName: ['', Validators.required],
-      firmType: [null, Validators.required],
+      firmType: [initialFirmType, Validators.required],
     });
+
+    // Nếu warehouseType === 2, disable field firmType
+    if (this.warehouseType === 2) {
+      this.firmForm.get('firmType')?.disable();
+    }
   }
 
   // Async validator: gọi API check-code để kiểm tra trùng mã, dùng any
@@ -228,11 +241,17 @@ export class FirmFormComponent implements OnInit {
   // }
 
   saveFirmData(formValues: any) {
+    // Lấy giá trị firmType từ form (nếu bị disable thì dùng getRawValue để lấy giá trị)
+    const firmTypeControl = this.firmForm.get('firmType');
+    const firmTypeValue = firmTypeControl?.disabled 
+      ? firmTypeControl.value 
+      : formValues.firmType;
+    
     const firmData = {
       ID: formValues.id,
       FirmCode: formValues.firmCode.trim(),
       FirmName: formValues.firmName.trim().toUpperCase(),
-      FirmType: formValues.firmType,
+      FirmType: firmTypeValue,
       IsDeleted: false,
     };
 

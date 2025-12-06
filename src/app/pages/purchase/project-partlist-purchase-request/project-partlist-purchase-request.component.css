@@ -1,5 +1,5 @@
 .fs-12 {
-  font-size: 0.75rem;
+  font-size: 0.75rem!important;
 }
 
 .reset {
@@ -30,4 +30,19 @@
 
 .ant-splitter {
   height: 93vh !important;
+}
+
+.card-body.fs-12 .ant-picker,
+.card-body.fs-12 .ant-picker-input > input,
+.card-body.fs-12 .ant-picker-input input,
+.card-body.fs-12 .ant-select-selector,
+.card-body.fs-12 .ant-select-selection-item,
+.card-body.fs-12 .ant-select-selection-placeholder,
+.card-body.fs-12 .ant-input,
+.card-body.fs-12 nz-select .ant-select-selector,
+.card-body.fs-12 nz-select .ant-select-selection-item,
+.card-body.fs-12 nz-select .ant-select-selection-placeholder,
+.card-body.fs-12 nz-date-picker .ant-picker,
+.card-body.fs-12 nz-date-picker .ant-picker-input > input {
+  font-size: 0.75rem !important;
 }

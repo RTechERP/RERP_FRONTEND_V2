@@ -11,6 +11,7 @@ import { NzButtonModule } from 'ng-zorro-antd/button';
 import { NzIconModule } from 'ng-zorro-antd/icon';
 import { DEFAULT_TABLE_CONFIG } from '../../../../tabulator-default.config';
 import { NOTIFICATION_TITLE } from '../../../../app.config';
+import { HasPermissionDirective } from '../../../../directives/has-permission.directive';
 
 @Component({
   selector: 'app-product-location-technical',
@@ -21,6 +22,7 @@ import { NOTIFICATION_TITLE } from '../../../../app.config';
     NzModalModule,
     NzButtonModule,
     NzIconModule
+    ,HasPermissionDirective
   ],
   templateUrl: './product-location-technical.component.html',
   styleUrls: ['./product-location-technical.component.css']

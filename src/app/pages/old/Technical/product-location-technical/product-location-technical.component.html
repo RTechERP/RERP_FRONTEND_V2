@@ -4,13 +4,13 @@
       <div class="d-flex align-items-center justify-content-between">
         <!-- Nhóm nút bên trái -->
         <div class="d-flex align-items-center gap-2">
-          <button class="btn-add" nz-button nzType="default" nzSize="small" (click)="onAddProductLocation()">
+          <button class="btn-add" nz-button nzType="default" nzSize="small" *hasPermission="'N26,N1,N34,N80'" (click)="onAddProductLocation()">
             <nz-icon nzType="plus" /> Thêm
           </button>
-          <button class="btn-edit" nz-button nzType="default" nzSize="small" (click)="onEditProductLocation()">
+          <button class="btn-edit" nz-button nzType="default" nzSize="small" *hasPermission="'N26,N1,N34,N80'" (click)="onEditProductLocation()">
             <nz-icon nzType="edit" nzTheme="fill" /> Sửa
           </button>
-          <button class="btn-delete" nz-button nzType="default" nzSize="small" (click)="onDeleteProductLocation()">
+          <button class="btn-delete" nz-button nzType="default" nzSize="small" *hasPermission="'N26,N1,N34,N80'" (click)="onDeleteProductLocation()">
             <nz-icon nzType="delete" nzTheme="fill" /> Xóa
           </button>
           <button class="btn-refresh" nz-button nzType="default" nzSize="small" (click)="onRefresh()">

@@ -151,7 +151,7 @@ export class ProjectPartlistPriceRequestComponent implements OnInit {
   supplierSearchFields: string[] = ['Code', 'NameNCC'];
   currencyColumns: ColumnDefinition[] = [
     { title: 'Mã', field: 'Code', width: 120, headerSort: false },
-    { title: 'Tỷ giá', field: 'CurrencyRate', width: 150, headerSort: false, hozAlign: 'right', formatter: 'money', formatterParams: { thousand: ',', decimal: '.', precision: 4 } },
+    { title: 'Tỷ giá', field: 'CurrencyRate', width: 150, headerSort: false, hozAlign: 'right', formatter: 'money', formatterParams: { thousand: ',', decimal: '.', precision: 2 } },
   ];
   currencySearchFields: string[] = ['Code'];
 
@@ -2300,16 +2300,37 @@ export class ProjectPartlistPriceRequestComponent implements OnInit {
           }).format(numValue);
         }
 
-        // Xử lý trường ngày báo giá
-        if (col.field === 'DatePriceQuote') {
-          if (
-            !value ||
-            value === '' ||
-            (typeof value === 'object' && Object.keys(value).length === 0)
-          ) {
-            return '';
+        // Format date columns thành dd/MM/yyyy
+        if (
+          ['DatePriceQuote', 'DateRequest', 'Deadline', 'DateExpected', 'DateHistoryPrice', 'LeadTime'].includes(col.field)
+        ) {
+          if (!value) return '';
+          // Xử lý nhiều kiểu dữ liệu date
+          let dateValue: DateTime | null = null;
+          if (value instanceof Date) {
+            dateValue = DateTime.fromJSDate(value);
+          } else if (typeof value === 'string') {
+            dateValue = DateTime.fromISO(value);
+            if (!dateValue.isValid) {
+              // Thử các format khác
+              const formats = ['yyyy/MM/dd', 'dd/MM/yyyy', 'yyyy-MM-dd', 'MM/dd/yyyy'];
+              for (const format of formats) {
+                dateValue = DateTime.fromFormat(value, format);
+                if (dateValue.isValid) break;
+              }
+            }
           }
-          return value;
+          return dateValue && dateValue.isValid ? dateValue.toFormat('dd/MM/yyyy') : '';
+        }
+
+        // Format VAT và TotalDayLeadTime theo en-US
+        if (col.field === 'VAT' || col.field === 'TotalDayLeadTime') {
+          if (value === null || value === undefined || value === '') return '';
+          const numValue = Number(value) || 0;
+          return new Intl.NumberFormat('en-US', {
+            minimumFractionDigits: 0,
+            maximumFractionDigits: col.field === 'VAT' ? 2 : 0,
+          }).format(numValue);
         }
 
         // Xử lý trường select với lookup
@@ -2555,12 +2576,11 @@ export class ProjectPartlistPriceRequestComponent implements OnInit {
 
         groupHeaderRow.font = { bold: true, name: 'Tahoma' };
         groupHeaderRow.alignment = { horizontal: 'left', wrapText: true };
+        
+        // Merge cells từ cột A đến cột cuối cùng (dựa trên số cột thực tế)
+        const lastColumnLetter = this.getColumnLetter(columns.length);
         worksheet.mergeCells(
-          `A${groupHeaderRow.number}:${worksheet.columns.length > 0
-            ? worksheet.getColumn(worksheet.columns.length).letter +
-            groupHeaderRow.number
-            : 'A' + groupHeaderRow.number
-          }`
+          `A${groupHeaderRow.number}:${lastColumnLetter}${groupHeaderRow.number}`
         );
 
         // Thêm các dòng dữ liệu trong nhóm
@@ -2588,12 +2608,38 @@ export class ProjectPartlistPriceRequestComponent implements OnInit {
               }).format(numValue);
             }
 
+            // Format date columns thành dd/MM/yyyy
             if (
-              ['DatePriceQuote', 'DateRequest', 'Deadline'].includes(col.field)
-            )
-              return value
-                ? DateTime.fromJSDate(value).toFormat('yyyy/MM/dd')
-                : '';
+              ['DatePriceQuote', 'DateRequest', 'Deadline', 'DateExpected', 'DateHistoryPrice', 'LeadTime'].includes(col.field)
+            ) {
+              if (!value) return '';
+              // Xử lý nhiều kiểu dữ liệu date
+              let dateValue: DateTime | null = null;
+              if (value instanceof Date) {
+                dateValue = DateTime.fromJSDate(value);
+              } else if (typeof value === 'string') {
+                dateValue = DateTime.fromISO(value);
+                if (!dateValue.isValid) {
+                  // Thử các format khác
+                  const formats = ['yyyy/MM/dd', 'dd/MM/yyyy', 'yyyy-MM-dd', 'MM/dd/yyyy'];
+                  for (const format of formats) {
+                    dateValue = DateTime.fromFormat(value, format);
+                    if (dateValue.isValid) break;
+                  }
+                }
+              }
+              return dateValue && dateValue.isValid ? dateValue.toFormat('dd/MM/yyyy') : '';
+            }
+
+            // Format VAT và TotalDayLeadTime theo en-US
+            if (col.field === 'VAT' || col.field === 'TotalDayLeadTime') {
+              if (value === null || value === undefined || value === '') return '';
+              const numValue = Number(value) || 0;
+              return new Intl.NumberFormat('en-US', {
+                minimumFractionDigits: 0,
+                maximumFractionDigits: col.field === 'VAT' ? 2 : 0,
+              }).format(numValue);
+            }
 
             if (col.field === 'CurrencyID') {
               const currency = this.dtcurrency?.find(
@@ -2817,10 +2863,10 @@ export class ProjectPartlistPriceRequestComponent implements OnInit {
             fgColor: { argb: 'FFd9edf7' },
           };
           groupHeader.alignment = { wrapText: true };
+          // Merge cells từ cột A đến cột cuối cùng
+          const lastColumnLetter = this.getColumnLetter(columns.length);
           sheet.mergeCells(
-            `A${groupHeader.number}:${String.fromCharCode(
-              65 + columns.length - 1
-            )}${groupHeader.number}`
+            `A${groupHeader.number}:${lastColumnLetter}${groupHeader.number}`
           );
 
           // Dữ liệu trong group
@@ -2850,14 +2896,41 @@ export class ProjectPartlistPriceRequestComponent implements OnInit {
                 }).format(numValue);
               }
 
+              // Format date columns thành dd/MM/yyyy
               if (
-                ['DatePriceQuote', 'DateRequest', 'Deadline'].includes(
+                ['DatePriceQuote', 'DateRequest', 'Deadline', 'DateExpected', 'DateHistoryPrice', 'LeadTime'].includes(
                   col.field
                 )
-              )
-                return DateTime.fromJSDate(value).isValid
-                  ? DateTime.fromJSDate(value).toFormat('DD/MM/YYYY')
-                  : '';
+              ) {
+                if (!value) return '';
+                // Xử lý nhiều kiểu dữ liệu date
+                let dateValue: DateTime | null = null;
+                if (value instanceof Date) {
+                  dateValue = DateTime.fromJSDate(value);
+                } else if (typeof value === 'string') {
+                  dateValue = DateTime.fromISO(value);
+                  if (!dateValue.isValid) {
+                    // Thử các format khác
+                    const formats = ['yyyy/MM/dd', 'dd/MM/yyyy', 'yyyy-MM-dd', 'MM/dd/yyyy'];
+                    for (const format of formats) {
+                      dateValue = DateTime.fromFormat(value, format);
+                      if (dateValue.isValid) break;
+                    }
+                  }
+                }
+                return dateValue && dateValue.isValid ? dateValue.toFormat('dd/MM/yyyy') : '';
+              }
+
+              // Format VAT và TotalDayLeadTime theo en-US
+              if (col.field === 'VAT' || col.field === 'TotalDayLeadTime') {
+                if (value === null || value === undefined || value === '') return '';
+                const numValue = Number(value) || 0;
+                return new Intl.NumberFormat('en-US', {
+                  minimumFractionDigits: 0,
+                  maximumFractionDigits: col.field === 'VAT' ? 2 : 0,
+                }).format(numValue);
+              }
+
               if (col.field === 'CurrencyID') {
                 const cur = this.dtcurrency?.find((c) => c.ID === value);
                 return cur ? cur.Code : '';
@@ -3628,6 +3701,12 @@ export class ProjectPartlistPriceRequestComponent implements OnInit {
           width: '100',
           hozAlign: 'right',
           headerSort: false,
+          formatter: 'money',
+          formatterParams: {
+            thousand: ',',
+            decimal: '.',
+            precision: 2,
+          },
         },
         {
           title: 'Đơn giá',
@@ -3733,6 +3812,15 @@ export class ProjectPartlistPriceRequestComponent implements OnInit {
           editor: 'input',
           width: 100,
           hozAlign: 'right',
+          formatter: (cell: any) => {
+            const value = cell.getValue();
+            if (value === null || value === undefined || value === '') return '';
+            const numValue = Number(value) || 0;
+            return new Intl.NumberFormat('en-US', {
+              minimumFractionDigits: 0,
+              maximumFractionDigits: 2,
+            }).format(numValue);
+          },
           cellEdited: (cell: any) => this.HandleCellEdited(cell),
         },
         {
@@ -3784,6 +3872,24 @@ export class ProjectPartlistPriceRequestComponent implements OnInit {
           cellEdited: (cell: any) => this.HandleCellEdited(cell),
           width: 100,
           editor: 'number',
+          formatter: (cell: any) => {
+            const value = cell.getValue();
+            if (value === null || value === undefined || value === '') return '';
+            const numValue = Number(value) || 0;
+            return new Intl.NumberFormat('en-US', {
+              minimumFractionDigits: 0,
+              maximumFractionDigits: 0,
+            }).format(numValue);
+          },
+          bottomCalcFormatter: (cell: any) => {
+            const value = cell.getValue();
+            if (value === null || value === undefined || value === '') return '';
+            const numValue = Number(value) || 0;
+            return new Intl.NumberFormat('en-US', {
+              minimumFractionDigits: 0,
+              maximumFractionDigits: 0,
+            }).format(numValue);
+          },
         },
         {
           title: 'Ngày dự kiến hàng về',
@@ -3976,5 +4082,18 @@ export class ProjectPartlistPriceRequestComponent implements OnInit {
         },
       ],
     };
+  }
+
+  /**
+   * Helper function để chuyển số cột thành chữ cái (A, B, C, ..., Z, AA, AB, ...)
+   */
+  private getColumnLetter(columnNumber: number): string {
+    let letter = '';
+    while (columnNumber > 0) {
+      const remainder = (columnNumber - 1) % 26;
+      letter = String.fromCharCode(65 + remainder) + letter;
+      columnNumber = Math.floor((columnNumber - 1) / 26);
+    }
+    return letter;
   }
 }

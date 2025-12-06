@@ -1711,7 +1711,7 @@ export class PONCCComponent implements OnInit, AfterViewInit {
           );
         })
         .catch((reason) => {
-          console.log(`Modal thứ ${index + 1} bị tắt (dismiss):`, reason);
+          //   console.log(`Modal thứ ${index + 1} bị tắt (dismiss):`, reason);
 
           this.openBillImportModalSequentially(
             listData,
@@ -1748,19 +1748,19 @@ export class PONCCComponent implements OnInit, AfterViewInit {
       //   console.log(id);
       this.srv.printPO(id, false).subscribe({
         next: (respose) => {
-          console.log(respose.data);
+          //   console.log(respose.data);
 
-          console.log(
-            'picPrepared',
-            urlImage + `${respose.data.po.Code.trim()}.png`
-          );
-          console.log(
-            'picDirector',
-            urlImage +
-              `/seal${respose.data.po.CompanyText.trim().toUpperCase()}.png`
-          );
+          //   console.log(
+          //     'picPrepared',
+          //     urlImage + `${respose.data.po.Code.trim()}.png`
+          //   );
+          //   console.log(
+          //     'picDirector',
+          //     urlImage +
+          //       `/seal${respose.data.po.CompanyText.trim().toUpperCase()}.png`
+          //   );
 
-          let billCode = '';
+          let billCode = respose.data.po.BillCode;
           let docDefinition: any = this.onCreatePDFLanguageEn(respose.data);
           if (language == 'vi')
             docDefinition = this.onCreatePDFLanguageVi(respose.data);
@@ -1770,16 +1770,16 @@ export class PONCCComponent implements OnInit, AfterViewInit {
             const newWindow = window.open('');
             if (newWindow) {
               newWindow.document.write(`
-        <html>
-          <head>
-            <title>${billCode}</title>
-            <link rel="icon" type="image/x-icon" href="icon-logo-RTC-2023.png" />
-          </head>
-          <body style="margin:0">
-            <iframe src="${dataUrl}" style="width:100%;height:100vh;" frameborder="0"></iframe>
-          </body>
-        </html>
-      `);
+                                        <html>
+                                        <head>
+                                            <title>${billCode}</title>
+                                            <link rel="icon" type="image/x-icon" href="icon-logo-RTC-2023.png" />
+                                        </head>
+                                        <body style="margin:0">
+                                            <iframe src="${dataUrl}" style="width:100%;height:100vh;" frameborder="0"></iframe>
+                                        </body>
+                                        </html>
+                                    `);
               newWindow.document.close();
             }
           });
@@ -1819,6 +1819,23 @@ export class PONCCComponent implements OnInit, AfterViewInit {
     let poDetails = data.poDetails;
     let taxCompany = data.taxCompany;
 
+    const totalAmount = poDetails.reduce(
+      (sum: number, x: any) => sum + x.ThanhTien,
+      0
+    );
+    const vatMoney = poDetails.reduce(
+      (sum: number, x: any) => sum + x.VATMoney,
+      0
+    );
+    const discount = poDetails.reduce(
+      (sum: number, x: any) => sum + x.Discount,
+      0
+    );
+    const totalPrice = poDetails.reduce(
+      (sum: number, x: any) => sum + x.TotalPrice,
+      0
+    );
+
     let items: any = [];
 
     for (let i = 0; i < poDetails.length; i++) {
@@ -1826,11 +1843,14 @@ export class PONCCComponent implements OnInit, AfterViewInit {
         { text: poDetails[i].STT, alignment: 'center' },
         { text: poDetails[i].ProductCodeOfSupplier, alignment: '' },
         { text: poDetails[i].UnitName, alignment: '' },
-        { text: poDetails[i].QtyRequest.toFixed(2), alignment: 'right' },
-        { text: poDetails[i].UnitPrice.toFixed(2), alignment: 'right' },
-        { text: poDetails[i].ThanhTien.toFixed(2), alignment: 'right' },
-        { text: poDetails[i].VAT.toFixed(2), alignment: 'right' },
-        { text: poDetails[i].VATMoney.toFixed(2), alignment: 'right' },
+        {
+          text: this.formatNumber(poDetails[i].QtyRequest),
+          alignment: 'right',
+        },
+        { text: this.formatNumber(poDetails[i].UnitPrice), alignment: 'right' },
+        { text: this.formatNumber(poDetails[i].ThanhTien), alignment: 'right' },
+        { text: this.formatNumber(poDetails[i].VAT), alignment: 'right' },
+        { text: this.formatNumber(poDetails[i].VATMoney), alignment: 'right' },
       ];
       items.push(item);
     }
@@ -1932,7 +1952,7 @@ export class PONCCComponent implements OnInit, AfterViewInit {
                 'Legal Representative:',
                 { colSpan: 5, text: taxCompany.LegalRepresentativeEnglish },
               ],
-              ['Purchaser:', { colSpan: 5, text: '@Purchaser:' }],
+              ['Purchaser:', { colSpan: 5, text: po.Purchaser }],
             ],
           },
           layout: 'noBorders',
@@ -1941,7 +1961,7 @@ export class PONCCComponent implements OnInit, AfterViewInit {
         {
           style: 'tableExample',
           table: {
-            widths: [20, 130, 30, 46, '*', '*', '*', '*'],
+            widths: [20, 130, 30, 46, '*', '*', 30, '*'],
             body: [
               //Header table
               [
@@ -1965,7 +1985,11 @@ export class PONCCComponent implements OnInit, AfterViewInit {
                 { colSpan: 3, text: po.RuleIncoterm, style: 'header' },
                 '',
                 '',
-                { colSpan: 3, text: 'Sum(ThanhTien)' },
+                {
+                  colSpan: 3,
+                  text: this.formatNumber(totalAmount),
+                  alignment: 'right',
+                },
               ],
               [
                 { colSpan: 2, text: '' },
@@ -1973,7 +1997,11 @@ export class PONCCComponent implements OnInit, AfterViewInit {
                 { colSpan: 3, text: 'VAT amount' },
                 '',
                 '',
-                { colSpan: 3, text: 'Sum(VATMoney)' },
+                {
+                  colSpan: 3,
+                  text: this.formatNumber(vatMoney),
+                  alignment: 'right',
+                },
               ],
               [
                 { colSpan: 2, text: '' },
@@ -1981,7 +2009,11 @@ export class PONCCComponent implements OnInit, AfterViewInit {
                 { colSpan: 3, text: 'Discount' },
                 '',
                 '',
-                { colSpan: 3, text: 'Sum(Discount)' },
+                {
+                  colSpan: 3,
+                  text: this.formatNumber(discount),
+                  alignment: 'right',
+                },
               ],
               [
                 { colSpan: 2, text: '' },
@@ -1989,12 +2021,16 @@ export class PONCCComponent implements OnInit, AfterViewInit {
                 { colSpan: 3, text: 'Total payment' },
                 '',
                 '',
-                { colSpan: 3, text: 'Sum(TotalPrice)' },
+                {
+                  colSpan: 3,
+                  text: this.formatNumber(totalPrice),
+                  alignment: 'right',
+                },
               ],
               [
                 { colSpan: 2, text: 'Total amount (In words):' },
                 '',
-                { colSpan: 6, text: '@TotalAmountText' },
+                { colSpan: 6, text: po.TotalAmountText },
               ],
             ],
           },
@@ -2036,18 +2072,15 @@ export class PONCCComponent implements OnInit, AfterViewInit {
         {
           alignment: 'justify',
           columns: [
-            {
-              image: '',
-              width: 150,
-            },
-            {
-              image: this.convertUrlToBase64(picPrepared),
-              width: 150,
-            },
-            {
-              image: this.convertUrlToBase64(picDirector),
-              width: 150,
-            },
+            // { text: '', style: '' },
+            // {
+            //   image: this.convertUrlToBase64(picPrepared),
+            //   width: 150,
+            // },
+            // {
+            //   image: this.convertUrlToBase64(picDirector),
+            //   width: 150,
+            // },
           ],
         },
       ],
@@ -2090,5 +2123,12 @@ export class PONCCComponent implements OnInit, AfterViewInit {
     } catch (e) {
       return ''; // lỗi mạng / CORS / timeout → rỗng
     }
+  }
+
+  formatNumber(num: number, digits: number = 2) {
+    return num.toLocaleString('vi-VN', {
+      minimumFractionDigits: digits,
+      maximumFractionDigits: digits,
+    });
   }
 }

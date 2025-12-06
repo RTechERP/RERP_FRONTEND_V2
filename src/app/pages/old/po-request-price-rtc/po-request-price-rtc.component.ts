@@ -61,6 +61,7 @@ import { DEFAULT_TABLE_CONFIG } from '../../../tabulator-default.config';
 
 import { PoRequestPriceRtcService } from './po-request-price-rtc-service/po-request-price-rtc.service';
 import { TradePriceService } from '../Sale/TinhGia/trade-price/trade-price/trade-price.service';
+import { AppUserService } from '../../../services/app-user.service';
 @Component({
   selector: 'app-po-request-price-rtc',
   imports: [
@@ -108,6 +109,8 @@ export class PoRequestPriceRtcComponent implements OnInit, AfterViewInit{
 
   formUserData: any[] = [];
   data: any[]= [];
+  isUserIdDisabled: boolean = false;
+
   constructor(
     private poRequestPriceRtcService: PoRequestPriceRtcService,
     private notification: NzNotificationService,
@@ -116,10 +119,23 @@ export class PoRequestPriceRtcComponent implements OnInit, AfterViewInit{
     private appRef: ApplicationRef,
     private modalService: NgbModal,
     public activeModal: NgbActiveModal,
-    private tradePriceService : TradePriceService
+    private tradePriceService : TradePriceService,
+    private appUserService: AppUserService
   ) {}
 
   ngOnInit(): void {
+    // Kiểm tra quyền admin và set userId
+    const isAdmin = this.appUserService.isAdmin;
+    this.isUserIdDisabled = !isAdmin;
+    
+    // Nếu không phải admin, set userId của user hiện tại
+    if (!isAdmin) {
+      const currentUserId = this.appUserService.id;
+      if (currentUserId) {
+        this.formData.userId = currentUserId;
+      }
+    }
+
     this.loadData(this.id);
     this.loadUserData();
   }
@@ -229,6 +245,8 @@ export class PoRequestPriceRtcComponent implements OnInit, AfterViewInit{
         IsCommercialProduct: true, // hàng thương mại
         POKHDetailID: rowData['ID'] || 0,
         Note: rowData['Note'] || '',
+        Maker: rowData['Maker'] || '',
+        Unit: rowData['Unit'] || '',
       };
 
       requests.push(request);
@@ -478,13 +496,14 @@ export class PoRequestPriceRtcComponent implements OnInit, AfterViewInit{
               title: 'Mã Sản Phẩm',
               field: 'ProductCode',
               sorter: 'string',
-              width: 100,
+              width: 250,
             },
             {
               title: 'Tên sản phẩm',
               field: 'ProductName',
               sorter: 'string',
-              width: 200,
+              formatter: 'textarea',
+              width: 250,
             },
             { title: 'Hãng', field: 'Maker', sorter: 'string', width: 100 },
             {
@@ -564,6 +583,7 @@ export class PoRequestPriceRtcComponent implements OnInit, AfterViewInit{
               title: 'Trạng thái yêu cầu',
               field: 'IsPriceRequestStatus',
               sorter: 'boolean',
+              hozAlign: 'center',
               width: 100,
               formatter: (cell) => {
                 const checked = cell.getValue() ? 'checked' : '';
@@ -590,6 +610,7 @@ export class PoRequestPriceRtcComponent implements OnInit, AfterViewInit{
               title: 'Check giá',
               field: 'IsCheckPrice',
               sorter: 'boolean',
+              hozAlign: 'center',
               width: 100,
               formatter: (cell) => {
                 const checked = cell.getValue() ? 'checked' : '';

@@ -70,7 +70,7 @@ import { ProjectTypeBaseDetailComponent } from '../project-type-base-detail/proj
   ]
 })
 export class FollowProjectBaseDetailComponent implements OnInit {
-
+  @Input() warehouseID: number = 0;
   expectedPODate: any;
   realityPODate: any;
 
@@ -484,7 +484,7 @@ export class FollowProjectBaseDetailComponent implements OnInit {
         DateDoneSale: this.validateForm.get('dateDoneSale')?.value ?? null,
         DateWillDoSale: this.validateForm.get('dateWillDoSale')?.value ?? null,
 
-        WarehouseID: 1
+        WarehouseID: this.warehouseID
       };
       this.khoBaseService.postSaveFollowProjectBase(followProject).subscribe({
         next: (response: any) => {

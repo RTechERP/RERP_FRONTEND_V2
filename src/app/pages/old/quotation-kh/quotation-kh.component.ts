@@ -733,6 +733,7 @@ export class QuotationKhComponent implements OnInit, AfterViewInit {
   initDetailTable(): void {
     this.detailTable = new Tabulator(this.tb_DetailTableElement.nativeElement, {
       ...DEFAULT_TABLE_CONFIG,
+      paginationMode: 'local',
       height: '100%',
       data: this.dataDetail,
       rowHeader: false,

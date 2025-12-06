@@ -19,9 +19,19 @@ export class KhoBaseService {
 
   GlobalEmployeeId: number = 78;
   LoginName: string = 'ADMIN';
-  ISADMIN: boolean = true;
 
-
+  getUserSale(userId: number, isAdmin: boolean, isAdminSale: number): Observable<any> {
+    return this.http.get<any>(
+      this._url + `followprojectbase/get-user-sale`,
+      {
+        params: {
+          userId: userId.toString(),
+          isAdmin: isAdmin.toString(),
+          isAdminSale: isAdminSale.toString()
+        }
+      }
+    );
+  }
 
   getGroupSaleUser(params: any): Observable<any> {
     return this.http.get<any>(

@@ -428,6 +428,7 @@ export class RequestInvoiceComponent implements OnInit, AfterViewInit {
       ...DEFAULT_TABLE_CONFIG,
       data: this.data,
       layout: 'fitDataFill',
+      paginationMode: 'local',
       height: '100%',
       selectableRows: 1,
       rowHeader: false,
@@ -536,6 +537,7 @@ export class RequestInvoiceComponent implements OnInit, AfterViewInit {
       layout: 'fitDataFill',
       height: '100%',
       selectableRows: 1,
+      paginationMode: 'local',
       rowHeader: false,
       columns: [
         {

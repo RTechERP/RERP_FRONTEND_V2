@@ -20,7 +20,8 @@
           <div class="col">
             <label class="mb-0 fs-12">Người yêu cầu</label>
             <nz-select nzShowSearch nzAllowClear class="w-100" nzSize="small"
-                       [(ngModel)]="formData.userId" name="userId">
+                       [(ngModel)]="formData.userId" name="userId"
+                       [nzDisabled]="isUserIdDisabled">
               <nz-option *ngFor="let item of this.formUserData"
                          [nzValue]="item.UserID"
                          [nzLabel]="item.Code + '-' + item.FullName">

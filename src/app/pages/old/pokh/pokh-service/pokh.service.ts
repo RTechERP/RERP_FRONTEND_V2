@@ -158,4 +158,8 @@ export class PokhService {
       responseType: 'blob',
     });
   }
+
+  checkProductSaleList(excelData: any[]): Observable<any> {
+    return this.http.post<any>(this._url + 'check-productsale', { excelData });
+  }
 }

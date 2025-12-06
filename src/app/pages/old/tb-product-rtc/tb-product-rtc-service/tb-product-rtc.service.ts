@@ -14,8 +14,8 @@ export class TbProductRtcService {
   getProductRTC(request: any) {
     return this.http.post<any>(`${this.url + `get-productRTC`}`, request);
   }
-  getProductRTCCode() {
-    return this.http.get<any>(`${this.url + `get-product-code`}`);
+  getProductRTCCode(productGroupID: number) {
+    return this.http.get<any>(`${this.url + `get-product-code`}?productGroupID=${productGroupID}`);
   }
   getFirm(firmType: number) {
     return this.http.get<any>(`${this.urlFirm}?firmType=${firmType}`);

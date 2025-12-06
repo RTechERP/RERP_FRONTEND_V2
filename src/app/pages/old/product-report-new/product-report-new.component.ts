@@ -82,6 +82,8 @@ export class ProductReportNewComponent implements OnInit, AfterViewInit {
   //Biến phân loại kiểu phiếu
   selectedBillType: number | null = null;
   //Bảng lịch sử nhập xuất
+  @ViewChild('dataTableHistoryBillRef', { static: false })
+  dataTableHistoryBillRef!: ElementRef;
   historyBillTable: Tabulator | null = null;
   selectedAll: number[] = []; // hoặc string[] nếu ID là chuỗi
   allData: { ID: number; Name: string; Date: string }[] = [];
@@ -100,15 +102,27 @@ export class ProductReportNewComponent implements OnInit, AfterViewInit {
   sizeTbDetail: any = '0';
   isSearchVisible: boolean = false;
   // danh sách loại phiếu nhập kĩ thuật
-  billTypeList: any = [
-    { ID: 1, Name: 'Mượn NCC' },
-    { ID: 2, Name: 'Mua NCC' },
-    { ID: 3, Name: 'Trả' },
-    { ID: 4, Name: 'Nhập nội bộ' },
-    { ID: 5, Name: 'Y/c nhập kho' },
-    { ID: 6, Name: 'Nhập hàng bảo hành' },
-    { ID: 7, Name: 'NCC tặng/cho' },
-  ];
+  get billTypeList(): any[] {
+    return this.selectedStatus === 0 ? [
+      { ID: 1, Name: 'Mượn NCC' },
+      { ID: 2, Name: 'Mua NCC' },
+      { ID: 3, Name: 'Trả' },
+      { ID: 4, Name: 'Nhập nội bộ' },
+      { ID: 5, Name: 'Y/c nhập kho' },
+      { ID: 6, Name: 'Nhập hàng bảo hành' },
+      { ID: 7, Name: 'NCC tặng/cho' },
+    ] : [
+      { ID: 0, Name: 'Trả' },
+      { ID: 1, Name: 'Cho mượn' },
+      { ID: 2, Name: 'Tặng / Bán' },
+      { ID: 3, Name: 'Mất' },
+      { ID: 4, Name: 'Bảo hành' },
+      { ID: 5, Name: 'Xuất dự án' },
+      { ID: 6, Name: 'Hỏng' },
+      { ID: 7, Name: 'Xuất kho' },
+    ];
+  }
+  
   statusList: any = [
     { ID: 1, Name: 'Phiếu Xuất' },
     { ID: 0, Name: 'Phiếu Nhập' },
@@ -126,17 +140,21 @@ export class ProductReportNewComponent implements OnInit, AfterViewInit {
     @Optional() @Inject('tabData') private tabData: any
   ) {}
   ngOnInit() {
+    // Set filter mặc định là 0 (Phiếu Nhập)
+    this.selectedStatus = 0;
+    
     if (this.tabData) {
       this.warehouseID = this.tabData.warehouseID || 1;
       this.warehouseType = this.tabData.warehouseType || 1;
     }
   }
   ngAfterViewInit(): void {
-    this.drawTable();
     //gán dateStart, dateEnd là ngày đầu tháng và cuối tháng
     const now = DateTime.now();
     this.dateStart = now.startOf('month').toJSDate();
     this.dateEnd = now.endOf('month').toJSDate();
+    
+    this.drawTable();
   }
   drawTable() {
     //Menu khi click chuột phải vào dòng
@@ -213,7 +231,11 @@ export class ProductReportNewComponent implements OnInit, AfterViewInit {
       },
     ];
     //Vẽ bảng lịch sử nhập xuất
-    this.historyBillTable = new Tabulator('#dataTableHistoryBill', {
+    if (!this.dataTableHistoryBillRef?.nativeElement) {
+      console.error('Table element not found');
+      return;
+    }
+    this.historyBillTable = new Tabulator(this.dataTableHistoryBillRef.nativeElement, {
       ...DEFAULT_TABLE_CONFIG,
       rowContextMenu: rowMenu,
       ajaxURL: this.productReportNewService.getInventoryNCCAjax(),

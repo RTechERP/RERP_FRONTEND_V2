@@ -7,16 +7,16 @@
 <ng-container #vcHost></ng-container>
 
 <div class="modal-header bg-primary p-2">
-  <h6 class="modal-title text-white" id="assetModalLabel">Phiếu xuất tồn kho DEMO</h6>
+  <h6 class="modal-title text-white text-uppercase" id="assetModalLabel">Phiếu xuất tồn kho DEMO</h6>
   <button type="button" class="btn-close" aria-label="Close" (click)="close()"></button>
 </div>
 
 <div class="modal-body">
   <!-- === PHẦN TRÊN: FORM THIẾT BỊ === -->
-  <form nz-form [formGroup]="formDeviceInfo" nzLayout="vertical" class="fs-7 mt-1 tab-content-equal-height">
+  <form nz-form [formGroup]="formDeviceInfo" nzLayout="vertical" class="fs-7 mt-1 tab-content-equal-height" style="font-size: 12px;">
+    <!-- Row 1: Số phiếu (24 nếu isBorrowType, 16 nếu không) Người mượn(8) -->
     <nz-row [nzGutter]="24">
-      <!-- Số phiếu -->
-      <nz-col [nzSpan]="7">
+      <nz-col [nzSpan]="!isBorrowType ? 24 : 16">
         <nz-form-item>
           <nz-form-label required>Số phiếu<span style="color: red">(*)</span></nz-form-label>
           <nz-form-control [nzErrorTip]="'Vui lòng nhập số phiếu'">
@@ -24,8 +24,7 @@
           </nz-form-control>
         </nz-form-item>
       </nz-col>
-      <!-- Người mượn-->
-      <nz-col [nzSpan]="7">
+      <nz-col [nzSpan]="8" *ngIf="isBorrowType">
         <nz-form-item>
           <nz-form-label required>Người mượn<span style="color: red">(*)</span></nz-form-label>
           <nz-form-control [nzErrorTip]="'Vui lòng chọn người mượn'">
@@ -41,33 +40,73 @@
           </nz-form-control>
         </nz-form-item>
       </nz-col>
-      <!-- liên hệ-->
-      <nz-col [nzSpan]="5">
-        <nz-form-item>
-          <nz-form-label required>Liên hệ<span style="color: red">(*)</span></nz-form-label>
-          <nz-form-control [nzErrorTip]="'Vui lòng nhập người liên hệ'">
-            <input nz-input formControlName="Deliver" name="Deliver" [disabled]="true" />
-
-          </nz-form-control>
-        </nz-form-item>
-      </nz-col>
-      <!-- Nhà cung cấp-->
-      <nz-col [nzSpan]="5">
+    </nz-row>
+    
+    <!-- Row 2: Nhà cung cấp(16) Liên hệ (8) -->
+    <nz-row [nzGutter]="24">
+      <nz-col [nzSpan]="16">
         <nz-form-item>
           <nz-form-label>Nhà cung cấp<span style="color: red">(*)</span></nz-form-label>
-
           <nz-form-control [nzErrorTip]="'Vui lòng chọn nhà cung cấp'">
             <nz-select formControlName="SupplierSaleID" nzPlaceHolder="Chọn nhà cung cấp" name="SupplierSaleID">
               <nz-option *ngFor="let item of nccList" [nzValue]="item.ID"
-                [nzLabel]="item.CodeNCC + ' - ' + item.NameNCC">
+                [nzLabel]="item.NameNCC" nzCustomContent>
+                {{ item.CodeNCC }} - {{ item.NameNCC }}
               </nz-option></nz-select>
           </nz-form-control>
         </nz-form-item>
       </nz-col>
+      <nz-col [nzSpan]="8">
+        <nz-form-item>
+          <nz-form-label required>Liên hệ<span style="color: red">(*)</span></nz-form-label>
+          <nz-form-control [nzErrorTip]="'Vui lòng nhập người liên hệ'">
+            <input nz-input formControlName="Deliver" name="Deliver" [disabled]="true" />
+          </nz-form-control>
+        </nz-form-item>
+      </nz-col>
     </nz-row>
-    <!-- Dự án-->
+    
+    <!-- Row 3: Loại kho(12) Loại(4) Ngày xuất(8) -->
     <nz-row [nzGutter]="24">
-      <nz-col [nzSpan]="7">
+      <nz-col [nzSpan]="12">
+        <nz-form-item>
+          <nz-form-label>Loại kho<span style="color: red">(*)</span></nz-form-label>
+          <nz-form-control [nzErrorTip]="'Vui lòng nhập loại kho'">
+            <input nz-input formControlName="WarehouseType" name="WarehouseType" />
+          </nz-form-control>
+        </nz-form-item>
+      </nz-col>
+      <nz-col [nzSpan]="4">
+        <nz-form-item>
+          <nz-form-label>Loại <span style="color: red">(*)</span></nz-form-label>
+          <nz-form-control [nzErrorTip]="'Vui lòng chọn loại phiếu '">
+            <nz-select formControlName="BillType" nzPlaceHolder="Chọn loại phiếu" name="BillType" (ngModelChange)="onBillTypeChange($event)">
+              <nz-option [nzValue]="0" nzLabel="Trả"></nz-option>
+              <nz-option [nzValue]="1" nzLabel="Cho mượn"></nz-option>
+              <nz-option [nzValue]="2" nzLabel="Tặng / Bán"></nz-option>
+              <nz-option [nzValue]="3" nzLabel="Mất"></nz-option>
+              <nz-option [nzValue]="4" nzLabel="Bảo hành"></nz-option>
+              <nz-option [nzValue]="5" nzLabel="Xuất dự án"></nz-option>
+              <nz-option [nzValue]="6" nzLabel="Hỏng"></nz-option>
+              <nz-option [nzValue]="7" nzLabel="Xuất kho"></nz-option>
+            </nz-select>
+          </nz-form-control>
+        </nz-form-item>
+      </nz-col>
+      <nz-col [nzSpan]="8">
+        <nz-form-item>
+          <nz-form-label>Ngày xuất<span style="color: red">(*)</span></nz-form-label>
+          <nz-form-control [nzErrorTip]="'Vui lòng chọn ngày xuất'">
+            <nz-date-picker class="w-100" formControlName="CreatedDate" nzFormat="dd/MM/YYYY" name="CreatedDate">
+            </nz-date-picker>
+          </nz-form-control>
+        </nz-form-item>
+      </nz-col>
+    </nz-row>
+    
+    <!-- Row 4: Dự án(8)Mã QRCode(4) Ngày dự kiến trả(4) Người nhận (8) -->
+    <nz-row [nzGutter]="24">
+      <nz-col [nzSpan]="8">
         <nz-form-item>
           <nz-form-label>Dự án</nz-form-label>
           <nz-form-control>
@@ -75,20 +114,24 @@
           </nz-form-control>
         </nz-form-item>
       </nz-col>
-      <!-- khách hàng-->
-      <nz-col [nzSpan]="7">
+      <nz-col [nzSpan]="!isBorrowType ? 8 : 4">
         <nz-form-item>
-          <nz-form-label>Khách hàng<span style="color: red">(*)</span></nz-form-label>
-          <nz-form-control [nzErrorTip]="'Vui lòng chọn khách hàng'">
-            <nz-select formControlName="CustomerID" nzPlaceHolder="Chọn khách hàng" name="CustomerID"> <nz-option
-                *ngFor="let item of customerList" [nzValue]="item.ID"
-                [nzLabel]="item.CustomerName">
-              </nz-option></nz-select>
+          <nz-form-label>QR Code</nz-form-label>
+          <nz-form-control>
+            <input nz-input formControlName="QRCode" name="QRCode" />
           </nz-form-control>
         </nz-form-item>
       </nz-col>
-      <!-- Người nhận -->
-      <nz-col [nzSpan]="5">
+      <nz-col [nzSpan]="4" *ngIf="isBorrowType">
+        <nz-form-item>
+          <nz-form-label>Ngày dự kiến trả<span style="color: red">(*)</span></nz-form-label>
+          <nz-form-control [nzErrorTip]="'Vui lòng chọn ngày dự kiến trả'">
+            <nz-date-picker class="w-100" formControlName="ExpectedDate" nzFormat="dd/MM/YYYY" name="ExpectedDate">
+            </nz-date-picker>
+          </nz-form-control>
+        </nz-form-item>
+      </nz-col>
+      <nz-col [nzSpan]="8" >
         <nz-form-item>
           <nz-form-label required>Người nhận<span style="color: red">(*)</span></nz-form-label>
           <nz-form-control [nzErrorTip]="'Vui lòng chọn người nhận'">
@@ -104,9 +147,24 @@
           </nz-form-control>
         </nz-form-item>
       </nz-col>
-
-      <!-- Người duyệt-->
-      <nz-col [nzSpan]="5">
+    </nz-row>
+    
+    <!-- Row 5: Khách hàng(16) Người duyệt(8) -->
+    <nz-row [nzGutter]="24">
+      <nz-col [nzSpan]="16">
+        <nz-form-item>
+          <nz-form-label>Khách hàng<span style="color: red">(*)</span></nz-form-label>
+          <nz-form-control [nzErrorTip]="'Vui lòng chọn khách hàng'">
+            <nz-select formControlName="CustomerID" nzPlaceHolder="Chọn khách hàng" name="CustomerID">
+              <nz-option
+                *ngFor="let item of customerList"
+                [nzValue]="item.ID"
+                [nzLabel]="item.CustomerName">
+              </nz-option></nz-select>
+          </nz-form-control>
+        </nz-form-item>
+      </nz-col>
+      <nz-col [nzSpan]="8">
         <nz-form-item>
           <nz-form-label required>Người duyệt<span style="color: red">(*)</span></nz-form-label>
           <nz-form-control [nzErrorTip]="'Vui lòng chọn người duyệt'">
@@ -123,69 +181,9 @@
         </nz-form-item>
       </nz-col>
     </nz-row>
-    <nz-row [nzGutter]="24">
-      <!-- Loại kho -->
-      <nz-col [nzSpan]="5">
-        <nz-form-item>
-          <nz-form-label>Loại kho<span style="color: red">(*)</span></nz-form-label>
-          <nz-form-control  [nzErrorTip]="'Vui lòng nhập loại kho'">
-            <input nz-input formControlName="WarehouseType" name="WarehouseType" />
-          </nz-form-control>
-        </nz-form-item>
-      </nz-col>
-      <!-- Ngày xuất-->
-      <nz-col [nzSpan]="5">
-        <nz-form-item>
-          <nz-form-label>Ngày xuất<span style="color: red">(*)</span></nz-form-label>
-          <nz-form-control [nzErrorTip]="'Vui lòng chọn ngày xuất'">
-            <nz-date-picker class="w-100" formControlName="CreatedDate" nzFormat="dd/MM/YYYY" name="CreatedDate">
-            </nz-date-picker>
-          </nz-form-control>
-
-        </nz-form-item>
-      </nz-col>
-      <!-- Ngày dự kiến trả-->
-      <nz-col [nzSpan]="5">
-        <nz-form-item>
-          <nz-form-label>Ngày dự kiến trả<span style="color: red">(*)</span></nz-form-label>
-          <nz-form-control [nzErrorTip]="'Vui lòng chọn ngày dự kiến trả'">
-            <nz-date-picker class="w-100" formControlName="ExpectedDate" nzFormat="dd/MM/YYYY" name="ExpectedDate">
-            </nz-date-picker>
-          </nz-form-control>
-        </nz-form-item>
-      </nz-col>
-      <!-- QR code-->
-      <nz-col [nzSpan]="5">
-        <nz-form-item>
-          <nz-form-label>QR Code<span style="color: red">(*)</span></nz-form-label>
-          <nz-form-control>
-            <input nz-input formControlName="QRCode" name="QRCode" />
-          </nz-form-control>
-
-        </nz-form-item>
-      </nz-col>
-      <!-- Loại-->
-      <nz-col [nzSpan]="4">
-        <nz-form-item>
-          <nz-form-label>Loại <span style="color: red">(*)</span></nz-form-label>
-          <nz-form-control  [nzErrorTip]="'Vui lòng chọn loại phiếu '">
-            <nz-select formControlName="BillType" nzPlaceHolder="Chọn loại phiếu" name="BillType" (ngModelChange)="onBillTypeChange($event)">
-              <nz-option [nzValue]="0" nzLabel="Trả"></nz-option>
-              <nz-option [nzValue]="1" nzLabel="Cho mượn"></nz-option>
-              <nz-option [nzValue]="2" nzLabel="Tặng / Bán"></nz-option>
-              <nz-option [nzValue]="3" nzLabel="Mất"></nz-option>
-              <nz-option [nzValue]="4" nzLabel="Bảo hành"></nz-option>
-              <nz-option [nzValue]="5" nzLabel="Xuất dự án"></nz-option>
-              <nz-option [nzValue]="6" nzLabel="Hỏng"></nz-option>
-              <nz-option [nzValue]="7" nzLabel="Xuất kho"></nz-option>
-            </nz-select>
-          </nz-form-control>
-        </nz-form-item>
-      </nz-col>
-    </nz-row>
   </form>
   <div class="mt-4">
-    <div id="deviceTempTable" style="height: 50vh;"></div>
+    <div #deviceTempTable style="height: 37vh;"></div>
   </div>
 
 </div>

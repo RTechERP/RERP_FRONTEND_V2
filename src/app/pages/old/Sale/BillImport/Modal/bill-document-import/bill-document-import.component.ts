@@ -42,6 +42,7 @@ import { AppUserService } from '../../../../../../services/app-user.service';
 import { DateTime } from 'luxon';
 import { updateCSS } from 'ng-zorro-antd/core/util';
 import { NOTIFICATION_TITLE } from '../../../../../../app.config';
+import { HasPermissionDirective } from '../../../../../../directives/has-permission.directive';
 
 interface DocumentImportPoNCC {
   ID: number;
@@ -78,6 +79,7 @@ interface DocumentImportPoNCC {
     NzDatePickerModule,
     // ProductSaleDetailComponent,
     // SelectControlComponent,
+    HasPermissionDirective,
   ],
   templateUrl: './bill-document-import.component.html',
   styleUrls: ['./bill-document-import.component.css'],

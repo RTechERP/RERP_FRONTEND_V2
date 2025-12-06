@@ -32,6 +32,7 @@ import {
 } from 'tabulator-tables';
 import 'tabulator-tables/dist/css/tabulator_simple.min.css';
 import { NzTabsModule } from 'ng-zorro-antd/tabs';
+import { NzSpinModule } from 'ng-zorro-antd/spin';
 import { DateTime } from 'luxon';
 import { TsAssetManagementPersonalService } from '../ts-asset-management-personal/ts-asset-management-personal-service/ts-asset-management-personal.service';
 declare var bootstrap: any;
@@ -69,6 +70,7 @@ function formatDateCell(cell: CellComponent): string {
     NzSelectModule,
     NzTableModule,
     NzTabsModule,
+    NzSpinModule,
     NzModalModule,
     HasPermissionDirective,
   ],
@@ -102,7 +104,9 @@ export class BillImportTechnicalComponent implements OnInit, AfterViewInit {
   warehouseID: number = 1;
   selectedApproval: number | null = null;
   isSearchVisible: boolean = false;
+  isDetailLoad: boolean = false;
   title: string = '';
+  tabDetailTitle: string = 'Thông tin phiếu nhập';
   // Danh sách nhân viên
   emPloyeeLists: any[] = [];
   statusData = [
@@ -342,13 +346,22 @@ export class BillImportTechnicalComponent implements OnInit, AfterViewInit {
       const rowData = row.getData();
       const id = rowData['ID'];
       const billcode = rowData['BillCode'];
+      this.selectedRow = rowData;
+      this.updateTabDetailTitle();
+      this.isDetailLoad = true;
       this.billImportTechnicalService
         .getBillImportDetail(id)
-        .subscribe((res) => {
-          const details = Array.isArray(res.billDetail) ? res.billDetail : [];
-          this.billImportTechnicalDetailData = details;
-          console.log('Detail Data', this.billImportTechnicalDetailData);
-          this.drawDetail();
+        .subscribe({
+          next: (res) => {
+            const details = Array.isArray(res.billDetail) ? res.billDetail : [];
+            this.billImportTechnicalDetailData = details;
+            console.log('Detail Data', this.billImportTechnicalDetailData);
+            this.drawDetail();
+            this.isDetailLoad = false;
+          },
+          error: () => {
+            this.isDetailLoad = false;
+          }
         });
     });
     this.billImportTechnicalTable.on(
@@ -356,8 +369,50 @@ export class BillImportTechnicalComponent implements OnInit, AfterViewInit {
       (e: UIEvent, row: RowComponent) => {
         this.selectedRow = row.getData();
         this.sizeTbDetail = null;
+        this.updateTabDetailTitle();
       }
     );
+
+    // Tự động select dòng đầu tiên sau khi data được load
+    this.billImportTechnicalTable.on('dataLoaded', () => {
+      setTimeout(() => {
+        const rows = this.billImportTechnicalTable?.getRows();
+        if (rows && rows.length > 0) {
+          const firstRow = rows[0];
+          firstRow.select();
+          // Trigger rowClick để load detail
+          const rowData = firstRow.getData();
+          const id = rowData['ID'];
+          if (id) {
+            this.isDetailLoad = true;
+            this.billImportTechnicalService
+              .getBillImportDetail(id)
+              .subscribe({
+                next: (res) => {
+                  const details = Array.isArray(res.billDetail) ? res.billDetail : [];
+                  this.billImportTechnicalDetailData = details;
+                  console.log('Detail Data', this.billImportTechnicalDetailData);
+                  this.drawDetail();
+                  this.isDetailLoad = false;
+                },
+                error: () => {
+                  this.isDetailLoad = false;
+                }
+              });
+          }
+          this.selectedRow = rowData;
+          this.sizeTbDetail = null;
+          this.updateTabDetailTitle();
+        }
+      }, 100);
+    });
+  }
+  updateTabDetailTitle(): void {
+    if (this.selectedRow?.BillCode) {
+      this.tabDetailTitle = `Thông tin phiếu nhập - ${this.selectedRow.BillCode}`;
+    } else {
+      this.tabDetailTitle = 'Thông tin phiếu nhập';
+    }
   }
   onSearch(): void {
     this.drawTable(); // Gọi lại bảng với các điều kiện đã binding sẵn: dateStart, dateEnd, selectedApproval, filterText
@@ -377,20 +432,20 @@ export class BillImportTechnicalComponent implements OnInit, AfterViewInit {
           data: this.billImportTechnicalDetailData,
           layout: 'fitDataStretch',
           paginationSize: 5,
-          height: '86vh',
+          height: '100%',
           movableColumns: true,
           reactiveData: true,
           columns: [
-            { title: 'Tên sản phẩm', field: 'ProductName' },
-            { title: 'Serial', field: 'Serial' },
+            { title: 'Tên sản phẩm', field: 'ProductName', width:200 },
+            { title: 'Serial', field: 'Serial', width:200 },
 
             { title: 'Số lượng', field: 'Quantity', hozAlign: 'center' },
             { title: 'ĐVT', field: 'UnitCountName' },
             { title: 'Tình trạng hàng', field: 'WarehouseType' },
-            { title: 'Mã nội bộ', field: 'InternalCode' },
+            { title: 'Mã nội bộ', field: 'InternalCode', width:200 },
             { title: 'Đơn mua hàng', field: 'BillCodePO' },
-            { title: 'Hãng', field: 'Maker' },
-            { title: 'Người cần mượn', field: 'EmployeeBorrowName' },
+            { title: 'Hãng', field: 'Maker', width:200 },
+            { title: 'Người cần mượn', field: 'EmployeeBorrowName', width:200 },
             {
               title: 'Deadline trả NCC',
               field: 'DeadlineReturnNCC',
@@ -758,5 +813,8 @@ export class BillImportTechnicalComponent implements OnInit, AfterViewInit {
           );
         },
       });
+  }
+  closePanel() {
+    this.sizeTbDetail = '0';
   }
 }

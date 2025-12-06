@@ -84,7 +84,7 @@
         <nz-splitter-panel nzDefaultSize="100%">
             <div class="card h-100 border-0 rounded-0">
                 <div class="card-header bg-white p-1">
-                    <div class="d-flex gap-1">
+                    <div class="d-flex gap-1" horizontalScroll>
                         <button nz-button nzType="default" nzSize="small" (click)="ToggleSearchPanel()">
                             <nz-icon nzType="search" />
                         </button>
@@ -188,11 +188,11 @@
                                     <li class="nav-item" role="presentation"
                                         *ngFor="let type of getVisibleProjectTypes(); let i = index">
                                         <a class="nav-link" [class.active]="activeTabId === type.ProjectTypeID"
-                                            [id]="'tab-' + type.ProjectTypeID" data-bs-toggle="tab"
-                                            [href]="'#pane-' + type.ProjectTypeID" role="tab"
+                                            [id]="'tab-' + type.ProjectTypeID"
+                                            href="javascript:void(0)" role="tab"
                                             [attr.aria-controls]="'pane-' + type.ProjectTypeID"
                                             [attr.aria-selected]="activeTabId === type.ProjectTypeID"
-                                            (click)="SelectProjectType(type.ProjectTypeID)">
+                                            (click)="$event.preventDefault(); $event.stopPropagation(); SelectProjectType(type.ProjectTypeID, $event)">
                                             {{ type.ProjectTypeName | uppercase }}
                                         </a>
                                     </li>
@@ -242,8 +242,8 @@
     <div class="card h-100 border-0 rounded-0">
         <!-- Header với các nút action -->
         <div class="card-header bg-white p-1">
-            <div class="d-flex gap-1">
-                <button nz-button nzType="default" nzSize="small" (click)="ToggleSearchPanelNew()">
+            <div class="d-flex gap-1" horizontalScroll>
+                <button nz-button nzType="default" nzSize="small" (click)="ToggleSearchPanelNew()" class="sticky-toggle-btn">
                     <nz-icon [nzType]="showSearchBar ? 'up' : 'down'" />
                 </button>
                 <button *hasPermission="'N27,N34,N69,N80'" nz-button class="btn-add" nzType="default"
@@ -288,10 +288,10 @@
                 </button>
                 <button nz-button nzType="default" (click)="QuotePrice(0)" *hasPermission="'N35,N1'"
                     nzSize="small">
-                    <img class="btn-action-icon" src="assets/icon/action_cancle_24.svg" />Hủy hoàn thành
+                    <img class="btn-action-icon" src="assets/icon/action_cancle_24.svg" />Chưa hoàn thành
                 </button>
                 <button nz-button nzType="default" class="btn-delete" (click)="OnDeleteClick()"
-                    *hasPermission="'N35,N1'" nzSize="small">
+                    *hasPermission="'N1,N34,N69'" nzSize="small">
                     <img src="assets/icon/action_delete_item_16.png" />Xóa
                 </button>
                 <button nz-button nzType="default" (click)="DownloadFile()" *hasPermission="'N35,N1'"
@@ -387,8 +387,8 @@
                     </nz-form-control>
                 </nz-form-item>
                 
-                <nz-form-item class="mb-0">
-                    <nz-form-label class="fs-12">PO:</nz-form-label>
+                <nz-form-item class="mb-0" *ngIf="activeTabId == -1">
+                    <nz-form-label class="fs-12">PO</nz-form-label>
                     <nz-form-control>
                         <nz-select style="width: 150px" nzShowSearch nzAllowClear nzPlaceHolder="Chọn PO"
                             nzSize="small" [(ngModel)]="filters.poKHID" name="poKHID">
@@ -401,9 +401,9 @@
                 <nz-form-item class="mb-0">
                     <nz-form-control>
                         <div class="d-flex gap-1">
-                            <button nz-button nzType="default" nzSize="small" (click)="ResetFilters()">
+                            <!-- <button nz-button nzType="default" nzSize="small" (click)="ResetFilters()">
                                 Đặt lại
-                            </button>
+                            </button> -->
                             <button nz-button nzType="primary" nzSize="small" (click)="ApplyFilters()">
                                 Tìm kiếm
                             </button>
@@ -420,11 +420,11 @@
                     <li class="nav-item" role="presentation"
                         *ngFor="let type of getVisibleProjectTypes(); let i = index">
                         <a class="nav-link" [class.active]="activeTabId === type.ProjectTypeID"
-                            [id]="'tab-' + type.ProjectTypeID" data-bs-toggle="tab"
-                            [href]="'#pane-' + type.ProjectTypeID" role="tab"
+                            [id]="'tab-' + type.ProjectTypeID"
+                            href="javascript:void(0)" role="tab"
                             [attr.aria-controls]="'pane-' + type.ProjectTypeID"
                             [attr.aria-selected]="activeTabId === type.ProjectTypeID"
-                            (click)="SelectProjectType(type.ProjectTypeID)">
+                            (click)="$event.preventDefault(); $event.stopPropagation(); SelectProjectType(type.ProjectTypeID, $event)">
                             {{ type.ProjectTypeName | uppercase }}
                         </a>
                     </li>
@@ -458,7 +458,6 @@
         <nz-date-picker [(ngModel)]="requestBuyDeadline" nzFormat="dd/MM/yyyy" class="w-100"
             nzSize="small"></nz-date-picker>
     </div>
-    <div class="text-muted">Chỉ cần nhập Deadline. Các thông tin khác (VPP, JobRequirementID) đã có sẵn từ Input.</div>
 </ng-template>
 
 <app-tabulator-popup *ngIf="showSupplierPopup" [data]="dtSupplierSale" [columns]="supplierColumns"

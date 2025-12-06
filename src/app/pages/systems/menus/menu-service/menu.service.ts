@@ -123,6 +123,7 @@ import { WarehouseComponent1 } from '../../../general-category/wearhouse/warehou
 import { DailyReportSaleComponent } from '../../../old/KPISale/daily-report-sale/daily-report-sale.component';
 import { InventoryByProductComponent } from '../../../purchase/inventory-by-product/inventory-by-product.component';
 import { PersonDayOffComponent } from '../../../hrm/day-off/person-day-off/person-day-off.component';
+import { ProductLocationTechnicalComponent } from '../../../old/Technical/product-location-technical/product-location-technical.component';
 import { ProjectPartListComponent } from '../../../project/project-department-summary/project-department-summary-form/project-part-list/project-part-list.component';
 import { CourseManagementComponent } from '../../../Course/course-management/course-management.component';
 import { EarlyLateSummaryComponent } from '../../../hrm/early-late/early-late-summary/early-late-summary.component';
@@ -444,6 +445,18 @@ export class MenuService {
                   },
                   {
                     kind: 'leaf',
+                    key: 'ProductLocationTechnicalComponent',
+                    title: 'Vị trí',
+                    isOpen: true,
+                    isPermission: this.permissionService.hasPermission(''),
+                    comp: ProductLocationTechnicalComponent,
+                    data: {
+                      warehouseID: 1,
+                      warehouseType: 1,
+                    },
+                  },
+                  {
+                    kind: 'leaf',
                     key: 'ProductRtcQrCodeComponent_HN',
                     title: 'QR Code',
                     isOpen: true,
@@ -549,6 +562,18 @@ export class MenuService {
                     isOpen: true,
                     isPermission: this.permissionService.hasPermission(''),
                     comp: BorrowProductHistoryComponent,
+                    data: {
+                      warehouseID: 1,
+                      warehouseType: 2,
+                    },
+                  },
+                  {
+                    kind: 'leaf',
+                    key: 'ProductLocationTechnicalComponent',
+                    title: 'Vị trí',
+                    isOpen: true,
+                    isPermission: this.permissionService.hasPermission(''),
+                    comp: ProductLocationTechnicalComponent,
                     data: {
                       warehouseID: 1,
                       warehouseType: 2,
@@ -1210,6 +1235,7 @@ export class MenuService {
                 isPermission: this.permissionService.hasPermission(''),
                 comp: ProductLocationComponent,
               },
+
               {
                 kind: 'leaf',
                 key: 'FirmComponent',
@@ -2012,12 +2038,14 @@ export class MenuService {
           },
           {
             kind: 'leaf',
-            key: 'ProjectPartlistPriceRequestComponent',
+            key: 'ProjectPartlistPriceRequestNewComponent',
             title: 'Yêu cầu báo giá',
             isOpen: true,
             isPermission:
               this.permissionService.hasPermission('N33,N35,N1,N36'),
             comp: ProjectPartlistPriceRequestComponent,
+            // comp: ProjectPartlistPriceRequestNewComponent,
+
             //   icon: 'assets/icon/layers.png',
           },
           {

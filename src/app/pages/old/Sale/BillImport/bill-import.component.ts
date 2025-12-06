@@ -51,6 +51,7 @@ import { NzTabsModule } from 'ng-zorro-antd/tabs';
 import { NOTIFICATION_TITLE } from '../../../../app.config';
 import { HasPermissionDirective } from '../../../../directives/has-permission.directive';
 import { environment } from '../../../../../environments/environment';
+import { PermissionService } from '../../../../services/permission.service';
 
 interface BillImport {
   Id?: number;
@@ -107,6 +108,7 @@ export class BillImportComponent implements OnInit, AfterViewInit {
     private modal: NzModalService,
     private modalService: NgbModal,
     private appUserService: AppUserService,
+    private permissionService: PermissionService,
     @Optional() @Inject('tabData') private tabData: any
   ) {}
   wareHouseCode: string = 'HN';
@@ -129,6 +131,8 @@ export class BillImportComponent implements OnInit, AfterViewInit {
   isLoadTable: boolean = false;
   isDetailLoad: boolean = false;
   sizeTbDetail: any = '0';
+  selectedRow: any = null;
+  tabDetailTitle: string = 'Thông tin phiếu nhập';
   dataProductGroup: any[] = [];
   data: any[] = [];
   sizeSearch: string = '0';
@@ -955,6 +959,7 @@ export class BillImportComponent implements OnInit, AfterViewInit {
         label: '<i class="fas fa-check-circle"></i> Đã nhận đủ hồ sơ chứng từ',
         action: (e: any, row: any) => {
           this.updateDocumentStatus(row, true);
+          
         },
       },
       {
@@ -1422,7 +1427,9 @@ formatter: function (cell: any) {
       this.table_billImport.on('rowSelected', (row: RowComponent) => {
         const rowData = row.getData();
         this.id = rowData['ID'];
+        this.selectedRow = rowData;
         this.sizeTbDetail = null;
+        this.updateTabDetailTitle();
         this.data = [rowData];
         this.getBillImportDetail(this.id);
         this.getBillImportByID(this.id);
@@ -1432,6 +1439,8 @@ formatter: function (cell: any) {
         const selectedRows = this.table_billImport.getSelectedRows();
         if (selectedRows.length === 0) {
           this.id = 0;
+          this.selectedRow = null;
+          this.updateTabDetailTitle();
           this.data = [];
           this.table_billImportDetail?.replaceData([]);
           this.selectBillImport = [];
@@ -1580,5 +1589,12 @@ formatter: function (cell: any) {
   }
   closePanel() {
     this.sizeTbDetail = '0';
+  }
+  updateTabDetailTitle(): void {
+    if (this.selectedRow?.BillImportCode) {
+      this.tabDetailTitle = `Thông tin phiếu nhập - ${this.selectedRow.BillImportCode}`;
+    } else {
+      this.tabDetailTitle = 'Thông tin phiếu nhập';
+    }
   }
 }

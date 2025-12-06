@@ -10,6 +10,7 @@ import {
   ViewChild,
   TemplateRef,
   ViewContainerRef,
+  ElementRef,
 } from '@angular/core';
 import { DateTime } from 'luxon';
 import { CommonModule } from '@angular/common';
@@ -83,6 +84,8 @@ export class BillExportTechnicalFormComponent implements OnInit, AfterViewInit {
   childTableTemplate!: TemplateRef<any>;
   @ViewChild('vcHost', { read: ViewContainerRef, static: true })
   vcr!: ViewContainerRef;
+  @ViewChild('deviceTempTable', { static: false })
+  deviceTempTableRef!: ElementRef;
   productOptions: any[] = [];
   productOptionsLoaded: boolean = false;
   employeesLoaded: boolean = false;
@@ -290,10 +293,43 @@ export class BillExportTechnicalFormComponent implements OnInit, AfterViewInit {
       UpdatedDate: [null],
       SupplierSaleID: [0, Validators.required],
       BillDocumentExportType: [null],
-      ApproverID: [54, Validators.required],
+      ApproverID: [this.warehouseType === 2 ? 97 : 54, Validators.required],//54:Phạm Văn Quyền; 97:Bùi Mạnh Cần
       IsDeleted: [false],
       QRCode: [''],
     });
+
+    // Subscribe to BillType changes to update field visibility
+    this.formDeviceInfo.get('BillType')?.valueChanges.subscribe((billType: number) => {
+      this.updateBorrowFieldsVisibility(billType);
+    });
+  }
+
+  // Getter để kiểm tra xem có phải loại "Cho mượn" không
+  get isBorrowType(): boolean {
+    const billType = this.formDeviceInfo?.get('BillType')?.value;
+    return billType === 1;
+  }
+
+  // Cập nhật visibility và validation cho các trường liên quan đến "Cho mượn"
+  updateBorrowFieldsVisibility(billType: number) {
+    const isBorrow = billType === 1;
+    const receiverIDControl = this.formDeviceInfo.get('ReceiverID');
+    const expectedDateControl = this.formDeviceInfo.get('ExpectedDate');
+
+    if (isBorrow) {
+      // Khi là "Cho mượn", set required validators
+      receiverIDControl?.setValidators([Validators.required]);
+      expectedDateControl?.setValidators([Validators.required]);
+    } else {
+      // Khi không phải "Cho mượn", clear validators và reset values
+      receiverIDControl?.clearValidators();
+      expectedDateControl?.clearValidators();
+      receiverIDControl?.setValue(null);
+      expectedDateControl?.setValue(null);
+    }
+
+    receiverIDControl?.updateValueAndValidity({ emitEvent: false });
+    expectedDateControl?.updateValueAndValidity({ emitEvent: false });
   }
   //Hàm sinh code của phiếu xuất
   getNewCode() {
@@ -372,7 +408,8 @@ export class BillExportTechnicalFormComponent implements OnInit, AfterViewInit {
   }
   //Vẽ bảng tạm để chọn sản phẩm
   drawTableSelectedDevices() {
-    this.deviceTempTable = new Tabulator('#deviceTempTable', {
+    if (!this.deviceTempTableRef?.nativeElement) return;
+    this.deviceTempTable = new Tabulator(this.deviceTempTableRef.nativeElement, {
       layout: 'fitDataStretch',
       data: this.selectedDevices,
       selectableRows: true,

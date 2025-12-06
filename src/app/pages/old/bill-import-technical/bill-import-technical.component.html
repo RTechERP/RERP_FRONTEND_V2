@@ -99,7 +99,20 @@
                         <div #billImportTechnicalTableRef style="height: 100%;"></div>
                     </nz-splitter-panel>
                     <nz-splitter-panel [nzCollapsible]="true" nzResizable="true" [nzSize]="sizeTbDetail">
-                        <div #billImportTechnicalDetailTableRef style="height: 100%; "></div>
+                        <!-- bảng chi tiết -->
+                        <ng-template #tabClose>
+                            <button nz-button nzType="text" class="btn-close-panel" style="color: red;" (click)="closePanel()">
+                                <i nz-icon nzType="close"></i>  
+                            </button>
+                        </ng-template>
+                        <nz-tabset style=" padding-left: 10px !important;" [nzTabBarExtraContent]="tabClose">
+                            <nz-tab [nzTitle]="tabDetailTitle">
+                                
+                                <nz-spin [nzSpinning]="isDetailLoad" nzTip="Đang tải dữ liệu...">
+                                    <div #billImportTechnicalDetailTableRef style="height: 100%; "></div>
+                                </nz-spin>
+                            </nz-tab>
+                        </nz-tabset>
                     </nz-splitter-panel>
                 </nz-splitter>
             </div>

@@ -52,6 +52,7 @@ import { HistoryDeleteBillComponent } from '../../../BillExport/Modal/history-de
 import { BillExportService } from '../../../BillExport/bill-export-service/bill-export.service';
 import { NOTIFICATION_TITLE } from '../../../../../../app.config';
 import { DEFAULT_TABLE_CONFIG } from '../../../../../../tabulator-default.config';
+import { HasPermissionDirective } from '../../../../../../directives/has-permission.directive';
 interface data {
   idsPONCC: []; // array of number
   documentImportID: number;
@@ -81,6 +82,7 @@ interface data {
     // ProductSaleDetailComponent,
     // SelectControlComponent,
     NzCheckboxModule,
+    HasPermissionDirective,
   ],
   templateUrl: './bill-import-synthetic.component.html',
   styleUrl: './bill-import-synthetic.component.css',

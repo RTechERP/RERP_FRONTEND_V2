@@ -35,33 +35,12 @@
   height: 90vh;
 }
 
-/* Header buttons container - scrollable horizontally */
+/* Header buttons container - scrollable horizontally using directive */
 .card-header .d-flex {
   flex-wrap: nowrap;
-  overflow-x: auto;
+  overflow-x: hidden; /* Ẩn scrollbar, dùng directive để scroll */
   overflow-y: hidden;
   max-width: 100%;
-  -webkit-overflow-scrolling: touch; /* smooth scrolling on iOS */
-  scrollbar-width: thin; /* Firefox */
-}
-
-/* Custom scrollbar for webkit browsers */
-.card-header .d-flex::-webkit-scrollbar {
-  height: 6px;
-}
-
-.card-header .d-flex::-webkit-scrollbar-track {
-  background: #f1f1f1;
-  border-radius: 3px;
-}
-
-.card-header .d-flex::-webkit-scrollbar-thumb {
-  background: #888;
-  border-radius: 3px;
-}
-
-.card-header .d-flex::-webkit-scrollbar-thumb:hover {
-  background: #555;
 }
 
 /* Ensure buttons don't shrink */
@@ -125,4 +104,25 @@
 ::ng-deep .tabulator .tabulator-header-filter input,
 .tabulator .tabulator-header-filter select {
     color: black !important;
+}
+
+/* Cố định nút toggle search bar khi scroll */
+.sticky-toggle-btn {
+  position: sticky;
+  left: 0;
+  z-index: 10;
+  background-color: white;
+  box-shadow: 2px 0 4px rgba(0, 0, 0, 0.1);
+}
+
+/* Đảm bảo cột CurrencyID fill toàn bộ cell */
+::ng-deep .tabulator-cell[tabulator-field="CurrencyID"] {
+  padding: 0 !important;
+}
+
+::ng-deep .tabulator-cell[tabulator-field="CurrencyID"] > div {
+  width: 100% !important;
+  height: 100% !important;
+  display: flex !important;
+  align-items: center !important;
 }

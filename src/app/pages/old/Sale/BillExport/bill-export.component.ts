@@ -111,6 +111,7 @@ export class BillExportComponent implements OnInit, AfterViewInit {
 
   warehouseCode: string = 'HN';
   selectedRow: any = '';
+  tabDetailTitle: string = 'Thông tin phiếu xuất';
   dataProductGroup: any[] = [];
   data: any[] = [];
   sizeSearch: string = '0';
@@ -784,7 +785,9 @@ export class BillExportComponent implements OnInit, AfterViewInit {
       this.table_billExport.on('rowSelected', (row: RowComponent) => {
         const rowData = row.getData();
         this.id = rowData['ID'];
+        this.selectedRow = rowData;
         this.sizeTbDetail = null;
+        this.updateTabDetailTitle();
         this.data = [rowData]; // Giả sử bạn luôn muốn this.data chứa mảng 1 phần tử
         this.getBillExportDetail(this.id);
         this.getBillExportByID(this.id);
@@ -795,6 +798,8 @@ export class BillExportComponent implements OnInit, AfterViewInit {
 
         if (selectedRows.length === 0) {
           this.id = 0; // Reset id về 0 (hoặc null)
+          this.selectedRow = null;
+          this.updateTabDetailTitle();
           this.data = []; // Reset data về mảng rỗng
           this.table_billExportDetail?.replaceData([]); // Xóa dữ liệu bảng chi tiết
           this.selectBillExport = []; // Xóa dữ liệu phiếu xuất được chọn
@@ -1185,5 +1190,12 @@ export class BillExportComponent implements OnInit, AfterViewInit {
   //#endregion
   closePanel() {
     this.sizeTbDetail = '0';
+  }
+  updateTabDetailTitle(): void {
+    if (this.selectedRow?.Code) {
+      this.tabDetailTitle = `Thông tin phiếu xuất - ${this.selectedRow.Code}`;
+    } else {
+      this.tabDetailTitle = 'Thông tin phiếu xuất';
+    }
   }
 }

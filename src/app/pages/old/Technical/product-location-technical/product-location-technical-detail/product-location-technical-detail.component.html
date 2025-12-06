@@ -1,0 +1,63 @@
+<div class="modal-body">
+  <form nz-form [formGroup]="productLocationForm">
+    <div nz-row [nzGutter]="16">
+      <!-- Trường Loại vị trí -->
+      <div nz-col [nzSpan]="24" *ngIf="showLocationTypeField">
+        <nz-form-item>
+          <nz-form-label [nzSpan]="24">Loại vị trí</nz-form-label>
+          <nz-form-control [nzSpan]="24">
+            <nz-select formControlName="LocationType" nzPlaceHolder="Chọn loại vị trí">
+              <nz-option *ngFor="let type of locationTypes" [nzValue]="type.ID" [nzLabel]="type.Name"></nz-option>
+            </nz-select>
+          </nz-form-control>
+        </nz-form-item>
+      </div>
+
+      <!-- Trường Mã vị trí -->
+      <div nz-col [nzSpan]="24">
+        <nz-form-item>
+          <nz-form-label [nzSpan]="24">Mã vị trí <span class="text-danger"> *</span></nz-form-label>
+          <nz-form-control [nzSpan]="24">
+            <input nz-input formControlName="LocationCode" placeholder="Nhập mã vị trí" />
+          </nz-form-control>
+        </nz-form-item>
+      </div>
+
+      <!-- Trường STT -->
+      <div nz-col [nzSpan]="24">
+        <nz-form-item>
+          <nz-form-label [nzSpan]="24">STT</nz-form-label>
+          <nz-form-control [nzSpan]="24">
+            <nz-input-number formControlName="STT" [nzDisabled]="true" class="w-100"></nz-input-number>
+          </nz-form-control>
+        </nz-form-item>
+      </div>
+
+      <!-- Trường Tên vị trí -->
+      <div nz-col [nzSpan]="24">
+        <nz-form-item>
+          <nz-form-label [nzSpan]="24">Tên vị trí <span class="text-danger"> *</span></nz-form-label>
+          <nz-form-control [nzSpan]="24">
+            <input nz-input formControlName="LocationName" placeholder="Nhập tên vị trí" />
+          </nz-form-control>
+        </nz-form-item>
+      </div>
+
+      <!-- Trường Vị trí cũ -->
+      <div nz-col [nzSpan]="24">
+        <nz-form-item>
+          <nz-form-label [nzSpan]="24">Vị trí cũ</nz-form-label>
+          <nz-form-control [nzSpan]="24">
+            <input nz-input formControlName="OldLocationName" placeholder="Nhập vị trí cũ (nếu có)" />
+          </nz-form-control>
+        </nz-form-item>
+      </div>
+    </div>
+  </form>
+</div>
+
+<div class="modal-footer">
+  <button nz-button nzType="default" (click)="closeModal()">Hủy</button>
+  <button nz-button nzType="default" (click)="saveData(true)">Lưu & Thêm mới</button>
+  <button nz-button nzType="primary" (click)="saveData(false)">Lưu</button>
+</div>

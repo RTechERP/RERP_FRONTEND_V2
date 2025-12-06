@@ -19,17 +19,17 @@ import 'tabulator-tables/dist/css/tabulator_simple.min.css';
 import { DateTime } from 'luxon';
 import * as ExcelJS from 'exceljs';
 import { saveAs } from 'file-saver';
-import { DayOffService } from '../day-off-service/day-off.service';
-import { DepartmentServiceService } from '../../department/department-service/department-service.service';
-import { AuthService } from '../../../../auth/auth.service';
+import { WFHService } from '../WFH-service/WFH.service';
+import { DepartmentServiceService } from '../../../department/department-service/department-service.service';
+import { AuthService } from '../../../../../auth/auth.service';
 import { NzSpinModule } from 'ng-zorro-antd/spin';
-import { NOTIFICATION_TITLE } from '../../../../app.config';
-import { DEFAULT_TABLE_CONFIG } from '../../../../tabulator-default.config';
+import { NOTIFICATION_TITLE } from '../../../../../app.config';
+import { DEFAULT_TABLE_CONFIG } from '../../../../../tabulator-default.config';
 
 @Component({
-  selector: 'app-person-day-off',
-  templateUrl: './person-day-off.component.html',
-  styleUrls: ['./person-day-off.component.css'],
+  selector: 'app-wfh-summary',
+  templateUrl: './wfh-summary.component.html',
+  styleUrls: ['./wfh-summary.component.css'],
   standalone: true,
   imports: [
     CommonModule,
@@ -49,8 +49,8 @@ import { DEFAULT_TABLE_CONFIG } from '../../../../tabulator-default.config';
     NzSpinModule,
   ]
 })
-export class PersonDayOffComponent implements OnInit, AfterViewInit {
-  @ViewChild('tb_person_day_off', { static: false }) tbPersonDayOffRef!: ElementRef<HTMLDivElement>;
+export class WFHSummaryComponent implements OnInit, AfterViewInit {
+  @ViewChild('tb_wfh_summary', { static: false }) tbWFHSummaryRef!: ElementRef<HTMLDivElement>;
 
   private tabulator!: Tabulator;
   searchForm!: FormGroup;
@@ -63,7 +63,7 @@ export class PersonDayOffComponent implements OnInit, AfterViewInit {
   constructor(
     private fb: FormBuilder,
     private notification: NzNotificationService,
-    private dayOffService: DayOffService,
+    private wfhService: WFHService,
     private departmentService: DepartmentServiceService,
     private authService: AuthService
   ) { }
@@ -72,10 +72,6 @@ export class PersonDayOffComponent implements OnInit, AfterViewInit {
     this.initializeForm();
     this.loadDepartments();
     this.getCurrentUser();
-  }
-
-  toggleSearchPanel() {
-    this.sizeSearch = this.sizeSearch == '0' ? '20%' : '0';
   }
 
   getCurrentUser() {
@@ -103,6 +99,9 @@ export class PersonDayOffComponent implements OnInit, AfterViewInit {
     });
   }
 
+  toggleSearchPanel() {
+    this.sizeSearch = this.sizeSearch == '0' ? '20%' : '0';
+  }
 
   loadDepartments() {
     this.departmentService.getDepartments().subscribe({
@@ -127,7 +126,7 @@ export class PersonDayOffComponent implements OnInit, AfterViewInit {
       keyWord: '',
       IDApprovedTP: 0
     });
-    this.loadEmployeeOnLeave();
+    this.loadWFHPerson();
   }
 
   ngAfterViewInit(): void {
@@ -148,7 +147,7 @@ export class PersonDayOffComponent implements OnInit, AfterViewInit {
     });
   }
 
-  loadEmployeeOnLeave() {
+  loadWFHPerson() {
     // Reload table với dữ liệu mới từ form
     if (this.tabulator) {
       this.tabulator.setData();
@@ -156,14 +155,14 @@ export class PersonDayOffComponent implements OnInit, AfterViewInit {
   }
 
   private initializeTable(): void {
-    if (!this.tbPersonDayOffRef?.nativeElement) {
+    if (!this.tbWFHSummaryRef?.nativeElement) {
       return;
     }
-    this.tabulator = new Tabulator(this.tbPersonDayOffRef.nativeElement, {
+    this.tabulator = new Tabulator(this.tbWFHSummaryRef.nativeElement, {
       ...DEFAULT_TABLE_CONFIG,
       layout: 'fitDataStretch',
       height: '90vh', 
-      ajaxURL: this.dayOffService.getEmployeeOnLeavePersonAjax(),
+      ajaxURL: this.wfhService.getWFHPersonAjax(),
       ajaxRequestFunc: (_url, _config, params) => {
         const formValue = this.searchForm.value;
         
@@ -184,7 +183,7 @@ export class PersonDayOffComponent implements OnInit, AfterViewInit {
           Status: statusValue,
           DepartmentID: formValue.departmentId || 0
         };
-        return this.dayOffService.getEmployeeOnLeavePerson(request).toPromise();
+        return this.wfhService.getWFHPerson(request).toPromise();
       },
       ajaxResponse: (url, params, res) => {
         // Response structure: { status: 1, data: { data: [...], TotalPages: [{ TotalPage: 139 }] }, message: "..." }
@@ -206,34 +205,14 @@ export class PersonDayOffComponent implements OnInit, AfterViewInit {
           last_page: 1,
         };
       },
-      paginationMode: 'remote',
-      rowHeader: {
-        formatter: "rowSelection",
-        titleFormatter: "rowSelection",
-        headerSort: false,
-        width: 50,
-        frozen: true,
-        headerHozAlign: "center",
-        hozAlign: "center"
-      },
-      langs: {
-        vi: {
-          pagination: {
-            first: '<<',
-            last: '>>',
-            prev: '<',
-            next: '>',
-          },
-        },
-      },
-      locale: 'vi',
+      columnCalcs: 'both',
       groupBy: 'DepartmentName',
       groupHeader: function (value, count, data, group) {
         return value + "<span style='color:#d00; margin-left:10px;'>(" + count + " nhân viên)</span>";
       },
       columns: [
         {
-          title: 'TBP duyệt', field: 'IsApprovedTP', hozAlign: 'center', headerHozAlign: 'center', width: 50, headerWordWrap: true, headerSort: false, frozen: true,
+          title: 'TBP duyệt', field: 'IsApproved', hozAlign: 'center', headerHozAlign: 'center', width: 50, headerWordWrap: true, headerSort: false, frozen: true,
           formatter: function (cell: any) {
             const value = cell.getValue();
             const checked = value === true || value === 'true' || value === 1 || value === '1';
@@ -257,74 +236,103 @@ export class PersonDayOffComponent implements OnInit, AfterViewInit {
           },
         },
         {
-          title: 'Mã nhân viên', field: 'Code', hozAlign: 'left', headerHozAlign: 'center', width: 100, headerWordWrap: true, headerSort: false, frozen: true,
+          title: 'Người đăng kí', field: 'EmployeeName', hozAlign: 'left', headerHozAlign: 'center', width: 200, headerWordWrap: true, formatter: 'textarea', headerSort: false, frozen: true, bottomCalc: 'count',
         },
         {
-          title: 'Tên nhân viên', field: 'FullName', hozAlign: 'left', headerHozAlign: 'center', width: 180, headerWordWrap: true, formatter: 'textarea', headerSort: false, frozen: true,
+          title: 'Người duyệt', field: 'ApprovedName', hozAlign: 'left', headerHozAlign: 'center', width: 200, headerWordWrap: true, formatter: 'textarea', headerSort: false,
         },
         {
-          title: 'Người duyệt', field: 'ApprovedName', hozAlign: 'left', headerHozAlign: 'center', width: 100, headerWordWrap: true, formatter: 'textarea', headerSort: false,
-        },
-        {
-          title: 'Thời gian nghỉ', field: 'TimeOnLeaveText', hozAlign: 'left', headerHozAlign: 'center', width: 200, headerSort: false,
-        },
-        {
-          title: 'Ngày bắt đầu', field: 'StartDate', hozAlign: 'center', headerHozAlign: 'center', width: 150, headerSort: false,
+          title: 'Ngày đăng kí', field: 'DateWFH', hozAlign: 'center', headerHozAlign: 'center', width: 150, headerSort: false,
           formatter: (cell) => {
             const value = cell.getValue();
-            return value ? DateTime.fromISO(value).toFormat('HH:mm dd/MM/yyyy') : '';
+            if (!value) return '';
+            try {
+              return DateTime.fromISO(value).toFormat('dd/MM/yyyy');
+            } catch {
+              // Nếu không phải ISO format, thử parse như Date
+              const date = new Date(value);
+              return isNaN(date.getTime()) ? '' : DateTime.fromJSDate(date).toFormat('dd/MM/yyyy');
+            }
           }
         },
         {
-          title: 'Ngày kết thúc', field: 'EndDate', hozAlign: 'center', headerHozAlign: 'center', width: 150, headerSort: false,
-          formatter: (cell) => {
-            const value = cell.getValue();
-            return value ? DateTime.fromISO(value).toFormat('HH:mm dd/MM/yyyy') : '';
-          }
+          title: 'Phòng ban', field: 'DepartmentName', hozAlign: 'left', headerHozAlign: 'center', width: 200, headerWordWrap: true, formatter: 'textarea', headerSort: false,
         },
         {
-          title: 'Số ngày', field: 'TotalDay', hozAlign: 'right', headerHozAlign: 'center', width: 100, headerSort: false,bottomCalc: 'sum',
+          title: 'Khoảng thời gian', field: 'TimeWFHText', hozAlign: 'left', headerHozAlign: 'center', width: 200, headerWordWrap: true, formatter: 'textarea', headerSort: false,
         },
         {
-          title: 'Loại', field: 'TypeText', hozAlign: 'left', headerHozAlign: 'center', width: 150, headerSort: false,
-        },
-        {
-          title: 'Loại HR', field: 'TypeHR', hozAlign: 'left', headerHozAlign: 'center', width: 150, headerSort: false,
-        },
-        {
-          title: 'Lý do', field: 'Reason', hozAlign: 'left', headerHozAlign: 'center', width: 500, formatter: 'textarea', headerSort: false,
-        },
-      
-    
-        {
-          title: 'NV hủy đăng ký', field: 'IsCancelRegister', hozAlign: 'center', headerHozAlign: 'center', width: 150, headerSort: false,
-          formatter: function (cell: any) {
-            const value = cell.getValue();
-            const checked = value === true || value === 'true' || value === 1 || value === '1';
-            return `<input type="checkbox" ${checked ? 'checked' : ''} style="pointer-events: none; accent-color: #1677ff;" />`;
-          },
-        },
-        {
-          title: 'TBP duyệt hủy đăng ký', field: 'IsCancelTP', hozAlign: 'center', headerHozAlign: 'center', width: 200, headerSort: false,
-          formatter: function (cell: any) {
-            const value = cell.getValue();
-            const checked = value === true || value === 'true' || value === 1 || value === '1';
-            return `<input type="checkbox" ${checked ? 'checked' : ''} style="pointer-events: none; accent-color: #1677ff;" />`;
-          },
-        },
-        {
-          title: 'HR duyệt hủy đăng ký', field: 'IsCancelHR', hozAlign: 'center', headerHozAlign: 'center', width: 200, headerSort: false,
-          formatter: function (cell: any) {
-            const value = cell.getValue();
-            const checked = value === true || value === 'true' || value === 1 || value === '1';
-            return `<input type="checkbox" ${checked ? 'checked' : ''} style="pointer-events: none; accent-color: #1677ff;" />`;
-          },
+          title: 'Lý do', field: 'Reason', hozAlign: 'left', headerHozAlign: 'center', width: 400, formatter: 'textarea', headerSort: false,
         },
       ],
-  
     });
     this.tabulator.on("pageLoaded", () => {
       this.tabulator.redraw();
+    });
+
+    // Set font-size 12px cho Tabulator sau khi render
+    setTimeout(() => {
+      const tabulatorElement = this.tbWFHSummaryRef?.nativeElement;
+      if (tabulatorElement) {
+        // Set style trực tiếp cho element
+        tabulatorElement.style.fontSize = '12px';
+        
+        // Set style cho tất cả các phần tử con
+        const allElements = tabulatorElement.querySelectorAll('*');
+        allElements.forEach((el: any) => {
+          if (el.style) {
+            el.style.fontSize = '12px';
+          }
+        });
+
+        // Inject global style để đảm bảo
+        const style = document.createElement('style');
+        style.id = 'tabulator-wfh-summary-font-size-override';
+        style.textContent = `
+          #tb_wfh_summary,
+          #tb_wfh_summary.tabulator,
+          #tb_wfh_summary .tabulator,
+          #tb_wfh_summary .tabulator-table,
+          #tb_wfh_summary .tabulator-cell,
+          #tb_wfh_summary .tabulator-cell-content,
+          #tb_wfh_summary .tabulator-header,
+          #tb_wfh_summary .tabulator-col,
+          #tb_wfh_summary .tabulator-col-content,
+          #tb_wfh_summary .tabulator-col-title,
+          #tb_wfh_summary .tabulator-row,
+          #tb_wfh_summary .tabulator-row .tabulator-cell,
+          #tb_wfh_summary .tabulator-group-header,
+          #tb_wfh_summary .tabulator-group-title,
+          #tb_wfh_summary .tabulator-footer,
+          #tb_wfh_summary .tabulator-paginator,
+          #tb_wfh_summary .tabulator-paginator *,
+          #tb_wfh_summary * {
+            font-size: 12px !important;
+          }
+        `;
+        // Remove existing style if any
+        const existingStyle = document.getElementById('tabulator-wfh-summary-font-size-override');
+        if (existingStyle) {
+          existingStyle.remove();
+        }
+        document.head.appendChild(style);
+      }
+    }, 200);
+
+    // Set lại font size mỗi khi data được load
+    this.tabulator.on("dataLoaded", () => {
+      setTimeout(() => {
+        const tabulatorElement = this.tbWFHSummaryRef?.nativeElement;
+        if (tabulatorElement) {
+          tabulatorElement.style.fontSize = '12px';
+          const allElements = tabulatorElement.querySelectorAll('*');
+          allElements.forEach((el: any) => {
+            if (el.style) {
+              el.style.fontSize = '12px';
+            }
+          });
+        }
+      }, 100);
     });
   }
 
@@ -354,7 +362,7 @@ export class PersonDayOffComponent implements OnInit, AfterViewInit {
         DepartmentID: formValue.departmentId || 0
       };
 
-      const response = await this.dayOffService.getEmployeeOnLeavePerson(request).toPromise();
+      const response = await this.wfhService.getWFHPerson(request).toPromise();
       
       if (!response || response.status !== 1 || !response.data || !response.data.data) {
         this.notification.error(NOTIFICATION_TITLE.error, 'Không có dữ liệu để xuất excel!');
@@ -374,14 +382,14 @@ export class PersonDayOffComponent implements OnInit, AfterViewInit {
       const exportData = allData
         .filter((item: any) => Object.keys(item).length > 0)
         .map((item: any, idx: number) => {
-          // Format ngày tháng với giờ
-          const formatDateTime = (val: any) => {
+          // Format ngày tháng
+          const formatDate = (val: any) => {
             if (!val) return '';
             try {
-              return DateTime.fromISO(val).toFormat('HH:mm dd/MM/yyyy');
+              return DateTime.fromISO(val).toFormat('dd/MM/yyyy');
             } catch {
               const date = new Date(val);
-              return isNaN(date.getTime()) ? '' : DateTime.fromJSDate(date).toFormat('HH:mm dd/MM/yyyy');
+              return isNaN(date.getTime()) ? '' : DateTime.fromJSDate(date).toFormat('dd/MM/yyyy');
             }
           };
           // Format checkbox - nếu true thì trả về 'X', còn không thì rỗng
@@ -398,51 +406,48 @@ export class PersonDayOffComponent implements OnInit, AfterViewInit {
           };
           return {
             'STT': idx + 1,
-            'TBP duyệt': formatCheckbox(item.IsApprovedTP),
+            'TBP duyệt': formatCheckbox(item.IsApproved),
             'HR duyệt': formatCheckbox(item.IsApprovedHR),
             'BGĐ duyệt': formatCheckbox(item.IsApprovedBGD),
-            'Mã nhân viên': item.Code || '',
-            'Tên nhân viên': item.FullName || '',
+            'Người đăng kí': item.EmployeeName || '',
             'Người duyệt': item.ApprovedName || '',
-            'Thời gian nghỉ': item.TimeOnLeaveText || '',
-            'Ngày bắt đầu': formatDateTime(item.StartDate),
-            'Ngày kết thúc': formatDateTime(item.EndDate),
-            'Số ngày': item.TotalDay != null ? item.TotalDay : '',
-            'Loại': item.TypeText || '',
-            'Loại HR': item.TypeHR || '',
-            'Lý do': item.Reason || '',
-            'NV hủy đăng ký': formatCheckbox(item.IsCancelRegister),
-            'TBP duyệt hủy đăng ký': formatCheckbox(item.IsCancelTP),
-            'HR duyệt hủy đăng ký': formatCheckbox(item.IsCancelHR)
+            'Ngày đăng kí': formatDate(item.DateWFH),
+            'Phòng ban': item.DepartmentName || '',
+            'Khoảng thời gian': item.TimeWFHText || '',
+            'Lý do': item.Reason || ''
           };
         });
 
       const workbook = new ExcelJS.Workbook();
-      const worksheet = workbook.addWorksheet('NgayNghiPhep');
+      const worksheet = workbook.addWorksheet('WFH');
 
       // Thêm header
       worksheet.columns = [
-        { header: 'STT', key: 'STT', width: 5, style: { alignment: { horizontal: 'center', vertical: 'middle' } } },
+        { header: 'STT', key: 'STT', width: 8, style: { alignment: { horizontal: 'center', vertical: 'middle' } } },
         { header: 'TBP duyệt', key: 'TBP duyệt', width: 20 },
         { header: 'HR duyệt', key: 'HR duyệt', width: 20 },
         { header: 'BGĐ duyệt', key: 'BGĐ duyệt', width: 20 },
-        { header: 'Mã nhân viên', key: 'Mã nhân viên', width: 15 },
-        { header: 'Tên nhân viên', key: 'Tên nhân viên', width: 25 },
-        { header: 'Người duyệt', key: 'Người duyệt', width: 20 },
-        { header: 'Thời gian nghỉ', key: 'Thời gian nghỉ', width: 18 },
-        { header: 'Ngày bắt đầu', key: 'Ngày bắt đầu', width: 18 },
-        { header: 'Ngày kết thúc', key: 'Ngày kết thúc', width: 18 },
-        { header: 'Số ngày', key: 'Số ngày', width: 10 },
-        { header: 'Loại', key: 'Loại', width: 20 },
-        { header: 'Loại HR', key: 'Loại HR', width: 15 },
-        { header: 'Lý do', key: 'Lý do', width: 30 },
-        { header: 'NV hủy đăng ký', key: 'NV hủy đăng ký', width: 20 },
-        { header: 'TBP duyệt hủy đăng ký', key: 'TBP duyệt hủy đăng ký', width: 20 },
-        { header: 'HR duyệt hủy đăng ký', key: 'HR duyệt hủy đăng ký', width: 20 },
+        { header: 'Người đăng kí', key: 'Người đăng kí', width: 30 },
+        { header: 'Người duyệt', key: 'Người duyệt', width: 30 },
+        { header: 'Ngày đăng kí', key: 'Ngày đăng kí', width: 18 },
+        { header: 'Phòng ban', key: 'Phòng ban', width: 25 },
+        { header: 'Khoảng thời gian', key: 'Khoảng thời gian', width: 25 },
+        { header: 'Lý do', key: 'Lý do', width: 40 },
       ];
 
       // Thêm dữ liệu
       exportData.forEach((row: any) => worksheet.addRow(row));
+
+      // Set font mặc định cho toàn bộ worksheet
+      worksheet.eachRow((row: ExcelJS.Row) => {
+        row.eachCell((cell: ExcelJS.Cell) => {
+          if (!cell.font) {
+            cell.font = { name: 'Times New Roman', size: 10};
+          } else {
+            cell.font = { ...cell.font, name: 'Times New Roman', size: 10 };
+          }
+        });
+      });
 
       // Định dạng header
       worksheet.getRow(1).eachCell((cell: ExcelJS.Cell) => {
@@ -461,109 +466,68 @@ export class PersonDayOffComponent implements OnInit, AfterViewInit {
         if (rowNumber !== 1) {
           row.height = 30;
           // Căn giữa cho STT
-          try {
-            const sttCell = row.getCell('STT');
-            if (sttCell) {
-              sttCell.alignment = { horizontal: 'center', vertical: 'middle', wrapText: true };
-              sttCell.font = { name: 'Times New Roman', size: 10 };
-            }
-          } catch (e) {
-            // Bỏ qua nếu không tìm thấy cột STT
-          }
+          row.getCell('STT').alignment = { horizontal: 'center', vertical: 'middle', wrapText: true };
+          row.getCell('STT').font = { name: 'Times New Roman', size: 10 };
           
           // Căn giữa cho các cột ngày tháng và checkbox
-          ['Ngày bắt đầu', 'Ngày kết thúc', 'TBP duyệt', 'HR duyệt', 'BGĐ duyệt', 'NV hủy đăng ký', 'TBP duyệt hủy đăng ký', 'HR duyệt hủy đăng ký'].forEach((colName: string) => {
-            try {
-              const cell = row.getCell(colName);
-              if (cell) {
-                cell.alignment = { horizontal: 'center', vertical: 'middle', wrapText: true };
-                cell.font = { name: 'Times New Roman', size: 10 };
-              }
-            } catch (e) {
-              // Bỏ qua nếu không tìm thấy cột
+          ['Ngày đăng kí', 'TBP duyệt', 'HR duyệt', 'BGĐ duyệt'].forEach((colName: string) => {
+            const cell = row.getCell(colName);
+            if (cell) {
+              cell.alignment = { horizontal: 'center', vertical: 'middle', wrapText: true };
+              cell.font = { name: 'Times New Roman', size: 10 };
             }
           });
           
-          // Căn phải cho số ngày
-          try {
-            const totalDayCell = row.getCell('Số ngày');
-            if (totalDayCell) {
-              totalDayCell.alignment = { horizontal: 'right', vertical: 'middle', wrapText: true };
-              totalDayCell.font = { name: 'Times New Roman', size: 10 };
-            }
-          } catch (e) {
-            // Bỏ qua nếu không tìm thấy cột Số ngày
-          }
-          
-          // Căn trái cho các cột còn lại
-          row.eachCell({ includeEmpty: false }, (cell: ExcelJS.Cell, colNumber: number) => {
-            try {
-              const headerCell = worksheet.getRow(1).getCell(colNumber);
-              if (!headerCell) return;
-              
-              const headerValue = headerCell.value?.toString() || '';
-              if (colNumber !== 1 && 
-                  !['Ngày bắt đầu', 'Ngày kết thúc', 'Số ngày', 'TBP duyệt', 'HR duyệt', 'BGĐ duyệt', 'NV hủy đăng ký', 'TBP duyệt hủy đăng ký', 'HR duyệt hủy đăng ký'].includes(headerValue)) {
-                cell.font = { name: 'Times New Roman', size: 10 };
-                cell.alignment = { horizontal: 'left', vertical: 'middle', wrapText: true };
-              }
-            } catch (e) {
-              // Bỏ qua nếu có lỗi
+          // Căn trái cho các cột chữ (các cột còn lại) - đảm bảo font size 12
+          row.eachCell((cell: ExcelJS.Cell, colNumber: number) => {
+            const headerValue = worksheet.getRow(1).getCell(colNumber).value?.toString() || '';
+            if (colNumber !== 1 && 
+                !['Ngày đăng kí', 'TBP duyệt', 'HR duyệt', 'BGĐ duyệt'].includes(headerValue)) {
+              cell.font = { name: 'Times New Roman', size: 10 };
+              cell.alignment = { horizontal: 'left', vertical: 'middle', wrapText: true };
             }
           });
         }
       });
 
       // Auto width cho các cột (trừ các cột checkbox đã set width cố định)
-      try {
-        worksheet.columns.forEach((column: any, index: number) => {
-          if (!column) return;
-          
-          const headerValue = column.header ? column.header.toString() : '';
-          
-          // Giữ nguyên width cho các cột checkbox
-          const checkboxColumns = ['TBP duyệt', 'HR duyệt', 'BGĐ duyệt', 'NV hủy đăng ký', 'TBP duyệt hủy đăng ký', 'HR duyệt hủy đăng ký'];
-          if (checkboxColumns.includes(headerValue)) {
-            column.width = 20; // Giữ width cố định
-            return;
-          }
-          
-          let maxLength = 10;
-          maxLength = Math.max(maxLength, headerValue.length);
-
-          try {
-            column.eachCell({ includeEmpty: false }, (cell: any) => {
-              if (cell && cell.value !== null && cell.value !== undefined) {
-                let cellValue = '';
-                if (cell.value instanceof Date) {
-                  cellValue = cell.value.toLocaleDateString('vi-VN');
-                } else {
-                  cellValue = cell.value.toString();
-                }
-                // Tính độ dài với wrapText (chia cho số dòng ước tính)
-                const estimatedLines = Math.ceil(cellValue.length / (column.width || 20));
-                maxLength = Math.max(maxLength, Math.ceil(cellValue.length / estimatedLines));
-              }
-            });
-          } catch (e) {
-            // Bỏ qua nếu có lỗi khi duyệt cell
-          }
-
-          // Set width hợp lý, tối thiểu 10, tối đa 50
-          if (column.width !== undefined) {
-            column.width = Math.min(Math.max(maxLength + 2, 10), 50);
-          }
-        });
+      worksheet.columns.forEach((column: any, index: number) => {
+        const headerValue = column.header ? column.header.toString() : '';
         
-        // Đảm bảo các cột checkbox có width đủ lớn sau khi auto width
-        const checkboxCols = ['TBP duyệt', 'HR duyệt', 'BGĐ duyệt', 'NV hủy đăng ký', 'TBP duyệt hủy đăng ký', 'HR duyệt hủy đăng ký'];
-        checkboxCols.forEach((colName: string) => {
-          const col = worksheet.getColumn(colName);
-          if (col) col.width = 20;
+        // Giữ nguyên width cho các cột checkbox (TBP duyệt, HR duyệt, BGĐ duyệt)
+        if (headerValue === 'TBP duyệt' || headerValue === 'HR duyệt' || headerValue === 'BGĐ duyệt') {
+          column.width = 20; // Giữ width cố định
+          return;
+        }
+        
+        let maxLength = 10;
+        maxLength = Math.max(maxLength, headerValue.length);
+
+        column.eachCell({ includeEmpty: true }, (cell: any) => {
+          if (cell.value !== null && cell.value !== undefined) {
+            let cellValue = '';
+            if (cell.value instanceof Date) {
+              cellValue = cell.value.toLocaleDateString('vi-VN');
+            } else {
+              cellValue = cell.value.toString();
+            }
+            // Tính độ dài với wrapText (chia cho số dòng ước tính)
+            const estimatedLines = Math.ceil(cellValue.length / (column.width || 20));
+            maxLength = Math.max(maxLength, Math.ceil(cellValue.length / estimatedLines));
+          }
         });
-      } catch (e) {
-        // Bỏ qua nếu có lỗi khi tính auto width
-      }
+
+        // Set width hợp lý, tối thiểu 10, tối đa 50
+        column.width = Math.min(Math.max(maxLength + 2, 10), 50);
+      });
+      
+      // Đảm bảo các cột checkbox có width đủ lớn sau khi auto width
+      const tbpDuyetCol = worksheet.getColumn('TBP duyệt');
+      const hrDuyetCol = worksheet.getColumn('HR duyệt');
+      const bgdDuyetCol = worksheet.getColumn('BGĐ duyệt');
+      if (tbpDuyetCol) tbpDuyetCol.width = 20;
+      if (hrDuyetCol) hrDuyetCol.width = 20;
+      if (bgdDuyetCol) bgdDuyetCol.width = 20;
 
       // Xuất file
       const buffer = await workbook.xlsx.writeBuffer();
@@ -572,9 +536,9 @@ export class PersonDayOffComponent implements OnInit, AfterViewInit {
       const endDate = this.searchForm.get('endDate')?.value;
       const startDateStr = startDate ? DateTime.fromJSDate(new Date(startDate)).toFormat('ddMMyyyy') : '';
       const endDateStr = endDate ? DateTime.fromJSDate(new Date(endDate)).toFormat('ddMMyyyy') : '';
-      saveAs(blob, `TongHopQuanLyNghi_${startDateStr}_${endDateStr}.xls`);
+      saveAs(blob, `TongHopWFH_${startDateStr}_${endDateStr}.xls`);
       
-   
+    
     } catch (error: any) {
       this.notification.error(NOTIFICATION_TITLE.error, 'Lỗi khi xuất Excel: ' + error.message);
     } finally {

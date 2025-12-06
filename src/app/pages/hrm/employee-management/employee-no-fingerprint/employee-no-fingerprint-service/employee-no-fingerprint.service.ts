@@ -480,4 +480,35 @@ export class EmployeeNofingerprintService {
     window.URL.revokeObjectURL(link.href);
   }
   //#endregion
+
+  /**
+   * Get Employee No Fingerprint person list for summary
+   * @param request Request parameters matching EmployeeNoFingerprintRequestParam
+   * @returns Observable with response data
+   */
+  getEmployeeNoFingerprintPerson(request: {
+    Page?: number;
+    Size?: number;
+    Keyword?: string;
+    DateStart?: string | null;
+    DateEnd?: string | null;
+    IDApprovedTP?: number;
+    Status?: number;
+    DepartmentID?: number;
+  }): Observable<any> {
+    const headers = new HttpHeaders({
+      'Content-Type': 'application/json',
+      Accept: 'application/json',
+    });
+
+    return this.http.post<any>(this.apiUrl + 'get-employee-no-fingerprint-person', request, { headers });
+  }
+
+  /**
+   * Get Employee No Fingerprint person URL for Tabulator AJAX
+   * @returns string
+   */
+  getEmployeeNoFingerprintPersonAjax(): string {
+    return this.apiUrl + 'get-employee-no-fingerprint-person';
+  }
 }

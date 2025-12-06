@@ -69,6 +69,7 @@ import { ViewPokhService } from '../view-pokh/view-pokh/view-pokh.service';
 import { QuotationKhDataComponent } from '../quotation-kh-data/quotation-kh-data.component';
 import { CustomerDetailComponent } from '../../crm/customers/customer-detail/customer-detail.component';
 import { ProjectPartListComponent } from '../../project/project-department-summary/project-department-summary-form/project-part-list/project-part-list.component';
+import { ImportExcelPokhComponent } from '../pokh/import-excel/import-excel.component';
 @Component({
   selector: 'app-pokh',
   imports: [
@@ -2624,6 +2625,59 @@ export class PokhDetailComponent implements OnInit, AfterViewInit {
     });
     return flatList;
   }
+  // Mở modal import excel
+  openImportExcelModal(): void {
+    const modalRef = this.modalService.open(ImportExcelPokhComponent, {
+      centered: true,
+      size: 'xl',
+      backdrop: 'static',
+    });
+
+    modalRef.result.then(
+      (result: any) => {
+        if (result && result.success && result.processedData) {
+          console.log('=== DATA NHẬN TỪ IMPORT EXCEL ===');
+          console.log('Số lượng dòng:', result.processedData.length);
+          console.log('Chi tiết data:', result.processedData);
+
+          // Chuyển đổi dữ liệu thành cấu trúc tree
+          const treeData = this.convertToTreeData(result.processedData);
+          
+          console.log('=== DATA SAU KHI CONVERT TO TREE ===');
+          console.log('Số lượng node:', treeData.length);
+          console.log('Chi tiết tree data:', treeData);
+          console.log('=== END LOG ===');
+
+          // Replace dữ liệu cũ bằng dữ liệu mới từ Excel
+          if (this.tb_ProductDetailTreeList) {
+            this.dataPOKHProduct = treeData;
+            this.tb_ProductDetailTreeList.setData(this.dataPOKHProduct);
+
+            // Expand all nodes
+            setTimeout(() => {
+              const rows = this.tb_ProductDetailTreeList.getRows();
+              rows.forEach((row: any) => {
+                row.treeExpand(true);
+              });
+              this.tb_ProductDetailTreeList.recalc();
+            }, 100);
+          }
+
+          // Tính lại tổng tiền
+          this.calculateTotalIterative();
+
+          this.notification.success(
+            NOTIFICATION_TITLE.success,
+            'Import Excel thành công!'
+          );
+        }
+      },
+      (reason: any) => {
+        console.log('Modal Import Excel dismissed:', reason);
+      }
+    );
+  }
+
   //binh them
   openProjectPartlistModal(): void {
 

@@ -448,7 +448,7 @@ export class MenuService {
                     key: 'ProductLocationTechnicalComponent',
                     title: 'Vị trí',
                     isOpen: true,
-                    isPermission: this.permissionService.hasPermission(''),
+                    isPermission: this.permissionService.hasPermission('N26'),
                     comp: ProductLocationTechnicalComponent,
                     data: {
                       warehouseID: 1,
@@ -572,7 +572,7 @@ export class MenuService {
                     key: 'ProductLocationTechnicalComponent',
                     title: 'Vị trí',
                     isOpen: true,
-                    isPermission: this.permissionService.hasPermission(''),
+                    isPermission: this.permissionService.hasPermission('N26'),
                     comp: ProductLocationTechnicalComponent,
                     data: {
                       warehouseID: 1,

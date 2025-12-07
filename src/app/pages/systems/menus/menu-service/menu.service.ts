@@ -2543,7 +2543,7 @@ export class MenuService {
                 isPermission: this.permissionService.hasPermission(''),
                 comp: EmployeeNightShiftPersonSummaryComponent,
               },
-            ]
+            ],
           },
           //#region Duyệt cá nhân
           //   {

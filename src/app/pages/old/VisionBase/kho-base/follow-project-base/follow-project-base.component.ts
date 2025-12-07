@@ -39,6 +39,8 @@ import { ImportExcelComponent } from './import-excel/import-excel.component';
 import { HasPermissionDirective } from '../../../../../directives/has-permission.directive';
 import { NOTIFICATION_TITLE } from '../../../../../app.config';
 
+import { AppUserService } from '../../../../../services/app-user.service';
+import { IUser } from '../../../../../models/user.interface';
 @Component({
   selector: 'app-follow-project-base',
   templateUrl: './follow-project-base.component.html',
@@ -96,13 +98,16 @@ export class FollowProjectBaseComponent implements OnInit {
   warehouseID: number = 0;
   groupSaleID: number = 0;
 
+  isAdmin: boolean = false;
+  isAdminSale: number = 0;
+  currentUserId: number = 0;
+  getUserSaleResult: number = 0;
+  currentUser: IUser | null = null;
 
   groupSaleUser: any[] = [];
   customers: any[] = [];
   employees: any[] = [];
   users: any[] = [];
-
-
 
   constructor(
     private injector: EnvironmentInjector,
@@ -111,6 +116,7 @@ export class FollowProjectBaseComponent implements OnInit {
     private modal: NzModalService,
     private modalService: NgbModal,
     private khoBaseService: KhoBaseService,
+    private appUserService: AppUserService,
     @Optional() @Inject('tabData') private tabData: any
   ) { }
 
@@ -118,15 +124,25 @@ export class FollowProjectBaseComponent implements OnInit {
     if (this.tabData) {
       this.warehouseID = this.tabData.warehouseId;
     }
+    
+    this.isAdmin = this.appUserService.isAdmin;
+    this.currentUser = this.appUserService.currentUser;
+    this.isAdminSale = this.currentUser?.IsAdminSale || 0;
+    this.currentUserId = this.currentUser?.ID || 0;
+    
+    if (this.currentUserId > 0) {
+      this.getUserSale(this.currentUserId);
+    }
+
+    this.getGroupSaleUser();
+    this.getUsers();
+    this.getEmployee();
+    this.getCustomerBase();
   }
   ngAfterViewInit(): void {
     this.drawTbFollowProject(this.tb_followProjectContainer.nativeElement);
     this.drawTbFollowProjectForSale(this.tb_followProjectForSaleContainer.nativeElement);
     this.drawTbFollowProjectForPM(this.tb_followProjectForPMContainer.nativeElement);
-    this.getCustomerBase();
-    this.getGroupSaleUser();
-    this.getUsers();
-    this.getEmployee();
   }
 
   toggleSearchPanel() {
@@ -171,6 +187,10 @@ export class FollowProjectBaseComponent implements OnInit {
     this.khoBaseService.getUsers().subscribe({
       next: (response: any) => {
         this.users = response.data;
+        // Theo logic WinForm: nếu GetUserSale() == 3 || GetUserSale() == 0 thì gán user = Global.UserID
+        if(this.getUserSaleResult == 3 || this.getUserSaleResult == 0) {
+          this.user = this.currentUserId;
+        }
       },
       error: (err: any) => {
         this.notification.create(
@@ -186,6 +206,10 @@ export class FollowProjectBaseComponent implements OnInit {
       next: (response: any) => {
         this.employees = this.khoBaseService.createdDataGroup(response.data, "DepartmentName");
         console.log(this.employees);
+        // Theo logic WinForm: nếu GetUserSale() == 2 || GetUserSale() == 0 thì gán pm = Global.EmployeeID
+        if(this.getUserSaleResult == 2 || this.getUserSaleResult == 0) {
+          this.pm = this.currentUser?.EmployeeID || 0;
+        }
       },
       error: (err: any) => {
         this.notification.create(
@@ -228,17 +252,24 @@ export class FollowProjectBaseComponent implements OnInit {
       }
     });
   }
+
+  getUserSale(userId: number) {
+    this.khoBaseService.getUserSale(userId, this.isAdmin, this.isAdminSale).subscribe({
+      next: (response: any) => {
+        this.getUserSaleResult = response.data;
+        console.log(this.getUserSaleResult);
+      },
+      error: (err: any) => {
+        this.notification.create(
+          'error',
+          'Thông báo',
+          'Lỗi load nhóm getUserSale!'
+        );
+      }
+    });
+  }
+
   drawTbFollowProject(container: HTMLElement) {
-    let params = {
-      dateStart: this.formatDate(this.dateStart),
-      dateEnd: this.formatDate(this.dateEnd),
-      filterText: this.filterText,
-      user: this.user,
-      customerID: this.customerID,
-      pm: this.pm,
-      warehouseID: this.warehouseID,
-      groupSaleID: this.groupSaleID
-    }
     const token = localStorage.getItem('token');
     this.tb_followProjectBody = new Tabulator(container, {
       height: '88vh',
@@ -276,8 +307,21 @@ export class FollowProjectBaseComponent implements OnInit {
           'Authorization': `Bearer ${token}`
         }
       },
-      ajaxParams: {
-        ...params
+      ajaxParams: () => {
+        if(this.getUserSaleResult == 2 || this.getUserSaleResult == 0) {
+          this.pm = 0;
+        }
+        
+        return {
+          dateStart: this.formatDate(this.dateStart),
+          dateEnd: this.formatDate(this.dateEnd),
+          filterText: this.filterText,
+          user: this.user,
+          customerID: this.customerID,
+          pm: this.pm,
+          warehouseID: this.warehouseID,
+          groupSaleID: this.groupSaleID
+        };
       },
       ajaxResponse: (url, params, res) => {
         return {
@@ -303,13 +347,13 @@ export class FollowProjectBaseComponent implements OnInit {
             {
               title: 'UserID', field: 'UserID', headerHozAlign: 'center', hozAlign: 'right', visible: false, headerSort: false,
             },
-            { title: "Mã dự án", field: "ProjectCode", headerHozAlign: "center", hozAlign: "left" },
-            { title: "Tên dự án", field: "ProjectName", headerHozAlign: "center", hozAlign: "left" },
-            { title: "Sale phụ trách", field: "FullName", headerHozAlign: "center", hozAlign: "left" },
-            { title: "PM", field: "ProjectManager", headerHozAlign: "center", hozAlign: "left" },
-            { title: "Đối tác(KH)", field: "CustomerName", headerHozAlign: "center", hozAlign: "left" },
-            { title: "End User", field: "EndUser", headerHozAlign: "center", hozAlign: "left" },
-            { title: "Trạng thái", field: "ProjectStatusName", headerHozAlign: "center", hozAlign: "left" },
+            { title: "Mã dự án", field: "ProjectCode", headerHozAlign: "center", hozAlign: "left", width: 150 },
+            { title: "Tên dự án", field: "ProjectName", headerHozAlign: "center", hozAlign: "left", width: 250 },
+            { title: "Sale phụ trách", field: "FullName", headerHozAlign: "center", hozAlign: "left", width: 150 },
+            { title: "PM", field: "ProjectManager", headerHozAlign: "center", hozAlign: "left", width: 150 },
+            { title: "Đối tác(KH)", field: "CustomerName", headerHozAlign: "center", hozAlign: "left", width: 150, formatter:'textarea' },
+            { title: "End User", field: "EndUser", headerHozAlign: "center", hozAlign: "left", width: 150, formatter:'textarea'  },
+            { title: "Trạng thái", field: "ProjectStatusName", headerHozAlign: "center", hozAlign: "left", width: 150 },
             {
               title: "Ngày bắt đầu", field: "ProjectStartDate", width: 120, headerHozAlign: "center", hozAlign: "center",
               formatter: function (cell) {
@@ -574,7 +618,7 @@ export class FollowProjectBaseComponent implements OnInit {
     this.user = 0;
     this.customerID = 0;
     this.pm = 0;
-    this.warehouseID = 1;
+    this.warehouseID = this.tabData?.warehouseId;
     this.groupSaleID = 0;
     this.sizeTbDetail = '0';
     this.selectedFollowProject.clear();
@@ -595,6 +639,7 @@ export class FollowProjectBaseComponent implements OnInit {
         scrollable: true,
         modalDialogClass: 'modal-fullscreen modal-dialog-scrollable'
       });
+      modalRef.componentInstance.warehouseID = this.warehouseID;
       modalRef.result.finally(() => {
         this.selectedFollowProject.clear();
         this.drawTbFollowProject(this.tb_followProjectContainer.nativeElement);
@@ -617,6 +662,7 @@ export class FollowProjectBaseComponent implements OnInit {
         modalDialogClass: 'modal-fullscreen modal-dialog-scrollable'
       });
       modalRef.componentInstance.FollowProject = Array.from(this.selectedFollowProject)[0];
+      modalRef.componentInstance.warehouseID = this.warehouseID;
       modalRef.result.finally(() => {
         this.selectedFollowProject.clear();
         this.drawTbFollowProject(this.tb_followProjectContainer.nativeElement);

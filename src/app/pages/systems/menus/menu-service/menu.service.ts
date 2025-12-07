@@ -2282,7 +2282,7 @@ export class MenuService {
         children: [
           {
             kind: 'group',
-            key: 'Warehouse_HN',
+            key: 'SaleComponent_HN',
             title: 'Văn phòng Hà Nội',
             isOpen: true,
             isPermission: this.permissionService.hasPermission(''),
@@ -2335,14 +2335,14 @@ export class MenuService {
               {
                 kind: 'group',
                 key: 'ProjectComponent',
-                title: 'Vision Base',
+                title: 'VISION BASE',
                 isOpen: true,
                 isPermission: this.permissionService.hasPermission(''),
                 children: [
                   {
                     kind: 'leaf',
                     key: 'PlanWeekComponent',
-                    title: 'Kế hoạch tuần',
+                    title: 'KẾ HOẠCH TUẦN',
                     isOpen: true,
                     isPermission: this.permissionService.hasPermission(
                       "'N1,N27,N53,N31,N69'"
@@ -2352,7 +2352,7 @@ export class MenuService {
                   {
                     kind: 'leaf',
                     key: 'FollowProjectBaseComponent',
-                    title: 'Follow dự án',
+                    title: 'FOLLOW DỰ ÁN - HN',
                     isOpen: true,
                     isPermission: this.permissionService.hasPermission(''),
                     comp: FollowProjectBaseComponent,
@@ -2361,7 +2361,7 @@ export class MenuService {
                   {
                     kind: 'leaf',
                     key: 'CustomerComponent',
-                    title: 'Khách hàng',
+                    title: 'KHÁCH HÀNG',
                     isOpen: true,
                     isPermission:
                       this.permissionService.hasPermission(
@@ -2372,43 +2372,43 @@ export class MenuService {
                   },
                 ],
               },
-              // {
-              //   kind: 'group',
-              //   key: 'KPIComponent',
-              //   title: 'KPI',
-              //   isOpen: true,
-              //   isPermission: this.permissionService.hasPermission(''),
-              //   children: [
-              //     {
-              //       kind: 'leaf',
-              //       key: 'BonusCoefficientComponent',
-              //       title: 'Tổng hợp báo cáo',
-              //       isOpen: true,
-              //       isPermission: this.permissionService.hasPermission("''"),
-              //       comp: BonusCoefficientComponent,
-              //     },
-              //     // {
-              //     //   kind: 'leaf',
-              //     //   key: 'EmployeeSaleManagerComponent',
-              //     //   title: 'Nhân viên Sale',
-              //     //   isOpen: true,
-              //     //   isPermission: this.permissionService.hasPermission("''"),
-              //     //   comp: EmployeeSaleManagerComponent,
-              //     // },
-              //     {
-              //       kind: 'leaf',
-              //       key: 'DailyReportSaleComponent',
-              //       title: 'Báo cáo hàng ngày',
-              //       isOpen: true,
-              //       isPermission: this.permissionService.hasPermission("''"),
-              //       comp: DailyReportSaleComponent,
-              //     },
-              //   ],
-              // },
+              {
+                kind: 'group',
+                key: 'KPIComponent',
+                title: 'KPI',
+                isOpen: true,
+                isPermission: this.permissionService.hasPermission(""),
+                children: [
+                  {
+                    kind: 'leaf',
+                    key: 'BonusCoefficientComponent',
+                    title: 'Tổng hợp báo cáo',
+                    isOpen: true,
+                    isPermission: this.permissionService.hasPermission(""),
+                    comp: BonusCoefficientComponent,
+                  },
+                  // {
+                  //   kind: 'leaf',
+                  //   key: 'EmployeeSaleManagerComponent',
+                  //   title: 'Nhân viên Sale',
+                  //   isOpen: true,
+                  //   isPermission: this.permissionService.hasPermission("''"),
+                  //   comp: EmployeeSaleManagerComponent,
+                  // },
+                  {
+                    kind: 'leaf',
+                    key: 'DailyReportSaleComponent',
+                    title: 'Báo cáo hàng ngày',
+                    isOpen: true,
+                    isPermission: this.permissionService.hasPermission(""),
+                    comp: DailyReportSaleComponent,
+                  },
+                ],
+              },
               {
                 kind: 'leaf',
                 key: 'RequestInvoiceComponent',
-                title: 'YÊU CẦU XUẤT HÓA ĐƠN',
+                title: 'YÊU CẦU XUẤT HÓA ĐƠN - HN',
                 isOpen: true,
                 isPermission: this.permissionService.hasPermission(''),
                 comp: RequestInvoiceComponent,
@@ -2418,7 +2418,7 @@ export class MenuService {
           },
           {
             kind: 'group',
-            key: 'Warehouse_HCM',
+            key: 'SaleComponent_HCM',
             title: 'Văn phòng Hồ Chí Minh',
             isOpen: true,
             isPermission: this.permissionService.hasPermission(''),
@@ -2426,7 +2426,7 @@ export class MenuService {
               {
                 kind: 'leaf',
                 key: 'RequestInvoiceComponent_HCM',
-                title: 'YÊU CẦU XUẤT HÓA ĐƠN',
+                title: 'YÊU CẦU XUẤT HÓA ĐƠN - HCM',
                 isOpen: true,
                 isPermission: this.permissionService.hasPermission(''),
                 comp: RequestInvoiceComponent,
@@ -2435,15 +2435,24 @@ export class MenuService {
               {
                 kind: 'leaf',
                 key: 'POKHComponent_HCM',
-                title: 'PO KHÁCH HÀNG',
+                title: 'PO KHÁCH HÀNG - HCM',
                 isOpen: true,
                 isPermission:
                   this.permissionService.hasPermission('N54,N1,N36'),
                 comp: PokhComponent,
                 data: { warehouseId: 2 },
               },
-            ],
-          },
+              {
+                kind: 'leaf',
+                key: 'FollowProjectBaseComponent_HCM',
+                title: 'FOLLOW DỰ ÁN - HCM',
+                isOpen: true,
+                isPermission: this.permissionService.hasPermission(''),
+                comp: FollowProjectBaseComponent,
+                data: { warehouseId: 2 },
+              },
+            ]
+          }
         ],
       },
       //#endregion
@@ -2455,12 +2464,12 @@ export class MenuService {
         title: 'PHÒNG KẾ TOÁN',
         isOpen: true,
         isPermission: this.permissionService.hasPermission(''),
-        icon: 'assets/icon/menu_sale.svg',
+        icon: 'assets/icon/menu_ketoan.svg',
         children: [
           {
             kind: 'leaf',
             key: 'RequestInvoiceComponent_KT',
-            title: 'YÊU CẦU XUẤT HÓA ĐƠN',
+            title: 'YÊU CẦU XUẤT HÓA ĐƠN - KẾ TOÁN',
             isOpen: true,
             isPermission: this.permissionService.hasPermission(''),
             comp: RequestInvoiceComponent,

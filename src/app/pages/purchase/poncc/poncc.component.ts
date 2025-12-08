@@ -145,6 +145,13 @@ export class PONCCComponent implements OnInit, AfterViewInit {
 
     poCode: string = 'hihi';
 
+    showPreview = false;
+    isShowSign = false;
+    isShowSeal = false;
+    isMerge = false;
+    language: string = 'vi';
+    dataPrint: any;
+
     // Lưu trạng thái bảng để khôi phục sau khi reload
     private savedScrollPosition: number = 0;
     private savedSelectedRowIds: number[] = [];
@@ -1758,70 +1765,63 @@ export class PONCCComponent implements OnInit, AfterViewInit {
         });
     }
 
+    // onPrintPO(language: string, isShowSign: boolean, isShowSeal: boolean, isMerge: boolean) {
+    //     let selectedRows = this.tablePoThuongMai.getSelectedRows();
+    //     for (let i = 0; i < selectedRows.length; i++) {
+    //         let dataRow = selectedRows[i].getData();
+    //         //   console.log('dataRow:', dataRow);
+    //         let id = dataRow['ID'];
+    //         //   console.log(id);
+    //         this.srv.printPO(id, isMerge).subscribe({
+    //             next: (respose) => {
+    //                 //   console.log(respose.data);
+
+    //                 let billCode = respose.data.po.BillCode;
+    //                 let docDefinition: any = this.onCreatePDFLanguageEn(respose.data, isShowSign, isShowSeal);
+    //                 if (language == 'vi')
+    //                     docDefinition = this.onCreatePDFLanguageVi(respose.data, isShowSign, isShowSeal);
+
+    //                 // Hiển thị PDF trực tiếp trong trình duyệt
+    //                 pdfMake.createPdf(docDefinition).open();
+
+    //             },
+    //             error: (err) => {
+    //                 this.notification.error(NOTIFICATION_TITLE.error, err.error.message);
+    //             },
+    //         });
+    //     }
+
+    //     // pdfMake.createPdf(docDefinition).download(billCode);
+    // }
+
     onPrintPO(language: string) {
         let selectedRows = this.tablePoThuongMai.getSelectedRows();
+        console.log('selectedRows:', selectedRows);
+        if (selectedRows.length === 0) return;
 
-        let urlImage =
-            environment.host +
-            'api/share/purchases/2. quy trình. quy định chung/1. quy trình mua hàng/phần mềm misa/ảnh import misa/signnonback/';
-        for (let i = 0; i < selectedRows.length; i++) {
-            let dataRow = selectedRows[i].getData();
-            //   console.log('dataRow:', dataRow);
-            let id = dataRow['ID'];
-            //   console.log(id);
-            this.srv.printPO(id, false).subscribe({
-                next: (respose) => {
-                    //   console.log(respose.data);
+        let dataRow = selectedRows[0].getData();
+        let id = dataRow['ID'];
 
-                    //   console.log(
-                    //     'picPrepared',
-                    //     urlImage + `${respose.data.po.Code.trim()}.png`
-                    //   );
-                    //   console.log(
-                    //     'picDirector',
-                    //     urlImage +
-                    //       `/seal${respose.data.po.CompanyText.trim().toUpperCase()}.png`
-                    //   );
+        this.srv.printPO(id, this.isMerge).subscribe({
+            next: (response) => {
+                console.log(response)
+                this.dataPrint = response.data;
 
-                    let billCode = respose.data.po.BillCode;
-                    let docDefinition: any = this.onCreatePDFLanguageEn(respose.data);
-                    if (language == 'vi')
-                        docDefinition = this.onCreatePDFLanguageVi(respose.data);
+                // Mở modal
+                this.showPreview = true;
 
-                    // Hiển thị PDF trực tiếp trong trình duyệt
-                    pdfMake.createPdf(docDefinition).open();
-                    //   pdfMake.createPdf(docDefinition).getDataUrl((dataUrl: any) => {
-                    //     const newWindow = window.open('');
-                    //     if (newWindow) {
-                    //       newWindow.document.write(`
-                    //                                 <html>
-                    //                                 <head>
-                    //                                     <title>${billCode}</title>
-                    //                                     <link rel="icon" type="image/x-icon" href="icon-logo-RTC-2023.png" />
-                    //                                 </head>
-                    //                                 <body style="margin:0">
-                    //                                     <iframe src="${dataUrl}" style="width:100%;height:100vh;" frameborder="0"></iframe>
-                    //                                 </body>
-                    //                                 </html>
-                    //                             `);
-                    //       newWindow.document.close();
-                    //     }
-                    //   });
-                },
-                error: (err) => {
-                    this.notification.error(NOTIFICATION_TITLE.error, err.error.message);
-                },
-            });
-        }
-
-        // pdfMake.createPdf(docDefinition).download(billCode);
+                // Render PDF ngay lần đầu
+                this.renderPDF(language);
+            }
+        });
     }
 
-    onCreatePDFLanguageVi(data: any) {
-        console.log(data);
+    onCreatePDFLanguageVi(data: any, isShowSign: boolean, isShowSeal: boolean) {
+        // console.log(data);
         let po = data.po;
         let poDetails = data.poDetails;
         let employeePurchase = data.employeePurchase;
+        let taxCompany = data.taxCompany;
 
         const totalAmount = poDetails.reduce((sum: number, x: any) => sum + x.ThanhTien, 0);
         const vatMoney = poDetails.reduce((sum: number, x: any) => sum + x.VATMoney, 0);
@@ -1855,6 +1855,7 @@ export class PONCCComponent implements OnInit, AfterViewInit {
                 width: 150,
                 margin: [0, 0, 40, 0],
             };
+        if (!isShowSign) cellPicPrepared = { text: '', style: '' };
         let cellPicDirector: any = po.PicDirector == '' ?
             { text: '', style: '' }
             :
@@ -1862,54 +1863,63 @@ export class PONCCComponent implements OnInit, AfterViewInit {
                 image: 'data:image/png;base64,' + po.PicDirector, width: 170,
                 margin: [20, 0, 0, 0],
             };
-
+        if (!isShowSeal) cellPicPrepared = { text: '', style: '' };
         let docDefinition = {
             content: [
-                'N6-SH12A khu nhà ở phường Kiến Hưng Mipec City View, Phường Kiến Hưng, Quận Hà Đông, Thành phố Hà Nội, Việt Nam.',
-                { text: "ĐƠN MUA HÀNG", alignment: 'center', bold: true, fontSize: 12 },
+                `${taxCompany.BuyerVietnamese}
+                ${taxCompany.AddressBuyerVienamese}
+                ${taxCompany.TaxVietnamese}`,
+                { text: "ĐƠN MUA HÀNG", alignment: 'center', bold: true, fontSize: 12, margin: [0, 10, 0, 10] },
                 {
                     style: 'tableExample',
                     table: {
-                        width: [100, '*', 30, 60],
-                        body: [
-                            ['Tên nhà cung cấp:', po.NameNCC, 'Ngày:', DateTime.fromISO(po.RequestDate).toFormat('dd/MM/yyyy')],
-                            ['Địa chỉ:', po.AddressNCC, 'Số:', po.BillCode],
-                        ]
-                    },
-                    layout: 'noBorders',
-                },
-
-                {
-                    style: 'tableExample',
-                    table: {
-                        widths: [100, '*', 60, 30],
+                        widths: [80, '*', 30, 70, 35, 30, 25],
                         body: [
                             [
-                                'Mã số thuế:',
-                                { text: po.MaSoThue },
-                                'Loại tiền:',
-                                po.CurrencyText,
+                                'Tên nhà cung cấp:', { colSpan: 3, text: po.NameNCC }, '', '', 'Ngày:',
+                                { colSpan: 2, text: DateTime.fromISO(po.RequestDate).toFormat('dd/MM/yyyy') }
                             ],
-
-                        ],
+                            [
+                                'Địa chỉ:', { colSpan: 3, text: po.AddressNCC }, '', '',
+                                'Số:', { colSpan: 2, text: po.BillCode }
+                            ],
+                        ]
                     },
                     layout: 'noBorders',
                 },
                 {
                     style: 'tableExample',
                     table: {
-                        width: [100, '*', 30, '*'],
+                        widths: [80, '*', 30, 70, 30, 25, 35],
                         body: [
-                            ['Điện thoại:', po.SupplierContactPhone, 'Fax:', po.Fax],
-                            ['Diễn giải:', { colSpan: 3, text: po.Note }],
+                            [
+                                'Mã số thuế:', { colSpan: 3, text: po.MaSoThue }, '', '',
+                                { colSpan: 2, text: 'Loại tiền:' }, '', po.CurrencyText
+                            ],
                         ]
                     },
                     layout: 'noBorders',
                 },
+                {
+                    style: 'tableExample',
+                    table: {
+                        widths: [80, '*', 30, 70, 35, 30, 25],
+                        body: [
+                            [
+                                'Điện thoại:', po.SupplierContactPhone,
+                                'Fax:', { colSpan: 4, text: po.Fax }
+                            ],
+                            ['Diễn giải:', { colSpan: 6, text: po.Note }],
+                        ]
+                    },
+                    layout: 'noBorders',
+
+                },
+
                 //Bảng chi tiết sản phẩm
                 {
                     table: {
-                        widths: [20, 130, 30, 46, '*', '*', 40, '*'],
+                        widths: [20, 120, 30, 45, '*', '*', 35, '*'],
                         body: [
                             //Header table
                             [
@@ -1926,83 +1936,30 @@ export class PONCCComponent implements OnInit, AfterViewInit {
                             //list item
                             ...items,
                             //sum footer table
-                            // [
-                            //     { colSpan: 2, text: '', border: [true, false, false, true] },
-                            //     {
-                            //         colSpan: 4,
-                            //         text: 'Cộng tiền hàng:',
-                            //         border: [false, false, false, true],
-                            //     },
-                            //     {
-                            //         colSpan: 2,
-                            //         text: this.formatNumber(totalAmount),
-                            //         alignment: 'right',
-                            //         bold: true,
-                            //         border: [false, false, true, true],
-                            //     },
-                            // ],
-                            // [
-                            //     { colSpan: 2, text: '', border: [true, false, false, true] },
-
-                            //     {
-                            //         colSpan: 4,
-                            //         text: 'Tiền thuế GTGT:',
-
-                            //         border: [false, false, false, true],
-                            //     },
-                            //     {
-                            //         colSpan: 2,
-                            //         text: this.formatNumber(vatMoney),
-                            //         alignment: 'right',
-                            //         bold: true,
-                            //         border: [false, false, true, true],
-                            //     },
-                            // ],
-                            // [
-                            //     { colSpan: 2, text: '', border: [true, false, false, true] },
-
-                            //     {
-                            //         colSpan: 4,
-                            //         text: 'Chiết khấu',
-                            //         border: [false, false, false, true],
-                            //     },
-                            //     {
-                            //         colSpan: 2,
-                            //         text: this.formatNumber(discount),
-                            //         alignment: 'right',
-                            //         bold: true,
-                            //         border: [false, false, true, true],
-                            //     },
-                            // ],
-                            // [
-                            //     { colSpan: 2, text: '', border: [true, false, false, true] },
-
-                            //     {
-                            //         colSpan: 4,
-                            //         text: 'Tổng tiền thanh toán:',
-                            //         border: [false, false, false, true],
-                            //     },
-                            //     {
-                            //         colSpan: 2,
-                            //         text: this.formatNumber(totalPrice),
-                            //         alignment: 'right',
-                            //         bold: true,
-                            //         border: [false, false, true, true],
-                            //     },
-                            // ],
-                            // [
-                            //     {
-                            //         colSpan: 2,
-                            //         text: 'Số tiền viết bằng chữ:',
-                            //         border: [true, false, false, true],
-                            //     },
-                            //     {
-                            //         colSpan: 6,
-                            //         text: po.TotalMoneyText,
-                            //         bold: true,
-                            //         border: [false, false, true, true],
-                            //     },
-                            // ],
+                            [
+                                { colSpan: 2, text: '', border: [true, false, false, true] }, '',
+                                { colSpan: 4, text: 'Cộng tiền hàng:', border: [false, false, false, true] }, '4', '5', '6',
+                                { colSpan: 2, text: this.formatNumber(totalAmount), alignment: 'right', bold: true, border: [false, false, true, true] }, '8'
+                            ],
+                            [
+                                { colSpan: 2, text: '', border: [true, false, false, true] }, '2',
+                                { colSpan: 4, text: 'Tiền thuế GTGT:', border: [false, false, false, true] }, '4', '5', '6',
+                                { colSpan: 2, text: this.formatNumber(vatMoney), alignment: 'right', bold: true, border: [false, false, true, true] }, '8'
+                            ],
+                            [
+                                { colSpan: 2, text: '', border: [true, false, false, true] }, '2',
+                                { colSpan: 4, text: 'Chiết khấu:', border: [false, false, false, true] }, '4', '5', '6',
+                                { colSpan: 2, text: this.formatNumber(discount), alignment: 'right', bold: true, border: [false, false, true, true] }, '8'
+                            ],
+                            [
+                                { colSpan: 2, text: '', border: [true, false, false, true] }, '2',
+                                { colSpan: 4, text: 'Tổng tiền thanh toán:', border: [false, false, false, true] }, '4', '5', '6',
+                                { colSpan: 2, text: this.formatNumber(totalPrice), alignment: 'right', bold: true, border: [false, false, true, true] }, '8'
+                            ],
+                            [
+                                { colSpan: 2, text: 'Số tiền viết bằng chữ:', border: [true, false, false, true] }, '',
+                                { colSpan: 6, text: po.TotalMoneyText, bold: true, italics: true, border: [false, false, true, true] }, '4', '5', '6', '7', '8'
+                            ],
                         ],
                     },
                 },
@@ -2084,7 +2041,7 @@ export class PONCCComponent implements OnInit, AfterViewInit {
 
         return docDefinition;
     }
-    onCreatePDFLanguageEn(data: any) {
+    onCreatePDFLanguageEn(data: any, isShowSign: boolean, isShowSeal: boolean) {
         let po = data.po;
         let poDetails = data.poDetails;
         let taxCompany = data.taxCompany;
@@ -2121,6 +2078,8 @@ export class PONCCComponent implements OnInit, AfterViewInit {
                 width: 150,
                 margin: [0, 0, 40, 0],
             };
+        if (!isShowSign) cellPicPrepared = { text: '', style: '' };
+
         let cellPicDirector: any = po.PicDirector == '' ?
             { text: '', style: '' }
             :
@@ -2128,37 +2087,12 @@ export class PONCCComponent implements OnInit, AfterViewInit {
                 image: 'data:image/png;base64,' + po.PicDirector, width: 170,
                 margin: [20, 0, 0, 0],
             };
-
+        if (!isShowSeal) cellPicDirector = { text: '', style: '' };
         //
         let docDefinition = {
-            //   footer: (currentPage: number, pageCount: number) => {
-            //     if (currentPage === pageCount) {
-            //       return {
-            //         table: {
-            //           widths: ['*', '*', '*'],
-            //           body: [
-            //             ['Footer R1C1', 'Footer R1C2', 'Footer R1C3'],
-            //             ['Footer R2C1', 'Footer R2C2', 'Footer R2C3'],
-            //             ['Footer R3C1', 'Footer R3C2', 'Footer R3C3'],
-            //           ],
-            //         },
-            //         layout: {
-            //           hLineWidth: () => 0.5,
-            //           vLineWidth: () => 0.5,
-            //           hLineColor: () => 'black',
-            //           vLineColor: () => 'black',
-            //           paddingTop: () => 3,
-            //           paddingBottom: () => 3,
-            //         },
-            //         margin: [40, 0, 40, 20], // left, top, right, bottom
-            //       };
-            //     }
-            //     return ''; // trang khác không có footer
-            //   },
             info: {
                 title: 'Awesome PDF document from pdfmake',
             },
-            //   header:
             content: [
                 {
                     alignment: 'justify',
@@ -2357,6 +2291,7 @@ export class PONCCComponent implements OnInit, AfterViewInit {
                                     colSpan: 6,
                                     text: po.TotalAmountText,
                                     bold: true,
+                                    italics: true,
                                     border: [false, false, true, true],
                                 },
                             ],
@@ -2437,34 +2372,35 @@ export class PONCCComponent implements OnInit, AfterViewInit {
         });
     }
 
-    checkImageExists(url: string): Promise<boolean> {
-        return fetch(url, { method: 'HEAD' })
-            .then((res) => res.ok)
-            .catch(() => false);
+    toggleMerge() {
+        this.isMerge = !this.isMerge;
+        this.onPrintPO(this.language); // gọi lại API vì merge ảnh hưởng tới dữ liệu
     }
 
-    async imageToBase64WithFallback(
-        url: string,
-        fallbackBase64: string
-    ): Promise<string> {
-        try {
-            const res = await fetch(url);
+    toggleSign() {
+        this.isShowSign = !this.isShowSign;
+        this.onPrintPO(this.language);
+    }
 
-            if (!res.ok) {
-                // lỗi 404, 500
-                return fallbackBase64;
-            }
+    toggleSeal() {
+        this.isShowSeal = !this.isShowSeal;
+        this.onPrintPO(this.language);
+    }
 
-            const blob = await res.blob();
 
-            return await new Promise((resolve) => {
-                const reader = new FileReader();
-                reader.onloadend = () => resolve(reader.result as string);
-                reader.readAsDataURL(blob);
-            });
-        } catch (err) {
-            // lỗi mạng
-            return fallbackBase64;
-        }
+    renderPDF(language: string) {
+        console.log('language', language);
+        console.log('dataPrint', this.dataPrint);
+        if (!this.dataPrint) return;
+
+        let docDefinition =
+            language === 'vi'
+                ? this.onCreatePDFLanguageVi(this.dataPrint, this.isShowSign, this.isShowSeal)
+                : this.onCreatePDFLanguageEn(this.dataPrint, this.isShowSign, this.isShowSeal);
+
+        pdfMake.createPdf(docDefinition).getBlob((blob: any) => {
+            const url = URL.createObjectURL(blob);
+            (document.getElementById('pdfFrame') as HTMLIFrameElement).src = url;
+        });
     }
 }

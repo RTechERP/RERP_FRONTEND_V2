@@ -131,10 +131,11 @@ postSaveHistoryProduct(data: any): Observable<any> {
     );
   }
 
-  postReturnProductRTC(historyId: number, isAdmin: boolean): Observable<any> {
+  postReturnProductRTC(historyId: number, isAdmin: boolean, modulaLocationDetailID: number = 0): Observable<any> {
     const body = {
-      historyId: historyId,
-      isAdmin: isAdmin
+      HistoryId: historyId,
+      IsAdmin: isAdmin,
+      ModulaLocationDetailID: modulaLocationDetailID
     };
 
     return this.http.post<any>(

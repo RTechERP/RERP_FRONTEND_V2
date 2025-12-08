@@ -113,7 +113,8 @@
                                     <img src="assets/icon/action_export_excel_16.png" alt="Xuất Excel"
                                         style="width:16px; height:16px; object-fit:contain" />Xuất Excel
                                 </button>
-                                <button nz-button nzType="default" nzSize="small" class="me-1">
+                                <button nz-button nzType="default" nzSize="small" class="me-1"
+                                    (click)="onRequestPurchase()">
                                     <img src="assets/icon/purchase.png" alt="Yêu cầu mua hàng"
                                         style="width:16px; height:16px; object-fit:contain" />Yêu cầu mua hàng
                                 </button>
@@ -170,7 +171,8 @@
                                     class="d-flex align-items-center gap-2">
                                     Xuất Excel
                                 </button>
-                                <button ngbDropdownItem class="d-flex align-items-center gap-2">
+                                <button ngbDropdownItem (click)="onRequestPurchase()"
+                                    class="d-flex align-items-center gap-2">
                                     Yêu cầu mua hàng
                                 </button>
                                 <button ngbDropdownItem *hasPermission="'N26,N1,N80'"

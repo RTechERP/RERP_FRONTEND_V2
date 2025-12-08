@@ -149,4 +149,8 @@ export class ProjectPartListService {
       })
     );
   }
+  // Cập nhật mã đặc biệt
+  updateSpecialCode(partlistId: number, specialCode: string): Observable<any> {
+    return this.http.post<any>(`${this.urlProjectPartList}/update-special-code?partlistId=${partlistId}&specialCode=${encodeURIComponent(specialCode)}`, {});
+  }
 }

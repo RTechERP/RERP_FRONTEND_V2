@@ -831,4 +831,51 @@ export class ProjectPartlistDetailComponent implements OnInit, AfterViewInit {
       ]
     });
   }
+
+  // Method để cập nhật mã đặc biệt riêng
+  onSearchSpecialCode(event?: Event): void {
+    // Chỉ cho phép cập nhật khi đang ở chế độ sửa
+    if (this.currentPartListId === 0 || this.currentPartListId === null) {
+      return;
+    }
+
+    // Lấy giá trị từ form control
+    const specialCodeValue = this.formGroup.get('specialCode')?.value || '';
+
+    if (!specialCodeValue || specialCodeValue.trim() === '') {
+      this.notification.warning(NOTIFICATION_TITLE.warning, 'Vui lòng nhập mã đặc biệt!');
+      return;
+    }
+
+    // Ngăn chặn hành vi mặc định nếu là event từ Enter key
+    if (event) {
+      event.preventDefault();
+    }
+
+    // Gọi API mới để cập nhật chỉ mã đặc biệt
+    this.projectPartListService.updateSpecialCode(this.currentPartListId, specialCodeValue.trim()).subscribe({
+      next: (response: any) => {
+        // Kiểm tra response theo format của API
+        if (response.status === 0 || response.success === false) {
+          const errorMessage = response.message || 'Có lỗi xảy ra khi cập nhật mã đặc biệt!';
+          this.notification.error(NOTIFICATION_TITLE.error, errorMessage);
+          return;
+        }
+
+        if (response.status === 1 || response.success) {
+          this.notification.success(NOTIFICATION_TITLE.success, response.message || 'Cập nhật mã đặc biệt thành công!');
+          // Cập nhật lại form với giá trị đã trim
+          this.formGroup.patchValue({ specialCode: specialCodeValue.trim() }, { emitEvent: false });
+        } else {
+          this.notification.error(NOTIFICATION_TITLE.error, response.message || 'Cập nhật mã đặc biệt thất bại!');
+        }
+      },
+      error: (error: any) => {
+        console.error('Error updating special code:', error);
+        // Xử lý lỗi từ API - có thể là BadRequest với message trong error.error
+        const errorMessage = error?.error?.message || error?.message || 'Có lỗi xảy ra khi cập nhật mã đặc biệt!';
+        this.notification.error(NOTIFICATION_TITLE.error, errorMessage);
+      }
+    });
+  }
 }

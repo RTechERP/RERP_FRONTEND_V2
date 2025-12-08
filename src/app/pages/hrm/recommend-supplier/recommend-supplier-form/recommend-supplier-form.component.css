@@ -1,0 +1,465 @@
+
+
+/* HCNS Table Wrapper */
+.hcns-table-wrapper {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  min-height: 0;
+  background: #fafafa;
+}
+
+/* HCNS Table Container - Giống Tabulator */
+.hcns-table-container {
+  width: 100%;
+  flex: 1;
+  overflow: auto;
+  position: relative;
+  min-height: 0;
+  -webkit-overflow-scrolling: touch;
+  /* Cho phép error message hiển thị ngoài container */
+  overflow-x: auto;
+  overflow-y: auto;
+}
+
+.hcns-table {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+  border: 1px solid #d9d9d9;
+  font-size: 0.75rem;
+  font-family: "Be Vietnam Pro", sans-serif;
+  background: #fff;
+  margin: 0;
+  table-layout: auto;
+  min-width: max-content;
+}
+
+/* Header - Giống Tabulator header */
+.hcns-table thead {
+  background-color: #fafafa;
+  border-bottom: 2px solid #d9d9d9;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  display: table-header-group;
+}
+
+.hcns-table thead th {
+  background-color: #3066c5;
+  border-right: 1px solid #d9d9d9;
+  font-weight: 600;
+  font-family: "Be Vietnam Pro", sans-serif;
+  color: #fff;
+  padding: 8px 10px;
+  text-align: center;
+  vertical-align: middle;
+  position: sticky;
+  top: 0;
+  z-index: 101;
+  box-shadow: 0 2px 2px -1px rgba(0, 0, 0, 0.1);
+  white-space: nowrap;
+}
+
+.hcns-table thead th:first-child {
+  border-left: none;
+}
+
+.hcns-table thead th:last-child {
+  border-right: none;
+}
+
+.hcns-table thead th:last-child {
+  border-right: none;
+}
+
+/* Rows - Giống Tabulator rows */
+.hcns-table tbody tr {
+  border-bottom: 1px solid #d9d9d9;
+}
+
+.hcns-table tbody tr:last-child {
+  border-bottom: 1px solid #d9d9d9;
+}
+
+/* Phân tách rõ hơn - border đậm hơn cho tất cả rows */
+.hcns-table tbody tr {
+  border-top: 1px solid #d9d9d9;
+}
+
+.hcns-table tbody tr:first-child {
+  border-top: 2px solid #bfbfbf;
+}
+
+/* Cells - Giống Tabulator cells */
+.hcns-table td {
+  padding: 0;
+  vertical-align: middle;
+  background: #fff;
+  border-right: 1px solid #d9d9d9;
+  border-top: 1px solid #d9d9d9;
+  position: relative;
+  white-space: nowrap;
+}
+
+.hcns-table td:first-child {
+  border-left: none;
+}
+
+.hcns-table td:last-child {
+  border-right: none;
+}
+
+/* Input và Textarea - Giống Tabulator editor */
+.hcns-table input,
+.hcns-table textarea {
+  width: 100%;
+  border: none;
+  outline: none;
+  background: transparent;
+  font-size: 0.75rem;
+  font-family: "Be Vietnam Pro", sans-serif;
+  padding: 0px 5px;
+  margin: 0;
+}
+
+.hcns-table input:focus,
+.hcns-table textarea:focus {
+  outline: none;
+  border: none;
+}
+
+.hcns-table textarea {
+  overflow-y: auto;
+}
+
+.hcns-table input::placeholder,
+.hcns-table textarea::placeholder {
+  color: #bfbfbf;
+  font-size: 0.75rem;
+}
+
+/* Action buttons */
+.hcns-table .btn-sm {
+  padding: 4px 8px;
+  font-size: 0.7rem;
+  border-radius: 2px;
+  border: none;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  min-height: 24px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Action column với icon xóa */
+.hcns-table td[style*="text-align: center"] {
+  padding: 6px 10px;
+  text-align: center;
+}
+
+/* Delete icon - giống Tabulator */
+.hcns-table .delete-btn {
+  font-size: 0.875rem;
+  color: #ff4d4f;
+  cursor: pointer;
+  padding: 2px 4px;
+  border-radius: 2px;
+  transition: all 0.2s ease;
+  display: inline-block;
+}
+
+.hcns-table .delete-btn:hover {
+  color: #d9363e;
+  background-color: rgba(255, 77, 79, 0.1);
+}
+
+/* Icon buttons trong Supplier column */
+.hcns-table .cursor-pointer {
+  cursor: pointer;
+  padding: 4px;
+  border-radius: 2px;
+  transition: all 0.2s ease;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.hcns-table .cursor-pointer:hover {
+  background-color: rgba(0, 0, 0, 0.06);
+}
+
+/* Header icon */
+.hcns-table thead th .cursor-pointer {
+  font-size: 0.875rem;
+  color: #52c41a;
+}
+
+.hcns-table thead th .cursor-pointer:hover {
+  background-color: rgba(82, 196, 26, 0.1);
+  color: #389e0d;
+}
+
+/* Supplier actions container */
+.hcns-table td > div {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 10px;
+  min-height: 32px;
+  box-sizing: border-box;
+}
+
+.hcns-table td > div > div:last-child {
+  display: flex;
+  gap: 4px;
+  flex-shrink: 0;
+  margin-left: auto;
+}
+
+/* Đảm bảo input trong supplier column vừa với container */
+.hcns-table td > div > input {
+  flex: 1;
+  min-width: 0;
+}
+
+/* Text align right cho số */
+.hcns-table .text-end {
+  text-align: right;
+}
+
+.hcns-table .text-end input {
+  text-align: right;
+}
+
+/* Scrollbar styling */
+.hcns-table-container::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+.hcns-table-container::-webkit-scrollbar-track {
+  background: #f1f1f1;
+  border-radius: 4px;
+}
+
+.hcns-table-container::-webkit-scrollbar-thumb {
+  background: #c1c1c1;
+  border-radius: 4px;
+}
+
+.hcns-table-container::-webkit-scrollbar-thumb:hover {
+  background: #a8a8a8;
+}
+
+/* Smooth scrolling */
+.hcns-table-container {
+  scroll-behavior: smooth;
+  -webkit-overflow-scrolling: touch;
+}
+
+/* Đảm bảo các ô có rowspan cũng có padding phù hợp */
+.hcns-table td[rowspan] {
+  padding: 6px 10px;
+}
+
+/* Responsive */
+@media (max-width: 1024px) {
+  .hcns-table {
+    font-size: 0.7rem;
+  }
+  
+  .hcns-table th {
+    padding: 6px 8px;
+  }
+  
+  .hcns-table input,
+  .hcns-table textarea {
+    padding: 4px 8px;
+    font-size: 0.7rem;
+  }
+  
+  .hcns-table td > div {
+    padding: 4px 8px;
+  }
+  
+  .hcns-table td[rowspan],
+  .hcns-table td[style*="text-align: center"] {
+    padding: 4px 8px;
+  }
+}
+
+/* Tablet và Mobile - Responsive cho modal và splitter */
+@media (max-width: 768px) {
+  /* Modal body responsive */
+  .modal-body {
+    padding: 0.5rem !important;
+  }
+
+  /* Splitter vertical trên mobile */
+  ::ng-deep nz-splitter[nzLayout="vertical"] {
+    flex-direction: column !important;
+  }
+
+  ::ng-deep nz-splitter-panel {
+    min-height: 40vh !important;
+    max-height: 50vh !important;
+  }
+
+  /* Table container responsive */
+  .hcns-table-container {
+    overflow-x: auto;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .hcns-table {
+    min-width: 1200px; /* Đảm bảo table không bị co quá nhỏ */
+    font-size: 0.65rem;
+  }
+
+  .hcns-table thead th {
+    padding: 4px 6px;
+    font-size: 0.65rem;
+    white-space: nowrap;
+  }
+
+  .hcns-table td {
+    padding: 0;
+  }
+
+  .hcns-table input,
+  .hcns-table textarea {
+    padding: 2px 4px;
+    font-size: 0.65rem;
+  }
+
+  .hcns-table td > div {
+    padding: 2px 4px;
+    gap: 4px;
+  }
+
+  /* Header 2 dòng responsive */
+  .hcns-table thead tr:first-child th {
+    font-size: 0.7rem;
+    padding: 4px;
+  }
+
+  /* Footer buttons responsive */
+  .modal-footer {
+    padding: 0.5rem !important;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+  }
+
+  .modal-footer button {
+    flex: 1;
+    min-width: 100px;
+  }
+}
+
+/* Mobile nhỏ */
+@media (max-width: 576px) {
+  .modal-header h6 {
+    font-size: 0.875rem;
+  }
+
+  .hcns-table {
+    min-width: 1000px;
+    font-size: 0.6rem;
+  }
+
+  .hcns-table thead th {
+    padding: 3px 4px;
+    font-size: 0.6rem;
+  }
+
+  .hcns-table input,
+  .hcns-table textarea {
+    padding: 2px 3px;
+    font-size: 0.6rem;
+  }
+
+  .hcns-table td > div {
+    padding: 2px 3px;
+    gap: 2px;
+  }
+
+  /* Icon buttons nhỏ hơn trên mobile */
+  .hcns-table .cursor-pointer {
+    padding: 2px;
+    font-size: 0.7rem;
+  }
+
+  .hcns-table .delete-btn {
+    font-size: 0.75rem;
+    padding: 1px 2px;
+  }
+}
+
+/* ==================== Validation Styles ==================== */
+
+/* Validation error cell */
+.hcns-table td.validation-error {
+  background-color: #fff1f0 !important;
+  border: 1px solid #ffccc7 !important;
+}
+
+/* Error input styling */
+.hcns-table input.error-input,
+.hcns-table textarea.error-input {
+  background-color: #fff1f0 !important;
+  border: 1px solid #ff4d4f !important;
+  color: #cf1322 !important;
+}
+
+.hcns-table input.error-input:focus,
+.hcns-table textarea.error-input:focus {
+  border-color: #ff4d4f !important;
+  box-shadow: 0 0 0 2px rgba(255, 77, 79, 0.2) !important;
+}
+
+/* Đảm bảo error message không làm vỡ layout */
+.hcns-table td {
+  position: relative;
+  /* Đảm bảo td không tự động mở rộng theo nội dung error message */
+  height: auto;
+  min-height: 32px;
+}
+
+/* Error message - sử dụng absolute để không ảnh hưởng đến kích thước ô */
+.hcns-table .error-message {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  z-index: 1000;
+  font-size: 0.65rem;
+  color: #ff4d4f;
+  padding: 4px 6px;
+  background-color: #fff1f0;
+  border: 1px solid #ffccc7;
+  border-top: 2px solid #ff4d4f;
+  white-space: normal;
+  word-wrap: break-word;
+  line-height: 1.3;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+  min-width: 150px;
+  max-width: 300px;
+  margin-top: 1px;
+  /* Đảm bảo error message không làm tăng chiều cao của td */
+  display: block;
+}
+
+/* Placeholder styling cho required fields */
+.hcns-table input::placeholder,
+.hcns-table textarea::placeholder {
+  color: #bfbfbf;
+  font-style: italic;
+}
+
+.hcns-table input.error-input::placeholder,
+.hcns-table textarea.error-input::placeholder {
+  color: #ffaaa5;
+}
+

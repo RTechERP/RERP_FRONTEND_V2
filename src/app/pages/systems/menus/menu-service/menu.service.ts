@@ -2490,14 +2490,14 @@ export class MenuService {
         children: [
           {
             kind: 'group',
-            key: 'Tonghopdangkynghi',
+            key: 'Tonghopcong',
             title: 'Tổng hợp công',
             isOpen: true,
             isPermission: this.permissionService.hasPermission(''),
             children: [
               {
                 kind: 'leaf',
-                key: 'Tonghopdangkynghi',
+                key: 'PersonDayOffComponent',
                 title: 'Tổng hợp đăng ký nghỉ',
                 isOpen: true,
                 isPermission: this.permissionService.hasPermission(''),
@@ -2505,7 +2505,7 @@ export class MenuService {
               },
               {
                 kind: 'leaf',
-                key: 'Tonghopdimuonvesom',
+                key: 'EarlyLateSummaryComponent',
                 title: 'Tổng hợp đi muộn về sớm',
                 isOpen: true,
                 isPermission: this.permissionService.hasPermission(''),
@@ -2513,7 +2513,7 @@ export class MenuService {
               },
               {
                 kind: 'leaf',
-                key: 'Tonghopwfh',
+                key: 'WFHSummaryComponent',
                 title: 'Tổng hợp WFH',
                 isOpen: true,
                 isPermission: this.permissionService.hasPermission(''),
@@ -2521,7 +2521,7 @@ export class MenuService {
               },
               {
                 kind: 'leaf',
-                key: 'Tonghopquenvantay',
+                key: 'EmployeeNoFingerSummaryComponent',
                 title: 'Tổng hợp quên vân tay',
                 isOpen: true,
                 isPermission: this.permissionService.hasPermission(''),
@@ -2529,7 +2529,7 @@ export class MenuService {
               },
               {
                 kind: 'leaf',
-                key: 'Tonghopcongtac',
+                key: 'EmployeeBussinessPersonSummaryComponent',
                 title: 'Tổng hợp công tác',
                 isOpen: true,
                 isPermission: this.permissionService.hasPermission(''),
@@ -2537,7 +2537,7 @@ export class MenuService {
               },
               {
                 kind: 'leaf',
-                key: 'Tonghoplamdem',
+                key: 'EmployeeNightShiftPersonSummaryComponent',
                 title: 'Tổng hợp làm đêm',
                 isOpen: true,
                 isPermission: this.permissionService.hasPermission(''),

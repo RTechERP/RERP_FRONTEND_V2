@@ -33,6 +33,7 @@ import { ISADMIN, NOTIFICATION_TITLE } from '../../../../app.config';
 import { DEFAULT_TABLE_CONFIG } from '../../../../tabulator-default.config';
 import { HasPermissionDirective } from '../../../../directives/has-permission.directive';
 import { NzSpinModule } from 'ng-zorro-antd/spin';
+import { ProjectPartlistPriceRequestComponent } from '../../project-partlist-price-request/project-partlist-price-request.component';
 
 interface ProductGroup {
   ID?: number;
@@ -1000,5 +1001,29 @@ export class ProductSaleComponent implements OnInit, AfterViewInit {
     window.URL.revokeObjectURL(link.href);
   }
 
+  //#endregion
+
+  //#region Yêu cầu báo giá
+  openPriceRequest(): void {
+    const modalRef = this.modalService.open(ProjectPartlistPriceRequestComponent, {
+      centered: true,
+      size: 'xl',
+      backdrop: 'static',
+      keyboard: false,
+      windowClass: 'full-screen-modal',
+    });
+
+    // Truyền dữ liệu vào component
+    modalRef.componentInstance.projectPartlistPriceRequestTypeID = 4;
+
+    modalRef.result.then(
+      (result) => {
+        console.log('Modal closed with result:', result);
+      },
+      (reason) => {
+        console.log('Modal dismissed:', reason);
+      }
+    );
+  }
   //#endregion
 }

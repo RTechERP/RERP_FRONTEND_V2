@@ -136,7 +136,9 @@ export class ProjectPartlistPriceRequestService {
     });
   }
   saveData(lstModel: any[]) {
-    return this.http.post(`${this.baseUrl}/save-data`, { projectPartlistPriceRequest: lstModel });
+    // Backend mong đợi array trực tiếp, không phải object có property
+    const dataArray = Array.isArray(lstModel) ? lstModel : [];
+    return this.http.post(`${this.baseUrl}/save-data`, dataArray);
   }
   getCurrency(): Observable<any> {
     return this.http.get(`${this.baseUrl}/get-Currency`);
@@ -148,7 +150,11 @@ export class ProjectPartlistPriceRequestService {
     return this.http.get(`${this.baseUrl}/get-price-request-type`);
   }
   saveChangedData(data: any[]) {
-    return this.http.post(`${this.baseUrl}/save-data`, { projectPartlistPriceRequest: data });
+    // Backend mong đợi array trực tiếp, không phải object có property
+    // Vì backend có [FromBody] List<ProjectPartlistPriceRequest> projectPartlistPriceRequest
+    const dataArray = Array.isArray(data) ? data : [];
+    console.log('saveChangedData: Payload gửi lên server (array trực tiếp)', JSON.stringify(dataArray, null, 2));
+    return this.http.post(`${this.baseUrl}/save-data`, dataArray);
   }
   downloadFile(payload: {
     projectId: number;

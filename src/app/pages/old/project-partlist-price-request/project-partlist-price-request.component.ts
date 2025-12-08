@@ -57,7 +57,7 @@ import { NzModalService } from 'ng-zorro-antd/modal';
 import { NzModalModule } from 'ng-zorro-antd/modal';
 import { DateTime } from 'luxon';
 import * as ExcelJS from 'exceljs';
-import { NgbModal, NgbModalModule } from '@ng-bootstrap/ng-bootstrap';
+import { NgbActiveModal, NgbModal, NgbModalModule } from '@ng-bootstrap/ng-bootstrap';
 import { AppUserService } from '../../../services/app-user.service';
 import { bottom } from '@popperjs/core';
 import { NOTIFICATION_TITLE } from '../../../app.config';
@@ -167,7 +167,10 @@ export class ProjectPartlistPriceRequestComponent implements OnInit {
   requestBuyJobRequirementID: number = 0;
   lastSelectedRowsForBuy: any[] = [];
 
-  constructor(@Optional() @Inject('tabData') private tabData: any) {
+  constructor(
+    @Optional() @Inject('tabData') private tabData: any,
+    @Optional() public activeModal?: NgbActiveModal
+  ) {
     // Khi mở từ new tab, data được truyền qua injector
     if (this.tabData) {
       // Nếu có initialTabId trong tabData, set activeTabId trực tiếp
@@ -1032,10 +1035,19 @@ export class ProjectPartlistPriceRequestComponent implements OnInit {
     successMessage: string = 'Dữ liệu đã được lưu.',
     onSuccessCallback?: () => void
   ): void {
+    // Đảm bảo data là array
+    if (!Array.isArray(data)) {
+      console.error('SaveDataCommon: data không phải là array', data);
+      this.notification.error('Thông báo', 'Dữ liệu không hợp lệ.');
+      return;
+    }
+
     if (data.length === 0) {
       this.notification.info('Thông báo', 'Không có dữ liệu thay đổi.');
       return;
     }
+
+    console.log('SaveDataCommon: Gửi dữ liệu', { projectPartlistPriceRequest: data });
 
     this.PriceRequetsService.saveChangedData(data).subscribe({
       next: (response) => {
@@ -1186,6 +1198,13 @@ export class ProjectPartlistPriceRequestComponent implements OnInit {
   }
 
   private processSaveData(changedData: any[], onSuccess?: () => void): void {
+    // Đảm bảo changedData là array
+    if (!Array.isArray(changedData)) {
+      console.error('processSaveData: changedData không phải là array', changedData);
+      this.notification.error('Thông báo', 'Dữ liệu không hợp lệ.');
+      return;
+    }
+
     // Chỉ giữ lại các trường hợp lệ
     // Bao gồm tất cả các cột có editor để có thể lưu được
     const validFields = [
@@ -1227,6 +1246,33 @@ export class ProjectPartlistPriceRequestComponent implements OnInit {
       'DateRequest',
       'DatePriceQuote',
       'LeadTime',
+    ];
+
+    // Danh sách các trường số cần chuyển đổi từ string sang number
+    const numericFields = [
+      'ID',
+      'EmployeeID',
+      'ProjectPartListID',
+      'Quantity',
+      'UnitPrice',
+      'TotalPrice',
+      'UnitFactoryExportPrice',
+      'UnitImportPrice',
+      'TotalImportPrice',
+      'VAT',
+      'TotaMoneyVAT',
+      'CurrencyID',
+      'CurrencyRate',
+      'TotalPriceExchange',
+      'HistoryPrice',
+      'SupplierSaleID',
+      'TotalDayLeadTime',
+      'QuoteEmployeeID',
+      'StatusRequest',
+      'POKHDetailID',
+      'JobRequirementID',
+      'ProjectPartlistPriceRequestTypeID',
+      'EmployeeIDUnPrice'
     ];
 
     const filteredData = changedData.map((item) => {
@@ -1273,6 +1319,20 @@ export class ProjectPartlistPriceRequestComponent implements OnInit {
             } else {
               filteredItem[key] = item[key];
             }
+          } else if (numericFields.includes(key)) {
+            // Xử lý đặc biệt cho các trường số: chuyển đổi từ string sang number
+            const value = item[key];
+            if (value === null || value === undefined || value === '') {
+              // Giữ nguyên null/undefined/empty string
+              filteredItem[key] = value;
+            } else if (typeof value === 'string') {
+              // Chuyển đổi string sang number
+              const numValue = Number(value);
+              filteredItem[key] = isNaN(numValue) ? value : numValue;
+            } else {
+              // Đã là number hoặc boolean, giữ nguyên
+              filteredItem[key] = value;
+            }
           } else {
             filteredItem[key] = item[key];
           }
@@ -1309,7 +1369,13 @@ export class ProjectPartlistPriceRequestComponent implements OnInit {
           if (value.trim() === '') {
             return; // Bỏ qua empty string
           }
-          cleanedItem[key] = value;
+          // Nếu là trường số nhưng vẫn là string, chuyển đổi lại
+          if (numericFields.includes(key)) {
+            const numValue = Number(value);
+            cleanedItem[key] = isNaN(numValue) ? value : numValue;
+          } else {
+            cleanedItem[key] = value;
+          }
           return;
         }
 
@@ -1898,13 +1964,13 @@ export class ProjectPartlistPriceRequestComponent implements OnInit {
           updateData.push({
             ID: id,
             IsCheckPrice: isCheckPrice,
-            QuoteEmployeeID: Number(rowData['QuoteEmployeeID'] || 0), // Giữ nguyên QuoteEmployeeID hiện tại
-            EmployeeID: this.appUserService.employeeID, // Backend dùng field này để set QuoteEmployeeID mới
+            QuoteEmployeeID: this.appUserService.employeeID, // Giữ nguyên QuoteEmployeeID hiện tại
+            // EmployeeID: this.appUserService.employeeID, // Backend dùng field này để set QuoteEmployeeID mới
             UpdatedBy: this.appUserService.loginName,
             UpdatedDate: DateTime.local().toJSDate(),
           });
         });
-
+        console.log(updateData);
         // Kiểm tra nếu không có dòng nào hợp lệ sau khi validate
         if (updateData.length <= 0) {
           this.notification.warning(
@@ -2348,9 +2414,24 @@ export class ProjectPartlistPriceRequestComponent implements OnInit {
       this.notification.info('Thông báo', 'Không có dữ liệu để xuất Excel.');
       return;
     }
-    const columns = table
+    let columns = table
       .getColumnDefinitions()
       .filter((col: any) => col.visible !== false);
+
+    // Thêm cột CodeNCC ngay trước cột SupplierSaleID nếu chưa có
+    const supplierIndex = columns.findIndex((col: any) => col.field === 'SupplierSaleID');
+    const codeNCCExists = columns.some((col: any) => col.field === 'CodeNCC');
+    if (supplierIndex >= 0 && !codeNCCExists) {
+      const codeNCCColumn = {
+        title: 'Mã NCC',
+        field: 'CodeNCC',
+        hozAlign: 'left',
+        headerHozAlign: 'center',
+        headerSort: false,
+        width: 100,
+      } as any;
+      columns.splice(supplierIndex, 0, codeNCCColumn);
+    }
 
     // Thêm headers
     const headerRow = worksheet.addRow(columns.map((col: any) => col.title));
@@ -2442,6 +2523,15 @@ export class ProjectPartlistPriceRequestComponent implements OnInit {
             (s: any) => s.ID === value
           );
           return supplier ? supplier.NameNCC : '';
+        }
+
+        if (col.field === 'CodeNCC') {
+          // Lấy CodeNCC từ SupplierSaleID
+          const supplierId = row['SupplierSaleID'];
+          const supplier = this.dtSupplierSale?.find(
+            (s: any) => s.ID === supplierId
+          );
+          return supplier ? (supplier.CodeNCC || '') : '';
         }
 
         // Xử lý chuỗi rỗng
@@ -2635,9 +2725,25 @@ export class ProjectPartlistPriceRequestComponent implements OnInit {
         return;
       }
 
-      const columns = table
+      let columns = table
         .getColumnDefinitions()
         .filter((col: any) => col.visible !== false);
+
+      // Thêm cột CodeNCC ngay trước cột SupplierSaleID nếu chưa có
+      const supplierIndex = columns.findIndex((col: any) => col.field === 'SupplierSaleID');
+      const codeNCCExists = columns.some((col: any) => col.field === 'CodeNCC');
+      if (supplierIndex >= 0 && !codeNCCExists) {
+        const codeNCCColumn = {
+          title: 'Mã NCC',
+          field: 'CodeNCC',
+          hozAlign: 'left',
+          headerHozAlign: 'center',
+          headerSort: false,
+          width: 100,
+        } as any;
+        columns.splice(supplierIndex, 0, codeNCCColumn);
+      }
+
       const workbook = new ExcelJS.Workbook();
       const worksheet = workbook.addWorksheet('Danh sách báo giá');
 
@@ -2751,6 +2857,15 @@ export class ProjectPartlistPriceRequestComponent implements OnInit {
                 (s: any) => s.ID === value
               );
               return supplier ? supplier.NameNCC : '';
+            }
+
+            if (col.field === 'CodeNCC') {
+              // Lấy CodeNCC từ SupplierSaleID
+              const supplierId = row['SupplierSaleID'];
+              const supplier = this.dtSupplierSale?.find(
+                (s: any) => s.ID === supplierId
+              );
+              return supplier ? (supplier.CodeNCC || '') : '';
             }
 
             return value;
@@ -2917,9 +3032,24 @@ export class ProjectPartlistPriceRequestComponent implements OnInit {
         const rawData = table.getData();
         if (!rawData || rawData.length === 0) continue;
 
-        const columns = table
+        let columns = table
           .getColumnDefinitions()
           .filter((col: any) => col.visible !== false);
+
+        // Thêm cột CodeNCC ngay trước cột SupplierSaleID nếu chưa có
+        const supplierIndex = columns.findIndex((col: any) => col.field === 'SupplierSaleID');
+        const codeNCCExists = columns.some((col: any) => col.field === 'CodeNCC');
+        if (supplierIndex >= 0 && !codeNCCExists) {
+          const codeNCCColumn: any = {
+            title: 'Mã NCC',
+            field: 'CodeNCC',
+            hozAlign: 'left',
+            headerHozAlign: 'center',
+            headerSort: false,
+            width: 100,
+          };
+          columns.splice(supplierIndex, 0, codeNCCColumn);
+        }
 
         const sheetName = (
           type.ProjectTypeName || `Sheet-${projectTypeID}`
@@ -3503,6 +3633,14 @@ export class ProjectPartlistPriceRequestComponent implements OnInit {
       groupBy: 'ProjectFullName',
       groupHeader: function (value: any, count: number, data: any) {
         return `${value} <span>(${count})</span>`;
+      },
+      rowFormatter: (row: any) => {
+        const data = row.getData();
+        const isRequestBuy = data['IsRequestBuy'] === true || data['IsRequestBuy'] === 1 || data['IsRequestBuy'] === 'true';
+        if (isRequestBuy) {
+          row.getElement().style.backgroundColor = '#008000';
+          row.getElement().style.color = '#ffffff';
+        }
       },
       rowContextMenu: [
         {
@@ -4193,5 +4331,14 @@ export class ProjectPartlistPriceRequestComponent implements OnInit {
       columnNumber = Math.floor((columnNumber - 1) / 26);
     }
     return letter;
+  }
+
+  /**
+   * Đóng modal khi mở dưới dạng modal
+   */
+  closeModal(): void {
+    if (this.activeModal) {
+      this.activeModal.dismiss();
+    }
   }
 }

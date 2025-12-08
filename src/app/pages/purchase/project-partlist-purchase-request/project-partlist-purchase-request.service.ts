@@ -116,7 +116,66 @@ export class ProjectPartlistPurchaseRequestService {
     );
   }
 
+  private productRTCUrl = environment.host + 'api/ProductRTC/';
+
   getProductRTC(): Observable<any[]> {
+    return this.http.get<any>(this.baseUrl + 'product-group_rtc').pipe(
+      map((res: any) => (Array.isArray(res?.data) ? res.data : res?.data || res))
+    );
+  }
+
+  // Get list of ProductRTC products - tham khảo TbProductRtcService.getProductRTC()
+  getProductsRTC(request?: {
+    productGroupID?: number;
+    keyWord?: string;
+    checkAll?: number;
+    warehouseID?: number;
+    productRTCID?: number;
+    productGroupNo?: string;
+    page?: number;
+    size?: number;
+    WarehouseType?: number;
+  }): Observable<any> {
+    // Default request nếu không có tham số
+    const defaultRequest = {
+      productGroupID: 0,
+      keyWord: '',
+      checkAll: 1, // Lấy tất cả
+      warehouseID: 0,
+      productRTCID: 0,
+      productGroupNo: '',
+      page: 1,
+      size: 100000, // Lấy tất cả
+      WarehouseType: 0,
+      ...request
+    };
+
+    return this.http.post<any>(`${this.productRTCUrl}get-productRTC`, defaultRequest).pipe(
+      map((res: any) => {
+        // Xử lý response - có thể là res.data.products hoặc res.data
+        if (res?.data?.products) {
+          return { ...res, data: res.data.products };
+        }
+        return res;
+      })
+    );
+  }
+
+  // Get ProductRTC by ID - sử dụng getProductsRTC với productRTCID
+  getProductRTCById(productRTCId: number): Observable<any> {
+    return this.getProductsRTC({ productRTCID: productRTCId, checkAll: 0 }).pipe(
+      map((res: any) => {
+        // Lấy sản phẩm đầu tiên từ danh sách
+        if (res?.data && Array.isArray(res.data) && res.data.length > 0) {
+          return { ...res, data: res.data[0] };
+        }
+        return res;
+      })
+    );
+  }
+
+  // Get ProductGroupsRTC (same as getProductRTC for now, but can be separated if needed)
+  getProductGroupsRTC(): Observable<any[]> {
     return this.http.get<any>(this.baseUrl + 'product-group_rtc').pipe(
       map((res: any) => (Array.isArray(res?.data) ? res.data : res?.data || res))
     );

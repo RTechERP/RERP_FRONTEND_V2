@@ -282,35 +282,115 @@ export class BorrowProductHistoryComponent implements OnInit {
         nzCancelText: 'Hủy',
 
         nzOnOk: () => {
-          const isAdmin = this.appUserService.isAdmin;
+          const IDAdminDemo = [24, 1434, 88, 1534];
+          const userId = this.appUserService?.id || 0;
+          const isAdmin = IDAdminDemo.includes(userId);
+          const isGlobalAdmin = this.appUserService?.isAdmin || false;
+          const employeeID = this.appUserService?.employeeID || 0;
           const arrIds = Array.from(this.selectedArrHistoryProductID);
-          const tasks = arrIds.map((id) =>
-            firstValueFrom(this.borrowService.postReturnProductRTC(id, isAdmin))
-              .then(() => ({ id, success: true, message: null }))
-              .catch((error) => {
-                const message = error?.error?.message || 'Lỗi không xác định!';
-                console.error(`Lỗi khi trả thiết bị ${id}:`, message);
-                return { id, success: false, message };
-              })
-          );
-          return Promise.all(tasks).then((results) => {
-            const ok = results.filter((r) => r.success).length;
-            const failed = results.filter((r) => !r.success);
 
-            if (ok)
-              this.notification.success(
-                'Thông báo',
-                `Trả thành công ${ok} sản phẩm.`
-              );
-            if (failed.length)
-              failed.forEach((item) => {
-                this.notification.error('Trả thất bại', item.message);
-              });
-            this.drawTbProductHistory(
-              this.tb_productHistoryContainer.nativeElement
+          // Validate và filter các ID hợp lệ trước khi gọi API
+          const validateAndProcess = async () => {
+            const validItems: Array<{ id: number; modulaLocationDetailID: number }> = [];
+
+            // Validate từng item trước
+            for (const id of arrIds) {
+              try {
+                // Get the row data from selectedProductsMap
+                const rowData = this.selectedProductsMap.get(id);
+                if (!rowData) {
+                  continue; // Bỏ qua nếu không có data
+                }
+
+                // Get full history product data
+                const historyRes = await firstValueFrom(
+                  this.borrowService.getHistoryProductRTCByID(id)
+                );
+
+                if (historyRes?.status !== 1 || !historyRes?.data) {
+                  continue; // Bỏ qua nếu không lấy được data
+                }
+
+                const model = historyRes.data;
+                const status = model.Status || 0;
+                const modulaLocationDetailID = model.ModulaLocationDetailID || 0;
+                const statusPerson = model.StatusPerson || 0;
+
+                // Check if Status is 1, 4, or 7
+                if (status !== 1 && status !== 4 && status !== 7) {
+                  // Status không hợp lệ, bỏ qua item này
+                  continue;
+                }
+
+                // Process based on admin status
+                if (isGlobalAdmin || isAdmin) {
+                  // Check condition: modulaLocationDetailID > 0 && StatusPerson <= 0 && !(IsAdmin && EmployeeID <= 0)
+                  if (
+                    modulaLocationDetailID > 0 &&
+                    statusPerson <= 0 &&
+                    !(isGlobalAdmin && employeeID <= 0)
+                  ) {
+                    this.notification.error(
+                      'Thông báo',
+                      'Nhân viên chưa hoàn thành thao tác trả hàng.\nBạn không thể duyệt trả!'
+                    );
+                    return; // Stop processing on validation error, matching C# behavior
+                  }
+                }
+
+                // Nếu pass validation thì thêm vào danh sách để gọi API
+                validItems.push({ id, modulaLocationDetailID });
+              } catch (error) {
+                console.error(`Lỗi khi validate thiết bị ${id}:`, error);
+                // Bỏ qua item này và tiếp tục
+              }
+            }
+
+            // Nếu không có ID nào hợp lệ thì return
+            if (validItems.length === 0) {
+              this.notification.warning('Thông báo', 'Không có sản phẩm nào hợp lệ để trả!');
+              return;
+            }
+
+            // Gọi API cho các ID hợp lệ (giữ nguyên logic cũ)
+            const tasks = validItems.map((item) =>
+              firstValueFrom(
+                this.borrowService.postReturnProductRTC(
+                  item.id,
+                  isGlobalAdmin || isAdmin,
+                  item.modulaLocationDetailID
+                )
+              )
+                .then(() => ({ id: item.id, success: true, message: null }))
+                .catch((error) => {
+                  const message = error?.error?.message || 'Lỗi không xác định!';
+                  console.error(`Lỗi khi trả thiết bị ${item.id}:`, message);
+                  return { id: item.id, success: false, message };
+                })
             );
-            this.selectedArrHistoryProductID.clear();
-          });
+
+            return Promise.all(tasks).then((results) => {
+              const ok = results.filter((r) => r.success).length;
+              const failed = results.filter((r) => !r.success);
+
+              if (ok > 0)
+                this.notification.success(
+                  'Thông báo',
+                  `Trả thành công ${ok} sản phẩm.`
+                );
+              if (failed.length > 0)
+                failed.forEach((item) => {
+                  this.notification.error('Trả thất bại', item.message);
+                });
+              this.drawTbProductHistory(
+                this.tb_productHistoryContainer.nativeElement
+              );
+              this.selectedArrHistoryProductID.clear();
+              this.selectedProductsMap.clear();
+            });
+          };
+
+          return validateAndProcess();
         },
       });
     }

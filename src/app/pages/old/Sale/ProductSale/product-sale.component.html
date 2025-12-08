@@ -47,6 +47,12 @@
                                     <img src="assets/icon/action_export_excel_16.png" alt="Xuất Excel" class="me-1" />Xuất
                                     excel
                                 </button>
+
+                                <span class="mx-2 divider"></span>
+
+                                <button nz-button nzType="default" nzSize="small" (click)="openPriceRequest()">
+                                    <nz-icon nzType="file-text" nzTheme="outline"></nz-icon>Yêu cầu báo giá
+                                </button>
                             </div>
                         </div>
                         <!-- Tìm kiếm desktop -->
@@ -94,6 +100,12 @@
                                 </button>
                                 <button ngbDropdownItem (click)="exportExcel()" class="d-flex align-items-center">
                                     Xuất excel
+                                </button>
+
+                                <div class="dropdown-divider"></div>
+
+                                <button ngbDropdownItem (click)="openPriceRequest()" class="d-flex align-items-center">
+                                    Yêu cầu báo giá
                                 </button>
                             </div>
                         </div>

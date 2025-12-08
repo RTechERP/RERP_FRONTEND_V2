@@ -241,7 +241,16 @@
 <ng-container class="w-100">
     <div class="card h-100 border-0 rounded-0">
         <!-- Header với các nút action -->
-        <div class="card-header bg-white p-1">
+        <div class="card-header bg-white p-1 position-relative">
+            <!-- Nút X để đóng modal - chỉ hiển thị khi mở dưới dạng modal -->
+            <button *ngIf="activeModal" 
+                    type="button" 
+                    class="btn-close-modal position-absolute" 
+                    aria-label="Close" 
+                    (click)="closeModal()"
+                    title="Đóng">
+                <i class="fas fa-times"></i>
+            </button>
             <div class="d-flex gap-1" horizontalScroll>
                 <button nz-button nzType="default" nzSize="small" (click)="ToggleSearchPanelNew()" class="sticky-toggle-btn">
                     <nz-icon [nzType]="showSearchBar ? 'up' : 'down'" />
@@ -343,15 +352,15 @@
                         <img class="btn-action-icon" src="assets/icon/action_add_24.svg" />Thêm nhà cung cấp
                     </button>
                 </ng-container>
-                <!-- Yêu cầu mua - hiển thị khi restrictedView, ẩn khi isHRDept -->
-                <ng-container *ngIf="!isHRDept">
+                <!-- Yêu cầu mua - hiển thị khi restrictedView, ẩn khi isHRDept, luôn hiển thị khi projectPartlistPriceRequestTypeID === 4 -->
+                <ng-container *ngIf="!isHRDept || projectPartlistPriceRequestTypeID === 4">
                     <button *hasPermission="'N34,N69,N80'" nz-button nzType="default" (click)="OpenRequestBuyModal()"
                         nzSize="small">
                         <img class="btn-action-icon" src="assets/icon/purchase_request.png " />Yêu cầu mua
                     </button>
                 </ng-container>
-                <!-- Nhập Excel - hiển thị khi restrictedView, ẩn khi isHRDept -->
-                <ng-container *ngIf="!isHRDept">
+                <!-- Nhập Excel - hiển thị khi restrictedView, ẩn khi isHRDept, luôn hiển thị khi projectPartlistPriceRequestTypeID === 4 -->
+                <ng-container *ngIf="!isHRDept || projectPartlistPriceRequestTypeID === 4">
                     <button *hasPermission="'N27,N34,N69,N80'" nz-button nzType="default" (click)="OpenImportExcel()"
                         nzSize="small">
                         <img class="btn-action-icon" src="assets/icon/action_import_excel_24.svg" />Nhập Excel

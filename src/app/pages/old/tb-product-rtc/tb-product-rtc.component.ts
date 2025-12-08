@@ -52,6 +52,13 @@ import { DEFAULT_TABLE_CONFIG } from '../../../tabulator-default.config';
 import { NzModalModule, NzModalService } from 'ng-zorro-antd/modal';
 import { HasPermissionDirective } from '../../../directives/has-permission.directive';
 import { NOTIFICATION_TITLE } from '../../../app.config';
+import { ProjectPartlistPurchaseRequestDetailComponent } from '../../purchase/project-partlist-purchase-request/project-partlist-purchase-request-detail/project-partlist-purchase-request-detail.component';
+
+// ProductType enum - same as in ProjectPartlistPurchaseRequestDetailComponent
+enum ProductType {
+  PRODUCT_SALE = 0,
+  PRODUCT_RTC = 1
+}
 @Component({
   standalone: true,
   imports: [
@@ -292,62 +299,62 @@ export class TbProductRtcComponent implements OnInit, AfterViewInit {
         { title: 'Part Number', field: 'PartNumber', minWidth: 120 },
         { title: 'Serial Number', field: 'SerialNumber', minWidth: 120 },
         { title: 'Code', field: 'Serial', minWidth: 120 },
-        { title: 'Người tạo', field: 'CreatedBy', visible: false },
-        { title: 'Input Value', field: 'InputValue', visible: false },
-        { title: 'Output Value', field: 'OutputValue', visible: false },
-        {
-          title: 'Rated Current (A)',
-          field: 'CurrentIntensityMax',
-          visible: false,
-        },
-        { title: 'Mã nhóm RTC', field: 'ProductGroupRTCID', visible: false },
-        { title: 'ID vị trí', field: 'ProductLocationID', visible: false },
-        { title: 'UnitCountID', field: 'UnitCountID', visible: false },
-        { title: 'Số lượng', field: 'Number', visible: false },
-        { title: 'SL mượn', field: 'NumberBorrowing', visible: false },
-        { title: 'SL tồn kho', field: 'NumberInStore', visible: false },
-        {
-          title: 'SL kiểm kê',
-          field: 'SLKiemKe',
-          hozAlign: 'right',
-          visible: false,
-        },
-        { title: 'SL thực tế', field: 'InventoryReal', visible: false },
+        // { title: 'Người tạo', field: 'CreatedBy', visible: false },
+        // { title: 'Input Value', field: 'InputValue', visible: false },
+        // { title: 'Output Value', field: 'OutputValue', visible: false },
+        // {
+        //   title: 'Rated Current (A)',
+        //   field: 'CurrentIntensityMax',
+        //   visible: false,
+        // },
+        // { title: 'Mã nhóm RTC', field: 'ProductGroupRTCID', visible: false },
+        // { title: 'ID vị trí', field: 'ProductLocationID', visible: false },
+        // { title: 'UnitCountID', field: 'UnitCountID', visible: false },
+        // { title: 'Số lượng', field: 'Number', visible: false },
+        // { title: 'SL mượn', field: 'NumberBorrowing', visible: false },
+        // { title: 'SL tồn kho', field: 'NumberInStore', visible: false },
+        // {
+        //   title: 'SL kiểm kê',
+        //   field: 'SLKiemKe',
+        //   hozAlign: 'right',
+        //   visible: false,
+        // },
+        // { title: 'SL thực tế', field: 'InventoryReal', visible: false },
 
-        { title: 'Khách mượn', field: 'BorrowCustomerText', visible: false },
-        {
-          title: 'Đã sử dụng',
-          field: 'StatusProduct',
-          formatter: 'tickCross',
-          visible: false,
-        },
-        {
-          title: 'Ghi chú',
-          field: 'Note',
-          minWidth: 450,
-          visible: false,
-          formatter: 'textarea',
-        },
+        // { title: 'Khách mượn', field: 'BorrowCustomerText', visible: false },
+        // {
+        //   title: 'Đã sử dụng',
+        //   field: 'StatusProduct',
+        //   formatter: 'tickCross',
+        //   visible: false,
+        // },
+        // {
+        //   title: 'Ghi chú',
+        //   field: 'Note',
+        //   minWidth: 450,
+        //   visible: false,
+        //   formatter: 'textarea',
+        // },
 
-        { title: 'Lens Mount', field: 'LensMount', visible: false },
-        { title: 'Focal Length', field: 'FocalLength', visible: false },
-        { title: 'MOD', field: 'MOD', visible: false },
-        { title: 'Magnification', field: 'Magnification', visible: false },
-        { title: 'Sensor Size', field: 'SensorSize', visible: false },
-        { title: 'Sensor Size Max', field: 'SensorSizeMax', visible: false },
-        { title: 'Resolution', field: 'Resolution', visible: false },
-        { title: 'Shutter Mode', field: 'ShutterMode', visible: false },
-        { title: 'Mono/Color', field: 'MonoColor', visible: false },
-        { title: 'Pixel Size', field: 'PixelSize', visible: false },
-        { title: 'Lamp Type', field: 'LampType', visible: false },
-        { title: 'Lamp Power', field: 'LampPower', visible: false },
-        { title: 'Lamp Wattage', field: 'LampWattage', visible: false },
-        { title: 'Lamp Color', field: 'LampColor', visible: false },
-        { title: 'Data Interface', field: 'DataInterface', visible: false },
+        // { title: 'Lens Mount', field: 'LensMount', visible: false },
+        // { title: 'Focal Length', field: 'FocalLength', visible: false },
+        // { title: 'MOD', field: 'MOD', visible: false },
+        // { title: 'Magnification', field: 'Magnification', visible: false },
+        // { title: 'Sensor Size', field: 'SensorSize', visible: false },
+        // { title: 'Sensor Size Max', field: 'SensorSizeMax', visible: false },
+        // { title: 'Resolution', field: 'Resolution', visible: false },
+        // { title: 'Shutter Mode', field: 'ShutterMode', visible: false },
+        // { title: 'Mono/Color', field: 'MonoColor', visible: false },
+        // { title: 'Pixel Size', field: 'PixelSize', visible: false },
+        // { title: 'Lamp Type', field: 'LampType', visible: false },
+        // { title: 'Lamp Power', field: 'LampPower', visible: false },
+        // { title: 'Lamp Wattage', field: 'LampWattage', visible: false },
+        // { title: 'Lamp Color', field: 'LampColor', visible: false },
+        // { title: 'Data Interface', field: 'DataInterface', visible: false },
 
-        { title: 'Size', field: 'Size', visible: false },
+        // { title: 'Size', field: 'Size', visible: false },
 
-        { title: 'AddressBox', field: 'AddressBox', visible: false },
+        // { title: 'AddressBox', field: 'AddressBox', visible: false },
       ],
     });
     this.productTable.on('rowDblClick', (e: UIEvent, row: RowComponent) => {
@@ -631,6 +638,57 @@ export class TbProductRtcComponent implements OnInit, AfterViewInit {
       }
     );
   }
+  onRequestPurchase() {
+    // Lấy dòng được chọn từ table
+    const selectedRows = this.productTable?.getSelectedData();
+    
+    if (!selectedRows || selectedRows.length === 0) {
+      this.notification.warning(
+        NOTIFICATION_TITLE.warning,
+        'Vui lòng chọn ít nhất một sản phẩm để tạo yêu cầu mua hàng!'
+      );
+      return;
+    }
+
+    // Nếu chọn nhiều sản phẩm, mở modal cho từng sản phẩm
+    selectedRows.forEach((row: any) => {
+      const productRTCID = row.ID || 0;
+      
+      if (productRTCID <= 0) {
+        this.notification.warning(
+          NOTIFICATION_TITLE.warning,
+          'Sản phẩm không hợp lệ!'
+        );
+        return;
+      }
+
+      // Mở modal yêu cầu mua hàng
+      const modalRef = this.ngbModal.open(ProjectPartlistPurchaseRequestDetailComponent, {
+        backdrop: 'static',
+        keyboard: false,
+        centered: true,
+        windowClass: 'modal-full-screen',
+      });
+
+      // Truyền productRTCID và productType
+      modalRef.componentInstance.productRTCID = productRTCID;
+      modalRef.componentInstance.productType = ProductType.PRODUCT_RTC;
+      modalRef.componentInstance.projectPartlistDetail = null; // New record
+
+      modalRef.result.then(
+        (result) => {
+          this.notification.success(
+            NOTIFICATION_TITLE.success,
+            'Tạo yêu cầu mua hàng thành công!'
+          );
+        },
+        (dismissed) => {
+          console.log('Modal dismissed');
+        }
+      );
+    });
+  }
+
   async exportToExcelProduct() {
     if (!this.productTable) return;
 

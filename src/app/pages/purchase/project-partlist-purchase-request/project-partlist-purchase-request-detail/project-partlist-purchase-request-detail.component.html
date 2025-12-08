@@ -21,10 +21,27 @@
                     </nz-form-item>
                 </div>
                 <div nz-col [nzSpan]="6">
-                    <nz-form-item>
+                    <!-- ProductSale: Text input -->
+                    <nz-form-item *ngIf="currentProductType === 0">
                         <nz-form-label>Hãng</nz-form-label>
                         <nz-form-control>
                             <input nz-input name="Maker" formControlName="Maker" placeholder="Nhập hãng" />
+                        </nz-form-control>
+                    </nz-form-item>
+
+                    <!-- ProductRTC: Dropdown -->
+                    <nz-form-item *ngIf="currentProductType === 1">
+                        <nz-form-label nzRequired>Hãng</nz-form-label>
+                        <nz-form-control nzErrorTip="Vui lòng chọn hãng">
+                            <nz-select formControlName="FirmID" 
+                                       nzPlaceHolder="Chọn hãng"
+                                       nzShowSearch="true"
+                                       name="FirmID">
+                                <nz-option *ngFor="let item of firms" 
+                                           [nzValue]="item.ID"
+                                           [nzLabel]="item.FirmName">
+                                </nz-option>
+                            </nz-select>
                         </nz-form-control>
                     </nz-form-item>
                 </div>
@@ -33,14 +50,15 @@
                         <nz-form-label>Trạng thái</nz-form-label>
                         <nz-form-control>
                             <input nz-input name="StatusRequest" formControlName="StatusRequest"
-                                placeholder="Yêu cầu mua hàng" />
+                                placeholder="Yêu cầu mua hàng" [disabled]="true" />
                         </nz-form-control>
                     </nz-form-item>
                 </div>
             </div>
             <div nz-row [nzGutter]="16">
                 <div nz-col [nzSpan]="6">
-                    <nz-form-item>
+                    <!-- ProductSale Selection -->
+                    <nz-form-item *ngIf="currentProductType === 0">
                         <nz-form-label class="fs-12 d-flex align-items-center" [nzSpan]="24">
                             <div class="d-flex"> Mã sản phẩm
                                 <button class="p-0 m-0 fs-12 px-1 h-auto" nz-button nzSize="small" title="Mã sản phẩm"
@@ -61,6 +79,30 @@
                             </div>
                         </nz-form-control>
                     </nz-form-item>
+
+                    <!-- ProductRTC Selection -->
+                    <nz-form-item *ngIf="currentProductType === 1">
+                        <nz-form-label class="fs-12 d-flex align-items-center" [nzSpan]="24">
+                            <div class="d-flex"> Mã sản phẩm RTC
+                                <button class="p-0 m-0 fs-12 px-1 h-auto" nz-button nzSize="small" 
+                                    title="Thêm sản phẩm RTC"
+                                    nzType="text" (click)="onAddProductRTC()">
+                                    <i class="fas fa-plus"></i>
+                                </button>
+                            </div>
+                        </nz-form-label>
+                        <nz-form-control>
+                            <nz-select formControlName="ProductRTCID" 
+                                       nzPlaceHolder="Chọn sản phẩm RTC"
+                                       nzShowSearch="true" 
+                                       name="ProductRTCID">
+                                <nz-option *ngFor="let item of productsRTC" 
+                                           [nzValue]="item.ID"
+                                           [nzLabel]="(item.ProductCode || item.ProductCodeRTC || '') + '-' + (item.ProductName || '')">
+                                </nz-option>
+                            </nz-select>
+                        </nz-form-control>
+                    </nz-form-item>
                 </div>
                 <div nz-col [nzSpan]="6">
                     <nz-form-item>
@@ -72,10 +114,27 @@
                     </nz-form-item>
                 </div>
                 <div nz-col [nzSpan]="4">
-                    <nz-form-item>
+                    <!-- ProductSale: Text input -->
+                    <nz-form-item *ngIf="currentProductType === 0">
                         <nz-form-label>Đơn vị</nz-form-label>
                         <nz-form-control>
                             <input nz-input name="Unit" formControlName="Unit" placeholder="Nhập đơn vị" />
+                        </nz-form-control>
+                    </nz-form-item>
+
+                    <!-- ProductRTC: Dropdown -->
+                    <nz-form-item *ngIf="currentProductType === 1">
+                        <nz-form-label nzRequired>Đơn vị</nz-form-label>
+                        <nz-form-control nzErrorTip="Vui lòng chọn đơn vị">
+                            <nz-select formControlName="UnitCountID" 
+                                       nzPlaceHolder="Chọn đơn vị"
+                                       nzShowSearch="true"
+                                       name="UnitCountID">
+                                <nz-option *ngFor="let item of unitCounts" 
+                                           [nzValue]="item.ID"
+                                           [nzLabel]="item.UnitName">
+                                </nz-option>
+                            </nz-select>
                         </nz-form-control>
                     </nz-form-item>
                 </div>
@@ -97,13 +156,30 @@
                     </nz-form-item>
                 </div>
                 <div nz-col [nzSpan]="4">
-                    <nz-form-item>
+                    <!-- ProductSale: ProductGroup -->
+                    <nz-form-item *ngIf="currentProductType === 0">
                         <label class="form-label mb-2">Loại kho</label>
                         <nz-select class="w-100" nzPlaceHolder="Chọn loại kho" name="ProductGroupID"
                             formControlName="ProductGroupID">
                             <nz-option *ngFor="let item of productGroup" [nzValue]="item.ID"
                                 [nzLabel]="item.ProductGroupName"></nz-option>
                         </nz-select>
+                    </nz-form-item>
+
+                    <!-- ProductRTC: ProductGroupRTC -->
+                    <nz-form-item *ngIf="currentProductType === 1">
+                        <label class="form-label mb-2">Loại kho <span class="text-danger">(*)</span></label>
+                        <nz-form-control nzErrorTip="Vui lòng chọn loại kho">
+                            <nz-select class="w-100" 
+                                       nzPlaceHolder="Chọn loại kho" 
+                                       name="ProductGroupRTCID"
+                                       formControlName="ProductGroupRTCID">
+                                <nz-option *ngFor="let item of productGroupsRTC" 
+                                           [nzValue]="item.ID"
+                                           [nzLabel]="item.ProductGroupName">
+                                </nz-option>
+                            </nz-select>
+                        </nz-form-control>
                     </nz-form-item>
                 </div>
             </div>

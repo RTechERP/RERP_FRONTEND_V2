@@ -620,22 +620,22 @@ export class ProjectPartListComponent implements OnInit, AfterViewInit {
         this.notification.warning('Thông báo', 'Vui lòng chọn phiên bản để cập nhật');
         return;
       }
-      selectedVersion = versionRows[0];
-      if (selectedVersion['IsActive'] == false || selectedVersion['IsActive'] == null) {
-        this.notification.warning('Thông báo', `Vui lòng chọn sử dụng phiên bản [${selectedVersion.Code}] trước!`);
-        return;
-      }
+      // selectedVersion = versionRows[0];
+      // if (selectedVersion['IsActive'] == false || selectedVersion['IsActive'] == null) {
+      //   this.notification.warning('Thông báo', `Vui lòng chọn sử dụng phiên bản [${selectedVersion.Code}] trước!`);
+      //   return;
+      // }
     } else {
       const versionRows = this.tb_projectPartListVersionPO?.getSelectedData();
       if (!versionRows || versionRows.length === 0) {
         this.notification.warning('Thông báo', 'Vui lòng chọn phiên bản PO để cập nhật');
         return;
       }
-      selectedVersion = versionRows[0];
-      if (selectedVersion['IsActive'] == false || selectedVersion['IsActive'] == null) {
-        this.notification.warning('Thông báo', `Vui lòng chọn sử dụng phiên bản PO [${selectedVersion.Code}] trước!`);
-        return;
-      }
+      // selectedVersion = versionRows[0];
+      // if (selectedVersion['IsActive'] == false || selectedVersion['IsActive'] == null) {
+      //   this.notification.warning('Thông báo', `Vui lòng chọn sử dụng phiên bản PO [${selectedVersion.Code}] trước!`);
+      //   return;
+      // }
     }
     // Lấy dữ liệu từ bảng
     const selectedRows = this.tb_projectWorker?.getSelectedData() || [];
@@ -741,22 +741,19 @@ export class ProjectPartListComponent implements OnInit, AfterViewInit {
         return;
       }
       selectedVersion = versionRows[0];
-      if (selectedVersion['IsActive'] == false || selectedVersion['IsActive'] == null) {
-        this.notification.warning('Thông báo', `Vui lòng chọn sử dụng phiên bản [${selectedVersion.Code}] trước!`);
-        return;
-      }
-    } else {
-      const versionRows = this.tb_projectPartListVersionPO?.getSelectedData();
-      // if (!versionRows || versionRows.length === 0) {
-      //   this.notification.warning('Thông báo', 'Vui lòng chọn phiên bản PO để cập nhật');
+    }
+      // if (selectedVersion['IsActive'] == false || selectedVersion['IsActive'] == null) {
+      //   this.notification.warning('Thông báo', `Vui lòng chọn sử dụng phiên bản [${selectedVersion.Code}] trước!`);
       //   return;
       // }
-      selectedVersion = versionRows[0];
-      if (selectedVersion['IsActive'] == false || selectedVersion['IsActive'] == null) {
-        this.notification.warning('Thông báo', `Vui lòng chọn sử dụng phiên bản PO [${selectedVersion.Code}] trước!`);
-        return;
-      }
-    }
+    // } else {
+    //   const versionRows = this.tb_projectPartListVersionPO?.getSelectedData();
+    //   selectedVersion = versionRows[0];
+    //   if (selectedVersion['IsActive'] == false || selectedVersion['IsActive'] == null) {
+    //     this.notification.warning('Thông báo', `Vui lòng chọn sử dụng phiên bản PO [${selectedVersion.Code}] trước!`);
+    //     return;
+    //   }
+    // }
     // Validate từng vật tư được chọn
     const requestItems: any[] = [];
     for (let row of selectedRows) {
@@ -815,7 +812,7 @@ export class ProjectPartListComponent implements OnInit, AfterViewInit {
     const sttList = requestItems.map((item: any) => item.TT).join(', ');
     this.modal.confirm({
       nzTitle: `Xác nhận ${isApprovedText} mã mới`,
-      nzContent: `Bạn có chắc chắn muốn ${isApprovedText} mã mới cho ${itemCount} vật tư (Stt: ${sttList})?`,
+      nzContent: `Bạn có chắc chắn muốn ${isApprovedText} mã mới cho ${itemCount} vật tư đã chọn?`,
       nzOkText: 'Xác nhận',
       nzCancelText: 'Hủy',
       nzOkType: 'primary',
@@ -3028,6 +3025,35 @@ export class ProjectPartListComponent implements OnInit, AfterViewInit {
     }
     return menuItems;
   }
+  private textWithTooltipFormatter = (cell: any): HTMLElement => {
+    const value = cell.getValue();
+    const div = document.createElement('div');
+    
+    if (!value || value.trim() === '') {
+      return div;
+    }
+    
+    // Style cho div: giới hạn 3 dòng với ellipsis
+    div.style.cssText = `
+      display: -webkit-box;
+      -webkit-line-clamp: 3;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: pre-wrap;
+      word-wrap: break-word;
+      line-height: 1.4;
+      max-height: calc(1.4em * 3);
+      cursor: pointer;
+    `;
+    
+    div.innerText = value;
+    
+    // Thêm title attribute để hiển thị tooltip mặc định của browser
+    div.title = value;
+    
+    return div;
+  };
   drawTbProjectPartList(): void {
     // Kiểm tra ViewChild đã được khởi tạo chưa
     if (!this.tb_projectWorkerContainer) {
@@ -3297,8 +3323,22 @@ export class ProjectPartListComponent implements OnInit, AfterViewInit {
                   return value ? DateTime.fromISO(value).toFormat('dd/MM/yyyy') : '';
                 },
               },
-              { title: 'Note', field: 'Note', formatter: 'textarea', widthGrow: 2, maxWidth: 300 },
-              { title: 'Lý do phát sinh', field: 'ReasonProblem' },
+              {
+                title: 'Ghi chú',
+                field: 'Note',
+                formatter: this.textWithTooltipFormatter,  // ← Thay đổi này
+                widthGrow: 2,
+                maxWidth: 300,
+                variableHeight: true,
+              },
+              {
+                title: 'Lý do phát sinh',
+                field: 'ReasonProblem',
+                formatter: this.textWithTooltipFormatter,  // ← Thay đổi này
+                widthGrow: 2,
+                maxWidth: 300,
+                variableHeight: true,
+              },
               { title: 'Lý do xóa', field: 'ReasonDeleted' },
             ]
           },

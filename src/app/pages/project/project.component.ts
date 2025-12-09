@@ -378,89 +378,13 @@ export class ProjectComponent implements OnInit, AfterViewInit {
         });
       },
       rowContextMenu: contextMenuProject,
-      //   langs: {
-      //     vi: {
-      //       pagination: {
-      //         first: '<<',
-      //         last: '>>',
-      //         prev: '<',
-      //         next: '>',
-      //       },
-      //     },
-      //   },
-      //   locale: 'vi',
       columns: [
         {
           title: 'Trạng thái',
           field: 'ProjectStatusName',
-          //   hozAlign: 'left',
-          // formatter: function (cell, formatterParams, onRendered) {
-          //   let value = cell.getValue() || 'Kết thúc';
-          //   return value;
-          // },
-          //   headerHozAlign: 'center',
           width: 100,
           formatter: 'textarea',
         },
-        {
-          title: 'Ngày tạo',
-          field: 'CreatedDate',
-          width: 100,
-          formatter: function (cell, formatterParams, onRendered) {
-            let value = cell.getValue() || '';
-            const dateTime = DateTime.fromISO(value);
-            value = dateTime.isValid ? dateTime.toFormat('dd/MM/yyyy') : '';
-            return value;
-          },
-          hozAlign: 'center',
-          //   headerHozAlign: 'center',
-        },
-        {
-          title: 'Ngày cập nhật',
-          field: 'UpdatedDate',
-          width: 100,
-          formatter: function (cell, formatterParams, onRendered) {
-            let value = cell.getValue() || '';
-            const dateTime = DateTime.fromISO(value);
-            value = dateTime.isValid ? dateTime.toFormat('dd/MM/yyyy') : '';
-            return value;
-          },
-          hozAlign: 'center',
-          //   headerHozAlign: 'center',
-        },
-
-        {
-          //create column group
-          title: 'Mức độ ưu tiên',
-          columns: [
-            {
-              title: 'Dự án',
-              field: 'PriotityText',
-              hozAlign: 'right',
-              //   headerHozAlign: 'center',
-
-              width: 70,
-              // //   editable: true,
-              // formatter(cell, formatterParams, onRendered) {
-              //   const wrapper = document.createElement('div');
-              //   wrapper.innerHTML = `<app-projects></app-projects>`;
-              //   document.body.appendChild(wrapper);
-
-              //   // Bạn có thể dùng Angular's ViewContainerRef để inject component động nếu cần nâng cao.
-
-              //   return wrapper;
-              //},
-            },
-            {
-              title: 'Cá nhân',
-              field: 'PersonalPriotity',
-              hozAlign: 'right',
-              //   headerHozAlign: 'center',
-              width: 90,
-            },
-          ],
-        },
-
         {
           title: 'Mã dự án',
           field: 'ProjectCode',
@@ -547,7 +471,26 @@ export class ProjectComponent implements OnInit, AfterViewInit {
           width: 200,
           formatter: 'textarea',
         },
-
+        {
+          //create column group
+          title: 'Mức độ ưu tiên',
+          columns: [
+            {
+              title: 'Dự án',
+              field: 'PriotityText',
+              hozAlign: 'right',
+              //   headerHozAlign: 'center',
+              width: 70,
+            },
+            {
+              title: 'Cá nhân',
+              field: 'PersonalPriotity',
+              hozAlign: 'right',
+              //   headerHozAlign: 'center',
+              width: 90,
+            },
+          ],
+        },
         {
           //create column group
           title: 'Dự kiến',
@@ -613,7 +556,32 @@ export class ProjectComponent implements OnInit, AfterViewInit {
             },
           ],
         },
-
+        {
+          title: 'Ngày tạo',
+          field: 'CreatedDate',
+          width: 100,
+          formatter: function (cell, formatterParams, onRendered) {
+            let value = cell.getValue() || '';
+            const dateTime = DateTime.fromISO(value);
+            value = dateTime.isValid ? dateTime.toFormat('dd/MM/yyyy') : '';
+            return value;
+          },
+          hozAlign: 'center',
+          //   headerHozAlign: 'center',
+        },
+        {
+          title: 'Ngày cập nhật',
+          field: 'UpdatedDate',
+          width: 100,
+          formatter: function (cell, formatterParams, onRendered) {
+            let value = cell.getValue() || '';
+            const dateTime = DateTime.fromISO(value);
+            value = dateTime.isValid ? dateTime.toFormat('dd/MM/yyyy') : '';
+            return value;
+          },
+          hozAlign: 'center',
+          //   headerHozAlign: 'center',
+        },
         {
           title: 'Người tạo',
           field: 'CreatedBy',

@@ -1,0 +1,314 @@
+<ng-container class="w-100">
+  <nz-splitter>
+    <nz-splitter-panel [nzSize]="sizeSearch" [nzCollapsible]="true">
+      <div class="card h-100 border-0 rounded-0">
+        <div class="card-header bg-white p-1">
+          <div class="d-flex justify-content-between align-items-center">
+            <h6 class="m-0 ms-2">Tìm kiếm</h6>
+            <button
+              class="border-0 me-2"
+              nz-button
+              nzSize="small"
+              nzType="default"
+              nzDanger
+              (click)="toggleSearchPanel()"
+            >
+              <nz-icon nzType="close" nzTheme="outline" />
+            </button>
+          </div>
+        </div>
+        <div class="card-body">
+          <form nz-form nzLayout="vertical">
+            <nz-form-item class="mb-2">
+              <nz-form-label class="fs-12" [nzSpan]="24">Từ ngày</nz-form-label>
+              <nz-form-control [nzSpan]="24">
+                <nz-date-picker
+                  [nzFormat]="dateFormat"
+                  class="w-100"
+                  nzSize="small"
+                  [(ngModel)]="searchParams.DateStart"
+                  name="dateStart"
+                >
+                </nz-date-picker>
+              </nz-form-control>
+            </nz-form-item>
+            <nz-form-item class="mb-2">
+              <nz-form-label class="fs-12" [nzSpan]="24"
+                >Đến ngày</nz-form-label
+              >
+              <nz-form-control [nzSpan]="24">
+                <nz-date-picker
+                  [nzFormat]="dateFormat"
+                  class="w-100"
+                  nzSize="small"
+                  [(ngModel)]="searchParams.DateEnd"
+                  name="dateEnd"
+                ></nz-date-picker>
+              </nz-form-control>
+            </nz-form-item>
+            <nz-form-item class="mt-2">
+              <nz-form-label class="fs-12" [nzSpan]="24"
+                >Phòng ban</nz-form-label
+              >
+              <nz-form-control [nzSpan]="24">
+                <nz-select
+                  [(ngModel)]="searchParams.DepartmentID"
+                  [nzPlaceHolder]="'Chọn phòng ban'"
+                  style="width: 100%"
+                  name="departmentID"
+                  nzShowSearch
+                  [nzFilterOption]="filterOption"
+                  nzAllowClear
+                >
+                  <nz-option
+                    *ngFor="let item of dataDepartment"
+                    [nzLabel]="item.Name"
+                    [nzValue]="item.ID"
+                  ></nz-option>
+                </nz-select>
+              </nz-form-control>
+            </nz-form-item>
+
+            <nz-form-item class="mt-2">
+              <nz-form-label class="fs-12" [nzSpan]="24"
+                >Nhân viên</nz-form-label
+              >
+              <nz-form-control [nzSpan]="24">
+                <nz-select
+                  [(ngModel)]="searchParams.EmployeeID"
+                  nzPlaceHolder="Chọn nhân viên"
+                  nzShowSearch
+                  name="employeeID"
+                  [nzFilterOption]="filterOption"
+                  nzAllowClear
+                >
+                  <nz-option
+                    *ngFor="let emp of cbbEmployee"
+                    [nzLabel]="emp.Code + ' - ' + emp.FullName"
+                    [nzValue]="emp.ID"
+                  >
+                  </nz-option>
+                </nz-select>
+              </nz-form-control>
+            </nz-form-item>
+            <nz-form-item class="mt-2">
+              <nz-form-label class="fs-12" [nzSpan]="24">Từ khóa</nz-form-label>
+              <nz-form-control [nzSpan]="24">
+                <input
+                  class="w-100"
+                  nz-input
+                  placeholder="Nhập từ khóa"
+                  [(ngModel)]="searchParams.Keyword"
+                  name="keyword"
+                  nzSize="small"
+                />
+              </nz-form-control>
+            </nz-form-item>
+          </form>
+        </div>
+        <div class="card-footer bg-white p-1 d-flex gap-1 justify-content-end">
+          <button
+            nz-button
+            nzType="primary"
+            nzSize="small"
+            (click)="searchData()"
+          >
+            Tìm kiếm
+          </button>
+        </div>
+      </div>
+    </nz-splitter-panel>
+    <nz-splitter-panel>
+      <nz-splitter nzLayout="horizontal">
+        <nz-splitter-panel>
+          <div class="card border-0 rounded-0 h-100">
+            <div class="card-header bg-white p-1">
+              <div class="d-flex gap-1">
+                <button
+                  nz-button
+                  nzType="default"
+                  nzSize="small"
+                  (click)="toggleSearchPanel()"
+                >
+                  <nz-icon nzType="search" />
+                </button>
+                      <button
+                  class="btn-delete"
+                  nz-button
+                  nzType="default"
+                  nzSize="small"
+                  (click)="onDeleteDepartmentRequired()"
+                  *hasPermission="'N34, N1, N2'"
+                >
+                  <img src="assets/icon/action_delete_item_16.png" /> Xóa đề
+                  xuất
+                </button>
+                  <button
+                    class="fs-12 btn"
+                    nz-button
+                    nz-button
+                    nzType="default"
+                    nzSize="small"
+                    nz-dropdown
+                    [nzDropdownMenu]="ApprovedMenu"
+                    nzTrigger="hover"
+                    nzPlacement="bottomLeft"
+                    [disabled]="!selectedSupplier"
+                    *hasPermission="'N1, N2'"
+                  >
+                    <nz-icon nzType="check-circle" nzTheme="outline"></nz-icon>
+                    Giám đốc xác nhận
+                  </button>
+
+                  <nz-dropdown-menu #ApprovedMenu="nzDropdownMenu">
+                    <ul nz-menu>
+                      <li nz-menu-item (click)="approveSupplier()">
+                        <img src="assets/icon/action_approved_16.png" />
+                        <span class="ms-1">Duyệt</span>
+                      </li>
+                      <li nz-menu-item (click)="disapproveSupplier()">
+                        <img src="assets/icon/action_unapproved_16.png" />
+                        <span class="ms-1">Hủy duyệt</span>
+                      </li>
+                    </ul>
+                  </nz-dropdown-menu>
+              </div>
+            </div>
+            <nz-splitter nzLayout="vertical">
+              <nz-splitter-panel>
+                <div #DepartmentRequiredTable></div>
+              </nz-splitter-panel>
+              <nz-splitter-panel>
+                <div class="hcns-table-wrapper" style="height: 100%">
+                  <div class="hcns-table-container">
+                    <table class="hcns-table">
+                      <thead>
+                        <tr>
+                          <th
+                            colspan="6"
+                            style="
+                              text-align: center;
+                              border-bottom: 1px solid #d9d9d9;
+                            "
+                          >
+                            HCNS ĐỀ XUẤT
+                          </th>
+                          <th
+                            colspan="2"
+                            style="
+                              text-align: center;
+                              border-bottom: 1px solid #d9d9d9;
+                            "
+                          >
+                            BGD PHÊ DUYỆT
+                          </th>
+                        </tr>
+                        <tr>
+                          <th>Tên sản phẩm/ Dịch vụ</th>
+                          <th>NCC/Phương án</th>
+                          <th>Thông tin liên hệ</th>
+                          <th>Đơn giá<br />(Gồm VAT)</th>
+                          <th>Thành tiền<br />(VNĐ)</th>
+                          <th>Ghi chú/Lý do đề xuất</th>
+                          <th style="text-align: center">Trạng thái</th>
+                          <th style="text-align: center">Lý do không duyệt</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        <ng-container *ngFor="let product of HCNSApprovalData; let productIndex = index">
+                          <ng-container
+                            *ngFor="
+                              let supplier of product.Suppliers || [];
+                              let supplierIndex = index
+                            "
+                          >
+                            <tr
+                              [class.selected-row]="isSupplierSelected(productIndex, supplierIndex)"
+                              (click)="selectSupplier(productIndex, supplierIndex)"
+                              style="cursor: pointer"
+                            >
+
+                              <td
+                                *ngIf="supplierIndex === 0"
+                                [attr.rowspan]="
+                                  (product.Suppliers || []).length || 1
+                                "
+                              >
+                                {{ product.ProductName }}
+                              </td>
+                              <td>
+                                {{ supplier.Supplier }}
+                              </td>
+                              <td>
+                                {{ supplier.Contact }}
+                              </td>
+                              <td class="text-end">
+                                {{ supplier.UnitPrice | number }}
+                              </td>
+                              <td class="text-end">
+                                {{ supplier.TotalAmount | number }}
+                              </td>
+                              <td>
+                                {{ supplier.Note }}
+                              </td>
+                              <td style="text-align: center" [innerHTML]="formatApprovalBadge(supplier.IsApproved)"></td>
+                              <td>
+                                {{ supplier.DisapprovalReason }}
+                              </td>
+                            </tr>
+                          </ng-container>
+                        </ng-container>
+                        <tr
+                          *ngIf="
+                            !HCNSApprovalData || HCNSApprovalData.length === 0
+                          "
+                        >
+                          <td
+                            colspan="8"
+                            style="
+                              text-align: center;
+                              padding: 20px;
+                              color: #999;
+                            "
+                          >
+                            Chưa có dữ liệu đề xuất của HCNS. Vui lòng chọn một yêu cầu từ
+                            bảng trên.
+                          </td>
+                        </tr>
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              </nz-splitter-panel>
+            </nz-splitter>
+          </div>
+        </nz-splitter-panel>
+      </nz-splitter>
+    </nz-splitter-panel>
+  </nz-splitter>
+</ng-container>
+
+<!-- Modal nhập lý do hủy duyệt -->
+<nz-modal
+  [(nzVisible)]="isDisapprovalModalVisible"
+  nzTitle="Lý do hủy duyệt"
+  (nzOnCancel)="cancelDisapprove()"
+  (nzOnOk)="confirmDisapprove()"
+  [nzOkText]="'Xác nhận'"
+  [nzCancelText]="'Hủy'"
+>
+  <div *nzModalContent>
+    <nz-form-item>
+      <nz-form-label [nzSpan]="24">Lý do hủy duyệt <span style="color: red">*</span></nz-form-label>
+      <nz-form-control [nzSpan]="24">
+        <textarea
+          nz-input
+          [(ngModel)]="disapprovalReason"
+          placeholder="Vui lòng nhập lý do hủy duyệt"
+          rows="4"
+          style="width: 100%"
+        ></textarea>
+      </nz-form-control>
+    </nz-form-item>
+  </div>
+</nz-modal>

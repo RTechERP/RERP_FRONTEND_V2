@@ -813,30 +813,8 @@ export class DocumentComponent implements OnInit, AfterViewInit {
       this.documentTable = new Tabulator(this.tableRef2.nativeElement, {
         data: this.documentData,
         ...DEFAULT_TABLE_CONFIG,
-        // layout: 'fitDataStretch',
-        // pagination: true,
         selectableRows: 1,
-        //  height: '100%',
         paginationMode: 'local',
-        // movableColumns: true,
-        // paginationSize: 30,
-        // paginationSizeSelector: [5, 10, 20, 50, 100],
-        // reactiveData: true,
-        // placeholder: 'Không có dữ liệu',
-        // addRowPos: 'bottom',
-        // history: true,
-        // rowHeader: {
-        //   headerSort: false,
-        //   resizable: false,
-        //   frozen: true,
-        //   formatter: 'rowSelection',
-        //   headerHozAlign: 'center',
-        //   hozAlign: 'center',
-        //   titleFormatter: 'rowSelection',
-        //   cellClick: (e: any, cell: any) => {
-        //     e.stopPropagation();
-        //   },
-        // },
         // Group theo Mã dự án -> sau đó nhóm theo Kho
         groupBy: [
           (data) => {

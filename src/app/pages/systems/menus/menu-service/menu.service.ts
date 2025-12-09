@@ -116,6 +116,8 @@ import { PONCCComponent } from '../../../purchase/poncc/poncc.component';
 import { EmployeeSaleManagerComponent } from '../../../old/KPISale/employee-sale-manager/employee-sale-manager.component';
 import { RequestInvoiceComponent } from '../../../old/request-invoice/request-invoice.component';
 import { AssignWorkComponent } from '../../../purchase/assign-work/assign-work.component';
+import { RecommendSupplierComponent } from '../../../hrm/recommend-supplier/recommend-supplier.component';
+import { HrPurchaseProposalComponent } from '../../../hrm/hr-purchase-proposal/hr-purchase-proposal.component';
 import { PersonComponent } from '../../../person/person.component';
 import { InventoryProjectComponent } from '../../../purchase/inventory-project/inventory-project/inventory-project.component';
 import { WarehouseComponent } from '../../../warehouse/warehouse.component';
@@ -1316,6 +1318,35 @@ export class MenuService {
             isPermission: this.permissionService.hasPermission('N2,N34,N1'),
             comp: HrhiringRequestComponent,
             // icon: 'assets/icon/hr_hiring_24.svg',
+          },
+            {
+            kind: 'group',
+            key: 'DexuatHR',
+            title: 'Đề xuất của HR',
+            isOpen: true,
+            isPermission: this.permissionService.hasPermission('N2, N34, N1'),
+            // icon: 'assets/icon/hr_asset_24.svg',
+            children: [
+                 {
+            kind: 'leaf',
+            key: 'RecommendSupplierComponent',
+            title: 'Đề xuất nhà cung cấp',
+            isOpen: true,
+            isPermission: this.permissionService.hasPermission('N2,N34,N1'),
+            comp: RecommendSupplierComponent,
+            //       icon: 'assets/icon/hr_documentt_24.svg',
+          },
+               {
+            kind: 'leaf',
+            key: 'HRPurchaseProposalComponent',
+            title: 'Chi tiết đề xuất ',
+            isOpen: true,
+            isPermission: this.permissionService.hasPermission('N2,N34,N1'),
+            comp: HrPurchaseProposalComponent,
+            //       icon: 'assets/icon/hr_documentt_24.svg',
+          },
+            ],
+            //   icon: 'assets/icon/layers.png',
           },
           {
             kind: 'leaf',

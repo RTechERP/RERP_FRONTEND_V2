@@ -129,10 +129,38 @@
                                         <img src="assets/icon/action_unapproved_16.png" />
                                         <span class="ms-1">Tiếng Anh</span>
                                     </li>
-
                                 </ul>
 
                             </nz-dropdown-menu>
+
+                            <nz-modal [(nzVisible)]="showPreview" nzTitle="Xem trước đơn đặt hàng (PO)" nzWidth="90vw"
+                                [nzBodyStyle]="{ height: '80vh', padding: '0' }" (nzOnCancel)="showPreview = false"
+                                nzFooter="null">
+
+                                <!-- TOP TOOLBAR CONTROL -->
+                                <div class="toolbar">
+                                    <button nz-button nzType="default" nzSize="small" (click)="toggleMerge()">
+                                        <span *ngIf="!isMerge">Gộp PO</span>
+                                        <span *ngIf="isMerge">Hủy gộp</span>
+                                    </button>
+
+                                    <button nz-button nzType="default" nzSize="small" [(ngModel)]="isShowSign"
+                                        (click)="toggleSign()">
+                                        <span *ngIf="!isShowSign">Hiện chữ ký</span>
+                                        <span *ngIf="isShowSign">Ẩn chữ ký</span>
+                                    </button>
+
+                                    <button nz-button nzType="default" nzSize="small" [(ngModel)]="isShowSeal"
+                                        (click)="toggleSeal()">
+                                        <span *ngIf="!isShowSeal">Hiện con dấu</span>
+                                        <span *ngIf="isShowSeal">Ẩn con dấu</span>
+                                    </button>
+                                </div>
+
+                                <!-- PDF IFRAME -->
+                                <iframe id="pdfFrame" width="100%" height="100%" style="border: none;"></iframe>
+
+                            </nz-modal>
                         </div>
 
                         <button class="fs-12" nz-button nzType="default" nzSize="small" (click)="onCopyPO()"

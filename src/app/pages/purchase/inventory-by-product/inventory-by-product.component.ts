@@ -8,13 +8,17 @@ import { NzInputModule } from 'ng-zorro-antd/input';
 import { NzSpinModule } from 'ng-zorro-antd/spin';
 import { NzFormModule } from 'ng-zorro-antd/form';
 import { NzSplitterModule } from 'ng-zorro-antd/splitter';
-import { TabulatorFull as Tabulator } from 'tabulator-tables';
+import { TabulatorFull as Tabulator, RowComponent } from 'tabulator-tables';
 import 'tabulator-tables/dist/css/tabulator_simple.min.css';
 import * as ExcelJS from 'exceljs';
 import { NzNotificationService } from 'ng-zorro-antd/notification';
 import { NOTIFICATION_TITLE } from '../../../app.config';
 import { InventoryByProductService } from './inventory-by-product-service/inventory-by-product.service';
 import { DEFAULT_TABLE_CONFIG } from '../../../tabulator-default.config';
+import { MaterialDetailOfProductRtcComponent } from '../../old/inventory-demo/material-detail-of-product-rtc/material-detail-of-product-rtc.component';
+import { ChiTietSanPhamSaleComponent } from '../../old/Sale/chi-tiet-san-pham-sale/chi-tiet-san-pham-sale.component';
+import { WarehouseService } from '../../general-category/wearhouse/warehouse-service/warehouse.service';
+import { MenuEventService } from '../../systems/menus/menu-service/menu-event.service';
 
 @Component({
   standalone: true,
@@ -42,7 +46,9 @@ export class InventoryByProductComponent implements OnInit, AfterViewInit {
 
   constructor(
     private notification: NzNotificationService,
-    private inventoryByProductService: InventoryByProductService
+    private inventoryByProductService: InventoryByProductService,
+    private warehouseService: WarehouseService,
+    private menuEventService: MenuEventService
   ) {}
 
   ngOnInit(): void {
@@ -55,13 +61,33 @@ export class InventoryByProductComponent implements OnInit, AfterViewInit {
   }
 
   drawTable() {
+    // Tạo context menu
+    const contextMenuItems: any[] = [
+      {
+        label: 'Chi tiết',
+        action: (e: any, row: RowComponent) => {
+          const rowData = row.getData();
+          this.openDetail(rowData);
+        },
+      },
+    ];
+
     this.inventoryTable = new Tabulator('#inventoryByProductTable', {
       ...DEFAULT_TABLE_CONFIG,
       paginationMode: 'local',
       height: '90vh',
+      resizableRows: true,
+      reactiveData: true,
+      movableColumns: true,
+      resizableColumnFit: true,
       rowHeader: false,
-
-      layout:'fitDataStretch',
+      layout: 'fitDataFill',
+      groupBy: 'WarehouseType',
+      groupHeader: (value: any, count: any, data: any, group: any) => {
+        return `Loại kho: ${value}`;
+      },
+     
+      rowContextMenu: contextMenuItems,
       data: this.inventoryList,
       columns: [
         {
@@ -75,13 +101,14 @@ export class InventoryByProductComponent implements OnInit, AfterViewInit {
         {
           title: 'Tên nhóm',
           field: 'ProductGroupName',
-          minWidth: 150,
+          width: 150,
           hozAlign: 'left',
+          formatter: 'textarea',
         },
         {
           title: 'Mã nội bộ',
           field: 'ProductNewCode',
-          minWidth: 120,
+          width: 120,
           hozAlign: 'left',
           bottomCalc: 'count',
           bottomCalcFormatter: (cell) => this.formatNumberWithDecimal(cell.getValue()),
@@ -89,21 +116,23 @@ export class InventoryByProductComponent implements OnInit, AfterViewInit {
         {
           title: 'Mã sản phẩm',
           field: 'ProductCode',
-          minWidth: 120,
+          width: 180,
           hozAlign: 'left',
           bottomCalc: 'count',
           bottomCalcFormatter: (cell) => this.formatNumberWithDecimal(cell.getValue()),
+          formatter: 'textarea',
         },
         {
           title: 'Tên sản phẩm',
           field: 'ProductName',
-          minWidth: 250,
+          width: 250,
           hozAlign: 'left',
+          formatter: 'textarea',
         },
         {
           title: 'Hãng',
           field: 'Maker',
-          minWidth: 120,
+          width: 120,
           hozAlign: 'left',
         },
         {
@@ -113,7 +142,7 @@ export class InventoryByProductComponent implements OnInit, AfterViewInit {
           hozAlign: 'left',
         },
         {
-          title: 'Tổng số lượng',
+          title: 'Tồn thực tế',
           field: 'InventoryTotal',
           width: 120,
           hozAlign: 'right',
@@ -122,7 +151,7 @@ export class InventoryByProductComponent implements OnInit, AfterViewInit {
           bottomCalcFormatter: (cell) => this.formatNumberWithDecimal(cell.getValue()),
         },
         {
-          title: 'Tồn kho',
+          title: 'Tồn cuối kỳ(Được sử dụng)',
           field: 'InventoryReal',
           width: 120,
           hozAlign: 'right',
@@ -142,8 +171,9 @@ export class InventoryByProductComponent implements OnInit, AfterViewInit {
         {
           title: 'Tên nhà cung cấp',
           field: 'SupplierName',
-          minWidth: 200,
+          width: 300,
           hozAlign: 'left',
+          formatter: 'textarea',
         },
       ],
     });
@@ -198,6 +228,98 @@ export class InventoryByProductComponent implements OnInit, AfterViewInit {
     this.loadData();
   }
 
+  openDetail(rowData: any): void {
+    // Lấy các giá trị từ row được chọn
+    const productID = rowData.ProductID || rowData.ID || 0;
+    const warehouseType = rowData.WarehouseType || '';
+    const warehouseName = rowData.WarehouseName || rowData.ProductGroupName || '';
+
+    if (productID === 0) {
+      this.notification.warning('Thông báo', 'Hãy chọn sản phẩm!');
+      return;
+    }
+
+    // Gọi API để lấy warehouse theo tên
+    this.warehouseService.getWareHouseByName(warehouseName).subscribe({
+      next: (response: any) => {
+        const warehouses = response?.data || response || [];
+        if (!warehouses || warehouses.length === 0) {
+          this.notification.error('Lỗi', 'Không tìm thấy kho với tên: ' + warehouseName);
+          return;
+        }
+
+        const warehouse = Array.isArray(warehouses) ? warehouses[0] : warehouses;
+
+        switch (warehouseType) {
+          case 'Sale':
+            this.openChiTietSanPhamSale(productID, warehouse, rowData);
+            break;
+          case 'Demo':
+            this.openMaterialDetailOfProductRTC(productID, warehouse, rowData);
+            break;
+          default:
+            this.notification.warning('Thông báo', 'Hãy chọn sản phẩm!');
+            break;
+        }
+      },
+      error: (error: any) => {
+        console.error('Lỗi khi lấy thông tin kho:', error);
+        this.notification.error('Lỗi', 'Không thể lấy thông tin kho!');
+      }
+    });
+  }
+
+  openChiTietSanPhamSale(productID: number, warehouse: any, rowData: any): void {
+    const numberDauKy = '0';
+    const numberCuoiKy = String(rowData.InventoryTotal || 0);
+    const warehouseCode = warehouse.WarehouseCode || '';
+    const productName = rowData.ProductName || rowData.ProductCode || '';
+
+    const title = `Chi tiết sản phẩm Sale: ${productName}`;
+    const data = {
+      productSaleID: productID,
+      wareHouseCode: warehouseCode,
+      numberDauKy: numberDauKy,
+      numberCuoiKy: numberCuoiKy,
+    };
+
+    this.menuEventService.openNewTab(
+      ChiTietSanPhamSaleComponent,
+      title,
+      data
+    );
+  }
+  openMaterialDetailOfProductRTC(productID: number, warehouse: any, rowData: any): void {
+    const productName = rowData.ProductName || '';
+    const productCode = rowData.ProductCode || '';
+    const numberDauKy = '0';
+    const numberCuoiKy = String(rowData.InventoryTotal || 0);
+    const importValue = '0';
+    const exportValue = '0';
+    const borrowing = String(rowData.NumberBorrowing || 0);
+    const numberReal = String(rowData.InventoryReal || 0);
+    const warehouseID = warehouse.ID || warehouse.Id || warehouse.id || 0;
+
+    const title = `Chi tiết: ${productName || productCode}`;
+    const data = {
+      productRTCID1: productID,
+      warehouseID1: warehouseID,
+      ProductCode: productCode,
+      ProductName: productName,
+      NumberBegin: Number(numberDauKy),
+      InventoryLatest: Number(numberCuoiKy),
+      NumberImport: Number(importValue),
+      NumberExport: Number(exportValue),
+      NumberBorrowing: Number(borrowing),
+      InventoryReal: Number(numberReal),
+    };
+
+    this.menuEventService.openNewTab(
+      MaterialDetailOfProductRtcComponent,
+      title,
+      data
+    );
+  }
 
   async exportToExcel() {
     if (!this.inventoryTable) return;
@@ -226,25 +348,30 @@ export class InventoryByProductComponent implements OnInit, AfterViewInit {
 
       // Header row
       const headerRow = worksheet.addRow(headers);  
-      headerRow.font = { 
-        name: 'Times New Roman',
-        size: 10,
-        bold: true 
-      };
-      headerRow.fill = {
-        type: 'pattern',
-        pattern: 'solid',
-        fgColor: { argb: 'FFE0E0E0' },
-      };
-      headerRow.alignment = {
-        horizontal: 'center',
-        vertical: 'middle',
-        wrapText: true
-      };
       headerRow.height = 20;
 
-      // Thêm border cho header
+      // Set style cho toàn bộ header (background, font, alignment, border)
       headerRow.eachCell((cell) => {
+        // Background color - màu #1677ff
+        cell.fill = {
+          type: 'pattern',
+          pattern: 'solid',
+          fgColor: { argb: 'FF1677FF' }, 
+        };
+        // Font - màu trắng để dễ đọc trên nền xanh
+        cell.font = {
+          name: 'Times New Roman',
+          size: 10,
+          bold: true,
+          color: { argb: 'FFFFFFFF' } // Màu trắng
+        };
+        // Alignment
+        cell.alignment = {
+          horizontal: 'center',
+          vertical: 'middle',
+          wrapText: true
+        };
+        // Border
         cell.border = {
           top: { style: 'thin', color: { argb: 'FF000000' } },
           left: { style: 'thin', color: { argb: 'FF000000' } },
@@ -271,7 +398,7 @@ export class InventoryByProductComponent implements OnInit, AfterViewInit {
         // Set font Times New Roman size 10 cho data rows
         excelRow.font = {
           name: 'Times New Roman',
-          size: 10
+          size: 11
         };
         
         // Set alignment và border cho từng cell
@@ -314,25 +441,48 @@ export class InventoryByProductComponent implements OnInit, AfterViewInit {
         });
       });
       
-      // Auto width cho columns
+      // Custom width cho từng cột
+      const columnWidthMap: { [key: string]: number } = {
+        'ProductGroupName': 35,
+        'ProductNewCode': 15,
+        'ProductCode': 40,
+        'ProductName': 60,
+        'Maker': 15,
+        'UnitName': 8, 
+        'InventoryTotal': 15,
+        'InventoryReal': 20,
+        'NumberBorrowing': 12,
+        'SupplierName': 35,
+      };
+
+      // Set width cho từng cột
       worksheet.columns.forEach((column: any, index: number) => {
-        let maxLength = 10;
-        const headerValue = headers[index] ? headers[index].toString() : '';
-        maxLength = Math.max(maxLength, headerValue.length);
+        const col = columns[index];
+        const field = col?.field || '';
+        
+        // Nếu có width được định nghĩa trong map, dùng nó
+        if (columnWidthMap[field]) {
+          column.width = columnWidthMap[field];
+        } else {
+          // Nếu không có, tự động tính toán
+          let maxLength = 10;
+          const headerValue = headers[index] ? headers[index].toString() : '';
+          maxLength = Math.max(maxLength, headerValue.length);
 
-        column.eachCell({ includeEmpty: true }, (cell: any) => {
-          if (cell.value !== null && cell.value !== undefined) {
-            let cellValue = '';
-            if (cell.value instanceof Date) {
-              cellValue = cell.value.toLocaleDateString('vi-VN');
-            } else {
-              cellValue = cell.value.toString();
+          column.eachCell({ includeEmpty: true }, (cell: any) => {
+            if (cell.value !== null && cell.value !== undefined) {
+              let cellValue = '';
+              if (cell.value instanceof Date) {
+                cellValue = cell.value.toLocaleDateString('vi-VN');
+              } else {
+                cellValue = cell.value.toString();
+              }
+              maxLength = Math.max(maxLength, cellValue.length);
             }
-            maxLength = Math.max(maxLength, cellValue.length);
-          }
-        });
+          });
 
-        column.width = Math.min(Math.max(maxLength + 2, 10), 50);
+          column.width = Math.min(Math.max(maxLength + 2, 10), 50);
+        }
       });
 
       const buffer = await workbook.xlsx.writeBuffer();
@@ -348,7 +498,7 @@ export class InventoryByProductComponent implements OnInit, AfterViewInit {
       document.body.removeChild(link);
       URL.revokeObjectURL(link.href);
       
-      this.notification.success('Thành công', 'Xuất Excel thành công!');
+    
     } catch (error) {
       console.error('Lỗi khi xuất Excel:', error);
       this.notification.error(NOTIFICATION_TITLE.error, 'Lỗi khi xuất file Excel!');

@@ -1,0 +1,37 @@
+/* Horizontal scroll container cho các nút action */
+.horizontal-scroll-container {
+  overflow-x: auto;
+  overflow-y: hidden;
+  -webkit-overflow-scrolling: touch;
+  white-space: nowrap;
+  width: 100%;
+  scrollbar-width: thin;
+  scrollbar-color: #c1c1c1 transparent;
+}
+
+.horizontal-scroll-container::-webkit-scrollbar {
+  height: 6px;
+}
+
+.horizontal-scroll-container::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.horizontal-scroll-container::-webkit-scrollbar-thumb {
+  background-color: #c1c1c1;
+  border-radius: 3px;
+}
+
+.horizontal-scroll-container::-webkit-scrollbar-thumb:hover {
+  background-color: #a1a1a1;
+}
+
+/* Đảm bảo các nút không bị wrap */
+.horizontal-scroll-container > * {
+  flex-shrink: 0;
+}
+
+.table-container
+{
+  height: 83vh!important;
+}

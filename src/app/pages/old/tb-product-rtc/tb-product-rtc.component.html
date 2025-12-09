@@ -171,21 +171,21 @@
                                     class="d-flex align-items-center gap-2">
                                     Xuất Excel
                                 </button>
-                                <button ngbDropdownItem (click)="onRequestPurchase()"
+                                <button ngbDropdownItem *ngIf="warehouseType !== 2" (click)="onRequestPurchase()"
                                     class="d-flex align-items-center gap-2">
                                     Yêu cầu mua hàng
                                 </button>
-                                <button ngbDropdownItem *hasPermission="'N26,N1,N80'"
+                                <!-- <button ngbDropdownItem *hasPermission="'N26,N1,N80'"
                                     class="d-flex align-items-center gap-2">
                                     Thêm QRCode
-                                </button>
+                                </button> -->
                             </div>
                         </div>
                     </div>
                 </div>
 
                 <!-- phần nội dung splitter ở dưới giữ nguyên -->
-                <div id="dataTableProduct" style="height: 100%;"></div>
+                <div #dataTableProduct style="height: 100%;"></div>
             </div>
         </nz-splitter-panel>
     </nz-splitter>

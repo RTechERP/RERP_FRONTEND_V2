@@ -243,22 +243,24 @@
         <!-- Header với các nút action -->
         <div class="card-header bg-white p-1 position-relative">
             <!-- Nút X để đóng modal - chỉ hiển thị khi mở dưới dạng modal -->
-            <button *ngIf="activeModal" 
-                    type="button" 
-                    class="btn-close-modal position-absolute" 
-                    aria-label="Close" 
+            <button *ngIf="activeModal"
+                    type="button"
+                    class="btn-close-modal position-absolute"
+                    aria-label="Close"
                     (click)="closeModal()"
                     title="Đóng">
                 <i class="fas fa-times"></i>
             </button>
-            <div class="d-flex gap-1" horizontalScroll>
-                <button nz-button nzType="default" nzSize="small" 
-                        (click)="ToggleSearchPanelNew($event)" 
+            <div class="d-flex gap-1 horizontal-scroll-container" horizontalScroll>
+                <button nz-button nzType="default" nzSize="small"
+                        (click)="ToggleSearchPanelNew($event); $event.stopPropagation()"
+                        (mousedown)="$event.stopPropagation()"
                         (touchstart)="$event.stopPropagation()"
                         (touchend)="$event.stopPropagation()"
                         class="sticky-toggle-btn"
                         [attr.aria-label]="showSearchBar ? 'Ẩn tìm kiếm' : 'Hiện tìm kiếm'"
-                        [attr.aria-expanded]="showSearchBar">
+                        [attr.aria-expanded]="showSearchBar"
+                        type="button">
                     <nz-icon [nzType]="showSearchBar ? 'up' : 'down'" />
                 </button>
                 <!-- Refresh - load lại toàn bộ dữ liệu -->
@@ -397,26 +399,16 @@
         </div>
 
         <!-- Backdrop overlay cho mobile -->
-        <div class="filter-backdrop" 
-             *ngIf="showSearchBar && !isHRDept" 
+        <div class="filter-backdrop"
+             *ngIf="shouldShowSearchBar"
              (click)="ToggleSearchPanelNew()"
              [class.mobile-only]="true">
         </div>
 
         <!-- Filter bar - hiển thị dạng hàng ngang trên desktop, modal trên mobile - ẩn khi isHRDept -->
-        <div class="filter-bar bg-light border-bottom p-2" 
-             *ngIf="showSearchBar && !isHRDept"
+        <div class="filter-bar bg-light border-bottom p-2"
+             *ngIf="shouldShowSearchBar"
              [class.mobile-modal]="true">
-            <!-- Header với nút đóng trên mobile -->
-            <div class="filter-bar-header mobile-only">
-                <h6 class="mb-0">Tìm kiếm</h6>
-                <button type="button" 
-                        class="btn-close-filter" 
-                        (click)="ToggleSearchPanelNew()"
-                        aria-label="Đóng">
-                    <i class="fas fa-times"></i>
-                </button>
-            </div>
 
             <form nz-form nzLayout="inline" class="d-flex flex-wrap gap-2 align-items-end">
                 <nz-form-item class="mb-0">
@@ -426,7 +418,7 @@
                             style="width: 150px" nzSize="small"></nz-date-picker>
                     </nz-form-control>
                 </nz-form-item>
-                
+
                 <nz-form-item class="mb-0">
                     <nz-form-label class="fs-12">Đến ngày</nz-form-label>
                     <nz-form-control>
@@ -434,22 +426,22 @@
                             style="width: 150px" nzSize="small"></nz-date-picker>
                     </nz-form-control>
                 </nz-form-item>
-                
+
                 <nz-form-item class="mb-0">
                     <nz-form-label class="fs-12">Trạng thái</nz-form-label>
                     <nz-form-control>
                         <nz-select style="width: 180px" [(ngModel)]="filters.statusRequest" nzShowSearch nzAllowClear
                             nzSize="small" name="statusRequest" nzPlaceHolder="trạng thái">
-                            <nz-option [nzValue]="1" nzLabel="Tất cả"></nz-option>
-                            <nz-option [nzValue]="2" nzLabel="Yêu cầu báo giá"></nz-option>
-                            <nz-option [nzValue]="3" nzLabel="Đã báo giá"></nz-option>
-                            <nz-option [nzValue]="4" nzLabel="Đã hoàn thành"></nz-option>
-                            <nz-option [nzValue]="5" nzLabel="Yêu cầu check lại"></nz-option>
-                            <nz-option [nzValue]="6" nzLabel="Từ chối báo giá"></nz-option>
+                            <nz-option [nzValue]="0" nzLabel="Tất cả"></nz-option>
+                            <nz-option [nzValue]="1" nzLabel="Yêu cầu báo giá"></nz-option>
+                            <nz-option [nzValue]="2" nzLabel="Đã báo giá"></nz-option>
+                            <nz-option [nzValue]="3" nzLabel="Đã hoàn thành"></nz-option>
+                            <nz-option [nzValue]="4" nzLabel="Yêu cầu check lại"></nz-option>
+                            <nz-option [nzValue]="5" nzLabel="Từ chối báo giá"></nz-option>
                         </nz-select>
                     </nz-form-control>
                 </nz-form-item>
-                
+
                 <nz-form-item class="mb-0">
                     <nz-form-label class="fs-12">Chọn dự án</nz-form-label>
                     <nz-form-control>
@@ -461,7 +453,7 @@
                         </nz-select>
                     </nz-form-control>
                 </nz-form-item>
-                
+
                 <nz-form-item class="mb-0">
                     <nz-form-label class="fs-12">Từ khóa</nz-form-label>
                     <nz-form-control>
@@ -469,7 +461,7 @@
                             name="keyword" style="width: 150px" />
                     </nz-form-control>
                 </nz-form-item>
-                
+
                 <nz-form-item class="mb-0" *ngIf="activeTabId == -1">
                     <nz-form-label class="fs-12">PO</nz-form-label>
                     <nz-form-control>
@@ -480,7 +472,7 @@
                         </nz-select>
                     </nz-form-control>
                 </nz-form-item>
-                
+
                 <nz-form-item class="mb-0">
                     <nz-form-control>
                         <div class="d-flex gap-1">
@@ -497,7 +489,7 @@
         </div>
 
         <!-- Content với tabs động -->
-        <div class="card-body p-0" [class.with-search-bar]="showSearchBar" [class.without-search-bar]="!showSearchBar">
+        <div class="card-body p-0" [class.with-search-bar]="shouldShowSearchBar" [class.without-search-bar]="!shouldShowSearchBar">
             <div class="custom-tabs-container">
                 <ul class="nav nav-tabs" id="customTab" role="tablist">
                     <li class="nav-item" role="presentation"
@@ -513,7 +505,11 @@
                     </li>
                 </ul>
 
-                <div class="tab-content p-0" id="customTabContent">
+                <div class="tab-content p-0" id="customTabContent" style="position: relative;">
+                    <!-- Spinner overlay -->
+                    <div *ngIf="loading" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 999; background: rgba(255,255,255,0.7); display: flex; align-items: center; justify-content: center;">
+                        <nz-spin [nzSpinning]="loading" nzSimple [nzSize]="'large'"></nz-spin>
+                    </div>
                     <div class="tab-pane fade" *ngFor="let type of getVisibleProjectTypes()"
                         [class.show]="activeTabId === type.ProjectTypeID"
                         [class.active]="activeTabId === type.ProjectTypeID"

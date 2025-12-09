@@ -10,7 +10,7 @@
         <div class="col-md-12">
             <label for="firmCodeInput" class="form-label">Mã hãng<span class="text-danger">*</span></label>
             <nz-input-group>
-                <input id="firmCodeInput" nz-input formControlName="firmCode" placeholder="Nhập mã hãng" />
+                <input id="firmCodeInput" nz-input formControlName="firmCode" placeholder="Nhập mã hãng" [readonly]="isFirmCodeReadonly" />
                 <ng-template #prefixIcon><i nz-icon nzType="apartment"></i></ng-template>
             </nz-input-group>
             <div *ngIf="isFieldInvalid('firmCode')" class="text-danger mt-1">

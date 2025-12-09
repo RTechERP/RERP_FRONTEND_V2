@@ -564,6 +564,15 @@ export class BillExportDetailComponent
       if (!this.newBillExport.Code || this.newBillExport.Code === '') {
         this.getNewCode();
       }
+
+      // Load product options for KhoTypeID (CRITICAL: must call changeProductGroup to load products)
+      if (this.newBillExport.KhoTypeID > 0) {
+        this.changeProductGroup(this.newBillExport.KhoTypeID);
+        // After productOptions are loaded, update TotalInventory for existing rows
+        setTimeout(() => {
+          this.updateTotalInventoryForExistingRows();
+        }, 500);
+      }
     }
     // LUỒNG: Flow khác có KhoTypeID (backup)
     else if (this.KhoTypeID > 0 && !this.isBorrow) {
@@ -791,19 +800,42 @@ export class BillExportDetailComponent
   }
 
   ngAfterViewInit(): void {
+    console.log('=== ngAfterViewInit START ===');
+    console.log('isFromWarehouseRelease:', this.isFromWarehouseRelease);
+    console.log('isFromProjectPartList:', this.isFromProjectPartList);
+    console.log('dataTableBillExportDetail length:', this.dataTableBillExportDetail.length);
+    console.log('dataTableBillExportDetail sample (first 3):', this.dataTableBillExportDetail.slice(0, 3).map((r: any) => ({
+      ProductID: r.ProductID,
+      ProductCode: r.ProductCode,
+      ProductNewCode: r.ProductNewCode,
+      TotalInventory: r.TotalInventory
+    })));
+    
     this.drawTable();
 
     setTimeout(() => {
+      console.log('=== ngAfterViewInit setTimeout callback ===');
+      console.log('productOptions length:', this.productOptions.length);
+      console.log('table_billExportDetail exists:', !!this.table_billExportDetail);
+      
       if (
         !this.isCheckmode &&
         (!this.newBillExport.Id || this.newBillExport.Id <= 0)
       ) {
         const tableData = this.table_billExportDetail?.getData() || [];
+        console.log('tableData length:', tableData.length);
         if (tableData.length > 0) {
           tableData.forEach((row: any, index: number) => {
             this.loadInventoryProjectForRow(row, index);
           });
         }
+      }
+      
+      // Update TotalInventory for rows if productOptions are already loaded
+      // This is important for data coming from PO (warehouse-release-request)
+      if (this.isFromWarehouseRelease || this.isFromProjectPartList) {
+        console.log('Calling updateTotalInventoryForExistingRows from ngAfterViewInit');
+        this.updateTotalInventoryForExistingRows();
       }
     }, 1500); // Wait for data to load (increased timeout for data stability)
   }
@@ -1244,6 +1276,15 @@ export class BillExportDetailComponent
         } else {
           this.productOptions = [];
         }
+        
+        // Update TotalInventory for existing rows after productOptions are loaded
+        // This is especially important for data coming from PO (warehouse-release-request)
+        if (this.isFromWarehouseRelease || this.isFromProjectPartList) {
+          setTimeout(() => {
+            this.updateTotalInventoryForExistingRows();
+          }, 100);
+        }
+        
         if (this.checkConvert == true) {
           this.getBillExportDetailConvert([this.id]);
         } else if (this.isCheckmode && !this.isBorrow) {
@@ -1692,19 +1733,39 @@ export class BillExportDetailComponent
     if (!this.currentEditingCell) return;
 
     const row = this.currentEditingCell.getRow();
-    const productValue = selectedProduct.value || selectedProduct.ID;
+    // selectedProduct is the row data from Tabulator popup
+    // It should contain all fields from productOptions, but we need to ensure TotalInventory is correct
+    const productValue = selectedProduct.value || selectedProduct.ProductID || selectedProduct.ProductSaleID || selectedProduct.ID;
+
+    // Try to get TotalInventory from selectedProduct first
+    // If not available, find it from productOptions array
+    let totalInventory = selectedProduct.TotalInventory ?? 
+                        selectedProduct.TotalQuantityLast ?? 
+                        0;
+
+    // If TotalInventory is still 0 or missing, try to find it from productOptions
+    if (!totalInventory || totalInventory === 0) {
+      const fullProduct = this.productOptions.find(
+        (p: any) => 
+          (p.value === productValue) || 
+          (p.ProductID === productValue) || 
+          (p.ProductSaleID === productValue) ||
+          (p.value === selectedProduct.value) ||
+          (p.ProductCode === selectedProduct.ProductCode)
+      );
+      if (fullProduct) {
+        totalInventory = fullProduct.TotalInventory ?? fullProduct.TotalQuantityLast ?? 0;
+      }
+    }
 
     // Update row with selected product data
     row.update({
       ProductID: productValue,
-      ProductCode: selectedProduct.ProductCode,
-      ProductNewCode: selectedProduct.ProductNewCode,
+      ProductCode: selectedProduct.ProductCode || '',
+      ProductNewCode: selectedProduct.ProductNewCode || '',
       Unit: selectedProduct.Unit || '',
-      TotalInventory:
-        selectedProduct.TotalQuantityLast ??
-        selectedProduct.TotalInventory ??
-        0,
-      ProductName: selectedProduct.ProductName,
+      TotalInventory: totalInventory,
+      ProductName: selectedProduct.ProductName || '',
     });
 
     // Trigger inventory loading if needed
@@ -1747,6 +1808,134 @@ export class BillExportDetailComponent
     this.showProductPopup = false;
     this.showProjectPopup = false;
     this.currentEditingCell = null;
+  }
+
+  /**
+   * Update TotalInventory for existing rows in table based on productOptions
+   * This is called after productOptions are loaded to ensure TotalInventory is filled correctly
+   * Especially important for data coming from PO (warehouse-release-request)
+   * Made public so it can be called from warehouse-release-request after data is set
+   */
+  public updateTotalInventoryForExistingRows(): void {
+    console.log('=== updateTotalInventoryForExistingRows START ===');
+    console.log('table_billExportDetail exists:', !!this.table_billExportDetail);
+    console.log('productOptions length:', this.productOptions.length);
+    console.log('productOptions sample (first 3):', this.productOptions.slice(0, 3));
+    
+    if (!this.table_billExportDetail || this.productOptions.length === 0) {
+      console.log('EXIT: No table or no productOptions');
+      return;
+    }
+
+    const tableData = this.table_billExportDetail.getData() || [];
+    console.log('tableData length:', tableData.length);
+    console.log('tableData sample (first 3):', tableData.slice(0, 3).map((r: any) => ({
+      ProductID: r.ProductID,
+      ProductCode: r.ProductCode,
+      ProductNewCode: r.ProductNewCode,
+      TotalInventory: r.TotalInventory,
+      Qty: r.Qty
+    })));
+    
+    if (tableData.length === 0) {
+      console.log('EXIT: No table data');
+      return;
+    }
+
+    let hasUpdates = false;
+    const updatedRows: any[] = [];
+
+    tableData.forEach((row: any, index: number) => {
+      const productID = row.ProductID || 0;
+      console.log(`\n--- Processing row ${index + 1} ---`);
+      console.log('Row ProductID:', productID);
+      console.log('Row ProductCode:', row.ProductCode);
+      console.log('Row ProductNewCode:', row.ProductNewCode);
+      console.log('Row Current TotalInventory:', row.TotalInventory);
+      
+      if (!productID || productID <= 0) {
+        console.log('SKIP: No ProductID');
+        return;
+      }
+
+      // Find product in productOptions
+      const product = this.productOptions.find(
+        (p: any) =>
+          p.value === productID ||
+          p.ProductID === productID ||
+          p.ProductSaleID === productID
+      );
+
+      console.log('Matching product found:', !!product);
+      if (product) {
+        console.log('Product details:', {
+          value: product.value,
+          ProductID: product.ProductID,
+          ProductSaleID: product.ProductSaleID,
+          ProductCode: product.ProductCode,
+          TotalInventory: product.TotalInventory,
+          TotalQuantityLast: product.TotalQuantityLast
+        });
+      } else {
+        console.log('Trying alternative matching...');
+        // Try matching by ProductCode or ProductNewCode
+        const productByCode = this.productOptions.find(
+          (p: any) =>
+            p.ProductCode === row.ProductCode ||
+            p.ProductNewCode === row.ProductNewCode
+        );
+        console.log('Product found by code:', !!productByCode);
+        if (productByCode) {
+          console.log('ProductByCode details:', {
+            value: productByCode.value,
+            ProductID: productByCode.ProductID,
+            ProductCode: productByCode.ProductCode,
+            TotalInventory: productByCode.TotalInventory
+          });
+        }
+      }
+
+      const finalProduct = product || this.productOptions.find(
+        (p: any) =>
+          p.ProductCode === row.ProductCode ||
+          p.ProductNewCode === row.ProductNewCode
+      );
+
+      if (finalProduct && finalProduct.TotalInventory) {
+        const newTotalInventory = finalProduct.TotalInventory;
+        console.log('New TotalInventory to set:', newTotalInventory);
+        // Only update if TotalInventory is missing or 0
+        if (!row.TotalInventory || row.TotalInventory === 0) {
+          row.TotalInventory = newTotalInventory;
+          updatedRows.push(row);
+          hasUpdates = true;
+          console.log('✓ Row will be updated');
+        } else {
+          console.log('SKIP: TotalInventory already has value:', row.TotalInventory);
+        }
+      } else {
+        console.log('SKIP: No product found or no TotalInventory');
+      }
+    });
+
+    console.log('\n=== Update Summary ===');
+    console.log('hasUpdates:', hasUpdates);
+    console.log('updatedRows count:', updatedRows.length);
+    console.log('updatedRows:', updatedRows.map((r: any) => ({
+      ProductID: r.ProductID,
+      ProductCode: r.ProductCode,
+      TotalInventory: r.TotalInventory
+    })));
+
+    // Update table with new data
+    if (hasUpdates && updatedRows.length > 0) {
+      console.log('Calling table.updateData()...');
+      this.table_billExportDetail.updateData(updatedRows);
+      console.log('✓ Table updated');
+    } else {
+      console.log('No updates needed');
+    }
+    console.log('=== updateTotalInventoryForExistingRows END ===\n');
   }
 
   openSerialModal(

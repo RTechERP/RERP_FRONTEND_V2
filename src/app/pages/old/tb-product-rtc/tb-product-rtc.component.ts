@@ -99,6 +99,7 @@ export class TbProductRtcComponent implements OnInit, AfterViewInit {
     private modal: NzModalService,
     @Optional() @Inject('tabData') private tabData: any
   ) {}
+  @ViewChild('dataTableProduct', { static: false }) dataTableProductRef!: ElementRef;
   productTable: Tabulator | null = null;
   selectedRow: any = '';
   sizeTbDetail: any = '0';
@@ -160,7 +161,154 @@ export class TbProductRtcComponent implements OnInit, AfterViewInit {
   }
   onGroupChange(groupID: number): void {
     this.productGroupID = groupID;
+    this.showSpec();
     this.getProduct();
+  }
+
+  /**
+   * Hiển thị/ẩn các cột spec dựa trên ProductGroupID
+   * Tương ứng với logic ShowSpec() trong WinForm
+   * Các cột spec đã được đặt sẵn sau ProductName với visible=false
+   */
+  showSpec(): void {
+    if (!this.productTable) return;
+
+    const groupId = this.productGroupID || 0;
+
+    // Block redraw để batch tất cả operations
+    this.productTable.blockRedraw();
+
+    try {
+      // Tất cả các cột spec
+      const allSpecColumns = [
+        'Resolution',
+        'MonoColor',
+        'SensorSize',
+        'SensorSizeMax',
+        'DataInterface',
+        'LensMount',
+        'ShutterMode',
+        'PixelSize',
+        'LampType',
+        'LampPower',
+        'LampWattage',
+        'LampColor',
+        'MOD',
+        'FNo',
+        'WD',
+        'Magnification',
+        'FocalLength',
+        'InputValue',
+        'OutputValue',
+        'CurrentIntensityMax',
+      ];
+
+      // Ẩn tất cả các cột spec trước
+      allSpecColumns.forEach((field) => {
+        const column = this.productTable?.getColumn(field);
+        if (column && column.isVisible()) {
+          column.hide();
+        }
+      });
+
+      const capRes = 'Resolution';
+      const capSensorSize = 'Sensor Size';
+      const capSensorSizeMax = 'Sensor Size Max';
+
+      // Map columns cần hiển thị, vị trí và title tương ứng
+      const columnConfigs: { [key: number]: Array<{ field: string; after: string; title?: string }> } = {
+        74: [
+          { field: 'Resolution', after: 'ProductName', title: `${capRes} (pixel)` },
+          { field: 'MonoColor', after: 'Resolution' },
+          { field: 'SensorSize', after: 'MonoColor', title: `${capSensorSize} (")` },
+          { field: 'DataInterface', after: 'SensorSize' },
+          { field: 'LensMount', after: 'DataInterface' },
+          { field: 'ShutterMode', after: 'LensMount' },
+        ],
+        75: [
+          { field: 'LampType', after: 'ProductName' },
+          { field: 'LampColor', after: 'LampType' },
+          { field: 'LampPower', after: 'LampColor' },
+          { field: 'LampWattage', after: 'LampPower' },
+        ],
+        78: [
+          { field: 'Resolution', after: 'ProductName', title: `${capRes} (µm)` },
+          { field: 'SensorSizeMax', after: 'Resolution', title: `${capSensorSizeMax} (")` },
+          { field: 'WD', after: 'SensorSizeMax' },
+          { field: 'LensMount', after: 'WD' },
+          { field: 'FNo', after: 'LensMount' },
+          { field: 'Magnification', after: 'ProductName' },
+        ],
+        79: [
+          { field: 'Resolution', after: 'ProductName' },
+          { field: 'MonoColor', after: 'Resolution' },
+          { field: 'PixelSize', after: 'MonoColor' },
+          { field: 'DataInterface', after: 'PixelSize' },
+          { field: 'LensMount', after: 'DataInterface' },
+        ],
+        81: [
+          { field: 'Resolution', after: 'ProductName', title: `${capRes} (µm)` },
+          { field: 'SensorSizeMax', after: 'Resolution', title: `${capSensorSizeMax} (")` },
+          { field: 'MOD', after: 'SensorSizeMax' },
+          { field: 'LensMount', after: 'MOD' },
+          { field: 'FNo', after: 'LensMount' },
+          { field: 'FocalLength', after: 'ProductName' },
+        ],
+        139: [
+          { field: 'Resolution', after: 'ProductName' },
+          { field: 'SensorSizeMax', after: 'Resolution' },
+          { field: 'MOD', after: 'SensorSizeMax' },
+          { field: 'LensMount', after: 'MOD' },
+          { field: 'FNo', after: 'LensMount' },
+          { field: 'FocalLength', after: 'ProductName' },
+        ],
+        92: [
+          { field: 'InputValue', after: 'ProductName' },
+          { field: 'OutputValue', after: 'InputValue' },
+          { field: 'CurrentIntensityMax', after: 'OutputValue' },
+        ],
+      };
+
+      const configs = columnConfigs[groupId];
+      if (configs) {
+        // Show, update title và di chuyển các columns cần thiết
+        configs.forEach((config) => {
+          const column = this.productTable?.getColumn(config.field);
+          if (column) {
+            column.show();
+            if (config.title) {
+              const def = column.getDefinition();
+              if (def) {
+                column.updateDefinition({ title: config.title });
+              }
+            }
+            // Di chuyển cột về đúng vị trí
+            this.moveColumnAfter(config.field, config.after);
+          }
+        });
+      }
+    } finally {
+      // Restore redraw và redraw một lần
+      this.productTable.restoreRedraw();
+      this.productTable.redraw(true);
+    }
+  }
+
+  /**
+   * Helper method to move column after another column
+   */
+  private moveColumnAfter(fieldName: string, afterFieldName: string): void {
+    if (!this.productTable) return;
+    
+    try {
+      const column = this.productTable.getColumn(fieldName);
+      const afterColumn = this.productTable.getColumn(afterFieldName);
+      if (column && afterColumn) {
+        column.move(afterColumn, false);
+      }
+    } catch (e) {
+      console.warn(`Could not move column ${fieldName} after ${afterFieldName}:`, e);
+    }
   }
   onKeywordChange(value: string): void {
     this.keyWord = value;
@@ -180,8 +328,11 @@ export class TbProductRtcComponent implements OnInit, AfterViewInit {
     this.isSearchVisible = !this.isSearchVisible;
   }
   drawTable() {
+    if (!this.dataTableProductRef?.nativeElement) {
+      return;
+    }
     const isMobile = window.matchMedia('(max-width: 768px)').matches;
-    this.productTable = new Tabulator('#dataTableProduct', {
+    this.productTable = new Tabulator(this.dataTableProductRef.nativeElement, {
       ...DEFAULT_TABLE_CONFIG,
       layout: 'fitDataStretch',
       //   layout: 'fitDataFill',
@@ -256,6 +407,28 @@ export class TbProductRtcComponent implements OnInit, AfterViewInit {
           frozen: !isMobile,
           formatter: 'textarea',
         },
+        // Spec columns - đặt ngay sau ProductName, visible=false, sẽ được show khi chọn group
+        { title: 'Resolution', field: 'Resolution', visible: false },
+        { title: 'Mono/Color', field: 'MonoColor', visible: false },
+        { title: 'Sensor Size (")', field: 'SensorSize', visible: false },
+        { title: 'Sensor Size Max (")', field: 'SensorSizeMax', visible: false },
+        { title: 'Data Interface', field: 'DataInterface', visible: false },
+        { title: 'Lens Mount', field: 'LensMount', visible: false },
+        { title: 'Shutter Mode', field: 'ShutterMode', visible: false },
+        { title: 'Pixel Size', field: 'PixelSize', visible: false },
+        { title: 'Lamp Type', field: 'LampType', visible: false },
+        { title: 'Lamp Power', field: 'LampPower', visible: false },
+        { title: 'Lamp Wattage', field: 'LampWattage', visible: false },
+        { title: 'Lamp Color', field: 'LampColor', visible: false },
+        { title: 'MOD', field: 'MOD', visible: false },
+        { title: 'FNo', field: 'FNo', visible: false },
+        { title: 'WD', field: 'WD', visible: false },
+        { title: 'Magnification', field: 'Magnification', visible: false },
+        { title: 'Focal Length', field: 'FocalLength', visible: false },
+        { title: 'Input Value', field: 'InputValue', visible: false },
+        { title: 'Output Value', field: 'OutputValue', visible: false },
+        { title: 'Rated Current (A)', field: 'CurrentIntensityMax', visible: false },
+        { title: 'Mã vị trí (Hộp)', field: 'LocationCode', minWidth: 200 },
         { title: 'Vị trí (Hộp)', field: 'LocationName', minWidth: 200 },
         { title: 'Hãng', field: 'FirmName' },
         { title: 'ĐVT', field: 'UnitCountName', minWidth: 120 },
@@ -299,62 +472,6 @@ export class TbProductRtcComponent implements OnInit, AfterViewInit {
         { title: 'Part Number', field: 'PartNumber', minWidth: 120 },
         { title: 'Serial Number', field: 'SerialNumber', minWidth: 120 },
         { title: 'Code', field: 'Serial', minWidth: 120 },
-        // { title: 'Người tạo', field: 'CreatedBy', visible: false },
-        // { title: 'Input Value', field: 'InputValue', visible: false },
-        // { title: 'Output Value', field: 'OutputValue', visible: false },
-        // {
-        //   title: 'Rated Current (A)',
-        //   field: 'CurrentIntensityMax',
-        //   visible: false,
-        // },
-        // { title: 'Mã nhóm RTC', field: 'ProductGroupRTCID', visible: false },
-        // { title: 'ID vị trí', field: 'ProductLocationID', visible: false },
-        // { title: 'UnitCountID', field: 'UnitCountID', visible: false },
-        // { title: 'Số lượng', field: 'Number', visible: false },
-        // { title: 'SL mượn', field: 'NumberBorrowing', visible: false },
-        // { title: 'SL tồn kho', field: 'NumberInStore', visible: false },
-        // {
-        //   title: 'SL kiểm kê',
-        //   field: 'SLKiemKe',
-        //   hozAlign: 'right',
-        //   visible: false,
-        // },
-        // { title: 'SL thực tế', field: 'InventoryReal', visible: false },
-
-        // { title: 'Khách mượn', field: 'BorrowCustomerText', visible: false },
-        // {
-        //   title: 'Đã sử dụng',
-        //   field: 'StatusProduct',
-        //   formatter: 'tickCross',
-        //   visible: false,
-        // },
-        // {
-        //   title: 'Ghi chú',
-        //   field: 'Note',
-        //   minWidth: 450,
-        //   visible: false,
-        //   formatter: 'textarea',
-        // },
-
-        // { title: 'Lens Mount', field: 'LensMount', visible: false },
-        // { title: 'Focal Length', field: 'FocalLength', visible: false },
-        // { title: 'MOD', field: 'MOD', visible: false },
-        // { title: 'Magnification', field: 'Magnification', visible: false },
-        // { title: 'Sensor Size', field: 'SensorSize', visible: false },
-        // { title: 'Sensor Size Max', field: 'SensorSizeMax', visible: false },
-        // { title: 'Resolution', field: 'Resolution', visible: false },
-        // { title: 'Shutter Mode', field: 'ShutterMode', visible: false },
-        // { title: 'Mono/Color', field: 'MonoColor', visible: false },
-        // { title: 'Pixel Size', field: 'PixelSize', visible: false },
-        // { title: 'Lamp Type', field: 'LampType', visible: false },
-        // { title: 'Lamp Power', field: 'LampPower', visible: false },
-        // { title: 'Lamp Wattage', field: 'LampWattage', visible: false },
-        // { title: 'Lamp Color', field: 'LampColor', visible: false },
-        // { title: 'Data Interface', field: 'DataInterface', visible: false },
-
-        // { title: 'Size', field: 'Size', visible: false },
-
-        // { title: 'AddressBox', field: 'AddressBox', visible: false },
       ],
     });
     this.productTable.on('rowDblClick', (e: UIEvent, row: RowComponent) => {
@@ -376,6 +493,13 @@ export class TbProductRtcComponent implements OnInit, AfterViewInit {
         }
       );
     });
+
+    // Gọi showSpec() sau khi table được khởi tạo nếu có productGroupID
+    if (this.productGroupID > 0) {
+      setTimeout(() => {
+        this.showSpec();
+      }, 100);
+    }
   }
   onAddGroupProduct() {
     const modalRef = this.ngbModal.open(TbProductGroupRtcFormComponent, {
@@ -570,10 +694,11 @@ export class TbProductRtcComponent implements OnInit, AfterViewInit {
     const modalRef = this.ngbModal.open(TbProductRtcImportExcelComponent, {
       size: 'xl',
       backdrop: 'static',
-      keyboard: false,
+      keyboard: false,  
       centered: true,
     });
     modalRef.componentInstance.warehouseType = this.warehouseType;
+    modalRef.componentInstance.warehouseID = this.warehouseID;
     modalRef.result.then(
       (result) => {
         this.getProduct();
@@ -692,7 +817,7 @@ export class TbProductRtcComponent implements OnInit, AfterViewInit {
   async exportToExcelProduct() {
     if (!this.productTable) return;
 
-    const selectedData = [...this.productData];
+    const selectedData = this.productTable.getData();
     if (!selectedData || selectedData.length === 0) {
       this.notification.info('Thông báo', 'Không có dữ liệu để xuất Excel.');
       return;

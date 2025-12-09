@@ -124,11 +124,25 @@
               <nz-form-item>
                 <nz-form-label class="fs-12">Mã đặc biệt</nz-form-label>
                 <nz-form-control>
-                  <input 
-                    formControlName="specialCode" 
-                    nz-input 
-                    class="fs-12" 
-                    placeholder="Nhập mã đặc biệt" />
+                  <div class="d-flex gap-1">
+                    <input 
+                      formControlName="specialCode" 
+                      nz-input 
+                      class="fs-12 flex-grow-1" 
+                      placeholder="Nhập mã đặc biệt"
+                      (keyup.enter)="onSearchSpecialCode($event)" />
+                    <button
+                      *ngIf="currentPartListId > 0"
+                      type="button"
+                      nz-button
+                      nzType="primary"
+                      nzSize="default"
+                      (click)="onSearchSpecialCode($event)"
+                    >
+                      <i nz-icon nzType="check"></i>
+                      Cập nhật
+                    </button>
+                  </div>
                 </nz-form-control>
               </nz-form-item>
             </div>
@@ -707,7 +721,7 @@
     <button class="fs-12 btn" nz-button nzDanger (click)="closeModal()">
       Đóng
     </button>
-    <button class="fs-12 btn" nz-button nzType="primary" (click)="saveData()" [disabled]="isDisabled">
+    <button class="fs-12 btn" nz-button nzType="primary" (click)="saveData()" *ngIf="!isDisabled">
       Lưu
     </button>
   </div>

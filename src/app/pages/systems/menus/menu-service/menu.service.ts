@@ -1320,6 +1320,35 @@ export class MenuService {
                         // icon: 'assets/icon/hr_hiring_24.svg',
                     },
                     {
+                        kind: 'group',
+                        key: 'DexuatHR',
+                        title: 'Đề xuất của HR',
+                        isOpen: true,
+                        isPermission: this.permissionService.hasPermission('N2, N34, N1'),
+                        // icon: 'assets/icon/hr_asset_24.svg',
+                        children: [
+                            {
+                                kind: 'leaf',
+                                key: 'RecommendSupplierComponent',
+                                title: 'Đề xuất nhà cung cấp',
+                                isOpen: true,
+                                isPermission: this.permissionService.hasPermission('N2,N34,N1'),
+                                comp: RecommendSupplierComponent,
+                                //       icon: 'assets/icon/hr_documentt_24.svg',
+                            },
+                            {
+                                kind: 'leaf',
+                                key: 'HRPurchaseProposalComponent',
+                                title: 'Chi tiết đề xuất ',
+                                isOpen: true,
+                                isPermission: this.permissionService.hasPermission('N2,N34,N1'),
+                                comp: HrPurchaseProposalComponent,
+                                //       icon: 'assets/icon/hr_documentt_24.svg',
+                            },
+                        ],
+                        //   icon: 'assets/icon/layers.png',
+                    },
+                    {
                         kind: 'leaf',
                         key: 'DocumentComponent',
                         title: 'Quản lí văn bản',
@@ -2336,7 +2365,7 @@ export class MenuService {
                             },
                             {
                                 kind: 'group',
-                                key: 'VisionBase',
+                                key: 'ProjectComponent',
                                 title: 'VISION BASE',
                                 isOpen: true,
                                 isPermission: this.permissionService.hasPermission(''),
@@ -2484,501 +2513,22 @@ export class MenuService {
             //#region Cá nhân
             {
                 kind: 'group',
-                key: 'KPIComponent',
-                title: 'KPI',
-                isOpen: true,
-                isPermission: this.permissionService.hasPermission(""),
-                children: [
-                  {
-                    kind: 'leaf',
-                    key: 'BonusCoefficientComponent',
-                    title: 'Tổng hợp báo cáo',
-                    isOpen: true,
-                    isPermission: this.permissionService.hasPermission(""),
-                    comp: BonusCoefficientComponent,
-                  },
-                  // {
-                  //   kind: 'leaf',
-                  //   key: 'EmployeeSaleManagerComponent',
-                  //   title: 'Nhân viên Sale',
-                  //   isOpen: true,
-                  //   isPermission: this.permissionService.hasPermission("''"),
-                  //   comp: EmployeeSaleManagerComponent,
-                  // },
-                  {
-                    kind: 'leaf',
-                    key: 'DailyReportSaleComponent',
-                    title: 'Báo cáo hàng ngày',
-                    isOpen: true,
-                    isPermission: this.permissionService.hasPermission(""),
-                    comp: DailyReportSaleComponent,
-                  },
-                ],
-              },
-              {
-                kind: 'leaf',
-                key: 'RequestInvoiceComponent',
-                title: 'YÊU CẦU XUẤT HÓA ĐƠN - HN',
-                isOpen: true,
-                isPermission: this.permissionService.hasPermission(''),
-                comp: RequestInvoiceComponent,
-                data: { warehouseId: 1 },
-              },
-            ],
-          },
-          {
-            kind: 'group',
-            key: 'SaleComponent_HCM',
-            title: 'Văn phòng Hồ Chí Minh',
-            isOpen: true,
-            isPermission: this.permissionService.hasPermission(''),
-            children: [
-              {
-                kind: 'leaf',
-                key: 'RequestInvoiceComponent_HCM',
-                title: 'YÊU CẦU XUẤT HÓA ĐƠN - HCM',
-                isOpen: true,
-                isPermission: this.permissionService.hasPermission(''),
-                comp: RequestInvoiceComponent,
-                data: { warehouseId: 2 },
-              },
-              {
-                kind: 'leaf',
-                key: 'POKHComponent_HCM',
-                title: 'PO KHÁCH HÀNG - HCM',
-                isOpen: true,
-                isPermission:
-                  this.permissionService.hasPermission('N54,N1,N36'),
-                comp: PokhComponent,
-                data: { warehouseId: 2 },
-              },
-              {
-                kind: 'leaf',
-                key: 'FollowProjectBaseComponent_HCM',
-                title: 'FOLLOW DỰ ÁN - HCM',
-                isOpen: true,
-                isPermission: this.permissionService.hasPermission(''),
-                comp: FollowProjectBaseComponent,
-                data: { warehouseId: 2 },
-              },
-            ]
-          }
-        ],
-      },
-      //#endregion
-
-      //#region Phòng Kế Toán
-      {
-        kind: 'group',
-        key: 'KT',
-        title: 'PHÒNG KẾ TOÁN',
-        isOpen: true,
-        isPermission: this.permissionService.hasPermission(''),
-        icon: 'assets/icon/menu_ketoan.svg',
-        children: [
-          {
-            kind: 'leaf',
-            key: 'RequestInvoiceComponent_KT',
-            title: 'YÊU CẦU XUẤT HÓA ĐƠN - KẾ TOÁN',
-            isOpen: true,
-            isPermission: this.permissionService.hasPermission(''),
-            comp: RequestInvoiceComponent,
-            data: { warehouseId: 0 },
-          },
-        ],
-      },
-      //#endregion
-
-      //#region Cá nhân
-      {
-        kind: 'group',
-        key: 'person',
-        title: 'CÁ NHÂN',
-        isOpen: true,
-        isPermission: this.permissionService.hasPermission(''),
-        icon: 'assets/icon/menu_person.svg',
-        children: [
-          {
-            kind: 'group',
-            key: 'Tonghopcong',
-            title: 'Tổng hợp công',
-            isOpen: true,
-            isPermission: this.permissionService.hasPermission(''),
-            children: [
-              {
-                kind: 'leaf',
-                key: 'PersonDayOffComponent',
-                title: 'Tổng hợp đăng ký nghỉ',
-                isOpen: true,
-                isPermission: this.permissionService.hasPermission(''),
-                comp: PersonDayOffComponent,
-              },
-              {
-                kind: 'leaf',
-                key: 'EarlyLateSummaryComponent',
-                title: 'Tổng hợp đi muộn về sớm',
-                isOpen: true,
-                isPermission: this.permissionService.hasPermission(''),
-                comp: EarlyLateSummaryComponent,
-              },
-              {
-                kind: 'leaf',
-                key: 'WFHSummaryComponent',
-                title: 'Tổng hợp WFH',
-                isOpen: true,
-                isPermission: this.permissionService.hasPermission(''),
-                comp: WFHSummaryComponent,
-              },
-              {
-                kind: 'leaf',
-                key: 'EmployeeNoFingerSummaryComponent',
-                title: 'Tổng hợp quên vân tay',
-                isOpen: true,
-                isPermission: this.permissionService.hasPermission(''),
-                comp: EmployeeNoFingerSummaryComponent,
-              },
-              {
-                kind: 'leaf',
-                key: 'EmployeeBussinessPersonSummaryComponent',
-                title: 'Tổng hợp công tác',
-                isOpen: true,
-                isPermission: this.permissionService.hasPermission(''),
-                comp: EmployeeBussinessPersonSummaryComponent,
-              },
-              {
-                kind: 'leaf',
-                key: 'EmployeeNightShiftPersonSummaryComponent',
-                title: 'Tổng hợp làm đêm',
-                isOpen: true,
-                isPermission: this.permissionService.hasPermission(''),
-                comp: EmployeeNightShiftPersonSummaryComponent,
-              },
-            ],
-          },
-          //#region Duyệt cá nhân
-          //   {
-          //     kind: 'group',
-          //     key: 'appvovedperson',
-          //     title: 'Duyệt cá nhân',
-          //     isOpen: true,
-          //     isPermission: this.permissionService.hasPermission(
-          //       'N57,N34,N56,N59,N55,N61,N58,N83,N32'
-          //     ),
-          //     children: [
-          //       {
-          //         kind: 'group',
-          //         key: 'tbpapproved',
-          //         title: 'Trưởng bộ phận duyệt',
-          //         isOpen: true,
-          //         isPermission: this.permissionService.hasPermission('N57'),
-          //         children: [
-          //           {
-          //             kind: 'leaf',
-          //             key: 'tbpduyetdntt',
-          //             title: 'Đề nghị thanh toán',
-          //             isOpen: true,
-          //             isPermission: this.permissionService.hasPermission('N57'),
-          //             comp: AppComponent,
-          //             router: '/tbpduyetdntt',
-          //           },
-          //           {
-          //             kind: 'leaf',
-          //             key: 'tbpduyetyccv',
-          //             title: 'Yêu cầu công việc',
-          //             isOpen: true,
-          //             isPermission: this.permissionService.hasPermission('N57'),
-          //             comp: AppComponent,
-          //             router: '/tbpduyetyccv',
-          //           },
-          //         ],
-          //       },
-
-          //       {
-          //         kind: 'group',
-          //         key: 'hraproved',
-          //         title: 'HR duyệt',
-          //         isOpen: true,
-          //         isPermission:
-          //           this.permissionService.hasPermission('N34,N56,N59'),
-          //         children: [
-          //           {
-          //             kind: 'leaf',
-          //             key: 'hrduyetdntt',
-          //             title: 'Đề nghị thanh toán',
-          //             isOpen: true,
-          //             isPermission:
-          //               this.permissionService.hasPermission('N56,N59'),
-          //             comp: AppComponent,
-          //             router: '/hrduyetdntt',
-          //           },
-          //           {
-          //             kind: 'leaf',
-          //             key: 'hrduyetyccv',
-          //             title: 'Yêu cầu công việc',
-          //             isOpen: true,
-          //             isPermission:
-          //               this.permissionService.hasPermission('N34,N56'),
-          //             comp: AppComponent,
-          //             router: '/hrduyetyccv',
-          //           },
-          //         ],
-          //       },
-
-          //       {
-          //         kind: 'leaf',
-          //         key: 'ketoanduyetdntt',
-          //         title: 'Kế toán duyệt ĐNTT',
-          //         isOpen: true,
-          //         isPermission: this.permissionService.hasPermission('N55,N61'),
-          //         comp: AppComponent,
-          //         router: '/ketoanduyetdntt',
-          //       },
-
-          //       {
-          //         kind: 'group',
-          //         key: 'bgdaproved',
-          //         title: 'BGĐ duyệt',
-          //         isOpen: true,
-          //         isPermission: this.permissionService.hasPermission('N58'),
-          //         children: [
-          //           {
-          //             kind: 'leaf',
-          //             key: 'bgdduyetdntt',
-          //             title: 'Đề nghị thanh toán',
-          //             isOpen: true,
-          //             isPermission: this.permissionService.hasPermission('N58'),
-          //             comp: AppComponent,
-          //             router: '/bgdduyetdntt',
-          //           },
-          //           {
-          //             kind: 'leaf',
-          //             key: 'bgdduyetyccv',
-          //             title: 'Yêu cầu công việc',
-          //             isOpen: true,
-          //             isPermission: this.permissionService.hasPermission('N58'),
-          //             comp: AppComponent,
-          //             router: '/bgdduyetyccv',
-          //           },
-          //           {
-          //             kind: 'leaf',
-          //             key: 'duyetyeucaumuahang',
-          //             title: 'Yêu cầu mua hàng',
-          //             isOpen: true,
-          //             isPermission: this.permissionService.hasPermission('N58'),
-          //             comp: AppComponent,
-          //             router: '/duyetyeucaumuahang',
-          //           },
-          //         ],
-          //       },
-
-          //       {
-          //         kind: 'leaf',
-          //         key: 'saleduyetdenghithanhtoandacbiet',
-          //         title: 'Sale duyệt ĐNTT',
-          //         isOpen: true,
-          //         isPermission: this.permissionService.hasPermission('N83'),
-          //         comp: AppComponent,
-          //         router: '/saleduyetdenghithanhtoandacbiet',
-          //       },
-
-          //       {
-          //         kind: 'leaf',
-          //         key: 'duyetcanhan',
-          //         title: 'Duyệt công',
-          //         isOpen: true,
-          //         isPermission: this.permissionService.hasPermission('N32'),
-          //         comp: AppComponent,
-          //         router: '/duyetcanhan',
-          //       },
-          //     ],
-          //   },
-          //#endregion
-
-          //#region Đăng ký công
-          {
-            kind: 'group',
-            key: 'registerpayroll',
-            title: 'Đăng ký công',
-            isOpen: true,
-            isPermission: this.permissionService.hasPermission(''),
-            children: [
-              {
-                kind: 'leaf',
-                key: 'comca',
-                title: 'Đặt cơm',
-                isOpen: true,
-                isPermission: this.permissionService.hasPermission(''),
-                comp: PersonComponent,
-                router: '/comca',
-              },
-
-              {
-                kind: 'leaf',
-                key: 'danhsachdangkynghi',
-                title: 'Đăng ký nghỉ',
-                isOpen: true,
-                isPermission: this.permissionService.hasPermission(''),
-                comp: PersonComponent,
-                router: '/danhsachdangkynghi',
-              },
-
-              {
-                kind: 'leaf',
-                key: 'dimuonvesom',
-                title: 'Đi muộn - về sớm',
-                isOpen: true,
-                isPermission: this.permissionService.hasPermission(''),
-                comp: PersonComponent,
-                router: '/dimuonvesom',
-              },
-
-              {
-                kind: 'leaf',
-                key: 'lamthem',
-                title: 'Làm thêm',
-                isOpen: true,
-                isPermission: this.permissionService.hasPermission(''),
-                comp: PersonComponent,
-                router: '/lamthem',
-              },
-
-              {
-                kind: 'leaf',
-                key: 'congtac',
-                title: 'Công tác',
-                isOpen: true,
-                isPermission: this.permissionService.hasPermission(''),
-                comp: PersonComponent,
-                router: '/congtac',
-              },
-
-              {
-                kind: 'leaf',
-                key: 'lamdem',
-                title: 'Làm đêm',
-                isOpen: true,
-                isPermission: this.permissionService.hasPermission(''),
-                comp: PersonComponent,
-                router: '/lamdem',
-              },
-
-              {
-                kind: 'leaf',
-                key: 'wfh',
-                title: 'WFH',
-                isOpen: true,
-                isPermission: this.permissionService.hasPermission(''),
-                comp: PersonComponent,
-                router: '/wfh',
-              },
-              {
-                kind: 'leaf',
-                key: 'quenchamcong',
-                title: 'Quên chấm công',
-                isOpen: true,
-                isPermission: this.permissionService.hasPermission(''),
-                comp: PersonComponent,
-                router: '/quenchamcong',
-              },
-              {
-                kind: 'leaf',
-                key: 'tonghopcanhan',
-                title: 'Tổng hợp cá nhân',
-                isOpen: true,
-                isPermission: this.permissionService.hasPermission(''),
-                comp: PersonComponent,
-                router: '/tonghopcanhan',
-              },
-
-              {
-                kind: 'leaf',
-                key: 'congluong',
-                title: 'Tổng hợp công - lương',
-                isOpen: true,
-                isPermission: this.permissionService.hasPermission(''),
-                comp: PersonComponent,
-                router: '/congluong',
-              },
-            ],
-          },
-          //#endregion
-
-          //#region Đăng ký chung
-          {
-            kind: 'group',
-            key: 'registercommon',
-            title: 'Đăng ký chung',
-            isOpen: true,
-            isPermission: this.permissionService.hasPermission(''),
-            children: [
-              {
-                kind: 'leaf',
-                key: 'phonghop',
-                title: 'Phòng họp',
-                isOpen: true,
-                isPermission: this.permissionService.hasPermission(''),
-                comp: PersonComponent,
-                router: '/phonghop',
-              },
-
-              {
-                kind: 'leaf',
-                key: 'dangkydongdau',
-                title: 'Đăng ký đóng dấu',
-                isOpen: true,
-                isPermission: this.permissionService.hasPermission(''),
-                comp: PersonComponent,
-                router: '/dangkydongdau',
-              },
-
-              {
-                kind: 'leaf',
-                key: 'datxe',
-                title: 'Đặt xe',
-                isOpen: true,
-                isPermission: this.permissionService.hasPermission(''),
-                comp: PersonComponent,
-                router: '/datxe',
-              },
-
-              {
-                kind: 'leaf',
-                key: 'denghithanhtoan',
-                title: 'Đề nghị thanh toán',
-                isOpen: true,
-                isPermission: this.permissionService.hasPermission(''),
-                comp: PersonComponent,
-                router: '/denghithanhtoan',
-              },
-
-              {
-                kind: 'leaf',
-                key: 'denghithanhtoandacbiet',
-                title: 'Đề nghị thanh toán đặc biệt',
-                isOpen: true,
-                isPermission: this.permissionService.hasPermission(''),
-                comp: PersonComponent,
-                router: '/denghithanhtoandacbiet',
-              },
-
-              {
-                kind: 'leaf',
-                key: 'yeucaucongviec',
-                title: 'Yêu cầu công việc',
+                key: 'person',
+                title: 'CÁ NHÂN',
                 isOpen: true,
                 isPermission: this.permissionService.hasPermission(''),
                 icon: 'assets/icon/menu_person.svg',
                 children: [
                     {
                         kind: 'group',
-                        key: 'Tonghopdangkynghi',
+                        key: 'Tonghopcong',
                         title: 'Tổng hợp công',
                         isOpen: true,
                         isPermission: this.permissionService.hasPermission(''),
                         children: [
                             {
                                 kind: 'leaf',
-                                key: 'Tonghopdangkynghi',
+                                key: 'PersonDayOffComponent',
                                 title: 'Tổng hợp đăng ký nghỉ',
                                 isOpen: true,
                                 isPermission: this.permissionService.hasPermission(''),
@@ -2986,7 +2536,7 @@ export class MenuService {
                             },
                             {
                                 kind: 'leaf',
-                                key: 'Tonghopdimuonvesom',
+                                key: 'EarlyLateSummaryComponent',
                                 title: 'Tổng hợp đi muộn về sớm',
                                 isOpen: true,
                                 isPermission: this.permissionService.hasPermission(''),
@@ -2994,7 +2544,7 @@ export class MenuService {
                             },
                             {
                                 kind: 'leaf',
-                                key: 'Tonghopwfh',
+                                key: 'WFHSummaryComponent',
                                 title: 'Tổng hợp WFH',
                                 isOpen: true,
                                 isPermission: this.permissionService.hasPermission(''),
@@ -3002,7 +2552,7 @@ export class MenuService {
                             },
                             {
                                 kind: 'leaf',
-                                key: 'Tonghopquenvantay',
+                                key: 'EmployeeNoFingerSummaryComponent',
                                 title: 'Tổng hợp quên vân tay',
                                 isOpen: true,
                                 isPermission: this.permissionService.hasPermission(''),
@@ -3010,7 +2560,7 @@ export class MenuService {
                             },
                             {
                                 kind: 'leaf',
-                                key: 'Tonghopcongtac',
+                                key: 'EmployeeBussinessPersonSummaryComponent',
                                 title: 'Tổng hợp công tác',
                                 isOpen: true,
                                 isPermission: this.permissionService.hasPermission(''),
@@ -3018,7 +2568,7 @@ export class MenuService {
                             },
                             {
                                 kind: 'leaf',
-                                key: 'Tonghoplamdem',
+                                key: 'EmployeeNightShiftPersonSummaryComponent',
                                 title: 'Tổng hợp làm đêm',
                                 isOpen: true,
                                 isPermission: this.permissionService.hasPermission(''),

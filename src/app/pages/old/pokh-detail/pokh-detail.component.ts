@@ -113,7 +113,8 @@ export class PokhDetailComponent implements OnInit, AfterViewInit {
   @Input() isEditMode: boolean = false;
   @Input() selectedId: number = 0;
   @Input() warehouseId: number = 0;
-  
+  @Input() isCopy: boolean = false;
+
   sizeSearch: string = '0';
   toggleSearchPanel() {
     this.sizeSearch = this.sizeSearch == '0' ? '22%' : '0';
@@ -155,6 +156,7 @@ export class PokhDetailComponent implements OnInit, AfterViewInit {
   dataCurrency: any[] = [];
   dataCustomers: any[] = [];
   dataUsers: any[] = [];
+  userGroups: { label: string; options: any[] }[] = [];
   dataProjects: any[] = [];
   dataPOTypes: any[] = [];
   dataParts: any[] = [];
@@ -213,9 +215,10 @@ export class PokhDetailComponent implements OnInit, AfterViewInit {
   isModalOpen: boolean = false;
   lockEvents: boolean = false;
   isResponsibleUsersEnabled: boolean = false;
-  isCopy: boolean = false;
+  // isCopy: boolean = false;
   isSubmitted: boolean = false;
   isSaving: boolean = false;
+  isLoadingData: boolean = false;
 
   //#endregion
   //#region : Hàm khởi tạo
@@ -238,9 +241,13 @@ export class PokhDetailComponent implements OnInit, AfterViewInit {
   }
 
   ngAfterViewInit(): void {
-    if (this.isEditMode) {
-      this.loadPOKHData(this.selectedId);
-    } else {
+    if (this.isEditMode && this.selectedId > 0 && !this.isLoadingData) {
+      // Kiểm tra xem data đã được load chưa bằng cách kiểm tra poFormData
+      if (!this.poFormData.poCode) {
+        // Nếu chưa có data, load lại (trường hợp loadCustomers chưa xong)
+        this.loadPOKHData(this.selectedId);
+      }
+    } else if (!this.isEditMode) {
       // Chế độ thêm mới
       this.resetForm(); // Reset form và dữ liệu
       this.dataPOKHProduct = [];
@@ -268,6 +275,15 @@ export class PokhDetailComponent implements OnInit, AfterViewInit {
       (response) => {
         if (response.status === 1) {
           this.dataCustomers = response.data;
+          if (this.selectedCustomer && this.selectedCustomer.ID && !this.selectedCustomer.CustomerShortName) {
+            const fullCustomer = this.dataCustomers.find(
+              (c) => c.ID === this.selectedCustomer.ID
+            );
+            if (fullCustomer) {
+              this.selectedCustomer = fullCustomer;
+            }
+          }
+          
           if (callback) callback();
         } else {
           this.notification.error('Lỗi khi tải khách hàng:', response.message);
@@ -285,7 +301,25 @@ export class PokhDetailComponent implements OnInit, AfterViewInit {
       (response) => {
         if (response.status === 1) {
           // this.users = response.data[0] || [];
-          this.dataUsers = response.data[2] || [];
+          this.dataUsers = response.data.result || [];
+          console.log('dataUsers: ', this.dataUsers);
+          // Group users by TeamTypeText
+          const grouped = this.dataUsers.reduce((acc: Record<string, any[]>, user) => {
+            const key = user.TeamTypeText || 'Không xác định';
+            (acc[key] = acc[key] || []).push(user);
+            return acc;
+          }, {});
+          this.userGroups = Object.entries(grouped)
+            .sort(([a], [b]) => {
+              // "Team mới" lên trước "Team cũ"
+              if (a === 'Team mới' && b === 'Team cũ') return -1;
+              if (a === 'Team cũ' && b === 'Team mới') return 1;
+              return a.localeCompare(b);
+            })
+            .map(([label, options]) => ({
+              label,
+              options: options.sort((a, b) => (a.FullName || '').localeCompare(b.FullName || '')),
+            }));
           this.createLabelsFromData();
         } else {
           this.notification.error(
@@ -344,9 +378,12 @@ export class PokhDetailComponent implements OnInit, AfterViewInit {
     this.customerPartService.getPart(id).subscribe({
       next: (response: any) => {
         if (response.status === 1) {
-          this.dataParts = response.data[0];
+          // Lọc bỏ các phần tử có PartName rỗng
+          this.dataParts = (response.data[0] || []).filter((part: any) =>
+            part.PartName && part.PartName.trim() !== ''
+          );
         } else {
-          this.dataParts = []; // Xóa mảng parts khi có lỗi
+          this.dataParts = [];
           this.notification.error(
             'Thông báo',
             'Lỗi khi tải phòng ban: ' + response.message
@@ -453,6 +490,18 @@ export class PokhDetailComponent implements OnInit, AfterViewInit {
     });
   }
   loadPOKHData(id: number): void {
+    if (!id || id <= 0) {
+      console.warn('loadPOKHData: Invalid id', id);
+      return;
+    }
+    
+    if (this.isLoadingData) {
+      console.warn('loadPOKHData: Already loading data');
+      return;
+    }
+    
+    this.isLoadingData = true;
+    
     this.POKHService.getPOKHByID(id).subscribe(
       (response) => {
         if (response.status === 1) {
@@ -493,21 +542,34 @@ export class PokhDetailComponent implements OnInit, AfterViewInit {
           this.selectedCustomer = this.dataCustomers.find(
             (c) => c.ID === pokhData.CustomerID
           );
+          
+          if (!this.selectedCustomer && pokhData.CustomerID) {
+            this.selectedCustomer = {
+              ID: pokhData.CustomerID,
+              CustomerName: pokhData.CustomerName || '',
+              CustomerShortName: '',
+            };
+          }
+          
           this.isResponsibleUsersEnabled = pokhData.UserType === 1;
 
           // Tính toán chiết khấu lần đầu khi load dữ liệu: chỉ tính từ moneyDiscount, không tính từ %
           this.calculateTotalFromMoneyDiscount();
 
           // Nếu đang ở chế độ copy thì reset ID và data file
+
           if (this.isCopy) {
-            this.selectedId = 0;
-            let item = this.dataCustomers.find(
+            this.dataPOKHDetailFile = [];
+            this.dataPOKHFiles = [];
+            
+            let item = this.selectedCustomer || this.dataCustomers.find(
               (c) => c.ID === pokhData.CustomerID
             );
-            this.generatePOCode(item.CustomerShortName);
-            // Reset data file khi copy
-            this.dataPOKHDetailFile = [];
-            this.dataPOKHFiles = []; // Không dùng
+            if (item && item.CustomerShortName) {
+              this.generatePOCode(item.CustomerShortName);
+            } else if (this.poFormData.customerName) {
+              this.generatePOCode(this.poFormData.customerName);
+            }
           }
 
           // Lấy dữ liệu bộ phận bằng khách hàng
@@ -591,6 +653,10 @@ export class PokhDetailComponent implements OnInit, AfterViewInit {
               }
               this.dataPOKHDetailUser = userDetailsData;
 
+              if (this.isCopy) {
+                this.selectedId = 0;
+              }
+
               this.initProductDetailTreeList();
               this.tb_ProductDetailTreeList.setData(this.dataPOKHProduct);
 
@@ -609,6 +675,8 @@ export class PokhDetailComponent implements OnInit, AfterViewInit {
 
               // Tính lại chiết khấu sau khi load xong tất cả dữ liệu: chỉ tính từ moneyDiscount, không tính từ %
               this.calculateTotalFromMoneyDiscount();
+              
+              this.isLoadingData = false;
             },
             (forkJoinError) => {
               this.notification.error(
@@ -618,6 +686,8 @@ export class PokhDetailComponent implements OnInit, AfterViewInit {
               this.tb_ProductDetailTreeList?.setData([]);
               this.tb_POKHDetailFile?.setData([]);
               if (this.tb_DetailUser) this.tb_DetailUser.setData([]);
+              
+              this.isLoadingData = false;
             }
           );
         } else {
@@ -625,6 +695,7 @@ export class PokhDetailComponent implements OnInit, AfterViewInit {
             'Thông báo',
             'Lỗi khi tải dữ liệu POKH chính: ' + response.message
           );
+          this.isLoadingData = false;
         }
       },
       (error) => {
@@ -632,6 +703,7 @@ export class PokhDetailComponent implements OnInit, AfterViewInit {
           'Thông báo',
           'Lỗi kết nối khi tải dữ liệu POKH chính: ' + error
         );
+        this.isLoadingData = false;
       }
     );
   }
@@ -1157,6 +1229,13 @@ export class PokhDetailComponent implements OnInit, AfterViewInit {
   }
   getPOKHData() {
     const poDate = new Date(this.poFormData.poDate || new Date());
+    
+    if (!this.selectedCustomer && this.poFormData.customerId > 0) {
+      this.selectedCustomer = this.dataCustomers.find(
+        (c) => c.ID === this.poFormData.customerId
+      );
+    }
+    
     return {
       ID: this.selectedId || 0,
       Status: this.poFormData.status || 0,
@@ -1167,7 +1246,7 @@ export class PokhDetailComponent implements OnInit, AfterViewInit {
       TotalMoneyKoVAT: this.calculateTotalMoneyKoVAT(),
       Note: this.poFormData.note || '',
       IsApproved: this.poFormData.isApproved || false,
-      CustomerID: this.selectedCustomer.ID || 0,
+      CustomerID: this.selectedCustomer?.ID || this.poFormData.customerId || 0,
       PartID: this.poFormData.departmentId || 0,
       ProjectID: this.poFormData.projectId || 0,
       CustomerName: this.poFormData.customerName || '',
@@ -1477,7 +1556,7 @@ export class PokhDetailComponent implements OnInit, AfterViewInit {
     if (moneyDiscount > 0) {
       // Tính tổng tiền sau chiết khấu từ moneyDiscount
       const result = totalPO - moneyDiscount;
-      this.poFormData.totalMoneyDiscount = isNaN(result) ? 0 : Math.max(0, result);
+      this.poFormData.totalMoneyDiscount = isNaN(result) ? 0 : result;
     } else {
       // Nếu không có moneyDiscount, tính từ % chiết khấu
       const discount = isNaN(Number(this.poFormData.discount))
@@ -1490,7 +1569,7 @@ export class PokhDetailComponent implements OnInit, AfterViewInit {
 
       // Tính tổng tiền sau chiết khấu
       const result = totalPO - calculatedMoneyDiscount;
-      this.poFormData.totalMoneyDiscount = isNaN(result) ? 0 : Math.max(0, result);
+      this.poFormData.totalMoneyDiscount = isNaN(result) ? 0 : result;
     }
   }
 
@@ -1510,7 +1589,7 @@ export class PokhDetailComponent implements OnInit, AfterViewInit {
 
     // Tính tổng tiền sau chiết khấu
     const result = totalPO - calculatedMoneyDiscount;
-    this.poFormData.totalMoneyDiscount = isNaN(result) ? 0 : Math.max(0, result);
+    this.poFormData.totalMoneyDiscount = isNaN(result) ? 0 : result;
   }
 
   // Tính từ tổng tiền chiết khấu: chỉ cập nhật totalMoneyDiscount, bỏ qua %
@@ -1525,7 +1604,7 @@ export class PokhDetailComponent implements OnInit, AfterViewInit {
 
     // Tính tổng tiền sau chiết khấu từ moneyDiscount (bỏ qua %)
     const result = totalPO - moneyDiscount;
-    this.poFormData.totalMoneyDiscount = isNaN(result) ? 0 : Math.max(0, result);
+    this.poFormData.totalMoneyDiscount = isNaN(result) ? 0 : result;
   }
 
   onDiscountChange(): void {
@@ -1582,12 +1661,20 @@ export class PokhDetailComponent implements OnInit, AfterViewInit {
       });
     }
 
+    // Kiểm tra khách hàng
+    if (!this.selectedCustomer || !this.selectedCustomer.ID || this.selectedCustomer.ID === 0) {
+      this.notification.error('Thông báo', 'Vui lòng chọn khách hàng.');
+      return false;
+    }
+
     // Kiểm tra các trường nz-select (vì required directive có thể không hoạt động đúng với nz-select)
     if (!this.poFormData.poType || this.poFormData.poType === 0) {
+      this.notification.error('Thông báo', 'Vui lòng chọn loại PO.');
       return false;
     }
 
     if (!this.poFormData.projectId || this.poFormData.projectId === 0) {
+      this.notification.error('Thông báo', 'Vui lòng chọn dự án.');
       return false;
     }
 
@@ -1597,6 +1684,7 @@ export class PokhDetailComponent implements OnInit, AfterViewInit {
       (typeof this.poFormData.poCode === 'string' &&
         this.poFormData.poCode.trim() === '')
     ) {
+      this.notification.error('Thông báo', 'Vui lòng nhập mã PO.');
       return false;
     }
 
@@ -1605,11 +1693,34 @@ export class PokhDetailComponent implements OnInit, AfterViewInit {
       (typeof this.poFormData.poNumber === 'string' &&
         this.poFormData.poNumber.trim() === '')
     ) {
+      this.notification.error('Thông báo', 'Vui lòng nhập số POKH.');
       return false;
     }
 
     // Kiểm tra validation của form
     if (this.pokhForm && this.pokhForm.invalid) {
+      // Kiểm tra từng control để hiển thị notification cụ thể
+      const controls = this.pokhForm.controls;
+      if (controls['poCode'] && controls['poCode'].invalid) {
+        this.notification.error('Thông báo', 'Vui lòng nhập mã PO.');
+        return false;
+      }
+      if (controls['poNumber'] && controls['poNumber'].invalid) {
+        this.notification.error('Thông báo', 'Vui lòng nhập số POKH.');
+        return false;
+      }
+      if (controls['customerId'] && controls['customerId'].invalid) {
+        this.notification.error('Thông báo', 'Vui lòng chọn khách hàng.');
+        return false;
+      }
+      if (controls['projectId'] && controls['projectId'].invalid) {
+        this.notification.error('Thông báo', 'Vui lòng chọn dự án.');
+        return false;
+      }
+      if (controls['poType'] && controls['poType'].invalid) {
+        this.notification.error('Thông báo', 'Vui lòng chọn loại PO.');
+        return false;
+      }
       return false;
     }
 
@@ -1694,7 +1805,8 @@ export class PokhDetailComponent implements OnInit, AfterViewInit {
     this.dataPOKHProduct.push(newRow);
 
     if (this.tb_ProductDetailTreeList) {
-      this.tb_ProductDetailTreeList.addRow(newRow);
+      // this.tb_ProductDetailTreeList.addRow(newRow);
+      this.tb_ProductDetailTreeList.replaceData(this.dataPOKHProduct);
     }
   }
   addChildRow(): void {
@@ -1867,6 +1979,7 @@ export class PokhDetailComponent implements OnInit, AfterViewInit {
     this.isCopy = false;
     this.selectedId = 0;
     this.isSubmitted = false;
+    this.isLoadingData = false;
     this.resetForm();
     if (this.tb_ProductDetailTreeList) {
       this.tb_ProductDetailTreeList.destroy();
@@ -2344,6 +2457,9 @@ export class PokhDetailComponent implements OnInit, AfterViewInit {
 
     this.tb_ProductDetailTreeList.on('cellEdited', (cell: CellComponent) => {
       if (cell.getColumn().getField() === 'ProductNewCode') {
+
+        this.selectedRow = cell.getRow(); //update trigger chọn dòng khi bấm vào cell mã nội bộ
+        
         const selectedProduct = this.dataProducts.find(
           (p) => p.ProductNewCode === cell.getValue()
         );
@@ -2642,7 +2758,7 @@ export class PokhDetailComponent implements OnInit, AfterViewInit {
 
           // Chuyển đổi dữ liệu thành cấu trúc tree
           const treeData = this.convertToTreeData(result.processedData);
-          
+
           console.log('=== DATA SAU KHI CONVERT TO TREE ===');
           console.log('Số lượng node:', treeData.length);
           console.log('Chi tiết tree data:', treeData);

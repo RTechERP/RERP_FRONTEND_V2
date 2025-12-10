@@ -21,4 +21,18 @@ export class EmployeeSaleManagerService {
       },
     });
   }
+  getGroupStt(): Observable<any> {
+    return this.http.get(this._url + 'load-group-stt');
+  }
+  saveEmployeeTeamSale(data: any): Observable<any> {
+    return this.http.post(this._url + 'save-employee-team-sale', data);
+  }
+
+  getEmployeeDetail(): Observable<any> {
+    return this.http.get(this._url + 'get-employee-detail');
+  }
+  
+  saveEmployeeDetail(payload: any): Observable<any> {
+    return this.http.post(this._url + 'save-employee-detail', payload);
+  }
 }

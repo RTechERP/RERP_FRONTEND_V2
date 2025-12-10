@@ -128,7 +128,7 @@ export class PokhComponent implements OnInit, AfterViewInit {
     private notification: NzNotificationService,
     private viewPOKHService: ViewPokhService,
     @Optional() @Inject('tabData') private tabData: any
-  ) {}
+  ) { }
 
   //#region : Khai báo
   //Khai báo các bảng
@@ -256,7 +256,7 @@ export class PokhComponent implements OnInit, AfterViewInit {
       const endDate = this.filters.endDate || new Date();
 
       return {
-        filterText: this.filters.filterText || '',
+        filterText: (this.filters.filterText || '').trim(),
         customerId: this.filters.customerId || 0,
         userId: this.filters.userId || 0,
         POType: this.filters.status || 0,
@@ -692,9 +692,8 @@ export class PokhComponent implements OnInit, AfterViewInit {
     const url = window.URL.createObjectURL(blob);
     const link = document.createElement('a');
     link.href = url;
-    link.download = `PO_${this.selectedId}_${
-      new Date().toISOString().split('T')[0]
-    }.xlsx`;
+    link.download = `PO_${this.selectedId}_${new Date().toISOString().split('T')[0]
+      }.xlsx`;
     link.click();
     window.URL.revokeObjectURL(url);
   }
@@ -825,9 +824,8 @@ export class PokhComponent implements OnInit, AfterViewInit {
     const url = window.URL.createObjectURL(blob);
     const link = document.createElement('a');
     link.href = url;
-    link.download = `POKH_List_Page_${currentPage}_${
-      new Date().toISOString().split('T')[0]
-    }.xlsx`;
+    link.download = `POKH_List_Page_${currentPage}_${new Date().toISOString().split('T')[0]
+      }.xlsx`;
     link.click();
     window.URL.revokeObjectURL(url);
   }
@@ -846,7 +844,7 @@ export class PokhComponent implements OnInit, AfterViewInit {
             : row.IndexPO,
         RecivedMoneyDate:
           !row.RecivedMoneyDate ||
-          Object.keys(row.RecivedMoneyDate).length === 0
+            Object.keys(row.RecivedMoneyDate).length === 0
             ? null
             : row.RecivedMoneyDate,
         BillDate:
@@ -855,12 +853,12 @@ export class PokhComponent implements OnInit, AfterViewInit {
             : row.BillDate,
         ActualDeliveryDate:
           !row.ActualDeliveryDate ||
-          Object.keys(row.ActualDeliveryDate).length === 0
+            Object.keys(row.ActualDeliveryDate).length === 0
             ? null
             : row.ActualDeliveryDate,
         DeliveryRequestedDate:
           !row.DeliveryRequestedDate ||
-          Object.keys(row.DeliveryRequestedDate).length === 0
+            Object.keys(row.DeliveryRequestedDate).length === 0
             ? null
             : row.DeliveryRequestedDate,
         PayDate:
@@ -896,7 +894,7 @@ export class PokhComponent implements OnInit, AfterViewInit {
         TT: !row.TT || Object.keys(row.TT).length === 0 ? '' : row.TT,
         ProjectPartListID:
           !row.ProjectPartListID ||
-          Object.keys(row.ProjectPartListID).length === 0
+            Object.keys(row.ProjectPartListID).length === 0
             ? 0
             : row.ProjectPartListID,
         Spec: !row.Spec || Object.keys(row.Spec).length === 0 ? '' : row.Spec,
@@ -1308,7 +1306,7 @@ export class PokhComponent implements OnInit, AfterViewInit {
       windowClass: 'full-screen-modal',
       backdrop: 'static',
     });
-    this.modalRef.componentInstance.warehouseId = this.filters.warehouseId; 
+    this.modalRef.componentInstance.warehouseId = this.filters.warehouseId;
   }
 
   openWarehouseReleaseRequestModal() {
@@ -1319,7 +1317,7 @@ export class PokhComponent implements OnInit, AfterViewInit {
     });
     this.modalRef.componentInstance.warehouseId = this.filters.warehouseId;
   }
-  
+
   openPORequestBuyModal() {
     if (!this.selectedId) {
       this.notification.warning(
@@ -1362,6 +1360,7 @@ export class PokhComponent implements OnInit, AfterViewInit {
     this.modalRef.componentInstance.isEditMode = this.isEditMode;
     this.modalRef.componentInstance.selectedId = this.selectedId;
     this.modalRef.componentInstance.warehouseId = this.filters.warehouseId;
+    this.modalRef.componentInstance.isCopy = this.isCopy;
 
     this.modalRef.result.then(
       (result: any) => {
@@ -1370,9 +1369,11 @@ export class PokhComponent implements OnInit, AfterViewInit {
           this.loadPOKH();
           this.tb_POKH.setData(null, true);
         }
+        this.isCopy = false;
       },
       (reason: any) => {
         console.log('Modal dismissed:', reason);
+        this.isCopy = false;
       }
     );
   }
@@ -1382,7 +1383,7 @@ export class PokhComponent implements OnInit, AfterViewInit {
   drawPOKHTable(): void {
     const token = localStorage.getItem('token');
     this.tb_POKH = new Tabulator(this.tb_POKHElement.nativeElement, {
-      layout: 'fitDataFill',
+      layout: 'fitColumns',
       height: '100%',
       selectableRows: 1,
       pagination: true,
@@ -1956,7 +1957,7 @@ export class PokhComponent implements OnInit, AfterViewInit {
     this.tb_POKHFile = new Tabulator(this.tb_POKHFileElement.nativeElement, {
       data: this.dataPOKHFiles,
       layout: 'fitDataFill',
-      height: '100%',
+      height: '10vh',
       movableColumns: true,
       resizableRows: true,
       rowContextMenu: this.getContextFileMenu(),

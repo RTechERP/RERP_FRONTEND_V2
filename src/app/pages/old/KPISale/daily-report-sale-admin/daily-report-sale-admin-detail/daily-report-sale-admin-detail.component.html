@@ -1,0 +1,20 @@
+<div class="modal-header bg-primary text-uppercase py-2">
+    <h6 class="modal-title text-white">CHI TIẾT DAILY REPORT SALE ADMIN</h6>
+    <button type="button" class="btn-close" (click)="closeModal()" aria-label="Close"></button>
+</div>
+<div class="modal-body p-1 " style="max-height: 80vh; overflow-y: auto;">
+    <div #tb_DataTable id="tb_DataTable"></div>
+</div>
+<div class="modal-footer d-flex justify-content-between">
+    <button nz-button nzType="primary" nzSize="default">
+        Thêm loại báo cáo
+    </button>
+    <div class="d-flex gap-2">
+        <button nz-button nzType="default" nzDanger="true" nzSize="default" (click)="closeModal()">
+            Đóng
+        </button>
+        <button nz-button nzType="primary" nzSize="default" (click)="saveData()" [disabled]="!isSaveEnabled">
+            Lưu
+        </button>
+    </div>
+</div>

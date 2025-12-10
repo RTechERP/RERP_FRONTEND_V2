@@ -111,6 +111,7 @@ export class TbProductRtcImportExcelComponent implements OnInit {
           ProductCode: { title: 'Mã sản phẩm', field: 'ProductCode' },
           ProductName: { title: 'Tên sản phẩm', field: 'ProductName' },
           ProductGroupName: { title: 'Tên nhóm', field: 'ProductGroupName' },
+          ProductGroupNo:{title:'Mã nhóm', field: 'ProductGroupNo' },
           ProductCodeRTC: { title: 'Code RTC', field: 'ProductCodeRTC' },
           LocationCode: { title: 'Mã vị trí', field: 'LocationCode' },
           LocationName: { title: 'Vị trí', field: 'LocationName' },
@@ -376,6 +377,7 @@ export class TbProductRtcImportExcelComponent implements OnInit {
     // Nhóm / Kho / Vị trí
     productgroupname: 'ProductGroupName',
     'ten nhom': 'ProductGroupName',
+    'ma nhom': 'ProductGroupNo',
     'vi tri': 'LocationName',
     kho: 'WarehouseID',
     // Đơn vị / Hãng
@@ -451,7 +453,13 @@ export class TbProductRtcImportExcelComponent implements OnInit {
         const norm = this.normalizeHeader(raw);
         const field = this.headerSynonyms[norm] || norm; // nếu trùng sẵn field chuẩn thì dùng trực tiếp
         if (field) fieldToCol[field] = c;
+        // Debug: log mapping cho Number field
+        if (field === 'Number' || norm.includes('ton') || norm.includes('cuoi')) {
+          console.log(`Header mapping: "${raw}" -> normalized: "${norm}" -> field: "${field}" -> column: ${c}`);
+        }
       }
+      // Debug: log fieldToCol để kiểm tra
+      console.log('fieldToCol mapping:', fieldToCol);
 
       //   const headerRow = worksheet.getRow(1);
       //   const fieldToCol: Record<string, number> = {};
@@ -481,12 +489,56 @@ export class TbProductRtcImportExcelComponent implements OnInit {
         const getValueByField = (field: string) => {
           const col = fieldToCol[field];
           if (!col) return '';
-          const val = row.getCell(col).value;
-          return val?.toString()?.trim() || '';
+          const cell = row.getCell(col);
+          
+          // Kiểm tra text trước - nếu text rỗng hoặc null/undefined thì trả về rỗng
+          // Không lấy formula nếu text rỗng
+          const cellText = cell.text;
+          if (cellText === null || cellText === undefined || cellText.trim() === '') {
+            return '';
+          }
+          
+          // Nếu có text thì trả về text (đây là giá trị hiển thị thực tế trong Excel)
+          return cellText.trim();
         };
         const getNumberByField = (field: string) => {
-          const v = getValueByField(field);
-          const n = parseFloat(v);
+          const col = fieldToCol[field];
+          if (!col) {
+            if (field === 'Number') {
+              console.log(`Warning: Column for field "${field}" not found in header mapping`);
+            }
+            return 0;
+          }
+          const cell = row.getCell(col);
+          // Thử lấy giá trị từ text trước (ExcelJS có thể trả về text đã format)
+          let val = cell.text || cell.value;
+          // Nếu vẫn không có, thử lấy từ value
+          if (val === null || val === undefined || val === '') {
+            val = cell.value;
+          }
+          // Debug cho Number field (chỉ log 5 dòng đầu)
+          if (field === 'Number' && rowNumber <= 5) {
+            console.log(`Row ${rowNumber}, Field "${field}": raw value =`, val, `type =`, typeof val, `cell.text =`, cell.text);
+          }
+          // Xử lý trực tiếp giá trị từ Excel cell
+          if (val === null || val === undefined || val === '') {
+            return 0;
+          }
+          // Nếu đã là số thì trả về trực tiếp
+          if (typeof val === 'number') {
+            return isNaN(val) ? 0 : val;
+          }
+          // Nếu là string thì parse
+          if (typeof val === 'string') {
+            const trimmed = val.trim();
+            if (trimmed === '') return 0;
+            // Loại bỏ các ký tự không phải số (trừ dấu chấm và dấu phẩy)
+            const cleaned = trimmed.replace(/[^\d.,-]/g, '');
+            const n = parseFloat(cleaned.replace(',', '.'));
+            return isNaN(n) ? 0 : n;
+          }
+          // Thử chuyển đổi sang số
+          const n = Number(val);
           return isNaN(n) ? 0 : n;
         };
         const getDateByField = (field: string) => {
@@ -517,6 +569,7 @@ export class TbProductRtcImportExcelComponent implements OnInit {
           ProductCode: getValueByField('ProductCode'),
           ProductName: getValueByField('ProductName'),
           ProductGroupName: getValueByField('ProductGroupName'),
+          ProductGroupNo: getValueByField('ProductGroupNo'),
           ProductCodeRTC: getValueByField('ProductCodeRTC'),
           LocationName: getValueByField('LocationName'),
           FirmName: getValueByField('FirmName'),
@@ -644,6 +697,7 @@ export class TbProductRtcImportExcelComponent implements OnInit {
         ID: 0,
         ProductGroupRTCID: 0, // Backend sẽ tự gán sau khi tìm/tạo ProductGroup
         ProductGroupName: row.ProductGroupName?.trim() || null, // Backend dùng để tìm/tạo ProductGroup
+        ProductGroupNo: row.ProductGroupNo?.trim() || null, // Mã nhóm
         ProductCode: row.ProductCode || '',
         ProductName: row.ProductName || '',
         UnitCountID: this.getUnitIdByName(row.UnitName) || 0,

@@ -4017,7 +4017,7 @@ export class ProjectPartlistPriceRequestNewComponent implements OnInit, OnDestro
           headerHozAlign: 'center',
           frozen: true,
           hozAlign: 'left',
-          width: 150,
+          width: 120,
           headerSort: false,
           formatter: 'textarea',
         },
@@ -4027,7 +4027,7 @@ export class ProjectPartlistPriceRequestNewComponent implements OnInit, OnDestro
           headerHozAlign: 'center',
           frozen: true,
           hozAlign: 'left',
-          width: 150,
+          width: 120,
           bottomCalc: 'count',
           headerSort: false,
           formatter: 'textarea'
@@ -4038,7 +4038,7 @@ export class ProjectPartlistPriceRequestNewComponent implements OnInit, OnDestro
           headerHozAlign: 'center',
           frozen: true,
           hozAlign: 'left',
-          width: 150,
+          width: 120,
           headerSort: false,
           formatter: 'textarea'
         },
@@ -4059,7 +4059,8 @@ export class ProjectPartlistPriceRequestNewComponent implements OnInit, OnDestro
           headerHozAlign: 'center',
           width: 50,
           headerSort: false,
-          bottomCalc: 'sum'
+          bottomCalc: 'sum',
+          frozen: true,
         },
         {
           title: 'ĐVT',
@@ -4068,13 +4069,15 @@ export class ProjectPartlistPriceRequestNewComponent implements OnInit, OnDestro
           width: 50,
           hozAlign: 'left',
           headerSort: false,
+          frozen: true,
         },
         {
           title: 'Trạng thái',
           field: 'StatusRequestText',
           headerHozAlign: 'center',
           hozAlign: 'left',
-          width: 150,
+          width: 120,
+          frozen: true,
           formatter: 'textarea',
         },
         {
@@ -4082,8 +4085,9 @@ export class ProjectPartlistPriceRequestNewComponent implements OnInit, OnDestro
           field: 'FullName',
           headerHozAlign: 'center',
           hozAlign: 'left',
-          width: 150,
+          width: 120,
           headerSort: false,
+          frozen: true,
           formatter: 'textarea'
         },
         {
@@ -4091,18 +4095,22 @@ export class ProjectPartlistPriceRequestNewComponent implements OnInit, OnDestro
           field: 'FullNameSale',
           headerHozAlign: 'center',
           hozAlign: 'left',
-          width: 150,
+          width: 120,
           headerSort: false,
+          frozen: true,
           formatter: 'textarea'
+          
         },
         {
           title: 'NV báo giá',
           field: 'QuoteEmployee',
           hozAlign: 'left',
           headerHozAlign: 'center',
-          width: 150,
+          width: 120,
           headerSort: false,
-          formatter: 'textarea'
+          
+          formatter: 'textarea',
+          frozen: true,
         },
         {
           title: 'Ngày yêu cầu',
@@ -4202,41 +4210,85 @@ export class ProjectPartlistPriceRequestNewComponent implements OnInit, OnDestro
             if (cellElement.classList.contains('popup-open')) {
               this.tabulatorPopupService.close();
               cancel();
-              return;
+              return document.createElement('div'); // Return dummy element
             }
 
-            // Mở popup với TabulatorPopupService
-            this.tabulatorPopupService.open({
-              data: this.dtcurrency || [],
-              columns: this.currencyColumns,
-              searchFields: this.currencySearchFields,
-              searchPlaceholder: 'Tìm kiếm loại tiền...',
-              height: '300px',
-              selectableRows: 1,
-              layout: 'fitColumns',
-              minWidth: '400px',
-              maxWidth: '500px',
-              onRowSelected: (selectedCurrency: any) => {
-                // Cập nhật giá trị cell
-                success(selectedCurrency.ID);
+            // Tạo dummy input để Tabulator không tự động đóng editor
+            const dummyInput = document.createElement('input');
+            dummyInput.type = 'text';
+            dummyInput.style.position = 'absolute';
+            dummyInput.style.opacity = '0';
+            dummyInput.style.pointerEvents = 'none';
+            dummyInput.style.width = '1px';
+            dummyInput.style.height = '1px';
+            dummyInput.readOnly = true;
 
-                // Trigger cellEdited để cập nhật tỷ giá
-                setTimeout(() => {
-                  const newCell = cell.getTable().getRows().find((row: any) => {
-                    return row.getData().ID === cell.getRow().getData().ID;
-                  })?.getCell('CurrencyID');
-                  if (newCell) {
-                    this.OnCurrencyChanged(newCell);
-                  }
-                }, 100);
+            // Ngăn chặn các sự kiện click để tránh xung đột
+            const stopPropagation = (e: Event) => {
+              e.stopPropagation();
+              e.preventDefault();
+            };
+            
+            // Thêm event listeners để ngăn chặn click events
+            dummyInput.addEventListener('click', stopPropagation, true);
+            dummyInput.addEventListener('mousedown', stopPropagation, true);
+            dummyInput.addEventListener('mouseup', stopPropagation, true);
 
-                // Đóng popup
-                this.tabulatorPopupService.close();
-              },
-              onClosed: () => {
-                // Optional: xử lý khi popup đóng
+            // Mở popup với delay nhỏ để tránh xung đột với click event
+            setTimeout(() => {
+              // Kiểm tra lại xem cell vẫn còn tồn tại
+              if (!cellElement || !cellElement.isConnected) {
+                cancel();
+                return;
               }
-            }, cellElement);
+
+              // Mở popup với TabulatorPopupService
+              this.tabulatorPopupService.open({
+                data: this.dtcurrency || [],
+                columns: this.currencyColumns,
+                searchFields: this.currencySearchFields,
+                searchPlaceholder: 'Tìm kiếm loại tiền...',
+                height: '300px',
+                selectableRows: 1,
+                layout: 'fitColumns',
+                minWidth: '400px',
+                maxWidth: '500px',
+                onRowSelected: (selectedCurrency: any) => {
+                  // Cập nhật giá trị cell
+                  success(selectedCurrency.ID);
+
+                  // Trigger cellEdited để cập nhật tỷ giá
+                  setTimeout(() => {
+                    const newCell = cell.getTable().getRows().find((row: any) => {
+                      return row.getData().ID === cell.getRow().getData().ID;
+                    })?.getCell('CurrencyID');
+                    if (newCell) {
+                      this.OnCurrencyChanged(newCell);
+                    }
+                  }, 100);
+
+                  // Đóng popup
+                  this.tabulatorPopupService.close();
+                },
+                onClosed: () => {
+                  // Xóa class popup-open khi đóng
+                  if (cellElement) {
+                    cellElement.classList.remove('popup-open');
+                  }
+                  // Gọi cancel để đóng editor
+                  cancel();
+                }
+              }, cellElement);
+            }, 10); // Delay nhỏ để tránh xung đột với click event
+
+            // Focus vào dummy input
+            onRendered(() => {
+              setTimeout(() => {
+                dummyInput.focus();
+              }, 50);
+            });
+
+            return dummyInput;
           },
           formatter: (cell: any) => {
             const val = cell.getValue();

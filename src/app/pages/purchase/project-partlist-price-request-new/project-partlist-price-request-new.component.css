@@ -35,3 +35,42 @@
 {
   height: 83vh!important;
 }
+
+/* Font-size 12px cho filter bar */
+::ng-deep .filter-bar {
+  nz-form-label {
+    font-size: 12px !important;
+  }
+  
+  nz-select {
+    font-size: 12px !important;
+    
+    .ant-select-selector {
+      font-size: 12px !important;
+    }
+    
+    .ant-select-selection-item {
+      font-size: 12px !important;
+    }
+    
+    .ant-select-selection-placeholder {
+      font-size: 12px !important;
+    }
+  }
+  
+  nz-date-picker {
+    font-size: 12px !important;
+    
+    .ant-picker {
+      font-size: 12px !important;
+    }
+    
+    .ant-picker-input input {
+      font-size: 12px !important;
+    }
+  }
+  
+  input[nz-input] {
+    font-size: 12px !important;
+  }
+}

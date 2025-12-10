@@ -1057,6 +1057,84 @@ export class BillExportTechnicalFormComponent implements OnInit, AfterViewInit {
       }
     );
   }
+
+  // INTEGRATION: Mở modal lịch sử mượn
+  async openBorrowHistory() {
+    // Dynamic import để tránh circular dependency
+    const { BorrowProductHistoryComponent } = await import(
+      '../../inventory-demo/borrow/borrow-product-history/borrow-product-history.component'
+    );
+
+    const modalRef = this.ngbModal.open(BorrowProductHistoryComponent, {
+      size: 'xl',
+      backdrop: 'static',
+      keyboard: false,
+      centered: false,
+      scrollable: true,
+      modalDialogClass: 'modal-fullscreen',
+    });
+
+    // Set isModalMode = true để hiển thị nút Xuất
+    modalRef.componentInstance.isModalMode = true;
+
+    // FIX: Chỉ dùng modalRef.result, không dùng productsExported.subscribe
+    // để tránh xử lý data 2 lần (gây ra duplicate rows)
+    modalRef.result.then(
+      (products: any[]) => {
+        if (products && products.length > 0) {
+          this.handleExportedProducts(products);
+        }
+      },
+      () => {
+        // Modal dismissed
+      }
+    );
+  }
+
+  // INTEGRATION: Xử lý dữ liệu sản phẩm được xuất từ lịch sử mượn
+  private handleExportedProducts(products: any[]) {
+    if (!products || products.length === 0) return;
+
+    // Map dữ liệu từ history sang format của bill export
+    const mappedProducts = products.map((product, idx) => {
+      // Tìm sản phẩm từ productOptions để lấy thông tin đầy đủ
+      const productInfo = this.productOptions.find(
+        (p) => p.ProductCode === product.ProductCode || p.ProductCodeRTC === product.ProductCodeRTC
+      );
+
+      return {
+        ID: 0,
+        STT: this.selectedDevices.length + idx + 1,
+        ProductID: productInfo?.ID || product.ProductRTCID || 0,
+        ProductCode: product.ProductCode || productInfo?.ProductCode || '',
+        ProductName: product.ProductName || productInfo?.ProductName || '',
+        ProductCodeRTC: product.ProductCodeRTC || productInfo?.ProductCodeRTC || '',
+        UnitName: product.UnitCountName || productInfo?.UnitCountName || '',
+        UnitCountName: product.UnitCountName || productInfo?.UnitCountName || '',
+        UnitCountID: product.UnitCountID || productInfo?.UnitCountID || 0,
+        Quantity: product.NumberBorrow || 1,
+        TotalQuantity: product.NumberBorrow || 1,
+        Maker: product.Maker || productInfo?.Maker || '',
+        WarehouseType: this.warehouseType,
+        Note: product.Note || '',
+        InternalCode: product.InternalCode || '',
+        HistoryProductRTCID: product.ID || 0,
+        ProductRTCQRCodeID: product.ProductRTCQRCodeID || productInfo?.ProductRTCQRCodeID || 0,
+        PONCCDetailID: 0,
+        BillImportDetailTechnicalID: 0,
+        ProjectID: product.ProjectID || 0,
+        ProjectName: product.Project || '',
+      };
+    });
+
+    // Thêm vào selectedDevices
+    this.selectedDevices = [...this.selectedDevices, ...mappedProducts];
+
+    // Refresh table
+    if (this.deviceTempTable) {
+      this.deviceTempTable.setData(this.selectedDevices);
+    }
+  }
   // Thêm dòng trống vào bảng
   addRow() {
     if (this.deviceTempTable) {

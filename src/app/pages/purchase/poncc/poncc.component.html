@@ -132,35 +132,49 @@
                                 </ul>
 
                             </nz-dropdown-menu>
+                            <nz-modal [(nzVisible)]="showPreview" nzTitle="IN PO" nzWidth="100vw"
+                                [nzFooter]="modalFooter" [nzStyle]="{ top: '10px' }"
+                                [nzBodyStyle]="{padding: '0px 24px' }" (nzOnCancel)="showPreview = false">
+                                <ng-container *nzModalContent>
 
-                            <nz-modal [(nzVisible)]="showPreview" nzTitle="Xem trước đơn đặt hàng (PO)" nzWidth="90vw"
-                                [nzBodyStyle]="{ height: '80vh', padding: '0' }" (nzOnCancel)="showPreview = false"
-                                nzFooter="null">
+                                    <nz-tabset>
+                                        @for (t of tabs; track t.title; let i = $index) {
+                                        <nz-tab [nzTitle]="t.title">
+                                            <button class="my-1" nz-button nzType="primary" nzSize="small"
+                                                (click)="downloadPDF(i)">
+                                                Tải xuống
+                                            </button>
 
-                                <!-- TOP TOOLBAR CONTROL -->
-                                <div class="toolbar">
-                                    <button nz-button nzType="default" nzSize="small" (click)="toggleMerge()">
-                                        <span *ngIf="!isMerge">Gộp PO</span>
-                                        <span *ngIf="isMerge">Hủy gộp</span>
-                                    </button>
+                                            <nz-switch class="mx-1" [(ngModel)]="t.isMerge"
+                                                (ngModelChange)="toggleMerge(t)" nzCheckedChildren="Gộp"
+                                                nzUnCheckedChildren="Không gộp">
+                                            </nz-switch>
 
-                                    <button nz-button nzType="default" nzSize="small" [(ngModel)]="isShowSign"
-                                        (click)="toggleSign()">
-                                        <span *ngIf="!isShowSign">Hiện chữ ký</span>
-                                        <span *ngIf="isShowSign">Ẩn chữ ký</span>
-                                    </button>
+                                            <nz-switch class="mx-1" [(ngModel)]="t.isShowSign"
+                                                (ngModelChange)="toggleSign(t)" nzCheckedChildren="Hiện chữ ký"
+                                                nzUnCheckedChildren="Ẩn chữ ký">
+                                            </nz-switch>
 
-                                    <button nz-button nzType="default" nzSize="small" [(ngModel)]="isShowSeal"
-                                        (click)="toggleSeal()">
-                                        <span *ngIf="!isShowSeal">Hiện con dấu</span>
-                                        <span *ngIf="isShowSeal">Ẩn con dấu</span>
-                                    </button>
-                                </div>
+                                            <nz-switch class="mx-1" [(ngModel)]="t.isShowSeal"
+                                                (ngModelChange)="toggleSeal(t)" nzCheckedChildren="Hiện con dấu"
+                                                nzUnCheckedChildren="Ẩn con dấu">
+                                            </nz-switch>
 
-                                <!-- PDF IFRAME -->
-                                <iframe id="pdfFrame" width="100%" height="100%" style="border: none;"></iframe>
+                                            <div style="height: 80vh;">
+                                                <iframe width="100%" height="100%" style="border: none;"
+                                                    [src]="t.url | safeUrl">
+                                                </iframe>
+                                            </div>
+                                        </nz-tab>
+                                        }
+                                    </nz-tabset>
+                                </ng-container>
 
+                                <ng-template #modalFooter>
+
+                                </ng-template>
                             </nz-modal>
+
                         </div>
 
                         <button class="fs-12" nz-button nzType="default" nzSize="small" (click)="onCopyPO()"

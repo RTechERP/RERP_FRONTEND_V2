@@ -51,6 +51,8 @@ import { DateTime } from 'luxon';
 import { environment } from '../../../../environments/environment';
 import { style } from '@angular/animations';
 import { content } from 'html2canvas/dist/types/css/property-descriptors/content';
+import { NzSwitchModule } from 'ng-zorro-antd/switch';
+import { SafeUrlPipe } from '../../../../safeUrl.pipe';
 
 (pdfMake as any).vfs = vfs;
 (pdfMake as any).fonts = {
@@ -101,10 +103,15 @@ import { content } from 'html2canvas/dist/types/css/property-descriptors/content
         NzModalModule,
         HasPermissionDirective,
         NzDropDownModule,
+        NzSwitchModule,
+        SafeUrlPipe
     ],
     templateUrl: './poncc.component.html',
     styleUrls: ['./poncc.component.css'],
 })
+
+
+
 export class PONCCComponent implements OnInit, AfterViewInit {
     @ViewChild('table_poThuongMai', { static: false })
     tablePoThuongMaiRef!: ElementRef;
@@ -145,12 +152,18 @@ export class PONCCComponent implements OnInit, AfterViewInit {
 
     poCode: string = 'hihi';
 
+    // docDefinition: any;
+
+
+
     showPreview = false;
-    isShowSign = false;
-    isShowSeal = false;
+    isShowSign = true;
+    isShowSeal = true;
     isMerge = false;
     language: string = 'vi';
     dataPrint: any;
+    tabs: PoTab[] = [];
+
 
     // Lưu trạng thái bảng để khôi phục sau khi reload
     private savedScrollPosition: number = 0;
@@ -1794,26 +1807,91 @@ export class PONCCComponent implements OnInit, AfterViewInit {
     //     // pdfMake.createPdf(docDefinition).download(billCode);
     // }
 
+    // setPdfToTab(i: number, blob: Blob) {
+    //     const url = URL.createObjectURL(blob);
+    //     this.tabs[i].url = url;
+    // }
+
     onPrintPO(language: string) {
+
+        this.tabs = [];
+        console.log('onPrintPO:', this.tabs);
+
+
+        //loại PO Thương mại
         let selectedRows = this.tablePoThuongMai.getSelectedRows();
-        console.log('selectedRows:', selectedRows);
-        if (selectedRows.length === 0) return;
+        // console.log('selectedRows:', selectedRows);
 
-        let dataRow = selectedRows[0].getData();
-        let id = dataRow['ID'];
+        if (selectedRows.length > 0) {
+            for (let i = 0; i < selectedRows.length; i++) {
+                let dataRow = selectedRows[i].getData();
+                //   console.log('dataRow:', dataRow);
+                let id = dataRow['ID'];
+                let billCode = dataRow['BillCode'];
+                this.tabs.push({
+                    title: billCode,
+                    url: '',
+                    docDefinition: null,
+                    isMerge: false,
+                    isShowSign: true,
+                    isShowSeal: true,
+                    id: id
+                });
+                this.srv.printPO(id, this.tabs[i].isMerge).subscribe({
+                    next: (response) => {
+                        // console.log(response)
+                        this.dataPrint = response.data;
 
-        this.srv.printPO(id, this.isMerge).subscribe({
-            next: (response) => {
-                console.log(response)
-                this.dataPrint = response.data;
+                        // Mở modal
+                        this.showPreview = true;
+                        this.language = language;
 
-                // Mở modal
-                this.showPreview = true;
-
-                // Render PDF ngay lần đầu
-                this.renderPDF(language);
+                        // Render PDF ngay lần đầu
+                        this.renderPDF(language, i);
+                    },
+                    error: (err) => {
+                        this.notification.error(NOTIFICATION_TITLE.error, err.error.message);
+                    },
+                });
             }
-        });
+        }
+
+        //loại PO Mượn
+        let selectedRowBorrows = this.tablePoMuon.getSelectedRows();
+        if (selectedRowBorrows.length > 0) {
+            // console.log('selectedRowBorrows:', selectedRowBorrows);
+            for (let i = 0; i < selectedRowBorrows.length; i++) {
+                let dataRow = selectedRowBorrows[i].getData();
+                //   console.log('dataRow:', dataRow);
+                let id = dataRow['ID'];
+                let billCode = dataRow['BillCode'];
+                this.tabs.push({
+                    title: billCode,
+                    url: '',
+                    docDefinition: null,
+                    isMerge: false,
+                    isShowSign: true,
+                    isShowSeal: true,
+                    id: id
+                });
+                this.srv.printPO(id, this.tabs[i].isMerge).subscribe({
+                    next: (response) => {
+                        // console.log(response)
+                        this.dataPrint = response.data;
+
+                        // Mở modal
+                        this.showPreview = true;
+                        this.language = language;
+
+                        // Render PDF ngay lần đầu
+                        this.renderPDF(language, i);
+                    },
+                    error: (err) => {
+                        this.notification.error(NOTIFICATION_TITLE.error, err.error.message);
+                    },
+                });
+            }
+        }
     }
 
     onCreatePDFLanguageVi(data: any, isShowSign: boolean, isShowSeal: boolean) {
@@ -1848,23 +1926,31 @@ export class PONCCComponent implements OnInit, AfterViewInit {
             items.push(item);
         }
 
+        let cellDisplaySign = { text: '', style: '', margin: [0, 60, 0, 60] };
+
         let cellPicPrepared: any = po.PicPrepared == '' ?
-            { text: '', style: '' }
+            cellDisplaySign
             : {
                 image: 'data:image/png;base64,' + po.PicPrepared,
                 width: 150,
                 margin: [0, 0, 40, 0],
             };
-        if (!isShowSign) cellPicPrepared = { text: '', style: '' };
+        if (!isShowSign) cellPicPrepared = cellDisplaySign;
         let cellPicDirector: any = po.PicDirector == '' ?
-            { text: '', style: '' }
+            cellDisplaySign
             :
             {
                 image: 'data:image/png;base64,' + po.PicDirector, width: 170,
                 margin: [20, 0, 0, 0],
             };
-        if (!isShowSeal) cellPicPrepared = { text: '', style: '' };
+        if (!isShowSeal) cellPicDirector = cellDisplaySign;
+        // console.log('isShowSeal:', this.isShowSeal);
+        // console.log('cellPicPrepared:', cellPicDirector);
+
         let docDefinition = {
+            info: {
+                title: po.BillCode,
+            },
             content: [
                 `${taxCompany.BuyerVietnamese}
                 ${taxCompany.AddressBuyerVienamese}
@@ -2071,27 +2157,28 @@ export class PONCCComponent implements OnInit, AfterViewInit {
             items.push(item);
         }
 
+        let cellDisplaySign = { text: '', style: '', margin: [0, 60, 0, 60] };
         let cellPicPrepared: any = po.PicPrepared == '' ?
-            { text: '', style: '' }
+            cellDisplaySign
             : {
                 image: 'data:image/png;base64,' + po.PicPrepared,
                 width: 150,
                 margin: [0, 0, 40, 0],
             };
-        if (!isShowSign) cellPicPrepared = { text: '', style: '' };
+        if (!isShowSign) cellPicPrepared = cellDisplaySign;
 
         let cellPicDirector: any = po.PicDirector == '' ?
-            { text: '', style: '' }
+            cellDisplaySign
             :
             {
                 image: 'data:image/png;base64,' + po.PicDirector, width: 170,
                 margin: [20, 0, 0, 0],
             };
-        if (!isShowSeal) cellPicDirector = { text: '', style: '' };
+        if (!isShowSeal) cellPicDirector = cellDisplaySign;
         //
         let docDefinition = {
             info: {
-                title: 'Awesome PDF document from pdfmake',
+                title: po.BillCode,
             },
             content: [
                 {
@@ -2366,41 +2453,90 @@ export class PONCCComponent implements OnInit, AfterViewInit {
     }
 
     formatNumber(num: number, digits: number = 2) {
+        num = num || 0;
         return num.toLocaleString('vi-VN', {
             minimumFractionDigits: digits,
             maximumFractionDigits: digits,
         });
     }
 
-    toggleMerge() {
-        this.isMerge = !this.isMerge;
-        this.onPrintPO(this.language); // gọi lại API vì merge ảnh hưởng tới dữ liệu
-    }
+    toggleMerge(tab: any) {
+        this.srv.printPO(tab.id, tab.isMerge).subscribe({
+            next: (response) => {
+                this.dataPrint = response.data;
 
-    toggleSign() {
-        this.isShowSign = !this.isShowSign;
-        this.onPrintPO(this.language);
-    }
-
-    toggleSeal() {
-        this.isShowSeal = !this.isShowSeal;
-        this.onPrintPO(this.language);
-    }
-
-
-    renderPDF(language: string) {
-        console.log('language', language);
-        console.log('dataPrint', this.dataPrint);
-        if (!this.dataPrint) return;
-
-        let docDefinition =
-            language === 'vi'
-                ? this.onCreatePDFLanguageVi(this.dataPrint, this.isShowSign, this.isShowSeal)
-                : this.onCreatePDFLanguageEn(this.dataPrint, this.isShowSign, this.isShowSeal);
-
-        pdfMake.createPdf(docDefinition).getBlob((blob: any) => {
-            const url = URL.createObjectURL(blob);
-            (document.getElementById('pdfFrame') as HTMLIFrameElement).src = url;
+                let index = this.tabs.indexOf(tab);
+                this.renderPDF(this.language, index);
+            }
         });
     }
+
+    toggleSign(tab: any) {
+        this.srv.printPO(tab.id, tab.isShowSign).subscribe({
+            next: (response) => {
+                this.dataPrint = response.data;
+
+                let index = this.tabs.indexOf(tab);
+                this.renderPDF(this.language, index);
+            }
+        });
+    }
+
+    toggleSeal(tab: any) {
+        this.srv.printPO(tab.id, tab.isShowSign).subscribe({
+            next: (response) => {
+                this.dataPrint = response.data;
+
+                let index = this.tabs.indexOf(tab);
+                this.renderPDF(this.language, index);
+            }
+        });
+    }
+
+
+    renderPDF(language: string, index: number) {
+        if (!this.dataPrint) return;
+
+        let tab = this.tabs[index];
+
+        let docDefinition: any = language === 'vi'
+            ? this.onCreatePDFLanguageVi(this.dataPrint, tab.isShowSign, tab.isShowSeal)
+            : this.onCreatePDFLanguageEn(this.dataPrint, tab.isShowSign, tab.isShowSeal);
+
+        tab.docDefinition = docDefinition;
+
+        pdfMake.createPdf(docDefinition).getBlob((blob: any) => {
+            tab.url = URL.createObjectURL(blob);
+        });
+    }
+
+
+    downloadPDF(index: number) {
+        let tab = this.tabs[index];
+
+        if (!tab.docDefinition) {
+            console.error("Chưa có PDF cho tab này");
+            return;
+        }
+
+        let defaultTitle = this.language === 'vi'
+            ? 'PONCCReportVietnamese'
+            : 'PONCCReportEnglish';
+
+        let title = tab.docDefinition?.info?.title || defaultTitle;
+
+        pdfMake.createPdf(tab.docDefinition).download(title + '.pdf');
+    }
+}
+
+
+
+interface PoTab {
+    title: string;
+    url: string;
+    docDefinition: any;   // <- quan trọng
+    isMerge: false;
+    isShowSign: true;
+    isShowSeal: true;
+    id: 0;
 }

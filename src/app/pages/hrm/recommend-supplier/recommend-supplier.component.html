@@ -1,0 +1,200 @@
+<ng-container class="w-100">
+  <nz-splitter>
+    <nz-splitter-panel [nzSize]="sizeSearch" [nzCollapsible]="true">
+      <div class="card h-100 border-0 rounded-0">
+        <div class="card-header bg-white p-1">
+          <div class="d-flex justify-content-between align-items-center">
+            <h6 class="m-0 ms-2">Tìm kiếm</h6>
+            <button
+              class="border-0 me-2"
+              nz-button
+              nzSize="small"
+              nzType="default"
+              nzDanger
+              (click)="toggleSearchPanel()"
+            >
+              <nz-icon nzType="close" nzTheme="outline" />
+            </button>
+          </div>
+        </div>
+        <div class="card-body">
+          <form nz-form nzLayout="vertical">
+            <nz-form-item class="mb-2">
+              <nz-form-label class="fs-12" [nzSpan]="24">Từ ngày</nz-form-label>
+              <nz-form-control [nzSpan]="24">
+                <nz-date-picker
+                  [nzFormat]="dateFormat"
+                  class="w-100"
+                  nzSize="small"
+                  [(ngModel)]="searchParams.DateStart"
+                  name="dateStart"
+                >
+                </nz-date-picker>
+              </nz-form-control>
+            </nz-form-item>
+            <nz-form-item class="mb-2">
+              <nz-form-label class="fs-12" [nzSpan]="24"
+                >Đến ngày</nz-form-label
+              >
+              <nz-form-control [nzSpan]="24">
+                <nz-date-picker
+                  [nzFormat]="dateFormat"
+                  class="w-100"
+                  nzSize="small"
+                  [(ngModel)]="searchParams.DateEnd"
+                  name="dateEnd"
+                ></nz-date-picker>
+              </nz-form-control>
+            </nz-form-item>
+            <nz-form-item class="mt-2">
+              <nz-form-label class="fs-12" [nzSpan]="24"
+                >Phòng ban</nz-form-label
+              >
+              <nz-form-control [nzSpan]="24">
+                <nz-select
+                  [(ngModel)]="searchParams.DepartmentID"
+                  [nzPlaceHolder]="'Chọn phòng ban'"
+                  style="width: 100%"
+                  name="departmentID"
+                  nzShowSearch
+                  [nzFilterOption]="filterOption"
+                  nzAllowClear
+                >
+                  <nz-option
+                    *ngFor="let item of dataDepartment"
+                    [nzLabel]="item.Name"
+                    [nzValue]="item.ID"
+                  ></nz-option>
+                </nz-select>
+              </nz-form-control>
+            </nz-form-item>
+
+            <nz-form-item class="mt-2">
+              <nz-form-label class="fs-12" [nzSpan]="24"
+                >Nhân viên</nz-form-label
+              >
+              <nz-form-control [nzSpan]="24">
+                <nz-select
+                  [(ngModel)]="searchParams.EmployeeID"
+                  nzPlaceHolder="Chọn nhân viên"
+                  nzShowSearch
+                  name="employeeID"
+                  [nzFilterOption]="filterOption"
+                  nzAllowClear
+                >
+                  <nz-option
+                    *ngFor="let emp of cbbEmployee"
+                    [nzLabel]="emp.Code + ' - ' + emp.FullName"
+                    [nzValue]="emp.ID"
+                  >
+                  </nz-option>
+                </nz-select>
+              </nz-form-control>
+            </nz-form-item>
+            <nz-form-item class="mt-2">
+              <nz-form-label class="fs-12" [nzSpan]="24">Từ khóa</nz-form-label>
+              <nz-form-control [nzSpan]="24">
+                <input
+                  class="w-100"
+                  nz-input
+                  placeholder="Nhập từ khóa"
+                  [(ngModel)]="searchParams.Request"
+                  name="keyword"
+                  nzSize="small"
+                />
+              </nz-form-control>
+            </nz-form-item>
+          </form>
+        </div>
+        <div class="card-footer bg-white p-1 d-flex gap-1 justify-content-end">
+          <button
+            nz-button
+            nzType="primary"
+            nzSize="small"
+            (click)="searchData()"
+          >
+            Tìm kiếm
+          </button>
+        </div>
+      </div>
+    </nz-splitter-panel>
+    <nz-splitter-panel>
+      <nz-splitter nzLayout="horizontal">
+        <nz-splitter-panel>
+          <div class="card border-0 rounded-0 h-100">
+            <div class="card-header bg-white p-1">
+              <div class="d-flex gap-1">
+                <button
+                  nz-button
+                  nzType="default"
+                  nzSize="small"
+                  (click)="toggleSearchPanel()"
+                >
+                  <nz-icon nzType="search" />
+                </button>
+                <button
+                  class="btn-add"
+                  nz-button
+                  nzType="default"
+                  nzSize="small"
+                  (click)="onAddJobrequirement(false)"
+                  [disabled]="!canAddOrEdit()"
+                  *hasPermission="'N34, N1, N2'"
+                >
+                  <img src="assets/icon/action_add_item_16.png" /> Thêm đề xuất
+                </button>
+                <button
+                  class="btn-edit"
+                  nz-button
+                  nzType="default"
+                  nzSize="small"
+                  (click)="onAddJobrequirement(true)"
+                  [disabled]="!canAddOrEdit() || JobrequirementID === 0"
+                  *hasPermission="'N34, N1, N2'"
+                >
+                  <img src="assets/icon/action_edit_item_16.png" />Sửa đề xuất
+                </button>
+                <button
+                  class="ant-btn fs-12 ant-btn-default ant-btn-sm ng-star-inserted"
+                  nz-button
+                  nzType="default"
+                  nzSize="small"
+                  (click)="onOpenDepartmentRequired()"
+                  *hasPermission="'N34, N1, N2'"
+                >
+                  <img src="assets/icon/btn_veiw_package_16.png" /> Xem chi tiết đề xuất
+                </button>
+              </div>
+            </div>
+            <nz-splitter>
+              <nz-splitter-panel>
+                <nz-splitter>
+                  <nz-splitter-panel>
+                    <nz-splitter nzLayout="vertical">
+                      <nz-splitter-panel>
+                        <div #JobrequirementTable></div>
+                      </nz-splitter-panel>
+                      <nz-splitter-panel>
+                        <div #JobrequirementDetailTable></div>
+                      </nz-splitter-panel>
+                    </nz-splitter>
+                  </nz-splitter-panel>
+                  <nz-splitter-panel>
+                    <nz-splitter nzLayout="vertical">
+                      <nz-splitter-panel>
+                        <div #JobrequirementFileTable></div>
+                      </nz-splitter-panel>
+                      <nz-splitter-panel>
+                        <div #JobrequirementApprovedTable></div>
+                      </nz-splitter-panel>
+                    </nz-splitter>
+                  </nz-splitter-panel>
+                </nz-splitter>
+              </nz-splitter-panel>
+            </nz-splitter>
+          </div>
+        </nz-splitter-panel>
+      </nz-splitter>
+    </nz-splitter-panel>
+  </nz-splitter>
+</ng-container>

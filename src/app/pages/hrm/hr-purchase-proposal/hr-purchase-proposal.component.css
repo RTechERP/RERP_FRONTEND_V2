@@ -1,0 +1,177 @@
+
+/* HCNS Table Wrapper */
+.hcns-table-wrapper {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  min-height: 0;
+}
+
+/* HCNS Table Container - Giống Tabulator */
+.hcns-table-container {
+  width: 100%;
+  flex: 1;
+  overflow: auto;
+  position: relative;
+  min-height: 0;
+  -webkit-overflow-scrolling: touch;
+}
+
+.hcns-table {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+  border: 1px solid #d9d9d9;
+  font-size: 0.75rem;
+  background: #fff;
+  margin: 0;
+  table-layout: auto;
+  min-width: max-content;
+}
+
+/* Header - Giống Tabulator header */
+.hcns-table thead {
+  background-color: #fafafa;
+  border-bottom: 2px solid #d9d9d9;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  display: table-header-group;
+}
+
+.hcns-table thead th {
+  background-color: #3066c5;
+  border-right: 1px solid #d9d9d9;
+  font-weight: 600;
+  color: #fff;
+  padding: 8px 10px;
+  text-align: left;
+  vertical-align: middle;
+  position: sticky;
+  top: 0;
+  z-index: 101;
+  box-shadow: 0 2px 2px -1px rgba(0, 0, 0, 0.1);
+  white-space: nowrap;
+}
+
+.hcns-table thead th:first-child {
+  border-left: none;
+}
+
+.hcns-table thead th:last-child {
+  border-right: none;
+}
+
+/* Rows - Giống Tabulator rows */
+.hcns-table tbody tr {
+  border-bottom: 1px solid #d9d9d9;
+}
+
+
+/* Phân tách rõ hơn - border đậm hơn cho tất cả rows */
+.hcns-table tbody tr {
+  border-top: 1px solid #d9d9d9;
+}
+
+.hcns-table tbody tr:first-child {
+  border-top: 2px solid #bfbfbf;
+}
+
+/* Cells - Giống Tabulator cells */
+.hcns-table td {
+  padding: 8px 10px;
+  vertical-align: middle;
+  background: #fff;
+  border-right: 1px solid #d9d9d9;
+  border-top: 1px solid #d9d9d9;
+  position: relative;
+  white-space: nowrap;
+}
+
+.hcns-table td:first-child {
+  border-left: none;
+}
+
+.hcns-table td:last-child {
+  border-right: none;
+}
+
+/* Text align right cho số */
+.hcns-table .text-end {
+  text-align: right;
+}
+
+/* Scrollbar styling */
+.hcns-table-container::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+.hcns-table-container::-webkit-scrollbar-track {
+  background: #f1f1f1;
+  border-radius: 4px;
+}
+
+.hcns-table-container::-webkit-scrollbar-thumb {
+  background: #c1c1c1;
+  border-radius: 4px;
+}
+
+.hcns-table-container::-webkit-scrollbar-thumb:hover {
+  background: #a8a8a8;
+}
+
+/* Smooth scrolling */
+.hcns-table-container {
+  scroll-behavior: smooth;
+  -webkit-overflow-scrolling: touch;
+}
+
+/* Responsive */
+@media (max-width: 1024px) {
+  .hcns-table {
+    font-size: 0.7rem;
+  }
+  
+  .hcns-table th {
+    padding: 6px 8px;
+  }
+  
+  .hcns-table td {
+    padding: 6px 8px;
+  }
+}
+
+/* Tablet và Mobile */
+@media (max-width: 768px) {
+  .hcns-table-container {
+    overflow-x: auto;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .hcns-table {
+    min-width: 1200px;
+    font-size: 0.65rem;
+  }
+
+  .hcns-table thead th {
+    padding: 4px 6px;
+    font-size: 0.65rem;
+    white-space: nowrap;
+  }
+
+  .hcns-table td {
+    padding: 4px 6px;
+  }
+}
+
+/* Highlight đơn giản khi click vào dòng */
+.hcns-table tbody tr.selected-row {
+  background-color: #e6f7ff !important;
+}
+
+.hcns-table tbody tr.selected-row td {
+  background-color: transparent !important;
+}
+

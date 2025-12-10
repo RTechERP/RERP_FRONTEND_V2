@@ -228,9 +228,7 @@ export class EmployeeBussinessPersonSummaryComponent implements OnInit, AfterVie
       data: [], // Khởi tạo với dữ liệu rỗng, sẽ được load sau
       columnCalcs: 'both',
       groupBy: 'DepartmentName',
-      groupHeader: function (value, count, data, group) {
-        return value + "<span style='color:#d00; margin-left:10px;'>(" + count + " nhân viên)</span>";
-      },
+ 
       columns: [
         {
           title: 'Duyệt', field: 'IsApproved', hozAlign: 'center', headerHozAlign: 'center', width: 80, minWidth: 80, headerWordWrap: true, headerSort: false, frozen: true,
@@ -378,6 +376,7 @@ export class EmployeeBussinessPersonSummaryComponent implements OnInit, AfterVie
       ...DEFAULT_TABLE_CONFIG,
       layout: 'fitDataStretch',
       height: '90vh',
+      paginationMode: 'local',
       rowHeader: false,
       data: this.summaryData,
       columns: [

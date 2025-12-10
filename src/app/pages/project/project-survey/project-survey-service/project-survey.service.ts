@@ -112,6 +112,10 @@ export class ProjectSurveyService {
     }
     return this.http.post<any>(this.apiUrl + `home/upload-multiple`, formData);
   }
+    // Mở thư mục khảo sát dự án
+    openSurveyFolder(projectId: number): Observable<any> {
+      return this.http.get<any>(this.apiProjectSurvey + `open-survey/${projectId}`);
+    }
 
   // Download file
   downloadFile(filePath: string): Observable<Blob> {

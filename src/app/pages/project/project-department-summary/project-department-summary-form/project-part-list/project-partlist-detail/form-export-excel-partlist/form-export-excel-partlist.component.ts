@@ -333,11 +333,17 @@ export class FormExportExcelPartlistComponent implements OnInit, AfterViewInit {
                                       headerHozAlign: 'left',
                                     },
                                     {
+                                      title: 'Mã đặc biệt',
+                                      field: 'SpecialCode',
+                                      width: 150,
+                                      headerHozAlign: 'left',
+                                    },
+                                    {
                                       title: 'Hãng SX',
                                       field: 'Manufacturer',
                                       width: 150,
                                       headerHozAlign: 'left',
-                                    }
+                                    },
                                   ]
                                 }
                               ]
@@ -348,6 +354,7 @@ export class FormExportExcelPartlistComponent implements OnInit, AfterViewInit {
                     }
                   ]
                 },
+                
                 {
                   title: '',
                   field: '',

@@ -133,6 +133,7 @@ import { WFHSummaryComponent } from '../../../hrm/employee-management/employee-w
 import { EmployeeNoFingerSummaryComponent } from '../../../hrm/employee-management/employee-no-fingerprint/employee-no-finger-summary/employee-no-finger-summary.component';
 import { EmployeeNightShiftPersonSummaryComponent } from '../../../hrm/employee-management/employee-night-shift/employee-night-shift-person-summary/employee-night-shift-person-summary.component';
 import { EmployeeBussinessPersonSummaryComponent } from '../../../hrm/employee-management/employee-bussiness/employee-bussiness-person-summary/employee-bussiness-person-summary.component';
+import { EmployeeRegisterBussinessComponent } from '../../../hrm/employee-management/employee-bussiness/employee-register-bussiness/employee-register-bussiness.component';
 @Injectable({
     providedIn: 'root',
 })
@@ -2765,12 +2766,12 @@ export class MenuService {
 
                             {
                                 kind: 'leaf',
-                                key: 'congtac',
+                                key: 'EmployeeRegisterBussinessComponent',
                                 title: 'Công tác',
                                 isOpen: true,
                                 isPermission: this.permissionService.hasPermission(''),
-                                comp: PersonComponent,
-                                router: '/congtac',
+                                comp: EmployeeRegisterBussinessComponent,
+                               
                             },
 
                             {

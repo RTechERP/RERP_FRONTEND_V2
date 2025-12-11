@@ -11,7 +11,7 @@ export class FirmService {
 
   constructor(private http: HttpClient) { }
 
-  getFirms(): Observable<any> {
+  getFirms(firmType: number = 0): Observable<any> {
     return this.http.get<any>(this.apiUrl);
   }
 
@@ -34,5 +34,10 @@ deleteFirm(ids: number[]): Observable<any> {
       params = params.set('id', id.toString());
     }
     return this.http.get<any>(`${this.apiUrl}/check-code`, { params });
+  }
+
+  getFirmCode(firmType: number = 2): Observable<any> {
+    let params = new HttpParams().set('firmType', firmType.toString());
+    return this.http.get<any>(`${this.apiUrl}/get-firm-code`, { params });
   }
 }

@@ -46,6 +46,7 @@ export class FirmFormComponent implements OnInit {
   dataInput: any = {};
   firmForm!: FormGroup;
   @Input() warehouseType: number = 1;
+  isFirmCodeReadonly: boolean = false;
   firmTypes = [
     { value: 0, label: 'Chọn loại' },
     { value: 1, label: 'Sale' },
@@ -63,13 +64,40 @@ export class FirmFormComponent implements OnInit {
   ngOnInit() {
     this.initForm();
 
-    if (this.dataInput && this.dataInput.ID) {
-      // Editing existing firm
-      this.patchFormValues();
-    } else {
-      // Thêm mới: nếu warehouseType === 2 thì tự động set FirmType = 3
+    const isNewRecord = !this.dataInput || !this.dataInput.ID;
+    
+    if (isNewRecord) {
+      // Thêm mới: nếu warehouseType === 2 thì tự động set FirmType = 3 và sinh mã
       if (this.warehouseType === 2) {
         this.firmForm.patchValue({ firmType: 3 });
+        this.generateAndSetFirmCode(3);
+      } else {
+        // Đăng ký lắng nghe thay đổi FirmType để sinh mã khi user chọn
+        this.firmForm.get('firmType')?.valueChanges.subscribe((firmType) => {
+          if (firmType && firmType > 1) {
+            // Thêm mới: sinh mã khi FirmType > 1
+            this.generateAndSetFirmCode(firmType);
+          }
+        });
+      }
+    } else {
+      // Editing existing firm
+      this.patchFormValues();
+      // Nếu FirmType > 1 thì sinh mã và readonly
+      const firmType = this.dataInput.FirmType || this.firmForm.get('firmType')?.value;
+      if (firmType && firmType > 1) {
+        this.generateAndSetFirmCode(firmType);
+      } else {
+        // Đăng ký lắng nghe thay đổi FirmType khi đang sửa
+        this.firmForm.get('firmType')?.valueChanges.subscribe((firmType) => {
+          if (firmType && firmType > 1) {
+            this.generateAndSetFirmCode(firmType);
+          } else {
+            // Nếu FirmType <= 1 thì cho phép chỉnh sửa mã
+            this.isFirmCodeReadonly = false;
+            this.firmForm.get('firmCode')?.enable();
+          }
+        });
       }
     }
   }
@@ -121,6 +149,37 @@ export class FirmFormComponent implements OnInit {
       firmCode: this.dataInput.FirmCode || '',
       firmName: this.dataInput.FirmName || '',
       firmType: this.dataInput.FirmType || null,
+    });
+
+    // Đăng ký lắng nghe thay đổi FirmType khi đang sửa
+    this.firmForm.get('firmType')?.valueChanges.subscribe((firmType) => {
+      if (firmType && firmType > 1) {
+        this.generateAndSetFirmCode(firmType);
+      } else {
+        // Nếu FirmType <= 1 thì cho phép chỉnh sửa mã
+        this.isFirmCodeReadonly = false;
+        this.firmForm.get('firmCode')?.enable();
+      }
+    });
+  }
+
+  generateAndSetFirmCode(firmType: number) {
+    this.firmService.getFirmCode(firmType).subscribe({
+      next: (res: any) => {
+        const firmCode = res?.data || res?.firmcode || res?.firmCode || res;
+        if (firmCode) {
+          this.firmForm.patchValue({ firmCode: firmCode }, { emitEvent: false });
+          this.isFirmCodeReadonly = true;
+          this.firmForm.get('firmCode')?.disable();
+        }
+      },
+      error: (err: any) => {
+        console.error('Lỗi sinh mã hãng:', err);
+        this.notification.error(
+          NOTIFICATION_TITLE.error,
+          'Đã xảy ra lỗi khi sinh mã hãng!'
+        );
+      },
     });
   }
 
@@ -241,15 +300,21 @@ export class FirmFormComponent implements OnInit {
   // }
 
   saveFirmData(formValues: any) {
-    // Lấy giá trị firmType từ form (nếu bị disable thì dùng getRawValue để lấy giá trị)
+    // Lấy giá trị firmType từ form (nếu bị disable thì dùng value để lấy giá trị)
     const firmTypeControl = this.firmForm.get('firmType');
     const firmTypeValue = firmTypeControl?.disabled 
       ? firmTypeControl.value 
       : formValues.firmType;
     
+    // Lấy giá trị firmCode từ form (nếu bị disable thì dùng getRawValue để lấy giá trị)
+    const firmCodeControl = this.firmForm.get('firmCode');
+    const firmCodeValue = firmCodeControl?.disabled
+      ? firmCodeControl.value
+      : formValues.firmCode.trim();
+    
     const firmData = {
       ID: formValues.id,
-      FirmCode: formValues.firmCode.trim(),
+      FirmCode: firmCodeValue.trim(),
       FirmName: formValues.firmName.trim().toUpperCase(),
       FirmType: firmTypeValue,
       IsDeleted: false,

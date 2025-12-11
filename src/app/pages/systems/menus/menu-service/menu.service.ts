@@ -133,6 +133,7 @@ import { WFHSummaryComponent } from '../../../hrm/employee-management/employee-w
 import { EmployeeNoFingerSummaryComponent } from '../../../hrm/employee-management/employee-no-fingerprint/employee-no-finger-summary/employee-no-finger-summary.component';
 import { EmployeeNightShiftPersonSummaryComponent } from '../../../hrm/employee-management/employee-night-shift/employee-night-shift-person-summary/employee-night-shift-person-summary.component';
 import { EmployeeBussinessPersonSummaryComponent } from '../../../hrm/employee-management/employee-bussiness/employee-bussiness-person-summary/employee-bussiness-person-summary.component';
+import { ProjectPartlistPriceRequestNewComponent } from '../../../purchase/project-partlist-price-request-new/project-partlist-price-request-new.component';
 import { DailyReportSaleAdminComponent } from '../../../old/KPISale/daily-report-sale-admin/daily-report-sale-admin.component';
 import { EmployeeRegisterBussinessComponent } from '../../../hrm/employee-management/employee-bussiness/employee-register-bussiness/employee-register-bussiness.component';
 @Injectable({
@@ -2059,25 +2060,25 @@ export class MenuService {
                         //   icon: 'assets/icon/layers.png',
                     },
 
-                    {
-                        kind: 'leaf',
-                        key: 'SupplierSaleComponent',
-                        title: 'Nhà cung cấp',
-                        isOpen: true,
-                        isPermission:
-                            this.permissionService.hasPermission('N27,N33,N35,N1,N36'),
-                        comp: SupplierSaleComponent,
-                        //   icon: 'assets/icon/layers.png',
-                    },
-                    {
-                        kind: 'leaf',
-                        key: 'ProjectPartlistPriceRequestNewComponent',
-                        title: 'Yêu cầu báo giá',
-                        isOpen: true,
-                        isPermission:
-                            this.permissionService.hasPermission('N33,N35,N1,N36'),
-                        comp: ProjectPartlistPriceRequestComponent,
-                        // comp: ProjectPartlistPriceRequestNewComponent,
+          {
+            kind: 'leaf',
+            key: 'SupplierSaleComponent',
+            title: 'Nhà cung cấp',
+            isOpen: true,
+            isPermission:
+              this.permissionService.hasPermission('N27,N33,N35,N1,N36'),
+            comp: SupplierSaleComponent,
+            //   icon: 'assets/icon/layers.png',
+          },
+          {
+            kind: 'leaf',
+            key: 'ProjectPartlistPriceRequestNewComponent',
+            title: 'Yêu cầu báo giá',
+            isOpen: true,
+            isPermission:
+              this.permissionService.hasPermission('N33,N35,N1,N36'),
+            comp: ProjectPartlistPriceRequestNewComponent,
+            // comp: ProjectPartlistPriceRequestNewComponent,
 
                         //   icon: 'assets/icon/layers.png',
                     },

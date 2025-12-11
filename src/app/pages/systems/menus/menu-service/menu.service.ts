@@ -134,6 +134,8 @@ import { EmployeeNoFingerSummaryComponent } from '../../../hrm/employee-manageme
 import { EmployeeNightShiftPersonSummaryComponent } from '../../../hrm/employee-management/employee-night-shift/employee-night-shift-person-summary/employee-night-shift-person-summary.component';
 import { EmployeeBussinessPersonSummaryComponent } from '../../../hrm/employee-management/employee-bussiness/employee-bussiness-person-summary/employee-bussiness-person-summary.component';
 import { ProjectPartlistPriceRequestNewComponent } from '../../../purchase/project-partlist-price-request-new/project-partlist-price-request-new.component';
+import { DailyReportSaleAdminComponent } from '../../../old/KPISale/daily-report-sale-admin/daily-report-sale-admin.component';
+import { EmployeeRegisterBussinessComponent } from '../../../hrm/employee-management/employee-bussiness/employee-register-bussiness/employee-register-bussiness.component';
 @Injectable({
     providedIn: 'root',
 })
@@ -2366,7 +2368,7 @@ export class MenuService {
                             },
                             {
                                 kind: 'group',
-                                key: 'ProjectComponent',
+                                key: 'VisionBaseComponent',
                                 title: 'VISION BASE',
                                 isOpen: true,
                                 isPermission: this.permissionService.hasPermission(''),
@@ -2419,21 +2421,31 @@ export class MenuService {
                                         isPermission: this.permissionService.hasPermission(""),
                                         comp: BonusCoefficientComponent,
                                     },
-                                    // {
-                                    //   kind: 'leaf',
-                                    //   key: 'EmployeeSaleManagerComponent',
-                                    //   title: 'Nhân viên Sale',
-                                    //   isOpen: true,
-                                    //   isPermission: this.permissionService.hasPermission("''"),
-                                    //   comp: EmployeeSaleManagerComponent,
-                                    // },
                                     {
-                                        kind: 'leaf',
-                                        key: 'DailyReportSaleComponent',
-                                        title: 'Báo cáo hàng ngày',
-                                        isOpen: true,
-                                        isPermission: this.permissionService.hasPermission(""),
-                                        comp: DailyReportSaleComponent,
+                                      kind: 'leaf',
+                                      key: 'EmployeeSaleManagerComponent',
+                                      title: 'Nhân viên Sale',
+                                      isOpen: true,
+                                      isPermission: this.permissionService.hasPermission("''"),
+                                      comp: EmployeeSaleManagerComponent,
+                                    },
+                                    {
+                                      kind: 'leaf',
+                                      key: 'DailyReportSaleComponent',
+                                      title: 'Báo cáo hàng ngày',
+                                      isOpen: true,
+                                      isPermission: this.permissionService.hasPermission(""),
+                                      comp: DailyReportSaleComponent,
+                                      data: { warehouseId: 1 },
+                                    },
+                                    {
+                                      kind: 'leaf',
+                                      key: 'DailyReportSaleAdminComponent',
+                                      title: 'Báo cáo hàng ngày - Admin',
+                                      isOpen: true,
+                                      isPermission: this.permissionService.hasPermission(""),
+                                      comp: DailyReportSaleAdminComponent,
+                                      data: { warehouseId: 1 },
                                     },
                                 ],
                             },
@@ -2766,12 +2778,12 @@ export class MenuService {
 
                             {
                                 kind: 'leaf',
-                                key: 'congtac',
+                                key: 'EmployeeRegisterBussinessComponent',
                                 title: 'Công tác',
                                 isOpen: true,
                                 isPermission: this.permissionService.hasPermission(''),
-                                comp: PersonComponent,
-                                router: '/congtac',
+                                comp: EmployeeRegisterBussinessComponent,
+                               
                             },
 
                             {

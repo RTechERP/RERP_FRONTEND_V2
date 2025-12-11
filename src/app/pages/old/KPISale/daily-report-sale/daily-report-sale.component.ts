@@ -6,6 +6,8 @@ import {
   ElementRef,
   Input,
   IterableDiffers,
+  Optional,
+  Inject,
 } from '@angular/core';
 import { NzCardModule } from 'ng-zorro-antd/card';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
@@ -100,6 +102,7 @@ export class DailyReportSaleComponent implements OnInit, AfterViewInit {
 
   tb_Master!: Tabulator;
 
+  warehouseId: number = 0;
 
   projects: any[] = [];
   customers: any[] = [];
@@ -136,9 +139,13 @@ export class DailyReportSaleComponent implements OnInit, AfterViewInit {
     private appUserService: AppUserService,
     private modalService: NgbModal,
     private nzModalService: NzModalService,
+    @Optional() @Inject('tabData') private tabData: any = null
   ) { }
 
   ngOnInit(): void {
+    if (this.tabData && this.tabData.warehouseId) {
+      this.warehouseId = this.tabData.warehouseId;
+    }
     // Kiểm tra quyền admin và set employeeId
     this.isAdmin = this.appUserService.isAdmin;
     this.isEmployeeIdDisabled = !this.isAdmin;
@@ -155,7 +162,7 @@ export class DailyReportSaleComponent implements OnInit, AfterViewInit {
     this.loadCustomers();
     this.loadEmployees();
     this.loadEmployeeTeamSale();
-    this.loadGroupSale();
+    // this.loadGroupSale();
   }
 
   ngAfterViewInit(): void {
@@ -207,7 +214,10 @@ export class DailyReportSaleComponent implements OnInit, AfterViewInit {
     this.dailyReportSaleService.getEmployees().subscribe(
       (response) => {
         if (response.status === 1) {
-          this.employees = response.data || [];
+          // Filter bỏ các item có FullName rỗng hoặc chỉ có khoảng trắng
+          this.employees = (response.data || []).filter((item: any) => {
+            return item.FullName && item.FullName.trim().length > 0;
+          });
         } else {
           this.notification.error('Lỗi', response.message || 'Không thể tải danh sách nhân viên');
         }
@@ -235,22 +245,22 @@ export class DailyReportSaleComponent implements OnInit, AfterViewInit {
     );
   }
 
-  loadGroupSale(): void {
-    const userId = this.appUserService.id || 0;
-    this.dailyReportSaleService.getGroupSale(userId).subscribe(
-      (response) => {
-        if (response.status === 1) {
-          this.groupTypes = response.data || [];
-        } else {
-          this.notification.error('Lỗi', response.message || 'Không thể tải danh sách group sale');
-        }
-      },
-      (error) => {
-        this.notification.error('Lỗi', 'Lỗi kết nối khi tải danh sách group sale');
-        console.error('Error loading group sale:', error);
-      }
-    );
-  }
+  // loadGroupSale(): void {
+  //   const userId = this.appUserService.id || 0;
+  //   this.dailyReportSaleService.getGroupSale(userId).subscribe(
+  //     (response) => {
+  //       if (response.status === 1) {
+  //         this.groupTypes = response.data || [];
+  //       } else {
+  //         this.notification.error('Lỗi', response.message || 'Không thể tải danh sách group sale');
+  //       }
+  //     },
+  //     (error) => {
+  //       this.notification.error('Lỗi', 'Lỗi kết nối khi tải danh sách group sale');
+  //       console.error('Error loading group sale:', error);
+  //     }
+  //   );
+  // }
 
   openModal(editId: number = 0): void {
     const modalRef = this.modalService.open(DailyReportSaleDetailComponent, {
@@ -260,7 +270,7 @@ export class DailyReportSaleComponent implements OnInit, AfterViewInit {
     });
 
     modalRef.componentInstance.editId = editId;
-
+    modalRef.componentInstance.warehouseId = this.warehouseId;
     modalRef.result.then(
       (result) => {
         if (result && result.success && result.reloadData) {
@@ -409,16 +419,23 @@ export class DailyReportSaleComponent implements OnInit, AfterViewInit {
       paginationSizeSelector: [10, 30, 50, 100, 200, 300, 500],
       ajaxURL: 'dummy',
       ajaxRequestFunc: (url, config, params) => {
-        const userId = this.appUserService.id || 0;
-        // const userId = 0;
+        // Nếu là admin thì userId = 0, nếu không thì lấy userId của user đăng nhập
+        const userId = this.appUserService.isAdmin ? 0 : (this.appUserService.id || 0);
         const page = params.page || 1;
         const size = params.size || 50;
+
+        // Set dateStart về đầu ngày (00:00:00) và dateEnd về cuối ngày (23:59:59)
+        const dateStart = new Date(this.filters.dateStart || new Date());
+        dateStart.setHours(0, 0, 0, 0);
+
+        const dateEnd = new Date(this.filters.dateEnd || new Date());
+        dateEnd.setHours(23, 59, 59, 999);
 
         return this.dailyReportSaleService.getDailyReportSale(
           page,
           size,
-          this.filters.dateStart || new Date(),
-          this.filters.dateEnd || new Date(),
+          dateStart,
+          dateEnd,
           (this.filterTextSearch && this.filterTextSearch.trim()) ? this.filterTextSearch.trim() : '',
           this.filters.customerId || 0,
           userId,

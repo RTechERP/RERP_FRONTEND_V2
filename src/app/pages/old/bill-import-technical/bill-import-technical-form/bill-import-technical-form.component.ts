@@ -615,11 +615,9 @@ export class BillImportTechnicalFormComponent implements OnInit, AfterViewInit {
       modalDialogClass: 'modal-fullscreen',
     });
 
-    // Set isModalMode = true để hiển thị nút Xuất
     modalRef.componentInstance.isModalMode = true;
+    modalRef.componentInstance.warehouseType = this.warehouseType
 
-    // FIX: Chỉ dùng modalRef.result, không dùng productsExported.subscribe
-    // để tránh xử lý data 2 lần (gây ra duplicate rows)
     modalRef.result.then(
       (products: any[]) => {
         if (products && products.length > 0) {

@@ -1076,6 +1076,7 @@ export class BillExportTechnicalFormComponent implements OnInit, AfterViewInit {
 
     // Set isModalMode = true để hiển thị nút Xuất
     modalRef.componentInstance.isModalMode = true;
+    modalRef.componentInstance.warehouseType = this.warehouseType
 
     // FIX: Chỉ dùng modalRef.result, không dùng productsExported.subscribe
     // để tránh xử lý data 2 lần (gây ra duplicate rows)

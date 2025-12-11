@@ -1,6 +1,10 @@
 import { Component, OnInit } from '@angular/core';
+import { NgbModal } from '@ng-bootstrap/ng-bootstrap';
 import { MenuItem, PrimeIcons } from 'primeng/api';
 import { Menubar } from 'primeng/menubar';
+import { PaymentOrderService } from './payment-order.service';
+import { NzNotificationService } from 'ng-zorro-antd/notification';
+import { PaymentOrderDetailComponent } from './payment-order-detail/payment-order-detail.component';
 
 @Component({
     selector: 'app-payment-order',
@@ -36,6 +40,12 @@ export class PaymentOrderComponent implements OnInit {
         },
     ];
 
+    constructor(
+        private modalService: NgbModal,
+        private paymentService: PaymentOrderService,
+        private notification: NzNotificationService
+    ) { }
+
     ngOnInit(): void {
         this.initializeGrid();
     }
@@ -44,13 +54,22 @@ export class PaymentOrderComponent implements OnInit {
 
     }
 
+    initializeModal() {
+        const modalRef = this.modalService.open(PaymentOrderDetailComponent, {
+            centered: true,
+            size: 'xl',
+            backdrop: 'static',
+            keyboard: false,
+            scrollable: true
+        });
+    }
 
     onCreate() {
-
+        this.initializeModal();
     }
 
     onEdit() {
-
+        this.initializeModal();
     }
 
     onDelete() {

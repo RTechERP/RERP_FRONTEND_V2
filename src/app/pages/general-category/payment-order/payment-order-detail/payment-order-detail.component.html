@@ -1,0 +1,33 @@
+<div class="modal-content">
+    <div class="modal-header">
+        <h5 class="modal-title" id="staticBackdropLabel">Modal title</h5>
+        <button type="button" class="btn-close border border-danger" aria-label="Close"
+            (click)="activeModal.close()"></button>
+    </div>
+    <div class="modal-body">
+        <form id="frmPaymentOrder" nz-form nzLayout="vertical" [formGroup]="validateForm" (ngSubmit)="submitForm()">
+
+            <nz-form-item>
+                <nz-form-label [nzSpan]="isHorizontal ? 4 : null">Field A</nz-form-label>
+                <nz-form-control [nzSpan]="isHorizontal ? 14 : null" nzErrorTip="Please input your username!">
+                    <input nz-input formControlName="fieldA" placeholder="input placeholder" />
+                </nz-form-control>
+            </nz-form-item>
+            <nz-form-item>
+                <nz-form-label [nzSpan]="isHorizontal ? 4 : null">Field B</nz-form-label>
+                <nz-form-control [nzSpan]="isHorizontal ? 14 : null" nzErrorTip="Please input your Password!">
+                    <input nz-input formControlName="filedB" placeholder="input placeholder" />
+                </nz-form-control>
+            </nz-form-item>
+            <!-- <nz-form-item>
+                <nz-form-control [nzSpan]="isHorizontal ? 14 : null" [nzOffset]="isHorizontal ? 4 : null">
+                    <button nz-button nzType="primary">Submit</button>
+                </nz-form-control>
+            </nz-form-item> -->
+        </form>
+    </div>
+    <div class="modal-footer">
+        <button type="button" class="btn btn-outline-danger" (click)="activeModal.close()">Đóng</button>
+        <button type="button" class="btn btn-success" form="frmPaymentOrder">Lưu</button>
+    </div>
+</div>

@@ -54,13 +54,13 @@
 </div>
 <div class="modal-footer">
   <button class="fs-12 btn" nz-button nzDanger (click)="closeExcelModal()">Đóng</button>
-   <button class="fs-12 btn" nz-button  (click)="exportToExcelProduct()">Xuất File Lỗi</button>
-  <button class="fs-12 btn" nz-button>
+   <!-- <button class="fs-12 btn" nz-button  (click)="exportToExcelProduct()">Xuất File Lỗi</button> -->
+  <!-- <button class="fs-12 btn" nz-button>
     
     <a href="C:\Users\Win\Downloads\FileMau.xlsx" download="MAU_Product.xlsx"
       style="text-decoration: none; color: inherit;">
       <nz-icon nzType="download" nzTheme="outline"></nz-icon> Mẫu
     </a>
-  </button>
+  </button> -->
   <button class="fs-12 btn" nz-button nzType="primary" [nzLoading]="isSaving" (click)="saveExcelData()">Lưu</button>
 </div>

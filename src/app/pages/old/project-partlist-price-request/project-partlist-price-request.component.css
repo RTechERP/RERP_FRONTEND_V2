@@ -53,6 +53,69 @@
 /* Filter bar styling */
 .filter-bar {
   transition: all 0.3s ease;
+  position: relative;
+  z-index: 100;
+}
+
+/* Backdrop overlay cho mobile - ẩn trên desktop */
+.filter-backdrop {
+  display: none;
+}
+
+/* Filter bar header - ẩn trên desktop */
+.filter-bar-header {
+  display: none;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+/* Filter bar header trên mobile */
+.filter-bar-header.mobile-only {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px 16px;
+  border-bottom: 1px solid #d9d9d9;
+  margin: -8px -8px 12px -8px;
+  background-color: #fff;
+}
+
+.filter-bar-header h6 {
+  font-size: 16px;
+  font-weight: 500;
+  margin: 0;
+}
+
+.btn-close-filter {
+  background: transparent;
+  border: none;
+  font-size: 18px;
+  color: rgba(0, 0, 0, 0.45);
+  cursor: pointer;
+  padding: 0;
+  width: 24px;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: color 0.3s;
+}
+
+.btn-close-filter:hover {
+  color: rgba(0, 0, 0, 0.75);
+}
+
+.btn-close-filter:focus {
+  outline: 2px solid #1677ff;
+  outline-offset: 2px;
+  border-radius: 2px;
 }
 
 /* Dynamic table height based on search panel visibility */
@@ -110,9 +173,194 @@
 .sticky-toggle-btn {
   position: sticky;
   left: 0;
-  z-index: 10;
-  background-color: white;
+  z-index: 1000 !important;
+  background-color: white !important;
   box-shadow: 2px 0 4px rgba(0, 0, 0, 0.1);
+  pointer-events: auto !important;
+  cursor: pointer !important;
+  min-width: 32px !important;
+  flex-shrink: 0 !important;
+  touch-action: manipulation; /* Cải thiện touch trên mobile */
+  -webkit-tap-highlight-color: transparent; /* Loại bỏ highlight trên mobile */
+}
+
+/* Đảm bảo button toggle luôn có thể click được */
+.sticky-toggle-btn:hover {
+  z-index: 1001 !important;
+  background-color: #f5f5f5 !important;
+}
+
+.sticky-toggle-btn:active {
+  z-index: 1001 !important;
+  background-color: #e6e6e6 !important;
+}
+
+.sticky-toggle-btn:focus {
+  z-index: 1001 !important;
+  outline: 2px solid #1677ff;
+  outline-offset: 2px;
+}
+
+/* Đảm bảo không có element nào che button toggle */
+.card-header {
+  position: relative;
+  z-index: 1;
+}
+
+.card-header .d-flex {
+  position: relative;
+  isolation: isolate; /* Tạo stacking context mới */
+}
+
+/* Responsive cho màn hình nhỏ (mobile) */
+@media (max-width: 768px) {
+  .sticky-toggle-btn {
+    min-width: 40px !important;
+    padding: 4px 8px !important;
+    z-index: 1002 !important; /* Tăng z-index trên mobile */
+  }
+
+  .card-header .d-flex {
+    padding-right: 0;
+  }
+
+  /* Filter bar hiển thị như modal trên mobile */
+  .filter-bar.mobile-modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: auto;
+    max-height: 85vh;
+    overflow-y: auto;
+    z-index: 1000;
+    background-color: #fff;
+    border-radius: 8px 8px 0 0;
+    box-shadow: 0 -4px 12px rgba(0, 0, 0, 0.15);
+    padding: 16px;
+    animation: slideUp 0.3s ease;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  @keyframes slideUp {
+    from {
+      transform: translateY(100%);
+      opacity: 0;
+    }
+    to {
+      transform: translateY(0);
+      opacity: 1;
+    }
+  }
+
+  /* Backdrop hiển thị trên mobile */
+  .filter-backdrop.mobile-only {
+    display: block;
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(0, 0, 0, 0.45);
+    z-index: 999;
+    animation: fadeIn 0.3s ease;
+  }
+
+  /* Filter bar header hiển thị trên mobile */
+  .filter-bar-header.mobile-only {
+    display: flex;
+  }
+
+  /* Đảm bảo filter bar responsive trên mobile */
+  .filter-bar.mobile-modal {
+    padding: 0 16px 16px 16px;
+  }
+
+  .filter-bar.mobile-modal form {
+    flex-direction: column;
+    gap: 12px;
+    align-items: stretch !important;
+  }
+
+  .filter-bar.mobile-modal nz-form-item {
+    width: 100% !important;
+    margin-bottom: 0 !important;
+  }
+
+  .filter-bar.mobile-modal nz-form-label {
+    display: block;
+    margin-bottom: 4px;
+  }
+
+  .filter-bar.mobile-modal nz-form-control {
+    width: 100% !important;
+  }
+
+  .filter-bar.mobile-modal nz-select,
+  .filter-bar.mobile-modal nz-date-picker,
+  .filter-bar.mobile-modal input {
+    width: 100% !important;
+  }
+
+  .filter-bar.mobile-modal .d-flex.gap-1 {
+    width: 100%;
+    justify-content: stretch;
+  }
+
+  .filter-bar.mobile-modal button[nz-button] {
+    width: 100%;
+  }
+
+  /* Ngăn body scroll khi modal mở */
+  body.filter-modal-open {
+    overflow: hidden;
+    position: fixed;
+    width: 100%;
+  }
+}
+
+/* Responsive cho màn hình trung bình (tablet) */
+@media (min-width: 769px) and (max-width: 1024px) {
+  .sticky-toggle-btn {
+    min-width: 36px !important;
+    z-index: 1001 !important;
+  }
+}
+
+/* Responsive cho màn hình lớn */
+@media (min-width: 1025px) {
+  .sticky-toggle-btn {
+    min-width: 32px !important;
+  }
+}
+
+/* Đảm bảo button không bị che bởi các element khác khi scroll */
+@media (max-width: 1200px) {
+  .card-header {
+    overflow: visible !important;
+  }
+
+  .card-header .d-flex {
+    overflow-x: auto;
+    overflow-y: visible;
+    -webkit-overflow-scrolling: touch; /* Smooth scroll trên iOS */
+  }
+}
+
+/* Fix cho các trình duyệt cũ */
+@supports not (position: sticky) {
+  .sticky-toggle-btn {
+    position: relative;
+  }
+}
+
+/* Đảm bảo button luôn visible trên mọi thiết bị */
+.sticky-toggle-btn {
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  visibility: visible !important;
+  opacity: 1 !important;
 }
 
 /* Đảm bảo cột CurrencyID fill toàn bộ cell */

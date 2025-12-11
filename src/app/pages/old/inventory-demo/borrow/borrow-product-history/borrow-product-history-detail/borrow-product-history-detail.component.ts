@@ -410,9 +410,13 @@ export class BorrowProductHistoryDetailComponent implements OnInit {
               IsDelete: false
             };
               console.log('data',data);
-              
+              const IDAdminDemo = [24, 1434, 88, 1534];
+              const userId = this.appUserService?.id || 0;
+              const isAdmin = IDAdminDemo.includes(userId);
+              const isGlobalAdmin = this.appUserService?.isAdmin || false;
+              const employeeID = this.appUserService?.employeeID || 0;
             // trạng thái đang mượn nếu là admin
-            if (this.borrowService.ISADMIN || this.borrowService.GlobalEmployeeId == 78) {
+            if (isAdmin || isGlobalAdmin || employeeID == 78) {
               data.Status = 1;
             }
             console.log('data',data);

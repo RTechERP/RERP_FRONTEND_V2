@@ -85,4 +85,43 @@ export class EmployeeBussinessService {
   getEmployeeBussinessPersonAjax(): string {
     return this._url + 'EmployeeBussiness/get-employee-bussiness-person';
   }
+
+  getEmployeeBussinesssPerson(request: any): Observable<any> {
+    return this.http.post<any>(this._url + 'EmployeeBussiness/get-employee-bussinesss-person', request);
+  }
+
+  getEmployeeBussinessByID(id: number): Observable<any> {
+    return this.http.get<any>(this._url + `EmployeeBussiness/GetEmployeeBussinessByID?id=${id}`);
+  }
+
+  uploadMultipleFiles(files: File[], subPath?: string): Observable<any> {
+    const formData = new FormData();
+    files.forEach((file) => {
+      formData.append('files', file);
+    });
+    formData.append('key', 'EmployeeBussiness');
+    if (subPath && subPath.trim()) {
+      formData.append('subPath', subPath.trim());
+    }
+    return this.http.post<any>(this._url + 'home/upload-multiple', formData);
+  }
+
+  saveEmployeeBussinessFile(fileData: any): Observable<any> {
+    return this.http.post<any>(this._url + 'EmployeeBussiness/save-file', fileData);
+  }
+
+  saveDataEmployee(dto: any): Observable<any> {
+    return this.http.post<any>(this._url + 'EmployeeBussiness/save-data-employee', dto);
+  }
+
+  getFileByID(bussinessID: number): Observable<any> {
+    return this.http.get<any>(this._url + `EmployeeBussiness/get-file-by-id?bussinessID=${bussinessID}`);
+  }
+
+  downloadFile(filePath: string, fileName: string): Observable<Blob> {
+    const url = `${this._url}home/download-by-key?key=EmployeeBussiness&subPath=${encodeURIComponent(filePath)}&fileName=${encodeURIComponent(fileName)}`;
+    return this.http.get(url, {
+      responseType: 'blob',
+    });
+  }
 }

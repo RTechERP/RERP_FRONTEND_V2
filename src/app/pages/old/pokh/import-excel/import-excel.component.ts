@@ -43,6 +43,7 @@ export class ImportExcelPokhComponent implements OnInit {
   tableHeaders: string[] = [];
 
   @ViewChild('excelTable', { static: true }) excelTable!: ElementRef;
+  @ViewChild('excelFileInput', { static: false }) excelFileInput!: ElementRef<HTMLInputElement>;
   tabulator!: Tabulator;
 
   // Mapping cột Excel sang cột API (dựa trên code WinForm)
@@ -82,21 +83,40 @@ export class ImportExcelPokhComponent implements OnInit {
   }
 
   onFileChange(evt: any) {
-    const target: DataTransfer = <DataTransfer>evt.target;
+    const target: HTMLInputElement = evt.target;
     if (!target.files || target.files.length === 0) {
       if (this.selectedSheet && this.sheetNames.length > 0) {
         return;
       }
       return;
     }
+    
+    // Reset preview trước khi load file mới
     this.resetPreview();
-    if (target.files.length !== 1) return;
+    
+    if (target.files.length !== 1) {
+      // Reset input để có thể chọn lại file
+      if (target) {
+        target.value = '';
+      }
+      return;
+    }
 
     const reader: FileReader = new FileReader();
     reader.onload = (e: any) => {
       const bstr: string = e.target.result;
       this.workbook = XLSX.read(bstr, { type: 'binary' });
       this.sheetNames = this.workbook.SheetNames;
+      
+      // Không reset input ở đây để giữ tên file hiển thị
+      // Input sẽ được reset khi chọn file mới (trong lần gọi onFileChange tiếp theo)
+    };
+    reader.onerror = () => {
+      // Reset input nếu có lỗi
+      if (target) {
+        target.value = '';
+      }
+      this.notification.error('Lỗi', 'Không thể đọc file Excel!');
     };
     reader.readAsBinaryString(target.files[0]);
   }
@@ -106,10 +126,16 @@ export class ImportExcelPokhComponent implements OnInit {
     this.sheetNames = [];
     this.tableHeaders = [];
     this.tableData = [];
+    this.workbook = null;
 
     if (this.tabulator) {
       this.tabulator.clearData();
       this.tabulator.setColumns([]);
+    }
+    
+    // Reset input file khi chọn file mới để có thể chọn lại file cùng tên
+    if (this.excelFileInput && this.excelFileInput.nativeElement) {
+      this.excelFileInput.nativeElement.value = '';
     }
   }
 
@@ -133,6 +159,11 @@ export class ImportExcelPokhComponent implements OnInit {
         });
 
         return newRow;
+      }).filter(row => {
+        // Bỏ qua các dòng không có cột TT hoặc TT rỗng
+        const tt = row['TT'];
+        return tt !== null && tt !== undefined && tt !== '' && 
+               (typeof tt === 'string' ? tt.trim() !== '' : true);
       });
 
       this.tableHeaders = this.tableData.length > 0 ? Object.keys(this.tableData[0]) : [];
@@ -252,7 +283,7 @@ export class ImportExcelPokhComponent implements OnInit {
       return {
         RowIndex: index,
         ProductNewCode: row['Mã nội bộ'] || '',
-        ProductGroupName: row['Tên nhóm'] || '',
+        ProductGroupName: String(row['Tên nhóm'] || ''),
         ProductCode: row['Mã sản phẩm'] || '',
         ProductName: row['Tên sản phẩm'] || ''
       };

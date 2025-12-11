@@ -93,7 +93,7 @@ import { FirmService } from '../../../../general-category/firm/firm-service/firm
 })
 export class DailyReportSaleDetailComponent implements OnInit, AfterViewInit {
   @Input() editId: number = 0;
-
+  @Input() warehouseId: number = 0;
   dailyReportSaleForm!: FormGroup;
   isSubmitted: boolean = false;
   projectStatusOld: number = 0; // Trạng thái dự án cũ từ project được chọn
@@ -623,7 +623,7 @@ export class DailyReportSaleDetailComponent implements OnInit, AfterViewInit {
       ID: this.editId > 0 ? this.editId : 0,
       projectId: formValue.projectId || 0,
       customerId: formValue.customerId || 0,
-      warehouseId: formValue.warehouseId || 0,
+      warehouseId: this.warehouseId || 0,
       projectStatusBaseId: formValue.projectStatusId || 0,
       userId: formValue.userId || 0,
       dateStart: formatDate(formValue.dateStart),

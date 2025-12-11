@@ -1,0 +1,234 @@
+<ng-container class="w-100">
+  <nz-splitter>
+    <nz-splitter-panel [nzSize]="sizeSearch" [nzResizable]="true">
+      <div class="card h-100 border-0 rounded-0">
+        <div class="card-header bg-white p-1">
+          <div class="d-flex justify-content-between align-items-center">
+            <h6 class="m-0 ms-2">Tìm kiếm</h6>
+            <button class="border-0 me-2" nz-button nzSize="small" nzType="default" nzDanger
+              (click)="toggleSearchPanel()">
+              <nz-icon nzType="close" nzTheme="outline" />
+            </button>
+          </div>
+        </div>
+        <div class="card-body">
+          <form nz-form [formGroup]="searchForm" nzLayout="vertical">
+            <nz-form-item class="mt-1">
+              <nz-form-label [nzSpan]="24" class="fs-12">Ngày bắt đầu</nz-form-label>
+              <nz-form-control [nzSpan]="24">
+                <nz-date-picker
+                  formControlName="startDate"
+                  nzFormat="dd/MM/yyyy"
+                  nzPlaceHolder="Chọn ngày bắt đầu"
+                  style="width: 100%"
+                ></nz-date-picker>
+              </nz-form-control>
+            </nz-form-item>
+            <nz-form-item class="mt-1">
+              <nz-form-label [nzSpan]="24" class="fs-12">Ngày kết thúc</nz-form-label>
+              <nz-form-control [nzSpan]="24">
+                <nz-date-picker
+                  formControlName="endDate"
+                  nzFormat="dd/MM/yyyy"
+                  nzPlaceHolder="Chọn ngày kết thúc"
+                  style="width: 100%"
+                ></nz-date-picker>
+              </nz-form-control>
+            </nz-form-item>
+            <nz-form-item class="mt-1">
+              <nz-form-label [nzSpan]="24" class="fs-12">Team</nz-form-label>
+              <nz-form-control [nzSpan]="24">
+                <nz-select formControlName="teamId" nzPlaceHolder="Chọn Team" nzAllowClear nzShowSearch
+                  (ngModelChange)="loadEmployees()">
+                  <nz-option *ngFor="let team of teamList" [nzValue]="team.ID"
+                    [nzLabel]="team.Name"></nz-option>
+                </nz-select>
+              </nz-form-control>
+            </nz-form-item>
+            <nz-form-item class="mt-1">
+              <nz-form-label [nzSpan]="24" class="fs-12">Nhân viên</nz-form-label>
+              <nz-form-control [nzSpan]="24">
+                <nz-select formControlName="employeeId" nzPlaceHolder="Chọn nhân viên" nzAllowClear
+                  nzShowSearch>
+                  <nz-option-group *ngFor="let group of employeeList" [nzLabel]="group.label">
+                    <nz-option *ngFor="let option of group.options" 
+                      [nzValue]="option.item.ID || option.item.EmployeeID"
+                      [nzLabel]="(option.item.Code || '') + ' - ' + (option.item.FullName || '')">
+                    </nz-option>
+                  </nz-option-group>
+                </nz-select>
+              </nz-form-control>
+            </nz-form-item>
+            <nz-form-item class="mt-1">
+              <nz-form-label class="fs-12" [nzSpan]="24">Trạng thái TBP</nz-form-label>
+              <nz-form-control [nzSpan]="24">
+                <nz-select class="w-100" nzShowSearch nzAllowClear nzSize="default"
+                  nzPlaceHolder="Chọn trạng thái TBP" formControlName="status">
+                  <nz-option [nzValue]="-1" nzLabel="Tất cả"></nz-option>
+                  <nz-option [nzValue]="0" nzLabel="Chưa duyệt"></nz-option>
+                  <nz-option [nzValue]="1" nzLabel="Đã duyệt"></nz-option>
+                </nz-select>
+              </nz-form-control>
+            </nz-form-item>
+            <nz-form-item class="mt-1">
+              <nz-form-label class="fs-12" [nzSpan]="24">Trạng thái HR</nz-form-label>
+              <nz-form-control [nzSpan]="24">
+                <nz-select class="w-100" nzShowSearch nzAllowClear nzSize="default"
+                  nzPlaceHolder="Chọn trạng thái HR" formControlName="statusHR">
+                  <nz-option [nzValue]="-1" nzLabel="Tất cả"></nz-option>
+                  <nz-option [nzValue]="0" nzLabel="Chưa duyệt"></nz-option>
+                  <nz-option [nzValue]="1" nzLabel="Đã duyệt"></nz-option>
+                </nz-select>
+              </nz-form-control>
+            </nz-form-item>
+            <nz-form-item class="mt-1">
+              <nz-form-label class="fs-12" [nzSpan]="24">Trạng thái BGĐ</nz-form-label>
+              <nz-form-control [nzSpan]="24">
+                <nz-select class="w-100" nzShowSearch nzAllowClear nzSize="default"
+                  nzPlaceHolder="Chọn trạng thái BGĐ" formControlName="statusBGD">
+                  <nz-option [nzValue]="-1" nzLabel="Tất cả"></nz-option>
+                  <nz-option [nzValue]="0" nzLabel="Chưa duyệt"></nz-option>
+                  <nz-option [nzValue]="1" nzLabel="Đã duyệt"></nz-option>
+                </nz-select>
+              </nz-form-control>
+            </nz-form-item>
+            <nz-form-item class="mt-1">
+              <nz-form-label class="fs-12" [nzSpan]="24">Loại</nz-form-label>
+              <nz-form-control [nzSpan]="24">
+                <nz-select class="w-100" nzShowSearch nzAllowClear nzSize="default"
+                  nzPlaceHolder="Chọn loại" formControlName="type">
+                  <nz-option [nzValue]="0" nzLabel="Tất cả"></nz-option>
+                  <nz-option [nzValue]="1" nzLabel="Nghỉ phép"></nz-option>
+                  <nz-option [nzValue]="2" nzLabel="Công tác"></nz-option>
+                  <nz-option [nzValue]="3" nzLabel="Làm thêm"></nz-option>
+                  <nz-option [nzValue]="4" nzLabel="WFH"></nz-option>
+                  <nz-option [nzValue]="5" nzLabel="WFH"></nz-option>
+                </nz-select>
+              </nz-form-control>
+            </nz-form-item>
+            <nz-form-item class="mt-1">
+              <nz-form-label class="fs-12" [nzSpan]="24">Đã xóa</nz-form-label>
+              <nz-form-control [nzSpan]="24">
+                <nz-select class="w-100" nzShowSearch nzAllowClear nzSize="default"
+                  nzPlaceHolder="Chọn trạng thái xóa" formControlName="deleteFlag">
+                  <nz-option [nzValue]="-1" nzLabel="Tất cả"></nz-option>
+                  <nz-option [nzValue]="0" nzLabel="Chưa xóa"></nz-option>
+                  <nz-option [nzValue]="1" nzLabel="Đã xóa"></nz-option>
+                </nz-select>
+              </nz-form-control>
+            </nz-form-item>
+            <nz-form-item class="mt-1">
+              <nz-form-label class="fs-12" [nzSpan]="24">Từ khóa</nz-form-label>
+              <nz-form-control [nzSpan]="24">
+                <input nz-input placeholder="Nhập từ khóa" nzSize="default" formControlName="keyWord"
+                  (keyup.enter)="loadData()" />
+              </nz-form-control>
+            </nz-form-item>
+          </form>
+        </div>
+        <div class="card-footer bg-white p-1 d-flex gap-1 justify-content-end">
+          <button nz-button nzType="default" nzSize="small" (click)="resetSearch()">Đặt lại</button>
+          <button nz-button nzType="primary" nzSize="small" (click)="loadData()">Tìm kiếm</button>
+        </div>
+      </div>
+    </nz-splitter-panel>
+
+    <nz-splitter-panel nzDefaultSize="100%">
+      <div class="card h-100 border-0 rounded-0">
+        <div class="card-header bg-white p-1">
+          <div class="d-flex gap-1 align-items-center justify-content-between">
+            <div class="d-flex gap-1 align-items-center">
+              <button nz-button nzType="default" nzSize="small" (click)="toggleSearchPanel()">
+                <nz-icon nzType="search" />
+              </button>
+              <button nz-button nzType="default" nzSize="small" (click)="exportToExcel()" [nzLoading]="exportingExcel">
+                <img src="assets/icon/action_export_excel_16.png" alt="Xuất excel" style="width: 16px; height: 16px;" />
+                Xuất Excel
+              </button>
+              
+              <!-- TBP Actions -->
+              <button *ngIf="!isSenior" class="fs-12" nz-button nzType="default" nzSize="small" nz-dropdown [nzDropdownMenu]="menuTBP">
+                <img src="assets/icon/action_confirm_tbp_16.png" /> TBP xác nhận
+                <i nz-icon nzType="down"></i>
+              </button>
+
+              <!-- Senior Actions -->
+              <button *ngIf="isSenior" class="fs-12" nz-button nzType="default" nzSize="small" nz-dropdown [nzDropdownMenu]="menuSenior">
+                <img src="assets/icon/action_confirm_tbp_16.png" /> Senior xác nhận
+                <i nz-icon nzType="down"></i>
+              </button>
+
+              <!-- BGD Actions -->
+              <button *ngIf="isBGD" class="fs-12" nz-button nzType="default" nzSize="small" nz-dropdown [nzDropdownMenu]="menuBGD">
+                <img src="assets/icon/action_confirm_tbp_16.png" /> BGĐ xác nhận
+                <i nz-icon nzType="down"></i>
+              </button>
+
+              <button class="fs-12" nz-button nzType="default" nzSize="small" (click)="declineApprove()">
+                <img src="assets/icon/action_unapproved_16.png" />
+                Không duyệt
+              </button>
+
+              <nz-dropdown-menu #menuTBP="nzDropdownMenu">
+                <ul nz-menu>
+                  <li nz-menu-item (click)="approvedTBP()">
+                    <img src="assets/icon/action_approved_16.png" />
+                    <span class="ms-1">TBP duyệt</span>
+                  </li>
+                  <li nz-menu-item (click)="cancelApprovedTBP()">
+                    <img src="assets/icon/action_unapproved_16.png" />
+                    <span class="ms-1">TBP hủy duyệt</span>
+                  </li>
+                </ul>
+              </nz-dropdown-menu>
+
+              <nz-dropdown-menu #menuBGD="nzDropdownMenu">
+                <ul nz-menu>
+                  <li nz-menu-item (click)="approvedBGD()">
+                    <img src="assets/icon/action_approved_16.png" />
+                    <span class="ms-1">BGĐ duyệt</span>
+                  </li>
+                  <li nz-menu-item (click)="cancelApprovedBGD()">
+                    <img src="assets/icon/action_unapproved_16.png" />
+                    <span class="ms-1">BGĐ hủy duyệt</span>
+                  </li>
+                </ul>
+              </nz-dropdown-menu>
+
+              <nz-dropdown-menu #menuSenior="nzDropdownMenu">
+                <ul nz-menu>
+                  <li nz-menu-item (click)="approvedSenior()">
+                    <img src="assets/icon/action_approved_16.png" />
+                    <span class="ms-1">Senior duyệt</span>
+                  </li>
+                  <li nz-menu-item (click)="cancelApprovedSenior()">
+                    <img src="assets/icon/action_unapproved_16.png" />
+                    <span class="ms-1">Senior hủy duyệt</span>
+                  </li>
+                </ul>
+              </nz-dropdown-menu>
+            </div>
+            <div class="d-flex gap-1 align-items-center">
+              <input
+                nz-input
+                nzSize="small"
+                placeholder="Nhập từ khóa tìm kiếm..."
+                [value]="searchForm.get('keyWord')?.value || ''"
+                (input)="searchForm.patchValue({ keyWord: $any($event.target).value })"
+                (keyup.enter)="loadData()"
+                style="width: 250px;"
+              />
+              <button nz-button nzType="default" nzSize="small" (click)="loadData()">
+                <nz-icon nzType="search" />
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <div class="card-body p-0 d-flex align-items-center justify-content-center" style="position: relative">
+          <div class="w-100" #tb_approve_tp></div>
+        </div>
+      </div>
+    </nz-splitter-panel>
+  </nz-splitter>
+</ng-container>

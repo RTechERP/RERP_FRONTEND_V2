@@ -23,7 +23,7 @@
                 </div>
             </div>
         </nz-splitter-panel>
-        <nz-splitter-panel nzDefaultSize="35%" [nzCollapsible]="true" nzResizable="true">
+        <nz-splitter-panel nzDefaultSize="65%" [nzCollapsible]="true" nzResizable="true">
             <div class="card h-100 border-0 rounded-0 d-flex flex-column">
                 <div class="card-header bg-white p-1" style="overflow-x: auto; flex-shrink: 0;">
                     <div class="d-flex gap-1">
@@ -44,3 +44,63 @@
         </nz-splitter-panel>
     </nz-splitter>
 </ng-container>
+
+<!-- Modal Chi tiết Team Sale -->
+<nz-modal 
+    [(nzVisible)]="isModalVisible" 
+    nzTitle="CHI TIẾT TEAM SALE" 
+    (nzOnCancel)="handleModalCancel()"
+    [nzWidth]="450"
+    [nzFooter]="null">
+    <ng-container *nzModalContent>
+        <form nz-form [formGroup]="groupSaleForm" nzLayout="vertical">
+            <nz-form-item>
+                <nz-form-label nzRequired>Mã Team</nz-form-label>
+                <nz-form-control>
+                    <input nz-input formControlName="Code" placeholder="Nhập mã team" />
+                </nz-form-control>
+            </nz-form-item>
+
+            <nz-form-item>
+                <nz-form-label>STT</nz-form-label>
+                <nz-form-control>
+                    <nz-input-number 
+                        formControlName="STT" 
+                        [nzMin]="1"
+                        class="w-100"
+                        placeholder="Nhập STT">
+                    </nz-input-number>
+                </nz-form-control>
+            </nz-form-item>
+
+            <nz-form-item>
+                <nz-form-label nzRequired>Tên team/ tên chức vụ</nz-form-label>
+                <nz-form-control>
+                    <input nz-input formControlName="Name" placeholder="Nhập tên team/ tên chức vụ" />
+                </nz-form-control>
+            </nz-form-item>
+
+            <nz-form-item>
+                <nz-form-label>Chọn team</nz-form-label>
+                <nz-form-control>
+                    <nz-tree-select
+                        style="width: 100%"
+                        [nzNodes]="teamSaleOptions"
+                        formControlName="TeamSaleID"
+                        nzShowSearch
+                        nzAllowClear
+                        nzPlaceHolder="Chọn team"
+                        nzDefaultExpandAll
+                        [nzDropdownStyle]="{ 'max-height': '300px', 'overflow-y': 'auto' }">
+                    </nz-tree-select>
+                </nz-form-control>
+            </nz-form-item>
+
+            <div class="d-flex justify-content-end gap-2 mt-3">
+                <button nz-button nzType="primary" (click)="handleSave()">
+                    <span>Lưu</span>
+                </button>
+            </div>
+        </form>
+    </ng-container>
+</nz-modal>

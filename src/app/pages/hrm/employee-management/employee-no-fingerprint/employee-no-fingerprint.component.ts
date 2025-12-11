@@ -202,6 +202,7 @@ export class EmployeeNoFingerprintComponent
           DateEnd: this.toISODate(this.dateEnd),
           KeyWord: this.searchValue?.trim() || '',
           DepartmentID: this.selectedDepartmentFilter || 0,
+          EmployeeID:  0,
           IDApprovedTP: 0,
           Status:
             this.selectedTBPStatusFilter === null ||
@@ -482,6 +483,7 @@ export class EmployeeNoFingerprintComponent
       DateEnd: this.toISODate(this.dateEnd),
       KeyWord: this.searchValue?.trim() || '',
       DepartmentID: this.selectedDepartmentFilter || 0,
+      EmployeeID: 0,
       IDApprovedTP: 0,
       Status:
         this.selectedTBPStatusFilter === null ||
@@ -581,6 +583,7 @@ export class EmployeeNoFingerprintComponent
     modalRef.componentInstance.enfData = null;
     modalRef.componentInstance.mode = 'add';
     modalRef.componentInstance.userRole = 'employee';
+    modalRef.componentInstance.currentEmployeeId = this.currentEmployeeId;
 
     modalRef.result.then((result) => {
       if (result?.action === 'save') {

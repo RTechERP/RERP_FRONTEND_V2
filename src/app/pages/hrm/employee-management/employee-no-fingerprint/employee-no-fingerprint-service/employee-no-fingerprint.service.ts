@@ -13,6 +13,7 @@ export interface EmployeeNoFingerprintRequestParam {
   DateEnd?: string; // "YYYY-MM-DD" format
   DepartmentID?: number;
   IDApprovedTP?: number;
+  EmployeeID?: number;
   Status?: number;
   KeyWord?: string;
 }
@@ -82,6 +83,7 @@ export class EmployeeNofingerprintService {
       DateEnd: params.DateEnd || '',
       KeyWord: params.KeyWord || '',
       DepartmentID: params.DepartmentID || 0,
+      EmployeeID: params.EmployeeID || 0,
       IDApprovedTP: params.IDApprovedTP || 0,
       Status: params.Status !== null && params.Status !== undefined ? params.Status : -1,
     };

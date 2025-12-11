@@ -66,6 +66,10 @@ export class ENFDetailComponent implements OnInit {
   saving = false;
   loading = false;
 
+  currentUser: any;
+  @Input()currentEmployeeId: number | null = null;
+  currentEmployee: any;
+
   employeeGroups: { label: string; options: any[] }[] = [];
   approverGroups: { label: string; options: any[] }[] = [];
 
@@ -117,12 +121,12 @@ export class ENFDetailComponent implements OnInit {
     private message: NzMessageService,
     private notification: NzNotificationService,
     private enfService: EmployeeNofingerprintService,
-    private fb: FormBuilder
+    private fb: FormBuilder,
   ) {}
 
   private initForm(): void {
     this.enfForm = this.fb.group({
-      selectedEmployeeId: [null, [Validators.required]],
+      selectedEmployeeId: [this.currentEmployeeId, [Validators.required]],
       selectedApprovedId: [null, [Validators.required]],
       dayWork: [null, [Validators.required]],
       selectedType: [1, [Validators.required]],

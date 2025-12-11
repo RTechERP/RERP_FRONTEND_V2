@@ -23,7 +23,7 @@
                        [(ngModel)]="formData.userId" name="userId"
                        [nzDisabled]="isUserIdDisabled">
               <nz-option *ngFor="let item of this.formUserData"
-                         [nzValue]="item.UserID"
+                         [nzValue]="item.ID"
                          [nzLabel]="item.Code + '-' + item.FullName">
               </nz-option>
             </nz-select>

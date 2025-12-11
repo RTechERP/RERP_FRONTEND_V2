@@ -32,6 +32,8 @@ import { NzTableModule } from 'ng-zorro-antd/table';
 import { NzModalModule, NzModalService } from 'ng-zorro-antd/modal';
 import { NzSwitchModule } from 'ng-zorro-antd/switch';
 import { NzCheckboxModule } from 'ng-zorro-antd/checkbox';
+import { NzFormModule } from 'ng-zorro-antd/form';
+import { NzTreeSelectModule } from 'ng-zorro-antd/tree-select';
 import {
   TabulatorFull as Tabulator,
   RowComponent,
@@ -59,6 +61,7 @@ import { NOTIFICATION_TITLE } from '../../../../app.config';
 import { PokhService } from '../../pokh/pokh-service/pokh.service';
 
 import { EmployeeSaleManagerService } from './employee-sale-manager-service/employee-sale-manager.service';
+import { EmployeeTeamSaleDetailComponent } from './employee-team-sale-detail/employee-team-sale-detail.component';
 
 @Component({
   selector: 'app-employee-sale-manager',
@@ -86,6 +89,8 @@ import { EmployeeSaleManagerService } from './employee-sale-manager-service/empl
     NzUploadModule,
     NzSwitchModule,
     NzCheckboxModule,
+    NzFormModule,
+    NzTreeSelectModule,
     CommonModule,
     HasPermissionDirective,
   ],
@@ -102,11 +107,32 @@ export class EmployeeSaleManagerComponent implements OnInit, AfterViewInit {
   dataGroupSale: any[] = [];
   dataEmployeeSale: any[] = [];
   selectedGroupSaleId: number = 0;
+  selectedGroupSaleParentId: number = 0;
+  // Modal form
+  isModalVisible: boolean = false;
+  groupSaleForm!: FormGroup;
+  teamSaleOptions: any[] = [];
+  currentEditId: number | null = null;
+
   constructor(
+    private modalService: NgbModal,
     private POKHService: PokhService,
     private notification: NzNotificationService,
-    private employeeSaleManagerService: EmployeeSaleManagerService
-  ) { }
+    private employeeSaleManagerService: EmployeeSaleManagerService,
+    private fb: FormBuilder,
+    private modal: NzModalService
+  ) {
+    this.initForm();
+  }
+  
+  initForm() {
+    this.groupSaleForm = this.fb.group({
+      Code: [''],
+      STT: [1],
+      Name: [''],
+      TeamSaleID: [null]
+    });
+  }
   ngOnInit(): void {
     this.loadGroupSale();
     this.loadEmployeeSale(1);
@@ -155,17 +181,125 @@ export class EmployeeSaleManagerComponent implements OnInit, AfterViewInit {
   }
 
   onAddGroupSale() {
-
+    this.currentEditId = null;
+    this.groupSaleForm.reset({
+      Code: '',
+      STT: 1,
+      Name: '',
+      TeamSaleID: null
+    });
+    //lấy stt từ api
+    this.employeeSaleManagerService.getGroupStt().subscribe(
+      (response) => {
+        if (response.status === 1 && response.data !== null && response.data !== undefined) {
+          const maxSTT = response.data || 0;
+          this.groupSaleForm.patchValue({
+            STT: maxSTT + 1
+          });
+        }
+      },
+      (error) => {
+        console.error('Lỗi khi load STT:', error);
+      }
+    );
+    
+    this.loadTeamSaleOptions();
+    this.isModalVisible = true;
   }
-  onEditGroupSale() {
 
+  onEditGroupSale() {
+    const selectedRow = this.tb_Master.getSelectedData();
+    if (!selectedRow || selectedRow.length === 0) {
+      this.notification.warning(NOTIFICATION_TITLE.warning, 'Vui lòng chọn một dòng để sửa!');
+      return;
+    }
+
+    const rowData = selectedRow[0];
+    this.currentEditId = rowData.ID;
+    
+    this.groupSaleForm.patchValue({
+      Code: rowData.Code || '',
+      STT: rowData.STT || 1,
+      Name: rowData.Name || '',
+      TeamSaleID: rowData.ParentID || 0
+    });
+
+    this.loadTeamSaleOptions();
+    this.isModalVisible = true;
   }
   onDeleteGroupSale() {
+    const selectedRow = this.tb_Master.getSelectedData();
+    if (!selectedRow || selectedRow.length === 0) {
+      this.notification.warning(NOTIFICATION_TITLE.warning, 'Vui lòng chọn một dòng để xóa!');
+      return;
+    }
 
+    const rowData = selectedRow[0];
+    
+    // Hiển thị dialog xác nhận
+    this.modal.confirm({
+      nzTitle: 'Xác nhận xóa',
+      nzContent: `Bạn có chắc chắn muốn xóa "${rowData.Name || rowData.Code}"?`,
+      nzOkText: 'Xóa',
+      nzOkDanger: true,
+      nzCancelText: 'Hủy',
+      nzOnOk: () => {
+        const data = {
+          ID: rowData.ID,
+          Code: rowData.Code || '',
+          STT: rowData.STT || 1,
+          Name: rowData.Name || '',
+          ParentID: rowData.ParentID || null,
+          IsDeleted: 1
+        };
+
+        this.employeeSaleManagerService.saveEmployeeTeamSale(data).subscribe({
+          next: (response: any) => {
+            if (response.status === 1) {
+              this.notification.success(NOTIFICATION_TITLE.success, response.message || 'Xóa thành công!');
+              
+              // Reload data
+              this.loadGroupSale();
+            } else {
+              this.notification.error(NOTIFICATION_TITLE.error, response.message || 'Xóa thất bại!');
+            }
+          },
+          error: (err: any) => {
+            console.error('Delete error:', err);
+            this.notification.error(NOTIFICATION_TITLE.error, err.error?.message || 'Có lỗi xảy ra khi xóa dữ liệu!');
+          }
+        });
+      }
+    });
   }
+
   onAddEmployeeSale() {
+    if(this.selectedGroupSaleParentId === 0) {
+      this.notification.warning(NOTIFICATION_TITLE.warning, 'Hãy chọn một chức vụ để thêm nhân viên!');
+      return;
+    }
+    const modalRef = this.modalService.open(EmployeeTeamSaleDetailComponent, {
+      centered: true,
+      size: 'xl',
+      backdrop: 'static',
+    });
 
+    modalRef.componentInstance.selectedGroupSaleId = this.selectedGroupSaleId;
+
+    modalRef.result.then(
+      (result) => {
+        if (result && result.success && result.reloadData) {
+          if (this.selectedGroupSaleId > 0) {
+            this.loadEmployeeSale(this.selectedGroupSaleId);
+          }
+        }
+      },
+      (reason) => {
+        console.log('Modal closed');
+      }
+    );
   }
+  
   onDeleteEmployeeSale() {
 
   }
@@ -196,6 +330,99 @@ export class EmployeeSaleManagerComponent implements OnInit, AfterViewInit {
     });
 
     return treeData;
+  }
+
+  handleModalCancel() {
+    this.isModalVisible = false;
+    this.groupSaleForm.reset();
+    this.currentEditId = null;
+  }
+
+  handleSave() {
+    let isDeleted = 0;
+    if (this.groupSaleForm.valid) {
+      const formValue = this.groupSaleForm.value;
+      const data = {
+        ID: this.currentEditId || 0,
+        Code: formValue.Code || '',
+        STT: formValue.STT || 1,
+        Name: formValue.Name || '',
+        ParentID: formValue.TeamSaleID ? parseInt(formValue.TeamSaleID) : null,
+        IsDeleted: isDeleted
+      };
+
+      this.employeeSaleManagerService.saveEmployeeTeamSale(data).subscribe({
+        next: (response: any) => {
+          if (response.status === 1) {
+            this.notification.success(NOTIFICATION_TITLE.success, response.message || 'Lưu thành công!');
+            
+            // Reload data
+            this.loadGroupSale();
+            
+            // Đóng modal
+            this.handleModalCancel();
+          } else {
+            this.notification.error(NOTIFICATION_TITLE.error, response.message || 'Lưu thất bại!');
+          }
+        },
+        error: (err: any) => {
+          console.error('Save error:', err);
+          this.notification.error(NOTIFICATION_TITLE.error, err.error?.message || 'Có lỗi xảy ra khi lưu dữ liệu!');
+        }
+      });
+    } else {
+      Object.values(this.groupSaleForm.controls).forEach(control => {
+        if (control.invalid) {
+          control.markAsDirty();
+          control.updateValueAndValidity({ onlySelf: true });
+        }
+      });
+    }
+  }
+
+  loadTeamSaleOptions() {
+    // Load flat data từ API hoặc dùng dataGroupSale đã có
+    this.employeeSaleManagerService.getGroupSale().subscribe(
+      (response) => {
+        if (response.status === 1 && Array.isArray(response.data)) {
+          const treeData = this.buildTree(response.data);
+          this.teamSaleOptions = treeData.map((node: any) => this.mapToNzTree(node));
+        }
+      },
+      (error) => {
+        console.error('Lỗi khi load team sale options:', error);
+      }
+    );
+  }
+
+  private buildTree(list: any[]): any[] {
+    const map: { [key: number]: any } = {};
+    const roots: any[] = [];
+
+    // Bước 1: Gán mỗi phần tử vào map để truy cập nhanh
+    list.forEach((item) => {
+      map[item.ID] = { ...item, children: [] };
+    });
+
+    // Bước 2: Xác định cha-con
+    list.forEach((item) => {
+      if (item.ParentID && map[item.ParentID]) {
+        map[item.ParentID].children.push(map[item.ID]);
+      } else {
+        roots.push(map[item.ID]);
+      }
+    });
+
+    return roots;
+  }
+
+  private mapToNzTree(node: any): any {
+    return {
+      title: node.Name || node.Code,
+      key: node.ID,
+      value: String(node.ID),
+      children: (node.children || []).map((child: any) => this.mapToNzTree(child)),
+    };
   }
 
   initGroupSaleTable(): void {
@@ -251,6 +478,7 @@ export class EmployeeSaleManagerComponent implements OnInit, AfterViewInit {
     this.tb_Master.on('rowClick', (e: UIEvent, row: RowComponent) => {
       const data = row.getData();
       this.selectedGroupSaleId = data['ID'];
+      this.selectedGroupSaleParentId = data['ParentID'];
       this.loadEmployeeSale(data['ID']);
     });
   }

@@ -93,7 +93,7 @@ export class WFHDetailComponent implements OnInit {
   @Input() wfhData: WFHDetailDto | null = null;
   @Input() mode: 'add' | 'edit' | 'approve' | 'view' = 'add';
   @Input() userRole: 'employee' | 'tbp' | 'hr' | 'bgd' = 'employee';
-
+  @Input() currentEmployeeId: number | null = null;
   // Form group
   wfhForm!: FormGroup;
 
@@ -221,6 +221,12 @@ export class WFHDetailComponent implements OnInit {
     return this.isViewMode || this.saving;
   }
 
+    ngOnInit(): void {
+    this.initializeData();
+    this.loadEmployeesAndApprovers();
+    this.setupFormData();
+  }
+
   constructor(
 
     private message: NzMessageService,
@@ -229,12 +235,6 @@ export class WFHDetailComponent implements OnInit {
     private fb: FormBuilder
   ) {
     this.initForm();
-  }
-
-  ngOnInit(): void {
-    this.initializeData();
-    this.loadEmployeesAndApprovers();
-    this.setupFormData();
   }
 
   // Initialize reactive form
@@ -361,6 +361,7 @@ export class WFHDetailComponent implements OnInit {
     } else {
       // Set default values for new WFH
       this.wfhForm.patchValue({
+        employeeId: this.currentEmployeeId ?? null,
         dateWFH: new Date(),
         timeWFH: 0,
       });

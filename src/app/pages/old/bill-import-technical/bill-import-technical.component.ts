@@ -403,6 +403,15 @@ export class BillImportTechnicalComponent implements OnInit, AfterViewInit {
           this.selectedRow = rowData;
           this.sizeTbDetail = null;
           this.updateTabDetailTitle();
+        } else {
+          // Clear detail khi không có master data
+          this.billImportTechnicalDetailData = [];
+          this.selectedRow = null;
+          this.sizeTbDetail = '0';
+          this.updateTabDetailTitle();
+          if (this.billImportTechnicalDetailTable) {
+            this.billImportTechnicalDetailTable.setData([]);
+          }
         }
       }, 100);
     });

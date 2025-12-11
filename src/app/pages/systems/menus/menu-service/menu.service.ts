@@ -413,6 +413,7 @@ export class MenuService {
                                         comp: ProductExportAndBorrowComponent,
                                         data: {
                                             warehouseID: 1,
+                                            warehouseType: 1,
                                         },
                                     },
                                     {
@@ -424,6 +425,7 @@ export class MenuService {
                                         comp: BorrowReportComponent,
                                         data: {
                                             warehouseID: 1,
+                                            warehouseType: 1,
                                         },
                                     },
                                     {
@@ -447,6 +449,7 @@ export class MenuService {
                                         comp: SearchProductTechSerialComponent,
                                         data: {
                                             wearHouseID: 1,
+                                            warehouseType: 1,
                                         },
                                     },
                                     {
@@ -3335,7 +3338,7 @@ export class MenuService {
             },
             //#endregion
         ];
-
+      
         return menus;
     }
 
@@ -3382,7 +3385,6 @@ export class MenuService {
         this.menuKeySource.next(value);
     }
 }
-
 type BaseItem = {
     key: string;
     stt?: number;

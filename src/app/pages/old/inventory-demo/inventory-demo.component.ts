@@ -227,6 +227,63 @@ export class InventoryDemoComponent implements OnInit, AfterViewInit {
     return value;
   }
 
+  productNameFormatter(cell: any): any {
+    const data = cell.getData();
+    const value = cell.getValue() || '';
+    const billType = data.BillType;
+    const numberInStore = data.InventoryLate;
+
+    const element = cell.getElement();
+    // Reset styles first
+    element.style.backgroundColor = '';
+    element.style.color = '';
+
+    // Apply color formatting
+    if (this.listBillType.includes(billType) && numberInStore === 0) {
+      element.style.backgroundColor = 'rgb(255, 231, 187)'; // Orange
+      element.style.color = 'black';
+    } else if (billType === 7 && numberInStore === 0) {
+      element.style.backgroundColor = '#ffd3dd'; // Pink
+      element.style.color = 'black';
+    }
+
+    // Format as textarea with 3-line limit
+    // Sử dụng CSS để giới hạn 3 dòng và thêm ellipsis
+    return `<div style="
+      display: -webkit-box;
+      -webkit-line-clamp: 3;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: pre-wrap;
+      word-wrap: break-word;
+      line-height: 1.4;
+      max-height: calc(1.4em * 3);
+      padding: 4px;
+      box-sizing: border-box;
+    " title="${value.replace(/"/g, '&quot;')}">${value}</div>`;
+  }
+
+  locationFormatter(cell: any): any {
+    const value = cell.getValue() || '';
+    
+    // Format as textarea with 3-line limit
+    // Sử dụng CSS để giới hạn 3 dòng và thêm ellipsis
+    return `<div style="
+      display: -webkit-box;
+      -webkit-line-clamp: 3;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: pre-wrap;
+      word-wrap: break-word;
+      line-height: 1.4;
+      max-height: calc(1.4em * 3);
+      padding: 4px;
+      box-sizing: border-box;
+    " title="${value.replace(/"/g, '&quot;')}">${value}</div>`;
+  }
+
   drawTable() {
     const rowMenu = [
       {
@@ -262,12 +319,18 @@ export class InventoryDemoComponent implements OnInit, AfterViewInit {
             field: 'ProductCode',
             formatter: this.cellColorFormatter.bind(this),
             frozen: true,
+            width: 150,
           },
           {
             title: 'Tên sản phẩm',
             field: 'ProductName',
-            formatter: this.cellColorFormatter.bind(this),
+            formatter: this.productNameFormatter.bind(this),
             frozen: true,
+            tooltip: (cell: any) => {
+              const value = cell.getValue();
+              return value || '';
+            },
+            width: 250,
           },
           // Spec columns - đặt ngay sau ProductName, visible=false, sẽ được show khi chọn group
           { title: 'Resolution', field: 'Resolution', visible: false },
@@ -293,10 +356,20 @@ export class InventoryDemoComponent implements OnInit, AfterViewInit {
           {
             title: 'Vị trí (Hộp)',
             field: 'LocationName',
+            formatter: this.locationFormatter.bind(this),
+            tooltip: (cell: any) => {
+              const value = cell.getValue();
+              return value || '';
+            },
           },
           {
             title: 'Vị trí Modula',
             field: 'ModulaLocationName',
+            formatter: this.locationFormatter.bind(this),
+            tooltip: (cell: any) => {
+              const value = cell.getValue();
+              return value || '';
+            },
           },
           // {
           //   title: 'Mã nhóm',

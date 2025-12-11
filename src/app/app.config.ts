@@ -41,7 +41,7 @@ export const appConfig: ApplicationConfig = {
                 preset: Aura,
                 options: {
                     prefix: 'p',
-                    darkModeSelector: 'system',
+                    // darkModeSelector: undefined,
                     cssLayer: false
                 }
 

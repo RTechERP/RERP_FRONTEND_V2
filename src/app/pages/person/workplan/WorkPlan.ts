@@ -15,23 +15,6 @@ export interface WorkPlan {
     Project: string | '';
 }
 
-// export enum WorkPlanFields {
-//     ID = 'number',
-//     UserID = 'number',
-//     WorkContent = 'Nội dung công việc',
-//     StartDate = 'Ngày bắt đầu',
-//     EndDate = 'Ngày kết thức',
-//     TotalDay = 'Tổng số ngày',
-//     STT = 'STT',
-//     Location = 'Nơi làm việc',
-//     ProjectID = 'ProjectID',
-//     FullName = 'Người phụ trách',
-//     ProjectCode = 'Mã dự án',
-//     ProjectName = 'Tên dự án',
-//     RowNumber = 'STT',
-//     Project = 'Dự án',
-// }
-
 export const WorkPlanFields = {
     ID: { name: 'ID', field: 'ID', type: 'number' },
     UserID: { name: 'UserID', field: 'UserID', type: 'number' },

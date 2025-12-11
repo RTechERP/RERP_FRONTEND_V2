@@ -1,0 +1,45 @@
+<p-menubar [model]="items" />
+
+<!-- <div class="grid-container" style="height: 50vh;">
+    <angular-slickgrid gridId="grid1" [columns]="columnDefinitions" [options]="gridOptions" [dataset]="dataset"
+        (onAngularGridCreated)="angularGridReady($event.detail)"
+        (onSelectedRowsChanged)="handleRowSelection($event.detail.eventData, $event.detail.args)" style="height: 50vh;">
+    </angular-slickgrid>
+</div> -->
+
+
+<angular-slickgrid gridId="grid1" [columns]="columnDefinitions" [options]="gridOptions" [dataset]="dataset"
+    (onAngularGridCreated)="angularGridReady($event.detail)"
+    (onSelectedRowsChanged)="handleRowSelection($event.detail.eventData, $event.detail.args)">
+    <ng-template #slickgridHeader>
+
+        <form class="my-2" nz-form [nzLayout]="'inline'" (ngSubmit)="onSearch()">
+            <nz-form-item>
+                <nz-form-control nzErrorTip="Please input your username!">
+                    <nz-input-group nzPrefixIcon="user">
+                        <input formControlName="username" nz-input placeholder="username" />
+                    </nz-input-group>
+                </nz-form-control>
+            </nz-form-item>
+            <nz-form-item>
+                <nz-form-control nzErrorTip="Please input your Password!">
+                    <nz-input-group nzSearch [nzAddOnAfter]="suffixIconButton">
+                        <input type="text" nz-input placeholder="input search text" />
+                    </nz-input-group>
+                    <ng-template #suffixIconButton>
+                        <button nz-button nzType="primary" nzSearch><span nz-icon nzType="search"></span></button>
+                    </ng-template>
+                </nz-form-control>
+            </nz-form-item>
+            <!-- <nz-form-item>
+                <nz-form-control>
+                    <button nz-button nzType="primary">Log in</button>
+                </nz-form-control>
+            </nz-form-item> -->
+        </form>
+    </ng-template>
+
+    <!-- <ng-template #slickgridFooter>
+        <h3>Grid with header and footer slot</h3>
+    </ng-template> -->
+</angular-slickgrid>

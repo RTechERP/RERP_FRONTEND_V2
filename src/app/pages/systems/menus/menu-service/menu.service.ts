@@ -133,6 +133,7 @@ import { WFHSummaryComponent } from '../../../hrm/employee-management/employee-w
 import { EmployeeNoFingerSummaryComponent } from '../../../hrm/employee-management/employee-no-fingerprint/employee-no-finger-summary/employee-no-finger-summary.component';
 import { EmployeeNightShiftPersonSummaryComponent } from '../../../hrm/employee-management/employee-night-shift/employee-night-shift-person-summary/employee-night-shift-person-summary.component';
 import { EmployeeBussinessPersonSummaryComponent } from '../../../hrm/employee-management/employee-bussiness/employee-bussiness-person-summary/employee-bussiness-person-summary.component';
+import { WorkplanComponent } from '../../../person/workplan/workplan.component';
 @Injectable({
     providedIn: 'root',
 })
@@ -3073,12 +3074,12 @@ export class MenuService {
                         children: [
                             {
                                 kind: 'leaf',
-                                key: 'kehoachcongvieccanhan',
+                                key: 'WorkplanComponent',
                                 title: 'Cá nhân',
                                 isOpen: true,
                                 isPermission: this.permissionService.hasPermission(''),
-                                comp: PersonComponent,
-                                router: '/kehoachcongvieccanhan',
+                                comp: WorkplanComponent,
+                                router: '',
                             },
 
                             {
@@ -3315,6 +3316,8 @@ export class MenuService {
                             tbp: true,
                         },
                     },
+
+
                 ],
             },
             //#endregion

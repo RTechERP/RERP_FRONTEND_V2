@@ -47,6 +47,7 @@ import { CustomerServiceService } from '../../customer/customer-service/customer
 import { NOTIFICATION_TITLE } from '../../../../app.config';
 import { AppUserService } from '../../../../services/app-user.service';
 import { HasPermissionDirective } from '../../../../directives/has-permission.directive';
+import { TabulatorPopupService } from '../../../../shared/components/tabulator-popup';
 @Component({
   standalone: true,
   imports: [
@@ -108,10 +109,44 @@ export class BillExportTechnicalFormComponent implements OnInit, AfterViewInit {
   title:string = 'Phiếu xuất kho';
   private ngbModal = inject(NgbModal);
   private appUserService = inject(AppUserService);
+  // REFACTOR: Định nghĩa columns cho product popup (tái sử dụng được)
+  productPopupColumns: ColumnDefinition[] = [
+    {
+      title: 'Mã SP',
+      field: 'ProductCode',
+      width: 120,
+      headerSort: false,
+    },
+    {
+      title: 'Tên sản phẩm',
+      field: 'ProductName',
+      width: 200,
+      headerSort: false,
+    },
+    {
+      title: 'Mã nội bộ',
+      field: 'ProductCodeRTC',
+      width: 120,
+      headerSort: false,
+    },
+    {
+      title: 'Tồn kho',
+      field: 'InventoryReal',
+      width: 100,
+      headerSort: false,
+      hozAlign: 'right',
+      formatter: (cell) => {
+        const val = cell.getValue();
+        return val !== null && val !== undefined ? val : '0';
+      },
+    },
+  ];
+
   constructor(
     private billExportTechnicalService: BillExportTechnicalService,
     private billImportTechnicalService: BillImportTechnicalService,
-    private billExportService: BillExportService
+    private billExportService: BillExportService,
+    private tabulatorPopupService: TabulatorPopupService
   ) {}
   close() {
     this.closeModal.emit();
@@ -347,7 +382,7 @@ export class BillExportTechnicalFormComponent implements OnInit, AfterViewInit {
       .subscribe((response: any) => {
         if (response && response.status === 1 && response.data) {
           this.productOptions = response.data.map((p: any) => ({
-            ID: p.ID,
+            ID: status === 1 ? p.ID : p.ProductRTCID, // Nếu status != 1 thì dùng ProductRTCID    
             ProductCode: p.ProductCode,
             ProductName: p.ProductName,
             ProductCodeRTC: p.ProductCodeRTC,
@@ -356,6 +391,7 @@ export class BillExportTechnicalFormComponent implements OnInit, AfterViewInit {
             UnitCountName: p.UnitCountName,
             NumberInStore: p.NumberInStore,
             TotalQuantityReal: p.TotalQuantityReal || 0,
+            InventoryReal: p.InventoryReal || p.TotalQuantityReal || 0, // Tồn kho
             ProductRTCQRCodeID: p.ProductRTCQRCodeID || p.ID, // Lưu ProductRTCQRCodeID
             ProjectID: p.ProjectID || null, // Lưu ProjectID từ API
             ProjectName: p.ProjectName || '', // Lưu ProjectName từ API
@@ -567,7 +603,7 @@ export class BillExportTechnicalFormComponent implements OnInit, AfterViewInit {
             `;
           },
           cellClick: (e, cell) => {
-            if (!this.IsApproved) this.toggleProductTable(cell);
+            if (!this.IsApproved) this.showProductPopup(cell);
           },
         },
         { title: 'Mã sản phẩm', field: 'ProductCode', visible: false },
@@ -888,7 +924,88 @@ export class BillExportTechnicalFormComponent implements OnInit, AfterViewInit {
     }, 0);
   }
 
-  // Toggle popup table cho chọn sản phẩm
+  // REFACTOR: Hàm mới thay thế toggleProductTable - sử dụng TabulatorPopupService
+  showProductPopup(cell: CellComponent) {
+    const cellElement = cell.getElement();
+
+    // Toggle: nếu đang mở thì đóng
+    if (cellElement.classList.contains('popup-open')) {
+      this.tabulatorPopupService.close();
+      return;
+    }
+
+    // Mở popup mới với TabulatorPopupService
+    this.tabulatorPopupService.open(
+      {
+        data: this.productOptions || [],
+        columns: this.productPopupColumns,
+        searchFields: ['ProductCode', 'ProductName', 'ProductCodeRTC'],
+        searchPlaceholder: 'Tìm kiếm sản phẩm...',
+        height: '300px',
+        selectableRows: 1,
+        layout: 'fitColumns',
+        minWidth: '500px',
+        maxWidth: '700px',
+        onRowSelected: (selectedProduct) => {
+          const parentRow = cell.getRow();
+          const selectedProductRTCQRCodeID = selectedProduct.ProductRTCQRCodeID;
+
+          // Chỉ kiểm tra duplicate nếu ProductRTCQRCodeID có giá trị
+          if (selectedProductRTCQRCodeID) {
+            const currentRowIndex = parentRow.getPosition();
+            const allRows = this.deviceTempTable?.getData() || [];
+
+            // Kiểm tra duplicate ProductRTCQRCodeID (chỉ so sánh với các row khác, không phải row hiện tại)
+            for (let i = 0; i < allRows.length; i++) {
+              // Bỏ qua row hiện tại
+              if (i === currentRowIndex) continue;
+              
+              const row = allRows[i];
+              // Chỉ kiểm tra nếu row có ProductRTCQRCodeID và trùng với sản phẩm đang chọn
+              if (row.ProductRTCQRCodeID && row.ProductRTCQRCodeID === selectedProductRTCQRCodeID) {
+                this.notification.warning(
+                  NOTIFICATION_TITLE.warning,
+                  `Sản phẩm "${selectedProduct.ProductCode}" đã được chọn. Vui lòng chọn sản phẩm khác.`
+                );
+                return; // Không cho chọn
+              }
+            }
+          }
+
+          // Fill dữ liệu vào row cha
+          parentRow.update({
+            ProductID: selectedProduct.ID,
+            ProductCode: selectedProduct.ProductCode,
+            ProductName: selectedProduct.ProductName,
+            ProductCodeRTC: selectedProduct.ProductCodeRTC,
+            UnitCountName: selectedProduct.UnitCountName,
+            UnitCountID: selectedProduct.UnitCountID,
+            Maker: selectedProduct.Maker,
+            NumberInStore: selectedProduct.NumberInStore,
+            Quantity: 1,
+            ProductRTCQRCodeID: selectedProductRTCQRCodeID,
+          });
+
+          // Đóng popup
+          this.tabulatorPopupService.close();
+
+          // Focus vào cell Quantity sau khi chọn sản phẩm
+          setTimeout(() => {
+            const quantityCell = parentRow.getCell('Quantity');
+            if (quantityCell) {
+              quantityCell.edit();
+            }
+          }, 100);
+        },
+        onClosed: () => {
+          // Optional: xử lý khi popup đóng
+        },
+      },
+      cellElement
+    );
+  }
+
+  // Toggle popup table cho chọn sản phẩm (DEPRECATED - giữ lại để tham khảo)
   toggleProductTable(cell: any) {
     const cellElement = cell.getElement();
 

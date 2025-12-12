@@ -38,6 +38,7 @@ import { CommonModule } from '@angular/common';
 import { RouterTestingHarness } from '@angular/router/testing';
 import { DEFAULT_TABLE_CONFIG } from '../../../../../../tabulator-default.config';
 import { AppUserService } from '../../../../../../services/app-user.service';
+import { ID_ADMIN_DEMO_LIST } from '../../../../../../app.config';
 
 @Component({
   selector: 'app-borrow-product-history-detail',
@@ -415,8 +416,7 @@ export class BorrowProductHistoryDetailComponent implements OnInit {
               SerialNumber: item.SerialNumber || '',
               IsDelete: false
             };
-              console.log('data',data);
-              const IDAdminDemo = [24, 1434, 88, 1534];
+              const IDAdminDemo = ID_ADMIN_DEMO_LIST || [];
               const userId = this.appUserService?.id || 0;
               const isAdmin = IDAdminDemo.includes(userId);
               const isGlobalAdmin = this.appUserService?.isAdmin || false;

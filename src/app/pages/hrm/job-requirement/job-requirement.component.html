@@ -132,7 +132,41 @@
                 >
                   <nz-icon nzType="search" />
                 </button>
-                  <button
+                <button
+                  class="btn-add"
+                  nz-button
+                  nzType="default"
+                  nzSize="small"
+                  (click)="onAddJobRequirement(false)"
+                  *hasPermission="'N34'"
+                >
+                  <img src="assets/icon/action_add_item_16.png" /> Thêm
+                </button>
+                <button
+                  class="btn-edit"
+                  nz-button
+                  nzType="default"
+                  nzSize="small"
+                  (click)="onAddJobRequirement(true)"
+                  *hasPermission="'N34'"
+                >
+                  <img src="assets/icon/action_edit_item_16.png" />Sửa
+                </button>
+                <button
+                  class="btn-delete"
+                  nz-button
+                  nzType="default"
+                  nzSize="small"
+                  (click)="onDeleteJobRequirement()"
+                  *hasPermission="'N34'"
+                >
+                  <img src="assets/icon/action_delete_item_16.png" /> Xóa
+                </button>
+                <button class="fs-12" nz-button nzType="default" nzSize="small">
+                  <img src="assets/icon/action_export_excel_16.png" /> Xuất
+                  Excel
+                </button>
+                <button
                   class="fs-12 btn"
                   nz-button
                   nzType="default"
@@ -149,18 +183,18 @@
 
                 <nz-dropdown-menu #TBPMenu="nzDropdownMenu">
                   <ul nz-menu>
-                      <li nz-menu-item >
-                        <img src="assets/icon/action_approved_16.png" />
-                        <span class="ms-1">Duyệt</span>
-                      </li>
-                      <li nz-menu-item>
-                        <img src="assets/icon/action_unapproved_16.png" />
-                        <span class="ms-1">Hủy duyệt</span>
-                      </li>
-                    </ul>
+                    <li nz-menu-item>
+                      <img src="assets/icon/action_approved_16.png" />
+                      <span class="ms-1">Duyệt</span>
+                    </li>
+                    <li nz-menu-item>
+                      <img src="assets/icon/action_unapproved_16.png" />
+                      <span class="ms-1">Hủy duyệt</span>
+                    </li>
+                  </ul>
                 </nz-dropdown-menu>
 
-                 <button
+                <button
                   class="fs-12 btn"
                   nz-button
                   nzType="default"
@@ -177,34 +211,63 @@
 
                 <nz-dropdown-menu #ActionMenu="nzDropdownMenu">
                   <ul nz-menu>
-                        <li nz-menu-item >
-                        <img src="assets/icon/action_approved_16.png" />
-                        <span class="ms-1">Duyệt</span>
-                      </li>
-                      <li nz-menu-item>
-                        <img src="assets/icon/action_unapproved_16.png" />
-                        <span class="ms-1">Hủy duyệt</span>
-                      </li>
-                    <li nz-menu-item 
-                        (click)="onAddJobrequirement(false)"
-                        [nzDisabled]="!canAddOrEdit()" class="btn-add">
+                    <li nz-menu-item>
+                      <img src="assets/icon/surver_16.png" />
+                      <span class="ms-1">Duyệt yêu cầu</span>
+                    </li>
+                    <li nz-menu-item>
+                      <img
+                        src="assets/icon/reject.png"
+                        style="width: 16px; height: 16px"
+                      />
+                      <span class="ms-1">Hủy yêu cầu</span>
+                    </li>
+                    <li
+                      nz-menu-divider
+                      style="border-top: 2px solid #d9d9d9; margin: 4px 0"
+                    ></li>
+                    <li nz-menu-item>
+                      <img src="assets/icon/action_approved_16.png" />
+                      <span class="ms-1">TBP Duyệt</span>
+                    </li>
+                    <li nz-menu-item>
+                      <img src="assets/icon/action_unapproved_16.png" />
+                      <span class="ms-1">TBP hủy duyệt</span>
+                    </li>
+                    <li
+                      nz-menu-divider
+                      style="border-top: 2px solid #d9d9d9; margin: 4px 0"
+                    ></li>
+                    <li
+                      nz-menu-item
+                      (click)="onAddSupplier(false)"
+                      [nzDisabled]="!canAddOrEdit()"
+                      class="btn-add"
+                    >
                       <img src="assets/icon/action_add_item_16.png" />
                       <span class="ms-1">Thêm đề xuất</span>
                     </li>
-                    <li nz-menu-item 
-                        (click)="onAddJobrequirement(true)"
-                        [nzDisabled]="!canAddOrEdit() || JobrequirementID === 0" class="btn-edit">
+                    <li
+                      nz-menu-item
+                      (click)="onAddSupplier(true)"
+                      [nzDisabled]="!canAddOrEdit() || JobrequirementID === 0"
+                      class="btn-edit"
+                    >
                       <img src="assets/icon/action_edit_item_16.png" />
                       <span class="ms-1">Sửa đề xuất</span>
                     </li>
-                    <li nz-menu-item (click)="onOpenDepartmentRequired()" class="btn">
+                    <li
+                      nz-menu-item
+                      (click)="onOpenDepartmentRequired()"
+                      class="btn"
+                    >
                       <img src="assets/icon/btn_veiw_package_16.png" />
                       <span class="ms-1">Xem chi tiết đề xuất</span>
                     </li>
                   </ul>
                 </nz-dropdown-menu>
 
-                 <button
+                <button
                   class="fs-12 btn"
                   nz-button
                   nzType="default"
@@ -213,23 +276,23 @@
                   [nzDropdownMenu]="BGDMenu"
                   nzTrigger="hover"
                   nzPlacement="bottomLeft"
-                  *hasPermission="'N1, N2'"
+                  *hasPermission="'N34, N1, N2'"
                 >
                   <nz-icon nzType="menu" nzTheme="outline"></nz-icon>
-                  Trưởng Bộ Phận
+                  Ban Giám Đốc
                 </button>
 
                 <nz-dropdown-menu #BGDMenu="nzDropdownMenu">
                   <ul nz-menu>
-                      <li nz-menu-item >
-                        <img src="assets/icon/action_approved_16.png" />
-                        <span class="ms-1">Duyệt</span>
-                      </li>
-                      <li nz-menu-item>
-                        <img src="assets/icon/action_unapproved_16.png" />
-                        <span class="ms-1">Hủy duyệt</span>
-                      </li>
-                    </ul>
+                    <li nz-menu-item>
+                      <img src="assets/icon/action_approved_16.png" />
+                      <span class="ms-1">Duyệt</span>
+                    </li>
+                    <li nz-menu-item>
+                      <img src="assets/icon/action_unapproved_16.png" />
+                      <span class="ms-1">Hủy duyệt</span>
+                    </li>
+                  </ul>
                 </nz-dropdown-menu>
               </div>
             </div>
@@ -238,10 +301,10 @@
                 <nz-splitter>
                   <nz-splitter-panel nzDefaultSize="70%">
                     <nz-splitter nzLayout="vertical">
-                      <nz-splitter-panel >
+                      <nz-splitter-panel>
                         <div #JobrequirementTable></div>
                       </nz-splitter-panel>
-                      <nz-splitter-panel >
+                      <nz-splitter-panel>
                         <div #JobrequirementDetailTable></div>
                       </nz-splitter-panel>
                     </nz-splitter>

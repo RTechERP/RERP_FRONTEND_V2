@@ -133,6 +133,7 @@ import { WFHSummaryComponent } from '../../../hrm/employee-management/employee-w
 import { EmployeeNoFingerSummaryComponent } from '../../../hrm/employee-management/employee-no-fingerprint/employee-no-finger-summary/employee-no-finger-summary.component';
 import { EmployeeNightShiftPersonSummaryComponent } from '../../../hrm/employee-management/employee-night-shift/employee-night-shift-person-summary/employee-night-shift-person-summary.component';
 import { EmployeeBussinessPersonSummaryComponent } from '../../../hrm/employee-management/employee-bussiness/employee-bussiness-person-summary/employee-bussiness-person-summary.component';
+import { JobRequirementComponent } from '../../../hrm/job-requirement/job-requirement.component';
 import { WorkplanComponent } from '../../../person/workplan/workplan.component';
 import { ProjectPartlistPriceRequestNewComponent } from '../../../purchase/project-partlist-price-request-new/project-partlist-price-request-new.component';
 import { DailyReportSaleAdminComponent } from '../../../old/KPISale/daily-report-sale-admin/daily-report-sale-admin.component';
@@ -1325,25 +1326,25 @@ export class MenuService {
                     },
                     {
                         kind: 'group',
-                        key: 'DexuatHR',
-                        title: 'Đề xuất của HR',
+                        key: 'JobRequirementComponent',
+                        title: 'Yêu cầu công việc',
                         isOpen: true,
                         isPermission: this.permissionService.hasPermission('N2, N34, N1'),
                         // icon: 'assets/icon/hr_asset_24.svg',
                         children: [
                             {
                                 kind: 'leaf',
-                                key: 'RecommendSupplierComponent',
-                                title: 'Đề xuất nhà cung cấp',
+                                key: 'yeucaucongviec',
+                                title: 'Yêu cầu công việc',
                                 isOpen: true,
                                 isPermission: this.permissionService.hasPermission('N2,N34,N1'),
-                                comp: RecommendSupplierComponent,
+                                comp: JobRequirementComponent,
                                 //       icon: 'assets/icon/hr_documentt_24.svg',
                             },
                             {
                                 kind: 'leaf',
                                 key: 'HRPurchaseProposalComponent',
-                                title: 'Chi tiết đề xuất ',
+                                title: 'Tổng hợp đề xuất ',
                                 isOpen: true,
                                 isPermission: this.permissionService.hasPermission('N2,N34,N1'),
                                 comp: HrPurchaseProposalComponent,
@@ -2743,10 +2744,17 @@ export class MenuService {
                                 title: 'Đặt cơm',
                                 isOpen: true,
                                 isPermission: this.permissionService.hasPermission(''),
-                                comp: PersonComponent,
-                                router: '/comca',
+                                comp: FoodOrderComponent,
                             },
-
+                              {
+                                kind: 'leaf',
+                                key: 'quenvantay',
+                                title: 'Quên Vân tay',
+                                isOpen: true,
+                                isPermission: this.permissionService.hasPermission(''),
+                                comp: EmployeeNoFingerprintComponent,
+                                //   icon: 'assets/icon/layers.png',
+                            },
                             {
                                 kind: 'leaf',
                                 key: 'danhsachdangkynghi',
@@ -2793,8 +2801,7 @@ export class MenuService {
                                 title: 'Làm đêm',
                                 isOpen: true,
                                 isPermission: this.permissionService.hasPermission(''),
-                                comp: PersonComponent,
-                                router: '/lamdem',
+                                comp: EmployeeNightShiftComponent,
                             },
 
                             {
@@ -2803,8 +2810,7 @@ export class MenuService {
                                 title: 'WFH',
                                 isOpen: true,
                                 isPermission: this.permissionService.hasPermission(''),
-                                comp: PersonComponent,
-                                router: '/wfh',
+                                comp: WFHComponent,
                             },
                             {
                                 kind: 'leaf',

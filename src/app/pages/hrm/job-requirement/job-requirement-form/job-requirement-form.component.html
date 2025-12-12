@@ -1,0 +1,255 @@
+<div class="modal-header bg-primary text-uppercase py-2 flex-shrink-0">
+  <h6 class="modal-title text-white">Chi tiết phiếu yêu cầu công việc</h6>
+  <button
+    type="button"
+    class="btn-close"
+    (click)="closeModal()"
+    aria-label="Close"
+  ></button>
+</div>
+<div class="modal-body p-2 flex-grow-1">
+  <form nz-form [formGroup]="formGroup" class="mt-2 mb-2">
+    <!-- Dòng 1: 4 ô -->
+    <div class="row gx-2">
+      <div class="col-md-3">
+        <nz-form-item class="mb-0">
+          <nz-form-label class="fs-12 required-label p-0" [nzSpan]="24">
+            Chọn nhân viên<span class="text-danger ps-1 me-1"> (*)</span>
+          </nz-form-label>
+          <nz-form-control
+            [nzSpan]="24"
+            [nzErrorTip]="
+              formGroup.get('EmployeeID')?.hasError('required') &&
+              (formGroup.get('EmployeeID')?.dirty ||
+                formGroup.get('EmployeeID')?.touched)
+                ? 'Vui lòng chọn nhân viên yêu cầu!'
+                : formGroup.get('EmployeeID')?.hasError('maxlength')
+                ? 'Tên loại tối đa 100 ký tự!'
+                : undefined
+            "
+          >
+            <nz-select
+              formControlName="EmployeeID"
+              nzPlaceHolder="Chọn nhân viên"
+              style="width: 100%"
+              name="EmployeeID"
+              nzShowSearch
+              [nzFilterOption]="filterOption"
+              nzAllowClear
+              (ngModelChange)="onSelectEmployee($event)"
+            >
+              <nz-option-group
+                *ngFor="let group of cbbEmployeeGroup"
+                [nzLabel]="group.department"
+              >
+                <nz-option
+                  *ngFor="let emp of group.employees"
+                  [nzLabel]="emp.Code + ' - ' + emp.FullName"
+                  [nzValue]="emp.ID"
+                ></nz-option>
+              </nz-option-group>
+            </nz-select>
+          </nz-form-control>
+        </nz-form-item>
+      </div>
+      <div class="col-md-3">
+        <nz-form-item class="mb-0">
+          <nz-form-label class="fs-12 p-0" [nzSpan]="24"
+            >Bộ phận yêu cầu</nz-form-label
+          >
+          <nz-form-control
+            [nzSpan]="24"
+            [nzErrorTip]="
+              formGroup.get('EmployeeDepartment')?.hasError('required') &&
+              (formGroup.get('EmployeeDepartment')?.dirty ||
+                formGroup.get('EmployeeDepartment')?.touched)
+                ? 'Vui lòng chọn phòng ban!'
+                : undefined
+            "
+          >
+            <nz-select
+              formControlName="EmployeeDepartment"
+              [nzPlaceHolder]="'Chọn phòng ban'"
+              style="width: 100%"
+              name="EmployeeDepartment"
+              required
+            >
+              <nz-option
+                *ngFor="let item of dataDepartment"
+                [nzLabel]="item.Name"
+                [nzValue]="item.ID"
+              ></nz-option>
+            </nz-select>
+          </nz-form-control>
+        </nz-form-item>
+      </div>
+      <div class="col-md-3">
+        <nz-form-item class="mb-0">
+          <nz-form-label class="fs-12 required-label p-0" [nzSpan]="24"
+            >Ngày yêu cầu<span class="text-danger ps-1 me-1"> (*)</span>
+          </nz-form-label>
+          <nz-form-control
+            [nzSpan]="24"
+            [nzErrorTip]="
+              formGroup.get('DateRequest')?.invalid &&
+              (formGroup.get('DateRequest')?.dirty ||
+                formGroup.get('DateRequest')?.touched)
+                ? 'Vui lòng chọn ngày yêu cầu!'
+                : undefined
+            "
+          >
+            <input
+              nz-input
+              type="date"
+              name="DateRequest"
+              formControlName="DateRequest"
+            />
+          </nz-form-control>
+        </nz-form-item>
+      </div>
+      <div class="col-md-3">
+        <nz-form-item class="mb-0">
+          <nz-form-label class="fs-12 required-label p-0" [nzSpan]="24"
+            >Thời gian hoàn thành<span class="text-danger ps-1 me-1"> (*)</span>
+          </nz-form-label>
+          <nz-form-control
+            [nzSpan]="24"
+            [nzErrorTip]="
+              formGroup.get('DeadlineRequest')?.invalid &&
+              (formGroup.get('DeadlineRequest')?.dirty ||
+                formGroup.get('DeadlineRequest')?.touched)
+                ? 'Vui lòng chọn thời gian hoàn thành!'
+                : undefined
+            "
+          >
+            <input
+              nz-input
+              type="date"
+              name="DeadlineRequest"
+              formControlName="DeadlineRequest"
+            />
+          </nz-form-control>
+        </nz-form-item>
+      </div>
+      <div class="col-md-3">
+        <nz-form-item class="mb-0">
+          <nz-form-label class="fs-12 p-0" [nzSpan]="24"
+            >Trưởng bộ phận duyệt<span class="text-danger ps-1 me-1">
+              (*)</span
+            ></nz-form-label
+          >
+          <nz-form-control
+            [nzSpan]="24"
+            [nzErrorTip]="
+              formGroup.get('DepartmentID')?.hasError('required') &&
+              (formGroup.get('DepartmentID')?.dirty ||
+                formGroup.get('DepartmentID')?.touched)
+                ? 'Vui lòng chọn trưởng bộ phận duyệt'
+                : undefined
+            "
+          >
+            <nz-select
+              formControlName="DepartmentID"
+              [nzPlaceHolder]="'Chọn phòng ban'"
+              style="width: 100%"
+              name="DepartmentID"
+              required
+            >
+              <nz-option
+                *ngFor="let item of dataDepartment"
+                [nzLabel]="item.Name"
+                [nzValue]="item.ID"
+              ></nz-option>
+            </nz-select>
+          </nz-form-control>
+        </nz-form-item>
+      </div>
+      <div class="col-md-3">
+        <nz-form-item class="mb-0">
+          <nz-form-label class="fs-12 p-0" [nzSpan]="24"
+            >Bộ phận được yêu cầu<span class="text-danger ps-1 me-1">
+              (*)</span
+            ></nz-form-label
+          >
+          <nz-form-control
+            [nzSpan]="24"
+            [nzErrorTip]="
+              formGroup.get('RequiredDepartment')?.hasError('required') &&
+              (formGroup.get('RequiredDepartment')?.dirty ||
+                formGroup.get('RequiredDepartment')?.touched)
+                ? 'Vui lòng chọn bộ phận được yêu cầu!'
+                : undefined
+            "
+          >
+            <nz-select
+              formControlName="RequiredDepartment"
+              [nzPlaceHolder]="'Chọn phòng ban'"
+              style="width: 100%"
+              name="RequiredDepartment"
+              required
+            >
+              <nz-option
+                *ngFor="let item of dataDepartment"
+                [nzLabel]="item.Name"
+                [nzValue]="item.ID"
+              ></nz-option>
+            </nz-select>
+          </nz-form-control>
+        </nz-form-item>
+      </div>
+      <div class="col-md-6">
+        <nz-form-item class="mb-0">
+          <nz-form-label class="fs-12 p-0" [nzSpan]="24"
+            >Bộ phận phối hợp</nz-form-label
+          >
+          <nz-form-control
+            [nzSpan]="24"
+            [nzErrorTip]="
+              formGroup.get('DepartmentID')?.hasError('required') &&
+              (formGroup.get('DepartmentID')?.dirty ||
+                formGroup.get('DepartmentID')?.touched)
+                ? 'Vui lòng chọn phòng ban!'
+                : undefined
+            "
+          >
+            <nz-select
+              formControlName="DepartmentID"
+              [nzPlaceHolder]="'Chọn phòng ban'"
+              style="width: 100%"
+              name="DepartmentID"
+              required
+            >
+              <nz-option
+                *ngFor="let item of dataDepartment"
+                [nzLabel]="item.Name"
+                [nzValue]="item.ID"
+              ></nz-option>
+            </nz-select>
+          </nz-form-control>
+        </nz-form-item>
+      </div>
+    </div>
+  </form>
+
+  <nz-splitter style="height: 59vh !important">
+    <nz-splitter-panel>
+      <div class="card-body p-0" style="height: 100%">
+        <div id="handoverReceiver" style="width: 100%; height: 100%"></div>
+      </div>
+    </nz-splitter-panel>
+    <nz-splitter-panel>
+      <div class="card-body p-0" style="height: 100%">
+        <div id="handoverReceiver1" style="width: 100%; height: 100%"></div>
+      </div>
+    </nz-splitter-panel>
+  </nz-splitter>
+</div>
+
+<div class="modal-footer flex-shrink-0">
+  <button class="fs-12 btn" nz-button nzDanger (click)="closeModal()">
+    Đóng
+  </button>
+  <button class="fs-12 btn" nz-button nzType="primary" (click)="saveData()">
+    Lưu
+  </button>
+</div>

@@ -144,6 +144,7 @@ export class EmployeeNightShiftComponent implements OnInit, AfterViewInit, OnDes
     ).subscribe(() => {
       this.getNightShift();
     });
+    
   }
 
   ngOnDestroy(): void {
@@ -159,6 +160,7 @@ export class EmployeeNightShiftComponent implements OnInit, AfterViewInit, OnDes
     this.employeeAttendanceService.getDepartment().subscribe({
       next: (res: any) => {
         if (res?.status === 1) this.departments = res.data || [];
+        console.log('Departments:', this.departments);
       },
       error: (res: any) =>
         this.notification.error(NOTIFICATION_TITLE.error, res.error?.message || 'Không thể tải danh sách phòng ban'),

@@ -31,6 +31,7 @@ import { NzTabsModule } from 'ng-zorro-antd/tabs';
 import { DateTime } from 'luxon';
 import { NzSpinModule } from 'ng-zorro-antd/spin';
 import { NzTreeSelectModule } from 'ng-zorro-antd/tree-select';
+import { NzCheckboxModule } from 'ng-zorro-antd/checkbox';
 import * as ExcelJS from 'exceljs';
 import { NzNotificationService } from 'ng-zorro-antd/notification';
 import { NzModalModule, NzModalService } from 'ng-zorro-antd/modal';
@@ -70,6 +71,7 @@ import { ProjectItemProblemComponent } from './work-item-form/project-item-probl
     NzSpinModule,
     NzTreeSelectModule,
     NzModalModule,
+    NzCheckboxModule,
     // SelectControlComponent,
   ],
   templateUrl: './work-item.component.html',
@@ -108,8 +110,7 @@ export class WorkItemComponent implements OnInit, AfterViewInit {
   currentUser: any = null;
   //tree
   treeWorkItemData: any = [];
-  filterStatus: string = '0,1,2'; // Mặc định hiển thị cả "Chưa làm" (0) và "Đang làm" (1)
-  // Giá trị: 'all' = Tất cả, '0,1' = Chưa làm và Đang làm, '0' = Chưa làm, '1' = Đang làm, v.v.
+  filterStatus: number[] = [0, 1]; // Mặc định chọn "Chưa làm" (0) và "Đang làm" (1)
 
   ngOnInit(): void {
     this.dataStatus = [
@@ -142,9 +143,16 @@ export class WorkItemComponent implements OnInit, AfterViewInit {
   }
   getCurrentUser() {
     this.authService.getCurrentUser().subscribe((res: any) => {
-      const data = res?.data;
-      this.currentUser = Array.isArray(data) ? data[0] : data;
-      console.log('CurrentUser', this.currentUser);
+      if (res && res.status === 1 && res.data) {
+        const data = Array.isArray(res.data) ? res.data[0] : res.data;
+        this.currentUser = data;
+        // Đảm bảo có đầy đủ thông tin cần thiết
+        console.log('CurrentUser', this.currentUser);
+        console.log('EmployeeID:', this.currentUser?.EmployeeID);
+        console.log('HeadofDepartment:', this.currentUser?.HeadofDepartment || this.currentUser?.HeadOfDepartment);
+        console.log('PositionCode:', this.currentUser?.PositionCode);
+        console.log('IsAdmin:', this.currentUser?.IsAdmin || this.currentUser?.ISADMIN);
+      }
     });
   }
 
@@ -190,14 +198,26 @@ export class WorkItemComponent implements OnInit, AfterViewInit {
     const rowData = row.getData();
     const fieldName = cell.getField();
     const id = rowData.ID || 0;
+    const stt = rowData.STT || '';
 
-    // Chỉ validate cho row có ID > 0 (đã lưu vào DB)
+    // Validate cột "Người phụ trách" (UserID) chỉ cho dòng mới (ID <= 0)
+    if (fieldName === 'UserID' && id <= 0) {
+      const userID = cell.getValue();
+      if (!userID || userID === 0) {
+        return {
+          valid: false,
+          errorText: `Dòng STT: ${stt}\nVui lòng chọn người phụ trách!`,
+        };
+      }
+    }
+
+    // Chỉ validate quyền cho row có ID > 0 (đã lưu vào DB)
     if (id <= 0) {
       return { valid: true };
     }
 
-    // Kiểm tra IsAdmin
-    const isAdmin = this.currentUser?.IsAdmin || false;
+    // Kiểm tra IsAdmin (giống WinForm: Global.IsAdmin)
+    const isAdmin = this.currentUser?.IsAdmin || this.currentUser?.ISADMIN || false;
     if (isAdmin) {
       return { valid: true };
     }
@@ -211,7 +231,7 @@ export class WorkItemComponent implements OnInit, AfterViewInit {
     if (isApproved === 3) {
       return {
         valid: false,
-        errorText: 'Đã duyệt thực tế.\nBạn không thể cập nhật!',
+        errorText: `Dòng STT: ${stt}\nĐã duyệt thực tế.\nBạn không thể cập nhật!`,
       };
     }
 
@@ -219,7 +239,7 @@ export class WorkItemComponent implements OnInit, AfterViewInit {
     if (!this.checkIsPermission(createdBy, userID, employeeIDRequest)) {
       return {
         valid: false,
-        errorText: 'Bạn không thể cập nhật hạng mục của người khác!',
+        errorText: `Dòng STT: ${stt}\nBạn không thể cập nhật hạng mục của người khác!`,
       };
     }
 
@@ -618,8 +638,8 @@ export class WorkItemComponent implements OnInit, AfterViewInit {
         }
       });
 
-      // Redraw để áp dụng màu
-      this.tb_workItem.redraw(true);
+      // Redraw với false để chỉ redraw cells, không reset scroll (Tabulator tự động giữ scroll position)
+      this.tb_workItem.redraw(false);
     } catch (error) {
       console.error('❌ LỖI khi tính ItemLate:', error);
     }
@@ -873,8 +893,8 @@ export class WorkItemComponent implements OnInit, AfterViewInit {
       this.dataTableWorkItem &&
       this.dataTableWorkItem.length > 0
     ) {
-      // Redraw để formatter chạy lại và hiển thị label đúng
-      this.tb_workItem.redraw(true);
+      // Redraw với false để chỉ redraw cells, không reset scroll (Tabulator tự động giữ scroll position)
+      this.tb_workItem.redraw(false);
     }
   }
   loadData(): void {
@@ -894,13 +914,14 @@ export class WorkItemComponent implements OnInit, AfterViewInit {
 
           if (this.tb_workItem) {
             this.tb_workItem.setData(this.dataTableWorkItem).then(() => {
-              // Redraw để formatter chạy lại với dropdown data đã load
+              // Áp dụng filter ngay sau setData, trước khi redraw để tránh hiển thị tất cả dữ liệu
+              this.filterByStatus();
+              
+              // Redraw với false để chỉ redraw cells, không reset scroll
               setTimeout(() => {
-                this.tb_workItem.redraw(true);
+                this.tb_workItem.redraw(false);
                 // Tính toán ItemLate cho tất cả rows
                 this.updateItemLate();
-                // Áp dụng filter trạng thái sau khi load dữ liệu
-                this.filterByStatus();
               }, 100);
             });
           }
@@ -997,7 +1018,7 @@ export class WorkItemComponent implements OnInit, AfterViewInit {
         ItemLate: item.ItemLate ?? 0,
         TimeSpan: item.TimeSpan ?? 0,
         TypeProjectItem: item.TypeProjectItem ?? 0,
-        PercentageActual: item.PercentageActual ?? 0,
+        PercentageActual: item.PercentageActual || 0,
         EmployeeIDRequest: item.EmployeeIDRequest ?? 0,
         UpdatedDateActual: item.UpdatedDateActual
           ? new Date(item.UpdatedDateActual).toISOString()
@@ -1149,9 +1170,15 @@ export class WorkItemComponent implements OnInit, AfterViewInit {
       _children: [],
     };
 
-    console.log('✅ Đã thêm row mới:', newRow);
-
-    this.dataTableWorkItem = [...this.dataTableWorkItem, newRow];
+    // Thêm dòng mới vào đầu mảng để nó hiển thị đầu tiên
+    this.dataTableWorkItem = [newRow, ...this.dataTableWorkItem];
+    
+    // Sort dataTableWorkItem theo STT giảm dần (chỉ sort các parent rows, giữ nguyên children)
+    this.dataTableWorkItem.sort((a: any, b: any) => {
+      const aSTT = parseInt(a.STT, 10) || 0;
+      const bSTT = parseInt(b.STT, 10) || 0;
+      return bSTT - aSTT; // Giảm dần
+    });
 
     // Reload table
     if (this.tb_workItem) {
@@ -1172,7 +1199,7 @@ export class WorkItemComponent implements OnInit, AfterViewInit {
           if (rowElement) {
             rowElement.click();
           }
-          console.log('✅ Đã focus vào row mới:', this.nextRowId);
+
         }
 
         // Tính lại phần trăm
@@ -1196,7 +1223,8 @@ export class WorkItemComponent implements OnInit, AfterViewInit {
   }
 
   addChildRow(): void {
-    if (!this.selectedRow) {
+    const selectedRows = this.tb_workItem.getSelectedRows();
+    if (!selectedRows || selectedRows.length === 0) {
       this.notification.warning(
         'Thông báo',
         'Vui lòng chọn một hạng mục trước khi thêm hạng mục con!'
@@ -1204,7 +1232,8 @@ export class WorkItemComponent implements OnInit, AfterViewInit {
       return;
     }
 
-    const parentData = this.selectedRow.getData();
+    const selectedRow = selectedRows[0]; // Lấy row đầu tiên
+    const parentData = selectedRow.getData();
     const parentId = parentData.ID;
 
     // Kiểm tra cấp độ: chỉ cho phép thêm con đến cấp < 2
@@ -1219,18 +1248,9 @@ export class WorkItemComponent implements OnInit, AfterViewInit {
     }
 
     this.nextRowId = this.nextRowId - 1;
-
-    console.log('🔨 Thêm child vào parent ID:', parentId);
-
     // ✅ QUAN TRỌNG: Lấy children từ dataTableWorkItem (source data) để đảm bảo dữ liệu mới nhất
     const parentNode = this.findNodeInTree(this.dataTableWorkItem, parentId);
     const currentChildren = parentNode ? parentNode._children || [] : [];
-
-    console.log(
-      '📋 Children hiện tại:',
-      currentChildren.length,
-      currentChildren.map((c: any) => ({ ID: c.ID, STT: c.STT }))
-    );
 
     // Tìm STT lớn nhất trong các anh em (children cùng parent)
     let maxSTT = 0;
@@ -1329,8 +1349,6 @@ export class WorkItemComponent implements OnInit, AfterViewInit {
 
     console.log('🔄 Reloading table với data mới...');
     this.tb_workItem.setData(this.dataTableWorkItem);
-
-    // ✅ QUAN TRỌNG: Đợi table render xong rồi expand và tính lại
     setTimeout(() => {
       console.log('🔍 Tìm parent row để expand...');
       const parentRow = this.tb_workItem.getRow(parentId);
@@ -1362,10 +1380,6 @@ export class WorkItemComponent implements OnInit, AfterViewInit {
             if (rowElement) {
               rowElement.click();
             }
-            console.log(
-              '✅ Đã focus vào child row mới:',
-              newChildRow.getData().ID
-            );
           }
 
           // ✅ TÍNH LẠI PHẦN TRĂM SAU KHI EXPAND
@@ -1432,6 +1446,7 @@ export class WorkItemComponent implements OnInit, AfterViewInit {
 
     return ids;
   }
+  //#region vẽ bảng
   drawTbWorkItem(container: HTMLElement) {
     this.tb_workItem = new Tabulator(container, {
       ...DEFAULT_TABLE_CONFIG,
@@ -1545,37 +1560,50 @@ export class WorkItemComponent implements OnInit, AfterViewInit {
             }
 
             this.modal.confirm({
-              nzTitle: `Bạn có chắc chắn muốn xóa hạng mục`,
-              nzContent: `${data['Code']}?`,
+              nzTitle: `Bạn có chắc chắn muốn xóa hạng mục `,
+              nzContent: `${data['Code']}?\nThao tác này sẽ xóa tất cả các hạng mục con của hạng mục này!`,
               nzOkText: 'Xóa',
               nzOkType: 'primary',
               nzCancelText: 'Hủy',
               nzOkDanger: true,
               nzOnOk: () => {
-                // Kiểm tra quyền trước
+                // Kiểm tra quyền trước (giống WinForm)
+                debugger;
                 if (data['ID'] > 0) {
-                  if (data['IsApproved'] > 0) {
-                    this.notification.warning(
-                      'Thông báo',
-                      `Hạng mục này đang ${data['IsApprovedText']}`
-                    );
-                    return;
-                  }
+                  // Kiểm tra IsAdmin trước
+                  const isAdmin = this.currentUser?.IsAdmin || this.currentUser?.ISADMIN || false;
+                  
+                  if (!isAdmin) {
+                    const isApproved = data['IsApproved'] || 0;
+                    const isApprovedText = data['IsApprovedText'] || '';
+                    
+                    if (isApproved > 0) {
+                      this.notification.warning(
+                        'Thông báo',
+                        `Hạng mục này đang ${isApprovedText}!`
+                      );
+                      return;
+                    }
 
-                  const isTBP =
-                    this.currentUser.employee == 54 ||
-                    this.currentUser.EmployeeID ==
-                      this.currentUser.HeadofDepartment;
-                  const isPBP =
-                    this.currentUser.PositionCode == 'CV5' ||
-                    this.currentUser.PositionCode == 'CV28';
+                    // Kiểm tra quyền TBP và PBP (giống WinForm)
+                    const currentEmployeeID = this.currentUser?.EmployeeID || 0;
+                    const headOfDepartment = this.currentUser?.HeadofDepartment || this.currentUser?.HeadOfDepartment || 0;
+                    const positionCode = this.currentUser?.PositionCode || '';
+                    
+                    const isTBP = 
+                      currentEmployeeID == 54 || 
+                      currentEmployeeID == headOfDepartment;
+                    const isPBP = 
+                      positionCode == 'CV57' || 
+                      positionCode == 'CV28';
 
-                  if (!isTBP && !isPBP) {
-                    this.notification.warning(
-                      'Thông báo',
-                      'Bạn không có quyền xóa hạng mục\nVui lòng liên hệ với TBP'
-                    );
-                    return;
+                    if (!isTBP && !isPBP) {
+                      this.notification.warning(
+                        'Thông báo',
+                        'Bạn không thể xoá.\nVui lòng liên hệ TBP'
+                      );
+                      return;
+                    }
                   }
                 }
                 const idsToDelete = this.collectAllIds(data);
@@ -1621,6 +1649,7 @@ export class WorkItemComponent implements OnInit, AfterViewInit {
           title: 'STT',
           field: 'STT',
           hozAlign: 'center',
+          width:70,
         },
         {
           title: 'ParentID',
@@ -1631,14 +1660,14 @@ export class WorkItemComponent implements OnInit, AfterViewInit {
           title: 'Tình trạng',
           field: 'IsApprovedText',
           hozAlign: 'center',
-          width: 200,
+          width: 150,
         },
-        { title: 'Mã', field: 'Code', hozAlign: 'center', width: 150 },
+        { title: 'Mã', field: 'Code', hozAlign: 'center', width: 130 },
         {
           title: 'Kiểu dự án',
           field: 'TypeProjectItem',
           hozAlign: 'center',
-          width: 250,
+          width: 150,
           editor: this.createdControl(
             SelectControlComponent,
             this.injector,
@@ -1713,6 +1742,7 @@ export class WorkItemComponent implements OnInit, AfterViewInit {
           title: 'Người phụ trách',
           field: 'UserID',
           hozAlign: 'center',
+          width: 150,
           editor: this.createdControl(
             SelectControlComponent,
             this.injector,
@@ -1785,22 +1815,12 @@ export class WorkItemComponent implements OnInit, AfterViewInit {
             const employeeName = employee.name;
             return `<div class="d-flex justify-content-between align-items-center"><p class="w-100 m-0">${employeeName}</p> <i class="fas fa-angle-down"></i></div>`;
           },
-          // cellEdited: (cell: any) => {
-          //   const row = cell.getRow();
-          //   const newValue = cell.getValue();
-          //   const selectedEmployee = this.cbbEmployeeRequest.find((e: any) => e.id === newValue);
-          //   if (selectedEmployee) {
-          //     row.update({
-          //       EmployeeRequestID: newValue,
-          //       EmployeeRequestName: selectedEmployee.name,
-          //     });
-          //   }
-          // },
         },
         {
           title: 'Mã người yêu cầu',
           field: 'EmployeeRequestID',
           hozAlign: 'center',
+          width:250,
           editor: this.createdControl(
             SelectControlComponent,
             this.injector,
@@ -1840,6 +1860,7 @@ export class WorkItemComponent implements OnInit, AfterViewInit {
           title: 'Tên người yêu cầu',
           field: 'EmployeeRequestName',
           hozAlign: 'left',
+          editor: 'input',
         },
 
         {
@@ -1863,7 +1884,7 @@ export class WorkItemComponent implements OnInit, AfterViewInit {
           title: 'Công việc',
           field: 'Mission',
           hozAlign: 'left',
-          editor: 'input',
+          editor: 'textarea',
           formatter: 'textarea',
           width: 300,
         },
@@ -1986,7 +2007,6 @@ export class WorkItemComponent implements OnInit, AfterViewInit {
           formatterParams: { outputFormat: 'dd/MM/yyyy HH:mm' },
         },
         { title: 'Người tạo', field: 'CreatedName', hozAlign: 'left' },
-        { title: 'IsApproved', field: 'IsApproved', hozAlign: 'center' },
         {
           title: 'File đính kèm',
           field: 'openModalProjectItemFile',
@@ -2044,7 +2064,12 @@ export class WorkItemComponent implements OnInit, AfterViewInit {
     this.tb_workItem.on('cellEdited', (cell: any) => {
       this.handleCellValueChanged(cell);
     });
+    // tránh mất scroll position khi reload page
+    this.tb_workItem.on("pageLoaded", () => {
+      this.tb_workItem.redraw();
+    });
   }
+  //#endregion
 
   exportExcel(): void {
     if (!this.tb_workItem) return;
@@ -2060,7 +2085,15 @@ export class WorkItemComponent implements OnInit, AfterViewInit {
       // Bỏ qua cột đầu tiên (cột action) và các cột ẩn
       if (index === 0) return false;
       const colDef = col.getDefinition();
-      return colDef.visible !== false && colDef.field !== 'addRow';
+      // Bỏ qua các cột không cần xuất Excel
+      const excludeFields = [
+        'IsApproved',
+        'openModalProjectItemFile', // File đính kèm
+        'openModalReson', // Thêm phát sinh
+        'addRow'
+      ];
+      if (excludeFields.includes(colDef.field)) return false;
+      return colDef.visible !== false;
     });
 
     const workbook = new ExcelJS.Workbook();
@@ -2126,14 +2159,22 @@ export class WorkItemComponent implements OnInit, AfterViewInit {
           }
         }
 
-        // 4. Cột số: TotalDayPlan, TotalDayActual, PercentItem, PercentageActual, ItemLate
+        // 4. Map value sang label cho các cột có createdControl (dropdown) - phải làm trước khi xử lý number
+        // Status
+        if (field === 'Status' && value !== null && value !== undefined) {
+          const status = this.dataStatus.find((s: any) => s.id === value);
+          if (status) {
+            value = status.name;
+          }
+        }
+
+        // 5. Cột số: TotalDayPlan, TotalDayActual, PercentItem, PercentageActual, ItemLate
         const numberFields = [
           'TotalDayPlan',
           'TotalDayActual',
           'PercentItem',
           'PercentageActual',
           'ItemLate',
-          'Status',
           'IsApproved',
         ];
         if (numberFields.includes(field)) {
@@ -2163,7 +2204,100 @@ export class WorkItemComponent implements OnInit, AfterViewInit {
           }
         }
 
-        // 6. Căn chỉnh text
+        // 6. Map value sang label cho các cột có createdControl (dropdown)
+        // Nếu không tìm thấy label thì để trống
+        // TypeProjectItem
+        if (field === 'TypeProjectItem' && value !== null && value !== undefined && value !== '') {
+          const valNum = Number(value);
+          const valStr = String(value);
+          const typeProject = this.cbbTypeProject.find((t: any) => {
+            const tIdNum = Number(t.id);
+            const tIdStr = String(t.id);
+            return (
+              t.id == value ||
+              t.id === value ||
+              tIdNum === valNum ||
+              tIdStr === valStr
+            );
+          });
+          if (typeProject) {
+            value = typeProject.name;
+          } else {
+            value = ''; // Không tìm thấy label thì để trống
+          }
+        }
+        
+        // Status
+        if (field === 'Status' && value !== null && value !== undefined) {
+          const status = this.dataStatus.find((s: any) => s.id === value);
+          if (status) {
+            value = status.name;
+          } else {
+            value = ''; // Không tìm thấy label thì để trống
+          }
+        }
+        
+        // UserID (Người phụ trách) - nếu value = 0 hoặc không có label thì để trống
+        if (field === 'UserID') {
+          if (value === null || value === undefined || value === 0 || value === '') {
+            value = '';
+          } else {
+            const valNum = Number(value);
+            const valStr = String(value);
+            const employee = this.cbbEmployee.find((e: any) => {
+              const eIdNum = Number(e.id);
+              const eIdStr = String(e.id);
+              return (
+                e.id == value ||
+                e.id === value ||
+                eIdNum === valNum ||
+                eIdStr === valStr
+              );
+            });
+            if (employee) {
+              value = employee.name;
+            } else {
+              value = ''; // Không tìm thấy label thì để trống
+            }
+          }
+        }
+        
+        // EmployeeIDRequest (Người giao việc/Người yêu cầu) - nếu value = 0 hoặc không có label thì để trống
+        if (field === 'EmployeeIDRequest') {
+          if (value === null || value === undefined || value === 0 || value === '') {
+            value = '';
+          } else {
+            const employee = this.cbbEmployeeRequest.find((e: any) => e.id === value);
+            if (employee) {
+              value = employee.name;
+            } else {
+              value = ''; // Không tìm thấy label thì để trống
+            }
+          }
+        }
+        
+        // EmployeeRequestID (Mã người yêu cầu) - nếu value = 0 hoặc không có label thì để trống
+        if (field === 'EmployeeRequestID') {
+          if (value === null || value === undefined || value === 0 || value === '') {
+            value = '';
+          } else {
+            const user = this.cbbUser.find((u: any) => u.id === value);
+            if (user) {
+              value = user.code || user.name;
+            } else {
+              value = ''; // Không tìm thấy label thì để trống
+            }
+          }
+        }
+        
+        // EmployeeRequestName (Tên người yêu cầu) - nếu không có giá trị thì để trống
+        if (field === 'EmployeeRequestName') {
+          if (!value || value === null || value === undefined || value === '') {
+            value = '';
+          }
+        }
+
+        // 7. Căn chỉnh text
         if (field === 'Mission' || field === 'Note' || field === 'ReasonLate') {
           cell.alignment = {
             horizontal: 'left',
@@ -2255,33 +2389,18 @@ export class WorkItemComponent implements OnInit, AfterViewInit {
   filterByStatus(): void {
     if (!this.tb_workItem) return;
 
-    // Nếu chọn "Tất cả" (value = 'all' hoặc rỗng), hiển thị tất cả
-    if (
-      !this.filterStatus ||
-      this.filterStatus === 'all' ||
-      this.filterStatus === ''
-    ) {
+    // Nếu không có trạng thái nào được chọn, hiển thị tất cả
+    if (!this.filterStatus || this.filterStatus.length === 0) {
       this.tb_workItem.clearFilter();
       return;
     }
 
-    // Chuyển đổi string "0,1" thành array [0, 1]
-    const statusArray = this.filterStatus
-      .split(',')
-      .map((s) => parseInt(s.trim()))
-      .filter((n) => !isNaN(n));
-
-    if (statusArray.length > 0) {
-      // Filter theo nhiều giá trị Status sử dụng custom filter function
-      this.tb_workItem.setFilter((data: any) => {
-        const status = data.Status;
-        // Kiểm tra xem Status có trong danh sách statusArray không
-        return statusArray.includes(status);
-      });
-    } else {
-      // Nếu không có giá trị hợp lệ, clear filter
-      this.tb_workItem.clearFilter();
-    }
+    // Filter theo các giá trị Status đã chọn
+    this.tb_workItem.setFilter((data: any) => {
+      const status = data.Status;
+      // Kiểm tra xem Status có trong danh sách filterStatus không
+      return this.filterStatus.includes(status);
+    });
   }
   //#endregion
 

@@ -4,6 +4,7 @@ import { NgbActiveModal } from '@ng-bootstrap/ng-bootstrap';
 import { NzButtonModule } from 'ng-zorro-antd/button';
 import { TabulatorFull as Tabulator } from 'tabulator-tables';
 import 'tabulator-tables/dist/css/tabulator_simple.min.css';
+import { DEFAULT_TABLE_CONFIG } from '../../../../../../../../tabulator-default.config';
 
 @Component({
   selector: 'app-import-excel-diff',
@@ -46,19 +47,22 @@ export class ImportExcelDiffComponent implements OnInit, AfterViewInit {
 
     // Khởi tạo bảng Tabulator
     this.tableDiff = new Tabulator(container, {
+      ...DEFAULT_TABLE_CONFIG,
       data: this.diffs,
       layout: 'fitDataStretch',
       height: '50vh',
       selectableRows: false,
       movableColumns: false,
-      columnHeaderVertAlign: 'bottom',
+      pagination: true,
+      paginationMode: 'local',
+      rowHeader:false,
       columns: [
         {
           title: "Mã thiết bị",
           field: "ProductCode",
           headerHozAlign: "center",
           hozAlign: "center",
-      
+       width: 150,
           frozen: true,
           formatter: (cell: any) => {
             const value = cell.getValue() || cell.getRow().getData().ProductCode || '';
@@ -127,6 +131,7 @@ export class ImportExcelDiffComponent implements OnInit, AfterViewInit {
           field: "ManufacturerPartlist",
           headerHozAlign: "center",
           hozAlign: "left",
+          width: 150,
           formatter: (cell: any) => {
             const rowData = cell.getRow().getData();
             const value = cell.getValue() || '';
@@ -152,6 +157,7 @@ export class ImportExcelDiffComponent implements OnInit, AfterViewInit {
           field: "ManufacturerStock",
           headerHozAlign: "center",
           hozAlign: "left",
+          width: 150,
           formatter: (cell: any) => {
             const rowData = cell.getRow().getData();
             const value = cell.getValue() || '';
@@ -177,6 +183,7 @@ export class ImportExcelDiffComponent implements OnInit, AfterViewInit {
           field: "UnitPartlist",
           headerHozAlign: "center",
           hozAlign: "center",
+          width: 150,
           formatter: (cell: any) => {
             const rowData = cell.getRow().getData();
             const value = cell.getValue() || '';

@@ -1708,6 +1708,7 @@ export class ProjectComponent implements OnInit, AfterViewInit {
       backdrop: 'static',
       keyboard: false,
       windowClass: 'full-screen-modal',
+      scrollable:false,
     });
     modalRef.componentInstance.projectId = this.projectId;
     modalRef.componentInstance.projectNameX = this.tb_projects.getSelectedData()[0].ProjectName;

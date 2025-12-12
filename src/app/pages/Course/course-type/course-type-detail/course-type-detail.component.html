@@ -1,0 +1,78 @@
+<div class="modal-dialog-scrollable">
+    <div class="modal-header bg-primary text-uppercase py-2">
+        <h6 class="modal-title text-white">Chi tiết loại khóa học</h6>
+        <button type="button" class="btn-close" (click)="closeModal()" aria-label="Close"></button>
+    </div>
+
+    <div class="modal-body" style="max-height: 80vh !important; overflow-y: auto;">
+        <form nz-form [formGroup]="form" class="g-3 needs-validation was-validated">
+            <!-- Hàng 1: Mã loại khóa học + STT -->
+            <div class="row">
+                <div class="col-md-6 pb-3">
+                    <nz-form-label class="fs-12">
+                        Mã loại khóa học
+                        <span class="text-danger ps-1 me-1">*</span>
+                    </nz-form-label>
+                    <nz-form-control [nzErrorTip]="
+                form.get('CourseTypeCode')?.invalid &&
+                (form.get('CourseTypeCode')?.dirty || form.get('CourseTypeCode')?.touched)
+                  ? 'Vui lòng nhập mã loại khóa học!'
+                  : undefined
+              ">
+                        <input nz-input formControlName="CourseTypeCode" placeholder="Nhập mã loại khóa học"
+                            class="fs-12" />
+                    </nz-form-control>
+                </div>
+
+                <div class="col-md-6 pb-3">
+                    <nz-form-label class="fs-12">
+                        STT
+                        <span class="text-danger ps-1 me-1">*</span>
+                    </nz-form-label>
+                    <nz-form-control [nzErrorTip]="
+                form.get('STT')?.invalid &&
+                (form.get('STT')?.dirty || form.get('STT')?.touched)
+                  ? 'Vui lòng nhập STT!'
+                  : undefined
+              ">
+                        <input nz-input formControlName="STT" placeholder="Nhập STT" class="fs-12" type="number" />
+                    </nz-form-control>
+                </div>
+            </div>
+
+            <!-- Hàng 2: Tên loại khóa học -->
+            <div class="row">
+                <div class="col-md-6 pb-3">
+                    <nz-form-label class="fs-12">
+                        Tên loại khóa học
+                        <span class="text-danger ps-1 me-1">*</span>
+                    </nz-form-label>
+                    <nz-form-control [nzErrorTip]="
+                form.get('CourseTypeName')?.invalid &&
+                (form.get('CourseTypeName')?.dirty || form.get('CourseTypeName')?.touched)
+                  ? 'Vui lòng nhập tên loại khóa học!'
+                  : undefined
+              ">
+                        <input nz-input formControlName="CourseTypeName" placeholder="Nhập tên loại khóa học"
+                            class="fs-12" />
+                    </nz-form-control>
+                </div>
+                <div class="col-md-6 pb-3">
+                    <nz-form-label class="fs-12" [style.visibility]="'hidden'">.</nz-form-label>
+                    <nz-form-control>
+                        <label nz-checkbox formControlName="IsLearnInTurn">Học lần lượt</label>
+                    </nz-form-control>
+                </div>
+            </div>
+        </form>
+    </div>
+
+    <div class="modal-footer">
+        <button class="fs-12 btn" nz-button nzDanger (click)="closeModal()">
+            Đóng
+        </button>
+        <button class="fs-12 btn" nz-button nzType="primary" (click)="saveData()">
+            Lưu
+        </button>
+    </div>
+</div>

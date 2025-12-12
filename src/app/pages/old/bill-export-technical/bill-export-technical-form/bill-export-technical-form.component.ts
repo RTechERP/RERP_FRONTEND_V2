@@ -105,6 +105,7 @@ export class BillExportTechnicalFormComponent implements OnInit, AfterViewInit {
   @Input() supplierID: number = 0;
   @Input() BillCode: string = '';
   @Input() fromBorrowHistory: boolean = false; // Flag để phân biệt luồng từ lịch sử mượn
+  title:string = 'Phiếu xuất kho';
   private ngbModal = inject(NgbModal);
   private appUserService = inject(AppUserService);
   constructor(
@@ -118,7 +119,7 @@ export class BillExportTechnicalFormComponent implements OnInit, AfterViewInit {
   }
   ngOnInit() {
     this.initForm();
-
+    this.title = this.warehouseType === 1 ? 'Phiếu xuất kho DEMO' : 'Phiếu xuất kho AGV';
     // Load dữ liệu từ API trước
     this.getCustomer();
     this.getListEmployee();
@@ -338,11 +339,11 @@ export class BillExportTechnicalFormComponent implements OnInit, AfterViewInit {
   getProductList() {
     // Sử dụng API load-product
     // status: 1 = spGetProductRTC, warehouseID: 1 = spGetProductRTCQRCode, else = spGetInventoryDemo
-    const status = 1; // Lấy tất cả sản phẩm
+    const status = this.formDeviceInfo.get('BillType')?.value ?? 0; // Lấy tất cả sản phẩm
     const warehouseID = this.warehouseID || 1; // Mặc định warehouse 1
-
+    const warehouseType = this.warehouseType;
     this.billExportTechnicalService
-      .loadProduct(status, warehouseID, this.warehouseType)
+      .loadProduct(status, warehouseID, warehouseType)
       .subscribe((response: any) => {
         if (response && response.status === 1 && response.data) {
           this.productOptions = response.data.map((p: any) => ({

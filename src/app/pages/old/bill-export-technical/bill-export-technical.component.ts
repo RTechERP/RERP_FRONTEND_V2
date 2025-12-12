@@ -262,6 +262,23 @@ export class BillExportTechnicalComponent implements OnInit, AfterViewInit {
           });
       }
     );
+
+    // Clear detail khi master table không có dữ liệu
+    this.billExportTechnicalTable.on('dataLoaded', () => {
+      setTimeout(() => {
+        const rows = this.billExportTechnicalTable?.getRows();
+        if (!rows || rows.length === 0) {
+          // Clear detail khi không có master data
+          this.billExportTechnicalDetailData = [];
+          this.selectedRow = null;
+          this.sizeTbDetail = '0';
+          this.updateTabDetailTitle();
+          if (this.billExportTechnicalDetailTable) {
+            this.billExportTechnicalDetailTable.setData([]);
+          }
+        }
+      }, 100);
+    });
   }
   drawDetailTable(): void {
     if (this.billExportTechnicalDetailTable) {

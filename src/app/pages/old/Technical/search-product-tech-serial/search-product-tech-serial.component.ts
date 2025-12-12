@@ -59,6 +59,7 @@ import { DEFAULT_TABLE_CONFIG } from '../../../../tabulator-default.config';
 export class SearchProductTechSerialComponent implements OnInit, AfterViewInit {
 
   wearHouseID: number = 1;
+  warehouseType: number = 1;
   serialNumber: string = "";
   exportDataTable: any[] = [];
   importDataTable: any[] = [];
@@ -75,6 +76,9 @@ searchTimeout: any;
       this.wearHouseID = this.tabData.wearHouseID;
     } else if (this.tabData?.warehouseID) {
       this.wearHouseID = this.tabData.warehouseID;
+    }
+    if (this.tabData?.warehouseType) {
+      this.warehouseType = this.tabData.warehouseType;
     }
   }
   ngAfterViewInit(): void {

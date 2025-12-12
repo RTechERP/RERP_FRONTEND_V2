@@ -82,6 +82,7 @@ import { BillExportService } from '../../Sale/BillExport/bill-export-service/bil
   styleUrls: ['./bill-import-technical-form.component.css'],
 })
 export class BillImportTechnicalFormComponent implements OnInit, AfterViewInit {
+  title:string = 'Phiếu nhập kho';
   // danh sách loại phiếu nhập kĩ thuật
   billType: any = [
     { ID: 0, Name: '--Chọn loại--' },
@@ -506,6 +507,7 @@ export class BillImportTechnicalFormComponent implements OnInit, AfterViewInit {
 
   //#Init
   ngOnInit() {
+    this.title = this.warehouseType === 1 ? 'Phiếu nhập kho DEMO' : 'Phiếu nhập kho AGV';
     this.initForm();
 
     // Khởi tạo BillTypeNew = 0 (--Chọn loại phiếu--)

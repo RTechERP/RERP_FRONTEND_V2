@@ -447,11 +447,10 @@ export class BillImportTechnicalComponent implements OnInit, AfterViewInit {
           columns: [
             { title: 'Tên sản phẩm', field: 'ProductName', width:200 },
             { title: 'Serial', field: 'Serial', width:200 },
-
             { title: 'Số lượng', field: 'Quantity', hozAlign: 'center' },
             { title: 'ĐVT', field: 'UnitCountName' },
             { title: 'Tình trạng hàng', field: 'WarehouseType' },
-            { title: 'Mã nội bộ', field: 'InternalCode', width:200 },
+            { title: 'Mã nội bộ', field: 'ProductCodeRTC', width:200 },
             { title: 'Đơn mua hàng', field: 'BillCodePO' },
             { title: 'Hãng', field: 'Maker', width:200 },
             { title: 'Người cần mượn', field: 'EmployeeBorrowName', width:200 },
@@ -465,21 +464,11 @@ export class BillImportTechnicalComponent implements OnInit, AfterViewInit {
             // { title: 'Số lượng yêu cầu', field: 'QtyRequest', hozAlign: 'center', visible: false },
             // { title: 'Giá', field: 'Price', hozAlign: 'right', formatter: 'money', formatterParams: { thousand: ',', precision: 0 }, visible: false },
             // { title: 'Tổng giá', field: 'TotalPrice', hozAlign: 'right', formatter: 'money', formatterParams: { thousand: ',', precision: 0 }, visible: false },
+            { title: 'Ghi chú', field: 'Note', formatter: (cell) => {
+              const val = cell.getValue();
+              return val ? `<span class="text-wrap">${val}</span>` : '';
+            }, width:200 },
 
-            { title: 'Người tạo', field: 'CreatedBy', visible: false },
-            {
-              title: 'Ngày tạo',
-              field: 'CreatedDate',
-              formatter: formatDateCell,
-              visible: false,
-            },
-            { title: 'Người cập nhật', field: 'UpdatedBy', visible: false },
-            {
-              title: 'Ngày cập nhật',
-              field: 'UpdatedDate',
-              formatter: formatDateCell,
-              visible: false,
-            },
             {
               title: 'Mượn từ NCC?',
               field: 'IsBorrowSupplier',

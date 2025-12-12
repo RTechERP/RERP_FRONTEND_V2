@@ -190,5 +190,6 @@
 <!-- Footer nút -->
 <div class="modal-footer">
   <button nz-button nzType="default" (click)="close()">Đóng</button>
+  <button nz-button nzType="default" (click)="openBorrowHistory()">Lịch sử mượn</button>
   <button *hasPermission="'N26,N35,N1,N73,N80'" nz-button nzType="primary" (click)="saveData()" [disabled]="IsApproved">Lưu</button>
 </div>

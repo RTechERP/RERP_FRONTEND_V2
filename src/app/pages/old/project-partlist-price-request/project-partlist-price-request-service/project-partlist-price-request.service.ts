@@ -181,4 +181,36 @@ export class ProjectPartlistPriceRequestService {
   quotePrice(lstModel: any[]): Observable<any> {
     return this.http.post(`${this.baseUrl}/quote-price`, lstModel);
   }
+
+  // Method mới để lấy tất cả dữ liệu không phân trang (cho local pagination)
+  getAllPartlistLocal(
+    dateStart: string,
+    dateEnd: string,
+    statusRequest: number,
+    projectId: number,
+    keyword: string,
+    employeeID: number,
+    isDeleted: number,
+    projectTypeID: number,
+    poKHID: number,
+    isJobRequirement: number = -1,
+    projectPartlistPriceRequestTypeID: number = -1,
+    isCommercialProduct: number = -1
+  ): Observable<any> {
+    let params = new HttpParams()
+      .set('dateStart', dateStart)
+      .set('dateEnd', dateEnd)
+      .set('statusRequest', statusRequest.toString())
+      .set('projectId', projectId.toString())
+      .set('keyword', keyword || '')
+      .set('employeeID', employeeID.toString())
+      .set('isDeleted', isDeleted.toString())
+      .set('projectTypeID', projectTypeID.toString())
+      .set('poKHID', poKHID.toString())
+      .set('isJobRequirement', isJobRequirement.toString())
+      .set('projectPartlistPriceRequestTypeID', projectPartlistPriceRequestTypeID.toString())
+      .set('isCommercialProduct', isCommercialProduct.toString());
+
+    return this.http.get<any>(`${this.baseUrl}/get-partlist`, { params });
+  }
 }

@@ -3,6 +3,7 @@ import {
   Component,
   inject,
   OnInit,
+  OnDestroy,
   EventEmitter,
   Output,
   Input,
@@ -104,7 +105,7 @@ import { HorizontalScrollDirective } from '../../../directives/horizontalScroll.
     HorizontalScrollDirective
   ],
 })
-export class ProjectPartlistPriceRequestComponent implements OnInit {
+export class ProjectPartlistPriceRequestComponent implements OnInit, OnDestroy {
   @Output() openModal = new EventEmitter<any>();
   @Input() poKHID: number = 0;
   @Input() jobRequirementID: number = 0;
@@ -728,6 +729,20 @@ export class ProjectPartlistPriceRequestComponent implements OnInit {
     console.log(this.filters.poKHID);
     // Reload tất cả các table đã được tạo
     this.LoadAllTablesData();
+    
+    // Tự động ẩn filter bar trên mobile sau khi tìm kiếm
+    const isMobile = window.innerWidth <= 768;
+    if (isMobile && this.showSearchBar) {
+      // Khôi phục body scroll trước khi đóng modal
+      document.body.style.overflow = '';
+      document.body.style.position = '';
+      document.body.style.width = '';
+      
+      // Đóng modal với animation
+      setTimeout(() => {
+        this.showSearchBar = false;
+      }, 100);
+    }
   }
 
   public ResetFilters(): void {
@@ -3503,9 +3518,43 @@ export class ProjectPartlistPriceRequestComponent implements OnInit {
   // Thêm property để quản lý hiển thị filter bar
   showSearchBar: boolean = false;
 
-  // Sửa lại hàm ToggleSearchPanel
-  ToggleSearchPanelNew() {
+  // Sửa lại hàm ToggleSearchPanel - responsive và đảm bảo hoạt động trên mọi thiết bị
+  ToggleSearchPanelNew(event?: Event) {
+    // Ngăn chặn event bubbling nếu có
+    if (event) {
+      event.preventDefault();
+      event.stopPropagation();
+    }
+
+    const isMobile = window.innerWidth <= 768;
+    const wasOpen = this.showSearchBar;
+
+    // Đảm bảo toggle luôn hoạt động bằng cách force change detection
     this.showSearchBar = !this.showSearchBar;
+    
+    // Xử lý body scroll trên mobile
+    if (isMobile) {
+      if (this.showSearchBar) {
+        // Ngăn body scroll khi modal mở
+        document.body.style.overflow = 'hidden';
+        document.body.style.position = 'fixed';
+        document.body.style.width = '100%';
+      } else {
+        // Khôi phục body scroll khi modal đóng
+        document.body.style.overflow = '';
+        document.body.style.position = '';
+        document.body.style.width = '';
+      }
+    }
+    
+    // Force change detection để đảm bảo UI cập nhật ngay lập tức
+    // Sử dụng requestAnimationFrame để đảm bảo render đúng trên mọi thiết bị
+    requestAnimationFrame(() => {
+      // Scroll về đầu trang nếu cần (trên mobile khi mở)
+      if (isMobile && this.showSearchBar && !wasOpen) {
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+      }
+    });
   }
   createLables(
     data: any[],
@@ -4339,6 +4388,18 @@ export class ProjectPartlistPriceRequestComponent implements OnInit {
   closeModal(): void {
     if (this.activeModal) {
       this.activeModal.dismiss();
+    }
+  }
+
+  /**
+   * Cleanup khi component bị destroy
+   */
+  ngOnDestroy(): void {
+    // Khôi phục body styles nếu modal đang mở
+    if (this.showSearchBar && window.innerWidth <= 768) {
+      document.body.style.overflow = '';
+      document.body.style.position = '';
+      document.body.style.width = '';
     }
   }
 }

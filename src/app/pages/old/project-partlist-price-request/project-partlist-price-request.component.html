@@ -252,7 +252,13 @@
                 <i class="fas fa-times"></i>
             </button>
             <div class="d-flex gap-1" horizontalScroll>
-                <button nz-button nzType="default" nzSize="small" (click)="ToggleSearchPanelNew()" class="sticky-toggle-btn">
+                <button nz-button nzType="default" nzSize="small" 
+                        (click)="ToggleSearchPanelNew($event)" 
+                        (touchstart)="$event.stopPropagation()"
+                        (touchend)="$event.stopPropagation()"
+                        class="sticky-toggle-btn"
+                        [attr.aria-label]="showSearchBar ? 'Ẩn tìm kiếm' : 'Hiện tìm kiếm'"
+                        [attr.aria-expanded]="showSearchBar">
                     <nz-icon [nzType]="showSearchBar ? 'up' : 'down'" />
                 </button>
                 <!-- Refresh - load lại toàn bộ dữ liệu -->
@@ -390,8 +396,28 @@
             </div>
         </div>
 
-        <!-- Filter bar - hiển thị dạng hàng ngang - ẩn khi isHRDept -->
-        <div class="filter-bar bg-light border-bottom p-2" *ngIf="showSearchBar && !isHRDept">
+        <!-- Backdrop overlay cho mobile -->
+        <div class="filter-backdrop" 
+             *ngIf="showSearchBar && !isHRDept" 
+             (click)="ToggleSearchPanelNew()"
+             [class.mobile-only]="true">
+        </div>
+
+        <!-- Filter bar - hiển thị dạng hàng ngang trên desktop, modal trên mobile - ẩn khi isHRDept -->
+        <div class="filter-bar bg-light border-bottom p-2" 
+             *ngIf="showSearchBar && !isHRDept"
+             [class.mobile-modal]="true">
+            <!-- Header với nút đóng trên mobile -->
+            <div class="filter-bar-header mobile-only">
+                <h6 class="mb-0">Tìm kiếm</h6>
+                <button type="button" 
+                        class="btn-close-filter" 
+                        (click)="ToggleSearchPanelNew()"
+                        aria-label="Đóng">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+
             <form nz-form nzLayout="inline" class="d-flex flex-wrap gap-2 align-items-end">
                 <nz-form-item class="mb-0">
                     <nz-form-label class="fs-12">Từ ngày</nz-form-label>

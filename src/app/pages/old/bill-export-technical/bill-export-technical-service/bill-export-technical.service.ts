@@ -31,6 +31,11 @@ export class BillExportTechnicalService {
     const url = `${this.url}get-bill-export-by-code`;
     return this.http.get<any>(url, { params });
   }
+  getBillExportById(id: number): Observable<any> {
+    const params = new HttpParams().set('id', String(id));
+    const url = `${this.url}get-bill-export-by-id`;
+    return this.http.get<any>(url, { params });
+  }
   getBillCode(billtype: number): Observable<any> {
     const params = new HttpParams().set('billtype', billtype);
     const url = `${this.url}get-bill-code`;

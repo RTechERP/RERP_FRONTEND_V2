@@ -794,6 +794,14 @@ export class WarehouseReleaseRequestComponent implements OnInit {
 
       if (modalRef.componentInstance.table_billExportDetail) {
         modalRef.componentInstance.table_billExportDetail.replaceData(detailsForModal);
+        
+        // Update TotalInventory after data is set into table
+        // Wait a bit for productOptions to be loaded if not already
+        setTimeout(() => {
+          if (modalRef.componentInstance.updateTotalInventoryForExistingRows) {
+            modalRef.componentInstance.updateTotalInventoryForExistingRows();
+          }
+        }, 500);
       }
     }, 200);
 

@@ -1,7 +1,7 @@
 import {
-  ApplicationConfig,
-  provideZoneChangeDetection,
-  importProvidersFrom,
+    ApplicationConfig,
+    provideZoneChangeDetection,
+    importProvidersFrom,
 } from '@angular/core';
 import { provideRouter } from '@angular/router';
 import { routes } from './app.routes';
@@ -17,20 +17,42 @@ import { authInterceptor } from './auth/auth.interceptor';
 import { NzCalendarModule } from 'ng-zorro-antd/calendar';
 import { NgbActiveModal, NgbModal } from '@ng-bootstrap/ng-bootstrap';
 
+import { providePrimeNG } from 'primeng/config';
+import Aura from '@primeuix/themes/aura'
+
+import { AngularSlickgridModule } from 'angular-slickgrid';
+import { TranslateModule } from '@ngx-translate/core';
+
 registerLocaleData(vi);
 
 export const appConfig: ApplicationConfig = {
-  providers: [
-    provideZoneChangeDetection({ eventCoalescing: true }),
-    provideRouter(routes),
-    provideNzIcons(icons),
-    provideNzI18n(vi_VN),
-    importProvidersFrom(FormsModule, NgbModal, NgbActiveModal),
-    provideAnimationsAsync(),
-    provideHttpClient(withInterceptors([authInterceptor])),
-    importProvidersFrom(NzCalendarModule),
-    { provide: NZ_I18N, useValue: vi_VN },
-  ],
+    providers: [
+        provideZoneChangeDetection({ eventCoalescing: true }),
+        provideRouter(routes),
+        provideNzIcons(icons),
+        provideNzI18n(vi_VN),
+        importProvidersFrom(FormsModule, NgbModal, NgbActiveModal),
+        provideAnimationsAsync(),
+        provideHttpClient(withInterceptors([authInterceptor])),
+        importProvidersFrom(NzCalendarModule),
+        { provide: NZ_I18N, useValue: vi_VN },
+        providePrimeNG({
+            theme: {
+                preset: Aura,
+                options: {
+                    prefix: 'p',
+                    darkModeSelector: 'system',
+                    cssLayer: false
+                }
+
+            }
+        }),
+        importProvidersFrom(AngularSlickgridModule.forRoot()),
+        importProvidersFrom(TranslateModule.forRoot({
+            defaultLanguage: 'vi',
+        })),
+
+    ],
 };
 export const APP_LOGIN_NAME = 'admin';
 export const EMPLOYEE_ID = 0;
@@ -42,7 +64,7 @@ export const HOST = 'https://localhost:7187/';
 export const LOGIN_NAME = 'ADMINSW';
 export const SERVER_PATH = 'D:/LeTheAnh/RTC/UPLOADFILE/TrainingRegistration/';
 export const NOTIFICATION_TITLE = {
-  error: 'Lỗi',
-  success: 'Thông báo',
-  warning: 'Thông báo',
+    error: 'Lỗi',
+    success: 'Thông báo',
+    warning: 'Thông báo',
 };

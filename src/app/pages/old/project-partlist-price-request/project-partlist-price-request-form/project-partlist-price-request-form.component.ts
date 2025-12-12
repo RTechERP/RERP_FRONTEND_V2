@@ -175,7 +175,7 @@ export class ProjectPartlistPriceRequestFormComponent
     this.getPriceRequestType();
     this.getProductSale();
     this.getFirms();
-    this.getCustomers();
+    // this.getCustomers();
 
     if (!this.dataInput || this.dataInput.length === 0) {
       // Khi thêm mới: set priceRequestTypeID từ initialPriceRequestTypeID
@@ -401,19 +401,19 @@ export class ProjectPartlistPriceRequestFormComponent
     });
   }
 
-  getCustomers() {
-    this.billExportService.getCbbCustomer().subscribe({
-      next: (res: any) => {
-        this.customers = Array.isArray(res.data) ? res.data : [];
-      },
-      error: (err) => {
-        this.notification.error(
-          NOTIFICATION_TITLE.error,
-          'Có lỗi xảy ra khi lấy dữ liệu khách hàng'
-        );
-      },
-    });
-  }
+  // getCustomers() {
+  //   this.billExportService.getCbbCustomer().subscribe({
+  //     next: (res: any) => {
+  //       this.customers = Array.isArray(res.data) ? res.data : [];
+  //     },
+  //     error: (err) => {
+  //       this.notification.error(
+  //         NOTIFICATION_TITLE.error,
+  //         'Có lỗi xảy ra khi lấy dữ liệu khách hàng'
+  //       );
+  //     },
+  //   });
+  // }
 
   ngAfterViewInit(): void {}
   createdControl1(
@@ -984,13 +984,13 @@ export class ProjectPartlistPriceRequestFormComponent
       );
       return false;
     }
-    if (!this.customerID || this.customerID <= 0) {
-      this.notification.warning(
-        NOTIFICATION_TITLE.warning,
-        'Vui lòng chọn Khách hàng!'
-      );
-      return false;
-    }
+    // if (!this.customerID || this.customerID <= 0) {
+    //   this.notification.warning(
+    //     NOTIFICATION_TITLE.warning,
+    //     'Vui lòng chọn Khách hàng!'
+    //   );
+    //   return false;
+    // }
     const rows = this.table.getRows();
     if (rows.length <= 0) {
       this.notification.warning(

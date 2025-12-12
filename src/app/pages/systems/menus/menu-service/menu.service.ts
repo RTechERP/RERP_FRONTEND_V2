@@ -138,6 +138,7 @@ import { WorkplanComponent } from '../../../person/workplan/workplan.component';
 import { ProjectPartlistPriceRequestNewComponent } from '../../../purchase/project-partlist-price-request-new/project-partlist-price-request-new.component';
 import { DailyReportSaleAdminComponent } from '../../../old/KPISale/daily-report-sale-admin/daily-report-sale-admin.component';
 import { EmployeeRegisterBussinessComponent } from '../../../hrm/employee-management/employee-bussiness/employee-register-bussiness/employee-register-bussiness.component';
+import { OverTimePersonComponent } from '../../../hrm/over-time/over-time-person/over-time-person.component';
 @Injectable({
     providedIn: 'root',
 })
@@ -2781,17 +2782,17 @@ export class MenuService {
                             {
                                 kind: 'leaf',
                                 key: 'lamthem',
-                                title: 'Làm thêm',
+                                title: 'Làm thêm cá nhân',
                                 isOpen: true,
                                 isPermission: this.permissionService.hasPermission(''),
-                                comp: PersonComponent,
-                                router: '/lamthem',
+                                comp: OverTimePersonComponent,
+                             
                             },
 
                             {
                                 kind: 'leaf',
                                 key: 'EmployeeRegisterBussinessComponent',
-                                title: 'Công tác',
+                                title: 'Công tác cá nhân',
                                 isOpen: true,
                                 isPermission: this.permissionService.hasPermission(''),
                                 comp: EmployeeRegisterBussinessComponent,

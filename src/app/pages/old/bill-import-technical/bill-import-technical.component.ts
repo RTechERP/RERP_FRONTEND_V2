@@ -45,6 +45,7 @@ import { NzModalService } from 'ng-zorro-antd/modal';
 import { BillImportTechnicalFormComponent } from './bill-import-technical-form/bill-import-technical-form.component';
 import { NOTIFICATION_TITLE } from '../../../app.config';
 import { HasPermissionDirective } from '../../../directives/has-permission.directive';
+import { DEFAULT_TABLE_CONFIG } from '../../../tabulator-default.config';
 function formatDateCell(cell: CellComponent): string {
   const val = cell.getValue();
   return val ? DateTime.fromISO(val).toFormat('dd/MM/yyyy') : '';
@@ -199,23 +200,11 @@ export class BillImportTechnicalComponent implements OnInit, AfterViewInit {
     this.billImportTechnicalTable = new Tabulator(
       this.billImportTechnicalTableRef.nativeElement,
       {
+        ...DEFAULT_TABLE_CONFIG,
         layout: 'fitDataStretch',
-        pagination: true,
-        selectableRows: 5,
-        movableColumns: true,
         ajaxURL: this.billImportTechnicalService.getBillImport(),
         ajaxConfig: 'POST',
-        columnDefaults: {
-          headerWordWrap: true,
-          headerVertical: false,
-          headerHozAlign: 'center',
-          minWidth: 60,
-          resizable: true,
-        },
         paginationSize: 30,
-        paginationSizeSelector: [5, 10, 20, 50, 100],
-        reactiveData: true,
-        paginationMode: 'remote',
         ajaxRequestFunc: (url, config, params) => {
           const request = {
             Page: params.page,
@@ -467,7 +456,7 @@ export class BillImportTechnicalComponent implements OnInit, AfterViewInit {
             { title: 'Ghi chú', field: 'Note', formatter: (cell) => {
               const val = cell.getValue();
               return val ? `<span class="text-wrap">${val}</span>` : '';
-            }, width:200 },
+            }, width:300 },
 
             {
               title: 'Mượn từ NCC?',

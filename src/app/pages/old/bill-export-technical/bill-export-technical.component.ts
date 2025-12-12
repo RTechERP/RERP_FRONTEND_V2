@@ -36,6 +36,7 @@ import { BillExportTechnicalService } from './bill-export-technical-service/bill
 import { AppUserService } from '../../../services/app-user.service';
 import { NOTIFICATION_TITLE } from '../../../app.config';
 import { HasPermissionDirective } from '../../../directives/has-permission.directive';
+import { DEFAULT_TABLE_CONFIG } from '../../../tabulator-default.config';
 function formatDateCell(cell: CellComponent): string {
   const val = cell.getValue();
   return val ? DateTime.fromISO(val).toFormat('dd/MM/yyyy') : '';
@@ -120,9 +121,10 @@ export class BillExportTechnicalComponent implements OnInit, AfterViewInit {
     }
   }
   
-  private formatDate(date: Date | null): string {
+  // Helper method to format date to yyyy-MM-dd
+  private formatDateToString(date: Date | null): string {
     if (!date) return '';
-    return date.toISOString().split('T')[0];
+    return DateTime.fromJSDate(date).toFormat('yyyy-MM-dd');
   }
   
   ngAfterViewInit(): void {
@@ -133,6 +135,7 @@ export class BillExportTechnicalComponent implements OnInit, AfterViewInit {
     this.billExportTechnicalTable = new Tabulator(
       this.billExportTechnicalTableRef.nativeElement,
       {
+        ...DEFAULT_TABLE_CONFIG,
         layout: 'fitDataStretch',
         height: '100%',
         pagination: true,
@@ -155,8 +158,8 @@ export class BillExportTechnicalComponent implements OnInit, AfterViewInit {
           const request = {
             Page: params.page,
             Size: params.size,
-            dateStart: this.dateStart || '2024-12-01',
-            dateEnd: this.dateEnd || '2025-12-31',
+            dateStart: this.formatDateToString(this.dateStart) || '2024-12-01',
+            dateEnd: this.formatDateToString(this.dateEnd) || '2025-12-31',
             status:
               this.selectedApproval !== null
                 ? this.selectedApproval === 1
@@ -193,7 +196,13 @@ export class BillExportTechnicalComponent implements OnInit, AfterViewInit {
         addRowPos: 'bottom',
         history: true,
         columns: [
-          { title: 'STT', formatter: 'rownum', hozAlign: 'center', width: 60 },
+          {
+            title: 'STT',
+            formatter: 'rownum',
+            hozAlign: 'center',
+            width: 60,
+            frozen: true,
+          },
           {
             title: 'Duyệt',
             field: 'Status',

@@ -26,6 +26,8 @@ import { saveAs } from 'file-saver';
 import { DayOffImportExcelComponent } from '../day-off-import-excel/day-off-import-excel.component';
 import { NzSpinModule } from 'ng-zorro-antd/spin';
 import { NOTIFICATION_TITLE } from '../../../../app.config';
+import { HasPermissionDirective } from '../../../../directives/has-permission.directive';
+import { AppUserService } from '../../../../services/app-user.service';
 
 @Component({
   selector: 'app-declare-day-off',
@@ -49,7 +51,8 @@ import { NOTIFICATION_TITLE } from '../../../../app.config';
     NzDatePickerModule,
     DayOffImportExcelComponent,
     NzSpinModule,
-    NgIf
+    NgIf,
+    HasPermissionDirective
   ],
 })
 export class DeclareDayOffComponent implements OnInit {
@@ -63,12 +66,16 @@ export class DeclareDayOffComponent implements OnInit {
   isEditMode = false;
   isLoading = false;
 
+    currentUser: any;
+  currentEmployee: any;
+
   constructor(
     private fb: FormBuilder,
     private modal: NzModalService,
     private notification: NzNotificationService,
     private dayOffService: DayOffService,
-    private employeeService: EmployeeService
+    private employeeService: EmployeeService,
+    private appUserService: AppUserService
   ) { }
 
   ngOnInit() {
@@ -76,6 +83,9 @@ export class DeclareDayOffComponent implements OnInit {
     this.initializeTable();
     this.initializeForm();
     this.loadEmployees();
+
+      this.currentEmployee = this.appUserService.currentUser
+      console.log('Current Employee:', this.currentEmployee);
   }
 
   loadEmployees() {

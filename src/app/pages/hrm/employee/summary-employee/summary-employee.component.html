@@ -1,0 +1,129 @@
+<ng-container class="w-100">
+  <!-- Form tìm kiếm hiển thị trực tiếp -->
+  <div class="search-form-card">
+    <div class="card-body-custom">
+      <form nz-form nzLayout="vertical">
+        <nz-row [nzGutter]="[16, 16]">
+          <nz-col [nzXs]="24" [nzSm]="12" [nzMd]="8" [nzLg]="6" [nzXl]="5">
+            <nz-form-item>
+              <nz-form-label class="p-0" nzRequired
+                >Từ ngày</nz-form-label
+              >
+              <nz-form-control>
+                <nz-date-picker
+                  [nzFormat]="dateFormat"
+                  class="w-100 form-input-custom"
+                  nzSize="default"
+                  [(ngModel)]="listParams.DateStart"
+                  name="dateStart"
+                >
+                </nz-date-picker>
+              </nz-form-control>
+            </nz-form-item>
+          </nz-col>
+          <nz-col [nzXs]="24" [nzSm]="12" [nzMd]="8" [nzLg]="6" [nzXl]="5" >
+            <nz-form-item>
+              <nz-form-label class="p-0" nzRequired
+                >Đến ngày</nz-form-label
+              >
+              <nz-form-control>
+                <nz-date-picker
+                  [nzFormat]="dateFormat"
+                  class="w-100 form-input-custom"
+                  nzSize="default"
+                  [(ngModel)]="listParams.DateEnd"
+                  name="dateEnd"
+                ></nz-date-picker>
+              </nz-form-control>
+            </nz-form-item>
+          </nz-col>
+          <nz-col [nzXs]="24" [nzSm]="12" [nzMd]="8" [nzLg]="6" [nzXl]="5" >
+            <nz-form-item>
+              <nz-form-label class="p-0">Phòng ban</nz-form-label>
+              <nz-form-control>
+                <nz-select
+                  [(ngModel)]="listParams.DepartmentID"
+                  [nzPlaceHolder]="'Chọn phòng ban'"
+                  style="width: 100%"
+                  name="departmentID"
+                  nzShowSearch
+                  [nzFilterOption]="filterOption"
+                  nzAllowClear
+                  nzSize="default"
+                >
+                  <nz-option
+                    *ngFor="let item of dataDepartment"
+                    [nzLabel]="item.Name"
+                    [nzValue]="item.ID"
+                  ></nz-option>
+                </nz-select>
+              </nz-form-control>
+            </nz-form-item>
+          </nz-col>
+          <nz-col [nzXs]="24" [nzSm]="12" [nzMd]="8" [nzLg]="6" [nzXl]="5">
+            <nz-form-item>
+              <nz-form-label class="p-0">Từ khóa</nz-form-label>
+              <nz-form-control>
+                <input
+                  class="w-100 form-input-custom"
+                  nz-input
+                  placeholder="Nhập từ khóa"
+                  [(ngModel)]="listParams.Keyword"
+                  name="keyword"
+                  nzSize="default"
+                />
+              </nz-form-control>
+            </nz-form-item>
+          </nz-col>
+          <nz-col [nzXs]="24" [nzSm]="24" [nzMd]="6" [nzLg]="6" [nzXl]="4" class="button-col">
+            <nz-form-item>
+              <nz-form-label class="p-0" style="visibility: hidden;">Tìm kiếm</nz-form-label>
+              <nz-form-control>
+                <button
+                  nz-button
+                  nzType="primary"
+                  nzSize="default"
+                  class="search-button w-100"
+                  (click)="searchData()"
+                  style="border-radius: 5px"
+                >
+                  <span nz-icon nzType="search" nzTheme="outline"></span>
+                  Tìm kiếm
+                </button>
+              </nz-form-control>
+            </nz-form-item>
+          </nz-col>
+        </nz-row>
+      </form>
+    </div>
+  </div>
+
+  <!-- Phần nội dung chính -->
+  <div>
+    <nz-tabset nzType="card">
+      <nz-tab nzTitle="Công việc bàn giao" [tabIndex]="0">
+        <div class="card-body p-0" style="height: 100%">
+          <div #listSummaryOnLeaveTable ></div>
+        </div>
+      </nz-tab>
+      <nz-tab nzTitle="Công nợ còn thiếu" [tabIndex]="0">
+        <div class="card-body p-0" style="height: 100%">
+          <div id="HandoverFinances" style="width: 100%; height: 100%"></div>
+        </div>
+      </nz-tab>
+      <nz-tab nzTitle="Nhân viên trực thuộc" [tabIndex]="0">
+        <div class="card-body p-0" style="height: 100%">
+          <div
+            id="HandoverSubordinates"
+            style="width: 100%; height: 100%"
+          ></div>
+        </div>
+      </nz-tab>
+      <nz-tab nzTitle="Duyệt" [tabIndex]="0">
+        <div class="card-body p-0" style="height: 100%">
+          <div id="HandoverApprove" style="width: 100%; height: 100%"></div>
+        </div>
+      </nz-tab>
+    </nz-tabset>
+  </div>
+</ng-container>

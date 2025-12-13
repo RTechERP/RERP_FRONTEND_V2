@@ -11,91 +11,91 @@ import { NOTIFICATION_TITLE } from '../app.config';
 // import { HOST } from '../app.config';
 
 @Injectable({
-  providedIn: 'root',
+    providedIn: 'root',
 })
 export class AuthService {
-  private apiUrl = environment.host + 'api/home/';
-  private tokenkey = 'token';
+    private apiUrl = environment.host + 'api/home/';
+    private tokenkey = 'token';
 
-  constructor(
-    private http: HttpClient,
-    private userService: UserService,
-    private permissionService: PermissionService,
-    private notification: NzNotificationService
-  ) {}
+    constructor(
+        private http: HttpClient,
+        private userService: UserService,
+        private permissionService: PermissionService,
+        private notification: NzNotificationService
+    ) { }
 
-  login(credentials: { loginname: string; password: string }): Observable<any> {
-    return this.http.post(this.apiUrl + 'login', credentials).pipe(
-      tap((response: any) => {
-        if (response && response.access_token) {
-          localStorage.setItem(this.tokenkey, response.access_token);
+    login(credentials: { loginname: string; password: string }): Observable<any> {
+        return this.http.post(this.apiUrl + 'login', credentials).pipe(
+            tap((response: any) => {
+                if (response && response.access_token) {
+                    localStorage.setItem(this.tokenkey, response.access_token);
 
-          // Gọi getCurrentUser ngay sau khi login thành công
-          this.getCurrentUser().subscribe({
-            next: (userResponse) => {
-              console.log('getCurrentUser success after login:', userResponse);
-              this.permissionService.refreshPermissions();
-            },
-            error: (error) => {
-              console.error('getCurrentUser error after login:', error);
-              this.notification.error(NOTIFICATION_TITLE.error, error.message, {});
-            },
-          });
-        }
-      }),
-      catchError((error) => {
-        console.error('Login error:', error);
-        this.notification.error(NOTIFICATION_TITLE.error, error.message, {});
-        throw error;
-      })
-    );
-  }
-
-  getCurrentUser(): Observable<any> {
-    const token = this.getToken();
-
-    if (!token) {
-      //   console.error('No token available for getCurrentUser');
-      return of(null);
+                    // Gọi getCurrentUser ngay sau khi login thành công
+                    this.getCurrentUser().subscribe({
+                        next: (userResponse) => {
+                            //   console.log('getCurrentUser success after login:', userResponse);
+                            this.permissionService.refreshPermissions();
+                        },
+                        error: (error) => {
+                            // console.error('getCurrentUser error after login:', error);
+                            this.notification.error(NOTIFICATION_TITLE.error, error.message, {});
+                        },
+                    });
+                }
+            }),
+            catchError((error) => {
+                // console.error('Login error:', error);
+                this.notification.error(NOTIFICATION_TITLE.error, error.message, {});
+                throw error;
+            })
+        );
     }
-    // Sử dụng API key từ environment
-    const headers = new HttpHeaders({
-      Authorization: `Bearer ${token}`,
-      'x-api-key': environment.apiKey,
-      'Content-Type': 'application/json',
-    });
 
-    return this.http.get(`${this.apiUrl}current-user`, { headers }).pipe(
-      tap((response: any) => {
-        if (response && response.status === 1 && response.data) {
-          this.userService.setUser(response.data);
-        } else {
-          console.warn('Invalid response format or no data:', response);
+    getCurrentUser(): Observable<any> {
+        const token = this.getToken();
+
+        if (!token) {
+            //   console.error('No token available for getCurrentUser');
+            return of(null);
         }
-      }),
-      catchError((error) => {
-        if (error.status === 401) {
-          console.log('Token expired, logging out...');
-          this.logout();
-        }
+        // Sử dụng API key từ environment
+        const headers = new HttpHeaders({
+            Authorization: `Bearer ${token}`,
+            'x-api-key': environment.apiKey,
+            'Content-Type': 'application/json',
+        });
 
-        throw error;
-      })
-    );
-  }
-  getToken(): string | null {
-    return localStorage.getItem(this.tokenkey);
-  }
+        return this.http.get(`${this.apiUrl}current-user`, { headers }).pipe(
+            tap((response: any) => {
+                if (response && response.status === 1 && response.data) {
+                    this.userService.setUser(response.data);
+                } else {
+                    console.warn('Invalid response format or no data:', response);
+                }
+            }),
+            catchError((error) => {
+                if (error.status === 401) {
+                    console.log('Token expired, logging out...');
+                    this.logout();
+                }
 
-  logout() {
-    localStorage.removeItem(this.tokenkey);
-    sessionStorage.clear();
+                throw error;
+            })
+        );
+    }
+    getToken(): string | null {
+        return localStorage.getItem(this.tokenkey);
+    }
 
-    this.permissionService.clearPermissions();
-    this.permissionService.refreshPermissions();
-  }
+    logout() {
+        localStorage.removeItem(this.tokenkey);
+        sessionStorage.clear();
 
-  isLoggedIn(): boolean {
-    return !!localStorage.getItem(this.tokenkey);
-  }
+        this.permissionService.clearPermissions();
+        this.permissionService.refreshPermissions();
+    }
+
+    isLoggedIn(): boolean {
+        return !!localStorage.getItem(this.tokenkey);
+    }
 }

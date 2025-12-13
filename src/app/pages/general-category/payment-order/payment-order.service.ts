@@ -23,4 +23,9 @@ export class PaymentOrderService {
     uploadFiles(file: any): Observable<any> {
         return this.http.post<any>(`${this.url}/upload-file`, file);
     }
+
+    getDataCombo(): Observable<any> {
+        return this.http.get<any>(`${this.url}/get-data-combo`);
+    }
+
 }

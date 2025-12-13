@@ -1,21 +1,21 @@
 import {
-  AfterViewInit,
-  ChangeDetectionStrategy,
-  ChangeDetectorRef,
-  Component,
-  ElementRef,
-  HostListener,
-  Injector,
-  OnInit,
-  Type,
-  ViewChild,
+    AfterViewInit,
+    ChangeDetectionStrategy,
+    ChangeDetectorRef,
+    Component,
+    ElementRef,
+    HostListener,
+    Injector,
+    OnInit,
+    Type,
+    ViewChild,
 } from '@angular/core';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import {
-  Router,
-  RouterLink,
-  RouterModule,
-  RouterOutlet,
+    Router,
+    RouterLink,
+    RouterModule,
+    RouterOutlet,
 } from '@angular/router';
 import { NzButtonModule } from 'ng-zorro-antd/button';
 import { NzCarouselComponent, NzCarouselModule } from 'ng-zorro-antd/carousel';
@@ -25,8 +25,8 @@ import { NzLayoutModule } from 'ng-zorro-antd/layout';
 import { NzMenuModule } from 'ng-zorro-antd/menu';
 import { NzTabsModule } from 'ng-zorro-antd/tabs';
 import {
-  AppNotifycationDropdownComponent,
-  NotifyItem,
+    AppNotifycationDropdownComponent,
+    NotifyItem,
 } from '../../pages/old/app-notifycation-dropdown/app-notifycation-dropdown.component';
 import { NzNotificationService } from 'ng-zorro-antd/notification';
 import { NgbModal, NgbModalModule } from '@ng-bootstrap/ng-bootstrap';
@@ -64,503 +64,503 @@ import { environment } from '../../../environments/environment';
 import { AppUserService } from '../../services/app-user.service';
 import { MenusComponent } from '../../pages/old/menus/menus.component';
 import {
-  GroupItem,
-  LeafItem,
-  MenuItem,
-  MenuService,
+    GroupItem,
+    LeafItem,
+    MenuItem,
+    MenuService,
 } from '../../pages/systems/menus/menu-service/menu.service';
 import { NOTIFICATION_TITLE } from '../../app.config';
 import { BehaviorSubject } from 'rxjs';
 import { PermissionService } from '../../services/permission.service';
 
 interface dynamicApps {
-  MenuName: string;
-  Link?: string;
-  ImageName?: string;
+    MenuName: string;
+    Link?: string;
+    ImageName?: string;
 }
 
 interface Application {
-  name: string;
-  route?: string;
-  image?: string;
+    name: string;
+    route?: string;
+    image?: string;
 }
 
 interface LeaveItem {
-  employee: string;
-  leaveDate: string;
-  reason: string;
-  status: 'approved' | 'pending' | 'rejected';
+    employee: string;
+    leaveDate: string;
+    reason: string;
+    status: 'approved' | 'pending' | 'rejected';
 }
 
 interface DepartmentPerformance {
-  department: string;
-  completionRate: number;
+    department: string;
+    completionRate: number;
 }
 
 interface WorkStatus {
-  status: string;
-  percentage: number;
-  color: string;
+    status: string;
+    percentage: number;
+    color: string;
 }
 
 @Component({
-  selector: 'app-home-layout',
-  standalone: true,
-  imports: [
-    RouterLink,
-    // RouterOutlet,
-    NzIconModule,
-    NzLayoutModule,
-    NzMenuModule,
-    NzButtonModule,
-    NzTabsModule,
-    NzDropDownModule,
-    // NzBadgeModule,
-    // NzAvatarModule,
-    // BrowserModule,
-    ReactiveFormsModule,
-    CommonModule,
-    RouterModule,
-    NzInputModule,
-    NzAvatarModule,
-    NzBadgeModule,
-    NzModalModule,
-    CommonModule,
-    NzCardModule,
-    FormsModule,
-    NzRadioModule,
-    NzSpaceModule,
-    NzFlexModule,
-    NzDrawerModule,
-    NzSplitterModule,
-    NzGridModule,
-    NzDatePickerModule,
-    NzAutocompleteModule,
-    NzInputModule,
-    NzSelectModule,
-    NzTableModule,
-    NzUploadModule,
-    NzModalModule,
-    NgbModalModule,
-    NzFormModule,
-    NzInputNumberModule,
-    NzCarouselModule,
-    AppNotifycationDropdownComponent,
-    AppUserDropdownComponent,
-    NzCollapseModule,
-    NzListModule,
-    NzCalendarModule,
-    // HasPermissionDirective,
-    NzTabsModule,
-  ],
-  templateUrl: './home-layout.component.html',
-  styleUrl: './home-layout.component.css',
+    selector: 'app-home-layout',
+    standalone: true,
+    imports: [
+        RouterLink,
+        // RouterOutlet,
+        NzIconModule,
+        NzLayoutModule,
+        NzMenuModule,
+        NzButtonModule,
+        NzTabsModule,
+        NzDropDownModule,
+        // NzBadgeModule,
+        // NzAvatarModule,
+        // BrowserModule,
+        ReactiveFormsModule,
+        CommonModule,
+        RouterModule,
+        NzInputModule,
+        NzAvatarModule,
+        NzBadgeModule,
+        NzModalModule,
+        CommonModule,
+        NzCardModule,
+        FormsModule,
+        NzRadioModule,
+        NzSpaceModule,
+        NzFlexModule,
+        NzDrawerModule,
+        NzSplitterModule,
+        NzGridModule,
+        NzDatePickerModule,
+        NzAutocompleteModule,
+        NzInputModule,
+        NzSelectModule,
+        NzTableModule,
+        NzUploadModule,
+        NzModalModule,
+        NgbModalModule,
+        NzFormModule,
+        NzInputNumberModule,
+        NzCarouselModule,
+        AppNotifycationDropdownComponent,
+        AppUserDropdownComponent,
+        NzCollapseModule,
+        NzListModule,
+        NzCalendarModule,
+        // HasPermissionDirective,
+        NzTabsModule,
+    ],
+    templateUrl: './home-layout.component.html',
+    styleUrl: './home-layout.component.css',
 })
 export class HomeLayoutComponent implements OnInit, AfterViewInit {
-  @ViewChild('carousel', { static: false }) carousel!: NzCarouselComponent;
+    @ViewChild('carousel', { static: false }) carousel!: NzCarouselComponent;
 
-  menuParents: any[] = [];
-  private dynamicApps: dynamicApps[] = [];
-  private allApps: dynamicApps[] = [];
-  keyword: string = '';
+    menuParents: any[] = [];
+    private dynamicApps: dynamicApps[] = [];
+    private allApps: dynamicApps[] = [];
+    keyword: string = '';
 
-  applications: Application[] = [];
-  dynamicTabs: any[] = [];
+    applications: Application[] = [];
+    dynamicTabs: any[] = [];
 
-  effect = 'effect';
+    effect = 'effect';
 
-  // Dữ liệu danh sách nghỉ và WFH
-  employeeOnleaves: any = [];
-  employeeWfhs: any = [];
-  today = new Date();
-  totalEmployeeOnleave = 0;
-  totalEmployeeWfh = 0;
+    // Dữ liệu danh sách nghỉ và WFH
+    employeeOnleaves: any = [];
+    employeeWfhs: any = [];
+    today = new Date();
+    totalEmployeeOnleave = 0;
+    totalEmployeeWfh = 0;
 
-  //   date = new Date();
-  mode: NzCalendarMode = 'month';
+    //   date = new Date();
+    mode: NzCalendarMode = 'month';
 
-  // Dữ liệu hiệu suất công việc theo phòng ban
-  departmentPerformance: DepartmentPerformance[] = [
-    { department: 'Tổng thể', completionRate: 80 },
-    { department: 'Kinh doanh', completionRate: 60 },
-    { department: 'Kế toán', completionRate: 30 },
-    { department: 'Nhân sự', completionRate: 50 },
-    { department: 'Công nghệ', completionRate: 20 },
-  ];
+    // Dữ liệu hiệu suất công việc theo phòng ban
+    departmentPerformance: DepartmentPerformance[] = [
+        { department: 'Tổng thể', completionRate: 80 },
+        { department: 'Kinh doanh', completionRate: 60 },
+        { department: 'Kế toán', completionRate: 30 },
+        { department: 'Nhân sự', completionRate: 50 },
+        { department: 'Công nghệ', completionRate: 20 },
+    ];
 
-  // Dữ liệu phân bố trạng thái công việc
-  workStatusDistribution: WorkStatus[] = [
-    { status: 'Đang', percentage: 25, color: '#87CEEB' },
-    { status: 'Hoàn thành', percentage: 85, color: '#4169E1' },
-    { status: 'Trễ hạn', percentage: 16, color: '#DC143C' },
-  ];
+    // Dữ liệu phân bố trạng thái công việc
+    workStatusDistribution: WorkStatus[] = [
+        { status: 'Đang', percentage: 25, color: '#87CEEB' },
+        { status: 'Hoàn thành', percentage: 85, color: '#4169E1' },
+        { status: 'Trễ hạn', percentage: 16, color: '#DC143C' },
+    ];
 
-  holidays: any[] = [];
-  scheduleWorkSaturdays: any[] = [];
+    holidays: any[] = [];
+    scheduleWorkSaturdays: any[] = [];
 
-  isHoliday(date: Date): boolean {
-    let isHoliday = this.holidays.some(
-      (x) =>
-        x.HolidayYear === date.getFullYear() &&
-        x.HolidayMonth === date.getMonth() + 1 &&
-        x.HolidayDay === date.getDate()
-    );
-
-    // let isSaturday = this.scheduleWorkSaturdays.some(
-    //   (x) =>
-    //     x.WorkYear === date.getFullYear() &&
-    //     x.WorkMonth === date.getMonth() + 1 &&
-    //     x.WorkDay === date.getDate()
-    // );
-    // console.log(isHoliday);
-    return isHoliday;
-  }
-
-  isSaturday(date: Date): boolean {
-    let isSaturday = this.scheduleWorkSaturdays.some(
-      (x) =>
-        x.WorkYear === date.getFullYear() &&
-        x.WorkMonth === date.getMonth() + 1 &&
-        x.WorkDay === date.getDate()
-    );
-    // console.log(isHoliday);
-    return isSaturday;
-  }
-
-  menus: MenuItem[] = [];
-  menuQuickAccess: any[] = [];
-
-  constructor(
-    private notification: NzNotificationService,
-    private homepageService: HomeLayoutService,
-    private modalService: NgbModal,
-    private modal: NzModalService,
-    private cdr: ChangeDetectorRef,
-    private holidayService: HolidayServiceService,
-    private router: Router,
-    private appUserService: AppUserService,
-    public menuService: MenuService,
-    private injector: Injector,
-    private permissionService: PermissionService
-  ) {
-    // this.menus = this.menuService
-    //   .getMenus()
-    //   .sort((a, b) => (a.stt ?? 1) - (b.stt ?? 1));
-    // this.menuQuickAccess = this.menuService
-    //   .getMenus()
-    //   .filter((x) => x.key == 'person');
-  }
-
-  isGroup = (m: MenuItem): m is GroupItem => m.kind === 'group';
-  isLeaf = (m: MenuItem): m is LeafItem => m.kind === 'leaf';
-
-  ngOnInit(): void {
-    this.setResponsivePageSize();
-    this.getMenuParents();
-    this.getEmployeeOnleaveAndWFH();
-    this.getHoliday(this.today.getFullYear(), this.today.getMonth());
-
-    this.appUserService.user$.subscribe(() => {
-      this.permissionService.refreshPermissions();
-      this.menus = this.menuService
-        .getMenus()
-        .sort((a, b) => (a.stt ?? 1) - (b.stt ?? 1));
-      this.menuQuickAccess = this.menuService
-        .getMenus()
-        .filter((x) => x.key == 'person');
-      this.cdr.markForCheck?.();
-    });
-  }
-
-  ngAfterViewInit(): void {}
-
-  //   newTab(routerLink: string[], title: string): void {
-  //     const { length } = this.dynamicTabs;
-  //     const newTabId = length + 1;
-  //     // const title = `NewTab${newTabId}`;
-  //     this.dynamicTabs = [
-  //       ...this.dynamicTabs,
-  //       {
-  //         title,
-  //         content: title,
-  //         routerLink: routerLink,
-  //         queryParams: {
-  //           tab: newTabId,
-  //         },
-  //       },
-  //     ];
-  //   }
-
-  selectedIndex = 0;
-  newTab(comp: Type<any>, title: string, data?: any) {
-    // if (this.isMobile) {
-    //   this.isCollapsed = !this.isCollapsed;
-    // }
-
-    const idx = this.dynamicTabs.findIndex((t) => t.title === title);
-    if (idx >= 0) {
-      this.selectedIndex = idx;
-      return;
-    }
-
-    const injector = Injector.create({
-      providers: [{ provide: 'tabData', useValue: data }],
-      parent: this.injector,
-    });
-
-    this.dynamicTabs = [...this.dynamicTabs, { title, comp, injector }];
-    setTimeout(() => (this.selectedIndex = this.dynamicTabs.length - 1));
-
-    // Lưu tabs vào localStorage
-    // this.saveTabs();
-  }
-
-  onPick(n: NotifyItem) {
-    console.log('picked:', n);
-    // TODO: điều hướng/đánh dấu đã đọc...
-  }
-  notifItems: NotifyItem[] = [
-    // {
-    //   id: 1,
-    //   title: 'Phiếu xe #A123 đã duyệt',
-    //   detail: 'Xe VP Hà Nội',
-    //   time: '09:12',
-    //   group: 'today',
-    //   icon: 'car',
-    // },
-    // {
-    //   id: 1,
-    //   title: 'Phiếu xe #A123 đã duyệt',
-    //   detail: 'Xe VP Hà Nội',
-    //   time: '09:12',
-    //   group: 'today',
-    //   icon: 'car',
-    // },
-    // {
-    //   id: 1,
-    //   title: 'Phiếu xe #A123 đã duyệt',
-    //   detail: 'Xe VP Hà Nội',
-    //   time: '09:12',
-    //   group: 'today',
-    //   icon: 'car',
-    // },
-    // {
-    //   id: 1,
-    //   title: 'Phiếu xe #A123 đã duyệt',
-    //   detail: 'Xe VP Hà Nội',
-    //   time: '09:12',
-    //   group: 'today',
-    //   icon: 'car',
-    // },
-    // {
-    //   id: 1,
-    //   title: 'Phiếu xe #A123 đã duyệt',
-    //   detail: 'Xe VP Hà Nội',
-    //   time: '09:12',
-    //   group: 'today',
-    //   icon: 'car',
-    // },
-    // {
-    //   id: 1,
-    //   title: 'Phiếu xe #A123 đã duyệt',
-    //   detail: 'Xe VP Hà Nội',
-    //   time: '09:12',
-    //   group: 'today',
-    //   icon: 'car',
-    // },
-    // {
-    //   id: 1,
-    //   title: 'Phiếu xe #A123 đã duyệt',
-    //   detail: 'Xe VP Hà Nội',
-    //   time: '09:12',
-    //   group: 'today',
-    //   icon: 'car',
-    // },
-  ];
-
-  getMenuParents(): void {
-    this.homepageService.getMenuParents().subscribe((response: any) => {
-      this.menuParents = response.data || [];
-      this.allApps = (this.menuParents || []).map((item: any) => ({
-        MenuName: item?.MenuName ?? 'Menu',
-        Link: item?.Link ?? undefined,
-        ImageName: item?.ImageName ?? undefined,
-      }));
-      this.dynamicApps = [...this.allApps];
-      this.cdr.markForCheck?.();
-    });
-  }
-
-  getEmployeeOnleaveAndWFH(): void {
-    this.homepageService.getEmployeeOnleaveAndWFH().subscribe(
-      (response: any) => {
-        // console.log('getEmployeeOnleaveAndWFH: ', response);
-        this.employeeOnleaves = response.data.employeeOnleaves || [];
-        this.employeeWfhs = response.data.employeeWfhs || [];
-
-        this.totalEmployeeOnleave = this.employeeOnleaves.reduce(
-          (sum: any, dept: any) => sum + dept.Employees.length,
-          0
+    isHoliday(date: Date): boolean {
+        let isHoliday = this.holidays.some(
+            (x) =>
+                x.HolidayYear === date.getFullYear() &&
+                x.HolidayMonth === date.getMonth() + 1 &&
+                x.HolidayDay === date.getDate()
         );
-        this.totalEmployeeWfh = this.employeeWfhs.reduce(
-          (sum: any, dept: any) => sum + dept.Employees.length,
-          0
+
+        // let isSaturday = this.scheduleWorkSaturdays.some(
+        //   (x) =>
+        //     x.WorkYear === date.getFullYear() &&
+        //     x.WorkMonth === date.getMonth() + 1 &&
+        //     x.WorkDay === date.getDate()
+        // );
+        // console.log(isHoliday);
+        return isHoliday;
+    }
+
+    isSaturday(date: Date): boolean {
+        let isSaturday = this.scheduleWorkSaturdays.some(
+            (x) =>
+                x.WorkYear === date.getFullYear() &&
+                x.WorkMonth === date.getMonth() + 1 &&
+                x.WorkDay === date.getDate()
         );
-      },
-      (error: any) => {
-        this.notification.error(NOTIFICATION_TITLE.error, error.error.message);
-      }
-    );
-  }
-
-  // Carousel state
-  currentPage = 1;
-  pageSize = 22; // Desktop default
-
-  private setResponsivePageSize(): void {
-    const isMobile = window.matchMedia('(max-width: 576px)').matches;
-    const desired = isMobile ? 12 : 22;
-    if (this.pageSize !== desired) {
-      this.pageSize = desired;
-      this.currentPage = 1;
-    }
-  }
-
-  @HostListener('window:resize')
-  onWindowResize(): void {
-    this.setResponsivePageSize();
-  }
-
-  private get sourceApplications() {
-    return this.dynamicApps.length > 0 ? this.dynamicApps : this.applications;
-  }
-
-  private get displayedApps() {
-    return this.sourceApplications.map((item: any) => {
-      if (item && typeof item === 'object' && 'MenuName' in item) {
-        const image = item.ImageName as string | undefined;
-        return {
-          title: item.MenuName as string,
-          link: item.Link as string | undefined,
-          color: item.color as string,
-          image,
-        };
-      }
-      return {
-        title: item.name as string,
-        link: item.route as string | undefined,
-        color: item.color as string,
-        image: item.image as string | undefined,
-      };
-    });
-  }
-
-  searchData(event?: Event): void {
-    // Ngăn form submit mặc định nếu có event
-    if (event) {
-      event.preventDefault();
+        // console.log(isHoliday);
+        return isSaturday;
     }
 
-    const q = (this.keyword || '').toLowerCase().trim();
-    if (!q) {
-      this.dynamicApps = [...this.allApps];
-    } else {
-      this.dynamicApps = this.allApps.filter((x) =>
-        (x.MenuName || '').toLowerCase().includes(q)
-      );
+    menus: MenuItem[] = [];
+    menuQuickAccess: any[] = [];
+
+    constructor(
+        private notification: NzNotificationService,
+        private homepageService: HomeLayoutService,
+        private modalService: NgbModal,
+        private modal: NzModalService,
+        private cdr: ChangeDetectorRef,
+        private holidayService: HolidayServiceService,
+        private router: Router,
+        private appUserService: AppUserService,
+        public menuService: MenuService,
+        private injector: Injector,
+        private permissionService: PermissionService
+    ) {
+        // this.menus = this.menuService
+        //   .getMenus()
+        //   .sort((a, b) => (a.stt ?? 1) - (b.stt ?? 1));
+        // this.menuQuickAccess = this.menuService
+        //   .getMenus()
+        //   .filter((x) => x.key == 'person');
     }
-    this.currentPage = 1;
-  }
 
-  get chunkedApplications() {
-    const chunkSize = this.pageSize; // Sử dụng pageSize responsive (12 cho mobile, 22 cho desktop)
-    const apps = this.displayedApps;
-    const result = [];
-    for (let i = 0; i < apps.length; i += chunkSize) {
-      result.push(apps.slice(i, i + chunkSize));
+    isGroup = (m: MenuItem): m is GroupItem => m.kind === 'group';
+    isLeaf = (m: MenuItem): m is LeafItem => m.kind === 'leaf';
+
+    ngOnInit(): void {
+        this.setResponsivePageSize();
+        this.getMenuParents();
+        this.getEmployeeOnleaveAndWFH();
+        this.getHoliday(this.today.getFullYear(), this.today.getMonth());
+
+        this.appUserService.user$.subscribe(() => {
+            this.permissionService.refreshPermissions();
+            this.menus = this.menuService
+                .getMenus()
+                .sort((a, b) => (a.stt ?? 1) - (b.stt ?? 1));
+            this.menuQuickAccess = this.menuService
+                .getMenus()
+                .filter((x) => x.key == 'person');
+            this.cdr.markForCheck?.();
+        });
     }
-    return result;
-  }
 
-  get shouldShowPagination(): boolean {
-    // Chỉ hiển thị pagination khi có nhiều hơn 1 slide
-    return this.chunkedApplications.length > 1;
-  }
+    ngAfterViewInit(): void { }
 
-  onCarouselChange(index: number): void {
-    // Cập nhật currentPage khi carousel thay đổi
-    this.currentPage = index + 1;
-    this.cdr.markForCheck();
-  }
+    //   newTab(routerLink: string[], title: string): void {
+    //     const { length } = this.dynamicTabs;
+    //     const newTabId = length + 1;
+    //     // const title = `NewTab${newTabId}`;
+    //     this.dynamicTabs = [
+    //       ...this.dynamicTabs,
+    //       {
+    //         title,
+    //         content: title,
+    //         routerLink: routerLink,
+    //         queryParams: {
+    //           tab: newTabId,
+    //         },
+    //       },
+    //     ];
+    //   }
 
-  // Helper methods cho dữ liệu
-  getStatusText(status: string): string {
-    switch (status) {
-      case 'approved':
-        return 'Đã duyệt';
-      case 'pending':
-        return 'Đang chờ duyệt';
-      case 'rejected':
-        return 'Từ chối';
-      default:
-        return status;
+    selectedIndex = 0;
+    newTab(comp: Type<any>, title: string, data?: any) {
+        // if (this.isMobile) {
+        //   this.isCollapsed = !this.isCollapsed;
+        // }
+
+        const idx = this.dynamicTabs.findIndex((t) => t.title === title);
+        if (idx >= 0) {
+            this.selectedIndex = idx;
+            return;
+        }
+
+        const injector = Injector.create({
+            providers: [{ provide: 'tabData', useValue: data }],
+            parent: this.injector,
+        });
+
+        this.dynamicTabs = [...this.dynamicTabs, { title, comp, injector }];
+        setTimeout(() => (this.selectedIndex = this.dynamicTabs.length - 1));
+
+        // Lưu tabs vào localStorage
+        // this.saveTabs();
     }
-  }
 
-  getStatusClass(status: string): string {
-    switch (status) {
-      case 'approved':
-        return 'text-success';
-      case 'pending':
-        return 'text-warning';
-      case 'rejected':
-        return 'text-danger';
-      default:
-        return '';
+    onPick(n: NotifyItem) {
+        console.log('picked:', n);
+        // TODO: điều hướng/đánh dấu đã đọc...
     }
-  }
+    notifItems: NotifyItem[] = [
+        // {
+        //   id: 1,
+        //   title: 'Phiếu xe #A123 đã duyệt',
+        //   detail: 'Xe VP Hà Nội',
+        //   time: '09:12',
+        //   group: 'today',
+        //   icon: 'car',
+        // },
+        // {
+        //   id: 1,
+        //   title: 'Phiếu xe #A123 đã duyệt',
+        //   detail: 'Xe VP Hà Nội',
+        //   time: '09:12',
+        //   group: 'today',
+        //   icon: 'car',
+        // },
+        // {
+        //   id: 1,
+        //   title: 'Phiếu xe #A123 đã duyệt',
+        //   detail: 'Xe VP Hà Nội',
+        //   time: '09:12',
+        //   group: 'today',
+        //   icon: 'car',
+        // },
+        // {
+        //   id: 1,
+        //   title: 'Phiếu xe #A123 đã duyệt',
+        //   detail: 'Xe VP Hà Nội',
+        //   time: '09:12',
+        //   group: 'today',
+        //   icon: 'car',
+        // },
+        // {
+        //   id: 1,
+        //   title: 'Phiếu xe #A123 đã duyệt',
+        //   detail: 'Xe VP Hà Nội',
+        //   time: '09:12',
+        //   group: 'today',
+        //   icon: 'car',
+        // },
+        // {
+        //   id: 1,
+        //   title: 'Phiếu xe #A123 đã duyệt',
+        //   detail: 'Xe VP Hà Nội',
+        //   time: '09:12',
+        //   group: 'today',
+        //   icon: 'car',
+        // },
+        // {
+        //   id: 1,
+        //   title: 'Phiếu xe #A123 đã duyệt',
+        //   detail: 'Xe VP Hà Nội',
+        //   time: '09:12',
+        //   group: 'today',
+        //   icon: 'car',
+        // },
+    ];
 
-  getStatusColor(status: string): string {
-    switch (status) {
-      case 'approved':
-        return '#28a745';
-      case 'pending':
-        return '#ffc107';
-      case 'rejected':
-        return '#dc3545';
-      default:
-        return '#6c757d';
+    getMenuParents(): void {
+        this.homepageService.getMenuParents().subscribe((response: any) => {
+            this.menuParents = response.data || [];
+            this.allApps = (this.menuParents || []).map((item: any) => ({
+                MenuName: item?.MenuName ?? 'Menu',
+                Link: item?.Link ?? undefined,
+                ImageName: item?.ImageName ?? undefined,
+            }));
+            this.dynamicApps = [...this.allApps];
+            this.cdr.markForCheck?.();
+        });
     }
-  }
 
-  //GET DANH SÁCH NGÀY NGHỈ TRONG THÁNG
-  getHoliday(year: number, month: number): void {
-    this.holidayService.getHolidays(month + 1, year).subscribe({
-      next: (response: any) => {
-        this.holidays = response.data.holidays;
-        this.scheduleWorkSaturdays = response.data.scheduleWorkSaturdays;
+    getEmployeeOnleaveAndWFH(): void {
+        this.homepageService.getEmployeeOnleaveAndWFH().subscribe(
+            (response: any) => {
+                // console.log('getEmployeeOnleaveAndWFH: ', response);
+                this.employeeOnleaves = response.data.employeeOnleaves || [];
+                this.employeeWfhs = response.data.employeeWfhs || [];
 
-        console.log(response);
-      },
-      error: (err: any) => {
-        this.notification.error(NOTIFICATION_TITLE.error, err.error.message);
-      },
-    });
-  }
-  onValueChange(value: Date): void {
-    // console.log(`Current value: ${value}`);
+                this.totalEmployeeOnleave = this.employeeOnleaves.reduce(
+                    (sum: any, dept: any) => sum + dept.Employees.length,
+                    0
+                );
+                this.totalEmployeeWfh = this.employeeWfhs.reduce(
+                    (sum: any, dept: any) => sum + dept.Employees.length,
+                    0
+                );
+            },
+            (error: any) => {
+                this.notification.error(NOTIFICATION_TITLE.error, error.error.message);
+            }
+        );
+    }
 
-    // console.log(`Current year: ${value.getFullYear()}`);
-    // console.log(`Current month: ${value.getMonth()}`);
+    // Carousel state
+    currentPage = 1;
+    pageSize = 22; // Desktop default
 
-    this.getHoliday(value.getFullYear(), value.getMonth());
-  }
-  onPanelChange(change: { date: Date; mode: string }): void {}
+    private setResponsivePageSize(): void {
+        const isMobile = window.matchMedia('(max-width: 576px)').matches;
+        const desired = isMobile ? 12 : 22;
+        if (this.pageSize !== desired) {
+            this.pageSize = desired;
+            this.currentPage = 1;
+        }
+    }
 
-  openModule(key: string) {
-    // localStorage.setItem('openMenuKey', key);
-    // this.setMenuKey(key);
-    this.menuService.setMenuKey(key);
-    this.router.navigate(['/app']); // hoặc route tới MainLayout
-  }
+    @HostListener('window:resize')
+    onWindowResize(): void {
+        this.setResponsivePageSize();
+    }
+
+    private get sourceApplications() {
+        return this.dynamicApps.length > 0 ? this.dynamicApps : this.applications;
+    }
+
+    private get displayedApps() {
+        return this.sourceApplications.map((item: any) => {
+            if (item && typeof item === 'object' && 'MenuName' in item) {
+                const image = item.ImageName as string | undefined;
+                return {
+                    title: item.MenuName as string,
+                    link: item.Link as string | undefined,
+                    color: item.color as string,
+                    image,
+                };
+            }
+            return {
+                title: item.name as string,
+                link: item.route as string | undefined,
+                color: item.color as string,
+                image: item.image as string | undefined,
+            };
+        });
+    }
+
+    searchData(event?: Event): void {
+        // Ngăn form submit mặc định nếu có event
+        if (event) {
+            event.preventDefault();
+        }
+
+        const q = (this.keyword || '').toLowerCase().trim();
+        if (!q) {
+            this.dynamicApps = [...this.allApps];
+        } else {
+            this.dynamicApps = this.allApps.filter((x) =>
+                (x.MenuName || '').toLowerCase().includes(q)
+            );
+        }
+        this.currentPage = 1;
+    }
+
+    get chunkedApplications() {
+        const chunkSize = this.pageSize; // Sử dụng pageSize responsive (12 cho mobile, 22 cho desktop)
+        const apps = this.displayedApps;
+        const result = [];
+        for (let i = 0; i < apps.length; i += chunkSize) {
+            result.push(apps.slice(i, i + chunkSize));
+        }
+        return result;
+    }
+
+    get shouldShowPagination(): boolean {
+        // Chỉ hiển thị pagination khi có nhiều hơn 1 slide
+        return this.chunkedApplications.length > 1;
+    }
+
+    onCarouselChange(index: number): void {
+        // Cập nhật currentPage khi carousel thay đổi
+        this.currentPage = index + 1;
+        this.cdr.markForCheck();
+    }
+
+    // Helper methods cho dữ liệu
+    getStatusText(status: string): string {
+        switch (status) {
+            case 'approved':
+                return 'Đã duyệt';
+            case 'pending':
+                return 'Đang chờ duyệt';
+            case 'rejected':
+                return 'Từ chối';
+            default:
+                return status;
+        }
+    }
+
+    getStatusClass(status: string): string {
+        switch (status) {
+            case 'approved':
+                return 'text-success';
+            case 'pending':
+                return 'text-warning';
+            case 'rejected':
+                return 'text-danger';
+            default:
+                return '';
+        }
+    }
+
+    getStatusColor(status: string): string {
+        switch (status) {
+            case 'approved':
+                return '#28a745';
+            case 'pending':
+                return '#ffc107';
+            case 'rejected':
+                return '#dc3545';
+            default:
+                return '#6c757d';
+        }
+    }
+
+    //GET DANH SÁCH NGÀY NGHỈ TRONG THÁNG
+    getHoliday(year: number, month: number): void {
+        this.holidayService.getHolidays(month + 1, year).subscribe({
+            next: (response: any) => {
+                this.holidays = response.data.holidays;
+                this.scheduleWorkSaturdays = response.data.scheduleWorkSaturdays;
+
+                // console.log(response);
+            },
+            error: (err: any) => {
+                this.notification.error(NOTIFICATION_TITLE.error, err.error.message);
+            },
+        });
+    }
+    onValueChange(value: Date): void {
+        // console.log(`Current value: ${value}`);
+
+        // console.log(`Current year: ${value.getFullYear()}`);
+        // console.log(`Current month: ${value.getMonth()}`);
+
+        this.getHoliday(value.getFullYear(), value.getMonth());
+    }
+    onPanelChange(change: { date: Date; mode: string }): void { }
+
+    openModule(key: string) {
+        // localStorage.setItem('openMenuKey', key);
+        // this.setMenuKey(key);
+        this.menuService.setMenuKey(key);
+        this.router.navigate(['/app']); // hoặc route tới MainLayout
+    }
 }

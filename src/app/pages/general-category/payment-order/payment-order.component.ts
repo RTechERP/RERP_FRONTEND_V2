@@ -47,14 +47,14 @@ export class PaymentOrderComponent implements OnInit {
     ) { }
 
     ngOnInit(): void {
-        this.initializeGrid();
+        this.initGrid();
     }
 
-    initializeGrid() {
+    initGrid() {
 
     }
 
-    initializeModal() {
+    initModal() {
         const modalRef = this.modalService.open(PaymentOrderDetailComponent, {
             centered: true,
             size: 'xl',
@@ -65,11 +65,11 @@ export class PaymentOrderComponent implements OnInit {
     }
 
     onCreate() {
-        this.initializeModal();
+        this.initModal();
     }
 
     onEdit() {
-        this.initializeModal();
+        this.initModal();
     }
 
     onDelete() {

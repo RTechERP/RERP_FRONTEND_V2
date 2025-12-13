@@ -30,7 +30,7 @@
         nzResizable="true">
           <nz-splitter nzLayout="vertical" style="height: 100%">
             <!-- Bảng 1: Giải pháp -->
-            <nz-splitter-panel nzDefaultSize="33.33%">
+            <nz-splitter-panel >
               <div class="card h-100 border-0 rounded-0 d-flex flex-column">
                 <div class="card-header bg-white p-1 d-flex justify-content-between align-items-center" style=" font-weight: bold !important; background-color: #efebebe7 !important;">
                   <p class="m-0">Giải pháp</p>
@@ -106,7 +106,7 @@
             </nz-splitter-panel>
   
             <!-- Bảng 2: Phiên bản giải pháp -->
-            <nz-splitter-panel nzDefaultSize="33.33%" *ngIf="!isPOKH && !tbp">
+            <nz-splitter-panel  *ngIf="!isPOKH && !tbp">
               <div class="card h-100 border-0 rounded-0 d-flex flex-column">
                 <div class="card-header bg-white p-1" style=" font-weight: bold !important; background-color: #efebebe7 !important;">
                   <p class="m-0">Phiên bản giải pháp</p>
@@ -166,7 +166,7 @@
             </nz-splitter-panel>
   
             <!-- Bảng 3: Phiên bản PO -->
-            <nz-splitter-panel nzDefaultSize="33.33%" >
+            <nz-splitter-panel  >
               <div class="card h-100 border-0 rounded-0 d-flex flex-column">
                 <div class="card-header bg-white p-1 d-flex gap-1" style=" font-weight: bold !important; background-color: #efebebe7 !important;">
                   <p class="m-0">Phiên bản PO</p>
@@ -313,7 +313,7 @@
                 nz-button
                 nzSize="small"
                 class="fs-12 button button-succes btn-add"
-                (click)="openProjectPartlistDetail(false)"
+                (click)="openProjectPartlistDetail(false)" *ngIf="!tbp"
               >
                 <img src="assets/icon/action_add_item_16.png" alt="Thêm mới " />
                 Thêm
@@ -323,7 +323,7 @@
                 nz-button
                 nzType="default"
                 nzSize="small"
-                (click)="openProjectPartlistDetail(true)"
+                (click)="openProjectPartlistDetail(true)" *ngIf="!tbp"
               >
                 <img src="assets/icon/action_edit_item_16.png" alt="Sửa" /> Sửa
               </button>
@@ -334,11 +334,11 @@
                 nzSize="small"
                 nzDanger
                 click
-                (click)="deleteProjectPartList()"
+                (click)="deleteProjectPartList()" *ngIf="!tbp"
               >
                 <img src="assets/icon/action_delete_item_16.png" alt="Xóa " /> Xóa
               </button>
-              <ng-container *hasPermission="''">
+              <ng-container *ngIf="!tbp">
                 <button
                   class="fs-12"
                   nz-button
@@ -366,7 +366,7 @@
                     <img src="assets/icon/purchase_16.png" />
                     <span class="ms-1">Yêu cầu mua hàng</span>
                   </li>
-                  <li nz-menu-item (click)="cancelPurchaseRequest()" *ngIf="type == 2">
+                  <li nz-menu-item (click)="cancelPurchaseRequest()" *ngIf="type == 2 && !tbp">
                     <img src="assets/icon/cancel_purchase_16.png" />
                     <span class="ms-1">Hủy yêu cầu mua hàng</span>
                   </li>
@@ -399,11 +399,11 @@
                     <img src="assets/icon/action_unapproved_16.png" />
                     <span class="ms-1">TBP hủy duyệt mới</span>
                   </li>
-                  <li nz-menu-item (click)="updateApprove(1)"  *ngIf="type == 2">
+                  <li nz-menu-item (click)="updateApprove(1)"  *ngIf="type == 2 ">
                     <img src="assets/icon/action_approved_16.png" />
                     <span class="ms-1">TBP duyệt</span>
                   </li>
-                  <li nz-menu-item (click)="updateApprove(2)"  *ngIf="type == 2 && !tbp">
+                  <li nz-menu-item (click)="updateApprove(2)"  *ngIf="type == 2" >
                     <img src="assets/icon/action_unapproved_16.png" />
                     <span class="ms-1">TBP hủy duyệt</span>
                   </li>
@@ -504,6 +504,8 @@
                   nzPlaceHolder="Chọn trạng thái"
                   nzSize="small"
                   [(ngModel)]="isApprovedTBP"
+                  nzAllowClear="false"
+                  class="fs-12"
                 >
                   <nz-option [nzValue]="-1" nzLabel="--Tất cả--"></nz-option>
                   <nz-option [nzValue]="0" nzLabel="Chưa duyệt"></nz-option>
@@ -518,10 +520,12 @@
                   nzPlaceHolder="Chọn trạng thái"
                   nzSize="small"
                   [(ngModel)]="isApprovedPurchase"
+                  nzAllowClear="false"
+                  class="fs-12"
                 >
-                  <nz-option [nzValue]="-1" nzLabel="--Tất cả--"></nz-option>
-                  <nz-option [nzValue]="0" nzLabel="Chưa Y/c mua"></nz-option>
-                  <nz-option [nzValue]="1" nzLabel="Đã yêu cầu mua"></nz-option>
+                  <nz-option [nzValue]="-1" nzLabel="--Tất cả-- " class="fs-12"></nz-option>
+                  <nz-option [nzValue]="0" nzLabel="Chưa Y/c mua" class="fs-12"></nz-option>
+                  <nz-option [nzValue]="1" nzLabel="Đã yêu cầu mua" class="fs-12"></nz-option>
                 </nz-select>
                 <label class="fs-12 mb-0">Trạng thái</label>
                 <nz-select
@@ -531,10 +535,12 @@
                   nzPlaceHolder="Chọn trạng thái"
                   nzSize="small"
                   [(ngModel)]="isDeleted"
+                  nzAllowClear="false"
+                  class="fs-12"
                 >
-                  <nz-option [nzValue]="-1" nzLabel="--Tất cả--"></nz-option>
-                  <nz-option [nzValue]="0" nzLabel="Chưa xóa"></nz-option>
-                  <nz-option [nzValue]="1" nzLabel="Đã xóa"></nz-option>
+                  <nz-option [nzValue]="-1" nzLabel="--Tất cả--" class="fs-12"></nz-option>
+                  <nz-option [nzValue]="0" nzLabel="Chưa xóa" class="fs-12"></nz-option>
+                  <nz-option [nzValue]="1" nzLabel="Đã xóa" class="fs-12"></nz-option>
                 </nz-select>
                 <input
                   nz-input
@@ -543,6 +549,7 @@
                   style="width: 150px"
                   [(ngModel)]="keyword"
                   (keyup.enter)="searchDataProjectWorker()"
+                  class="fs-12"
                 />
                 <button
                   type="button"
@@ -586,6 +593,7 @@
           nzFormat="dd/MM/yyyy"
           nzPlaceHolder="Chọn ngày deadline"
           [nzDisabledDate]="disabledDate"
+          [nzShowToday]="false"
           style="width: 100%;"
         ></nz-date-picker>
       </div>
@@ -616,6 +624,7 @@
           nzFormat="dd/MM/yyyy"
           nzPlaceHolder="Chọn ngày deadline"
           [nzDisabledDate]="disabledDatePurchase"
+          [nzShowToday]="false"
           style="width: 100%;"
         ></nz-date-picker>
       </div>

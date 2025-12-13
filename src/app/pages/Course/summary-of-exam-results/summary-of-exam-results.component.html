@@ -1,110 +1,5 @@
 <ng-container class="w-100">
   <nz-splitter>
-    <nz-splitter-panel [nzSize]="sizeSearch" nzResizable="false">
-      <div class="card h-100 border-0 rounded-0">
-        <div class="card-header bg-white p-1">
-          <div class="d-flex justify-content-between align-items-center">
-            <h6 class="m-0 ms-2">Tìm kiếm</h6>
-            <button
-              class="border-0 me-2"
-              nz-button
-              nzSize="small"
-              nzType="default"
-              nzDanger
-              (click)="toggleSearchPanel()"
-            >
-              <nz-icon nzType="close" nzTheme="outline" />
-            </button>
-          </div>
-        </div>
-        <div class="card-body">
-          <form nz-form nzLayout="vertical">
-            <nz-form-item>
-              <nz-form-label class="fs-12" [nzSpan]="24">Phòng ban</nz-form-label>
-              <nz-form-control [nzSpan]="24">
-                <nz-select
-                  name="departmentId"
-                  class="w-100"
-                  nzShowSearch
-                  nzAllowClear
-                  nzPlaceHolder="Chọn phòng ban"
-                  [(ngModel)]="departmentId"
-                  nzSize="small"
-                  (ngModelChange)="getUserTeam()"
-                >
-                  @for (item of departments; track $index) {
-                  <nz-option
-                    nzCustomContent="true"
-                    [nzLabel]="item.Name"
-                    [nzValue]="item.ID"
-                    >{{ item.Code + " - " + item.Name }}</nz-option
-                  >
-                  }
-                </nz-select>
-              </nz-form-control>
-            </nz-form-item>
-            <nz-form-item class="mt-2">
-              <nz-form-label class="fs-12" [nzSpan]="24">Team</nz-form-label>
-              <nz-form-control [nzSpan]="24">
-                <nz-select
-                  name="teamId"
-                  class="w-100"
-                  nzShowSearch
-                  nzAllowClear
-                  nzPlaceHolder="Chọn team"
-                  [(ngModel)]="teamId"
-                  nzSize="small"
-                >
-                  @for (item of teams; track $index) {
-                  <nz-option
-                    nzCustomContent="true"
-                    [nzLabel]="item.Name"
-                    [nzValue]="item.ID"
-                    >{{item.Name }}</nz-option
-                  >
-                  }
-                </nz-select>
-              </nz-form-control>
-            </nz-form-item>
-            <nz-form-item class="mt-2">
-              <nz-form-label class="fs-12" [nzSpan]="24"
-                >Nhân viên</nz-form-label
-              >
-              <nz-form-control [nzSpan]="24">
-                <nz-select
-                  name="employeeId"
-                  class="w-100"
-                  nzShowSearch
-                  nzAllowClear
-                  nzPlaceHolder="Chọn nhân viên"
-                  [(ngModel)]="employeeId"
-                  nzSize="small"
-                >
-                  @for (parent of employees; track $index) {
-                  <nz-option-group [nzLabel]="parent.label">
-                    @for (child of parent.options; track $index) {
-                    <nz-option
-                      nzCustomContent="true"
-                      [nzLabel]="child.item.FullName"
-                      [nzValue]="child.item.UserID"
-                      >{{
-                        child.item.Code + " - " + child.item.FullName
-                      }}</nz-option
-                    >
-                    }
-                  </nz-option-group>
-                  }
-                </nz-select>
-              </nz-form-control>
-            </nz-form-item>
-          </form>
-        </div>
-        <div class="card-footer bg-white p-1 d-flex gap-1 justify-content-end">
-          <!-- <button nz-button nzType="default" nzSize="small" (click)="resetSearch()">Đặt lại</button> -->
-          <button nz-button nzType="primary" nzSize="small" (click)="getEmployeeData()">Tìm kiếm</button>
-        </div>
-      </div>
-    </nz-splitter-panel>
     <nz-splitter-panel nzDefaultSize="100%">
       <div class="card h-100 border-0 rounded-0">
         <div class="card-header bg-white p-1">
@@ -124,13 +19,14 @@
                   <label class="me-1 fs-12">Phòng ban:</label>
                   <nz-select
                     name="departmentId"
-                    style="width: 150px;"
+                    style="width: 250px;"
                     nzShowSearch
                     nzAllowClear
                     nzPlaceHolder="Chọn phòng ban"
                     [(ngModel)]="departmentId"
                     (ngModelChange)="getUserTeam()"
                     nzSize="small"
+                    class="fs-12"
                   >
                     @for (item of departments; track $index) {
                     <nz-option
@@ -148,12 +44,13 @@
                   <label class="me-1 fs-12">Team:</label>
                   <nz-select
                     name="teamId"
-                    style="width: 150px;"
+                    style="width: 250px;"
                     nzShowSearch
                     nzAllowClear
                     nzPlaceHolder="Chọn team"
                     [(ngModel)]="teamId"
                     nzSize="small"
+                    class="fs-12"
                   >
                     @for (item of teams; track $index) {
                     <nz-option
@@ -177,6 +74,7 @@
                     nzPlaceHolder="Chọn nhân viên"
                     [(ngModel)]="employeeId"
                     nzSize="small"
+                    class="fs-12"
                   >
                     @for (parent of employees; track $index) {
                     <nz-option-group [nzLabel]="parent.label">
@@ -195,13 +93,13 @@
                   </nz-select>
                 </nz-form-control>
               </nz-form-item>
-              <button nz-button nzType="primary" nzSize="small" (click)="getEmployeeData()">Tìm kiếm</button>
+              <button nz-button nzType="primary" nzSize="small" (click)="searchData()">Tìm kiếm</button>
             </div>
           </div>
         </div>
         <div class="card-body p-0">
           <nz-splitter [nzLayout]="splitterLayout">
-            <nz-splitter-panel nzDefaultSize="30%" nzMin="20%" nzMax="50%">
+            <nz-splitter-panel nzDefaultSize="20%" nzMin="5%" nzMax="50%">
               <div class="box">
                 <ng-container class="w-100">
                   <nz-splitter>
@@ -222,7 +120,7 @@
               </div>
             </nz-splitter-panel>
 
-            <nz-splitter-panel nzDefaultSize="70%" nzMin="50%" nzMax="80%">
+            <nz-splitter-panel nzDefaultSize="80%" nzMin="50%" nzMax="95%">
               <div class="box">
                 <ng-container class="w-100">
                   <nz-splitter>

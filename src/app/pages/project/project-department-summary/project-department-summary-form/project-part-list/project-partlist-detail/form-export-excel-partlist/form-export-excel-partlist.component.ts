@@ -64,14 +64,17 @@ export class FormExportExcelPartlistComponent implements OnInit, AfterViewInit {
   ) { }
 
   ngOnInit(): void {
-    if (this.partListData && this.partListData.length > 0) {
-      this.originalData = [...this.partListData];
-    }
     this.getCurrentUser();
   }
   getCurrentUser() {
     this.authService.getCurrentUser().subscribe((res: any) => {
       this.currentUser = res.data;
+      // Enrich data after getting current user
+      if (this.partListData && this.partListData.length > 0) {
+        this.originalData = this.enrichDataWithProjectInfo([...this.partListData]);
+        // Update partListData with enriched data
+        this.partListData = this.enrichDataWithProjectInfo([...this.partListData]);
+      }
     });
   }
 
@@ -90,7 +93,11 @@ export class FormExportExcelPartlistComponent implements OnInit, AfterViewInit {
   searchData(): void {
     if (!this.tb_ExportProjectPartList) return;
 
-    let filteredData = [...this.originalData];
+    // Ensure originalData is enriched before filtering
+    const enrichedOriginalData = this.originalData && this.originalData.length > 0
+      ? this.enrichDataWithProjectInfo([...this.originalData])
+      : this.originalData;
+    let filteredData = [...enrichedOriginalData];
 
     if (this.searchKeyword && this.searchKeyword.trim()) {
       const keyword = this.searchKeyword.toLowerCase().trim();
@@ -130,7 +137,11 @@ export class FormExportExcelPartlistComponent implements OnInit, AfterViewInit {
     this.searchMaker = '';
     this.searchSupplier = '';
     if (this.tb_ExportProjectPartList) {
-      this.tb_ExportProjectPartList.setData(this.originalData);
+      // Ensure originalData is enriched before setting
+      const enrichedOriginalData = this.originalData && this.originalData.length > 0
+        ? this.enrichDataWithProjectInfo([...this.originalData])
+        : this.originalData;
+      this.tb_ExportProjectPartList.setData(enrichedOriginalData);
     }
   }
 
@@ -150,6 +161,29 @@ export class FormExportExcelPartlistComponent implements OnInit, AfterViewInit {
     return dateTime.isValid ? dateTime.toFormat('dd/MM/yyyy') : '';
   }
 
+  // Enrich data with project information
+  enrichDataWithProjectInfo(data: any[]): any[] {
+    const enrich = (nodes: any[]): any[] => {
+      return nodes.map((node: any) => {
+        const enrichedNode = {
+          ...node,
+          MaDuAn_Label: 'Mã dự án:',
+          MaDuAn_Value: this.projectCode || '',
+          TenDuAn_Value: this.projectName || '',
+          NguoiLap_Label: this.currentUser?.FullName || '',
+        };
+        
+        // Recursively enrich children
+        if (node._children && node._children.length > 0) {
+          enrichedNode._children = enrich(node._children);
+        }
+        
+        return enrichedNode;
+      });
+    };
+    return enrich(data);
+  }
+
   // Flatten tree data to array (recursive)
   flattenTreeData(treeData: any[]): any[] {
     const result: any[] = [];
@@ -166,8 +200,13 @@ export class FormExportExcelPartlistComponent implements OnInit, AfterViewInit {
   }
 
   drawTbExportProjectPartList(container: HTMLElement): void {
+    // Ensure data is enriched before displaying
+    const enrichedData = this.partListData && this.partListData.length > 0 
+      ? this.enrichDataWithProjectInfo([...this.partListData])
+      : [];
+    
     this.tb_ExportProjectPartList = new Tabulator(container, {
-      data: this.partListData || [],
+      data: enrichedData,
       layout: 'fitDataStretch',
       ...DEFAULT_TABLE_CONFIG,
       pagination:false,
@@ -329,12 +368,6 @@ export class FormExportExcelPartlistComponent implements OnInit, AfterViewInit {
                                     {
                                       title: 'Mã đặt hàng',
                                       field: 'BillCodePurchase',
-                                      width: 150,
-                                      headerHozAlign: 'left',
-                                    },
-                                    {
-                                      title: 'Mã đặc biệt',
-                                      field: 'SpecialCode',
                                       width: 150,
                                       headerHozAlign: 'left',
                                     },
@@ -650,9 +683,12 @@ export class FormExportExcelPartlistComponent implements OnInit, AfterViewInit {
     if (!this.tb_ExportProjectPartList) return;
 
     // Lấy toàn bộ dữ liệu tree (cả node cha và node con) từ dữ liệu gốc
-    const treeData = this.partListData || [];
+    // Enrich data with project info before flattening
+    const enrichedTreeData = this.partListData && this.partListData.length > 0
+      ? this.enrichDataWithProjectInfo([...this.partListData])
+      : [];
     // Flatten tree data để export tất cả các node
-    const data = this.flattenTreeData(treeData);
+    const data = this.flattenTreeData(enrichedTreeData);
     
     if (!data || data.length === 0) {
       this.notification.warning(
@@ -687,7 +723,7 @@ worksheet.getCell('C2').value = 'Mã dự án:';
 worksheet.getCell('C2').alignment = { horizontal: 'right' };
 worksheet.getCell('D2').value = this.projectCode || '';
 
-worksheet.getCell('C3').value = 'Tên dự án';
+worksheet.getCell('C3').value = 'Tên dự án:';
 worksheet.getCell('C3').alignment = { horizontal: 'right' };
 worksheet.getCell('D3').value = this.projectName || '';
 
@@ -695,6 +731,7 @@ worksheet.getCell('G3').value = 'BM03-RTC.TE-QT01\nBan hành lần: 02';
 worksheet.getCell('G3').alignment = { horizontal: 'center', vertical: 'middle', wrapText: true };
 
 worksheet.getCell('A4').value = 'Người lập:';
+worksheet.getCell('B4').value = this.currentUser?.FullName || '';
 worksheet.getCell('E4').value = 'Kiểm tra:';
 worksheet.getCell('H4').value = 'Phê duyệt:';
 

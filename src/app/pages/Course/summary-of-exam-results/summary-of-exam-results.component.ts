@@ -139,7 +139,10 @@ export class SummaryOfExamResultsComponent implements OnInit, AfterViewInit {
       },
     });
   }
-
+  searchData(){
+    this.getEmployeeData();
+    this.getExamResultsByEmployeeID(0);
+  }
   resetSearch() {
     this.departmentId = null;
     this.teamId = null;
@@ -147,7 +150,6 @@ export class SummaryOfExamResultsComponent implements OnInit, AfterViewInit {
     this.teams = [];
     this.getEmployeeData();
   }
-
   getEmployeeData() {
     const departmentid = this.departmentId || null;
     const userTeamID = this.teamId || null;
@@ -178,6 +180,7 @@ export class SummaryOfExamResultsComponent implements OnInit, AfterViewInit {
   }
 
   getExamResultsByEmployeeID(employeeID: number) {
+    debugger;
     // Cho phép gọi API với employeeID = 0 để lấy tất cả kết quả thi
     if (employeeID === null || employeeID === undefined || employeeID < 0) {
       this.examResultsData = [];
@@ -223,9 +226,10 @@ export class SummaryOfExamResultsComponent implements OnInit, AfterViewInit {
         data: this.employeeData,
         ...DEFAULT_TABLE_CONFIG,
         layout: 'fitDataStretch',
-        height: '87vh',
+        height: '83vh',
         selectableRows: 1,
         paginationMode: 'local',
+        rowHeader: false,
         groupBy: 'DepartmentName',
         groupHeader: function (value, count, data, group) {
           return (
@@ -238,7 +242,7 @@ export class SummaryOfExamResultsComponent implements OnInit, AfterViewInit {
             hozAlign: 'left',
             headerHozAlign: 'center',
             field: 'EmployeeCode',
-            width: 120,
+            width: 80,
             formatter: (cell: any) => {
               const rowData = cell.getRow().getData();
               return rowData['EmployeeCode'] || rowData['Code'] || '';
@@ -283,9 +287,17 @@ export class SummaryOfExamResultsComponent implements OnInit, AfterViewInit {
         data: this.examResultsData,
         ...DEFAULT_TABLE_CONFIG,
         layout: 'fitDataStretch',
-        height: '87vh',
+        height: '83vh',
         selectableRows: false,
         paginationMode: 'local',
+        columnCalcs: 'table',
+        groupBy: 'NameCourseCatalog',
+        rowHeader: false,
+        groupHeader: function (value, count, data, group) {
+          return (
+            `Danh mục: ${value}`
+          );
+        },
         columns: [
           {
             title: 'STT',
@@ -293,7 +305,6 @@ export class SummaryOfExamResultsComponent implements OnInit, AfterViewInit {
             headerHozAlign: 'center',
             field: 'STT',
             width: 80,
-            formatter: 'rownum',
           },
           {
             title: 'Mã khóa học',
@@ -301,6 +312,7 @@ export class SummaryOfExamResultsComponent implements OnInit, AfterViewInit {
             headerHozAlign: 'center',
             field: 'Code',
             width: 150,
+            bottomCalc: 'count',
           },
           {
             title: 'Tên khóa học',
@@ -316,7 +328,46 @@ export class SummaryOfExamResultsComponent implements OnInit, AfterViewInit {
             width: 150,
             formatter: (cell: any) => {
               const value = cell.getValue();
+              const rowData = cell.getRow().getData();
+              const evaluate = rowData['Evaluate'];
+              
+              // Tô màu cho ô dựa vào Evaluate
+              if (evaluate === 1) {
+                cell.getElement().style.backgroundColor = 'lightgreen'; // Xanh nhạt
+              } else if (evaluate === 0) {
+                cell.getElement().style.backgroundColor = '#FF6600'; // Cam nhạt
+              }
+              
               return value != null && value !== '' ? value.toString() : '-';
+            },
+            bottomCalc: (values: any[], data: any[]) => {
+              // Đếm số lượng Đạt (Evaluate === 1) và Không đạt (Evaluate === 0)
+              let datCount = 0;
+              let khongDatCount = 0;
+              
+              data.forEach((row: any) => {
+                if (row.Evaluate === 1) {
+                  datCount++;
+                } else if (row.Evaluate === 0) {
+                  khongDatCount++;
+                }
+              });
+              
+              return { dat: datCount, khongDat: khongDatCount };
+            },
+            bottomCalcFormatter: (cell: any) => {
+              const value = cell.getValue();
+              const datCount = value?.dat || 0;
+              const khongDatCount = value?.khongDat || 0;
+              
+              // Tô màu nền cho ô bottomCalc
+              cell.getElement().style.backgroundColor = '#f0f0f0';
+              
+              // Tạo HTML với 2 dòng có màu
+              return `<div style="line-height: 1.5;">
+                <div style="font-weight: bold;">Đạt = ${datCount}</div>
+                <div style="font-weight: bold;">Không đạt = ${khongDatCount}</div>
+              </div>`;
             },
           },
           {
@@ -348,7 +399,11 @@ export class SummaryOfExamResultsComponent implements OnInit, AfterViewInit {
               if (rowData['PracticePointsText'] && rowData['PracticePointsText'] !== '-') {
                 return rowData['PracticePointsText'];
               }
-              return value != null && value !== 0 ? value.toString() : '-';
+              if (value != null && value !== 0) {
+                const numValue = parseFloat(value);
+                return !isNaN(numValue) ? numValue.toFixed(2) : '-';
+              }
+              return '-';
             },
           },
           {
@@ -364,7 +419,11 @@ export class SummaryOfExamResultsComponent implements OnInit, AfterViewInit {
               if (rowData['ExcercisePointsText'] && rowData['ExcercisePointsText'] !== '-') {
                 return rowData['ExcercisePointsText'];
               }
-              return value != null && value !== 0 ? value.toString() : '-';
+              if (value != null && value !== 0) {
+                const numValue = parseFloat(value);
+                return !isNaN(numValue) ? numValue.toFixed(2) : '-';
+              }
+              return '-';
             },
           },
           {
@@ -375,7 +434,11 @@ export class SummaryOfExamResultsComponent implements OnInit, AfterViewInit {
             width: 180,
             formatter: (cell: any) => {
               const value = cell.getValue();
-              return value != null && value !== 0 ? `${value} ngày` : '-';
+              if (value != null && value !== 0) {
+                const numValue = parseFloat(value);
+                return !isNaN(numValue) ? numValue.toFixed(2) : '0.00';
+              }
+              return '0.00';
             },
           },
           {
@@ -386,7 +449,11 @@ export class SummaryOfExamResultsComponent implements OnInit, AfterViewInit {
             width: 220,
             formatter: (cell: any) => {
               const value = cell.getValue();
-              return value != null && value !== 0 ? `${value} ngày` : '-';
+              if (value != null && value !== 0) {
+                const numValue = parseFloat(value);
+                return !isNaN(numValue) ? numValue.toFixed(2) : '0.00';
+              }
+              return '0.00';
             },
           },
         ],

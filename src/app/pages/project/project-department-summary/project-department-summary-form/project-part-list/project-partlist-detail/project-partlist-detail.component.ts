@@ -78,6 +78,7 @@ export class ProjectPartlistDetailComponent implements OnInit, AfterViewInit {
   isDisabled: boolean = false;
   currentIsApprovedTBP: boolean = false; // Lưu trữ giá trị IsApprovedTBP hiện tại
   currentPartListId: number = 0; // Lưu trữ ID của partlist đang edit
+  hasDataChanged: boolean = false; // Flag để track xem có thay đổi dữ liệu hay không (mã đặc biệt)
   
   // Regex pattern cho TT
   private regexTT = /^\d+(\.\d+)*$/;
@@ -333,14 +334,17 @@ export class ProjectPartlistDetailComponent implements OnInit, AfterViewInit {
 
     // Logic enable/disable qtyMin and qtyFull theo WinForm
     this.updateQtyFieldsState(data.IsProblem || false, this.currentIsApprovedTBP);
-    
+    debugger
     // Logic disable button Save theo WinForm: !(IsApprovedTBP == true || IsApprovedTBPNewCode == true)
     const isApprovedTBP = data.IsApprovedTBP === true || data.IsApprovedTBP === 1;
     const isApprovedTBPNewCode = data.IsApprovedTBPNewCode === true || data.IsApprovedTBPNewCode === 1;
-    const IsCheckPrice = data.IsCheckPrice;
+    // Chuẩn hóa IsCheckPrice về boolean
+    const IsCheckPrice = data.IsCheckPrice === true || data.IsCheckPrice === 1 || data.IsCheckPrice === '1';
     const StatusRequest = data.StatusRequest;
-    if(isApprovedTBP || isApprovedTBPNewCode || IsCheckPrice || StatusRequest===2 || StatusRequest===3){
-      this.isDisabled = true;
+    const StatusPriceRequest = data.StatusPriceRequest;
+    // if(isApprovedTBP || isApprovedTBPNewCode || IsCheckPrice || StatusRequest===2 || StatusRequest===3){
+      if(isApprovedTBP || isApprovedTBPNewCode || (IsCheckPrice == true && StatusPriceRequest >0)){
+        this.isDisabled = true;
     }else{
       this.isDisabled = false;
     }
@@ -706,7 +710,13 @@ export class ProjectPartlistDetailComponent implements OnInit, AfterViewInit {
   }
 
   closeModal(): void {
-    this.activeModal.dismiss();
+    // Nếu có thay đổi dữ liệu (cập nhật mã đặc biệt), đóng với success để load lại
+    if (this.hasDataChanged) {
+      this.activeModal.close({ success: true });
+    } else {
+      // Không có thay đổi, đóng bình thường không load lại
+      this.activeModal.dismiss();
+    }
   }
 
   saveData(): void {
@@ -842,10 +852,10 @@ export class ProjectPartlistDetailComponent implements OnInit, AfterViewInit {
     // Lấy giá trị từ form control
     const specialCodeValue = this.formGroup.get('specialCode')?.value || '';
 
-    if (!specialCodeValue || specialCodeValue.trim() === '') {
-      this.notification.warning(NOTIFICATION_TITLE.warning, 'Vui lòng nhập mã đặc biệt!');
-      return;
-    }
+    // if (!specialCodeValue || specialCodeValue.trim() === '') {
+    //   this.notification.warning(NOTIFICATION_TITLE.warning, 'Vui lòng nhập mã đặc biệt!');
+    //   return;
+    // }
 
     // Ngăn chặn hành vi mặc định nếu là event từ Enter key
     if (event) {
@@ -866,6 +876,8 @@ export class ProjectPartlistDetailComponent implements OnInit, AfterViewInit {
           this.notification.success(NOTIFICATION_TITLE.success, response.message || 'Cập nhật mã đặc biệt thành công!');
           // Cập nhật lại form với giá trị đã trim
           this.formGroup.patchValue({ specialCode: specialCodeValue.trim() }, { emitEvent: false });
+          // Đánh dấu đã có thay đổi dữ liệu
+          this.hasDataChanged = true;
         } else {
           this.notification.error(NOTIFICATION_TITLE.error, response.message || 'Cập nhật mã đặc biệt thất bại!');
         }

@@ -309,3 +309,9 @@ button[nz-button] img {
   width:1.5rem;
   padding: 0.25rem;
 }
+.btn-close,
+.modal-header .btn-close {
+  background-color: lightcyan !important;
+  /* background-image: none !important; */
+  font-weight: bold;
+}

@@ -49,9 +49,9 @@
                             </nz-form-control>
                         </nz-form-item>
                         <nz-form-item class="mt-2">
-                            <nz-form-label class="fs-12" [nzSpan]="24">Pm</nz-form-label>
+                            <nz-form-label class="fs-12" [nzSpan]="24">PM</nz-form-label>
                             <nz-form-control [nzSpan]="24">
-                                <nz-select name="pmId" class="w-100" nzShowSearch nzAllowClear nzPlaceHolder="Chọn pm"
+                                <nz-select name="pmId" class="w-100" nzShowSearch nzAllowClear nzPlaceHolder="Chọn PM"
                                     [(ngModel)]="pmId">
                                     @for (parent of pms; track $index) {
                                     <nz-option-group [nzLabel]="parent.label">

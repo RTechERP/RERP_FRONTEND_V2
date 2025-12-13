@@ -31,6 +31,8 @@ import { NzSpinModule } from 'ng-zorro-antd/spin';
 import { HasPermissionDirective } from '../../../directives/has-permission.directive';
 import { NOTIFICATION_TITLE } from '../../../app.config';
 import { DEFAULT_TABLE_CONFIG } from '../../../tabulator-default.config';
+import { AuthService } from '../../../auth/auth.service';
+import { WFHService } from '../employee-management/employee-wfh/WFH-service/WFH.service';
 @Component({
   selector: 'app-early-late',
   templateUrl: './early-late.component.html',
@@ -71,8 +73,12 @@ export class EarlyLateComponent implements OnInit, AfterViewInit {
   earlyLateList: any[] = [];
   employeeList: any[] = [];
   approverList: any[] = [];
+  approvers: { department: string, list: any[] }[] = [];
 
   selectedEarlyLate: any = null;
+  currentUser: any;
+  currentEmployee: any;
+
 
   isLoading = false;
 
@@ -84,7 +90,9 @@ export class EarlyLateComponent implements OnInit, AfterViewInit {
     private modal: NzModalService,
     private earlyLateService: EarlyLateService,
     private departmentService: DepartmentServiceService,
-    private employeeService: EmployeeService
+    private employeeService: EmployeeService,
+    private authService: AuthService,
+    private wfhService: WFHService,
   ) { }
 
   ngOnInit() {
@@ -93,6 +101,14 @@ export class EarlyLateComponent implements OnInit, AfterViewInit {
     this.loadEarlyLate();
     this.loadApprovers();
     this.loadEmployee();
+
+    this.authService.getCurrentUser().subscribe((res: any) => {
+      const data = res?.data;
+      this.currentUser = Array.isArray(data) ? data[0] : data;
+        this.currentEmployee = Array.isArray(this.currentUser)
+      ? this.currentUser[0]
+      : this.currentUser;
+    });
   }
   ngAfterViewInit(): void {
     this.initializeTable();
@@ -135,16 +151,47 @@ export class EarlyLateComponent implements OnInit, AfterViewInit {
     })
   }
 
-  loadApprovers() {
-    this.employeeService.getEmployeeApprove().subscribe({
-      next: (data) => {
-        this.approverList = data.data;
+  filterOption = (input: string, option: any): boolean => {
+    if (!input) return true;
+    const searchText = input.toLowerCase();
+    const label = option.nzLabel?.toLowerCase() || '';
+    return label.includes(searchText);
+  };
+
+   loadApprovers(): void {
+    this.wfhService.getEmloyeeApprover().subscribe({
+      next: (res: any) => {
+        if (res && res.status === 1 && res.data) {
+          this.approverList = res.data.approvers || [];
+
+          // Group by DepartmentName
+          const grouped = this.approverList.reduce((acc: any, curr: any) => {
+            const dept = curr.DepartmentName || 'Khác';
+            if (!acc[dept]) {
+              acc[dept] = [];
+            }
+            // Map to match the structure expected by the template if needed, 
+            // or just push the object if it has ID, Code, FullName
+            acc[dept].push({
+              ID: curr.EmployeeID, // WFH service returns EmployeeID for approvers
+              Code: curr.Code,
+              FullName: curr.FullName
+            });
+            return acc;
+          }, {});
+
+          this.approvers = Object.keys(grouped).map(dept => ({
+            department: dept,
+            list: grouped[dept]
+          }));
+        } else {
+          this.notification.error(NOTIFICATION_TITLE.error, res?.message || 'Không thể tải danh sách người duyệt');
+        }
       },
-      error: (error) => {
-        this.notification.error(NOTIFICATION_TITLE.error, 'Lỗi khi tải danh sách người duyệt: ' + error.message);
-        this.notification.error(NOTIFICATION_TITLE.error, 'Lỗi khi tải danh sách người duyệt: ' + error.message);
-      }
-    })
+      error: (res: any) => {
+        this.notification.error(NOTIFICATION_TITLE.error, res.error?.message || 'Không thể tải danh sách người duyệt');
+      },
+    });
   }
 
   private initializeForm(): void {
@@ -176,6 +223,55 @@ export class EarlyLateComponent implements OnInit, AfterViewInit {
     })
 
   }
+
+  // Get default times based on Type
+  private getDefaultTimesByType(type: number): { start: Date; end: Date } {
+    const today = new Date();
+    const dateRegister = this.earlyLateForm?.get('DateRegister')?.value || today;
+    const registerDate = new Date(dateRegister);
+    
+    // Đi muộn: Type 1 (việc cá nhân) hoặc 4 (việc công ty)
+    if (type === 1 || type === 4) {
+      const start = new Date(registerDate);
+      start.setHours(8, 0, 0, 0);
+      const end = new Date(registerDate);
+      end.setHours(9, 0, 0, 0);
+      return { start, end };
+    }
+    
+    // Về sớm: Type 2 (việc cá nhân) hoặc 3 (việc công ty)
+    if (type === 2 || type === 3) {
+      const start = new Date(registerDate);
+      start.setHours(16, 30, 0, 0);
+      const end = new Date(registerDate);
+      end.setHours(17, 30, 0, 0);
+      return { start, end };
+    }
+    
+    // Default fallback
+    return { start: new Date(), end: new Date() };
+  }
+
+  // Setup listener for Type changes
+  private typeChangeSubscription: any;
+  private setupTypeChangeListener(): void {
+    // Unsubscribe previous subscription if exists
+    if (this.typeChangeSubscription) {
+      this.typeChangeSubscription.unsubscribe();
+    }
+    
+    // Subscribe to Type control changes
+    this.typeChangeSubscription = this.earlyLateForm.get('Type')?.valueChanges.subscribe((type: number) => {
+      if (type) {
+        const times = this.getDefaultTimesByType(type);
+        this.earlyLateForm.patchValue({
+          DateStart: times.start,
+          DateEnd: times.end
+        }, { emitEvent: false }); // Prevent infinite loop
+      }
+    });
+  }
+
   private initializeTable(): void {
     this.tabulator = new Tabulator('#tb_early_late', {
       data: this.earlyLateList,
@@ -301,22 +397,29 @@ export class EarlyLateComponent implements OnInit, AfterViewInit {
   }
 
   openAddModal() {
+    const defaultType = 1; // Đi muộn việc cá nhân
+    const defaultTimes = this.getDefaultTimesByType(defaultType);
+    
     this.earlyLateForm.reset({
       ID: 0,
-      EmployeeID: null,
+      EmployeeID: this.currentEmployee.EmployeeID,
       ApprovedTP: null,
-      DateStart: new Date(),
-      DateEnd: new Date(),
-      Type: 1,
+      DateStart: defaultTimes.start,
+      DateEnd: defaultTimes.end,
+      Type: defaultType,
       DateRegister: new Date(),
       Reason: '',
       ReasonHREdit: ''
     });
-    this.earlyLateForm.get('EmployeeID')?.enable();
+    this.earlyLateForm.get('EmployeeID')?.disable();
     this.earlyLateForm.get('ApprovedTP')?.enable();
     // Reset validation cho ReasonHREdit khi thêm mới
     this.earlyLateForm.get('ReasonHREdit')?.clearValidators();
     this.earlyLateForm.get('ReasonHREdit')?.updateValueAndValidity();
+    
+    // Subscribe to Type changes
+    this.setupTypeChangeListener();
+    
     const modal = new (window as any).bootstrap.Modal(document.getElementById('addEarlyLateModal'));
     modal.show();
   }
@@ -335,6 +438,12 @@ export class EarlyLateComponent implements OnInit, AfterViewInit {
       return;
     }
 
+    // Unsubscribe before patching to avoid triggering update
+    if (this.typeChangeSubscription) {
+      this.typeChangeSubscription.unsubscribe();
+      this.typeChangeSubscription = null;
+    }
+
     this.selectedEarlyLate = selectedRows[0].getData();
     this.earlyLateForm.patchValue({
       ID: this.selectedEarlyLate.ID,
@@ -346,13 +455,16 @@ export class EarlyLateComponent implements OnInit, AfterViewInit {
       Type: this.selectedEarlyLate.Type,
       Reason: this.selectedEarlyLate.Reason,
       ReasonHREdit: this.selectedEarlyLate.ReasonHREdit
-    })
+    }, { emitEvent: false }); // Prevent triggering valueChanges
 
     this.earlyLateForm.get('EmployeeID')?.disable();
     this.earlyLateForm.get('ApprovedTP')?.disable();
 
     this.earlyLateForm.get('ReasonHREdit')?.setValidators([Validators.required]);
     this.earlyLateForm.get('ReasonHREdit')?.updateValueAndValidity();
+
+    // Subscribe to Type changes for edit mode as well (after patching)
+    this.setupTypeChangeListener();
 
     const modal = new (window as any).bootstrap.Modal(document.getElementById('addEarlyLateModal'));
     modal.show();
@@ -504,6 +616,11 @@ export class EarlyLateComponent implements OnInit, AfterViewInit {
     if (modal) {
       (window as any).bootstrap.Modal.getInstance(modal).hide();
     }
+    // Unsubscribe from Type changes
+    if (this.typeChangeSubscription) {
+      this.typeChangeSubscription.unsubscribe();
+      this.typeChangeSubscription = null;
+    }
     this.earlyLateForm.reset();
     // Reset validation cho ReasonHREdit
     this.earlyLateForm.get('ReasonHREdit')?.clearValidators();
@@ -522,11 +639,7 @@ export class EarlyLateComponent implements OnInit, AfterViewInit {
       return;
     }
 
-    let formData = { ...this.earlyLateForm.value };
-
-    // Log input values for debugging
-    console.log('Raw StartDate:', formData.DateStart);
-    console.log('Raw EndDate:', formData.DateEnd);
+    let formData = { ...this.earlyLateForm.getRawValue() };
 
     // Validate StartDate and EndDate
     const startDate = new Date(formData.DateStart);

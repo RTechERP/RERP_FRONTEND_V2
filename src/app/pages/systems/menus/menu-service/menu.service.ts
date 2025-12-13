@@ -134,6 +134,7 @@ import { EmployeeNoFingerSummaryComponent } from '../../../hrm/employee-manageme
 import { EmployeeNightShiftPersonSummaryComponent } from '../../../hrm/employee-management/employee-night-shift/employee-night-shift-person-summary/employee-night-shift-person-summary.component';
 import { EmployeeBussinessPersonSummaryComponent } from '../../../hrm/employee-management/employee-bussiness/employee-bussiness-person-summary/employee-bussiness-person-summary.component';
 import { JobRequirementComponent } from '../../../hrm/job-requirement/job-requirement.component';
+import { SummaryEmployeeComponent } from '../../../hrm/employee/summary-employee/summary-employee.component';
 import { WorkplanComponent } from '../../../person/workplan/workplan.component';
 import { ProjectPartlistPriceRequestNewComponent } from '../../../purchase/project-partlist-price-request-new/project-partlist-price-request-new.component';
 import { DailyReportSaleAdminComponent } from '../../../old/KPISale/daily-report-sale-admin/daily-report-sale-admin.component';
@@ -2776,8 +2777,7 @@ export class MenuService {
                                 title: 'Đăng ký nghỉ',
                                 isOpen: true,
                                 isPermission: this.permissionService.hasPermission(''),
-                                comp: PersonComponent,
-                                router: '/danhsachdangkynghi',
+                                comp: DayOffComponent,
                             },
 
                             {
@@ -2786,8 +2786,7 @@ export class MenuService {
                                 title: 'Đi muộn - về sớm',
                                 isOpen: true,
                                 isPermission: this.permissionService.hasPermission(''),
-                                comp: PersonComponent,
-                                router: '/dimuonvesom',
+                                comp: EarlyLateComponent,
                             },
 
                             {
@@ -2842,8 +2841,7 @@ export class MenuService {
                                 title: 'Tổng hợp cá nhân',
                                 isOpen: true,
                                 isPermission: this.permissionService.hasPermission(''),
-                                comp: PersonComponent,
-                                router: '/tonghopcanhan',
+                                comp: SummaryEmployeeComponent,
                             },
 
                             {

@@ -78,6 +78,9 @@ export class EmployeeNightShiftFormComponent implements OnInit {
       // Disable EmployeeID and ApprovedTBP in edit mode
       this.formGroup.get('EmployeeID')?.disable();
       this.formGroup.get('ApprovedTBP')?.disable();
+    } else {
+          this.formGroup.get('EmployeeID')?.disable();
+
     }
 
     this.loadEmployees();

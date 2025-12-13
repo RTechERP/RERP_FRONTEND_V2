@@ -1,0 +1,310 @@
+<div class="modal-content">
+    <div class="modal-header">
+        <h5 class="modal-title" id="staticBackdropLabel">Chi tiết đề nghị thanh toán</h5>
+        <button type="button" class="btn-close border border-danger" aria-label="Close"
+            (click)="activeModal.close()"></button>
+    </div>
+    <div class="modal-body">
+        <form nz-form nzLayout="vertical" [formGroup]="validateForm">
+            <div nz-row [nzGutter]="16">
+                <div nz-col nzXs="24" nzSm="12" nzMd="6" nzLg="4">
+                    <nz-form-item>
+                        <nz-form-label>Loại đề nghị<span class="text-danger ps-1">(*)</span></nz-form-label>
+                        <nz-form-control nzErrorTip="Chọn loại đề nghị">
+                            <nz-select nzShowSearch nzAllowClear nzPlaceHolder="Chọn loại"
+                                [formControlName]="paymentOrderField.TypeOrder.field">
+                                <nz-option nzLabel="Đề nghị tạm ứng" [nzValue]="1"></nz-option>
+                                <nz-option nzLabel="Đề nghị thanh toán / Quyết toán" [nzValue]="2"></nz-option>
+                                <nz-option nzLabel="Đề nghị thu tiền" [nzValue]="3"></nz-option>
+                            </nz-select>
+                        </nz-form-control>
+                    </nz-form-item>
+                </div>
+
+                <div nz-col nzXs="24" nzSm="12" nzMd="6" nzLg="8">
+                    <nz-form-item>
+                        <nz-form-label>Loại nội dung đề nghị<span class="text-danger ps-1">(*)</span></nz-form-label>
+                        <nz-form-control nzErrorTip="Chọn loại nội dung đề nghị">
+                            <nz-select nzShowSearch nzAllowClear nzPlaceHolder="Chọn nội dung"
+                                [formControlName]="paymentOrderField.PaymentOrderTypeID.field">
+                                @for (item of paymentOrderTypes; track item) {
+                                <nz-option nzLabel="{{item.TypeName}}" [nzValue]="item.ID"></nz-option>
+                                }
+
+                            </nz-select>
+                        </nz-form-control>
+                    </nz-form-item>
+                </div>
+
+                <div nz-col nzXs="24" nzSm="12" nzMd="6" nzLg="4">
+                    <nz-form-item>
+                        <nz-form-label>Ngày đề nghị<span class="text-danger ps-1">(*)</span></nz-form-label>
+                        <nz-form-control nzErrorTip="Chọn ngày">
+                            <nz-date-picker class="w-100" [formControlName]="paymentOrderField.DateOrder.field"
+                                nzFormat="dd/MM/yyyy" nzInputReadOnly="false">
+                            </nz-date-picker>
+                        </nz-form-control>
+                    </nz-form-item>
+                </div>
+
+                <div nz-col nzSm="24" nzMd="3" nzLg="4">
+                    <nz-form-item>
+                        <nz-form-label>Người đề nghị</nz-form-label>
+                        <nz-form-control nzErrorTip="">
+                            <input nz-input [formControlName]="paymentOrderField.FullName.field">
+                        </nz-form-control>
+                    </nz-form-item>
+                </div>
+                <div nz-col nzSm="24" nzMd="3" nzLg="4">
+                    <nz-form-item>
+                        <nz-form-label>Bộ phận</nz-form-label>
+                        <nz-form-control nzErrorTip="">
+                            <input nz-input [formControlName]="paymentOrderField.DepartmentName.field">
+                        </nz-form-control>
+                    </nz-form-item>
+                </div>
+            </div>
+
+            <div nz-row [nzGutter]="16">
+                <div nz-col nzXs="24" nzSm="12" nzMd="6" nzLg="4">
+                    <nz-form-item>
+                        <nz-form-label>TBP duyệt<span class="text-danger ps-1">(*)</span></nz-form-label>
+                        <nz-form-control nzErrorTip="Chọn trưởng bộ phận">
+                            <nz-select nzShowSearch nzAllowClear nzPlaceHolder="Chọn loại"
+                                [formControlName]="paymentOrderField.ApprovedTBPID.field">
+                                @for (item of approvedTBPs; track item) {
+                                <nz-option nzLabel="{{item.FullName}}" nzValue="{{item.EmployeeID}}"></nz-option>
+                                }
+                            </nz-select>
+                        </nz-form-control>
+                    </nz-form-item>
+                </div>
+
+                <div nz-col nzXs="24" nzSm="12" nzMd="6" nzLg="4">
+                    <nz-form-item>
+                        <nz-form-label>Nhà cung cấp</nz-form-label>
+                        <nz-form-control nzErrorTip="Chọn nhà cung cấp">
+                            <nz-select nzShowSearch nzAllowClear nzPlaceHolder="Chọn loại"
+                                [formControlName]="paymentOrderField.SupplierSaleID.field">
+                                @for (item of supplierSales; track item) {
+                                <nz-option nzLabel="{{item.NameNCC}}" nzValue="{{item.ID}}"></nz-option>
+                                }
+                            </nz-select>
+                        </nz-form-control>
+                    </nz-form-item>
+                </div>
+
+                <div nz-col nzXs="24" nzSm="12" nzMd="6" nzLg="4">
+                    <nz-form-item>
+                        <nz-form-label>PO NCC</nz-form-label>
+                        <nz-form-control nzErrorTip="Chọn po">
+                            <nz-select nzShowSearch nzAllowClear nzPlaceHolder="Chọn loại"
+                                [formControlName]="paymentOrderField.PONCCID.field">
+                                @for (item of poNCCs; track item) {
+                                <nz-option nzLabel="{{item.BillCode}}" nzValue="{{item.ID}}"></nz-option>
+                                }
+                            </nz-select>
+                        </nz-form-control>
+                    </nz-form-item>
+                </div>
+
+                <div nz-col nzXs="24" nzSm="12" nzMd="6" nzLg="4">
+                    <nz-form-item>
+                        <nz-form-label>Hợp đồng <span class="text-danger ps-1">(*)</span></nz-form-label>
+                        <nz-form-control nzErrorTip="">
+                            <nz-select nzShowSearch nzAllowClear nzPlaceHolder="Chọn loại"
+                                [formControlName]="paymentOrderField.RegisterContractID.field">
+                                @for (item of registerContracts; track item) {
+                                <nz-option nzLabel="{{item.DocumentName}}" nzValue="{{item.ID}}"></nz-option>
+                                }
+                            </nz-select>
+                        </nz-form-control>
+                    </nz-form-item>
+                </div>
+                <div nz-col nzXs="24" nzSm="12" nzMd="6" nzLg="4">
+                    <nz-form-item>
+                        <nz-form-label>Dự án</nz-form-label>
+                        <nz-form-control nzErrorTip="">
+                            <nz-select nzShowSearch nzAllowClear nzPlaceHolder="Chọn dự án"
+                                [formControlName]="paymentOrderField.ProjectID.field">
+                                @for (item of projects; track item) {
+                                <nz-option nzLabel="{{item.ProjectCode}} - {{item.ProjectName}}"
+                                    nzValue="{{item.ID}}"></nz-option>
+                                }
+                            </nz-select>
+                        </nz-form-control>
+                    </nz-form-item>
+                </div>
+                <div nz-col nzXs="24" nzSm="12" nzMd="6" nzLg="4">
+                    <nz-form-item>
+                        <nz-form-label>Deadline thanh toán</nz-form-label>
+                        <nz-form-control nzErrorTip="Chọn thời gian">
+                            <nz-input-group nzSearch [nzAddOnBefore]="suffixIconButton">
+                                <nz-date-picker [formControlName]="paymentOrderField.DeadlinePayment.field"
+                                    [nzShowTime]="{ nzFormat: 'HH:mm' }" nzFormat="dd/MM/yyyy HH:mm">
+                                </nz-date-picker>
+                            </nz-input-group>
+                            <ng-template #suffixIconButton>
+                                <label nz-checkbox [formControlName]="paymentOrderField.IsUrgent.field"></label>
+                            </ng-template>
+                        </nz-form-control>
+                    </nz-form-item>
+                </div>
+            </div>
+
+            <div nz-row [nzGutter]="16">
+                <div nz-col nzXs="24" nzSm="12" nzMd="6" nzLg="8">
+                    <nz-form-item>
+                        <nz-form-label>Lý do<span class="text-danger ps-1">(*)</span></nz-form-label>
+                        <nz-form-control nzErrorTip="Nhập lý do">
+                            <nz-textarea-count [nzMaxCharacterCount]="100">
+                                <textarea rows="4" [formControlName]="paymentOrderField.ReasonOrder.field"
+                                    nz-input></textarea>
+                            </nz-textarea-count>
+                        </nz-form-control>
+                    </nz-form-item>
+                </div>
+
+                <div nz-col nzXs="24" nzSm="12" nzMd="6" nzLg="8">
+                    <nz-form-item>
+                        <nz-form-label>Thông tin người nhân tiền<span
+                                class="text-danger ps-1">(*)</span></nz-form-label>
+                        <nz-form-control nzErrorTip="Nhập thông tin">
+                            <nz-textarea-count [nzMaxCharacterCount]="100">
+                                <textarea rows="4" [formControlName]="paymentOrderField.ReceiverInfo.field"
+                                    nz-input></textarea>
+                            </nz-textarea-count>
+                        </nz-form-control>
+                    </nz-form-item>
+                </div>
+
+                <div nz-col nzXs="24" nzSm="12" nzMd="6" nzLg="8">
+                    <nz-form-item>
+                        <nz-form-label>File đính kèm</nz-form-label>
+                        <nz-form-control nzErrorTip="">
+                            <nz-textarea-count [nzMaxCharacterCount]="100">
+                                <textarea rows="4" nz-input></textarea>
+                            </nz-textarea-count>
+                        </nz-form-control>
+                    </nz-form-item>
+                </div>
+            </div>
+
+            <div nz-row [nzGutter]="16">
+                <div nz-col nzXs="24" nzSm="12" nzMd="6" nzLg="8">
+                    <nz-form-item>
+                        <nz-form-label>Hình thức thanh toán</nz-form-label>
+                        <nz-form-control nzErrorTip="">
+                            <nz-radio-group [formControlName]="paymentOrderField.TypePayment.field">
+                                <label nz-radio [nzValue]="1">Chuyển khoản</label>
+                                <label nz-radio [nzValue]="2">Tiền mặt</label>
+                            </nz-radio-group>
+                        </nz-form-control>
+                    </nz-form-item>
+                </div>
+
+                <div nz-col nzXs="24" nzSm="12" nzMd="6" nzLg="8">
+                    <nz-form-item>
+                        <nz-form-label>Thời gian thanh quyết toán<span
+                                class="text-danger ps-1">(*)</span></nz-form-label>
+                        <nz-form-control nzErrorTip="Chọn ngày">
+                            <nz-date-picker class="w-100" [formControlName]="paymentOrderField.DatePayment.field"
+                                nzFormat="dd/MM/yyyy">
+                            </nz-date-picker>
+                        </nz-form-control>
+                    </nz-form-item>
+                </div>
+
+                <div nz-col nzXs="24" nzSm="12" nzMd="6" nzLg="8">
+                    <nz-form-item>
+                        <nz-form-label>Hình thức chuyển khoản</nz-form-label>
+                        <nz-form-control nzErrorTip="">
+                            <nz-select nzShowSearch nzAllowClear nzPlaceHolder="Chọn hình thức"
+                                [formControlName]="paymentOrderField.TypeBankTransfer.field">
+                                @for (item of typeBankTransfers; track item) {
+                                <nz-option nzLabel="{{item.Text}}" [nzValue]="item.ID"></nz-option>
+                                }
+                            </nz-select>
+                        </nz-form-control>
+                    </nz-form-item>
+                </div>
+            </div>
+
+            <div nz-row [nzGutter]="16">
+                <div nz-col nzXs="24" nzSm="12" nzMd="6" nzLg="8">
+                    <nz-form-item>
+                        <nz-form-label>Số tài khoản<span class="text-danger ps-1">(*)</span></nz-form-label>
+                        <nz-form-control nzErrorTip="Nhập số tài khoản">
+                            <input nz-input [formControlName]="paymentOrderField.AccountNumber.field">
+                        </nz-form-control>
+                    </nz-form-item>
+                </div>
+
+                <div nz-col nzXs="24" nzSm="12" nzMd="6" nzLg="8">
+                    <nz-form-item>
+                        <nz-form-label>Ngân hàng<span class="text-danger ps-1">(*)</span></nz-form-label>
+                        <nz-form-control nzErrorTip="Nhập ngân hàng">
+                            <input nz-input [formControlName]="paymentOrderField.Bank.field">
+                        </nz-form-control>
+                    </nz-form-item>
+                </div>
+
+                <div nz-col nzXs="24" nzSm="12" nzMd="6" nzLg="8">
+                    <nz-form-item>
+                        <nz-form-label>Nội dung chuyển khoản<span class="text-danger ps-1">(*)</span></nz-form-label>
+                        <nz-form-control nzErrorTip="Nhập nội dung chuyển khoản">
+                            <input nz-input [formControlName]="paymentOrderField.ContentBankTransfer.field">
+                        </nz-form-control>
+                    </nz-form-item>
+                </div>
+            </div>
+
+            <div nz-row [nzGutter]="16">
+                <div nz-col nzXs="24" nzSm="12" nzMd="6" nzLg="20">
+                    <nz-form-item>
+                        <nz-form-label>Số tiền đề nghị được ghi theo bảng kê dưới đây:</nz-form-label>
+                    </nz-form-item>
+                </div>
+
+                <div nz-col nzXs="24" nzSm="12" nzMd="6" nzLg="4">
+                    <nz-form-item>
+                        <nz-form-label>Loại tiền<span class="text-danger ps-1">(*)</span></nz-form-label>
+                        <nz-form-control nzErrorTip="Chọn loại tiền">
+                            <nz-select nzShowSearch nzAllowClear nzPlaceHolder="Chọn loại tiền"
+                                [formControlName]="paymentOrderField.Unit.field">
+                                @for (item of units; track item) {
+                                <nz-option nzLabel="{{item.Text}}" [nzValue]="item.ID"></nz-option>
+                                }
+                            </nz-select>
+                        </nz-form-control>
+                    </nz-form-item>
+                </div>
+
+
+            </div>
+        </form>
+
+        <button nz-button nzType="default" (click)="addItem()">
+            <nz-icon nzType="plus" nzTheme="outline" /> Thêm chi tiết
+        </button>
+        <div class="grid-container" style="height: 80vh;">
+            <angular-slickgrid gridId="grdData" [columns]="columnDefinitions" [options]="gridOptions"
+                [dataset]="dataset" (onAngularGridCreated)="angularGridReady($event.detail)"
+                *ngIf="paymentOrder.TypeOrder != 2">
+            </angular-slickgrid>
+
+            <angular-slickgrid gridId="grdData2" [columns]="columnDefinitions" [options]="gridOptions"
+                [dataset]="dataset2" (onAngularGridCreated)="angularGridReady2($event.detail)"
+                *ngIf="paymentOrder.TypeOrder == 2">
+            </angular-slickgrid>
+        </div>
+    </div>
+    <div class="modal-footer">
+        <button nz-button nzType="default" nzDanger="" (click)="activeModal.close()">
+            <nz-icon nzType="close" nzTheme="outline" /> Đóng
+        </button>
+        <button nz-button nzType="default" (click)="submitForm()">
+            <nz-icon nzType="save" nzTheme="outline" /> Lưu
+        </button>
+    </div>
+</div>

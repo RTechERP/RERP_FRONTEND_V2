@@ -138,6 +138,7 @@ import { WorkplanComponent } from '../../../person/workplan/workplan.component';
 import { ProjectPartlistPriceRequestNewComponent } from '../../../purchase/project-partlist-price-request-new/project-partlist-price-request-new.component';
 import { DailyReportSaleAdminComponent } from '../../../old/KPISale/daily-report-sale-admin/daily-report-sale-admin.component';
 import { EmployeeRegisterBussinessComponent } from '../../../hrm/employee-management/employee-bussiness/employee-register-bussiness/employee-register-bussiness.component';
+import { PaymentOrderComponent } from '../../../general-category/payment-order/payment-order.component';
 import { OverTimePersonComponent } from '../../../hrm/over-time/over-time-person/over-time-person.component';
 @Injectable({
     providedIn: 'root',
@@ -2066,25 +2067,25 @@ export class MenuService {
                         //   icon: 'assets/icon/layers.png',
                     },
 
-          {
-            kind: 'leaf',
-            key: 'SupplierSaleComponent',
-            title: 'Nhà cung cấp',
-            isOpen: true,
-            isPermission:
-              this.permissionService.hasPermission('N27,N33,N35,N1,N36'),
-            comp: SupplierSaleComponent,
-            //   icon: 'assets/icon/layers.png',
-          },
-          {
-            kind: 'leaf',
-            key: 'ProjectPartlistPriceRequestNewComponent',
-            title: 'Yêu cầu báo giá',
-            isOpen: true,
-            isPermission:
-              this.permissionService.hasPermission('N33,N35,N1,N36'),
-            comp: ProjectPartlistPriceRequestNewComponent,
-            // comp: ProjectPartlistPriceRequestNewComponent,
+                    {
+                        kind: 'leaf',
+                        key: 'SupplierSaleComponent',
+                        title: 'Nhà cung cấp',
+                        isOpen: true,
+                        isPermission:
+                            this.permissionService.hasPermission('N27,N33,N35,N1,N36'),
+                        comp: SupplierSaleComponent,
+                        //   icon: 'assets/icon/layers.png',
+                    },
+                    {
+                        kind: 'leaf',
+                        key: 'ProjectPartlistPriceRequestNewComponent',
+                        title: 'Yêu cầu báo giá',
+                        isOpen: true,
+                        isPermission:
+                            this.permissionService.hasPermission('N33,N35,N1,N36'),
+                        comp: ProjectPartlistPriceRequestNewComponent,
+                        // comp: ProjectPartlistPriceRequestNewComponent,
 
                         //   icon: 'assets/icon/layers.png',
                     },
@@ -2428,30 +2429,30 @@ export class MenuService {
                                         comp: BonusCoefficientComponent,
                                     },
                                     {
-                                      kind: 'leaf',
-                                      key: 'EmployeeSaleManagerComponent',
-                                      title: 'Nhân viên Sale',
-                                      isOpen: true,
-                                      isPermission: this.permissionService.hasPermission("''"),
-                                      comp: EmployeeSaleManagerComponent,
+                                        kind: 'leaf',
+                                        key: 'EmployeeSaleManagerComponent',
+                                        title: 'Nhân viên Sale',
+                                        isOpen: true,
+                                        isPermission: this.permissionService.hasPermission("''"),
+                                        comp: EmployeeSaleManagerComponent,
                                     },
                                     {
-                                      kind: 'leaf',
-                                      key: 'DailyReportSaleComponent',
-                                      title: 'Báo cáo hàng ngày',
-                                      isOpen: true,
-                                      isPermission: this.permissionService.hasPermission(""),
-                                      comp: DailyReportSaleComponent,
-                                      data: { warehouseId: 1 },
+                                        kind: 'leaf',
+                                        key: 'DailyReportSaleComponent',
+                                        title: 'Báo cáo hàng ngày',
+                                        isOpen: true,
+                                        isPermission: this.permissionService.hasPermission(""),
+                                        comp: DailyReportSaleComponent,
+                                        data: { warehouseId: 1 },
                                     },
                                     {
-                                      kind: 'leaf',
-                                      key: 'DailyReportSaleAdminComponent',
-                                      title: 'Báo cáo hàng ngày - Admin',
-                                      isOpen: true,
-                                      isPermission: this.permissionService.hasPermission(""),
-                                      comp: DailyReportSaleAdminComponent,
-                                      data: { warehouseId: 1 },
+                                        kind: 'leaf',
+                                        key: 'DailyReportSaleAdminComponent',
+                                        title: 'Báo cáo hàng ngày - Admin',
+                                        isOpen: true,
+                                        isPermission: this.permissionService.hasPermission(""),
+                                        comp: DailyReportSaleAdminComponent,
+                                        data: { warehouseId: 1 },
                                     },
                                 ],
                             },
@@ -2524,6 +2525,15 @@ export class MenuService {
                         isPermission: this.permissionService.hasPermission(''),
                         comp: RequestInvoiceComponent,
                         data: { warehouseId: 0 },
+                    },
+
+                    {
+                        kind: 'leaf',
+                        key: 'PaymentOrderComponent',
+                        title: 'Đề nghị thanh toán',
+                        isOpen: true,
+                        isPermission: this.permissionService.hasPermission(''),
+                        comp: PaymentOrderComponent,
                     },
                 ],
             },
@@ -2749,6 +2759,7 @@ export class MenuService {
                                 isOpen: true,
                                 isPermission: this.permissionService.hasPermission(''),
                                 comp: FoodOrderComponent,
+                                // router: '/comca',
                             },
                               {
                                 kind: 'leaf',
@@ -2796,7 +2807,7 @@ export class MenuService {
                                 isOpen: true,
                                 isPermission: this.permissionService.hasPermission(''),
                                 comp: EmployeeRegisterBussinessComponent,
-                               
+
                             },
 
                             {

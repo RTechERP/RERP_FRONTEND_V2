@@ -56,6 +56,7 @@ import { NzNotificationService } from 'ng-zorro-antd/notification';
 import { PokhService } from '../pokh/pokh-service/pokh.service';
 import { PoRequestBuyService } from './po-request-buy/po-request-buy.service';
 import { NOTIFICATION_TITLE } from '../../../app.config';
+import { AppUserService } from '../../../services/app-user.service';
 @Component({
   selector: 'app-po-request-buy',
   imports: [
@@ -86,7 +87,8 @@ export class PoRequestBuyComponent implements OnInit, AfterViewInit {
     private pokhService: PokhService,
     public activeModal: NgbActiveModal,
     private notification: NzNotificationService,
-    private PoRequestBuyService: PoRequestBuyService
+    private PoRequestBuyService: PoRequestBuyService,
+    private appUserService: AppUserService
   ) { }
 
   dataDepartment: any[] = [];
@@ -98,8 +100,23 @@ export class PoRequestBuyComponent implements OnInit, AfterViewInit {
   dateRequest: Date = new Date();
   dateReturnExpected: Date = new Date();
   selectedRows: any[] = [];
+  isEmployeeDisabled: boolean = false;
 
   ngOnInit(): void {
+    // Kiểm tra quyền admin và set employeeId
+    const isAdmin = this.appUserService.isAdmin;
+    this.isEmployeeDisabled = !isAdmin;
+    
+    // Nếu không phải admin, set employeeId của user hiện tại
+    if (!isAdmin) {
+      const currentUserId = this.appUserService.employeeID;
+      if (currentUserId) {
+        this.selectedEmployee = currentUserId;
+        // Set department dựa trên employee hiện tại
+        this.selectedDepartment = this.appUserService.departmentID || 0;
+      }
+    }
+
     this.loadDepartment();
     this.loadEmployee();
     this.loadPOKHProducts(this.pokhId, 0);

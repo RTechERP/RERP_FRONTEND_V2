@@ -140,6 +140,8 @@ import { DailyReportSaleAdminComponent } from '../../../old/KPISale/daily-report
 import { EmployeeRegisterBussinessComponent } from '../../../hrm/employee-management/employee-bussiness/employee-register-bussiness/employee-register-bussiness.component';
 import { PaymentOrderComponent } from '../../../general-category/payment-order/payment-order.component';
 import { OverTimePersonComponent } from '../../../hrm/over-time/over-time-person/over-time-person.component';
+import { RegisterIdeaComponent } from '../../../hrm/register-idea/register-idea.component';
+import { TrackingMarksComponent } from '../../../hrm/tracking-marks/tracking-marks.component';
 @Injectable({
     providedIn: 'root',
 })

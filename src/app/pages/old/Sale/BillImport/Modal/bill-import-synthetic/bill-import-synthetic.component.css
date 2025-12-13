@@ -9,3 +9,9 @@
   .tabulator {
     font-size: 0.75 rem;
   }
+  .btn-close,
+  .modal-header .btn-close {
+    background-color: lightcyan !important;
+    /* background-image: none !important; */
+    font-weight: bold;
+  }

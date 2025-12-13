@@ -311,7 +311,20 @@ export class BillExportTechnicalComponent implements OnInit, AfterViewInit {
             //   hozAlign: 'center',
             //   width: 60,
             // },
-            { title: 'Mã QRCode', field: 'ProductQRCode' },
+            {
+              title: 'Mã QRCode',
+              field: 'ProductQRCode',
+              width: 200,
+              tooltip: (cell: any) => {
+                const value = cell.getValue();
+                return value || '';
+              },
+              formatter: function (cell: any) {
+                const value = cell.getValue();
+                if (!value) return '';
+                return `<div style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${value}</div>`;
+              },
+            },
             { title: 'Mã sản phẩm', field: 'ProductCode' },
             { title: 'Mã nội bộ', field: 'ProductCodeRTC' },
             { title: 'Tên sản phẩm', field: 'ProductName' },

@@ -652,15 +652,16 @@ export class ProjectPartlistPriceRequestNewComponent implements OnInit, OnDestro
     
     console.log(`[Request ${currentRequestId}] Starting to load data for ${totalTypes} types...`);
     
-    // Timeout để đảm bảo loading không bị kẹt mãi (30 giây)
+    // Timeout để đảm bảo loading không bị kẹt mãi (10 phút = 600 giây)
+    // Tăng timeout lên 10 phút để đảm bảo spinner tiếp tục quay cho đến khi API thực sự hoàn thành
     let loadingTimeout: any = setTimeout(() => {
       // Chỉ force tắt loading nếu đây vẫn là request hiện tại
       if (this.loading && currentRequestId === this.currentRequestId) {
-        console.warn(`[Request ${currentRequestId}] Loading timeout - forcing loading to false`);
+        console.warn(`[Request ${currentRequestId}] Loading timeout after 10 minutes - forcing loading to false`);
         console.warn(`[Request ${currentRequestId}] Loaded count: ${loadedCount}/${totalTypes}`);
         this.loading = false;
       }
-    }, 30000);
+    }, 600000); // 10 phút = 600000ms
     
     // Helper function để clear timeout và set loading = false
     const finishLoading = () => {
@@ -1243,6 +1244,17 @@ export class ProjectPartlistPriceRequestNewComponent implements OnInit, OnDestro
     
     // Set data trực tiếp vào config (local pagination)
     baseConfig.data = dataForType;
+
+    // Nếu là IsJobRequirement (typeId === -2 hoặc jobRequirementID > 0 hoặc isVPP), đổi title của cột ProjectCode thành "Mã YCCV"
+    const isJobRequirement = typeId === -2 || this.jobRequirementID > 0 || this.isVPP;
+    
+    if (isJobRequirement) {
+      // Tìm và thay đổi title của cột ProjectCode thành "Mã YCCV"
+      const projectCodeColumn = baseConfig.columns.find((col: any) => col.field === 'ProjectCode');
+      if (projectCodeColumn) {
+        projectCodeColumn.title = 'Mã YCCV';
+      }
+    }
 
     return baseConfig;
   }
@@ -2083,6 +2095,48 @@ export class ProjectPartlistPriceRequestNewComponent implements OnInit, OnDestro
     const isAdmin = this.appUserService.isAdmin || false;
     const currentEmployeeID = this.appUserService.employeeID || 0;
 
+    // Helper function để chuyển đổi date sang ISO string hoặc null
+    const formatDate = (value: any): string | null => {
+      if (!value) return null;
+      if (value instanceof Date) {
+        return DateTime.fromJSDate(value).toISO();
+      }
+      if (typeof value === 'string') {
+        const dt = DateTime.fromISO(value);
+        if (dt.isValid) return dt.toISO();
+        // Thử các format khác
+        const formats = ['yyyy/MM/dd', 'dd/MM/yyyy', 'yyyy-MM-dd', 'MM/dd/yyyy'];
+        for (const format of formats) {
+          const dt2 = DateTime.fromFormat(value, format);
+          if (dt2.isValid) return dt2.toISO();
+        }
+      }
+      return null;
+    };
+
+    // Helper function để chuyển đổi số
+    const toNumber = (value: any): number | null => {
+      if (value === null || value === undefined || value === '') return null;
+      const num = Number(value);
+      return isNaN(num) ? null : num;
+    };
+
+    // Helper function để chuyển đổi boolean
+    const toBoolean = (value: any): boolean | null => {
+      if (value === null || value === undefined || value === '') return null;
+      if (typeof value === 'boolean') return value;
+      if (value === 1 || value === '1' || value === 'true' || value === true) return true;
+      if (value === 0 || value === '0' || value === 'false' || value === false) return false;
+      return null;
+    };
+
+    // Helper function để chuyển đổi string
+    const toString = (value: any): string | null => {
+      if (value === null || value === undefined) return null;
+      const str = String(value).trim();
+      return str === '' ? null : str;
+    };
+
     for (const row of selectedRows) {
       const rowData = row.getData();
       const id = Number(rowData['ID']);
@@ -2095,12 +2149,54 @@ export class ProjectPartlistPriceRequestNewComponent implements OnInit, OnDestro
         continue; // Bỏ qua sản phẩm không phải của mình
       }
 
-      // Tạo object chỉ chứa các field cần thiết cho API (giống WinForm)
+      // Tạo object với toàn bộ model ProjectPartlistPriceRequest
       const quoteData: any = {
         ID: id,
+        ProjectPartListID: toNumber(rowData['ProjectPartListID']),
+        EmployeeID: toNumber(rowData['EmployeeID']),
+        ProductCode: toString(rowData['ProductCode']),
+        ProductName: toString(rowData['ProductName']),
         StatusRequest: status === 0 ? 1 : status, // Nếu status = 0 (Hủy hoàn thành) thì set về 1 (Yêu cầu báo giá)
+        DateRequest: formatDate(rowData['DateRequest']),
+        Deadline: formatDate(rowData['Deadline']),
+        Quantity: toNumber(rowData['Quantity']),
+        UnitPrice: toNumber(rowData['UnitPrice']),
+        TotalPrice: toNumber(rowData['TotalPrice']),
+        Unit: toString(rowData['Unit'] || rowData['UnitName'] || rowData['UnitCount']),
+        SupplierSaleID: toNumber(rowData['SupplierSaleID']),
+        Note: toString(rowData['Note']),
+        CreatedBy: toString(rowData['CreatedBy']),
+        CreatedDate: formatDate(rowData['CreatedDate']),
         UpdatedBy: this.appUserService.loginName,
-        UpdatedDate: new Date(),
+        UpdatedDate: DateTime.local().toISO(),
+        // Xử lý DatePriceQuote theo logic WinForm
+        DatePriceQuote: status === 1 ? null : (status === 2 ? DateTime.local().toISO() : formatDate(rowData['DatePriceQuote'])),
+        TotalPriceExchange: toNumber(rowData['TotalPriceExchange']),
+        CurrencyRate: toNumber(rowData['CurrencyRate']),
+        CurrencyID: toNumber(rowData['CurrencyID']),
+        HistoryPrice: toNumber(rowData['HistoryPrice']),
+        LeadTime: toString(rowData['LeadTime']),
+        UnitFactoryExportPrice: toNumber(rowData['UnitFactoryExportPrice']),
+        UnitImportPrice: toNumber(rowData['UnitImportPrice']),
+        TotalImportPrice: toNumber(rowData['TotalImportPrice']),
+        IsImport: toBoolean(rowData['IsImport']),
+        IsDeleted: toBoolean(rowData['IsDeleted']),
+        QuoteEmployeeID: !isAdmin ? currentEmployeeID : toNumber(rowData['QuoteEmployeeID']),
+        IsCheckPrice: toBoolean(rowData['IsCheckPrice']),
+        VAT: toNumber(rowData['VAT']),
+        TotaMoneyVAT: toNumber(rowData['TotaMoneyVAT']),
+        TotalDayLeadTime: toNumber(rowData['TotalDayLeadTime']),
+        DateExpected: formatDate(rowData['DateExpected']),
+        POKHDetailID: toNumber(rowData['POKHDetailID']),
+        IsCommercialProduct: toBoolean(rowData['IsCommercialProduct']),
+        Maker: toString(rowData['Maker'] || rowData['Manufacturer']),
+        IsJobRequirement: toBoolean(rowData['IsJobRequirement']),
+        NoteHR: toString(rowData['NoteHR']),
+        JobRequirementID: toNumber(rowData['JobRequirementID']),
+        IsRequestBuy: toBoolean(rowData['IsRequestBuy']),
+        ProjectPartlistPriceRequestTypeID: toNumber(rowData['ProjectPartlistPriceRequestTypeID']),
+        ReasonUnPrice: toString(rowData['ReasonUnPrice']),
+        EmployeeIDUnPrice: toNumber(rowData['EmployeeIDUnPrice']),
       };
 
       // Chỉ set QuoteEmployeeID khi KHÔNG phải admin (giống WinForm)
@@ -2142,6 +2238,72 @@ export class ProjectPartlistPriceRequestNewComponent implements OnInit, OnDestro
           next: (response: any) => {
             if (response?.status === 1) {
               this.notification.success('Thông báo', response?.message || `${statusText} thành công!`);
+              
+              // Nếu là báo giá (status = 2), gọi API send-mail với data của các dòng đã chọn
+              if (status === 2) {
+                // Lấy data đầy đủ từ các dòng đã chọn và map sang format MailItemPriceRequestDTO
+                const mailData = selectedRows.map((row) => {
+                  const rowData = row.getData();
+                  
+                  // Map data sang format MailItemPriceRequestDTO
+                  return {
+                    EmployeeID: Number(rowData['EmployeeID'] || 0),
+                    QuoteEmployee: String(rowData['QuoteEmployee'] || rowData['FullNameQuote'] || ''),
+                    ProjectCode: String(rowData['ProjectCode'] || ''),
+                    ProductCode: String(rowData['ProductCode'] || ''),
+                    ProductName: String(rowData['ProductName'] || ''),
+                    Manufacturer: String(rowData['Manufacturer'] || rowData['Maker'] || ''),
+                    Quantity: Number(rowData['Quantity'] || 0),
+                    Unit: String(rowData['Unit'] || rowData['UnitName'] || rowData['UnitCount'] || ''),
+                    DateRequest: rowData['DateRequest'] ? (() => {
+                      const date = rowData['DateRequest'];
+                      if (date instanceof Date) return date.toISOString();
+                      if (typeof date === 'string') {
+                        const dt = DateTime.fromISO(date);
+                        return dt.isValid ? dt.toISO() : null;
+                      }
+                      return null;
+                    })() : null,
+                    Deadline: rowData['Deadline'] ? (() => {
+                      const date = rowData['Deadline'];
+                      if (date instanceof Date) return date.toISOString();
+                      if (typeof date === 'string') {
+                        const dt = DateTime.fromISO(date);
+                        return dt.isValid ? dt.toISO() : null;
+                      }
+                      return null;
+                    })() : null,
+                    DatePriceQuote: rowData['DatePriceQuote'] ? (() => {
+                      const date = rowData['DatePriceQuote'];
+                      if (date instanceof Date) return date.toISOString();
+                      if (typeof date === 'string') {
+                        const dt = DateTime.fromISO(date);
+                        return dt.isValid ? dt.toISO() : null;
+                      }
+                      return null;
+                    })() : null,
+                    CurrencyID: Number(rowData['CurrencyID'] || 0),
+                    UnitPrice: Number(rowData['UnitPrice'] || 0),
+                    TotalPrice: Number(rowData['TotalPrice'] || 0),
+                    TotalPriceExchange: Number(rowData['TotalPriceExchange'] || 0),
+                  };
+                });
+                
+                // Gọi API send-mail
+                this.PriceRequetsService.sendMail(mailData).subscribe({
+                  next: (mailResponse: any) => {
+                    // Không cần hiển thị thông báo riêng cho send-mail, chỉ log nếu cần
+                    if (mailResponse?.status !== 1) {
+                      console.warn('Send mail response:', mailResponse);
+                    }
+                  },
+                  error: (mailError) => {
+                    // Log lỗi nhưng không hiển thị thông báo lỗi để không làm gián đoạn flow
+                    console.error('Error sending mail:', mailError);
+                  },
+                });
+              }
+              
               this.LoadPriceRequests(); // Reload data
             } else {
               this.notification.warning('Thông báo', response?.message || `${statusText} thất bại!`);
@@ -2202,20 +2364,26 @@ export class ProjectPartlistPriceRequestNewComponent implements OnInit, OnDestro
             if (quoteEmployeeID > 0 && quoteEmployeeID !== currentEmployeeID) {
               return;
             }
+          } else {
+            const statusRequest = Number(rowData['StatusRequest'] || 0);
+            
+            if (statusRequest === 2) {
+              return;
+            }
+            
+            if (statusRequest !== 1) {
+              return;
+            }
           }
-
-          // Thêm vào danh sách update (gửi đúng format cho backend)
           updateData.push({
             ID: id,
             IsCheckPrice: isCheckPrice,
-            QuoteEmployeeID: this.appUserService.employeeID, // Giữ nguyên QuoteEmployeeID hiện tại
-            // EmployeeID: this.appUserService.employeeID, // Backend dùng field này để set QuoteEmployeeID mới
+            QuoteEmployeeID: this.appUserService.employeeID,
             UpdatedBy: this.appUserService.loginName,
             UpdatedDate: DateTime.local().toJSDate(),
           });
         });
         console.log(updateData);
-        // Kiểm tra nếu không có dòng nào hợp lệ sau khi validate
         if (updateData.length <= 0) {
           this.notification.warning(
             'Thông báo',
@@ -2224,7 +2392,6 @@ export class ProjectPartlistPriceRequestNewComponent implements OnInit, OnDestro
           return;
         }
 
-        // Gọi API check-price (backend sẽ validate thêm một lần nữa)
         this.PriceRequetsService.checkPrice(updateData).subscribe({
           next: (response: any) => {
             if (response?.status === 1 || response?.success) {
@@ -2651,13 +2818,17 @@ export class ProjectPartlistPriceRequestNewComponent implements OnInit, OnDestro
       .substring(0, 31);
     const worksheet = workbook.addWorksheet(sanitizedName);
 
-    // Lấy dữ liệu
-    const data = table.getSelectedData();
+    // Lấy dữ liệu đã chọn
+    const selectedData = table.getSelectedData();
 
-    if (data.length === 0) {
+    if (selectedData.length === 0) {
       this.notification.info('Thông báo', 'Không có dữ liệu để xuất Excel.');
       return;
     }
+
+    // Lấy tất cả dữ liệu từ table để có thể nhóm theo ProjectFullName
+    const allData = this.allDataByType.get(this.activeTabId) || table.getData() || [];
+
     let columns = table
       .getColumnDefinitions()
       .filter((col: any) => col.visible !== false);
@@ -2686,8 +2857,38 @@ export class ProjectPartlistPriceRequestNewComponent implements OnInit, OnDestro
       fgColor: { argb: 'FFE0E0E0' },
     };
 
-    // Thêm dữ liệu
-    data.forEach((row: any) => {
+    // Nhóm dữ liệu đã chọn theo ProjectFullName
+    const grouped = selectedData.reduce((acc: any, item: any) => {
+      const groupKey = item.ProjectFullName || 'Không rõ dự án';
+      if (!acc[groupKey]) acc[groupKey] = [];
+      acc[groupKey].push(item);
+      return acc;
+    }, {});
+
+    // Lặp qua từng group và xuất group header + dữ liệu
+    for (const groupName of Object.keys(grouped)) {
+      const groupRows = grouped[groupName];
+
+      // Thêm dòng Group Header
+      const groupHeaderRow = worksheet.addRow([
+        `${groupName} (${groupRows.length})`,
+      ]);
+      groupHeaderRow.fill = {
+        type: 'pattern',
+        pattern: 'solid',
+        fgColor: { argb: 'FFd9edf7' },
+      };
+      groupHeaderRow.font = { bold: true, name: 'Tahoma' };
+      groupHeaderRow.alignment = { horizontal: 'left', wrapText: true };
+
+      // Merge cells từ cột A đến cột cuối cùng
+      const lastColumnLetter = this.getColumnLetter(columns.length);
+      worksheet.mergeCells(
+        `A${groupHeaderRow.number}:${lastColumnLetter}${groupHeaderRow.number}`
+      );
+
+      // Thêm các dòng dữ liệu trong nhóm
+      groupRows.forEach((row: any) => {
       const rowData = columns.map((col: any) => {
         const value = row[col.field];
 
@@ -2787,12 +2988,16 @@ export class ProjectPartlistPriceRequestNewComponent implements OnInit, OnDestro
         return value;
       });
       worksheet.addRow(rowData);
-    });
+      });
+
+      // Thêm dòng trống giữa các group
+      worksheet.addRow([]);
+    }
 
     // Footer tổng cho toàn bảng
     const totalFooterRowData = columns.map((col: any) => {
       if (!col.bottomCalc) return '';
-      const values = data.map((r: any) => Number(r[col.field]) || 0);
+      const values = selectedData.map((r: any) => Number(r[col.field]) || 0);
       let result: number | string = 0;
       switch (col.bottomCalc) {
         case 'sum':
@@ -2878,11 +3083,6 @@ export class ProjectPartlistPriceRequestNewComponent implements OnInit, OnDestro
     });
 
     // Thêm border cho tất cả cells
-    const range =
-      worksheet.getCell('A1').address +
-      ':' +
-      worksheet.getCell(data.length + 1, columns.length).address;
-
     worksheet.eachRow((row, rowNumber) => {
       row.eachCell((cell, colNumber) => {
         cell.border = {

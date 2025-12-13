@@ -38,6 +38,7 @@ import { CommonModule } from '@angular/common';
 import { RouterTestingHarness } from '@angular/router/testing';
 import { DEFAULT_TABLE_CONFIG } from '../../../../../../tabulator-default.config';
 import { AppUserService } from '../../../../../../services/app-user.service';
+import { ID_ADMIN_DEMO_LIST } from '../../../../../../app.config';
 
 @Component({
   selector: 'app-borrow-product-history-detail',
@@ -73,6 +74,9 @@ import { AppUserService } from '../../../../../../services/app-user.service';
   ]
 })
 export class BorrowProductHistoryDetailComponent implements OnInit {
+
+  // INTEGRATION: Input để hoạt động như modal từ bill export technical
+  @Input() isExportMode: boolean = false; // Chế độ xuất sang phiếu xuất
 
   constructor(
     public activeModal: NgbActiveModal,
@@ -266,11 +270,14 @@ export class BorrowProductHistoryDetailComponent implements OnInit {
         ID: item.ID,
         ProductCode: item.ProductCode,
         ProductName: item.ProductName,
+        ProductCodeRTC: item.ProductCodeRTC,
         SerialNumber: item.SerialNumber,
         PartNumber: item.PartNumber,
         Maker: item.Maker,
         Note: item.Note,
         NumberBorrow: 1,
+        UnitCountName: item.UnitCountName || '',
+        UnitCountID: item.UnitCountID || 0,
       });
       // }
 
@@ -409,8 +416,7 @@ export class BorrowProductHistoryDetailComponent implements OnInit {
               SerialNumber: item.SerialNumber || '',
               IsDelete: false
             };
-              console.log('data',data);
-              const IDAdminDemo = [24, 1434, 88, 1534];
+              const IDAdminDemo = ID_ADMIN_DEMO_LIST || [];
               const userId = this.appUserService?.id || 0;
               const isAdmin = IDAdminDemo.includes(userId);
               const isGlobalAdmin = this.appUserService?.isAdmin || false;
@@ -454,6 +460,36 @@ export class BorrowProductHistoryDetailComponent implements OnInit {
     }
   }
 
+
+  // INTEGRATION: Xuất sản phẩm đã chọn sang phiếu xuất
+  exportToBillExport() {
+    if (this.arrProductBorrow.length === 0) {
+      this.notification.create(
+        'warning',
+        'Thông báo',
+        'Vui lòng chọn sản phẩm cần xuất sang phiếu xuất!'
+      );
+      return;
+    }
+
+    // Lấy dữ liệu từ bảng sản phẩm đã chọn
+    const productsToExport = this.arrProductBorrow.map((item: any) => ({
+      ProductRTCID: item.ID,
+      ProductCode: item.ProductCode,
+      ProductName: item.ProductName,
+      ProductCodeRTC: item.ProductCodeRTC,
+      UnitCountName: item.UnitCountName || '',
+      UnitCountID: item.UnitCountID || 0,
+      Maker: item.Maker || '',
+      NumberBorrow: item.NumberBorrow || 1,
+      SerialNumber: item.SerialNumber || '',
+      PartNumber: item.PartNumber || '',
+      Note: item.Note || '',
+    }));
+
+    // Đóng modal và trả về dữ liệu
+    this.activeModal.close(productsToExport);
+  }
 
   // Service grouping theo DepartmentName -> TeamName
   createdNestedGroup(items: any[], groupByDept: string, groupByTeam: string) {

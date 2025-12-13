@@ -49,6 +49,9 @@ import { BorrowProductHistoryEditPersonComponent } from './borrow-product-histor
 import { BorrowProductHistoryPersonalHistoryErrorComponent } from './borrow-product-history-personal-history-error/borrow-product-history-personal-history-error.component';
 import { AppUserService } from '../../../../../services/app-user.service';
 import { NgbActiveModal } from '@ng-bootstrap/ng-bootstrap';
+import { MenuEventService } from '../../../../systems/menus/menu-service/menu-event.service';
+import { MaterialDetailOfProductRtcComponent } from '../../material-detail-of-product-rtc/material-detail-of-product-rtc.component';
+import { BillExportTechnicalFormComponent } from '../../../bill-export-technical/bill-export-technical-form/bill-export-technical-form.component';
 
 @Component({
   selector: 'app-borrow-product-history',
@@ -95,6 +98,7 @@ export class BorrowProductHistoryComponent implements OnInit {
     private router: Router,
     private borrowService: BorrowService,
     private appUserService: AppUserService,
+    private menuEventService: MenuEventService,
     @Optional() @Inject('tabData') private tabData: any
   ) {}
 
@@ -178,7 +182,6 @@ export class BorrowProductHistoryComponent implements OnInit {
             datas,
             'DepartmentName'
           );
-          console.log('employees', this.employees);
         } else {
           this.notification.create(
             'warning',
@@ -341,7 +344,6 @@ export class BorrowProductHistoryComponent implements OnInit {
                 // Nếu pass validation thì thêm vào danh sách để gọi API
                 validItems.push({ id, modulaLocationDetailID });
               } catch (error) {
-                console.error(`Lỗi khi validate thiết bị ${id}:`, error);
                 // Bỏ qua item này và tiếp tục
               }
             }
@@ -364,7 +366,6 @@ export class BorrowProductHistoryComponent implements OnInit {
                 .then(() => ({ id: item.id, success: true, message: null }))
                 .catch((error) => {
                   const message = error?.error?.message || 'Lỗi không xác định!';
-                  console.error(`Lỗi khi trả thiết bị ${item.id}:`, message);
                   return { id: item.id, success: false, message };
                 })
             );
@@ -447,7 +448,6 @@ export class BorrowProductHistoryComponent implements OnInit {
 
               return { id, success: true };
             } catch (err) {
-              console.error('Extend error', id, err);
               return { id, success: false, err };
             }
           });
@@ -568,21 +568,27 @@ export class BorrowProductHistoryComponent implements OnInit {
             this.historyProductRTCLog(ID);
           },
         },
+        // {
+        //   label: 'Ghi lại lỗi quy trình nhập xuất kho cá nhân',
+        //   action: (e, row) => {
+        //     let rowData = row.getData();
+        //     let ID = rowData['ID'];
+        //     this.addErrorPersonal(ID);
+        //   },
+        // },
         {
-          label: 'Ghi lại lỗi quy trình nhập xuất kho cá nhân',
+          label: 'Chi tiết',
           action: (e, row) => {
-            let rowData = row.getData();
-            let ID = rowData['ID'];
-            this.addErrorPersonal(ID);
+            const rowData = row.getData();
+            this.openDetailTab(rowData);
           },
         },
         {
-          label: 'Chi tiết',
-          action: (e, row) => {},
-        },
-        {
           label: 'Xem phiếu xuất',
-          action: (e, row) => {},
+          action: (e, row) => {
+            const rowData = row.getData();
+            this.showBillExport(rowData);
+          },
         },
         {
           label: 'Xóa',
@@ -635,28 +641,6 @@ export class BorrowProductHistoryComponent implements OnInit {
       locale: 'vi',
 
       columns: [
-        { title: 'ID', field: 'ID', width: 100, visible: false, frozen: true },
-        {
-          title: 'Status',
-          field: 'Status',
-          width: 100,
-          visible: false,
-          frozen: true,
-        },
-        {
-          title: 'StatusNew',
-          field: 'StatusNew',
-          width: 100,
-          visible: false,
-          frozen: true,
-        },
-        {
-          title: 'BillExportTechnicalID',
-          field: 'BillExportTechnicalID',
-          width: 100,
-          visible: false,
-          frozen: true,
-        },
         {
           title: '',
           field: '',
@@ -677,7 +661,6 @@ export class BorrowProductHistoryComponent implements OnInit {
           field: 'StatusText',
           hozAlign: 'left',
           headerHozAlign: 'center',
-          frozen: true,
         },
         {
           title: 'Duyệt',
@@ -701,21 +684,20 @@ export class BorrowProductHistoryComponent implements OnInit {
           field: 'ProductName',
           hozAlign: 'left',
           headerHozAlign: 'center',
-          frozen: true,
+          
         },
         {
           title: 'Mã nội bộ',
           field: 'ProductCodeRTC',
           hozAlign: 'left',
           headerHozAlign: 'center',
-          frozen: true,
+          
         },
         {
           title: 'Mã sản phẩm',
           field: 'ProductCode',
           hozAlign: 'left',
           headerHozAlign: 'center',
-          frozen: true,
         },
         {
           title: 'Mã QR',
@@ -1179,4 +1161,73 @@ export class BorrowProductHistoryComponent implements OnInit {
     URL.revokeObjectURL(url);
   }
   //#endregion
+
+  /**
+   * Xem phiếu xuất kỹ thuật
+   * Tương tự btnShowBillExport_Click trong WinForm
+   * Mở modal ở chế độ xem/sửa (giống như onEditExportTechnical)
+   */
+  showBillExport(rowData: any): void {
+    const billExportID = rowData.BillExportTechnicalID || 0;
+    
+    if (billExportID <= 0) {
+      this.notification.warning('Thông báo', 'Không có phiếu xuất liên kết!');
+      return;
+    }
+
+    // Mở modal giống như chế độ edit (onEditExportTechnical)
+    const modalRef = this.modalService.open(BillExportTechnicalFormComponent, {
+      centered: true,
+      backdrop: 'static',
+      keyboard: false,
+      windowClass: 'full-screen-modal',
+    });
+
+    // Set masterId để form tự load data từ API (giống onEditExportTechnical)
+    modalRef.componentInstance.masterId = billExportID;
+    modalRef.componentInstance.warehouseID = this.warehouseID;
+    modalRef.componentInstance.warehouseType = this.warehouseType;
+    modalRef.componentInstance.fromBorrowHistory = true; // Flag để phân biệt luồng này
+
+    // Xử lý kết quả khi modal đóng
+    modalRef.result.then(
+      (result) => {
+        if (result === true) {
+          // Reload data after save
+          this.drawTbProductHistory(
+            this.tb_productHistoryContainer.nativeElement
+          );
+        }
+      },
+      (dismissed) => {
+        // Modal dismissed
+      }
+    );
+  }
+
+  /**
+   * Mở tab chi tiết sản phẩm (MaterialDetailOfProductRTC)
+   * Tương tự như btnDetail_Click trong WinForm
+   */
+  openDetailTab(rowData: any): void {
+    const title = `Chi tiết: ${rowData.ProductName || rowData.ProductCode}`;
+    const data = {
+      productRTCID1: rowData.ProductRTCID || 0,
+      warehouseID1: this.warehouseID || 1,
+      ProductCode: rowData.ProductCode || '',
+      ProductName: rowData.ProductName || '',
+      NumberBegin: rowData.Number || 0,
+      InventoryLatest: rowData.InventoryLatest || 0,
+      NumberImport: rowData.NumberImport || 0,
+      NumberExport: rowData.NumberExport || 0,
+      NumberBorrowing: rowData.NumberBorrowing || 0,
+      InventoryReal: rowData.InventoryReal || 0,
+    };
+
+    this.menuEventService.openNewTab(
+      MaterialDetailOfProductRtcComponent,
+      title,
+      data
+    );
+  }
 }

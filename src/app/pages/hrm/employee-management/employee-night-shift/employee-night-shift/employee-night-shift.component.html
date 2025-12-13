@@ -79,16 +79,13 @@
                 <button nz-button nzType="default" nzSize="small" (click)="toggleSearchPanel()">
                   <nz-icon nzType="search"></nz-icon>
                 </button>
-                <button nz-button nzType="default" nzSize="small" class="btn-add" (click)="onAddNightShift()"
-                  *hasPermission="'N1,N2'">
+                <button nz-button nzType="default" nzSize="small" class="btn-add" (click)="onAddNightShift()">
                   <img src="assets/icon/action_add_item_16.png" alt="Thêm mới" />Thêm
                 </button>
-                <button nz-button nzType="default" nzSize="small" class="btn-edit" (click)="onEditNightShift()"
-                  *hasPermission="'N1,N2'">
+                <button nz-button nzType="default" nzSize="small" class="btn-edit" (click)="onEditNightShift()">
                   <img src="assets/icon/action_edit_item_16.png" alt="Sửa" />Sửa
                 </button>
-                <button nz-button nzType="default" nzSize="small" class="btn-delete" (click)="onDeleteNightShift()"
-                  *hasPermission="'N1,N2'">
+                <button nz-button nzType="default" nzSize="small" class="btn-delete" (click)="onDeleteNightShift()">
                   <img src="assets/icon/action_delete_item_16.png" alt="Xóa" />Xóa
                 </button>
                 <button class="fs-12" nz-button nzType="default" nzSize="small" nz-dropdown [nzDropdownMenu]="menuTBP"
@@ -165,15 +162,15 @@
                 <i class="fa fa-bars"></i>
               </button>
               <div ngbDropdownMenu class="dropdown-menu">
-                <button ngbDropdownItem (click)="onAddNightShift()" *hasPermission="'N23,N1,N67'"
+                <button ngbDropdownItem (click)="onAddNightShift()"
                   class="d-flex align-items-center gap-2">
                   Thêm
                 </button>
-                <button ngbDropdownItem (click)="onEditNightShift()" *hasPermission="'N23,N1,N67'"
+                <button ngbDropdownItem (click)="onEditNightShift()"
                   class="d-flex align-items-center gap-2">
                   Sửa
                 </button>
-                <button ngbDropdownItem (click)="onDeleteNightShift()" *hasPermission="'N23,N1,N67'"
+                <button ngbDropdownItem (click)="onDeleteNightShift()"
                   class="d-flex align-items-center gap-2">
                   Xóa
                 </button>

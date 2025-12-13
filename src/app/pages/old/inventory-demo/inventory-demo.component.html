@@ -22,7 +22,7 @@
                                     nzPlaceHolder="Chọn nhóm sản phẩm..." [(ngModel)]="productGroupID"
                                     (ngModelChange)="onGroupChange($event)" name="productGroupID">
                                     <nz-option *ngFor="let emp of productGroupData"
-                                        [nzLabel]="emp.ID + ' - ' + emp.ProductGroupName"
+                                        [nzLabel]="emp.ProductGroupNo + ' - ' + emp.ProductGroupName"
                                         [nzValue]="emp.ID"></nz-option>
                                 </nz-select>
                             </nz-form-control>
@@ -88,7 +88,12 @@
                     </div>
                 </div>
 
-                <div class="card-body p-0 d-flex align-items-center justify-content-center" style="position: relative">
+                <div class="card-body p-0" style="position: relative; overflow: hidden;">
+                    <!-- Loading overlay -->
+                    <div *ngIf="loading" class="loading-overlay">
+                        <nz-spin nzSimple [nzSize]="'large'"></nz-spin>
+                        <span class="loading-text">Đang tải dữ liệu...</span>
+                    </div>
                     <div #productTableRef class="w-100 h-100"></div>
                 </div>
             </div>

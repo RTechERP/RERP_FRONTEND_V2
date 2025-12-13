@@ -659,7 +659,7 @@ export class HrPurchaseProposalComponent implements OnInit, AfterViewInit {
     this.HCNSApprovalData.forEach((prod, prodIdx) => {
       if (prod.Suppliers && prod.Suppliers.length > 0) {
         prod.Suppliers.forEach((sup: any, supIdx: number) => {
-          // Nếu là supplier được chọn, sử dụng dữ liệu mới nhất từ supplier parameter
+
           const isSelectedSupplier =
             prodIdx === productIndex && supIdx === supplierIndex;
 

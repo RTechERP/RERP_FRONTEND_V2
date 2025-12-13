@@ -95,17 +95,9 @@ export class ImportExcelPartlistComponent implements OnInit, AfterViewInit {
       this.selectedVersion = this.versionId;
     }
     
-      this.authService.getCurrentUser().subscribe((res: any) => {
+    this.authService.getCurrentUser().subscribe((res: any) => {
       this.currentUser = res?.data;
       this.isAdmin = this.currentUser?.IsAdmin === true;
-      
-      // Re-init table với quyền admin nếu đã có table
-      if (this.tableExcel) {
-        this.updateTableEditable();
-      } else {
-        // Nếu table chưa được init, init lại với quyền đúng
-        this.initTable();
-      }
     });
   }
   
@@ -226,13 +218,6 @@ export class ImportExcelPartlistComponent implements OnInit, AfterViewInit {
       { title: "Note", field: "Note", hozAlign: "left", headerHozAlign: "center",formatter: 'textarea', editor: editable ? "textarea" : false },
       { title: "Lý do phát sinh", field: "ReasonProblem", hozAlign: "left", headerHozAlign: "center", formatter: 'textarea', editor: editable ? "textarea" : false },
     ];
-  }
-
-  updateTableEditable() {
-    if (this.tableExcel) {
-      const columns = this.getTableColumns();
-      this.tableExcel.setColumns(columns as any);
-    }
   }
 
   // Mở modal import-excel-diff để hiển thị diff
@@ -433,26 +418,27 @@ export class ImportExcelPartlistComponent implements OnInit, AfterViewInit {
           ProductCode: this.getCellText(row.getCell(3)),
           OrderCode: this.getCellText(row.getCell(4)),
           Manufacturer: this.getCellText(row.getCell(5)),
-          SpecialCode: this.getCellText(row.getCell(6)),  //TN.Binh update 20251207
-          Model: this.getCellText(row.getCell(7)),
-          QtyMin: this.parseNumber(row.getCell(8).value),
-          QtyFull: this.parseNumber(row.getCell(9).value),
-          Unit: this.getCellText(row.getCell(10)),
-          Price: this.parseNumber(row.getCell(11).value),
-          Amount: this.parseNumber(row.getCell(12).value),
-          LeadTime: this.getCellText(row.getCell(13)),
-          NCC: this.getCellText(row.getCell(14)),
-          RequestDate: this.getCellText(row.getCell(15)),
-          LeadTimeRequest: this.getCellText(row.getCell(16)),
-          QuantityReturn: this.parseNumber(row.getCell(17).value),
-          NCCFinal: this.getCellText(row.getCell(18)),
-          PriceOrder: this.parseNumber(row.getCell(19).value),
-          OrderDate: this.getCellText(row.getCell(20)),
-          ExpectedReturnDate: this.getCellText(row.getCell(21)),
-          Status: this.getCellText(row.getCell(22)),
-          Quality: this.getCellText(row.getCell(23)),
-          Note: this.getCellText(row.getCell(24)),
-          ReasonProblem: this.getCellText(row.getCell(25))
+       
+          Model: this.getCellText(row.getCell(6)),
+          QtyMin: this.parseNumber(row.getCell(7).value),
+          QtyFull: this.parseNumber(row.getCell(8).value),
+          Unit: this.getCellText(row.getCell(9)),
+          Price: this.parseNumber(row.getCell(10).value),
+          Amount: this.parseNumber(row.getCell(11).value),
+          LeadTime: this.getCellText(row.getCell(12)),
+          NCC: this.getCellText(row.getCell(13)),
+          RequestDate: this.getCellText(row.getCell(14)),
+          LeadTimeRequest: this.getCellText(row.getCell(15)),
+          QuantityReturn: this.parseNumber(row.getCell(16).value),
+          NCCFinal: this.getCellText(row.getCell(17)),
+          PriceOrder: this.parseNumber(row.getCell(18).value),
+          OrderDate: this.getCellText(row.getCell(19)),
+          ExpectedReturnDate: this.getCellText(row.getCell(20)),
+          Status: this.getCellText(row.getCell(21)),
+          Quality: this.getCellText(row.getCell(22)),
+          Note: this.getCellText(row.getCell(23)),
+          ReasonProblem: this.getCellText(row.getCell(24)),
+          SpecialCode: this.getCellText(row.getCell(25)),  //TN.Binh update 20251207
         });
 
         validRecords++;

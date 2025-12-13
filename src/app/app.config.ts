@@ -68,3 +68,4 @@ export const NOTIFICATION_TITLE = {
     success: 'Thông báo',
     warning: 'Thông báo',
 };
+export const ID_ADMIN_DEMO_LIST: number[] = [24, 1434, 88, 1534, 1700];

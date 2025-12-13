@@ -82,6 +82,7 @@ import { BillExportService } from '../../Sale/BillExport/bill-export-service/bil
   styleUrls: ['./bill-import-technical-form.component.css'],
 })
 export class BillImportTechnicalFormComponent implements OnInit, AfterViewInit {
+  title:string = 'Phiếu nhập kho';
   // danh sách loại phiếu nhập kĩ thuật
   billType: any = [
     { ID: 0, Name: '--Chọn loại--' },
@@ -506,6 +507,7 @@ export class BillImportTechnicalFormComponent implements OnInit, AfterViewInit {
 
   //#Init
   ngOnInit() {
+    this.title = this.warehouseType === 1 ? 'Phiếu nhập kho DEMO' : 'Phiếu nhập kho AGV';
     this.initForm();
 
     // Khởi tạo BillTypeNew = 0 (--Chọn loại phiếu--)
@@ -684,12 +686,6 @@ export class BillImportTechnicalFormComponent implements OnInit, AfterViewInit {
     const supplierSaleID = this.newBillImport.SupplierSaleID || 0;
     const rulePayID = this.newBillImport.RulePayID || 0;
 
-    console.log('🔍 Binding values:', {
-      ReceiverID: receiverID,
-      DeliverID: deliverID,
-      SupplierSaleID: supplierSaleID,
-      RulePayID: rulePayID,
-    });
 
     // Patch dữ liệu master từ PONCC vào form
     this.formDeviceInfo.patchValue({
@@ -708,9 +704,6 @@ export class BillImportTechnicalFormComponent implements OnInit, AfterViewInit {
         ? new Date(this.newBillImport.DateRequestImport)
         : new Date(),
     });
-
-    console.log('✅ Master data từ PONCC đã được patch vào form');
-    console.log('📋 Form values after patch:', this.formDeviceInfo.value);
   }
 
   /**
@@ -724,16 +717,9 @@ export class BillImportTechnicalFormComponent implements OnInit, AfterViewInit {
       return;
     }
 
-    console.log('🔵 Đang map detail data từ PONCC:', this.dtDetails);
-    console.log('🔵 Product options available:', this.productOptions.length);
 
     // Map dữ liệu từ dtDetails sang format của BillImportTechnical
     const mappedProducts = this.dtDetails.map((item: any, index: number) => {
-      // Log cấu trúc item đầu tiên để debug
-      if (index === 0) {
-        console.log('🔍 Cấu trúc item đầu tiên từ PONCC (Technical):', item);
-        console.log('🔍 Các keys có sẵn:', Object.keys(item));
-      }
 
       // Ưu tiên ProductRTCID cho kho kỹ thuật
       const productID = item.ProductRTCID || item.ProductSaleID || 0;
@@ -741,21 +727,6 @@ export class BillImportTechnicalFormComponent implements OnInit, AfterViewInit {
       // Tìm thông tin sản phẩm từ productOptions
       const productInfo =
         this.productOptions.find((p: any) => p.ID === productID) || {};
-
-      if (index === 0) {
-        console.log('🔍 Lookup ProductID:', productID);
-        console.log('🔍 ProductInfo found:', productInfo);
-        console.log(
-          '🔍 UnitCountName from item:',
-          item.UnitName,
-          '/',
-          item.Unit
-        );
-        console.log(
-          '🔍 UnitCountName from productInfo:',
-          productInfo.UnitCountName
-        );
-      }
 
       // Ưu tiên lấy unit từ item trước, nếu không có thì lấy từ productInfo
       const unitCountName =

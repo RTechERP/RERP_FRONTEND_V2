@@ -101,7 +101,7 @@ export class EmployeeNightShiftFormComponent implements OnInit {
             // Thêm mới: Tự động set EmployeeID là người đăng nhập nhưng vẫn cho phép thay đổi
             this.isSelfDeclaration = true;
             this.formGroup.patchValue({
-              EmployeeID: this.currentUser.ID
+              EmployeeID: this.currentUser.EmployeeID
             });
             // Không disable field EmployeeID để người dùng vẫn có thể thay đổi
           } else {

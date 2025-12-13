@@ -124,7 +124,6 @@ export class WFHComponent implements OnInit, AfterViewInit, OnDestroy {
         this.currentDepartmentId = data?.DepartmentID || 0;
         this.currentDepartmentName = data?.DepartmentName || '';
         this.isAdmin = data?.ISADMIN || false;
-        console.log('Current User:', this.currentUser);
       }
     });
   }
@@ -586,6 +585,7 @@ export class WFHComponent implements OnInit, AfterViewInit, OnDestroy {
     modalRef.componentInstance.wfhData = null;
     modalRef.componentInstance.mode = 'add';
     modalRef.componentInstance.userRole = 'employee';
+    modalRef.componentInstance.currentEmployeeId = this.currentEmployeeId;
 
     modalRef.result.then((result) => {
       if (result?.action === 'save') {
@@ -613,6 +613,8 @@ export class WFHComponent implements OnInit, AfterViewInit, OnDestroy {
     modalRef.componentInstance.wfhData = wfhToEdit;
     modalRef.componentInstance.mode = 'edit';
     modalRef.componentInstance.userRole = 'employee';
+    modalRef.componentInstance.currentEmployeeId = this.currentEmployeeId;
+
 
     modalRef.result.then((result) => {
       if (result?.action === 'save') {

@@ -43,20 +43,6 @@ interface Category {
   STT?: number;
 }
 
-interface Course {
-  ID: number;
-  CourseName: string;
-  StudyDate: Date | null;
-  PersonInCharge: string;
-  Creator: string;
-  PracticeTotalQuestions: number;
-  ExerciseTotalQuestions: number;
-  QuizTotalQuestions: number;
-  ExamQuestions: number;
-  Duration: number;
-  CategoryID: number;
-}
-
 interface Lesson {
   ID: number;
   STT: number;
@@ -98,7 +84,7 @@ export class CourseManagementComponent implements OnInit, AfterViewInit {
   categoryID: number = 0;
 
   courseTable: Tabulator | null = null;
-  courseData: Course[] = [];
+  courseData: any[] = [];
   courseID: number = 0;
 
   lessonTable: Tabulator | null = null;
@@ -138,26 +124,34 @@ export class CourseManagementComponent implements OnInit, AfterViewInit {
   }
 
   getDataCategory() {
-    // TODO: Implement API call
-    // this.courseService.getDataCategory().subscribe((response: any) => {
-    //   this.categoryData = response.data || [];
-    //   if (this.categoryTable) {
-    //     this.categoryTable.replaceData(this.categoryData);
-    //     setTimeout(() => {
-    //       this.categoryTable?.redraw(true);
-    //     }, 100);
-    //     if (this.categoryData.length > 0) {
-    //       this.searchParams.categoryID = this.categoryData[0].ID;
-    //       this.getCourse();
-    //     }
-    //   }
-    // });
-    
-    // Mock data for now
-    this.categoryData = [];
-    if (this.categoryTable) {
-      this.categoryTable.replaceData(this.categoryData);
-    }
+    this.courseService.getDataCategory().subscribe((response: any) => {
+      if (response && response.status === 1) {
+        this.categoryData = response.data || [];
+        if (this.categoryTable) {
+          this.categoryTable.replaceData(this.categoryData);
+          setTimeout(() => {
+            this.categoryTable?.redraw(true);
+          }, 100);
+          if (this.categoryData.length > 0) {
+            this.searchParams.categoryID = this.categoryData[0].ID;
+            this.getCourse();
+          }
+        }
+      } else {
+        this.notification.warning('Thông báo', response?.message || 'Không thể tải danh sách danh mục!');
+        this.categoryData = [];
+        if (this.categoryTable) {
+          this.categoryTable.replaceData(this.categoryData);
+        }
+      }
+    }, (error) => {
+      this.notification.error('Thông báo', 'Có lỗi xảy ra khi tải danh sách danh mục!');
+      console.error('Error loading categories:', error);
+      this.categoryData = [];
+      if (this.categoryTable) {
+        this.categoryTable.replaceData(this.categoryData);
+      }
+    });
   }
 
   getDataDepartment() {
@@ -167,35 +161,67 @@ export class CourseManagementComponent implements OnInit, AfterViewInit {
   }
 
   getCourse() {
-    // TODO: Implement API call
-    // this.courseService.getCourse(this.searchParams.categoryID).subscribe((response: any) => {
-    //   this.courseData = response.data || [];
-    //   if (this.courseTable) {
-    //     this.courseTable.setData(this.courseData);
-    //   }
-    // });
-    
-    // Mock data for now
-    this.courseData = [];
-    if (this.courseTable) {
-      this.courseTable.setData(this.courseData);
+    if (this.searchParams.categoryID === 0) {
+      this.courseData = [];
+      if (this.courseTable) {
+        this.courseTable.setData(this.courseData);
+      }
+      return;
     }
+
+    this.courseService.getCourse(this.searchParams.categoryID).subscribe((response: any) => {
+      if (response && response.status === 1) {
+        this.courseData = response.data || [];
+        if (this.courseTable) {
+          this.courseTable.setData(this.courseData);
+        }
+      } else {
+        this.notification.warning('Thông báo', response?.message || 'Không thể tải danh sách khóa học!');
+        this.courseData = [];
+        if (this.courseTable) {
+          this.courseTable.setData(this.courseData);
+        }
+      }
+    }, (error) => {
+      this.notification.error('Thông báo', 'Có lỗi xảy ra khi tải danh sách khóa học!');
+      console.error('Error loading courses:', error);
+      this.courseData = [];
+      if (this.courseTable) {
+        this.courseTable.setData(this.courseData);
+      }
+    });
   }
 
   getLessonByCourseID(id: number) {
-    // TODO: Implement API call
-    // this.courseService.getLessonByCourseID(id).subscribe((response: any) => {
-    //   this.lessonData = response.data || [];
-    //   if (this.lessonTable) {
-    //     this.lessonTable.setData(this.lessonData);
-    //   }
-    // });
-    
-    // Mock data for now
-    this.lessonData = [];
-    if (this.lessonTable) {
-      this.lessonTable.setData(this.lessonData);
+    if (id === 0) {
+      this.lessonData = [];
+      if (this.lessonTable) {
+        this.lessonTable.setData(this.lessonData);
+      }
+      return;
     }
+
+    this.courseService.getLessonByCourseID(id).subscribe((response: any) => {
+      if (response && response.status === 1) {
+        this.lessonData = response.data || [];
+        if (this.lessonTable) {
+          this.lessonTable.setData(this.lessonData);
+        }
+      } else {
+        this.notification.warning('Thông báo', response?.message || 'Không thể tải danh sách bài học!');
+        this.lessonData = [];
+        if (this.lessonTable) {
+          this.lessonTable.setData(this.lessonData);
+        }
+      }
+    }, (error) => {
+      this.notification.error('Thông báo', 'Có lỗi xảy ra khi tải danh sách bài học!');
+      console.error('Error loading lessons:', error);
+      this.lessonData = [];
+      if (this.lessonTable) {
+        this.lessonTable.setData(this.lessonData);
+      }
+    });
   }
 
   onSearchChange() {
@@ -203,9 +229,11 @@ export class CourseManagementComponent implements OnInit, AfterViewInit {
       if (this.keyword && this.keyword.trim() !== '') {
         this.courseTable.setFilter([
           [
-            { field: 'CourseName', type: 'like', value: this.keyword },
-            { field: 'PersonInCharge', type: 'like', value: this.keyword },
-            { field: 'Creator', type: 'like', value: this.keyword },
+            { field: 'NameCourse', type: 'like', value: this.keyword },
+            { field: 'Code', type: 'like', value: this.keyword },
+            { field: 'Instructor', type: 'like', value: this.keyword },
+            { field: 'NameCourseCatalog', type: 'like', value: this.keyword },
+            { field: 'DepartmentName', type: 'like', value: this.keyword },
           ],
         ]);
       } else {
@@ -345,14 +373,14 @@ export class CourseManagementComponent implements OnInit, AfterViewInit {
   }
 
   onDeleteCourse() {
-    const dataSelect: Course[] = this.courseTable!.getSelectedData();
+    const dataSelect: any[] = this.courseTable!.getSelectedData();
     if (dataSelect.length === 0) {
       this.notification.warning('Thông báo', 'Vui lòng chọn ít nhất một khóa học để xóa!');
       return;
     }
     this.modal.confirm({
       nzTitle: 'Xác nhận xóa',
-      nzContent: `Bạn có chắc chắn muốn xóa ${dataSelect[0].CourseName} không?`,
+      nzContent: `Bạn có chắc chắn muốn xóa ${dataSelect[0].NameCourse} không?`,
       nzOkText: 'Đồng ý',
       nzCancelText: 'Hủy',
       nzOnOk: () => {
@@ -406,14 +434,27 @@ export class CourseManagementComponent implements OnInit, AfterViewInit {
         height: '87vh',
         selectableRows: 1,
         paginationMode: 'local',
+        groupBy: [
+          (data: any) => data.CatalogTypeText || 'Chưa phân loại',
+          (data: any) => data.NameDepartment || 'Chưa có phòng ban'
+        ],
+        groupStartOpen: [true, true],
+        groupHeader: [
+          (value: any, count: number, data: any) => {
+            return `<strong>Loại: ${value}</strong> (${count} danh mục)`;
+          },
+          (value: any, count: number, data: any) => {
+            return `<strong>Phòng ban: ${value}</strong>`;
+          }
+        ],
         columns: [
           {
             title: 'STT',
             hozAlign: 'center',
             headerHozAlign: 'center',
             field: 'STT',
-            width: 80,
-            formatter: 'rownum',
+            width: 50,
+            bottomCalc: 'count',
           },
           {
             title: 'Mã',
@@ -450,6 +491,18 @@ export class CourseManagementComponent implements OnInit, AfterViewInit {
       this.categoryTable.on('rowDeselected', (row: RowComponent) => {
         const selectedRows = this.categoryTable!.getSelectedRows();
         this.categoryID = 0;
+        // Xóa dữ liệu bảng khóa học
+        this.courseData = [];
+        if (this.courseTable) {
+          this.courseTable.setData(this.courseData);
+        }
+        // Xóa dữ liệu bảng bài học
+        this.lessonData = [];
+        if (this.lessonTable) {
+          this.lessonTable.setData(this.lessonData);
+        }
+        // Reset courseID
+        this.courseID = 0;
       });
     }
   }
@@ -465,94 +518,189 @@ export class CourseManagementComponent implements OnInit, AfterViewInit {
         height: '87vh',
         selectableRows: 1,
         paginationMode: 'local',
+        groupBy: 'CourseTypeName',
+        groupHeader: function (value, count, data, group) {
+          return (
+            `Loại: ${value ||""}`
+          );
+        },
         columns: [
+        {
+          title: 'STT',
+          field: 'STT',
+          hozAlign: 'center',
+          headerHozAlign: 'center',
+          width: 30,
+        },
+        {
+          title: 'Mã khóa học',
+          field: 'Code',
+          hozAlign: 'left',
+          headerHozAlign: 'center',
+          headerSort: false,
+        },
           {
             title: 'Tên khóa học',
-            field: 'CourseName',
+            field: 'NameCourse',
             hozAlign: 'left',
             headerHozAlign: 'center',
+            headerSort: false,
           },
           {
-            title: 'Thời gian học ngày',
+            title: 'Thời gian học (ngày)',
             field: 'StudyDate',
             hozAlign: 'center',
             headerHozAlign: 'center',
-            width: 150,
+            width: 100,
             formatter: (cell: any) => {
               const value = cell.getValue();
-              if (value) {
-                const date = new Date(value);
-                return date.toLocaleDateString('vi-VN');
+              if (value != null && value > 0) {
+                return `${parseFloat(value).toFixed(2)}`;
               }
-              return '';
+              return '0.00';
             },
+            headerSort: false,
           },
           {
-            title: 'Người phụ trách',
-            field: 'PersonInCharge',
+            title: 'Người phụ trách training',
+            field: 'FullName',
             hozAlign: 'left',
             headerHozAlign: 'center',
+            headerSort: false,
           },
           {
             title: 'Người tạo',
-            field: 'Creator',
+            field: 'Instructor',
             hozAlign: 'left',
-            headerHozAlign: 'center',
-          },
-          {
-            title: 'Thực hành - Tổng số câu',
-            field: 'PracticeTotalQuestions',
-            hozAlign: 'center',
-            headerHozAlign: 'center',
             width: 150,
-            formatter: (cell: any) => {
-              const value = cell.getValue();
-              return value != null ? value.toString() : '';
-            },
+            headerHozAlign: 'center',
+            headerSort: false,
           },
           {
-            title: 'Bài tập - Tổng số câu',
-            field: 'ExerciseTotalQuestions',
-            hozAlign: 'center',
-            headerHozAlign: 'center',
-            width: 150,
-            formatter: (cell: any) => {
-              const value = cell.getValue();
-              return value != null ? value.toString() : '';
-            },
+            title: 'Thực hành',
+            columns: [
+              {
+                title: 'Thực hành',
+                field: 'IsPractice',  
+                hozAlign: 'center',
+                headerHozAlign: 'center',
+                width: 50,
+                formatter: (cell: any) => {
+                  const value = cell.getValue();
+                  return `<input type="checkbox" ${(value === true ? 'checked' : '')} onclick="return false;">`;
+                },
+                headerSort: false,
+              },
+              {
+                title: 'Tổng số câu',
+                field: 'PracticeQuestions',
+                hozAlign: 'center',
+                headerHozAlign: 'center',
+                width: 100,
+                formatter: (cell: any) => {
+                  const value = cell.getValue();
+                  if (value != null && value > 0) {
+                    return `${value}`;
+                  }
+                  return '0';
+                },
+                headerSort: false,
+              },
+            ]
           },
           {
-            title: 'Trắc nghiệm - Tổng số câu',
-            field: 'QuizTotalQuestions',
-            hozAlign: 'center',
-            headerHozAlign: 'center',
-            width: 180,
-            formatter: (cell: any) => {
-              const value = cell.getValue();
-              return value != null ? value.toString() : '';
-            },
+            title: 'Bài tập',
+            columns: [
+              {
+                title: 'Bài tập',
+                field: 'IsExercise',
+                hozAlign: 'center',
+                headerHozAlign: 'center',
+                width: 50,
+                formatter: (cell: any) => {
+                  const value = cell.getValue();
+                  return `<input type="checkbox" ${(value === true ? 'checked' : '')} onclick="return false;">`;
+                },
+                headerSort: false,
+              },
+              {
+                title: 'Tổng số câu',
+                field: 'ExerciseQuestions',
+                hozAlign: 'center',
+                headerHozAlign: 'center',
+                width: 100,
+                formatter: (cell: any) => {
+                  const value = cell.getValue();
+                  if (value != null && value > 0) {
+                    return `${value}`;
+                  }
+                  return '0';
+                },
+                headerSort: false,
+              },
+            ]
           },
           {
-            title: 'Số câu thi',
-            field: 'ExamQuestions',
-            hozAlign: 'center',
-            headerHozAlign: 'center',
-            width: 120,
-            formatter: (cell: any) => {
-              const value = cell.getValue();
-              return value != null ? value.toString() : '';
-            },
-          },
-          {
-            title: 'Thời lượng',
-            field: 'Duration',
-            hozAlign: 'center',
-            headerHozAlign: 'center',
-            width: 120,
-            formatter: (cell: any) => {
-              const value = cell.getValue();
-              return value ? `${value} phút` : '';
-            },
+            title: 'Trắc nghiệm',
+            columns: [
+              {
+                title: 'Trắc nghiệm',
+                field: 'IsMultiChoice',
+                hozAlign: 'center',
+                headerHozAlign: 'center',
+                width: 50,
+                formatter: (cell: any) => {
+                  const value = cell.getValue();
+                  return `<input type="checkbox" ${(value === true ? 'checked' : '')} onclick="return false;">`;
+                },
+                headerSort: false,
+              },
+              {
+                title: 'Tổng số câu ',
+                field: 'MultiChoiceQuestions',
+                hozAlign: 'center',
+                headerHozAlign: 'center',
+                width: 100,
+                formatter: (cell: any) => {
+                  const value = cell.getValue();
+                  if (value != null && value > 0) {
+                    return `${value}`;
+                  }
+                  return '0';
+                },
+                headerSort: false,
+              },
+              {
+                title: 'Số câu thi',
+                field: 'QuestionCount',
+                hozAlign: 'right',
+                headerHozAlign: 'center',
+                width: 100,
+                formatter: (cell: any) => {
+                  const value = cell.getValue();
+                  if (value != null && value > 0) {
+                    return `${value}`;
+                  }
+                  return '0';
+                },
+                headerSort: false,
+              },
+              {
+                title: 'Thời lượng',
+                field: 'TotalDuration',
+                hozAlign: 'center',
+                headerHozAlign: 'center',
+                width: 100,
+                formatter: (cell: any) => {
+                  const value = cell.getValue();
+                  if (value != null && value > 0) {
+                    return `${parseFloat(value).toFixed(2)}`;
+                  }
+                  return '0.00';
+                },
+                headerSort: false,
+              },
+            ]
           },
         ],
       });
@@ -576,6 +724,12 @@ export class CourseManagementComponent implements OnInit, AfterViewInit {
       this.courseTable.on('rowDeselected', (row: RowComponent) => {
         const selectedRows = this.courseTable!.getSelectedRows();
         this.courseID = 0;
+        this.lessonData = [];
+     
+          if (this.lessonTable) {
+            this.lessonTable.setData(this.lessonData);
+          }
+        
       });
     }
   }
@@ -597,7 +751,7 @@ export class CourseManagementComponent implements OnInit, AfterViewInit {
             hozAlign: 'center',
             headerHozAlign: 'center',
             field: 'STT',
-            width: 80,
+            width: 50,
             formatter: 'rownum',
           },
           {
@@ -608,7 +762,7 @@ export class CourseManagementComponent implements OnInit, AfterViewInit {
           },
           {
             title: 'Tên bài học',
-            field: 'Name',
+            field: 'LessonTitle',
             hozAlign: 'left',
             headerHozAlign: 'center',
             resizable: false,

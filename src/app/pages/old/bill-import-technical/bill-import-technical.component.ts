@@ -45,6 +45,7 @@ import { NzModalService } from 'ng-zorro-antd/modal';
 import { BillImportTechnicalFormComponent } from './bill-import-technical-form/bill-import-technical-form.component';
 import { NOTIFICATION_TITLE } from '../../../app.config';
 import { HasPermissionDirective } from '../../../directives/has-permission.directive';
+import { DEFAULT_TABLE_CONFIG } from '../../../tabulator-default.config';
 function formatDateCell(cell: CellComponent): string {
   const val = cell.getValue();
   return val ? DateTime.fromISO(val).toFormat('dd/MM/yyyy') : '';
@@ -199,23 +200,11 @@ export class BillImportTechnicalComponent implements OnInit, AfterViewInit {
     this.billImportTechnicalTable = new Tabulator(
       this.billImportTechnicalTableRef.nativeElement,
       {
+        ...DEFAULT_TABLE_CONFIG,
         layout: 'fitDataStretch',
-        pagination: true,
-        selectableRows: 5,
-        movableColumns: true,
         ajaxURL: this.billImportTechnicalService.getBillImport(),
         ajaxConfig: 'POST',
-        columnDefaults: {
-          headerWordWrap: true,
-          headerVertical: false,
-          headerHozAlign: 'center',
-          minWidth: 60,
-          resizable: true,
-        },
         paginationSize: 30,
-        paginationSizeSelector: [5, 10, 20, 50, 100],
-        reactiveData: true,
-        paginationMode: 'remote',
         ajaxRequestFunc: (url, config, params) => {
           const request = {
             Page: params.page,
@@ -403,6 +392,15 @@ export class BillImportTechnicalComponent implements OnInit, AfterViewInit {
           this.selectedRow = rowData;
           this.sizeTbDetail = null;
           this.updateTabDetailTitle();
+        } else {
+          // Clear detail khi không có master data
+          this.billImportTechnicalDetailData = [];
+          this.selectedRow = null;
+          this.sizeTbDetail = '0';
+          this.updateTabDetailTitle();
+          if (this.billImportTechnicalDetailTable) {
+            this.billImportTechnicalDetailTable.setData([]);
+          }
         }
       }, 100);
     });
@@ -438,11 +436,10 @@ export class BillImportTechnicalComponent implements OnInit, AfterViewInit {
           columns: [
             { title: 'Tên sản phẩm', field: 'ProductName', width:200 },
             { title: 'Serial', field: 'Serial', width:200 },
-
             { title: 'Số lượng', field: 'Quantity', hozAlign: 'center' },
             { title: 'ĐVT', field: 'UnitCountName' },
             { title: 'Tình trạng hàng', field: 'WarehouseType' },
-            { title: 'Mã nội bộ', field: 'InternalCode', width:200 },
+            { title: 'Mã nội bộ', field: 'ProductCodeRTC', width:200 },
             { title: 'Đơn mua hàng', field: 'BillCodePO' },
             { title: 'Hãng', field: 'Maker', width:200 },
             { title: 'Người cần mượn', field: 'EmployeeBorrowName', width:200 },
@@ -456,21 +453,11 @@ export class BillImportTechnicalComponent implements OnInit, AfterViewInit {
             // { title: 'Số lượng yêu cầu', field: 'QtyRequest', hozAlign: 'center', visible: false },
             // { title: 'Giá', field: 'Price', hozAlign: 'right', formatter: 'money', formatterParams: { thousand: ',', precision: 0 }, visible: false },
             // { title: 'Tổng giá', field: 'TotalPrice', hozAlign: 'right', formatter: 'money', formatterParams: { thousand: ',', precision: 0 }, visible: false },
+            { title: 'Ghi chú', field: 'Note', formatter: (cell) => {
+              const val = cell.getValue();
+              return val ? `<span class="text-wrap">${val}</span>` : '';
+            }, width:300 },
 
-            { title: 'Người tạo', field: 'CreatedBy', visible: false },
-            {
-              title: 'Ngày tạo',
-              field: 'CreatedDate',
-              formatter: formatDateCell,
-              visible: false,
-            },
-            { title: 'Người cập nhật', field: 'UpdatedBy', visible: false },
-            {
-              title: 'Ngày cập nhật',
-              field: 'UpdatedDate',
-              formatter: formatDateCell,
-              visible: false,
-            },
             {
               title: 'Mượn từ NCC?',
               field: 'IsBorrowSupplier',

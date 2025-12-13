@@ -132,54 +132,121 @@
                 >
                   <nz-icon nzType="search" />
                 </button>
-                <button
-                  class="btn-add"
+                  <button
+                  class="fs-12 btn"
                   nz-button
                   nzType="default"
                   nzSize="small"
-                  (click)="onAddJobrequirement(false)"
-                  [disabled]="!canAddOrEdit()"
+                  nz-dropdown
+                  [nzDropdownMenu]="TBPMenu"
+                  nzTrigger="hover"
+                  nzPlacement="bottomLeft"
                   *hasPermission="'N34, N1, N2'"
                 >
-                  <img src="assets/icon/action_add_item_16.png" /> Thêm đề xuất
+                  <nz-icon nzType="menu" nzTheme="outline"></nz-icon>
+                  Trưởng Bộ Phận
                 </button>
-                <button
-                  class="btn-edit"
+
+                <nz-dropdown-menu #TBPMenu="nzDropdownMenu">
+                  <ul nz-menu>
+                      <li nz-menu-item >
+                        <img src="assets/icon/action_approved_16.png" />
+                        <span class="ms-1">Duyệt</span>
+                      </li>
+                      <li nz-menu-item>
+                        <img src="assets/icon/action_unapproved_16.png" />
+                        <span class="ms-1">Hủy duyệt</span>
+                      </li>
+                    </ul>
+                </nz-dropdown-menu>
+
+                 <button
+                  class="fs-12 btn"
                   nz-button
                   nzType="default"
                   nzSize="small"
-                  (click)="onAddJobrequirement(true)"
-                  [disabled]="!canAddOrEdit() || JobrequirementID === 0"
+                  nz-dropdown
+                  [nzDropdownMenu]="ActionMenu"
+                  nzTrigger="hover"
+                  nzPlacement="bottomLeft"
                   *hasPermission="'N34, N1, N2'"
                 >
-                  <img src="assets/icon/action_edit_item_16.png" />Sửa đề xuất
+                  <nz-icon nzType="menu" nzTheme="outline"></nz-icon>
+                  Nhân sự
                 </button>
-                <button
-                  class="ant-btn fs-12 ant-btn-default ant-btn-sm ng-star-inserted"
+
+                <nz-dropdown-menu #ActionMenu="nzDropdownMenu">
+                  <ul nz-menu>
+                        <li nz-menu-item >
+                        <img src="assets/icon/action_approved_16.png" />
+                        <span class="ms-1">Duyệt</span>
+                      </li>
+                      <li nz-menu-item>
+                        <img src="assets/icon/action_unapproved_16.png" />
+                        <span class="ms-1">Hủy duyệt</span>
+                      </li>
+                    <li nz-menu-item 
+                        (click)="onAddJobrequirement(false)"
+                        [nzDisabled]="!canAddOrEdit()" class="btn-add">
+                      <img src="assets/icon/action_add_item_16.png" />
+                      <span class="ms-1">Thêm đề xuất</span>
+                    </li>
+                    <li nz-menu-item 
+                        (click)="onAddJobrequirement(true)"
+                        [nzDisabled]="!canAddOrEdit() || JobrequirementID === 0" class="btn-edit">
+                      <img src="assets/icon/action_edit_item_16.png" />
+                      <span class="ms-1">Sửa đề xuất</span>
+                    </li>
+                    <li nz-menu-item (click)="onOpenDepartmentRequired()" class="btn">
+                      <img src="assets/icon/btn_veiw_package_16.png" />
+                      <span class="ms-1">Xem chi tiết đề xuất</span>
+                    </li>
+                  </ul>
+                </nz-dropdown-menu>
+
+                 <button
+                  class="fs-12 btn"
                   nz-button
                   nzType="default"
                   nzSize="small"
-                  (click)="onOpenDepartmentRequired()"
-                  *hasPermission="'N34, N1, N2'"
+                  nz-dropdown
+                  [nzDropdownMenu]="BGDMenu"
+                  nzTrigger="hover"
+                  nzPlacement="bottomLeft"
+                  *hasPermission="'N1, N2'"
                 >
-                  <img src="assets/icon/btn_veiw_package_16.png" /> Xem chi tiết đề xuất
+                  <nz-icon nzType="menu" nzTheme="outline"></nz-icon>
+                  Trưởng Bộ Phận
                 </button>
+
+                <nz-dropdown-menu #BGDMenu="nzDropdownMenu">
+                  <ul nz-menu>
+                      <li nz-menu-item >
+                        <img src="assets/icon/action_approved_16.png" />
+                        <span class="ms-1">Duyệt</span>
+                      </li>
+                      <li nz-menu-item>
+                        <img src="assets/icon/action_unapproved_16.png" />
+                        <span class="ms-1">Hủy duyệt</span>
+                      </li>
+                    </ul>
+                </nz-dropdown-menu>
               </div>
             </div>
             <nz-splitter>
               <nz-splitter-panel>
                 <nz-splitter>
-                  <nz-splitter-panel>
+                  <nz-splitter-panel nzDefaultSize="70%">
                     <nz-splitter nzLayout="vertical">
-                      <nz-splitter-panel>
+                      <nz-splitter-panel >
                         <div #JobrequirementTable></div>
                       </nz-splitter-panel>
-                      <nz-splitter-panel>
+                      <nz-splitter-panel >
                         <div #JobrequirementDetailTable></div>
                       </nz-splitter-panel>
                     </nz-splitter>
                   </nz-splitter-panel>
-                  <nz-splitter-panel>
+                  <nz-splitter-panel nzDefaultSize="30%">
                     <nz-splitter nzLayout="vertical">
                       <nz-splitter-panel>
                         <div #JobrequirementFileTable></div>

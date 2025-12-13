@@ -129,6 +129,10 @@ export class ProjectPartListService {
   restoreDelete(payload: any[]): Observable<any> {
     return this.http.post<any>(`${this.urlProjectPartList}/restore-delete`, payload);
   }
+  // Chuyển phiên bản giải pháp thành PO
+  convertVersionPO(payload: any): Observable<any> {
+    return this.http.post<any>(`${this.urlProjectPartList}/convert-versionPO`, payload);
+  }
   // Bổ sung PartList PO
   additionalPartListPO(payload: any): Observable<any> {
     return this.http.post<any>(`${this.urlProjectPartList}/additional-partlist-po`, payload);

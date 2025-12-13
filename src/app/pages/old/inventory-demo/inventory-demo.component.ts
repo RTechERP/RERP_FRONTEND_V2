@@ -27,6 +27,7 @@ import { NzAutocompleteModule } from 'ng-zorro-antd/auto-complete';
 import { NzInputModule } from 'ng-zorro-antd/input';
 import { NzSelectModule } from 'ng-zorro-antd/select';
 import { NzTableModule } from 'ng-zorro-antd/table';
+import { NzSpinModule } from 'ng-zorro-antd/spin';
 import {
   TabulatorFull as Tabulator,
   CellComponent,
@@ -70,6 +71,7 @@ import { HasPermissionDirective } from '../../../directives/has-permission.direc
     NzSelectModule,
     NzTableModule,
     NzTabsModule,
+    NzSpinModule,
     NgbModalModule,
     HasPermissionDirective,
   ],
@@ -97,6 +99,7 @@ export class InventoryDemoComponent implements OnInit, AfterViewInit {
   listBillType: number[] = [0, 3];
   // tb sản phẩm kho Demo
   productTable: Tabulator | null = null;
+  loading: boolean = false;
 
   warehouseType = 1;
 
@@ -115,7 +118,8 @@ export class InventoryDemoComponent implements OnInit, AfterViewInit {
     // Delay nhỏ để đảm bảo DOM có thể render xong
     setTimeout(() => {
       this.drawTable();
-      // Tabulator sẽ tự động load data qua ajax khi khởi tạo
+      // Load data sau khi table được khởi tạo
+      this.loadTableData();
     }, 0);
   }
   ngOnInit(): void {
@@ -154,21 +158,39 @@ export class InventoryDemoComponent implements OnInit, AfterViewInit {
     this.reloadTableData();
   }
 
-  // Reload data bằng cách trigger ajax request của Tabulator
-  reloadTableData(): void {
-    if (this.productTable) {
-      // Với paginationMode: 'remote', cần force reload bằng cách set page về 1 hoặc gọi setData()
-      const currentPage = this.productTable.getPage();
-      if (currentPage === 1) {
-        // Nếu đang ở trang 1, force reload bằng cách replaceData rồi setPage
-        this.productTable.replaceData([]).then(() => {
-          this.productTable?.setPage(1);
-        });
-      } else {
-        // Nếu không ở trang 1, set về trang 1 sẽ tự động trigger ajax reload
-        this.productTable.setPage(1);
+  // Load data từ API và set vào table (local pagination)
+  loadTableData(): void {
+    if (!this.productTable) return;
+    
+    this.loading = true;
+    
+    const request = {
+      productGroupID: this.productGroupID || 0,
+      keyWord: this.keyWord || '',
+      checkAll: this.searchMode === 'all' ? 1 : 0, // group => 0, all => 1
+      warehouseID: this.warehouseID || 1,
+      productRTCID: this.productRTCID || 0,
+      warehouseType: this.warehouseType || 1,
+    };
+    
+    this.inventoryDemoService.getInventoryDemo(request).subscribe({
+      next: (response: any) => {
+        const data = response?.products || response?.data || [];
+        this.productTable?.setData(data);
+        this.loading = false;
+      },
+      error: (err) => {
+        console.error('Error loading inventory data:', err);
+        this.notification.error(NOTIFICATION_TITLE.error, 'Không thể tải dữ liệu. Vui lòng thử lại.');
+        this.productTable?.setData([]);
+        this.loading = false;
       }
-    }
+    });
+  }
+
+  // Reload data - gọi lại API và set vào table
+  reloadTableData(): void {
+    this.loadTableData();
   }
 
   // Hàm tìm kiếm - reload data với filter hiện tại
@@ -205,6 +227,63 @@ export class InventoryDemoComponent implements OnInit, AfterViewInit {
     return value;
   }
 
+  productNameFormatter(cell: any): any {
+    const data = cell.getData();
+    const value = cell.getValue() || '';
+    const billType = data.BillType;
+    const numberInStore = data.InventoryLate;
+
+    const element = cell.getElement();
+    // Reset styles first
+    element.style.backgroundColor = '';
+    element.style.color = '';
+
+    // Apply color formatting
+    if (this.listBillType.includes(billType) && numberInStore === 0) {
+      element.style.backgroundColor = 'rgb(255, 231, 187)'; // Orange
+      element.style.color = 'black';
+    } else if (billType === 7 && numberInStore === 0) {
+      element.style.backgroundColor = '#ffd3dd'; // Pink
+      element.style.color = 'black';
+    }
+
+    // Format as textarea with 3-line limit
+    // Sử dụng CSS để giới hạn 3 dòng và thêm ellipsis
+    return `<div style="
+      display: -webkit-box;
+      -webkit-line-clamp: 3;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: pre-wrap;
+      word-wrap: break-word;
+      line-height: 1.4;
+      max-height: calc(1.4em * 3);
+      padding: 4px;
+      box-sizing: border-box;
+    " title="${value.replace(/"/g, '&quot;')}">${value}</div>`;
+  }
+
+  locationFormatter(cell: any): any {
+    const value = cell.getValue() || '';
+    
+    // Format as textarea with 3-line limit
+    // Sử dụng CSS để giới hạn 3 dòng và thêm ellipsis
+    return `<div style="
+      display: -webkit-box;
+      -webkit-line-clamp: 3;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: pre-wrap;
+      word-wrap: break-word;
+      line-height: 1.4;
+      max-height: calc(1.4em * 3);
+      padding: 4px;
+      box-sizing: border-box;
+    " title="${value.replace(/"/g, '&quot;')}">${value}</div>`;
+  }
+
   drawTable() {
     const rowMenu = [
       {
@@ -223,54 +302,35 @@ export class InventoryDemoComponent implements OnInit, AfterViewInit {
         selectableRows: 5,
         height: '100%',
         movableColumns: true,
+        // Local pagination
+        pagination: true,
+        paginationMode: 'local',
         paginationSize: 30,
         paginationSizeSelector: [5, 10, 20, 50, 100],
         reactiveData: true,
-        paginationMode: 'remote',
         placeholder: 'Không có dữ liệu',
         dataTree: true,
         history: true,
         rowContextMenu: rowMenu,
-        ajaxURL: this.inventoryDemoService.getProductAjax(),
-        ajaxConfig: 'POST',
-        ajaxRequestFunc: (url: string, config: any, params: any) => {
-          const request = {
-            productGroupID: this.productGroupID || 0,
-            keyWord: this.keyWord || '',
-            checkAll: 1,
-            warehouseID: this.warehouseID || 1,
-            productRTCID: this.productRTCID || 0,
-            warehouseType: this.warehouseType || 1,
-          };
-          return this.inventoryDemoService.getInventoryDemo(request).toPromise().then((response: any) => {
-            // Trả về response gốc từ API để ajaxResponse xử lý
-            return response;
-          });
-        },
-        ajaxResponse: (url: string, params: any, response: any) => {
-          // Kiểm tra nếu response đã có format { data: [...], last_page: ... } thì trả về trực tiếp
-          if (response && Array.isArray(response.data) && typeof response.last_page === 'number') {
-            return response;
-          }
-          
-          // Xử lý format cũ: response.products
-          return {
-            data: response?.products || response?.data || [],
-            last_page: response?.TotalPage?.[0]?.TotalPage || response?.last_page || 1,
-          };
-        },
+        data: [], // Data sẽ được load sau
         columns: [
           {
             title: 'Mã sản phẩm',
             field: 'ProductCode',
             formatter: this.cellColorFormatter.bind(this),
             frozen: true,
+            width: 150,
           },
           {
             title: 'Tên sản phẩm',
             field: 'ProductName',
-            formatter: this.cellColorFormatter.bind(this),
+            formatter: this.productNameFormatter.bind(this),
             frozen: true,
+            tooltip: (cell: any) => {
+              const value = cell.getValue();
+              return value || '';
+            },
+            width: 250,
           },
           // Spec columns - đặt ngay sau ProductName, visible=false, sẽ được show khi chọn group
           { title: 'Resolution', field: 'Resolution', visible: false },
@@ -296,10 +356,20 @@ export class InventoryDemoComponent implements OnInit, AfterViewInit {
           {
             title: 'Vị trí (Hộp)',
             field: 'LocationName',
+            formatter: this.locationFormatter.bind(this),
+            tooltip: (cell: any) => {
+              const value = cell.getValue();
+              return value || '';
+            },
           },
           {
             title: 'Vị trí Modula',
             field: 'ModulaLocationName',
+            formatter: this.locationFormatter.bind(this),
+            tooltip: (cell: any) => {
+              const value = cell.getValue();
+              return value || '';
+            },
           },
           // {
           //   title: 'Mã nhóm',
@@ -438,6 +508,13 @@ export class InventoryDemoComponent implements OnInit, AfterViewInit {
           {
             title: 'Mã phiếu nhập',
             field: 'BillCode',
+            width: 200,
+            tooltip: true,
+            formatter: function (cell: any) {
+              const value = cell.getValue();
+              if (!value) return '';
+              return `<div style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${value}</div>`;
+            },
           },
           {
             title: 'Ghi chú',
@@ -466,6 +543,7 @@ export class InventoryDemoComponent implements OnInit, AfterViewInit {
    * Hiển thị/ẩn các cột spec dựa trên ProductGroupID
    * Tương ứng với logic ShowSpec() trong WinForm
    * Các cột spec đã được đặt sẵn sau ProductName với visible=false
+   * Cải tiến: Chỉ show/hide và update title, không move columns để tránh lag
    */
   showSpec(): void {
     if (!this.productTable) return;
@@ -500,111 +578,87 @@ export class InventoryDemoComponent implements OnInit, AfterViewInit {
         'CurrentIntensityMax',
       ];
 
-      // Ẩn tất cả các cột spec trước
-      allSpecColumns.forEach((field) => {
-        const column = this.productTable?.getColumn(field);
-        if (column && column.isVisible()) {
-          column.hide();
-        }
-      });
-
-      const capRes = 'Resolution';
-      const capSensorSize = 'Sensor Size';
-      const capSensorSizeMax = 'Sensor Size Max';
-
-      // Map columns cần hiển thị, vị trí và title tương ứng
-      const columnConfigs: { [key: number]: Array<{ field: string; after: string; title?: string }> } = {
+      // Map columns cần hiển thị và title tương ứng
+      const columnConfigs: { [key: number]: Array<{ field: string; title?: string }> } = {
         74: [
-          { field: 'Resolution', after: 'ProductName', title: `${capRes} (pixel)` },
-          { field: 'MonoColor', after: 'Resolution' },
-          { field: 'SensorSize', after: 'MonoColor', title: `${capSensorSize} (")` },
-          { field: 'DataInterface', after: 'SensorSize' },
-          { field: 'LensMount', after: 'DataInterface' },
-          { field: 'ShutterMode', after: 'LensMount' },
+          { field: 'Resolution', title: 'Resolution (pixel)' },
+          { field: 'MonoColor' },
+          { field: 'SensorSize', title: 'Sensor Size (")' },
+          { field: 'DataInterface' },
+          { field: 'LensMount' },
+          { field: 'ShutterMode' },
         ],
         75: [
-          { field: 'LampType', after: 'ProductName' },
-          { field: 'LampColor', after: 'LampType' },
-          { field: 'LampPower', after: 'LampColor' },
-          { field: 'LampWattage', after: 'LampPower' },
+          { field: 'LampType' },
+          { field: 'LampColor' },
+          { field: 'LampPower' },
+          { field: 'LampWattage' },
         ],
         78: [
-          { field: 'Resolution', after: 'ProductName', title: `${capRes} (µm)` },
-          { field: 'SensorSizeMax', after: 'Resolution', title: `${capSensorSizeMax} (")` },
-          { field: 'WD', after: 'SensorSizeMax' },
-          { field: 'LensMount', after: 'WD' },
-          { field: 'FNo', after: 'LensMount' },
-          { field: 'Magnification', after: 'ProductName' },
+          { field: 'Resolution', title: 'Resolution (µm)' },
+          { field: 'SensorSizeMax', title: 'Sensor Size Max (")' },
+          { field: 'WD' },
+          { field: 'LensMount' },
+          { field: 'FNo' },
+          { field: 'Magnification' },
         ],
         79: [
-          { field: 'Resolution', after: 'ProductName' },
-          { field: 'MonoColor', after: 'Resolution' },
-          { field: 'PixelSize', after: 'MonoColor' },
-          { field: 'DataInterface', after: 'PixelSize' },
-          { field: 'LensMount', after: 'DataInterface' },
+          { field: 'Resolution' },
+          { field: 'MonoColor' },
+          { field: 'PixelSize' },
+          { field: 'DataInterface' },
+          { field: 'LensMount' },
         ],
         81: [
-          { field: 'Resolution', after: 'ProductName', title: `${capRes} (µm)` },
-          { field: 'SensorSizeMax', after: 'Resolution', title: `${capSensorSizeMax} (")` },
-          { field: 'MOD', after: 'SensorSizeMax' },
-          { field: 'LensMount', after: 'MOD' },
-          { field: 'FNo', after: 'LensMount' },
-          { field: 'FocalLength', after: 'ProductName' },
+          { field: 'Resolution', title: 'Resolution (µm)' },
+          { field: 'SensorSizeMax', title: 'Sensor Size Max (")' },
+          { field: 'MOD' },
+          { field: 'LensMount' },
+          { field: 'FNo' },
+          { field: 'FocalLength' },
         ],
         139: [
-          { field: 'Resolution', after: 'ProductName' },
-          { field: 'SensorSizeMax', after: 'Resolution' },
-          { field: 'MOD', after: 'SensorSizeMax' },
-          { field: 'LensMount', after: 'MOD' },
-          { field: 'FNo', after: 'LensMount' },
-          { field: 'FocalLength', after: 'ProductName' },
+          { field: 'Resolution' },
+          { field: 'SensorSizeMax' },
+          { field: 'MOD' },
+          { field: 'LensMount' },
+          { field: 'FNo' },
+          { field: 'FocalLength' },
         ],
         92: [
-          { field: 'InputValue', after: 'ProductName' },
-          { field: 'OutputValue', after: 'InputValue' },
-          { field: 'CurrentIntensityMax', after: 'OutputValue' },
+          { field: 'InputValue' },
+          { field: 'OutputValue' },
+          { field: 'CurrentIntensityMax' },
         ],
       };
 
       const configs = columnConfigs[groupId];
-      if (configs) {
-        // Show, update title và di chuyển các columns cần thiết
-        configs.forEach((config) => {
-          const column = this.productTable?.getColumn(config.field);
-          if (column) {
-            column.show();
-            if (config.title) {
-              const def = column.getDefinition();
-              if (def) {
-                column.updateDefinition({ title: config.title });
-              }
-            }
-            // Di chuyển cột về đúng vị trí
-            this.moveColumnAfter(config.field, config.after);
+      const columnsToShow = new Set(configs?.map(c => c.field) || []);
+
+      // Batch hide/show operations
+      allSpecColumns.forEach((field) => {
+        const column = this.productTable?.getColumn(field);
+        if (!column) return;
+
+        if (columnsToShow.has(field)) {
+          // Show column và update title nếu cần
+          const config = configs?.find(c => c.field === field);
+          if (config?.title) {
+            column.updateDefinition({ title: config.title });
           }
-        });
-      }
+          if (!column.isVisible()) {
+            column.show();
+          }
+        } else {
+          // Hide column
+          if (column.isVisible()) {
+            column.hide();
+          }
+        }
+      });
     } finally {
       // Restore redraw và redraw một lần
       this.productTable.restoreRedraw();
-      this.productTable.redraw(true);
-    }
-  }
-
-  /**
-   * Helper method to move column after another column
-   */
-  private moveColumnAfter(fieldName: string, afterFieldName: string): void {
-    if (!this.productTable) return;
-    
-    try {
-      const column = this.productTable.getColumn(fieldName);
-      const afterColumn = this.productTable.getColumn(afterFieldName);
-      if (column && afterColumn) {
-        column.move(afterColumn, false);
-      }
-    } catch (e) {
-      console.warn(`Could not move column ${fieldName} after ${afterFieldName}:`, e);
     }
   }
   onUpdateQrCode() {

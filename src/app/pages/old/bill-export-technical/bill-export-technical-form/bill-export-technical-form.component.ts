@@ -47,6 +47,7 @@ import { CustomerServiceService } from '../../customer/customer-service/customer
 import { NOTIFICATION_TITLE } from '../../../../app.config';
 import { AppUserService } from '../../../../services/app-user.service';
 import { HasPermissionDirective } from '../../../../directives/has-permission.directive';
+import { TabulatorPopupService } from '../../../../shared/components/tabulator-popup';
 @Component({
   standalone: true,
   imports: [
@@ -104,12 +105,48 @@ export class BillExportTechnicalFormComponent implements OnInit, AfterViewInit {
   @Input() deliverID: number = 0;
   @Input() supplierID: number = 0;
   @Input() BillCode: string = '';
+  @Input() fromBorrowHistory: boolean = false; // Flag để phân biệt luồng từ lịch sử mượn
+  title:string = 'Phiếu xuất kho';
   private ngbModal = inject(NgbModal);
   private appUserService = inject(AppUserService);
+  // REFACTOR: Định nghĩa columns cho product popup (tái sử dụng được)
+  productPopupColumns: ColumnDefinition[] = [
+    {
+      title: 'Mã SP',
+      field: 'ProductCode',
+      width: 120,
+      headerSort: false,
+    },
+    {
+      title: 'Tên sản phẩm',
+      field: 'ProductName',
+      width: 200,
+      headerSort: false,
+    },
+    {
+      title: 'Mã nội bộ',
+      field: 'ProductCodeRTC',
+      width: 120,
+      headerSort: false,
+    },
+    {
+      title: 'Tồn kho',
+      field: 'InventoryReal',
+      width: 100,
+      headerSort: false,
+      hozAlign: 'right',
+      formatter: (cell) => {
+        const val = cell.getValue();
+        return val !== null && val !== undefined ? val : '0';
+      },
+    },
+  ];
+
   constructor(
     private billExportTechnicalService: BillExportTechnicalService,
     private billImportTechnicalService: BillImportTechnicalService,
-    private billExportService: BillExportService
+    private billExportService: BillExportService,
+    private tabulatorPopupService: TabulatorPopupService
   ) {}
   close() {
     this.closeModal.emit();
@@ -117,7 +154,7 @@ export class BillExportTechnicalFormComponent implements OnInit, AfterViewInit {
   }
   ngOnInit() {
     this.initForm();
-
+    this.title = this.warehouseType === 1 ? 'Phiếu xuất kho DEMO' : 'Phiếu xuất kho AGV';
     // Load dữ liệu từ API trước
     this.getCustomer();
     this.getListEmployee();
@@ -130,6 +167,7 @@ export class BillExportTechnicalFormComponent implements OnInit, AfterViewInit {
     this.formDeviceInfo.patchValue({
       Deliver: this.appUserService.fullName || 'ADMIN',
     });
+    
     if (this.dataEdit) {
       if (this.dataEdit.Status == 1 && !this.appUserService.isAdmin)
         this.IsApproved = true;
@@ -162,34 +200,144 @@ export class BillExportTechnicalFormComponent implements OnInit, AfterViewInit {
         this.formDeviceInfo.patchValue(this.dataInput);
       }, 300);
     }
-    console.log('dataEdit:', this.dataEdit);
 
     if (this.warehouseID === 2)
       this.formDeviceInfo.patchValue({ Deliver: 'Nguyễn Thị Phương Thủy' });
-    // Lấy mã phiếu nếu chưa có (chỉ khi tạo mới, không phải khi sửa)
-    if (!this.dataEdit || !this.dataEdit.ID || this.dataEdit.ID <= 0) {
+    
+    // Lấy mã phiếu nếu chưa có (chỉ khi tạo mới, không phải khi sửa hoặc xem)
+    if ((!this.dataEdit || !this.dataEdit.ID || this.dataEdit.ID <= 0) && !this.masterId && !this.IDDetail && !this.fromBorrowHistory) {
       this.getNewCode();
     }
   }
   ngAfterViewInit(): void {
     // Kiểm tra xem có dữ liệu detail truyền vào không
     const injectedDetails = this.dataInput?.details;
+    
     if (Array.isArray(injectedDetails) && injectedDetails.length > 0) {
       this.selectedDevices = this.normalizeDetails(injectedDetails);
       this.drawTableSelectedDevices(); // Vẽ bảng với dữ liệu có sẵn
-    } else if (this.masterId) {
-      // Load chi tiết từ API nếu có masterId
-      this.billExportTechnicalService
-        .getBillExportDetail(this.masterId)
-        .subscribe((res) => {
-          this.selectedDevices = this.normalizeDetails(res.billDetail || []);
-          this.drawTableSelectedDevices(); // Vẽ bảng sau khi load xong
-        });
+    } else if (this.masterId || this.IDDetail) {
+      // Load chi tiết từ API nếu có masterId hoặc IDDetail
+      const billID = this.masterId || this.IDDetail;
+      
+      // Xác định có cần load billMaster không:
+      // - Có masterId (luồng edit từ bill-export-technical) → load billMaster
+      // - Có fromBorrowHistory flag (luồng từ lịch sử mượn) → load billMaster
+      // - Chỉ có IDDetail (luồng từ material-detail) → KHÔNG load billMaster
+      const shouldLoadBillMaster = this.masterId > 0 || this.fromBorrowHistory;
+      
+      // Load detail trước, sau đó load master data nếu cần
+      this.loadBillDetail(billID, shouldLoadBillMaster);
     } else {
       // Không có dữ liệu, vẽ bảng rỗng
       this.drawTableSelectedDevices();
     }
   }
+  
+  /**
+   * Load bill detail từ API
+   * @param billID - ID của phiếu xuất
+   * @param shouldLoadBillMaster - Có cần load master data không
+   */
+  private loadBillDetail(billID: number, shouldLoadBillMaster: boolean = false): void {
+    this.billExportTechnicalService
+      .getBillExportDetail(billID)
+      .subscribe({
+        next: (res) => {
+          // Nếu response có billMaster và chưa có dataEdit, dùng billMaster từ response
+          if (res.billMaster && !this.dataEdit) {
+            this.patchMasterDataToForm(res.billMaster);
+          } else if (shouldLoadBillMaster && !this.dataEdit) {
+            // Nếu cần load master nhưng không có trong detail response, gọi getBillExportById để lấy master data
+            this.billExportTechnicalService
+              .getBillExportById(billID)
+              .subscribe({
+                next: (masterRes) => {
+                  // Theo API C# code: response có structure { status, data }
+                  const masterData = masterRes?.data || masterRes;
+                  
+                  if (masterData) {
+                    this.patchMasterDataToForm(masterData);
+                  }
+                },
+                error: (err) => {
+                  // Error loading master data
+                }
+              });
+          }
+          
+          // Luôn load billDetail bất kể luồng nào
+          this.selectedDevices = this.normalizeDetails(res.billDetail || []);
+          this.drawTableSelectedDevices(); // Vẽ bảng sau khi load xong
+          
+          // Nếu bill đã approved, redraw table để disable editors
+          if (this.IsApproved) {
+            setTimeout(() => {
+              if (this.deviceTempTable) {
+                const currentData = this.deviceTempTable.getData();
+                this.selectedDevices = currentData;
+                this.deviceTempTable.destroy();
+                this.drawTableSelectedDevices();
+              }
+            }, 700);
+          }
+        },
+        error: (err) => {
+          this.drawTableSelectedDevices(); // Vẽ bảng rỗng nếu lỗi
+        }
+      });
+  }
+  
+  /**
+   * Patch master data vào form
+   */
+  private patchMasterDataToForm(masterData: any): void {
+    if (masterData.Status === true || masterData.Status === 1) {
+      this.IsApproved = true;
+    }
+    
+    // Đợi dropdown data load xong trước khi patch form
+    setTimeout(() => {
+      this.formDeviceInfo.patchValue({
+        ID: masterData.ID || 0,
+        Code: masterData.Code || '',
+        BillType: masterData.BillType ?? 0,
+        CustomerID: masterData.CustomerID || 0,
+        Receiver: masterData.Receiver || '',
+        Deliver: masterData.Deliver || '',
+        Addres: masterData.Addres || masterData.Address || '',
+        Status: masterData.Status,
+        WarehouseType: masterData.WarehouseType || (this.warehouseType === 1 ? 'Demo' : 'AGV'),
+        Note: masterData.Note || '',
+        Image: masterData.Image || '',
+        ReceiverID: masterData.ReceiverID || 0,
+        DeliverID: masterData.DeliverID || 0,
+        SupplierID: masterData.SupplierID || 0,
+        SupplierSaleID: masterData.SupplierSaleID || 0,
+        CustomerName: masterData.CustomerName || '',
+        SupplierName: masterData.SupplierName || '',
+        CheckAddHistoryProductRTC: masterData.CheckAddHistoryProductRTC,
+        ExpectedDate: masterData.ExpectedDate ? new Date(masterData.ExpectedDate) : null,
+        ProjectName: masterData.ProjectName || '',
+        ProjectID: masterData.ProjectID || 0,
+        WarehouseID: masterData.WarehouseID || this.warehouseID,
+        CreatedBy: masterData.CreatedBy || '',
+        CreatedDate: masterData.CreatedDate ? new Date(masterData.CreatedDate) : null,
+        UpdatedBy: masterData.UpdatedBy || '',
+        UpdatedDate: masterData.UpdatedDate ? new Date(masterData.UpdatedDate) : null,
+        BillDocumentExportType: masterData.BillDocumentExportType,
+        ApproverID: masterData.ApproverID || (this.warehouseType === 2 ? 97 : 54),
+        IsDeleted: masterData.IsDeleted || false,
+        QRCode: masterData.QRCode || '',
+      });
+      
+      // Disable form nếu đã duyệt
+      if (this.IsApproved) {
+        this.formDeviceInfo.disable();
+      }
+    }, 500);
+  }
+  
   normalizeDetails(rows: any[]): any[] {
     const byCode = (code: string) =>
       this.productOptions.find((p) => p.ProductCode === code);
@@ -226,16 +374,15 @@ export class BillExportTechnicalFormComponent implements OnInit, AfterViewInit {
   getProductList() {
     // Sử dụng API load-product
     // status: 1 = spGetProductRTC, warehouseID: 1 = spGetProductRTCQRCode, else = spGetInventoryDemo
-    const status = 1; // Lấy tất cả sản phẩm
+    const status = this.formDeviceInfo.get('BillType')?.value ?? 0; // Lấy tất cả sản phẩm
     const warehouseID = this.warehouseID || 1; // Mặc định warehouse 1
-
+    const warehouseType = this.warehouseType;
     this.billExportTechnicalService
-      .loadProduct(status, warehouseID, this.warehouseType)
+      .loadProduct(status, warehouseID, warehouseType)
       .subscribe((response: any) => {
         if (response && response.status === 1 && response.data) {
-          console.log('Product API Response:', response.data); // Debug: xem data có ProductRTCQRCodeID không
           this.productOptions = response.data.map((p: any) => ({
-            ID: p.ID,
+            ID: status === 1 ? p.ID : p.ProductRTCID, // Nếu status != 1 thì dùng ProductRTCID    
             ProductCode: p.ProductCode,
             ProductName: p.ProductName,
             ProductCodeRTC: p.ProductCodeRTC,
@@ -244,6 +391,7 @@ export class BillExportTechnicalFormComponent implements OnInit, AfterViewInit {
             UnitCountName: p.UnitCountName,
             NumberInStore: p.NumberInStore,
             TotalQuantityReal: p.TotalQuantityReal || 0,
+            InventoryReal: p.InventoryReal || p.TotalQuantityReal || 0, // Tồn kho
             ProductRTCQRCodeID: p.ProductRTCQRCodeID || p.ID, // Lưu ProductRTCQRCodeID
             ProjectID: p.ProjectID || null, // Lưu ProjectID từ API
             ProjectName: p.ProjectName || '', // Lưu ProjectName từ API
@@ -339,7 +487,6 @@ export class BillExportTechnicalFormComponent implements OnInit, AfterViewInit {
         this.formDeviceInfo.patchValue({ Code: res.data });
       },
       error: (err: any) => {
-        console.error(err);
         this.notification.error(
           NOTIFICATION_TITLE.error,
           'Có lỗi xảy ra khi lấy mã phiếu'
@@ -354,7 +501,6 @@ export class BillExportTechnicalFormComponent implements OnInit, AfterViewInit {
       .subscribe((res: any) => {
         // API returns { status, data: { data: [], data1: [], data2: [] } }
         this.customerList = res.data?.data || [];
-        console.log('Customer List:', this.customerList);
       });
   }
   //Lấy thông tin nhà cung cấp
@@ -363,10 +509,8 @@ export class BillExportTechnicalFormComponent implements OnInit, AfterViewInit {
     this.billExportService.getCbbSupplierSale().subscribe({
       next: (res: any) => {
         this.nccList = res.data || [];
-        console.log('NCC List:', this.nccList);
       },
       error: (err: any) => {
-        console.error('Error loading NCC:', err);
         this.notification.error(
           'Thông báo',
           'Có lỗi xảy ra khi lấy dữ liệu nhà cung cấp'
@@ -385,7 +529,6 @@ export class BillExportTechnicalFormComponent implements OnInit, AfterViewInit {
     this.billExportTechnicalService.getUser().subscribe((respon: any) => {
       // API returns { status, data: [] } - using ApiResponseFactory
       this.emPloyeeLists = respon.data || [];
-      console.log('Employee List:', this.emPloyeeLists);
 
       this.employeeSelectOptions = this.emPloyeeLists.map((e: any) => ({
         label: e.FullName,
@@ -460,7 +603,7 @@ export class BillExportTechnicalFormComponent implements OnInit, AfterViewInit {
             `;
           },
           cellClick: (e, cell) => {
-            if (!this.IsApproved) this.toggleProductTable(cell);
+            if (!this.IsApproved) this.showProductPopup(cell);
           },
         },
         { title: 'Mã sản phẩm', field: 'ProductCode', visible: false },
@@ -561,7 +704,7 @@ export class BillExportTechnicalFormComponent implements OnInit, AfterViewInit {
                     }
                   },
                   error: (err) => {
-                    console.error(`Lỗi khi load serial ID ${id}:`, err);
+                    // Error loading serial
                   },
                   complete: () => {
                     loadedCount++;
@@ -781,7 +924,88 @@ export class BillExportTechnicalFormComponent implements OnInit, AfterViewInit {
     }, 0);
   }
 
-  // Toggle popup table cho chọn sản phẩm
+  // REFACTOR: Hàm mới thay thế toggleProductTable - sử dụng TabulatorPopupService
+  showProductPopup(cell: CellComponent) {
+    const cellElement = cell.getElement();
+
+    // Toggle: nếu đang mở thì đóng
+    if (cellElement.classList.contains('popup-open')) {
+      this.tabulatorPopupService.close();
+      return;
+    }
+
+    // Mở popup mới với TabulatorPopupService
+    this.tabulatorPopupService.open(
+      {
+        data: this.productOptions || [],
+        columns: this.productPopupColumns,
+        searchFields: ['ProductCode', 'ProductName', 'ProductCodeRTC'],
+        searchPlaceholder: 'Tìm kiếm sản phẩm...',
+        height: '300px',
+        selectableRows: 1,
+        layout: 'fitColumns',
+        minWidth: '500px',
+        maxWidth: '700px',
+        onRowSelected: (selectedProduct) => {
+          const parentRow = cell.getRow();
+          const selectedProductRTCQRCodeID = selectedProduct.ProductRTCQRCodeID;
+
+          // Chỉ kiểm tra duplicate nếu ProductRTCQRCodeID có giá trị
+          if (selectedProductRTCQRCodeID) {
+            const currentRowIndex = parentRow.getPosition();
+            const allRows = this.deviceTempTable?.getData() || [];
+
+            // Kiểm tra duplicate ProductRTCQRCodeID (chỉ so sánh với các row khác, không phải row hiện tại)
+            for (let i = 0; i < allRows.length; i++) {
+              // Bỏ qua row hiện tại
+              if (i === currentRowIndex) continue;
+              
+              const row = allRows[i];
+              // Chỉ kiểm tra nếu row có ProductRTCQRCodeID và trùng với sản phẩm đang chọn
+              if (row.ProductRTCQRCodeID && row.ProductRTCQRCodeID === selectedProductRTCQRCodeID) {
+                this.notification.warning(
+                  NOTIFICATION_TITLE.warning,
+                  `Sản phẩm "${selectedProduct.ProductCode}" đã được chọn. Vui lòng chọn sản phẩm khác.`
+                );
+                return; // Không cho chọn
+              }
+            }
+          }
+
+          // Fill dữ liệu vào row cha
+          parentRow.update({
+            ProductID: selectedProduct.ID,
+            ProductCode: selectedProduct.ProductCode,
+            ProductName: selectedProduct.ProductName,
+            ProductCodeRTC: selectedProduct.ProductCodeRTC,
+            UnitCountName: selectedProduct.UnitCountName,
+            UnitCountID: selectedProduct.UnitCountID,
+            Maker: selectedProduct.Maker,
+            NumberInStore: selectedProduct.NumberInStore,
+            Quantity: 1,
+            ProductRTCQRCodeID: selectedProductRTCQRCodeID,
+          });
+
+          // Đóng popup
+          this.tabulatorPopupService.close();
+
+          // Focus vào cell Quantity sau khi chọn sản phẩm
+          setTimeout(() => {
+            const quantityCell = parentRow.getCell('Quantity');
+            if (quantityCell) {
+              quantityCell.edit();
+            }
+          }, 100);
+        },
+        onClosed: () => {
+          // Optional: xử lý khi popup đóng
+        },
+      },
+      cellElement
+    );
+  }
+
+  // Toggle popup table cho chọn sản phẩm (DEPRECATED - giữ lại để tham khảo)
   toggleProductTable(cell: any) {
     const cellElement = cell.getElement();
 
@@ -1200,7 +1424,6 @@ export class BillExportTechnicalFormComponent implements OnInit, AfterViewInit {
           this.formDeviceInfo.patchValue({ Code: res.data });
         },
         error: (err: any) => {
-          console.error(err);
           this.notification.error(
             NOTIFICATION_TITLE.error,
             'Có lỗi xảy ra khi lấy mã phiếu'
@@ -1312,15 +1535,9 @@ export class BillExportTechnicalFormComponent implements OnInit, AfterViewInit {
         // ASP.NET Core thường chấp nhận ISO 8601
         return d.toISOString();
       } catch (e) {
-        // console.error('Lỗi format date:', date, e);
         return null;
       }
     };
-
-    // console.log('CreatedDate raw:', formValue.CreatedDate);
-    // console.log('ExpectedDate raw:', formValue.ExpectedDate);
-    // console.log('CreatedDate formatted:', formatDate(formValue.CreatedDate));
-    // console.log('ExpectedDate formatted:', formatDate(formValue.ExpectedDate));
 
     const payload: any = {
       billExportTechnical: {
@@ -1379,11 +1596,8 @@ export class BillExportTechnicalFormComponent implements OnInit, AfterViewInit {
       }),
     };
 
-    console.log('Payload gửi lên backend:', JSON.stringify(payload, null, 2));
-
     this.billExportTechnicalService.saveData(payload).subscribe({
       next: (response: any) => {
-        console.log('Response từ backend:', response);
         this.notification.success(
           NOTIFICATION_TITLE.success,
           'Lưu phiếu thành công'
@@ -1392,7 +1606,6 @@ export class BillExportTechnicalFormComponent implements OnInit, AfterViewInit {
         this.activeModal.close();
       },
       error: (error: any) => {
-        console.error('Error từ backend:', error);
         this.notification.error(
           NOTIFICATION_TITLE.error,
           'Không thể lưu phiếu, vui lòng thử lại sau'

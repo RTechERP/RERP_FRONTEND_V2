@@ -768,23 +768,17 @@ export class ProjectPartlistPriceRequestNewComponent implements OnInit, OnDestro
           loadedCount++;
           console.log(`[Request ${currentRequestId}] [${projectTypeID}] Data loaded. Progress: ${loadedCount}/${totalTypes}`);
           
-          // Set dữ liệu vào table (table đã được tạo trước đó)
-          setTimeout(() => {
-            // Kiểm tra lại request ID trước khi set data
-            if (currentRequestId !== this.currentRequestId) {
-              console.log(`[Request ${currentRequestId}] Ignored setData for type ${projectTypeID} - newer request is active`);
-              return;
-            }
-            
-            const table = this.tables.get(projectTypeID);
-            if (table) {
+          // Set dữ liệu vào table NGAY LẬP TỨC (không dùng setTimeout)
+          const table = this.tables.get(projectTypeID);
+          if (table) {
+            try {
               table.setData(formattedData);
               // Resize bảng sau khi set data
-              setTimeout(() => {
-                this.resizeTableForType(projectTypeID);
-              }, 50);
+              this.resizeTableForType(projectTypeID);
+            } catch (e) {
+              console.warn(`[Request ${currentRequestId}] Error setting data for type ${projectTypeID}:`, e);
             }
-          }, 100);
+          }
           
           // Sau khi load xong tất cả types
           if (loadedCount >= totalTypes) {
@@ -795,8 +789,6 @@ export class ProjectPartlistPriceRequestNewComponent implements OnInit, OnDestro
             }
             
             console.log(`[Request ${currentRequestId}] [FINAL] All types processed. Count: ${loadedCount}, Total: ${totalTypes}`);
-            finishLoading();
-            console.log(`[Request ${currentRequestId}] All ${totalTypes} types loaded successfully.`);
             
             // Log tổng hợp tất cả các tab
             console.log(`[Request ${currentRequestId}] === TỔNG HỢP DỮ LIỆU TẤT CẢ CÁC TAB ===`);
@@ -807,40 +799,51 @@ export class ProjectPartlistPriceRequestNewComponent implements OnInit, OnDestro
             console.log(`[Request ${currentRequestId}] Tổng số tab:`, this.allDataByType.size);
             console.log(`[Request ${currentRequestId}] ==========================================`);
             
-            setTimeout(() => {
-              // Kiểm tra lại request ID trước khi select tab
-              if (currentRequestId !== this.currentRequestId) {
-                return;
-              }
-              
-              // Nếu có initialTabId từ tabData, chọn tab đó sau khi load xong
-              if (
-                this.tabData &&
-                this.tabData.initialTabId !== null &&
-                this.tabData.initialTabId !== undefined
-              ) {
-                setTimeout(() => {
-                  this.SelectProjectType(this.tabData.initialTabId);
-                }, 300);
-              }
-              // Nếu có projectPartlistPriceRequestTypeID, chọn tab tương ứng sau khi load xong
-              else if (this.projectPartlistPriceRequestTypeID === 3) {
-                setTimeout(() => {
-                  this.SelectProjectType(-2); // HCNS tab
-                }, 300);
-              } else if (this.projectPartlistPriceRequestTypeID === 4) {
-                setTimeout(() => {
-                  this.SelectProjectType(-3); // Tab tương ứng với type 4
-                }, 300);
-              }
-              
-              // Focus vào job requirement nếu có
-              if (this.jobRequirementID > 0) {
-                setTimeout(() => {
-                  this.LoadViewToJobRequirement();
-                }, 500);
-              }
-            }, 500);
+            // Đợi tất cả tables render xong rồi mới tắt spinner
+            // Sử dụng requestAnimationFrame để đảm bảo UI đã render
+            requestAnimationFrame(() => {
+              setTimeout(() => {
+                // Kiểm tra lại request ID trước khi finish
+                if (currentRequestId !== this.currentRequestId) {
+                  return;
+                }
+                
+                // Tắt spinner SAU KHI tables đã render
+                finishLoading();
+                console.log(`[Request ${currentRequestId}] All ${totalTypes} types loaded and rendered successfully.`);
+                
+                // Force change detection
+                this.cdr.detectChanges();
+                
+                // Nếu có initialTabId từ tabData, chọn tab đó sau khi load xong
+                if (
+                  this.tabData &&
+                  this.tabData.initialTabId !== null &&
+                  this.tabData.initialTabId !== undefined
+                ) {
+                  setTimeout(() => {
+                    this.SelectProjectType(this.tabData.initialTabId);
+                  }, 100);
+                }
+                // Nếu có projectPartlistPriceRequestTypeID, chọn tab tương ứng sau khi load xong
+                else if (this.projectPartlistPriceRequestTypeID === 3) {
+                  setTimeout(() => {
+                    this.SelectProjectType(-2); // HCNS tab
+                  }, 100);
+                } else if (this.projectPartlistPriceRequestTypeID === 4) {
+                  setTimeout(() => {
+                    this.SelectProjectType(-3); // Tab tương ứng với type 4
+                  }, 100);
+                }
+                
+                // Focus vào job requirement nếu có
+                if (this.jobRequirementID > 0) {
+                  setTimeout(() => {
+                    this.LoadViewToJobRequirement();
+                  }, 200);
+                }
+              }, 50); // Đợi 50ms sau requestAnimationFrame
+            });
           }
         },
         error: (err) => {
@@ -2092,16 +2095,20 @@ export class ProjectPartlistPriceRequestNewComponent implements OnInit, OnDestro
         continue; // Bỏ qua sản phẩm không phải của mình
       }
 
-      // Tạo object chỉ chứa các field cần thiết cho API
+      // Tạo object chỉ chứa các field cần thiết cho API (giống WinForm)
       const quoteData: any = {
         ID: id,
         StatusRequest: status === 0 ? 1 : status, // Nếu status = 0 (Hủy hoàn thành) thì set về 1 (Yêu cầu báo giá)
         UpdatedBy: this.appUserService.loginName,
         UpdatedDate: new Date(),
-        QuoteEmployeeID: !isAdmin ? currentEmployeeID : (rowData['QuoteEmployeeID'] || 0),
       };
 
-      // Xử lý DatePriceQuote theo logic backend
+      // Chỉ set QuoteEmployeeID khi KHÔNG phải admin (giống WinForm)
+      if (!isAdmin) {
+        quoteData.QuoteEmployeeID = currentEmployeeID;
+      }
+
+      // Xử lý DatePriceQuote theo logic WinForm
       if (status === 1) {
         // Hủy báo giá
         quoteData.DatePriceQuote = null;

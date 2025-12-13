@@ -36,6 +36,7 @@ import { BillExportTechnicalService } from './bill-export-technical-service/bill
 import { AppUserService } from '../../../services/app-user.service';
 import { NOTIFICATION_TITLE } from '../../../app.config';
 import { HasPermissionDirective } from '../../../directives/has-permission.directive';
+import { DEFAULT_TABLE_CONFIG } from '../../../tabulator-default.config';
 function formatDateCell(cell: CellComponent): string {
   const val = cell.getValue();
   return val ? DateTime.fromISO(val).toFormat('dd/MM/yyyy') : '';
@@ -120,9 +121,10 @@ export class BillExportTechnicalComponent implements OnInit, AfterViewInit {
     }
   }
   
-  private formatDate(date: Date | null): string {
+  // Helper method to format date to yyyy-MM-dd
+  private formatDateToString(date: Date | null): string {
     if (!date) return '';
-    return date.toISOString().split('T')[0];
+    return DateTime.fromJSDate(date).toFormat('yyyy-MM-dd');
   }
   
   ngAfterViewInit(): void {
@@ -133,6 +135,7 @@ export class BillExportTechnicalComponent implements OnInit, AfterViewInit {
     this.billExportTechnicalTable = new Tabulator(
       this.billExportTechnicalTableRef.nativeElement,
       {
+        ...DEFAULT_TABLE_CONFIG,
         layout: 'fitDataStretch',
         height: '100%',
         pagination: true,
@@ -155,8 +158,8 @@ export class BillExportTechnicalComponent implements OnInit, AfterViewInit {
           const request = {
             Page: params.page,
             Size: params.size,
-            dateStart: this.dateStart || '2024-12-01',
-            dateEnd: this.dateEnd || '2025-12-31',
+            dateStart: this.formatDateToString(this.dateStart) || '2024-12-01',
+            dateEnd: this.formatDateToString(this.dateEnd) || '2025-12-31',
             status:
               this.selectedApproval !== null
                 ? this.selectedApproval === 1
@@ -193,7 +196,13 @@ export class BillExportTechnicalComponent implements OnInit, AfterViewInit {
         addRowPos: 'bottom',
         history: true,
         columns: [
-          { title: 'STT', formatter: 'rownum', hozAlign: 'center', width: 60 },
+          {
+            title: 'STT',
+            formatter: 'rownum',
+            hozAlign: 'center',
+            width: 60,
+            frozen: true,
+          },
           {
             title: 'Duyệt',
             field: 'Status',
@@ -262,6 +271,23 @@ export class BillExportTechnicalComponent implements OnInit, AfterViewInit {
           });
       }
     );
+
+    // Clear detail khi master table không có dữ liệu
+    this.billExportTechnicalTable.on('dataLoaded', () => {
+      setTimeout(() => {
+        const rows = this.billExportTechnicalTable?.getRows();
+        if (!rows || rows.length === 0) {
+          // Clear detail khi không có master data
+          this.billExportTechnicalDetailData = [];
+          this.selectedRow = null;
+          this.sizeTbDetail = '0';
+          this.updateTabDetailTitle();
+          if (this.billExportTechnicalDetailTable) {
+            this.billExportTechnicalDetailTable.setData([]);
+          }
+        }
+      }, 100);
+    });
   }
   drawDetailTable(): void {
     if (this.billExportTechnicalDetailTable) {
@@ -279,18 +305,18 @@ export class BillExportTechnicalComponent implements OnInit, AfterViewInit {
           movableColumns: true,
           reactiveData: true,
           columns: [
-            {
-              title: 'STT',
-              formatter: 'rownum',
-              hozAlign: 'center',
-              width: 60,
-            },
+            // {
+            //   title: 'STT',
+            //   formatter: 'rownum',
+            //   hozAlign: 'center',
+            //   width: 60,
+            // },
             { title: 'Mã QRCode', field: 'ProductQRCode' },
             { title: 'Mã sản phẩm', field: 'ProductCode' },
-            { title: 'Mã nội bộ', field: 'InternalCode' },
+            { title: 'Mã nội bộ', field: 'ProductCodeRTC' },
             { title: 'Tên sản phẩm', field: 'ProductName' },
-            { title: 'Số lượng', field: 'Quantity', hozAlign: 'center' },
-            { title: 'ĐVT', field: 'UnitName', hozAlign: 'center' },
+            { title: 'Số lượng', field: 'Quantity' },
+            { title: 'ĐVT', field: 'UnitName' },
             { title: 'Tình trạng hàng', field: 'WarehouseType' },
             { title: 'Hãng', field: 'Maker' },
             { title: 'Ghi chú', field: 'Note' },

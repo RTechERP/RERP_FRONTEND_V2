@@ -144,7 +144,7 @@ export class FoodOrderComponent implements OnInit, AfterViewInit {
   private initForm() {
     this.foodOrderForm = this.fb.group({
       ID: [0],
-      EmployeeID: [this.currenEmployee?.EmployeeID, [Validators.required]],
+      EmployeeID: [{value:this.currenEmployee?.EmployeeID, disabled: true}, [Validators.required]],
       DateOrder: [
         {
           value: '',
@@ -425,6 +425,7 @@ export class FoodOrderComponent implements OnInit, AfterViewInit {
       FullName: '',
       IsDeleted: false,
     });
+    
     const modal = new (window as any).bootstrap.Modal(
       document.getElementById('addFoodOrderModal')
     );
@@ -435,6 +436,7 @@ export class FoodOrderComponent implements OnInit, AfterViewInit {
   openEditModal() {
     const selectedRowsHN = this.foodOrderHNTabulator.getSelectedRows();
     const selectedRowsĐP = this.foodOrderĐPTabulator.getSelectedRows();
+    
     if (selectedRowsHN.length === 0 && selectedRowsĐP.length === 0) {
       this.notification.warning(
         NOTIFICATION_TITLE.warning,
@@ -508,11 +510,12 @@ export class FoodOrderComponent implements OnInit, AfterViewInit {
     }
 
     // Kiểm tra thời gian đặt cơm
-    const formData = this.foodOrderForm.value;
+    const formData = this.foodOrderForm.getRawValue();
+
 
     const foodOrderData = {
       ID: formData.ID,
-      EmployeeID: this.foodOrderForm.value.EmployeeID,
+      EmployeeID: formData.EmployeeID,
       DateOrder: formData.DateOrder,
       Quantity: formData.Quantity,
       IsApproved: formData.IsApproved,

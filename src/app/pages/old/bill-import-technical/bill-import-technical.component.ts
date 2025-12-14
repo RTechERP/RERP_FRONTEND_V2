@@ -434,25 +434,20 @@ export class BillImportTechnicalComponent implements OnInit, AfterViewInit {
           movableColumns: true,
           reactiveData: true,
           columns: [
-            { title: 'Tên sản phẩm', field: 'ProductName', width:200 },
-            { title: 'Serial', field: 'Serial', width:200 },
+            { title: 'Tên sản phẩm', field: 'ProductName', width:300 },
+            { title: 'Serial', field: 'Serial' },
             { title: 'Số lượng', field: 'Quantity', hozAlign: 'center' },
             { title: 'ĐVT', field: 'UnitCountName' },
             { title: 'Tình trạng hàng', field: 'WarehouseType' },
-            { title: 'Mã nội bộ', field: 'ProductCodeRTC', width:200 },
+            { title: 'Mã nội bộ', field: 'ProductCodeRTC' },
             { title: 'Đơn mua hàng', field: 'BillCodePO' },
-            { title: 'Hãng', field: 'Maker', width:200 },
-            { title: 'Người cần mượn', field: 'EmployeeBorrowName', width:200 },
+            { title: 'Hãng', field: 'Maker' },
+            { title: 'Người cần mượn', field: 'EmployeeBorrowName' },
             {
               title: 'Deadline trả NCC',
               field: 'DeadlineReturnNCC',
               formatter: formatDateCell,
             },
-            // { title: 'Ghi chú', field: 'Note' },
-            // { title: 'Mã tài sản NCC', field: 'TSCodeNCC', visible: false },
-            // { title: 'Số lượng yêu cầu', field: 'QtyRequest', hozAlign: 'center', visible: false },
-            // { title: 'Giá', field: 'Price', hozAlign: 'right', formatter: 'money', formatterParams: { thousand: ',', precision: 0 }, visible: false },
-            // { title: 'Tổng giá', field: 'TotalPrice', hozAlign: 'right', formatter: 'money', formatterParams: { thousand: ',', precision: 0 }, visible: false },
             { title: 'Ghi chú', field: 'Note', formatter: (cell) => {
               const val = cell.getValue();
               return val ? `<span class="text-wrap">${val}</span>` : '';

@@ -182,6 +182,10 @@ export class ProjectPartlistPriceRequestService {
     return this.http.post(`${this.baseUrl}/quote-price`, lstModel);
   }
 
+  sendMail(data: any[]): Observable<any> {
+    return this.http.post(`${this.baseUrl}/send-mail`, data);
+  }
+
   // Method mới để lấy tất cả dữ liệu không phân trang (cho local pagination)
   getAllPartlistLocal(
     dateStart: string,

@@ -71,6 +71,30 @@ export class DayOffService {
     );
   }
 
+    getEmployeeOnLeaveSummary(
+    DepartmentID?: number,
+    EmployeeID?: number,
+    IsApproved?: number,
+    Type?: number,
+    Keyword?: string,
+    DateStart?: Date ,
+    DateEnd?: Date,
+  ): Observable<any> {
+    const asset: any = {
+      DepartmentID: DepartmentID|| 0,
+      EmployeeID: EmployeeID || 0,
+      IsApproved: IsApproved || 0,
+      Type: Type || 0,
+      Keyword: Keyword?.trim() || '',
+      DateStart: DateStart,
+    DateEnd: DateEnd
+    };
+    return this.http.post<any>(
+       this._url + `employeeonleave/list-summary-employee-on-leave`,
+      asset
+    );
+  }
+
   getEmployeeOnLeavePersonAjax(): string {
     return this._url + 'EmployeeOnLeave/get-employee-onleave-person';
   }

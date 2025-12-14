@@ -10,7 +10,7 @@ import { NzSelectModule } from "ng-zorro-antd/select";
 import { NzDatePickerModule } from 'ng-zorro-antd/date-picker';
 import { NzGridModule } from 'ng-zorro-antd/grid';
 import { NzCheckboxModule } from 'ng-zorro-antd/checkbox';
-import { AngularGridInstance, AngularSlickgridModule, Column, Editors, Filters, Formatters, GridOption } from 'angular-slickgrid';
+import { AngularGridInstance, AngularSlickgridModule, Column, Editors, Filters, Formatters, GridOption, Aggregator, OnCellChangeEventArgs, OnEventArgs } from 'angular-slickgrid';
 import { Subject, takeUntil } from 'rxjs';
 import { CommonModule } from '@angular/common';
 import { PaymentOrderService } from '../payment-order.service';
@@ -72,7 +72,7 @@ export class PaymentOrderDetailComponent implements OnInit {
             UnitPrice: 0,
             TotalMoney: 0,
             Note: '',
-            ParentID: 0,
+            ParentID: null,
             PaymentMethods: 0,
             PaymentInfor: '',
             EmployeeID: 0,
@@ -91,12 +91,13 @@ export class PaymentOrderDetailComponent implements OnInit {
             UnitPrice: 0,
             TotalMoney: 0,
             Note: '',
-            ParentID: 0,
+            ParentID: null,
             PaymentMethods: 0,
             PaymentInfor: '',
             EmployeeID: 0,
             TotalPaymentAmount: 0,
             PaymentPercentage: 0,
+            _id: 1,
         },
         {
             ID: 0,
@@ -108,12 +109,13 @@ export class PaymentOrderDetailComponent implements OnInit {
             UnitPrice: 0,
             TotalMoney: 0,
             Note: '',
-            ParentID: 0,
+            ParentID: null,
             PaymentMethods: 0,
             PaymentInfor: '',
             EmployeeID: 0,
             TotalPaymentAmount: 0,
             PaymentPercentage: 0,
+            _id: 2,
         },
         {
             ID: 0,
@@ -131,6 +133,7 @@ export class PaymentOrderDetailComponent implements OnInit {
             EmployeeID: 0,
             TotalPaymentAmount: 0,
             PaymentPercentage: 0,
+            _id: 6
         },
         {
             ID: 0,
@@ -142,12 +145,13 @@ export class PaymentOrderDetailComponent implements OnInit {
             UnitPrice: 0,
             TotalMoney: 0,
             Note: '',
-            ParentID: 0,
+            ParentID: null,
             PaymentMethods: 0,
             PaymentInfor: '',
             EmployeeID: 0,
             TotalPaymentAmount: 0,
             PaymentPercentage: 0,
+            _id: 3,
         },
         {
             ID: 0,
@@ -165,6 +169,7 @@ export class PaymentOrderDetailComponent implements OnInit {
             EmployeeID: 0,
             TotalPaymentAmount: 0,
             PaymentPercentage: 0,
+            _id: 4,
         },
         {
             ID: 0,
@@ -182,6 +187,7 @@ export class PaymentOrderDetailComponent implements OnInit {
             EmployeeID: 0,
             TotalPaymentAmount: 0,
             PaymentPercentage: 0,
+            _id: 5,
         },
     ];
 
@@ -230,6 +236,8 @@ export class PaymentOrderDetailComponent implements OnInit {
 
                 this.validateForm.get(this.paymentOrderField.DatePayment.field)?.updateValueAndValidity();
                 this.onChangeTypeOrder(value);
+                console.log('TypeOrder data:', this.dataset);
+                console.log('TypeOrder data2:', this.dataset2);
             });
 
         //Sự kiện chọn nhà cung cấp
@@ -251,6 +259,7 @@ export class PaymentOrderDetailComponent implements OnInit {
                 this.validateForm.get(this.paymentOrderField.DeadlinePayment.field)?.updateValueAndValidity();
             });
 
+        //Sự kiện chọn hình thức thanh toán
         this.validateForm
             .get(this.paymentOrderField.TypePayment.field)
             ?.valueChanges.pipe(takeUntil(this.destroy$))
@@ -275,6 +284,9 @@ export class PaymentOrderDetailComponent implements OnInit {
                 this.validateForm.get(this.paymentOrderField.ContentBankTransfer.field)?.updateValueAndValidity();
                 this.onChangeTypeOrder(value);
             });
+
+
+
 
     }
 
@@ -322,12 +334,24 @@ export class PaymentOrderDetailComponent implements OnInit {
     initGrid() {
         this.columnDefinitions = [
             {
+                id: 'deletete',
+                name: PaymentOrderDetailField.ID.name,
+                field: '_id',
+                type: PaymentOrderDetailField.ID.type,
+                // sortable: true, filterable: true,
+                formatter: Formatters.icon, params: { iconCssClass: 'mdi mdi-trash-can pointer' },
+                // filter: { model: Filters['compoundDate'] }
+                onCellClick: (e: Event, args: OnEventArgs) => {
+                    this.deleteItem(e, args)
+                }
+            },
+            {
                 id: PaymentOrderDetailField.STT.field,
                 name: PaymentOrderDetailField.STT.name,
                 field: PaymentOrderDetailField.STT.field,
                 type: PaymentOrderDetailField.STT.type,
                 // sortable: true, filterable: true,
-                // formatter: Formatters.date, params: { dateFormat: 'DD/MM/YYYY' },
+                formatter: Formatters.tree,
                 // filter: { model: Filters['compoundDate'] }
                 editor: {
                     model: Editors['text']
@@ -371,7 +395,11 @@ export class PaymentOrderDetailComponent implements OnInit {
                 editor: {
                     model: Editors['float'],
                     decimal: 2
-                }
+                },
+                onCellChange: (e: Event, args: OnEventArgs) => {
+                    this.updateTotalMoney(args.cell, args.row);
+                    this.updateTotal(args.cell);
+                },
             },
             {
                 id: PaymentOrderDetailField.UnitPrice.field,
@@ -387,7 +415,11 @@ export class PaymentOrderDetailComponent implements OnInit {
                 editor: {
                     model: Editors['float'],
                     decimal: 2
-                }
+                },
+                onCellChange: (e: Event, args: OnEventArgs) => {
+                    this.updateTotalMoney(args.cell, args.row);
+                    this.updateTotal(args.cell);
+                },
             },
             {
                 id: PaymentOrderDetailField.TotalMoney.field,
@@ -403,6 +435,9 @@ export class PaymentOrderDetailComponent implements OnInit {
                 editor: {
                     model: Editors['float'],
                     decimal: 2
+                },
+                onCellChange: (e: Event, args: OnEventArgs) => {
+                    this.updateTotal(args.cell);
                 }
             },
 
@@ -462,15 +497,44 @@ export class PaymentOrderDetailComponent implements OnInit {
             autoResize: {
                 container: '.grid-container',
             },
-            // enableFiltering: true,
             gridWidth: '100%',
-            // rowHeight: 50,
             datasetIdPropertyName: '_id',
             enableRowSelection: true,
             enableCellNavigation: true,
+
+            enableFiltering: true,
+
+            autoEdit: true,
             autoCommitEdit: true,
             editable: true,
+
+            showFooterRow: true,
+            createFooterRow: true,
+
+            showCustomFooter: true,
+            customFooterOptions: {
+                leftFooterText: '<p class="fw-bold text-dark">Số tiền bằng chữ: </p>',
+                hideMetrics: false,
+                hideTotalItemCount: false,
+                hideLastUpdateTimestamp: false
+            },
+
+            enableTreeData: true,
+            treeDataOptions: {
+                columnId: 'STT',           // the column where you will have the Tree with collapse/expand icons
+                parentPropName: PaymentOrderDetailField.ParentID.field,  // the parent/child key relation in your dataset
+                identifierPropName: '_id',
+                // roo:0,
+                levelPropName: 'treeLevel',  // optionally, you can define the tree level property name, it nothing is provided it will use "__treeLevel"
+                indentMarginLeft: 15,        // optionally provide the indent spacer width in pixel, for example if you provide 10 and your tree level is 2 then it will have 20px of indentation
+                exportIndentMarginLeft: 4,   // similar to `indentMarginLeft` but represent a space instead of pixels for the Export CSV/Excel
+            },
+            multiColumnSort: false,
+
+
         };
+
+        console.log('init grid"');
 
         this.dataset = this.dataset.map((x, i) => ({
             ...x,
@@ -478,15 +542,26 @@ export class PaymentOrderDetailComponent implements OnInit {
         }));
 
         // this.dataset2 = this.mockData(1);
-        this.dataset2 = this.dataset2.map((x, i) => ({
-            ...x,
-            _id: i + 1   // dành riêng cho SlickGrid
-        }));
+        // this.dataset2 = this.dataset2.map((x, i) => ({
+        //     ...x,
+        //     _id: i + 1   // dành riêng cho SlickGrid
+        // }));
     }
 
     angularGridReady(angularGrid: AngularGridInstance) {
         this.angularGrid = angularGrid;
         this.gridData = angularGrid?.slickGrid || {};
+
+        this.angularGrid.dataView.onRowCountChanged.subscribe(() => {
+            console.log('angularGrid onRowCountChanged');
+            this.dataset = [...this.angularGrid.dataView.getItems()];
+        })
+
+        this.angularGrid.dataView.onRowsChanged.subscribe(() => {
+            console.log('angularGrid onRowsChanged');
+            this.dataset = [...this.angularGrid.dataView.getItems()];
+        })
+
     }
 
     angularGridReady2(angularGrid: AngularGridInstance) {
@@ -494,9 +569,17 @@ export class PaymentOrderDetailComponent implements OnInit {
         this.gridData2 = this.angularGrid2?.slickGrid || {};
     }
 
+    onCellChanged(e: Event, args: any) {
+        this.dataset = [...this.angularGrid.dataView.getItems()];
+    }
+
+    onCellChanged2(e: Event, args: any) {
+        this.dataset = [...this.angularGrid2.dataView.getItems()];
+    }
+
     submitForm() {
 
-        // console.log('data table:', this.dataset);
+        console.log('data table:', this.dataset);
 
         if (this.validateForm.valid) {
             console.log('submit data', this.validateForm.value);
@@ -512,58 +595,52 @@ export class PaymentOrderDetailComponent implements OnInit {
     }
 
     addItem() {
-        if (this.paymentOrder.TypeOrder != 2) {
-            let stt = Math.max(...this.dataset.map(x => Number(x.STT) || 0));
-            let _id = Math.max(...this.dataset.map(x => x._id || 0));
 
-            const newItem = {
-                _id: _id + 1,
-                ID: 0,
-                PaymentOrderID: 0,
-                STT: `${stt + 1}`,
-                ContentPayment: '',
-                Unit: '',
-                Quantity: 0,
-                UnitPrice: 0,
-                TotalMoney: 0,
-                Note: '',
-                ParentID: 0,
-                PaymentMethods: 0,
-                PaymentInfor: '',
-                EmployeeID: 0,
-                TotalPaymentAmount: 0,
-                PaymentPercentage: 0,
-            };
+        let gridInstance = this.angularGrid;
+        if (this.paymentOrder.TypeOrder == 2) gridInstance = this.angularGrid2;
 
-            this.angularGrid.gridService.addItem(newItem);
+        let data = gridInstance.dataView.getItems();
+        let _id = data.length <= 0 ? 0 : Math.max(...data.map(x => x._id || 0));
+        let stt = data.length <= 0 ? 0 : Math.max(...data.map((x: any) => Number(x.STT) || 0));;
+        const parent = gridInstance.dataView.getItemById(2);
+
+        const isParent = parent && parent.__hasChildren;
+        if (isParent) {
+            const detailPayment = data.filter(x => x.ParentID == 2);
+            stt = detailPayment.length <= 0 ? 0 : Math.max(...detailPayment.map((x: any) => Number(x.STT) || 0));
         }
-        else {
-            const detailPayment = this.dataset2.filter(x => x.ParentID == 2);
-            let stt = Math.max(...detailPayment.map(x => Number(x.STT) || 0));
-            let _id = Math.max(...detailPayment.map(x => x._id || 0));
 
-            const newItem = {
-                _id: _id + 1,
-                ID: 0,
-                PaymentOrderID: 0,
-                STT: `${stt + 1}`,
-                ContentPayment: '',
-                Unit: '',
-                Quantity: 0,
-                UnitPrice: 0,
-                TotalMoney: 0,
-                Note: '',
-                ParentID: 2,
-                PaymentMethods: 0,
-                PaymentInfor: '',
-                EmployeeID: 0,
-                TotalPaymentAmount: 0,
-                PaymentPercentage: 0,
-            };
-
-            this.angularGrid2.gridService.addItem(newItem);
+        const newItem = {
+            _id: _id + 1,
+            ID: 0,
+            PaymentOrderID: 0,
+            STT: `${stt + 1}`,
+            ContentPayment: '',
+            Unit: '',
+            Quantity: 0,
+            UnitPrice: 0,
+            TotalMoney: 0,
+            Note: '',
+            ParentID: isParent ? (parent?._id ?? null) : null,
+            PaymentMethods: 0,
+            PaymentInfor: '',
+            EmployeeID: 0,
+            TotalPaymentAmount: 0,
+            PaymentPercentage: 0,
+            treeLevel: isParent ? (parent?.treeLevel ?? 0) + 1 : 0
         };
 
+        gridInstance.gridService.addItem(newItem, { position: 'bottom' });
+    }
+
+    deleteItem(e: Event, args: OnEventArgs) {
+
+        let gridInstance = this.angularGrid;
+        if (this.paymentOrder.TypeOrder == 2) gridInstance = this.angularGrid2;
+
+        const metadata = gridInstance.gridService.getColumnFromEventArguments(args);
+        console.log(metadata);
+        gridInstance.gridService.deleteItemById(metadata.dataContext._id);
     }
 
 
@@ -572,4 +649,59 @@ export class PaymentOrderDetailComponent implements OnInit {
         // if (value == 1) console.log('this.dataset:', this.dataset);
         // if (value == 2) console.log('this.dataset2:', this.dataset2);
     }
+
+    updateTotal(cell: number) {
+
+        if (cell <= 0) return;
+
+        let gridInstance = this.angularGrid;
+        if (this.paymentOrder.TypeOrder == 2) gridInstance = this.angularGrid2;
+
+        const columnId = gridInstance.slickGrid?.getColumns()[cell].id as number;
+
+        let total = 0;
+        // let i = this.dataset.length;
+        let data = gridInstance.dataView.getItems();
+        let i = data.length;
+        while (i--) {
+            total += parseFloat(data[i][columnId]) || 0;
+
+        }
+        const columnElement = gridInstance.slickGrid?.getFooterRowColumn(columnId);
+        if (columnElement) {
+            columnElement.textContent = `${total}`;
+        }
+    }
+
+
+    updateTotalMoney(cell: number, row: number) {
+
+        let gridInstance = this.angularGrid;
+        if (this.paymentOrder.TypeOrder == 2) gridInstance = this.angularGrid2;
+
+        const grid = gridInstance?.slickGrid;
+        const dataView = gridInstance?.dataView;
+
+        if (!grid || !dataView) return;
+
+        const columnId = gridInstance.slickGrid?.getColumns()[cell].id;
+
+        if (columnId != PaymentOrderDetailField.Quantity.field &&
+            columnId != PaymentOrderDetailField.UnitPrice.field
+        ) return;
+
+        const item = dataView.getItem(row);
+        if (!item) return;
+
+        const quantity = item[PaymentOrderDetailField.Quantity.field] ?? 0;
+        const unitPrice = item[PaymentOrderDetailField.UnitPrice.field] ?? 0;
+
+        let totalMoney = quantity * unitPrice;
+        item[PaymentOrderDetailField.TotalMoney.field] = totalMoney;
+        gridInstance.gridService.updateItem(item);
+
+        const totalMoneyId = gridInstance.slickGrid?.getColumns().findIndex(x => x.id == PaymentOrderDetailField.TotalMoney.field);
+        this.updateTotal(totalMoneyId);
+    }
+
 }

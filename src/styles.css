@@ -313,9 +313,10 @@ button[nz-button] img {
 .tabulator-page-size {
     background-color: transparent !important;
 }
+
 .btn-close,
 .modal-header .btn-close {
-  background-color: lightcyan !important;
+  background-color:#dc3545 !important;
   /* background-image: none !important; */
   font-weight: bold;
 }

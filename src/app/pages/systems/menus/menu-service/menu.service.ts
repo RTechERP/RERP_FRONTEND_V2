@@ -88,7 +88,7 @@ import { SearchProductSerialNumberComponent } from '../../../old/Sale/SearchProd
 import { BillExportTechnicalComponent } from '../../../old/bill-export-technical/bill-export-technical.component';
 import { BorrowReportComponent } from '../../../old/Technical/borrow-report/borrow-report.component';
 import { DocumentComponent } from '../../../hrm/document/document.component';
-import { VehicleBookingManagementComponent } from '../../../hrm/vehicle/vehicle-booking-management/vehicle-booking-management.component';
+import { VehicleBookingManagementComponent } from '../../../hrm/vehicle-booking-management/vehicle-booking-management.component';
 import { ProtectgearComponent } from '../../../hrm/protectgear/protectgear/protectgear.component';
 import { EmployeeNightShiftComponent } from '../../../hrm/employee-management/employee-night-shift/employee-night-shift/employee-night-shift.component';
 import { WFHComponent } from '../../../hrm/employee-management/employee-wfh/WFH.component';
@@ -2883,8 +2883,7 @@ export class MenuService {
                                 title: 'Đăng ký đóng dấu',
                                 isOpen: true,
                                 isPermission: this.permissionService.hasPermission(''),
-                                comp: PersonComponent,
-                                router: '/dangkydongdau',
+                                comp: TrackingMarksComponent,
                             },
 
                             {
@@ -2933,7 +2932,7 @@ export class MenuService {
                                 title: 'Đăng ký ý tưởng',
                                 isOpen: true,
                                 isPermission: this.permissionService.hasPermission(''),
-                                comp: PersonComponent,
+                                comp: RegisterIdeaComponent,
                                 router: '/dangkyytuong',
                             },
                             {

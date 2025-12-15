@@ -870,6 +870,7 @@ export class RequestInvoiceDetailComponent implements OnInit {
       data: this.details,
       layout: 'fitDataFill',
       movableColumns: true,
+      paginationMode: 'local',
       pagination: true,
       height: '42vh',
       paginationSize: 20,

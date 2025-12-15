@@ -22,7 +22,7 @@ export class RequestInvoiceService {
       params: {
         dateStart: dateStart.toISOString(),
         dateEnd: dateEnd.toISOString(),
-        filterText: filterText,
+        keyWords: filterText,
         warehouseId: warehouseId.toString(),
       },
     });

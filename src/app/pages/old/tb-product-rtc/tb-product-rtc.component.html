@@ -118,6 +118,11 @@
                                     <img src="assets/icon/purchase.png" alt="Yêu cầu mua hàng"
                                         style="width:16px; height:16px; object-fit:contain" />Yêu cầu mua hàng
                                 </button>
+                                <button nz-button nzType="default" nzSize="small" class="me-1"
+                                    (click)="onOpenPurchaseRequestList()">
+                                    <img src="assets/icon/purchase.png" alt="Danh sách yêu cầu mua hàng"
+                                        style="width:16px; height:16px; object-fit:contain" />Danh sách yêu cầu mua hàng
+                                </button>
                             </div>
                         </div>
                     </div>
@@ -174,6 +179,10 @@
                                 <button ngbDropdownItem *ngIf="warehouseType !== 2" (click)="onRequestPurchase()"
                                     class="d-flex align-items-center gap-2">
                                     Yêu cầu mua hàng
+                                </button>
+                                <button ngbDropdownItem (click)="onOpenPurchaseRequestList()"
+                                    class="d-flex align-items-center gap-2">
+                                    Danh sách yêu cầu mua hàng
                                 </button>
                                 <!-- <button ngbDropdownItem *hasPermission="'N26,N1,N80'"
                                     class="d-flex align-items-center gap-2">

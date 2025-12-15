@@ -53,6 +53,8 @@ import { NzModalModule, NzModalService } from 'ng-zorro-antd/modal';
 import { HasPermissionDirective } from '../../../directives/has-permission.directive';
 import { NOTIFICATION_TITLE } from '../../../app.config';
 import { ProductRtcPurchaseRequestComponent } from '../../purchase/project-partlist-purchase-request/product-rtc-purchase-request/product-rtc-purchase-request.component';
+import { PurchaseRequestDemoComponent } from '../../purchase/project-partlist-purchase-request/purchase-request-demo/purchase-request-demo.component';
+import { AppUserService } from '../../../services/app-user.service';
 @Component({
   standalone: true,
   imports: [
@@ -80,6 +82,7 @@ import { ProductRtcPurchaseRequestComponent } from '../../purchase/project-partl
     HasPermissionDirective,
     NgbDropdownModule, // thêm để dùng ngbDropdown
     ProductRtcPurchaseRequestComponent, // Component để tạo yêu cầu mua hàng ProductRTC
+    PurchaseRequestDemoComponent, // Component để xem danh sách yêu cầu mua hàng
   ],
   selector: 'app-tb-product-rtc',
   templateUrl: './tb-product-rtc.component.html',
@@ -92,6 +95,7 @@ export class TbProductRtcComponent implements OnInit, AfterViewInit {
     private notification: NzNotificationService,
     private tbProductRtcService: TbProductRtcService,
     private modal: NzModalService,
+    private appUserService: AppUserService,
     @Optional() @Inject('tabData') private tabData: any
   ) {}
   @ViewChild('dataTableProduct', { static: false }) dataTableProductRef!: ElementRef;
@@ -885,5 +889,33 @@ export class TbProductRtcComponent implements OnInit, AfterViewInit {
     link.click();
     document.body.removeChild(link);
     URL.revokeObjectURL(link.href);
+  }
+
+  onOpenPurchaseRequestList() {
+    // Lấy EmployeeID từ AppUserService
+    const employeeID = this.appUserService.employeeID || 0;
+
+    const modalRef = this.ngbModal.open(PurchaseRequestDemoComponent, {
+      size: 'fullscreen',
+      backdrop: 'static',
+      keyboard: false,
+      centered: false,
+      modalDialogClass: 'modal-fullscreen',
+    });
+
+    // Truyền EmployeeID vào component
+    modalRef.componentInstance.employeeID = employeeID;
+    modalRef.componentInstance.showHeader = true;
+    modalRef.componentInstance.headerText = 'Danh sách yêu cầu mua hàng';
+    modalRef.componentInstance.showCloseButton = true;
+
+    modalRef.result.then(
+      (result) => {
+        console.log('Modal closed with result:', result);
+      },
+      (dismissed) => {
+        console.log('Modal dismissed');
+      }
+    );
   }
 }

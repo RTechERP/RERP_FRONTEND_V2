@@ -210,6 +210,20 @@ export class RequestInvoiceComponent implements OnInit, AfterViewInit {
           this.selectedFile = null; // Reset selected file
           if (this.detailTable) {
             this.detailTable.setData(this.dataDetail);
+            
+            // Tự động chọn dòng đầu tiên của bảng detail và load POFile
+            setTimeout(() => {
+              const rows = this.detailTable.getRows();
+              if (rows && rows.length > 0) {
+                const firstRow = rows[0];
+                firstRow.select();
+                const firstRowData = firstRow.getData();
+                const POKHID = firstRowData['POKHID'];
+                if (POKHID) {
+                  this.loadPOKHFile(POKHID);
+                }
+              }
+            }, 100);
           }
           if (this.fileTable) {
             this.fileTable.setData(this.dataFile);
@@ -457,6 +471,11 @@ export class RequestInvoiceComponent implements OnInit, AfterViewInit {
             <input type="checkbox" ${checked} disabled style="opacity: 1; pointer-events: none; cursor: default; width: 16px; height: 16px;"/>
           </div>`;
           },
+          headerFilter: 'select' as any,
+          headerFilterParams: {
+            values: { '': 'Tất cả', 'true': 'Có', 'false': 'Không' },
+            clearable: true,
+          },
         },
         {
           title: 'Trạng thái',
@@ -464,6 +483,8 @@ export class RequestInvoiceComponent implements OnInit, AfterViewInit {
           sorter: 'string',
           formatter: 'textarea',
           width: 200,
+          headerFilter: 'input',
+          headerFilterPlaceholder: 'Lọc trạng thái...',
         },
         {
           title: 'Deadline',
@@ -475,7 +496,14 @@ export class RequestInvoiceComponent implements OnInit, AfterViewInit {
             return value ? DateTime.fromISO(value).toFormat('dd/MM/yyyy') : '';
           },
         },
-        { title: 'Mã lệnh', field: 'Code', sorter: 'string', width: 200 },
+        { 
+          title: 'Mã lệnh', 
+          field: 'Code', 
+          sorter: 'string', 
+          width: 200,
+          headerFilter: 'input',
+          headerFilterPlaceholder: 'Lọc mã lệnh...',
+        },
         {
           title: 'Ngày yêu cầu',
           field: 'DateRequest',
@@ -491,6 +519,8 @@ export class RequestInvoiceComponent implements OnInit, AfterViewInit {
           field: 'FullName',
           sorter: 'string',
           width: 150,
+          headerFilter: 'input',
+          headerFilterPlaceholder: 'Lọc người yêu cầu...',
         },
         {
           title: 'Tờ khai HQ',
@@ -511,17 +541,44 @@ export class RequestInvoiceComponent implements OnInit, AfterViewInit {
           sorter: 'string',
           formatter: 'textarea',
           width: 250,
+          headerFilter: 'input',
+          headerFilterPlaceholder: 'Lọc khách hàng...',
         },
-        { title: 'Địa chỉ', field: 'Address', sorter: 'string', width: 300, formatter: 'textarea' },
-        { title: 'Công ty bán', field: 'Name', sorter: 'string', width: 140 },
+        { 
+          title: 'Địa chỉ', 
+          field: 'Address', 
+          sorter: 'string', 
+          width: 300, 
+          formatter: 'textarea',
+          headerFilter: 'input',
+          headerFilterPlaceholder: 'Lọc địa chỉ...',
+        },
+        { 
+          title: 'Công ty bán', 
+          field: 'Name', 
+          sorter: 'string', 
+          width: 140,
+          headerFilter: 'input',
+          headerFilterPlaceholder: 'Lọc công ty...',
+        },
         {
           title: 'Lý do yêu cầu bổ sung',
           field: 'AmendReason',
           sorter: 'string',
           width: 215,
-          formatter: 'textarea'
+          formatter: 'textarea',
+          headerFilter: 'input',
+          headerFilterPlaceholder: 'Lọc lý do...',
         },
-        { title: 'Ghi chú', field: 'Note', sorter: 'string', width: 200, formatter: 'textarea' },
+        { 
+          title: 'Ghi chú', 
+          field: 'Note', 
+          sorter: 'string', 
+          width: 200, 
+          formatter: 'textarea',
+          headerFilter: 'input',
+          headerFilterPlaceholder: 'Lọc ghi chú...',
+        },
       ],
     });
     this.mainTable.on('rowClick', (e: any, row: RowComponent) => {

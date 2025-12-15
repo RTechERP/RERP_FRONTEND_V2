@@ -1,0 +1,923 @@
+import { Component, OnInit, inject, ViewChild, ElementRef, Input } from '@angular/core';
+import { CommonModule } from '@angular/common';
+import { FormsModule } from '@angular/forms';
+import { NgbActiveModal } from '@ng-bootstrap/ng-bootstrap';
+import { NzFormModule } from 'ng-zorro-antd/form';
+import { NzInputModule } from 'ng-zorro-antd/input';
+import { NzButtonModule } from 'ng-zorro-antd/button';
+import { NzSelectModule } from 'ng-zorro-antd/select';
+import { NzTabsModule } from 'ng-zorro-antd/tabs';
+import { NzDatePickerModule } from 'ng-zorro-antd/date-picker';
+import { NzUploadModule, NzUploadFile } from 'ng-zorro-antd/upload';
+import { NzNotificationService } from 'ng-zorro-antd/notification';
+import { VehicleBookingManagementService } from '../vehicle-booking-management.service';
+import { AuthService } from '../../../../../auth/auth.service';
+import { DateTime } from 'luxon';
+import { NzIconModule } from 'ng-zorro-antd/icon';
+import { NzGridModule } from 'ng-zorro-antd/grid';
+
+interface Passenger {
+  index: number;
+  employeeId: number;
+  code: string;
+  name: string;
+  department: string;
+  phoneNumber: string;
+  note: string;
+}
+
+interface AttachedGoods {
+  index: number;
+  employeeId: number;
+  code: string;
+  name: string;
+  phoneNumber: string;
+  packageName: string;
+  packageSize: string;
+  packageWeight: string;
+  packageQuantity: number;
+  note: string;
+  files: NzUploadFile[];
+}
+
+@Component({
+  selector: 'app-vehicle-booking-management-detail',
+  standalone: true,
+  imports: [
+    CommonModule,
+    FormsModule,
+    NzFormModule,
+    NzInputModule,
+    NzButtonModule,
+    NzSelectModule,
+    NzTabsModule,
+    NzDatePickerModule,
+    NzUploadModule,
+    NzIconModule,
+    NzGridModule,
+  ],
+  templateUrl: './vehicle-booking-management-detail.component.html',
+  styleUrl: './vehicle-booking-management-detail.component.css'
+})
+export class VehicleBookingManagementDetailComponent implements OnInit {
+  @Input() dataInput: any = null; // Data for edit mode
+  @ViewChild('fileInput', { static: false }) fileInput!: ElementRef<HTMLInputElement>;
+
+  public activeModal = inject(NgbActiveModal);
+  private vehicleBookingService = inject(VehicleBookingManagementService);
+  private notification = inject(NzNotificationService);
+  private authService = inject(AuthService);
+
+  // Form data
+  id: number = 0;
+  employeeId: number = 0;
+  fullName: string = '';
+  codeFullName: string = '';
+  bookerVehicles: string = '';
+  category: number = 1;
+  timeNeedPresent: Date | null = null;
+  timeReturn: Date | null = null;
+  companyNameArrives: string = '';
+  province: number = 0;
+  specificDestinationAddress: string = '';
+  departureDate: Date | null = null;
+  departureAddressSelect: number = 0;
+  departureAddress: string = 'VP Hà Nội';
+  departureReturnAddressSelect: number = 0;
+  departureReturnAddress: string = 'VP Hà Nội';
+  projectId: number = 0;
+  vehicleType: number = 1;
+  approvedTbp: number = 0;
+  problemArises: string = '';
+
+  // Lists
+  employees: any[] = [];
+  provinces: any[] = [];
+  projects: any[] = [];
+  approvedList: any[] = [];
+  categories: any[] = [
+    { value: 1, label: 'Đăng ký đi' },
+    { value: 5, label: 'Đăng ký về' },
+    { value: 2, label: 'Đăng ký giao hàng' },
+    { value: 6, label: 'Đăng ký lấy hàng' },
+  ];
+  vehicleTypes: any[] = [
+    { value: 1, label: 'Ô tô, xe máy...' },
+    { value: 2, label: 'Máy bay' },
+  ];
+
+  // Passengers
+  passengers: Passenger[] = [];
+  passengerIndex: number = 2;
+  activePassengerTab: number = 1;
+
+  // Attached Goods
+  attachedGoods: AttachedGoods[] = [];
+  attachedGoodsIndex: number = 2;
+  activeAttachedGoodsTab: number = 1;
+
+  // UI State
+  showApprovedTbp: boolean = false;
+  showProblemArises: boolean = false;
+  showPassenger: boolean = true;
+  showAttachedGoods: boolean = false;
+  showTimeReturn: boolean = true;
+  showDepartureReturn: boolean = false;
+  isProblem: boolean = false;
+
+  // Labels (change based on category)
+  bookerLabel: string = 'Người đặt';
+  timeNeedLabel: string = 'Thời gian cần đến';
+  companyLabel: string = 'Công ty cần đến';
+  provinceLabel: string = 'Tỉnh cần đến';
+  addressLabel: string = 'Địa chỉ cụ thể cần đến';
+  departureDateLabel: string = 'Thời gian xuất phát';
+  departureAddressSelectLabel: string = 'Điểm xuất phát';
+  departureAddressLabel: string = 'Địa chỉ xuất phát cụ thể';
+  passengerTitle: string = 'Thông tin người đi';
+  attachedGoodsTitle: string = 'Thông tin người nhận hàng';
+
+  provinceDepartureIDs: number[] = [1, 2, 3, 4];
+
+  ngOnInit(): void {
+    this.loadInitialData();
+    if (this.dataInput) {
+      this.loadEditData();
+    } else {
+      this.initializeNewForm();
+    }
+  }
+
+  loadInitialData(): void {
+    // Load employees
+    this.vehicleBookingService.getEmployee().subscribe({
+      next: (data: any) => {
+        if (data?.status === 1) {
+          this.employees = data.data || [];
+        } else {
+          this.employees = data || [];
+        }
+        // Get current user
+        this.authService.getCurrentUser().subscribe({
+          next: (res: any) => {
+            const userData = res?.data;
+            const currentUser = Array.isArray(userData) ? userData[0] : userData;
+            if (currentUser) {
+              this.employeeId = currentUser.ID || 0;
+              this.fullName = currentUser.FullName || '';
+              this.bookerVehicles = this.fullName;
+              // Set first passenger to current user
+              if (this.passengers.length > 0) {
+                this.passengers[0].employeeId = this.employeeId;
+                this.onPassengerEmployeeChange(1, this.employeeId);
+              }
+            }
+          },
+          error: (err) => {
+            console.error('Error loading current user:', err);
+          }
+        });
+      },
+      error: (err) => {
+        this.notification.error('Lỗi', 'Không thể tải danh sách nhân viên');
+      }
+    });
+
+    // Load provinces for departure (điểm xuất phát) - dùng cho cả arrival và departure
+    this.vehicleBookingService.getProvinceDeparture(this.employeeId).subscribe({
+      next: (data: any) => {
+        // API trả về format: { status: 1, data: [...] } hoặc { Status: 1, Data: [...] }
+        const responseData = data?.data || data?.Data || data;
+        if (Array.isArray(responseData)) {
+          this.provinces = responseData.map((item: any) => ({
+            value: item.ID || item.Id || item.Value,
+            label: item.ProvinceName || item.Name || item.Label || item.Text
+          }));
+        } else {
+          this.provinces = [];
+        }
+        // Add "Khác" option if not exists
+        if (!this.provinces.find((p: any) => p.value === 0)) {
+          this.provinces.push({ value: 0, label: 'Khác' });
+        }
+      },
+      error: (err) => {
+        console.error('Error loading provinces:', err);
+        this.provinces = [
+          { value: 1, label: 'VP Hà Nội' },
+          { value: 2, label: 'VP Bắc Ninh' },
+          { value: 3, label: 'VP Hải Phòng' },
+          { value: 4, label: 'VP Hồ Chí Minh' },
+          { value: 0, label: 'Khác' },
+        ];
+      }
+    });
+
+    // Load projects
+    this.vehicleBookingService.getProjects().subscribe({
+      next: (data: any) => {
+        // API trả về format: { status: 1, data: [...] } hoặc { Status: 1, Data: [...] }
+        const responseData = data?.data || data?.Data || data;
+        if (Array.isArray(responseData)) {
+          this.projects = responseData.map((item: any) => ({
+            value: item.ID || item.Id || item.ProjectID,
+            label: item.Project || item.ProjectName || item.Name || item.FullName || item.Label
+          }));
+        } else {
+          this.projects = [];
+        }
+        // Add default option
+        if (!this.projects.find((p: any) => p.value === 0)) {
+          this.projects.unshift({ value: 0, label: '--Chọn dự án--' });
+        }
+      },
+      error: (err) => {
+        console.error('Error loading projects:', err);
+        this.projects = [{ value: 0, label: '--Chọn dự án--' }];
+      }
+    });
+
+    // Load approved list
+    this.vehicleBookingService.getApprovedList().subscribe({
+      next: (data: any) => {
+        // API trả về format: { status: 1, data: [...] } hoặc { Status: 1, Data: [...] }
+        const responseData = data?.data || data?.Data || data;
+        if (Array.isArray(responseData)) {
+          this.approvedList = responseData.map((item: any) => ({
+            value: item.EmployeeId || item.ID || item.Id,
+            label: item.FullName || item.Name || item.Label
+          }));
+        } else {
+          this.approvedList = [];
+        }
+        // Add default option
+        if (!this.approvedList.find((a: any) => a.value === 0)) {
+          this.approvedList.unshift({ value: 0, label: '--Chọn người duyệt--' });
+        }
+      },
+      error: (err) => {
+        console.error('Error loading approved list:', err);
+        this.approvedList = [{ value: 0, label: '--Chọn người duyệt--' }];
+      }
+    });
+
+    this.passengers.push({
+      index: 1,
+      employeeId: 0,
+      code: '',
+      name: '',
+      department: '',
+      phoneNumber: '',
+      note: ''
+    });
+
+    // Initialize first attached goods
+    this.attachedGoods.push({
+      index: 1,
+      employeeId: 0,
+      code: '',
+      name: '',
+      phoneNumber: '',
+      packageName: '',
+      packageSize: '',
+      packageWeight: '',
+      packageQuantity: 1,
+      note: '[Hàng đang chuẩn bị]',
+      files: []
+    });
+  }
+
+  initializeNewForm(): void {
+    this.category = 1;
+    this.vehicleType = 1;
+    this.departureAddressSelect = 1;
+    this.departureAddress = 'VP Hà Nội';
+    this.onCategoryChange();
+  }
+
+  loadEditData(): void {
+    // Load data for editing
+    const data = this.dataInput;
+    this.id = data.Id || 0;
+    this.category = data.Category || 1;
+    this.companyNameArrives = data.CompanyNameArrives || '';
+    this.province = data.Province || 0;
+    this.specificDestinationAddress = data.SpecificDestinationAddress || '';
+    this.departureAddressSelect = data.DepartureAddressStatus || 0;
+    this.departureAddress = data.DepartureAddress || '';
+    this.projectId = data.ProjectId || 0;
+    this.vehicleType = data.VehicleType || 1;
+    this.approvedTbp = data.ApprovedTbp || 0;
+    this.problemArises = data.ProblemArises || '';
+
+    if (data.TimeNeedPresent) {
+      this.timeNeedPresent = new Date(data.TimeNeedPresent);
+    }
+    if (data.TimeReturn) {
+      this.timeReturn = new Date(data.TimeReturn);
+    }
+    if (data.DepartureDate) {
+      this.departureDate = new Date(data.DepartureDate);
+    }
+
+    // Load passenger data
+    if (data.PassengerEmployeeId) {
+      this.passengers[0].employeeId = data.PassengerEmployeeId;
+    }
+    this.passengers[0].code = data.PassengerCode || '';
+    this.passengers[0].name = data.PassengerName || '';
+    this.passengers[0].department = data.PassengerDepartment || '';
+    this.passengers[0].phoneNumber = data.PassengerPhoneNumber || '';
+    this.passengers[0].note = data.Note || '';
+
+    // Load attached goods data
+    this.attachedGoods[0].employeeId = data.ReceiverEmployeeId || 0;
+    this.attachedGoods[0].code = data.ReceiverCode || '';
+    this.attachedGoods[0].name = data.ReceiverName || '';
+    this.attachedGoods[0].phoneNumber = data.ReceiverPhoneNumber || '';
+    this.attachedGoods[0].packageName = data.PackageName || '';
+    this.attachedGoods[0].packageSize = data.PackageSize || '';
+    this.attachedGoods[0].packageWeight = data.PackageWeight || '';
+    this.attachedGoods[0].packageQuantity = data.PackageQuantity || 1;
+    this.attachedGoods[0].note = data.Note || '[Hàng đang chuẩn bị]';
+
+    this.onCategoryChange();
+    this.checkIsProblem();
+
+    // Load images if category is 2 or 6 (giao hàng/lấy hàng)
+    if ((this.category == 2 || this.category == 6) && this.id > 0) {
+      this.vehicleBookingService.getImages(this.id).subscribe({
+        next: (images: any) => {
+          // API trả về format: { status: 1, data: [...] } hoặc { Status: 1, Data: [...] }
+          const imageList = images?.data || images?.Data || images || [];
+          if (Array.isArray(imageList) && imageList.length > 0 && this.attachedGoods.length > 0) {
+            this.attachedGoods[0].files = imageList.map((img: any) => ({
+              uid: String(img.ID || img.Id || Date.now()),
+              name: img.FileName || img.Name,
+              status: 'done',
+              url: img.Url || img.FilePath || img.urlImage,
+              id: img.ID || img.Id
+            }));
+          }
+        },
+        error: (err) => {
+          console.error('Error loading images:', err);
+        }
+      });
+    }
+  }
+
+  onCategoryChange(): void {
+    const selectedValue = this.category;
+
+    // Handle problem arises visibility
+    if (selectedValue == 5) {
+      this.showApprovedTbp = false;
+      this.showProblemArises = false;
+    } else {
+      this.showApprovedTbp = this.isProblem;
+      this.showProblemArises = this.isProblem;
+    }
+
+    // Handle time return visibility
+    if (selectedValue == 1) {
+      this.showTimeReturn = true;
+      this.showDepartureReturn = true;
+    } else {
+      this.showTimeReturn = false;
+      this.showDepartureReturn = false;
+    }
+
+    // Handle passenger/attached goods visibility
+    if (selectedValue == 1 || selectedValue == 4 || selectedValue == 5) {
+      this.showPassenger = true;
+      this.showAttachedGoods = false;
+    } else {
+      this.showPassenger = false;
+      this.showAttachedGoods = true;
+    }
+
+    // Update labels based on category
+    if (selectedValue == 5) {
+      this.bookerLabel = 'Người đặt';
+      this.timeNeedLabel = 'Thời gian cần về';
+      this.companyLabel = 'Công ty cần về';
+      this.provinceLabel = 'Tỉnh cần về';
+      this.addressLabel = 'Địa chỉ cụ thể cần về';
+      this.departureDateLabel = 'Thời gian đón';
+      this.departureAddressSelectLabel = 'Điểm đón';
+      this.departureAddressLabel = 'Địa chỉ đón cụ thể';
+      this.passengerTitle = 'Thông tin người về';
+    } else if (selectedValue == 6) {
+      this.bookerLabel = 'Người lấy hàng';
+      this.timeNeedLabel = 'Thời gian cần đến lấy';
+      this.companyLabel = 'Công ty đến lấy';
+      this.provinceLabel = 'Tỉnh đến lấy';
+      this.addressLabel = 'Địa chỉ cụ thể đến lấy';
+      this.departureDateLabel = 'Thời gian xuất phát';
+      this.attachedGoodsTitle = 'Thông tin người giao hàng';
+    } else if (selectedValue == 2) {
+      this.bookerLabel = 'Người giao hàng';
+      this.timeNeedLabel = 'Thời gian cần giao đến';
+      this.companyLabel = 'Công ty giao đến';
+      this.provinceLabel = 'Tỉnh giao đến';
+      this.addressLabel = 'Địa chỉ cụ thể giao đến';
+      this.departureDateLabel = 'Thời gian lấy hàng';
+      this.departureAddressSelectLabel = 'Điểm lấy hàng';
+      this.departureAddressLabel = 'Địa chỉ lấy hàng cụ thể';
+      this.attachedGoodsTitle = 'Thông tin người nhận hàng';
+    } else {
+      this.bookerLabel = 'Người đặt';
+      this.timeNeedLabel = 'Thời gian cần đến';
+      this.companyLabel = 'Công ty cần đến';
+      this.provinceLabel = 'Tỉnh cần đến';
+      this.addressLabel = 'Địa chỉ cụ thể cần đến';
+      this.departureDateLabel = 'Thời gian xuất phát';
+      this.departureAddressSelectLabel = 'Điểm xuất phát';
+      this.departureAddressLabel = 'Địa chỉ xuất phát cụ thể';
+      this.passengerTitle = 'Thông tin người đi';
+    }
+  }
+
+  onDepartureAddressSelectChange(value: number): void {
+    const selectedOption = this.provinces.find(p => p.value == value);
+    const text = selectedOption ? selectedOption.label : '';
+
+    if (!this.provinceDepartureIDs.includes(value)) {
+      this.departureAddress = '';
+    } else {
+      this.departureAddress = text;
+      // Auto set return address if not set
+      if (!this.departureReturnAddressSelect) {
+        this.departureReturnAddressSelect = value;
+        this.departureReturnAddress = text;
+      }
+    }
+  }
+
+  onDepartureReturnAddressSelectChange(value: number): void {
+    const selectedOption = this.provinces.find(p => p.value == value);
+    const text = selectedOption ? selectedOption.label : '';
+
+    if (!this.provinceDepartureIDs.includes(value)) {
+      this.departureReturnAddress = '';
+    } else {
+      this.departureReturnAddress = text;
+    }
+  }
+
+  onPassengerEmployeeChange(index: number, employeeId: number): void {
+    if (employeeId && employeeId > 0) {
+      this.vehicleBookingService.getEmployeeById(employeeId).subscribe({
+        next: (result: any) => {
+          const data = result?.data || result;
+          if (data) {
+            const passenger = this.passengers.find(p => p.index === index);
+            if (passenger) {
+              passenger.code = data.Code || '';
+              passenger.name = data.FullName || data.Name || '';
+              passenger.department = data.DepartmentName || '';
+              passenger.phoneNumber = data.SdtcaNhan || data.PhoneNumber || '';
+            }
+          }
+        },
+        error: (err) => {
+          console.error('Error loading employee:', err);
+        }
+      });
+    } else {
+      const passenger = this.passengers.find(p => p.index === index);
+      if (passenger) {
+        passenger.code = '';
+        passenger.name = '';
+        passenger.department = '';
+        passenger.phoneNumber = '';
+      }
+    }
+  }
+
+  onAttachedGoodsEmployeeChange(index: number, employeeId: number): void {
+    if (employeeId && employeeId > 0) {
+      this.vehicleBookingService.getEmployeeById(employeeId).subscribe({
+        next: (result: any) => {
+          const data = result?.data || result;
+          if (data) {
+            const goods = this.attachedGoods.find(g => g.index === index);
+            if (goods) {
+              goods.code = data.Code || '';
+              goods.name = data.FullName || data.Name || '';
+              goods.phoneNumber = data.SdtcaNhan || data.PhoneNumber || '';
+            }
+          }
+        },
+        error: (err) => {
+          console.error('Error loading employee:', err);
+        }
+      });
+    } else {
+      const goods = this.attachedGoods.find(g => g.index === index);
+      if (goods) {
+        goods.code = '';
+        goods.name = '';
+        goods.phoneNumber = '';
+      }
+    }
+  }
+
+  addPassenger(): void {
+    const newPassenger: Passenger = {
+      index: this.passengerIndex,
+      employeeId: 0,
+      code: '',
+      name: '',
+      department: '',
+      phoneNumber: '',
+      note: ''
+    };
+    this.passengers.push(newPassenger);
+    this.activePassengerTab = this.passengerIndex;
+    this.passengerIndex++;
+  }
+
+  removePassenger(index: number): void {
+    this.passengers = this.passengers.filter(p => p.index !== index);
+    if (this.passengers.length > 0) {
+      this.activePassengerTab = this.passengers[this.passengers.length - 1].index;
+    }
+  }
+
+  addAttachedGoods(): void {
+    const newGoods: AttachedGoods = {
+      index: this.attachedGoodsIndex,
+      employeeId: 0,
+      code: '',
+      name: '',
+      phoneNumber: '',
+      packageName: '',
+      packageSize: '',
+      packageWeight: '',
+      packageQuantity: 1,
+      note: '[Hàng đang chuẩn bị]',
+      files: []
+    };
+    this.attachedGoods.push(newGoods);
+    this.activeAttachedGoodsTab = this.attachedGoodsIndex;
+    this.attachedGoodsIndex++;
+  }
+
+  removeAttachedGoods(index: number): void {
+    this.attachedGoods = this.attachedGoods.filter(g => g.index !== index);
+    if (this.attachedGoods.length > 0) {
+      this.activeAttachedGoodsTab = this.attachedGoods[this.attachedGoods.length - 1].index;
+    }
+  }
+
+  onTimeNeedPresentChange(date: Date | null): void {
+    if (date) {
+      this.checkIsProblem();
+    }
+  }
+
+  checkIsProblem(): void {
+    if (!this.timeNeedPresent) {
+      this.isProblem = false;
+      return;
+    }
+
+    const now = new Date();
+    const selectedDate = new Date(this.timeNeedPresent);
+    const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+    const selectedDay = new Date(selectedDate.getFullYear(), selectedDate.getMonth(), selectedDate.getDate());
+
+    // Check if booking after 20:00
+    if (now.getHours() >= 20) {
+      this.isProblem = true;
+    } else if (today.getTime() === selectedDay.getTime()) {
+      // Same day booking
+      const minTime = new Date(today);
+      minTime.setHours(16, 30, 0, 0);
+      const maxTime = new Date(today);
+      maxTime.setHours(20, 0, 0, 0);
+      this.isProblem = !(now >= minTime && now <= maxTime);
+    } else {
+      this.isProblem = false;
+    }
+
+    if (this.isProblem && this.category != 5) {
+      this.showApprovedTbp = true;
+      this.showProblemArises = true;
+    } else {
+      this.showApprovedTbp = false;
+      this.showProblemArises = false;
+    }
+  }
+
+  validate(): boolean {
+    // Basic validations
+    if (!this.timeNeedPresent) {
+      this.notification.warning('Cảnh báo', 'Vui lòng chọn thời gian cần đến');
+      return false;
+    }
+
+    if (!this.companyNameArrives) {
+      this.notification.warning('Cảnh báo', 'Vui lòng nhập công ty');
+      return false;
+    }
+
+    if (!this.province || this.province === 0) {
+      this.notification.warning('Cảnh báo', 'Vui lòng chọn tỉnh');
+      return false;
+    }
+
+    if (!this.specificDestinationAddress) {
+      this.notification.warning('Cảnh báo', 'Vui lòng nhập địa chỉ cụ thể');
+      return false;
+    }
+
+    if (!this.departureDate) {
+      this.notification.warning('Cảnh báo', 'Vui lòng chọn thời gian xuất phát');
+      return false;
+    }
+
+    if (this.category != 6 && !this.departureAddress) {
+      this.notification.warning('Cảnh báo', 'Vui lòng nhập địa chỉ xuất phát');
+      return false;
+    }
+
+    if (!this.projectId || this.projectId === 0) {
+      this.notification.warning('Cảnh báo', 'Vui lòng chọn dự án');
+      return false;
+    }
+
+    // Validate problem arises
+    if (this.isProblem && this.category != 5) {
+      if (!this.problemArises) {
+        this.notification.warning('Cảnh báo', 'Vui lòng nhập vấn đề phát sinh');
+        return false;
+      }
+      if (!this.approvedTbp || this.approvedTbp === 0) {
+        this.notification.warning('Cảnh báo', 'Vui lòng chọn người duyệt');
+        return false;
+      }
+    }
+
+    // Validate passengers or attached goods
+    if (this.category == 1 || this.category == 4 || this.category == 5) {
+      for (const passenger of this.passengers) {
+        if (!passenger.name) {
+          this.notification.warning('Cảnh báo', 'Vui lòng nhập tên người đi');
+          return false;
+        }
+        if (!passenger.phoneNumber) {
+          this.notification.warning('Cảnh báo', 'Vui lòng nhập số điện thoại người đi');
+          return false;
+        }
+      }
+    } else {
+      for (const goods of this.attachedGoods) {
+        if (!goods.name) {
+          this.notification.warning('Cảnh báo', 'Vui lòng nhập tên người nhận');
+          return false;
+        }
+        if (!goods.phoneNumber) {
+          this.notification.warning('Cảnh báo', 'Vui lòng nhập số điện thoại người nhận');
+          return false;
+        }
+        if (!goods.packageName) {
+          this.notification.warning('Cảnh báo', 'Vui lòng nhập tên kiện hàng');
+          return false;
+        }
+        if (!goods.packageSize) {
+          this.notification.warning('Cảnh báo', 'Vui lòng nhập kích thước kiện hàng');
+          return false;
+        }
+        if (!goods.packageWeight) {
+          this.notification.warning('Cảnh báo', 'Vui lòng nhập cân nặng kiện hàng');
+          return false;
+        }
+        if (!goods.packageQuantity || goods.packageQuantity <= 0) {
+          this.notification.warning('Cảnh báo', 'Số lượng kiện hàng phải lớn hơn 0');
+          return false;
+        }
+      }
+    }
+
+    return true;
+  }
+
+  save(): void {
+    if (!this.validate()) {
+      return;
+    }
+
+    // Build payload
+    const payloads: any[] = [];
+
+    if (this.category == 1 || this.category == 4 || this.category == 5) {
+      // Create payload for each passenger
+      for (let i = 0; i < this.passengers.length; i++) {
+        const passenger = this.passengers[i];
+        const payload: any = {
+          Id: i === 0 ? this.id : 0,
+          EmployeeId: this.employeeId,
+          BookerVehicles: this.bookerVehicles,
+          PhoneNumber: '',
+          CompanyNameArrives: this.companyNameArrives,
+          Province: this.province,
+          SpecificDestinationAddress: this.specificDestinationAddress,
+          TimeNeedPresent: this.formatDateTime(this.timeNeedPresent),
+          TimeReturn: this.formatDateTime(this.timeReturn),
+          Category: this.category,
+          Note: passenger.note,
+          PassengerEmployeeID: passenger.employeeId,
+          PassengerCode: passenger.code,
+          PassengerName: passenger.name,
+          PassengerDepartment: passenger.department,
+          PassengerPhoneNumber: passenger.phoneNumber,
+          ReceiverEmployeeID: 0,
+          ReceiverCode: '',
+          ReceiverName: '',
+          PackageName: '',
+          DeliverName: '',
+          DeliverPhoneNumber: '',
+          ReceiverPhoneNumber: '',
+          ProblemArises: this.isProblem ? this.problemArises : '',
+          ApprovedTBP: this.isProblem ? this.approvedTbp : 0,
+          IsProblemArises: this.isProblem,
+          IsApprovedTBP: this.isProblem && this.approvedTbp > 0,
+          DepartureDate: this.formatDateTime(this.departureDate),
+          DepartureAddress: this.departureAddress,
+          DepartureAddressStatus: this.departureAddressSelect,
+          ProjectID: this.projectId,
+          PackageSize: '',
+          PackageWeight: '',
+          PackageQuantity: 0,
+          VehicleType: this.vehicleType,
+        };
+
+        payloads.push(payload);
+      }
+    } else {
+      // Create payload for each attached goods
+      for (let i = 0; i < this.attachedGoods.length; i++) {
+        const goods = this.attachedGoods[i];
+        const payload: any = {
+          Id: i === 0 ? this.id : 0,
+          EmployeeId: this.employeeId,
+          BookerVehicles: this.bookerVehicles,
+          PhoneNumber: '',
+          CompanyNameArrives: this.companyNameArrives,
+          Province: this.province,
+          SpecificDestinationAddress: this.specificDestinationAddress,
+          TimeNeedPresent: this.formatDateTime(this.timeNeedPresent),
+          TimeReturn: this.formatDateTime(this.timeReturn),
+          Category: this.category,
+          Note: goods.note,
+          PassengerEmployeeID: 0,
+          PassengerCode: '',
+          PassengerName: '',
+          PassengerDepartment: '',
+          PassengerPhoneNumber: '',
+          ReceiverEmployeeID: goods.employeeId,
+          ReceiverCode: goods.code,
+          ReceiverName: goods.name,
+          PackageName: goods.packageName,
+          DeliverName: this.bookerVehicles,
+          DeliverPhoneNumber: '',
+          ReceiverPhoneNumber: goods.phoneNumber,
+          ProblemArises: this.isProblem ? this.problemArises : '',
+          ApprovedTBP: this.isProblem ? this.approvedTbp : 0,
+          IsProblemArises: this.isProblem,
+          IsApprovedTBP: this.isProblem && this.approvedTbp > 0,
+          DepartureDate: this.formatDateTime(this.departureDate),
+          DepartureAddress: this.departureAddress,
+          DepartureAddressStatus: this.departureAddressSelect,
+          ProjectID: this.projectId,
+          PackageSize: goods.packageSize,
+          PackageWeight: goods.packageWeight,
+          PackageQuantity: goods.packageQuantity,
+          VehicleType: this.vehicleType,
+        };
+
+        if (this.category == 6) {
+          payload.DepartureAddress = '';
+          payload.DepartureAddressStatus = 6;
+        }
+
+        payloads.push(payload);
+      }
+    }
+
+    // Save each payload sequentially
+    let currentIndex = 0;
+    const saveNext = () => {
+      if (currentIndex >= payloads.length) {
+        this.notification.success('Thành công', 'Đặt xe thành công');
+        this.activeModal.close(true);
+        return;
+      }
+
+      const payload = payloads[currentIndex];
+      const goodsIndex = this.category == 2 || this.category == 6 ? currentIndex : -1;
+      const goods = goodsIndex >= 0 ? this.attachedGoods[goodsIndex] : null;
+
+      this.vehicleBookingService.postVehicleBookingManagement(payload).subscribe({
+        next: (result: any) => {
+          if (result && (result.status == 1 || result.Status == 1)) {
+            // Lấy vehicleBookingId từ result hoặc payload
+            // Nếu là create mới (payload.Id = 0), backend sẽ set ID tự động nhưng không trả về
+            // Tạm thời dùng payload.Id nếu > 0, hoặc cần API trả về vehicleBooking object
+            const vehicleBookingId = result.data?.ID || result.data?.Id || 
+                                     result.vehicleBooking?.id || result.vehicleBooking?.Id || 
+                                     result.id || result.Id || 
+                                     (payload.Id > 0 ? payload.Id : null);
+            
+            // Upload files if category is 2 or 6 and has files
+            // Chỉ upload nếu có vehicleBookingId (đã có ID từ trước hoặc vừa tạo)
+            if (goods && goods.files && goods.files.length > 0 && vehicleBookingId && vehicleBookingId > 0) {
+              this.uploadFilesForGoods(vehicleBookingId, goods.files, goodsIndex);
+            }
+            
+            currentIndex++;
+            saveNext();
+          } else {
+            this.notification.error('Lỗi', result?.message || result?.Message || 'Có lỗi xảy ra khi lưu');
+          }
+        },
+        error: (err) => {
+          this.notification.error('Lỗi', err?.error?.message || err?.error?.Message || 'Có lỗi xảy ra khi lưu dữ liệu');
+        }
+      });
+    };
+
+    saveNext();
+  }
+
+  uploadFilesForGoods(vehicleBookingId: number, files: NzUploadFile[], goodsIndex: number): void {
+    const formData = new FormData();
+    let hasFiles = false;
+    
+    files.forEach((file: any) => {
+      // Only upload new files (not already uploaded ones with id)
+      if (file.originFileObj) {
+        formData.append('files', file.originFileObj);
+        hasFiles = true;
+      }
+    });
+
+    if (hasFiles) {
+      this.vehicleBookingService.uploadFiles(vehicleBookingId, formData).subscribe({
+        next: (result: any) => {
+          // API trả về format: { status: 1, message: "..." } hoặc { Status: 1, Message: "..." }
+          if (result && (result.status == 1 || result.Status == 1)) {
+            console.log('Files uploaded successfully');
+          } else {
+            console.warn('File upload warning:', result?.message || result?.Message);
+          }
+        },
+        error: (err) => {
+          console.error('Error uploading files:', err);
+        }
+      });
+    }
+  }
+
+  formatDateTime(date: Date | null): string | null {
+    if (!date) return null;
+    const d = new Date(date);
+    const year = d.getFullYear();
+    const month = String(d.getMonth() + 1).padStart(2, '0');
+    const day = String(d.getDate()).padStart(2, '0');
+    const hours = String(d.getHours()).padStart(2, '0');
+    const minutes = String(d.getMinutes()).padStart(2, '0');
+    return `${year}-${month}-${day}T${hours}:${minutes}`;
+  }
+
+  onFileChange(event: any, goodsIndex: number): void {
+    const files = event.target.files;
+    if (files && files.length > 0) {
+      const goods = this.attachedGoods.find(g => g.index === goodsIndex);
+      if (goods) {
+        Array.from(files).forEach((file: any) => {
+          goods.files.push({
+            uid: String(Date.now() + Math.random()),
+            name: file.name,
+            status: 'done',
+            originFileObj: file
+          });
+        });
+      }
+    }
+  }
+
+  removeFile(goodsIndex: number, fileUid: string): void {
+    const goods = this.attachedGoods.find(g => g.index === goodsIndex);
+    if (goods) {
+      goods.files = goods.files.filter(f => f.uid !== fileUid);
+    }
+  }
+
+  cancel(): void {
+    this.activeModal.dismiss();
+  }
+}

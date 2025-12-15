@@ -148,3 +148,16 @@
   background-color: #1890ff !important;
   color: #ffffff !important;
 }
+.ant-splitter {
+  height: 93vh !important;
+}
+
+/* Ẩn scrollbar nhưng vẫn có thể scroll */
+.card-body.overflow-auto {
+  scrollbar-width: none; /* Firefox */
+  -ms-overflow-style: none; /* IE and Edge */
+}
+
+.card-body.overflow-auto::-webkit-scrollbar {
+  display: none; /* Chrome, Safari, Opera */
+}

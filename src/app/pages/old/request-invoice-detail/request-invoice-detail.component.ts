@@ -1137,6 +1137,40 @@ export class RequestInvoiceDetailComponent implements OnInit {
 
       ],
     });
+
+    // Thêm event listener để xử lý khi edit cell - tự động cập nhật các dòng đã chọn
+    this.tb_DataTable.on('cellEdited', (cell: CellComponent) => {
+      this.handleCellEditForSelectedRows(cell);
+    });
+  }
+
+  // Hàm xử lý khi edit cell - tự động cập nhật các dòng đã chọn (chỉ cho cột Số hóa đơn và Ngày hóa đơn)
+  handleCellEditForSelectedRows(cell: CellComponent): void {
+    const editedRow = cell.getRow();
+    const editedField = cell.getColumn().getField();
+    const newValue = cell.getValue();
+    
+    // Chỉ xử lý cho 2 cột: Số hóa đơn và Ngày hóa đơn
+    if (editedField !== 'InvoiceNumber' && editedField !== 'InvoiceDate') {
+      return;
+    }
+
+    const selectedRows = this.tb_DataTable.getSelectedRows();
+
+    // Nếu có nhiều hơn 1 dòng được chọn (bao gồm cả dòng vừa edit)
+    if (selectedRows.length > 1) {
+      selectedRows.forEach((row: RowComponent) => {
+        // Bỏ qua dòng vừa được edit (đã được cập nhật rồi)
+        if (row === editedRow) {
+          return;
+        }
+
+        // Cập nhật giá trị cho các dòng đã chọn
+        const rowData = row.getData();
+        rowData[editedField] = newValue;
+        row.update(rowData);
+      });
+    }
   }
   //#endregion
 

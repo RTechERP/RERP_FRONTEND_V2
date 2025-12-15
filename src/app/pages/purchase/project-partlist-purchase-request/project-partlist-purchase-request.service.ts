@@ -77,6 +77,10 @@ export class ProjectPartlistPurchaseRequestService {
     return this.http.post<any>(this.baseUrl + `save-data-detail`, items);
   }
 
+  saveDataRTC(model: any): Observable<any> {
+    return this.http.post<any>(this.baseUrl + `save-data-rtc`, model);
+  }
+
   updateProductImport(items: any): Observable<any> {
     return this.http.post<any>(this.baseUrl + `update-product-import`, items);
   }
@@ -131,26 +135,13 @@ export class ProjectPartlistPurchaseRequestService {
     checkAll?: number;
     warehouseID?: number;
     productRTCID?: number;
-    productGroupNo?: string;
     page?: number;
     size?: number;
     WarehouseType?: number;
   }): Observable<any> {
-    // Default request nếu không có tham số
-    const defaultRequest = {
-      productGroupID: 0,
-      keyWord: '',
-      checkAll: 1, // Lấy tất cả
-      warehouseID: 0,
-      productRTCID: 0,
-      productGroupNo: '',
-      page: 1,
-      size: 100000, // Lấy tất cả
-      WarehouseType: 0,
-      ...request
-    };
 
-    return this.http.post<any>(`${this.productRTCUrl}get-productRTC`, defaultRequest).pipe(
+
+    return this.http.post<any>(`${this.productRTCUrl}get-productRTC`, request).pipe(
       map((res: any) => {
         // Xử lý response - có thể là res.data.products hoặc res.data
         if (res?.data?.products) {
@@ -176,7 +167,7 @@ export class ProjectPartlistPurchaseRequestService {
 
   // Get ProductGroupsRTC (same as getProductRTC for now, but can be separated if needed)
   getProductGroupsRTC(): Observable<any[]> {
-    return this.http.get<any>(this.baseUrl + 'product-group_rtc').pipe(
+    return this.http.get<any>(environment.host + 'api/ProductGroupRTC/get-all').pipe(
       map((res: any) => (Array.isArray(res?.data) ? res.data : res?.data || res))
     );
   }

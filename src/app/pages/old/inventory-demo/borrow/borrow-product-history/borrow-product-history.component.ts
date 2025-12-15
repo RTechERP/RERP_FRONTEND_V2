@@ -52,6 +52,7 @@ import { NgbActiveModal } from '@ng-bootstrap/ng-bootstrap';
 import { MenuEventService } from '../../../../systems/menus/menu-service/menu-event.service';
 import { MaterialDetailOfProductRtcComponent } from '../../material-detail-of-product-rtc/material-detail-of-product-rtc.component';
 import { BillExportTechnicalFormComponent } from '../../../bill-export-technical/bill-export-technical-form/bill-export-technical-form.component';
+import { ID_ADMIN_DEMO_LIST } from '../../../../../app.config';
 
 @Component({
   selector: 'app-borrow-product-history',
@@ -285,7 +286,7 @@ export class BorrowProductHistoryComponent implements OnInit {
         nzCancelText: 'Hủy',
 
         nzOnOk: () => {
-          const IDAdminDemo = [24, 1434, 88, 1534];
+          const IDAdminDemo = ID_ADMIN_DEMO_LIST || [];
           const userId = this.appUserService?.id || 0;
           const isAdmin = IDAdminDemo.includes(userId);
           const isGlobalAdmin = this.appUserService?.isAdmin || false;
@@ -495,7 +496,11 @@ export class BorrowProductHistoryComponent implements OnInit {
         nzCancelText: 'Hủy',
 
         nzOnOk: () => {
-          const isAdmin = this.appUserService.isAdmin;
+          const IDAdminDemo = ID_ADMIN_DEMO_LIST || [];
+          const userId = this.appUserService?.id || 0;
+          const isAdmin = IDAdminDemo.includes(userId);
+          const isGlobalAdmin = this.appUserService?.isAdmin || false;
+          const isAdminAll = isGlobalAdmin || isAdmin;
           const arrIds = Array.from(this.selectedArrHistoryProductID);
 
           const tasks = arrIds.map((id) => {
@@ -505,7 +510,7 @@ export class BorrowProductHistoryComponent implements OnInit {
               rowData?.ProductCodeRTC || rowData?.ProductCode || 'N/A';
 
             return firstValueFrom(
-              this.borrowService.postApproveBorrowingRTC(id, isAdmin)
+              this.borrowService.postApproveBorrowingRTC(id, isAdminAll)
             )
               .then(() => ({
                 id,

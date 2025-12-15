@@ -140,6 +140,7 @@ import { DailyReportSaleAdminComponent } from '../../../old/KPISale/daily-report
 import { EmployeeRegisterBussinessComponent } from '../../../hrm/employee-management/employee-bussiness/employee-register-bussiness/employee-register-bussiness.component';
 import { PaymentOrderComponent } from '../../../general-category/payment-order/payment-order.component';
 import { OverTimePersonComponent } from '../../../hrm/over-time/over-time-person/over-time-person.component';
+import { ProjectPartlistPurchaseRequestNewComponent } from '../../../purchase/project-partlist-purchase-request-new/project-partlist-purchase-request-new.component';
 import { RegisterIdeaComponent } from '../../../hrm/register-idea/register-idea.component';
 import { TrackingMarksComponent } from '../../../hrm/tracking-marks/tracking-marks.component';
 import { VehicleBookingManagementComponent } from '../../../hrm/vehicle/vehicle-booking-management/vehicle-booking-management.component';
@@ -2122,12 +2123,12 @@ export class MenuService {
                     },
                     {
                         kind: 'leaf',
-                        key: 'ProjectPartlistPurchaseRequestComponent',
+                        key: 'ProjectPartlistPurchaseRequestNewComponent',
                         title: 'Yêu cầu mua hàng',
                         isOpen: true,
                         isPermission:
                             this.permissionService.hasPermission('N33,N35,N1,N36'),
-                        comp: ProjectPartlistPurchaseRequestComponent,
+                        comp: ProjectPartlistPurchaseRequestNewComponent,
                         //   icon: 'assets/icon/layers.png',
                     },
                     // {

@@ -143,8 +143,9 @@ import { OverTimePersonComponent } from '../../../hrm/over-time/over-time-person
 import { ProjectPartlistPurchaseRequestNewComponent } from '../../../purchase/project-partlist-purchase-request-new/project-partlist-purchase-request-new.component';
 import { RegisterIdeaComponent } from '../../../hrm/register-idea/register-idea.component';
 import { TrackingMarksComponent } from '../../../hrm/tracking-marks/tracking-marks.component';
-import { VehicleBookingComponent } from '../../../hrm/vehicle-booking/vehicle-booking.component';
+
 import { EmployeeSyntheticPersonalComponent } from '../../../hrm/employee-management/employee-synthetic/employee-synthetic-personal/employee-synthetic-personal.component';
+import { VehicleBookingManagementComponent } from '../../../hrm/vehicle/vehicle-booking-management/vehicle-booking-management.component';
 @Injectable({
     providedIn: 'root',
 })
@@ -1539,12 +1540,12 @@ export class MenuService {
                             },
                             {
                                 kind: 'leaf',
-                                key: 'VehicleBookingComponent',
+                                key: 'VehicleBookingManagementComponent',
                                 title: 'Đặt xe',
                                 isOpen: true,
                                 isPermission:
                                     this.permissionService.hasPermission('N2,N34,N1,N68,N71'),
-                                comp: VehicleBookingComponent,
+                                comp: VehicleBookingManagementComponent,
                                 //   icon: 'assets/icon/layers.png',
                             },
                             // {
@@ -2792,7 +2793,7 @@ export class MenuService {
                                 isOpen: true,
                                 isPermission: this.permissionService.hasPermission(''),
                                 comp: OverTimePersonComponent,
-                             
+
                             },
 
                             {
@@ -2886,7 +2887,7 @@ export class MenuService {
                                 title: 'Đặt xe',
                                 isOpen: true,
                                 isPermission: this.permissionService.hasPermission(''),
-                                comp: VehicleBookingComponent,
+                                comp: VehicleBookingManagementComponent,
                             },
 
                             {
@@ -2895,8 +2896,8 @@ export class MenuService {
                                 title: 'Đề nghị thanh toán',
                                 isOpen: true,
                                 isPermission: this.permissionService.hasPermission(''),
-                                comp: PersonComponent,
-                                router: '/denghithanhtoan',
+                                comp: PaymentOrderComponent,
+                                // router: '/denghithanhtoan',
                             },
 
                             {
@@ -2915,8 +2916,8 @@ export class MenuService {
                                 title: 'Yêu cầu công việc',
                                 isOpen: true,
                                 isPermission: this.permissionService.hasPermission(''),
-                                comp: PersonComponent,
-                                router: '/yeucaucongviec',
+                                comp: JobRequirementComponent,
+                                // router: '/yeucaucongviec',
                             },
 
                             {
@@ -3347,7 +3348,7 @@ export class MenuService {
             },
             //#endregion
         ];
-      
+
         return menus;
     }
 

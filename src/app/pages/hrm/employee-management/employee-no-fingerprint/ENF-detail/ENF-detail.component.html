@@ -126,7 +126,8 @@
           </div>
 
           <!-- Lý do sửa đổi - chỉ hiện khi sửa -->
-          <div class="col-12" *ngIf="isEditMode">
+           <ng-container *hasPermission="'N2,N1'">
+             <div class="col-12" *ngIf="isEditMode" >
             <nz-form-item class="pt-1">
               <nz-form-label class="fs-12 d-flex align-items-center">
                 Lý do sửa <span class="text-danger ps-1">(*)</span>
@@ -143,6 +144,8 @@
               </nz-form-control>
             </nz-form-item>
           </div>
+           </ng-container>
+         
         </div>
       </div>
     </div>

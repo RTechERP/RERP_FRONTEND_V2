@@ -44,7 +44,7 @@ import { DEFAULT_TABLE_CONFIG } from '../../../tabulator-default.config';
 import { ProjectService } from '../../project/project-service/project.service';
 import { AuthService } from '../../../auth/auth.service';
 
-import { AppUserService } from '../../../services/app-user.service';
+import { PermissionService } from '../../../services/permission.service';
 
 @Component({
   selector: 'app-food-order',
@@ -117,7 +117,7 @@ export class FoodOrderComponent implements OnInit, AfterViewInit {
     private employeeService: EmployeeService,
     private projectService: ProjectService,
     private authService: AuthService,
-    private appUserService: AppUserService
+    private permissionService: PermissionService
   ) {
     this.initSearchForm();
     this.initForm();
@@ -142,6 +142,8 @@ export class FoodOrderComponent implements OnInit, AfterViewInit {
   }
 
   private initForm() {
+      const canEditEmployee = this.permissionService.hasPermission('N2,N1');
+
     this.foodOrderForm = this.fb.group({
       ID: [0],
       EmployeeID: [{value:this.currenEmployee?.EmployeeID, disabled: true}, [Validators.required]],
@@ -159,6 +161,11 @@ export class FoodOrderComponent implements OnInit, AfterViewInit {
       FullName: [''],
       IsDeleted: [false],
     });
+
+
+             if (canEditEmployee) {
+      this.foodOrderForm.get('EmployeeID')?.enable();
+    }
   }
 
   private initSearchForm() {

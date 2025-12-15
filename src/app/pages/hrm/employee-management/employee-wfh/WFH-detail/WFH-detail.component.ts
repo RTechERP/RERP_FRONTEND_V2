@@ -16,6 +16,8 @@ import { NzSpinModule } from 'ng-zorro-antd/spin';
 
 import { WFHService } from '../WFH-service/WFH.service';
 import { NOTIFICATION_TITLE } from '../../../../../app.config';
+import { HasPermissionDirective } from '../../../../../directives/has-permission.directive';
+
 
 export interface EmployeeDto {
   ID: number;
@@ -84,6 +86,7 @@ export interface WFHDetailDto {
     NzInputModule,
     NzSelectModule,
     NzSpinModule,
+    HasPermissionDirective
   ],
   templateUrl: './WFH-detail.component.html',
   styleUrls: ['./WFH-detail.component.css'],
@@ -400,6 +403,16 @@ export class WFHDetailComponent implements OnInit {
 
   onTimeWFHChange(): void {
     console.log('Time WFH changed:', this.wfhForm.get('timeWFH')?.value);
+  }
+
+  // Disable dates before today
+  disabledDate = (current: Date): boolean => {
+    if (!current) return false;
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const currentDate = new Date(current);
+    currentDate.setHours(0, 0, 0, 0);
+    return currentDate < today;
   }
 
   // Form validation - theo rule từ C#

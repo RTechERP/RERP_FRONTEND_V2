@@ -1,25 +1,64 @@
 <div class="modal-header bg-primary p-2">
   <h6 class="modal-title text-white m-0">
-    {{ isEditMode ? 'SỬA ĐĂNG KÝ LÀM ĐÊM' : 'ĐĂNG KÝ LÀM ĐÊM' }}
+    {{ isEditMode ? "SỬA ĐĂNG KÝ LÀM ĐÊM" : "ĐĂNG KÝ LÀM ĐÊM" }}
   </h6>
-  <button type="button" class="btn-close" aria-label="Close" (click)="onCancel()"></button>
+  <button
+    type="button"
+    class="btn-close"
+    aria-label="Close"
+    (click)="onCancel()"
+  ></button>
 </div>
 
-<div class="modal-body p-1 px-2" style="max-height: 70vh; overflow-y: auto; overflow-x: hidden; font-size: 12px;">
+<div
+  class="modal-body p-1 px-2"
+  style="
+    max-height: 70vh;
+    overflow-y: auto;
+    overflow-x: hidden;
+    font-size: 12px;
+  "
+>
   <form [formGroup]="formGroup" nz-form>
-    <!-- Row 1: Nhân viên, Người duyệt -->
+    <!-- Row 1: Đăng kí làm thêm -->
+    <nz-row [nzGutter]="16">
+         <nz-col [nzXs]="24" [nzSm]="24" [nzMd]="12" [nzLg]="12">
+        <button nz-button nzType="default" nzSize="small" class="btn-add" (click)="onAddOverTime()">
+          <img
+            src="assets/icon/action_add_item_16.png"
+            alt="Đăng kí làm thêm"
+          />Đăng kí làm thêm
+        </button>
+      </nz-col>
+    </nz-row>
+    <!-- Row 2: Nhân viên, Người duyệt -->
     <nz-row [nzGutter]="16">
       <nz-col [nzXs]="24" [nzSm]="12" [nzMd]="12" [nzLg]="12">
         <nz-form-item>
           <nz-form-label [nzSpan]="24">
             Nhân viên<span class="text-danger ps-1 me-1"> (*)</span>
           </nz-form-label>
-          <nz-form-control [nzSpan]="24" [nzErrorTip]="getErrorMessage('EmployeeID')">
-            <nz-select formControlName="EmployeeID" nzPlaceHolder="Chọn nhân viên" nzShowSearch nzAllowClear
-              [nzFilterOption]="filterOption" class="fs-12 w-100">
-              <nz-option-group *ngFor="let group of employees" [nzLabel]="group.department">
-                <nz-option *ngFor="let emp of group.list" [nzValue]="emp.ID"
-                [nzLabel]="emp.Code + ' - ' + emp.FullName">
+          <nz-form-control
+            [nzSpan]="24"
+            [nzErrorTip]="getErrorMessage('EmployeeID')"
+          >
+            <nz-select
+              formControlName="EmployeeID"
+              nzPlaceHolder="Chọn nhân viên"
+              nzShowSearch
+              nzAllowClear
+              [nzFilterOption]="filterOption"
+              class="fs-12 w-100"
+            >
+              <nz-option-group
+                *ngFor="let group of employees"
+                [nzLabel]="group.department"
+              >
+                <nz-option
+                  *ngFor="let emp of group.list"
+                  [nzValue]="emp.ID"
+                  [nzLabel]="emp.Code + ' - ' + emp.FullName"
+                >
                 </nz-option>
               </nz-option-group>
             </nz-select>
@@ -32,12 +71,27 @@
           <nz-form-label [nzSpan]="24">
             Người duyệt<span class="text-danger ps-1 me-1"> (*)</span>
           </nz-form-label>
-          <nz-form-control [nzSpan]="24" [nzErrorTip]="getErrorMessage('ApprovedTBP')">
-            <nz-select formControlName="ApprovedTBP" nzPlaceHolder="Chọn người duyệt" nzShowSearch nzAllowClear
-              [nzFilterOption]="filterOption" class="fs-12 w-100">
-              <nz-option-group *ngFor="let group of approvers" [nzLabel]="group.department">
-                <nz-option *ngFor="let approver of group.list" [nzValue]="approver.ID"
-                  [nzLabel]="approver.Code + ' - ' + approver.FullName">
+          <nz-form-control
+            [nzSpan]="24"
+            [nzErrorTip]="getErrorMessage('ApprovedTBP')"
+          >
+            <nz-select
+              formControlName="ApprovedTBP"
+              nzPlaceHolder="Chọn người duyệt"
+              nzShowSearch
+              nzAllowClear
+              [nzFilterOption]="filterOption"
+              class="fs-12 w-100"
+            >
+              <nz-option-group
+                *ngFor="let group of approvers"
+                [nzLabel]="group.department"
+              >
+                <nz-option
+                  *ngFor="let approver of group.list"
+                  [nzValue]="approver.ID"
+                  [nzLabel]="approver.Code + ' - ' + approver.FullName"
+                >
                 </nz-option>
               </nz-option-group>
             </nz-select>
@@ -46,130 +100,213 @@
       </nz-col>
     </nz-row>
 
-    <!-- Row 2: Ngày, Thời gian bắt đầu, Thời gian kết thúc -->
-    <nz-row [nzGutter]="16">
-      <nz-col [nzXs]="24" [nzSm]="8" [nzMd]="8" [nzLg]="8">
-        <nz-form-item>
-          <nz-form-label [nzSpan]="24">
-            Ngày<span class="text-danger ps-1 me-1"> (*)</span>
-          </nz-form-label>
-          <nz-form-control [nzSpan]="24" [nzErrorTip]="getErrorMessage('DateRegister')">
-            <nz-date-picker *ngIf="datePickerKey >= 0" formControlName="DateRegister" [nzFormat]="'dd/MM/yyyy'"
-              [nzDisabledDate]="disabledDate" nzPlaceHolder="Chọn ngày" class="w-100 fs-12">
-            </nz-date-picker>
-          </nz-form-control>
-        </nz-form-item>
-      </nz-col>
+    <!-- Tabs cho các ca làm đêm -->
+    <nz-tabset
+      [(nzSelectedIndex)]="selectedIndex"
+      nzType="editable-card"
+      (nzAdd)="newTab()"
+      (nzClose)="closeTab($event)"
+    >
+      @for (tab of tabs; track tab; let i = $index) {
+      <nz-tab [nzTitle]="tab" [nzClosable]="true">
+        <!-- Row 2: Ngày, Thời gian bắt đầu, Thời gian kết thúc -->
+        <nz-row [nzGutter]="16">
+          <nz-col [nzXs]="24" [nzSm]="8" [nzMd]="8" [nzLg]="8">
+            <nz-form-item>
+              <nz-form-label [nzSpan]="24">
+                Ngày<span class="text-danger ps-1 me-1"> (*)</span>
+              </nz-form-label>
+              <nz-form-control
+                [nzSpan]="24"
+                [nzErrorTip]="getErrorMessage('DateRegister')"
+              >
+                <nz-date-picker
+                  *ngIf="getTabDatePickerKey() >= 0"
+                  formControlName="DateRegister"
+                  [nzFormat]="'dd/MM/yyyy'"
+                  [nzDisabledDate]="disabledDate"
+                  nzPlaceHolder="Chọn ngày"
+                  class="w-100 fs-12"
+                >
+                </nz-date-picker>
+              </nz-form-control>
+            </nz-form-item>
+          </nz-col>
 
-      <nz-col [nzXs]="24" [nzSm]="8" [nzMd]="8" [nzLg]="8">
-        <nz-form-item>
-          <nz-form-label [nzSpan]="24">
-            Thời gian bắt đầu<span class="text-danger ps-1 me-1"> (*)</span>
-          </nz-form-label>
-          <nz-form-control [nzSpan]="24" [nzErrorTip]="getErrorMessage('DateStart')">
-            <nz-date-picker formControlName="DateStart" [nzFormat]="dateFormat" [nzShowTime]="{ nzFormat: 'HH:mm' }"
-              [nzDisabledDate]="disabledDateForDateStart" nzPlaceHolder="Chọn thời gian bắt đầu"
-              class="w-100 fs-12">
-            </nz-date-picker>
-          </nz-form-control>
-        </nz-form-item>
-      </nz-col>
+          <nz-col [nzXs]="24" [nzSm]="8" [nzMd]="8" [nzLg]="8">
+            <nz-form-item>
+              <nz-form-label [nzSpan]="24">
+                Thời gian bắt đầu<span class="text-danger ps-1 me-1"> (*)</span>
+              </nz-form-label>
+              <nz-form-control
+                [nzSpan]="24"
+                [nzErrorTip]="getErrorMessage('DateStart')"
+              >
+                <nz-date-picker
+                  formControlName="DateStart"
+                  [nzFormat]="dateFormat"
+                  [nzShowTime]="{ nzFormat: 'HH:mm' }"
+                  [nzDisabledDate]="disabledDateForDateStart"
+                  nzPlaceHolder="Chọn thời gian bắt đầu"
+                  class="w-100 fs-12"
+                >
+                </nz-date-picker>
+              </nz-form-control>
+            </nz-form-item>
+          </nz-col>
 
-      <nz-col [nzXs]="24" [nzSm]="8" [nzMd]="8" [nzLg]="8">
-        <nz-form-item>
-          <nz-form-label [nzSpan]="24">
-            Thời gian kết thúc<span class="text-danger ps-1 me-1"> (*)</span>
-          </nz-form-label>
-          <nz-form-control [nzSpan]="24" [nzErrorTip]="getErrorMessage('DateEnd')">
-            <nz-date-picker formControlName="DateEnd" [nzFormat]="dateFormat" [nzShowTime]="{ nzFormat: 'HH:mm' }"
-              nzPlaceHolder="Chọn thời gian kết thúc" class="w-100 fs-12">
-            </nz-date-picker>
-          </nz-form-control>
-        </nz-form-item>
-      </nz-col>
-    </nz-row>
+          <nz-col [nzXs]="24" [nzSm]="8" [nzMd]="8" [nzLg]="8">
+            <nz-form-item>
+              <nz-form-label [nzSpan]="24">
+                Thời gian kết thúc<span class="text-danger ps-1 me-1">
+                  (*)</span
+                >
+              </nz-form-label>
+              <nz-form-control
+                [nzSpan]="24"
+                [nzErrorTip]="getErrorMessage('DateEnd')"
+              >
+                <nz-date-picker
+                  formControlName="DateEnd"
+                  [nzFormat]="dateFormat"
+                  [nzShowTime]="{ nzFormat: 'HH:mm' }"
+                  nzPlaceHolder="Chọn thời gian kết thúc"
+                  class="w-100 fs-12"
+                >
+                </nz-date-picker>
+              </nz-form-control>
+            </nz-form-item>
+          </nz-col>
+        </nz-row>
 
-    <!-- Row 3: Giờ nghỉ giữa giờ, Tổng số giờ -->
-    <nz-row [nzGutter]="16">
-      <nz-col [nzXs]="24" [nzSm]="12" [nzMd]="12" [nzLg]="12">
-        <nz-form-item>
-          <nz-form-label [nzSpan]="24">Giờ nghỉ giữa giờ</nz-form-label>
-          <nz-form-control [nzSpan]="24" [nzErrorTip]="getErrorMessage('BreaksTime')">
-            <nz-input-number formControlName="BreaksTime" [nzMin]="0" [nzStep]="0.5" [nzFormatter]="formatNumber"
-              nzPlaceHolder="Nhập số giờ nghỉ" class="w-100 fs-12">
-            </nz-input-number>
-          </nz-form-control>
-        </nz-form-item>
-      </nz-col>
+        <!-- Row 3: Giờ nghỉ giữa giờ, Tổng số giờ -->
+        <nz-row [nzGutter]="16">
+          <nz-col [nzXs]="24" [nzSm]="12" [nzMd]="12" [nzLg]="12">
+            <nz-form-item>
+              <nz-form-label [nzSpan]="24">Giờ nghỉ giữa giờ</nz-form-label>
+              <nz-form-control
+                [nzSpan]="24"
+                [nzErrorTip]="getErrorMessage('BreaksTime')"
+              >
+                <nz-input-number
+                  formControlName="BreaksTime"
+                  [nzMin]="0"
+                  [nzStep]="0.5"
+                  [nzFormatter]="formatNumber"
+                  nzPlaceHolder="Nhập số giờ nghỉ"
+                  class="w-100 fs-12"
+                >
+                </nz-input-number>
+              </nz-form-control>
+            </nz-form-item>
+          </nz-col>
 
-      <nz-col [nzXs]="24" [nzSm]="12" [nzMd]="12" [nzLg]="12">
-        <nz-form-item>
-          <nz-form-label [nzSpan]="24">Tổng số giờ</nz-form-label>
-          <nz-form-control [nzSpan]="24">
-            <nz-input-number [ngModel]="formGroup.get('TotalHours')?.value" [ngModelOptions]="{standalone: true}"
-              [nzMin]="0" [nzStep]="0.5" [nzDisabled]="true" [nzFormatter]="formatNumber" class="w-100 fs-12">
-            </nz-input-number>
-          </nz-form-control>
-        </nz-form-item>
-      </nz-col>
-    </nz-row>
+          <nz-col [nzXs]="24" [nzSm]="12" [nzMd]="12" [nzLg]="12">
+            <nz-form-item>
+              <nz-form-label [nzSpan]="24">Tổng số giờ</nz-form-label>
+              <nz-form-control [nzSpan]="24">
+                <nz-input-number
+                  [ngModel]="formGroup.get('TotalHours')?.value"
+                  [ngModelOptions]="{ standalone: true }"
+                  [nzMin]="0"
+                  [nzStep]="0.5"
+                  [nzDisabled]="true"
+                  [nzFormatter]="formatNumber"
+                  class="w-100 fs-12"
+                >
+                </nz-input-number>
+              </nz-form-control>
+            </nz-form-item>
+          </nz-col>
+        </nz-row>
 
-    <!-- Row 4: Địa điểm -->
-    <nz-row [nzGutter]="16">
-      <nz-col [nzXs]="24" [nzSm]="24" [nzMd]="24" [nzLg]="24">
-        <nz-form-item>
-          <nz-form-label [nzSpan]="24">
-            Địa điểm (Lý do)<span class="text-danger ps-1 me-1"> (*)</span>
-          </nz-form-label>
-          <nz-form-control [nzSpan]="24" [nzErrorTip]="getErrorMessage('Location')">
-            <input nz-input formControlName="Location" nzPlaceHolder="Nhập địa điểm/lý do" class="fs-12">
-          </nz-form-control>
-        </nz-form-item>
-      </nz-col>
-    </nz-row>
+        <!-- Row 4: Địa điểm -->
+        <nz-row [nzGutter]="16">
+          <nz-col [nzXs]="24" [nzSm]="24" [nzMd]="24" [nzLg]="24">
+            <nz-form-item>
+              <nz-form-label [nzSpan]="24">
+                Địa điểm (Lý do)<span class="text-danger ps-1 me-1"> (*)</span>
+              </nz-form-label>
+              <nz-form-control
+                [nzSpan]="24"
+                [nzErrorTip]="getErrorMessage('Location')"
+              >
+                <input
+                  nz-input
+                  formControlName="Location"
+                  nzPlaceHolder="Nhập địa điểm/lý do"
+                  class="fs-12"
+                />
+              </nz-form-control>
+            </nz-form-item>
+          </nz-col>
+        </nz-row>
 
-    <!-- Ghi chú - Row riêng -->
-    <nz-row [nzGutter]="16">
-      <nz-col [nzXs]="24" [nzSm]="24" [nzMd]="24" [nzLg]="24">
-        <nz-form-item>
-          <nz-form-label [nzSpan]="24">Ghi chú</nz-form-label>
-          <nz-form-control [nzSpan]="24">
-            <textarea nz-input formControlName="Note" nzPlaceHolder="Nhập ghi chú"
-              [nzAutosize]="{ minRows: 2, maxRows: 4 }" class="fs-12">
-            </textarea>
-          </nz-form-control>
-        </nz-form-item>
-      </nz-col>
-    </nz-row>
+        <!-- Ghi chú - Row riêng -->
+        <nz-row [nzGutter]="16">
+          <nz-col [nzXs]="24" [nzSm]="24" [nzMd]="24" [nzLg]="24">
+            <nz-form-item>
+              <nz-form-label [nzSpan]="24">Ghi chú</nz-form-label>
+              <nz-form-control [nzSpan]="24">
+                <textarea
+                  nz-input
+                  formControlName="Note"
+                  nzPlaceHolder="Nhập ghi chú"
+                  [nzAutosize]="{ minRows: 2, maxRows: 4 }"
+                  class="fs-12"
+                >
+                </textarea>
+              </nz-form-control>
+            </nz-form-item>
+          </nz-col>
+        </nz-row>
 
-    <!-- Lý do sửa (chỉ hiện khi sửa) - Row riêng -->
-    <nz-row [nzGutter]="16" *ngIf="isEditMode">
-      <nz-col [nzXs]="24" [nzSm]="24" [nzMd]="24" [nzLg]="24">
-        <nz-form-item>
-          <nz-form-label [nzSpan]="24">
-            Lý do sửa<span class="text-danger ps-1 me-1"> (*)</span>
-          </nz-form-label>
-          <nz-form-control [nzSpan]="24" [nzErrorTip]="getErrorMessage('ReasonHREdit')">
-            <textarea nz-input formControlName="ReasonHREdit" nzPlaceHolder="Nhập lý do sửa"
-              [nzAutosize]="{ minRows: 2, maxRows: 4 }" class="fs-12">
-            </textarea>
-          </nz-form-control>
-        </nz-form-item>
-      </nz-col>
-    </nz-row>
+        <!-- Lý do sửa (chỉ hiện khi sửa) - Row riêng -->
+        <ng-container *hasPermission="'N2,N1'">
+          <nz-row [nzGutter]="16" *ngIf="isEditMode">
+            <nz-col [nzXs]="24" [nzSm]="24" [nzMd]="24" [nzLg]="24">
+              <nz-form-item>
+                <nz-form-label [nzSpan]="24">
+                  Lý do sửa<span class="text-danger ps-1 me-1"> (*)</span>
+                </nz-form-label>
+                <nz-form-control
+                  [nzSpan]="24"
+                  [nzErrorTip]="getErrorMessage('ReasonHREdit')"
+                >
+                  <textarea
+                    nz-input
+                    formControlName="ReasonHREdit"
+                    nzPlaceHolder="Nhập lý do sửa"
+                    [nzAutosize]="{ minRows: 2, maxRows: 4 }"
+                    class="fs-12"
+                  >
+                  </textarea>
+                </nz-form-control>
+              </nz-form-item>
+            </nz-col>
+          </nz-row>
+        </ng-container>
 
-    <!-- Đăng ký bổ sung -->
-    <nz-row [nzGutter]="16">
-      <nz-col [nzXs]="24" [nzSm]="24" [nzMd]="24" [nzLg]="24">
-        <nz-form-item>
-          <nz-form-control [nzSpan]="24">
-            <label nz-checkbox formControlName="IsProblem" class="fs-12" style="font-weight: normal;">
-              Đăng ký bổ sung
-            </label>
-          </nz-form-control>
-        </nz-form-item>
-      </nz-col>
-    </nz-row>
+        <!-- Đăng ký bổ sung -->
+        <nz-row [nzGutter]="16">
+          <nz-col [nzXs]="24" [nzSm]="24" [nzMd]="12" [nzLg]="12">
+            <nz-form-item>
+              <nz-form-control [nzSpan]="24">
+                <label
+                  nz-checkbox
+                  formControlName="IsProblem"
+                  class="fs-12"
+                  style="font-weight: normal"
+                >
+                  Đăng ký bổ sung
+                </label>
+              </nz-form-control>
+            </nz-form-item>
+          </nz-col>
+        </nz-row>
+      </nz-tab>
+      }
+    </nz-tabset>
   </form>
 </div>
 

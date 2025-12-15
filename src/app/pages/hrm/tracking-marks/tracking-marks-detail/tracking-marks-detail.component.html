@@ -1,0 +1,176 @@
+<div class="modal-content">
+  <div class="modal-header bg-primary p-2">
+    <h6 class="modal-title text-uppercase text-white m-0">{{ isEdit ? 'Sửa đăng ký đóng dấu' : 'Đăng ký đóng dấu' }}</h6>
+    <button type="button" class="btn-close btn-close-white" (click)="close()"></button>
+  </div>
+
+  <div class="modal-body p-3">
+    <form [formGroup]="form" nz-form nzLayout="vertical">
+      <div nz-row [nzGutter]="16">
+        <div nz-col nzSpan="16">
+          <div nz-row [nzGutter]="16">
+            <div nz-col nzSpan="8">
+              <nz-form-item>
+                <nz-form-label>Tên nhân viên</nz-form-label>
+                <nz-form-control>
+                  <input nz-input [value]="currentEmployeeName" readonly />
+                </nz-form-control>
+              </nz-form-item>
+            </div>
+            <div nz-col nzSpan="8">
+              <nz-form-item>
+                <nz-form-label>Bộ phận</nz-form-label>
+                <nz-form-control>
+                  <input nz-input [value]="currentDepartmentName" readonly />
+                </nz-form-control>
+              </nz-form-item>
+            </div>
+            <div nz-col nzSpan="8">
+              <nz-form-item>
+                <nz-form-label nzRequired>Ngày đăng ký</nz-form-label>
+                <nz-form-control [nzErrorTip]="'Vui lòng chọn ngày đăng ký'">
+                  <nz-date-picker
+                    formControlName="registerDate"
+                    nzFormat="dd/MM/yyyy"
+                    nzPlaceHolder="Chọn ngày đăng ký"
+                    style="width: 100%;">
+                  </nz-date-picker>
+                </nz-form-control>
+              </nz-form-item>
+            </div>
+          </div>
+
+          <div nz-row [nzGutter]="16">
+            <div nz-col nzSpan="8">
+              <nz-form-item>
+                <nz-form-label>Người ký chính</nz-form-label>
+                <nz-form-control>
+                  <nz-select
+                    formControlName="employeeSignId"
+                    nzShowSearch
+                    nzAllowClear
+                    nzPlaceHolder="Chọn người ký chính">
+                    <nz-option [nzValue]="0" nzLabel="--Chọn người ký chính--"></nz-option>
+                    <nz-option *ngFor="let emp of employees" [nzValue]="emp.ID" [nzLabel]="emp.Code + ' - ' + emp.FullName"></nz-option>
+                  </nz-select>
+                </nz-form-control>
+              </nz-form-item>
+            </div>
+            <div nz-col nzSpan="8">
+              <nz-form-item>
+                <nz-form-label>Đóng dấu gấp</nz-form-label>
+                <nz-form-control>
+                  <div class="d-flex align-items-center">
+                    <label nz-checkbox [(ngModel)]="isUrgent" (ngModelChange)="onIsUrgentChange($event)" [ngModelOptions]="{standalone: true}"></label>
+                    <nz-date-picker
+                      formControlName="deadline"
+                      nzFormat="dd/MM/yyyy HH:mm"
+                      nzShowTime
+                      nzPlaceHolder="Hạn đóng dấu"
+                      [nzDisabled]="!isUrgent"
+                      style="width: 100%; margin-left: 8px;">
+                    </nz-date-picker>
+                  </div>
+                </nz-form-control>
+              </nz-form-item>
+            </div>
+            <div nz-col nzSpan="4">
+              <nz-form-item>
+                <nz-form-label nzRequired>Số lượng bản</nz-form-label>
+                <nz-form-control [nzErrorTip]="'Vui lòng nhập số lượng bản'">
+                  <nz-input-number formControlName="documentQuantity" [nzMin]="1" [nzStep]="1" style="width: 100%;"></nz-input-number>
+                </nz-form-control>
+              </nz-form-item>
+            </div>
+            <div nz-col nzSpan="4">
+              <nz-form-item>
+                <nz-form-label>Số tờ/bản</nz-form-label>
+                <nz-form-control>
+                  <nz-input-number formControlName="documentTotalPage" [nzMin]="0" [nzStep]="1" style="width: 100%;"></nz-input-number>
+                </nz-form-control>
+              </nz-form-item>
+            </div>
+          </div>
+
+          <div nz-row [nzGutter]="16">
+            <div nz-col nzSpan="8">
+              <nz-form-item>
+                <nz-form-label nzRequired>Loại văn bản</nz-form-label>
+                <nz-form-control [nzErrorTip]="'Vui lòng chọn loại văn bản'">
+                  <nz-select
+                    formControlName="documentTypeId"
+                    nzShowSearch
+                    nzAllowClear
+                    nzPlaceHolder="Chọn loại văn bản">
+                    <nz-option [nzValue]="0" nzLabel="--Chọn loại văn bản--"></nz-option>
+                    <nz-option *ngFor="let type of documentTypes" [nzValue]="type.ID" [nzLabel]="type.Name"></nz-option>
+                  </nz-select>
+                </nz-form-control>
+              </nz-form-item>
+            </div>
+            <div nz-col nzSpan="16">
+              <nz-form-item>
+                <nz-form-label nzRequired>Tên văn bản</nz-form-label>
+                <nz-form-control [nzErrorTip]="'Vui lòng nhập tên văn bản'">
+                  <input nz-input formControlName="documentName" placeholder="Nhập tên văn bản" />
+                </nz-form-control>
+              </nz-form-item>
+            </div>
+          </div>
+        </div>
+
+        <div nz-col nzSpan="8">
+          <nz-form-item>
+            <nz-form-label>File đính kèm</nz-form-label>
+            <nz-form-control>
+              <input type="file" multiple (change)="onSelectFile($event)" class="form-control form-control-sm mb-2" />
+              <div #tb_File id="tb_File" style="height: 80px;"></div>
+            </nz-form-control>
+          </nz-form-item>
+        </div>
+      </div>
+
+      <div nz-row [nzGutter]="16" class="mt-2">
+        <div nz-col nzSpan="12">
+          <fieldset class="p-2 bg-light border">
+            <legend class="mb-2">Tên công ty <span class="text-danger">(*)</span></legend>
+            <div class="row m-0">
+              <div class="col-md-4 col-6 mb-2" *ngFor="let tax of taxCompanies">
+                <label nz-checkbox 
+                  [ngModel]="selectedTaxCompanies.includes(tax.ID)"
+                  (ngModelChange)="onTaxCompanyChange(tax.ID, $event)"
+                  [ngModelOptions]="{standalone: true}">
+                  {{ tax.Code }}
+                </label>
+              </div>
+            </div>
+          </fieldset>
+        </div>
+
+        <div nz-col nzSpan="12">
+          <fieldset class="p-2 bg-light border">
+            <legend class="mb-2">Quy cách đóng dấu <span class="text-danger">(*)</span></legend>
+            <div class="row m-0">
+              <div class="col-md-4 col-6 mb-2" *ngFor="let seal of sealRegulations">
+                <label nz-checkbox 
+                  [ngModel]="selectedSealRegulations.includes(seal.ID)"
+                  (ngModelChange)="onSealRegulationChange(seal.ID, $event)"
+                  [ngModelOptions]="{standalone: true}">
+                  {{ seal.SealName }}
+                </label>
+              </div>
+            </div>
+          </fieldset>
+        </div>
+      </div>
+    </form>
+  </div>
+
+  <div class="modal-footer bg-whitesmoke p-2 border-top">
+    <button nz-button nzType="default" nzDanger (click)="close()">Đóng</button>
+    <button nz-button nzType="primary" (click)="save()">
+      <span nz-icon nzType="save"></span> {{ isEdit ? 'Cập nhật' : 'Thêm mới' }}
+    </button>
+  </div>
+</div>
+

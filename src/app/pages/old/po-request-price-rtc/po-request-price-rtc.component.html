@@ -1,35 +1,33 @@
 <!-- quotation-kh-detail.component.html -->
-<div class="modal-header bg-primary text-uppercase py-2">
+<div style="display: flex; flex-direction: column; height: 99.6vh; position: relative;">
+  <div class="modal-header bg-primary text-uppercase py-2">
     <h6 class="modal-title text-white">YÊU CẦU BÁO GIÁ</h6>
     <button type="button" class="btn-close" (click)="closeModal()" aria-label="Close"></button>
   </div>
-  
+
   <div class="modal-body p-1">
     <form>
       <div class="container-fluid">
         <div class="row g-2 align-items-end">
-  
+
           <div class="col">
             <label class="mb-0 fs-12">Ngày yêu cầu</label>
-            <nz-date-picker name="startDate" class="w-100" nzSize="small"
-                            [(ngModel)]="formData.requestDate">
+            <nz-date-picker name="startDate" class="w-100" nzSize="small" [(ngModel)]="formData.requestDate">
             </nz-date-picker>
           </div>
-  
+
 
           <div class="col">
             <label class="mb-0 fs-12">Người yêu cầu</label>
-            <nz-select nzShowSearch nzAllowClear class="w-100" nzSize="small"
-                       [(ngModel)]="formData.userId" name="userId"
-                       [nzDisabled]="isUserIdDisabled">
-              <nz-option *ngFor="let item of this.formUserData"
-                         [nzValue]="item.ID"
-                         [nzLabel]="item.Code + '-' + item.FullName">
+            <nz-select nzShowSearch nzAllowClear class="w-100" nzSize="small" [(ngModel)]="formData.userId"
+              name="userId" [nzDisabled]="isUserIdDisabled">
+              <nz-option *ngFor="let item of this.formUserData" [nzValue]="item.ID"
+                [nzLabel]="item.Code + '-' + item.FullName">
               </nz-option>
             </nz-select>
           </div>
         </div>
-  
+
         <!-- Bảng sản phẩm chi tiết -->
         <div class="row mt-3">
           <div #tb_Table></div>
@@ -37,7 +35,7 @@
 
       </div>
     </form>
-  
+
     <div class="modal-footer py-1 d-flex justify-content-between">
       <button nz-button nzType="primary" nzDanger nzSize="default" (click)="deleteRequest()">Xóa yêu cầu</button>
       <div class="d-flex gap-2">
@@ -46,4 +44,4 @@
       </div>
     </div>
   </div>
-  
+</div>

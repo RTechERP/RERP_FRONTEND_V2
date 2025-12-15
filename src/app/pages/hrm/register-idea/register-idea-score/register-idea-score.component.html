@@ -1,0 +1,76 @@
+<div class="modal-content">
+  <div class="modal-header bg-primary p-2">
+    <h6 class="modal-title text-uppercase text-white m-0">Chấm điểm ý tưởng</h6>
+    <button type="button" class="btn-close btn-close-white" (click)="close()"></button>
+  </div>
+
+  <div class="modal-body p-3">
+    <form [formGroup]="form" nz-form nzLayout="vertical">
+      <div nz-row [nzGutter]="16" class="align-items-center">
+        <div nz-col nzSpan="8">
+          <nz-form-item>
+            <nz-form-label>Tên ý tưởng</nz-form-label>
+            <nz-form-control>
+              <input nz-input formControlName="ideaName" [value]="ideaName" readonly />
+            </nz-form-control>
+          </nz-form-item>
+        </div>
+
+        <div nz-col nzSpan="8">
+          <nz-form-item>
+            <nz-form-label>Phòng ban liên quan</nz-form-label>
+            <nz-form-control>
+              <nz-select
+                formControlName="selectedDepartmentIds"
+                nzMode="multiple"
+                nzShowSearch
+                nzAllowClear
+                nzPlaceHolder="Chọn phòng ban"
+                [nzDisabled]="!canSelectDepartment"
+                [(ngModel)]="selectedDepartmentIds"
+                (ngModelChange)="onDepartmentChange($event)">
+                <nz-option *ngFor="let dept of departments" [nzValue]="dept.ID" [nzLabel]="dept.Name"></nz-option>
+              </nz-select>
+            </nz-form-control>
+          </nz-form-item>
+        </div>
+
+        <div nz-col nzSpan="4">
+          <nz-form-item>
+            <nz-form-label>Điểm số</nz-form-label>
+            <nz-form-control>
+              <nz-select
+                formControlName="selectedScore"
+                nzPlaceHolder="Chọn điểm"
+                [(ngModel)]="selectedScore">
+                <nz-option *ngFor="let score of scoreOptions" [nzValue]="score.value" [nzLabel]="score.label"></nz-option>
+              </nz-select>
+            </nz-form-control>
+          </nz-form-item>
+        </div>
+
+        <div nz-col nzSpan="4">
+          <nz-form-item class="mb-0">
+            <nz-form-label>&nbsp;</nz-form-label>
+            <nz-form-control>
+              <label nz-checkbox formControlName="isTBP" [(ngModel)]="isTBP" [nzDisabled]="true">
+                TBP
+              </label>
+            </nz-form-control>
+          </nz-form-item>
+        </div>
+      </div>
+    </form>
+
+    <div class="mt-3">
+      <h6 class="mb-2">Lịch sử chấm điểm</h6>
+      <div #tb_Score id="tb_Score" style="height: 250px;"></div>
+    </div>
+  </div>
+
+  <div class="modal-footer bg-whitesmoke p-2 border-top">
+    <button nz-button nzType="default" nzDanger (click)="close()">Đóng</button>
+    <button nz-button nzType="primary" (click)="saveScore()">Chấm điểm </button>
+  </div>
+</div>
+

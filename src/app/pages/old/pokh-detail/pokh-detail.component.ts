@@ -1209,10 +1209,9 @@ export class PokhDetailComponent implements OnInit, AfterViewInit {
             : row.CurrencyID,
         TT: !row.TT || Object.keys(row.TT).length === 0 ? '' : row.TT,
         ProjectPartListID:
-          !row.ProjectPartListID ||
-            Object.keys(row.ProjectPartListID).length === 0
-            ? 0
-            : row.ProjectPartListID,
+          row.ProjectPartListID != null && row.ProjectPartListID !== ''
+            ? row.ProjectPartListID
+            : 0,
         Spec: !row.Spec || Object.keys(row.Spec).length === 0 ? '' : row.Spec,
         ReceiveMoney:
           !row.ReceiveMoney || Object.keys(row.ReceiveMoney).length === 0

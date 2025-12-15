@@ -130,7 +130,7 @@ export class PoRequestPriceRtcComponent implements OnInit, AfterViewInit{
     
     // Nếu không phải admin, set userId của user hiện tại
     if (!isAdmin) {
-      const currentUserId = this.appUserService.id;
+      const currentUserId = this.appUserService.employeeID;
       if (currentUserId) {
         this.formData.userId = currentUserId;
       }

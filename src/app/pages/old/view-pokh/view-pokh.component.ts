@@ -52,6 +52,7 @@ import { NgbModal } from '@ng-bootstrap/ng-bootstrap';
 import { map, catchError, of, forkJoin } from 'rxjs';
 import { NgbActiveModal } from '@ng-bootstrap/ng-bootstrap';
 import { NzNotificationService } from 'ng-zorro-antd/notification';
+import * as ExcelJS from 'exceljs';
 
 import { HandoverMinutesComponent } from '../handover-minutes/handover-minutes.component';
 import { ViewPokhService } from '../view-pokh/view-pokh/view-pokh.service';
@@ -1410,6 +1411,211 @@ export class ViewPokhComponent implements OnInit, AfterViewInit {
 
       rowData['selectedExports'] = [];
     });
+  }
+  //#endregion
+
+  //#region Xuất Excel
+  async exportExcel(): Promise<void> {
+    if (!this.viewPOKH) {
+      this.notification.warning('Thông báo', 'Không có dữ liệu để xuất Excel');
+      return;
+    }
+
+    const workbook = new ExcelJS.Workbook();
+    const worksheet = workbook.addWorksheet('View POKH');
+
+    // Định nghĩa các cột cần xuất
+    const columnDefs = [
+      { field: 'PONumber', title: 'Số POKH', width: 20 },
+      { field: 'ProjectCode', title: 'Mã dự án', width: 15 },
+      { field: 'CustomerName', title: 'Khách hàng', width: 25 },
+      { field: 'StatusText', title: 'Trạng thái', width: 25 },
+      { field: 'ReceivedDatePO', title: 'Ngày PO', width: 12, isDate: true },
+      { field: 'FullName', title: 'Sale phụ trách', width: 18 },
+      { field: 'Maker', title: 'Hãng', width: 12 },
+      { field: 'ProductNewCode', title: 'Mã nội bộ', width: 15 },
+      { field: 'GuestCode', title: 'Mã theo khách', width: 15 },
+      { field: 'Qty', title: 'SL PO', width: 10, isMoney: false },
+      { field: 'QuantityDelived', title: 'SL đã giao', width: 12 },
+      { field: 'QuantityPending', title: 'SL Pending', width: 12 },
+      { field: 'Unit', title: 'ĐVT', width: 8 },
+      { field: 'NetUnitPrice', title: 'Đơn giá NET', width: 15, isMoney: true },
+      { field: 'UnitPrice', title: 'Đơn giá (chưa VAT)', width: 18, isMoney: true },
+      { field: 'IntoMoney', title: 'Tổng giá (chưa VAT)', width: 18, isMoney: true },
+      { field: 'VAT', title: 'VAT(%)', width: 10 },
+      { field: 'TotalPriceIncludeVAT', title: 'Tổng tiền (gồm VAT)', width: 20, isMoney: true },
+      { field: 'DeliveryRequestedDate', title: 'Ngày dự kiến GH', width: 15, isDate: true },
+      { field: 'DateMinutes', title: 'Ngày GH thực tế', width: 15 },
+      { field: 'PayDate', title: 'Ngày TT dự kiến', width: 15, isDate: true },
+      { field: 'MoneyDate', title: 'Ngày tiền về', width: 12, isDate: true },
+      { field: 'CompanyName', title: 'Công ty', width: 20 },
+      { field: 'InvoiceNumberShow', title: 'Số HĐ (từ YC xuất)', width: 18 },
+      { field: 'InvoiceDateShow', title: 'Ngày HĐ (từ YC)', width: 15, isDate: true },
+      { field: 'BillNumber', title: 'Số HĐ đầu ra', width: 15 },
+      { field: 'BillDate', title: 'Ngày HĐ đầu ra', width: 15, isDate: true },
+      { field: 'RequestDate', title: 'Ngày đặt hàng', width: 15, isDate: true },
+      { field: 'DateRequestImport', title: 'Ngày hàng về', width: 15, isDate: true },
+      { field: 'SupplierName', title: 'Nhà cung cấp', width: 20 },
+      { field: 'SomeBill', title: 'Đầu vào (số HĐ/tờ khai)', width: 20 },
+      { field: 'ExpectedDate', title: 'Ngày dự kiến hàng về', width: 18, isDate: true },
+      { field: 'BillImportCode', title: 'PNK', width: 15 },
+    ];
+
+    // Thiết lập header
+    worksheet.columns = columnDefs.map(col => ({
+      header: col.title,
+      key: col.field,
+      width: col.width,
+    }));
+
+    // Style header
+    const headerRow = worksheet.getRow(1);
+    headerRow.font = { bold: true, color: { argb: 'FFFFFFFF' } };
+    headerRow.fill = {
+      type: 'pattern',
+      pattern: 'solid',
+      fgColor: { argb: 'FF4472C4' },
+    };
+    headerRow.alignment = { horizontal: 'center', vertical: 'middle' };
+    headerRow.height = 25;
+
+    // Lấy dữ liệu đã group
+    const groups = this.viewPOKH.getGroups();
+    let currentRow = 2;
+
+    if (groups && groups.length > 0) {
+      // Có group - xuất theo group
+      groups.forEach((group: any) => {
+        const groupKey = group.getKey();
+        const groupRows = group.getRows();
+
+        // Thêm thanh group header
+        const groupHeaderRow = worksheet.getRow(currentRow);
+        worksheet.mergeCells(currentRow, 1, currentRow, columnDefs.length);
+        groupHeaderRow.getCell(1).value = `${groupKey} (${groupRows.length} items)`;
+        groupHeaderRow.font = { bold: true, size: 12 };
+        groupHeaderRow.fill = {
+          type: 'pattern',
+          pattern: 'solid',
+          fgColor: { argb: 'FFD9E2F3' },
+        };
+        groupHeaderRow.height = 22;
+        groupHeaderRow.alignment = { vertical: 'middle' };
+        currentRow++;
+
+        // Thêm các dòng trong group
+        groupRows.forEach((row: any) => {
+          const rowData = row.getData();
+          const excelRow = worksheet.getRow(currentRow);
+
+          columnDefs.forEach((col, colIndex) => {
+            let value = rowData[col.field];
+
+            // Format date
+            if (col.isDate && value) {
+              value = new Date(value).toLocaleDateString('vi-VN');
+            }
+
+            // Format money
+            if (col.isMoney && value) {
+              value = Number(value);
+            }
+
+            excelRow.getCell(colIndex + 1).value = value ?? '';
+
+            // Áp dụng format number cho cột tiền
+            if (col.isMoney) {
+              excelRow.getCell(colIndex + 1).numFmt = '#,##0';
+            }
+          });
+
+          // Áp dụng màu cho cột trạng thái
+          const statusValue = rowData['StatusText'];
+          if (statusValue) {
+            let bgColor = 'FFFFFFFF';
+            switch (statusValue) {
+              case 'Chưa giao , chưa thanh toán':
+                bgColor = 'FFF2F5A9';
+                break;
+              case 'Chưa giao, đã thanh toán':
+                bgColor = 'FFF5D0A9';
+                break;
+              case 'Đã giao, nhưng chưa thanh toán':
+                bgColor = 'FFA9F5F2';
+                break;
+              case 'Đã thanh toán, GH chưa xuất hóa đơn':
+                bgColor = 'FFCEF6CE';
+                break;
+            }
+            const statusColIndex = columnDefs.findIndex(c => c.field === 'StatusText') + 1;
+            if (statusColIndex > 0) {
+              excelRow.getCell(statusColIndex).fill = {
+                type: 'pattern',
+                pattern: 'solid',
+                fgColor: { argb: bgColor },
+              };
+            }
+          }
+
+          currentRow++;
+        });
+      });
+    } else {
+      // Không có group - xuất tất cả dữ liệu
+      const allData = this.viewPOKH.getData();
+      allData.forEach((rowData: any) => {
+        const excelRow = worksheet.getRow(currentRow);
+
+        columnDefs.forEach((col, colIndex) => {
+          let value = rowData[col.field];
+
+          if (col.isDate && value) {
+            value = new Date(value).toLocaleDateString('vi-VN');
+          }
+
+          if (col.isMoney && value) {
+            value = Number(value);
+          }
+
+          excelRow.getCell(colIndex + 1).value = value ?? '';
+
+          if (col.isMoney) {
+            excelRow.getCell(colIndex + 1).numFmt = '#,##0';
+          }
+        });
+
+        currentRow++;
+      });
+    }
+
+    // Thêm border cho tất cả cells có data
+    for (let i = 1; i < currentRow; i++) {
+      const row = worksheet.getRow(i);
+      row.eachCell({ includeEmpty: false }, (cell) => {
+        cell.border = {
+          top: { style: 'thin' },
+          left: { style: 'thin' },
+          bottom: { style: 'thin' },
+          right: { style: 'thin' },
+        };
+      });
+    }
+
+    // Xuất file
+    const buffer = await workbook.xlsx.writeBuffer();
+    const blob = new Blob([buffer], {
+      type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+    });
+    const url = window.URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    const now = new Date();
+    const dateStr = `${now.getFullYear()}${String(now.getMonth() + 1).padStart(2, '0')}${String(now.getDate()).padStart(2, '0')}`;
+    link.download = `ViewPOKH_${dateStr}.xlsx`;
+    link.click();
+    window.URL.revokeObjectURL(url);
+
+    this.notification.success('Thành công', 'Xuất Excel thành công!');
   }
   //#endregion
 }

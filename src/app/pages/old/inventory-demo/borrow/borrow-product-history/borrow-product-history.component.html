@@ -35,7 +35,7 @@
                                         <nz-option-group [nzLabel]="'-- Phòng ban: ' + group.label">
                                             <nz-option *ngFor="let option of group.options"
                                                 [nzLabel]="option.item.Code +' - '+ option.item.FullName"
-                                                [nzValue]="option.item.EmployeeeID">
+                                                [nzValue]="option.item.UserID">
                                             </nz-option>
                                         </nz-option-group>
                                     </ng-container>

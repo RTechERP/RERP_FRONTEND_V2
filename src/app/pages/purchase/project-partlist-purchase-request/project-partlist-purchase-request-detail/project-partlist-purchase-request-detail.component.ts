@@ -63,19 +63,10 @@ import { concatMap, distinctUntilChanged } from 'rxjs/operators';
 import { NzInputNumberModule } from 'ng-zorro-antd/input-number';
 import { CustomerServiceService } from '../../../crm/customers/customer/customer-service/customer-service.service';
 import { PokhService } from '../../../old/pokh/pokh-service/pokh.service';
-import { EmployeeService } from '../../../hrm/employee/employee-service/employee.service';
 import { WarehouseReleaseRequestService } from '../../../old/warehouse-release-request/warehouse-release-request/warehouse-release-request.service';
 import { CurrencyService } from '../../../general-category/currency-list/currency.service';
 import { ProjectPartlistPurchaseRequestService } from '../project-partlist-purchase-request.service';
 import { TsAssetManagementFormComponent } from '../../../hrm/asset/asset/ts-asset-management/ts-asset-management-form/ts-asset-management-form.component';
-import { FirmService } from '../../../general-category/firm/firm-service/firm.service';
-import { ProjectPartListService } from '../../../project/project-department-summary/project-department-summary-form/project-part-list/project-partlist-service/project-part-list-service.service';
-
-// ProductType enum
-enum ProductType {
-  PRODUCT_SALE = 0,
-  PRODUCT_RTC = 1
-}
 
 @Component({
   selector: 'app-project-partlist-purchase-request-detail',
@@ -122,15 +113,10 @@ export class ProjectPartlistPurchaseRequestDetailComponent
     private pokhService: PokhService,
     private whService: WarehouseReleaseRequestService,
     private currencyService: CurrencyService,
-    private projectPartlistPurchaseRequestService: ProjectPartlistPurchaseRequestService,
-    private firmService: FirmService,
-    private employeeService: EmployeeService,
-    private projectPartListService: ProjectPartListService
+    private projectPartlistPurchaseRequestService: ProjectPartlistPurchaseRequestService
   ) { }
 
   @Input() projectPartlistDetail: any;
-  @Input() productType?: ProductType;
-  @Input() productRTCID?: number;
   
   validateForm!: FormGroup;
   customers: any[] = [];
@@ -144,17 +130,6 @@ export class ProjectPartlistPurchaseRequestDetailComponent
   isDisable: any = false;
   IsTechBought: any = false;
   isLoadingData: boolean = false; // Flag để tránh trigger valueChanges khi đang load data
-  
-  // ProductType related
-  currentProductType: ProductType = ProductType.PRODUCT_SALE;
-  allowProductTypeSwitch: boolean = false; // Set to true if you want radio buttons
-  
-  // ProductRTC specific data
-  productsRTC: any[] = [];
-  firms: any[] = [];
-  unitCounts: any[] = [];
-  productGroupsRTC: any[] = [];
-  employeeApproves: any[] = [];
 
   private initForm() {
     this.validateForm = this.fb.group({
@@ -188,16 +163,6 @@ export class ProjectPartlistPurchaseRequestDetailComponent
       Note: [''],
       LeadTime: [0],
       IsImport: [false],
-
-      // NEW: ProductRTC fields
-      ProductRTCID: [0],
-      ProductCode: [''],
-      FirmID: [0],
-      UnitCountID: [0],
-      ProductGroupRTCID: [0],
-      TicketType: [0],
-      DateReturnEstimated: [null],
-      EmployeeApproveID: [0],
     });
 
     ['UnitPrice', 'Quantity', 'VAT', 'CurrencyRate'].forEach((field) => {
@@ -224,35 +189,14 @@ export class ProjectPartlistPurchaseRequestDetailComponent
       .get('ProductSaleID')
       ?.valueChanges.pipe(distinctUntilChanged())
       .subscribe(() => {
-        if (!this.isLoadingData && this.currentProductType === ProductType.PRODUCT_SALE) {
-          setTimeout(() => this.getProductSale(), 0);
-        }
-      });
-
-    // NEW: ProductRTC listener
-    this.validateForm
-      .get('ProductRTCID')
-      ?.valueChanges.pipe(distinctUntilChanged())
-      .subscribe(() => {
-        if (!this.isLoadingData && this.currentProductType === ProductType.PRODUCT_RTC) {
-          setTimeout(() => this.getProductRTC(), 0);
-        }
-      });
-
-    // NEW: TicketType listener
-    this.validateForm
-      .get('TicketType')
-      ?.valueChanges.pipe(distinctUntilChanged())
-      .subscribe((ticketType) => {
         if (!this.isLoadingData) {
-          this.handleTicketTypeChange(ticketType);
+          setTimeout(() => this.getProductSale(), 0);
         }
       });
   }
   //#endregion
 
   ngOnInit(): void {
-    this.currentProductType = this.productType || ProductType.PRODUCT_SALE;
     this.initForm();
     
     // Load common data
@@ -260,25 +204,9 @@ export class ProjectPartlistPurchaseRequestDetailComponent
     this.getEmployee();
     this.getCurrency();
     this.getSupplierSale();
-    
-    // Load specific data based on product type
-    if (this.currentProductType === ProductType.PRODUCT_SALE) {
-      this.getProducts();
-      this.getProductGroup();
-      this.loadData();
-    } else {
-      // Load ProductRTC data first, then load form data
-      this.getProductsRTC();
-      this.getFirms();
-      this.getUnitCounts();
-      this.getProductGroupsRTC();
-      this.getEmployeeApproves();
-      
-      // Wait a bit for data to load, then load form data
-      setTimeout(() => {
-        this.loadData();
-      }, 200);
-    }
+    this.getProducts();
+    this.getProductGroup();
+    this.loadData();
   }
 
   ngAfterViewInit(): void { }
@@ -291,13 +219,6 @@ export class ProjectPartlistPurchaseRequestDetailComponent
       this.isDisable = id > 0;
 
       this.IsTechBought = data.IsTechBought;
-      
-      // Determine product type
-      if (data.ProductRTCID && data.ProductRTCID > 0) {
-        this.currentProductType = ProductType.PRODUCT_RTC;
-      } else {
-        this.currentProductType = ProductType.PRODUCT_SALE;
-      }
       
       // Set flag để tránh trigger valueChanges khi đang load
       this.isLoadingData = true;
@@ -334,56 +255,10 @@ export class ProjectPartlistPurchaseRequestDetailComponent
         LeadTime: data.TotalDayLeadTime ?? '',
 
         IsImport: data.IsImport ?? false,
+        ProductSaleID: data.ProductSaleID ?? 0,
+        Unit: data.UnitName ?? '',
+        ProductGroupID: data.ProductGroupID ?? 0,
       };
-      
-      // Set specific fields based on type
-      if (this.currentProductType === ProductType.PRODUCT_RTC) {
-        formValue.ProductRTCID = data.ProductRTCID ?? 0;
-        formValue.ProductCode = data.ProductCode ?? '';
-        formValue.ProductGroupRTCID = data.ProductGroupRTCID ?? 0;
-        formValue.TicketType = data.TicketType ?? 0;
-        formValue.DateReturnEstimated = data.DateReturnEstimated ?? null;
-        formValue.EmployeeApproveID = data.EmployeeApproveID ?? 0;
-        
-        // Map Maker/FirmName to FirmID - Maker và FirmName là như nhau
-        if (data.Maker || data.FirmName) {
-          const makerName = data.Maker || data.FirmName;
-          const firm = this.firms.find(f => f.FirmName === makerName);
-          formValue.FirmID = firm?.ID ?? 0;
-          // Đảm bảo Maker field cũng có giá trị
-          formValue.Maker = makerName;
-        } else {
-          formValue.FirmID = 0;
-          formValue.Maker = '';
-        }
-        
-        // Map UnitName to UnitCountID
-        if (data.UnitName) {
-          const unit = this.unitCounts.find(u => u.UnitCountName === data.UnitName);
-          formValue.UnitCountID = unit?.ID ?? 0;
-        } else {
-          formValue.UnitCountID = 0;
-        }
-        
-        // Clear ProductSale fields
-        formValue.ProductSaleID = 0;
-        formValue.Unit = '';
-        formValue.ProductGroupID = 0;
-      } else {
-        formValue.ProductSaleID = data.ProductSaleID ?? 0;
-        formValue.Unit = data.UnitName ?? '';
-        formValue.ProductGroupID = data.ProductGroupID ?? 0;
-        
-        // Clear ProductRTC fields
-        formValue.ProductRTCID = 0;
-        formValue.ProductCode = '';
-        formValue.FirmID = 0;
-        formValue.UnitCountID = 0;
-        formValue.ProductGroupRTCID = 0;
-        formValue.TicketType = 0;
-        formValue.DateReturnEstimated = null;
-        formValue.EmployeeApproveID = 0;
-      }
       
       this.validateForm.setValue(formValue);
 
@@ -409,20 +284,6 @@ export class ProjectPartlistPurchaseRequestDetailComponent
         ];
 
         this.updateEditForm(controlsToDisable, false);
-        
-        // Also disable ProductRTC specific fields
-        if (this.currentProductType === ProductType.PRODUCT_RTC) {
-          const productRTCControlsToDisable = [
-            'ProductCode',
-            'FirmID',
-            'UnitCountID',
-            'ProductGroupRTCID',
-            'TicketType',
-            'DateReturnEstimated',
-            'EmployeeApproveID',
-          ];
-          this.updateEditForm(productRTCControlsToDisable, false);
-        }
       }
 
       if (!this.IsTechBought) {
@@ -436,37 +297,20 @@ export class ProjectPartlistPurchaseRequestDetailComponent
         this.updateEditForm(controlsToDisable, false);
       }
 
-      // Disable ProductName nếu có ProductSaleID hoặc ProductRTCID
-      if (this.currentProductType === ProductType.PRODUCT_SALE && data.ProductSaleID && data.ProductSaleID > 0) {
+      // Disable ProductName nếu có ProductSaleID
+      if (data.ProductSaleID && data.ProductSaleID > 0) {
         this.validateForm.get('ProductName')?.disable();
-      } else if (this.currentProductType === ProductType.PRODUCT_RTC && data.ProductRTCID && data.ProductRTCID > 0) {
-        this.validateForm.get('ProductName')?.disable();
-        this.validateForm.get('ProductCode')?.disable();
-        this.validateForm.get('FirmID')?.disable();
-        this.validateForm.get('UnitCountID')?.disable();
-        this.validateForm.get('ProductGroupRTCID')?.disable();
       }
     } else {
       // New record
       this.isDisable = false;
       this.validateForm.patchValue({
         DateRequest: new Date(),
-        TicketType: 0,
         StatusRequest: 'Yêu cầu mua hàng',
       });
       
       // Disable StatusRequest
       this.validateForm.get('StatusRequest')?.disable();
-      
-      if (this.productRTCID && this.productRTCID > 0) {
-        this.validateForm.patchValue({
-          ProductRTCID: this.productRTCID
-        });
-        // Đợi các data (firms, unitCounts, productGroupsRTC) load xong rồi mới fill
-        setTimeout(() => {
-          this.getProductRTC();
-        }, 300);
-      }
     }
   }
 
@@ -557,88 +401,6 @@ export class ProjectPartlistPurchaseRequestDetailComponent
       error: (error: any) => {
         this.notification.error(NOTIFICATION_TITLE.error, error.error.message);
       },
-    });
-  }
-
-  // NEW: Load ProductRTC data - tham khảo TbProductRtcService
-  getProductsRTC() {
-    this.projectPartlistPurchaseRequestService.getProductsRTC().subscribe({
-      next: (response: any) => {
-        // Xử lý response từ API ProductRTC
-        // Response có thể là: { data: products[] } hoặc { data: { products: [] } }
-        if (response?.data) {
-          if (Array.isArray(response.data)) {
-            this.productsRTC = response.data;
-          } else if (response.data.products && Array.isArray(response.data.products)) {
-            this.productsRTC = response.data.products;
-          } else {
-            this.productsRTC = [];
-          }
-        } else if (Array.isArray(response)) {
-          this.productsRTC = response;
-        } else {
-          this.productsRTC = [];
-        }
-        
-        if (this.productRTCID && this.productRTCID > 0 && !this.projectPartlistDetail) {
-          this.validateForm.patchValue({ ProductRTCID: this.productRTCID });
-        }
-      },
-      error: (error) => {
-        this.notification.error(NOTIFICATION_TITLE.error, error.error?.message || 'Lỗi khi tải danh sách sản phẩm RTC');
-      }
-    });
-  }
-
-  getFirms() {
-    this.firmService.getFirms().subscribe({
-      next: (response: any) => {
-        this.firms = response.data || response || [];
-      },
-      error: (error) => {
-        this.notification.error(NOTIFICATION_TITLE.error, error.error?.message || 'Lỗi khi tải danh sách hãng');
-      }
-    });
-  }
-
-  getUnitCounts() {
-    this.projectPartListService.getUnitCount().subscribe({
-      next: (response: any) => {
-        if (response.status === 1 && response.data) {
-          this.unitCounts = response.data || [];
-        } else if (Array.isArray(response)) {
-          this.unitCounts = response;
-        } else if (response.data) {
-          this.unitCounts = response.data;
-        } else {
-          this.unitCounts = [];
-        }
-      },
-      error: (error) => {
-        this.notification.error(NOTIFICATION_TITLE.error, error.error?.message || 'Lỗi khi tải danh sách đơn vị tính');
-      }
-    });
-  }
-
-  getProductGroupsRTC() {
-    this.projectPartlistPurchaseRequestService.getProductGroupsRTC().subscribe({
-      next: (response: any) => {
-        this.productGroupsRTC = response.data || response || [];
-      },
-      error: (error) => {
-        this.notification.error(NOTIFICATION_TITLE.error, error.error?.message || 'Lỗi khi tải danh sách loại kho RTC');
-      }
-    });
-  }
-
-  getEmployeeApproves() {
-    this.employeeService.getEmployeeApprove().subscribe({
-      next: (response: any) => {
-        this.employeeApproves = response.data || response || [];
-      },
-      error: (error) => {
-        this.notification.error(NOTIFICATION_TITLE.error, error.error?.message || 'Lỗi khi tải danh sách người duyệt');
-      }
     });
   }
 
@@ -797,140 +559,6 @@ export class ProjectPartlistPurchaseRequestDetailComponent
     );
   }
 
-  // NEW: Handle ProductRTC change
-  getProductRTC() {
-    if (this.isLoadingData) return;
-    
-    let data = this.validateForm.getRawValue();
-    const productRTCId = data.ProductRTCID;
-    
-    const shouldDisable = productRTCId > 0;
-    if (shouldDisable) {
-      this.validateForm.get('ProductName')?.disable();
-      this.validateForm.get('ProductCode')?.disable();
-      this.validateForm.get('FirmID')?.disable();
-      this.validateForm.get('UnitCountID')?.disable();
-      this.validateForm.get('ProductGroupRTCID')?.disable();
-    } else {
-      this.validateForm.get('ProductName')?.enable();
-      this.validateForm.get('ProductCode')?.enable();
-      this.validateForm.get('FirmID')?.enable();
-      this.validateForm.get('UnitCountID')?.enable();
-      this.validateForm.get('ProductGroupRTCID')?.enable();
-    }
-    
-    if (productRTCId > 0) {
-      this.projectPartlistPurchaseRequestService
-        .getProductRTCById(productRTCId)
-        .subscribe({
-          next: (response: any) => {
-            console.log('getProductRTCById response:', response);
-            const productData = response.data || response;
-            
-            if (productData) {
-              // Map các field từ response vào form
-              const formData: any = {
-                ProductName: productData.ProductName || '',
-                ProductCode: productData.ProductCode || '',
-                FirmID: productData.FirmID || 0,
-                UnitCountID: productData.UnitCountID || 0,
-                ProductGroupRTCID: productData.ProductGroupRTCID || 0,
-              };
-              
-              // Maker và FirmName là như nhau - set vào cả hai field
-              const makerName = productData.FirmName || productData.Maker || '';
-              if (makerName) {
-                formData.Maker = makerName;
-              }
-              
-              console.log('Patching form with data:', formData);
-              console.log('unitCounts available:', this.unitCounts.length);
-              console.log('firms available:', this.firms.length);
-              console.log('productGroupsRTC available:', this.productGroupsRTC.length);
-              
-              // Đảm bảo các dropdown data đã load xong trước khi patchValue
-              // Nếu chưa có data, đợi một chút rồi thử lại
-              if ((formData.FirmID > 0 && this.firms.length === 0) ||
-                  (formData.UnitCountID > 0 && this.unitCounts.length === 0) ||
-                  (formData.ProductGroupRTCID > 0 && this.productGroupsRTC.length === 0)) {
-                console.log('Waiting for dropdown data to load...');
-                setTimeout(() => {
-                  this.validateForm.patchValue(formData);
-                  this.disableProductRTCFields(productRTCId);
-                }, 500);
-              } else {
-                this.validateForm.patchValue(formData);
-                this.disableProductRTCFields(productRTCId);
-              }
-            }
-          },
-          error: (error) => {
-            console.error('Error getting ProductRTC:', error);
-            this.notification.error(NOTIFICATION_TITLE.error, error.error?.message || 'Lỗi khi lấy thông tin sản phẩm RTC');
-          },
-        });
-    }
-  }
-
-  // Helper method để disable ProductRTC fields
-  private disableProductRTCFields(productRTCId: number) {
-    if (productRTCId > 0) {
-      this.validateForm.get('ProductName')?.disable();
-      this.validateForm.get('ProductCode')?.disable();
-      this.validateForm.get('FirmID')?.disable();
-      this.validateForm.get('UnitCountID')?.disable();
-      this.validateForm.get('ProductGroupRTCID')?.disable();
-    }
-  }
-
-  // NEW: Handle Ticket Type change
-  handleTicketTypeChange(ticketType: number) {
-    if (ticketType === 1) { // Phiếu mượn
-      this.validateForm.get('DateReturnEstimated')?.enable();
-      this.validateForm.get('EmployeeApproveID')?.enable();
-      this.validateForm.get('EmployeeApproveID')?.setValidators([Validators.required]);
-    } else { // Phiếu mua
-      this.validateForm.patchValue({
-        DateReturnEstimated: null,
-        EmployeeApproveID: 0
-      });
-      this.validateForm.get('DateReturnEstimated')?.disable();
-      this.validateForm.get('EmployeeApproveID')?.disable();
-      this.validateForm.get('EmployeeApproveID')?.clearValidators();
-    }
-    this.validateForm.get('EmployeeApproveID')?.updateValueAndValidity();
-  }
-
-  // NEW: Add ProductRTC
-  onAddProductRTC() {
-    this.notification.info('Thông báo', 'Chức năng thêm ProductRTC đang được phát triển');
-  }
-
-  // NEW: Product Type Change (if using radio buttons)
-  onProductTypeChange(type: number) {
-    this.currentProductType = type;
-    // Clear opposite type's fields
-    if (type === ProductType.PRODUCT_SALE) {
-      this.validateForm.patchValue({
-        ProductRTCID: 0,
-        ProductCode: '',
-        FirmID: 0,
-        UnitCountID: 0,
-        ProductGroupRTCID: 0,
-        TicketType: 0,
-        DateReturnEstimated: null,
-        EmployeeApproveID: 0,
-      });
-    } else {
-      this.validateForm.patchValue({
-        ProductSaleID: 0,
-        Maker: '',
-        Unit: '',
-        ProductGroupID: 0,
-      });
-    }
-  }
-
   onSave() {
     this.validateForm.markAllAsTouched();
     this.validateForm.updateValueAndValidity();
@@ -940,52 +568,13 @@ export class ProjectPartlistPurchaseRequestDetailComponent
     }
     let data = this.validateForm.getRawValue(); // Dùng getRawValue() để lấy cả disabled fields
 
-    // ProductRTC specific validation
-    if (this.currentProductType === ProductType.PRODUCT_RTC) {
-      if (!data.ProductCode || data.ProductCode.trim() === '') {
-        this.notification.error(NOTIFICATION_TITLE.error, 'Vui lòng nhập mã sản phẩm!');
-        return;
-      }
-      
-      if (data.FirmID <= 0) {
-        this.notification.error(NOTIFICATION_TITLE.error, 'Vui lòng chọn hãng!');
-        return;
-      }
-      
-      if (data.UnitCountID <= 0) {
-        this.notification.error(NOTIFICATION_TITLE.error, 'Vui lòng chọn đơn vị tính!');
-        return;
-      }
-      
-      if (data.ProductGroupRTCID <= 0) {
-        this.notification.error(NOTIFICATION_TITLE.error, 'Vui lòng chọn loại kho!');
-        return;
-      }
-      
-      // Validate Phiếu mượn
-      if (data.TicketType === 1) {
-        if (data.EmployeeApproveID <= 0) {
-          this.notification.error(NOTIFICATION_TITLE.error, 'Vui lòng chọn người duyệt!');
-          return;
-        }
-        
-        if (data.SupplierSaleID <= 0) {
-          this.notification.error(NOTIFICATION_TITLE.error, 'Vui lòng chọn nhà cung cấp!');
-          return;
-        }
-      }
-    }
-    
-    // ProductSale validation (existing)
-    if (this.currentProductType === ProductType.PRODUCT_SALE) {
-      // Kiểm tra người mua
-      if (this.projectPartlistDetail?.ID <= 0 && data.EmployeeBuyID <= 0) {
-        this.notification.error(
-          NOTIFICATION_TITLE.error,
-          'Vui lòng chọn người mua'
-        );
-        return;
-      }
+    // Kiểm tra người mua
+    if (this.projectPartlistDetail?.ID <= 0 && data.EmployeeBuyID <= 0) {
+      this.notification.error(
+        NOTIFICATION_TITLE.error,
+        'Vui lòng chọn người mua'
+      );
+      return;
     }
 
     if (!this.IsTechBought) {
@@ -1114,44 +703,16 @@ export class ProjectPartlistPurchaseRequestDetailComponent
       ProjectPartListID: this.projectPartlistDetail?.ProjectPartListID ?? 0,
     };
     
-    if (this.currentProductType === ProductType.PRODUCT_RTC) {
-      const selectedProduct = this.productsRTC.find(p => p.ID === data.ProductRTCID);
-      const selectedFirm = this.firms.find(f => f.ID === data.FirmID);
-      const selectedUnit = this.unitCounts.find(u => u.ID === data.UnitCountID);
-      
-      return {
-        ...baseModel,
-        ProductRTCID: data.ProductRTCID,
-        ProductCode: data.ProductCode || selectedProduct?.ProductCode || '',
-        ProductGroupRTCID: data.ProductGroupRTCID,
-        Maker: selectedFirm?.FirmName || '',
-        UnitName: selectedUnit?.UnitCountName || '',
-        TicketType: data.TicketType,
-        DateReturnEstimated: data.DateReturnEstimated,
-        EmployeeApproveID: data.EmployeeApproveID,
-        ApprovedTBP: data.EmployeeApproveID,
-        // Clear ProductSale fields
-        ProductSaleID: null,
-        ProductGroupID: null,
-      };
-    } else {
-      const selectedProduct = this.products.find(p => p.ID === data.ProductSaleID);
-      
-      return {
-        ...baseModel,
-        ProductSaleID: data.ProductSaleID,
-        ProductCode: selectedProduct?.ProductCode || '',
-        ProductGroupID: data.ProductGroupID,
-        Maker: data.Maker || '',
-        UnitName: data.Unit || '',
-        // Clear ProductRTC fields
-        ProductRTCID: null,
-        ProductGroupRTCID: null,
-        TicketType: null,
-        DateReturnEstimated: null,
-        EmployeeApproveID: null,
-      };
-    }
+    const selectedProduct = this.products.find(p => p.ID === data.ProductSaleID);
+    
+    return {
+      ...baseModel,
+      ProductSaleID: data.ProductSaleID,
+      ProductCode: selectedProduct?.ProductCode || '',
+      ProductGroupID: data.ProductGroupID,
+      Maker: data.Maker || '',
+      UnitName: data.Unit || '',
+    };
   }
 
   //#endregion

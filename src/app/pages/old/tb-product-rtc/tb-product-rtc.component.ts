@@ -52,13 +52,7 @@ import { DEFAULT_TABLE_CONFIG } from '../../../tabulator-default.config';
 import { NzModalModule, NzModalService } from 'ng-zorro-antd/modal';
 import { HasPermissionDirective } from '../../../directives/has-permission.directive';
 import { NOTIFICATION_TITLE } from '../../../app.config';
-import { ProjectPartlistPurchaseRequestDetailComponent } from '../../purchase/project-partlist-purchase-request/project-partlist-purchase-request-detail/project-partlist-purchase-request-detail.component';
-
-// ProductType enum - same as in ProjectPartlistPurchaseRequestDetailComponent
-enum ProductType {
-  PRODUCT_SALE = 0,
-  PRODUCT_RTC = 1
-}
+import { ProductRtcPurchaseRequestComponent } from '../../purchase/project-partlist-purchase-request/product-rtc-purchase-request/product-rtc-purchase-request.component';
 @Component({
   standalone: true,
   imports: [
@@ -85,6 +79,7 @@ enum ProductType {
     NzModalModule,
     HasPermissionDirective,
     NgbDropdownModule, // thêm để dùng ngbDropdown
+    ProductRtcPurchaseRequestComponent, // Component để tạo yêu cầu mua hàng ProductRTC
   ],
   selector: 'app-tb-product-rtc',
   templateUrl: './tb-product-rtc.component.html',
@@ -787,18 +782,20 @@ export class TbProductRtcComponent implements OnInit, AfterViewInit {
         return;
       }
 
-      // Mở modal yêu cầu mua hàng
-      const modalRef = this.ngbModal.open(ProjectPartlistPurchaseRequestDetailComponent, {
+      // Mở modal yêu cầu mua hàng ProductRTC - Fullscreen
+      const modalRef = this.ngbModal.open(ProductRtcPurchaseRequestComponent, {
+        size: 'fullscreen',
         backdrop: 'static',
         keyboard: false,
-        centered: true,
-        windowClass: 'modal-full-screen',
+        centered: false,
+        modalDialogClass: 'modal-fullscreen',
       });
 
-      // Truyền productRTCID và productType
+      // Truyền productRTCID để auto-select sản phẩm khi mở form
       modalRef.componentInstance.productRTCID = productRTCID;
-      modalRef.componentInstance.productType = ProductType.PRODUCT_RTC;
       modalRef.componentInstance.projectPartlistDetail = null; // New record
+      modalRef.componentInstance.warehouseID = this.warehouseID;
+      modalRef.componentInstance.warehouseType = this.warehouseType;
 
       modalRef.result.then(
         (result) => {

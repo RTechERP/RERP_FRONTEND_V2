@@ -33,11 +33,35 @@ export class PaymentOrderService {
     constructor(private http: HttpClient) { }
 
     get(data: any): Observable<any> {
-        return this.http.post<any>(this.url, { params: data });
+        return this.http.post<any>(this.url, data);
+    }
+
+    getDetail(id: number): Observable<any> {
+        return this.http.get<any>(this.url + `/${id}`);
     }
 
     save(payment: any): Observable<any> {
         return this.http.post<any>(`${this.url}/save-data`, payment);
+    }
+
+    appovedTBP(data: any): Observable<any> {
+        return this.http.post<any>(`${this.url}/appoved-tbp`, data);
+    }
+
+    appovedHR(data: any): Observable<any> {
+        return this.http.post<any>(`${this.url}/appoved-hr`, data);
+    }
+
+    appovedKTTT(data: any): Observable<any> {
+        return this.http.post<any>(`${this.url}/appoved-kttt`, data);
+    }
+
+    appovedKTT(data: any): Observable<any> {
+        return this.http.post<any>(`${this.url}/appoved-ktt`, data);
+    }
+
+    appovedBGD(data: any): Observable<any> {
+        return this.http.post<any>(`${this.url}/appoved-bgd`, data);
     }
 
     uploadFiles(file: any): Observable<any> {

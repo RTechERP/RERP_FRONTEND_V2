@@ -320,3 +320,7 @@ button[nz-button] img {
   /* background-image: none !important; */
   font-weight: bold;
 }
+
+.p-menubar-submenu{
+    z-index: 2 !important;
+}

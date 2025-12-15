@@ -240,12 +240,12 @@ export class WFHDetailComponent implements OnInit {
   // Initialize reactive form
   private initForm(): void {
     this.wfhForm = this.fb.group({
-      employeeId: [null, [Validators.required, this.positiveNumberValidator]],
+      employeeId: [{ value: null, disabled: true }, [Validators.required, this.positiveNumberValidator],],
       approvedId: [null, [Validators.required, this.positiveNumberValidator]],
       dateWFH: [new Date(), Validators.required],
       timeWFH: [0, [Validators.required, this.positiveNumberValidator]],
       reason: ['', [Validators.required, Validators.minLength(1)]],
-      contentWork: ['', Validators.required],
+      contentWork: ['', [Validators.required, Validators.minLength(10)]],
       reasonEdit: [''],
       evaluateResults: [''],
       reasonDecline: [''],
@@ -438,6 +438,12 @@ export class WFHDetailComponent implements OnInit {
     // Check Lý do
     const reason = this.wfhForm.get('reason')?.value;
     if (!reason || !reason.trim()) {
+      this.notification.warning(NOTIFICATION_TITLE.warning, 'Vui lòng nhập đủ thông tin bắt buộc');
+      return false;
+    }
+
+      const contentWork = this.wfhForm.get('contentWork')?.value;
+    if (!contentWork || !contentWork.trim()) {
       this.notification.warning(NOTIFICATION_TITLE.warning, 'Vui lòng nhập đủ thông tin bắt buộc');
       return false;
     }

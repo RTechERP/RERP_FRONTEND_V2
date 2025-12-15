@@ -31,6 +31,9 @@ import { NzSpinModule } from 'ng-zorro-antd/spin';
 import { HasPermissionDirective } from "../../../directives/has-permission.directive";
 import { NOTIFICATION_TITLE } from '../../../app.config';
 import { DEFAULT_TABLE_CONFIG } from '../../../tabulator-default.config';
+import { AuthService } from '../../../auth/auth.service';
+import { WFHService } from '../employee-management/employee-wfh/WFH-service/WFH.service';
+
 
 
 @Component({
@@ -64,6 +67,7 @@ import { DEFAULT_TABLE_CONFIG } from '../../../tabulator-default.config';
 })
 export class DayOffComponent implements OnInit, AfterViewInit {
 
+  @ViewChild('listSummaryTable') tableRef!: ElementRef;
   private tabulator!: Tabulator;
   searchForm!: FormGroup;
   dayOffForm!: FormGroup;
@@ -71,6 +75,7 @@ export class DayOffComponent implements OnInit, AfterViewInit {
   approverList: any[] = [];
   departmentList: any[] = [];
   dayOffList: any[] = [];
+  approvers: { department: string, list: any[] }[] = [];
 
   sizeSearch: string = '0';
   sizeTbDetail: any = '0';
@@ -79,6 +84,23 @@ export class DayOffComponent implements OnInit, AfterViewInit {
   isLoading = false;
 
   selectedDayOff: any = null;
+  currentUser: any;
+  currentEmployee: any;
+
+   listParams = {
+    DepartmentID: 0,
+    EmployeeID: 0,
+    IsApproved: -1,
+    Type: 0,
+    Keyword: '',
+    DateStart: new Date(),
+    DateEnd: new Date(),
+  };
+
+  listSummaryData: any;
+  listSummaryTable: Tabulator | null = null;
+
+
 
   constructor(
     private fb: FormBuilder,
@@ -86,7 +108,9 @@ export class DayOffComponent implements OnInit, AfterViewInit {
     private modal: NzModalService,
     private departmentService: DepartmentServiceService,
     private dayOffService: DayOffService,
-    private employeeService: EmployeeService
+    private employeeService: EmployeeService,
+    private authService: AuthService,
+    private wfhService: WFHService
   ) { }
 
   ngOnInit() {
@@ -95,10 +119,21 @@ export class DayOffComponent implements OnInit, AfterViewInit {
     this.loadDepartments();
     this.loadApprovers();
     this.loadEmployees();
+    this.getSummaryEmployee();
+
+      this.authService.getCurrentUser().subscribe((res: any) => {
+      const data = res?.data;
+      this.currentUser = Array.isArray(data) ? data[0] : data;
+        this.currentEmployee = Array.isArray(this.currentUser)
+      ? this.currentUser[0]
+      : this.currentUser;
+    });
   }
 
   ngAfterViewInit(): void {
     this.initializeTable();
+    this.draw_listSummaryTable();
+    
   }
 
   toggleSearchPanel() {
@@ -177,17 +212,69 @@ export class DayOffComponent implements OnInit, AfterViewInit {
     })
   }
 
-  loadApprovers() {
-    this.employeeService.getEmployeeApprove().subscribe({
-      next: (data) => {
-        this.approverList = data.data;
-      },
-      error: (error) => {
-        this.notification.error(NOTIFICATION_TITLE.error, 'Lỗi khi tải danh sách người duyệt: ' + error.message);
-        this.notification.error(NOTIFICATION_TITLE.error, 'Lỗi khi tải danh sách người duyệt: ' + error.message);
-      }
-    })
-  }
+  getSummaryEmployee(): void {
+      console.log(this.listParams);
+      this.dayOffService.getEmployeeOnLeaveSummary(
+        this.listParams.DepartmentID,
+        this.listParams.EmployeeID,
+        this.listParams.IsApproved,
+        this.listParams.Type,
+        this.listParams.Keyword,
+        this.listParams.DateStart,
+        this.listParams.DateEnd
+
+      ).subscribe((response: any) => {
+        this.listSummaryData = response.data?.data || [];
+        if (this.listSummaryTable) {
+          this.listSummaryTable.setData(this.listSummaryData || []);
+        } else {
+          this.draw_listSummaryTable();
+        }
+      });
+    }
+
+    filterOption = (input: string, option: any): boolean => {
+    if (!input) return true;
+    const searchText = input.toLowerCase();
+    const label = option.nzLabel?.toLowerCase() || '';
+    return label.includes(searchText);
+  };
+
+   loadApprovers(): void {
+      this.wfhService.getEmloyeeApprover().subscribe({
+        next: (res: any) => {
+          if (res && res.status === 1 && res.data) {
+            this.approverList = res.data.approvers || [];
+  
+            // Group by DepartmentName
+            const grouped = this.approverList.reduce((acc: any, curr: any) => {
+              const dept = curr.DepartmentName || 'Khác';
+              if (!acc[dept]) {
+                acc[dept] = [];
+              }
+              // Map to match the structure expected by the template if needed, 
+              // or just push the object if it has ID, Code, FullName
+              acc[dept].push({
+                ID: curr.EmployeeID, // WFH service returns EmployeeID for approvers
+                Code: curr.Code,
+                FullName: curr.FullName
+              });
+              return acc;
+            }, {});
+  
+            this.approvers = Object.keys(grouped).map(dept => ({
+              department: dept,
+              list: grouped[dept]
+            }));
+          } else {
+            this.notification.error(NOTIFICATION_TITLE.error, res?.message || 'Không thể tải danh sách người duyệt');
+          }
+        },
+        error: (res: any) => {
+          this.notification.error(NOTIFICATION_TITLE.error, res.error?.message || 'Không thể tải danh sách người duyệt');
+        },
+      });
+    }
 
   loadDepartments() {
     this.departmentService.getDepartments().subscribe({
@@ -361,6 +448,61 @@ export class DayOffComponent implements OnInit, AfterViewInit {
     });
   }
 
+  draw_listSummaryTable() {
+      if (this.listSummaryTable) {
+        this.listSummaryTable.replaceData(
+          this.listSummaryData
+        );
+      } else {
+        this.listSummaryTable = new Tabulator(this.tableRef.nativeElement, {
+          data: this.listSummaryData,
+          ...DEFAULT_TABLE_CONFIG,
+          paginationMode: 'local',
+          height: '200px',
+          selectableRows: 1,
+          columns: [
+            {
+              title: 'STT',
+              hozAlign: 'center',
+              formatter: 'rownum',
+              headerHozAlign: 'center',
+              field: 'STT',
+            },
+            {
+              title: 'Họ tên',
+              field: 'FullName',
+              headerHozAlign: 'center',
+            },
+            {
+              title: 'Tổng số ngày xin nghỉ phép trong tháng',
+              field: 'TotalDay',
+              headerHozAlign: 'center',
+            },
+            {
+              title: 'Số ngày đã duyệt trong tháng',
+              field: 'TotalDayApproved',
+              headerHozAlign: 'center',
+            },
+            {
+              title: 'Số ngày chưa duyệt trong tháng',
+              field: 'TotalDayUnApproved',
+              headerHozAlign: 'center',
+            },
+            {
+              title: 'Số ngày còn lại dự kiến trong tháng',
+              field: 'TotalDayRemain',
+              headerHozAlign: 'center',
+            },
+            {
+              title: 'Số ngày phép còn lại dự kiến trong năm',
+              field: 'TotalDayOnleaveActual',
+              headerHozAlign: 'center',
+            },
+          ],
+        });
+      }
+    }
+
 
   resetSearch() {
     this.searchForm.reset();
@@ -383,7 +525,7 @@ export class DayOffComponent implements OnInit, AfterViewInit {
     this.isEditModal = false;
     this.dayOffForm.reset({
       ID: 0,
-      EmployeeID: null,
+      EmployeeID: this.currentEmployee.EmployeeID,
       ApprovedTP: null,
       StartDate: new Date(),
       TimeOnLeave: 1,
@@ -392,6 +534,7 @@ export class DayOffComponent implements OnInit, AfterViewInit {
       ReasonHREdit: ''
     });
     // Reset validation cho ReasonHREdit khi thêm mới
+    this.dayOffForm.get('EmployeeID')?.disable();
     this.dayOffForm.get('ReasonHREdit')?.clearValidators();
     this.dayOffForm.get('ReasonHREdit')?.updateValueAndValidity();
     const modal = new (window as any).bootstrap.Modal(document.getElementById('addDayOffModal'));
@@ -491,7 +634,7 @@ export class DayOffComponent implements OnInit, AfterViewInit {
       return;
     }
 
-    let formData = { ...this.dayOffForm.value };
+    let formData = { ...this.dayOffForm.getRawValue() }; 
 
     // Kiểm tra nếu là sửa (có ID) thì bắt buộc phải nhập lý do sửa
     if (formData.ID && formData.ID > 0) {

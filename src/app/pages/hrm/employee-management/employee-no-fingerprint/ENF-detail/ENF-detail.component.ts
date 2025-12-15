@@ -126,7 +126,7 @@ export class ENFDetailComponent implements OnInit {
 
   private initForm(): void {
     this.enfForm = this.fb.group({
-      selectedEmployeeId: [this.currentEmployeeId, [Validators.required]],
+      selectedEmployeeId: [{value:this.currentEmployeeId, disabled: true}, [Validators.required]],
       selectedApprovedId: [null, [Validators.required]],
       dayWork: [null, [Validators.required]],
       selectedType: [1, [Validators.required]],

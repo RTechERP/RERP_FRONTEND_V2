@@ -190,7 +190,7 @@ export class ProjectPartlistPurchaseRequestComponent implements OnInit, AfterVie
     UnitFactoryExportPrice: 'Đơn giá xuất xưởng',
     UnitImportPrice: 'Đơn giá nhập khẩu',
     TotalImportPrice: 'Tổng tiền nhập khẩu',
-    IsRequestApproved: 'Yêu cầu duyệt',
+    IsRequestApproved: 'Y/c duyệt',
     Manufacturer: 'Hãng',
     ReasonCancel: 'Lý do hủy',
     ProjectID: 'Dự án ID',
@@ -249,9 +249,20 @@ export class ProjectPartlistPurchaseRequestComponent implements OnInit, AfterVie
   // Cấu hình độ rộng cột (px)
   private COLUMN_WIDTH_CONFIG: Record<string, number> = {
     TotalPriceExchange: 200,
-    ProductName: 220,
-    CustomerName: 240,
-    NameNCC: 240,
+    ProductName: 165, // Giảm 1/4 từ 220 -> 165 (220 - 220/4 = 165)
+    CustomerName: 60, // Giảm từ 240 xuống 60 (1/4)
+    NameNCC: 100,
+    TT: 30, // Giảm từ 60 xuống 30 (1/2, vì 60/4 = 15 quá nhỏ)
+    ProjectCode: 60, // Giảm từ 120 xuống 60 (1/2, vì 120/4 = 30 quá nhỏ)
+    ProductCode: 60, // Giảm từ 120 xuống 60 (1/2, vì 120/4 = 30 quá nhỏ)
+    ProductNewCode: 100, // Giảm 1/6 từ 120 -> 100 (120 - 120/6 = 100)
+    Quantity: 60, // Giảm 1/2 từ 120 -> 60 (120 - 120/2 = 60)
+    ProductGroupID: 60, // Giảm 1/2 từ 120 -> 60 (120 - 120/2 = 60)
+    UnitName: 60, // Giảm 1/2 từ 120 -> 60 (120 - 120/2 = 60)
+    Manufacturer: 60, // Giảm 1/2 từ 120 -> 60 (120 - 120/2 = 60)
+    StatusRequestText: 90, // Giảm 1/4 từ 120 -> 90 (120 - 120/4 = 90)
+    FullName: 90, // Giảm 1/4 từ 120 -> 90 (120 - 120/4 = 90)
+    UpdatedName: 90, // Giảm 1/4 từ 120 -> 90 (120 - 120/4 = 90)
   };
 
   // Thứ tự cột hiển thị theo VisibleIndex trong form WinForms
@@ -342,6 +353,31 @@ export class ProjectPartlistPurchaseRequestComponent implements OnInit, AfterVie
       return '';
     }
   }
+// ===== 1. Validate Manufacturer cho Vision =====
+private validateManufacturerForVision(rows: any[]): boolean {
+  const PRODUCT_GROUP_TVISION = 4;
+
+  for (const row of rows) {
+    const manufacturer = String(row.Manufacturer || '').trim();
+    const productGroupID = Number(row.ProductGroupID || 0);
+    const productSaleID = Number(row.ProductSaleID || 0);
+    const productCode = String(row.ProductCode || '');
+    const tt = String(row.TT || '');
+
+    if (productSaleID <= 0) {
+      if (!manufacturer && productGroupID === PRODUCT_GROUP_TVISION) {
+        this.notify.error(
+          NOTIFICATION_TITLE.error,
+          `Yêu cầu mua hàng kho vision có mã sản phẩm ${productCode} ở vị trí ${tt} phải có hãng!`
+        );
+        return false;
+      }
+    }
+  }
+
+  return true;
+}
+
 
   private toStartOfDayISO(d: Date): string {
     const x = new Date(d);
@@ -575,17 +611,17 @@ export class ProjectPartlistPurchaseRequestComponent implements OnInit, AfterVie
         } as any);
 
         const tabIndex = index; // Lưu tabIndex vào closure
-        
+
         t.updateColumnDefinition('ProductGroupID', {
           editorParams: (cell: any) => {
             const rowData = cell.getRow().getData();
             const ticketType = Number(rowData?.['TicketType'] || 0);
             const isBorrowDemo = this.isPurchaseRequestDemo && ticketType === 1;
             const isRTCTab = tabIndex === 2 || tabIndex === 3;
-            
+
             // Nếu là mượn demo hoặc tab RTC: dùng productRTC, ngược lại dùng productGroups
             const productGroupData = (isBorrowDemo || isRTCTab) ? this.productRTC : this.productGroups;
-            
+
             return {
               values: productGroupData.map((g) => ({ value: g.ID, label: g.ProductGroupName })),
             };
@@ -594,14 +630,14 @@ export class ProjectPartlistPurchaseRequestComponent implements OnInit, AfterVie
             const rowData = cell.getRow().getData();
             const ticketType = Number(rowData?.['TicketType'] || 0);
             const isBorrowDemo = this.isPurchaseRequestDemo && ticketType === 1;
-            
+
             // Đọc từ đúng field
             const id = isBorrowDemo ? (rowData?.['ProductGroupRTCID'] || 0) : (rowData?.['ProductGroupID'] || 0);
             if (!id || id === 0) return '';
-            
+
             // Sử dụng productRTC cho mượn demo, ngược lại dựa trên tab index
-            const productGroupDataForFormatter = isBorrowDemo || (tabIndex === 2 || tabIndex === 3) 
-              ? this.productRTC 
+            const productGroupDataForFormatter = isBorrowDemo || (tabIndex === 2 || tabIndex === 3)
+              ? this.productRTC
               : this.productGroups;
             const g = productGroupDataForFormatter.find((x: any) => x.ID === id);
             return g?.ProductGroupName || '';
@@ -721,7 +757,7 @@ export class ProjectPartlistPurchaseRequestComponent implements OnInit, AfterVie
       const col = columnsMap.get(f);
       if (col) {
         col.frozen = true;
-        col.width = this.COLUMN_WIDTH_CONFIG[f] || (f === 'ProductName' ? 220 : 120);
+        col.width = this.COLUMN_WIDTH_CONFIG[f] || (f === 'ProductName' ? 220 : 60);
         col.formatter = 'textarea';
         col.bottomCalc = 'count';
         col.bottomCalcFormatter = (cell: any) => cell.getValue(); // Hiển thị số lượng
@@ -742,6 +778,14 @@ export class ProjectPartlistPurchaseRequestComponent implements OnInit, AfterVie
 
       if (col) {
         col.frozen = true;
+        // Áp dụng width từ config nếu có
+        if (this.COLUMN_WIDTH_CONFIG[f]) {
+          col.width = this.COLUMN_WIDTH_CONFIG[f];
+        } else if (f === 'TT') {
+          col.width = 30; // Giảm width cho cột TT
+        } else if (f === 'CustomerName') {
+          col.width = 60; // Giảm width cho cột CustomerName
+        }
       }
     });
 
@@ -749,6 +793,15 @@ export class ProjectPartlistPurchaseRequestComponent implements OnInit, AfterVie
       const col = columnsMap.get(f);
       if (col) {
         col.frozen = false;
+      }
+    });
+
+    // Áp dụng width từ COLUMN_WIDTH_CONFIG cho các cột được chỉ định
+    ['ProductNewCode', 'Quantity', 'ProductGroupID', 'UnitName', 'Manufacturer', 
+     'StatusRequestText', 'FullName', 'UpdatedName'].forEach((f) => {
+      const col = columnsMap.get(f);
+      if (col && this.COLUMN_WIDTH_CONFIG[f]) {
+        col.width = this.COLUMN_WIDTH_CONFIG[f];
       }
     });
 
@@ -1001,7 +1054,7 @@ export class ProjectPartlistPurchaseRequestComponent implements OnInit, AfterVie
         // Nếu là mượn demo: đọc từ ProductGroupRTCID, ngược lại đọc từ ProductGroupID
         return isBorrowDemo ? (data?.['ProductGroupRTCID'] || 0) : (data?.['ProductGroupID'] || 0);
       };
-      
+
       // Mutator để ghi vào đúng field
       (pgCol as any).mutator = (value: any, data: any, type: string, params: any, column: any) => {
         const ticketType = Number(data?.['TicketType'] || 0);
@@ -1014,7 +1067,7 @@ export class ProjectPartlistPurchaseRequestComponent implements OnInit, AfterVie
         }
         return value;
       };
-      
+
       // Editor params động dựa trên từng dòng
       pgCol.editor = 'list';
       (pgCol.editorParams as any) = (cell: any) => {
@@ -1022,10 +1075,10 @@ export class ProjectPartlistPurchaseRequestComponent implements OnInit, AfterVie
         const ticketType = Number(rowData?.['TicketType'] || 0);
         const isBorrowDemo = this.isPurchaseRequestDemo && ticketType === 1;
         const isRTCTab = tabIndex === 2 || tabIndex === 3;
-        
+
         // Nếu là mượn demo hoặc tab RTC: dùng productRTC, ngược lại dùng productGroups
         const productGroupData = (isBorrowDemo || isRTCTab) ? this.productRTC : this.productGroups;
-        
+
         return {
           values: productGroupData.map((g) => ({ value: g.ID, label: g.ProductGroupName })),
         };
@@ -1034,14 +1087,14 @@ export class ProjectPartlistPurchaseRequestComponent implements OnInit, AfterVie
         const rowData = cell.getRow().getData();
         const ticketType = Number(rowData?.['TicketType'] || 0);
         const isBorrowDemo = this.isPurchaseRequestDemo && ticketType === 1;
-        
+
         // Đọc từ đúng field
         const id = isBorrowDemo ? (rowData?.['ProductGroupRTCID'] || 0) : (rowData?.['ProductGroupID'] || 0);
         if (!id || id === 0) return '';
-        
+
         // Sử dụng productRTC cho mượn demo, ngược lại dựa trên tab index
-        const productGroupDataForFormatter = isBorrowDemo || (tabIndex === 2 || tabIndex === 3) 
-          ? this.productRTC 
+        const productGroupDataForFormatter = isBorrowDemo || (tabIndex === 2 || tabIndex === 3)
+          ? this.productRTC
           : this.productGroups;
         const g = productGroupDataForFormatter.find((x: any) => x.ID === id);
         return g?.ProductGroupName || '';
@@ -1082,8 +1135,42 @@ export class ProjectPartlistPurchaseRequestComponent implements OnInit, AfterVie
         col.bottomCalcFormatter = (cell: any) => this.formatNumberEnUS(cell.getValue(), 2);
       }
     });
+    ['UnitPrice', 'UnitImportPrice'].forEach((f) => {
+      const col = columnsMap.get(f);
+      if (col) {
+        col.editor = 'input';
+
+        // ✅ Chỉ cho sửa nếu KHÔNG phải hàng mượn
+        (col as any).editable = (cell: any) => {
+          const rd = cell.getRow?.().getData?.() || {};
+          const ticketType = Number(rd['TicketType'] || 0);
+          return ticketType !== 1; // Không cho sửa nếu là mượn (TicketType = 1)
+        };
+
+        col.bottomCalc = 'sum';
+        col.bottomCalcFormatter = (cell: any) => this.formatNumberEnUS(cell.getValue(), 2);
+        col.mutator = (value) => {
+          const v = Number(value);
+          return isNaN(v) ? 0 : v;
+        };
+      }
+    });
 
     // Sắp xếp theo FORM_COLUMN_ORDER, các cột còn lại ẩn và đặt sau
+    // Thêm tooltip cho tất cả các cột
+    columnsMap.forEach((col, field) => {
+      if (col && !(col as any).tooltip) {
+        (col as any).tooltip = (cell: any) => {
+          const value = cell.getValue();
+          if (value === null || value === undefined || value === '') {
+            return '';
+          }
+          // Chuyển đổi giá trị thành string để hiển thị
+          return String(value);
+        };
+      }
+    });
+
     const ordered: ColumnDefinition[] = [];
     this.FORM_COLUMN_ORDER.forEach((f) => {
       const col = columnsMap.get(f);
@@ -1171,7 +1258,7 @@ export class ProjectPartlistPurchaseRequestComponent implements OnInit, AfterVie
     }
 
     // Cập nhật mã nội bộ - yêu cầu quyền N35 hoặc N1
-    if (hasN35OrN1) {
+    if (hasN35OrN1 && idx === 3) {
       menuItems.push({
         label: '<img class="btn-action-icon pt-0 ps-0" src="assets/icon/action_reset_24.svg" />Cập nhật mã nội bộ',
         action: () => this.updateInternalCode(idx),
@@ -1464,25 +1551,25 @@ export class ProjectPartlistPurchaseRequestComponent implements OnInit, AfterVie
     const table = this.tables?.[idx];
     if (!tab || !table) return;
     const data = this.dataByType.get(tab.id) || [];
-    
+
     // Kiểm tra và ẩn/hiện cột ProductGroupID cho mua hàng demo
     if (this.isPurchaseRequestDemo) {
       try {
         const pgCol = table.getColumn('ProductGroupID');
         if (pgCol) {
           let shouldShow = false;
-          
+
           if (data.length > 0) {
             // Kiểm tra xem có dòng nào là mượn hàng (TicketType = 1) không
             const hasBorrowRow = data.some((row: any) => {
               const ticketType = Number(row.TicketType || 0);
               return ticketType === 1; // 1 = mượn
             });
-            
+
             // Chỉ hiện cột nếu có ít nhất một dòng mượn hàng
             shouldShow = hasBorrowRow;
           }
-          
+
           // Sử dụng setVisible để đảm bảo cột được ẩn/hiện đúng
           if (shouldShow) {
             pgCol.show();
@@ -1494,7 +1581,7 @@ export class ProjectPartlistPurchaseRequestComponent implements OnInit, AfterVie
         // Ignore nếu cột chưa được khởi tạo
       }
     }
-    
+
     // Use try-catch to handle table initialization timing
     try {
       table.setData(data);
@@ -2143,7 +2230,18 @@ export class ProjectPartlistPurchaseRequestComponent implements OnInit, AfterVie
       this.notify.warning(NOTIFICATION_TITLE.warning, `Vui lòng chọn dòng cần cập nhật!`);
       return;
     }
+    if (idx !== 3) {
+      this.notify.warning(
+        NOTIFICATION_TITLE.warning,
+        'Chức năng này chỉ dành cho tab Mượn Demo!'
+      );
+      return;
+    }
+    if (!this.validateManufacturerForVision(rows)) {
+      return;
+    }
 
+    // const isRTCTab = idx === 2 || idx === 3;
     this.modal.confirm({
       nzTitle: `Bạn có chắc chắn muốn cập nhật không?`,
       nzOkText: 'Cập nhật',
@@ -2153,7 +2251,12 @@ export class ProjectPartlistPurchaseRequestComponent implements OnInit, AfterVie
       nzClosable: false,
       nzOnOk: () => {
         this.isLoading = true;
-        this.srv.saveData(rows).subscribe({
+
+        // const apiCall = isRTCTab
+        // ? this.srv.createProductRTC(rows)  // API mới cần tạo
+        // : this.srv.saveData(rows);
+
+        this.srv.createProductRTC(rows).subscribe({
           next: (rs) => {
             this.notify.success(NOTIFICATION_TITLE.success, "Cập nhật thành công");
             this.isLoading = false;
@@ -2551,6 +2654,33 @@ export class ProjectPartlistPurchaseRequestComponent implements OnInit, AfterVie
     // Lấy data từ các dòng đã chọn
     const selectedData = selectedRows.map((row: any) => row.getData());
 
+
+    for (const row of selectedData) {
+      const ticketType = Number(row.TicketType || 0);
+      const isTBPApproved = Boolean(row.IsApprovedTBP);
+      const productCode = String(row.ProductCode || '');
+      const unitPrice = Number(row.UnitPrice || 0);
+
+      // Hàng mượn phải được TBP duyệt
+      if (ticketType === 1) {
+        if (!isTBPApproved) {
+          this.notify.warning(
+            NOTIFICATION_TITLE.warning,
+            `Sản phẩm ${productCode} (hàng mượn) chưa được TBP duyệt!`
+          );
+          return;
+        }
+      }
+
+      // Hàng mua phải có đơn giá
+      if (ticketType === 0 && unitPrice <= 0) {
+        this.notify.warning(
+          NOTIFICATION_TITLE.warning,
+          `Vui lòng nhập Đơn giá cho sản phẩm ${productCode}!`
+        );
+        return;
+      }
+    }
     // Check validate: danh sách sản phẩm có cùng nhà cung cấp không
     const listSupplierSale: number[] = [];
 

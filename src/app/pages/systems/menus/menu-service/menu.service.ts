@@ -144,6 +144,7 @@ import { ProjectPartlistPurchaseRequestNewComponent } from '../../../purchase/pr
 import { RegisterIdeaComponent } from '../../../hrm/register-idea/register-idea.component';
 import { TrackingMarksComponent } from '../../../hrm/tracking-marks/tracking-marks.component';
 import { VehicleBookingComponent } from '../../../hrm/vehicle-booking/vehicle-booking.component';
+import { EmployeeSyntheticPersonalComponent } from '../../../hrm/employee-management/employee-synthetic/employee-synthetic-personal/employee-synthetic-personal.component';
 @Injectable({
     providedIn: 'root',
 })

@@ -12,7 +12,7 @@ import {
   ViewChild,
   ElementRef,
   Input,
-  HostListener
+  HostListener,
 } from '@angular/core';
 import { NzFormModule } from 'ng-zorro-antd/form';
 import { NzCardModule } from 'ng-zorro-antd/card';
@@ -33,10 +33,7 @@ import { NzSelectModule } from 'ng-zorro-antd/select';
 import { NzTableModule } from 'ng-zorro-antd/table';
 import { NzModalModule } from 'ng-zorro-antd/modal';
 import { NzInputNumberModule } from 'ng-zorro-antd/input-number';
-import {
-  TabulatorFull as Tabulator,
-  RowComponent,
-} from 'tabulator-tables';
+import { TabulatorFull as Tabulator, RowComponent } from 'tabulator-tables';
 import { NzUploadModule } from 'ng-zorro-antd/upload';
 import 'tabulator-tables/dist/css/tabulator_simple.min.css';
 import { NzTabsModule } from 'ng-zorro-antd/tabs';
@@ -47,7 +44,7 @@ import { SummaryEmployeeService } from './summary-employee-service/summary-emplo
 import { DEFAULT_TABLE_CONFIG } from '../../.././../tabulator-default.config';
 import { HasPermissionDirective } from '../../../../directives/has-permission.directive';
 import { PermissionService } from '../../../../services/permission.service';
-import { HandoverService } from '../../../hrm/handover/handover-service/handover.service'
+import { HandoverService } from '../../../hrm/handover/handover-service/handover.service';
 
 export interface SummaryEmployeeParams {
   DepartmentID: number;
@@ -58,7 +55,6 @@ export interface SummaryEmployeeParams {
   DateStart: Date;
   DateEnd: Date;
 }
-
 
 @Component({
   selector: 'app-summary-employee',
@@ -87,17 +83,15 @@ export interface SummaryEmployeeParams {
     NgbModalModule,
     NzFormModule,
     NzInputNumberModule,
-    HasPermissionDirective
+    HasPermissionDirective,
   ],
   templateUrl: './summary-employee.component.html',
-  styleUrl: './summary-employee.component.css'
+  styleUrl: './summary-employee.component.css',
 })
-export class SummaryEmployeeComponent implements OnInit, AfterViewInit{
+export class SummaryEmployeeComponent implements OnInit, AfterViewInit {
+  @ViewChild('listSummaryOnLeaveTable') tableRef!: ElementRef;
 
-    @ViewChild('listSummaryOnLeaveTable') tableRef!: ElementRef;
-  
-
-    listParams: SummaryEmployeeParams = {
+  listParams: SummaryEmployeeParams = {
     DepartmentID: 0,
     EmployeeID: 0,
     IsApproved: 0,
@@ -113,8 +107,6 @@ export class SummaryEmployeeComponent implements OnInit, AfterViewInit{
   dateFormat = 'dd/MM/yyyy';
   dataDepartment: any[] = [];
 
-  
-
   ngOnInit(): void {
     this.getdataDepartment();
     this.getSummaryEmployeeOnLeave();
@@ -124,17 +116,17 @@ export class SummaryEmployeeComponent implements OnInit, AfterViewInit{
     this.draw_listSummaryOnLeaveTable();
   }
 
-   constructor(
-      private fb: FormBuilder,
-      private notification: NzNotificationService,
-      private modal: NzModalService,
-      private summaryEmployeeService: SummaryEmployeeService,
-      private handoverService: HandoverService
-    ) { }
+  constructor(
+    private fb: FormBuilder,
+    private notification: NzNotificationService,
+    private modal: NzModalService,
+    private summaryEmployeeService: SummaryEmployeeService,
+    private handoverService: HandoverService
+  ) {}
 
-
-      getSummaryEmployeeOnLeave(): void {
-      this.summaryEmployeeService.getEmployeeOnLeaveSummary(
+  getSummaryEmployeeOnLeave(): void {
+    this.summaryEmployeeService
+      .getEmployeeOnLeaveSummary(
         this.listParams.DepartmentID,
         this.listParams.EmployeeID,
         this.listParams.IsApproved,
@@ -142,23 +134,25 @@ export class SummaryEmployeeComponent implements OnInit, AfterViewInit{
         this.listParams.Keyword,
         this.listParams.DateStart,
         this.listParams.DateEnd
-
-      ).subscribe((response: any) => {
+      )
+      .subscribe((response: any) => {
         this.listSummaryOnLeaveData = response.data?.data || [];
-        console.log("hihi222", this.listSummaryOnLeaveData);
+        console.log('hihi222', this.listSummaryOnLeaveData);
         if (this.listSummaryOnLeaveTable) {
-          this.listSummaryOnLeaveTable.setData(this.listSummaryOnLeaveData || []);
+          this.listSummaryOnLeaveTable.setData(
+            this.listSummaryOnLeaveData || []
+          );
         } else {
           this.draw_listSummaryOnLeaveTable();
         }
       });
-    }
+  }
 
-      searchData() {
+  searchData() {
     this.getSummaryEmployeeOnLeave();
   }
 
-    filterOption = (input: string, option: any): boolean => {
+  filterOption = (input: string, option: any): boolean => {
     const label = option.nzLabel?.toLowerCase() || '';
     const value = option.nzValue?.toString().toLowerCase() || '';
     return (
@@ -166,93 +160,135 @@ export class SummaryEmployeeComponent implements OnInit, AfterViewInit{
     );
   };
 
-    getdataDepartment() {
+  getdataDepartment() {
     this.handoverService.getDataDepartment().subscribe((response: any) => {
       this.dataDepartment = response.data || [];
     });
   }
 
-    private draw_listSummaryOnLeaveTable(): void {
+  private draw_listSummaryOnLeaveTable(): void {
     if (this.listSummaryOnLeaveTable) {
       this.listSummaryOnLeaveTable.setData(this.listSummaryOnLeaveData || []);
     } else {
-      this.listSummaryOnLeaveTable = new Tabulator(this.tableRef.nativeElement, {
-        data: this.listSummaryOnLeaveData || [],
-        ...DEFAULT_TABLE_CONFIG,
-        selectableRows: 1,
-        layout: 'fitDataStretch',
-        paginationMode: 'local',
-        height: '100%',
-        columns: [
-          {
-            title: 'STT',
-            hozAlign: 'center',
-            headerHozAlign: 'center',
-            field: 'STT',
-          },
-          {
-            title: 'TBP duyệt',
-            field: 'StatusTBPText',
-            headerHozAlign: 'center',
-          },
-          {
-            title: 'HR duyệt',
-            field: 'StatusHRText',
-            headerHozAlign: 'center',
-          },
-          {
-            title: 'Người xin nghỉ',
-            field: 'EmployeeLeave',
-            headerHozAlign: 'center',
-          },
-             {
-            title: 'Trưởng bộ phận',
-            field: 'EmployeeTP',
-            headerHozAlign: 'center',
-          },
-             {
-            title: 'Nhân sự',
-            field: 'EmployeeHR',
-            headerHozAlign: 'center',
-          },
-             {
-            title: 'Thời gian nghỉ',
-            field: 'TimeOnLeaveText',
-            headerHozAlign: 'center',
-          },
-             {
-            title: 'Ngày bắt đầu',
-            field: 'StartDate',
-            headerHozAlign: 'center',
-          },
-             {
-            title: 'Ngày kết thúc',
-            field: 'EndDate',
-            headerHozAlign: 'center',
-          },
-          {
-            title: 'Lý do nghỉ',
-            field: 'Reason',
-            headerHozAlign: 'center',
-          },
-             {
-            title: 'Lý do hủy',
-            field: 'ReasonCancel',
-            headerHozAlign: 'center',
-          },
-             {
-            title: 'Ngày hủy',
-            field: 'DateCancel',
-            headerHozAlign: 'center',
-          },
-             {
-            title: 'Loại nghỉ',
-            field: 'TypeText',
-            headerHozAlign: 'center',
-          },
-        ],
-      });
+      this.listSummaryOnLeaveTable = new Tabulator(
+        this.tableRef.nativeElement,
+        {
+          data: this.listSummaryOnLeaveData || [],
+          ...DEFAULT_TABLE_CONFIG,
+          selectableRows: 1,
+          layout: 'fitDataStretch',
+          paginationMode: 'local',
+          height: '100%',
+          columns: [
+            {
+              title: 'STT',
+              hozAlign: 'center',
+              headerHozAlign: 'center',
+              field: 'STT',
+            },
+            {
+              title: 'TBP duyệt',
+              field: 'StatusTBPText',
+              headerHozAlign: 'center',
+              formatter: (cell) => {
+                const value = cell.getValue();
+
+                let color = '';
+                switch (value) {
+                  case 'Chờ duyệt':
+                    color = '#faad14'; // vàng
+                    break;
+                  case 'Không đồng ý duyệt':
+                    color = '#ff4d4f'; // đỏ
+                    break;
+                  case 'Đã duyệt':
+                    color = '#52c41a'; // xanh
+                    break;
+                  default:
+                    color = '#000';
+                }
+
+                return `<span style="color:${color}; font-weight:600">${value}</span>`;
+              },
+            },
+            {
+              title: 'HR duyệt',
+              field: 'StatusHRText',
+              headerHozAlign: 'center',
+              formatter: (cell) => {
+                const value = cell.getValue();
+
+                let color = '';
+                switch (value) {
+                  case 'Chờ duyệt':
+                    color = '#faad14'; // vàng
+                    break;
+                  case 'Không đồng ý duyệt':
+                    color = '#ff4d4f'; // đỏ
+                    break;
+                  case 'Đã duyệt':
+                    color = '#52c41a'; // xanh
+                    break;
+                  default:
+                    color = '#000';
+                }
+
+                return `<span style="color:${color}; font-weight:600">${value}</span>`;
+              },
+            },
+            {
+              title: 'Người xin nghỉ',
+              field: 'EmployeeLeave',
+              headerHozAlign: 'center',
+            },
+            {
+              title: 'Trưởng bộ phận',
+              field: 'EmployeeTP',
+              headerHozAlign: 'center',
+            },
+            {
+              title: 'Nhân sự',
+              field: 'EmployeeHR',
+              headerHozAlign: 'center',
+            },
+            {
+              title: 'Thời gian nghỉ',
+              field: 'TimeOnLeaveText',
+              headerHozAlign: 'center',
+            },
+            {
+              title: 'Ngày bắt đầu',
+              field: 'StartDate',
+              headerHozAlign: 'center',
+            },
+            {
+              title: 'Ngày kết thúc',
+              field: 'EndDate',
+              headerHozAlign: 'center',
+            },
+            {
+              title: 'Lý do nghỉ',
+              field: 'Reason',
+              headerHozAlign: 'center',
+            },
+            {
+              title: 'Lý do hủy',
+              field: 'ReasonCancel',
+              headerHozAlign: 'center',
+            },
+            {
+              title: 'Ngày hủy',
+              field: 'DateCancel',
+              headerHozAlign: 'center',
+            },
+            {
+              title: 'Loại nghỉ',
+              field: 'TypeText',
+              headerHozAlign: 'center',
+            },
+          ],
+        }
+      );
     }
   }
-
 }

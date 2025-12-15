@@ -1,5 +1,6 @@
-<ng-container class="w-100">
-  <!-- Form tìm kiếm hiển thị trực tiếp -->
+<ng-container class="w-100" style="height: 90vh">
+  <div style="height: 100px ; display: flex ; flex-direction: column">
+     <!-- Form tìm kiếm hiển thị trực tiếp -->
   <div class="search-form-card">
     <div class="card-body-custom">
       <form nz-form nzLayout="vertical">
@@ -101,17 +102,15 @@
   <!-- Phần nội dung chính -->
   <div>
     <nz-tabset nzType="card">
-      <nz-tab nzTitle="Công việc bàn giao" [tabIndex]="0">
-        <div class="card-body p-0" style="height: 100%">
-          <div #listSummaryOnLeaveTable ></div>
-        </div>
+      <nz-tab nzTitle="Đăng kí nghỉ" [tabIndex]="0">
+          <div #listSummaryOnLeaveTable style="height: 80vh"></div>
       </nz-tab>
-      <nz-tab nzTitle="Công nợ còn thiếu" [tabIndex]="0">
+      <nz-tab nzTitle="Đi muộn về sớm" [tabIndex]="0">
         <div class="card-body p-0" style="height: 100%">
           <div id="HandoverFinances" style="width: 100%; height: 100%"></div>
         </div>
       </nz-tab>
-      <nz-tab nzTitle="Nhân viên trực thuộc" [tabIndex]="0">
+      <nz-tab nzTitle="Làm thêm" [tabIndex]="0">
         <div class="card-body p-0" style="height: 100%">
           <div
             id="HandoverSubordinates"
@@ -119,11 +118,28 @@
           ></div>
         </div>
       </nz-tab>
-      <nz-tab nzTitle="Duyệt" [tabIndex]="0">
+      <nz-tab nzTitle="Công tác" [tabIndex]="0">
+        <div class="card-body p-0" style="height: 100%">
+          <div id="HandoverApprove" style="width: 100%; height: 100%"></div>
+        </div>
+      </nz-tab>
+      <nz-tab nzTitle="Làm đêm" [tabIndex]="0">
+        <div class="card-body p-0" style="height: 100%">
+          <div id="HandoverApprove" style="width: 100%; height: 100%"></div>
+        </div>
+      </nz-tab>
+      <nz-tab nzTitle="Làm việc ở nhà" [tabIndex]="0">
+        <div class="card-body p-0" style="height: 100%">
+          <div id="HandoverApprove" style="width: 100%; height: 100%"></div>
+        </div>
+      </nz-tab>
+      <nz-tab nzTitle="Quên chấm công" [tabIndex]="0">
         <div class="card-body p-0" style="height: 100%">
           <div id="HandoverApprove" style="width: 100%; height: 100%"></div>
         </div>
       </nz-tab>
     </nz-tabset>
   </div>
+  </div>
+ 
 </ng-container>

@@ -88,7 +88,6 @@ import { SearchProductSerialNumberComponent } from '../../../old/Sale/SearchProd
 import { BillExportTechnicalComponent } from '../../../old/bill-export-technical/bill-export-technical.component';
 import { BorrowReportComponent } from '../../../old/Technical/borrow-report/borrow-report.component';
 import { DocumentComponent } from '../../../hrm/document/document.component';
-import { VehicleBookingManagementComponent } from '../../../hrm/vehicle-booking-management/vehicle-booking-management.component';
 import { ProtectgearComponent } from '../../../hrm/protectgear/protectgear/protectgear.component';
 import { EmployeeNightShiftComponent } from '../../../hrm/employee-management/employee-night-shift/employee-night-shift/employee-night-shift.component';
 import { WFHComponent } from '../../../hrm/employee-management/employee-wfh/WFH.component';
@@ -143,6 +142,7 @@ import { PaymentOrderComponent } from '../../../general-category/payment-order/p
 import { OverTimePersonComponent } from '../../../hrm/over-time/over-time-person/over-time-person.component';
 import { RegisterIdeaComponent } from '../../../hrm/register-idea/register-idea.component';
 import { TrackingMarksComponent } from '../../../hrm/tracking-marks/tracking-marks.component';
+import { VehicleBookingComponent } from '../../../hrm/vehicle-booking/vehicle-booking.component';
 @Injectable({
     providedIn: 'root',
 })
@@ -1537,12 +1537,12 @@ export class MenuService {
                             },
                             {
                                 kind: 'leaf',
-                                key: 'VehicleBookingManagementComponent',
+                                key: 'VehicleBookingComponent',
                                 title: 'Đặt xe',
                                 isOpen: true,
                                 isPermission:
                                     this.permissionService.hasPermission('N2,N34,N1,N68,N71'),
-                                comp: VehicleBookingManagementComponent,
+                                comp: VehicleBookingComponent,
                                 //   icon: 'assets/icon/layers.png',
                             },
                             // {
@@ -2892,8 +2892,7 @@ export class MenuService {
                                 title: 'Đặt xe',
                                 isOpen: true,
                                 isPermission: this.permissionService.hasPermission(''),
-                                comp: PersonComponent,
-                                router: '/datxe',
+                                comp: VehicleBookingComponent,
                             },
 
                             {
@@ -2933,7 +2932,6 @@ export class MenuService {
                                 isOpen: true,
                                 isPermission: this.permissionService.hasPermission(''),
                                 comp: RegisterIdeaComponent,
-                                router: '/dangkyytuong',
                             },
                             {
                                 kind: 'leaf',

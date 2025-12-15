@@ -1,0 +1,42 @@
+
+.modal-body {
+  max-height: 80vh;
+  overflow-y: auto;
+}
+
+.card-header {
+  background-color: #f5f5f5 !important;
+}
+
+.fs-7 {
+  font-size: 0.875rem;
+}
+
+.fs-12 {
+  font-size: 0.75rem;
+}
+fieldset.reset {
+  border: 1px solid rgba(0, 0, 0, 0.15);
+  border-radius: 6px;
+  padding: 10px 15px;
+  margin-bottom: 10px;
+}
+
+legend.reset {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: #333;
+  width: auto;
+  padding: 0 8px;
+  margin-bottom: 0;
+  border: none;
+}
+
+:host ::ng-deep .ant-tabs-card > .ant-tabs-nav .ant-tabs-tab-active {
+  background-color: #3b82f6; /* blue-500 */
+  border-color: #3b82f6;
+}
+
+:host ::ng-deep .ant-tabs-card > .ant-tabs-nav .ant-tabs-tab-active .ant-tabs-tab-btn {
+  color: #fff !important; /* buộc chữ trắng */
+}

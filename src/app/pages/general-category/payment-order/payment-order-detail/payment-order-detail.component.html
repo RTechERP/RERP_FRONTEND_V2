@@ -1,8 +1,7 @@
 <div class="modal-content">
-    <div class="modal-header">
+    <div class="modal-header bg-primary">
         <h5 class="modal-title" id="staticBackdropLabel">Chi tiết đề nghị thanh toán</h5>
-        <button type="button" class="btn-close border border-danger" aria-label="Close"
-            (click)="activeModal.close()"></button>
+        <button type="button" class="btn-close" aria-label="Close" (click)="activeModal.close()"></button>
     </div>
     <div class="modal-body">
         <form nz-form nzLayout="vertical" [formGroup]="validateForm">
@@ -273,7 +272,7 @@
                             <nz-select nzShowSearch nzAllowClear nzPlaceHolder="Chọn loại tiền"
                                 [formControlName]="paymentOrderField.Unit.field">
                                 @for (item of units; track item) {
-                                <nz-option nzLabel="{{item.Text}}" [nzValue]="item.ID"></nz-option>
+                                <nz-option nzLabel="{{item.text}}" [nzValue]="item.id"></nz-option>
                                 }
                             </nz-select>
                         </nz-form-control>
@@ -287,15 +286,21 @@
         <button nz-button nzType="default" (click)="addItem()">
             <nz-icon nzType="plus" nzTheme="outline" /> Thêm chi tiết
         </button>
-        <div class="grid-container" style="height: 80vh;">
+        <div class="grid-container">
             <angular-slickgrid gridId="grdData" [columns]="columnDefinitions" [options]="gridOptions"
                 [dataset]="dataset" (onAngularGridCreated)="angularGridReady($event.detail)"
-                *ngIf="paymentOrder.TypeOrder != 2">
+                (onCellChange)="onCellChanged($event.detail.eventData, $event.detail.args)"
+                *ngIf=" paymentOrder.TypeOrder !=2" footer>
+
+                <ng-template #slickgridFooter>
+                    <p class="m-0 fw-bold text-dark">Số tiền bằng chữ: {{paymentOrder.TotalMoneyText}}</p>
+                </ng-template>
             </angular-slickgrid>
 
             <angular-slickgrid gridId="grdData2" [columns]="columnDefinitions" [options]="gridOptions"
                 [dataset]="dataset2" (onAngularGridCreated)="angularGridReady2($event.detail)"
-                *ngIf="paymentOrder.TypeOrder == 2">
+                (onCellChange)="onCellChanged($event.detail.eventData, $event.detail.args)"
+                *ngIf=" paymentOrder.TypeOrder==2">
             </angular-slickgrid>
         </div>
     </div>

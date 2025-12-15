@@ -1,6 +1,6 @@
 <div class="modal-dialog-scrollable">
   <div class="modal-header bg-primary align-items-center p-2">
-    <h6 class="text-light text-uppercase m-0" >
+    <h6 class="text-light text-uppercase m-0">
       {{ isEditMode ? 'SỬA KHAI BÁO LÀM THÊM' : ' KHAI BÁO LÀM THÊM' }}
     </h6>
     <button type="button" class="btn-close btn-close-white" (click)="onCancel()" aria-label="Close"></button>
@@ -12,78 +12,57 @@
         <div class="text-danger" style="font-size: 12px;">
           <i nz-icon nzType="info-circle" nzTheme="outline"></i>
           <span class="ms-1 text-danger">
-            <strong>Lưu ý:</strong><br/>
-            - Thời gian làm thêm không tính thời gian ăn ca, nghỉ giữa giờ, đợi xe, ngồi trên xe khi đi công tác (Không bao gồm Lái xe).<br/>
-            - Thời gian làm thêm tại văn phòng tính từ 18H00.<br/>
-            - Thời gian làm thêm đến 20H00 được tính hưởng phụ cấp ăn tối.<br/>
-            - CBNV lưu ý khai báo đúng quy định, TH quên khai báo công có thể khai báo bổ sung (quên khai báo công/ chấm công từ 3 lần/tháng trừ 100% PCCC).<br/>
+            <strong>Lưu ý:</strong><br />
+            - Thời gian làm thêm không tính thời gian ăn ca, nghỉ giữa giờ, đợi xe, ngồi trên xe khi đi công tác (Không
+            bao gồm Lái xe).<br />
+            - Thời gian làm thêm tại văn phòng tính từ 18H00.<br />
+            - Thời gian làm thêm đến 20H00 được tính hưởng phụ cấp ăn tối.<br />
+            - CBNV lưu ý khai báo đúng quy định, TH quên khai báo công có thể khai báo bổ sung (quên khai báo công/ chấm
+            công từ 3 lần/tháng trừ 100% PCCC).<br />
           </span>
         </div>
       </nz-row>
       <!-- Thông tin chung (dùng cho tất cả tabs) -->
       <nz-row [nzGutter]="16">
-        <nz-col [nzXs]="24" [nzSm]="24" [nzMd]="8" [nzLg]="8" [nzXl]="8">
+        <nz-col [nzXs]="24" [nzSm]="24" [nzMd]="8" [nzLg]="8" [nzXl]="5">
           <nz-form-item>
             <nz-form-label>Họ và tên</nz-form-label>
             <nz-form-control>
-              <nz-select
-                formControlName="EmployeeID"
-                [formGroup]="commonForm"
-                nzPlaceHolder="Chọn nhân viên"
-                nzAllowClear
-                nzShowSearch
-                style="width: 100%"
-                [nzDisabled]="true"
-              >
-                <nz-option [nzValue]="currentUser?.EmployeeID" 
+              <nz-select formControlName="EmployeeID" [formGroup]="commonForm" nzPlaceHolder="Chọn nhân viên"
+                nzAllowClear nzShowSearch style="width: 100%" [nzDisabled]="true">
+                <nz-option [nzValue]="currentUser?.EmployeeID"
                   [nzLabel]="(currentUser?.Code || '') + ' - ' + (currentUser?.FullName || '')"></nz-option>
               </nz-select>
             </nz-form-control>
           </nz-form-item>
         </nz-col>
-        <nz-col [nzXs]="24" [nzSm]="24" [nzMd]="8" [nzLg]="8" [nzXl]="8">
+        <nz-col [nzXs]="24" [nzSm]="24" [nzMd]="8" [nzLg]="8" [nzXl]="5">
           <nz-form-item>
             <nz-form-label>Ngày đăng ký <span class="text-danger ps-1 me-1"> (*)
-            </span></nz-form-label>
+              </span></nz-form-label>
             <nz-form-control [nzErrorTip]="'Vui lòng chọn ngày đăng ký'">
-              <nz-date-picker
-                formControlName="DateRegister"
-                [formGroup]="commonForm"
-                nzFormat="dd/MM/yyyy"
-                nzPlaceHolder="Chọn ngày đăng ký"
-                [nzDisabledDate]="disabledDate"
-                style="width: 100%"
-              ></nz-date-picker>
+              <nz-date-picker formControlName="DateRegister" [formGroup]="commonForm" nzFormat="dd/MM/yyyy"
+                nzPlaceHolder="Chọn ngày đăng ký" [nzDisabledDate]="disabledDate" style="width: 100%"></nz-date-picker>
             </nz-form-control>
           </nz-form-item>
         </nz-col>
-        
-        <nz-col [nzXs]="24" [nzSm]="24" [nzMd]="8" [nzLg]="8" [nzXl]="8">
+
+        <nz-col [nzXs]="24" [nzSm]="24" [nzMd]="8" [nzLg]="8" [nzXl]="5">
           <nz-form-item>
             <nz-form-label>Người duyệt<span class="text-danger ps-1 me-1"> (*)
-            </span></nz-form-label>
+              </span></nz-form-label>
             <nz-form-control [nzErrorTip]="'Vui lòng chọn người duyệt'">
-              <nz-select
-                formControlName="ApprovedID"
-                [formGroup]="commonForm"
-                nzPlaceHolder="Chọn người duyệt"
-                nzAllowClear
-                nzShowSearch
-                style="width: 100%"
-              >
+              <nz-select formControlName="ApprovedID" [formGroup]="commonForm" nzPlaceHolder="Chọn người duyệt"
+                nzAllowClear nzShowSearch style="width: 100%">
                 <nz-option-group *ngFor="let group of approverGroups" [nzLabel]="group.label">
-                  <nz-option *ngFor="let approver of group.options" [nzValue]="approver.ID" 
+                  <nz-option *ngFor="let approver of group.options" [nzValue]="approver.ID"
                     [nzLabel]="approver.Code + ' - ' + approver.FullName"></nz-option>
                 </nz-option-group>
               </nz-select>
             </nz-form-control>
           </nz-form-item>
         </nz-col>
-      </nz-row>
-
-      <!-- Phần Bổ sung và File đính kèm (thông tin chung) -->
-      <nz-row [nzGutter]="16">
-        <nz-col [nzXs]="24" [nzSm]="24" [nzMd]="3" [nzLg]="3" [nzXl]="3">
+        <nz-col [nzXs]="24" [nzSm]="24" [nzMd]="4" [nzLg]="3" [nzXl]="3">
           <nz-form-item>
             <nz-form-label [style.visibility]="'hidden'">.</nz-form-label>
             <nz-form-control>
@@ -91,50 +70,37 @@
             </nz-form-control>
           </nz-form-item>
         </nz-col>
-        <nz-col [nzXs]="24" [nzSm]="24" [nzMd]="21" [nzLg]="21" [nzXl]="21">
+        <nz-col [nzXs]="24" [nzSm]="24" [nzMd]="20" [nzLg]="21" [nzXl]="6">
           <nz-form-item>
             <nz-form-label [nzRequired]="commonForm.get('IsProblem')?.value">File đính kèm</nz-form-label>
             <nz-form-control [nzErrorTip]="'Vui lòng chọn file đính kèm'">
               <div class="d-flex flex-column gap-2">
                 <div class="d-flex flex-column flex-sm-row gap-2">
-                  <nz-upload
-                    [(nzFileList)]="fileList"
-                    [nzBeforeUpload]="beforeUpload"
-                    [nzShowUploadList]="false"
-                    [nzMultiple]="false"
-                  >
+                  <nz-upload [(nzFileList)]="fileList" [nzBeforeUpload]="beforeUpload" [nzShowUploadList]="false"
+                    [nzMultiple]="false">
                     <button nz-button nzBlock class="w-100 w-sm-auto">
                       <span nz-icon nzType="upload"></span>
                       Chọn file
                     </button>
                   </nz-upload>
-                  <input
-                    nz-input
-                    [value]="attachFileName || ''"
-                    placeholder="Chưa chọn file"
-                    readonly
-                    style="flex: 1"
-                  />
+                  <input nz-input [value]="attachFileName || ''" placeholder="Chưa chọn file" readonly
+                    style="flex: 1" />
                   <button *ngIf="attachFileName" nz-button nzType="default" nzSize="small" (click)="removeFile()">
                     <span nz-icon nzType="delete" nzTheme="outline"></span>
                   </button>
                 </div>
                 <!-- Danh sách file đính kèm hiện có (khi edit mode) -->
                 <div *ngIf="existingFiles.length > 0" class="mt-2">
-                  <div *ngFor="let file of existingFiles" class="d-flex align-items-center gap-2 mb-2 p-2 border rounded" 
-                       [style.background-color]="deletedFileIds.includes(file.ID) ? '#f5f5f5' : ''"
-                       [style.opacity]="deletedFileIds.includes(file.ID) ? '0.5' : '1'">
-                    <span class="flex-grow-1" [style.text-decoration]="deletedFileIds.includes(file.ID) ? 'line-through' : 'none'">
+                  <div *ngFor="let file of existingFiles"
+                    class="d-flex align-items-center gap-2 mb-2 p-2 border rounded"
+                    [style.background-color]="deletedFileIds.includes(file.ID) ? '#f5f5f5' : ''"
+                    [style.opacity]="deletedFileIds.includes(file.ID) ? '0.5' : '1'">
+                    <span class="flex-grow-1"
+                      [style.text-decoration]="deletedFileIds.includes(file.ID) ? 'line-through' : 'none'">
                       {{ file.FileName || file.OriginPath || 'File' }}
                     </span>
-                    <button 
-                      nz-button 
-                      nzType="link" 
-                      nzSize="small" 
-                      nzDanger
-                      (click)="deleteExistingFile(file.ID)"
-                      title="Xóa"
-                    >
+                    <button nz-button nzType="link" nzSize="small" nzDanger (click)="deleteExistingFile(file.ID)"
+                      title="Xóa">
                       <span nz-icon nzType="delete" nzTheme="outline"></span>
                     </button>
                   </div>
@@ -145,11 +111,13 @@
         </nz-col>
       </nz-row>
 
+      <!-- Phần Bổ sung và File đính kèm (thông tin chung) -->
+
       <nz-row [nzGutter]="16" class="mb-2">
         <nz-col [nzSpan]="24">
           <button nz-button nzType="primary" class="me-1" nzSize="small" (click)="addNewTab()">
-           <nz-icon nzType="plus"></nz-icon>
-            Thêm 
+            <nz-icon nzType="plus"></nz-icon>
+            Thêm
           </button>
           <button nz-button nzType="default" nzSize="small" (click)="openProjectItemSelectModal()">
             <nz-icon nzType="project"></nz-icon>
@@ -157,92 +125,73 @@
           </button>
         </nz-col>
       </nz-row>
-      
+
       <!-- Danh sách các card động -->
       <div id="employee_overtime">
-        <div *ngFor="let tab of formTabs; let i = index" 
-             class="card mb-3" 
-             [ngClass]="i % 2 === 0 ? 'card-primary' : 'card-danger'"
-             style="border-radius: 0;"
-             [attr.id]="'employee__overtime__' + tab.id">
+        <div *ngFor="let tab of formTabs; let i = index" class="card mb-3"
+          [ngClass]="i % 2 === 0 ? 'card-primary' : 'card-danger'" style="border-radius: 0;"
+          [attr.id]="'employee__overtime__' + tab.id">
           <div class="row mx-0 bg-whitesmoke mb-3 p-2" style="position: relative;">
             <form nz-form [formGroup]="tab.form" nzLayout="vertical" style="width: 100%;">
               <!-- Nút X để xóa -->
-              <a class="text-danger" (click)="removeTabByIndex(i)" style="cursor: pointer; position: absolute; right: 8px; top: 8px; z-index: 10;">
+              <a class="text-danger" (click)="removeTabByIndex(i)"
+                style="cursor: pointer; position: absolute; right: 8px; top: 8px; z-index: 10;">
                 <i nz-icon nzType="close" nzTheme="outline"></i>
               </a>
-              
+
               <nz-row [nzGutter]="16">
                 <nz-col [nzXs]="24" [nzSm]="24" [nzMd]="6" [nzLg]="6" [nzXl]="6">
                   <nz-form-item>
                     <nz-form-label>Từ<span class="text-danger ps-2 me-1"> (*)</span></nz-form-label>
                     <nz-form-control [nzErrorTip]="'Vui lòng chọn thời gian bắt đầu'">
-                      <nz-date-picker
-                        [formControl]="$any(tab.form.get('TimeStart'))"
-                        nzPlaceHolder="Chọn thời gian bắt đầu"
-                        nzShowTime
-                        [nzFormat]="'dd/MM/yyyy HH:mm'"
-                        [nzShowToday]="false"
-                        [nzDisabledDate]="disabledDate"
-                        style="width: 100%"
-                      ></nz-date-picker>
+                      <nz-date-picker [formControl]="$any(tab.form.get('TimeStart'))"
+                        nzPlaceHolder="Chọn thời gian bắt đầu" nzShowTime [nzFormat]="'dd/MM/yyyy HH:mm'"
+                        [nzShowToday]="false" [nzDisabledDate]="disabledDateForTimeStart"
+                        style="width: 100%"></nz-date-picker>
                     </nz-form-control>
                   </nz-form-item>
                 </nz-col>
-                
+
                 <nz-col [nzXs]="24" [nzSm]="24" [nzMd]="6" [nzLg]="6" [nzXl]="6">
                   <nz-form-item>
                     <nz-form-label>Đến<span class="text-danger ps-1 me-1"> (*)</span></nz-form-label>
                     <nz-form-control [nzErrorTip]="'Vui lòng chọn thời gian kết thúc'">
-                      <nz-date-picker
-                        [formControl]="$any(tab.form.get('EndTime'))"
-                        nzPlaceHolder="Chọn thời gian kết thúc"
-                        nzShowTime
-                        [nzFormat]="'dd/MM/yyyy HH:mm'"
-                        [nzShowToday]="false"
-                        [nzDisabledDate]="disabledDateForEndTime"
-                        style="width: 100%"
-                      ></nz-date-picker>
+                      <nz-date-picker [formControl]="$any(tab.form.get('EndTime'))"
+                        nzPlaceHolder="Chọn thời gian kết thúc" nzShowTime [nzFormat]="'dd/MM/yyyy HH:mm'"
+                        [nzShowToday]="false" [nzDisabledDate]="disabledDateForEndTime"
+                        style="width: 100%"></nz-date-picker>
                     </nz-form-control>
                   </nz-form-item>
                 </nz-col>
-                
+
                 <nz-col [nzXs]="24" [nzSm]="24" [nzMd]="6" [nzLg]="6" [nzXl]="6">
                   <nz-form-item>
-                    <nz-form-label>Dự án<span *ngIf="showProjectField" class="text-danger ps-1 me-1"> (*)</span></nz-form-label>
+                    <nz-form-label>Dự án<span *ngIf="showProjectField" class="text-danger ps-1 me-1">
+                        (*)</span></nz-form-label>
                     <nz-form-control [nzErrorTip]="showProjectField ? 'Vui lòng chọn dự án' : undefined">
-                      <nz-select
-                        [formControl]="$any(tab.form.get('ProjectID'))"
-                        nzPlaceHolder="Chọn dự án"
-                        nzAllowClear
-                        nzShowSearch
-                        style="width: 100%"
-                      >
-                        <nz-option *ngFor="let project of projectList" [nzValue]="project.id" 
+                      <nz-select [formControl]="$any(tab.form.get('ProjectID'))" nzPlaceHolder="Chọn dự án" nzAllowClear
+                        nzShowSearch style="width: 100%">
+                        <nz-option *ngFor="let project of projectList" [nzValue]="project.id"
                           [nzLabel]="project.text"></nz-option>
                       </nz-select>
                     </nz-form-control>
                   </nz-form-item>
                 </nz-col>
-                
+
                 <nz-col [nzXs]="24" [nzSm]="24" [nzMd]="6" [nzLg]="6" [nzXl]="6">
                   <nz-form-item>
                     <nz-form-label>Địa điểm<span class="text-danger ps-1 me-1"> (*)</span></nz-form-label>
                     <nz-form-control [nzErrorTip]="'Vui lòng chọn địa điểm'">
-                      <nz-select
-                        [formControl]="$any(tab.form.get('Location'))"
-                        nzPlaceHolder="Chọn địa điểm"
-                        nzAllowClear
-                        style="width: 100%"
-                      >
-                        <nz-option *ngFor="let location of locationList" [nzValue]="location.value" 
+                      <nz-select [formControl]="$any(tab.form.get('Location'))" nzPlaceHolder="Chọn địa điểm"
+                        nzAllowClear style="width: 100%">
+                        <nz-option *ngFor="let location of locationList" [nzValue]="location.value"
                           [nzLabel]="location.label"></nz-option>
                       </nz-select>
                     </nz-form-control>
                   </nz-form-item>
                 </nz-col>
               </nz-row>
-              
+
               <nz-row [nzGutter]="16">
                 <nz-col [nzXs]="24" [nzSm]="24" [nzMd]="6" [nzLg]="6" [nzXl]="6">
                   <nz-form-item>
@@ -252,37 +201,26 @@
                     </nz-form-control>
                   </nz-form-item>
                 </nz-col>
-                
+
                 <nz-col [nzXs]="24" [nzSm]="24" [nzMd]="6" [nzLg]="6" [nzXl]="6">
                   <nz-form-item>
                     <nz-form-label>Loại<span class="text-danger ps-1 "> (*)</span></nz-form-label>
                     <nz-form-control [nzErrorTip]="'Vui lòng chọn loại làm thêm'">
-                      <nz-select
-                        [formControl]="$any(tab.form.get('TypeID'))"
-                        nzPlaceHolder="Chọn loại làm thêm"
-                        nzAllowClear
-                        nzShowSearch
-                        style="width: 100%"
-                      >
-                        <nz-option *ngFor="let type of typeList" [nzValue]="type.ID" 
-                          [nzLabel]="type.Type"></nz-option>
+                      <nz-select [formControl]="$any(tab.form.get('TypeID'))" nzPlaceHolder="Chọn loại làm thêm"
+                        nzAllowClear nzShowSearch style="width: 100%">
+                        <nz-option *ngFor="let type of typeList" [nzValue]="type.ID" [nzLabel]="type.Type"></nz-option>
                       </nz-select>
                     </nz-form-control>
                   </nz-form-item>
                 </nz-col>
-                
+
                 <nz-col [nzXs]="24" [nzSm]="24" [nzMd]="12" [nzLg]="12" [nzXl]="12">
                   <nz-form-item>
                     <nz-form-label>Lý do<span class="text-danger ps-1 "> (*)</span></nz-form-label>
                     <nz-form-control [nzErrorTip]="'Vui lòng nhập lý do'">
-                      <textarea 
-                        nz-input 
-                        [formControl]="$any(tab.form.get('Reason'))" 
-                        placeholder="Nhập lý do" 
-                        style="width: 100%; min-height: 32px; height: auto; resize: none; overflow-y: hidden;"
-                        rows="1"
-                        (input)="autoResizeTextarea($event)"
-                      ></textarea>
+                      <textarea nz-input [formControl]="$any(tab.form.get('Reason'))" placeholder="Nhập lý do"
+                        style="width: 100%; min-height: 32px; height: auto; resize: none; overflow-y: hidden;" rows="1"
+                        (input)="autoResizeTextarea($event)"></textarea>
                     </nz-form-control>
                   </nz-form-item>
                 </nz-col>
@@ -297,7 +235,7 @@
 
   <div class="modal-footer bg-white p-2 d-flex justify-content-end gap-2">
     <button nz-button nzDanger nzType="default" (click)="onCancel()" [nzLoading]="isLoading">
-     Đóng
+      Đóng
     </button>
     <button nz-button nzType="primary" (click)="onSubmit()" [nzLoading]="isLoading">
       Lưu

@@ -13,6 +13,7 @@ import { NzSelectModule } from 'ng-zorro-antd/select';
 import { NzSpinModule } from 'ng-zorro-antd/spin';
 import { NzRadioModule } from 'ng-zorro-antd/radio';
 import { EmployeeNofingerprintService } from '../employee-no-fingerprint-service/employee-no-fingerprint.service';
+import { HasPermissionDirective } from '../../../../../directives/has-permission.directive';
 
 export interface ENFDetailDto {
   ID?: number;
@@ -51,6 +52,7 @@ export interface ENFDetailDto {
     NzSelectModule,
     NzSpinModule,
     NzRadioModule,
+    HasPermissionDirective
   ],
   templateUrl: './ENF-detail.component.html',
   styleUrls: ['./ENF-detail.component.css'],

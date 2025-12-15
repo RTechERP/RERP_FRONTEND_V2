@@ -87,6 +87,15 @@ export class ProjectService {
   getProjectStatus(): Observable<any> {
     return this.http.get<any>(this.urlProject + `get-project-status`);
   }
+
+  // Cập nhật trạng thái dự án
+  updateProjectStatus(projectID: number, projectStatusID: number, dateLog: Date): Observable<any> {
+    const params = new HttpParams()
+      .set('projectID', projectID.toString())
+      .set('projectStatusID', projectStatusID.toString())
+      .set('dateLog', dateLog.toISOString());
+    return this.http.post<any>(this.urlProject + `update-status`, null, { params });
+  }
   // modal lấy danh sách nhóm file
   getGroupFiles(): Observable<any> {
     return this.http.get<any>(this.urlProject + `get-group-files`);

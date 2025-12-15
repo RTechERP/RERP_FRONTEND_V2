@@ -442,8 +442,6 @@ private validateManufacturerForVision(rows: any[]): boolean {
       IsDeleted: this.isDeletedFilter,
       IsTechBought: -1,
       IsJobRequirement: -1,
-      Page: 1,
-      Size: 5000,
     };
 
     this.srv.getAll(filter).subscribe({

@@ -376,6 +376,7 @@ export class MenuService {
                                         comp: InventoryDemoComponent,
                                         data: {
                                             warehouseID: 1,
+                                            warehouseType: 1,
                                         },
                                         //   icon: 'assets/icon/layers.png',
                                     },
@@ -389,6 +390,7 @@ export class MenuService {
                                         comp: BillImportTechnicalComponent,
                                         data: {
                                             warehouseID: 1,
+                                            warehouseType: 1,
                                         },
                                         //   icon: 'assets/icon/layers.png',
                                     },
@@ -401,6 +403,7 @@ export class MenuService {
                                         comp: BillExportTechnicalComponent,
                                         data: {
                                             warehouseID: 1,
+                                            warehouseType: 1,
                                         },
                                         //   icon: 'assets/icon/layers.png',
                                     },
@@ -414,6 +417,7 @@ export class MenuService {
                                         comp: ProductReportNewComponent,
                                         data: {
                                             warehouseID: 1,
+                                            warehouseType: 1,
                                         },
                                     },
                                     {
@@ -485,6 +489,7 @@ export class MenuService {
                                         comp: ProductRtcQrCodeComponent,
                                         data: {
                                             warehouseID: 1,
+
                                         },
                                     },
                                 ],

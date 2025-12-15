@@ -17,8 +17,10 @@ import { NzInputModule } from 'ng-zorro-antd/input';
 import { NzFormModule } from 'ng-zorro-antd/form';
 import { NzInputNumberModule } from 'ng-zorro-antd/input-number';
 import { NgbModal } from '@ng-bootstrap/ng-bootstrap';
+import { HttpClient } from '@angular/common/http';
 import { ProductsaleServiceService } from '../product-sale-service/product-sale-service.service';
 import { DEFAULT_TABLE_CONFIG } from '../../../../../tabulator-default.config';
+import { environment } from '../../../../../../environments/environment';
 @Component({
   selector: 'app-import-excel-product-sale',
   imports: [CommonModule, FormsModule, ReactiveFormsModule, NzProgressModule, NzIconModule, NzButtonModule],
@@ -60,7 +62,8 @@ export class ImportExcelProductSaleComponent implements OnInit, AfterViewInit {
   constructor(
     private notification: NzNotificationService,
     private modalService: NgbModal,
-    private productsaleService: ProductsaleServiceService
+    private productsaleService: ProductsaleServiceService,
+    private http: HttpClient
   ) { }
 
   ngOnInit(): void {
@@ -96,6 +99,7 @@ export class ImportExcelProductSaleComponent implements OnInit, AfterViewInit {
         // Tự động tạo cột dựa trên dữ liệu
         autoColumnsDefinitions: {
           STT: { title: "STT", field: "STT", hozAlign: "center", headerHozAlign: "center", width: 50, editor: "input" },
+          ProductGroupNo: { title: 'Mã nhóm', field: 'ProductGroupNo', hozAlign: 'left', headerHozAlign: 'center', editor: "input" },
           productGroupName: { title: 'Tên nhóm', field: 'ProductGroupName', hozAlign: 'left', headerHozAlign: 'center', editor: "input" },
           ProductCode: { title: 'Mã Sản phẩm', field: 'ProductCode', hozAlign: 'left', headerHozAlign: 'center', editor: "input" },
           ProductName: { title: 'Tên Sản phẩm', field: 'ProductName', hozAlign: 'left', headerHozAlign: 'center', editor: "input" },
@@ -229,6 +233,7 @@ export class ImportExcelProductSaleComponent implements OnInit, AfterViewInit {
 
   private headerSynonymsMap: Record<string, string> = {
       'stt': 'STT', 'so thu tu': 'STT', 'thu tu': 'STT',
+      'productgroupno': 'ProductGroupNo', 'ma nhom': 'ProductGroupNo', 'mn': 'ProductGroupNo',
       'productgroupname': 'ProductGroupName', 'nhom': 'ProductGroupName', 'ten nhom': 'ProductGroupName', 'loai nhom': 'ProductGroupName',
       'productcode': 'ProductCode', 'ma san pham': 'ProductCode', 'ma sp': 'ProductCode', 'msp': 'ProductCode',
       'productname': 'ProductName', 'ten san pham': 'ProductName', 'ten sp': 'ProductName',
@@ -262,6 +267,7 @@ export class ImportExcelProductSaleComponent implements OnInit, AfterViewInit {
 
           const columns = [
               { title: 'STT', field: 'STT', hozAlign: 'center', headerHozAlign: "center", width: 50, editor: "input" },
+              { title: 'Mã nhóm', field: 'ProductGroupNo', hozAlign: 'left', headerHozAlign: "center", width: 100, editor: "input" },
               { title: 'Tên nhóm', field: 'ProductGroupName', hozAlign: 'left', headerHozAlign: "center", width: 150, editor: "input" },
               { title: 'Mã Sản phẩm', field: 'ProductCode', hozAlign: 'left', headerHozAlign: "center", width: 120, editor: "input" },
               { title: 'Tên Sản phẩm', field: 'ProductName', hozAlign: 'left', headerHozAlign: 'center', width: 200, editor: "input" },
@@ -282,6 +288,7 @@ export class ImportExcelProductSaleComponent implements OnInit, AfterViewInit {
               const row = worksheet.getRow(rowNumber);
               const rowData: any = {
                   STT: '',
+                  ProductGroupNo: '',
                   ProductGroupName: '',
                   ProductGroup: '',
                   ProductCode: '',
@@ -378,17 +385,19 @@ export class ImportExcelProductSaleComponent implements OnInit, AfterViewInit {
       }
   }
   downloadTemplate() {
-      this.productsaleService.getTemplateExcel().subscribe({
+      const url = environment.host + 'api/share/software/Template/ExportExcel/DanhSachVatTuKhoSaleMau.xlsx';
+      this.http.get(url, { responseType: 'blob' }).subscribe({
           next: (blob: Blob) => {
-              const url = window.URL.createObjectURL(blob);
+              const downloadUrl = window.URL.createObjectURL(blob);
               const a = document.createElement('a');
-              a.href = url;
-              a.download = 'MAU-VT-Sale.xlsx';
+              a.href = downloadUrl;
+              a.download = 'DanhSachVatTuKhoSaleMau.xlsx';
               a.click();
-              window.URL.revokeObjectURL(url);
+              window.URL.revokeObjectURL(downloadUrl);
           },
           error: (err) => {
               console.error('Lỗi tải template Excel:', err);
+              this.notification.error('Thông báo', 'Không thể tải file template. Vui lòng thử lại!');
           }
       });
   }
@@ -425,87 +434,69 @@ export class ImportExcelProductSaleComponent implements OnInit, AfterViewInit {
       this.displayText = `Đang lưu: 0/${totalProductsToSave} bản ghi`;
       this.displayProgress = 0;
 
-      // Lấy danh sách mã sản phẩm cần kiểm tra từ dữ liệu đã lọc
-      const codesToCheck = validDataToSave.map(item => ({
-          ProductCode: item.ProductCode,
-          ProductName: item.ProductName,
-      }));
+      // Map dữ liệu để truyền tên thay vì ID - backend sẽ tự tìm và update
+      // Backend nhận ProductSaleImportExcelDTO với các trường: ProductGroupNo, ProductGroupName, FirmName, UnitName, LocationName
+      const processedData = validDataToSave.map((row) => {
+        // Lấy ProductGroupNo từ row
+        const productGroupNo = row.ProductGroupNo || '';
+        
+        // Lấy ProductGroupName từ row (có thể là ProductGroup hoặc ProductGroupName)
+        const productGroupName = row.ProductGroupName || row.ProductGroup || '';
+        
+        // Lấy FirmName từ row.Maker
+        const firmName = row.Maker || '';
+        
+        // Lấy UnitName từ row.Unit
+        const unitName = row.Unit || '';
+        
+        // Lấy LocationName từ row.AddressBox
+        const locationName = row.AddressBox || '';
 
-      console.log('codesToCheck (dữ liệu gửi đi kiểm tra, đã lọc STT số):', codesToCheck);
+        // Tạo object ProductSaleImportExcelDTO với các trường tên thay vì ID
+        const productSaleImportDTO = {
+          ProductCode: row.ProductCode || '',
+          ProductName: row.ProductName || '',
+          ProductGroupNo: productGroupNo,      // Mã nhóm
+          ProductGroupName: productGroupName,  // Tên nhóm - backend sẽ tự tìm ProductGroupID
+          FirmName: firmName,                  // Tên hãng - backend sẽ tự tìm FirmID
+          UnitName: unitName,                  // Tên đơn vị - backend sẽ tự tìm Unit
+          LocationName: locationName,          // Tên vị trí - backend sẽ tự tìm LocationID
+          Note: row.Note || ''
+        };
 
-      // Gọi API kiểm tra mã để gắn ID cho bản ghi cần cập nhật
-      this.productsaleService.checkProductSaleCodes(codesToCheck).subscribe({
-          next: (response: any) => {
-              const existingProducts = (response.data && Array.isArray(response.data.existingProducts)) ? response.data.existingProducts : [];
+        return productSaleImportDTO;
+      });
 
-              const processedData = validDataToSave.map((row) => {
-                  // Tìm sản phẩm đã tồn tại dựa trên cả ProductCode và ProductName
-                  const existingProduct = existingProducts.find((p: any) =>
-                    p.ProductCode === row.ProductCode && p.ProductName === row.ProductName
-                  );
+      console.log('Dữ liệu gửi đi (đã map tên thay vì ID):', processedData);
 
-                  const productSaleData = {
-                    ID: existingProduct ? existingProduct.ID : 0,
-                    ProductCode: row.ProductCode || '',
-                    ProductName: row.ProductName || '',
-                    ProductGroupID: this.getProductGroupIdByName(row.ProductGroup), // hoặc dùng row.ProductGroupName nếu đó là trường thực tế
-                    Maker: row.Maker || '',
-                    Unit: row.Unit || '',
-                    NumberInStoreDauky: 0,
-                    NumberInStoreCuoiKy: 0,
-                    LocationID: this.getLocationIdByName(row.AddressBox),
-                    FirmID: this.getFirmIdByName(row.Maker),
-                    Note: row.Note || '',
-                    CreatedBy: 'admin',
-                    CreatedDate: new Date(),
-                    UpdatedBy: 'admin',
-                    UpdatedDate: new Date()
-                  };
+      // Gọi BULK API và hiển thị đúng message trả về từ backend
+      this.isSavingData = true;
+      this.productsaleService.saveDataProductSaleExcel(processedData).subscribe({
+        next: (res: any) => {
+          const successCount = res?.data?.successCount ?? 0;
+          const failCount = res?.data?.failCount ?? 0;
+          const duplicateCodes: string[] = res?.data?.duplicateCodes ?? [];
+          const msgFromApi: string = res?.message || `Lưu thành công ${successCount} bản ghi, thất bại ${failCount} bản ghi.` +
+            (duplicateCodes.length ? ` Các mã trùng bị bỏ qua: ${duplicateCodes.join(', ')}.` : '');
 
-                  // FIX: trả về đối tượng DTO phẳng thay vì mảng bọc đối tượng
-                  return {
-                    ProductSale: productSaleData,
-                    Inventory: {
-                      Note: row.Note || ''
-                    }
-                  };
-                });
+          this.displayProgress = 100;
+          this.displayText = `${successCount}/${processedData.length} bản ghi`;
 
-                // Gọi BULK API và hiển thị đúng message trả về từ backend
-                this.isSavingData = true;
-                this.productsaleService.saveDataProductSaleExcel(processedData).subscribe({
-                  next: (res: any) => {
-                    const successCount = res?.data?.successCount ?? 0;
-                    const failCount = res?.data?.failCount ?? 0;
-                    const duplicateCodes: string[] = res?.data?.duplicateCodes ?? [];
-                    const msgFromApi: string = res?.message || `Lưu thành công ${successCount} bản ghi, thất bại ${failCount} bản ghi.` +
-                      (duplicateCodes.length ? ` Các mã trùng bị bỏ qua: ${duplicateCodes.join(', ')}.` : '');
-
-                    this.displayProgress = 100;
-                    this.displayText = `${successCount}/${processedData.length} bản ghi`;
-
-                    if (failCount > 0 || duplicateCodes.length > 0) {
-                      this.notification.warning('Thông báo', msgFromApi);
-                    } else {
-                      this.notification.success('Thông báo', msgFromApi);
-                    }
-                    this.isSavingData = false;
-                    this.closeExcelModal();
-                  },
-                  error: (err: any) => {
-                    const msg = err?.error?.message || 'Có lỗi xảy ra khi lưu dữ liệu.';
-                    this.notification.error('Thông báo', msg);
-                    this.isSavingData = false;
-                  }
-                });
-              },
-              error: (error: any) => {
-                const msg = error?.error?.message || 'Không thể kiểm tra mã sản phẩm!';
-                this.notification.error('Thông báo', msg);
-                this.isSavingData = false;
-              }
-            });
+          if (failCount > 0 || duplicateCodes.length > 0) {
+            this.notification.warning('Thông báo', msgFromApi);
+          } else {
+            this.notification.success('Thông báo', msgFromApi);
           }
+          this.isSavingData = false;
+          this.closeExcelModal();
+        },
+        error: (err: any) => {
+          const msg = err?.error?.message || 'Có lỗi xảy ra khi lưu dữ liệu.';
+          this.notification.error('Thông báo', msg);
+          this.isSavingData = false;
+        }
+      });
+    }
           showSaveSummary(successCount: number, errorCount: number, totalProducts: number) {
             console.log('--- Hiển thị tóm tắt kết quả lưu ---');
             console.log(`Tổng sản phẩm: ${totalProducts}, Thành công: ${successCount}, Thất bại: ${errorCount}`);

@@ -134,6 +134,8 @@ export class ProjectComponent implements OnInit, AfterViewInit {
   tb_projectWorkReportContainer!: ElementRef;
   @ViewChild('tb_projectTypeLink', { static: false })
   tb_projectTypeLinkContainer!: ElementRef;
+  @ViewChild('statusDateModalContent', { static: false })
+  statusDateModalContent!: any;
 
   isHide: any = false;
 
@@ -145,6 +147,7 @@ export class ProjectComponent implements OnInit, AfterViewInit {
   pms: any[] = [];
   businessFields: any[] = [];
   customers: any[] = [];
+  projectStatuses: any[] = []; // Danh sách trạng thái dự án
   projecStatuses: any[] = [];
 
   tb_projects: any;
@@ -162,6 +165,7 @@ export class ProjectComponent implements OnInit, AfterViewInit {
   projectCode: any = '';
   currentUser: any = null;
   savedPage: number = 1; // Lưu page hiện tại khi reload
+  selectedStatusDate: Date | null = null; // Biến lưu ngày được chọn trong modal
   dateStart: any = DateTime.local()
     .set({ hour: 0, minute: 0, second: 0, year: 2024, month: 1, day: 1 })
     .toISO();
@@ -225,7 +229,7 @@ export class ProjectComponent implements OnInit, AfterViewInit {
 
   //#region xử lý bảng danh sách dự án
   drawTbProjects(container: HTMLElement) {
-       let contextMenuProject = [
+      let contextMenuProject = [
       {
         label: `<span style="font-size: 0.75rem;"><img src="assets/icon/priority_level_16.png" alt="Mức độ ưu tiên cá nhân" class="me-1" /> Mức độ ưu tiên cá nhân</span>`,
         menu: [1, 2, 3, 4, 5].map((level) => ({
@@ -322,6 +326,32 @@ export class ProjectComponent implements OnInit, AfterViewInit {
         },
       });
     }
+       // Thêm menu item "Cập nhật trạng thái" nếu có quyền
+      if (this.permissionService.hasPermission('N1,N13,N27')) {
+        // Tạo menu với dữ liệu từ projectStatuses (sẽ được cập nhật động)
+        const getStatusMenuItems = () => {
+          if (this.projectStatuses && this.projectStatuses.length > 0) {
+            return this.projectStatuses.map((status: any) => ({
+              label: `<span style="font-size: 0.75rem;">${status.StatusName || ''}</span>`,
+              action: (e: any, row: any) => {
+                this.selectProjectStatus(status.ID);
+              },
+            }));
+          }
+          return [
+            {
+              label: '<span style="font-size: 0.75rem;">Đang tải...</span>',
+              action: () => {},
+            }
+          ];
+        };
+        
+        contextMenuProject.push({
+          label:
+            '<span style="font-size: 0.75rem;"><img src="assets/icon/update_status2_16.png" alt="Cập nhật trạng thái" class="me-1" /> Cập nhật trạng thái</span>',
+          menu: getStatusMenuItems(),
+        });
+      }
 
 
     if (!this.isHide) {
@@ -377,7 +407,35 @@ export class ProjectComponent implements OnInit, AfterViewInit {
             });
         });
       },
-      rowContextMenu: contextMenuProject,
+      rowContextMenu: (e: any, row: any) => {
+        // Tạo menu động để luôn lấy dữ liệu mới nhất từ projectStatuses
+        const menu = [...contextMenuProject];
+        
+        // Tìm và cập nhật menu "Cập nhật trạng thái" với dữ liệu mới nhất
+        const statusMenuIndex = menu.findIndex((item: any) => 
+          item.label && item.label.includes('Cập nhật trạng thái')
+        );
+        
+        if (statusMenuIndex >= 0) {
+          if (this.projectStatuses && this.projectStatuses.length > 0) {
+            menu[statusMenuIndex].menu = this.projectStatuses.map((status: any) => ({
+              label: `<span style="font-size: 0.75rem;">${status.StatusName || ''}</span>`,
+              action: (e: any, row: any) => {
+                this.selectProjectStatus(status.ID);
+              },
+            }));
+          } else {
+            menu[statusMenuIndex].menu = [
+              {
+                label: '<span style="font-size: 0.75rem;">Đang tải...</span>',
+                action: () => {},
+              }
+            ];
+          }
+        }
+        
+        return menu;
+      },
       columns: [
         {
           title: 'Trạng thái',
@@ -1066,10 +1124,85 @@ export class ProjectComponent implements OnInit, AfterViewInit {
     this.projectService.getProjectStatus().subscribe({
       next: (response: any) => {
         this.projecStatuses = response.data;
+        this.projectStatuses = response.data || []; // Lưu danh sách status để dùng cho menu
+        // Menu sẽ tự động cập nhật vì đã sử dụng function trong rowContextMenu
       },
       error: (error) => {
         console.error('Lỗi:', error);
       },
+    });
+  }
+
+  // Hàm xử lý khi chọn trạng thái từ menu
+  selectProjectStatus(statusID: number) {
+    let selectedRows = this.tb_projects.getSelectedRows();
+    let selectedIDs = selectedRows.map((row: any) => row.getData().ID);
+
+    if (selectedIDs.length != 1) {
+      this.notification.error('Thông báo', 'Vui lòng chọn 1 dự án!', {
+        nzStyle: { fontSize: '0.75rem' },
+      });
+      return;
+    }
+
+    const projectID = selectedIDs[0];
+    // Set ngày mặc định là ngày hôm nay
+    this.selectedStatusDate = new Date();
+
+    // Tạo modal chọn ngày
+    const modalRef = this.modal.create({
+      nzTitle: 'Cập nhật trạng thái',
+      nzContent: this.statusDateModalContent,
+      nzFooter: [
+        {
+          label: 'Hủy',
+          type: 'default',
+          onClick: () => {
+            this.selectedStatusDate = null;
+            modalRef.close();
+          },
+        },
+        {
+          label: 'OK',
+          type: 'primary',
+          onClick: () => {
+            if (!this.selectedStatusDate) {
+              this.notification.error('Thông báo', 'Vui lòng chọn ngày thay đổi trạng thái!', {
+                nzStyle: { fontSize: '0.75rem' },
+              });
+              return;
+            }
+
+            const dateLog = this.selectedStatusDate;
+            this.selectedStatusDate = null; // Reset sau khi dùng
+
+            // Gọi API cập nhật trạng thái
+            this.projectService.updateProjectStatus(projectID, statusID, dateLog).subscribe({
+              next: (response: any) => {
+                if (response && response.status === 1) {
+                  this.notification.success('Thông báo', response.message || 'Cập nhật trạng thái thành công!', {
+                    nzStyle: { fontSize: '0.75rem' },
+                  });
+                  modalRef.close();
+                  this.searchProjects(); // Reload dữ liệu
+                } else {
+                  this.notification.error('Lỗi', response?.message || 'Không thể cập nhật trạng thái!', {
+                    nzStyle: { fontSize: '0.75rem' },
+                  });
+                }
+              },
+              error: (error: any) => {
+                const errorMsg = error?.error?.message || error?.message || 'Có lỗi xảy ra khi cập nhật trạng thái!';
+                this.notification.error('Lỗi', errorMsg, {
+                  nzStyle: { fontSize: '0.75rem' },
+                });
+                console.error('Error updating project status:', error);
+              },
+            });
+          },
+        },
+      ],
+      nzWidth: 500,
     });
   }
   onSearchChange(value: string) {

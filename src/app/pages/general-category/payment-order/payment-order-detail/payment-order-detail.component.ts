@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { AfterViewInit, Component, ElementRef, OnInit, Renderer2, ViewChild } from '@angular/core';
 import { FormGroup, NonNullableFormBuilder, ReactiveFormsModule, Validators, FormsModule } from '@angular/forms';
 import { NgbActiveModal } from '@ng-bootstrap/ng-bootstrap';
 import { NzButtonModule } from 'ng-zorro-antd/button';
@@ -10,10 +10,10 @@ import { NzSelectModule } from "ng-zorro-antd/select";
 import { NzDatePickerModule } from 'ng-zorro-antd/date-picker';
 import { NzGridModule } from 'ng-zorro-antd/grid';
 import { NzCheckboxModule } from 'ng-zorro-antd/checkbox';
-import { AngularGridInstance, AngularSlickgridModule, Column, Editors, Filters, Formatters, GridOption, Aggregator, OnCellChangeEventArgs, OnEventArgs } from 'angular-slickgrid';
-import { Subject, takeUntil } from 'rxjs';
+import { AngularGridInstance, AngularSlickgridModule, Column, Editors, Filters, Formatters, GridOption, Aggregator, OnCellChangeEventArgs, OnEventArgs, GridService } from 'angular-slickgrid';
+import { min, Subject, takeUntil } from 'rxjs';
 import { CommonModule } from '@angular/common';
-import { PaymentOrderService } from '../payment-order.service';
+import { CURRENCY_CONFIGS, PaymentOrderService } from '../payment-order.service';
 import { NzNotificationService } from 'ng-zorro-antd/notification';
 import { NOTIFICATION_TITLE } from '../../../../app.config';
 import { AppUserService } from '../../../../services/app-user.service';
@@ -37,7 +37,7 @@ import { AppUserService } from '../../../../services/app-user.service';
     templateUrl: './payment-order-detail.component.html',
     styleUrl: './payment-order-detail.component.css'
 })
-export class PaymentOrderDetailComponent implements OnInit {
+export class PaymentOrderDetailComponent implements OnInit, AfterViewInit {
 
     validateForm !: FormGroup;
 
@@ -50,7 +50,7 @@ export class PaymentOrderDetailComponent implements OnInit {
     typeBankTransfers: any[] = [];
     units: any[] = [];
 
-    paymentOrder: PaymentOrder = {} as PaymentOrder;
+    paymentOrder = new PaymentOrder();
     paymentOrderField = PaymentOrderField;
 
     angularGrid!: AngularGridInstance;
@@ -77,7 +77,7 @@ export class PaymentOrderDetailComponent implements OnInit {
             PaymentInfor: '',
             EmployeeID: 0,
             TotalPaymentAmount: 0,
-            PaymentPercentage: 0,
+            PaymentPercentage: 100,
         }
     ];
     dataset2: any[] = [
@@ -96,7 +96,7 @@ export class PaymentOrderDetailComponent implements OnInit {
             PaymentInfor: '',
             EmployeeID: 0,
             TotalPaymentAmount: 0,
-            PaymentPercentage: 0,
+            PaymentPercentage: 100,
             _id: 1,
         },
         {
@@ -222,6 +222,7 @@ export class PaymentOrderDetailComponent implements OnInit {
             Bank: this.fb.control('', [Validators.required]),
             ContentBankTransfer: this.fb.control('', [Validators.required]),
             Unit: this.fb.control('', [Validators.required]),
+
         });
 
 
@@ -285,14 +286,29 @@ export class PaymentOrderDetailComponent implements OnInit {
                 this.onChangeTypeOrder(value);
             });
 
+        //Sự kiện chọn đơn vị
+        this.validateForm
+            .get(this.paymentOrderField.Unit.field)
+            ?.valueChanges.pipe(takeUntil(this.destroy$))
+            .subscribe((value: string) => {
 
+                let gridInstance = this.angularGrid;
+                if (this.paymentOrder.TypeOrder == 2) gridInstance = this.angularGrid2;
 
-
+                const columnId = gridInstance.slickGrid?.getColumns().findIndex(x => x.id == PaymentOrderDetailField.TotalPaymentAmount.field);
+                const columnElement = gridInstance.slickGrid?.getFooterRowColumn(columnId);
+                this.paymentOrder.TotalMoneyText = this.paymentService.readMoney(parseFloat(columnElement.textContent || ''), value);
+            });
     }
 
     ngOnInit(): void {
         this.initGrid();
         this.initDataCombo();
+    }
+
+    ngAfterViewInit(): void {
+
+
     }
 
     initDataCombo() {
@@ -320,15 +336,7 @@ export class PaymentOrderDetailComponent implements OnInit {
             { ID: 5, Text: 'Chuyển khoản R-Tech' },
         ];
 
-        this.units = [
-            { ID: 'vnd', Text: 'VND' },
-            { ID: 'usd', Text: 'USD' },
-            { ID: 'eur', Text: 'EURO' },
-            { ID: 'jpy', Text: 'JPY' },
-            { ID: 'sgd', Text: 'SGD' },
-            { ID: 'cny', Text: 'CNY' },
-            { ID: 'inr', Text: 'INR' },
-        ]
+        this.units = CURRENCY_CONFIGS;
     }
 
     initGrid() {
@@ -438,6 +446,7 @@ export class PaymentOrderDetailComponent implements OnInit {
                 },
                 onCellChange: (e: Event, args: OnEventArgs) => {
                     this.updateTotal(args.cell);
+                    this.updateTotalPaymentAmount(args.cell, args.row);
                 }
             },
 
@@ -454,7 +463,11 @@ export class PaymentOrderDetailComponent implements OnInit {
                 // filter: { model: Filters['compoundInputText'] }
                 editor: {
                     model: Editors['float'],
-                    decimal: 2
+                    decimal: 2,
+                    options: { max: 100 }
+                },
+                onCellChange: (e: Event, args: OnEventArgs) => {
+                    this.updateTotalPaymentAmount(args.cell, args.row);
                 }
             },
 
@@ -511,13 +524,13 @@ export class PaymentOrderDetailComponent implements OnInit {
             showFooterRow: true,
             createFooterRow: true,
 
-            showCustomFooter: true,
-            customFooterOptions: {
-                leftFooterText: '<p class="fw-bold text-dark">Số tiền bằng chữ: </p>',
-                hideMetrics: false,
-                hideTotalItemCount: false,
-                hideLastUpdateTimestamp: false
-            },
+            // showCustomFooter: true,
+            // customFooterOptions: {
+            //     // leftFooterText: `<p class="fw-bold text-dark">Số tiền bằng chữ: <span id='${this.paymentOrderField.TotalMoneyText.field}'></span></p>`,
+            //     hideMetrics: true,
+            //     hideTotalItemCount: true,
+            //     hideLastUpdateTimestamp: true
+            // },
 
             enableTreeData: true,
             treeDataOptions: {
@@ -542,10 +555,9 @@ export class PaymentOrderDetailComponent implements OnInit {
         }));
 
         // this.dataset2 = this.mockData(1);
-        // this.dataset2 = this.dataset2.map((x, i) => ({
-        //     ...x,
-        //     _id: i + 1   // dành riêng cho SlickGrid
-        // }));
+        this.dataset2.forEach(item => {
+            item.PaymentPercentage = 100;
+        });
     }
 
     angularGridReady(angularGrid: AngularGridInstance) {
@@ -578,20 +590,37 @@ export class PaymentOrderDetailComponent implements OnInit {
     }
 
     submitForm() {
-
-        console.log('data table:', this.dataset);
-
-        if (this.validateForm.valid) {
-            console.log('submit data', this.validateForm.value);
-        } else {
+        if (!this.validateForm.valid) {
             Object.values(this.validateForm.controls).forEach(control => {
                 if (control.invalid) {
                     control.markAsDirty();
                     control.updateValueAndValidity({ onlySelf: true });
                 }
             });
-        }
+        } else {
 
+            let gridInstance = this.angularGrid;
+            if (this.paymentOrder.TypeOrder == 2) gridInstance = this.angularGrid2;
+
+            const columnId = gridInstance.slickGrid?.getColumns().findIndex(x => x.id == PaymentOrderDetailField.TotalPaymentAmount.field);
+            const columnElement = gridInstance.slickGrid?.getFooterRowColumn(columnId);
+            this.paymentOrder = {
+                ...this.paymentOrder,
+                ...this.validateForm.getRawValue(),
+                PaymentOrderDetails: gridInstance.dataView.getItems(),
+                TotalMoney: parseFloat(columnElement.textContent ?? ''),
+            };
+            console.log('submit data', this.paymentOrder);
+
+            this.paymentService.save(this.paymentOrder).subscribe({
+                next: (response) => {
+                    console.log(response);
+                },
+                error: (err) => {
+                    this.notification.error(NOTIFICATION_TITLE.error, err.error.message);
+                }
+            })
+        }
     }
 
     addItem() {
@@ -626,7 +655,7 @@ export class PaymentOrderDetailComponent implements OnInit {
             PaymentInfor: '',
             EmployeeID: 0,
             TotalPaymentAmount: 0,
-            PaymentPercentage: 0,
+            PaymentPercentage: 100,
             treeLevel: isParent ? (parent?.treeLevel ?? 0) + 1 : 0
         };
 
@@ -662,14 +691,62 @@ export class PaymentOrderDetailComponent implements OnInit {
         let total = 0;
         // let i = this.dataset.length;
         let data = gridInstance.dataView.getItems();
-        let i = data.length;
-        while (i--) {
-            total += parseFloat(data[i][columnId]) || 0;
+        if (this.paymentOrder.TypeOrder != 2) {
+            let i = data.length;
+            while (i--) {
+                total += parseFloat(data[i][columnId]) || 0;
+            }
+            const columnElement = gridInstance.slickGrid?.getFooterRowColumn(columnId);
+            if (columnElement) {
+                columnElement.textContent = `${total}`;
 
-        }
-        const columnElement = gridInstance.slickGrid?.getFooterRowColumn(columnId);
-        if (columnElement) {
-            columnElement.textContent = `${total}`;
+                this.paymentOrder.TotalMoneyText = this.paymentService.readMoney(total, this.validateForm.value.Unit);
+            }
+        } else {
+
+            //Tính Thành tiền
+            const totalMoney1 = data.filter(x => x._id == 1).reduce((total, item) => total + (item.TotalMoney || 0), 0);
+            const totalMoney2 = data.filter(x => x.ParentID == 2).reduce((total, item) => total + (item.TotalMoney || 0), 0);
+            const totalMoneyDiff = Math.abs(totalMoney1 - totalMoney2);
+
+            const totalMoneyDiff1 = totalMoney1 - totalMoney2;
+            const totalMoneyDiff2 = totalMoney2 - totalMoney1;
+
+            //Tính tổng tiền thanh toán
+            const totalPaymentAmount1 = data.filter(x => x._id == 1).reduce((total, item) => total + (item.TotalPaymentAmount || 0), 0);
+            const totalPaymentAmount2 = data.filter(x => x.ParentID == 2).reduce((total, item) => total + (item.TotalPaymentAmount || 0), 0);
+            const totalPaymentAmountDiff = Math.abs(totalPaymentAmount1 - totalPaymentAmount2);
+
+            const totalPaymentAmountDiff1 = totalPaymentAmount1 - totalPaymentAmount2;
+            const totalPaymentAmountDiff2 = totalPaymentAmount2 - totalPaymentAmount1;
+
+            //Gán giá trị lên view
+            const rowParent2 = data.findIndex(x => x._id === 2);
+            const rowParent3 = data.findIndex(x => x._id === 3);
+            const rowParent4 = data.findIndex(x => x._id === 4);
+            const rowParent5 = data.findIndex(x => x._id === 5);
+
+            data[rowParent2][PaymentOrderDetailField.TotalMoney.field] = totalMoney2;
+            data[rowParent3][PaymentOrderDetailField.TotalMoney.field] = totalMoneyDiff;
+            data[rowParent4][PaymentOrderDetailField.TotalMoney.field] = Math.max(totalMoneyDiff1, 0);
+            data[rowParent5][PaymentOrderDetailField.TotalMoney.field] = Math.max(totalMoneyDiff2, 0);
+
+            data[rowParent2][PaymentOrderDetailField.TotalPaymentAmount.field] = totalPaymentAmount2;
+            data[rowParent3][PaymentOrderDetailField.TotalPaymentAmount.field] = totalPaymentAmountDiff;
+            data[rowParent4][PaymentOrderDetailField.TotalPaymentAmount.field] = Math.max(totalPaymentAmountDiff1, 0);
+            data[rowParent5][PaymentOrderDetailField.TotalPaymentAmount.field] = Math.max(totalPaymentAmountDiff2, 0);
+
+            gridInstance.gridService.updateItems(data);
+
+            const columnTotalMoneyId = gridInstance.slickGrid?.getColumns().findIndex(x => x.id == PaymentOrderDetailField.TotalMoney.field);
+            const columnTotalMoneyElement = gridInstance.slickGrid?.getFooterRowColumn(columnTotalMoneyId);
+            if (columnTotalMoneyElement) columnTotalMoneyElement.textContent = `${totalMoneyDiff}`;
+
+            const columnTotalPaymentAmountId = gridInstance.slickGrid?.getColumns().findIndex(x => x.id == PaymentOrderDetailField.TotalPaymentAmount.field)
+            const columnTotalPaymentAmountElement = gridInstance.slickGrid?.getFooterRowColumn(columnTotalPaymentAmountId);
+            if (columnTotalPaymentAmountElement) columnTotalPaymentAmountElement.textContent = `${totalPaymentAmountDiff}`;
+
+            this.paymentOrder.TotalMoneyText = this.paymentService.readMoney(totalPaymentAmountDiff, this.validateForm.value.Unit);
         }
     }
 
@@ -700,8 +777,36 @@ export class PaymentOrderDetailComponent implements OnInit {
         item[PaymentOrderDetailField.TotalMoney.field] = totalMoney;
         gridInstance.gridService.updateItem(item);
 
-        const totalMoneyId = gridInstance.slickGrid?.getColumns().findIndex(x => x.id == PaymentOrderDetailField.TotalMoney.field);
-        this.updateTotal(totalMoneyId);
+        this.updateTotalPaymentAmount(cell, row);
+        this.updateTotal(gridInstance.slickGrid?.getColumns().findIndex(x => x.id == PaymentOrderDetailField.TotalMoney.field));
+    }
+
+    updateTotalPaymentAmount(cell: number, row: number) {
+
+        let gridInstance = this.angularGrid;
+        if (this.paymentOrder.TypeOrder == 2) gridInstance = this.angularGrid2;
+
+        const grid = gridInstance?.slickGrid;
+        const dataView = gridInstance?.dataView;
+
+        if (!grid || !dataView) return;
+
+        const columnId = gridInstance.slickGrid?.getColumns()[cell].id;
+
+        // if (columnId != PaymentOrderDetailField.PaymentPercentage.field) return;
+
+        const item = dataView.getItem(row);
+        if (!item) return;
+
+        // const quantity = item[PaymentOrderDetailField.Quantity.field] ?? 0;
+        const paymentPercentage = item[PaymentOrderDetailField.PaymentPercentage.field] ?? 0;
+        const totalMoney = item[PaymentOrderDetailField.TotalMoney.field] ?? 0;
+        const totalPaymentAmount = (paymentPercentage * totalMoney) / 100;
+
+        item[PaymentOrderDetailField.TotalPaymentAmount.field] = totalPaymentAmount;
+        gridInstance.gridService.updateItem(item);
+
+        this.updateTotal(gridInstance.slickGrid?.getColumns().findIndex(x => x.id == PaymentOrderDetailField.TotalPaymentAmount.field));
     }
 
 }

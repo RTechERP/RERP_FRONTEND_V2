@@ -2762,7 +2762,7 @@ export class MenuService {
                                 comp: FoodOrderComponent,
                                 // router: '/comca',
                             },
-                              {
+                            {
                                 kind: 'leaf',
                                 key: 'quenvantay',
                                 title: 'Quên Vân tay',
@@ -2796,7 +2796,7 @@ export class MenuService {
                                 isOpen: true,
                                 isPermission: this.permissionService.hasPermission(''),
                                 comp: OverTimePersonComponent,
-                             
+
                             },
 
                             {
@@ -2921,8 +2921,8 @@ export class MenuService {
                                 title: 'Yêu cầu công việc',
                                 isOpen: true,
                                 isPermission: this.permissionService.hasPermission(''),
-                                comp: PersonComponent,
-                                router: '/yeucaucongviec',
+                                comp: JobRequirementComponent,
+                                // router: '/yeucaucongviec',
                             },
 
                             {
@@ -3354,7 +3354,7 @@ export class MenuService {
             },
             //#endregion
         ];
-      
+
         return menus;
     }
 

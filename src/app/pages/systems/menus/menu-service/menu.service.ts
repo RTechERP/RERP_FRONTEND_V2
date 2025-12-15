@@ -2765,15 +2765,7 @@ export class MenuService {
                                 comp: FoodOrderComponent,
                                 // router: '/comca',
                             },
-                              {
-                                kind: 'leaf',
-                                key: 'quenvantay',
-                                title: 'Quên Vân tay',
-                                isOpen: true,
-                                isPermission: this.permissionService.hasPermission(''),
-                                comp: EmployeeNoFingerprintComponent,
-                                //   icon: 'assets/icon/layers.png',
-                            },
+                            
                             {
                                 kind: 'leaf',
                                 key: 'danhsachdangkynghi',
@@ -2831,12 +2823,12 @@ export class MenuService {
                             },
                             {
                                 kind: 'leaf',
-                                key: 'quenchamcong',
+                                key: 'quenvantay',
                                 title: 'Quên chấm công',
                                 isOpen: true,
                                 isPermission: this.permissionService.hasPermission(''),
-                                comp: PersonComponent,
-                                router: '/quenchamcong',
+                                comp: EmployeeNoFingerprintComponent,
+                                //   icon: 'assets/icon/layers.png',
                             },
                             {
                                 kind: 'leaf',
@@ -2853,8 +2845,8 @@ export class MenuService {
                                 title: 'Tổng hợp công - lương',
                                 isOpen: true,
                                 isPermission: this.permissionService.hasPermission(''),
-                                comp: PersonComponent,
-                                router: '/congluong',
+                                comp: EmployeeSyntheticPersonalComponent
+                              
                             },
                         ],
                     },

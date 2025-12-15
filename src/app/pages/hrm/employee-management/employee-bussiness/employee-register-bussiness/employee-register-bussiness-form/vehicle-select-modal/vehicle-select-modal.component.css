@@ -1,0 +1,19 @@
+.table th {
+  font-size: 12px;
+  padding: 0.5rem;
+}
+
+.table td {
+  font-size: 12px;
+  padding: 0.5rem;
+  vertical-align: middle;
+}
+
+.form-group {
+  margin-bottom: 0.5rem;
+}
+
+.form-group:last-child {
+  margin-bottom: 0;
+}
+

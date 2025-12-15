@@ -19,6 +19,8 @@ import {
   Type,
   createComponent,
   OnDestroy,
+  ViewChild,
+  ElementRef,
 } from '@angular/core';
 import {
   NgbActiveModal,
@@ -126,6 +128,7 @@ interface BillExport {
 export class BillExportDetailComponent
   implements OnInit, AfterViewInit, OnDestroy
 {
+  @ViewChild('tableBillExportDetails', { static: false }) tableBillExportDetailsRef!: ElementRef;
   table_billExportDetail: any;
   @Input() dataTableBillExportDetail: any[] = [];
 
@@ -1974,7 +1977,10 @@ export class BillExportDetailComponent
     if (this.table_billExportDetail) {
       this.table_billExportDetail.replaceData(this.dataTableBillExportDetail);
     } else {
-      this.table_billExportDetail = new Tabulator('#table_BillExportDetails', {
+      if (!this.tableBillExportDetailsRef?.nativeElement) {
+        return;
+      }
+      this.table_billExportDetail = new Tabulator(this.tableBillExportDetailsRef.nativeElement, {
         data: this.dataTableBillExportDetail,
         layout: 'fitDataFill',
         height: '38vh',

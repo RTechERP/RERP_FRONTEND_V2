@@ -310,9 +310,8 @@ export class ProjectStatusComponent implements OnInit {
 
   saveData() {
     const data: any[] = [];
-    const allData = this.projectService.getSelectedRowsRecursive(
-      this.tb_projectStatus.getData()
-    );
+    // Lấy trực tiếp từ getData() - bảng này không có children, chỉ dữ liệu phẳng
+    const allData = this.tb_projectStatus.getData();
 
     const parseNumber = (value: any): number => {
       const parsed = Number(value);
@@ -345,21 +344,17 @@ export class ProjectStatusComponent implements OnInit {
       return dt && dt.isValid ? dt.toFormat('yyyy-MM-dd') : null;
     };
 
+    // Xử lý dữ liệu phẳng (không có children)
     allData.forEach((row: any) => {
-      if (row['Selected'] == true || row['ID'] > 0) {
+      if (row['Selected'] == true || row['StatusID'] > 0) {
         const newRow = {
           ID: parseNumber(row['ID']),
           ProjectID: this.projectId,
           ProjectStatusID: parseNumber(row['StatusID']),
-
           EstimatedStartDate: formatDateForSave(row['EstimatedStartDate']),
-
           EstimatedEndDate: formatDateForSave(row['EstimatedEndDate']),
-
           ActualStartDate: formatDateForSave(row['ActualStartDate']),
-
           ActualEndDate: formatDateForSave(row['ActualEndDate']),
-
           Selected: !!row['Selected'],
           STT: parseNumber(row['StatusID']),
         };

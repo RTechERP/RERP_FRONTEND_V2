@@ -127,17 +127,20 @@ import { PersonDayOffComponent } from '../../../hrm/day-off/person-day-off/perso
 import { ProductLocationTechnicalComponent } from '../../../old/Technical/product-location-technical/product-location-technical.component';
 import { ProjectPartListComponent } from '../../../project/project-department-summary/project-department-summary-form/project-part-list/project-part-list.component';
 import { CourseManagementComponent } from '../../../Course/course-management/course-management.component';
+import { SummaryOfExamResultsComponent } from '../../../Course/summary-of-exam-results/summary-of-exam-results.component';
 import { EarlyLateSummaryComponent } from '../../../hrm/early-late/early-late-summary/early-late-summary.component';
 import { WFHSummaryComponent } from '../../../hrm/employee-management/employee-wfh/WFH-summary/wfh-summary.component';
 import { EmployeeNoFingerSummaryComponent } from '../../../hrm/employee-management/employee-no-fingerprint/employee-no-finger-summary/employee-no-finger-summary.component';
 import { EmployeeNightShiftPersonSummaryComponent } from '../../../hrm/employee-management/employee-night-shift/employee-night-shift-person-summary/employee-night-shift-person-summary.component';
 import { EmployeeBussinessPersonSummaryComponent } from '../../../hrm/employee-management/employee-bussiness/employee-bussiness-person-summary/employee-bussiness-person-summary.component';
+import { CourseTypeComponent } from '../../../Course/course-type/course-type.component';
 import { JobRequirementComponent } from '../../../hrm/job-requirement/job-requirement.component';
 import { SummaryEmployeeComponent } from '../../../hrm/employee/summary-employee/summary-employee.component';
 import { WorkplanComponent } from '../../../person/workplan/workplan.component';
 import { ProjectPartlistPriceRequestNewComponent } from '../../../purchase/project-partlist-price-request-new/project-partlist-price-request-new.component';
 import { DailyReportSaleAdminComponent } from '../../../old/KPISale/daily-report-sale-admin/daily-report-sale-admin.component';
 import { EmployeeRegisterBussinessComponent } from '../../../hrm/employee-management/employee-bussiness/employee-register-bussiness/employee-register-bussiness.component';
+import { DailyReportTechComponent } from '../../../DailyReportTech/daily-report-tech/daily-report-tech.component';
 import { PaymentOrderComponent } from '../../../general-category/payment-order/payment-order.component';
 import { OverTimePersonComponent } from '../../../hrm/over-time/over-time-person/over-time-person.component';
 import { ProjectPartlistPurchaseRequestNewComponent } from '../../../purchase/project-partlist-purchase-request-new/project-partlist-purchase-request-new.component';
@@ -2311,6 +2314,22 @@ export class MenuService {
                             //   isOpen: true,
                             //   isPermission: this.permissionService.hasPermission(''),
                             //   comp: CourseManagementComponent,
+                            // },
+                            // {
+                            //     kind: 'leaf',
+                            //     key: 'SummaryCourseComponent',
+                            //     title: 'Tổng hợp khóa học',
+                            //     isOpen: true,
+                            //     isPermission: this.permissionService.hasPermission(''),
+                            //     comp: SummaryOfExamResultsComponent,
+                            // },
+                            // {
+                            //     kind: 'leaf',
+                            //     key: 'CourseTypeComponent',
+                            //     title: 'Loại khóa học',
+                            //     isOpen: true,
+                            //     isPermission: this.permissionService.hasPermission(''),
+                            //     comp: CourseTypeComponent,
                             // }
                         ],
                     },
@@ -3026,10 +3045,8 @@ export class MenuService {
                                 key: 'baocaocongviec',
                                 title: 'Phòng Kỹ thuật',
                                 isOpen: true,
-                                isPermission:
-                                    isAdmin || this.departmentTechs.includes(departmentID),
-                                comp: PersonComponent,
-                                router: '/baocaocongviec',
+                                isPermission: this.permissionService.hasPermission(''),
+                                comp: DailyReportTechComponent,
                             },
 
                             {

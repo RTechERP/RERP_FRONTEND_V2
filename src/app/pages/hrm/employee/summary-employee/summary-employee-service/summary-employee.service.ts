@@ -22,7 +22,7 @@ export class SummaryEmployeeService {
     const asset: any = {
       DepartmentID: DepartmentID|| 0,
       EmployeeID: EmployeeID || 0,
-      IsApproved: IsApproved || 0,
+      IsApproved: IsApproved || -1,
       Type: Type || 0,
       Keyword: Keyword?.trim() || '',
       DateStart: DateStart,

@@ -37,6 +37,7 @@ import {
   TabulatorFull as Tabulator,
   RowComponent,
   CellComponent,
+  ColumnDefinition,
 } from 'tabulator-tables';
 // import 'tabulator-tables/dist/css/tabulator_simple.min.css';
 // import 'bootstrap-icons/font/bootstrap-icons.css';
@@ -70,6 +71,10 @@ import { QuotationKhDataComponent } from '../quotation-kh-data/quotation-kh-data
 import { CustomerDetailComponent } from '../../crm/customers/customer-detail/customer-detail.component';
 import { ProjectPartListComponent } from '../../project/project-department-summary/project-department-summary-form/project-part-list/project-part-list.component';
 import { ImportExcelPokhComponent } from '../pokh/import-excel/import-excel.component';
+import { ProductSaleDetailComponent } from '../Sale/ProductSale/product-sale-detail/product-sale-detail.component';
+import { MenuEventService } from '../../systems/menus/menu-service/menu-event.service';
+import { ProductSaleComponent } from '../Sale/ProductSale/product-sale.component';
+import { TabulatorPopupService } from '../../../shared/components/tabulator-popup';
 @Component({
   selector: 'app-pokh',
   imports: [
@@ -128,7 +133,9 @@ export class PokhDetailComponent implements OnInit, AfterViewInit {
     private modalService: NgbModal,
     private notification: NzNotificationService,
     private viewPOKHService: ViewPokhService,
-    public activeModal: NgbActiveModal
+    public activeModal: NgbActiveModal,
+    private menuEventService: MenuEventService,
+    private tabulatorPopupService: TabulatorPopupService
   ) { }
 
   //#region : Khai báo
@@ -164,6 +171,34 @@ export class PokhDetailComponent implements OnInit, AfterViewInit {
   dataCurrencies: any[] = [];
   dataPOKHDetailUser: any[] = [];
   selectedCustomer: any = null;
+
+  // Định nghĩa columns cho product popup (tái sử dụng được)
+  productPopupColumns: ColumnDefinition[] = [
+    {
+      title: 'Mã SP',
+      field: 'ProductCode',
+      width: 120,
+      headerSort: false,
+    },
+    {
+      title: 'Tên sản phẩm',
+      field: 'ProductName',
+      width: 200,
+      headerSort: false,
+    },
+    {
+      title: 'Mã nội bộ',
+      field: 'ProductNewCode',
+      width: 120,
+      headerSort: false,
+    },
+    {
+      title: 'ĐVT',
+      field: 'Unit',
+      width: 80,
+      headerSort: false,
+    },
+  ];
   poFormData: any = {
     status: 0,
     poCode: '',
@@ -1873,6 +1908,25 @@ export class PokhDetailComponent implements OnInit, AfterViewInit {
     });
   }
 
+  openProductSaleDetailModal() {
+    const modalRef = this.modalService.open(ProductSaleDetailComponent, {
+      centered: true,
+      size: 'xl',
+      backdrop: 'static',
+    });
+
+    modalRef.componentInstance.wa
+    modalRef.result.then(
+      (result) => {
+        if (result) {
+        }
+      },
+      (reason) => {
+        console.log('Modal dismissed');
+      }
+    );
+  }
+
   openQuotationKhDataModal() {
     const modalRef = this.modalService.open(QuotationKhDataComponent, {
       centered: true,
@@ -1921,6 +1975,30 @@ export class PokhDetailComponent implements OnInit, AfterViewInit {
       backdrop: 'static',
     });
   }
+
+  openProductSaleTab(){
+    // this.activeModal.close();
+    // this.openComponentInTab(ProductSaleComponent, 'VẬT TƯ')
+
+    const modalRef = this.modalService.open(ProductSaleComponent, {
+      centered: true,
+      size: 'xl',
+      backdrop: 'static',
+    });
+
+    modalRef.componentInstance.isFromPOKH = true;
+  }
+
+  /**
+   * Mở component trong tab thay vì modal
+   * @param comp Component class cần mở
+   * @param title Tiêu đề của tab
+   * @param data Dữ liệu truyền vào component (optional)
+   */
+  openComponentInTab(comp: Type<any>, title: string, data?: any): void {
+    this.menuEventService.openNewTab(comp, title, data);
+  }
+
   onFileSelected(event: any) {
     const files = event.target.files;
     if (files && files.length > 0) {
@@ -2170,29 +2248,27 @@ export class PokhDetailComponent implements OnInit, AfterViewInit {
           },
           {
             title: 'Mã Nội Bộ',
-            field: 'ProductNewCode',
-            sorter: 'string',
-            width: 120,
-            editor: 'list',
+            field: 'ProductID',
+            width: 150,
+            hozAlign: 'center',
+            headerHozAlign: 'center',
             tooltip: true,
             frozen: true,
-            editorParams: {
-              values: this.dataProducts.map((product) => {
-                const shortLabel =
-                  `${product.ProductNewCode} - ${product.ProductCode}`.length > 50
-                    ? `${product.ProductNewCode} - ${product.ProductCode}`.substring(
-                      0,
-                      50
-                    ) + '...'
-                    : `${product.ProductNewCode} - ${product.ProductCode}`;
-
-                return {
-                  label: shortLabel,
-                  value: product.ProductNewCode,
-                  id: product.ID,
-                };
-              }),
-              autocomplete: true,
+            formatter: (cell) => {
+              const productId = Number(cell.getValue());
+              const product = this.dataProducts.find((p) => p.ID === productId);
+              const productNewCode = product ? product.ProductNewCode : '';
+              return `
+              <button class="btn-toggle-detail w-100 h-100" style="background-color: white; border: 1px solid #d9d9d9;" title="${productNewCode || 'Chọn sản phẩm'
+              }">
+                <span class="product-code-text">${productNewCode || 'Chọn SP'
+              }</span>
+                <span class="arrow">&#9662;</span>
+              </button>
+            `;
+            },
+            cellClick: (e, cell) => {
+              this.showProductPopup(cell);
             },
           },
           {
@@ -2455,27 +2531,6 @@ export class PokhDetailComponent implements OnInit, AfterViewInit {
     );
 
     this.tb_ProductDetailTreeList.on('cellEdited', (cell: CellComponent) => {
-      if (cell.getColumn().getField() === 'ProductNewCode') {
-
-        this.selectedRow = cell.getRow(); //update trigger chọn dòng khi bấm vào cell mã nội bộ
-        
-        const selectedProduct = this.dataProducts.find(
-          (p) => p.ProductNewCode === cell.getValue()
-        );
-        console.log('Dữ liệu của sản phẩm đã nhận: ', selectedProduct);
-        if (selectedProduct) {
-          const row = cell.getRow();
-          row.update({
-            productId: selectedProduct.ID,
-            ProductCode: selectedProduct.ProductCode,
-            ProductName: selectedProduct.ProductName,
-            Unit: selectedProduct.Unit,
-            Maker: selectedProduct.Maker,
-            ProductGroupName: selectedProduct.ProductGroupName,
-          });
-          console.log('rowEdited: ', row);
-        }
-      }
       this.handleCellValueChange(cell);
     });
 
@@ -2488,6 +2543,57 @@ export class PokhDetailComponent implements OnInit, AfterViewInit {
       }
     );
   }
+
+  // Mở popup chọn sản phẩm sử dụng TabulatorPopupService
+  showProductPopup(cell: CellComponent) {
+    const cellElement = cell.getElement();
+
+    // Toggle: nếu đang mở thì đóng
+    if (cellElement.classList.contains('popup-open')) {
+      this.tabulatorPopupService.close();
+      return;
+    }
+
+    // Mở popup mới với TabulatorPopupService
+    this.tabulatorPopupService.open(
+      {
+        data: this.dataProducts || [],
+        columns: this.productPopupColumns,
+        searchFields: ['ProductCode', 'ProductName', 'ProductNewCode'],
+        searchPlaceholder: 'Tìm kiếm sản phẩm...',
+        height: '300px',
+        selectableRows: 1,
+        layout: 'fitColumns',
+        minWidth: '500px',
+        maxWidth: '700px',
+        onRowSelected: (selectedProduct) => {
+          // Fill dữ liệu vào row cha
+          const parentRow = cell.getRow();
+          parentRow.update({
+            ProductID: selectedProduct.ID,
+            productId: selectedProduct.ID,
+            ProductNewCode: selectedProduct.ProductNewCode,
+            ProductCode: selectedProduct.ProductCode,
+            ProductName: selectedProduct.ProductName,
+            Unit: selectedProduct.Unit,
+            Maker: selectedProduct.Maker,
+            ProductGroupName: selectedProduct.ProductGroupName,
+          });
+
+          // Trigger cellEdited để tính toán lại các giá trị
+          this.handleCellValueChange(cell);
+
+          // Đóng popup
+          this.tabulatorPopupService.close();
+        },
+        onClosed: () => {
+          // Optional: xử lý khi popup đóng
+        },
+      },
+      cellElement
+    );
+  }
+
   initDetailTable(): void {
     this.tb_DetailUser = new Tabulator(this.tbDetailUserElement.nativeElement, {
       data: this.dataPOKHDetailUser,

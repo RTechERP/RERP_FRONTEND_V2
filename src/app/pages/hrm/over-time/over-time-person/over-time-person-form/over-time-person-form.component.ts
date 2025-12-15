@@ -152,6 +152,66 @@ export class OverTimePersonFormComponent implements OnInit {
 
     this.commonForm.get('IsProblem')?.valueChanges.subscribe((value) => {
       this.isProblemValue = value || false;
+      
+      // Khi bỏ tích đăng ký bổ sung (IsProblem = false)
+      if (!value) {
+        const dateRegister = this.commonForm.get('DateRegister')?.value;
+        
+        if (dateRegister) {
+          const today = new Date();
+          today.setHours(0, 0, 0, 0);
+          
+          const yesterday = new Date(today);
+          yesterday.setDate(yesterday.getDate() - 1);
+          yesterday.setHours(0, 0, 0, 0);
+          
+          const registerDate = new Date(dateRegister);
+          registerDate.setHours(0, 0, 0, 0);
+          
+          const isToday = registerDate.getTime() === today.getTime();
+          const isYesterday = registerDate.getTime() === yesterday.getTime();
+          
+          // Nếu ngày đăng ký không phải hôm qua hoặc hôm nay, reset về hôm nay
+          if (!isToday && !isYesterday) {
+            const todayDate = new Date();
+            todayDate.setHours(0, 0, 0, 0);
+            
+            // Reset DateRegister về hôm nay
+            this.commonForm.patchValue({
+              DateRegister: todayDate
+            }, { emitEvent: false });
+            
+            // Reset TimeStart về 18:00 hôm nay
+            const defaultTimeStart = new Date(todayDate);
+            defaultTimeStart.setHours(18, 0, 0, 0);
+            this.overTimeForm.patchValue({
+              TimeStart: defaultTimeStart
+            }, { emitEvent: false });
+            
+            // Reset EndTime nếu có
+            const currentEndTime = this.overTimeForm.get('EndTime')?.value;
+            if (currentEndTime) {
+              const endTimeDate = currentEndTime instanceof Date ? currentEndTime : new Date(currentEndTime);
+              const endTimeDateOnly = new Date(endTimeDate.getFullYear(), endTimeDate.getMonth(), endTimeDate.getDate());
+              endTimeDateOnly.setHours(0, 0, 0, 0);
+              
+              // Nếu EndTime không phải hôm qua, hôm nay hoặc ngày mai, reset về null
+              const tomorrow = new Date(today);
+              tomorrow.setDate(tomorrow.getDate() + 1);
+              tomorrow.setHours(0, 0, 0, 0);
+              
+              if (endTimeDateOnly.getTime() !== yesterday.getTime() && 
+                  endTimeDateOnly.getTime() !== today.getTime() && 
+                  endTimeDateOnly.getTime() !== tomorrow.getTime()) {
+                this.overTimeForm.patchValue({
+                  EndTime: null
+                }, { emitEvent: false });
+              }
+            }
+          }
+        }
+      }
+      
       this.datePickerKey++;
       this.cdr.detectChanges();
     });
@@ -166,21 +226,60 @@ export class OverTimePersonFormComponent implements OnInit {
       }
     });
 
-    this.overTimeForm.get('DateRegister')?.valueChanges.subscribe((dateValue) => {
+    this.commonForm.get('DateRegister')?.valueChanges.subscribe((dateValue) => {
       if (dateValue) {
         const selectedDate = dateValue instanceof Date ? dateValue : new Date(dateValue);
         const selectedYear = selectedDate.getFullYear();
         const selectedMonth = selectedDate.getMonth();
         const selectedDay = selectedDate.getDate();
         
+        // Check if selected date is today
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+        const selectedDateOnly = new Date(selectedYear, selectedMonth, selectedDay);
+        selectedDateOnly.setHours(0, 0, 0, 0);
+        const isToday = selectedDateOnly.getTime() === today.getTime();
+        
         const currentTimeStart = this.overTimeForm.get('TimeStart')?.value;
-        if (currentTimeStart) {
-          const timeStartDate = currentTimeStart instanceof Date ? currentTimeStart : new Date(currentTimeStart);
-          const newTimeStart = new Date(selectedYear, selectedMonth, selectedDay, timeStartDate.getHours(), timeStartDate.getMinutes(), 0, 0);
-          this.overTimeForm.patchValue({
-            TimeStart: newTimeStart
-          }, { emitEvent: false });
-        } else if (!this.isEditMode) {
+        
+        // Always update TimeStart to 18:00 of the selected date when DateRegister changes
+        // If DateRegister is today, only allow today and tomorrow
+        if (isToday) {
+          // If DateRegister is today, default to 18:00 of today
+          if (!currentTimeStart || !this.isEditMode) {
+            const defaultTimeStart = new Date(today);
+            defaultTimeStart.setHours(18, 0, 0, 0);
+            this.overTimeForm.patchValue({
+              TimeStart: defaultTimeStart
+            }, { emitEvent: false });
+          } else {
+            // If there's a current TimeStart, check if it's valid for today
+            const timeStartDate = currentTimeStart instanceof Date ? currentTimeStart : new Date(currentTimeStart);
+            const timeStartDateOnly = new Date(timeStartDate.getFullYear(), timeStartDate.getMonth(), timeStartDate.getDate());
+            timeStartDateOnly.setHours(0, 0, 0, 0);
+            
+            const tomorrow = new Date(today);
+            tomorrow.setDate(tomorrow.getDate() + 1);
+            tomorrow.setHours(0, 0, 0, 0);
+            
+            // If current TimeStart is before today or after tomorrow, set to today at 18:00
+            if (timeStartDateOnly.getTime() < today.getTime() || timeStartDateOnly.getTime() > tomorrow.getTime()) {
+              const defaultTimeStart = new Date(today);
+              defaultTimeStart.setHours(18, 0, 0, 0);
+              this.overTimeForm.patchValue({
+                TimeStart: defaultTimeStart
+              }, { emitEvent: false });
+            } else {
+              // Keep the same time but ensure it's on the correct date
+              const newTimeStart = new Date(timeStartDateOnly);
+              newTimeStart.setHours(timeStartDate.getHours(), timeStartDate.getMinutes(), 0, 0);
+              this.overTimeForm.patchValue({
+                TimeStart: newTimeStart
+              }, { emitEvent: false });
+            }
+          }
+        } else {
+          // If DateRegister is not today (e.g., yesterday), always update to 18:00 of that date
           const defaultTimeStart = new Date(selectedYear, selectedMonth, selectedDay, 18, 0, 0, 0);
           this.overTimeForm.patchValue({
             TimeStart: defaultTimeStart
@@ -190,11 +289,35 @@ export class OverTimePersonFormComponent implements OnInit {
         const currentEndTime = this.overTimeForm.get('EndTime')?.value;
         if (currentEndTime) {
           const endTimeDate = currentEndTime instanceof Date ? currentEndTime : new Date(currentEndTime);
-          const newEndTime = new Date(selectedYear, selectedMonth, selectedDay, endTimeDate.getHours(), endTimeDate.getMinutes(), 0, 0);
-          this.overTimeForm.patchValue({
-            EndTime: newEndTime
-          }, { emitEvent: false });
+          // If DateRegister is today, ensure EndTime is at least today
+          if (isToday) {
+            const endTimeDateOnly = new Date(endTimeDate.getFullYear(), endTimeDate.getMonth(), endTimeDate.getDate());
+            endTimeDateOnly.setHours(0, 0, 0, 0);
+            
+            // If current EndTime is before today, set to today at the same time
+            if (endTimeDateOnly.getTime() < today.getTime()) {
+              const todayEndTime = new Date(today);
+              todayEndTime.setHours(endTimeDate.getHours(), endTimeDate.getMinutes(), 0, 0);
+              this.overTimeForm.patchValue({
+                EndTime: todayEndTime
+              }, { emitEvent: false });
+            } else {
+              const newEndTime = new Date(selectedYear, selectedMonth, selectedDay, endTimeDate.getHours(), endTimeDate.getMinutes(), 0, 0);
+              this.overTimeForm.patchValue({
+                EndTime: newEndTime
+              }, { emitEvent: false });
+            }
+          } else {
+            const newEndTime = new Date(selectedYear, selectedMonth, selectedDay, endTimeDate.getHours(), endTimeDate.getMinutes(), 0, 0);
+            this.overTimeForm.patchValue({
+              EndTime: newEndTime
+            }, { emitEvent: false });
+          }
         }
+        
+        // Force update date picker validation
+        this.datePickerKey++;
+        this.cdr.detectChanges();
       }
       
       if (this.overTimeForm.get('Overnight')?.value) {
@@ -1160,9 +1283,9 @@ export class OverTimePersonFormComponent implements OnInit {
       const currentDate = new Date(current);
       currentDate.setHours(0, 0, 0, 0);
 
-      const isProblem = this.isProblemValue !== undefined ? this.isProblemValue : (this.overTimeForm?.get('IsProblem')?.value || false);
+      const isProblem = this.isProblemValue !== undefined ? this.isProblemValue : (this.commonForm?.get('IsProblem')?.value || false);
       
-      const selectedDateValue = this.overTimeForm?.get('DateRegister')?.value;
+      const selectedDateValue = this.commonForm?.get('DateRegister')?.value;
       let allowSelectedDate = false;
       if (selectedDateValue) {
         const selected = new Date(selectedDateValue);
@@ -1195,6 +1318,76 @@ export class OverTimePersonFormComponent implements OnInit {
     }
   };
 
+  disabledDateForTimeStart = (current: Date): boolean => {
+    if (!current) {
+      return true;
+    }
+
+    try {
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      
+      const tomorrow = new Date(today);
+      tomorrow.setDate(tomorrow.getDate() + 1);
+      tomorrow.setHours(0, 0, 0, 0);
+      
+      const yesterday = new Date(today);
+      yesterday.setDate(yesterday.getDate() - 1);
+      yesterday.setHours(0, 0, 0, 0);
+      
+      const currentDate = new Date(current);
+      currentDate.setHours(0, 0, 0, 0);
+
+      const dateRegister = this.commonForm?.get('DateRegister')?.value;
+      
+      // If DateRegister is today, only allow today and tomorrow
+      if (dateRegister) {
+        const registerDate = new Date(dateRegister);
+        registerDate.setHours(0, 0, 0, 0);
+        const isRegisterToday = registerDate.getTime() === today.getTime();
+        
+        if (isRegisterToday) {
+          const isToday = currentDate.getTime() === today.getTime();
+          const isTomorrow = currentDate.getTime() === tomorrow.getTime();
+          return !isToday && !isTomorrow;
+        }
+      }
+
+      const isProblem = this.isProblemValue !== undefined ? this.isProblemValue : (this.commonForm?.get('IsProblem')?.value || false);
+      
+      const selectedDateValue = this.commonForm?.get('DateRegister')?.value;
+      let allowSelectedDate = false;
+      if (selectedDateValue) {
+        const selected = new Date(selectedDateValue);
+        selected.setHours(0, 0, 0, 0);
+        allowSelectedDate = selected.getTime() === currentDate.getTime();
+      }
+
+      if (isProblem) {
+        const firstDayOfMonth = new Date(today.getFullYear(), today.getMonth(), 1);
+        firstDayOfMonth.setHours(0, 0, 0, 0);
+        
+        if (allowSelectedDate) {
+          return false;
+        }
+        
+        const isBeforeFirstDay = currentDate.getTime() < firstDayOfMonth.getTime();
+        const isAfterToday = currentDate.getTime() > today.getTime();
+        return isBeforeFirstDay || isAfterToday;
+      } else {
+        if (allowSelectedDate) {
+          return false;
+        }
+        const isYesterday = currentDate.getTime() === yesterday.getTime();
+        const isToday = currentDate.getTime() === today.getTime();
+        return !isYesterday && !isToday;
+      }
+    } catch (error) {
+      console.error('Error in disabledDateForTimeStart:', error);
+      return false;
+    }
+  };
+
   disabledDateForEndTime = (current: Date): boolean => {
     if (!current) {
       return true;
@@ -1204,20 +1397,35 @@ export class OverTimePersonFormComponent implements OnInit {
       const today = new Date();
       today.setHours(0, 0, 0, 0);
       
-      const yesterday = new Date(today);
-      yesterday.setDate(yesterday.getDate() - 1);
-      yesterday.setHours(0, 0, 0, 0);
-      
       const tomorrow = new Date(today);
       tomorrow.setDate(tomorrow.getDate() + 1);
       tomorrow.setHours(0, 0, 0, 0);
       
+      const yesterday = new Date(today);
+      yesterday.setDate(yesterday.getDate() - 1);
+      yesterday.setHours(0, 0, 0, 0);
+      
       const currentDate = new Date(current);
       currentDate.setHours(0, 0, 0, 0);
 
-      const isProblem = this.isProblemValue !== undefined ? this.isProblemValue : (this.overTimeForm?.get('IsProblem')?.value || false);
+      const dateRegister = this.commonForm?.get('DateRegister')?.value;
       
-      const selectedDateValue = this.overTimeForm?.get('DateRegister')?.value;
+      // If DateRegister is today, only allow today and tomorrow
+      if (dateRegister) {
+        const registerDate = new Date(dateRegister);
+        registerDate.setHours(0, 0, 0, 0);
+        const isRegisterToday = registerDate.getTime() === today.getTime();
+        
+        if (isRegisterToday) {
+          const isToday = currentDate.getTime() === today.getTime();
+          const isTomorrow = currentDate.getTime() === tomorrow.getTime();
+          return !isToday && !isTomorrow;
+        }
+      }
+
+      const isProblem = this.isProblemValue !== undefined ? this.isProblemValue : (this.commonForm?.get('IsProblem')?.value || false);
+      
+      const selectedDateValue = this.commonForm?.get('DateRegister')?.value;
       let allowSelectedDate = false;
       if (selectedDateValue) {
         const selected = new Date(selectedDateValue);
@@ -1560,8 +1768,31 @@ export class OverTimePersonFormComponent implements OnInit {
 
   createNewForm(): FormGroup {
     const today = new Date();
-    const defaultTimeStart = new Date(today);
-    defaultTimeStart.setHours(18, 0, 0, 0);
+    today.setHours(0, 0, 0, 0);
+    
+    // Check if DateRegister is today
+    const dateRegister = this.commonForm?.get('DateRegister')?.value;
+    let defaultTimeStart: Date;
+    
+    if (dateRegister) {
+      const registerDate = new Date(dateRegister);
+      registerDate.setHours(0, 0, 0, 0);
+      const isRegisterToday = registerDate.getTime() === today.getTime();
+      
+      if (isRegisterToday) {
+        // If DateRegister is today, default to 18:00 of today
+        defaultTimeStart = new Date(today);
+        defaultTimeStart.setHours(18, 0, 0, 0);
+      } else {
+        // Otherwise, use the DateRegister date with 18:00
+        defaultTimeStart = new Date(registerDate);
+        defaultTimeStart.setHours(18, 0, 0, 0);
+      }
+    } else {
+      // Default to 18:00 of today
+      defaultTimeStart = new Date(today);
+      defaultTimeStart.setHours(18, 0, 0, 0);
+    }
     
     const newForm = this.fb.group({
       ID: [0],

@@ -29,6 +29,16 @@ export class EmployeeSyntheticService {
     return this.http.get<any>(this.apiUrl + 'get-employee-synthetic', { params: httpParams });
   }
 
+  // Lấy dữ liệu tổng hợp cá nhân theo tháng (từ HomeController)
+  getPersonalSyntheticByMonth(year: number, month: number): Observable<any> {
+    const httpParams = new HttpParams()
+      .set('Year', year.toString())
+      .set('Month', month.toString());
+
+    const homeApiUrl = `${environment.host}api/Home/`;
+    return this.http.get<any>(homeApiUrl + 'get-personal-synthetic-by-month', { params: httpParams });
+  }
+
   // Gom nhóm theo field, dùng cho dropdown nhân viên
   createdDataGroup(items: any[], groupByField: string): any[] {
     const grouped: Record<string, any[]> = items.reduce((acc, item) => {

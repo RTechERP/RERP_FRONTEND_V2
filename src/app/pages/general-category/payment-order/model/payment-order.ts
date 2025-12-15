@@ -1,112 +1,148 @@
-export interface PaymentOrder {
-    ID: number;
-    Code: string;
-    TypeOrder: number | 0;
-    PaymentOrderTypeID: number;
-    DateOrder: string;
-    EmployeeID: number;
-    ReasonOrder: string;
-    DatePayment: string;
-    ReceiverInfo: string;
-    TypePayment: number;
-    AccountNumber: string;
-    Bank: string;
-    TotalMoney: number;
-    TotalMoneyText: string;
-    Unit: string;
-    IsDelete: boolean;
-    Note: string;
-    TypeBankTransfer: number;
-    ContentBankTransfer: string;
-    AccountingNote: string;
-    CreatedBy: string;
-    CreatedDate: string;
-    UpdatedBy: string;
-    UpdatedDate: string;
-    DeadlinePayment: string;
-    IsUrgent: boolean;
-    PONCCID: number;
-    SupplierSaleID: number;
-    CustomerID: number;
-    TypeDocument: number;
-    NumberDocument: string;
-    IsSpecialOrder: boolean;
-    ProjectID: number;
-    IsBill: boolean;
-    StartLocation: string;
-    EndLocation: string;
-    RegisterContractID: number;
-    TypeCode: string;
-    TypeName: string;
-    FullName: string;
-    DepartmentName: string;
-    IsIgnoreHR: boolean | null;
-    PaymentOrderTypeSTT: number | null;
-    DepartmentID: number | null;
-    TypeOrderText: string;
-    RowNum: number;
-    Step: number | null;
-    StepName: string;
-    IsApproved: boolean | null;
-    ReasonCancel: string;
-    ContentLog: string;
-    ApproverName: string;
-    IsApprovedText: string;
-    TypeBankTransferText: string | null;
-    POCode: string;
-    TotalPayment: number;
-    CustomerName: string;
-    TypeDocumentText: string;
-    ProjectFullName: string;
-    StepNew: number;
-    PaymentOrderTypeName: string;
-    TotalPaymentActual: number;
-    SuplierName: string;
-    ReasonRequestAppendFileHR: string;
-    FullNameEmployee: string;
-    DateApprovedEmployee: string | null;
-    FullNameTBP: string;
-    DateApprovedTBP: string | null;
-    FullNameHR: string;
-    DateApprovedHR: string | null;
-    FullNameKT: string;
-    DateApprovedKT: string | null;
-    FullNameBGD: string;
-    DateApprovedBGD: string | null;
-    ReasonRequestAppendFileAC: string;
-    StatusBankSlip: string;
-    POCodes: string | null;
-    BillNumbers: string | null;
-    StatusContractText: string;
-    DocumentName: string;
-    UserTeamNameJoin: string;
-    PaymentMethodsJoin: string;
-    TotalPage: number;
-    ApprovedTBPID: number;
-    ApprovedBGDID: number;
+export class PaymentOrder {
+    ID = 0;
+    Code = '';
+
+    TypeOrder = 0;
+    PaymentOrderTypeID = 0;
+
+    DateOrder = '';
+    EmployeeID = 0;
+    ReasonOrder = '';
+    DatePayment = '';
+    ReceiverInfo = '';
+
+    TypePayment = 0;
+    AccountNumber = '';
+    Bank = '';
+
+    TotalMoney = 0;
+    TotalMoneyText = '';
+    Unit = '';
+
+    IsDelete = false;
+    Note = '';
+
+    TypeBankTransfer = 0;
+    ContentBankTransfer = '';
+    AccountingNote = '';
+
+    CreatedBy: string | null = null;
+    CreatedDate: Date | null = null;
+    UpdatedBy: string | null = null;
+    UpdatedDate: Date | null = null;
+
+    DeadlinePayment = '';
+    IsUrgent = false;
+
+    PONCCID = 0;
+    SupplierSaleID = 0;
+    CustomerID = 0;
+
+    TypeDocument = 0;
+    NumberDocument = '';
+
+    IsSpecialOrder = false;
+    ProjectID = 0;
+    IsBill = false;
+
+    StartLocation = '';
+    EndLocation = '';
+
+    RegisterContractID = 0;
+
+    TypeCode = '';
+    TypeName = '';
+    FullName = '';
+    DepartmentName = '';
+
+    IsIgnoreHR: boolean | null = null;
+    PaymentOrderTypeSTT: number | null = null;
+    DepartmentID: number | null = null;
+
+    TypeOrderText = '';
+    RowNum = 0;
+
+    Step: number | null = 0;
+    StepName = '';
+
+    IsApproved: boolean | null = null;
+    ReasonCancel = '';
+    ContentLog = '';
+    ApproverName = '';
+    IsApprovedText = '';
+    TypeBankTransferText: string | null = null;
+
+    POCode = '';
+    TotalPayment = 0;
+    CustomerName = '';
+    TypeDocumentText = '';
+    ProjectFullName = '';
+
+    StepNew = 0;
+    PaymentOrderTypeName = '';
+
+    TotalPaymentActual = 0;
+    SuplierName = '';
+
+    ReasonRequestAppendFileHR = '';
+    FullNameEmployee = '';
+    DateApprovedEmployee: string | null = null;
+
+    FullNameTBP = '';
+    DateApprovedTBP: string | null = null;
+
+    FullNameHR = '';
+    DateApprovedHR: string | null = null;
+
+    FullNameKT = '';
+    DateApprovedKT: string | null = null;
+
+    FullNameBGD = '';
+    DateApprovedBGD: string | null = null;
+
+    ReasonRequestAppendFileAC = '';
+    StatusBankSlip = '';
+
+    POCodes: string | null = '';
+    BillNumbers: string | null = null;
+
+    StatusContractText = '';
+    DocumentName = '';
+    UserTeamNameJoin = '';
+    PaymentMethodsJoin = '';
+
+    TotalPage = 0;
+    ApprovedTBPID = 0;
+    ApprovedBGDID = 0;
+
+    // ===== Optional: constructor map từ object =====
+    constructor(init?: Partial<PaymentOrder>) {
+        Object.assign(this, init);
+    }
 }
 
-export interface PaymentOrderDetail {
-    ID: number;
-    PaymentOrderID?: number | null;
-    STT?: string | null;
-    ContentPayment?: string | null;
-    Unit?: string | null;
-    Quantity?: number | null;
-    UnitPrice: number;
-    TotalMoney?: number | null;
-    Note?: string | null;
-    ParentID?: number | null;
-    CreatedBy?: string | null;
-    CreatedDate?: Date | null;      // DateTime? → string | null
-    UpdatedBy?: string | null;
-    UpdatedDate?: Date | null;      // DateTime? → string | null
-    PaymentMethods?: number | null;
-    PaymentInfor?: string | null;
-    EmployeeID?: number | null;
-    TotalPaymentAmount?: number | null;
-    PaymentPercentage?: number | null;
-    IsDeleted?: boolean | null;
+
+export class PaymentOrderDetail {
+    ID = 0;
+    PaymentOrderID = 0;
+    STT = '';
+    ContentPayment = '';
+    Unit = '';
+    Quantity = 0;
+    UnitPrice = 0;
+    TotalMoney = 0;
+    Note = '';
+    ParentID: number | null = null;
+    CreatedBy: string | null = null;
+    CreatedDate: Date | null = null;      // DateTime? → string | null
+    UpdatedBy: string | null = null;
+    UpdatedDate: Date | null = null;      // DateTime? → string | null
+    PaymentMethods: number | null = 0;
+    PaymentInfor: string | null = '';
+    EmployeeID: number | null = 0;
+    TotalPaymentAmount: number | null = 0;
+    PaymentPercentage: number | null = 0;
+    IsDeleted = false;
 }
 
 
@@ -126,13 +162,13 @@ export interface PaymentOrderFile {
 
 export const PaymentOrderField = {
     ID: { name: '', field: 'ID', type: 'number' },
-    Code: { name: '', field: 'Code', type: 'string' },
+    Code: { name: 'Số đề nghị', field: 'Code', type: 'string' },
     TypeOrder: { name: '', field: 'TypeOrder', type: 'number' },
     PaymentOrderTypeID: { name: '', field: 'PaymentOrderTypeID', type: 'number' },
-    DateOrder: { name: '', field: 'DateOrder', type: 'string' },
+    DateOrder: { name: 'Ngày đề nghị', field: 'DateOrder', type: 'string' },
     EmployeeID: { name: '', field: 'EmployeeID', type: 'number' },
     ReasonOrder: { name: '', field: 'ReasonOrder', type: 'string' },
-    DatePayment: { name: '', field: 'DatePayment', type: 'string' },
+    DatePayment: { name: 'Deadline', field: 'DatePayment', type: 'string' },
     ReceiverInfo: { name: '', field: 'ReceiverInfo', type: 'string' },
     TypePayment: { name: '', field: 'TypePayment', type: 'number' },
     AccountNumber: { name: '', field: 'AccountNumber', type: 'string' },
@@ -150,7 +186,7 @@ export const PaymentOrderField = {
     UpdatedBy: { name: '', field: 'UpdatedBy', type: 'string' },
     UpdatedDate: { name: '', field: 'UpdatedDate', type: 'string' },
     DeadlinePayment: { name: '', field: 'DeadlinePayment', type: 'string' },
-    IsUrgent: { name: '', field: 'IsUrgent', type: 'boolean' },
+    IsUrgent: { name: 'Thanh toán gấp', field: 'IsUrgent', type: 'boolean' },
     PONCCID: { name: '', field: 'PONCCID', type: 'number' },
     SupplierSaleID: { name: '', field: 'SupplierSaleID', type: 'number' },
     CustomerID: { name: '', field: 'CustomerID', type: 'number' },
@@ -164,13 +200,13 @@ export const PaymentOrderField = {
     RegisterContractID: { name: '', field: 'RegisterContractID', type: 'number' },
     TypeCode: { name: '', field: 'TypeCode', type: 'string' },
     TypeName: { name: '', field: 'TypeName', type: 'string' },
-    FullName: { name: '', field: 'FullName', type: 'string' },
-    DepartmentName: { name: '', field: 'DepartmentName', type: 'string' },
+    FullName: { name: 'Người đề nghị', field: 'FullName', type: 'string' },
+    DepartmentName: { name: 'Bộ phận', field: 'DepartmentName', type: 'string' },
     IsIgnoreHR: { name: '', field: 'IsIgnoreHR', type: 'boolean' },
     PaymentOrderTypeSTT: { name: '', field: 'PaymentOrderTypeSTT', type: 'number' },
     DepartmentID: { name: '', field: 'DepartmentID', type: 'number' },
     TypeOrderText: { name: '', field: 'TypeOrderText', type: 'string' },
-    RowNum: { name: '', field: 'RowNum', type: 'number' },
+    RowNum: { name: 'STT', field: 'RowNum', type: 'number' },
     Step: { name: '', field: 'Step', type: 'number' },
     StepName: { name: '', field: 'StepName', type: 'string' },
     IsApproved: { name: '', field: 'IsApproved', type: 'boolean' },

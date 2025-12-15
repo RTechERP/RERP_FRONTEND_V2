@@ -843,6 +843,7 @@ export class ViewPokhComponent implements OnInit, AfterViewInit {
           sorter: 'string',
           width: 120,
           frozen: true,
+          headerFilter: 'input',
         },
         {
           title: 'Số POKH',
@@ -850,12 +851,14 @@ export class ViewPokhComponent implements OnInit, AfterViewInit {
           sorter: 'string',
           width: 150,
           frozen: true,
+          headerFilter: 'input',
         },
         {
           title: 'Trạng thái',
           field: 'StatusText',
           sorter: 'string',
           width: 200,
+          headerFilter: 'input',
           formatter: (cell) => {
             const value = cell.getValue();
             let bgColor = '';
@@ -885,6 +888,7 @@ export class ViewPokhComponent implements OnInit, AfterViewInit {
           title: 'Ngày PO',
           field: 'ReceivedDatePO',
           sorter: 'date',
+          headerFilter: 'date',
           formatter: (cell) => {
             const date = cell.getValue();
             return date ? new Date(date).toLocaleDateString('vi-VN') : '';
@@ -896,39 +900,45 @@ export class ViewPokhComponent implements OnInit, AfterViewInit {
           field: 'FullName',
           sorter: 'string',
           width: 150,
+          headerFilter: 'input',
         },
-        { title: 'Hãng', field: 'Maker', sorter: 'string', width: 100 },
+        { title: 'Hãng', field: 'Maker', sorter: 'string', width: 100, headerFilter: 'input' },
         {
           title: 'Mã nội bộ',
           field: 'ProductNewCode',
           sorter: 'string',
           width: 120,
+          headerFilter: 'input',
         },
         {
           title: 'Mã theo khách',
           field: 'GuestCode',
           sorter: 'string',
           width: 120,
+          headerFilter: 'input',
         },
-        { title: 'SL PO', field: 'Qty', sorter: 'number', width: 80 },
+        { title: 'SL PO', field: 'Qty', sorter: 'number', width: 80, headerFilter: 'number' },
         {
           title: 'SL đã giao',
           field: 'QuantityDelived',
           sorter: 'number',
           width: 120,
+          headerFilter: 'number',
         },
         {
           title: 'SL Pending',
           field: 'QuantityPending',
           sorter: 'number',
           width: 120,
+          headerFilter: 'number',
         },
-        { title: 'ĐVT', field: 'Unit', sorter: 'string', width: 80 },
+        { title: 'ĐVT', field: 'Unit', sorter: 'string', width: 80, headerFilter: 'input' },
         {
           title: 'Đơn giá NET',
           field: 'NetUnitPrice',
           sorter: 'number',
           width: 120,
+          headerFilter: 'number',
           formatter: 'money',
           formatterParams: {
             precision: 0,
@@ -943,6 +953,7 @@ export class ViewPokhComponent implements OnInit, AfterViewInit {
           field: 'UnitPrice',
           sorter: 'number',
           width: 120,
+          headerFilter: 'number',
           formatter: 'money',
           formatterParams: {
             precision: 0,
@@ -957,6 +968,7 @@ export class ViewPokhComponent implements OnInit, AfterViewInit {
           field: 'IntoMoney',
           sorter: 'number',
           width: 120,
+          headerFilter: 'number',
           formatter: 'money',
           formatterParams: {
             precision: 0,
@@ -966,12 +978,13 @@ export class ViewPokhComponent implements OnInit, AfterViewInit {
             symbolAfter: true,
           },
         },
-        { title: 'VAT(%)', field: 'VAT', sorter: 'number', width: 80 },
+        { title: 'VAT(%)', field: 'VAT', sorter: 'number', width: 80, headerFilter: 'number' },
         {
           title: 'Tổng tiền (gồm VAT)',
           field: 'TotalPriceIncludeVAT',
           sorter: 'number',
           width: 150,
+          headerFilter: 'number',
           formatter: 'money',
           formatterParams: {
             precision: 0,
@@ -985,6 +998,7 @@ export class ViewPokhComponent implements OnInit, AfterViewInit {
           title: 'Ngày dự kiến giao hàng',
           field: 'DeliveryRequestedDate',
           sorter: 'date',
+          headerFilter: 'date',
           formatter: (cell) => {
             const date = cell.getValue();
             return date ? new Date(date).toLocaleDateString('vi-VN') : '';
@@ -997,11 +1011,13 @@ export class ViewPokhComponent implements OnInit, AfterViewInit {
           field: 'DateMinutes',
           sorter: 'string',
           width: 120,
+          headerFilter: 'input',
         },
         {
           title: 'Ngày thanh toán dự kiến',
           field: 'PayDate',
           sorter: 'date',
+          headerFilter: 'date',
           formatter: (cell) => {
             const date = cell.getValue();
             return date ? new Date(date).toLocaleDateString('vi-VN') : '';
@@ -1012,6 +1028,7 @@ export class ViewPokhComponent implements OnInit, AfterViewInit {
           title: 'Ngày tiền về',
           field: 'MoneyDate',
           sorter: 'date',
+          headerFilter: 'date',
           formatter: (cell) => {
             const date = cell.getValue();
             return date ? new Date(date).toLocaleDateString('vi-VN') : '';
@@ -1023,18 +1040,21 @@ export class ViewPokhComponent implements OnInit, AfterViewInit {
           field: 'CompanyName',
           sorter: 'string',
           width: 150,
+          headerFilter: 'input',
         },
         {
           title: 'Số hóa đơn ( từ yc xuất)',
           field: 'InvoiceNumberShow',
           sorter: 'string',
           width: 120,
+          headerFilter: 'input',
           editor: 'input',
         },
         {
           title: 'Ngày hóa đơn ( từ yêu cầu)',
           field: 'InvoiceDateShow',
           sorter: 'date',
+          headerFilter: 'date',
           formatter: (cell) => {
             const date = cell.getValue();
             return date ? new Date(date).toLocaleDateString('vi-VN') : '';
@@ -1047,12 +1067,14 @@ export class ViewPokhComponent implements OnInit, AfterViewInit {
           field: 'BillNumber',
           sorter: 'string',
           width: 120,
+          headerFilter: 'input',
           editor: 'input',
         },
         {
           title: 'Ngày hóa đơn đầu ra',
           field: 'BillDate',
           sorter: 'date',
+          headerFilter: 'date',
           formatter: (cell) => {
             const date = cell.getValue();
             return date ? new Date(date).toLocaleDateString('vi-VN') : '';
@@ -1064,6 +1086,7 @@ export class ViewPokhComponent implements OnInit, AfterViewInit {
           title: 'Ngày đặt hàng',
           field: 'RequestDate',
           sorter: 'date',
+          headerFilter: 'date',
           formatter: (cell) => {
             const date = cell.getValue();
             return date ? new Date(date).toLocaleDateString('vi-VN') : '';
@@ -1074,6 +1097,7 @@ export class ViewPokhComponent implements OnInit, AfterViewInit {
           title: 'Ngày hàng về',
           field: 'DateRequestImport',
           sorter: 'date',
+          headerFilter: 'date',
           formatter: (cell) => {
             const date = cell.getValue();
             return date ? new Date(date).toLocaleDateString('vi-VN') : '';
@@ -1086,24 +1110,27 @@ export class ViewPokhComponent implements OnInit, AfterViewInit {
           sorter: 'string',
           formatter: 'textarea',
           width: 150,
+          headerFilter: 'input',
         },
         {
           title: 'Đầu vào (số hóa đơn/số tờ khai)',
           field: 'SomeBill',
           sorter: 'string',
           width: 120,
+          headerFilter: 'input',
         },
         {
           title: 'Ngày dự kiến hàng về',
           field: 'ExpectedDate',
           sorter: 'date',
+          headerFilter: 'date',
           formatter: (cell) => {
             const date = cell.getValue();
             return date ? new Date(date).toLocaleDateString('vi-VN') : '';
           },
           width: 100,
         },
-        { title: 'PNK', field: 'BillImportCode', sorter: 'string', width: 120 },
+        { title: 'PNK', field: 'BillImportCode', sorter: 'string', width: 120, headerFilter: 'input' },
         // { title: 'POKHID', field: 'POKHID', sorter: 'number', width: 100 },
         // { title: 'ID', field: 'ID', sorter: 'number', width: 100 },
         // { title: 'ProductID', field: 'ProductID', sorter: 'number', width: 100 },

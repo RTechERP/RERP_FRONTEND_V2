@@ -262,13 +262,13 @@
   </div>
   <div class="modal-footer">
     <div class="d-flex gap-2 flex-wrap me-auto">
-      <button nz-button nzType="default" nzSize="default" disabled="true">
+      <button nz-button nzType="default" nzSize="default" (click)="openProductSaleDetailModal()">
         <nz-icon nzType="appstore-add"></nz-icon> Thêm sản phẩm mới
       </button>
-      <button nz-button nzType="default" nzSize="default" (click)="openQuotationKhDataModal()" disabled="true">
+      <!-- <button nz-button nzType="default" nzSize="default" (click)="openQuotationKhDataModal()" disabled="true">
         <nz-icon nzType="file-text"></nz-icon> Chọn báo giá
-      </button>
-      <button nz-button nzType="default" nzSize="default">
+      </button> -->
+      <button nz-button nzType="default" nzSize="default" (click)="openProductSaleTab()">
         <nz-icon nzType="search"></nz-icon> Tìm kiếm kho
       </button>
       <button nz-button nzType="default" nzSize="default" (click)="openProjectPartlistModal()">

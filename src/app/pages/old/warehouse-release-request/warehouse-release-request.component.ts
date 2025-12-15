@@ -677,7 +677,7 @@ export class WarehouseReleaseRequestComponent implements OnInit {
       };
     });
   
-    this.activeModal.close();
+    // this.activeModal.close();
     this.openBillExportDetailModals(0, warehouse);
   }
   private convertToDetail(d: any): BillExportDetail {
@@ -807,17 +807,22 @@ export class WarehouseReleaseRequestComponent implements OnInit {
 
     modalRef.result.then(
       (result) => {
-        // Nếu modal đóng thành công, mở modal tiếp theo
-        if (result === true && index < this.billExports.length - 1) {
+        // Modal đóng thành công (result có thể là undefined, true, hoặc bất kỳ giá trị nào)
+        // Luôn mở modal tiếp theo nếu chưa phải modal cuối cùng
+        if (index < this.billExports.length - 1) {
           this.openBillExportDetailModals(index + 1, warehouse);
-        } else if (result === true && index === this.billExports.length - 1) {
-
+        } else {
+          // Đây là modal cuối cùng, đóng activeModal
+          this.activeModal.close();
         }
       },
       (dismissed) => {
         // Modal bị dismiss, vẫn tiếp tục mở modal tiếp theo nếu có
         if (index < this.billExports.length - 1) {
           this.openBillExportDetailModals(index + 1, warehouse);
+        } else {
+          // Đây là modal cuối cùng, đóng activeModal
+          this.activeModal.close();
         }
       }
     );
@@ -966,7 +971,7 @@ export class WarehouseReleaseRequestComponent implements OnInit {
         {
           title: 'Mã sản phẩm',
           field: 'ProductCode',
-          width: 250,
+          width: 200,
           frozen: true,
         },
         {

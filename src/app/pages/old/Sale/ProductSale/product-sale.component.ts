@@ -1,5 +1,5 @@
-import { Component, OnInit, AfterViewInit, ViewChild, ElementRef, HostListener, Inject, Optional } from '@angular/core';
-import { NgbModal, NgbModule } from '@ng-bootstrap/ng-bootstrap';
+import { Component, OnInit, AfterViewInit, ViewChild, ElementRef, HostListener, Inject, Optional, Input } from '@angular/core';
+import { NgbModal, NgbModule, NgbActiveModal } from '@ng-bootstrap/ng-bootstrap';
 import { NzModalModule, NzModalService } from 'ng-zorro-antd/modal';
 import * as bootstrap from '@ng-bootstrap/ng-bootstrap';
 
@@ -84,6 +84,7 @@ interface ProductSale {
   styleUrl: './product-sale.component.css',
 })
 export class ProductSaleComponent implements OnInit, AfterViewInit {
+  @Input() isFromPOKH: boolean = false;
   //VP tai dau
     @ViewChild('tableProductGroup') tableProductGroupRef!: ElementRef;
   @ViewChild('tablePGWarehouse') tablePGWarehouseRef!: ElementRef;
@@ -163,7 +164,8 @@ export class ProductSaleComponent implements OnInit, AfterViewInit {
     private notification: NzNotificationService,
     private modalService: NgbModal,
     private modal: NzModalService,
-    @Optional() @Inject('tabData') private tabData: any
+    @Optional() @Inject('tabData') private tabData: any,
+    @Optional() public activeModal: NgbActiveModal
   ) {}
   @HostListener('window:resize')
   onWindowResize() {
@@ -1024,6 +1026,12 @@ export class ProductSaleComponent implements OnInit, AfterViewInit {
         console.log('Modal dismissed:', reason);
       }
     );
+  }
+
+  closeModal(): void {
+    if (this.activeModal) {
+      this.activeModal.close();
+    }
   }
   //#endregion
 }

@@ -47,6 +47,7 @@ import { AuthService } from '../../../../auth/auth.service';
 import { DateTimePickerEditorComponent } from './date-time-picker-editor.component';
 import { UpdateVehicleMoneyFormComponent } from './update-vehicle-money-form/update-vehicle-money-form.component';
 import { NzInputNumberModule } from 'ng-zorro-antd/input-number';
+import { VehicleBookingManagementDetailComponent } from './vehicle-booking-management-detail/vehicle-booking-management-detail.component';
 @Component({
   selector: 'app-vehicle-booking-management',
   imports: [
@@ -104,6 +105,7 @@ export class VehicleBookingManagementComponent
   checked = false;
   selected: any;
   vehicleBookingListId: any[] = [];
+  employees: any[] = [];
   exportingExcel: boolean = false;
   editingCell: { cell: any; originalValue: any; rowId: number } | null = null;
   pendingChanges: Map<number, { id: number; departureDateActual: Date }> = new Map();
@@ -126,6 +128,8 @@ export class VehicleBookingManagementComponent
     );
   }
   categoryId: any = 0;
+  employeeId: any = 0;
+  driverEmployeeId: any = 0;
   statusId: any = 0;
 
   // Tạo mảng category
@@ -148,6 +152,7 @@ export class VehicleBookingManagementComponent
 
   ngOnInit() {
     this.getCurrentUser();
+    this.getEmployees();
   }
 
   ngAfterViewInit(): void {
@@ -165,6 +170,23 @@ export class VehicleBookingManagementComponent
       console.log('CurrentUser', this.currentUser);
     });
   }
+
+  getEmployees(){
+    this.vehicleBookingManagementService.getEmployee().subscribe({
+      next: (data: any) => {
+        if (data?.status === 1) {
+          this.employees = (data.data || []).filter((emp: any) => {
+            const fullName = emp.FullName || emp.Name || '';
+            return fullName && fullName.trim().length > 0;
+          });
+        }
+      },
+      error: (error) => {
+        console.error('Lỗi khi tải danh sách nhân viên:', error);
+      }
+    });
+  }
+  
   toggleSearchPanel(): void {
     this.isSearchVisible = !this.isSearchVisible;
   }
@@ -200,6 +222,23 @@ export class VehicleBookingManagementComponent
     this.checked = false;
     this.keyWord = '';
     this.getVehicleBookingManagement();
+  }
+
+  openVehicleBookingManagementDetailModal(){
+    const modalRef = this.modalService.open(VehicleBookingManagementDetailComponent, {
+      size: 'lg',
+      backdrop: 'static',
+      keyboard: false,
+      centered: true,
+    });
+    modalRef.result.then(
+      (result) => {
+        console.log('Modal dismissed');
+      },
+      () => {
+        console.log('Modal dismissed');
+      }
+    );
   }
 
   onVehicleBookingFileImages() {
@@ -845,8 +884,10 @@ export class VehicleBookingManagementComponent
       StartDate: this.dateStart,
       EndDate: this.dateEnd,
       Category: this.categoryId || 0,
+      EmployeeId: this.employeeId || 0,
+      DriverEmployeeId: this.driverEmployeeId || 0,
       Status: this.statusId || 0,
-      Keyword: this.keyWord || '',
+      Keyword: this.keyWord || '',  
       IsCancel: this.checked,
     };
     console.log('request:', request);
@@ -909,6 +950,7 @@ export class VehicleBookingManagementComponent
         {
           ...DEFAULT_TABLE_CONFIG,
           layout: 'fitColumns',
+          height: '88vh',
           paginationMode: 'local',
           rowContextMenu: rowMenu,
           groupBy: (row: any) => row.VehicleInformation || null,

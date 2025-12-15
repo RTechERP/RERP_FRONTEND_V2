@@ -1,7 +1,8 @@
 import { Component, OnInit, Input, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
-import { NzModalModule, NzModalService } from 'ng-zorro-antd/modal';
+import { NzModalModule } from 'ng-zorro-antd/modal';
+import { NgbModal } from '@ng-bootstrap/ng-bootstrap';
 import { NzFormModule } from 'ng-zorro-antd/form';
 import { NzInputModule } from 'ng-zorro-antd/input';
 import { NzInputNumberModule } from 'ng-zorro-antd/input-number';
@@ -17,13 +18,13 @@ import { NzCheckboxModule } from 'ng-zorro-antd/checkbox';
 import { NzUploadModule } from 'ng-zorro-antd/upload';
 import { NzMessageService } from 'ng-zorro-antd/message';
 import { NzMessageModule } from 'ng-zorro-antd/message';
-import { DateTime } from 'luxon';
 import { NgbActiveModal } from '@ng-bootstrap/ng-bootstrap';
 import { EmployeeBussinessService } from '../../employee-bussiness-service/employee-bussiness.service';
 import { NOTIFICATION_TITLE } from '../../../../../../app.config';
 import { WFHService } from '../../../employee-wfh/WFH-service/WFH.service';
 import { AuthService } from '../../../../../../auth/auth.service';
 import { EmployeeService } from '../../../../employee/employee-service/employee.service';
+import { VehicleSelectModalComponent } from './vehicle-select-modal/vehicle-select-modal.component';
 
 @Component({
   selector: 'app-employee-register-bussiness-form',
@@ -74,6 +75,8 @@ export class EmployeeRegisterBussinessFormComponent implements OnInit {
   existingFiles: any[] = []; // Danh sách file đính kèm khi edit mode
   deletedFileIds: number[] = []; // Danh sách ID file đã xóa
   deletedFiles: any[] = []; // Danh sách thông tin đầy đủ của file đã xóa (để gửi về API với IsDeleted = true)
+  selectedVehicles: any[] = []; // Danh sách phương tiện đã chọn
+  vehicleDisplayText: string = ''; // Text hiển thị trong input phương tiện
 
   constructor(
     private fb: FormBuilder,
@@ -84,7 +87,8 @@ export class EmployeeRegisterBussinessFormComponent implements OnInit {
     private cdr: ChangeDetectorRef,
     private authService: AuthService,
     private employeeService: EmployeeService,
-    private message: NzMessageService
+    private message: NzMessageService,
+    private modalService: NgbModal
   ) {
     this.initializeForm();
   }
@@ -100,7 +104,6 @@ export class EmployeeRegisterBussinessFormComponent implements OnInit {
       this.loadDataById();
     } else if (this.data) {
       this.patchFormData(this.data);
-      // Nếu có ID và là edit mode, load danh sách file
       if (this.data.ID && this.data.ID > 0) {
         this.loadFilesByBussinessID(this.data.ID);
       }
@@ -113,14 +116,14 @@ export class EmployeeRegisterBussinessFormComponent implements OnInit {
     this.isLoading = true;
     this.bussinessService.getEmployeeBussinessByID(this.id).subscribe({
       next: (response: any) => {
-        if (response && response.employee) {
-          const result = response.employee;
+        const result = response?.data || response?.employee || response;
+        if (result) {
           const employeeBussinessID = result.Id || result.ID || 0;
           
-          // Load danh sách file đính kèm
-          this.loadFilesByBussinessID(employeeBussinessID);
+          if (employeeBussinessID > 0) {
+            this.loadFilesByBussinessID(employeeBussinessID);
+          }
           
-          // Đợi một chút để đảm bảo các list đã load xong trước khi patchValue
           setTimeout(() => {
             this.patchFormData({
               ID: result.Id || result.ID || 0,
@@ -133,17 +136,17 @@ export class EmployeeRegisterBussinessFormComponent implements OnInit {
               CostBussiness: result.CostBussiness || result.CostType || 0,
               VehicleID: result.VehicleID || result.VehicleId || null,
               CostVehicle: result.CostVehicle || 0,
-              WorkEarly: result.WorkEarly || false,
+              WorkEarly: this.convertToBoolean(result.WorkEarly),
               CostWorkEarly: result.CostWorkEarly || 0,
               Overnight: result.OvernightType !== undefined ? result.OvernightType : (result.Overnight === true ? 1 : 0),
               CostOvernight: result.CostOvernight || 0,
               TotalMoney: result.TotalMoney || 0,
               Note: result.Note || '',
               Reason: result.Reason || '',
-              IsProblem: result.IsProblem || false
+              IsProblem: result.IsProblem || false,
+              AttachFileName: result.AttachFileName || ''
             });
             
-            // Disable CostVehicle nếu VehicleID = 0 hoặc 3
             this.onVehicleChange(result.VehicleID || result.VehicleId);
             this.cdr.detectChanges();
           }, 100);
@@ -169,7 +172,6 @@ export class EmployeeRegisterBussinessFormComponent implements OnInit {
         if (response && response.status === 1 && response.data) {
           this.existingFiles = Array.isArray(response.data) ? response.data : [response.data];
           
-          // Nếu có file, lấy file đầu tiên làm existingFileRecord (để tương thích với code cũ)
           if (this.existingFiles.length > 0) {
             const firstFile = this.existingFiles[0];
             this.existingFileRecord = {
@@ -187,7 +189,6 @@ export class EmployeeRegisterBussinessFormComponent implements OnInit {
         this.cdr.detectChanges();
       },
       error: (error) => {
-        console.error('Error loading files:', error);
         this.existingFiles = [];
       }
     });
@@ -195,13 +196,11 @@ export class EmployeeRegisterBussinessFormComponent implements OnInit {
 
   // Xóa file đính kèm - chỉ đánh dấu, sẽ xóa khi save
   deleteExistingFile(fileId: number) {
-    // Tìm file cần xóa
     const fileToDelete = this.existingFiles.find(f => f.ID === fileId);
     if (!fileToDelete) {
       return;
     }
 
-    // Lưu thông tin đầy đủ của file đã xóa (để gửi về API với IsDeleted = true khi save)
     if (fileId > 0 && !this.deletedFileIds.includes(fileId)) {
       this.deletedFileIds.push(fileId);
       this.deletedFiles.push({
@@ -210,18 +209,14 @@ export class EmployeeRegisterBussinessFormComponent implements OnInit {
       });
     }
     
-    // Xóa file khỏi danh sách hiển thị
     this.existingFiles = this.existingFiles.filter(f => f.ID !== fileId);
     
-    // Kiểm tra file còn lại (chưa bị xóa)
     const remainingFiles = this.existingFiles.filter(f => f.ID && !this.deletedFileIds.includes(f.ID));
     
-    // Nếu xóa hết file, reset existingFileRecord
     if (remainingFiles.length === 0) {
       this.existingFileRecord = null;
       this.attachFileName = '';
     } else {
-      // Cập nhật existingFileRecord với file đầu tiên còn lại
       const firstFile = remainingFiles[0];
       this.existingFileRecord = {
         ID: firstFile.ID || 0,
@@ -236,16 +231,19 @@ export class EmployeeRegisterBussinessFormComponent implements OnInit {
     this.cdr.detectChanges();
   }
 
+  private convertToBoolean(value: any): boolean {
+    if (value === true || value === 1 || value === 'true' || value === '1' || value === 'True') {
+      return true;
+    }
+    return false;
+  }
+
   patchFormData(data: any) {
-    // Nếu không có EmployeeID hoặc EmployeeID = 0, set mặc định là người đăng nhập
     const defaultEmployeeID = (this.currentUser && this.currentUser.EmployeeID) ? this.currentUser.EmployeeID : 0;
     const employeeID = (data.EmployeeID && data.EmployeeID > 0) ? data.EmployeeID : defaultEmployeeID;
-    
-    // Map Type từ nhiều field có thể có
     const typeValue = data.Type || data.TypeID || data.TypeBusiness || null;
-    
-    // Map ApprovedId từ nhiều field có thể có
     const approvedId = data.ApprovedID || data.ApprovedId || data.ApproverID || null;
+    const workEarlyValue = this.convertToBoolean(data.WorkEarly);
     
     this.bussinessForm.patchValue({
       ID: data.ID !== null && data.ID !== undefined ? data.ID : 0,
@@ -258,7 +256,7 @@ export class EmployeeRegisterBussinessFormComponent implements OnInit {
       VehicleID: data.VehicleID || data.VehicleId || null,
       CostVehicle: data.CostVehicle || 0,
       NotCheckIn: data.NotCheckIn || data.NotChekIn || 0,
-      WorkEarly: data.WorkEarly || false,
+      WorkEarly: workEarlyValue,
       CostWorkEarly: data.CostWorkEarly || 0,
       Overnight: data.OvernightType !== undefined ? data.OvernightType : (data.Overnight === true ? 1 : 0),
       CostOvernight: data.CostOvernight || 0,
@@ -268,11 +266,12 @@ export class EmployeeRegisterBussinessFormComponent implements OnInit {
       IsProblem: data.IsProblem || false
     }, { emitEvent: false });
     
+    // Force update WorkEarly checkbox to ensure binding
+    this.bussinessForm.get('WorkEarly')?.setValue(workEarlyValue, { emitEvent: false });
+    
     this.isProblemValue = data.IsProblem || false;
     this.attachFileName = data.AttachFileName || '';
     this.calculateTotal();
-    
-    // Force change detection để đảm bảo UI cập nhật
     this.cdr.detectChanges();
   }
 
@@ -309,6 +308,8 @@ export class EmployeeRegisterBussinessFormComponent implements OnInit {
       this.existingFiles = [];
       this.deletedFileIds = [];
       this.deletedFiles = [];
+      this.selectedVehicles = [];
+      this.vehicleDisplayText = '';
   }
 
   private initializeForm(): void {
@@ -325,7 +326,7 @@ export class EmployeeRegisterBussinessFormComponent implements OnInit {
       NotCheckIn: [0],
       WorkEarly: [false],
       CostWorkEarly: [0],
-      Overnight: [0], // 0: Không có, 1: Về VP từ sau 20h, 2: Theo loại công tác
+      Overnight: [0],
       CostOvernight: [0],
       TotalMoney: [0],
       Note: [''],
@@ -333,7 +334,6 @@ export class EmployeeRegisterBussinessFormComponent implements OnInit {
       IsProblem: [false]
     });
 
-    // Subscribe to changes để tính tổng
     this.bussinessForm.get('CostBussiness')?.valueChanges.subscribe(() => this.calculateTotal());
     this.bussinessForm.get('CostVehicle')?.valueChanges.subscribe(() => this.calculateTotal());
     this.bussinessForm.get('CostWorkEarly')?.valueChanges.subscribe(() => this.calculateTotal());
@@ -343,22 +343,45 @@ export class EmployeeRegisterBussinessFormComponent implements OnInit {
     this.bussinessForm.get('WorkEarly')?.valueChanges.subscribe((value) => this.onWorkEarlyChange(value));
     this.bussinessForm.get('Overnight')?.valueChanges.subscribe((value) => this.onOvernightTypeChange(value));
     this.bussinessForm.get('IsProblem')?.valueChanges.subscribe((value) => {
-      // Force update date picker khi IsProblem thay đổi
       this.isProblemValue = value || false;
-      this.datePickerKey++;
       
-      // Nếu bỏ tích "Bổ sung", reset file mới (giữ file cũ nếu edit mode)
       if (!value) {
+        const dayBussiness = this.bussinessForm.get('DayBussiness')?.value;
+        
+        if (dayBussiness) {
+          const today = new Date();
+          today.setHours(0, 0, 0, 0);
+          
+          const yesterday = new Date(today);
+          yesterday.setDate(yesterday.getDate() - 1);
+          yesterday.setHours(0, 0, 0, 0);
+          
+          const bussinessDate = new Date(dayBussiness);
+          bussinessDate.setHours(0, 0, 0, 0);
+          
+          const isToday = bussinessDate.getTime() === today.getTime();
+          const isYesterday = bussinessDate.getTime() === yesterday.getTime();
+          
+          if (!isToday && !isYesterday) {
+            const todayDate = new Date();
+            todayDate.setHours(0, 0, 0, 0);
+            
+            this.bussinessForm.patchValue({
+              DayBussiness: todayDate
+            }, { emitEvent: false });
+          }
+        }
+        
         this.selectedFile = null;
         this.uploadedFileData = null;
         this.tempFileRecord = null;
         this.fileList = [];
-        // Chỉ xóa attachFileName nếu không phải file cũ
         if (!this.existingFileRecord) {
           this.attachFileName = '';
         }
       }
       
+      this.datePickerKey++;
       this.cdr.detectChanges();
     });
   }
@@ -378,6 +401,10 @@ export class EmployeeRegisterBussinessFormComponent implements OnInit {
     this.bussinessService.getEmployeeVehicleBussiness().subscribe({
       next: (data: any) => {
         this.vehicleList = data.data || [];
+        // Nếu không phải edit mode và chưa có phương tiện nào, set mặc định
+        if (!this.isEditMode && this.selectedVehicles.length === 0) {
+          this.setDefaultVehicle();
+        }
       },
       error: (error) => {
         this.notification.error(NOTIFICATION_TITLE.error, 'Lỗi khi tải danh sách phương tiện: ' + error.message);
@@ -436,20 +463,16 @@ export class EmployeeRegisterBussinessFormComponent implements OnInit {
         if (res && res.status === 1 && res.data) {
           const data = res.data;
           this.currentUser = Array.isArray(data) ? data[0] : data;
-          // Set EmployeeID mặc định sau khi có thông tin user
           this.setDefaultEmployeeID();
         }
       },
       error: (error) => {
-        console.error('Error loading current user:', error);
       }
     });
   }
 
   setDefaultEmployeeID() {
-    // Chỉ set khi không phải edit mode, chưa có data, đã có currentUser và employeeList
     if (!this.isEditMode && !this.data && this.currentUser && this.currentUser.EmployeeID && this.employeeList.length > 0) {
-      // Kiểm tra xem EmployeeID có trong danh sách không
       const employeeExists = this.employeeList.some(emp => emp.ID === this.currentUser.EmployeeID);
       if (employeeExists) {
         this.bussinessForm.patchValue({
@@ -470,47 +493,117 @@ export class EmployeeRegisterBussinessFormComponent implements OnInit {
   }
 
   onVehicleChange(vehicleId: any) {
+  }
+
+  openVehicleModal() {
+    // Nếu chưa có phương tiện nào và không phải edit mode, tự động thêm phương tiện mặc định
+    if (this.selectedVehicles.length === 0 && !this.isEditMode) {
+      this.setDefaultVehicle();
+    }
+
+    const modal = this.modalService.open(VehicleSelectModalComponent, {
+      centered: true,
+      size: 'xl',
+      backdrop: 'static',
+      keyboard: false
+    });
+
+    const componentInstance = modal.componentInstance;
+    if (componentInstance) {
+      componentInstance.vehicleList = this.vehicleList;
+      componentInstance.selectedVehicles = this.selectedVehicles;
+    }
+
+    modal.result.then((result: any) => {
+      if (result && result.vehicles && Array.isArray(result.vehicles)) {
+        this.selectedVehicles = result.vehicles;
+        this.updateVehicleDisplay();
+        this.updateVehicleCost();
+      } else if (result && Array.isArray(result)) {
+        this.selectedVehicles = result;
+        this.updateVehicleDisplay();
+        this.updateVehicleCost();
+      }
+    }).catch(() => {
+    });
+  }
+
+  // Set phương tiện mặc định là "Ô tô công ty" (VehicleID = 2)
+  private setDefaultVehicle() {
+    const defaultVehicle = {
+      id: 'vehicle_detail_1',
+      vehicleId: 2,
+      vehicleName: 'Ô tô công ty',
+      cost: 0,
+      note: '',
+      customName: ''
+    };
+    this.selectedVehicles = [defaultVehicle];
+    this.updateVehicleDisplay();
+    this.updateVehicleCost();
+  }
+
+  updateVehicleDisplay() {
+    if (this.selectedVehicles && this.selectedVehicles.length > 0) {
+      const vehicleNames = this.selectedVehicles.map(v => {
+        if (v.vehicleId === 0) {
+          return v.customName || v.vehicleName || 'Phương tiện khác';
+        }
+        return v.vehicleName || this.getVehicleNameById(v.vehicleId);
+      });
+      this.vehicleDisplayText = vehicleNames.join('; ');
+    } else {
+      this.vehicleDisplayText = '';
+    }
+    this.cdr.detectChanges();
+  }
+
+  updateVehicleCost() {
+    let totalCost = 0;
+    if (this.selectedVehicles && this.selectedVehicles.length > 0) {
+      totalCost = this.selectedVehicles.reduce((sum, v) => sum + (v.cost || 0), 0);
+    }
+    
     const costVehicleControl = this.bussinessForm.get('CostVehicle');
     if (costVehicleControl) {
-      if (vehicleId == 0 || vehicleId == 3 || vehicleId == null) {
-        costVehicleControl.enable();
-      } else {
-        costVehicleControl.disable();
-        // Lấy cost từ vehicle list
-        const vehicle = this.vehicleList.find(v => v.ID === vehicleId);
-        if (vehicle && vehicle.Cost) {
-          costVehicleControl.setValue(vehicle.Cost);
-          this.calculateTotal();
-        }
-      }
+      costVehicleControl.setValue(totalCost);
+      this.calculateTotal();
     }
+  }
+
+  getVehicleNameById(vehicleId: number): string {
+    const vehicle = this.vehicleList.find(v => v.ID === vehicleId);
+    return vehicle ? vehicle.VehicleName : '';
   }
 
   onWorkEarlyChange(workEarly: boolean) {
     const costWorkEarlyControl = this.bussinessForm.get('CostWorkEarly');
     if (costWorkEarlyControl) {
       if (workEarly) {
-        // Khi tích checkbox, tự động set 50,000
         costWorkEarlyControl.setValue(50000);
         this.calculateTotal();
       } else {
-        // Khi bỏ tích, reset về 0
         costWorkEarlyControl.setValue(0);
         this.calculateTotal();
       }
     }
   }
 
+  onNotCheckInChange(event: any) {
+    const notCheckInControl = this.bussinessForm.get('NotCheckIn');
+    if (notCheckInControl) {
+      const value = event.target.checked ? 1 : 0;
+      notCheckInControl.setValue(value);
+    }
+  }
+
   onOvernightTypeChange(overnightType: number) {
     const costOvernightControl = this.bussinessForm.get('CostOvernight');
     if (costOvernightControl) {
-      // 0: Không có, 1: Về VP từ sau 20h, 2: Theo loại công tác
-      // Nếu chọn 1 hoặc 2 thì tự động set 35,000
       if (overnightType === 1 || overnightType === 2) {
         costOvernightControl.setValue(35000);
         this.calculateTotal();
       } else {
-        // Khi chọn "Không có" (0), reset về 0
         costOvernightControl.setValue(0);
         this.calculateTotal();
       }
@@ -541,10 +634,7 @@ export class EmployeeRegisterBussinessFormComponent implements OnInit {
       const currentDate = new Date(current);
       currentDate.setHours(0, 0, 0, 0);
 
-      // Lấy giá trị IsProblem từ form (dùng biến để đảm bảo cập nhật)
       const isProblem = this.isProblemValue !== undefined ? this.isProblemValue : (this.bussinessForm?.get('IsProblem')?.value || false);
-      
-      // Lấy ngày đã chọn hiện tại (nếu có) - để cho phép giữ nguyên khi edit
       const selectedDateValue = this.bussinessForm?.get('DayBussiness')?.value;
       let allowSelectedDate = false;
       if (selectedDateValue) {
@@ -554,21 +644,17 @@ export class EmployeeRegisterBussinessFormComponent implements OnInit {
       }
 
       if (isProblem) {
-        // Nếu tích "Bổ sung": enable từ ngày 1 đầu tháng đến hôm nay
         const firstDayOfMonth = new Date(today.getFullYear(), today.getMonth(), 1);
         firstDayOfMonth.setHours(0, 0, 0, 0);
         
-        // Cho phép ngày đã chọn hoặc ngày trong khoảng từ đầu tháng đến hôm nay
         if (allowSelectedDate) {
           return false;
         }
         
-        // Disable nếu ngày < ngày 1 đầu tháng hoặc > hôm nay
         const isBeforeFirstDay = currentDate.getTime() < firstDayOfMonth.getTime();
         const isAfterToday = currentDate.getTime() > today.getTime();
         return isBeforeFirstDay || isAfterToday;
       } else {
-        // Mặc định: chỉ enable hôm qua và hôm nay (hoặc ngày đã chọn nếu đang edit)
         if (allowSelectedDate) {
           return false;
         }
@@ -577,7 +663,6 @@ export class EmployeeRegisterBussinessFormComponent implements OnInit {
         return !isYesterday && !isToday;
       }
     } catch (error) {
-      console.error('Error in disabledDate:', error);
       return false;
     }
   };
@@ -593,7 +678,6 @@ export class EmployeeRegisterBussinessFormComponent implements OnInit {
   }
 
   onSubmit() {
-    // Mark all controls as touched để hiển thị error
     Object.keys(this.bussinessForm.controls).forEach(key => {
       const control = this.bussinessForm.get(key);
       if (control) {
@@ -606,18 +690,14 @@ export class EmployeeRegisterBussinessFormComponent implements OnInit {
       return;
     }
 
-    // Dùng getRawValue() để lấy cả giá trị từ disabled controls
     const formValue = this.bussinessForm.getRawValue();
     
-    // Validate Type is required
     if (!formValue.Type || formValue.Type === null) {
       this.notification.warning(NOTIFICATION_TITLE.warning, 'Vui lòng chọn loại công tác');
       return;
     }
 
     const dayBussiness = formValue.DayBussiness ? new Date(formValue.DayBussiness).toISOString() : null;
-
-    // Đảm bảo các field số không phải null
     const vehicleID = formValue.VehicleID !== null && formValue.VehicleID !== undefined ? formValue.VehicleID : 0;
     const approvedId = formValue.ApprovedId !== null && formValue.ApprovedId !== undefined ? formValue.ApprovedId : 0;
 
@@ -625,13 +705,13 @@ export class EmployeeRegisterBussinessFormComponent implements OnInit {
       ID: formValue.ID !== null && formValue.ID !== undefined ? formValue.ID : 0,
       EmployeeID: formValue.EmployeeID || 0,
       DayBussiness: dayBussiness,
-      ApprovedID: approvedId, // Theo model: ApprovedID
+      ApprovedID: approvedId,
       Location: formValue.Location || '',
-      TypeBusiness: formValue.Type, // Theo model: TypeBusiness
+      TypeBusiness: formValue.Type,
       CostBussiness: Number(formValue.CostBussiness) || 0,
       VehicleID: Number(vehicleID),
       CostVehicle: Number(formValue.CostVehicle) || 0,
-      NotChekIn: formValue.NotCheckIn === 1 ? true : false, // Theo model: NotChekIn (boolean, true = Không chấm công)
+      NotChekIn: formValue.NotCheckIn === 1 ? true : false,
       WorkEarly: formValue.WorkEarly || false,
       CostWorkEarly: Number(formValue.CostWorkEarly) || 0,
       Overnight: (formValue.Overnight === 1 || formValue.Overnight === 2) ? true : false,
@@ -643,41 +723,28 @@ export class EmployeeRegisterBussinessFormComponent implements OnInit {
       IsProblem: formValue.IsProblem || false
     }];
 
-    // Validate TypeBusiness trước khi submit
     if (!data[0].TypeBusiness || data[0].TypeBusiness === null || data[0].TypeBusiness === undefined) {
       this.notification.warning(NOTIFICATION_TITLE.warning, 'Vui lòng chọn loại công tác');
       return;
     }
 
-    // Validate EmployeeID
     if (!data[0].EmployeeID || data[0].EmployeeID === 0) {
       this.notification.warning(NOTIFICATION_TITLE.warning, 'Vui lòng chọn nhân viên');
       return;
     }
 
-    // Validate: Nếu chọn "Bổ sung" thì bắt buộc phải có file (file mới hoặc file cũ còn lại)
-    // File mới: có thể là selectedFile (đã chọn, sẽ upload) hoặc tempFileRecord (đã upload xong)
     const hasNewFile = !!(this.selectedFile || this.tempFileRecord || this.uploadedFileData);
-    // File cũ còn lại: file chưa bị xóa (không có trong deletedFileIds)
     const remainingFiles = this.existingFiles.filter(f => f.ID && !this.deletedFileIds.includes(f.ID));
     const hasExistingFile = remainingFiles.length > 0;
     
-    // Nếu IsProblem = true, phải có ít nhất 1 file (mới hoặc cũ)
     if (data[0].IsProblem && !hasNewFile && !hasExistingFile) {
       this.notification.warning(NOTIFICATION_TITLE.warning, 'Vui lòng chọn file đính kèm khi đăng ký bổ sung');
       return;
     }
 
-    console.log('Submitting data:', data);
-    console.log('Form Value ID:', formValue.ID);
-    console.log('Data ID:', data[0].ID);
-    console.log('Is Edit Mode:', this.isEditMode);
-
-    // Nếu có file mới được chọn, upload file trước
     if (this.selectedFile) {
       this.uploadFileAndSave(data);
     } else {
-      // Nếu không có file mới, gửi trực tiếp (có thể đã có file sẵn trong edit mode)
       this.saveDataEmployeeWithFile(data);
     }
   }
@@ -688,17 +755,13 @@ export class EmployeeRegisterBussinessFormComponent implements OnInit {
     const year = date.getFullYear();
     const month = date.getMonth() + 1;
     const day = date.getDate();
-    
-    // Format: Năm 2025\Tháng 7\Ngày 10.07.2025\NV073\
     const monthName = `Tháng ${month}`;
     const dayFormatted = `Ngày ${day.toString().padStart(2, '0')}.${month.toString().padStart(2, '0')}.${year}`;
-    
     return `Năm ${year}\\${monthName}\\${dayFormatted}\\${employeeCode}\\`;
   }
 
   // Xử lý khi chọn file với nz-upload
   beforeUpload = (file: any): boolean => {
-    // Nếu có file cũ, đánh dấu xóa tất cả file cũ (sẽ xóa khi save)
     if (this.existingFiles.length > 0) {
       this.existingFiles.forEach(existingFile => {
         if (existingFile.ID && existingFile.ID > 0 && !this.deletedFileIds.includes(existingFile.ID)) {
@@ -709,41 +772,32 @@ export class EmployeeRegisterBussinessFormComponent implements OnInit {
           });
         }
       });
-      // Xóa khỏi danh sách hiển thị
       this.existingFiles = [];
       this.existingFileRecord = null;
     }
     
-    // Reset file cũ đã chọn (nếu có)
     this.selectedFile = null;
     this.tempFileRecord = null;
     this.uploadedFileData = null;
-    
-    // Chỉ cho phép 1 file
     this.fileList = [file];
     this.selectedFile = file;
     this.attachFileName = file.name;
-    return false; // Prevent auto upload
+    return false;
   };
 
   // Upload file và sau đó save
   uploadFileAndSave(data: any[]): void {
     if (!this.selectedFile) {
-      // Không có file mới, gửi trực tiếp với file cũ (nếu có)
       this.saveDataEmployeeWithFile(data);
       return;
     }
 
-    // Lấy thông tin nhân viên để lấy Code
     const employeeID = data[0].EmployeeID;
     const employee = this.employeeList.find(emp => emp.ID === employeeID);
     const employeeCode = employee?.Code || 'UNKNOWN';
-    
-    // Tạo subpath
     const dayBussiness = data[0].DayBussiness ? new Date(data[0].DayBussiness) : new Date();
     const subPath = this.generateSubPath(dayBussiness, employeeCode);
 
-    // Hiển thị loading
     const loadingMsg = this.message.loading(`Đang tải lên ${this.selectedFile.name}...`, {
       nzDuration: 0,
     }).messageId;
@@ -756,19 +810,15 @@ export class EmployeeRegisterBussinessFormComponent implements OnInit {
           const uploadedFile = res.data[0];
           this.uploadedFileData = uploadedFile;
           
-          // Lưu thông tin file vào database theo model EmployeeBussinessFile
           const fileRecord: any = {
             ID: this.existingFileRecord?.ID || 0,
-            EmployeeBussinessID: 0, // Sẽ được set bởi backend
+            EmployeeBussinessID: 0,
             FileName: uploadedFile.SavedFileName || uploadedFile.FileName || '',
             OriginPath: uploadedFile.OriginPath || uploadedFile.OriginalFileName || uploadedFile.OriginName || (this.selectedFile ? this.selectedFile.name : '') || '',
             ServerPath: uploadedFile.ServerPath || uploadedFile.FilePath || '',
           };
 
-          // Lưu file record tạm thời
           this.tempFileRecord = fileRecord;
-          
-          // Gửi cả employee bussiness và file cùng lúc
           this.saveDataEmployeeWithFile(data);
         } else {
           this.message.remove(loadingMsg);
@@ -788,18 +838,15 @@ export class EmployeeRegisterBussinessFormComponent implements OnInit {
   saveDataEmployeeWithFile(data: any[]): void {
     this.isLoading = true;
     
-    // Chuẩn bị DTO theo format backend mong đợi
     const dto: any = {
-      employeeBussiness: data[0] || null, // Gửi object, không phải array
-      employeeBussinessFiles: null
+      employeeBussiness: data[0] || null,
+      employeeBussinessFiles: null,
+      employeeBussinessVehicle: null
     };
 
-    // Nếu có file (file mới hoặc file cũ còn lại)
     if (this.tempFileRecord) {
-      // File mới đã upload
       dto.employeeBussinessFiles = this.tempFileRecord;
     } else if (this.existingFiles.length > 0 && data[0].IsProblem) {
-      // File cũ còn lại (chưa bị xóa) khi edit mode và vẫn chọn "Bổ sung"
       const remainingFile = this.existingFiles.find(f => !this.deletedFileIds.includes(f.ID));
       if (remainingFile) {
         dto.employeeBussinessFiles = {
@@ -812,59 +859,57 @@ export class EmployeeRegisterBussinessFormComponent implements OnInit {
       }
     }
 
-    // Lưu employee bussiness trước
+    if (this.selectedVehicles && this.selectedVehicles.length > 0) {
+      const firstVehicle = this.selectedVehicles[0];
+      dto.employeeBussinessVehicle = {
+        ID: 0,
+        EmployeeBussinesID: data[0].ID || 0,
+        EmployeeVehicleBussinessID: firstVehicle.vehicleId || 0,
+        Cost: firstVehicle.cost || 0,
+        BillImage: '',
+        Note: firstVehicle.note || '',
+        VehicleName: firstVehicle.vehicleName || firstVehicle.customName || ''
+      };
+    }
+
     this.bussinessService.saveDataEmployee(dto).subscribe({
       next: (response: any) => {
-        // Sau khi lưu thành công, xóa các file đã đánh dấu xóa
-        if (this.deletedFiles.length > 0) {
-          // Gửi từng file đã xóa về API save-file với IsDeleted = true
-          let completedCount = 0;
-          const totalFiles = this.deletedFiles.length;
-          
-          this.deletedFiles.forEach((deletedFile, index) => {
-            const filePayload = {
-              ...deletedFile,
-              IsDeleted: true,
-              UpdatedBy: this.currentUser?.UserName || 'admin'
-            };
-            
-            this.bussinessService.saveEmployeeBussinessFile(filePayload).subscribe({
-              next: () => {
-                completedCount++;
-                // Khi đã xóa hết tất cả file
-                if (completedCount === totalFiles) {
-                  const message = this.isEditMode ? 'Cập nhật bản ghi thành công' : 'Thêm thành công';
-                  this.notification.success(NOTIFICATION_TITLE.success, message);
-                  this.activeModal.close({ success: true });
-                  this.isLoading = false;
-                }
-              },
-              error: (error) => {
-                console.error('Error deleting file:', error);
-                completedCount++;
-                // Vẫn tiếp tục xóa các file khác
-                if (completedCount === totalFiles) {
-                  // Vẫn hiển thị thành công vì đã lưu được employee bussiness
-                  const message = this.isEditMode ? 'Cập nhật bản ghi thành công' : 'Thêm thành công';
-                  this.notification.success(NOTIFICATION_TITLE.success, message);
-                  this.activeModal.close({ success: true });
-                  this.isLoading = false;
-                }
+        const savedBussinessID = response?.data?.ID || response?.ID || data[0].ID || 0;
+        
+        if (dto.employeeBussinessVehicle && savedBussinessID > 0 && dto.employeeBussinessVehicle.EmployeeBussinesID !== savedBussinessID) {
+          dto.employeeBussinessVehicle.EmployeeBussinesID = savedBussinessID;
+          this.bussinessService.saveDataEmployee({
+            employeeBussiness: null,
+            employeeBussinessFiles: null,
+            employeeBussinessVehicle: dto.employeeBussinessVehicle
+          }).subscribe({
+            next: () => {
+              if (this.selectedVehicles && this.selectedVehicles.length > 1) {
+                this.saveRemainingVehicles(savedBussinessID);
+              } else {
+                this.processDeletedFiles(savedBussinessID);
               }
-            });
+            },
+            error: (error) => {
+              if (this.selectedVehicles && this.selectedVehicles.length > 1) {
+                this.saveRemainingVehicles(savedBussinessID);
+              } else {
+                this.processDeletedFiles(savedBussinessID);
+              }
+            }
           });
         } else {
-          const message = this.isEditMode ? 'Cập nhật bản ghi thành công' : 'Thêm thành công';
-          this.notification.success(NOTIFICATION_TITLE.success, message);
-          this.activeModal.close({ success: true });
-          this.isLoading = false;
+          if (this.selectedVehicles && this.selectedVehicles.length > 1) {
+            this.saveRemainingVehicles(savedBussinessID);
+          } else {
+            this.processDeletedFiles(savedBussinessID);
+          }
         }
       },
       error: (error) => {
         const message = this.isEditMode ? 'Cập nhật bản ghi thất bại' : 'Thêm bản ghi thất bại';
         let errorMessage = error.message || 'Có lỗi xảy ra';
         
-        // Hiển thị chi tiết lỗi validation nếu có
         if (error.error && error.error.errors) {
           const validationErrors = error.error.errors;
           const errorDetails = Object.keys(validationErrors).map(key => {
@@ -873,11 +918,95 @@ export class EmployeeRegisterBussinessFormComponent implements OnInit {
           errorMessage = errorDetails || errorMessage;
         }
         
-        console.error('Error submitting form:', error);
         this.notification.error(NOTIFICATION_TITLE.error, message + ': ' + errorMessage);
         this.isLoading = false;
       }
     });
+  }
+
+  // Lưu các phương tiện còn lại
+  private saveRemainingVehicles(bussinessID: number): void {
+    const remainingVehicles = this.selectedVehicles.slice(1);
+    let completedCount = 0;
+    const totalVehicles = remainingVehicles.length;
+
+    if (totalVehicles === 0) {
+      this.processDeletedFiles(bussinessID);
+      return;
+    }
+
+    remainingVehicles.forEach((vehicle) => {
+      const vehicleDto: any = {
+        employeeBussiness: null,
+        employeeBussinessFiles: null,
+        employeeBussinessVehicle: {
+          ID: 0,
+          EmployeeBussinesID: bussinessID,
+          EmployeeVehicleBussinessID: vehicle.vehicleId || 0,
+          Cost: vehicle.cost || 0,
+          BillImage: '',
+          Note: vehicle.note || '',
+          VehicleName: vehicle.vehicleName || vehicle.customName || ''
+        }
+      };
+
+      this.bussinessService.saveDataEmployee(vehicleDto).subscribe({
+        next: () => {
+          completedCount++;
+          if (completedCount === totalVehicles) {
+            this.processDeletedFiles(bussinessID);
+          }
+        },
+        error: (error) => {
+          completedCount++;
+          if (completedCount === totalVehicles) {
+            this.processDeletedFiles(bussinessID);
+          }
+        }
+      });
+    });
+  }
+
+  // Xử lý xóa các file đã đánh dấu
+  private processDeletedFiles(bussinessID: number): void {
+    if (this.deletedFiles.length > 0) {
+      let completedCount = 0;
+      const totalFiles = this.deletedFiles.length;
+      
+      this.deletedFiles.forEach((deletedFile, index) => {
+        const filePayload = {
+          ...deletedFile,
+          IsDeleted: true,
+          UpdatedBy: this.currentUser?.UserName || 'admin'
+        };
+        
+        this.bussinessService.saveEmployeeBussinessFile(filePayload).subscribe({
+          next: () => {
+            completedCount++;
+            if (completedCount === totalFiles) {
+              const message = this.isEditMode ? 'Cập nhật bản ghi thành công' : 'Thêm thành công';
+              this.notification.success(NOTIFICATION_TITLE.success, message);
+              this.activeModal.close({ success: true });
+              this.isLoading = false;
+            }
+          },
+          error: (error) => {
+            completedCount++;
+            if (completedCount === totalFiles) {
+              const message = this.isEditMode ? 'Cập nhật bản ghi thành công' : 'Thêm thành công';
+              this.notification.success(NOTIFICATION_TITLE.success, message);
+              this.activeModal.close({ success: true });
+              this.isLoading = false;
+            }
+          }
+        });
+      });
+    } else {
+      const message = this.isEditMode ? 'Cập nhật bản ghi thành công' : 'Thêm thành công';
+      this.notification.success(NOTIFICATION_TITLE.success, message);
+      this.activeModal.close({ success: true });
+      this.isLoading = false;
+    }
   }
 
   removeFile() {
@@ -886,7 +1015,6 @@ export class EmployeeRegisterBussinessFormComponent implements OnInit {
     this.attachFileName = '';
     this.tempFileRecord = null;
     this.fileList = [];
-    // Không xóa existingFileRecord khi remove file mới (giữ file cũ)
   }
 
   // Download file đính kèm
@@ -899,7 +1027,6 @@ export class EmployeeRegisterBussinessFormComponent implements OnInit {
     const filePath = file.ServerPath || file.FilePath;
     const fileName = file.FileName || file.OriginPath || 'file';
 
-    // Hiển thị loading
     const loadingMsg = this.message.loading('Đang tải xuống file...', {
       nzDuration: 0,
     }).messageId;

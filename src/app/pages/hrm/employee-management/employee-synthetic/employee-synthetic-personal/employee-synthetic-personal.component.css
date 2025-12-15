@@ -1,0 +1,197 @@
+.ant-splitter{
+  height: 84vh !important;
+}
+
+/* Tab styling - matching hrhiring-request */
+.ant-tabs-tab-btn {
+  font-size: 0.75rem;
+}
+
+:host ::ng-deep nz-tabset.approval-tabs .ant-tabs-tab-btn {
+  color: #141a24 !important;
+  opacity: 1 !important;
+  padding: 4px !important;
+  padding-left: 12px !important;
+}
+
+:host ::ng-deep nz-tabset.approval-tabs .ant-tabs-tab.ant-tabs-tab-active .ant-tabs-tab-btn {
+  color: #0e1114 !important;
+  font-weight: 600;
+}
+
+:host ::ng-deep nz-tabset.approval-tabs .ant-tabs-ink-bar {
+  background: #1677ff !important;
+}
+
+/* Đảm bảo các bảng Tabulator không bị tràn */
+::ng-deep .tabulator {
+  width: 100% !important;
+  max-width: 100% !important;
+  overflow-x: auto !important;
+}
+
+::ng-deep .tabulator-tableHolder {
+  width: 100% !important;
+  max-width: 100% !important;
+}
+
+/* Đảm bảo container không bị tràn */
+.card-body {
+  width: 100% !important;
+  max-width: 100% !important;
+  overflow-x: hidden !important;
+}
+
+/* Cho phép scroll ngang cho tab payroll */
+.card-body:has(.payroll-tab-container) {
+  overflow-x: auto !important;
+}
+
+/* Đảm bảo các tab content không bị tràn */
+[hidden] {
+  width: 100% !important;
+  max-width: 100% !important;
+}
+
+/* Payroll tab container - cho phép scroll ngang */
+.payroll-tab-container {
+  overflow-x: auto !important;
+  overflow-y: visible !important;
+  width: 100% !important;
+}
+
+/* Payroll table group colors - matching demo.css */
+::ng-deep #tbl_employee_payroll .group-standard {
+  background-color: pink !important;
+}
+
+::ng-deep #tbl_employee_payroll .group-basic,
+::ng-deep #tbl_employee_payroll .group-allowance,
+::ng-deep #tbl_employee_payroll .group-deduction,
+::ng-deep #tbl_employee_payroll .group-note {
+  background-color: #f1ddc1 !important;
+}
+
+::ng-deep #tbl_employee_payroll .group-overtime,
+::ng-deep #tbl_employee_payroll .group-bonus {
+  background-color: rgb(188, 233, 233) !important;
+}
+
+::ng-deep #tbl_employee_payroll .group-actual {
+  background-color: rgb(210, 229, 161) !important;
+}
+
+/* Payroll table styling */
+::ng-deep #tbl_employee_payroll {
+  font-size: 12px;
+  width: auto !important;
+  width: max-content !important;
+}
+
+::ng-deep #tbl_employee_payroll thead {
+  width: 500px !important;
+}
+
+::ng-deep #tbl_employee_payroll thead th {
+  vertical-align: middle;
+}
+
+/* ::ng-deep #tbl_employee_payroll tbody {
+  white-space: nowrap !important;
+} */
+
+::ng-deep #tbl_employee_payroll td:nth-child(n+4) {
+  text-align: right;
+}
+
+::ng-deep #tbl_employee_payroll td:nth-last-child(1) {
+  text-align: left !important;
+}
+
+::ng-deep #tbl_employee_payroll tr:nth-child(5) th {
+  width: 150px !important;
+}
+
+::ng-deep #tbl_employee_payroll tr:nth-child(5) th:nth-child(1) {
+  width: 50px !important;
+}
+
+/* Đảm bảo table-responsive cho phép scroll ngang */
+::ng-deep .table-responsive {
+  display: block;
+  height: auto !important;
+}
+
+@media (min-width: 768px) {
+  ::ng-deep .table-responsive {
+    display: block;
+    height: 75vh !important;
+  }
+}
+
+@media (max-width: 768px) {
+  ::ng-deep .table-responsive {
+    display: none;
+    height: 75vh !important;
+  }
+}
+
+::ng-deep .table-responsive-xl {
+  overflow: auto;
+}
+
+/* Sticky header cho bảng */
+::ng-deep .sticky-top-table {
+  position: sticky;
+  top: -3px;
+  z-index: 1;
+  background-color: antiquewhite;
+}
+
+/* Đảm bảo bảng có thể scroll ngang */
+::ng-deep #tbl_employee_payroll {
+  width: max-content;
+  min-width: 100%;
+}
+
+::ng-deep #tbl_employee_payroll thead th {
+  vertical-align: middle;
+  text-align: center;
+  white-space: nowrap;
+  padding: 4px 8px;
+  line-height: normal !important;
+  padding: 5px !important;
+  height: auto !important;
+  border: 1px solid #a19f9d !important;
+}
+
+::ng-deep #tbl_employee_payroll tbody td {
+  padding: 4px 8px;
+  font-size: 12px;
+  height: auto !important;
+  vertical-align: middle !important;
+  border: 1px solid #a19f9d !important;
+}
+
+/* Table general styling */
+::ng-deep .table {
+  border: 2px solid#a19f9d;
+  font-size: 12px;
+  table-layout: auto !important;
+}
+
+::ng-deep .table th,
+::ng-deep .table td {
+  height: auto !important;
+  vertical-align: middle !important;
+  border: 1px solid #a19f9d !important;
+}
+
+::ng-deep .table th {
+  line-height: normal !important;
+  padding: 5px !important;
+}
+
+::ng-deep #tbl_employee_payroll tbody tr.bg-success {
+  background-color: #d4edda !important;
+}

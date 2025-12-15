@@ -423,9 +423,10 @@
             </nz-form-control>
           </nz-form-item>
 
-          <nz-form-item class="mb-2">
+          <ng-container *hasPermission="'N2,N1'">
+              <nz-form-item class="mb-2">
             <nz-form-label [nzSpan]="24" class="fs-12 p-0"
-              >Lý do sửa</nz-form-label
+              >Lý do sửa<span class="text-danger ps-1">*</span></nz-form-label
             >
             <nz-form-control [nzSpan]="24" nzErrorTip="Vui lòng nhập lý do sửa">
               <textarea
@@ -435,6 +436,8 @@
               ></textarea>
             </nz-form-control>
           </nz-form-item>
+          </ng-container>
+        
         </form>
       </div>
       <div class="modal-footer py-0">

@@ -71,14 +71,18 @@ export class PaymentOrderComponent implements OnInit {
                     label: 'Duyệt',
                     icon: PrimeIcons.CHECK,
                     command: () => {
-                        // this.onApprovedTBP(1);
+                        this.onApprovedTBP(2, {
+                            ButtonActionGroup: 'btnTBP', ButtonActionName: 'btnApproveTBP', ButtonActionText: 'Trưởng bộ phận',
+                        });
                     }
                 },
                 {
                     label: 'Hủy duyệt',
                     icon: PrimeIcons.UNLOCK,
                     command: () => {
-                        // this.onApprovedTBP(2);
+                        this.onApprovedTBP(2, {
+                            ButtonActionGroup: 'btnTBP', ButtonActionName: 'btnUnApproveTBP', ButtonActionText: 'Trưởng bộ phận',
+                        });
                     }
                 }
             ]
@@ -90,24 +94,49 @@ export class PaymentOrderComponent implements OnInit {
             items: [
                 {
                     label: 'Duyệt hồ sơ',
-                    icon: PrimeIcons.CHECK
+                    icon: PrimeIcons.CHECK,
+                    command: () => {
+                        this.onApprovedTBP(1, {
+                            ButtonActionGroup: 'btnHR', ButtonActionName: 'btnApproveDocumentHR', ButtonActionText: 'HR xác nhận',
+                        });
+                    }
                 },
                 {
                     label: 'Hủy duyệt hồ sơ',
-                    icon: PrimeIcons.UNLOCK
+                    icon: PrimeIcons.UNLOCK,
+                    command: () => {
+                        this.onApprovedTBP(2, {
+                            ButtonActionGroup: 'btnHR', ButtonActionName: 'btnUnApproveDocumentHR', ButtonActionText: 'HR xác nhận',
+                        });
+                    }
                 },
 
                 {
                     label: 'Bổ sung chứng từ',
-                    icon: PrimeIcons.UNLOCK
+                    icon: PrimeIcons.UNLOCK,
+                    command: () => {
+                        this.onApprovedTBP(3, {
+                            ButtonActionGroup: 'btnHR', ButtonActionName: 'btnHRUpdateDocument', ButtonActionText: 'HR xác nhận',
+                        });
+                    }
                 },
                 {
                     label: 'TBP duyệt',
-                    icon: PrimeIcons.UNLOCK
+                    icon: PrimeIcons.UNLOCK,
+                    command: () => {
+                        this.onApprovedTBP(1, {
+                            ButtonActionGroup: 'btnHR', ButtonActionName: 'btnApproveHR', ButtonActionText: 'HR xác nhận',
+                        });
+                    }
                 },
                 {
                     label: 'TBP hủy duyệt',
-                    icon: PrimeIcons.UNLOCK
+                    icon: PrimeIcons.UNLOCK,
+                    command: () => {
+                        this.onApprovedTBP(2, {
+                            ButtonActionGroup: 'btnHR', ButtonActionName: 'btnUnApproveHR', ButtonActionText: 'HR xác nhận',
+                        });
+                    }
                 }
             ]
         },
@@ -119,46 +148,91 @@ export class PaymentOrderComponent implements OnInit {
             items: [
                 {
                     label: 'Duyệt hồ sơ',
-                    icon: PrimeIcons.CHECK
+                    icon: PrimeIcons.CHECK,
+                    command: () => {
+                        this.onApprovedTBP(1, {
+                            ButtonActionGroup: 'btnKTTT', ButtonActionName: 'btnApproveDocument', ButtonActionText: 'Kế toán xác nhận',
+                        });
+                    }
                 },
                 {
                     label: 'Bổ sung chứng từ',
-                    icon: PrimeIcons.UNLOCK
+                    icon: PrimeIcons.UNLOCK,
+                    command: () => {
+                        this.onApprovedTBP(3, {
+                            ButtonActionGroup: 'btnKTTT', ButtonActionName: 'btnUpdateDocument', ButtonActionText: 'Kế toán xác nhận',
+                        });
+                    }
                 },
                 {
                     label: 'Hủy duyệt hồ sơ',
-                    icon: PrimeIcons.UNLOCK
+                    icon: PrimeIcons.UNLOCK,
+                    command: () => {
+                        this.onApprovedTBP(2, {
+                            ButtonActionGroup: 'btnKTTT', ButtonActionName: 'btnUnApproveDocument', ButtonActionText: 'Kế toán xác nhận',
+                        });
+                    }
                 },
 
                 {
                     label: 'Nhận chứng từ',
-                    icon: PrimeIcons.UNLOCK
+                    icon: PrimeIcons.UNLOCK,
+                    command: () => {
+                        this.onApprovedTBP(1, {
+                            ButtonActionGroup: 'btnKTTT', ButtonActionName: 'btnReceiveDocument', ButtonActionText: 'Kế toán xác nhận',
+                        });
+                    }
                 },
                 {
                     label: 'Hủy nhận chứng từ',
-                    icon: PrimeIcons.UNLOCK
+                    icon: PrimeIcons.UNLOCK,
+                    command: () => {
+                        this.onApprovedTBP(2, {
+                            ButtonActionGroup: 'btnKTTT', ButtonActionName: 'btnUnReceiveDocument', ButtonActionText: 'Kế toán xác nhận',
+                        });
+                    }
                 },
 
                 {
                     label: 'TBP duyệt',
-                    icon: PrimeIcons.UNLOCK
+                    icon: PrimeIcons.UNLOCK,
+                    command: () => {
+                        this.onApprovedTBP(1, {
+                            ButtonActionGroup: 'btnKTT', ButtonActionName: 'btnApproveKT', ButtonActionText: 'Kế toán xác nhận',
+                        });
+                    }
                 },
                 {
                     label: 'TBP hủy duyệt',
-                    icon: PrimeIcons.UNLOCK
+                    icon: PrimeIcons.UNLOCK,
+                    command: () => {
+                        this.onApprovedTBP(2, {
+                            ButtonActionGroup: 'btnKTT', ButtonActionName: 'btnUnApproveKT', ButtonActionText: 'Kế toán xác nhận',
+                        });
+                    }
                 },
 
                 {
                     label: 'Đã thanh toán',
-                    icon: PrimeIcons.UNLOCK
+                    icon: PrimeIcons.UNLOCK, command: () => {
+                        this.onApprovedTBP(1, {
+                            ButtonActionGroup: 'btnKTTT', ButtonActionName: 'btnIsPayment', ButtonActionText: 'Kế toán xác nhận',
+                        });
+                    }
                 },
                 {
                     label: 'Hủy thanh toán',
-                    icon: PrimeIcons.UNLOCK
+                    icon: PrimeIcons.UNLOCK,
+                    command: () => {
+                        this.onApprovedTBP(2, {
+                            ButtonActionGroup: 'btnKTTT', ButtonActionName: 'btnUnPayment', ButtonActionText: 'Kế toán xác nhận',
+                        });
+                    }
                 },
                 {
                     label: 'Đính kèm file Bank slip',
-                    icon: PrimeIcons.UNLOCK
+                    icon: PrimeIcons.UNLOCK,
+
                 },
                 {
                     label: 'Hợp đồng',
@@ -173,11 +247,21 @@ export class PaymentOrderComponent implements OnInit {
             items: [
                 {
                     label: 'Duyệt',
-                    icon: PrimeIcons.CHECK
+                    icon: PrimeIcons.CHECK,
+                    command: () => {
+                        this.onApprovedTBP(1, {
+                            ButtonActionGroup: 'btnBGĐ', ButtonActionName: 'btnApproveBGĐ', ButtonActionText: 'BGĐ xác nhận',
+                        });
+                    }
                 },
                 {
                     label: 'Hủy duyệt',
-                    icon: PrimeIcons.UNLOCK
+                    icon: PrimeIcons.UNLOCK,
+                    command: () => {
+                        this.onApprovedTBP(2, {
+                            ButtonActionGroup: 'btnBGĐ', ButtonActionName: 'btnUnApproveBGĐ', ButtonActionText: 'BGĐ xác nhận',
+                        });
+                    }
                 },
                 {
                     label: 'Duyệt đặc biệt (ko cần check những bước trước)',
@@ -1117,18 +1201,18 @@ export class PaymentOrderComponent implements OnInit {
     }
 
 
-    async onApprovedTBP(isApproved: number) {
+    async onApprovedTBP(isApproved: number, action: any) {
         const grid = this.angularGrid.slickGrid;
         const dataView = this.angularGrid.dataView;
 
         const rowIndexes = grid.getSelectedRows();
 
-        const action = {
-            ButtonActionGroup: 'btnTBP',
-            ButtonActionName: 'btnApproveTBP',
-            ButtonActionText: 'Trưởng bộ phận',
+        // const action = {
+        //     ButtonActionGroup: 'btnTBP',
+        //     ButtonActionName: 'btnApproveTBP',
+        //     ButtonActionText: 'Trưởng bộ phận',
 
-        }
+        // }
         let selectedItems = rowIndexes
             .map(i => dataView.getItem(i));
 
@@ -1228,7 +1312,7 @@ export class PaymentOrderComponent implements OnInit {
                     this.handleApproved(selectedItems);
                 }
             });
-        } else if (action.ButtonActionName == "btnHRUpdateDocument") {
+        } else if (isApproved == 3) {
             const { value: reason }: { value?: string } = await Swal.fire({
                 input: 'textarea',
                 inputLabel: 'Lý do bổ sung',
@@ -1249,7 +1333,7 @@ export class PaymentOrderComponent implements OnInit {
                     PaymentOrderLog: {
                         IsApproved: isApproved,
                         ReasonRequestAppendFileHR: reason,
-                        IsRequestAppendFileHR: action.ButtonActionName == "btnHRUpdateDocument"
+                        IsRequestAppendFileHR: isApproved == 3
                     },
                 }));
 
@@ -1257,22 +1341,337 @@ export class PaymentOrderComponent implements OnInit {
                 this.handleApproved(selectedItems);
             }
         }
+        else if (isApproved == 2) {
+            const { value: reason }: { value?: string } = await Swal.fire({
+                input: 'textarea',
+                inputLabel: 'Lý do hủy',
+                inputPlaceholder: 'Nhập lý do hủy duyệt...',
+                inputAttributes: {
+                    'aria-label': 'Vui lòng nhập Lý do hủy',
+                },
+                showCancelButton: true,
+                confirmButtonColor: '#28a745 ',
+                cancelButtonColor: '#dc3545 ',
+                confirmButtonText: 'Hủy duyệt',
+                cancelButtonText: 'Hủy',
+            });
+            if (reason) {
 
+                selectedItems = selectedItems.map((x, i) => ({
+                    ...x,
+                    ReasonCancel: reason
+                }));
 
-        else {
-
+                console.log('hủy duyêt:', selectedItems);
+                this.handleApproved(selectedItems);
+            }
         }
     }
 
-    async onApprovedKTTT(isApproved: number) {
+    async onApprovedKTTT(isApproved: number, action: any) {
+        const grid = this.angularGrid.slickGrid;
+        const dataView = this.angularGrid.dataView;
 
+        const rowIndexes = grid.getSelectedRows();
+
+        // const action = {
+        //     ButtonActionGroup: 'btnTBP',
+        //     ButtonActionName: 'btnApproveTBP',
+        //     ButtonActionText: 'Trưởng bộ phận',
+
+        // }
+        let selectedItems = rowIndexes
+            .map(i => dataView.getItem(i));
+
+        selectedItems = selectedItems.map((x, i) => ({
+            ...x,
+            Action: action,
+            PaymentOrderLog: {
+                IsApproved: isApproved,
+            },
+            CurrentApproved: x.IsApproved || 0,
+            Step: x.Step || 0
+        }));
+
+        if (isApproved == 1) {
+            if (action.ButtonActionName == "btnApproveDocument" || action.ButtonActionName == 'btnApproveKT') {
+                const result = await Swal.fire({
+                    input: 'textarea',
+                    inputLabel: 'Lý do bổ sung',
+                    inputPlaceholder: 'Nhập lý do bổ sung...',
+                    inputAttributes: {
+                        'aria-label': 'Vui lòng nhập Lý do bổ sung',
+                    },
+                    showCancelButton: true,
+                    confirmButtonColor: '#28a745 ',
+                    cancelButtonColor: '#dc3545 ',
+                    confirmButtonText: 'Hủy duyệt',
+                    cancelButtonText: 'Hủy',
+                });
+                if (result.isConfirmed) {
+
+                    selectedItems = selectedItems.map((x, i) => ({
+                        ...x,
+                        PaymentOrderLog: {
+                            IsApproved: isApproved,
+                            // ReasonRequestAppendFileAC: result.value,
+                            // IsRequestAppendFileAC: action.ButtonActionName == "btnUpdateDocument"
+                        },
+                        AccountingNote: result.value
+                    }));
+
+                    // console.log('hủy duyêt:', selectedItems);
+                    this.handleApproved(selectedItems);
+                } else {
+                    Swal.fire({
+                        title: 'Xác nhận duyệt?',
+                        text: `Bạn có chắc muốn duyệt ${selectedItems.length} đã chọn không?`,
+                        icon: 'question',
+                        showCancelButton: true,
+                        confirmButtonColor: '#28a745 ',
+                        cancelButtonColor: '#dc3545 ',
+                        confirmButtonText: 'Duyệt',
+                        cancelButtonText: 'Hủy',
+                    }).then((result: any) => {
+                        if (result.isConfirmed) {
+                            console.log('duyêt:', selectedItems);
+
+                            this.handleApproved(selectedItems);
+                        }
+                    });
+                }
+            }
+        } else if (isApproved == 3) {
+            const { value: reason }: { value?: string } = await Swal.fire({
+                input: 'textarea',
+                inputLabel: 'Lý do bổ sung',
+                inputPlaceholder: 'Nhập lý do bổ sung...',
+                inputAttributes: {
+                    'aria-label': 'Vui lòng nhập Lý do bổ sung',
+                },
+                showCancelButton: true,
+                confirmButtonColor: '#28a745 ',
+                cancelButtonColor: '#dc3545 ',
+                confirmButtonText: 'Hủy duyệt',
+                cancelButtonText: 'Hủy',
+            });
+            if (reason) {
+
+                selectedItems = selectedItems.map((x, i) => ({
+                    ...x,
+                    PaymentOrderLog: {
+                        IsApproved: isApproved,
+                        ReasonRequestAppendFileAC: reason,
+                        IsRequestAppendFileAC: action.ButtonActionName == "btnUpdateDocument"
+                    },
+                }));
+
+                // console.log('hủy duyêt:', selectedItems);
+                this.handleApproved(selectedItems);
+            }
+        }
+        else if (isApproved == 2) {
+            const { value: reason }: { value?: string } = await Swal.fire({
+                input: 'textarea',
+                inputLabel: 'Lý do hủy',
+                inputPlaceholder: 'Nhập lý do hủy duyệt...',
+                inputAttributes: {
+                    'aria-label': 'Vui lòng nhập Lý do hủy',
+                },
+                showCancelButton: true,
+                confirmButtonColor: '#28a745 ',
+                cancelButtonColor: '#dc3545 ',
+                confirmButtonText: 'Hủy duyệt',
+                cancelButtonText: 'Hủy',
+            });
+            if (reason) {
+
+                selectedItems = selectedItems.map((x, i) => ({
+                    ...x,
+                    ReasonCancel: reason
+                }));
+
+                console.log('hủy duyêt:', selectedItems);
+                this.handleApproved(selectedItems);
+            }
+        }
     }
 
-    async onApprovedKTT(isApproved: number) {
 
+    async onApprovedKTT(isApproved: number, action: any) {
+        const grid = this.angularGrid.slickGrid;
+        const dataView = this.angularGrid.dataView;
+
+        const rowIndexes = grid.getSelectedRows();
+
+        // const action = {
+        //     ButtonActionGroup: 'btnTBP',
+        //     ButtonActionName: 'btnApproveTBP',
+        //     ButtonActionText: 'Trưởng bộ phận',
+
+        // }
+        let selectedItems = rowIndexes
+            .map(i => dataView.getItem(i));
+
+        selectedItems = selectedItems.map((x, i) => ({
+            ...x,
+            Action: action,
+            PaymentOrderLog: {
+                IsApproved: isApproved,
+            },
+            CurrentApproved: x.IsApproved || 0,
+            Step: x.Step || 0
+        }));
+
+        if (isApproved == 1) {
+
+            if (action.ButtonActionName == "btnApproveDocument" || action.ButtonActionName == 'btnApproveKT') {
+                const result = await Swal.fire({
+                    input: 'textarea',
+                    inputLabel: 'Kế toán hoạch toán',
+                    // inputPlaceholder: 'Nhập lý do bổ sung...',
+                    // inputAttributes: {
+                    //     'aria-label': 'Vui lòng nhập Lý do bổ sung',
+                    // },
+                    showCancelButton: true,
+                    confirmButtonColor: '#28a745 ',
+                    cancelButtonColor: '#dc3545 ',
+                    confirmButtonText: 'Hủy duyệt',
+                    cancelButtonText: 'Hủy',
+                });
+                if (result.isConfirmed) {
+
+                    selectedItems = selectedItems.map((x, i) => ({
+                        ...x,
+                        PaymentOrderLog: {
+                            IsApproved: isApproved,
+                            // ReasonRequestAppendFileAC: result.value,
+                            // IsRequestAppendFileAC: action.ButtonActionName == "btnUpdateDocument"
+                        },
+                        AccountingNote: result.value
+                    }));
+
+                    // console.log('hủy duyêt:', selectedItems);
+                    this.handleApproved(selectedItems);
+                }
+            } else {
+                Swal.fire({
+                    title: 'Xác nhận duyệt?',
+                    text: `Bạn có chắc muốn duyệt ${selectedItems.length} đã chọn không?`,
+                    icon: 'question',
+                    showCancelButton: true,
+                    confirmButtonColor: '#28a745 ',
+                    cancelButtonColor: '#dc3545 ',
+                    confirmButtonText: 'Duyệt',
+                    cancelButtonText: 'Hủy',
+                }).then((result: any) => {
+                    if (result.isConfirmed) {
+                        console.log('duyêt:', selectedItems);
+
+                        this.handleApproved(selectedItems);
+                    }
+                });
+            }
+
+        }
+        else if (isApproved == 2) {
+            const { value: reason }: { value?: string } = await Swal.fire({
+                input: 'textarea',
+                inputLabel: 'Lý do hủy',
+                inputPlaceholder: 'Nhập lý do hủy duyệt...',
+                inputAttributes: {
+                    'aria-label': 'Vui lòng nhập Lý do hủy',
+                },
+                showCancelButton: true,
+                confirmButtonColor: '#28a745 ',
+                cancelButtonColor: '#dc3545 ',
+                confirmButtonText: 'Hủy duyệt',
+                cancelButtonText: 'Hủy',
+            });
+            if (reason) {
+
+                selectedItems = selectedItems.map((x, i) => ({
+                    ...x,
+                    ReasonCancel: reason
+                }));
+
+                console.log('hủy duyêt:', selectedItems);
+                this.handleApproved(selectedItems);
+            }
+        }
     }
 
-    async onApprovedBGD(isApproved: number) {
+    async onApprovedBGD(isApproved: number, action: any) {
+        const grid = this.angularGrid.slickGrid;
+        const dataView = this.angularGrid.dataView;
 
+        const rowIndexes = grid.getSelectedRows();
+
+        // const action = {
+        //     ButtonActionGroup: 'btnTBP',
+        //     ButtonActionName: 'btnApproveTBP',
+        //     ButtonActionText: 'Trưởng bộ phận',
+
+        // }
+        let selectedItems = rowIndexes
+            .map(i => dataView.getItem(i));
+
+        selectedItems = selectedItems.map((x, i) => ({
+            ...x,
+            Action: action,
+            PaymentOrderLog: {
+                IsApproved: isApproved,
+            },
+            CurrentApproved: x.IsApproved || 0,
+            Step: x.Step || 0
+        }));
+
+        if (isApproved == 1) {
+
+
+            Swal.fire({
+                title: 'Xác nhận duyệt?',
+                text: `Bạn có chắc muốn duyệt ${selectedItems.length} đã chọn không?`,
+                icon: 'question',
+                showCancelButton: true,
+                confirmButtonColor: '#28a745 ',
+                cancelButtonColor: '#dc3545 ',
+                confirmButtonText: 'Duyệt',
+                cancelButtonText: 'Hủy',
+            }).then((result: any) => {
+                if (result.isConfirmed) {
+                    console.log('duyêt:', selectedItems);
+
+                    this.handleApproved(selectedItems);
+                }
+            });
+
+
+        }
+        else if (isApproved == 2) {
+            const { value: reason }: { value?: string } = await Swal.fire({
+                input: 'textarea',
+                inputLabel: 'Lý do hủy',
+                inputPlaceholder: 'Nhập lý do hủy duyệt...',
+                inputAttributes: {
+                    'aria-label': 'Vui lòng nhập Lý do hủy',
+                },
+                showCancelButton: true,
+                confirmButtonColor: '#28a745 ',
+                cancelButtonColor: '#dc3545 ',
+                confirmButtonText: 'Hủy duyệt',
+                cancelButtonText: 'Hủy',
+            });
+            if (reason) {
+
+                selectedItems = selectedItems.map((x, i) => ({
+                    ...x,
+                    ReasonCancel: reason
+                }));
+
+                console.log('hủy duyêt:', selectedItems);
+                this.handleApproved(selectedItems);
+            }
+        }
     }
 }

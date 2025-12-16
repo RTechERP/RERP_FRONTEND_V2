@@ -1179,6 +1179,12 @@ export class RequestInvoiceDetailComponent implements OnInit {
     if (this.selectedRowsData.length > 0) {
       const firstRow = this.selectedRowsData[0];
 
+      // load pokh file đính kèm
+      if (this.POKHID === 0 && firstRow.POKHID) {
+        this.POKHID = firstRow.POKHID;
+        this.loadPOKHFile();
+      }
+
       // Tìm thông tin khách hàng từ danh sách customers
       const customer = this.customers.find((c) => c.ID === this.customerID);
 

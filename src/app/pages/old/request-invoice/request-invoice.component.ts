@@ -32,6 +32,7 @@ import { NzInputNumberModule } from 'ng-zorro-antd/input-number';
 import { NzSelectModule } from 'ng-zorro-antd/select';
 import { NzTableModule } from 'ng-zorro-antd/table';
 import { NzModalModule, NzModalService } from 'ng-zorro-antd/modal';
+import { NzFormModule } from 'ng-zorro-antd/form';
 import { NzSwitchModule } from 'ng-zorro-antd/switch';
 import { NzCheckboxModule } from 'ng-zorro-antd/checkbox';
 import {
@@ -65,6 +66,7 @@ import { HasPermissionDirective } from '../../../directives/has-permission.direc
 import { DEFAULT_TABLE_CONFIG } from '../../../tabulator-default.config';
 import { RequestInvoiceStatusLinkComponent } from '../request-invoice-status-link/request-invoice-status-link.component';
 import { RequestInvoiceSummaryComponent } from '../request-invoice-summary/request-invoice-summary.component';
+import { MenuEventService } from '../../systems/menus/menu-service/menu-event.service';
 
 @Component({
   selector: 'app-request-invoice',
@@ -92,6 +94,7 @@ import { RequestInvoiceSummaryComponent } from '../request-invoice-summary/reque
     NzUploadModule,
     NzSwitchModule,
     NzCheckboxModule,
+    NzFormModule,
     CommonModule,
     HasPermissionDirective,
   ],
@@ -122,6 +125,7 @@ export class RequestInvoiceComponent implements OnInit, AfterViewInit {
     private injector: EnvironmentInjector,
     private appRef: ApplicationRef,
     private RequestInvoiceDetailService: RequestInvoiceDetailService,
+    private menuEventService: MenuEventService,
     @Optional() @Inject('tabData') private tabData: any
   ) { }
 
@@ -139,9 +143,9 @@ export class RequestInvoiceComponent implements OnInit, AfterViewInit {
     endDate: new Date(),
   };
 
-  sizeSearch: string = '0';
+  showSearchBar: boolean = false;
   toggleSearchPanel() {
-    this.sizeSearch = this.sizeSearch == '0' ? '22%' : '0';
+    this.showSearchBar = !this.showSearchBar;
   }
 
   ngOnInit(): void {
@@ -314,25 +318,32 @@ export class RequestInvoiceComponent implements OnInit, AfterViewInit {
   }
 
   openRequestInvoiceSummary() {
-    const modalRef = this.modalService.open(RequestInvoiceSummaryComponent, {
-      centered: true,
-      backdrop: 'static',
-      windowClass: 'full-screen-modal',
-    });
+    // const modalRef = this.modalService.open(RequestInvoiceSummaryComponent, {
+    //   centered: true,
+    //   backdrop: 'static',
+    //   windowClass: 'full-screen-modal',
+    // });
 
-    modalRef.result.then(
-      (result) => {
-        if (result.success && result.reloadData) {
-          this.loadMainData(
-            this.filters.startDate,
-            this.filters.endDate,
-            this.filters.filterText
-          );
-        }
-      },
-      (reason) => {
-        console.log('Modal closed');
-      }
+    // modalRef.result.then(
+    //   (result) => {
+    //     if (result.success && result.reloadData) {
+    //       this.loadMainData(
+    //         this.filters.startDate,
+    //         this.filters.endDate,
+    //         this.filters.filterText
+    //       );
+    //     }
+    //   },
+    //   (reason) => {
+    //     console.log('Modal closed');
+    //   }
+    // );
+
+    // Mở tab mới thay vì modal
+    this.menuEventService.openNewTab(
+      RequestInvoiceSummaryComponent,
+      'Tổng hợp yêu cầu xuất hóa đơn',
+      { warehouseId: this.warehouseId }
     );
   }
 
@@ -642,7 +653,7 @@ export class RequestInvoiceComponent implements OnInit, AfterViewInit {
               width: 150,
             },
             { title: 'Dự án', field: 'ProjectName', sorter: 'string', width: 150 },
-            { title: 'Ghi chú (PO)', field: 'Note', sorter: 'string', width: 150 },
+            { title: 'Ghi chú', field: 'Note', sorter: 'string', width: 150 },
             {
               title: 'Thông số kỹ thuật',
               field: 'Specifications',
@@ -722,6 +733,7 @@ export class RequestInvoiceComponent implements OnInit, AfterViewInit {
               sorter: 'string',
               width: 250,
             },
+            { title: 'Công ty nhập', field: 'CompanyText', sorter: 'string', width: 120 },
           ]
         }
       ],
@@ -898,6 +910,7 @@ export class RequestInvoiceComponent implements OnInit, AfterViewInit {
       height: '100%',
       selectableRows: 1,
       rowHeader: false,
+      pagination: false,
       rowContextMenu: contextMenuItems,
       columns: [
         {
@@ -964,6 +977,7 @@ export class RequestInvoiceComponent implements OnInit, AfterViewInit {
       layout: 'fitDataFill',
       height: '100%',
       selectableRows: 1,
+      pagination: false,
       rowHeader: false,
       rowContextMenu: contextMenuItems,
       columns: [

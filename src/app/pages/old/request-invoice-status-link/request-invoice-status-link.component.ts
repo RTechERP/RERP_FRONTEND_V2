@@ -326,13 +326,20 @@ export class RequestInvoiceStatusLinkComponent implements OnInit, AfterViewInit 
           width: "10%",
           editor: 'list',
           editorParams: {
-            values: this.approvedStatus.map(x => ({
-              value: x.value,
-              label: x.label
-            }))
+            values: [
+              { value: 0, label: '---' },
+              ...this.approvedStatus.map(x => ({
+                value: x.value,
+                label: x.label
+              }))
+            ],
+            allowEmpty: true
           },
           formatter: (cell) => {
             const val = cell.getValue();
+            if (val === 0 || val === undefined || val === '' || val === null) {
+              return '';
+            }
             const selected = this.approvedStatus.find(x => x.value === val);
             return selected ? selected.label : '';
           }

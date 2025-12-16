@@ -146,9 +146,11 @@ import { OverTimePersonComponent } from '../../../hrm/over-time/over-time-person
 import { ProjectPartlistPurchaseRequestNewComponent } from '../../../purchase/project-partlist-purchase-request-new/project-partlist-purchase-request-new.component';
 import { RegisterIdeaComponent } from '../../../hrm/register-idea/register-idea.component';
 import { TrackingMarksComponent } from '../../../hrm/tracking-marks/tracking-marks.component';
+import { VehicleBookingManagementComponent } from '../../../hrm/vehicle/vehicle-booking-management/vehicle-booking-management.component';
 
 import { EmployeeSyntheticPersonalComponent } from '../../../hrm/employee-management/employee-synthetic/employee-synthetic-personal/employee-synthetic-personal.component';
-import { VehicleBookingManagementComponent } from '../../../hrm/vehicle/vehicle-booking-management/vehicle-booking-management.component';
+import { BookingRoomComponent } from '../../../hrm/booking room/booking-room.component';
+
 @Injectable({
     providedIn: 'root',
 })
@@ -1554,6 +1556,7 @@ export class MenuService {
                                 isPermission:
                                     this.permissionService.hasPermission('N2,N34,N1,N68,N71'),
                                 comp: VehicleBookingManagementComponent,
+                             
                                 //   icon: 'assets/icon/layers.png',
                             },
                             // {
@@ -2892,8 +2895,7 @@ export class MenuService {
                                 title: 'Phòng họp',
                                 isOpen: true,
                                 isPermission: this.permissionService.hasPermission(''),
-                                comp: PersonComponent,
-                                router: '/phonghop',
+                                comp: BookingRoomComponent
                             },
 
                             {
@@ -2912,6 +2914,7 @@ export class MenuService {
                                 isOpen: true,
                                 isPermission: this.permissionService.hasPermission(''),
                                 comp: VehicleBookingManagementComponent,
+                              
                             },
 
                             {

@@ -1,0 +1,359 @@
+.table-responsive {
+  /* height: 280px !important; */
+  height: 80vh !important;
+  padding-top: 8px;
+}
+
+.table {
+  table-layout: auto !important;
+}
+
+.table tr td:hover {
+  background-color: #ffa426 !important;
+}
+
+.table tbody tr td div {
+  cursor: pointer;
+}
+
+.table tbody tr td {
+  position: relative;
+  cursor: pointer;
+}
+
+.table tbody tr td:nth-child(n + 2) {
+  padding: 0 !important;
+}
+
+.table tbody tr td span {
+  position: absolute;
+  right: 2px;
+}
+
+.table tbody tr td p {
+  padding: 0 15px !important;
+  margin: 0 !important;
+  line-height: inherit !important;
+}
+
+.bg-orange-200 {
+  background-color: #ffcc80 !important;
+}
+
+.table td {
+  border: 1px solid #d5d5d5 !important;
+  vertical-align: middle !important;
+}
+
+.sticky-top {
+  position: sticky;
+  top: -3px;
+  background-color: #96a2b4 !important;
+  z-index: 1;
+}
+
+.sticky-top th {
+  background-color: #96a2b4 !important;
+}
+
+.sticky-left {
+  position: sticky !important;
+  left: -3px;
+  z-index: 0;
+  background-color: antiquewhite;
+  vertical-align: middle !important;
+}
+
+.sticky-top-header {
+  position: sticky;
+  top: 70px;
+  z-index: 1;
+}
+
+.table thead th:first-child {
+  width: 100px !important;
+}
+
+.table thead th:nth-child(2) {
+  width: 50px !important;
+}
+
+#tbl_data_bookingroom_1,
+#tbl_data_bookingroom_2,
+#tbl_data_bookingroom_3 {
+  min-height: 600px;
+}
+
+.table-responsive .fc {
+  width: 100%;
+}
+
+.fc .fc-event .fc-event-main {
+  display: flex;
+  align-items: start;
+  justify-content: end;
+  gap: 6px;
+}
+
+.fc-event-title {
+  flex: 1 1 auto;
+}
+
+.fc-event-delete {
+  cursor: pointer;
+  color: #fff;
+  font-size: 20px;
+  opacity: 0.9;
+}
+
+.fc-event-delete:hover {
+  opacity: 1;
+}
+
+/* Booking room container */
+.booking-room-container {
+  padding: 16px;
+}
+
+.search-section {
+  margin-bottom: 16px;
+}
+
+.note-section {
+  background-color: #fff3cd;
+  border: 1px solid #ffc107;
+  border-radius: 4px;
+  padding: 8px;
+}
+
+.note-section p {
+  margin: 0;
+  font-size: 14px;
+  line-height: 1.6;
+}
+
+.calendar-container {
+  min-height: 600px;
+  padding: 16px;
+}
+
+/* FullCalendar custom styles */
+::ng-deep .fc {
+  font-family: inherit;
+}
+
+::ng-deep .fc-event {
+  cursor: pointer;
+  border-radius: 4px;
+  position: relative;
+}
+
+::ng-deep .fc-event:hover {
+  opacity: 0.9;
+}
+
+::ng-deep .fc .fc-event .fc-event-main {
+  display: flex;
+  align-items: start;
+  justify-content: flex-end;
+  gap: 6px;
+  color: black;
+  font-size: 14px;
+  position: relative;
+  padding-right: 5px;
+  padding-left: 17px;
+  text-align: right;
+}
+
+::ng-deep .fc-event-title {
+  flex: 1 1 auto;
+  color: black;
+  font-size: 14px;
+  text-align: right;
+}
+
+::ng-deep .fc-event-time {
+  text-align: right;
+}
+
+::ng-deep .fc-event-delete-btn {
+  position: absolute;
+  left: 4px;
+  top: 4px;
+  z-index: 10;
+  cursor: pointer;
+  background-color: #ff4d4f;
+  border-radius: 4px;
+  padding: 6px 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+  transition: all 0.2s ease;
+}
+
+::ng-deep .fc-event-delete-btn:hover {
+  background-color: #ff7875;
+  transform: scale(1.1);
+}
+
+::ng-deep .fc-event-delete-btn i {
+  color: #ffffff;
+  font-size: 12px;
+}
+
+::ng-deep .fc-view > table tr, 
+::ng-deep .fc-view > table td {
+  border-color: #ddd !important;
+}
+
+::ng-deep .fc .fc-scrollgrid-section-sticky > * {
+  background-color: transparent !important;
+  padding: 0 !important;
+}
+
+::ng-deep .fc .fc-toolbar.fc-header-toolbar {
+  margin-bottom : 10px !important;
+}
+
+::ng-deep .fc-view {
+  padding-left: 0 !important;
+  padding-right: 0 !important;
+}
+
+::ng-deep .fc-view > table th {
+  border-color: #ddd !important;
+  font-weight: bold !important;
+  background: #edebe9;
+}
+
+::ng-deep .fc-toolbar-title {
+  font-size: 1.5rem;
+  font-weight: 600;
+}
+
+::ng-deep .fc-button {
+  border-radius: 4px;
+}
+
+::ng-deep .fc-button-primary {
+  background-color: #1890ff;
+  border-color: #1890ff;
+}
+
+::ng-deep .fc-button-primary:hover {
+  background-color: #40a9ff;
+  border-color: #40a9ff;
+}
+
+::ng-deep .fc-button-primary:disabled {
+  background-color: #d9d9d9;
+  border-color: #d9d9d9;
+  color: rgba(0, 0, 0, 0.25);
+}
+
+/* Section styles */
+.section {
+  padding: 0;
+}
+
+.section-body {
+  padding: 0;
+}
+
+.row {
+  margin: 0;
+}
+
+.col-12 {
+  padding: 0;
+}
+
+.card {
+  margin-bottom: 16px;
+}
+
+.card-danger {
+  border-color: #dc3545;
+}
+
+.card-primary {
+  border-color: #007bff;
+}
+
+.card-info {
+  border-color: #17a2b8;
+}
+
+.card-header {
+  background-color: #f5f5f5;
+  border-bottom: 1px solid #dee2e6;
+}
+
+.bg-whitesmoke {
+  background-color: #f5f5f5 !important;
+}
+
+.rounded-0 {
+  border-radius: 0 !important;
+}
+
+.text-uppercase {
+  text-transform: uppercase;
+}
+
+.btn-icon {
+  display: inline-flex;
+  align-items: center;
+}
+
+.btn-outline-primary {
+  border: 1px solid #007bff;
+  color: #007bff;
+  background-color: transparent;
+}
+
+.btn-outline-primary:hover {
+  background-color: #007bff;
+  color: #fff;
+}
+
+.form-control-sm {
+  height: 31px;
+  padding: 0.25rem 0.5rem;
+  font-size: 0.875rem;
+}
+
+.btn-success {
+  background-color: #28a745;
+  border-color: #28a745;
+  color: #fff;
+}
+
+.btn-success:hover {
+  background-color: #218838;
+  border-color: #1e7e34;
+}
+
+/* Increase slot height for better visibility */
+::ng-deep .fc-timegrid-slot {
+  height: 32px !important;
+}
+
+::ng-deep .fc-timegrid-slot-minor {
+  height: 32px !important;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .calendar-container {
+    min-height: 400px;
+  }
+
+  .search-section nz-form {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+}
+

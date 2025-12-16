@@ -310,11 +310,13 @@ export class BillImportSyntheticComponent implements OnInit, AfterViewInit {
           const field = col.getField();
           let value = row[field];
 
-          if (typeof value === 'string' && /^\d{4}-\d{2}-\d{2}T/.test(value)) {
-            value = new Date(value);
+          // Xử lý giá trị boolean: true -> "X", false -> rỗng
+          if (typeof value === 'boolean') {
+            value = value === true ? 'X' : '';
           }
-          if (field === 'IsApproved') {
-            value = value === true ? '✓' : ''; // hoặc '✓' / '✗'
+          // Xử lý date string
+          else if (typeof value === 'string' && /^\d{4}-\d{2}-\d{2}T/.test(value)) {
+            value = new Date(value);
           }
           return value;
         }),

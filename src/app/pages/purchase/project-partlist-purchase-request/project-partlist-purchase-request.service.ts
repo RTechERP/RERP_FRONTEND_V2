@@ -25,6 +25,11 @@ export class ProjectPartlistPurchaseRequestService {
     return this.http.post<any>(url, filter);
   }
 
+  getAllDemo(filter: ProjectPartlistPurchaseRequestParam = {}): Observable<any> {
+    const url = this.baseUrl + `get-all-demo`;
+    return this.http.post<any>(url, filter);
+  }
+
   getPOKH(): Observable<any[]> {
     return this.http.get<any>(`${this.baseUrl}get-po-code`).pipe(
       map((res: any) => (Array.isArray(res?.data) ? res.data : res?.data || res))
@@ -53,7 +58,9 @@ export class ProjectPartlistPurchaseRequestService {
     return this.http.post<any>(this.baseUrl + `approved?status=${status}&type=${type}`, items);
   }
 
-  saveData(items: any[]): Observable<any> {
+  saveData(items: any[] | { data: any[] }): Observable<any> {
+    // Nếu items đã có format { data: [...] }, gửi trực tiếp
+    // Nếu là array, gửi trực tiếp (backward compatibility)
     return this.http.post<any>(this.baseUrl + `save-data`, items);
   }
 

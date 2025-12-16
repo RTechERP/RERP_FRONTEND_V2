@@ -28,7 +28,7 @@
         <nz-form-item>
           <nz-form-label required>Người mượn<span style="color: red">(*)</span></nz-form-label>
           <nz-form-control [nzErrorTip]="'Vui lòng chọn người mượn'">
-            <nz-select formControlName="ReceiverID" nzPlaceHolder="Chọn người nhận" name="ReceiverID" nzShowSearch>
+            <nz-select formControlName="ReceiverID" nzPlaceHolder="Chọn người nhận" name="ReceiverID" nzShowSearch nzAllowClear>
               <nz-option
                 *ngFor="let item of emPloyeeLists"
                 [nzValue]="item.ID"
@@ -48,7 +48,7 @@
         <nz-form-item>
           <nz-form-label>Nhà cung cấp<span style="color: red">(*)</span></nz-form-label>
           <nz-form-control [nzErrorTip]="'Vui lòng chọn nhà cung cấp'">
-            <nz-select formControlName="SupplierSaleID" nzPlaceHolder="Chọn nhà cung cấp" name="SupplierSaleID">
+            <nz-select formControlName="SupplierSaleID" nzPlaceHolder="Chọn nhà cung cấp" name="SupplierSaleID" nzShowSearch nzAllowClear>
               <nz-option *ngFor="let item of nccList" [nzValue]="item.ID"
                 [nzLabel]="item.NameNCC" nzCustomContent>
                 {{ item.CodeNCC }} - {{ item.NameNCC }}
@@ -80,7 +80,7 @@
         <nz-form-item>
           <nz-form-label>Loại <span style="color: red">(*)</span></nz-form-label>
           <nz-form-control [nzErrorTip]="'Vui lòng chọn loại phiếu '">
-            <nz-select formControlName="BillType" nzPlaceHolder="Chọn loại phiếu" name="BillType" (ngModelChange)="onBillTypeChange($event)">
+            <nz-select formControlName="BillType" nzPlaceHolder="Chọn loại phiếu" name="BillType" (ngModelChange)="onBillTypeChange($event)" nzShowSearch nzAllowClear>
               <nz-option [nzValue]="0" nzLabel="Trả"></nz-option>
               <nz-option [nzValue]="1" nzLabel="Cho mượn"></nz-option>
               <nz-option [nzValue]="2" nzLabel="Tặng / Bán"></nz-option>
@@ -135,7 +135,7 @@
         <nz-form-item>
           <nz-form-label required>Người nhận<span style="color: red">(*)</span></nz-form-label>
           <nz-form-control [nzErrorTip]="'Vui lòng chọn người nhận'">
-            <nz-select formControlName="ReceiverID" nzPlaceHolder="Chọn người nhận" name="ReceiverID" nzShowSearch>
+            <nz-select formControlName="ReceiverID" nzPlaceHolder="Chọn người nhận" name="ReceiverID" nzShowSearch nzAllowClear>
               <nz-option
                 *ngFor="let item of emPloyeeLists"
                 [nzValue]="item.ID"
@@ -155,7 +155,7 @@
         <nz-form-item>
           <nz-form-label>Khách hàng<span style="color: red">(*)</span></nz-form-label>
           <nz-form-control [nzErrorTip]="'Vui lòng chọn khách hàng'">
-            <nz-select formControlName="CustomerID" nzPlaceHolder="Chọn khách hàng" name="CustomerID">
+            <nz-select formControlName="CustomerID" nzPlaceHolder="Chọn khách hàng" name="CustomerID" nzShowSearch nzAllowClear>
               <nz-option
                 *ngFor="let item of customerList"
                 [nzValue]="item.ID"
@@ -168,7 +168,7 @@
         <nz-form-item>
           <nz-form-label required>Người duyệt<span style="color: red">(*)</span></nz-form-label>
           <nz-form-control [nzErrorTip]="'Vui lòng chọn người duyệt'">
-            <nz-select formControlName="ApproverID" nzPlaceHolder="Chọn người duyệt" name="ApproverID" nzShowSearch>
+            <nz-select formControlName="ApproverID" nzPlaceHolder="Chọn người duyệt" name="ApproverID" nzShowSearch nzAllowClear>
               <nz-option
                 *ngFor="let item of approveEmployee"
                 [nzValue]="item.ID"

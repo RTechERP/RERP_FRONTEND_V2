@@ -48,6 +48,7 @@ import { NOTIFICATION_TITLE } from '../../../../app.config';
 import { AppUserService } from '../../../../services/app-user.service';
 import { HasPermissionDirective } from '../../../../directives/has-permission.directive';
 import { TabulatorPopupService } from '../../../../shared/components/tabulator-popup';
+import { forkJoin } from 'rxjs';
 @Component({
   standalone: true,
   imports: [
@@ -155,59 +156,84 @@ export class BillExportTechnicalFormComponent implements OnInit, AfterViewInit {
   ngOnInit() {
     this.initForm();
     this.title = this.warehouseType === 1 ? 'Phiếu xuất kho DEMO' : 'Phiếu xuất kho AGV';
-    // Load dữ liệu từ API trước
-    this.getCustomer();
-    this.getListEmployee();
-    this.getNCC();
-    this.getProject();
-    this.getProductList();
-    this.getEmployeeApprove();
-
-    // Patch dữ liệu edit sau một chút để đảm bảo API đã load
-    this.formDeviceInfo.patchValue({
-      Deliver: this.appUserService.fullName || 'ADMIN',
-    });
     
-    if (this.dataEdit) {
-      if (this.dataEdit.Status == 1 && !this.appUserService.isAdmin)
-        this.IsApproved = true;
-      setTimeout(() => {
+    // Load tất cả dữ liệu từ API cùng lúc và đợi tất cả xong
+    forkJoin({
+      customer: this.billExportTechnicalService.getCustomers(1, 10000, '', 0, 0),
+      employee: this.billExportTechnicalService.getUser(),
+      ncc: this.billExportService.getCbbSupplierSale(),
+      project: this.billExportTechnicalService.getProject(),
+      approveEmployee: this.billImportTechnicalService.getemployee(),
+    }).subscribe({
+      next: (results) => {
+        // Gán dữ liệu vào các list
+        this.customerList = results.customer?.data?.data || [];
+        this.emPloyeeLists = results.employee?.data || [];
+        this.nccList = results.ncc?.data || [];
+        this.projectList = results.project?.data || [];
+        this.approveEmployee = results.approveEmployee?.data || [];
+
+        // Tạo employeeSelectOptions
+        this.employeeSelectOptions = this.emPloyeeLists.map((e: any) => ({
+          label: e.FullName,
+          value: e.ID,
+        }));
+
+        // Patch dữ liệu cơ bản
         this.formDeviceInfo.patchValue({
-          ...this.dataEdit,
-          CreatedDate: this.dataEdit.CreatedDate
-            ? new Date(this.dataEdit.CreatedDate)
-            : null,
-          ExpectedDate: this.dataEdit.ExpectedDate
-            ? new Date(this.dataEdit.ExpectedDate)
-            : null,
+          Deliver: this.appUserService.fullName || 'ADMIN',
         });
-        // Disable form nếu đã được duyệt
-        if (this.IsApproved) {
-          this.formDeviceInfo.disable();
-          // Vẽ lại bảng để disable các editor (sau khi bảng đã được vẽ trong ngAfterViewInit)
-          setTimeout(() => {
-            if (this.deviceTempTable) {
-              const currentData = this.deviceTempTable.getData();
-              this.selectedDevices = currentData;
-              this.deviceTempTable.destroy();
-              this.drawTableSelectedDevices();
-            }
-          }, 500);
-        }
-      }, 300);
-    } else if (this.dataInput) {
-      setTimeout(() => {
-        this.formDeviceInfo.patchValue(this.dataInput);
-      }, 300);
-    }
 
-    if (this.warehouseID === 2)
-      this.formDeviceInfo.patchValue({ Deliver: 'Nguyễn Thị Phương Thủy' });
-    
-    // Lấy mã phiếu nếu chưa có (chỉ khi tạo mới, không phải khi sửa hoặc xem)
-    if ((!this.dataEdit || !this.dataEdit.ID || this.dataEdit.ID <= 0) && !this.masterId && !this.IDDetail && !this.fromBorrowHistory) {
-      this.getNewCode();
-    }
+        // Patch dữ liệu edit sau khi đã load xong tất cả dropdown data
+        if (this.dataEdit) {
+          if (this.dataEdit.Status == 1 && !this.appUserService.isAdmin)
+            this.IsApproved = true;
+          
+          this.formDeviceInfo.patchValue({
+            ...this.dataEdit,
+            CreatedDate: this.dataEdit.CreatedDate
+              ? new Date(this.dataEdit.CreatedDate)
+              : null,
+            ExpectedDate: this.dataEdit.ExpectedDate
+              ? new Date(this.dataEdit.ExpectedDate)
+              : null,
+          });
+          
+          // Disable form nếu đã được duyệt
+          if (this.IsApproved) {
+            this.formDeviceInfo.disable();
+            // Vẽ lại bảng để disable các editor (sau khi bảng đã được vẽ trong ngAfterViewInit)
+            setTimeout(() => {
+              if (this.deviceTempTable) {
+                const currentData = this.deviceTempTable.getData();
+                this.selectedDevices = currentData;
+                this.deviceTempTable.destroy();
+                this.drawTableSelectedDevices();
+              }
+            }, 500);
+          }
+        } else if (this.dataInput) {
+          this.formDeviceInfo.patchValue(this.dataInput);
+        }
+
+        if (this.warehouseID === 2)
+          this.formDeviceInfo.patchValue({ Deliver: 'Nguyễn Thị Phương Thủy' });
+        
+        // Lấy mã phiếu nếu chưa có (chỉ khi tạo mới, không phải khi sửa hoặc xem)
+        if ((!this.dataEdit || !this.dataEdit.ID || this.dataEdit.ID <= 0) && !this.masterId && !this.IDDetail && !this.fromBorrowHistory) {
+          this.getNewCode();
+        }
+      },
+      error: (err) => {
+        this.notification.error(
+          NOTIFICATION_TITLE.error,
+          'Có lỗi xảy ra khi tải dữ liệu'
+        );
+      }
+    });
+
+    // Load product list (không cần đợi vì không ảnh hưởng đến form)
+    this.getProductList();
   }
   ngAfterViewInit(): void {
     // Kiểm tra xem có dữ liệu detail truyền vào không

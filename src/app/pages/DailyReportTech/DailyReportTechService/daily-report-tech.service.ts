@@ -55,4 +55,8 @@ export class DailyReportTechService {
     const params = new HttpParams().set('dailyReportID', dailyReportID.toString());
     return this.http.post<any>(this.apiUrl + 'delete-daily-report', null, { params });
   }
+
+  getForCopy(params: any): Observable<any> {
+    return this.http.post<any>(this.apiUrl + 'get-for-copy', params);
+  }
 }

@@ -643,12 +643,152 @@ export class DailyReportTechComponent implements OnInit, AfterViewInit {
   }
 
   copyDailyReport(): void {
-    const selectedRows = this.tb_daily_report_tech.getSelectedRows();
-    if (selectedRows.length !== 1) {
-      this.notification.error('Thông báo', 'Vui lòng chọn 1 báo cáo để copy!');
+    // Lấy dữ liệu để copy dựa trên filter hiện tại
+    const searchParams = this.getSearchParams();
+    
+    // Gọi API để lấy dữ liệu copy
+    this.dailyReportTechService.getForCopy({
+      dateStart: searchParams.dateStart,
+      dateEnd: searchParams.dateEnd,
+      team_id: searchParams.teamID || 0,
+      keyword: searchParams.keyword || '',
+      userid: searchParams.userID || 0,
+      departmentid: searchParams.departmentID || 0
+    }).subscribe({
+      next: (response: any) => {
+        if (response && response.status === 1 && response.data) {
+          const result = Array.isArray(response.data) ? response.data : [];
+          this.formatAndCopyReport(result);
+        } else {
+          this.notification.error('Thông báo', 'Không có dữ liệu để copy!');
+        }
+      },
+      error: (error: any) => {
+        const errorMsg = error?.error?.message || error?.message || 'Đã xảy ra lỗi khi lấy dữ liệu copy!';
+        this.notification.error('Thông báo', errorMsg);
+        console.error('Error getting report for copy:', error);
+      }
+    });
+  }
+
+  private formatAndCopyReport(result: any[]): void {
+    if (!result || result.length === 0) {
+      this.notification.error('Thông báo', 'Không có dữ liệu để copy!');
       return;
     }
-    this.notification.info('Thông báo', 'Chức năng copy đang được phát triển');
+
+    // Lấy danh sách ngày duy nhất
+    const uniqueDates = [...new Set(result.map(item => item.DateReport))];
+    
+    // Chỉ copy khi có đúng 1 ngày (giống RTCWeb)
+    if (uniqueDates.length === 1) {
+      // Copy 1 ngày
+      const contentSummary = this.formatSingleDayReport(result, uniqueDates[0]);
+      // Copy vào clipboard
+      this.copyToClipboard(contentSummary);
+    } else {
+      // Nếu có nhiều ngày, hiển thị cảnh báo
+      this.notification.warning('Thông báo', `Bạn không thể copy nội dung của ${uniqueDates.length} ngày!`);
+    }
+  }
+
+  private formatSingleDayReport(dayData: any[], dateReport: string): string {
+    let project = '';
+    let content = '';
+    let resultReport = '';
+    let backlog = '';
+    let problem = '';
+    let problemSolve = '';
+    let planNextDay = '';
+    let note = '';
+
+    const dateTime = DateTime.fromISO(dateReport);
+    const formattedDate = dateTime.isValid ? dateTime.toFormat('dd/MM/yyyy') : dateReport;
+    let contentSummary = `Báo cáo công việc ngày ${formattedDate}\n`;
+
+    dayData.forEach(item => {
+      if (item) {
+        // Tránh trùng lặp ProjectItemCode trong content (giống RTCWeb)
+        if (item.ProjectItemCode && !content.includes(item.ProjectItemCode)) {
+          content += (item.Mission || item.Content || '') + '\n';
+        } else if (!item.ProjectItemCode) {
+          // Nếu không có ProjectItemCode, thêm trực tiếp
+          content += (item.Mission || item.Content || '') + '\n';
+        }
+        
+        // Tránh trùng lặp ProjectCode trong project (giống RTCWeb)
+        if (item.ProjectCode && !project.includes(item.ProjectCode)) {
+          project += `${item.ProjectCode} - ${item.ProjectName || ''}\n`;
+        }
+
+        // Các field khác append trực tiếp (giống RTCWeb)
+        if (item.Results) resultReport += item.Results + '\n';
+        if (item.Backlog) backlog += item.Backlog + '\n';
+        if (item.Problem) problem += item.Problem + '\n';
+        if (item.ProblemSolve) problemSolve += item.ProblemSolve + '\n';
+        if (item.Note) note += item.Note + '\n';
+        if (item.PlanNextDay) planNextDay = item.PlanNextDay;
+      }
+    });
+
+    // Format theo departmentId (nếu departmentId == 6 thì không hiển thị Mã dự án)
+    // Lấy departmentId từ currentUser hoặc từ filter
+    const departmentId = this.departmentId || this.currentUser?.DepartmentID || 0;
+    
+    // Format giống RTCWeb
+    if (departmentId !== 6) {
+      contentSummary += `* Mã dự án - Tên dự án: \n${project.trim()}\n`;
+    }
+    
+    contentSummary += `\n* Nội dung công việc:\n${content.trim()}\n`;
+    contentSummary += `\n* Kết quả công việc:\n${resultReport.trim()}\n`;
+    contentSummary += `\n* Tồn đọng:\n${backlog.trim() === '' ? '- Không có' : backlog.trim()}\n`;
+    
+    if (departmentId === 6) {
+      contentSummary += `\n* Lý do tồn đọng:\n${note.trim() === '' ? '- Không có' : note.trim()}\n`;
+    }
+    
+    contentSummary += `\n* Vấn đề phát sinh:\n${problem.trim() === '' ? '- Không có' : problem.trim()}\n`;
+    contentSummary += `\n* Giải pháp cho vấn đề phát sinh:\n${problemSolve.trim() === '' ? '- Không có' : problemSolve.trim()}\n`;
+    contentSummary += `\n* Kế hoạch ngày tiếp theo:\n${planNextDay.trim() === '' ? '- Không có' : planNextDay.trim()}\n`;
+
+    return contentSummary;
+  }
+
+  private async copyToClipboard(text: string): Promise<void> {
+    try {
+      // Sử dụng Clipboard API nếu có
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        await navigator.clipboard.writeText(text);
+        this.notification.success('Thông báo', 'Đã copy vào clipboard thành công!');
+      } else {
+        // Fallback cho trình duyệt cũ
+        const textArea = document.createElement('textarea');
+        textArea.value = text;
+        textArea.style.position = 'fixed';
+        textArea.style.left = '-999999px';
+        textArea.style.top = '-999999px';
+        document.body.appendChild(textArea);
+        textArea.focus();
+        textArea.select();
+        
+        try {
+          const successful = document.execCommand('copy');
+          if (successful) {
+            this.notification.success('Thông báo', 'Đã copy vào clipboard thành công!');
+          } else {
+            throw new Error('Copy command failed');
+          }
+        } catch (err) {
+          throw err;
+        } finally {
+          document.body.removeChild(textArea);
+        }
+      }
+    } catch (err) {
+      console.error('Failed to copy:', err);
+      this.notification.error('Thông báo', 'Không thể copy vào clipboard. Vui lòng thử lại!');
+    }
   }
 
   async exportReport(): Promise<void> {

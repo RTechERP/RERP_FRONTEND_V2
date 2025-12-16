@@ -13,3 +13,6 @@
 .reset {
     all: revert;
 }
+.ant-splitter{
+  height: 94vh !important;
+}

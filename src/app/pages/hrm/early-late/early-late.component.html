@@ -94,6 +94,7 @@
                   placeholder="Nhập từ khóa"
                   nzSize="default"
                   formControlName="keyWord"
+                  (keyup.enter)="loadEarlyLate()"
                 />
               </nz-form-control>
             </nz-form-item>
@@ -267,7 +268,7 @@
 >
   <div class="modal-dialog modal-dialog-centered fs-12">
     <div class="modal-content">
-      <div class="modal-header bg-primary">
+      <div class="modal-header bg-primary p-1">
         <h6
           class="modal-title text-uppercase text-white"
           id="addEarlyLateModalLabel"
@@ -358,6 +359,7 @@
                 nzAllowClear="false"
                 nzFormat="dd/MM/yyyy"
                 [nzSize]="'default'"
+                [nzDisabledDate]="disabledDate"
                 style="width: 100%"
               ></nz-date-picker>
             </nz-col>

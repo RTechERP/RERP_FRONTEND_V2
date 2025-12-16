@@ -83,7 +83,7 @@ export class EmployeeNightShiftComponent implements OnInit, AfterViewInit, OnDes
   ) { }
 
   nightShiftTable: Tabulator | null = null;
-  isSearchVisible: boolean = true;
+  isSearchVisible: boolean = false;
 
   // Master data
   departments: any[] = [];
@@ -246,6 +246,7 @@ export class EmployeeNightShiftComponent implements OnInit, AfterViewInit, OnDes
     const isMobile = window.matchMedia('(max-width: 768px)').matches;
     this.nightShiftTable = new Tabulator('#dataTableNightShift', {
       ...DEFAULT_TABLE_CONFIG,
+      layout: 'fitDataStretch',
       ajaxURL: this.employeeNightShiftService.getEmployeeNightShiftAjax(),
       ajaxConfig: 'POST',
       groupBy: 'DepartmentName',

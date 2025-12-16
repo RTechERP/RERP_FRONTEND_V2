@@ -760,7 +760,8 @@ export class OverTimePersonFormComponent implements OnInit {
       
       const formValue = this.overTimeForm.value;
       
-      if (this.showProjectField && (!formValue.ProjectID || formValue.ProjectID === 0 || formValue.ProjectID === null)) {
+   
+      if (this.departmentId === 2 && (!formValue.ProjectID || formValue.ProjectID === 0 || formValue.ProjectID === null)) {
         const projectControl = tab.form.get('ProjectID');
         if (projectControl) {
           projectControl.markAsTouched();
@@ -768,6 +769,9 @@ export class OverTimePersonFormComponent implements OnInit {
           projectControl.setErrors({ required: true });
           projectControl.updateValueAndValidity();
         }
+        this.notification.warning(NOTIFICATION_TITLE.warning, `Vui lòng nhập Dự án cho ${tab.title}`);
+        this.cdr.detectChanges();
+        return;
       }
       
       if (!formValue.Location || formValue.Location === 0 || formValue.Location === null) {

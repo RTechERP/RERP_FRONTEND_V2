@@ -104,6 +104,7 @@
                   placeholder="Nhập từ khóa"
                   nzSize="default"
                   formControlName="keyWord"
+                  (keyup.enter)="loadEmployeeOnLeave()"
                 />
               </nz-form-control>
             </nz-form-item>
@@ -389,11 +390,10 @@
               >
               <div>
                 <strong style="color: #dc3545; font-weight: 600"
-                  >Nghỉ phép:</strong
+                  >Nghỉ phép (P):</strong
                 >
                 <span style="color: #dc3545"
-                  >Xin nghỉ trước 19H của ngày liền trước ngày nghỉ & quỹ phép
-                  còn dương đến thời điểm xin nghỉ. Không ứng trước phép.</span
+                  >Đăng ký trên Website Nội Bộ trước 19H ngày liền trước ngày nghỉ, quỹ phép phải còn dương tại thời điểm xin nghỉ (không ứng phép). Nhân sự đang thử việc được tính phép nhưng chưa được sử dụng, không hoàn phép nếu không ký HĐLĐ chính thức.</span
                 >
               </div>
             </li>
@@ -409,10 +409,10 @@
               >
               <div>
                 <strong style="color: #dc3545; font-weight: 600"
-                  >Nghỉ không lương:</strong
+                  >Nghỉ không lương (Ro):</strong
                 >
                 <span style="color: #dc3545"
-                  >Xin nghỉ sau 19H của ngày liền trước ngày nghỉ.</span
+                  > Xin nghỉ sau 19H của ngày liền trước ngày nghỉ/Không còn phép.</span
                 >
               </div>
             </li>
@@ -428,11 +428,10 @@
               >
               <div>
                 <strong style="color: #dc3545; font-weight: 600"
-                  >Nghỉ việc riêng có hưởng lương:</strong
+                  >Nghỉ việc riêng có hưởng lương (R):</strong
                 >
                 <span style="color: #dc3545"
-                  >Bản thân NLĐ/ con NLĐ kết hôn, Cha/ Mẹ/ Vợ/ Chồng/ Con
-                  mất.</span
+                  >NLĐ kết hôn (03 ngày); Con NLĐ kết hôn (01 ngày); Cha/Mẹ/Vợ/Chồng/Con mất (03 ngày).</span
                 >
               </div>
             </li>
@@ -515,6 +514,7 @@
                 nzPlaceHolder="Chọn ngày đăng ký nghỉ"
                 nzFormat="dd/MM/yyyy"
                 [nzSize]="'default'"
+                [nzDisabledDate]="disabledDate"
                 style="width: 100%"
               ></nz-date-picker>
             </nz-col>
@@ -566,9 +566,9 @@
             </nz-form-control>
           </nz-form-item>
 
-          <nz-form-item class="mb-2">
+          <nz-form-item class="mb-2" *ngIf="shouldShowReasonHREdit()">
             <nz-form-label [nzSpan]="24" class="fs-12 p-0"
-              >Lý do sửa</nz-form-label
+              >Lý do sửa<span class="text-danger ps-1">*</span></nz-form-label
             >
             <nz-form-control [nzSpan]="24" nzErrorTip="Vui lòng nhập lý do sửa">
               <textarea

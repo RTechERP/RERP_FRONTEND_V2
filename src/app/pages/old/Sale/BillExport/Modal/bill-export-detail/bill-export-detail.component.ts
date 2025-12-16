@@ -300,7 +300,7 @@ export class BillExportDetailComponent
       ProductType: [0], // Bỏ required và min(1) cho loại hàng
       CreatDate: [new Date(), [Validators.required]],
       RequestDate: [new Date()],
-      SupplierID: [0, [Validators.required, Validators.min(1)]],
+      SupplierID: [0],
     });
   }
 
@@ -571,10 +571,11 @@ export class BillExportDetailComponent
       // Load product options for KhoTypeID (CRITICAL: must call changeProductGroup to load products)
       if (this.newBillExport.KhoTypeID > 0) {
         this.changeProductGroup(this.newBillExport.KhoTypeID);
-        // After productOptions are loaded, update TotalInventory for existing rows
+        // Note: updateTotalInventoryForExistingRows will be called from changeProductGroup after productOptions load
+        // This is just a backup in case the one in changeProductGroup doesn't run (reduced timeout)
         setTimeout(() => {
           this.updateTotalInventoryForExistingRows();
-        }, 500);
+        }, 300);
       }
     }
     // LUỒNG: Flow khác có KhoTypeID (backup)
@@ -803,30 +804,14 @@ export class BillExportDetailComponent
   }
 
   ngAfterViewInit(): void {
-    console.log('=== ngAfterViewInit START ===');
-    console.log('isFromWarehouseRelease:', this.isFromWarehouseRelease);
-    console.log('isFromProjectPartList:', this.isFromProjectPartList);
-    console.log('dataTableBillExportDetail length:', this.dataTableBillExportDetail.length);
-    console.log('dataTableBillExportDetail sample (first 3):', this.dataTableBillExportDetail.slice(0, 3).map((r: any) => ({
-      ProductID: r.ProductID,
-      ProductCode: r.ProductCode,
-      ProductNewCode: r.ProductNewCode,
-      TotalInventory: r.TotalInventory
-    })));
-    
     this.drawTable();
 
     setTimeout(() => {
-      console.log('=== ngAfterViewInit setTimeout callback ===');
-      console.log('productOptions length:', this.productOptions.length);
-      console.log('table_billExportDetail exists:', !!this.table_billExportDetail);
-      
       if (
         !this.isCheckmode &&
         (!this.newBillExport.Id || this.newBillExport.Id <= 0)
       ) {
         const tableData = this.table_billExportDetail?.getData() || [];
-        console.log('tableData length:', tableData.length);
         if (tableData.length > 0) {
           tableData.forEach((row: any, index: number) => {
             this.loadInventoryProjectForRow(row, index);
@@ -837,8 +822,10 @@ export class BillExportDetailComponent
       // Update TotalInventory for rows if productOptions are already loaded
       // This is important for data coming from PO (warehouse-release-request)
       if (this.isFromWarehouseRelease || this.isFromProjectPartList) {
-        console.log('Calling updateTotalInventoryForExistingRows from ngAfterViewInit');
+        // Only update if productOptions are loaded, otherwise it will be called from changeProductGroup
+        if (this.productOptions.length > 0) {
         this.updateTotalInventoryForExistingRows();
+        }
       }
     }, 1500); // Wait for data to load (increased timeout for data stability)
   }
@@ -1283,9 +1270,10 @@ export class BillExportDetailComponent
         // Update TotalInventory for existing rows after productOptions are loaded
         // This is especially important for data coming from PO (warehouse-release-request)
         if (this.isFromWarehouseRelease || this.isFromProjectPartList) {
+          // Use shorter timeout since productOptions are now loaded
           setTimeout(() => {
             this.updateTotalInventoryForExistingRows();
-          }, 100);
+          }, 50);
         }
         
         if (this.checkConvert == true) {
@@ -1305,7 +1293,7 @@ export class BillExportDetailComponent
         if (this.table_billExportDetail) {
           this.table_billExportDetail.replaceData([]);
         }
-      },
+      }
     });
   }
 
@@ -1820,28 +1808,23 @@ export class BillExportDetailComponent
    * Made public so it can be called from warehouse-release-request after data is set
    */
   public updateTotalInventoryForExistingRows(): void {
-    console.log('=== updateTotalInventoryForExistingRows START ===');
-    console.log('table_billExportDetail exists:', !!this.table_billExportDetail);
-    console.log('productOptions length:', this.productOptions.length);
-    console.log('productOptions sample (first 3):', this.productOptions.slice(0, 3));
-    
     if (!this.table_billExportDetail || this.productOptions.length === 0) {
-      console.log('EXIT: No table or no productOptions');
       return;
     }
 
     const tableData = this.table_billExportDetail.getData() || [];
-    console.log('tableData length:', tableData.length);
-    console.log('tableData sample (first 3):', tableData.slice(0, 3).map((r: any) => ({
-      ProductID: r.ProductID,
-      ProductCode: r.ProductCode,
-      ProductNewCode: r.ProductNewCode,
-      TotalInventory: r.TotalInventory,
-      Qty: r.Qty
-    })));
     
     if (tableData.length === 0) {
-      console.log('EXIT: No table data');
+      return;
+    }
+
+    // Check if all rows already have TotalInventory > 0
+    const allRowsHaveInventory = tableData.every((row: any) => {
+      const inv = parseFloat(String(row.TotalInventory || 0));
+      return inv > 0;
+    });
+    
+    if (allRowsHaveInventory) {
       return;
     }
 
@@ -1850,14 +1833,8 @@ export class BillExportDetailComponent
 
     tableData.forEach((row: any, index: number) => {
       const productID = row.ProductID || 0;
-      console.log(`\n--- Processing row ${index + 1} ---`);
-      console.log('Row ProductID:', productID);
-      console.log('Row ProductCode:', row.ProductCode);
-      console.log('Row ProductNewCode:', row.ProductNewCode);
-      console.log('Row Current TotalInventory:', row.TotalInventory);
       
       if (!productID || productID <= 0) {
-        console.log('SKIP: No ProductID');
         return;
       }
 
@@ -1869,76 +1846,49 @@ export class BillExportDetailComponent
           p.ProductSaleID === productID
       );
 
-      console.log('Matching product found:', !!product);
-      if (product) {
-        console.log('Product details:', {
-          value: product.value,
-          ProductID: product.ProductID,
-          ProductSaleID: product.ProductSaleID,
-          ProductCode: product.ProductCode,
-          TotalInventory: product.TotalInventory,
-          TotalQuantityLast: product.TotalQuantityLast
-        });
-      } else {
-        console.log('Trying alternative matching...');
-        // Try matching by ProductCode or ProductNewCode
-        const productByCode = this.productOptions.find(
-          (p: any) =>
-            p.ProductCode === row.ProductCode ||
-            p.ProductNewCode === row.ProductNewCode
-        );
-        console.log('Product found by code:', !!productByCode);
-        if (productByCode) {
-          console.log('ProductByCode details:', {
-            value: productByCode.value,
-            ProductID: productByCode.ProductID,
-            ProductCode: productByCode.ProductCode,
-            TotalInventory: productByCode.TotalInventory
-          });
-        }
-      }
-
       const finalProduct = product || this.productOptions.find(
         (p: any) =>
           p.ProductCode === row.ProductCode ||
           p.ProductNewCode === row.ProductNewCode
       );
 
-      if (finalProduct && finalProduct.TotalInventory) {
-        const newTotalInventory = finalProduct.TotalInventory;
-        console.log('New TotalInventory to set:', newTotalInventory);
+      if (finalProduct) {
+        const newTotalInventory = finalProduct.TotalInventory || finalProduct.TotalQuantityLast || 0;
         // Only update if TotalInventory is missing or 0
-        if (!row.TotalInventory || row.TotalInventory === 0) {
+        if (!row.TotalInventory || row.TotalInventory === 0 || parseFloat(String(row.TotalInventory)) === 0) {
           row.TotalInventory = newTotalInventory;
           updatedRows.push(row);
           hasUpdates = true;
-          console.log('✓ Row will be updated');
-        } else {
-          console.log('SKIP: TotalInventory already has value:', row.TotalInventory);
         }
-      } else {
-        console.log('SKIP: No product found or no TotalInventory');
-      }
+        }
     });
 
-    console.log('\n=== Update Summary ===');
-    console.log('hasUpdates:', hasUpdates);
-    console.log('updatedRows count:', updatedRows.length);
-    console.log('updatedRows:', updatedRows.map((r: any) => ({
-      ProductID: r.ProductID,
-      ProductCode: r.ProductCode,
-      TotalInventory: r.TotalInventory
-    })));
-
-    // Update table with new data
+    // Update table with new data - Update each row individually
     if (hasUpdates && updatedRows.length > 0) {
-      console.log('Calling table.updateData()...');
-      this.table_billExportDetail.updateData(updatedRows);
-      console.log('✓ Table updated');
-    } else {
-      console.log('No updates needed');
+      const allRows = this.table_billExportDetail.getRows();
+      let updatedCount = 0;
+      
+      updatedRows.forEach((rowDataToUpdate: any) => {
+        // Find the corresponding row in the table by ProductID and ProductCode
+        const matchingRow = allRows.find((row: any) => {
+          const rowData = row.getData();
+          return (rowData.ProductID === rowDataToUpdate.ProductID && 
+                  rowData.ProductCode === rowDataToUpdate.ProductCode) ||
+                 (rowData.ProductID === rowDataToUpdate.ProductID && 
+                  rowData.ProductNewCode === rowDataToUpdate.ProductNewCode);
+        });
+        
+        if (matchingRow) {
+          matchingRow.update({ TotalInventory: rowDataToUpdate.TotalInventory });
+          updatedCount++;
+        }
+      });
+      
+      // Redraw table to reflect changes
+      if (updatedCount > 0) {
+        this.table_billExportDetail.redraw(true);
+      }
     }
-    console.log('=== updateTotalInventoryForExistingRows END ===\n');
   }
 
   openSerialModal(
@@ -2429,14 +2379,11 @@ export class BillExportDetailComponent
       return { isValid: false, message: 'Xin hãy điền số phiếu.' };
     }
 
-    // Validate Customer or Supplier (at least one required)
-    if (
-      (!formValues.CustomerID || formValues.CustomerID <= 0) &&
-      (!formValues.SupplierID || formValues.SupplierID <= 0)
-    ) {
+    // Validate Customer (required)
+    if (!formValues.CustomerID || formValues.CustomerID <= 0) {
       return {
         isValid: false,
-        message: 'Xin hãy chọn Khách hàng hoặc Nhà cung cấp!',
+        message: 'Xin hãy chọn Khách hàng!',
       };
     }
 

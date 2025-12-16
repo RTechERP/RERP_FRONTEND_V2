@@ -236,10 +236,7 @@ export class OverTimePersonComponent implements OnInit, AfterViewInit {
         },
         {
           title: 'Họ tên', field: 'EmployeeFullName',bottomCalc: 'count', width: 120, hozAlign: 'left', headerHozAlign: 'center', headerSort: false,
-          formatter: (cell: any) => {
-            const value = cell.getValue() || '';
-            return value || (cell.getRow().getData().FullName || '');
-          }
+         formatter: 'textarea'
         },
         {
           title: 'Trưởng phòng', field: 'ApprovedTBP', width: 120, hozAlign: 'left', headerHozAlign: 'center', headerSort: false,

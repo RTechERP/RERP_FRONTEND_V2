@@ -71,14 +71,14 @@ export class PaymentOrderComponent implements OnInit {
                     label: 'Duyệt',
                     icon: PrimeIcons.CHECK,
                     command: () => {
-                        this.onApprovedTBP(1);
+                        // this.onApprovedTBP(1);
                     }
                 },
                 {
                     label: 'Hủy duyệt',
                     icon: PrimeIcons.UNLOCK,
                     command: () => {
-                        this.onApprovedTBP(2);
+                        // this.onApprovedTBP(2);
                     }
                 }
             ]

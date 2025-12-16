@@ -100,6 +100,10 @@ export class DailyReportTechDetailComponent implements OnInit, AfterViewInit {
   // Kế hoạch ngày tiếp theo (chung cho tất cả)
   planNextDay: string = '';
 
+  // Nơi làm việc (chung cho tất cả)
+  workLocation: number = 1; // 1: VP RTC, 0: Địa điểm khác
+  workLocationText: string = 'VP RTC'; // Mặc định "VP RTC"
+
   // Thông tin thêm (chung cho tất cả)
   additionalInfo: {
     Problem: string;
@@ -251,6 +255,17 @@ export class DailyReportTechDetailComponent implements OnInit, AfterViewInit {
         this.planNextDay = report.PlanNextDay;
       }
 
+      // Set workLocation (chung cho tất cả)
+      // Location giờ là string (workLocationText), nếu là "VP RTC" thì workLocation = 1, ngược lại = 0
+      const locationText = report.Location || report.LocationText || '';
+      if (locationText.trim().toUpperCase() === 'VP RTC') {
+        this.workLocation = 1;
+        this.workLocationText = 'VP RTC';
+      } else {
+        this.workLocation = 0;
+        this.workLocationText = locationText;
+      }
+
       // Set additionalInfo
       this.additionalInfo.Problem = report.Problem || '';
       this.additionalInfo.ProblemSolve = report.ProblemSolve || '';
@@ -268,6 +283,15 @@ export class DailyReportTechDetailComponent implements OnInit, AfterViewInit {
   ngAfterViewInit(): void {
     
   }
+
+  // Disable các ngày trước 1 ngày so với hôm nay
+  disabledDate = (current: Date): boolean => {
+    const today = DateTime.local().startOf('day');
+    const oneDayAgo = today.minus({ days: 1 });
+    const currentDate = DateTime.fromJSDate(current).startOf('day');
+    // Disable nếu ngày hiện tại < 1 ngày trước (tức là trước 1 ngày trước)
+    return currentDate < oneDayAgo;
+  };
 
   // Thêm dự án mới
   addProject(): void {
@@ -478,17 +502,13 @@ export class DailyReportTechDetailComponent implements OnInit, AfterViewInit {
     }
   }
 
-  // Thay đổi nơi làm việc
-  onLocationChange(projectIndex: number, itemIndex: number, location: number): void {
-    const project = this.projectList[projectIndex - 1];
-    if (project) {
-      const item = project.ProjectItems[itemIndex - 1];
-      if (item) {
-        item.Location = location;
-        if (location === 1) {
-          item.LocationText = ''; // Reset khi chọn VP RTC
-        }
-      }
+  // Thay đổi nơi làm việc (chung cho tất cả)
+  onWorkLocationChange(location: number): void {
+    this.workLocation = location;
+    if (location === 1) {
+      this.workLocationText = 'VP RTC'; // Tự động set "VP RTC" khi chọn VP RTC
+    } else {
+      this.workLocationText = ''; // Reset khi chọn Địa điểm khác
     }
   }
 
@@ -775,6 +795,7 @@ export class DailyReportTechDetailComponent implements OnInit, AfterViewInit {
           TotalHours: item.TotalHours || 0,
           TotalHourOT: item.TotalHourOT || 0,
           PercentComplete: item.PercentComplete || 0,
+          Location: this.workLocationText || '',
           Type: 0,
           ReportLate: 0,
           StatusResult: 0,
@@ -829,6 +850,16 @@ export class DailyReportTechDetailComponent implements OnInit, AfterViewInit {
     // Validate PlanNextDay (chung cho tất cả)
     if (!this.planNextDay || this.planNextDay.trim() === '') {
       return { isValid: false, message: 'Vui lòng nhập Kế hoạch ngày tiếp theo!' };
+    }
+
+    // Validate workLocation (chung cho tất cả)
+    if (this.workLocation === null || this.workLocation === undefined) {
+      return { isValid: false, message: 'Vui lòng chọn Nơi làm việc!' };
+    }
+
+    // Validate workLocationText: nếu chọn "Địa điểm khác" (0) thì phải nhập LocationText
+    if (this.workLocation === 0 && (!this.workLocationText || this.workLocationText.trim() === '')) {
+      return { isValid: false, message: 'Vui lòng nhập Nơi làm việc khi chọn "Địa điểm khác"!' };
     }
 
     // Validate từng tab dự án
@@ -963,6 +994,16 @@ export class DailyReportTechDetailComponent implements OnInit, AfterViewInit {
     // Validate PlanNextDay (chung cho tất cả)
     if (!this.planNextDay || this.planNextDay.trim() === '') {
       return { isValid: false, message: 'Vui lòng nhập Kế hoạch ngày tiếp theo!' };
+    }
+
+    // Validate workLocation (chung cho tất cả)
+    if (this.workLocation === null || this.workLocation === undefined) {
+      return { isValid: false, message: 'Vui lòng chọn Nơi làm việc!' };
+    }
+
+    // Validate workLocationText: nếu chọn "Địa điểm khác" (0) thì phải nhập LocationText
+    if (this.workLocation === 0 && (!this.workLocationText || this.workLocationText.trim() === '')) {
+      return { isValid: false, message: 'Vui lòng nhập Nơi làm việc khi chọn "Địa điểm khác"!' };
     }
 
     // Validate từng tab dự án (kể cả tab trống)
@@ -1119,6 +1160,11 @@ export class DailyReportTechDetailComponent implements OnInit, AfterViewInit {
       // Validate Results
       if (!report.Results || report.Results.trim() === '') {
         return { isValid: false, message: `${prefixText}Vui lòng nhập Kết quả!` };
+      }
+
+      // Validate Location (giờ là string - workLocationText)
+      if (!report.Location || report.Location.trim() === '') {
+        return { isValid: false, message: `${prefixText}Vui lòng nhập Nơi làm việc!` };
       }
 
       // Validate PlanNextDay (không cần prefix vì là chung cho tất cả)

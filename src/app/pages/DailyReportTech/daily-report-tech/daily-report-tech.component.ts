@@ -73,6 +73,9 @@ export class DailyReportTechComponent implements OnInit, AfterViewInit {
   dailyReportTechData: any[] = [];
   projects: any[] = [];
 
+  //data user
+  userData: any = null;
+
   // Table
   tb_daily_report_tech: any;
 
@@ -114,8 +117,14 @@ export class DailyReportTechComponent implements OnInit, AfterViewInit {
   }
 
   ngAfterViewInit(): void {
+    // Vẽ table trước với data rỗng (giống summary-of-exam-results)
     this.drawTbDailyReportTech(this.tb_daily_report_techContainer.nativeElement);
-    this.getDailyReportTechData();
+    
+    // Load dữ liệu sau khi table đã được khởi tạo
+    // Sử dụng setTimeout để đảm bảo table đã được khởi tạo xong
+    setTimeout(() => {
+      this.getDailyReportTechData();
+    }, 0);
   }
 
   getCurrentUser(): void {
@@ -124,9 +133,24 @@ export class DailyReportTechComponent implements OnInit, AfterViewInit {
         const data = Array.isArray(res.data) ? res.data[0] : res.data;
         this.currentUser = data;
         // Sau khi có currentUser, nếu users đã được load thì set userId
-        if (this.users.length > 0 && data.EmployeeID) {
-          this.setUserIdFromEmployeeID(data.EmployeeID);
+        if (this.users.length > 0) {
+          // Thử tìm theo ID trước, nếu không có thì tìm theo EmployeeID
+          if (data.ID) {
+            this.setUserIdFromEmployeeID(data.ID);
+          } else if (data.EmployeeID) {
+            this.setUserIdFromEmployeeID(data.EmployeeID);
+          } else {
+            // Nếu không có ID hoặc EmployeeID, set về "Tất cả"
+            this.userId = 0;
+          }
+        } else {
+          // Nếu users chưa được load, tạm thời set về "Tất cả"
+          // Khi loadUsers() được gọi sau đó, nó sẽ tự động tìm và set lại
+          this.userId = 0;
         }
+      } else {
+        // Nếu không có currentUser, set về "Tất cả"
+        this.userId = 0;
       }
     });
   }
@@ -189,9 +213,20 @@ export class DailyReportTechComponent implements OnInit, AfterViewInit {
           this.users = [];
         }
         
-        // Sau khi load users, tìm và set userId từ currentUser.EmployeeID
-        if (this.currentUser?.ID) {
-          this.setUserIdFromEmployeeID(this.currentUser.ID);
+        // Sau khi load users, tìm và set userId từ currentUser
+        // Nếu không tìm thấy currentUser trong danh sách, tự động set về "Tất cả" (ID = 0)
+        if (this.currentUser) {
+          if (this.currentUser.ID) {
+            this.setUserIdFromEmployeeID(this.currentUser.ID);
+          } else if (this.currentUser.EmployeeID) {
+            this.setUserIdFromEmployeeID(this.currentUser.EmployeeID);
+          } else {
+            // Nếu không có ID hoặc EmployeeID, set về "Tất cả"
+            this.userId = 0;
+          }
+        } else {
+          // Nếu không có currentUser, set về "Tất cả"
+          this.userId = 0;
         }
       },
       error: (error) => {
@@ -219,15 +254,24 @@ export class DailyReportTechComponent implements OnInit, AfterViewInit {
   }
 
   setUserIdFromEmployeeID(employeeID: number): void {
-    // Tìm user trong danh sách users dựa trên EmployeeID
+    // Tìm user trong danh sách users dựa trên EmployeeID, ID, hoặc UserID
     for (const group of this.users) {
       for (const option of group.options) {
-        if (option.item?.UserID === employeeID || option.UserID === employeeID) {
-          this.userId = option.item.UserID;
+        const item = option.item;
+        if (item) {
+          // Tìm theo UserID, ID, hoặc EmployeeID
+          if (item.UserID === employeeID || item.ID === employeeID || item.EmployeeID === employeeID) {
+            this.userId = item.UserID;
+            return;
+          }
+        } else if (option.UserID === employeeID) {
+          this.userId = option.UserID;
           return;
         }
       }
     }
+    // Nếu không tìm thấy currentUser trong danh sách, set về "Tất cả" (ID = 0)
+    this.userId = 0;
   }
 
   onDepartmentChange(): void {
@@ -284,9 +328,9 @@ export class DailyReportTechComponent implements OnInit, AfterViewInit {
     this.dateEnd = DateTime.local().set({ hour: 0, minute: 0, second: 0 }).toISO();
     this.departmentId = 2;
     this.teamId = 0;
-    this.userId = this.currentUser?.EmployeeID || 0;
     this.keyword = '';
-    this.loadTeams(); // Load lại teams khi reset
+    this.loadTeams(); // Load lại teams khi reset (sẽ trigger loadUsers)
+    // userId sẽ được set trong loadUsers() hoặc set về 0 nếu không tìm thấy
     this.searchDailyReports();
   }
 
@@ -323,7 +367,7 @@ export class DailyReportTechComponent implements OnInit, AfterViewInit {
       dateEnd: dateEnd.isValid ? dateEnd.toISO() : null,
       departmentID: this.departmentId || 0,
       teamID: this.teamId || 0,
-      userID: this.userId || 0,
+      userID: this.currentUser?.IsLeader > 1 ? this.userId : this.currentUser.ID  || 0,
       keyword: this.keyword.trim() || '',
     };
   }
@@ -384,19 +428,22 @@ export class DailyReportTechComponent implements OnInit, AfterViewInit {
             title: 'Tổng giờ',
             field: 'TotalHours',
             hozAlign: 'right',
-            width: 100,
+            width: 70,
+            headerSort: false,
           },
           {
             title: 'Giờ OT',
             field: 'TotalHourOT',
             hozAlign: 'right',
-            width: 100,
+            width: 70,
+            headerSort: false,
           },
           {
             title: '% Hoàn thành',
             field: 'PercentComplete',
             hozAlign: 'right',
-            width: 120,
+            width: 70,
+            headerSort: false,
             formatter: (cell: any) => {
               const value = cell.getValue() || 0;
               return `${value}%`;
@@ -646,17 +693,34 @@ export class DailyReportTechComponent implements OnInit, AfterViewInit {
     // Lấy dữ liệu để copy dựa trên filter hiện tại
     const searchParams = this.getSearchParams();
     
+    // Tìm EmployeeID từ users dựa trên searchParams.userID (UserID từ dropdown)
+    // Dropdown bind [nzValue]="child.item.UserID", nên searchParams.userID là UserID
+    let employeeID = 0;
+    if (searchParams.userID && searchParams.userID > 0) {
+      for (const group of this.users) {
+        if (group.options && Array.isArray(group.options)) {
+          const foundUser = group.options.find((opt: any) => opt.item?.UserID === searchParams.userID);
+          if (foundUser && foundUser.item?.ID) {
+            employeeID = foundUser.item.ID;
+            break;
+          }
+        }
+      }
+    }
+    
     // Gọi API để lấy dữ liệu copy
-    this.dailyReportTechService.getForCopy({
+    const copyParams = {
       dateStart: searchParams.dateStart,
       dateEnd: searchParams.dateEnd,
       team_id: searchParams.teamID || 0,
       keyword: searchParams.keyword || '',
-      userid: searchParams.userID || 0,
+      userid: employeeID || 0,
       departmentid: searchParams.departmentID || 0
-    }).subscribe({
+    };
+    
+    this.dailyReportTechService.getForCopy(copyParams).subscribe({
       next: (response: any) => {
-        if (response && response.status === 1 && response.data) {
+        if (response.status === 1) {
           const result = Array.isArray(response.data) ? response.data : [];
           this.formatAndCopyReport(result);
         } else {
@@ -666,7 +730,6 @@ export class DailyReportTechComponent implements OnInit, AfterViewInit {
       error: (error: any) => {
         const errorMsg = error?.error?.message || error?.message || 'Đã xảy ra lỗi khi lấy dữ liệu copy!';
         this.notification.error('Thông báo', errorMsg);
-        console.error('Error getting report for copy:', error);
       }
     });
   }
@@ -756,37 +819,51 @@ export class DailyReportTechComponent implements OnInit, AfterViewInit {
   }
 
   private async copyToClipboard(text: string): Promise<void> {
-    try {
-      // Sử dụng Clipboard API nếu có
-      if (navigator.clipboard && navigator.clipboard.writeText) {
-        await navigator.clipboard.writeText(text);
-        this.notification.success('Thông báo', 'Đã copy vào clipboard thành công!');
-      } else {
-        // Fallback cho trình duyệt cũ
-        const textArea = document.createElement('textarea');
-        textArea.value = text;
-        textArea.style.position = 'fixed';
-        textArea.style.left = '-999999px';
-        textArea.style.top = '-999999px';
-        document.body.appendChild(textArea);
-        textArea.focus();
-        textArea.select();
-        
-        try {
-          const successful = document.execCommand('copy');
-          if (successful) {
-            this.notification.success('Thông báo', 'Đã copy vào clipboard thành công!');
-          } else {
-            throw new Error('Copy command failed');
-          }
-        } catch (err) {
-          throw err;
-        } finally {
-          document.body.removeChild(textArea);
+    // Hàm fallback sử dụng execCommand
+    const useExecCommand = (): boolean => {
+      const textArea = document.createElement('textarea');
+      textArea.value = text;
+      textArea.style.position = 'fixed';
+      textArea.style.left = '-999999px';
+      textArea.style.top = '-999999px';
+      document.body.appendChild(textArea);
+      textArea.focus();
+      textArea.select();
+      
+      try {
+        const successful = document.execCommand('copy');
+        if (successful) {
+          this.notification.success('Thông báo', 'Đã copy vào clipboard thành công!');
+          return true;
+        } else {
+          throw new Error('Copy command failed');
         }
+      } catch (err: any) {
+        throw err;
+      } finally {
+        document.body.removeChild(textArea);
       }
-    } catch (err) {
-      console.error('Failed to copy:', err);
+    };
+    
+    try {
+      // Thử sử dụng Clipboard API nếu có
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        try {
+          await navigator.clipboard.writeText(text);
+          this.notification.success('Thông báo', 'Đã copy vào clipboard thành công!');
+        } catch (clipboardErr: any) {
+          // Nếu Clipboard API fail (thường do document not focused), fallback sang execCommand
+          if (clipboardErr.name === 'NotAllowedError' || clipboardErr.message?.includes('not focused')) {
+            useExecCommand();
+          } else {
+            throw clipboardErr;
+          }
+        }
+      } else {
+        // Nếu không có Clipboard API, dùng execCommand
+        useExecCommand();
+      }
+    } catch (err: any) {
       this.notification.error('Thông báo', 'Không thể copy vào clipboard. Vui lòng thử lại!');
     }
   }

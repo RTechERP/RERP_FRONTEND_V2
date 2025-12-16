@@ -724,7 +724,7 @@ export class RequestInvoiceStatusLinkComponent implements OnInit, AfterViewInit 
       });
 
       // key: để backend nhận biết loại tài liệu
-      formData.append('key', 'TuanBeoTest');
+      formData.append('key', 'RequestInvoiceFile');
 
       // Tạo subPath dựa trên RequestInvoiceID
       const sanitize = (s: string) =>

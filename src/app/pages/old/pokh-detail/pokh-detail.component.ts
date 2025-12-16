@@ -878,7 +878,7 @@ export class PokhDetailComponent implements OnInit, AfterViewInit {
       });
 
       // key: để backend nhận biết loại tài liệu
-      formData.append('key', 'TuanBeoTest');
+      formData.append('key', 'POKH');
 
       // subPath: Năm/Khách hàng/Mã PO (lọc ký tự không hợp lệ trong đường dẫn)
       const year = new Date().getFullYear().toString();

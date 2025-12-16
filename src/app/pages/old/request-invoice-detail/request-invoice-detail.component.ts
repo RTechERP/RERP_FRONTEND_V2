@@ -468,7 +468,7 @@ export class RequestInvoiceDetailComponent implements OnInit {
       });
 
       // key: để backend nhận biết loại tài liệu
-      formData.append('key', 'TuanBeoTest');
+      formData.append('key', 'RequestInvoiceFile');
 
       this.requestInvoiceService.getRequestInvoiceById(RIID).subscribe((data: any) => {
         const requestInvoice = data;

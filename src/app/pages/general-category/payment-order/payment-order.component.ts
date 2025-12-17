@@ -27,6 +27,22 @@ import { NzFormModule } from 'ng-zorro-antd/form';
 import { NzInputModule } from 'ng-zorro-antd/input';
 import { NzSelectModule } from 'ng-zorro-antd/select';
 import { NzDatePickerModule } from 'ng-zorro-antd/date-picker';
+import { DepartmentServiceService } from '../../hrm/department/department-service/department-service.service';
+import { EmployeeService } from '../../hrm/employee/employee-service/employee.service';
+import { PaymentOrderTypeService } from './payment-order-type/payment-order-type.service';
+
+import pdfMake from 'pdfmake/build/pdfmake';
+import vfs from '../../../shared/pdf/vfs_fonts_custom.js';
+
+(pdfMake as any).vfs = vfs;
+(pdfMake as any).fonts = {
+    Times: {
+        normal: 'TIMES.ttf',
+        bold: 'TIMESBD.ttf',
+        bolditalics: 'TIMESBI.ttf',
+        italics: 'TIMESI.ttf',
+    },
+};
 
 @Component({
     selector: 'app-payment-order',
@@ -113,9 +129,14 @@ export class PaymentOrderComponent implements OnInit {
         private paymentService: PaymentOrderService,
         private notification: NzNotificationService,
         private permissionService: PermissionService,
+        private departmentService: DepartmentServiceService,
+        private employeeService: EmployeeService,
+        private paymentOrderTypeService: PaymentOrderTypeService,
+
     ) { }
 
     ngOnInit(): void {
+        this.loadDataCombo();
         this.initMenuBar();
         this.initGrid();
     }
@@ -154,6 +175,15 @@ export class PaymentOrderComponent implements OnInit {
                 visible: this.permissionService.hasPermission(""),
                 command: () => {
                     // this.onCopy();
+                }
+            },
+
+            {
+                label: 'In đề nghị',
+                icon: PrimeIcons.PRINT,
+                visible: this.permissionService.hasPermission(""),
+                command: () => {
+                    this.onPrint();
                 }
             },
 
@@ -1071,15 +1101,15 @@ export class PaymentOrderComponent implements OnInit {
                 container: '.grid-container-detail',
             },
             gridWidth: '100%',
-            datasetIdPropertyName: 'Id',
+            // datasetIdPropertyName: 'Id',
             enableRowSelection: true,
 
             enableFiltering: true,
             enableTreeData: true,
             treeDataOptions: {
                 columnId: 'Stt',           // the column where you will have the Tree with collapse/expand icons
-                parentPropName: 'ParentId',  // the parent/child key relation in your dataset
-                identifierPropName: 'Id',
+                parentPropName: 'parentid',  // the parent/child key relation in your dataset
+                // identifierPropName: 'Id',
                 // roo:0,
                 levelPropName: 'treeLevel',  // optionally, you can define the tree level property name, it nothing is provided it will use "__treeLevel"
                 indentMarginLeft: 15,        // optionally provide the indent spacer width in pixel, for example if you provide 10 and your tree level is 2 then it will have 20px of indentation
@@ -1108,7 +1138,7 @@ export class PaymentOrderComponent implements OnInit {
                 container: '.grid-container-file',
             },
             gridWidth: '100%',
-            datasetIdPropertyName: '_id',
+            // datasetIdPropertyName: 'Id',
             enableRowSelection: true,
         }
 
@@ -1119,13 +1149,68 @@ export class PaymentOrderComponent implements OnInit {
         this.datasetFileBankslip = [];
     }
 
+    loadDataCombo() {
+        this.departmentService.getDepartments().subscribe({
+            next: (response) => {
+                this.departments = response.data;
+            },
+            error: (err) => {
+                this.notification.error(NOTIFICATION_TITLE.error, err.error.message);
+            }
+        })
+
+        this.employeeService.getEmployees().subscribe({
+            next: (response) => {
+                // this.employees = response.data;
+
+                const map = new Map<string, any[]>();
+                response.data.forEach((e: any) => {
+                    if (!map.has(e.DepartmentName)) {
+                        map.set(e.DepartmentName, []);
+                    }
+                    map.get(e.DepartmentName)!.push(e);
+                });
+
+                this.employees = Array.from(map.entries()).map(
+                    ([DepartmentName, items]) => ({ DepartmentName, items })
+                );
+
+                // console.log(this.employees);
+            },
+            error: (err) => {
+                this.notification.error(NOTIFICATION_TITLE.error, err.error.message);
+            }
+        })
+
+        this.paymentOrderTypeService.getAll().subscribe({
+            next: (response) => {
+                this.paymentOrderTypes = response.data;
+            },
+            error: (err) => {
+                this.notification.error(NOTIFICATION_TITLE.error, err.error.message);
+            }
+        })
+
+        this.isApproveds = [
+            { value: 0, text: "Chờ duyệt" },
+            { value: 1, text: "Đã duyệt" },
+            { value: 2, text: "Hủy duyệt" },
+            { value: 3, text: "Bổ sung chứng từ" },
+        ]
+
+        this.typeOrders = [
+            { value: 1, text: "Đề nghị tạm ứng" },
+            { value: 2, text: "Đề nghị thanh toán" },
+            { value: 3, text: "Đề nghị thu tiền" },
+        ]
+    }
 
     loadData() {
         // let param = {
         //     Keyword: ''
         // };
 
-        console.log(this.param);
+        // console.log(this.param);
         this.paymentService.get(this.param).subscribe({
             next: (response) => {
                 // console.log(response);
@@ -1143,13 +1228,39 @@ export class PaymentOrderComponent implements OnInit {
     }
 
     loadDetail(id: number) {
-        console.log('loadDetail id:', id);
+        // console.log('loadDetail id:', id);
         this.paymentService.getDetail(id).subscribe({
             next: (response) => {
-                console.log('loadDetail response:', response);
+                // console.log('loadDetail response:', response);
                 this.datasetDetails = response.data.details;
                 this.datasetFiles = response.data.files;
                 this.datasetFileBankslip = response.data.fileBankSlips;
+
+
+                this.datasetDetails = this.datasetDetails.map(item => ({
+                    ...item,
+                    parentid: item.ParentId == 0 ? null : item.ParentId,
+                    id: item.Id,
+                    treeLevel: item.ParentId == 0 ? 0 : (item.ParentId == null ? 0 : 1)
+                }));
+
+                this.datasetFiles = this.datasetFiles.map(item => ({
+                    ...item,
+                    id: item.Id
+                }));
+
+                this.datasetFileBankslip = this.datasetFileBankslip.map(item => ({
+                    ...item,
+                    id: item.ID
+                }));
+
+                // this.angularGridDetail?.dataView?.setItems(this.datasetDetails, 'Id');
+                // this.angularGridFile?.dataView?.setItems(this.datasetFiles, 'Id');
+                // this.angularGridFileBankslip?.dataView?.setItems(this.datasetFileBankslip, 'Id');
+
+                console.log('this.datasetDetails:', this.datasetDetails);
+                console.log('this.datasetFiles:', this.datasetFiles);
+                console.log('this.datasetFileBankslip:', this.datasetFileBankslip);
 
                 // this.datasetDetails = this.datasetDetails.map((x, i) => ({
                 //     ...x,
@@ -1920,6 +2031,18 @@ export class PaymentOrderComponent implements OnInit {
                 // console.log('fileUpdloads:', fileUpdloads);
             }
         }
+
+
+    }
+
+
+    onPrint() {
+        const activeCell = this.angularGrid.slickGrid.getActiveCell();
+
+        if (!activeCell) return;
+
+        const rowIndex = activeCell.row;        // index trong grid
+        const item = this.angularGrid.dataView.getItem(rowIndex) as PaymentOrder; // data object
 
 
     }

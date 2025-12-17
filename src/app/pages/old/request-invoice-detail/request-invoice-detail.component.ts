@@ -468,7 +468,7 @@ export class RequestInvoiceDetailComponent implements OnInit {
       });
 
       // key: để backend nhận biết loại tài liệu
-      formData.append('key', 'TuanBeoTest');
+      formData.append('key', 'RequestInvoiceFile');
 
       this.requestInvoiceService.getRequestInvoiceById(RIID).subscribe((data: any) => {
         const requestInvoice = data;
@@ -1178,6 +1178,12 @@ export class RequestInvoiceDetailComponent implements OnInit {
   handlePOKHData(): void {
     if (this.selectedRowsData.length > 0) {
       const firstRow = this.selectedRowsData[0];
+
+      // load pokh file đính kèm
+      if (this.POKHID === 0 && firstRow.POKHID) {
+        this.POKHID = firstRow.POKHID;
+        this.loadPOKHFile();
+      }
 
       // Tìm thông tin khách hàng từ danh sách customers
       const customer = this.customers.find((c) => c.ID === this.customerID);

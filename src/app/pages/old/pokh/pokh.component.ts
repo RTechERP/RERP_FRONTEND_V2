@@ -1526,8 +1526,6 @@ export class PokhComponent implements OnInit, AfterViewInit {
           field: 'ReceivedDatePO',
           sorter: 'date',
           width: 150,
-          headerFilter: 'input',
-          headerFilterPlaceholder: 'Lọc ngày',
           formatter: (cell: any) => {
             const value = cell.getValue();
             if (!value) return '';
@@ -2011,7 +2009,7 @@ export class PokhComponent implements OnInit, AfterViewInit {
     this.tb_POKHFile = new Tabulator(this.tb_POKHFileElement.nativeElement, {
       data: this.dataPOKHFiles,
       layout: 'fitDataFill',
-      height: '10vh',
+      height: '100%',
       movableColumns: true,
       resizableRows: true,
       rowContextMenu: this.getContextFileMenu(),

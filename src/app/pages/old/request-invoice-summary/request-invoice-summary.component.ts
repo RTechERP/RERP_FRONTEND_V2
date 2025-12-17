@@ -6,6 +6,8 @@ import {
   ElementRef,
   Input,
   IterableDiffers,
+  Optional,
+  Inject,
 } from '@angular/core';
 import { NzCardModule } from 'ng-zorro-antd/card';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
@@ -62,6 +64,7 @@ import { ViewPokhService } from '../view-pokh/view-pokh/view-pokh.service';
 
 @Component({
   selector: 'app-request-invoice-summary',
+  standalone: true,
   imports: [
     NzCardModule,
     FormsModule,
@@ -109,16 +112,17 @@ export class RequestInvoiceSummaryComponent implements OnInit, AfterViewInit {
   users: any[] = [];
   selectedFile: any = null;
   selectedPOFile: any = null;
-
+  selectedId: number = 0;
   dateStart: Date = new Date();
   dateEnd: Date = new Date();
   customerId: number = 0;
   userId: number = 0;
   status: number = 0;
   keywords: string = '';
+  warehouseId: number = 0;
 
   constructor(
-    public activeModal: NgbActiveModal,
+    @Optional() public activeModal: NgbActiveModal,
     private modalService: NgbModal,
     private notification: NzNotificationService,
     private message: NzMessageService,
@@ -126,8 +130,14 @@ export class RequestInvoiceSummaryComponent implements OnInit, AfterViewInit {
     private injector: EnvironmentInjector,
     private appRef: ApplicationRef,
     private requestInvoiceService: RequestInvoiceService,
-    private viewPokhService: ViewPokhService
-  ) { }
+    private viewPokhService: ViewPokhService,
+    @Optional() @Inject('tabData') private tabData: any
+  ) {
+    // Nhận data từ tab nếu có
+    if (this.tabData && this.tabData.warehouseId) {
+      this.warehouseId = this.tabData.warehouseId;
+    }
+  }
 
   sizeSearch: string = '0';
   toggleSearchPanel() {
@@ -152,7 +162,9 @@ export class RequestInvoiceSummaryComponent implements OnInit, AfterViewInit {
   }
 
   closeModal() {
-    this.activeModal.close({ success: true, reloadData: true });
+    if (this.activeModal) {
+      this.activeModal.close({ success: true, reloadData: true });
+    }
   }
 
   loadMainData() {
@@ -258,6 +270,7 @@ export class RequestInvoiceSummaryComponent implements OnInit, AfterViewInit {
       size: 'xl',
       backdrop: 'static',
     });
+    modalRef.componentInstance.requestInvoiceID = this.selectedId;
 
     modalRef.result.then(
       (result) => {
@@ -806,6 +819,7 @@ export class RequestInvoiceSummaryComponent implements OnInit, AfterViewInit {
               sorter: 'string',
               width: 250,
             },
+            { title: 'Công ty nhập', field: 'CompanyText', sorter: 'string', width: 120 },
           ]
         }
       ],
@@ -817,6 +831,7 @@ export class RequestInvoiceSummaryComponent implements OnInit, AfterViewInit {
   }
 
   private handleMainRowSelection(rowData: any): void {
+    this.selectedId = rowData.ID;
     if (!rowData) {
       return;
     }

@@ -159,23 +159,31 @@ export class ProductSaleComponent implements OnInit, AfterViewInit {
         IsFix: false,
     };
 
-    constructor(
-        private productsaleSV: ProductsaleServiceService,
-        private notification: NzNotificationService,
-        private modalService: NgbModal,
-        private modal: NzModalService,
-        @Optional() @Inject('tabData') private tabData: any,
-        @Optional() public activeModal: NgbActiveModal
-    ) { }
-    @HostListener('window:resize')
-    onWindowResize() {
-        this.updateResponsiveFlags();
-        setTimeout(() => {
-            this.table_productsale?.redraw?.();
-            this.table?.redraw?.();
-            this.table_pgwarehouse?.redraw?.();
-        }, 0);
-    }
+  constructor(
+    private productsaleSV: ProductsaleServiceService,
+    private notification: NzNotificationService,
+    private modalService: NgbModal,
+    private modal: NzModalService,
+    @Optional() @Inject('tabData') private tabData: any,
+    @Optional() public activeModal: NgbActiveModal
+  ) {}
+  @HostListener('window:resize')
+  onWindowResize() {
+    this.updateResponsiveFlags();
+    setTimeout(() => {
+      this.table_productsale?.redraw?.();
+      this.table?.redraw?.();
+      this.table_pgwarehouse?.redraw?.();
+    }, 0);
+  }
+//   private updateResponsiveFlags(): void {
+//     this.isMobile = window.matchMedia('(max-width: 768px)').matches;
+//     this.sizeLeft = this.isMobile ? '100%' : '25%';
+//   }
+//   ngOnInit(): void {
+//     if (this.tabData?.warehouseCode) {
+//       this.warehouseCode = this.tabData.warehouseCode;
+//     }
     private updateResponsiveFlags(): void {
         this.isMobile = window.matchMedia('(max-width: 768px)').matches;
         this.sizeLeft = this.isMobile ? '100%' : '25%';

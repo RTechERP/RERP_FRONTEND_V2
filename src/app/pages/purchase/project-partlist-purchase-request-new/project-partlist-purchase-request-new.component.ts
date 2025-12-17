@@ -21,6 +21,7 @@ import { NzSpinModule } from 'ng-zorro-antd/spin';
 import { NzSplitterModule } from 'ng-zorro-antd/splitter';
 import { NzTabsModule } from 'ng-zorro-antd/tabs';
 import { NzModalModule, NzModalService } from 'ng-zorro-antd/modal';
+import { NzDropDownModule } from 'ng-zorro-antd/dropdown';
 import { NgbActiveModal, NgbModal, NgbModule } from '@ng-bootstrap/ng-bootstrap';
 import { TabulatorFull as Tabulator, ColumnDefinition, RowComponent, CellComponent } from 'tabulator-tables';
 import { DEFAULT_TABLE_CONFIG } from '../../../tabulator-default.config';
@@ -57,6 +58,7 @@ import { PONCCService } from '../poncc/poncc.service';
     NzSplitterModule,
     NzTabsModule,
     NzModalModule,
+    NzDropDownModule,
     NgbModule,
     HasPermissionDirective
   ],
@@ -88,6 +90,7 @@ export class ProjectPartlistPurchaseRequestNewComponent implements OnInit, After
   @Input() isPurchaseRequestDemo: any = false;
 
   sizeSearch: string = '0';
+  showSearchBar: boolean = false;
   isLoading = false;
   lstPOKH: any[] = [];
   lstWarehouses: any[] = [];
@@ -149,6 +152,10 @@ export class ProjectPartlistPurchaseRequestNewComponent implements OnInit, After
   // Cached data by type for local pagination
   private allData: any[] = [];
   private dataByType = new Map<number, any[]>();
+
+  // Track cell đang được click để copy
+  private clickedCell: CellComponent | null = null;
+  private copyKeydownHandler: ((e: KeyboardEvent) => void) | null = null;
 
   // Map caption theo form WinForms để hiển thị tiêu đề cột tiếng Việt
   private CAPTION_MAP: Record<string, string> = {
@@ -220,7 +227,7 @@ export class ProjectPartlistPurchaseRequestNewComponent implements OnInit, After
     SpecialCode: 'Mã đặc biệt',
     TotalPriceHistory: 'Thành tiền lịch sử',
     InventoryProjectID: 'Phiếu giữ hàng',
-    NotePartlist: 'Ghi chú PL',
+    NotePartlist: 'Ghi chú KT',
     IsStock: 'Tồn kho',
     TargetPrice: 'Giá Target',
     DuplicateID: 'DuplicateID',
@@ -406,6 +413,60 @@ private validateManufacturerForVision(rows: any[]): boolean {
   ngOnInit(): void {
     this.getRequestTypes();
     this.loadLookups();
+    this.setupCopyToClipboard();
+  }
+
+  private setupCopyToClipboard(): void {
+    // Lắng nghe sự kiện Ctrl+C để copy giá trị cell
+    this.copyKeydownHandler = (e: KeyboardEvent) => {
+      // Kiểm tra Ctrl+C hoặc Cmd+C (Mac)
+      if ((e.ctrlKey || e.metaKey) && e.key === 'c' && this.clickedCell) {
+        e.preventDefault();
+        e.stopPropagation();
+        
+        try {
+          const value = this.clickedCell.getValue();
+          const textToCopy = value !== null && value !== undefined ? String(value) : '';
+          
+          // Copy vào clipboard
+          if (navigator.clipboard && navigator.clipboard.writeText) {
+            navigator.clipboard.writeText(textToCopy).then(() => {
+              // Có thể hiển thị thông báo nếu muốn
+              // this.notify.success('Đã copy', `Đã copy: ${textToCopy}`);
+            }).catch(() => {
+              // Fallback cho trình duyệt cũ
+              this.fallbackCopyToClipboard(textToCopy);
+            });
+          } else {
+            // Fallback cho trình duyệt cũ
+            this.fallbackCopyToClipboard(textToCopy);
+          }
+        } catch (error) {
+          console.error('Lỗi khi copy:', error);
+        }
+      }
+    };
+    
+    document.addEventListener('keydown', this.copyKeydownHandler);
+  }
+
+  private fallbackCopyToClipboard(text: string): void {
+    const textArea = document.createElement('textarea');
+    textArea.value = text;
+    textArea.style.position = 'fixed';
+    textArea.style.left = '-999999px';
+    textArea.style.top = '-999999px';
+    document.body.appendChild(textArea);
+    textArea.focus();
+    textArea.select();
+    
+    try {
+      document.execCommand('copy');
+    } catch (err) {
+      console.error('Fallback copy failed:', err);
+    }
+    
+    document.body.removeChild(textArea);
   }
 
   ngAfterViewInit(): void {
@@ -422,6 +483,40 @@ private validateManufacturerForVision(rows: any[]): boolean {
   //#region Sự kiện tìm kiếm
   toggleSearchPanel() {
     this.sizeSearch = this.sizeSearch == '0' ? '22%' : '0';
+  }
+
+  get shouldShowSearchBar(): boolean {
+    return this.showSearchBar;
+  }
+
+  ToggleSearchPanelNew(event?: Event) {
+    if (event) {
+      event.preventDefault();
+      event.stopPropagation();
+    }
+
+    const isMobile = window.innerWidth <= 768;
+    const wasOpen = this.showSearchBar;
+
+    this.showSearchBar = !this.showSearchBar;
+
+    if (isMobile) {
+      if (this.showSearchBar) {
+        document.body.style.overflow = 'hidden';
+        document.body.style.position = 'fixed';
+        document.body.style.width = '100%';
+      } else {
+        document.body.style.overflow = '';
+        document.body.style.position = '';
+        document.body.style.width = '';
+      }
+    }
+
+    requestAnimationFrame(() => {
+      if (isMobile && this.showSearchBar && !wasOpen) {
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+      }
+    });
   }
 
   onSearch() {
@@ -525,6 +620,17 @@ private validateManufacturerForVision(rows: any[]): boolean {
 
         this.refreshAllTables();
         this.isLoading = false;
+        
+        // Tự động ẩn filter bar trên mobile sau khi tìm kiếm
+        const isMobile = window.innerWidth <= 768;
+        if (isMobile && this.showSearchBar) {
+          document.body.style.overflow = '';
+          document.body.style.position = '';
+          document.body.style.width = '';
+          setTimeout(() => {
+            this.showSearchBar = false;
+          }, 100);
+        }
       },
       error: (err) => {
         this.isLoading = false;
@@ -753,8 +859,12 @@ private validateManufacturerForVision(rows: any[]): boolean {
 
   private readonly moneyFormatter = (cell: any) => this.formatNumberEnUS(cell.getValue(), 2);
   private readonly dateFormatter = (cell: any) => this.formatDateDDMMYYYY(cell.getValue());
-  private readonly tooltipFormatter = (cell: any) => {
-    const value = cell.getValue();
+  private readonly tooltipFormatter = (e: MouseEvent, cell: any) => {
+    // Trong Tabulator, tooltip formatter nhận 2 tham số:
+    // - e: MouseEvent (tham số đầu tiên)
+    // - cell: CellComponent (tham số thứ hai)
+    if (!cell) return '';
+    const value = typeof cell?.getValue === 'function' ? cell.getValue() : cell;
     if (value === null || value === undefined || value === '') return '';
     return String(value);
   };
@@ -1150,6 +1260,10 @@ private validateManufacturerForVision(rows: any[]): boolean {
         return `${value} (${count})`;
       },
       rowContextMenu: () => !this.isYCMH ? this.buildRowContextMenu(tabIndex) : [],
+      cellClick: (e: MouseEvent, cell: CellComponent) => {
+        // Lưu cell đang được click để có thể copy khi nhấn Ctrl+C
+        this.clickedCell = cell;
+      },
     };
   }
 
@@ -2124,7 +2238,10 @@ private validateManufacturerForVision(rows: any[]): boolean {
       nzOnOk: () => {
         this.isLoading = true;
 
-        this.srv.saveData(dataToSave).subscribe({
+        // Gửi dữ liệu với format { data: [...] } nếu API yêu cầu
+        const payload: any = { data: dataToSave };
+        
+        this.srv.saveData(payload as any).subscribe({
           next: (rs) => {
             this.notify.success(NOTIFICATION_TITLE.success, rs.message);
             this.changedRows = [];
@@ -2155,9 +2272,9 @@ private validateManufacturerForVision(rows: any[]): boolean {
       const rowId = changedRow.ID;
       const duplicateId = changedRow.DuplicateID;
 
-      // Thêm dòng hiện tại nếu chưa có
+      // Thêm dòng hiện tại nếu chưa có (đã normalize)
       if (!addedIds.has(rowId)) {
-        result.push(changedRow);
+        result.push(this.normalizeRowData(changedRow));
         addedIds.add(rowId);
       }
 
@@ -2176,10 +2293,10 @@ private validateManufacturerForVision(rows: any[]): boolean {
             (itemDuplicateId && itemDuplicateId === duplicateId);
 
           if (isRelated && !addedIds.has(itemId)) {
-            result.push({
+            result.push(this.normalizeRowData({
               ...item,
               IsMarketing: this.activeTabIndex === 7 || this.activeTabIndex === 1
-            });
+            }));
             addedIds.add(itemId);
           }
         });
@@ -2187,6 +2304,42 @@ private validateManufacturerForVision(rows: any[]): boolean {
     });
 
     return result;
+  }
+
+  // Hàm normalize dữ liệu row trước khi gửi lên API
+  private normalizeRowData(row: any): any {
+    const normalized: any = { ...row };
+
+    // Normalize các field số (convert string, empty string, null, undefined thành number hoặc null)
+    const numericFields = [
+      'ID', 'SupplierSaleID', 'Quantity', 'UnitPrice', 'UnitImportPrice', 'VAT', 
+      'TargetPrice', 'CurrencyID', 'ProductGroupID', 'ProductGroupRTCID', 
+      'WarehouseID', 'CurrencyRate', 'ProjectID', 'ProductRTCID', 'ProductSaleID',
+      'DuplicateID', 'PONCCID', 'POKHID', 'JobRequirementID', 'CustomerID'
+    ];
+
+    numericFields.forEach(field => {
+      if (normalized[field] !== undefined && normalized[field] !== null) {
+        const value = normalized[field];
+        // Nếu là string rỗng hoặc không phải số hợp lệ, set thành null
+        if (value === '' || value === 'null' || value === 'undefined') {
+          normalized[field] = null;
+        } else {
+          const numValue = Number(value);
+          // Nếu convert thành số hợp lệ, dùng số đó, ngược lại giữ nguyên (có thể là 0)
+          if (!isNaN(numValue) && isFinite(numValue)) {
+            normalized[field] = numValue;
+          } else {
+            normalized[field] = null;
+          }
+        }
+      } else {
+        // Nếu undefined hoặc null, set thành null
+        normalized[field] = null;
+      }
+    });
+
+    return normalized;
   }
   //#endregion
 

@@ -748,7 +748,7 @@ export class MenuService {
                                     {
                                         kind: 'leaf',
                                         key: 'InventoryDemoComponent_HCM',
-                                        title: 'TỒN KHO DEMO',
+                                        title: 'TỒN KHO DEMO HCM',
                                         isOpen: true,
                                         isPermission:
                                             this.permissionService.hasPermission(
@@ -760,7 +760,7 @@ export class MenuService {
                                     {
                                         kind: 'leaf',
                                         key: 'BillImportTechnicalComponent_HCM',
-                                        title: 'PHIẾU NHẬP DEMO',
+                                        title: 'PHIẾU NHẬP DEMO HCM',
                                         isOpen: true,
                                         isPermission: this.permissionService.hasPermission(
                                             'N19,N18,N26,N36,N29,N50,N54,N1'
@@ -771,7 +771,7 @@ export class MenuService {
                                     {
                                         kind: 'leaf',
                                         key: 'BillExportTechnicalComponent_HCM',
-                                        title: 'PHIẾU XUẤT DEMO',
+                                        title: 'PHIẾU XUẤT DEMO HCM',
                                         isOpen: true,
                                         isPermission: this.permissionService.hasPermission(
                                             'N19,N18,N26,N36,N29,N50,N54,N1'
@@ -782,7 +782,7 @@ export class MenuService {
                                     {
                                         kind: 'leaf',
                                         key: 'ProductReportNewRtcComponent_HCM',
-                                        title: 'LỊCH SỬ NHẬP - XUẤT DEMO',
+                                        title: 'LỊCH SỬ NHẬP - XUẤT DEMO HCM',
                                         isOpen: true,
                                         isPermission:
                                             this.permissionService.hasPermission(
@@ -794,7 +794,7 @@ export class MenuService {
                                     {
                                         kind: 'leaf',
                                         key: 'ProductExportAndBorrowComponent_HCM',
-                                        title: 'SẢN PHẨM KHÔNG DÙNG',
+                                        title: 'SẢN PHẨM KHÔNG DÙNG HCM',
                                         isOpen: true,
                                         isPermission: this.permissionService.hasPermission(''),
                                         comp: ProductExportAndBorrowComponent,
@@ -803,7 +803,7 @@ export class MenuService {
                                     {
                                         kind: 'leaf',
                                         key: 'BorrowReportComponent_HCM',
-                                        title: 'BÁO CÁO MƯỢN DEMO',
+                                        title: 'BÁO CÁO MƯỢN DEMO HCM',
                                         isOpen: true,
                                         isPermission:
                                             this.permissionService.hasPermission(
@@ -815,7 +815,7 @@ export class MenuService {
                                     {
                                         kind: 'leaf',
                                         key: 'BorrowProductHistoryComponent_HCM',
-                                        title: 'LỊCH SỬ MƯỢN DEMO',
+                                        title: 'LỊCH SỬ MƯỢN DEMO HCM',
                                         isOpen: true,
                                         isPermission:
                                             this.permissionService.hasPermission(
@@ -827,7 +827,7 @@ export class MenuService {
                                     {
                                         kind: 'leaf',
                                         key: 'SearchProductTechSerialComponent_HCM',
-                                        title: 'TRA CỨU SERIAL NUMBER DEMO',
+                                        title: 'TRA CỨU SERIAL NUMBER DEMO HCM ',
                                         isOpen: true,
                                         isPermission:
                                             this.permissionService.hasPermission('N26,N36,N54,N1'),
@@ -837,7 +837,7 @@ export class MenuService {
                                     {
                                         kind: 'leaf',
                                         key: 'ProductRtcQrCodeComponent_HCM',
-                                        title: 'QR Code',
+                                        title: 'QR Code HCM',
                                         isOpen: true,
                                         isPermission:
                                             this.permissionService.hasPermission('N26,N54,N1'),

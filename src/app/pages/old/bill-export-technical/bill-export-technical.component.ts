@@ -119,6 +119,19 @@ export class BillExportTechnicalComponent implements OnInit, AfterViewInit {
       this.warehouseID = this.tabData.warehouseID || 1;
       this.warehouseType = this.tabData.warehouseType || 1;
     }
+    
+    // Khởi tạo giá trị mặc định cho các filter
+    const now = new Date();
+    const firstDayOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+    const lastDayOfMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0);
+    
+    // Nếu chưa có giá trị, set giá trị mặc định
+    if (!this.dateStart) {
+      this.dateStart = firstDayOfMonth;
+    }
+    if (!this.dateEnd) {
+      this.dateEnd = lastDayOfMonth;
+    }
   }
   
   // Helper method to format date to yyyy-MM-dd

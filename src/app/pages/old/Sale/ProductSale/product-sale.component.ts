@@ -188,14 +188,6 @@ export class ProductSaleComponent implements OnInit, AfterViewInit {
         this.isMobile = window.matchMedia('(max-width: 768px)').matches;
         this.sizeLeft = this.isMobile ? '100%' : '25%';
     }
-    //   ngOnInit(): void {
-    //     if (this.tabData?.warehouseCode) {
-    //       this.warehouseCode = this.tabData.warehouseCode;
-    //     }
-    // private updateResponsiveFlags(): void {
-    //     this.isMobile = window.matchMedia('(max-width: 768px)').matches;
-    //     this.sizeLeft = this.isMobile ? '100%' : '25%';
-    // }
     ngOnInit(): void {
         if (this.tabData?.warehouseCode) {
             this.warehouseCode = this.tabData.warehouseCode;

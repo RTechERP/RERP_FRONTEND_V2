@@ -12,7 +12,7 @@
                     </div>
                 </div>
                 <div class="card-body">
-                    <form nz-form nzLayout="vertical">
+                    <form nz-form nzLayout="vertical" (keyup.enter)="searchData()">
                         <!-- Date range -->
                         <nz-form-item>
                             <nz-form-label class="fs-12" [nzSpan]="24">Từ ngày</nz-form-label>
@@ -63,7 +63,8 @@
                             <nz-form-label class="fs-12" [nzSpan]="24">Từ khóa</nz-form-label>
                             <nz-form-control [nzSpan]="24">
                                 <input class="w-100" nz-input placeholder="Nhập từ khóa"
-                                    [(ngModel)]="searchParams.keyword" name="keyword" nzSize="small" />
+                                    [(ngModel)]="searchParams.keyword" name="keyword" nzSize="small"
+                                    (keyup.enter)="searchData()" />
                             </nz-form-control>
                         </nz-form-item>
                         <nz-form-item class="mt-2">

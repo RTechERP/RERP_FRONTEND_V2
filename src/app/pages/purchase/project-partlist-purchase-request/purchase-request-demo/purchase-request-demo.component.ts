@@ -21,6 +21,7 @@ import { NzSpinModule } from 'ng-zorro-antd/spin';
 import { NzSplitterModule } from 'ng-zorro-antd/splitter';
 import { NzTabsModule } from 'ng-zorro-antd/tabs';
 import { NzModalModule, NzModalService } from 'ng-zorro-antd/modal';
+import { NzDropDownModule } from 'ng-zorro-antd/dropdown';
 import { NgbActiveModal, NgbModal, NgbModule } from '@ng-bootstrap/ng-bootstrap';
 import { TabulatorFull as Tabulator, ColumnDefinition, RowComponent, CellComponent } from 'tabulator-tables';
 import { DEFAULT_TABLE_CONFIG } from '../../../../tabulator-default.config';
@@ -30,7 +31,7 @@ import { HasPermissionDirective } from "../../../../directives/has-permission.di
 import { NOTIFICATION_TITLE } from '../../../../app.config';
 import { ProjectService } from '../../../project/project-service/project.service';
 import { DateTime } from 'luxon';
-import { ProjectPartlistPurchaseRequestDetailComponent } from '../project-partlist-purchase-request-detail/project-partlist-purchase-request-detail.component';
+import { ProductRtcPurchaseRequestComponent } from '../product-rtc-purchase-request/product-rtc-purchase-request.component';
 import { WarehouseReleaseRequestService } from '../../../old/warehouse-release-request/warehouse-release-request/warehouse-release-request.service';
 import { AppUserService } from '../../../../services/app-user.service';
 import { PermissionService } from '../../../../services/permission.service';
@@ -52,6 +53,7 @@ import { SupplierSaleService } from '../../supplier-sale/supplier-sale.service';
     NzSplitterModule,
     NzTabsModule,
     NzModalModule,
+    NzDropDownModule,
     NgbModule,
     HasPermissionDirective
   ],
@@ -80,6 +82,7 @@ export class PurchaseRequestDemoComponent implements OnInit, AfterViewInit {
   @Input() employeeID: number = 0; // Nhận EmployeeID từ bên ngoài
 
   sizeSearch: string = '0';
+  showSearchBar: boolean = false;
   isLoading = false;
   lstPOKH: any[] = [];
   lstWarehouses: any[] = [];
@@ -384,6 +387,40 @@ export class PurchaseRequestDemoComponent implements OnInit, AfterViewInit {
     this.sizeSearch = this.sizeSearch == '0' ? '22%' : '0';
   }
 
+  get shouldShowSearchBar(): boolean {
+    return this.showSearchBar;
+  }
+
+  ToggleSearchPanelNew(event?: Event) {
+    if (event) {
+      event.preventDefault();
+      event.stopPropagation();
+    }
+
+    const isMobile = window.innerWidth <= 768;
+    const wasOpen = this.showSearchBar;
+
+    this.showSearchBar = !this.showSearchBar;
+
+    if (isMobile) {
+      if (this.showSearchBar) {
+        document.body.style.overflow = 'hidden';
+        document.body.style.position = 'fixed';
+        document.body.style.width = '100%';
+      } else {
+        document.body.style.overflow = '';
+        document.body.style.position = '';
+        document.body.style.width = '';
+      }
+    }
+
+    requestAnimationFrame(() => {
+      if (isMobile && this.showSearchBar && !wasOpen) {
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+      }
+    });
+  }
+
   onSearch() {
     if (!this.tabs || this.tabs.length === 0) return;
     this.isLoading = true;
@@ -405,7 +442,7 @@ export class PurchaseRequestDemoComponent implements OnInit, AfterViewInit {
       EmployeeID: this.employeeID || 0, // Truyền EmployeeID vào filter
     };
 
-    this.srv.getAll(filter).subscribe({
+    this.srv.getAllDemo(filter).subscribe({
       next: (res) => {
         const data = Array.isArray(res?.data) ? res.data : res?.data || res || [];
         this.allData = data;
@@ -449,10 +486,21 @@ export class PurchaseRequestDemoComponent implements OnInit, AfterViewInit {
 
         this.refreshAllTables();
         this.isLoading = false;
+        
+        // Tự động ẩn filter bar trên mobile sau khi tìm kiếm
+        const isMobile = window.innerWidth <= 768;
+        if (isMobile && this.showSearchBar) {
+          document.body.style.overflow = '';
+          document.body.style.position = '';
+          document.body.style.width = '';
+          setTimeout(() => {
+            this.showSearchBar = false;
+          }, 100);
+        }
       },
       error: (err) => {
         this.isLoading = false;
-        this.notify.error('Lỗi', 'Không tải được dữ liệu');
+        this.notify.error('Lỗi', err.error.message);
       },
     });
 
@@ -1321,7 +1369,7 @@ export class PurchaseRequestDemoComponent implements OnInit, AfterViewInit {
     // Xác định ProjectPartlistPurchaseRequestTypeID dựa trên tab hiện tại
     const projectPartlistPurchaseRequestTypeID = currentTab.id; // 3 hoặc 4
 
-    const modalRef = this.modalService.open(ProjectPartlistPurchaseRequestDetailComponent, {
+    const modalRef = this.modalService.open(ProductRtcPurchaseRequestComponent, {
       centered: false,
       backdrop: 'static',
       keyboard: false,
@@ -1347,6 +1395,7 @@ export class PurchaseRequestDemoComponent implements OnInit, AfterViewInit {
       IsApprovedTBP: false,
       IsApprovedBGD: false,
       IsRequestApproved: false,
+      TicketType: projectPartlistPurchaseRequestTypeID === 4 ? 1 : 0, // 4 = mượn demo (TicketType = 1), 3 = mua demo (TicketType = 0)
     };
 
     modalRef.componentInstance.projectPartlistDetail = newData;
@@ -1366,47 +1415,103 @@ export class PurchaseRequestDemoComponent implements OnInit, AfterViewInit {
       return;
     }
 
-    const rows = this.getSelectedRowsData(this.activeTabIndex);
-    if (rows.length != 1) {
-      this.notify.warning(NOTIFICATION_TITLE.warning, `Vui lòng chọn 1 dòng cần sửa!`);
+    const table = this.tables?.[this.activeTabIndex];
+    if (!table) {
+      this.notify.warning(NOTIFICATION_TITLE.warning, 'Không tìm thấy bảng dữ liệu!');
       return;
     }
 
-    let isCommercialProduct = rows[0].IsCommercialProduct;
-    let poNCC = rows[0].PONCCID;
+    // Lấy dòng đang được focus/selected
+    const selectedRows = table.getSelectedRows();
+    let focusedRow: any = null;
+    
+    if (selectedRows && selectedRows.length > 0) {
+      focusedRow = selectedRows[0];
+    } else {
+      // Nếu không có dòng được chọn, lấy dòng đầu tiên (tương đương GetFocusedRowCellValue)
+      const allRows = table.getRows();
+      if (allRows && allRows.length > 0) {
+        focusedRow = allRows[0];
+      }
+    }
 
-    if (!isCommercialProduct || poNCC > 0) {
-      this.notify.warning(NOTIFICATION_TITLE.warning, `Sửa Y/C chỉ áp dụng với [Hàng thương mại] và yêu cầu [Chưa có PO]!`);
+    if (!focusedRow) {
+      this.notify.warning(NOTIFICATION_TITLE.warning, 'Vui lòng chọn yêu cầu muốn sửa!');
       return;
     }
 
-    this.selectedRowIds = rows.map(r => r.ID);
-    this.selectedTabIndex = this.activeTabIndex;
+    const rowData = focusedRow.getData();
+    const id = Number(rowData['ID'] || 0);
 
-    this.srv.getDetailByID(rows[0].ID).subscribe({
+    // Kiểm tra ID > 0
+    if (id === 0) {
+      this.notify.warning(NOTIFICATION_TITLE.warning, 'Vui lòng chọn yêu cầu muốn sửa!');
+      return;
+    }
+
+    // Lấy ProductRTCID từ row
+    const productRTCID = Number(rowData['ProductRTCID'] || 0);
+
+    // Lấy UpdatedName từ row
+    const updatedName = String(rowData['UpdatedName'] || '').trim();
+
+    // Gọi API để lấy model
+    this.srv.getDetailByID(id).subscribe({
       next: (rs) => {
-        const modalRef = this.modalService.open(ProjectPartlistPurchaseRequestDetailComponent, {
+        const focusedModel = rs.data || rs;
+        
+        if (!focusedModel) {
+          this.notify.warning(NOTIFICATION_TITLE.warning, 'Không tìm thấy yêu cầu này!');
+          return;
+        }
+
+        // Kiểm tra IsDeleted
+        if (focusedModel.IsDeleted) {
+          this.notify.warning(NOTIFICATION_TITLE.warning, 'Yêu cầu này đã bị xóa!');
+          return;
+        }
+
+        // Kiểm tra IsApprovedTBP hoặc IsApprovedBGD
+        if (focusedModel.IsApprovedTBP || focusedModel.IsApprovedBGD) {
+          this.notify.warning(NOTIFICATION_TITLE.warning, 'Yêu cầu này đã được phê duyệt TBP!');
+          return;
+        }
+
+        // Kiểm tra UpdatedName
+        if (updatedName && updatedName !== '') {
+          this.notify.warning(NOTIFICATION_TITLE.warning, 'Yêu cầu này đã có nhân viên mua!');
+          return;
+        }
+
+        // Mở modal với productRTCID và model
+        const modalRef = this.modalService.open(ProductRtcPurchaseRequestComponent, {
           centered: false,
           backdrop: 'static',
           keyboard: false,
           windowClass: 'full-screen-modal'
         });
-        let data = {
-          ...rs.data,
-          Unit: rows[0].UnitName || '',
-          CustomerID: rows[0].CustomerID || 0,
-          Maker: rows[0].Manufacturer || '',
+
+        // Truyền productRTCID và model vào modal
+        modalRef.componentInstance.productRTCID = productRTCID;
+        modalRef.componentInstance.projectPartlistDetail = {
+          ...focusedModel,
+          Unit: rowData['UnitName'] || '',
+          CustomerID: rowData['CustomerID'] || 0,
+          Maker: rowData['Manufacturer'] || '',
         };
-        modalRef.componentInstance.projectPartlistDetail = data;
-        modalRef.result.catch((reason) => {
-          this.onSearch();
-        });
+
+        modalRef.result.then(
+          () => {
+            this.onSearch();
+          },
+          () => {
+            this.onSearch();
+          }
+        );
       },
       error: (error) => {
         this.isLoading = false;
-        this.notify.error(NOTIFICATION_TITLE.error, error.error.message || 'Lỗi khi lấy dữ liệu chi tiết!');
-        this.selectedRowIds = [];
-        this.selectedTabIndex = -1;
+        this.notify.error(NOTIFICATION_TITLE.error, error.error?.message || 'Lỗi khi lấy dữ liệu chi tiết!');
       }
     });
   }

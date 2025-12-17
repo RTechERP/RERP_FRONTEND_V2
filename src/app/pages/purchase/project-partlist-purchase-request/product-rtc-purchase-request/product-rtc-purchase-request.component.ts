@@ -113,8 +113,6 @@ export class ProductRtcPurchaseRequestComponent implements OnInit, AfterViewInit
     private projectService: ProjectService,
     private fb: FormBuilder,
     private customerService: CustomerServiceService,
-    private pokhService: PokhService,
-    private whService: WarehouseReleaseRequestService,
     private currencyService: CurrencyService,
     private projectPartlistPurchaseRequestService: ProjectPartlistPurchaseRequestService,
     private firmService: FirmService,
@@ -139,6 +137,7 @@ export class ProductRtcPurchaseRequestComponent implements OnInit, AfterViewInit
   isDisable: any = false;
   IsTechBought: any = false;
   isLoadingData: boolean = false; // Flag để tránh trigger valueChanges khi đang load data
+  private isEditingMode: boolean = false; // Flag để biết khi nào đang edit và đã load data
   
   // ProductRTC specific data
   productsRTC: any[] = [];
@@ -196,7 +195,6 @@ export class ProductRtcPurchaseRequestComponent implements OnInit, AfterViewInit
         ?.valueChanges.pipe(distinctUntilChanged())
         .subscribe((value) => {
           if (!this.isLoadingData) {
-            console.log(`Field ${field} changed to:`, value);
             setTimeout(() => this.updatePrice(), 0);
           }
         });
@@ -226,8 +224,11 @@ export class ProductRtcPurchaseRequestComponent implements OnInit, AfterViewInit
     this.validateForm
       .get('ProductRTCID')
       ?.valueChanges.pipe(distinctUntilChanged())
-      .subscribe(() => {
-        if (!this.isLoadingData) {
+      .subscribe((value) => {
+        // Chỉ gọi getProductRTC() khi:
+        // 1. Không đang load data
+        // 2. Không phải đang edit mode (vì dữ liệu đã có sẵn từ projectPartlistDetail)
+        if (!this.isLoadingData && !this.isEditingMode) {
           setTimeout(() => this.getProductRTC(), 0);
         }
       });
@@ -320,9 +321,9 @@ export class ProductRtcPurchaseRequestComponent implements OnInit, AfterViewInit
     
     if (this.projectPartlistDetail != null) {
       let data = this.projectPartlistDetail;
-      console.log(data);
       const id = data.ID ? Number(data.ID) : 0;
       this.isDisable = id > 0;
+      this.isEditingMode = true; // Set flag để biết đang edit mode
 
       this.IsTechBought = data.IsTechBought;
       
@@ -373,8 +374,9 @@ export class ProductRtcPurchaseRequestComponent implements OnInit, AfterViewInit
       };
       
       // Map Maker/FirmName to FirmID
+      let makerName = '';
       if (data.Maker || data.FirmName) {
-        const makerName = data.Maker || data.FirmName;
+        makerName = data.Maker || data.FirmName;
         const firm = this.firms.find(f => f.FirmName === makerName);
         formValue.FirmID = firm?.ID ?? 0;
         formValue.Maker = makerName;
@@ -383,8 +385,9 @@ export class ProductRtcPurchaseRequestComponent implements OnInit, AfterViewInit
       }
       
       // Map UnitName to UnitCountID
-      if (data.UnitName) {
-        const unit = this.unitCounts.find(u => u.UnitCountName === data.UnitName);
+      const unitName = data.UnitName || '';
+      if (unitName) {
+        const unit = this.unitCounts.find(u => u.UnitCountName === unitName || u.UnitName === unitName);
         formValue.UnitCountID = unit?.ID ?? 0;
       } else {
         formValue.UnitCountID = 0;
@@ -395,9 +398,29 @@ export class ProductRtcPurchaseRequestComponent implements OnInit, AfterViewInit
       // Reset flag sau khi setValue xong
       setTimeout(() => {
         this.isLoadingData = false;
+        // Giữ isEditingMode = true để tránh getProductRTC() tự động gọi từ valueChanges
+        
         // Đảm bảo các field read-only vẫn bị disable sau khi load data
         this.disableReadOnlyFields();
+        
+        // Nếu các dropdown data chưa load xong khi setValue, map lại sau khi data đã load
+        if (makerName && formValue.FirmID === 0 && this.firms.length > 0) {
+          const firm = this.firms.find(f => f.FirmName === makerName);
+          if (firm) {
+            this.validateForm.patchValue({ FirmID: firm.ID });
+          }
+        }
+        
+        if (unitName && formValue.UnitCountID === 0 && this.unitCounts.length > 0) {
+          const unit = this.unitCounts.find(u => u.UnitCountName === unitName || u.UnitName === unitName);
+          if (unit) {
+            this.validateForm.patchValue({ UnitCountID: unit.ID });
+          }
+        }
       }, 100);
+      
+      // Khi edit, không cần gọi getProductRTC() vì dữ liệu đã có sẵn từ projectPartlistDetail
+      // getProductRTC() sẽ được gọi tự động khi user thay đổi ProductRTCID (qua valueChanges listener)
 
       // Disable các control khi isDisable = true
       if (this.isDisable) {
@@ -449,6 +472,7 @@ export class ProductRtcPurchaseRequestComponent implements OnInit, AfterViewInit
     } else {
       // New record
       this.isDisable = false;
+      this.isEditingMode = false; // Reset flag khi tạo mới
       this.validateForm.patchValue({
         DateRequest: new Date(),
         TicketType: 0,
@@ -586,7 +610,9 @@ export class ProductRtcPurchaseRequestComponent implements OnInit, AfterViewInit
 
   // Helper method để fill dữ liệu ProductRTC vào form
   private fillProductRTCData(productData: any) {
-    if (!productData) return;
+    if (!productData) {
+      return;
+    }
 
     // Set flag để tránh trigger getProductRTC() khi đang fill data
     this.isLoadingData = true;
@@ -657,8 +683,37 @@ export class ProductRtcPurchaseRequestComponent implements OnInit, AfterViewInit
       }
     }
 
-    // Fill form data
-    this.validateForm.patchValue(formData);
+    // Fill form data - chỉ fill các field còn thiếu, không overwrite các field đã có giá trị
+    const currentFormValues = this.validateForm.getRawValue();
+    
+    // Chỉ fill các field nếu chúng chưa có giá trị hoặc đang rỗng
+    const formDataToPatch: any = {};
+    if (!currentFormValues.ProductName || currentFormValues.ProductName === '') {
+      formDataToPatch.ProductName = formData.ProductName;
+    }
+    if (!currentFormValues.ProductCode || currentFormValues.ProductCode === '') {
+      formDataToPatch.ProductCode = formData.ProductCode;
+    }
+    if (!currentFormValues.ProductCodeRTC || currentFormValues.ProductCodeRTC === '') {
+      formDataToPatch.ProductCodeRTC = formData.ProductCodeRTC;
+    }
+    if (!currentFormValues.FirmID || currentFormValues.FirmID === 0) {
+      formDataToPatch.FirmID = formData.FirmID;
+    }
+    if (!currentFormValues.UnitCountID || currentFormValues.UnitCountID === 0) {
+      formDataToPatch.UnitCountID = formData.UnitCountID;
+    }
+    if (!currentFormValues.ProductGroupRTCID || currentFormValues.ProductGroupRTCID === 0) {
+      formDataToPatch.ProductGroupRTCID = formData.ProductGroupRTCID;
+    }
+    if (!currentFormValues.Maker || currentFormValues.Maker === '') {
+      formDataToPatch.Maker = formData.Maker;
+    }
+    
+    // Luôn update ProductRTCID để đảm bảo sync
+    formDataToPatch.ProductRTCID = formData.ProductRTCID;
+    
+    this.validateForm.patchValue(formDataToPatch);
     
     // Disable các field sau khi fill
     this.disableProductRTCFields(formData.ProductRTCID);
@@ -750,7 +805,6 @@ export class ProductRtcPurchaseRequestComponent implements OnInit, AfterViewInit
   //#region Tình toán
   updatePrice() {
     if (this.isLoadingData) {
-      console.log('updatePrice: Skipping because isLoadingData = true');
       return; // Tránh tính toán khi đang load data
     }
     
@@ -761,8 +815,6 @@ export class ProductRtcPurchaseRequestComponent implements OnInit, AfterViewInit
     const currencyRate = parseFloat(data.CurrencyRate) || 0;
     const vat = parseFloat(data.VAT) || 0;
 
-    console.log('updatePrice - Input:', { unitPrice, quantity, currencyRate, vat });
-
     // Thành tiền chưa VAT = Đơn giá * Số lượng
     const totalPrice = unitPrice * quantity;
     
@@ -771,8 +823,6 @@ export class ProductRtcPurchaseRequestComponent implements OnInit, AfterViewInit
     
     // Thành tiền có VAT = Thành tiền chưa VAT + (Thành tiền chưa VAT * VAT%)
     const totalMoneyVAT = totalPrice + (totalPrice * vat) / 100;
-
-    console.log('updatePrice - Calculated:', { totalPrice, totalPriceExchange, totalMoneyVAT });
 
     // Set flag để tránh trigger valueChanges khi đang update
     this.isLoadingData = true;
@@ -802,8 +852,6 @@ export class ProductRtcPurchaseRequestComponent implements OnInit, AfterViewInit
     if (wasTotalPriceDisabled) totalPriceControl?.disable({ emitEvent: false });
     if (wasTotalPriceExchangeDisabled) totalPriceExchangeControl?.disable({ emitEvent: false });
     if (wasTotalMoneyVATDisabled) totalMoneyVATControl?.disable({ emitEvent: false });
-    
-    console.log('updatePrice - Updated form values');
     
     // Reset flag sau khi update
     setTimeout(() => {
@@ -848,6 +896,9 @@ export class ProductRtcPurchaseRequestComponent implements OnInit, AfterViewInit
 
   // Handle ProductRTC change event từ select
   onProductRTCChange(productRTCId: number) {
+    // Khi user thay đổi ProductRTCID thủ công, reset isEditingMode để cho phép getProductRTC() chạy
+    this.isEditingMode = false;
+    
     if (!productRTCId || productRTCId <= 0) {
       // Nếu không chọn gì, enable lại các field
       this.validateForm.get('ProductName')?.enable();
@@ -886,7 +937,9 @@ export class ProductRtcPurchaseRequestComponent implements OnInit, AfterViewInit
 
   // Handle ProductRTC change
   getProductRTC() {
-    if (this.isLoadingData) return;
+    if (this.isLoadingData) {
+      return;
+    }
     
     let data = this.validateForm.getRawValue();
     const productRTCId = data.ProductRTCID;

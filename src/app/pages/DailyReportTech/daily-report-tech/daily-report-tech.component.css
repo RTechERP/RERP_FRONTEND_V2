@@ -30,4 +30,12 @@
     height: 100% !important;
   }
   
+  /* CSS để textarea cells tự xuống dòng */
+  :host ::ng-deep .tabulator-cell {
+    white-space: pre-wrap !important;
+    word-wrap: break-word !important;
+    overflow-wrap: break-word !important;
+    word-break: break-word !important;
+  }
+  
   

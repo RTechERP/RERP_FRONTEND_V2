@@ -208,7 +208,6 @@
                             style="width: 250px"
                             [(ngModel)]="keyword"
                             (keyup.enter)="searchProjects()"
-                            (ngModelChange)="onSearchChange($event)"
                         />
                         <button nz-button nzType="default" nzSize="small" (click)="searchProjects()" class="btn">
                             <nz-icon nzType="search" />

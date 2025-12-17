@@ -3058,7 +3058,7 @@ export class ProjectPartListComponent implements OnInit, AfterViewInit {
   getSolutionVersionContextMenu(rowData: any): any[] {
     return [
       {
-        label: '<span style="font-size: 0.75rem;"><img src="assets/icon/action_convert_16.png" class="me-1" /> Chuyển thành PO</span>',
+        label: '<span style="font-size: 0.75rem;"><img src="assets/icon/convert_po_16.png" class="me-1" /> Chuyển thành PO</span>',
         action: () => this.convertVersionToPO(rowData),
       },
     ];
@@ -3080,7 +3080,7 @@ export class ProjectPartListComponent implements OnInit, AfterViewInit {
       ProjectTypeID: rowData.ProjectTypeID,
       ProjectSolutionID: rowData.ProjectSolutionID,
       ProjectTypeName: rowData.ProjectTypeName,
-      ProjectID: rowData.ProjectID || this.projectId,
+      ProjectID: this.projectId,
     };
     this.startLoading();
     // dùng as any để tránh lỗi type khi mở rộng service

@@ -25,6 +25,7 @@ import * as ExcelJS from 'exceljs';
 import { debounceTime } from 'rxjs/operators';
 import { Subject } from 'rxjs';
 import { DailyReportTechDetailComponent } from './daily-report-tech-detail/daily-report-tech-detail.component';
+import { DailyReportExcelComponent } from '../daily-report-excel/daily-report-excel.component';
 
 @Component({
   selector: 'app-daily-report-tech',
@@ -502,12 +503,12 @@ export class DailyReportTechComponent implements OnInit, AfterViewInit {
             columns: [
             {
               title: 'Ngày bắt đầu',
-              field: 'PlanStartDate',
-              formatter: (cell: any) => {
-                const value = cell.getValue() || '';
-                const dateTime = DateTime.fromISO(value);
-                return dateTime.isValid ? dateTime.toFormat('dd/MM/yyyy') : '';
-              },
+              field: 'PlanStartDate', 
+              // formatter: (cell: any) => {
+              //   const value = cell.getValue() || '';
+              //   const dateTime = DateTime.fromISO(value);
+              //   return dateTime.isValid ? dateTime.toFormat('dd/MM/yyyy') : '';
+              // },
               hozAlign: 'center',
               width: 120,
             },
@@ -520,11 +521,11 @@ export class DailyReportTechComponent implements OnInit, AfterViewInit {
             {
               title: 'Ngày kết thúc',
               field: 'PlanEndDate',
-              formatter: (cell: any) => {
-                const value = cell.getValue() || '';
-                const dateTime = DateTime.fromISO(value);
-                return dateTime.isValid ? dateTime.toFormat('dd/MM/yyyy') : '';
-              },
+              // formatter: (cell: any) => {
+              //   const value = cell.getValue() || '';
+              //   const dateTime = DateTime.fromISO(value);
+              //   return dateTime.isValid ? dateTime.toFormat('dd/MM/yyyy') : '';
+              // },
               hozAlign: 'center',
               width: 120,
             },
@@ -536,11 +537,11 @@ export class DailyReportTechComponent implements OnInit, AfterViewInit {
             {
               title: 'Ngày bắt đầu',
               field: 'ActualStartDate',
-              formatter: (cell: any) => {
-                const value = cell.getValue() || '';
-                const dateTime = DateTime.fromISO(value);
-                return dateTime.isValid ? dateTime.toFormat('dd/MM/yyyy') : '';
-              },
+              // formatter: (cell: any) => {
+              //   const value = cell.getValue() || '';
+              //   const dateTime = DateTime.fromISO(value);
+              //   return dateTime.isValid ? dateTime.toFormat('dd/MM/yyyy') : '';
+              // },
               hozAlign: 'center',
               width: 120,
             },
@@ -553,11 +554,11 @@ export class DailyReportTechComponent implements OnInit, AfterViewInit {
             {
               title: 'Ngày kết thúc',
               field: 'ActualEndDate',
-              formatter: (cell: any) => {
-                const value = cell.getValue() || '';
-                const dateTime = DateTime.fromISO(value);
-                return dateTime.isValid ? dateTime.toFormat('dd/MM/yyyy') : '';
-              },
+              // formatter: (cell: any) => {
+              //   const value = cell.getValue() || '';
+              //   const dateTime = DateTime.fromISO(value);
+              //   return dateTime.isValid ? dateTime.toFormat('dd/MM/yyyy') : '';
+              // },
               hozAlign: 'center',
               width: 120,
             },
@@ -944,7 +945,122 @@ export class DailyReportTechComponent implements OnInit, AfterViewInit {
   }
 
   async exportList(): Promise<void> {
-    await this.exportReport();
+    // Lấy dữ liệu từ filter hiện tại
+    const searchParams = this.getSearchParams();
+    
+    // Validate ngày
+    if (!this.dateStart || !this.dateEnd) {
+      this.notification.warning('Thông báo', 'Vui lòng chọn từ ngày và đến ngày!');
+      return;
+    }
+
+    // Format dates
+    let dateStart: Date;
+    if (this.dateStart instanceof Date) {
+      dateStart = this.dateStart;
+    } else if (typeof this.dateStart === 'string') {
+      dateStart = DateTime.fromISO(this.dateStart).toJSDate();
+    } else {
+      dateStart = DateTime.local().minus({ days: 1 }).toJSDate();
+    }
+
+    let dateEnd: Date;
+    if (this.dateEnd instanceof Date) {
+      dateEnd = this.dateEnd;
+    } else if (typeof this.dateEnd === 'string') {
+      dateEnd = DateTime.fromISO(this.dateEnd).toJSDate();
+    } else {
+      dateEnd = DateTime.local().toJSDate();
+    }
+
+    // Validate ngày
+    if (DateTime.fromJSDate(dateEnd) < DateTime.fromJSDate(dateStart)) {
+      this.notification.warning('Thông báo', 'Đến ngày phải lớn hơn hoặc bằng Từ ngày!');
+      return;
+    }
+
+    // Lấy team ID và tên team
+    const teamId = this.teamId || 0;
+    let teamName = 'All';
+    
+    if (teamId > 0) {
+      const selectedTeam = this.teams.find(team => team.ID === teamId);
+      if (selectedTeam) {
+        teamName = selectedTeam.Name || 'All';
+        // Loại bỏ ký tự đặc biệt trong tên team (giống backend)
+        teamName = teamName.replace(/[^\w\-_\.]/g, '_');
+      }
+    }
+
+    // Format team ID thành string (nếu cần nhiều team, có thể mở rộng sau)
+    const teamIdString = teamId > 0 ? teamId.toString() : '';
+
+    // Gọi API xuất Excel
+    this.dailyReportTechService.exportToExcel({
+      DateStart: dateStart,
+      DateEnd: dateEnd,
+      TeamID: teamIdString,
+      TeamName: teamName
+    }).subscribe({
+      next: (blob: Blob) => {
+        // Kiểm tra xem có phải là blob hợp lệ không
+        if (blob && blob.size > 0) {
+          // Format tên file: DanhSachBaoCaoCongViec_TeamName_ddmmyyyy_ddmmyyyy
+          const dateStartStr = DateTime.fromJSDate(dateStart).toFormat('ddMMyyyy');
+          const dateEndStr = DateTime.fromJSDate(dateEnd).toFormat('ddMMyyyy');
+          const fileName = `DanhSachBaoCaoCongViec_${teamName}_${dateStartStr}_${dateEndStr}.xlsx`;
+
+          // Tạo URL từ blob và download
+          const url = window.URL.createObjectURL(blob);
+          const link = document.createElement('a');
+          link.href = url;
+          link.download = fileName;
+          document.body.appendChild(link);
+          link.click();
+          document.body.removeChild(link);
+          window.URL.revokeObjectURL(url);
+
+          this.notification.success('Thông báo', 'Xuất Excel thành công!');
+        } else {
+          this.notification.error('Thông báo', 'File tải về không hợp lệ!');
+        }
+      },
+      error: (error: any) => {
+        // Xử lý lỗi nếu response là blob (có thể server trả về lỗi dạng blob)
+        if (error.error instanceof Blob) {
+          const reader = new FileReader();
+          reader.onload = () => {
+            try {
+              const errorText = JSON.parse(reader.result as string);
+              this.notification.error(
+                'Thông báo', 
+                errorText.message || errorText.Message || 'Có lỗi xảy ra khi xuất Excel!'
+              );
+            } catch {
+              this.notification.error('Thông báo', 'Có lỗi xảy ra khi xuất Excel!');
+            }
+          };
+          reader.readAsText(error.error);
+        } else {
+          const errorMsg = error?.error?.message || error?.message || 'Có lỗi xảy ra khi xuất Excel!';
+          this.notification.error('Thông báo', errorMsg);
+        }
+        console.error('Error exporting Excel:', error);
+      }
+    });
+  }
+  async exportReportTeam(): Promise<void> {
+    const modalRef = this.modalService.open(DailyReportExcelComponent, {
+      size: 'xl',
+      backdrop: 'static',
+      keyboard: true,
+      centered: false,
+    });
+    modalRef.componentInstance.teams = this.teams;
+    modalRef.componentInstance.currentUser = this.currentUser;
+    modalRef.componentInstance.projects = this.projects;
+    modalRef.componentInstance.projectItems = [];
+    modalRef.componentInstance.projectItems = [];
   }
 
   createdText(text: string): string {

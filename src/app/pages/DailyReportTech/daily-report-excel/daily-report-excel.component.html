@@ -1,0 +1,88 @@
+<div class="modal-dialog-scrollable">
+    <div class="modal-header bg-primary text-uppercase py-2">
+        <h6 class="modal-title text-white">Xuất Excel báo cáo kỹ thuật</h6>
+        <button type="button" class="btn-close" (click)="closeModal()" aria-label="Close"></button>
+    </div>
+
+    <div class="modal-body" style="max-height: 80vh !important; overflow-y: auto;">
+        <form nz-form [formGroup]="form" class="g-3 needs-validation was-validated">
+            <!-- Hàng 1: Từ ngày + Đến ngày -->
+            <div class="row">
+                <div class="col-md-6 pb-3">
+                    <nz-form-label class="fs-12">
+                        Từ ngày
+                        <span class="text-danger ps-1 me-1">*</span>
+                    </nz-form-label>
+                    <nz-form-control [nzErrorTip]="
+              form.get('dateStart')?.invalid &&
+              (form.get('dateStart')?.dirty || form.get('dateStart')?.touched)
+                ? 'Vui lòng chọn từ ngày!'
+                : undefined
+            ">
+                        <nz-date-picker formControlName="dateStart" nzFormat="dd/MM/yyyy" nzPlaceHolder="Chọn từ ngày"
+                            class="w-100 fs-12" nzAllowClear="false"></nz-date-picker>
+                    </nz-form-control>
+                </div>
+
+                <div class="col-md-6 pb-3">
+                    <nz-form-label class="fs-12">
+                        Đến ngày
+                        <span class="text-danger ps-1 me-1">*</span>
+                    </nz-form-label>
+                    <nz-form-control [nzErrorTip]="
+              form.get('dateEnd')?.invalid &&
+              (form.get('dateEnd')?.dirty || form.get('dateEnd')?.touched)
+                ? 'Vui lòng chọn đến ngày!'
+                : undefined
+            ">
+                        <nz-date-picker formControlName="dateEnd" nzFormat="dd/MM/yyyy" nzPlaceHolder="Chọn đến ngày"
+                            class="w-100 fs-12" nzAllowClear="false"></nz-date-picker>
+                    </nz-form-control>
+                </div>
+            </div>
+
+            <!-- Hàng 2: Team -->
+            <div class="row">
+                <div class="col-md-12 pb-3">
+                    <nz-form-label class="fs-12">
+                        Team
+                        <span class="text-danger ps-1 me-1">*</span>
+                    </nz-form-label>
+                    <nz-form-control [nzErrorTip]="
+              form.get('teamId')?.invalid &&
+              (form.get('teamId')?.dirty || form.get('teamId')?.touched)
+                ? 'Vui lòng chọn ít nhất một team!'
+                : undefined
+            ">
+                        <nz-select 
+                            formControlName="teamId" 
+                            nzPlaceHolder="Chọn team (có thể chọn nhiều)" 
+                            class="fs-12 w-100" 
+                            nzShowSearch
+                            nzAllowClear
+                            nzMode="multiple"
+                            [nzMaxTagCount]="3">
+                            @for (item of teams; track $index) {
+                            <nz-option [nzValue]="item.ID" [nzLabel]="item.Name">
+                                {{ item.Name }}
+                            </nz-option>
+                            }
+                        </nz-select>
+                    </nz-form-control>
+                </div>
+            </div>
+        </form>
+    </div>
+
+    <div class="modal-footer">
+        <button class="fs-12 btn" nz-button nzDanger (click)="closeModal()">
+            Đóng
+        </button>
+        <button class="fs-12 btn" nz-button nzType="primary" (click)="exportExcel()" [disabled]="exporting">
+            @if (exporting) {
+            <i nz-icon nzType="loading" class="me-2"></i>
+            }
+            {{ exporting ? 'Đang xuất...' : 'Xuất Excel' }}
+        </button>
+    </div>
+</div>

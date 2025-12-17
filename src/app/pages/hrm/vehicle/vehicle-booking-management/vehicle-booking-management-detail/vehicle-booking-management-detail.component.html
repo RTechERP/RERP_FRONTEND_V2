@@ -1,6 +1,6 @@
-<div class="modal-header bg-primary p-2">
-  <h6 class="modal-title text-uppercase text-white m-0">Khai báo đặt xe</h6>
-  <button type="button" class="btn-close btn-close-white" aria-label="Close" (click)="cancel()"></button>
+<div class="modal-header bg-primary text-uppercase py-2">
+  <h6 class="modal-title text-white">KHAI BÁO ĐẶT XE</h6>
+  <button type="button" class="btn-close" (click)="cancel()" aria-label="Close"></button>
 </div>
 
 <div class="modal-body p-1" style="max-height: 700px; overflow: auto;">
@@ -12,7 +12,12 @@
 
       <!-- Người đặt -->
       <div class="form-group mb-1 p-1 col-sm-4">
-        <label class="m-0">{{ bookerLabel }} <span class="text-danger">(*)</span></label>
+        <label class="m-0">
+          <span *ngIf="category == 6 || category == 7">Người lấy hàng</span>
+          <span *ngIf="category == 2 || category == 8">Người giao hàng</span>
+          <span *ngIf="category != 6 && category != 7 && category != 2 && category != 8">Người đặt</span>
+          <span class="text-danger">(*)</span>
+        </label>
         <input nz-input type="text" nzSize="small" [(ngModel)]="bookerVehicles" name="bookerVehicles" disabled />
       </div>
 
@@ -26,7 +31,13 @@
 
       <!-- Thời gian cần đến -->
       <div class="form-group mb-1 p-1 col-sm-4">
-        <label class="m-0">{{ timeNeedLabel }} <span class="text-danger">(*)</span></label>
+        <label class="m-0">
+          <span *ngIf="category == 5">Thời gian cần về</span>
+          <span *ngIf="category == 6 || category == 7">Thời gian cần đến lấy</span>
+          <span *ngIf="category == 2 || category == 8">Thời gian cần giao đến</span>
+          <span *ngIf="category != 5 && category != 6 && category != 7 && category != 2 && category != 8">Thời gian cần đến</span>
+          <span class="text-danger">(*)</span>
+        </label>
         <nz-date-picker 
           class="w-100" 
           nzSize="small" 
@@ -40,27 +51,52 @@
 
       <!-- Công ty cần đến -->
       <div class="form-group mb-1 p-1 col-sm-3">
-        <label class="m-0">{{ companyLabel }} <span class="text-danger">(*)</span></label>
+        <label class="m-0">
+          <span *ngIf="category == 5">Công ty cần về</span>
+          <span *ngIf="category == 6 || category == 7">Công ty đến lấy</span>
+          <span *ngIf="category == 2 || category == 8">Công ty giao đến</span>
+          <span *ngIf="category != 5 && category != 6 && category != 7 && category != 2 && category != 8">Công ty cần đến</span>
+          <span class="text-danger">(*)</span>
+        </label>
         <input nz-input type="text" nzSize="small" [(ngModel)]="companyNameArrives" name="companyNameArrives" />
       </div>
 
       <!-- Tỉnh cần đến -->
       <div class="form-group mb-1 p-1 col-sm-3">
-        <label class="m-0">{{ provinceLabel }} <span class="text-danger">(*)</span></label>
+        <label class="m-0">
+          <span *ngIf="category == 5">Tỉnh cần về</span>
+          <span *ngIf="category == 6 || category == 7">Tỉnh đến lấy</span>
+          <span *ngIf="category == 2 || category == 8">Tỉnh giao đến</span>
+          <span *ngIf="category != 5 && category != 6 && category != 7 && category != 2 && category != 8">Tỉnh cần đến</span>
+          <span class="text-danger">(*)</span>
+        </label>
         <nz-select class="w-100" nzSize="small" nzShowSearch nzAllowClear [(ngModel)]="province" name="province">
-          <nz-option *ngFor="let prov of provinces" [nzLabel]="prov.label" [nzValue]="prov.value"></nz-option>
+          <nz-option *ngFor="let prov of provinces" [nzLabel]="prov.label" [nzValue]="prov.label"></nz-option>
         </nz-select>
       </div>
 
       <!-- Địa chỉ cụ thể cần đến -->
       <div class="form-group mb-1 p-1 col-sm-6">
-        <label class="m-0">{{ addressLabel }} <span class="text-danger">(*)</span></label>
+        <label class="m-0">
+          <span *ngIf="category == 5">Địa chỉ cụ thể cần về</span>
+          <span *ngIf="category == 6 || category == 7">Địa chỉ cụ thể đến lấy</span>
+          <span *ngIf="category == 2 || category == 8">Địa chỉ cụ thể giao đến</span>
+          <span *ngIf="category != 5 && category != 6 && category != 7 && category != 2 && category != 8">Địa chỉ cụ thể cần đến</span>
+          <span class="text-danger">(*)</span>
+        </label>
         <input nz-input type="text" nzSize="small" [(ngModel)]="specificDestinationAddress" name="specificDestinationAddress" />
       </div>
 
       <!-- Thời gian xuất phát -->
-      <div class="form-group mb-1 p-1 col-sm-3" *ngIf="showPassenger || category == 2">
-        <label class="m-0">{{ departureDateLabel }} <span class="text-danger">(*)</span></label>
+      <div class="form-group mb-1 p-1" 
+           [ngClass]="{'col-sm-3': category != 6 && category != 7, 'col-sm-4': category == 6 || category == 7}" 
+           *ngIf="showPassenger || category == 2 || category == 6 || category == 7 || category == 8">
+        <label class="m-0">
+          <span *ngIf="category == 5">Thời gian đón</span>
+          <span *ngIf="category == 2 || category == 8">Thời gian lấy hàng</span>
+          <span *ngIf="category != 5 && category != 2 && category != 8">Thời gian xuất phát</span>
+          <span class="text-danger">(*)</span>
+        </label>
         <nz-date-picker 
           class="w-100" 
           nzSize="small" 
@@ -72,8 +108,13 @@
       </div>
 
       <!-- Điểm xuất phát -->
-      <div class="form-group mb-1 p-1 col-sm-3" *ngIf="showPassenger || category == 2">
-        <label class="m-0">{{ departureAddressSelectLabel }} <span class="text-danger">(*)</span></label>
+      <div class="form-group mb-1 p-1 col-sm-3" *ngIf="showPassenger || category == 2 || category == 8">
+        <label class="m-0">
+          <span *ngIf="category == 5">Điểm đón</span>
+          <span *ngIf="category == 2 || category == 8">Điểm lấy hàng</span>
+          <span *ngIf="category != 5 && category != 2 && category != 8">Điểm xuất phát</span>
+          <span class="text-danger">(*)</span>
+        </label>
         <nz-select 
           class="w-100" 
           nzSize="small" 
@@ -87,8 +128,13 @@
       </div>
 
       <!-- Địa chỉ xuất phát cụ thể -->
-      <div class="form-group mb-1 p-1 col-sm-6" *ngIf="showPassenger || category == 2">
-        <label class="m-0">{{ departureAddressLabel }} <span class="text-danger">(*)</span></label>
+      <div class="form-group mb-1 p-1 col-sm-6" *ngIf="showPassenger || category == 2 || category == 8">
+        <label class="m-0">
+          <span *ngIf="category == 5">Địa chỉ đón cụ thể</span>
+          <span *ngIf="category == 2 || category == 8">Địa chỉ lấy hàng cụ thể</span>
+          <span *ngIf="category != 5 && category != 2 && category != 8">Địa chỉ xuất phát cụ thể</span>
+          <span class="text-danger">(*)</span>
+        </label>
         <input 
           nz-input
           type="text" 
@@ -178,7 +224,10 @@
     <div class="row m-0" *ngIf="showPassenger">
       <div class="p-1 col-sm-12">
         <div class="card m-0 rounded-0 border">
-          <div class="p-1 mb-2 bg-primary text-white">{{ passengerTitle }}</div>
+          <div class="p-1 mb-2 bg-primary text-white">
+            <span *ngIf="category == 5">Thông tin người về</span>
+            <span *ngIf="category != 5">Thông tin người đi</span>
+          </div>
           <div class="card-header p-1 bg-whitesmoke" style="border-bottom-color: #dee2e6 !important;">
             <ul class="nav nav-pills" style="line-height: normal;">
               <li class="nav-item m-1">
@@ -293,7 +342,10 @@
     <div class="row m-0" *ngIf="showAttachedGoods">
       <div class="p-1 col-sm-12">
         <div class="card m-0 rounded-0 border">
-          <div class="p-1 mb-2 bg-primary text-white">{{ attachedGoodsTitle }}</div>
+          <div class="p-1 mb-2 bg-primary text-white">
+            <span *ngIf="category == 6 || category == 7">Thông tin người giao hàng</span>
+            <span *ngIf="category != 6 && category != 7">Thông tin người nhận hàng</span>
+          </div>
           <div class="card-header p-1 bg-whitesmoke" style="border-bottom-color: #dee2e6 !important;">
             <ul class="nav nav-pills" style="line-height: normal;">
               <li class="nav-item m-1">
@@ -370,7 +422,7 @@
                     nzSize="small"
                     [(ngModel)]="goods.packageName" 
                     [name]="'goods_package_' + goods.index"
-                    rows="2">
+                    rows="6">
                   </textarea>
                 </div>
 
@@ -448,7 +500,13 @@
   </form>
 </div>
 
-<div class="modal-footer bg-whitesmoke br p-2 border-top">
-  <button type="button" class="btn btn-success btn-sm" (click)="save()">Đặt xe</button>
-  <button type="button" class="btn btn-danger btn-sm text-light" (click)="cancel()">Đóng</button>
+<div class="modal-footer br p-1 d-flex align-items-center">
+  <div class="d-flex align-items-center flex-wrap gap-1">
+    <button nz-button nzType="default" nzDanger (click)="cancel()">
+      Đóng
+    </button>
+    <button nz-button nzType="primary" (click)="save()">
+      Đặt xe
+    </button>
+  </div>
 </div>

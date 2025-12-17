@@ -44,6 +44,31 @@ export class PaymentOrderService {
         return this.http.post<any>(`${this.url}/save-data`, payment);
     }
 
+    uploadFile(files: File[], paymentOrderID: number, paymentOrderFileID: string): Observable<any> {
+        const formData = new FormData();
+        if (files) {
+            Array.from(files).forEach(file => {
+                formData.append('files', file);
+            });
+        }
+
+        formData.append('PaymentOrderID', paymentOrderID.toString());
+        formData.append('PaymentOrderFile', paymentOrderFileID.toString());
+        return this.http.post<any>(`${this.url}/upload-file`, formData);
+    }
+
+    uploadFileBankslip(files: File[], paymentOrderID: string): Observable<any> {
+        const formData = new FormData();
+        if (files) {
+            Array.from(files).forEach(file => {
+                formData.append('files', file);
+            });
+        }
+
+        formData.append('PaymentOrderID', paymentOrderID);
+        return this.http.post<any>(`${this.url}/upload-file-bankslip`, formData);
+    }
+
     appovedTBP(data: any): Observable<any> {
         return this.http.post<any>(`${this.url}/appoved-tbp`, data);
     }

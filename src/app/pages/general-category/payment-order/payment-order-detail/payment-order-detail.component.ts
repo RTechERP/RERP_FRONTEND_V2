@@ -1,11 +1,11 @@
-import { AfterViewInit, Component, ElementRef, OnInit, Renderer2, ViewChild } from '@angular/core';
+import { AfterViewInit, Component, ElementRef, Input, OnInit, Renderer2, ViewChild } from '@angular/core';
 import { FormGroup, NonNullableFormBuilder, ReactiveFormsModule, Validators, FormsModule } from '@angular/forms';
 import { NgbActiveModal } from '@ng-bootstrap/ng-bootstrap';
 import { NzButtonModule } from 'ng-zorro-antd/button';
 import { NzFormLayoutType, NzFormModule } from 'ng-zorro-antd/form';
 import { NzInputModule } from 'ng-zorro-antd/input';
 import { NzRadioModule } from 'ng-zorro-antd/radio';
-import { PaymentOrder, PaymentOrderDetail, PaymentOrderDetailField, PaymentOrderField } from '../model/payment-order';
+import { PaymentOrder, PaymentOrderDetail, PaymentOrderDetailField, PaymentOrderField, PaymentOrderFile } from '../model/payment-order';
 import { NzSelectModule } from "ng-zorro-antd/select";
 import { NzDatePickerModule } from 'ng-zorro-antd/date-picker';
 import { NzGridModule } from 'ng-zorro-antd/grid';
@@ -17,6 +17,8 @@ import { CURRENCY_CONFIGS, PaymentOrderService } from '../payment-order.service'
 import { NzNotificationService } from 'ng-zorro-antd/notification';
 import { NOTIFICATION_TITLE } from '../../../../app.config';
 import { AppUserService } from '../../../../services/app-user.service';
+import { NzUploadChangeParam, NzUploadFile, NzUploadModule } from 'ng-zorro-antd/upload';
+import { ChiTieitSanPhamSaleService } from '../../../old/Sale/chi-tiet-san-pham-sale/chi-tieit-san-pham-sale.service';
 
 @Component({
     selector: 'app-payment-order-detail',
@@ -31,6 +33,7 @@ import { AppUserService } from '../../../../services/app-user.service';
         NzSelectModule,
         NzDatePickerModule,
         NzCheckboxModule,
+        NzUploadModule,
         FormsModule,
         AngularSlickgridModule,
     ],
@@ -50,17 +53,23 @@ export class PaymentOrderDetailComponent implements OnInit, AfterViewInit {
     typeBankTransfers: any[] = [];
     units: any[] = [];
 
-    paymentOrder = new PaymentOrder();
+    @Input() paymentOrder = new PaymentOrder();
     paymentOrderField = PaymentOrderField;
 
     angularGrid!: AngularGridInstance;
     angularGrid2!: AngularGridInstance;
+    angularGridFile!: AngularGridInstance;
 
     gridData: any;
     gridData2: any;
+    grdFile: any;
 
     columnDefinitions: Column[] = [];
+    columnFileDefinitions: Column[] = [];
+
     gridOptions: GridOption = {};
+    gridFileOptions: GridOption = {};
+
     dataset: any[] = [
         {
             ID: 0,
@@ -191,6 +200,12 @@ export class PaymentOrderDetailComponent implements OnInit, AfterViewInit {
         },
     ];
 
+
+    dataFiles: PaymentOrderFile[] = []; //Để hiển thị lại từ db
+
+    fileUploads: any[] = []; //Lưu những file chọn đẻ upload
+    fileDeletes: any[] = []; //Lưu những file xóa
+
     private destroy$ = new Subject<void>();
 
     constructor(
@@ -199,32 +214,71 @@ export class PaymentOrderDetailComponent implements OnInit, AfterViewInit {
         private notification: NzNotificationService,
         private appUserService: AppUserService,
         private paymentService: PaymentOrderService,
-    ) {
-        this.validateForm = this.fb.group({
-            TypeOrder: this.fb.control(null, [Validators.required]),
-            PaymentOrderTypeID: this.fb.control(null, [Validators.required]),
-            DateOrder: this.fb.control(null, [Validators.required]),
-            FullName: this.fb.control({ value: appUserService.currentUser?.FullName, disabled: true }),
-            DepartmentName: this.fb.control({ value: appUserService.currentUser?.DepartmentName, disabled: true }),
-            ApprovedTBPID: this.fb.control(0, [Validators.required]),
-            SupplierSaleID: this.fb.control(0),
-            PONCCID: this.fb.control(0),
-            RegisterContractID: this.fb.control(0),
-            ProjectID: this.fb.control(0),
-            IsUrgent: this.fb.control(false),
-            DeadlinePayment: this.fb.control(null),
-            ReasonOrder: this.fb.control(null, [Validators.required]),
-            ReceiverInfo: this.fb.control(null, [Validators.required]),
-            TypePayment: this.fb.control(1, [Validators.required]),
-            DatePayment: this.fb.control(null),
-            TypeBankTransfer: this.fb.control(1, [Validators.required]),
-            AccountNumber: this.fb.control('', [Validators.required]),
-            Bank: this.fb.control('', [Validators.required]),
-            ContentBankTransfer: this.fb.control('', [Validators.required]),
-            Unit: this.fb.control('', [Validators.required]),
+    ) { }
 
+    ngOnInit(): void {
+        this.initFormGroup();
+        this.initDataCombo();
+        this.initGrid();
+    }
+
+    ngAfterViewInit(): void {
+
+    }
+
+    initDataCombo() {
+        this.paymentService.getDataCombo().subscribe({
+            next: (response) => {
+                console.log(response);
+                this.paymentOrderTypes = response.data.paymentOrderTypes;
+                this.approvedTBPs = response.data.approvedTBPs;
+                this.supplierSales = response.data.supplierSales;
+                this.poNCCs = response.data.poNCCs;
+                this.registerContracts = response.data.registerContracts;
+                this.projects = response.data.projects;
+            },
+            error: (err) => {
+                this.notification.error(NOTIFICATION_TITLE.error, err.error.message);
+            }
         });
 
+        this.typeBankTransfers = [
+            { ID: 5, Text: 'Chuyển khoản cá nhân' },
+            { ID: 1, Text: 'Chuyển khoản RTC' },
+            { ID: 2, Text: 'Chuyển khoản MVI' },
+            { ID: 3, Text: 'Chuyển khoản APR' },
+            { ID: 4, Text: 'Chuyển khoản Yonko' },
+            { ID: 6, Text: 'Chuyển khoản R-Tech' },
+        ];
+
+        this.units = CURRENCY_CONFIGS;
+    }
+
+    initFormGroup() {
+        this.validateForm = this.fb.group({
+            TypeOrder: this.fb.control(this.paymentOrder.TypeOrder, [Validators.required]),
+            PaymentOrderTypeID: this.fb.control(this.paymentOrder.PaymentOrderTypeID, [Validators.required]),
+            DateOrder: this.fb.control(this.paymentOrder.DateOrder, [Validators.required]),
+            FullName: this.fb.control({ value: this.appUserService.currentUser?.FullName, disabled: true }),
+            DepartmentName: this.fb.control({ value: this.appUserService.currentUser?.DepartmentName, disabled: true }),
+            ApprovedTBPID: this.fb.control(this.paymentOrder.ApprovedTBPID, [Validators.required]),
+            SupplierSaleID: this.fb.control(this.paymentOrder.SupplierSaleID),
+            PONCCID: this.fb.control(this.paymentOrder.PONCCID),
+            RegisterContractID: this.fb.control(this.paymentOrder.RegisterContractID),
+            ProjectID: this.fb.control(this.paymentOrder.ProjectID),
+            IsUrgent: this.fb.control(this.paymentOrder.IsUrgent),
+            DeadlinePayment: this.fb.control(this.paymentOrder.DeadlinePayment),
+            ReasonOrder: this.fb.control(this.paymentOrder.ReasonOrder, [Validators.required]),
+            ReceiverInfo: this.fb.control(this.paymentOrder.ReceiverInfo, [Validators.required]),
+            TypePayment: this.fb.control(this.paymentOrder.TypePayment, [Validators.required]),
+            DatePayment: this.fb.control(this.paymentOrder.DatePayment),
+            TypeBankTransfer: this.fb.control(this.paymentOrder.TypeBankTransfer, [Validators.required]),
+            AccountNumber: this.fb.control(this.paymentOrder.AccountNumber, [Validators.required]),
+            Bank: this.fb.control(this.paymentOrder.Bank, [Validators.required]),
+            ContentBankTransfer: this.fb.control(this.paymentOrder.ContentBankTransfer, [Validators.required]),
+            Unit: this.fb.control(this.paymentOrder.Unit, [Validators.required]),
+
+        });
 
         //Sự kiện chọn loại đề nghị
         this.validateForm
@@ -299,44 +353,6 @@ export class PaymentOrderDetailComponent implements OnInit, AfterViewInit {
                 const columnElement = gridInstance.slickGrid?.getFooterRowColumn(columnId);
                 this.paymentOrder.TotalMoneyText = this.paymentService.readMoney(parseFloat(columnElement.textContent || ''), value);
             });
-    }
-
-    ngOnInit(): void {
-        this.initGrid();
-        this.initDataCombo();
-    }
-
-    ngAfterViewInit(): void {
-
-
-    }
-
-    initDataCombo() {
-        this.paymentService.getDataCombo().subscribe({
-            next: (response) => {
-                console.log(response);
-                this.paymentOrderTypes = response.data.paymentOrderTypes;
-                this.approvedTBPs = response.data.approvedTBPs;
-                this.supplierSales = response.data.supplierSales;
-                this.poNCCs = response.data.poNCCs;
-                this.registerContracts = response.data.registerContracts;
-                this.projects = response.data.projects;
-            },
-            error: (err) => {
-                this.notification.error(NOTIFICATION_TITLE.error, err.error.message);
-            }
-        });
-
-        this.typeBankTransfers = [
-            { ID: 6, Text: 'Chuyển khoản cá nhân' },
-            { ID: 1, Text: 'Chuyển khoản RTC' },
-            { ID: 2, Text: 'Chuyển khoản MVI' },
-            { ID: 3, Text: 'Chuyển khoản APR' },
-            { ID: 4, Text: 'Chuyển khoản Yonko' },
-            { ID: 5, Text: 'Chuyển khoản R-Tech' },
-        ];
-
-        this.units = CURRENCY_CONFIGS;
     }
 
     initGrid() {
@@ -505,6 +521,41 @@ export class PaymentOrderDetailComponent implements OnInit, AfterViewInit {
 
         ];
 
+
+        this.columnFileDefinitions = [
+            {
+                id: 'deletete',
+                name: 'ID',
+                field: 'ID',
+                type: 'number',
+                // sortable: true, filterable: true,
+                formatter: Formatters.icon, params: { iconCssClass: 'mdi mdi-trash-can pointer' },
+                // filter: { model: Filters['compoundDate'] }
+                onCellClick: (e: Event, args: OnEventArgs) => {
+                    this.deleteFile(e, args)
+                }
+            },
+            {
+                id: 'FileName',
+                name: 'Tên file',
+                field: 'FileName',
+                type: 'string',
+                // sortable: true, filterable: true,
+                // formatter: Formatters.icon, params: { iconCssClass: 'mdi mdi-trash-can pointer' },
+                // // filter: { model: Filters['compoundDate'] }
+                // onCellClick: (e: Event, args: OnEventArgs) => {
+                //     this.deleteItem(e, args)
+                // }
+            },
+        ]
+        this.gridFileOptions = {
+            enableAutoResize: true,
+            autoResize: {
+                container: '.grid-container-file',
+            },
+            gridWidth: '100%',
+        }
+
         this.gridOptions = {
             enableAutoResize: true,
             autoResize: {
@@ -547,7 +598,7 @@ export class PaymentOrderDetailComponent implements OnInit, AfterViewInit {
 
         };
 
-        console.log('init grid"');
+        // console.log('init grid"');
 
         this.dataset = this.dataset.map((x, i) => ({
             ...x,
@@ -558,6 +609,34 @@ export class PaymentOrderDetailComponent implements OnInit, AfterViewInit {
         this.dataset2.forEach(item => {
             item.PaymentPercentage = 100;
         });
+
+        if (this.paymentOrder.ID > 0) {
+            this.paymentService.getDetail(this.paymentOrder.ID).subscribe({
+                next: (response) => {
+                    // console.log(response);
+
+                    if (this.paymentOrder.TypeOrder != 2) {
+                        this.dataset = response.data.details;
+                        this.dataset = this.dataset.map((x, i) => ({
+                            ...x,
+                            _id: x.Id   // dành riêng cho SlickGrid
+                        }));
+                    } else {
+                        this.dataset2 = response.data.details;
+                        this.dataset2 = this.dataset2.map((x, i) => ({
+                            ...x,
+                            _id: x.Id   // dành riêng cho SlickGrid
+                        }));
+                    }
+
+                    this.dataFiles = response.data.files;
+                    this.dataFiles = this.dataFiles.map((x, i) => ({
+                        ...x,
+                        id: i + 1
+                    }));
+                }
+            })
+        }
     }
 
     angularGridReady(angularGrid: AngularGridInstance) {
@@ -581,6 +660,11 @@ export class PaymentOrderDetailComponent implements OnInit, AfterViewInit {
         this.gridData2 = this.angularGrid2?.slickGrid || {};
     }
 
+    angularGridReadyFile(angularGrid: AngularGridInstance) {
+        this.angularGridFile = angularGrid;
+        this.grdFile = this.angularGridFile?.slickGrid || {};
+    }
+
     onCellChanged(e: Event, args: any) {
         this.dataset = [...this.angularGrid.dataView.getItems()];
     }
@@ -590,6 +674,9 @@ export class PaymentOrderDetailComponent implements OnInit, AfterViewInit {
     }
 
     submitForm() {
+        // console.log('this.validateForm.valid', this.validateForm.valid);
+        // console.log('this.fileUploads:', this.fileUploads);
+        this.uploadFile(14176);
         if (!this.validateForm.valid) {
             Object.values(this.validateForm.controls).forEach(control => {
                 if (control.invalid) {
@@ -615,11 +702,14 @@ export class PaymentOrderDetailComponent implements OnInit, AfterViewInit {
             this.paymentService.save(this.paymentOrder).subscribe({
                 next: (response) => {
                     console.log(response);
+
                 },
                 error: (err) => {
                     this.notification.error(NOTIFICATION_TITLE.error, err.error.message);
                 }
-            })
+            });
+
+
         }
     }
 
@@ -679,6 +769,83 @@ export class PaymentOrderDetailComponent implements OnInit, AfterViewInit {
         // if (value == 2) console.log('this.dataset2:', this.dataset2);
     }
 
+    handleChangeFile(e: Event): void {
+        const input = e.target as HTMLInputElement;
+        if (input.files && input.files.length > 0) {
+
+
+            for (let i = 0; i < input.files.length; i++) {
+                const file = input.files[i];
+                this.dataFiles.push({
+                    ID: i + i,
+                    FileName: file.name
+                });
+
+                this.fileUploads.push({
+                    id: i + 1,
+                    file: file
+                });
+            }
+
+            this.dataFiles = this.dataFiles.map((x, i) => ({
+                ...x,
+                id: i + 1   // dành riêng cho SlickGrid
+            }));
+        }
+
+        // console.log('this.fileUploads:', this.fileUploads);
+        // console.log('this.dataFiles:', this.dataFiles);
+    }
+
+    deleteFile(e: Event, args: OnEventArgs) {
+
+        // let gridInstance = this.angularGridFile;
+        // if (this.paymentOrder.TypeOrder == 2) gridInstance = this.angularGrid2;
+
+        const metadata = this.angularGridFile.gridService.getColumnFromEventArguments(args);
+        // console.log(metadata);
+
+        const id = metadata.dataContext.id;
+        this.angularGridFile.gridService.deleteItemById(id);
+
+        //Xóa file trên list file đã chọn
+        const fileRemove = this.fileUploads.findIndex(x => x.id === id);
+        if (fileRemove >= 0) {
+            this.fileUploads.splice(fileRemove, 1);
+        }
+
+        //Xóa file trong DB
+        // console.log('metadata.dataContext.ID:', metadata.dataContext.Id);
+        if (metadata.dataContext.Id > 0) {
+            this.fileDeletes.push(
+                {
+                    Id: metadata.dataContext.Id,
+                    IsDeleted: true
+                }
+            )
+        }
+
+    }
+
+
+    uploadFile(paymentOrderID: number) {
+        let files = this.fileUploads.map(x => x.file);
+
+        // let fileDelete = this.fileDeletes.join(',');
+
+        console.log('uploadFile files:', files);
+        console.log('fileDelete:', JSON.stringify(this.fileDeletes));
+        console.log('paymentOrderID:', paymentOrderID);
+        this.paymentService.uploadFile(files, paymentOrderID, JSON.stringify(this.fileDeletes)).subscribe({
+            next: (reponse) => {
+                console.log(reponse);
+            },
+            error: (err) => {
+                this.notification.error(NOTIFICATION_TITLE.error, err.error.message);
+            }
+        })
+    }
+
     updateTotal(cell: number) {
 
         if (cell <= 0) return;
@@ -686,7 +853,7 @@ export class PaymentOrderDetailComponent implements OnInit, AfterViewInit {
         let gridInstance = this.angularGrid;
         if (this.paymentOrder.TypeOrder == 2) gridInstance = this.angularGrid2;
 
-        const columnId = gridInstance.slickGrid?.getColumns()[cell].id as number;
+        const columnId = gridInstance.slickGrid?.getColumns()[cell].id;
 
         let total = 0;
         // let i = this.dataset.length;
@@ -700,7 +867,9 @@ export class PaymentOrderDetailComponent implements OnInit, AfterViewInit {
             if (columnElement) {
                 columnElement.textContent = `${total}`;
 
-                this.paymentOrder.TotalMoneyText = this.paymentService.readMoney(total, this.validateForm.value.Unit);
+                if (columnId == PaymentOrderField.TotalMoney.field) {
+                    this.paymentOrder.TotalMoneyText = this.paymentService.readMoney(total, this.validateForm.value.Unit);
+                }
             }
         } else {
 

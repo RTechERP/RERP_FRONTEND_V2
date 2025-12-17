@@ -1,15 +1,92 @@
-<p-menubar [model]="menuBars" />
+<!-- <p-menubar [model]="menuBars" ></p-menubar> -->
+<p-menubar [model]="menuBars"> </p-menubar>
 
-<nz-splitter nzLayout="vertical">
+<form nz-form nzLayout="inline">
+    <nz-form-item>
+        <nz-form-label>Từ ngày</nz-form-label>
+        <nz-form-control>
+            <nz-date-picker class="w-100" [(ngModel)]="param.dateStart" nzFormat="dd/MM/yyyy"
+                [ngModelOptions]="{ standalone: true }"></nz-date-picker>
+        </nz-form-control>
+    </nz-form-item>
+    <nz-form-item>
+        <nz-form-label>Đến ngày</nz-form-label>
+        <nz-form-control>
+            <nz-date-picker class="w-100" [(ngModel)]="param.dateEnd" nzFormat="dd/MM/yyyy"
+                [ngModelOptions]="{ standalone: true }"></nz-date-picker>
+        </nz-form-control>
+    </nz-form-item>
+    <nz-form-item>
+        <nz-form-label>Phòng ban</nz-form-label>
+        <nz-form-control>
+            <nz-select nzShowSearch nzAllowClear nzPlaceHolder="Chọn phòng ban" [(ngModel)]="param.departmentID"
+                [ngModelOptions]="{ standalone: true }">
+                <nz-option nzLabel="Jack" [nzValue]="2"></nz-option>
+            </nz-select>
+        </nz-form-control>
+    </nz-form-item>
+    <nz-form-item>
+        <nz-form-label>Nhân viên</nz-form-label>
+        <nz-form-control>
+            <nz-select nzShowSearch nzAllowClear nzPlaceHolder="Chọn nhân viên" [(ngModel)]="param.employeeID"
+                [ngModelOptions]="{ standalone: true }">
+                <nz-option nzLabel="Jack" [nzValue]="92"></nz-option>
+            </nz-select>
+        </nz-form-control>
+    </nz-form-item>
+    <nz-form-item>
+        <nz-form-label>Tình trạng</nz-form-label>
+        <nz-form-control>
+            <nz-select nzShowSearch nzAllowClear nzPlaceHolder="Chọn tình trạng" [(ngModel)]="param.isApproved"
+                [ngModelOptions]="{ standalone: true }">
+                <nz-option nzLabel="Jack" [nzValue]="1"></nz-option>
+            </nz-select>
+        </nz-form-control>
+    </nz-form-item>
+    <nz-form-item>
+        <nz-form-label>Loại đề nghị</nz-form-label>
+        <nz-form-control>
+            <nz-select nzShowSearch nzAllowClear nzPlaceHolder="Chọn loại" [(ngModel)]="param.typeOrder"
+                [ngModelOptions]="{ standalone: true }">
+                <nz-option nzLabel="Jack" [nzValue]="1"></nz-option>
+            </nz-select>
+        </nz-form-control>
+    </nz-form-item>
+
+    <nz-form-item>
+        <nz-form-label>Loại nội dung</nz-form-label>
+        <nz-form-control>
+            <nz-select nzShowSearch nzAllowClear nzPlaceHolder="Chọn nội dung" [(ngModel)]="param.paymentOrderTypeID"
+                [ngModelOptions]="{ standalone: true }">
+                <nz-option nzLabel="Jack" [nzValue]="1"></nz-option>
+            </nz-select>
+        </nz-form-control>
+    </nz-form-item>
+    <nz-form-item>
+        <nz-form-label>Từ khóa</nz-form-label>
+        <nz-form-control>
+            <input nz-input [(ngModel)]="param.keyword" [ngModelOptions]="{ standalone: true }"
+                placeholder="Bạn muốn tìm gì?" />
+        </nz-form-control>
+    </nz-form-item>
+    <nz-form-item>
+        <nz-form-control>
+            <button nz-button nzType="primary" type="button" (click)="loadData()">Tìm kiếm</button>
+        </nz-form-control>
+    </nz-form-item>
+
+</form>
+
+<nz-splitter nzLayout="vertical" style="height: 89vh !important;">
     <nz-splitter-panel nzMin="20%" [nzCollapsible]="true">
         <p-tabs value="0">
             <p-tablist>
-                <p-tab value="0">ĐỀ NGHỊ THANH TOÁN</p-tab>
-                <p-tab value="1">ĐỀ NGHỊ THANH TOÁN ĐẶC BIỆT</p-tab>
+                <p-tab value="0" class="p-2">ĐỀ NGHỊ THANH TOÁN</p-tab>
+                <p-tab value="1" class="p-2">ĐỀ NGHỊ THANH TOÁN ĐẶC BIỆT</p-tab>
             </p-tablist>
             <p-tabpanels>
                 <p-tabpanel value="0">
-                    <div class="grid-container">
+                    <div class="grid-container" style="height: 100%;">
                         <angular-slickgrid gridId="grvData" [columns]="columnDefinitions" [options]="gridOptions"
                             [dataset]="dataset" (onAngularGridCreated)="angularGridReady($event.detail)"
                             (onSelectedRowsChanged)="handleRowSelection($event.detail.eventData, $event.detail.args)"
@@ -44,8 +121,8 @@
                 <nz-card nzTitle="FILE ĐÍNH KÈM">
                     <p-tabs value="0">
                         <p-tablist>
-                            <p-tab value="0">ĐỀ NGHỊ THANH TOÁN</p-tab>
-                            <p-tab value="1">ĐỀ NGHỊ THANH TOÁN ĐẶC BIỆT</p-tab>
+                            <p-tab value="0" class="p-2">ĐỀ NGHỊ THANH TOÁN</p-tab>
+                            <p-tab value="1" class="p-2">ĐỀ NGHỊ THANH TOÁN ĐẶC BIỆT</p-tab>
                         </p-tablist>
                         <p-tabpanels>
                             <p-tabpanel value="0">

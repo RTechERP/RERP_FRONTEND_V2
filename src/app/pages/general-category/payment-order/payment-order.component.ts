@@ -3,6 +3,12 @@ import { NgbModal } from '@ng-bootstrap/ng-bootstrap';
 import { MenuItem, PrimeIcons } from 'primeng/api';
 import { Menubar } from 'primeng/menubar';
 import { TabsModule } from 'primeng/tabs';
+import { DatePickerModule } from 'primeng/datepicker';
+import { FormsModule, ɵInternalFormsSharedModule } from '@angular/forms';
+import { FluidModule } from 'primeng/fluid';
+import { Select } from 'primeng/select';
+import { InputTextModule } from 'primeng/inputtext';
+import { ButtonModule } from 'primeng/button';
 import { PaymentOrderService } from './payment-order.service';
 import { NzNotificationService } from 'ng-zorro-antd/notification';
 import { PaymentOrderDetailComponent } from './payment-order-detail/payment-order-detail.component';
@@ -14,6 +20,13 @@ import { NzSplitterModule } from 'ng-zorro-antd/splitter';
 import { NzCardModule } from 'ng-zorro-antd/card';
 import { Action } from 'rxjs/internal/scheduler/Action';
 import Swal from 'sweetalert2';
+import { HasPermissionDirective } from '../../../directives/has-permission.directive';
+import { PermissionService } from '../../../services/permission.service';
+import { NzButtonModule } from 'ng-zorro-antd/button';
+import { NzFormModule } from 'ng-zorro-antd/form';
+import { NzInputModule } from 'ng-zorro-antd/input';
+import { NzSelectModule } from 'ng-zorro-antd/select';
+import { NzDatePickerModule } from 'ng-zorro-antd/date-picker';
 
 @Component({
     selector: 'app-payment-order',
@@ -23,7 +36,11 @@ import Swal from 'sweetalert2';
         NzSplitterModule,
         NzCardModule,
         TabsModule,
-        AngularSlickgridModule
+        AngularSlickgridModule,
+        NzButtonModule, NzFormModule, NzInputModule,
+        FormsModule,
+        NzSelectModule,
+        NzDatePickerModule
     ],
     templateUrl: './payment-order.component.html',
     styleUrl: './payment-order.component.css',
@@ -31,257 +48,41 @@ import Swal from 'sweetalert2';
 })
 export class PaymentOrderComponent implements OnInit {
 
-    menuBars: MenuItem[] = [
-        {
-            label: 'Thêm',
-            icon: PrimeIcons.PLUS,
-            command: () => {
-                this.onCreate();
-            }
-        },
-        {
-            label: 'Sửa',
-            icon: PrimeIcons.PENCIL,
-            command: () => {
-                this.onEdit();
-            }
-        },
+    menuBars: MenuItem[] = [];
+    param: any = {
+        pageNumber: 1,
+        pageSize: 50,
 
-        {
-            label: 'Xóa',
-            icon: PrimeIcons.TRASH,
-            command: () => {
-                this.onDelete();
-            }
-        },
+        typeOrder: 0,
+        paymentOrderTypeID: 0,
 
-        {
-            label: 'Copy',
-            icon: PrimeIcons.CLONE,
-            command: () => {
-                // this.onCopy();
-            }
-        },
+        dateStart: new Date(),
+        dateEnd: new Date(),
 
-        {
-            label: 'TBP xác nhận',
-            icon: PrimeIcons.CHECK,
-            items: [
-                {
-                    label: 'Duyệt',
-                    icon: PrimeIcons.CHECK,
-                    command: () => {
-                        this.onApprovedTBP(2, {
-                            ButtonActionGroup: 'btnTBP', ButtonActionName: 'btnApproveTBP', ButtonActionText: 'Trưởng bộ phận',
-                        });
-                    }
-                },
-                {
-                    label: 'Hủy duyệt',
-                    icon: PrimeIcons.UNLOCK,
-                    command: () => {
-                        this.onApprovedTBP(2, {
-                            ButtonActionGroup: 'btnTBP', ButtonActionName: 'btnUnApproveTBP', ButtonActionText: 'Trưởng bộ phận',
-                        });
-                    }
-                }
-            ]
-        },
+        departmentID: 0,
+        employeeID: 0,
 
-        {
-            label: 'HR xác nhận',
-            icon: PrimeIcons.CHECK,
-            items: [
-                {
-                    label: 'Duyệt hồ sơ',
-                    icon: PrimeIcons.CHECK,
-                    command: () => {
-                        this.onApprovedHR(1, {
-                            ButtonActionGroup: 'btnHR', ButtonActionName: 'btnApproveDocumentHR', ButtonActionText: 'HR xác nhận',
-                        });
-                    }
-                },
-                {
-                    label: 'Hủy duyệt hồ sơ',
-                    icon: PrimeIcons.UNLOCK,
-                    command: () => {
-                        this.onApprovedHR(2, {
-                            ButtonActionGroup: 'btnHR', ButtonActionName: 'btnUnApproveDocumentHR', ButtonActionText: 'HR xác nhận',
-                        });
-                    }
-                },
+        keyword: '',
 
-                {
-                    label: 'Bổ sung chứng từ',
-                    icon: PrimeIcons.UNLOCK,
-                    command: () => {
-                        this.onApprovedHR(3, {
-                            ButtonActionGroup: 'btnHR', ButtonActionName: 'btnHRUpdateDocument', ButtonActionText: 'HR xác nhận',
-                        });
-                    }
-                },
-                {
-                    label: 'TBP duyệt',
-                    icon: PrimeIcons.UNLOCK,
-                    command: () => {
-                        this.onApprovedHR(1, {
-                            ButtonActionGroup: 'btnHR', ButtonActionName: 'btnApproveHR', ButtonActionText: 'HR xác nhận',
-                        });
-                    }
-                },
-                {
-                    label: 'TBP hủy duyệt',
-                    icon: PrimeIcons.UNLOCK,
-                    command: () => {
-                        this.onApprovedHR(2, {
-                            ButtonActionGroup: 'btnHR', ButtonActionName: 'btnUnApproveHR', ButtonActionText: 'HR xác nhận',
-                        });
-                    }
-                }
-            ]
-        },
+        isIgnoreHR: -1,
+        isApproved: -1,
 
+        isSpecialOrder: 0,
+        approvedTBPID: 0,
+        step: 0,
 
-        {
-            label: 'Kế toán xác nhận',
-            icon: PrimeIcons.CHECK,
-            items: [
-                {
-                    label: 'Duyệt hồ sơ',
-                    icon: PrimeIcons.CHECK,
-                    command: () => {
-                        this.onApprovedKTTT(1, {
-                            ButtonActionGroup: 'btnKTTT', ButtonActionName: 'btnApproveDocument', ButtonActionText: 'Kế toán xác nhận',
-                        });
-                    }
-                },
-                {
-                    label: 'Bổ sung chứng từ',
-                    icon: PrimeIcons.UNLOCK,
-                    command: () => {
-                        this.onApprovedKTTT(3, {
-                            ButtonActionGroup: 'btnKTTT', ButtonActionName: 'btnUpdateDocument', ButtonActionText: 'Kế toán xác nhận',
-                        });
-                    }
-                },
-                {
-                    label: 'Hủy duyệt hồ sơ',
-                    icon: PrimeIcons.UNLOCK,
-                    command: () => {
-                        this.onApprovedKTTT(2, {
-                            ButtonActionGroup: 'btnKTTT', ButtonActionName: 'btnUnApproveDocument', ButtonActionText: 'Kế toán xác nhận',
-                        });
-                    }
-                },
+        isShowTable: true,
 
-                {
-                    label: 'Nhận chứng từ',
-                    icon: PrimeIcons.UNLOCK,
-                    command: () => {
-                        this.onApprovedKTTT(1, {
-                            ButtonActionGroup: 'btnKTTT', ButtonActionName: 'btnReceiveDocument', ButtonActionText: 'Kế toán xác nhận',
-                        });
-                    }
-                },
-                {
-                    label: 'Hủy nhận chứng từ',
-                    icon: PrimeIcons.UNLOCK,
-                    command: () => {
-                        this.onApprovedKTTT(2, {
-                            ButtonActionGroup: 'btnKTTT', ButtonActionName: 'btnUnReceiveDocument', ButtonActionText: 'Kế toán xác nhận',
-                        });
-                    }
-                },
+        statuslog: 0,
+        isDelete: 0
+    };
 
-                {
-                    label: 'TBP duyệt',
-                    icon: PrimeIcons.UNLOCK,
-                    command: () => {
-                        this.onApprovedKTT(1, {
-                            ButtonActionGroup: 'btnKTT', ButtonActionName: 'btnApproveKT', ButtonActionText: 'Kế toán xác nhận',
-                        });
-                    }
-                },
-                {
-                    label: 'TBP hủy duyệt',
-                    icon: PrimeIcons.UNLOCK,
-                    command: () => {
-                        this.onApprovedKTT(2, {
-                            ButtonActionGroup: 'btnKTT', ButtonActionName: 'btnUnApproveKT', ButtonActionText: 'Kế toán xác nhận',
-                        });
-                    }
-                },
+    departments: any = [];
+    employees: any = [];
+    isApproveds: any = [];
+    typeOrders: any = [];
+    paymentOrderTypes: any = [];
 
-                {
-                    label: 'Đã thanh toán',
-                    icon: PrimeIcons.UNLOCK, command: () => {
-                        this.onApprovedKTTT(1, {
-                            ButtonActionGroup: 'btnKTTT', ButtonActionName: 'btnIsPayment', ButtonActionText: 'Kế toán xác nhận',
-                        });
-                    }
-                },
-                {
-                    label: 'Hủy thanh toán',
-                    icon: PrimeIcons.UNLOCK,
-                    command: () => {
-                        this.onApprovedKTTT(2, {
-                            ButtonActionGroup: 'btnKTTT', ButtonActionName: 'btnUnPayment', ButtonActionText: 'Kế toán xác nhận',
-                        });
-                    }
-                },
-                {
-                    label: 'Đính kèm file Bank slip',
-                    icon: PrimeIcons.UNLOCK,
-                    command: () => {
-                        this.onAttachFileBankslip();
-                    }
-
-                },
-                {
-                    label: 'Hợp đồng',
-                    icon: PrimeIcons.UNLOCK
-                }
-            ]
-        },
-
-        {
-            label: 'BGĐ xác nhận',
-            icon: PrimeIcons.CHECK,
-            items: [
-                {
-                    label: 'Duyệt',
-                    icon: PrimeIcons.CHECK,
-                    command: () => {
-                        this.onApprovedBGD(1, {
-                            ButtonActionGroup: 'btnBGĐ', ButtonActionName: 'btnApproveBGĐ', ButtonActionText: 'BGĐ xác nhận',
-                        });
-                    }
-                },
-                {
-                    label: 'Hủy duyệt',
-                    icon: PrimeIcons.UNLOCK,
-                    command: () => {
-                        this.onApprovedBGD(2, {
-                            ButtonActionGroup: 'btnBGĐ', ButtonActionName: 'btnUnApproveBGĐ', ButtonActionText: 'BGĐ xác nhận',
-                        });
-                    }
-                },
-                {
-                    label: 'Duyệt đặc biệt (ko cần check những bước trước)',
-                    icon: PrimeIcons.UNLOCK
-                }
-            ]
-        },
-
-        {
-            label: 'Cây thư mục',
-            icon: PrimeIcons.FOLDER
-        },
-        {
-            label: 'Xuất excel',
-            icon: PrimeIcons.FOLDER
-        }
-    ];
 
     angularGrid!: AngularGridInstance;
     angularGridDetail!: AngularGridInstance;
@@ -310,11 +111,303 @@ export class PaymentOrderComponent implements OnInit {
     constructor(
         private modalService: NgbModal,
         private paymentService: PaymentOrderService,
-        private notification: NzNotificationService
+        private notification: NzNotificationService,
+        private permissionService: PermissionService,
     ) { }
 
     ngOnInit(): void {
+        this.initMenuBar();
         this.initGrid();
+    }
+
+    initMenuBar() {
+        this.menuBars = [
+            {
+                label: 'Thêm',
+                icon: PrimeIcons.PLUS,
+                visible: this.permissionService.hasPermission(""),
+                command: () => {
+                    this.onCreate();
+                },
+            },
+            {
+                label: 'Sửa',
+                icon: PrimeIcons.PENCIL,
+                visible: this.permissionService.hasPermission(""),
+                command: () => {
+                    this.onEdit();
+                }
+            },
+
+            {
+                label: 'Xóa',
+                icon: PrimeIcons.TRASH,
+                visible: this.permissionService.hasPermission(""),
+                command: () => {
+                    this.onDelete();
+                }
+            },
+
+            {
+                label: 'Copy',
+                icon: PrimeIcons.CLONE,
+                visible: this.permissionService.hasPermission(""),
+                command: () => {
+                    // this.onCopy();
+                }
+            },
+
+            {
+                label: 'TBP xác nhận',
+                icon: PrimeIcons.CHECK,
+                visible: this.permissionService.hasPermission(""),
+                items: [
+                    {
+                        label: 'Duyệt',
+                        icon: PrimeIcons.CHECK,
+                        command: () => {
+                            this.onApprovedTBP(2, {
+                                ButtonActionGroup: 'btnTBP', ButtonActionName: 'btnApproveTBP', ButtonActionText: 'Trưởng bộ phận',
+                            });
+                        }
+                    },
+                    {
+                        label: 'Hủy duyệt',
+                        icon: PrimeIcons.UNLOCK,
+                        command: () => {
+                            this.onApprovedTBP(2, {
+                                ButtonActionGroup: 'btnTBP', ButtonActionName: 'btnUnApproveTBP', ButtonActionText: 'Trưởng bộ phận',
+                            });
+                        }
+                    }
+                ]
+            },
+
+            {
+                label: 'HR xác nhận',
+                icon: PrimeIcons.CHECK,
+                visible: this.permissionService.hasPermission(""),
+                items: [
+                    {
+                        label: 'Duyệt hồ sơ',
+                        icon: PrimeIcons.CHECK,
+                        visible: this.permissionService.hasPermission(""),
+                        command: () => {
+                            this.onApprovedHR(1, {
+                                ButtonActionGroup: 'btnHR', ButtonActionName: 'btnApproveDocumentHR', ButtonActionText: 'HR xác nhận',
+                            });
+                        }
+                    },
+                    {
+                        label: 'Hủy duyệt hồ sơ',
+                        icon: PrimeIcons.UNLOCK,
+                        visible: this.permissionService.hasPermission(""),
+                        command: () => {
+                            this.onApprovedHR(2, {
+                                ButtonActionGroup: 'btnHR', ButtonActionName: 'btnUnApproveDocumentHR', ButtonActionText: 'HR xác nhận',
+                            });
+                        }
+                    },
+
+                    {
+                        label: 'Bổ sung chứng từ',
+                        icon: PrimeIcons.UNLOCK,
+                        visible: this.permissionService.hasPermission(""),
+                        command: () => {
+                            this.onApprovedHR(3, {
+                                ButtonActionGroup: 'btnHR', ButtonActionName: 'btnHRUpdateDocument', ButtonActionText: 'HR xác nhận',
+                            });
+                        }
+                    },
+                    {
+                        separator: true,
+                    },
+                    {
+                        label: 'TBP duyệt',
+                        icon: PrimeIcons.UNLOCK,
+                        visible: this.permissionService.hasPermission(""),
+                        command: () => {
+                            this.onApprovedHR(1, {
+                                ButtonActionGroup: 'btnHR', ButtonActionName: 'btnApproveHR', ButtonActionText: 'HR xác nhận',
+                            });
+                        }
+                    },
+                    {
+                        label: 'TBP hủy duyệt',
+                        icon: PrimeIcons.UNLOCK,
+                        visible: this.permissionService.hasPermission(""),
+                        command: () => {
+                            this.onApprovedHR(2, {
+                                ButtonActionGroup: 'btnHR', ButtonActionName: 'btnUnApproveHR', ButtonActionText: 'HR xác nhận',
+                            });
+                        }
+                    }
+                ]
+            },
+
+
+            {
+                label: 'Kế toán xác nhận',
+                icon: PrimeIcons.CHECK,
+                visible: this.permissionService.hasPermission(""),
+                items: [
+                    {
+                        label: 'Duyệt hồ sơ',
+                        icon: PrimeIcons.CHECK,
+                        visible: this.permissionService.hasPermission(""),
+                        command: () => {
+                            this.onApprovedKTTT(1, {
+                                ButtonActionGroup: 'btnKTTT', ButtonActionName: 'btnApproveDocument', ButtonActionText: 'Kế toán xác nhận',
+                            });
+                        }
+                    },
+                    {
+                        label: 'Bổ sung chứng từ',
+                        icon: PrimeIcons.UNLOCK,
+                        visible: this.permissionService.hasPermission(""),
+                        command: () => {
+                            this.onApprovedKTTT(3, {
+                                ButtonActionGroup: 'btnKTTT', ButtonActionName: 'btnUpdateDocument', ButtonActionText: 'Kế toán xác nhận',
+                            });
+                        }
+                    },
+                    {
+                        label: 'Hủy duyệt hồ sơ',
+                        icon: PrimeIcons.UNLOCK,
+                        visible: this.permissionService.hasPermission(""),
+                        command: () => {
+                            this.onApprovedKTTT(2, {
+                                ButtonActionGroup: 'btnKTTT', ButtonActionName: 'btnUnApproveDocument', ButtonActionText: 'Kế toán xác nhận',
+                            });
+                        }
+                    },
+                    {
+                        separator: true,
+                    },
+
+                    {
+                        label: 'Nhận chứng từ',
+                        icon: PrimeIcons.UNLOCK,
+                        visible: this.permissionService.hasPermission(""),
+                        command: () => {
+                            this.onApprovedKTTT(1, {
+                                ButtonActionGroup: 'btnKTTT', ButtonActionName: 'btnReceiveDocument', ButtonActionText: 'Kế toán xác nhận',
+                            });
+                        }
+                    },
+                    {
+                        label: 'Hủy nhận chứng từ',
+                        icon: PrimeIcons.UNLOCK,
+                        visible: this.permissionService.hasPermission(""),
+                        command: () => {
+                            this.onApprovedKTTT(2, {
+                                ButtonActionGroup: 'btnKTTT', ButtonActionName: 'btnUnReceiveDocument', ButtonActionText: 'Kế toán xác nhận',
+                            });
+                        }
+                    },
+                    {
+                        separator: true,
+                    },
+                    {
+                        label: 'TBP duyệt',
+                        icon: PrimeIcons.UNLOCK,
+                        visible: this.permissionService.hasPermission(""),
+                        command: () => {
+                            this.onApprovedKTT(1, {
+                                ButtonActionGroup: 'btnKTT', ButtonActionName: 'btnApproveKT', ButtonActionText: 'Kế toán xác nhận',
+                            });
+                        }
+                    },
+                    {
+                        label: 'TBP hủy duyệt',
+                        icon: PrimeIcons.UNLOCK,
+                        visible: this.permissionService.hasPermission(""),
+                        command: () => {
+                            this.onApprovedKTT(2, {
+                                ButtonActionGroup: 'btnKTT', ButtonActionName: 'btnUnApproveKT', ButtonActionText: 'Kế toán xác nhận',
+                            });
+                        }
+                    },
+                    {
+                        separator: true,
+                    },
+                    {
+                        label: 'Đã thanh toán',
+                        visible: this.permissionService.hasPermission(""),
+                        icon: PrimeIcons.UNLOCK, command: () => {
+                            this.onApprovedKTTT(1, {
+                                ButtonActionGroup: 'btnKTTT', ButtonActionName: 'btnIsPayment', ButtonActionText: 'Kế toán xác nhận',
+                            });
+                        }
+                    },
+                    {
+                        label: 'Hủy thanh toán',
+                        icon: PrimeIcons.UNLOCK,
+                        visible: this.permissionService.hasPermission(""),
+                        command: () => {
+                            this.onApprovedKTTT(2, {
+                                ButtonActionGroup: 'btnKTTT', ButtonActionName: 'btnUnPayment', ButtonActionText: 'Kế toán xác nhận',
+                            });
+                        }
+                    },
+                    {
+                        label: 'Đính kèm file Bank slip',
+                        icon: PrimeIcons.UNLOCK,
+                        visible: this.permissionService.hasPermission(""),
+                        command: () => {
+                            this.onAttachFileBankslip();
+                        }
+
+                    },
+                    {
+                        separator: true,
+                    },
+                    {
+                        label: 'Hợp đồng',
+                        icon: PrimeIcons.UNLOCK,
+                        visible: this.permissionService.hasPermission(""),
+                    }
+                ]
+            },
+
+            {
+                label: 'BGĐ xác nhận',
+                icon: PrimeIcons.CHECK,
+                items: [
+                    {
+                        label: 'Duyệt',
+                        icon: PrimeIcons.CHECK,
+                        command: () => {
+                            this.onApprovedBGD(1, {
+                                ButtonActionGroup: 'btnBGĐ', ButtonActionName: 'btnApproveBGĐ', ButtonActionText: 'BGĐ xác nhận',
+                            });
+                        }
+                    },
+                    {
+                        label: 'Hủy duyệt',
+                        icon: PrimeIcons.UNLOCK,
+                        command: () => {
+                            this.onApprovedBGD(2, {
+                                ButtonActionGroup: 'btnBGĐ', ButtonActionName: 'btnUnApproveBGĐ', ButtonActionText: 'BGĐ xác nhận',
+                            });
+                        }
+                    },
+                    {
+                        label: 'Duyệt đặc biệt (ko cần check những bước trước)',
+                        icon: PrimeIcons.UNLOCK
+                    }
+                ]
+            },
+
+            {
+                label: 'Cây thư mục',
+                icon: PrimeIcons.FOLDER
+            },
+            {
+                label: 'Xuất excel',
+                icon: PrimeIcons.FOLDER
+            }
+        ]
     }
 
     initGrid() {
@@ -1028,10 +1121,12 @@ export class PaymentOrderComponent implements OnInit {
 
 
     loadData() {
-        let param = {
-            Keyword: 'ÐNTU202512150001'
-        };
-        this.paymentService.get(param).subscribe({
+        // let param = {
+        //     Keyword: ''
+        // };
+
+        console.log(this.param);
+        this.paymentService.get(this.param).subscribe({
             next: (response) => {
                 // console.log(response);
                 this.dataset = response.data;
@@ -1048,29 +1143,30 @@ export class PaymentOrderComponent implements OnInit {
     }
 
     loadDetail(id: number) {
+        console.log('loadDetail id:', id);
         this.paymentService.getDetail(id).subscribe({
             next: (response) => {
-                // console.log(response);
+                console.log('loadDetail response:', response);
                 this.datasetDetails = response.data.details;
                 this.datasetFiles = response.data.files;
                 this.datasetFileBankslip = response.data.fileBankSlips;
 
-                this.datasetDetails = this.datasetDetails.map((x, i) => ({
-                    ...x,
-                    _id: i + 1   // dành riêng cho SlickGrid
-                }));
-                // this.angularGridDetail.slickGrid.setData(this.datasetDetails);
+                // this.datasetDetails = this.datasetDetails.map((x, i) => ({
+                //     ...x,
+                //     _id: i + 1   // dành riêng cho SlickGrid
+                // }));
+                // // this.angularGridDetail.slickGrid.setData(this.datasetDetails);
 
-                this.datasetFiles = this.datasetFiles.map((x, i) => ({
-                    ...x,
-                    _id: i + 1   // dành riêng cho SlickGrid
-                }));
-                // this.angularGridFile.slickGrid.setData(this.datasetFiles);
+                // this.datasetFiles = this.datasetFiles.map((x, i) => ({
+                //     ...x,
+                //     _id: i + 1   // dành riêng cho SlickGrid
+                // }));
+                // // this.angularGridFile.slickGrid.setData(this.datasetFiles);
 
-                this.datasetFileBankslip = this.datasetFileBankslip.map((x, i) => ({
-                    ...x,
-                    _id: i + 1   // dành riêng cho SlickGrid
-                }));
+                // this.datasetFileBankslip = this.datasetFileBankslip.map((x, i) => ({
+                //     ...x,
+                //     _id: i + 1   // dành riêng cho SlickGrid
+                // }));
 
 
                 // console.log(this.datasetDetails);
@@ -1172,12 +1268,13 @@ export class PaymentOrderComponent implements OnInit {
                 if (result.isConfirmed) {
                     const paymentDeleted = {
                         ID: item.ID,
-                        IsDelete: item.IsDelete
+                        IsDelete: true
                     }
 
                     this.paymentService.save(paymentDeleted).subscribe({
                         next: (response) => {
                             console.log(response);
+                            this.loadData();
                         },
                         error: (err) => {
                             this.notification.error(NOTIFICATION_TITLE.error, err.error.message);

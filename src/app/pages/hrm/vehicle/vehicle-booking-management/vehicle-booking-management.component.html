@@ -60,6 +60,7 @@
               <nz-form-control [nzSpan]="24">
                 <nz-select class="w-100 fs-12" nzSize="small" nzShowSearch nzAllowClear
                   nzPlaceHolder="Chọn nhân viên đăng ký..." [(ngModel)]="employeeId"
+                  [nzDisabled]="isEmployeeSelectDisabled"
                   name="employeeId">
                   <nz-option *ngFor="let emp of employees" [nzLabel]="emp.Code + ' - ' + emp.FullName"
                     [nzValue]="emp.ID"></nz-option>

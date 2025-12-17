@@ -114,6 +114,28 @@ export class FoodOrderComponent implements OnInit, AfterViewInit {
     return currentHour < 19;
   }
 
+  private isSameLocalDate(a: Date, b: Date): boolean {
+    return (
+      a.getFullYear() === b.getFullYear() &&
+      a.getMonth() === b.getMonth() &&
+      a.getDate() === b.getDate()
+    );
+  }
+
+  private getLocalDayMillis(value: any): number | null {
+    if (!value) return null;
+    let dt: DateTime;
+    if (value instanceof Date) {
+      dt = DateTime.fromJSDate(value);
+    } else if (typeof value === 'string') {
+      dt = DateTime.fromISO(value, { setZone: true });
+    } else {
+      dt = DateTime.fromJSDate(new Date(value));
+    }
+    if (!dt.isValid) return null;
+    return dt.toLocal().startOf('day').toMillis();
+  }
+
   currentUser: any;
   currenEmployee: any;
   constructor(
@@ -209,7 +231,10 @@ export class FoodOrderComponent implements OnInit, AfterViewInit {
           this.isLoading = false;
         },
         error: (error) => {
-          this.notification.error(NOTIFICATION_TITLE.error, error.message);
+          this.notification.error(
+            NOTIFICATION_TITLE.error,
+            error?.error?.message || error?.message || 'Có lỗi xảy ra'
+          );
           this.isLoading = false;
         },
       });
@@ -226,7 +251,8 @@ export class FoodOrderComponent implements OnInit, AfterViewInit {
       error: (error) => {
         this.notification.error(
           NOTIFICATION_TITLE.error,
-          'Lỗi khi tải danh sách nhân viên: ' + error.message
+          'Lỗi khi tải danh sách nhân viên: ' +
+            (error?.error?.message || error?.message || 'Có lỗi xảy ra')
         );
       },
     });
@@ -415,11 +441,14 @@ export class FoodOrderComponent implements OnInit, AfterViewInit {
     }
     if (selectedRowsHN.length > 0) {
       this.selectedFoodOrderHN = selectedRowsHN[0].getData();
+      const dateOrderHN = this.selectedFoodOrderHN?.DateOrder
+        ? new Date(this.selectedFoodOrderHN.DateOrder)
+        : new Date();
       this.foodOrderForm.patchValue({
         ID: this.selectedFoodOrderHN.ID,
         EmployeeID: this.selectedFoodOrderHN.EmployeeID,
         FullName: this.selectedFoodOrderHN.FullName,
-        DateOrder: new Date(),
+        DateOrder: isNaN(dateOrderHN.getTime()) ? new Date() : dateOrderHN,
         Quantity: this.selectedFoodOrderHN.Quantity,
         IsApproved: this.selectedFoodOrderHN.IsApproved,
         Location: this.selectedFoodOrderHN.Location?.toString(),
@@ -429,11 +458,14 @@ export class FoodOrderComponent implements OnInit, AfterViewInit {
     }
     if (selectedRowsĐP.length > 0) {
       this.selectedFoodOrderĐP = selectedRowsĐP[0].getData();
+      const dateOrderĐP = this.selectedFoodOrderĐP?.DateOrder
+        ? new Date(this.selectedFoodOrderĐP.DateOrder)
+        : new Date();
       this.foodOrderForm.patchValue({
         ID: this.selectedFoodOrderĐP.ID,
         EmployeeID: this.selectedFoodOrderĐP.EmployeeID,
         FullName: this.selectedFoodOrderĐP.FullName,
-        DateOrder: new Date(),
+        DateOrder: isNaN(dateOrderĐP.getTime()) ? new Date() : dateOrderĐP,
         Quantity: this.selectedFoodOrderĐP.Quantity,
         IsApproved: this.selectedFoodOrderĐP.IsApproved,
         Location: this.selectedFoodOrderĐP.Location?.toString(),
@@ -587,7 +619,25 @@ export class FoodOrderComponent implements OnInit, AfterViewInit {
       );
       return;
     }
+    // Sau 10h: không cho xóa phiếu đặt cơm của ngày hôm nay và các ngày trước đó
+    const now = DateTime.local();
+    if (now.hour >= 10) {
+      const todayMillis = now.startOf('day').toMillis();
+      const hasTodayOrPastOrder = foodOrdersToDelete.some((fo) => {
+        const orderDayMillis = this.getLocalDayMillis(fo?.DateOrder);
+        // Không parse được ngày => chặn để tránh lọt rule
+        if (orderDayMillis === null) return true;
+        return orderDayMillis <= todayMillis;
+      });
 
+      if (hasTodayOrPastOrder) {
+        this.notification.warning(
+          NOTIFICATION_TITLE.warning,
+          'Không thể xóa phiếu đặt cơm sau 10h'
+        );
+        return;
+      }
+    }
     const approvedOrders = foodOrdersToDelete.filter(
       (fo) => fo.IsApproved === true
     );
@@ -632,7 +682,8 @@ export class FoodOrderComponent implements OnInit, AfterViewInit {
               error: (error) => {
                 this.notification.error(
                   NOTIFICATION_TITLE.error,
-                  'Xóa đơn đặt cơm thất bại: ' + error.message
+                  'Xóa đơn đặt cơm thất bại: ' +
+                    (error?.error?.message || error?.message || 'Có lỗi xảy ra')
                 );
               },
             });
@@ -688,7 +739,9 @@ export class FoodOrderComponent implements OnInit, AfterViewInit {
           .catch((error) => {
             this.notification.error(
               NOTIFICATION_TITLE.error,
-              `Cập nhật đơn đặt cơm thất bại: ${error.message}`
+              `Cập nhật đơn đặt cơm thất bại: ${
+                error?.error?.message || error?.message || 'Có lỗi xảy ra'
+              }`
             );
           });
       },

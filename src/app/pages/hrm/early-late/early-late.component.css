@@ -28,3 +28,23 @@
 :host ::ng-deep textarea {
     font-size: 12px !important;
 }
+
+/* Mobile: action buttons in header can overflow -> allow horizontal scroll */
+@media (max-width: 768px) {
+  .early-late-actions-scroll {
+    overflow-x: auto;
+    overflow-y: hidden;
+    -webkit-overflow-scrolling: touch;
+    width: 100%;
+  }
+
+  .early-late-actions {
+    flex-wrap: nowrap !important;
+    width: max-content;
+    padding-bottom: 4px;
+  }
+
+  .early-late-actions > * {
+    flex: 0 0 auto;
+  }
+}

@@ -93,6 +93,36 @@ export class OverTimePersonFormComponent implements OnInit {
   isProblemValue: boolean = false;
   datePickerKey: number = 0;
 
+  private normalizeToMinute(value: any): Date | null {
+    if (!value) return null;
+    const d = value instanceof Date ? new Date(value) : new Date(value);
+    if (isNaN(d.getTime())) return null;
+    d.setSeconds(0, 0);
+    return d;
+  }
+
+  private attachMinutePrecisionForForm(form: FormGroup): void {
+    form.get('TimeStart')?.valueChanges.subscribe((v) => {
+      const n = this.normalizeToMinute(v);
+      if (!n) return;
+      const cur = v instanceof Date ? v : new Date(v);
+      if (isNaN(cur.getTime())) return;
+      if (cur.getSeconds() !== 0 || cur.getMilliseconds() !== 0) {
+        form.patchValue({ TimeStart: n }, { emitEvent: false });
+      }
+    });
+
+    form.get('EndTime')?.valueChanges.subscribe((v) => {
+      const n = this.normalizeToMinute(v);
+      if (!n) return;
+      const cur = v instanceof Date ? v : new Date(v);
+      if (isNaN(cur.getTime())) return;
+      if (cur.getSeconds() !== 0 || cur.getMilliseconds() !== 0) {
+        form.patchValue({ EndTime: n }, { emitEvent: false });
+      }
+    });
+  }
+
   locationList = [
     { value: 0, label: '--Chọn địa điểm--' },
     { value: 1, label: 'Văn phòng' },
@@ -114,6 +144,7 @@ export class OverTimePersonFormComponent implements OnInit {
     private nzModal: NzModalService
   ) {
     this.initializeForm();
+    this.attachMinutePrecisionForForm(this.overTimeForm);
     this.formTabs.push({
       id: 1,
       title: '1',
@@ -426,8 +457,9 @@ export class OverTimePersonFormComponent implements OnInit {
         this.isLoading = false;
         this.cdr.detectChanges();
       },
-      error: (error) => {
-        this.notification.error(NOTIFICATION_TITLE.error, 'Lỗi khi tải dữ liệu: ' + error.message);
+      error: (error: any) => {
+        const errorMessage = error?.error?.Message || error?.error?.message || error?.message || 'Lỗi không xác định';
+        this.notification.error(NOTIFICATION_TITLE.error, 'Lỗi khi tải dữ liệu: ' + errorMessage);
         this.resetForm();
         this.isLoading = false;
       }
@@ -443,8 +475,18 @@ export class OverTimePersonFormComponent implements OnInit {
     const location = (data.Location || data.LocationID) && (data.Location || data.LocationID) > 0 ? (data.Location || data.LocationID) : null;
     const projectId = (data.ProjectID || data.ProjectId) && (data.ProjectID || data.ProjectId) > 0 ? (data.ProjectID || data.ProjectId) : null;
 
-    const timeStartValue = data.TimeStart ? (data.TimeStart instanceof Date ? data.TimeStart : new Date(data.TimeStart)) : null;
-    const endTimeValue = data.EndTime ? (data.EndTime instanceof Date ? data.EndTime : new Date(data.EndTime)) : null;
+    const timeStartValueRaw = data.TimeStart
+      ? data.TimeStart instanceof Date
+        ? data.TimeStart
+        : new Date(data.TimeStart)
+      : null;
+    const endTimeValueRaw = data.EndTime
+      ? data.EndTime instanceof Date
+        ? data.EndTime
+        : new Date(data.EndTime)
+      : null;
+    const timeStartValue = this.normalizeToMinute(timeStartValueRaw);
+    const endTimeValue = this.normalizeToMinute(endTimeValueRaw);
 
     this.commonForm.patchValue({
       EmployeeID: employeeID,
@@ -592,8 +634,9 @@ export class OverTimePersonFormComponent implements OnInit {
       next: (data: any) => {
         this.typeList = data.data || [];
       },
-      error: (error) => {
-        this.notification.error(NOTIFICATION_TITLE.error, 'Lỗi khi tải danh sách loại làm thêm: ' + error.message);
+      error: (error: any) => {
+        const errorMessage = error?.error?.Message || error?.error?.message || error?.message || 'Lỗi không xác định';
+        this.notification.error(NOTIFICATION_TITLE.error, 'Lỗi khi tải danh sách loại làm thêm: ' + errorMessage);
       }
     });
   }
@@ -721,7 +764,8 @@ export class OverTimePersonFormComponent implements OnInit {
       error: (error: any) => {
         console.error('Error loading projects:', error);
         if (error.status !== 200) {
-          this.notification.error(NOTIFICATION_TITLE.error, 'Không thể tải danh sách dự án. Vui lòng liên hệ quản trị viên.');
+          const errorMessage = error?.error?.Message || error?.error?.message || error?.message || 'Không thể tải danh sách dự án. Vui lòng liên hệ quản trị viên.';
+          this.notification.error(NOTIFICATION_TITLE.error, errorMessage);
         }
         this.projectList = [];
       }
@@ -949,7 +993,6 @@ export class OverTimePersonFormComponent implements OnInit {
   submitAllTabs() {
     this.isLoading = true;
     let completedCount = 0;
-    let errorCount = 0;
     const totalTabs = this.formTabs.length;
     const commonFormValue = this.commonForm.value;
 
@@ -1012,14 +1055,16 @@ export class OverTimePersonFormComponent implements OnInit {
         this.uploadFileAndSaveForTab(employeeOvertime, tab, () => {
           completedCount++;
           if (completedCount === totalTabs) {
-            this.handleAllTabsSubmitted(errorCount);
+            this.isLoading = false;
+            const message = this.isEditMode ? 'Lưu thành công' : 'Thêm thành công';
+            this.notification.success(NOTIFICATION_TITLE.success, message);
+            this.activeModal.close({ success: true });
           }
-        }, () => {
-          errorCount++;
+        }, (error: any) => {
           completedCount++;
-          if (completedCount === totalTabs) {
-            this.handleAllTabsSubmitted(errorCount);
-          }
+          this.isLoading = false;
+          const errorMessage = error?.error?.Message || error?.error?.message || error?.message || 'Lỗi không xác định';
+          this.notification.error(NOTIFICATION_TITLE.error, errorMessage);
         });
         
         this.selectedFile = originalSelectedFile;
@@ -1029,31 +1074,22 @@ export class OverTimePersonFormComponent implements OnInit {
         this.saveDataEmployeeForTab(employeeOvertime, null, tab, () => {
           completedCount++;
           if (completedCount === totalTabs) {
-            this.handleAllTabsSubmitted(errorCount);
+            this.isLoading = false;
+            const message = this.isEditMode ? 'Lưu thành công' : 'Thêm thành công';
+            this.notification.success(NOTIFICATION_TITLE.success, message);
+            this.activeModal.close({ success: true });
           }
-        }, () => {
-          errorCount++;
+        }, (error: any) => {
           completedCount++;
-          if (completedCount === totalTabs) {
-            this.handleAllTabsSubmitted(errorCount);
-          }
+          this.isLoading = false;
+          const errorMessage = error?.error?.Message || error?.error?.message || error?.message || 'Lỗi không xác định';
+          this.notification.error(NOTIFICATION_TITLE.error, errorMessage);
         });
       }
     });
   }
 
-  handleAllTabsSubmitted(errorCount: number) {
-    this.isLoading = false;
-    if (errorCount === 0) {
-      const message = this.isEditMode ? 'Lưu thành công' : 'Thêm thành công';
-      this.notification.success(NOTIFICATION_TITLE.success, message);
-      this.activeModal.close({ success: true });
-    } else {
-      this.notification.warning(NOTIFICATION_TITLE.warning, `Đã lưu ${this.formTabs.length - errorCount}/${this.formTabs.length} bản ghi. Có ${errorCount} bản ghi lỗi.`);
-    }
-  }
-
-  uploadFileAndSaveForTab(employeeOvertime: any, tab: any, onSuccess: () => void, onError: () => void): void {
+  uploadFileAndSaveForTab(employeeOvertime: any, tab: any, onSuccess: () => void, onError: (error: any) => void): void {
     if (tab.selectedFile && !tab.tempFileRecord) {
       const employeeCode = this.currentUser?.Code || 'UNKNOWN';
       const dateRegister = tab.form.get('DateRegister')?.value;
@@ -1085,12 +1121,13 @@ export class OverTimePersonFormComponent implements OnInit {
             this.saveDataEmployeeForTab(employeeOvertime, fileRecord, tab, onSuccess, onError);
           } else {
             this.message.remove(loadingMsg);
-            onError();
+            const errorMessage = res?.message || 'Lỗi khi tải file lên';
+            onError({ error: { Message: errorMessage } });
           }
         },
-        error: (err) => {
+        error: (err: any) => {
           this.message.remove(loadingMsg);
-          onError();
+          onError(err);
         },
       });
     } else {
@@ -1106,7 +1143,7 @@ export class OverTimePersonFormComponent implements OnInit {
     }
   }
 
-  saveDataEmployeeForTab(employeeOvertime: any, employeeOvertimeFile: any, tab: any, onSuccess: () => void, onError: () => void): void {
+  saveDataEmployeeForTab(employeeOvertime: any, employeeOvertimeFile: any, tab: any, onSuccess: () => void, onError: (error: any) => void): void {
     const hasNewFile = employeeOvertimeFile && (employeeOvertimeFile.FileName || employeeOvertimeFile.ServerPath || employeeOvertimeFile.OriginPath);
     const hasDeletedFile = tab.deletedFiles.length > 0 && tab.deletedFiles[0].ID > 0;
     
@@ -1152,13 +1189,13 @@ export class OverTimePersonFormComponent implements OnInit {
       next: () => {
         onSuccess();
       },
-      error: () => {
-        onError();
+      error: (error: any) => {
+        onError(error);
       }
     });
   }
 
-  deleteFileAndThenSaveForTab(employeeOvertime: any, employeeOvertimeFile: any, tab: any, onSuccess: () => void, onError: () => void): void {
+  deleteFileAndThenSaveForTab(employeeOvertime: any, employeeOvertimeFile: any, tab: any, onSuccess: () => void, onError: (error: any) => void): void {
     const deletedFile = tab.deletedFiles[0];
     const deleteDto: any = {
       EmployeeOvertimes: [employeeOvertime],
@@ -1191,13 +1228,13 @@ export class OverTimePersonFormComponent implements OnInit {
           next: () => {
             onSuccess();
           },
-          error: () => {
-            onError();
+          error: (error: any) => {
+            onError(error);
           }
         });
       },
-      error: () => {
-        onError();
+      error: (error: any) => {
+        onError(error);
       }
     });
   }
@@ -1323,69 +1360,26 @@ export class OverTimePersonFormComponent implements OnInit {
   };
 
   disabledDateForTimeStart = (current: Date): boolean => {
-    if (!current) {
-      return true;
-    }
-
+    if (!current) return true;
     try {
-      const today = new Date();
-      today.setHours(0, 0, 0, 0);
-      
-      const tomorrow = new Date(today);
-      tomorrow.setDate(tomorrow.getDate() + 1);
-      tomorrow.setHours(0, 0, 0, 0);
-      
-      const yesterday = new Date(today);
-      yesterday.setDate(yesterday.getDate() - 1);
-      yesterday.setHours(0, 0, 0, 0);
-      
+      const dateRegisterValue = this.commonForm?.get('DateRegister')?.value;
+      if (!dateRegisterValue) return false;
+
+      const registerDate = dateRegisterValue instanceof Date
+        ? new Date(dateRegisterValue)
+        : new Date(dateRegisterValue);
+      if (isNaN(registerDate.getTime())) return false;
+      registerDate.setHours(0, 0, 0, 0);
+
+      const maxDate = new Date(registerDate);
+      maxDate.setDate(maxDate.getDate() + 1);
+      maxDate.setHours(0, 0, 0, 0);
+
       const currentDate = new Date(current);
       currentDate.setHours(0, 0, 0, 0);
 
-      const dateRegister = this.commonForm?.get('DateRegister')?.value;
-      
-      // If DateRegister is today, only allow today and tomorrow
-      if (dateRegister) {
-        const registerDate = new Date(dateRegister);
-        registerDate.setHours(0, 0, 0, 0);
-        const isRegisterToday = registerDate.getTime() === today.getTime();
-        
-        if (isRegisterToday) {
-          const isToday = currentDate.getTime() === today.getTime();
-          const isTomorrow = currentDate.getTime() === tomorrow.getTime();
-          return !isToday && !isTomorrow;
-        }
-      }
-
-      const isProblem = this.isProblemValue !== undefined ? this.isProblemValue : (this.commonForm?.get('IsProblem')?.value || false);
-      
-      const selectedDateValue = this.commonForm?.get('DateRegister')?.value;
-      let allowSelectedDate = false;
-      if (selectedDateValue) {
-        const selected = new Date(selectedDateValue);
-        selected.setHours(0, 0, 0, 0);
-        allowSelectedDate = selected.getTime() === currentDate.getTime();
-      }
-
-      if (isProblem) {
-        const firstDayOfMonth = new Date(today.getFullYear(), today.getMonth(), 1);
-        firstDayOfMonth.setHours(0, 0, 0, 0);
-        
-        if (allowSelectedDate) {
-          return false;
-        }
-        
-        const isBeforeFirstDay = currentDate.getTime() < firstDayOfMonth.getTime();
-        const isAfterToday = currentDate.getTime() > today.getTime();
-        return isBeforeFirstDay || isAfterToday;
-      } else {
-        if (allowSelectedDate) {
-          return false;
-        }
-        const isYesterday = currentDate.getTime() === yesterday.getTime();
-        const isToday = currentDate.getTime() === today.getTime();
-        return !isYesterday && !isToday;
-      }
+      // Chỉ cho chọn trong khoảng: DateRegister -> DateRegister + 1 ngày
+      return currentDate.getTime() < registerDate.getTime() || currentDate.getTime() > maxDate.getTime();
     } catch (error) {
       console.error('Error in disabledDateForTimeStart:', error);
       return false;
@@ -1393,70 +1387,26 @@ export class OverTimePersonFormComponent implements OnInit {
   };
 
   disabledDateForEndTime = (current: Date): boolean => {
-    if (!current) {
-      return true;
-    }
-
+    if (!current) return true;
     try {
-      const today = new Date();
-      today.setHours(0, 0, 0, 0);
-      
-      const tomorrow = new Date(today);
-      tomorrow.setDate(tomorrow.getDate() + 1);
-      tomorrow.setHours(0, 0, 0, 0);
-      
-      const yesterday = new Date(today);
-      yesterday.setDate(yesterday.getDate() - 1);
-      yesterday.setHours(0, 0, 0, 0);
-      
+      const dateRegisterValue = this.commonForm?.get('DateRegister')?.value;
+      if (!dateRegisterValue) return false;
+
+      const registerDate = dateRegisterValue instanceof Date
+        ? new Date(dateRegisterValue)
+        : new Date(dateRegisterValue);
+      if (isNaN(registerDate.getTime())) return false;
+      registerDate.setHours(0, 0, 0, 0);
+
+      const maxDate = new Date(registerDate);
+      maxDate.setDate(maxDate.getDate() + 1);
+      maxDate.setHours(0, 0, 0, 0);
+
       const currentDate = new Date(current);
       currentDate.setHours(0, 0, 0, 0);
 
-      const dateRegister = this.commonForm?.get('DateRegister')?.value;
-      
-      // If DateRegister is today, only allow today and tomorrow
-      if (dateRegister) {
-        const registerDate = new Date(dateRegister);
-        registerDate.setHours(0, 0, 0, 0);
-        const isRegisterToday = registerDate.getTime() === today.getTime();
-        
-        if (isRegisterToday) {
-          const isToday = currentDate.getTime() === today.getTime();
-          const isTomorrow = currentDate.getTime() === tomorrow.getTime();
-          return !isToday && !isTomorrow;
-        }
-      }
-
-      const isProblem = this.isProblemValue !== undefined ? this.isProblemValue : (this.commonForm?.get('IsProblem')?.value || false);
-      
-      const selectedDateValue = this.commonForm?.get('DateRegister')?.value;
-      let allowSelectedDate = false;
-      if (selectedDateValue) {
-        const selected = new Date(selectedDateValue);
-        selected.setHours(0, 0, 0, 0);
-        allowSelectedDate = selected.getTime() === currentDate.getTime();
-      }
-
-      if (isProblem) {
-        const firstDayOfMonth = new Date(today.getFullYear(), today.getMonth(), 1);
-        firstDayOfMonth.setHours(0, 0, 0, 0);
-        
-        if (allowSelectedDate) {
-          return false;
-        }
-        
-        const isBeforeFirstDay = currentDate.getTime() < firstDayOfMonth.getTime();
-        const isAfterTomorrow = currentDate.getTime() > tomorrow.getTime();
-        return isBeforeFirstDay || isAfterTomorrow;
-      } else {
-        if (allowSelectedDate) {
-          return false;
-        }
-        const isYesterday = currentDate.getTime() === yesterday.getTime();
-        const isToday = currentDate.getTime() === today.getTime();
-        const isTomorrow = currentDate.getTime() === tomorrow.getTime();
-        return !isYesterday && !isToday && !isTomorrow;
-      }
+      // Chỉ cho chọn trong khoảng: DateRegister -> DateRegister + 1 ngày
+      return currentDate.getTime() < registerDate.getTime() || currentDate.getTime() > maxDate.getTime();
     } catch (error) {
       console.error('Error in disabledDateForEndTime:', error);
       return false;
@@ -1817,6 +1767,8 @@ export class OverTimePersonFormComponent implements OnInit {
       Overnight: [false],
       Reason: ['', Validators.required]
     });
+
+    this.attachMinutePrecisionForForm(newForm);
     
     newForm.get('EndTime')?.valueChanges.subscribe((endTimeValue) => {
       if (endTimeValue) {

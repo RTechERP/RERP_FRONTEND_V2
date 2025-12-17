@@ -310,6 +310,7 @@ export class DayOffComponent implements OnInit, AfterViewInit {
   }
 
   private initializeTable(): void {
+    const frozenOn = !window.matchMedia('(max-width: 768px)').matches;
     this.tabulator = new Tabulator('#tb_day_off', {
       ...DEFAULT_TABLE_CONFIG,
       data: this.dayOffList,
@@ -341,7 +342,7 @@ export class DayOffComponent implements OnInit, AfterViewInit {
       },
       columns: [
         {
-          title: 'TBP duyệt', field: 'IsApprovedTP', hozAlign: 'center', headerHozAlign: 'center', width: 50, headerWordWrap: true, headerSort: false, frozen: true,
+          title: 'TBP duyệt', field: 'IsApprovedTP', hozAlign: 'center', headerHozAlign: 'center', width: 50, headerWordWrap: true, headerSort: false, frozen: frozenOn,
           formatter: function (cell: any) {
             const value = cell.getValue();
             const checked = value === true || value === 'true' || value === 1 || value === '1';
@@ -349,7 +350,7 @@ export class DayOffComponent implements OnInit, AfterViewInit {
           },
         },
         {
-          title: 'HR duyệt', field: 'IsApprovedHR', hozAlign: 'center', headerHozAlign: 'center', width: 50, headerWordWrap: true, headerSort: false, frozen: true,
+          title: 'HR duyệt', field: 'IsApprovedHR', hozAlign: 'center', headerHozAlign: 'center', width: 50, headerWordWrap: true, headerSort: false, frozen: frozenOn,
           formatter: function (cell: any) {
             const value = cell.getValue();
             const checked = value === true || value === 'true' || value === 1 || value === '1';
@@ -358,7 +359,7 @@ export class DayOffComponent implements OnInit, AfterViewInit {
 
         },
         {
-          title: 'BGĐ duyệt', field: 'IsApprovedBGD', hozAlign: 'center', headerHozAlign: 'center', width: 50, headerWordWrap: true, headerSort: false, frozen: true,
+          title: 'BGĐ duyệt', field: 'IsApprovedBGD', hozAlign: 'center', headerHozAlign: 'center', width: 50, headerWordWrap: true, headerSort: false, frozen: frozenOn,
           formatter: function (cell: any) {
             const value = cell.getValue();
             const checked = value === true || value === 'true' || value === 1 || value === '1';
@@ -366,13 +367,13 @@ export class DayOffComponent implements OnInit, AfterViewInit {
           },
         },
         {
-          title: 'Mã nhân viên', field: 'Code', hozAlign: 'left', headerHozAlign: 'center', width: 100, headerWordWrap: true, headerSort: false, frozen: true,
+          title: 'Mã nhân viên', field: 'Code', hozAlign: 'left', headerHozAlign: 'center', width: 100, headerWordWrap: true, headerSort: false, frozen: frozenOn,
         },
         {
-          title: 'Họ và tên', field: 'FullName', hozAlign: 'left', headerHozAlign: 'center', width: 100, headerWordWrap: true, formatter: 'textarea', headerSort: false, frozen: true,
+          title: 'Họ và tên', field: 'FullName', hozAlign: 'left', headerHozAlign: 'center', width: 100, headerWordWrap: true, formatter: 'textarea', headerSort: false, frozen: frozenOn,
         },
         {
-          title: 'Người duyệt', field: 'ApprovedName', hozAlign: 'left', headerHozAlign: 'center', width: 100, headerWordWrap: true, formatter: 'textarea', headerSort: false, frozen: true,
+          title: 'Người duyệt', field: 'ApprovedName', hozAlign: 'left', headerHozAlign: 'center', width: 100, headerWordWrap: true, formatter: 'textarea', headerSort: false, frozen: frozenOn,
         },
         {
           title: 'Thời gian nghỉ', field: 'TimeOnLeaveText', hozAlign: 'left', headerHozAlign: 'center', width: 200, headerSort: false,

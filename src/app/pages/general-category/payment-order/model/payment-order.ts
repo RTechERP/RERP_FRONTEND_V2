@@ -146,17 +146,17 @@ export class PaymentOrderDetail {
 }
 
 
-export interface PaymentOrderFile {
-    ID: number;
-    PaymentOrderID?: number | null;
-    FileName?: string | null;
-    OriginPath?: string | null;
-    ServerPath?: string | null;
-    CreatedBy?: string | null;
-    CreatedDate?: Date | null;   // DateTime? → string | null
-    UpdatedBy?: string | null;
-    UpdatedDate?: Date | null;   // DateTime? → string | null
-    IsDeleted?: boolean | null;
+export class PaymentOrderFile {
+    ID = 0;
+    PaymentOrderID?: number | null = 0;
+    FileName?: string | null = '';
+    OriginPath?: string | null = '';
+    ServerPath?: string | null = '';
+    CreatedBy?: string | null = null;
+    CreatedDate?: Date | null = null;   // DateTime? → string | null
+    UpdatedBy?: string | null = null;
+    UpdatedDate?: Date | null = null;   // DateTime? → string | null
+    IsDeleted?: boolean | null = false;
 }
 
 

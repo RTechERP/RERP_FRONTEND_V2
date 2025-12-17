@@ -139,7 +139,8 @@
                         <nz-form-label>Deadline thanh toán</nz-form-label>
                         <nz-form-control nzErrorTip="Chọn thời gian">
                             <nz-input-group nzSearch [nzAddOnBefore]="suffixIconButton">
-                                <nz-date-picker [formControlName]="paymentOrderField.DeadlinePayment.field"
+                                <nz-date-picker class="w-100"
+                                    [formControlName]="paymentOrderField.DeadlinePayment.field"
                                     [nzShowTime]="{ nzFormat: 'HH:mm' }" nzFormat="dd/MM/yyyy HH:mm">
                                 </nz-date-picker>
                             </nz-input-group>
@@ -178,14 +179,21 @@
                 </div>
 
                 <div nz-col nzXs="24" nzSm="12" nzMd="6" nzLg="8">
-                    <nz-form-item>
-                        <nz-form-label>File đính kèm</nz-form-label>
-                        <nz-form-control nzErrorTip="">
+                    <nz-form-item class="m-0">
+                        <input type="file" multiple (change)="handleChangeFile($event)">
+                        <!-- <nz-form-control nzErrorTip="">
                             <nz-textarea-count [nzMaxCharacterCount]="100">
                                 <textarea rows="4" nz-input></textarea>
                             </nz-textarea-count>
-                        </nz-form-control>
+                        </nz-form-control> -->
+
                     </nz-form-item>
+                    <div class="grid-container-file border" style="height: 100px; overflow: auto;">
+                        <angular-slickgrid gridId="grdFile" [columns]="columnFileDefinitions"
+                            [options]="gridFileOptions" [dataset]="dataFiles"
+                            (onAngularGridCreated)="angularGridReadyFile($event.detail)">
+                        </angular-slickgrid>
+                    </div>
                 </div>
             </div>
 
@@ -202,7 +210,7 @@
                     </nz-form-item>
                 </div>
 
-                <div nz-col nzXs="24" nzSm="12" nzMd="6" nzLg="8">
+                <div nz-col nzXs="24" nzSm="12" nzMd="6" nzLg="8" *ngIf="paymentOrder.TypeOrder != 2">
                     <nz-form-item>
                         <nz-form-label>Thời gian thanh quyết toán<span
                                 class="text-danger ps-1">(*)</span></nz-form-label>
@@ -214,7 +222,7 @@
                     </nz-form-item>
                 </div>
 
-                <div nz-col nzXs="24" nzSm="12" nzMd="6" nzLg="8">
+                <div nz-col nzXs="24" nzSm="12" nzMd="6" nzLg="8" *ngIf="paymentOrder.TypePayment == 1">
                     <nz-form-item>
                         <nz-form-label>Hình thức chuyển khoản</nz-form-label>
                         <nz-form-control nzErrorTip="">
@@ -229,7 +237,7 @@
                 </div>
             </div>
 
-            <div nz-row [nzGutter]="16">
+            <div nz-row [nzGutter]="16" *ngIf="paymentOrder.TypePayment == 1">
                 <div nz-col nzXs="24" nzSm="12" nzMd="6" nzLg="8">
                     <nz-form-item>
                         <nz-form-label>Số tài khoản<span class="text-danger ps-1">(*)</span></nz-form-label>
@@ -311,5 +319,10 @@
         <button nz-button nzType="default" (click)="submitForm()">
             <nz-icon nzType="save" nzTheme="outline" /> Lưu
         </button>
+
+        <!-- <button type="button" class="btn btn-outline-danger" (click)="activeModal.close()">Đóng</button>
+        <button type="button" class="btn btn-success">
+            <nz-icon nzType="save" nzTheme="outline" (click)="submitForm()" /> Lưu
+        </button> -->
     </div>
 </div>

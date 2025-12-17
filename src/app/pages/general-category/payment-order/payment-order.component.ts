@@ -7,7 +7,7 @@ import { PaymentOrderService } from './payment-order.service';
 import { NzNotificationService } from 'ng-zorro-antd/notification';
 import { PaymentOrderDetailComponent } from './payment-order-detail/payment-order-detail.component';
 import { AngularGridInstance, AngularSlickgridModule, Column, Filters, Formatters, GridOption, OnClickEventArgs, OnEventArgs, OnSelectedRowsChangedEventArgs } from 'angular-slickgrid';
-import { PaymentOrderDetailField, PaymentOrderField } from './model/payment-order';
+import { PaymentOrder, PaymentOrderDetailField, PaymentOrderField } from './model/payment-order';
 import { CommonModule } from '@angular/common';
 import { NOTIFICATION_TITLE } from '../../../app.config';
 import { NzSplitterModule } from 'ng-zorro-antd/splitter';
@@ -96,7 +96,7 @@ export class PaymentOrderComponent implements OnInit {
                     label: 'Duyệt hồ sơ',
                     icon: PrimeIcons.CHECK,
                     command: () => {
-                        this.onApprovedTBP(1, {
+                        this.onApprovedHR(1, {
                             ButtonActionGroup: 'btnHR', ButtonActionName: 'btnApproveDocumentHR', ButtonActionText: 'HR xác nhận',
                         });
                     }
@@ -105,7 +105,7 @@ export class PaymentOrderComponent implements OnInit {
                     label: 'Hủy duyệt hồ sơ',
                     icon: PrimeIcons.UNLOCK,
                     command: () => {
-                        this.onApprovedTBP(2, {
+                        this.onApprovedHR(2, {
                             ButtonActionGroup: 'btnHR', ButtonActionName: 'btnUnApproveDocumentHR', ButtonActionText: 'HR xác nhận',
                         });
                     }
@@ -115,7 +115,7 @@ export class PaymentOrderComponent implements OnInit {
                     label: 'Bổ sung chứng từ',
                     icon: PrimeIcons.UNLOCK,
                     command: () => {
-                        this.onApprovedTBP(3, {
+                        this.onApprovedHR(3, {
                             ButtonActionGroup: 'btnHR', ButtonActionName: 'btnHRUpdateDocument', ButtonActionText: 'HR xác nhận',
                         });
                     }
@@ -124,7 +124,7 @@ export class PaymentOrderComponent implements OnInit {
                     label: 'TBP duyệt',
                     icon: PrimeIcons.UNLOCK,
                     command: () => {
-                        this.onApprovedTBP(1, {
+                        this.onApprovedHR(1, {
                             ButtonActionGroup: 'btnHR', ButtonActionName: 'btnApproveHR', ButtonActionText: 'HR xác nhận',
                         });
                     }
@@ -133,7 +133,7 @@ export class PaymentOrderComponent implements OnInit {
                     label: 'TBP hủy duyệt',
                     icon: PrimeIcons.UNLOCK,
                     command: () => {
-                        this.onApprovedTBP(2, {
+                        this.onApprovedHR(2, {
                             ButtonActionGroup: 'btnHR', ButtonActionName: 'btnUnApproveHR', ButtonActionText: 'HR xác nhận',
                         });
                     }
@@ -150,7 +150,7 @@ export class PaymentOrderComponent implements OnInit {
                     label: 'Duyệt hồ sơ',
                     icon: PrimeIcons.CHECK,
                     command: () => {
-                        this.onApprovedTBP(1, {
+                        this.onApprovedKTTT(1, {
                             ButtonActionGroup: 'btnKTTT', ButtonActionName: 'btnApproveDocument', ButtonActionText: 'Kế toán xác nhận',
                         });
                     }
@@ -159,7 +159,7 @@ export class PaymentOrderComponent implements OnInit {
                     label: 'Bổ sung chứng từ',
                     icon: PrimeIcons.UNLOCK,
                     command: () => {
-                        this.onApprovedTBP(3, {
+                        this.onApprovedKTTT(3, {
                             ButtonActionGroup: 'btnKTTT', ButtonActionName: 'btnUpdateDocument', ButtonActionText: 'Kế toán xác nhận',
                         });
                     }
@@ -168,7 +168,7 @@ export class PaymentOrderComponent implements OnInit {
                     label: 'Hủy duyệt hồ sơ',
                     icon: PrimeIcons.UNLOCK,
                     command: () => {
-                        this.onApprovedTBP(2, {
+                        this.onApprovedKTTT(2, {
                             ButtonActionGroup: 'btnKTTT', ButtonActionName: 'btnUnApproveDocument', ButtonActionText: 'Kế toán xác nhận',
                         });
                     }
@@ -178,7 +178,7 @@ export class PaymentOrderComponent implements OnInit {
                     label: 'Nhận chứng từ',
                     icon: PrimeIcons.UNLOCK,
                     command: () => {
-                        this.onApprovedTBP(1, {
+                        this.onApprovedKTTT(1, {
                             ButtonActionGroup: 'btnKTTT', ButtonActionName: 'btnReceiveDocument', ButtonActionText: 'Kế toán xác nhận',
                         });
                     }
@@ -187,7 +187,7 @@ export class PaymentOrderComponent implements OnInit {
                     label: 'Hủy nhận chứng từ',
                     icon: PrimeIcons.UNLOCK,
                     command: () => {
-                        this.onApprovedTBP(2, {
+                        this.onApprovedKTTT(2, {
                             ButtonActionGroup: 'btnKTTT', ButtonActionName: 'btnUnReceiveDocument', ButtonActionText: 'Kế toán xác nhận',
                         });
                     }
@@ -197,7 +197,7 @@ export class PaymentOrderComponent implements OnInit {
                     label: 'TBP duyệt',
                     icon: PrimeIcons.UNLOCK,
                     command: () => {
-                        this.onApprovedTBP(1, {
+                        this.onApprovedKTT(1, {
                             ButtonActionGroup: 'btnKTT', ButtonActionName: 'btnApproveKT', ButtonActionText: 'Kế toán xác nhận',
                         });
                     }
@@ -206,7 +206,7 @@ export class PaymentOrderComponent implements OnInit {
                     label: 'TBP hủy duyệt',
                     icon: PrimeIcons.UNLOCK,
                     command: () => {
-                        this.onApprovedTBP(2, {
+                        this.onApprovedKTT(2, {
                             ButtonActionGroup: 'btnKTT', ButtonActionName: 'btnUnApproveKT', ButtonActionText: 'Kế toán xác nhận',
                         });
                     }
@@ -215,7 +215,7 @@ export class PaymentOrderComponent implements OnInit {
                 {
                     label: 'Đã thanh toán',
                     icon: PrimeIcons.UNLOCK, command: () => {
-                        this.onApprovedTBP(1, {
+                        this.onApprovedKTTT(1, {
                             ButtonActionGroup: 'btnKTTT', ButtonActionName: 'btnIsPayment', ButtonActionText: 'Kế toán xác nhận',
                         });
                     }
@@ -224,7 +224,7 @@ export class PaymentOrderComponent implements OnInit {
                     label: 'Hủy thanh toán',
                     icon: PrimeIcons.UNLOCK,
                     command: () => {
-                        this.onApprovedTBP(2, {
+                        this.onApprovedKTTT(2, {
                             ButtonActionGroup: 'btnKTTT', ButtonActionName: 'btnUnPayment', ButtonActionText: 'Kế toán xác nhận',
                         });
                     }
@@ -232,6 +232,9 @@ export class PaymentOrderComponent implements OnInit {
                 {
                     label: 'Đính kèm file Bank slip',
                     icon: PrimeIcons.UNLOCK,
+                    command: () => {
+                        this.onAttachFileBankslip();
+                    }
 
                 },
                 {
@@ -249,7 +252,7 @@ export class PaymentOrderComponent implements OnInit {
                     label: 'Duyệt',
                     icon: PrimeIcons.CHECK,
                     command: () => {
-                        this.onApprovedTBP(1, {
+                        this.onApprovedBGD(1, {
                             ButtonActionGroup: 'btnBGĐ', ButtonActionName: 'btnApproveBGĐ', ButtonActionText: 'BGĐ xác nhận',
                         });
                     }
@@ -258,7 +261,7 @@ export class PaymentOrderComponent implements OnInit {
                     label: 'Hủy duyệt',
                     icon: PrimeIcons.UNLOCK,
                     command: () => {
-                        this.onApprovedTBP(2, {
+                        this.onApprovedBGD(2, {
                             ButtonActionGroup: 'btnBGĐ', ButtonActionName: 'btnUnApproveBGĐ', ButtonActionText: 'BGĐ xác nhận',
                         });
                     }
@@ -638,7 +641,7 @@ export class PaymentOrderComponent implements OnInit {
                 type: PaymentOrderField.IsIgnoreHR.type,
                 sortable: true, filterable: true,
                 width: 150,
-                // formatter: Formatters.icon,
+                formatter: Formatters.iconBoolean, params: { cssClass: "mdi mdi-check" },
                 filter: { model: Filters['compoundInputText'] },
             },
 
@@ -1119,14 +1122,17 @@ export class PaymentOrderComponent implements OnInit {
         }
     }
 
-    initModal() {
+    initModal(paymentOrder: any = new PaymentOrder()) {
         const modalRef = this.modalService.open(PaymentOrderDetailComponent, {
             centered: true,
             size: 'xl',
             backdrop: 'static',
             keyboard: false,
-            scrollable: true
+            scrollable: true,
+            fullscreen: true,
         });
+
+        modalRef.componentInstance.paymentOrder = paymentOrder;
     }
 
     onCreate() {
@@ -1134,11 +1140,52 @@ export class PaymentOrderComponent implements OnInit {
     }
 
     onEdit() {
-        this.initModal();
+        const activeCell = this.angularGrid.slickGrid.getActiveCell();
+
+        if (activeCell) {
+            const rowIndex = activeCell.row;        // index trong grid
+            const item = this.angularGrid.dataView.getItem(rowIndex) as PaymentOrder; // data object
+
+            // console.log('Row index:', rowIndex);
+            // console.log('Row data:', item);
+            this.initModal(item);
+        }
     }
 
     onDelete() {
+        const activeCell = this.angularGrid.slickGrid.getActiveCell();
 
+        if (activeCell) {
+            const rowIndex = activeCell.row;        // index trong grid
+            const item = this.angularGrid.dataView.getItem(rowIndex) as PaymentOrder; // data object
+
+            Swal.fire({
+                title: 'Xác nhận duyệt?',
+                text: `Bạn có chắc muốn xóa ĐNTT [${item.Code}] đã chọn không?`,
+                icon: 'question',
+                showCancelButton: true,
+                confirmButtonColor: '#28a745 ',
+                cancelButtonColor: '#dc3545 ',
+                confirmButtonText: 'Đồng ý',
+                cancelButtonText: 'Hủy',
+            }).then((result: any) => {
+                if (result.isConfirmed) {
+                    const paymentDeleted = {
+                        ID: item.ID,
+                        IsDelete: item.IsDelete
+                    }
+
+                    this.paymentService.save(paymentDeleted).subscribe({
+                        next: (response) => {
+                            console.log(response);
+                        },
+                        error: (err) => {
+                            this.notification.error(NOTIFICATION_TITLE.error, err.error.message);
+                        }
+                    })
+                }
+            });
+        }
     }
 
 
@@ -1176,7 +1223,7 @@ export class PaymentOrderComponent implements OnInit {
                     this.notification.error(NOTIFICATION_TITLE.error, err.error.message);
                 }
             })
-        } else if (action == 'btnKT') {
+        } else if (action == 'btnKTT') {
             this.paymentService.appovedKTT(data).subscribe({
                 next: (response) => {
                     this.loadData();
@@ -1186,7 +1233,7 @@ export class PaymentOrderComponent implements OnInit {
                     this.notification.error(NOTIFICATION_TITLE.error, err.error.message);
                 }
             })
-        } else if (action == 'btnBGD') {
+        } else if (action == 'btnBGĐ') {
             this.paymentService.appovedBGD(data).subscribe({
                 next: (response) => {
                     this.loadData();
@@ -1394,21 +1441,24 @@ export class PaymentOrderComponent implements OnInit {
         }));
 
         if (isApproved == 1) {
+            console.log('action.ButtonActionName:', action.ButtonActionName);
             if (action.ButtonActionName == "btnApproveDocument" || action.ButtonActionName == 'btnApproveKT') {
                 const result = await Swal.fire({
                     input: 'textarea',
-                    inputLabel: 'Lý do bổ sung',
-                    inputPlaceholder: 'Nhập lý do bổ sung...',
-                    inputAttributes: {
-                        'aria-label': 'Vui lòng nhập Lý do bổ sung',
-                    },
+                    inputLabel: 'Kế toán hoạch toán',
+                    // inputPlaceholder: 'Nhập lý do bổ sung...',
+                    // inputAttributes: {
+                    //     'aria-label': 'Vui lòng nhập Lý do bổ sung',
+                    // },
                     showCancelButton: true,
                     confirmButtonColor: '#28a745 ',
                     cancelButtonColor: '#dc3545 ',
-                    confirmButtonText: 'Hủy duyệt',
+                    confirmButtonText: 'Duyệt',
                     cancelButtonText: 'Hủy',
                 });
                 if (result.isConfirmed) {
+
+                    console.log('result:', result);
 
                     selectedItems = selectedItems.map((x, i) => ({
                         ...x,
@@ -1420,27 +1470,57 @@ export class PaymentOrderComponent implements OnInit {
                         AccountingNote: result.value
                     }));
 
-                    // console.log('hủy duyêt:', selectedItems);
+                    console.log('D:', selectedItems);
                     this.handleApproved(selectedItems);
-                } else {
-                    Swal.fire({
-                        title: 'Xác nhận duyệt?',
-                        text: `Bạn có chắc muốn duyệt ${selectedItems.length} đã chọn không?`,
-                        icon: 'question',
-                        showCancelButton: true,
-                        confirmButtonColor: '#28a745 ',
-                        cancelButtonColor: '#dc3545 ',
-                        confirmButtonText: 'Duyệt',
-                        cancelButtonText: 'Hủy',
-                    }).then((result: any) => {
-                        if (result.isConfirmed) {
-                            console.log('duyêt:', selectedItems);
-
-                            this.handleApproved(selectedItems);
-                        }
-                    });
                 }
+            } else {
+                Swal.fire({
+                    title: 'Xác nhận duyệt?',
+                    text: `Bạn có chắc muốn duyệt ${selectedItems.length} đã chọn không?`,
+                    icon: 'question',
+                    showCancelButton: true,
+                    confirmButtonColor: '#28a745 ',
+                    cancelButtonColor: '#dc3545 ',
+                    confirmButtonText: 'Duyệt',
+                    cancelButtonText: 'Hủy',
+                }).then((result: any) => {
+                    if (result.isConfirmed) {
+                        console.log('duyêt:', selectedItems);
+
+                        this.handleApproved(selectedItems);
+                    }
+                });
             }
+            // if (action.ButtonActionName == "btnUpdateDocument") {
+            //     const result = await Swal.fire({
+            //         input: 'textarea',
+            //         inputLabel: 'Lý do bổ sung',
+            //         inputPlaceholder: 'Nhập lý do bổ sung...',
+            //         inputAttributes: {
+            //             'aria-label': 'Vui lòng nhập Lý do bổ sung',
+            //         },
+            //         showCancelButton: true,
+            //         confirmButtonColor: '#28a745 ',
+            //         cancelButtonColor: '#dc3545 ',
+            //         confirmButtonText: 'Hủy duyệt',
+            //         cancelButtonText: 'Hủy',
+            //     });
+            //     if (result.isConfirmed) {
+
+            //         selectedItems = selectedItems.map((x, i) => ({
+            //             ...x,
+            //             PaymentOrderLog: {
+            //                 IsApproved: isApproved,
+            //                 // ReasonRequestAppendFileAC: result.value,
+            //                 // IsRequestAppendFileAC: action.ButtonActionName == "btnUpdateDocument"
+            //             },
+            //             AccountingNote: result.value
+            //         }));
+
+            //         // console.log('hủy duyêt:', selectedItems);
+            //         this.handleApproved(selectedItems);
+            //     } else 
+            // }
         } else if (isApproved == 3) {
             const { value: reason }: { value?: string } = await Swal.fire({
                 input: 'textarea',
@@ -1536,10 +1616,12 @@ export class PaymentOrderComponent implements OnInit {
                     showCancelButton: true,
                     confirmButtonColor: '#28a745 ',
                     cancelButtonColor: '#dc3545 ',
-                    confirmButtonText: 'Hủy duyệt',
+                    confirmButtonText: 'Duyệt',
                     cancelButtonText: 'Hủy',
                 });
                 if (result.isConfirmed) {
+
+                    console.log('result:', result);
 
                     selectedItems = selectedItems.map((x, i) => ({
                         ...x,
@@ -1551,7 +1633,7 @@ export class PaymentOrderComponent implements OnInit {
                         AccountingNote: result.value
                     }));
 
-                    // console.log('hủy duyêt:', selectedItems);
+                    console.log('D:', selectedItems);
                     this.handleApproved(selectedItems);
                 }
             } else {
@@ -1673,5 +1755,75 @@ export class PaymentOrderComponent implements OnInit {
                 this.handleApproved(selectedItems);
             }
         }
+    }
+
+
+    async onAttachFileBankslip() {
+        const activeCell = this.angularGrid.slickGrid.getActiveCell();
+
+        if (activeCell) {
+            const rowIndex = activeCell.row;        // index trong grid
+            const item = this.angularGrid.dataView.getItem(rowIndex) as PaymentOrder; // data object
+
+            const { value: files } = await Swal.fire({
+                input: 'file',
+                inputLabel: 'File Bankslip',
+                inputAttributes: {
+                    accept: `
+                        image/*,
+                        application/pdf,
+                        text/plain,
+                        application/msword,
+                        application/vnd.openxmlformats-officedocument.wordprocessingml.document,
+                        application/vnd.ms-excel,
+                        application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,
+                        application/vnd.ms-powerpoint,
+                        application/vnd.openxmlformats-officedocument.presentationml.presentation
+                        `,
+                    multiple: 'multiple',
+                    'aria-label': 'Upload files'
+                },
+                showCancelButton: true,
+                confirmButtonColor: '#28a745 ',
+                cancelButtonColor: '#dc3545 ',
+                confirmButtonText: 'Lưu',
+                cancelButtonText: 'Hủy',
+            });
+
+            if (files && files.length > 0) {
+
+                let fileUpdloads: any[] = [];
+                // console.log('files:', files);
+                // console.log('item.ID.toString():', item.ID.toString());
+
+                this.paymentService.uploadFileBankslip(files, item.ID.toString()).subscribe({
+                    next: (response) => {
+                        console.log(response);
+                        this.loadDetail(item.ID);
+                    },
+                    error: (err) => {
+                        this.notification.error(NOTIFICATION_TITLE.error, err.error.message);
+                    }
+                })
+                // [...files].forEach(file => {
+                //     const reader = new FileReader();
+                //     reader.onload = (e) => {
+
+                //         let fileUpload = {
+                //             title: file.name,
+                //             imageUrl: e.target!.result as string,
+                //             imageAlt: 'Uploaded image'
+                //         }
+                //         fileUpdloads.push(fileUpload);
+                //     };
+                //     reader.readAsDataURL(file);
+                //     console.log('reader.readAsDataURL(file):', reader.readAsDataURL(file));
+                // });
+
+                // console.log('fileUpdloads:', fileUpdloads);
+            }
+        }
+
+
     }
 }

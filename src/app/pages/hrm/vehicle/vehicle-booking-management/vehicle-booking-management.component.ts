@@ -880,9 +880,21 @@ export class VehicleBookingManagementComponent
 
 
   getVehicleBookingManagement() {
+    // Format date theo local time để tránh lệch timezone
+    const formatLocalDate = (date: Date | string): string => {
+      const dateObj = typeof date === 'string' ? new Date(date) : date;
+      const year = dateObj.getFullYear();
+      const month = String(dateObj.getMonth() + 1).padStart(2, '0');
+      const day = String(dateObj.getDate()).padStart(2, '0');
+      const hours = String(dateObj.getHours()).padStart(2, '0');
+      const minutes = String(dateObj.getMinutes()).padStart(2, '0');
+      const seconds = String(dateObj.getSeconds()).padStart(2, '0');
+      return `${year}-${month}-${day}T${hours}:${minutes}:${seconds}`;
+    };
+
     const request = {
-      StartDate: this.dateStart,
-      EndDate: this.dateEnd,
+      StartDate: formatLocalDate(this.dateStart),
+      EndDate: formatLocalDate(this.dateEnd),
       Category: this.categoryId || 0,
       EmployeeId: this.employeeId || 0,
       DriverEmployeeId: this.driverEmployeeId || 0,
@@ -894,7 +906,7 @@ export class VehicleBookingManagementComponent
     this.vehicleBookingManagementService
       .getVehicleBookingManagement(request)
       .subscribe((response: any) => {
-        this.vehicleBookingManagementList = response.data || [];
+        this.vehicleBookingManagementList = response.data.data || [];
         console.log(this.vehicleBookingManagementList);
         // Clear pending changes khi reload data
         this.pendingChanges.clear();
@@ -1015,7 +1027,8 @@ export class VehicleBookingManagementComponent
                 { title: 'Hình thức đặt', field: 'CategoryText', width: 120 },
                 {
                   title: 'Họ tên',
-                  field: 'FullName',
+                  // field: 'FullName',
+                  field: 'BookerVehicles',
                   width: 150,
                   bottomCalc: 'count',
                 },
@@ -1489,6 +1502,158 @@ export class VehicleBookingManagementComponent
         console.error('Lỗi khi lưu:', error);
         this.notification.error('Thông báo', 'Lỗi khi lưu thời gian xuất phát thực tế!');
       }
+    });
+  }
+
+  // Nút Sửa - Mở modal edit với dòng được chọn
+  onEdit() {
+    // Kiểm tra có dòng được chọn không
+    if (this.vehicleBookingListId.length === 0) {
+      this.notification.warning('Thông báo', 'Vui lòng chọn một dòng để sửa!');
+      return;
+    }
+
+    // Chỉ cho phép sửa 1 dòng
+    if (this.vehicleBookingListId.length > 1) {
+      this.notification.warning('Thông báo', 'Chỉ được chọn một dòng để sửa!');
+      return;
+    }
+
+    const selectedItem = this.vehicleBookingListId[0];
+    const currentEmployeeID = this.currentUser?.EmployeeID || 0;
+
+    // Kiểm tra quyền sửa: phải là người đặt hoặc người đi (giống MVC)
+    if (selectedItem.EmployeeID !== currentEmployeeID && 
+        selectedItem.PassengerEmployeeID !== currentEmployeeID) {
+      this.notification.warning('Thông báo', 'Bạn không có quyền sửa đơn đăng ký này!');
+      return;
+    }
+
+    // Kiểm tra trạng thái: chỉ cho phép sửa khi Status == 1 (Chưa xếp) và chưa được TBP duyệt
+    if (selectedItem.Status !== 1) {
+      this.notification.warning('Thông báo', 'Chỉ có thể sửa đơn đăng ký có trạng thái "Chưa xếp"!');
+      return;
+    }
+
+    if (selectedItem.IsApprovedTBP) {
+      this.notification.warning('Thông báo', 'Không thể sửa đơn đăng ký đã được TBP duyệt!');
+      return;
+    }
+
+    // Mở modal edit
+    const modalRef = this.modalService.open(VehicleBookingManagementDetailComponent, {
+      size: 'lg',
+      backdrop: 'static',
+      keyboard: false,
+      centered: true,
+    });
+    modalRef.componentInstance.dataInput = selectedItem;
+    modalRef.componentInstance.isEdit = true;
+    modalRef.result.then(
+      (result) => {
+        if (result) {
+          setTimeout(() => this.getVehicleBookingManagement(), 100);
+        }
+      },
+      () => {
+        console.log('Modal dismissed');
+      }
+    );
+  }
+
+  // Nút Đăng ký hủy - Hủy booking
+  onCancelBooking() {
+    // Kiểm tra có dòng được chọn không
+    if (this.vehicleBookingListId.length === 0) {
+      this.notification.warning('Thông báo', 'Vui lòng chọn ít nhất một dòng để hủy!');
+      return;
+    }
+
+    const currentEmployeeID = this.currentUser?.EmployeeID || 0;
+
+    // Lọc các item hợp lệ để hủy
+    const validItems: any[] = [];
+    const errors: string[] = [];
+
+    this.vehicleBookingListId.forEach((item) => {
+      // Kiểm tra quyền hủy: phải là người đặt hoặc người đi (giống MVC)
+      if (item.EmployeeID !== currentEmployeeID && 
+          item.PassengerEmployeeID !== currentEmployeeID) {
+        errors.push(`Bạn không có quyền hủy đơn của ${item.FullName || 'nhân viên khác'}.`);
+        return;
+      }
+
+      // Kiểm tra trạng thái: chỉ cho phép hủy khi Status == 1 (Chưa xếp) và chưa được TBP duyệt
+      if (item.Status !== 1) {
+        errors.push(`Đơn của ${item.FullName || 'nhân viên'} không ở trạng thái "Chưa xếp".`);
+        return;
+      }
+
+      if (item.IsApprovedTBP) {
+        errors.push(`Đơn của ${item.FullName || 'nhân viên'} đã được TBP duyệt, không thể hủy.`);
+        return;
+      }
+
+      validItems.push(item);
+    });
+
+    if (errors.length > 0) {
+      const errorMsg = errors.slice(0, 3).join('<br>') + 
+        (errors.length > 3 ? `<br>...và ${errors.length - 3} lỗi khác.` : '');
+      this.notification.warning('Không thể hủy một số đơn', errorMsg, { nzDuration: 5000 });
+    }
+
+    if (validItems.length === 0) {
+      return;
+    }
+
+    // Hiển thị confirm dialog
+    this.modal.confirm({
+      nzTitle: 'Xác nhận hủy đăng ký',
+      nzContent: `Bạn có chắc muốn hủy ${validItems.length} đơn đăng ký xe đã chọn?`,
+      nzOkText: 'Đồng ý',
+      nzCancelText: 'Hủy',
+      nzOkDanger: true,
+      nzOnOk: () => {
+        // Gọi API hủy cho từng item
+        const requests = validItems.map((item) =>
+          this.vehicleBookingManagementService.cancelBooking(item.ID).pipe(
+            catchError((error) => {
+              console.error(`Lỗi khi hủy đơn ${item.ID}:`, error);
+              return of({ success: false, error, item });
+            })
+          )
+        );
+
+        forkJoin(requests).subscribe({
+          next: (responses: any[]) => {
+            const successCount = responses.filter((r) => r.success !== false).length;
+            const failCount = responses.filter((r) => r.success === false).length;
+
+            if (successCount > 0) {
+              this.notification.success(
+                'Thông báo',
+                `Hủy thành công ${successCount} đơn đăng ký.`
+              );
+            }
+
+            if (failCount > 0) {
+              this.notification.error(
+                'Thông báo',
+                `Có ${failCount} đơn đăng ký hủy thất bại.`
+              );
+            }
+
+            // Reload data sau khi xử lý
+            setTimeout(() => this.getVehicleBookingManagement(), 100);
+          },
+          error: (error) => {
+            console.error('Lỗi khi hủy:', error);
+            this.notification.error('Thông báo', 'Lỗi khi hủy đăng ký!');
+            setTimeout(() => this.getVehicleBookingManagement(), 100);
+          },
+        });
+      },
     });
   }
 }

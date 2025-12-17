@@ -68,12 +68,10 @@ export class TrackingMarksService {
 
   /**
    * Upload file
+   * @param id ID tracking mark
+   * @param formData FormData đã có key, subPath, và files
    */
-  uploadFile(id: number, files: File[]): Observable<any> {
-    const formData = new FormData();
-    files.forEach((file) => {
-      formData.append('files', file);
-    });
+  uploadFile(id: number, formData: FormData): Observable<any> {
     return this.http.post<any>(this._url + 'upload-file', formData, {
       params: { id: id.toString() }
     });

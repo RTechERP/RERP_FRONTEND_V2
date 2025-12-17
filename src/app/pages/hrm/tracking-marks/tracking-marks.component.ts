@@ -22,6 +22,7 @@ import { NzTableModule } from 'ng-zorro-antd/table';
 import { NzModalModule, NzModalService } from 'ng-zorro-antd/modal';
 import { NzFormModule } from 'ng-zorro-antd/form';
 import { NzNotificationService } from 'ng-zorro-antd/notification';
+import { NzMessageService } from 'ng-zorro-antd/message';
 import { CommonModule } from '@angular/common';
 import { NgbModal } from '@ng-bootstrap/ng-bootstrap';
 import {
@@ -65,7 +66,11 @@ export class TrackingMarksComponent implements OnInit, AfterViewInit {
   @ViewChild('tb_Master', { static: false }) tb_MasterElement!: ElementRef;
   tb_Master!: Tabulator;
 
+  @ViewChild('tb_Files', { static: false }) tb_FilesElement!: ElementRef;
+  tb_Files!: Tabulator;
+
   sizeSearch: string = '0';
+  sizeFiles: string = '0';
   
   // Filters
   filters: any = {
@@ -108,6 +113,10 @@ export class TrackingMarksComponent implements OnInit, AfterViewInit {
   // Value for reason cancel modal
   reasonCancelValue: string = '';
   
+  // Files data
+  filesData: any[] = [];
+  selectedTrackingMarkId: number = 0;
+  
   @ViewChild('expectDateCompleteModalContent', { static: false }) expectDateCompleteModalContent!: TemplateRef<any>;
   @ViewChild('reasonCancelModalContent', { static: false }) reasonCancelModalContent!: TemplateRef<any>;
 
@@ -117,6 +126,7 @@ export class TrackingMarksComponent implements OnInit, AfterViewInit {
     private employeeService: EmployeeService,
     private appUserService: AppUserService,
     private notification: NzNotificationService,
+    private message: NzMessageService,
     private modalService: NgbModal,
     private nzModal: NzModalService
   ) {
@@ -140,6 +150,7 @@ export class TrackingMarksComponent implements OnInit, AfterViewInit {
   ngAfterViewInit() {
     setTimeout(() => {
       this.initTable();
+      this.initFilesTable();
       this.loadData();
     }, 100);
   }
@@ -381,7 +392,14 @@ export class TrackingMarksComponent implements OnInit, AfterViewInit {
             const day = String(date.getDate()).padStart(2, '0');
             const month = String(date.getMonth() + 1).padStart(2, '0');
             const year = date.getFullYear();
-            return `${day}/${month}/${year}`;
+            return `<span style="color: #1890ff; text-decoration: underline; cursor: pointer;">${day}/${month}/${year}</span>`;
+          },
+          cellClick: (e: any, cell: any) => {
+            e.preventDefault();
+            e.stopPropagation();
+            const rowData = cell.getRow().getData();
+            const id = rowData['ID'] || rowData['Id'] || 0;
+            this.onClickDetail(id);
           },
         },
         {
@@ -431,9 +449,9 @@ export class TrackingMarksComponent implements OnInit, AfterViewInit {
           width: 120,
           formatter: (cell: any) => {
             const value = cell.getValue();
-            if (value === 1) return '<span style="color: #54ca68;">Hoàn thành</span>';
-            if (value === 2) return '<span style="color: #fc544b;">Đã hủy</span>';
-            return '<span style="color: #ffc107;">Chưa hoàn thành</span>';
+            if (value === 1) return '<span>Hoàn thành</span>';
+            if (value === 2) return '<span>Đã hủy</span>';
+            return '<span>Chưa hoàn thành</span>';
           },
         },
         {
@@ -708,6 +726,212 @@ export class TrackingMarksComponent implements OnInit, AfterViewInit {
       nzOnCancel: () => {
         this.expectDateCompleteValue = null;
       }
+    });
+  }
+
+  initFilesTable() {
+    if (!this.tb_FilesElement) {
+      return;
+    }
+
+    this.tb_Files = new Tabulator(this.tb_FilesElement.nativeElement, {
+      ...DEFAULT_TABLE_CONFIG,
+      layout: 'fitColumns',
+      height: '100%',
+      rowHeader: false,
+      pagination: false,
+      data: [],
+      columns: [
+        {
+          title: 'STT',
+          field: 'STT',
+          sorter: 'number',
+          width: 60,
+          formatter: 'rownum',
+        },
+        {
+          title: 'Tên file',
+          field: 'FileName',
+          sorter: 'string',
+          // formatter: (cell: any) => {
+          //   const value = cell.getValue();
+          //   return value
+          //     ? `<span style="color: #1890ff; text-decoration: underline; cursor: pointer;">${value}</span>`
+          //     : '';
+          // },
+          // cellClick: (e: any, cell: any) => {
+          //   e.preventDefault();
+          //   e.stopPropagation();
+          //   const rowData = cell.getRow().getData();
+          //   const fileName = rowData['FileName'] || rowData['fileName'] || '';
+          //   this.previewFile(this.selectedTrackingMarkId, fileName);
+          // },
+        },
+        {
+          title: '',
+          field: 'actions',
+          width: 150,
+          hozAlign: 'center',
+          headerSort: false,
+          formatter: (cell: any) => {
+            return `
+              <!-- <button class="btn btn-sm btn-link p-0 tracking-marks-preview-btn" data-file-name="${cell.getRow().getData()['FileName'] || ''}">
+                Xem trước
+              </button>
+              <span>|</span> -->
+              <button class="btn btn-sm btn-link p-0 tracking-marks-download-btn" data-file-name="${cell.getRow().getData()['FileName'] || ''}">
+                Tải về
+              </button>
+            `;
+          },
+          cellClick: (e: any, cell: any) => {
+            e.preventDefault();
+            e.stopPropagation();
+            const target = e.target as HTMLElement;
+            const rowData = cell.getRow().getData();
+            const fileName = rowData['FileName'] || rowData['fileName'] || '';
+            
+            // if (target.classList.contains('tracking-marks-preview-btn') || target.closest('.tracking-marks-preview-btn')) {
+            //   this.previewFile(this.selectedTrackingMarkId, fileName);
+            // } else 
+            if (target.classList.contains('tracking-marks-download-btn') || target.closest('.tracking-marks-download-btn')) {
+              this.downloadFile(this.selectedTrackingMarkId, fileName);
+            }
+          },
+        },
+      ],
+    });
+  }
+
+  onClickDetail(id: number) {
+    if (this.selectedTrackingMarkId === id && this.sizeFiles !== '0') {
+      // Đóng panel nếu đã mở
+      this.sizeFiles = '0';
+      this.filesData = [];
+      if (this.tb_Files) {
+        this.tb_Files.setData([]);
+      }
+    } else {
+      // Mở panel và load files
+      this.selectedTrackingMarkId = id;
+      this.sizeFiles = '30%';
+      this.loadFiles(id);
+    }
+  }
+
+  loadFiles(id: number) {
+    this.trackingMarksService.getById(id).subscribe({
+      next: (response: any) => {
+        if (response?.status === 1) {
+          const files = response.data?.files || [];
+          this.filesData = files.map((file: any, index: number) => ({
+            ...file,
+            STT: index + 1,
+          }));
+          if (this.tb_Files) {
+            this.tb_Files.setData(this.filesData);
+          }
+        } else {
+          this.filesData = [];
+          if (this.tb_Files) {
+            this.tb_Files.setData([]);
+          }
+        }
+      },
+      error: (error) => {
+        console.error('Error loading files:', error);
+        this.notification.error('Lỗi', 'Không thể tải danh sách file!');
+        this.filesData = [];
+        if (this.tb_Files) {
+          this.tb_Files.setData([]);
+        }
+      }
+    });
+  }
+
+  downloadFile(id: number, fileName: string) {
+    const loadingMsg = this.message.loading('Đang tải xuống file...', {
+      nzDuration: 0,
+    }).messageId;
+
+    this.trackingMarksService.downloadFile(id, fileName).subscribe({
+      next: (blob: Blob) => {
+        this.message.remove(loadingMsg);
+        if (blob && blob.size > 0) {
+          const url = window.URL.createObjectURL(blob);
+          const link = document.createElement('a');
+          link.href = url;
+          link.download = fileName;
+          document.body.appendChild(link);
+          link.click();
+          document.body.removeChild(link);
+          window.URL.revokeObjectURL(url);
+          this.notification.success('Thông báo', 'Tải xuống thành công!');
+        } else {
+          this.notification.error('Thông báo', 'File tải về không hợp lệ!');
+        }
+      },
+      error: (err: any) => {
+        this.message.remove(loadingMsg);
+        this.notification.error('Thông báo', 'Tải xuống thất bại!');
+      },
+    });
+  }
+
+  previewFile(id: number, fileName: string) {
+    const loadingMsg = this.message.loading('Đang tải file để xem trước...', {
+      nzDuration: 0,
+    }).messageId;
+
+    this.trackingMarksService.downloadFile(id, fileName).subscribe({
+      next: (blob: Blob) => {
+        this.message.remove(loadingMsg);
+        if (blob && blob.size > 0) {
+          const url = window.URL.createObjectURL(blob);
+          const fileExtension = fileName.split('.').pop()?.toLowerCase() || '';
+          
+          // Mở file trong tab mới để xem trước (không download)
+          if (fileExtension === 'pdf') {
+            // PDF: mở trong tab mới với viewer
+            const newWindow = window.open('', '_blank');
+            if (newWindow) {
+              newWindow.document.write(`
+                <html>
+                  <head><title>${fileName}</title></head>
+                  <body style="margin:0; padding:0;">
+                    <iframe src="${url}" style="width:100%; height:100vh; border:none;"></iframe>
+                  </body>
+                </html>
+              `);
+              newWindow.document.close();
+            }
+          } else if (fileExtension === 'png' || fileExtension === 'jpg' || fileExtension === 'jpeg' || fileExtension === 'gif' || fileExtension === 'bmp') {
+            // Image: mở trong tab mới
+            const newWindow = window.open('', '_blank');
+            if (newWindow) {
+              newWindow.document.write(`
+                <html>
+                  <head><title>${fileName}</title></head>
+                  <body style="margin:0; padding:0; text-align:center; background:#f0f0f0;">
+                    <img src="${url}" style="max-width:100%; max-height:100vh; object-fit:contain;" />
+                  </body>
+                </html>
+              `);
+              newWindow.document.close();
+            }
+          } else {
+            // Word, Excel, và các file khác: thông báo không thể xem trước, chỉ có thể tải về
+            this.notification.warning('Thông báo', 'File này không thể xem trước. Vui lòng tải về để xem.');
+            window.URL.revokeObjectURL(url);
+          }
+        } else {
+          this.notification.error('Thông báo', 'File không hợp lệ!');
+        }
+      },
+      error: (err: any) => {
+        this.message.remove(loadingMsg);
+        this.notification.error('Thông báo', 'Không thể tải file để xem trước!');
+      },
     });
   }
 }

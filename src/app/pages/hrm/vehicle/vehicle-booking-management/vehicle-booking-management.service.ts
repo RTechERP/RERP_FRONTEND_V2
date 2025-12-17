@@ -24,6 +24,10 @@ export class VehicleBookingManagementService {
     return this.http.post<any>(`${this.url + `save-data`}`, request);
   }
 
+  createVehicleBooking(request: any) {
+    return this.http.post<any>(`${this.url + `create`}`, request);
+  }
+
   approveBooking(request: any) {
     return this.http.post<any>(`${this.url + `save-data`}`, request);
   }
@@ -90,6 +94,16 @@ export class VehicleBookingManagementService {
   // Remove file
   removeFile(fileIds: number[]) {
     return this.http.post<any>(`${this.url + `remove-file`}`, fileIds);
+  }
+
+  // Send email notification
+  sendEmail(bookingData: any) {
+    return this.http.post<any>(`${this.url + `send-email`}`, bookingData);
+  }
+
+  // Cancel booking (Đăng ký hủy)
+  cancelBooking(vehicleBookingId: number) {
+    return this.http.post<any>(`${this.url + `vehicle-booking-cancel`}`,   vehicleBookingId  );
   }
 }
 

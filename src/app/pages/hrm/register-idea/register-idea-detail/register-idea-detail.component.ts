@@ -569,18 +569,45 @@ export class RegisterIdeaDetailComponent implements OnInit, AfterViewInit {
           const ideaId = res.data?.id || this.ideaId;
           
           // Upload files if any
-          const filesToUpload = this.files
-            .filter((f: any) => f.file && !f.ID) // Chỉ upload file mới (có file object và ID = 0)
-            .map((f: any) => f.file as File);
+          const newFiles = this.files.filter((f: any) => f.file && !f.ID); // Chỉ upload file mới (có file object và ID = 0)
 
-          if (filesToUpload.length > 0 && ideaId > 0) {
-            this.registerIdeaService.uploadFile(ideaId, this.currentEmployeeId, filesToUpload).subscribe({
-              next: () => {
+          if (newFiles.length > 0 && ideaId > 0) {
+            const formData = new FormData();
+
+            // Thêm từng file mới vào FormData
+            newFiles.forEach((fileObj: any) => {
+              formData.append('files', fileObj.file);
+            });
+
+            // key: để backend nhận biết loại tài liệu
+            formData.append('key', 'RegisterIdeaFile');
+
+            // subPath: Năm/RegisterID (lọc ký tự không hợp lệ trong đường dẫn)
+            const year = new Date().getFullYear().toString();
+            const registerIdStr = ideaId.toString();
+            const sanitize = (s: string) =>
+              s.replace(/[<>:"/\\|?*\u0000-\u001F]/g, '').trim();
+            const subPath = [sanitize(year), sanitize(registerIdStr)]
+              .filter((x) => x)
+              .join('/');
+
+            formData.append('subPath', subPath);
+
+            // Gọi API upload
+            this.registerIdeaService.uploadFile(ideaId, this.currentEmployeeId, formData).subscribe({
+              next: (result: any) => {
+                // API trả về format: { status: 1, message: "..." } hoặc { Status: 1, Message: "..." }
+                if (result && (result.status == 1 || result.Status == 1)) {
+                  console.log('Files uploaded successfully');
+                } else {
+                  console.warn('File upload warning:', result?.message || result?.Message);
+                }
                 this.notification.success(NOTIFICATION_TITLE.success, 'Lưu thành công');
                 this.onSave.emit(res.data);
                 this.activeModal.close(true);
               },
-              error: () => {
+              error: (err) => {
+                console.error('Error uploading files:', err);
                 this.notification.success(NOTIFICATION_TITLE.success, 'Lưu thành công nhưng upload file thất bại');
                 this.onSave.emit(res.data);
                 this.activeModal.close(true);

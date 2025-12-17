@@ -57,7 +57,7 @@
               <nz-form-label class="fs-12" [nzSpan]="24">Từ khóa</nz-form-label>
               <nz-form-control [nzSpan]="24">
                 <input nz-input placeholder="Nhập từ khóa" [(ngModel)]="keyWord"
-                  (ngModelChange)="onKeywordChange($event)" nzSize="default" name="keyWord" />
+                  (ngModelChange)="onKeywordChange($event)" (keyup.enter)="getNightShift()" nzSize="default" name="keyWord" />
               </nz-form-control>
             </nz-form-item>
           </form>

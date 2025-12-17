@@ -107,6 +107,35 @@ export class FoodOrderComponent implements OnInit, AfterViewInit {
     return this.hasPermission(specialPermissions);
   }
 
+  // Kiểm tra xem có thể chọn Xưởng Đan Phượng không (phải trước 19h)
+  canSelectDanPhuong(): boolean {
+    const now = new Date();
+    const currentHour = now.getHours();
+    return currentHour < 19;
+  }
+
+  private isSameLocalDate(a: Date, b: Date): boolean {
+    return (
+      a.getFullYear() === b.getFullYear() &&
+      a.getMonth() === b.getMonth() &&
+      a.getDate() === b.getDate()
+    );
+  }
+
+  private getLocalDayMillis(value: any): number | null {
+    if (!value) return null;
+    let dt: DateTime;
+    if (value instanceof Date) {
+      dt = DateTime.fromJSDate(value);
+    } else if (typeof value === 'string') {
+      dt = DateTime.fromISO(value, { setZone: true });
+    } else {
+      dt = DateTime.fromJSDate(new Date(value));
+    }
+    if (!dt.isValid) return null;
+    return dt.toLocal().startOf('day').toMillis();
+  }
+
   currentUser: any;
   currenEmployee: any;
   constructor(
@@ -137,8 +166,6 @@ export class FoodOrderComponent implements OnInit, AfterViewInit {
       ? this.currentUser[0]
       : this.currentUser;
     });
-
-      
   }
 
   private initForm() {
@@ -147,13 +174,7 @@ export class FoodOrderComponent implements OnInit, AfterViewInit {
     this.foodOrderForm = this.fb.group({
       ID: [0],
       EmployeeID: [{value:this.currenEmployee?.EmployeeID, disabled: true}, [Validators.required]],
-      DateOrder: [
-        {
-          value: '',
-          disabled: !this.hasPermission(['N2', 'N23', 'N34', 'N1', 'N80']),
-        },
-        [Validators.required],
-      ],
+      DateOrder: [{value: new Date(), disabled: true}, [Validators.required]],
       Quantity: [1, [Validators.required, Validators.min(1)]],
       IsApproved: [false],
       Location: ['1', [Validators.required]],
@@ -169,9 +190,6 @@ export class FoodOrderComponent implements OnInit, AfterViewInit {
   }
 
   private initSearchForm() {
-    const currentDate = new Date();
-    const twoMonthsAgo = new Date(currentDate);
-    twoMonthsAgo.setMonth(currentDate.getMonth() - 5);
     this.searchForm = this.fb.group({
       dateStart: new Date(new Date().getFullYear(), new Date().getMonth(), 1),
       dateEnd: new Date(new Date().getFullYear(), new Date().getMonth() + 1, 0),
@@ -187,7 +205,6 @@ export class FoodOrderComponent implements OnInit, AfterViewInit {
     this.foodOrderĐPTable(this.tb_foodOrderĐP.nativeElement);
   }
 
-  //#region Call API lấy dữ liệu
   loadFoodOrder() {
     this.isLoading = true;
     if (this.searchForm.value.employeeId == null) {
@@ -214,7 +231,10 @@ export class FoodOrderComponent implements OnInit, AfterViewInit {
           this.isLoading = false;
         },
         error: (error) => {
-          this.notification.error(NOTIFICATION_TITLE.error, error.message);
+          this.notification.error(
+            NOTIFICATION_TITLE.error,
+            error?.error?.message || error?.message || 'Có lỗi xảy ra'
+          );
           this.isLoading = false;
         },
       });
@@ -231,40 +251,21 @@ export class FoodOrderComponent implements OnInit, AfterViewInit {
       error: (error) => {
         this.notification.error(
           NOTIFICATION_TITLE.error,
-          'Lỗi khi tải danh sách nhân viên: ' + error.message
+          'Lỗi khi tải danh sách nhân viên: ' +
+            (error?.error?.message || error?.message || 'Có lỗi xảy ra')
         );
       },
     });
   }
-  //#endregion
 
-  //#region Khởi tạo bảng cơm ca VP Hà Nội
   private foodOrderHNTable(container: HTMLElement): void {
     this.foodOrderHNTabulator = new Tabulator(container, {
+      ...DEFAULT_TABLE_CONFIG,
+      paginationMode: 'local', 
       data: this.foodOrderHNList,
       layout: 'fitDataStretch',
       selectableRows: true,
-      height: '83vh',
-      langs: {
-        vi: {
-          pagination: {
-            first: '<<',
-            last: '>>',
-            prev: '<',
-            next: '>',
-          },
-        },
-      },
-      locale: 'vi',
-      rowHeader: {
-        formatter: 'rowSelection',
-        titleFormatter: 'rowSelection',
-        headerSort: false,
-        width: 50,
-        frozen: true,
-        headerHozAlign: 'center',
-        hozAlign: 'center',
-      },
+    
       columns: [
         {
           title: 'Duyệt',
@@ -322,40 +323,18 @@ export class FoodOrderComponent implements OnInit, AfterViewInit {
           },
         },
       ],
-      pagination: true,
-      paginationSize: 100,
-      paginationSizeSelector: [10, 20, 50, 100],
+  
     });
   }
-  //#endregion
 
-  //#region Khởi tạo bảng cơm ca Xưởng Đan Phượng
   private foodOrderĐPTable(container: HTMLElement): void {
     this.foodOrderĐPTabulator = new Tabulator(container, {
+      ...DEFAULT_TABLE_CONFIG,
       data: this.foodOrderĐPList,
       layout: 'fitDataStretch',
       selectableRows: true,
-      height: '83vh',
-      langs: {
-        vi: {
-          pagination: {
-            first: '<<',
-            last: '>>',
-            prev: '<',
-            next: '>',
-          },
-        },
-      },
-      locale: 'vi',
-      rowHeader: {
-        formatter: 'rowSelection',
-        titleFormatter: 'rowSelection',
-        headerSort: false,
-        width: 100,
-        frozen: true,
-        headerHozAlign: 'center',
-        hozAlign: 'center',
-      },
+      paginationMode: 'local',
+    
       columns: [
         {
           title: 'Duyệt',
@@ -413,12 +392,9 @@ export class FoodOrderComponent implements OnInit, AfterViewInit {
           },
         },
       ],
-      pagination: true,
-      paginationSize: 100,
-      paginationSizeSelector: [10, 20, 50, 100],
+    
     });
   }
-  //#endregion
 
   openAddModal() {
     this.foodOrderForm.reset({
@@ -432,6 +408,7 @@ export class FoodOrderComponent implements OnInit, AfterViewInit {
       FullName: '',
       IsDeleted: false,
     });
+    this.foodOrderForm.get('DateOrder')?.disable();
     
     const modal = new (window as any).bootstrap.Modal(
       document.getElementById('addFoodOrderModal')
@@ -439,7 +416,6 @@ export class FoodOrderComponent implements OnInit, AfterViewInit {
     modal.show();
   }
 
-  //#region Hàm sửa
   openEditModal() {
     const selectedRowsHN = this.foodOrderHNTabulator.getSelectedRows();
     const selectedRowsĐP = this.foodOrderĐPTabulator.getSelectedRows();
@@ -451,7 +427,6 @@ export class FoodOrderComponent implements OnInit, AfterViewInit {
       );
       return;
     }
-    // Check if any selected row is approved
     if (
       (selectedRowsHN.length > 0 &&
         selectedRowsHN[0].getData()['IsApproved'] === true) ||
@@ -466,11 +441,14 @@ export class FoodOrderComponent implements OnInit, AfterViewInit {
     }
     if (selectedRowsHN.length > 0) {
       this.selectedFoodOrderHN = selectedRowsHN[0].getData();
+      const dateOrderHN = this.selectedFoodOrderHN?.DateOrder
+        ? new Date(this.selectedFoodOrderHN.DateOrder)
+        : new Date();
       this.foodOrderForm.patchValue({
         ID: this.selectedFoodOrderHN.ID,
         EmployeeID: this.selectedFoodOrderHN.EmployeeID,
         FullName: this.selectedFoodOrderHN.FullName,
-        DateOrder: this.selectedFoodOrderHN.DateOrder,
+        DateOrder: isNaN(dateOrderHN.getTime()) ? new Date() : dateOrderHN,
         Quantity: this.selectedFoodOrderHN.Quantity,
         IsApproved: this.selectedFoodOrderHN.IsApproved,
         Location: this.selectedFoodOrderHN.Location?.toString(),
@@ -480,11 +458,14 @@ export class FoodOrderComponent implements OnInit, AfterViewInit {
     }
     if (selectedRowsĐP.length > 0) {
       this.selectedFoodOrderĐP = selectedRowsĐP[0].getData();
+      const dateOrderĐP = this.selectedFoodOrderĐP?.DateOrder
+        ? new Date(this.selectedFoodOrderĐP.DateOrder)
+        : new Date();
       this.foodOrderForm.patchValue({
         ID: this.selectedFoodOrderĐP.ID,
         EmployeeID: this.selectedFoodOrderĐP.EmployeeID,
         FullName: this.selectedFoodOrderĐP.FullName,
-        DateOrder: this.selectedFoodOrderĐP.DateOrder,
+        DateOrder: isNaN(dateOrderĐP.getTime()) ? new Date() : dateOrderĐP,
         Quantity: this.selectedFoodOrderĐP.Quantity,
         IsApproved: this.selectedFoodOrderĐP.IsApproved,
         Location: this.selectedFoodOrderĐP.Location?.toString(),
@@ -492,14 +473,13 @@ export class FoodOrderComponent implements OnInit, AfterViewInit {
         IsDeleted: this.selectedFoodOrderĐP.IsDeleted,
       });
     }
+    this.foodOrderForm.get('DateOrder')?.disable();
     const modal = new (window as any).bootstrap.Modal(
       document.getElementById('addFoodOrderModal')
     );
     modal.show();
   }
-  //#endregion
 
-  //#region Hàm lưu dữ liệu
   onSubmit() {
 
     if (this.foodOrderForm.invalid) {
@@ -516,9 +496,51 @@ export class FoodOrderComponent implements OnInit, AfterViewInit {
       return;
     }
 
-    // Kiểm tra thời gian đặt cơm
     const formData = this.foodOrderForm.getRawValue();
+    const hasPermission = this.permissionService.hasPermission('N1') || this.permissionService.hasPermission('N2')|| this.permissionService.hasPermission('N34');
+    
+    if (!hasPermission) {
+      const now = new Date();
+      const currentHour = now.getHours();
+      const dateOrder = formData.DateOrder ? new Date(formData.DateOrder) : null;
+      
+      if (dateOrder) {
+        const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+        const orderDate = new Date(dateOrder.getFullYear(), dateOrder.getMonth(), dateOrder.getDate());
+        
+        if (orderDate.getTime() === today.getTime()) {
+          if (currentHour >= 10) {
+            this.notification.warning(
+              NOTIFICATION_TITLE.warning,
+              'Chỉ có thể đặt cơm trước 10h sáng'
+            );
+            return;
+          }
+        }
+      }
+    }
 
+    const location = parseInt(formData.Location);
+    const dateOrder = formData.DateOrder ? new Date(formData.DateOrder) : null;
+    
+    if (location === 2 && dateOrder) {
+      const now = new Date();
+      const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+      const orderDate = new Date(dateOrder.getFullYear(), dateOrder.getMonth(), dateOrder.getDate());
+      const tomorrow = new Date(today);
+      tomorrow.setDate(today.getDate() + 1);
+      
+      if (orderDate.getTime() === tomorrow.getTime()) {
+        const currentHour = now.getHours();
+        if (currentHour >= 19) {
+          this.notification.warning(
+            NOTIFICATION_TITLE.warning,
+            'Đăng ký cơm cho Xưởng Đan Phượng phải thực hiện trước 19h ngày hôm trước. Bạn không thể đăng ký cơm cho ngày mai sau 19h hôm nay.'
+          );
+          return;
+        }
+      }
+    }
 
     const foodOrderData = {
       ID: formData.ID,
@@ -542,8 +564,6 @@ export class FoodOrderComponent implements OnInit, AfterViewInit {
 
         this.closeModal();
         this.loadFoodOrder();
-
-        // Reset form
         this.foodOrderForm.reset({
           ID: 0,
           EmployeeID: null,
@@ -557,17 +577,14 @@ export class FoodOrderComponent implements OnInit, AfterViewInit {
         });
       },
       error: (error) => {
-        const message = error?.error?.message
-        console.error('Error saving food order:', error);
         this.notification.error(
-          NOTIFICATION_TITLE.error, message
+          NOTIFICATION_TITLE.error,
+          error?.error?.message || 'Lỗi khi lưu đơn đặt cơm'
         );
       },
     });
   }
-  //#endregion
 
-  //#region Hàm xóa
   deleteFoodOrder() {
     const selectedRowsHN = this.foodOrderHNTabulator.getSelectedRows();
     const selectedRowsĐP = this.foodOrderĐPTabulator.getSelectedRows();
@@ -600,14 +617,27 @@ export class FoodOrderComponent implements OnInit, AfterViewInit {
         NOTIFICATION_TITLE.error,
         'Không tìm thấy đơn đặt cần xóa'
       );
-      this.notification.error(
-        NOTIFICATION_TITLE.error,
-        'Không tìm thấy đơn đặt cần xóa'
-      );
       return;
     }
+    // Sau 10h: không cho xóa phiếu đặt cơm của ngày hôm nay và các ngày trước đó
+    const now = DateTime.local();
+    if (now.hour >= 10) {
+      const todayMillis = now.startOf('day').toMillis();
+      const hasTodayOrPastOrder = foodOrdersToDelete.some((fo) => {
+        const orderDayMillis = this.getLocalDayMillis(fo?.DateOrder);
+        // Không parse được ngày => chặn để tránh lọt rule
+        if (orderDayMillis === null) return true;
+        return orderDayMillis <= todayMillis;
+      });
 
-    // Check if any selected food order is approved
+      if (hasTodayOrPastOrder) {
+        this.notification.warning(
+          NOTIFICATION_TITLE.warning,
+          'Không thể xóa phiếu đặt cơm sau 10h'
+        );
+        return;
+      }
+    }
     const approvedOrders = foodOrdersToDelete.filter(
       (fo) => fo.IsApproved === true
     );
@@ -619,7 +649,6 @@ export class FoodOrderComponent implements OnInit, AfterViewInit {
       return;
     }
 
-    // Show confirmation dialog
     const employeeNames = foodOrdersToDelete
       .map((fo) => fo.FullName)
       .join(', ');
@@ -632,7 +661,6 @@ export class FoodOrderComponent implements OnInit, AfterViewInit {
       nzOkType: 'primary',
       nzOkDanger: true,
       nzOnOk: () => {
-        // Process each food order for soft delete
         const deletePromises = foodOrdersToDelete.map((foodOrder) => {
           const deleteData = {
             ...foodOrder,
@@ -654,11 +682,8 @@ export class FoodOrderComponent implements OnInit, AfterViewInit {
               error: (error) => {
                 this.notification.error(
                   NOTIFICATION_TITLE.error,
-                  'Xóa đơn đặt cơm thất bại: ' + error.message
-                );
-                this.notification.error(
-                  NOTIFICATION_TITLE.error,
-                  'Xóa đơn đặt cơm thất bại: ' + error.message
+                  'Xóa đơn đặt cơm thất bại: ' +
+                    (error?.error?.message || error?.message || 'Có lỗi xảy ra')
                 );
               },
             });
@@ -667,9 +692,7 @@ export class FoodOrderComponent implements OnInit, AfterViewInit {
       nzCancelText: 'Hủy',
     });
   }
-  //#endregion
 
-  //#region Hàm duyệt
   approved(isApproved: boolean) {
     const approvedText = isApproved ? 'duyệt' : 'hủy duyệt';
     const listID: number[] = [];
@@ -697,12 +720,7 @@ export class FoodOrderComponent implements OnInit, AfterViewInit {
         for (const row of selectedRows) {
           const id = row['ID'];
           listID.push(id);
-
-          // Cập nhật trạng thái và người duyệt
           row['IsApproved'] = isApproved;
-          // row['Approver'] = isApproved ? 368 : 0;
-
-          // Gọi API cập nhật từng dòng
           updatePromises.push(
             this.foodOrderService.saveEmployeeFoodOrder(row).toPromise()
           );
@@ -721,19 +739,15 @@ export class FoodOrderComponent implements OnInit, AfterViewInit {
           .catch((error) => {
             this.notification.error(
               NOTIFICATION_TITLE.error,
-              `Cập nhật đơn đặt cơm thất bại: ${error.message}`
-            );
-            this.notification.error(
-              NOTIFICATION_TITLE.error,
-              `Cập nhật đơn đặt cơm thất bại: ${error.message}`
+              `Cập nhật đơn đặt cơm thất bại: ${
+                error?.error?.message || error?.message || 'Có lỗi xảy ra'
+              }`
             );
           });
       },
     });
   }
-  //#endregion
 
-  //#region Hàm đóng modal
   closeModal() {
     const modal = document.getElementById('addFoodOrderModal');
     if (modal) {
@@ -750,10 +764,9 @@ export class FoodOrderComponent implements OnInit, AfterViewInit {
       FullName: '',
       IsDeleted: false,
     });
+    this.foodOrderForm.get('DateOrder')?.disable();
   }
-  //#endregion
 
-  //#region Hàm xuất excel
   async exportToExcel() {
     const exportDataHN = this.foodOrderHNList.map((foodOrder, idx) => {
       const safe = (val: any) =>
@@ -893,7 +906,6 @@ export class FoodOrderComponent implements OnInit, AfterViewInit {
         .replace(/\//g, '')}.xlsx`
     );
   }
-  //#endregion
 
   resetSearch() {
     this.searchForm.patchValue({

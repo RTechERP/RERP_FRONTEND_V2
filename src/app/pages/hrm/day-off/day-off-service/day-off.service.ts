@@ -98,4 +98,15 @@ export class DayOffService {
   getEmployeeOnLeavePersonAjax(): string {
     return this._url + 'EmployeeOnLeave/get-employee-onleave-person';
   }
+
+  getEmployeeOnLeaveSummaryByEmployee(EmployeeID: number, DateStart: Date): Observable<any> {
+    const request = {
+      EmployeeID: EmployeeID,
+      DateStart: DateStart
+    };
+    return this.http.post<any>(
+      this._url + 'employeeonleave/list-summary-employee-on-leave',
+      request
+    );
+  }
 }

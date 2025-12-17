@@ -1,3 +1,30 @@
 ::ng-deep .ant-modal-confirm .ant-modal-body{
     padding: 01rem !important;
 }
+
+/* Set font-size 12px for all elements in the component */
+:host,
+:host *,
+:host ::ng-deep * {
+    font-size: 12px !important;
+}
+
+/* Specific overrides for ng-zorro components */
+:host ::ng-deep .ant-btn,
+:host ::ng-deep .ant-input,
+:host ::ng-deep .ant-select-selector,
+:host ::ng-deep .ant-picker,
+:host ::ng-deep .ant-form-item-label > label,
+:host ::ng-deep .ant-input-number,
+:host ::ng-deep .ant-select-item,
+:host ::ng-deep .ant-select-selection-item,
+:host ::ng-deep .ant-picker-input > input,
+:host ::ng-deep .ant-time-picker-input,
+:host ::ng-deep .ant-modal-title,
+:host ::ng-deep .ant-modal-body,
+:host ::ng-deep .card-header h6,
+:host ::ng-deep .card-body,
+:host ::ng-deep .card-footer,
+:host ::ng-deep textarea {
+    font-size: 12px !important;
+}

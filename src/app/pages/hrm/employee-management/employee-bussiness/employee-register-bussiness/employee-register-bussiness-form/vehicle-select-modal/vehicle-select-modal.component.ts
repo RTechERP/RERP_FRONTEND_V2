@@ -125,7 +125,7 @@ export class VehicleSelectModalComponent implements OnInit {
   updateCostForVehicle(itemId: string) {
     const item = this.vehicleItems.find(v => v.id === itemId);
     if (!item) return;
-    if (item.vehicleId === 3) {
+    if (item.vehicleId === 1) {
       if (!item.cost || item.cost === 0) {
         item.cost = 50000;
       }
@@ -163,10 +163,6 @@ export class VehicleSelectModalComponent implements OnInit {
         return;
       }
 
-      if ((item.vehicleId === 0 || item.vehicleId === 3) && (!item.cost || item.cost <= 0)) {
-        this.notification.warning(NOTIFICATION_TITLE.warning, 'Vui lòng nhập chi phí phương tiện');
-        return;
-      }
     }
 
     this.vehicleItems.forEach(item => {

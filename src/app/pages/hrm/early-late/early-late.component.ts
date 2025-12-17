@@ -158,6 +158,16 @@ export class EarlyLateComponent implements OnInit, AfterViewInit {
     return label.includes(searchText);
   };
 
+  // Disable past dates - only allow dates from today onwards
+  disabledDate = (current: Date): boolean => {
+    if (!current) return false;
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const currentDate = new Date(current);
+    currentDate.setHours(0, 0, 0, 0);
+    return currentDate < today;
+  };
+
    loadApprovers(): void {
     this.wfhService.getEmloyeeApprover().subscribe({
       next: (res: any) => {
@@ -275,46 +285,37 @@ export class EarlyLateComponent implements OnInit, AfterViewInit {
   private initializeTable(): void {
     this.tabulator = new Tabulator('#tb_early_late', {
       data: this.earlyLateList,
+      ...DEFAULT_TABLE_CONFIG,
+      paginationMode: 'local',
       layout: 'fitColumns',
-      selectableRows: true,
-      height: '88vh',
-      rowHeader: {
-        formatter: "rowSelection",
-        titleFormatter: "rowSelection",
-        headerSort: false,
-        width: 50,
-        frozen: true,
-        headerHozAlign: "center",
-        hozAlign: "center"
-      },
-      langs: {
-        vi: {
-          pagination: {
-            first: '<<',
-            last: '>>',
-            prev: '<',
-            next: '>',
-          },
-        },
-      },
-      locale: 'vi',
-      rowContextMenu: [
-        {
-          label: "TBP hủy duyệt hủy đăng ký",
-          action: () => {
+      // langs: {
+      //   vi: {
+      //     pagination: {
+      //       first: '<<',
+      //       last: '>>',
+      //       prev: '<',
+      //       next: '>',
+      //     },
+      //   },
+      // },
+      // locale: 'vi',
+      // rowContextMenu: [
+      //   {
+      //     label: "TBP hủy duyệt hủy đăng ký",
+      //     action: () => {
 
 
-          }
-        },
-        {
-          label: "HR hủy duyệt hủy đăng ký",
-          action: () => {
+      //     }
+      //   },
+      //   {
+      //     label: "HR hủy duyệt hủy đăng ký",
+      //     action: () => {
 
-          }
-        }
+      //     }
+      //   }
 
 
-      ],
+      // ],
       groupBy: 'DepartmentName',
       groupHeader: function (value, count, data, group) {
         return value + "<span style='color:#d00; margin-left:10px;'>(" + count + " nhân viên)</span>";
@@ -390,9 +391,6 @@ export class EarlyLateComponent implements OnInit, AfterViewInit {
           title: 'Lý do không đồng ý duyệt', field: 'ReasonDeciline', hozAlign: 'left', headerHozAlign: 'center', width: 500, headerSort: false, formatter: 'textarea'
         }
       ],
-      pagination: true,
-      paginationSize: 100,
-      paginationSizeSelector: [10, 20, 50, 100]
     });
   }
 

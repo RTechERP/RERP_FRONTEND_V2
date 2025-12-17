@@ -207,6 +207,7 @@ export class EmployeeRegisterBussinessComponent implements OnInit, AfterViewInit
       layout: 'fitDataStretch',
       height: '90vh',
       selectableRows: true,
+      paginationMode: 'local',
       rowHeader: { formatter: "rowSelection", titleFormatter: "rowSelection", headerSort: false, width: 50, frozen: true, headerHozAlign: "center", hozAlign: "center" },
       data: [],
       columns: [
@@ -361,6 +362,9 @@ export class EmployeeRegisterBussinessComponent implements OnInit, AfterViewInit
           #tb_employee_register_bussiness * {
             font-size: 12px !important;
           }
+          #tb_employee_register_bussiness .badge {
+            font-size: 9px !important;
+          }
         `;
         const existingStyle = document.getElementById('tabulator-employee-register-bussiness-font-size-override');
         if (existingStyle) {
@@ -496,7 +500,7 @@ export class EmployeeRegisterBussinessComponent implements OnInit, AfterViewInit
           if (componentInstance) {
             componentInstance.vehicleList = this.vehicleList;
             componentInstance.selectedVehicles = vehicleItems;
-            componentInstance.isViewMode = isApproved; // Chỉ cho phép edit nếu chưa duyệt
+            componentInstance.isViewMode = isApproved; // Chỉ cho phép edit nếu Chờ duyệt
             componentInstance.bussinessID = bussinessID; // Lưu ID để cập nhật
           }
 
@@ -867,7 +871,7 @@ export class EmployeeRegisterBussinessComponent implements OnInit, AfterViewInit
           'Loại': item.TypeName || '',
           'Phương tiện': item.VehicleName || '',
           'Chấm công': item.NotCheckIn === 1 ? 'Không chấm công' : 'Có chấm công',
-          'Trạng thái': item.IsApproved ? 'Đã duyệt' : 'Chưa duyệt',
+          'Trạng thái': item.IsApproved ? 'Đã duyệt' : 'Chờ duyệt',
           'Ghi chú': item.Note || ''
         };
       });
@@ -935,18 +939,18 @@ export class EmployeeRegisterBussinessComponent implements OnInit, AfterViewInit
   }
 
   private formatApprovalBadge(status: number): string {
-    // 0 hoặc null: Chưa duyệt, 1: Đã duyệt, 2: Không duyệt
+    // 0 hoặc null: Chờ duyệt, 1: Đã duyệt, 2: Không duyệt
     const numStatus = status === null || status === undefined ? 0 : Number(status);
-    
+
     switch (numStatus) {
       case 0:
-        return '<span class="badge bg-warning text-dark" style="display: inline-block; text-align: center;">Chưa duyệt</span>';
+        return '<span class="badge bg-warning text-dark" style="display: inline-block; text-align: center; font-size: 9px !important; padding: 2px 6px;">Chờ duyệt</span>';
       case 1:
-        return '<span class="badge bg-success" style="display: inline-block; text-align: center;">Đã duyệt</span>';
+        return '<span class="badge bg-success" style="display: inline-block; text-align: center; font-size: 9px !important; padding: 2px 6px;">Đã duyệt</span>';
       case 2:
-        return '<span class="badge bg-danger" style="display: inline-block; text-align: center;">Không duyệt</span>';
+        return '<span class="badge bg-danger" style="display: inline-block; text-align: center; font-size: 9px !important; padding: 2px 6px;">Không duyệt</span>';
       default:
-        return '<span class="badge bg-secondary" style="display: inline-block; text-align: center;">Không xác định</span>';
+        return '<span class="badge bg-secondary" style="display: inline-block; text-align: center; font-size: 9px !important; padding: 2px 6px;">Không xác định</span>';
     }
   }
 }

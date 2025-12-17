@@ -49,7 +49,7 @@
                         <nz-form-item>
                             <nz-form-label class="fs-12" [nzSpan]="24">Từ khóa</nz-form-label>
                             <nz-form-control [nzSpan]="24">
-                                <input nz-input formControlName="keyWord" placeholder="Nhập từ khóa" />
+                                <input nz-input formControlName="keyWord" placeholder="Nhập từ khóa" (keyup.enter)="loadFoodOrder()" />
                             </nz-form-control>
                         </nz-form-item>
                     </form>
@@ -81,15 +81,15 @@
                                 <img src="assets/icon/action_delete_item_16.png" alt="Xóa " />Xóa
                             </button>
                             <button class="fs-12" nz-button nzType="default" nzSize="small" (click)="approved(true)"
-                                *hasPermission="'N2,N23,N34,N1,N80'">
+                                *hasPermission="'N2,N23,N34,N1'">
                                 <img src="assets/icon/action_approved_16.png" alt="Duyệt" />Duyệt
                             </button>
                             <button class="fs-12" nz-button nzType="default" nzSize="small" (click)="approved(false)"
-                                *hasPermission="'N2,N23,N34,N1,N80'">
+                                *hasPermission="'N2,N23,N34,N1'">
                                 <img src="assets/icon/action_unapproved_16.png" alt="Hủy duyệt" />Hủy Duyệt
                             </button>
                             <button class="fs-12" nz-button nzType="default" nzSize="small"
-                                (click)="openSummaryFoodOrderModal()" *hasPermission="'N34'">
+                                (click)="openSummaryFoodOrderModal()" *hasPermission="'N34,N1,N2'">
                                 <img src="assets/icon/action_food_order_16.png" alt="Báo cáo ăn ca" />Báo cáo ăn ca
                             </button>
                             <button class="fs-12" nz-button nzType="default" nzSize="small" (click)="exportToExcel()">
@@ -200,8 +200,9 @@
                         <nz-form-control [nzSpan]="24" nzErrorTip="Vui lòng chọn địa điểm">
                             <nz-radio-group formControlName="Location">
                                 <label nz-radio nzValue="1">VP Hà Nội</label>
-                                <label nz-radio nzValue="2">Xưởng Đan Phượng</label>
+                                <label nz-radio nzValue="2" [nzDisabled]="!canSelectDanPhuong()">Xưởng Đan Phượng</label>
                             </nz-radio-group>
+                     
                         </nz-form-control>
                     </nz-form-item>
 

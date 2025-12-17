@@ -192,13 +192,13 @@ export class OverTimePersonComponent implements OnInit, AfterViewInit {
             
             switch (numStatus) {
               case 0:
-                return '<span class="badge bg-warning text-dark" style="display: inline-block; text-align: center;">Chờ duyệt</span>';
+                return '<span class="badge bg-warning text-dark" style="display: inline-block; text-align: center; font-size: 9px !important; padding: 2px 6px !important;">Chờ duyệt</span>';
               case 1:
-                return '<span class="badge bg-success" style="display: inline-block; text-align: center;">Đã duyệt</span>';
+                return '<span class="badge bg-success" style="display: inline-block; text-align: center; font-size: 9px !important; padding: 2px 6px !important;">Đã duyệt</span>';
               case 2:
-                return '<span class="badge bg-danger" style="display: inline-block; text-align: center;">Không đồng ý duyệt</span>';
+                return '<span class="badge bg-danger" style="display: inline-block; text-align: center; font-size: 9px !important; padding: 2px 6px !important;">Không đồng ý duyệt</span>';
               default:
-                return '<span class="badge bg-secondary" style="display: inline-block; text-align: center;">Không xác định</span>';
+                return '<span class="badge bg-secondary" style="display: inline-block; text-align: center; font-size: 9px !important; padding: 2px 6px !important;">Không xác định</span>';
             }
           }
         },
@@ -215,13 +215,13 @@ export class OverTimePersonComponent implements OnInit, AfterViewInit {
             
             switch (numStatus) {
               case 0:
-                return '<span class="badge bg-warning text-dark" style="display: inline-block; text-align: center;">Chờ duyệt</span>';
+                return '<span class="badge bg-warning text-dark" style="display: inline-block; text-align: center; font-size: 9px !important; padding: 2px 6px !important;">Chờ duyệt</span>';
               case 1:
-                return '<span class="badge bg-success" style="display: inline-block; text-align: center;">Đã duyệt</span>';
+                return '<span class="badge bg-success" style="display: inline-block; text-align: center; font-size: 9px !important; padding: 2px 6px !important;">Đã duyệt</span>';
               case 2:
-                return '<span class="badge bg-danger" style="display: inline-block; text-align: center;">Không đồng ý duyệt</span>';
+                return '<span class="badge bg-danger" style="display: inline-block; text-align: center; font-size: 9px !important; padding: 2px 6px !important;">Không đồng ý duyệt</span>';
               default:
-                return '<span class="badge bg-secondary" style="display: inline-block; text-align: center;">Không xác định</span>';
+                return '<span class="badge bg-secondary" style="display: inline-block; text-align: center; font-size: 9px !important; padding: 2px 6px !important;">Không xác định</span>';
             }
           }
         },
@@ -236,17 +236,11 @@ export class OverTimePersonComponent implements OnInit, AfterViewInit {
         },
         {
           title: 'Họ tên', field: 'EmployeeFullName',bottomCalc: 'count', width: 120, hozAlign: 'left', headerHozAlign: 'center', headerSort: false,
-          formatter: (cell: any) => {
-            const value = cell.getValue() || '';
-            return value || (cell.getRow().getData().FullName || '');
-          }
+         formatter: 'textarea'
         },
         {
           title: 'Trưởng phòng', field: 'ApprovedTBP', width: 120, hozAlign: 'left', headerHozAlign: 'center', headerSort: false,
-          formatter: (cell: any) => {
-            const value = cell.getValue() || '';
-            return value || (cell.getRow().getData().NguoiDuyet || '');
-          }
+          formatter: 'textarea'
         },
         {
           title: 'Nhân sự', field: 'ApprovedHR', width: 120, hozAlign: 'left', headerHozAlign: 'center', headerSort: false,
@@ -285,6 +279,7 @@ export class OverTimePersonComponent implements OnInit, AfterViewInit {
               const dateValue = value instanceof Date ? value : (DateTime.fromISO(value).isValid ? DateTime.fromISO(value).toJSDate() : new Date(value));
               const formattedDate = DateTime.fromJSDate(dateValue).toFormat('dd/MM/yyyy HH:mm');
               return `<div style="white-space: pre-wrap; word-wrap: break-word;">${formattedDate}</div>`;
+              
             } catch {
               return '';
             }
@@ -381,7 +376,7 @@ export class OverTimePersonComponent implements OnInit, AfterViewInit {
           #tb_over_time_person .tabulator-col-title,
           #tb_over_time_person .tabulator-row,
           #tb_over_time_person .tabulator-row .tabulator-cell,
-          #tb_over_time_person * {
+          #tb_over_time_person *:not(.badge) {
             font-size: 12px !important;
           }
         `;

@@ -1,0 +1,95 @@
+<div class="booking-room-container">
+  <div class="section">
+    <div class="section-body">
+      <div class="row">
+        <div class="col-12">
+       
+          
+              <div class="d-flex justify-content-between align-items-center">
+                <div class="d-flex gap-1 align-items-center">
+                  <!-- <button
+                    nz-button
+                    nzType="default"
+                    nzSize="small"
+                    (click)="onAddBookingRoom()"
+                  >
+                    <i
+                      class="fas fa-plus text-danger m-1 mb-1"
+                      style="font-size: 16px !important"
+                    ></i>
+                    Đăng ký phòng họp
+                  </button> -->
+                  <button nz-button nzType="default" nzSize="small" class="btn-add" (click)="onAddBookingRoom()">
+                    <img
+                      src="assets/icon/action_add_item_16.png"
+                      alt=" Đăng ký phòng họp"
+                    /> Đăng ký phòng họp
+                  </button>
+                </div>
+                <!-- <div class="d-flex gap-1 align-items-center">
+                  <nz-date-picker
+                    [(ngModel)]="dateStart"
+                    (ngModelChange)="onSearchDateChange()"
+                    [nzFormat]="'dd/MM/yyyy'"
+                    nzSize="small"
+                    nzPlaceHolder="Từ ngày"
+                    name="dateStart"
+                    style="width: 150px"
+                  ></nz-date-picker>
+                  <nz-date-picker
+                    [(ngModel)]="dateEnd"
+                    (ngModelChange)="onSearchDateChange()"
+                    [nzFormat]="'dd/MM/yyyy'"
+                    nzSize="small"
+                    nzPlaceHolder="Đến ngày"
+                    name="dateEnd"
+                    style="width: 150px"
+                  ></nz-date-picker>
+                  <button
+                    nz-button
+                    nzType="default"
+                    nzSize="small"
+                    (click)="getAllBookingRoom()"
+                  >
+                    <nz-icon nzType="search" />
+                  </button>
+                </div> -->
+              </div>
+            </div>
+          
+
+          <!-- Calendar Tabs -->
+          <div class="card-body p-1 pt-2 position-relative">
+            <nz-spin [nzSpinning]="isDataLoading" [nzTip]="'Đang tải dữ liệu...'">
+              <nz-tabset
+                [nzSelectedIndex]="0"
+                (nzSelectChange)="onTabChange($event.index ?? 0)"
+               
+              >
+                <nz-tab nzTitle="MEETING ROOM 1 (HỒ TÂY)">
+                  <div class="table-responsive pt-2">
+                    <div id="tbl_data_bookingroom_1" #calendar1></div>
+                  </div>
+                </nz-tab>
+
+                <nz-tab nzTitle="MEETING ROOM 2 (HỒ GƯƠM)">
+                  <div class="table-responsive pt-2">
+                    <div id="tbl_data_bookingroom_2" #calendar2></div>
+                  </div>
+                </nz-tab>
+
+                <nz-tab nzTitle="MEETING ROOM 3 (HỒ TRÚC BẠCH)">
+                  <div class="table-responsive pt-2">
+                    <div id="tbl_data_bookingroom_3" #calendar3></div>
+                  </div>
+                </nz-tab>
+              </nz-tabset>
+            </nz-spin>
+          </div>
+     
+      </div>
+    </div>
+  </div>
+
+</div>
+

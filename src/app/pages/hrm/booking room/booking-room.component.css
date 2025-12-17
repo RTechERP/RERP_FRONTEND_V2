@@ -4,6 +4,26 @@
   padding-top: 8px;
 }
 
+/* Mobile: allow horizontal scroll for FullCalendar (timeGridWeek is too dense on small screens) */
+@media (max-width: 768px) {
+  .table-responsive {
+    overflow-x: auto;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  /* Force calendar to be wider than viewport so wrapper can scroll */
+  ::ng-deep .table-responsive .fc {
+    min-width: 900px;
+    width: 900px !important;
+  }
+
+  ::ng-deep .table-responsive .fc .fc-scrollgrid,
+  ::ng-deep .table-responsive .fc .fc-timegrid-body table {
+    min-width: 900px;
+  }
+}
+
 .table {
   table-layout: auto !important;
 }
@@ -157,7 +177,7 @@
   align-items: start;
   justify-content: flex-end;
   gap: 6px;
-  color: black;
+  color: rgb(43, 43, 43);
   font-size: 14px;
   position: relative;
   padding-right: 5px;
@@ -174,6 +194,7 @@
 
 ::ng-deep .fc-event-time {
   text-align: right;
+  color: black;
 }
 
 ::ng-deep .fc-event-delete-btn {

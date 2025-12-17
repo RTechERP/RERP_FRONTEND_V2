@@ -24,6 +24,7 @@ import { NzModalService } from 'ng-zorro-antd/modal';
 import { NgbModal, NgbModalModule } from '@ng-bootstrap/ng-bootstrap';
 import { OverTimeComponent } from '../../../over-time/over-time.component';
 import { OverTimeDetailComponent } from '../../../over-time/over-time-detail/over-time-detail.component';
+import { OverTimePersonFormComponent } from '../../../over-time/over-time-person/over-time-person-form/over-time-person-form.component';
 
 
 
@@ -805,7 +806,7 @@ export class EmployeeNightShiftFormComponent implements OnInit {
   }
 
   onAddOverTime(): void {
-      const modalRef = this.modalService.open(OverTimeDetailComponent, {
+      const modalRef = this.modalService.open(OverTimePersonFormComponent, {
         centered: true,
       size: 'xl',
       backdrop: 'static',

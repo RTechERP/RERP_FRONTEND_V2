@@ -48,6 +48,7 @@ import { DateTimePickerEditorComponent } from './date-time-picker-editor.compone
 import { UpdateVehicleMoneyFormComponent } from './update-vehicle-money-form/update-vehicle-money-form.component';
 import { NzInputNumberModule } from 'ng-zorro-antd/input-number';
 import { VehicleBookingManagementDetailComponent } from './vehicle-booking-management-detail/vehicle-booking-management-detail.component';
+import { AppUserService } from '../../../../services/app-user.service';
 @Component({
   selector: 'app-vehicle-booking-management',
   imports: [
@@ -90,6 +91,7 @@ export class VehicleBookingManagementComponent
     private vehicleBookingManagementService: VehicleBookingManagementService,
     private cdRef: ChangeDetectorRef,
     private authService: AuthService,
+    private appUserService: AppUserService,
     private viewContainerRef: ViewContainerRef,
     private appRef: ApplicationRef,
     private injector: EnvironmentInjector
@@ -135,11 +137,13 @@ export class VehicleBookingManagementComponent
   // Tạo mảng category
   lstCategory = [
     { Category: 0, CategoryText: 'Tất cả' },
-    { Category: 1, CategoryText: 'Đăng ký đi' },
-    { Category: 5, CategoryText: 'Đăng ký về' },
+    { Category: 1, CategoryText: 'Đăng ký người đi' },
+    { Category: 5, CategoryText: 'Đăng ký người về' },
     { Category: 4, CategoryText: 'Chủ động phương tiện' },
-    { Category: 2, CategoryText: 'Đăng ký giao hàng' },
-    { Category: 6, CategoryText: 'Đăng ký lấy hàng' },
+    { Category: 2, CategoryText: 'Đăng ký giao hàng thương mại' },
+    { Category: 6, CategoryText: 'Đăng ký lấy hàng thương mại' },
+    { Category: 7, CategoryText: 'Đăng ký lấy hàng Demo/triển Lãm' },
+    { Category: 8, CategoryText: 'Đăng ký giao hàng Demo/triển lãm' },
   ];
   lstStatus = [
     { Status: 0, StatusText: 'Tất cả' },
@@ -149,6 +153,8 @@ export class VehicleBookingManagementComponent
   ];
   //#region chạy khi mở chương trình
   currentUser: any = null;
+  isAdmin: boolean = false;
+  isEmployeeSelectDisabled: boolean = false;
 
   ngOnInit() {
     this.getCurrentUser();
@@ -164,6 +170,17 @@ export class VehicleBookingManagementComponent
     this.getVehicleBookingManagement();
   }
   getCurrentUser() {
+    this.isAdmin = this.appUserService.isAdmin;
+    const employeeID = this.appUserService.employeeID;
+    
+    if (!this.isAdmin && employeeID) {
+      this.employeeId = employeeID;
+      this.isEmployeeSelectDisabled = true;
+    } else {
+      this.employeeId = 0;
+      this.isEmployeeSelectDisabled = false;
+    }
+    
     this.authService.getCurrentUser().subscribe((res: any) => {
       const data = res?.data;
       this.currentUser = Array.isArray(data) ? data[0] : data;
@@ -221,6 +238,14 @@ export class VehicleBookingManagementComponent
     this.statusId = 0;
     this.checked = false;
     this.keyWord = '';
+    
+    if (!this.isAdmin) {
+      const employeeID = this.appUserService.employeeID;
+      this.employeeId = employeeID || 0;
+    } else {
+      this.employeeId = 0;
+    }
+    
     this.getVehicleBookingManagement();
   }
 

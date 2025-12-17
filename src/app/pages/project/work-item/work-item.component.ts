@@ -111,6 +111,7 @@ export class WorkItemComponent implements OnInit, AfterViewInit {
   //tree
   treeWorkItemData: any = [];
   filterStatus: number[] = [0, 1]; // Mặc định chọn "Chưa làm" (0) và "Đang làm" (1)
+  changedRowIds: Set<number> = new Set(); // Track các ID đã thay đổi
 
   ngOnInit(): void {
     this.dataStatus = [
@@ -199,6 +200,7 @@ export class WorkItemComponent implements OnInit, AfterViewInit {
     const fieldName = cell.getField();
     const id = rowData.ID || 0;
     const stt = rowData.STT || '';
+    const code = rowData.Code || '';
 
     // Validate cột "Người phụ trách" (UserID) chỉ cho dòng mới (ID <= 0)
     if (fieldName === 'UserID' && id <= 0) {
@@ -206,7 +208,7 @@ export class WorkItemComponent implements OnInit, AfterViewInit {
       if (!userID || userID === 0) {
         return {
           valid: false,
-          errorText: `Dòng STT: ${stt}\nVui lòng chọn người phụ trách!`,
+          errorText: `Hạng mục: [${code}]\nDòng STT: ${stt}\nVui lòng chọn người phụ trách!`,
         };
       }
     }
@@ -231,7 +233,7 @@ export class WorkItemComponent implements OnInit, AfterViewInit {
     if (isApproved === 3) {
       return {
         valid: false,
-        errorText: `Dòng STT: ${stt}\nĐã duyệt thực tế.\nBạn không thể cập nhật!`,
+        errorText: `Hạng mục: [${code}]\nDòng STT: ${stt}\nĐã duyệt thực tế.\nBạn không thể cập nhật!`,
       };
     }
 
@@ -239,7 +241,7 @@ export class WorkItemComponent implements OnInit, AfterViewInit {
     if (!this.checkIsPermission(createdBy, userID, employeeIDRequest)) {
       return {
         valid: false,
-        errorText: `Dòng STT: ${stt}\nBạn không thể cập nhật hạng mục của người khác!`,
+        errorText: `Hạng mục: [${code}]\nDòng STT: ${stt}\nBạn không thể cập nhật hạng mục của người khác!`,
       };
     }
 
@@ -269,6 +271,11 @@ export class WorkItemComponent implements OnInit, AfterViewInit {
     const now = DateTime.now();
 
     console.log(`📝 Cell changed: Field="${fieldName}", ID=${id}`);
+
+    // Đánh dấu row đã thay đổi (chỉ với row đã có ID > 0, row mới sẽ tự động được gửi)
+    if (id > 0) {
+      this.changedRowIds.add(id);
+    }
 
     // Cập nhật StatusUpdate cho Mission và Plan columns
     if (id > 0) {
@@ -912,6 +919,9 @@ export class WorkItemComponent implements OnInit, AfterViewInit {
           ); // Chuyển sang tree
           console.log('Tree data:', this.dataTableWorkItem);
 
+          // Reset danh sách thay đổi khi load lại dữ liệu
+          this.changedRowIds.clear();
+
           if (this.tb_workItem) {
             this.tb_workItem.setData(this.dataTableWorkItem).then(() => {
               // Áp dụng filter ngay sau setData, trước khi redraw để tránh hiển thị tất cả dữ liệu
@@ -964,6 +974,7 @@ export class WorkItemComponent implements OnInit, AfterViewInit {
     return flatList;
   }
 
+
   saveData(): void {
     if (!this.tb_workItem) {
       this.notification.warning(
@@ -988,8 +999,20 @@ export class WorkItemComponent implements OnInit, AfterViewInit {
 
     console.log('Flat data:', flatData);
 
-    // Map dữ liệu theo format API yêu cầu
-    const projectItems = flatData.map((item: any) => {
+    // Lọc chỉ lấy những dòng mới (ID <= 0) hoặc đã thay đổi (có trong changedRowIds)
+    const changedItems = flatData.filter((item: any) => {
+      const itemId = item.ID || 0;
+      // Dòng mới hoặc dòng đã thay đổi
+      return itemId <= 0 || this.changedRowIds.has(itemId);
+    });
+
+    // Kiểm tra nếu không có dòng nào thay đổi và không có dòng nào bị xóa
+    if (changedItems.length === 0 && this.deletedIdsWorkItem.length === 0) {
+      this.notification.info('Thông báo', 'Không có thay đổi nào để lưu!');
+      return;
+    }
+    // Map dữ liệu theo format API yêu cầu (chỉ những dòng đã thay đổi)
+    const projectItems = changedItems.map((item: any) => {
       return {
         ID: item.ID || 0,
         Status: item.Status ?? 0,
@@ -1061,6 +1084,9 @@ export class WorkItemComponent implements OnInit, AfterViewInit {
         this.isLoadTable = false;
         if (response.status === 1) {
           this.notification.success('Thông báo', 'Lưu dữ liệu thành công!');
+          // Reset danh sách xóa và thay đổi sau khi lưu thành công
+          this.deletedIdsWorkItem = [];
+          this.changedRowIds.clear();
           // Reload data sau khi lưu thành công
           this.loadData();
         } else {
@@ -1580,7 +1606,7 @@ export class WorkItemComponent implements OnInit, AfterViewInit {
                     if (isApproved > 0) {
                       this.notification.warning(
                         'Thông báo',
-                        `Hạng mục này đang ${isApprovedText}!`
+                        `Hạng mục: [${data['Code']}]\nHạng mục này đang ${isApprovedText}!`
                       );
                       return;
                     }
@@ -1600,7 +1626,7 @@ export class WorkItemComponent implements OnInit, AfterViewInit {
                     if (!isTBP && !isPBP) {
                       this.notification.warning(
                         'Thông báo',
-                        'Bạn không thể xoá.\nVui lòng liên hệ TBP'
+                        `Hạng mục: [${data['Code']}]\nBạn không thể xoá.\nVui lòng liên hệ TBP`
                       );
                       return;
                     }
@@ -1644,25 +1670,29 @@ export class WorkItemComponent implements OnInit, AfterViewInit {
           title: 'ID',
           field: 'ID',
           visible: false,
+          frozen: true,
         },
         {
           title: 'STT',
           field: 'STT',
           hozAlign: 'center',
-          width:70,
+          width:50,
+          frozen: true,
         },
         {
           title: 'ParentID',
           field: 'ParentID',
           visible: false,
+          frozen: true,
         },
         {
           title: 'Tình trạng',
           field: 'IsApprovedText',
           hozAlign: 'center',
           width: 150,
+          frozen: true,
         },
-        { title: 'Mã', field: 'Code', hozAlign: 'center', width: 130 },
+        { title: 'Mã', field: 'Code', hozAlign: 'center', width: 130, frozen: true },
         {
           title: 'Kiểu dự án',
           field: 'TypeProjectItem',

@@ -60,6 +60,7 @@
                             <nz-form-control [nzSpan]="24">
                                 <nz-select name="userId" class="w-100" nzShowSearch nzAllowClear
                                     nzPlaceHolder="Chọn nhân viên" [(ngModel)]="userId">
+                                    <nz-option nzValue="0" nzLabel="Tất cả">Tất cả</nz-option>
                                     @for (parent of users; track $index) {
                                     <nz-option-group [nzLabel]="parent.label">
                                         @for (child of parent.options; track $index) {

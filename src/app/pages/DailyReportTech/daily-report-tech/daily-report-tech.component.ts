@@ -73,6 +73,9 @@ export class DailyReportTechComponent implements OnInit, AfterViewInit {
   dailyReportTechData: any[] = [];
   projects: any[] = [];
 
+  //data user
+  userData: any = null;
+
   // Table
   tb_daily_report_tech: any;
 
@@ -114,8 +117,14 @@ export class DailyReportTechComponent implements OnInit, AfterViewInit {
   }
 
   ngAfterViewInit(): void {
+    // Vẽ table trước với data rỗng (giống summary-of-exam-results)
     this.drawTbDailyReportTech(this.tb_daily_report_techContainer.nativeElement);
-    this.getDailyReportTechData();
+    
+    // Load dữ liệu sau khi table đã được khởi tạo
+    // Sử dụng setTimeout để đảm bảo table đã được khởi tạo xong
+    setTimeout(() => {
+      this.getDailyReportTechData();
+    }, 0);
   }
 
   getCurrentUser(): void {
@@ -124,9 +133,24 @@ export class DailyReportTechComponent implements OnInit, AfterViewInit {
         const data = Array.isArray(res.data) ? res.data[0] : res.data;
         this.currentUser = data;
         // Sau khi có currentUser, nếu users đã được load thì set userId
-        if (this.users.length > 0 && data.EmployeeID) {
-          this.setUserIdFromEmployeeID(data.EmployeeID);
+        if (this.users.length > 0) {
+          // Thử tìm theo ID trước, nếu không có thì tìm theo EmployeeID
+          if (data.ID) {
+            this.setUserIdFromEmployeeID(data.ID);
+          } else if (data.EmployeeID) {
+            this.setUserIdFromEmployeeID(data.EmployeeID);
+          } else {
+            // Nếu không có ID hoặc EmployeeID, set về "Tất cả"
+            this.userId = 0;
+          }
+        } else {
+          // Nếu users chưa được load, tạm thời set về "Tất cả"
+          // Khi loadUsers() được gọi sau đó, nó sẽ tự động tìm và set lại
+          this.userId = 0;
         }
+      } else {
+        // Nếu không có currentUser, set về "Tất cả"
+        this.userId = 0;
       }
     });
   }
@@ -189,9 +213,20 @@ export class DailyReportTechComponent implements OnInit, AfterViewInit {
           this.users = [];
         }
         
-        // Sau khi load users, tìm và set userId từ currentUser.EmployeeID
-        if (this.currentUser?.ID) {
-          this.setUserIdFromEmployeeID(this.currentUser.ID);
+        // Sau khi load users, tìm và set userId từ currentUser
+        // Nếu không tìm thấy currentUser trong danh sách, tự động set về "Tất cả" (ID = 0)
+        if (this.currentUser) {
+          if (this.currentUser.ID) {
+            this.setUserIdFromEmployeeID(this.currentUser.ID);
+          } else if (this.currentUser.EmployeeID) {
+            this.setUserIdFromEmployeeID(this.currentUser.EmployeeID);
+          } else {
+            // Nếu không có ID hoặc EmployeeID, set về "Tất cả"
+            this.userId = 0;
+          }
+        } else {
+          // Nếu không có currentUser, set về "Tất cả"
+          this.userId = 0;
         }
       },
       error: (error) => {
@@ -219,15 +254,24 @@ export class DailyReportTechComponent implements OnInit, AfterViewInit {
   }
 
   setUserIdFromEmployeeID(employeeID: number): void {
-    // Tìm user trong danh sách users dựa trên EmployeeID
+    // Tìm user trong danh sách users dựa trên EmployeeID, ID, hoặc UserID
     for (const group of this.users) {
       for (const option of group.options) {
-        if (option.item?.UserID === employeeID || option.UserID === employeeID) {
-          this.userId = option.item.UserID;
+        const item = option.item;
+        if (item) {
+          // Tìm theo UserID, ID, hoặc EmployeeID
+          if (item.UserID === employeeID || item.ID === employeeID || item.EmployeeID === employeeID) {
+            this.userId = item.UserID;
+            return;
+          }
+        } else if (option.UserID === employeeID) {
+          this.userId = option.UserID;
           return;
         }
       }
     }
+    // Nếu không tìm thấy currentUser trong danh sách, set về "Tất cả" (ID = 0)
+    this.userId = 0;
   }
 
   onDepartmentChange(): void {
@@ -284,9 +328,9 @@ export class DailyReportTechComponent implements OnInit, AfterViewInit {
     this.dateEnd = DateTime.local().set({ hour: 0, minute: 0, second: 0 }).toISO();
     this.departmentId = 2;
     this.teamId = 0;
-    this.userId = this.currentUser?.EmployeeID || 0;
     this.keyword = '';
-    this.loadTeams(); // Load lại teams khi reset
+    this.loadTeams(); // Load lại teams khi reset (sẽ trigger loadUsers)
+    // userId sẽ được set trong loadUsers() hoặc set về 0 nếu không tìm thấy
     this.searchDailyReports();
   }
 
@@ -323,7 +367,7 @@ export class DailyReportTechComponent implements OnInit, AfterViewInit {
       dateEnd: dateEnd.isValid ? dateEnd.toISO() : null,
       departmentID: this.departmentId || 0,
       teamID: this.teamId || 0,
-      userID: this.userId || 0,
+      userID: this.currentUser?.IsLeader > 1 ? this.userId : this.currentUser.ID  || 0,
       keyword: this.keyword.trim() || '',
     };
   }
@@ -384,19 +428,22 @@ export class DailyReportTechComponent implements OnInit, AfterViewInit {
             title: 'Tổng giờ',
             field: 'TotalHours',
             hozAlign: 'right',
-            width: 100,
+            width: 70,
+            headerSort: false,
           },
           {
             title: 'Giờ OT',
             field: 'TotalHourOT',
             hozAlign: 'right',
-            width: 100,
+            width: 70,
+            headerSort: false,
           },
           {
             title: '% Hoàn thành',
             field: 'PercentComplete',
             hozAlign: 'right',
-            width: 120,
+            width: 70,
+            headerSort: false,
             formatter: (cell: any) => {
               const value = cell.getValue() || 0;
               return `${value}%`;
@@ -643,12 +690,182 @@ export class DailyReportTechComponent implements OnInit, AfterViewInit {
   }
 
   copyDailyReport(): void {
-    const selectedRows = this.tb_daily_report_tech.getSelectedRows();
-    if (selectedRows.length !== 1) {
-      this.notification.error('Thông báo', 'Vui lòng chọn 1 báo cáo để copy!');
+    // Lấy dữ liệu để copy dựa trên filter hiện tại
+    const searchParams = this.getSearchParams();
+    
+    // Tìm EmployeeID từ users dựa trên searchParams.userID (UserID từ dropdown)
+    // Dropdown bind [nzValue]="child.item.UserID", nên searchParams.userID là UserID
+    let employeeID = 0;
+    if (searchParams.userID && searchParams.userID > 0) {
+      for (const group of this.users) {
+        if (group.options && Array.isArray(group.options)) {
+          const foundUser = group.options.find((opt: any) => opt.item?.UserID === searchParams.userID);
+          if (foundUser && foundUser.item?.ID) {
+            employeeID = foundUser.item.ID;
+            break;
+          }
+        }
+      }
+    }
+    
+    // Gọi API để lấy dữ liệu copy
+    const copyParams = {
+      dateStart: searchParams.dateStart,
+      dateEnd: searchParams.dateEnd,
+      team_id: searchParams.teamID || 0,
+      keyword: searchParams.keyword || '',
+      userid: employeeID || 0,
+      departmentid: searchParams.departmentID || 0
+    };
+    
+    this.dailyReportTechService.getForCopy(copyParams).subscribe({
+      next: (response: any) => {
+        if (response.status === 1) {
+          const result = Array.isArray(response.data) ? response.data : [];
+          this.formatAndCopyReport(result);
+        } else {
+          this.notification.error('Thông báo', 'Không có dữ liệu để copy!');
+        }
+      },
+      error: (error: any) => {
+        const errorMsg = error?.error?.message || error?.message || 'Đã xảy ra lỗi khi lấy dữ liệu copy!';
+        this.notification.error('Thông báo', errorMsg);
+      }
+    });
+  }
+
+  private formatAndCopyReport(result: any[]): void {
+    if (!result || result.length === 0) {
+      this.notification.error('Thông báo', 'Không có dữ liệu để copy!');
       return;
     }
-    this.notification.info('Thông báo', 'Chức năng copy đang được phát triển');
+
+    // Lấy danh sách ngày duy nhất
+    const uniqueDates = [...new Set(result.map(item => item.DateReport))];
+    
+    // Chỉ copy khi có đúng 1 ngày (giống RTCWeb)
+    if (uniqueDates.length === 1) {
+      // Copy 1 ngày
+      const contentSummary = this.formatSingleDayReport(result, uniqueDates[0]);
+      // Copy vào clipboard
+      this.copyToClipboard(contentSummary);
+    } else {
+      // Nếu có nhiều ngày, hiển thị cảnh báo
+      this.notification.warning('Thông báo', `Bạn không thể copy nội dung của ${uniqueDates.length} ngày!`);
+    }
+  }
+
+  private formatSingleDayReport(dayData: any[], dateReport: string): string {
+    let project = '';
+    let content = '';
+    let resultReport = '';
+    let backlog = '';
+    let problem = '';
+    let problemSolve = '';
+    let planNextDay = '';
+    let note = '';
+
+    const dateTime = DateTime.fromISO(dateReport);
+    const formattedDate = dateTime.isValid ? dateTime.toFormat('dd/MM/yyyy') : dateReport;
+    let contentSummary = `Báo cáo công việc ngày ${formattedDate}\n`;
+
+    dayData.forEach(item => {
+      if (item) {
+        // Tránh trùng lặp ProjectItemCode trong content (giống RTCWeb)
+        if (item.ProjectItemCode && !content.includes(item.ProjectItemCode)) {
+          content += (item.Mission || item.Content || '') + '\n';
+        } else if (!item.ProjectItemCode) {
+          // Nếu không có ProjectItemCode, thêm trực tiếp
+          content += (item.Mission || item.Content || '') + '\n';
+        }
+        
+        // Tránh trùng lặp ProjectCode trong project (giống RTCWeb)
+        if (item.ProjectCode && !project.includes(item.ProjectCode)) {
+          project += `${item.ProjectCode} - ${item.ProjectName || ''}\n`;
+        }
+
+        // Các field khác append trực tiếp (giống RTCWeb)
+        if (item.Results) resultReport += item.Results + '\n';
+        if (item.Backlog) backlog += item.Backlog + '\n';
+        if (item.Problem) problem += item.Problem + '\n';
+        if (item.ProblemSolve) problemSolve += item.ProblemSolve + '\n';
+        if (item.Note) note += item.Note + '\n';
+        if (item.PlanNextDay) planNextDay = item.PlanNextDay;
+      }
+    });
+
+    // Format theo departmentId (nếu departmentId == 6 thì không hiển thị Mã dự án)
+    // Lấy departmentId từ currentUser hoặc từ filter
+    const departmentId = this.departmentId || this.currentUser?.DepartmentID || 0;
+    
+    // Format giống RTCWeb
+    if (departmentId !== 6) {
+      contentSummary += `* Mã dự án - Tên dự án: \n${project.trim()}\n`;
+    }
+    
+    contentSummary += `\n* Nội dung công việc:\n${content.trim()}\n`;
+    contentSummary += `\n* Kết quả công việc:\n${resultReport.trim()}\n`;
+    contentSummary += `\n* Tồn đọng:\n${backlog.trim() === '' ? '- Không có' : backlog.trim()}\n`;
+    
+    if (departmentId === 6) {
+      contentSummary += `\n* Lý do tồn đọng:\n${note.trim() === '' ? '- Không có' : note.trim()}\n`;
+    }
+    
+    contentSummary += `\n* Vấn đề phát sinh:\n${problem.trim() === '' ? '- Không có' : problem.trim()}\n`;
+    contentSummary += `\n* Giải pháp cho vấn đề phát sinh:\n${problemSolve.trim() === '' ? '- Không có' : problemSolve.trim()}\n`;
+    contentSummary += `\n* Kế hoạch ngày tiếp theo:\n${planNextDay.trim() === '' ? '- Không có' : planNextDay.trim()}\n`;
+
+    return contentSummary;
+  }
+
+  private async copyToClipboard(text: string): Promise<void> {
+    // Hàm fallback sử dụng execCommand
+    const useExecCommand = (): boolean => {
+      const textArea = document.createElement('textarea');
+      textArea.value = text;
+      textArea.style.position = 'fixed';
+      textArea.style.left = '-999999px';
+      textArea.style.top = '-999999px';
+      document.body.appendChild(textArea);
+      textArea.focus();
+      textArea.select();
+      
+      try {
+        const successful = document.execCommand('copy');
+        if (successful) {
+          this.notification.success('Thông báo', 'Đã copy vào clipboard thành công!');
+          return true;
+        } else {
+          throw new Error('Copy command failed');
+        }
+      } catch (err: any) {
+        throw err;
+      } finally {
+        document.body.removeChild(textArea);
+      }
+    };
+    
+    try {
+      // Thử sử dụng Clipboard API nếu có
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        try {
+          await navigator.clipboard.writeText(text);
+          this.notification.success('Thông báo', 'Đã copy vào clipboard thành công!');
+        } catch (clipboardErr: any) {
+          // Nếu Clipboard API fail (thường do document not focused), fallback sang execCommand
+          if (clipboardErr.name === 'NotAllowedError' || clipboardErr.message?.includes('not focused')) {
+            useExecCommand();
+          } else {
+            throw clipboardErr;
+          }
+        }
+      } else {
+        // Nếu không có Clipboard API, dùng execCommand
+        useExecCommand();
+      }
+    } catch (err: any) {
+      this.notification.error('Thông báo', 'Không thể copy vào clipboard. Vui lòng thử lại!');
+    }
   }
 
   async exportReport(): Promise<void> {

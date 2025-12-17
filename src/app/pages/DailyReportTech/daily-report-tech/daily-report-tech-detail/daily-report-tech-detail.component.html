@@ -37,7 +37,7 @@
                 : undefined
             ">
                         <nz-date-picker formControlName="DateReport" class="w-100" nzFormat="dd/MM/yyyy"
-                            nzPlaceHolder="Chọn ngày báo cáo"></nz-date-picker>
+                            nzPlaceHolder="Chọn ngày báo cáo" [nzDisabledDate]="disabledDate"></nz-date-picker>
                     </nz-form-control>
                 </nz-form-item>
             </nz-col>
@@ -195,6 +195,41 @@
                 </nz-tab>
                 }
             </nz-tabset>
+        </fieldset>
+
+        <!-- Dòng 2.5: Nơi làm việc (fieldset) -->
+        <fieldset class="mt-2 border p-2" style="border-radius: 4px;">
+            <legend class="fs-12 mb-2" style="width: auto; padding: 0 10px;">
+                <span>Nơi làm việc<span class="text-danger ps-1">(*)</span></span>
+            </legend>
+            <div class="p-2">
+                <nz-row [nzGutter]="16">
+                    <!-- Radio buttons: VP RTC, Địa điểm khác -->
+                    <nz-col [nzXs]="24" [nzSm]="24" [nzMd]="12" [nzLg]="12" [nzXl]="12">
+                        <nz-form-item>
+                            <nz-form-control [nzSpan]="24">
+                                <nz-radio-group [(ngModel)]="workLocation" 
+                                    (ngModelChange)="onWorkLocationChange($event)"
+                                    [ngModelOptions]="{standalone: true}">
+                                    <label nz-radio [nzValue]="1">VP RTC</label>
+                                    <label nz-radio [nzValue]="0">Địa điểm khác</label>
+                                </nz-radio-group>
+                            </nz-form-control>
+                        </nz-form-item>
+                    </nz-col>
+                    <!-- Input nơi làm việc -->
+                    <nz-col [nzXs]="24" [nzSm]="24" [nzMd]="12" [nzLg]="12" [nzXl]="12">
+                        <nz-form-item>
+                            <nz-form-control [nzSpan]="24">
+                                <input nz-input [(ngModel)]="workLocationText"
+                                    [ngModelOptions]="{standalone: true}"
+                                    [disabled]="workLocation === 1"
+                                    placeholder="Nhập nơi làm việc..." class="w-100" />
+                            </nz-form-control>
+                        </nz-form-item>
+                    </nz-col>
+                </nz-row>
+            </div>
         </fieldset>
 
         <!-- Dòng 3: Thông tin thêm (fieldset) -->

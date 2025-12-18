@@ -467,20 +467,6 @@ export class ProjectComponent implements OnInit, AfterViewInit {
           width: 200,
           formatter: 'textarea',
         },
-        { title: 'PO', field: 'PO', hozAlign: 'center', width: 100 },
-        {
-          title: 'Ngày PO',
-          field: 'PODate',
-          formatter: function (cell, formatterParams, onRendered) {
-            let value = cell.getValue() || '';
-            const dateTime = DateTime.fromISO(value);
-            value = dateTime.isValid ? dateTime.toFormat('dd/MM/yyyy') : '';
-            return value;
-          },
-          hozAlign: 'center',
-          //   headerHozAlign: 'center',
-          width: 100,
-        },
         {
           title: 'Người phụ trách(sale)',
           field: 'FullNameSale',
@@ -506,6 +492,26 @@ export class ProjectComponent implements OnInit, AfterViewInit {
           formatter: 'textarea',
         },
         {
+          //create column group
+          title: 'Mức độ ưu tiên',
+          columns: [
+            {
+              title: 'Mức ưu tiên',
+              field: 'PriotityText',
+              hozAlign: 'right',
+              //   headerHozAlign: 'center',
+              width: 70,
+            },
+            {
+              title: 'Mức độ ưu tiên cá nhân',
+              field: 'PersonalPriotity',
+              hozAlign: 'right',
+              //   headerHozAlign: 'center',
+              width: 90,
+            },
+          ],
+        },
+        {
           title: 'Lĩnh vực dự án',
           field: 'BussinessField',
           //   hozAlign: 'left',
@@ -529,25 +535,19 @@ export class ProjectComponent implements OnInit, AfterViewInit {
           width: 200,
           formatter: 'textarea',
         },
+        { title: 'PO', field: 'PO', hozAlign: 'center', width: 100 },
         {
-          //create column group
-          title: 'Mức độ ưu tiên',
-          columns: [
-            {
-              title: 'Dự án',
-              field: 'PriotityText',
-              hozAlign: 'right',
-              //   headerHozAlign: 'center',
-              width: 70,
-            },
-            {
-              title: 'Cá nhân',
-              field: 'PersonalPriotity',
-              hozAlign: 'right',
-              //   headerHozAlign: 'center',
-              width: 90,
-            },
-          ],
+          title: 'Ngày PO',
+          field: 'PODate',
+          formatter: function (cell, formatterParams, onRendered) {
+            let value = cell.getValue() || '';
+            const dateTime = DateTime.fromISO(value);
+            value = dateTime.isValid ? dateTime.toFormat('dd/MM/yyyy') : '';
+            return value;
+          },
+          hozAlign: 'center',
+          //   headerHozAlign: 'center',
+          width: 100,
         },
         {
           //create column group

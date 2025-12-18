@@ -339,33 +339,26 @@ export class DailyReportTechComponent implements OnInit, AfterViewInit {
     // Xử lý dateStart - có thể là Date object hoặc ISO string
     let dateStart: DateTime;
     if (this.dateStart instanceof Date) {
-      dateStart = DateTime.fromJSDate(this.dateStart)
-        .set({ hour: 0, minute: 0, second: 0, millisecond: 0 });
+      dateStart = DateTime.fromJSDate(this.dateStart);
     } else if (typeof this.dateStart === 'string') {
-      dateStart = DateTime.fromISO(this.dateStart)
-        .set({ hour: 0, minute: 0, second: 0, millisecond: 0 });
+      dateStart = DateTime.fromISO(this.dateStart);
     } else {
-      dateStart = DateTime.local()
-        .minus({ days: 1 })
-        .set({ hour: 0, minute: 0, second: 0, millisecond: 0 });
+      dateStart = DateTime.local().minus({ days: 1 });
     }
 
     // Xử lý dateEnd - có thể là Date object hoặc ISO string
     let dateEnd: DateTime;
     if (this.dateEnd instanceof Date) {
-      dateEnd = DateTime.fromJSDate(this.dateEnd)
-        .set({ hour: 23, minute: 59, second: 59, millisecond: 999 });
+      dateEnd = DateTime.fromJSDate(this.dateEnd);
     } else if (typeof this.dateEnd === 'string') {
-      dateEnd = DateTime.fromISO(this.dateEnd)
-        .set({ hour: 23, minute: 59, second: 59, millisecond: 999 });
+      dateEnd = DateTime.fromISO(this.dateEnd);
     } else {
-      dateEnd = DateTime.local()
-        .set({ hour: 23, minute: 59, second: 59, millisecond: 999 });
+      dateEnd = DateTime.local();
     }
 
     return {
-      dateStart: dateStart.isValid ? dateStart.toISO() : null,
-      dateEnd: dateEnd.isValid ? dateEnd.toISO() : null,
+      dateStart: dateStart.isValid ? dateStart.toFormat('yyyy-MM-dd') : null, // "2025-12-19"
+      dateEnd: dateEnd.isValid ? dateEnd.toFormat('yyyy-MM-dd') : null, // "2025-12-19"
       departmentID: this.departmentId || 0,
       teamID: this.teamId || 0,
       userID: this.currentUser?.IsLeader > 1 ? this.userId : this.currentUser.ID  || 0,

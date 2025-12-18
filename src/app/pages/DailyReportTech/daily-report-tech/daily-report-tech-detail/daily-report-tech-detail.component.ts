@@ -150,11 +150,21 @@ export class DailyReportTechDetailComponent implements OnInit, AfterViewInit {
       // Khởi tạo dự án đầu tiên cho chế độ add
       this.addProject();
       
-      // Set ngày báo cáo mặc định
-      const today = DateTime.local().toJSDate();
-      this.formGroup.patchValue({
-        DateReport: today
-      });
+      // Set ngày báo cáo mặc định theo quy tắc 9h sáng (RTCWeb pattern)
+      const now = DateTime.local();
+      const currentHour = now.hour;
+      
+      // Nếu từ 0h-9h sáng: để trống (null) buộc user chọn ngày
+      // Nếu sau 9h: mặc định là ngày hiện tại
+      if (currentHour >= 0 && currentHour <= 9) {
+        this.formGroup.patchValue({
+          DateReport: null
+        });
+      } else {
+        this.formGroup.patchValue({
+          DateReport: now.toJSDate()
+        });
+      }
     }
   }
 

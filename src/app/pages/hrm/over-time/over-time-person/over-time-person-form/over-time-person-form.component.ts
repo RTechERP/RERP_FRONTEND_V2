@@ -655,18 +655,38 @@ export class OverTimePersonFormComponent implements OnInit {
   }
 
   private buildApproverGroups(): void {
-    const grouped = this.approverList.reduce((acc: any, approver: any) => {
+    // Loại bỏ duplicate dựa trên EmployeeID hoặc ID
+    const uniqueApprovers = new Map();
+    this.approverList.forEach((approver: any) => {
+      const employeeID = approver.EmployeeID || approver.ID;
+      if (employeeID && !uniqueApprovers.has(employeeID)) {
+        uniqueApprovers.set(employeeID, approver);
+      }
+    });
+    
+    const deduplicatedList = Array.from(uniqueApprovers.values());
+    
+    const grouped = deduplicatedList.reduce((acc: any, approver: any) => {
       const deptName = approver.DepartmentName || 'Không xác định';
       if (!acc[deptName]) {
         acc[deptName] = [];
       }
-      acc[deptName].push({
-        ID: approver.EmployeeID || approver.ID,
-        EmployeeID: approver.EmployeeID || approver.ID,
-        Code: approver.Code,
-        FullName: approver.FullName,
-        DepartmentName: approver.DepartmentName
-      });
+      
+      const employeeID = approver.EmployeeID || approver.ID;
+      // Kiểm tra xem đã có trong group chưa để tránh duplicate trong cùng một department
+      const existsInGroup = acc[deptName].some((item: any) => 
+        (item.EmployeeID || item.ID) === employeeID
+      );
+      
+      if (!existsInGroup) {
+        acc[deptName].push({
+          ID: employeeID,
+          EmployeeID: employeeID,
+          Code: approver.Code,
+          FullName: approver.FullName,
+          DepartmentName: approver.DepartmentName
+        });
+      }
       return acc;
     }, {});
 

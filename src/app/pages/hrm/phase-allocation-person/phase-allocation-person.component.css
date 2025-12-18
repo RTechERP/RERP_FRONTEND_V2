@@ -1,0 +1,25 @@
+.card {
+  height: 100%;
+}
+
+.tabulator {
+  font-size: 0.75rem;
+}
+
+.tabulator-cell {
+  padding: 0px;
+}
+
+.fs-12 {
+  font-size: 0.75rem;
+}
+
+.btn {
+  font-weight: bold;
+  height: 2.5vh;
+  font-size: 0.75rem;
+  border: none;
+}
+.ant splitter{
+  height: 93vh !important;
+}

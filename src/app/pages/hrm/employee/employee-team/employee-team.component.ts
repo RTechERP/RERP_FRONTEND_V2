@@ -14,12 +14,14 @@ import { NzOptionComponent, NzSelectModule } from 'ng-zorro-antd/select';
 import { DepartmentServiceService } from '../../department/department-service/department-service.service';
 import { CommonModule } from '@angular/common';
 import { NOTIFICATION_TITLE } from '../../../../app.config';
+import { NzSplitterModule } from 'ng-zorro-antd/splitter';
 
 @Component({
   selector: 'app-employee-team',
   templateUrl: './employee-team.component.html',
   styleUrls: ['./employee-team.component.css'],
   imports: [
+    CommonModule,
     NzIconModule,
     NzButtonModule,
     NzNotificationModule,
@@ -27,7 +29,7 @@ import { NOTIFICATION_TITLE } from '../../../../app.config';
     NzFormModule,
     NzInputModule,
     NzSelectModule,
-    NzOptionComponent
+    NzSplitterModule
   ],
   providers: [NzNotificationService, NzModalService],
   standalone: true
@@ -39,6 +41,7 @@ export class EmployeeTeamComponent implements OnInit {
   employeeTeamForm!: FormGroup;
   selectedEmployeeTeam: any = null;
   department: any = null;
+  sizeSearch: string = '0';
   constructor(
     private fb: FormBuilder,
     private notification: NzNotificationService,
@@ -233,5 +236,9 @@ export class EmployeeTeamComponent implements OnInit {
       },
       nzCancelText: 'Hủy'
     });
+  }
+
+  toggleSearchPanel() {
+    this.sizeSearch = this.sizeSearch == '0' ? '20%' : '0';
   }
 }

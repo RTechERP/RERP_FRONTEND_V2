@@ -91,6 +91,11 @@ export class VehicleBookingManagementService {
     return this.http.get<any>(`${this.url + `get-files`}`, { params: { vehicleBookingId: vehicleBookingId } });
   }
 
+  // Get image for a single vehicle booking (new API)
+  getImage(vehicleBookingID: number) {
+    return this.http.get<any>(`${this.url + `get-image`}`, { params: { vehicleBookingID: vehicleBookingID } });
+  }
+
   // Remove file
   removeFile(fileIds: number[]) {
     return this.http.post<any>(`${this.url + `remove-file`}`, fileIds);

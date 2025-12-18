@@ -143,8 +143,8 @@
     <div nz-row [nzGutter]="16">
       <div nz-col nzSpan="12">
         <nz-form-item>
-          <nz-form-label class="fs-12">Nhà cung cấp<span class="text-danger">*</span></nz-form-label>
-          <nz-form-control [nzErrorTip]="SupplierError">
+          <nz-form-label class="fs-12">Nhà cung cấp</nz-form-label>
+          <nz-form-control>
             <nz-select nzSize="default" formControlName="SupplierID" nzShowSearch [nzAllowClear]="false" nzPlaceHolder="Chọn nhà cung cấp">
               <nz-option *ngFor="let id of dataCbbSupplier" [nzValue]="id.ID" [nzLabel]="id.CodeNCC +'-'+ id.NameNCC" nzCustomContent>
                 {{ id.CodeNCC }} - {{ id.NameNCC }}
@@ -155,14 +155,6 @@
                 </nz-select-item>
               </nz-select-top-control>
             </nz-select>
-            <ng-template #SupplierError let-control>
-              <ng-container *ngIf="control.hasError('required') && (control.dirty || control.touched)">
-                Vui lòng chọn nhà cung cấp!
-              </ng-container>
-              <ng-container *ngIf="control.hasError('min') && (control.dirty || control.touched)">
-                Nhà cung cấp không hợp lệ!
-              </ng-container>
-            </ng-template>
           </nz-form-control>
         </nz-form-item>
       </div>

@@ -361,3 +361,38 @@ button[nz-button] img {
     max-height: 50vh;
     overflow: auto;
 }
+
+
+/* Style slick-grid */
+
+.slickgrid-container .slick-header{
+    border-left: 1px solid #ddd !important;
+    border-top: 1px solid #ddd !important;
+    border-bottom: 1px solid #ddd !important;
+}
+
+body .slickgrid-container .slick-header-columns .slick-header-column.slick-state-default{
+    border: 1px solid #ddd;
+    display: flex;
+    justify-content: center;
+    align-content: center;
+    line-height: normal !important;
+    padding-top: 5px;
+    background-color: #f4f4f4;
+}
+.slickgrid-container .slick-pane-header{
+    background-color: #f4f4f4 !important;
+}
+
+body .slickgrid-container .grid-canvas .slick-cell{
+    line-height: normal #ddd !important;
+    border-left: 1px solid #ddd !important;
+    /* border-top: 1px solid !important; */
+    border-bottom: 1px solid  #ddd !important;
+}
+
+.slickgrid-container .slick-headerrow .slick-headerrow-columns .slick-headerrow-column{
+    border-left: 1px solid #ddd !important;
+    /* border-top: 1px solid !important; */
+    border-bottom: 1px solid  #ddd !important;
+}

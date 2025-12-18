@@ -405,10 +405,3 @@ body .slickgrid-container .grid-canvas .slick-cell{
     height: 100% !important;
 } */
 
-.ant-card-body{
-    padding: 0.5rem;
-}
-
-.ant-form-item{
-    margin: 0;
-}

@@ -77,10 +77,10 @@ export class EmployeeNightShiftFormComponent implements OnInit {
     if (value !== this._selectedIndex && value >= 0 && value < this.tabs.length) {
       // Lưu dữ liệu tab hiện tại trước khi chuyển
       this.saveTabData(this._selectedIndex);
-      
+
       // Cập nhật selectedIndex
       this._selectedIndex = value;
-      
+
       // Load dữ liệu tab mới
       this.loadTabData(value);
     }
@@ -109,7 +109,7 @@ export class EmployeeNightShiftFormComponent implements OnInit {
     today.setHours(0, 0, 0, 0);
     const todayStr = this.formatDateForTab(today);
     this.tabs = [todayStr];
-    
+
     // Khởi tạo dữ liệu cho tab đầu tiên
     this.tabFormData[0] = {
       DateRegister: new Date(today),
@@ -135,7 +135,7 @@ export class EmployeeNightShiftFormComponent implements OnInit {
       this.formGroup.get('EmployeeID')?.disable();
       this.formGroup.get('ApprovedTBP')?.disable();
     } else {
-          this.formGroup.get('EmployeeID')?.disable();
+      this.formGroup.get('EmployeeID')?.disable();
 
     }
 
@@ -263,6 +263,11 @@ export class EmployeeNightShiftFormComponent implements OnInit {
     }
 
     const dateStart = new Date(value);
+    if (!value) {
+      return null;
+    }
+
+
     const hour = dateStart.getHours();
 
     if (hour < 20) {
@@ -505,7 +510,7 @@ export class EmployeeNightShiftFormComponent implements OnInit {
 
     // Lưu dữ liệu vào tab đầu tiên sau khi populate
     this.saveTabData(0);
-    
+
     // Cập nhật tên tab dựa trên DateRegister
     if (dateRegister) {
       this.updateTabTitle(0, dateRegister);
@@ -771,6 +776,9 @@ export class EmployeeNightShiftFormComponent implements OnInit {
         IsProblem: tabData.IsProblem || false,
         ReasonHREdit: reasonHREdit,
         IsDeleted: false,
+        IsApprovedTBP: this.isEditMode ? undefined : 0,
+        IsApprovedHR: this.isEditMode ? undefined : 0,
+        ApprovedHR: this.isEditMode ? undefined : 0,
       });
     }
 
@@ -806,14 +814,14 @@ export class EmployeeNightShiftFormComponent implements OnInit {
   }
 
   onAddOverTime(): void {
-      const modalRef = this.modalService.open(OverTimePersonFormComponent, {
-        centered: true,
+    const modalRef = this.modalService.open(OverTimePersonFormComponent, {
+      centered: true,
       size: 'xl',
       backdrop: 'static',
       keyboard: false,
-      });
-  
-    }
+    });
+
+  }
 
   getErrorMessage(controlName: string): string {
     const control = this.formGroup.get(controlName);
@@ -934,7 +942,7 @@ export class EmployeeNightShiftFormComponent implements OnInit {
   // Tabs management methods
   newTab(): void {
     const newTabIndex = this.tabs.length;
-    
+
     // Tính ngày tiếp theo dựa trên tab cuối cùng hoặc ngày hôm nay nếu không có tab nào
     let nextDate: Date;
     if (newTabIndex > 0 && this.tabFormData[newTabIndex - 1]?.DateRegister) {
@@ -949,10 +957,10 @@ export class EmployeeNightShiftFormComponent implements OnInit {
       nextDate.setDate(nextDate.getDate() + 1);
       nextDate.setHours(0, 0, 0, 0);
     }
-    
+
     const nextDateStr = this.formatDateForTab(nextDate);
     this.tabs.push(nextDateStr);
-    
+
     // Khởi tạo dữ liệu cho tab mới với ngày tiếp theo
     this.tabFormData[newTabIndex] = {
       DateRegister: new Date(nextDate),
@@ -967,7 +975,7 @@ export class EmployeeNightShiftFormComponent implements OnInit {
       ID: 0
     };
     this.tabDatePickerKeys[newTabIndex] = 0;
-    
+
     // Set selectedIndex sẽ tự động lưu tab cũ và load tab mới
     this._selectedIndex = newTabIndex;
     this.loadTabData(newTabIndex);
@@ -987,14 +995,14 @@ export class EmployeeNightShiftFormComponent implements OnInit {
     // Xóa dữ liệu tab
     delete this.tabFormData[index];
     delete this.tabDatePickerKeys[index];
-    
+
     // Xóa tab khỏi mảng
     this.tabs.splice(index, 1);
-    
+
     // Điều chỉnh selectedIndex và re-index dữ liệu
     const newTabFormData: { [key: number]: any } = {};
     const newTabDatePickerKeys: { [key: number]: number } = {};
-    
+
     // Re-index: tất cả các tab sau index bị xóa sẽ dịch lên 1
     Object.keys(this.tabFormData).forEach((key: string) => {
       const oldIndex = parseInt(key);
@@ -1008,17 +1016,17 @@ export class EmployeeNightShiftFormComponent implements OnInit {
     });
     this.tabFormData = newTabFormData;
     this.tabDatePickerKeys = newTabDatePickerKeys;
-    
+
     // Điều chỉnh selectedIndex (sử dụng _selectedIndex để tránh trigger setter)
     if (this._selectedIndex >= index && this._selectedIndex > 0) {
       this._selectedIndex--;
     } else if (this._selectedIndex >= this.tabs.length) {
       this._selectedIndex = this.tabs.length - 1;
     }
-    
+
     // Cập nhật tên tab dựa trên DateRegister của mỗi tab
     this.updateAllTabTitles();
-    
+
     // Load dữ liệu tab mới được chọn (không cần trigger setter vì đã lưu ở trên)
     this.loadTabData(this._selectedIndex);
   }
@@ -1056,19 +1064,19 @@ export class EmployeeNightShiftFormComponent implements OnInit {
         ReasonHREdit: tabData.ReasonHREdit || '',
         ID: tabData.ID || 0
       }, { emitEvent: false });
-      
+
       // Force re-render date picker
       if (!this.tabDatePickerKeys[index]) {
         this.tabDatePickerKeys[index] = 0;
       }
       this.tabDatePickerKeys[index]++;
       this.datePickerKey = this.tabDatePickerKeys[index];
-      
+
       // Tính lại TotalHours nếu có DateStart và DateEnd
       if (tabData.DateStart && tabData.DateEnd) {
         this.updateTotalHoursWithBreaks();
       }
-      
+
       // Cập nhật tên tab dựa trên DateRegister
       if (tabData.DateRegister) {
         this.updateTabTitle(index, new Date(tabData.DateRegister));

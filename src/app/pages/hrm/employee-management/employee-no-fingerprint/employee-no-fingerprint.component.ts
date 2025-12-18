@@ -189,6 +189,7 @@ export class EmployeeNoFingerprintComponent
 
   private drawTbenf(container: HTMLElement): void {
     console.log('Creating enf table...');
+    const isMobile = window.matchMedia('(max-width: 768px)').matches;
 
     this.tb_ENF = new Tabulator(container, {
       ...DEFAULT_TABLE_CONFIG,
@@ -267,7 +268,7 @@ export class EmployeeNoFingerprintComponent
           Tổng số bản ghi: <span style="color: #1890ff; font-size: 1.05em;">${data.length}</span>
         </div>`;
       },
-      columns: this.getTableColumns(),
+      columns: this.getTableColumns(isMobile),
     } as any);
 
     this.setupTableEvents();
@@ -288,7 +289,8 @@ export class EmployeeNoFingerprintComponent
     ];
   }
 
-  private getTableColumns(): any[] {
+  private getTableColumns(isMobile: boolean = false): any[] {
+    const frozenOn = !isMobile;
     return [
       {
         title: 'TBP Duyệt',
@@ -313,7 +315,7 @@ export class EmployeeNoFingerprintComponent
           }
           return this.formatApprovalBadge(numValue);
         },
-        frozen: true,
+        frozen: frozenOn,
       },
       {
         title: 'HR Duyệt',
@@ -338,7 +340,7 @@ export class EmployeeNoFingerprintComponent
           }
           return this.formatApprovalBadge(numValue);
         },
-        frozen: true,
+        frozen: frozenOn,
       },
       {
         title: 'Mã nhân viên',

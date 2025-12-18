@@ -3,7 +3,7 @@
     <h6 class="text-light text-uppercase m-0">
       {{ isEditMode ? 'SỬA KHAI BÁO LÀM THÊM' : ' KHAI BÁO LÀM THÊM' }}
     </h6>
-    <button type="button" class="btn-close btn-close-white" (click)="onCancel()" aria-label="Close"></button>
+    <button type="button" class="btn-close" (click)="onCancel()" aria-label="Close"></button>
   </div>
 
   <div class="modal-body p-3" style="max-height: 85vh; overflow-y: auto; overflow-x: hidden;">
@@ -145,7 +145,7 @@
                     <nz-form-label>Từ<span class="text-danger ps-2 me-1"> (*)</span></nz-form-label>
                     <nz-form-control [nzErrorTip]="'Vui lòng chọn thời gian bắt đầu'">
                       <nz-date-picker [formControl]="$any(tab.form.get('TimeStart'))"
-                        nzPlaceHolder="Chọn thời gian bắt đầu" nzShowTime [nzFormat]="'dd/MM/yyyy HH:mm'"
+                        nzPlaceHolder="Chọn thời gian bắt đầu" [nzShowTime]="{ nzFormat: 'HH:mm' }" [nzFormat]="'dd/MM/yyyy HH:mm'"
                         [nzShowToday]="false" [nzDisabledDate]="disabledDateForTimeStart"
                         style="width: 100%"></nz-date-picker>
                     </nz-form-control>
@@ -157,7 +157,7 @@
                     <nz-form-label>Đến<span class="text-danger ps-1 me-1"> (*)</span></nz-form-label>
                     <nz-form-control [nzErrorTip]="'Vui lòng chọn thời gian kết thúc'">
                       <nz-date-picker [formControl]="$any(tab.form.get('EndTime'))"
-                        nzPlaceHolder="Chọn thời gian kết thúc" nzShowTime [nzFormat]="'dd/MM/yyyy HH:mm'"
+                        nzPlaceHolder="Chọn thời gian kết thúc" [nzShowTime]="{ nzFormat: 'HH:mm' }" [nzFormat]="'dd/MM/yyyy HH:mm'"
                         [nzShowToday]="false" [nzDisabledDate]="disabledDateForEndTime"
                         style="width: 100%"></nz-date-picker>
                     </nz-form-control>

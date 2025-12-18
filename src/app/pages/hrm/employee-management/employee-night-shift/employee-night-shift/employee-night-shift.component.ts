@@ -306,7 +306,7 @@ export class EmployeeNightShiftComponent implements OnInit, AfterViewInit, OnDes
           },
           hozAlign: 'center',
           headerHozAlign: 'center',
-          frozen: true,
+          frozen: !isMobile,
           width: 100,
         },
         {
@@ -319,7 +319,7 @@ export class EmployeeNightShiftComponent implements OnInit, AfterViewInit, OnDes
           },
           hozAlign: 'center',
           headerHozAlign: 'center',
-          frozen: true,
+          frozen: !isMobile,
           width: 100,
         },
         {

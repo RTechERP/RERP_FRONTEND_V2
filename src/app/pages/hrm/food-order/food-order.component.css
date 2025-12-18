@@ -13,3 +13,23 @@
 .ant-splitter {
     height: 93vh !important;
 }
+
+/* Mobile: action buttons in header can overflow -> allow horizontal scroll */
+@media (max-width: 768px) {
+  .food-order-actions-scroll {
+    overflow-x: auto;
+    overflow-y: hidden;
+    -webkit-overflow-scrolling: touch;
+    width: 100%;
+  }
+
+  .food-order-actions {
+    flex-wrap: nowrap !important;
+    width: max-content;
+    padding-bottom: 4px; /* keep scrollbar from touching buttons */
+  }
+
+  .food-order-actions > * {
+    flex: 0 0 auto;
+  }
+}

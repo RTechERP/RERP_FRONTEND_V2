@@ -64,7 +64,8 @@
             <div class="card h-100 border-0 rounded-0">
                 <div class="card-header bg-white p-2">
                     <div class="d-flex justify-content-between align-items-center">
-                        <div class="d-flex gap-2">
+                        <div class="food-order-actions-scroll">
+                            <div class="d-flex gap-2 food-order-actions">
                             <button nz-button nzType="default" nzSize="small" (click)="toggleSearchPanel()">
                                 <nz-icon nzType="search" />
                             </button>
@@ -95,6 +96,7 @@
                             <button class="fs-12" nz-button nzType="default" nzSize="small" (click)="exportToExcel()">
                                 <img src="assets/icon/action_export_excel_16.png" alt="Xuất excel" />Xuất excel
                             </button>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -154,7 +156,7 @@
                 <h6 class="modal-title text-uppercase text-white" id="addFoodOrderModalLabel">
                     CHI TIẾT CƠM CA
                 </h6>
-                <button type="button" class="btn-close me-2" data-bs-dismiss="modal" aria-label="Close"></button>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body">
                 <form nz-form [formGroup]="foodOrderForm" (ngSubmit)="onSubmit()">

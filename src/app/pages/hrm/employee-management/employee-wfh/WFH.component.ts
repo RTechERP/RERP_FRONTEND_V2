@@ -213,6 +213,7 @@ export class WFHComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
   private getTableColumns(isMobile: boolean = false): any[] {
+    const frozenOn = !isMobile;
     return [
      
       {
@@ -235,7 +236,7 @@ export class WFHComponent implements OnInit, AfterViewInit, OnDestroy {
           }
           return this.formatApprovalBadge(numValue);
         },
-        frozen: true,
+        frozen: frozenOn,
       },
       {
         title: 'HR Duyệt',
@@ -257,7 +258,7 @@ export class WFHComponent implements OnInit, AfterViewInit, OnDestroy {
           }
           return this.formatApprovalBadge(numValue);
         },
-        frozen: true,
+        frozen: frozenOn,
       },
       {
         title: 'BGĐ Duyệt',
@@ -279,7 +280,7 @@ export class WFHComponent implements OnInit, AfterViewInit, OnDestroy {
           }
           return this.formatApprovalBadge(numValue);
         },
-        frozen: true,
+        frozen: frozenOn,
       },
       {
         title: 'Người đăng ký',
@@ -287,7 +288,7 @@ export class WFHComponent implements OnInit, AfterViewInit, OnDestroy {
         width: 160,
         headerHozAlign: 'center',
         sorter: 'string',
-        frozen: !isMobile,
+        frozen: frozenOn,
       },
       {
         title: 'Tên TBP Duyệt',

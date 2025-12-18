@@ -150,6 +150,7 @@ import { VehicleBookingManagementComponent } from '../../../hrm/vehicle/vehicle-
 
 import { EmployeeSyntheticPersonalComponent } from '../../../hrm/employee-management/employee-synthetic/employee-synthetic-personal/employee-synthetic-personal.component';
 import { BookingRoomComponent } from '../../../hrm/booking room/booking-room.component';
+import { ApproveTpComponent } from '../../../person/approve-tp/approve-tp/approve-tp.component';
 
 @Injectable({
     providedIn: 'root',
@@ -3344,9 +3345,22 @@ export class MenuService {
                         key: 'duyetcanhan',
                         title: 'Duyệt công',
                         isOpen: true,
-                        isPermission: this.permissionService.hasPermission('N32'),
-                        comp: PersonComponent,
-                        router: '/duyetcanhan',
+                        isPermission: this.permissionService.hasPermission('N1'),
+                        comp: ApproveTpComponent,
+                        data: {
+                            isSeniorMode: false,
+                        },
+                    },
+                    {
+                        kind: 'leaf',
+                        key: 'seniorduyetlamthem',// Đặt key mới do dùng chung component
+                        title: 'Senior duyệt làm thêm',
+                        isOpen: true,
+                        isPermission: this.permissionService.hasPermission(''),
+                        comp: ApproveTpComponent,
+                        data: {
+                            isSeniorMode: true, // Khi true, tự động set type = 3 (làm thêm) và IDApprovedTP = 0
+                        },
                     },
                     {
                         kind: 'leaf',

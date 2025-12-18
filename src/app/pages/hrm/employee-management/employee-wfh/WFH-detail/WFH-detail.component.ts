@@ -271,9 +271,7 @@ export class WFHDetailComponent implements OnInit {
 
   // Initialize component data
   initializeData(): void {
-    console.log('WFH Detail Mode:', this.mode);
-    console.log('User Role:', this.userRole);
-    console.log('WFH Data:', this.wfhData);
+ 
   }
 
   // Load employees and approvers from API

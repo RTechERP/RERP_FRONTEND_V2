@@ -283,6 +283,7 @@ export class EarlyLateComponent implements OnInit, AfterViewInit {
   }
 
   private initializeTable(): void {
+    const frozenOn = !window.matchMedia('(max-width: 768px)').matches;
     this.tabulator = new Tabulator('#tb_early_late', {
       data: this.earlyLateList,
       ...DEFAULT_TABLE_CONFIG,
@@ -322,7 +323,7 @@ export class EarlyLateComponent implements OnInit, AfterViewInit {
       },
       columns: [
         {
-          title: 'TBP duyệt', field: 'IsApprovedTP', hozAlign: 'center', headerHozAlign: 'center', width: 60, headerSort: false, headerWordWrap: true, frozen: true,
+          title: 'TBP duyệt', field: 'IsApprovedTP', hozAlign: 'center', headerHozAlign: 'center', width: 60, headerSort: false, headerWordWrap: true, frozen: frozenOn,
           formatter: function (cell: any) {
             const value = cell.getValue();
             const checked = value === true || value === 'true' || value === 1 || value === '1';
@@ -330,7 +331,7 @@ export class EarlyLateComponent implements OnInit, AfterViewInit {
           },
         },
         {
-          title: 'HR duyệt', field: 'IsApproved', hozAlign: 'center', headerHozAlign: 'center', width: 60, headerSort: false, headerWordWrap: true, frozen: true,
+          title: 'HR duyệt', field: 'IsApproved', hozAlign: 'center', headerHozAlign: 'center', width: 60, headerSort: false, headerWordWrap: true, frozen: frozenOn,
           formatter: function (cell: any) {
             const value = cell.getValue();
             const checked = value === true || value === 'true' || value === 1 || value === '1';
@@ -338,10 +339,10 @@ export class EarlyLateComponent implements OnInit, AfterViewInit {
           },
         },
         {
-          title: 'Mã nhân viên', field: 'Code', hozAlign: 'left', headerHozAlign: 'center', width: 140, headerSort: false, frozen: true,
+          title: 'Mã nhân viên', field: 'Code', hozAlign: 'left', headerHozAlign: 'center', width: 140, headerSort: false, frozen: frozenOn,
         },
         {
-          title: 'Tên nhân viên', field: 'FullName', hozAlign: 'left', headerHozAlign: 'center', width: 200, headerSort: false, frozen: true,
+          title: 'Tên nhân viên', field: 'FullName', hozAlign: 'left', headerHozAlign: 'center', width: 200, headerSort: false, frozen: frozenOn,
         },
         {
           title: 'Người duyệt', field: 'ApprovedName', hozAlign: 'left', headerHozAlign: 'center', width: 200, headerSort: false,

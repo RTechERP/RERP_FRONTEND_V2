@@ -121,7 +121,7 @@ export class ProjectComponent implements OnInit, AfterViewInit {
     private permissionService: PermissionService,
   ) {
     this.searchSubject
-      .pipe(debounceTime(800)) // 800ms debounce
+      .pipe(debounceTime(1200)) // 800ms debounce
       .subscribe(value => {
         this.searchProjects(); 
       });

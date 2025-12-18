@@ -6,7 +6,7 @@ import {
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule, ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
-import { NgbActiveModal } from '@ng-bootstrap/ng-bootstrap';
+import { NgbActiveModal, NgbModal } from '@ng-bootstrap/ng-bootstrap';
 
 import { NzTabsModule } from 'ng-zorro-antd/tabs';
 import { NzSelectModule } from 'ng-zorro-antd/select';
@@ -25,7 +25,8 @@ import { DateTime } from 'luxon';
 import { ProjectService } from '../../../project/project-service/project.service';
 import { NzModalService } from 'ng-zorro-antd/modal';
 import { DailyReportTechService } from '../../DailyReportTechService/daily-report-tech.service';
-
+import { OverTimePersonFormComponent } from '../../../hrm/over-time/over-time-person/over-time-person-form/over-time-person-form.component';
+import { WorkItemComponent } from '../../../project/work-item/work-item.component';
 interface ProjectItem {
   ID: number;
   ProjectID: number;
@@ -129,6 +130,7 @@ export class DailyReportTechDetailComponent implements OnInit, AfterViewInit {
     private projectService: ProjectService,
     private modalService: NzModalService,
     private dailyReportTechService: DailyReportTechService,
+    private ngbModal: NgbModal,
   ) {
     this.formGroup = this.fb.group({
       DateReport: [null, [Validators.required]],
@@ -1244,7 +1246,11 @@ export class DailyReportTechDetailComponent implements OnInit, AfterViewInit {
         this.saving = false;
         if (response && response.status === 1) {
           this.notification.success('Thông báo', response.message || 'Báo cáo đã được lưu thành công!');
-          this.close();
+          
+          // Gửi email sau khi lưu thành công
+          this.sendEmailAfterSave();
+          
+          this.close(true); // Trả về true để reload data
         } else {
           this.notification.error('Thông báo', response?.message || 'Lưu báo cáo thất bại!');
         }
@@ -1255,6 +1261,43 @@ export class DailyReportTechDetailComponent implements OnInit, AfterViewInit {
         this.notification.error('Thông báo', errorMessage);
       }
     });
+  }
+
+  /**
+   * Gửi email sau khi lưu báo cáo thành công
+   */
+  private sendEmailAfterSave(): void {
+    try {
+      // Tạo nội dung email từ summary
+      const summaryContent = this.generateSummary();
+      
+      if (!summaryContent || summaryContent.trim() === '') {
+        return;
+      }
+
+      // Lấy ngày báo cáo
+      const dateReport = this.formGroup.get('DateReport')?.value;
+
+      // Gọi API gửi email
+      this.dailyReportTechService.sendEmailReport(summaryContent, dateReport).subscribe({
+        next: (response: any) => {
+          if (response && response.status === 1) {
+            // Email đã được gửi thành công (không cần thông báo để tránh spam)
+            // this.notification.success('Thông báo', 'Email đã được gửi thành công!');
+          } else {
+            // Không hiển thị lỗi nếu không gửi được email (có thể do không thuộc team được phép)
+            // this.notification.warning('Thông báo', response?.message || 'Không thể gửi email.');
+          }
+        },
+        error: (error: any) => {
+          // Không hiển thị lỗi để tránh làm gián đoạn flow của user
+          // Email sẽ được gửi tự động bởi background service nếu cần
+          console.error('Error sending email:', error);
+        }
+      });
+    } catch (error) {
+      console.error('Error in sendEmailAfterSave:', error);
+    }
   }
 
   // Lưu dữ liệu
@@ -1306,8 +1349,105 @@ export class DailyReportTechDetailComponent implements OnInit, AfterViewInit {
     this.openPreviewModal();
   }
 
-  close(): void {
-    this.activeModal.close(false);
+  close(success: boolean = false): void {
+    this.activeModal.close(success);
+  }
+  onAddProjectItem(): void {
+    // Lấy project từ tab đang active
+    const activeProject = this.projectList[this.activeProjectTab];
+    
+    // Kiểm tra xem có project nào được chọn chưa
+    if (!activeProject || !activeProject.ProjectID || activeProject.ProjectID === 0) {
+      this.notification.warning('Thông báo', 'Vui lòng chọn dự án trước khi thêm hạng mục công việc!');
+      return;
+    }
+    
+    // Lấy thông tin project từ danh sách projects
+    const selectedProject = this.projects.find(p => p.ID === activeProject.ProjectID);
+    if (!selectedProject) {
+      this.notification.error('Lỗi', 'Không tìm thấy thông tin dự án!');
+      return;
+    }
+    
+    try {
+      const modalRef = this.ngbModal.open(WorkItemComponent, {
+        centered: true,
+        size: 'xl',
+        backdrop: 'static',
+        keyboard: false,
+        windowClass: 'full-screen-modal'
+      });
+      
+      if (!modalRef) {
+        this.notification.error('Lỗi', 'Không thể mở modal!');
+        return;
+      }
+      
+      // Set properties cho component instance
+      if (modalRef.componentInstance) {
+        modalRef.componentInstance.projectId = activeProject.ProjectID;
+        modalRef.componentInstance.projectCode = activeProject.ProjectCode || selectedProject.ProjectCode || '';
+      }
+      
+      // Xử lý khi modal đóng
+      modalRef.result.then(
+        (result) => {
+          if (result && result.success) {
+            // Reload project items sau khi thêm thành công
+            this.loadProjectItems(activeProject.ProjectID, this.activeProjectTab + 1);
+          }
+        },
+        (reason) => {
+          // Modal bị đóng mà không có kết quả - không cần xử lý gì
+        }
+      ).catch((error) => {
+        console.error('Error in modal result:', error);
+        this.notification.error('Lỗi', 'Có lỗi xảy ra khi mở modal!');
+      });
+    } catch (error) {
+      console.error('Error in onAddProjectItem:', error);
+      this.notification.error('Lỗi', 'Không thể mở modal! Vui lòng thử lại.');
+    }
+  }
+  openOverTimeModal(): void {
+    try {
+      const modalRef = this.ngbModal.open(OverTimePersonFormComponent, {
+        centered: true,
+        size: 'xl',
+        backdrop: 'static',
+        keyboard: false,
+        windowClass: 'overtime-modal-custom'
+      });
+      
+      if (!modalRef) {
+        this.notification.error('Lỗi', 'Không thể mở modal làm thêm!');
+        return;
+      }
+      
+      // Set properties cho component instance
+      if (modalRef.componentInstance) {
+        modalRef.componentInstance.data = null;
+        modalRef.componentInstance.isEditMode = false;
+      }
+      
+      // Xử lý khi modal đóng
+      modalRef.result.then(
+        (result) => {
+          // if (result && result.success) {
+          //   this.notification.success('Thông báo', 'Đăng ký làm thêm thành công!');
+          // }
+        },
+        (reason) => {
+          // Modal bị đóng mà không có kết quả - không cần xử lý gì
+        }
+      ).catch((error) => {
+        console.error('Error in modal result:', error);
+        this.notification.error('Lỗi', 'Có lỗi xảy ra khi mở modal làm thêm!');
+      });
+    } catch (error) {
+      console.error('Error in openOverTimeModal:', error);
+      this.notification.error('Lỗi', 'Không thể mở modal làm thêm! Vui lòng thử lại.');
+    }
   }
 }
 

@@ -36,7 +36,7 @@ import * as ExcelJS from 'exceljs';
 import { NzNotificationService } from 'ng-zorro-antd/notification';
 import { NzModalModule, NzModalService } from 'ng-zorro-antd/modal';
 import { NgModel } from '@angular/forms';
-import { NgbModal } from '@ng-bootstrap/ng-bootstrap';
+import { NgbModal, NgbActiveModal } from '@ng-bootstrap/ng-bootstrap';
 import { Router } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { NzUploadModule } from 'ng-zorro-antd/upload';
@@ -87,6 +87,7 @@ export class WorkItemComponent implements OnInit, AfterViewInit {
     private notification: NzNotificationService,
     private modal: NzModalService,
     private modalService: NgbModal,
+    public activeModal: NgbActiveModal,
     private router: Router,
     private authService: AuthService
   ) {}
@@ -2412,7 +2413,7 @@ export class WorkItemComponent implements OnInit, AfterViewInit {
   }
   onsearchData() {}
   onCloseModal(): void {
-    this.modalService.dismissAll();
+    this.activeModal.dismiss();
   }
 
   //#region Xử lý filter trạng thái

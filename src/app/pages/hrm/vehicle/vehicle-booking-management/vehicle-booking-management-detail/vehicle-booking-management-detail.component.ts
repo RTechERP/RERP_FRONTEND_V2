@@ -243,8 +243,8 @@ export class VehicleBookingManagementDetailComponent implements OnInit {
         const responseData = data?.data || data?.Data || data;
         if (Array.isArray(responseData)) {
           this.approvedList = responseData.map((item: any) => ({
-            value: item.EmployeeId || item.ID || item.Id,
-            label: item.FullName || item.Name || item.Label
+            value: item.EmployeeID,
+            label: item.FullName
           }));
         } else {
           this.approvedList = [];
@@ -439,7 +439,7 @@ export class VehicleBookingManagementDetailComponent implements OnInit {
               passenger.code = data.Code || '';
               passenger.name = data.FullName || data.Name || '';
               passenger.department = data.DepartmentName || '';
-              passenger.phoneNumber = data.SdtcaNhan || data.PhoneNumber || '';
+              passenger.phoneNumber = data.SDTCaNhan || '';
             }
           }
         },
@@ -706,7 +706,7 @@ export class VehicleBookingManagementDetailComponent implements OnInit {
           ProblemArises: this.isProblem ? this.problemArises : '',
           ApprovedTBP: this.isProblem ? this.approvedTbp : 0,
           IsProblemArises: this.isProblem,
-          IsApprovedTBP: this.isProblem && this.approvedTbp > 0,
+          IsApprovedTBP: false,
           DepartureDate: this.formatDateTime(this.departureDate),
           DepartureAddress: this.departureAddress,
           DepartureAddressStatus: this.departureAddressSelect,
@@ -750,7 +750,7 @@ export class VehicleBookingManagementDetailComponent implements OnInit {
           ProblemArises: this.isProblem ? this.problemArises : '',
           ApprovedTBP: this.isProblem ? this.approvedTbp : 0,
           IsProblemArises: this.isProblem,
-          IsApprovedTBP: this.isProblem && this.approvedTbp > 0,
+          IsApprovedTBP: false, 
           DepartureDate: this.formatDateTime(this.departureDate),
           DepartureAddress: this.departureAddress,
           DepartureAddressStatus: this.departureAddressSelect,

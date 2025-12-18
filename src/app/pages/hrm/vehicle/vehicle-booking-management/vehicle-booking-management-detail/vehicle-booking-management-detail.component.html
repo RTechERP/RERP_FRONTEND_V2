@@ -1,5 +1,5 @@
 <div class="modal-header bg-primary text-uppercase py-2">
-  <h6 class="modal-title text-white">KHAI BÁO ĐẶT XE</h6>
+  <h6 class="modal-title text-white">ĐẶT XE</h6>
   <button type="button" class="btn-close" (click)="cancel()" aria-label="Close"></button>
 </div>
 
@@ -201,7 +201,7 @@
       </div>
 
       <!-- Người duyệt -->
-      <div class="form-group mb-1 p-1 col-sm-4" *ngIf="showApprovedTbp">
+      <div class="form-group mb-1 p-1 col-sm-12" *ngIf="showApprovedTbp">
         <label class="m-0">Người duyệt <span class="font-italic font-weight-normal">(nếu có vấn đề phát sinh)</span></label>
         <nz-select class="w-100" nzSize="small" nzShowSearch nzAllowClear [(ngModel)]="approvedTbp" name="approvedTbp">
           <nz-option *ngFor="let app of approvedList" [nzLabel]="app.label" [nzValue]="app.value"></nz-option>

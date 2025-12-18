@@ -10,6 +10,7 @@ import { Select } from 'primeng/select';
 import { InputTextModule } from 'primeng/inputtext';
 import { ButtonModule } from 'primeng/button';
 import { Fluid } from 'primeng/fluid';
+import { SplitterModule } from 'primeng/splitter';
 import { PaymentOrderService } from './payment-order.service';
 import { NzNotificationService } from 'ng-zorro-antd/notification';
 import { PaymentOrderDetailComponent } from './payment-order-detail/payment-order-detail.component';
@@ -19,9 +20,7 @@ import { CommonModule } from '@angular/common';
 import { NOTIFICATION_TITLE } from '../../../app.config';
 import { NzSplitterModule } from 'ng-zorro-antd/splitter';
 import { NzCardModule } from 'ng-zorro-antd/card';
-import { Action } from 'rxjs/internal/scheduler/Action';
 import Swal from 'sweetalert2';
-import { HasPermissionDirective } from '../../../directives/has-permission.directive';
 import { PermissionService } from '../../../services/permission.service';
 import { NzButtonModule } from 'ng-zorro-antd/button';
 import { NzFormModule } from 'ng-zorro-antd/form';
@@ -54,14 +53,14 @@ import { NzIconModule } from 'ng-zorro-antd/icon';
         NzSplitterModule,
         NzCardModule,
         TabsModule,
-        // Fluid, DatePickerModule, FluidModule, Select, InputTextModule, ButtonModule,
+        Fluid, DatePickerModule, Select, InputTextModule, ButtonModule,
+        SplitterModule,
         AngularSlickgridModule,
         NzButtonModule, NzFormModule, NzInputModule,
         FormsModule,
         NzSelectModule,
         NzDatePickerModule,
         NzIconModule
-
     ],
     templateUrl: './payment-order.component.html',
     styleUrl: './payment-order.component.css',
@@ -97,6 +96,8 @@ export class PaymentOrderComponent implements OnInit {
         statuslog: 0,
         isDelete: 0
     };
+
+    isAdvandShow = true;
 
     departments: any = [];
     employees: any = [];
@@ -976,12 +977,13 @@ export class PaymentOrderComponent implements OnInit {
         ];
 
         this.gridOptions = {
-            enableAutoResize: true,
             autoResize: {
-                container: '.grid-container',
+                container: '#demo-container' // container DOM selector
             },
+            enableAutoResize: true,
             gridWidth: '100%',
-            datasetIdPropertyName: '_id',
+            // gridHeight: 300, // ⚠️ QUAN TRỌNG
+            // datasetIdPropertyName: '_id',
             enableRowSelection: true,
             rowSelectionOptions: {
                 selectActiveRow: false// True (Single Selection), False (Multiple Selections)
@@ -1288,7 +1290,7 @@ export class PaymentOrderComponent implements OnInit {
 
                 this.dataset = this.dataset.map((x, i) => ({
                     ...x,
-                    _id: i + 1   // dành riêng cho SlickGrid
+                    id: x.ID   // dành riêng cho SlickGrid
                 }));
             },
             error: (err) => {

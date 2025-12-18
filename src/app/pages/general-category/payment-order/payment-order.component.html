@@ -1,154 +1,202 @@
 <!-- <p-menubar [model]="menuBars" ></p-menubar> -->
 <p-menubar [model]="menuBars"> </p-menubar>
 
-
-<form nz-form class="ant-advanced-search-form">
-    <div nz-row [nzGutter]="24">
-        <div nz-col [nzSpan]="4">
-            <nz-form-item>
-                <nz-form-label>Từ ngày</nz-form-label>
-                <nz-form-control>
-                    <nz-date-picker class="w-100" [(ngModel)]="param.dateStart" nzFormat="dd/MM/yyyy"
-                        [ngModelOptions]="{ standalone: true }" nzSize="small"></nz-date-picker>
-                </nz-form-control>
-            </nz-form-item>
-        </div>
-
-        <div nz-col [nzSpan]="4">
-            <nz-form-item>
-                <nz-form-label>Đến ngày</nz-form-label>
-                <nz-form-control>
-                    <nz-date-picker class="w-100" [(ngModel)]="param.dateEnd" nzFormat="dd/MM/yyyy"
-                        [ngModelOptions]="{ standalone: true }" nzSize="small"></nz-date-picker>
-                </nz-form-control>
-            </nz-form-item>
-        </div>
-
-        <div nz-col [nzSpan]="6">
-            <nz-form-item>
-                <nz-form-label>Phòng ban</nz-form-label>
-                <nz-form-control>
-                    <nz-select nzShowSearch nzAllowClear nzPlaceHolder="Chọn phòng ban" [(ngModel)]="param.departmentID"
-                        [ngModelOptions]="{ standalone: true }" nzSize="small">
-                        @for (item of departments; track item) {
-                        <nz-option [nzLabel]="item.Name" [nzValue]="item.ID"></nz-option>
-                        }
-                    </nz-select>
-                </nz-form-control>
-            </nz-form-item>
-        </div>
-
-        <div nz-col [nzSpan]="6">
-            <nz-form-item>
-                <nz-form-label>Nhân viên</nz-form-label>
-                <nz-form-control>
-                    <nz-select nzShowSearch nzAllowClear nzPlaceHolder="Chọn nhân viên" [(ngModel)]="param.employeeID"
-                        [ngModelOptions]="{ standalone: true }" nzSize="small">
-                        @for (g of employees; track $index) {
-                        <nz-option-group [nzLabel]="g.DepartmentName || ''">
-                            @for (item of g.items; track $index) {
-                            <nz-option nzLabel="{{item.Code}} - {{item.FullName}}" [nzValue]="item.ID"
-                                *ngIf="item.FullName != ''"></nz-option>
-                            }
-                        </nz-option-group>
-
-                        }
-                    </nz-select>
-                </nz-form-control>
-            </nz-form-item>
-        </div>
-        <div nz-col [nzSpan]="4">
-            <nz-form-item>
-                <nz-form-label>Tình trạng</nz-form-label>
-                <nz-form-control>
-                    <nz-select nzShowSearch nzAllowClear nzPlaceHolder="Chọn tình trạng" [(ngModel)]="param.isApproved"
-                        [ngModelOptions]="{ standalone: true }" nzSize="small">
-                        @for (item of isApproveds; track item) {
-                        <nz-option [nzLabel]="item.text" [nzValue]="item.value"></nz-option>
-                        }
-                    </nz-select>
-                </nz-form-control>
-            </nz-form-item>
-        </div>
-        <div nz-col [nzSpan]="6">
-            <nz-form-item>
-                <nz-form-label>Loại đề nghị</nz-form-label>
-                <nz-form-control>
-                    <nz-select nzShowSearch nzAllowClear nzPlaceHolder="Chọn loại" [(ngModel)]="param.typeOrder"
-                        [ngModelOptions]="{ standalone: true }" nzSize="small">
-                        @for (item of typeOrders; track item) {
-                        <nz-option [nzLabel]="item.text" [nzValue]="item.value"></nz-option>
-                        }
-                    </nz-select>
-                </nz-form-control>
-            </nz-form-item>
-        </div>
-        <div nz-col [nzSpan]="9">
-            <nz-form-item>
-                <nz-form-label>Loại nội dung</nz-form-label>
-                <nz-form-control>
-                    <nz-select nzShowSearch nzAllowClear nzPlaceHolder="Chọn nội dung"
-                        [(ngModel)]="param.paymentOrderTypeID" [ngModelOptions]="{ standalone: true }" nzSize="small">
-                        @for (item of paymentOrderTypes; track item) {
-                        <nz-option [nzLabel]="item.TypeName" [nzValue]="item.ID" nzSize="small"></nz-option>
-                        }
-                    </nz-select>
-                </nz-form-control>
-            </nz-form-item>
-        </div>
-        <div nz-col [nzSpan]="9">
-            <nz-form-item>
-                <nz-form-label>Từ khóa</nz-form-label>
-                <nz-form-control>
-                    <!-- <input nz-input [(ngModel)]="param.keyword" [ngModelOptions]="{ standalone: true }" nzSize="small"
-                        placeholder="Bạn muốn tìm gì?" /> -->
-
-                    <nz-input-group nzSearch [nzAddOnAfter]="suffixIconButton" nzSize="small">
-                        <input type="text" nz-input placeholder="Nhập từ khóa" />
-                    </nz-input-group>
-                    <ng-template #suffixIconButton>
-                        <button nz-button nzType="primary" nzSearch nzSize="small"><span nz-icon nzType="search"
-                                (click)="loadData()"></span></button>
-                    </ng-template>
-                </nz-form-control>
-
-
-            </nz-form-item>
+<!-- <form class="row g-3 m-0">
+    <div class="col-md-6">
+        <label for="inputEmail4" class="form-label">Email</label>
+        <input type="email" class="form-control" id="inputEmail4">
+    </div>
+    <div class="col-md-6">
+        <label for="inputPassword4" class="form-label">Password</label>
+        <input type="password" class="form-control" id="inputPassword4">
+    </div>
+    <div class="col-12">
+        <label for="inputAddress" class="form-label">Address</label>
+        <input type="text" class="form-control" id="inputAddress" placeholder="1234 Main St">
+    </div>
+    <div class="col-12">
+        <label for="inputAddress2" class="form-label">Address 2</label>
+        <input type="text" class="form-control" id="inputAddress2" placeholder="Apartment, studio, or floor">
+    </div>
+    <div class="col-md-6">
+        <label for="inputCity" class="form-label">City</label>
+        <input type="text" class="form-control" id="inputCity">
+    </div>
+    <div class="col-md-4">
+        <label for="inputState" class="form-label">State</label>
+        <select id="inputState" class="form-select">
+            <option selected>Choose...</option>
+            <option>...</option>
+        </select>
+    </div>
+    <div class="col-md-2">
+        <label for="inputZip" class="form-label">Zip</label>
+        <input type="text" class="form-control" id="inputZip">
+    </div>
+    <div class="col-12">
+        <div class="form-check">
+            <input class="form-check-input" type="checkbox" id="gridCheck">
+            <label class="form-check-label" for="gridCheck">
+                Check me out
+            </label>
         </div>
     </div>
+    <div class="col-12">
+        <button type="submit" class="btn btn-primary">Sign in</button>
+    </div>
+</form> -->
 
-</form>
+
+<nz-card class="w-100 p-0">
+    <form nz-form class="ant-advanced-search-form">
+        <div nz-row [nzGutter]="16">
+            <div nz-col [nzSpan]="4">
+                <nz-form-item>
+                    <nz-form-label>Từ ngày</nz-form-label>
+                    <nz-form-control>
+                        <nz-date-picker class="w-100" [(ngModel)]="param.dateStart" nzFormat="dd/MM/yyyy"
+                            [ngModelOptions]="{ standalone: true }" nzSize="small"></nz-date-picker>
+                    </nz-form-control>
+                </nz-form-item>
+            </div>
+
+            <div nz-col [nzSpan]="4">
+                <nz-form-item>
+                    <nz-form-label>Đến ngày</nz-form-label>
+                    <nz-form-control>
+                        <nz-date-picker class="w-100" [(ngModel)]="param.dateEnd" nzFormat="dd/MM/yyyy"
+                            [ngModelOptions]="{ standalone: true }" nzSize="small"></nz-date-picker>
+                    </nz-form-control>
+                </nz-form-item>
+            </div>
+
+            <div nz-col [nzSpan]="8">
+                <nz-form-item>
+                    <nz-form-label>Nhân viên</nz-form-label>
+                    <nz-form-control>
+                        <nz-select nzShowSearch nzAllowClear nzPlaceHolder="Chọn nhân viên"
+                            [(ngModel)]="param.employeeID" [ngModelOptions]="{ standalone: true }" nzSize="small">
+                            @for (g of employees; track $index) {
+                            <nz-option-group [nzLabel]="g.DepartmentName || ''">
+                                @for (item of g.items; track $index) {
+                                <nz-option nzLabel="{{item.Code}} - {{item.FullName}}" [nzValue]="item.ID"
+                                    *ngIf="item.FullName != ''"></nz-option>
+                                }
+                            </nz-option-group>
+
+                            }
+                        </nz-select>
+                    </nz-form-control>
+                </nz-form-item>
+            </div>
+
+            <div nz-col [nzSpan]="8">
+                <nz-form-item>
+                    <nz-form-label>Từ khóa</nz-form-label>
+                    <nz-form-control>
+                        <nz-input-group nzSearch [nzAddOnAfter]="suffixIconButton" nzSize="small">
+                            <input type="text" nz-input placeholder="Nhập từ khóa" />
+                        </nz-input-group>
+                        <ng-template #suffixIconButton>
+                            <button nz-button nzType="primary" nzSearch nzSize="small"><span nz-icon nzType="search"
+                                    (click)="loadData()"></span></button>
+                        </ng-template>
+                    </nz-form-control>
+
+
+                </nz-form-item>
+            </div>
+
+
+
+        </div>
+        <div nz-row [nzGutter]="16" [hidden]="!isAdvandShow">
+            <div nz-col [nzSpan]="6">
+                <nz-form-item>
+                    <nz-form-label>Phòng ban</nz-form-label>
+                    <nz-form-control>
+                        <nz-select nzShowSearch nzAllowClear nzPlaceHolder="Chọn phòng ban"
+                            [(ngModel)]="param.departmentID" [ngModelOptions]="{ standalone: true }" nzSize="small">
+                            @for (item of departments; track item) {
+                            <nz-option [nzLabel]="item.Name" [nzValue]="item.ID"></nz-option>
+                            }
+                        </nz-select>
+                    </nz-form-control>
+                </nz-form-item>
+            </div>
+
+            <div nz-col [nzSpan]="4">
+                <nz-form-item>
+                    <nz-form-label>Tình trạng</nz-form-label>
+                    <nz-form-control>
+                        <nz-select nzShowSearch nzAllowClear nzPlaceHolder="Chọn tình trạng"
+                            [(ngModel)]="param.isApproved" [ngModelOptions]="{ standalone: true }" nzSize="small">
+                            @for (item of isApproveds; track item) {
+                            <nz-option [nzLabel]="item.text" [nzValue]="item.value"></nz-option>
+                            }
+                        </nz-select>
+                    </nz-form-control>
+                </nz-form-item>
+            </div>
+            <div nz-col [nzSpan]="6">
+                <nz-form-item>
+                    <nz-form-label>Loại đề nghị</nz-form-label>
+                    <nz-form-control>
+                        <nz-select nzShowSearch nzAllowClear nzPlaceHolder="Chọn loại" [(ngModel)]="param.typeOrder"
+                            [ngModelOptions]="{ standalone: true }" nzSize="small">
+                            @for (item of typeOrders; track item) {
+                            <nz-option [nzLabel]="item.text" [nzValue]="item.value"></nz-option>
+                            }
+                        </nz-select>
+                    </nz-form-control>
+                </nz-form-item>
+            </div>
+            <div nz-col [nzSpan]="8">
+                <nz-form-item>
+                    <nz-form-label>Loại nội dung</nz-form-label>
+                    <nz-form-control>
+                        <nz-select nzShowSearch nzAllowClear nzPlaceHolder="Chọn nội dung"
+                            [(ngModel)]="param.paymentOrderTypeID" [ngModelOptions]="{ standalone: true }"
+                            nzSize="small">
+                            @for (item of paymentOrderTypes; track item) {
+                            <nz-option [nzLabel]="item.TypeName" [nzValue]="item.ID" nzSize="small"></nz-option>
+                            }
+                        </nz-select>
+                    </nz-form-control>
+                </nz-form-item>
+            </div>
+        </div>
+    </form>
+</nz-card>
+
 
 <nz-splitter nzLayout="vertical" style="height: 76vh !important;">
     <nz-splitter-panel nzMin="20%" [nzCollapsible]="true" nzDefaultSize="60%">
-        <div class="card">
-            <p-tabs value="0">
-                <p-tablist>
-                    <p-tab value="0" class="p-2">ĐỀ NGHỊ THANH TOÁN</p-tab>
-                    <p-tab value="1" class="p-2">ĐỀ NGHỊ THANH TOÁN ĐẶC BIỆT</p-tab>
-                </p-tablist>
-                <p-tabpanels class="p-0">
-                    <p-tabpanel value="0">
-                        <div class="grid-container" style="height: 100%;">
-                            <angular-slickgrid gridId="grvData" [columns]="columnDefinitions" [options]="gridOptions"
+        <p-tabs value="0">
+            <p-tablist>
+                <p-tab value="0" class="p-2">ĐỀ NGHỊ THANH TOÁN</p-tab>
+                <p-tab value="1" class="p-2">ĐỀ NGHỊ THANH TOÁN ĐẶC BIỆT</p-tab>
+            </p-tablist>
+            <p-tabpanels class="p-0">
+                <p-tabpanel value="0">
+                    <div class="grid-container" style="height: 100%;">
+                        <!-- <angular-slickgrid gridId="grvData" [columns]="columnDefinitions" [options]="gridOptions"
                                 [dataset]="dataset" (onAngularGridCreated)="angularGridReady($event.detail)"
                                 (onSelectedRowsChanged)="handleRowSelection($event.detail.eventData, $event.detail.args)"
                                 (onClick)="onCellClicked($event.detail.eventData, $event.detail.args)">
-                            </angular-slickgrid>
-                        </div>
-                    </p-tabpanel>
-                    <p-tabpanel value="1">
+                            </angular-slickgrid> -->
+                    </div>
+                </p-tabpanel>
+                <p-tabpanel value="1">
 
-                    </p-tabpanel>
+                </p-tabpanel>
 
-                </p-tabpanels>
-            </p-tabs>
-        </div>
+            </p-tabpanels>
+        </p-tabs>
     </nz-splitter-panel>
     <nz-splitter-panel [nzCollapsible]="true">
         <nz-splitter>
             <nz-splitter-panel nzMin="20%" [nzCollapsible]="false" nzDefaultSize="70%">
-                <!-- <div class="box">Chi tiết</div> -->
                 <div class="grid-container-detail">
                     <angular-slickgrid gridId="grvDetail" [columns]="columnDefinitionDetails"
                         [options]="gridOptionDetails" [dataset]="datasetDetails"
@@ -159,39 +207,78 @@
                 </div>
             </nz-splitter-panel>
             <nz-splitter-panel [nzCollapsible]="false">
-                <div class="card">
-                    <p-tabs value="1">
-                        <p-tablist>
-                            <p-tab value="1" class="p-2">File đính kèm</p-tab>
-                            <p-tab value="2" class="p-2">File bankslip</p-tab>
-                        </p-tablist>
-                        <p-tabpanels class="p-0">
-                            <p-tabpanel value="1">
-                                <div class="grid-container-filebankslip">
-                                    <angular-slickgrid gridId="grvFile" [columns]="columnDefinitionFiles"
-                                        [options]="gridOptionFiles" [dataset]="datasetFiles"
-                                        (onAngularGridCreated)="angularGridFileReady($event.detail)"
-                                        (onSelectedRowsChanged)="handleRowSelection($event.detail.eventData, $event.detail.args)"
-                                        (onClick)="onCellClicked($event.detail.eventData, $event.detail.args)">
-                                    </angular-slickgrid>
-                                </div>
-                            </p-tabpanel>
-                            <p-tabpanel value="2">
-                                <div class="grid-container-filebankslip">
-                                    <angular-slickgrid gridId="grvFile" [columns]="columnDefinitionFiles"
-                                        [options]="gridOptionFiles" [dataset]="datasetFiles"
-                                        (onAngularGridCreated)="angularGridFileReady($event.detail)"
-                                        (onSelectedRowsChanged)="handleRowSelection($event.detail.eventData, $event.detail.args)"
-                                        (onClick)="onCellClicked($event.detail.eventData, $event.detail.args)">
-                                    </angular-slickgrid>
-                                </div>
-                            </p-tabpanel>
+                <p-tabs value="1">
+                    <p-tablist>
+                        <p-tab value="1" class="p-2">File đính kèm</p-tab>
+                        <p-tab value="2" class="p-2">File bankslip</p-tab>
+                    </p-tablist>
+                    <p-tabpanels class="p-0">
+                        <p-tabpanel value="1">
+                            <div class="grid-container-filebankslip">
+                                <angular-slickgrid gridId="grvFile" [columns]="columnDefinitionFiles"
+                                    [options]="gridOptionFiles" [dataset]="datasetFiles"
+                                    (onAngularGridCreated)="angularGridFileReady($event.detail)"
+                                    (onSelectedRowsChanged)="handleRowSelection($event.detail.eventData, $event.detail.args)"
+                                    (onClick)="onCellClicked($event.detail.eventData, $event.detail.args)">
+                                </angular-slickgrid>
+                            </div>
+                        </p-tabpanel>
+                        <p-tabpanel value="2">
+                            <div class="grid-container-filebankslip">
+                                <angular-slickgrid gridId="grvFile" [columns]="columnDefinitionFiles"
+                                    [options]="gridOptionFiles" [dataset]="datasetFiles"
+                                    (onAngularGridCreated)="angularGridFileReady($event.detail)"
+                                    (onSelectedRowsChanged)="handleRowSelection($event.detail.eventData, $event.detail.args)"
+                                    (onClick)="onCellClicked($event.detail.eventData, $event.detail.args)">
+                                </angular-slickgrid>
+                            </div>
+                        </p-tabpanel>
 
-                        </p-tabpanels>
-                    </p-tabs>
-                </div>
+                    </p-tabpanels>
+                </p-tabs>
 
             </nz-splitter-panel>
         </nz-splitter>
     </nz-splitter-panel>
 </nz-splitter>
+
+
+<!-- 
+<div class="card">
+    <p-splitter layout="vertical" [panelSizes]="[50, 50]" [style]="{ height: '80vh' }">
+        <ng-template #panel>
+            <div style="flex-grow: 1;" class="flex items-center justify-center bg-info grid-container"
+                id="demo-container">
+                <p-tabs value="0">
+                    <p-tablist>
+                        <p-tab value="0" class="p-2">ĐỀ NGHỊ THANH TOÁN</p-tab>
+                        <p-tab value="1" class="p-2">ĐỀ NGHỊ THANH TOÁN ĐẶC BIỆT</p-tab>
+                    </p-tablist>
+                    <p-tabpanels class="p-0">
+                        <p-tabpanel value="0">
+                            <angular-slickgrid gridId="grvData" [columns]="columnDefinitions" [options]="gridOptions"
+                                [dataset]="dataset" (onAngularGridCreated)="angularGridReady($event.detail)"
+                                (onSelectedRowsChanged)="handleRowSelection($event.detail.eventData, $event.detail.args)"
+                                (onClick)="onCellClicked($event.detail.eventData, $event.detail.args)">
+                            </angular-slickgrid>
+                        </p-tabpanel>
+                        <p-tabpanel value="1">
+
+                        </p-tabpanel>
+
+                    </p-tabpanels>
+                </p-tabs>
+            </div>
+        </ng-template>
+        <ng-template #panel>
+            <p-splitter [panelSizes]="[20, 80]">
+                <ng-template #panel>
+                    <div class="col h-full flex items-center justify-center">Panel 3</div>
+                </ng-template>
+                <ng-template #panel>
+                    <div class="col h-full flex items-center justify-center">Panel 4</div>
+                </ng-template>
+            </p-splitter>
+        </ng-template>
+    </p-splitter>
+</div> -->

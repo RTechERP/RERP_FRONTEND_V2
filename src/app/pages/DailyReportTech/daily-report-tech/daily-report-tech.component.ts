@@ -122,10 +122,16 @@ export class DailyReportTechComponent implements OnInit, AfterViewInit {
     this.drawTbDailyReportTech(this.tb_daily_report_techContainer.nativeElement);
     
     // Load dữ liệu sau khi table đã được khởi tạo
-    // Sử dụng setTimeout để đảm bảo table đã được khởi tạo xong
+    // getCurrentUser() sẽ tự động gọi getDailyReportTechData() khi hoàn thành
+    // Nếu getCurrentUser() đã hoàn thành trước đó, gọi getDailyReportTechData() ngay
     setTimeout(() => {
-      this.getDailyReportTechData();
-    }, 0);
+      // Nếu currentUser đã có sẵn (từ ngOnInit), load ngay
+      // Nếu chưa có, getCurrentUser() sẽ tự động gọi getDailyReportTechData() khi xong
+      if (this.currentUser) {
+        this.getDailyReportTechData();
+      }
+      // Nếu chưa có currentUser, đợi getCurrentUser() callback gọi getDailyReportTechData()
+    }, 100);
   }
 
   getCurrentUser(): void {
@@ -149,9 +155,18 @@ export class DailyReportTechComponent implements OnInit, AfterViewInit {
           // Khi loadUsers() được gọi sau đó, nó sẽ tự động tìm và set lại
           this.userId = 0;
         }
+        
+        // Sau khi có currentUser, load dữ liệu bảng nếu table đã được khởi tạo
+        if (this.tb_daily_report_tech) {
+          this.getDailyReportTechData();
+        }
       } else {
         // Nếu không có currentUser, set về "Tất cả"
         this.userId = 0;
+        // Vẫn load dữ liệu với currentUser = null
+        if (this.tb_daily_report_tech) {
+          this.getDailyReportTechData();
+        }
       }
     });
   }
@@ -339,36 +354,39 @@ export class DailyReportTechComponent implements OnInit, AfterViewInit {
     // Xử lý dateStart - có thể là Date object hoặc ISO string
     let dateStart: DateTime;
     if (this.dateStart instanceof Date) {
-      dateStart = DateTime.fromJSDate(this.dateStart)
-        .set({ hour: 0, minute: 0, second: 0, millisecond: 0 });
+      dateStart = DateTime.fromJSDate(this.dateStart);
     } else if (typeof this.dateStart === 'string') {
-      dateStart = DateTime.fromISO(this.dateStart)
-        .set({ hour: 0, minute: 0, second: 0, millisecond: 0 });
+      dateStart = DateTime.fromISO(this.dateStart);
     } else {
-      dateStart = DateTime.local()
-        .minus({ days: 1 })
-        .set({ hour: 0, minute: 0, second: 0, millisecond: 0 });
+      dateStart = DateTime.local().minus({ days: 1 });
     }
 
     // Xử lý dateEnd - có thể là Date object hoặc ISO string
     let dateEnd: DateTime;
     if (this.dateEnd instanceof Date) {
-      dateEnd = DateTime.fromJSDate(this.dateEnd)
-        .set({ hour: 23, minute: 59, second: 59, millisecond: 999 });
+      dateEnd = DateTime.fromJSDate(this.dateEnd);
     } else if (typeof this.dateEnd === 'string') {
-      dateEnd = DateTime.fromISO(this.dateEnd)
-        .set({ hour: 23, minute: 59, second: 59, millisecond: 999 });
+      dateEnd = DateTime.fromISO(this.dateEnd);
     } else {
-      dateEnd = DateTime.local()
-        .set({ hour: 23, minute: 59, second: 59, millisecond: 999 });
+      dateEnd = DateTime.local();
+    }
+
+    // Xử lý userID an toàn khi currentUser có thể là null
+    let userID = 0;
+    if (this.currentUser) {
+      if (this.currentUser.IsLeader > 1) {
+        userID = this.userId || 0;
+      } else {
+        userID = this.currentUser.ID || 0;
+      }
     }
 
     return {
-      dateStart: dateStart.isValid ? dateStart.toISO() : null,
-      dateEnd: dateEnd.isValid ? dateEnd.toISO() : null,
+      dateStart: dateStart.isValid ? dateStart.toFormat('yyyy-MM-dd') : null, // "2025-12-19"
+      dateEnd: dateEnd.isValid ? dateEnd.toFormat('yyyy-MM-dd') : null, // "2025-12-19"
       departmentID: this.departmentId || 0,
       teamID: this.teamId || 0,
-      userID: this.currentUser?.IsLeader > 1 ? this.userId : this.currentUser.ID  || 0,
+      userID: userID,
       keyword: this.keyword.trim() || '',
     };
   }
@@ -409,7 +427,7 @@ export class DailyReportTechComponent implements OnInit, AfterViewInit {
             formatter: (cell: any) => {
               const value = cell.getValue() || '';
               const dateTime = DateTime.fromISO(value);
-              return dateTime.isValid ? dateTime.toFormat('dd/MM/yyyy') : '';
+              return dateTime.isValid ? dateTime.toFormat('dd/MM/yyyy hh:mm:ss') : '';
             },
             hozAlign: 'center',
             width: 120,

@@ -28,7 +28,7 @@ import { NOTIFICATION_TITLE } from '../../../../app.config';
 import { DEFAULT_TABLE_CONFIG } from '../../../../tabulator-default.config';
 import { environment } from '../../../../../environments/environment';
 import { ReasonDeclineModalComponent } from '../reason-decline-modal/reason-decline-modal.component';
-
+import { HasPermissionDirective } from '../../../../directives/has-permission.directive';
 @Component({
   selector: 'app-approve-tp',
   templateUrl: './approve-tp.component.html',
@@ -52,6 +52,7 @@ import { ReasonDeclineModalComponent } from '../reason-decline-modal/reason-decl
     NzModalModule,
     NzDropDownModule,
     NzMenuModule,
+    HasPermissionDirective,
   ]
 })
 export class ApproveTpComponent implements OnInit, AfterViewInit {
@@ -99,7 +100,7 @@ export class ApproveTpComponent implements OnInit, AfterViewInit {
         this.currentUser = data;
         this.isBGD = (data?.DepartmentID == 1 && data?.EmployeeID != 54) || data?.IsAdmin;
         this.isSenior = false;
-        const idApprovedTP = this.isSeniorMode ? 0 : (!this.isSenior ? (data?.EmployeeID || 0) : 0);
+        const idApprovedTP = data?.EmployeeID || 0;
         if (this.searchForm) {
           this.searchForm.patchValue({
             IDApprovedTP: idApprovedTP
@@ -151,7 +152,7 @@ export class ApproveTpComponent implements OnInit, AfterViewInit {
     const lastDay = new Date(today.getFullYear(), today.getMonth() + 1, 0);
 
     const defaultType = this.isSeniorMode ? 3 : 0;
-    const idApprovedTP = this.isSeniorMode ? 0 : (!this.isSenior ? (this.currentUser?.EmployeeID || 0) : 0);
+    const idApprovedTP = this.currentUser?.EmployeeID || 0;
 
     this.searchForm.reset({
       startDate: DateTime.now().minus({ days: 7 }).toJSDate(),
@@ -393,7 +394,10 @@ export class ApproveTpComponent implements OnInit, AfterViewInit {
       ],
     });
 
-    this.loadData();
+    // Chỉ load data nếu đã có currentUser, nếu không sẽ được gọi trong getCurrentUser()
+    if (this.currentUser) {
+      this.loadData();
+    }
   }
 
   getSelectedRows(): any[] {

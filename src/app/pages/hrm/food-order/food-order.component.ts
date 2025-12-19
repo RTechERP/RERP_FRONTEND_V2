@@ -162,22 +162,24 @@ export class FoodOrderComponent implements OnInit, AfterViewInit {
     this.authService.getCurrentUser().subscribe((res: any) => {
       const data = res?.data;
       this.currentUser = Array.isArray(data) ? data[0] : data;
-        this.currenEmployee = Array.isArray(this.currentUser)
-      ? this.currentUser[0]
-      : this.currentUser;
+      this.currenEmployee = Array.isArray(this.currentUser)
+        ? this.currentUser[0]
+        : this.currentUser;
     });
-    
+
     // Setup listener cho Location để tự động cập nhật DateOrder
     this.setupLocationChangeListener();
   }
 
   private initForm() {
-      const canEditEmployee = this.permissionService.hasPermission('N2,N1');
+    const canEditEmployee = this.permissionService.hasPermission('N2,N1,N34');
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
 
     this.foodOrderForm = this.fb.group({
       ID: [0],
-      EmployeeID: [{value:this.currenEmployee?.EmployeeID, disabled: true}, [Validators.required]],
-      DateOrder: [{value: new Date(), disabled: true}, [Validators.required]],
+      EmployeeID: [{ value: this.currenEmployee?.EmployeeID, disabled: true }, [Validators.required]],
+      DateOrder: [{ value: today, disabled: true }, [Validators.required]],
       Quantity: [1, [Validators.required, Validators.min(1)]],
       IsApproved: [false],
       Location: ['1', [Validators.required]],
@@ -187,7 +189,7 @@ export class FoodOrderComponent implements OnInit, AfterViewInit {
     });
 
 
-             if (canEditEmployee) {
+    if (canEditEmployee) {
       this.foodOrderForm.get('EmployeeID')?.enable();
     }
   }
@@ -219,11 +221,11 @@ export class FoodOrderComponent implements OnInit, AfterViewInit {
 
   private initSearchForm() {
     // Kiểm tra quyền N1 hoặc N2
-    const hasAdminPermission = this.permissionService.hasPermission('N1') || this.permissionService.hasPermission('N2');
-    
+    const hasAdminPermission = this.permissionService.hasPermission('N1') || this.permissionService.hasPermission('N2') || this.permissionService.hasPermission('N34');
+
     let dateStart: Date;
     let dateEnd: Date;
-    
+
     if (hasAdminPermission) {
       // Người có quyền N1/N2: set về hôm nay
       const today = new Date();
@@ -236,12 +238,12 @@ export class FoodOrderComponent implements OnInit, AfterViewInit {
       const firstDay = new Date(now.getFullYear(), now.getMonth(), 1);
       firstDay.setHours(0, 0, 0, 0);
       dateStart = firstDay;
-      
+
       const lastDay = new Date(now.getFullYear(), now.getMonth() + 1, 0);
       lastDay.setHours(0, 0, 0, 0);
       dateEnd = lastDay;
     }
-    
+
     this.searchForm = this.fb.group({
       dateStart: dateStart,
       dateEnd: dateEnd,
@@ -266,46 +268,57 @@ export class FoodOrderComponent implements OnInit, AfterViewInit {
     }
 
     // Kiểm tra quyền N1 hoặc N2
-    const hasAdminPermission = this.permissionService.hasPermission('N1') || this.permissionService.hasPermission('N2');
-    
+    const hasAdminPermission = this.permissionService.hasPermission('N1') || this.permissionService.hasPermission('N2')||this.permissionService.hasPermission('N34');
+
     const formValue = this.searchForm.value;
     let dateStart = null;
     let dateEnd = null;
-    
+
     // Nếu có quyền N1/N2: lấy dữ liệu trong ngày hôm nay
     // Nếu không có quyền: lấy từ đầu tháng đến cuối tháng
     if (hasAdminPermission) {
       // Người có quyền N1/N2: lấy dữ liệu hôm nay
-      const today = new Date();
-      today.setHours(0, 0, 0, 0);
-      dateStart = today.toISOString();
-      
-      const todayEnd = new Date();
-      todayEnd.setHours(23, 59, 59, 999);
-      dateEnd = todayEnd.toISOString();
+      dateStart = DateTime.local().set({ hour: 0, minute: 0, second: 0, millisecond: 0 }).toISO() || '';
+      dateEnd = DateTime.local().set({ hour: 23, minute: 59, second: 59, millisecond: 999 }).toISO() || '';
     } else {
       // Người không có quyền: lấy từ đầu tháng đến cuối tháng
-      const now = new Date();
-      const firstDay = new Date(now.getFullYear(), now.getMonth(), 1);
-      firstDay.setHours(0, 0, 0, 0);
-      dateStart = firstDay.toISOString();
-      
-      const lastDay = new Date(now.getFullYear(), now.getMonth() + 1, 0);
-      lastDay.setHours(23, 59, 59, 999);
-      dateEnd = lastDay.toISOString();
+      const now = DateTime.local();
+      const firstDay = now.startOf('month');
+      dateStart = firstDay.set({ hour: 0, minute: 0, second: 0, millisecond: 0 }).toISO() || '';
+
+      const lastDay = now.endOf('month');
+      dateEnd = lastDay.set({ hour: 23, minute: 59, second: 59, millisecond: 999 }).toISO() || '';
     }
-    
+
     // Nếu user đã chọn dateStart/dateEnd trong form, ưu tiên dùng giá trị đó
     if (formValue.dateStart) {
-      const start = new Date(formValue.dateStart);
-      start.setHours(0, 0, 0, 0);
-      dateStart = start.toISOString();
+      let startDate: DateTime;
+      if (formValue.dateStart instanceof Date) {
+        startDate = DateTime.fromJSDate(formValue.dateStart).set({ hour: 0, minute: 0, second: 0, millisecond: 0 });
+      } else if (typeof formValue.dateStart === 'string') {
+        const parsed = DateTime.fromISO(formValue.dateStart);
+        startDate = parsed.isValid 
+          ? parsed.set({ hour: 0, minute: 0, second: 0, millisecond: 0 })
+          : DateTime.local().set({ hour: 0, minute: 0, second: 0, millisecond: 0 });
+      } else {
+        startDate = DateTime.local().set({ hour: 0, minute: 0, second: 0, millisecond: 0 });
+      }
+      dateStart = startDate.isValid ? startDate.toISO() || '' : '';
     }
-    
+
     if (formValue.dateEnd) {
-      const end = new Date(formValue.dateEnd);
-      end.setHours(23, 59, 59, 999);
-      dateEnd = end.toISOString();
+      let endDate: DateTime;
+      if (formValue.dateEnd instanceof Date) {
+        endDate = DateTime.fromJSDate(formValue.dateEnd).set({ hour: 23, minute: 59, second: 59, millisecond: 999 });
+      } else if (typeof formValue.dateEnd === 'string') {
+        const parsed = DateTime.fromISO(formValue.dateEnd);
+        endDate = parsed.isValid 
+          ? parsed.set({ hour: 23, minute: 59, second: 59, millisecond: 999 })
+          : DateTime.local().set({ hour: 23, minute: 59, second: 59, millisecond: 999 });
+      } else {
+        endDate = DateTime.local().set({ hour: 23, minute: 59, second: 59, millisecond: 999 });
+      }
+      dateEnd = endDate.isValid ? endDate.toISO() || '' : '';
     }
 
     const request = {
@@ -363,11 +376,12 @@ export class FoodOrderComponent implements OnInit, AfterViewInit {
   private foodOrderHNTable(container: HTMLElement): void {
     this.foodOrderHNTabulator = new Tabulator(container, {
       ...DEFAULT_TABLE_CONFIG,
-      paginationMode: 'local', 
+      paginationMode: 'local',
+      height: '82vh',
       data: this.foodOrderHNList,
       layout: 'fitDataStretch',
       selectableRows: true,
-    
+
       columns: [
         {
           title: 'Duyệt',
@@ -425,7 +439,7 @@ export class FoodOrderComponent implements OnInit, AfterViewInit {
           },
         },
       ],
-  
+
     });
   }
 
@@ -436,7 +450,7 @@ export class FoodOrderComponent implements OnInit, AfterViewInit {
       layout: 'fitDataStretch',
       selectableRows: true,
       paginationMode: 'local',
-    
+
       columns: [
         {
           title: 'Duyệt',
@@ -494,14 +508,14 @@ export class FoodOrderComponent implements OnInit, AfterViewInit {
           },
         },
       ],
-    
+
     });
   }
 
   openAddModal() {
     const today = new Date();
     today.setHours(0, 0, 0, 0);
-    
+
     this.foodOrderForm.reset({
       ID: 0,
       EmployeeID: this.currenEmployee?.EmployeeID,
@@ -514,7 +528,7 @@ export class FoodOrderComponent implements OnInit, AfterViewInit {
       IsDeleted: false,
     });
     this.foodOrderForm.get('DateOrder')?.disable();
-    
+
     const modal = new (window as any).bootstrap.Modal(
       document.getElementById('addFoodOrderModal')
     );
@@ -524,7 +538,7 @@ export class FoodOrderComponent implements OnInit, AfterViewInit {
   openEditModal() {
     const selectedRowsHN = this.foodOrderHNTabulator.getSelectedRows();
     const selectedRowsĐP = this.foodOrderĐPTabulator.getSelectedRows();
-    
+
     if (selectedRowsHN.length === 0 && selectedRowsĐP.length === 0) {
       this.notification.warning(
         NOTIFICATION_TITLE.warning,
@@ -532,7 +546,7 @@ export class FoodOrderComponent implements OnInit, AfterViewInit {
       );
       return;
     }
-    
+
     // Kiểm tra trạng thái duyệt
     if (
       (selectedRowsHN.length > 0 &&
@@ -546,13 +560,13 @@ export class FoodOrderComponent implements OnInit, AfterViewInit {
       );
       return;
     }
-    
+
     // Kiểm tra thời gian: sau 10h không thể sửa đơn của ngày hôm nay và các ngày trước (trừ N1, N2)
-    const selectedData = selectedRowsHN.length > 0 
-      ? selectedRowsHN[0].getData() 
+    const selectedData = selectedRowsHN.length > 0
+      ? selectedRowsHN[0].getData()
       : selectedRowsĐP[0].getData();
-    
-    const hasAdminPermission = this.permissionService.hasPermission('N1') || this.permissionService.hasPermission('N2');
+
+    const hasAdminPermission = this.permissionService.hasPermission('N1') || this.permissionService.hasPermission('N2')||this.permissionService.hasPermission('N34');
     if (!hasAdminPermission && this.isAfter10AM() && this.isTodayOrPastDate(selectedData['DateOrder'])) {
       this.notification.warning(
         NOTIFICATION_TITLE.warning,
@@ -618,17 +632,17 @@ export class FoodOrderComponent implements OnInit, AfterViewInit {
     }
 
     const formData = this.foodOrderForm.getRawValue();
-    const hasPermission = this.permissionService.hasPermission('N1') || this.permissionService.hasPermission('N2')|| this.permissionService.hasPermission('N34');
-    
+    const hasPermission = this.permissionService.hasPermission('N1') || this.permissionService.hasPermission('N2') || this.permissionService.hasPermission('N34');
+
     if (!hasPermission) {
       const now = new Date();
       const currentHour = now.getHours();
       const dateOrder = formData.DateOrder ? new Date(formData.DateOrder) : null;
-      
+
       if (dateOrder) {
         const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
         const orderDate = new Date(dateOrder.getFullYear(), dateOrder.getMonth(), dateOrder.getDate());
-        
+
         if (orderDate.getTime() === today.getTime()) {
           if (currentHour >= 10) {
             this.notification.warning(
@@ -643,14 +657,14 @@ export class FoodOrderComponent implements OnInit, AfterViewInit {
 
     const location = parseInt(formData.Location);
     const dateOrder = formData.DateOrder ? new Date(formData.DateOrder) : null;
-    
+
     if (location === 2 && dateOrder) {
       const now = new Date();
       const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
       const orderDate = new Date(dateOrder.getFullYear(), dateOrder.getMonth(), dateOrder.getDate());
       const tomorrow = new Date(today);
       tomorrow.setDate(today.getDate() + 1);
-      
+
       if (orderDate.getTime() === tomorrow.getTime()) {
         const currentHour = now.getHours();
         if (currentHour >= 19) {
@@ -663,17 +677,36 @@ export class FoodOrderComponent implements OnInit, AfterViewInit {
       }
     }
 
-    // Format DateOrder theo local timezone để tránh lệch ngày
-    // Chỉ lấy phần ngày (YYYY-MM-DD) với giờ 00:00:00 để tránh lệch timezone
+    // Format DateOrder: lấy ngày từ form nhưng giờ phút giây lấy thời gian hiện tại (thời điểm đăng ký)
     let dateOrderFormatted: string | Date = formData.DateOrder;
     if (formData.DateOrder) {
-      const date = new Date(formData.DateOrder);
-      // Lấy ngày theo local timezone (không bị ảnh hưởng bởi UTC)
-      const year = date.getFullYear();
-      const month = String(date.getMonth() + 1).padStart(2, '0');
-      const day = String(date.getDate()).padStart(2, '0');
-      // Format: YYYY-MM-DDTHH:mm:ss (local time, set giờ về 00:00:00)
-      dateOrderFormatted = `${year}-${month}-${day}T00:00:00`;
+      const now = DateTime.local(); // Thời gian hiện tại
+      let selectedDate: DateTime;
+      
+      if (formData.DateOrder instanceof Date) {
+        selectedDate = DateTime.fromJSDate(formData.DateOrder);
+      } else if (typeof formData.DateOrder === 'string') {
+        const parsed = DateTime.fromISO(formData.DateOrder);
+        selectedDate = parsed.isValid ? parsed : DateTime.local();
+      } else {
+        selectedDate = DateTime.local();
+      }
+      
+      if (selectedDate.isValid) {
+        // Lấy ngày từ form, nhưng giờ phút giây từ thời gian hiện tại
+        dateOrderFormatted = selectedDate.set({
+          hour: now.hour,
+          minute: now.minute,
+          second: now.second,
+          millisecond: now.millisecond
+        }).toISO() || '';
+      } else {
+        // Fallback: dùng thời gian hiện tại
+        dateOrderFormatted = now.toISO() || '';
+      }
+    } else {
+      // Nếu không có DateOrder, dùng thời gian hiện tại
+      dateOrderFormatted = DateTime.local().toISO() || '';
     }
 
     const foodOrderData = {
@@ -755,9 +788,9 @@ export class FoodOrderComponent implements OnInit, AfterViewInit {
       return;
     }
     // Sau 10h: không cho xóa phiếu đặt cơm của ngày hôm nay và các ngày trước đó (trừ N1, N2)
-    const hasAdminPermission = this.permissionService.hasPermission('N1') || this.permissionService.hasPermission('N2');
+    const hasAdminPermission = this.permissionService.hasPermission('N1') || this.permissionService.hasPermission('N2')||this.permissionService.hasPermission('N34');
     if (!hasAdminPermission && this.isAfter10AM()) {
-      const hasTodayOrPastOrder = foodOrdersToDelete.some((fo) => 
+      const hasTodayOrPastOrder = foodOrdersToDelete.some((fo) =>
         this.isTodayOrPastDate(fo['DateOrder'])
       );
 
@@ -865,8 +898,7 @@ export class FoodOrderComponent implements OnInit, AfterViewInit {
           .then(() => {
             this.notification.success(
               NOTIFICATION_TITLE.success,
-              `${
-                approvedText.charAt(0).toUpperCase() + approvedText.slice(1)
+              `${approvedText.charAt(0).toUpperCase() + approvedText.slice(1)
               } đơn đặt cơm thành công!`
             );
             this.loadFoodOrder();
@@ -1043,29 +1075,32 @@ export class FoodOrderComponent implements OnInit, AfterViewInit {
 
   resetSearch() {
     // Kiểm tra quyền N1 hoặc N2
-    const hasAdminPermission = this.permissionService.hasPermission('N1') || this.permissionService.hasPermission('N2');
-    
+    const hasAdminPermission = this.permissionService.hasPermission('N1') || this.permissionService.hasPermission('N2')||this.permissionService.hasPermission('N34');
+
     let dateStart: Date;
     let dateEnd: Date;
-    
+
     if (hasAdminPermission) {
       // Người có quyền N1/N2: set về hôm nay
       const today = new Date();
       today.setHours(0, 0, 0, 0);
       dateStart = today;
-      dateEnd = today;
+      
+      const todayEnd = new Date();
+      todayEnd.setHours(23, 59, 59, 999);
+      dateEnd = todayEnd;
     } else {
       // Người không có quyền: set từ đầu tháng đến cuối tháng
       const now = new Date();
       const firstDay = new Date(now.getFullYear(), now.getMonth(), 1);
       firstDay.setHours(0, 0, 0, 0);
       dateStart = firstDay;
-      
+
       const lastDay = new Date(now.getFullYear(), now.getMonth() + 1, 0);
-      lastDay.setHours(0, 0, 0, 0);
+      lastDay.setHours(23, 59, 59, 999);
       dateEnd = lastDay;
     }
-    
+
     this.searchForm.patchValue({
       dateStart: dateStart,
       dateEnd: dateEnd,
@@ -1083,13 +1118,13 @@ export class FoodOrderComponent implements OnInit, AfterViewInit {
   // Helper method để kiểm tra ngày đặt cơm là hôm nay hoặc ngày đã qua
   private isTodayOrPastDate(dateOrder: any): boolean {
     if (!dateOrder) return false;
-    
+
     const orderDayMillis = this.getLocalDayMillis(dateOrder);
     if (orderDayMillis === null) return true; // Không parse được => chặn để an toàn
-    
+
     const now = DateTime.local();
     const todayMillis = now.startOf('day').toMillis();
-    
+
     return orderDayMillis <= todayMillis;
   }
 

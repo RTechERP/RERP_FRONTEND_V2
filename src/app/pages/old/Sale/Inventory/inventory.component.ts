@@ -471,42 +471,32 @@ export class InventoryComponent implements OnInit, AfterViewInit {
     });
   }
   getInventory() {
-    // For remote pagination, just trigger reload by setting page to 1
-    if (!this.table_inventory) {
-      this.drawTable_Inventory();
-    } else {
-      // Reload data with current filters using setPage to trigger ajaxRequestFunc
-      this.table_inventory.setPage(1);
-    }
-
-    // Old local pagination code - commented out
-    // this.isLoadingInventory = true;
-    // this.inventoryService
-    //   .getInventory(
-    //     this.searchParam.checkedAll,
-    //     this.searchParam.Find,
-    //     this.wareHouseCode,
-    //     this.searchParam.checkedStock,
-    //     this.productGroupID
-    //   )
-    //   .subscribe({
-    //     next: (res) => {
-    //       this.isLoadingInventory = false;
-    //       if (res?.data) {
-    //         this.dataInventory = res.data;
-    //         console.log('hehehehe', this.dataInventory);
-    //         if (!this.table_inventory) {
-    //           this.drawTable_Inventory();
-    //         } else {
-    //           this.table_inventory.setData(this.dataInventory);
-    //         }
-    //       }
-    //     },
-    //     error: (err) => {
-    //       this.isLoadingInventory = false;
-    //       console.error('Lỗi khi lấy dữ liệu sản phẩm:', err);
-    //     },
-    //   });
+    this.isLoadingInventory = true;
+    this.inventoryService
+      .getInventory(
+        this.searchParam.checkedAll,
+        this.searchParam.Find,
+        this.warehouseCode,
+        this.searchParam.checkedStock,
+        this.productGroupID
+      )
+      .subscribe({
+        next: (res) => {
+          this.isLoadingInventory = false;
+          if (res?.data) {
+            this.dataInventory = res.data;
+            if (!this.table_inventory) {
+              this.drawTable_Inventory();
+            } else {
+              this.table_inventory.setData(this.dataInventory);
+            }
+          }
+        },
+        error: (err) => {
+          this.isLoadingInventory = false;
+          console.error('Lỗi khi lấy dữ liệu sản phẩm:', err);
+        },
+      });
   }
 
   openModalProductGroup() {
@@ -823,48 +813,11 @@ export class InventoryComponent implements OnInit, AfterViewInit {
       ...DEFAULT_TABLE_CONFIG,
       layout: 'fitDataFill',
       height: '89vh',
-      pagination: true,
-      paginationSize: 50,
-      paginationSizeSelector: [10, 25, 50, 100, 200, 500],
+      pagination: false,
+      data: this.dataInventory,
       movableColumns: true,
       resizableRows: true,
       reactiveData: true,
-      paginationMode: 'remote',
-      ajaxURL: 'dummy', // Required but not used with ajaxRequestFunc
-      ajaxRequestFunc: (_url: string, _config: any, params: any) => {
-        return new Promise((resolve, reject) => {
-          const page = params.page || 1;
-          const size = params.size || 50;
-
-          this.inventoryService
-            .getInventoryPagination(
-              this.searchParam.checkedAll,
-              this.searchParam.Find,
-              this.warehouseCode,
-              this.searchParam.checkedStock,
-              this.productGroupID,
-              size,
-              page
-            )
-            .subscribe({
-              next: (res) => {
-                if (res?.data) {
-                  // Tabulator expects { last_page, data } format
-                  resolve({
-                    last_page: res.data[0].TotalPage,
-                    data: res.data,
-                  });
-                } else {
-                  resolve({ last_page: 1, data: [] });
-                }
-              },
-              error: (err) => {
-                console.error('Error loading inventory data:', err);
-                reject(err);
-              },
-            });
-        });
-      },
       rowContextMenu: contextMenu,
       columns: [
         {

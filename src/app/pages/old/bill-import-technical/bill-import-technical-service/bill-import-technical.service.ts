@@ -54,7 +54,7 @@ export class BillImportTechnicalService {
     });
   }
   getNCC(): Observable<any> {
-    return this.http.get<any>(this.urlNCC+'get-supplier-sale');
+    return this.http.get<any>(this.urlNCC+'/get-supplier-sale');
   }
   getRulepay(): Observable<any> {
     return this.http.get<any>(this.urlRulepay);

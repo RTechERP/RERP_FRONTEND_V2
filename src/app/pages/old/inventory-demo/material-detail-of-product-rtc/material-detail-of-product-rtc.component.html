@@ -1,6 +1,14 @@
-<div class="card-body">
+<div class="card-body position-relative">
+  <!-- Nút X để đóng modal - chỉ hiển thị khi mở dưới dạng modal -->
+  <button *ngIf="activeModal"
+          type="button"
+          class="btn-close position-absolute"
+          aria-label="Close"
+          (click)="close()"
+          title="Đóng">
+  </button>
 
-<form nz-form nzLayout="horizontal" class="fs-7 form-header">
+<form nz-form nzLayout="horizontal"  class="fs-7 form-header">
     <nz-row [nzGutter]="24">
       <!-- Mã sản phẩm-->
       <nz-col [nzSpan]="8" class="me-2 md-2">

@@ -130,7 +130,7 @@ export class MaterialDetailOfProductRtcComponent implements OnInit, AfterViewIni
       this.drawTBExport();
       this.drawTBImport();
     // Không cần gọi getProduct() nữa vì dữ liệu đã được truyền từ parent qua tabData
-    // this.getProduct();
+     this.getProduct();
 
   }
   getProduct() {

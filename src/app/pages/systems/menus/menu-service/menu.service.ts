@@ -3243,7 +3243,7 @@ export class MenuService {
                 title: 'DUYỆT CÁ NHÂN',
                 isOpen: true,
                 isPermission: this.permissionService.hasPermission(
-                    'N57,N34,N56,N59,N55,N61,N58,N83,N32'
+                    'N57,N34,N56,N59,N55,N61,N58,N83,N32,N85'
                 ),
                 icon: 'assets/icon/menu_appvovedperson.svg',
                 children: [
@@ -3365,7 +3365,7 @@ export class MenuService {
                         key: 'duyetcanhan',
                         title: 'Duyệt công',
                         isOpen: true,
-                        isPermission: this.permissionService.hasPermission('N1'),
+                        isPermission: this.permissionService.hasPermission('N1,N32'),
                         comp: ApproveTpComponent,
                         data: {
                             isSeniorMode: false,
@@ -3376,7 +3376,7 @@ export class MenuService {
                         key: 'seniorduyetlamthem',// Đặt key mới do dùng chung component
                         title: 'Senior duyệt làm thêm',
                         isOpen: true,
-                        isPermission: this.permissionService.hasPermission(''),
+                        isPermission: this.permissionService.hasPermission('N85'),
                         comp: ApproveTpComponent,
                         data: {
                             isSeniorMode: true, // Khi true, tự động set type = 3 (làm thêm) và IDApprovedTP = 0

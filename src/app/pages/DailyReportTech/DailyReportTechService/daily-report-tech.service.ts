@@ -59,4 +59,46 @@ export class DailyReportTechService {
   getForCopy(params: any): Observable<any> {
     return this.http.post<any>(this.apiUrl + 'get-for-copy', params);
   }
+
+  /**
+   * Gửi email báo cáo công việc kỹ thuật
+   * @param body Nội dung email (text hoặc HTML)
+   * @param dateReport Ngày báo cáo (optional)
+   * @returns Observable<any>
+   */
+  sendEmailReport(body: string, dateReport?: Date): Observable<any> {
+    const request = {
+      Body: body,
+      DateReport: dateReport ? dateReport.toISOString() : null
+    };
+    return this.http.post<any>(this.apiUrl + 'send-email-report', request);
+  }
+
+  /**
+   * Xuất Excel báo cáo kỹ thuật
+   * @param request ExportExcelDailyReportTechRequest
+   * @returns Observable<Blob> - File Excel
+   */
+  exportToExcel(request: {
+    DateStart?: Date | string;
+    DateEnd?: Date | string;
+    TeamID?: string;
+    TeamName?: string;
+  }): Observable<Blob> {
+    // Format dates to ISO string if they are Date objects
+    const payload = {
+      DateStart: request.DateStart instanceof Date 
+        ? request.DateStart.toISOString() 
+        : request.DateStart,
+      DateEnd: request.DateEnd instanceof Date 
+        ? request.DateEnd.toISOString() 
+        : request.DateEnd,
+      TeamID: request.TeamID || '',
+      TeamName: request.TeamName || ''
+    };
+
+    return this.http.post(this.apiUrl + 'export-to-excel', payload, {
+      responseType: 'blob'
+    });
+  }
 }

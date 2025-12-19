@@ -184,6 +184,42 @@ export class BillExportTechnicalFormComponent implements OnInit, AfterViewInit {
           Deliver: this.appUserService.fullName || 'ADMIN',
         });
 
+        // Xử lý luồng từ check-history-tech (trả hàng từ lịch sử mượn NCC)
+        if (this.openFrmSummary && this.fromBorrowHistory && !this.dataEdit) {
+          // Set BillType = 0 (Trả) theo mặc định
+          this.formDeviceInfo.patchValue({
+            BillType: 0,
+            SupplierSaleID: this.supplierID || 0,
+            CustomerID: this.customerID || 0,
+            DeliverID: this.deliverID || 0,
+            SupplierID: this.supplierID || 0,
+            Note: this.BillCode || '',
+            CreatedDate: new Date(),
+          });
+
+          // Tìm và set tên NCC/Customer nếu có
+          if (this.supplierID > 0) {
+            const supplier = this.nccList.find((n: any) => n.ID === this.supplierID);
+            if (supplier) {
+              this.formDeviceInfo.patchValue({
+                SupplierName: supplier.Name || supplier.FullName || '',
+              });
+            }
+          }
+
+          if (this.customerID > 0) {
+            const customer = this.customerList.find((c: any) => c.ID === this.customerID);
+            if (customer) {
+              this.formDeviceInfo.patchValue({
+                CustomerName: customer.Name || customer.FullName || '',
+              });
+            }
+          }
+
+          // Lấy mã phiếu mới cho loại "Trả" (BillType = 0)
+          this.getNewCode();
+        }
+
         // Patch dữ liệu edit sau khi đã load xong tất cả dropdown data
         if (this.dataEdit) {
           if (this.dataEdit.Status == 1 && !this.appUserService.isAdmin)
@@ -212,7 +248,8 @@ export class BillExportTechnicalFormComponent implements OnInit, AfterViewInit {
               }
             }, 500);
           }
-        } else if (this.dataInput) {
+        } else if (this.dataInput && !this.openFrmSummary) {
+          // Chỉ patch dataInput nếu không phải luồng từ check-history-tech
           this.formDeviceInfo.patchValue(this.dataInput);
         }
 
@@ -220,7 +257,12 @@ export class BillExportTechnicalFormComponent implements OnInit, AfterViewInit {
           this.formDeviceInfo.patchValue({ Deliver: 'Nguyễn Thị Phương Thủy' });
         
         // Lấy mã phiếu nếu chưa có (chỉ khi tạo mới, không phải khi sửa hoặc xem)
-        if ((!this.dataEdit || !this.dataEdit.ID || this.dataEdit.ID <= 0) && !this.masterId && !this.IDDetail && !this.fromBorrowHistory) {
+        // Không lấy mã mới nếu đã lấy ở trên (luồng từ check-history-tech)
+        if ((!this.dataEdit || !this.dataEdit.ID || this.dataEdit.ID <= 0) && 
+            !this.masterId && 
+            !this.IDDetail && 
+            !this.fromBorrowHistory && 
+            !this.openFrmSummary) {
           this.getNewCode();
         }
       },
@@ -654,10 +696,10 @@ export class BillExportTechnicalFormComponent implements OnInit, AfterViewInit {
           hozAlign: 'center',
           headerHozAlign: 'center',
           formatter: (cell) => {
-            const projectId = Number(cell.getValue());
-            const project = this.projectList.find(
-              (p: any) => p.ID === projectId
-            );
+              const projectId = Number(cell.getValue());
+              const project = this.projectList.find(
+                (p: any) => p.ID === projectId
+              );
             const projectCode = project ? project.ProjectCode || '' : '';
             return `
               <button class="btn-toggle-detail w-100 h-100" title="${

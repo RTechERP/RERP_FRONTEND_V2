@@ -35,6 +35,7 @@ export interface ApproveItemParam {
   EvaluateResults?: string | null;
   EmployeeID?: number | null;
   TType?: number | null;
+  ReasonDeciline?: string | null;
 }
 
 export interface ApproveRequestParam {
@@ -73,6 +74,15 @@ export class ApproveTpService {
     return this.http.post<any>(`${this.apiUrl}approve-tbp`, request, { headers });
   }
 
+  unApproveTBP(request: ApproveRequestParam): Observable<any> {
+    const headers = new HttpHeaders({
+      'Content-Type': 'application/json',
+      Accept: 'application/json',
+    });
+
+    return this.http.post<any>(`${this.apiUrl}un-approve-tbp`, request, { headers });
+  }
+
   approveBGD(request: ApproveRequestParam): Observable<any> {
     const headers = new HttpHeaders({
       'Content-Type': 'application/json',
@@ -100,7 +110,7 @@ export class ApproveTpService {
       .set('status', request.status?.toString() || '0')
       .set('departmentid', request.departmentid?.toString() || '0')
       .set('keyword', request.keyword || '');
-    
+
     return this.http.get<any>(`${environment.host}api/employee/`, { params });
   }
 
@@ -109,7 +119,25 @@ export class ApproveTpService {
       .set('yearValue', yearValue.toString())
       .set('quarterValue', quarterValue.toString())
       .set('departmentID', departmentID.toString());
-    
+
     return this.http.get<any>(`${environment.host}api/KPIEmployeeTeam/getall`, { params });
+  }
+
+  getUserTeamLinkByLeaderID(): Observable<any> {
+    const headers = new HttpHeaders({
+      'Content-Type': 'application/json',
+      Accept: 'application/json',
+    });
+
+    return this.http.get<any>(`${this.apiUrl}get-user-team-link-by-leader-id`, { headers });
+  }
+
+  getUserTeam(): Observable<any> {
+    const headers = new HttpHeaders({
+      'Content-Type': 'application/json',
+      Accept: 'application/json',
+    });
+
+    return this.http.get<any>(`${this.apiUrl}get-user-team`, { headers });
   }
 }

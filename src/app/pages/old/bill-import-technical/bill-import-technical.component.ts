@@ -43,7 +43,7 @@ import { BillImportTechnicalService } from './bill-import-technical-service/bill
 import { NzNotificationService } from 'ng-zorro-antd/notification';
 import { NzModalService } from 'ng-zorro-antd/modal';
 import { BillImportTechnicalFormComponent } from './bill-import-technical-form/bill-import-technical-form.component';
-// import { CheckHistoryTechComponent } from './check-history-tech/check-history-tech.component';
+import { CheckHistoryTechComponent } from './check-history-tech/check-history-tech.component';
 import { NOTIFICATION_TITLE } from '../../../app.config';
 import { HasPermissionDirective } from '../../../directives/has-permission.directive';
 import { DEFAULT_TABLE_CONFIG } from '../../../tabulator-default.config';
@@ -802,33 +802,33 @@ export class BillImportTechnicalComponent implements OnInit, AfterViewInit {
     }
 
     openCheckHistoryTech() {
-        // const modalRef = this.modalService.open(CheckHistoryTechComponent, {
-        //   centered: true,
-        //   size: 'xl',
-        //   backdrop: 'static',
-        //   keyboard: false,
-        //   scrollable: true,
-        //   windowClass: 'check-history-tech-modal',
-        //   injector: this.injector
-        // });
+        const modalRef = this.modalService.open(CheckHistoryTechComponent, {
+          centered: false,
+          fullscreen: true,
+          backdrop: 'static',
+          keyboard: false,
+          scrollable: true,
+          windowClass: 'full-screen-modal',
+          injector: this.injector
+        });
 
-        // // Truyền warehouseId và warehouseType vào modal qua @Input
-        // if (modalRef.componentInstance) {
-        //   modalRef.componentInstance.warehouseID = this.warehouseID || 1;
-        //   modalRef.componentInstance.warehouseType = this.warehouseType || 1;
-        // }
+        // Truyền warehouseId và warehouseType vào modal qua @Input
+        if (modalRef.componentInstance) {
+          modalRef.componentInstance.warehouseID = this.warehouseID || 1;
+          modalRef.componentInstance.warehouseType = this.warehouseType || 1;
+        }
 
-        // // Xử lý khi modal đóng
-        // modalRef.result.then(
-        //   (result) => {
-        //     // Có thể reload data nếu cần
-        //     if (result === 'success') {
-        //       // this.drawTable();
-        //     }
-        //   },
-        //   (dismissed) => {
-        //     // Modal dismissed
-        //   }
-        // );
+        // Xử lý khi modal đóng
+        modalRef.result.then(
+          (result) => {
+            // Có thể reload data nếu cần
+            if (result === 'success') {
+              // this.drawTable();
+            }
+          },
+          (dismissed) => {
+            // Modal dismissed
+          }
+        );
     }
 }

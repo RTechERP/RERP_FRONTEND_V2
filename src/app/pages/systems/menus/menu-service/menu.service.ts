@@ -150,6 +150,9 @@ import { VehicleBookingManagementComponent } from '../../../hrm/vehicle/vehicle-
 
 import { EmployeeSyntheticPersonalComponent } from '../../../hrm/employee-management/employee-synthetic/employee-synthetic-personal/employee-synthetic-personal.component';
 import { BookingRoomComponent } from '../../../hrm/booking room/booking-room.component';
+import { RegisterContractComponent } from '../../../person/register-contract/register-contract.component';
+import { ApproveTpComponent } from '../../../person/approve-tp/approve-tp/approve-tp.component';
+import { PhaseAllocationPersonComponent } from '../../../hrm/phase-allocation-person/phase-allocation-person.component';
 
 @Injectable({
     providedIn: 'root',
@@ -1750,7 +1753,9 @@ export class MenuService {
                                 comp: HandoverComponent,
                                 //   icon: 'assets/icon/layers.png',
                             },
-
+                          
+                                        //   icon: 'assets/icon/layers.png',
+                            
                             //#endregion
                         ],
                     },
@@ -1948,6 +1953,14 @@ export class MenuService {
                         comp: ProtectgearComponent,
                         //   icon: 'assets/icon/layers.png',
                     },
+                    {
+                        kind: 'leaf',
+                        key: 'CapPhatTheoDot',
+                        title: 'Cấp phát theo đợt',
+                        isOpen: true,
+                        isPermission: this.permissionService.hasPermission('N1,N2,N23,N34'),
+                       comp: PhaseAllocationPersonComponent,
+                    },
                 ],
             },
             //#endregion
@@ -2039,7 +2052,7 @@ export class MenuService {
                         key: 'InventoryByProductComponent',
                         title: 'Tồn kho theo sản phẩm',
                         isOpen: true,
-                        isPermission: this.permissionService.hasPermission('N1'),
+                        isPermission: this.permissionService.hasPermission(''),
                         comp: InventoryByProductComponent,
                     },
                 ],
@@ -2955,14 +2968,22 @@ export class MenuService {
                                 isPermission: this.permissionService.hasPermission(''),
                                 comp: RegisterIdeaComponent,
                             },
+                                // {
+                                //     kind: 'leaf',
+                                //     key: 'dangkyhopdong',
+                                //     title: 'Đăng ký hợp đồng',
+                                //     isOpen: true,
+                                //     isPermission: this.permissionService.hasPermission(''),
+                                //     comp: PersonComponent,
+                                //     router: '/dangkyhopdong',
+                                // },
                             {
                                 kind: 'leaf',
-                                key: 'dangkyhopdong',
+                                key: 'RegisterContractComponent',
                                 title: 'Đăng ký hợp đồng',
                                 isOpen: true,
                                 isPermission: this.permissionService.hasPermission(''),
-                                comp: PersonComponent,
-                                router: '/dangkyhopdong',
+                                comp: RegisterContractComponent,
                             },
                             {
                                 kind: 'leaf',
@@ -3344,9 +3365,22 @@ export class MenuService {
                         key: 'duyetcanhan',
                         title: 'Duyệt công',
                         isOpen: true,
-                        isPermission: this.permissionService.hasPermission('N32'),
-                        comp: PersonComponent,
-                        router: '/duyetcanhan',
+                        isPermission: this.permissionService.hasPermission('N1'),
+                        comp: ApproveTpComponent,
+                        data: {
+                            isSeniorMode: false,
+                        },
+                    },
+                    {
+                        kind: 'leaf',
+                        key: 'seniorduyetlamthem',// Đặt key mới do dùng chung component
+                        title: 'Senior duyệt làm thêm',
+                        isOpen: true,
+                        isPermission: this.permissionService.hasPermission(''),
+                        comp: ApproveTpComponent,
+                        data: {
+                            isSeniorMode: true, // Khi true, tự động set type = 3 (làm thêm) và IDApprovedTP = 0
+                        },
                     },
                     {
                         kind: 'leaf',

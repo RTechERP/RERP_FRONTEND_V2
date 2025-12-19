@@ -166,6 +166,9 @@ export class FoodOrderComponent implements OnInit, AfterViewInit {
       ? this.currentUser[0]
       : this.currentUser;
     });
+    
+    // Setup listener cho Location để tự động cập nhật DateOrder
+    this.setupLocationChangeListener();
   }
 
   private initForm() {
@@ -189,10 +192,59 @@ export class FoodOrderComponent implements OnInit, AfterViewInit {
     }
   }
 
+  private setupLocationChangeListener(): void {
+    this.foodOrderForm.get('Location')?.valueChanges.subscribe((location: string) => {
+      // Chỉ tự động cập nhật khi không phải edit mode (ID = 0)
+      const currentID = this.foodOrderForm.get('ID')?.value;
+      if (currentID === 0 || currentID === null || currentID === undefined) {
+        if (location === '2') {
+          // Xưởng Đan Phượng: set ngày mai
+          const tomorrow = new Date();
+          tomorrow.setDate(tomorrow.getDate() + 1);
+          tomorrow.setHours(0, 0, 0, 0);
+          this.foodOrderForm.patchValue({
+            DateOrder: tomorrow
+          }, { emitEvent: false });
+        } else if (location === '1') {
+          // VP Hà Nội: set ngày hôm nay
+          const today = new Date();
+          today.setHours(0, 0, 0, 0);
+          this.foodOrderForm.patchValue({
+            DateOrder: today
+          }, { emitEvent: false });
+        }
+      }
+    });
+  }
+
   private initSearchForm() {
+    // Kiểm tra quyền N1 hoặc N2
+    const hasAdminPermission = this.permissionService.hasPermission('N1') || this.permissionService.hasPermission('N2');
+    
+    let dateStart: Date;
+    let dateEnd: Date;
+    
+    if (hasAdminPermission) {
+      // Người có quyền N1/N2: set về hôm nay
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      dateStart = today;
+      dateEnd = today;
+    } else {
+      // Người không có quyền: set từ đầu tháng đến cuối tháng
+      const now = new Date();
+      const firstDay = new Date(now.getFullYear(), now.getMonth(), 1);
+      firstDay.setHours(0, 0, 0, 0);
+      dateStart = firstDay;
+      
+      const lastDay = new Date(now.getFullYear(), now.getMonth() + 1, 0);
+      lastDay.setHours(0, 0, 0, 0);
+      dateEnd = lastDay;
+    }
+    
     this.searchForm = this.fb.group({
-      dateStart: new Date(new Date().getFullYear(), new Date().getMonth(), 1),
-      dateEnd: new Date(new Date().getFullYear(), new Date().getMonth() + 1, 0),
+      dateStart: dateStart,
+      dateEnd: dateEnd,
       employeeId: 0,
       pageNumber: 1,
       pageSize: 100000,
@@ -213,8 +265,57 @@ export class FoodOrderComponent implements OnInit, AfterViewInit {
       });
     }
 
+    // Kiểm tra quyền N1 hoặc N2
+    const hasAdminPermission = this.permissionService.hasPermission('N1') || this.permissionService.hasPermission('N2');
+    
+    const formValue = this.searchForm.value;
+    let dateStart = null;
+    let dateEnd = null;
+    
+    // Nếu có quyền N1/N2: lấy dữ liệu trong ngày hôm nay
+    // Nếu không có quyền: lấy từ đầu tháng đến cuối tháng
+    if (hasAdminPermission) {
+      // Người có quyền N1/N2: lấy dữ liệu hôm nay
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      dateStart = today.toISOString();
+      
+      const todayEnd = new Date();
+      todayEnd.setHours(23, 59, 59, 999);
+      dateEnd = todayEnd.toISOString();
+    } else {
+      // Người không có quyền: lấy từ đầu tháng đến cuối tháng
+      const now = new Date();
+      const firstDay = new Date(now.getFullYear(), now.getMonth(), 1);
+      firstDay.setHours(0, 0, 0, 0);
+      dateStart = firstDay.toISOString();
+      
+      const lastDay = new Date(now.getFullYear(), now.getMonth() + 1, 0);
+      lastDay.setHours(23, 59, 59, 999);
+      dateEnd = lastDay.toISOString();
+    }
+    
+    // Nếu user đã chọn dateStart/dateEnd trong form, ưu tiên dùng giá trị đó
+    if (formValue.dateStart) {
+      const start = new Date(formValue.dateStart);
+      start.setHours(0, 0, 0, 0);
+      dateStart = start.toISOString();
+    }
+    
+    if (formValue.dateEnd) {
+      const end = new Date(formValue.dateEnd);
+      end.setHours(23, 59, 59, 999);
+      dateEnd = end.toISOString();
+    }
+
+    const request = {
+      ...formValue,
+      dateStart: dateStart,
+      dateEnd: dateEnd
+    };
+
     this.foodOrderService
-      .getEmployeeFoodOrder(this.searchForm.value)
+      .getEmployeeFoodOrder(request)
       .subscribe({
         next: (data) => {
           this.foodOrderList = Array.isArray(data.data)
@@ -230,10 +331,11 @@ export class FoodOrderComponent implements OnInit, AfterViewInit {
           this.foodOrderĐPTable(this.tb_foodOrderĐP.nativeElement);
           this.isLoading = false;
         },
-        error: (error) => {
+        error: (error: any) => {
+          const errorMessage = error?.error?.message || error?.error?.Message || error?.message || 'Có lỗi xảy ra';
           this.notification.error(
             NOTIFICATION_TITLE.error,
-            error?.error?.message || error?.message || 'Có lỗi xảy ra'
+            errorMessage
           );
           this.isLoading = false;
         },
@@ -248,11 +350,11 @@ export class FoodOrderComponent implements OnInit, AfterViewInit {
           'DepartmentName'
         );
       },
-      error: (error) => {
+      error: (error: any) => {
+        const errorMessage = error?.error?.message || error?.error?.Message || error?.message || 'Có lỗi xảy ra';
         this.notification.error(
           NOTIFICATION_TITLE.error,
-          'Lỗi khi tải danh sách nhân viên: ' +
-            (error?.error?.message || error?.message || 'Có lỗi xảy ra')
+          'Lỗi khi tải danh sách nhân viên: ' + errorMessage
         );
       },
     });
@@ -397,10 +499,13 @@ export class FoodOrderComponent implements OnInit, AfterViewInit {
   }
 
   openAddModal() {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    
     this.foodOrderForm.reset({
       ID: 0,
       EmployeeID: this.currenEmployee?.EmployeeID,
-      DateOrder: new Date(),
+      DateOrder: today,
       Quantity: 1,
       IsApproved: false,
       Location: '1',
@@ -427,6 +532,8 @@ export class FoodOrderComponent implements OnInit, AfterViewInit {
       );
       return;
     }
+    
+    // Kiểm tra trạng thái duyệt
     if (
       (selectedRowsHN.length > 0 &&
         selectedRowsHN[0].getData()['IsApproved'] === true) ||
@@ -436,6 +543,20 @@ export class FoodOrderComponent implements OnInit, AfterViewInit {
       this.notification.warning(
         NOTIFICATION_TITLE.warning,
         'Đơn đặt cơm đã được duyệt. Vui lòng hủy duyệt trước khi sửa!'
+      );
+      return;
+    }
+    
+    // Kiểm tra thời gian: sau 10h không thể sửa đơn của ngày hôm nay và các ngày trước (trừ N1, N2)
+    const selectedData = selectedRowsHN.length > 0 
+      ? selectedRowsHN[0].getData() 
+      : selectedRowsĐP[0].getData();
+    
+    const hasAdminPermission = this.permissionService.hasPermission('N1') || this.permissionService.hasPermission('N2');
+    if (!hasAdminPermission && this.isAfter10AM() && this.isTodayOrPastDate(selectedData['DateOrder'])) {
+      this.notification.warning(
+        NOTIFICATION_TITLE.warning,
+        'Không thể sửa phiếu đặt cơm sau 10h'
       );
       return;
     }
@@ -542,10 +663,23 @@ export class FoodOrderComponent implements OnInit, AfterViewInit {
       }
     }
 
+    // Format DateOrder theo local timezone để tránh lệch ngày
+    // Chỉ lấy phần ngày (YYYY-MM-DD) với giờ 00:00:00 để tránh lệch timezone
+    let dateOrderFormatted: string | Date = formData.DateOrder;
+    if (formData.DateOrder) {
+      const date = new Date(formData.DateOrder);
+      // Lấy ngày theo local timezone (không bị ảnh hưởng bởi UTC)
+      const year = date.getFullYear();
+      const month = String(date.getMonth() + 1).padStart(2, '0');
+      const day = String(date.getDate()).padStart(2, '0');
+      // Format: YYYY-MM-DDTHH:mm:ss (local time, set giờ về 00:00:00)
+      dateOrderFormatted = `${year}-${month}-${day}T00:00:00`;
+    }
+
     const foodOrderData = {
       ID: formData.ID,
       EmployeeID: formData.EmployeeID,
-      DateOrder: formData.DateOrder,
+      DateOrder: dateOrderFormatted,
       Quantity: formData.Quantity,
       IsApproved: formData.IsApproved,
       Location: parseInt(formData.Location),
@@ -576,10 +710,11 @@ export class FoodOrderComponent implements OnInit, AfterViewInit {
           IsDeleted: false,
         });
       },
-      error: (error) => {
+      error: (error: any) => {
+        const errorMessage = error?.error?.message || error?.error?.Message || error?.message || 'Lỗi khi lưu đơn đặt cơm';
         this.notification.error(
           NOTIFICATION_TITLE.error,
-          error?.error?.message || 'Lỗi khi lưu đơn đặt cơm'
+          errorMessage
         );
       },
     });
@@ -619,21 +754,21 @@ export class FoodOrderComponent implements OnInit, AfterViewInit {
       );
       return;
     }
-    // Sau 10h: không cho xóa phiếu đặt cơm của ngày hôm nay và các ngày trước đó
-    const now = DateTime.local();
-    if (now.hour >= 10) {
-      const todayMillis = now.startOf('day').toMillis();
-      const hasTodayOrPastOrder = foodOrdersToDelete.some((fo) => {
-        const orderDayMillis = this.getLocalDayMillis(fo?.DateOrder);
-        // Không parse được ngày => chặn để tránh lọt rule
-        if (orderDayMillis === null) return true;
-        return orderDayMillis <= todayMillis;
-      });
+    // Sau 10h: không cho xóa phiếu đặt cơm của ngày hôm nay và các ngày trước đó (trừ N1, N2)
+    const hasAdminPermission = this.permissionService.hasPermission('N1') || this.permissionService.hasPermission('N2');
+    if (!hasAdminPermission && this.isAfter10AM()) {
+      const hasTodayOrPastOrder = foodOrdersToDelete.some((fo) => 
+        this.isTodayOrPastDate(fo['DateOrder'])
+      );
 
       if (hasTodayOrPastOrder) {
+        const fullNames = foodOrdersToDelete
+          .filter(fo => this.isTodayOrPastDate(fo['DateOrder']))
+          .map(fo => fo['FullName'] || 'N/A')
+          .join(', ');
         this.notification.warning(
           NOTIFICATION_TITLE.warning,
-          'Không thể xóa phiếu đặt cơm sau 10h'
+          `Không thể xóa phiếu đặt cơm sau 10h:\n${fullNames}`
         );
         return;
       }
@@ -679,11 +814,11 @@ export class FoodOrderComponent implements OnInit, AfterViewInit {
                   this.loadFoodOrder();
                 }
               },
-              error: (error) => {
+              error: (error: any) => {
+                const errorMessage = error?.error?.message || error?.error?.Message || error?.message || 'Có lỗi xảy ra';
                 this.notification.error(
                   NOTIFICATION_TITLE.error,
-                  'Xóa đơn đặt cơm thất bại: ' +
-                    (error?.error?.message || error?.message || 'Có lỗi xảy ra')
+                  'Xóa đơn đặt cơm thất bại: ' + errorMessage
                 );
               },
             });
@@ -736,12 +871,11 @@ export class FoodOrderComponent implements OnInit, AfterViewInit {
             );
             this.loadFoodOrder();
           })
-          .catch((error) => {
+          .catch((error: any) => {
+            const errorMessage = error?.error?.message || error?.error?.Message || error?.message || 'Có lỗi xảy ra';
             this.notification.error(
               NOTIFICATION_TITLE.error,
-              `Cập nhật đơn đặt cơm thất bại: ${
-                error?.error?.message || error?.message || 'Có lỗi xảy ra'
-              }`
+              `Cập nhật đơn đặt cơm thất bại: ${errorMessage}`
             );
           });
       },
@@ -908,12 +1042,55 @@ export class FoodOrderComponent implements OnInit, AfterViewInit {
   }
 
   resetSearch() {
+    // Kiểm tra quyền N1 hoặc N2
+    const hasAdminPermission = this.permissionService.hasPermission('N1') || this.permissionService.hasPermission('N2');
+    
+    let dateStart: Date;
+    let dateEnd: Date;
+    
+    if (hasAdminPermission) {
+      // Người có quyền N1/N2: set về hôm nay
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      dateStart = today;
+      dateEnd = today;
+    } else {
+      // Người không có quyền: set từ đầu tháng đến cuối tháng
+      const now = new Date();
+      const firstDay = new Date(now.getFullYear(), now.getMonth(), 1);
+      firstDay.setHours(0, 0, 0, 0);
+      dateStart = firstDay;
+      
+      const lastDay = new Date(now.getFullYear(), now.getMonth() + 1, 0);
+      lastDay.setHours(0, 0, 0, 0);
+      dateEnd = lastDay;
+    }
+    
     this.searchForm.patchValue({
-      dateStart: new Date(new Date()),
-      dateEnd: new Date(),
+      dateStart: dateStart,
+      dateEnd: dateEnd,
       employeeId: 0,
     });
     this.loadFoodOrder();
+  }
+
+  // Helper method để kiểm tra đã qua 10h chưa
+  private isAfter10AM(): boolean {
+    const now = new Date();
+    return now.getHours() >= 10;
+  }
+
+  // Helper method để kiểm tra ngày đặt cơm là hôm nay hoặc ngày đã qua
+  private isTodayOrPastDate(dateOrder: any): boolean {
+    if (!dateOrder) return false;
+    
+    const orderDayMillis = this.getLocalDayMillis(dateOrder);
+    if (orderDayMillis === null) return true; // Không parse được => chặn để an toàn
+    
+    const now = DateTime.local();
+    const todayMillis = now.startOf('day').toMillis();
+    
+    return orderDayMillis <= todayMillis;
   }
 
   @ViewChild(SummaryFoodOrderComponent)

@@ -25,6 +25,7 @@ import * as ExcelJS from 'exceljs';
 import { debounceTime } from 'rxjs/operators';
 import { Subject } from 'rxjs';
 import { DailyReportTechDetailComponent } from './daily-report-tech-detail/daily-report-tech-detail.component';
+import { DailyReportExcelComponent } from '../daily-report-excel/daily-report-excel.component';
 
 @Component({
   selector: 'app-daily-report-tech',
@@ -121,10 +122,16 @@ export class DailyReportTechComponent implements OnInit, AfterViewInit {
     this.drawTbDailyReportTech(this.tb_daily_report_techContainer.nativeElement);
     
     // Load dữ liệu sau khi table đã được khởi tạo
-    // Sử dụng setTimeout để đảm bảo table đã được khởi tạo xong
+    // getCurrentUser() sẽ tự động gọi getDailyReportTechData() khi hoàn thành
+    // Nếu getCurrentUser() đã hoàn thành trước đó, gọi getDailyReportTechData() ngay
     setTimeout(() => {
-      this.getDailyReportTechData();
-    }, 0);
+      // Nếu currentUser đã có sẵn (từ ngOnInit), load ngay
+      // Nếu chưa có, getCurrentUser() sẽ tự động gọi getDailyReportTechData() khi xong
+      if (this.currentUser) {
+        this.getDailyReportTechData();
+      }
+      // Nếu chưa có currentUser, đợi getCurrentUser() callback gọi getDailyReportTechData()
+    }, 100);
   }
 
   getCurrentUser(): void {
@@ -148,9 +155,18 @@ export class DailyReportTechComponent implements OnInit, AfterViewInit {
           // Khi loadUsers() được gọi sau đó, nó sẽ tự động tìm và set lại
           this.userId = 0;
         }
+        
+        // Sau khi có currentUser, load dữ liệu bảng nếu table đã được khởi tạo
+        if (this.tb_daily_report_tech) {
+          this.getDailyReportTechData();
+        }
       } else {
         // Nếu không có currentUser, set về "Tất cả"
         this.userId = 0;
+        // Vẫn load dữ liệu với currentUser = null
+        if (this.tb_daily_report_tech) {
+          this.getDailyReportTechData();
+        }
       }
     });
   }
@@ -338,36 +354,39 @@ export class DailyReportTechComponent implements OnInit, AfterViewInit {
     // Xử lý dateStart - có thể là Date object hoặc ISO string
     let dateStart: DateTime;
     if (this.dateStart instanceof Date) {
-      dateStart = DateTime.fromJSDate(this.dateStart)
-        .set({ hour: 0, minute: 0, second: 0, millisecond: 0 });
+      dateStart = DateTime.fromJSDate(this.dateStart);
     } else if (typeof this.dateStart === 'string') {
-      dateStart = DateTime.fromISO(this.dateStart)
-        .set({ hour: 0, minute: 0, second: 0, millisecond: 0 });
+      dateStart = DateTime.fromISO(this.dateStart);
     } else {
-      dateStart = DateTime.local()
-        .minus({ days: 1 })
-        .set({ hour: 0, minute: 0, second: 0, millisecond: 0 });
+      dateStart = DateTime.local().minus({ days: 1 });
     }
 
     // Xử lý dateEnd - có thể là Date object hoặc ISO string
     let dateEnd: DateTime;
     if (this.dateEnd instanceof Date) {
-      dateEnd = DateTime.fromJSDate(this.dateEnd)
-        .set({ hour: 23, minute: 59, second: 59, millisecond: 999 });
+      dateEnd = DateTime.fromJSDate(this.dateEnd);
     } else if (typeof this.dateEnd === 'string') {
-      dateEnd = DateTime.fromISO(this.dateEnd)
-        .set({ hour: 23, minute: 59, second: 59, millisecond: 999 });
+      dateEnd = DateTime.fromISO(this.dateEnd);
     } else {
-      dateEnd = DateTime.local()
-        .set({ hour: 23, minute: 59, second: 59, millisecond: 999 });
+      dateEnd = DateTime.local();
+    }
+
+    // Xử lý userID an toàn khi currentUser có thể là null
+    let userID = 0;
+    if (this.currentUser) {
+      if (this.currentUser.IsLeader > 1) {
+        userID = this.userId || 0;
+      } else {
+        userID = this.currentUser.ID || 0;
+      }
     }
 
     return {
-      dateStart: dateStart.isValid ? dateStart.toISO() : null,
-      dateEnd: dateEnd.isValid ? dateEnd.toISO() : null,
+      dateStart: dateStart.isValid ? dateStart.toFormat('yyyy-MM-dd') : null, // "2025-12-19"
+      dateEnd: dateEnd.isValid ? dateEnd.toFormat('yyyy-MM-dd') : null, // "2025-12-19"
       departmentID: this.departmentId || 0,
       teamID: this.teamId || 0,
-      userID: this.currentUser?.IsLeader > 1 ? this.userId : this.currentUser.ID  || 0,
+      userID: userID,
       keyword: this.keyword.trim() || '',
     };
   }
@@ -408,7 +427,7 @@ export class DailyReportTechComponent implements OnInit, AfterViewInit {
             formatter: (cell: any) => {
               const value = cell.getValue() || '';
               const dateTime = DateTime.fromISO(value);
-              return dateTime.isValid ? dateTime.toFormat('dd/MM/yyyy') : '';
+              return dateTime.isValid ? dateTime.toFormat('dd/MM/yyyy hh:mm:ss') : '';
             },
             hozAlign: 'center',
             width: 120,
@@ -502,12 +521,12 @@ export class DailyReportTechComponent implements OnInit, AfterViewInit {
             columns: [
             {
               title: 'Ngày bắt đầu',
-              field: 'PlanStartDate',
-              formatter: (cell: any) => {
-                const value = cell.getValue() || '';
-                const dateTime = DateTime.fromISO(value);
-                return dateTime.isValid ? dateTime.toFormat('dd/MM/yyyy') : '';
-              },
+              field: 'PlanStartDate', 
+              // formatter: (cell: any) => {
+              //   const value = cell.getValue() || '';
+              //   const dateTime = DateTime.fromISO(value);
+              //   return dateTime.isValid ? dateTime.toFormat('dd/MM/yyyy') : '';
+              // },
               hozAlign: 'center',
               width: 120,
             },
@@ -520,11 +539,11 @@ export class DailyReportTechComponent implements OnInit, AfterViewInit {
             {
               title: 'Ngày kết thúc',
               field: 'PlanEndDate',
-              formatter: (cell: any) => {
-                const value = cell.getValue() || '';
-                const dateTime = DateTime.fromISO(value);
-                return dateTime.isValid ? dateTime.toFormat('dd/MM/yyyy') : '';
-              },
+              // formatter: (cell: any) => {
+              //   const value = cell.getValue() || '';
+              //   const dateTime = DateTime.fromISO(value);
+              //   return dateTime.isValid ? dateTime.toFormat('dd/MM/yyyy') : '';
+              // },
               hozAlign: 'center',
               width: 120,
             },
@@ -536,11 +555,11 @@ export class DailyReportTechComponent implements OnInit, AfterViewInit {
             {
               title: 'Ngày bắt đầu',
               field: 'ActualStartDate',
-              formatter: (cell: any) => {
-                const value = cell.getValue() || '';
-                const dateTime = DateTime.fromISO(value);
-                return dateTime.isValid ? dateTime.toFormat('dd/MM/yyyy') : '';
-              },
+              // formatter: (cell: any) => {
+              //   const value = cell.getValue() || '';
+              //   const dateTime = DateTime.fromISO(value);
+              //   return dateTime.isValid ? dateTime.toFormat('dd/MM/yyyy') : '';
+              // },
               hozAlign: 'center',
               width: 120,
             },
@@ -553,11 +572,11 @@ export class DailyReportTechComponent implements OnInit, AfterViewInit {
             {
               title: 'Ngày kết thúc',
               field: 'ActualEndDate',
-              formatter: (cell: any) => {
-                const value = cell.getValue() || '';
-                const dateTime = DateTime.fromISO(value);
-                return dateTime.isValid ? dateTime.toFormat('dd/MM/yyyy') : '';
-              },
+              // formatter: (cell: any) => {
+              //   const value = cell.getValue() || '';
+              //   const dateTime = DateTime.fromISO(value);
+              //   return dateTime.isValid ? dateTime.toFormat('dd/MM/yyyy') : '';
+              // },
               hozAlign: 'center',
               width: 120,
             },
@@ -944,7 +963,122 @@ export class DailyReportTechComponent implements OnInit, AfterViewInit {
   }
 
   async exportList(): Promise<void> {
-    await this.exportReport();
+    // Lấy dữ liệu từ filter hiện tại
+    const searchParams = this.getSearchParams();
+    
+    // Validate ngày
+    if (!this.dateStart || !this.dateEnd) {
+      this.notification.warning('Thông báo', 'Vui lòng chọn từ ngày và đến ngày!');
+      return;
+    }
+
+    // Format dates
+    let dateStart: Date;
+    if (this.dateStart instanceof Date) {
+      dateStart = this.dateStart;
+    } else if (typeof this.dateStart === 'string') {
+      dateStart = DateTime.fromISO(this.dateStart).toJSDate();
+    } else {
+      dateStart = DateTime.local().minus({ days: 1 }).toJSDate();
+    }
+
+    let dateEnd: Date;
+    if (this.dateEnd instanceof Date) {
+      dateEnd = this.dateEnd;
+    } else if (typeof this.dateEnd === 'string') {
+      dateEnd = DateTime.fromISO(this.dateEnd).toJSDate();
+    } else {
+      dateEnd = DateTime.local().toJSDate();
+    }
+
+    // Validate ngày
+    if (DateTime.fromJSDate(dateEnd) < DateTime.fromJSDate(dateStart)) {
+      this.notification.warning('Thông báo', 'Đến ngày phải lớn hơn hoặc bằng Từ ngày!');
+      return;
+    }
+
+    // Lấy team ID và tên team
+    const teamId = this.teamId || 0;
+    let teamName = 'All';
+    
+    if (teamId > 0) {
+      const selectedTeam = this.teams.find(team => team.ID === teamId);
+      if (selectedTeam) {
+        teamName = selectedTeam.Name || 'All';
+        // Loại bỏ ký tự đặc biệt trong tên team (giống backend)
+        teamName = teamName.replace(/[^\w\-_\.]/g, '_');
+      }
+    }
+
+    // Format team ID thành string (nếu cần nhiều team, có thể mở rộng sau)
+    const teamIdString = teamId > 0 ? teamId.toString() : '';
+
+    // Gọi API xuất Excel
+    this.dailyReportTechService.exportToExcel({
+      DateStart: dateStart,
+      DateEnd: dateEnd,
+      TeamID: teamIdString,
+      TeamName: teamName
+    }).subscribe({
+      next: (blob: Blob) => {
+        // Kiểm tra xem có phải là blob hợp lệ không
+        if (blob && blob.size > 0) {
+          // Format tên file: DanhSachBaoCaoCongViec_TeamName_ddmmyyyy_ddmmyyyy
+          const dateStartStr = DateTime.fromJSDate(dateStart).toFormat('ddMMyyyy');
+          const dateEndStr = DateTime.fromJSDate(dateEnd).toFormat('ddMMyyyy');
+          const fileName = `DanhSachBaoCaoCongViec_${teamName}_${dateStartStr}_${dateEndStr}.xlsx`;
+
+          // Tạo URL từ blob và download
+          const url = window.URL.createObjectURL(blob);
+          const link = document.createElement('a');
+          link.href = url;
+          link.download = fileName;
+          document.body.appendChild(link);
+          link.click();
+          document.body.removeChild(link);
+          window.URL.revokeObjectURL(url);
+
+          this.notification.success('Thông báo', 'Xuất Excel thành công!');
+        } else {
+          this.notification.error('Thông báo', 'File tải về không hợp lệ!');
+        }
+      },
+      error: (error: any) => {
+        // Xử lý lỗi nếu response là blob (có thể server trả về lỗi dạng blob)
+        if (error.error instanceof Blob) {
+          const reader = new FileReader();
+          reader.onload = () => {
+            try {
+              const errorText = JSON.parse(reader.result as string);
+              this.notification.error(
+                'Thông báo', 
+                errorText.message || errorText.Message || 'Có lỗi xảy ra khi xuất Excel!'
+              );
+            } catch {
+              this.notification.error('Thông báo', 'Có lỗi xảy ra khi xuất Excel!');
+            }
+          };
+          reader.readAsText(error.error);
+        } else {
+          const errorMsg = error?.error?.message || error?.message || 'Có lỗi xảy ra khi xuất Excel!';
+          this.notification.error('Thông báo', errorMsg);
+        }
+        console.error('Error exporting Excel:', error);
+      }
+    });
+  }
+  async exportReportTeam(): Promise<void> {
+    const modalRef = this.modalService.open(DailyReportExcelComponent, {
+      size: 'xl',
+      backdrop: 'static',
+      keyboard: true,
+      centered: false,
+    });
+    modalRef.componentInstance.teams = this.teams;
+    modalRef.componentInstance.currentUser = this.currentUser;
+    modalRef.componentInstance.projects = this.projects;
+    modalRef.componentInstance.projectItems = [];
+    modalRef.componentInstance.projectItems = [];
   }
 
   createdText(text: string): string {

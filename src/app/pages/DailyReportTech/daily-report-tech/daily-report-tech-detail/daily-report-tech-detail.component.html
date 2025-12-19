@@ -1,6 +1,6 @@
 <div class="modal-header bg-primary p-2">
     <h6 class="modal-title text-white text-uppercase">Báo cáo công việc</h6>
-    <button type="button" class="btn-close" aria-label="Close" (click)="close()"></button>
+    <button type="button" class="btn-close me-1" aria-label="Close" (click)="close()"></button>
 </div>
 
 <div class="modal-body p-2">
@@ -28,7 +28,7 @@
             <!-- Ngày báo cáo: Mobile 12, Tablet 12, Desktop 6 -->
             <nz-col [nzXs]="12" [nzSm]="12" [nzMd]="6" [nzLg]="6" [nzXl]="6">
                 <nz-form-item>
-                    <nz-form-label class="fs-12 p-0">Ngày báo cáo<span class="text-danger ps-1">(*)
+                    <nz-form-label class="fs-12 p-0">Ngày báo cáo<span class="text-danger ps-1">*
                         </span></nz-form-label>
                     <nz-form-control [nzSpan]="24" [nzErrorTip]="
               formGroup.get('DateReport')?.hasError('required') &&
@@ -46,7 +46,7 @@
                 <nz-form-item>
                     <nz-form-label class="fs-12 p-0" [style.visibility]="'hidden'">.</nz-form-label>
                     <nz-form-control [nzSpan]="24">
-                        <button nz-button nzType="primary" nzSize="small" class="w-100">
+                        <button nz-button nzType="primary" nzSize="default" class="w-100" (click)="openOverTimeModal()">
                             Làm thêm
                         </button>
                     </nz-form-control>
@@ -67,7 +67,7 @@
                     <nz-row [nzGutter]="16" class="p-2">
                         <nz-col [nzSpan]="24">
                             <nz-form-item>
-                                <nz-form-label class="fs-12 p-0">Dự án<span class="text-danger ps-1">(*)
+                                <nz-form-label class="fs-12 p-0">Dự án<span class="text-danger ps-1">*
                                     </span></nz-form-label>
                                 <nz-form-control [nzSpan]="24">
                                     <nz-select [ngModel]="project.ProjectID"
@@ -103,8 +103,12 @@
                                     <nz-col [nzXs]="24" [nzSm]="24" [nzMd]="12" [nzLg]="12" [nzXl]="12">
                                         <nz-form-item>
                                             <nz-form-label class="fs-12 p-0">Hạng mục công việc<span
-                                                    class="text-danger ps-1">(*)
+                                                    class="text-danger ps-1">*
                                                 </span></nz-form-label>
+                                            <button class="p-0 m-0 px-1 fs-12 h-auto" nz-button nzType="text"
+                                                nzSize="small" title="Thêm loại họp" (click)="onAddProjectItem()">
+                                                <i class="fas fa-plus"></i>
+                                            </button>
                                             <nz-form-control [nzSpan]="24">
                                                 <nz-select [(ngModel)]="item.ProjectItemID"
                                                     (ngModelChange)="onProjectItemChange(projectList.indexOf(project) + 1, $index + 1, $event)"
@@ -124,8 +128,7 @@
                                     <!-- Tổng số giờ: Mobile 12, Desktop 4 -->
                                     <nz-col [nzXs]="12" [nzSm]="12" [nzMd]="4" [nzLg]="4" [nzXl]="4">
                                         <nz-form-item>
-                                            <nz-form-label class="fs-12 p-0">Tổng số giờ<span
-                                                    class="text-danger ps-1">(*)
+                                            <nz-form-label class="fs-12 p-0">Tổng số giờ<span class="text-danger ps-1">*
                                                 </span></nz-form-label>
                                             <nz-form-control [nzSpan]="24">
                                                 <nz-input-number [(ngModel)]="item.TotalHours"
@@ -149,7 +152,7 @@
                                     <nz-col [nzXs]="12" [nzSm]="12" [nzMd]="4" [nzLg]="4" [nzXl]="4">
                                         <nz-form-item>
                                             <nz-form-label class="fs-12 p-0">% Hoàn thành<span
-                                                    class="text-danger ps-1">(*)
+                                                    class="text-danger ps-1">*
                                                 </span></nz-form-label>
                                             <nz-form-control [nzSpan]="24">
                                                 <nz-input-number [(ngModel)]="item.PercentComplete"
@@ -165,8 +168,7 @@
                                     <!-- Nội dung công việc: Mobile 12 (2 cột/dòng), Desktop 12 -->
                                     <nz-col [nzXs]="12" [nzSm]="12" [nzMd]="12" [nzLg]="12" [nzXl]="12">
                                         <nz-form-item>
-                                            <nz-form-label class="fs-12 p-0">Nội dung cv<span
-                                                    class="text-danger ps-1">(*)
+                                            <nz-form-label class="fs-12 p-0">Nội dung cv<span class="text-danger ps-1">*
                                                 </span></nz-form-label>
                                             <nz-form-control [nzSpan]="24">
                                                 <textarea nz-input [(ngModel)]="item.Content"
@@ -178,7 +180,7 @@
                                     <!-- Kết quả: Mobile 12 (2 cột/dòng), Desktop 12 -->
                                     <nz-col [nzXs]="12" [nzSm]="12" [nzMd]="12" [nzLg]="12" [nzXl]="12">
                                         <nz-form-item>
-                                            <nz-form-label class="fs-12 p-0">Kết quả<span class="text-danger ps-1">(*)
+                                            <nz-form-label class="fs-12 p-0">Kết quả<span class="text-danger ps-1">*
                                                 </span></nz-form-label>
                                             <nz-form-control [nzSpan]="24">
                                                 <textarea nz-input [(ngModel)]="item.Results"
@@ -200,7 +202,7 @@
         <!-- Dòng 2.5: Nơi làm việc (fieldset) -->
         <fieldset class="mt-2 border p-2" style="border-radius: 4px;">
             <legend class="fs-12 mb-2" style="width: auto; padding: 0 10px;">
-                <span>Nơi làm việc<span class="text-danger ps-1">(*)</span></span>
+                <span>Nơi làm việc<span class="text-danger ps-1">*</span></span>
             </legend>
             <div class="p-2">
                 <nz-row [nzGutter]="16">
@@ -208,7 +210,7 @@
                     <nz-col [nzXs]="24" [nzSm]="24" [nzMd]="12" [nzLg]="12" [nzXl]="12">
                         <nz-form-item>
                             <nz-form-control [nzSpan]="24">
-                                <nz-radio-group [(ngModel)]="workLocation" 
+                                <nz-radio-group [(ngModel)]="workLocation"
                                     (ngModelChange)="onWorkLocationChange($event)"
                                     [ngModelOptions]="{standalone: true}">
                                     <label nz-radio [nzValue]="1">VP RTC</label>
@@ -221,10 +223,8 @@
                     <nz-col [nzXs]="24" [nzSm]="24" [nzMd]="12" [nzLg]="12" [nzXl]="12">
                         <nz-form-item>
                             <nz-form-control [nzSpan]="24">
-                                <input nz-input [(ngModel)]="workLocationText"
-                                    [ngModelOptions]="{standalone: true}"
-                                    [disabled]="workLocation === 1"
-                                    placeholder="Nhập nơi làm việc..." class="w-100" />
+                                <input nz-input [(ngModel)]="workLocationText" [ngModelOptions]="{standalone: true}"
+                                    [disabled]="workLocation === 1" placeholder="Nhập nơi làm việc..." class="w-100" />
                             </nz-form-control>
                         </nz-form-item>
                     </nz-col>
@@ -297,7 +297,7 @@
 
         <!-- Dòng 4: Kế hoạch ngày tiếp theo -->
         <nz-form-item class="mt-2">
-            <nz-form-label class="fs-12 p-0">Kế hoạch ngày tiếp theo<span class="text-danger ps-1">(*)
+            <nz-form-label class="fs-12 p-0">Kế hoạch ngày tiếp theo<span class="text-danger ps-1">*
                 </span></nz-form-label>
             <nz-form-control [nzSpan]="24">
                 <textarea nz-input [(ngModel)]="planNextDay" [ngModelOptions]="{standalone: true}" rows="3"

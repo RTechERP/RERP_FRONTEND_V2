@@ -97,33 +97,34 @@
       <div class="card h-100 border-0 rounded-0">
         <div class="card-header bg-white p-1">
           <div class="d-flex gap-1 align-items-center justify-content-between">
-            <div class="d-flex gap-1 align-items-center">
-              <button nz-button nzType="default" nzSize="small" (click)="toggleSearchPanel()">
-                <nz-icon nzType="search" />
-              </button>
-              <button nz-button class="btn-add" nzType="default" nzSize="small" (click)="openAddModal()">
-                <img src="assets/icon/action_add_item_16.png" alt="Thêm" />
-                Thêm
-              </button>
-              <button nz-button class="btn-edit" nzType="default" nzSize="small" (click)="openEditModal()">
-                <img src="assets/icon/action_edit_item_16.png" alt="Sửa" />
-                Sửa
-              </button>
-              <button nz-button class="btn-edit" nzType="default" nzSize="small" (click)="openViewVehicleModal()">
-                <img src="assets/icon/btn_veiw_16.png" alt="Sửa" />
-                Xem
-              </button>
-              <button nz-button class="btn-delete" nzType="default" nzSize="small" (click)="openDeleteModal()">
-                <img src="assets/icon/action_delete_item_16.png" alt="Xóa" />
-                Xóa
-              </button>
-              <button class="btn-add" nz-button nzType="default" nzSize="small" (click)="openCopyModal()">
-                <img src="assets/icon/btn_copy_16.png" alt="Copy" />
-                Copy
-              </button>
-            
+            <div class="employee-register-bussiness-actions-scroll">
+              <div class="d-flex gap-1 align-items-center employee-register-bussiness-actions">
+                <button nz-button nzType="default" nzSize="small" (click)="toggleSearchPanel()">
+                  <nz-icon nzType="search" />
+                </button>
+                <button nz-button class="btn-add" nzType="default" nzSize="small" (click)="openAddModal()">
+                  <img src="assets/icon/action_add_item_16.png" alt="Thêm" />
+                  Thêm
+                </button>
+                <button nz-button class="btn-edit" nzType="default" nzSize="small" (click)="openEditModal()">
+                  <img src="assets/icon/action_edit_item_16.png" alt="Sửa" />
+                  Sửa
+                </button>
+                <button nz-button class="btn-edit" nzType="default" nzSize="small" (click)="openViewVehicleModal()">
+                  <img src="assets/icon/btn_veiw_16.png" alt="Xem" />
+                  Xem
+                </button>
+                <button nz-button class="btn-delete" nzType="default" nzSize="small" (click)="openDeleteModal()">
+                  <img src="assets/icon/action_delete_item_16.png" alt="Xóa" />
+                  Xóa
+                </button>
+                <button class="btn-add" nz-button nzType="default" nzSize="small" (click)="openCopyModal()">
+                  <img src="assets/icon/btn_copy_16.png" alt="Copy" />
+                  Copy
+                </button>
+              </div>
             </div>
-            <div class="d-flex gap-1 align-items-center">
+            <div class="d-flex gap-1 align-items-center employee-register-bussiness-search">
               <input
                 nz-input
                 nzSize="small"
@@ -131,7 +132,7 @@
                 [value]="searchForm.get('keyWord')?.value || ''"
                 (input)="searchForm.patchValue({ keyWord: $any($event.target).value })"
                 (keyup.enter)="loadEmployeeBussinessPerson()"
-                style="width: 250px;"
+                class="employee-register-bussiness-search-input"
               />
               <button nz-button nzType="default" nzSize="small" (click)="loadEmployeeBussinessPerson()">
                 <nz-icon nzType="search" />

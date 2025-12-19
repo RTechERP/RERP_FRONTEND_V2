@@ -49,6 +49,7 @@ import { UpdateVehicleMoneyFormComponent } from './update-vehicle-money-form/upd
 import { NzInputNumberModule } from 'ng-zorro-antd/input-number';
 import { VehicleBookingManagementDetailComponent } from './vehicle-booking-management-detail/vehicle-booking-management-detail.component';
 import { AppUserService } from '../../../../services/app-user.service';
+import { PermissionService } from '../../../../services/permission.service';
 @Component({
   selector: 'app-vehicle-booking-management',
   imports: [
@@ -92,6 +93,7 @@ export class VehicleBookingManagementComponent
     private cdRef: ChangeDetectorRef,
     private authService: AuthService,
     private appUserService: AppUserService,
+    private permissionService: PermissionService,
     private viewContainerRef: ViewContainerRef,
     private appRef: ApplicationRef,
     private injector: EnvironmentInjector
@@ -145,16 +147,28 @@ export class VehicleBookingManagementComponent
     { Category: 7, CategoryText: 'Đăng ký lấy hàng Demo/triển Lãm' },
     { Category: 8, CategoryText: 'Đăng ký giao hàng Demo/triển lãm' },
   ];
+
   lstStatus = [
     { Status: 0, StatusText: 'Tất cả' },
     { Status: 1, StatusText: 'Chờ xếp' },
     { Status: 2, StatusText: 'Đã xếp' },
     { Status: 4, StatusText: 'Chủ động phương tiện' },
   ];
+
+  
   //#region chạy khi mở chương trình
   currentUser: any = null;
   isAdmin: boolean = false;
   isEmployeeSelectDisabled: boolean = false;
+
+  // Kiểm tra quyền
+  private hasAdminOrSpecialPermissions(): boolean {
+    if (this.isAdmin) {
+      return true;
+    }
+    const specialPermissions = ['N2', 'N34', 'N1', 'N71'];
+    return this.permissionService.hasAnyPermission(specialPermissions);
+  }
 
   ngOnInit() {
     this.getCurrentUser();
@@ -172,8 +186,9 @@ export class VehicleBookingManagementComponent
   getCurrentUser() {
     this.isAdmin = this.appUserService.isAdmin;
     const employeeID = this.appUserService.employeeID;
+    const hasSpecialPermission = this.hasAdminOrSpecialPermissions();
     
-    if (!this.isAdmin && employeeID) {
+    if (!hasSpecialPermission && employeeID) {
       this.employeeId = employeeID;
       this.isEmployeeSelectDisabled = true;
     } else {
@@ -239,7 +254,8 @@ export class VehicleBookingManagementComponent
     this.checked = false;
     this.keyWord = '';
     
-    if (!this.isAdmin) {
+    const hasSpecialPermission = this.hasAdminOrSpecialPermissions();
+    if (!hasSpecialPermission) {
       const employeeID = this.appUserService.employeeID;
       this.employeeId = employeeID || 0;
     } else {

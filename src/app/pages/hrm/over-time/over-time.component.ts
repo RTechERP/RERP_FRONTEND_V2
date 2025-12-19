@@ -31,6 +31,7 @@ import { OverTimeTypeComponent } from "./over-time-type/over-time-type.component
 import { SummaryOverTimeComponent } from './summary-over-time/summary-over-time.component';
 import { HasPermissionDirective } from '../../../directives/has-permission.directive';
 import { NOTIFICATION_TITLE } from '../../../app.config';
+import { AuthService } from '../../../auth/auth.service';
 
 
 @Component({
@@ -74,18 +75,32 @@ export class OverTimeComponent implements OnInit, AfterViewInit {
   selectedOverTime: any = null;
   overTimeDetailData: any[] = [];
   isLoading = false;
+  currentUser: any = null;
+
   constructor(
     private fb: FormBuilder,
     private notification: NzNotificationService,
     private modal: NzModalService,
     private departmentService: DepartmentServiceService,
-    private overTimeService: OverTimeService
+    private overTimeService: OverTimeService,
+    private authService: AuthService
   ) { }
 
   ngOnInit() {
     this.initializeForm();
     this.loadDepartment();
     this.loadEmployeeOverTime();
+    this.loadDepartment();
+    this.loadEmployeeOverTime();
+    this.getCurrentUser();
+  }
+
+  getCurrentUser() {
+    this.authService.getCurrentUser().subscribe((res: any) => {
+      if (res && res.status === 1 && res.data) {
+        this.currentUser = Array.isArray(res.data) ? res.data[0] : res.data;
+      }
+    });
   }
 
   ngAfterViewInit(): void {
@@ -545,11 +560,9 @@ export class OverTimeComponent implements OnInit, AfterViewInit {
               updateData.IsApproved = isApproved;
             } else {
               updateData.IsApprovedHR = isApproved;
-              // Có thể thêm thông tin người duyệt HR nếu cần
-              // if (isApproved) {
-              //   updateData.ApprovedHRID = this.getCurrentEmployeeId();
-              //   updateData.ApprovedHRDate = new Date();
-              // }
+              if (isApproved) {
+                updateData.ApprovedHR = this.currentUser?.EmployeeID;
+              }
             }
 
             return updateData;
@@ -582,7 +595,7 @@ export class OverTimeComponent implements OnInit, AfterViewInit {
   }
 
 
-  resetSearch(){
+  resetSearch() {
     this.initializeForm();
     this.loadEmployeeOverTime();
   }

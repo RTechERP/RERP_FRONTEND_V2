@@ -109,29 +109,36 @@ export class VehicleBookingFileImagesFormComponent implements OnInit, AfterViewI
     }
   }
   getListImage() {
-    this.listID = []; // Reset listID trước khi convert
+    this.listID = []; 
     this.convertProjectToList();
-    console.log("listID", this.listID);
     this.loading = true;
     this.vehicleBookingManagementService.getListImage(this.listID).subscribe({
       next: (response: any) => {
-        console.log("response.data", response.data);
-        this.vehicleImageList = response.data || [];
-        // Cập nhật dữ liệu vào bảng đã khởi tạo
-        if (this.tb_ExportVehicleSchedule) {
-          this.tb_ExportVehicleSchedule.setData(this.vehicleImageList);
+        try {
+          let imageData = [];
+          if (response?.data?.data && Array.isArray(response.data.data)) {
+            imageData = response.data.data;
+          } else if (response?.data && Array.isArray(response.data)) {
+            imageData = response.data;
+          } else {
+          }
+          this.vehicleImageList = imageData;
+          if (this.tb_ExportVehicleSchedule) {
+            this.tb_ExportVehicleSchedule.setData(this.vehicleImageList);
+          } 
+        } catch (error) {
+          this.vehicleImageList = [];
+        } finally {
+          this.loading = false;
         }
-        this.loading = false;
       },
       error: (error: any) => {
-        console.error('Lỗi:', error);
         this.loading = false;
         this.vehicleImageList = [];
-        // Cập nhật bảng với dữ liệu rỗng
         if (this.tb_ExportVehicleSchedule) {
           this.tb_ExportVehicleSchedule.setData([]);
         }
-        this.notification.error('Thông báo', 'Lỗi khi tải ảnh kiện hàng!');
+        this.notification.error('Thông báo', error.error.message || 'Lỗi khi tải ảnh kiện hàng!');
       }
     });
   }

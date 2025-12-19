@@ -80,6 +80,7 @@ export class ProjectPartlistDetailComponent implements OnInit, AfterViewInit {
   currentPartListId: number = 0; // Lưu trữ ID của partlist đang edit
   hasDataChanged: boolean = false; // Flag để track xem có thay đổi dữ liệu hay không (mã đặc biệt)
   
+  diffDataIsFix: any = {};
   // Regex pattern cho TT
   private regexTT = /^\d+(\.\d+)*$/;
   
@@ -731,7 +732,6 @@ export class ProjectPartlistDetailComponent implements OnInit, AfterViewInit {
     const dataToSave: any = {
       // ID - nếu đang edit thì có ID, thêm mới thì = 0
       ID: this.currentPartListId || 0,
-      
       // Tab 1: Thông tin chung
       ProjectID: formValue.projectId || null,
       ProjectPartListVersionID: formValue.versionId || null,
@@ -777,12 +777,19 @@ export class ProjectPartlistDetailComponent implements OnInit, AfterViewInit {
   }
 
   // Hàm thực hiện lưu dữ liệu
-  executeSave(dataToSave: any, overrideFix: boolean = false): void {
+  executeSave(dataToSave: any, overrideFix: boolean = false, isConfirm: boolean = false): void {
+    if(isConfirm){
+      dataToSave.GroupMaterial = this.diffDataIsFix.ProductName || "";
+      dataToSave.Manufacturer = this.diffDataIsFix.Maker ||  "";
+      dataToSave.Unit = this.diffDataIsFix.Unit || "";
+    }
     this.projectPartListService.saveProjectPartListData(dataToSave, overrideFix).subscribe({
       next: (response: any) => {
         // Kiểm tra nếu có lỗi ValidateFixProduct (status = 0 hoặc success = false)
         if (response.status === 0 || response.success === false) {
           // Hiển thị modal xác nhận với 3 options
+          this.diffDataIsFix = response.data;
+          console.log("diffDataIsFix", this.diffDataIsFix);
           this.showValidateFixProductModal(response.message || 'Có lỗi xảy ra khi lưu dữ liệu!', dataToSave);
           return;
         }
@@ -820,7 +827,7 @@ export class ProjectPartlistDetailComponent implements OnInit, AfterViewInit {
           type: 'primary',
           onClick: () => {
             modalRef.close();
-            this.activeModal.dismiss();
+            this.executeSave(dataToSave, true, true);
           }
         },
         {
@@ -828,7 +835,7 @@ export class ProjectPartlistDetailComponent implements OnInit, AfterViewInit {
           nzType: 'warning',
           onClick: () => {
             modalRef.close();
-            this.executeSave(dataToSave, true);
+            this.executeSave(dataToSave, true, false);
           }
         },
         {

@@ -795,7 +795,15 @@ export class ImportExcelPartlistComponent implements OnInit, AfterViewInit {
   }
   checkExistData() {
     const hasDiff = this.diffs && this.diffs.length > 0;
-  
+    debugger;
+  if( this.isProblemRow == true || this.isUpdate == true) {
+    if(hasDiff){
+      this.onConfirmDiff();
+    } else {
+      this.applyDiff(this.validDataToSaveForDiff, []);
+    }
+    return;
+  }
     this.partlistService.checkExist(this.checkPayload).subscribe({
       next: (res: any) => {
   

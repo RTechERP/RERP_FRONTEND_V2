@@ -15,7 +15,7 @@ export class BonusCoefficientService {
       params: {
         quarter: quarter,
         year: year,
-        groupSaleId: groupSaleId
+        groupId: groupSaleId
       }
     });
   }

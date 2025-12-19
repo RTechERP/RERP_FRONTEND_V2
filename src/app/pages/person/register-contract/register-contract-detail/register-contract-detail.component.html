@@ -1,0 +1,259 @@
+<div class="modal-header bg-primary p-2">
+    <h6 class="modal-title text-white text-uppercase">Đăng ký hợp đồng</h6>
+    <button type="button" class="btn-close me-1" aria-label="Close" (click)="close()"></button>
+</div>
+
+<div class="modal-body p-2">
+    <form nz-form [formGroup]="formGroup" nzLayout="vertical" class="fs-7">
+        <!-- Dòng 1: Người đăng ký (*), Bộ phận (*), Tên công ty (*) -->
+        <nz-row [nzGutter]="16">
+            <!-- Người đăng ký: Desktop 8 -->
+            <nz-col [nzXs]="24" [nzSm]="24" [nzMd]="8" [nzLg]="8" [nzXl]="8">
+                <nz-form-item>
+                    <nz-form-label class="fs-12 p-0">
+                        Người đăng ký<span class="text-danger ps-1">*</span>
+                    </nz-form-label>
+                    <nz-form-control [nzSpan]="24" [nzErrorTip]="
+              formGroup.get('EmployeeID')?.hasError('required') &&
+              (formGroup.get('EmployeeID')?.dirty ||
+                formGroup.get('EmployeeID')?.touched)
+                ? 'Vui lòng chọn người đăng ký!'
+                : undefined
+            ">
+                        <nz-select formControlName="EmployeeID" class="w-100" nzPlaceHolder="Chọn người đăng ký"
+                            nzShowSearch nzAllowClear [nzDisabled]="true">
+                            @for (parent of employees; track $index) {
+                            <nz-option-group [nzLabel]="parent.label">
+                                @for (child of parent.options; track $index) {
+                                <nz-option nzCustomContent="true"
+                                    [nzLabel]="child.item?.Code + ' - ' + child.item?.FullName"
+                                    [nzValue]="child.item.ID">
+                                    {{ child.item.Code + " - " + child.item.FullName }}
+                                </nz-option>
+                                }
+                            </nz-option-group>
+                            }
+                        </nz-select>
+                    </nz-form-control>
+                </nz-form-item>
+            </nz-col>
+
+            <!-- Bộ phận: Desktop 8 -->
+            <nz-col [nzXs]="24" [nzSm]="24" [nzMd]="8" [nzLg]="8" [nzXl]="8">
+                <nz-form-item>
+                    <nz-form-label class="fs-12 p-0">
+                        Bộ phận<span class="text-danger ps-1">*</span>
+                    </nz-form-label>
+                    <nz-form-control [nzSpan]="24" [nzErrorTip]="
+              formGroup.get('DepartmentID')?.hasError('required') &&
+              (formGroup.get('DepartmentID')?.dirty ||
+                formGroup.get('DepartmentID')?.touched)
+                ? 'Vui lòng chọn bộ phận!'
+                : undefined
+            ">
+                        <nz-select formControlName="DepartmentID" class="w-100" nzPlaceHolder="Chọn bộ phận"
+                            nzShowSearch nzAllowClear [nzDisabled]="true">
+                            @for (dept of departments; track dept.ID) {
+                            <nz-option [nzLabel]="dept.Name" [nzValue]="dept.ID"></nz-option>
+                            }
+                        </nz-select>
+                    </nz-form-control>
+                </nz-form-item>
+            </nz-col>
+
+            <!-- Tên công ty: Desktop 8 -->
+            <nz-col [nzXs]="24" [nzSm]="24" [nzMd]="8" [nzLg]="8" [nzXl]="8">
+                <nz-form-item>
+                    <nz-form-label class="fs-12 p-0">
+                        Tên công ty<span class="text-danger ps-1">*</span>
+                    </nz-form-label>
+                    <nz-form-control [nzSpan]="24" [nzErrorTip]="
+              formGroup.get('TaxCompanyID')?.hasError('required') &&
+              (formGroup.get('TaxCompanyID')?.dirty ||
+                formGroup.get('TaxCompanyID')?.touched)
+                ? 'Vui lòng chọn công ty!'
+                : undefined
+            ">
+                        <nz-select formControlName="TaxCompanyID" class="w-100" nzPlaceHolder="Chọn công ty" nzShowSearch
+                            nzAllowClear>
+                            @for (company of companies; track company.ID) {
+                            <nz-option [nzLabel]="company.Name" [nzValue]="company.ID"></nz-option>
+                            }
+                        </nz-select>
+                    </nz-form-control>
+                </nz-form-item>
+            </nz-col>
+        </nz-row>
+
+        <!-- Dòng 2: Loại hồ sơ (*), Ngày đăng ký (*), Người nhận (*) -->
+        <nz-row [nzGutter]="16" class="mt-2">
+            <!-- Loại hồ sơ: Desktop 8 -->
+            <nz-col [nzXs]="24" [nzSm]="24" [nzMd]="8" [nzLg]="8" [nzXl]="8">
+                <nz-form-item>
+                    <nz-form-label class="fs-12 p-0">
+                        Loại hồ sơ<span class="text-danger ps-1">*</span>
+                    </nz-form-label>
+                    <nz-form-control [nzSpan]="24" [nzErrorTip]="
+              formGroup.get('ContractTypeID')?.hasError('required') &&
+              (formGroup.get('ContractTypeID')?.dirty ||
+                formGroup.get('ContractTypeID')?.touched)
+                ? 'Vui lòng chọn loại hồ sơ!'
+                : undefined
+            ">
+                        <nz-select formControlName="ContractTypeID" class="w-100" nzPlaceHolder="Chọn loại hồ sơ"
+                            nzShowSearch nzAllowClear>
+                            @for (type of contractTypes; track type.ID) {
+                            <nz-option [nzLabel]="type.Name" [nzValue]="type.ID"></nz-option>
+                            }
+                        </nz-select>
+                    </nz-form-control>
+                </nz-form-item>
+            </nz-col>
+
+            <!-- Ngày đăng ký: Desktop 8 -->
+            <nz-col [nzXs]="24" [nzSm]="24" [nzMd]="8" [nzLg]="8" [nzXl]="8">
+                <nz-form-item>
+                    <nz-form-label class="fs-12 p-0">
+                        Ngày đăng ký<span class="text-danger ps-1">*</span>
+                    </nz-form-label>
+                    <nz-form-control [nzSpan]="24" [nzErrorTip]="
+              formGroup.get('RegistedDate')?.hasError('required') &&
+              (formGroup.get('RegistedDate')?.dirty ||
+                formGroup.get('RegistedDate')?.touched)
+                ? 'Vui lòng chọn ngày đăng ký!'
+                : undefined
+            ">
+                        <nz-date-picker formControlName="RegistedDate" class="w-100" nzFormat="dd/MM/yyyy"
+                            nzPlaceHolder="Chọn ngày đăng ký"></nz-date-picker>
+                    </nz-form-control>
+                </nz-form-item>
+            </nz-col>
+
+            <!-- Người nhận: Desktop 8 -->
+            <nz-col [nzXs]="24" [nzSm]="24" [nzMd]="8" [nzLg]="8" [nzXl]="8">
+                <nz-form-item>
+                    <nz-form-label class="fs-12 p-0">
+                        Người nhận<span class="text-danger ps-1">*</span>
+                    </nz-form-label>
+                    <nz-form-control [nzSpan]="24" [nzErrorTip]="
+              formGroup.get('EmployeeReciveID')?.hasError('required') &&
+              (formGroup.get('EmployeeReciveID')?.dirty ||
+                formGroup.get('EmployeeReciveID')?.touched)
+                ? 'Vui lòng chọn người nhận!'
+                : undefined
+            ">
+                        <nz-select formControlName="EmployeeReciveID" class="w-100" nzPlaceHolder="Chọn người nhận"
+                            nzShowSearch nzAllowClear>
+                            @for (parent of employees; track $index) {
+                            <nz-option-group [nzLabel]="parent.label">
+                                @for (child of parent.options; track $index) {
+                                <nz-option nzCustomContent="true"
+                                    [nzLabel]="child.item?.Code + ' - ' + child.item?.FullName"
+                                    [nzValue]="child.item.ID">
+                                    {{ child.item.Code + " - " + child.item.FullName }}
+                                </nz-option>
+                                }
+                            </nz-option-group>
+                            }
+                        </nz-select>
+                    </nz-form-control>
+                </nz-form-item>
+            </nz-col>
+        </nz-row>
+
+        <!-- Dòng 3: Loại văn bản (*), Số lượng bản (*), Tên văn bản (*) -->
+        <nz-row [nzGutter]="16" class="mt-2">
+            <!-- Loại văn bản: Desktop 8 -->
+            <nz-col [nzXs]="24" [nzSm]="24" [nzMd]="8" [nzLg]="8" [nzXl]="8">
+                <nz-form-item>
+                    <nz-form-label class="fs-12 p-0">
+                        Loại văn bản<span class="text-danger ps-1">*</span>
+                    </nz-form-label>
+                    <nz-form-control [nzSpan]="24" [nzErrorTip]="
+              formGroup.get('DocumentTypeID')?.hasError('required') &&
+              (formGroup.get('DocumentTypeID')?.dirty ||
+                formGroup.get('DocumentTypeID')?.touched)
+                ? 'Vui lòng chọn loại văn bản!'
+                : undefined
+            ">
+                        <nz-select formControlName="DocumentTypeID" class="w-100" nzPlaceHolder="Chọn loại văn bản">
+                            @for (type of documentTypes; track type.ID) {
+                            <nz-option [nzLabel]="type.Name" [nzValue]="type.ID"></nz-option>
+                            }
+                        </nz-select>
+                    </nz-form-control>
+                </nz-form-item>
+            </nz-col>
+
+            <!-- Số lượng bản: Desktop 8 -->
+            <nz-col [nzXs]="24" [nzSm]="24" [nzMd]="8" [nzLg]="8" [nzXl]="8">
+                <nz-form-item>
+                    <nz-form-label class="fs-12 p-0">
+                        Số lượng bản<span class="text-danger ps-1">*</span>
+                    </nz-form-label>
+                    <nz-form-control [nzSpan]="24" [nzErrorTip]="
+              formGroup.get('DocumentQuantity')?.hasError('required') &&
+              (formGroup.get('DocumentQuantity')?.dirty ||
+                formGroup.get('DocumentQuantity')?.touched)
+                ? 'Vui lòng nhập số lượng!'
+                : undefined
+            ">
+                        <nz-input-number formControlName="DocumentQuantity" [nzMin]="1" [nzMax]="100" [nzStep]="1"
+                            class="w-100" nzPlaceHolder="Nhập số lượng"></nz-input-number>
+                    </nz-form-control>
+                </nz-form-item>
+            </nz-col>
+
+            <!-- Tên văn bản: Desktop 8 -->
+            <nz-col [nzXs]="24" [nzSm]="24" [nzMd]="8" [nzLg]="8" [nzXl]="8">
+                <nz-form-item>
+                    <nz-form-label class="fs-12 p-0">
+                        Tên văn bản<span class="text-danger ps-1">*</span>
+                    </nz-form-label>
+                    <nz-form-control [nzSpan]="24" [nzErrorTip]="
+              formGroup.get('DocumentName')?.hasError('required') &&
+              (formGroup.get('DocumentName')?.dirty ||
+                formGroup.get('DocumentName')?.touched)
+                ? 'Vui lòng nhập tên văn bản!'
+                : undefined
+            ">
+                        <input nz-input formControlName="DocumentName" class="w-100" placeholder="Nhập tên văn bản" />
+                    </nz-form-control>
+                </nz-form-item>
+            </nz-col>
+        </nz-row>
+
+        <!-- Dòng 4: File Scan và Checkbox Đã Scan -->
+        <nz-row [nzGutter]="16" class="mt-2">
+            <!-- Đường dẫn file Scan chiếm cả dòng với Checkbox -->
+            <nz-col [nzSpan]="24">
+                <nz-form-item>
+                    <nz-form-label class="fs-12 p-0">Đường dẫn file Scan</nz-form-label>
+                    <nz-form-control [nzSpan]="24">
+                        <div class="input-group">
+                            <div class="input-group-prepend">
+                                <div class="input-group-text py-0 px-2 form-control form-control-sm"
+                                    style="height: 31px !important">
+                                    <input type="checkbox" [checked]="formGroup.get('IsScan')?.value === true"
+                                        (change)="onIsScanChange($event)" />
+                                </div>
+                            </div>
+                            <input nz-input formControlName="FolderPath" class="form-control form-control-sm"
+                                placeholder="Nhập đường dẫn file scan" />
+                        </div>
+                    </nz-form-control>
+                </nz-form-item>
+            </nz-col>
+        </nz-row>
+    </form>
+</div>
+
+<div class="modal-footer bg-light p-2">
+    <button nz-button nzDanger nzType="default" (click)="close()" [disabled]="saving">
+        Đóng
+    </button>
+    <button nz-button nzType="primary" (click)="saveDailyReport()" [disabled]="saving">
+        <i *ngIf="saving" nz-icon nzType="loading" class="me-2"></i>
+        {{ saving ? "Đang lưu..." : mode === "add" ? "Lưu" : "Cập nhật" }}
+    </button>
+</div>

@@ -166,11 +166,12 @@ export class EmployeeNoFingerprintComponent
           this.departmentList = [];
         }
       },
-      error: (error) => {
+      error: (error: any) => {
         console.error('Load departments error:', error);
+        const errorMessage = error?.error?.message || error?.error?.Message || error?.message || 'Không thể tải danh sách phòng ban .';
         this.notification.error(
           'Lỗi',
-          'Không thể tải danh sách phòng ban. Vui lòng thử lại sau.'
+          errorMessage
         );
         this.departmentList = [];
       },
@@ -189,6 +190,7 @@ export class EmployeeNoFingerprintComponent
 
   private drawTbenf(container: HTMLElement): void {
     console.log('Creating enf table...');
+    const isMobile = window.matchMedia('(max-width: 768px)').matches;
 
     this.tb_ENF = new Tabulator(container, {
       ...DEFAULT_TABLE_CONFIG,
@@ -239,8 +241,9 @@ export class EmployeeNoFingerprintComponent
       },
       ajaxError: (error: any) => {
         console.error('ENF AJAX Error:', error);
+        const errorMessage = error?.error?.message || error?.error?.Message || error?.message || 'Lỗi không xác định';
         this.message.error(
-          'Lỗi khi tải dữ liệu ENF: ' + (error.message || error)
+          'Lỗi khi tải dữ liệu ENF: ' + errorMessage
         );
         return [];
       },
@@ -267,7 +270,7 @@ export class EmployeeNoFingerprintComponent
           Tổng số bản ghi: <span style="color: #1890ff; font-size: 1.05em;">${data.length}</span>
         </div>`;
       },
-      columns: this.getTableColumns(),
+      columns: this.getTableColumns(isMobile),
     } as any);
 
     this.setupTableEvents();
@@ -288,7 +291,8 @@ export class EmployeeNoFingerprintComponent
     ];
   }
 
-  private getTableColumns(): any[] {
+  private getTableColumns(isMobile: boolean = false): any[] {
+    const frozenOn = !isMobile;
     return [
       {
         title: 'TBP Duyệt',
@@ -313,7 +317,7 @@ export class EmployeeNoFingerprintComponent
           }
           return this.formatApprovalBadge(numValue);
         },
-        frozen: true,
+        frozen: frozenOn,
       },
       {
         title: 'HR Duyệt',
@@ -338,7 +342,7 @@ export class EmployeeNoFingerprintComponent
           }
           return this.formatApprovalBadge(numValue);
         },
-        frozen: true,
+        frozen: frozenOn,
       },
       {
         title: 'Mã nhân viên',
@@ -418,8 +422,9 @@ export class EmployeeNoFingerprintComponent
     this.tb_ENF.on('dataLoadError', (error: any) => {
       console.error('ENF Data Load Error:', error);
       this.isLoadTable = false;
+      const errorMessage = error?.error?.message || error?.error?.Message || error?.message || 'Lỗi không xác định';
       this.message.error(
-        'Lỗi khi tải dữ liệu ENF: ' + (error.message || 'Unknown error')
+        'Lỗi khi tải dữ liệu ENF: ' + errorMessage
       );
     });
 
@@ -605,6 +610,14 @@ export class EmployeeNoFingerprintComponent
       return;
     }
 
+    // Kiểm tra trạng thái duyệt
+    if (this.isApproved(enfToEdit)) {
+      this.notification.warning('Thông báo', 'Bản ghi đã được duyệt, không thể chỉnh sửa!', {
+        nzStyle: { fontSize: '0.75rem' },
+      });
+      return;
+    }
+
     const modalRef = this.ngbModal.open(ENFDetailComponent, {
       size: 'lg',
       backdrop: 'static',
@@ -637,16 +650,12 @@ export class EmployeeNoFingerprintComponent
     }
 
     // Kiểm tra trạng thái duyệt
-    const approvedRows = selectedRows.filter(
-      (row) =>
-        row.StatusText === 'Đã duyệt' ||
-        row.StatusHRText === 'Đã duyệt' ||
-        row.IsApprovedBGDText === 'Đã duyệt'
-    );
+    const approvedRows = selectedRows.filter((row) => this.isApproved(row));
     if (approvedRows.length > 0) {
+      const fullNames = approvedRows.map(row => row['FullName'] || 'N/A').join(', ');
       this.notification.warning(
         'Thông báo',
-        'Có bản ghi đã được duyệt. Vui lòng hủy duyệt trước khi xóa!'
+        `Bản ghi đã được duyệt, không thể xóa:\n${fullNames}`
       );
       return;
     }
@@ -701,7 +710,7 @@ export class EmployeeNoFingerprintComponent
           else failedCount++;
           deleteNext(index + 1);
         },
-        error: (err) => {
+        error: (error: any) => {
           failedCount++;
           deleteNext(index + 1);
         },
@@ -846,7 +855,7 @@ export class EmployeeNoFingerprintComponent
           else failedCount++;
           approveNext(index + 1);
         },
-        error: () => {
+        error: (error: any) => {
           failedCount++;
           approveNext(index + 1);
         },
@@ -994,7 +1003,7 @@ export class EmployeeNoFingerprintComponent
           else failedCount++;
           approveNext(index + 1);
         },
-        error: () => {
+        error: (error: any) => {
           failedCount++;
           approveNext(index + 1);
         },
@@ -1123,7 +1132,7 @@ export class EmployeeNoFingerprintComponent
           else failedCount++;
           cancelNext(index + 1);
         },
-        error: () => {
+        error: (error: any) => {
           failedCount++;
           cancelNext(index + 1);
         },
@@ -1168,12 +1177,12 @@ export class EmployeeNoFingerprintComponent
           { nzStyle: { fontSize: '0.75rem' } }
         );
       }, 2000);
-    } catch (error) {
+    } catch (error: any) {
       console.error('Export Excel error:', error);
+      const errorMessage = error?.error?.message || error?.error?.Message || error?.message || 'Lỗi không xác định';
       this.notification.error(
         'Thông báo',
-        'Lỗi khi xuất file Excel: ' +
-          (error instanceof Error ? error.message : 'Lỗi không xác định')
+        'Lỗi khi xuất file Excel: ' + errorMessage
       );
     }
   }
@@ -1279,6 +1288,26 @@ export class EmployeeNoFingerprintComponent
       return '';
     }
   }
+  // Helper method để kiểm tra bản ghi đã được duyệt chưa
+  private isApproved(item: any): boolean {
+    // Kiểm tra trạng thái duyệt TBP
+    const statusTBP = item.StatusText;
+    const isTBPApproved = 
+      statusTBP === 'Đã duyệt' || 
+      item.IsApprovedTP === true || 
+      item.Status === 1;
+    
+    // Kiểm tra trạng thái duyệt HR
+    const statusHR = item.StatusHRText;
+    const isHRApproved = 
+      statusHR === 'Đã duyệt' || 
+      item.IsApprovedHR === true || 
+      item.StatusHR === 1;
+    
+    // Nếu TBP hoặc HR đã duyệt thì không cho sửa
+    return isTBPApproved || isHRApproved;
+  }
+
   private formatApprovalBadge(status: number): string {
     // 0 hoặc null: Chưa duyệt, 1: Đã duyệt, 2: Không duyệt
     const numStatus =

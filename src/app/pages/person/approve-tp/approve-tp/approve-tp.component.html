@@ -41,7 +41,7 @@
                 <nz-select formControlName="teamId" nzPlaceHolder="Chọn Team" nzAllowClear nzShowSearch
                   (ngModelChange)="loadEmployees()">
                   <nz-option *ngFor="let team of teamList" [nzValue]="team.ID"
-                    [nzLabel]="team.Name"></nz-option>
+                    [nzLabel]="team.LeaderName"></nz-option>
                 </nz-select>
               </nz-form-control>
             </nz-form-item>
@@ -64,9 +64,12 @@
               <nz-form-control [nzSpan]="24">
                 <nz-select class="w-100" nzShowSearch nzAllowClear nzSize="default"
                   nzPlaceHolder="Chọn trạng thái TBP" formControlName="status">
-                  <nz-option [nzValue]="-1" nzLabel="Tất cả"></nz-option>
-                  <nz-option [nzValue]="0" nzLabel="Chưa duyệt"></nz-option>
+                  <nz-option [nzValue]="-1" nzLabel="---Tất cả---"></nz-option>
+                  <nz-option [nzValue]="0" nzLabel="Chờ duyệt"></nz-option>
                   <nz-option [nzValue]="1" nzLabel="Đã duyệt"></nz-option>
+                  <nz-option [nzValue]="2" nzLabel="Không đồng ý duyệt"></nz-option>
+                  <nz-option [nzValue]="3" nzLabel="Chờ duyệt hủy đăng ký"></nz-option>
+                  <nz-option [nzValue]="4" nzLabel="Đã duyệt hủy đăng ký"></nz-option>
                 </nz-select>
               </nz-form-control>
             </nz-form-item>
@@ -75,9 +78,12 @@
               <nz-form-control [nzSpan]="24">
                 <nz-select class="w-100" nzShowSearch nzAllowClear nzSize="default"
                   nzPlaceHolder="Chọn trạng thái HR" formControlName="statusHR">
-                  <nz-option [nzValue]="-1" nzLabel="Tất cả"></nz-option>
-                  <nz-option [nzValue]="0" nzLabel="Chưa duyệt"></nz-option>
+                  <nz-option [nzValue]="-1" nzLabel="---Tất cả---"></nz-option>
+                  <nz-option [nzValue]="0" nzLabel="Chờ duyệt"></nz-option>
                   <nz-option [nzValue]="1" nzLabel="Đã duyệt"></nz-option>
+                  <nz-option [nzValue]="2" nzLabel="Không đồng ý duyệt"></nz-option>
+                  <nz-option [nzValue]="3" nzLabel="Chờ duyệt hủy đăng ký"></nz-option>
+                  <nz-option [nzValue]="4" nzLabel="Đã duyệt hủy đăng ký"></nz-option>
                 </nz-select>
               </nz-form-control>
             </nz-form-item>
@@ -86,9 +92,12 @@
               <nz-form-control [nzSpan]="24">
                 <nz-select class="w-100" nzShowSearch nzAllowClear nzSize="default"
                   nzPlaceHolder="Chọn trạng thái BGĐ" formControlName="statusBGD">
-                  <nz-option [nzValue]="-1" nzLabel="Tất cả"></nz-option>
-                  <nz-option [nzValue]="0" nzLabel="Chưa duyệt"></nz-option>
+                  <nz-option [nzValue]="-1" nzLabel="---Tất cả---"></nz-option>
+                  <nz-option [nzValue]="0" nzLabel="Chờ duyệt"></nz-option>
                   <nz-option [nzValue]="1" nzLabel="Đã duyệt"></nz-option>
+                  <nz-option [nzValue]="2" nzLabel="Không đồng ý duyệt"></nz-option>
+                  <nz-option [nzValue]="3" nzLabel="Chờ duyệt hủy đăng ký"></nz-option>
+                  <nz-option [nzValue]="4" nzLabel="Đã duyệt hủy đăng ký"></nz-option>
                 </nz-select>
               </nz-form-control>
             </nz-form-item>
@@ -96,7 +105,7 @@
               <nz-form-label class="fs-12" [nzSpan]="24">Loại</nz-form-label>
               <nz-form-control [nzSpan]="24">
                 <nz-select class="w-100" nzShowSearch nzAllowClear nzSize="default"
-                  nzPlaceHolder="Chọn loại" formControlName="type">
+                  nzPlaceHolder="Chọn loại" formControlName="type" [nzDisabled]="isSeniorMode">
                   <nz-option [nzValue]="0" nzLabel="Tất cả"></nz-option>
                   <nz-option [nzValue]="1" nzLabel="Nghỉ phép"></nz-option>
                   <nz-option [nzValue]="2" nzLabel="Công tác"></nz-option>
@@ -141,32 +150,31 @@
               <button nz-button nzType="default" nzSize="small" (click)="toggleSearchPanel()">
                 <nz-icon nzType="search" />
               </button>
-              <button nz-button nzType="default" nzSize="small" (click)="exportToExcel()" [nzLoading]="exportingExcel">
-                <img src="assets/icon/action_export_excel_16.png" alt="Xuất excel" style="width: 16px; height: 16px;" />
-                Xuất Excel
-              </button>
-              
-              <!-- TBP Actions -->
-              <button *ngIf="!isSenior" class="fs-12" nz-button nzType="default" nzSize="small" nz-dropdown [nzDropdownMenu]="menuTBP">
+              <button *ngIf="!isSenior && !isSeniorMode" class="fs-12" nz-button nzType="default" nzSize="small" nz-dropdown [nzDropdownMenu]="menuTBP">
                 <img src="assets/icon/action_confirm_tbp_16.png" /> TBP xác nhận
                 <i nz-icon nzType="down"></i>
               </button>
 
-              <!-- Senior Actions -->
-              <button *ngIf="isSenior" class="fs-12" nz-button nzType="default" nzSize="small" nz-dropdown [nzDropdownMenu]="menuSenior">
+
+              <button *ngIf="isSenior || isSeniorMode" class="fs-12" nz-button nzType="default" nzSize="small" nz-dropdown [nzDropdownMenu]="menuSenior">
                 <img src="assets/icon/action_confirm_tbp_16.png" /> Senior xác nhận
                 <i nz-icon nzType="down"></i>
               </button>
 
-              <!-- BGD Actions -->
-              <button *ngIf="isBGD" class="fs-12" nz-button nzType="default" nzSize="small" nz-dropdown [nzDropdownMenu]="menuBGD">
+    
+              <button *ngIf="isBGD && !isSeniorMode" class="fs-12" nz-button nzType="default" nzSize="small" nz-dropdown [nzDropdownMenu]="menuBGD">
                 <img src="assets/icon/action_confirm_tbp_16.png" /> BGĐ xác nhận
                 <i nz-icon nzType="down"></i>
               </button>
 
-              <button class="fs-12" nz-button nzType="default" nzSize="small" (click)="declineApprove()">
+              <button *ngIf="!isSeniorMode" class="fs-12" nz-button nzType="default" nzSize="small" (click)="declineApprove()">
                 <img src="assets/icon/action_unapproved_16.png" />
-                Không duyệt
+                TBP Không duyệt
+              </button>
+
+              <button *ngIf="!isSeniorMode" class="fs-12" nz-button nzType="default" nzSize="small" (click)="approvedCancelRegister()">
+                <img src="assets/icon/action_approved_16.png" />
+                TBP duyệt hủy đăng ký
               </button>
 
               <nz-dropdown-menu #menuTBP="nzDropdownMenu">

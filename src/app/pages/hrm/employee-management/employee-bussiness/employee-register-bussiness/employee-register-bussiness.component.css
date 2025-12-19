@@ -5,4 +5,37 @@
 .ant-splitter{
     height: 94vh !important;
   }
+
+.employee-register-bussiness-actions-scroll {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.employee-register-bussiness-search-input {
+  width: 250px;
+}
+
+/* Mobile: action buttons can overflow -> allow horizontal scroll */
+@media (max-width: 768px) {
+  .employee-register-bussiness-actions-scroll {
+    overflow-x: auto;
+    overflow-y: hidden;
+    -webkit-overflow-scrolling: touch;
+    width: 100%;
+  }
+
+  .employee-register-bussiness-actions {
+    flex-wrap: nowrap !important;
+    width: max-content;
+    padding-bottom: 4px;
+  }
+
+  .employee-register-bussiness-actions > * {
+    flex: 0 0 auto;
+  }
+
+  .employee-register-bussiness-search-input {
+    width: 160px;
+  }
+}
   

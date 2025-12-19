@@ -1,5 +1,5 @@
 <div class="modal-header bg-primary text-uppercase py-2">
-  <h6 class="modal-title text-white">KHAI BÁO ĐẶT XE</h6>
+  <h6 class="modal-title text-white">ĐẶT XE</h6>
   <button type="button" class="btn-close" (click)="cancel()" aria-label="Close"></button>
 </div>
 
@@ -25,7 +25,9 @@
       <div class="form-group mb-1 p-1 col-sm-4">
         <label class="m-0">Hình thức đặt <span class="text-danger">(*)</span></label>
         <nz-select class="w-100" nzSize="small" [(ngModel)]="category" name="category" (ngModelChange)="onCategoryChange()">
-          <nz-option *ngFor="let cat of categories" [nzLabel]="cat.label" [nzValue]="cat.value"></nz-option>
+          <nz-option-group *ngFor="let group of categoryGroups" [nzLabel]="group.label">
+            <nz-option *ngFor="let cat of group.options" [nzValue]="cat.value" [nzLabel]="cat.label"></nz-option>
+          </nz-option-group>
         </nz-select>
       </div>
 
@@ -42,11 +44,12 @@
           class="w-100" 
           nzSize="small" 
           nzFormat="dd/MM/yyyy HH:mm" 
-          nzShowTime 
+          [nzShowTime]="{ nzFormat: 'HH:mm' }"
           [(ngModel)]="timeNeedPresent" 
           name="timeNeedPresent"
-          (ngModelChange)="onTimeNeedPresentChange($event)">
+          (ngModelChange)="onTimeNeedPresentChange($event); errors.timeNeedPresent = ''">
         </nz-date-picker>
+        <span class="text-danger" style="font-size: 0.75rem;" *ngIf="errors.timeNeedPresent">{{ errors.timeNeedPresent }}</span>
       </div>
 
       <!-- Công ty cần đến -->
@@ -58,7 +61,8 @@
           <span *ngIf="category != 5 && category != 6 && category != 7 && category != 2 && category != 8">Công ty cần đến</span>
           <span class="text-danger">(*)</span>
         </label>
-        <input nz-input type="text" nzSize="small" [(ngModel)]="companyNameArrives" name="companyNameArrives" />
+        <input nz-input type="text" nzSize="small" [(ngModel)]="companyNameArrives" name="companyNameArrives" (blur)="errors.companyNameArrives = ''" />
+        <span class="text-danger" style="font-size: 0.75rem;" *ngIf="errors.companyNameArrives">{{ errors.companyNameArrives }}</span>
       </div>
 
       <!-- Tỉnh cần đến -->
@@ -70,9 +74,10 @@
           <span *ngIf="category != 5 && category != 6 && category != 7 && category != 2 && category != 8">Tỉnh cần đến</span>
           <span class="text-danger">(*)</span>
         </label>
-        <nz-select class="w-100" nzSize="small" nzShowSearch nzAllowClear [(ngModel)]="province" name="province">
+        <nz-select class="w-100" nzSize="small" nzShowSearch nzAllowClear [(ngModel)]="province" name="province" (ngModelChange)="errors.province = ''">
           <nz-option *ngFor="let prov of provinces" [nzLabel]="prov.label" [nzValue]="prov.label"></nz-option>
         </nz-select>
+        <span class="text-danger" style="font-size: 0.75rem;" *ngIf="errors.province">{{ errors.province }}</span>
       </div>
 
       <!-- Địa chỉ cụ thể cần đến -->
@@ -84,7 +89,8 @@
           <span *ngIf="category != 5 && category != 6 && category != 7 && category != 2 && category != 8">Địa chỉ cụ thể cần đến</span>
           <span class="text-danger">(*)</span>
         </label>
-        <input nz-input type="text" nzSize="small" [(ngModel)]="specificDestinationAddress" name="specificDestinationAddress" />
+        <input nz-input type="text" nzSize="small" [(ngModel)]="specificDestinationAddress" name="specificDestinationAddress" (blur)="errors.specificDestinationAddress = ''" />
+        <span class="text-danger" style="font-size: 0.75rem;" *ngIf="errors.specificDestinationAddress">{{ errors.specificDestinationAddress }}</span>
       </div>
 
       <!-- Thời gian xuất phát -->
@@ -101,10 +107,12 @@
           class="w-100" 
           nzSize="small" 
           nzFormat="dd/MM/yyyy HH:mm" 
-          nzShowTime 
+          [nzShowTime]="{ nzFormat: 'HH:mm' }"
           [(ngModel)]="departureDate" 
-          name="departureDate">
+          name="departureDate"
+          (ngModelChange)="errors.departureDate = ''">
         </nz-date-picker>
+        <span class="text-danger" style="font-size: 0.75rem;" *ngIf="errors.departureDate">{{ errors.departureDate }}</span>
       </div>
 
       <!-- Điểm xuất phát -->
@@ -141,7 +149,9 @@
           nzSize="small" 
           [(ngModel)]="departureAddress" 
           name="departureAddress"
-          [disabled]="provinceDepartureIDs.includes(departureAddressSelect)" />
+          [disabled]="provinceDepartureIDs.includes(departureAddressSelect)"
+          (blur)="errors.departureAddress = ''" />
+        <span class="text-danger" style="font-size: 0.75rem;" *ngIf="errors.departureAddress">{{ errors.departureAddress }}</span>
       </div>
 
       <!-- Thời gian cần về -->
@@ -151,7 +161,7 @@
           class="w-100" 
           nzSize="small" 
           nzFormat="dd/MM/yyyy HH:mm" 
-          nzShowTime 
+          [nzShowTime]="{ nzFormat: 'HH:mm' }"
           [(ngModel)]="timeReturn" 
           name="timeReturn">
         </nz-date-picker>
@@ -167,9 +177,10 @@
           nzAllowClear 
           [(ngModel)]="departureReturnAddressSelect" 
           name="departureReturnAddressSelect"
-          (ngModelChange)="onDepartureReturnAddressSelectChange($event)">
+          (ngModelChange)="onDepartureReturnAddressSelectChange($event); errors.departureReturnAddressSelect = ''">
           <nz-option *ngFor="let prov of provinces" [nzLabel]="prov.label" [nzValue]="prov.value"></nz-option>
         </nz-select>
+        <span class="text-danger" style="font-size: 0.75rem;" *ngIf="errors.departureReturnAddressSelect">{{ errors.departureReturnAddressSelect }}</span>
       </div>
 
       <!-- Địa chỉ quay về cụ thể -->
@@ -181,31 +192,36 @@
           nzSize="small" 
           [(ngModel)]="departureReturnAddress" 
           name="departureReturnAddress"
-          [disabled]="provinceDepartureIDs.includes(departureReturnAddressSelect)" />
+          [disabled]="provinceDepartureIDs.includes(departureReturnAddressSelect)"
+          (blur)="errors.departureReturnAddress = ''" />
+        <span class="text-danger" style="font-size: 0.75rem;" *ngIf="errors.departureReturnAddress">{{ errors.departureReturnAddress }}</span>
       </div>
 
       <!-- Dự án -->
       <div class="form-group mb-1 p-1 col-sm-8">
         <label class="m-0">Dự án <span class="text-danger">(*)</span></label>
-        <nz-select class="w-100" nzSize="small" nzShowSearch nzAllowClear [(ngModel)]="projectId" name="projectId">
+        <nz-select class="w-100" nzSize="small" nzShowSearch nzAllowClear [(ngModel)]="projectId" name="projectId" (ngModelChange)="errors.projectId = ''">
           <nz-option *ngFor="let proj of projects" [nzLabel]="proj.label" [nzValue]="proj.value"></nz-option>
         </nz-select>
+        <span class="text-danger" style="font-size: 0.75rem;" *ngIf="errors.projectId">{{ errors.projectId }}</span>
       </div>
 
       <!-- Loại phương tiện -->
       <div class="form-group mb-1 p-1 col-sm-4">
         <label class="m-0">Loại phương tiện <span class="text-danger">(*)</span></label>
-        <nz-select class="w-100" nzSize="small" [(ngModel)]="vehicleType" name="vehicleType">
+        <nz-select class="w-100" nzSize="small" [(ngModel)]="vehicleType" name="vehicleType" (ngModelChange)="errors.vehicleType = ''">
           <nz-option *ngFor="let vt of vehicleTypes" [nzLabel]="vt.label" [nzValue]="vt.value"></nz-option>
         </nz-select>
+        <span class="text-danger" style="font-size: 0.75rem;" *ngIf="errors.vehicleType">{{ errors.vehicleType }}</span>
       </div>
 
       <!-- Người duyệt -->
-      <div class="form-group mb-1 p-1 col-sm-4" *ngIf="showApprovedTbp">
+      <div class="form-group mb-1 p-1 col-sm-12" *ngIf="showApprovedTbp">
         <label class="m-0">Người duyệt <span class="font-italic font-weight-normal">(nếu có vấn đề phát sinh)</span></label>
-        <nz-select class="w-100" nzSize="small" nzShowSearch nzAllowClear [(ngModel)]="approvedTbp" name="approvedTbp">
+        <nz-select class="w-100" nzSize="small" nzShowSearch nzAllowClear [(ngModel)]="approvedTbp" name="approvedTbp" (ngModelChange)="errors.approvedTbp = ''">
           <nz-option *ngFor="let app of approvedList" [nzLabel]="app.label" [nzValue]="app.value"></nz-option>
         </nz-select>
+        <span class="text-danger" style="font-size: 0.75rem;" *ngIf="errors.approvedTbp">{{ errors.approvedTbp }}</span>
       </div>
 
       <!-- Vấn đề phát sinh -->
@@ -216,7 +232,8 @@
             (Thời gian đặt xe ngoài khoảng từ 16h30' đến 20h sẽ tính là phát sinh)
           </span>
         </label>
-        <textarea nz-input nzSize="small" [(ngModel)]="problemArises" name="problemArises" rows="3"></textarea>
+        <textarea nz-input nzSize="small" [(ngModel)]="problemArises" name="problemArises" rows="3" (blur)="errors.problemArises = ''"></textarea>
+        <span class="text-danger" style="font-size: 0.75rem;" *ngIf="errors.problemArises">{{ errors.problemArises }}</span>
       </div>
     </div>
 
@@ -269,7 +286,9 @@
                     [(ngModel)]="passenger.employeeId" 
                     [name]="'passenger_employee_' + passenger.index"
                     (ngModelChange)="onPassengerEmployeeChange(passenger.index, $event)">
-                    <nz-option *ngFor="let emp of employees" [nzLabel]="emp.Code + ' - ' + emp.FullName" [nzValue]="emp.ID"></nz-option>
+                    <nz-option-group *ngFor="let group of employeesGrouped" [nzLabel]="group.department">
+                      <nz-option *ngFor="let emp of group.list" [nzValue]="emp.ID" [nzLabel]="emp.Code + ' - ' + emp.FullName"></nz-option>
+                    </nz-option-group>
                   </nz-select>
                 </div>
 
@@ -306,7 +325,9 @@
                     nzSize="small"
                     [(ngModel)]="passenger.name" 
                     [name]="'passenger_name_' + passenger.index"
-                    [disabled]="passenger.employeeId > 0" />
+                    [disabled]="passenger.employeeId > 0"
+                    (blur)="clearPassengerError(passenger.index, 'name')" />
+                  <span class="text-danger" style="font-size: 0.75rem;" *ngIf="errors.passengers[passenger.index]?.name">{{ errors.passengers[passenger.index].name }}</span>
                 </div>
 
                 <!-- SDT liên hệ -->
@@ -317,7 +338,9 @@
                     type="text" 
                     nzSize="small"
                     [(ngModel)]="passenger.phoneNumber" 
-                    [name]="'passenger_phone_' + passenger.index" />
+                    [name]="'passenger_phone_' + passenger.index"
+                    (blur)="clearPassengerError(passenger.index, 'phoneNumber')" />
+                  <span class="text-danger" style="font-size: 0.75rem;" *ngIf="errors.passengers[passenger.index]?.phoneNumber">{{ errors.passengers[passenger.index].phoneNumber }}</span>
                 </div>
 
                 <!-- Ghi chú -->
@@ -387,7 +410,9 @@
                     [(ngModel)]="goods.employeeId" 
                     [name]="'goods_employee_' + goods.index"
                     (ngModelChange)="onAttachedGoodsEmployeeChange(goods.index, $event)">
-                    <nz-option *ngFor="let emp of employees" [nzLabel]="emp.Code + ' - ' + emp.FullName" [nzValue]="emp.ID"></nz-option>
+                    <nz-option-group *ngFor="let group of employeesGrouped" [nzLabel]="group.department">
+                      <nz-option *ngFor="let emp of group.list" [nzValue]="emp.ID" [nzLabel]="emp.Code + ' - ' + emp.FullName"></nz-option>
+                    </nz-option-group>
                   </nz-select>
                 </div>
 

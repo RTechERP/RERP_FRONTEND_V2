@@ -1334,8 +1334,6 @@ export class ProjectComponent implements OnInit, AfterViewInit {
             nzStyle: { fontSize: '0.75rem' },
           });
         }
-
-        this.setDefautSearch();
         this.searchProjects();
       }
     });

@@ -427,7 +427,7 @@ export class DailyReportTechComponent implements OnInit, AfterViewInit {
             formatter: (cell: any) => {
               const value = cell.getValue() || '';
               const dateTime = DateTime.fromISO(value);
-              return dateTime.isValid ? dateTime.toFormat('dd/MM/yyyy') : '';
+              return dateTime.isValid ? dateTime.toFormat('dd/MM/yyyy hh:mm:ss') : '';
             },
             hozAlign: 'center',
             width: 120,

@@ -16,7 +16,13 @@
   position: relative;
   z-index: 1050;
 }
+::ng-deep nz-splitter {
+  height: 95vh !important;
+}
 
+::ng-deep .ant-splitter {
+  height: 95vh !important;
+}
 /* ::ng-deep .tabulator .tabulator-header .tabulator-col{
   height: auto !important;
 } */

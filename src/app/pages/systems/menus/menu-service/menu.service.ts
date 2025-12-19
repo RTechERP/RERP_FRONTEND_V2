@@ -151,6 +151,7 @@ import { VehicleBookingManagementComponent } from '../../../hrm/vehicle/vehicle-
 import { EmployeeSyntheticPersonalComponent } from '../../../hrm/employee-management/employee-synthetic/employee-synthetic-personal/employee-synthetic-personal.component';
 import { BookingRoomComponent } from '../../../hrm/booking room/booking-room.component';
 import { ApproveTpComponent } from '../../../person/approve-tp/approve-tp/approve-tp.component';
+import { PhaseAllocationPersonComponent } from '../../../hrm/phase-allocation-person/phase-allocation-person.component';
 
 @Injectable({
     providedIn: 'root',
@@ -1751,7 +1752,9 @@ export class MenuService {
                                 comp: HandoverComponent,
                                 //   icon: 'assets/icon/layers.png',
                             },
-
+                          
+                                        //   icon: 'assets/icon/layers.png',
+                            
                             //#endregion
                         ],
                     },
@@ -1949,6 +1952,14 @@ export class MenuService {
                         comp: ProtectgearComponent,
                         //   icon: 'assets/icon/layers.png',
                     },
+                    {
+                        kind: 'leaf',
+                        key: 'CapPhatTheoDot',
+                        title: 'Cấp phát theo đợt',
+                        isOpen: true,
+                        isPermission: this.permissionService.hasPermission('N1,N2,N23,N34'),
+                       comp: PhaseAllocationPersonComponent,
+                    },
                 ],
             },
             //#endregion
@@ -2040,7 +2051,7 @@ export class MenuService {
                         key: 'InventoryByProductComponent',
                         title: 'Tồn kho theo sản phẩm',
                         isOpen: true,
-                        isPermission: this.permissionService.hasPermission('N1'),
+                        isPermission: this.permissionService.hasPermission(''),
                         comp: InventoryByProductComponent,
                     },
                 ],

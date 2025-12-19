@@ -10,6 +10,7 @@ import { Select } from 'primeng/select';
 import { InputTextModule } from 'primeng/inputtext';
 import { ButtonModule } from 'primeng/button';
 import { Fluid } from 'primeng/fluid';
+import { SplitterModule } from 'primeng/splitter';
 import { PaymentOrderService } from './payment-order.service';
 import { NzNotificationService } from 'ng-zorro-antd/notification';
 import { PaymentOrderDetailComponent } from './payment-order-detail/payment-order-detail.component';
@@ -19,9 +20,7 @@ import { CommonModule } from '@angular/common';
 import { NOTIFICATION_TITLE } from '../../../app.config';
 import { NzSplitterModule } from 'ng-zorro-antd/splitter';
 import { NzCardModule } from 'ng-zorro-antd/card';
-import { Action } from 'rxjs/internal/scheduler/Action';
 import Swal from 'sweetalert2';
-import { HasPermissionDirective } from '../../../directives/has-permission.directive';
 import { PermissionService } from '../../../services/permission.service';
 import { NzButtonModule } from 'ng-zorro-antd/button';
 import { NzFormModule } from 'ng-zorro-antd/form';
@@ -35,6 +34,7 @@ import { PaymentOrderTypeService } from './payment-order-type/payment-order-type
 import pdfMake from 'pdfmake/build/pdfmake';
 import vfs from '../../../shared/pdf/vfs_fonts_custom.js';
 import { NzIconModule } from 'ng-zorro-antd/icon';
+import { PaymentOrderSpecialComponent } from './payment-order-special/payment-order-special.component';
 
 (pdfMake as any).vfs = vfs;
 (pdfMake as any).fonts = {
@@ -54,14 +54,14 @@ import { NzIconModule } from 'ng-zorro-antd/icon';
         NzSplitterModule,
         NzCardModule,
         TabsModule,
-        // Fluid, DatePickerModule, FluidModule, Select, InputTextModule, ButtonModule,
+        Fluid, DatePickerModule, Select, InputTextModule, ButtonModule,
+        SplitterModule,
         AngularSlickgridModule,
         NzButtonModule, NzFormModule, NzInputModule,
         FormsModule,
         NzSelectModule,
         NzDatePickerModule,
         NzIconModule
-
     ],
     templateUrl: './payment-order.component.html',
     styleUrl: './payment-order.component.css',
@@ -98,6 +98,8 @@ export class PaymentOrderComponent implements OnInit {
         isDelete: 0
     };
 
+    isAdvandShow = true;
+
     departments: any = [];
     employees: any = [];
     isApproveds: any = [];
@@ -132,6 +134,19 @@ export class PaymentOrderComponent implements OnInit {
     datasetFiles: any[] = [];
     datasetFileBankslip: any[] = [];
 
+    //Khai báo biến slick-grid cho ĐNTTĐB
+    angularGridSpecial!: AngularGridInstance;
+    gridDataSpecial: any;
+    columnDefinitionsSpecial: Column[] = [];
+    gridOptionsSpecial: GridOption = {};
+    datasetSpecial: any[] = [];
+
+    angularGridSpecialDetail!: AngularGridInstance;
+    gridDataSpecialDetail: any;
+    columnDefinitionsSpecialDetail: Column[] = [];
+    gridOptionsSpecialDetail: GridOption = {};
+    datasetSpecialDetail: any[] = [];
+
     dataPrint: any = {};
 
     constructor(
@@ -147,8 +162,10 @@ export class PaymentOrderComponent implements OnInit {
 
     ngOnInit(): void {
         this.loadDataCombo();
-        this.initMenuBar();
+        // this.initMenuBar();
         this.initGrid();
+        this.initGridSpecial();
+        this.initGridSpecialDetail();
     }
 
     initMenuBar() {
@@ -976,12 +993,13 @@ export class PaymentOrderComponent implements OnInit {
         ];
 
         this.gridOptions = {
-            enableAutoResize: true,
             autoResize: {
-                container: '.grid-container',
+                container: '#demo-container' // container DOM selector
             },
+            enableAutoResize: true,
             gridWidth: '100%',
-            datasetIdPropertyName: '_id',
+            // gridHeight: 300, // ⚠️ QUAN TRỌNG
+            // datasetIdPropertyName: '_id',
             enableRowSelection: true,
             rowSelectionOptions: {
                 selectActiveRow: false// True (Single Selection), False (Multiple Selections)
@@ -1219,6 +1237,361 @@ export class PaymentOrderComponent implements OnInit {
         this.datasetFileBankslip = [];
     }
 
+    initGridSpecial() {
+        this.columnDefinitionsSpecial = [
+            {
+                id: PaymentOrderField.RowNum.field,
+                name: 'STT',
+                field: PaymentOrderField.RowNum.field,
+                type: PaymentOrderField.RowNum.type,
+                width: 80,
+                sortable: true, filterable: true,
+                // formatter: Formatters.iconBoolean,
+                filter: { model: Filters['compoundInputNumber'] },
+            },
+            {
+                id: PaymentOrderField.IsUrgent.field,
+                name: 'Thanh toán gấp',
+                field: PaymentOrderField.IsUrgent.field,
+                type: PaymentOrderField.IsUrgent.type,
+                sortable: true, filterable: true,
+                width: 80,
+                formatter: Formatters.iconBoolean, params: { cssClass: "mdi mdi-check" },
+                filter: { model: Filters['compoundInputNumber'] },
+            },
+            {
+                id: PaymentOrderField.DateOrder.field,
+                name: 'Ngày đề nghị',
+                field: PaymentOrderField.DateOrder.field,
+                type: PaymentOrderField.DateOrder.type,
+                sortable: true, filterable: true,
+                width: 100,
+                formatter: Formatters.date, params: { dateFormat: 'DD/MM/YYYY' },
+                filter: { model: Filters['compoundDate'] },
+            },
+            {
+                id: PaymentOrderField.DatePayment.field,
+                name: 'Deadline thanh toán',
+                field: PaymentOrderField.DatePayment.field,
+                type: PaymentOrderField.DatePayment.type,
+                sortable: true, filterable: true,
+                width: 150,
+                formatter: Formatters.date, params: { dateFormat: 'DD/MM/YYYY HH:mm' },
+                filter: { model: Filters['compoundDate'] },
+            },
+            {
+                id: PaymentOrderField.Code.field,
+                name: 'Số đề nghị',
+                field: PaymentOrderField.Code.field,
+                type: PaymentOrderField.Code.type,
+                sortable: true, filterable: true,
+                width: 200,
+                // formatter: Formatters.icon,
+                filter: { model: Filters['compoundInputText'] },
+            },
+            {
+                id: PaymentOrderField.FullName.field,
+                name: 'Người đề nghị',
+                field: PaymentOrderField.FullName.field,
+                type: PaymentOrderField.FullName.type,
+                sortable: true, filterable: true,
+                width: 200,
+                // formatter: Formatters.icon,
+                filter: { model: Filters['compoundInputText'] },
+            },
+            {
+                id: PaymentOrderField.ReceiverInfo.field,
+                name: 'Người phụ trách',
+                field: PaymentOrderField.ReceiverInfo.field,
+                type: PaymentOrderField.ReceiverInfo.type,
+                sortable: true, filterable: true,
+                width: 200,
+                // formatter: Formatters.icon,
+                filter: { model: Filters['compoundInputText'] },
+            },
+
+            {
+                id: PaymentOrderField.UserTeamNameJoin.field,
+                name: 'Team kinh doanh',
+                field: PaymentOrderField.UserTeamNameJoin.field,
+                type: PaymentOrderField.UserTeamNameJoin.type,
+                sortable: true, filterable: true,
+                width: 200,
+                // formatter: Formatters.icon,
+                filter: { model: Filters['compoundInputText'] },
+            },
+
+            {
+                id: PaymentOrderField.PaymentOrderTypeName.field,
+                name: 'Phân loại thanh toán',
+                field: PaymentOrderField.PaymentOrderTypeName.field,
+                type: PaymentOrderField.PaymentOrderTypeName.type,
+                sortable: true, filterable: true,
+                width: 250,
+                // formatter: Formatters,
+                filter: { model: Filters['compoundInputText'] },
+            },
+            {
+                id: PaymentOrderField.CustomerName.field,
+                name: 'Khách hành',
+                field: PaymentOrderField.CustomerName.field,
+                type: PaymentOrderField.CustomerName.type,
+                sortable: true, filterable: true,
+                width: 250,
+                // formatter: Formatters.icon,
+                filter: { model: Filters['compoundInputText'] },
+            },
+            {
+                id: PaymentOrderField.TypeDocumentText.field,
+                name: 'Loại chứng từ',
+                field: PaymentOrderField.TypeDocumentText.field,
+                type: PaymentOrderField.TypeDocumentText.type,
+                sortable: true, filterable: true,
+                width: 80,
+                formatter: Formatters.iconBoolean, params: { cssClass: "mdi mdi-check" },
+                filter: { model: Filters['compoundInputText'] },
+            },
+            {
+                id: PaymentOrderField.NumberDocument.field,
+                name: 'Số chứng từ',
+                field: PaymentOrderField.NumberDocument.field,
+                type: PaymentOrderField.NumberDocument.type,
+                sortable: true, filterable: true,
+                width: 200,
+                // formatter: Formatters.icon,
+                filter: { model: Filters['compoundInputText'] },
+            },
+
+            {
+                id: PaymentOrderField.TotalMoney.field,
+                name: 'Số tiền',
+                field: PaymentOrderField.TotalMoney.field,
+                type: PaymentOrderField.TotalMoney.type,
+                sortable: true, filterable: true,
+                width: 150,
+                formatter: Formatters.currency,
+                filter: { model: Filters['compoundInputNumber'] },
+            },
+
+
+            {
+                id: PaymentOrderField.Unit.field,
+                name: 'ĐVT',
+                field: PaymentOrderField.Unit.field,
+                type: PaymentOrderField.Unit.type,
+                sortable: true, filterable: true,
+                width: 80,
+                // formatter: Formatters.icon,
+                filter: { model: Filters['compoundInputText'] },
+            },
+            {
+                id: PaymentOrderField.PaymentMethodsJoin.field,
+                name: 'Hình thức thanh toán',
+                field: PaymentOrderField.PaymentMethodsJoin.field,
+                type: PaymentOrderField.PaymentMethodsJoin.type,
+                sortable: true, filterable: true,
+                width: 170,
+                // formatter: Formatters.icon,
+                filter: { model: Filters['compoundInputText'] },
+            },
+
+            {
+                id: PaymentOrderField.StepName.field,
+                name: 'Tình trạng phiếu',
+                field: PaymentOrderField.StepName.field,
+                type: PaymentOrderField.StepName.type,
+                sortable: true, filterable: true,
+                width: 200,
+                // formatter: Formatters.icon,
+                filter: { model: Filters['compoundInputText'] },
+            },
+
+
+            {
+                id: PaymentOrderField.ContentLog.field,
+                name: 'Lịch sử duyệt / hủy duyệt',
+                field: PaymentOrderField.ContentLog.field,
+                type: PaymentOrderField.ContentLog.type,
+                sortable: true, filterable: true,
+                width: 200,
+                // formatter: Formatters.icon,
+                filter: { model: Filters['compoundInputText'] },
+            },
+            {
+                id: PaymentOrderField.ReasonCancel.field,
+                name: 'Lý do hủy duyệt',
+                field: PaymentOrderField.ReasonCancel.field,
+                type: PaymentOrderField.ReasonCancel.type,
+                sortable: true, filterable: true,
+                width: 200,
+                // formatter: Formatters.icon,
+                filter: { model: Filters['compoundInputText'] },
+            },
+
+            {
+                id: PaymentOrderField.Note.field,
+                name: 'Ghi chú / Chứng từ kèm theo',
+                field: PaymentOrderField.Note.field,
+                type: PaymentOrderField.Note.type,
+                sortable: true, filterable: true,
+                width: 300,
+                // formatter: Formatters.icon,
+                filter: { model: Filters['compoundInputText'] },
+            }
+        ];
+        this.gridOptionsSpecial = {
+            autoResize: {
+                container: '#demo-container' // container DOM selector
+            },
+            enableAutoResize: true,
+            gridWidth: '100%',
+            // gridHeight: 300, // ⚠️ QUAN TRỌNG
+            // datasetIdPropertyName: '_id',
+            enableRowSelection: true,
+            rowSelectionOptions: {
+                selectActiveRow: false// True (Single Selection), False (Multiple Selections)
+            },
+            checkboxSelector: {
+                // you can toggle these 2 properties to show the "select all" checkbox in different location
+                hideInFilterHeaderRow: false,
+                hideInColumnTitleRow: true,
+                applySelectOnAllPages: true, // when clicking "Select All", should we apply it to all pages (defaults to true)
+            },
+            enableCheckboxSelector: true,
+
+            enableCellNavigation: true,
+
+            enableFiltering: true,
+
+            autoFitColumnsOnFirstLoad: false,
+            enableAutoSizeColumns: false,
+
+            frozenColumn: 5,
+
+            createPreHeaderPanel: true,
+            showPreHeaderPanel: true,
+        }
+
+        this.loadData();
+    }
+
+    initGridSpecialDetail() {
+        this.columnDefinitionsSpecialDetail = [
+            {
+                id: PaymentOrderDetailField.STT.field,
+                name: PaymentOrderDetailField.STT.name,
+                field: 'Stt',
+                type: PaymentOrderDetailField.STT.type,
+                width: 70,
+                sortable: true, filterable: false,
+                formatter: Formatters.tree,
+
+                // filter: { model: Filters['compoundInputNumber'] },
+            },
+
+            {
+                id: PaymentOrderDetailField.ContentPayment.field,
+                name: 'Đối tượng nhận COM',
+                field: PaymentOrderDetailField.ContentPayment.field,
+                type: PaymentOrderDetailField.ContentPayment.type,
+                width: 250,
+                sortable: true, filterable: false,
+                // formatter: Formatters.iconBoolean,
+                // filter: { model: Filters['compoundInputText'] },
+            },
+
+
+            {
+                id: PaymentOrderDetailField.TotalMoney.field,
+                name: 'Số tiền',
+                field: PaymentOrderDetailField.TotalMoney.field,
+                type: PaymentOrderDetailField.TotalMoney.type,
+                width: 150,
+                sortable: true, filterable: false,
+                // formatter: Formatters.iconBoolean,
+                // filter: { model: Filters['compoundInputText'] },
+            },
+            {
+                id: PaymentOrderDetailField.PaymentMethods.field,
+                name: 'Hình thức thanh toán',
+                field: PaymentOrderDetailField.PaymentMethods.field,
+                type: PaymentOrderDetailField.PaymentMethods.type,
+                width: 100,
+                sortable: true, filterable: false,
+                // formatter: Formatters.iconBoolean,
+                // filter: { model: Filters['compoundInputText'] },
+            },
+            {
+                id: PaymentOrderDetailField.PaymentInfor.field,
+                name: 'Thông tin thanh toán',
+                field: PaymentOrderDetailField.PaymentInfor.field,
+                type: PaymentOrderDetailField.PaymentInfor.type,
+                width: 150,
+                sortable: true, filterable: false,
+                // formatter: Formatters.iconBoolean,
+                // filter: { model: Filters['compoundInputText'] },
+            },
+            {
+                id: 'UserTeamName',
+                name: 'Team kinh doanh',
+                field: 'UserTeamName',
+                type: 'string',
+                width: 150,
+                sortable: true, filterable: false,
+                // formatter: Formatters.iconBoolean,
+                // filter: { model: Filters['compoundInputText'] },
+            },
+            {
+                id: PaymentOrderDetailField.Note.field,
+                name: 'Ghi chú / Chứng từ kèm theo',
+                field: PaymentOrderDetailField.Note.field,
+                type: PaymentOrderDetailField.Note.type,
+                width: 300,
+                sortable: true, filterable: false,
+                // formatter: Formatters.iconBoolean,
+                // filter: { model: Filters['compoundInputText'] },
+            },
+        ]
+
+        this.gridOptionsSpecialDetail = {
+            enableAutoResize: true,
+            autoResize: {
+                container: '.grid-container-detail',
+            },
+            gridWidth: '100%',
+            // datasetIdPropertyName: 'Id',
+            enableRowSelection: true,
+
+            autoFitColumnsOnFirstLoad: false,
+            enableAutoSizeColumns: false,
+
+            enableFiltering: false,
+            // enableTreeData: true,
+            // treeDataOptions: {
+            //     columnId: 'Stt',           // the column where you will have the Tree with collapse/expand icons
+            //     parentPropName: 'parentid',  // the parent/child key relation in your dataset
+            //     // identifierPropName: 'Id',
+            //     // roo:0,
+            //     levelPropName: 'treeLevel',  // optionally, you can define the tree level property name, it nothing is provided it will use "__treeLevel"
+            //     indentMarginLeft: 15,        // optionally provide the indent spacer width in pixel, for example if you provide 10 and your tree level is 2 then it will have 20px of indentation
+            //     exportIndentMarginLeft: 4,   // similar to `indentMarginLeft` but represent a space instead of pixels for the Export CSV/Excel
+            // },
+            // multiColumnSort: false,
+
+            frozenColumn: 2,
+        }
+    }
+
+    angularGridReadySpecial(angularGrid: AngularGridInstance) {
+        this.angularGridSpecial = angularGrid;
+        this.gridDataSpecial = angularGrid?.slickGrid || {};
+    }
+
+    angularGridReadySpecialDetail(angularGrid: AngularGridInstance) {
+        this.angularGridSpecialDetail = angularGrid;
+        this.gridDataSpecialDetail = angularGrid?.slickGrid || {};
+    }
+
     loadDataCombo() {
         this.departmentService.getDepartments().subscribe({
             next: (response) => {
@@ -1280,7 +1653,9 @@ export class PaymentOrderComponent implements OnInit {
         //     Keyword: ''
         // };
 
-        // console.log(this.param);
+
+        // this.param.isSpecialOrder = isSpecialOrder;
+        console.log(this.param);
         this.paymentService.get(this.param).subscribe({
             next: (response) => {
                 // console.log(response);
@@ -1288,7 +1663,23 @@ export class PaymentOrderComponent implements OnInit {
 
                 this.dataset = this.dataset.map((x, i) => ({
                     ...x,
-                    _id: i + 1   // dành riêng cho SlickGrid
+                    id: x.ID   // dành riêng cho SlickGrid
+                }));
+            },
+            error: (err) => {
+                this.notification.error(NOTIFICATION_TITLE.error, err.error.message);
+            }
+        })
+
+        this.param.isSpecialOrder = 1;
+        this.paymentService.get(this.param).subscribe({
+            next: (response) => {
+                console.log(response);
+                this.datasetSpecial = response.data;
+
+                this.datasetSpecial = this.datasetSpecial.map((x, i) => ({
+                    ...x,
+                    id: x.ID   // dành riêng cho SlickGrid
                 }));
             },
             error: (err) => {
@@ -1325,7 +1716,7 @@ export class PaymentOrderComponent implements OnInit {
                 }));
 
 
-                console.log(response.data);
+                // console.log(response.data);
                 this.dataPrint = {
                     paymentOrder: response.data.paymentOrder,
                     details: response.data.details,
@@ -1358,7 +1749,7 @@ export class PaymentOrderComponent implements OnInit {
     handleRowSelection(e: Event, args: OnSelectedRowsChangedEventArgs) {
         if (Array.isArray(args.rows) && this.gridData) {
 
-            console.log('multiple row checkbox selected', event, args);
+            // console.log('multiple row checkbox selected', event, args);
 
             // const item = args.rows.map((idx: number) => {
             //     const item = this.gridData.getDataItem(idx);
@@ -1379,16 +1770,31 @@ export class PaymentOrderComponent implements OnInit {
     }
 
     initModal(paymentOrder: any = new PaymentOrder()) {
-        const modalRef = this.modalService.open(PaymentOrderDetailComponent, {
-            centered: true,
-            size: 'xl',
-            backdrop: 'static',
-            keyboard: false,
-            scrollable: true,
-            fullscreen: true,
-        });
+        paymentOrder.IsSpecialOrder = 1;
+        if (!paymentOrder.IsSpecialOrder) {
+            const modalRef = this.modalService.open(PaymentOrderDetailComponent, {
+                centered: true,
+                size: 'xl',
+                backdrop: 'static',
+                keyboard: false,
+                scrollable: true,
+                fullscreen: true,
+            });
 
-        modalRef.componentInstance.paymentOrder = paymentOrder;
+            modalRef.componentInstance.paymentOrder = paymentOrder;
+        } else {
+            const modalRef = this.modalService.open(PaymentOrderSpecialComponent, {
+                centered: true,
+                size: 'xl',
+                backdrop: 'static',
+                keyboard: false,
+                scrollable: true,
+                fullscreen: true,
+            });
+
+            modalRef.componentInstance.paymentOrder = paymentOrder;
+        }
+
     }
 
     onCreate() {

@@ -178,25 +178,26 @@ export class PokhDetailComponent implements OnInit, AfterViewInit {
       title: 'Mã SP',
       field: 'ProductCode',
       width: 120,
-      headerSort: false,
     },
     {
       title: 'Tên sản phẩm',
       field: 'ProductName',
       width: 200,
-      headerSort: false,
     },
     {
       title: 'Mã nội bộ',
       field: 'ProductNewCode',
       width: 120,
-      headerSort: false,
     },
     {
       title: 'ĐVT',
       field: 'Unit',
       width: 80,
-      headerSort: false,
+    },
+    {
+      title: 'Tên nhóm',
+      field: 'ProductGroupName',
+      width: 200,
     },
   ];
   poFormData: any = {

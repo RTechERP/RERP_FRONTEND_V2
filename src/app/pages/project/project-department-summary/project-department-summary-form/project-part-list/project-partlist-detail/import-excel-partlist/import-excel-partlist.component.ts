@@ -420,18 +420,18 @@ export class ImportExcelPartlistComponent implements OnInit, AfterViewInit {
           Manufacturer: this.getCellText(row.getCell(5)),
        
           Model: this.getCellText(row.getCell(6)),
-          QtyMin: this.parseNumber(row.getCell(7).value),
-          QtyFull: this.parseNumber(row.getCell(8).value),
+          QtyMin: this.parseNumber(row.getCell(7)),
+          QtyFull: this.parseNumber(row.getCell(8)),
           Unit: this.getCellText(row.getCell(9)),
-          Price: this.parseNumber(row.getCell(10).value),
-          Amount: this.parseNumber(row.getCell(11).value),
+          Price: this.parseNumber(row.getCell(10)),
+          Amount: this.parseNumber(row.getCell(11)),
           LeadTime: this.getCellText(row.getCell(12)),
           NCC: this.getCellText(row.getCell(13)),
           RequestDate: this.getCellText(row.getCell(14)),
           LeadTimeRequest: this.getCellText(row.getCell(15)),
-          QuantityReturn: this.parseNumber(row.getCell(16).value),
+          QuantityReturn: this.parseNumber(row.getCell(16)),
           NCCFinal: this.getCellText(row.getCell(17)),
-          PriceOrder: this.parseNumber(row.getCell(18).value),
+          PriceOrder: this.parseNumber(row.getCell(18)),
           OrderDate: this.getCellText(row.getCell(19)),
           ExpectedReturnDate: this.getCellText(row.getCell(20)),
           Status: this.getCellText(row.getCell(21)),
@@ -470,22 +470,38 @@ export class ImportExcelPartlistComponent implements OnInit, AfterViewInit {
     }
   }
 
-  // Helper function để lấy text từ cell Excel (xử lý cả RichText)
+  // Helper function để lấy text từ cell Excel (xử lý cả RichText và Formula)
   private getCellText(cell: any): string {
     if (!cell) return '';
     
     try {
-      if (cell.text !== undefined && cell.text !== null) {
+      // Ưu tiên 1: Lấy giá trị đã tính toán từ formula (cell.result)
+      if (cell.result !== undefined && cell.result !== null) {
+        return String(cell.result);
+      }
+      
+      // Ưu tiên 2: Lấy text hiển thị (đã được format, bao gồm cả giá trị từ formula)
+      if (cell.text !== undefined && cell.text !== null && cell.text !== '') {
         return String(cell.text);
       }
     } catch (e) {
-      // Bỏ qua lỗi nếu không thể đọc .text
+      // Bỏ qua lỗi nếu không thể đọc .result hoặc .text
     }
     
     try {
       const value = cell.value;
       if (value === null || value === undefined) return '';
       
+      // Xử lý formula object
+      if (typeof value === 'object' && value.formula) {
+        // Nếu có formula nhưng không có result, thử lấy từ text
+        if (cell.text !== undefined && cell.text !== null) {
+          return String(cell.text);
+        }
+        return '';
+      }
+      
+      // Xử lý richText
       if (typeof value === 'object' && value.richText) {
         if (Array.isArray(value.richText)) {
           return value.richText.map((rt: any) => rt?.text || '').join('');
@@ -502,13 +518,48 @@ export class ImportExcelPartlistComponent implements OnInit, AfterViewInit {
     }
   }
 
-  // Helper function để parse number
-  private parseNumber(value: any): number {
-    if (typeof value === 'number') return value;
-    if (!value) return 0;
-    const str = value.toString().replace(/[,\.]/g, '');
-    const num = parseFloat(str);
-    return isNaN(num) ? 0 : num;
+  // Helper function để parse number (xử lý cả Formula)
+  private parseNumber(cell: any): number {
+    if (!cell) return 0;
+    
+    try {
+      // Ưu tiên 1: Lấy giá trị đã tính toán từ formula (cell.result)
+      if (cell.result !== undefined && cell.result !== null) {
+        if (typeof cell.result === 'number') {
+          return cell.result;
+        }
+        // Nếu result là string, parse nó
+        const num = parseFloat(String(cell.result).replace(/[,\.]/g, ''));
+        if (!isNaN(num)) {
+          return num;
+        }
+      }
+      
+      // Ưu tiên 2: Lấy từ cell.value
+      let value = cell.value;
+      
+      // Xử lý formula object
+      if (typeof value === 'object' && value.formula) {
+        // Nếu có formula, thử lấy từ result hoặc text
+        if (cell.result !== undefined && cell.result !== null) {
+          value = cell.result;
+        } else if (cell.text !== undefined && cell.text !== null) {
+          value = cell.text;
+        } else {
+          return 0;
+        }
+      }
+      
+      if (typeof value === 'number') return value;
+      if (!value) return 0;
+      
+      // Xử lý string: loại bỏ dấu phẩy và dấu chấm (nếu là định dạng số)
+      const str = String(value).replace(/,/g, '');
+      const num = parseFloat(str);
+      return isNaN(num) ? 0 : num;
+    } catch (e) {
+      return 0;
+    }
   }
 
   // Helper function để parse date - trả về string ISO format hoặc null

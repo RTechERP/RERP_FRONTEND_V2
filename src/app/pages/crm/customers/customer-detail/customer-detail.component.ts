@@ -436,10 +436,10 @@ export class CustomerDetailComponent implements OnInit, AfterViewInit {
   onProvinceChange(provinceName: string): void {
     if (provinceName) {
       const selectedProvince = this.provincesData.find(
-        (province) => province.Name === provinceName
+        (province) => province.ProvinceName === provinceName
       );
-      if (selectedProvince && selectedProvince.Code) {
-        this.formGroup.patchValue({ provinceCode: selectedProvince.Code });
+      if (selectedProvince && selectedProvince.ProvinceCode) {
+        this.formGroup.patchValue({ provinceCode: selectedProvince.ProvinceCode });
       }
     } else {
       this.formGroup.patchValue({ provinceCode: '' });

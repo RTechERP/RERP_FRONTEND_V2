@@ -1,0 +1,44 @@
+<nav class="navbar sticky-top" style="background-color: #23458a;">
+    <div class="container-fluid">
+        <a class="navbar-brand p-0" href="#" style="width: 5%;" routerLink="/home">
+            <img src="assets/images/logo-RTC-2023-1200-red-white.png" alt="" width="100%"
+                class="d-inline-block align-text-top">
+
+        </a>
+
+        <div class="d-flex">
+            <button nz-button nz-dropdown [nzDropdownMenu]="appmenu" nzPlacement="bottomRight" nzType="text"
+                class=" text-light" nzTrigger="click">
+                <img src="assets/icon/app_store.svg" width="16">
+            </button>
+
+            <nz-dropdown-menu #appmenu="nzDropdownMenu">
+                <div class="app-launcher">
+                    <div class="app-launcher-inner">
+                        @for (m of menus; track m.key) {
+
+                        <a (click)="toggleMenu(m.key)" [class.active]="isMenuOpen(m.key)" *ngIf="m.isPermission">
+                            <img [src]="m.icon?.replace('24','64')" />
+                            <span class="mt-1">{{m.title}}</span>
+                        </a>
+                        }
+                    </div>
+                </div>
+            </nz-dropdown-menu>
+
+            <app-app-notifycation-dropdown [items]="notifItems" (itemClick)="onPick($event)">
+                <button nz-button nzType="text" class="text-light fs-7" trigger>
+                    <nz-badge [nzOverflowCount]="9" [nzCount]="notifItems.length" class="fs-7">
+                        <img src="assets/icon/notification_home.svg" class="bell-icon">
+                    </nz-badge>
+                </button>
+            </app-app-notifycation-dropdown>
+
+            <app-app-user-dropdown>
+                <button nz-button nzType="text" trigger>
+                    <img src="assets/icon/user.svg">
+                </button>
+            </app-app-user-dropdown>
+        </div>
+    </div>
+</nav>

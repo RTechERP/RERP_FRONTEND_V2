@@ -720,7 +720,7 @@ export class PaymentOrderDetailComponent implements OnInit, AfterViewInit {
 
         let data = gridInstance.dataView.getItems();
         let _id = data.length <= 0 ? 0 : Math.max(...data.map(x => x._id || 0));
-        let stt = data.length <= 0 ? 0 : Math.max(...data.map((x: any) => Number(x.STT) || 0));;
+        let stt = data.length <= 0 ? 0 : Math.max(...data.map((x: any) => Number(x.STT) || 0));
         const parent = gridInstance.dataView.getItemById(2);
 
         const isParent = parent && parent.__hasChildren;

@@ -1,13 +1,26 @@
 <ng-container class="w-100 h-100 d-flex flex-column">
     <div class="card-header bg-white p-1" style="overflow-x: auto; flex-shrink: 0;">
 
-        <div class="d-flex gap-1">
-            <button style="min-width: 25px;" nz-button nzType="default" nzSize="small" (click)="toggleSearchPanel()">
-                <nz-icon nzType="search"></nz-icon>
-            </button>
-            <button class="fs-12" nz-button nzType="default" nzSize="small" title="Cất và đóng" (click)="save()">
-                <img src="assets/icon/action_import_16.png" alt="Cất và đóng" /> Cất và đóng
-            </button>
+        <div class="d-flex gap-1 justify-content-between align-items-center">
+            <div class="d-flex gap-1">
+                <button style="min-width: 25px;" nz-button nzType="default" nzSize="small" (click)="toggleSearchPanel()">
+                    <nz-icon nzType="search"></nz-icon>
+                </button>
+                <button class="fs-12" nz-button nzType="default" nzSize="small" title="Cất và đóng" (click)="save()">
+                    <img src="assets/icon/action_import_16.png" alt="Cất và đóng" /> Cất và đóng
+                </button>
+            </div>
+            <div class="d-flex gap-2 align-items-center">
+                <label class="m-0 fs-12">Tổng thưởng:</label>
+                <nz-input-number 
+                    [(ngModel)]="textSum" 
+                    nzSize="small" 
+                    [nzMin]="0" 
+                    [nzFormatter]="formatCurrency"
+                    [nzParser]="parseCurrency"
+                    style="width: 150px;">
+                </nz-input-number>
+            </div>
         </div>
     </div>
     <nz-splitter>
@@ -48,37 +61,6 @@
                                 <nz-select name="groupSaleId" class="w-100" nzShowSearch nzAllowClear nzSize="small"
                                     nzPlaceHolder="Khách hàng" [(ngModel)]="filters.groupSaleId"
                                     (ngModelChange)="calculateBonus()">
-                                    <nz-option *ngFor="let item of groupsSale" [nzValue]="item.ID"
-                                        [nzLabel]="item.GroupSalesName"></nz-option>
-                                </nz-select>
-                            </nz-form-control>
-                        </nz-form-item>
-                    </form>
-                </div>
-                <div class="card-body">
-                    <form nz-form nzLayout="vertical">
-                        <nz-form-item>
-                            <nz-form-label class="fs-12" [nzSpan]="24">Quý</nz-form-label>
-                            <nz-form-control [nzSpan]="24">
-                                <nz-select name="quarter" class="w-100" nzShowSearch nzAllowClear nzSize="small"
-                                    nzPlaceHolder="Quý" [(ngModel)]="filters.quarter">
-                                    <nz-option *ngFor="let item of quarterOptions" [nzValue]="item.value"
-                                        [nzLabel]="item.label"></nz-option>
-                                </nz-select>
-                            </nz-form-control>
-                        </nz-form-item>
-                        <nz-form-item class="mt-2">
-                            <nz-form-label class="fs-12" [nzSpan]="24">Năm</nz-form-label>
-                            <nz-form-control [nzSpan]="24">
-                                <nz-input-number name="year" class="w-100" [(ngModel)]="filters.year" nzSize="small"
-                                    nzMin="1" />
-                            </nz-form-control>
-                        </nz-form-item>
-                        <nz-form-item class="mt-2">
-                            <nz-form-label class="fs-12" [nzSpan]="24">Nhóm sale</nz-form-label>
-                            <nz-form-control [nzSpan]="24">
-                                <nz-select name="customerId" class="w-100" nzShowSearch nzAllowClear nzSize="small"
-                                    nzPlaceHolder="Khách hàng" [(ngModel)]="filters.customerId">
                                     <nz-option *ngFor="let item of groupsSale" [nzValue]="item.ID"
                                         [nzLabel]="item.GroupSalesName"></nz-option>
                                 </nz-select>

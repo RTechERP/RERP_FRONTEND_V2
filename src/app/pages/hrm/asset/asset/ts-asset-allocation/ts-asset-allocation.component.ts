@@ -475,9 +475,7 @@ validateApprove(
       break;
 
     case 3: // HR duyệt
-      if (row.IsApprovedPersonalProperty != true) {
-        return 'HR_NEED_PERSONAL';
-      }
+  
       break;
 
     case 4: // Hủy HR
@@ -700,8 +698,8 @@ validateApprove(
       `Đã cập nhật thành công các biên bản: ${approvedCodes}`
     );
 
-    // Nếu là KT duyệt thì sau khi cập nhật trạng thái → cập nhật luôn tài sản
-    if (action === 5 && validRows.length > 0) {
+    // Nếu là HR duyệt thì sau khi cập nhật trạng thái → cập nhật luôn tài sản
+    if (action === 3 && validRows.length > 0) {
       this.saveOnApproveMultiple(validRows);
     } else {
       this.getAllocation();

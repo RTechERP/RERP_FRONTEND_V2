@@ -689,7 +689,7 @@ if (invalidRows.length > 0) {
         `Đã cập nhật thành công các biên bản: ${approvedCodes}`
       );
 
-      if (action === 5 && validRows.length > 0) {
+      if (action === 3 && validRows.length > 0) {
         this.updateOnApproveMultiple(validRows);
       } else {
         this.getRecovery();

@@ -217,13 +217,39 @@ export class FormExportExcelPartlistComponent implements OnInit, AfterViewInit {
       dataTreeElementColumn: 'TT',
       rowFormatter: (row: any) => {
         const rowData = row.getData();
-        // Set màu xám cho các dòng cha (có _children)
-        if (rowData._children && rowData._children.length > 0) {
-          const rowElement = row.getElement();
-          if (rowElement) {
-            rowElement.style.backgroundColor = '#E0E0E0'; // Màu xám
-          }
+        const el = row.getElement();
+        // Reset style
+        el.style.cssText = '';
+        
+        // === LOGIC VẼ MÀU GIỐNG WINFORM NodeCellStyle ===
+        const hasChildren = rowData._children && rowData._children.length > 0;
+        const isDeleted = rowData.IsDeleted === true;
+        const isProblem = rowData.IsProblem === true;
+        const quantityReturn = Number(rowData.QuantityReturn) || 0;
+        
+        // 1. Ưu tiên cao nhất: Dòng bị xóa → Red + White text
+        if (isDeleted) {
+          el.style.backgroundColor = 'red';
+          el.style.color = 'black';
+          return;
         }
+        // 2. Dòng có vấn đề → Orange
+        if (isProblem) {
+          el.style.backgroundColor = 'orange';
+          return;
+        }
+        // 3. Số lượng trả về > 0 → LightGreen (hàng đã về)
+        if (quantityReturn > 0) {
+          el.style.backgroundColor = 'lightgreen';
+          return;
+        }
+        // 4. Node cha (có children) → LightGray + Bold
+        if (hasChildren) {
+          el.style.backgroundColor = '#E0E0E0'; // Màu xám
+          el.style.fontWeight = 'bold';
+          return;
+        }
+        // 5. Node lá không có điều kiện đặc biệt → màu trắng mặc định
       },
       columns: [
        
@@ -698,6 +724,16 @@ export class FormExportExcelPartlistComponent implements OnInit, AfterViewInit {
       return;
     }
 
+    // Debug: Kiểm tra dữ liệu có QuantityReturn
+    const rowsWithQuantityReturn = data.filter((row: any) => {
+      const qty = Number(row.QuantityReturn) || 0;
+      return qty > 0;
+    });
+    console.log('Tổng số dòng có QuantityReturn > 0:', rowsWithQuantityReturn.length);
+    if (rowsWithQuantityReturn.length > 0) {
+      console.log('Mẫu dòng có QuantityReturn > 0:', rowsWithQuantityReturn[0]);
+    }
+
     const workbook = new ExcelJS.Workbook();
     const worksheet = workbook.addWorksheet('Danh mục vật tư');
 
@@ -839,6 +875,43 @@ worksheet.getCell('H6').value = 'Ngày:';
 
       const excelRow = worksheet.addRow(rowData);
 
+      // === LOGIC VẼ MÀU GIỐNG WINFORM NodeCellStyle ===
+      const hasChildren = row._children && row._children.length > 0;
+      const isDeleted = row.IsDeleted === true;
+      const isProblem = row.IsProblem === true;
+      // Parse QuantityReturn - giống logic trong project-part-list.component.ts
+      const quantityReturn = Number(row.QuantityReturn) || 0;
+
+      // Debug cho dòng có QuantityReturn > 0
+      if (quantityReturn > 0) {
+        console.log(`Row ${rowIndex + 1} - TT: ${row.TT}, QuantityReturn: ${row.QuantityReturn}, parsed: ${quantityReturn}`);
+      }
+
+      // Xác định màu nền cho toàn bộ dòng
+      let rowFillColor: ExcelJS.Fill | null = null;
+      let rowFont: Partial<ExcelJS.Font> | null = null;
+
+      // Áp dụng màu theo thứ tự ưu tiên (giống WinForm)
+      // 1. Ưu tiên cao nhất: Dòng bị xóa → Red
+      if (isDeleted) {
+        rowFillColor = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFFF0000' } } as ExcelJS.Fill; // Đỏ
+        rowFont = { name: 'Times New Roman', size: 11, color: { argb: 'FFFFFFFF' } }; // Trắng
+      }
+      // 2. Dòng có vấn đề → Orange
+      else if (isProblem) {
+        rowFillColor = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFFFA500' } } as ExcelJS.Fill; // Cam
+      }
+      // 3. Số lượng trả về > 0 → LightGreen (hàng đã về)
+      else if (quantityReturn > 0) {
+        rowFillColor = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF90EE90' } } as ExcelJS.Fill; // Xanh lá
+        console.log(`Applying green color to row ${rowIndex + 1} with QuantityReturn: ${quantityReturn}`);
+      }
+      // 4. Node cha (có children) → Light yellow
+      else if (hasChildren) {
+        rowFillColor = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFFFFACD' } } as ExcelJS.Fill; // Light yellow
+        rowFont = { name: 'Times New Roman', size: 11, bold: true };
+      }
+
       // Style data rows
       excelRow.eachCell((cell, colNumber) => {
         cell.border = {
@@ -857,7 +930,16 @@ worksheet.getCell('H6').value = 'Ngày:';
             cell.numFmt = '#,##0.00';
           }
         }
+
+        // Áp dụng màu nền cho toàn bộ dòng
+        if (rowFillColor) {
+          cell.fill = rowFillColor;
+        }
+        if (rowFont) {
+          cell.font = rowFont;
+        }
       });
+      
       excelRow.eachCell((cell, colNumber) => {
         const colDef = exportColumns[colNumber - 1];
         cell.alignment = {
@@ -866,17 +948,6 @@ worksheet.getCell('H6').value = 'Ngày:';
           horizontal: colDef?.isNumber ? 'right' : 'left'
         };
       });
-
-      // Highlight group rows (rows without TT or with parent indicator)
-      if (!row.TT || (row._children && row._children.length > 0)) {
-        excelRow.eachCell((cell) => {
-          cell.fill = {
-            type: 'pattern',
-            pattern: 'solid',
-            fgColor: { argb: 'FFFFFF00' }, // Yellow background for group rows
-          };
-        });
-      }
     });
 
     // Generate and download file

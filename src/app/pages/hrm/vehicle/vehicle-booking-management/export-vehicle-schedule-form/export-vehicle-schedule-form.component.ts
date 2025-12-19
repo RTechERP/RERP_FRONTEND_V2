@@ -232,9 +232,11 @@ export class ExportVehicleScheduleFormComponent implements OnInit {
       console.log("request", request);
       this.vehicleBookingManagementService.getVehicleSchedule(request).subscribe({
         next: (response: any) => {
-          console.log("tb_vehicleManagement", response.data);
-          this.exportVehicleScheduleList = response.data || [];
-            this.processGroupedData();
+          console.log("tb_vehicleManagement", response);
+          // Lấy dữ liệu từ response.data.data.data (nested structure)
+          const dataArray = response?.data?.data?.data || response?.data?.data || response?.data || [];
+          this.exportVehicleScheduleList = Array.isArray(dataArray) ? dataArray : [];
+          this.processGroupedData();
           console.log("exportVehicleScheduleList", this.exportVehicleScheduleList)
         },
         error: (error) => {

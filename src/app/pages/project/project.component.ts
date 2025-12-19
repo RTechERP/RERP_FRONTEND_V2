@@ -1284,11 +1284,44 @@ export class ProjectComponent implements OnInit, AfterViewInit {
     this.projectService.createProjectTree(projectId, selectedProjectTypeIds).subscribe({
       next: (response: any) => {
         if (response.status == 1 && response.data) {
-          // Xử lý URL: loại bỏ dấu / đầu tiên nếu có để tránh double slash
-          let path = response.data.startsWith('/') ? response.data.substring(1) : response.data;
-          let url = environment.host + path;
-          window.open(url, '_blank');
-          //this.notification.success('Thông báo', 'Tạo cây thư mục thành công!');
+          const url = response.data.url || '';
+          const urlOnl = response.data.urlOnl || '';
+          
+          // Hiển thị modal với 2 đường dẫn
+          this.modal.create({
+            nzTitle: 'Đường dẫn hệ thống',
+            nzContent: `
+              <div style="padding: 16px;">
+                <div style="margin-bottom: 20px;">
+                  <div style="margin-bottom: 8px; font-weight: 600; color: #333;">
+                    <i class="anticon anticon-folder" style="margin-right: 8px;"></i>Đường dẫn hệ thống:
+                  </div>
+                  <div style="margin-top: 8px; padding: 12px; background-color: #f5f5f5; border: 1px solid #d9d9d9; border-radius: 4px; word-break: break-all; font-family: 'Courier New', monospace; font-size: 13px; cursor: text; user-select: text; position: relative;">
+                    ${url}
+                  </div>
+                </div>
+                <div>
+                  <div style="margin-bottom: 8px; font-weight: 600; color: #333;">
+                    <i class="anticon anticon-cloud" style="margin-right: 8px;"></i>Đường dẫn online:
+                  </div>
+                  <div style="margin-top: 8px; padding: 12px; background-color: #f5f5f5; border: 1px solid #d9d9d9; border-radius: 4px; word-break: break-all; font-family: 'Courier New', monospace; font-size: 13px; cursor: text; user-select: text; position: relative;">
+                    ${urlOnl}
+                  </div>
+                </div>
+                <div style="margin-top: 16px; padding: 8px; background-color: #e6f7ff; border-left: 3px solid #1890ff; border-radius: 2px; font-size: 12px; color: #666;">
+                  <i class="anticon anticon-info-circle" style="margin-right: 6px;"></i>
+                  Bạn có thể chọn và copy (Ctrl+C) đường dẫn để sử dụng
+                </div>
+              </div>
+            `,
+            nzWidth: 700,
+            nzOkText: 'Đóng',
+            nzOnOk: () => {
+              return true;
+            }
+          });
+          
+          // this.notification.success('Thông báo', 'Tạo cây thư mục thành công!');
         } else {
           this.notification.error('Thông báo', response.message || 'Không thể tạo cây thư mục dự án!');
         }

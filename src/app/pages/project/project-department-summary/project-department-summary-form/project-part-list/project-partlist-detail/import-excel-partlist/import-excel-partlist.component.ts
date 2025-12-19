@@ -601,14 +601,14 @@ export class ImportExcelPartlistComponent implements OnInit, AfterViewInit {
       this.notification.warning('Thông báo', 'Không có dữ liệu hợp lệ để lưu!');
       return;
     }
-    if (!this.currentUser.IsAdmin && currentTableData.length > 0) {
-      const excelProjectCode = currentTableData[0]?.OrderCode?.toString()?.trim() || '';
+    // if (!this.currentUser.IsAdmin && currentTableData.length > 0) {
+    //   const excelProjectCode = currentTableData[0]?.OrderCode?.toString()?.trim() || '';
       
-      if (excelProjectCode && excelProjectCode !== this.projectCode.trim()) {
-        this.notification.warning('Cảnh báo', 'Không đúng Mã dự án!');
-        return;
-      }
-    }
+    //   if (excelProjectCode && excelProjectCode !== this.projectCode.trim()) {
+    //     this.notification.warning('Cảnh báo', 'Không đúng Mã dự án!');
+    //     return;
+    //   }
+    // }
     //hàm check validate và check xem có vật tư tích xanh bị khác không
     this.proceedWithImportCheck(validDataToSave);
   }

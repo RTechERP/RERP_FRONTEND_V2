@@ -487,8 +487,8 @@ export class ProjectPartListComponent implements OnInit, AfterViewInit {
       PartlistTypeID: projectTypeID,
       IsDeleted: this.isDeleted || 0,
       Keywords: this.keyword.trim() || '',
-      IsApprovedTBP: this.isApprovedTBP || null,
-      IsApprovedPurchase: this.isApprovedPurchase || null,
+      IsApprovedTBP: this.isApprovedTBP || 0,
+      IsApprovedPurchase: this.isApprovedPurchase || 0,
       ProjectPartListVersionID: selectedVersionID || 0,
       //17433,7,0,'',-1,-1,1384
       // projectID: this.projectId || 0,

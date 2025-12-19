@@ -2225,18 +2225,44 @@ export class ProjectPartListComponent implements OnInit, AfterViewInit {
       const columns = this.tb_projectWorker.getColumns();
       if (columns && columns.length > 0) {
         const firstColumn = columns[0];
+        const firstColumnDef = firstColumn.getDefinition();
+        
         // Kiểm tra xem cột đầu tiên có phải là group không
-        if (firstColumn.getDefinition().columns) {
-          // Là group → cập nhật title của group
-          firstColumn.updateDefinition({ title: newTitle });
+        if (firstColumnDef.columns) {
+          // Là group → cập nhật title thông qua DOM manipulation
+          // Vì Tabulator không cho phép updateDefinition() trên column groups
+          const headerElement = firstColumn.getElement();
+          if (headerElement) {
+            const titleElement = headerElement.querySelector('.tabulator-col-content');
+            if (titleElement) {
+              titleElement.textContent = newTitle;
+            }
+          }
         } else {
           // Không phải group → tìm group cha (nếu có)
           const parentGroup = firstColumn.getParentColumn();
-          if (parentGroup && parentGroup.getDefinition().columns) {
-            parentGroup.updateDefinition({ title: newTitle });
+          if (parentGroup) {
+            const parentDef = parentGroup.getDefinition();
+            if (parentDef && parentDef.columns) {
+              // Parent là group → cập nhật title thông qua DOM manipulation
+              const headerElement = parentGroup.getElement();
+              if (headerElement) {
+                const titleElement = headerElement.querySelector('.tabulator-col-content');
+                if (titleElement) {
+                  titleElement.textContent = newTitle;
+                }
+              }
+            } else {
+              // Parent không phải group → có thể update bằng updateDefinition
+              if (parentGroup && typeof parentGroup.updateDefinition === 'function') {
+                parentGroup.updateDefinition({ title: newTitle });
+              }
+            }
           } else {
-            // Fallback: đặt title cho cột đầu tiên (nếu không có group)
-            firstColumn.updateDefinition({ title: newTitle });
+            // Không có parent → đặt title cho cột đầu tiên (nếu không phải group)
+            if (typeof firstColumn.updateDefinition === 'function') {
+              firstColumn.updateDefinition({ title: newTitle });
+            }
           }
         }
         // BẮT BUỘC: Redraw header để hiển thị title mới
@@ -3810,13 +3836,19 @@ export class ProjectPartListComponent implements OnInit, AfterViewInit {
             const textToCopy = cellValue !== null && cellValue !== undefined ? String(cellValue) : '';
             
             if (textToCopy) {
-              navigator.clipboard.writeText(textToCopy).then(() => {
-                // Copy thành công
-              }).catch((err) => {
-                console.error('Lỗi khi copy vào clipboard:', err);
-                // Fallback: sử dụng cách copy cũ nếu clipboard API không khả dụng
+              // Kiểm tra xem clipboard API có khả dụng không
+              if (navigator.clipboard && navigator.clipboard.writeText) {
+                navigator.clipboard.writeText(textToCopy).then(() => {
+                  // Copy thành công
+                }).catch((err) => {
+                  console.error('Lỗi khi copy vào clipboard:', err);
+                  // Fallback: sử dụng cách copy cũ nếu clipboard API không khả dụng
+                  this.fallbackCopyTextToClipboard(textToCopy);
+                });
+              } else {
+                // Nếu clipboard API không khả dụng, dùng fallback ngay
                 this.fallbackCopyTextToClipboard(textToCopy);
-              });
+              }
             }
           }
         });

@@ -150,6 +150,7 @@ import { VehicleBookingManagementComponent } from '../../../hrm/vehicle/vehicle-
 
 import { EmployeeSyntheticPersonalComponent } from '../../../hrm/employee-management/employee-synthetic/employee-synthetic-personal/employee-synthetic-personal.component';
 import { BookingRoomComponent } from '../../../hrm/booking room/booking-room.component';
+import { RegisterContractComponent } from '../../../person/register-contract/register-contract.component';
 import { ApproveTpComponent } from '../../../person/approve-tp/approve-tp/approve-tp.component';
 import { PhaseAllocationPersonComponent } from '../../../hrm/phase-allocation-person/phase-allocation-person.component';
 
@@ -2967,14 +2968,22 @@ export class MenuService {
                                 isPermission: this.permissionService.hasPermission(''),
                                 comp: RegisterIdeaComponent,
                             },
+                                // {
+                                //     kind: 'leaf',
+                                //     key: 'dangkyhopdong',
+                                //     title: 'Đăng ký hợp đồng',
+                                //     isOpen: true,
+                                //     isPermission: this.permissionService.hasPermission(''),
+                                //     comp: PersonComponent,
+                                //     router: '/dangkyhopdong',
+                                // },
                             {
                                 kind: 'leaf',
-                                key: 'dangkyhopdong',
+                                key: 'RegisterContractComponent',
                                 title: 'Đăng ký hợp đồng',
                                 isOpen: true,
                                 isPermission: this.permissionService.hasPermission(''),
-                                comp: PersonComponent,
-                                router: '/dangkyhopdong',
+                                comp: RegisterContractComponent,
                             },
                             {
                                 kind: 'leaf',

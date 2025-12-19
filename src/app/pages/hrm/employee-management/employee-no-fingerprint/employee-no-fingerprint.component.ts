@@ -194,6 +194,7 @@ export class EmployeeNoFingerprintComponent
 
     this.tb_ENF = new Tabulator(container, {
       ...DEFAULT_TABLE_CONFIG,
+      layout:'fitDataStretch',
       ajaxURL: this.enfService.getENFListURL(),
       ajaxConfig: 'POST',
       ajaxRequestFunc: (url: any, config: any, params: any) => {

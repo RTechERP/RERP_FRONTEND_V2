@@ -114,6 +114,18 @@ export class FoodOrderComponent implements OnInit, AfterViewInit {
     return currentHour < 19;
   }
 
+  // Kiểm tra quyền admin: N1, N2, N34 hoặc IsAdmin === true
+  hasAdminPermission(): boolean {
+    // Kiểm tra IsAdmin trước
+    if (this.currentUser?.IsAdmin === true) {
+      return true;
+    }
+    // Kiểm tra quyền N1, N2, N34
+    return this.permissionService.hasPermission('N1') || 
+           this.permissionService.hasPermission('N2') || 
+           this.permissionService.hasPermission('N34');
+  }
+
   private isSameLocalDate(a: Date, b: Date): boolean {
     return (
       a.getFullYear() === b.getFullYear() &&
@@ -220,8 +232,8 @@ export class FoodOrderComponent implements OnInit, AfterViewInit {
   }
 
   private initSearchForm() {
-    // Kiểm tra quyền N1 hoặc N2
-    const hasAdminPermission = this.permissionService.hasPermission('N1') || this.permissionService.hasPermission('N2') || this.permissionService.hasPermission('N34');
+    // Kiểm tra quyền N1, N2, N34 hoặc IsAdmin
+    const hasAdminPermission = this.hasAdminPermission();
 
     let dateStart: Date;
     let dateEnd: Date;
@@ -267,8 +279,8 @@ export class FoodOrderComponent implements OnInit, AfterViewInit {
       });
     }
 
-    // Kiểm tra quyền N1 hoặc N2
-    const hasAdminPermission = this.permissionService.hasPermission('N1') || this.permissionService.hasPermission('N2')||this.permissionService.hasPermission('N34');
+    // Kiểm tra quyền N1, N2, N34 hoặc IsAdmin
+    const hasAdminPermission = this.hasAdminPermission();
 
     const formValue = this.searchForm.value;
     let dateStart = null;
@@ -566,7 +578,7 @@ export class FoodOrderComponent implements OnInit, AfterViewInit {
       ? selectedRowsHN[0].getData()
       : selectedRowsĐP[0].getData();
 
-    const hasAdminPermission = this.permissionService.hasPermission('N1') || this.permissionService.hasPermission('N2')||this.permissionService.hasPermission('N34');
+    const hasAdminPermission = this.hasAdminPermission();
     if (!hasAdminPermission && this.isAfter10AM() && this.isTodayOrPastDate(selectedData['DateOrder'])) {
       this.notification.warning(
         NOTIFICATION_TITLE.warning,
@@ -632,7 +644,7 @@ export class FoodOrderComponent implements OnInit, AfterViewInit {
     }
 
     const formData = this.foodOrderForm.getRawValue();
-    const hasPermission = this.permissionService.hasPermission('N1') || this.permissionService.hasPermission('N2') || this.permissionService.hasPermission('N34');
+    const hasPermission = this.hasAdminPermission();
 
     if (!hasPermission) {
       const now = new Date();
@@ -787,8 +799,8 @@ export class FoodOrderComponent implements OnInit, AfterViewInit {
       );
       return;
     }
-    // Sau 10h: không cho xóa phiếu đặt cơm của ngày hôm nay và các ngày trước đó (trừ N1, N2)
-    const hasAdminPermission = this.permissionService.hasPermission('N1') || this.permissionService.hasPermission('N2')||this.permissionService.hasPermission('N34');
+    // Sau 10h: không cho xóa phiếu đặt cơm của ngày hôm nay và các ngày trước đó (trừ N1, N2, N34, IsAdmin)
+    const hasAdminPermission = this.hasAdminPermission();
     if (!hasAdminPermission && this.isAfter10AM()) {
       const hasTodayOrPastOrder = foodOrdersToDelete.some((fo) =>
         this.isTodayOrPastDate(fo['DateOrder'])
@@ -1074,8 +1086,8 @@ export class FoodOrderComponent implements OnInit, AfterViewInit {
   }
 
   resetSearch() {
-    // Kiểm tra quyền N1 hoặc N2
-    const hasAdminPermission = this.permissionService.hasPermission('N1') || this.permissionService.hasPermission('N2')||this.permissionService.hasPermission('N34');
+    // Kiểm tra quyền N1, N2, N34 hoặc IsAdmin
+    const hasAdminPermission = this.hasAdminPermission();
 
     let dateStart: Date;
     let dateEnd: Date;

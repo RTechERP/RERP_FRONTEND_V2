@@ -44,6 +44,7 @@ import { VehicleRepairService } from '../../../vehicle/vehicle-repair/vehicle-re
 import { EmployeeNightShiftSummaryComponent } from '../employee-night-shift-summary/employee-night-shift-summary.component';
 import { EmployeeNightShiftFormComponent } from '../employee-night-shift-form/employee-night-shift-form.component';
 import { NzDropDownModule } from 'ng-zorro-antd/dropdown';
+import { PermissionService } from '../../../../../services/permission.service';
 (window as any).luxon = { DateTime };
 
 @Component({
@@ -79,7 +80,8 @@ export class EmployeeNightShiftComponent implements OnInit, AfterViewInit, OnDes
     private employeeNightShiftService: EmployeeNightShiftService,
     private modal: NzModalService,
     private employeeAttendanceService: EmployeeAttendanceService,
-    private vehicleRepairService: VehicleRepairService
+    private vehicleRepairService: VehicleRepairService,
+    private permissionService: PermissionService
   ) { }
 
   nightShiftTable: Tabulator | null = null;
@@ -118,6 +120,18 @@ export class EmployeeNightShiftComponent implements OnInit, AfterViewInit, OnDes
   private isApprovedValue(v: any): boolean {
     const n = Number(v);
     return n === 1;
+  }
+
+  // Helper function để kiểm tra bản ghi đã được duyệt (TBP hoặc HR)
+  private isItemApproved(item: any): boolean {
+    const isApprovedTBP = this.isApprovedValue(item.IsApprovedTBP);
+    const isApprovedHR = this.isApprovedValue(item.IsApprovedHR);
+    return isApprovedTBP || isApprovedHR;
+  }
+
+  // Helper function để kiểm tra có quyền admin (N1 hoặc N2)
+  private hasAdminPermission(): boolean {
+    return this.permissionService.hasPermission('N1') || this.permissionService.hasPermission('N2');
   }
 
   ngOnInit() {
@@ -455,6 +469,16 @@ export class EmployeeNightShiftComponent implements OnInit, AfterViewInit, OnDes
     }
 
     const dataInput = selectedRows[0];
+    
+    // Kiểm tra trạng thái duyệt (trừ N1, N2)
+    if (!this.hasAdminPermission() && this.isItemApproved(dataInput)) {
+      const fullName = dataInput.FullName || dataInput.EmployeeName || 'Không xác định';
+      this.notification.warning(
+        NOTIFICATION_TITLE.warning,
+        `Phiếu  đã được duyệt, không thể sửa. Vui lòng hủy duyệt trước.`
+      );
+      return;
+    }
     const modalRef = this.ngbModal.open(EmployeeNightShiftFormComponent, {
       size: 'lg',
       backdrop: 'static',
@@ -823,45 +847,37 @@ export class EmployeeNightShiftComponent implements OnInit, AfterViewInit, OnDes
       return;
     }
 
-    // Tách thành 2 nhóm: đã duyệt HR (không xóa được) và chưa duyệt (xóa được)
-    const lockedRows = selectedRows.filter((row: any) => this.toBool(row.IsApprovedHR));
-    const deletableRows = selectedRows.filter((row: any) => !this.toBool(row.IsApprovedHR));
+    // Tách thành 2 nhóm: đã duyệt (TBP hoặc HR) và chưa duyệt
+    // Nếu có quyền N1 hoặc N2 thì không chặn
+    const hasAdmin = this.hasAdminPermission();
+    const lockedRows = hasAdmin 
+      ? [] 
+      : selectedRows.filter((row: any) => this.isItemApproved(row));
+    const deletableRows = hasAdmin 
+      ? selectedRows 
+      : selectedRows.filter((row: any) => !this.isItemApproved(row));
 
-    // Nếu tất cả đều đã được HR duyệt
+    // Nếu tất cả đều đã được duyệt (TBP hoặc HR)
     if (deletableRows.length === 0) {
       const lockedNames = lockedRows
         .map((row: any) => row.FullName || row.EmployeeName || 'Không xác định')
         .join(', ');
       this.notification.warning(
         NOTIFICATION_TITLE.warning,
-        `Tất cả các bản ghi đã được HR duyệt, không thể xóa. Danh sách: ${lockedNames}`
+        `Bản ghi đã được duyệt, không thể xóa. Vui lòng hủy duyệt trước.`
       );
-      // Log ra console
-      console.log('Không thể xóa các bản ghi sau (đã được HR duyệt):', lockedRows.map((r: any) => ({
-        ID: r.ID,
-        EmployeeName: r.FullName || r.EmployeeName,
-        DateRegister: r.DateRegister,
-        IsApprovedHR: r.IsApprovedHR
-      })));
       return;
     }
 
-    // Nếu có một số bản ghi đã được HR duyệt, báo cảnh báo
+    // Nếu có một số bản ghi đã được duyệt, báo cảnh báo
     if (lockedRows.length > 0) {
       const lockedNames = lockedRows
         .map((row: any) => row.FullName || row.EmployeeName || 'Không xác định')
         .join(', ');
       this.notification.warning(
         NOTIFICATION_TITLE.warning,
-        `Bản ghi của nhân viên ${lockedNames} đã được HR duyệt, không thể xóa. Chỉ xóa các bản ghi chưa được duyệt.`
+          `Bản ghi đã được duyệt, không thể xóa. Vui lòng hủy duyệt trước.`
       );
-      // Log ra console
-      console.log('Không thể xóa các bản ghi sau (đã được HR duyệt):', lockedRows.map((r: any) => ({
-        ID: r.ID,
-        EmployeeName: r.FullName || r.EmployeeName,
-        DateRegister: r.DateRegister,
-        IsApprovedHR: r.IsApprovedHR
-      })));
     }
 
     // Chuẩn bị text hiển thị cho các bản ghi sẽ xóa
@@ -891,23 +907,24 @@ export class EmployeeNightShiftComponent implements OnInit, AfterViewInit, OnDes
 
     this.modal.confirm({
       nzTitle: 'Xác nhận xóa',
-      nzContent: `Bạn có chắc chắn muốn xóa <b>[${nameDisplay}]</b> không?${lockedRows.length > 0 ? '<br/><br/><b>Lưu ý:</b> Các bản ghi đã được HR duyệt sẽ không bị xóa.' : ''}`,
+      nzContent: `Bạn có chắc chắn muốn xóa <b>[${nameDisplay}]</b> không?${lockedRows.length > 0 ? '<br/><br/><b>Lưu ý:</b> Các bản ghi đã được duyệt sẽ không bị xóa.' : ''}`,
       nzOkText: 'Đồng ý',
       nzCancelText: 'Hủy',
       nzOkDanger: true,
       nzOnOk: () => {
-        this.employeeNightShiftService.saveApproveHR(payload).subscribe({
-          next: (res) => {
-            if (res.status === 1) {
-              this.notification.success(NOTIFICATION_TITLE.success, `Đã xóa ${deletableRows.length} bản ghi thành công!${lockedRows.length > 0 ? ` (${lockedRows.length} bản ghi đã được HR duyệt không thể xóa)` : ''}`);
+        this.employeeNightShiftService.saveData(payload).subscribe({
+          next: (res: any) => {
+            if (res?.status === 1) {
+              this.notification.success(NOTIFICATION_TITLE.success, res.message || `Đã xóa ${deletableRows.length} bản ghi thành công!${lockedRows.length > 0 ? ` (${lockedRows.length} bản ghi đã được duyệt không thể xóa)` : ''}`);
               this.getNightShift();
             } else {
-              this.notification.warning(NOTIFICATION_TITLE.warning, res.message || 'Không thể xóa bản ghi!');
+              this.notification.warning(NOTIFICATION_TITLE.warning, res?.message || 'Không thể xóa bản ghi!');
             }
           },
-          error: (err) => {
+          error: (err: any) => {
             console.error('Lỗi xóa:', err);
-            this.notification.error(NOTIFICATION_TITLE.error, err?.error?.message || 'Có lỗi xảy ra khi xóa bản ghi!');
+            const errorMessage = err?.error?.message || err?.error?.Message || err?.message || 'Có lỗi xảy ra khi xóa bản ghi!';
+            this.notification.error(NOTIFICATION_TITLE.error, errorMessage);
           },
         });
       },

@@ -27,6 +27,7 @@ import { NzMenuModule } from 'ng-zorro-antd/menu';
 import { NOTIFICATION_TITLE } from '../../../../app.config';
 import { DEFAULT_TABLE_CONFIG } from '../../../../tabulator-default.config';
 import { environment } from '../../../../../environments/environment';
+import { ReasonDeclineModalComponent } from '../reason-decline-modal/reason-decline-modal.component';
 
 @Component({
   selector: 'app-approve-tp',
@@ -114,11 +115,10 @@ export class ApproveTpComponent implements OnInit, AfterViewInit {
   loadTeams() {
     this.approveTpService.getUserTeam().subscribe({
       next: (response: any) => {
-       this.teamList= response.data;
+        this.teamList = response.data;
       },
-      error: (error:any) => {
+      error: (error: any) => {
         this.notification.error(NOTIFICATION_TITLE.error, 'Lỗi khi tải danh sách team: ' + error.error.message);
-      
       }
     });
   }
@@ -158,7 +158,7 @@ export class ApproveTpComponent implements OnInit, AfterViewInit {
       endDate: lastDay,
       employeeId: null,
       teamId: 0,
-      status: 0,
+      status: 0, // Mặc định: Chờ duyệt
       deleteFlag: 0,
       type: defaultType,
       statusHR: -1,
@@ -185,7 +185,7 @@ export class ApproveTpComponent implements OnInit, AfterViewInit {
       endDate: [lastDay],
       employeeId: [null],
       teamId: [0],
-      status: [0],
+      status: [0], 
       deleteFlag: [0],
       type: [defaultType],
       statusHR: [-1],
@@ -257,6 +257,18 @@ export class ApproveTpComponent implements OnInit, AfterViewInit {
       columns: [
         {
           title: 'Senior duyệt', field: 'IsSeniorApprovedText', hozAlign: 'center', headerHozAlign: 'center', width: 120, headerWordWrap: true, headerSort: false,
+          formatter: (cell: any) => {
+            const value = cell.getValue();
+            let numValue = 0;
+            if (value === 'Chờ duyệt') {
+              numValue = 1;
+            } else if (value === 'Từ chối' || value === 'Không duyệt') {
+              numValue = 2;
+            } else {
+              numValue = -1;
+            }
+            return this.formatApprovalBadge(numValue);
+          },
         },
         {
           title: 'TBP duyệt', field: 'StatusText', hozAlign: 'center', headerHozAlign: 'center', width: 120, headerWordWrap: true, headerSort: false,
@@ -268,8 +280,11 @@ export class ApproveTpComponent implements OnInit, AfterViewInit {
             } else if (typeof value === 'number') {
               numValue = value;
             } else if (typeof value === 'string') {
-              if (value === 'Đã duyệt') numValue = 1;
-              else if (value === 'Từ chối' || value === 'Không duyệt') numValue = 2;
+              if (value === 'Chờ duyệt' || value === 'Chưa duyệt') numValue = 0;
+              else if (value === 'Đã duyệt') numValue = 1;
+              else if (value === 'Không đồng ý duyệt' || value === 'Từ chối' || value === 'Không duyệt') numValue = 2;
+              else if (value === 'Chờ duyệt hủy đăng ký') numValue = 3;
+              else if (value === 'Đã duyệt hủy đăng ký') numValue = 4;
               else numValue = 0;
             }
             return this.formatApprovalBadge(numValue);
@@ -286,8 +301,11 @@ export class ApproveTpComponent implements OnInit, AfterViewInit {
             } else if (typeof value === 'number') {
               numValue = value;
             } else if (typeof value === 'string') {
-              if (value === 'Đã duyệt') numValue = 1;
-              else if (value === 'Từ chối' || value === 'Không duyệt') numValue = 2;
+              if (value === 'Chờ duyệt' || value === 'Chưa duyệt') numValue = 0;
+              else if (value === 'Đã duyệt') numValue = 1;
+              else if (value === 'Không đồng ý duyệt' || value === 'Từ chối' || value === 'Không duyệt') numValue = 2;
+              else if (value === 'Chờ duyệt hủy đăng ký') numValue = 3;
+              else if (value === 'Đã duyệt hủy đăng ký') numValue = 4;
               else numValue = 0;
             }
             return this.formatApprovalBadge(numValue);
@@ -304,8 +322,11 @@ export class ApproveTpComponent implements OnInit, AfterViewInit {
             } else if (typeof value === 'number') {
               numValue = value;
             } else if (typeof value === 'string') {
-              if (value === 'Đã duyệt') numValue = 1;
-              else if (value === 'Từ chối' || value === 'Không duyệt') numValue = 2;
+              if (value === 'Chờ duyệt' || value === 'Chưa duyệt') numValue = 0;
+              else if (value === 'Đã duyệt') numValue = 1;
+              else if (value === 'Không đồng ý duyệt' || value === 'Từ chối' || value === 'Không duyệt') numValue = 2;
+              else if (value === 'Chờ duyệt hủy đăng ký') numValue = 3;
+              else if (value === 'Đã duyệt hủy đăng ký') numValue = 4;
               else numValue = 0;
             }
             return this.formatApprovalBadge(numValue);
@@ -418,7 +439,11 @@ export class ApproveTpComponent implements OnInit, AfterViewInit {
         const isApprovedHR = row.IsApprovedHR !== undefined ? Boolean(row.IsApprovedHR) : false;
         const isCancelRegister = row.IsCancelRegister !== undefined ? Number(row.IsCancelRegister) : 0;
         const isApprovedTP = row.IsApprovedTP !== undefined ? Boolean(row.IsApprovedTP) : false;
-        const isApprovedBGD = row.IsApprovedBGD === true || row.IsApprovedBGD === 1 || row.IsApprovedBGD === '1';
+        // Xử lý IsApprovedBGD: -1 = chưa duyệt, true/1 = đã duyệt, false/0 = không duyệt
+        const bgdValue = row.IsApprovedBGD !== undefined && row.IsApprovedBGD !== null 
+          ? (typeof row.IsApprovedBGD === 'boolean' ? (row.IsApprovedBGD ? 1 : 0) : Number(row.IsApprovedBGD))
+          : -1;
+        const isApprovedBGD = bgdValue === 1;
 
         if (deleteFlag) {
           this.notification.warning(
@@ -484,7 +509,7 @@ export class ApproveTpComponent implements OnInit, AfterViewInit {
           .map(row => {
             const ttype = row.TType !== undefined ? Number(row.TType) : 0;
             const evaluateResults = row.EvaluateResults ? String(row.EvaluateResults) : '';
-
+            
             return {
               Id: row.ID ? Number(row.ID) : null,
               TableName: row.TableName ? String(row.TableName) : '',
@@ -494,10 +519,10 @@ export class ApproveTpComponent implements OnInit, AfterViewInit {
               IsApprovedHR: row.IsApprovedHR !== undefined ? Boolean(row.IsApprovedHR) : null,
               IsCancelRegister: row.IsCancelRegister !== undefined ? Number(row.IsCancelRegister) : null,
               IsApprovedTP: isApproved,
-              IsApprovedBGD: row.IsApprovedBGD !== undefined ? Boolean(row.IsApprovedBGD) : null,
+              IsApprovedBGD: this.convertIsApprovedBGD(row.IsApprovedBGD),
               IsSeniorApproved: row.IsSeniorApproved !== undefined ? Boolean(row.IsSeniorApproved) : null,
               ValueUpdatedDate: new Date().toISOString(),
-              ValueDecilineApprove: isApproved ? '1' : (row.DecilineApprove !== undefined ? String(row.DecilineApprove) : ''),
+              ValueDecilineApprove: isApproved ? '1' : '', // Khi hủy duyệt, set rỗng để tránh conflict với backend
               EvaluateResults: evaluateResults,
               EmployeeID: row.EmployeeID ? Number(row.EmployeeID) : null,
               TType: row.TType !== undefined ? Number(row.TType) : null
@@ -513,6 +538,140 @@ export class ApproveTpComponent implements OnInit, AfterViewInit {
           next: (response: any) => {
             if (response && response.status === 1) {
               this.notification.success(NOTIFICATION_TITLE.success, `Đã ${actionText} thành công!`);
+              this.loadData();
+            } else {
+              this.notification.error(NOTIFICATION_TITLE.error, response?.message || `Lỗi khi ${actionText}!`);
+            }
+          },
+          error: (error) => {
+            this.notification.error(NOTIFICATION_TITLE.error, `Lỗi khi ${actionText}: ${error.message}`);
+          }
+        });
+      }
+    });
+  }
+
+  private unApproveTBPWithValidation() {
+    const selectedRows = this.getSelectedRows();
+    const actionText = 'hủy duyệt';
+    const isAdmin = this.currentUser?.IsAdmin || false;
+
+    if (!isAdmin) {
+      for (const row of selectedRows) {
+        const id = row.ID ? Number(row.ID) : 0;
+        if (id <= 0) {
+          continue;
+        }
+
+        const fullname = row.FullName ? String(row.FullName) : '';
+        const table = row.TypeText ? String(row.TypeText) : '';
+        const deleteFlag = row.DeleteFlag !== undefined ? Boolean(row.DeleteFlag) : false;
+        const isApprovedHR = row.IsApprovedHR !== undefined ? Boolean(row.IsApprovedHR) : false;
+        const isCancelRegister = row.IsCancelRegister !== undefined ? Number(row.IsCancelRegister) : 0;
+        const isApprovedTP = row.IsApprovedTP !== undefined ? Boolean(row.IsApprovedTP) : false;
+        const bgdValue = row.IsApprovedBGD !== undefined && row.IsApprovedBGD !== null 
+          ? (typeof row.IsApprovedBGD === 'boolean' ? (row.IsApprovedBGD ? 1 : 0) : Number(row.IsApprovedBGD))
+          : -1;
+        const isApprovedBGD = bgdValue === 1;
+
+        if (deleteFlag) {
+          this.notification.warning(
+            NOTIFICATION_TITLE.warning,
+            `Bạn không thể ${actionText} vì nhân viên ${fullname} đã tự xoá khai báo [${table}]!`
+          );
+          return;
+        }
+
+        if (isApprovedHR) {
+          this.notification.warning(
+            NOTIFICATION_TITLE.warning,
+            `Bạn không thể ${actionText} vì nhân viên ${fullname} đã được HR duyệt!`
+          );
+          return;
+        }
+
+        if (isCancelRegister > 0) {
+          this.notification.warning(
+            NOTIFICATION_TITLE.warning,
+            `Bạn không thể ${actionText} vì nhân viên ${fullname} đã đăng ký hủy!`
+          );
+          return;
+        }
+
+        if (!isApprovedTP) {
+          this.notification.warning(
+            NOTIFICATION_TITLE.warning,
+            `Bạn không thể ${actionText} vì nhân viên ${fullname} chưa được TBP duyệt!`
+          );
+          return;
+        }
+
+        if (isApprovedBGD) {
+          this.notification.warning(
+            NOTIFICATION_TITLE.warning,
+            `Bạn không thể ${actionText} vì nhân viên ${fullname} đã được BGĐ duyệt!`
+          );
+          return;
+        }
+      }
+    }
+
+    this.modal.confirm({
+      nzTitle: 'Xác nhận',
+      nzContent: `Bạn có chắc muốn ${actionText} danh sách nhân viên đã chọn không?`,
+      nzOkText: 'Đồng ý',
+      nzCancelText: 'Hủy',
+      nzOnOk: () => {
+        const items: ApproveItemParam[] = selectedRows
+          .filter(row => {
+            const id = row.ID ? Number(row.ID) : 0;
+            return id > 0;
+          })
+          .map(row => {
+            const ttype = row.TType !== undefined ? Number(row.TType) : 0;
+            const evaluateResults = row.EvaluateResults ? String(row.EvaluateResults) : '';
+            
+            return {
+              Id: row.ID ? Number(row.ID) : null,
+              TableName: row.TableName ? String(row.TableName) : '',
+              FieldName: row.ColumnNameUpdate ? String(row.ColumnNameUpdate) : '',
+              FullName: row.FullName ? String(row.FullName) : '',
+              DeleteFlag: row.DeleteFlag !== undefined ? Boolean(row.DeleteFlag) : null,
+              IsApprovedHR: row.IsApprovedHR !== undefined ? Boolean(row.IsApprovedHR) : null,
+              IsCancelRegister: row.IsCancelRegister !== undefined ? Number(row.IsCancelRegister) : null,
+              IsApprovedTP: null,
+              IsApprovedBGD: this.convertIsApprovedBGD(row.IsApprovedBGD),
+              IsSeniorApproved: row.IsSeniorApproved !== undefined ? Boolean(row.IsSeniorApproved) : null,
+              ValueUpdatedDate: new Date().toISOString(),
+              ValueDecilineApprove: '',
+              EvaluateResults: evaluateResults,
+              EmployeeID: row.EmployeeID ? Number(row.EmployeeID) : null,
+              TType: row.TType !== undefined ? Number(row.TType) : null,
+              ReasonDeciline: '' // Backend sử dụng ReasonDeciline làm @Value trong stored procedure
+            };
+          });
+
+        const request: ApproveRequestParam = {
+          Items: items,
+          IsApproved: false
+        };
+
+        this.approveTpService.unApproveTBP(request).subscribe({
+          next: (response: any) => {
+            if (response && response.status === 1) {
+              const notProcessed = response.data || [];
+              if (notProcessed.length > 0) {
+                const reasons = notProcessed.map((item: any) => 
+                  `${item.Item?.FullName || 'N/A'}: ${item.Reason || 'Không xác định'}`
+                ).join('\n');
+                
+                this.notification.warning(
+                  NOTIFICATION_TITLE.warning,
+                  `Đã ${actionText} thành công, nhưng có ${notProcessed.length} bản ghi không được xử lý:\n${reasons}`
+                );
+              } else {
+                this.notification.success(NOTIFICATION_TITLE.success, `Đã ${actionText} thành công!`);
+              }
               this.loadData();
             } else {
               this.notification.error(NOTIFICATION_TITLE.error, response?.message || `Lỗi khi ${actionText}!`);
@@ -666,7 +825,7 @@ export class ApproveTpComponent implements OnInit, AfterViewInit {
                   IsApprovedHR: row.IsApprovedHR !== undefined ? Boolean(row.IsApprovedHR) : null,
                   IsCancelRegister: row.IsCancelRegister !== undefined ? Number(row.IsCancelRegister) : null,
                   IsApprovedTP: row.IsApprovedTP !== undefined ? Boolean(row.IsApprovedTP) : null,
-                  IsApprovedBGD: row.IsApprovedBGD !== undefined ? Boolean(row.IsApprovedBGD) : null,
+                  IsApprovedBGD: this.convertIsApprovedBGD(row.IsApprovedBGD),
                   IsSeniorApproved: isApproved,
                   ValueUpdatedDate: new Date().toISOString(),
                   ValueDecilineApprove: row.DecilineApprove ? String(row.DecilineApprove) : '',
@@ -791,7 +950,7 @@ export class ApproveTpComponent implements OnInit, AfterViewInit {
           IsApprovedHR: row.IsApprovedHR !== undefined ? Boolean(row.IsApprovedHR) : null,
           IsCancelRegister: row.IsCancelRegister !== undefined ? Number(row.IsCancelRegister) : null,
           IsApprovedTP: type === 'TBP' ? isApproved : (row.IsApprovedTP !== undefined ? Boolean(row.IsApprovedTP) : null),
-          IsApprovedBGD: type === 'BGD' ? isApproved : (row.IsApprovedBGD !== undefined ? Boolean(row.IsApprovedBGD) : null),
+          IsApprovedBGD: type === 'BGD' ? isApproved : this.convertIsApprovedBGD(row.IsApprovedBGD),
           IsSeniorApproved: type === 'Senior' ? isApproved : (row.IsSeniorApproved !== undefined ? Boolean(row.IsSeniorApproved) : null),
           ValueUpdatedDate: new Date().toISOString(),
           ValueDecilineApprove: row.DecilineApprove ? String(row.DecilineApprove) : '',
@@ -838,7 +997,136 @@ export class ApproveTpComponent implements OnInit, AfterViewInit {
       return;
     }
 
-    this.notification.warning(NOTIFICATION_TITLE.warning, 'Chức năng không duyệt đang được phát triển');
+    // Validate selected rows
+    for (const row of selectedRows) {
+      const id = row.ID ? Number(row.ID) : 0;
+      if (id <= 0) {
+        continue;
+      }
+
+      const fullName = row.FullName ? String(row.FullName) : '';
+      const table = row.TypeText ? String(row.TypeText) : '';
+      const isApprovedTP = row.IsApprovedTP !== undefined ? Boolean(row.IsApprovedTP) : false;
+      const isCancelRegister = row.IsCancelRegister !== undefined ? Number(row.IsCancelRegister) : 0;
+      const deleteFlag = row.DeleteFlag !== undefined ? Boolean(row.DeleteFlag) : false;
+
+      if (isApprovedTP) {
+        this.notification.warning(
+          NOTIFICATION_TITLE.warning,
+          `Nhân viên [${fullName}] đã được duyệt.\nVui lòng huỷ duyệt trước!`
+        );
+        return;
+      }
+
+      if (isCancelRegister > 0) {
+        this.notification.warning(
+          NOTIFICATION_TITLE.warning,
+          `Nhân viên [${fullName}] đã đăng ký huỷ!`
+        );
+        return;
+      }
+
+      if (deleteFlag) {
+        this.notification.warning(
+          NOTIFICATION_TITLE.warning,
+          `Nhân viên [${fullName}] đã xoá đăng ký [${table}]!`
+        );
+        return;
+      }
+    }
+
+    // Show modal to enter decline reason
+    this.showDeclineReasonModal(selectedRows);
+  }
+
+  private showDeclineReasonModal(selectedRows: any[]) {
+    const modalRef = this.modal.create({
+      nzContent: ReasonDeclineModalComponent,
+      nzWidth: 600,
+      nzFooter: null,
+      nzMaskClosable: false,
+      nzClosable: false,
+      nzCentered: true,
+      nzBodyStyle: { padding: '0' }
+    });
+
+    // Pass data to modal
+    const instance = modalRef.getContentComponent();
+    instance.selectedRows = selectedRows;
+    instance.modalTitle = 'Lý do không duyệt';
+    instance.labelText = 'Lý do không duyệt';
+    instance.placeholderText = 'Nhập lý do không duyệt...';
+
+    // Handle modal result
+    modalRef.afterClose.subscribe((result: any) => {
+      if (result && result.confirmed && result.reason) {
+        this.processDeclineApprove(selectedRows, result.reason);
+      }
+    });
+  }
+
+  private processDeclineApprove(selectedRows: any[], declineReason: string) {
+    const items: ApproveItemParam[] = selectedRows
+      .filter(row => {
+        const id = row.ID ? Number(row.ID) : 0;
+        return id > 0;
+      })
+      .map(row => {
+        const tableName = row.TableName ? String(row.TableName) : '';
+        // FieldName là IsApprovedTP để backend set @Value = false
+        const fieldName = tableName === 'EmployeeNighShift' ? 'IsApprovedTBP' : 'IsApprovedTP';
+
+        const item: ApproveItemParam = {
+          Id: row.ID ? Number(row.ID) : null,
+          TableName: tableName,
+          FieldName: fieldName,
+          FullName: row.FullName ? String(row.FullName) : '',
+          DeleteFlag: row.DeleteFlag !== undefined ? Boolean(row.DeleteFlag) : null,
+          IsApprovedHR: row.IsApprovedHR !== undefined ? Boolean(row.IsApprovedHR) : null,
+          IsCancelRegister: row.IsCancelRegister !== undefined ? Number(row.IsCancelRegister) : null,
+          IsApprovedTP: false, // @Value = false để set IsApprovedTP = false
+          IsApprovedBGD: this.convertIsApprovedBGD(row.IsApprovedBGD),
+          IsSeniorApproved: row.IsSeniorApproved !== undefined ? Boolean(row.IsSeniorApproved) : null,
+          ValueUpdatedDate: new Date().toISOString(),
+          ValueDecilineApprove: '2', // 2 = Không đồng ý duyệt (set vào DecilineApprove column - int)
+          EvaluateResults: row.EvaluateResults ? String(row.EvaluateResults) : '',
+          EmployeeID: row.EmployeeID ? Number(row.EmployeeID) : null,
+          TType: row.TType !== undefined ? Number(row.TType) : null,
+          ReasonDeciline: declineReason // Lý do không duyệt (set vào ReasonDeciline column - text)
+        };
+        return item;
+      });
+
+    const request: ApproveRequestParam = {
+      Items: items,
+      IsApproved: false
+    };
+
+    this.approveTpService.unApproveTBP(request).subscribe({
+      next: (response: any) => {
+        if (response && response.status === 1) {
+          const notProcessed = response.data || [];
+          if (notProcessed.length > 0) {
+            const reasons = notProcessed.map((item: any) => 
+              `${item.Item?.FullName || 'N/A'}: ${item.Reason || 'Không xác định'}`
+            ).join('\n');
+            
+            this.notification.warning(
+              NOTIFICATION_TITLE.warning,
+              `Đã không duyệt thành công, nhưng có ${notProcessed.length} bản ghi không được xử lý:\n${reasons}`
+            );
+          } else {
+            this.notification.success(NOTIFICATION_TITLE.success, 'Đã không duyệt thành công!');
+          }
+          this.loadData();
+        } else {
+          this.notification.error(NOTIFICATION_TITLE.error, response?.message || 'Lỗi khi không duyệt!');
+        }
+      },
+      error: (error) => {
+        this.notification.error(NOTIFICATION_TITLE.error, `Lỗi khi không duyệt: ${error.message}`);
+      }
+    });
   }
 
   approvedCancelRegister() {
@@ -905,7 +1193,7 @@ export class ApproveTpComponent implements OnInit, AfterViewInit {
             IsApprovedHR: row.IsApprovedHR !== undefined ? Boolean(row.IsApprovedHR) : null,
             IsCancelRegister: row.IsCancelRegister !== undefined ? Number(row.IsCancelRegister) : null,
             IsApprovedTP: true,
-            IsApprovedBGD: row.IsApprovedBGD !== undefined ? Boolean(row.IsApprovedBGD) : null,
+            IsApprovedBGD: this.convertIsApprovedBGD(row.IsApprovedBGD),
             IsSeniorApproved: row.IsSeniorApproved !== undefined ? Boolean(row.IsSeniorApproved) : null,
             ValueUpdatedDate: new Date().toISOString(),
             ValueDecilineApprove: row.DecilineApprove ? String(row.DecilineApprove) : '',
@@ -964,16 +1252,52 @@ export class ApproveTpComponent implements OnInit, AfterViewInit {
     }
   }
 
+
+  /**
+   * Convert IsApprovedBGD value to boolean | null for backend API
+   * -1 (chưa duyệt) -> null
+   * 0, false -> false
+   * 1, true -> true
+   * undefined, null -> null
+   */
+  private convertIsApprovedBGD(value: any): boolean | null {
+    if (value === undefined || value === null) {
+      return null;
+    }
+    
+    // Nếu là boolean, trả về trực tiếp
+    if (typeof value === 'boolean') {
+      return value;
+    }
+    
+    // Convert sang number để kiểm tra
+    const numValue = Number(value);
+    
+    // Nếu là -1 (chưa duyệt), trả về null
+    if (numValue === -1) {
+      return null;
+    }
+    
+    // Các giá trị khác convert sang boolean
+    return Boolean(value);
+  }
+
   private formatApprovalBadge(status: number): string {
     const numStatus = status === null || status === undefined ? 0 : Number(status);
 
     switch (numStatus) {
+      case -1:
+        return '';
       case 0:
-        return '<span class="badge bg-warning text-dark" style="display: inline-block; text-align: center;">Chưa duyệt</span>';
+        return '<span class="badge bg-warning text-dark" style="display: inline-block; text-align: center;">Chờ duyệt</span>';
       case 1:
         return '<span class="badge bg-success" style="display: inline-block; text-align: center;">Đã duyệt</span>';
       case 2:
-        return '<span class="badge bg-danger" style="display: inline-block; text-align: center;">Không duyệt</span>';
+        return '<span class="badge bg-danger" style="display: inline-block; text-align: center;">Không đồng ý duyệt</span>';
+      case 3:
+        return '<span class="badge bg-warning text-dark" style="display: inline-block; text-align: center;">Chờ duyệt hủy đăng ký</span>';
+      case 4:
+        return '<span class="badge bg-success" style="display: inline-block; text-align: center;">Đã duyệt hủy đăng ký</span>';
       default:
         return '<span class="badge bg-secondary" style="display: inline-block; text-align: center;">Không xác định</span>';
     }

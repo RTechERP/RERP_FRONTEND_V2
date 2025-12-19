@@ -305,7 +305,16 @@ export class OverTimePersonComponent implements OnInit, AfterViewInit {
         },
         {
           title: 'Số giờ', field: 'TimeReality', width: 80, hozAlign: 'right', headerHozAlign: 'center', headerSort: false,
-          formatter: 'textarea', bottomCalc: 'sum',
+          formatter: 'textarea',
+          bottomCalc: 'sum',
+          bottomCalcParams: {
+            precision: 2
+          },
+          bottomCalcFormatter: (cell: any) => {
+            const value = cell.getValue();
+            if (value == null || value === undefined || isNaN(value)) return '0.00';
+            return Number(value).toFixed(2);
+          }
         },
         {
           title: 'Địa điểm', field: 'LocationText', width: 120, hozAlign: 'left', headerHozAlign: 'center', headerSort: false,
@@ -425,25 +434,12 @@ export class OverTimePersonComponent implements OnInit, AfterViewInit {
 
     const selectedData = selectedRows[0].getData();
     
-    // Kiểm tra trạng thái duyệt TBP: có thể là boolean hoặc number (0/1/2)
-    let statusTBP = selectedData['IsApproved'] || selectedData['IsApprovedTBP'];
-    if (selectedData['StatusTBP'] !== null && selectedData['StatusTBP'] !== undefined) {
-      statusTBP = selectedData['StatusTBP'];
-    }
-    const numStatusTBP = statusTBP === null || statusTBP === undefined ? 0 : (statusTBP === true ? 1 : (statusTBP === false ? 0 : Number(statusTBP)));
-    
-    // Kiểm tra trạng thái duyệt HR: có thể là boolean hoặc number (0/1/2)
-    let statusHR = selectedData['IsApprovedHR'];
-    if (selectedData['StatusHR'] !== null && selectedData['StatusHR'] !== undefined) {
-      statusHR = selectedData['StatusHR'];
-    }
-    const numStatusHR = statusHR === null || statusHR === undefined ? 0 : (statusHR === true ? 1 : (statusHR === false ? 0 : Number(statusHR)));
-    
-    // Nếu TBP hoặc HR đã duyệt (status = 1) thì không cho sửa
-    if (numStatusTBP === 1 || numStatusHR === 1) {
+    // Kiểm tra trạng thái duyệt
+    if (this.isApproved(selectedData)) {
       this.notification.warning(NOTIFICATION_TITLE.warning, 'Bản ghi đã được duyệt, không thể chỉnh sửa');
       return;
     }
+    
     const formData = this.mapTableDataToFormData(selectedData);
     
     const modalRef = this.modalService.open(OverTimePersonFormComponent, {
@@ -469,7 +465,18 @@ export class OverTimePersonComponent implements OnInit, AfterViewInit {
 
   openDeleteModal(id?: number, timeStart?: string, endTime?: string) {
     if (id !== undefined && id > 0) {
-      // Xóa từ cellClick
+      // Xóa từ cellClick - cần tìm row data từ ID
+      const allData = this.overTimeList;
+      const itemToDelete = allData.find(item => (item.ID || item.Id) === id);
+      
+      if (itemToDelete) {
+        // Kiểm tra trạng thái duyệt
+        if (this.isApproved(itemToDelete)) {
+          this.notification.warning(NOTIFICATION_TITLE.warning, 'Bản ghi đã được duyệt, không thể xóa');
+          return;
+        }
+      }
+      
       let timeStartFormatted = '';
       let endTimeFormatted = '';
       
@@ -515,6 +522,18 @@ export class OverTimePersonComponent implements OnInit, AfterViewInit {
     }
 
     const selectedData = selectedRows.map(row => row.getData());
+    
+    // Kiểm tra trạng thái duyệt cho tất cả các bản ghi đã chọn
+    const approvedItems = selectedData.filter(item => this.isApproved(item));
+    if (approvedItems.length > 0) {
+      const fullNames = approvedItems.map(item => item['EmployeeFullName'] || item['FullName'] || 'N/A').join(', ');
+      this.notification.warning(
+        NOTIFICATION_TITLE.warning,
+        `Có ${approvedItems.length} bản ghi đã được duyệt, không thể xóa:\n${fullNames}`
+      );
+      return;
+    }
+    
     const ids = selectedData.map(item => item['ID'] || item['Id']).filter((id: any) => id > 0);
 
     if (ids.length === 0) {
@@ -537,17 +556,36 @@ export class OverTimePersonComponent implements OnInit, AfterViewInit {
 
   deleteOverTime(ids: number[]) {
     this.isLoading = true;
-    const selectedRows = this.tabulator.getSelectedRows();
-    const selectedData = selectedRows.map(row => row.getData());
     
-    // Lọc các bản ghi có ID trong danh sách ids
-    const dataToDelete = selectedData.filter(item => {
-      const itemId = item['ID'] || item['Id'];
-      return ids.includes(itemId);
-    });
+    // Lấy dữ liệu từ overTimeList hoặc từ selectedRows
+    let dataToDelete: any[] = [];
+    
+    if (ids.length > 0) {
+      // Tìm từ overTimeList
+      dataToDelete = this.overTimeList.filter(item => {
+        const itemId = item['ID'] || item['Id'];
+        return ids.includes(itemId);
+      });
+    } else {
+      // Lấy từ selectedRows
+      const selectedRows = this.tabulator.getSelectedRows();
+      dataToDelete = selectedRows.map(row => row.getData());
+    }
     
     if (dataToDelete.length === 0) {
       this.notification.warning(NOTIFICATION_TITLE.warning, 'Không có bản ghi hợp lệ để xóa');
+      this.isLoading = false;
+      return;
+    }
+    
+    // Kiểm tra lại trạng thái duyệt trước khi xóa
+    const approvedItems = dataToDelete.filter(item => this.isApproved(item));
+    if (approvedItems.length > 0) {
+      const fullNames = approvedItems.map(item => item['EmployeeFullName'] || item['FullName'] || 'N/A').join(', ');
+      this.notification.warning(
+        NOTIFICATION_TITLE.warning,
+        `Bản ghi đã được duyệt, không thể xóa:\n${fullNames}`
+      );
       this.isLoading = false;
       return;
     }
@@ -589,22 +627,8 @@ export class OverTimePersonComponent implements OnInit, AfterViewInit {
 
     const selectedData = selectedRows[0].getData();
     
-    // Kiểm tra trạng thái duyệt TBP: có thể là boolean hoặc number (0/1/2)
-    let statusTBP = selectedData['IsApproved'] || selectedData['IsApprovedTBP'];
-    if (selectedData['StatusTBP'] !== null && selectedData['StatusTBP'] !== undefined) {
-      statusTBP = selectedData['StatusTBP'];
-    }
-    const numStatusTBP = statusTBP === null || statusTBP === undefined ? 0 : (statusTBP === true ? 1 : (statusTBP === false ? 0 : Number(statusTBP)));
-    
-    // Kiểm tra trạng thái duyệt HR: có thể là boolean hoặc number (0/1/2)
-    let statusHR = selectedData['IsApprovedHR'];
-    if (selectedData['StatusHR'] !== null && selectedData['StatusHR'] !== undefined) {
-      statusHR = selectedData['StatusHR'];
-    }
-    const numStatusHR = statusHR === null || statusHR === undefined ? 0 : (statusHR === true ? 1 : (statusHR === false ? 0 : Number(statusHR)));
-    
-    // Nếu TBP hoặc HR đã duyệt (status = 1) thì không cho sao chép
-    if (numStatusTBP === 1 || numStatusHR === 1) {
+    // Kiểm tra trạng thái duyệt
+    if (this.isApproved(selectedData)) {
       this.notification.warning(NOTIFICATION_TITLE.warning, 'Bản ghi đã được duyệt, không thể sao chép');
       return;
     }
@@ -800,6 +824,33 @@ export class OverTimePersonComponent implements OnInit, AfterViewInit {
     } else {
       return '<span class="badge bg-warning text-dark" style="display: inline-block; text-align: center;">Chưa duyệt</span>';
     }
+  }
+
+  // Helper method để kiểm tra bản ghi đã được duyệt chưa
+  private isApproved(item: any): boolean {
+    // Kiểm tra trạng thái duyệt TBP: có thể là boolean hoặc number (0/1/2)
+    let statusTBP = item['IsApproved'] || item['IsApprovedTBP'];
+    if (item['StatusTBP'] !== null && item['StatusTBP'] !== undefined) {
+      statusTBP = item['StatusTBP'];
+    }
+    const numStatusTBP = statusTBP === null || statusTBP === undefined ? 0 : (statusTBP === true ? 1 : (statusTBP === false ? 0 : Number(statusTBP)));
+    
+    // Kiểm tra trạng thái duyệt HR: có thể là boolean hoặc number (0/1/2)
+    let statusHR = item['IsApprovedHR'];
+    if (item['StatusHR'] !== null && item['StatusHR'] !== undefined) {
+      statusHR = item['StatusHR'];
+    }
+    const numStatusHR = statusHR === null || statusHR === undefined ? 0 : (statusHR === true ? 1 : (statusHR === false ? 0 : Number(statusHR)));
+    
+    // Kiểm tra trạng thái duyệt Senior (nếu có)
+    let statusSenior = item['IsSeniorApproved'];
+    if (item['StatusSenior'] !== null && item['StatusSenior'] !== undefined) {
+      statusSenior = item['StatusSenior'];
+    }
+    const numStatusSenior = statusSenior === null || statusSenior === undefined ? 0 : (statusSenior === true ? 1 : (statusSenior === false ? 0 : Number(statusSenior)));
+    
+    // Nếu TBP, HR hoặc Senior đã duyệt (status = 1) thì không cho sửa/xóa
+    return numStatusTBP === 1 || numStatusHR === 1 || numStatusSenior === 1;
   }
 }
 

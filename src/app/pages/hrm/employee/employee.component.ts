@@ -511,9 +511,9 @@ export class EmployeeComponent implements OnInit, AfterViewInit {
         {
           title: `
                   <div style="display: flex; gap: 12px;">
-                      <button style="font-size: 0.75rem; border: 1px solid grey; width: 6rem;">Đang làm việc</button>
-                      <button style="font-size: 0.75rem; border: 1px solid grey; background-color: wheat; width: 6rem;">Nghỉ việc</button>
-                      <button style="font-size: 0.75rem; border: 1px solid grey; background-color: yellow; width: 7rem;">Sắp hết HĐ (1T)</button>
+                      <button style="font-size: 0.75rem; border: 1px solid grey; color:black !important; width: 6rem;">Đang làm việc</button>
+                      <button style="font-size: 0.75rem; border: 1px solid grey; color:black !important; background-color: wheat; width: 6rem;">Nghỉ việc</button>
+                      <button style="font-size: 0.75rem; border: 1px solid grey;  color:black !important;background-color: yellow; width: 7rem;">Sắp hết HĐ (1T)</button>
                       <button style="font-size: 0.75rem; border: 1px solid grey; background-color: red; color: white; width: 7rem;">Sắp hết HĐ (15N)</button>
                     </div>
                   `,

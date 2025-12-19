@@ -35,6 +35,7 @@ export interface ApproveItemParam {
   EvaluateResults?: string | null;
   EmployeeID?: number | null;
   TType?: number | null;
+  ReasonDeciline?: string | null;
 }
 
 export interface ApproveRequestParam {
@@ -71,6 +72,15 @@ export class ApproveTpService {
     });
 
     return this.http.post<any>(`${this.apiUrl}approve-tbp`, request, { headers });
+  }
+
+  unApproveTBP(request: ApproveRequestParam): Observable<any> {
+    const headers = new HttpHeaders({
+      'Content-Type': 'application/json',
+      Accept: 'application/json',
+    });
+
+    return this.http.post<any>(`${this.apiUrl}un-approve-tbp`, request, { headers });
   }
 
   approveBGD(request: ApproveRequestParam): Observable<any> {

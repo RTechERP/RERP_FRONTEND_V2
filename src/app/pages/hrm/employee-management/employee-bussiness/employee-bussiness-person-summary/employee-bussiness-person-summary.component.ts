@@ -165,9 +165,21 @@ export class EmployeeBussinessPersonSummaryComponent implements OnInit, AfterVie
 
     const formValue = this.searchForm.value;
     
-    // Format dates to ISO string
-    const startDate = formValue.startDate ? new Date(formValue.startDate).toISOString() : null;
-    const endDate = formValue.endDate ? new Date(formValue.endDate).toISOString() : null;
+    // Format dates: startDate 00:00:00, endDate 23:59:59
+    let startDate: string | null = null;
+    let endDate: string | null = null;
+    
+    if (formValue.startDate) {
+      const start = new Date(formValue.startDate);
+      start.setHours(0, 0, 0, 0);
+      startDate = start.toISOString();
+    }
+    
+    if (formValue.endDate) {
+      const end = new Date(formValue.endDate);
+      end.setHours(23, 59, 59, 999);
+      endDate = end.toISOString();
+    }
 
     // Map status: -1 (Tất cả) -> -1, 0 (Chưa duyệt) -> 0, 1 (Đã duyệt) -> 1
     const statusValue = formValue.status ?? -1;
@@ -455,8 +467,23 @@ export class EmployeeBussinessPersonSummaryComponent implements OnInit, AfterVie
     try {
       // Lấy tất cả dữ liệu từ server với pageSize lớn
       const formValue = this.searchForm.value;
-      const startDateISO = formValue.startDate ? new Date(formValue.startDate).toISOString() : null;
-      const endDateISO = formValue.endDate ? new Date(formValue.endDate).toISOString() : null;
+      
+      // Format dates: startDate 00:00:00, endDate 23:59:59
+      let startDateISO: string | null = null;
+      let endDateISO: string | null = null;
+      
+      if (formValue.startDate) {
+        const start = new Date(formValue.startDate);
+        start.setHours(0, 0, 0, 0);
+        startDateISO = start.toISOString();
+      }
+      
+      if (formValue.endDate) {
+        const end = new Date(formValue.endDate);
+        end.setHours(23, 59, 59, 999);
+        endDateISO = end.toISOString();
+      }
+      
       const statusValue = formValue.status ?? -1;
 
       const request: any = {

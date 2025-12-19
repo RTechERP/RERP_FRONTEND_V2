@@ -225,11 +225,20 @@ export class EmployeeSyntheticPersonalComponent implements OnInit, AfterViewInit
               break;
             case 3: // BẢNG LƯƠNG
               if (data.payroll) {
-                // Payroll is a single object, not an array
-                this.payrollData = [data.payroll];
-                // Get total workday standard from payroll
-                if (data.payroll.TotalWorkday) {
-                  this.totalWorkdayStandard = Number(data.payroll.TotalWorkday) || 0;
+                // Handle both array and object cases
+                if (Array.isArray(data.payroll)) {
+                  this.payrollData = data.payroll;
+                  // Get total workday standard from first item if array
+                  if (data.payroll.length > 0 && data.payroll[0].TotalWorkday) {
+                    this.totalWorkdayStandard = Number(data.payroll[0].TotalWorkday) || 0;
+                  }
+                } else {
+                  // Payroll is a single object
+                  this.payrollData = [data.payroll];
+                  // Get total workday standard from payroll
+                  if (data.payroll.TotalWorkday) {
+                    this.totalWorkdayStandard = Number(data.payroll.TotalWorkday) || 0;
+                  }
                 }
               } else {
                 this.payrollData = [];
@@ -539,11 +548,20 @@ export class EmployeeSyntheticPersonalComponent implements OnInit, AfterViewInit
 
           // Load payroll data
           if (data.payroll) {
-            // Payroll is a single object, not an array
-            this.payrollData = [data.payroll];
-            // Get total workday standard from payroll
-            if (data.payroll.TotalWorkday) {
-              this.totalWorkdayStandard = Number(data.payroll.TotalWorkday) || 0;
+            // Handle both array and object cases
+            if (Array.isArray(data.payroll)) {
+              this.payrollData = data.payroll;
+              // Get total workday standard from first item if array
+              if (data.payroll.length > 0 && data.payroll[0].TotalWorkday) {
+                this.totalWorkdayStandard = Number(data.payroll[0].TotalWorkday) || 0;
+              }
+            } else {
+              // Payroll is a single object
+              this.payrollData = [data.payroll];
+              // Get total workday standard from payroll
+              if (data.payroll.TotalWorkday) {
+                this.totalWorkdayStandard = Number(data.payroll.TotalWorkday) || 0;
+              }
             }
           } else {
             this.payrollData = [];

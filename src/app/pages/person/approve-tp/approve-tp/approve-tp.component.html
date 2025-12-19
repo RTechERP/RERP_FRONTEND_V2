@@ -64,9 +64,12 @@
               <nz-form-control [nzSpan]="24">
                 <nz-select class="w-100" nzShowSearch nzAllowClear nzSize="default"
                   nzPlaceHolder="Chọn trạng thái TBP" formControlName="status">
-                  <nz-option [nzValue]="-1" nzLabel="Tất cả"></nz-option>
-                  <nz-option [nzValue]="0" nzLabel="Chưa duyệt"></nz-option>
+                  <nz-option [nzValue]="-1" nzLabel="---Tất cả---"></nz-option>
+                  <nz-option [nzValue]="0" nzLabel="Chờ duyệt"></nz-option>
                   <nz-option [nzValue]="1" nzLabel="Đã duyệt"></nz-option>
+                  <nz-option [nzValue]="2" nzLabel="Không đồng ý duyệt"></nz-option>
+                  <nz-option [nzValue]="3" nzLabel="Chờ duyệt hủy đăng ký"></nz-option>
+                  <nz-option [nzValue]="4" nzLabel="Đã duyệt hủy đăng ký"></nz-option>
                 </nz-select>
               </nz-form-control>
             </nz-form-item>
@@ -75,9 +78,12 @@
               <nz-form-control [nzSpan]="24">
                 <nz-select class="w-100" nzShowSearch nzAllowClear nzSize="default"
                   nzPlaceHolder="Chọn trạng thái HR" formControlName="statusHR">
-                  <nz-option [nzValue]="-1" nzLabel="Tất cả"></nz-option>
-                  <nz-option [nzValue]="0" nzLabel="Chưa duyệt"></nz-option>
+                  <nz-option [nzValue]="-1" nzLabel="---Tất cả---"></nz-option>
+                  <nz-option [nzValue]="0" nzLabel="Chờ duyệt"></nz-option>
                   <nz-option [nzValue]="1" nzLabel="Đã duyệt"></nz-option>
+                  <nz-option [nzValue]="2" nzLabel="Không đồng ý duyệt"></nz-option>
+                  <nz-option [nzValue]="3" nzLabel="Chờ duyệt hủy đăng ký"></nz-option>
+                  <nz-option [nzValue]="4" nzLabel="Đã duyệt hủy đăng ký"></nz-option>
                 </nz-select>
               </nz-form-control>
             </nz-form-item>
@@ -86,9 +92,12 @@
               <nz-form-control [nzSpan]="24">
                 <nz-select class="w-100" nzShowSearch nzAllowClear nzSize="default"
                   nzPlaceHolder="Chọn trạng thái BGĐ" formControlName="statusBGD">
-                  <nz-option [nzValue]="-1" nzLabel="Tất cả"></nz-option>
-                  <nz-option [nzValue]="0" nzLabel="Chưa duyệt"></nz-option>
+                  <nz-option [nzValue]="-1" nzLabel="---Tất cả---"></nz-option>
+                  <nz-option [nzValue]="0" nzLabel="Chờ duyệt"></nz-option>
                   <nz-option [nzValue]="1" nzLabel="Đã duyệt"></nz-option>
+                  <nz-option [nzValue]="2" nzLabel="Không đồng ý duyệt"></nz-option>
+                  <nz-option [nzValue]="3" nzLabel="Chờ duyệt hủy đăng ký"></nz-option>
+                  <nz-option [nzValue]="4" nzLabel="Đã duyệt hủy đăng ký"></nz-option>
                 </nz-select>
               </nz-form-control>
             </nz-form-item>
@@ -160,7 +169,7 @@
 
               <button *ngIf="!isSeniorMode" class="fs-12" nz-button nzType="default" nzSize="small" (click)="declineApprove()">
                 <img src="assets/icon/action_unapproved_16.png" />
-                Không duyệt
+                TBP Không duyệt
               </button>
 
               <button *ngIf="!isSeniorMode" class="fs-12" nz-button nzType="default" nzSize="small" (click)="approvedCancelRegister()">

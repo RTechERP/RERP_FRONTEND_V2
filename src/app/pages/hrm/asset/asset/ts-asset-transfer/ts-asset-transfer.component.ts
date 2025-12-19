@@ -662,8 +662,8 @@ updateApprove(action: 1 | 2 | 3 | 4 | 5 | 6) {
         `Đã cập nhật thành công biên bản điều chuyển: ${approvedCodes}`
       );
 
-      // KT duyệt xong header -> cập nhật luôn tài sản cho nhiều biên bản
-      if (action === 5 && validRows.length > 0) {
+      // HR duyệt xong header -> cập nhật luôn tài sản cho nhiều biên bản
+      if (action === 3&& validRows.length > 0) {
         this.updateOnApproveMultiple(validRows);
       } else {
         this.getTranferAsset();

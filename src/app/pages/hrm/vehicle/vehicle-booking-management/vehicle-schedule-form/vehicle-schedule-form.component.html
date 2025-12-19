@@ -29,7 +29,7 @@
                                 <ng-container *ngFor="let group of vehicleList">
                                     <nz-option-group [nzLabel]="'-- Loại xe: ' + group.label">
                                         <nz-option *ngFor="let option of group.options"
-                                            [nzLabel]="option.item.VehicleName +' - '+option.item.LicensePlate+' - '+option.item.DriverName"
+                                            [nzLabel]="(option.item.VehicleName || group.label) +' - '+option.item.LicensePlate+' - '+option.item.DriverName"
                                             [nzValue]="option.item.ID">
                                         </nz-option>
                                     </nz-option-group>

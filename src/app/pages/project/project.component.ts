@@ -1321,7 +1321,7 @@ export class ProjectComponent implements OnInit, AfterViewInit {
             }
           });
           
-          this.notification.success('Thông báo', 'Tạo cây thư mục thành công!');
+          // this.notification.success('Thông báo', 'Tạo cây thư mục thành công!');
         } else {
           this.notification.error('Thông báo', response.message || 'Không thể tạo cây thư mục dự án!');
         }

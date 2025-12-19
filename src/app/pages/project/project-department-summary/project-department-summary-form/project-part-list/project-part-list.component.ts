@@ -1930,34 +1930,58 @@ export class ProjectPartListComponent implements OnInit, AfterViewInit {
         const isDeleted = node.IsDeleted === true;
         const isProblem = node.IsProblem === true;
         const quantityReturn = Number(node.QuantityReturn) || 0;
+        
+        // Xác định màu nền cho toàn bộ dòng (ưu tiên theo thứ tự)
+        let rowFillColor: ExcelJS.Fill | null = null;
+        let rowFont: Partial<ExcelJS.Font> | null = null;
+        
+        // 1. Ưu tiên cao nhất: Dòng bị xóa → Red
         if (isDeleted) {
-          cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFFF0000' } }; // Đỏ
-          cell.font = { name: 'Times New Roman', size: 11, color: { argb: 'FFFFFFFF' } }; // Trắng
-        } else if (isProblem) {
-          cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFFFA500' } }; // Cam
-        } else if (quantityReturn > 0) {
-          cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF90EE90' } }; // Xanh lá
-        } else if (hasChildren) {
-          cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFFFFACD' } }; // Light yellow
-          cell.font = { name: 'Times New Roman', size: 11, bold: true };
+          rowFillColor = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFFF0000' } } as ExcelJS.Fill; // Đỏ
+          rowFont = { name: 'Times New Roman', size: 11, color: { argb: 'FFFFFFFF' } }; // Trắng
         }
-        // 7. Áp dụng màu cho các cell đặc biệt (IsNewCode, IsFix)
-        if (node.IsNewCode === true && !hasChildren) {
-          // Hàng mới - màu hồng cho các cột GroupMaterial, ProductCode, Manufacturer, Unit
-          if (['GroupMaterial', 'ProductCode', 'Manufacturer', 'Unit'].includes(field)) {
-            const checkField = field === 'GroupMaterial' ? 'IsSameProductName' :
-              field === 'ProductCode' ? 'IsSameProductCode' :
-                field === 'Manufacturer' ? 'IsSameMaker' : 'IsSameUnit';
-            const totalSame = Number(node[checkField]) || 0;
-            if (totalSame === 0) {
-              cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFFFC0CB' } }; // Hồng
+        // 2. Dòng có vấn đề → Orange
+        else if (isProblem) {
+          rowFillColor = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFFFA500' } } as ExcelJS.Fill; // Cam
+        }
+        // 3. Số lượng trả về > 0 → LightGreen (hàng đã về)
+        else if (quantityReturn > 0) {
+          rowFillColor = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF90EE90' } } as ExcelJS.Fill; // Xanh lá
+        }
+        // 4. Node cha (có children) → Light yellow
+        else if (hasChildren) {
+          rowFillColor = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFFFFACD' } } as ExcelJS.Fill; // Light yellow
+          rowFont = { name: 'Times New Roman', size: 11, bold: true };
+        }
+        
+        // Áp dụng màu nền cho toàn bộ dòng (nếu có)
+        if (rowFillColor) {
+          cell.fill = rowFillColor;
+        }
+        if (rowFont) {
+          cell.font = { ...cell.font, ...rowFont };
+        }
+        
+        // 7. Áp dụng màu cho các cell đặc biệt (IsNewCode, IsFix) - chỉ khi không có màu row-level
+        // Chỉ áp dụng khi không có màu row-level (đỏ, cam, xanh lá, vàng)
+        if (!isDeleted && !isProblem && quantityReturn === 0 && !hasChildren) {
+          if (node.IsNewCode === true) {
+            // Hàng mới - màu hồng cho các cột GroupMaterial, ProductCode, Manufacturer, Unit
+            if (['GroupMaterial', 'ProductCode', 'Manufacturer', 'Unit'].includes(field)) {
+              const checkField = field === 'GroupMaterial' ? 'IsSameProductName' :
+                field === 'ProductCode' ? 'IsSameProductCode' :
+                  field === 'Manufacturer' ? 'IsSameMaker' : 'IsSameUnit';
+              const totalSame = Number(node[checkField]) || 0;
+              if (totalSame === 0) {
+                cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFFFC0CB' } }; // Hồng
+              }
             }
           }
-        }
-        // Tích xanh - màu xanh dương cho ProductCode
-        if (node.IsFix === true && field === 'ProductCode' && !hasChildren) {
-          cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF4682B4' } }; // Xanh dương
-          cell.font = { name: 'Times New Roman', size: 11, color: { argb: 'FFFFFFFF' } }; // Trắng
+          // Tích xanh - màu xanh dương cho ProductCode (ưu tiên cao hơn màu hồng)
+          if (node.IsFix === true && field === 'ProductCode') {
+            cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF4682B4' } }; // Xanh dương
+            cell.font = { name: 'Times New Roman', size: 11, color: { argb: 'FFFFFFFF' } }; // Trắng
+          }
         }
         cell.value = value;
       });
@@ -6181,6 +6205,37 @@ export class ProjectPartListComponent implements OnInit, AfterViewInit {
 
       const excelRow = worksheet.addRow(rowData);
 
+      // === LOGIC VẼ MÀU GIỐNG WINFORM NodeCellStyle ===
+      const hasChildren = row._children && row._children.length > 0;
+      const isDeleted = row.IsDeleted === true;
+      const isProblem = row.IsProblem === true;
+      // Parse QuantityReturn - giống logic trong rowFormatter
+      const quantityReturn = Number(row.QuantityReturn) || 0;
+
+      // Xác định màu nền cho toàn bộ dòng (ưu tiên theo thứ tự)
+      let rowFillColor: ExcelJS.Fill | null = null;
+      let rowFont: Partial<ExcelJS.Font> | null = null;
+
+      // Áp dụng màu theo thứ tự ưu tiên (giống WinForm)
+      // 1. Ưu tiên cao nhất: Dòng bị xóa → Red
+      if (isDeleted) {
+        rowFillColor = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFFF0000' } } as ExcelJS.Fill; // Đỏ
+        rowFont = { name: 'Times New Roman', size: 11, color: { argb: 'FFFFFFFF' } }; // Trắng
+      }
+      // 2. Dòng có vấn đề → Orange
+      else if (isProblem) {
+        rowFillColor = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFFFA500' } } as ExcelJS.Fill; // Cam
+      }
+      // 3. Số lượng trả về > 0 → LightGreen (hàng đã về)
+      else if (quantityReturn > 0) {
+        rowFillColor = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF90EE90' } } as ExcelJS.Fill; // Xanh lá
+      }
+      // 4. Node cha (có children) → Light yellow
+      else if (hasChildren) {
+        rowFillColor = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFFFFACD' } } as ExcelJS.Fill; // Light yellow
+        rowFont = { name: 'Times New Roman', size: 11, bold: true };
+      }
+
       // Style data rows
       excelRow.eachCell((cell, colNumber) => {
         cell.border = {
@@ -6199,7 +6254,16 @@ export class ProjectPartListComponent implements OnInit, AfterViewInit {
             cell.numFmt = '#,##0.00';
           }
         }
+
+        // Áp dụng màu nền cho toàn bộ dòng (nếu có)
+        if (rowFillColor) {
+          cell.fill = rowFillColor;
+        }
+        if (rowFont) {
+          cell.font = { ...cell.font, ...rowFont };
+        }
       });
+      
       excelRow.eachCell((cell, colNumber) => {
         const colDef = exportColumns[colNumber - 1];
         cell.alignment = {
@@ -6208,17 +6272,6 @@ export class ProjectPartListComponent implements OnInit, AfterViewInit {
           horizontal: colDef?.isNumber ? 'right' : 'left'
         };
       });
-
-      // Highlight group rows (rows without TT or with parent indicator)
-      if (!row.TT || (row._children && row._children.length > 0)) {
-        excelRow.eachCell((cell) => {
-          cell.fill = {
-            type: 'pattern',
-            pattern: 'solid',
-            fgColor: { argb: 'FFFFFF00' }, // Yellow background for group rows
-          };
-        });
-      }
     });
 
     // Generate and download file

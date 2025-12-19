@@ -378,8 +378,9 @@ export class VehicleScheduleFormComponent implements OnInit {
   getVehicleManagement() {
     this.vehicleBookingManagementService.getVehicleManagement().subscribe({
       next: (response: any) => {
-        this.vehicleList = this.vehicleBookingManagementService.createdDataGroup(response.data, "VehicleCategoryText");
-        this.vihecleManagementlist = response.data;
+        const vehicleData = response.data?.data || [];
+        this.vehicleList = this.vehicleBookingManagementService.createdDataGroup(vehicleData, "VehicleCategoryText");
+        this.vihecleManagementlist = vehicleData;
         console.log(this.vehicleList);
       },
       error: (err: any) => {

@@ -82,10 +82,10 @@ export class ExportVehicleScheduleFormComponent implements OnInit {
   exportVehicleScheduleList: any[] = [];
     groupedScheduleData: any[] = [];
   dateStart: any = DateTime.local()
-    .set({ hour: 0, minute: 0, second: 0 })
+    .set({ hour: 0, minute: 0, second: 0, millisecond: 0 })
     .toISO();
   dateEnd: any = DateTime.local()
-    .set({ hour: 23, minute: 59, second: 59 })
+    .set({ hour: 23, minute: 59, second: 59, millisecond: 999 })
     .toISO();
 
   // Hàm lấy title với ngày cho UI
@@ -102,27 +102,39 @@ export class ExportVehicleScheduleFormComponent implements OnInit {
 
     let startDate: DateTime;
     if (this.dateStart instanceof Date) {
-      startDate = DateTime.fromJSDate(this.dateStart).set({ hour: 0, minute: 0, second: 0 });
+      // Lấy ngày từ Date object và set thời gian về 00:00:00
+      startDate = DateTime.fromJSDate(this.dateStart).set({ hour: 0, minute: 0, second: 0, millisecond: 0 });
+    } else if (typeof this.dateStart === 'string') {
+      // Nếu là string, parse và set thời gian về 00:00:00
+      const parsed = DateTime.fromISO(this.dateStart);
+      startDate = parsed.isValid 
+        ? parsed.set({ hour: 0, minute: 0, second: 0, millisecond: 0 })
+        : DateTime.local().set({ hour: 0, minute: 0, second: 0, millisecond: 0 });
     } else {
-      startDate = DateTime.fromISO(this.dateStart).set({ hour: 0, minute: 0, second: 0 });
+      startDate = DateTime.local().set({ hour: 0, minute: 0, second: 0, millisecond: 0 });
     }
 
     if (!startDate.isValid) {
-      return;
+      startDate = DateTime.local().set({ hour: 0, minute: 0, second: 0, millisecond: 0 });
     }
 
     let endDate: DateTime;
     if (this.dateEnd instanceof Date) {
-      endDate = DateTime.fromJSDate(this.dateEnd).set({ hour: 23, minute: 59, second: 59 });
+      endDate = DateTime.fromJSDate(this.dateEnd).set({ hour: 23, minute: 59, second: 59, millisecond: 999 });
+    } else if (typeof this.dateEnd === 'string') {
+      const parsed = DateTime.fromISO(this.dateEnd);
+      endDate = parsed.isValid 
+        ? parsed.set({ hour: 23, minute: 59, second: 59, millisecond: 999 })
+        : DateTime.local().set({ hour: 23, minute: 59, second: 59, millisecond: 999 });
     } else {
-      endDate = DateTime.fromISO(this.dateEnd).set({ hour: 23, minute: 59, second: 59 });
+      endDate = DateTime.local().set({ hour: 23, minute: 59, second: 59, millisecond: 999 });
     }
 
     if (endDate.isValid && endDate < startDate) {
-      this.dateEnd = startDate.set({ hour: 23, minute: 59, second: 59 }).toISO();
+      this.dateEnd = startDate.set({ hour: 23, minute: 59, second: 59, millisecond: 999 }).toISO();
     }
 
-    // Đảm bảo dateStart có đúng format
+    // Đảm bảo dateStart có đúng format với thời gian 00:00:00
     this.dateStart = startDate.toISO();
   }
 
@@ -134,29 +146,41 @@ export class ExportVehicleScheduleFormComponent implements OnInit {
 
     let startDate: DateTime;
     if (this.dateStart instanceof Date) {
-      startDate = DateTime.fromJSDate(this.dateStart).set({ hour: 0, minute: 0, second: 0 });
+      startDate = DateTime.fromJSDate(this.dateStart).set({ hour: 0, minute: 0, second: 0, millisecond: 0 });
+    } else if (typeof this.dateStart === 'string') {
+      const parsed = DateTime.fromISO(this.dateStart);
+      startDate = parsed.isValid 
+        ? parsed.set({ hour: 0, minute: 0, second: 0, millisecond: 0 })
+        : DateTime.local().set({ hour: 0, minute: 0, second: 0, millisecond: 0 });
     } else {
-      startDate = DateTime.fromISO(this.dateStart).set({ hour: 0, minute: 0, second: 0 });
+      startDate = DateTime.local().set({ hour: 0, minute: 0, second: 0, millisecond: 0 });
     }
 
     let endDate: DateTime;
     if (this.dateEnd instanceof Date) {
-      endDate = DateTime.fromJSDate(this.dateEnd).set({ hour: 23, minute: 59, second: 59 });
+      // Lấy ngày từ Date object và set thời gian về 23:59:59
+      endDate = DateTime.fromJSDate(this.dateEnd).set({ hour: 23, minute: 59, second: 59, millisecond: 999 });
+    } else if (typeof this.dateEnd === 'string') {
+      // Nếu là string, parse và set thời gian về 23:59:59
+      const parsed = DateTime.fromISO(this.dateEnd);
+      endDate = parsed.isValid 
+        ? parsed.set({ hour: 23, minute: 59, second: 59, millisecond: 999 })
+        : DateTime.local().set({ hour: 23, minute: 59, second: 59, millisecond: 999 });
     } else {
-      endDate = DateTime.fromISO(this.dateEnd).set({ hour: 23, minute: 59, second: 59 });
+      endDate = DateTime.local().set({ hour: 23, minute: 59, second: 59, millisecond: 999 });
     }
 
     if (!endDate.isValid) {
-      return;
+      endDate = DateTime.local().set({ hour: 23, minute: 59, second: 59, millisecond: 999 });
     }
 
     if (startDate.isValid && endDate < startDate) {
-      this.dateEnd = startDate.set({ hour: 23, minute: 59, second: 59 }).toISO();
+      this.dateEnd = startDate.set({ hour: 23, minute: 59, second: 59, millisecond: 999 }).toISO();
       this.notification.warning('Thông báo', 'Ngày kết thúc không được nhỏ hơn ngày bắt đầu!');
       return;
     }
 
-    // Đảm bảo dateEnd có đúng format
+    // Đảm bảo dateEnd có đúng format với thời gian 23:59:59
     this.dateEnd = endDate.toISO();
   }
   ngOnInit(): void {
@@ -174,20 +198,26 @@ export class ExportVehicleScheduleFormComponent implements OnInit {
 
     try {
       if (!this.dateStart) {
-        startDate = DateTime.local().set({ hour: 0, minute: 0, second: 0 }).toISO() || '';
+        startDate = DateTime.local().set({ hour: 0, minute: 0, second: 0, millisecond: 0 }).toISO() || '';
       } else if (this.dateStart instanceof Date) {
-        startDate = DateTime.fromJSDate(this.dateStart).set({ hour: 0, minute: 0, second: 0 }).toISO() || '';
+        startDate = DateTime.fromJSDate(this.dateStart).set({ hour: 0, minute: 0, second: 0, millisecond: 0 }).toISO() || '';
       } else {
-        startDate = DateTime.fromISO(this.dateStart).set({ hour: 0, minute: 0, second: 0 }).toISO() || '';
+        const parsed = DateTime.fromISO(this.dateStart);
+        startDate = parsed.isValid 
+          ? parsed.set({ hour: 0, minute: 0, second: 0, millisecond: 0 }).toISO() || ''
+          : DateTime.local().set({ hour: 0, minute: 0, second: 0, millisecond: 0 }).toISO() || '';
       }
 
       // Xử lý dateEnd - có thể là Date object, ISO string, hoặc Date string
       if (!this.dateEnd) {
-        endDate = DateTime.local().set({ hour: 23, minute: 59, second: 59 }).toISO() || '';
+        endDate = DateTime.local().set({ hour: 23, minute: 59, second: 59, millisecond: 999 }).toISO() || '';
       } else if (this.dateEnd instanceof Date) {
-        endDate = DateTime.fromJSDate(this.dateEnd).set({ hour: 23, minute: 59, second: 59 }).toISO() || '';
+        endDate = DateTime.fromJSDate(this.dateEnd).set({ hour: 23, minute: 59, second: 59, millisecond: 999 }).toISO() || '';
       } else {
-        endDate = DateTime.fromISO(this.dateEnd).set({ hour: 23, minute: 59, second: 59 }).toISO() || '';
+        const parsed = DateTime.fromISO(this.dateEnd);
+        endDate = parsed.isValid 
+          ? parsed.set({ hour: 23, minute: 59, second: 59, millisecond: 999 }).toISO() || ''
+          : DateTime.local().set({ hour: 23, minute: 59, second: 59, millisecond: 999 }).toISO() || '';
       }
       if (!startDate || !endDate) {
         this.notification.error('Thông báo', 'Ngày bắt đầu và ngày kết thúc không hợp lệ!');

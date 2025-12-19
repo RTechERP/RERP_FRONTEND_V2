@@ -81,6 +81,8 @@ export class ExportVehicleScheduleFormComponent implements OnInit {
   searchText: string = '';
   exportVehicleScheduleList: any[] = [];
     groupedScheduleData: any[] = [];
+  // Map để track trạng thái mở/đóng của các group (key: vehicleInfo, value: boolean)
+  expandedGroups: Map<string, boolean> = new Map();
   dateStart: any = DateTime.local()
     .set({ hour: 0, minute: 0, second: 0, millisecond: 0 })
     .toISO();
@@ -321,9 +323,41 @@ export class ExportVehicleScheduleFormComponent implements OnInit {
         };
       });
 
-      // Sắp xếp các nhóm xe
-      this.groupedScheduleData.sort((a, b) => a.vehicleInfo.localeCompare(b.vehicleInfo));
+      // Sắp xếp các nhóm xe theo số ở đầu (1, 2, 3...)
+      this.groupedScheduleData.sort((a, b) => {
+        const aValue = a.vehicleInfo || '';
+        const bValue = b.vehicleInfo || '';
+        // Extract số từ đầu chuỗi
+        const aMatch = aValue.match(/^(\d+)/);
+        const bMatch = bValue.match(/^(\d+)/);
+        const aNum = aMatch ? parseInt(aMatch[1], 10) : Infinity;
+        const bNum = bMatch ? parseInt(bMatch[1], 10) : Infinity;
+        // Sắp xếp theo số, nếu không có số thì đưa xuống cuối
+        if (aNum !== bNum) {
+          return aNum - bNum;
+        }
+        // Nếu cùng số hoặc không có số, sắp xếp theo chuỗi
+        return aValue.localeCompare(bValue);
+      });
+
+      // Mặc định tất cả group đều mở
+      this.groupedScheduleData.forEach(group => {
+        if (!this.expandedGroups.has(group.vehicleInfo)) {
+          this.expandedGroups.set(group.vehicleInfo, true);
+        }
+      });
     }
+
+  // Toggle trạng thái mở/đóng của group
+  toggleGroup(vehicleInfo: string): void {
+    const currentState = this.expandedGroups.get(vehicleInfo) ?? true;
+    this.expandedGroups.set(vehicleInfo, !currentState);
+  }
+
+  // Kiểm tra group có đang mở không
+  isGroupExpanded(vehicleInfo: string): boolean {
+    return this.expandedGroups.get(vehicleInfo) ?? true;
+  }
 
     formatDate(dateString: string): string {
       if (!dateString || dateString.trim() === '') return '';
@@ -751,7 +785,7 @@ export class ExportVehicleScheduleFormComponent implements OnInit {
         isFirstDataRow = isPrevRowVehicleHeader;
         isLastDataRow = isNextRowVehicleHeader || rowNumber === worksheet.rowCount;
         
-      row.eachCell((cell, colNumber) => {
+      row.eachCell((cell: ExcelJS.Cell, colNumber: number) => {
         // Set font Times New Roman và size 9px cho tất cả các cell
         cell.font = { ...cell.font, size: 9, name: 'Times New Roman' };
         
@@ -766,17 +800,26 @@ export class ExportVehicleScheduleFormComponent implements OnInit {
         
         // Set alignment theo loại cột (đã bỏ cột Ngày)
         // Cột 1: Buổi - căn giữa
-        // Cột 2, 3, 4, 8: Chữ (Người đi, Điểm xuất phát, Điểm đến, Ghi chú) - căn trái, xuống dòng khi quá width
+        // Cột 2: Người đi - căn trái, căn giữa dọc
+        // Cột 3, 4, 8: Chữ (Điểm xuất phát, Điểm đến, Ghi chú) - căn trái, xuống dòng khi quá width
         // Cột 5, 6, 7: Giờ (Giờ xuất phát, Thời gian đến, Giờ về) - căn giữa
         // Đảm bảo các cột Người đi (2), Điểm xuất phát (3), Điểm đến (4) xuống dòng khi quá width
         if (colNumber === 1) {
           // Buổi: căn giữa
           cell.alignment = { horizontal: 'center', vertical: 'middle', wrapText: true };
-        } else if (colNumber === 5 || colNumber === 6 || colNumber === 7) {
+        } else if (colNumber === 2) {
+          // Người đi: căn trái, căn giữa dọc
+          cell.alignment = { horizontal: 'left', vertical: 'middle', wrapText: true };
+        } 
+        else if (colNumber === 3) {
+          // Điểm xuất phát: căn trái, căn giữa dọc
+          cell.alignment = { horizontal: 'left', vertical: 'middle', wrapText: true };
+        } 
+        else if (colNumber === 5 || colNumber === 6 || colNumber === 7) {
           // Các cột giờ: căn giữa
           cell.alignment = { horizontal: 'center', vertical: 'middle', wrapText: true };
-        } else if (colNumber === 2 || colNumber === 3 || colNumber === 4 || colNumber === 8) {
-          // Các cột chữ: Người đi, Điểm xuất phát, Điểm đến, Ghi chú - căn trái, xuống dòng
+        } else if (colNumber === 4 || colNumber === 8) {
+          // Các cột chữ: Điểm xuất phát, Điểm đến, Ghi chú - căn trái, xuống dòng
           cell.alignment = { horizontal: 'left', vertical: 'top', wrapText: true };
         } else {
           // Các cột khác
@@ -811,13 +854,14 @@ export class ExportVehicleScheduleFormComponent implements OnInit {
         if (isVehicleHeader) return; // Bỏ qua dòng "Thông tin xe", đã set alignment riêng (căn giữa)
         
         row.eachCell((cell, colNumber) => {
-          // Cột Buổi (1) căn giữa, các cột giờ (5,6,7) căn giữa, còn lại căn trái
+          // Cột Buổi (1) căn giữa, các cột giờ (5,6,7) căn giữa, Người đi (2) và Điểm xuất phát (3) căn trái nhưng căn giữa dọc, còn lại căn trái
           // Đảm bảo các cột Người đi (2), Điểm xuất phát (3), Điểm đến (4) có wrapText: true
           const isCenterColumn = colNumber === 1 || colNumber === 5 || colNumber === 6 || colNumber === 7;
+          const isMiddleVertical = isCenterColumn || colNumber === 2 || colNumber === 3; // Cột 2 (Người đi) và cột 3 (Điểm xuất phát) cũng căn giữa dọc
           cell.alignment = {
             ...cell.alignment,
             wrapText: true,
-            vertical: isCenterColumn ? 'middle' : 'top',
+            vertical: isMiddleVertical ? 'middle' : 'top',
             horizontal: isCenterColumn ? 'center' : 'left'
           };
         });

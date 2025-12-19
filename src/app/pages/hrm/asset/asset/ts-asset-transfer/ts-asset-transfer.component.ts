@@ -439,9 +439,7 @@ validateApprove(
       break;
 
     case 3: // HR duyệt
-      if (row.IsApprovedPersonalProperty != true) {
-        return 'HR_NEED_PERSONAL_TRANSFER';
-      }
+     
       break;
 
     case 4: // Hủy HR

@@ -97,6 +97,7 @@ export class BonusCoefficientComponent implements OnInit, AfterViewInit {
   groupsSale: any[] = [];
   usersGroupSale: any[] = [];
   data: any[] = [];
+  textSum: number = 0;
   filters: any = {
     year: 0,
     quarter: 0,
@@ -141,7 +142,7 @@ export class BonusCoefficientComponent implements OnInit, AfterViewInit {
     this.initTable();
   }
   search() {
-    this.loadUserGroupSales();
+    this.loadData();
   }
   loadGroupSales() {
     this.bonusCoefficientService.loadGroupSales().subscribe(
@@ -214,19 +215,31 @@ export class BonusCoefficientComponent implements OnInit, AfterViewInit {
 
   calculateBonus() {
     if (!this.data || this.data.length === 0) return;
+    if (!this.filters.groupSaleId || this.filters.groupSaleId === 0) return;
 
-    let total = 0;
-    let totalHeso = 0;
-    let newAccLast = 0;
-    let totalSale = 0;
-    let coef = 0;
+    this.bonusCoefficientService.loadBonusRules(this.filters.groupSaleId).subscribe(
+      (response) => {
+        if (response.status === 1) {
+          // Map data thành object với key là SaleUserTypeCode và value là PercentBonus
+          const percentBonusMap: any = {};
+          if (response.data && Array.isArray(response.data)) {
+            response.data.forEach((item: any) => {
+              if (item.SaleUserTypeCode && item.PercentBonus !== undefined) {
+                percentBonusMap[item.SaleUserTypeCode] = item.PercentBonus;
+              }
+            });
+          }
 
-    let percentBonusMap: any = this.loadBonusRules(this.filters.groupSaleId);
+          let total = 0;
+          let totalHeso = 0;
+          let newAccLast = 0;
+          let totalSale = 0;
+          let coef = 0;
 
-    // xử lý Leader/Admin/Mar/LeadT 
-    this.data.forEach((item, i) => {
-      const position = item.saleUserTypeCode;
-      const perBonus = percentBonusMap[position] || 0;
+          // xử lý Leader/Admin/Mar/LeadT 
+          this.data.forEach((item, i) => {
+            const position = item.saleUserTypeCode;
+            const perBonus = percentBonusMap[position] || 0;
 
       switch (position) {
         case "LeadG": // Leader
@@ -270,13 +283,38 @@ export class BonusCoefficientComponent implements OnInit, AfterViewInit {
         const bonusAdd = item.bonusAdd || 0;
         const bonusRank = item.bonusRank || 0;
 
-        item.totalBonus =
-          bonusAdd +
-          bonusRank +
-          bonusSales +
-          (newAccLast * 500000);
+         item.totalBonus =
+           bonusAdd +
+           bonusRank +
+           bonusSales +
+           (newAccLast * 500000);
+       }
+     });
+          const staffPerBonus = percentBonusMap["Sta"] || 0;
+          this.textSum = total * staffPerBonus;
+
+          // Cập nhật bảng sau khi tính toán
+          if (this.tb_Table) {
+            this.tb_Table.redraw(true);
+          }
+        } else {
+          this.notification.error('Lỗi khi tải dữ liệu:', response.message);
+        }
+      },
+      (error) => {
+        this.notification.error('Lỗi kết nối khi tải dữ liệu:', error);
       }
-    });
+    );
+  }
+
+  formatCurrency = (value: number): string => {
+    if (value == null || value === undefined) return '';
+    return new Intl.NumberFormat('vi-VN').format(value);
+  }
+
+  parseCurrency = (value: string): number => {
+    if (!value) return 0;
+    return parseFloat(value.replace(/[^\d.-]/g, '')) || 0;
   }
 
   save() {
@@ -317,7 +355,7 @@ export class BonusCoefficientComponent implements OnInit, AfterViewInit {
       return;
     }
     this.tb_Table = new Tabulator(this.tb_TableElement.nativeElement, {
-      layout: 'fitDataFill',
+      layout: 'fitColumns',
       data: this.data,
       pagination: true,
       paginationSize: 50,
@@ -369,8 +407,21 @@ export class BonusCoefficientComponent implements OnInit, AfterViewInit {
           width: 150,
         },
         {
+          title: 'Thưởng doanh số',
+          field: 'BonusSales',
+          sorter: 'string',
+          width: 150,
+        },
+        {
           title: 'Thưởng Ranking',
           field: 'BonusRank',
+          sorter: 'string',
+          width: 150,
+          editor: "number"
+        },
+        {
+          title: 'Thưởng new account',
+          field: 'BonusAcc',
           sorter: 'string',
           width: 150,
         },
@@ -379,18 +430,7 @@ export class BonusCoefficientComponent implements OnInit, AfterViewInit {
           field: 'BonusAdd',
           sorter: 'string',
           width: 150,
-        },
-        {
-          title: 'Thưởng doanh số',
-          field: 'BonusSales',
-          sorter: 'string',
-          width: 150,
-        },
-        {
-          title: 'Thưởng new account',
-          field: 'BonusAcc',
-          sorter: 'string',
-          width: 150,
+          editor: "number"
         },
         {
           title: 'Tổng thưởng',

@@ -1005,6 +1005,7 @@ export class VehicleBookingManagementComponent
           layout: 'fitColumns',
           height: '88vh',
           paginationMode: 'local',
+          paginationSize: 500,
           rowContextMenu: rowMenu,
           groupBy: (row: any) => row.VehicleInformation || null,
           groupHeader: (value: string, count: number) => {
@@ -1064,6 +1065,7 @@ export class VehicleBookingManagementComponent
                   title: 'Lý do phát sinh',
                   field: 'ProblemArises',
                   width: 120,
+                  formatter:'textarea',
                 },
                 { title: 'Hình thức đặt', field: 'CategoryText', width: 120 },
                 {
@@ -1073,11 +1075,12 @@ export class VehicleBookingManagementComponent
                   width: 150,
                   bottomCalc: 'count',
                 },
-                { title: 'Phòng ban', field: 'DepartmentName', width: 120 },
+                { title: 'Phòng ban', field: 'DepartmentName',   formatter:'textarea',width: 120 },
                 {
                   title: 'Điểm xuất phát',
                   field: 'DepartureAddress',
                   width: 150,
+                  formatter:'textarea',
                 },
                 {
                   title: 'Thời gian xuất phát',
@@ -1142,12 +1145,13 @@ export class VehicleBookingManagementComponent
                   title: 'Tên công ty',
                   field: 'CompanyNameArrives',
                   width: 100,
+                  formatter:'textarea',
                 },
-                { title: 'Tỉnh', field: 'ProvinceName', width: 120 },
+                { title: 'Tỉnh', field: 'ProvinceName', width: 120, formatter:'textarea' },
                 {
                   title: 'Địa chỉ cụ thể',
                   field: 'SpecificDestinationAddress',
-                  width: 160,
+                  width: 160,  formatter:'textarea',
                 },
                 {
                   title: 'Thời gian cần đến',
@@ -1225,7 +1229,7 @@ export class VehicleBookingManagementComponent
                   field: 'ReceiverPhoneNumber',
                   width: 120,
                 },
-                { title: 'Tên kiện hàng', field: 'PackageName', width: 80 },
+                { title: 'Tên kiện hàng', field: 'PackageName', width: 80, formatter:'textarea' },
                 { title: 'Kích thước(cm)', field: 'PackageSize', width: 120 },
                 { title: 'Cân nặng(kg)', field: 'PackageWeight', width: 120 },
                 {
@@ -1243,7 +1247,7 @@ export class VehicleBookingManagementComponent
                     return `${Number(value).toLocaleString('vi-VN')}đ`;
                   },
                 },
-                { title: 'Dự án', field: 'ProjectFullName', width: 300 },
+                { title: 'Dự án', field: 'ProjectFullName', width: 300, formatter:'textarea' },
               ],
             },
           ],
@@ -1337,14 +1341,29 @@ export class VehicleBookingManagementComponent
 
       setTimeout(() => {
         if (this.editingCell && this.editingCell.cell === cell) {
-          const newValue = currentValue ? currentValue.toISOString() : null;
-          const originalValueStr = originalValue ? (originalValue instanceof Date ? originalValue.toISOString() : new Date(originalValue).toISOString()) : null;
+          // Set giây về 0 trước khi lưu
+          let dateToSave: Date | null = null;
+          if (currentValue) {
+            dateToSave = new Date(currentValue);
+            dateToSave.setSeconds(0, 0); // Set giây và milliseconds về 0
+          }
+          
+          const newValue = dateToSave ? dateToSave.toISOString() : null;
+          
+          // Xử lý originalValue để so sánh (cũng set giây về 0)
+          let originalDate: Date | null = null;
+          if (originalValue) {
+            originalDate = originalValue instanceof Date ? new Date(originalValue) : new Date(originalValue);
+            originalDate.setSeconds(0, 0);
+          }
+          const originalValueStr = originalDate ? originalDate.toISOString() : null;
+          
           const hasChanged = newValue !== originalValueStr;
           
-          if (hasChanged && currentValue) {
+          if (hasChanged && dateToSave) {
             // Thêm vào pending changes
-            this.addPendingChange(rowId, currentValue, originalValue);
-            success(currentValue.toISOString());
+            this.addPendingChange(rowId, dateToSave, originalValue);
+            success(dateToSave.toISOString());
           } else {
             cancel();
           }

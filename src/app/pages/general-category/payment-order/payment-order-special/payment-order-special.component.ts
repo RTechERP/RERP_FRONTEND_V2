@@ -50,6 +50,10 @@ export class PaymentOrderSpecialComponent implements OnInit {
     pokhs: any[] = [];
     billBumbers: any[] = [];
     units: any[] = [];
+    userTeamNames: any[] = [
+        { value: 1, label: 'Admin' },
+        { value: 2, label: 'HCM' },
+    ];
 
     //biến slick-grid
     angularGrid!: AngularGridInstance;
@@ -90,7 +94,7 @@ export class PaymentOrderSpecialComponent implements OnInit {
                 formatter: Formatters.icon, params: { iconCssClass: 'mdi mdi-trash-can pointer' },
                 // filter: { model: Filters['compoundDate'] }
                 onCellClick: (e: Event, args: OnEventArgs) => {
-                    // this.deleteItem(e, args)
+                    this.deleteItem(e, args)
                 },
                 header: {
                     buttons: [
@@ -149,10 +153,28 @@ export class PaymentOrderSpecialComponent implements OnInit {
                 type: PaymentOrderDetailField.PaymentMethods.type,
                 width: 100,
                 sortable: true, filterable: false,
-                // formatter: Formatters.iconBoolean,
+                formatter: Formatters.collection,
+                params: {
+                    collection: [
+                        { value: 0, label: 'Tiền mặt' },
+                        { value: 1, label: 'Chuyển khoản' }
+                    ]
+                },
                 editor: {
-                    model: Editors[''],
-                    decimal: 2
+                    model: Editors['singleSelect'],
+
+                    collection: [
+                        {
+                            value: 0,
+                            label: 'Tiền mặt',
+                            symbol: '<i class="mdi mdi-percent-outline" style="color:cadetblue"></i>',
+                        },
+                        {
+                            value: 1,
+                            label: 'Chuyển khoản',
+                            symbol: '<i class="mdi mdi-percent-outline" style="color:cadetblue"></i>',
+                        }
+                    ]
                 },
             },
             {
@@ -174,9 +196,14 @@ export class PaymentOrderSpecialComponent implements OnInit {
                 type: 'string',
                 width: 150,
                 sortable: true, filterable: false,
-                // formatter: Formatters.iconBoolean,
+                formatter: Formatters.collection,
+                params: {
+                    collection: this.userTeamNames
+                },
                 editor: {
-                    model: Editors['select'],
+                    model: Editors['singleSelect'],
+
+                    collection: this.userTeamNames
                 },
             },
             {
@@ -188,7 +215,7 @@ export class PaymentOrderSpecialComponent implements OnInit {
                 sortable: true, filterable: false,
                 // formatter: Formatters.iconBoolean,
                 editor: {
-                    model: Editors['text'],
+                    model: Editors['longText'],
                 },
             },
 
@@ -216,7 +243,7 @@ export class PaymentOrderSpecialComponent implements OnInit {
             headerButton: {
                 // you can use the "onCommand" (in Grid Options) and/or the "action" callback (in Column Definition)
                 onCommand: (_e, args) => {
-                    this.handleOnCommand(_e, args)
+                    this.addItem(_e, args)
                 },
 
             },
@@ -293,16 +320,12 @@ export class PaymentOrderSpecialComponent implements OnInit {
 
     }
 
-    handleOnCommand(_e: any, args: any) {
+    addItem(_e: any, args: any) {
         const column = args.column;
         const button = args.button;
         const command = args.command;
 
         let data = this.angularGrid.dataView.getItems();
-        // let _id = data.length <= 0 ? 0 : Math.max(...data.map(x => x._id || 0));
-        // let stt = data.length <= 0 ? 0 : Math.max(...data.map((x: any) => Number(x.STT) || 0));
-
-        // console.log(args);
         const newItem = {
             id: data.length + 1,
             ID: 0,
@@ -327,13 +350,13 @@ export class PaymentOrderSpecialComponent implements OnInit {
     }
 
 
-    addItem() {
+    deleteItem(e: Event, args: OnEventArgs) {
 
+        const metadata = this.angularGrid.gridService.getColumnFromEventArguments(args);
+        // console.log(metadata);
+        this.angularGrid.gridService.deleteItemById(metadata.dataContext.id);
     }
 
-    deleteItem() {
-
-    }
 
     onCellChanged(e: Event, args: any) {
         // this.dataset = [...this.angularGrid.dataView.getItems()];

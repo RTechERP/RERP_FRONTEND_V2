@@ -79,18 +79,19 @@
                   nzPlaceHolder="Chọn trạng thái TBP"
                   formControlName="status"
                 >
-                  <nz-option nzValue="1" nzLabel="Chờ duyệt"></nz-option>
-                  <nz-option nzValue="2" nzLabel="Đã duyệt"></nz-option>
+                  <nz-option [nzValue]="-1" nzLabel="---Tất cả---"></nz-option>
+                  <nz-option [nzValue]="0" nzLabel="Chờ duyệt"></nz-option>
+                  <nz-option [nzValue]="1" nzLabel="Đã duyệt"></nz-option>
                   <nz-option
-                    nzValue="3"
+                    [nzValue]="2"
                     nzLabel="Không đồng ý duyệt"
                   ></nz-option>
                   <nz-option
-                    nzValue="4"
+                    [nzValue]="3"
                     nzLabel="Chờ duyệt hủy đăng ký"
                   ></nz-option>
                   <nz-option
-                    nzValue="5"
+                    [nzValue]="4"
                     nzLabel="Đã duyệt hủy đăng ký"
                   ></nz-option>
                 </nz-select>

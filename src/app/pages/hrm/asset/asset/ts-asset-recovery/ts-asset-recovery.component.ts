@@ -470,9 +470,7 @@ export class TsAssetRecoveryComponent implements OnInit, AfterViewInit {
       break;
 
     case 3: // HR duyệt
-      if (row.IsApprovedPersonalProperty != true) {
-        return 'HR_NEED_PERSONAL';
-      }
+      // HR có thể duyệt bất kể cá nhân đã duyệt hay chưa
       break;
 
     case 4: // Hủy HR

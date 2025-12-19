@@ -2808,6 +2808,35 @@ export class ProjectPartListComponent implements OnInit, AfterViewInit {
     }
     return value || '';
   }
+  // Helper function để restore màu gốc của cell
+  private restoreCellOriginalColor(cell: any, element: HTMLElement): void {
+    const field = cell.getField();
+    const data = cell.getRow().getData();
+    
+    // Reset màu nền và màu chữ về mặc định
+    element.style.backgroundColor = '';
+    element.style.color = '';
+    
+    // Chỉ restore màu nếu cell không bị xóa, không có vấn đề, và không có quantity return
+    // (vì các trường hợp này được xử lý bởi rowFormatter)
+    if (data.IsDeleted !== true && 
+        data.IsProblem !== true && 
+        (Number(data.QuantityReturn) || 0) === 0) {
+      // Áp dụng lại màu gốc từ các hàm applyCellColor
+      if (field === 'GroupMaterial') {
+        this.applyCellColor(cell, 'GroupMaterial', 'IsSameProductName', element);
+      } else if (field === 'ProductCode') {
+        this.applyCellColor(cell, 'ProductCode', 'IsSameProductCode', element);
+        this.applyIsFixColor(cell);
+        this.applyIsProductSaleColor(cell);
+      } else if (field === 'Manufacturer') {
+        this.applyCellColor(cell, 'Manufacturer', 'IsSameMaker', element);
+      } else if (field === 'Unit') {
+        this.applyCellColor(cell, 'Unit', 'IsSameUnit', element);
+      }
+    }
+  }
+
   // Hàm áp dụng màu cho cell sau khi render (giống WinForm CustomDrawNodeCell)
   applyCellColor(cell: any, field: string, checkField: string, element?: HTMLElement): void {
     try {
@@ -3347,7 +3376,7 @@ export class ProjectPartListComponent implements OnInit, AfterViewInit {
                   return result;
                 },
                 widthGrow: 5,
-                maxWidth: 200,
+                maxWidth: 400,
                 
               },
               { title: 'Thông số kỹ thuật', field: 'Model',   
@@ -3797,6 +3826,8 @@ export class ProjectPartListComponent implements OnInit, AfterViewInit {
     });
     // Lưu cell được click để có thể copy sau
     let lastClickedCell: any = null;
+    let lastHighlightedCellElement: HTMLElement | null = null;
+    let lastHighlightedCell: any = null;
     
     this.tb_projectWorker.on('cellClick', (e: any, cell: any) => {
       const field = cell.getField();
@@ -3805,14 +3836,36 @@ export class ProjectPartListComponent implements OnInit, AfterViewInit {
       // Lưu cell được click để copy khi nhấn Ctrl+C
       lastClickedCell = cell;
       
-      // Xóa highlight cũ
-      if (this.lastClickedPartListRow) {
-        const oldElement = this.lastClickedPartListRow.getElement();
-        if (oldElement) {
-          oldElement.style.outline = '';
-        }
+      // Xóa highlight cũ của cell và restore màu gốc
+      if (lastHighlightedCellElement && lastHighlightedCell) {
+        // Xóa outline và class highlight
+        lastHighlightedCellElement.style.outline = '';
+        lastHighlightedCellElement.style.outlineOffset = '';
+        lastHighlightedCellElement.classList.remove('cell-highlighted');
+        
+        // Restore màu gốc bằng helper function
+        this.restoreCellOriginalColor(lastHighlightedCell, lastHighlightedCellElement);
       }
-      // Lưu và highlight dòng mới
+      
+      // Highlight cell mới được click
+      const cellElement = cell.getElement();
+      if (cellElement) {
+        // Highlight cell mới được click
+        cellElement.style.backgroundColor = '#b3d9ff';
+        cellElement.style.outline = '2px solid #0066cc';
+        cellElement.style.outlineOffset = '-1px';
+        cellElement.classList.add('cell-highlighted');
+        lastHighlightedCellElement = cellElement;
+        lastHighlightedCell = cell;
+        
+        // Cho phép select text trong cell
+        cellElement.style.userSelect = 'text';
+        cellElement.style.webkitUserSelect = 'text';
+        cellElement.style.mozUserSelect = 'text';
+        cellElement.style.msUserSelect = 'text';
+      }
+      
+      // Lưu và highlight dòng mới (giữ lại logic cũ)
       this.lastClickedPartListRow = cell.getRow();
       const rowData = this.lastClickedPartListRow.getData();
       const newElement = this.lastClickedPartListRow.getElement();
@@ -3820,7 +3873,7 @@ export class ProjectPartListComponent implements OnInit, AfterViewInit {
         newElement.style.outline = '3px solid rgb(119, 133, 29)';
         newElement.style.outlineOffset = '2px';
       }
-      console.log('Cell clicked - Row TT:', rowData.TT, 'ID:', rowData.ID);
+      console.log('Cell clicked - Row TT:', rowData.TT, 'ID:', rowData.ID, 'Field:', field);
     });
 
     // Lắng nghe sự kiện Ctrl+C để copy dữ liệu cell
@@ -3829,25 +3882,37 @@ export class ProjectPartListComponent implements OnInit, AfterViewInit {
       if (tableElement) {
         tableElement.addEventListener('keydown', (e: KeyboardEvent) => {
           // Kiểm tra Ctrl+C hoặc Cmd+C (Mac)
-          if ((e.ctrlKey || e.metaKey) && e.key === 'c' && lastClickedCell) {
-            e.preventDefault(); // Ngăn chặn hành vi mặc định
+          if ((e.ctrlKey || e.metaKey) && e.key === 'c') {
+            // Kiểm tra xem có text nào đang được select không
+            const selection = window.getSelection();
+            const selectedText = selection?.toString().trim();
             
-            const cellValue = lastClickedCell.getValue();
-            const textToCopy = cellValue !== null && cellValue !== undefined ? String(cellValue) : '';
+            // Nếu có text đang được select, cho phép copy bình thường (không preventDefault)
+            if (selectedText && selectedText.length > 0) {
+              return; // Cho phép copy text đã chọn theo cách thông thường
+            }
             
-            if (textToCopy) {
-              // Kiểm tra xem clipboard API có khả dụng không
-              if (navigator.clipboard && navigator.clipboard.writeText) {
-                navigator.clipboard.writeText(textToCopy).then(() => {
-                  // Copy thành công
-                }).catch((err) => {
-                  console.error('Lỗi khi copy vào clipboard:', err);
-                  // Fallback: sử dụng cách copy cũ nếu clipboard API không khả dụng
+            // Nếu không có text được select và có cell được click, copy toàn bộ cell value
+            if (lastClickedCell) {
+              e.preventDefault(); // Ngăn chặn hành vi mặc định
+              
+              const cellValue = lastClickedCell.getValue();
+              const textToCopy = cellValue !== null && cellValue !== undefined ? String(cellValue) : '';
+              
+              if (textToCopy) {
+                // Kiểm tra xem clipboard API có khả dụng không
+                if (navigator.clipboard && navigator.clipboard.writeText) {
+                  navigator.clipboard.writeText(textToCopy).then(() => {
+                    // Copy thành công
+                  }).catch((err) => {
+                    console.error('Lỗi khi copy vào clipboard:', err);
+                    // Fallback: sử dụng cách copy cũ nếu clipboard API không khả dụng
+                    this.fallbackCopyTextToClipboard(textToCopy);
+                  });
+                } else {
+                  // Nếu clipboard API không khả dụng, dùng fallback ngay
                   this.fallbackCopyTextToClipboard(textToCopy);
-                });
-              } else {
-                // Nếu clipboard API không khả dụng, dùng fallback ngay
-                this.fallbackCopyTextToClipboard(textToCopy);
+                }
               }
             }
           }
@@ -3858,6 +3923,19 @@ export class ProjectPartListComponent implements OnInit, AfterViewInit {
     this.tb_projectWorker.on('cellRendered', (cell: any) => {
       const field = cell.getField();
       const data = cell.getData();
+      
+      // Cho phép select text trong tất cả các cell (trừ rowSelection)
+      if (field !== 'rowSelection') {
+        const cellElement = cell.getElement();
+        if (cellElement) {
+          cellElement.style.userSelect = 'text';
+          cellElement.style.webkitUserSelect = 'text';
+          cellElement.style.mozUserSelect = 'text';
+          cellElement.style.msUserSelect = 'text';
+          cellElement.style.cursor = 'text';
+        }
+      }
+      
       // Chỉ áp dụng cho các cột cần vẽ màu (giống WinForm: GroupMaterial, ProductCode, Manufacturer, Unit)
       if (field === 'GroupMaterial') {
         this.applyCellColor(cell, 'GroupMaterial', 'IsSameProductName');

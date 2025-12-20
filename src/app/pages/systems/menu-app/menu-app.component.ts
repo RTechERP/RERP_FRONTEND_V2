@@ -18,16 +18,29 @@ import { AppUserService } from '../../../services/app-user.service';
 import { MenuAppService } from './menu-app.service';
 import { NzTreeSelectModule } from 'ng-zorro-antd/tree-select';
 import { MenuAppDetailComponent } from './menu-app-detail/menu-app-detail.component';
+import { MenuItem, PrimeIcons } from 'primeng/api';
+import { Menubar } from 'primeng/menubar';
 
 @Component({
     selector: 'app-menu-app',
     imports: [
-
+        Menubar
     ],
     templateUrl: './menu-app.component.html',
     styleUrl: './menu-app.component.css'
 })
 export class MenuAppComponent {
+
+    menuBars: MenuItem[] = [
+        {
+            label: 'Thêm',
+            icon: PrimeIcons.PLUS,
+            // visible: this.permissionService.hasPermission(""),
+            command: () => {
+                this.onCreate();
+            },
+        },
+    ];
 
     constructor(
         private modalService: NgbModal

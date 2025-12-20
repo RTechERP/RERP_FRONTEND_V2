@@ -8,6 +8,7 @@ import { HomeLayoutComponent } from './layouts/home-layout/home-layout.component
 import { HomeLayoutNewComponent } from './layouts/home-layout/home-layout-new/home-layout-new.component';
 import { FoodOrderComponent } from './pages/hrm/food-order/food-order.component';
 import { DayOffComponent } from './pages/hrm/day-off/day-off.component';
+import { MenuApp } from './pages/systems/menu-app/model/menu-app';
 
 export const routes: Routes = [
     {
@@ -36,6 +37,7 @@ export const routes: Routes = [
             { path: 'app', component: WelcomeComponent, canActivate: [authGuard] },
             { path: 'datcom', component: FoodOrderComponent, canActivate: [authGuard] },
             { path: 'nghiphep', component: DayOffComponent, canActivate: [authGuard] },
+            { path: 'menu', component: MenuApp, canActivate: [authGuard] },
             //   { path: 'menu', component: MenusComponent, canActivate: [authGuard] },
             //   {
             //     path: 'project-partlist-price-request',

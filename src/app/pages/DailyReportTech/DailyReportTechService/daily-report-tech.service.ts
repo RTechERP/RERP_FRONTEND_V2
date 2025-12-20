@@ -36,6 +36,10 @@ export class DailyReportTechService {
     return this.http.post<any>(this.apiUrl + 'save-report-tech', reports);
   }
 
+  saveReportHr(report: any): Observable<any> {
+    return this.http.post<any>(this.apiUrl + 'save-report-hr', report);
+  }
+
   getDataByID(dailyID: number): Observable<any> {
     const params = new HttpParams().set('dailyID', dailyID.toString());
     return this.http.get<any>(this.apiUrl + 'get-by-id', { params });

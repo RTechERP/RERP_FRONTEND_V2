@@ -957,6 +957,34 @@ export class ProjectHistoryProblemComponent implements OnInit, AfterViewInit {
           wsRow.getCell('ExecuteDate').numFmt = 'dd/mm/yyyy';
         }
       });
+
+      // Thêm dòng bottom calculation nếu có
+      const historyBottomRow = this.calculateBottomRow(this.tb_history, historyData);
+      if (historyBottomRow && Object.keys(historyBottomRow).length > 0) {
+        const bottomRow = wsHistory.addRow({
+          STT: historyBottomRow.STT || '',
+          ProblemType: historyBottomRow.ProblemType || '',
+          ErrorContent: historyBottomRow.ErrorContent || '',
+          Reason: historyBottomRow.Reason || '',
+          Solution: historyBottomRow.Solution || '',
+          Method: historyBottomRow.Method || '',
+          Image: historyBottomRow.Image || '',
+          ProblemDate: historyBottomRow.ProblemDate || '',
+          ExecuteDate: historyBottomRow.ExecuteDate || '',
+          PIC: historyBottomRow.PIC || ''
+        });
+
+        // Style cho dòng bottom
+        bottomRow.eachCell((cell) => {
+          cell.font = { bold: true };
+          cell.fill = {
+            type: 'pattern',
+            pattern: 'solid',
+            fgColor: { argb: 'FFD3D3D3' }, // Light grey background
+          };
+          cell.alignment = { vertical: 'middle', horizontal: 'left' };
+        });
+      }
     }
 
     // Sheet 2: Chi tiết phát sinh
@@ -986,6 +1014,28 @@ export class ProjectHistoryProblemComponent implements OnInit, AfterViewInit {
           Note: row.Note || ''
         });
       });
+
+      // Thêm dòng bottom calculation nếu có
+      const detailBottomRow = this.calculateBottomRow(this.tb_detail, detailData);
+      if (detailBottomRow && Object.keys(detailBottomRow).length > 0) {
+        const bottomRow = wsDetail.addRow({
+          STT: detailBottomRow.STT || '',
+          Description: detailBottomRow.Description || '',
+          Status: detailBottomRow.Status || '',
+          Note: detailBottomRow.Note || ''
+        });
+
+        // Style cho dòng bottom
+        bottomRow.eachCell((cell) => {
+          cell.font = { bold: true };
+          cell.fill = {
+            type: 'pattern',
+            pattern: 'solid',
+            fgColor: { argb: 'FFD3D3D3' }, // Light grey background
+          };
+          cell.alignment = { vertical: 'middle', horizontal: 'left' };
+        });
+      }
     }
 
     // Xuất file
@@ -1003,6 +1053,61 @@ export class ProjectHistoryProblemComponent implements OnInit, AfterViewInit {
       console.error('Error exporting Excel:', error);
       this.notification.error('Lỗi', 'Không thể xuất Excel!');
     });
+  }
+
+  // Tính toán các giá trị bottom calculation
+  calculateBottomRow(table: any, data: any[]): any {
+    if (!table || !data || data.length === 0) {
+      return {};
+    }
+
+    const bottomRow: any = {};
+    const columns = table.getColumns();
+
+    columns.forEach((col: any) => {
+      const colDef = col.getDefinition();
+      const field = col.getField();
+
+      if (!field || field === 'addRow') {
+        bottomRow[field] = '';
+        return;
+      }
+
+      if (colDef.bottomCalc) {
+        let calcValue: any = null;
+
+        if (colDef.bottomCalc === 'count') {
+          calcValue = data.length;
+        } else if (colDef.bottomCalc === 'sum') {
+          calcValue = data.reduce((total: number, row: any) => {
+            const value = parseFloat(row[field]) || 0;
+            return total + (isNaN(value) ? 0 : value);
+          }, 0);
+        } else if (typeof colDef.bottomCalc === 'function') {
+          const values = data.map((row: any) => row[field]);
+          calcValue = colDef.bottomCalc(values, data);
+        }
+
+        // Áp dụng bottomCalcFormatter nếu có
+        if (colDef.bottomCalcFormatter && calcValue !== null && calcValue !== undefined) {
+          const cell = { getValue: () => calcValue };
+          bottomRow[field] = colDef.bottomCalcFormatter(cell);
+        } else if (calcValue !== null && calcValue !== undefined) {
+          // Nếu không có formatter, format số nếu là số
+          if (typeof calcValue === 'number') {
+            bottomRow[field] = calcValue.toFixed(2);
+          } else {
+            bottomRow[field] = calcValue;
+          }
+        } else {
+          bottomRow[field] = '';
+        }
+      } else {
+        bottomRow[field] = '';
+      }
+    });
+
+    return bottomRow;
   }
 
   getStatusName(id: number | null): string {

@@ -270,7 +270,7 @@ export class ProjectComponent implements OnInit, AfterViewInit {
       },
       {
         label:
-          '<span style="font-size: 0.75rem;"><img src="assets/icon/compare_project_16.png" alt="Chuyển dự án" class="me-1" /> Chuyển dự án</span>',
+          '<span style="font-size: 0.75rem;"><img src="assets/icon/compare_project_16.png" alt="Chuyển dự án" class="me-1" /> Chuyển báo cáo công việc</span>',
         action: (e: any, row: any) => {
           this.changeProject();
         },
@@ -1800,6 +1800,7 @@ export class ProjectComponent implements OnInit, AfterViewInit {
       windowClass: 'full-screen-modal',
     });
     modalRef.componentInstance.projectId = this.projectId;
+    
     modalRef.result.then((result) => {
       if (result == true) {
        // this.searchProjects();

@@ -76,6 +76,8 @@ export class ProjectPartlistDetailComponent implements OnInit, AfterViewInit {
 
   currentUser: any;
   isDisabled: boolean = false;
+  disableReason: string = ''; // Lý do không thể sửa vật tư
+  disableMainReason: string = ''; // Lý do chính không thể sửa
   currentIsApprovedTBP: boolean = false; // Lưu trữ giá trị IsApprovedTBP hiện tại
   currentPartListId: number = 0; // Lưu trữ ID của partlist đang edit
   hasDataChanged: boolean = false; // Flag để track xem có thay đổi dữ liệu hay không (mã đặc biệt)
@@ -335,7 +337,7 @@ export class ProjectPartlistDetailComponent implements OnInit, AfterViewInit {
 
     // Logic enable/disable qtyMin and qtyFull theo WinForm
     this.updateQtyFieldsState(data.IsProblem || false, this.currentIsApprovedTBP);
-    debugger
+    
     // Logic disable button Save theo WinForm: !(IsApprovedTBP == true || IsApprovedTBPNewCode == true)
     const isApprovedTBP = data.IsApprovedTBP === true || data.IsApprovedTBP === 1;
     const isApprovedTBPNewCode = data.IsApprovedTBPNewCode === true || data.IsApprovedTBPNewCode === 1;
@@ -343,11 +345,40 @@ export class ProjectPartlistDetailComponent implements OnInit, AfterViewInit {
     const IsCheckPrice = data.IsCheckPrice === true || data.IsCheckPrice === 1 || data.IsCheckPrice === '1';
     const StatusRequest = data.StatusRequest;
     const StatusPriceRequest = data.StatusPriceRequest;
-    // if(isApprovedTBP || isApprovedTBPNewCode || IsCheckPrice || StatusRequest===2 || StatusRequest===3){
-      if(isApprovedTBP || isApprovedTBPNewCode || (IsCheckPrice == true && StatusPriceRequest >0)){
-        this.isDisabled = true;
-    }else{
+    
+    // Reset disable reason
+    this.disableReason = '';
+    
+    // Kiểm tra các điều kiện disable và set message tương ứng
+    if (isApprovedTBP) {
+      this.isDisabled = true;
+      this.disableMainReason = 'vật tư đã được duyệt TBP';
+      this.disableReason = 'vật tư đã được duyệt TBP (Lưu ý: Bạn vẫn có thể cập nhật mã đặc biệt)';
+    } else if (isApprovedTBPNewCode) {
+      this.isDisabled = true;
+      this.disableMainReason = 'vật tư đã được duyệt mã mới';
+      this.disableReason = 'vật tư đã được duyệt mã mới (Lưu ý: Bạn vẫn có thể cập nhật mã đặc biệt)';
+    } else if (IsCheckPrice == true && StatusPriceRequest > 0) {
+      this.isDisabled = true;
+      this.disableMainReason = 'vật tư đã được yêu cầu báo giá';
+      this.disableReason = 'vật tư đã được yêu cầu báo giá (Lưu ý: Bạn vẫn có thể cập nhật mã đặc biệt)';
+    } else {
       this.isDisabled = false;
+      this.disableMainReason = '';
+      this.disableReason = '';
+    }
+    
+    // Hiển thị thông báo nếu vật tư không thể sửa
+    if (this.isDisabled && this.disableMainReason) {
+      setTimeout(() => {
+        // Sử dụng HTML để hiển thị phần lưu ý với chữ nhỏ
+        const message = `Vật tư không thể sửa vì ${this.disableMainReason}.`;
+        const note = 'Lưu ý: Bạn vẫn có thể cập nhật mã đặc biệt';
+        const htmlMessage = `${message}<br/><span style="font-size: 0.75rem; color: #666; display: block; margin-top: 4px;">${note}</span>`;
+        
+        // Tạo notification với HTML content (ng-zorro hỗ trợ HTML trong message)
+        this.notification.warning(NOTIFICATION_TITLE.warning, htmlMessage);
+      }, 300);
     }
   }
 

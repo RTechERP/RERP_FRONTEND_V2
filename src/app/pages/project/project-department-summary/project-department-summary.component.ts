@@ -346,7 +346,7 @@ export class ProjectDepartmentSummaryComponent implements AfterViewInit {
       },
       {
         label:
-          '<span style="font-size: 0.75rem;"><img src="assets/icon/compare_project_16.png" alt="Chuyển dự án" class="me-1" /> Chuyển dự án</span>',
+          '<span style="font-size: 0.75rem;"><img src="assets/icon/compare_project_16.png" alt="Chuyển báo cáo công việc" class="me-1" /> Chuyển báo cáo công việc</span>',
         action: (e: any, row: any) => {
           this.changeProject();
         },

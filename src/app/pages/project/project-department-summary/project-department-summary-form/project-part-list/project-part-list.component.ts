@@ -2408,7 +2408,7 @@ export class ProjectPartListComponent implements OnInit, AfterViewInit {
     });
   }
   //#endregion
-  //#region draw bảng giải pháp, phiên bản giải pháp, phiên bản PO, nhân công
+  //#region draw bảng giải pháp, phiên bản giải pháp, phiên bản PO, vật tư dự án
   drawTbSolution(): void {
     // Kiểm tra ViewChild đã được khởi tạo chưa
     if (!this.tb_solutionContainer) {
@@ -2484,7 +2484,6 @@ export class ProjectPartListComponent implements OnInit, AfterViewInit {
           field: 'ContentSolution',
           hozAlign: 'left',
           headerHozAlign: 'center',
-          editor: 'textarea',
           formatter: 'textarea', // Hiển thị multiline
           width: 300,
         },
@@ -3280,11 +3279,15 @@ export class ProjectPartListComponent implements OnInit, AfterViewInit {
     this.tb_projectWorker = new Tabulator(
       this.tb_projectWorkerContainer.nativeElement,
       {
+
+        ...DEFAULT_TABLE_CONFIG,
+        paginationMode: 'local',
+        rowHeader: false,
+        pagination: false,
         dataTree: true,
         dataTreeStartExpanded: true,
         dataTreeChildField: '_children', // Quan trọng: dùng _children
         dataTreeElementColumn: 'TT', // Chỉ định cột hiển thị tree toggle
-        pagination: false,
         layout: 'fitDataStretch',
         selectableRows: true,
         height: '100%',
@@ -3344,7 +3347,7 @@ export class ProjectPartListComponent implements OnInit, AfterViewInit {
               {
                 title: 'TT',
                 field: 'TT',
-                hozAlign: 'center',
+                hozAlign: 'left',
                 headerHozAlign: 'center',
                 width: 100,
                 frozen: true,
@@ -3409,13 +3412,13 @@ export class ProjectPartListComponent implements OnInit, AfterViewInit {
                 maxWidth: 300,
                 variableHeight: true, },
               {
-                title: 'Số lượng / 1 máy', field: 'QtyMin', hozAlign: 'right', formatter: (cell: any) => {
+                title: 'SL/1 máy', field: 'QtyMin', hozAlign: 'right',headerSort: false, headerHozAlign: 'center', width: 60, formatter: (cell: any) => {
                   const value = cell.getValue();
                   return value != null && value !== '' ? parseFloat(value).toFixed(1) : '';
                 },
               },
               {
-                title: 'Số lượng tổng', field: 'QtyFull', hozAlign: 'right', formatter: (cell: any) => {
+                title: 'SL tổng', field: 'QtyFull', hozAlign: 'right', headerSort: false, headerHozAlign: 'center', width: 60, formatter: (cell: any) => {
                   const value = cell.getValue();
                   return value != null && value !== '' ? parseFloat(value).toFixed(1) : '';
                 },
@@ -3445,6 +3448,9 @@ export class ProjectPartListComponent implements OnInit, AfterViewInit {
                 title: 'Đơn vị',
                 field: 'Unit',
                 hozAlign: 'center',
+                headerSort: false,
+                headerHozAlign: 'center',
+                width: 90,
                 formatter: (cell: any) => {
                   // Áp dụng logic CustomDrawNodeCell (giống WinForm treeListData_CustomDrawNodeCell)
                   const result = this.customDrawNodeCell(cell, 'Unit', 'IsSameUnit');
@@ -3459,6 +3465,9 @@ export class ProjectPartListComponent implements OnInit, AfterViewInit {
                 title: 'Tích xanh',
                 field: 'IsFix',
                 hozAlign: 'center',
+                headerSort: false,
+                headerHozAlign: 'center',
+                width: 70,
                 formatter: (cell: any) => {
                   const value = cell.getValue();
                   return `<input type="checkbox" ${(value === true ? 'checked' : '')} onclick="return false;">`;
@@ -3468,6 +3477,8 @@ export class ProjectPartListComponent implements OnInit, AfterViewInit {
                 title: 'TBP duyệt',
                 field: 'IsApprovedTBPText',  // Sửa: dùng text thay vì boolean
                 hozAlign: 'center',
+                headerHozAlign: 'center',
+                width: 70,
                 formatter: (cell: any) => {
                   const value = cell.getValue();
                   return `<input type="checkbox" ${(value === 'Đã duyệt' ? 'checked' : '')} onclick="return false;">`;
@@ -3478,15 +3489,18 @@ export class ProjectPartListComponent implements OnInit, AfterViewInit {
                 headerHozAlign: 'center',
                 hozAlign: 'center',
                 field: 'IsNewCode',
+                width: 70,
                 formatter: (cell: any) => {
                   const value = cell.getValue();
                   return `<input type="checkbox" ${(value === true ? 'checked' : '')} onclick="return false;">`;
                 }
               },
               {
-                title: 'TBP duyệt sản phẩm mới',
+                title: 'TBP duyệt SP mới',
                 field: 'IsApprovedTBPNewCode',  // Sửa: dùng field đúng
                 hozAlign: 'center',
+                headerHozAlign: 'center',
+                width: 80,
                 formatter: (cell: any) => {
                   const value = cell.getValue();
                   return `<input type="checkbox" ${(value === true ? 'checked' : '')} onclick="return false;">`;
@@ -3496,6 +3510,8 @@ export class ProjectPartListComponent implements OnInit, AfterViewInit {
                 title: 'Đơn giá',
                 field: 'Price',
                 hozAlign: 'right',
+                headerHozAlign: 'center',
+                width: 100,
                 formatter: (cell: any) => {
                   return this.formatMoney(cell.getValue(), 2);
                 },
@@ -3562,6 +3578,8 @@ export class ProjectPartListComponent implements OnInit, AfterViewInit {
                 title: 'Check giá',
                 field: 'IsCheckPrice',
                 hozAlign: 'center',
+                headerHozAlign: 'center',
+                width: 70,
                 formatter: (cell: any) => {
                   const value = cell.getValue();
                   return `<input type="checkbox" ${(value === true ? 'checked' : '')} onclick="return false;">`;
@@ -3627,7 +3645,7 @@ export class ProjectPartListComponent implements OnInit, AfterViewInit {
                   return this.formatMoney(cell.getValue(), 2);
                 },
               },
-              { title: 'Nhà cung cấp báo giá', field: 'NameNCCPriceQuote', hozAlign: 'right' },
+              { title: 'Nhà cung cấp báo giá', field: 'NameNCCPriceQuote', hozAlign: 'left' },
               {
                 title: 'Lead Time báo giá', field: 'LeadTimeQuote', hozAlign: 'right', formatter: (cell: any) => {
                   const value = cell.getValue();
@@ -3642,6 +3660,7 @@ export class ProjectPartListComponent implements OnInit, AfterViewInit {
               },
               { 
                 title: 'Ghi chú báo giá', field: 'NoteQuote',
+                width:300,
                     formatter: this.textWithTooltipFormatter,  // ← Thay đổi này 
               },
             ]
@@ -3815,7 +3834,7 @@ export class ProjectPartListComponent implements OnInit, AfterViewInit {
                 }
               },  // Sửa
               {
-                title: 'Đan phượng', field: 'TotalDP', hozAlign: 'right', formatter: (cell: any) => {
+                title: 'Đan Phượng', field: 'TotalDP', hozAlign: 'right', formatter: (cell: any) => {
                   const value = cell.getValue();
                   return value != null && value !== '' ? parseFloat(value).toFixed(1) : '';
                 }
@@ -3893,10 +3912,10 @@ export class ProjectPartListComponent implements OnInit, AfterViewInit {
       this.lastClickedPartListRow = cell.getRow();
       const rowData = this.lastClickedPartListRow.getData();
       const newElement = this.lastClickedPartListRow.getElement();
-      if (newElement) {
-        newElement.style.outline = '3px solid rgb(119, 133, 29)';
-        newElement.style.outlineOffset = '2px';
-      }
+      // if (newElement) {
+      //   newElement.style.outline = '3px solid rgb(119, 133, 29)';
+      //   newElement.style.outlineOffset = '2px';
+      // }
       console.log('Cell clicked - Row TT:', rowData.TT, 'ID:', rowData.ID, 'Field:', field);
     });
 

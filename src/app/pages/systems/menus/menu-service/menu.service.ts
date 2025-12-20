@@ -153,7 +153,7 @@ import { BookingRoomComponent } from '../../../hrm/booking room/booking-room.com
 import { RegisterContractComponent } from '../../../person/register-contract/register-contract.component';
 import { ApproveTpComponent } from '../../../person/approve-tp/approve-tp/approve-tp.component';
 import { PhaseAllocationPersonComponent } from '../../../hrm/phase-allocation-person/phase-allocation-person.component';
-
+import { DailyReportThrComponent } from '../../../daily-report-thr/daily-report-thr.component';
 @Injectable({
     providedIn: 'root',
 })
@@ -3089,15 +3089,24 @@ export class MenuService {
                                     this.positinCPs.includes(positionID) ||
                                     this.positinLXs.includes(positionID),
                                 children: [
-                                    {
-                                        kind: 'leaf',
-                                        key: 'baocaocongviechr',
-                                        title: 'Nhân viên hành chính',
-                                        isOpen: true,
-                                        isPermission: this.permissionService.hasPermission(''),
-                                        comp: PersonComponent,
-                                        router: '/baocaocongviec',
-                                    },
+                                    // {
+                                    //     kind: 'leaf',
+                                    //     key: 'baocaocongviechr',
+                                    //     title: 'Nhân viên hành chính',
+                                    //     isOpen: true,
+                                    //     isPermission: this.permissionService.hasPermission(''),
+                                    //     comp: PersonComponent,
+                                    //     router: '/baocaocongviec',
+                                    // },
+                                    
+                            {
+                                kind: 'leaf',
+                                key: 'baocaocongviechr',
+                                title: 'Nhân viên hành chính',
+                                isOpen: true,
+                                isPermission: this.permissionService.hasPermission(''),
+                                comp: DailyReportThrComponent,
+                            },
                                     {
                                         kind: 'leaf',
                                         key: 'catphimlaixe',

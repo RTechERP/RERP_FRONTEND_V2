@@ -61,6 +61,8 @@ import { AuthService } from '../../../../auth/auth.service';
         NzSplitterModule,
         NzCheckboxModule,
         NzSelectModule,
+        NzDatePickerModule,
+        NzGridModule,
         
   ],
   templateUrl: './job-requirement-form.component.html',

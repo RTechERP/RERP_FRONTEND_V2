@@ -141,7 +141,7 @@ export class TeamComponent implements OnInit, AfterViewInit {
         this.teamTabulator.setData(this.teamList);
         // this.teamTabulator.setData(this.teamList).then(() => {
         //   const rows = this.employeeTabulator.getRows();
-        //   debugger
+       
         //   if (rows.length > 0) {
         //     rows[0].select();
         //     rows[0].scrollTo();
@@ -413,7 +413,7 @@ export class TeamComponent implements OnInit, AfterViewInit {
     });
 
     this.teamTabulator.on("renderComplete", () => {
-      debugger
+
       const rows = this.teamTabulator.getRows();
       if (rows.length > 0) {
         rows[0].select();

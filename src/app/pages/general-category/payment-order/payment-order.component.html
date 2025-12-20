@@ -172,20 +172,25 @@
 
 <nz-splitter nzLayout="vertical" style="height: 80vh !important;">
     <nz-splitter-panel nzMin="20%" [nzCollapsible]="true" nzDefaultSize="60%">
-        <p-tabs value="0">
+        <div class="grid-container">
+            <angular-slickgrid gridId="grvData" [columns]="columnDefinitions" [options]="gridOptions"
+                [dataset]="dataset" (onAngularGridCreated)="angularGridReady($event.detail)"
+                (onSelectedRowsChanged)="handleRowSelection($event.detail.eventData, $event.detail.args)"
+                (onClick)="onCellClicked($event.detail.eventData, $event.detail.args)">
+            </angular-slickgrid>
+        </div>
+        <!-- <p-tabs value="0">
             <p-tablist>
                 <p-tab value="0" class="p-2">ĐỀ NGHỊ THANH TOÁN</p-tab>
                 <p-tab value="1" class="p-2">ĐỀ NGHỊ THANH TOÁN ĐẶC BIỆT</p-tab>
             </p-tablist>
             <p-tabpanels class="p-0">
-                <p-tabpanel value="0">
-                    <div class="grid-container" style="height: 100%;">
-                        <angular-slickgrid gridId="grvData" [columns]="columnDefinitions" [options]="gridOptions"
-                            [dataset]="dataset" (onAngularGridCreated)="angularGridReady($event.detail)"
-                            (onSelectedRowsChanged)="handleRowSelection($event.detail.eventData, $event.detail.args)"
-                            (onClick)="onCellClicked($event.detail.eventData, $event.detail.args)">
-                        </angular-slickgrid>
-                    </div>
+                <p-tabpanel value="0" class="grid-container">
+                    <angular-slickgrid gridId="grvData" [columns]="columnDefinitions" [options]="gridOptions"
+                        [dataset]="dataset" (onAngularGridCreated)="angularGridReady($event.detail)"
+                        (onSelectedRowsChanged)="handleRowSelection($event.detail.eventData, $event.detail.args)"
+                        (onClick)="onCellClicked($event.detail.eventData, $event.detail.args)">
+                    </angular-slickgrid>
                 </p-tabpanel>
                 <p-tabpanel value="1">
                     <angular-slickgrid gridId="grvDataSpecial" [columns]="columnDefinitionsSpecial"
@@ -197,7 +202,7 @@
                 </p-tabpanel>
 
             </p-tabpanels>
-        </p-tabs>
+        </p-tabs> -->
     </nz-splitter-panel>
     <nz-splitter-panel [nzCollapsible]="true">
         <nz-splitter>

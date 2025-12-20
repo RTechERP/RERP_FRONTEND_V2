@@ -9,7 +9,7 @@
         <div class="d-flex">
             <button nz-button nz-dropdown [nzDropdownMenu]="appmenu" nzPlacement="bottomRight" nzType="text"
                 class=" text-light" nzTrigger="click">
-                <img src="assets/icon/app_store.svg" width="16">
+                <img src="assets/icon/app_store.svg">
             </button>
 
             <nz-dropdown-menu #appmenu="nzDropdownMenu">
@@ -17,7 +17,7 @@
                     <div class="app-launcher-inner">
                         @for (m of menus; track m.key) {
 
-                        <a (click)="toggleMenu(m.key)" [class.active]="isMenuOpen(m.key)" *ngIf="m.isPermission">
+                        <a (click)="openModule(m.key)" *ngIf="m.isPermission">
                             <img [src]="m.icon?.replace('24','64')" />
                             <span class="mt-1">{{m.title}}</span>
                         </a>
@@ -42,3 +42,225 @@
         </div>
     </div>
 </nav>
+
+
+<div class="row m-0">
+    <div class="col-xl-3 col-md-6 col-sm-12 col-12 pt-2 fixed-col">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title m-0 text-uppercase fw-bold py-1">duyệt cá nhân</h5>
+            </div>
+
+            <div class="card-body p-0">
+                <ul class="list-group list-group-flush">
+                    @for (item of menuApproves.children; track $index) {
+                    <li class="list-group-item border-0" *ngIf="isLeaf(item) && item.isPermission && item.isOpen">
+                        <a (click)="newTab(item.comp,item.title)">
+                            <img [src]="item.icon">
+                            <span> {{item.title}}</span>
+                        </a>
+                    </li>
+                    <li class="list-group-item border-0 border-bottom"
+                        *ngIf="isGroup(item) && item.isPermission && item.isOpen">
+                        <a class="text-uppercase text-dark">
+                            <img [src]="item.icon">
+                            <span>{{item.title}}</span>
+                        </a>
+                        <ul class="list-group">
+                            @for (c of item.children; track $index) {
+                            <li class="list-group-item border-0"
+                                [ngClass]="{'border-bottom':$index < item.children.length - 1,'':$index == item.children.length - 1}">
+                                <a>
+                                    <img [src]="c.icon">
+                                    <span> {{c.title}}</span>
+                                </a>
+                            </li>
+                            }
+                        </ul>
+                    </li>
+                    }
+                </ul>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title m-0 text-uppercase fw-bold py-1">Thông báo</h5>
+            </div>
+            <div class="card-body p-0">
+
+            </div>
+        </div>
+    </div>
+
+    <div class="col-xl-3 col-md-6 col-sm-12 col-12 pt-2 fixed-col">
+
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title m-0 text-uppercase fw-bold py-1">Cá nhân</h5>
+            </div>
+            <div class="card-body p-0" style="height: 80vh; overflow: auto;">
+                <ul class="list-group list-group-flush">
+                    @for (item of menuPersons; track $index) {
+                    <li class="list-group-item border-0 border-bottom">
+                        <a class="text-uppercase text-dark">
+                            <img [src]="item.icon">
+                            <span>{{item.title}}</span>
+                        </a>
+                        <ul class="list-group">
+                            @for (c of item.children; track $index) {
+                            <li class="list-group-item border-0"
+                                [ngClass]="{'border-bottom':$index < item.children.length - 1,'':$index == item.children.length - 1}">
+                                <a (click)="newTab(c.comp,c.title)">
+                                    <img [src]="c.icon">
+                                    <span> {{c.title}}</span>
+                                </a>
+                            </li>
+                            }
+                        </ul>
+                    </li>
+                    }
+
+                    <!-- <li class="list-group-item border-0 border-bottom">
+                        <a class="text-uppercase text-dark">
+                            <img src="http://113.190.234.64:8083/api/PathImageMenu/icons8-cutlery-20.png">
+                            <span>đăng ký công</span>
+                        </a>
+                        <ul class="list-group">
+                            <li class="list-group-item border-0 border-bottom">
+                                <a (click)="openModule('')">
+                                    <img src="http://113.190.234.64:8083/api/PathImageMenu/icons8-cutlery-20.png">
+                                    <span>Đặt cơm</span>
+                                </a>
+                            </li>
+                            <li class="list-group-item border-0 border-bottom">A third item</li>
+                            <li class="list-group-item border-0 border-bottom">A fourth item</li>
+                            <li class="list-group-item border-0 border-bottom">And a fifth one</li>
+                        </ul>
+                    </li>
+                    <li class="list-group-item border-0 border-bottom">
+                        <a class="text-uppercase text-dark">
+                            <img src="http://113.190.234.64:8083/api/PathImageMenu/icons8-cutlery-20.png">
+                            <span>đăng ký chung</span>
+                        </a>
+                        <ul class="list-group">
+                            <li class="list-group-item border-0 border-bottom">
+                                <a (click)="openModule('')">
+                                    <img src="http://113.190.234.64:8083/api/PathImageMenu/icons8-cutlery-20.png">
+                                    <span>Đặt cơm</span>
+                                </a>
+                            </li>
+                            <li class="list-group-item border-0 border-bottom">A third item</li>
+                            <li class="list-group-item border-0 border-bottom">A fourth item</li>
+                            <li class="list-group-item border-0 border-bottom">And a fifth one</li>
+                        </ul>
+                    </li> -->
+                </ul>
+            </div>
+        </div>
+
+    </div>
+
+    <div class="col-xl-3 col-md-6 col-sm-12 col-12 pt-2 fixed-col">
+        <div class="card">
+            <div class="card-header d-flex align-items-center">
+                <h5 class="card-title m-0 text-uppercase fw-bold py-1">Lịch làm việc - {{calendarDate | date:'MM/yyyy'}}
+                </h5>
+                <span class="badge bg-danger ms-auto">Ngày nghỉ</span>
+            </div>
+            <div class="card-body p-0 pt-1">
+                <nz-calendar [nzFullscreen]="false" [(ngModel)]="calendarDate" [nzCustomHeader]=""
+                    [nzDateFullCell]="dateCell" (nzSelectChange)="onSelectChangeCalendar($event)">
+                </nz-calendar>
+
+                <ng-template #dateCell let-date>
+                    <div class="custom-date-cell" [ngClass]="{holiday: isHoliday(date) || isSaturday(date)}">
+                        {{ date.getDate() }}
+                    </div>
+                </ng-template>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title m-0 text-uppercase fw-bold py-1">Kế hoạch tuần</h5>
+            </div>
+            <div class="card-body p-0">
+                <ul class="list-group list-group-flush">
+                    @for (item of menuWeekplans.children; track $index) {
+
+                    <li class="list-group-item border-0">
+                        <a>
+                            <img [src]="item.icon">
+                            <span> {{item.title}}</span>
+                        </a>
+                    </li>
+
+
+                    }
+                </ul>
+            </div>
+        </div>
+
+    </div>
+
+    <div class="col-xl-3 col-md-6 col-sm-12 col-12 pt-2 fixed-col">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title m-0 text-uppercase fw-bold py-1">
+                    Nghỉ {{totalEmployeeOnleave == 0 ?'':`(${totalEmployeeOnleave}) - ${today | date:'dd/MM/yyyy'}`}}
+                </h5>
+            </div>
+            <div class="card-body p-0">
+                <ul class="list-group list-group-flush">
+                    @for (item of employeeOnleaves; track $index) {
+                    <li class="list-group-item border-0 border-bottom">
+                        <details open>
+                            <summary class="fw-bold">{{item.DepartmentName}} ({{item.Employees.length}})
+                            </summary>
+                            <ul class="list-group">
+                                @for (e of item.Employees; track $index) {
+                                <li class="list-group-item border-0">
+                                    <span>{{$index + 1}}.{{e.EmployeeLeave}}{{e.TimeOnLeaveText}}</span>
+                                </li>
+                                }
+                            </ul>
+                        </details>
+
+                    </li>
+                    }
+                </ul>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title m-0 text-uppercase fw-bold py-1">
+                    WFH {{totalEmployeeWfh == 0 ?'':`(${totalEmployeeWfh}) - ${today | date:'dd/MM/yyyy'}`}}
+                </h5>
+            </div>
+            <div class="card-body p-0">
+                <ul class="list-group list-group-flush">
+                    @for (item of employeeWfhs; track $index) {
+                    <li class="list-group-item border-0 border-bottom">
+                        <details open>
+                            <summary class="fw-bold">{{item.DepartmentName}} ({{item.Employees.length}})
+                            </summary>
+                            <ul class="list-group">
+                                @for (e of item.Employees; track $index) {
+                                <li class="list-group-item border-0">
+                                    <span>{{$index + 1}}.{{e.TimeWFHText}}{{e.IsApprovedBGDText}}</span>
+                                </li>
+                                }
+                            </ul>
+                        </details>
+
+                    </li>
+                    }
+                </ul>
+            </div>
+        </div>
+
+    </div>
+
+</div>

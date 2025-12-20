@@ -994,7 +994,9 @@ export class PaymentOrderComponent implements OnInit {
 
         this.gridOptions = {
             autoResize: {
-                container: '#demo-container' // container DOM selector
+                container: '.grid-container',
+                calculateAvailableSizeBy: 'container',
+                resizeDetection: 'container',
             },
             enableAutoResize: true,
             gridWidth: '100%',
@@ -1170,6 +1172,7 @@ export class PaymentOrderComponent implements OnInit {
             enableAutoResize: true,
             autoResize: {
                 container: '.grid-container-file',
+
             },
             gridWidth: '100%',
             // datasetIdPropertyName: 'Id',

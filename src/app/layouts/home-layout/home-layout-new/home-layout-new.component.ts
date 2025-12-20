@@ -1,19 +1,35 @@
-import { Component, OnInit } from '@angular/core';
+import { ChangeDetectorRef, Component, Injector, OnInit, Type } from '@angular/core';
 import { AppNotifycationDropdownComponent, NotifyItem } from "../../../pages/old/app-notifycation-dropdown/app-notifycation-dropdown.component";
 import { AppUserDropdownComponent } from "../../../pages/systems/app-user/app-user-dropdown.component";
 import { NzBadgeComponent } from "ng-zorro-antd/badge";
 import { NzDropDownModule } from "ng-zorro-antd/dropdown";
-import { MenuItem } from '../../../pages/systems/menus/menu.types';
+
 import { CommonModule } from '@angular/common';
+import { NzNotificationService } from 'ng-zorro-antd/notification';
+import { HomeLayoutService } from '../home-layout-service/home-layout.service';
+import { HolidayServiceService } from '../../../pages/hrm/holiday/holiday-service/holiday-service.service';
+import { Router } from '@angular/router';
+import { AppUserService } from '../../../services/app-user.service';
+import { PermissionService } from '../../../services/permission.service';
+import { GroupItem, LeafItem, MenuItem, MenuService } from '../../../pages/systems/menus/menu-service/menu.service';
+import { NzGridModule } from 'ng-zorro-antd/grid';
+import { NzCalendarModule } from 'ng-zorro-antd/calendar';
+import { NOTIFICATION_TITLE } from '../../../app.config';
+import { FormsModule } from '@angular/forms';
+import { ListboxModule } from 'primeng/listbox';
 
 @Component({
     selector: 'app-home-layout-new',
     imports: [
         CommonModule,
+        FormsModule,
         AppNotifycationDropdownComponent,
         AppUserDropdownComponent,
         NzBadgeComponent,
-        NzDropDownModule
+        NzDropDownModule,
+        NzGridModule,
+        NzCalendarModule,
+        ListboxModule
     ],
     templateUrl: './home-layout-new.component.html',
     styleUrl: './home-layout-new.component.css'
@@ -22,27 +38,151 @@ export class HomeLayoutNewComponent implements OnInit {
 
     notifItems: NotifyItem[] = [];
     menus: MenuItem[] = [];
-    menuKey: string = '';
-    isMenuOpen = false;
-    constructor(
+    menuApproves: any = {};
+    menuPersons: any[] = [];
+    menuWeekplans: any = {};
+    // menuKey: string = '';
 
+    isMenuOpen = (key: string) => this.menus.some((m) => m.key === key && m.isOpen);
+    isGroup = (m: MenuItem): m is GroupItem => m.kind === 'group';
+    isLeaf = (m: MenuItem): m is LeafItem => m.kind === 'leaf';
+
+    dynamicTabs: any[] = [];
+    selectedIndex = 0;
+
+    today = new Date();
+    calendarDate = new Date();
+    holidays: any[] = [];
+    scheduleWorkSaturdays: any[] = [];
+
+    isHoliday(date: Date): boolean {
+        let isHoliday = this.holidays.some(
+            (x) =>
+                x.HolidayYear === date.getFullYear() &&
+                x.HolidayMonth === date.getMonth() + 1 &&
+                x.HolidayDay === date.getDate()
+        );
+        return isHoliday;
+    }
+
+    isSaturday(date: Date): boolean {
+        let isSaturday = this.scheduleWorkSaturdays.some(
+            (x) =>
+                x.WorkYear === date.getFullYear() &&
+                x.WorkMonth === date.getMonth() + 1 &&
+                x.WorkDay === date.getDate()
+        );
+        return isSaturday;
+    }
+
+    employeeOnleaves: any = [];
+    employeeWfhs: any = [];
+
+    totalEmployeeOnleave = 0;
+    totalEmployeeWfh = 0;
+
+    constructor(
+        private notification: NzNotificationService,
+        private homepageService: HomeLayoutService,
+        private cdr: ChangeDetectorRef,
+        private holidayService: HolidayServiceService,
+        private router: Router,
+        private appUserService: AppUserService,
+        public menuService: MenuService,
+        private injector: Injector,
+        private permissionService: PermissionService
     ) { }
 
     ngOnInit(): void {
-        this.isMenuOpen = (key: string) => this.menus.some((m) => m.key === key && m.isOpen);
+        this.appUserService.user$.subscribe(() => {
+            this.permissionService.refreshPermissions();
+            this.menus = this.menuService
+                .getMenus()
+                .sort((a, b) => (a.stt ?? 1) - (b.stt ?? 1));
+
+            this.menuApproves = this.menus.filter((x) => x.key == 'appvovedperson')[0];
+
+            var pesons: any[] = this.menus.filter((x) => x.key == 'person');
+            this.menuPersons = pesons[0].children.filter((x: any) => x.key == 'registerpayroll' || x.key == 'dailyreport' || x.key == 'registercommon');
+
+            this.menuWeekplans = pesons[0].children.filter((x: any) => x.key == 'planweek')[0];
+
+            this.cdr.markForCheck?.();
+
+        });
+
+        this.getHoliday(this.today.getFullYear(), this.today.getMonth());
+        this.getEmployeeOnleaveAndWFH();
+    }
+
+    getHoliday(year: number, month: number): void {
+        this.holidayService.getHolidays(month + 1, year).subscribe({
+            next: (response: any) => {
+                this.holidays = response.data.holidays;
+                this.scheduleWorkSaturdays = response.data.scheduleWorkSaturdays;
+            },
+            error: (err: any) => {
+                this.notification.error(NOTIFICATION_TITLE.error, err.error.message);
+            },
+        });
+    }
+
+    getEmployeeOnleaveAndWFH(): void {
+
+        this.homepageService.getEmployeeOnleaveAndWFH().subscribe({
+            next: (response) => {
+                this.employeeOnleaves = response.data.employeeOnleaves || [];
+                this.employeeWfhs = response.data.employeeWfhs || [];
+
+                this.totalEmployeeOnleave = this.employeeOnleaves.reduce(
+                    (sum: any, dept: any) => sum + dept.Employees.length,
+                    0
+                );
+                this.totalEmployeeWfh = this.employeeWfhs.reduce(
+                    (sum: any, dept: any) => sum + dept.Employees.length,
+                    0
+                );
+            },
+            error: (error: any) => {
+                this.notification.error(NOTIFICATION_TITLE.error, error.error.message);
+            }
+        })
+
     }
 
     onPick(n: NotifyItem) {
         console.log('picked:', n);
-        // TODO: điều hướng/đánh dấu đã đọc...
     }
 
 
-    toggleMenu(key: string) {
-        // this.menus.forEach((x) => (x.isOpen = false));
-        const m = this.menus.find((x) => x.key === key);
-        if (m) m.isOpen = !m.isOpen;
+    openModule(key: string) {
+        this.menuService.setMenuKey(key);
+        this.router.navigate(['/app']); // hoặc route tới MainLayout
+    }
 
-        if (m?.isOpen) this.menuKey = key;
+    newTab(comp: Type<any>, title: string, data?: any) {
+        // console.log("comp:", comp);
+
+        const idx = this.dynamicTabs.findIndex((t) => t.title === title);
+        if (idx >= 0) {
+            this.selectedIndex = idx;
+            return;
+        }
+
+        const injector = Injector.create({
+            providers: [{ provide: 'tabData', useValue: data }],
+            parent: this.injector,
+        });
+
+        this.dynamicTabs = [...this.dynamicTabs, { title, comp, injector }];
+        setTimeout(() => (this.selectedIndex = this.dynamicTabs.length - 1));
+
+        // Lưu tabs vào localStorage
+        // this.saveTabs();
+    }
+
+    onSelectChangeCalendar(value: Date): void {
+        // this.calendarDate = value;
+        this.getHoliday(value.getFullYear(), value.getMonth());
     }
 }

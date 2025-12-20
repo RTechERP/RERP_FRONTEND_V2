@@ -1,0 +1,198 @@
+.custom-date-cell span {
+  display: inline-block;
+  width: 28px;
+  height: 28px;
+  line-height: 28px;
+  border-radius: 50%;
+  font-size: 12px;
+}
+
+/* Chỉ tô màu Chủ nhật thuộc tháng hiện tại */
+.holiday {
+  background: #dc3545;
+  color: #fff;
+  border-radius: 5px !important;
+}
+
+::ng-deep .ant-tabs-tab {
+  padding: 5px 0 !important;
+}
+
+::ng-deep h6 {
+  margin-bottom: 0.5rem !important;
+}
+
+::ng-deep .ant-radio-group {
+  display: none !important;
+}
+
+::ng-deep .ant-picker-calendar-header {
+  justify-content: space-between !important;
+  padding-top: 0 !important;
+}
+::ng-deep .ant-list-vertical .ant-list-item-meta-title {
+  margin: 0 !important;
+  font-size: 12px !important;
+}
+
+::ng-deep .card-title {
+  font-size: 12px !important;
+}
+::ng-deep .ant-tabs-tab-btn {
+  font-size: 12px !important;
+}
+
+::ng-deep .gutter-example {
+  font-size: 12px !important;
+}
+
+.gutter-row {
+  transition: all 0.3s ease;
+  cursor: pointer;
+}
+.gutter-row:hover {
+  transform: translateY(-4px);
+}
+.grid-config {
+  border-radius: 12px;
+  border: 1px solid #e0e0e0;
+  transition: all 0.2s ease;
+}
+
+.grid-config:hover {
+  border-color: #1677ff;
+  box-shadow: 0 0 8px rgba(22, 119, 255, 0.3);
+}
+.py-2 {
+  padding-top: 1.5rem !important;
+  padding-bottom: 1.5rem !important;
+}
+
+::ng-deep
+  .ant-picker-cell-in-view.ant-picker-cell-today
+  .ant-picker-cell-inner {
+  background: rgb(18, 128, 207);
+}
+::ng-deep
+  .ant-picker-cell-in-view.ant-picker-cell-today
+  .ant-picker-cell-inner::before {
+  border-radius: 5px !important;
+  border: 1px solid rgb(18, 128, 207);
+}
+
+::ng-deep .ant-collapse {
+  background-color: transparent !important;
+  border: none !important;
+}
+
+
+
+.app-launcher {
+  width: 360px;
+  background: #ffffff;
+  border: 1px solid #ffffff;
+  /* viền 2px màu xanh */
+  border-radius: 2px;
+  overflow: hidden;
+  /* cắt nội dung lòi ra ngoài */
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+.app-launcher-inner {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px;
+  padding: 12px;
+  max-height: 330px;
+  overflow-y: auto;
+  /* chỉ lớp con scroll */
+}
+
+.app-launcher-inner::-webkit-scrollbar {
+  width: 6px;
+}
+
+.app-launcher-inner::-webkit-scrollbar-thumb {
+  background: rgba(0, 0, 0, 0.2);
+  border-radius: 3px;
+}
+
+.app-launcher a {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-decoration: none;
+  color: #000000;
+  font-size: 12px;
+  border-radius: 8px;
+  transition: background 0.2s ease;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  text-align: center;
+  font-weight: bold;
+  height: 100px;
+}
+
+.app-launcher a img {
+  width: 50%;
+}
+
+.app-launcher a:hover {
+  background: #ef4723;
+  color: #fff;
+}
+
+/* .app-launcher a:hover img {
+  transform: scale(1.08);
+} */
+
+.app-launcher-inner a.active {
+  background: #ef4723;
+  color: #fff;
+}
+
+.list-group-item a{
+    color: #6777ef;
+    font-size: 12px;
+}
+
+.list-group-item a:hover{
+    color: #6777ef;
+    text-decoration: underline;
+}
+
+/* Cột cha */
+.fixed-col {
+  height: 92vh;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem; /* thay cho mb-2 */
+   min-height: 0;
+}
+
+/* Mỗi card chiếm đều chiều cao */
+.fixed-col .card:first-child {
+  flex: 2;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;   /* 🔥 BẮT BUỘC */
+}
+
+.fixed-col .card:last-child {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;   /* 🔥 BẮT BUỘC */
+}
+
+/* Header không bị co */
+.fixed-col .card .card-header {
+  flex-shrink: 0;
+}
+
+/* Chỉ scroll body */
+.fixed-col .card .card-body {
+  flex: 1 1 auto;  
+  overflow-y: auto;
+  min-height: 0;   /* 🔥 BẮT BUỘC */
+}

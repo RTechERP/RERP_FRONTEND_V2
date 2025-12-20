@@ -1353,7 +1353,7 @@ export class MenuService {
                         key: 'JobRequirementComponent',
                         title: 'Yêu cầu công việc',
                         isOpen: true,
-                        isPermission: this.permissionService.hasPermission('N2, N34, N1'),
+                        isPermission: this.permissionService.hasPermission('N2,N34,N1'),
                         // icon: 'assets/icon/hr_asset_24.svg',
                         children: [
                             {

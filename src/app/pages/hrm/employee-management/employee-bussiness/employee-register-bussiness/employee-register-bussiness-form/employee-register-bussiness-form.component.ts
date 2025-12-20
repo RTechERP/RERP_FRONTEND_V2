@@ -733,13 +733,16 @@ export class EmployeeRegisterBussinessFormComponent implements OnInit {
       return;
     }
 
-    const hasNewFile = !!(this.selectedFile || this.tempFileRecord || this.uploadedFileData);
-    const remainingFiles = this.existingFiles.filter(f => f.ID && !this.deletedFileIds.includes(f.ID));
-    const hasExistingFile = remainingFiles.length > 0;
-    
-    if (data[0].IsProblem && !hasNewFile && !hasExistingFile) {
-      this.notification.warning(NOTIFICATION_TITLE.warning, 'Vui lòng chọn file đính kèm khi đăng ký bổ sung');
-      return;
+    // Kiểm tra file khi IsProblem = true
+    if (data[0].IsProblem) {
+      const hasNewFile = !!(this.selectedFile || this.tempFileRecord || this.uploadedFileData);
+      const remainingFiles = this.existingFiles.filter(f => f.ID && !this.deletedFileIds.includes(f.ID));
+      const hasExistingFile = remainingFiles.length > 0 || (this.existingFileRecord && this.existingFileRecord.ID > 0 && !this.deletedFileIds.includes(this.existingFileRecord.ID));
+      
+      if (!hasNewFile && !hasExistingFile) {
+        this.notification.warning(NOTIFICATION_TITLE.warning, 'Vui lòng chọn file đính kèm khi đăng ký bổ sung');
+        return;
+      }
     }
 
     if (this.selectedFile) {
@@ -836,6 +839,19 @@ export class EmployeeRegisterBussinessFormComponent implements OnInit {
 
   // Save employee bussiness và file cùng lúc qua API mới
   saveDataEmployeeWithFile(data: any[]): void {
+    // Validate file khi IsProblem = true trước khi save
+    if (data[0].IsProblem) {
+      const hasNewFile = !!(this.selectedFile || this.tempFileRecord || this.uploadedFileData);
+      const remainingFiles = this.existingFiles.filter(f => f.ID && !this.deletedFileIds.includes(f.ID));
+      const hasExistingFile = remainingFiles.length > 0 || (this.existingFileRecord && this.existingFileRecord.ID > 0 && !this.deletedFileIds.includes(this.existingFileRecord.ID));
+      
+      if (!hasNewFile && !hasExistingFile) {
+        this.isLoading = false;
+        this.notification.warning(NOTIFICATION_TITLE.warning, 'Vui lòng chọn file đính kèm khi đăng ký bổ sung');
+        return;
+      }
+    }
+    
     this.isLoading = true;
     
     const dto: any = {
@@ -846,8 +862,17 @@ export class EmployeeRegisterBussinessFormComponent implements OnInit {
 
     if (this.tempFileRecord) {
       dto.employeeBussinessFiles = this.tempFileRecord;
-    } else if (this.existingFiles.length > 0 && data[0].IsProblem) {
-      const remainingFile = this.existingFiles.find(f => !this.deletedFileIds.includes(f.ID));
+    } else if (this.existingFileRecord && this.existingFileRecord.ID > 0 && !this.deletedFileIds.includes(this.existingFileRecord.ID)) {
+      // Sử dụng existingFileRecord nếu có và chưa bị xóa
+      dto.employeeBussinessFiles = {
+        ID: this.existingFileRecord.ID || 0,
+        EmployeeBussinessID: this.existingFileRecord.EmployeeBussinessID || 0,
+        FileName: this.existingFileRecord.FileName || '',
+        OriginPath: this.existingFileRecord.OriginPath || '',
+        ServerPath: this.existingFileRecord.ServerPath || ''
+      };
+    } else if (this.existingFiles.length > 0) {
+      const remainingFile = this.existingFiles.find(f => f.ID && !this.deletedFileIds.includes(f.ID));
       if (remainingFile) {
         dto.employeeBussinessFiles = {
           ID: remainingFile.ID || 0,
@@ -857,6 +882,13 @@ export class EmployeeRegisterBussinessFormComponent implements OnInit {
           ServerPath: remainingFile.ServerPath || ''
         };
       }
+    }
+    
+    // Nếu IsProblem = true nhưng không có file hợp lệ, không cho phép lưu
+    if (data[0].IsProblem && !dto.employeeBussinessFiles) {
+      this.isLoading = false;
+      this.notification.warning(NOTIFICATION_TITLE.warning, 'Vui lòng chọn file đính kèm khi đăng ký bổ sung');
+      return;
     }
 
     if (this.selectedVehicles && this.selectedVehicles.length > 0) {

@@ -450,6 +450,7 @@ export class EmployeeNightShiftFormComponent implements OnInit {
       const dt = DateTime.fromISO(data.DateStart);
       if (dt.isValid) {
         dateStart = dt.toJSDate();
+        dateStart.setSeconds(0, 0); // Set giây về 00
       }
     } else if (dateRegister) {
       // Mặc định: 18:00
@@ -461,14 +462,17 @@ export class EmployeeNightShiftFormComponent implements OnInit {
       const dt = DateTime.fromISO(data.DateEnd);
       if (dt.isValid) {
         dateEnd = dt.toJSDate();
+        dateEnd.setSeconds(0, 0); // Set giây về 00
       }
     } else if (dateRegister && data.TotalHours) {
       // Tính từ TotalHours
       const totalMs = (data.TotalHours + (data.BreaksTime || 0)) * 60 * 60 * 1000;
       dateEnd = new Date(dateStart ? dateStart.getTime() + totalMs : dateRegister.getTime() + totalMs);
+      dateEnd.setSeconds(0, 0); // Set giây về 00
     } else if (dateStart) {
       // Mặc định: +8 giờ
       dateEnd = new Date(dateStart.getTime() + 8 * 60 * 60 * 1000);
+      dateEnd.setSeconds(0, 0); // Set giây về 00
     }
 
     // Đảm bảo ReasonHREdit được enable trước khi patchValue
@@ -583,13 +587,29 @@ export class EmployeeNightShiftFormComponent implements OnInit {
     });
 
     // Tính tổng giờ khi DateStart hoặc DateEnd thay đổi
-    this.formGroup.get('DateStart')?.valueChanges.subscribe(() => {
+    this.formGroup.get('DateStart')?.valueChanges.subscribe((value) => {
+      // Normalize giây về 00
+      if (value) {
+        const normalizedDate = new Date(value);
+        if (normalizedDate.getSeconds() !== 0 || normalizedDate.getMilliseconds() !== 0) {
+          normalizedDate.setSeconds(0, 0);
+          this.formGroup.patchValue({ DateStart: normalizedDate }, { emitEvent: false });
+        }
+      }
       // Validate DateEnd khi DateStart thay đổi
       this.formGroup.get('DateEnd')?.updateValueAndValidity();
       this.updateTotalHoursWithBreaks();
     });
 
-    this.formGroup.get('DateEnd')?.valueChanges.subscribe(() => {
+    this.formGroup.get('DateEnd')?.valueChanges.subscribe((value) => {
+      // Normalize giây về 00
+      if (value) {
+        const normalizedDate = new Date(value);
+        if (normalizedDate.getSeconds() !== 0 || normalizedDate.getMilliseconds() !== 0) {
+          normalizedDate.setSeconds(0, 0);
+          this.formGroup.patchValue({ DateEnd: normalizedDate }, { emitEvent: false });
+        }
+      }
       // Validate DateStart khi DateEnd thay đổi
       this.formGroup.get('DateStart')?.updateValueAndValidity();
       this.updateTotalHoursWithBreaks();
@@ -1034,10 +1054,24 @@ export class EmployeeNightShiftFormComponent implements OnInit {
 
   saveTabData(index: number): void {
     const formValue = this.formGroup.getRawValue();
+    
+    // Normalize giây về 00 cho DateStart và DateEnd trước khi lưu
+    let normalizedDateStart = formValue.DateStart;
+    if (normalizedDateStart) {
+      normalizedDateStart = new Date(normalizedDateStart);
+      normalizedDateStart.setSeconds(0, 0);
+    }
+    
+    let normalizedDateEnd = formValue.DateEnd;
+    if (normalizedDateEnd) {
+      normalizedDateEnd = new Date(normalizedDateEnd);
+      normalizedDateEnd.setSeconds(0, 0);
+    }
+    
     this.tabFormData[index] = {
       DateRegister: formValue.DateRegister,
-      DateStart: formValue.DateStart,
-      DateEnd: formValue.DateEnd,
+      DateStart: normalizedDateStart,
+      DateEnd: normalizedDateEnd,
       BreaksTime: formValue.BreaksTime || 0,
       TotalHours: formValue.TotalHours || 0,
       Location: formValue.Location || '',
@@ -1051,11 +1085,24 @@ export class EmployeeNightShiftFormComponent implements OnInit {
   loadTabData(index: number): void {
     const tabData = this.tabFormData[index];
     if (tabData) {
+      // Normalize giây về 00 cho DateStart và DateEnd
+      let normalizedDateStart = tabData.DateStart;
+      if (normalizedDateStart) {
+        normalizedDateStart = new Date(normalizedDateStart);
+        normalizedDateStart.setSeconds(0, 0);
+      }
+      
+      let normalizedDateEnd = tabData.DateEnd;
+      if (normalizedDateEnd) {
+        normalizedDateEnd = new Date(normalizedDateEnd);
+        normalizedDateEnd.setSeconds(0, 0);
+      }
+      
       // Tạm thời tắt valueChanges subscription để tránh vòng lặp
       this.formGroup.patchValue({
         DateRegister: tabData.DateRegister,
-        DateStart: tabData.DateStart,
-        DateEnd: tabData.DateEnd,
+        DateStart: normalizedDateStart,
+        DateEnd: normalizedDateEnd,
         BreaksTime: tabData.BreaksTime || 0,
         TotalHours: tabData.TotalHours || 0,
         Location: tabData.Location || '',

@@ -62,14 +62,18 @@
                         <tbody>
                             <ng-container *ngFor="let vehicleGroup of groupedScheduleData; let vehicleIndex = index">
                                 <!-- Dòng header cho thông tin xe -->
-                                <tr class="vehicle-group-header">
+                                <tr class="vehicle-group-header" style="cursor: pointer;" (click)="toggleGroup(vehicleGroup.vehicleInfo)">
                                     <td [attr.colspan]="9" 
                                         [style.background-color]="getVehicleHeaderColor(vehicleIndex)"
-                                        style="color: #000000; font-weight: bold; text-align: center; padding: 8px; font-size: 12px;">
+                                        style="color: #000000; font-weight: bold; text-align: center; padding: 8px; font-size: 12px; position: relative;">
+                                        <span style="position: absolute; left: 8px;">
+                                            <i nz-icon [nzType]="isGroupExpanded(vehicleGroup.vehicleInfo) ? 'down' : 'right'" nzTheme="outline"></i>
+                                        </span>
                                         Thông tin xe: {{ vehicleGroup.vehicleInfo }}
                                     </td>
                                 </tr>
-                                <ng-container *ngFor="let daySession of vehicleGroup.daySessions; let dayIndex = index">
+                                <ng-container *ngIf="isGroupExpanded(vehicleGroup.vehicleInfo)">
+                                    <ng-container *ngFor="let daySession of vehicleGroup.daySessions; let dayIndex = index">
                                     <tr *ngFor="let item of daySession.items; let itemIndex = index"
                                         [ngClass]="{'first-row': dayIndex === 0 && itemIndex === 0, 'last-row': dayIndex === vehicleGroup.daySessions.length - 1 && itemIndex === daySession.items.length - 1}">
                                         <td *ngIf="itemIndex === 0" 
@@ -84,7 +88,7 @@
                                             style="vertical-align: middle; text-align: center; font-size: 12px;">
                                             {{ daySession.session }}
                                         </td>
-                                        <td [ngStyle]="getCellBorderStyle(dayIndex === 0 && itemIndex === 0, dayIndex === vehicleGroup.daySessions.length - 1 && itemIndex === daySession.items.length - 1, false)" style="white-space: pre-wrap; text-align: left; font-size: 12px;">{{ item.PassengerNames || '' }}</td>
+                                        <td [ngStyle]="getCellBorderStyle(dayIndex === 0 && itemIndex === 0, dayIndex === vehicleGroup.daySessions.length - 1 && itemIndex === daySession.items.length - 1, false)" style="white-space: pre-wrap; text-align: left; vertical-align: middle; font-size: 12px;">{{ item.PassengerNames || '' }}</td>
                                         <td [ngStyle]="getCellBorderStyle(dayIndex === 0 && itemIndex === 0, dayIndex === vehicleGroup.daySessions.length - 1 && itemIndex === daySession.items.length - 1, false)" style="white-space: pre-wrap; text-align: left; font-size: 12px;">{{ item.DepartureAddress || '' }}</td>
                                         <td [ngStyle]="getCellBorderStyle(dayIndex === 0 && itemIndex === 0, dayIndex === vehicleGroup.daySessions.length - 1 && itemIndex === daySession.items.length - 1, false)" style="white-space: pre-wrap; text-align: left; font-size: 12px;">{{ item.CompanyNameArrives || '' }}</td>
                                         <td [ngStyle]="getCellBorderStyle(dayIndex === 0 && itemIndex === 0, dayIndex === vehicleGroup.daySessions.length - 1 && itemIndex === daySession.items.length - 1, false)" style="text-align: center; font-size: 12px;">{{ formatDateTime(item.DepartureDate) }}</td>
@@ -92,6 +96,7 @@
                                         <td [ngStyle]="getCellBorderStyle(dayIndex === 0 && itemIndex === 0, dayIndex === vehicleGroup.daySessions.length - 1 && itemIndex === daySession.items.length - 1, false)" style="text-align: center; font-size: 12px;">{{ formatDateTime(item.ReturnDate) }}</td>
                                         <td [ngStyle]="getCellBorderStyle(dayIndex === 0 && itemIndex === 0, dayIndex === vehicleGroup.daySessions.length - 1 && itemIndex === daySession.items.length - 1, false)" style="white-space: pre-wrap; text-align: left; font-size: 12px;">{{ item.Notes || '' }}</td>
                                     </tr>
+                                    </ng-container>
                                 </ng-container>
                             </ng-container>
                         </tbody>

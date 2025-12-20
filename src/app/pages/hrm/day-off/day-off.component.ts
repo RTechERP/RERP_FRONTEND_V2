@@ -314,6 +314,7 @@ export class DayOffComponent implements OnInit, AfterViewInit {
     this.tabulator = new Tabulator('#tb_day_off', {
       ...DEFAULT_TABLE_CONFIG,
       data: this.dayOffList,
+      paginationMode: 'local',
       layout: 'fitColumns',
       selectableRows: true,
     
@@ -370,7 +371,7 @@ export class DayOffComponent implements OnInit, AfterViewInit {
           title: 'Mã nhân viên', field: 'Code', hozAlign: 'left', headerHozAlign: 'center', width: 100, headerWordWrap: true, headerSort: false, frozen: frozenOn,
         },
         {
-          title: 'Họ và tên', field: 'FullName', hozAlign: 'left', headerHozAlign: 'center', width: 100, headerWordWrap: true, formatter: 'textarea', headerSort: false, frozen: frozenOn,
+          title: 'Họ và tên', field: 'FullName', hozAlign: 'left', headerHozAlign: 'center', width: 100, headerWordWrap: true, formatter: 'textarea', headerSort: false, frozen: frozenOn, bottomCalc: 'count',
         },
         {
           title: 'Người duyệt', field: 'ApprovedName', hozAlign: 'left', headerHozAlign: 'center', width: 100, headerWordWrap: true, formatter: 'textarea', headerSort: false, frozen: frozenOn,
@@ -382,14 +383,14 @@ export class DayOffComponent implements OnInit, AfterViewInit {
           title: 'Ngày bắt đầu', field: 'StartDate', hozAlign: 'center', headerHozAlign: 'center', width: 150, headerSort: false,
           formatter: (cell) => {
             const value = cell.getValue();
-            return value ? DateTime.fromISO(value).toFormat('HH:mm dd/MM/yyyy') : '';
+            return value ? DateTime.fromISO(value).toFormat('dd/MM/yyyy HH:mm ') : '';
           }
         },
         {
           title: 'Ngày kết thúc', field: 'EndDate', hozAlign: 'center', headerHozAlign: 'center', width: 150, headerSort: false,
           formatter: (cell) => {
             const value = cell.getValue();
-            return value ? DateTime.fromISO(value).toFormat('HH:mm dd/MM/yyyy') : '';
+            return value ? DateTime.fromISO(value).toFormat(' dd/MM/yyyy HH:mm') : '';
           }
         },
         {

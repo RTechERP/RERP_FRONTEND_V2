@@ -273,6 +273,7 @@ export class TsAssetManagementComponent implements OnInit, AfterViewInit {
       data: this.assetData,
       ...DEFAULT_TABLE_CONFIG,
       height: this.isMobile ?'100%':'53vh',
+    
 
       paginationMode: 'local',
       // layout: "fitDataFill",
@@ -360,6 +361,7 @@ export class TsAssetManagementComponent implements OnInit, AfterViewInit {
           headerHozAlign: 'center',
           hozAlign: 'left',
           frozen: !this.isMobile,
+          headerFilter: 'input',
         },
         {
           title: 'Office Active',
@@ -383,11 +385,13 @@ export class TsAssetManagementComponent implements OnInit, AfterViewInit {
           // hozAlign: 'left',
           formatter: 'textarea',
           frozen: !this.isMobile,
+          headerFilter: 'input',
         },
         {
           title: 'Seri',
           field: 'Seri',
           hozAlign: 'left',
+          headerFilter: 'input',
         },
         {
           title: 'Đơn vị',
@@ -410,6 +414,7 @@ export class TsAssetManagementComponent implements OnInit, AfterViewInit {
           width: 200,
           // hozAlign: 'left',
           formatter: 'textarea',
+          headerFilter: 'input',
         },
         {
           title: 'Model',
@@ -418,6 +423,7 @@ export class TsAssetManagementComponent implements OnInit, AfterViewInit {
           width: 200,
           // hozAlign: 'left',
           formatter: 'textarea',
+          headerFilter: 'input',
         },
         {
           title: 'Ngày mua',
@@ -498,7 +504,8 @@ export class TsAssetManagementComponent implements OnInit, AfterViewInit {
               case 3: // Sữa chữa, Bảo dưỡng
                 el.style.backgroundColor = '#bcaa93ff';
                 el.style.color = '#c37031ff';
-                el.style.outline = '1px solid #14b1b1';
+                
+                el.style.outline = '1px solid01 #14b1b1';
                 break;
               case 4: // Mất
                 el.style.backgroundColor = '#fbc4c4ff';
@@ -534,6 +541,7 @@ export class TsAssetManagementComponent implements OnInit, AfterViewInit {
           title: 'Mã NCC',
           field: 'TSCodeNCC',
           hozAlign: 'left',
+          HeaderFilter: true,
         },
         {
           title: 'Nguồn gốc',
@@ -552,7 +560,7 @@ export class TsAssetManagementComponent implements OnInit, AfterViewInit {
         {
           title: 'Loại tài sản',
           field: 'AssetType',
-         
+          headerFilter: 'input',
           hozAlign: 'left',
         },
         {
@@ -560,6 +568,7 @@ export class TsAssetManagementComponent implements OnInit, AfterViewInit {
           field: 'FullName',
           headerHozAlign: 'center',
           hozAlign: 'left',
+          headerFilter: 'input',
         },
         // {
         //   title: 'Người tạo',

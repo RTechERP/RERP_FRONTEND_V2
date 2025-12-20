@@ -948,6 +948,19 @@ export class VehicleBookingManagementComponent
       .getVehicleBookingManagement(request)
       .subscribe((response: any) => {
         this.vehicleBookingManagementList = response.data.data || [];
+     
+        this.vehicleBookingManagementList.sort((a, b) => {
+          const aValue = a.VehicleInformation || '';
+          const bValue = b.VehicleInformation || '';
+          const aMatch = aValue.match(/^(\d+)/);
+          const bMatch = bValue.match(/^(\d+)/);
+          const aNum = aMatch ? parseInt(aMatch[1], 10) : Infinity;
+          const bNum = bMatch ? parseInt(bMatch[1], 10) : Infinity;
+          if (aNum !== bNum) {
+            return aNum - bNum;
+          }
+          return aValue.localeCompare(bValue);
+        });
         console.log(this.vehicleBookingManagementList);
         // Clear pending changes khi reload data
         this.pendingChanges.clear();
@@ -1010,7 +1023,7 @@ export class VehicleBookingManagementComponent
           groupBy: (row: any) => row.VehicleInformation || null,
           groupHeader: (value: string, count: number) => {
             if (!value)
-              return `Thông tin xe: Chưa có thông tin (${count} dòng)`;
+              return `Thông tin xe: Khác (${count} dòng)`;
             return `Thông tin xe: ${value} (${count} dòng)`;
           },
           initialSort: [
@@ -1099,7 +1112,7 @@ export class VehicleBookingManagementComponent
                     const mm = String(date.getMinutes()).padStart(2, '0');
                     const ss = String(date.getSeconds()).padStart(2, '0');
 
-                    return `${dd}/${MM}/${yyyy} ${hh}:${mm}:${ss}`;
+                    return `${dd}/${MM}/${yyyy} ${hh}:${mm}`;
                   },
                 },
                 {
@@ -1120,7 +1133,7 @@ export class VehicleBookingManagementComponent
                     const mm = String(date.getMinutes()).padStart(2, '0');
                     const ss = String(date.getSeconds()).padStart(2, '0');
 
-                    return `${dd}/${MM}/${yyyy} ${hh}:${mm}:${ss}`;
+                    return `${dd}/${MM}/${yyyy} ${hh}:${mm}`;
                   },
                 },
                 {
@@ -1169,7 +1182,7 @@ export class VehicleBookingManagementComponent
                     const mm = String(date.getMinutes()).padStart(2, '0');
                     const ss = String(date.getSeconds()).padStart(2, '0');
 
-                    return `${dd}/${MM}/${yyyy} ${hh}:${mm}:${ss}`;
+                    return `${dd}/${MM}/${yyyy} ${hh}:${mm}`;
                   },
                 },
                 {
@@ -1188,7 +1201,7 @@ export class VehicleBookingManagementComponent
                     const mm = String(date.getMinutes()).padStart(2, '0');
                     const ss = String(date.getSeconds()).padStart(2, '0');
 
-                    return `${dd}/${MM}/${yyyy} ${hh}:${mm}:${ss}`;
+                    return `${dd}/${MM}/${yyyy} ${hh}:${mm}`;
                   },
                 },
               ],
@@ -1298,12 +1311,27 @@ export class VehicleBookingManagementComponent
     return true;
   }
 
+  // Format date theo local time để tránh lệch timezone
+  private formatLocalDateTime(date: Date): string {
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+    const hours = String(date.getHours()).padStart(2, '0');
+    const minutes = String(date.getMinutes()).padStart(2, '0');
+    const seconds = String(date.getSeconds()).padStart(2, '0');
+    return `${year}-${month}-${day}T${hours}:${minutes}:${seconds}`;
+  }
+
   // Custom editor cho cột "Thời gian xuất phát thực tế" sử dụng nz-date-picker
   createDateTimeEditor(cell: CellComponent, onRendered: any, success: any, cancel: any) {
     const row = cell.getRow();
     const rowData = row.getData();
     const originalValue = cell.getValue();
     const rowId = rowData['ID'];
+
+    // Kiểm tra xem có nhiều dòng được chọn không
+    const selectedRows = this.vehicleBookingManagementTable?.getSelectedRows() || [];
+    const isBatchUpdate = selectedRows.length > 1 && selectedRows.some((r: any) => r.getData().ID === rowId);
 
     // Tạo container
     const container = document.createElement('div');
@@ -1348,25 +1376,68 @@ export class VehicleBookingManagementComponent
             dateToSave.setSeconds(0, 0); // Set giây và milliseconds về 0
           }
           
-          const newValue = dateToSave ? dateToSave.toISOString() : null;
-          
-          // Xử lý originalValue để so sánh (cũng set giây về 0)
-          let originalDate: Date | null = null;
-          if (originalValue) {
-            originalDate = originalValue instanceof Date ? new Date(originalValue) : new Date(originalValue);
-            originalDate.setSeconds(0, 0);
-          }
-          const originalValueStr = originalDate ? originalDate.toISOString() : null;
-          
-          const hasChanged = newValue !== originalValueStr;
-          
-          if (hasChanged && dateToSave) {
-            // Thêm vào pending changes
-            this.addPendingChange(rowId, dateToSave, originalValue);
-            success(dateToSave.toISOString());
+          if (isBatchUpdate && dateToSave) {
+            const selectedData = selectedRows.map((r: any) => r.getData());
+            let updatedCount = 0;
+            
+            // Format date theo local time
+            const dateToSaveStr = this.formatLocalDateTime(dateToSave);
+            
+            selectedData.forEach((item: any) => {
+              const itemId = item.ID;
+              if (itemId) {
+                const itemOriginalValue = item.DepartureDateActual || null;
+                let itemOriginalValueStr: string | null = null;
+                
+                if (itemOriginalValue) {
+                  const itemOriginalDate = itemOriginalValue instanceof Date ? new Date(itemOriginalValue) : new Date(itemOriginalValue);
+                  itemOriginalDate.setSeconds(0, 0);
+                  itemOriginalValueStr = this.formatLocalDateTime(itemOriginalDate);
+                }
+                
+                if (dateToSaveStr !== itemOriginalValueStr) {
+                  this.addPendingChange(itemId, dateToSave, itemOriginalValue);
+                  const itemRow = selectedRows.find((r: any) => r.getData().ID === itemId);
+                  if (itemRow) {
+                    itemRow.update({ DepartureDateActual: dateToSaveStr });
+                    updatedCount++;
+                  }
+                }
+              }
+            });
+            
+            this.hasPendingChanges = this.pendingChanges.size > 0;
+            this.cdRef.detectChanges();
+            
+            success(dateToSaveStr);
           } else {
-            cancel();
+            // Cập nhật cho một dòng như cũ
+            if (dateToSave) {
+              // Format date theo local time
+              const newValueStr = this.formatLocalDateTime(dateToSave);
+              
+              // Xử lý originalValue để so sánh (cũng set giây về 0)
+              let originalValueStr: string | null = null;
+              if (originalValue) {
+                const originalDate = originalValue instanceof Date ? new Date(originalValue) : new Date(originalValue);
+                originalDate.setSeconds(0, 0);
+                originalValueStr = this.formatLocalDateTime(originalDate);
+              }
+              
+              const hasChanged = newValueStr !== originalValueStr;
+              
+              if (hasChanged) {
+                // Thêm vào pending changes
+                this.addPendingChange(rowId, dateToSave, originalValue);
+                success(newValueStr);
+              } else {
+                cancel();
+              }
+            } else {
+              cancel();
+            }
           }
+          
           this.editingCell = null;
           componentRef.destroy();
         }
@@ -1409,8 +1480,15 @@ export class VehicleBookingManagementComponent
 
   // Thêm thay đổi vào danh sách pending
   addPendingChange(id: number, departureDateActual: Date, originalValue: any) {
-    const originalValueStr = originalValue ? (originalValue instanceof Date ? originalValue.toISOString() : new Date(originalValue).toISOString()) : null;
-    const newValueStr = departureDateActual.toISOString();
+    // Format theo local time để so sánh
+    const newValueStr = this.formatLocalDateTime(departureDateActual);
+    let originalValueStr: string | null = null;
+    
+    if (originalValue) {
+      const originalDate = originalValue instanceof Date ? new Date(originalValue) : new Date(originalValue);
+      originalDate.setSeconds(0, 0);
+      originalValueStr = this.formatLocalDateTime(originalDate);
+    }
     
     // Chỉ thêm nếu có thay đổi
     if (newValueStr !== originalValueStr) {
@@ -1424,7 +1502,7 @@ export class VehicleBookingManagementComponent
   saveSingleChange(id: number, departureDateActual: Date) {
     this.vehicleBookingManagementService.postVehicleBookingManagement({
       ID: id,
-      DepartureDateActual: departureDateActual.toISOString()
+      DepartureDateActual: this.formatLocalDateTime(departureDateActual)
     }).subscribe({
       next: () => {
         // Xóa khỏi pending changes
@@ -1499,7 +1577,7 @@ export class VehicleBookingManagementComponent
     const requests = changes.map(change => 
       this.vehicleBookingManagementService.postVehicleBookingManagement({
         ID: change.id,
-        DepartureDateActual: change.departureDateActual.toISOString()
+        DepartureDateActual: this.formatLocalDateTime(change.departureDateActual)
       }).pipe(
         catchError((error) => {
           console.error(`Lỗi khi lưu ID ${change.id}:`, error);
@@ -1549,7 +1627,7 @@ export class VehicleBookingManagementComponent
   saveDepartureDateActual(id: number, departureDateActual: Date) {
     const request = {
       ID: id,
-      DepartureDateActual: departureDateActual.toISOString()
+      DepartureDateActual: this.formatLocalDateTime(departureDateActual)
     };
 
     this.vehicleBookingManagementService.postVehicleBookingManagement(request).subscribe({

@@ -62,4 +62,13 @@
   .tabulator .tabulator-table {
     min-width: 900px; /* đủ lớn để có thể kéo ngang */
   }
+  /* Đổi màu chữ trong headerFilter thành đen */
+
+}
+::ng-deep .tabulator-header-filter input {
+  color: #000000 !important;
+}
+
+::ng-deep .tabulator-header-filter select {
+  color: #000000 !important;
 }

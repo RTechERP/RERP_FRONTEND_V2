@@ -54,9 +54,8 @@
                                     *ngIf="isGroup(c1) && c1.isPermission && c1.isOpen && (c1.key == 'dailyreport' || c1.key == 'registerpayroll')">
                                     <ul>
                                         @for (c2 of c1.children; track c2.key) {
-                                        <li nz-menu-item *ngIf="isLeaf(c2) && c2.isPermission && c2.isOpen" (click)="(c2.router || '') === '' 
-                            ? newTab(c2.comp, c2.title, c2.data) 
-                            : menuService.goToOldLink((c2.router ||''),c2.data)">
+                                        <li nz-menu-item *ngIf="isLeaf(c2) && c2.isPermission && c2.isOpen"
+                                            (click)="newTab(c2.comp, c2.title, c2.data) ">
                                             <img [src]="c2.icon" class="menu-icon" *ngIf="(c2.icon || '') != ''"
                                                 width="24px" />
                                             <nz-icon nzType="caret-right" nzTheme="outline"
@@ -77,9 +76,7 @@
                                             <ul>
                                                 @for (c3 of c2.children; track c3.key) {
                                                 <li nz-menu-item *ngIf="isLeaf(c3) && c3.isPermission && c3.isOpen"
-                                                    (click)="(c3.router || '') === '' 
-                            ? newTab(c3.comp, c3.title, c3.data) 
-                            : menuService.goToOldLink((c3.router ||''),c3.data)">
+                                                    (click)="newTab(c3.comp, c3.title, c3.data) ">
                                                     <img [src]="c3.icon" class="menu-icon" *ngIf="(c3.icon || '') != ''"
                                                         width="24px" />
                                                     <nz-icon nzType="caret-right" nzTheme="outline"

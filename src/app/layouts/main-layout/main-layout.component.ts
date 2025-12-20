@@ -28,25 +28,27 @@ import { CustomerComponent } from '../../pages/crm/customers/customer/customer.c
 
 // import { menus } from '../../pages/old/menus/menus.component';
 import {
-  GroupItem,
-  LeafItem,
-  MenuItem,
-  MenuService,
+    GroupItem,
+    LeafItem,
+    MenuItem,
+    MenuService,
 } from '../../pages/systems/menus/menu-service/menu.service';
 import { MenuEventService } from '../../pages/systems/menus/menu-service/menu-event.service';
 import { AppUserDropdownComponent } from '../../pages/systems/app-user/app-user-dropdown.component';
 import {
-  AppNotifycationDropdownComponent,
-  NotifyItem,
+    AppNotifycationDropdownComponent,
+    NotifyItem,
 } from '../../pages/old/app-notifycation-dropdown/app-notifycation-dropdown.component';
 import { MenusComponent } from '../../pages/old/menus/menus.component';
 import { NzGridModule } from 'ng-zorro-antd/grid';
+import { ɵɵRouterOutlet } from "@angular/router/testing";
 
 type TabItem = {
-  title: string;
-  comp: Type<any>;
-  injector?: Injector;
-  data?: any; // Lưu data để so sánh unique key
+    title: string;
+    // comp: Type<any>;
+    // injector?: Injector;
+    data?: any; // Lưu data để so sánh unique key
+    route: string;
 };
 // export type BaseItem = {
 //   key: string;
@@ -72,265 +74,270 @@ export const isLeaf = (m: MenuItem): m is LeafItem => m.kind === 'leaf';
 export const isGroup = (m: MenuItem): m is GroupItem => m.kind === 'group';
 
 const COMPONENT_REGISTRY: Record<string, Type<any>> = {
-  customer: CustomerComponent,
-  productRTC: TbProductRtcComponent,
-  project: ProjectComponent,
+    customer: CustomerComponent,
+    productRTC: TbProductRtcComponent,
+    project: ProjectComponent,
 };
 
 // Reverse mapping để serialize component -> key
 const COMPONENT_TO_KEY: Map<Type<any>, string> = new Map(
-  Object.entries(COMPONENT_REGISTRY).map(([key, comp]) => [comp, key])
+    Object.entries(COMPONENT_REGISTRY).map(([key, comp]) => [comp, key])
 );
 @Component({
-  selector: 'app-main-layout',
-  imports: [
-    RouterLink,
-    NzBadgeModule,
-    // RouterOutlet,
-    NzIconModule,
-    NzLayoutModule,
-    NzMenuModule,
-    NzButtonModule,
-    NzTabsModule,
-    NzDropDownModule,
-    ReactiveFormsModule,
-    CommonModule,
-    AppNotifycationDropdownComponent,
-    AppUserDropdownComponent,
-    NgComponentOutlet,
-    NzGridModule,
-  ],
-  templateUrl: '../../app.component.html',
-  styleUrl: '../../app.component.css',
-  standalone: true,
+    selector: 'app-main-layout',
+    imports: [
+        RouterLink,
+        NzBadgeModule,
+        RouterOutlet,
+        NzIconModule,
+        NzLayoutModule,
+        NzMenuModule,
+        NzButtonModule,
+        NzTabsModule,
+        NzDropDownModule,
+        ReactiveFormsModule,
+        CommonModule,
+        AppNotifycationDropdownComponent,
+        AppUserDropdownComponent,
+        NzGridModule,
+    ],
+    templateUrl: '../../app.component.html',
+    styleUrl: '../../app.component.css',
+    standalone: true,
 })
 export class MainLayoutComponent implements OnInit {
-  CustomerComponent = CustomerComponent;
-  ProductRtcComponent = TbProductRtcComponent;
-  ProjectComponent = ProjectComponent;
-  constructor(
-    private auth: AuthService,
-    private router: Router,
-    public menuService: MenuService,
-    private notification: NzNotificationService,
-    private injector: Injector,
-    private menuEventService: MenuEventService,
-  ) {
-    this.menus = this.menuService.getMenus();
-  }
-  notificationComponent = AppNotifycationDropdownComponent;
-  //#region Khai báo biến
-  isCollapsed = true;
-  isMobile = window.innerHeight <= 768;
-  isDatcom = false;
-  selectedIndex = 0;
-  trackKey = (_: number, x: any) => x?.key ?? x?.title ?? _;
-  isGroup = (m: MenuItem): m is GroupItem => m.kind === 'group';
-  isLeaf = (m: MenuItem): m is LeafItem => m.kind === 'leaf';
-  menus: MenuItem[] = [];
-  dynamicTabs: TabItem[] = [];
+    CustomerComponent = CustomerComponent;
+    ProductRtcComponent = TbProductRtcComponent;
+    ProjectComponent = ProjectComponent;
+    constructor(
+        private auth: AuthService,
+        private router: Router,
+        public menuService: MenuService,
+        private notification: NzNotificationService,
+        private injector: Injector,
+        private menuEventService: MenuEventService,
+    ) {
+        this.menus = this.menuService.getMenus();
+    }
+    notificationComponent = AppNotifycationDropdownComponent;
+    //#region Khai báo biến
+    isCollapsed = true;
+    isMobile = window.innerHeight <= 768;
+    isDatcom = false;
+    selectedIndex = 0;
+    trackKey = (_: number, x: any) => x?.key ?? x?.title ?? _;
+    isGroup = (m: MenuItem): m is GroupItem => m.kind === 'group';
+    isLeaf = (m: MenuItem): m is LeafItem => m.kind === 'leaf';
+    menus: MenuItem[] = [];
+    dynamicTabs: TabItem[] = [];
 
-  menu: any = {};
-  //#endregion
-  notifItems: NotifyItem[] = [
-    // {
-    //   id: 1,
-    //   title: 'Phiếu xe #A123 đã duyệt',
-    //   detail: 'Xe VP Hà Nội',
-    //   time: '09:12',
-    //   group: 'today',
-    //   icon: 'car',
-    // },
-    // {
-    //   id: 2,
-    //   title: 'Bàn giao TS BM-09 hoàn tất',
-    //   detail: 'Phòng IT • BB556',
-    //   time: '08:55',
-    //   group: 'today',
-    //   icon: 'file-done',
-    // },
-    // {
-    //   id: 3,
-    //   title: 'Đơn cấp phát #CP-778 tạo mới',
-    //   detail: 'Kho TB • 5 mục',
-    //   time: '16:40',
-    //   group: 'yesterday',
-    //   icon: 'plus-square',
-    // },
-    // {
-    //   id: 1,
-    //   title: 'Phiếu xe #A123 đã duyệt',
-    //   detail: 'Xe VP Hà Nội',
-    //   time: '09:12',
-    //   group: 'today',
-    //   icon: 'car',
-    // },
-    // {
-    //   id: 2,
-    //   title: 'Bàn giao TS BM-09 hoàn tất',
-    //   detail:
-    //     'Phòng IT • BB556Phòng IT • BB556Phòng IT • BB556Phòng IT • BB556Phòng IT • BB556Phòng IT • BB556Phòng IT • BB556Phòng IT • BB556Phòng IT • BB556Phòng IT • BB556Phòng IT • BB556Phòng IT • BB556',
-    //   time: '08:55',
-    //   group: 'today',
-    //   icon: 'file-done',
-    // },
-  ];
+    menu: any = {};
+    //#endregion
+    notifItems: NotifyItem[] = [
+        // {
+        //   id: 1,
+        //   title: 'Phiếu xe #A123 đã duyệt',
+        //   detail: 'Xe VP Hà Nội',
+        //   time: '09:12',
+        //   group: 'today',
+        //   icon: 'car',
+        // },
+        // {
+        //   id: 2,
+        //   title: 'Bàn giao TS BM-09 hoàn tất',
+        //   detail: 'Phòng IT • BB556',
+        //   time: '08:55',
+        //   group: 'today',
+        //   icon: 'file-done',
+        // },
+        // {
+        //   id: 3,
+        //   title: 'Đơn cấp phát #CP-778 tạo mới',
+        //   detail: 'Kho TB • 5 mục',
+        //   time: '16:40',
+        //   group: 'yesterday',
+        //   icon: 'plus-square',
+        // },
+        // {
+        //   id: 1,
+        //   title: 'Phiếu xe #A123 đã duyệt',
+        //   detail: 'Xe VP Hà Nội',
+        //   time: '09:12',
+        //   group: 'today',
+        //   icon: 'car',
+        // },
+        // {
+        //   id: 2,
+        //   title: 'Bàn giao TS BM-09 hoàn tất',
+        //   detail:
+        //     'Phòng IT • BB556Phòng IT • BB556Phòng IT • BB556Phòng IT • BB556Phòng IT • BB556Phòng IT • BB556Phòng IT • BB556Phòng IT • BB556Phòng IT • BB556Phòng IT • BB556Phòng IT • BB556Phòng IT • BB556',
+        //   time: '08:55',
+        //   group: 'today',
+        //   icon: 'file-done',
+        // },
+    ];
 
-  menuKey: string = '';
-  ngOnInit(): void {
-    // const saved = localStorage.getItem('openMenuKey') || '';
-    // console.log(this.menus);
-    // this.setOpenMenu(saved || null);
+    menuKey: string = '';
+    ngOnInit(): void {
+        // const saved = localStorage.getItem('openMenuKey') || '';
+        // console.log(this.menus);
+        // this.setOpenMenu(saved || null);
 
-    this.menuService.menuKey$.subscribe((x) => {
-      this.menuKey = x;
-    });
-    this.setOpenMenu(this.menuKey);
+        this.menuService.menuKey$.subscribe((x) => {
+            this.menuKey = x;
+        });
+        this.setOpenMenu(this.menuKey);
 
-    // Khôi phục các tabs đã mở từ localStorage
-    // this.restoreTabs();
+        // Khôi phục các tabs đã mở từ localStorage
+        // this.restoreTabs();
 
-    // Subscribe vào event mở tab từ các component con
-    this.menuEventService.onOpenTab$.subscribe((tabData) => {
-      this.newTab(tabData.comp, tabData.title, tabData.data);
-    });
-  }
-  //   newTab(comp: Type<any>, title: string, injector?: Injector) {
-  //     const idx = this.dynamicTabs.findIndex((t) => t.title === title);
-  //     if (idx >= 0) {
-  //       this.selectedIndex = idx;
-  //       return;
-  //     }
-
-  //     this.dynamicTabs = [...this.dynamicTabs, { title, comp, injector }];
-  //     setTimeout(() => (this.selectedIndex = this.dynamicTabs.length - 1));
-  //   }
-
-  newTab(comp: Type<any>, title: string, data?: any) {
-    if (this.isMobile) {
-      this.isCollapsed = !this.isCollapsed;
+        // Subscribe vào event mở tab từ các component con
+        this.menuEventService.onOpenTab$.subscribe((tabData) => {
+            // this.newTab(tabData.comp, tabData.title, tabData.data);
+        });
     }
 
-    const idx = this.dynamicTabs.findIndex((t) => t.title === title);
-    if (idx >= 0) {
-      this.selectedIndex = idx;
-      return;
+
+    // newTab(comp: Type<any>, title: string, data?: any) {
+    //     if (this.isMobile) {
+    //         this.isCollapsed = !this.isCollapsed;
+    //     }
+
+    //     const idx = this.dynamicTabs.findIndex((t) => t.title === title);
+    //     if (idx >= 0) {
+    //         this.selectedIndex = idx;
+    //         return;
+    //     }
+
+    //     const injector = Injector.create({
+    //         providers: [{ provide: 'tabData', useValue: data }],
+    //         parent: this.injector,
+    //     });
+
+    //     this.dynamicTabs = [...this.dynamicTabs, { title, comp, injector }];
+    //     setTimeout(() => (this.selectedIndex = this.dynamicTabs.length - 1));
+
+    //     // Lưu tabs vào localStorage
+    //     // this.saveTabs();
+    // }
+
+
+
+    newTab(route: string, title: string) {
+        const idx = this.dynamicTabs.findIndex(t => t.route === route);
+
+        if (idx >= 0) {
+            this.selectedIndex = idx;
+            this.router.navigateByUrl(route);
+            return;
+        }
+
+        this.dynamicTabs = [...this.dynamicTabs, { title, route }];
+
+        setTimeout(() => {
+            this.selectedIndex = this.dynamicTabs.length - 1;
+            this.router.navigateByUrl(route);
+        });
     }
 
-    const injector = Injector.create({
-      providers: [{ provide: 'tabData', useValue: data }],
-      parent: this.injector,
-    });
 
-    this.dynamicTabs = [...this.dynamicTabs, { title, comp, injector }];
-    setTimeout(() => (this.selectedIndex = this.dynamicTabs.length - 1));
+    onTabChange(index: number) {
+        const tab = this.dynamicTabs[index];
+        if (tab) {
+            this.router.navigateByUrl(tab.route);
+        }
+    }
 
-    // Lưu tabs vào localStorage
-    // this.saveTabs();
-  }
 
-  closeTab({ index }: { index: number }) {
-    this.dynamicTabs.splice(index, 1);
-    if (this.selectedIndex >= this.dynamicTabs.length)
-      this.selectedIndex = this.dynamicTabs.length - 1;
+    closeTab({ index }: { index: number }) {
+        this.dynamicTabs.splice(index, 1);
+        if (this.selectedIndex >= this.dynamicTabs.length)
+            this.selectedIndex = this.dynamicTabs.length - 1;
 
-    // Lưu tabs vào localStorage sau khi đóng
-    // this.saveTabs();
-  }
-  //   getMenus(id: number): void {
-  //     this.menuService.getMenus(id).subscribe({
-  //       next: (response: any) => {
-  //         if (response.status == 1) {
-  //           this.menu = response.data;
-  //           //   console.log(this.menu);
-  //         }
-  //       },
-  //       error: (err) => {
-  //         // console.log(err);
-  //         // this.notification.error(NOTIFICATION_TITLE.error, err.error.message);
-  //       },
-  //     });
-  //   }
+        // Lưu tabs vào localStorage sau khi đóng
+        // this.saveTabs();
+    }
 
-  logout() {
-    this.auth.logout();
-  }
-  onPick(n: NotifyItem) {
-    console.log('picked:', n);
-    // TODO: điều hướng/đánh dấu đã đọc...
-  }
-  // toggleMenu(key: string) {
-  //   const m = this.menus.find((x) => x.key === key);
-  //   if (m) m.isOpen = !m.isOpen;
-  // }
-  // isMenuOpen(key: string): boolean {
-  //   const m = this.menus.find((x) => x.key === key);
-  //   return !!m && !!m.isOpen;
-  // }
-  private setOpenMenu(key: string | null) {
-    this.menus.forEach((m) => (m.isOpen = key !== null && m.key === key));
-    // localStorage.setItem('openMenuKey', key ?? '');
-  }
 
-  isMenuOpen = (key: string) =>
-    this.menus.some((m) => m.key === key && m.isOpen);
-  toggleMenu(key: string) {
-    // this.menus.forEach((x) => (x.isOpen = false));
-    const m = this.menus.find((x) => x.key === key);
-    if (m) m.isOpen = !m.isOpen;
+    logout() {
+        this.auth.logout();
+    }
+    onPick(n: NotifyItem) {
+        console.log('picked:', n);
+        // TODO: điều hướng/đánh dấu đã đọc...
+    }
+    // toggleMenu(key: string) {
+    //   const m = this.menus.find((x) => x.key === key);
+    //   if (m) m.isOpen = !m.isOpen;
+    // }
+    // isMenuOpen(key: string): boolean {
+    //   const m = this.menus.find((x) => x.key === key);
+    //   return !!m && !!m.isOpen;
+    // }
+    private setOpenMenu(key: string | null) {
+        this.menus.forEach((m) => (m.isOpen = key !== null && m.key === key));
+        // localStorage.setItem('openMenuKey', key ?? '');
+    }
 
-    if (m?.isOpen) this.menuKey = key;
-  }
+    isMenuOpen = (key: string) =>
+        this.menus.some((m) => m.key === key && m.isOpen);
+    toggleMenu(key: string) {
+        // this.menus.forEach((x) => (x.isOpen = false));
+        const m = this.menus.find((x) => x.key === key);
+        if (m) m.isOpen = !m.isOpen;
 
-  // dùng khi muốn mở thẳng 1 group từ nơi khác
-  openOnly(key: string) {
-    this.setOpenMenu(key);
-  }
+        if (m?.isOpen) this.menuKey = key;
+    }
 
-  /**
-   * Lưu các tabs hiện tại vào localStorage
-   */
-  //   private saveTabs() {
-  //     const tabsData = this.dynamicTabs.map((tab) => ({
-  //       title: tab.title,
-  //       compKey: COMPONENT_TO_KEY.get(tab.comp) || '',
-  //     }));
-  //     localStorage.setItem('openTabs', JSON.stringify(tabsData));
-  //     localStorage.setItem('selectedTabIndex', String(this.selectedIndex));
-  //   }
+    // dùng khi muốn mở thẳng 1 group từ nơi khác
+    openOnly(key: string) {
+        this.setOpenMenu(key);
+    }
 
-  //   /**
-  //    * Khôi phục các tabs từ localStorage
-  //    */
-  //   private restoreTabs() {
-  //     try {
-  //       const savedTabs = localStorage.getItem('openTabs');
-  //       const savedIndex = localStorage.getItem('selectedTabIndex');
+    /**
+     * Lưu các tabs hiện tại vào localStorage
+     */
+    //   private saveTabs() {
+    //     const tabsData = this.dynamicTabs.map((tab) => ({
+    //       title: tab.title,
+    //       compKey: COMPONENT_TO_KEY.get(tab.comp) || '',
+    //     }));
+    //     localStorage.setItem('openTabs', JSON.stringify(tabsData));
+    //     localStorage.setItem('selectedTabIndex', String(this.selectedIndex));
+    //   }
 
-  //       if (savedTabs) {
-  //         const tabsData = JSON.parse(savedTabs) as Array<{
-  //           title: string;
-  //           compKey: string;
-  //         }>;
+    //   /**
+    //    * Khôi phục các tabs từ localStorage
+    //    */
+    //   private restoreTabs() {
+    //     try {
+    //       const savedTabs = localStorage.getItem('openTabs');
+    //       const savedIndex = localStorage.getItem('selectedTabIndex');
 
-  //         tabsData.forEach(({ title, compKey }) => {
-  //           const comp = COMPONENT_REGISTRY[compKey];
-  //           if (comp) {
-  //             const injector = Injector.create({
-  //               providers: [{ provide: 'tabData', useValue: undefined }],
-  //               parent: this.injector,
-  //             });
-  //             this.dynamicTabs.push({ title, comp, injector });
-  //           }
-  //         });
+    //       if (savedTabs) {
+    //         const tabsData = JSON.parse(savedTabs) as Array<{
+    //           title: string;
+    //           compKey: string;
+    //         }>;
 
-  //         if (savedIndex && this.dynamicTabs.length > 0) {
-  //           const index = parseInt(savedIndex, 10);
-  //           this.selectedIndex = Math.min(index, this.dynamicTabs.length - 1);
-  //         }
-  //       }
-  //     } catch (error) {
-  //       console.error('Error restoring tabs:', error);
-  //     }
-  //   }
+    //         tabsData.forEach(({ title, compKey }) => {
+    //           const comp = COMPONENT_REGISTRY[compKey];
+    //           if (comp) {
+    //             const injector = Injector.create({
+    //               providers: [{ provide: 'tabData', useValue: undefined }],
+    //               parent: this.injector,
+    //             });
+    //             this.dynamicTabs.push({ title, comp, injector });
+    //           }
+    //         });
+
+    //         if (savedIndex && this.dynamicTabs.length > 0) {
+    //           const index = parseInt(savedIndex, 10);
+    //           this.selectedIndex = Math.min(index, this.dynamicTabs.length - 1);
+    //         }
+    //       }
+    //     } catch (error) {
+    //       console.error('Error restoring tabs:', error);
+    //     }
+    //   }
 }

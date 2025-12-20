@@ -43,7 +43,6 @@
     </div>
 </nav>
 
-
 <div class="row m-0">
     <div class="col-xl-3 col-md-6 col-sm-12 col-12 pt-2 fixed-col">
         <div class="card">
@@ -55,7 +54,7 @@
                 <ul class="list-group list-group-flush">
                     @for (item of menuApproves.children; track $index) {
                     <li class="list-group-item border-0" *ngIf="isLeaf(item) && item.isPermission && item.isOpen">
-                        <a (click)="newTab(item.comp,item.title)">
+                        <a [routerLink]="'/datcom'">
                             <img [src]="item.icon">
                             <span> {{item.title}}</span>
                         </a>
@@ -111,7 +110,7 @@
                             @for (c of item.children; track $index) {
                             <li class="list-group-item border-0"
                                 [ngClass]="{'border-bottom':$index < item.children.length - 1,'':$index == item.children.length - 1}">
-                                <a (click)="newTab(c.comp,c.title)">
+                                <a href="/rerpweb/datcom" (click)="handleClickLink($event, '/datcom', 'Đặt cơm')">
                                     <img [src]="c.icon">
                                     <span> {{c.title}}</span>
                                 </a>

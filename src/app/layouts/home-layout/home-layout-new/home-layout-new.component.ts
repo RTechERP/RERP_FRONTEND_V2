@@ -8,7 +8,7 @@ import { CommonModule } from '@angular/common';
 import { NzNotificationService } from 'ng-zorro-antd/notification';
 import { HomeLayoutService } from '../home-layout-service/home-layout.service';
 import { HolidayServiceService } from '../../../pages/hrm/holiday/holiday-service/holiday-service.service';
-import { Router } from '@angular/router';
+import { Router, RouterLink } from '@angular/router';
 import { AppUserService } from '../../../services/app-user.service';
 import { PermissionService } from '../../../services/permission.service';
 import { GroupItem, LeafItem, MenuItem, MenuService } from '../../../pages/systems/menus/menu-service/menu.service';
@@ -16,7 +16,6 @@ import { NzGridModule } from 'ng-zorro-antd/grid';
 import { NzCalendarModule } from 'ng-zorro-antd/calendar';
 import { NOTIFICATION_TITLE } from '../../../app.config';
 import { FormsModule } from '@angular/forms';
-import { ListboxModule } from 'primeng/listbox';
 
 @Component({
     selector: 'app-home-layout-new',
@@ -29,7 +28,7 @@ import { ListboxModule } from 'primeng/listbox';
         NzDropDownModule,
         NzGridModule,
         NzCalendarModule,
-        ListboxModule
+        RouterLink
     ],
     templateUrl: './home-layout-new.component.html',
     styleUrl: './home-layout-new.component.css'
@@ -160,25 +159,52 @@ export class HomeLayoutNewComponent implements OnInit {
         this.router.navigate(['/app']); // hoặc route tới MainLayout
     }
 
-    newTab(comp: Type<any>, title: string, data?: any) {
-        // console.log("comp:", comp);
+    // newTab(comp: Type<any>, title: string, data?: any) {
+    //     // console.log("comp:", comp);
 
-        const idx = this.dynamicTabs.findIndex((t) => t.title === title);
+    //     const idx = this.dynamicTabs.findIndex((t) => t.title === title);
+    //     if (idx >= 0) {
+    //         this.selectedIndex = idx;
+    //         return;
+    //     }
+
+    //     const injector = Injector.create({
+    //         providers: [{ provide: 'tabData', useValue: data }],
+    //         parent: this.injector,
+    //     });
+
+    //     this.dynamicTabs = [...this.dynamicTabs, { title, comp, injector }];
+    //     setTimeout(() => (this.selectedIndex = this.dynamicTabs.length - 1));
+
+    //     // Lưu tabs vào localStorage
+    //     // this.saveTabs();
+    // }
+
+    newTab(route: string, title: string, data?: any) {
+        const idx = this.dynamicTabs.findIndex(t => t.route === route);
+
         if (idx >= 0) {
             this.selectedIndex = idx;
+            this.router.navigateByUrl(route);
             return;
         }
 
-        const injector = Injector.create({
-            providers: [{ provide: 'tabData', useValue: data }],
-            parent: this.injector,
+        this.dynamicTabs = [
+            ...this.dynamicTabs,
+            { title, route, data }
+        ];
+
+        setTimeout(() => {
+            this.selectedIndex = this.dynamicTabs.length - 1;
+            this.router.navigateByUrl(route);
         });
+    }
 
-        this.dynamicTabs = [...this.dynamicTabs, { title, comp, injector }];
-        setTimeout(() => (this.selectedIndex = this.dynamicTabs.length - 1));
-
-        // Lưu tabs vào localStorage
-        // this.saveTabs();
+    handleClickLink(event: MouseEvent, route: string, title: string) {
+        if (event.button === 0 && !event.ctrlKey && !event.metaKey) {
+            event.preventDefault(); // chặn reload
+            this.newTab(route, title);
+        }
     }
 
     onSelectChangeCalendar(value: Date): void {

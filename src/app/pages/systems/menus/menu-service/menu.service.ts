@@ -1559,7 +1559,7 @@ export class MenuService {
                                 isPermission:
                                     this.permissionService.hasPermission('N2,N34,N1,N68,N71'),
                                 comp: VehicleBookingManagementComponent,
-                             
+
                                 //   icon: 'assets/icon/layers.png',
                             },
                             // {
@@ -1753,9 +1753,9 @@ export class MenuService {
                                 comp: HandoverComponent,
                                 //   icon: 'assets/icon/layers.png',
                             },
-                          
-                                        //   icon: 'assets/icon/layers.png',
-                            
+
+                            //   icon: 'assets/icon/layers.png',
+
                             //#endregion
                         ],
                     },
@@ -1959,7 +1959,7 @@ export class MenuService {
                         title: 'Cấp phát theo đợt',
                         isOpen: true,
                         isPermission: this.permissionService.hasPermission('N1,N2,N23,N34'),
-                       comp: PhaseAllocationPersonComponent,
+                        comp: PhaseAllocationPersonComponent,
                     },
                 ],
             },
@@ -2805,9 +2805,9 @@ export class MenuService {
                                 isOpen: true,
                                 isPermission: this.permissionService.hasPermission(''),
                                 comp: FoodOrderComponent,
-                                // router: '/comca',
+                                router: 'datcom',
                             },
-                            
+
                             {
                                 kind: 'leaf',
                                 key: 'danhsachdangkynghi',
@@ -2815,6 +2815,7 @@ export class MenuService {
                                 isOpen: true,
                                 isPermission: this.permissionService.hasPermission(''),
                                 comp: DayOffComponent,
+                                router: 'nghiphep',
                             },
 
                             {
@@ -2888,7 +2889,7 @@ export class MenuService {
                                 isOpen: true,
                                 isPermission: this.permissionService.hasPermission(''),
                                 comp: EmployeeSyntheticPersonalComponent
-                              
+
                             },
                         ],
                     },
@@ -2927,7 +2928,7 @@ export class MenuService {
                                 isOpen: true,
                                 isPermission: this.permissionService.hasPermission(''),
                                 comp: VehicleBookingManagementComponent,
-                              
+
                             },
 
                             {
@@ -2968,15 +2969,15 @@ export class MenuService {
                                 isPermission: this.permissionService.hasPermission(''),
                                 comp: RegisterIdeaComponent,
                             },
-                                // {
-                                //     kind: 'leaf',
-                                //     key: 'dangkyhopdong',
-                                //     title: 'Đăng ký hợp đồng',
-                                //     isOpen: true,
-                                //     isPermission: this.permissionService.hasPermission(''),
-                                //     comp: PersonComponent,
-                                //     router: '/dangkyhopdong',
-                                // },
+                            // {
+                            //     kind: 'leaf',
+                            //     key: 'dangkyhopdong',
+                            //     title: 'Đăng ký hợp đồng',
+                            //     isOpen: true,
+                            //     isPermission: this.permissionService.hasPermission(''),
+                            //     comp: PersonComponent,
+                            //     router: '/dangkyhopdong',
+                            // },
                             {
                                 kind: 'leaf',
                                 key: 'RegisterContractComponent',
@@ -3411,44 +3412,44 @@ export class MenuService {
         return menus;
     }
 
-    goToOldLink(router: string, param: any) {
-        let data: any = {
-            UserName: this.appUserService.loginName,
-            Password: this.appUserService.password,
-            Router: router,
-        };
-        // console.log('window.location:', window.location);
+    // goToOldLink(router: string, param: any) {
+    //     let data: any = {
+    //         UserName: this.appUserService.loginName,
+    //         Password: this.appUserService.password,
+    //         Router: router,
+    //     };
+    //     // console.log('window.location:', window.location);
 
-        let params = new URLSearchParams(param).toString();
+    //     let params = new URLSearchParams(param).toString();
 
-        let urlTo = `http://localhost:19028${router}`;
-        if (params) urlTo = `${urlTo}?${params}`;
-        let urlLogin = 'http://localhost:19028/Home/LoginNew';
+    //     let urlTo = `http://localhost:19028${router}`;
+    //     if (params) urlTo = `${urlTo}?${params}`;
+    //     let urlLogin = 'http://localhost:19028/Home/LoginNew';
 
-        const urlOld = 'http://113.190.234.64:8081';
-        if (window.location.hostname != 'localhost') {
-            urlTo =
-                window.location.origin.replace(window.location.port, '8081') + router;
-            urlLogin =
-                window.location.origin.replace(window.location.port, '8081') +
-                '/Home/LoginNew';
-        }
+    //     const urlOld = 'http://113.190.234.64:8081';
+    //     if (window.location.hostname != 'localhost') {
+    //         urlTo =
+    //             window.location.origin.replace(window.location.port, '8081') + router;
+    //         urlLogin =
+    //             window.location.origin.replace(window.location.port, '8081') +
+    //             '/Home/LoginNew';
+    //     }
 
-        // console.log('url redirect to:', urlTo);
-        // console.log('url login:', urlLogin);
+    //     // console.log('url redirect to:', urlTo);
+    //     // console.log('url login:', urlLogin);
 
-        return this.http
-            .post<any>(urlLogin, data, { withCredentials: true })
-            .subscribe({
-                next: (response) => {
-                    window.open(urlTo, '_blank');
-                },
-                error: (err) => {
-                    // console.log('err:', err);
-                    this.notification.error(NOTIFICATION_TITLE.error, err.message);
-                },
-            });
-    }
+    //     return this.http
+    //         .post<any>(urlLogin, data, { withCredentials: true })
+    //         .subscribe({
+    //             next: (response) => {
+    //                 window.open(urlTo, '_blank');
+    //             },
+    //             error: (err) => {
+    //                 // console.log('err:', err);
+    //                 this.notification.error(NOTIFICATION_TITLE.error, err.message);
+    //             },
+    //         });
+    // }
 
     setMenuKey(value: string) {
         this.menuKeySource.next(value);

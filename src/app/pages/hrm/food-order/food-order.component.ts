@@ -875,7 +875,6 @@ export class FoodOrderComponent implements OnInit, AfterViewInit {
 
   approved(isApproved: boolean) {
     const approvedText = isApproved ? 'duyệt' : 'hủy duyệt';
-    const listID: number[] = [];
     const selectedRowsHN = this.foodOrderHNTabulator.getSelectedRows();
     const selectedRowsĐP = this.foodOrderĐPTabulator.getSelectedRows();
     if (selectedRowsHN.length === 0 && selectedRowsĐP.length === 0) {
@@ -895,33 +894,33 @@ export class FoodOrderComponent implements OnInit, AfterViewInit {
     this.modal.confirm({
       nzTitle: `Bạn có chắc muốn ${approvedText} danh sách đặt cơm không?`,
       nzOnOk: () => {
-        const updatePromises = [];
+        this.isLoading = true;
+        
+        // Cập nhật IsApproved cho tất cả các đơn đã chọn
+        const foodOrdersToApprove = selectedRows.map((row) => ({
+          ...row,
+          IsApproved: isApproved
+        }));
 
-        for (const row of selectedRows) {
-          const id = row['ID'];
-          listID.push(id);
-          row['IsApproved'] = isApproved;
-          updatePromises.push(
-            this.foodOrderService.saveEmployeeFoodOrder(row).toPromise()
-          );
-        }
-
-        Promise.all(updatePromises)
-          .then(() => {
+        // Gọi API save-approve với danh sách đơn đặt cơm
+        this.foodOrderService.saveApprove(foodOrdersToApprove).subscribe({
+          next: (response) => {
+            this.isLoading = false;
             this.notification.success(
               NOTIFICATION_TITLE.success,
-              `${approvedText.charAt(0).toUpperCase() + approvedText.slice(1)
-              } đơn đặt cơm thành công!`
+              `${approvedText.charAt(0).toUpperCase() + approvedText.slice(1)} đơn đặt cơm thành công!`
             );
             this.loadFoodOrder();
-          })
-          .catch((error: any) => {
+          },
+          error: (error: any) => {
+            this.isLoading = false;
             const errorMessage = error?.error?.message || error?.error?.Message || error?.message || 'Có lỗi xảy ra';
             this.notification.error(
               NOTIFICATION_TITLE.error,
-              `Cập nhật đơn đặt cơm thất bại: ${errorMessage}`
+              `${approvedText.charAt(0).toUpperCase() + approvedText.slice(1)} đơn đặt cơm thất bại: ${errorMessage}`
             );
-          });
+          }
+        });
       },
     });
   }

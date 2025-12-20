@@ -47,4 +47,11 @@ export class FoodOrderService {
             this._url + `EmployeeFoodOrder/day-of-week?month=${month}&year=${year}`
         );
     }
+
+    saveApprove(foodOrders: any[]): Observable<any> {
+        return this.http.post<any>(
+            this._url + 'EmployeeFoodOrder/save-approve',
+            foodOrders
+        );
+    }
 }

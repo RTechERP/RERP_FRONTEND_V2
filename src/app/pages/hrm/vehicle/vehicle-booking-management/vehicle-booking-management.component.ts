@@ -948,6 +948,19 @@ export class VehicleBookingManagementComponent
       .getVehicleBookingManagement(request)
       .subscribe((response: any) => {
         this.vehicleBookingManagementList = response.data.data || [];
+     
+        this.vehicleBookingManagementList.sort((a, b) => {
+          const aValue = a.VehicleInformation || '';
+          const bValue = b.VehicleInformation || '';
+          const aMatch = aValue.match(/^(\d+)/);
+          const bMatch = bValue.match(/^(\d+)/);
+          const aNum = aMatch ? parseInt(aMatch[1], 10) : Infinity;
+          const bNum = bMatch ? parseInt(bMatch[1], 10) : Infinity;
+          if (aNum !== bNum) {
+            return aNum - bNum;
+          }
+          return aValue.localeCompare(bValue);
+        });
         console.log(this.vehicleBookingManagementList);
         // Clear pending changes khi reload data
         this.pendingChanges.clear();
@@ -1010,7 +1023,7 @@ export class VehicleBookingManagementComponent
           groupBy: (row: any) => row.VehicleInformation || null,
           groupHeader: (value: string, count: number) => {
             if (!value)
-              return `Thông tin xe: Chưa có thông tin (${count} dòng)`;
+              return `Thông tin xe: Khác (${count} dòng)`;
             return `Thông tin xe: ${value} (${count} dòng)`;
           },
           initialSort: [
@@ -1099,7 +1112,7 @@ export class VehicleBookingManagementComponent
                     const mm = String(date.getMinutes()).padStart(2, '0');
                     const ss = String(date.getSeconds()).padStart(2, '0');
 
-                    return `${dd}/${MM}/${yyyy} ${hh}:${mm}:${ss}`;
+                    return `${dd}/${MM}/${yyyy} ${hh}:${mm}`;
                   },
                 },
                 {
@@ -1120,7 +1133,7 @@ export class VehicleBookingManagementComponent
                     const mm = String(date.getMinutes()).padStart(2, '0');
                     const ss = String(date.getSeconds()).padStart(2, '0');
 
-                    return `${dd}/${MM}/${yyyy} ${hh}:${mm}:${ss}`;
+                    return `${dd}/${MM}/${yyyy} ${hh}:${mm}`;
                   },
                 },
                 {
@@ -1169,7 +1182,7 @@ export class VehicleBookingManagementComponent
                     const mm = String(date.getMinutes()).padStart(2, '0');
                     const ss = String(date.getSeconds()).padStart(2, '0');
 
-                    return `${dd}/${MM}/${yyyy} ${hh}:${mm}:${ss}`;
+                    return `${dd}/${MM}/${yyyy} ${hh}:${mm}`;
                   },
                 },
                 {
@@ -1188,7 +1201,7 @@ export class VehicleBookingManagementComponent
                     const mm = String(date.getMinutes()).padStart(2, '0');
                     const ss = String(date.getSeconds()).padStart(2, '0');
 
-                    return `${dd}/${MM}/${yyyy} ${hh}:${mm}:${ss}`;
+                    return `${dd}/${MM}/${yyyy} ${hh}:${mm}`;
                   },
                 },
               ],

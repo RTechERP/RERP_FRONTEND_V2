@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { NumberSymbol } from '@angular/common';
 import { environment } from '../../../../../environments/environment';
@@ -8,6 +8,7 @@ import { environment } from '../../../../../environments/environment';
   providedIn: 'root'
 })
 export class JobRequirementService {
+  private apiUrl = environment.host + 'api';
 
    constructor(private http: HttpClient) {}
 
@@ -99,5 +100,25 @@ export class JobRequirementService {
 
   getAllEmployee(): Observable<any> {
     return this.http.get<any>(environment.host + `api/handover/get-all-employees`);
+  }
+
+  uploadMultipleFiles(files: File[], subPath?: string): Observable<any> {
+    const formData = new FormData();
+    files.forEach((file) => {
+      formData.append('files', file);
+    });
+    formData.append('key', 'PathJobRequirement');
+    if (subPath && subPath.trim()) {
+      formData.append('subPath', subPath.trim());
+    }
+    return this.http.post<any>(`${this.apiUrl}/home/upload-multiple`, formData);
+  }
+
+  downloadFile(filePath: string): Observable<Blob> {
+    const params = new HttpParams().set('path', filePath);
+    return this.http.get(`${this.apiUrl}/home/download`, {
+      params,
+      responseType: 'blob',
+    });
   }
 }

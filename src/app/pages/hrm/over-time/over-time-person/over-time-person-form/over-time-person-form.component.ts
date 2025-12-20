@@ -580,7 +580,7 @@ export class OverTimePersonFormComponent implements OnInit {
       ApprovedID: null,
       TimeStart: defaultTimeStart,
       EndTime: null,
-      Location: null,
+      Location: 1,
       TypeID: null,
       ProjectID: null,
       Overnight: false,
@@ -612,7 +612,7 @@ export class OverTimePersonFormComponent implements OnInit {
       ID: [0],
       TimeStart: [null, Validators.required],
       EndTime: [null, Validators.required],
-      Location: [null, [
+      Location: [1, [
         Validators.required,
         (control: any) => {
           const value = control.value;
@@ -1007,6 +1007,30 @@ export class OverTimePersonFormComponent implements OnInit {
       }
     }
     
+    // Validate file khi IsProblem = true
+    if (commonFormValue.IsProblem) {
+      // Kiểm tra file chung (dùng cho tất cả tab khi IsProblem = true)
+      const hasCommonFile = this.selectedFile || this.tempFileRecord || this.existingFileRecord;
+      
+      if (!hasCommonFile) {
+        this.notification.warning(
+          NOTIFICATION_TITLE.warning,
+          'Vui lòng chọn file đính kèm khi đăng ký bổ sung!'
+        );
+        this.cdr.detectChanges();
+        return;
+      }
+    } else {
+      // Kiểm tra file cho từng tab khi IsProblem = false
+      for (let i = 0; i < this.formTabs.length; i++) {
+        const tab = this.formTabs[i];
+        const hasTabFile = tab.selectedFile || tab.tempFileRecord || tab.existingFileRecord;
+        
+        // Nếu không có file, không cần validate (file là optional khi IsProblem = false)
+        // Nhưng nếu có file thì phải hợp lệ
+      }
+    }
+    
     this.submitAllTabs();
   }
 
@@ -1063,6 +1087,16 @@ export class OverTimePersonFormComponent implements OnInit {
         tabExistingFileRecord = tab.existingFileRecord;
       }
 
+      // Nếu IsProblem = true, bắt buộc phải có file
+      if (commonFormValue.IsProblem && !tabSelectedFile && !tabTempFileRecord && !tabExistingFileRecord) {
+        this.isLoading = false;
+        this.notification.warning(
+          NOTIFICATION_TITLE.warning,
+          `Vui lòng chọn file đính kèm cho ${tab.title} khi đăng ký bổ sung!`
+        );
+        return;
+      }
+      
       if (tabSelectedFile || tabTempFileRecord || tabExistingFileRecord) {
         const originalSelectedFile = this.selectedFile;
         const originalTempFileRecord = this.tempFileRecord;
@@ -1091,6 +1125,7 @@ export class OverTimePersonFormComponent implements OnInit {
         this.tempFileRecord = originalTempFileRecord;
         this.existingFileRecord = originalExistingFileRecord;
       } else {
+        // Chỉ cho phép lưu không có file khi IsProblem = false
         this.saveDataEmployeeForTab(employeeOvertime, null, tab, () => {
           completedCount++;
           if (completedCount === totalTabs) {
@@ -1772,7 +1807,7 @@ export class OverTimePersonFormComponent implements OnInit {
       ID: [0],
       TimeStart: [defaultTimeStart, Validators.required],
       EndTime: [null, Validators.required],
-      Location: [null, [
+      Location: [1, [
         Validators.required,
         (control: any) => {
           const value = control.value;

@@ -1,1 +1,139 @@
-<p>menu-app-detail works!</p>
+<div class="modal-content">
+    <div class="modal-header bg-primary">
+        <h5 class="modal-title" id="staticBackdropLabel">Chi tiết menu</h5>
+        <button type="button" class="btn-close" aria-label="Close" (click)="activeModal.close()"></button>
+    </div>
+    <div class="modal-body">
+        <form nz-form nzLayout="vertical" [formGroup]="validateForm">
+            <div nz-row [nzGutter]="16">
+                <div nz-col nzXs="24" nzSm="12" nzMd="6" nzLg="4">
+                    <nz-form-item>
+                        <nz-form-label>STT<span class="text-danger ps-1">(*)</span></nz-form-label>
+                        <nz-form-control nzErrorTip="Chọn loại đề nghị">
+                            <nz-select nzShowSearch nzAllowClear nzPlaceHolder="Chọn loại" [formControlName]="'STT'">
+                                <nz-option nzLabel="Đề nghị tạm ứng" [nzValue]="1"></nz-option>
+                                <nz-option nzLabel="Đề nghị thanh toán / Quyết toán" [nzValue]="2"></nz-option>
+                                <nz-option nzLabel="Đề nghị thu tiền" [nzValue]="3"></nz-option>
+                            </nz-select>
+                        </nz-form-control>
+                    </nz-form-item>
+                </div>
+
+                <div nz-col nzXs="24" nzSm="12" nzMd="6" nzLg="8">
+                    <nz-form-item>
+                        <nz-form-label>Mã<span class="text-danger ps-1">(*)</span></nz-form-label>
+                        <nz-form-control nzErrorTip="Chọn loại nội dung đề nghị">
+                            <nz-input-group [nzSuffix]="inputClearTpl">
+                                <input type="text" nz-input [formControlName]="'Code'"
+                                    placeholder="input with clear icon" />
+                            </nz-input-group>
+                            <ng-template #inputClearTpl>
+                                @if (inputValue) {
+                                <span nz-icon class="ant-input-clear-icon" nzTheme="fill" nzType="close-circle"
+                                    (click)="inputValue = null"></span>
+                                }
+                            </ng-template>
+                        </nz-form-control>
+                    </nz-form-item>
+                </div>
+
+                <div nz-col nzXs="24" nzSm="12" nzMd="6" nzLg="4">
+                    <nz-form-item>
+                        <nz-form-label>Tiêu đề<span class="text-danger ps-1">(*)</span></nz-form-label>
+                        <nz-form-control nzErrorTip="Chọn ngày">
+                            <nz-input-group [nzSuffix]="inputClearTpl">
+                                <input type="text" nz-input [formControlName]="'Title'" placeholder="" />
+                            </nz-input-group>
+                            <ng-template #inputClearTpl>
+                                @if (inputValue) {
+                                <span nz-icon class="ant-input-clear-icon" nzTheme="fill" nzType="close-circle"
+                                    (click)="inputValue = null"></span>
+                                }
+                            </ng-template>
+                        </nz-form-control>
+                    </nz-form-item>
+                </div>
+
+                <div nz-col nzSm="24" nzMd="3" nzLg="4">
+                    <nz-form-item>
+                        <nz-form-label>Router</nz-form-label>
+                        <nz-form-control nzErrorTip="">
+                            <nz-input-group [nzSuffix]="inputClearTpl">
+                                <input type="text" nz-input [formControlName]="'Router'"
+                                    placeholder="input with clear icon" />
+                            </nz-input-group>
+                            <ng-template #inputClearTpl>
+                                @if (inputValue) {
+                                <span nz-icon class="ant-input-clear-icon" nzTheme="fill" nzType="close-circle"
+                                    (click)="inputValue = null"></span>
+                                }
+                            </ng-template>
+                        </nz-form-control>
+                    </nz-form-item>
+                </div>
+                <div nz-col nzSm="24" nzMd="3" nzLg="4">
+                    <nz-form-item>
+                        <nz-form-label>Icon</nz-form-label>
+                        <nz-form-control nzErrorTip="">
+                            <nz-input-group [nzSuffix]="inputClearTpl">
+                                <input type="text" nz-input [formControlName]="'Icon'"
+                                    placeholder="input with clear icon" />
+                            </nz-input-group>
+                            <ng-template #inputClearTpl>
+                                @if (inputValue) {
+                                <span nz-icon class="ant-input-clear-icon" nzTheme="fill" nzType="close-circle"
+                                    (click)="inputValue = null"></span>
+                                }
+                            </ng-template>
+                        </nz-form-control>
+                    </nz-form-item>
+                    <div nz-col nzXs="24" nzSm="12" nzMd="6" nzLg="4">
+                        <nz-form-item>
+                            <nz-form-label>Menu cha</nz-form-label>
+                            <nz-form-control nzErrorTip="Chọn nhà cung cấp">
+                                <nz-tree-select [nzNodes]="nodes" nzShowSearch nzPlaceHolder=""
+                                    [formControlName]="'ParentID'"></nz-tree-select>
+                            </nz-form-control>
+                        </nz-form-item>
+                    </div>
+                </div>
+            </div>
+
+            <!-- <div nz-row [nzGutter]="16">
+                <div nz-col nzXs="24" nzSm="12" nzMd="6" nzLg="4">
+                    <nz-form-item>
+                        <nz-form-label>Quyền<span class="text-danger ps-1">(*)</span></nz-form-label>
+                        <nz-form-control nzErrorTip="Chọn trưởng bộ phận">
+                            <input type="text" nz-input [(ngModel)]="inputValue" placeholder="input with clear icon" />
+                            <nz-select nzShowSearch nzAllowClear nzPlaceHolder="Chọn loại"
+                                [formControlName]="paymentOrderField.ApprovedTBPID.field">
+                                @for (item of approvedTBPs; track item) {
+                                <nz-option nzLabel="{{item.FullName}}" nzValue="{{item.EmployeeID}}"></nz-option>
+                                }
+                            </nz-select>
+                        </nz-form-control>
+                    </nz-form-item>
+                </div>
+
+                
+
+
+            </div> -->
+
+
+        </form>
+    </div>
+    <div class="modal-footer">
+        <button nz-button nzType="default" nzDanger="" (click)="activeModal.close()">
+            <nz-icon nzType="close" nzTheme="outline" /> Đóng
+        </button>
+        <button nz-button nzType="default" (click)="submitForm()">
+            <nz-icon nzType="save" nzTheme="outline" /> Lưu
+        </button>
+
+        <!-- <button type="button" class="btn btn-outline-danger" (click)="activeModal.close()">Đóng</button>
+        <button type="button" class="btn btn-success">
+            <nz-icon nzType="save" nzTheme="outline" (click)="submitForm()" /> Lưu
+        </button> -->
+    </div>
+</div>

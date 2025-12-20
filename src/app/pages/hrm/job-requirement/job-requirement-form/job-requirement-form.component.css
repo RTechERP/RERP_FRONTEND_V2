@@ -1,0 +1,47 @@
+/* Styling cho bảng HTML */
+.job-requirement-detail-table,
+.job-requirement-file-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 12px;
+}
+
+.job-requirement-detail-table th,
+.job-requirement-detail-table td,
+.job-requirement-file-table th,
+.job-requirement-file-table td {
+  border: 1px solid #d9d9d9;
+  padding: 4px 6px;
+  vertical-align: middle;
+}
+
+.job-requirement-detail-table th,
+.job-requirement-file-table th {
+  background-color: #fafafa;
+  font-weight: 600;
+  text-align: center;
+  padding: 6px;
+}
+
+.job-requirement-detail-table textarea,
+.job-requirement-detail-table input {
+  width: 100%;
+  border: 1px solid #d9d9d9;
+  border-radius: 4px;
+  padding: 4px 6px;
+  font-size: 12px;
+  font-family: inherit;
+}
+
+.job-requirement-detail-table textarea {
+  resize: vertical;
+  min-height: 40px;
+}
+
+.cursor-pointer {
+  cursor: pointer;
+}
+
+.cursor-pointer:hover {
+  opacity: 0.7;
+}

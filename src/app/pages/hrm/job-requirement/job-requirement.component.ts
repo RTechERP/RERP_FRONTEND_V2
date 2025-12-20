@@ -181,13 +181,13 @@ export class JobRequirementComponent implements OnInit, AfterViewInit {
   
       switch (numStatus) {
         case 0:
-          return '<span class="badge bg-warning text-dark" style="display: inline-block; text-align: center;">Chưa duyệt</span>';
+          return '<span class="badge bg-warning text-dark" style="display: inline-block; text-align: center; font-size: 10px !important; padding: 2px 6px !important;">Chưa duyệt</span>';
         case 1:
-          return '<span class="badge bg-success" style="display: inline-block; text-align: center;">Đã duyệt</span>';
+          return '<span class="badge bg-success" style="display: inline-block; text-align: center; font-size: 10px !important; padding: 2px 6px !important;">Đã duyệt</span>';
         case 2:
-          return '<span class="badge bg-danger" style="display: inline-block; text-align: center;">Không duyệt</span>';
+          return '<span class="badge bg-danger" style="display: inline-block; text-align: center; font-size: 10px !important; padding: 2px 6px !important;">Không duyệt</span>';
         default:
-          return '<span class="badge bg-secondary" style="display: inline-block; text-align: center;">Không xác định</span>';
+          return '<span class="badge bg-secondary" style="display: inline-block; text-align: center; font-size: 10px !important; padding: 2px 6px !important;">Không xác định</span>';
       }
     }
   
@@ -614,6 +614,25 @@ export class JobRequirementComponent implements OnInit, AfterViewInit {
             this.data = []; // Reset data
           }
         });
+
+        // Set font-size 12px cho bảng và 10px cho badge
+        setTimeout(() => {
+          const tableElement = this.tableRef1.nativeElement;
+          if (tableElement) {
+            tableElement.style.fontSize = '12px';
+            const allElements = tableElement.querySelectorAll('*');
+            allElements.forEach((el: any) => {
+              if (el.style) {
+                if (el.classList && el.classList.contains('badge')) {
+                  el.style.fontSize = '10px';
+                  el.style.padding = '2px 6px';
+                } else {
+                  el.style.fontSize = '12px';
+                }
+              }
+            });
+          }
+        }, 200);
       }
     }
   
@@ -662,6 +681,20 @@ export class JobRequirementComponent implements OnInit, AfterViewInit {
             ],
           }
         );
+
+        // Set font-size 12px cho bảng
+        setTimeout(() => {
+          const tableElement = this.tableRef2.nativeElement;
+          if (tableElement) {
+            tableElement.style.fontSize = '12px';
+            const allElements = tableElement.querySelectorAll('*');
+            allElements.forEach((el: any) => {
+              if (el.style) {
+                el.style.fontSize = '12px';
+              }
+            });
+          }
+        }, 200);
       }
     }
   
@@ -679,12 +712,7 @@ export class JobRequirementComponent implements OnInit, AfterViewInit {
             layout: 'fitDataStretch',
             paginationMode: 'local',
             columns: [
-              {
-                title: 'STT',
-                hozAlign: 'center',
-                headerHozAlign: 'center',
-                field: 'STT',
-              },
+             
               {
                 title: 'File đính kèm',
                 field: 'FileName',
@@ -693,6 +721,20 @@ export class JobRequirementComponent implements OnInit, AfterViewInit {
             ],
           }
         );
+
+        // Set font-size 12px cho bảng
+        setTimeout(() => {
+          const tableElement = this.tableRef3.nativeElement;
+          if (tableElement) {
+            tableElement.style.fontSize = '12px';
+            const allElements = tableElement.querySelectorAll('*');
+            allElements.forEach((el: any) => {
+              if (el.style) {
+                el.style.fontSize = '12px';
+              }
+            });
+          }
+        }, 200);
       }
     }
   
@@ -712,12 +754,7 @@ export class JobRequirementComponent implements OnInit, AfterViewInit {
             layout: 'fitDataStretch',
             paginationMode: 'local',
             columns: [
-              {
-                title: 'STT',
-                hozAlign: 'center',
-                headerHozAlign: 'center',
-                field: 'STT',
-              },
+              
               {
                 title: 'Bước',
                 field: 'Step',
@@ -733,17 +770,17 @@ export class JobRequirementComponent implements OnInit, AfterViewInit {
                 field: 'DateApproved',
                 hozAlign: 'left',
                 headerHozAlign: 'center',
-                width: 200,
+                width: 150,
                 formatter: (cell: any) => {
                   const value = cell.getValue();
                   return value
-                    ? DateTime.fromISO(value).toFormat('dd/MM/yyyy')
+                    ? DateTime.fromISO(value).toFormat('dd/MM/yyyy HH:mm')
                     : '';
                 },
               },
               {
                 title: 'Trạng thái',
-                field: 'ApprovedText',
+                field: 'IsApprovedText',
                 headerHozAlign: 'center',
               },
               {
@@ -764,6 +801,20 @@ export class JobRequirementComponent implements OnInit, AfterViewInit {
             ],
           }
         );
+
+        // Set font-size 12px cho bảng
+        setTimeout(() => {
+          const tableElement = this.tableRef4.nativeElement;
+          if (tableElement) {
+            tableElement.style.fontSize = '12px';
+            const allElements = tableElement.querySelectorAll('*');
+            allElements.forEach((el: any) => {
+              if (el.style) {
+                el.style.fontSize = '12px';
+              }
+            });
+          }
+        }, 200);
       }
     }
 }

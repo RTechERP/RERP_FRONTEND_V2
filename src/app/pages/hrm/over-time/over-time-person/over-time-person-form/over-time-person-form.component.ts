@@ -793,6 +793,11 @@ export class OverTimePersonFormComponent implements OnInit {
   }
 
   onSubmit() {
+    // Kiểm tra nếu đang loading thì không cho submit lại
+    if (this.isLoading) {
+      return;
+    }
+
     if (this.commonForm.invalid) {
       Object.keys(this.commonForm.controls).forEach(key => {
         const control = this.commonForm.get(key);
@@ -835,6 +840,7 @@ export class OverTimePersonFormComponent implements OnInit {
         }
         this.notification.warning(NOTIFICATION_TITLE.warning, `Vui lòng nhập Dự án cho ${tab.title}`);
         this.cdr.detectChanges();
+        this.isLoading = false; // Reset loading khi validation fail
         return;
       }
       
@@ -1031,6 +1037,8 @@ export class OverTimePersonFormComponent implements OnInit {
       }
     }
     
+    // Set loading trước khi submit để tránh click nhiều lần
+    this.isLoading = true;
     this.submitAllTabs();
   }
 
@@ -1054,6 +1062,14 @@ export class OverTimePersonFormComponent implements OnInit {
       const diffHours = diffMs / (1000 * 60 * 60);
       const timeReality = Math.round(diffHours * 100) / 100;
 
+      // Tính CostOvernight: 30000 nếu Overnight = true, 0 nếu false
+      const costOvernight = formValue.Overnight === true ? 30000 : 0;
+      
+      // Set ApproveHR = 0 khi tạo mới (ID = 0)
+      const approveHR = (formValue.ID !== null && formValue.ID !== undefined && formValue.ID > 0) 
+        ? (formValue.ApproveHR !== null && formValue.ApproveHR !== undefined ? formValue.ApproveHR : null)
+        : 0;
+
       const employeeOvertime = {
         ID: formValue.ID !== null && formValue.ID !== undefined ? formValue.ID : 0,
         EmployeeID: commonFormValue.EmployeeID || 0,
@@ -1065,11 +1081,13 @@ export class OverTimePersonFormComponent implements OnInit {
         Location: formValue.Location || 0,
         ProjectID: formValue.ProjectID || 0,
         Overnight: formValue.Overnight || false,
+        CostOvernight: costOvernight,
         TypeID: formValue.TypeID || null,
         Reason: formValue.Reason || '',
         IsProblem: commonFormValue.IsProblem || false,
         IsApproved: false,
         IsApprovedHR: false,
+        ApproveHR: approveHR,
         IsDeleted: false
       };
 

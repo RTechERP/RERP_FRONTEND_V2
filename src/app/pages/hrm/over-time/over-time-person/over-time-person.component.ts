@@ -23,6 +23,7 @@ import { NOTIFICATION_TITLE } from '../../../../app.config';
 import { DEFAULT_TABLE_CONFIG } from '../../../../tabulator-default.config';
 import { NgbModal } from '@ng-bootstrap/ng-bootstrap';
 import { OverTimePersonFormComponent } from './over-time-person-form/over-time-person-form.component';
+import { environment } from '../../../../../environments/environment';
 
 @Component({
   selector: 'app-over-time-person',
@@ -343,8 +344,18 @@ export class OverTimePersonComponent implements OnInit, AfterViewInit {
         {
           title: 'File bổ sung', field: 'FileName', width: 200, hozAlign: 'left', headerHozAlign: 'center', headerSort: false,
           formatter: (cell: any) => {
-            const value = cell.getValue() || '';
-            return value || '';
+            const rowData = cell.getRow().getData();
+            const fileName = rowData.FileName || '';
+            if (fileName) {
+              return `<a href="javascript:void(0)" style="color: #1677ff; text-decoration: underline; cursor: pointer;">${fileName}</a>`;
+            }
+            return '';
+          },
+          cellClick: (e: any, cell: any) => {
+            const rowData = cell.getRow().getData();
+            if (rowData.FileName) {
+              this.downloadFile(rowData);
+            }
           }
         },
         {
@@ -387,6 +398,9 @@ export class OverTimePersonComponent implements OnInit, AfterViewInit {
           #tb_over_time_person .tabulator-row .tabulator-cell,
           #tb_over_time_person *:not(.badge) {
             font-size: 12px !important;
+          }
+          #tb_over_time_person .badge {
+            font-size: 9px !important;
           }
         `;
         const existingStyle = document.getElementById('tabulator-over-time-person-font-size-override');
@@ -820,9 +834,9 @@ export class OverTimePersonComponent implements OnInit, AfterViewInit {
     const isApproved = status === true || status === 1 || status === '1';
     
     if (isApproved) {
-      return '<span class="badge bg-success" style="display: inline-block; text-align: center;">Đã duyệt</span>';
+      return '<span class="badge bg-success" style="display: inline-block; text-align: center; font-size: 9px !important; padding: 2px 6px !important;">Đã duyệt</span>';
     } else {
-      return '<span class="badge bg-warning text-dark" style="display: inline-block; text-align: center;">Chưa duyệt</span>';
+      return '<span class="badge bg-warning text-dark" style="display: inline-block; text-align: center; font-size: 9px !important; padding: 2px 6px !important;">Chưa duyệt</span>';
     }
   }
 
@@ -851,6 +865,63 @@ export class OverTimePersonComponent implements OnInit, AfterViewInit {
     
     // Nếu TBP, HR hoặc Senior đã duyệt (status = 1) thì không cho sửa/xóa
     return numStatusTBP === 1 || numStatusHR === 1 || numStatusSenior === 1;
+  }
+
+  downloadFile(rowData: any) {
+    const id = rowData.ID || rowData.Id || 0;
+    if (!id || id <= 0) {
+      this.notification.warning(NOTIFICATION_TITLE.warning, 'Không tìm thấy ID bản ghi');
+      return;
+    }
+
+    this.isLoading = true;
+    this.overTimeService.getEmployeeOverTimeByID(id).subscribe({
+      next: (response: any) => {
+        this.isLoading = false;
+        if (response && response.status === 1 && response.data) {
+          const data = response.data;
+          const overTimeFile = data.overTimeFile || data.employeeOvertimeFile || null;
+          
+          if (!overTimeFile) {
+            this.notification.warning(NOTIFICATION_TITLE.warning, 'Không có file đính kèm');
+            return;
+          }
+
+          let serverPath = overTimeFile.ServerPath || '';
+          const fileName = overTimeFile.FileName || '';
+          
+          if (!fileName) {
+            this.notification.warning(NOTIFICATION_TITLE.warning, 'Không có tên file để xem');
+            return;
+          }
+
+          // Đảm bảo ServerPath không chứa tên file ở cuối
+          // Nếu ServerPath kết thúc bằng fileName, loại bỏ fileName khỏi ServerPath
+          if (serverPath && fileName) {
+            const normalizedServerPath = serverPath.replace(/[\\/]+$/, ''); // Loại bỏ dấu \ hoặc / ở cuối
+            const normalizedFileName = fileName.replace(/^[\\/]+/, ''); // Loại bỏ dấu \ hoặc / ở đầu
+            if (normalizedServerPath.endsWith(normalizedFileName)) {
+              serverPath = normalizedServerPath.substring(0, normalizedServerPath.length - normalizedFileName.length);
+              serverPath = serverPath.replace(/[\\/]+$/, ''); // Loại bỏ dấu \ hoặc / ở cuối sau khi cắt
+            }
+          }
+
+          // Preview file: mở trong tab mới để trình duyệt tự động preview (PDF, hình ảnh, văn bản)
+          // subPath là đường dẫn thư mục (không bao gồm tên file), fileName là tên file
+          const previewUrl = `${environment.host}api/home/download-by-key?key=LamThem&subPath=${encodeURIComponent(serverPath)}&fileName=${encodeURIComponent(fileName)}`;
+          
+          // Mở trong tab mới để preview, trình duyệt sẽ tự động hiển thị nếu có thể (PDF, hình ảnh)
+          window.open(previewUrl, '_blank');
+        } else {
+          this.notification.error(NOTIFICATION_TITLE.error, 'Không thể lấy thông tin file');
+        }
+      },
+      error: (error: any) => {
+        this.isLoading = false;
+        const errorMessage = error?.error?.message || error?.error?.Message || error?.message || 'Lỗi không xác định';
+        this.notification.error(NOTIFICATION_TITLE.error, 'Lỗi khi xem file: ' + errorMessage);
+      }
+    });
   }
 }
 

@@ -368,14 +368,14 @@ export class EarlyLateComponent implements OnInit, AfterViewInit {
           title: 'Từ', field: 'DateStart', hozAlign: 'center', headerHozAlign: 'center', width: 150, headerSort: false,
           formatter: (cell) => {
             const value = cell.getValue();
-            return value ? DateTime.fromISO(value).toFormat('HH:mm dd/MM/yyyy') : '';
+            return value ? DateTime.fromISO(value).toFormat(' dd/MM/yyyy HH:mm') : '';
           }
         },
         {
           title: 'Đến', field: 'DateEnd', hozAlign: 'center', headerHozAlign: 'center', width: 150, headerSort: false,
           formatter: (cell) => {
             const value = cell.getValue();
-            return value ? DateTime.fromISO(value).toFormat('HH:mm dd/MM/yyyy') : '';
+            return value ? DateTime.fromISO(value).toFormat('dd/MM/yyyy HH:mm') : '';
           }
         },
         {
@@ -696,7 +696,9 @@ export class EarlyLateComponent implements OnInit, AfterViewInit {
 
     formData.DateStart = startDateObj.toISOString();
     formData.DateEnd = endDateObj.toISOString();
-    formData.TimeRegister = endDateObj.getTime() - startDateObj.getTime(); // Duration in milliseconds
+    // Tính thời gian đăng ký bằng phút (không phải milliseconds)
+    const durationInMs = endDateObj.getTime() - startDateObj.getTime();
+    formData.TimeRegister = Math.round(durationInMs / (1000 * 60)); // Chuyển từ milliseconds sang phút
     formData.IsDeleted = false;
     if (!formData.ID || formData.ID === 0) {
       formData.ApprovedID = 0;

@@ -24,11 +24,8 @@ import { NzNotificationService } from 'ng-zorro-antd/notification';
 import { HandoverService } from '../../handover/handover-service/handover.service';
 import { AuthService } from '../../../../auth/auth.service';
 import { JobRequirementService } from '../job-requirement-service/job-requirement.service';
-import { TabulatorFull as Tabulator, RowComponent } from 'tabulator-tables';
-import { DEFAULT_TABLE_CONFIG } from '../../../../tabulator-default.config';
 import { NzUploadFile } from 'ng-zorro-antd/upload';
 import { DateTime } from 'luxon';
-import 'tabulator-tables/dist/css/tabulator_simple.min.css';
 
 @Component({
   selector: 'app-job-requirement-form',
@@ -57,8 +54,6 @@ export class JobRequirementFormComponent implements OnInit, AfterViewInit {
   @Input() dataInput: any;
   @Input() isCheckmode: boolean = false;
 
-  @ViewChild('jobRequirementDetailTable', { static: false }) tableRef!: ElementRef;
-  @ViewChild('jobRequirementFileTable', { static: false }) fileTableRef!: ElementRef;
   @ViewChild('fileInput') fileInput!: ElementRef<HTMLInputElement>;
 
   formGroup: FormGroup;
@@ -66,9 +61,6 @@ export class JobRequirementFormComponent implements OnInit, AfterViewInit {
   dataDepartment: any[] = [];
   cbbEmployee: any;
   jobRequirementDetailData: any[] = [];
-  jobRequirementDetailTable: Tabulator | null = null;
-  jobRequirementFileData: any[] = [];
-  jobRequirementFileTable: Tabulator | null = null;
   fileList: any[] = [];
   constructor(
     private fb: FormBuilder,
@@ -79,18 +71,21 @@ export class JobRequirementFormComponent implements OnInit, AfterViewInit {
     private message: NzMessageService,
     private notification: NzNotificationService,
   ) {
+    const today = DateTime.now().toFormat('yyyy-MM-dd');
+    
     this.formGroup = this.fb.group({
       STT: 0,
-      NameDocument: [null, [Validators.required, Validators.maxLength(100)]],
-      Code: ['', [Validators.required, Validators.maxLength(100)]],
+      NameDocument: [null, [Validators.maxLength(100)]],
+      Code: ['', [Validators.maxLength(100)]],
       DepartmentID: ['', [Validators.required]],
-      EmployeeDepartment: ['', [Validators.required]],
+      EmployeeDepartment: [''],
       RequiredDepartment: ['', [Validators.required]],
-      CoordinationDepartment: ['', [Validators.required]],
+      CoordinationDepartment: [''],
       EmployeeID: ['', [Validators.required]],
-      DateRequest: ['', [Validators.required]],
-      DatePromulgate: ['', [Validators.required]],
-      DateEffective: ['', [Validators.required]],
+      DateRequest: [today, [Validators.required]],
+      DeadlineRequest: [today, [Validators.required]],
+      DatePromulgate: [''],
+      DateEffective: [''],
       SignedEmployeeID: [0],
       AffectedScope: [''],
       GroupType: 1,
@@ -102,14 +97,26 @@ export class JobRequirementFormComponent implements OnInit, AfterViewInit {
   ngOnInit(): void {
     this.getdataEmployee();
     this.getdataDepartment();
+    
+    // Subscribe to DeadlineRequest changes to update Description of STT 7
+    this.formGroup.get('DeadlineRequest')?.valueChanges.subscribe((value) => {
+      if (value) {
+        const dt = DateTime.fromFormat(value, 'yyyy-MM-dd');
+        if (dt.isValid) {
+          const formattedDate = dt.toFormat('dd/MM/yyyy');
+          const row7 = this.jobRequirementDetailData.find((row: any) => row.STT === 7);
+          if (row7 && row7.Category === 'Thời gian hoàn thành đề nghị') {
+            row7.Description = formattedDate;
+          }
+        }
+      }
+    });
+    
     this.setDefaultRows();
   }
 
   ngAfterViewInit(): void {
-    setTimeout(() => {
-      this.drawJobRequirementDetailTable();
-      this.drawJobRequirementFileTable();
-    }, 100);
+    // No longer needed with HTML tables
   }
   filterOption = (input: string, option: any): boolean => {
     const label = option.nzLabel?.toLowerCase() || '';
@@ -167,6 +174,14 @@ export class JobRequirementFormComponent implements OnInit, AfterViewInit {
   }
 
   setDefaultRows() {
+    const today = DateTime.now().toFormat('dd/MM/yyyy');
+    const deadlineRequest = this.formGroup?.get('DeadlineRequest')?.value || today;
+    const deadlineFormatted = deadlineRequest 
+      ? (DateTime.fromFormat(deadlineRequest, 'yyyy-MM-dd').isValid 
+          ? DateTime.fromFormat(deadlineRequest, 'yyyy-MM-dd').toFormat('dd/MM/yyyy')
+          : today)
+      : today;
+    
     this.jobRequirementDetailData = [
       { STT: 1, Category: 'Nội dung yêu cầu', Description: '', Target: '', Note: '' },
       { STT: 2, Category: 'Người yêu cầu', Description: '', Target: '', Note: '' },
@@ -174,74 +189,29 @@ export class JobRequirementFormComponent implements OnInit, AfterViewInit {
       { STT: 4, Category: 'Số lượng', Description: '', Target: '', Note: '' },
       { STT: 5, Category: 'Chất lượng', Description: '', Target: '', Note: '' },
       { STT: 6, Category: 'Địa điểm', Description: '', Target: '', Note: '' },
-      { STT: 7, Category: 'Thời gian hoàn thành đề nghị', Description: '', Target: '', Note: '' },
+      { STT: 7, Category: 'Thời gian hoàn thành đề nghị', Description: deadlineFormatted, Target: '', Note: '' },
     ];
   }
 
-  drawJobRequirementDetailTable(): void {
-    if (!this.tableRef) {
-      return;
+  onlyNumberKey(event: KeyboardEvent): boolean {
+    const charCode = event.which ? event.which : event.keyCode;
+    if (charCode > 31 && (charCode < 48 || charCode > 57)) {
+      event.preventDefault();
+      return false;
     }
+    return true;
+  }
 
-    if (this.jobRequirementDetailTable) {
-      this.jobRequirementDetailTable.setData(this.jobRequirementDetailData);
-    } else {
-      this.jobRequirementDetailTable = new Tabulator(
-        this.tableRef.nativeElement,
-        {
-          ...DEFAULT_TABLE_CONFIG,
-          data: this.jobRequirementDetailData,
-          layout: 'fitDataStretch',
-          height: '100%',
-          rowHeader:false,
-          pagination:false,
-          paginationMode: 'local',
-          headerSort:false,
-          columns: [
-            {
-              title: 'STT',
-              field: 'STT',
-              hozAlign: 'center',
-              headerHozAlign: 'center',
-              width: 40,
-              headerSort:false,
-            },
-            {
-              title: 'Đề mục',
-              field: 'Category',
-              headerHozAlign: 'center',
-              headerSort:false,
-              width: 150,
-            },
-            {
-              title: 'Diễn giải',
-              field: 'Description',
-              headerHozAlign: 'center',
-              editor: 'textarea',
-              formatter: 'textarea',
-              width: 200,
-              headerSort:false,
-            },
-            {
-              title: 'Mục tiêu cần đạt',
-              field: 'Target',
-              headerHozAlign: 'center',
-              editor: 'textarea',
-              formatter: 'textarea',
-              width: 200,
-              headerSort:false,
-            },
-            {
-              title: 'Ghi chú',
-              field: 'Note',
-              headerHozAlign: 'center',
-              editor: 'textarea',
-              formatter: 'textarea',
-              headerSort:false,
-            },
-          ],
-        }
-      );
+  onPasteNumber(event: ClipboardEvent): void {
+    event.preventDefault();
+    const pastedText = event.clipboardData?.getData('text') || '';
+    const numericValue = pastedText.replace(/[^0-9]/g, '');
+    const target = event.target as HTMLInputElement;
+    if (target && numericValue) {
+      const row4 = this.jobRequirementDetailData.find((row: any) => row.Category === 'Số lượng');
+      if (row4) {
+        row4.Description = numericValue;
+      }
     }
   }
 
@@ -291,29 +261,13 @@ export class JobRequirementFormComponent implements OnInit, AfterViewInit {
     };
 
     this.fileList = [...this.fileList, newFile];
-    this.updateFileTable();
     return false;
   };
 
-  updateFileTable() {
-    if (!this.jobRequirementFileTable) return;
-    
-    const active = (this.fileList || []).filter(
+  getActiveFiles(): any[] {
+    return (this.fileList || []).filter(
       (f: any) => !f.isDeleted && !f.IsDeleted
     );
-
-    const rows = active.map((f: any, i: number) => ({
-      ID: f.ID || i + 1,
-      FileNameOrigin: f.FileNameOrigin || f.name,
-      FileName: f.FileName || '',
-      FilePath: f.FilePath || '',
-      IsUploaded: f.IsUploaded || false,
-      File: f.originFile || f.File,
-      file: f,
-      uid: f.uid,
-    }));
-
-    this.jobRequirementFileTable.setData(rows);
   }
 
 
@@ -352,7 +306,6 @@ export class JobRequirementFormComponent implements OnInit, AfterViewInit {
             this.fileList[fileIndex].status = 'done';
           }
 
-          this.updateFileTable();
           this.notification.success('Thành công', `Upload ${fileRecord.FileNameOrigin || fileRecord.name} hoàn tất!`);
         } else {
           this.notification.error('Lỗi', res?.message || 'Upload file thất bại!');
@@ -366,7 +319,7 @@ export class JobRequirementFormComponent implements OnInit, AfterViewInit {
   }
 
   uploadAllFiles(): void {
-    const filesToUpload = this.jobRequirementFileData.filter(f => f.File && !f.IsUploaded);
+    const filesToUpload = this.fileList.filter(f => f.originFile && !f.IsUploaded && !f.isDeleted && !f.IsDeleted);
     
     if (filesToUpload.length === 0) {
       this.notification.info('Thông báo', 'Không có file nào cần upload!');
@@ -426,120 +379,162 @@ export class JobRequirementFormComponent implements OnInit, AfterViewInit {
       this.fileList = this.fileList.filter(f => f.ID !== fileRecord.ID);
     }
     
-    this.updateFileTable();
     this.notification.success('Thông báo', 'Đã xóa file!');
   }
 
-  onDeleteFile(): void {
-    const selectedRows = this.jobRequirementFileTable?.getSelectedData() || [];
-    
-    if (selectedRows.length === 0) {
-      this.notification.warning('Thông báo', 'Vui lòng chọn file để xóa!');
-      return;
-    }
-
-    const fileToDelete = selectedRows[0];
-    this.deleteFileByRecord(fileToDelete);
-  }
-
-  drawJobRequirementFileTable(): void {
-    if (!this.fileTableRef) {
-      return;
-    }
-
-    if (this.jobRequirementFileTable) {
-      this.updateFileTable();
-    } else {
-      this.jobRequirementFileTable = new Tabulator(
-        this.fileTableRef.nativeElement,
-        {
-          ...DEFAULT_TABLE_CONFIG,
-          data: [],
-          layout: 'fitDataStretch',
-          height: '100%',
-          pagination:false,
-          paginationMode: 'local',
-          selectableRows: 1,
-          rowHeader: false,
-          rowContextMenu: (e: any, row: any) => {
-            const rowData = row.getData();
-            const menu: any[] = [];
-
-            if (rowData.File && !rowData.IsUploaded) {
-              menu.push({
-                label: 'Upload',
-                action: () => {
-                  this.uploadFile(rowData);
-                }
-              });
-            }
-
-            if (rowData.IsUploaded && rowData.FilePath) {
-              menu.push({
-                label: 'Tải xuống',
-                action: () => {
-                  this.downloadFile(rowData);
-                }
-              });
-            }
-
-            menu.push({
-              label: 'Xóa',
-              action: () => {
-                this.onDeleteFile();
-              }
-            });
-
-            return menu;
-          },
-          columns: [
-            {
-              title: 'ID',
-              field: 'ID',
-              hozAlign: 'center',
-              headerHozAlign: 'center',
-              visible: false,
-            },
-            {
-              title: '',
-              field: 'action',
-              hozAlign: 'center',
-              headerHozAlign: 'center',
-              width: 50,
-              resizable: false,
-              formatter: () => {
-                return '<i class="fas fa-trash text-danger cursor-pointer" style="font-size: 16px;" title="Xóa file"></i>';
-              },
-              cellClick: (e: any, cell: any) => {
-                const target = e.target as HTMLElement;
-                if (target.classList.contains('fa-trash') || target.closest('.fa-trash')) {
-                  const rowData = cell.getRow().getData();
-                  this.deleteFileByRecord(rowData);
-                }
-              }
-            },
-            {
-              title: 'Tên file',
-              hozAlign: 'left',
-              headerHozAlign: 'center',
-              field: 'FileNameOrigin',
-              formatter: 'textarea',
-              resizable: false,
-            
-            },
-          
-          ],
-        }
-      );
-
-      this.jobRequirementFileTable.on('rowDblClick', (e: UIEvent, row: RowComponent) => {
-        const rowData = row.getData();
-        this.downloadFile(rowData);
+  async saveData() {
+    // Validate form
+    if (this.formGroup.invalid) {
+      Object.values(this.formGroup.controls).forEach(control => {
+        control.markAsDirty();
+        control.updateValueAndValidity({ onlySelf: true });
       });
+      this.notification.warning('Thông báo', 'Vui lòng điền đầy đủ thông tin bắt buộc!');
+      return;
     }
+
+    // Upload tất cả file chưa upload
+    const filesToUpload = this.fileList.filter(f => f.originFile && !f.IsUploaded && !f.isDeleted && !f.IsDeleted);
+    
+    if (filesToUpload.length > 0) {
+      const loadingMsg = this.message.loading('Đang upload files...', { nzDuration: 0 }).messageId;
+      
+      try {
+        // Upload từng file
+        for (const fileRecord of filesToUpload) {
+          await this.uploadFileAsync(fileRecord);
+        }
+        this.message.remove(loadingMsg);
+      } catch (error) {
+        this.message.remove(loadingMsg);
+        this.notification.error('Lỗi', 'Upload file thất bại! Vui lòng thử lại.');
+        return;
+      }
+    }
+
+    // Prepare payload
+    const formValue = this.formGroup.value;
+    const payload = {
+      ID: this.JobRequirementID || 0,
+      NumberRequest: '',
+      DateRequest: formValue.DateRequest ? DateTime.fromFormat(formValue.DateRequest, 'yyyy-MM-dd').toISO() : null,
+      DeadlineRequest: formValue.DeadlineRequest ? DateTime.fromFormat(formValue.DeadlineRequest, 'yyyy-MM-dd').toISO() : null,
+      EmployeeID: formValue.EmployeeID || 0,
+      CoordinationDepartmentID: formValue.CoordinationDepartment || 0,
+      RequiredDepartmentID: formValue.RequiredDepartment || 0,
+      ApprovedTBPID: formValue.DepartmentID || 0,
+      IsApprovedTBP: false,
+      DateApprovedTBP: null,
+      IsApprovedHR: false,
+      DateApprovedHR: null,
+      ApprovedHRID: null,
+      IsApprovedBGD: false,
+      DateApprovedBGD: null,
+      ApprovedBGDID: null,
+      EvaluateCompletion: '',
+      IsDeleted: false,
+      CreatedBy: '',
+      CreatedDate: new Date().toISOString(),
+      UpdatedBy: '',
+      UpdatedDate: new Date().toISOString(),
+      IsRequestBuy: false,
+      Status: 0,
+      Note: '',
+      IsRequestBGDApproved: false,
+      IsRequestPriceQuote: false,
+      JobRequirementDetails: this.jobRequirementDetailData.map((item: any) => ({
+        ID: item.ID || 0,
+        JobRequirementID: this.JobRequirementID || 0,
+        STT: item.STT || 0,
+        Category: item.Category || '',
+        Description: item.Description || '',
+        Target: item.Target || '',
+        Note: item.Note || '',
+        IsDeleted: false
+      })),
+      JobRequirementFiles: this.fileList
+        .filter(f => f.IsUploaded && !f.isDeleted && !f.IsDeleted)
+        .map((file: any) => ({
+          ID: file.ID || 0,
+          JobRequirementID: this.JobRequirementID || 0,
+          FileName: file.FileName || '',
+          FilePath: file.FilePath || '',
+          ServerPath: this.getServerPathFromFilePath(file.FilePath) || '',
+          OriginPath: '',
+          IsDeleted: false
+        }))
+    };
+
+    // Save data
+    const savingMsg = this.message.loading('Đang lưu dữ liệu...', { nzDuration: 0 }).messageId;
+    
+    this.jobRequirementService.saveDataJobRequirement(payload).subscribe({
+      next: (response: any) => {
+        this.message.remove(savingMsg);
+        if (response && response.status === 1) {
+          this.notification.success('Thành công', 'Lưu phiếu yêu cầu công việc thành công!');
+          this.closeModal();
+        } else {
+          this.notification.error('Lỗi', response?.message || 'Lưu dữ liệu thất bại!');
+        }
+      },
+      error: (error: any) => {
+        this.message.remove(savingMsg);
+        const errorMessage = error?.error?.message || error?.error?.Message || error?.message || 'Có lỗi xảy ra';
+        this.notification.error('Lỗi', `Lưu dữ liệu thất bại: ${errorMessage}`);
+      }
+    });
   }
 
-  saveData() {
-    // TODO: Implement save logic
+  private getServerPathFromFilePath(filePath: string): string {
+    if (!filePath) return '';
+    // FilePath format: "path\to\file\filename.ext"
+    // ServerPath should be: "path\to\file"
+    const lastSlashIndex = Math.max(filePath.lastIndexOf('\\'), filePath.lastIndexOf('/'));
+    if (lastSlashIndex > 0) {
+      return filePath.substring(0, lastSlashIndex);
+    }
+    return '';
+  }
+
+  private uploadFileAsync(fileRecord: any): Promise<void> {
+    return new Promise((resolve, reject) => {
+      const file = fileRecord.File || fileRecord.originFile || fileRecord.file?.originFile;
+      
+      if (!file) {
+        reject(new Error('File không tồn tại!'));
+        return;
+      }
+
+      const subPath = this.getSubPath();
+      
+      if (!subPath) {
+        reject(new Error('Vui lòng điền đầy đủ thông tin (Ngày yêu cầu và Mã) trước khi upload file!'));
+        return;
+      }
+
+      this.jobRequirementService.uploadMultipleFiles([file], subPath).subscribe({
+        next: (res) => {
+          if (res?.status === 1 && res?.data?.length > 0) {
+            const uploadedFile = res.data[0];
+            
+            // Tìm và cập nhật file trong fileList
+            const fileIndex = this.fileList.findIndex(f => f.uid === fileRecord.uid);
+            if (fileIndex !== -1) {
+              this.fileList[fileIndex].FileName = uploadedFile.SavedFileName || uploadedFile.FileName;
+              this.fileList[fileIndex].FilePath = uploadedFile.FilePath;
+              this.fileList[fileIndex].IsUploaded = true;
+              this.fileList[fileIndex].status = 'done';
+            }
+            resolve();
+          } else {
+            reject(new Error(res?.message || 'Upload file thất bại!'));
+          }
+        },
+        error: (err) => {
+          reject(err);
+        },
+      });
+    });
   }
 }

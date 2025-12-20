@@ -43,7 +43,7 @@ export const authInterceptor: HttpInterceptorFn = (req, next) => {
                 // location.reload();
 
                 // ✅ navigate về login
-                window.location.href = '/login';
+                window.location.href = '/rerpweb/login';
             }
 
             return throwError(() => error);

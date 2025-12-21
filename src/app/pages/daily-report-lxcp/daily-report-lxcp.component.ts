@@ -24,7 +24,7 @@ import { DEFAULT_TABLE_CONFIG } from '../../tabulator-default.config';
 import * as ExcelJS from 'exceljs';
 import { debounceTime } from 'rxjs/operators';
 import { Subject } from 'rxjs';
-import { DailyReportHrDetailComponent } from '../DailyReportTech/daily-report-hr-detail/daily-report-hr-detail.component';
+import { DailyReportLxDetailComponent } from './daily-report-lx-detail/daily-report-lx-detail.component';
 
 @Component({
   selector: 'app-daily-report-hr',
@@ -44,10 +44,10 @@ import { DailyReportHrDetailComponent } from '../DailyReportTech/daily-report-hr
     NzModalModule,
     NzDropDownModule,
   ],
-  templateUrl: './daily-report-thr.component.html',
-  styleUrl: './daily-report-thr.component.css'
+  templateUrl: './daily-report-lxcp.component.html',
+  styleUrl: './daily-report-lxcp.component.css'
 })
-export class DailyReportThrComponent implements OnInit, AfterViewInit {
+export class DailyReportLXCPComponent implements OnInit, AfterViewInit {
   @ViewChild('tb_daily_report_hr', { static: false })
   tb_daily_report_hrContainer!: ElementRef;
 
@@ -95,13 +95,13 @@ export class DailyReportThrComponent implements OnInit, AfterViewInit {
     // Kiểm tra nếu là mobile thì ẩn filter bar, desktop thì hiển thị
     const isMobile = window.innerWidth <= 768;
     this.showSearchBar = !isMobile;
-    
     // Load theo thứ tự: getCurrentUser -> loadDepartments -> set departmentId -> loadTeams -> loadUsers -> getDailyReportHrData
     this.getCurrentUser();
   }
 
   ngAfterViewInit(): void {
-    this.drawTbDailyReportHr(this.tb_daily_report_hrContainer.nativeElement);
+    // Không vẽ bảng ở đây, đợi currentUser load xong mới vẽ
+    // Bảng sẽ được vẽ trong getCurrentUser() sau khi có dữ liệu user
   }
 
   getCurrentUser(): void {
@@ -109,99 +109,34 @@ export class DailyReportThrComponent implements OnInit, AfterViewInit {
       if (res && res.status === 1 && res.data) {
         const data = Array.isArray(res.data) ? res.data[0] : res.data;
         this.currentUser = data;
-        
-        // Load departments trước, sau đó set departmentId và load các bộ lọc khác
-        this.loadDepartments(() => {
-          // Set departmentId từ currentUser.DepartmentID sau khi departments đã load xong
-          if(this.currentUser.IsAdmin == true){
-            this.departmentId = 6;
-          }
-          else if(this.currentUser.DepartmentID && this.currentUser.IsAdmin != true){
-            this.departmentId = this.currentUser.DepartmentID;
-          }
-          if (this.currentUser && this.currentUser.DepartmentID && this.currentUser.IsAdmin != true) {
-            this.departmentId = this.currentUser.DepartmentID;
-          }
-          
-          // Load teams và users sau khi đã set departmentId
-          this.loadTeams();
-          this.loadUsers(() => {
-            // Set userId sau khi users đã load xong
-            if (this.currentUser) {
-              if(this.currentUser.IsLeader > 1 || this.currentUser.IsAdmin == true){
-                this.userId = 0
-              }
-              else if (this.currentUser.ID  && this.currentUser.IsAdmin != true) {
-                this.setUserIdFromEmployeeID(this.currentUser.ID);
-              } else if (this.currentUser.EmployeeID && this.currentUser.IsAdmin != true) {
-                this.setUserIdFromEmployeeID(this.currentUser.EmployeeID);
-              }
+        this.loadUsers(() => {
+          // Set userId sau khi users đã load xong
+          if (this.currentUser) {
+            if (this.currentUser.ID) {
+              this.setUserIdFromEmployeeID(this.currentUser.ID);
+            } else if (this.currentUser.EmployeeID) {
+              this.setUserIdFromEmployeeID(this.currentUser.EmployeeID);
             } else {
               this.userId = 0;
             }
-            
-            // Load data bảng sau khi tất cả các bộ lọc đã sẵn sàng
-            if (this.tb_daily_report_hr) {
-              this.getDailyReportHrData();
-            }
-          });
+          } else {
+            this.userId = 0;
+          }
         });
-      } else {
-        this.userId = 0;
-        // Vẫn load departments và các bộ lọc khác
-        this.loadDepartments(() => {
-          this.loadTeams();
-          this.loadUsers(() => {
-            if (this.tb_daily_report_hr) {
-              this.getDailyReportHrData();
-            }
-          });
-        });
+      }
+
+      
+      // Sau khi có currentUser (hoặc không có), vẽ bảng và load data
+      if (this.tb_daily_report_hrContainer?.nativeElement) {
+        this.drawTbDailyReportHr(this.tb_daily_report_hrContainer.nativeElement);
+        this.getDailyReportHrData();
       }
     });
   }
 
-  loadDepartments(callback?: () => void): void {
-    this.departmentService.getDepartments().subscribe({
-      next: (response: any) => {
-        this.departments = response.data || [];
-        if (callback) {
-          callback();
-        }
-      },
-      error: (error) => {
-        console.error('Error loading departments:', error);
-        this.departments = [];
-        if (callback) {
-          callback();
-        }
-      },
-    });
-  }
-
-  loadTeams(): void {
-    if (this.departmentId > 0) {
-      this.teamService.getTeams(this.departmentId).subscribe({
-        next: (response: any) => {
-          this.teams = [
-            { ID: 0, Name: 'Tất cả' },
-            ...(response.data || [])
-          ];
-        },
-        error: (error) => {
-          console.error('Error loading teams:', error);
-          this.teams = [{ ID: 0, Name: 'Tất cả' }];
-        },
-      });
-    } else {
-      this.teams = [{ ID: 0, Name: 'Tất cả' }];
-      this.teamId = 0;
-    }
-  }
-
   loadUsers(callback?: () => void): void {
-    const userTeamID = this.teamId > 0 ? this.teamId : undefined;
-    const departmentid = this.departmentId > 0 ? this.departmentId : undefined;
+    const userTeamID = this.teamId > 0 ? this.teamId : 0;
+    const departmentid = this.departmentId > 0 ? this.departmentId : 0;
     
     this.dailyReportTechService.getEmployees(userTeamID, departmentid).subscribe({
       next: (response: any) => {
@@ -271,16 +206,6 @@ export class DailyReportThrComponent implements OnInit, AfterViewInit {
     this.userId = 0;
   }
 
-  onDepartmentChange(): void {
-    this.teamId = 0;
-    this.loadTeams();
-    this.loadUsers();
-  }
-
-  onTeamChange(): void {
-    this.loadUsers();
-  }
-
   toggleSearchPanel(): void {
     this.sizeSearch = this.sizeSearch == '0' ? '22%' : '0';
   }
@@ -330,10 +255,10 @@ export class DailyReportThrComponent implements OnInit, AfterViewInit {
   getDailyReportHrData(): void {
     const searchParams = this.getSearchParams();
     
-    this.dailyReportTechService.getDailyReportTech(searchParams).subscribe({
+    this.dailyReportTechService.getDailyReportLXCP(searchParams).subscribe({
       next: (response: any) => {
         if (response && response.status === 1 && response.data) {
-          this.dailyReportHrData = Array.isArray(response.data) ? response.data : [];
+          this.dailyReportHrData = Array.isArray(response.data.hrAll) ? response.data.hrAll : [];
         } else {
           this.dailyReportHrData = [];
         }
@@ -364,15 +289,13 @@ export class DailyReportThrComponent implements OnInit, AfterViewInit {
       }
     });
   }
+ 
 
   setDefaultSearch(): void {
     this.dateStart = DateTime.local().minus({ days: 1 }).set({ hour: 0, minute: 0, second: 0 }).toISO();
     this.dateEnd = DateTime.local().set({ hour: 0, minute: 0, second: 0 }).toISO();
-    this.departmentId = 0;
-    this.teamId = 0;
     this.userId = 0;
     this.keyword = '';
-    this.loadTeams();
     this.searchDailyReports();
   }
 
@@ -407,14 +330,20 @@ export class DailyReportThrComponent implements OnInit, AfterViewInit {
     return {
       dateStart: dateStart.isValid ? dateStart.toFormat('yyyy-MM-dd') : null,
       dateEnd: dateEnd.isValid ? dateEnd.toFormat('yyyy-MM-dd') : null,
-      departmentID: this.departmentId || 0,
-      teamID: this.teamId || 0,
-      userID: userID,
+      //userID: this.currentUser.EmployeeID || 0,
+      employeeID: this.currentUser.EmployeeID || 0,
       keyword: this.keyword.trim() || '',
     };
   }
 
   drawTbDailyReportHr(container: HTMLElement): void {
+    // Xác định columns dựa trên PositionID của currentUser
+    // PositionID == 6: Lái xe -> dùng DAILY_REPORT_LX_COLUMNS
+    // Ngược lại: Cắt phim -> dùng DAILY_REPORT_CP_COLUMNS
+    const columns = this.currentUser?.PositionID == 6 
+      ? this.DAILY_REPORT_LX_COLUMNS 
+      : this.DAILY_REPORT_CP_COLUMNS;
+
     if (this.tb_daily_report_hr) {
       this.tb_daily_report_hr.setData(this.dailyReportHrData);
     } else {
@@ -426,130 +355,156 @@ export class DailyReportThrComponent implements OnInit, AfterViewInit {
         selectableRows: 1,
         height: '87vh',
         paginationMode: 'local',
-        columns: [
-          // {
-          //   title: '',
-          //   field: 'ID',
-          //   width: 100,
-          //   formatter: (cell: any) => {
-          //     return `
-          //       <button class="btn btn-primary btn-sm me-1 btn-edit-row" title="Sửa">
-          //         <i class="fas fa-pen"></i>
-          //       </button>
-          //       <button class="btn btn-danger btn-sm btn-delete-row" title="Xóa">
-          //         <i class="fas fa-trash"></i>
-          //       </button>
-          //     `;
-          //   },
-          //   cellClick: (e: any, cell: any) => {
-          //     const row = cell.getRow().getData();
-          //     const id = row.ID || 0;
-          //     const target = e.target as HTMLElement;
-              
-          //     if (target.closest('.btn-edit-row')) {
-          //       this.editDailyReportById(id);
-          //     } else if (target.closest('.btn-delete-row')) {
-          //       this.deleteDailyReportById(id);
-          //     }
-          //   },
-          //   headerSort: false,
-          //   hozAlign: 'center',
-          // },
-          {
-            title: 'Họ tên',
-            field: 'FullName',
-            width: 150,
-            formatter: 'textarea',
-          },
-          {
-            title: 'Chức vụ',
-            field: 'PositionName',
-            width: 150,
-            formatter: 'textarea',
-          },
-          {
-            title: 'Ngày báo cáo',
-            field: 'DateReport',
-            formatter: (cell: any) => {
-              const value = cell.getValue() || '';
-              const dateTime = DateTime.fromISO(value);
-              return dateTime.isValid ? dateTime.toFormat('dd/MM/yyyy') : '';
-            },
-            hozAlign: 'center',
-            width: 120,
-          },
-          // {
-          //   title: 'Tổng giờ',
-          //   field: 'TotalHours',
-          //   hozAlign: 'right',
-          //   width: 80,
-          //   headerSort: false,
-          // },
-          {
-            title: 'Nội dung',
-            field: 'Content',
-            width: 300,
-            formatter: 'textarea',
-          },
-          {
-            title: 'Kết quả',
-            field: 'Results',
-            width: 300,
-            formatter: 'textarea',
-          },
-          {
-            title: 'Kế hoạch ngày tiếp theo',
-            field: 'PlanNextDay',
-            width: 300,
-            formatter: 'textarea',
-          },
-          {
-            title: 'Tồn đọng',
-            field: 'Backlog',
-            width: 300,
-            formatter: 'textarea',
-          },
-          {
-            title: 'Vấn đề phát sinh',
-            field: 'Problem',
-            width: 300,
-            formatter: 'textarea',
-          },
-          {
-            title: 'Giải pháp',
-            field: 'ProblemSolve',
-            width: 300,
-            formatter: 'textarea',
-          },
-          {
-            title: 'Lý do tồn đọng',
-            field: 'BacklogReason',
-            width: 300,
-            formatter: 'textarea',
-          },
-          {
-            title: 'Ngày tạo',
-            field: 'CreatedDate',
-            formatter: (cell: any) => {
-              const value = cell.getValue() || '';
-              const dateTime = DateTime.fromISO(value);
-              return dateTime.isValid ? dateTime.toFormat('dd/MM/yyyy HH:mm:ss') : '';
-            },
-            hozAlign: 'center',
-            width: 150,
-          },
-        ],
+        columns: columns,
       });
     }
   }
+  //#region columns cho báo cáo lái xe
+  private readonly DAILY_REPORT_LX_COLUMNS: any[] = [
+    {
+      title: 'Họ tên',
+      field: 'FullName',
+      width: 150,
+      formatter: 'textarea',
+    },
+    {
+      title: 'Ngày báo cáo',
+      field: 'DateReport',
+      hozAlign: 'center',
+      width: 120,
+      formatter: (cell: any) => {
+        const value = cell.getValue() || '';
+        const dateTime = DateTime.fromISO(value);
+        return dateTime.isValid ? dateTime.toFormat('dd/MM/yyyy') : '';
+      },
+    },
+    {
+      title: 'Số Km',
+      field: 'KmNumber',
+      width: 100,
+      formatter: 'textarea',
+      headerHozAlign: 'center',
+      hozAlign: 'right',
+    },
+    {
+      title: 'Số cuốc muộn so với Lịch',
+      field: 'TotalLate',
+      width: 120,
+      formatter: 'textarea',
+      headerHozAlign: 'center',
+      hozAlign: 'right',
+    },
+    {
+      title: 'Số phút muộn',
+      field: 'TotalTimeLate',
+      width: 100,
+      formatter: 'textarea',
+      headerHozAlign: 'center',
+      hozAlign: 'right',
+    },
+    {
+      title: 'Lý do muộn',
+      field: 'ReasonLate',
+      width: 200,
+      formatter: 'textarea',
+      headerHozAlign: 'center',
+      hozAlign: 'left',
+    },
+    {
+      title: 'Tình trạng xe',
+      field: 'StatusVehicle',
+      formatter: 'textarea',
+      headerHozAlign: 'center',
+      hozAlign: 'left',
+    },
+    {
+      title: 'Kiến nghị / Đề xuất',
+      field: 'Propose',
+      formatter: 'textarea',
+      headerHozAlign: 'center',
+      hozAlign: 'left',
+    },
+  ];
+  //#endregion
+
+  //#region columns cho báo cáo cắt phim
+  private readonly DAILY_REPORT_CP_COLUMNS: any[] = [
+    {
+      title: 'Họ tên',
+      field: 'FullName',
+      width: 150,
+      formatter: 'textarea',
+    },
+    {
+      title: 'Ngày báo cáo',
+      field: 'DateReport',
+      hozAlign: 'center',
+      width: 120,
+      formatter: (cell: any) => {
+        const value = cell.getValue() || '';
+        const dateTime = DateTime.fromISO(value);
+        return dateTime.isValid ? dateTime.toFormat('dd/MM/yyyy') : '';
+      },
+    },
+    {
+      title: 'Đầu mục',
+      field: 'FilmName',
+      width: 300,
+      formatter: 'textarea',
+    },
+    {
+      title: 'Nội dung công việc',
+      field: 'WorkContent',
+      width: 300,
+      formatter: 'textarea',
+    },
+    {
+      title: 'DVT',
+      field: 'UnitName',
+      width: 300,
+      formatter: 'textarea',
+    },
+    {
+      title: 'Năng suất trung bình(phút/đơn vị sản phẩm)',
+      field: 'PerformanceAVG',
+      width: 300,
+      formatter: 'textarea',
+    },
+    {
+      title: 'Kết quả thực hiện',
+      field: 'Quantity',
+      width: 300,
+      formatter: 'textarea',
+    },
+    {
+      title: 'Thời gian thực hiện(Phút)',
+      field: 'TimeActual',
+      width: 300,
+      formatter: 'textarea',
+    },
+    {
+      title: 'Năng suất thực tế (Phút) / Đơn vị sản phẩm)',
+      field: 'PerformanceActual',
+      width: 300,
+      formatter: 'textarea',
+    },
+    {
+      title: 'Năng suất trung bình / Năng suất thực tế',
+      field: 'Percentage',
+      width: 300,
+      formatter: 'textarea',
+    },
+  ];
+  
+  //#endregion
 
   editDailyReportById(id: number): void {
-    const modalRef = this.modalService.open(DailyReportHrDetailComponent, {
+    const modalRef = this.modalService.open(DailyReportLxDetailComponent, {
       size: 'xl',
       backdrop: 'static',
       keyboard: true,
       centered: false,
-      windowClass: 'daily-report-hr-modal'
+      windowClass: 'daily-report-lxcp-modal'
     });
 
     modalRef.componentInstance.mode = 'edit';
@@ -598,12 +553,12 @@ export class DailyReportThrComponent implements OnInit, AfterViewInit {
 
   // Header actions
   addDailyReport(): void {
-    const modalRef = this.modalService.open(DailyReportHrDetailComponent, {
+    const modalRef = this.modalService.open(DailyReportLxDetailComponent, {
       size: 'xl',
       backdrop: 'static',
       keyboard: true,
       centered: false,
-      windowClass: 'daily-report-hr-modal'
+      windowClass: 'daily-report-lxcp-modal'
     });
 
     modalRef.componentInstance.mode = 'add';
@@ -636,12 +591,12 @@ export class DailyReportThrComponent implements OnInit, AfterViewInit {
       return;
     }
 
-    const modalRef = this.modalService.open(DailyReportHrDetailComponent, {
+    const modalRef = this.modalService.open(DailyReportLxDetailComponent, {
       size: 'xl',
       backdrop: 'static',
       keyboard: true,
       centered: false,
-      windowClass: 'daily-report-hr-modal'
+      windowClass: 'daily-report-lxcp-modal'
     });
 
     modalRef.componentInstance.mode = 'edit';

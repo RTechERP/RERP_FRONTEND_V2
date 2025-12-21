@@ -111,8 +111,8 @@ export class JobRequirementComponent implements OnInit, AfterViewInit {
       ApprovedTBPID: 0,
       Step: 0,
       Request: '',
-      DateStart: new Date(new Date().setFullYear(new Date().getFullYear() - 1)),
-      DateEnd: new Date(),
+      DateStart: new Date(new Date().getFullYear(), new Date().getMonth(), 1), // Đầu tháng hiện tại
+      DateEnd: new Date(new Date().getFullYear(), new Date().getMonth() + 1, 0), // Cuối tháng hiện tại
     };
   
     JobrequirementData: any[] = [];
@@ -181,13 +181,13 @@ export class JobRequirementComponent implements OnInit, AfterViewInit {
   
       switch (numStatus) {
         case 0:
-          return '<span class="badge bg-warning text-dark" style="display: inline-block; text-align: center;">Chưa duyệt</span>';
+          return '<span class="badge bg-warning text-dark" style="display: inline-block; text-align: center; font-size: 10px !important; padding: 2px 6px !important;">Chưa duyệt</span>';
         case 1:
-          return '<span class="badge bg-success" style="display: inline-block; text-align: center;">Đã duyệt</span>';
+          return '<span class="badge bg-success" style="display: inline-block; text-align: center; font-size: 10px !important; padding: 2px 6px !important;">Đã duyệt</span>';
         case 2:
-          return '<span class="badge bg-danger" style="display: inline-block; text-align: center;">Không duyệt</span>';
+          return '<span class="badge bg-danger" style="display: inline-block; text-align: center; font-size: 10px !important; padding: 2px 6px !important;">Không duyệt</span>';
         default:
-          return '<span class="badge bg-secondary" style="display: inline-block; text-align: center;">Không xác định</span>';
+          return '<span class="badge bg-secondary" style="display: inline-block; text-align: center; font-size: 10px !important; padding: 2px 6px !important;">Không xác định</span>';
       }
     }
   
@@ -209,9 +209,7 @@ export class JobRequirementComponent implements OnInit, AfterViewInit {
               ? this.JobrequirementData[0].ID
               : 0;
           if (this.JobrequirementID) {
-            this.getJobrequirementbyID(this.JobrequirementID);
-            this.getJobrequirementFilebyID(this.JobrequirementID);
-            this.getJobrequirementApprovedbyID(this.JobrequirementID);
+            this.getJobrequirementDetails(this.JobrequirementID);
           }
         } else {
           this.draw_JobrequirementTable();
@@ -219,36 +217,32 @@ export class JobRequirementComponent implements OnInit, AfterViewInit {
       });
     }
   
-    getJobrequirementbyID(id: number) {
+    /**
+     * Gọi API một lần để lấy tất cả dữ liệu: details, files, approves
+     */
+    getJobrequirementDetails(id: number) {
       this.JobRequirementService.getJobrequirementbyID(id).subscribe(
         (response: any) => {
-          this.JobrequirementDetailData = response.data.details || [];
+          const data = response.data || {};
+          
+          // Cập nhật details
+          this.JobrequirementDetailData = data.details || [];
           if (this.JobrequirementDetailTable) {
             this.JobrequirementDetailTable.setData(this.JobrequirementDetailData);
           } else {
             this.draw_JobrequirementDetailTable();
           }
-        }
-      );
-    }
-  
-    getJobrequirementFilebyID(id: number) {
-      this.JobRequirementService.getJobrequirementbyID(id).subscribe(
-        (response: any) => {
-          this.JobrequirementFileData = response.data.files || [];
+          
+          // Cập nhật files
+          this.JobrequirementFileData = data.files || [];
           if (this.JobrequirementFileTable) {
             this.JobrequirementFileTable.setData(this.JobrequirementFileData);
           } else {
             this.draw_JobrequirementFileTable();
           }
-        }
-      );
-    }
-  
-    getJobrequirementApprovedbyID(id: number) {
-      this.JobRequirementService.getJobrequirementbyID(id).subscribe(
-        (response: any) => {
-          this.JobrequirementApprovedData = response.data.approves || [];
+          
+          // Cập nhật approves
+          this.JobrequirementApprovedData = data.approves || [];
           if (this.JobrequirementApprovedTable) {
             this.JobrequirementApprovedTable.setData(
               this.JobrequirementApprovedData
@@ -376,7 +370,26 @@ export class JobRequirementComponent implements OnInit, AfterViewInit {
       }
   
       const selected = this.JobrequirementTable?.getSelectedData() || [];
+      if (selected.length === 0) {
+        this.notification.warning(
+          NOTIFICATION_TITLE.warning,
+          'Vui lòng chọn 1 bản ghi để sửa!'
+        );
+        return;
+      }
+      
       const rowData = { ...selected[0] };
+      // Lấy ID từ row được chọn
+      const jobRequirementID = rowData?.ID || 0;
+      
+      if (!jobRequirementID || jobRequirementID <= 0) {
+        this.notification.warning(
+          NOTIFICATION_TITLE.warning,
+          'Không tìm thấy ID của bản ghi!'
+        );
+        return;
+      }
+      
       const modalRef = this.modalService.open(JobRequirementFormComponent, {
         size: 'xl',
         backdrop: 'static',
@@ -384,7 +397,7 @@ export class JobRequirementComponent implements OnInit, AfterViewInit {
         centered: true,
       });
       modalRef.componentInstance.isCheckmode = this.isCheckmode;
-      modalRef.componentInstance.JobrequirementID = this.JobrequirementID;
+      modalRef.componentInstance.JobRequirementID = jobRequirementID;
       modalRef.componentInstance.dataInput = rowData;
   
       modalRef.result
@@ -585,9 +598,7 @@ export class JobRequirementComponent implements OnInit, AfterViewInit {
             const rowData = row.getData();
             const mouseEvent = e as MouseEvent;
             const jobRequirementID = rowData['ID'];
-            this.getJobrequirementbyID(jobRequirementID);
-            this.getJobrequirementFilebyID(jobRequirementID);
-            this.getJobrequirementApprovedbyID(jobRequirementID);
+            this.getJobrequirementDetails(jobRequirementID);
             
             // Kiểm tra trạng thái duyệt HCNS khi click row
             if (jobRequirementID) {
@@ -614,6 +625,25 @@ export class JobRequirementComponent implements OnInit, AfterViewInit {
             this.data = []; // Reset data
           }
         });
+
+        // Set font-size 12px cho bảng và 10px cho badge
+        setTimeout(() => {
+          const tableElement = this.tableRef1.nativeElement;
+          if (tableElement) {
+            tableElement.style.fontSize = '12px';
+            const allElements = tableElement.querySelectorAll('*');
+            allElements.forEach((el: any) => {
+              if (el.style) {
+                if (el.classList && el.classList.contains('badge')) {
+                  el.style.fontSize = '10px';
+                  el.style.padding = '2px 6px';
+                } else {
+                  el.style.fontSize = '12px';
+                }
+              }
+            });
+          }
+        }, 200);
       }
     }
   
@@ -662,6 +692,20 @@ export class JobRequirementComponent implements OnInit, AfterViewInit {
             ],
           }
         );
+
+        // Set font-size 12px cho bảng
+        setTimeout(() => {
+          const tableElement = this.tableRef2.nativeElement;
+          if (tableElement) {
+            tableElement.style.fontSize = '12px';
+            const allElements = tableElement.querySelectorAll('*');
+            allElements.forEach((el: any) => {
+              if (el.style) {
+                el.style.fontSize = '12px';
+              }
+            });
+          }
+        }, 200);
       }
     }
   
@@ -679,12 +723,7 @@ export class JobRequirementComponent implements OnInit, AfterViewInit {
             layout: 'fitDataStretch',
             paginationMode: 'local',
             columns: [
-              {
-                title: 'STT',
-                hozAlign: 'center',
-                headerHozAlign: 'center',
-                field: 'STT',
-              },
+             
               {
                 title: 'File đính kèm',
                 field: 'FileName',
@@ -693,6 +732,20 @@ export class JobRequirementComponent implements OnInit, AfterViewInit {
             ],
           }
         );
+
+        // Set font-size 12px cho bảng
+        setTimeout(() => {
+          const tableElement = this.tableRef3.nativeElement;
+          if (tableElement) {
+            tableElement.style.fontSize = '12px';
+            const allElements = tableElement.querySelectorAll('*');
+            allElements.forEach((el: any) => {
+              if (el.style) {
+                el.style.fontSize = '12px';
+              }
+            });
+          }
+        }, 200);
       }
     }
   
@@ -712,12 +765,7 @@ export class JobRequirementComponent implements OnInit, AfterViewInit {
             layout: 'fitDataStretch',
             paginationMode: 'local',
             columns: [
-              {
-                title: 'STT',
-                hozAlign: 'center',
-                headerHozAlign: 'center',
-                field: 'STT',
-              },
+              
               {
                 title: 'Bước',
                 field: 'Step',
@@ -733,17 +781,17 @@ export class JobRequirementComponent implements OnInit, AfterViewInit {
                 field: 'DateApproved',
                 hozAlign: 'left',
                 headerHozAlign: 'center',
-                width: 200,
+                width: 150,
                 formatter: (cell: any) => {
                   const value = cell.getValue();
                   return value
-                    ? DateTime.fromISO(value).toFormat('dd/MM/yyyy')
+                    ? DateTime.fromISO(value).toFormat('dd/MM/yyyy HH:mm')
                     : '';
                 },
               },
               {
                 title: 'Trạng thái',
-                field: 'ApprovedText',
+                field: 'IsApprovedText',
                 headerHozAlign: 'center',
               },
               {
@@ -764,6 +812,20 @@ export class JobRequirementComponent implements OnInit, AfterViewInit {
             ],
           }
         );
+
+        // Set font-size 12px cho bảng
+        setTimeout(() => {
+          const tableElement = this.tableRef4.nativeElement;
+          if (tableElement) {
+            tableElement.style.fontSize = '12px';
+            const allElements = tableElement.querySelectorAll('*');
+            allElements.forEach((el: any) => {
+              if (el.style) {
+                el.style.fontSize = '12px';
+              }
+            });
+          }
+        }, 200);
       }
     }
 }

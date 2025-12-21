@@ -1,0 +1,57 @@
+/* Set font-size 12px cho tất cả các bảng Tabulator (trừ badge) */
+#JobrequirementTable,
+#JobrequirementTable *:not(.badge):not(.badge *),
+#JobrequirementDetailTable,
+#JobrequirementDetailTable *:not(.badge):not(.badge *),
+#JobrequirementFileTable,
+#JobrequirementFileTable *:not(.badge):not(.badge *),
+#JobrequirementApprovedTable,
+#JobrequirementApprovedTable *:not(.badge):not(.badge *) {
+  font-size: 12px !important;
+}
+
+/* Đảm bảo tất cả text trong bảng đều 12px */
+#JobrequirementTable .tabulator-cell,
+#JobrequirementTable .tabulator-cell-content,
+#JobrequirementTable .tabulator-header,
+#JobrequirementTable .tabulator-col-title,
+#JobrequirementDetailTable .tabulator-cell,
+#JobrequirementDetailTable .tabulator-cell-content,
+#JobrequirementDetailTable .tabulator-header,
+#JobrequirementDetailTable .tabulator-col-title,
+#JobrequirementFileTable .tabulator-cell,
+#JobrequirementFileTable .tabulator-cell-content,
+#JobrequirementFileTable .tabulator-header,
+#JobrequirementFileTable .tabulator-col-title,
+#JobrequirementApprovedTable .tabulator-cell,
+#JobrequirementApprovedTable .tabulator-cell-content,
+#JobrequirementApprovedTable .tabulator-header,
+#JobrequirementApprovedTable .tabulator-col-title {
+  font-size: 12px !important;
+}
+
+/* Set font-size 10px cho các badge duyệt - độ ưu tiên cao nhất */
+#JobrequirementTable .badge,
+#JobrequirementTable .tabulator-cell .badge,
+#JobrequirementTable .tabulator-cell-content .badge,
+#JobrequirementTable .badge span,
+#JobrequirementTable .badge *,
+#JobrequirementDetailTable .badge,
+#JobrequirementDetailTable .tabulator-cell .badge,
+#JobrequirementDetailTable .tabulator-cell-content .badge,
+#JobrequirementDetailTable .badge span,
+#JobrequirementDetailTable .badge *,
+#JobrequirementFileTable .badge,
+#JobrequirementFileTable .tabulator-cell .badge,
+#JobrequirementFileTable .tabulator-cell-content .badge,
+#JobrequirementFileTable .badge span,
+#JobrequirementFileTable .badge *,
+#JobrequirementApprovedTable .badge,
+#JobrequirementApprovedTable .tabulator-cell .badge,
+#JobrequirementApprovedTable .tabulator-cell-content .badge,
+#JobrequirementApprovedTable .badge span,
+#JobrequirementApprovedTable .badge * {
+  font-size: 10px !important;
+  padding: 2px 6px !important;
+  line-height: 1.2 !important;
+}

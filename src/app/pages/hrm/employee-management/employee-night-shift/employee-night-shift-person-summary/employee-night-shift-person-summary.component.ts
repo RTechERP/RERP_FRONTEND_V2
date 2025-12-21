@@ -266,7 +266,7 @@ export class EmployeeNightShiftPersonSummaryComponent implements OnInit, AfterVi
             const value = cell.getValue();
             if (!value) return '';
             try {
-              return DateTime.fromISO(value).toFormat('dd/MM/yyyy');
+              return DateTime.fromISO(value).toFormat('dd/MM/yyyy HH:mm');
             } catch {
               const date = new Date(value);
               return isNaN(date.getTime()) ? '' : DateTime.fromJSDate(date).toFormat('dd/MM/yyyy');
@@ -279,7 +279,7 @@ export class EmployeeNightShiftPersonSummaryComponent implements OnInit, AfterVi
             const value = cell.getValue();
             if (!value) return '';
             try {
-              return DateTime.fromISO(value).toFormat('dd/MM/yyyy');
+              return DateTime.fromISO(value).toFormat('dd/MM/yyyy HH:mm');
             } catch {
               const date = new Date(value);
               return isNaN(date.getTime()) ? '' : DateTime.fromJSDate(date).toFormat('dd/MM/yyyy');

@@ -399,7 +399,7 @@ export class DailyReportHrDetailComponent implements OnInit, AfterViewInit {
         if (response && response.status === 1) {
           this.notification.success('Thông báo', response.message || 'Báo cáo đã được lưu thành công!');
           
-          this.sendEmailAfterSave();
+          //this.sendEmailAfterSave();
           
           this.close(true);
         } else {
@@ -474,7 +474,9 @@ export class DailyReportHrDetailComponent implements OnInit, AfterViewInit {
       return;
     }
 
-    this.openPreviewModal();
+    //this.openPreviewModal();
+    this.submitDailyReport();
+    //this.activeModal.close(true);
   }
 
   close(success: boolean = false): void {

@@ -232,5 +232,16 @@
     z-index: 10;
     background-color: white;
   }
+  ::ng-deep .filter-bar .ant-form-item {
+    margin-bottom: 2px;
+  }
+  
+  ::ng-deep .filter-bar .ant-form-item-label {
+    padding-bottom: 0;
+  }
+  
+  .mobile-filter-form {
+    gap: 4px;
+  }
   
   

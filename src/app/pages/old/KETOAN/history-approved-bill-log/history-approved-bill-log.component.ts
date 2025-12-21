@@ -235,19 +235,19 @@ export class HistoryApprovedBillLogComponent implements OnInit, AfterViewInit{
           title: 'Loại phiếu',
           field: 'BillTypeText',
           sorter: 'string',
-          width: 150,
+          widthGrow: 12,
         },
         {
           title: 'Mã phiếu',
           field: 'BillCode',
           sorter: 'string',
-          width: 150,
+          widthGrow: 15,
         },
         {
           title: 'Ngày tạo phiếu',
           field: 'CreatDate',
           sorter: 'string',
-          width: 150,
+          widthGrow: 12,
           formatter: (cell: any) => {
             const value = cell.getValue();
             if (!value) return '';
@@ -263,19 +263,19 @@ export class HistoryApprovedBillLogComponent implements OnInit, AfterViewInit{
           title: 'Loại kho',
           field: 'WarehouseType',
           sorter: 'string',
-          width: 150,
+          widthGrow: 12,
         },
         {
           title: 'Trạng thái',
           field: 'StatusBillText',
           sorter: 'string',
-          width: 150,
+          widthGrow: 15,
         },
         {
           title: 'Ngày thực hiện',
           field: 'DateStatus',
           sorter: 'date',
-          width: 150,
+          widthGrow: 12,
           formatter: (cell: any) => {
             const value = cell.getValue();
             if (!value) return '';
@@ -291,13 +291,13 @@ export class HistoryApprovedBillLogComponent implements OnInit, AfterViewInit{
           title: 'Người thực hiện',
           field: 'FullName',
           sorter: 'string',
-          width: 150,
+          widthGrow: 13,
         },
         {
           title: 'Kho',
           field: 'WarehouseName',
           sorter: 'string',
-          width: 150,
+          widthGrow: 9,
         },
       ],
     });

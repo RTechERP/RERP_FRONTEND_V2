@@ -70,6 +70,8 @@ import { NOTIFICATION_TITLE } from '../../../app.config';
 import { HasPermissionDirective } from '../../../directives/has-permission.directive';
 import { PoRequestPriceRtcComponent } from '../po-request-price-rtc/po-request-price-rtc.component';
 import { HistoryMoneyComponent } from '../history-money/history-money.component';
+import { ProjectPartlistPriceRequestNewComponent } from '../../purchase/project-partlist-price-request-new/project-partlist-price-request-new.component';
+import { setupTabulatorCellCopy } from '../../../shared/utils/tabulator-cell-copy.util';
 @Component({
   selector: 'app-pokh',
   imports: [
@@ -217,6 +219,8 @@ export class PokhComponent implements OnInit, AfterViewInit {
     this.drawPOKHTable();
     this.initProductTable();
     this.initFileTable();
+    setupTabulatorCellCopy(this.tb_POKHProduct, this.tb_POKHProductElement.nativeElement);
+    setupTabulatorCellCopy(this.tb_POKH, this.tb_POKHElement.nativeElement);
   }
   //#endregion
 
@@ -1294,10 +1298,12 @@ export class PokhComponent implements OnInit, AfterViewInit {
   }
 
   openProjectPartlistPriceRequestNew(): void {
-    this.notification.warning(
-      NOTIFICATION_TITLE.warning,
-      'Chức năng đang phát triển!'
-    );
+    this.modalRef = this.modalService.open(ProjectPartlistPriceRequestNewComponent, {
+      centered: true,
+      windowClass: 'full-screen-modal',
+      backdrop: 'static',
+    });
+    this.modalRef.componentInstance.poKHID = this.selectedId;
   }
 
   openModalViewPOKH() {
@@ -1389,7 +1395,7 @@ export class PokhComponent implements OnInit, AfterViewInit {
       pagination: true,
       paginationMode: 'remote',
       paginationSize: 50,
-      paginationSizeSelector: [10, 30, 50, 100, 300, 500],
+      paginationSizeSelector: [10, 30, 50, 100, 300, 500, 9999999999],
       ajaxURL: this.POKHService.getPOKHAjax(),
       ajaxParams: this.getPOKHAjaxParams(),
       ajaxConfig: {

@@ -194,6 +194,13 @@ export class DailyReportSaleDetailComponent implements OnInit, AfterViewInit {
     if (this.editId > 0) {
       this.isEditMode = true;
       this.loadExistingData();
+    } else {
+      // Nếu thêm mới, tự động set dateStart và dateEnd về hôm nay
+      const today = new Date();
+      this.dailyReportSaleForm.patchValue({
+        dateStart: today,
+        dateEnd: today
+      });
     }
   }
 
@@ -219,7 +226,6 @@ export class DailyReportSaleDetailComponent implements OnInit, AfterViewInit {
             customerId: data.CustomerID || null,
             firmId: data.FirmBaseID || null,
             projectTypeId: data.ProjectTypeBaseID || null,
-            projectStatusId: data.ProjectStatusBaseID || null,
             dateStart: data.DateStart ? new Date(data.DateStart) : null,
             dateEnd: data.DateEnd ? new Date(data.DateEnd) : null,
             groupTypeId: data.GroupType || null,
@@ -231,7 +237,6 @@ export class DailyReportSaleDetailComponent implements OnInit, AfterViewInit {
             planNext: data.PlanNext || '',
             productOfCustomer: data.ProductOfCustomer || '',
           });
-
           // Load contacts và parts trước, sau đó mới set contactId và partId
           if (data.CustomerID) {
             const contactId = data.ContacID || null;
@@ -259,6 +264,8 @@ export class DailyReportSaleDetailComponent implements OnInit, AfterViewInit {
                 });
 
                 this.isLoading = false;
+                // Gọi onProjectChange sau khi isLoading = false để load projectStatusId
+                this.onProjectChange(data.ProjectID || null);
               },
               error: (error) => {
                 console.error('Error loading contacts/parts:', error);
@@ -268,10 +275,14 @@ export class DailyReportSaleDetailComponent implements OnInit, AfterViewInit {
                   partId: partId
                 });
                 this.isLoading = false;
+                // Gọi onProjectChange sau khi isLoading = false để load projectStatusId
+                this.onProjectChange(data.ProjectID || null);
               }
             });
           } else {
             this.isLoading = false;
+            // Gọi onProjectChange sau khi isLoading = false để load projectStatusId
+            this.onProjectChange(data.ProjectID || null);
           }
         } else {
           this.notification.error('Lỗi', response.message || 'Không thể tải dữ liệu');

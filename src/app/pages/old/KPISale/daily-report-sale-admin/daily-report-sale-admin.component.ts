@@ -415,7 +415,7 @@ export class DailyReportSaleAdminComponent implements OnInit, AfterViewInit {
     }
     this.tb_Master = new Tabulator(this.tb_MasterElement.nativeElement, {
       ...DEFAULT_TABLE_CONFIG,
-      layout: 'fitColumns',
+      layout: 'fitDataFill',
       selectableRows: 1,
       height: '100%',
       rowHeader: false,
@@ -456,7 +456,8 @@ export class DailyReportSaleAdminComponent implements OnInit, AfterViewInit {
           title: 'Mã dự án',
           field: 'ProjectCode',
           sorter: 'string',
-          width: 150,
+          minWidth: 150,
+          width: 250,
         },
         {
           title: 'Khách hàng',

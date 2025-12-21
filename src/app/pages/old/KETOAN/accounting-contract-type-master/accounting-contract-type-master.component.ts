@@ -64,6 +64,7 @@ import { NOTIFICATION_TITLE } from '../../../../app.config';
 import { DEFAULT_TABLE_CONFIG } from '../../../../tabulator-default.config';
 import { AccountingContractTypeMasterService } from './accounting-contract-type-master-service/accounting-contract-type-master.service';
 import { AppUserService } from '../../../../services/app-user.service';
+import { AccountingContractTypeMasterDetailComponent } from './accounting-contract-type-master-detail/accounting-contract-type-master-detail.component';
 
 @Component({
   selector: 'app-accounting-contract-type-master',
@@ -107,7 +108,7 @@ export class AccountingContractTypeMasterComponent implements OnInit, AfterViewI
   }
 
   keyword: string = '';
-
+  selectedRow: any;
   constructor(
     private accountingContractTypeMasterService: AccountingContractTypeMasterService,
     private notification: NzNotificationService,
@@ -142,10 +143,70 @@ export class AccountingContractTypeMasterComponent implements OnInit, AfterViewI
   }
 
   onAdd(): void {
+    // Lấy dữ liệu từ bảng
+    const tableData = this.tb_Master?.getData() || [];
+    
+    // Tìm STT lớn nhất
+    let maxSTT = 0;
+    if (tableData.length > 0) {
+      maxSTT = Math.max(...tableData.map((row: any) => row.STT || 0));
+    }
+    
+    // STT mới = STT lớn nhất + 1
+    const newSTT = maxSTT + 1;
 
+    const modalRef = this.modalService.open(AccountingContractTypeMasterDetailComponent, {
+      centered: true,
+      size: 'md',
+      backdrop: 'static',
+      keyboard: false,
+    });
+    
+    modalRef.componentInstance.editData = {
+      ID: 0,
+      TypeCode: '',
+      TypeName: '',
+      STT: newSTT,
+      IsContractValue: false
+    };
+    modalRef.componentInstance.isEditMode = false;
+    
+    modalRef.result.then(
+      (result) => {
+        if (result && result.reloadData) {
+          this.loadData();
+        }
+      },
+      (dismissed) => {
+        console.log('Modal dismissed');
+      }
+    );
   }
 
   onEdit(): void {
+    const selected = this.tb_Master?.getSelectedData();
+    if (!selected || selected.length === 0) {
+      this.notification.warning(NOTIFICATION_TITLE.warning, 'Vui lòng chọn một loại hợp đồng để sửa!');
+      return;
+    }
+    const modalRef = this.modalService.open(AccountingContractTypeMasterDetailComponent, {
+      centered: true,
+      size: 'md',
+      backdrop: 'static',
+      keyboard: false,
+    });
+    modalRef.componentInstance.isEditMode = true;
+    modalRef.componentInstance.editData = this.selectedRow;
+    modalRef.result.then(
+      (result) => {
+        if (result && result.reloadData) {
+          this.loadData();
+        }
+      },
+      (dismissed) => {
+        console.log('Modal dismissed');
+      }
+    );
   }
 
   initTable(): void {
@@ -155,6 +216,8 @@ export class AccountingContractTypeMasterComponent implements OnInit, AfterViewI
     }
     this.tb_Master = new Tabulator(this.tb_MasterElement.nativeElement, {
       ...DEFAULT_TABLE_CONFIG,
+      rowHeader: false,
+      selectableRows: 1,
       layout: 'fitColumns',
       columns: [
         {
@@ -189,6 +252,10 @@ export class AccountingContractTypeMasterComponent implements OnInit, AfterViewI
           },
         },
       ]
+    });
+    this.tb_Master.on('rowClick', (e: any, row: RowComponent) => {
+      const data = row.getData();
+      this.selectedRow = data;
     });
   }
   

@@ -62,6 +62,7 @@ import { HandoverMinutesDetailComponent } from '../handover-minutes-detail/hando
 import { DEFAULT_TABLE_CONFIG } from '../../../tabulator-default.config';
 
 import { EmployeeService } from '../../hrm/employee/employee-service/employee.service';
+import { setupTabulatorCellCopy } from '../../../shared/utils/tabulator-cell-copy.util';
 
 interface GroupedData {
   CustomerName: string;
@@ -1205,7 +1206,6 @@ export class ViewPokhComponent implements OnInit, AfterViewInit {
           });
           this.nestedExportTables.set(data['ID'], exportTable);
 
-          
           // Chọn lại các dòng export đã lưu
           const selectedExportIds = this.selectedExportRowsAll.map(x => x['BillExportDetailID']);
           exportTable.getRows().forEach(row => {
@@ -1302,6 +1302,7 @@ export class ViewPokhComponent implements OnInit, AfterViewInit {
               }
             }
           });
+
         }
 
         // TAB: INVOICE
@@ -1430,6 +1431,9 @@ export class ViewPokhComponent implements OnInit, AfterViewInit {
 
       rowData['selectedExports'] = [];
     });
+
+    setupTabulatorCellCopy(this.viewPOKH, this.viewPOKHTableElement.nativeElement);
+
   }
   //#endregion
 

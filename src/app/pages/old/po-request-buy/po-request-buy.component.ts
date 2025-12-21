@@ -353,33 +353,34 @@ export class PoRequestBuyComponent implements OnInit, AfterViewInit {
         {
           title: 'Mã nội bộ',
           field: 'ProductNewCode',
-          sorter: 'number',
-          width: 100,
+          sorter: 'string',
+          width: 200,
         },
         {
           title: 'Mã sản phẩm',
           field: 'ProductCode',
-          sorter: 'number',
-          width: 100,
+          sorter: 'string',
+          width: 200,
         },
         {
           title: 'Tên sản phẩm',
           field: 'ProductName',
-          sorter: 'number',
-          width: 100,
+          sorter: 'string',
+          formatter: 'textarea',
+          width: 250,
         },
         { title: 'Hãng', field: 'Maker', sorter: 'number', width: 100 },
         {
           title: 'Mã theo khách',
           field: 'GuestCode',
-          sorter: 'number',
-          width: 100,
+          sorter: 'string',
+          width: 150,
         },
         {
           title: 'Mã cha',
           field: 'ParentProductCode',
-          sorter: 'number',
-          width: 100,
+          sorter: 'string',
+          width: 150,
         },
         { title: 'Số lượng PO', field: 'Qty', sorter: 'number', width: 100 },
         {
@@ -462,53 +463,103 @@ export class PoRequestBuyComponent implements OnInit, AfterViewInit {
           title: 'Người nhận',
           field: 'UserReceiver',
           sorter: 'number',
-          width: 100,
+          width: 200,
         },
         {
           title: 'Ngày y/c giao hàng',
           field: 'DeliveryRequestedDate',
           sorter: 'number',
-          width: 100,
+          width: 200,
+          formatter: (cell: any) => {
+            const value = cell.getValue();
+            if (!value) return '';
+            const date = new Date(value);
+            if (isNaN(date.getTime())) return value;
+            const day = String(date.getDate()).padStart(2, '0');
+            const month = String(date.getMonth() + 1).padStart(2, '0');
+            const year = date.getFullYear();
+            return `${day}/${month}/${year}`;
+          },
         },
         {
           title: 'Ngày giao hàng thực tế',
           field: 'ActualDeliveryDate',
           sorter: 'number',
-          width: 100,
+          width: 200,
+          formatter: (cell: any) => {
+            const value = cell.getValue();
+            if (!value) return '';
+            const date = new Date(value);
+            if (isNaN(date.getTime())) return value;
+            const day = String(date.getDate()).padStart(2, '0');
+            const month = String(date.getMonth() + 1).padStart(2, '0');
+            const year = date.getFullYear();
+            return `${day}/${month}/${year}`;
+          },
         },
         {
           title: 'Thanh toán dự kiến',
           field: 'EstimatedPay',
           sorter: 'number',
-          width: 100,
+          width: 200,
         },
         {
           title: 'Ngày tiền về',
           field: 'RecivedMoneyDate',
           sorter: 'number',
-          width: 100,
+          width: 200,
+          formatter: (cell: any) => {
+            const value = cell.getValue();
+            if (!value) return '';
+            const date = new Date(value);
+            if (isNaN(date.getTime())) return value;
+            const day = String(date.getDate()).padStart(2, '0');
+            const month = String(date.getMonth() + 1).padStart(2, '0');
+            const year = date.getFullYear();
+            return `${day}/${month}/${year}`;
+          },
         },
         {
           title: 'Ngày hóa đơn',
           field: 'BillDate',
           sorter: 'number',
-          width: 100,
+          width: 200,
+          formatter: (cell: any) => {
+            const value = cell.getValue();
+            if (!value) return '';
+            const date = new Date(value);
+            if (isNaN(date.getTime())) return value;
+            const day = String(date.getDate()).padStart(2, '0');
+            const month = String(date.getMonth() + 1).padStart(2, '0');
+            const year = date.getFullYear();
+            return `${day}/${month}/${year}`;
+          },
         },
         {
           title: 'Số hóa đơn',
           field: 'BillNumber',
           sorter: 'number',
-          width: 100,
+          width: 200,
         },
-        { title: 'Công nợ', field: 'Debt', sorter: 'number', width: 100 },
+        { title: 'Công nợ', field: 'Debt', sorter: 'number', width: 200 },
         {
           title: 'Ngày y/c thanh toán',
           field: 'PayDate',
           sorter: 'number',
-          width: 100,
+          width: 200,
+          formatter: (cell: any) => {
+            const value = cell.getValue();
+            if (!value) return '';
+            const date = new Date(value);
+            if (isNaN(date.getTime())) return value;
+            const day = String(date.getDate()).padStart(2, '0');
+            const month = String(date.getMonth() + 1).padStart(2, '0');
+            const year = date.getFullYear();
+            return `${day}/${month}/${year}`;
+          },
         },
-        { title: 'Nhóm', field: 'GroupPO', sorter: 'number', width: 100 },
-        { title: 'Ghi chú', field: 'Note', sorter: 'number', width: 100 },
+        { title: 'Nhóm', field: 'GroupPO', sorter: 'number', width: 200 },
+        { title: 'Ghi chú', field: 'Note', sorter: 'number', width: 250, formatter: 'textarea' },
       ],
     });
     // Lắng nghe sự kiện rowSelectionChanged để đồng bộ selectedRows

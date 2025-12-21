@@ -12,8 +12,12 @@ export class AccountingContractTypeMasterService {
   loadData(keyword: string): Observable<any> {
     return this.http.get(this._url + 'get-data', {
       params: {
-        keyword: keyword,
+        keywords: keyword,
       },
     });
+  }
+
+  saveData(data: any): Observable<any> {
+    return this.http.post(this._url + 'save-data', data);
   }
 }

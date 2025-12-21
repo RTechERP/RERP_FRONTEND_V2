@@ -880,7 +880,7 @@ export class VehicleBookingManagementDetailComponent implements OnInit {
     const saveNext = () => {
       if (currentIndex >= payloads.length) {
         // Tất cả booking đã được tạo, gửi email
-        // this.sendEmailNotification();
+        this.sendEmailNotification();
         this.notification.success('Thành công', 'Đặt xe thành công');
         this.activeModal.close(true);
         return;
@@ -1001,71 +1001,73 @@ export class VehicleBookingManagementDetailComponent implements OnInit {
     }
   }
 
-  // private sendEmailNotification(): void {
-  //   const categories = [1, 4, 5];
-  //   const employeeAttaches: any[] = [];
+  private sendEmailNotification(): void {
+    const categories = [1, 4, 5];
+    const employeeAttaches: any[] = [];
 
-  //   // Build employee attaches array
-  //   if (categories.includes(this.category)) {
-  //     // For passenger categories (1, 4, 5)
-  //     this.passengers.forEach(passenger => {
-  //       if (passenger.employeeId && passenger.employeeId > 0) {
-  //         employeeAttaches.push({
-  //           PassengerEmployeeId: passenger.employeeId,
-  //           ReceiverEmployeeId: 0
-  //         });
-  //       }
-  //     });
-  //   } else {
-  //     // For attached goods categories (2, 6)
-  //     this.attachedGoods.forEach(goods => {
-  //       if (goods.employeeId && goods.employeeId > 0) {
-  //         employeeAttaches.push({
-  //           PassengerEmployeeId: 0,
-  //           ReceiverEmployeeId: goods.employeeId
-  //         });
-  //       }
-  //     });
-  //   }
+    // Build employee attaches array
+    if (categories.includes(this.category)) {
+      // For passenger categories (1, 4, 5)
+      this.passengers.forEach(passenger => {
+        if (passenger.employeeId && passenger.employeeId > 0) {
+          employeeAttaches.push({
+            PassengerEmployeeId: passenger.employeeId,
+            ReceiverEmployeeId: 0
+          });
+        }
+      });
+    } else {
+      // For attached goods categories (2, 6, 7, 8) - use ReceiverEmployeeID
+      this.attachedGoods.forEach(goods => {
+        if (goods.employeeId && goods.employeeId > 0) {
+          employeeAttaches.push({
+            PassengerEmployeeId: 0,
+            ReceiverEmployeeId: goods.employeeId
+          });
+        }
+      });
+    }
 
-  //   // Get category text
-  //   const categoryTextMap: { [key: number]: string } = {
-  //     1: 'Đăng ký đi',
-  //     2: 'Đăng ký giao hàng',
-  //     3: 'Xếp xe về',
-  //     4: 'Chủ động phương tiện',
-  //     5: 'Đăng ký về',
-  //     6: 'Đăng ký lấy hàng'
-  //   };
-  //   const categoryText = categoryTextMap[this.category] || '';
+    // Get category text - updated with all categories
+    const categoryTextMap: { [key: number]: string } = {
+      1: 'Đăng ký đi',
+      2: 'Đăng ký giao hàng thương mại',
+      3: 'Xếp xe về',
+      4: 'Chủ động phương tiện',
+      5: 'Đăng ký về',
+      6: 'Đăng ký lấy hàng thương mại',
+      7: 'Đăng ký lấy hàng Demo/triển Lãm',
+      8: 'Đăng ký giao hàng Demo/triển lãm'
+    };
+    const categoryText = categoryTextMap[this.category] || '';
 
-  //   // Build email payload
-  //   const emailPayload = {
-  //     Category: this.category,
-  //     CategoryText: categoryText,
-  //     ApprovedTbp: this.isProblem ? this.approvedTbp : 0,
-  //     DepartureDate: this.formatDateTime(this.departureDate),
-  //     DepartureAddress: this.departureAddress,
-  //     TimeNeedPresent: this.formatDateTime(this.timeNeedPresent),
-  //     SpecificDestinationAddress: this.specificDestinationAddress,
-  //     EmployeeAttaches: employeeAttaches
-  //   };
+    // Build email payload
+    const emailPayload = {
+      Category: this.category,
+      CategoryText: categoryText,
+      ApprovedTBP: this.isProblem ? this.approvedTbp : 0,
+      DepartureDate: this.formatDateTime(this.departureDate),
+      DepartureAddress: this.departureAddress,
+      TimeNeedPresent: this.formatDateTime(this.timeNeedPresent),
+      SpecificDestinationAddress: this.specificDestinationAddress,
+      EmployeeAttaches: employeeAttaches
+    };
 
-  //   // Send email
-  //   this.vehicleBookingService.sendEmail(emailPayload).subscribe({
-  //     next: (result: any) => {
-  //       if (result && (result.status == 1 || result.Status == 1)) {
-  //         console.log('Email sent successfully');
-  //       } else {
-  //         console.warn('Email sending warning:', result?.message || result?.Message);
-  //       }
-  //     },
-  //     error: (err) => {
-  //       console.error('Error sending email:', err);
-  //       // Không hiển thị lỗi cho user vì booking đã thành công
-  //     }
-  //   });
-  // }
+    // Send email
+    this.vehicleBookingService.sendEmail(emailPayload).subscribe({
+      next: (result: any) => {
+        if (result && (result.status == 1 || result.Status == 1)) {
+          console.log('Email sent successfully');
+        } else {
+          console.warn('Email sending warning:', result?.message || result?.Message);
+        }
+      },
+      error: (err) => {
+        console.error('Error sending email:', err);
+        // Không hiển thị lỗi cho user vì booking đã thành công
+      }
+    });
+  }
 
   cancel(): void {
     this.activeModal.dismiss();

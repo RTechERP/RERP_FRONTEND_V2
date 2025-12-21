@@ -3180,12 +3180,11 @@ export class ProjectPartListComponent implements OnInit, AfterViewInit {
   private textWithTooltipFormatter = (cell: any): HTMLElement => {
     const value = cell.getValue();
     const div = document.createElement('div');
-    
+  
     if (!value || value.trim() === '') {
       return div;
     }
-    
-    // Style cho div: giới hạn 3 dòng với ellipsis
+  
     div.style.cssText = `
       display: -webkit-box;
       -webkit-line-clamp: 3;
@@ -3193,29 +3192,23 @@ export class ProjectPartListComponent implements OnInit, AfterViewInit {
       overflow: hidden;
       text-overflow: ellipsis;
       white-space: pre-wrap;
-      word-wrap: break-word;
-      line-height: 1.4;
-      max-height: calc(1.4em * 3);
+      word-break: break-word;
+      line-height: 1.4em;
       cursor: text;
     `;
-    
-    // Chuyển đổi URLs thành links
-    const linkedText = this.linkifyText(value);
-    div.innerHTML = linkedText;
-    
-    // Thêm title attribute để hiển thị tooltip với text gốc (không có HTML)
+  
+    div.innerHTML = this.linkifyText(value);
     div.title = value;
-    
-    // Cho phép click vào links mà không trigger row selection
+  
     div.addEventListener('click', (e: MouseEvent) => {
-      const target = e.target as HTMLElement;
-      if (target.tagName === 'A') {
-        e.stopPropagation(); // Ngăn không cho event bubble lên row
+      if ((e.target as HTMLElement).tagName === 'A') {
+        e.stopPropagation();
       }
     });
-    
+  
     return div;
   };
+  
   
   /**
    * Chuyển đổi URLs trong text thành clickable links

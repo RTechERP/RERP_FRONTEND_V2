@@ -84,6 +84,101 @@ export class ProjectListWorkReportComponent implements OnInit, AfterViewInit {
     this.getProject();
   }
 
+  //#region Chuyển đổi URLs thành clickable links
+  /**
+   * Chuyển đổi URLs trong text thành clickable links
+   * @param text - Text có thể chứa URLs
+   * @returns HTML string với URLs được chuyển thành <a> tags
+   */
+  private linkifyText(text: string): string {
+    // Regex pattern để match URLs (http, https, ftp, www)
+    const urlPattern = /(https?:\/\/[^\s]+)|(www\.[^\s]+)|([a-zA-Z0-9][a-zA-Z0-9-]+\.[a-zA-Z]{2,}[^\s]*)/gi;
+    
+    // Escape HTML để tránh XSS
+    const escapeHtml = (str: string): string => {
+      const div = document.createElement('div');
+      div.textContent = str;
+      return div.innerHTML;
+    };
+    
+    // Split text thành các phần (text và URLs)
+    const parts: string[] = [];
+    let lastIndex = 0;
+    let match: RegExpExecArray | null;
+    
+    // Reset regex
+    urlPattern.lastIndex = 0;
+    
+    while ((match = urlPattern.exec(text)) !== null) {
+      // Thêm text trước URL
+      if (match.index > lastIndex) {
+        parts.push(escapeHtml(text.substring(lastIndex, match.index)));
+      }
+      
+      // Xử lý URL
+      let url = match[0];
+      let href = url;
+      
+      // Thêm protocol nếu chưa có
+      if (!url.match(/^https?:\/\//i)) {
+        href = 'http://' + url;
+      }
+      
+      // Tạo link với target="_blank" để mở tab mới
+      parts.push(`<a href="${escapeHtml(href)}" target="_blank" rel="noopener noreferrer" style="color: #0066cc; text-decoration: underline; cursor: pointer;">${escapeHtml(url)}</a>`);
+      
+      lastIndex = match.index + match[0].length;
+    }
+    
+    // Thêm phần text còn lại
+    if (lastIndex < text.length) {
+      parts.push(escapeHtml(text.substring(lastIndex)));
+    }
+    
+    return parts.join('');
+  }
+  //#endregion
+  //#region Formatter cho các cell
+  private textWithTooltipFormatter = (cell: any): HTMLElement => {
+    const value = cell.getValue();
+    const div = document.createElement('div');
+    
+    if (!value || value.trim() === '') {
+      return div;
+    }
+    
+    // Style cho div: giới hạn 5 dòng với ellipsis
+    div.style.cssText = `
+      display: -webkit-box;
+      -webkit-line-clamp: 5;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: pre-wrap;
+      word-wrap: break-word;
+      line-height: 1.4;
+      max-height: calc(1.4em * 5);
+      cursor: text;
+    `;
+    
+    // Chuyển đổi URLs thành links
+    const linkedText = this.linkifyText(value);
+    div.innerHTML = linkedText;
+    
+    // Thêm title attribute để hiển thị tooltip với text gốc (không có HTML)
+    div.title = value;
+    
+    // Cho phép click vào links mà không trigger row selection
+    div.addEventListener('click', (e: MouseEvent) => {
+      const target = e.target as HTMLElement;
+      if (target.tagName === 'A') {
+        e.stopPropagation(); // Ngăn không cho event bubble lên row
+      }
+    });
+    
+    return div;
+  };
+  //#endregion
   ngAfterViewInit() {
     // Sử dụng setTimeout để đảm bảo container đã render xong (đặc biệt với modal và splitter)
     setTimeout(() => {
@@ -111,12 +206,11 @@ export class ProjectListWorkReportComponent implements OnInit, AfterViewInit {
         height: '100%',
         pagination: true,
         layout: 'fitDataStretch',
-        locale: 'vi',
         index: 'ID',
         rowHeader: false,
         paginationMode: 'remote',
         paginationSize: 50,
-        paginationSizeSelector: [10, 30, 50, 100, 300, 500],
+        paginationSizeSelector: [10, 30, 50, 100, 300, 500,10000],
         selectableRows: true,
         ajaxURL: 'get-project-list-work-report', // Placeholder URL - ajaxRequestFunc sẽ override
         ajaxConfig: 'GET',
@@ -240,10 +334,7 @@ export class ProjectListWorkReportComponent implements OnInit, AfterViewInit {
           title: 'Nội dung',
           field: 'Content',
           headerHozAlign: 'center',
-          formatter: function (cell, formatterParams, onRendered) {
-            let value = cell.getValue() || '';
-            return value;
-          },
+          formatter: this.textWithTooltipFormatter,
           bottomCalc: 'count',
           bottomCalcFormatter: (cell) => {
             const count = cell.getValue();
@@ -252,11 +343,11 @@ export class ProjectListWorkReportComponent implements OnInit, AfterViewInit {
         },
         {
           title: 'Số giờ',
-          field: 'TimeReality',
+          field: 'TotalHours',
           headerHozAlign: 'center',
           formatter: function (cell, formatterParams, onRendered) {
             let value = cell.getValue() || '';
-            return value;
+            return parseFloat(value).toFixed(2);
           },
           hozAlign: 'right',
           bottomCalc: 'sum',
@@ -295,6 +386,7 @@ export class ProjectListWorkReportComponent implements OnInit, AfterViewInit {
           field: 'Results',
           headerHozAlign: 'center',
           width: 300,
+          formatter: this.textWithTooltipFormatter,
           bottomCalc: (values: any[], data: any[]) => {
             // Tính tổng số giờ từ cột TotalHours
             const totalHours = data.reduce((sum: number, row: any) => {
@@ -327,27 +419,47 @@ export class ProjectListWorkReportComponent implements OnInit, AfterViewInit {
           title: 'Giải pháp',
           field: 'ProblemSolve',
           headerHozAlign: 'center',
-          formatter: function (cell, formatterParams, onRendered) {
-            let value = cell.getValue() || '';
-            return value;
-          },
+          formatter: this.textWithTooltipFormatter,
         },
         {
           title: 'Tồn đọng',
           field: 'Backlog',
           headerHozAlign: 'center',
-          formatter: function (cell, formatterParams, onRendered) {
-            let value = cell.getValue() || '';
-            return value;
-          },
+          formatter: this.textWithTooltipFormatter,
         },
         {
           title: 'Ghi chú',
           field: 'Note',
           headerHozAlign: 'center',
-          formatter: 'textarea'
+          formatter: this.textWithTooltipFormatter,
         },
       ],
+      });
+
+      // Thêm event listener cho cellRendered để cho phép text tự động xuống dòng
+      this.tb_projectListWorkReport.on('cellRendered', (cell: any) => {
+        const cellElement = cell.getElement();
+        if (cellElement) {
+          cellElement.style.whiteSpace = 'pre-wrap';
+          cellElement.style.wordWrap = 'break-word';
+          cellElement.style.wordBreak = 'break-word';
+          cellElement.style.overflowWrap = 'break-word';
+        }
+      });
+
+      // Thêm event listener cho column resize để tự động wrap text khi resize
+      this.tb_projectListWorkReport.on('columnResized', (column: any) => {
+        // Khi resize cột, đảm bảo tất cả các cell trong cột đó có thể wrap text
+        const cells = column.getCells();
+        cells.forEach((cell: any) => {
+          const cellElement = cell.getElement();
+          if (cellElement) {
+            cellElement.style.whiteSpace = 'pre-wrap';
+            cellElement.style.wordWrap = 'break-word';
+            cellElement.style.wordBreak = 'break-word';
+            cellElement.style.overflowWrap = 'break-word';
+          }
+        });
       });
     } catch (error) {
       console.error('Error initializing Tabulator:', error);
@@ -416,7 +528,68 @@ export class ProjectListWorkReportComponent implements OnInit, AfterViewInit {
       this.notification.warning('Thông báo', 'Không có dữ liệu xuất excel!');
       return;
     }
-    this.projectService.exportExcel(table, data, 'Tổng hợp nhân công', 'Tổng hợp nhân công');
+    
+    // Tính toán các giá trị bottom
+    const bottomRow: any = {};
+    const columns = table.getColumns();
+    
+    columns.forEach((col: any) => {
+      const colDef = col.getDefinition();
+      const field = col.getField();
+      
+      if (colDef.bottomCalc) {
+        let calcValue: any = null;
+        
+        if (colDef.bottomCalc === 'count') {
+          calcValue = data.length;
+        } else if (colDef.bottomCalc === 'sum') {
+          calcValue = data.reduce((total: number, row: any) => {
+            const value = parseFloat(row[field]) || 0;
+            return total + (isNaN(value) ? 0 : value);
+          }, 0);
+        } else if (typeof colDef.bottomCalc === 'function') {
+          // Custom bottomCalc function - tính tổng số ngày từ TotalHours
+          if (field === 'Results') {
+            const totalHours = data.reduce((sum: number, row: any) => {
+              const hours = parseFloat(row.TotalHours) || 0;
+              return sum + (isNaN(hours) ? 0 : hours);
+            }, 0);
+            calcValue = totalHours / 8.0;
+          } else {
+            const values = data.map((row: any) => row[field]);
+            calcValue = colDef.bottomCalc(values, data);
+          }
+        }
+        
+        // Áp dụng bottomCalcFormatter nếu có
+        if (colDef.bottomCalcFormatter && calcValue !== null && calcValue !== undefined) {
+          const cell = { getValue: () => calcValue };
+          bottomRow[field] = colDef.bottomCalcFormatter(cell);
+        } else if (calcValue !== null && calcValue !== undefined) {
+          // Nếu không có formatter, format số nếu là số
+          if (typeof calcValue === 'number') {
+            bottomRow[field] = calcValue.toFixed(2);
+          } else {
+            bottomRow[field] = calcValue;
+          }
+        } else {
+          bottomRow[field] = '';
+        }
+      } else {
+        bottomRow[field] = '';
+      }
+    });
+    
+    // Thêm dòng bottom vào data
+    const dataWithBottom = [...data, bottomRow];
+    
+    // Tạo tên file với format: projectCode_ddmmyyyy
+    const today = DateTime.now();
+    const dateStr = today.toFormat('ddMMyyyy');
+    const projectCode = this.projectCode || 'ALL';
+    const fileName = `${projectCode}_${dateStr}`;
+    
+    this.projectService.exportExcel(table, dataWithBottom, 'Danh sách báo cáo công việc', fileName);
   }
   onClose() {
     this.activeModal.close(true); // đóng modal và trả dữ liệu về

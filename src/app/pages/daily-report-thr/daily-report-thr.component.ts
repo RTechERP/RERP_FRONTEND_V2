@@ -16,21 +16,18 @@ import { NgbModal } from '@ng-bootstrap/ng-bootstrap';
 import { TabulatorFull as Tabulator } from 'tabulator-tables';
 import 'tabulator-tables/dist/css/tabulator_simple.min.css';
 import { DateTime } from 'luxon';
-import { DailyReportTechService } from '../DailyReportTechService/daily-report-tech.service';
-import { AuthService } from '../../../auth/auth.service';
-import { DepartmentServiceService } from '../../hrm/department/department-service/department-service.service';
-import { TeamServiceService } from '../../hrm/team/team-service/team-service.service';
-import { ProjectService } from '../../project/project-service/project.service';
-import { DEFAULT_TABLE_CONFIG } from '../../../tabulator-default.config';
+import { DailyReportTechService } from '../DailyReportTech/DailyReportTechService/daily-report-tech.service';
+import { AuthService } from '../../auth/auth.service';
+import { DepartmentServiceService } from '../hrm/department/department-service/department-service.service';
+import { TeamServiceService } from '../hrm/team/team-service/team-service.service';
+import { DEFAULT_TABLE_CONFIG } from '../../tabulator-default.config';
 import * as ExcelJS from 'exceljs';
 import { debounceTime } from 'rxjs/operators';
 import { Subject } from 'rxjs';
-import { DailyReportTechDetailComponent } from './daily-report-tech-detail/daily-report-tech-detail.component';
-import { DailyReportExcelComponent } from '../daily-report-excel/daily-report-excel.component';
+import { DailyReportHrDetailComponent } from '../DailyReportTech/daily-report-hr-detail/daily-report-hr-detail.component';
 
 @Component({
-  selector: 'app-daily-report-tech',
-
+  selector: 'app-daily-report-hr',
   standalone: true,
   imports: [
     CommonModule,
@@ -47,13 +44,12 @@ import { DailyReportExcelComponent } from '../daily-report-excel/daily-report-ex
     NzModalModule,
     NzDropDownModule,
   ],
-  templateUrl: './daily-report-tech.component.html',
-  styleUrl: './daily-report-tech.component.css'
+  templateUrl: './daily-report-thr.component.html',
+  styleUrl: './daily-report-thr.component.css'
 })
-
-export class DailyReportTechComponent implements OnInit, AfterViewInit {
-  @ViewChild('tb_daily_report_tech', { static: false })
-  tb_daily_report_techContainer!: ElementRef;
+export class DailyReportThrComponent implements OnInit, AfterViewInit {
+  @ViewChild('tb_daily_report_hr', { static: false })
+  tb_daily_report_hrContainer!: ElementRef;
 
   private searchSubject = new Subject<string>();
 
@@ -64,7 +60,7 @@ export class DailyReportTechComponent implements OnInit, AfterViewInit {
   // Search filters
   dateStart: any = DateTime.local().minus({ days: 1 }).set({ hour: 0, minute: 0, second: 0 }).toISO();
   dateEnd: any = DateTime.local().set({ hour: 0, minute: 0, second: 0 }).toISO();
-  departmentId: number = 2;
+  departmentId: number = 0;
   teamId: number = 0;
   userId: number = 0;
   keyword: string = '';
@@ -74,21 +70,16 @@ export class DailyReportTechComponent implements OnInit, AfterViewInit {
   teams: any[] = [];
   users: any[] = [];
   currentUser: any = null;
-  dailyReportTechData: any[] = [];
-  projects: any[] = [];
-
-  //data user
-  userData: any = null;
+  dailyReportHrData: any[] = [];
 
   // Table
-  tb_daily_report_tech: any;
+  tb_daily_report_hr: any;
 
   constructor(
     private dailyReportTechService: DailyReportTechService,
     private authService: AuthService,
     private departmentService: DepartmentServiceService,
     private teamService: TeamServiceService,
-    private projectService: ProjectService,
     private notification: NzNotificationService,
     private modalService: NgbModal,
     private nzModal: NzModalService,
@@ -105,40 +96,12 @@ export class DailyReportTechComponent implements OnInit, AfterViewInit {
     const isMobile = window.innerWidth <= 768;
     this.showSearchBar = !isMobile;
     
+    // Load theo thứ tự: getCurrentUser -> loadDepartments -> set departmentId -> loadTeams -> loadUsers -> getDailyReportHrData
     this.getCurrentUser();
-    this.loadDepartments();
-    this.loadUsers();
-    this.loadTeams(); // Load teams khi departmentId = 2
-    this.loadProjects(); // Load projects
-  }
-
-  loadProjects(): void {
-    this.projectService.getProjectModal().subscribe({
-      next: (response: any) => {
-        this.projects = response.data || [];
-      },
-      error: (error: any) => {
-        console.error('Error loading projects:', error);
-        this.projects = [];
-      },
-    });
   }
 
   ngAfterViewInit(): void {
-    // Vẽ table trước với data rỗng (giống summary-of-exam-results)
-    this.drawTbDailyReportTech(this.tb_daily_report_techContainer.nativeElement);
-    
-    // Load dữ liệu sau khi table đã được khởi tạo
-    // getCurrentUser() sẽ tự động gọi getDailyReportTechData() khi hoàn thành
-    // Nếu getCurrentUser() đã hoàn thành trước đó, gọi getDailyReportTechData() ngay
-    setTimeout(() => {
-      // Nếu currentUser đã có sẵn (từ ngOnInit), load ngay
-      // Nếu chưa có, getCurrentUser() sẽ tự động gọi getDailyReportTechData() khi xong
-      if (this.currentUser) {
-        this.getDailyReportTechData();
-      }
-      // Nếu chưa có currentUser, đợi getCurrentUser() callback gọi getDailyReportTechData()
-    }, 100);
+    this.drawTbDailyReportHr(this.tb_daily_report_hrContainer.nativeElement);
   }
 
   getCurrentUser(): void {
@@ -146,45 +109,65 @@ export class DailyReportTechComponent implements OnInit, AfterViewInit {
       if (res && res.status === 1 && res.data) {
         const data = Array.isArray(res.data) ? res.data[0] : res.data;
         this.currentUser = data;
-        // Sau khi có currentUser, nếu users đã được load thì set userId
-        if (this.users.length > 0) {
-          // Thử tìm theo ID trước, nếu không có thì tìm theo EmployeeID
-          if (data.ID) {
-            this.setUserIdFromEmployeeID(data.ID);
-          } else if (data.EmployeeID) {
-            this.setUserIdFromEmployeeID(data.EmployeeID);
-          } else {
-            // Nếu không có ID hoặc EmployeeID, set về "Tất cả"
-            this.userId = 0;
-          }
-        } else {
-          // Nếu users chưa được load, tạm thời set về "Tất cả"
-          // Khi loadUsers() được gọi sau đó, nó sẽ tự động tìm và set lại
-          this.userId = 0;
-        }
         
-        // Sau khi có currentUser, load dữ liệu bảng nếu table đã được khởi tạo
-        if (this.tb_daily_report_tech) {
-          this.getDailyReportTechData();
-        }
+        // Load departments trước, sau đó set departmentId và load các bộ lọc khác
+        this.loadDepartments(() => {
+          // Set departmentId từ currentUser.DepartmentID sau khi departments đã load xong
+          if (this.currentUser && this.currentUser.DepartmentID) {
+            this.departmentId = this.currentUser.DepartmentID;
+          }
+          
+          // Load teams và users sau khi đã set departmentId
+          this.loadTeams();
+          this.loadUsers(() => {
+            // Set userId sau khi users đã load xong
+            if (this.currentUser) {
+              if (this.currentUser.ID) {
+                this.setUserIdFromEmployeeID(this.currentUser.ID);
+              } else if (this.currentUser.EmployeeID) {
+                this.setUserIdFromEmployeeID(this.currentUser.EmployeeID);
+              } else {
+                this.userId = 0;
+              }
+            } else {
+              this.userId = 0;
+            }
+            
+            // Load data bảng sau khi tất cả các bộ lọc đã sẵn sàng
+            if (this.tb_daily_report_hr) {
+              this.getDailyReportHrData();
+            }
+          });
+        });
       } else {
-        // Nếu không có currentUser, set về "Tất cả"
         this.userId = 0;
-        // Vẫn load dữ liệu với currentUser = null
-        if (this.tb_daily_report_tech) {
-          this.getDailyReportTechData();
-        }
+        // Vẫn load departments và các bộ lọc khác
+        this.loadDepartments(() => {
+          this.loadTeams();
+          this.loadUsers(() => {
+            if (this.tb_daily_report_hr) {
+              this.getDailyReportHrData();
+            }
+          });
+        });
       }
     });
   }
 
-  loadDepartments(): void {
+  loadDepartments(callback?: () => void): void {
     this.departmentService.getDepartments().subscribe({
       next: (response: any) => {
         this.departments = response.data || [];
+        if (callback) {
+          callback();
+        }
       },
       error: (error) => {
         console.error('Error loading departments:', error);
+        this.departments = [];
+        if (callback) {
+          callback();
+        }
       },
     });
   }
@@ -193,7 +176,6 @@ export class DailyReportTechComponent implements OnInit, AfterViewInit {
     if (this.departmentId > 0) {
       this.teamService.getTeams(this.departmentId).subscribe({
         next: (response: any) => {
-          // Thêm option "Tất cả" với ID = 0 vào đầu danh sách
           this.teams = [
             { ID: 0, Name: 'Tất cả' },
             ...(response.data || [])
@@ -210,8 +192,7 @@ export class DailyReportTechComponent implements OnInit, AfterViewInit {
     }
   }
 
-  loadUsers(): void {
-    // Load users dựa trên teamId nếu có, ngược lại load theo departmentId
+  loadUsers(callback?: () => void): void {
     const userTeamID = this.teamId > 0 ? this.teamId : undefined;
     const departmentid = this.departmentId > 0 ? this.departmentId : undefined;
     
@@ -220,11 +201,9 @@ export class DailyReportTechComponent implements OnInit, AfterViewInit {
         if (response && response.status === 1 && response.data) {
           const employees = Array.isArray(response.data) ? response.data : [];
           
-          // Group employees by DepartmentName nếu có
           if (employees.length > 0 && employees[0].DepartmentName) {
             this.users = this.groupEmployeesByDepartment(employees);
           } else {
-            // Nếu không có DepartmentName, tạo một group mặc định
             this.users = [{
               label: 'Nhân viên',
               options: employees.map((emp: any) => ({
@@ -236,25 +215,16 @@ export class DailyReportTechComponent implements OnInit, AfterViewInit {
           this.users = [];
         }
         
-        // Sau khi load users, tìm và set userId từ currentUser
-        // Nếu không tìm thấy currentUser trong danh sách, tự động set về "Tất cả" (ID = 0)
-        if (this.currentUser) {
-          if (this.currentUser.ID) {
-            this.setUserIdFromEmployeeID(this.currentUser.ID);
-          } else if (this.currentUser.EmployeeID) {
-            this.setUserIdFromEmployeeID(this.currentUser.EmployeeID);
-          } else {
-            // Nếu không có ID hoặc EmployeeID, set về "Tất cả"
-            this.userId = 0;
-          }
-        } else {
-          // Nếu không có currentUser, set về "Tất cả"
-          this.userId = 0;
+        if (callback) {
+          callback();
         }
       },
       error: (error) => {
         console.error('Error loading users:', error);
         this.users = [];
+        if (callback) {
+          callback();
+        }
       },
     });
   }
@@ -277,12 +247,10 @@ export class DailyReportTechComponent implements OnInit, AfterViewInit {
   }
 
   setUserIdFromEmployeeID(employeeID: number): void {
-    // Tìm user trong danh sách users dựa trên EmployeeID, ID, hoặc UserID
     for (const group of this.users) {
       for (const option of group.options) {
         const item = option.item;
         if (item) {
-          // Tìm theo UserID, ID, hoặc EmployeeID
           if (item.UserID === employeeID || item.ID === employeeID || item.EmployeeID === employeeID) {
             this.userId = item.UserID;
             return;
@@ -293,18 +261,17 @@ export class DailyReportTechComponent implements OnInit, AfterViewInit {
         }
       }
     }
-    // Nếu không tìm thấy currentUser trong danh sách, set về "Tất cả" (ID = 0)
     this.userId = 0;
   }
 
   onDepartmentChange(): void {
-    this.teamId = 0; // Reset teamId khi đổi department
+    this.teamId = 0;
     this.loadTeams();
-    this.loadUsers(); // Reload users khi đổi department
+    this.loadUsers();
   }
 
   onTeamChange(): void {
-    this.loadUsers(); // Reload users khi đổi team
+    this.loadUsers();
   }
 
   toggleSearchPanel(): void {
@@ -350,22 +317,22 @@ export class DailyReportTechComponent implements OnInit, AfterViewInit {
   }
 
   searchDailyReports(): void {
-    this.getDailyReportTechData();
+    this.getDailyReportHrData();
   }
 
-  getDailyReportTechData(): void {
+  getDailyReportHrData(): void {
     const searchParams = this.getSearchParams();
     
     this.dailyReportTechService.getDailyReportTech(searchParams).subscribe({
       next: (response: any) => {
         if (response && response.status === 1 && response.data) {
-          this.dailyReportTechData = Array.isArray(response.data) ? response.data : [];
+          this.dailyReportHrData = Array.isArray(response.data) ? response.data : [];
         } else {
-          this.dailyReportTechData = [];
+          this.dailyReportHrData = [];
         }
         
-        if (this.tb_daily_report_tech) {
-          this.tb_daily_report_tech.replaceData(this.dailyReportTechData);
+        if (this.tb_daily_report_hr) {
+          this.tb_daily_report_hr.replaceData(this.dailyReportHrData);
         }
 
         // Tự động ẩn filter bar trên mobile sau khi tìm kiếm
@@ -382,10 +349,10 @@ export class DailyReportTechComponent implements OnInit, AfterViewInit {
       error: (error: any) => {
         const msg = error.message || 'Lỗi không xác định';
         this.notification.error('Thông báo', msg);
-        console.error('Lỗi khi lấy dữ liệu báo cáo kỹ thuật:', error);
-        this.dailyReportTechData = [];
-        if (this.tb_daily_report_tech) {
-          this.tb_daily_report_tech.replaceData(this.dailyReportTechData);
+        console.error('Lỗi khi lấy dữ liệu báo cáo HR:', error);
+        this.dailyReportHrData = [];
+        if (this.tb_daily_report_hr) {
+          this.tb_daily_report_hr.replaceData(this.dailyReportHrData);
         }
       }
     });
@@ -394,16 +361,15 @@ export class DailyReportTechComponent implements OnInit, AfterViewInit {
   setDefaultSearch(): void {
     this.dateStart = DateTime.local().minus({ days: 1 }).set({ hour: 0, minute: 0, second: 0 }).toISO();
     this.dateEnd = DateTime.local().set({ hour: 0, minute: 0, second: 0 }).toISO();
-    this.departmentId = 2;
+    this.departmentId = 0;
     this.teamId = 0;
     this.userId = 0;
     this.keyword = '';
-    this.loadTeams(); // Load lại teams khi reset (sẽ trigger loadUsers)
+    this.loadTeams();
     this.searchDailyReports();
   }
 
   getSearchParams(): any {
-    // Xử lý dateStart - có thể là Date object hoặc ISO string
     let dateStart: DateTime;
     if (this.dateStart instanceof Date) {
       dateStart = DateTime.fromJSDate(this.dateStart);
@@ -413,7 +379,6 @@ export class DailyReportTechComponent implements OnInit, AfterViewInit {
       dateStart = DateTime.local().minus({ days: 1 });
     }
 
-    // Xử lý dateEnd - có thể là Date object hoặc ISO string
     let dateEnd: DateTime;
     if (this.dateEnd instanceof Date) {
       dateEnd = DateTime.fromJSDate(this.dateEnd);
@@ -423,7 +388,6 @@ export class DailyReportTechComponent implements OnInit, AfterViewInit {
       dateEnd = DateTime.local();
     }
 
-    // Xử lý userID an toàn khi currentUser có thể là null
     let userID = 0;
     if (this.currentUser) {
       if (this.currentUser.IsLeader > 1 || this.currentUser.IsAdmin == true) {
@@ -434,8 +398,8 @@ export class DailyReportTechComponent implements OnInit, AfterViewInit {
     }
 
     return {
-      dateStart: dateStart.isValid ? dateStart.toFormat('yyyy-MM-dd') : null, // "2025-12-19"
-      dateEnd: dateEnd.isValid ? dateEnd.toFormat('yyyy-MM-dd') : null, // "2025-12-19"
+      dateStart: dateStart.isValid ? dateStart.toFormat('yyyy-MM-dd') : null,
+      dateEnd: dateEnd.isValid ? dateEnd.toFormat('yyyy-MM-dd') : null,
       departmentID: this.departmentId || 0,
       teamID: this.teamId || 0,
       userID: userID,
@@ -443,12 +407,12 @@ export class DailyReportTechComponent implements OnInit, AfterViewInit {
     };
   }
 
-  drawTbDailyReportTech(container: HTMLElement): void {
-    if (this.tb_daily_report_tech) {
-      this.tb_daily_report_tech.setData(this.dailyReportTechData);
+  drawTbDailyReportHr(container: HTMLElement): void {
+    if (this.tb_daily_report_hr) {
+      this.tb_daily_report_hr.setData(this.dailyReportHrData);
     } else {
-      this.tb_daily_report_tech = new Tabulator(container, {
-        data: this.dailyReportTechData,
+      this.tb_daily_report_hr = new Tabulator(container, {
+        data: this.dailyReportHrData,
         ...DEFAULT_TABLE_CONFIG,
         layout: 'fitDataStretch',
         rowHeader: false,
@@ -456,9 +420,43 @@ export class DailyReportTechComponent implements OnInit, AfterViewInit {
         height: '87vh',
         paginationMode: 'local',
         columns: [
+          // {
+          //   title: '',
+          //   field: 'ID',
+          //   width: 100,
+          //   formatter: (cell: any) => {
+          //     return `
+          //       <button class="btn btn-primary btn-sm me-1 btn-edit-row" title="Sửa">
+          //         <i class="fas fa-pen"></i>
+          //       </button>
+          //       <button class="btn btn-danger btn-sm btn-delete-row" title="Xóa">
+          //         <i class="fas fa-trash"></i>
+          //       </button>
+          //     `;
+          //   },
+          //   cellClick: (e: any, cell: any) => {
+          //     const row = cell.getRow().getData();
+          //     const id = row.ID || 0;
+          //     const target = e.target as HTMLElement;
+              
+          //     if (target.closest('.btn-edit-row')) {
+          //       this.editDailyReportById(id);
+          //     } else if (target.closest('.btn-delete-row')) {
+          //       this.deleteDailyReportById(id);
+          //     }
+          //   },
+          //   headerSort: false,
+          //   hozAlign: 'center',
+          // },
           {
             title: 'Họ tên',
             field: 'FullName',
+            width: 150,
+            formatter: 'textarea',
+          },
+          {
+            title: 'Chức vụ',
+            field: 'PositionName',
             width: 150,
             formatter: 'textarea',
           },
@@ -473,53 +471,13 @@ export class DailyReportTechComponent implements OnInit, AfterViewInit {
             hozAlign: 'center',
             width: 120,
           },
-          {
-            title: 'Ngày tạo',
-            field: 'CreatedDate',
-            formatter: (cell: any) => {
-              const value = cell.getValue() || '';
-              const dateTime = DateTime.fromISO(value);
-              return dateTime.isValid ? dateTime.toFormat('dd/MM/yyyy HH:mm:ss') : '';
-            },
-            hozAlign: 'center',
-            width: 120,
-          },
-          {
-            title: 'Dự án',
-            field: 'ProjectText',
-            width: 200,
-            formatter: 'textarea',
-          },
-          {
-            title: 'Hạng mục',
-            field: 'ProjectItemCode',
-            width: 120,
-          },
-          {
-            title: 'Tổng giờ',
-            field: 'TotalHours',
-            hozAlign: 'right',
-            width: 70,
-            headerSort: false,
-          },
-          {
-            title: 'Giờ OT',
-            field: 'TotalHourOT',
-            hozAlign: 'right',
-            width: 70,
-            headerSort: false,
-          },
-          {
-            title: '% Hoàn thành',
-            field: 'PercentComplete',
-            hozAlign: 'right',
-            width: 70,
-            headerSort: false,
-            formatter: (cell: any) => {
-              const value = cell.getValue() || 0;
-              return `${value}%`;
-            },
-          },
+          // {
+          //   title: 'Tổng giờ',
+          //   field: 'TotalHours',
+          //   hozAlign: 'right',
+          //   width: 80,
+          //   headerSort: false,
+          // },
           {
             title: 'Nội dung',
             field: 'Content',
@@ -557,110 +515,97 @@ export class DailyReportTechComponent implements OnInit, AfterViewInit {
             formatter: 'textarea',
           },
           {
-            title: 'Ghi chú',
-            field: 'Note',
+            title: 'Lý do tồn đọng',
+            field: 'BacklogReason',
             width: 300,
             formatter: 'textarea',
           },
           {
-            title: 'Tên hạng mục',
-            field: 'ProjectItemName',
-            width: 200,
-            formatter: 'textarea',
+            title: 'Ngày tạo',
+            field: 'CreatedDate',
+            formatter: (cell: any) => {
+              const value = cell.getValue() || '';
+              const dateTime = DateTime.fromISO(value);
+              return dateTime.isValid ? dateTime.toFormat('dd/MM/yyyy HH:mm:ss') : '';
+            },
+            hozAlign: 'center',
+            width: 150,
           },
-          {
-            title: 'Dự kiến',
-            columns: [
-            {
-              title: 'Ngày bắt đầu',
-              field: 'PlanStartDate', 
-              // formatter: (cell: any) => {
-              //   const value = cell.getValue() || '';
-              //   const dateTime = DateTime.fromISO(value);
-              //   return dateTime.isValid ? dateTime.toFormat('dd/MM/yyyy') : '';
-              // },
-              hozAlign: 'center',
-              width: 120,
-            },
-            {
-              title: 'Tổng số ngày',
-              field: 'TotalDayPlan',
-              hozAlign: 'right',
-              width: 100,
-            },
-            {
-              title: 'Ngày kết thúc',
-              field: 'PlanEndDate',
-              // formatter: (cell: any) => {
-              //   const value = cell.getValue() || '';
-              //   const dateTime = DateTime.fromISO(value);
-              //   return dateTime.isValid ? dateTime.toFormat('dd/MM/yyyy') : '';
-              // },
-              hozAlign: 'center',
-              width: 120,
-            },
-          ],
-          },
-          {
-            title: 'Thực tế',
-            columns: [
-            {
-              title: 'Ngày bắt đầu',
-              field: 'ActualStartDate',
-              // formatter: (cell: any) => {
-              //   const value = cell.getValue() || '';
-              //   const dateTime = DateTime.fromISO(value);
-              //   return dateTime.isValid ? dateTime.toFormat('dd/MM/yyyy') : '';
-              // },
-              hozAlign: 'center',
-              width: 120,
-            },
-            {
-              title: 'Tổng số ngày',
-              field: 'TotalDayActual',
-              hozAlign: 'right',
-              width: 100,
-            },
-            {
-              title: 'Ngày kết thúc',
-              field: 'ActualEndDate',
-              // formatter: (cell: any) => {
-              //   const value = cell.getValue() || '';
-              //   const dateTime = DateTime.fromISO(value);
-              //   return dateTime.isValid ? dateTime.toFormat('dd/MM/yyyy') : '';
-              // },
-              hozAlign: 'center',
-              width: 120,
-            },
-          ],
-        },
-      ],
-    });
+        ],
+      });
+    }
   }
-}
 
-  // Header actions
-  addDailyReport(): void {
-    const modalRef = this.modalService.open(DailyReportTechDetailComponent, {
+  editDailyReportById(id: number): void {
+    const modalRef = this.modalService.open(DailyReportHrDetailComponent, {
       size: 'xl',
       backdrop: 'static',
       keyboard: true,
       centered: false,
-      windowClass: 'daily-report-tech-modal'
+      windowClass: 'daily-report-hr-modal'
     });
 
-    // Truyền dữ liệu vào modal
-    modalRef.componentInstance.mode = 'add';
+    modalRef.componentInstance.mode = 'edit';
+    modalRef.componentInstance.dataInput = id;
     modalRef.componentInstance.currentUser = this.currentUser;
-    modalRef.componentInstance.projects = this.projects || [];
-    modalRef.componentInstance.projectItems = []; // TODO: Load project items khi cần
 
-    // Xử lý khi modal đóng
     modalRef.result.then(
       (result) => {
         if (result) {
-          // Reload data nếu cần
-          this.getDailyReportTechData();
+          this.getDailyReportHrData();
+        }
+      },
+      (reason) => {
+        // Modal bị đóng mà không có kết quả
+      }
+    );
+  }
+
+  deleteDailyReportById(id: number): void {
+    this.nzModal.confirm({
+      nzTitle: 'Xác nhận xóa',
+      nzContent: 'Bạn có chắc chắn muốn xóa báo cáo này không?',
+      nzOkText: 'Xóa',
+      nzOkType: 'primary',
+      nzOkDanger: true,
+      nzCancelText: 'Hủy',
+      nzOnOk: () => {
+        this.dailyReportTechService.deleteDailyReport(id).subscribe({
+          next: (response: any) => {
+            if (response && response.status === 1) {
+              this.notification.success('Thông báo', response.message || 'Đã xóa báo cáo thành công!');
+              this.getDailyReportHrData();
+            } else {
+              this.notification.error('Thông báo', response?.message || 'Không thể xóa báo cáo!');
+            }
+          },
+          error: (error: any) => {
+            const errorMsg = error?.error?.message || error?.message || 'Đã xảy ra lỗi khi xóa báo cáo!';
+            this.notification.error('Thông báo', errorMsg);
+            console.error('Error deleting daily report:', error);
+          }
+        });
+      }
+    });
+  }
+
+  // Header actions
+  addDailyReport(): void {
+    const modalRef = this.modalService.open(DailyReportHrDetailComponent, {
+      size: 'xl',
+      backdrop: 'static',
+      keyboard: true,
+      centered: false,
+      windowClass: 'daily-report-hr-modal'
+    });
+
+    modalRef.componentInstance.mode = 'add';
+    modalRef.componentInstance.currentUser = this.currentUser;
+
+    modalRef.result.then(
+      (result) => {
+        if (result) {
+          this.getDailyReportHrData();
         }
       },
       (reason) => {
@@ -670,14 +615,13 @@ export class DailyReportTechComponent implements OnInit, AfterViewInit {
   }
 
   editDailyReport(): void {
-    const selectedRows = this.tb_daily_report_tech.getSelectedData();
+    const selectedRows = this.tb_daily_report_hr.getSelectedData();
     if (!selectedRows || selectedRows.length === 0) {
       this.notification.error('Thông báo', 'Vui lòng chọn 1 báo cáo để sửa!');
       return;
     }
 
     const selectedRow = selectedRows[0] as any;
-    // Lấy ID từ row (có thể là ID, DailyID, hoặc DailyReportTechnicalID)
     const dailyID = selectedRow['ID'];
 
     if (!dailyID) {
@@ -685,27 +629,22 @@ export class DailyReportTechComponent implements OnInit, AfterViewInit {
       return;
     }
 
-    const modalRef = this.modalService.open(DailyReportTechDetailComponent, {
+    const modalRef = this.modalService.open(DailyReportHrDetailComponent, {
       size: 'xl',
       backdrop: 'static',
       keyboard: true,
       centered: false,
-      windowClass: 'daily-report-tech-modal'
+      windowClass: 'daily-report-hr-modal'
     });
 
-    // Truyền dữ liệu vào modal
     modalRef.componentInstance.mode = 'edit';
-    modalRef.componentInstance.dataInput = dailyID; // Truyền ID để load dữ liệu
+    modalRef.componentInstance.dataInput = dailyID;
     modalRef.componentInstance.currentUser = this.currentUser;
-    modalRef.componentInstance.projects = this.projects || [];
-    modalRef.componentInstance.projectItems = [];
 
-    // Xử lý khi modal đóng
     modalRef.result.then(
       (result) => {
         if (result) {
-          // Reload dữ liệu sau khi sửa thành công
-          this.getDailyReportTechData();
+          this.getDailyReportHrData();
         }
       },
       (reason) => {
@@ -715,14 +654,13 @@ export class DailyReportTechComponent implements OnInit, AfterViewInit {
   }
 
   deleteDailyReport(): void {
-    const selectedRows = this.tb_daily_report_tech.getSelectedData();
+    const selectedRows = this.tb_daily_report_hr.getSelectedData();
     if (!selectedRows || selectedRows.length === 0) {
       this.notification.error('Thông báo', 'Vui lòng chọn 1 báo cáo để xóa!');
       return;
     }
 
     const selectedRow = selectedRows[0] as any;
-    // Lấy ID từ row (có thể là ID, DailyID, hoặc DailyReportTechnicalID)
     const dailyID = selectedRow['ID'];
 
     if (!dailyID) {
@@ -730,7 +668,6 @@ export class DailyReportTechComponent implements OnInit, AfterViewInit {
       return;
     }
 
-    // Xác nhận trước khi xóa bằng NzModal
     this.nzModal.confirm({
       nzTitle: 'Xác nhận xóa',
       nzContent: 'Bạn có chắc chắn muốn xóa báo cáo này không?',
@@ -739,13 +676,11 @@ export class DailyReportTechComponent implements OnInit, AfterViewInit {
       nzOkDanger: true,
       nzCancelText: 'Hủy',
       nzOnOk: () => {
-        // Gọi API xóa
         this.dailyReportTechService.deleteDailyReport(dailyID).subscribe({
           next: (response: any) => {
             if (response && response.status === 1) {
               this.notification.success('Thông báo', response.message || 'Đã xóa báo cáo thành công!');
-              // Reload dữ liệu
-              this.getDailyReportTechData();
+              this.getDailyReportHrData();
             } else {
               this.notification.error('Thông báo', response?.message || 'Không thể xóa báo cáo!');
             }
@@ -761,11 +696,8 @@ export class DailyReportTechComponent implements OnInit, AfterViewInit {
   }
 
   copyDailyReport(): void {
-    // Lấy dữ liệu để copy dựa trên filter hiện tại
     const searchParams = this.getSearchParams();
     
-    // Tìm EmployeeID từ users dựa trên searchParams.userID (UserID từ dropdown)
-    // Dropdown bind [nzValue]="child.item.UserID", nên searchParams.userID là UserID
     let employeeID = 0;
     if (searchParams.userID && searchParams.userID > 0) {
       for (const group of this.users) {
@@ -779,7 +711,6 @@ export class DailyReportTechComponent implements OnInit, AfterViewInit {
       }
     }
     
-    // Gọi API để lấy dữ liệu copy
     const copyParams = {
       dateStart: searchParams.dateStart,
       dateEnd: searchParams.dateEnd,
@@ -811,23 +742,17 @@ export class DailyReportTechComponent implements OnInit, AfterViewInit {
       return;
     }
 
-    // Lấy danh sách ngày duy nhất
     const uniqueDates = [...new Set(result.map(item => item.DateReport))];
     
-    // Chỉ copy khi có đúng 1 ngày (giống RTCWeb)
     if (uniqueDates.length === 1) {
-      // Copy 1 ngày
       const contentSummary = this.formatSingleDayReport(result, uniqueDates[0]);
-      // Copy vào clipboard
       this.copyToClipboard(contentSummary);
     } else {
-      // Nếu có nhiều ngày, hiển thị cảnh báo
       this.notification.warning('Thông báo', `Bạn không thể copy nội dung của ${uniqueDates.length} ngày!`);
     }
   }
 
   private formatSingleDayReport(dayData: any[], dateReport: string): string {
-    let project = '';
     let content = '';
     let resultReport = '';
     let backlog = '';
@@ -842,20 +767,7 @@ export class DailyReportTechComponent implements OnInit, AfterViewInit {
 
     dayData.forEach(item => {
       if (item) {
-        // Tránh trùng lặp ProjectItemCode trong content (giống RTCWeb)
-        if (item.ProjectItemCode && !content.includes(item.ProjectItemCode)) {
-          content += (item.Mission || item.Content || '') + '\n';
-        } else if (!item.ProjectItemCode) {
-          // Nếu không có ProjectItemCode, thêm trực tiếp
-          content += (item.Mission || item.Content || '') + '\n';
-        }
-        
-        // Tránh trùng lặp ProjectCode trong project (giống RTCWeb)
-        if (item.ProjectCode && !project.includes(item.ProjectCode)) {
-          project += `${item.ProjectCode} - ${item.ProjectName || ''}\n`;
-        }
-
-        // Các field khác append trực tiếp (giống RTCWeb)
+        if (item.Content) content += item.Content + '\n';
         if (item.Results) resultReport += item.Results + '\n';
         if (item.Backlog) backlog += item.Backlog + '\n';
         if (item.Problem) problem += item.Problem + '\n';
@@ -865,23 +777,10 @@ export class DailyReportTechComponent implements OnInit, AfterViewInit {
       }
     });
 
-    // Format theo departmentId (nếu departmentId == 6 thì không hiển thị Mã dự án)
-    // Lấy departmentId từ currentUser hoặc từ filter
-    const departmentId = this.departmentId || this.currentUser?.DepartmentID || 0;
-    
-    // Format giống RTCWeb
-    if (departmentId !== 6) {
-      contentSummary += `* Mã dự án - Tên dự án: \n${project.trim()}\n`;
-    }
-    
     contentSummary += `\n* Nội dung công việc:\n${content.trim()}\n`;
     contentSummary += `\n* Kết quả công việc:\n${resultReport.trim()}\n`;
     contentSummary += `\n* Tồn đọng:\n${backlog.trim() === '' ? '- Không có' : backlog.trim()}\n`;
-    
-    if (departmentId === 6) {
-      contentSummary += `\n* Lý do tồn đọng:\n${note.trim() === '' ? '- Không có' : note.trim()}\n`;
-    }
-    
+    contentSummary += `\n* Ghi chú:\n${note.trim() === '' ? '- Không có' : note.trim()}\n`;
     contentSummary += `\n* Vấn đề phát sinh:\n${problem.trim() === '' ? '- Không có' : problem.trim()}\n`;
     contentSummary += `\n* Giải pháp cho vấn đề phát sinh:\n${problemSolve.trim() === '' ? '- Không có' : problemSolve.trim()}\n`;
     contentSummary += `\n* Kế hoạch ngày tiếp theo:\n${planNextDay.trim() === '' ? '- Không có' : planNextDay.trim()}\n`;
@@ -890,19 +789,38 @@ export class DailyReportTechComponent implements OnInit, AfterViewInit {
   }
 
   private async copyToClipboard(text: string): Promise<void> {
-    // Hàm fallback sử dụng execCommand
+    // Hàm fallback sử dụng execCommand với focus handling
     const useExecCommand = (): boolean => {
       const textArea = document.createElement('textarea');
       textArea.value = text;
+      
+      // Style để textarea không hiển thị nhưng vẫn có thể focus
       textArea.style.position = 'fixed';
-      textArea.style.left = '-999999px';
-      textArea.style.top = '-999999px';
+      textArea.style.top = '0';
+      textArea.style.left = '0';
+      textArea.style.width = '2em';
+      textArea.style.height = '2em';
+      textArea.style.padding = '0';
+      textArea.style.border = 'none';
+      textArea.style.outline = 'none';
+      textArea.style.boxShadow = 'none';
+      textArea.style.background = 'transparent';
+      textArea.style.opacity = '0';
+      
       document.body.appendChild(textArea);
+      
+      // Đảm bảo focus window trước
+      window.focus();
       textArea.focus();
       textArea.select();
       
+      // Thử select bằng cách khác nếu cần
+      textArea.setSelectionRange(0, text.length);
+      
       try {
         const successful = document.execCommand('copy');
+        document.body.removeChild(textArea);
+        
         if (successful) {
           this.notification.success('Thông báo', 'Đã copy vào clipboard thành công!');
           return true;
@@ -910,37 +828,43 @@ export class DailyReportTechComponent implements OnInit, AfterViewInit {
           throw new Error('Copy command failed');
         }
       } catch (err: any) {
-        throw err;
-      } finally {
         document.body.removeChild(textArea);
+        throw err;
       }
     };
     
     try {
+      // Đảm bảo window được focus
+      window.focus();
+      
       // Thử sử dụng Clipboard API nếu có
       if (navigator.clipboard && navigator.clipboard.writeText) {
         try {
           await navigator.clipboard.writeText(text);
           this.notification.success('Thông báo', 'Đã copy vào clipboard thành công!');
+          return;
         } catch (clipboardErr: any) {
-          // Nếu Clipboard API fail (thường do document not focused), fallback sang execCommand
-          if (clipboardErr.name === 'NotAllowedError' || clipboardErr.message?.includes('not focused')) {
-            useExecCommand();
-          } else {
-            throw clipboardErr;
-          }
+          console.warn('Clipboard API failed, trying execCommand:', clipboardErr.message);
+          // Fallback sang execCommand
+          useExecCommand();
+          return;
         }
       } else {
         // Nếu không có Clipboard API, dùng execCommand
         useExecCommand();
+        return;
       }
     } catch (err: any) {
-      this.notification.error('Thông báo', 'Không thể copy vào clipboard. Vui lòng thử lại!');
+      console.error('Copy to clipboard final error:', err);
+      this.notification.error(
+        'Thông báo', 
+        'Không thể copy vào clipboard. Vui lòng click vào trang trước khi copy!'
+      );
     }
   }
 
   async exportReport(): Promise<void> {
-    const table = this.tb_daily_report_tech;
+    const table = this.tb_daily_report_hr;
     if (!table) {
       this.notification.error('Thông báo', 'Bảng dữ liệu chưa được khởi tạo!');
       return;
@@ -954,16 +878,14 @@ export class DailyReportTechComponent implements OnInit, AfterViewInit {
     }
 
     const workbook = new ExcelJS.Workbook();
-    const worksheet = workbook.addWorksheet('Báo cáo kỹ thuật');
+    const worksheet = workbook.addWorksheet('Báo cáo HR');
 
     // Lấy columns từ bảng
     const columns = table.getColumns();
     const columnDefinitions = columns.map((col: any) => col.getDefinition());
     
-    // Lọc bỏ các columns không có field hoặc là nested columns (chỉ lấy columns cấp 1)
-    const visibleColumns = columnDefinitions.filter((col: any) => {
-      return col.field && col.visible !== false && !col.columns; // Loại bỏ nested columns
-    });
+    // Lọc bỏ các columns không có field (như action buttons)
+    const visibleColumns = columnDefinitions.filter((col: any) => col.field && col.visible !== false);
     
     // Tạo header
     const headers = visibleColumns.map((col: any) => col.title || col.field);
@@ -1022,9 +944,6 @@ export class DailyReportTechComponent implements OnInit, AfterViewInit {
                 value = dateTime.toFormat('dd/MM/yyyy');
               } else if (field === 'CreatedDate') {
                 value = dateTime.toFormat('dd/MM/yyyy HH:mm:ss');
-              } else if (field.includes('Date')) {
-                // Các trường date khác
-                value = dateTime.toFormat('dd/MM/yyyy');
               } else {
                 value = dateTime.toJSDate();
               }
@@ -1083,160 +1002,7 @@ export class DailyReportTechComponent implements OnInit, AfterViewInit {
     const formattedDate = DateTime.now().toFormat('ddMMyyyy');
     const link = document.createElement('a');
     link.href = window.URL.createObjectURL(blob);
-    link.download = `BaoCaoKyThuat_${formattedDate}.xlsx`;
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-    window.URL.revokeObjectURL(link.href);
-
-    this.notification.success('Thông báo', `Xuất excel thành công!`);
-  }
-
-  async exportList(): Promise<void> {
-    const table = this.tb_daily_report_tech;
-    if (!table) {
-      this.notification.error('Thông báo', 'Bảng dữ liệu chưa được khởi tạo!');
-      return;
-    }
-
-    // Lấy dữ liệu hiện tại từ bảng (bao gồm cả filter/search)
-    const data = table.getData('active'); // 'active' để lấy data đã được filter
-    if (!data || data.length === 0) {
-      this.notification.error('Thông báo', 'Không có dữ liệu để xuất báo cáo!');
-      return;
-    }
-
-    const workbook = new ExcelJS.Workbook();
-    const worksheet = workbook.addWorksheet('Danh sách báo cáo kỹ thuật');
-
-    // Lấy columns từ bảng
-    const columns = table.getColumns();
-    const columnDefinitions = columns.map((col: any) => col.getDefinition());
-    
-    // Lọc bỏ các columns không có field hoặc là nested columns (chỉ lấy columns cấp 1)
-    const visibleColumns = columnDefinitions.filter((col: any) => {
-      return col.field && col.visible !== false && !col.columns; // Loại bỏ nested columns
-    });
-    
-    // Tạo header
-    const headers = visibleColumns.map((col: any) => col.title || col.field);
-    worksheet.addRow(headers);
-
-    // Style header
-    const headerRow = worksheet.getRow(1);
-    headerRow.font = { bold: true, size: 11 };
-    headerRow.fill = {
-      type: 'pattern',
-      pattern: 'solid',
-      fgColor: { argb: 'FFE0E0E0' }
-    };
-    headerRow.alignment = { vertical: 'middle', horizontal: 'center', wrapText: true };
-
-    // Xử lý dữ liệu từng dòng
-    data.forEach((row: any, rowIndex: number) => {
-      const rowData = visibleColumns.map((col: any) => {
-        const field = col.field;
-        let value = row[field];
-
-        // Xử lý formatter nếu có
-        if (col.formatter) {
-          if (typeof col.formatter === 'function') {
-            // Tạo cell giả để lấy giá trị đã format
-            const fakeCell = {
-              getValue: () => value,
-              getRow: () => ({ getData: () => row })
-            };
-            try {
-              const formattedValue = col.formatter(fakeCell as any);
-              // Nếu formatter trả về HTML, lấy text
-              if (typeof formattedValue === 'string' && formattedValue.includes('<')) {
-                const tempDiv = document.createElement('div');
-                tempDiv.innerHTML = formattedValue;
-                value = tempDiv.textContent || tempDiv.innerText || value;
-              } else {
-                value = formattedValue;
-              }
-            } catch (e) {
-              // Nếu lỗi, dùng giá trị gốc
-            }
-          } else if (col.formatter === 'textarea') {
-            // Giữ nguyên giá trị cho textarea
-          }
-        }
-
-        // Xử lý date
-        if (value && typeof value === 'string') {
-          // Kiểm tra nếu là ISO date string
-          if (/^\d{4}-\d{2}-\d{2}T/.test(value)) {
-            const dateTime = DateTime.fromISO(value);
-            if (dateTime.isValid) {
-              // Nếu là DateReport hoặc CreatedDate, format đúng
-              if (field === 'DateReport') {
-                value = dateTime.toFormat('dd/MM/yyyy');
-              } else if (field === 'CreatedDate') {
-                value = dateTime.toFormat('dd/MM/yyyy HH:mm:ss');
-              } else if (field.includes('Date')) {
-                // Các trường date khác
-                value = dateTime.toFormat('dd/MM/yyyy');
-              } else {
-                value = dateTime.toJSDate();
-              }
-            }
-          }
-        }
-
-        return value || '';
-      });
-      
-      const excelRow = worksheet.addRow(rowData);
-      excelRow.alignment = { vertical: 'top', wrapText: true };
-    });
-
-    // Định dạng cột
-    worksheet.columns.forEach((column: any, index: number) => {
-      const colDef = visibleColumns[index];
-      if (!colDef) return;
-
-      let maxLength = colDef.title ? colDef.title.length : 10;
-      column.eachCell({ includeEmpty: true }, (cell: any) => {
-        const cellValue = cell.value ? cell.value.toString() : '';
-        maxLength = Math.max(maxLength, cellValue.length + 2);
-      });
-      
-      // Set width với giới hạn
-      column.width = Math.min(Math.max(maxLength, 10), 50);
-      
-      // Alignment
-      if (colDef.hozAlign === 'right') {
-        column.alignment = { horizontal: 'right' };
-      } else if (colDef.hozAlign === 'center') {
-        column.alignment = { horizontal: 'center' };
-      }
-    });
-
-    // Auto filter
-    worksheet.autoFilter = {
-      from: { row: 1, column: 1 },
-      to: { row: 1, column: visibleColumns.length },
-    };
-
-    // Freeze header row
-    worksheet.views = [
-      {
-        state: 'frozen',
-        ySplit: 1,
-      },
-    ];
-
-    const buffer = await workbook.xlsx.writeBuffer();
-    const blob = new Blob([buffer], {
-      type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
-    });
-
-    const formattedDate = DateTime.now().toFormat('ddMMyyyy');
-    const link = document.createElement('a');
-    link.href = window.URL.createObjectURL(blob);
-    link.download = `DanhSachBaoCaoKyThuat_${formattedDate}.xlsx`;
+    link.download = `BaoCaoHR_${formattedDate}.xlsx`;
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
@@ -1244,22 +1010,4 @@ export class DailyReportTechComponent implements OnInit, AfterViewInit {
 
     this.notification.success('Thông báo', `Đã xuất ${data.length} bản ghi thành công!`);
   }
-  async exportReportTeam(): Promise<void> {
-    const modalRef = this.modalService.open(DailyReportExcelComponent, {
-      size: 'xl',
-      backdrop: 'static',
-      keyboard: true,
-      centered: false,
-    });
-    modalRef.componentInstance.teams = this.teams;
-    modalRef.componentInstance.currentUser = this.currentUser;
-    modalRef.componentInstance.projects = this.projects;
-    modalRef.componentInstance.projectItems = [];
-    modalRef.componentInstance.projectItems = [];
-  }
-
-  createdText(text: string): string {
-    return `<span class="fs-12">${text}</span>`;
-  }
 }
-

@@ -1,3 +1,4 @@
+import { ProjectPartListPurchaseRequestSlickGridComponent } from './../../../purchase/project-partlist-purchase-request/project-part-list-purchase-request-slick-grid/project-part-list-purchase-request-slick-grid.component';
 import { Injectable, Type } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { BehaviorSubject, Observable } from 'rxjs';
@@ -153,6 +154,9 @@ import { BookingRoomComponent } from '../../../hrm/booking room/booking-room.com
 import { RegisterContractComponent } from '../../../person/register-contract/register-contract.component';
 import { ApproveTpComponent } from '../../../person/approve-tp/approve-tp/approve-tp.component';
 import { PhaseAllocationPersonComponent } from '../../../hrm/phase-allocation-person/phase-allocation-person.component';
+import { UnitCountKtComponent } from '../../../old/inventory-demo/unit-count-kt/unit-count-kt.component';
+import { PonccNewComponent } from '../../../purchase/poncc-new/poncc-new.component';
+
 import { DailyReportThrComponent } from '../../../daily-report-thr/daily-report-thr.component';
 import { DailyReportLXCPComponent } from '../../../daily-report-lxcp/daily-report-lxcp.component';
 @Injectable({
@@ -493,6 +497,18 @@ export class MenuService {
                                         isOpen: true,
                                         isPermission: this.permissionService.hasPermission(''),
                                         comp: ProductRtcQrCodeComponent,
+                                        data: {
+                                            warehouseID: 1,
+
+                                        },
+                                    },
+                                    {
+                                        kind: 'leaf',
+                                        key: 'UnitCountKtComponent_HN',
+                                        title: 'Đơn vị tính',
+                                        isOpen: true,
+                                        isPermission: this.permissionService.hasPermission(''),
+                                        comp: UnitCountKtComponent,
                                         data: {
                                             warehouseID: 1,
 
@@ -1560,7 +1576,7 @@ export class MenuService {
                                 isPermission:
                                     this.permissionService.hasPermission('N2,N34,N1,N68,N71'),
                                 comp: VehicleBookingManagementComponent,
-                             
+
                                 //   icon: 'assets/icon/layers.png',
                             },
                             // {
@@ -1754,9 +1770,9 @@ export class MenuService {
                                 comp: HandoverComponent,
                                 //   icon: 'assets/icon/layers.png',
                             },
-                          
+
                                         //   icon: 'assets/icon/layers.png',
-                            
+
                             //#endregion
                         ],
                     },
@@ -2131,13 +2147,13 @@ export class MenuService {
                     },
                     {
                         kind: 'leaf',
-                        key: 'PonccComponent',
+                        key: 'PonccNewComponent',
                         title: 'PO NCC',
                         isOpen: true,
                         isPermission: this.permissionService.hasPermission(
                             'N33,N35,N36,N1,N52,N38,N54'
                         ),
-                        comp: PONCCComponent,
+                        comp: PonccNewComponent,
                         //   icon: 'assets/icon/layers.png',
                     },
                     {
@@ -2145,7 +2161,7 @@ export class MenuService {
                         key: 'InventoryProjectComponent',
                         title: 'Hàng giữ dự án',
                         isOpen: true,
-                        isPermission: this.permissionService.hasPermission('N1'),
+                        isPermission: this.permissionService.hasPermission(''),
                         comp: InventoryProjectComponent,
                     },
                     {
@@ -2155,7 +2171,7 @@ export class MenuService {
                         isOpen: true,
                         isPermission:
                             this.permissionService.hasPermission('N33,N35,N1,N36'),
-                        comp: ProjectPartlistPurchaseRequestNewComponent,
+                        comp: ProjectPartListPurchaseRequestSlickGridComponent,
                         //   icon: 'assets/icon/layers.png',
                     },
                     // {
@@ -2808,7 +2824,7 @@ export class MenuService {
                                 comp: FoodOrderComponent,
                                 // router: '/comca',
                             },
-                            
+
                             {
                                 kind: 'leaf',
                                 key: 'danhsachdangkynghi',
@@ -2889,7 +2905,7 @@ export class MenuService {
                                 isOpen: true,
                                 isPermission: this.permissionService.hasPermission(''),
                                 comp: EmployeeSyntheticPersonalComponent
-                              
+
                             },
                         ],
                     },
@@ -2928,7 +2944,7 @@ export class MenuService {
                                 isOpen: true,
                                 isPermission: this.permissionService.hasPermission(''),
                                 comp: VehicleBookingManagementComponent,
-                              
+
                             },
 
                             {
@@ -3099,7 +3115,7 @@ export class MenuService {
                                     //     comp: PersonComponent,
                                     //     router: '/baocaocongviec',
                                     // },
-                                    
+
                             {
                                 kind: 'leaf',
                                 key: 'baocaocongviechr',

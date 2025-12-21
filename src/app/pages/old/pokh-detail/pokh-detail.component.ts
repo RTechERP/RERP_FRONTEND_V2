@@ -218,7 +218,6 @@ export class PokhDetailComponent implements OnInit, AfterViewInit {
     currencyId: 0,
     isBigAccount: false,
     isApproved: false,
-    warehouseId: 1,
     accountType: 0,
     totalMoneyDiscount: 0,
     discount: 0,
@@ -233,7 +232,7 @@ export class PokhDetailComponent implements OnInit, AfterViewInit {
     POType: 0,
     status: 0,
     group: 0,
-    warehouseId: 1,
+    warehouseId: this.warehouseId,
     employeeTeamSaleId: 0,
     startDate: new Date(),
     endDate: new Date(),
@@ -259,6 +258,9 @@ export class PokhDetailComponent implements OnInit, AfterViewInit {
   //#endregion
   //#region : Hàm khởi tạo
   ngOnInit(): void {
+    if(this.warehouseId) {
+      this.filters.warehouseId = this.warehouseId;
+    }
     const endDate = new Date();
     const startDate = new Date();
     startDate.setMonth(endDate.getMonth() - 3);
@@ -1292,7 +1294,7 @@ export class PokhDetailComponent implements OnInit, AfterViewInit {
       UserType: this.poFormData.userType || 0,
       QuotationID: this.poFormData.quotationId || 0,
       PONumber: this.poFormData.poNumber || '',
-      WarehouseID: this.poFormData.warehouseId || 0,
+      WarehouseID: this.warehouseId || 0,
       CurrencyID: this.poFormData.currencyId || 0,
       Year: poDate.getFullYear(),
       Month: poDate.getMonth() + 1,

@@ -1015,6 +1015,6 @@ export class DailyReportThrComponent implements OnInit, AfterViewInit {
     document.body.removeChild(link);
     window.URL.revokeObjectURL(link.href);
 
-    this.notification.success('Thông báo', `Đã xuất ${data.length} bản ghi thành công!`);
+    this.notification.success('Thông báo', `Xuất excel thành công!`);
   }
 }

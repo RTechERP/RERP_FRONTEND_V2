@@ -513,6 +513,12 @@ export class BillExportDetailComponent
             },
           });
       }
+
+      // ✅ QUAN TRỌNG: Gọi changeProductGroup để load productOptions
+      // patchValue có thể không trigger valueChanges nếu giá trị giống nhau hoặc timing issue
+      if (this.newBillExport.KhoTypeID > 0) {
+        this.changeProductGroup(this.newBillExport.KhoTypeID);
+      }
     }
     // LUỒNG RIÊNG: Warehouse Release Request → BillExport
     else if (this.isFromWarehouseRelease) {
@@ -1241,6 +1247,7 @@ export class BillExportDetailComponent
     this.billExportService.getOptionProduct(this.wareHouseCode, ID).subscribe({
       next: (res: any) => {
         const productData = res.data;
+        console.log('productData: ', productData);
         if (Array.isArray(productData)) {
           this.productOptions = productData
             .filter(
@@ -1256,6 +1263,8 @@ export class BillExportDetailComponent
               } | ${product.ProductName || ''}`,
               value: product.ProductSaleID,
               ProductCode: product.ProductCode,
+              // ✅ TotalInventory được lấy từ API getOptionProduct, field TotalQuantityLast
+              // Đây là số lượng tồn kho hiện tại của sản phẩm
               TotalInventory: product.TotalQuantityLast,
               ProductName: product.ProductName,
               Unit: product.Unit,
@@ -1263,6 +1272,7 @@ export class BillExportDetailComponent
               ProductID: product.ProductSaleID,
               ProductNewCode: product.ProductNewCode,
             }));
+            console.log('productOptions: ', this.productOptions);
         } else {
           this.productOptions = [];
         }
@@ -1728,13 +1738,17 @@ export class BillExportDetailComponent
     // It should contain all fields from productOptions, but we need to ensure TotalInventory is correct
     const productValue = selectedProduct.value || selectedProduct.ProductID || selectedProduct.ProductSaleID || selectedProduct.ID;
 
-    // Try to get TotalInventory from selectedProduct first
-    // If not available, find it from productOptions array
+    // ✅ TotalInventory được lấy theo thứ tự ưu tiên:
+    // 1. Từ selectedProduct.TotalInventory (nếu có)
+    // 2. Từ selectedProduct.TotalQuantityLast (nếu có)
+    // 3. Tìm trong productOptions (đã được load từ API getOptionProduct với TotalQuantityLast)
+    // 4. Mặc định = 0
     let totalInventory = selectedProduct.TotalInventory ?? 
                         selectedProduct.TotalQuantityLast ?? 
                         0;
 
     // If TotalInventory is still 0 or missing, try to find it from productOptions
+    // productOptions được load từ changeProductGroup() với TotalInventory = product.TotalQuantityLast
     if (!totalInventory || totalInventory === 0) {
       const fullProduct = this.productOptions.find(
         (p: any) => 

@@ -142,12 +142,11 @@ export class ProjectListWorkReportComponent implements OnInit, AfterViewInit {
   private textWithTooltipFormatter = (cell: any): HTMLElement => {
     const value = cell.getValue();
     const div = document.createElement('div');
-    
+  
     if (!value || value.trim() === '') {
       return div;
     }
-    
-    // Style cho div: giới hạn 5 dòng với ellipsis
+  
     div.style.cssText = `
       display: -webkit-box;
       -webkit-line-clamp: 5;
@@ -155,29 +154,23 @@ export class ProjectListWorkReportComponent implements OnInit, AfterViewInit {
       overflow: hidden;
       text-overflow: ellipsis;
       white-space: pre-wrap;
-      word-wrap: break-word;
-      line-height: 1.4;
-      max-height: calc(1.4em * 5);
+      word-break: break-word;
+      line-height: 1.4em;
       cursor: text;
     `;
-    
-    // Chuyển đổi URLs thành links
-    const linkedText = this.linkifyText(value);
-    div.innerHTML = linkedText;
-    
-    // Thêm title attribute để hiển thị tooltip với text gốc (không có HTML)
+  
+    div.innerHTML = this.linkifyText(value);
     div.title = value;
-    
-    // Cho phép click vào links mà không trigger row selection
+  
     div.addEventListener('click', (e: MouseEvent) => {
-      const target = e.target as HTMLElement;
-      if (target.tagName === 'A') {
-        e.stopPropagation(); // Ngăn không cho event bubble lên row
+      if ((e.target as HTMLElement).tagName === 'A') {
+        e.stopPropagation();
       }
     });
-    
+  
     return div;
   };
+  
   //#endregion
   ngAfterViewInit() {
     // Sử dụng setTimeout để đảm bảo container đã render xong (đặc biệt với modal và splitter)
@@ -211,7 +204,7 @@ export class ProjectListWorkReportComponent implements OnInit, AfterViewInit {
         paginationMode: 'remote',
         paginationSize: 50,
         paginationSizeSelector: [10, 30, 50, 100, 300, 500,10000],
-        selectableRows: true,
+        selectableRows: false,
         ajaxURL: 'get-project-list-work-report', // Placeholder URL - ajaxRequestFunc sẽ override
         ajaxConfig: 'GET',
         ajaxRequestFunc: (url, config, params) => {
@@ -343,42 +336,102 @@ export class ProjectListWorkReportComponent implements OnInit, AfterViewInit {
         },
         {
           title: 'Số giờ',
-          field: 'TotalHours',
+          field: 'TimeReality',
           headerHozAlign: 'center',
-          formatter: function (cell, formatterParams, onRendered) {
-            let value = cell.getValue() || '';
-            return parseFloat(value).toFixed(2);
-          },
           hozAlign: 'right',
+        
+          formatter: function (cell) {
+            const value = cell.getValue();
+        
+            // null hoặc undefined → rỗng
+            if (value === null || value === undefined) return '';
+        
+            const num = Number(value);
+        
+            // Không phải số → rỗng
+            if (isNaN(num)) return '';
+        
+            // Luôn hiển thị 2 chữ số thập phân
+            return num.toFixed(2);
+          },
+        
           bottomCalc: 'sum',
+        
+          bottomCalcFormatter: function (cell) {
+            const value = cell.getValue();
+        
+            if (value === null || value === undefined) return '';
+        
+            const num = Number(value);
+            if (isNaN(num)) return '';
+        
+            return num.toFixed(2);
+          },
         },
         {
           title: 'Hệ số',
           field: 'Ratio',
           headerHozAlign: 'center',
-          formatter: function (cell, formatterParams, onRendered) {
-            let value = cell.getValue() || '';
-            return value;
-          },
           hozAlign: 'right',
         
+          formatter: function (cell) {
+            const value = cell.getValue();
+        
+            // null / undefined / rỗng → 0.00
+            if (value === null || value === undefined || value === '') {
+              return '0.00';
+            }
+        
+            const num = Number(value);
+        
+            // Không phải số → 0.00
+            if (isNaN(num)) {
+              return '0.00';
+            }
+        
+            return num.toFixed(2);
+          },
         },
         {
           title: 'Tổng số giờ',
           field: 'TotalHours',
           headerHozAlign: 'center',
-          formatter: function (cell, formatterParams, onRendered) {
-            let value = cell.getValue() || '';
-            return value;
-          },
           hozAlign: 'right',
-          bottomCalc: 'sum',
-          bottomCalcFormatter: (cell: any) => {
+        
+          formatter: function (cell) {
             const value = cell.getValue();
-            if (value !== null && value !== undefined) {
-              return parseFloat(value).toFixed(2);
+        
+            // null / undefined / rỗng → 0.00
+            if (value === null || value === undefined || value === '') {
+              return '0.00';
             }
-            return '';
+        
+            const num = Number(value);
+        
+            // Không phải số → 0.00
+            if (isNaN(num)) {
+              return '0.00';
+            }
+        
+            return num.toFixed(2);
+          },
+        
+          bottomCalc: 'sum',
+        
+          bottomCalcFormatter: function (cell) {
+            const value = cell.getValue();
+        
+            if (value === null || value === undefined) {
+              return '0.00';
+            }
+        
+            const num = Number(value);
+        
+            if (isNaN(num)) {
+              return '0.00';
+            }
+        
+            return num.toFixed(2);
           },
         },
         {

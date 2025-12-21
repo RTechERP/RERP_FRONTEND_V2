@@ -449,7 +449,8 @@ export class DailyReportLXCPComponent implements OnInit, AfterViewInit {
     {
       title: 'Đầu mục',
       field: 'FilmName',
-      width: 300,
+      width: 200,
+      hozAlign: 'left',
       formatter: 'textarea',
     },
     {
@@ -461,37 +462,41 @@ export class DailyReportLXCPComponent implements OnInit, AfterViewInit {
     {
       title: 'DVT',
       field: 'UnitName',
-      width: 300,
+      hozAlign: 'center',
       formatter: 'textarea',
     },
     {
       title: 'Năng suất trung bình(phút/đơn vị sản phẩm)',
       field: 'PerformanceAVG',
-      width: 300,
+      width:150,
+      hozAlign: 'right',
       formatter: 'textarea',
     },
     {
       title: 'Kết quả thực hiện',
       field: 'Quantity',
-      width: 300,
+      hozAlign: 'left',
       formatter: 'textarea',
     },
     {
       title: 'Thời gian thực hiện(Phút)',
       field: 'TimeActual',
-      width: 300,
+      width:150,
+      hozAlign: 'right',
       formatter: 'textarea',
     },
     {
       title: 'Năng suất thực tế (Phút) / Đơn vị sản phẩm)',
       field: 'PerformanceActual',
-      width: 300,
+      width:150,
       formatter: 'textarea',
+      hozAlign: 'right',
     },
     {
       title: 'Năng suất trung bình / Năng suất thực tế',
       field: 'Percentage',
-      width: 300,
+      width:150,
+      hozAlign: 'right',
       formatter: 'textarea',
     },
   ];
@@ -532,10 +537,17 @@ export class DailyReportLXCPComponent implements OnInit, AfterViewInit {
       nzOkDanger: true,
       nzCancelText: 'Hủy',
       nzOnOk: () => {
-        this.dailyReportTechService.deleteDailyReport(id).subscribe({
+        const employeeID = this.currentUser?.EmployeeID || 0;
+        const deleteReport = {
+          ID: id,
+          EmployeeID: employeeID,
+          IsDeleted: true,
+        };
+
+        this.dailyReportTechService.saveReportHr([deleteReport]).subscribe({
           next: (response: any) => {
             if (response && response.status === 1) {
-              this.notification.success('Thông báo', response.message || 'Đã xóa báo cáo thành công!');
+              this.notification.success('Thông báo', response.message || 'Xóa báo cáo thành công!');
               this.getDailyReportHrData();
             } else {
               this.notification.error('Thông báo', response?.message || 'Không thể xóa báo cáo!');
@@ -638,10 +650,17 @@ export class DailyReportLXCPComponent implements OnInit, AfterViewInit {
       nzOkDanger: true,
       nzCancelText: 'Hủy',
       nzOnOk: () => {
-        this.dailyReportTechService.deleteDailyReport(dailyID).subscribe({
+        const employeeID = this.currentUser?.EmployeeID || 0;
+        const deleteReport = {
+          ID: dailyID,
+          EmployeeID: employeeID,
+          IsDeleted: true,
+        };
+
+        this.dailyReportTechService.saveReportHr([deleteReport]).subscribe({
           next: (response: any) => {
             if (response && response.status === 1) {
-              this.notification.success('Thông báo', response.message || 'Đã xóa báo cáo thành công!');
+              this.notification.success('Thông báo', response.message || 'Xóa báo cáo thành công!');
               this.getDailyReportHrData();
             } else {
               this.notification.error('Thông báo', response?.message || 'Không thể xóa báo cáo!');
@@ -655,321 +674,5 @@ export class DailyReportLXCPComponent implements OnInit, AfterViewInit {
         });
       }
     });
-  }
-
-  copyDailyReport(): void {
-    const searchParams = this.getSearchParams();
-    
-    let employeeID = 0;
-    if (searchParams.userID && searchParams.userID > 0) {
-      for (const group of this.users) {
-        if (group.options && Array.isArray(group.options)) {
-          const foundUser = group.options.find((opt: any) => opt.item?.UserID === searchParams.userID);
-          if (foundUser && foundUser.item?.ID) {
-            employeeID = foundUser.item.ID;
-            break;
-          }
-        }
-      }
-    }
-    
-    const copyParams = {
-      dateStart: searchParams.dateStart,
-      dateEnd: searchParams.dateEnd,
-      team_id: searchParams.teamID || 0,
-      keyword: searchParams.keyword || '',
-      userid: employeeID || 0,
-      departmentid: searchParams.departmentID || 0
-    };
-    
-    this.dailyReportTechService.getForCopy(copyParams).subscribe({
-      next: (response: any) => {
-        if (response.status === 1) {
-          const result = Array.isArray(response.data) ? response.data : [];
-          this.formatAndCopyReport(result);
-        } else {
-          this.notification.error('Thông báo', 'Không có dữ liệu để copy!');
-        }
-      },
-      error: (error: any) => {
-        const errorMsg = error?.error?.message || error?.message || 'Đã xảy ra lỗi khi lấy dữ liệu copy!';
-        this.notification.error('Thông báo', errorMsg);
-      }
-    });
-  }
-
-  private formatAndCopyReport(result: any[]): void {
-    if (!result || result.length === 0) {
-      this.notification.error('Thông báo', 'Không có dữ liệu để copy!');
-      return;
-    }
-
-    const uniqueDates = [...new Set(result.map(item => item.DateReport))];
-    
-    if (uniqueDates.length === 1) {
-      const contentSummary = this.formatSingleDayReport(result, uniqueDates[0]);
-      this.copyToClipboard(contentSummary);
-    } else {
-      this.notification.warning('Thông báo', `Bạn không thể copy nội dung của ${uniqueDates.length} ngày!`);
-    }
-  }
-
-  private formatSingleDayReport(dayData: any[], dateReport: string): string {
-    let content = '';
-    let resultReport = '';
-    let backlog = '';
-    let problem = '';
-    let problemSolve = '';
-    let planNextDay = '';
-    let note = '';
-
-    const dateTime = DateTime.fromISO(dateReport);
-    const formattedDate = dateTime.isValid ? dateTime.toFormat('dd/MM/yyyy') : dateReport;
-    let contentSummary = `Báo cáo công việc ngày ${formattedDate}\n`;
-
-    dayData.forEach(item => {
-      if (item) {
-        if (item.Content) content += item.Content + '\n';
-        if (item.Results) resultReport += item.Results + '\n';
-        if (item.Backlog) backlog += item.Backlog + '\n';
-        if (item.Problem) problem += item.Problem + '\n';
-        if (item.ProblemSolve) problemSolve += item.ProblemSolve + '\n';
-        if (item.Note) note += item.Note + '\n';
-        if (item.PlanNextDay) planNextDay = item.PlanNextDay;
-      }
-    });
-
-    contentSummary += `\n* Nội dung công việc:\n${content.trim()}\n`;
-    contentSummary += `\n* Kết quả công việc:\n${resultReport.trim()}\n`;
-    contentSummary += `\n* Tồn đọng:\n${backlog.trim() === '' ? '- Không có' : backlog.trim()}\n`;
-    contentSummary += `\n* Ghi chú:\n${note.trim() === '' ? '- Không có' : note.trim()}\n`;
-    contentSummary += `\n* Vấn đề phát sinh:\n${problem.trim() === '' ? '- Không có' : problem.trim()}\n`;
-    contentSummary += `\n* Giải pháp cho vấn đề phát sinh:\n${problemSolve.trim() === '' ? '- Không có' : problemSolve.trim()}\n`;
-    contentSummary += `\n* Kế hoạch ngày tiếp theo:\n${planNextDay.trim() === '' ? '- Không có' : planNextDay.trim()}\n`;
-
-    return contentSummary;
-  }
-
-  private async copyToClipboard(text: string): Promise<void> {
-    // Hàm fallback sử dụng execCommand với focus handling
-    const useExecCommand = (): boolean => {
-      const textArea = document.createElement('textarea');
-      textArea.value = text;
-      
-      // Style để textarea không hiển thị nhưng vẫn có thể focus
-      textArea.style.position = 'fixed';
-      textArea.style.top = '0';
-      textArea.style.left = '0';
-      textArea.style.width = '2em';
-      textArea.style.height = '2em';
-      textArea.style.padding = '0';
-      textArea.style.border = 'none';
-      textArea.style.outline = 'none';
-      textArea.style.boxShadow = 'none';
-      textArea.style.background = 'transparent';
-      textArea.style.opacity = '0';
-      
-      document.body.appendChild(textArea);
-      
-      // Đảm bảo focus window trước
-      window.focus();
-      textArea.focus();
-      textArea.select();
-      
-      // Thử select bằng cách khác nếu cần
-      textArea.setSelectionRange(0, text.length);
-      
-      try {
-        const successful = document.execCommand('copy');
-        document.body.removeChild(textArea);
-        
-        if (successful) {
-          this.notification.success('Thông báo', 'Đã copy vào clipboard thành công!');
-          return true;
-        } else {
-          throw new Error('Copy command failed');
-        }
-      } catch (err: any) {
-        document.body.removeChild(textArea);
-        throw err;
-      }
-    };
-    
-    try {
-      // Đảm bảo window được focus
-      window.focus();
-      
-      // Thử sử dụng Clipboard API nếu có
-      if (navigator.clipboard && navigator.clipboard.writeText) {
-        try {
-          await navigator.clipboard.writeText(text);
-          this.notification.success('Thông báo', 'Đã copy vào clipboard thành công!');
-          return;
-        } catch (clipboardErr: any) {
-          console.warn('Clipboard API failed, trying execCommand:', clipboardErr.message);
-          // Fallback sang execCommand
-          useExecCommand();
-          return;
-        }
-      } else {
-        // Nếu không có Clipboard API, dùng execCommand
-        useExecCommand();
-        return;
-      }
-    } catch (err: any) {
-      console.error('Copy to clipboard final error:', err);
-      this.notification.error(
-        'Thông báo', 
-        'Không thể copy vào clipboard. Vui lòng click vào trang trước khi copy!'
-      );
-    }
-  }
-
-  async exportReport(): Promise<void> {
-    const table = this.tb_daily_report_hr;
-    if (!table) {
-      this.notification.error('Thông báo', 'Bảng dữ liệu chưa được khởi tạo!');
-      return;
-    }
-
-    // Lấy dữ liệu hiện tại từ bảng (bao gồm cả filter/search)
-    const data = table.getData('active'); // 'active' để lấy data đã được filter
-    if (!data || data.length === 0) {
-      this.notification.error('Thông báo', 'Không có dữ liệu để xuất báo cáo!');
-      return;
-    }
-
-    const workbook = new ExcelJS.Workbook();
-    const worksheet = workbook.addWorksheet('Báo cáo HR');
-
-    // Lấy columns từ bảng
-    const columns = table.getColumns();
-    const columnDefinitions = columns.map((col: any) => col.getDefinition());
-    
-    // Lọc bỏ các columns không có field (như action buttons)
-    const visibleColumns = columnDefinitions.filter((col: any) => col.field && col.visible !== false);
-    
-    // Tạo header
-    const headers = visibleColumns.map((col: any) => col.title || col.field);
-    worksheet.addRow(headers);
-
-    // Style header
-    const headerRow = worksheet.getRow(1);
-    headerRow.font = { bold: true, size: 11 };
-    headerRow.fill = {
-      type: 'pattern',
-      pattern: 'solid',
-      fgColor: { argb: 'FFE0E0E0' }
-    };
-    headerRow.alignment = { vertical: 'middle', horizontal: 'center', wrapText: true };
-
-    // Xử lý dữ liệu từng dòng
-    data.forEach((row: any, rowIndex: number) => {
-      const rowData = visibleColumns.map((col: any) => {
-        const field = col.field;
-        let value = row[field];
-
-        // Xử lý formatter nếu có
-        if (col.formatter) {
-          if (typeof col.formatter === 'function') {
-            // Tạo cell giả để lấy giá trị đã format
-            const fakeCell = {
-              getValue: () => value,
-              getRow: () => ({ getData: () => row })
-            };
-            try {
-              const formattedValue = col.formatter(fakeCell as any);
-              // Nếu formatter trả về HTML, lấy text
-              if (typeof formattedValue === 'string' && formattedValue.includes('<')) {
-                const tempDiv = document.createElement('div');
-                tempDiv.innerHTML = formattedValue;
-                value = tempDiv.textContent || tempDiv.innerText || value;
-              } else {
-                value = formattedValue;
-              }
-            } catch (e) {
-              // Nếu lỗi, dùng giá trị gốc
-            }
-          } else if (col.formatter === 'textarea') {
-            // Giữ nguyên giá trị cho textarea
-          }
-        }
-
-        // Xử lý date
-        if (value && typeof value === 'string') {
-          // Kiểm tra nếu là ISO date string
-          if (/^\d{4}-\d{2}-\d{2}T/.test(value)) {
-            const dateTime = DateTime.fromISO(value);
-            if (dateTime.isValid) {
-              // Nếu là DateReport hoặc CreatedDate, format đúng
-              if (field === 'DateReport') {
-                value = dateTime.toFormat('dd/MM/yyyy');
-              } else if (field === 'CreatedDate') {
-                value = dateTime.toFormat('dd/MM/yyyy HH:mm:ss');
-              } else {
-                value = dateTime.toJSDate();
-              }
-            }
-          }
-        }
-
-        return value || '';
-      });
-      
-      const excelRow = worksheet.addRow(rowData);
-      excelRow.alignment = { vertical: 'top', wrapText: true };
-    });
-
-    // Định dạng cột
-    worksheet.columns.forEach((column: any, index: number) => {
-      const colDef = visibleColumns[index];
-      if (!colDef) return;
-
-      let maxLength = colDef.title ? colDef.title.length : 10;
-      column.eachCell({ includeEmpty: true }, (cell: any) => {
-        const cellValue = cell.value ? cell.value.toString() : '';
-        maxLength = Math.max(maxLength, cellValue.length + 2);
-      });
-      
-      // Set width với giới hạn
-      column.width = Math.min(Math.max(maxLength, 10), 50);
-      
-      // Alignment
-      if (colDef.hozAlign === 'right') {
-        column.alignment = { horizontal: 'right' };
-      } else if (colDef.hozAlign === 'center') {
-        column.alignment = { horizontal: 'center' };
-      }
-    });
-
-    // Auto filter
-    worksheet.autoFilter = {
-      from: { row: 1, column: 1 },
-      to: { row: 1, column: visibleColumns.length },
-    };
-
-    // Freeze header row
-    worksheet.views = [
-      {
-        state: 'frozen',
-        ySplit: 1,
-      },
-    ];
-
-    const buffer = await workbook.xlsx.writeBuffer();
-    const blob = new Blob([buffer], {
-      type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
-    });
-
-    const formattedDate = DateTime.now().toFormat('ddMMyyyy');
-    const link = document.createElement('a');
-    link.href = window.URL.createObjectURL(blob);
-    link.download = `BaoCaoHR_${formattedDate}.xlsx`;
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-    window.URL.revokeObjectURL(link.href);
-
-    this.notification.success('Thông báo', `Đã xuất ${data.length} bản ghi thành công!`);
   }
 }

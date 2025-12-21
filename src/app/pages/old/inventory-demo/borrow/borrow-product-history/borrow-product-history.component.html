@@ -29,7 +29,7 @@
                         <nz-form-item>
                             <nz-form-label class="fs-12" [nzSpan]="24">Nhân viên</nz-form-label>
                             <nz-form-control [nzSpan]="24">
-                                <nz-select class="w-100" nzShowSearch nzPlaceHolder="Chọn nhân viên"
+                                <nz-select class="w-100" nzShowSearch nzAllowClear nzPlaceHolder="Chọn nhân viên"
                                     [(ngModel)]="userID" name="userID" (ngModelChange)="onEmployeeChange($event)">
                                     <ng-container *ngFor="let group of employees">
                                         <nz-option-group [nzLabel]="'-- Phòng ban: ' + group.label">
@@ -46,7 +46,7 @@
                         <nz-form-item class="mt-2">
                             <nz-form-label class="fs-12" [nzSpan]="24">Trạng thái</nz-form-label>
                             <nz-form-control [nzSpan]="24">
-                                <nz-select [(ngModel)]="selectedStatus" (ngModelChange)="onStatusChange($event)"
+                                <nz-select [(ngModel)]="selectedStatus" nzAllowClear nzShowSearch (ngModelChange)="onStatusChange($event)"
                                     [nzMode]="'multiple'" [nzPlaceHolder]="'Chọn trạng thái'" [nzMaxTagCount]="1"
                                     class="w-100" name="selectedStatus">
                                     <nz-option nzLabel="Đã trả" nzValue="0"></nz-option>

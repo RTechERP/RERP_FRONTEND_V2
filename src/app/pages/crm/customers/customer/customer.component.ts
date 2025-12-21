@@ -370,11 +370,11 @@ export class CustomerComponent implements OnInit, AfterViewInit {
         nzOkDanger: true,
         nzOnOk: () => {
 
-        const payload = {
-          isDeleted: isDeleted
-        };
-        console.log("payload: ", payload);
-        this.customerService.save(payload).subscribe({
+        // const payload = {
+        //   isDeleted: isDeleted
+        // };
+        // console.log("payload: ", payload);
+        this.customerService.deleteMultiple(isDeleted).subscribe({
           next: (res: any) => {
             if (res?.status === 1) {
               this.notification.success(NOTIFICATION_TITLE.success, 'Xóa thành công');

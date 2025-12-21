@@ -121,14 +121,14 @@
         <nz-form-item class="mb-0">
           <nz-form-label class="fs-12 p-0" [nzSpan]="24">Bộ phận phối hợp</nz-form-label>
           <nz-form-control [nzSpan]="24" [nzErrorTip]="
-              formGroup.get('DepartmentID')?.hasError('required') &&
-              (formGroup.get('DepartmentID')?.dirty ||
-                formGroup.get('DepartmentID')?.touched)
+              formGroup.get('CoordinationDepartment')?.hasError('required') &&
+              (formGroup.get('CoordinationDepartment')?.dirty ||
+                formGroup.get('CoordinationDepartment')?.touched)
                 ? 'Vui lòng chọn phòng ban!'
                 : undefined
             ">
-            <nz-select formControlName="DepartmentID" [nzPlaceHolder]="'Chọn phòng ban'" style="width: 100%"
-              name="DepartmentID" required>
+            <nz-select formControlName="CoordinationDepartment" [nzPlaceHolder]="'Chọn phòng ban'" style="width: 100%"
+              name="CoordinationDepartment">
               <nz-option *ngFor="let item of dataDepartment" [nzLabel]="item.Name" [nzValue]="item.ID"></nz-option>
             </nz-select>
           </nz-form-control>
@@ -139,11 +139,44 @@
 
   <nz-splitter style="height: 59vh !important">
     <nz-splitter-panel nzSize="70%">
-      <div class="card-body p-0" style="height: 100%">
-        <div #jobRequirementDetailTable style="width: 100%; height: 100%"></div>
+      <div class="card-body p-0" style="height: 100%; overflow: auto;">
+        <table class="job-requirement-detail-table">
+          <thead>
+            <tr>
+              <th style="width: 50px; text-align: center;">STT</th>
+              <th style="width: 180px;">Đề mục</th>
+              <th style="width: 200px;">Diễn giải</th>
+              <th style="width: 200px;">Mục tiêu cần đạt</th>
+              <th>Ghi chú</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let item of jobRequirementDetailData; let i = index">
+              <td style="text-align: center;">{{ item.STT }}</td>
+              <td>{{ item.Category }}</td>
+              <td>
+                <!-- Nếu là "Thời gian hoàn thành đề nghị" thì chỉ hiển thị, không cho edit -->
+                <span *ngIf="item.Category === 'Thời gian hoàn thành đề nghị'">{{ item.Description }}</span>
+                <!-- Nếu là "Số lượng" thì dùng input chỉ nhập số -->
+                <input *ngIf="item.Category === 'Số lượng'" type="text" [(ngModel)]="item.Description"
+                  class="form-control form-control-sm text-end" (keypress)="onlyNumberKey($event)"
+                  (paste)="onPasteNumber($event)">
+                <!-- Các trường khác dùng textarea -->
+                <textarea *ngIf="item.Category !== 'Thời gian hoàn thành đề nghị' && item.Category !== 'Số lượng'"
+                  [(ngModel)]="item.Description" class="form-control form-control-sm" rows="2"></textarea>
+              </td>
+              <td>
+                <textarea [(ngModel)]="item.Target" class="form-control form-control-sm" rows="2"></textarea>
+              </td>
+              <td>
+                <textarea [(ngModel)]="item.Note" class="form-control form-control-sm" rows="2"></textarea>
+              </td>
+            </tr>
+          </tbody>
+        </table>
       </div>
     </nz-splitter-panel>
-      <nz-splitter-panel>
+    <nz-splitter-panel>
       <div class="card-body p-0" style="height: 100%; display: flex; flex-direction: column;">
         <div class="card-header bg-white p-1" style="flex-shrink: 0;">
           <div class="file-upload-section mb-2">
@@ -156,7 +189,30 @@
             </nz-upload>
           </div>
         </div>
-        <div #jobRequirementFileTable style="width: 100%; flex: 1; min-height: 0;"></div>
+        <div style="flex: 1; min-height: 0; overflow: auto;">
+          <table class="job-requirement-file-table">
+            <thead>
+              <tr>
+                <th style="width: 50px; text-align: center;"></th>
+                <th>Tên file</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr *ngFor="let file of getActiveFiles(); let i = index">
+                <td style="text-align: center;">
+                  <i class="fas fa-trash text-danger cursor-pointer" (click)="deleteFileByRecord(file)"
+                    title="Xóa file"></i>
+                </td>
+                <td>{{ file.FileNameOrigin || file.name }}</td>
+              </tr>
+              <tr *ngIf="getActiveFiles().length === 0">
+                <td colspan="2" style="text-align: center; padding: 20px;">
+                  Chưa có file đính kèm
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
       </div>
     </nz-splitter-panel>
   </nz-splitter>

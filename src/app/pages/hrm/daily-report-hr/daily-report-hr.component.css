@@ -55,6 +55,14 @@
   .tabulator-cell {
     padding: 0px;
   }
+
+  /* Header text wrap */
+  ::ng-deep .tabulator .tabulator-header .tabulator-col .tabulator-col-content {
+    white-space: normal !important;
+    word-wrap: break-word !important;
+    line-height: 1.4 !important;
+    padding: 4px 8px !important;
+  }
   
   .fs-12 {
     font-size: 0.75rem;

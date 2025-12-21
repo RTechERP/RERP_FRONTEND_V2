@@ -39,13 +39,24 @@ export class DailyReportTechService {
   }
 
   saveReportHr(report: any): Observable<any> {
-    return this.http.post<any>(this.apiUrl + 'save-report-hr', report);
+    return this.http.post<any>(this.apiUrlLXCP + 'save-report-hr', report);
   }
 
   getDataByID(dailyID: number): Observable<any> {
     const params = new HttpParams().set('dailyID', dailyID.toString());
     return this.http.get<any>(this.apiUrl + 'get-by-id', { params });
   }
+
+  //#region Get DailyReportHR by ID
+  /**
+   * Lấy dữ liệu báo cáo HR theo ID (cho Lái xe / Cắt phim)
+   * @param id ID của báo cáo
+   */
+  getDailyReportHRByID(id: number): Observable<any> {
+    const params = new HttpParams().set('id', id.toString());
+    return this.http.get<any>(this.apiUrlLXCP + 'get-data-by-id', { params });
+  }
+  //#endregion
 
   getProjectItemByUser(projectId: number, status: number): Observable<any> {
     let params = new HttpParams()

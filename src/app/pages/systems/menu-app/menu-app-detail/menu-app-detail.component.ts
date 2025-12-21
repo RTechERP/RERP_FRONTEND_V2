@@ -6,7 +6,7 @@ import { AppUserService } from '../../../../services/app-user.service';
 import { MenuAppService } from '../menu-app.service';
 import { MenuApp } from '../model/menu-app';
 import { CommonModule } from '@angular/common';
-import { AngularSlickgridModule } from 'angular-slickgrid';
+import { AngularGridInstance, AngularSlickgridModule, Column, Filters, GridOption, OnSelectedRowsChangedEventArgs } from 'angular-slickgrid';
 import { NzButtonModule } from 'ng-zorro-antd/button';
 import { NzCheckboxModule } from 'ng-zorro-antd/checkbox';
 import { NzDatePickerModule } from 'ng-zorro-antd/date-picker';
@@ -51,8 +51,12 @@ export class MenuAppDetailComponent {
     nodes: any[] = [];
     inputValue: string | null = null;
 
+    //Khai báo biến slickgrid
+    angularGrid!: AngularGridInstance;
+    gridData: any;
+    columnDefinitions: Column[] = [];
+    gridOptions: GridOption = {};
     userGroups: any[] = [];
-
 
     constructor(
         public activeModal: NgbActiveModal,
@@ -65,12 +69,13 @@ export class MenuAppDetailComponent {
 
     ngOnInit(): void {
         this.initForm();
+        this.initGrid();
         this.getMenus();
     }
 
     initForm() {
         this.validateForm = this.fb.group({
-            STT: this.fb.control(0, [Validators.required]),
+            STT: this.fb.control(this.menu.STT, [Validators.required]),
             Code: this.fb.control(this.menu.Code, [Validators.required]),
             Title: this.fb.control(this.menu.Title, [Validators.required]),
             Router: this.fb.control(this.menu.Router),
@@ -79,12 +84,79 @@ export class MenuAppDetailComponent {
         });
     }
 
+    initGrid() {
+        this.columnDefinitions = [
+            {
+                id: 'Code',
+                name: 'Mã quyền',
+                field: 'Code',
+                type: 'string',
+                sortable: true, filterable: true,
+                // formatter: Formatters.icon, params: { iconCssClass: 'mdi mdi-trash-can pointer' },
+                filter: { model: Filters['compoundInputText'] }
+
+            },
+            {
+                id: 'Name',
+                name: 'Tên quyền',
+                field: 'Name',
+                type: 'string',
+                sortable: true, filterable: true,
+                // formatter: Formatters.icon, params: { iconCssClass: 'mdi mdi-trash-can pointer' },
+                filter: { model: Filters['compoundInputText'] }
+
+            },
+
+
+        ];
+
+        this.gridOptions = {
+            enableAutoResize: true,
+            autoResize: {
+                container: '.grid-container',
+                calculateAvailableSizeBy: 'container',
+                resizeDetection: 'container',
+            },
+            gridWidth: '100%',
+            enableCellNavigation: true,
+
+            enableFiltering: true,
+
+            enableRowSelection: true,
+            rowSelectionOptions: {
+                selectActiveRow: false// True (Single Selection), False (Multiple Selections)
+            },
+            checkboxSelector: {
+                // you can toggle these 2 properties to show the "select all" checkbox in different location
+                hideInFilterHeaderRow: false,
+                hideInColumnTitleRow: true,
+                applySelectOnAllPages: true, // when clicking "Select All", should we apply it to all pages (defaults to true)
+            },
+            enableCheckboxSelector: true,
+        };
+    }
+
+    angularGridReady(angularGrid: AngularGridInstance) {
+        this.angularGrid = angularGrid;
+        this.gridData = angularGrid?.slickGrid || {};
+    }
+
     getMenus() {
         this.menuService.getAll().subscribe({
             next: (repsonse) => {
 
                 const menus = repsonse.data.menus;
                 this.userGroups = repsonse.data.userGroups;
+
+                let stt = Math.max(...menus.map((x: any) => x.STT ?? 0));
+
+                this.validateForm.get('STT')?.setValue(stt + 1);
+                this.validateForm.get('Code')?.setValue(`M${stt + 1}`);
+
+                this.userGroups = this.userGroups.map((x: any) => ({
+                    ...x,
+                    id: x.ID
+                }));
 
                 const map = new Map<number, any>();
                 this.nodes = [];
@@ -118,6 +190,15 @@ export class MenuAppDetailComponent {
     }
 
     submitForm() {
+
+        const selectedData = this.angularGrid.gridService.getSelectedRows();
+        const userGroupSelecteds = selectedData.map((idx: number) => {
+            const item = this.gridData.getDataItem(idx);
+            return item;
+        });
+
+
+
         if (!this.validateForm.valid) {
             Object.values(this.validateForm.controls).forEach(control => {
                 if (control.invalid) {
@@ -129,6 +210,9 @@ export class MenuAppDetailComponent {
 
             const menu = {
                 ...this.validateForm.getRawValue(),
+                MenuAppUserGroupLinks: userGroupSelecteds.map((x: any) => ({
+                    UserGroupID: x.ID
+                }))
             };
 
             this.menuService.saveData(menu).subscribe({
@@ -144,6 +228,21 @@ export class MenuAppDetailComponent {
             });
 
 
+        }
+    }
+
+
+    handleRowSelection(e: Event, args: OnSelectedRowsChangedEventArgs) {
+        if (Array.isArray(args.rows) && this.gridData) {
+
+            console.log('multiple row checkbox selected', event, args);
+
+            const item = args.rows.map((idx: number) => {
+                const item = this.gridData.getDataItem(idx);
+                return item;
+            });
+
+            console.log('item selected:', item);
         }
     }
 }

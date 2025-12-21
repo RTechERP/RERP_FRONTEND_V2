@@ -11,7 +11,7 @@ export class MenuApp {
     UpdatedDate?: Date | null = null;
     UpdatedBy?: string | null = null;
     IsDeleted?: boolean | null = null;
-    MenuAppUserGroupLink?: MenuAppUserGroupLink[] = [];
+    MenuAppUserGroupLinks?: MenuAppUserGroupLink[] = [];
 
     constructor(init?: Partial<MenuApp>) {
         Object.assign(this, init);

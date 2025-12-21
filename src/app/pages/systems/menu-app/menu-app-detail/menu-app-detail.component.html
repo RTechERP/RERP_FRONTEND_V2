@@ -19,10 +19,9 @@
                 <div nz-col nzXs="24" nzSm="12" nzMd="6" nzLg="16">
                     <nz-form-item>
                         <nz-form-label>Mã<span class="text-danger ps-1">(*)</span></nz-form-label>
-                        <nz-form-control nzErrorTip="Chọn loại nội dung đề nghị">
+                        <nz-form-control nzErrorTip="Nhập mã">
                             <nz-input-group [nzSuffix]="inputClearTpl">
-                                <input type="text" nz-input [formControlName]="'Code'"
-                                    placeholder="input with clear icon" />
+                                <input type="text" nz-input [formControlName]="'Code'" placeholder="" />
                             </nz-input-group>
                             <ng-template #inputClearTpl>
                                 @if (inputValue) {
@@ -38,7 +37,7 @@
                 <div nz-col nzXs="24" nzSm="12" nzMd="6" nzLg="24">
                     <nz-form-item>
                         <nz-form-label>Tiêu đề<span class="text-danger ps-1">(*)</span></nz-form-label>
-                        <nz-form-control nzErrorTip="Chọn ngày">
+                        <nz-form-control nzErrorTip="Nhập tên menu">
                             <nz-input-group [nzSuffix]="inputClearTpl">
                                 <input type="text" nz-input [formControlName]="'Title'" placeholder="" />
                             </nz-input-group>
@@ -58,8 +57,7 @@
                         <nz-form-label>Router</nz-form-label>
                         <nz-form-control nzErrorTip="">
                             <nz-input-group [nzSuffix]="inputClearTpl">
-                                <input type="text" nz-input [formControlName]="'Router'"
-                                    placeholder="input with clear icon" />
+                                <input type="text" nz-input [formControlName]="'Router'" placeholder="" />
                             </nz-input-group>
                             <ng-template #inputClearTpl>
                                 @if (inputValue) {
@@ -75,8 +73,7 @@
                         <nz-form-label>Icon</nz-form-label>
                         <nz-form-control nzErrorTip="">
                             <nz-input-group [nzSuffix]="inputClearTpl">
-                                <input type="text" nz-input [formControlName]="'Icon'"
-                                    placeholder="input with clear icon" />
+                                <input type="text" nz-input [formControlName]="'Icon'" placeholder="" />
                             </nz-input-group>
                             <ng-template #inputClearTpl>
                                 @if (inputValue) {
@@ -94,7 +91,7 @@
                 <div nz-col nzXs="24" nzSm="12" nzMd="6" nzLg="24">
                     <nz-form-item>
                         <nz-form-label>Menu cha</nz-form-label>
-                        <nz-form-control nzErrorTip="Chọn nhà cung cấp">
+                        <nz-form-control nzErrorTip="">
                             <nz-tree-select class="w-100" [nzNodes]="nodes" nzShowSearch nzPlaceHolder=""
                                 [formControlName]="'ParentID'"></nz-tree-select>
                         </nz-form-control>
@@ -102,7 +99,19 @@
                 </div>
             </div>
         </form>
+
+
+        <div class="grid-container border" style="height:30vh;">
+            <angular-slickgrid gridId="grdData" [columns]="columnDefinitions" [options]="gridOptions"
+                [dataset]="userGroups" (onAngularGridCreated)="angularGridReady($event.detail)">
+            </angular-slickgrid>
+
+
+        </div>
     </div>
+
+
+
     <div class="modal-footer py-2">
         <button nz-button nzType="default" nzDanger="" (click)="activeModal.close()">
             <nz-icon nzType="close" nzTheme="outline" /> Đóng

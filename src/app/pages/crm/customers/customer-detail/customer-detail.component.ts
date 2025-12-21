@@ -228,7 +228,7 @@ export class CustomerDetailComponent implements OnInit, AfterViewInit {
       next: (response) => {
         if (response.status === 1) {
           let province = this.provincesData.find(
-            (x) => x.Code == response.data.provinceCode
+            (x) => x.ProvinceCode == response.data.provinceCode
           );
 
           // Cập nhật form values
@@ -238,7 +238,7 @@ export class CustomerDetailComponent implements OnInit, AfterViewInit {
             businessField: response.data.business.BusinessFieldID,
             provinceCode: response.data.provinceCode,
             customerCode: response.data.customerCode,
-            province: province?.Name,
+            province: province?.ProvinceName,
             customerShortName: response.data.model.CustomerShortName,
             taxCode: response.data.model.TaxCode,
             customerType: response.data.model.CustomerType,
@@ -262,7 +262,7 @@ export class CustomerDetailComponent implements OnInit, AfterViewInit {
             businessField: response.data.business.BusinessFieldID,
             provinceCode: response.data.provinceCode,
             customerCode: response.data.customerCode,
-            province: province?.Name,
+            province: province?.ProvinceName,
             customerShortName: response.data.model.CustomerShortName,
             taxCode: response.data.model.TaxCode,
             customerType: response.data.model.CustomerType,

@@ -10,6 +10,12 @@ export class InventoryByDateService {
 
   private _url = environment.host + 'api/InventoryByDate/';
   constructor(private http: HttpClient) { }
+  private formatLocalDate(date: Date): string {
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
+  }
 
   loadData(
     dateTime: Date
@@ -28,6 +34,24 @@ export class InventoryByDateService {
     return this.http.get(this._url + 'get-data', {
       params: {
         dateTime: formatLocalDate(dateTime),
+      },
+    });
+  }
+
+  getImportExportInventoryByDate(productSaleId: number, warehouseCode: string, dateValues: Date): Observable<any> {
+    return this.http.get(this._url + 'get-import-export-inventory', {
+      params: {
+        productSaleId: productSaleId,
+        warehouseCode: warehouseCode,
+        dateValues: this.formatLocalDate(dateValues),
+      },
+    });
+  }
+
+  getInventoryByProductSaleId(productSaleId: number): Observable<any> {
+    return this.http.get(this._url + 'get-inventory-by-productid', {
+      params: {
+        productSaleId: productSaleId,
       },
     });
   }

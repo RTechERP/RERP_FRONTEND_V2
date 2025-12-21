@@ -110,6 +110,7 @@ export class VehicleBookingManagementComponent
   selected: any;
   vehicleBookingListId: any[] = [];
   employees: any[] = [];
+  employeesDriver: any[] = [];
   exportingExcel: boolean = false;
   editingCell: { cell: any; originalValue: any; rowId: number } | null = null;
   pendingChanges: Map<number, { id: number; departureDateActual: Date }> = new Map();
@@ -173,6 +174,7 @@ export class VehicleBookingManagementComponent
   ngOnInit() {
     this.getCurrentUser();
     this.getEmployees();
+    this.getEmployeesDriver();
   }
 
   ngAfterViewInit(): void {
@@ -215,6 +217,15 @@ export class VehicleBookingManagementComponent
       },
       error: (error) => {
         console.error('Lỗi khi tải danh sách nhân viên:', error);
+      }
+    });
+  }
+  getEmployeesDriver(){
+    this.vehicleBookingManagementService.getEmployee().subscribe({
+      next: (data: any) => {
+        if (data?.status === 1) {
+          this.employeesDriver = (data.data || []).filter((emp: any) => emp.ChucVuHDID === 6);
+        }
       }
     });
   }

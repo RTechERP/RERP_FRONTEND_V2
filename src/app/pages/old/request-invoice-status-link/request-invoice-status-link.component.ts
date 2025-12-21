@@ -294,6 +294,8 @@ export class RequestInvoiceStatusLinkComponent implements OnInit, AfterViewInit 
       ...DEFAULT_TABLE_CONFIG,
       layout: 'fitColumns',
       data: this.mainData,
+      paginationMode: 'local',
+      pagination: false,
       height: '100%',
       rowHeader: false,
       columns: [

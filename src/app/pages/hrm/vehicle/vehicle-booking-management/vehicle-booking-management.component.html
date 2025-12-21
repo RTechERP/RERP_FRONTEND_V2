@@ -74,7 +74,7 @@
                 <nz-select class="w-100 fs-12" nzSize="small" nzShowSearch nzAllowClear
                   nzPlaceHolder="Chọn nhân viên lái xe..." [(ngModel)]="driverEmployeeId"
                   name="driverEmployeeId">
-                  <nz-option *ngFor="let emp of employees" [nzLabel]="emp.Code + ' - ' + emp.FullName"
+                  <nz-option *ngFor="let emp of employeesDriver" [nzLabel]="emp.Code + ' - ' + emp.FullName"
                     [nzValue]="emp.ID"></nz-option>
                 </nz-select>
               </nz-form-control>

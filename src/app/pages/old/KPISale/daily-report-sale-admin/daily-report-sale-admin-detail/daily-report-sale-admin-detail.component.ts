@@ -37,6 +37,7 @@ import {
   TabulatorFull as Tabulator,
   RowComponent,
   CellComponent,
+  ColumnDefinition,
 } from 'tabulator-tables';
 // import 'tabulator-tables/dist/css/tabulator_simple.min.css';
 // import 'bootstrap-icons/font/bootstrap-icons.css';
@@ -60,6 +61,7 @@ import { DEFAULT_TABLE_CONFIG } from '../../../../../tabulator-default.config';
 import { HasPermissionDirective } from '../../../../../directives/has-permission.directive';
 import { NOTIFICATION_TITLE } from '../../../../../app.config';
 import { AppUserService } from '../../../../../services/app-user.service';
+import { TabulatorPopupService } from '../../../../../shared/components/tabulator-popup';
 
 import { DailyReportSaleAdminService } from '../daily-report-sale-admin-service/daily-report-sale-admin.service';
 
@@ -114,6 +116,27 @@ export class DailyReportSaleAdminDetailComponent implements OnInit, AfterViewIni
   customers: any[] = [];
   isSaveEnabled: boolean = false; // Trạng thái enable/disable nút lưu
 
+  // Column definitions cho popup
+  employeePopupColumns: ColumnDefinition[] = [
+    { title: 'Mã NV', field: 'Code', width: 120 },
+    { title: 'Tên nhân viên', field: 'FullName', width: 200 },
+  ];
+
+  reportTypePopupColumns: ColumnDefinition[] = [
+    // { title: 'Mã loại', field: 'ReportTypeCode', width: 120 },
+    { title: 'Tên loại báo cáo', field: 'ReportTypeName', width: 200 },
+  ];
+
+  projectPopupColumns: ColumnDefinition[] = [
+    { title: 'Mã dự án', field: 'ProjectCode', width: 150 },
+    { title: 'Tên dự án', field: 'ProjectName', width: 250 },
+  ];
+
+  customerPopupColumns: ColumnDefinition[] = [
+    { title: 'Mã KH', field: 'CustomerCode', width: 150 },
+    { title: 'Tên khách hàng', field: 'CustomerName', width: 250 },
+  ];
+
   constructor(
     private notification: NzNotificationService,
     private modalService: NgbModal,
@@ -123,7 +146,8 @@ export class DailyReportSaleAdminDetailComponent implements OnInit, AfterViewIni
     private appRef: ApplicationRef,
     private fb: FormBuilder,
     private dailyReportSaleAdminService: DailyReportSaleAdminService,
-    private appUserService: AppUserService
+    private appUserService: AppUserService,
+    private tabulatorPopupService: TabulatorPopupService
   ) { }
 
   closeModal(): void {
@@ -131,6 +155,10 @@ export class DailyReportSaleAdminDetailComponent implements OnInit, AfterViewIni
   }
 
   ngOnInit(): void {
+    // Nếu không phải edit mode, enable nút lưu bình thường
+    if (!this.isEditMode) {
+      this.isSaveEnabled = true;
+    }
     this.loadAllData();
     if (this.isEditMode && this.selectedRowId > 0) {
       this.loadDetail();
@@ -189,8 +217,10 @@ export class DailyReportSaleAdminDetailComponent implements OnInit, AfterViewIni
       if (response.status === 1) {
         this.mainData = response.data;
         this.tb_DataTable.replaceData(this.mainData);
-        // Kiểm tra quyền lưu sau khi load data
-        this.checkSavePermission();
+        // Chỉ kiểm tra quyền lưu khi ở chế độ edit
+        if (this.isEditMode) {
+          this.checkSavePermission();
+        }
       } else {
         this.notification.error(NOTIFICATION_TITLE.error, response.message);
       }
@@ -200,16 +230,13 @@ export class DailyReportSaleAdminDetailComponent implements OnInit, AfterViewIni
   }
 
   checkSavePermission(): void {
-    if (!this.tb_DataTable) {
-      this.isSaveEnabled = false;
+    // Chỉ check khi ở chế độ edit
+    if (!this.isEditMode) {
+      this.isSaveEnabled = true;
       return;
     }
 
     const data = this.tb_DataTable.getData();
-    if (!data || data.length === 0) {
-      this.isSaveEnabled = false;
-      return;
-    }
 
     // Lấy dòng đầu tiên trong bảng
     const firstRow = data[0];
@@ -394,10 +421,13 @@ export class DailyReportSaleAdminDetailComponent implements OnInit, AfterViewIni
   }
 
   addNewRow(): void {
+    // Lấy employeeID của người đang đăng nhập
+    const currentEmployeeID = this.appUserService.employeeID || 0;
+    
     const newRow = {
       ID: null,
       DateReport: new Date(), // Mặc định là ngày hôm nay
-      EmployeeID: null,
+      EmployeeID: currentEmployeeID > 0 ? currentEmployeeID : null,
       ReportTypeID: null,
       ReportContent: '',
       ProjectID: null,
@@ -424,6 +454,8 @@ export class DailyReportSaleAdminDetailComponent implements OnInit, AfterViewIni
     this.tb_DataTable = new Tabulator(this.tb_DataTableElement.nativeElement, {
       ...DEFAULT_TABLE_CONFIG,
       data: this.mainData,
+      pagination: false,
+      paginationMode: 'local',
       height: '70vh',
       rowHeader: false,
       selectableRows: 1,
@@ -491,87 +523,112 @@ export class DailyReportSaleAdminDetailComponent implements OnInit, AfterViewIni
           title: 'Nhân viên',
           field: 'EmployeeID',
           frozen: true,
-          editor: 'list',
           width: 150,
-          editorParams: {
-            values: this.employees.map((employee) => ({
-              label: employee.FullName,
-              value: employee.ID,
-            })),
-          },
+          hozAlign: 'center',
+          headerHozAlign: 'center',
+          tooltip: true,
           formatter: (cell) => {
             const value = cell.getValue();
             const employee = this.employees.find((e) => e.ID === value);
-            return employee ? employee.FullName : value;
+            const displayText = employee ? employee.FullName : 'Chọn NV';
+            return `
+              <button class="btn-toggle-detail w-100 h-100" style="background-color: white; border: 1px solid #d9d9d9;" title="${displayText}">
+                <span class="employee-text">${displayText}</span>
+                <span class="arrow">&#9662;</span>
+              </button>
+            `;
+          },
+          cellClick: (e, cell) => {
+            this.showEmployeePopup(cell);
           },
         },
         {
           title: 'Loại báo cáo',
           field: 'ReportTypeID',
           frozen: true,
-          editor: 'list',
           width: 150,
-          editorParams: {
-            values: this.reportTypes.map((reportType) => ({
-              label: reportType.ReportTypeName,
-              value: reportType.ID,
-            })),
-          },
+          hozAlign: 'center',
+          headerHozAlign: 'center',
+          tooltip: true,
           formatter: (cell) => {
             const value = cell.getValue();
             const reportType = this.reportTypes.find((rt) => rt.ID === value);
-            return reportType ? reportType.ReportTypeName : value;
+            const displayText = reportType ? reportType.ReportTypeName : 'Chọn loại';
+            return `
+              <button class="btn-toggle-detail w-100 h-100" style="background-color: white; border: 1px solid #d9d9d9;" title="${displayText}">
+                <span class="report-type-text">${displayText}</span>
+                <span class="arrow">&#9662;</span>
+              </button>
+            `;
+          },
+          cellClick: (e, cell) => {
+            this.showReportTypePopup(cell);
           },
         },
         { title: 'Nội dung báo cáo', field: 'ReportContent', editor: 'textarea', width: 250, },
         {
           title: 'Mã dự án',
           field: 'ProjectID',
-          editor: 'list',
-          editorParams: {
-            values: this.projects.map((project) => ({
-              label: project.ProjectCode + ' - ' + project.ProjectName,
-              value: project.ID,
-            })),
-          },
+          hozAlign: 'center',
+          headerHozAlign: 'center',
+          tooltip: true,
           formatter: (cell) => {
             const value = cell.getValue();
             const project = this.projects.find((p) => p.ID === value);
-            return project ? project.ProjectName : value;
+            const displayText = project ? (project.ProjectCode + ' - ' + project.ProjectName) : 'Chọn dự án';
+            return `
+              <button class="btn-toggle-detail w-100 h-100" style="background-color: white; border: 1px solid #d9d9d9;" title="${displayText}">
+                <span class="project-text">${displayText}</span>
+                <span class="arrow">&#9662;</span>
+              </button>
+            `;
+          },
+          cellClick: (e, cell) => {
+            this.showProjectPopup(cell);
           },
         },
         {
           title: 'Khách hàng',
           field: 'CustomerID',
-          editor: 'list',
           width: 250,
-          editorParams: {
-            values: this.customers.map((customer) => ({
-              label: customer.CustomerCode + ' - ' + customer.CustomerName,
-              value: customer.ID,
-            })),
-          },
+          hozAlign: 'center',
+          headerHozAlign: 'center',
+          tooltip: true,
           formatter: (cell) => {
             const value = cell.getValue();
             const customer = this.customers.find((c) => c.ID === value);
-            return customer ? customer.CustomerName : value;
+            const displayText = customer ? (customer.CustomerCode + ' - ' + customer.CustomerName) : 'Chọn KH';
+            return `
+              <button class="btn-toggle-detail w-100 h-100" style="background-color: white; border: 1px solid #d9d9d9;" title="${displayText}">
+                <span class="customer-text">${displayText}</span>
+                <span class="arrow">&#9662;</span>
+              </button>
+            `;
+          },
+          cellClick: (e, cell) => {
+            this.showCustomerPopup(cell);
           },
         },
         {
           title: 'Người yêu cầu',
           field: 'EmployeeRequestID',
-          editor: 'list',
-          editorParams: {
-            values: this.employees.map((employee) => ({
-              label: employee.FullName,
-              value: employee.ID,
-            })),
-          },
           width: 150,
+          hozAlign: 'center',
+          headerHozAlign: 'center',
+          tooltip: true,
           formatter: (cell) => {
             const value = cell.getValue();
             const employee = this.employees.find((e) => e.ID === value);
-            return employee ? employee.FullName : value;
+            const displayText = employee ? employee.FullName : 'Chọn NV';
+            return `
+              <button class="btn-toggle-detail w-100 h-100" style="background-color: white; border: 1px solid #d9d9d9;" title="${displayText}">
+                <span class="employee-request-text">${displayText}</span>
+                <span class="arrow">&#9662;</span>
+              </button>
+            `;
+          },
+          cellClick: (e, cell) => {
+            this.showEmployeeRequestPopup(cell);
           },
         },
         { title: 'Kết quả xử lí', field: 'Result', editor: 'textarea', width: 250, },
@@ -580,5 +637,182 @@ export class DailyReportSaleAdminDetailComponent implements OnInit, AfterViewIni
         { title: 'Kế hoạch tiếp theo', field: 'PlanNextDay', editor: 'textarea', width: 250, },
       ],
     });
+  }
+
+  // Methods để mở popup cho từng loại
+  showEmployeePopup(cell: CellComponent): void {
+    const cellElement = cell.getElement();
+
+    // Toggle: nếu đang mở thì đóng
+    if (cellElement.classList.contains('popup-open')) {
+      this.tabulatorPopupService.close();
+      return;
+    }
+
+    this.tabulatorPopupService.open(
+      {
+        data: this.employees || [],
+        columns: this.employeePopupColumns,
+        searchFields: ['Code', 'FullName'],
+        searchPlaceholder: 'Tìm kiếm nhân viên...',
+        height: '300px',
+        selectableRows: 1,
+        layout: 'fitColumns',
+        minWidth: '500px',
+        maxWidth: '700px',
+        onRowSelected: (selectedEmployee) => {
+          const parentRow = cell.getRow();
+          parentRow.update({
+            EmployeeID: selectedEmployee.ID,
+          });
+          this.tabulatorPopupService.close();
+        },
+        onClosed: () => {
+          cellElement.classList.remove('popup-open');
+        },
+      },
+      cellElement
+    );
+    cellElement.classList.add('popup-open');
+  }
+
+  showReportTypePopup(cell: CellComponent): void {
+    const cellElement = cell.getElement();
+
+    if (cellElement.classList.contains('popup-open')) {
+      this.tabulatorPopupService.close();
+      return;
+    }
+
+    this.tabulatorPopupService.open(
+      {
+        data: this.reportTypes || [],
+        columns: this.reportTypePopupColumns,
+        searchFields: ['ReportTypeCode', 'ReportTypeName'],
+        searchPlaceholder: 'Tìm kiếm loại báo cáo...',
+        height: '300px',
+        selectableRows: 1,
+        layout: 'fitColumns',
+        minWidth: '500px',
+        maxWidth: '700px',
+        onRowSelected: (selectedReportType) => {
+          const parentRow = cell.getRow();
+          parentRow.update({
+            ReportTypeID: selectedReportType.ID,
+          });
+          this.tabulatorPopupService.close();
+        },
+        onClosed: () => {
+          cellElement.classList.remove('popup-open');
+        },
+      },
+      cellElement
+    );
+    cellElement.classList.add('popup-open');
+  }
+
+  showProjectPopup(cell: CellComponent): void {
+    const cellElement = cell.getElement();
+
+    if (cellElement.classList.contains('popup-open')) {
+      this.tabulatorPopupService.close();
+      return;
+    }
+
+    this.tabulatorPopupService.open(
+      {
+        data: this.projects || [],
+        columns: this.projectPopupColumns,
+        searchFields: ['ProjectCode', 'ProjectName'],
+        searchPlaceholder: 'Tìm kiếm dự án...',
+        height: '300px',
+        selectableRows: 1,
+        layout: 'fitColumns',
+        minWidth: '500px',
+        maxWidth: '700px',
+        onRowSelected: (selectedProject) => {
+          const parentRow = cell.getRow();
+          parentRow.update({
+            ProjectID: selectedProject.ID,
+          });
+          this.tabulatorPopupService.close();
+        },
+        onClosed: () => {
+          cellElement.classList.remove('popup-open');
+        },
+      },
+      cellElement
+    );
+    cellElement.classList.add('popup-open');
+  }
+
+  showCustomerPopup(cell: CellComponent): void {
+    const cellElement = cell.getElement();
+
+    if (cellElement.classList.contains('popup-open')) {
+      this.tabulatorPopupService.close();
+      return;
+    }
+
+    this.tabulatorPopupService.open(
+      {
+        data: this.customers || [],
+        columns: this.customerPopupColumns,
+        searchFields: ['CustomerCode', 'CustomerName'],
+        searchPlaceholder: 'Tìm kiếm khách hàng...',
+        height: '300px',
+        selectableRows: 1,
+        layout: 'fitColumns',
+        minWidth: '500px',
+        maxWidth: '700px',
+        onRowSelected: (selectedCustomer) => {
+          const parentRow = cell.getRow();
+          parentRow.update({
+            CustomerID: selectedCustomer.ID,
+          });
+          this.tabulatorPopupService.close();
+        },
+        onClosed: () => {
+          cellElement.classList.remove('popup-open');
+        },
+      },
+      cellElement
+    );
+    cellElement.classList.add('popup-open');
+  }
+
+  showEmployeeRequestPopup(cell: CellComponent): void {
+    const cellElement = cell.getElement();
+
+    if (cellElement.classList.contains('popup-open')) {
+      this.tabulatorPopupService.close();
+      return;
+    }
+
+    this.tabulatorPopupService.open(
+      {
+        data: this.employees || [],
+        columns: this.employeePopupColumns,
+        searchFields: ['Code', 'FullName'],
+        searchPlaceholder: 'Tìm kiếm nhân viên...',
+        height: '300px',
+        selectableRows: 1,
+        layout: 'fitColumns',
+        minWidth: '500px',
+        maxWidth: '700px',
+        onRowSelected: (selectedEmployee) => {
+          const parentRow = cell.getRow();
+          parentRow.update({
+            EmployeeRequestID: selectedEmployee.ID,
+          });
+          this.tabulatorPopupService.close();
+        },
+        onClosed: () => {
+          cellElement.classList.remove('popup-open');
+        },
+      },
+      cellElement
+    );
+    cellElement.classList.add('popup-open');
   }
 }

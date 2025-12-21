@@ -61,7 +61,7 @@ import { DEFAULT_TABLE_CONFIG } from '../../../tabulator-default.config';
 import { RequestInvoiceService } from '../request-invoice/request-invoice-service/request-invoice-service.service'
 import { RequestInvoiceStatusLinkComponent } from '../request-invoice-status-link/request-invoice-status-link.component';
 import { ViewPokhService } from '../view-pokh/view-pokh/view-pokh.service';
-
+import { setupTabulatorCellCopy } from '../../../shared/utils/tabulator-cell-copy.util';
 @Component({
   selector: 'app-request-invoice-summary',
   standalone: true,
@@ -828,6 +828,8 @@ export class RequestInvoiceSummaryComponent implements OnInit, AfterViewInit {
     this.tb_Table.on('rowClick', (_event: Event, row: RowComponent) => {
       this.handleMainRowSelection(row.getData());
     });
+
+    setupTabulatorCellCopy(this.tb_Table, this.tb_TableElement.nativeElement);
   }
 
   private handleMainRowSelection(rowData: any): void {

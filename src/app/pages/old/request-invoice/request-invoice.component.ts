@@ -67,7 +67,8 @@ import { DEFAULT_TABLE_CONFIG } from '../../../tabulator-default.config';
 import { RequestInvoiceStatusLinkComponent } from '../request-invoice-status-link/request-invoice-status-link.component';
 import { RequestInvoiceSummaryComponent } from '../request-invoice-summary/request-invoice-summary.component';
 import { MenuEventService } from '../../systems/menus/menu-service/menu-event.service';
-
+import { RequestInvoiceStatusLinkService } from '../request-invoice-status-link/request-invoice-status-link-service/request-invoice-status-link.service';
+import { setupTabulatorCellCopy } from '../../../shared/utils/tabulator-cell-copy.util';
 @Component({
   selector: 'app-request-invoice',
   imports: [
@@ -126,6 +127,7 @@ export class RequestInvoiceComponent implements OnInit, AfterViewInit {
     private appRef: ApplicationRef,
     private RequestInvoiceDetailService: RequestInvoiceDetailService,
     private menuEventService: MenuEventService,
+    private requestInvoiceStatusLinkService: RequestInvoiceStatusLinkService,
     @Optional() @Inject('tabData') private tabData: any
   ) { }
 
@@ -136,6 +138,7 @@ export class RequestInvoiceComponent implements OnInit, AfterViewInit {
   selectedId: number = 0;
   selectedFile: any = null;
   selectedPOFile: any = null;
+  statusData: any[] = [];
 
   filters: any = {
     filterText: '',
@@ -162,6 +165,7 @@ export class RequestInvoiceComponent implements OnInit, AfterViewInit {
   endDate.setHours(23, 59, 59, 999);
   this.filters.startDate = startDate;
   this.filters.endDate = endDate;
+    this.loadStatusData();
     this.loadMainData(
       this.filters.startDate,
       this.filters.endDate,
@@ -195,6 +199,21 @@ export class RequestInvoiceComponent implements OnInit, AfterViewInit {
           if (this.mainTable) {
             this.mainTable.setData(this.data);
           }
+        } else {
+          this.notification.error(NOTIFICATION_TITLE.error, response.message);
+        }
+      },
+      error: (error) => {
+        this.notification.error(NOTIFICATION_TITLE.error, error);
+      },
+    });
+  }
+
+  loadStatusData(): void {
+    this.requestInvoiceStatusLinkService.getStatus().subscribe({
+      next: (response) => {
+        if (response.status === 1) {
+          this.statusData = response.data;
         } else {
           this.notification.error(NOTIFICATION_TITLE.error, response.message);
         }
@@ -448,6 +467,64 @@ export class RequestInvoiceComponent implements OnInit, AfterViewInit {
       },
     });
   }
+
+  exportTableToExcel(): void {
+    const data = this.mainTable?.getData() || [];
+    if (data.length === 0) {
+      this.notification.warning('Cảnh báo', 'Không có dữ liệu để xuất!');
+      return;
+    }
+
+    const workbook = new ExcelJS.Workbook();
+    const worksheet = workbook.addWorksheet('Yêu cầu xuất hóa đơn');
+
+    worksheet.columns = [
+      { header: 'Yêu cầu gấp', key: 'IsUrgency', width: 15 },
+      { header: 'Trạng thái', key: 'StatusText', width: 30 },
+      { header: 'Deadline', key: 'DealineUrgency', width: 15 },
+      { header: 'Mã lệnh', key: 'Code', width: 15 },
+      { header: 'Ngày yêu cầu', key: 'DateRequest', width: 15 },
+      { header: 'Người yêu cầu', key: 'FullName', width: 20 },
+      { header: 'Tờ khai HQ', key: 'IsCustomsDeclared', width: 15 },
+      { header: 'Khách hàng', key: 'CustomerName', width: 30 },
+      { header: 'Địa chỉ', key: 'Address', width: 30 },
+      { header: 'Công ty bán', key: 'Name', width: 20 },
+      { header: 'Lý do yêu cầu bổ sung', key: 'AmendReason', width: 30 },
+      { header: 'Ghi chú', key: 'Note', width: 30 },
+    ];
+
+    worksheet.getRow(1).font = { bold: true };
+    worksheet.getRow(1).fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFD3D3D3' } };
+
+    data.forEach((row: any) => {
+      worksheet.addRow({
+        IsUrgency: row.IsUrgency ? 'Có' : 'Không',
+        StatusText: row.StatusText || '',
+        DealineUrgency: row.DealineUrgency ? DateTime.fromISO(row.DealineUrgency).toFormat('dd/MM/yyyy') : '',
+        Code: row.Code || '',
+        DateRequest: row.DateRequest ? DateTime.fromISO(row.DateRequest).toFormat('dd/MM/yyyy') : '',
+        FullName: row.FullName || '',
+        IsCustomsDeclared: row.IsCustomsDeclared ? 'Có' : 'Không',
+        CustomerName: row.CustomerName || '',
+        Address: row.Address || '',
+        Name: row.Name || '',
+        AmendReason: row.AmendReason || '',
+        Note: row.Note || '',
+      });
+    });
+
+    workbook.xlsx.writeBuffer().then((buffer) => {
+      const blob = new Blob([buffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `YeuCauXuatHoaDon_${new Date().toLocaleDateString('vi-VN').replace(/\//g, '-')}.xlsx`;
+      a.click();
+      window.URL.revokeObjectURL(url);
+    });
+  }
+
+
   initMainTable(): void {
     this.mainTable = new Tabulator(this.tb_MainTableElement.nativeElement, {
       ...DEFAULT_TABLE_CONFIG,
@@ -482,11 +559,6 @@ export class RequestInvoiceComponent implements OnInit, AfterViewInit {
             <input type="checkbox" ${checked} disabled style="opacity: 1; pointer-events: none; cursor: default; width: 16px; height: 16px;"/>
           </div>`;
           },
-          headerFilter: 'select' as any,
-          headerFilterParams: {
-            values: { '': 'Tất cả', 'true': 'Có', 'false': 'Không' },
-            clearable: true,
-          },
         },
         {
           title: 'Trạng thái',
@@ -494,8 +566,18 @@ export class RequestInvoiceComponent implements OnInit, AfterViewInit {
           sorter: 'string',
           formatter: 'textarea',
           width: 200,
-          headerFilter: 'input',
-          headerFilterPlaceholder: 'Lọc trạng thái...',
+          headerFilter: 'list',
+          headerFilterFunc: 'like', 
+          headerFilterParams: {
+            values: [
+              { value: '', label: 'Tất cả' },
+              ...this.statusData.map(item => ({
+                value: item.StatusName,
+                label: item.StatusName
+              }))
+            ],
+            clearable: true,
+          },
         },
         {
           title: 'Deadline',
@@ -597,6 +679,7 @@ export class RequestInvoiceComponent implements OnInit, AfterViewInit {
       this.selectedId = ID;
       this.loadDetailData(ID);
     });
+    setupTabulatorCellCopy(this.mainTable, this.tb_MainTableElement.nativeElement);
   }
   initDetailTable(): void {
     this.detailTable = new Tabulator(this.tb_DetailTableElement.nativeElement, {
@@ -743,6 +826,20 @@ export class RequestInvoiceComponent implements OnInit, AfterViewInit {
       const POKHID = row.getData()['POKHID'];
       this.loadPOKHFile(POKHID);
     });
+
+    setupTabulatorCellCopy(this.detailTable, this.tb_DetailTableElement.nativeElement);
+
+    const detailContainer = this.tb_DetailTableElement.nativeElement.parentElement;
+    if (detailContainer) {
+      const resizeObserver = new ResizeObserver(() => {
+        if (this.detailTable) {
+          setTimeout(() => {
+            this.detailTable.redraw(true);
+          }, 50);
+        }
+      });
+      resizeObserver.observe(detailContainer);
+    }
   }
   private buildFullFilePath(file: any): string {
     if (!file) {

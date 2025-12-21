@@ -63,6 +63,8 @@ import { NOTIFICATION_TITLE } from '../../../../app.config';
 
 import { DEFAULT_TABLE_CONFIG } from '../../../../tabulator-default.config';
 import { InventoryByDateService } from '../inventory-by-date/inventory-by-date-service/inventory-by-date.service';
+import { setupTabulatorCellCopy } from '../../../../shared/utils/tabulator-cell-copy.util';
+import { ChiTietSanPhamSaleForKtComponent } from './chi-tiet-san-pham-sale-for-kt/chi-tiet-san-pham-sale-for-kt.component';
 @Component({
   selector: 'app-inventory-by-date',
   imports: [
@@ -133,12 +135,56 @@ export class InventoryByDateComponent implements OnInit, AfterViewInit {
     });
   }
 
+  getContextMenu(): any[] {
+    return [
+      {
+        label: '<span style="font-size: 0.75rem;"><i class="fas fa-eye"></i> Chi tiết</span>',
+        action: (e: UIEvent, row: RowComponent) => {
+          const rowData = row.getData();
+          // this.openDetailModal(rowData);
+        },
+      },
+    ];
+  }
+
+  openDetailModal(rowData: any): void {
+    const modalRef = this.modalService.open(ChiTietSanPhamSaleForKtComponent, {
+      centered: true,
+      size: 'xl',
+      backdrop: 'static',
+    });
+
+    this.inventoryByDateService.getInventoryByProductSaleId(rowData.ProductID).subscribe((response: any) => {
+      if (response.status === 1 && response.data) {
+        modalRef.componentInstance.totalQuantityFirst = response.data.TotalQuantityFirst || 0;
+        modalRef.componentInstance.productSaleId = rowData.ProductID;
+        modalRef.componentInstance.warehouseCode = 'HN';
+        const datePlusOne = new Date(this.dateTime);
+        datePlusOne.setDate(datePlusOne.getDate() + 1);
+        modalRef.componentInstance.dateValues = datePlusOne;
+      }
+    });
+
+    modalRef.result.then(
+      (result) => {
+        if (result && result.success) {
+        }
+      },
+      (reason) => {
+        console.log('Modal closed:', reason);
+      }
+    );
+  }
+
   initTable(): void {
     this.tb_Master = new Tabulator(this.tb_MasterElement.nativeElement, {
       ...DEFAULT_TABLE_CONFIG,
       pagination: false,
       paginationMode: 'local',
       layout: 'fitColumns',
+      rowHeader: false,
+      selectableRows: 1,
+      rowContextMenu: this.getContextMenu(),
       columns: [
         {
           title: 'Ngày',
@@ -202,6 +248,9 @@ export class InventoryByDateComponent implements OnInit, AfterViewInit {
         },
       ],
     });
+
+    // Setup copy cell functionality
+    setupTabulatorCellCopy(this.tb_Master, this.tb_MasterElement.nativeElement);
   }
 
   async exportToExcel() {

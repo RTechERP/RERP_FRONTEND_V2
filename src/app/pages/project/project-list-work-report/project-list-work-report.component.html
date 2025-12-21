@@ -1,10 +1,14 @@
 <div style="display: flex; flex-direction: column; height: 100vh;">
   <!-- Modal Header -->
-  <div class="bg-primary align-items-center ps-2 pe-2" style="flex-shrink: 0; display: flex; justify-content: space-between; padding: 0.5rem;">
+  <div
+  class="modal-header bg-primary align-items-center ps-2"
+  style="flex-shrink: 0"
+>
     <h6 class="text-light text-uppercase m-0" style="padding: 0 0.5rem;">
       Danh sách báo cáo công việc {{projectCode}}
     </h6>
-    <button type="button" class="btn-close" (click)="activeModal.dismiss()" aria-label="Close"></button>
+    <button type="button" class="btn-close" (click)="activeModal.dismiss()" aria-label="Close"
+    style="background-color:lightcyan !important; font-weight: bold;"></button>
   </div>
   
   <!-- Modal Body với Splitter -->

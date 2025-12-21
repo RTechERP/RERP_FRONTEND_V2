@@ -48,29 +48,11 @@ export class MenuAppDetailComponent {
     validateForm !: FormGroup;
     @Input() menu = new MenuApp();
 
-    nodes = [
-        {
-            title: 'parent 1',
-            key: '100',
-            children: [
-                {
-                    title: 'parent 1-0',
-                    key: '1001',
-                    children: [
-                        { title: 'leaf 1-0-0', key: '10010', isLeaf: true },
-                        { title: 'leaf 1-0-1', key: '10011', isLeaf: true }
-                    ]
-                },
-                {
-                    title: 'parent 1-1',
-                    key: '1002',
-                    children: [{ title: 'leaf 1-1-0', key: '10020', isLeaf: true }]
-                }
-            ]
-        }
-    ];
-
+    nodes: any[] = [];
     inputValue: string | null = null;
+
+    userGroups: any[] = [];
+
 
     constructor(
         public activeModal: NgbActiveModal,
@@ -91,29 +73,77 @@ export class MenuAppDetailComponent {
             STT: this.fb.control(0, [Validators.required]),
             Code: this.fb.control(this.menu.Code, [Validators.required]),
             Title: this.fb.control(this.menu.Title, [Validators.required]),
-            Router: this.fb.control(this.menu.Router, [Validators.required]),
-            Icon: this.fb.control(this.menu.Icon, [Validators.required]),
-            ParentID: this.fb.control(this.menu.ParentID, [Validators.required]),
+            Router: this.fb.control(this.menu.Router),
+            Icon: this.fb.control(this.menu.Icon),
+            ParentID: this.fb.control(this.menu.ParentID),
         });
     }
 
     getMenus() {
         this.menuService.getAll().subscribe({
             next: (repsonse) => {
-                console.log(repsonse);
+
+                const menus = repsonse.data.menus;
+                this.userGroups = repsonse.data.userGroups;
+
+                const map = new Map<number, any>();
+                this.nodes = [];
+                // Tạo map trước
+                menus.forEach((item: any) => {
+                    map.set(item.ID, {
+                        title: item.Title,
+                        key: item.ID,
+                        isLeaf: true,
+                        children: []
+                    });
+                });
+
+                // Gắn cha – con
+                menus.forEach((item: any) => {
+                    const node = map.get(item.ID);
+
+                    if (item.ParentID && map.has(item.ParentID)) {
+                        const parent = map.get(item.ParentID);
+                        parent.children.push(node);
+                        parent.isLeaf = false;
+                    } else {
+                        this.nodes.push(node);
+                    }
+                });
             },
             error: (err) => {
-                console.log('err:', err);
-
-                const msg =
-                    err?.error?.message ||
-                    err?.message;
-                this.notification.error(NOTIFICATION_TITLE.error, msg);
+                this.notification.error(NOTIFICATION_TITLE.error, err?.error?.message || err?.message);
             },
         })
     }
 
     submitForm() {
+        if (!this.validateForm.valid) {
+            Object.values(this.validateForm.controls).forEach(control => {
+                if (control.invalid) {
+                    control.markAsDirty();
+                    control.updateValueAndValidity({ onlySelf: true });
+                }
+            });
+        } else {
 
+            const menu = {
+                ...this.validateForm.getRawValue(),
+            };
+
+            this.menuService.saveData(menu).subscribe({
+                next: (response) => {
+                    console.log(response);
+
+                    this.getMenus();
+
+                },
+                error: (err) => {
+                    this.notification.error(NOTIFICATION_TITLE.error, err?.error?.message || err?.message);
+                }
+            });
+
+
+        }
     }
 }

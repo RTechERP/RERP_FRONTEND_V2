@@ -154,6 +154,7 @@ import { RegisterContractComponent } from '../../../person/register-contract/reg
 import { ApproveTpComponent } from '../../../person/approve-tp/approve-tp/approve-tp.component';
 import { PhaseAllocationPersonComponent } from '../../../hrm/phase-allocation-person/phase-allocation-person.component';
 import { DailyReportThrComponent } from '../../../daily-report-thr/daily-report-thr.component';
+import { DailyReportLXCPComponent } from '../../../daily-report-lxcp/daily-report-lxcp.component';
 @Injectable({
     providedIn: 'root',
 })
@@ -3107,15 +3108,23 @@ export class MenuService {
                                 isPermission: this.permissionService.hasPermission(''),
                                 comp: DailyReportThrComponent,
                             },
-                                    {
-                                        kind: 'leaf',
-                                        key: 'catphimlaixe',
-                                        title: 'Cắt phim - Lái xe',
-                                        isOpen: true,
-                                        isPermission: this.permissionService.hasPermission(''),
-                                        comp: PersonComponent,
-                                        router: '/catphimlaixe',
-                                    },
+                            {
+                                kind: 'leaf',
+                                key: 'catphimlaixe',
+                                title: 'Cắt phim - Lái xe',
+                                isOpen: true,
+                                isPermission: this.permissionService.hasPermission(''),
+                                comp: DailyReportLXCPComponent,
+                            },
+                                    // {
+                                    //     kind: 'leaf',
+                                    //     key: 'catphimlaixe',
+                                    //     title: 'Cắt phim - Lái xe',
+                                    //     isOpen: true,
+                                    //     isPermission: this.permissionService.hasPermission(''),
+                                    //     comp: PersonComponent,
+                                    //     router: '/catphimlaixe',
+                                    // },
                                 ],
                             },
 

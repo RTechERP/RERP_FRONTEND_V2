@@ -1,0 +1,236 @@
+:host {
+    font-size: 12px !important;
+  }
+  
+  .tabulator {
+    font-size: 12px;
+  }
+  
+  .box {
+    height: 100%;
+    width: 100%;
+  }
+  
+  .card {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    max-height: 93vh;
+    overflow: hidden;
+  }
+
+  .card-body {
+    flex: 1 1 auto;
+    min-height: 0;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .card-body > div {
+    flex: 1 1 auto;
+    min-height: 0;
+    overflow: hidden;
+  }
+  
+  .ant-splitter-panel {
+    position: relative;
+  }
+  
+  .ant-splitter {
+    height: 93vh !important;
+  }
+  
+  /* CSS để textarea cells tự xuống dòng */
+  :host ::ng-deep .tabulator-cell {
+    white-space: pre-wrap !important;
+    word-wrap: break-word !important;
+    overflow-wrap: break-word !important;
+    word-break: break-word !important;
+  }
+
+  /* Filter bar styles */
+  .filter-bar {
+    transition: all 0.3s ease;
+  }
+
+  .filter-backdrop {
+    display: none;
+  }
+
+  .filter-backdrop.mobile-only {
+    display: block;
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(0, 0, 0, 0.5);
+    z-index: 999;
+  }
+
+  .filter-bar.mobile-modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    background-color: #f5f5f5;
+    z-index: 1000;
+    max-height: 90vh;
+    overflow-y: auto;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    padding: 16px !important;
+  }
+
+  .filter-bar.mobile-modal form.mobile-filter-form {
+    flex-direction: column !important;
+    gap: 12px !important;
+    align-items: stretch !important;
+  }
+
+  .filter-bar.mobile-modal nz-form-item {
+    width: 100% !important;
+    margin-bottom: 0 !important;
+  }
+
+  .filter-bar.mobile-modal nz-form-label {
+    display: block !important;
+    margin-bottom: 4px !important;
+  }
+
+  .filter-bar.mobile-modal nz-form-control {
+    width: 100% !important;
+  }
+
+  .filter-bar.mobile-modal nz-date-picker,
+  .filter-bar.mobile-modal nz-select,
+  .filter-bar.mobile-modal input[nz-input] {
+    width: 100% !important;
+  }
+
+  .filter-bar.mobile-modal .ant-picker,
+  .filter-bar.mobile-modal .ant-select-selector {
+    width: 100% !important;
+  }
+
+  /* Card header responsive */
+  .card-header {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .card-header .d-flex {
+    min-width: max-content;
+  }
+
+  .card-header button {
+    flex-shrink: 0;
+    white-space: nowrap;
+  }
+
+  @media (max-width: 768px) {
+    .card-header {
+      padding: 8px 4px !important;
+    }
+
+    .card-header button {
+      font-size: 11px !important;
+      padding: 4px 8px !important;
+      min-height: 32px;
+      touch-action: manipulation;
+    }
+
+    .card-header button img {
+      width: 14px;
+      height: 14px;
+    }
+
+    .sticky-toggle-btn {
+      position: sticky;
+      left: 0;
+      z-index: 10;
+      background-color: white;
+      min-width: 40px;
+    }
+
+    .filter-bar.mobile-modal button {
+      width: 100%;
+      margin-bottom: 8px;
+      min-height: 40px;
+      touch-action: manipulation;
+    }
+
+    .filter-bar.mobile-modal button:last-child {
+      margin-bottom: 0;
+    }
+
+    .filter-bar.mobile-modal .d-flex.gap-2 {
+      flex-direction: column;
+      gap: 8px !important;
+    }
+
+    .filter-bar.mobile-modal .d-flex.gap-2 button {
+      width: 100%;
+    }
+
+    .filter-bar.mobile-modal .filter-actions {
+      width: 100% !important;
+    }
+
+    .filter-bar.mobile-modal .filter-actions .d-flex {
+      flex-direction: column;
+      width: 100%;
+    }
+
+    .filter-bar.mobile-modal .filter-actions button {
+      width: 100%;
+      margin-bottom: 8px;
+    }
+
+    .filter-bar.mobile-modal .filter-actions button:last-child {
+      margin-bottom: 0;
+    }
+  }
+
+  @media (min-width: 769px) {
+    .filter-backdrop.mobile-only {
+      display: none;
+    }
+
+    .filter-bar.mobile-modal {
+      position: relative;
+      max-height: none;
+      overflow-y: visible;
+      box-shadow: none;
+      padding: 8px 16px !important;
+      flex-shrink: 0;
+    }
+
+    .filter-bar.mobile-modal form.mobile-filter-form {
+      flex-direction: row !important;
+      align-items: flex-end !important;
+    }
+
+    .filter-bar.mobile-modal nz-form-item {
+      width: auto !important;
+    }
+
+    /* Đảm bảo card không tăng chiều cao khi filter bar hiển thị */
+    .card-header {
+      flex-shrink: 0;
+    }
+
+    .card-body {
+      flex: 1 1 auto;
+      min-height: 0;
+    }
+  }
+
+  .sticky-toggle-btn {
+    position: sticky;
+    left: 0;
+    z-index: 10;
+    background-color: white;
+  }
+  
+  

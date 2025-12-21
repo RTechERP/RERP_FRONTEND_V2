@@ -149,9 +149,12 @@ export class DailyReportTechComponent implements OnInit, AfterViewInit {
         // Sau khi có currentUser, nếu users đã được load thì set userId
         if (this.users.length > 0) {
           // Thử tìm theo ID trước, nếu không có thì tìm theo EmployeeID
-          if (data.ID) {
+          if(data.IsAdmin == true){
+            this.userId = 0;
+          }
+          else if(data.ID && data.IsAdmin != true){
             this.setUserIdFromEmployeeID(data.ID);
-          } else if (data.EmployeeID) {
+          } else if (data.EmployeeID && data.IsAdmin != true) {
             this.setUserIdFromEmployeeID(data.EmployeeID);
           } else {
             // Nếu không có ID hoặc EmployeeID, set về "Tất cả"
@@ -239,9 +242,9 @@ export class DailyReportTechComponent implements OnInit, AfterViewInit {
         // Sau khi load users, tìm và set userId từ currentUser
         // Nếu không tìm thấy currentUser trong danh sách, tự động set về "Tất cả" (ID = 0)
         if (this.currentUser) {
-          if (this.currentUser.ID) {
+          if (this.currentUser.ID && this.currentUser.IsAdmin != true) {
             this.setUserIdFromEmployeeID(this.currentUser.ID);
-          } else if (this.currentUser.EmployeeID) {
+          } else if (this.currentUser.EmployeeID && this.currentUser.IsAdmin != true) {
             this.setUserIdFromEmployeeID(this.currentUser.EmployeeID);
           } else {
             // Nếu không có ID hoặc EmployeeID, set về "Tất cả"

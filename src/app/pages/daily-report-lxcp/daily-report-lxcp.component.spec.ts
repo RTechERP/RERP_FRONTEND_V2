@@ -1,18 +1,18 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 
-import { DailyReportThrComponent } from './daily-report-thr.component';
+import { DailyReportLXCPComponent } from './daily-report-lxcp.component';
 
-describe('DailyReportTHRComponent', () => {
-  let component: DailyReportThrComponent;
-  let fixture: ComponentFixture<DailyReportThrComponent>;
+describe('DailyReportLXCPComponent', () => {
+  let component: DailyReportLXCPComponent;
+  let fixture: ComponentFixture<DailyReportLXCPComponent>;
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [DailyReportThrComponent]
+      imports: [DailyReportLXCPComponent]
     })
     .compileComponents();
 
-    fixture = TestBed.createComponent(DailyReportThrComponent);
+    fixture = TestBed.createComponent(DailyReportLXCPComponent);
     component = fixture.componentInstance;
     fixture.detectChanges();
   });

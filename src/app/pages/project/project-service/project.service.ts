@@ -860,7 +860,8 @@ export class ProjectService {
     const headers = columns.map((col: any) => col.getDefinition().title);
     worksheet.addRow(headers);
 
-    data.forEach((row: any) => {
+    let rowIndex = 0;
+    data.forEach((row: any, index: number) => {
       const rowData = columns.map((col: any) => {
         const field = col.getField();
         let value = row[field];
@@ -872,7 +873,22 @@ export class ProjectService {
         return value;
       });
 
-      worksheet.addRow(rowData);
+      const excelRow = worksheet.addRow(rowData);
+      rowIndex = excelRow.number;
+      
+      // Kiểm tra nếu là dòng cuối cùng (bottom row) - có thể chứa text như "Số báo cáo = ..." hoặc "Tổng số ngày = ..."
+      const isBottomRow = index === data.length - 1;
+      if (isBottomRow) {
+        excelRow.eachCell((cell) => {
+          cell.font = { bold: true };
+          cell.fill = {
+            type: 'pattern',
+            pattern: 'solid',
+            fgColor: { argb: 'FFD3D3D3' }, // Light grey background
+          };
+          cell.alignment = { vertical: 'middle', horizontal: 'left' };
+        });
+      }
     });
 
     // Format cột có giá trị là Date
@@ -1076,6 +1092,15 @@ export class ProjectService {
         size: size.toString(),
       };
       return this.http.get<any>(this.urlProject + `get-project-work-reports`, { params: filter });
+    }
+    //#endregion
+
+    //#region Kiểm tra quyền nhân viên
+    getEmployeePermission(projectId: number, employeeId: number): Observable<any> {
+      const params = new HttpParams()
+        .set('projectId', projectId.toString())
+        .set('employeeId', employeeId.toString());
+      return this.http.get<any>(this.urlProject + `get-employee-permission`, { params });
     }
     //#endregion
 

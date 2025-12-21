@@ -1,0 +1,176 @@
+<div class="modal-header bg-primary p-2">
+    <h6 class="modal-title text-white text-uppercase">Báo cáo công việc HR</h6>
+    <button type="button" class="btn-close me-1" aria-label="Close" (click)="close()"></button>
+</div>
+
+<div class="modal-body p-2">
+    <form nz-form [formGroup]="formGroup" nzLayout="vertical" class="fs-7">
+        <!-- Dòng 1: Họ tên, Chức vụ, Ngày báo cáo, button Làm thêm -->
+        <nz-row [nzGutter]="16">
+            <!-- Họ tên: Mobile 12, Tablet 12, Desktop 6 -->
+            <nz-col [nzXs]="12" [nzSm]="12" [nzMd]="6" [nzLg]="6" [nzXl]="6">
+                <nz-form-item>
+                    <nz-form-label class="fs-12 p-0">Họ tên</nz-form-label>
+                    <nz-form-control [nzSpan]="24">
+                        <input nz-input [value]="currentUser?.FullName || ''" disabled class="w-100" />
+                    </nz-form-control>
+                </nz-form-item>
+            </nz-col>
+            <!-- Chức vụ: Mobile 12, Tablet 12, Desktop 6 -->
+            <nz-col [nzXs]="12" [nzSm]="12" [nzMd]="6" [nzLg]="6" [nzXl]="6">
+                <nz-form-item>
+                    <nz-form-label class="fs-12 p-0">Chức vụ</nz-form-label>
+                    <nz-form-control [nzSpan]="24">
+                        <input nz-input [value]="currentUser?.PositionName || ''" disabled class="w-100" />
+                    </nz-form-control>
+                </nz-form-item>
+            </nz-col>
+            <!-- Ngày báo cáo: Mobile 12, Tablet 12, Desktop 6 -->
+            <nz-col [nzXs]="12" [nzSm]="12" [nzMd]="6" [nzLg]="6" [nzXl]="6">
+                <nz-form-item>
+                    <nz-form-label class="fs-12 p-0">Ngày báo cáo<span class="text-danger ps-1">*
+                        </span></nz-form-label>
+                    <nz-form-control [nzSpan]="24" [nzErrorTip]="
+              formGroup.get('DateReport')?.hasError('required') &&
+              (formGroup.get('DateReport')?.dirty || formGroup.get('DateReport')?.touched)
+                ? 'Vui lòng chọn ngày báo cáo!'
+                : undefined
+            ">
+                        <nz-date-picker formControlName="DateReport" class="w-100" nzFormat="dd/MM/yyyy"
+                            nzPlaceHolder="Chọn ngày báo cáo" [nzDisabledDate]="disabledDate"></nz-date-picker>
+                    </nz-form-control>
+                </nz-form-item>
+            </nz-col>
+            <!-- Button Làm thêm: Mobile 12, Tablet 12, Desktop 6 -->
+            <nz-col [nzXs]="12" [nzSm]="12" [nzMd]="6" [nzLg]="6" [nzXl]="6">
+                <nz-form-item>
+                    <nz-form-label class="fs-12 p-0" [style.visibility]="'hidden'">.</nz-form-label>
+                    <nz-form-control [nzSpan]="24">
+                        <button nz-button nzType="primary" nzSize="default" class="w-100" (click)="openOverTimeModal()">
+                            Làm thêm
+                        </button>
+                    </nz-form-control>
+                </nz-form-item>
+            </nz-col>
+        </nz-row>
+
+        <!-- Dòng 2: Nội dung công việc, Kết quả -->
+        <nz-row [nzGutter]="16" class="mt-2">
+            <nz-col [nzXs]="12" [nzSm]="12" [nzMd]="12" [nzLg]="12" [nzXl]="12">
+                <nz-form-item>
+                    <nz-form-label class="fs-12 p-0">Nội dung công việc<span class="text-danger ps-1">*
+                        </span></nz-form-label>
+                    <nz-form-control [nzSpan]="24" [nzErrorTip]="
+                        formGroup.get('Content')?.hasError('required') &&
+                        (formGroup.get('Content')?.dirty || formGroup.get('Content')?.touched)
+                            ? 'Vui lòng nhập nội dung công việc!'
+                            : undefined
+                    ">
+                        <textarea nz-input formControlName="Content" rows="3"
+                            class="w-100" placeholder="Nhập nội dung công việc"></textarea>
+                    </nz-form-control>
+                </nz-form-item>
+            </nz-col>
+            <nz-col [nzXs]="12" [nzSm]="12" [nzMd]="12" [nzLg]="12" [nzXl]="12">
+                <nz-form-item>
+                    <nz-form-label class="fs-12 p-0">Kết quả<span class="text-danger ps-1">*
+                        </span></nz-form-label>
+                    <nz-form-control [nzSpan]="24" [nzErrorTip]="
+                        formGroup.get('Results')?.hasError('required') &&
+                        (formGroup.get('Results')?.dirty || formGroup.get('Results')?.touched)
+                            ? 'Vui lòng nhập kết quả!'
+                            : undefined
+                    ">
+                        <textarea nz-input formControlName="Results" rows="3"
+                            class="w-100" placeholder="Nhập kết quả"></textarea>
+                    </nz-form-control>
+                </nz-form-item>
+            </nz-col>
+        </nz-row>
+
+        <!-- Dòng 3: Kế hoạch ngày tiếp theo -->
+        <nz-form-item class="mt-2">
+            <nz-form-label class="fs-12 p-0">Kế hoạch ngày tiếp theo<span class="text-danger ps-1">*
+                </span></nz-form-label>
+            <nz-form-control [nzSpan]="24" [nzErrorTip]="
+                formGroup.get('PlanNextDay')?.hasError('required') &&
+                (formGroup.get('PlanNextDay')?.dirty || formGroup.get('PlanNextDay')?.touched)
+                    ? 'Vui lòng nhập kế hoạch ngày tiếp theo!'
+                    : undefined
+            ">
+                <textarea nz-input formControlName="PlanNextDay" rows="3"
+                    class="w-100" placeholder="Nhập kế hoạch ngày tiếp theo"></textarea>
+            </nz-form-control>
+        </nz-form-item>
+
+        <!-- Dòng 4: Fieldset thông tin thêm -->
+        <fieldset class="mt-2 border p-2" style="border-radius: 4px;">
+            <legend class="fs-12 mb-2" style="width: auto; padding: 0 10px;">
+                <button nz-button nzType="text" nzSize="small"
+                    (click)="activeAccordion['additional_info'] = !activeAccordion['additional_info']"
+                    class="p-0">
+                    <i nz-icon [nzType]="activeAccordion['additional_info'] ? 'down' : 'right'"
+                        nzTheme="outline" class="me-1"></i>
+                    <span>Thông tin thêm</span>
+                </button>
+            </legend>
+            @if (activeAccordion['additional_info']) {
+            <div class="p-2">
+                <nz-row [nzGutter]="16">
+                    <nz-col [nzXs]="12" [nzSm]="12" [nzMd]="8" [nzLg]="8" [nzXl]="8">
+                        <nz-form-item>
+                            <nz-form-label class="fs-12 p-0">Vấn đề phát sinh
+                                <span class="font-italic font-weight-normal">(nếu có)</span></nz-form-label>
+                            <nz-form-control [nzSpan]="24">
+                                <textarea nz-input formControlName="Problem" rows="3"
+                                    class="w-100" placeholder="Nhập vấn đề phát sinh" [disabled]="true"></textarea>
+                            </nz-form-control>
+                        </nz-form-item>
+                    </nz-col>
+                    <nz-col [nzXs]="12" [nzSm]="12" [nzMd]="8" [nzLg]="8" [nzXl]="8">
+                        <nz-form-item>
+                            <nz-form-label class="fs-12 p-0">Hướng giải quyết
+                                <span class="font-italic font-weight-normal">(nếu có)</span></nz-form-label>
+                            <nz-form-control [nzSpan]="24">
+                                <textarea nz-input formControlName="ProblemSolve" rows="3"
+                                    class="w-100" placeholder="Nhập hướng giải quyết" [disabled]="true"></textarea>
+                            </nz-form-control>
+                        </nz-form-item>
+                    </nz-col>
+                    <nz-col [nzXs]="12" [nzSm]="12" [nzMd]="8" [nzLg]="8" [nzXl]="8">
+                        <nz-form-item>
+                            <nz-form-label class="fs-12 p-0">Tồn đọng
+                                <span class="font-italic font-weight-normal">(nếu có)</span></nz-form-label>
+                            <nz-form-control [nzSpan]="24">
+                                <textarea nz-input formControlName="Backlog" rows="3"
+                                    class="w-100" placeholder="Nhập tồn đọng"></textarea>
+                            </nz-form-control>
+                        </nz-form-item>
+                    </nz-col>
+                </nz-row>
+                <nz-row [nzGutter]="16" class="mt-2">
+                    <nz-col [nzSpan]="24">
+                        <nz-form-item>
+                            <nz-form-label class="fs-12 p-0">Ghi chú/Lý do tồn đọng</nz-form-label>
+                            <nz-form-control [nzSpan]="24">
+                                <textarea nz-input formControlName="Note" rows="2"
+                                    class="w-100" placeholder="Nhập ghi chú"></textarea>
+                            </nz-form-control>
+                        </nz-form-item>
+                    </nz-col>
+                </nz-row>
+            </div>
+            }
+        </fieldset>
+    </form>
+</div>
+
+<div class="modal-footer bg-light p-2">
+    <button nz-button nzDanger nzType="default" (click)="close()" [disabled]="saving">
+        Đóng
+    </button>
+    <button nz-button nzType="primary" (click)="saveDailyReport()" [disabled]="saving">
+        <i *ngIf="saving" nz-icon nzType="loading" class="me-2"></i>
+        {{ saving ? 'Đang lưu...' : mode === 'add' ? 'Lưu' : 'Cập nhật' }}
+    </button>
+</div>

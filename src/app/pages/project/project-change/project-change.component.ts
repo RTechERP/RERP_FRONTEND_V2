@@ -151,14 +151,12 @@ export class ProjectChangeComponent implements OnInit {
     this.projectService.saveProjectWorkReport(dataSave).subscribe({
       next: (response: any) => {
         if (response.data == true) {
-          this.notification.success('', 'Đã chuyển dự án!', {
-            nzStyle: { fontSize: '0.75rem' },
-          });
+          this.notification.success('Thông báo', 'Đã chuyển dự án!')
           this.activeModal.dismiss(true);
         }
       },
       error: (error: any) => {
-        const msg = error.message || 'Lỗi không xác định';
+        const msg = error.message || error.error?.message || 'Lỗi không xác định';
         this.notification.error('Thông báo', msg);
         console.error('Lỗi:', error.error);
       },
@@ -171,14 +169,12 @@ export class ProjectChangeComponent implements OnInit {
       .subscribe({
         next: (response: any) => {
           if (response.data == true) {
-            this.notification.success('', 'Đã chuyển dự án!', {
-              nzStyle: { fontSize: '0.75rem' },
-            });
+            this.notification.success('Thông báo', 'Đã chuyển dự án!')
             this.activeModal.dismiss(true);
           }
         },
         error: (error: any) => {
-          const msg = error.message || 'Lỗi không xác định';
+          const msg = error.message || error.error?.message || 'Lỗi không xác định';
           this.notification.error('Thông báo', msg);
           console.error('Lỗi:', error.error);
         },

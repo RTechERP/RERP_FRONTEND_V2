@@ -353,9 +353,9 @@ export class DailyReportHrComponent implements OnInit, AfterViewInit {
   //#region xuất excel
   async onExportExcel() {
     const tables = [
-      { table: this.filmTable, sheetName: 'Báo cáo HCNS-IT' },
-      { table: this.driverTable, sheetName: 'Báo cáo lái xe' },
-      { table: this.hrTable, sheetName: 'Báo cáo HR' },
+      { table: this.hrTable, sheetName: 'Báo cáo HCNS-IT' },
+      { table: this.filmTable, sheetName: 'Báo cáo cắt phim' },
+      { table: this.driverTable, sheetName: 'Báo cáo lái xe' },     
     ];
 
     const workbook = new ExcelJS.Workbook();

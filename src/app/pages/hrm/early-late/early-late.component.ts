@@ -33,6 +33,7 @@ import { NOTIFICATION_TITLE } from '../../../app.config';
 import { DEFAULT_TABLE_CONFIG } from '../../../tabulator-default.config';
 import { AuthService } from '../../../auth/auth.service';
 import { WFHService } from '../employee-management/employee-wfh/WFH-service/WFH.service';
+import { PermissionService } from '../../../services/permission.service';
 @Component({
   selector: 'app-early-late',
   templateUrl: './early-late.component.html',
@@ -93,6 +94,7 @@ export class EarlyLateComponent implements OnInit, AfterViewInit {
     private employeeService: EmployeeService,
     private authService: AuthService,
     private wfhService: WFHService,
+    private permissionService: PermissionService,
   ) { }
 
   ngOnInit() {
@@ -403,7 +405,7 @@ export class EarlyLateComponent implements OnInit, AfterViewInit {
     
     this.earlyLateForm.reset({
       ID: 0,
-      EmployeeID: this.currentEmployee.EmployeeID,
+      EmployeeID: this.currentEmployee?.EmployeeID || null,
       ApprovedTP: null,
       DateStart: defaultTimes.start,
       DateEnd: defaultTimes.end,
@@ -412,7 +414,14 @@ export class EarlyLateComponent implements OnInit, AfterViewInit {
       Reason: '',
       ReasonHREdit: ''
     });
-    this.earlyLateForm.get('EmployeeID')?.disable();
+    
+    // Chỉ disable EmployeeID nếu không có quyền N1, N2 hoặc IsAdmin
+    if (!this.canEditEmployee()) {
+      this.earlyLateForm.get('EmployeeID')?.disable();
+    } else {
+      this.earlyLateForm.get('EmployeeID')?.enable();
+    }
+    
     this.earlyLateForm.get('ApprovedTP')?.enable();
     // Reset validation cho ReasonHREdit khi thêm mới
     this.earlyLateForm.get('ReasonHREdit')?.clearValidators();
@@ -459,7 +468,13 @@ export class EarlyLateComponent implements OnInit, AfterViewInit {
       ReasonHREdit: this.selectedEarlyLate.ReasonHREdit
     }, { emitEvent: false }); // Prevent triggering valueChanges
 
-    this.earlyLateForm.get('EmployeeID')?.disable();
+    // Chỉ disable EmployeeID nếu không có quyền N1, N2 hoặc IsAdmin
+    if (!this.canEditEmployee()) {
+      this.earlyLateForm.get('EmployeeID')?.disable();
+    } else {
+      this.earlyLateForm.get('EmployeeID')?.enable();
+    }
+    
     this.earlyLateForm.get('ApprovedTP')?.disable();
 
     this.earlyLateForm.get('ReasonHREdit')?.setValidators([Validators.required]);
@@ -830,6 +845,15 @@ export class EarlyLateComponent implements OnInit, AfterViewInit {
     
     // Nếu TBP hoặc HR đã duyệt thì không cho sửa
     return isTBPApproved || isHRApproved;
+  }
+
+  // Helper method để kiểm tra user có quyền chỉnh sửa nhân viên (N1, N2 hoặc IsAdmin)
+  private canEditEmployee(): boolean {
+    const hasN1Permission = this.permissionService.hasPermission('N1');
+    const hasN2Permission = this.permissionService.hasPermission('N2');
+    const isAdmin = this.currentUser?.IsAdmin === true || this.currentUser?.ISADMIN === true;
+    
+    return hasN1Permission || hasN2Permission || isAdmin;
   }
 
   isApproveHR() {

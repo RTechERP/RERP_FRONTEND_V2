@@ -55,7 +55,8 @@
                             <nz-form-label class="fs-12" [nzSpan]="24">Từ khóa</nz-form-label>
                             <nz-form-control [nzSpan]="24">
                                 <input class="w-100" nz-input placeholder="Nhập từ khóa"
-                                    [(ngModel)]="searchParams.Request" name="keyword" nzSize="small" />
+                                    [(ngModel)]="searchParams.Request" name="keyword" nzSize="small"
+                                    (keyup.enter)="searchData()" />
                             </nz-form-control>
                         </nz-form-item>
                     </form>
@@ -77,15 +78,15 @@
                                     <nz-icon nzType="search" />
                                 </button>
                                 <button class="btn-add" nz-button nzType="default" nzSize="small"
-                                    (click)="onAddJobRequirement(false)" *hasPermission="'N34,N1,N2'">
+                                    (click)="onAddJobRequirement(false)" *hasPermission="''">
                                     <img src="assets/icon/action_add_item_16.png" /> Thêm
                                 </button>
                                 <button class="btn-edit" nz-button nzType="default" nzSize="small"
-                                    (click)="onAddJobRequirement(true)" *hasPermission="'N34,N1,N2'">
+                                    (click)="onAddJobRequirement(true)" *hasPermission="''">
                                     <img src="assets/icon/action_edit_item_16.png" />Sửa
                                 </button>
                                 <button class="btn-delete" nz-button nzType="default" nzSize="small"
-                                    (click)="onDeleteJobRequirement()" *hasPermission="'N34,N1,N2'">
+                                    (click)="onDeleteJobRequirement()" *hasPermission="''">
                                     <img src="assets/icon/action_delete_item_16.png" /> Xóa
                                 </button>
                                 <button class="fs-12" nz-button nzType="default" nzSize="small">
@@ -94,18 +95,18 @@
                                 </button>
                                 <button class="fs-12 btn" nz-button nzType="default" nzSize="small" nz-dropdown
                                     [nzDropdownMenu]="TBPMenu" nzTrigger="hover" nzPlacement="bottomLeft"
-                                    *hasPermission="'N34, N1, N2'">
+                                    *hasPermission="'N56,N32,N1'">
                                     <nz-icon nzType="menu" nzTheme="outline"></nz-icon>
                                     Trưởng Bộ Phận
                                 </button>
 
                                 <nz-dropdown-menu #TBPMenu="nzDropdownMenu">
                                     <ul nz-menu>
-                                        <li nz-menu-item>
+                                        <li nz-menu-item (click)="onApproveJobRequirement('btnApproveTBP_New')">
                                             <img src="assets/icon/action_approved_16.png" />
                                             <span class="ms-1">Duyệt</span>
                                         </li>
-                                        <li nz-menu-item>
+                                        <li nz-menu-item (click)="onApproveJobRequirement('btnUnApproveTBP_New')">
                                             <img src="assets/icon/action_unapproved_16.png" />
                                             <span class="ms-1">Hủy duyệt</span>
                                         </li>
@@ -114,29 +115,43 @@
 
                                 <button class="fs-12 btn" nz-button nzType="default" nzSize="small" nz-dropdown
                                     [nzDropdownMenu]="ActionMenu" nzTrigger="hover" nzPlacement="bottomLeft"
-                                    *hasPermission="'N34, N1, N2'">
+                                    *hasPermission="'N34,N56,N1'">
                                     <nz-icon nzType="menu" nzTheme="outline"></nz-icon>
                                     Nhân sự
                                 </button>
 
                                 <nz-dropdown-menu #ActionMenu="nzDropdownMenu">
                                     <ul nz-menu>
-                                        <li nz-menu-item>
+                                        <li nz-menu-item (click)="onApproveJobRequirement('btnApproveDocumentHR')">
                                             <img src="assets/icon/surver_16.png" />
                                             <span class="ms-1">Duyệt yêu cầu</span>
                                         </li>
-                                        <li nz-menu-item>
+                                        <li nz-menu-item (click)="onApproveJobRequirement('btnUnApproveDocumentHR')">
                                             <img src="assets/icon/reject.png" style="width: 16px; height: 16px" />
                                             <span class="ms-1">Hủy yêu cầu</span>
                                         </li>
                                         <li nz-menu-divider style="border-top: 2px solid #d9d9d9; margin: 4px 0"></li>
-                                        <li nz-menu-item>
+                                        <li nz-menu-item (click)="onApproveJobRequirement('btnApproveHR')">
                                             <img src="assets/icon/action_approved_16.png" />
                                             <span class="ms-1">TBP Duyệt</span>
                                         </li>
-                                        <li nz-menu-item>
+                                        <li nz-menu-item (click)="onApproveJobRequirement('btnUnApproveHR')">
                                             <img src="assets/icon/action_unapproved_16.png" />
                                             <span class="ms-1">TBP hủy duyệt</span>
+                                        </li>
+                                        <li nz-menu-divider style="border-top: 2px solid #d9d9d9; margin: 4px 0"></li>
+                                        <li nz-menu-item (click)="onRequestBGDApprove(true)">
+                                            <img src="assets/icon/reject.png" style="width: 16px; height: 16px" />
+                                            <span class="ms-1">Yêu cầu BGD duyệt</span>
+                                        </li>
+                                     
+                                        <li nz-menu-item (click)="onRequestBGDApprove(false)">
+                                            <img src="assets/icon/action_unapproved_16.png" />
+                                            <span class="ms-1">Hủy yêu cầu BGD duyệt</span>
+                                        </li>
+                                        <li nz-menu-item (click)="onApproveJobRequirement('btnUnApproveHR')">
+                                            <img src="assets/icon/action_approved_16.png" />
+                                            <span class="ms-1">Hoàn thành duyệt</span>
                                         </li>
                                         <li nz-menu-divider style="border-top: 2px solid #d9d9d9; margin: 4px 0"></li>
                                         <li nz-menu-item (click)="onAddSupplier(false)" [nzDisabled]="!canAddOrEdit()"
@@ -153,28 +168,75 @@
                                             <img src="assets/icon/btn_veiw_package_16.png" />
                                             <span class="ms-1">Xem chi tiết đề xuất</span>
                                         </li>
+                                        <li nz-menu-divider style="border-top: 2px solid #d9d9d9; margin: 4px 0"></li>
+                                        <li nz-menu-item (click)="onOpenNoteModal()" class="btn">
+                                            <img src="assets/icon/btn_veiw_package_16.png" />
+                                            <span class="ms-1">Ghi chú</span>
+                                        </li>
                                     </ul>
                                 </nz-dropdown-menu>
 
                                 <button class="fs-12 btn" nz-button nzType="default" nzSize="small" nz-dropdown
                                     [nzDropdownMenu]="BGDMenu" nzTrigger="hover" nzPlacement="bottomLeft"
-                                    *hasPermission="'N34, N1, N2'">
+                                    *hasPermission="'N58,N1'">
                                     <nz-icon nzType="menu" nzTheme="outline"></nz-icon>
                                     Ban Giám Đốc
                                 </button>
 
                                 <nz-dropdown-menu #BGDMenu="nzDropdownMenu">
                                     <ul nz-menu>
-                                        <li nz-menu-item>
+                                        <li nz-menu-item (click)="onApproveJobRequirement('btnSuccessApproved')">
                                             <img src="assets/icon/action_approved_16.png" />
                                             <span class="ms-1">Duyệt</span>
                                         </li>
-                                        <li nz-menu-item>
+                                        <li nz-menu-item (click)="onApproveJobRequirement('btnUnApproveBGĐ')">
                                             <img src="assets/icon/action_unapproved_16.png" />
                                             <span class="ms-1">Hủy duyệt</span>
                                         </li>
                                     </ul>
                                 </nz-dropdown-menu>
+                                <button class="fs-12 btn" nz-button nzType="default" nzSize="small" nz-dropdown
+                                    [nzDropdownMenu]="BpPH" nzTrigger="hover" nzPlacement="bottomLeft"
+                                    *hasPermission="'N34,N56,N1'">
+                                    <nz-icon nzType="menu" nzTheme="outline"></nz-icon>
+                                    Bộ phận phối hợp
+                                </button>
+                                <nz-dropdown-menu #BpPH="nzDropdownMenu">
+                                    <ul nz-menu>
+                                        <li nz-menu-item (click)="onConfirmComplete()">
+                                            <img src="assets/icon/action_approved_16.png" />
+                                            <span class="ms-1">Nhân sự</span>
+                                        </li>
+                                        <li nz-menu-item (click)="onRequestPriceQuote()">
+                                            <img src="assets/icon/action_unapproved_16.png" />
+                                            <span class="ms-1">Yêu cầu báo giá</span>
+                                        </li>
+                                        <li nz-menu-item (click)="onApproveJobRequirement('btnUnApproveBGĐ')">
+                                            <img src="assets/icon/action_unapproved_16.png" />
+                                            <span class="ms-1">Yêu cầu mua</span>
+                                        </li>
+                                    </ul>
+                                </nz-dropdown-menu>
+                                <button class="btn-add" nz-button nzType="default" nzSize="small"
+                                    (click)="onViewPurchaseRequest()" *hasPermission="''">
+                                    <img src="assets/icon/action_add_item_16.png" /> Xem yêu cầu mua
+                                </button>
+                                <button class="btn-add" nz-button nzType="default" nzSize="small"
+                                    (click)="onAddJobRequirement(false)" *hasPermission="''">
+                                    <img src="assets/icon/action_add_item_16.png" /> Xem yêu cầu báo giá
+                                </button>
+                                <button class="btn-add" nz-button nzType="default" nzSize="small"
+                                    (click)="onAddJobRequirement(false)" *hasPermission="''">
+                                    <img src="assets/icon/action_add_item_16.png" /> Xuất Excel
+                                </button>
+                                <button class="btn-add" nz-button nzType="default" nzSize="small"
+                                    (click)="onAddJobRequirement(false)" *hasPermission="''">
+                                    <img src="assets/icon/action_add_item_16.png" /> Tổng hợp
+                                </button>
+                                <button class="btn-add" nz-button nzType="default" nzSize="small"
+                                    (click)="onAddJobRequirement(false)" *hasPermission="''">
+                                    <img src="assets/icon/action_add_item_16.png" /> In Phiếu
+                                </button>
                             </div>
                         </div>
                         <nz-splitter>

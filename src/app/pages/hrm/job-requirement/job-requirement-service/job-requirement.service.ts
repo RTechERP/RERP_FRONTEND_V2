@@ -121,4 +121,65 @@ export class JobRequirementService {
       responseType: 'blob',
     });
   }
+
+  deleteJobRequirement(ids: number[]): Observable<any> {
+    return this.http.post<any>(
+      environment.host + `api/jobrequirement/delete`,
+      ids
+    );
+  }
+
+  approveJobRequirement(list: any[]): Observable<any> {
+    return this.http.post<any>(
+      environment.host + `api/jobrequirement/approve`,
+      list
+    );
+  }
+
+  saveRequestBGDApprove(model: any): Observable<any> {
+    return this.http.post<any>(
+      environment.host + `api/jobrequirement/save-request-bgd-approve`,
+      model
+    );
+  }
+
+  saveComment(model: any): Observable<any> {
+    return this.http.post<any>(
+      environment.host + `api/jobrequirement/save-comment`,
+      model
+    );
+  }
+
+  getProjectPartlistPurchaseRequest(
+    dateStart: Date,
+    dateEnd: Date,
+    keyWord: string,
+    jobRequirementID: number
+  ): Observable<any> {
+ 
+    const formatDate = (date: Date): string => {
+      if (!date) return '';
+      const year = date.getFullYear();
+      const month = String(date.getMonth() + 1).padStart(2, '0');
+      const day = String(date.getDate()).padStart(2, '0');
+      return `${year}-${month}-${day}`;
+    };
+
+    const params: any = {
+      dateStart: formatDate(dateStart),
+      dateEnd: formatDate(dateEnd),
+      keyWord: keyWord || '',
+      jobRequirementID: jobRequirementID || 0
+    };
+    return this.http.post<any>(
+      environment.host + `api/jobrequirement/get-project-partlist-purchase-request`,
+      params
+    );
+  }
+
+  getAllJobRequirement(): Observable<any> {
+    return this.http.get<any>(
+      environment.host + `api/jobrequirement/get-all`
+    );
+  }
 }

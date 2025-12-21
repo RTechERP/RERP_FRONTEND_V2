@@ -14,6 +14,8 @@ import { NzSpinModule } from 'ng-zorro-antd/spin';
 import { NzRadioModule } from 'ng-zorro-antd/radio';
 import { EmployeeNofingerprintService } from '../employee-no-fingerprint-service/employee-no-fingerprint.service';
 import { HasPermissionDirective } from '../../../../../directives/has-permission.directive';
+import { PermissionService } from '../../../../../services/permission.service';
+import { AuthService } from '../../../../../auth/auth.service';
 
 export interface ENFDetailDto {
   ID?: number;
@@ -96,6 +98,10 @@ export class ENFDetailComponent implements OnInit {
   }
 
   get isEmployeeDisabled(): boolean {
+    // Nếu có quyền N1, N2 hoặc IsAdmin thì không disable
+    if (this.checkCanEditEmployee()) {
+      return false;
+    }
     return (
       this.mode === 'edit' || this.mode === 'approve' || this.mode === 'view'
     );
@@ -118,12 +124,19 @@ export class ENFDetailComponent implements OnInit {
     return this.mode === 'view';
   }
 
+  // Public getter để template có thể sử dụng
+  get canEditEmployee(): boolean {
+    return this.checkCanEditEmployee();
+  }
+
   constructor(
     public activeModal: NgbActiveModal,
     private message: NzMessageService,
     private notification: NzNotificationService,
     private enfService: EmployeeNofingerprintService,
     private fb: FormBuilder,
+    private permissionService: PermissionService,
+    private authService: AuthService,
   ) {}
 
   private initForm(): void {
@@ -140,10 +153,37 @@ export class ENFDetailComponent implements OnInit {
   ngOnInit(): void {
     this.initForm();
     this.loadEmployeesAndApprovers();
+    this.getCurrentUser();
     this.setupFormData();
     
     // Update validation for reasonHREdit based on mode
     this.updateReasonHREditValidation();
+  }
+
+  getCurrentUser(): void {
+    this.authService.getCurrentUser().subscribe({
+      next: (res: any) => {
+        const data = res?.data;
+        this.currentUser = Array.isArray(data) ? data[0] : data;
+        // Cập nhật lại disable/enable cho EmployeeID sau khi có currentUser
+        this.updateEmployeeIdDisabledState();
+      },
+      error: (err: any) => {
+        console.error('Lỗi lấy thông tin người dùng:', err);
+      }
+    });
+  }
+
+  private updateEmployeeIdDisabledState(): void {
+    const employeeIdControl = this.enfForm.get('selectedEmployeeId');
+    if (employeeIdControl) {
+      // Chỉ disable nếu không có quyền N1, N2 hoặc IsAdmin
+      if (this.isEmployeeDisabled && !this.checkCanEditEmployee()) {
+        employeeIdControl.disable();
+      } else if (this.checkCanEditEmployee()) {
+        employeeIdControl.enable();
+      }
+    }
   }
 
   private updateReasonHREditValidation(): void {
@@ -229,8 +269,11 @@ export class ENFDetailComponent implements OnInit {
     }
     
     // Disable fields based on mode
-    if (this.isEmployeeDisabled) {
+    // Chỉ disable EmployeeID nếu không có quyền N1, N2 hoặc IsAdmin
+    if (this.isEmployeeDisabled && !this.checkCanEditEmployee()) {
       this.enfForm.get('selectedEmployeeId')?.disable();
+    } else if (this.checkCanEditEmployee()) {
+      this.enfForm.get('selectedEmployeeId')?.enable();
     }
     if (this.isApproverDisabled) {
       this.enfForm.get('selectedApprovedId')?.disable();
@@ -253,8 +296,11 @@ export class ENFDetailComponent implements OnInit {
   isFormValid(): boolean {
     if (this.enfForm.disabled) {
       this.enfForm.enable();
-      if (this.isEmployeeDisabled) {
+      // Chỉ disable EmployeeID nếu không có quyền N1, N2 hoặc IsAdmin
+      if (this.isEmployeeDisabled && !this.checkCanEditEmployee()) {
         this.enfForm.get('selectedEmployeeId')?.disable();
+      } else if (this.checkCanEditEmployee()) {
+        this.enfForm.get('selectedEmployeeId')?.enable();
       }
       if (this.isApproverDisabled) {
         this.enfForm.get('selectedApprovedId')?.disable();
@@ -428,5 +474,13 @@ export class ENFDetailComponent implements OnInit {
     });
   }
 
+  // Helper method để kiểm tra user có quyền chỉnh sửa nhân viên (N1, N2 hoặc IsAdmin)
+  private checkCanEditEmployee(): boolean {
+    const hasN1Permission = this.permissionService.hasPermission('N1');
+    const hasN2Permission = this.permissionService.hasPermission('N2');
+    const isAdmin = this.currentUser?.IsAdmin === true || this.currentUser?.ISADMIN === true;
+    
+    return hasN1Permission || hasN2Permission || isAdmin;
+  }
 
 }

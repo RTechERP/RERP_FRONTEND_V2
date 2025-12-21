@@ -368,10 +368,19 @@ export class WFHDetailComponent implements OnInit {
       });
     }
 
-    // Update validators for reasonEdit if edit mode
+    // Update validators for reasonEdit: chỉ require nếu currentEmployeeId khác với EmployeeID trong bảng
+    const reasonEditControl = this.wfhForm.get('reasonEdit');
     if (this.isEditMode && this.wfhData?.ID && this.wfhData.ID > 0) {
-      this.wfhForm.get('reasonEdit')?.setValidators([Validators.required, Validators.minLength(1)]);
-      this.wfhForm.get('reasonEdit')?.updateValueAndValidity();
+      const wfhEmployeeID = this.wfhData?.EmployeeID || 0;
+      const currentEmpID = this.currentEmployeeId || 0;
+      
+      // Chỉ require nếu currentEmployeeId khác với EmployeeID trong bảng
+      if (currentEmpID !== wfhEmployeeID && currentEmpID > 0 && wfhEmployeeID > 0) {
+        reasonEditControl?.setValidators([Validators.required, Validators.minLength(1)]);
+      } else {
+        reasonEditControl?.clearValidators();
+      }
+      reasonEditControl?.updateValueAndValidity();
     }
   }
 
@@ -459,12 +468,18 @@ export class WFHDetailComponent implements OnInit {
       return false;
     }
 
-    // Check Lý do sửa nếu là edit mode (ID > 0)
+    // Check Lý do sửa: chỉ require nếu currentEmployeeId khác với EmployeeID trong bảng
     if (this.wfhData?.ID && this.wfhData.ID > 0) {
-      const reasonEdit = this.wfhForm.get('reasonEdit')?.value;
-      if (!reasonEdit || !reasonEdit.trim()) {
-        this.notification.warning(NOTIFICATION_TITLE.warning, 'Vui lòng nhập đủ thông tin bắt buộc');
-        return false;
+      const wfhEmployeeID = this.wfhData?.EmployeeID || 0;
+      const currentEmpID = this.currentEmployeeId || 0;
+      
+      // Chỉ require nếu currentEmployeeId khác với EmployeeID trong bảng
+      if (currentEmpID !== wfhEmployeeID && currentEmpID > 0 && wfhEmployeeID > 0) {
+        const reasonEdit = this.wfhForm.get('reasonEdit')?.value;
+        if (!reasonEdit || !reasonEdit.trim()) {
+          this.notification.warning(NOTIFICATION_TITLE.warning, 'Vui lòng nhập đủ thông tin bắt buộc');
+          return false;
+        }
       }
     }
 

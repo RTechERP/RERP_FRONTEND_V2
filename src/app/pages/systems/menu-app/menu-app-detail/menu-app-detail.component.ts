@@ -17,6 +17,8 @@ import { NzRadioModule } from 'ng-zorro-antd/radio';
 import { NzSelectModule } from 'ng-zorro-antd/select';
 import { NzTreeSelectModule } from 'ng-zorro-antd/tree-select';
 import { NzUploadModule } from 'ng-zorro-antd/upload';
+import { NzInputNumberModule } from 'ng-zorro-antd/input-number';
+import { NzIconModule } from 'ng-zorro-antd/icon';
 
 @Component({
     selector: 'app-menu-app-detail',
@@ -24,6 +26,7 @@ import { NzUploadModule } from 'ng-zorro-antd/upload';
         CommonModule,
         ReactiveFormsModule,
         NzGridModule,
+        NzInputNumberModule,
         NzButtonModule,
         NzFormModule,
         NzInputModule,
@@ -33,6 +36,7 @@ import { NzUploadModule } from 'ng-zorro-antd/upload';
         NzCheckboxModule,
         NzUploadModule,
         NzTreeSelectModule,
+        NzIconModule,
         FormsModule,
         AngularSlickgridModule,
     ],

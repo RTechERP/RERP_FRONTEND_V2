@@ -153,6 +153,7 @@ import { BookingRoomComponent } from '../../../hrm/booking room/booking-room.com
 import { RegisterContractComponent } from '../../../person/register-contract/register-contract.component';
 import { ApproveTpComponent } from '../../../person/approve-tp/approve-tp/approve-tp.component';
 import { PhaseAllocationPersonComponent } from '../../../hrm/phase-allocation-person/phase-allocation-person.component';
+import { MenuAppComponent } from '../../menu-app/menu-app.component';
 
 @Injectable({
     providedIn: 'root',
@@ -199,6 +200,30 @@ export class MenuService {
             this.appUserService.currentUser?.EmployeeID <= 0;
 
         const menus: MenuItem[] = [
+
+            {
+                kind: 'group',
+                key: 'systems',
+                stt: 1,
+                title: 'Hệ thống',
+                isOpen: true,
+                isPermission: true,
+                icon: 'assets/icon/menu_crm.svg',
+                children: [
+                    {
+                        kind: 'leaf',
+                        key: 'MenuAppComponent',
+                        title: 'Menu',
+                        isOpen: true,
+                        isPermission:
+                            this.permissionService.hasPermission(''),
+                        comp: MenuAppComponent,
+                        icon: 'assets/icon/menu_crm.svg',
+                        router: 'menu'
+                    },
+                ],
+            },
+
             //#region menu CRM
             {
                 kind: 'group',
@@ -2601,6 +2626,7 @@ export class MenuService {
                         isOpen: true,
                         isPermission: this.permissionService.hasPermission(''),
                         children: [
+
                             {
                                 kind: 'leaf',
                                 key: 'PersonDayOffComponent',
@@ -2798,6 +2824,17 @@ export class MenuService {
                         isOpen: true,
                         isPermission: this.permissionService.hasPermission(''),
                         children: [
+                            {
+                                kind: 'leaf',
+                                key: 'MenuAppComponent',
+                                title: 'Menu',
+                                isOpen: true,
+                                isPermission:
+                                    this.permissionService.hasPermission(''),
+                                comp: MenuAppComponent,
+                                icon: 'assets/icon/menu_crm.svg',
+                                router: 'menu'
+                            },
                             {
                                 kind: 'leaf',
                                 key: 'comca',

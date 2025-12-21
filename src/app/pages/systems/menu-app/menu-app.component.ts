@@ -50,11 +50,11 @@ export class MenuAppComponent {
 
         const modalRef = this.modalService.open(MenuAppDetailComponent, {
             centered: true,
-            size: 'xl',
+            size: 'lg',
             backdrop: 'static',
             keyboard: false,
             scrollable: true,
-            fullscreen: true,
+            fullscreen: false,
         });
 
         modalRef.componentInstance.menu = menu;

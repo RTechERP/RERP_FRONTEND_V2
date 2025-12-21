@@ -7,7 +7,9 @@ import { environment } from '../../../../environments/environment';
   providedIn: 'root'
 })
 export class DailyReportTechService {
+  private urlFilmManagement = `${environment.host}api/FilmManagement/`;
   private apiUrl = environment.host + 'api/DailyReportTech/';
+  private apiUrlLXCP = environment.host + 'api/DailyReportHr/';
   private courseApiUrl = environment.host + 'api/Course/';
 
   constructor(private http: HttpClient) { }
@@ -105,4 +107,37 @@ export class DailyReportTechService {
       responseType: 'blob'
     });
   }
+  //#region get daily report lxcp
+  getDailyReportLXCP(params: any): Observable<any> {
+    return this.http.post<any>(this.apiUrlLXCP + 'get-daily-report-hr', params);
+  }
+  //#endregion
+  //#region get daily report cp
+  getDailyReportCP(params: any): Observable<any> {
+    return this.http.post<any>(this.apiUrl + 'get-daily-report-cp', params);
+  }
+  //#endregion
+
+  //#region Film Management
+  /**
+   * Lấy danh sách công việc cho dropdown
+   */
+  getFilmList(): Observable<any> {
+    const url = `${
+      this.apiUrlLXCP + `get-film-detail`
+    }`;
+    return this.http.get<any>(url);
+  }
+
+  //#endregion
+
+  //#region Save report LXCP (Lái xe / Cắt phim)
+  /**
+   * Lưu báo cáo Lái xe hoặc Cắt phim
+   * @param report Dữ liệu báo cáo
+   */
+  saveReportLXCP(report: any): Observable<any> {
+    return this.http.post<any>(this.apiUrlLXCP + 'save-report-lxcp', report);
+  }
+  //#endregion
 }

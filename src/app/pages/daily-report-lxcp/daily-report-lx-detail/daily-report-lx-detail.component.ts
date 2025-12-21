@@ -75,26 +75,42 @@ export class DailyReportLxDetailComponent implements OnInit, AfterViewInit {
   ngOnInit(): void {
     this.initForm();
     
-    if (this.mode === 'edit' && this.dataInput) {
-      const dailyID = typeof this.dataInput === 'number' ? this.dataInput : (this.dataInput?.ID || this.dataInput?.dailyID);
-      if (dailyID) {
-        this.loadDataForEdit(dailyID);
-      }
+    // Load film list trước nếu là PositionID = 7 hoặc 72 (cần cho dropdown)
+    if (this.currentUser?.PositionID === 7 || this.currentUser?.PositionID === 72) {
+      this.loadFilmList(() => {
+        // Sau khi film list load xong, mới load data để edit
+        if (this.mode === 'edit' && this.dataInput) {
+          const dailyID = typeof this.dataInput === 'number' ? this.dataInput : (this.dataInput?.ID || this.dataInput?.dailyID);
+          if (dailyID) {
+            this.loadDataForEdit(dailyID);
+          }
+        } else {
+          // Set ngày báo cáo mặc định cho chế độ add
+          this.setDefaultDateReport();
+        }
+      });
     } else {
-      // Set ngày báo cáo mặc định
-      const now = DateTime.local();
-      const currentHour = now.hour;
-      
-      if (currentHour >= 0 && currentHour <= 9) {
-        this.formGroup.patchValue({ DateReport: null });
+      // Nếu không phải cắt phim, load data ngay
+      if (this.mode === 'edit' && this.dataInput) {
+        const dailyID = typeof this.dataInput === 'number' ? this.dataInput : (this.dataInput?.ID || this.dataInput?.dailyID);
+        if (dailyID) {
+          this.loadDataForEdit(dailyID);
+        }
       } else {
-        this.formGroup.patchValue({ DateReport: now.toJSDate() });
+        // Set ngày báo cáo mặc định cho chế độ add
+        this.setDefaultDateReport();
       }
     }
+  }
 
-    // Load film list nếu là PositionID = 7 hoặc 72
-    if (this.currentUser?.PositionID === 7 || this.currentUser?.PositionID === 72) {
-      this.loadFilmList();
+  private setDefaultDateReport(): void {
+    const now = DateTime.local();
+    const currentHour = now.hour;
+    
+    if (currentHour >= 0 && currentHour <= 9) {
+      this.formGroup.patchValue({ DateReport: null });
+    } else {
+      this.formGroup.patchValue({ DateReport: now.toJSDate() });
     }
   }
 
@@ -108,9 +124,17 @@ export class DailyReportLxDetailComponent implements OnInit, AfterViewInit {
         KmNumber: [null, [Validators.required, Validators.min(0)]],
         TotalLate: [null, [Validators.required, Validators.min(0)]],
         TotalTimeLate: [null, [Validators.required, Validators.min(0)]],
-        ReasonLate: ['', [Validators.required]],
+        ReasonLate: [''], // Không bắt buộc mặc định, sẽ validate động
         StatusVehicle: [''],
         Propose: [''],
+      });
+
+      // Thêm listener để update validation cho ReasonLate khi TotalLate hoặc TotalTimeLate thay đổi
+      this.formGroup.get('TotalLate')?.valueChanges.subscribe(() => {
+        this.updateReasonLateValidation();
+      });
+      this.formGroup.get('TotalTimeLate')?.valueChanges.subscribe(() => {
+        this.updateReasonLateValidation();
       });
     } else {
       // Form cho Cắt phim (PositionID = 7 hoặc 72)
@@ -140,6 +164,22 @@ export class DailyReportLxDetailComponent implements OnInit, AfterViewInit {
       return 'error';
     }
     return '';
+  }
+
+  // Cập nhật validation cho ReasonLate dựa trên TotalLate và TotalTimeLate
+  private updateReasonLateValidation(): void {
+    const totalLate = this.formGroup.get('TotalLate')?.value || 0;
+    const totalTimeLate = this.formGroup.get('TotalTimeLate')?.value || 0;
+    const reasonLateControl = this.formGroup.get('ReasonLate');
+
+    if ((totalLate > 0 || totalTimeLate > 0) && reasonLateControl) {
+      // Nếu có số cuốc muộn hoặc số phút muộn > 0, thì lý do muộn là bắt buộc
+      reasonLateControl.setValidators([Validators.required]);
+    } else {
+      // Nếu không có muộn, thì không bắt buộc
+      reasonLateControl?.clearValidators();
+    }
+    reasonLateControl?.updateValueAndValidity({ emitEvent: false });
   }
 
   // Helper method để lấy error message
@@ -175,7 +215,7 @@ export class DailyReportLxDetailComponent implements OnInit, AfterViewInit {
       TotalTimeLate: 'Vui lòng nhập tổng số phút chậm!',
       ReasonLate: 'Vui lòng nhập lý do muộn!',
       FirmManagementDetailId: 'Vui lòng chọn nội dung công việc!',
-      WorkContent: 'Vui lòng nhập nội dung công việc!',
+      //WorkContent: 'Vui lòng nhập nội dung công việc!',
       Quantity: 'Vui lòng nhập số lượng!',
       TimeActual: 'Vui lòng nhập thời gian!',
     };
@@ -192,7 +232,7 @@ export class DailyReportLxDetailComponent implements OnInit, AfterViewInit {
     return this.fb.group({
       ID: [0],
       FilmManagementDetailId: [null], // Không bắt buộc vì đã comment trong HTML
-      WorkContent: ['', [Validators.required]],
+     // WorkContent: ['', [Validators.required]],
       PerformanceAVG: [{ value: 0, disabled: true }],
       Quantity: [null, [Validators.required, Validators.min(0)]],
       TimeActual: [null, [Validators.required, Validators.min(0)]],
@@ -248,7 +288,7 @@ export class DailyReportLxDetailComponent implements OnInit, AfterViewInit {
     }
   }
 
-  loadFilmList(): void {
+  loadFilmList(callback?: () => void): void {
     this.dailyReportTechService.getFilmList().subscribe({
       next: (response: any) => {
         if (response && response.status === 1 && response.data) {
@@ -256,20 +296,26 @@ export class DailyReportLxDetailComponent implements OnInit, AfterViewInit {
         } else {
           this.filmList = [];
         }
+        if (callback) {
+          callback();
+        }
       },
       error: (error: any) => {
         console.error('Error loading film list:', error);
         this.filmList = [];
+        if (callback) {
+          callback();
+        }
       }
     });
   }
   
 
   loadDataForEdit(dailyID: number): void {
-    this.dailyReportTechService.getDataByID(dailyID).subscribe({
+    this.dailyReportTechService.getDailyReportHRByID(dailyID).subscribe({
       next: (response: any) => {
         if (response && response.status === 1 && response.data) {
-          const data = Array.isArray(response.data) ? response.data[0] : response.data;
+          const data = response.data;
           this.populateForm(data);
         } else {
           this.notification.error('Lỗi', response?.message || 'Không thể tải dữ liệu báo cáo!');
@@ -283,19 +329,35 @@ export class DailyReportLxDetailComponent implements OnInit, AfterViewInit {
   }
 
   private populateForm(data: any): void {
-    const dateReport = data.DateReport ? DateTime.fromISO(data.DateReport).toJSDate() : null;
+    // Xử lý nếu data là array (lấy phần tử đầu tiên)
+    const reportData = Array.isArray(data) ? data[0] : data;
+    
+    if (!reportData) {
+      this.notification.error('Lỗi', 'Dữ liệu báo cáo không hợp lệ!');
+      return;
+    }
+
+    const dateReport = reportData.DateReport ? DateTime.fromISO(reportData.DateReport).toJSDate() : null;
     
     if (this.currentUser?.PositionID === 6) {
       // Populate form cho Lái xe (PositionID = 6)
       this.formGroup.patchValue({
         DateReport: dateReport,
-        KmNumber: data.KmNumber || 0,
-        TotalLate: data.TotalLate || 0,
-        TotalTimeLate: data.TotalTimeLate || 0,
-        ReasonLate: data.ReasonLate || '',
-        StatusVehicle: data.StatusVehicle || '',
-        Propose: data.Propose || '',
+        KmNumber: reportData.KmNumber || 0,
+        TotalLate: reportData.TotalLate || 0,
+        TotalTimeLate: reportData.TotalTimeLate || 0,
+        ReasonLate: reportData.ReasonLate || '',
+        StatusVehicle: reportData.StatusVehicle || '',
+        Propose: reportData.Propose || '',
       });
+      
+      // Lưu ID để dùng khi save
+      if (reportData.ID) {
+        this.dataInput = { ID: reportData.ID };
+      }
+      
+      // Cập nhật validation cho ReasonLate sau khi populate
+      this.updateReasonLateValidation();
     } else if (this.currentUser?.PositionID === 7 || this.currentUser?.PositionID === 72) {
       // Populate form cho Cắt phim
       this.formGroup.patchValue({ DateReport: dateReport });
@@ -303,13 +365,13 @@ export class DailyReportLxDetailComponent implements OnInit, AfterViewInit {
       // Clear existing rows và add từ data
       this.filmRows.clear();
       
-      if (data.filmDetails && Array.isArray(data.filmDetails)) {
-        data.filmDetails.forEach((detail: any) => {
+      // Kiểm tra nếu có filmDetails (nhiều dòng)
+      if (reportData.filmDetails && Array.isArray(reportData.filmDetails) && reportData.filmDetails.length > 0) {
+        reportData.filmDetails.forEach((detail: any) => {
           const row = this.createFilmRowGroup();
           row.patchValue({
             ID: detail.ID || 0,
-            FilmManagementDetailId: detail.FilmManagementDetailId,
-            WorkContent: detail.WorkContent || '',
+            FilmManagementDetailId: detail.FilmManagementDetailID || detail.FilmManagementDetailId,
             PerformanceAVG: detail.PerformanceAVG || 0,
             Quantity: detail.Quantity || 0,
             TimeActual: detail.TimeActual || 0,
@@ -318,20 +380,22 @@ export class DailyReportLxDetailComponent implements OnInit, AfterViewInit {
           });
           this.filmRows.push(row);
         });
-      } else {
-        // Nếu không có data, thêm 1 dòng từ data gốc
+      } else if (reportData.FilmManagementDetailID || reportData.FilmManagementDetailId) {
+        // Nếu chỉ có 1 dòng trong data gốc
         const row = this.createFilmRowGroup();
         row.patchValue({
-          ID: data.ID || 0,
-          FilmManagementDetailId: data.FilmManagementDetailId,
-          WorkContent: data.WorkContent || '',
-          PerformanceAVG: data.PerformanceAVG || 0,
-          Quantity: data.Quantity || 0,
-          TimeActual: data.TimeActual || 0,
-          PerformanceActual: data.PerformanceActual || 0,
-          Percentage: data.Percentage || 0,
+          ID: reportData.ID || 0,
+          FilmManagementDetailId: reportData.FilmManagementDetailID || reportData.FilmManagementDetailId,
+          PerformanceAVG: reportData.PerformanceAVG || 0,
+          Quantity: reportData.Quantity || 0,
+          TimeActual: reportData.TimeActual || 0,
+          PerformanceActual: reportData.PerformanceActual || 0,
+          Percentage: reportData.Percentage || 0,
         });
         this.filmRows.push(row);
+      } else {
+        // Nếu không có dữ liệu, thêm 1 dòng trống
+        this.addFilmRow();
       }
     }
   }
@@ -354,52 +418,114 @@ export class DailyReportLxDetailComponent implements OnInit, AfterViewInit {
       });
     }
 
+    // Kiểm tra validation cho ReasonLate nếu có muộn (cho Lái xe)
+    if (this.currentUser?.PositionID === 6) {
+      const totalLate = this.formGroup.get('TotalLate')?.value || 0;
+      const totalTimeLate = this.formGroup.get('TotalTimeLate')?.value || 0;
+      const reasonLate = this.formGroup.get('ReasonLate')?.value || '';
+
+      if ((totalLate > 0 || totalTimeLate > 0) && !reasonLate.trim()) {
+        this.formGroup.get('ReasonLate')?.setErrors({ required: true });
+        this.formGroup.get('ReasonLate')?.markAsTouched();
+        this.notification.warning('Thông báo', 'Vui lòng nhập lý do muộn khi có số cuốc xe muộn hoặc số phút muộn!');
+        return;
+      }
+    }
+
     if (this.formGroup.invalid) {
       this.notification.warning('Thông báo', 'Vui lòng điền đầy đủ các trường bắt buộc!');
       return;
     }
 
+    // Kiểm tra trùng lặp FilmManagementDetailId cho trường hợp Cắt phim
+    if (this.currentUser?.PositionID === 7 || this.currentUser?.PositionID === 72) {
+      const filmDetailIds: number[] = [];
+      let hasDuplicate = false;
+      let duplicateIndex = -1;
+      
+      this.filmRows.controls.forEach((row: any, index: number) => {
+        const filmManagementDetailId = row.get('FilmManagementDetailId')?.value;
+        if (filmManagementDetailId && filmManagementDetailId > 0) {
+          if (filmDetailIds.includes(filmManagementDetailId)) {
+            hasDuplicate = true;
+            duplicateIndex = index;
+            return;
+          } else {
+            filmDetailIds.push(filmManagementDetailId);
+          }
+        }
+      });
+
+      if (hasDuplicate) {
+        // Set error cho dòng bị trùng
+        if (duplicateIndex >= 0) {
+          const duplicateRow = this.filmRows.at(duplicateIndex);
+          duplicateRow.get('FilmManagementDetailId')?.setErrors({ duplicate: true });
+          duplicateRow.get('FilmManagementDetailId')?.markAsTouched();
+        }
+        this.notification.warning('Thông báo', '2 Nội dung công việc không thể trùng nhau!');
+        return;
+      }
+    }
+
     this.saving = true;
     const dateReport = this.formGroup.get('DateReport')?.value;
     const dateReportStr = DateTime.fromJSDate(dateReport).toFormat('yyyy-MM-dd');
-    const userReport = this.currentUser?.ID || 0;
+    const employeeID = this.currentUser?.EmployeeID || 0;
 
-    let reportData: any;
+    let reportList: any[] = [];
 
     if (this.currentUser?.PositionID === 6) {
-      // Data cho Lái xe (PositionID = 6)
-      reportData = {
+      // Data cho Lái xe (PositionID = 6) - tạo 1 object trong list
+      const driverReport = {
         ID: this.dataInput?.ID || 0,
-        UserReport: userReport,
+        EmployeeID: employeeID,
         DateReport: dateReportStr,
+        FilmManagementDetailID: null,
+        Quantity: null,
+        TimeActual: 0,
+        PerformanceActual: null,
+        Percentage: null,
         KmNumber: this.formGroup.get('KmNumber')?.value || 0,
         TotalLate: this.formGroup.get('TotalLate')?.value || 0,
         TotalTimeLate: this.formGroup.get('TotalTimeLate')?.value || 0,
         ReasonLate: this.formGroup.get('ReasonLate')?.value || '',
         StatusVehicle: this.formGroup.get('StatusVehicle')?.value || '',
         Propose: this.formGroup.get('Propose')?.value || '',
+        IsDeleted: false,
       };
+      reportList.push(driverReport);
     } else if (this.currentUser?.PositionID === 7 || this.currentUser?.PositionID === 72) {
-      // Data cho Cắt phim - lấy tất cả các dòng
-      const filmDetails = this.filmRows.controls.map((row: any) => ({
-        ID: row.get('ID')?.value || 0,
-        FilmManagementDetailId: row.get('FilmManagementDetailId')?.value,
-        WorkContent: row.get('WorkContent')?.value || '',
-        PerformanceAVG: row.get('PerformanceAVG')?.value || 0,
-        Quantity: row.get('Quantity')?.value || 0,
-        TimeActual: row.get('TimeActual')?.value || 0,
-        PerformanceActual: row.get('PerformanceActual')?.value || 0,
-        Percentage: row.get('Percentage')?.value || 0,
-      }));
-
-      reportData = {
-        UserReport: userReport,
-        DateReport: dateReportStr,
-        filmDetails: filmDetails
-      };
+      // Data cho Cắt phim - mỗi dòng thành 1 object trong list
+      reportList = this.filmRows.controls.map((row: any) => {
+        const filmManagementDetailId = row.get('FilmManagementDetailId')?.value;
+        const quantity = row.get('Quantity')?.value || 0;
+        const timeActual = row.get('TimeActual')?.value || 0;
+        
+        return {
+          ID: row.get('ID')?.value || 0,
+          EmployeeID: employeeID,
+          DateReport: dateReportStr,
+          FilmManagementDetailID: filmManagementDetailId || null,
+          Quantity: quantity || null,
+          TimeActual: timeActual || 0,
+          // PerformanceActual và Percentage sẽ được tính ở backend
+          PerformanceActual: null,
+          Percentage: null,
+          // Các field cho Lái xe = null
+          KmNumber: null,
+          TotalLate: null,
+          TotalTimeLate: null,
+          ReasonLate: null,
+          StatusVehicle: null,
+          Propose: null,
+          IsDeleted: false,
+        };
+      });
     }
 
-    this.dailyReportTechService.saveReportLXCP(reportData).subscribe({
+    // Gọi API với list DailyReportHR
+    this.dailyReportTechService.saveReportHr(reportList).subscribe({
       next: (response: any) => {
         this.saving = false;
         if (response && response.status === 1) {
@@ -413,6 +539,59 @@ export class DailyReportLxDetailComponent implements OnInit, AfterViewInit {
         this.saving = false;
         const errorMessage = error?.error?.message || error?.message || 'Có lỗi xảy ra khi lưu báo cáo!';
         this.notification.error('Thông báo', errorMessage);
+      }
+    });
+  }
+
+  deleteDailyReport(): void {
+    if (this.saving) return;
+
+    // Kiểm tra có ID để xóa không
+    let reportId = 0;
+    if (this.mode === 'edit' && this.dataInput) {
+      reportId = typeof this.dataInput === 'number' ? this.dataInput : (this.dataInput?.ID || this.dataInput?.dailyID || 0);
+    }
+
+    if (!reportId || reportId === 0) {
+      this.notification.warning('Thông báo', 'Không tìm thấy báo cáo để xóa!');
+      return;
+    }
+
+    this.modalService.confirm({
+      nzTitle: 'Xác nhận xóa',
+      nzContent: 'Bạn có chắc chắn muốn xóa báo cáo này không?',
+      nzOkText: 'Xóa',
+      nzOkType: 'primary',
+      nzOkDanger: true,
+      nzCancelText: 'Hủy',
+      nzOnOk: () => {
+        this.saving = true;
+        const employeeID = this.currentUser?.EmployeeID || 0;
+
+        // Tạo object với IsDeleted = true
+        const deleteReport = {
+          ID: reportId,
+          EmployeeID: employeeID,
+          IsDeleted: true,
+        };
+
+        // Gọi API save với IsDeleted = true
+        this.dailyReportTechService.saveReportHr([deleteReport]).subscribe({
+          next: (response: any) => {
+            this.saving = false;
+            if (response && response.status === 1) {
+              this.notification.success('Thông báo', response.message || 'Xóa báo cáo thành công!');
+              this.close(true);
+            } else {
+              this.notification.error('Thông báo', response?.message || 'Xóa báo cáo thất bại!');
+            }
+          },
+          error: (error: any) => {
+            this.saving = false;
+            const errorMessage = error?.error?.message || error?.message || 'Có lỗi xảy ra khi xóa báo cáo!';
+            this.notification.error('Thông báo', errorMessage);
+          }
+        });
       }
     });
   }

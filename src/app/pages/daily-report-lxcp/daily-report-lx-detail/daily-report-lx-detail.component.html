@@ -44,17 +44,20 @@
                     <nz-form-label class="fs-12 p-0" [style.visibility]="'hidden'">.</nz-form-label>
                     <nz-form-control [nzSpan]="24">
                         <div class="d-flex gap-2">
-                            <!-- Button Thêm dòng - chỉ hiển thị với PositionID = 7 -->
+                            <!-- Button Thêm dòng - chỉ hiển thị với PositionID = 7 hoặc 72 và mode = add -->
                             <button *ngIf="
-                  currentUser?.PositionID === 7 ||
-                  currentUser?.PositionID === 72
+                  (currentUser?.PositionID === 7 ||
+                  currentUser?.PositionID === 72) &&
+                  mode === 'add'
                 " nz-button nzType="default" nzSize="default" (click)="addFilmRow()" class="flex-grow-1">
                                 <i nz-icon nzType="plus" nzTheme="outline"></i> Thêm dòng
                             </button>
                             <!-- Button Làm thêm -->
                             <button nz-button nzType="primary" nzSize="default" (click)="openOverTimeModal()"
-                                [class.flex-grow-1]="currentUser?.PositionID !== 7"
-                                [class.w-100]="currentUser?.PositionID !== 7">
+                                [class.flex-grow-1]="currentUser?.PositionID !== 7 && currentUser?.PositionID !== 72"
+                                [class.w-100]="currentUser?.PositionID !== 7 && currentUser?.PositionID !== 72 && mode" 
+                                [class.flex-grow-1]="currentUser?.PositionID === 7 || currentUser?.PositionID === 72 && mode != 'add'"
+                                [class.w-100]="currentUser?.PositionID === 7 || currentUser?.PositionID === 72 && mode != 'add'">
                                 Làm thêm
                             </button>
                         </div>
@@ -236,8 +239,8 @@
     </form>
 </div>
 
-<div class="modal-footer bg-light p-2">
-    <button nz-button nzDanger nzType="default" (click)="close()" [disabled]="saving">
+|<div class="modal-footer bg-light p-2">
+    <button nz-button nzType="default" (click)="close()" [disabled]="saving">
         Đóng
     </button>
     <button nz-button nzType="primary" (click)="saveDailyReport()" [disabled]="saving">

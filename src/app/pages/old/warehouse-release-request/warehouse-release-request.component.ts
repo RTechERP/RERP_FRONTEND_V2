@@ -61,6 +61,7 @@ import { AppUserService } from '../../../services/app-user.service';
 import { BillExportDetailComponent } from '../Sale/BillExport/Modal/bill-export-detail/bill-export-detail.component';
 import { NOTIFICATION_TITLE } from '../../../app.config';
 import { DEFAULT_TABLE_CONFIG } from '../../../tabulator-default.config';
+import { setupTabulatorCellCopy } from '../../../shared/utils/tabulator-cell-copy.util';
 interface BillExportDetail {
   ProductID: number;
   Qty: number;
@@ -1152,6 +1153,8 @@ export class WarehouseReleaseRequestComponent implements OnInit {
       // Loại bỏ khỏi selectedRowsAll theo ID
       this.selectedRowsAll = this.selectedRowsAll.filter(r => r['POKHDetailID'] !== rowData['POKHDetailID']);
     });
+
+    setupTabulatorCellCopy(this.table, this.tableElement.nativeElement);
   }
   //#endregion
 }

@@ -1,6 +1,6 @@
 <div class="modal-content">
-    <div class="modal-header bg-primary">
-        <h5 class="modal-title" id="staticBackdropLabel">Chi tiết menu</h5>
+    <div class="modal-header bg-primary py-2">
+        <h5 class="modal-title text-uppercase text-light" id="staticBackdropLabel">Chi tiết menu</h5>
         <button type="button" class="btn-close" aria-label="Close" (click)="activeModal.close()"></button>
     </div>
     <div class="modal-body">
@@ -10,7 +10,7 @@
                     <nz-form-item>
                         <nz-form-label>STT<span class="text-danger ps-1">(*)</span></nz-form-label>
                         <nz-form-control nzErrorTip="Vui lòng nhập STT">
-                            <nz-input-number [formControlName]="'STT'" [nzMin]="1" [nzMax]="10"
+                            <nz-input-number class="w-100" [formControlName]="'STT'" [nzMin]="1" [nzMax]="10"
                                 [nzStep]="1"></nz-input-number>
                         </nz-form-control>
                     </nz-form-item>
@@ -101,42 +101,14 @@
                     </nz-form-item>
                 </div>
             </div>
-
-            <!-- <div nz-row [nzGutter]="16">
-                <div nz-col nzXs="24" nzSm="12" nzMd="6" nzLg="4">
-                    <nz-form-item>
-                        <nz-form-label>Quyền<span class="text-danger ps-1">(*)</span></nz-form-label>
-                        <nz-form-control nzErrorTip="Chọn trưởng bộ phận">
-                            <input type="text" nz-input [(ngModel)]="inputValue" placeholder="input with clear icon" />
-                            <nz-select nzShowSearch nzAllowClear nzPlaceHolder="Chọn loại"
-                                [formControlName]="paymentOrderField.ApprovedTBPID.field">
-                                @for (item of approvedTBPs; track item) {
-                                <nz-option nzLabel="{{item.FullName}}" nzValue="{{item.EmployeeID}}"></nz-option>
-                                }
-                            </nz-select>
-                        </nz-form-control>
-                    </nz-form-item>
-                </div>
-
-                
-
-
-            </div> -->
-
-
         </form>
     </div>
-    <div class="modal-footer">
+    <div class="modal-footer py-2">
         <button nz-button nzType="default" nzDanger="" (click)="activeModal.close()">
             <nz-icon nzType="close" nzTheme="outline" /> Đóng
         </button>
-        <button nz-button nzType="default" (click)="submitForm()">
+        <button nz-button nzType="primary" (click)="submitForm()">
             <nz-icon nzType="save" nzTheme="outline" /> Lưu
         </button>
-
-        <!-- <button type="button" class="btn btn-outline-danger" (click)="activeModal.close()">Đóng</button>
-        <button type="button" class="btn btn-success">
-            <nz-icon nzType="save" nzTheme="outline" (click)="submitForm()" /> Lưu
-        </button> -->
     </div>
 </div>

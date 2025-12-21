@@ -19,6 +19,7 @@ import { NzTreeSelectModule } from 'ng-zorro-antd/tree-select';
 import { NzUploadModule } from 'ng-zorro-antd/upload';
 import { NzInputNumberModule } from 'ng-zorro-antd/input-number';
 import { NzIconModule } from 'ng-zorro-antd/icon';
+import { NOTIFICATION_TITLE } from '../../../../app.config';
 
 @Component({
     selector: 'app-menu-app-detail',
@@ -47,7 +48,7 @@ export class MenuAppDetailComponent {
     validateForm !: FormGroup;
     @Input() menu = new MenuApp();
 
-    readonly nodes = [
+    nodes = [
         {
             title: 'parent 1',
             key: '100',
@@ -82,18 +83,36 @@ export class MenuAppDetailComponent {
 
     ngOnInit(): void {
         this.initForm();
+        this.getMenus();
     }
 
     initForm() {
         this.validateForm = this.fb.group({
-            STT: this.fb.control('STT', [Validators.required]),
-            Code: this.fb.control('Code', [Validators.required]),
-            Title: this.fb.control('Title', [Validators.required]),
-            Router: this.fb.control('Router', [Validators.required]),
-            Icon: this.fb.control('Icon', [Validators.required]),
-            ParentID: this.fb.control('ParentID', [Validators.required]),
+            STT: this.fb.control(0, [Validators.required]),
+            Code: this.fb.control(this.menu.Code, [Validators.required]),
+            Title: this.fb.control(this.menu.Title, [Validators.required]),
+            Router: this.fb.control(this.menu.Router, [Validators.required]),
+            Icon: this.fb.control(this.menu.Icon, [Validators.required]),
+            ParentID: this.fb.control(this.menu.ParentID, [Validators.required]),
         });
     }
+
+    getMenus() {
+        this.menuService.getAll().subscribe({
+            next: (repsonse) => {
+                console.log(repsonse);
+            },
+            error: (err) => {
+                console.log('err:', err);
+
+                const msg =
+                    err?.error?.message ||
+                    err?.message;
+                this.notification.error(NOTIFICATION_TITLE.error, msg);
+            },
+        })
+    }
+
     submitForm() {
 
     }

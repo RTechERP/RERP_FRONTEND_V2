@@ -24,6 +24,9 @@ export class TbProductRtcService {
     const url = `${this.url + `get-location`}?warehouseID=${id}`;
     return this.http.get<any>(url);
   }
+  getUnitCountKT(): Observable<any> {
+    return this.http.get<any>(`${this.url}get-unitcount-kt`);
+  }
   getProductRTCGroup(warehouseType: number): Observable<any> {
     return this.http.get<any>(
       `${this.url + `get-productRTC-group/${warehouseType}`}`

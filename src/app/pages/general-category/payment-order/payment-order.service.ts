@@ -56,7 +56,10 @@ export class PaymentOrderService {
         formData.append('PaymentOrderFile', paymentOrderFileID.toString());
         return this.http.post<any>(`${this.url}/upload-file`, formData);
     }
-
+// Thêm vào payment-order.service.ts
+getDataFromPONCC(ponccID: number): Observable<any> {
+    return this.http.get<any>(`${this.url}/get-data-from-poncc/${ponccID}`);
+}
     uploadFileBankslip(files: File[], paymentOrderID: string): Observable<any> {
         const formData = new FormData();
         if (files) {

@@ -100,10 +100,8 @@
 
                                 <nz-col [nzXs]="24" [nzSm]="12" [nzMd]="12" [nzLg]="12" [nzXl]="12">
                                     <nz-form-item>
-                                        <nz-form-label required>Serial<span class="text-danger ps-1 me-1"> *
-                                            </span></nz-form-label>
-                                        <nz-form-control [nzValidateStatus]="formDeviceInfo.get('SerialNumber')!"
-                                            [nzErrorTip]="'Không được để trống Serial'">
+                                        <nz-form-label required>Serial</nz-form-label>
+                                        <nz-form-control>
                                             <input nz-input nzSize="default" formControlName="SerialNumber" />
                                         </nz-form-control>
                                     </nz-form-item>
@@ -112,9 +110,8 @@
                             <nz-row [nzGutter]="16">
                                 <nz-col [nzXs]="24" [nzSm]="12" [nzMd]="12" [nzLg]="12" [nzXl]="12">
                                     <nz-form-item>
-                                        <nz-form-label required>Code <span class="text-danger ps-1 me-1"> *
-                                            </span></nz-form-label>
-                                        <nz-form-control [nzErrorTip]=" 'Không được để trống Code              '">
+                                        <nz-form-label required>Code</nz-form-label>
+                                        <nz-form-control>
                                             <input nz-input nzSize="default" formControlName="Serial" name="Serial" />
                                         </nz-form-control>
                                     </nz-form-item>
@@ -122,11 +119,8 @@
 
                                 <nz-col [nzXs]="24" [nzSm]="12" [nzMd]="12" [nzLg]="12" [nzXl]="12">
                                     <nz-form-item>
-                                        <nz-form-label>SL kiểm kê<span class="text-danger ps-1 me-1"> *
-                                            </span></nz-form-label>
+                                        <nz-form-label>SL kiểm kê</nz-form-label>
                                         <nz-form-control>
-
-
                                             <input nz-input type="number" nzSize="default" formControlName="SLKiemKe"
                                                 name="SLKiemKe" />
                                         </nz-form-control>
@@ -180,15 +174,15 @@
                                             Đơn vị tính<span class="text-danger ps-1 me-1"> * </span>
                                             <button class="p-0 m-0 fs-12 h-auto" nz-button nzType="text" nzSize="small" title="Thêm đơn vị" (click)="openModalUnitCountDetail()">
                                                 <i class="fas fa-plus"></i>
-                                              </button> 
+                                              </button>
                                         </nz-form-label>
                                         <nz-form-control [nzSpan]="24" nzErrorTip="Vui lòng đơn vị tính">
                                             <nz-input-group required nzSearch nzSize="default" class="w-100">
-                                                <nz-select nzSize="default" formControlName="UnitCountID" name="Maker"
+                                                <nz-select nzSize="default" formControlName="UnitCountID" name="UnitCountID"
                                                     nzPlaceHolder="Chọn đơn vị tính" class="fs-12 w-100" required
                                                     nzShowSearch nzAllowClear>
                                                     <nz-option *ngFor="let item of unitData" [nzValue]="item.ID"
-                                                        [nzLabel]="item.ID + ' - ' + item.UnitName">
+                                                        [nzLabel]="item.ID + ' - ' + item.UnitCountName">
                                                     </nz-option>
                                                 </nz-select>
                                             </nz-input-group>

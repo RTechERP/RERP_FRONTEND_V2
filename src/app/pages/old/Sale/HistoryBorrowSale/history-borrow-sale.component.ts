@@ -100,7 +100,7 @@ export class HistoryBorrowSaleComponent implements OnInit, AfterViewInit {
 
   cbbProductGroup: any[] = [];
   cbbEmployee: any[] = [];
-  warehouseCode: string = 'HN';  
+  warehouseCode: string = 'HN';
   table: any;
   dataTable: any[] = [];
   checked: boolean = false;
@@ -559,12 +559,12 @@ export class HistoryBorrowSaleComponent implements OnInit, AfterViewInit {
           hozAlign: 'center',
           headerHozAlign: 'center',
         },
-                {
-          title: 'Dual Date',
-          field: 'DualDate',
-          hozAlign: 'center',
-          headerHozAlign: 'center',
-        },
+        //         {
+        //   title: 'Dual Date',
+        //   field: 'DualDate',
+        //   hozAlign: 'center',
+        //   headerHozAlign: 'center',
+        // },
         {
           title: 'Ngày mượn',
           field: 'BorrowDate',

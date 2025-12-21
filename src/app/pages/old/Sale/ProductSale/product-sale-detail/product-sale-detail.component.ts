@@ -141,7 +141,7 @@ export class ProductSaleDetailComponent implements OnInit, AfterViewInit {
       ProductName: ['', [Validators.required]],
       NumberInStoreDauky: [{ value: 0, disabled: true }],
       NumberInStoreCuoiKy: [{ value: 0, disabled: true }],
-      LocationID: [null, [Validators.required, inIdListValidator(() => this.listLocation, 'ID')]],
+      LocationID: [null],
       Maker: ['', [Validators.required, inStringListValidator(() => this.listFirm, 'FirmName')]],
       Note: ['',[Validators.maxLength(500)]],
       IsFix: [false]

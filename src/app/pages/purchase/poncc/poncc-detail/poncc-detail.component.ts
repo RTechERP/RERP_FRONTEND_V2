@@ -70,6 +70,7 @@ export class PonccDetailComponent implements OnInit, AfterViewInit {
   @Input() lstBillImportId: any[] = [];
   @Input() isCopy: boolean = false;
   @Input() isAddPoYCMH: boolean = false;
+  @Input() skipBillCodeGeneration: boolean = false; // Flag để bỏ qua generate BillCode khi đã có từ YCMH
   @ViewChild('tb_HoSoDiKem', { static: false }) tb_HoSoDiKem!: ElementRef;
   tabulatorHoSoDiKem: Tabulator | null = null;
   rupayId: number = 0;
@@ -161,7 +162,11 @@ export class PonccDetailComponent implements OnInit, AfterViewInit {
     else if (this.isAddPoYCMH) {
       this.getSupplierSale().then(() => {
         this.mapDataToForm();
-        this.getBillCode(0);
+        // Không gọi getBillCode() ở đây vì BillCode đã được set từ component cha (YCMH)
+        // Nếu skipBillCodeGeneration = false, sẽ được generate tự động khi POType changes
+        if (!this.skipBillCodeGeneration) {
+          this.getBillCode(0);
+        }
       });
     }
 
@@ -177,9 +182,25 @@ export class PonccDetailComponent implements OnInit, AfterViewInit {
 
     // Subscribe to POType changes to get BillCode
     this.informationForm.get('POType')?.valueChanges.subscribe((poTypeId: number) => {
-      console.log(poTypeId);
-      if (poTypeId === 0 || poTypeId === 1) {
+      console.log('POType changed to:', poTypeId);
+      // Nếu skipBillCodeGeneration = true (đã có BillCode từ YCMH), không generate lại
+      if (this.skipBillCodeGeneration) {
+        console.log('Skipping BillCode generation - already set from YCMH');
+        return;
+      }
+      // Chỉ tự động generate BillCode khi đang tạo mới (ID = 0 hoặc undefined)
+      // Khi edit/copy, không tự động generate để tránh ghi đè
+      if ((poTypeId === 0 || poTypeId === 1) && (!this.poncc || this.poncc.ID === 0 || this.isCopy)) {
+        console.log('Auto-generating BillCode for new PO or copy');
         this.getBillCode(poTypeId);
+      }
+    });
+
+    // Subscribe to CurrencyID changes to update CurrencyRate automatically
+    this.companyForm.get('CurrencyID')?.valueChanges.subscribe((currencyId: number) => {
+      if (currencyId !== null && currencyId !== undefined) {
+        console.log('CurrencyID changed to:', currencyId);
+        this.onCurrencyChange(currencyId);
       }
     });
 
@@ -311,8 +332,16 @@ export class PonccDetailComponent implements OnInit, AfterViewInit {
       }
 
       // Load thông tin Currency (tỷ giá) và trigger onCurrencyChange để cập nhật bảng
-      if (this.poncc.CurrencyID) {
+      // Đảm bảo currencies đã được load trước khi gọi onCurrencyChange
+      if (this.poncc.CurrencyID && this.currencies.length > 0) {
         this.onCurrencyChange(this.poncc.CurrencyID);
+      } else if (this.poncc.CurrencyID && this.currencies.length === 0) {
+        // Nếu currencies chưa load xong, đợi thêm một chút
+        setTimeout(() => {
+          if (this.poncc.CurrencyID && this.currencies.length > 0) {
+            this.onCurrencyChange(this.poncc.CurrencyID);
+          }
+        }, 500);
       }
     }, 1000); // Tăng thời gian chờ lên 1000ms
 
@@ -1000,6 +1029,14 @@ export class PonccDetailComponent implements OnInit, AfterViewInit {
     this.projectPartlistPurchaseRequestService.getCurrencies().subscribe({
       next: (res: any) => {
         this.currencies = res || [];
+        // Sau khi currencies được load, nếu đã có CurrencyID trong form thì cập nhật CurrencyRate
+        const currencyId = this.companyForm?.get('CurrencyID')?.value;
+        if (currencyId && this.currencies.length > 0) {
+          // Đợi một chút để đảm bảo form đã được khởi tạo xong
+          setTimeout(() => {
+            this.onCurrencyChange(currencyId);
+          }, 100);
+        }
       }, error: (error: any) => {
         this.notification.error(NOTIFICATION_TITLE.error, 'Lỗi khi tải danh sách tiền tệ: ' + error.message);
       }
@@ -1007,6 +1044,12 @@ export class PonccDetailComponent implements OnInit, AfterViewInit {
   }
 
   getBillCode(poTypeId: number) {
+    // Nếu skipBillCodeGeneration = true (đã có BillCode từ YCMH), không generate lại
+    if (this.skipBillCodeGeneration) {
+      console.log('Skipping BillCode generation - already set from YCMH');
+      return;
+    }
+    
     debugger;
     this.ponccService.getBillCode(poTypeId).subscribe({
       next: (res: any) => {

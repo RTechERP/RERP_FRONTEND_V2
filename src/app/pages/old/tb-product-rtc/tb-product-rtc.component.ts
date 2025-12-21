@@ -298,7 +298,7 @@ export class TbProductRtcComponent implements OnInit, AfterViewInit {
    */
   private moveColumnAfter(fieldName: string, afterFieldName: string): void {
     if (!this.productTable) return;
-    
+
     try {
       const column = this.productTable.getColumn(fieldName);
       const afterColumn = this.productTable.getColumn(afterFieldName);
@@ -693,7 +693,7 @@ export class TbProductRtcComponent implements OnInit, AfterViewInit {
     const modalRef = this.ngbModal.open(TbProductRtcImportExcelComponent, {
       size: 'xl',
       backdrop: 'static',
-      keyboard: false,  
+      keyboard: false,
       centered: true,
     });
     modalRef.componentInstance.warehouseType = this.warehouseType;
@@ -725,6 +725,8 @@ export class TbProductRtcComponent implements OnInit, AfterViewInit {
       ...this.modalData,
       ProductGroupRTCID: selectedGroup,
     };
+    console.log('modaldata',this.modalData);
+
     // modalRef.componentInstance.warehouseType = this.warehouseType
     modalRef.componentInstance.warehouseType = this.warehouseType;
     modalRef.result.then(
@@ -745,6 +747,8 @@ export class TbProductRtcComponent implements OnInit, AfterViewInit {
       return;
     }
     const selectedProduct = { ...selected[0] };
+    console.log('this selected product:', selectedProduct);
+
     const modalRef = this.ngbModal.open(TbProductRtcFormComponent, {
       size: 'xl',
       backdrop: 'static',
@@ -765,7 +769,7 @@ export class TbProductRtcComponent implements OnInit, AfterViewInit {
   onRequestPurchase() {
     // Lấy dòng được chọn từ table
     const selectedRows = this.productTable?.getSelectedData();
-    
+
     if (!selectedRows || selectedRows.length === 0) {
       this.notification.warning(
         NOTIFICATION_TITLE.warning,
@@ -777,7 +781,7 @@ export class TbProductRtcComponent implements OnInit, AfterViewInit {
     // Nếu chọn nhiều sản phẩm, mở modal cho từng sản phẩm
     selectedRows.forEach((row: any) => {
       const productRTCID = row.ID || 0;
-      
+
       if (productRTCID <= 0) {
         this.notification.warning(
           NOTIFICATION_TITLE.warning,

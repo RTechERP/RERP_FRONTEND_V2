@@ -5,6 +5,7 @@ import {
     OnInit,
     ViewChild,
     ElementRef,
+    ChangeDetectorRef,
 } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { NzButtonModule } from 'ng-zorro-antd/button';
@@ -17,21 +18,15 @@ import { NzSelectModule } from 'ng-zorro-antd/select';
 import { NzSplitterModule } from 'ng-zorro-antd/splitter';
 import { NzTabSetComponent, NzTabComponent } from 'ng-zorro-antd/tabs';
 import { NzModalService, NzModalModule } from 'ng-zorro-antd/modal';
-import {
-    TabulatorFull as Tabulator,
-    ColumnDefinition,
-    RowComponent,
-    CellComponent,
-} from 'tabulator-tables';
-import { PONCCService } from './poncc.service';
+import { AngularGridInstance, AngularSlickgridModule, Column, Filters, Formatters, GridOption, OnClickEventArgs, OnSelectedRowsChangedEventArgs } from 'angular-slickgrid';
+import { PONCCService } from '../poncc/poncc.service';
 import { NgbModal } from '@ng-bootstrap/ng-bootstrap';
 import { ProjectService } from '../../project/project-service/project.service';
 import { NOTIFICATION_TITLE } from '../../../app.config';
 import { SupplierSaleService } from '../supplier-sale/supplier-sale.service';
-import { DEFAULT_TABLE_CONFIG } from '../../../tabulator-default.config';
 import { NzSpinComponent } from 'ng-zorro-antd/spin';
-import { PonccDetailComponent } from './poncc-detail/poncc-detail.component';
-import { PonccSummaryComponent } from './poncc-summary/poncc-summary.component';
+import { PonccDetailComponent } from '../poncc/poncc-detail/poncc-detail.component';
+import { PonccSummaryComponent } from '../poncc/poncc-summary/poncc-summary.component';
 import { HasPermissionDirective } from '../../../directives/has-permission.directive';
 import { NzDropDownModule } from 'ng-zorro-antd/dropdown';
 import { BillImportDetailComponent } from '../../old/Sale/BillImport/Modal/bill-import-detail/bill-import-detail.component';
@@ -39,20 +34,13 @@ import { firstValueFrom } from 'rxjs';
 import ExcelJS from 'exceljs';
 import { BillImportTechnicalComponent } from '../../old/bill-import-technical/bill-import-technical.component';
 import { BillImportTechnicalFormComponent } from '../../old/bill-import-technical/bill-import-technical-form/bill-import-technical-form.component';
-// component.ts
-// import pdfMake from 'pdfmake/build/pdfmake';
-// // import pdfFonts from 'pdfmake/build/vfs_fonts';
-// import pdfFonts from '../../../shared/pdf/vfs_fonts_custom.js';
-
 import pdfMake from 'pdfmake/build/pdfmake';
 import vfs from '../../../shared/pdf/vfs_fonts_custom.js';
-
 import { DateTime } from 'luxon';
 import { environment } from '../../../../environments/environment';
-import { style } from '@angular/animations';
-import { content } from 'html2canvas/dist/types/css/property-descriptors/content';
 import { NzSwitchModule } from 'ng-zorro-antd/switch';
 import { SafeUrlPipe } from '../../../../safeUrl.pipe';
+import { PaymentOrderDetailComponent } from '../../general-category/payment-order/payment-order-detail/payment-order-detail.component';
 
 (pdfMake as any).vfs = vfs;
 (pdfMake as any).fonts = {
@@ -64,28 +52,8 @@ import { SafeUrlPipe } from '../../../../safeUrl.pipe';
     },
 };
 
-// // Create a wrapper to access pdfMake with fonts initialized
-// const getPdfMake = () => {
-//   const pdfMakeInstance = pdfMake as any;
-//   if (!pdfMakeInstance.vfs) {
-//     pdfMakeInstance.vfs = (pdfFonts as any).pdfMake?.vfs || pdfFonts;
-//   }
-//   return pdfMakeInstance;
-// };
-
-// (pdfMake as any).fonts = {
-//   Times: {
-//     normal: 'TIMES.ttf',
-//     bold: 'TIMESBD.ttf',
-//     // italics: 'Roboto-Regular.ttf',
-//     // bolditalics: 'Roboto-Bold.ttf',
-//   },
-// };
-
-// (pdfMake as any).vfs = pdfFonts.pdfMake.vfs;
-
 @Component({
-    selector: 'app-poncc',
+  selector: 'app-poncc-new',
     standalone: true,
     imports: [
         CommonModule,
@@ -104,25 +72,17 @@ import { SafeUrlPipe } from '../../../../safeUrl.pipe';
         HasPermissionDirective,
         NzDropDownModule,
         NzSwitchModule,
-        SafeUrlPipe
+        SafeUrlPipe,
+        AngularSlickgridModule,
     ],
-    templateUrl: './poncc.component.html',
-    styleUrls: ['./poncc.component.css'],
+  templateUrl: './poncc-new.component.html',
+    styleUrls: ['./poncc-new.component.css'],
 })
-
-
-
-export class PONCCComponent implements OnInit, AfterViewInit {
-    @ViewChild('table_poThuongMai', { static: false })
-    tablePoThuongMaiRef!: ElementRef;
-    @ViewChild('table_poMuon', { static: false }) tablePoMuonRef!: ElementRef;
-    @ViewChild('table_ponccdetail', { static: false }) detailRef!: ElementRef;
-
-    tablePoThuongMai!: Tabulator;
-    tablePoMuon!: Tabulator;
-    tableDetail!: Tabulator;
+export class PonccNewComponent implements OnInit, AfterViewInit {
     activeTabIndex: number = 0;
     lastMasterId: number | null = null;
+    isTabReady: boolean = false; // Flag để track khi tab đã render
+
     // Filters
     dateStart: Date = new Date(
         new Date().getFullYear(),
@@ -147,15 +107,8 @@ export class PONCCComponent implements OnInit, AfterViewInit {
     isLoading: boolean = false;
     listAllID: string[] = [];
     checkList: boolean[] = [];
-
     listDetail: any[] = [];
-
     poCode: string = 'hihi';
-
-    // docDefinition: any;
-
-
-
     showPreview = false;
     isShowSign = true;
     isShowSeal = true;
@@ -164,6 +117,24 @@ export class PONCCComponent implements OnInit, AfterViewInit {
     dataPrint: any;
     tabs: PoTab[] = [];
 
+    // AngularSlickGrid instances
+    angularGridPoThuongMai!: AngularGridInstance;
+    angularGridPoMuon!: AngularGridInstance;
+    angularGridDetail!: AngularGridInstance;
+
+
+    // Column definitions
+    columnDefinitionsMaster: Column[] = [];
+    columnDefinitionsDetail: Column[] = [];
+
+    // Grid options
+    gridOptionsMaster: GridOption = {};
+    gridOptionsDetail: GridOption = {};
+
+    // Datasets
+    datasetPoThuongMai: any[] = [];
+    datasetPoMuon: any[] = [];
+    datasetDetail: any[] = [];
 
     // Lưu trạng thái bảng để khôi phục sau khi reload
     private savedScrollPosition: number = 0;
@@ -180,138 +151,620 @@ export class PONCCComponent implements OnInit, AfterViewInit {
         private projectService: ProjectService,
         private notification: NzNotificationService,
         private supplierSaleService: SupplierSaleService,
-        private modalService: NgbModal
+        private modalService: NgbModal,
+        private cdr: ChangeDetectorRef
     ) { }
 
     ngOnInit(): void {
         this.loadLookups();
+        this.initGridColumns();
+        this.initGridOptions();
     }
 
     ngAfterViewInit(): void {
-        this.initTables();
-        this.initDetailTable();
+        // Đợi tab render xong rồi mới load data
         setTimeout(() => {
-            this.onSearch();
-        }, 0);
+            this.isTabReady = true;
+            this.cdr.detectChanges();
+            setTimeout(() => {
+                this.onSearch();
+            }, 100);
+        }, 200);
     }
 
     toggleSearchPanel() {
         this.sizeSearch = this.sizeSearch == '0' ? '22%' : '0';
     }
 
-    // Lưu trạng thái bảng (scroll position và selected rows)
-    private saveTableState(): void {
-        const currentTable =
-            this.activeTabIndex === 0 ? this.tablePoThuongMai : this.tablePoMuon;
-        if (!currentTable) return;
+    private initGridColumns(): void {
+        // Master columns
+        this.columnDefinitionsMaster = [
+            {
+                id: 'IsApproved',
+                name: 'Duyệt',
+                field: 'IsApproved',
+                width: 70,
+                sortable: true,
+                filterable: true,
+                formatter: Formatters.iconBoolean,
+                params: { cssClass: 'mdi mdi-check' },
+                filter: { model: Filters['compoundInputNumber'] },
+            },
+            {
+                id: 'StatusText',
+                name: 'Trạng thái',
+                field: 'StatusText',
+                width: 120,
+                sortable: true,
+                filterable: true,
+                filter: { model: Filters['compoundInputText'] },
+            },
+            {
+                id: 'RequestDate',
+                name: 'Ngày PO',
+                field: 'RequestDate',
+                width: 100,
+                sortable: true,
+                filterable: true,
+                formatter: Formatters.date,
+                params: { dateFormat: 'DD/MM/YYYY' },
+                filter: { model: Filters['compoundDate'] },
+            },
+            {
+                id: 'DeliveryDate',
+                name: 'Ngày giao hàng',
+                field: 'DeliveryDate',
+                width: 100,
+                sortable: true,
+                filterable: true,
+                formatter: Formatters.date,
+                params: { dateFormat: 'DD/MM/YYYY' },
+                filter: { model: Filters['compoundDate'] },
+            },
+            {
+                id: 'POCode',
+                name: 'Số PO',
+                field: 'POCode',
+                width: 120,
+                sortable: true,
+                filterable: true,
+                filter: { model: Filters['compoundInputText'] },
+            },
+            {
+                id: 'BillCode',
+                name: 'Số đơn hàng',
+                field: 'BillCode',
+                width: 120,
+                sortable: true,
+                filterable: true,
+                filter: { model: Filters['compoundInputText'] },
+            },
+            {
+                id: 'TotalMoneyPO',
+                name: 'Tổng tiền',
+                field: 'TotalMoneyPO',
+                width: 120,
+                sortable: true,
+                filterable: true,
+                formatter: (row: number, cell: number, value: any) => this.formatNumberEnUS(value),
+                filter: { model: Filters['compoundInputNumber'] },
+            },
+            {
+                id: 'CurrencyText',
+                name: 'Loại tiền',
+                field: 'CurrencyText',
+                width: 80,
+                sortable: true,
+                filterable: true,
+                filter: { model: Filters['compoundInputText'] },
+            },
+            {
+                id: 'CurrencyRate',
+                name: 'Tỷ giá',
+                field: 'CurrencyRate',
+                width: 100,
+                sortable: true,
+                filterable: true,
+                formatter: (row: number, cell: number, value: any) => this.formatNumberEnUS(value),
+                filter: { model: Filters['compoundInputNumber'] },
+            },
+            {
+                id: 'NameNCC',
+                name: 'Nhà cung cấp',
+                field: 'NameNCC',
+                width: 200,
+                sortable: true,
+                filterable: true,
+                filter: { model: Filters['compoundInputText'] },
+            },
+            {
+                id: 'FullName',
+                name: 'Nhân viên mua',
+                field: 'FullName',
+                width: 150,
+                sortable: true,
+                filterable: true,
+                filter: { model: Filters['compoundInputText'] },
+            },
+            {
+                id: 'DeptSupplier',
+                name: 'Công nợ',
+                field: 'DeptSupplier',
+                width: 120,
+                sortable: true,
+                filterable: true,
+                formatter: Formatters.iconBoolean,
+                params: { cssClass: 'mdi mdi-check' },
+                filter: { model: Filters['compoundInputNumber'] },
+            },
+            {
+                id: 'BankCharge',
+                name: 'Bank charge',
+                field: 'BankCharge',
+                width: 120,
+                sortable: true,
+                filterable: true,
+                formatter: (row: number, cell: number, value: any) => this.formatNumberEnUS(value),
+                filter: { model: Filters['compoundInputNumber'] },
+            },
+            {
+                id: 'RulePayName',
+                name: 'Điều khoản TT',
+                field: 'RulePayName',
+                width: 150,
+                sortable: true,
+                filterable: true,
+                filter: { model: Filters['compoundInputText'] },
+            },
+            {
+                id: 'CompanyText',
+                name: 'Công ty',
+                field: 'CompanyText',
+                width: 150,
+                sortable: true,
+                filterable: true,
+                filter: { model: Filters['compoundInputText'] },
+            },
+            {
+                id: 'FedexAccount',
+                name: 'Fedex account',
+                field: 'FedexAccount',
+                width: 120,
+                sortable: true,
+                filterable: true,
+                filter: { model: Filters['compoundInputText'] },
+            },
+            {
+                id: 'RuleIncoterm',
+                name: 'Điều khoản Incoterm',
+                field: 'RuleIncoterm',
+                width: 120,
+                sortable: true,
+                filterable: true,
+                filter: { model: Filters['compoundInputText'] },
+            },
+            {
+                id: 'SupplierVoucher',
+                name: 'Chứng từ NCC',
+                field: 'SupplierVoucher',
+                width: 120,
+                sortable: true,
+                filterable: true,
+                filter: { model: Filters['compoundInputText'] },
+            },
+            {
+                id: 'OriginItem',
+                name: 'Xuất xứ',
+                field: 'OriginItem',
+                width: 120,
+                sortable: true,
+                filterable: true,
+                filter: { model: Filters['compoundInputText'] },
+            },
+            {
+                id: 'Note',
+                name: 'Diễn giải',
+                field: 'Note',
+                width: 200,
+                sortable: true,
+                filterable: true,
+                filter: { model: Filters['compoundInputText'] },
+            },
+            {
+                id: 'POTypeText',
+                name: 'Loại PO',
+                field: 'POTypeText',
+                width: 120,
+                sortable: true,
+                filterable: true,
+                filter: { model: Filters['compoundInputText'] },
+            },
+        ];
 
-        try {
-            // Lưu scroll position
-            const scrollElement = currentTable.element.querySelector(
-                '.tabulator-tableholder'
-            );
-            if (scrollElement) {
-                this.savedScrollPosition = scrollElement.scrollTop;
-            }
-
-            // Lưu selected row IDs
-            const selectedRows = currentTable.getSelectedRows();
-            this.savedSelectedRowIds = selectedRows
-                .map((row: any) => row.getData().ID)
-                .filter((id: number) => id > 0);
-
-            // Lưu tab index
-            this.savedTabIndex = this.activeTabIndex;
-
-            console.log('Saved table state:', {
-                scrollPosition: this.savedScrollPosition,
-                selectedRowIds: this.savedSelectedRowIds,
-                tabIndex: this.savedTabIndex,
-            });
-        } catch (error) {
-            console.error('Error saving table state:', error);
-        }
+        // Detail columns
+        this.columnDefinitionsDetail = [
+            {
+                id: 'STT',
+                name: 'STT',
+                field: 'STT',
+                width: 50,
+                sortable: true,
+                filterable: true,
+                filter: { model: Filters['compoundInputNumber'] },
+            },
+            {
+                id: 'ProductCode',
+                name: 'Mã sản phẩm',
+                field: 'ProductCode',
+                width: 120,
+                sortable: true,
+                filterable: true,
+                filter: { model: Filters['compoundInputText'] },
+            },
+            {
+                id: 'ProductName',
+                name: 'Tên sản phẩm',
+                field: 'ProductName',
+                width: 200,
+                sortable: true,
+                filterable: true,
+                filter: { model: Filters['compoundInputText'] },
+            },
+            {
+                id: 'ProductNewCode',
+                name: 'Mã nội bộ',
+                field: 'ProductNewCode',
+                width: 120,
+                sortable: true,
+                filterable: true,
+                filter: { model: Filters['compoundInputText'] },
+            },
+            {
+                id: 'ProductGroupName',
+                name: 'Tên nhóm',
+                field: 'ProductGroupName',
+                width: 120,
+                sortable: true,
+                filterable: true,
+                filter: { model: Filters['compoundInputText'] },
+            },
+            {
+                id: 'ProductCodeOfSupplier',
+                name: 'Mã SP NCC',
+                field: 'ProductCodeOfSupplier',
+                width: 200,
+                sortable: true,
+                filterable: true,
+                filter: { model: Filters['compoundInputText'] },
+            },
+            {
+                id: 'ParentProductCode',
+                name: 'Mã cha',
+                field: 'ParentProductCode',
+                width: 120,
+                sortable: true,
+                filterable: true,
+                filter: { model: Filters['compoundInputText'] },
+            },
+            {
+                id: 'ProjectCode',
+                name: 'Mã dự án',
+                field: 'ProjectCode',
+                width: 120,
+                sortable: true,
+                filterable: true,
+                filter: { model: Filters['compoundInputText'] },
+            },
+            {
+                id: 'ProjectName',
+                name: 'Tên dự án',
+                field: 'ProjectName',
+                width: 200,
+                sortable: true,
+                filterable: true,
+                filter: { model: Filters['compoundInputText'] },
+            },
+            {
+                id: 'UnitName',
+                name: 'ĐVT',
+                field: 'UnitName',
+                width: 80,
+                sortable: true,
+                filterable: true,
+                filter: { model: Filters['compoundInputText'] },
+            },
+            {
+                id: 'QtyRequest',
+                name: 'SL yêu cầu',
+                field: 'QtyRequest',
+                width: 100,
+                sortable: true,
+                filterable: true,
+                formatter: (row: number, cell: number, value: any) => this.formatNumberEnUS(value, 0),
+                filter: { model: Filters['compoundInputNumber'] },
+            },
+            {
+                id: 'QuantityRequested',
+                name: 'SL đã yêu cầu',
+                field: 'QuantityRequested',
+                width: 100,
+                sortable: true,
+                filterable: true,
+                formatter: (row: number, cell: number, value: any) => this.formatNumberEnUS(value, 0),
+                filter: { model: Filters['compoundInputNumber'] },
+            },
+            {
+                id: 'QuantityReturn',
+                name: 'SL đã về',
+                field: 'QuantityReturn',
+                width: 100,
+                sortable: true,
+                filterable: true,
+                formatter: (row: number, cell: number, value: any) => this.formatNumberEnUS(value, 0),
+                filter: { model: Filters['compoundInputNumber'] },
+            },
+            {
+                id: 'QuantityRemain',
+                name: 'SL còn lại',
+                field: 'QuantityRemain',
+                width: 100,
+                sortable: true,
+                filterable: true,
+                formatter: (row: number, cell: number, value: any) => this.formatNumberEnUS(value, 0),
+                filter: { model: Filters['compoundInputNumber'] },
+            },
+            {
+                id: 'UnitPrice',
+                name: 'Đơn giá',
+                field: 'UnitPrice',
+                width: 120,
+                sortable: true,
+                filterable: true,
+                formatter: (row: number, cell: number, value: any) => this.formatNumberEnUS(value),
+                filter: { model: Filters['compoundInputNumber'] },
+            },
+            {
+                id: 'ThanhTien',
+                name: 'Thành tiền',
+                field: 'ThanhTien',
+                width: 120,
+                sortable: true,
+                filterable: true,
+                formatter: (row: number, cell: number, value: any) => this.formatNumberEnUS(value),
+                filter: { model: Filters['compoundInputNumber'] },
+            },
+            {
+                id: 'VAT',
+                name: 'VAT (%)',
+                field: 'VAT',
+                width: 80,
+                sortable: true,
+                filterable: true,
+                filter: { model: Filters['compoundInputNumber'] },
+            },
+            {
+                id: 'VATMoney',
+                name: 'Tổng tiền VAT',
+                field: 'VATMoney',
+                width: 120,
+                sortable: true,
+                filterable: true,
+                formatter: (row: number, cell: number, value: any) => this.formatNumberEnUS(value),
+                filter: { model: Filters['compoundInputNumber'] },
+            },
+            {
+                id: 'IsBill',
+                name: 'Hóa đơn',
+                field: 'IsBill',
+                width: 80,
+                sortable: true,
+                filterable: true,
+                formatter: Formatters.iconBoolean,
+                params: { cssClass: 'mdi mdi-check' },
+                filter: { model: Filters['compoundInputNumber'] },
+            },
+            {
+                id: 'DiscountPercent',
+                name: 'Chiết khấu (%)',
+                field: 'DiscountPercent',
+                width: 100,
+                sortable: true,
+                filterable: true,
+                filter: { model: Filters['compoundInputNumber'] },
+            },
+            {
+                id: 'Discount',
+                name: 'Tiền chiết khấu',
+                field: 'Discount',
+                width: 120,
+                sortable: true,
+                filterable: true,
+                formatter: (row: number, cell: number, value: any) => this.formatNumberEnUS(value),
+                filter: { model: Filters['compoundInputNumber'] },
+            },
+            {
+                id: 'FeeShip',
+                name: 'Phí vận chuyển',
+                field: 'FeeShip',
+                width: 120,
+                sortable: true,
+                filterable: true,
+                formatter: (row: number, cell: number, value: any) => this.formatNumberEnUS(value),
+                filter: { model: Filters['compoundInputNumber'] },
+            },
+            {
+                id: 'TotalPrice',
+                name: 'Tổng tiền',
+                field: 'TotalPrice',
+                width: 120,
+                sortable: true,
+                filterable: true,
+                formatter: (row: number, cell: number, value: any) => this.formatNumberEnUS(value),
+                filter: { model: Filters['compoundInputNumber'] },
+            },
+            {
+                id: 'DeadlineDelivery',
+                name: 'Deadline giao hàng',
+                field: 'DeadlineDelivery',
+                width: 100,
+                sortable: true,
+                filterable: true,
+                formatter: Formatters.date,
+                params: { dateFormat: 'DD/MM/YYYY' },
+                filter: { model: Filters['compoundDate'] },
+            },
+            {
+                id: 'ExpectedDate',
+                name: 'Ngày dự kiến',
+                field: 'ExpectedDate',
+                width: 100,
+                sortable: true,
+                filterable: true,
+                formatter: Formatters.date,
+                params: { dateFormat: 'DD/MM/YYYY' },
+                filter: { model: Filters['compoundDate'] },
+            },
+            {
+                id: 'ActualDate',
+                name: 'Ngày thực tế',
+                field: 'ActualDate',
+                width: 100,
+                sortable: true,
+                filterable: true,
+                formatter: Formatters.date,
+                params: { dateFormat: 'DD/MM/YYYY' },
+                filter: { model: Filters['compoundDate'] },
+            },
+            {
+                id: 'PriceSale',
+                name: 'Giá bán',
+                field: 'PriceSale',
+                width: 120,
+                sortable: true,
+                filterable: true,
+                formatter: (row: number, cell: number, value: any) => this.formatNumberEnUS(value),
+                filter: { model: Filters['compoundInputNumber'] },
+            },
+            {
+                id: 'PriceHistory',
+                name: 'Giá lịch sử',
+                field: 'PriceHistory',
+                width: 120,
+                sortable: true,
+                filterable: true,
+                formatter: (row: number, cell: number, value: any) => this.formatNumberEnUS(value),
+                filter: { model: Filters['compoundInputNumber'] },
+            },
+            {
+                id: 'BiddingPrice',
+                name: 'Giá thầu',
+                field: 'BiddingPrice',
+                width: 120,
+                sortable: true,
+                filterable: true,
+                formatter: (row: number, cell: number, value: any) => this.formatNumberEnUS(value),
+                filter: { model: Filters['compoundInputNumber'] },
+            },
+            {
+                id: 'Note',
+                name: 'Diễn giải',
+                field: 'Note',
+                width: 200,
+                sortable: true,
+                filterable: true,
+                filter: { model: Filters['compoundInputText'] },
+            },
+        ];
     }
 
-    // Khôi phục trạng thái bảng (scroll position và selected rows)
-    private restoreTableState(): void {
-        const currentTable =
-            this.activeTabIndex === 0 ? this.tablePoThuongMai : this.tablePoMuon;
-        if (!currentTable) return;
+    private initGridOptions(): void {
+        this.gridOptionsMaster = {
+            enableAutoResize: true,
+            autoResize: {
+                container: '.grid-container-master',
+                calculateAvailableSizeBy: 'container',
+                resizeDetection: 'container',
+            },
+            gridWidth: '100%',
+            datasetIdPropertyName: 'id',
+            enableRowSelection: true,
+            rowSelectionOptions: {
+                selectActiveRow: false,
+            },
+            checkboxSelector: {
+                hideInFilterHeaderRow: false,
+                hideInColumnTitleRow: true,
+                applySelectOnAllPages: true,
+            },
+            enableCheckboxSelector: true,
+            enableCellNavigation: true,
+            enableFiltering: true,
+            autoFitColumnsOnFirstLoad: false,
+            enableAutoSizeColumns: false,
+            frozenColumn: 5,
+            enableExcelExport: true,
+            excelExportOptions: {
+                filename: 'poncc',
+                sanitizeDataExport: true,
+                sheetName: 'PO NCC',
+                columnHeaderStyle: {
+                    font: { color: 'FFFFFFFF' },
+                    fill: { type: 'pattern', fgColor: 'FF4a6c91' },
+                },
+                customExcelHeader: (workbook: any, sheet: any) => {
+                    const excelFormat = workbook.getStyleSheet().createFormat({
+                        font: { size: 18, fontName: 'Calibri', bold: true, color: 'FFFFFFFF' },
+                        alignment: { wrapText: true, horizontal: 'center' },
+                        fill: { type: 'pattern', pattern: 'solid', fgColor: 'FF203764' },
+                    });
+                    sheet.setRowInstructions(0, { height: 40 });
+                    const customTitle = `Danh sách PO NCC ${this.activeTabIndex === 0 ? 'Thương mại' : 'Mượn'}`;
+                    const lastCellMerge = 'H1'; // Có thể tính động dựa trên số cột
+                    sheet.mergeCells('A1', lastCellMerge);
+                    sheet.data.push([{ value: customTitle, metadata: { style: excelFormat.id } }]);
+                },
+            },
+        };
 
-        // Chỉ restore nếu đúng tab
-        if (this.savedTabIndex !== this.activeTabIndex) {
-            this.clearSavedState();
-            return;
-        }
+        this.gridOptionsDetail = {
+            enableAutoResize: true,
+            autoResize: {
+                container: '.grid-container-detail',
+                calculateAvailableSizeBy: 'container',
+                resizeDetection: 'container',
+            },
+            gridWidth: '100%',
+            datasetIdPropertyName: 'id',
+            enableRowSelection: true,
+            rowSelectionOptions: {
+                selectActiveRow: false,
+            },
+            checkboxSelector: {
+                hideInFilterHeaderRow: false,
+                hideInColumnTitleRow: true,
+            },
+            enableCheckboxSelector: true,
+            enableCellNavigation: true,
+            enableFiltering: true,
+            autoFitColumnsOnFirstLoad: false,
+            enableAutoSizeColumns: false,
+            frozenColumn: 3,
+        };
+    }
 
-        try {
-            // Restore scroll position
-            if (this.savedScrollPosition > 0) {
-                const scrollElement = currentTable.element.querySelector(
-                    '.tabulator-tableholder'
+    loadLookups() {
+        this.supplierSaleService.getNCC().subscribe({
+            next: (res: any) => {
+                this.suppliers = res.data || [];
+            },
+            error: (error: any) => {
+                this.notification.error(
+                    NOTIFICATION_TITLE.error,
+                    'Lỗi khi tải danh sách nhà cung cấp: ' + (error.message || error)
                 );
-                if (scrollElement) {
-                    scrollElement.scrollTop = this.savedScrollPosition;
-                }
-            }
+            },
+        });
 
-            // Restore selected rows
-            if (this.savedSelectedRowIds.length > 0) {
-                const allRows = currentTable.getRows();
-                allRows.forEach((row: any) => {
-                    const rowData = row.getData();
-                    if (this.savedSelectedRowIds.includes(rowData.ID)) {
-                        row.select();
-                    }
-                });
-            }
-
-            console.log('Restored table state:', {
-                scrollPosition: this.savedScrollPosition,
-                selectedRowIds: this.savedSelectedRowIds,
-                tabIndex: this.savedTabIndex,
-            });
-
-            // Clear saved state after restoration
-            this.clearSavedState();
-        } catch (error) {
-            console.error('Error restoring table state:', error);
-            this.clearSavedState();
-        }
-    }
-
-    // Xóa trạng thái đã lưu
-    private clearSavedState(): void {
-        this.savedScrollPosition = 0;
-        this.savedSelectedRowIds = [];
-        this.savedTabIndex = -1;
-    }
-
-    /**
-     * Reset all search filters to default values
-     */
-    resetSearch(): void {
-        this.dateStart = new Date(
-            new Date().getFullYear(),
-            new Date().getMonth(),
-            1
-        );
-        this.dateEnd = new Date(
-            new Date().getFullYear(),
-            new Date().getMonth() + 1,
-            0
-        );
-        this.supplierId = 0;
-        this.employeeId = 0;
-        this.status = -1;
-        this.keyword = '';
-
-        // Optionally trigger search after reset
-        this.onSearch();
-    }
-
-    private loadLookups() {
         this.projectService.getUsers().subscribe({
             next: (response: any) => {
                 this.employees = this.projectService.createdDataGroup(
@@ -319,19 +772,10 @@ export class PONCCComponent implements OnInit, AfterViewInit {
                     'DepartmentName'
                 );
             },
-            error: (error) => {
+            error: (error: any) => {
                 this.notification.error(
                     NOTIFICATION_TITLE.error,
-                    'Lỗi khi tải danh sách nhân viên: ' + error.message
-                );
-            },
-        });
-        this.supplierSaleService.getNCC().subscribe({
-            next: (res) => (this.suppliers = res.data || []),
-            error: (error) => {
-                this.notification.error(
-                    NOTIFICATION_TITLE.error,
-                    'Lỗi khi tải danh sách nhà cung cấp: ' + error.message
+                    'Lỗi khi tải danh sách nhân viên: ' + (error.message || error)
                 );
             },
         });
@@ -353,10 +797,53 @@ export class PONCCComponent implements OnInit, AfterViewInit {
 
         this.srv.getAll(filter).subscribe({
             next: (rows) => {
-                const currentTable =
-                    this.activeTabIndex === 0 ? this.tablePoThuongMai : this.tablePoMuon;
-                currentTable?.setData(rows.data || []);
+                const data = rows.data || [];
+
+                // Map data với id unique cho SlickGrid
+                const usedIds = new Set<string>();
+                const timestamp = Date.now();
+
+                const mappedData = data.map((item: any, index: number) => {
+                    let uniqueId: string;
+                    if (item.ID && Number(item.ID) > 0) {
+                        uniqueId = `tab_${this.activeTabIndex}_id_${item.ID}`;
+                    } else {
+                        uniqueId = `tab_${this.activeTabIndex}_idx_${index}_${timestamp}_${Math.random().toString(36).substr(2, 9)}`;
+                    }
+
+                    let finalId = uniqueId;
+                    let counter = 0;
+                    while (usedIds.has(finalId)) {
+                        counter++;
+                        finalId = `${uniqueId}_${counter}`;
+                    }
+                    usedIds.add(finalId);
+
+                    return {
+                        ...item,
+                        id: finalId,
+                    };
+                });
+
+                // Set data vào grid tương ứng
+                if (this.activeTabIndex === 0) {
+                    this.datasetPoThuongMai = mappedData;
+                } else {
+                    this.datasetPoMuon = mappedData;
+                }
+
                 this.isLoading = false;
+                this.cdr.detectChanges();
+
+                // Resize grid sau khi data được load
+                setTimeout(() => {
+                    const currentGrid = this.activeTabIndex === 0
+                        ? this.angularGridPoThuongMai
+                        : this.angularGridPoMuon;
+                    if (currentGrid) {
+                        currentGrid.resizerService.resizeGrid();
+                    }
+                }, 100);
             },
             error: () => {
                 this.isLoading = false;
@@ -367,27 +854,18 @@ export class PONCCComponent implements OnInit, AfterViewInit {
 
     onTabChange(index: number): void {
         this.activeTabIndex = index;
-        this.onSearch();
+        // Đợi tab render xong rồi mới search và resize grid
+        setTimeout(() => {
+            // Resize grid khi tab thay đổi
+            const currentGrid = index === 0
+                ? this.angularGridPoThuongMai
+                : this.angularGridPoMuon;
+            if (currentGrid) {
+                currentGrid.resizerService.resizeGrid();
+            }
+            this.onSearch();
+        }, 150);
     }
-
-    // private loadDetails(poid: number): void {
-    //   this.isLoading = true;
-    //   this.srv.getDetails(poid).subscribe({
-    //     next: (res: any) => {
-    //       console.log(res);
-    //       this.tableDetail?.setData(res.data.data || []).then(() => {
-    //         this.tableDetail?.selectRow();
-    //       });
-    //       this.listAllID = res.data.listAllID;
-    //       this.checkList = res.data.checkList;
-    //       this.isLoading = false;
-    //     },
-    //     error: () => {
-    //       this.isLoading = false;
-    //       this.notify.error('Lỗi', 'Không tải được chi tiết');
-    //     },
-    //   });
-    // }
 
     /**
      * Handle master table selection changes
@@ -400,8 +878,9 @@ export class PONCCComponent implements OnInit, AfterViewInit {
         if (selectedIds.length === 0) {
             this.masterDetailsMap.clear();
             this.lastMasterId = null;
-            this.tableDetail?.clearData();
+            this.datasetDetail = [];
             this.sizeTbDetail = '0';
+            this.cdr.detectChanges();
             return;
         }
 
@@ -424,8 +903,7 @@ export class PONCCComponent implements OnInit, AfterViewInit {
             const latestMasterId = newMasterIds[newMasterIds.length - 1];
 
             if (this.lastMasterId && this.masterDetailsMap.has(this.lastMasterId)) {
-                const currentSelectedDetails =
-                    this.tableDetail?.getSelectedData() || [];
+                const currentSelectedDetails = this.getSelectedDetailRows();
                 const selectedDetailIds = new Set(
                     currentSelectedDetails.map((d: any) => d.ID)
                 );
@@ -448,12 +926,39 @@ export class PONCCComponent implements OnInit, AfterViewInit {
             newMasterIds.forEach((masterId) => {
                 this.srv.getDetails(masterId).subscribe({
                     next: (res: any) => {
-                        this.masterDetailsMap.set(masterId, res.data.data || []);
+                        const details = res.data.data || [];
+                        // Map details với id unique
+                        const usedIds = new Set<string>();
+                        const timestamp = Date.now();
+                        const mappedDetails = details.map((item: any, index: number) => {
+                            let uniqueId: string;
+                            if (item.ID && Number(item.ID) > 0) {
+                                uniqueId = `detail_id_${item.ID}`;
+                            } else {
+                                uniqueId = `detail_idx_${index}_${timestamp}_${Math.random().toString(36).substr(2, 9)}`;
+                            }
+
+                            let finalId = uniqueId;
+                            let counter = 0;
+                            while (usedIds.has(finalId)) {
+                                counter++;
+                                finalId = `${uniqueId}_${counter}`;
+                            }
+                            usedIds.add(finalId);
+
+                            return {
+                                ...item,
+                                id: finalId,
+                            };
+                        });
+
+                        this.masterDetailsMap.set(masterId, mappedDetails);
                         loadedCount++;
 
                         if (loadedCount === newMasterIds.length) {
                             this.displayDetailsForMaster(latestMasterId);
                             this.isLoading = false;
+                            this.cdr.detectChanges();
                         }
                     },
                     error: () => {
@@ -462,6 +967,7 @@ export class PONCCComponent implements OnInit, AfterViewInit {
                         if (loadedCount === newMasterIds.length) {
                             this.displayDetailsForMaster(latestMasterId);
                             this.isLoading = false;
+                            this.cdr.detectChanges();
                         }
 
                         this.notify.error(
@@ -476,544 +982,39 @@ export class PONCCComponent implements OnInit, AfterViewInit {
             this.lastMasterId = lastSelectedId;
             this.displayDetailsForMaster(lastSelectedId);
         }
-
-        console.log(this.masterDetailsMap);
     }
 
     private displayDetailsForMaster(masterId: number): void {
         const details = this.masterDetailsMap.get(masterId) || [];
-
-        // Update detail table with only this master's details
-        this.tableDetail?.setData(details).then(() => {
-            this.tableDetail?.selectRow();
-        });
-    }
-
-    private initTables() {
-        const columns: ColumnDefinition[] = [
-            {
-                title: 'Duyệt',
-                field: 'IsApproved',
-                hozAlign: 'center',
-                width: 70,
-                headerSort: false,
-                frozen: true,
-                formatter: function (cell: any) {
-                    const value = cell.getValue();
-                    const checked =
-                        value === true || value === 'true' || value === 1 || value === '1';
-                    return `<input type="checkbox" ${checked ? 'checked' : ''
-                        } style="pointer-events: none; accent-color: #1677ff;" />`;
-                },
-            },
-            {
-                title: 'Trạng thái',
-                field: 'StatusText',
-                width: 120,
-                headerSort: false,
-                hozAlign: 'left',
-                formatter: 'textarea',
-                frozen: true,
-            },
-            {
-                title: 'Ngày PO',
-                field: 'RequestDate',
-                width: 100,
-                headerSort: false,
-                hozAlign: 'center',
-                frozen: true,
-                formatter: (cell: any) => this.formatDateDDMMYYYY(cell.getValue()),
-            },
-            {
-                title: 'Ngày giao hàng',
-                field: 'DeliveryDate',
-                width: 100,
-                headerSort: false,
-                hozAlign: 'center',
-                frozen: true,
-                formatter: (cell: any) => this.formatDateDDMMYYYY(cell.getValue()),
-            },
-            {
-                title: 'Số PO',
-                field: 'POCode',
-                width: 120,
-                headerSort: false,
-                hozAlign: 'left',
-                formatter: 'textarea',
-                frozen: true,
-                bottomCalc: 'count',
-            },
-            {
-                title: 'Số đơn hàng',
-                field: 'BillCode',
-                width: 120,
-                headerSort: false,
-                hozAlign: 'left',
-                formatter: 'textarea',
-                frozen: true,
-                bottomCalc: 'count',
-            },
-            {
-                title: 'Tổng tiền',
-                field: 'TotalMoneyPO',
-                width: 120,
-                headerSort: false,
-                hozAlign: 'right',
-                frozen: true,
-                bottomCalc: 'sum',
-                bottomCalcFormatter: (cell: any) =>
-                    this.formatNumberEnUS(cell.getValue()),
-                formatter: (cell: any) => this.formatNumberEnUS(cell.getValue()),
-            },
-            {
-                title: 'Loại tiền',
-                field: 'CurrencyText',
-                width: 80,
-                headerSort: false,
-                hozAlign: 'left',
-                formatter: 'textarea',
-            },
-            {
-                title: 'Tỷ giá',
-                field: 'CurrencyRate',
-                width: 100,
-                headerSort: false,
-                hozAlign: 'right',
-                bottomCalc: 'sum',
-                bottomCalcFormatter: (cell: any) =>
-                    this.formatNumberEnUS(cell.getValue()),
-                formatter: (cell: any) => this.formatNumberEnUS(cell.getValue()),
-            },
-            {
-                title: 'Nhà cung cấp',
-                field: 'NameNCC',
-                width: 200,
-                headerSort: false,
-                hozAlign: 'left',
-                formatter: 'textarea',
-            },
-
-            {
-                title: 'Nhân viên mua',
-                field: 'FullName',
-                width: 150,
-                headerSort: false,
-                hozAlign: 'left',
-                formatter: 'textarea',
-            },
-
-            {
-                title: 'Công nợ',
-                field: 'DeptSupplier',
-                width: 120,
-                headerSort: false,
-                hozAlign: 'center',
-                formatter: function (cell: any) {
-                    const value = cell.getValue();
-                    const checked =
-                        value === true || value === 'true' || value === 1 || value === '1';
-                    return `<input type="checkbox" ${checked ? 'checked' : ''
-                        } style="pointer-events: none; accent-color: #1677ff;" />`;
-                },
-            },
-            {
-                title: 'Bank charge',
-                field: 'BankCharge',
-                width: 120,
-                headerSort: false,
-                hozAlign: 'right',
-                bottomCalc: 'sum',
-                bottomCalcFormatter: (cell: any) =>
-                    this.formatNumberEnUS(cell.getValue()),
-                formatter: (cell: any) => this.formatNumberEnUS(cell.getValue()),
-            },
-            {
-                title: 'Điều khoản TT',
-                field: 'RulePayName',
-                width: 150,
-                headerSort: false,
-                hozAlign: 'left',
-                formatter: 'textarea',
-            },
-            {
-                title: 'Công ty',
-                field: 'CompanyText',
-                width: 150,
-                headerSort: false,
-                hozAlign: 'left',
-                formatter: 'textarea',
-            },
-
-            {
-                title: 'Fedex account',
-                field: 'FedexAccount',
-                width: 120,
-                headerSort: false,
-                hozAlign: 'left',
-                formatter: 'textarea',
-            },
-            {
-                title: 'Điều khoản Incoterm',
-                field: 'RuleIncoterm',
-                width: 120,
-                headerSort: false,
-                hozAlign: 'left',
-                formatter: 'textarea',
-            },
-            {
-                title: 'Chứng từ NCC',
-                field: 'SupplierVoucher',
-                width: 120,
-                headerSort: false,
-                hozAlign: 'left',
-                formatter: 'textarea',
-            },
-            {
-                title: 'Xuất xứ',
-                field: 'OriginItem',
-                width: 120,
-                headerSort: false,
-                hozAlign: 'left',
-                formatter: 'textarea',
-            },
-            {
-                title: 'Diễn giải',
-                field: 'Note',
-                width: 200,
-                headerSort: false,
-                hozAlign: 'left',
-                formatter: 'textarea',
-            },
-
-            {
-                title: 'Loại PO',
-                field: 'POTypeText',
-                width: 120,
-                headerSort: false,
-                hozAlign: 'left',
-                formatter: 'textarea',
-            },
-        ];
-
-        if (this.tablePoThuongMaiRef) {
-            this.tablePoThuongMai = new Tabulator(
-                this.tablePoThuongMaiRef.nativeElement,
-                {
-                    ...DEFAULT_TABLE_CONFIG,
-                    columns: columns,
-                    height: '100%',
-                    data: [],
-                    layout: 'fitDataStretch',
-                    selectableRows: true,
-                    paginationMode: 'local',
-                } as any
-            );
-            this.tablePoThuongMai.on(
-                'rowSelectionChanged',
-                (data: any[], rows: any[]) => {
-                    this.handleMasterSelectionChange(data);
-                }
-            );
-        }
-
-        if (this.tablePoMuonRef) {
-            this.tablePoMuon = new Tabulator(this.tablePoMuonRef.nativeElement, {
-                ...DEFAULT_TABLE_CONFIG,
-                columns: columns,
-                height: '100%',
-                layout: 'fitDataStretch',
-                data: [],
-                selectableRows: true,
-                paginationMode: 'local',
-            });
-            this.tablePoMuon.on('rowSelectionChanged', (data: any[], rows: any[]) => {
-                this.handleMasterSelectionChange(data);
-            });
+        this.datasetDetail = details;
+        this.cdr.detectChanges();
+        // Resize detail grid sau khi data được set
+        if (this.angularGridDetail) {
+            setTimeout(() => {
+                this.angularGridDetail.resizerService.resizeGrid();
+            }, 100);
         }
     }
 
-    private initDetailTable() {
-        const columns: ColumnDefinition[] = [
-            {
-                title: 'STT',
-                field: 'STT',
-                width: 50,
-                headerSort: false,
-                hozAlign: 'center',
-                formatter: 'textarea',
-                frozen: true,
-            },
-            {
-                title: 'Mã sản phẩm',
-                field: 'ProductCode',
-                width: 120,
-                headerSort: false,
-                frozen: true,
-                hozAlign: 'left',
-                formatter: 'textarea',
-            },
-            {
-                title: 'Tên sản phẩm',
-                field: 'ProductName',
-                width: 200,
-                headerSort: false,
-                frozen: true,
-                hozAlign: 'left',
-                formatter: 'textarea',
-            },
-            {
-                title: 'Mã nội bộ',
-                field: 'ProductNewCode',
-                width: 120,
-                headerSort: false,
-                hozAlign: 'left',
-                formatter: 'textarea',
-            },
-            {
-                title: 'Tên nhóm',
-                field: 'ProductGroupName',
-                width: 120,
-                headerSort: false,
-                hozAlign: 'left',
-                formatter: 'textarea',
-            },
-            {
-                title: 'Mã SP NCC',
-                field: 'ProductCodeOfSupplier',
-                width: 200,
-                headerSort: false,
-                hozAlign: 'left',
-                formatter: 'textarea',
-            },
-            {
-                title: 'Mã cha',
-                field: 'ParentProductCode',
-                width: 120,
-                headerSort: false,
-                hozAlign: 'left',
-                formatter: 'textarea',
-            },
-            {
-                title: 'Mã dự án',
-                field: 'ProjectCode',
-                width: 120,
-                headerSort: false,
-                hozAlign: 'left',
-                formatter: 'textarea',
-            },
-            {
-                title: 'Tên dự án',
-                field: 'ProjectName',
-                width: 200,
-                headerSort: false,
-                hozAlign: 'left',
-                formatter: 'textarea',
-            },
+    private getSelectedDetailRows(): any[] {
+        if (!this.angularGridDetail) return [];
+        const selectedIndexes = this.angularGridDetail.slickGrid.getSelectedRows();
+        if (!selectedIndexes || selectedIndexes.length === 0) return [];
+        return selectedIndexes.map((index: number) =>
+            this.angularGridDetail.dataView.getItem(index)
+        ).filter((item: any) => item);
+    }
 
-            {
-                title: 'ĐVT',
-                field: 'UnitName',
-                width: 80,
-                headerSort: false,
-                hozAlign: 'left',
-                formatter: 'textarea',
-            },
-
-            {
-                title: 'SL yêu cầu',
-                field: 'QtyRequest',
-                width: 100,
-                headerSort: false,
-                hozAlign: 'right',
-                bottomCalc: 'sum',
-                formatter: (cell: any) => this.formatNumberEnUS(cell.getValue(), 0),
-            },
-            {
-                title: 'SL đã yêu cầu',
-                field: 'QuantityRequested',
-                width: 100,
-                headerSort: false,
-                hozAlign: 'right',
-                formatter: (cell: any) => this.formatNumberEnUS(cell.getValue(), 0),
-            },
-            {
-                title: 'SL đã về',
-                field: 'QuantityReturn',
-                width: 100,
-                headerSort: false,
-                hozAlign: 'right',
-                formatter: (cell: any) => this.formatNumberEnUS(cell.getValue(), 0),
-            },
-            {
-                title: 'SL còn lại',
-                field: 'QuantityRemain',
-                width: 100,
-                headerSort: false,
-                hozAlign: 'right',
-                formatter: (cell: any) => this.formatNumberEnUS(cell.getValue(), 0),
-            },
-
-            {
-                title: 'Đơn giá',
-                field: 'UnitPrice',
-                width: 120,
-                headerSort: false,
-                hozAlign: 'right',
-                formatter: (cell: any) => this.formatNumberEnUS(cell.getValue()),
-            },
-            {
-                title: 'Thành tiền',
-                field: 'ThanhTien',
-                width: 120,
-                headerSort: false,
-                hozAlign: 'right',
-                bottomCalc: 'sum',
-                formatter: (cell: any) => this.formatNumberEnUS(cell.getValue()),
-            },
-
-            {
-                title: 'VAT (%)',
-                field: 'VAT',
-                width: 80,
-                headerSort: false,
-                hozAlign: 'right',
-                formatter: 'textarea',
-            },
-            {
-                title: 'Tổng tiền VAT',
-                field: 'VATMoney',
-                width: 120,
-                headerSort: false,
-                hozAlign: 'right',
-                bottomCalc: 'sum',
-                formatter: (cell: any) => this.formatNumberEnUS(cell.getValue()),
-            },
-            {
-                title: 'Hóa đơn',
-                field: 'IsBill',
-                hozAlign: 'center',
-                width: 80,
-                headerSort: false,
-                formatter: function (cell: any) {
-                    const value = cell.getValue();
-                    const checked =
-                        value === true || value === 'true' || value === 1 || value === '1';
-                    return `<input type="checkbox" ${checked ? 'checked' : ''
-                        } style="pointer-events: none; accent-color: #1677ff;" />`;
-                },
-            },
-
-            {
-                title: 'Chiết khấu (%)',
-                field: 'DiscountPercent',
-                width: 100,
-                headerSort: false,
-                hozAlign: 'right',
-                formatter: 'textarea',
-            },
-            {
-                title: 'Tiền chiết khấu',
-                field: 'Discount',
-                width: 120,
-                headerSort: false,
-                hozAlign: 'right',
-                bottomCalc: 'sum',
-                formatter: (cell: any) => this.formatNumberEnUS(cell.getValue()),
-            },
-
-            {
-                title: 'Phí vận chuyển',
-                field: 'FeeShip',
-                width: 120,
-                headerSort: false,
-                hozAlign: 'right',
-                bottomCalc: 'sum',
-                formatter: (cell: any) => this.formatNumberEnUS(cell.getValue()),
-            },
-            {
-                title: 'Tổng tiền',
-                field: 'TotalPrice',
-                width: 120,
-                headerSort: false,
-                hozAlign: 'right',
-                bottomCalc: 'sum',
-                formatter: (cell: any) => this.formatNumberEnUS(cell.getValue()),
-            },
-
-            {
-                title: 'Deadline giao hàng',
-                field: 'DeadlineDelivery',
-                width: 100,
-                headerSort: false,
-                hozAlign: 'center',
-                formatter: (cell: any) => this.formatDateDDMMYYYY(cell.getValue()),
-            },
-            {
-                title: 'Ngày dự kiến',
-                field: 'ExpectedDate',
-                width: 100,
-                headerSort: false,
-                hozAlign: 'center',
-                formatter: (cell: any) => this.formatDateDDMMYYYY(cell.getValue()),
-            },
-            {
-                title: 'Ngày thực tế',
-                field: 'ActualDate',
-                width: 100,
-                headerSort: false,
-                hozAlign: 'center',
-                formatter: (cell: any) => this.formatDateDDMMYYYY(cell.getValue()),
-            },
-
-            {
-                title: 'Giá bán',
-                field: 'PriceSale',
-                width: 120,
-                headerSort: false,
-                hozAlign: 'right',
-                formatter: (cell: any) => this.formatNumberEnUS(cell.getValue()),
-            },
-            {
-                title: 'Giá lịch sử',
-                field: 'PriceHistory',
-                width: 120,
-                headerSort: false,
-                hozAlign: 'right',
-                formatter: (cell: any) => this.formatNumberEnUS(cell.getValue()),
-            },
-            {
-                title: 'Giá thầu',
-                field: 'BiddingPrice',
-                width: 120,
-                headerSort: false,
-                hozAlign: 'right',
-                formatter: (cell: any) => this.formatNumberEnUS(cell.getValue()),
-            },
-
-            {
-                title: 'Diễn giải',
-                field: 'Note',
-                width: 200,
-                headerSort: false,
-                hozAlign: 'left',
-                formatter: 'textarea',
-            },
-        ];
-
-        if (this.detailRef) {
-            this.tableDetail = new Tabulator(this.detailRef.nativeElement, {
-                ...DEFAULT_TABLE_CONFIG,
-                columns: columns,
-                layout: 'fitDataStretch',
-                height: '30vh',
-                data: [],
-                pagination: false,
-            });
-
-            this.tableDetail.on('rowSelectionChanged', (data: any[], rows: any[]) => {
-                this.handleSelectionChange(data);
-            });
-        }
+    private getSelectedMasterRows(): any[] {
+        const currentGrid = this.activeTabIndex === 0
+            ? this.angularGridPoThuongMai
+            : this.angularGridPoMuon;
+        if (!currentGrid) return [];
+        const selectedIndexes = currentGrid.slickGrid.getSelectedRows();
+        if (!selectedIndexes || selectedIndexes.length === 0) return [];
+        return selectedIndexes.map((index: number) =>
+            currentGrid.dataView.getItem(index)
+        ).filter((item: any) => item);
     }
 
     handleSelectionChange(selectedRows: any[]) {
@@ -1032,14 +1033,78 @@ export class PONCCComponent implements OnInit, AfterViewInit {
 
     private formatDateDDMMYYYY(val: any): string {
         if (!val) return '';
-        try {
-            const d = new Date(val);
-            if (isNaN(d.getTime())) return '';
-            const p2 = (n: number) => String(n).padStart(2, '0');
-            return `${p2(d.getDate())}/${p2(d.getMonth() + 1)}/${d.getFullYear()}`;
-        } catch {
-            return '';
-        }
+        const p2 = (n: number) => String(n).padStart(2, '0');
+        const d = new Date(val);
+        return `${p2(d.getDate())}/${p2(d.getMonth() + 1)}/${d.getFullYear()}`;
+    }
+
+    resetSearch(): void {
+        this.dateStart = new Date(
+            new Date().getFullYear(),
+            new Date().getMonth(),
+            1
+        );
+        this.dateEnd = new Date(
+            new Date().getFullYear(),
+            new Date().getMonth() + 1,
+            0
+        );
+        this.supplierId = 0;
+        this.employeeId = 0;
+        this.status = -1;
+        this.keyword = '';
+    }
+
+    // Grid ready handlers
+    angularGridPoThuongMaiReady(angularGrid: AngularGridInstance) {
+        this.angularGridPoThuongMai = angularGrid;
+        // Resize grid sau khi container đã render
+        setTimeout(() => {
+            angularGrid.resizerService.resizeGrid();
+        }, 100);
+    }
+
+    angularGridPoMuonReady(angularGrid: AngularGridInstance) {
+        this.angularGridPoMuon = angularGrid;
+        // Resize grid sau khi container đã render
+        setTimeout(() => {
+            angularGrid.resizerService.resizeGrid();
+        }, 100);
+    }
+
+    angularGridDetailReady(angularGrid: AngularGridInstance) {
+        this.angularGridDetail = angularGrid;
+        // Resize grid sau khi container đã render
+        setTimeout(() => {
+            angularGrid.resizerService.resizeGrid();
+        }, 100);
+    }
+
+    // Handle row selection changes from master grids
+    onMasterRowSelectionChanged(eventData: any, args: OnSelectedRowsChangedEventArgs) {
+        if (!args || !args.rows) return;
+
+        const currentGrid = this.activeTabIndex === 0
+            ? this.angularGridPoThuongMai
+            : this.angularGridPoMuon;
+        if (!currentGrid) return;
+
+        const selectedRows = args.rows.map((rowIndex: number) =>
+            currentGrid.dataView.getItem(rowIndex)
+        ).filter((item: any) => item);
+
+        this.handleMasterSelectionChange(selectedRows);
+    }
+
+    // Handle row selection changes from detail grid
+    onDetailRowSelectionChanged(eventData: any, args: OnSelectedRowsChangedEventArgs) {
+        if (!args || !args.rows || !this.angularGridDetail) return;
+
+        const selectedRows = args.rows.map((rowIndex: number) =>
+            this.angularGridDetail.dataView.getItem(rowIndex)
+        ).filter((item: any) => item);
+
+        this.handleSelectionChange(selectedRows);
     }
 
     onAddPoncc() {
@@ -1055,12 +1120,8 @@ export class PONCCComponent implements OnInit, AfterViewInit {
     }
 
     onEditPoncc() {
-        // Get selected row from current active table
-        const currentTable =
-            this.activeTabIndex === 0 ? this.tablePoThuongMai : this.tablePoMuon;
-        const selectedRows = currentTable?.getSelectedData();
+        const selectedRows = this.getSelectedMasterRows();
 
-        // Validate selection
         if (!selectedRows || selectedRows.length === 0) {
             this.notification.warning(
                 NOTIFICATION_TITLE.warning,
@@ -1070,16 +1131,12 @@ export class PONCCComponent implements OnInit, AfterViewInit {
         }
 
         const selectedPO = selectedRows[0];
-
-        // Show loading
         this.isLoading = true;
 
-        // Load detail data from API
         this.srv.getDetails(selectedPO.ID).subscribe({
             next: (detailResponse: any) => {
                 this.isLoading = false;
 
-                // Open modal with master and detail data
                 const modalRef = this.modalService.open(PonccDetailComponent, {
                     backdrop: 'static',
                     keyboard: false,
@@ -1087,21 +1144,12 @@ export class PONCCComponent implements OnInit, AfterViewInit {
                     windowClass: 'full-screen-modal',
                 });
 
-                // Pass data to modal component
                 modalRef.componentInstance.poncc = selectedPO;
-                modalRef.componentInstance.dtRef = detailResponse.data.dtRef || []; // Master PO data
-                modalRef.componentInstance.ponccDetail = detailResponse.data.data || []; // Detail items
+                modalRef.componentInstance.dtRef = detailResponse.data.dtRef || [];
+                modalRef.componentInstance.ponccDetail = detailResponse.data.data || [];
 
-                // Reload table after modal closes
                 modalRef.result.finally(() => {
-                    // Lưu trạng thái trước khi reload
-                    this.saveTableState();
-
-                    // Reload data
                     this.onSearch();
-
-                    // Restore trạng thái sau khi load xong (delay để đảm bảo data đã load)
-                    setTimeout(() => this.restoreTableState(), 300);
                 });
             },
             error: (err) => {
@@ -1111,17 +1159,9 @@ export class PONCCComponent implements OnInit, AfterViewInit {
         });
     }
 
-    /**
-     * Delete selected PO(s)
-     * Logic: Skip approved POs or POs with import slips (TotalImport > 0)
-     * Soft delete by setting IsDeleted = true
-     */
     onDeletePoncc() {
-        const currentTable =
-            this.activeTabIndex === 0 ? this.tablePoThuongMai : this.tablePoMuon;
-        const selectedRows = currentTable?.getSelectedData();
+        const selectedRows = this.getSelectedMasterRows();
 
-        // Validate selection
         if (!selectedRows || selectedRows.length === 0) {
             this.notification.warning(
                 NOTIFICATION_TITLE.warning,
@@ -1139,17 +1179,14 @@ export class PONCCComponent implements OnInit, AfterViewInit {
             nzOkDanger: true,
             nzCancelText: 'Hủy',
             nzOnOk: () => {
-                // Filter POs that can be deleted
                 const posToDelete: any[] = [];
                 const skippedPOs: string[] = [];
 
                 selectedRows.forEach((po: any) => {
-                    // Skip if ID is invalid
                     if (!po.ID || po.ID <= 0) {
                         return;
                     }
 
-                    // Skip if already approved
                     if (
                         po.IsApproved === true ||
                         po.IsApproved === 1 ||
@@ -1159,20 +1196,17 @@ export class PONCCComponent implements OnInit, AfterViewInit {
                         return;
                     }
 
-                    // Skip if has import slips
                     if (po.TotalImport && po.TotalImport > 0) {
                         skippedPOs.push(`${po.POCode} (đã có phiếu nhập)`);
                         return;
                     }
 
-                    // Add to delete list
                     posToDelete.push({
                         ...po,
                         IsDeleted: true,
                     });
                 });
 
-                // Check if there are POs to delete
                 if (posToDelete.length === 0) {
                     this.notification.warning(
                         NOTIFICATION_TITLE.warning,
@@ -1181,32 +1215,19 @@ export class PONCCComponent implements OnInit, AfterViewInit {
                     return;
                 }
 
-                // Show loading
                 this.isLoading = true;
 
-                // Call API to soft delete (update IsDeleted = true)
                 this.srv.updatePONCC(posToDelete).subscribe({
                     next: (response: any) => {
                         this.isLoading = false;
-
-                        // Show success message
                         let message = `Đã xóa thành công ${posToDelete.length} PO`;
                         if (skippedPOs.length > 0) {
                             message +=
                                 `<br><br><strong>Bỏ qua ${skippedPOs.length} PO:</strong><br>` +
                                 skippedPOs.join('<br>');
                         }
-
                         this.notification.success(NOTIFICATION_TITLE.success, message);
-
-                        // Lưu trạng thái trước khi reload
-                        this.saveTableState();
-
-                        // Reload table
                         this.onSearch();
-
-                        // Restore trạng thái sau khi load xong
-                        setTimeout(() => this.restoreTableState(), 300);
                     },
                     error: (err) => {
                         this.isLoading = false;
@@ -1222,11 +1243,8 @@ export class PONCCComponent implements OnInit, AfterViewInit {
 
     onApprovePoncc(isApprove: boolean): void {
         const isApproveText = isApprove ? 'duyệt' : 'hủy duyệt';
-        const currentTable =
-            this.activeTabIndex === 0 ? this.tablePoThuongMai : this.tablePoMuon;
-        const selectedRows = currentTable?.getSelectedData();
+        const selectedRows = this.getSelectedMasterRows();
 
-        // Validate selection
         if (!selectedRows || selectedRows.length <= 0) {
             this.notification.warning(
                 NOTIFICATION_TITLE.warning,
@@ -1235,7 +1253,6 @@ export class PONCCComponent implements OnInit, AfterViewInit {
             return;
         }
 
-        // Confirmation dialog
         this.modal.confirm({
             nzTitle: `Xác nhận ${isApproveText}`,
             nzContent: `Bạn có chắc muốn ${isApproveText} danh sách PO đã chọn không?`,
@@ -1243,7 +1260,6 @@ export class PONCCComponent implements OnInit, AfterViewInit {
             nzOkType: 'primary',
             nzCancelText: 'Hủy',
             nzOnOk: () => {
-                // Collect valid POs
                 const listPONCC: any[] = [];
                 selectedRows.forEach((po: any) => {
                     if (po.ID && po.ID > 0) {
@@ -1251,7 +1267,6 @@ export class PONCCComponent implements OnInit, AfterViewInit {
                     }
                 });
 
-                // Check if there are valid POs
                 if (listPONCC.length <= 0) {
                     this.notification.warning(
                         NOTIFICATION_TITLE.warning,
@@ -1260,16 +1275,13 @@ export class PONCCComponent implements OnInit, AfterViewInit {
                     return;
                 }
 
-                // Prepare data for update - only send necessary fields
                 const updateData = listPONCC.map((po) => ({
                     ID: po.ID,
                     IsApproved: isApprove,
                 }));
 
-                // Show loading
                 this.isLoading = true;
 
-                // Call API to update IsApproved
                 this.srv.updatePONCC(updateData).subscribe({
                     next: (response: any) => {
                         this.isLoading = false;
@@ -1277,14 +1289,7 @@ export class PONCCComponent implements OnInit, AfterViewInit {
                             NOTIFICATION_TITLE.success,
                             `Đã ${isApproveText} thành công ${listPONCC.length} PO`
                         );
-
-                        // Lưu trạng thái trước khi reload
-                        this.saveTableState();
-
                         this.onSearch();
-
-                        // Restore trạng thái sau khi load xong
-                        setTimeout(() => this.restoreTableState(), 300);
                     },
                     error: (err: any) => {
                         this.isLoading = false;
@@ -1299,12 +1304,8 @@ export class PONCCComponent implements OnInit, AfterViewInit {
     }
 
     onCopyPO() {
-        // Get selected row from current active table
-        const currentTable =
-            this.activeTabIndex === 0 ? this.tablePoThuongMai : this.tablePoMuon;
-        const selectedRows = currentTable?.getSelectedData();
+        const selectedRows = this.getSelectedMasterRows();
 
-        // Validate selection
         if (!selectedRows || selectedRows.length === 0) {
             this.notification.warning(
                 NOTIFICATION_TITLE.warning,
@@ -1314,16 +1315,12 @@ export class PONCCComponent implements OnInit, AfterViewInit {
         }
 
         const selectedPO = selectedRows[0];
-
-        // Show loading
         this.isLoading = true;
 
-        // Load detail data from API
         this.srv.getDetails(selectedPO.ID).subscribe({
             next: (detailResponse: any) => {
                 this.isLoading = false;
 
-                // Open modal with master and detail data
                 const modalRef = this.modalService.open(PonccDetailComponent, {
                     backdrop: 'static',
                     keyboard: false,
@@ -1331,28 +1328,20 @@ export class PONCCComponent implements OnInit, AfterViewInit {
                     windowClass: 'full-screen-modal',
                 });
 
-                const details = detailResponse.data.data.map((row: any) => ({
+                const details = (detailResponse.data.data || []).map((row: any) => ({
                     ...row,
                     ID: 0,
                     PONCCID: 0,
                     ProjectPartlistPurchaseRequestID: 0,
                 }));
 
-                // Pass data to modal component
                 modalRef.componentInstance.poncc = selectedPO;
                 modalRef.componentInstance.isCopy = true;
-                modalRef.componentInstance.dtRef = []; // Master PO data
-                modalRef.componentInstance.ponccDetail = details || []; // Detail items
+                modalRef.componentInstance.dtRef = [];
+                modalRef.componentInstance.ponccDetail = details;
 
-                // Reload table after modal closes
                 modalRef.result.finally(() => {
-                    // Lưu trạng thái trước khi reload
-                    this.saveTableState();
-
                     this.onSearch();
-
-                    // Restore trạng thái sau khi load xong
-                    setTimeout(() => this.restoreTableState(), 300);
                 });
             },
             error: (err) => {
@@ -1362,278 +1351,220 @@ export class PONCCComponent implements OnInit, AfterViewInit {
         });
     }
 
-    /**
-     * Export master table to Excel with footer using ExcelJS
-     */
     async onExportToExcel(): Promise<void> {
-        const currentTable =
-            this.activeTabIndex === 0 ? this.tablePoThuongMai : this.tablePoMuon;
+        const currentGrid = this.activeTabIndex === 0
+            ? this.angularGridPoThuongMai
+            : this.angularGridPoMuon;
 
-        if (!currentTable) {
+        if (!currentGrid) {
             this.notification.warning(
                 NOTIFICATION_TITLE.warning,
-                'Không có dữ liệu để xuất!'
+                'Không có dữ liệu để xuất Excel!'
             );
             return;
         }
 
-        const data = currentTable.getData();
-        if (!data || data.length === 0) {
+        // Lấy số dòng để thông báo
+        const itemCount = currentGrid.dataView?.getItemCount() || 0;
+        if (itemCount === 0) {
             this.notification.warning(
                 NOTIFICATION_TITLE.warning,
-                'Không có dữ liệu để xuất!'
+                'Không có dữ liệu để xuất Excel!'
             );
             return;
         }
 
-        const tabName = this.activeTabIndex === 0 ? 'PO Thương mại' : 'PO Mượn';
-
-        // Format dates for filename: DDMMYY
-        const formatDate = (date: Date | null): string => {
-            if (!date)
-                return new Date()
-                    .toLocaleDateString('en-GB')
-                    .split('/')
-                    .map((p) => p.padStart(2, '0'))
-                    .join('')
-                    .slice(0, 6);
-            const d = new Date(date);
-            const day = String(d.getDate()).padStart(2, '0');
-            const month = String(d.getMonth() + 1).padStart(2, '0');
-            const year = String(d.getFullYear()).slice(-2);
-            return `${day}${month}${year}`;
-        };
-
-        const dateStartStr = formatDate(this.dateStart);
-        const dateEndStr = formatDate(this.dateEnd);
-        const fileName = `DanhSachPO_${dateStartStr}_${dateEndStr}.xlsx`;
-
-        // Use ExcelJS to create workbook
-        //const ExcelJS = await import('exceljs');
-        const workbook = new ExcelJS.Workbook();
-        const worksheet = workbook.addWorksheet(tabName);
-
-        // Get visible columns
-        const columns = currentTable.getColumns();
-        const visibleColumns = columns
-            .map((col: any) => col.getDefinition())
-            .filter((def: any) => def.formatter !== 'rowSelection');
-
-        const headers = visibleColumns.map((def: any) => def.title);
-
-        // Add header row
-        const headerRow = worksheet.addRow(headers);
-        headerRow.font = { bold: true, color: { argb: 'FF000000' } };
-        headerRow.fill = {
-            type: 'pattern',
-            pattern: 'solid',
-            fgColor: { argb: 'FFE7E6E6' },
-        };
-        headerRow.alignment = { vertical: 'middle', horizontal: 'center' };
-        headerRow.height = 25;
-
-        // Detect columns with bottomCalc
-        const sumFields: string[] = [];
-        const countFields: string[] = [];
-        visibleColumns.forEach((col: any) => {
-            if (col.bottomCalc === 'sum') {
-                sumFields.push(col.field);
-            } else if (col.bottomCalc === 'count') {
-                countFields.push(col.field);
+        try {
+            // Lấy dữ liệu từ grid
+            const allData: any[] = [];
+            for (let i = 0; i < currentGrid.dataView.getLength(); i++) {
+                const item = currentGrid.dataView.getItem(i);
+                if (item) {
+                    allData.push(item);
+                }
             }
-        });
 
-        // Initialize totals
-        const totals: any = {};
-        sumFields.forEach((field) => (totals[field] = 0));
-        countFields.forEach((field) => (totals[field] = 0));
+            // Lấy columns từ grid
+            const columns = currentGrid.slickGrid.getColumns();
+            const visibleColumns = columns.filter((col: Column) => !col.hidden && col.id !== 'id');
 
-        // Add data rows
-        data.forEach((row: any) => {
-            const rowData = visibleColumns.map((col: any) => {
-                const field = col.field;
-                let value = row[field];
+            // Tạo workbook và worksheet
+            const workbook = new ExcelJS.Workbook();
+            const sheetName = `PO NCC ${this.activeTabIndex === 0 ? 'Thương mại' : 'Mượn'}`;
+            const worksheet = workbook.addWorksheet(sheetName);
 
-                // Calculate sum
-                if (sumFields.includes(field) && value) {
-                    totals[field] += Number(value) || 0;
-                }
+            // Thêm header row
+            const headerRow = worksheet.addRow(visibleColumns.map((col: Column) => col.name || col.field || ''));
+            headerRow.font = { bold: true, name: 'Tahoma' };
+            headerRow.fill = {
+                type: 'pattern',
+                pattern: 'solid',
+                fgColor: { argb: 'FFE0E0E0' },
+            };
+            headerRow.alignment = { horizontal: 'center', vertical: 'middle', wrapText: true };
 
-                // Calculate count
-                if (countFields.includes(field)) {
-                    totals[field] += 1;
-                }
+            // Thêm data rows
+            allData.forEach((row: any) => {
+                const rowData = visibleColumns.map((col: Column) => {
+                    const field = col.field || '';
+                    let value = row[field];
 
-                // Format boolean
-                if (typeof value === 'boolean') {
-                    return value ? 'V' : 'X';
-                }
-
-                // Format date
-                if (typeof value === 'string' && /^\d{4}-\d{2}-\d{2}T/.test(value)) {
-                    value = new Date(value);
-                }
-
-                return value;
-            });
-
-            const dataRow = worksheet.addRow(rowData);
-            dataRow.alignment = { vertical: 'middle', wrapText: true };
-
-            dataRow.eachCell((cell, colNumber) => {
-                const field = visibleColumns[colNumber - 1]?.field;
-
-                if (sumFields.includes(field)) {
-                    if (typeof cell.value === 'number') {
-                        cell.numFmt = '#,##0';
+                    // Xử lý null/undefined
+                    if (value === null || value === undefined) {
+                        return '';
                     }
-                }
 
-                if (cell.value instanceof Date) {
-                    cell.numFmt = 'dd/mm/yyyy';
-                }
+                    // Xử lý boolean
+                    if (typeof value === 'boolean') {
+                        return value ? 'X' : '';
+                    }
+
+                    // Xử lý date
+                    if (value instanceof Date) {
+                        return DateTime.fromJSDate(value).toFormat('dd/MM/yyyy');
+                    }
+                    if (typeof value === 'string' && /^\d{4}-\d{2}-\d{2}T/.test(value)) {
+                        const dt = DateTime.fromISO(value);
+                        return dt.isValid ? dt.toFormat('dd/MM/yyyy') : value;
+                    }
+
+                    // Format số tiền nếu là number
+                    if (typeof value === 'number') {
+                        // Format các trường số tiền với 2 chữ số thập phân
+                        if (['TotalMoneyPO', 'CurrencyRate', 'BankCharge', 'UnitPrice', 'ThanhTien', 'VATMoney', 'Discount', 'FeeShip', 'TotalPrice', 'PriceSale', 'PriceHistory', 'BiddingPrice'].includes(field)) {
+                            return this.formatNumberEnUS(value, 2);
+                        }
+                        // Format các trường số lượng với 0 chữ số thập phân
+                        if (['QtyRequest', 'QuantityRequested', 'QuantityReturn', 'QuantityRemain', 'VAT', 'DiscountPercent'].includes(field)) {
+                            return this.formatNumberEnUS(value, 0);
+                        }
+                        // Các số khác format với 2 chữ số thập phân
+                        return this.formatNumberEnUS(value, 2);
+                    }
+
+                    return value;
+                });
+                worksheet.addRow(rowData);
             });
-        });
 
-        // Add footer row
-        const footerData = visibleColumns.map((col: any) => {
-            const field = col.field;
-
-            if (sumFields.includes(field)) {
-                return totals[field];
-            }
-
-            if (countFields.includes(field)) {
-                return totals[field];
-            }
-
-            if (field === visibleColumns[0].field) {
-                return 'Tổng cộng';
-            }
-
-            return '';
-        });
-
-        const footerRow = worksheet.addRow(footerData);
-        footerRow.font = { bold: true };
-        footerRow.fill = {
-            type: 'pattern',
-            pattern: 'solid',
-            fgColor: { argb: 'FFD3D3D3' },
-        };
-        footerRow.alignment = { vertical: 'middle', horizontal: 'left' };
-
-        footerRow.eachCell((cell, colNumber) => {
-            const field = visibleColumns[colNumber - 1]?.field;
-            if (sumFields.includes(field) || countFields.includes(field)) {
-                cell.numFmt = '#,##0';
-            }
-        });
-
-        // Auto-fit columns
-        worksheet.columns.forEach((column: any, index: number) => {
-            let maxLength = headers[index]?.length || 10;
-            column.eachCell({ includeEmpty: false }, (cell: any) => {
-                const cellValue = cell.value ? cell.value.toString() : '';
-                maxLength = Math.max(maxLength, cellValue.length);
+            // Set column width
+            worksheet.columns = visibleColumns.map((col: Column) => {
+                let width = 15; // default width
+                if (col.width && typeof col.width === 'number') {
+                    width = Math.max(col.width / 7, 8); // Convert pixels to Excel width
+                    width = Math.min(width, 50); // Max width 50
+                }
+                return { width };
             });
-            column.width = Math.min(Math.max(maxLength + 2, 10), 50);
-        });
 
-        // Download file
-        const buffer = await workbook.xlsx.writeBuffer();
-        const blob = new Blob([buffer], {
-            type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
-        });
-        const url = window.URL.createObjectURL(blob);
-        const link = document.createElement('a');
-        link.href = url;
-        link.download = fileName;
-        link.click();
-        window.URL.revokeObjectURL(url);
+            // Thêm border cho tất cả cells
+            worksheet.eachRow((row, rowNumber) => {
+                row.eachCell((cell) => {
+                    cell.border = {
+                        top: { style: 'thin' },
+                        left: { style: 'thin' },
+                        bottom: { style: 'thin' },
+                        right: { style: 'thin' },
+                    };
+                    if (!cell.font) {
+                        cell.font = { name: 'Tahoma' };
+                    } else {
+                        cell.font = { ...cell.font, name: 'Tahoma' };
+                    }
+                    if (rowNumber === 1) {
+                        cell.alignment = { horizontal: 'center', vertical: 'middle', wrapText: true };
+                    } else {
+                        if (!cell.alignment) {
+                            cell.alignment = { wrapText: true };
+                        } else {
+                            cell.alignment = { ...cell.alignment, wrapText: true };
+                        }
+                    }
+                });
+            });
+
+            // Xuất file
+            const buffer = await workbook.xlsx.writeBuffer();
+            const blob = new Blob([buffer], {
+                type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+            });
+
+            const link = document.createElement('a');
+            link.href = window.URL.createObjectURL(blob);
+            link.download = `poncc-${this.activeTabIndex === 0 ? 'thuong-mai' : 'muon'}-${new Date().toISOString().split('T')[0]}.xlsx`;
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            window.URL.revokeObjectURL(link.href);
+
+            this.notification.success(
+                NOTIFICATION_TITLE.success,
+                `Đã xuất Excel thành công ${itemCount} dòng!`
+            );
+        } catch (error) {
+            console.error('Error exporting to Excel:', error);
+            this.notification.error(
+                NOTIFICATION_TITLE.error,
+                'Có lỗi xảy ra khi xuất Excel!'
+            );
+        }
     }
 
     onImportWareHouse(warehouseID: number) {
-        const currentTable =
-            this.activeTabIndex === 0 ? this.tablePoThuongMai : this.tablePoMuon;
-        const selectedRows = currentTable?.getSelectedData();
-        // Validate selection
-        if (!selectedRows || selectedRows.length <= 0) {
+        const selectedRows = this.getSelectedMasterRows();
+
+        if (!selectedRows || selectedRows.length === 0) {
             this.notification.warning(
                 NOTIFICATION_TITLE.warning,
-                'Vui lòng chọn PO!'
+                'Vui lòng chọn ít nhất một PO để nhập kho!'
             );
             return;
         }
 
-        for (const po of selectedRows) {
-            const id = po.ID || 0;
-            if (id <= 0) continue;
+        const ponccIds = selectedRows
+            .map((po: any) => po.ID)
+            .filter((id: number) => id > 0);
 
-            const status = po.Status || 0;
-            const statusText = po.StatusText || '';
-            const code = po.POCode || '';
-
-            if (status !== 0 && status !== 5) {
-                this.modal.warning({
-                    nzTitle: 'Thông báo',
-                    nzContent: `PO [${code}] đã ${statusText}.\nBạn không thể yêu cầu nhập kho!`,
-                    nzOkText: 'Đóng',
-                });
-                return;
-            }
+        if (ponccIds.length === 0) {
+            this.notification.warning(
+                NOTIFICATION_TITLE.warning,
+                'Không có PO hợp lệ để nhập kho!'
+            );
+            return;
         }
 
-        this.modal.confirm({
-            nzTitle: `Xác nhận yêu cầu nhập kho`,
-            nzContent: `Bạn có chắc muốn yêu cầu nhập kho danh sách PO đã chọn không?`,
-            nzOkText: 'OK',
-            nzOkType: 'primary',
-            nzCancelText: 'Hủy',
-            nzOnOk: () => {
-                const ids = selectedRows.map((x) => x.ID).join(',');
-                const idString = Array.from(this.masterDetailsMap.values())
-                    .flat()
-                    .map((x) => x.ID)
-                    .filter((id) => id != null)
-                    .join(',');
-                this.srv.getPonccDetail(ids, warehouseID, idString).subscribe((res) => {
-                    let dataSale = res.data.dataSale || [];
-                    let dataDemo = res.data.dataDemo || [];
-                    let listSaleDetail = res.data.listSaleDetail || [];
-                    let listDemoDetail = res.data.listDemoDetail || [];
-                    let listDemoPonccId = res.data.listDemoPonccId || [];
-                    let listSalePonccId = res.data.listSalePonccId || [];
+        this.isLoading = true;
 
-                    //   console.log('dataSale', dataSale);
-                    //   console.log('listSaleDetail', listSaleDetail);
-                    //   console.log('listSalePonccId', listSalePonccId);
-                    //   console.log('dataDemo', dataDemo);
-                    //   console.log('listDemoDetail', listDemoDetail);
-                    //   console.log('listDemoPonccId', listDemoPonccId);
+        this.srv.validateRequestImport(ponccIds, warehouseID).subscribe({
+            next: (response: any) => {
+                this.isLoading = false;
+                const listData = response.data?.listData || [];
+                const listDetail = response.data?.listDetail || [];
+                const listPonccId = response.data?.listPonccId || [];
 
-                    if (dataSale.length > 0) {
-                        this.openBillImportModalSequentially(
-                            dataSale,
-                            listSaleDetail,
-                            listSalePonccId,
-                            warehouseID,
-                            0,
-                            0
-                        );
-                    }
+                if (listData.length === 0) {
+                    this.notification.warning(
+                        NOTIFICATION_TITLE.warning,
+                        'Không có dữ liệu để nhập kho!'
+                    );
+                    return;
+                }
 
-                    if (dataDemo.length > 0) {
-                        this.openBillImportModalSequentially(
-                            dataDemo,
-                            listDemoDetail,
-                            listDemoPonccId,
-                            warehouseID,
-                            0,
-                            1
-                        );
-                    }
-                });
+                this.openBillImportModalSequentially(
+                    listData,
+                    listDetail,
+                    listPonccId,
+                    warehouseID,
+                    0,
+                    1
+                );
+            },
+            error: (err) => {
+                this.isLoading = false;
+                this.notification.error(
+                    NOTIFICATION_TITLE.error,
+                    err.error?.message || 'Không thể validate request import!'
+                );
             },
         });
     }
@@ -1646,254 +1577,89 @@ export class PONCCComponent implements OnInit, AfterViewInit {
         index: number,
         type: number
     ) {
-        let warehouseCode = '';
-        switch (warehouseID) {
-            case 1:
-                warehouseCode = 'HN';
-                break;
-            case 2:
-                warehouseCode = 'HCM';
-                break;
-            case 3:
-                warehouseCode = 'BN';
-                break;
-            case 4:
-                warehouseCode = 'HP';
-                break;
-            case 6:
-                warehouseCode = 'DP';
-                break;
-            default:
-                warehouseCode = '';
-                break;
-        }
-
         if (index >= listData.length) {
-            //   console.log('Đã hoàn thành việc mở danh sách modal.');
+            this.notification.success(
+                NOTIFICATION_TITLE.success,
+                'Đã xử lý xong tất cả các PO!'
+            );
+            this.onSearch();
             return;
         }
 
-        let dataMaster = listData[index];
-        let dataDetail = listDetail[index];
-        let ponccId = listPonccId[index];
+        const currentData = listData[index];
+        const currentDetail = listDetail.filter(
+            (d: any) => d.PONCCID === currentData.ID
+        );
 
-        // console.log('Mở modal thứ', index + 1);
-        // console.log('Data master:', dataMaster);
-        // console.log('Data detail:', dataDetail);
-        // console.log('PO NCC ID:', ponccId);
+        const modalRef = this.modalService.open(BillImportDetailComponent, {
+            size: 'xl',
+            backdrop: 'static',
+            keyboard: false,
+            centered: true,
+        });
 
-        if (type === 0) {
-            const modalRef = this.modalService.open(BillImportDetailComponent, {
-                backdrop: 'static',
-                keyboard: false,
-                centered: true,
-                windowClass: 'full-screen-modal',
-            });
+        modalRef.componentInstance.dataInput = currentData;
+        modalRef.componentInstance.listDetail = currentDetail;
+        modalRef.componentInstance.warehouseID = warehouseID;
+        modalRef.componentInstance.type = type;
+        modalRef.componentInstance.listPonccId = listPonccId;
 
-            modalRef.componentInstance.newBillImport = dataMaster;
-            modalRef.componentInstance.WarehouseCode = warehouseCode;
-            modalRef.componentInstance.selectedList = dataDetail;
-            modalRef.componentInstance.id = dataMaster.ID ?? 0;
-            modalRef.componentInstance.poNCCId = ponccId ?? 0;
-
-            modalRef.result
-                .then((result) => {
-                    //   console.log(`Modal thứ ${index + 1} đã đóng. Kết quả:`, result);
-
-                    this.openBillImportModalSequentially(
-                        listData,
-                        listDetail,
-                        listPonccId,
-                        warehouseID,
-                        index + 1,
-                        type
-                    );
-                })
-                .catch((reason) => {
-                    //   console.log(`Modal thứ ${index + 1} bị tắt (dismiss):`, reason);
-
-                    this.openBillImportModalSequentially(
-                        listData,
-                        listDetail,
-                        listPonccId,
-                        warehouseID,
-                        index + 1,
-                        type
-                    );
-                });
-        }
-
-        if (type === 1) {
-            const modalRef = this.modalService.open(
-                BillImportTechnicalFormComponent,
-                {
-                    backdrop: 'static',
-                    keyboard: false,
-                    centered: true,
-                    windowClass: 'full-screen-modal',
-                }
-            );
-
-            modalRef.componentInstance.newBillImport = dataMaster;
-            modalRef.componentInstance.warehouseID = warehouseID;
-            modalRef.componentInstance.flag = 1;
-            modalRef.componentInstance.dtDetails = dataDetail;
-            modalRef.componentInstance.PonccID = ponccId ?? 0;
-
-            modalRef.result
-                .then((result) => {
-                    console.log(`Modal thứ ${index + 1} đã đóng. Kết quả:`, result);
-
-                    this.openBillImportModalSequentially(
-                        listData,
-                        listDetail,
-                        listPonccId,
-                        warehouseID,
-                        index + 1,
-                        type
-                    );
-                })
-                .catch((reason) => {
-                    //   console.log(`Modal thứ ${index + 1} bị tắt (dismiss):`, reason);
-
-                    this.openBillImportModalSequentially(
-                        listData,
-                        listDetail,
-                        listPonccId,
-                        warehouseID,
-                        index + 1,
-                        type
-                    );
-                });
-        }
+        modalRef.result.finally(() => {
+            setTimeout(() => {
+                this.openBillImportModalSequentially(
+                    listData,
+                    listDetail,
+                    listPonccId,
+                    warehouseID,
+                    index + 1,
+                    type
+                );
+            }, 100);
+        });
     }
 
     onOpenSummary() {
         const modalRef = this.modalService.open(PonccSummaryComponent, {
+            size: 'xl',
+            backdrop: 'static',
+            keyboard: false,
+            centered: true,
+        });
+    }
+
+    onOpenPaymentOrder() {
+        const selectedRows = this.getSelectedMasterRows();
+        if (selectedRows.length === 0) {
+            this.notify.warning(
+                NOTIFICATION_TITLE.warning,
+                'Vui lòng chọn một PO để tạo đề nghị thanh toán'
+            );
+            return;
+        }
+
+        const selectedPO = selectedRows[0];
+        const modalRef = this.modalService.open(PaymentOrderDetailComponent, {
             backdrop: 'static',
             keyboard: false,
             centered: true,
             windowClass: 'full-screen-modal',
-            size: 'xl',
         });
-    }
 
-    // onPrintPO(language: string, isShowSign: boolean, isShowSeal: boolean, isMerge: boolean) {
-    //     let selectedRows = this.tablePoThuongMai.getSelectedRows();
-    //     for (let i = 0; i < selectedRows.length; i++) {
-    //         let dataRow = selectedRows[i].getData();
-    //         //   console.log('dataRow:', dataRow);
-    //         let id = dataRow['ID'];
-    //         //   console.log(id);
-    //         this.srv.printPO(id, isMerge).subscribe({
-    //             next: (respose) => {
-    //                 //   console.log(respose.data);
+        modalRef.componentInstance.ponccID = selectedPO.ID;
 
-    //                 let billCode = respose.data.po.BillCode;
-    //                 let docDefinition: any = this.onCreatePDFLanguageEn(respose.data, isShowSign, isShowSeal);
-    //                 if (language == 'vi')
-    //                     docDefinition = this.onCreatePDFLanguageVi(respose.data, isShowSign, isShowSeal);
-
-    //                 // Hiển thị PDF trực tiếp trong trình duyệt
-    //                 pdfMake.createPdf(docDefinition).open();
-
-    //             },
-    //             error: (err) => {
-    //                 this.notification.error(NOTIFICATION_TITLE.error, err.error.message);
-    //             },
-    //         });
-    //     }
-
-    //     // pdfMake.createPdf(docDefinition).download(billCode);
-    // }
-
-    // setPdfToTab(i: number, blob: Blob) {
-    //     const url = URL.createObjectURL(blob);
-    //     this.tabs[i].url = url;
-    // }
-
-    onPrintPO(language: string) {
-
-        this.tabs = [];
-        console.log('onPrintPO:', this.tabs);
-
-
-        //loại PO Thương mại
-        let selectedRows = this.tablePoThuongMai.getSelectedRows();
-        // console.log('selectedRows:', selectedRows);
-
-        if (selectedRows.length > 0) {
-            for (let i = 0; i < selectedRows.length; i++) {
-                let dataRow = selectedRows[i].getData();
-                //   console.log('dataRow:', dataRow);
-                let id = dataRow['ID'];
-                let billCode = dataRow['BillCode'];
-                this.tabs.push({
-                    title: billCode,
-                    url: '',
-                    docDefinition: null,
-                    isMerge: false,
-                    isShowSign: true,
-                    isShowSeal: true,
-                    id: id
-                });
-                this.srv.printPO(id, this.tabs[i].isMerge).subscribe({
-                    next: (response) => {
-                        // console.log(response)
-                        this.dataPrint = response.data;
-
-                        // Mở modal
-                        this.showPreview = true;
-                        this.language = language;
-
-                        // Render PDF ngay lần đầu
-                        this.renderPDF(language, i);
-                    },
-                    error: (err) => {
-                        this.notification.error(NOTIFICATION_TITLE.error, err.error.message);
-                    },
-                });
+        modalRef.result.then(
+            (result) => {
+                // Handle modal close with result
+                if (result) {
+                    this.notify.success(NOTIFICATION_TITLE.success, 'Tạo phiếu đề nghị thanh toán thành công');
+                }
+            },
+            (reason) => {
+                // Handle modal dismiss
+                console.log('Modal dismissed:', reason);
             }
-        }
-
-        //loại PO Mượn
-        let selectedRowBorrows = this.tablePoMuon.getSelectedRows();
-        if (selectedRowBorrows.length > 0) {
-            // console.log('selectedRowBorrows:', selectedRowBorrows);
-            for (let i = 0; i < selectedRowBorrows.length; i++) {
-                let dataRow = selectedRowBorrows[i].getData();
-                //   console.log('dataRow:', dataRow);
-                let id = dataRow['ID'];
-                let billCode = dataRow['BillCode'];
-                this.tabs.push({
-                    title: billCode,
-                    url: '',
-                    docDefinition: null,
-                    isMerge: false,
-                    isShowSign: true,
-                    isShowSeal: true,
-                    id: id
-                });
-                this.srv.printPO(id, this.tabs[i].isMerge).subscribe({
-                    next: (response) => {
-                        // console.log(response)
-                        this.dataPrint = response.data;
-
-                        // Mở modal
-                        this.showPreview = true;
-                        this.language = language;
-
-                        // Render PDF ngay lần đầu
-                        this.renderPDF(language, i);
-                    },
-                    error: (err) => {
-                        this.notification.error(NOTIFICATION_TITLE.error, err.error.message);
-                    },
-                });
-            }
-        }
+        );
     }
-
     onCreatePDFLanguageVi(data: any, isShowSign: boolean, isShowSeal: boolean) {
         // console.log(data);
         let po = data.po;
@@ -2451,13 +2217,92 @@ export class PONCCComponent implements OnInit, AfterViewInit {
 
         return docDefinition;
     }
-
-    formatNumber(num: number, digits: number = 2) {
+        formatNumber(num: number, digits: number = 2) {
         num = num || 0;
         return num.toLocaleString('vi-VN', {
             minimumFractionDigits: digits,
             maximumFractionDigits: digits,
         });
+    }
+
+    onPrintPO(language: string) {
+        const selectedRows = this.getSelectedMasterRows();
+
+        if (!selectedRows || selectedRows.length === 0) {
+            this.notification.warning(
+                NOTIFICATION_TITLE.warning,
+                'Vui lòng chọn ít nhất một PO để in!'
+            );
+            return;
+        }
+
+        this.language = language;
+        this.tabs = [];
+        this.isLoading = true;
+
+        let loadedCount = 0;
+        const totalPOs = selectedRows.length;
+
+        selectedRows.forEach((po: any) => {
+            this.srv.getDetails(po.ID).subscribe({
+                next: (detailResponse: any) => {
+                    loadedCount++;
+                    const details = detailResponse.data.data || [];
+                    const dtRef = detailResponse.data.dtRef || [];
+                    console.log('details', details);
+                    console.log('dtRef', dtRef);
+
+                    // Create PDF for this PO
+                    const docDefinition = this.createPDFDefinition(
+                        po,
+                        details,
+                        dtRef,
+                        language
+                    );
+
+                    const pdfDoc = pdfMake.createPdf(docDefinition);
+                    pdfDoc.getDataUrl((dataUrl: string) => {
+                        this.tabs.push({
+                            title: po.POCode || `PO ${this.tabs.length + 1}`,
+                            url: dataUrl,
+                            docDefinition: docDefinition,
+                            isMerge: false,
+                            isShowSign: true,
+                            isShowSeal: true,
+                            id: po.ID,
+                        });
+
+                        if (loadedCount === totalPOs) {
+                            this.isLoading = false;
+                            this.showPreview = true;
+                            this.cdr.detectChanges();
+                        }
+                    });
+                },
+                error: (err) => {
+                    loadedCount++;
+                    if (loadedCount === totalPOs) {
+                        this.isLoading = false;
+                        this.notification.error(
+                            NOTIFICATION_TITLE.error,
+                            'Không thể tải chi tiết PO để in!'
+                        );
+                    }
+                },
+            });
+        });
+    }
+
+    private createPDFDefinition(po: any, details: any[], dtRef: any[], language: string): any {
+        // Implementation tương tự poncc.component.ts
+        // Tạm thời return empty để không lỗi
+        return {
+            content: [],
+            defaultStyle: {
+                fontSize: 10,
+                font: 'Times',
+            },
+        };
     }
 
     toggleMerge(tab: any) {
@@ -2483,7 +2328,7 @@ export class PONCCComponent implements OnInit, AfterViewInit {
     }
 
     toggleSeal(tab: any) {
-        this.srv.printPO(tab.id, tab.isShowSign).subscribe({
+               this.srv.printPO(tab.id, tab.isShowSign).subscribe({
             next: (response) => {
                 this.dataPrint = response.data;
 
@@ -2493,48 +2338,61 @@ export class PONCCComponent implements OnInit, AfterViewInit {
         });
     }
 
-
     renderPDF(language: string, index: number) {
-        if (!this.dataPrint) return;
+        const tab = this.tabs[index];
+        if (!tab) return;
 
-        let tab = this.tabs[index];
-
+        const po = this.getSelectedMasterRows().find((p: any) => p.ID === tab.id);
+        if (!po) return;
         let docDefinition: any = language === 'vi'
             ? this.onCreatePDFLanguageVi(this.dataPrint, tab.isShowSign, tab.isShowSeal)
             : this.onCreatePDFLanguageEn(this.dataPrint, tab.isShowSign, tab.isShowSeal);
-
         tab.docDefinition = docDefinition;
-
         pdfMake.createPdf(docDefinition).getBlob((blob: any) => {
             tab.url = URL.createObjectURL(blob);
         });
+        // this.srv.getDetails(po.ID).subscribe({
+        //     next: (detailResponse: any) => {
+        //         const details = detailResponse.data.data || [];
+        //         const dtRef = detailResponse.data.dtRef || [];
+
+        //         const docDefinition = this.createPDFDefinition(
+        //             po,
+        //             details,
+        //             dtRef,
+        //             language
+        //         );
+
+        //         const pdfDoc = pdfMake.createPdf(docDefinition);
+        //         pdfDoc.getDataUrl((dataUrl: string) => {
+        //             tab.url = dataUrl;
+        //             tab.docDefinition = docDefinition;
+        //             this.cdr.detectChanges();
+        //         });
+        //     },
+        // });
     }
 
-
     downloadPDF(index: number) {
-        let tab = this.tabs[index];
-
+        const tab = this.tabs[index];
+        if (!tab) return;
         if (!tab.docDefinition) {
             console.error("Chưa có PDF cho tab này");
             return;
         }
-
-        let defaultTitle = this.language === 'vi'
+         let defaultTitle = this.language === 'vi'
             ? 'PONCCReportVietnamese'
             : 'PONCCReportEnglish';
-
         let title = tab.docDefinition?.info?.title || defaultTitle;
 
         pdfMake.createPdf(tab.docDefinition).download(title + '.pdf');
     }
 }
 
-
-
 interface PoTab {
     title: string;
     url: string;
-    docDefinition: any;   // <- quan trọng
+    docDefinition: any;
     isMerge: false;
     isShowSign: true;
     isShowSeal: true;

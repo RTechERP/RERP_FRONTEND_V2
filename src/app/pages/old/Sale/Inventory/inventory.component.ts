@@ -826,6 +826,7 @@ export class InventoryComponent implements OnInit, AfterViewInit {
           hozAlign: 'left',
           headerHozAlign: 'center',
           frozen: true,
+          width: 100,
         },
         {
           title: 'Tích xanh',
@@ -844,6 +845,7 @@ export class InventoryComponent implements OnInit, AfterViewInit {
             } style="pointer-events: none; accent-color: #1677ff;" />`;
           },
           frozen: true,
+          width: 70,
         },
         {
           title: 'Mã sản phẩm',
@@ -852,6 +854,7 @@ export class InventoryComponent implements OnInit, AfterViewInit {
           headerHozAlign: 'center',
           formatter: 'textarea',
           frozen: true,
+          width: 150,
         },
         {
           title: 'Tên sản phẩm',
@@ -860,6 +863,7 @@ export class InventoryComponent implements OnInit, AfterViewInit {
           headerHozAlign: 'center',
           formatter: 'textarea',
           frozen: true,
+          width: 200,
         },
         {
           title: 'Mã nội bộ',
@@ -939,7 +943,7 @@ export class InventoryComponent implements OnInit, AfterViewInit {
         },
 
         {
-          title: 'Tồn CK(được xử dụng)',
+          title: 'Tồn CK(được sử dụng)',
           field: 'TotalQuantityLast',
           hozAlign: 'right',
           headerHozAlign: 'center',

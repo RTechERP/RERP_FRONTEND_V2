@@ -25,6 +25,12 @@ export class InventoryDemoService {
       request
     );
   }
+  getProductRTCGroup(warehouseID: number, warehouseType: number = 1): Observable<any> {
+    const params = new HttpParams()
+      .set('warehouseID', warehouseID.toString())
+      .set('warehouseType', warehouseType.toString());
+    return this.http.get<any>(`${this.url}get-productRTC-group`, { params });
+  }
   getInventoryNCCAjax(): string {
     return `${this.url}get-inventory-borrow-ncc-Demo`;
   }

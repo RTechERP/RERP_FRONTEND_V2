@@ -22,7 +22,7 @@
                                     nzPlaceHolder="Chọn nhóm sản phẩm..." [(ngModel)]="productGroupID"
                                     (ngModelChange)="onGroupChange($event)" name="productGroupID">
                                     <nz-option *ngFor="let emp of productGroupData"
-                                        [nzLabel]="emp.ProductGroupNo + ' - ' + emp.ProductGroupName"
+                                        [nzLabel]="emp.NumberOrder + '. ' + emp.ProductGroupNo + '-' + emp.ProductGroupName"
                                         [nzValue]="emp.ID"></nz-option>
                                 </nz-select>
                             </nz-form-control>

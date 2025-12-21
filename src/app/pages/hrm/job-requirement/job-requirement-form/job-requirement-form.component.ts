@@ -95,8 +95,7 @@ export class JobRequirementFormComponent implements OnInit, AfterViewInit {
   }
 
   ngOnInit(): void {
-    this.getdataEmployee();
-    this.getdataDepartment();
+    this.setDefaultRows();
     
     // Subscribe to DeadlineRequest changes to update Description of STT 7
     this.formGroup.get('DeadlineRequest')?.valueChanges.subscribe((value) => {
@@ -112,7 +111,17 @@ export class JobRequirementFormComponent implements OnInit, AfterViewInit {
       }
     });
     
-    this.setDefaultRows();
+    // Load danh sách nhân viên và phòng ban trước, sau đó mới load dữ liệu edit
+    this.getdataDepartment();
+    this.getdataEmployee();
+    
+    // Load dữ liệu khi ở chế độ edit (sau khi đã load danh sách nhân viên)
+    if (this.isCheckmode && this.JobRequirementID > 0) {
+      // Đợi một chút để đảm bảo danh sách nhân viên đã load
+      setTimeout(() => {
+        this.loadJobRequirementData();
+      }, 300);
+    }
   }
 
   ngAfterViewInit(): void {
@@ -134,6 +143,11 @@ export class JobRequirementFormComponent implements OnInit, AfterViewInit {
         EmployeeID: null,
         EmployeeDepartment: null,
       });
+      // Xóa FullName khi bỏ chọn nhân viên
+      const row2 = this.jobRequirementDetailData.find((row: any) => row.STT === 2);
+      if (row2 && row2.Category === 'Người yêu cầu') {
+        row2.Description = '';
+      }
       return;
     }
     const selected = this.cbbEmployee.find((e: any) => e.ID === employeeID);
@@ -142,6 +156,12 @@ export class JobRequirementFormComponent implements OnInit, AfterViewInit {
         EmployeeID: selected.ID,
         EmployeeDepartment: selected.DepartmentID || null
       });
+      
+      // Tự động bind FullName vào cột Diễn giải của "Người yêu cầu" (STT = 2)
+      const row2 = this.jobRequirementDetailData.find((row: any) => row.STT === 2);
+      if (row2 && row2.Category === 'Người yêu cầu') {
+        row2.Description = selected.FullName || selected.EmployeeName || '';
+      }
     }
   }
   getdataEmployee() {
@@ -164,7 +184,44 @@ export class JobRequirementFormComponent implements OnInit, AfterViewInit {
           employees,
         })
       );
+
+      // Nếu có dataInput và EmployeeID, tự động bind FullName vào cột Diễn giải của "Người yêu cầu"
+      if (this.dataInput && this.dataInput.EmployeeID) {
+        const selected = this.cbbEmployee.find((e: any) => e.ID === this.dataInput.EmployeeID);
+        if (selected) {
+          const row2 = this.jobRequirementDetailData.find((row: any) => row.STT === 2);
+          if (row2 && row2.Category === 'Người yêu cầu') {
+            row2.Description = selected.FullName || selected.EmployeeName || '';
+          }
+        }
+      }
+
+      // Nếu form đã có EmployeeID (khi load dữ liệu cũ), tự động bind FullName
+      const currentEmployeeID = this.formGroup.get('EmployeeID')?.value;
+      if (currentEmployeeID) {
+        const selected = this.cbbEmployee.find((e: any) => e.ID === currentEmployeeID);
+        if (selected) {
+          const row2 = this.jobRequirementDetailData.find((row: any) => row.STT === 2);
+          if (row2 && row2.Category === 'Người yêu cầu') {
+            row2.Description = selected.FullName || selected.EmployeeName || '';
+          }
+        }
+      }
     });
+  }
+
+  private bindEmployeeFullName(employeeID: number): void {
+    if (!employeeID || !this.cbbEmployee || this.cbbEmployee.length === 0) {
+      return;
+    }
+    
+    const selected = this.cbbEmployee.find((e: any) => e.ID === employeeID);
+    if (selected) {
+      const row2 = this.jobRequirementDetailData.find((row: any) => row.STT === 2);
+      if (row2 && row2.Category === 'Người yêu cầu') {
+        row2.Description = selected.FullName || selected.EmployeeName || '';
+      }
+    }
   }
 
   getdataDepartment() {
@@ -191,6 +248,135 @@ export class JobRequirementFormComponent implements OnInit, AfterViewInit {
       { STT: 6, Category: 'Địa điểm', Description: '', Target: '', Note: '' },
       { STT: 7, Category: 'Thời gian hoàn thành đề nghị', Description: deadlineFormatted, Target: '', Note: '' },
     ];
+  }
+
+  loadJobRequirementData(): void {
+    if (!this.JobRequirementID || this.JobRequirementID <= 0) {
+      return;
+    }
+
+    // Sử dụng dataInput nếu có (từ row đã chọn)
+    const mainData = this.dataInput || {};
+    
+    // Load dữ liệu chính từ dataInput vào form
+    if (mainData.DateRequest) {
+      const dateRequest = DateTime.fromISO(mainData.DateRequest).isValid 
+        ? DateTime.fromISO(mainData.DateRequest).toFormat('yyyy-MM-dd')
+        : (DateTime.fromFormat(mainData.DateRequest, 'dd/MM/yyyy').isValid
+          ? DateTime.fromFormat(mainData.DateRequest, 'dd/MM/yyyy').toFormat('yyyy-MM-dd')
+          : null);
+      if (dateRequest) {
+        this.formGroup.patchValue({ DateRequest: dateRequest });
+      }
+    }
+    
+    // Load dữ liệu từ API để lấy details và files
+    this.jobRequirementService.getJobrequirementbyID(this.JobRequirementID).subscribe({
+      next: (response: any) => {
+        if (response && response.data) {
+          const data = response.data;
+          
+          // Load dữ liệu chính từ response.data nếu có (hoặc dùng dataInput)
+          const jobData = data.DateRequest ? data : mainData;
+          
+          if (jobData.DeadlineRequest) {
+            const deadlineRequest = DateTime.fromISO(jobData.DeadlineRequest).isValid
+              ? DateTime.fromISO(jobData.DeadlineRequest).toFormat('yyyy-MM-dd')
+              : (DateTime.fromFormat(jobData.DeadlineRequest, 'dd/MM/yyyy').isValid
+                ? DateTime.fromFormat(jobData.DeadlineRequest, 'dd/MM/yyyy').toFormat('yyyy-MM-dd')
+                : null);
+            if (deadlineRequest) {
+              this.formGroup.patchValue({ DeadlineRequest: deadlineRequest });
+            }
+          }
+          
+          if (jobData.EmployeeID) {
+            this.formGroup.patchValue({ EmployeeID: jobData.EmployeeID });
+            // Bind FullName và Department
+            this.onSelectEmployee(jobData.EmployeeID);
+            // Nếu danh sách nhân viên chưa load xong, thử lại sau
+            if (!this.cbbEmployee || this.cbbEmployee.length === 0) {
+              setTimeout(() => {
+                this.bindEmployeeFullName(jobData.EmployeeID);
+              }, 1000);
+            } else {
+              this.bindEmployeeFullName(jobData.EmployeeID);
+            }
+          }
+          
+          if (jobData.RequiredDepartmentID || mainData.RequiredDepartmentID) {
+            this.formGroup.patchValue({ 
+              RequiredDepartment: jobData.RequiredDepartmentID || mainData.RequiredDepartmentID 
+            });
+          }
+          
+          if (jobData.CoordinationDepartmentID || mainData.CoordinationDepartmentID) {
+            this.formGroup.patchValue({ 
+              CoordinationDepartment: jobData.CoordinationDepartmentID || mainData.CoordinationDepartmentID 
+            });
+          }
+          
+          if (jobData.ApprovedTBPID || mainData.ApprovedTBPID) {
+            this.formGroup.patchValue({ 
+              DepartmentID: jobData.ApprovedTBPID || mainData.ApprovedTBPID 
+            });
+          }
+          
+          if (jobData.Code || mainData.Code || mainData.NumberRequest) {
+            this.formGroup.patchValue({ 
+              Code: jobData.Code || mainData.Code || mainData.NumberRequest || '' 
+            });
+          }
+          
+          // Load details vào bảng chi tiết
+          if (data.details && Array.isArray(data.details) && data.details.length > 0) {
+            // Merge với default rows, giữ lại dữ liệu từ API
+            data.details.forEach((detail: any) => {
+              const existingRow = this.jobRequirementDetailData.find(
+                (row: any) => row.STT === detail.STT
+              );
+              if (existingRow) {
+                existingRow.ID = detail.ID;
+                existingRow.Description = detail.Description || '';
+                existingRow.Target = detail.Target || '';
+                existingRow.Note = detail.Note || '';
+              } else {
+                // Nếu không tìm thấy row với STT tương ứng, thêm mới
+                this.jobRequirementDetailData.push({
+                  ID: detail.ID,
+                  STT: detail.STT,
+                  Category: detail.Category || '',
+                  Description: detail.Description || '',
+                  Target: detail.Target || '',
+                  Note: detail.Note || ''
+                });
+              }
+            });
+          }
+          
+          // Load files vào danh sách file
+          if (data.files && Array.isArray(data.files) && data.files.length > 0) {
+            this.fileList = data.files.map((file: any) => ({
+              uid: file.ID ? file.ID.toString() : Math.random().toString(36).substring(2) + Date.now(),
+              name: file.FileName || '',
+              FileName: file.FileName || '',
+              FilePath: file.FilePath || '',
+              FileNameOrigin: file.FileName || '',
+              IsUploaded: true,
+              status: 'done',
+              isDeleted: false,
+              IsDeleted: false,
+              ID: file.ID || 0
+            }));
+          }
+        }
+      },
+      error: (error: any) => {
+        const errorMessage = error?.error?.message || error?.error?.Message || error?.message || 'Không thể tải dữ liệu yêu cầu công việc!';
+        this.notification.error('Lỗi', errorMessage);
+        console.error('Load job requirement error:', error);
+      }
+    });
   }
 
   onlyNumberKey(event: KeyboardEvent): boolean {

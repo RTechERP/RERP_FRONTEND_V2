@@ -111,8 +111,8 @@ export class JobRequirementComponent implements OnInit, AfterViewInit {
       ApprovedTBPID: 0,
       Step: 0,
       Request: '',
-      DateStart: new Date(new Date().setFullYear(new Date().getFullYear() - 1)),
-      DateEnd: new Date(),
+      DateStart: new Date(new Date().getFullYear(), new Date().getMonth(), 1), // Đầu tháng hiện tại
+      DateEnd: new Date(new Date().getFullYear(), new Date().getMonth() + 1, 0), // Cuối tháng hiện tại
     };
   
     JobrequirementData: any[] = [];
@@ -209,9 +209,7 @@ export class JobRequirementComponent implements OnInit, AfterViewInit {
               ? this.JobrequirementData[0].ID
               : 0;
           if (this.JobrequirementID) {
-            this.getJobrequirementbyID(this.JobrequirementID);
-            this.getJobrequirementFilebyID(this.JobrequirementID);
-            this.getJobrequirementApprovedbyID(this.JobrequirementID);
+            this.getJobrequirementDetails(this.JobrequirementID);
           }
         } else {
           this.draw_JobrequirementTable();
@@ -219,36 +217,32 @@ export class JobRequirementComponent implements OnInit, AfterViewInit {
       });
     }
   
-    getJobrequirementbyID(id: number) {
+    /**
+     * Gọi API một lần để lấy tất cả dữ liệu: details, files, approves
+     */
+    getJobrequirementDetails(id: number) {
       this.JobRequirementService.getJobrequirementbyID(id).subscribe(
         (response: any) => {
-          this.JobrequirementDetailData = response.data.details || [];
+          const data = response.data || {};
+          
+          // Cập nhật details
+          this.JobrequirementDetailData = data.details || [];
           if (this.JobrequirementDetailTable) {
             this.JobrequirementDetailTable.setData(this.JobrequirementDetailData);
           } else {
             this.draw_JobrequirementDetailTable();
           }
-        }
-      );
-    }
-  
-    getJobrequirementFilebyID(id: number) {
-      this.JobRequirementService.getJobrequirementbyID(id).subscribe(
-        (response: any) => {
-          this.JobrequirementFileData = response.data.files || [];
+          
+          // Cập nhật files
+          this.JobrequirementFileData = data.files || [];
           if (this.JobrequirementFileTable) {
             this.JobrequirementFileTable.setData(this.JobrequirementFileData);
           } else {
             this.draw_JobrequirementFileTable();
           }
-        }
-      );
-    }
-  
-    getJobrequirementApprovedbyID(id: number) {
-      this.JobRequirementService.getJobrequirementbyID(id).subscribe(
-        (response: any) => {
-          this.JobrequirementApprovedData = response.data.approves || [];
+          
+          // Cập nhật approves
+          this.JobrequirementApprovedData = data.approves || [];
           if (this.JobrequirementApprovedTable) {
             this.JobrequirementApprovedTable.setData(
               this.JobrequirementApprovedData
@@ -376,7 +370,26 @@ export class JobRequirementComponent implements OnInit, AfterViewInit {
       }
   
       const selected = this.JobrequirementTable?.getSelectedData() || [];
+      if (selected.length === 0) {
+        this.notification.warning(
+          NOTIFICATION_TITLE.warning,
+          'Vui lòng chọn 1 bản ghi để sửa!'
+        );
+        return;
+      }
+      
       const rowData = { ...selected[0] };
+      // Lấy ID từ row được chọn
+      const jobRequirementID = rowData?.ID || 0;
+      
+      if (!jobRequirementID || jobRequirementID <= 0) {
+        this.notification.warning(
+          NOTIFICATION_TITLE.warning,
+          'Không tìm thấy ID của bản ghi!'
+        );
+        return;
+      }
+      
       const modalRef = this.modalService.open(JobRequirementFormComponent, {
         size: 'xl',
         backdrop: 'static',
@@ -384,7 +397,7 @@ export class JobRequirementComponent implements OnInit, AfterViewInit {
         centered: true,
       });
       modalRef.componentInstance.isCheckmode = this.isCheckmode;
-      modalRef.componentInstance.JobrequirementID = this.JobrequirementID;
+      modalRef.componentInstance.JobRequirementID = jobRequirementID;
       modalRef.componentInstance.dataInput = rowData;
   
       modalRef.result
@@ -585,9 +598,7 @@ export class JobRequirementComponent implements OnInit, AfterViewInit {
             const rowData = row.getData();
             const mouseEvent = e as MouseEvent;
             const jobRequirementID = rowData['ID'];
-            this.getJobrequirementbyID(jobRequirementID);
-            this.getJobrequirementFilebyID(jobRequirementID);
-            this.getJobrequirementApprovedbyID(jobRequirementID);
+            this.getJobrequirementDetails(jobRequirementID);
             
             // Kiểm tra trạng thái duyệt HCNS khi click row
             if (jobRequirementID) {

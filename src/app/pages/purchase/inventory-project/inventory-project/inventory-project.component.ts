@@ -35,6 +35,7 @@ import { InventoryProjectDetailComponent } from '../inventory-project-detail/inv
 import { DEFAULT_TABLE_CONFIG } from '../../../../tabulator-default.config';
 import { NOTIFICATION_TITLE } from '../../../../app.config';
 import { AuthService } from '../../../../auth/auth.service';
+import { HasPermissionDirective } from '../../../../directives/has-permission.directive';
 
 @Component({
   standalone: true,
@@ -59,6 +60,7 @@ import { AuthService } from '../../../../auth/auth.service';
     NzSpinModule,
     NgbModalModule,
     NzModalModule,
+    HasPermissionDirective
   ],
   selector: 'app-inventory-project',
   templateUrl: './inventory-project.component.html',

@@ -90,11 +90,11 @@
                 <nz-icon nzType="search" />
               </button>
 
-              <button nz-button nzType="default" nzSize="small" class="fs-12 btn-add" (click)="onRejectKeep()">
+              <button nz-button nzType="default" nzSize="small" class="fs-12 btn-add" *hasPermission="'N33'" (click)="onRejectKeep()">
                 <img src="assets/icon/action_add_item_16.png" alt="Nhả giữ" />Nhả giữ
               </button>
 
-              <button nz-button nzType="default" nzSize="small" class="btn-delete" (click)="onDelete()">
+              <button nz-button nzType="default" nzSize="small" class="btn-delete" (click)="onDelete()" *hasPermission="'N35,N27'">
                 <img src="assets/icon/action_delete_item_16.png" alt="Xóa" />Xóa
               </button>
 

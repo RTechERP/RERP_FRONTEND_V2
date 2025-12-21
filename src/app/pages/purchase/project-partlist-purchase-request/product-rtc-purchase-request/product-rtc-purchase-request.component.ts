@@ -755,7 +755,7 @@ export class ProductRtcPurchaseRequestComponent implements OnInit, AfterViewInit
   }
 
   getProductGroupsRTC() {
-    this.projectPartlistPurchaseRequestService.getProductGroupsRTC().subscribe({
+    this.projectPartlistPurchaseRequestService.getProductGroupsRTC(1).subscribe({
       next: (response: any) => {
         this.productGroupsRTC = response.data || response || [];
       },

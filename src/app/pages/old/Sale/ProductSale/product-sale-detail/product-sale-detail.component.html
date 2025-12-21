@@ -104,18 +104,17 @@
         </div>
         <div class="row">
           <div class="col-md-6 pb-3">
-            <nz-form-label class="fs-12">Vị trí<span class="text-danger ps-1 me-1"> * </span></nz-form-label>
+            <nz-form-label class="fs-12">Vị trí</nz-form-label>
               <button class="p-0 m-0 fs-12 h-auto" nz-button nzType="text" nzSize="small" title="Thêm vị trí" (click)="openModalLocationDetail()">
                               <i class="fas fa-plus"></i>
                             </button>
-            <nz-form-control [nzSpan]="24" [nzErrorTip]="formGroup.get('LocationID')?.invalid && (formGroup.get('LocationID')?.dirty || formGroup.get('LocationID')?.touched) ? 'Vui lòng chọn vị trí!' : ''">
+            <nz-form-control [nzSpan]="24">
 
-              <nz-input-group required nzSearch nzSize="default" class="w-100" style="min-width: 0;">
+              <nz-input-group nzSearch nzSize="default" class="w-100" style="min-width: 0;">
                 <nz-select
                   formControlName="LocationID"
                   nzPlaceHolder="Chọn vị trí"
                   class="fs-12 w-100"
-                  required
                   nzShowSearch
                   nzAllowClear
                 >

@@ -1,0 +1,27 @@
+.ant-tabs-content-holder{
+  height: 100% !important;
+}
+:host ::ng-deep nz-tab-body{
+  height: 100% !important;
+}
+:host ::ng-deep nz-tabset{
+  height: 100% !important;
+}
+:host ::ng-deep nz-tab{
+  height: 100% !important;
+}
+:host ::ng-deep nz-tab-content{
+  height: 100% !important;
+}
+:host ::ng-deep .card-body{
+  height: 85vh !important;
+}
+:host ::ng-deep .card-body .ant-tabs-content-holder{
+  height: 100% !important;
+}
+:host ::ng-deep .card-body .ant-tabs-content{
+  height: 100% !important;
+}
+:host ::ng-deep .card-body .ant-tabs-tabpane{
+  height: 100% !important;
+}

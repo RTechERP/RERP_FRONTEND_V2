@@ -92,7 +92,7 @@
       <button nz-button nzType="default" nzDanger (click)="activeModal.dismiss()">
         Đóng
       </button>
-      <button nz-button nzType="primary" (click)="saveProjectUser()">
+      <button nz-button nzType="primary" (click)="saveProjectUser()" [disabled]="!hasSavePermission">
         Lưu
       </button>
     </div>

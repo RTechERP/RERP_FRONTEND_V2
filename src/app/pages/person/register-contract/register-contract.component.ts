@@ -181,6 +181,93 @@ export class RegisterContractComponent implements OnInit, AfterViewInit {
       },
     });
   }
+  private textWithTooltipFormatter = (cell: any): HTMLElement => {
+    const value = cell.getValue();
+    const div = document.createElement('div');
+    
+    if (!value || value.trim() === '') {
+      return div;
+    }
+    
+    // Style cho div: giới hạn 3 dòng với ellipsis
+    div.style.cssText = `
+      display: -webkit-box;
+      -webkit-line-clamp: 3;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: pre-wrap;
+      word-wrap: break-word;
+      line-height: 1.4;
+      max-height: calc(1.4em * 3);
+      cursor: text;
+    `;
+    
+    // Chuyển đổi URLs thành links
+    const linkedText = this.linkifyText(value);
+    div.innerHTML = linkedText;
+    
+    // Thêm title attribute để hiển thị tooltip với text gốc (không có HTML)
+    div.title = value;
+    
+    // Cho phép click vào links mà không trigger row selection
+    div.addEventListener('click', (e: MouseEvent) => {
+      const target = e.target as HTMLElement;
+      if (target.tagName === 'A') {
+        e.stopPropagation(); // Ngăn không cho event bubble lên row
+      }
+    });
+    
+    return div;
+  };
+  private linkifyText(text: string): string {
+    // Regex pattern để match URLs (http, https, ftp, www)
+    const urlPattern = /(https?:\/\/[^\s]+)|(www\.[^\s]+)|([a-zA-Z0-9][a-zA-Z0-9-]+\.[a-zA-Z]{2,}[^\s]*)/gi;
+    
+    // Escape HTML để tránh XSS
+    const escapeHtml = (str: string): string => {
+      const div = document.createElement('div');
+      div.textContent = str;
+      return div.innerHTML;
+    };
+    
+    // Split text thành các phần (text và URLs)
+    const parts: string[] = [];
+    let lastIndex = 0;
+    let match: RegExpExecArray | null;
+    
+    // Reset regex
+    urlPattern.lastIndex = 0;
+    
+    while ((match = urlPattern.exec(text)) !== null) {
+      // Thêm text trước URL
+      if (match.index > lastIndex) {
+        parts.push(escapeHtml(text.substring(lastIndex, match.index)));
+      }
+      
+      // Xử lý URL
+      let url = match[0];
+      let href = url;
+      
+      // Thêm protocol nếu chưa có
+      if (!url.match(/^https?:\/\//i)) {
+        href = 'http://' + url;
+      }
+      
+      // Tạo link với target="_blank" để mở tab mới
+      parts.push(`<a href="${escapeHtml(href)}" target="_blank" rel="noopener noreferrer" style="color: #0066cc; text-decoration: underline; cursor: pointer;">${escapeHtml(url)}</a>`);
+      
+      lastIndex = match.index + match[0].length;
+    }
+    
+    // Thêm phần text còn lại
+    if (lastIndex < text.length) {
+      parts.push(escapeHtml(text.substring(lastIndex)));
+    }
+    
+    return parts.join('');
+  }
+  
 
   resetSearch() {
     this.dateStart = DateTime.local().set({ day: 1 }).toISO();
@@ -346,12 +433,14 @@ export class RegisterContractComponent implements OnInit, AfterViewInit {
           field: 'EmployeeRegister',
           width: 150,
           headerHozAlign: 'center',
+          formatter: 'textarea',
         },
         {
           title: 'Người nhận',
           field: 'EmployeeRecive',
           width: 150,
           headerHozAlign: 'center',
+          formatter: 'textarea',
         },
         {
           title: 'Bộ phận',
@@ -390,6 +479,7 @@ export class RegisterContractComponent implements OnInit, AfterViewInit {
           field: 'TaxCompany',
           width: 100,
           headerHozAlign: 'center',
+          formatter: 'textarea',
         },
         {
           title: 'Đường dẫn',
@@ -397,6 +487,7 @@ export class RegisterContractComponent implements OnInit, AfterViewInit {
           width: 250,
           headerHozAlign: 'center',
           hozAlign: 'left',
+          formatter: this.textWithTooltipFormatter,
           // formatter: function (cell) {
           //   const value = cell.getValue();
           //   if (value) {

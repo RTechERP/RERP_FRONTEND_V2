@@ -1,0 +1,135 @@
+<ng-container class="w-100">
+    <nz-splitter>
+        <nz-splitter-panel [nzSize]="sizeSearch" nzResizable="false">
+            <div class="card h-100 border-0 rounded-0">
+                <div class="card-header bg-white p-1">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <h6 class="m-0 ms-2">Tìm kiếm</h6>
+                        <button class="border-0 me-2" nz-button nzSize="small" nzType="default" nzDanger
+                            (click)="toggleSearchPanel()">
+                            <nz-icon nzType="close" nzTheme="outline" />
+                        </button>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <form nz-form nzLayout="vertical">
+                        <nz-form-item class="mt-2">
+                            <nz-form-label class="fs-12" [nzSpan]="24">Từ ngày</nz-form-label>
+                            <nz-form-control [nzSpan]="24">
+                                <nz-date-picker name="dateStart" class="w-100" nzFormat="dd/MM/yyyy"
+                                    [(ngModel)]="dateStart" nzAllowClear="false"></nz-date-picker>
+                            </nz-form-control>
+                        </nz-form-item>
+                        <nz-form-item class="mt-2">
+                            <nz-form-label class="fs-12" [nzSpan]="24">Đến ngày</nz-form-label>
+                            <nz-form-control [nzSpan]="24">
+                                <nz-date-picker name="dateEnd" class="w-100" nzFormat="dd/MM/yyyy" [(ngModel)]="dateEnd"
+                                    nzAllowClear="false"></nz-date-picker>
+                            </nz-form-control>
+                        </nz-form-item>
+                        <nz-form-item class="mt-2">
+                            <nz-form-label class="fs-12" [nzSpan]="24">Phòng ban</nz-form-label>
+                            <nz-form-control [nzSpan]="24">
+                                <nz-select name="departmentId" class="w-100" nzShowSearch nzAllowClear
+                                    nzPlaceHolder="Chọn phòng ban" [(ngModel)]="departmentId"
+                                    (ngModelChange)="onDepartmentChange()">
+                                    @for (item of departments; track $index) {
+                                    <nz-option nzCustomContent="true" [nzLabel]="item.Name" [nzValue]="item.ID">
+                                        {{ item.Name }}
+                                    </nz-option>
+                                    }
+                                </nz-select>
+                            </nz-form-control>
+                        </nz-form-item>
+                        <nz-form-item class="mt-2">
+                            <nz-form-label class="fs-12" [nzSpan]="24">Team</nz-form-label>
+                            <nz-form-control [nzSpan]="24">
+                                <nz-select name="teamId" class="w-100" nzShowSearch nzAllowClear
+                                    nzPlaceHolder="Chọn team" [(ngModel)]="teamId"
+                                    (ngModelChange)="onTeamChange()">
+                                    @for (item of teams; track $index) {
+                                    <nz-option nzCustomContent="true" [nzLabel]="item.Name" [nzValue]="item.ID">
+                                        {{ item.Name }}
+                                    </nz-option>
+                                    }
+                                </nz-select>
+                            </nz-form-control>
+                        </nz-form-item>
+                        <nz-form-item class="mt-2">
+                            <nz-form-label class="fs-12" [nzSpan]="24">Nhân viên</nz-form-label>
+                            <nz-form-control [nzSpan]="24">
+                                <nz-select name="userId" class="w-100" nzShowSearch nzAllowClear
+                                    nzPlaceHolder="Chọn nhân viên" [(ngModel)]="userId">
+                                    <nz-option nzValue="0" nzLabel="Tất cả">Tất cả</nz-option>
+                                    @for (parent of users; track $index) {
+                                    <nz-option-group [nzLabel]="parent.label">
+                                        @for (child of parent.options; track $index) {
+                                        <nz-option nzCustomContent="true"
+                                            [nzLabel]="child.item?.Code + ' - ' + child.item?.FullName"
+                                            [nzValue]="child.item.UserID">
+                                            {{ child.item.Code + " - " + child.item.FullName }}
+                                        </nz-option>
+                                        }
+                                    </nz-option-group>
+                                    }
+                                </nz-select>
+                            </nz-form-control>
+                        </nz-form-item>
+                    </form>
+                </div>
+                <div class="card-footer bg-white p-1 d-flex gap-1 justify-content-end">
+                    <button nz-button nzType="default" nzSize="small" (click)="setDefaultSearch()">
+                        Đặt lại
+                    </button>
+                    <button nz-button nzType="primary" nzSize="small" (click)="searchDailyReports()">
+                        Tìm kiếm
+                    </button>
+                </div>
+            </div>
+        </nz-splitter-panel>
+        <nz-splitter-panel nzDefaultSize="100%">
+            <div class="card border-0 rounded-0">
+                <div class="card-header bg-white p-1 d-flex align-items-center justify-content-between">
+                    <!-- Bên trái: Các nút hành động -->
+                    <div class="d-flex gap-1">
+                        <button nz-button nzType="default" nzSize="small" (click)="toggleSearchPanel()">
+                            <nz-icon nzType="search" />
+                        </button>
+                        <button nz-button nzSize="small" class="fs-12 button button-succes btn-add"
+                            (click)="addDailyReport()">
+                            <img src="assets/icon/action_add_item_16.png" alt="Thêm mới" /> Thêm
+                        </button>
+                        <button class="fs-12 btn-edit" nz-button nzType="default" nzSize="small"
+                            (click)="editDailyReport()">
+                            <img src="assets/icon/action_edit_item_16.png" alt="Sửa"> Sửa
+                        </button>
+                        <button class="fs-12 btn-delete" nz-button nzType="default" nzSize="small" nzDanger
+                            (click)="deleteDailyReport()">
+                            <img src="assets/icon/action_delete_item_16.png" alt="Xóa" /> Xóa
+                        </button>
+                        <button class="fs-12" nz-button nzType="default" nzSize="small" (click)="copyDailyReport()">
+                            <img src="assets/icon/copy_16.png" alt="Copy" class="me-1" /> Copy
+                        </button>
+                        <button class="fs-12" nz-button nzType="default" nzSize="small" (click)="exportReport()">
+                            <img src="assets/icon/action_export_excel_16.png" alt="Xuất danh sách" class="me-1" /> Xuất
+                            danh sách
+                        </button>
+                    </div>
+
+                    <!-- Bên phải: Tìm kiếm -->
+                    <div class="d-flex gap-1 align-items-center">
+                        <input nz-input nzSize="small" nzAllowClear placeholder="Nhập từ khóa" style="width: 250px"
+                            [(ngModel)]="keyword" (keyup.enter)="searchDailyReports()"
+                            (ngModelChange)="onSearchChange($event)" />
+                        <button nz-button nzType="default" nzSize="small" (click)="searchDailyReports()" class="btn">
+                            <nz-icon nzType="search" />
+                        </button>
+                    </div>
+                </div>
+                <div class="card-body p-0">
+                    <div #tb_daily_report_hr style="padding: 10px;"></div>
+                </div>
+            </div>
+        </nz-splitter-panel>
+    </nz-splitter>
+</ng-container>

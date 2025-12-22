@@ -157,4 +157,10 @@ export class ProjectPartListService {
   updateSpecialCode(partlistId: number, specialCode: string): Observable<any> {
     return this.http.post<any>(`${this.urlProjectPartList}/update-special-code?partlistId=${partlistId}&specialCode=${encodeURIComponent(specialCode)}`, {});
   }
+  // Download drawing file từ URL
+  downloadDrawingFile(url: string): Observable<Blob> {
+    return this.http.get(url, {
+      responseType: 'blob',
+    });
+  }
 }

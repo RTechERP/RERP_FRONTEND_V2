@@ -53,7 +53,7 @@ import { PaymentOrderDetailComponent } from '../../general-category/payment-orde
 };
 
 @Component({
-  selector: 'app-poncc-new',
+    selector: 'app-poncc-new',
     standalone: true,
     imports: [
         CommonModule,
@@ -75,14 +75,15 @@ import { PaymentOrderDetailComponent } from '../../general-category/payment-orde
         SafeUrlPipe,
         AngularSlickgridModule,
     ],
-  templateUrl: './poncc-new.component.html',
+    templateUrl: './poncc-new.component.html',
     styleUrls: ['./poncc-new.component.css'],
 })
 export class PonccNewComponent implements OnInit, AfterViewInit {
     activeTabIndex: number = 0;
     lastMasterId: number | null = null;
     isTabReady: boolean = false; // Flag để track khi tab đã render
-
+    showSearchBar: boolean = true;
+    shouldShowSearchBar: boolean = true;
     // Filters
     dateStart: Date = new Date(
         new Date().getFullYear(),
@@ -176,6 +177,15 @@ export class PonccNewComponent implements OnInit, AfterViewInit {
         this.sizeSearch = this.sizeSearch == '0' ? '22%' : '0';
     }
 
+    ToggleSearchPanelNew(event?: Event): void {
+        if (event) {
+            event.preventDefault();
+            event.stopPropagation();
+        }
+        this.showSearchBar = !this.showSearchBar;
+        this.shouldShowSearchBar = this.showSearchBar;
+    }
+
     private initGridColumns(): void {
         // Master columns
         this.columnDefinitionsMaster = [
@@ -198,10 +208,10 @@ export class PonccNewComponent implements OnInit, AfterViewInit {
                 sortable: true,
                 filterable: true,
                 filter: { model: Filters['compoundInputText'] },
-                
-          formatter: (_row, _cell, value, _column, dataContext) => {
-            if (!value) return '';
-            return `
+
+                formatter: (_row, _cell, value, _column, dataContext) => {
+                    if (!value) return '';
+                    return `
               <span
                 title="${dataContext.StatusText}"
                 style="display:block; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;"
@@ -209,12 +219,12 @@ export class PonccNewComponent implements OnInit, AfterViewInit {
                 ${value}
               </span>
             `;
-          },
+                },
 
-          customTooltip: {
-            useRegularTooltip: true,
-            // useRegularTooltipFromCellTextOnly: true,
-          },
+                customTooltip: {
+                    useRegularTooltip: true,
+                    // useRegularTooltipFromCellTextOnly: true,
+                },
             },
             {
                 id: 'RequestDate',
@@ -246,10 +256,10 @@ export class PonccNewComponent implements OnInit, AfterViewInit {
                 sortable: true,
                 filterable: true,
                 filter: { model: Filters['compoundInputText'] },
-                
-          formatter: (_row, _cell, value, _column, dataContext) => {
-            if (!value) return '';
-            return `
+
+                formatter: (_row, _cell, value, _column, dataContext) => {
+                    if (!value) return '';
+                    return `
               <span
                 title="${dataContext.BillCode}"
                 style="display:block; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;"
@@ -257,12 +267,12 @@ export class PonccNewComponent implements OnInit, AfterViewInit {
                 ${value}
               </span>
             `;
-          },
+                },
 
-          customTooltip: {
-            useRegularTooltip: true,
-            // useRegularTooltipFromCellTextOnly: true,
-          },
+                customTooltip: {
+                    useRegularTooltip: true,
+                    // useRegularTooltipFromCellTextOnly: true,
+                },
             },
             {
                 id: 'BillCode',
@@ -272,10 +282,10 @@ export class PonccNewComponent implements OnInit, AfterViewInit {
                 sortable: true,
                 filterable: true,
                 filter: { model: Filters['compoundInputText'] },
-                
-          formatter: (_row, _cell, value, _column, dataContext) => {
-            if (!value) return '';
-            return `
+
+                formatter: (_row, _cell, value, _column, dataContext) => {
+                    if (!value) return '';
+                    return `
               <span
                 title="${dataContext.TotalMoneyPO}"
                 style="display:block; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;"
@@ -283,12 +293,12 @@ export class PonccNewComponent implements OnInit, AfterViewInit {
                 ${value}
               </span>
             `;
-          },
+                },
 
-          customTooltip: {
-            useRegularTooltip: true,
-            // useRegularTooltipFromCellTextOnly: true,
-          },
+                customTooltip: {
+                    useRegularTooltip: true,
+                    // useRegularTooltipFromCellTextOnly: true,
+                },
             },
             {
                 id: 'TotalMoneyPO',
@@ -308,10 +318,10 @@ export class PonccNewComponent implements OnInit, AfterViewInit {
                 sortable: true,
                 filterable: true,
                 filter: { model: Filters['compoundInputText'] },
-                
-          formatter: (_row, _cell, value, _column, dataContext) => {
-            if (!value) return '';
-            return `
+
+                formatter: (_row, _cell, value, _column, dataContext) => {
+                    if (!value) return '';
+                    return `
               <span
                 title="${dataContext.CurrencyText}"
                 style="display:block; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;"
@@ -319,12 +329,12 @@ export class PonccNewComponent implements OnInit, AfterViewInit {
                 ${value}
               </span>
             `;
-          },
+                },
 
-          customTooltip: {
-            useRegularTooltip: true,
-            // useRegularTooltipFromCellTextOnly: true,
-          },
+                customTooltip: {
+                    useRegularTooltip: true,
+                    // useRegularTooltipFromCellTextOnly: true,
+                },
             },
             {
                 id: 'CurrencyRate',
@@ -344,10 +354,10 @@ export class PonccNewComponent implements OnInit, AfterViewInit {
                 sortable: true,
                 filterable: true,
                 filter: { model: Filters['compoundInputText'] },
-                
-          formatter: (_row, _cell, value, _column, dataContext) => {
-            if (!value) return '';
-            return `
+
+                formatter: (_row, _cell, value, _column, dataContext) => {
+                    if (!value) return '';
+                    return `
               <span
                 title="${dataContext.CurrencyRate}"
                 style="display:block; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;"
@@ -355,12 +365,12 @@ export class PonccNewComponent implements OnInit, AfterViewInit {
                 ${value}
               </span>
             `;
-          },
+                },
 
-          customTooltip: {
-            useRegularTooltip: true,
-            // useRegularTooltipFromCellTextOnly: true,
-          },
+                customTooltip: {
+                    useRegularTooltip: true,
+                    // useRegularTooltipFromCellTextOnly: true,
+                },
             },
             {
                 id: 'FullName',
@@ -370,10 +380,10 @@ export class PonccNewComponent implements OnInit, AfterViewInit {
                 sortable: true,
                 filterable: true,
                 filter: { model: Filters['compoundInputText'] },
-                
-          formatter: (_row, _cell, value, _column, dataContext) => {
-            if (!value) return '';
-            return `
+
+                formatter: (_row, _cell, value, _column, dataContext) => {
+                    if (!value) return '';
+                    return `
               <span
                 title="${dataContext.FullName}"
                 style="display:block; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;"
@@ -381,12 +391,12 @@ export class PonccNewComponent implements OnInit, AfterViewInit {
                 ${value}
               </span>
             `;
-          },
+                },
 
-          customTooltip: {
-            useRegularTooltip: true,
-            // useRegularTooltipFromCellTextOnly: true,
-          },
+                customTooltip: {
+                    useRegularTooltip: true,
+                    // useRegularTooltipFromCellTextOnly: true,
+                },
             },
             {
                 id: 'DeptSupplier',
@@ -417,10 +427,10 @@ export class PonccNewComponent implements OnInit, AfterViewInit {
                 sortable: true,
                 filterable: true,
                 filter: { model: Filters['compoundInputText'] },
-                
-          formatter: (_row, _cell, value, _column, dataContext) => {
-            if (!value) return '';
-            return `
+
+                formatter: (_row, _cell, value, _column, dataContext) => {
+                    if (!value) return '';
+                    return `
               <span
                 title="${dataContext.RulePayName}"
                 style="display:block; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;"
@@ -428,12 +438,12 @@ export class PonccNewComponent implements OnInit, AfterViewInit {
                 ${value}
               </span>
             `;
-          },
+                },
 
-          customTooltip: {
-            useRegularTooltip: true,
-            // useRegularTooltipFromCellTextOnly: true,
-          },
+                customTooltip: {
+                    useRegularTooltip: true,
+                    // useRegularTooltipFromCellTextOnly: true,
+                },
             },
             {
                 id: 'CompanyText',
@@ -443,10 +453,10 @@ export class PonccNewComponent implements OnInit, AfterViewInit {
                 sortable: true,
                 filterable: true,
                 filter: { model: Filters['compoundInputText'] },
-                
-          formatter: (_row, _cell, value, _column, dataContext) => {
-            if (!value) return '';
-            return `
+
+                formatter: (_row, _cell, value, _column, dataContext) => {
+                    if (!value) return '';
+                    return `
               <span
                 title="${dataContext.FedexAccount}"
                 style="display:block; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;"
@@ -454,12 +464,12 @@ export class PonccNewComponent implements OnInit, AfterViewInit {
                 ${value}
               </span>
             `;
-          },
+                },
 
-          customTooltip: {
-            useRegularTooltip: true,
-            // useRegularTooltipFromCellTextOnly: true,
-          },
+                customTooltip: {
+                    useRegularTooltip: true,
+                    // useRegularTooltipFromCellTextOnly: true,
+                },
             },
             {
                 id: 'FedexAccount',
@@ -478,10 +488,10 @@ export class PonccNewComponent implements OnInit, AfterViewInit {
                 sortable: true,
                 filterable: true,
                 filter: { model: Filters['compoundInputText'] },
-                
-          formatter: (_row, _cell, value, _column, dataContext) => {
-            if (!value) return '';
-            return `
+
+                formatter: (_row, _cell, value, _column, dataContext) => {
+                    if (!value) return '';
+                    return `
               <span
                 title="${dataContext.RuleIncoterm}"
                 style="display:block; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;"
@@ -489,12 +499,12 @@ export class PonccNewComponent implements OnInit, AfterViewInit {
                 ${value}
               </span>
             `;
-          },
+                },
 
-          customTooltip: {
-            useRegularTooltip: true,
-            // useRegularTooltipFromCellTextOnly: true,
-          },
+                customTooltip: {
+                    useRegularTooltip: true,
+                    // useRegularTooltipFromCellTextOnly: true,
+                },
             },
             {
                 id: 'SupplierVoucher',
@@ -504,10 +514,10 @@ export class PonccNewComponent implements OnInit, AfterViewInit {
                 sortable: true,
                 filterable: true,
                 filter: { model: Filters['compoundInputText'] },
-                
-          formatter: (_row, _cell, value, _column, dataContext) => {
-            if (!value) return '';
-            return `
+
+                formatter: (_row, _cell, value, _column, dataContext) => {
+                    if (!value) return '';
+                    return `
               <span
                 title="${dataContext.SupplierVoucher}"
                 style="display:block; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;"
@@ -515,12 +525,12 @@ export class PonccNewComponent implements OnInit, AfterViewInit {
                 ${value}
               </span>
             `;
-          },
+                },
 
-          customTooltip: {
-            useRegularTooltip: true,
-            // useRegularTooltipFromCellTextOnly: true,
-          },
+                customTooltip: {
+                    useRegularTooltip: true,
+                    // useRegularTooltipFromCellTextOnly: true,
+                },
             },
             {
                 id: 'OriginItem',
@@ -530,10 +540,10 @@ export class PonccNewComponent implements OnInit, AfterViewInit {
                 sortable: true,
                 filterable: true,
                 filter: { model: Filters['compoundInputText'] },
-                
-          formatter: (_row, _cell, value, _column, dataContext) => {
-            if (!value) return '';
-            return `
+
+                formatter: (_row, _cell, value, _column, dataContext) => {
+                    if (!value) return '';
+                    return `
               <span
                 title="${dataContext.OriginItem}"
                 style="display:block; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;"
@@ -541,12 +551,12 @@ export class PonccNewComponent implements OnInit, AfterViewInit {
                 ${value}
               </span>
             `;
-          },
+                },
 
-          customTooltip: {
-            useRegularTooltip: true,
-            // useRegularTooltipFromCellTextOnly: true,
-          },
+                customTooltip: {
+                    useRegularTooltip: true,
+                    // useRegularTooltipFromCellTextOnly: true,
+                },
             },
             {
                 id: 'Note',
@@ -556,10 +566,10 @@ export class PonccNewComponent implements OnInit, AfterViewInit {
                 sortable: true,
                 filterable: true,
                 filter: { model: Filters['compoundInputText'] },
-                
-          formatter: (_row, _cell, value, _column, dataContext) => {
-            if (!value) return '';
-            return `
+
+                formatter: (_row, _cell, value, _column, dataContext) => {
+                    if (!value) return '';
+                    return `
               <span
                 title="${dataContext.Note}"
                 style="display:block; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;"
@@ -567,12 +577,12 @@ export class PonccNewComponent implements OnInit, AfterViewInit {
                 ${value}
               </span>
             `;
-          },
+                },
 
-          customTooltip: {
-            useRegularTooltip: true,
-            // useRegularTooltipFromCellTextOnly: true,
-          },
+                customTooltip: {
+                    useRegularTooltip: true,
+                    // useRegularTooltipFromCellTextOnly: true,
+                },
             },
             {
                 id: 'POTypeText',
@@ -582,10 +592,10 @@ export class PonccNewComponent implements OnInit, AfterViewInit {
                 sortable: true,
                 filterable: true,
                 filter: { model: Filters['compoundInputText'] },
-                
-          formatter: (_row, _cell, value, _column, dataContext) => {
-            if (!value) return '';
-            return `
+
+                formatter: (_row, _cell, value, _column, dataContext) => {
+                    if (!value) return '';
+                    return `
               <span
                 title="${dataContext.POTypeText}"
                 style="display:block; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;"
@@ -593,12 +603,12 @@ export class PonccNewComponent implements OnInit, AfterViewInit {
                 ${value}
               </span>
             `;
-          },
+                },
 
-          customTooltip: {
-            useRegularTooltip: true,
-            // useRegularTooltipFromCellTextOnly: true,
-          },
+                customTooltip: {
+                    useRegularTooltip: true,
+                    // useRegularTooltipFromCellTextOnly: true,
+                },
             },
         ];
 
@@ -621,10 +631,10 @@ export class PonccNewComponent implements OnInit, AfterViewInit {
                 sortable: true,
                 filterable: true,
                 filter: { model: Filters['compoundInputText'] },
-                
-          formatter: (_row, _cell, value, _column, dataContext) => {
-            if (!value) return '';
-            return `
+
+                formatter: (_row, _cell, value, _column, dataContext) => {
+                    if (!value) return '';
+                    return `
               <span
                 title="${dataContext.ProductName}"
                 style="display:block; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;"
@@ -632,12 +642,12 @@ export class PonccNewComponent implements OnInit, AfterViewInit {
                 ${value}
               </span>
             `;
-          },
+                },
 
-          customTooltip: {
-            useRegularTooltip: true,
-            // useRegularTooltipFromCellTextOnly: true,
-          },
+                customTooltip: {
+                    useRegularTooltip: true,
+                    // useRegularTooltipFromCellTextOnly: true,
+                },
             },
             {
                 id: 'ProductName',
@@ -647,10 +657,10 @@ export class PonccNewComponent implements OnInit, AfterViewInit {
                 sortable: true,
                 filterable: true,
                 filter: { model: Filters['compoundInputText'] },
-                
-          formatter: (_row, _cell, value, _column, dataContext) => {
-            if (!value) return '';
-            return `
+
+                formatter: (_row, _cell, value, _column, dataContext) => {
+                    if (!value) return '';
+                    return `
               <span
                 title="${dataContext.ProductName}"
                 style="display:block; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;"
@@ -658,12 +668,12 @@ export class PonccNewComponent implements OnInit, AfterViewInit {
                 ${value}
               </span>
             `;
-          },
+                },
 
-          customTooltip: {
-            useRegularTooltip: true,
-            // useRegularTooltipFromCellTextOnly: true,
-          },
+                customTooltip: {
+                    useRegularTooltip: true,
+                    // useRegularTooltipFromCellTextOnly: true,
+                },
             },
             {
                 id: 'ProductNewCode',
@@ -673,10 +683,10 @@ export class PonccNewComponent implements OnInit, AfterViewInit {
                 sortable: true,
                 filterable: true,
                 filter: { model: Filters['compoundInputText'] },
-                
-          formatter: (_row, _cell, value, _column, dataContext) => {
-            if (!value) return '';
-            return `
+
+                formatter: (_row, _cell, value, _column, dataContext) => {
+                    if (!value) return '';
+                    return `
               <span
                 title="${dataContext.ProductNewCode}"
                 style="display:block; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;"
@@ -684,12 +694,12 @@ export class PonccNewComponent implements OnInit, AfterViewInit {
                 ${value}
               </span>
             `;
-          },
+                },
 
-          customTooltip: {
-            useRegularTooltip: true,
-            // useRegularTooltipFromCellTextOnly: true,
-          },
+                customTooltip: {
+                    useRegularTooltip: true,
+                    // useRegularTooltipFromCellTextOnly: true,
+                },
             },
             {
                 id: 'ProductGroupName',
@@ -699,10 +709,10 @@ export class PonccNewComponent implements OnInit, AfterViewInit {
                 sortable: true,
                 filterable: true,
                 filter: { model: Filters['compoundInputText'] },
-                
-          formatter: (_row, _cell, value, _column, dataContext) => {
-            if (!value) return '';
-            return `
+
+                formatter: (_row, _cell, value, _column, dataContext) => {
+                    if (!value) return '';
+                    return `
               <span
                 title="${dataContext.ProductGroupName}"
                 style="display:block; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;"
@@ -710,12 +720,12 @@ export class PonccNewComponent implements OnInit, AfterViewInit {
                 ${value}
               </span>
             `;
-          },
+                },
 
-          customTooltip: {
-            useRegularTooltip: true,
-            // useRegularTooltipFromCellTextOnly: true,
-          },
+                customTooltip: {
+                    useRegularTooltip: true,
+                    // useRegularTooltipFromCellTextOnly: true,
+                },
             },
             {
                 id: 'ProductCodeOfSupplier',
@@ -725,10 +735,10 @@ export class PonccNewComponent implements OnInit, AfterViewInit {
                 sortable: true,
                 filterable: true,
                 filter: { model: Filters['compoundInputText'] },
-                
-          formatter: (_row, _cell, value, _column, dataContext) => {
-            if (!value) return '';
-            return `
+
+                formatter: (_row, _cell, value, _column, dataContext) => {
+                    if (!value) return '';
+                    return `
               <span
                 title="${dataContext.ProductCodeOfSupplier}"
                 style="display:block; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;"
@@ -736,12 +746,12 @@ export class PonccNewComponent implements OnInit, AfterViewInit {
                 ${value}
               </span>
             `;
-          },
+                },
 
-          customTooltip: {
-            useRegularTooltip: true,
-            // useRegularTooltipFromCellTextOnly: true,
-          },
+                customTooltip: {
+                    useRegularTooltip: true,
+                    // useRegularTooltipFromCellTextOnly: true,
+                },
             },
             {
                 id: 'ParentProductCode',
@@ -751,10 +761,10 @@ export class PonccNewComponent implements OnInit, AfterViewInit {
                 sortable: true,
                 filterable: true,
                 filter: { model: Filters['compoundInputText'] },
-                
-          formatter: (_row, _cell, value, _column, dataContext) => {
-            if (!value) return '';
-            return `
+
+                formatter: (_row, _cell, value, _column, dataContext) => {
+                    if (!value) return '';
+                    return `
               <span
                 title="${dataContext.ParentProductCode}"
                 style="display:block; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;"
@@ -762,12 +772,12 @@ export class PonccNewComponent implements OnInit, AfterViewInit {
                 ${value}
               </span>
             `;
-          },
+                },
 
-          customTooltip: {
-            useRegularTooltip: true,
-            // useRegularTooltipFromCellTextOnly: true,
-          },
+                customTooltip: {
+                    useRegularTooltip: true,
+                    // useRegularTooltipFromCellTextOnly: true,
+                },
             },
             {
                 id: 'ProjectCode',
@@ -777,10 +787,10 @@ export class PonccNewComponent implements OnInit, AfterViewInit {
                 sortable: true,
                 filterable: true,
                 filter: { model: Filters['compoundInputText'] },
-                
-          formatter: (_row, _cell, value, _column, dataContext) => {
-            if (!value) return '';
-            return `
+
+                formatter: (_row, _cell, value, _column, dataContext) => {
+                    if (!value) return '';
+                    return `
               <span
                 title="${dataContext.ProjectCode}"
                 style="display:block; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;"
@@ -788,12 +798,12 @@ export class PonccNewComponent implements OnInit, AfterViewInit {
                 ${value}
               </span>
             `;
-          },
+                },
 
-          customTooltip: {
-            useRegularTooltip: true,
-            // useRegularTooltipFromCellTextOnly: true,
-          },
+                customTooltip: {
+                    useRegularTooltip: true,
+                    // useRegularTooltipFromCellTextOnly: true,
+                },
             },
             {
                 id: 'ProjectName',
@@ -803,10 +813,10 @@ export class PonccNewComponent implements OnInit, AfterViewInit {
                 sortable: true,
                 filterable: true,
                 filter: { model: Filters['compoundInputText'] },
-                
-          formatter: (_row, _cell, value, _column, dataContext) => {
-            if (!value) return '';
-            return `
+
+                formatter: (_row, _cell, value, _column, dataContext) => {
+                    if (!value) return '';
+                    return `
               <span
                 title="${dataContext.ProjectName}"
                 style="display:block; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;"
@@ -814,13 +824,13 @@ export class PonccNewComponent implements OnInit, AfterViewInit {
                 ${value}
               </span>
             `;
-          },
-
-          customTooltip: {
-            useRegularTooltip: true,
-            // useRegularTooltipFromCellTextOnly: true,
-          },
                 },
+
+                customTooltip: {
+                    useRegularTooltip: true,
+                    // useRegularTooltipFromCellTextOnly: true,
+                },
+            },
             {
                 id: 'UnitName',
                 name: 'ĐVT',
@@ -829,10 +839,10 @@ export class PonccNewComponent implements OnInit, AfterViewInit {
                 sortable: true,
                 filterable: true,
                 filter: { model: Filters['compoundInputText'] },
-                
-          formatter: (_row, _cell, value, _column, dataContext) => {
-            if (!value) return '';
-            return `
+
+                formatter: (_row, _cell, value, _column, dataContext) => {
+                    if (!value) return '';
+                    return `
               <span
                 title="${dataContext.UnitName}"
                 style="display:block; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;"
@@ -840,12 +850,12 @@ export class PonccNewComponent implements OnInit, AfterViewInit {
                 ${value}
               </span>
             `;
-          },
+                },
 
-          customTooltip: {
-            useRegularTooltip: true,
-            // useRegularTooltipFromCellTextOnly: true,
-          },
+                customTooltip: {
+                    useRegularTooltip: true,
+                    // useRegularTooltipFromCellTextOnly: true,
+                },
             },
             {
                 id: 'QtyRequest',
@@ -1047,10 +1057,10 @@ export class PonccNewComponent implements OnInit, AfterViewInit {
                 sortable: true,
                 filterable: true,
                 filter: { model: Filters['compoundInputText'] },
-                
-          formatter: (_row, _cell, value, _column, dataContext) => {
-            if (!value) return '';
-            return `
+
+                formatter: (_row, _cell, value, _column, dataContext) => {
+                    if (!value) return '';
+                    return `
               <span
                 title="${dataContext.Note}"
                 style="display:block; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;"
@@ -1058,12 +1068,12 @@ export class PonccNewComponent implements OnInit, AfterViewInit {
                 ${value}
               </span>
             `;
-          },
+                },
 
-          customTooltip: {
-            useRegularTooltip: true,
-            // useRegularTooltipFromCellTextOnly: true,
-          },
+                customTooltip: {
+                    useRegularTooltip: true,
+                    // useRegularTooltipFromCellTextOnly: true,
+                },
             },
         ];
     }
@@ -2608,7 +2618,7 @@ export class PonccNewComponent implements OnInit, AfterViewInit {
 
         return docDefinition;
     }
-        formatNumber(num: number, digits: number = 2) {
+    formatNumber(num: number, digits: number = 2) {
         num = num || 0;
         return num.toLocaleString('vi-VN', {
             minimumFractionDigits: digits,
@@ -2719,7 +2729,7 @@ export class PonccNewComponent implements OnInit, AfterViewInit {
     }
 
     toggleSeal(tab: any) {
-               this.srv.printPO(tab.id, tab.isShowSign).subscribe({
+        this.srv.printPO(tab.id, tab.isShowSign).subscribe({
             next: (response) => {
                 this.dataPrint = response.data;
 
@@ -2771,7 +2781,7 @@ export class PonccNewComponent implements OnInit, AfterViewInit {
             console.error("Chưa có PDF cho tab này");
             return;
         }
-         let defaultTitle = this.language === 'vi'
+        let defaultTitle = this.language === 'vi'
             ? 'PONCCReportVietnamese'
             : 'PONCCReportEnglish';
         let title = tab.docDefinition?.info?.title || defaultTitle;

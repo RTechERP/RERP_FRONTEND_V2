@@ -192,6 +192,16 @@ export class EmployeeLoginManagerComponent implements OnInit, OnChanges {
       formData.UserID = selectedEmployee.UserID
       formData.Status = formData.HasUser;
     }
+    
+    // Nếu không chọn TeamID thì set = 0
+    if (!formData.TeamID) {
+      formData.TeamID = 0;
+    }
+    
+    // Nếu không có UserID thì set = 0
+    if (!formData.UserID) {
+      formData.UserID = 0;
+    }
 
     this.employeeService.saveLoginInfo(formData).subscribe({
       next: () => {

@@ -269,6 +269,7 @@
                   <nz-form-item class="mb-0">
                     <nz-form-label [nzSpan]="24">Giới tính<span class="text-danger ps-1">*</span></nz-form-label>
                     <nz-select formControlName="GioiTinh" style="width: 100%" nzPlaceHolder="Nhập giới tính">
+                      
                       <nz-option [nzValue]="0" nzLabel="Nữ"></nz-option>
                       <nz-option [nzValue]="1" nzLabel="Nam"></nz-option>
                       <nz-option [nzValue]="2" nzLabel="Khác"></nz-option>
@@ -483,9 +484,8 @@
                           </nz-form-control>
                         </nz-form-item>
                         <nz-form-item class="mb-0">
-                          <nz-form-label [nzSpan]="24">Địa chỉ thường trú (Theo sổ hộ khẩu)
-                            <span class="text-danger ps-1">*</span></nz-form-label>
-                          <nz-form-control [nzSpan]="24" nzErrorTip="Vui lòng địa chỉ thường trú (Theo số hộ khẩu)">
+                          <nz-form-label [nzSpan]="24">Địa chỉ thường trú (Theo sổ hộ khẩu)</nz-form-label>
+                          <nz-form-control [nzSpan]="24">
                             <input nz-input formControlName="DcThuongTru"
                               placeholder="Nhập địa chỉ thường trú (Theo số hộ khẩu)" />
                           </nz-form-control>
@@ -533,9 +533,8 @@
                           </nz-form-control>
                         </nz-form-item>
                         <nz-form-item class="mb-0">
-                          <nz-form-label [nzSpan]="24">Địa chỉ tạm trú (Theo sổ hộ khẩu)
-                            <span class="text-danger ps-1">*</span></nz-form-label>
-                          <nz-form-control [nzSpan]="24" nzErrorTip="Vui lòng địa chỉ tạm trú (Theo số hộ khẩu)">
+                          <nz-form-label [nzSpan]="24">Địa chỉ tạm trú (Theo sổ hộ khẩu)</nz-form-label>
+                          <nz-form-control [nzSpan]="24">
                             <input nz-input formControlName="DcTamTru"
                               placeholder="Nhập địa chỉ tạm trú (Theo số hộ khẩu)" />
                           </nz-form-control>

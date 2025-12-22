@@ -204,7 +204,7 @@ export class EmployeeComponent implements OnInit, AfterViewInit {
       // Thông tin cá nhân
       BirthOfDate: ['', [Validators.required]],
       NoiSinh: ['', [Validators.required]],
-      GioiTinh: [0, [Validators.required]],
+      GioiTinh: [null, [Validators.required]],
       DanToc: ['', [Validators.required]],
       TonGiao: ['', [Validators.required]],
       QuocTich: ['', [Validators.required]],
@@ -1995,7 +1995,7 @@ export class EmployeeComponent implements OnInit, AfterViewInit {
       // Thông tin cá nhân
       BirthOfDate: '',
       NoiSinh: '',
-      GioiTinh: 0,
+      GioiTinh: null,
       DanToc: '',
       TonGiao: '',
       QuocTich: '',
@@ -2146,7 +2146,7 @@ export class EmployeeComponent implements OnInit, AfterViewInit {
       ChucVuHDID: this.selectedEmployee.ChucVuHDID,
       ChuVuID: this.selectedEmployee.ChuVuID,
       DepartmentID: this.selectedEmployee.DepartmentID,
-      DvBHXH: this.selectedEmployee.DvBHXH,
+      DvBHXH: this.selectedEmployee.DvBHXH||"",
       DiaDiemLamViec: this.selectedEmployee.DiaDiemLamViec,
       StartWorking: this.selectedEmployee.StartWorking,
       EmployeeTeamID: this.selectedEmployee.EmployeeTeamID,

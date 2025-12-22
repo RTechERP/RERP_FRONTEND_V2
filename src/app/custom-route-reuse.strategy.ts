@@ -27,6 +27,14 @@ export class CustomRouteReuseStrategy implements RouteReuseStrategy {
         return future.routeConfig === curr.routeConfig;
     }
 
+    clear(route: string) {
+        this.handlers.delete(route);
+    }
+
+    clearAll() {
+        this.handlers.clear();
+    }
+
     private getKey(route: ActivatedRouteSnapshot): string {
         return route.routeConfig?.path + JSON.stringify(route.params);
     }

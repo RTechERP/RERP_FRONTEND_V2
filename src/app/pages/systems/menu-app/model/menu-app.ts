@@ -4,6 +4,7 @@ export class MenuApp {
     Code?: string | null = '';
     Title?: string | null = '';
     Router?: string | null = '';
+    QueryParam?: string | null = '';
     Icon?: string | null = '';
     ParentID?: number | null = 0;
     CreatedDate?: Date | null = null;

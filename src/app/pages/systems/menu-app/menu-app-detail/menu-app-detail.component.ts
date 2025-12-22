@@ -1,4 +1,4 @@
-import { Component, Input } from '@angular/core';
+import { Component, ElementRef, Input, ViewChild } from '@angular/core';
 import { FormGroup, FormsModule, NonNullableFormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { NgbActiveModal } from '@ng-bootstrap/ng-bootstrap';
 import { NzNotificationService } from 'ng-zorro-antd/notification';
@@ -53,10 +53,14 @@ export class MenuAppDetailComponent {
 
     //Khai báo biến slickgrid
     angularGrid!: AngularGridInstance;
-    gridData: any;
+    grdData: any;
     columnDefinitions: Column[] = [];
     gridOptions: GridOption = {};
     userGroups: any[] = [];
+
+    @ViewChild('grid-container-detail', { static: true })
+    gridContainerDetail!: ElementRef;
+
 
     constructor(
         public activeModal: NgbActiveModal,
@@ -79,6 +83,7 @@ export class MenuAppDetailComponent {
             Code: this.fb.control(this.menu.Code, [Validators.required]),
             Title: this.fb.control(this.menu.Title, [Validators.required]),
             Router: this.fb.control(this.menu.Router),
+            QueryParam: this.fb.control(this.menu.QueryParam),
             Icon: this.fb.control(this.menu.Icon),
             ParentID: this.fb.control(this.menu.ParentID),
         });
@@ -113,7 +118,7 @@ export class MenuAppDetailComponent {
         this.gridOptions = {
             enableAutoResize: true,
             autoResize: {
-                container: '.grid-container',
+                container: '.grid-container-detail',
                 calculateAvailableSizeBy: 'container',
                 resizeDetection: 'container',
             },
@@ -138,20 +143,22 @@ export class MenuAppDetailComponent {
 
     angularGridReady(angularGrid: AngularGridInstance) {
         this.angularGrid = angularGrid;
-        this.gridData = angularGrid?.slickGrid || {};
+        this.grdData = angularGrid?.slickGrid || {};
     }
 
     getMenus() {
-        this.menuService.getAll().subscribe({
+        let keyword = '';
+        this.menuService.getAll(keyword).subscribe({
             next: (repsonse) => {
 
                 const menus = repsonse.data.menus;
                 this.userGroups = repsonse.data.userGroups;
 
-                let stt = Math.max(...menus.map((x: any) => x.STT ?? 0));
-
-                this.validateForm.get('STT')?.setValue(stt + 1);
-                this.validateForm.get('Code')?.setValue(`M${stt + 1}`);
+                if ((this.menu.ID || 0) <= 0) {
+                    let stt = Math.max(...menus.map((x: any) => x.STT ?? 0));
+                    this.validateForm.get('STT')?.setValue(stt + 1);
+                    this.validateForm.get('Code')?.setValue(`M${stt + 1}`);
+                }
 
                 this.userGroups = this.userGroups.map((x: any) => ({
                     ...x,
@@ -190,15 +197,6 @@ export class MenuAppDetailComponent {
     }
 
     submitForm() {
-
-        const selectedData = this.angularGrid.gridService.getSelectedRows();
-        const userGroupSelecteds = selectedData.map((idx: number) => {
-            const item = this.gridData.getDataItem(idx);
-            return item;
-        });
-
-
-
         if (!this.validateForm.valid) {
             Object.values(this.validateForm.controls).forEach(control => {
                 if (control.invalid) {
@@ -208,7 +206,15 @@ export class MenuAppDetailComponent {
             });
         } else {
 
+            console.log(this.angularGrid);
+            const selectedData = this.angularGrid.gridService.getSelectedRows();
+            const userGroupSelecteds = selectedData.map((idx: number) => {
+                const item = this.grdData.getDataItem(idx);
+                return item;
+            });
+
             const menu = {
+                ...this.menu,
                 ...this.validateForm.getRawValue(),
                 MenuAppUserGroupLinks: userGroupSelecteds.map((x: any) => ({
                     UserGroupID: x.ID
@@ -232,17 +238,17 @@ export class MenuAppDetailComponent {
     }
 
 
-    handleRowSelection(e: Event, args: OnSelectedRowsChangedEventArgs) {
-        if (Array.isArray(args.rows) && this.gridData) {
+    // handleRowSelection(e: Event, args: OnSelectedRowsChangedEventArgs) {
+    //     if (Array.isArray(args.rows) && this.gridData) {
 
-            console.log('multiple row checkbox selected', event, args);
+    //         console.log('multiple row checkbox selected', event, args);
 
-            const item = args.rows.map((idx: number) => {
-                const item = this.gridData.getDataItem(idx);
-                return item;
-            });
+    //         const item = args.rows.map((idx: number) => {
+    //             const item = this.gridData.getDataItem(idx);
+    //             return item;
+    //         });
 
-            console.log('item selected:', item);
-        }
-    }
+    //         console.log('item selected:', item);
+    //     }
+    // }
 }

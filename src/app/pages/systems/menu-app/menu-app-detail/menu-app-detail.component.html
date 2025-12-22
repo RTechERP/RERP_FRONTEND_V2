@@ -9,8 +9,8 @@
                 <div nz-col nzXs="24" nzSm="12" nzMd="6" nzLg="8">
                     <nz-form-item>
                         <nz-form-label>STT<span class="text-danger ps-1">(*)</span></nz-form-label>
-                        <nz-form-control nzErrorTip="Vui lòng nhập STT">
-                            <nz-input-number class="w-100" [formControlName]="'STT'" [nzMin]="1" [nzMax]="10"
+                        <nz-form-control nzErrorTip="Stt phải >=1 và <= 99999">
+                            <nz-input-number class="w-100" [formControlName]="'STT'" [nzMin]="1" [nzMax]="99999"
                                 [nzStep]="1"></nz-input-number>
                         </nz-form-control>
                     </nz-form-item>
@@ -52,7 +52,7 @@
 
 
             <div nz-row [nzGutter]="16">
-                <div nz-col nzXs="24" nzSm="12" nzMd="6" nzLg="12">
+                <div nz-col nzXs="24" nzSm="12" nzMd="6" nzLg="8">
                     <nz-form-item>
                         <nz-form-label>Router</nz-form-label>
                         <nz-form-control nzErrorTip="">
@@ -68,7 +68,23 @@
                         </nz-form-control>
                     </nz-form-item>
                 </div>
-                <div nz-col nzXs="24" nzSm="12" nzMd="6" nzLg="12">
+                <div nz-col nzXs="24" nzSm="12" nzMd="6" nzLg="8">
+                    <nz-form-item>
+                        <nz-form-label>Param</nz-form-label>
+                        <nz-form-control nzErrorTip="">
+                            <nz-input-group [nzSuffix]="inputClearTpl">
+                                <input type="text" nz-input [formControlName]="'QueryParam'" placeholder="" />
+                            </nz-input-group>
+                            <ng-template #inputClearTpl>
+                                @if (inputValue) {
+                                <span nz-icon class="ant-input-clear-icon" nzTheme="fill" nzType="close-circle"
+                                    (click)="inputValue = null"></span>
+                                }
+                            </ng-template>
+                        </nz-form-control>
+                    </nz-form-item>
+                </div>
+                <div nz-col nzXs="24" nzSm="12" nzMd="6" nzLg="8">
                     <nz-form-item>
                         <nz-form-label>Icon</nz-form-label>
                         <nz-form-control nzErrorTip="">
@@ -101,8 +117,8 @@
         </form>
 
 
-        <div class="grid-container border" style="height:30vh;">
-            <angular-slickgrid gridId="grdData" [columns]="columnDefinitions" [options]="gridOptions"
+        <div class="grid-container-detail border" style="height:30vh;">
+            <angular-slickgrid gridId="grdDetail" [columns]="columnDefinitions" [options]="gridOptions"
                 [dataset]="userGroups" (onAngularGridCreated)="angularGridReady($event.detail)">
             </angular-slickgrid>
 

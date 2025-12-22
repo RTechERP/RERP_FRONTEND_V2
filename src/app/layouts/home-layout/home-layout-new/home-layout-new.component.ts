@@ -16,6 +16,9 @@ import { NzGridModule } from 'ng-zorro-antd/grid';
 import { NzCalendarModule } from 'ng-zorro-antd/calendar';
 import { NOTIFICATION_TITLE } from '../../../app.config';
 import { FormsModule } from '@angular/forms';
+import { MenuAppService } from '../../../pages/systems/menu-app/menu-app.service';
+import { environment } from '../../../../environments/environment';
+import { LayoutEventService } from '../../layout-event.service';
 
 @Component({
     selector: 'app-home-layout-new',
@@ -36,7 +39,7 @@ import { FormsModule } from '@angular/forms';
 export class HomeLayoutNewComponent implements OnInit {
 
     notifItems: NotifyItem[] = [];
-    menus: MenuItem[] = [];
+    menus: any[] = [];
     menuApproves: any = {};
     menuPersons: any[] = [];
     menuWeekplans: any = {};
@@ -88,23 +91,21 @@ export class HomeLayoutNewComponent implements OnInit {
         private router: Router,
         private appUserService: AppUserService,
         public menuService: MenuService,
+        public menuAppService: MenuAppService,
         private injector: Injector,
-        private permissionService: PermissionService
+        private permissionService: PermissionService,
+        private layoutEvent: LayoutEventService
     ) { }
 
     ngOnInit(): void {
+        this.getMenus();
         this.appUserService.user$.subscribe(() => {
             this.permissionService.refreshPermissions();
-            this.menus = this.menuService
-                .getMenus()
-                .sort((a, b) => (a.stt ?? 1) - (b.stt ?? 1));
+            // this.menus = this.menuService
+            //     .getMenus()
+            //     .sort((a, b) => (a.stt ?? 1) - (b.stt ?? 1));
 
-            this.menuApproves = this.menus.filter((x) => x.key == 'appvovedperson')[0];
 
-            var pesons: any[] = this.menus.filter((x) => x.key == 'person');
-            this.menuPersons = pesons[0].children.filter((x: any) => x.key == 'registerpayroll' || x.key == 'dailyreport' || x.key == 'registercommon');
-
-            this.menuWeekplans = pesons[0].children.filter((x: any) => x.key == 'planweek')[0];
 
             this.cdr.markForCheck?.();
 
@@ -114,14 +115,66 @@ export class HomeLayoutNewComponent implements OnInit {
         this.getEmployeeOnleaveAndWFH();
     }
 
+
+    getMenus() {
+        this.menuAppService.getAll().subscribe({
+            next: (response) => {
+
+                const map = new Map<number, any>();
+                // this.nodes = [];
+                // Tạo map trước
+                response.data.menus.forEach((item: any) => {
+                    map.set(item.ID, {
+                        STT: item.STT,
+                        Code: item.Code,
+                        Title: item.Title,
+                        Router: item.Router == '' ? '#' : `${environment.baseHref}/${item.Router}`,
+                        Icon: `${environment.host}api/share/software/icon/${item.Icon}`,
+                        IsPermission: item.IsPermission,
+                        ParentID: item.ParentID,
+                        Children: []
+                    });
+                });
+
+                // Gắn cha – con
+                response.data.menus.forEach((item: any) => {
+                    const node = map.get(item.ID);
+
+                    if (item.ParentID && map.has(item.ParentID)) {
+                        const parent = map.get(item.ParentID);
+                        parent.Children.push(node);
+                    } else {
+                        this.menus.push(node);
+                    }
+                });
+
+                // console.log(this.menus);
+
+                this.menuApproves = this.menus.filter((x) => x.Code == 'appvovedperson')[0];
+
+                var pesons: any[] = this.menus.filter((x) => x.Code == 'M6');
+                // this.menuPersons = pesons[0].children.filter((x: any) => x.key == 'registerpayroll' || x.key == 'dailyreport' || x.key == 'registercommon');
+                this.menuPersons = this.menus.filter((x) => x.Code == 'M6');
+
+                // console.log('this.menuPersons', this.menuPersons);
+
+                // this.menuWeekplans = pesons[0].children.filter((x: any) => x.key == 'planweek')[0];
+            },
+            error: (err) => {
+                this.notification.error(NOTIFICATION_TITLE.error, err?.error?.message || err?.message);
+            },
+        })
+    }
+
+
     getHoliday(year: number, month: number): void {
         this.holidayService.getHolidays(month + 1, year).subscribe({
-            next: (response: any) => {
+            next: (response) => {
                 this.holidays = response.data.holidays;
                 this.scheduleWorkSaturdays = response.data.scheduleWorkSaturdays;
             },
-            error: (err: any) => {
-                this.notification.error(NOTIFICATION_TITLE.error, err.error.message);
+            error: (err) => {
+                this.notification.error(NOTIFICATION_TITLE.error, err?.error?.message || err?.message);
             },
         });
     }
@@ -155,30 +208,9 @@ export class HomeLayoutNewComponent implements OnInit {
 
 
     openModule(key: string) {
-        this.menuService.setMenuKey(key);
-        this.router.navigate(['/app']); // hoặc route tới MainLayout
+        this.layoutEvent.toggleMenu(key);
+        this.router.navigate(['/app']);
     }
-
-    // newTab(comp: Type<any>, title: string, data?: any) {
-    //     // console.log("comp:", comp);
-
-    //     const idx = this.dynamicTabs.findIndex((t) => t.title === title);
-    //     if (idx >= 0) {
-    //         this.selectedIndex = idx;
-    //         return;
-    //     }
-
-    //     const injector = Injector.create({
-    //         providers: [{ provide: 'tabData', useValue: data }],
-    //         parent: this.injector,
-    //     });
-
-    //     this.dynamicTabs = [...this.dynamicTabs, { title, comp, injector }];
-    //     setTimeout(() => (this.selectedIndex = this.dynamicTabs.length - 1));
-
-    //     // Lưu tabs vào localStorage
-    //     // this.saveTabs();
-    // }
 
     newTab(route: string, title: string, data?: any) {
         const idx = this.dynamicTabs.findIndex(t => t.route === route);

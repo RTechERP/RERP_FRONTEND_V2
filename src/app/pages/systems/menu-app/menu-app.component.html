@@ -1,10 +1,9 @@
 <p-menubar [model]="menuBars"> </p-menubar>
 
 
-<div class="grid-container border">
+<div class="grid-container border" style="height:89vh;">
     <angular-slickgrid gridId="grdData" [columns]="columnDefinitions" [options]="gridOptions" [dataset]="dataset"
         (onAngularGridCreated)="angularGridReady($event.detail)">
     </angular-slickgrid>
-
 
 </div>

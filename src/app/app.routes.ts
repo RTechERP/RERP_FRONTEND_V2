@@ -10,6 +10,8 @@ import { FoodOrderComponent } from './pages/hrm/food-order/food-order.component'
 import { DayOffComponent } from './pages/hrm/day-off/day-off.component';
 import { MenuApp } from './pages/systems/menu-app/model/menu-app';
 import { MenuAppComponent } from './pages/systems/menu-app/menu-app.component';
+import { InventoryComponent } from './pages/old/Sale/Inventory/inventory.component';
+import { CustomerComponent } from './pages/crm/customers/customer/customer.component';
 
 export const routes: Routes = [
     {
@@ -39,6 +41,8 @@ export const routes: Routes = [
             { path: 'datcom', component: FoodOrderComponent, canActivate: [authGuard] },
             { path: 'nghiphep', component: DayOffComponent, canActivate: [authGuard] },
             { path: 'menu', component: MenuAppComponent, canActivate: [authGuard] },
+            { path: 'tonkho', component: InventoryComponent, canActivate: [authGuard] },
+            { path: 'khachhang', component: CustomerComponent, canActivate: [authGuard] },
             //   { path: 'menu', component: MenusComponent, canActivate: [authGuard] },
             //   {
             //     path: 'project-partlist-price-request',

@@ -1,6 +1,6 @@
 import { CommonModule } from '@angular/common';
-import { Component, Input, OnInit } from '@angular/core';
-import { Params, Router, RouterLink, RouterOutlet } from '@angular/router';
+import { AfterViewInit, Component, Input, OnInit } from '@angular/core';
+import { Params, Router, RouteReuseStrategy, RouterLink, RouterOutlet } from '@angular/router';
 import { AuthService } from '../../auth/auth.service';
 import { NzIconModule } from 'ng-zorro-antd/icon';
 import { NzLayoutModule } from 'ng-zorro-antd/layout';
@@ -42,6 +42,12 @@ import {
 import { MenusComponent } from '../../pages/old/menus/menus.component';
 import { NzGridModule } from 'ng-zorro-antd/grid';
 import { ɵɵRouterOutlet } from "@angular/router/testing";
+import { MenuAppService } from '../../pages/systems/menu-app/menu-app.service';
+import { NOTIFICATION_TITLE } from '../../app.config';
+import { environment } from '../../../environments/environment';
+import { CustomRouteReuseStrategy } from '../../custom-route-reuse.strategy';
+import { LayoutEventService } from '../layout-event.service';
+import { take } from 'rxjs';
 
 type TabItem = {
     title: string;
@@ -49,6 +55,8 @@ type TabItem = {
     // injector?: Injector;
     data?: any; // Lưu data để so sánh unique key
     route: string;
+    queryParams?: any;    // vd: { warehouseCode: 'HN' }
+    key: string;
 };
 // export type BaseItem = {
 //   key: string;
@@ -105,7 +113,7 @@ const COMPONENT_TO_KEY: Map<Type<any>, string> = new Map(
     styleUrl: '../../app.component.css',
     standalone: true,
 })
-export class MainLayoutComponent implements OnInit {
+export class MainLayoutComponent implements OnInit, AfterViewInit {
     CustomerComponent = CustomerComponent;
     ProductRtcComponent = TbProductRtcComponent;
     ProjectComponent = ProjectComponent;
@@ -113,11 +121,14 @@ export class MainLayoutComponent implements OnInit {
         private auth: AuthService,
         private router: Router,
         public menuService: MenuService,
+        public menuAppService: MenuAppService,
         private notification: NzNotificationService,
         private injector: Injector,
         private menuEventService: MenuEventService,
+        private reuse: RouteReuseStrategy,
+        private layoutEvent: LayoutEventService
     ) {
-        this.menus = this.menuService.getMenus();
+        // this.menus = this.menuService.getMenus();
     }
     notificationComponent = AppNotifycationDropdownComponent;
     //#region Khai báo biến
@@ -126,9 +137,9 @@ export class MainLayoutComponent implements OnInit {
     isDatcom = false;
     selectedIndex = 0;
     trackKey = (_: number, x: any) => x?.key ?? x?.title ?? _;
-    isGroup = (m: MenuItem): m is GroupItem => m.kind === 'group';
-    isLeaf = (m: MenuItem): m is LeafItem => m.kind === 'leaf';
-    menus: MenuItem[] = [];
+    // isGroup = (m: MenuItem): m is GroupItem => m.kind === 'group';
+    // isLeaf = (m: MenuItem): m is LeafItem => m.kind === 'leaf';
+    menus: any[] = [];
     dynamicTabs: TabItem[] = [];
 
     menu: any = {};
@@ -183,20 +194,92 @@ export class MainLayoutComponent implements OnInit {
         // console.log(this.menus);
         // this.setOpenMenu(saved || null);
 
+        this.getMenus();
+
+        // console.log(' this.menuKey :', this.menuKey);
+
         this.menuService.menuKey$.subscribe((x) => {
             this.menuKey = x;
         });
+
         this.setOpenMenu(this.menuKey);
 
         // Khôi phục các tabs đã mở từ localStorage
         // this.restoreTabs();
 
-        // Subscribe vào event mở tab từ các component con
-        this.menuEventService.onOpenTab$.subscribe((tabData) => {
-            // this.newTab(tabData.comp, tabData.title, tabData.data);
+        // // Subscribe vào event mở tab từ các component con
+        // this.menuEventService.onOpenTab$.subscribe((tabData) => {
+        //     // this.newTab(tabData.comp, tabData.title, tabData.data);
+        // });
+
+
+    }
+
+    ngAfterViewInit(): void {
+        this.layoutEvent.toggleMenu$.pipe(take(1)).subscribe(key => {
+            // this.menuKey = key;
+            if (key) this.toggleMenu(key);
+
+            this.menuService.menuKey$.subscribe((key) => {
+                this.menuKey = key;
+            });
+            this.setOpenMenu(key);
         });
     }
 
+    getMenus() {
+        this.menuAppService.getAll().subscribe({
+            next: (response) => {
+
+                const map = new Map<number, any>();
+                // this.nodes = [];
+                // Tạo map trước
+                response.data.menus.forEach((item: any) => {
+                    map.set(item.ID, {
+                        id: item.ID,
+                        stt: item.STT,
+                        key: item.Code,
+                        title: item.Title,
+                        router: item.Router == '' ? '#' : `${environment.baseHref}/${item.Router}`,
+                        icon: `${environment.host}api/share/software/icon/${item.Icon}`,
+                        isPermission: item.IsPermission,
+                        ParentID: item.ParentID,
+                        children: [],
+                        isOpen: item.ParentID > 0,
+                        queryParams: (item.QueryParam || ''),
+                    });
+                });
+
+                // Gắn cha – con
+                response.data.menus.forEach((item: any) => {
+                    const node = map.get(item.ID);
+
+                    if (item.ParentID && map.has(item.ParentID)) {
+                        const parent = map.get(item.ParentID);
+                        parent.children.push(node);
+                    } else {
+                        this.menus.push(node);
+                    }
+                });
+
+
+                // console.log(this.menus);
+
+                this.layoutEvent.toggleMenu$.pipe(take(1)).subscribe(key => {
+                    // this.menuKey = key;
+                    if (key) this.toggleMenu(key);
+
+                    this.menuService.menuKey$.subscribe((key) => {
+                        this.menuKey = key;
+                    });
+                    this.setOpenMenu(key);
+                });
+            },
+            error: (err) => {
+                this.notification.error(NOTIFICATION_TITLE.error, err?.error?.message || err?.message);
+            },
+        })
+    }
 
     // newTab(comp: Type<any>, title: string, data?: any) {
     //     if (this.isMobile) {
@@ -223,22 +306,52 @@ export class MainLayoutComponent implements OnInit {
 
 
 
-    newTab(route: string, title: string) {
-        const idx = this.dynamicTabs.findIndex(t => t.route === route);
+    // newTab(route: string, title: string) {
+    //     const idx = this.dynamicTabs.findIndex(t => t.route === route);
 
+    //     if (idx >= 0) {
+    //         this.selectedIndex = idx;
+    //         this.router.navigateByUrl(route);
+    //         return;
+    //     }
+
+    //     this.dynamicTabs = [...this.dynamicTabs, { title, route }];
+
+    //     setTimeout(() => {
+    //         this.selectedIndex = this.dynamicTabs.length - 1;
+    //         this.router.navigateByUrl(route);
+    //     });
+    // }
+
+    newTab(route: string, title: string, queryParams?: any) {
+
+        // console.log('queryParams new tab:', queryParams, typeof queryParams);
+        queryParams = queryParams == '' ? '' : JSON.parse(queryParams);
+        const normalizedParams =
+            typeof queryParams === 'string'
+                ? undefined
+                : (queryParams && Object.keys(queryParams).length ? queryParams : undefined);
+        // const key = route + JSON.stringify(queryParams ?? {});
+        const key = route + JSON.stringify(normalizedParams ?? {});
+
+        const idx = this.dynamicTabs.findIndex(t => t.key === key);
         if (idx >= 0) {
             this.selectedIndex = idx;
-            this.router.navigateByUrl(route);
+            this.router.navigate([route], { queryParams });
             return;
         }
 
-        this.dynamicTabs = [...this.dynamicTabs, { title, route }];
+        this.dynamicTabs = [
+            ...this.dynamicTabs,
+            { title, route, queryParams, key }
+        ];
 
         setTimeout(() => {
             this.selectedIndex = this.dynamicTabs.length - 1;
-            this.router.navigateByUrl(route);
+            this.router.navigate([route], { queryParams });
         });
     }
+
 
 
     onTabChange(index: number) {
@@ -249,15 +362,44 @@ export class MainLayoutComponent implements OnInit {
     }
 
 
-    closeTab({ index }: { index: number }) {
+    // closeTab({ index }: { index: number }) {
+    //     this.dynamicTabs.splice(index, 1);
+    //     if (this.selectedIndex >= this.dynamicTabs.length)
+    //         this.selectedIndex = this.dynamicTabs.length - 1;
+
+    //     // Lưu tabs vào localStorage sau khi đóng
+    //     // this.saveTabs();
+    // }
+
+    closeTab(index: number): void {
+        const tab = this.dynamicTabs[index];
+        if (!tab) return;
+
+        // 1. Clear route cache (nếu có RouteReuseStrategy)
+        const reuse = this.reuse as CustomRouteReuseStrategy;
+        reuse?.clear(tab.route);
+
+        const isActive = this.selectedIndex === index;
+
+        // 2. Remove tab
         this.dynamicTabs.splice(index, 1);
-        if (this.selectedIndex >= this.dynamicTabs.length)
-            this.selectedIndex = this.dynamicTabs.length - 1;
 
-        // Lưu tabs vào localStorage sau khi đóng
-        // this.saveTabs();
+        // 3. Xử lý selectedIndex
+        if (this.dynamicTabs.length === 0) {
+            this.selectedIndex = 0;
+            this.router.navigateByUrl('/app'); // route mặc định
+            return;
+        }
+
+        if (isActive) {
+            const nextIndex = Math.max(index - 1, 0);
+            this.selectedIndex = nextIndex;
+            this.router.navigateByUrl(this.dynamicTabs[nextIndex].route);
+        } else if (this.selectedIndex > index) {
+            // đóng tab phía trước tab đang active
+            this.selectedIndex--;
+        }
     }
-
 
     logout() {
         this.auth.logout();
@@ -281,8 +423,10 @@ export class MainLayoutComponent implements OnInit {
 
     isMenuOpen = (key: string) =>
         this.menus.some((m) => m.key === key && m.isOpen);
+
     toggleMenu(key: string) {
         // this.menus.forEach((x) => (x.isOpen = false));
+
         const m = this.menus.find((x) => x.key === key);
         if (m) m.isOpen = !m.isOpen;
 

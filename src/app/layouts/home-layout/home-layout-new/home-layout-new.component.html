@@ -15,11 +15,11 @@
             <nz-dropdown-menu #appmenu="nzDropdownMenu">
                 <div class="app-launcher">
                     <div class="app-launcher-inner">
-                        @for (m of menus; track m.key) {
+                        @for (m of menus; track $index) {
 
-                        <a (click)="openModule(m.key)" *ngIf="m.isPermission">
-                            <img [src]="m.icon?.replace('24','64')" />
-                            <span class="mt-1">{{m.title}}</span>
+                        <a (click)="openModule(m.Code)" *ngIf="m.IsPermission">
+                            <img [src]="m.Icon" />
+                            <span class="mt-1">{{m.Title}}</span>
                         </a>
                         }
                     </div>
@@ -51,7 +51,7 @@
             </div>
 
             <div class="card-body p-0">
-                <ul class="list-group list-group-flush">
+                <!-- <ul class="list-group list-group-flush">
                     @for (item of menuApproves.children; track $index) {
                     <li class="list-group-item border-0" *ngIf="isLeaf(item) && item.isPermission && item.isOpen">
                         <a [routerLink]="'/datcom'">
@@ -78,7 +78,7 @@
                         </ul>
                     </li>
                     }
-                </ul>
+                </ul> -->
             </div>
         </div>
 
@@ -103,18 +103,37 @@
                     @for (item of menuPersons; track $index) {
                     <li class="list-group-item border-0 border-bottom">
                         <a class="text-uppercase text-dark">
-                            <img [src]="item.icon">
-                            <span>{{item.title}}</span>
+                            <img [src]="item.Icon">
+                            <span>{{item.Title}}</span>
                         </a>
                         <ul class="list-group">
-                            @for (c of item.children; track $index) {
-                            <li class="list-group-item border-0"
-                                [ngClass]="{'border-bottom':$index < item.children.length - 1,'':$index == item.children.length - 1}">
-                                <a href="/rerpweb/datcom" (click)="handleClickLink($event, '/datcom', 'Đặt cơm')">
-                                    <img [src]="c.icon">
-                                    <span> {{c.title}}</span>
+                            @for (c1 of item.Children; track $index) {
+
+                            <li class="list-group-item border-0 border-bottom">
+                                <a class="text-uppercase text-dark">
+                                    <img [src]="c1.Icon">
+                                    <span>{{c1.Title}}</span>
                                 </a>
+                                <ul class="list-group">
+                                    @for (c2 of c1.Children; track $index) {
+                                    <li class="list-group-item border-0"
+                                        [ngClass]="{'border-bottom':$index < c1.Children.length - 1,'':$index == c1.Children.length - 1}">
+                                        <a [href]="c2.Router" (click)="handleClickLink($event, c2.Router, c2.Title)">
+                                            <img [src]="c2.Icon">
+                                            <span> {{c2.Title}}</span>
+                                        </a>
+                                    </li>
+                                    }
+                                </ul>
                             </li>
+
+                            <!-- <li class="list-group-item border-0"
+                                [ngClass]="{'border-bottom':$index < item.Children.length - 1,'':$index == item.Children.length - 1}">
+                                <a href="/rerpweb/datcom" (click)="handleClickLink($event, c.Router, c.Title)">
+                                    <img [src]="c.Icon">
+                                    <span> {{c.Title}}</span>
+                                </a>
+                            </li> -->
                             }
                         </ul>
                     </li>
@@ -185,7 +204,7 @@
                 <h5 class="card-title m-0 text-uppercase fw-bold py-1">Kế hoạch tuần</h5>
             </div>
             <div class="card-body p-0">
-                <ul class="list-group list-group-flush">
+                <!-- <ul class="list-group list-group-flush">
                     @for (item of menuWeekplans.children; track $index) {
 
                     <li class="list-group-item border-0">
@@ -197,7 +216,7 @@
 
 
                     }
-                </ul>
+                </ul> -->
             </div>
         </div>
 

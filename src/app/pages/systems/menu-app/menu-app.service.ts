@@ -12,8 +12,8 @@ export class MenuAppService {
     private url = environment.host + 'api/menuapp';
     constructor(private http: HttpClient) { }
 
-    getAll(): Observable<any> {
-        return this.http.get<MenuApp>(this.url);
+    getAll(keyword: string = ''): Observable<any> {
+        return this.http.get<MenuApp>(this.url + `?keyword=${keyword}`);
     }
 
     saveData(menu: MenuApp): Observable<any> {

@@ -2,7 +2,7 @@ import { Component, Input, OnInit } from '@angular/core';
 import { FormGroup, FormsModule, NonNullableFormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { MenuApp } from './model/menu-app';
 import { CommonModule } from '@angular/common';
-import { AngularGridInstance, AngularSlickgridModule, Column, Filters, GridOption } from 'angular-slickgrid';
+import { AngularGridInstance, AngularSlickgridModule, Column, Filters, Formatters, GridOption } from 'angular-slickgrid';
 import { NzButtonModule } from 'ng-zorro-antd/button';
 import { NzCheckboxModule } from 'ng-zorro-antd/checkbox';
 import { NzDatePickerModule } from 'ng-zorro-antd/date-picker';
@@ -32,7 +32,7 @@ import { NOTIFICATION_TITLE } from '../../../app.config';
     templateUrl: './menu-app.component.html',
     styleUrl: './menu-app.component.css'
 })
-export class MenuAppComponent {
+export class MenuAppComponent implements OnInit {
 
     menuBars: MenuItem[] = [
         {
@@ -76,6 +76,10 @@ export class MenuAppComponent {
         private menuService: MenuAppService,
     ) { }
 
+    ngOnInit(): void {
+        this.initGrid();
+
+    }
 
     initGrid() {
         this.columnDefinitions = [
@@ -85,7 +89,7 @@ export class MenuAppComponent {
                 field: 'STT',
                 type: 'number',
                 sortable: true, filterable: true,
-                // formatter: Formatters.icon, params: { iconCssClass: 'mdi mdi-trash-can pointer' },
+                formatter: Formatters.tree,
                 filter: { model: Filters['compoundInputNumber'] }
 
             },
@@ -115,6 +119,16 @@ export class MenuAppComponent {
                 id: 'Router',
                 name: 'Router',
                 field: 'Router',
+                type: 'string',
+                sortable: true, filterable: true,
+                // formatter: Formatters.icon, params: { iconCssClass: 'mdi mdi-trash-can pointer' },
+                filter: { model: Filters['compoundInputText'] }
+
+            },
+            {
+                id: 'QueryParam',
+                name: 'Param',
+                field: 'QueryParam',
                 type: 'string',
                 sortable: true, filterable: true,
                 // formatter: Formatters.icon, params: { iconCssClass: 'mdi mdi-trash-can pointer' },
@@ -171,15 +185,17 @@ export class MenuAppComponent {
             enableTreeData: true,
             treeDataOptions: {
                 columnId: 'STT',           // the column where you will have the Tree with collapse/expand icons
-                // parentPropName: ,  // the parent/child key relation in your dataset
-                // identifierPropName: '_id',
+                parentPropName: 'parentId',  // the parent/child key relation in your dataset
+                initiallyCollapsed: false,
                 // roo:0,
                 levelPropName: 'treeLevel',  // optionally, you can define the tree level property name, it nothing is provided it will use "__treeLevel"
-                indentMarginLeft: 15,        // optionally provide the indent spacer width in pixel, for example if you provide 10 and your tree level is 2 then it will have 20px of indentation
+                indentMarginLeft: 25,        // optionally provide the indent spacer width in pixel, for example if you provide 10 and your tree level is 2 then it will have 20px of indentation
                 exportIndentMarginLeft: 4,   // similar to `indentMarginLeft` but represent a space instead of pixels for the Export CSV/Excel
             },
             multiColumnSort: false,
         };
+
+        this.loadData();
     }
 
     angularGridReady(angularGrid: AngularGridInstance) {
@@ -200,6 +216,28 @@ export class MenuAppComponent {
 
         modalRef.componentInstance.menu = menu;
 
+        modalRef.result.finally(() => {
+            this.loadData();
+        })
+
+    }
+
+    loadData() {
+        this.menuService.getAll().subscribe({
+            next: (response) => {
+                this.dataset = response.data.menus;
+                this.dataset = this.dataset.map((x) => ({
+                    ...x,
+                    id: x.ID,
+                    parentId: x.ParentID == 0 ? null : x.ParentID
+                }));
+
+                // console.log(this.dataset);
+            },
+            error: (err) => {
+                this.notification.error(NOTIFICATION_TITLE.error, err?.error?.message || err?.message);
+            },
+        })
     }
 
     onCreate() {
@@ -239,7 +277,7 @@ export class MenuAppComponent {
                 if (result.isConfirmed) {
                     const menu = {
                         ID: item.ID,
-                        IsDelete: true
+                        IsDeleted: true
                     }
 
                     this.menuService.saveData(menu).subscribe({

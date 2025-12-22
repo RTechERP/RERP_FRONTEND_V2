@@ -84,9 +84,11 @@ export class BillExportSyntheticComponent implements OnInit, AfterViewInit {
   selectedKhoTypes: number[] = [];
   cbbStatus: any = [
     { ID: -1, Name: '--Tất cả--' },
-    { ID: 0, Name: 'Phiếu nhập kho' },
-    { ID: 1, Name: 'Phiếu trả' },
-    { ID: 3, Name: 'Phiếu mượn NCC' },
+    { ID: 0, Name: 'Mượn' },
+    { ID: 1, Name: 'Tồn Kho' },
+    { ID: 2, Name: 'Đã Xuất Kho' },
+    { ID: 5, Name: 'Xuất trả NCC' },
+    { ID: 6, Name: 'Yêu cầu xuất kho' },
   ];
   @Input() warehouseCode: string = 'HN';
 

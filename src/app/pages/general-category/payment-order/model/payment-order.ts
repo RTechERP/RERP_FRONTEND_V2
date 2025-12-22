@@ -5,10 +5,10 @@ export class PaymentOrder {
     TypeOrder = 0;
     PaymentOrderTypeID = 0;
 
-    DateOrder = '';
+    DateOrder: Date | null = null;
     EmployeeID = 0;
     ReasonOrder = '';
-    DatePayment = '';
+    DatePayment: Date | null = null;
     ReceiverInfo = '';
 
     TypePayment = 0;
@@ -31,7 +31,7 @@ export class PaymentOrder {
     UpdatedBy: string | null = null;
     UpdatedDate: Date | null = null;
 
-    DeadlinePayment = '';
+    DeadlinePayment: Date | null = null;
     IsUrgent = false;
 
     PONCCID = 0;
@@ -41,7 +41,7 @@ export class PaymentOrder {
     TypeDocument = 0;
     NumberDocument = '';
 
-    IsSpecialOrder = false;
+    IsSpecialOrder: boolean | null = null;
     ProjectID = 0;
     IsBill = false;
 
@@ -86,19 +86,19 @@ export class PaymentOrder {
 
     ReasonRequestAppendFileHR = '';
     FullNameEmployee = '';
-    DateApprovedEmployee: string | null = null;
+    DateApprovedEmployee: Date | null = null;
 
     FullNameTBP = '';
-    DateApprovedTBP: string | null = null;
+    DateApprovedTBP: Date | null = null;
 
     FullNameHR = '';
-    DateApprovedHR: string | null = null;
+    DateApprovedHR: Date | null = null;
 
     FullNameKT = '';
-    DateApprovedKT: string | null = null;
+    DateApprovedKT: Date | null = null;
 
     FullNameBGD = '';
-    DateApprovedBGD: string | null = null;
+    DateApprovedBGD: Date | null = null;
 
     ReasonRequestAppendFileAC = '';
     StatusBankSlip = '';
@@ -114,6 +114,8 @@ export class PaymentOrder {
     TotalPage = 0;
     ApprovedTBPID = 0;
     ApprovedBGDID = 0;
+    PaymentOrderPOs: any[] = []
+    PaymentOrderBillNumbers: any[] = []
 
     // ===== Optional: constructor map từ object =====
     constructor(init?: Partial<PaymentOrder>) {
@@ -143,6 +145,7 @@ export class PaymentOrderDetail {
     TotalPaymentAmount: number | null = 0;
     PaymentPercentage: number | null = 0;
     IsDeleted = false;
+    PaymentOrderDetailUserTeamSales: any[] = []
 }
 
 

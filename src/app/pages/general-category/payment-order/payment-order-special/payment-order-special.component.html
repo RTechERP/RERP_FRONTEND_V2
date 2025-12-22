@@ -47,7 +47,8 @@
                             <nz-select nzShowSearch nzAllowClear nzPlaceHolder="Chọn khách hàng"
                                 [formControlName]="paymentOrderField.CustomerID.field">
                                 @for (item of customers; track item) {
-                                <nz-option nzLabel="{{item.NameNCC}}" nzValue="{{item.ID}}"></nz-option>
+                                <nz-option nzLabel="{{item.CustomerCode}} - {{item.CustomerName}}"
+                                    nzValue="{{item.ID}}"></nz-option>
                                 }
                             </nz-select>
                         </nz-form-control>
@@ -127,9 +128,10 @@
                         <nz-form-label>Số PO</nz-form-label>
                         <nz-form-control nzErrorTip="Chọn po">
                             <nz-select nzShowSearch nzAllowClear nzPlaceHolder="Chọn loại"
-                                [formControlName]="paymentOrderField.POCode.field">
+                                [formControlName]="'PaymentOrderPOs'" nzMode="multiple">
                                 @for (item of pokhs; track item) {
-                                <nz-option nzLabel="{{item.BillCode}}" nzValue="{{item.ID}}"></nz-option>
+                                <nz-option nzLabel="{{item.PONumber}} - {{item.POCode}}"
+                                    nzValue="{{item.ID}}"></nz-option>
                                 }
                             </nz-select>
                         </nz-form-control>
@@ -141,11 +143,10 @@
                     <nz-form-item>
                         <nz-form-label>Số hóa đơn</nz-form-label>
                         <nz-form-control nzErrorTip="">
-                            <nz-select nzShowSearch nzAllowClear nzPlaceHolder="Chọn dự án"
-                                [formControlName]="paymentOrderField.BillNumbers.field">
+                            <nz-select nzShowSearch nzAllowClear nzPlaceHolder=""
+                                [formControlName]="'PaymentOrderBillNumbers'" nzMode="multiple">
                                 @for (item of billBumbers; track item) {
-                                <nz-option nzLabel="{{item.ProjectCode}} - {{item.ProjectName}}"
-                                    nzValue="{{item.ID}}"></nz-option>
+                                <nz-option nzLabel="{{item.BillNumber}}" nzValue="{{item.BillNumber}}"></nz-option>
                                 }
                             </nz-select>
                         </nz-form-control>

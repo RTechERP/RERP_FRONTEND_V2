@@ -1795,6 +1795,7 @@ export class PaymentOrderComponent implements OnInit {
                 fullscreen: true,
             });
 
+            paymentOrder.IsSpecialOrder = true;
             modalRef.componentInstance.paymentOrder = paymentOrder;
         }
 

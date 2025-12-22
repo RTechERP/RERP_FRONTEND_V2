@@ -15,7 +15,7 @@ import { PaymentOrder, PaymentOrderDetailField, PaymentOrderField } from '../mod
 import { NgbActiveModal } from '@ng-bootstrap/ng-bootstrap';
 import { NzNotificationService } from 'ng-zorro-antd/notification';
 import { AppUserService } from '../../../../services/app-user.service';
-import { PaymentOrderService } from '../payment-order.service';
+import { CURRENCY_CONFIGS, PaymentOrderService } from '../payment-order.service';
 import { NOTIFICATION_TITLE } from '../../../../app.config';
 
 @Component({
@@ -51,10 +51,7 @@ export class PaymentOrderSpecialComponent implements OnInit {
     pokhs: any[] = [];
     billBumbers: any[] = [];
     units: any[] = [];
-    userTeamNames: any[] = [
-        { value: 1, label: 'Admin' },
-        { value: 2, label: 'HCM' },
-    ];
+    userTeamNames: any[] = [];
 
     //biến slick-grid
     angularGrid!: AngularGridInstance;
@@ -79,6 +76,7 @@ export class PaymentOrderSpecialComponent implements OnInit {
     ) { }
 
     ngOnInit(): void {
+        this.initDataCombo();
         this.initForm();
         this.initGrid();
         this.initGridFile();
@@ -191,9 +189,9 @@ export class PaymentOrderSpecialComponent implements OnInit {
                 },
             },
             {
-                id: 'UserTeamName',
+                id: 'EmployeeID',
                 name: 'Team kinh doanh',
-                field: 'UserTeamName',
+                field: 'EmployeeID',
                 type: 'string',
                 width: 150,
                 sortable: true, filterable: false,
@@ -203,7 +201,6 @@ export class PaymentOrderSpecialComponent implements OnInit {
                 },
                 editor: {
                     model: Editors['singleSelect'],
-
                     collection: this.userTeamNames
                 },
             },
@@ -293,6 +290,40 @@ export class PaymentOrderSpecialComponent implements OnInit {
     }
 
 
+    initDataCombo() {
+        this.paymentService.getDataCombo().subscribe({
+            next: (response) => {
+                console.log('initDataCombo:', response);
+                this.customers = response.data.customers;
+                this.approvedTBPs = response.data.approvedTBPs;
+                this.pokhs = response.data.pokhs;
+                this.billBumbers = response.data.pokhDetails;
+                this.userTeamNames = response.data.userTeamNames.map((x: any) => ({
+                    value: x.ID.toString(),
+                    label: x.Name
+                }))
+
+
+                console.log('this.userTeamNames:', this.userTeamNames);
+            },
+            error: (err) => {
+                this.notification.error(NOTIFICATION_TITLE.error, err.error.message);
+            }
+        });
+
+        // this.typeBankTransfers = [
+        //     { ID: 5, Text: 'Chuyển khoản cá nhân' },
+        //     { ID: 1, Text: 'Chuyển khoản RTC' },
+        //     { ID: 2, Text: 'Chuyển khoản MVI' },
+        //     { ID: 3, Text: 'Chuyển khoản APR' },
+        //     { ID: 4, Text: 'Chuyển khoản Yonko' },
+        //     { ID: 6, Text: 'Chuyển khoản R-Tech' },
+        // ];
+
+        this.units = CURRENCY_CONFIGS;
+    }
+
+
     initForm() {
         this.validateForm = this.fb.group({
             FullName: this.fb.control({ value: this.appUserService.currentUser?.FullName, disabled: true }),
@@ -305,8 +336,8 @@ export class PaymentOrderSpecialComponent implements OnInit {
             DateOrder: this.fb.control(this.paymentOrder.DateOrder, [Validators.required]),
             DatePayment: this.fb.control(this.paymentOrder.DatePayment),
             PaymentOrderTypeID: this.fb.control(this.paymentOrder.PaymentOrderTypeID, [Validators.required]),
-            POCode: this.fb.control(this.paymentOrder.POCode),
-            BillNumbers: this.fb.control(this.paymentOrder.BillNumbers),
+            PaymentOrderPOs: this.fb.control(this.paymentOrder.PaymentOrderPOs),
+            PaymentOrderBillNumbers: this.fb.control(this.paymentOrder.PaymentOrderBillNumbers),
             ReasonOrder: this.fb.control(this.paymentOrder.ReasonOrder, [Validators.required]),
             Unit: this.fb.control(this.paymentOrder.Unit, [Validators.required]),
         });
@@ -332,34 +363,47 @@ export class PaymentOrderSpecialComponent implements OnInit {
             console.log('this.validateForm.getRawValue():', this.validateForm.getRawValue());
             console.log('this.angularGrid.dataView.getItems():', this.angularGrid.dataView.getItems());
 
-            const columnId = this.angularGrid.slickGrid?.getColumns().findIndex(x => x.id == PaymentOrderDetailField.TotalPaymentAmount.field);
+            const formData = this.validateForm.getRawValue();
+            const detailDatas = this.angularGrid.dataView.getItems();
+
+            let paymentOrderDetails = detailDatas.map((x) => ({
+                ...x,
+                PaymentOrderDetailUserTeamSales: [
+                    {
+                        UserTeamSaleID: x.EmployeeID
+                    }
+                ]
+            }));
+
+            const maxLen = Math.max(formData.PaymentOrderPOs.length, formData.PaymentOrderBillNumbers.length);
+            let paymentOrderPOs = Array.from({ length: maxLen }, (_, i) => ({
+                POKHID: formData.PaymentOrderPOs[i] ?? null,
+                BillNumber: formData.PaymentOrderBillNumbers[i] ?? ''
+            }));
+            paymentOrderPOs = Object.values(paymentOrderPOs);
+
+
+
+            const columnId = this.angularGrid.slickGrid?.getColumns().findIndex(x => x.id == PaymentOrderDetailField.TotalMoney.field);
             const columnElement = this.angularGrid.slickGrid?.getFooterRowColumn(columnId);
             this.paymentOrder = {
                 ...this.paymentOrder,
                 ...this.validateForm.getRawValue(),
-                PaymentOrderDetails: {
-                    ...this.angularGrid.dataView.getItems(),
-                    PaymentOrderDetailUserTeamSales: {
-                        UserTeamSaleID: 1
-                    }
-                },
+                PaymentOrderDetails: paymentOrderDetails,
                 TotalMoney: parseFloat(columnElement.textContent ?? ''),
-                PaymentOrderPOs: {
-                    POKHID: 1,
-                    BillNumber: ''
-                }
+                PaymentOrderPOs: paymentOrderPOs,
             };
             console.log('submit data', this.paymentOrder);
 
-            // this.paymentService.save(this.paymentOrder).subscribe({
-            //     next: (response) => {
-            //         console.log(response);
+            this.paymentService.save(this.paymentOrder).subscribe({
+                next: (response) => {
+                    console.log(response);
 
-            //     },
-            //     error: (err) => {
-            //         this.notification.error(NOTIFICATION_TITLE.error, err?.error?.message || err?.message);
-            //     },
-            // });
+                },
+                error: (err) => {
+                    this.notification.error(NOTIFICATION_TITLE.error, err?.error?.message || err?.message);
+                },
+            });
 
 
         }

@@ -328,13 +328,26 @@ export class PaymentOrderSpecialComponent implements OnInit {
             // let gridInstance = this.angularGrid;
             // if (this.paymentOrder.TypeOrder == 2) gridInstance = this.angularGrid2;
 
+
+            console.log('this.validateForm.getRawValue():', this.validateForm.getRawValue());
+            console.log('this.angularGrid.dataView.getItems():', this.angularGrid.dataView.getItems());
+
             const columnId = this.angularGrid.slickGrid?.getColumns().findIndex(x => x.id == PaymentOrderDetailField.TotalPaymentAmount.field);
             const columnElement = this.angularGrid.slickGrid?.getFooterRowColumn(columnId);
             this.paymentOrder = {
                 ...this.paymentOrder,
                 ...this.validateForm.getRawValue(),
-                PaymentOrderDetails: this.angularGrid.dataView.getItems(),
+                PaymentOrderDetails: {
+                    ...this.angularGrid.dataView.getItems(),
+                    PaymentOrderDetailUserTeamSales: {
+                        UserTeamSaleID: 1
+                    }
+                },
                 TotalMoney: parseFloat(columnElement.textContent ?? ''),
+                PaymentOrderPOs: {
+                    POKHID: 1,
+                    BillNumber: ''
+                }
             };
             console.log('submit data', this.paymentOrder);
 

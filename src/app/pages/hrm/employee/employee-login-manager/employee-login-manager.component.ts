@@ -43,10 +43,11 @@ import { NOTIFICATION_TITLE } from '../../../../app.config';
 })
 export class EmployeeLoginManagerComponent implements OnInit, OnChanges {
   @Input() selectedEmployee: any;
+  @Output() onSaveSuccess = new EventEmitter<void>();
   loginManagerForm!: FormGroup;
   employeeList: any[] = [];
   employeeNameList: any[] = [];
-  hasUser: boolean = true;
+  hasUser: boolean = true;  
 
 
   constructor(
@@ -83,16 +84,20 @@ export class EmployeeLoginManagerComponent implements OnInit, OnChanges {
 
   onCodeChange(value: number) {
     if (value) {
+      const selectedEmployee = this.employeeList.find(emp => emp.value === value);
       this.loginManagerForm.patchValue({
-        FullName: value
+        FullName: value,
+        LoginName: selectedEmployee?.Code || ''
       });
     }
   }
 
   onNameChange(value: number) {
     if (value) {
+      const selectedEmployee = this.employeeList.find(emp => emp.value === value);
       this.loginManagerForm.patchValue({
-        Code: value
+        Code: value,
+        LoginName: selectedEmployee?.Code || ''
       });
     }
   }
@@ -107,7 +112,7 @@ export class EmployeeLoginManagerComponent implements OnInit, OnChanges {
             FullName: this.selectedEmployee.ID,
             TeamID: data.data.TeamID,
             HasUser: false,
-            LoginName: data.data.LoginName,
+            LoginName: data.data.LoginName || this.selectedEmployee.Code,
             PasswordHash: data.data.PasswordHash,
             UserID: data.data.ID
           });
@@ -118,7 +123,7 @@ export class EmployeeLoginManagerComponent implements OnInit, OnChanges {
             FullName: this.selectedEmployee.ID,
             TeamID: data.data.TeamID,
             HasUser: true,
-            LoginName: data.data.LoginName,
+            LoginName: data.data.LoginName || this.selectedEmployee.Code,
             PasswordHash: data.data.PasswordHash,
             UserID: data.data.ID
 
@@ -206,6 +211,7 @@ export class EmployeeLoginManagerComponent implements OnInit, OnChanges {
     this.employeeService.saveLoginInfo(formData).subscribe({
       next: () => {
         this.notification.success(NOTIFICATION_TITLE.success, 'Cập nhật thông tin đăng nhập thành công');
+        this.onSaveSuccess.emit();
         this.closeModal();
       },
       error: (response) => {

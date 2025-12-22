@@ -858,7 +858,7 @@
         <button type="button" class="btn-close me-1" data-bs-dismiss="modal" aria-label="Close"></button>
       </div>
       <div class="modal-body fs-12 p-0">
-        <app-employee-login-manager [selectedEmployee]="selectedEmployee"></app-employee-login-manager>
+        <app-employee-login-manager [selectedEmployee]="selectedEmployee" (onSaveSuccess)="loadEmployees()"></app-employee-login-manager>
       </div>
     </div>
   </div>
@@ -1004,7 +1004,7 @@
         <button type="button" class="btn-close me-1" data-bs-dismiss="modal" aria-label="Close"></button>
       </div>
       <div class="modal-body fs-12">
-        <app-employee-login-manager [selectedEmployee]="selectedEmployee"></app-employee-login-manager>
+        <app-employee-login-manager [selectedEmployee]="selectedEmployee" (onSaveSuccess)="loadEmployees()"></app-employee-login-manager>
       </div>
     </div>
   </div>

@@ -472,7 +472,7 @@ export class EmployeeComponent implements OnInit, AfterViewInit {
       },
       error: (err) => {
         this.isLoading = false;
-        this.notification.error(NOTIFICATION_TITLE.error, 'Không thể tải danh sách nhân viên');
+        this.notification.error(NOTIFICATION_TITLE.error, err.error?.message || 'Không thể tải danh sách nhân viên');
       }
     });
   }
@@ -484,7 +484,7 @@ export class EmployeeComponent implements OnInit, AfterViewInit {
       error: (error) => {
         this.notification.error(
           NOTIFICATION_TITLE.error,
-          'Lỗi khi tải danh sách phòng ban: ' + error.message
+          error.error?.message || 'Lỗi khi tải danh sách phòng ban'
         );
       },
     });
@@ -497,7 +497,7 @@ export class EmployeeComponent implements OnInit, AfterViewInit {
       error: (error) => {
         this.notification.error(
           NOTIFICATION_TITLE.error,
-          'Lỗi khi tải danh sách chức vụ theo hợp đồng: ' + error.message
+          error.error?.message || 'Lỗi khi tải danh sách chức vụ theo hợp đồng'
         );
       },
     });
@@ -510,7 +510,7 @@ export class EmployeeComponent implements OnInit, AfterViewInit {
       error: (error) => {
         this.notification.error(
           NOTIFICATION_TITLE.error,
-          'Lỗi khi tải danh sách chức vụ theo nội bộ: ' + error.message
+          error.error?.message || 'Lỗi khi tải danh sách chức vụ theo nội bộ'
         );
       },
     });
@@ -2546,7 +2546,7 @@ export class EmployeeComponent implements OnInit, AfterViewInit {
         error: (error) => {
           this.notification.error(
             'Lỗi',
-            'Cập nhật nhân viên thất bại: ' + error.error.message
+            error.error?.message || 'Cập nhật nhân viên thất bại'
           );
         },
       });
@@ -2561,7 +2561,7 @@ export class EmployeeComponent implements OnInit, AfterViewInit {
         error: (error) => {
           this.notification.error(
             'Lỗi',
-            'Thêm nhân viên thất bại: ' + error.message
+            error.error?.message || 'Thêm nhân viên thất bại'
           );
         },
       });
@@ -2645,7 +2645,7 @@ export class EmployeeComponent implements OnInit, AfterViewInit {
           this.loadPositionContract();
         },
         error: (error) => {
-          this.notification.error(NOTIFICATION_TITLE.error, 'Thêm mới' + ' chức vụ theo hợp đồng thất bại: ' + error.error.message);
+          this.notification.error(NOTIFICATION_TITLE.error, error.error?.message || 'Thêm mới chức vụ theo hợp đồng thất bại');
         },
         complete: () => {
         }
@@ -2658,7 +2658,7 @@ export class EmployeeComponent implements OnInit, AfterViewInit {
           this.loadPositionInternal();
         },
         error: (error) => {
-          this.notification.error(NOTIFICATION_TITLE.error, 'Thêm mới' + ' chức vụ theo nội bộ thất bại: ' + error.error.message);
+          this.notification.error(NOTIFICATION_TITLE.error, error.error?.message || 'Thêm mới chức vụ theo nội bộ thất bại');
         },
         complete: () => {
         }
@@ -2679,7 +2679,7 @@ export class EmployeeComponent implements OnInit, AfterViewInit {
         this.employeeTeam = data.data;
       },
       error: (error) => {
-        this.notification.error(NOTIFICATION_TITLE.error, 'Không thể tải danh sách team phòng ban: ' + error.message);
+        this.notification.error(NOTIFICATION_TITLE.error, error.error?.message || 'Không thể tải danh sách team phòng ban');
       }
     })
   }

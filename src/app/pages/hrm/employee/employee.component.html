@@ -200,18 +200,20 @@
                   <nz-form-item class="mb-0">
                     <nz-form-label [nzSpan]="24">Chức vụ (Theo nội bộ)
                       <span class="text-danger ps-1">*</span></nz-form-label>
-                    <nz-select [(ngModel)]="positionInternal" formControlName="ChuVuID"
-                      nzPlaceHolder="Nhập chức vụ (Theo nội bộ)" style="width: 90%" nzAllowClear nzShowSearch>
-                      <nz-option *ngFor="let pi of positionInternalList" [nzValue]="pi.ID"
-                        [nzLabel]="pi.Name"></nz-option>
-                    </nz-select>
-                    <button nz-button nzType="default" nzSize="default" style="
-                        font-size: 0.75rem;
-                        font-weight: bold;
-                        margin-left: 0.4vw;
-                      " (click)="openPositionInternalForm()">
-                      <nz-icon nzType="plus" />
-                    </button>
+                    <nz-form-control [nzSpan]="24" nzErrorTip="Vui lòng chọn chức vụ (Theo nội bộ)">
+                      <nz-select [(ngModel)]="positionInternal" formControlName="ChuVuID"
+                        nzPlaceHolder="Nhập chức vụ (Theo nội bộ)" style="width: 90%" nzAllowClear nzShowSearch>
+                        <nz-option *ngFor="let pi of positionInternalList" [nzValue]="pi.ID"
+                          [nzLabel]="pi.Name"></nz-option>
+                      </nz-select>
+                      <button nz-button nzType="default" nzSize="default" style="
+                          font-size: 0.75rem;
+                          font-weight: bold;
+                          margin-left: 0.4vw;
+                        " (click)="openPositionInternalForm()">
+                        <nz-icon nzType="plus" />
+                      </button>
+                    </nz-form-control>
                   </nz-form-item>
                   <nz-form-item class="mb-0">
                     <nz-form-label [nzSpan]="24">Đợn vị (BHXH)<span class="text-danger ps-1">*</span></nz-form-label>
@@ -230,10 +232,9 @@
                   </nz-form-item>
                   <nz-form-item class="mb-0">
                     <nz-form-label [nzSpan]="24">Team</nz-form-label>
-                    <nz-select formControlName="EmployeeTeamID" nzPlaceHolder="Chọn team"
-                      style="width: 100%" nzAllowClear nzShowSearch>
-                      <nz-option *ngFor="let te of employeeTeam" [nzValue]="te.ID"
-                        [nzLabel]="te.Name"></nz-option>
+                    <nz-select formControlName="EmployeeTeamID" nzPlaceHolder="Chọn team" style="width: 100%"
+                      nzAllowClear nzShowSearch>
+                      <nz-option *ngFor="let te of employeeTeam; trackBy: trackByTeamId" [nzValue]="te.ID" [nzLabel]="te.Name"></nz-option>
                     </nz-select>
                     <!-- <button nz-button nzType="default" nzSize="default" style="
                         font-size: 0.75rem;
@@ -269,11 +270,13 @@
                   </nz-form-item>
                   <nz-form-item class="mb-0">
                     <nz-form-label [nzSpan]="24">Giới tính<span class="text-danger ps-1">*</span></nz-form-label>
-                    <nz-select formControlName="GioiTinh" style="width: 100%" nzPlaceHolder="Nhập giới tính">
-                      <nz-option [nzValue]="0" nzLabel="Nữ"></nz-option>
-                      <nz-option [nzValue]="1" nzLabel="Nam"></nz-option>
-                      <nz-option [nzValue]="2" nzLabel="Khác"></nz-option>
-                    </nz-select>
+                    <nz-form-control [nzSpan]="24" nzErrorTip="Vui lòng chọn giới tính">
+                      <nz-select formControlName="GioiTinh" style="width: 100%" nzPlaceHolder="Nhập giới tính">
+                        <nz-option [nzValue]="0" nzLabel="Nữ"></nz-option>
+                        <nz-option [nzValue]="1" nzLabel="Nam"></nz-option>
+                        <nz-option [nzValue]="2" nzLabel="Khác"></nz-option>
+                      </nz-select>
+                    </nz-form-control>
                   </nz-form-item>
                   <nz-form-item class="mb-0">
                     <nz-form-label [nzSpan]="24">Tôn giáo<span class="text-danger ps-1">*</span></nz-form-label>
@@ -484,9 +487,8 @@
                           </nz-form-control>
                         </nz-form-item>
                         <nz-form-item class="mb-0">
-                          <nz-form-label [nzSpan]="24">Địa chỉ thường trú (Theo sổ hộ khẩu)
-                            <span class="text-danger ps-1">*</span></nz-form-label>
-                          <nz-form-control [nzSpan]="24" nzErrorTip="Vui lòng địa chỉ thường trú (Theo số hộ khẩu)">
+                          <nz-form-label [nzSpan]="24">Địa chỉ thường trú (Theo sổ hộ khẩu)</nz-form-label>
+                          <nz-form-control [nzSpan]="24">
                             <input nz-input formControlName="DcThuongTru"
                               placeholder="Nhập địa chỉ thường trú (Theo số hộ khẩu)" />
                           </nz-form-control>
@@ -534,9 +536,8 @@
                           </nz-form-control>
                         </nz-form-item>
                         <nz-form-item class="mb-0">
-                          <nz-form-label [nzSpan]="24">Địa chỉ tạm trú (Theo sổ hộ khẩu)
-                            <span class="text-danger ps-1">*</span></nz-form-label>
-                          <nz-form-control [nzSpan]="24" nzErrorTip="Vui lòng địa chỉ tạm trú (Theo số hộ khẩu)">
+                          <nz-form-label [nzSpan]="24">Địa chỉ tạm trú (Theo sổ hộ khẩu)</nz-form-label>
+                          <nz-form-control [nzSpan]="24">
                             <input nz-input formControlName="DcTamTru"
                               placeholder="Nhập địa chỉ tạm trú (Theo số hộ khẩu)" />
                           </nz-form-control>
@@ -564,7 +565,7 @@
                       </nz-form-label>
                       <nz-select formControlName="NguoiGiuSoBHXHText" nzPlaceHolder="Nhập người giữ sổ"
                         style="width: 100%;" nzAllowClear nzShowSearch>
-                        <nz-option *ngFor="let e of employees" [nzValue]="e.FullName"
+                        <nz-option *ngFor="let e of employees; trackBy: trackByEmployeeId" [nzValue]="e.FullName"
                           [nzLabel]="e.FullName"></nz-option>
                       </nz-select>
                     </nz-form-item>
@@ -927,7 +928,7 @@
             <nz-form-label [nzSpan]="24">Người giữ sổ </nz-form-label>
             <nz-select formControlName="NguoiGiuSoBHXHText" nzPlaceHolder="Nhập người giữ sổ" style="width: 100%"
               nzAllowClear nzShowSearch>
-              <nz-option *ngFor="let e of employees" [nzValue]="e.FullName" [nzLabel]="e.FullName"></nz-option>
+              <nz-option *ngFor="let e of employees; trackBy: trackByEmployeeId" [nzValue]="e.FullName" [nzLabel]="e.FullName"></nz-option>
             </nz-select>
           </nz-form-item>
         </form>

@@ -3360,6 +3360,16 @@ export class MenuService {
                                 comp: PersonComponent,
                                 router: '/tbpduyetyccv',
                             },
+                            {
+                                kind: 'leaf',
+                                key: 'tbpycmuonhangdemo',
+                                title: 'DUYỆT YÊU CẦU MƯỢN HÀNG DEMO',
+                                isOpen: true,
+                                isPermission: this.permissionService.hasPermission('N57'),
+                                comp: ProjectPartListPurchaseRequestSlickGridComponent,
+                                // router: '/tbpycmuonhangdemo',
+                                data: { isApprovedTBP: true },
+                            },
                         ],
                     },
 
@@ -3426,15 +3436,18 @@ export class MenuService {
                                 comp: PersonComponent,
                                 router: '/bgdduyetyccv',
                             },
-                            {
-                                kind: 'leaf',
-                                key: 'duyetyeucaumuahang',
-                                title: 'Yêu cầu mua hàng',
-                                isOpen: true,
-                                isPermission: this.permissionService.hasPermission('N58'),
-                                comp: PersonComponent,
-                                router: '/duyetyeucaumuahang',
-                            },
+{
+                        kind: 'leaf',
+                        key: 'bgdduyetyeucaumuahang',
+                        title: 'BGĐ duyệt YCMH',
+                        isOpen: true,
+                        isPermission: this.permissionService.hasPermission(''),
+                        comp: ProjectPartListPurchaseRequestSlickGridComponent,
+                        data: {
+                            isApprovedBGD: true,
+                        },
+                    },
+
                         ],
                     },
 
@@ -3489,7 +3502,17 @@ export class MenuService {
                             tbp: true,
                         },
                     },
-
+                    {
+                        kind: 'leaf',
+                        key: 'bgdduyetyeucaumuahang',
+                        title: 'BGĐ duyệt YCMH',
+                        isOpen: true,
+                        isPermission: this.permissionService.hasPermission(''),
+                        comp: ProjectPartListPurchaseRequestSlickGridComponent,
+                        data: {
+                            isApprovedBGD: true,
+                        },
+                    },
 
                 ],
             },

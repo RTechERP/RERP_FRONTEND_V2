@@ -268,7 +268,7 @@ export class VehicleBookingManagementDetailComponent implements OnInit {
         if (Array.isArray(responseData)) {
           this.projects = responseData.map((item: any) => ({
             value: item.ID || item.Id || item.ProjectID,
-            label: item.Project || item.ProjectName || item.Name || item.FullName || item.Label
+            label: item.ProjectCode + ' - ' + item.ProjectName
           }));
         } else {
           this.projects = [];

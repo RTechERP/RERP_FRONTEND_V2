@@ -31,3 +31,11 @@
 .ant-splitter {
     height: 89.5vh !important;
 }
+/* Đổi màu chữ trong headerFilter thành đen */
+::ng-deep .tabulator-header-filter input {
+    color: #000000 !important;
+  }
+  
+  ::ng-deep .tabulator-header-filter select {
+    color: #000000 !important;
+  }

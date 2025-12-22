@@ -344,11 +344,20 @@ export class ViewPokhComponent implements OnInit, AfterViewInit {
         const customerID = row.CustomerID;
         const key = `${customerID}`;
         if (!acc[key]) acc[key] = [];
-        const hasExports =
-          row.selectedExports && Array.isArray(row.selectedExports) && row.selectedExports.length > 0;
-        // Nếu KHÔNG có dòng con → tạo 1 export rỗng mặc định
-        const exportsToProcess = hasExports
-          ? row.selectedExports
+
+        // Lấy các export đã chọn từ selectedExportRowsAll dựa trên POKHDetailID
+        const selectedExportIds = this.selectedExportRowsAll
+          .filter(x => x.POKHDetailID === row.ID)
+          .map(x => x.BillExportDetailID);
+
+        // Lấy các export detail từ row.exportDetails dựa trên BillExportDetailID đã chọn
+        const selectedExports = (row.exportDetails || []).filter((ex: any) => 
+          selectedExportIds.includes(ex.BillExportDetailID)
+        );
+
+        // Nếu KHÔNG có export được chọn → tạo 1 export rỗng mặc định
+        const exportsToProcess = selectedExports.length > 0
+          ? selectedExports
           : [
             {
               Qty: 0,
@@ -356,6 +365,7 @@ export class ViewPokhComponent implements OnInit, AfterViewInit {
               TotalQty: 0
             }
           ];
+
         exportsToProcess.forEach((ex: any) => {
           acc[key].push({
             // from parent
@@ -1215,26 +1225,38 @@ export class ViewPokhComponent implements OnInit, AfterViewInit {
             }
           });
 
-          // Sự kiện chọn dòng export
+          // Đồng bộ trạng thái chọn ban đầu
+          const selectedExports = data['selectedExports'];
+          if (selectedExports && selectedExports.length > 0) {
+            const ids = selectedExports.map((x: any) => x.ID || x.BillExportDetailID);
+            exportTable.selectRow(ids);
+          } else if (row.isSelected()) {
+            exportTable.selectRow();
+          }
+
+          // Sự kiện chọn dòng export - hợp nhất logic xử lý
           exportTable.on("rowSelectionChanged", (selected, rows) => {
             const parentData = row.getData();
 
-            const selectedIdsFromThisParent = selected.map(s => s.BillExportDetailID);
+            // Cập nhật selectedExports trong parent data
+            parentData['selectedExports'] = selected;
 
-            // Xóa export chỉ thuộc cha hiện tại
+            // Lấy danh sách BillExportDetailID của các dòng đã chọn
+            const selectedIdsFromThisParent = selected.map((s: any) => s.BillExportDetailID || s.ID);
+
+            // Xóa tất cả export của parent này khỏi selectedExportRowsAll trước
             this.selectedExportRowsAll = this.selectedExportRowsAll.filter(
-              x => !(x.POKHDetailID === parentData['ID'] && !selectedIdsFromThisParent.includes(x.BillExportDetailID))
+              x => x.POKHDetailID !== parentData['ID']
             );
 
-            // Thêm các export mới được chọn
-            const addedExports = selected
-              .filter(s => !this.selectedExportRowsAll.some(x => x.BillExportDetailID === s.BillExportDetailID))
-              .map(s => ({
+            // Thêm lại các export đang được chọn vào selectedExportRowsAll
+            selected.forEach((selectedRow: any) => {
+              const billExportDetailID = selectedRow.BillExportDetailID || selectedRow.ID;
+              this.selectedExportRowsAll.push({
                 POKHDetailID: parentData['ID'],
-                BillExportDetailID: s.BillExportDetailID,
-              }));
-
-            this.selectedExportRowsAll.push(...addedExports);
+                BillExportDetailID: billExportDetailID,
+              });
+            });
 
             // Đồng bộ chọn cha-con
             if (selected.length > 0) {
@@ -1243,49 +1265,15 @@ export class ViewPokhComponent implements OnInit, AfterViewInit {
                 row.select();
                 this.skipChildUpdate = false;
               }
-            } else {
-              if (row.isSelected()) {
-                this.skipChildUpdate = true;
-                row.deselect();
-                this.skipChildUpdate = false;
+
+              // Ensure parent is in selectedRows
+              const rowData = row.getData();
+              if (!this.selectedRows.some(r => r.ID === rowData['ID'])) {
+                this.selectedRows.push(rowData);
               }
-            }
-
-            console.log("selectedExportRowsAll:", this.selectedExportRowsAll);
-          });
-
-
-
-
-          // Đồng bộ trạng thái chọn ban đầu
-          const selectedExports = data['selectedExports'];
-          if (selectedExports && selectedExports.length > 0) {
-            const ids = selectedExports.map((x: any) => x.ID);
-            exportTable.selectRow(ids);
-          } else if (row.isSelected()) {
-            exportTable.selectRow();
-          }
-
-          exportTable.on("rowSelectionChanged", (selected) => {
-            const parent = row.getData();
-            parent['selectedExports'] = selected;
-
-            // Logic chọn dòng cha dựa trên dòng con
-            if (selected.length > 0) {
-              if (!row.isSelected()) {
-                this.skipChildUpdate = true;
-                row.select();
-                this.skipChildUpdate = false;
-
-                // Ensure parent is in selectedRows
-                const rowData = row.getData();
-                if (!this.selectedRows.some(r => r.ID === rowData['ID'])) {
-                  this.selectedRows.push(rowData);
-                }
-                // Đẩy dòng cha vào selectedRowsAll nếu chưa có
-                if (!this.selectedRowsAll.some(r => r['ID'] === rowData['ID'])) {
-                  this.selectedRowsAll.push({ ...rowData });
-                }
+              // Đẩy dòng cha vào selectedRowsAll nếu chưa có
+              if (!this.selectedRowsAll.some(r => r['ID'] === rowData['ID'])) {
+                this.selectedRowsAll.push({ ...rowData });
               }
             } else {
               // Nếu bỏ chọn hết dòng con -> bỏ chọn dòng cha
@@ -1301,6 +1289,8 @@ export class ViewPokhComponent implements OnInit, AfterViewInit {
                 this.selectedRowsAll = this.selectedRowsAll.filter(r => r['ID'] !== rowData['ID']);
               }
             }
+
+            console.log("selectedExportRowsAll:", this.selectedExportRowsAll);
           });
 
         }

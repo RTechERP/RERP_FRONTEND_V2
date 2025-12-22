@@ -58,6 +58,10 @@ import { DailyReportSaleService } from '../daily-report-sale-service/daily-repor
 import { AppUserService } from '../../../../../services/app-user.service';
 import { ProjectService } from '../../../../project/project-service/project.service';
 import { FirmService } from '../../../../general-category/firm/firm-service/firm.service';
+import { FirmBaseDetailComponent } from '../../../../project/firmbase-detail/firm-base-detail.component';
+import { CustomerDetailComponent } from '../../../../crm/customers/customer-detail/customer-detail.component';
+import { ProjectTypeBaseDetailComponent } from '../../../VisionBase/kho-base/follow-project-base/project-type-base-detail/project-type-base-detail.component';
+import { CustomerPartComponent } from '../../../customer-part/customer-part.component';
 
 @Component({
   selector: 'app-daily-report-sale-detail',
@@ -116,6 +120,7 @@ export class DailyReportSaleDetailComponent implements OnInit, AfterViewInit {
   constructor(
     public activeModal: NgbActiveModal,
     private modal: NzModalService,
+    private modalService: NgbModal,
     private notification: NzNotificationService,
     private fb: FormBuilder,
     private dailyReportSaleService: DailyReportSaleService,
@@ -461,7 +466,24 @@ export class DailyReportSaleDetailComponent implements OnInit, AfterViewInit {
   }
 
   onAddCustomer(): void {
-    this.notification.info('Thông báo', 'Chức năng thêm khách hàng đang được phát triển');
+    const modalRef = this.modalService.open(CustomerDetailComponent, {
+      centered: true,
+      size: 'xl',
+      backdrop: 'static',
+    });
+
+    modalRef.componentInstance.warehouseId = this.warehouseId;
+
+    modalRef.result.then(
+      (result) => {
+        if (result && result.success) {
+          this.loadCustomers();
+        }
+      },
+      (reason) => {
+        console.log('Modal closed:', reason);
+      }
+    );
   }
 
   onAddProject(): void {
@@ -469,15 +491,68 @@ export class DailyReportSaleDetailComponent implements OnInit, AfterViewInit {
   }
 
   onAddContact(): void {
-    this.notification.info('Thông báo', 'Chức năng thêm người liên hệ đang được phát triển');
+    if (!this.dailyReportSaleForm.get('customerId')?.value || this.dailyReportSaleForm.get('customerId')?.value <= 0) {
+      this.notification.warning('Cảnh báo', 'Vui lòng chọn Khách hàng trước!');
+      return;
+    }
+    const modalRef = this.modalService.open(CustomerDetailComponent, {
+      centered: true,
+      size: 'xl',
+      backdrop: 'static',
+    });
+
+    modalRef.componentInstance.warehouseId = this.warehouseId;
+    modalRef.componentInstance.isEditMode = true;
+    modalRef.componentInstance.EditID = this.dailyReportSaleForm.get('customerId')?.value;
+
+    modalRef.result.then(
+      (result) => {
+        if (result && result.success) {
+          this.loadCustomers();
+        }
+      },
+      (reason) => {
+        console.log('Modal closed:', reason);
+      }
+    );
   }
 
   onAddFirm(): void {
-    this.notification.info('Thông báo', 'Chức năng thêm hãng đang được phát triển');
+    const modalRef = this.modalService.open(FirmBaseDetailComponent, {
+      centered: true,
+      size: 'xl',
+      backdrop: 'static',
+    });
+
+    modalRef.result.then(
+      (result) => {
+        if (result && result.success) {
+          this.loadFirmBase();
+        }
+      },
+      (reason) => {
+        console.log('Modal closed:', reason);
+      }
+    );
   }
 
   onAddProjectType(): void {
-    this.notification.info('Thông báo', 'Chức năng thêm loại dự án đang được phát triển');
+    const modalRef = this.modalService.open(ProjectTypeBaseDetailComponent, {
+      centered: true,
+      size: 'xl',
+      backdrop: 'static',
+    });
+
+    modalRef.result.then(
+      (result) => {
+        if (result && result.success) {
+          this.loadProjectTypeBase();
+        }
+      },
+      (reason) => {
+        console.log('Modal closed:', reason);
+      }
+    );
   }
 
   onAddProjectStatus(): void {
@@ -485,7 +560,30 @@ export class DailyReportSaleDetailComponent implements OnInit, AfterViewInit {
   }
 
   onAddPart(): void {
-    this.notification.info('Thông báo', 'Chức năng thêm EndUser đang được phát triển');
+
+    if (!this.dailyReportSaleForm.get('customerId')?.value || this.dailyReportSaleForm.get('customerId')?.value <= 0) {
+      this.notification.warning('Cảnh báo', 'Vui lòng chọn Khách hàng trước!');
+      return;
+    }
+
+    const modalRef = this.modalService.open(CustomerPartComponent, {
+      centered: true,
+      size: 'xl',
+      backdrop: 'static',
+    });
+
+    modalRef.componentInstance.customerId = this.dailyReportSaleForm.get('customerId')?.value;
+
+    modalRef.result.then(
+      (result) => {
+        if (result && result.success) {
+          this.loadCustomerParts(this.dailyReportSaleForm.get('customerId')?.value);
+        }
+      },
+      (reason) => {
+        console.log('Modal closed:', reason);
+      }
+    );
   }
 
   loadProductCustomer(): void {

@@ -26,6 +26,7 @@ import { NzDatePickerModule } from 'ng-zorro-antd/date-picker';
 import { NzAutocompleteModule } from 'ng-zorro-antd/auto-complete';
 import { NzInputModule } from 'ng-zorro-antd/input';
 import { NzSelectModule } from 'ng-zorro-antd/select';
+import { NzFormModule } from 'ng-zorro-antd/form';
 import { NzTableModule } from 'ng-zorro-antd/table';
 import { NzSpinModule } from 'ng-zorro-antd/spin';
 import {
@@ -42,12 +43,14 @@ import { NzUploadModule } from 'ng-zorro-antd/upload';
 import { InventoryDemoService } from './inventory-demo-service/inventory-demo.service';
 import { NzNotificationService } from 'ng-zorro-antd/notification';
 import { TbProductRtcService } from '../tb-product-rtc/tb-product-rtc-service/tb-product-rtc.service';
+import { ProductLocationTechnicalService } from '../Technical/product-location-technical/product-location-technical.service';
 import { InventoryBorrowSupplierDemoComponent } from './inventory-borrow-supplier-demo/inventory-borrow-supplier-demo.component';
 import { NOTIFICATION_TITLE } from '../../../app.config';
 import { DEFAULT_TABLE_CONFIG } from '../../../tabulator-default.config';
 import { MaterialDetailOfProductRtcComponent } from './material-detail-of-product-rtc/material-detail-of-product-rtc.component';
 import { MenuEventService } from '../../systems/menus/menu-service/menu-event.service';
 import { HasPermissionDirective } from '../../../directives/has-permission.directive';
+import { NzModalService, NzModalModule } from 'ng-zorro-antd/modal';
 
 @Component({
   standalone: true,
@@ -69,10 +72,12 @@ import { HasPermissionDirective } from '../../../directives/has-permission.direc
     NzAutocompleteModule,
     NzInputModule,
     NzSelectModule,
+    NzFormModule,
     NzTableModule,
     NzTabsModule,
     NzSpinModule,
     NgbModalModule,
+    NzModalModule,
     HasPermissionDirective,
   ],
   selector: 'app-inventory-demo',
@@ -103,6 +108,10 @@ export class InventoryDemoComponent implements OnInit, AfterViewInit {
 
   warehouseType = 1;
 
+  // Location data
+  productLocationData: any[] = [];
+  selectedLocationID: number | null = null;
+
   @ViewChild('tableDeviceTemp') tableDeviceTemp!: ElementRef;
   @ViewChild('productTableRef', { static: true }) productTableRef!: ElementRef;
 
@@ -110,11 +119,14 @@ export class InventoryDemoComponent implements OnInit, AfterViewInit {
     private notification: NzNotificationService,
     private tbProductRtcService: TbProductRtcService,
     private inventoryDemoService: InventoryDemoService,
+    private productLocationService: ProductLocationTechnicalService,
     private menuEventService: MenuEventService,
+    private modal: NzModalService,
     @Optional() @Inject('tabData') private tabData: any
   ) {}
   ngAfterViewInit(): void {
     this.getGroup();
+    this.loadProductLocations();
     // Delay nhỏ để đảm bảo DOM có thể render xong
     setTimeout(() => {
       this.drawTable();
@@ -812,5 +824,99 @@ export class InventoryDemoComponent implements OnInit, AfterViewInit {
       title,
       data
     );
+  }
+
+  // Load danh sách vị trí
+  loadProductLocations(): void {
+    this.productLocationService.getProductLocations(this.warehouseID).subscribe({
+      next: (response: any) => {
+        if (response.status === 1) {
+          this.productLocationData = response.data || [];
+          if (this.warehouseType === 2) {
+            this.productLocationData = this.productLocationData.filter((item: any) => item.LocationType === 4);
+          }
+        } else {
+          console.warn('Warning loading product locations:', response.message);
+        }
+      },
+      error: (error) => {
+        console.error('Error loading product locations:', error);
+      }
+    });
+  }
+
+  // Set vị trí cho các sản phẩm đã chọn
+  onSetLocation(): void {
+    if (!this.selectedLocationID || this.selectedLocationID <= 0) {
+      this.notification.warning(NOTIFICATION_TITLE.warning, 'Vui lòng chọn vị trí!');
+      return;
+    }
+
+    if (!this.productTable) {
+      this.notification.warning(NOTIFICATION_TITLE.warning, 'Bảng dữ liệu chưa được khởi tạo!');
+      return;
+    }
+
+    const selectedRows = this.productTable.getSelectedData();
+    if (!selectedRows || selectedRows.length === 0) {
+      this.notification.warning(NOTIFICATION_TITLE.warning, 'Vui lòng chọn ít nhất một sản phẩm để set vị trí!');
+      return;
+    }
+
+    const location = this.productLocationData.find((loc: any) => loc.ID === this.selectedLocationID);
+    const locationName = location ? (location.ProductLocationName || location.LocationName) : '';
+
+    this.modal.confirm({
+      nzTitle: 'Xác nhận set vị trí',
+      nzContent: `Bạn có muốn set vị trí <strong>${locationName}</strong> cho ${selectedRows.length} sản phẩm đã chọn không?`,
+      nzOkText: 'Đồng ý',
+      nzCancelText: 'Hủy',
+      nzOnOk: () => {
+        // Gọi API update-location cho từng sản phẩm đã chọn
+        const updatePromises = selectedRows.map((row: any) => {
+          const productID = row.ProductRTCID || 0;
+          console.log('productID: ', productID);
+          console.log('selectedLocationID: ', this.selectedLocationID);
+          if (productID <= 0) {
+            return Promise.resolve({ success: false, message: 'ID sản phẩm không hợp lệ' });
+          }
+          
+            return this.tbProductRtcService.updateLocation(productID, this.selectedLocationID || 0).toPromise()
+            .then((res: any) => {
+              if (res?.status === 1) {
+                return { success: true };
+              } else {
+                return { success: false, message: res?.message || 'Set vị trí thất bại' };
+              }
+            })
+            .catch((err: any) => {
+              console.error('Error setting location:', err);
+              return { success: false, message: err?.error?.message || 'Có lỗi xảy ra khi set vị trí' };
+            });
+        });
+
+        // Chờ tất cả các request hoàn thành
+        Promise.all(updatePromises).then((results) => {
+          const successCount = results.filter(r => r.success).length;
+          const failCount = results.filter(r => !r.success).length;
+
+          if (successCount > 0) {
+            if (failCount === 0) {
+              this.notification.success(NOTIFICATION_TITLE.success, `Đã set vị trí cho ${successCount} sản phẩm thành công!`);
+            } else {
+              this.notification.warning(NOTIFICATION_TITLE.warning, `Đã set vị trí cho ${successCount} sản phẩm. ${failCount} sản phẩm thất bại.`);
+            }
+            // Deselect rows
+            this.productTable?.getSelectedRows().forEach((row: any) => row.deselect());
+            // Reload data
+            this.loadTableData();
+            this.selectedLocationID = null;
+          } else {
+            const errorMessage = results.find(r => !r.success)?.message || 'Set vị trí thất bại';
+            this.notification.error(NOTIFICATION_TITLE.error, errorMessage);
+          }
+        });
+      }
+    });
   }
 }

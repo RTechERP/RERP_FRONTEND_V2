@@ -57,6 +57,9 @@
                                 <button nz-button nzType="default" nzSize="small" (click)="openPriceRequest()">
                                     <nz-icon nzType="file-text" nzTheme="outline"></nz-icon>Yêu cầu báo giá
                                 </button>
+                                <button nz-button nzType="default" nzSize="small" (click)="openPurchaseRequest()">
+                                    <nz-icon nzType="shopping-cart" nzTheme="outline"></nz-icon>Yêu cầu mua hàng
+                                </button>
                             </div>
                         </div>
                         <!-- Tìm kiếm desktop -->
@@ -110,6 +113,9 @@
 
                                 <button ngbDropdownItem (click)="openPriceRequest()" class="d-flex align-items-center">
                                     Yêu cầu báo giá
+                                </button>
+                                <button ngbDropdownItem (click)="openPurchaseRequest()" class="d-flex align-items-center">
+                                    Yêu cầu mua hàng
                                 </button>
                             </div>
                         </div>

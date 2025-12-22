@@ -1313,6 +1313,23 @@ export class ProjectPartlistPriceRequestNewComponent implements OnInit, OnDestro
         sortable: true,
         filterable: true,
         filter: { model: Filters['compoundInputText'] },
+        
+        formatter: (_row, _cell, value, _column, dataContext) => {
+          if (!value) return '';
+          return `
+            <span
+              title="${dataContext.ProjectName}"
+              style="display:block; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;"
+            >
+              ${value}
+            </span>
+          `;
+        },
+
+        customTooltip: {
+          useRegularTooltip: true,
+          // useRegularTooltipFromCellTextOnly: true,
+        },
       },
       {
         id: 'ProductCode',
@@ -1322,6 +1339,23 @@ export class ProjectPartlistPriceRequestNewComponent implements OnInit, OnDestro
         sortable: true,
         filterable: true,
         filter: { model: Filters['compoundInputText'] },
+        
+        formatter: (_row, _cell, value, _column, dataContext) => {
+          if (!value) return '';
+          return `
+            <span
+              title="${dataContext.ProductName}"
+              style="display:block; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;"
+            >
+              ${value}
+            </span>
+          `;
+        },
+
+        customTooltip: {
+          useRegularTooltip: true,
+          // useRegularTooltipFromCellTextOnly: true,
+        },
       },
       {
         id: 'ProductName',
@@ -1331,6 +1365,23 @@ export class ProjectPartlistPriceRequestNewComponent implements OnInit, OnDestro
         sortable: true,
         filterable: true,
         filter: { model: Filters['compoundInputText'] },
+        
+        formatter: (_row, _cell, value, _column, dataContext) => {
+          if (!value) return '';
+          return `
+            <span
+              title="${dataContext.ProductName}"
+              style="display:block; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;"
+            >
+              ${value}
+            </span>
+          `;
+        },
+
+        customTooltip: {
+          useRegularTooltip: true,
+          // useRegularTooltipFromCellTextOnly: true,
+        },
       },
       {
         id: 'Manufacturer',
@@ -1340,6 +1391,23 @@ export class ProjectPartlistPriceRequestNewComponent implements OnInit, OnDestro
         sortable: true,
         filterable: true,
         filter: { model: Filters['compoundInputText'] },
+        
+        formatter: (_row, _cell, value, _column, dataContext) => {
+          if (!value) return '';
+          return `
+            <span
+              title="${dataContext.Manufacturer}"
+              style="display:block; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;"
+            >
+              ${value}
+            </span>
+          `;
+        },
+
+        customTooltip: {
+          useRegularTooltip: true,
+          // useRegularTooltipFromCellTextOnly: true,
+        },
       },
       {
         id: 'Quantity',
@@ -1355,6 +1423,23 @@ export class ProjectPartlistPriceRequestNewComponent implements OnInit, OnDestro
         filter: { model: Filters['compoundInputNumber'] },
         groupTotalsFormatter: (totals: any, columnDef: any) => this.sumTotalsFormatterWithFormat(totals, columnDef),
         params: { groupFormatterPrefix: 'Tổng: ' },
+        
+        formatter: (_row, _cell, value, _column, dataContext) => {
+          if (!value) return '';
+          return `
+            <span
+              title="${dataContext.Quantity}"
+              style="display:block; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;"
+            >
+              ${value}
+            </span>
+          `;
+        },
+
+        customTooltip: {
+          useRegularTooltip: true,
+          // useRegularTooltipFromCellTextOnly: true,
+        },
       },
       {
         id: 'Unit',
@@ -1364,6 +1449,23 @@ export class ProjectPartlistPriceRequestNewComponent implements OnInit, OnDestro
         sortable: true,
         filterable: true,
         filter: { model: Filters['compoundInputText'] },
+        
+        formatter: (_row, _cell, value, _column, dataContext) => {
+          if (!value) return '';
+          return `
+            <span
+              title="${dataContext.Unit}"
+              style="display:block; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;"
+            >
+              ${value}
+            </span>
+          `;
+        },
+
+        customTooltip: {
+          useRegularTooltip: true,
+          // useRegularTooltipFromCellTextOnly: true,
+        },
       },
       {
         id: 'StatusRequestText',
@@ -1373,6 +1475,23 @@ export class ProjectPartlistPriceRequestNewComponent implements OnInit, OnDestro
         sortable: true,
         filterable: true,
         filter: { model: Filters['compoundInputText'] },
+        
+        formatter: (_row, _cell, value, _column, dataContext) => {
+          if (!value) return '';
+          return `
+            <span
+              title="${dataContext.StatusRequestText}"
+              style="display:block; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;"
+            >
+              ${value}
+            </span>
+          `;
+        },
+
+        customTooltip: {
+          useRegularTooltip: true,
+          // useRegularTooltipFromCellTextOnly: true,
+        },
       },
       {
         id: 'FullName',
@@ -1382,6 +1501,23 @@ export class ProjectPartlistPriceRequestNewComponent implements OnInit, OnDestro
         sortable: true,
         filterable: true,
         filter: { model: Filters['compoundInputText'] },
+        
+        formatter: (_row, _cell, value, _column, dataContext) => {
+          if (!value) return '';
+          return `
+            <span
+              title="${dataContext.FullName}"
+              style="display:block; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;"
+            >
+              ${value}
+            </span>
+          `;
+        },
+
+        customTooltip: {
+          useRegularTooltip: true,
+          // useRegularTooltipFromCellTextOnly: true,
+        },
       },
       {
         id: 'FullNameSale',
@@ -1391,6 +1527,23 @@ export class ProjectPartlistPriceRequestNewComponent implements OnInit, OnDestro
         sortable: true,
         filterable: true,
         filter: { model: Filters['compoundInputText'] },
+        
+        formatter: (_row, _cell, value, _column, dataContext) => {
+          if (!value) return '';
+          return `
+            <span
+              title="${dataContext.FullNameSale}"
+              style="display:block; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;"
+            >
+              ${value}
+            </span>
+          `;
+        },
+
+        customTooltip: {
+          useRegularTooltip: true,
+          // useRegularTooltipFromCellTextOnly: true,
+        },
       },
       {
         id: 'QuoteEmployee',
@@ -1400,6 +1553,23 @@ export class ProjectPartlistPriceRequestNewComponent implements OnInit, OnDestro
         sortable: true,
         filterable: true,
         filter: { model: Filters['compoundInputText'] },
+        
+        formatter: (_row, _cell, value, _column, dataContext) => {
+          if (!value) return '';
+          return `
+            <span
+              title="${dataContext.QuoteEmployee}"
+              style="display:block; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;"
+            >
+              ${value}
+            </span>
+          `;
+        },
+
+        customTooltip: {
+          useRegularTooltip: true,
+          // useRegularTooltipFromCellTextOnly: true,
+        },
       },
       {
         id: 'DateRequest',
@@ -1592,6 +1762,10 @@ export class ProjectPartlistPriceRequestNewComponent implements OnInit, OnDestro
           return supplier ? supplier.NameNCC : '';
         },
         filter: { model: Filters['compoundInputNumber'] },
+        customTooltip: {
+          useRegularTooltip: true,
+          // useRegularTooltipFromCellTextOnly: true,
+        },
       },
       {
         id: 'TotalDayLeadTime',
@@ -1606,6 +1780,10 @@ export class ProjectPartlistPriceRequestNewComponent implements OnInit, OnDestro
         },
         formatter: (row: number, cell: number, value: any) => this.formatNumberEnUS(value, 0),
         filter: { model: Filters['compoundInputNumber'] },
+        customTooltip: {
+          useRegularTooltip: true,
+          // useRegularTooltipFromCellTextOnly: true,
+        },
       },
       {
         id: 'DateExpected',
@@ -1629,6 +1807,23 @@ export class ProjectPartlistPriceRequestNewComponent implements OnInit, OnDestro
           model: Editors['longText'],
         },
         filter: { model: Filters['compoundInputText'] },
+        
+        formatter: (_row, _cell, value, _column, dataContext) => {
+          if (!value) return '';
+          return `
+            <span
+              title="${dataContext.Note}"
+              style="display:block; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;"
+            >
+              ${value}
+            </span>
+          `;
+        },
+
+        customTooltip: {
+          useRegularTooltip: true,
+          // useRegularTooltipFromCellTextOnly: true,
+        },
       },
       {
         id: 'NotePartlist',
@@ -1638,6 +1833,23 @@ export class ProjectPartlistPriceRequestNewComponent implements OnInit, OnDestro
         sortable: true,
         filterable: true,
         filter: { model: Filters['compoundInputText'] },
+        
+        formatter: (_row, _cell, value, _column, dataContext) => {
+          if (!value) return '';
+          return `
+            <span
+              title="${dataContext.NotePartlist}"
+              style="display:block; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;"
+            >
+              ${value}
+            </span>
+          `;
+        },
+
+        customTooltip: {
+          useRegularTooltip: true,
+          // useRegularTooltipFromCellTextOnly: true,
+        },
       },
       {
         id: 'Model',
@@ -1647,6 +1859,23 @@ export class ProjectPartlistPriceRequestNewComponent implements OnInit, OnDestro
         sortable: true,
         filterable: true,
         filter: { model: Filters['compoundInputText'] },
+        
+        formatter: (_row, _cell, value, _column, dataContext) => {
+          if (!value) return '';
+          return `
+            <span
+              title="${dataContext.Model}"
+              style="display:block; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;"
+            >
+              ${value}
+            </span>
+          `;
+        },
+
+        customTooltip: {
+          useRegularTooltip: true,
+          // useRegularTooltipFromCellTextOnly: true,
+        },
       },
       {
         id: 'SpecialCode',
@@ -1656,6 +1885,23 @@ export class ProjectPartlistPriceRequestNewComponent implements OnInit, OnDestro
         sortable: true,
         filterable: true,
         filter: { model: Filters['compoundInputText'] },
+        
+        formatter: (_row, _cell, value, _column, dataContext) => {
+          if (!value) return '';
+          return `
+            <span
+              title="${dataContext.SpecialCode}"
+              style="display:block; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;"
+            >
+              ${value}
+            </span>
+          `;
+        },
+
+        customTooltip: {
+          useRegularTooltip: true,
+          // useRegularTooltipFromCellTextOnly: true,
+        },
       },
       {
         id: 'IsImport',
@@ -1733,6 +1979,23 @@ export class ProjectPartlistPriceRequestNewComponent implements OnInit, OnDestro
         sortable: true,
         filterable: true,
         filter: { model: Filters['compoundInputText'] },
+        
+        formatter: (_row, _cell, value, _column, dataContext) => {
+          if (!value) return '';
+          return `
+            <span
+              title="${dataContext.ReasonDeleted}"
+              style="display:block; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;"
+            >
+              ${value}
+            </span>
+          `;
+        },
+
+        customTooltip: {
+          useRegularTooltip: true,
+          // useRegularTooltipFromCellTextOnly: true,
+        },
       },
     ];
 

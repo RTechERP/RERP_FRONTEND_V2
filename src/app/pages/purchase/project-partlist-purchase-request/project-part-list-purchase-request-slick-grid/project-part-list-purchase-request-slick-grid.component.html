@@ -8,72 +8,101 @@
     <div class="card border-0 rounded-0 h-100">
         <div class="card-header bg-white p-1" style="overflow-x: auto;">
             <div class="d-flex gap-1" *ngIf="!isYCMH">
-                <button nz-button nzType="default" nzSize="small"
-                        (click)="ToggleSearchPanelNew($event); $event.stopPropagation()"
-                        (mousedown)="$event.stopPropagation()"
-                        (touchstart)="$event.stopPropagation()"
-                        (touchend)="$event.stopPropagation()"
-                        class="sticky-toggle-btn"
-                        [attr.aria-label]="showSearchBar ? 'Ẩn tìm kiếm' : 'Hiện tìm kiếm'"
-                        [attr.aria-expanded]="showSearchBar"
-                        type="button">
-                    <nz-icon [nzType]="showSearchBar ? 'up' : 'down'" />
-                </button>
+                <!-- Khi isApprovedBGD = true, chỉ hiển thị 2 nút BGD -->
+                <ng-container *ngIf="isApprovedBGD && !isApprovedTBP">
+                    <button nz-button nzType="default" nzSize="small"
+                        (click)="onApproved(activeTabIndex, true, false)" *hasPermission="'N58,N1'">
+                        <img class="btn-action-icon" src="assets/icon/action_check_24.svg" />BGD duyệt
+                    </button>
+                    <button nz-button nzType="default" nzSize="small"
+                        (click)="onApproved(activeTabIndex, false, false)" *hasPermission="'N58,N1'">
+                        <img class="btn-action-icon" src="assets/icon/action_cancle_24.svg" />BGD hủy duyệt
+                    </button>
+                </ng-container>
 
-                <button nz-button nzType="default" nzSize="small" (click)="onCheckOrder(activeTabIndex, true)">
-                    <img class="btn-action-icon" src="assets/icon/action_check_24.svg" />Check đặt hàng
-                </button>
-                <button nz-button nzType="default" nzSize="small" (click)="onCheckOrder(activeTabIndex, false)">
-                    <img class="btn-action-icon" src="assets/icon/action_cancle_24.svg" />Hủy Check đặt hàng
-                </button>
-                <button nz-button nzType="default" nzSize="small" (click)="onSaveData(activeTabIndex)"
-                    *hasPermission="'N35,N1'">
-                    <img class="btn-action-icon" src="assets/icon/action_save_24.svg" />Lưu thay đổi
-                </button>
-                <button class="fs-12" nz-button nzType="default" nzSize="small" (click)="onEdit(activeTabIndex)"
-                    *hasPermission="'N35,N1'">
-                    <img class="btn-action-icon" src="assets/icon/action_edit_24.svg" />Sửa
-                </button>
-                <button class="fs-12" nz-button nzType="default" (click)="onDeleteRequest(activeTabIndex)"
-                    *hasPermission="'N35,N1'" nzSize="small">
-                    <img class="btn-action-icon" src="assets/icon/action_delete_24.svg" />Hủy Y/c
-                </button>
-                <button nz-button nzType="default" nzSize="small" *hasPermission="'N35,N1'"
-                    (click)="onAddSupplierSale()">
-                    <img class="btn-action-icon" src="assets/icon/action_add_24.svg" />Thêm NCC
-                </button>
-                <button nz-button nzType="default" nzSize="small"
-                    (click)="onRequestApproved(activeTabIndex, true)" *hasPermission="'N35,N1'">
-                    <img class="btn-action-icon" src="assets/icon/action_check_24.svg" />Y/C duyệt mua
-                </button>
-                <button nz-button nzType="default" nzSize="small"
-                    (click)="onRequestApproved(activeTabIndex, false)" *hasPermission="'N35,N1'">
-                    <img class="btn-action-icon" src="assets/icon/action_cancle_24.svg" />Hủy Y/C duyệt mua
-                </button>
-                <button nz-button nzType="default" nzSize="small" (click)="onCompleteRequest(activeTabIndex, 7)"
-                    *hasPermission="'N35,N1'">
-                    <img class="btn-action-icon" src="assets/icon/action_check_24.svg" />Hoàn thành
-                </button>
-                <button nz-button nzType="default" nzSize="small" (click)="onCompleteRequest(activeTabIndex, 1)"
-                    *hasPermission="'N35,N1'">
-                    <img class="btn-action-icon" src="assets/icon/action_cancle_24.svg" />Hủy hoàn thành
-                </button>
-                <button nz-button nzType="default" nzSize="small"
-                    (click)="onApproved(activeTabIndex, true, false)" *hasPermission="'N58,N1'">
-                    <img class="btn-action-icon" src="assets/icon/action_check_24.svg" />BGD duyệt
-                </button>
-                <button nz-button nzType="default" nzSize="small"
-                    (click)="onApproved(activeTabIndex, false, false)" *hasPermission="'N58,N1'">
-                    <img class="btn-action-icon" src="assets/icon/action_cancle_24.svg" />BGD hủy duyệt
-                </button>
-                <button nz-button nzType="default" nzSize="small" (click)="onAddPoncc()"
-                    *hasPermission="'N35,N1'">
-                    <img class="btn-action-icon" src="assets/icon/action_add_24.svg" />Tạo PO NCC
-                </button>
-                <button nz-button nzType="default" nzSize="small" (click)="onDownloadFile(activeTabIndex)"
-                    *hasPermission="'N35,N1'">
-                    <img class="btn-action-icon" src="assets/icon/action_dowload_file_24.svg" />Tải file
-                </button>
+                <!-- Khi isApprovedTBP = true, chỉ hiển thị 2 nút TBP -->
+                <ng-container *ngIf="isApprovedTBP && !isApprovedBGD">
+                    <button nz-button nzType="default" nzSize="small"
+                        (click)="onApproved(activeTabIndex, true, true)" *hasPermission="'N58,N1'">
+                        <img class="btn-action-icon" src="assets/icon/action_check_24.svg" />TBP duyệt
+                    </button>
+                    <button nz-button nzType="default" nzSize="small"
+                        (click)="onApproved(activeTabIndex, false, true)" *hasPermission="'N58,N1'">
+                        <img class="btn-action-icon" src="assets/icon/action_cancle_24.svg" />TBP hủy duyệt
+                    </button>
+                </ng-container>
+
+                <!-- Khi cả isApprovedTBP và isApprovedBGD đều false, hiển thị tất cả các nút -->
+                <ng-container *ngIf="!isApprovedTBP && !isApprovedBGD">
+                    <button nz-button nzType="default" nzSize="small"
+                            (click)="ToggleSearchPanelNew($event); $event.stopPropagation()"
+                            (mousedown)="$event.stopPropagation()"
+                            (touchstart)="$event.stopPropagation()"
+                            (touchend)="$event.stopPropagation()"
+                            class="sticky-toggle-btn"
+                            [attr.aria-label]="showSearchBar ? 'Ẩn tìm kiếm' : 'Hiện tìm kiếm'"
+                            [attr.aria-expanded]="showSearchBar"
+                            type="button">
+                        <nz-icon [nzType]="showSearchBar ? 'up' : 'down'" />
+                    </button>
+
+                    <button nz-button nzType="default" nzSize="small" (click)="onCheckOrder(activeTabIndex, true)">
+                        <img class="btn-action-icon" src="assets/icon/action_check_24.svg" />Check đặt hàng
+                    </button>
+                    <button nz-button nzType="default" nzSize="small" (click)="onCheckOrder(activeTabIndex, false)">
+                        <img class="btn-action-icon" src="assets/icon/action_cancle_24.svg" />Hủy Check đặt hàng
+                    </button>
+                    <button nz-button nzType="default" nzSize="small" (click)="onSaveData(activeTabIndex)"
+                        *hasPermission="'N35,N1'" [hidden]="isSelectedPO">
+                        <img class="btn-action-icon" src="assets/icon/action_save_24.svg" />Lưu thay đổi
+                    </button>
+                    <button class="fs-12" nz-button nzType="default" nzSize="small" (click)="onEdit(activeTabIndex)"
+                        *hasPermission="'N35,N1'">
+                        <img class="btn-action-icon" src="assets/icon/action_edit_24.svg" />Sửa
+                    </button>
+                    <button class="fs-12" nz-button nzType="default" (click)="onDeleteRequest(activeTabIndex)"
+                        *hasPermission="'N35,N1'" nzSize="small">
+                        <img class="btn-action-icon" src="assets/icon/action_delete_24.svg" />Hủy Y/c
+                    </button>
+                    <button nz-button nzType="default" nzSize="small" *hasPermission="'N35,N1'"
+                        (click)="onAddSupplierSale()">
+                        <img class="btn-action-icon" src="assets/icon/action_add_24.svg" />Thêm NCC
+                    </button>
+                    <button nz-button nzType="default" nzSize="small"
+                        (click)="onRequestApproved(activeTabIndex, true)" *hasPermission="'N35,N1'">
+                        <img class="btn-action-icon" src="assets/icon/action_check_24.svg" />Y/C duyệt mua
+                    </button>
+                    <button nz-button nzType="default" nzSize="small"
+                        (click)="onRequestApproved(activeTabIndex, false)" *hasPermission="'N35,N1'">
+                        <img class="btn-action-icon" src="assets/icon/action_cancle_24.svg" />Hủy Y/C duyệt mua
+                    </button>
+                    <button nz-button nzType="default" nzSize="small" (click)="onCompleteRequest(activeTabIndex, 7)"
+                        *hasPermission="'N35,N1'">
+                        <img class="btn-action-icon" src="assets/icon/action_check_24.svg" />Hoàn thành
+                    </button>
+                    <button nz-button nzType="default" nzSize="small" (click)="onCompleteRequest(activeTabIndex, 1)"
+                        *hasPermission="'N35,N1'">
+                        <img class="btn-action-icon" src="assets/icon/action_cancle_24.svg" />Hủy hoàn thành
+                    </button>
+                    <button nz-button nzType="default" nzSize="small"
+                        (click)="onApproved(activeTabIndex, true, false)" *hasPermission="'N58,N1'"
+                        [hidden]="isSelectedPO">
+                        <img class="btn-action-icon" src="assets/icon/action_check_24.svg" />BGD duyệt
+                    </button>
+                    <button nz-button nzType="default" nzSize="small"
+                        (click)="onApproved(activeTabIndex, false, false)" *hasPermission="'N58,N1'"
+                        [hidden]="isSelectedPO">
+                        <img class="btn-action-icon" src="assets/icon/action_cancle_24.svg" />BGD hủy duyệt
+                    </button>
+                    <button nz-button nzType="default" nzSize="small" (click)="onAddPoncc()"
+                        *hasPermission="'N35,N1'">
+                        <img class="btn-action-icon" src="assets/icon/action_add_24.svg" />Tạo PO NCC
+                    </button>
+                    <button nz-button nzType="default" nzSize="small" (click)="onDownloadFile(activeTabIndex)"
+                        *hasPermission="'N35,N1'">
+                        <img class="btn-action-icon" src="assets/icon/action_dowload_file_24.svg" />Tải file
+                    </button>
+                </ng-container>
             </div>
             <div class="d-flex gap-1" *ngIf="isYCMH">
                 <button nz-button nzType="default" nzSize="small" (click)="ToggleSearchPanelNew($event)"
@@ -177,7 +206,7 @@
                     }"></nz-spin>
             </div>
             <nz-tabset class="ms-2 h-100" (nzSelectedIndexChange)="onTabChange($event)">
-                <nz-tab class="purchase-tab h-100" *ngFor="let tab of tabs; let i = index" [nzTitle]="tab.title">
+                <nz-tab class="purchase-tab h-100" *ngFor="let tab of filteredTabs; let i = index" [nzTitle]="tab.title">
                     <div class="table-container mt-1 grid-container h-100" [class]="'grid-container-' + tab.id"
                         *ngIf="shouldRenderGrid(tab.id) && columnDefinitionsMap.has(tab.id)"
                         style="height: 100%; width: 100%;">

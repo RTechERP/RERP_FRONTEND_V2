@@ -139,7 +139,8 @@
                                     <nz-tabset>
                                         @for (t of tabs; track t.title; let i = $index) {
                                         <nz-tab [nzTitle]="t.title">
-                                            <button class="my-1" nz-button nzType="primary" nzSize="small"
+                                            <div class="d-flex justify-content-start">
+                                                <button class="my-1" nz-button nzType="primary" nzSize="small"
                                                 (click)="downloadPDF(i)">
                                                 Tải xuống
                                             </button>
@@ -158,6 +159,7 @@
                                                 (ngModelChange)="toggleSeal(t)" nzCheckedChildren="Hiện con dấu"
                                                 nzUnCheckedChildren="Ẩn con dấu">
                                             </nz-switch>
+                                            </div>
 
                                             <div style="height: 80vh;">
                                                 <iframe width="100%" height="100%" style="border: none;"

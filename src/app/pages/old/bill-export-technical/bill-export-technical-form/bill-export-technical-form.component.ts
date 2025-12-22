@@ -1637,7 +1637,7 @@ export class BillExportTechnicalFormComponent implements OnInit, AfterViewInit {
       },
       billExportDetailTechnicals: tableData.map(
         (device: any, index: number) => ({
-          ID: device.ID || 0,
+          ID: 0,
           STT: index + 1,
           UnitID: device.UnitCountID || 0,
           UnitName: device.UnitCountName || '',

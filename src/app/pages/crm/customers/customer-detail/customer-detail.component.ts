@@ -100,6 +100,7 @@ import { NOTIFICATION_TITLE } from '../../../../app.config';
 export class CustomerDetailComponent implements OnInit, AfterViewInit {
   @Input() EditID!: number;
   @Input() isEditMode!: boolean;
+  @Input() warehouseId!: number;
 
   @ViewChild('tb_DataTable', { static: false })
   tb_DataTableElement!: ElementRef;

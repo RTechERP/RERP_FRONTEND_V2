@@ -71,7 +71,7 @@ export class AccountingContractService {
   
   uploadFiles(formData: FormData, accountingContractId: number): Observable<any> {
     return this.http.post<any>(
-      `${this._url}upload-file?accountingContractId=${accountingContractId}`,
+      `${this._url}upload-file?contractID=${accountingContractId}`,
       formData
     );
   }

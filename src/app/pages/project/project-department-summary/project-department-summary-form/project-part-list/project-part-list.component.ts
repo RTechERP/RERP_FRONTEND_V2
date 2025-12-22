@@ -3108,6 +3108,13 @@ export class ProjectPartListComponent implements OnInit, AfterViewInit {
           this.lastClickedPartListRow = row;
           this.additionalPartListPO();
         },
+      },
+      {
+        label: '<span style="font-size: 0.75rem;"><img src="assets/icon/download_draw_16.png" alt="Tải bản vẽ" class="me-1" />Tải bản vẽ</span>',
+        action: (e: any, row: any) => {
+          this.lastClickedPartListRow = row;
+          this.downloadDrawing();
+        },
       }
     ];
     // Chỉ thêm 2 action "Đã mua" và "Hủy đã mua" khi type === 2 (bảng PO)
@@ -5351,6 +5358,168 @@ export class ProjectPartListComponent implements OnInit, AfterViewInit {
     );
   }
   //#endregion
+
+  //#region Download Drawing
+  downloadDrawing(): void {
+    // Lấy solutionCode từ bảng solution (dòng được chọn)
+    const selectedSolution = this.tb_solution?.getSelectedData();
+    if (!selectedSolution || selectedSolution.length === 0) {
+      this.notification.warning('Thông báo', 'Vui lòng chọn giải pháp!');
+      return;
+    }
+
+    const solutionCode = selectedSolution[0]?.CodeSolution?.trim();
+    if (!solutionCode) {
+      this.notification.warning('Thông báo', 'Không tìm thấy mã giải pháp!');
+      return;
+    }
+
+    // Lấy danh sách sản phẩm đã được check từ bảng partlist
+    const selectedProducts = this.tb_projectWorker?.getSelectedData();
+    if (!selectedProducts || selectedProducts.length === 0) {
+      this.notification.warning('Thông báo', 'Vui lòng chọn sản phẩm muốn tải file!');
+      return;
+    }
+
+    // Lấy tất cả các row đã được check (bao gồm cả children nếu có)
+    const getAllSelectedRows = (): any[] => {
+      const allRows: any[] = [];
+      const selectedRows = this.tb_projectWorker?.getSelectedRows() || [];
+      
+      selectedRows.forEach((row: any) => {
+        const rowData = row.getData();
+        if (rowData.ProductCode && rowData.ProductCode.trim()) {
+          allRows.push(rowData);
+        }
+        // Lấy cả children nếu có
+        if (rowData._children && rowData._children.length > 0) {
+          const getChildrenRecursive = (children: any[]) => {
+            children.forEach((child: any) => {
+              if (child.ProductCode && child.ProductCode.trim()) {
+                allRows.push(child);
+              }
+              if (child._children && child._children.length > 0) {
+                getChildrenRecursive(child._children);
+              }
+            });
+          };
+          getChildrenRecursive(rowData._children);
+        }
+      });
+      
+      return allRows;
+    };
+
+    const allSelectedProducts = getAllSelectedRows();
+    if (allSelectedProducts.length === 0) {
+      this.notification.warning('Thông báo', 'Không tìm thấy sản phẩm hợp lệ để tải file!');
+      return;
+    }
+
+    // Hiển thị loading notification
+    this.notification.info('Thông báo', 'Đang tải xuống file...');
+
+    let downloadCount = 0;
+    let errorCount = 0;
+    const totalFiles = allSelectedProducts.length;
+    let completedCount = 0;
+
+    // Lấy thông tin project một lần
+    this.projectService.getProjectById(this.projectId).subscribe({
+      next: (projectResponse: any) => {
+        if (projectResponse.status !== 1 || !projectResponse.data) {
+          this.notification.error('Thông báo', `Không tìm thấy thông tin dự án ID: ${this.projectId}`);
+          return;
+        }
+
+        const project = projectResponse.data;
+        if (!project.CreatedDate) {
+          this.notification.error('Thông báo', `Dự án ${project.ProjectCode} không có ngày tạo!`);
+          return;
+        }
+
+        const createdDate = new Date(project.CreatedDate);
+        const year = createdDate.getFullYear();
+        const projectCode = project.ProjectCode?.trim() || this.projectCodex?.trim();
+        
+        if (!projectCode) {
+          this.notification.error('Thông báo', `Dự án ID ${this.projectId} không có mã dự án!`);
+          return;
+        }
+
+        // Tạo path pattern: {year}/{projectCode}/THIETKE.Co/{solutionCode}/2D/GC/DH
+        const pathPattern = `${year}/${projectCode}/THIETKE.Co/${solutionCode}/2D/GC/DH`;
+
+        // Download từng file
+        allSelectedProducts.forEach((product: any) => {
+          const productCode = product.ProductCode?.trim();
+          if (!productCode) {
+            completedCount++;
+            if (completedCount === totalFiles) {
+              if (downloadCount > 0) {
+                this.notification.success('Thông báo', `Đã tải xuống thành công ${downloadCount}/${totalFiles} file!`);
+              }
+            }
+            return;
+          }
+          const fileName = `${productCode}.pdf`;
+          const url = `  http://192.168.1.2:8088/api/api/share/duan/projects/${pathPattern}/${fileName}`;
+
+          // Download file
+          this.projectPartListService.downloadDrawingFile(url).subscribe({
+            next: (blob: Blob) => {
+              completedCount++;
+              if (blob && blob.size > 0) {
+                const downloadUrl = window.URL.createObjectURL(blob);
+                const link = document.createElement('a');
+                link.href = downloadUrl;
+                link.download = fileName;
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+                window.URL.revokeObjectURL(downloadUrl);
+                downloadCount++;
+              } else {
+                errorCount++;
+                this.notification.warning('Thông báo', `File [${fileName}] không tồn tại hoặc rỗng!`);
+              }
+
+              // Kiểm tra xem đã download hết chưa
+              if (completedCount === totalFiles) {
+                if (downloadCount > 0) {
+                  this.notification.success('Thông báo', `Đã tải xuống thành công ${downloadCount}/${totalFiles} file!`);
+                }
+                if (errorCount > 0 && downloadCount === 0) {
+                  this.notification.error('Thông báo', `Không thể tải xuống file nào! (${errorCount} lỗi)`);
+                }
+              }
+            },
+            error: (error: any) => {
+              completedCount++;
+              errorCount++;
+              console.error(`Error downloading file ${fileName}:`, error);
+              this.notification.error('Thông báo', `File [${fileName}] không tồn tại!\n${error?.message || error?.error?.message || 'Lỗi không xác định'}`);
+
+              // Kiểm tra xem đã download hết chưa
+              if (completedCount === totalFiles) {
+                if (downloadCount > 0) {
+                  this.notification.success('Thông báo', `Đã tải xuống thành công ${downloadCount}/${totalFiles} file!`);
+                }
+                if (errorCount > 0 && downloadCount === 0) {
+                  this.notification.error('Thông báo', `Không thể tải xuống file nào! (${errorCount} lỗi)`);
+                }
+              }
+            },
+          });
+        });
+      },
+      error: (error: any) => {
+        console.error(`Error getting project ${this.projectId}:`, error);
+        this.notification.error('Thông báo', `Không thể lấy thông tin dự án ID: ${this.projectId}`);
+      },
+    });
+  }
+  //#endregion
   //#region đã mua
   techBought(): void {
     const selectedRows = this.tb_projectWorker?.getSelectedData();
@@ -5801,6 +5970,7 @@ export class ProjectPartListComponent implements OnInit, AfterViewInit {
         ProductID: node.ProductID || 0,
         TT: node.TT || '',
         WarehouseID: 0 // Backend sẽ xử lý từ warehouseCode, có thể để 0 hoặc không cần gửi
+
       };
       return item;
     });

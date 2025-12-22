@@ -824,7 +824,7 @@ export class BillExportDetailComponent
           });
         }
       }
-      
+
       // Update TotalInventory for rows if productOptions are already loaded
       // This is important for data coming from PO (warehouse-release-request)
       if (this.isFromWarehouseRelease || this.isFromProjectPartList) {
@@ -1276,7 +1276,7 @@ export class BillExportDetailComponent
         } else {
           this.productOptions = [];
         }
-        
+
         // Update TotalInventory for existing rows after productOptions are loaded
         // This is especially important for data coming from PO (warehouse-release-request)
         if (this.isFromWarehouseRelease || this.isFromProjectPartList) {
@@ -1285,7 +1285,7 @@ export class BillExportDetailComponent
             this.updateTotalInventoryForExistingRows();
           }, 50);
         }
-        
+
         if (this.checkConvert == true) {
           this.getBillExportDetailConvert([this.id]);
         } else if (this.isCheckmode && !this.isBorrow) {
@@ -1743,17 +1743,17 @@ export class BillExportDetailComponent
     // 2. Từ selectedProduct.TotalQuantityLast (nếu có)
     // 3. Tìm trong productOptions (đã được load từ API getOptionProduct với TotalQuantityLast)
     // 4. Mặc định = 0
-    let totalInventory = selectedProduct.TotalInventory ?? 
-                        selectedProduct.TotalQuantityLast ?? 
+    let totalInventory = selectedProduct.TotalInventory ??
+                        selectedProduct.TotalQuantityLast ??
                         0;
 
     // If TotalInventory is still 0 or missing, try to find it from productOptions
     // productOptions được load từ changeProductGroup() với TotalInventory = product.TotalQuantityLast
     if (!totalInventory || totalInventory === 0) {
       const fullProduct = this.productOptions.find(
-        (p: any) => 
-          (p.value === productValue) || 
-          (p.ProductID === productValue) || 
+        (p: any) =>
+          (p.value === productValue) ||
+          (p.ProductID === productValue) ||
           (p.ProductSaleID === productValue) ||
           (p.value === selectedProduct.value) ||
           (p.ProductCode === selectedProduct.ProductCode)
@@ -1829,7 +1829,7 @@ export class BillExportDetailComponent
     }
 
     const tableData = this.table_billExportDetail.getData() || [];
-    
+
     if (tableData.length === 0) {
       return;
     }
@@ -1839,7 +1839,7 @@ export class BillExportDetailComponent
       const inv = parseFloat(String(row.TotalInventory || 0));
       return inv > 0;
     });
-    
+
     if (allRowsHaveInventory) {
       return;
     }
@@ -1849,7 +1849,7 @@ export class BillExportDetailComponent
 
     tableData.forEach((row: any, index: number) => {
       const productID = row.ProductID || 0;
-      
+
       if (!productID || productID <= 0) {
         return;
       }
@@ -1883,23 +1883,23 @@ export class BillExportDetailComponent
     if (hasUpdates && updatedRows.length > 0) {
       const allRows = this.table_billExportDetail.getRows();
       let updatedCount = 0;
-      
+
       updatedRows.forEach((rowDataToUpdate: any) => {
         // Find the corresponding row in the table by ProductID and ProductCode
         const matchingRow = allRows.find((row: any) => {
           const rowData = row.getData();
-          return (rowData.ProductID === rowDataToUpdate.ProductID && 
+          return (rowData.ProductID === rowDataToUpdate.ProductID &&
                   rowData.ProductCode === rowDataToUpdate.ProductCode) ||
-                 (rowData.ProductID === rowDataToUpdate.ProductID && 
+                 (rowData.ProductID === rowDataToUpdate.ProductID &&
                   rowData.ProductNewCode === rowDataToUpdate.ProductNewCode);
         });
-        
+
         if (matchingRow) {
           matchingRow.update({ TotalInventory: rowDataToUpdate.TotalInventory });
           updatedCount++;
         }
       });
-      
+
       // Redraw table to reflect changes
       if (updatedCount > 0) {
         this.table_billExportDetail.redraw(true);
@@ -2614,32 +2614,32 @@ export class BillExportDetailComponent
     // Try to find by ID first (most accurate), then by index, then by matching fields
     const allRows = this.table_billExportDetail?.getRows() || [];
     let currentRow: any = null;
-    
+
     // First try: find by ID or ChildID if available
     if (rowData.ID || rowData.ChildID) {
       currentRow = allRows.find((row: any) => {
         const data = row.getData();
-        return (data.ID && data.ID === rowData.ID) || 
+        return (data.ID && data.ID === rowData.ID) ||
                (data.ChildID && data.ChildID === rowData.ChildID);
       });
 
     }
-    
+
     // Second try: find by index if provided
     if (!currentRow && rowIndex !== undefined && allRows[rowIndex]) {
       const rowDataAtIndex = allRows[rowIndex].getData();
-      if (rowDataAtIndex.ProductID === productID && 
+      if (rowDataAtIndex.ProductID === productID &&
           rowDataAtIndex.ProjectID === projectID &&
           (rowDataAtIndex.POKHDetailIDActual || rowDataAtIndex.POKHDetailID || 0) === poKHDetailID) {
-        currentRow = allRows[rowIndex];   
+        currentRow = allRows[rowIndex];
       }
     }
-    
+
     // Third try: find by matching key fields
     if (!currentRow) {
       currentRow = allRows.find((row: any) => {
         const data = row.getData();
-        return data.ProductID === productID && 
+        return data.ProductID === productID &&
                data.ProjectID === projectID &&
                (data.POKHDetailIDActual || data.POKHDetailID || 0) === poKHDetailID &&
                Math.abs(parseFloat(data.Qty || 0) - qty) < 0.001; // Match Qty as well for accuracy
@@ -2647,7 +2647,7 @@ export class BillExportDetailComponent
     }
 
     // Reset values (matching C# code)
-    currentRow.update({ 
+    currentRow.update({
       ChosenInventoryProject: '',
       ProductCodeExport: ''
     });
@@ -2675,7 +2675,7 @@ export class BillExportDetailComponent
                 const dateB = b.CreatedDate ? new Date(b.CreatedDate).getTime() : 0;
                 return dateA - dateB;
               });
-            
+
             const stock = res.stock || [];
             const totalStockAvailable = Math.max(0,
               stock.length > 0
@@ -2687,7 +2687,7 @@ export class BillExportDetailComponent
             if (inventoryProjects.length === 0) {
               if (totalStockAvailable >= qty) {
                 // Enough stock, leave ChosenInventoryProject empty to take from stock
-                currentRow.update({ 
+                currentRow.update({
                   ChosenInventoryProject: '',
                   ProductCodeExport: ''
                 });
@@ -2776,7 +2776,7 @@ export class BillExportDetailComponent
                   .map((inv: any) => inv.ProductCode)
                   .join(';');
 
-                currentRow.update({ 
+                currentRow.update({
                   ChosenInventoryProject: result,
                   ProductCodeExport: codes
                 });
@@ -2788,14 +2788,14 @@ export class BillExportDetailComponent
               if (totalStockAvailable >= qty) {
                 // Bỏ qua kho giữ, lấy toàn bộ từ tồn kho (matching C#)
                 // Để trống ChosenInventoryProject để lấy từ tồn kho
-                currentRow.update({ 
+                currentRow.update({
                   ChosenInventoryProject: '',
                   ProductCodeExport: ''
                 });
               } else {
                 // Không đủ cả kho giữ lẫn tồn kho
                 // Không làm gì, để validation xử lý (matching C#)
-                currentRow.update({ 
+                currentRow.update({
                   ChosenInventoryProject: '',
                   ProductCodeExport: ''
                 });
@@ -2807,7 +2807,7 @@ export class BillExportDetailComponent
           console.error('Error loading inventory project:', err);
           this.notification.error(
             'Thông báo',
-            err.error.message 
+            err.error.message
           );
         },
       });
@@ -3148,7 +3148,7 @@ export class BillExportDetailComponent
   // }
   async saveDataBillExport() {
     this.onRecheckQty();
-  
+
     if (!this.validateForm.valid) {
       this.notification.warning(
         NOTIFICATION_TITLE.warning,
@@ -3163,49 +3163,49 @@ export class BillExportDetailComponent
       });
       return;
     }
-  
+
     const formValidation = this.validateFormData();
     if (!formValidation.isValid) {
       this.notification.warning(NOTIFICATION_TITLE.error, formValidation.message);
       return;
     }
-  
+
     const inventoryValidation = this.validateInventoryStock();
     if (!inventoryValidation.isValid) {
       this.notification.warning(NOTIFICATION_TITLE.error, inventoryValidation.message);
       return;
     }
-  
+
     let billExportDetailsFromTable = this.table_billExportDetail?.getData();
     if (!billExportDetailsFromTable || billExportDetailsFromTable.length === 0) {
       this.notification.warning(NOTIFICATION_TITLE.warning, 'Vui lòng thêm ít nhất một sản phẩm vào bảng!');
       return;
     }
-  
+
     const formValues = this.validateForm.getRawValue();
     const status = formValues.Status || this.newBillExport.Status || 0;
-  
 
-  
+
+
     // ✅ GIỮ validation cho phiếu mượn
     if (status === 7 || status === 0) {
       for (const row of billExportDetailsFromTable) {
         const expectReturnDate = row.ExpectReturnDate;
         const projectID = row.ProjectID || 0;
         const stt = row.STT || '';
-  
+
         if (!expectReturnDate || expectReturnDate === '') {
           this.notification.warning('Thông báo', `Vui lòng nhập Ngày dự kiến trả dòng [${stt}]`);
           return;
         }
-  
+
         if (projectID <= 0) {
           this.notification.warning('Thông báo', `Vui lòng nhập Dự án dòng [${stt}]`);
           return;
         }
       }
     }
-  
+
     // ✅ Tiếp tục với logic save như cũ
     if (this.isCheckmode) {
       const payload = {
@@ -3235,7 +3235,7 @@ export class BillExportDetailComponent
         billExportDetail: this.mapTableDataToBillExportDetails(billExportDetailsFromTable),
         DeletedDetailIds: this.deletedDetailIds || [],
       };
-  
+
       this.billExportService.saveBillExport(payload).subscribe({
         next: (res: any) => {
           if (res.status === 1) {
@@ -3285,7 +3285,7 @@ export class BillExportDetailComponent
         billExportDetail: this.mapTableDataToBillExportDetails(billExportDetailsFromTable),
         DeletedDetailIds: this.deletedDetailIds || [],
       };
-  
+
       this.billExportService.saveBillExport(payload).subscribe({
         next: (res) => {
           if (res.status === 1) {

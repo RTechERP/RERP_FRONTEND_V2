@@ -2,7 +2,7 @@ import { Component, OnInit, ViewChild, ElementRef, AfterViewInit, input, Input }
 import { CommonModule } from '@angular/common';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { NgbActiveModal, NgbModal } from '@ng-bootstrap/ng-bootstrap';
-import { TabulatorFull as Tabulator } from 'tabulator-tables';
+import { TabulatorFull as Tabulator, ColumnDefinition, CellComponent } from 'tabulator-tables';
 
 // NG-ZORRO imports
 import { NzFormModule } from 'ng-zorro-antd/form';
@@ -33,6 +33,7 @@ import { HasPermissionDirective } from '../../../../directives/has-permission.di
 import { BillImportServiceService } from '../../../old/Sale/BillImport/bill-import-service/bill-import-service.service';
 import { BillImportDetailComponent } from '../../../old/Sale/BillImport/Modal/bill-import-detail/bill-import-detail.component';
 import { BillImportTechnicalFormComponent } from '../../../old/bill-import-technical/bill-import-technical-form/bill-import-technical-form.component';
+import { TabulatorPopupService } from '../../../../shared/components/tabulator-popup';
 
 @Component({
   selector: 'app-poncc-detail',
@@ -111,6 +112,62 @@ export class PonccDetailComponent implements OnInit, AfterViewInit {
   projects: any[] = [];
   referenceLinks: any[] = []; // Danh sách link tham chiếu từ dtRef
   
+  // Column definitions for popups
+  productSalePopupColumns: ColumnDefinition[] = [
+    {
+      title: 'Mã sản phẩm',
+      field: 'ProductCode',
+      width: 150,
+    },
+    {
+      title: 'Tên sản phẩm',
+      field: 'ProductName',
+      width: 250,
+    },
+    {
+      title: 'Mã nội bộ',
+      field: 'ProductNewCode',
+      width: 150,
+    },
+    {
+      title: 'DVT',
+      field: 'Unit',
+      width: 100,
+    },
+    {
+      title: 'Tên nhóm',
+      field: 'ProductGroupName',
+      width: 200,
+    },
+  ];
+
+  productRTCPopupColumns: ColumnDefinition[] = [
+    {
+      title: 'Mã sản phẩm',
+      field: 'ProductCode',
+      width: 150,
+    },
+    {
+      title: 'Tên sản phẩm',
+      field: 'ProductName',
+      width: 250,
+    },
+    {
+      title: 'Mã nội bộ',
+      field: 'ProductCodeRTC',
+      width: 150,
+    },
+    {
+      title: 'DVT',
+      field: 'UnitCountName',
+      width: 100,
+    },
+    {
+      title: 'Tên nhóm',
+      field: 'ProductGroupName',
+      width: 200,
+    },
+  ];
 
   formatAmount = (value: number | string): string => {
     if (value === null || value === undefined || value === '') return '';
@@ -138,7 +195,8 @@ export class PonccDetailComponent implements OnInit, AfterViewInit {
     private projectPartlistPurchaseRequestService: ProjectPartlistPurchaseRequestService,
     private ponccService: PONCCService,
     private appUserService: AppUserService,
-    private billImportService: BillImportServiceService
+    private billImportService: BillImportServiceService,
+    private tabulatorPopupService: TabulatorPopupService
   ) { }
 
   ngOnInit(): void {
@@ -380,13 +438,18 @@ export class PonccDetailComponent implements OnInit, AfterViewInit {
   }
 
   initInformationForm(): void {
+    // Set giá trị mặc định EmployeeID là người đăng nhập hiện tại (chỉ khi tạo mới)
+    const defaultEmployeeID = (!this.poncc || this.poncc.ID === 0 || this.isCopy) 
+      ? (this.appUserService.employeeID || null) 
+      : null;
+
     this.informationForm = this.fb.group({
       SupplierSaleID: [null, Validators.required],
       POCode: ['', Validators.required],
       AddressSupplier: [{ value: '', disabled: true }],
       MaSoThueNCC: [{ value: '', disabled: true }],
       RulePayID: [null, Validators.required],
-      EmployeeID: [null, Validators.required],
+      EmployeeID: [defaultEmployeeID, Validators.required],
       POType: [0, Validators.required],
       Company: [1, Validators.required],
       Note: [''],
@@ -679,29 +742,41 @@ export class PonccDetailComponent implements OnInit, AfterViewInit {
         {
           title: 'Mã sản phẩm sale',
           field: 'ProductSaleID',
-          editor: "list",
-          editorParams: { list: this.productSales },
           width: 200,
           headerSort: false,
           frozen: true,
           formatter: (cell: any) => {
             const id = cell.getValue();
             const item = this.productSales.find((p: any) => p.ID === id);
-            return item?.ProductCode || '';
+            const displayText = item?.ProductCode || '';
+            // Return clickable cell with icon
+            return `<div style="cursor: pointer; display: flex; align-items: center; gap: 5px;">
+                      <span>${displayText}</span>
+                      <i class="fas fa-search" style="color: #1890ff; font-size: 0.85em;"></i>
+                    </div>`;
+          },
+          cellClick: (e: any, cell: any) => {
+            this.openProductSalePopup(cell);
           }
         },
         {
           title: 'Mã sản phẩm Demo',
           field: 'ProductRTCID',
-          editor: "list",
-          editorParams: { list: this.productRTCs },
           width: 150,
           headerSort: false,
           frozen: true,
           formatter: (cell: any) => {
             const id = cell.getValue();
             const item = this.productRTCs.find((p: any) => p.ID === id);
-            return item?.ProductCode || '';
+            const displayText = item?.ProductCode || '';
+            // Return clickable cell with icon
+            return `<div style="cursor: pointer; display: flex; align-items: center; gap: 5px;">
+                      <span>${displayText}</span>
+                      <i class="fas fa-search" style="color: #1890ff; font-size: 0.85em;"></i>
+                    </div>`;
+          },
+          cellClick: (e: any, cell: any) => {
+            this.openProductRTCPopup(cell);
           }
         },
         { title: 'Tồn CK', field: 'TotalQuantityLast', editor: "number", width: 150, headerSort: false, frozen: true },
@@ -1095,12 +1170,8 @@ export class PonccDetailComponent implements OnInit, AfterViewInit {
     if (!this.tabulatorHangTien) return;
     let t = this.tabulatorHangTien;
     try {
-      t.updateColumnDefinition('ProductSaleID', {
-        editorParams: { values: this.productSales.map((c) => ({ value: c.ID, label: c.ProductCode })) },
-      } as any);
-      t.updateColumnDefinition('ProductRTCID', {
-        editorParams: { values: this.productRTCs.map((c) => ({ value: c.ID, label: c.ProductCode })) },
-      } as any);
+      // ProductSaleID and ProductRTCID now use popup, no need to update editor params
+      // Only update ProjectID if it still uses list editor
       t.updateColumnDefinition('ProjectID', {
         editorParams: { values: this.projects.map((c) => ({ value: c.ID, label: c.ProjectCode })) },
       } as any);
@@ -1160,6 +1231,88 @@ export class PonccDetailComponent implements OnInit, AfterViewInit {
     });
   }
 
+  // Mở popup chọn ProductSale
+  openProductSalePopup(cell: CellComponent): void {
+    const cellElement = cell.getElement();
+
+    // Toggle: nếu đang mở thì đóng
+    if (cellElement.classList.contains('popup-open')) {
+      this.tabulatorPopupService.close();
+      return;
+    }
+
+    // Mở popup mới với TabulatorPopupService
+    this.tabulatorPopupService.open(
+      {
+        data: this.productSales || [],
+        columns: this.productSalePopupColumns,
+        searchFields: ['ProductCode', 'ProductName', 'ProductNewCode'],
+        searchPlaceholder: 'Tìm kiếm sản phẩm sale...',
+        height: '300px',
+        selectableRows: 1,
+        layout: 'fitColumns',
+        minWidth: '600px',
+        maxWidth: '800px',
+        onRowSelected: (selectedProduct) => {
+          // Update the row with selected product data
+          const row = cell.getRow();
+          this.updateProductInfo(row, selectedProduct.ID, true);
+          
+          // Redraw cell to update display
+          cell.getTable().redraw(true);
+          
+          // Đóng popup
+          this.tabulatorPopupService.close();
+        },
+        onClosed: () => {
+          // Optional: xử lý khi popup đóng
+        },
+      },
+      cellElement
+    );
+  }
+
+  // Mở popup chọn ProductRTC
+  openProductRTCPopup(cell: CellComponent): void {
+    const cellElement = cell.getElement();
+
+    // Toggle: nếu đang mở thì đóng
+    if (cellElement.classList.contains('popup-open')) {
+      this.tabulatorPopupService.close();
+      return;
+    }
+
+    // Mở popup mới với TabulatorPopupService
+    this.tabulatorPopupService.open(
+      {
+        data: this.productRTCs || [],
+        columns: this.productRTCPopupColumns,
+        searchFields: ['ProductCode', 'ProductName', 'ProductCodeRTC'],
+        searchPlaceholder: 'Tìm kiếm sản phẩm RTC...',
+        height: '300px',
+        selectableRows: 1,
+        layout: 'fitColumns',
+        minWidth: '600px',
+        maxWidth: '800px',
+        onRowSelected: (selectedProduct) => {
+          // Update the row with selected product data
+          const row = cell.getRow();
+          this.updateProductInfo(row, selectedProduct.ID, false);
+          
+          // Redraw cell to update display
+          cell.getTable().redraw(true);
+          
+          // Đóng popup
+          this.tabulatorPopupService.close();
+        },
+        onClosed: () => {
+          // Optional: xử lý khi popup đóng
+        },
+      },
+      cellElement
+    );
+  }
+
   // Helper function để cập nhật thông tin sản phẩm
   private updateProductInfo(row: any, productId: number, isProductSale: boolean): void {
     const productList = isProductSale ? this.productSales : this.productRTCs;
@@ -1201,15 +1354,8 @@ export class PonccDetailComponent implements OnInit, AfterViewInit {
     const field = cell.getField();
     const newValue = cell.getValue();
 
-    // Xử lý thay đổi ProductSaleID
-    if (field === 'ProductSaleID' && newValue) {
-      this.updateProductInfo(row, newValue, true);
-    }
-
-    // Xử lý thay đổi ProductRTCID
-    if (field === 'ProductRTCID' && newValue) {
-      this.updateProductInfo(row, newValue, false);
-    }
+    // Note: ProductSaleID and ProductRTCID are now handled in popup callbacks,
+    // so we don't need to handle them here anymore
 
     // Xử lý thay đổi ProjectID - tự động điền ProjectName
     if (field === 'ProjectID' && newValue) {

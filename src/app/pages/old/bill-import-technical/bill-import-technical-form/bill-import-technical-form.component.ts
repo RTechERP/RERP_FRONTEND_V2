@@ -197,6 +197,17 @@ export class BillImportTechnicalFormComponent implements OnInit, AfterViewInit {
     const parent = control.parent;
     if (!parent) return null;
 
+    // Nếu là Mượn NCC (BillTypeNew === 1), không validate CustomerID
+    const billTypeNew = parent.get('BillTypeNew')?.value;
+    if (billTypeNew === 1) {
+      // Chỉ validate SupplierSaleID, không cần CustomerID
+      const supplierSaleID = parent.get('SupplierSaleID')?.value;
+      if (!supplierSaleID) {
+        return { supplierOrCustomerRequired: true };
+      }
+      return null;
+    }
+
     const supplierSaleID = parent.get('SupplierSaleID')?.value;
     const customerID = parent.get('CustomerID')?.value;
 
@@ -253,11 +264,18 @@ export class BillImportTechnicalFormComponent implements OnInit, AfterViewInit {
         ?.updateValueAndValidity({ onlySelf: true, emitEvent: false });
     });
 
-    // Subscribe to BillTypeNew changes to update column visibility
+    // Subscribe to BillTypeNew changes to update column visibility and validation
     this.formDeviceInfo
       .get('BillTypeNew')
       ?.valueChanges.subscribe((billType: number) => {
         this.updateColumnVisibility(billType);
+        // Update validation khi BillTypeNew thay đổi
+        this.formDeviceInfo
+          .get('CustomerID')
+          ?.updateValueAndValidity({ onlySelf: true, emitEvent: false });
+        this.formDeviceInfo
+          .get('SupplierSaleID')
+          ?.updateValueAndValidity({ onlySelf: true, emitEvent: false });
       });
 
     // Subscribe to DeliverID changes to auto-fill Deliver (FullName)
@@ -1480,19 +1498,8 @@ export class BillImportTechnicalFormComponent implements OnInit, AfterViewInit {
       return;
     }
 
-    // Borrow type validation: require EmployeeIDBorrow and DeadlineReturnNCC per row
-    if (formValue.BillTypeNew === 1) {
-      const invalidRow = this.selectedDevices.find(
-        (d: any) => !d.EmployeeIDBorrow || !d.DeadlineReturnNCC
-      );
-      if (invalidRow) {
-        this.notification.warning(
-          'Cảnh báo',
-          'Đối với phiếu Mượn NCC, vui lòng nhập Người mượn và Hạn trả NCC cho từng dòng.'
-        );
-        return;
-      }
-    }
+    // Bỏ validation EmployeeIDBorrow và DeadlineReturnNCC cho phiếu Mượn NCC
+    // (Theo yêu cầu: khi trạng thái là mượn ncc thì bỏ validate hạn trả ncc và người mượn)
 
     const deliverEmployee = this.emPloyeeLists.find(
       (e) => e.ID === formValue.DeliverID

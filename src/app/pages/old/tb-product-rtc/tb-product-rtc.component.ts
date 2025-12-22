@@ -30,6 +30,7 @@ import { NzDatePickerModule } from 'ng-zorro-antd/date-picker';
 import { NzAutocompleteModule } from 'ng-zorro-antd/auto-complete';
 import { NzInputModule } from 'ng-zorro-antd/input';
 import { NzSelectModule } from 'ng-zorro-antd/select';
+import { NzFormModule } from 'ng-zorro-antd/form';
 import { NzTableModule } from 'ng-zorro-antd/table';
 import {
   TabulatorFull as Tabulator,
@@ -75,6 +76,7 @@ import { AppUserService } from '../../../services/app-user.service';
     NzAutocompleteModule,
     NzInputModule,
     NzSelectModule,
+    NzFormModule,
     NzTableModule,
     NzTabsModule,
     NgbModalModule,
@@ -135,7 +137,9 @@ export class TbProductRtcComponent implements OnInit, AfterViewInit {
     this.tbProductRtcService
       .getProductRTCGroup(this.warehouseType)
       .subscribe((resppon: any) => {
-        this.productGroupData = resppon.data;
+        const data = resppon.data || [];
+        // API đã sắp xếp theo NumberOrder, không cần sort lại
+        this.productGroupData = data;
       });
   }
   getProduct() {
@@ -321,6 +325,14 @@ export class TbProductRtcComponent implements OnInit, AfterViewInit {
     if (mode === 'group') {
       this.checkAll = 0;
     }
+    this.getProduct();
+  }
+  // Hàm đặt lại filter về mặc định
+  onReset(): void {
+    this.productGroupID = 0;
+    this.keyWord = '';
+    this.searchMode = 'group';
+    this.checkAll = 0;
     this.getProduct();
   }
   toggleSearchPanel(): void {

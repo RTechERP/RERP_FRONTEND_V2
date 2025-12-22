@@ -66,4 +66,11 @@ export class TbProductRtcService {
       responseType: 'arraybuffer' as 'json',
     });
   }
+  // Update location for a product
+  updateLocation(id: number, locationID: number): Observable<any> {
+    const params = new HttpParams()
+      .set('id', id.toString())
+      .set('locationID', locationID.toString());
+    return this.http.post<any>(`${this.url}update-location`, null, { params });
+  }
 }

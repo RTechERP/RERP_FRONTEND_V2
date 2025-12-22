@@ -34,6 +34,8 @@ import { DEFAULT_TABLE_CONFIG } from '../../../../tabulator-default.config';
 import { HasPermissionDirective } from '../../../../directives/has-permission.directive';
 import { NzSpinModule } from 'ng-zorro-antd/spin';
 import { ProjectPartlistPriceRequestComponent } from '../../project-partlist-price-request/project-partlist-price-request.component';
+import { MarketingPurchaseRequestComponent } from '../../../purchase/marketing-purchase-request/marketing-purchase-request.component';
+import { ProjectPartListService } from '../../../project/project-department-summary/project-department-summary-form/project-part-list/project-partlist-service/project-part-list-service.service';
 
 interface ProductGroup {
     ID?: number;
@@ -122,6 +124,9 @@ export class ProductSaleComponent implements OnInit, AfterViewInit {
     //list lấy dữ liệu đơn vị productsale
     listUnitCount: any[] = [];
 
+    //list lấy dữ liệu UnitCount để tìm ID từ UnitName
+    unitCounts: any[] = [];
+
     //list lấy dữ liệu nhóm kho
     listProductGroupcbb: any[] = [];
 
@@ -164,6 +169,7 @@ export class ProductSaleComponent implements OnInit, AfterViewInit {
     private notification: NzNotificationService,
     private modalService: NgbModal,
     private modal: NzModalService,
+    private projectPartListService: ProjectPartListService,
     @Optional() @Inject('tabData') private tabData: any,
     @Optional() public activeModal: NgbActiveModal
   ) {}
@@ -193,6 +199,28 @@ export class ProductSaleComponent implements OnInit, AfterViewInit {
             this.warehouseCode = this.tabData.warehouseCode;
         }
         this.updateResponsiveFlags();
+        this.loadUnitCounts();
+    }
+
+    // Load UnitCount để tìm ID từ UnitName
+    loadUnitCounts(): void {
+        this.projectPartListService.getUnitCount().subscribe({
+            next: (response: any) => {
+                if (response.status === 1 && response.data) {
+                    this.unitCounts = response.data || [];
+                } else if (Array.isArray(response)) {
+                    this.unitCounts = response;
+                } else if (response.data) {
+                    this.unitCounts = response.data;
+                } else {
+                    this.unitCounts = [];
+                }
+            },
+            error: (err) => {
+                console.error('Error loading unit counts:', err);
+                this.unitCounts = [];
+            }
+        });
     }
     ngAfterViewInit(): void {
         this.drawTable_ProductGroup();
@@ -1039,6 +1067,94 @@ export class ProductSaleComponent implements OnInit, AfterViewInit {
         if (this.activeModal) {
             this.activeModal.close();
         }
+    }
+    //#endregion
+
+    //#region Yêu cầu mua hàng
+    openPurchaseRequest(): void {
+        // Lấy các dòng đã chọn từ table ProductSale
+        const selectedRows: ProductSale[] = this.table_productsale.getSelectedData();
+        
+        // if (selectedRows.length === 0) {
+        //     this.notification.warning(
+        //         NOTIFICATION_TITLE.warning,
+        //         'Vui lòng chọn ít nhất một sản phẩm để tạo yêu cầu mua hàng!'
+        //     );
+        //     return;
+        // }
+
+        // Kiểm tra ProductGroupID (theo WinForm: check ProductGroupID = "MK")
+        // Trong Angular, this.id là ProductGroupID đã chọn từ table ProductGroup
+        if (!this.id || this.id <= 0) {
+            this.notification.warning(
+                NOTIFICATION_TITLE.warning,
+                'Vui lòng chọn nhóm sản phẩm!'
+            );
+            return;
+        }
+
+        // Tạo dataset từ các dòng đã chọn
+        const dataset: any[] = [];
+        let countSTT = 0;
+
+        selectedRows.forEach((row: any) => {
+            countSTT++;
+            
+            // Tìm UnitCountID từ UnitName
+            const unitName = String(row.Unit || '').trim();
+            let unitCountID = 0;
+            
+            if (unitName) {
+                const unitCount = this.unitCounts.find((u: any) => 
+                    String(u.UnitName || '').toLowerCase().trim() === unitName.toLowerCase().trim()
+                );
+                if (unitCount && unitCount.ID) {
+                    unitCountID = unitCount.ID;
+                }
+            }
+
+            const newRow: any = {
+                id: Date.now() + countSTT, // Temporary ID
+                TT: countSTT,
+                ProductCode: String(row.ProductCode || '').trim(),
+                ProductNewCode: String(row.ProductNewCode || '').trim(),
+                ProductName: String(row.ProductName || '').trim(),
+                UnitName: unitCountID, // Set ID, không phải tên
+                Manufacturer: String(row.Maker || '').trim(),
+                ProductGroupID: this.id, // ProductGroupID từ table selection
+                SupplierSaleID: null,
+                DateReturnExpected: null,
+                Quantity: 0,
+                CurrencyID: null,
+                CurrencyRate: 0,
+                Note: '',
+                ID: 0 // New row
+            };
+
+            dataset.push(newRow);
+        });
+
+        // Mở modal với MarketingPurchaseRequestComponent
+        const modalRef = this.modalService.open(MarketingPurchaseRequestComponent, {
+            centered: true,
+            size: 'xl',
+            backdrop: 'static',
+            keyboard: false,
+            windowClass: 'full-screen-modal',
+        });
+
+        // Truyền dữ liệu vào component
+        modalRef.componentInstance.requestTypeID = 7; // Marketing
+        modalRef.componentInstance.initialDataset = dataset; // Truyền dataset đã tạo
+
+        modalRef.result.then(
+            (result) => {
+                console.log('Modal closed with result:', result);
+            },
+            (reason) => {
+                console.log('Modal dismissed:', reason);
+            }
+        );
     }
     //#endregion
 }

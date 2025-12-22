@@ -1,71 +1,10 @@
 <ng-container class="w-100">
-    <nz-splitter style="height: 94vh">
-        <nz-splitter-panel *ngIf="isSearchVisible" [nzSize]="'20%'" [nzResizable]="false">
-            <div class="card h-100 border-0 rounded-0">
-                <!-- Header -->
-                <div class="card-header bg-white p-1">
-                    <div class="d-flex justify-content-between align-items-center">
-                        <h6 class="m-0 ms-2">Tìm kiếm</h6>
-                        <button class="border-0 me-2" nz-button nzSize="small" nzType="default" nzDanger
-                            (click)="toggleSearchPanel()">
-                            <nz-icon nzType="close" nzTheme="outline"></nz-icon>
-                        </button>
-                    </div>
-                </div>
-                <!-- Body -->
-                <div class="card-body">
-                    <form nz-form nzLayout="vertical">
-                        <nz-form-item class="mt-2">
-                            <nz-form-label class="fs-12" [nzSpan]="24">Chọn nhóm sản phẩm</nz-form-label>
-                            <nz-form-control [nzSpan]="24">
-                                <nz-select class="w-100 fs-12" nzSize="default" nzShowSearch nzAllowClear
-                                    nzPlaceHolder="Chọn nhóm sản phẩm..." [(ngModel)]="productGroupID"
-                                    (ngModelChange)="onGroupChange($event)" name="productGroupID">
-                                    <nz-option *ngFor="let emp of productGroupData"
-                                        [nzLabel]="emp.ProductGroupNo + ' - ' + emp.ProductGroupName"
-                                        [nzValue]="emp.ID"></nz-option>
-                                </nz-select>
-                            </nz-form-control>
-                        </nz-form-item>
-                        <!-- Bộ lọc chế độ tìm kiếm
-<nz-form-item class="mt-2">
-  <nz-form-label class="fs-12" [nzSpan]="24">Tìm kiếm theo</nz-form-label>
-  <nz-form-control [nzSpan]="24">
-    <label nz-checkbox
-           [ngModel]="searchMode==='all'"
-           (ngModelChange)="searchMode=$event?'all':'none'; onSearchModeChange(searchMode)"
-           name="searchAll">
-      Tất cả
-    </label>
-  </nz-form-control>
-</nz-form-item> -->
-                        <!-- Từ khóa -->
-                        <nz-form-item class="mt-2">
-                            <nz-form-label class="fs-12" [nzSpan]="24">Từ khóa</nz-form-label>
-                            <nz-form-control [nzSpan]="24">
-                                <input nz-input placeholder="Nhập từ khóa" [(ngModel)]="keyWord"
-                                    (ngModelChange)="onKeywordChange($event)" nzSize="default" name="filterText" />
-                            </nz-form-control>
-                        </nz-form-item>
-                    </form>
-                </div>
-                <!-- Footer -->
-                <div class="card-footer bg-white p-1 d-flex gap-1 justify-content-end flex-wrap">
-                    <!-- <button nz-button nzType="default" nzSize="small">Đặt lại</button> -->
-                    <button nz-button nzType="primary" nzSize="small" (click)="getProduct();">Tìm kiếm</button>
-                </div>
-            </div>
-        </nz-splitter-panel>
-        <nz-splitter-panel [nzSize]="isSearchVisible ? '80%' : '100%'">
-            <div class="card border-0 rounded-0">
-                <div class="card-header bg-white p-1 action-bar">
-                    <!-- Desktop: dải nút cuộn ngang -->
-                    <div class="d-none d-md-flex h-40 gap-1 align-items-center">
-                        <div class="flex-grow-1" style="overflow-x: auto;">
-                            <div class="d-flex gap-1 flex-nowrap">
-                                <button nz-button nzType="default" nzSize="small" (click)="toggleSearchPanel()">
-                                    <nz-icon nzType="search"></nz-icon>
-                                </button>
+    <div class="card border-0 rounded-0" style="height: 94vh;">
+        <div class="card-header bg-white p-1 action-bar">
+            <!-- Desktop: dải nút cuộn ngang -->
+            <div class="d-none d-md-flex h-40 gap-1 align-items-center">
+                <div class="flex-grow-1" style="overflow-x: auto;">
+                    <div class="d-flex gap-1 flex-nowrap">
                                 <button nz-button nzType="default" nzSize="small" class=" btn-add"
                                     (click)="onAddGroupProduct()" *hasPermission="'N26,N38,N1,N73,N80'">
                                     <img src="assets/icon/action_add_group_16.png" alt="Thêm mới " />Thêm nhóm TB
@@ -127,12 +66,8 @@
                         </div>
                     </div>
 
-                    <!-- Mobile: dropdown hành động + nút bật/tắt panel tìm kiếm -->
+                    <!-- Mobile: dropdown hành động -->
                     <div class="d-flex d-md-none h-40 gap-1 align-items-center justify-content-between">
-                        <button nz-button nzType="default" nzSize="small" (click)="toggleSearchPanel()">
-                            <nz-icon nzType="search"></nz-icon>
-                        </button>
-
                         <div ngbDropdown class="dropdown ms-auto">
                             <button class="btn btn-primary btn-sm" ngbDropdownToggle>
                                 <i class="fa fa-bars"></i>
@@ -191,11 +126,54 @@
                             </div>
                         </div>
                     </div>
+
+                    <!-- Dòng lọc dữ liệu -->
+                    <div class="border-top pt-2 mt-2">
+                        <div class="d-flex gap-2 align-items-end flex-wrap">
+                            <nz-form-item class="mb-0">
+                                <nz-form-label class="fs-12">Chọn nhóm sản phẩm</nz-form-label>
+                                <nz-form-control>
+                                    <nz-select class="fs-12" style="width: 250px;" nzSize="small" nzShowSearch nzAllowClear
+                                        nzPlaceHolder="Chọn nhóm sản phẩm..." [(ngModel)]="productGroupID"
+                                        (ngModelChange)="onGroupChange($event)" name="productGroupIDFilter">
+                                        <nz-option *ngFor="let emp of productGroupData"
+                                            [nzLabel]="emp.NumberOrder + '. ' + emp.ProductGroupNo + '-' + emp.ProductGroupName"
+                                            [nzValue]="emp.ID"></nz-option>
+                                    </nz-select>
+                                </nz-form-control>
+                            </nz-form-item>
+
+                            <nz-form-item class="mb-0">
+                                <nz-form-label class="fs-12">Tìm kiếm theo</nz-form-label>
+                                <nz-form-control>
+                                    <nz-radio-group [(ngModel)]="searchMode" (ngModelChange)="onSearchModeChange($event)"
+                                        name="searchModeFilter" nzSize="small">
+                                        <label nz-radio [nzValue]="'group'">Theo nhóm</label>
+                                        <label nz-radio [nzValue]="'all'">Tất cả</label>
+                                    </nz-radio-group>
+                                </nz-form-control>
+                            </nz-form-item>
+
+                            <nz-form-item class="mb-0">
+                                <nz-form-label class="fs-12">Từ khóa</nz-form-label>
+                                <nz-form-control>
+                                    <input nz-input placeholder="Nhập từ khóa" [(ngModel)]="keyWord"
+                                        (ngModelChange)="onKeywordChange($event)" nzSize="small" 
+                                        style="width: 200px;" name="filterTextFilter" />
+                                </nz-form-control>
+                            </nz-form-item>
+
+                            <!-- <button nz-button nzType="default" nzSize="small" (click)="onReset()" class="mb-0">
+                                Đặt lại
+                            </button> -->
+                            <button nz-button nzType="primary" nzSize="small" (click)="getProduct()" class="mb-1">
+                                Tìm kiếm
+                            </button>
+                        </div>
+                    </div>
                 </div>
 
-                <!-- phần nội dung splitter ở dưới giữ nguyên -->
+                <!-- phần nội dung ở dưới giữ nguyên -->
                 <div #dataTableProduct style="height: 100%;"></div>
             </div>
-        </nz-splitter-panel>
-    </nz-splitter>
 </ng-container>

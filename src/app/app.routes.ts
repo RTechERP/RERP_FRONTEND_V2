@@ -12,6 +12,8 @@ import { MenuApp } from './pages/systems/menu-app/model/menu-app';
 import { MenuAppComponent } from './pages/systems/menu-app/menu-app.component';
 import { InventoryComponent } from './pages/old/Sale/Inventory/inventory.component';
 import { CustomerComponent } from './pages/crm/customers/customer/customer.component';
+import { PaymentOrder } from './pages/general-category/payment-order/model/payment-order';
+import { PaymentOrderComponent } from './pages/general-category/payment-order/payment-order.component';
 
 export const routes: Routes = [
     {
@@ -37,20 +39,24 @@ export const routes: Routes = [
         component: MainLayoutComponent, // layout chứa sidebar, topbar, etc.
         canActivate: [authGuard],
         children: [
-            { path: 'app', component: WelcomeComponent, canActivate: [authGuard] },
+            { path: 'welcome', component: WelcomeComponent, canActivate: [authGuard] },
 
             //#region hệ thống
-            { path: 'menu', component: MenuAppComponent, canActivate: [authGuard] },
+            { path: 'menuApp', component: MenuAppComponent, canActivate: [authGuard] },
             //#endregion
 
             //#region crm
-            { path: 'khachhang', component: CustomerComponent, canActivate: [authGuard] },
+            { path: 'customer', component: CustomerComponent, canActivate: [authGuard] },
+            //#endregion
+
+            //#region kế toán
+            { path: 'paymentorder', component: PaymentOrderComponent, canActivate: [authGuard] },
 
             //#endregion
 
-            { path: 'datcom', component: FoodOrderComponent, canActivate: [authGuard] },
-            { path: 'nghiphep', component: DayOffComponent, canActivate: [authGuard] },
-            { path: 'tonkho', component: InventoryComponent, canActivate: [authGuard] },
+            { path: 'foodorder', component: FoodOrderComponent, canActivate: [authGuard] },
+            { path: 'dayoff', component: DayOffComponent, canActivate: [authGuard] },
+            { path: 'inventory', component: InventoryComponent, canActivate: [authGuard] },
 
         ],
     },

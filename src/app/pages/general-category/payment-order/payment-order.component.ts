@@ -162,7 +162,7 @@ export class PaymentOrderComponent implements OnInit {
 
     ngOnInit(): void {
         this.loadDataCombo();
-        // this.initMenuBar();
+        this.initMenuBar();
         this.initGrid();
         this.initGridSpecial();
         this.initGridSpecialDetail();

@@ -16,6 +16,7 @@ import { NgbActiveModal } from '@ng-bootstrap/ng-bootstrap';
 import { NzNotificationService } from 'ng-zorro-antd/notification';
 import { AppUserService } from '../../../../services/app-user.service';
 import { PaymentOrderService } from '../payment-order.service';
+import { NOTIFICATION_TITLE } from '../../../../app.config';
 
 @Component({
     selector: 'app-payment-order-special',
@@ -312,7 +313,43 @@ export class PaymentOrderSpecialComponent implements OnInit {
     }
 
     submitForm() {
-        console.log('this.dataset:', this.dataset);
+        // console.log('this.validateForm.valid', this.validateForm.valid);
+        // console.log('this.fileUploads:', this.fileUploads);
+        // this.uploadFile(14176);
+        if (!this.validateForm.valid) {
+            Object.values(this.validateForm.controls).forEach(control => {
+                if (control.invalid) {
+                    control.markAsDirty();
+                    control.updateValueAndValidity({ onlySelf: true });
+                }
+            });
+        } else {
+
+            // let gridInstance = this.angularGrid;
+            // if (this.paymentOrder.TypeOrder == 2) gridInstance = this.angularGrid2;
+
+            const columnId = this.angularGrid.slickGrid?.getColumns().findIndex(x => x.id == PaymentOrderDetailField.TotalPaymentAmount.field);
+            const columnElement = this.angularGrid.slickGrid?.getFooterRowColumn(columnId);
+            this.paymentOrder = {
+                ...this.paymentOrder,
+                ...this.validateForm.getRawValue(),
+                PaymentOrderDetails: this.angularGrid.dataView.getItems(),
+                TotalMoney: parseFloat(columnElement.textContent ?? ''),
+            };
+            console.log('submit data', this.paymentOrder);
+
+            this.paymentService.save(this.paymentOrder).subscribe({
+                next: (response) => {
+                    console.log(response);
+
+                },
+                error: (err) => {
+                    this.notification.error(NOTIFICATION_TITLE.error, err?.error?.message || err?.message);
+                },
+            });
+
+
+        }
     }
 
 

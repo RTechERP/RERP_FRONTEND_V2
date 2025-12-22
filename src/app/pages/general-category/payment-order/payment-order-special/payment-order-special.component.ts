@@ -338,15 +338,15 @@ export class PaymentOrderSpecialComponent implements OnInit {
             };
             console.log('submit data', this.paymentOrder);
 
-            this.paymentService.save(this.paymentOrder).subscribe({
-                next: (response) => {
-                    console.log(response);
+            // this.paymentService.save(this.paymentOrder).subscribe({
+            //     next: (response) => {
+            //         console.log(response);
 
-                },
-                error: (err) => {
-                    this.notification.error(NOTIFICATION_TITLE.error, err?.error?.message || err?.message);
-                },
-            });
+            //     },
+            //     error: (err) => {
+            //         this.notification.error(NOTIFICATION_TITLE.error, err?.error?.message || err?.message);
+            //     },
+            // });
 
 
         }

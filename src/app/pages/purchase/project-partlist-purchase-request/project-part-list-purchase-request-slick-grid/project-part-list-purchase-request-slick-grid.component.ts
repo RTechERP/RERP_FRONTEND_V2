@@ -2762,6 +2762,14 @@ export class ProjectPartListPurchaseRequestSlickGridComponent implements OnInit,
                   // Lấy số đơn hàng (BillCode) theo POType
                   const billCodeSub = this.ponccService.getBillCode(poType).subscribe({
                     next: (billCodeRes: any) => {
+                      // Thu thập tất cả các Model từ các dòng đã chọn
+                      const models = validData
+                        .map((row: any) => String(row.Model || '').trim())
+                        .filter((model: string) => model !== '')
+                        .filter((value: string, index: number, self: string[]) => self.indexOf(value) === index); // Lọc unique
+                      
+                      const note = models.length > 0 ? models.join('; ') : '';
+
                       let poncc = {
                         SupplierSaleID: listSupplierSale[0],
                         AccountNumberSupplier: data.SoTK,
@@ -2772,6 +2780,7 @@ export class ProjectPartListPurchaseRequestSlickGridComponent implements OnInit,
                         CurrencyID: currencyID,
                         POType: poType, // 0: PO Thương mại, 1: PO Mượn
                         BillCode: billCodeRes.data || '', // Số đơn hàng theo POType
+                        Note: note, // Gán Model từ projectpartlist vào Note
                       };
 
                       const modalRef = this.modalService.open(PonccDetailComponent, {

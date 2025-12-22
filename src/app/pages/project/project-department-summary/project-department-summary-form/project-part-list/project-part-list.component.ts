@@ -72,6 +72,7 @@ import { AuthService } from '../../../../../auth/auth.service';
 import { PokhDetailComponent } from '../../../../old/pokh-detail/pokh-detail.component';
 import { FormExportExcelPartlistComponent } from './project-partlist-detail/form-export-excel-partlist/form-export-excel-partlist.component';
 import { ProjectPartlistPurchaseRequestDetailComponent } from '../../../../purchase/project-partlist-purchase-request/project-partlist-purchase-request-detail/project-partlist-purchase-request-detail.component';
+import { environment } from '../../../../../../environments/environment.prod';
 @Component({
   selector: 'app-project-worker',
   standalone: true,
@@ -5463,7 +5464,7 @@ export class ProjectPartListComponent implements OnInit, AfterViewInit {
             return;
           }
           const fileName = `${productCode}.pdf`;
-          const url = `  http://192.168.1.2:8088/api/api/share/duan/projects/${pathPattern}/${fileName}`;
+          const url = `  ${environment.host}api/share/duan/projects/${pathPattern}/${fileName}`;
 
           // Download file
           this.projectPartListService.downloadDrawingFile(url).subscribe({

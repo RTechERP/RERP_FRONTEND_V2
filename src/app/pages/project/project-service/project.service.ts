@@ -521,6 +521,12 @@ export class ProjectService {
     );
   }
 
+  getEmployeeByUserTeam(userTeamID: number): Observable<any> {
+    return this.http.get<any>(
+      this.urlProject + `get-employee-by-userTeam?userTeamID=${userTeamID}`
+    );
+  }
+
   getDataWorkTimeline(data: any): Observable<any> {
     return this.http.get<any>(this.urlProjectWorkTimeline + `get-data`, {
       params: data,

@@ -321,10 +321,25 @@ export class ApproveTpComponent implements OnInit, AfterViewInit {
         {
           title: 'HR Duyệt', field: 'StatusHRText', hozAlign: 'center', headerHozAlign: 'center', width: 120, headerWordWrap: true, headerSort: false,
           formatter: (cell: any) => {
+            const rowData = cell.getRow().getData();
             const value = cell.getValue();
             let numValue = 0;
-            if (value === null || value === undefined) {
-              numValue = 0;
+            
+            // Ưu tiên lấy từ StatusHRNumber hoặc IsApprovedHR nếu StatusHRText rỗng
+            if (value === null || value === undefined || value === '') {
+              // Nếu StatusHRText rỗng, lấy từ StatusHRNumber hoặc IsApprovedHR
+              if (rowData.StatusHRNumber !== undefined && rowData.StatusHRNumber !== null) {
+                numValue = Number(rowData.StatusHRNumber);
+              } else if (rowData.IsApprovedHR !== undefined && rowData.IsApprovedHR !== null) {
+                const hrValue = Number(rowData.IsApprovedHR);
+                // Convert: 0 = chờ duyệt, 1 = đã duyệt, 2 = không đồng ý duyệt
+                if (hrValue === 0) numValue = 0;
+                else if (hrValue === 1) numValue = 1;
+                else if (hrValue === 2) numValue = 2;
+                else numValue = 0;
+              } else {
+                numValue = 0;
+              }
             } else if (typeof value === 'number') {
               numValue = value;
             } else if (typeof value === 'string') {
@@ -527,16 +542,17 @@ export class ApproveTpComponent implements OnInit, AfterViewInit {
 
     // Kiểm tra nếu có bản ghi làm thêm chưa được Senior duyệt
     const requireSeniorCheck = isApproved; // Chỉ kiểm tra khi duyệt, không kiểm tra khi hủy duyệt
-    let countTType = 0; // Số bản ghi làm thêm (TType > 0 hoặc EmployeeOvertime)
+    let countTType = 0; // Số bản ghi làm thêm có TType = 3
     let hasUnapprovedSenior = false; // Có bản ghi làm thêm chưa được Senior duyệt
 
     if (requireSeniorCheck) {
       for (const row of selectedRows) {
         const tableName = row.TableName ? String(row.TableName) : '';
         const ttype = row.TType !== undefined ? Number(row.TType) : 0;
-        const isOvertime = tableName === 'EmployeeOvertime' || ttype > 0;
+        // Chỉ kiểm tra với TType = 3
+        const isOvertimeType3 = tableName === 'EmployeeOvertime' && ttype === 3;
         
-        if (isOvertime) {
+        if (isOvertimeType3) {
           countTType++;
           const isSeniorApproved = row.IsSeniorApproved !== undefined ? Boolean(row.IsSeniorApproved) : false;
           if (!isSeniorApproved) {
@@ -654,7 +670,8 @@ export class ApproveTpComponent implements OnInit, AfterViewInit {
         }
       },
       error: (error) => {
-        this.notification.error(NOTIFICATION_TITLE.error, `Lỗi khi ${actionText}: ${error.message}`);
+        const errorMessage = error?.error?.message || error?.error?.Message || error?.message || '';
+        this.notification.error(NOTIFICATION_TITLE.error, errorMessage || `Lỗi khi ${actionText}`);
       }
     });
   }
@@ -932,7 +949,8 @@ export class ApproveTpComponent implements OnInit, AfterViewInit {
         });
       },
       error: (error) => {
-        this.notification.error(NOTIFICATION_TITLE.error, `Lỗi khi lấy danh sách Senior: ${error.message}`);
+        const errorMessage = error?.error?.message || error?.error?.Message || error?.message || '';
+        this.notification.error(NOTIFICATION_TITLE.error, errorMessage || 'Lỗi khi lấy danh sách Senior');
       }
     });
   }
@@ -1037,7 +1055,8 @@ export class ApproveTpComponent implements OnInit, AfterViewInit {
         });
       },
       error: (error) => {
-        this.notification.error(NOTIFICATION_TITLE.error, `Lỗi khi lấy danh sách Senior: ${error.message}`);
+        const errorMessage = error?.error?.message || error?.error?.Message || error?.message || '';
+        this.notification.error(NOTIFICATION_TITLE.error, errorMessage || 'Lỗi khi lấy danh sách Senior');
       }
     });
   }
@@ -1285,7 +1304,8 @@ export class ApproveTpComponent implements OnInit, AfterViewInit {
       }
       },
       error: (error) => {
-        this.notification.error(NOTIFICATION_TITLE.error, `Lỗi khi không duyệt: ${error.message}`);
+        const errorMessage = error?.error?.message || error?.error?.Message || error?.message || '';
+        this.notification.error(NOTIFICATION_TITLE.error, errorMessage || 'Lỗi khi không duyệt');
       }
     });
   }
@@ -1377,9 +1397,10 @@ export class ApproveTpComponent implements OnInit, AfterViewInit {
               this.notification.error(NOTIFICATION_TITLE.error, response?.message || 'Lỗi khi duyệt hủy đăng ký!');
             }
           },
-          error: (error) => {
-            this.notification.error(NOTIFICATION_TITLE.error, `Lỗi khi duyệt hủy đăng ký: ${error.message}`);
-          }
+      error: (error) => {
+        const errorMessage = error?.error?.message || error?.error?.Message || error?.message || '';
+        this.notification.error(NOTIFICATION_TITLE.error, errorMessage || 'Lỗi khi duyệt hủy đăng ký');
+      }
         });
       }
     });

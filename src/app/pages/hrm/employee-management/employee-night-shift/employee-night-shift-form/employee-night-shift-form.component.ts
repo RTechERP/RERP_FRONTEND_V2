@@ -20,6 +20,7 @@ import { VehicleRepairService } from '../../../vehicle/vehicle-repair/vehicle-re
 import { WFHService } from '../../employee-wfh/WFH-service/WFH.service';
 import { NOTIFICATION_TITLE } from '../../../../../app.config';
 import { AuthService } from '../../../../../auth/auth.service';
+import { PermissionService } from '../../../../../services/permission.service';
 import { NzModalService } from 'ng-zorro-antd/modal';
 import { NgbModal, NgbModalModule } from '@ng-bootstrap/ng-bootstrap';
 import { OverTimeComponent } from '../../../over-time/over-time.component';
@@ -96,6 +97,7 @@ export class EmployeeNightShiftFormComponent implements OnInit {
     private wfhService: WFHService,
     private modalService: NgbModal,
     private modal: NzModalService,
+    private permissionService: PermissionService,
   ) {
     this.initForm();
   }
@@ -131,12 +133,20 @@ export class EmployeeNightShiftFormComponent implements OnInit {
       this.formGroup.get('ReasonHREdit')?.updateValueAndValidity();
       this.formGroup.get('ReasonHREdit')?.enable();
 
-      // Disable EmployeeID and ApprovedTBP in edit mode
-      this.formGroup.get('EmployeeID')?.disable();
+      // Chỉ disable EmployeeID nếu không có quyền N1, N2 hoặc IsAdmin
+      if (!this.canEditEmployee()) {
+        this.formGroup.get('EmployeeID')?.disable();
+      } else {
+        this.formGroup.get('EmployeeID')?.enable();
+      }
       this.formGroup.get('ApprovedTBP')?.disable();
     } else {
-      this.formGroup.get('EmployeeID')?.disable();
-
+      // Chỉ disable EmployeeID nếu không có quyền N1, N2 hoặc IsAdmin
+      if (!this.canEditEmployee()) {
+        this.formGroup.get('EmployeeID')?.disable();
+      } else {
+        this.formGroup.get('EmployeeID')?.enable();
+      }
     }
 
     this.loadEmployees();
@@ -165,11 +175,22 @@ export class EmployeeNightShiftFormComponent implements OnInit {
             this.formGroup.patchValue({
               EmployeeID: this.currentUser.EmployeeID
             });
-            // Không disable field EmployeeID để người dùng vẫn có thể thay đổi
+            // Chỉ disable field EmployeeID nếu không có quyền N1, N2 hoặc IsAdmin
+            if (!this.canEditEmployee()) {
+              this.formGroup.get('EmployeeID')?.disable();
+            } else {
+              this.formGroup.get('EmployeeID')?.enable();
+            }
           } else {
             // Sửa: Populate form sau khi đã có currentUser
             if (this.dataInput) {
               this.populateForm();
+            }
+            // Chỉ disable EmployeeID nếu không có quyền N1, N2 hoặc IsAdmin
+            if (!this.canEditEmployee()) {
+              this.formGroup.get('EmployeeID')?.disable();
+            } else {
+              this.formGroup.get('EmployeeID')?.enable();
             }
           }
         } else {
@@ -1197,5 +1218,14 @@ export class EmployeeNightShiftFormComponent implements OnInit {
         this.tabs[i] = 'Chưa chọn ngày';
       }
     }
+  }
+
+  // Helper method để kiểm tra user có quyền chỉnh sửa nhân viên (N1, N2 hoặc IsAdmin)
+  private canEditEmployee(): boolean {
+    const hasN1Permission = this.permissionService.hasPermission('N1');
+    const hasN2Permission = this.permissionService.hasPermission('N2');
+    const isAdmin = this.currentUser?.IsAdmin === true || this.currentUser?.ISADMIN === true;
+    
+    return hasN1Permission || hasN2Permission || isAdmin;
   }
 }

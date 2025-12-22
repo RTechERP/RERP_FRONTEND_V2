@@ -517,12 +517,7 @@ export class WFHComponent implements OnInit, AfterViewInit, OnDestroy {
     modalRef.componentInstance.userRole = 'employee';
     modalRef.componentInstance.currentEmployeeId = this.currentEmployeeId;
 
-    modalRef.result.then((result) => {
-      if (result?.action === 'save') {
-        this.searchWFH();
-        this.notification.success(NOTIFICATION_TITLE.success, 'Thêm WFH thành công!');
-      }
-    });
+   
   }
 
   editWFH(): void {
@@ -544,14 +539,6 @@ export class WFHComponent implements OnInit, AfterViewInit, OnDestroy {
     modalRef.componentInstance.mode = 'edit';
     modalRef.componentInstance.userRole = 'employee';
     modalRef.componentInstance.currentEmployeeId = this.currentEmployeeId;
-
-
-    modalRef.result.then((result) => {
-      if (result?.action === 'save') {
-        this.searchWFH();
-        this.notification.success(NOTIFICATION_TITLE.success, 'Sửa WFH thành công!');
-      }
-    });
   }
 
   deleteWFH(): void {

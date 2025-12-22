@@ -3539,6 +3539,7 @@ export class MenuService {
     // }
 
     setMenuKey(value: string) {
+        console.log(value);
         this.menuKeySource.next(value);
     }
 }

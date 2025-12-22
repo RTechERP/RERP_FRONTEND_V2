@@ -19,7 +19,7 @@
 
                         <a (click)="openModule(m.Code)" *ngIf="m.IsPermission">
                             <img [src]="m.Icon" />
-                            <span class="mt-1">{{m.Title}}</span>
+                            <span class="mt-1">{{m.Code}}.{{m.Title}}</span>
                         </a>
                         }
                     </div>

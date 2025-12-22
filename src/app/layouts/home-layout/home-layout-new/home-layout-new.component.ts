@@ -92,7 +92,6 @@ export class HomeLayoutNewComponent implements OnInit {
         private appUserService: AppUserService,
         public menuService: MenuService,
         public menuAppService: MenuAppService,
-        private injector: Injector,
         private permissionService: PermissionService,
         private layoutEvent: LayoutEventService
     ) { }
@@ -148,7 +147,7 @@ export class HomeLayoutNewComponent implements OnInit {
                     }
                 });
 
-                // console.log(this.menus);
+                console.log(this.menus);
 
                 this.menuApproves = this.menus.filter((x) => x.Code == 'appvovedperson')[0];
 
@@ -208,8 +207,13 @@ export class HomeLayoutNewComponent implements OnInit {
 
 
     openModule(key: string) {
-        this.layoutEvent.toggleMenu(key);
-        this.router.navigate(['/app']);
+        // this.layoutEvent.toggleMenu(key);
+        // this.router.navigate(['/app']);
+
+        // console.log(key);
+
+        this.menuService.setMenuKey(key);
+        this.router.navigate(['/app']); // hoặc route tới MainLayout
     }
 
     newTab(route: string, title: string, data?: any) {

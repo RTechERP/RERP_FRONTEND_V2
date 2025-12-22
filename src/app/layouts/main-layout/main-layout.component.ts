@@ -200,6 +200,7 @@ export class MainLayoutComponent implements OnInit, AfterViewInit {
 
         this.menuService.menuKey$.subscribe((x) => {
             this.menuKey = x;
+            console.log(this.menuKey);
         });
 
         this.setOpenMenu(this.menuKey);

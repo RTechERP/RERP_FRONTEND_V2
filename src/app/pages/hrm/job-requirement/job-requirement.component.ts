@@ -63,6 +63,11 @@ import { HrPurchaseProposalComponent } from '../hr-purchase-proposal/hr-purchase
 import { MenuEventService } from '../../systems/menus/menu-service/menu-event.service';
 import { RecommendSupplierFormComponent } from './recommend-supplier-form/recommend-supplier-form.component';
 import { JobRequirementFormComponent } from './job-requirement-form/job-requirement-form.component';
+import { CancelApproveReasonFormComponent } from './cancel-approve-reason-form/cancel-approve-reason-form.component';
+import { AuthService } from '../../../auth/auth.service';
+import { NoteFormComponent } from './note-form/note-form.component';
+import { ProjectPartlistPriceRequestFormComponent } from '../../old/project-partlist-price-request/project-partlist-price-request-form/project-partlist-price-request-form.component';
+import { JobRequirementPurchaseRequestViewComponent } from './job-requirement-purchase-request-view/job-requirement-purchase-request-view.component';
 
 @Component({
   selector: 'app-job-requirement',
@@ -155,6 +160,8 @@ export class JobRequirementComponent implements OnInit, AfterViewInit {
       this.draw_JobrequirementApprovedTable();
     }
   
+    currentUser: any = null;
+
     constructor(
       private notification: NzNotificationService,
       private JobRequirementService: JobRequirementService,
@@ -162,8 +169,23 @@ export class JobRequirementComponent implements OnInit, AfterViewInit {
       private modal: NzModalService,
       private cdr: ChangeDetectorRef,
       private message: NzMessageService,
-      private menuEventService: MenuEventService
-    ) {}
+      private menuEventService: MenuEventService,
+      private authService: AuthService
+    ) {
+      this.getCurrentUser();
+    }
+
+    getCurrentUser(): void {
+      this.authService.getCurrentUser().subscribe({
+        next: (res: any) => {
+          const data = res?.data;
+          this.currentUser = Array.isArray(data) ? data[0] : data;
+        },
+        error: (err: any) => {
+          console.error('Lỗi lấy thông tin người dùng:', err);
+        }
+      });
+    }
   
     //search
     filterOption = (input: string, option: any): boolean => {
@@ -352,66 +374,158 @@ export class JobRequirementComponent implements OnInit, AfterViewInit {
 
      onAddJobRequirement(isEditmode: boolean) {
       this.isCheckmode = isEditmode;
-      if (this.isCheckmode == true && this.JobrequirementID === 0) {
-        this.notification.warning(
-          NOTIFICATION_TITLE.warning,
-          'Vui lòng chọn 1 bản ghi để sửa!'
-        );
-        return;
-      }
+      
+      // Nếu là chế độ sửa, cần kiểm tra có row được chọn không
+      if (this.isCheckmode == true) {
+        const selected = this.JobrequirementTable?.getSelectedData() || [];
+        if (selected.length === 0) {
+          this.notification.warning(
+            NOTIFICATION_TITLE.warning,
+            'Vui lòng chọn 1 bản ghi để sửa!'
+          );
+          return;
+        }
+        
+        const rowData = { ...selected[0] };
+        const jobRequirementID = rowData?.ID || 0;
+        
+        if (!jobRequirementID || jobRequirementID <= 0) {
+          this.notification.warning(
+            NOTIFICATION_TITLE.warning,
+            'Không tìm thấy ID của bản ghi!'
+          );
+          return;
+        }
+        
+        // Kiểm tra nếu đã duyệt thì không cho phép sửa
+        if (this.isHCNSApproved) {
+          this.notification.warning(
+            NOTIFICATION_TITLE.warning,
+            'Không thể chỉnh sửa bản ghi đã được duyệt!'
+          );
+          return;
+        }
+        
+        const modalRef = this.modalService.open(JobRequirementFormComponent, {
+          size: 'xl',
+          backdrop: 'static',
+          keyboard: false,
+          centered: true,
+        });
+        modalRef.componentInstance.isCheckmode = this.isCheckmode;
+        modalRef.componentInstance.JobRequirementID = jobRequirementID;
+        modalRef.componentInstance.dataInput = rowData;
+    
+        modalRef.result
+          .then((result) => {
+            if (result == true) {
+              this.getJobrequirement();
+              this.draw_JobrequirementTable();
+            }
+          })
+          .catch(() => {});
+      } else {
+        // Thêm mới: không cần chọn row, không cần ID
+        // Kiểm tra nếu đã duyệt thì không cho phép thêm mới (nếu cần)
+        // if (this.isHCNSApproved) {
+        //   this.notification.warning(
+        //     NOTIFICATION_TITLE.warning,
+        //     'Không thể thêm mới bản ghi đã được duyệt!'
+        //   );
+        //   return;
+        // }
+        
+        const modalRef = this.modalService.open(JobRequirementFormComponent, {
+          size: 'xl',
+          backdrop: 'static',
+          keyboard: false,
+          centered: true,
+        });
+        modalRef.componentInstance.isCheckmode = this.isCheckmode;
+        modalRef.componentInstance.JobRequirementID = 0; // Thêm mới nên ID = 0
+        modalRef.componentInstance.dataInput = {}; // Không có data input khi thêm mới
   
-      // Kiểm tra nếu đã duyệt thì không cho phép thêm mới hoặc sửa
-      if (this.isHCNSApproved) {
-        this.notification.warning(
-          NOTIFICATION_TITLE.warning,
-          'Không thể thêm mới hoặc chỉnh sửa bản ghi đã được duyệt!'
-        );
-        return;
+        modalRef.result
+          .then((result) => {
+            if (result == true) {
+              this.getJobrequirement();
+              this.draw_JobrequirementTable();
+            }
+          })
+          .catch(() => {});
       }
-  
+    }
+    onDeleteJobRequirement() {
       const selected = this.JobrequirementTable?.getSelectedData() || [];
+      
       if (selected.length === 0) {
         this.notification.warning(
           NOTIFICATION_TITLE.warning,
-          'Vui lòng chọn 1 bản ghi để sửa!'
+          'Vui lòng chọn ít nhất một bản ghi để xóa!'
         );
         return;
       }
-      
-      const rowData = { ...selected[0] };
-      // Lấy ID từ row được chọn
-      const jobRequirementID = rowData?.ID || 0;
-      
-      if (!jobRequirementID || jobRequirementID <= 0) {
+
+      // Lấy danh sách ID từ các row được chọn
+      const ids = selected.map((row: any) => row.ID).filter((id: number) => id && id > 0);
+
+      if (ids.length === 0) {
         this.notification.warning(
           NOTIFICATION_TITLE.warning,
-          'Không tìm thấy ID của bản ghi!'
+          'Không tìm thấy ID của bản ghi cần xóa!'
         );
         return;
       }
-      
-      const modalRef = this.modalService.open(JobRequirementFormComponent, {
-        size: 'xl',
-        backdrop: 'static',
-        keyboard: false,
-        centered: true,
-      });
-      modalRef.componentInstance.isCheckmode = this.isCheckmode;
-      modalRef.componentInstance.JobRequirementID = jobRequirementID;
-      modalRef.componentInstance.dataInput = rowData;
-  
-      modalRef.result
-        .then((result) => {
-          if (result == true) {
-            this.getJobrequirement();
-            this.draw_JobrequirementTable();
-    
-          }
-        })
-        .catch(() => {});
-    }
-    onDeleteJobRequirement() {
 
+      // Hiển thị confirm dialog
+      this.modal.confirm({
+        nzTitle: 'Xác nhận xóa',
+        nzContent: `Bạn có chắc chắn muốn xóa ${ids.length} bản ghi đã chọn?`,
+        nzOkText: 'Xóa',
+        nzOkType: 'primary',
+        nzOkDanger: true,
+        nzCancelText: 'Hủy',
+        nzOnOk: () => {
+          this.JobRequirementService.deleteJobRequirement(ids).subscribe({
+            next: (response: any) => {
+              if (response.status==1) {
+                this.notification.success(
+                  NOTIFICATION_TITLE.success,
+                  response.message || 'Xóa thành công!'
+                );
+                // Refresh lại table
+                this.getJobrequirement();
+                // Reset selection
+                this.JobrequirementID = 0;
+                this.JobrequirementDetailData = [];
+                this.JobrequirementFileData = [];
+                this.JobrequirementApprovedData = [];
+                if (this.JobrequirementDetailTable) {
+                  this.JobrequirementDetailTable.setData([]);
+                }
+                if (this.JobrequirementFileTable) {
+                  this.JobrequirementFileTable.setData([]);
+                }
+                if (this.JobrequirementApprovedTable) {
+                  this.JobrequirementApprovedTable.setData([]);
+                }
+              } else {
+                this.notification.error(
+                  NOTIFICATION_TITLE.error,
+                  response.message || 'Xóa thất bại!'
+                );
+              }
+            },
+            error: (error: any) => {
+              const errorMessage = error?.error?.message || error?.error?.Message || error?.message || 'Xóa thất bại!';
+              this.notification.error(
+                NOTIFICATION_TITLE.error,
+                errorMessage
+              );
+            }
+          });
+        }
+      });
     }
   
     onOpenDepartmentRequired() {
@@ -434,9 +548,635 @@ export class JobRequirementComponent implements OnInit, AfterViewInit {
         data
       );
     }
+
+    /**
+     * Xem yêu cầu báo giá
+     */
+    onViewPriceQuote(): void {
+      const selected = this.JobrequirementTable?.getSelectedData() || [];
+      
+      if (selected.length === 0) {
+        this.notification.warning(
+          NOTIFICATION_TITLE.warning,
+          'Vui lòng chọn một bản ghi để xem yêu cầu báo giá!'
+        );
+        return;
+      }
+
+      const rowData = selected[0];
+      const jobRequirementID = rowData?.ID || this.JobrequirementID || 0;
+      
+      if (jobRequirementID <= 0) {
+        this.notification.warning(
+          NOTIFICATION_TITLE.warning,
+          'Không tìm thấy ID của bản ghi!'
+        );
+        return;
+      }
+    }
+
+    /**
+     * Xem yêu cầu mua hàng
+     */
+    onViewPurchaseRequest(): void {
+      const selected = this.JobrequirementTable?.getSelectedData() || [];
+      
+      if (selected.length === 0) {
+        this.notification.warning(
+          NOTIFICATION_TITLE.warning,
+          'Vui lòng chọn một bản ghi để xem yêu cầu mua hàng!'
+        );
+        return;
+      }
+
+      const rowData = selected[0];
+      const jobRequirementID = rowData?.ID || this.JobrequirementID || 0;
+      const numberRequest = rowData?.NumberRequest || rowData?.Code || '';
+      
+      if (jobRequirementID <= 0) {
+        this.notification.warning(
+          NOTIFICATION_TITLE.warning,
+          'Không tìm thấy ID của bản ghi!'
+        );
+        return;
+      }
+
+      // Mở modal fullscreen
+      const modalRef = this.modalService.open(JobRequirementPurchaseRequestViewComponent, {
+        fullscreen: true,
+        backdrop: 'static',
+        keyboard: false,
+        windowClass: 'job-requirement-purchase-request-modal',
+      });
+
+      // Truyền dữ liệu vào modal
+      modalRef.componentInstance.jobRequirementID = jobRequirementID;
+      modalRef.componentInstance.numberRequest = numberRequest;
+
+      modalRef.result.then(
+        (result) => {
+          // Handle result if needed
+        },
+        () => {
+          // Modal dismissed
+        }
+      );
+    }
+
+    /**
+     * Yêu cầu báo giá - mở form ProjectPartlistPriceRequestFormComponent
+     */
+    onRequestPriceQuote(): void {
+      const selected = this.JobrequirementTable?.getSelectedData() || [];
+      
+      if (selected.length === 0) {
+        this.notification.warning(
+          NOTIFICATION_TITLE.warning,
+          'Vui lòng chọn một bản ghi!'
+        );
+        return;
+      }
+
+      const rowData = selected[0];
+      const id = rowData?.ID || 0;
+      const noteJobRequirement = rowData?.Note || '';
+      const numberRequest = rowData?.NumberRequest || rowData?.Code || '';
+      
+      if (id <= 0) {
+        this.notification.warning(
+          NOTIFICATION_TITLE.warning,
+          'Không tìm thấy ID của bản ghi!'
+        );
+        return;
+      }
+
+      // Kiểm tra BGĐ đã duyệt chưa (Step 5, IsApproved = 1)
+      const bgdApproved = this.JobrequirementApprovedData.find((item: any) => 
+        item.JobRequirementID === id && 
+        item.Step === 5 && 
+        (item.IsApproved === 1 || item.IsApproved === '1')
+      );
+
+      if (!bgdApproved) {
+        this.notification.warning(
+          NOTIFICATION_TITLE.warning,
+          `Yêu cầu công việc [${numberRequest}] cần được BGĐ duyệt trước khi yêu cầu báo giá!`
+        );
+        return;
+      }
+
+      // Tìm detail có STT = 4
+      const detail = this.JobrequirementDetailData.find((item: any) => item.STT === 4);
+      const qty = detail?.Description ? parseInt(detail.Description) || 0 : 0;
+
+      // Mở modal form
+      const modalRef = this.modalService.open(ProjectPartlistPriceRequestFormComponent, {
+        size: 'xl',
+        backdrop: 'static',
+        keyboard: false,
+        centered: true,
+      });
+
+      // Truyền dữ liệu vào form
+      modalRef.componentInstance.jobRequirementID = id;
+      modalRef.componentInstance.projectTypeID = 3; // Hàng HR
+      modalRef.componentInstance.noteJobRequirement = noteJobRequirement;
+      modalRef.componentInstance.qty = qty;
+      modalRef.componentInstance.dataInput = [];
+
+      // Xử lý kết quả khi form đóng
+      modalRef.result
+        .then((result: any) => {
+          if (result === 'saved' || result === true) {
+            // Cập nhật trạng thái: IsRequestPriceQuote = true, Status = 2
+            const model = {
+              ID: id,
+              IsRequestPriceQuote: true,
+              Status: 2, // Chưa hoàn thành
+              UpdatedBy: this.currentUser?.LoginName || this.currentUser?.Code || '',
+              UpdatedDate: new Date().toISOString()
+            };
+
+            // Gọi API cập nhật
+            this.JobRequirementService.saveRequestBGDApprove(model).subscribe({
+              next: (response: any) => {
+                if (response && response.status === 1) {
+                  this.notification.success(
+                    NOTIFICATION_TITLE.success,
+                    'Yêu cầu báo giá đã được tạo thành công!'
+                  );
+                  // Refresh lại table
+                  this.getJobrequirement();
+                  // Refresh lại details nếu có JobRequirementID
+                  if (this.JobrequirementID) {
+                    this.getJobrequirementDetails(this.JobrequirementID);
+                  }
+                } else {
+                  const errorMessage = response?.message || 'Không thể cập nhật trạng thái!';
+                  this.notification.error(
+                    NOTIFICATION_TITLE.error,
+                    errorMessage
+                  );
+                }
+              },
+              error: (error: any) => {
+                const errorMessage = error?.error?.message || error?.error?.Message || error?.message || 'Lỗi khi cập nhật trạng thái!';
+                this.notification.error(
+                  NOTIFICATION_TITLE.error,
+                  errorMessage
+                );
+              }
+            });
+          }
+        })
+        .catch(() => {
+          // User cancelled, do nothing
+        });
+    }
+
+    /**
+     * Xác nhận hoàn thành yêu cầu công việc (BPPH)
+     */
+    onConfirmComplete(): void {
+      const selected = this.JobrequirementTable?.getSelectedData() || [];
+      
+      if (selected.length === 0) {
+        this.notification.warning(
+          NOTIFICATION_TITLE.warning,
+          'Vui lòng chọn một bản ghi!'
+        );
+        return;
+      }
+
+      const rowData = selected[0];
+      const id = rowData?.ID || 0;
+      const numberRequest = rowData?.NumberRequest || rowData?.Code || '';
+      const status = rowData?.Status || 0;
+
+      if (id <= 0) {
+        this.notification.warning(
+          NOTIFICATION_TITLE.warning,
+          'Không tìm thấy ID của bản ghi!'
+        );
+        return;
+      }
+
+      // Kiểm tra BGĐ đã duyệt chưa (Step 5, IsApproved = 1)
+      const bgdApproved = this.JobrequirementApprovedData.find((item: any) => 
+        item.JobRequirementID === id && 
+        item.Step === 5 && 
+        (item.IsApproved === 1 || item.IsApproved === '1')
+      );
+
+      if (!bgdApproved) {
+        this.notification.warning(
+          NOTIFICATION_TITLE.warning,
+          `Yêu cầu công việc [${numberRequest}] cần được BGĐ duyệt!`
+        );
+        return;
+      }
+
+      // Kiểm tra đã hoàn thành chưa
+      if (status === 1) {
+        this.notification.warning(
+          NOTIFICATION_TITLE.warning,
+          `Yêu cầu công việc [${numberRequest}] đã hoàn thành!`
+        );
+        return;
+      }
+
+      // Hiển thị dialog xác nhận
+      this.modal.confirm({
+        nzTitle: 'Xác nhận',
+        nzContent: `Bạn có chắc muốn xác nhận hoàn thành yêu cầu công việc [${numberRequest}] không?`,
+        nzOkText: 'Đồng ý',
+        nzCancelText: 'Hủy',
+        nzOnOk: () => {
+          // Tạo model để gửi API
+          const model = {
+            ID: id,
+            Status: 1, // Hoàn thành công việc
+            UpdatedBy: this.currentUser?.LoginName || this.currentUser?.Code || '',
+            UpdatedDate: new Date().toISOString()
+          };
+
+          // Gọi API
+          this.JobRequirementService.saveRequestBGDApprove(model).subscribe({
+            next: (response: any) => {
+              if (response && response.status === 1) {
+                this.notification.success(
+                  NOTIFICATION_TITLE.success,
+                  'Xác nhận hoàn thành thành công!'
+                );
+                // Refresh lại table
+                this.getJobrequirement();
+                // Refresh lại details nếu có JobRequirementID
+                if (this.JobrequirementID) {
+                  this.getJobrequirementDetails(this.JobrequirementID);
+                }
+              } else {
+                const errorMessage = response?.message || 'Không thể xác nhận hoàn thành!';
+                this.notification.error(
+                  NOTIFICATION_TITLE.error,
+                  errorMessage
+                );
+              }
+            },
+            error: (error: any) => {
+              const errorMessage = error?.error?.message || error?.error?.Message || error?.message || 'Lỗi khi xác nhận hoàn thành!';
+              this.notification.error(
+                NOTIFICATION_TITLE.error,
+                errorMessage
+              );
+            }
+          });
+        }
+      });
+    }
+
+    /**
+     * Mở modal để nhập ghi chú
+     */
+    onOpenNoteModal(): void {
+      const selected = this.JobrequirementTable?.getSelectedData() || [];
+      
+      if (selected.length === 0) {
+        this.notification.warning(
+          NOTIFICATION_TITLE.warning,
+          'Vui lòng chọn một bản ghi để thêm ghi chú!'
+        );
+        return;
+      }
+
+      const rowData = selected[0];
+      const id = rowData?.ID || 0;
+      
+      if (id <= 0) {
+        this.notification.warning(
+          NOTIFICATION_TITLE.warning,
+          'Không tìm thấy ID của bản ghi!'
+        );
+        return;
+      }
+
+      const currentNote = rowData?.Note || '';
+      const numberRequest = rowData?.NumberRequest || rowData?.Code || '';
+
+      // Mở modal component
+      const modalRef = this.modalService.open(NoteFormComponent, {
+        size: 'md',
+        backdrop: 'static',
+        keyboard: false,
+        centered: true,
+      });
+
+      // Set initial note value trước khi component khởi tạo
+      modalRef.componentInstance.initialNote = currentNote;
+
+      // Handle modal result
+      modalRef.result
+        .then((result: any) => {
+          if (result && result.confirmed) {
+            const note = result.note || '';
+            
+            // Tạo model để gửi API
+            const model = {
+              ID: id,
+              Note: note,
+              UpdatedBy: this.currentUser?.LoginName || this.currentUser?.Code || '',
+              UpdatedDate: new Date().toISOString()
+            };
+
+            // Gọi API save-comment
+            this.JobRequirementService.saveComment(model).subscribe({
+              next: (response: any) => {
+                if (response && response.status === 1) {
+                  this.notification.success(
+                    NOTIFICATION_TITLE.success,
+                    'Lưu ghi chú thành công!'
+                  );
+                  // Refresh lại table
+                  this.getJobrequirement();
+                  // Refresh lại details nếu có JobRequirementID
+                  if (this.JobrequirementID) {
+                    this.getJobrequirementDetails(this.JobrequirementID);
+                  }
+                } else {
+                  const errorMessage = response?.message || 'Không thể lưu ghi chú!';
+                  this.notification.error(
+                    NOTIFICATION_TITLE.error,
+                    errorMessage
+                  );
+                }
+              },
+              error: (error: any) => {
+                const errorMessage = error?.error?.message || error?.error?.Message || error?.message || 'Lỗi khi lưu ghi chú!';
+                this.notification.error(
+                  NOTIFICATION_TITLE.error,
+                  errorMessage
+                );
+              }
+            });
+          }
+        })
+        .catch(() => {
+          // User cancelled, do nothing
+        });
+    }
   
     onDeleteJobrequirement() {}
   
+    /**
+     * Map button name sang step và status
+     * @param buttonName Tên button (ví dụ: btnApproveTBP_New, btnUnApproveTBP_New, etc.)
+     * @returns Object { step: number, status: number } hoặc null nếu không tìm thấy
+     */
+    private getStepAndStatusFromButton(buttonName: string): { step: number; status: number } | null {
+      // Status: 1 = duyệt, 2 = hủy
+      const buttonMap: { [key: string]: { step: number; status: number } } = {
+        // Step 2: TBP xác nhận
+        'btnApproveTBP_New': { step: 2, status: 1 },
+        'btnUnApproveTBP_New': { step: 2, status: 2 },
+        'btnTBP': { step: 2, status: 1 }, // Default approve cho TBP
+        
+        // Step 3: HR check yêu cầu
+        'btnApproveDocumentHR': { step: 3, status: 1 },
+        'btnUnApproveDocumentHR': { step: 3, status: 2 },
+        
+        // Step 4: TBP HR xác nhận
+        'btnApproveHR': { step: 4, status: 1 },
+        'btnUnApproveHR': { step: 4, status: 2 },
+        
+        // Step 5: BGĐ xác nhận
+        'btnSuccessApproved': { step: 5, status: 1 },
+        'btnBGĐ': { step: 5, status: 1 },
+        'btnUnApproveBGĐ': { step: 5, status: 2 },
+      };
+      
+      return buttonMap[buttonName] || null;
+    }
+
+    /**
+     * Xử lý duyệt/hủy duyệt job requirement
+     * @param buttonName Tên button được click
+     */
+    onApproveJobRequirement(buttonName: string): void {
+      const selected = this.JobrequirementTable?.getSelectedData() || [];
+      
+      if (selected.length === 0) {
+        this.notification.warning(
+          NOTIFICATION_TITLE.warning,
+          'Vui lòng chọn ít nhất một bản ghi để duyệt!'
+        );
+        return;
+      }
+
+      // Lấy step và status từ button name
+      const stepStatus = this.getStepAndStatusFromButton(buttonName);
+      if (!stepStatus) {
+        this.notification.warning(
+          NOTIFICATION_TITLE.warning,
+          'Không tìm thấy bước duyệt tương ứng với nút này!'
+        );
+        return;
+      }
+
+      const { step, status } = stepStatus;
+
+      // Nếu là hủy duyệt (status = 2), cần nhập lý do
+      if (status === 2) {
+        this.showCancelReasonModal(selected, step);
+      } else {
+        // Duyệt (status = 1), gọi API trực tiếp
+        this.processApprove(selected, step, status, '');
+      }
+    }
+
+    /**
+     * Hiển thị modal nhập lý do hủy
+     */
+    private showCancelReasonModal(selected: any[], step: number): void {
+      const modalRef = this.modalService.open(CancelApproveReasonFormComponent, {
+        size: 'md',
+        backdrop: 'static',
+        keyboard: false,
+        centered: true,
+      });
+
+      modalRef.result
+        .then((reasonCancel: string) => {
+          if (reasonCancel && reasonCancel.trim()) {
+            this.processApprove(selected, step, 2, reasonCancel.trim());
+          }
+        })
+        .catch(() => {
+          // User cancelled, do nothing
+        });
+    }
+
+    /**
+     * Xử lý duyệt/hủy duyệt
+     */
+    private processApprove(selected: any[], step: number, status: number, reasonCancel: string): void {
+      // Tạo danh sách approve request
+      const approveList = selected.map((row: any) => ({
+        JobRequirementID: row.ID || 0,
+        Step: step,
+        Status: status,
+        ReasonCancel: reasonCancel || ''
+      })).filter((item: any) => item.JobRequirementID > 0);
+
+      if (approveList.length === 0) {
+        this.notification.warning(
+          NOTIFICATION_TITLE.warning,
+          'Không tìm thấy ID của bản ghi cần duyệt!'
+        );
+        return;
+      }
+
+      // Gọi API approve
+      this.JobRequirementService.approveJobRequirement(approveList).subscribe({
+        next: (response: any) => {
+          if (response && response.data) {
+            const results = response.data || [];
+            let successCount = 0;
+            let failCount = 0;
+            const errorMessages: string[] = [];
+
+            results.forEach((result: any) => {
+              if (result.Success) {
+                successCount++;
+              } else {
+                failCount++;
+                if (result.Message) {
+                  errorMessages.push(result.Message);
+                }
+              }
+            });
+
+            // Hiển thị thông báo kết quả
+            if (successCount > 0 && failCount === 0) {
+              this.notification.success(
+                NOTIFICATION_TITLE.success,
+                `Duyệt thành công ${successCount} bản ghi!`
+              );
+              // Refresh lại table
+              this.getJobrequirement();
+              if (this.JobrequirementID) {
+                this.getJobrequirementDetails(this.JobrequirementID);
+              }
+            } else if (successCount > 0 && failCount > 0) {
+              this.notification.warning(
+                NOTIFICATION_TITLE.warning,
+                `Duyệt thành công ${successCount} bản ghi, thất bại ${failCount} bản ghi. ${errorMessages.join('; ')}`
+              );
+              // Refresh lại table
+              this.getJobrequirement();
+              if (this.JobrequirementID) {
+                this.getJobrequirementDetails(this.JobrequirementID);
+              }
+            } else {
+              this.notification.error(
+                NOTIFICATION_TITLE.error,
+                errorMessages.length > 0 ? errorMessages.join('; ') : 'Duyệt thất bại!'
+              );
+            }
+          } else {
+            this.notification.error(
+              NOTIFICATION_TITLE.error,
+              response?.message || 'Duyệt thất bại!'
+            );
+          }
+        },
+        error: (error: any) => {
+          const errorMessage = error?.error?.message || error?.error?.Message || error?.message || 'Duyệt thất bại!';
+          this.notification.error(
+            NOTIFICATION_TITLE.error,
+            errorMessage
+          );
+        }
+      });
+    }
+  
+    /**
+     * Xử lý yêu cầu/hủy yêu cầu BGD duyệt
+     */
+    onRequestBGDApprove(isRequest: boolean): void {
+      const selected = this.JobrequirementTable?.getSelectedData() || [];
+      
+      if (selected.length === 0) {
+        this.notification.warning(
+          NOTIFICATION_TITLE.warning,
+          'Vui lòng chọn ít nhất một bản ghi!'
+        );
+        return;
+      }
+
+      // Chỉ xử lý bản ghi đầu tiên (theo luồng C#)
+      const rowData = selected[0];
+      const id = rowData?.ID || 0;
+      
+      if (id <= 0) {
+        this.notification.warning(
+          NOTIFICATION_TITLE.warning,
+          'Không tìm thấy ID của bản ghi!'
+        );
+        return;
+      }
+
+      const numberRequest = rowData?.NumberRequest || rowData?.Code || '';
+      const isRequestText = isRequest ? 'yêu cầu' : 'huỷ yêu cầu';
+      const confirmMessage = `Bạn có chắc muốn ${isRequestText} BGĐ duyệt yêu cầu công việc [${numberRequest}] không?`;
+
+      // Hiển thị dialog xác nhận
+      this.modal.confirm({
+        nzTitle: 'Thông báo',
+        nzContent: confirmMessage,
+        nzOkText: 'Đồng ý',
+        nzCancelText: 'Hủy',
+        nzOnOk: () => {
+          // Tạo model để gửi API
+          const model = {
+            ID: id,
+            IsRequestBGDApproved: isRequest,
+            UpdatedBy: this.currentUser?.LoginName || this.currentUser?.Code || '',
+            UpdatedDate: new Date().toISOString()
+          };
+
+          // Gọi API
+          this.JobRequirementService.saveRequestBGDApprove(model).subscribe({
+            next: (response: any) => {
+              if (response && response.status === 1) {
+                this.notification.success(
+                  NOTIFICATION_TITLE.success,
+                  `Đã ${isRequestText} BGĐ duyệt thành công!`
+                );
+                // Refresh lại table
+                this.getJobrequirement();
+                // Refresh lại details nếu có JobRequirementID
+                if (this.JobrequirementID) {
+                  this.getJobrequirementDetails(this.JobrequirementID);
+                }
+              } else {
+                const errorMessage = response?.message || `Không thể ${isRequestText} BGĐ duyệt!`;
+                this.notification.error(
+                  NOTIFICATION_TITLE.error,
+                  errorMessage
+                );
+              }
+            },
+            error: (error: any) => {
+              const errorMessage = error?.error?.message || error?.error?.Message || error?.message || `Lỗi khi ${isRequestText} BGĐ duyệt!`;
+              this.notification.error(
+                NOTIFICATION_TITLE.error,
+                errorMessage
+              );
+            }
+          });
+        }
+      });
+    }
+
     toggleSearchPanel() {
       this.sizeSearch = this.sizeSearch == '0' ? '22%' : '0';
     }
@@ -448,12 +1188,35 @@ export class JobRequirementComponent implements OnInit, AfterViewInit {
       if (this.JobrequirementTable) {
         this.JobrequirementTable.setData(this.JobrequirementData || []);
       } else {
+        // Tạo context menu
+        const contextMenuItems: any[] = [
+          {
+            label: 'Ghi chú',
+            action: (e: any, row: RowComponent) => {
+              const rowData = row.getData();
+              // Select row trước khi mở modal
+              row.select();
+              this.onOpenNoteModal();
+            }
+          },
+          {
+            label: 'Xem yêu cầu báo giá',
+            action: (e: any, row: RowComponent) => {
+              const rowData = row.getData();
+              // Select row trước khi mở
+              row.select();
+              this.onViewPriceQuote();
+            }
+          }
+        ];
+
         this.JobrequirementTable = new Tabulator(this.tableRef1.nativeElement, {
           data: this.JobrequirementData || [],
           ...DEFAULT_TABLE_CONFIG,
-          selectableRows: 1,
+          selectableRows: true,
           paginationMode: 'local',
           height: '100%',
+          rowContextMenu: contextMenuItems,
           columns: [
             {
               title: 'STT',
@@ -464,23 +1227,12 @@ export class JobRequirementComponent implements OnInit, AfterViewInit {
             {
               title: 'Yêu cầu BGĐ duyệt',
               field: 'IsRequestBGDApproved',
+              width:80,
               hozAlign: 'center',
               formatter: (cell: any) => {
                 const value = cell.getValue();
-                // Nếu là string, convert sang number; nếu là number/null, dùng trực tiếp
-                let numValue = 0;
-                if (value === null || value === undefined) {
-                  numValue = 0;
-                } else if (typeof value === 'number') {
-                  numValue = value;
-                } else if (typeof value === 'string') {
-                  // Map string sang number
-                  if (value === 'Đã duyệt') numValue = 1;
-                  else if (value === 'Từ chối' || value === 'Không duyệt')
-                    numValue = 2;
-                  else numValue = 0; // Chưa duyệt hoặc giá trị khác
-                }
-                return this.formatApprovalBadge(numValue);
+                const checked = value === true || value === 'true' || value === 1 || value === '1';
+                return `<div style="text-align: center;"><input type="checkbox" ${checked ? 'checked' : ''} style="pointer-events: none; accent-color: #1677ff;" /></div>`;
               },
               frozen: true,
             },
@@ -489,22 +1241,11 @@ export class JobRequirementComponent implements OnInit, AfterViewInit {
               field: 'IsRequestBuy',
               headerHozAlign: 'center',
               hozAlign: 'center',
+              width:80,
               formatter: (cell: any) => {
                 const value = cell.getValue();
-                // Nếu là string, convert sang number; nếu là number/null, dùng trực tiếp
-                let numValue = 0;
-                if (value === null || value === undefined) {
-                  numValue = 0;
-                } else if (typeof value === 'number') {
-                  numValue = value;
-                } else if (typeof value === 'string') {
-                  // Map string sang number
-                  if (value === 'Đã duyệt') numValue = 1;
-                  else if (value === 'Từ chối' || value === 'Không duyệt')
-                    numValue = 2;
-                  else numValue = 0; // Chưa duyệt hoặc giá trị khác
-                }
-                return this.formatApprovalBadge(numValue);
+                const checked = value === true || value === 'true' || value === 1 || value === '1';
+                return `<div style="text-align: center;"><input type="checkbox" ${checked ? 'checked' : ''} style="pointer-events: none; accent-color: #1677ff;" /></div>`;
               },
               frozen: true,
             },
@@ -513,22 +1254,11 @@ export class JobRequirementComponent implements OnInit, AfterViewInit {
               field: 'IsRequestPriceQuote',
               headerHozAlign: 'center',
               hozAlign: 'center',
+              width:80,
               formatter: (cell: any) => {
                 const value = cell.getValue();
-                // Nếu là string, convert sang number; nếu là number/null, dùng trực tiếp
-                let numValue = 0;
-                if (value === null || value === undefined) {
-                  numValue = 0;
-                } else if (typeof value === 'number') {
-                  numValue = value;
-                } else if (typeof value === 'string') {
-                  // Map string sang number
-                  if (value === 'Đã duyệt') numValue = 1;
-                  else if (value === 'Từ chối' || value === 'Không duyệt')
-                    numValue = 2;
-                  else numValue = 0; // Chưa duyệt hoặc giá trị khác
-                }
-                return this.formatApprovalBadge(numValue);
+                const checked = value === true || value === 'true' || value === 1 || value === '1';
+                return `<div style="text-align: center;"><input type="checkbox" ${checked ? 'checked' : ''} style="pointer-events: none; accent-color: #1677ff;" /></div>`;
               },
               frozen: true,
             },
@@ -606,6 +1336,19 @@ export class JobRequirementComponent implements OnInit, AfterViewInit {
             }
           }
         );
+
+        // Double click để mở modal sửa
+        this.JobrequirementTable.on('rowDblClick', (e: UIEvent, row: RowComponent) => {
+          const rowData = row.getData();
+          const jobRequirementID = rowData['ID'] || 0;
+          
+          if (jobRequirementID > 0) {
+            // Select row trước
+            row.select();
+            // Mở modal sửa
+            this.onAddJobRequirement(true);
+          }
+        });
   
         // THÊM SỰ KIỆN rowSelected VÀ rowDeselected
         this.JobrequirementTable.on('rowSelected', (row: RowComponent) => {
@@ -661,6 +1404,7 @@ export class JobRequirementComponent implements OnInit, AfterViewInit {
             selectableRows: 1,
             layout: 'fitDataStretch',
             height: '100%',
+            rowHeader:false,
             paginationMode: 'local',
             columns: [
               {
@@ -764,11 +1508,27 @@ export class JobRequirementComponent implements OnInit, AfterViewInit {
             height: '100%',
             layout: 'fitDataStretch',
             paginationMode: 'local',
+            rowHeader:false,
+            rowFormatter: (row: RowComponent) => {
+              const data = row.getData();
+              const isApproved = data['IsApproved'];
+              
+              // Bôi màu dựa trên trạng thái duyệt
+              if (isApproved === 1 || isApproved === '1') {
+                // Đã duyệt - màu xanh lá
+                row.getElement().style.backgroundColor = '#009900';
+              } else if (isApproved === 2 || isApproved === '2') {
+                // Đã hủy - màu đỏ
+                row.getElement().style.backgroundColor = '#CC3300';
+              }
+              // Chưa duyệt (0 hoặc null) - không bôi màu
+            },
             columns: [
               
               {
                 title: 'Bước',
                 field: 'Step',
+                hozAlign:'center',
                 headerHozAlign: 'center',
               },
               {
@@ -781,7 +1541,7 @@ export class JobRequirementComponent implements OnInit, AfterViewInit {
                 field: 'DateApproved',
                 hozAlign: 'left',
                 headerHozAlign: 'center',
-                width: 150,
+                width: 120,
                 formatter: (cell: any) => {
                   const value = cell.getValue();
                   return value

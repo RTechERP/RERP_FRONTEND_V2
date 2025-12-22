@@ -204,7 +204,7 @@ export class EmployeeComponent implements OnInit, AfterViewInit {
       // Thông tin cá nhân
       BirthOfDate: ['', [Validators.required]],
       NoiSinh: ['', [Validators.required]],
-      GioiTinh: [0, [Validators.required]],
+      GioiTinh: [null, [Validators.required]],
       DanToc: ['', [Validators.required]],
       TonGiao: ['', [Validators.required]],
       QuocTich: ['', [Validators.required]],
@@ -324,6 +324,8 @@ export class EmployeeComponent implements OnInit, AfterViewInit {
     this.deleteForm = this.fb.group({
       EndWorking: [new Date()],
       ReasonDeleted: [''],
+      SoSoBHXH: [''],
+      NguoiGiuSoBHXHText: [''],
     });
   }
 
@@ -335,6 +337,7 @@ export class EmployeeComponent implements OnInit, AfterViewInit {
     this.loadPositionContract();
     this.loadPositionInternal();
     this.loadEmployeeTeam();
+    this.setupAutoFillAddress();
     this.employeeForm.get('allChecked')?.valueChanges.subscribe((checked) => {
       const checklistControls = [
         'SYLL',
@@ -397,6 +400,38 @@ export class EmployeeComponent implements OnInit, AfterViewInit {
       });
     });
   }
+
+  private setupAutoFillAddress() {
+    // Permanent Address
+    const addressFields = ['TinhDcThuongTru', 'QuanDcThuongTru', 'PhuongDcThuongTru'];
+    addressFields.forEach(field => {
+      this.employeeForm.get(field)?.valueChanges.subscribe(() => {
+        const tinh = this.employeeForm.get('TinhDcThuongTru')?.value || '';
+        const quan = this.employeeForm.get('QuanDcThuongTru')?.value || '';
+        const phuong = this.employeeForm.get('PhuongDcThuongTru')?.value || '';
+
+        const parts = [phuong, quan, tinh].filter(val => val && val.trim().length > 0);
+        const fullAddress = parts.join(', ');
+
+        this.employeeForm.patchValue({ DcThuongTru: fullAddress }, { emitEvent: false });
+      });
+    });
+
+    // Temporary Address
+    const tempAddressFields = ['TinhDcTamTru', 'QuanDcTamTru', 'PhuongDcTamTru'];
+    tempAddressFields.forEach(field => {
+      this.employeeForm.get(field)?.valueChanges.subscribe(() => {
+        const tinh = this.employeeForm.get('TinhDcTamTru')?.value || '';
+        const quan = this.employeeForm.get('QuanDcTamTru')?.value || '';
+        const phuong = this.employeeForm.get('PhuongDcTamTru')?.value || '';
+
+        const parts = [phuong, quan, tinh].filter(val => val && val.trim().length > 0);
+        const fullAddress = parts.join(', ');
+
+        this.employeeForm.patchValue({ DcTamTru: fullAddress }, { emitEvent: false });
+      });
+    });
+  }
   ngAfterViewInit(): void {
     setTimeout(() => {
       this.initializeTableEmployee();
@@ -437,7 +472,7 @@ export class EmployeeComponent implements OnInit, AfterViewInit {
       },
       error: (err) => {
         this.isLoading = false;
-        this.notification.error(NOTIFICATION_TITLE.error, 'Không thể tải danh sách nhân viên');
+        this.notification.error(NOTIFICATION_TITLE.error, err.error?.message || 'Không thể tải danh sách nhân viên');
       }
     });
   }
@@ -449,7 +484,7 @@ export class EmployeeComponent implements OnInit, AfterViewInit {
       error: (error) => {
         this.notification.error(
           NOTIFICATION_TITLE.error,
-          'Lỗi khi tải danh sách phòng ban: ' + error.message
+          error.error?.message || 'Lỗi khi tải danh sách phòng ban'
         );
       },
     });
@@ -462,7 +497,7 @@ export class EmployeeComponent implements OnInit, AfterViewInit {
       error: (error) => {
         this.notification.error(
           NOTIFICATION_TITLE.error,
-          'Lỗi khi tải danh sách chức vụ theo hợp đồng: ' + error.message
+          error.error?.message || 'Lỗi khi tải danh sách chức vụ theo hợp đồng'
         );
       },
     });
@@ -475,7 +510,7 @@ export class EmployeeComponent implements OnInit, AfterViewInit {
       error: (error) => {
         this.notification.error(
           NOTIFICATION_TITLE.error,
-          'Lỗi khi tải danh sách chức vụ theo nội bộ: ' + error.message
+          error.error?.message || 'Lỗi khi tải danh sách chức vụ theo nội bộ'
         );
       },
     });
@@ -1093,6 +1128,7 @@ export class EmployeeComponent implements OnInit, AfterViewInit {
                   headerHozAlign: 'center',
                   formatter(cell) {
                     const value = cell.getValue();
+                    if (value === null || value === undefined) return 'đ0';
                     return (
                       'đ' +
                       value.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ',')
@@ -1106,6 +1142,7 @@ export class EmployeeComponent implements OnInit, AfterViewInit {
                   headerHozAlign: 'center',
                   formatter(cell) {
                     const value = cell.getValue();
+                    if (value === null || value === undefined) return 'đ0';
                     return (
                       'đ' +
                       value.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ',')
@@ -1124,6 +1161,7 @@ export class EmployeeComponent implements OnInit, AfterViewInit {
                   headerHozAlign: 'center',
                   formatter(cell) {
                     const value = cell.getValue();
+                    if (value === null || value === undefined) return 'đ0';
                     return (
                       'đ' +
                       value.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ',')
@@ -1137,6 +1175,7 @@ export class EmployeeComponent implements OnInit, AfterViewInit {
                   headerHozAlign: 'center',
                   formatter(cell) {
                     const value = cell.getValue();
+                    if (value === null || value === undefined) return 'đ0';
                     return (
                       'đ' +
                       value.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ',')
@@ -1150,6 +1189,7 @@ export class EmployeeComponent implements OnInit, AfterViewInit {
                   headerHozAlign: 'center',
                   formatter(cell) {
                     const value = cell.getValue();
+                    if (value === null || value === undefined) return 'đ0';
                     return (
                       'đ' +
                       value.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ',')
@@ -1163,6 +1203,7 @@ export class EmployeeComponent implements OnInit, AfterViewInit {
                   headerHozAlign: 'center',
                   formatter(cell) {
                     const value = cell.getValue();
+                    if (value === null || value === undefined) return 'đ0';
                     return (
                       'đ' +
                       value.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ',')
@@ -1176,6 +1217,7 @@ export class EmployeeComponent implements OnInit, AfterViewInit {
                   headerHozAlign: 'center',
                   formatter(cell) {
                     const value = cell.getValue();
+                    if (value === null || value === undefined) return 'đ0';
                     return (
                       'đ' +
                       value.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ',')
@@ -1189,6 +1231,7 @@ export class EmployeeComponent implements OnInit, AfterViewInit {
                   headerHozAlign: 'center',
                   formatter(cell) {
                     const value = cell.getValue();
+                    if (value === null || value === undefined) return 'đ0';
                     return (
                       'đ' +
                       value.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ',')
@@ -1202,6 +1245,7 @@ export class EmployeeComponent implements OnInit, AfterViewInit {
                   headerHozAlign: 'center',
                   formatter(cell) {
                     const value = cell.getValue();
+                    if (value === null || value === undefined) return 'đ0';
                     return (
                       'đ' +
                       value.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ',')
@@ -1215,6 +1259,7 @@ export class EmployeeComponent implements OnInit, AfterViewInit {
                   headerHozAlign: 'center',
                   formatter(cell) {
                     const value = cell.getValue();
+                    if (value === null || value === undefined) return 'đ0';
                     return (
                       'đ' +
                       value.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ',')
@@ -1233,6 +1278,7 @@ export class EmployeeComponent implements OnInit, AfterViewInit {
                   headerHozAlign: 'center',
                   formatter(cell) {
                     const value = cell.getValue();
+                    if (value === null || value === undefined) return 'đ0';
                     return (
                       'đ' +
                       value.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ',')
@@ -1253,6 +1299,7 @@ export class EmployeeComponent implements OnInit, AfterViewInit {
               headerHozAlign: 'center',
               formatter(cell) {
                 const value = cell.getValue();
+                if (value === null || value === undefined) return 'đ0';
                 return (
                   'đ' +
                   value.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ',')
@@ -1271,6 +1318,7 @@ export class EmployeeComponent implements OnInit, AfterViewInit {
               headerHozAlign: 'center',
               formatter(cell) {
                 const value = cell.getValue();
+                if (value === null || value === undefined) return 'đ0';
                 return (
                   'đ' +
                   value.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ',')
@@ -1284,6 +1332,7 @@ export class EmployeeComponent implements OnInit, AfterViewInit {
               headerHozAlign: 'center',
               formatter(cell) {
                 const value = cell.getValue();
+                if (value === null || value === undefined) return 'đ0';
                 return (
                   'đ' +
                   value.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ',')
@@ -1946,7 +1995,7 @@ export class EmployeeComponent implements OnInit, AfterViewInit {
       // Thông tin cá nhân
       BirthOfDate: '',
       NoiSinh: '',
-      GioiTinh: 0,
+      GioiTinh: null,
       DanToc: '',
       TonGiao: '',
       QuocTich: '',
@@ -2097,7 +2146,7 @@ export class EmployeeComponent implements OnInit, AfterViewInit {
       ChucVuHDID: this.selectedEmployee.ChucVuHDID,
       ChuVuID: this.selectedEmployee.ChuVuID,
       DepartmentID: this.selectedEmployee.DepartmentID,
-      DvBHXH: this.selectedEmployee.DvBHXH,
+      DvBHXH: this.selectedEmployee.DvBHXH||"",
       DiaDiemLamViec: this.selectedEmployee.DiaDiemLamViec,
       StartWorking: this.selectedEmployee.StartWorking,
       EmployeeTeamID: this.selectedEmployee.EmployeeTeamID,
@@ -2187,7 +2236,7 @@ export class EmployeeComponent implements OnInit, AfterViewInit {
 
       // Giảm trừ
       GiamTruBanThan: this.selectedEmployee.GiamTruBanThan,
-      SoNguoiPT: this.selectedEmployee.SoNguoiPT,
+      SoNguoiPT: this.selectedEmployee.SoNguoiPT || 0,
       TongTien: this.selectedEmployee.TongTien,
 
       // Thông tin khác
@@ -2286,7 +2335,7 @@ export class EmployeeComponent implements OnInit, AfterViewInit {
         error: (error) => {
           this.notification.error(
             'Lỗi',
-            error.message || 'Có lỗi xảy ra khi cập nhật trạng thái nhân viên!'
+            error.error.message || 'Có lỗi xảy ra khi cập nhật trạng thái nhân viên!'
           );
         },
       });
@@ -2497,7 +2546,7 @@ export class EmployeeComponent implements OnInit, AfterViewInit {
         error: (error) => {
           this.notification.error(
             'Lỗi',
-            'Cập nhật nhân viên thất bại: ' + error.message
+            error.error?.message || 'Cập nhật nhân viên thất bại'
           );
         },
       });
@@ -2512,7 +2561,7 @@ export class EmployeeComponent implements OnInit, AfterViewInit {
         error: (error) => {
           this.notification.error(
             'Lỗi',
-            'Thêm nhân viên thất bại: ' + error.message
+            error.error?.message || 'Thêm nhân viên thất bại'
           );
         },
       });
@@ -2596,7 +2645,7 @@ export class EmployeeComponent implements OnInit, AfterViewInit {
           this.loadPositionContract();
         },
         error: (error) => {
-          this.notification.error(NOTIFICATION_TITLE.error, 'Thêm mới' + ' chức vụ theo hợp đồng thất bại: ' + error.error.message);
+          this.notification.error(NOTIFICATION_TITLE.error, error.error?.message || 'Thêm mới chức vụ theo hợp đồng thất bại');
         },
         complete: () => {
         }
@@ -2609,7 +2658,7 @@ export class EmployeeComponent implements OnInit, AfterViewInit {
           this.loadPositionInternal();
         },
         error: (error) => {
-          this.notification.error(NOTIFICATION_TITLE.error, 'Thêm mới' + ' chức vụ theo nội bộ thất bại: ' + error.error.message);
+          this.notification.error(NOTIFICATION_TITLE.error, error.error?.message || 'Thêm mới chức vụ theo nội bộ thất bại');
         },
         complete: () => {
         }
@@ -2630,7 +2679,7 @@ export class EmployeeComponent implements OnInit, AfterViewInit {
         this.employeeTeam = data.data;
       },
       error: (error) => {
-        this.notification.error(NOTIFICATION_TITLE.error, 'Không thể tải danh sách team phòng ban: ' + error.message);
+        this.notification.error(NOTIFICATION_TITLE.error, error.error?.message || 'Không thể tải danh sách team phòng ban');
       }
     })
   }
@@ -2649,4 +2698,12 @@ export class EmployeeComponent implements OnInit, AfterViewInit {
     });
   }
   //#endregion
+
+  trackByEmployeeId(index: number, item: any): any {
+    return item.ID || index;
+  }
+
+  trackByTeamId(index: number, item: any): any {
+    return item.ID || index;
+  }
 }

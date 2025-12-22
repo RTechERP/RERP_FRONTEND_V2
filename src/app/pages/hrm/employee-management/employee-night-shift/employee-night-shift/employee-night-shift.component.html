@@ -144,7 +144,7 @@
                 <button nz-button nzType="default" nzSize="small" class="me-1" (click)="exportToExcel()">
                   <img src="assets/icon/action_export_excel_16.png" alt="Xuất Excel" />Xuất Excel
                 </button>
-                <button nz-button nzType="default" nzSize="small" class="me-1" (click)="onOpenSummary()">
+                <button nz-button nzType="default" nzSize="small" class="me-1" (click)="onOpenSummary()"  *hasPermission="'N1,N2'">
                   <img src="assets/icon/employee_night_shift_summary_16.png" alt="Tổng hợp làm đêm" />Tổng hợp làm đêm
                 </button>
               </div>

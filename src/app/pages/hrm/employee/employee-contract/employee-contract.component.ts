@@ -86,7 +86,7 @@ export class EmployeeContractComponent implements OnInit, OnChanges {
 
   initFormSearch() {
     this.employeeContractSearchForm = this.fb.group({
-      employee: [this.selectedEmployee.ID],
+      employee: [this.selectedEmployee?.ID || null],
       contractType: [0],
       filter: ['']
     });

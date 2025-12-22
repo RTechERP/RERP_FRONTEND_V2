@@ -23,3 +23,6 @@
 .ant splitter{
   height: 93vh !important;
 }
+.tabulator-row.tabulator-row-even.row-focused {
+  background-color: #eb1e1e !important;
+}

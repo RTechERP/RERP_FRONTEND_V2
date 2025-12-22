@@ -259,7 +259,7 @@ export class MenuService {
                 isPermission: this.permissionService.hasPermission(''),
                 icon: 'assets/icon/menu_warehouse.svg',
                 children: [
-                    //#region KHO HN
+                    //#region KHO HNBắ
                     {
                         kind: 'group',
                         key: 'HN',

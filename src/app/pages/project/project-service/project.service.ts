@@ -928,6 +928,16 @@ export class ProjectService {
         column: columns.length,
       },
     };
+    worksheet.eachRow((row, rowNumber) => {
+      row.eachCell((cell) => {
+        cell.alignment = {
+          ...(cell.alignment || {}),
+          wrapText: true,
+          vertical: 'middle',
+        };
+      });
+    });
+    
 
     // Xuất file
     const buffer = await workbook.xlsx.writeBuffer();

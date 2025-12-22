@@ -17,6 +17,10 @@
                 *hasPermission="'N1,N44'">
                 <img src="assets/icon/action_delete_item_16.png" /> Xóa
               </button>
+              <button class="fs-12 btn-copy" nz-button nzType="default" nzSize="small" (click)="onCopyAllocation()"
+                *hasPermission="'N1,N44'">
+                <img src="assets/icon/action_copy_24.svg" /> Copy
+              </button>
               <button class="fs-12" nz-button nzType="default" nzSize="small" (click)="exportToExcel()" [nzLoading]="exportingExcel">
                 <img src="assets/icon/action_export_excel_16.png" /> Xuất Excel
               </button>
@@ -24,22 +28,22 @@
 
             <!-- Phần filter và tìm kiếm bên phải -->
             <div class="d-flex gap-2 align-items-center">
-              <nz-select 
-                [(ngModel)]="currentYear" 
-                nzSize="small" 
+              <nz-select
+                [(ngModel)]="currentYear"
+                nzSize="small"
                 style="width: 100px;"
                 (ngModelChange)="onYearChange()">
                 <nz-option *ngFor="let year of yearOptions" [nzValue]="year" [nzLabel]="year.toString()"></nz-option>
               </nz-select>
-              
-              <nz-select 
-                [(ngModel)]="currentMonth" 
-                nzSize="small" 
+
+              <nz-select
+                [(ngModel)]="currentMonth"
+                nzSize="small"
                 style="width: 120px;"
                 (ngModelChange)="onMonthChange()">
                 <nz-option *ngFor="let month of monthOptions" [nzValue]="month.value" [nzLabel]="month.label"></nz-option>
               </nz-select>
-              
+
               <input nz-input placeholder="Nhập từ khóa tìm kiếm..." [(ngModel)]="filterText" nzSize="small"
                 style="width: 300px;" (keyup.enter)="searchPhaseAllocation()" />
               <button nz-button nzType="primary" nzSize="small" (click)="searchPhaseAllocation()">

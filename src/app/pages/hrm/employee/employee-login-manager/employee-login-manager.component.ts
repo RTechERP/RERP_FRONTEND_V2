@@ -188,7 +188,7 @@ export class EmployeeLoginManagerComponent implements OnInit, OnChanges {
       return;
     }
 
-    const formData = this.loginManagerForm.value;
+    const formData = this.loginManagerForm.getRawValue();
     // Tìm employee tương ứng với ID đã chọn
     const selectedEmployee = this.employeeList.find(emp => emp.value === formData.Code);
     if (selectedEmployee) {
@@ -214,8 +214,8 @@ export class EmployeeLoginManagerComponent implements OnInit, OnChanges {
         this.onSaveSuccess.emit();
         this.closeModal();
       },
-      error: (response) => {
-        this.notification.error("Thất bại", "Cập nhật thông tin đăng nhập thất bại" + response.error.message);
+      error: (err) => {
+        this.notification.error(NOTIFICATION_TITLE.error, err?.error?.message || err?.message);
       }
     })
   }

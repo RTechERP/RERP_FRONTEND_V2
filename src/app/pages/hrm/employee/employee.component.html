@@ -200,18 +200,20 @@
                   <nz-form-item class="mb-0">
                     <nz-form-label [nzSpan]="24">Chức vụ (Theo nội bộ)
                       <span class="text-danger ps-1">*</span></nz-form-label>
-                    <nz-select [(ngModel)]="positionInternal" formControlName="ChuVuID"
-                      nzPlaceHolder="Nhập chức vụ (Theo nội bộ)" style="width: 90%" nzAllowClear nzShowSearch>
-                      <nz-option *ngFor="let pi of positionInternalList" [nzValue]="pi.ID"
-                        [nzLabel]="pi.Name"></nz-option>
-                    </nz-select>
-                    <button nz-button nzType="default" nzSize="default" style="
-                        font-size: 0.75rem;
-                        font-weight: bold;
-                        margin-left: 0.4vw;
-                      " (click)="openPositionInternalForm()">
-                      <nz-icon nzType="plus" />
-                    </button>
+                    <nz-form-control [nzSpan]="24" nzErrorTip="Vui lòng chọn chức vụ (Theo nội bộ)">
+                      <nz-select [(ngModel)]="positionInternal" formControlName="ChuVuID"
+                        nzPlaceHolder="Nhập chức vụ (Theo nội bộ)" style="width: 90%" nzAllowClear nzShowSearch>
+                        <nz-option *ngFor="let pi of positionInternalList" [nzValue]="pi.ID"
+                          [nzLabel]="pi.Name"></nz-option>
+                      </nz-select>
+                      <button nz-button nzType="default" nzSize="default" style="
+                          font-size: 0.75rem;
+                          font-weight: bold;
+                          margin-left: 0.4vw;
+                        " (click)="openPositionInternalForm()">
+                        <nz-icon nzType="plus" />
+                      </button>
+                    </nz-form-control>
                   </nz-form-item>
                   <nz-form-item class="mb-0">
                     <nz-form-label [nzSpan]="24">Đợn vị (BHXH)<span class="text-danger ps-1">*</span></nz-form-label>
@@ -268,12 +270,13 @@
                   </nz-form-item>
                   <nz-form-item class="mb-0">
                     <nz-form-label [nzSpan]="24">Giới tính<span class="text-danger ps-1">*</span></nz-form-label>
-                    <nz-select formControlName="GioiTinh" style="width: 100%" nzPlaceHolder="Nhập giới tính">
-                      
-                      <nz-option [nzValue]="0" nzLabel="Nữ"></nz-option>
-                      <nz-option [nzValue]="1" nzLabel="Nam"></nz-option>
-                      <nz-option [nzValue]="2" nzLabel="Khác"></nz-option>
-                    </nz-select>
+                    <nz-form-control [nzSpan]="24" nzErrorTip="Vui lòng chọn giới tính">
+                      <nz-select formControlName="GioiTinh" style="width: 100%" nzPlaceHolder="Nhập giới tính">
+                        <nz-option [nzValue]="0" nzLabel="Nữ"></nz-option>
+                        <nz-option [nzValue]="1" nzLabel="Nam"></nz-option>
+                        <nz-option [nzValue]="2" nzLabel="Khác"></nz-option>
+                      </nz-select>
+                    </nz-form-control>
                   </nz-form-item>
                   <nz-form-item class="mb-0">
                     <nz-form-label [nzSpan]="24">Tôn giáo<span class="text-danger ps-1">*</span></nz-form-label>

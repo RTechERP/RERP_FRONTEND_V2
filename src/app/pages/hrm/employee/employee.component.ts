@@ -221,7 +221,7 @@ export class EmployeeComponent implements OnInit, AfterViewInit {
       PhuongDcThuongTru: ['', [Validators.required]],
       DuongDcThuongTru: [''],
       SoNhaDcThuongTru: [''],
-      DcThuongTru: ['', [Validators.required]],
+      DcThuongTru: [''],
 
       // Địa chỉ tạm trú
       TinhDcTamTru: ['', [Validators.required]],
@@ -229,7 +229,7 @@ export class EmployeeComponent implements OnInit, AfterViewInit {
       PhuongDcTamTru: ['', [Validators.required]],
       DuongDcTamTru: [''],
       SoNhaDcTamTru: [''],
-      DcTamTru: ['', [Validators.required]],
+      DcTamTru: [''],
 
       // Thông tin liên hệ
       SDTCaNhan: ['', [Validators.required]],

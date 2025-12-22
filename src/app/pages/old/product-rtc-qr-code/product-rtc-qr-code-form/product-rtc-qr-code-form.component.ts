@@ -35,15 +35,15 @@ import { HasPermissionDirective } from '../../../../directives/has-permission.di
 })
 export class ProductRtcQrCodeFormComponent implements OnInit {
   @Input() dataInput: any;
-  
+
   public activeModal = inject(NgbActiveModal);
   private fb = inject(FormBuilder);
   formGroup!: FormGroup;
-  
+
   productRTCList: any[] = [];
   modulaLocationList: any[] = [];
   modulaLocationGroups: any[] = [];
-  
+
   statusOptions = [
     { label: 'Trong kho', value: 1 },
     { label: 'Đang mượn', value: 2 },
@@ -60,7 +60,7 @@ export class ProductRtcQrCodeFormComponent implements OnInit {
     this.initForm();
     this.loadProducts();
     this.loadModulaLocations();
-    
+
     if (this.dataInput?.ID && this.dataInput.ID > 0) {
       // Edit mode
       this.patchFormData(this.dataInput);
@@ -78,7 +78,7 @@ export class ProductRtcQrCodeFormComponent implements OnInit {
       ID: [0],
       ProductRTCID: [null, [Validators.required]],
       ProductQRCode: ['', [Validators.required]],
-      SerialNumber: ['', [Validators.required]],
+      SerialNumber: [''],
       Status: [1, [Validators.required]],
       ModulaLocationDetailID: [null],
       WarehouseID: [1]
@@ -102,11 +102,11 @@ export class ProductRtcQrCodeFormComponent implements OnInit {
     this.qrCodeService.getProducts().subscribe({
       next: (res: any) => {
         console.log('res loadProducts = ', res);
-  
+
         if (res?.status === 1 && res?.data?.productRTC) {
           this.productRTCList = Array.isArray(res.data.productRTC) ? res.data.productRTC : [];
         } else if (res?.status === 1 && Array.isArray(res?.data)) {
-         
+
           this.productRTCList = res.data;
         }
       },
@@ -139,7 +139,7 @@ export class ProductRtcQrCodeFormComponent implements OnInit {
   groupModulaLocations() {
     // Group theo ModulaLocationID (Tray)
     const grouped = new Map<number, any[]>();
-    
+
     this.modulaLocationList.forEach((item: any) => {
       const trayId = item.ModulaLocationID;
       if (trayId) {
@@ -171,7 +171,7 @@ export class ProductRtcQrCodeFormComponent implements OnInit {
   saveData() {
     // Trim all string fields
     this.trimAllStringControls();
-    
+
     // Validate form
     if (this.formGroup.invalid) {
       Object.values(this.formGroup.controls).forEach(control => {
@@ -189,7 +189,7 @@ export class ProductRtcQrCodeFormComponent implements OnInit {
       ID: formValue.ID || 0,
       ProductRTCID: formValue.ProductRTCID,
       ProductQRCode: formValue.ProductQRCode.trim(),
-      SerialNumber: formValue.SerialNumber.trim(),
+      SerialNumber: (formValue.SerialNumber||'').trim(),
       Status: formValue.Status,
       ModulaLocationDetailID: formValue.ModulaLocationDetailID || null,
       WarehouseID: formValue.WarehouseID || 1,

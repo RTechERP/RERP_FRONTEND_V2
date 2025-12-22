@@ -189,7 +189,7 @@ export class ProductRtcQrCodeFormComponent implements OnInit {
       ID: formValue.ID || 0,
       ProductRTCID: formValue.ProductRTCID,
       ProductQRCode: formValue.ProductQRCode.trim(),
-      SerialNumber: formValue.SerialNumber.trim(),
+      SerialNumber: (formValue.SerialNumber||'').trim(),
       Status: formValue.Status,
       ModulaLocationDetailID: formValue.ModulaLocationDetailID || null,
       WarehouseID: formValue.WarehouseID || 1,

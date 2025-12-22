@@ -52,7 +52,7 @@ export class PaymentOrderDetailComponent implements OnInit, AfterViewInit {
     projects: any[] = [];
     typeBankTransfers: any[] = [];
     units: any[] = [];
-
+    @Input() ponccID: number = 0;
     @Input() paymentOrder = new PaymentOrder();
     paymentOrderField = PaymentOrderField;
 
@@ -220,8 +220,74 @@ export class PaymentOrderDetailComponent implements OnInit, AfterViewInit {
         this.initFormGroup();
         this.initDataCombo();
         this.initGrid();
+    // Thêm xử lý khi ponccID > 0
+    if (this.ponccID > 0) {
+        this.loadDataFromPONCC();
     }
+    }
+    loadDataFromPONCC() {
+        this.paymentService.getDataFromPONCC(this.ponccID).subscribe({
+            next: (response) => {
+                const poNCC = response.data.poNCC;
+                const supplierSale = response.data.supplierSale;
+                const poNCCDetails = response.data.poNCCDetails;
 
+                // 1. Set giá trị cho form
+                this.validateForm.patchValue({
+                    SupplierSaleID: poNCC.SupplierSaleID,
+                    PONCCID: poNCC.ID,
+                    ApprovedTBPID: 178, // Hoặc lấy từ config
+                    AccountNumber: poNCC.AccountNumberSupplier,
+                    Bank: poNCC.BankSupplier,
+                    ReceiverInfo: supplierSale?.NameNCC || '',
+                    Unit: poNCC.Unit.toLowerCase(),
+                });
+
+                // 2. Tạo dataset từ chi tiết PO NCC
+                this.dataset = poNCCDetails.map((item: any, index: number) => ({
+                    _id: index + 1,
+                    ID: 0,
+                    PaymentOrderID: 0,
+                    STT: item.STT || `${index + 1}`,
+                    ContentPayment: item.ProductName || '',
+                    Unit: item.Unit || '',
+                    Quantity: item.QtyRequest || 0,
+                    UnitPrice: item.UnitPrice || 0,
+                    TotalMoney: item.TotalPrice || 0,
+                    Note: item.Note || '',
+                    ParentID: null,
+                    PaymentMethods: 0,
+                    PaymentInfor: '',
+                    EmployeeID: 0,
+                    TotalPaymentAmount: item.TotalPrice || 0,
+                    PaymentPercentage: 100,
+                    treeLevel: 0, // Thêm treeLevel cho tree data formatter
+                }));
+
+                // 3. Refresh grid - đợi grid ready
+                setTimeout(() => {
+                    if (this.angularGrid && this.angularGrid.dataView) {
+                        this.angularGrid.dataView.setItems(this.dataset);
+                        this.angularGrid.slickGrid?.invalidate();
+                        this.angularGrid.slickGrid?.render();
+
+                        // 4. Cập nhật tổng tiền sau khi grid đã render
+                        setTimeout(() => {
+                            this.updateTotal(this.getColumnIndex(PaymentOrderDetailField.TotalMoney.field));
+                            this.updateTotal(this.getColumnIndex(PaymentOrderDetailField.TotalPaymentAmount.field));
+                        }, 50);
+                    }
+                }, 100);
+            },
+            error: (err) => {
+                this.notification.error(NOTIFICATION_TITLE.error, err.error?.message)
+            }
+        });
+    }
+    getColumnIndex(fieldName: string): number {
+        let gridInstance = this.paymentOrder.TypeOrder == 2 ? this.angularGrid2 : this.angularGrid;
+        return gridInstance?.slickGrid?.getColumns().findIndex(x => x.id == fieldName) ?? -1;
+    }
     ngAfterViewInit(): void {
 
     }
@@ -255,6 +321,8 @@ export class PaymentOrderDetailComponent implements OnInit, AfterViewInit {
     }
 
     initFormGroup() {
+
+
         this.validateForm = this.fb.group({
             TypeOrder: this.fb.control(this.paymentOrder.TypeOrder, [Validators.required]),
             PaymentOrderTypeID: this.fb.control(this.paymentOrder.PaymentOrderTypeID, [Validators.required]),

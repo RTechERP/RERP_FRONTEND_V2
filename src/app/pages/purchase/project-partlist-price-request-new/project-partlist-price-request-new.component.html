@@ -204,9 +204,18 @@
                                         [class.active]="activeTabId === type.ProjectTypeID"
                                         [id]="'pane-' + type.ProjectTypeID" role="tabpanel"
                                         [attr.aria-labelledby]="'tab-' + type.ProjectTypeID">
-                                        <div class="table-container p-1">
-                                            <div [id]="'datatable-' + type.ProjectTypeID"
-                                                class="tabulator-container container-fluid p-0"></div>
+                                        <div class="table-container p-1 grid-container" [class]="'grid-container-' + type.ProjectTypeID" 
+                                            *ngIf="(activeTabId === type.ProjectTypeID || angularGrids.has(type.ProjectTypeID)) && columnDefinitionsMap.has(type.ProjectTypeID)">
+                                            <angular-slickgrid
+                                                [gridId]="'grid-' + type.ProjectTypeID"
+                                                [columns]="columnDefinitionsMap.get(type.ProjectTypeID) || []"
+                                                [options]="gridOptionsMap.get(type.ProjectTypeID) || {}"
+                                                [dataset]="datasetsMap.get(type.ProjectTypeID) || []"
+                                                (onAngularGridCreated)="angularGridReady(type.ProjectTypeID, $event.detail)"
+                                                (onClick)="onCellClicked(type.ProjectTypeID, $event.detail.eventData, $event.detail.args)"
+                                                (onCellChange)="onCellChange(type.ProjectTypeID, $event.detail.eventData, $event.detail.args)"
+                                                (onSelectedRowsChanged)="handleRowSelection(type.ProjectTypeID, $event.detail.eventData, $event.detail.args)">
+                                            </angular-slickgrid>
                                         </div>
                                     </div>
                                 </div>
@@ -230,6 +239,7 @@
     </div>
     <div class="text-muted">Chỉ cần nhập Deadline. Các thông tin khác (VPP, JobRequirementID) đã có sẵn từ Input.</div>
 </ng-template>
+
 <app-tabulator-popup *ngIf="showSupplierPopup" [data]="dtSupplierSale" [columns]="supplierColumns"
     [searchFields]="supplierSearchFields" [height]="'300px'" (rowSelected)="onSupplierSelected($event)"
     (closed)="onSupplierPopupClosed()" [style.position]="'absolute'" [style.top]="supplierPopupPosition.top"
@@ -504,9 +514,18 @@
                         [class.active]="activeTabId === type.ProjectTypeID"
                         [id]="'pane-' + type.ProjectTypeID" role="tabpanel"
                         [attr.aria-labelledby]="'tab-' + type.ProjectTypeID">
-                        <div class="table-container p-1">
-                            <div [id]="'datatable-' + type.ProjectTypeID"
-                                class="tabulator-container container-fluid p-0"></div>
+                        <div class="table-container p-1 grid-container" [class]="'grid-container-' + type.ProjectTypeID" 
+                            *ngIf="(activeTabId === type.ProjectTypeID || angularGrids.has(type.ProjectTypeID)) && columnDefinitionsMap.has(type.ProjectTypeID)">
+                            <angular-slickgrid
+                                [gridId]="'grid-' + type.ProjectTypeID"
+                                [columns]="columnDefinitionsMap.get(type.ProjectTypeID) || []"
+                                [options]="gridOptionsMap.get(type.ProjectTypeID) || {}"
+                                [dataset]="datasetsMap.get(type.ProjectTypeID) || []"
+                                (onAngularGridCreated)="angularGridReady(type.ProjectTypeID, $event.detail)"
+                                (onClick)="onCellClicked(type.ProjectTypeID, $event.detail.eventData, $event.detail.args)"
+                                (onCellChange)="onCellChange(type.ProjectTypeID, $event.detail.eventData, $event.detail.args)"
+                                (onSelectedRowsChanged)="handleRowSelection(type.ProjectTypeID, $event.detail.eventData, $event.detail.args)">
+                            </angular-slickgrid>
                         </div>
                     </div>
                 </div>
@@ -557,10 +576,7 @@
     </div>
 </ng-template>
 
-<app-tabulator-popup *ngIf="showSupplierPopup" [data]="dtSupplierSale" [columns]="supplierColumns"
-    [searchFields]="supplierSearchFields" [height]="'300px'" (rowSelected)="onSupplierSelected($event)"
-    (closed)="onSupplierPopupClosed()" [style.position]="'absolute'" [style.top]="supplierPopupPosition.top"
-    [style.left]="supplierPopupPosition.left" [style.zIndex]="1000" [style.width]="'500px'"></app-tabulator-popup>
+<!-- Removed tabulator-popup - using single select editor instead -->
 
 <app-project-partlist-price-request-form *ngIf="showDetailModal" [dataInput]="modalData"
     (formSubmitted)="OnFormSubmit()" (closeModal)="showDetailModal = false">

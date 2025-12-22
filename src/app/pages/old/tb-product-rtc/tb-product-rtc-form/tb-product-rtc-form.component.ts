@@ -43,7 +43,7 @@ import { ReactiveFormsModule } from '@angular/forms';
 import { TbProductGroupRtcFormComponent } from '../tb-product-group-rtc-form/tb-product-group-rtc-form.component';
 import { FirmDetailComponent } from '../../Sale/ProductSale/firm-detail/firm-detail.component';
 import { LocationDetailComponent } from '../../Sale/ProductSale/location-detail/location-detail.component';
-import { UnitCountDetailComponent } from '../../Sale/ProductSale/unit-count-detail/unit-count-detail.component';
+import { UnitCountKtDetailComponent } from '../../inventory-demo/unit-count-kt/unit-count-kt-detail/unit-count-kt-detail.component';
 import { HasPermissionDirective } from '../../../../directives/has-permission.directive';
 import { FirmFormComponent } from '../../../general-category/firm/firm-form/firm-form.component';
 import { NOTIFICATION_TITLE } from '../../../../app.config';
@@ -153,11 +153,11 @@ export class TbProductRtcFormComponent implements OnInit, AfterViewInit {
         ],
       ],
       ProductName: ['', Validators.required],
-      PartNumber: ['', Validators.required],
+      PartNumber: [''],
       ProductCode: ['', Validators.required],
-      SerialNumber: ['', Validators.required],
-      Serial: ['', Validators.required],
-      SLKiemKe: ['', Validators.required],
+      SerialNumber: [''],
+      Serial: [''],
+      SLKiemKe: [''],
       FirmID: [
         null,
         [Validators.required, this.inIdListValidator(() => this.firmData)],
@@ -169,7 +169,7 @@ export class TbProductRtcFormComponent implements OnInit, AfterViewInit {
       CreateDate: [this.CreateDate, Validators.required],
       CodeHCM: [''],
       BorrowCustomer: [false],
-      Note: ['', Validators.maxLength(500)],
+      Note: [''],
       Resolution: [''],
       MonoColor: [''],
       SensorSize: [''],
@@ -251,8 +251,8 @@ export class TbProductRtcFormComponent implements OnInit, AfterViewInit {
     return DateTime.fromISO(dateString).toFormat('dd-MM-yyyy');
   }
   getunit() {
-    this.unitService.getUnit().subscribe((res: any) => {
-      this.unitData = res.data;
+    this.tbProductRtcService.getUnitCountKT().subscribe((res: any) => {
+      this.unitData = res.data || res;
       console.log('unit:', this.unitData);
       this.revalidateSelects();
     });
@@ -661,8 +661,8 @@ export class TbProductRtcFormComponent implements OnInit, AfterViewInit {
           LocationImg: finalLocationImg,
           // LocationImg: formValue.LocationImg || '',
           // Khi sửa: giữ nguyên ProductCodeRTC cũ, khi thêm mới: dùng code mới
-          ProductCodeRTC: (this.dataInput?.ID && this.dataInput?.ProductCodeRTC) 
-            ? this.dataInput.ProductCodeRTC 
+          ProductCodeRTC: (this.dataInput?.ID && this.dataInput?.ProductCodeRTC)
+            ? this.dataInput.ProductCodeRTC
             : this.productCode,
           BorrowCustomer: formValue.BorrowCustomer,
           ProductLocationID: formValue.ProductLocationID,
@@ -752,7 +752,7 @@ export class TbProductRtcFormComponent implements OnInit, AfterViewInit {
   // hàm gọi modal location
   openModalLocationDetail() {
     const warehouseID = this.dataInput?.WarehouseID ?? 1;
-    
+
     const modalRef = this.nzModal.create({
       nzTitle: 'Thêm vị trí',
       nzContent: ProductLocationTechnicalDetailComponent,
@@ -776,10 +776,12 @@ export class TbProductRtcFormComponent implements OnInit, AfterViewInit {
   }
   // hàm gọi modal unitcount
   openModalUnitCountDetail() {
-    const modalRef = this.ngbModal.open(UnitCountDetailComponent, {
-      centered: true,
+    const modalRef = this.ngbModal.open(UnitCountKtDetailComponent, {
+      size: 'lg',
       backdrop: 'static',
       keyboard: false,
+      scrollable: true,
+      windowClass: 'custom-modal',
     });
 
     modalRef.result.finally(() => {

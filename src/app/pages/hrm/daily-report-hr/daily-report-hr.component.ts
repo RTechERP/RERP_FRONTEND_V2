@@ -106,20 +106,15 @@ export class DailyReportHrComponent implements OnInit, AfterViewInit {
     this.getDailyReportHr();
   }
   private setDefaultDateRange(): void {
-    const today = new Date();
-    today.setHours(23, 59, 59, 999);
-
-    const yesterday = new Date(today);
-    yesterday.setDate(today.getDate() - 1);
-    yesterday.setHours(0, 0, 0, 0);
-
-    this.DateStart = yesterday;
-    this.DateEnd = today;
+    const nowUTC7 = DateTime.now().setZone('Asia/Ho_Chi_Minh');
+    const today = nowUTC7.set({ hour: 23, minute: 59, second: 59, millisecond: 999 });
+    const yesterday = nowUTC7.minus({ days: 1 }).set({ hour: 0, minute: 0, second: 0, millisecond: 0 });
+    this.DateStart = yesterday.toJSDate();
+    this.DateEnd = today.toJSDate();
   }
   onEmployeeChange(selectedID: number): void {
     const emp = this.employeeList.find((x) => x.ID === selectedID);
     this.UserID = emp ? emp.UserID : null;
-    console.log('EmployeeID:', this.EmployeeID, 'UserID:', this.UserID);
   }
   getEmployee() {
     const request = {
@@ -134,27 +129,26 @@ export class DailyReportHrComponent implements OnInit, AfterViewInit {
     });
   }
   getDailyReportHr(): void {
+    const formatDate = (date: Date | null): string => {
+      if (!date) return '';
+      const year = date.getFullYear();
+      const month = String(date.getMonth() + 1).padStart(2, '0');
+      const day = String(date.getDate()).padStart(2, '0');
+      return `${year}-${month}-${day}`;
+    };
     const payload = {
-      dateStart: this.DateStart ? this.DateStart.toISOString() : null,
-      dateEnd: this.DateEnd ? this.DateEnd.toISOString() : null,
+      dateStart: formatDate(this.DateStart),
+      dateEnd: formatDate(this.DateEnd),
       keyword: this.Keyword || '',
       departmentID: this.DepartmentID || 0,
       userID: this.UserID || 0,
       employeeID: this.EmployeeID || 0,
     };
-
-    console.log('payload', payload);
-
     this.dailyReportHrService.getDailyReportHr(payload).subscribe({
       next: (res: any) => {
         this.filmReport = res.data.dataFilm || [];
         this.driverReport = res.data.dataDriver || [];
         this.hrReport = res.data.technical || [];
-
-        console.log('filmReport', this.filmReport);
-        console.log('driverReport', this.driverReport);
-        console.log('hrReport', this.hrReport);
-
         this.initOrUpdateTables();
       },
       error: (err: any) => {
@@ -359,9 +353,9 @@ export class DailyReportHrComponent implements OnInit, AfterViewInit {
   //#region xuất excel
   async onExportExcel() {
     const tables = [
-      { table: this.filmTable, sheetName: 'Báo cáo HCNS-IT' },
-      { table: this.driverTable, sheetName: 'Báo cáo lái xe' },
-      { table: this.hrTable, sheetName: 'Báo cáo HR' },
+      { table: this.hrTable, sheetName: 'Báo cáo HCNS-IT' },
+      { table: this.filmTable, sheetName: 'Báo cáo cắt phim' },
+      { table: this.driverTable, sheetName: 'Báo cáo lái xe' },     
     ];
 
     const workbook = new ExcelJS.Workbook();

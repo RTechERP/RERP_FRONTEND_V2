@@ -129,10 +129,13 @@ export class InventoryDemoComponent implements OnInit, AfterViewInit {
     }
   }
   getGroup() {
-    this.tbProductRtcService
-      .getProductRTCGroup(this.warehouseType)
+    this.inventoryDemoService
+      .getProductRTCGroup(this.warehouseID, this.warehouseType)
       .subscribe((resppon: any) => {
-        this.productGroupData = resppon.data;
+        const data = resppon.data || [];
+        // API đã sắp xếp theo NumberOrder, không cần sort lại
+        this.productGroupData = data;
+        console.log('productGroupData: ', this.productGroupData);
       });
   }
   // ấn hiện splizt tìm kiếm

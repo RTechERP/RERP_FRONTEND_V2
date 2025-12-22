@@ -42,8 +42,9 @@ export class ProjectPartlistPurchaseRequestService {
     );
   }
 
-  checkOrder(items: any[], status: boolean): Observable<any> {
-    return this.http.post<any>(this.baseUrl + `check-order?status=${status}`, items);
+  checkOrder(listIds: number[], status: boolean): Observable<any> {
+    // API expects List<int> listIds in body and bool status as query parameter
+    return this.http.post<any>(this.baseUrl + `check-order?status=${status}`, listIds);
   }
 
   requestApproved(data: any[], status: boolean): Observable<any> {
@@ -58,9 +59,8 @@ export class ProjectPartlistPurchaseRequestService {
     return this.http.post<any>(this.baseUrl + `approved?status=${status}&type=${type}`, items);
   }
 
-  saveData(items: any[] | { data: any[] }): Observable<any> {
-    // Nếu items đã có format { data: [...] }, gửi trực tiếp
-    // Nếu là array, gửi trực tiếp (backward compatibility)
+  saveData(items: any[]): Observable<any> {
+    // API expects List<ProjectPartlistPurchaseRequestDTO> directly (array)
     return this.http.post<any>(this.baseUrl + `save-data`, items);
   }
 
@@ -101,7 +101,7 @@ export class ProjectPartlistPurchaseRequestService {
   }
 
   getProductGroups(): Observable<any[]> {
-    return this.http.get<any>(`${this.productGroupUrl}?isvisible=false`).pipe(
+    return this.http.get<any>(`${this.productGroupUrl}?isvisible=true`).pipe(
       map((res: any) => (Array.isArray(res?.data) ? res.data : res?.data || res))
     );
   }
@@ -173,8 +173,8 @@ export class ProjectPartlistPurchaseRequestService {
   }
 
   // Get ProductGroupsRTC (same as getProductRTC for now, but can be separated if needed)
-  getProductGroupsRTC(): Observable<any[]> {
-    return this.http.get<any>(environment.host + 'api/ProductGroupRTC/get-all').pipe(
+  getProductGroupsRTC(warehouseType: number): Observable<any[]> {
+    return this.http.get<any>(environment.host + 'api/ProductGroupRTC/get-all?warehouseType=' + warehouseType).pipe(
       map((res: any) => (Array.isArray(res?.data) ? res.data : res?.data || res))
     );
   }

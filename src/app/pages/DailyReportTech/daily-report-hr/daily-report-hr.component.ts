@@ -43,7 +43,7 @@ import { DailyReportHrDetailComponent } from '../daily-report-hr-detail/daily-re
     NzModalModule,
   ],
   templateUrl: './daily-report-hr.component.html',
-  styleUrl: './daily-report-hr.component.css'
+ // styleUrl: './daily-report-hr.component.css'
 })
 export class DailyReportHrComponent implements OnInit, AfterViewInit {
   @ViewChild('tb_daily_report_hr', { static: false })

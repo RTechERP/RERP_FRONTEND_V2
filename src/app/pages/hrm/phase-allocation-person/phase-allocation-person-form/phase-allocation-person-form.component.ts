@@ -1,8 +1,18 @@
 import { NzNotificationService } from 'ng-zorro-antd/notification';
 import { Component, OnInit, AfterViewInit, Input, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { FormsModule, ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
-import { NgbActiveModal } from '@ng-bootstrap/ng-bootstrap';
+import {
+  FormsModule,
+  ReactiveFormsModule,
+  FormBuilder,
+  FormGroup,
+  Validators,
+} from '@angular/forms';
+import {
+  NgbActiveModal,
+  NgbModal,
+  NgbModalModule,
+} from '@ng-bootstrap/ng-bootstrap';
 import { NzFormModule } from 'ng-zorro-antd/form';
 import { NzInputModule } from 'ng-zorro-antd/input';
 import { NzButtonModule } from 'ng-zorro-antd/button';
@@ -14,6 +24,8 @@ import { PhaseAllocationPersonService } from '../phase-allocation-person-service
 import { NOTIFICATION_TITLE } from '../../../../app.config';
 import { HasPermissionDirective } from '../../../../directives/has-permission.directive';
 import { EmployeeService } from '../../employee/employee-service/employee.service';
+import { ChooseEmployeeComponent } from '../choose-employee/choose-employee.component';
+import { NzModalService } from 'ng-zorro-antd/modal';
 
 @Component({
   standalone: true,
@@ -26,22 +38,28 @@ import { EmployeeService } from '../../employee/employee-service/employee.servic
     NzButtonModule,
     NzSelectModule,
     NzGridModule,
-    HasPermissionDirective
+    HasPermissionDirective,
+    ChooseEmployeeComponent,
+    NgbModalModule,
   ],
   selector: 'app-phase-allocation-person-form',
   templateUrl: './phase-allocation-person-form.component.html',
-  styleUrl: './phase-allocation-person-form.component.css'
+  styleUrl: './phase-allocation-person-form.component.css',
 })
-export class PhaseAllocationPersonFormComponent implements OnInit, AfterViewInit {
+export class PhaseAllocationPersonFormComponent
+  implements OnInit, AfterViewInit
+{
   @Input() dataInput: any;
-  
+
   public activeModal = inject(NgbActiveModal);
   formMaster!: FormGroup;
   detailTable: Tabulator | null = null;
   detailData: any[] = [];
   employeeList: any[] = [];
+  employeeEditorValues: any[] = [];
   deletedRows: any[] = [];
-  
+  private ngbModal = inject(NgbModal);
+
   // Options cho năm và tháng
   yearOptions: number[] = [];
   monthOptions: { value: number; label: string }[] = [
@@ -56,14 +74,20 @@ export class PhaseAllocationPersonFormComponent implements OnInit, AfterViewInit
     { value: 9, label: 'Tháng 9' },
     { value: 10, label: 'Tháng 10' },
     { value: 11, label: 'Tháng 11' },
-    { value: 12, label: 'Tháng 12' }
+    { value: 12, label: 'Tháng 12' },
+  ];
+  typeAllocationOptions: { value: number; label: string }[] = [
+    { value: 1, label: 'Quà' },
+    { value: 2, label: 'Tài sản cá nhân' },
+    { value: 3, label: 'Cơm ca' },
   ];
 
   constructor(
     private notification: NzNotificationService,
     private phaseAllocationService: PhaseAllocationPersonService,
     private employeeService: EmployeeService,
-    private fb: FormBuilder
+    private fb: FormBuilder,
+    private modalService: NgbModal
   ) {
     // Tạo danh sách năm
     const currentYear = new Date().getFullYear();
@@ -74,20 +98,24 @@ export class PhaseAllocationPersonFormComponent implements OnInit, AfterViewInit
 
   ngOnInit() {
     this.initForm();
-    this.loadEmployees();
-    
-    if (this.dataInput?.master?.ID && this.dataInput.master.ID > 0) {
+    console.log(this.dataInput);
+    if (this.dataInput?.master) {
       // Có dữ liệu master để sửa
       this.patchFormData(this.dataInput.master);
+      console.log(this.dataInput?.details);
       this.detailData = (this.dataInput?.details || []).map((d: any) => ({
         ID: d.ID || 0,
         EmployeeCode: d.EmployeeCode || '',
-        EmployeeName: d.EmployeeName || '',
+        EmployeeName: d.EmployeeFullName || '',
         EmployeeID: d.EmployeeID || 0,
         PhasedAllocationPersonID: d.PhasedAllocationPersonID || 0,
         DateReceive: d.DateReceive || null,
         StatusReceive: d.StatusReceive || 0,
-        IsDeleted: d.IsDeleted || false
+        IsDeleted: d.IsDeleted || false,
+        Quantity: d.Quantity || 1,
+        UnitName: d.UnitName || '',
+        ContentReceive: d.ContentReceive || '',
+        DepartmentName: d.DepartmentName || '',
       }));
     } else {
       // Thêm mới
@@ -99,17 +127,14 @@ export class PhaseAllocationPersonFormComponent implements OnInit, AfterViewInit
         Name: '',
         Year: this.dataInput?.Year || currentYear,
         Month: this.dataInput?.Month || currentMonth,
-        IsDeleted: false
+        IsDeleted: false,
       });
       this.detailData = [];
     }
   }
 
   ngAfterViewInit(): void {
-    // Vẽ bảng sau khi đã có dữ liệu
-    setTimeout(() => {
-      this.drawTable();
-    }, 100);
+    this.loadEmployees();
   }
 
   initForm() {
@@ -119,7 +144,8 @@ export class PhaseAllocationPersonFormComponent implements OnInit, AfterViewInit
       Name: ['', Validators.required],
       Year: [new Date().getFullYear(), Validators.required],
       Month: [new Date().getMonth() + 1, Validators.required],
-      IsDeleted: [false]
+      TypeAllocation: [0, Validators.required],
+      IsDeleted: [false],
     });
   }
 
@@ -131,11 +157,34 @@ export class PhaseAllocationPersonFormComponent implements OnInit, AfterViewInit
         } else {
           this.employeeList = [];
         }
+        this.employeeEditorValues = Object.values(
+          this.employeeList.reduce((groups: any, emp: any) => {
+            const dept = emp.DepartmentName || 'Khác';
+
+            if (!groups[dept]) {
+              groups[dept] = {
+                label: dept,
+                options: [],
+              };
+            }
+
+            groups[dept].options.push({
+              label: `${emp.Code} - ${emp.FullName}`,
+              value: emp.Code,
+              keywords: `${emp.Code},${emp.FullName},${dept}`, // 🔍 search tốt
+              description: emp.FullName,
+            });
+
+            return groups;
+          }, {})
+        );
+
+        this.drawTable();
       },
       error: (error: any) => {
         console.error('Lỗi khi tải danh sách nhân viên:', error);
         this.employeeList = [];
-      }
+      },
     });
   }
 
@@ -144,10 +193,11 @@ export class PhaseAllocationPersonFormComponent implements OnInit, AfterViewInit
     this.formMaster.patchValue({
       ID: data.ID || 0,
       Code: data.Code || '',
-      Name: data.Name || '',
+      Name: data.ContentAllocation || '',
       Year: data.Year || new Date().getFullYear(),
       Month: data.Month || new Date().getMonth() + 1,
-      IsDeleted: data.IsDeleted || false
+      TypeAllocation: data.TypeAllocation || 0,
+      IsDeleted: data.IsDeleted || false,
     });
   }
 
@@ -160,7 +210,7 @@ export class PhaseAllocationPersonFormComponent implements OnInit, AfterViewInit
       this.detailTable.setData(this.detailData);
       return;
     }
-    
+
     this.detailTable = new Tabulator('#detailTable', {
       data: this.detailData,
       layout: 'fitColumns',
@@ -168,7 +218,19 @@ export class PhaseAllocationPersonFormComponent implements OnInit, AfterViewInit
       movableColumns: true,
       resizableRows: true,
       reactiveData: true,
-      selectableRows: 1,
+      rowHeader: {
+        formatter: 'rowSelection',
+        titleFormatter: 'rowSelection',
+        headerSort: false,
+        resizable: false,
+        frozen: true,
+        headerHozAlign: 'center',
+        hozAlign: 'center',
+        width: 20,
+        cellClick: function (e, cell) {
+          cell.getRow().toggleSelect();
+        },
+      },
       columns: [
         {
           title: '',
@@ -181,7 +243,8 @@ export class PhaseAllocationPersonFormComponent implements OnInit, AfterViewInit
           headerClick: () => {
             this.addRow();
           },
-          formatter: () => `<i class="fas fa-times text-danger cursor-pointer delete-btn" title="Xóa dòng"></i>`,
+          formatter: () =>
+            `<i class="fas fa-times text-danger cursor-pointer delete-btn" title="Xóa dòng"></i>`,
           cellClick: (e, cell) => {
             if ((e.target as HTMLElement).classList.contains('fas')) {
               const row = cell.getRow();
@@ -191,7 +254,7 @@ export class PhaseAllocationPersonFormComponent implements OnInit, AfterViewInit
               if (rowData['ID'] && rowData['ID'] > 0) {
                 this.deletedRows.push({
                   ...rowData,
-                  IsDeleted: true
+                  IsDeleted: true,
                 });
               }
 
@@ -207,56 +270,200 @@ export class PhaseAllocationPersonFormComponent implements OnInit, AfterViewInit
           width: 60,
           headerSort: false,
         },
-        { 
-          title: 'ID', 
-          field: 'ID', 
-          hozAlign: 'center', 
-          width: 60, 
-          headerSort: false, 
-          visible: false 
+        {
+          title: 'ID',
+          field: 'ID',
+          hozAlign: 'center',
+          width: 60,
+          headerSort: false,
+          visible: false,
         },
-        { 
-          title: 'Mã nhân viên', 
-          field: 'EmployeeCode', 
-          hozAlign: 'left', 
-          headerHozAlign: 'center',
-          editor: 'input',
+        {
+          title: 'Mã nhân viên',
+          field: 'EmployeeCode',
+          editor: 'list',
+
+          editorParams: {
+            values: this.employeeEditorValues,
+            autocomplete: true,
+            listOnEmpty: true,
+            clearable: true,
+            placeholderEmpty: 'Không tìm thấy nhân viên',
+            filterFunc: function (term, label, value, item) {
+              const t = term.toLowerCase();
+              return (
+                label.toLowerCase().includes(t) ||
+                item.keywords?.toLowerCase().includes(t)
+              );
+            },
+          },
+
           cellEdited: (cell) => {
             const row = cell.getRow();
-            const employeeCode = cell.getValue();
-            // Tìm nhân viên theo mã
-            const employee = this.employeeList.find((emp: any) => emp.Code === employeeCode);
-            if (employee) {
-              row.update({
-                EmployeeID: employee.ID || employee.EmployeeID,
-                EmployeeName: employee.FullName || employee.Name
-              });
-            } else {
+            const code = cell.getValue()?.trim();
+
+            if (!code) {
               row.update({
                 EmployeeID: 0,
-                EmployeeName: ''
+                EmployeeName: '',
+                DepartmentName: '',
               });
+              return;
             }
-          }
+
+            const emp = this.employeeList.find((e: any) => e.Code === code);
+
+            if (!emp) {
+              row.update({
+                EmployeeID: 0,
+                EmployeeName: '',
+                DepartmentName: '',
+              });
+              return;
+            }
+
+            // 🔹 kiểm tra trùng EmployeeID
+            const isDuplicate = this.detailTable
+              ?.getData()
+              .some((r: any) => r.EmployeeID === emp.ID && r !== row.getData());
+
+            if (isDuplicate) {
+              // ❌ trùng → rollback
+              row.update({
+                EmployeeCode: '',
+                EmployeeID: 0,
+                EmployeeName: '',
+                DepartmentName: '',
+              });
+              this.notification.warning(
+                'Cảnh báo',
+                `Nhân viên ${emp.FullName} đã được chọn!`
+              );
+              return;
+            }
+
+            // ✅ hợp lệ
+            row.update({
+              EmployeeID: emp.ID,
+              EmployeeName: emp.FullName,
+              DepartmentName: emp.DepartmentName,
+            });
+          },
         },
-        { 
-          title: 'Tên nhân viên', 
-          field: 'EmployeeName', 
-          hozAlign: 'left', 
-          headerHozAlign: 'center'
+        {
+          title: 'Tên nhân viên',
+          field: 'EmployeeName',
+          hozAlign: 'left',
+          headerHozAlign: 'center',
         },
         {
           title: 'Phòng ban',
           field: 'DepartmentName',
           hozAlign: 'left',
           headerHozAlign: 'center',
+        },
+        {
+          title: 'Nội dung',
+          field: 'ContentReceive',
+          hozAlign: 'left',
+          headerHozAlign: 'center',
+          editor: 'input',
+          cellEdited: (cell) => {
+            const table = cell.getTable();
+            const selectedRows = table.getSelectedRows();
+            const content = cell.getValue();
+
+            // 👉 CHỈ bulk update khi có checkbox được tick
+            if (selectedRows.length > 0) {
+              selectedRows.forEach((row) => {
+                row.update({ ContentReceive: content });
+              });
+              table.deselectRow();
+            }
+            // ❌ nếu không tick checkbox nào
+            // → Tabulator đã tự update đúng dòng đang edit
+          },
+        },
+        {
+          title: 'Số lượng',
+          field: 'Quantity',
+          hozAlign: 'right',
+          headerHozAlign: 'center',
+          editor: 'input',
+          editorParams: {
+            elementAttributes: {
+              type: 'number', // 🔥 chỉ cho nhập số
+              min: '0',
+              step: '1',
+            },
+          },
+          cellEdited: (cell) => {
+            const table = cell.getTable();
+            const selectedRows = table.getSelectedRows();
+            const content = cell.getValue();
+
+            // 👉 CHỈ bulk update khi có checkbox được tick
+            if (selectedRows.length > 0) {
+              selectedRows.forEach((row) => {
+                row.update({ Quantity: content });
+              });
+              table.deselectRow();
+            }
+            // ❌ nếu không tick checkbox nào
+            // → Tabulator đã tự update đúng dòng đang edit
+          },
+        },
+        {
+          title: 'Đơn vị',
+          field: 'UnitName',
+          editor: 'input',
+
+          cellEdited: (cell) => {
+            const table = cell.getTable();
+            const selectedRows = table.getSelectedRows();
+            const newUnit = cell.getValue();
+
+            // 👉 CHỈ bulk update khi có checkbox được tick
+            if (selectedRows.length > 0) {
+              selectedRows.forEach((row) => {
+                row.update({ UnitName: newUnit });
+              });
+              table.deselectRow();
+            }
+            // ❌ nếu không tick checkbox nào
+            // → Tabulator đã tự update đúng dòng đang edit
+          },
+        },
+
+        {
+          title: 'Trạng thái nhận',
+          field: 'StatusReceive',
+          hozAlign: 'center',
           formatter: (cell) => {
-            const employeeCode = cell.getRow().getData()['EmployeeCode'];
-            const employee = this.employeeList.find((emp: any) => emp.Code === employeeCode);
-            return employee ? (employee.DepartmentName || '') : '';
-          }
-        }
-      ]
+            const checked = cell.getValue() === 1 ? 'checked' : '';
+            return `<input type="checkbox" ${checked} />`;
+          },
+          cellClick: (e, cell) => {
+            const newVal = cell.getValue() === 1 ? 0 : 1;
+            cell.setValue(newVal, true);
+          },
+          cellEdited: (cell) => {
+            const table = cell.getTable();
+            const selectedRows = table.getSelectedRows();
+            const newUnit = cell.getValue();
+
+            // 👉 CHỈ bulk update khi có checkbox được tick
+            if (selectedRows.length > 0) {
+              selectedRows.forEach((row) => {
+                row.update({ StatusReceive: newUnit });
+              });
+              table.deselectRow();
+            }
+            // ❌ nếu không tick checkbox nào
+            // → Tabulator đã tự update đúng dòng đang edit
+          },
+        },
+      ],
     });
   }
 
@@ -271,36 +478,113 @@ export class PhaseAllocationPersonFormComponent implements OnInit, AfterViewInit
         PhasedAllocationPersonID: masterID,
         DateReceive: null,
         StatusReceive: 0,
-        IsDeleted: false
+        IsDeleted: false,
+        Quantity: 1,
+        UnitName: '',
+        ContentReceive: '',
       });
     }
+  }
+  openChooseEmployee() {
+    if (!this.detailTable) {
+      console.warn('Detail table not initialized');
+      return;
+    }
+    const selectedEmployeeIds = new Set(
+      this.detailTable
+        .getData()
+        .map((r: any) => r.EmployeeID)
+        .filter((id: number) => id > 0)
+    );
+
+    // 🔹 Lọc employee chưa được chọn
+    const availableEmployees = this.employeeList.filter(
+      (emp) => !selectedEmployeeIds.has(emp.ID)
+    );
+    const modalRef = this.modalService.open(ChooseEmployeeComponent, {
+      size: 'lg',
+      backdrop: 'static',
+      centered: true,
+      windowClass: 'second-modal-window', // Thêm class tùy chỉnh
+    });
+
+    modalRef.componentInstance.employeeList = availableEmployees;
+    //    modalRef.componentInstance.selectedEmployeeIds = currentEmployeeIds;
+    modalRef.result.then(
+      (selectedEmployees: any[]) => {
+        if (!this.detailTable || !selectedEmployees?.length) return;
+
+        const masterID = this.formMaster.get('ID')?.value || 0;
+
+        // 🔹 Lấy danh sách EmployeeID đã có
+        const existingIds = new Set(
+          this.detailTable
+            .getData()
+            .map((r: any) => r.EmployeeID)
+            .filter((id: number) => id > 0)
+        );
+
+        // 🔹 Map employee được chọn → row detail
+        const newRows = selectedEmployees
+          .filter((emp) => !existingIds.has(emp.ID)) // chống trùng (dù đã lọc từ trước)
+          .map((emp) => ({
+            ID: 0,
+            EmployeeCode: emp.Code,
+            EmployeeName: emp.FullName,
+            EmployeeID: emp.ID,
+            PhasedAllocationPersonID: masterID,
+            DepartmentName: emp.DepartmentName,
+            DateReceive: null,
+            StatusReceive: 0,
+            IsDeleted: false,
+            Quantity: 1,
+            UnitName: '',
+            ContentReceive: '',
+          }));
+
+        if (newRows.length) {
+          this.detailTable.addData(newRows);
+        }
+      },
+      () => {
+        // dismissed
+      }
+    );
   }
 
   async saveData() {
     // 1. Validate form master
     if (this.formMaster.invalid) {
-      Object.values(this.formMaster.controls).forEach(c => {
+      Object.values(this.formMaster.controls).forEach((c) => {
         if (c.invalid) {
           c.markAsTouched();
           c.updateValueAndValidity({ onlySelf: true });
         }
       });
-      this.notification.warning('Cảnh báo', 'Vui lòng điền đầy đủ thông tin bắt buộc');
+      this.notification.warning(
+        'Cảnh báo',
+        'Vui lòng điền đầy đủ thông tin bắt buộc'
+      );
       return;
     }
 
     // 2. Lấy dữ liệu chi tiết trên bảng
     const tableRows = this.detailTable ? this.detailTable.getData() : [];
 
-    // 2.1. Bắt buộc phải có ít nhất 1 dòng chi tiết
-    if (!tableRows || tableRows.length === 0) {
-      this.notification.warning('Cảnh báo', 'Vui lòng thêm ít nhất 1 nhân viên');
-      return;
-    }
+    // // 2.1. Bắt buộc phải có ít nhất 1 dòng chi tiết
+    // if (!tableRows || tableRows.length === 0) {
+    //   this.notification.warning(
+    //     'Cảnh báo',
+    //     'Vui lòng thêm ít nhất 1 nhân viên'
+    //   );
+    //   return;
+    // }
 
     // 2.2. Check từng dòng: EmployeeCode không được để trống
-    const invalidIndex = tableRows.findIndex((row: any) =>
-      !row.IsDeleted && (!row.EmployeeCode || row.EmployeeCode.toString().trim() === '')
+    const invalidIndex = tableRows.findIndex(
+      (row: any) =>
+        !row.IsDeleted &&
+        (!row.EmployeeCode || row.EmployeeCode.toString().trim() === '')
     );
 
     if (invalidIndex !== -1) {
@@ -316,9 +600,13 @@ export class PhaseAllocationPersonFormComponent implements OnInit, AfterViewInit
     const invalidEmployees: string[] = [];
     tableRows.forEach((row: any, idx: number) => {
       if (!row.IsDeleted && row.EmployeeCode) {
-        const employee = this.employeeList.find((emp: any) => emp.Code === row.EmployeeCode);
+        const employee = this.employeeList.find(
+          (emp: any) => emp.Code === row.EmployeeCode
+        );
         if (!employee) {
-          invalidEmployees.push(`Dòng ${idx + 1}: Mã nhân viên [${row.EmployeeCode}] không tồn tại`);
+          invalidEmployees.push(
+            `Dòng ${idx + 1}: Mã nhân viên [${row.EmployeeCode}] không tồn tại`
+          );
         }
       }
     });
@@ -334,10 +622,12 @@ export class PhaseAllocationPersonFormComponent implements OnInit, AfterViewInit
     const masterPayload = {
       ID: formValue.ID || 0,
       Code: formValue.Code,
-      Name: formValue.Name,
-      Year: formValue.Year,
-      Month: formValue.Month,
-      IsDeleted: formValue.IsDeleted || false
+      ContentAllocation: formValue.Name,
+      YearValue: formValue.Year,
+      MontValue: formValue.Month,
+      TypeAllocation: formValue.TypeAllocation,
+      IsDeleted: formValue.IsDeleted || false,
+      StatusAllocation: formValue.StatusAllocation || 0,
     };
 
     this.phaseAllocationService.saveData(masterPayload).subscribe({
@@ -347,46 +637,66 @@ export class PhaseAllocationPersonFormComponent implements OnInit, AfterViewInit
           const masterID = savedMaster?.ID || formValue.ID || 0;
 
           // 4. Lưu detail
-          const allRows = [
-            ...tableRows,
-            ...this.deletedRows
-          ];
+          const allRows = [...tableRows, ...this.deletedRows];
 
-          const detailPayload = allRows
-            .filter((row: any) => !row.IsDeleted)
-            .map((row: any) => ({
-              PhasedAllocationPersonID: masterID,
-              EmployeeCode: row.EmployeeCode || ''
-            }));
-
+          const detailPayload = allRows.map((row: any) => ({
+            ID: row.ID,
+            EmployeeID: row.EmployeeID,
+            PhasedAllocationPersonID: masterID,
+            StatusReceive: row.StatusReceive,
+            Quantity: parseInt(row.Quantity, 10) || 0,
+            UnitName: row.UnitName,
+            ContentReceive: row.ContentReceive,
+            IsDeleted: row.IsDeleted,
+          }));
+          console.log(detailPayload);
           if (detailPayload.length > 0) {
-            this.phaseAllocationService.saveDataDetail(detailPayload).subscribe({
-              next: (detailResponse) => {
-                if (detailResponse && detailResponse.status === 1) {
-                  this.notification.success(NOTIFICATION_TITLE.success, detailResponse.message || 'Cập nhật dữ liệu thành công');
-                  this.activeModal.close();
-                } else {
-                  this.notification.warning(NOTIFICATION_TITLE.warning, detailResponse?.message || 'Có lỗi khi lưu chi tiết');
-                }
-              },
-              error: (res: any) => {
-                console.error('Lỗi khi lưu chi tiết:', res);
-                this.notification.error(NOTIFICATION_TITLE.error, res.error?.message || 'Lỗi khi lưu chi tiết');
-              }
-            });
+            this.phaseAllocationService
+              .saveDataDetail(detailPayload)
+              .subscribe({
+                next: (detailResponse) => {
+                  if (detailResponse && detailResponse.status === 1) {
+                    this.notification.success(
+                      NOTIFICATION_TITLE.success,
+                      detailResponse.message || 'Cập nhật dữ liệu thành công'
+                    );
+                    this.activeModal.close();
+                  } else {
+                    this.notification.warning(
+                      NOTIFICATION_TITLE.warning,
+                      detailResponse?.message || 'Có lỗi khi lưu chi tiết'
+                    );
+                  }
+                },
+                error: (res: any) => {
+                  console.error('Lỗi khi lưu chi tiết:', res);
+                  this.notification.error(
+                    NOTIFICATION_TITLE.error,
+                    res.error?.message || 'Lỗi khi lưu chi tiết'
+                  );
+                },
+              });
           } else {
-            this.notification.success(NOTIFICATION_TITLE.success, 'Cập nhật dữ liệu thành công');
+            this.notification.success(
+              NOTIFICATION_TITLE.success,
+              'Cập nhật dữ liệu thành công'
+            );
             this.activeModal.close();
           }
         } else {
-          this.notification.error(NOTIFICATION_TITLE.error, masterResponse?.message || 'Lỗi khi lưu master');
+          this.notification.error(
+            NOTIFICATION_TITLE.error,
+            masterResponse?.message || 'Lỗi khi lưu master'
+          );
         }
       },
       error: (res: any) => {
         console.error('Lỗi khi lưu master:', res);
-        this.notification.error(NOTIFICATION_TITLE.error, res.error?.message || 'Lỗi khi lưu dữ liệu');
-      }
+        this.notification.error(
+          NOTIFICATION_TITLE.error,
+          res.error?.message || 'Lỗi khi lưu dữ liệu'
+        );
+      },
     });
   }
 }
-

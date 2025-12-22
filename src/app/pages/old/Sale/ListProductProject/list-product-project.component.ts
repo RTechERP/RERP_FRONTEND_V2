@@ -110,7 +110,7 @@ export class ListProductProjectComponent implements OnInit, AfterViewInit {
       )
       .subscribe({
         next: (res) => {
-          this.dataTable = res.data;
+          this.dataTable = this.formatData(res.data);
           this.table?.replaceData(this.dataTable);
           this.isLoading = false;
         },
@@ -122,6 +122,33 @@ export class ListProductProjectComponent implements OnInit, AfterViewInit {
           this.isLoading = false;
         },
       });
+  }
+
+  formatData(data: any[]): any[] {
+    if (!data || data.length === 0) return [];
+
+    return data.map(item => {
+      const formattedItem = { ...item };
+
+      // Format all datetime fields
+      Object.keys(formattedItem).forEach(key => {
+        const value = formattedItem[key];
+
+        // Check if value is a datetime string (ISO format)
+        if (typeof value === 'string' && /^\d{4}-\d{2}-\d{2}T/.test(value)) {
+          try {
+            const date = DateTime.fromISO(value);
+            if (date.isValid) {
+              formattedItem[key] = date.toFormat('dd/MM/yyyy HH:mm:ss');
+            }
+          } catch (error) {
+            console.error(`Error formatting date for field ${key}:`, error);
+          }
+        }
+      });
+
+      return formattedItem;
+    });
   }
   getProject() {
     this.listproductprojectService.getProject().subscribe({
@@ -251,8 +278,8 @@ export class ListProductProjectComponent implements OnInit, AfterViewInit {
       index: 'ProductID',
       data: this.dataTable,
       paginationMode:'local',
-      layout: 'fitColumns', 
-      height: '80vh',
+      layout: 'fitColumns',
+      height: '90vh',
       movableColumns: true,
       resizableRows: true,
       reactiveData: true,
@@ -305,7 +332,7 @@ export class ListProductProjectComponent implements OnInit, AfterViewInit {
           field: 'Import',
           formatter: 'money',
           formatterParams: {
-            precision: 2, 
+            precision: 2,
             thousand: ',',
             decimal: '.',
           },
@@ -315,7 +342,7 @@ export class ListProductProjectComponent implements OnInit, AfterViewInit {
           field: 'Export',
           formatter: 'money',
           formatterParams: {
-            precision: 2, 
+            precision: 2,
             thousand: ',',
             decimal: '.',
           },
@@ -325,7 +352,7 @@ export class ListProductProjectComponent implements OnInit, AfterViewInit {
           field: 'QuantityImportExport',
           formatter: 'money',
           formatterParams: {
-            precision: 2, 
+            precision: 2,
             thousand: ',',
             decimal: '.',
           },
@@ -335,7 +362,7 @@ export class ListProductProjectComponent implements OnInit, AfterViewInit {
           field: 'NumberInStoreCuoiKy',
           formatter: 'money',
           formatterParams: {
-            precision: 2, 
+            precision: 2,
             thousand: ',',
             decimal: '.',
           },

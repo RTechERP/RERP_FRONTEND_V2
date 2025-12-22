@@ -47,7 +47,6 @@ import { DEFAULT_TABLE_CONFIG } from '../../../../tabulator-default.config';
 import { NOTIFICATION_TITLE } from '../../../../app.config';
 import { MenuEventService } from '../../../systems/menus/menu-service/menu-event.service';
 import { ChiTietSanPhamSaleComponent } from '../chi-tiet-san-pham-sale/chi-tiet-san-pham-sale.component';
-import { ActivatedRoute } from '@angular/router';
 
 interface ProductGroup {
     ID?: number;
@@ -107,11 +106,8 @@ export class InventoryComponent implements OnInit, AfterViewInit {
         private modal: NzModalService,
         private zone: NgZone,
         private menuEventService: MenuEventService,
-        private route: ActivatedRoute,
-        // @Optional() @Inject('tabData') private tabData: any
-    ) {
-
-    }
+        @Optional() @Inject('tabData') private tabData: any
+    ) { }
 
     id: number = 0;
     listLocation: any[] = [];
@@ -162,14 +158,9 @@ export class InventoryComponent implements OnInit, AfterViewInit {
         Note: '',
     };
     ngOnInit(): void {
-        // if (this.tabData?.warehouseCode) {
-        //     this.warehouseCode = this.tabData.warehouseCode;
-        // }
-
-        this.route.queryParamMap.subscribe(q => {
-            this.warehouseCode = q.get('warehouseCode') || 'HN';
-            // console.log(this.warehouseCode); // 'HN'
-        });
+        if (this.tabData?.warehouseCode) {
+            this.warehouseCode = this.tabData.warehouseCode;
+        }
     }
     ngAfterViewInit(): void {
         this.drawTable_ProductGroup();
@@ -835,6 +826,7 @@ export class InventoryComponent implements OnInit, AfterViewInit {
                     hozAlign: 'left',
                     headerHozAlign: 'center',
                     frozen: true,
+                    width: 100,
                 },
                 {
                     title: 'Tích xanh',
@@ -852,6 +844,7 @@ export class InventoryComponent implements OnInit, AfterViewInit {
                             } style="pointer-events: none; accent-color: #1677ff;" />`;
                     },
                     frozen: true,
+                    width: 70,
                 },
                 {
                     title: 'Mã sản phẩm',
@@ -860,6 +853,7 @@ export class InventoryComponent implements OnInit, AfterViewInit {
                     headerHozAlign: 'center',
                     formatter: 'textarea',
                     frozen: true,
+                    width: 150,
                 },
                 {
                     title: 'Tên sản phẩm',
@@ -868,6 +862,7 @@ export class InventoryComponent implements OnInit, AfterViewInit {
                     headerHozAlign: 'center',
                     formatter: 'textarea',
                     frozen: true,
+                    width: 200,
                 },
                 {
                     title: 'Mã nội bộ',
@@ -947,7 +942,7 @@ export class InventoryComponent implements OnInit, AfterViewInit {
                 },
 
                 {
-                    title: 'Tồn CK(được xử dụng)',
+                    title: 'Tồn CK(được sử dụng)',
                     field: 'TotalQuantityLast',
                     hozAlign: 'right',
                     headerHozAlign: 'center',

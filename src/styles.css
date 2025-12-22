@@ -405,3 +405,34 @@ body .slickgrid-container .grid-canvas .slick-cell{
     height: 100% !important;
 } */
 
+.btn-copy img {
+  width: 16px;
+  height: 16px;
+}
+
+.btn-copy {
+  background-color: #35bbdc !important;
+  color: #fff !important;
+  border: none;
+}
+
+.btn-copy:hover {
+  background-color: #0f88a7;
+  color: #fff;
+}
+.second-modal-window {
+  z-index: 1060 !important;
+}
+
+.modal-backdrop {
+  &.show {
+    opacity: 0.5;
+  }
+
+  + .modal-backdrop {
+    z-index: 1055 !important;
+  }
+}
+.tabulator-row.row-focused {
+  background-color: #67afe2 !important;
+}

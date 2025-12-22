@@ -240,16 +240,16 @@
         </nz-col>
       </nz-row>
 
-      <!-- Row 6: Lý do sửa đổi -->
+      <!-- Row 6: Lý do sửa đổi - chỉ hiển thị khi edit mode và có ID -->
       <ng-container *hasPermission="'N2,N1'">
-        <nz-row [nzGutter]="[24, 16]" *ngIf="isEditMode">
+        <nz-row [nzGutter]="[24, 16]" *ngIf="isEditMode && wfhData && wfhData.ID && wfhData.ID > 0">
           <nz-col [nzSpan]="24">
             <nz-form-item class="pt-1">
               <nz-form-label class="fs-12 d-flex align-items-center">
                 Lý do sửa đổi
                 <span
                   class="text-danger ps-1"
-                  *ngIf="wfhData && wfhData.ID && wfhData.ID > 0"
+                  *ngIf="wfhData && wfhData.ID && wfhData.ID > 0 && currentEmployeeId && wfhData.EmployeeID && currentEmployeeId !== wfhData.EmployeeID"
                   >(*)</span
                 >
               </nz-form-label>

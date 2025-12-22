@@ -62,6 +62,7 @@ export class JobRequirementFormComponent implements OnInit, AfterViewInit {
   cbbEmployee: any;
   jobRequirementDetailData: any[] = [];
   fileList: any[] = [];
+  numberRequest: string = ''; // Lưu NumberRequest khi load dữ liệu
   constructor(
     private fb: FormBuilder,
     private activeModal: NgbActiveModal,
@@ -321,6 +322,9 @@ export class JobRequirementFormComponent implements OnInit, AfterViewInit {
               DepartmentID: jobData.ApprovedTBPID || mainData.ApprovedTBPID 
             });
           }
+          
+          // Lưu NumberRequest để gửi khi save
+          this.numberRequest = jobData.NumberRequest || mainData.NumberRequest || jobData.Code || mainData.Code || '';
           
           if (jobData.Code || mainData.Code || mainData.NumberRequest) {
             this.formGroup.patchValue({ 
@@ -602,7 +606,7 @@ export class JobRequirementFormComponent implements OnInit, AfterViewInit {
     const formValue = this.formGroup.value;
     const payload = {
       ID: this.JobRequirementID || 0,
-      NumberRequest: '',
+      NumberRequest: this.numberRequest || '', // Sử dụng NumberRequest đã lưu khi load dữ liệu
       DateRequest: formValue.DateRequest ? DateTime.fromFormat(formValue.DateRequest, 'yyyy-MM-dd').toISO() : null,
       DeadlineRequest: formValue.DeadlineRequest ? DateTime.fromFormat(formValue.DeadlineRequest, 'yyyy-MM-dd').toISO() : null,
       EmployeeID: formValue.EmployeeID || 0,

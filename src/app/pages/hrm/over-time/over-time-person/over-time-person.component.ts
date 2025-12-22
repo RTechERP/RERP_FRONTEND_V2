@@ -880,7 +880,8 @@ export class OverTimePersonComponent implements OnInit, AfterViewInit {
         this.isLoading = false;
         if (response && response.status === 1 && response.data) {
           const data = response.data;
-          const overTimeFile = data.overTimeFile || data.employeeOvertimeFile || null;
+          // API trả về: { employeeOverTime, overTimeFile }
+          const overTimeFile = data.overTimeFile || null;
           
           if (!overTimeFile) {
             this.notification.warning(NOTIFICATION_TITLE.warning, 'Không có file đính kèm');
@@ -891,7 +892,7 @@ export class OverTimePersonComponent implements OnInit, AfterViewInit {
           const fileName = overTimeFile.FileName || '';
           
           if (!fileName) {
-            this.notification.warning(NOTIFICATION_TITLE.warning, 'Không có tên file để xem');
+            this.notification.warning(NOTIFICATION_TITLE.warning, 'Không có tên file để tải xuống');
             return;
           }
 
@@ -906,12 +907,18 @@ export class OverTimePersonComponent implements OnInit, AfterViewInit {
             }
           }
 
-          // Preview file: mở trong tab mới để trình duyệt tự động preview (PDF, hình ảnh, văn bản)
+          // Ghép serverPath và fileName để tạo URL download
           // subPath là đường dẫn thư mục (không bao gồm tên file), fileName là tên file
-          const previewUrl = `${environment.host}api/home/download-by-key?key=LamThem&subPath=${encodeURIComponent(serverPath)}&fileName=${encodeURIComponent(fileName)}`;
+          const downloadUrl = `${environment.host}api/home/download-by-key?key=LamThem&subPath=${encodeURIComponent(serverPath)}&fileName=${encodeURIComponent(fileName)}`;
           
-          // Mở trong tab mới để preview, trình duyệt sẽ tự động hiển thị nếu có thể (PDF, hình ảnh)
-          window.open(previewUrl, '_blank');
+          // Tạo link download và tự động click để tải file
+          const link = document.createElement('a');
+          link.href = downloadUrl;
+          link.download = fileName; // Đặt tên file khi download
+          link.target = '_blank';
+          document.body.appendChild(link);
+          link.click();
+          document.body.removeChild(link);
         } else {
           this.notification.error(NOTIFICATION_TITLE.error, 'Không thể lấy thông tin file');
         }
@@ -919,7 +926,7 @@ export class OverTimePersonComponent implements OnInit, AfterViewInit {
       error: (error: any) => {
         this.isLoading = false;
         const errorMessage = error?.error?.message || error?.error?.Message || error?.message || 'Lỗi không xác định';
-        this.notification.error(NOTIFICATION_TITLE.error, 'Lỗi khi xem file: ' + errorMessage);
+        this.notification.error(NOTIFICATION_TITLE.error, 'Lỗi khi tải file: ' + errorMessage);
       }
     });
   }

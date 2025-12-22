@@ -1,0 +1,144 @@
+.fs-12 {
+  font-size: 0.75rem;
+}
+
+.reset {
+  all: revert;
+}
+
+.inner-content {
+  padding: 0 !important;
+}
+
+.ant-tabs-tab-btn {
+  font-size: 0.75rem;
+}
+
+.ant-splitter {
+  height: 93vh !important;
+}
+
+.modal-header {
+  border-top-left-radius: 0 !important;
+  border-top-right-radius: 0 !important;
+}
+
+::ng-deep .full-screen-modal {
+  height: auto !important;
+}
+
+.custom-fieldset {
+  border: 1px solid #d9d9d9;
+  border-radius: 4px;
+  padding: 0;
+  margin: 0;
+  height: 100%;
+}
+
+.custom-legend {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: #1890ff;
+  padding: 0 8px;
+  margin: 0 0 0 8px;
+  width: auto;
+  border: none;
+}
+
+.ant-form-item {
+  margin-bottom: 12px;
+}
+
+/* AngularSlickGrid container styling */
+.grid-container-master {
+  font-size: 0.75rem !important;
+  width: 100% !important;
+  height: 100% !important;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.grid-container-detail {
+  font-size: 0.75rem !important;
+  width: 100% !important;
+  height: 90% !important;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+/* Đảm bảo angular-slickgrid component fill 100% */
+.grid-container-master ::ng-deep angular-slickgrid,
+.grid-container-detail ::ng-deep angular-slickgrid {
+  display: block !important;
+  width: 100% !important;
+  height: 90% !important;
+  flex: 1;
+  min-height: 0;
+}
+
+.grid-container-master ::ng-deep .gridPane,
+.grid-container-detail ::ng-deep .gridPane {
+  width: 100% !important;
+  height: 100% !important;
+}
+
+.grid-container-master ::ng-deep .slickgrid-container,
+.grid-container-detail ::ng-deep .slickgrid-container {
+  width: 100% !important;
+  height: 100% !important;
+}
+
+/* Đảm bảo tabset và tab content có chiều cao đầy đủ */
+:host ::ng-deep .ant-tabs {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+:host ::ng-deep .ant-tabs-content-holder {
+  flex: 1;
+  overflow: hidden;
+}
+
+:host ::ng-deep .ant-tabs-tabpane {
+  height: 100%;
+  overflow: hidden;
+}
+
+:host ::ng-deep .ant-splitter {
+  height: 100% !important;
+}
+
+:host ::ng-deep .ant-splitter-panel {
+  overflow: hidden;
+}
+
+::ng-deep .tab-content-container {
+  height: 100% !important;
+  width: 100% !important;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+::ng-deep .ant-tabs-content {
+  height: 100% !important;
+  display: flex;
+  flex-direction: column;
+}
+
+::ng-deep .ant-tabs-content-holder {
+  flex: 1;
+  min-height: 0;
+  overflow: hidden;
+}
+
+::ng-deep .ant-tabs-tabpane {
+  height: 100% !important;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+

@@ -1,0 +1,27 @@
+<div class="modal-body p-3">
+  <form nz-form [formGroup]="formGroup" nzLayout="vertical">
+    <nz-form-item>
+      <nz-form-label [nzRequired]="true">Lý do hủy duyệt</nz-form-label>
+      <nz-form-control 
+        [nzErrorTip]="formGroup.get('reasonCancel')?.hasError('required') ? 'Vui lòng nhập lý do hủy duyệt!' : 
+                      formGroup.get('reasonCancel')?.hasError('maxlength') ? 'Lý do hủy duyệt không được vượt quá 500 ký tự!' : ''">
+        <textarea 
+          nz-input 
+          formControlName="reasonCancel"
+          [nzAutosize]="{ minRows: 4, maxRows: 8 }"
+          placeholder="Vui lòng nhập lý do hủy duyệt..."
+          class="w-100">
+        </textarea>
+      </nz-form-control>
+    </nz-form-item>
+  </form>
+</div>
+<div class="modal-footer p-3 border-top">
+  <button nz-button nzType="default" (click)="onCancel()">
+    <span>Hủy</span>
+  </button>
+  <button nz-button nzType="primary" nzDanger (click)="onConfirm()">
+    <span>Xác nhận</span>
+  </button>
+</div>
+

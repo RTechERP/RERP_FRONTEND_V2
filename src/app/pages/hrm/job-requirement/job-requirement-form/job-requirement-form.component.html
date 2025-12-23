@@ -83,18 +83,33 @@
     <nz-row [nzGutter]="[8, 8]">
       <nz-col [nzXs]="24" [nzSm]="12" [nzMd]="6" [nzLg]="7">
         <nz-form-item class="mb-0">
-          <nz-form-label class="fs-12 p-0" [nzSpan]="24">Trưởng bộ phận duyệt<span class="text-danger ps-1 me-1">
-              (*)</span></nz-form-label>
-          <nz-form-control [nzSpan]="24" [nzErrorTip]="
-              formGroup.get('DepartmentID')?.hasError('required') &&
-              (formGroup.get('DepartmentID')?.dirty ||
-                formGroup.get('DepartmentID')?.touched)
-                ? 'Vui lòng chọn trưởng bộ phận duyệt'
+          <nz-form-label class="fs-12 p-0" [nzSpan]="24">
+            Trưởng bộ phận duyệt<span class="text-danger ps-1 me-1"> (*)</span>
+          </nz-form-label>
+          <nz-form-control
+            [nzSpan]="24"
+            [nzErrorTip]="
+              formGroup.get('ApprovedTBPID')?.hasError('required') &&
+              (formGroup.get('ApprovedTBPID')?.dirty || formGroup.get('ApprovedTBPID')?.touched)
+                ? 'Vui lòng chọn người duyệt'
                 : undefined
-            ">
-            <nz-select formControlName="DepartmentID" [nzPlaceHolder]="'Chọn phòng ban'" style="width: 100%"
-              name="DepartmentID" required>
-              <nz-option *ngFor="let item of dataDepartment" [nzLabel]="item.Name" [nzValue]="item.ID"></nz-option>
+            "
+          >
+            <nz-select
+              formControlName="ApprovedTBPID"
+              nzPlaceHolder="Chọn người duyệt"
+              nzShowSearch
+              nzAllowClear
+              [nzFilterOption]="filterOption"
+              class="fs-12 w-100"
+            >
+              <nz-option-group *ngFor="let group of approverGroups" [nzLabel]="group.department">
+                <nz-option
+                  *ngFor="let approver of group.list"
+                  [nzValue]="approver.ID"
+                  [nzLabel]="approver.Code + ' - ' + approver.FullName"
+                ></nz-option>
+              </nz-option-group>
             </nz-select>
           </nz-form-control>
         </nz-form-item>

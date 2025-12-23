@@ -9,33 +9,32 @@ import { environment } from '../../../../../environments/environment';
 })
 export class JobRequirementService {
   private apiUrl = environment.host + 'api';
-
+ private apiUrlWFH = `${environment.host}api/EmployeeWFH/`;
    constructor(private http: HttpClient) {}
 
    getJobrequirement(
-    DepartmentID: number,
-    EmployeeID: number,
-    Step: number,
-    ApprovedTBPID: number,
-    Request: string,
-    DateStart: Date,
-    DateEnd: Date
-  ): Observable<any> {
-    const asset: any = {
-      DepartmentID: DepartmentID|| 0,
-      EmployeeID: EmployeeID || 0,
-      Step: Step || 0,
-      ApprovedTBPID: ApprovedTBPID || 0,
-      Request: Request?.trim() || '',
-      DateStart: DateStart,
+  DepartmentID: number,
+  EmployeeID: number,
+  ApprovedTBPID: number, 
+  Step: number,         
+  Request: string,
+  DateStart: Date,
+  DateEnd: Date
+): Observable<any> {
+  const asset: any = {
+    DepartmentID: DepartmentID || 0,
+    EmployeeID: EmployeeID || 0,
+    ApprovedTBPID: ApprovedTBPID || 0,
+    Step: Step || 0,                  
+    Request: Request?.trim() || '',
+    DateStart: DateStart,
     DateEnd: DateEnd
-    };
-    return this.http.post<any>(
-      environment.host + `api/jobrequirement`,
-      asset
-    );
-  }
-
+  };
+  return this.http.post<any>(
+    environment.host + `api/jobrequirement`,
+    asset
+  );
+}
   getDepartmentRequired(
     JobRequirementID: number,
     EmployeeID: number,
@@ -79,7 +78,9 @@ export class JobRequirementService {
     getJobrequirementbyID(id: number) {
     return this.http.get<any>(environment.host + `api/jobrequirement/details/${id}`);
   }
-
+    getApprovers() {
+    return this.http.get<any>(this.apiUrlWFH + `get-employee-approver`);
+  }
       saveData(data: any): Observable<any> {
     return this.http.post<any>(
       environment.host + `api/recommendsupplier/save-data-department-required`,

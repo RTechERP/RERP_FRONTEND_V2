@@ -25,3 +25,11 @@
 :host ::ng-deep .card-body .ant-tabs-tabpane{
   height: 100% !important;
 }
+
+/* SlickGrid font size */
+:host {
+  font-size: 12px;
+  font-size: 0.75rem;
+}
+
+

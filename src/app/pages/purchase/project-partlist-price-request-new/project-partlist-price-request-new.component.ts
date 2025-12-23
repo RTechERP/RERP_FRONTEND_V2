@@ -24,7 +24,7 @@ import { ProjectPartlistPriceRequestService } from '../../old/project-partlist-p
 import { ProjectPartlistPriceRequestFormComponent } from '../../old/project-partlist-price-request/project-partlist-price-request-form/project-partlist-price-request-form.component';
 import { ImportExcelProjectPartlistPriceRequestComponent } from '../../old/project-partlist-price-request/import-excel-project-partlist-price-request/import-excel-project-partlist-price-request.component';
 import { AngularSlickgridModule, AngularGridInstance, Column, GridOption, Filters, Formatters, Editors, OnClickEventArgs, OnCellChangeEventArgs, OnSelectedRowsChangedEventArgs, Aggregators, GroupTotalFormatters, SortComparers } from 'angular-slickgrid';
-import { SortDirectionNumber } from '@slickgrid-universal/common';
+import { MultipleSelectOption, SortDirectionNumber } from '@slickgrid-universal/common';
 import { FormsModule } from '@angular/forms';
 import { CommonModule } from '@angular/common';
 import { NzCardModule } from 'ng-zorro-antd/card';
@@ -782,7 +782,7 @@ export class ProjectPartlistPriceRequestNewComponent implements OnInit, OnDestro
               let retryCount = 0;
               const maxRetries = 10;
               const retryInterval = 200;
-              
+
               const retrySetData = () => {
                 retryCount++;
                 const grid = this.angularGrids.get(projectTypeID);
@@ -798,7 +798,7 @@ export class ProjectPartlistPriceRequestNewComponent implements OnInit, OnDestro
                   this.setGridData(projectTypeID, formattedData);
                 }
               };
-              
+
               setTimeout(retrySetData, retryInterval);
             }
             } catch (e) {
@@ -842,6 +842,11 @@ export class ProjectPartlistPriceRequestNewComponent implements OnInit, OnDestro
                 // Tắt spinner SAU KHI tables đã render
                 finishLoading();
                 console.log(`[Request ${currentRequestId}] All ${totalTypes} types loaded and rendered successfully.`);
+
+                // Apply distinct filters after data is loaded
+                setTimeout(() => {
+                  this.applyDistinctFilters();
+                }, 100);
 
                 // Force change detection
                 this.cdr.detectChanges();
@@ -918,6 +923,12 @@ export class ProjectPartlistPriceRequestNewComponent implements OnInit, OnDestro
             console.log(`[Request ${currentRequestId}] [FINAL ERROR] All types processed. Count: ${loadedCount}, Total: ${totalTypes}`);
             finishLoading();
             console.log(`[Request ${currentRequestId}] All ${totalTypes} types processed (including errors).`);
+            
+            // Apply distinct filters after data is loaded (even if there were errors)
+            setTimeout(() => {
+              this.applyDistinctFilters();
+            }, 100);
+            
             this.notification.warning(
               NOTIFICATION_TITLE.warning,
               'Một số dữ liệu không thể tải. Vui lòng thử lại sau.'
@@ -1316,7 +1327,7 @@ export class ProjectPartlistPriceRequestNewComponent implements OnInit, OnDestro
         sortable: true,
         filterable: true,
         filter: { model: Filters['compoundInputText'] },
-        
+
         formatter: (_row, _cell, value, _column, dataContext) => {
           if (!value) return '';
           return `
@@ -1342,7 +1353,7 @@ export class ProjectPartlistPriceRequestNewComponent implements OnInit, OnDestro
         sortable: true,
         filterable: true,
         filter: { model: Filters['compoundInputText'] },
-        
+
         formatter: (_row, _cell, value, _column, dataContext) => {
           if (!value) return '';
           return `
@@ -1368,7 +1379,7 @@ export class ProjectPartlistPriceRequestNewComponent implements OnInit, OnDestro
         sortable: true,
         filterable: true,
         filter: { model: Filters['compoundInputText'] },
-        
+
         formatter: (_row, _cell, value, _column, dataContext) => {
           if (!value) return '';
           return `
@@ -1394,7 +1405,7 @@ export class ProjectPartlistPriceRequestNewComponent implements OnInit, OnDestro
         sortable: true,
         filterable: true,
         filter: { model: Filters['compoundInputText'] },
-        
+
         formatter: (_row, _cell, value, _column, dataContext) => {
           if (!value) return '';
           return `
@@ -1426,7 +1437,7 @@ export class ProjectPartlistPriceRequestNewComponent implements OnInit, OnDestro
         filter: { model: Filters['compoundInputNumber'] },
         groupTotalsFormatter: (totals: any, columnDef: any) => this.sumTotalsFormatterWithFormat(totals, columnDef),
         params: { groupFormatterPrefix: 'Tổng: ' },
-        
+
         formatter: (_row, _cell, value, _column, dataContext) => {
           if (!value) return '';
           return `
@@ -1452,7 +1463,7 @@ export class ProjectPartlistPriceRequestNewComponent implements OnInit, OnDestro
         sortable: true,
         filterable: true,
         filter: { model: Filters['compoundInputText'] },
-        
+
         formatter: (_row, _cell, value, _column, dataContext) => {
           if (!value) return '';
           return `
@@ -1478,7 +1489,7 @@ export class ProjectPartlistPriceRequestNewComponent implements OnInit, OnDestro
         sortable: true,
         filterable: true,
         filter: { model: Filters['compoundInputText'] },
-        
+
         formatter: (_row, _cell, value, _column, dataContext) => {
           if (!value) return '';
           return `
@@ -1504,7 +1515,7 @@ export class ProjectPartlistPriceRequestNewComponent implements OnInit, OnDestro
         sortable: true,
         filterable: true,
         filter: { model: Filters['compoundInputText'] },
-        
+
         formatter: (_row, _cell, value, _column, dataContext) => {
           if (!value) return '';
           return `
@@ -1530,7 +1541,7 @@ export class ProjectPartlistPriceRequestNewComponent implements OnInit, OnDestro
         sortable: true,
         filterable: true,
         filter: { model: Filters['compoundInputText'] },
-        
+
         formatter: (_row, _cell, value, _column, dataContext) => {
           if (!value) return '';
           return `
@@ -1556,7 +1567,7 @@ export class ProjectPartlistPriceRequestNewComponent implements OnInit, OnDestro
         sortable: true,
         filterable: true,
         filter: { model: Filters['compoundInputText'] },
-        
+
         formatter: (_row, _cell, value, _column, dataContext) => {
           if (!value) return '';
           return `
@@ -1764,11 +1775,18 @@ export class ProjectPartlistPriceRequestNewComponent implements OnInit, OnDestro
           const supplier = this.dtSupplierSale.find((s: any) => s.ID === value);
           return supplier ? supplier.NameNCC : '';
         },
-        filter: { model: Filters['compoundInputNumber'] },
-        customTooltip: {
-          useRegularTooltip: true,
-          // useRegularTooltipFromCellTextOnly: true,
-        },
+         filter: {
+                  collection: [],
+                  model: Filters['multipleSelect'],
+                  customStructure: {
+                    value: 'value',
+                    label: 'label',
+                  },
+                  options: {
+                    offsetLeft: 14,
+                    width: 100,
+                  } as Partial<MultipleSelectOption>,
+                },
       },
       {
         id: 'TotalDayLeadTime',
@@ -1810,7 +1828,7 @@ export class ProjectPartlistPriceRequestNewComponent implements OnInit, OnDestro
           model: Editors['longText'],
         },
         filter: { model: Filters['compoundInputText'] },
-        
+
         formatter: (_row, _cell, value, _column, dataContext) => {
           if (!value) return '';
           return `
@@ -1836,7 +1854,7 @@ export class ProjectPartlistPriceRequestNewComponent implements OnInit, OnDestro
         sortable: true,
         filterable: true,
         filter: { model: Filters['compoundInputText'] },
-        
+
         formatter: (_row, _cell, value, _column, dataContext) => {
           if (!value) return '';
           return `
@@ -1862,7 +1880,7 @@ export class ProjectPartlistPriceRequestNewComponent implements OnInit, OnDestro
         sortable: true,
         filterable: true,
         filter: { model: Filters['compoundInputText'] },
-        
+
         formatter: (_row, _cell, value, _column, dataContext) => {
           if (!value) return '';
           return `
@@ -1888,7 +1906,7 @@ export class ProjectPartlistPriceRequestNewComponent implements OnInit, OnDestro
         sortable: true,
         filterable: true,
         filter: { model: Filters['compoundInputText'] },
-        
+
         formatter: (_row, _cell, value, _column, dataContext) => {
           if (!value) return '';
           return `
@@ -1982,7 +2000,7 @@ export class ProjectPartlistPriceRequestNewComponent implements OnInit, OnDestro
         sortable: true,
         filterable: true,
         filter: { model: Filters['compoundInputText'] },
-        
+
         formatter: (_row, _cell, value, _column, dataContext) => {
           if (!value) return '';
           return `
@@ -2090,7 +2108,7 @@ export class ProjectPartlistPriceRequestNewComponent implements OnInit, OnDestro
     if (!this.allDataByType.has(typeId)) {
       this.allDataByType.set(typeId, []);
     }
-    
+
     // Set data vào grid (kể cả khi data rỗng) - đợi một chút để đảm bảo grid đã sẵn sàng
     setTimeout(() => {
       const data = this.allDataByType.get(typeId) || [];
@@ -2289,7 +2307,7 @@ export class ProjectPartlistPriceRequestNewComponent implements OnInit, OnDestro
 
     // Lưu data vào Map (kể cả khi rỗng)
     this.datasetsMap.set(typeId, mappedData);
-    
+
     const angularGrid = this.angularGrids.get(typeId);
     if (angularGrid) {
       // Đảm bảo grid đã được khởi tạo hoàn toàn trước khi set data
@@ -4011,7 +4029,7 @@ export class ProjectPartlistPriceRequestNewComponent implements OnInit, OnDestro
     const totalFooterRowData = columns.map((col: Column) => {
       // Kiểm tra xem cột có cần tính tổng không
       if (!this.shouldCalculateSum(col)) return '';
-      
+
       const values = selectedData.map((r: any) => Number(r[col.field]) || 0);
       const result = values.reduce((a: number, b: number) => a + b, 0);
 
@@ -4298,7 +4316,7 @@ export class ProjectPartlistPriceRequestNewComponent implements OnInit, OnDestro
       const totalFooterRowData = columns.map((col: Column) => {
         // Kiểm tra xem cột có cần tính tổng không
         if (!this.shouldCalculateSum(col)) return '';
-        
+
         const values = rawData.map((r: any) => Number(r[col.field]) || 0);
         const result = values.reduce((a: number, b: number) => a + b, 0);
 
@@ -4606,7 +4624,7 @@ export class ProjectPartlistPriceRequestNewComponent implements OnInit, OnDestro
           const footerRowData = columns.map((col: Column) => {
             // Kiểm tra xem cột có cần tính tổng không
             if (!this.shouldCalculateSum(col)) return '';
-            
+
             const values = groupRows.map((r: any) => Number(r[col.field]) || 0);
             const result = values.reduce((a: number, b: number) => a + b, 0);
 
@@ -4645,7 +4663,7 @@ export class ProjectPartlistPriceRequestNewComponent implements OnInit, OnDestro
         const totalFooterRowData = columns.map((col: Column) => {
           // Kiểm tra xem cột có cần tính tổng không
           if (!this.shouldCalculateSum(col)) return '';
-          
+
           const values = rawData.map((r: any) => Number(r[col.field]) || 0);
           const result = values.reduce((a: number, b: number) => a + b, 0);
 
@@ -4761,7 +4779,193 @@ export class ProjectPartlistPriceRequestNewComponent implements OnInit, OnDestro
     document.body.removeChild(link);
     window.URL.revokeObjectURL(link.href);
   }
+private buildDistinctCollection(
+  data: any[],
+  field: string
+): Array<{ value: any; label: string }> {
+  const map = new Map<any, string>();
 
+  data.forEach(item => {
+    const val = item[field];
+    if (val === null || val === undefined || val === '') return;
+
+    if (!map.has(val)) {
+      map.set(val, String(val));
+    }
+  });
+
+  return Array.from(map.entries()).map(([value, label]) => ({
+    value,
+    label,
+  }));
+}
+
+  // Apply distinct filters for multiple columns after data is loaded
+  private applyDistinctFilters(): void {
+    // Iterate through all project types (tabs)
+    this.projectTypes.forEach(projectType => {
+      const typeId = projectType.ProjectTypeID;
+      const angularGrid = this.angularGrids.get(typeId);
+      if (!angularGrid || !angularGrid.slickGrid) return;
+
+      const dataView = angularGrid.dataView;
+      if (!dataView) return;
+
+      const data = dataView.getItems();
+      if (!data || data.length === 0) return;
+
+      const columns = angularGrid.slickGrid.getColumns();
+      if (!columns) return;
+
+      // Define columns that need distinct filters (based on this component's columns)
+      const textColumns = [
+        'StatusRequestText',  // Trạng thái
+        'ProductCode',        // Mã sản phẩm
+        'ProductName',        // Tên sản phẩm
+        'FullName',           // Người yêu cầu
+        'FullNameSale',       // NV bán (nếu có)
+      ];
+
+      // Apply distinct filter for text columns
+      textColumns.forEach(fieldName => {
+        const column = columns.find((col: any) => col.field === fieldName);
+        if (column && column.filter) {
+          const collection = this.buildDistinctCollection(data, fieldName);
+          if (collection.length > 0) {
+            column.filter.model = Filters['multipleSelect'];
+            column.filter.collection = collection;
+            column.filter.operator = 'IN';
+            column.filter.customStructure = {
+              value: 'value',
+              label: 'label',
+            };
+            if (!column.filter.options) {
+              column.filter.options = {};
+            }
+            column.filter.options.offsetLeft = 14;
+            column.filter.options.width = 150;
+          }
+        }
+      });
+
+      // Apply distinct filter for CurrencyID (using existing collection from editor)
+      const currencyColumn = columns.find((col: any) => col.field === 'CurrencyID');
+      if (currencyColumn && currencyColumn.editor && currencyColumn.editor.collection) {
+        if (!currencyColumn.filter) {
+          currencyColumn.filter = {};
+        }
+        const currencyCollection = this.getCurrencyCollection();
+        // Filter out empty entries but keep entries with valid value
+        const filteredCollection = currencyCollection.filter(x => x.value > 0);
+        currencyColumn.filter.model = Filters['multipleSelect'];
+        currencyColumn.filter.collection = filteredCollection;
+        currencyColumn.filter.customStructure = {
+          value: 'value',
+          label: 'label',
+        };
+        if (!currencyColumn.filter.options) {
+          currencyColumn.filter.options = {};
+        }
+        currencyColumn.filter.options.offsetLeft = 14;
+        currencyColumn.filter.options.width = 100;
+      }
+
+      // Apply distinct filter for SupplierSaleID (using existing collection from editor)
+      const supplierColumn = columns.find((col: any) => col.field === 'SupplierSaleID');
+      if (supplierColumn && supplierColumn.editor && supplierColumn.editor.collection) {
+        if (!supplierColumn.filter) {
+          supplierColumn.filter = {};
+        }
+        const supplierCollection = this.getSupplierCollection();
+        // Filter out empty entries but keep entries with valid value
+        const filteredCollection = supplierCollection.filter(x => x.value > 0);
+        supplierColumn.filter.model = Filters['multipleSelect'];
+        supplierColumn.filter.collection = filteredCollection;
+        supplierColumn.filter.customStructure = {
+          value: 'value',
+          label: 'label',
+        };
+        if (!supplierColumn.filter.options) {
+          supplierColumn.filter.options = {};
+        }
+        supplierColumn.filter.options.offsetLeft = 14;
+        supplierColumn.filter.options.width = 200;
+      }
+
+      // Update column definitions in the map
+      const columnDefs = this.columnDefinitionsMap.get(typeId);
+      if (columnDefs) {
+        textColumns.forEach(fieldName => {
+          const colDef = columnDefs.find((col: any) => col.field === fieldName);
+          if (colDef && colDef.filter) {
+            const collection = this.buildDistinctCollection(data, fieldName);
+            if (collection.length > 0) {
+              colDef.filter.model = Filters['multipleSelect'];
+              colDef.filter.collection = collection;
+              colDef.filter.operator = 'IN';
+              colDef.filter.customStructure = {
+                value: 'value',
+                label: 'label',
+              };
+              if (!colDef.filter.options) {
+                colDef.filter.options = {};
+              }
+              colDef.filter.options.offsetLeft = 14;
+              colDef.filter.options.width = 150;
+            }
+          }
+        });
+
+        // Update CurrencyID filter in columnDefs
+        const currencyColDef = columnDefs.find((col: any) => col.field === 'CurrencyID');
+        if (currencyColDef && currencyColDef.editor && currencyColDef.editor.collection) {
+          if (!currencyColDef.filter) {
+            currencyColDef.filter = {};
+          }
+          const currencyCollection = this.getCurrencyCollection();
+          const filteredCollection = currencyCollection.filter(x => x.value > 0);
+          currencyColDef.filter.model = Filters['multipleSelect'];
+          currencyColDef.filter.collection = filteredCollection;
+          currencyColDef.filter.customStructure = {
+            value: 'value',
+            label: 'label',
+          };
+          if (!currencyColDef.filter.options) {
+            currencyColDef.filter.options = {};
+          }
+          currencyColDef.filter.options.offsetLeft = 14;
+          currencyColDef.filter.options.width = 100;
+        }
+
+        // Update SupplierSaleID filter in columnDefs
+        const supplierColDef = columnDefs.find((col: any) => col.field === 'SupplierSaleID');
+        if (supplierColDef && supplierColDef.editor && supplierColDef.editor.collection) {
+          if (!supplierColDef.filter) {
+            supplierColDef.filter = {};
+          }
+          const supplierCollection = this.getSupplierCollection();
+          const filteredCollection = supplierCollection.filter(x => x.value > 0);
+          supplierColDef.filter.model = Filters['multipleSelect'];
+          supplierColDef.filter.collection = filteredCollection;
+          supplierColDef.filter.customStructure = {
+            value: 'value',
+            label: 'label',
+          };
+          if (!supplierColDef.filter.options) {
+            supplierColDef.filter.options = {};
+          }
+          supplierColDef.filter.options.offsetLeft = 14;
+          supplierColDef.filter.options.width = 200;
+        }
+      }
+
+      // Force refresh columns
+      const updatedColumns = angularGrid.slickGrid.getColumns();
+      angularGrid.slickGrid.setColumns(updatedColumns);
+      angularGrid.slickGrid.invalidate();
+      angularGrid.slickGrid.render();
+    });
+  }
   DownloadFile() {
     const selectedRows = this.getSelectedGridData(this.activeTabId);
     if (selectedRows.length <= 0) {
@@ -4967,7 +5171,7 @@ export class ProjectPartlistPriceRequestNewComponent implements OnInit, OnDestro
     if (column.groupTotalsFormatter) {
       return true;
     }
-    
+
     // Các cột số cần tính tổng dựa trên field name
     const sumFields = [
       'Quantity',
@@ -4977,7 +5181,7 @@ export class ProjectPartlistPriceRequestNewComponent implements OnInit, OnDestro
       'TotalImportPrice',
       'TotalDayLeadTime'
     ];
-    
+
     return sumFields.includes(column.field || '');
   }
 

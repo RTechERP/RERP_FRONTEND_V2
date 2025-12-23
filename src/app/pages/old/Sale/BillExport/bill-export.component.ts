@@ -187,15 +187,12 @@ export class BillExportComponent implements OnInit, AfterViewInit {
     @Optional() @Inject('tabData') private tabData: any
   ) {}
   ngOnInit(): void {
-    // Đọc wareHouseCode từ query params
-    // Đọc wareHouseCode từ query params
-    this.route.queryParams.subscribe((params) => {
-      this.warehouseCode = params['warehouseCode'] || '';
-    });
     if (this.tabData?.warehouseCode) {
       this.warehouseCode = this.tabData.warehouseCode;
       // Cập nhật searchParams với giá trị từ tabData
       this.searchParams.warehousecode = this.warehouseCode;
+      console.log('warehouseCode:', this.warehouseCode);
+
     }
     this.getProductGroup();
   }
@@ -374,6 +371,8 @@ export class BillExportComponent implements OnInit, AfterViewInit {
       this.id = 0;
       return;
     }
+    console.log('warehouseCode:',this.warehouseCode);
+
     const modalRef = this.modalService.open(BillExportDetailComponent, {
       centered: true,
       // windowClass: 'full-screen-modal',

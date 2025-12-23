@@ -1088,20 +1088,12 @@ export class RequestInvoiceDetailComponent implements OnInit {
               field: 'RequestDate',
               sorter: 'string',
               width: 150,
-              formatter: (cell) => {
-                const date = cell.getValue();
-                return date ? new Date(date).toLocaleDateString('vi-VN') : '';
-              },
             },
             {
               title: 'Ngày hàng về',
               field: 'DateRequestImport',
               sorter: 'string',
               width: 150,
-              formatter: (cell) => {
-                const date = cell.getValue();
-                return date ? new Date(date).toLocaleDateString('vi-VN') : '';
-              },
             },
             {
               title: 'Nhà cung cấp',
@@ -1121,10 +1113,6 @@ export class RequestInvoiceDetailComponent implements OnInit {
               field: 'ExpectedDate',
               sorter: 'string',
               width: 150,
-              formatter: (cell) => {
-                const date = cell.getValue();
-                return date ? new Date(date).toLocaleDateString('vi-VN') : '';
-              },
             },
             {
               title: 'PNK',

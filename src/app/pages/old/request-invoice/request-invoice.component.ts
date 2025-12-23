@@ -770,22 +770,14 @@ export class RequestInvoiceComponent implements OnInit, AfterViewInit {
             {
               title: 'Ngày đặt hàng',
               field: 'RequestDate',
-              sorter: 'date',
+              sorter: 'string',
               width: 150,
-              formatter: (cell) => {
-                const date = cell.getValue();
-                return date ? new Date(date).toLocaleDateString('vi-VN') : '';
-              },
             },
             {
               title: 'Ngày hàng về',
               field: 'DateRequestImport',
-              sorter: 'date',
+              sorter: 'string',
               width: 150,
-              formatter: (cell) => {
-                const date = cell.getValue();
-                return date ? new Date(date).toLocaleDateString('vi-VN') : '';
-              },
             },
             {
               title: 'Nhà cung cấp',
@@ -803,12 +795,8 @@ export class RequestInvoiceComponent implements OnInit, AfterViewInit {
             {
               title: 'Ngày hàng về dự kiến',
               field: 'ExpectedDate',
-              sorter: 'date',
+              sorter: 'string',
               width: 150,
-              formatter: (cell) => {
-                const date = cell.getValue();
-                return date ? new Date(date).toLocaleDateString('vi-VN') : '';
-              },
             },
             {
               title: 'PNK',

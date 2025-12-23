@@ -1,7 +1,7 @@
-import { Component, OnInit, AfterViewInit, Input, ViewChild, ElementRef, inject } from '@angular/core';
+import { Component, OnInit, AfterViewInit, Input, ViewChild, ElementRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { NgbActiveModal } from '@ng-bootstrap/ng-bootstrap';
+import { NgbActiveModal, NgbModal } from '@ng-bootstrap/ng-bootstrap';
 import { NzInputModule } from 'ng-zorro-antd/input';
 import { NzInputNumberModule } from 'ng-zorro-antd/input-number';
 import { NzButtonModule } from 'ng-zorro-antd/button';
@@ -19,6 +19,8 @@ import {
   CellComponent,
 } from 'tabulator-tables';
 import { DEFAULT_TABLE_CONFIG } from '../../../../../tabulator-default.config';
+import { SupplierSaleDetailComponent } from '../../../../purchase/supplier-sale/supplier-sale-detail/supplier-sale-detail.component';
+import { CustomerDetailComponent } from '../../../../crm/customers/customer-detail/customer-detail.component';
 
 @Component({
   selector: 'app-accounting-contract-detail',
@@ -39,6 +41,7 @@ import { DEFAULT_TABLE_CONFIG } from '../../../../../tabulator-default.config';
 })
 export class AccountingContractDetailComponent implements OnInit, AfterViewInit {
   @Input() editId: number = 0;
+  @Input() isReceivedContractMode: boolean = false;
   @ViewChild('tb_ContractFile', { static: false })
   tb_ContractFileElement!: ElementRef;
   @ViewChild('fileInput', { static: false })
@@ -46,18 +49,12 @@ export class AccountingContractDetailComponent implements OnInit, AfterViewInit 
 
   private tb_ContractFile!: Tabulator;
 
-  public activeModal = inject(NgbActiveModal);
-  private accountingContractService = inject(AccountingContractService);
-  private notification = inject(NzNotificationService);
-  private modal = inject(NzModalService);
-  private message = inject(NzMessageService);
-
   // Form data
   dateInput: Date = new Date();
   dateReceived: Date | null = null;
   quantityDocument: number = 0;
-  company: string = '';
-  contractGroup: number | null = null;
+  company: number = 0;
+  contractGroup: number = 0;
   accountingContractTypeId: number | null = null;
   contractNumber: string = '';
   contractValue: number = 0;
@@ -83,20 +80,40 @@ export class AccountingContractDetailComponent implements OnInit, AfterViewInit 
   deletedFileIds: number[] = [];
   selectedContractFile: any = null;
 
+  // Original data for comparison
+  originalContract: any = null;
+  originalNote: string = '';
+
   // UI State
   showDateIsApprovedGroupRequired: boolean = false;
   showUploadFile: boolean = false;
+  isCustomerRequired: boolean = false;
+  isSupplierRequired: boolean = false;
+  isCustomerDisabled: boolean = false;
+  isSupplierDisabled: boolean = false;
 
   // Errors
   errors: any = {
     dateReceived: '',
+    company: '',
+    contractGroup: '',
     accountingContractTypeId: '',
     contractNumber: '',
     customerId: '',
     supplierId: '',
     contractContent: '',
     contentPayment: '',
+    note: '',
   };
+
+  constructor(
+    public activeModal: NgbActiveModal,
+    private accountingContractService: AccountingContractService,
+    private notification: NzNotificationService,
+    private modal: NzModalService,
+    private message: NzMessageService,
+    private modalService: NgbModal
+  ) {}
 
   ngOnInit(): void {
     this.loadData();
@@ -135,7 +152,7 @@ export class AccountingContractDetailComponent implements OnInit, AfterViewInit 
           this.dateInput = data.DateInput ? new Date(data.DateInput) : new Date();
           this.dateReceived = data.DateReceived ? new Date(data.DateReceived) : null;
           this.quantityDocument = data.QuantityDocument || 0;
-          this.company = data.Company?.toString() || '';
+          this.company = data.Company || 0;
           this.contractGroup = data.ContractGroup || null;
           this.accountingContractTypeId = data.AccountingContractTypeID || null;
           this.contractNumber = data.ContractNumber || '';
@@ -151,6 +168,30 @@ export class AccountingContractDetailComponent implements OnInit, AfterViewInit 
           this.contractContent = data.ContractContent || '';
           this.contentPayment = data.ContentPayment || '';
           this.note = data.Note || '';
+
+          // Lưu giá trị ban đầu để so sánh khi save
+          this.originalContract = {
+            DateInput: this.dateInput,
+            Company: this.company,
+            ContractGroup: this.contractGroup,
+            AccountingContractTypeID: this.accountingContractTypeId,
+            CustomerID: this.customerId,
+            SupplierSaleID: this.supplierId,
+            ContractNumber: this.contractNumber,
+            ContractValue: this.contractValue,
+            DateExpired: this.dateExpired,
+            DateIsApprovedGroup: this.dateIsApprovedGroup,
+            EmployeeID: this.employeeId,
+            ContractContent: this.contractContent,
+            ContentPayment: this.contentPayment,
+            ParentID: this.contractId,
+            DateContract: this.dateContract,
+            Unit: this.unit,
+          };
+          this.originalNote = this.note;
+
+          // Cập nhật trạng thái disable/enable và required dựa trên contractGroup
+          this.onContractGroupChange();
 
           // Load files sau khi load data
           this.loadContractFiles();
@@ -296,8 +337,29 @@ export class AccountingContractDetailComponent implements OnInit, AfterViewInit 
   }
 
   onContractGroupChange(): void {
-    // Update UI based on contract group
-    // TODO: Implement logic
+    if (this.contractGroup === 1) {
+      // Hợp đồng mua vào
+      this.isCustomerRequired = false;
+      this.isSupplierRequired = true;
+      this.isCustomerDisabled = true;
+      this.isSupplierDisabled = false;
+      this.errors.customerId = '';
+    } else if (this.contractGroup === 2) {
+      // Hợp đồng bán ra
+      this.isCustomerRequired = true;
+      this.isSupplierRequired = false;
+      this.isCustomerDisabled = false;
+      this.isSupplierDisabled = true;
+      this.errors.supplierId = '';
+    } else {
+      // Chưa chọn hoặc giá trị khác
+      this.isCustomerRequired = false;
+      this.isSupplierRequired = false;
+      this.isCustomerDisabled = false;
+      this.isSupplierDisabled = false;
+      this.errors.customerId = '';
+      this.errors.supplierId = '';
+    }
   }
 
   onAddType(): void {
@@ -305,11 +367,43 @@ export class AccountingContractDetailComponent implements OnInit, AfterViewInit 
   }
 
   onAddCustomer(): void {
-    this.notification.info('Thông báo', 'Chức năng thêm khách hàng đang được phát triển');
+    const modalRef = this.modalService.open(CustomerDetailComponent, {
+      centered: true,
+      size: 'xl',
+      backdrop: 'static',
+    });
+
+    modalRef.componentInstance.warehouseId = 1;
+
+    modalRef.result.then(
+      (result) => {
+        if (result && result.success) {
+          this.loadCustomers();
+        }
+      },
+      (reason) => {
+        console.log('Modal closed:', reason);
+      }
+    );
   }
 
   onAddSupplier(): void {
-    this.notification.info('Thông báo', 'Chức năng thêm nhà cung cấp đang được phát triển');
+    const modalRef = this.modalService.open(SupplierSaleDetailComponent, {
+      centered: true,
+      size: 'xl',
+      backdrop: 'static',
+    });
+
+    modalRef.result.then(
+      (result) => {
+        if (result && result.success) {
+          this.loadSuppliers();
+        }
+      },
+      (reason) => {
+        console.log('Modal closed:', reason);
+      }
+    );
   }
 
   onChooseFile(): void {
@@ -580,32 +674,167 @@ export class AccountingContractDetailComponent implements OnInit, AfterViewInit 
         formData.append('files', fileObj.file);
       });
 
-      this.accountingContractService.uploadFiles(formData, accountingContractId).subscribe({
-        next: () => {
-          console.log('Upload files thành công');
+      // key: để backend nhận biết loại tài liệu
+      // formData.append('key', 'PathAccounting');
+      formData.append('key', 'TuanBeoTest');
+
+      // Lấy thông tin hợp đồng để tạo subPath
+      this.accountingContractService.getAccountingContractDetail(accountingContractId).subscribe({
+        next: (data: any) => {
+          if (data.status === 1 && data.data) {
+            const accountingContract = data.data;
+
+            const createdDate = new Date(accountingContract.DateInput || accountingContract.CreatedDate || new Date());
+            const year = createdDate.getFullYear().toString();
+            const month = ('0' + (createdDate.getMonth() + 1)).slice(-2);
+            const contractNumber = accountingContract.ContractNumber || '';
+
+            const sanitize = (s: string) =>
+              s.replace(/[<>:"/\\|?*\u0000-\u001F]/g, '').trim();
+
+            const subPath = [
+              sanitize(year),
+              `T${sanitize(month)}`,
+              sanitize(contractNumber)
+            ].join('/');
+
+            formData.append('subPath', subPath);
+
+            // Gọi API upload sau khi đã có subPath
+            this.accountingContractService.uploadFiles(formData, accountingContractId).subscribe({
+              next: () => {
+                console.log('Upload files thành công');
+              },
+              error: (error) => {
+                this.notification.error('Thông báo', 'Lỗi upload files: ' + (error?.error?.message || error?.message || error));
+              },
+            });
+          } else {
+            // Nếu không lấy được thông tin hợp đồng, vẫn upload nhưng không có subPath
+            this.accountingContractService.uploadFiles(formData, accountingContractId).subscribe({
+              next: () => {
+                console.log('Upload files thành công');
+              },
+              error: (error) => {
+                this.notification.error('Thông báo', 'Lỗi upload files: ' + (error?.error?.message || error?.message || error));
+              },
+            });
+          }
         },
         error: (error) => {
-          this.notification.error('Thông báo', 'Lỗi upload files: ' + error);
-        },
+          // Nếu lỗi khi lấy thông tin hợp đồng, vẫn upload nhưng không có subPath
+          this.accountingContractService.uploadFiles(formData, accountingContractId).subscribe({
+            next: () => {
+              console.log('Upload files thành công');
+            },
+            error: (uploadError) => {
+              this.notification.error('Thông báo', 'Lỗi upload files: ' + (uploadError?.error?.message || uploadError?.message || uploadError));
+            },
+          });
+        }
       });
     }
 
+    // Xử lý xóa files
     if (hasDeletedFiles) {
       this.accountingContractService.deleteFiles(this.deletedFileIds).subscribe({
         next: () => {
           this.deletedFileIds = [];
         },
         error: (error) => {
-          this.notification.error('Lỗi xóa files:', error);
+          this.notification.error('Lỗi xóa files:', error?.error?.message || error?.message || error);
         },
       });
     }
+  }
+
+  private formatLocalDate(date: Date | null): string | null {
+    if (!date) {
+      return null;
+    }
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+    const hours = String(date.getHours()).padStart(2, '0');
+    const minutes = String(date.getMinutes()).padStart(2, '0');
+    const seconds = String(date.getSeconds()).padStart(2, '0');
+    return `${year}-${month}-${day}T${hours}:${minutes}:${seconds}`;
+  }
+
+  private toString(value: any): string {
+    if (value === null || value === undefined) {
+      return '';
+    }
+    if (value instanceof Date) {
+      // Kiểm tra Date hợp lệ
+      if (isNaN(value.getTime())) {
+        return '';
+      }
+      // Chỉ so sánh ngày, không so sánh giờ phút giây
+      const year = value.getFullYear();
+      const month = String(value.getMonth() + 1).padStart(2, '0');
+      const day = String(value.getDate()).padStart(2, '0');
+      return `${year}-${month}-${day}`;
+    }
+    // Chuyển số về string để so sánh nhất quán
+    if (typeof value === 'number') {
+      return String(value);
+    }
+    return String(value).trim();
+  }
+
+  private deepEquals(obj: any, another: any): { equal: boolean; property: string[] } {
+    const propertyNames: string[] = [];
+
+    if (!obj || !another) {
+      return { equal: propertyNames.length === 0, property: propertyNames };
+    }
+
+    // Lấy các property từ object đầu tiên
+    const objKeys = Object.keys(obj);
+    objKeys.forEach((property) => {
+      const objValue = this.toString(obj[property]);
+      const anotherValue = this.toString(another[property]);
+
+      if (objValue !== anotherValue) {
+        propertyNames.push(property);
+      }
+    });
+
+    return {
+      equal: propertyNames.length === 0,
+      property: propertyNames,
+    };
+  }
+
+  private getFieldLabel(fieldName: string): string {
+    const labels: { [key: string]: string } = {
+      DateInput: 'Ngày nhập',
+      Company: 'Công ty',
+      ContractGroup: 'Phân loại HĐ chính',
+      AccountingContractTypeID: 'Loại HĐ',
+      CustomerID: 'Khách hàng',
+      SupplierSaleID: 'Nhà cung cấp',
+      ContractNumber: 'Số HĐ/PL',
+      ContractValue: 'Giá trị HĐ',
+      DateExpired: 'Hiệu lực HĐ',
+      DateIsApprovedGroup: 'Ngày duyệt trên nhóm',
+      EmployeeID: 'NV phụ trách',
+      ContractContent: 'Nội dung HĐ',
+      ContentPayment: 'Nội dung thanh toán',
+      ParentID: 'Thuộc HĐ',
+      DateContract: 'Ngày HĐ',
+      Unit: 'ĐVT',
+    };
+    return labels[fieldName] || fieldName;
   }
 
   validateForm(): boolean {
     let isValid = true;
     this.errors = {
       dateReceived: '',
+      company: '',
+      contractGroup: '',
       accountingContractTypeId: '',
       contractNumber: '',
       customerId: '',
@@ -614,11 +843,15 @@ export class AccountingContractDetailComponent implements OnInit, AfterViewInit 
       contentPayment: '',
     };
 
+    // Company validation - required
     if (!this.company || Number(this.company) <= 0) {
+      this.errors.company = 'Vui lòng chọn công ty';
       isValid = false;
     }
 
+    // ContractGroup validation - required
     if (!this.contractGroup || this.contractGroup <= 0) {
+      this.errors.contractGroup = 'Vui lòng chọn phân loại HĐ chính';
       isValid = false;
     }
 
@@ -666,10 +899,58 @@ export class AccountingContractDetailComponent implements OnInit, AfterViewInit 
       }
     }
 
-    // DateReceived validation - nếu có DateReceived thì cần QuantityDocument
-    if (this.dateReceived && this.quantityDocument <= 0) {
-      this.errors.dateReceived = 'Vui lòng nhập SL hồ sơ khi có ngày trả hồ sơ gốc';
-      isValid = false;
+    // DateReceived validation - bắt buộc nếu isReceivedContract = true
+    if (this.isReceivedContractMode) {
+      if (!this.dateReceived) {
+        this.errors.dateReceived = 'Vui lòng nhập Ngày trả hồ sơ gốc';
+        isValid = false;
+      } else if (this.quantityDocument <= 0) {
+        this.errors.dateReceived = 'Vui lòng nhập SL hồ sơ khi có ngày trả hồ sơ gốc';
+        isValid = false;
+      }
+    } else {
+      // DateReceived validation - nếu có DateReceived thì cần QuantityDocument
+      if (this.dateReceived && this.quantityDocument <= 0) {
+        this.errors.dateReceived = 'Vui lòng nhập SL hồ sơ khi có ngày trả hồ sơ gốc';
+        isValid = false;
+      }
+    }
+
+    // Validate thay đổi thông tin - yêu cầu nhập nội dung thay đổi
+    if (this.editId > 0 && this.originalContract) {
+      const currentContract = {
+        DateInput: this.dateInput,
+        Company: this.company,
+        ContractGroup: this.contractGroup,
+        AccountingContractTypeID: this.accountingContractTypeId,
+        CustomerID: this.customerId,
+        SupplierSaleID: this.supplierId,
+        ContractNumber: this.contractNumber?.trim() || '',
+        ContractValue: this.contractValue,
+        DateExpired: this.dateExpired,
+        DateIsApprovedGroup: this.dateIsApprovedGroup,
+        EmployeeID: this.employeeId,
+        ContractContent: this.contractContent?.trim() || '',
+        ContentPayment: this.contentPayment?.trim() || '',
+        ParentID: this.contractId,
+        DateContract: this.dateContract,
+        Unit: this.unit?.trim() || '',
+      };
+
+      const resultCompare = this.deepEquals(this.originalContract, currentContract);
+      
+      if (!resultCompare.equal) {
+        // Có thay đổi thông tin
+        const changedFields = resultCompare.property.map(field => this.getFieldLabel(field));
+        const propertyText = changedFields.join('; ');
+
+        // Kiểm tra note có rỗng hoặc giống với note cũ không
+        const currentNote = this.note?.trim() || '';
+        if (!currentNote || currentNote.toLowerCase() === this.originalNote.trim().toLowerCase()) {
+          this.errors.note = `Bạn vừa thay đổi thông tin [${propertyText}]. Vui lòng nhập Nội dung thay đổi!`;
+          isValid = false;
+        }
+      }
     }
 
     return isValid;
@@ -684,25 +965,26 @@ export class AccountingContractDetailComponent implements OnInit, AfterViewInit 
     // Build DTO theo format API yêu cầu
     const accountingContract = {
       ID: this.editId || 0,
-      DateInput: this.dateInput,
+      DateInput: this.formatLocalDate(this.dateInput),
       Company: Number(this.company) || 0,
       ContractGroup: this.contractGroup || 0,
       Unit: this.unit?.trim().toUpperCase() || '',
       AccountingContractTypeID: this.accountingContractTypeId || 0,
-      CustomerID: this.contractGroup === 2 ? (this.customerId || null) : null,
-      SupplierSaleID: this.contractGroup === 1 ? (this.supplierId || null) : null,
+      CustomerID: this.customerId || null,
+      SupplierSaleID: this.supplierId || null,
       ContractNumber: this.contractNumber?.trim() || '',
       ContractValue: this.contractValue || 0,
-      DateExpired: this.dateExpired || null,
-      DateIsApprovedGroup: this.dateIsApprovedGroup || null,
+      DateExpired: this.formatLocalDate(this.dateExpired),
+      DateIsApprovedGroup: this.formatLocalDate(this.dateIsApprovedGroup),
       EmployeeID: this.employeeId || 0,
       ContractContent: this.contractContent?.trim() || '',
       ContentPayment: this.contentPayment?.trim() || '',
       Note: this.note?.trim() || '',
       ParentID: this.contractId && this.contractId > 0 ? this.contractId : 0,
-      DateReceived: this.dateReceived || null,
+      DateReceived: this.formatLocalDate(this.dateReceived),
       QuantityDocument: this.quantityDocument || 0,
-      DateContract: this.dateContract || null
+      DateContract: this.formatLocalDate(this.dateContract),
+      IsReceivedContract: this.isReceivedContractMode || false
     };
 
     // Gọi API save
@@ -736,8 +1018,8 @@ export class AccountingContractDetailComponent implements OnInit, AfterViewInit 
     this.dateInput = new Date();
     this.dateReceived = null;
     this.quantityDocument = 0;
-    this.company = '';
-    this.contractGroup = null;
+    this.company = 0;
+    this.contractGroup = 0;
     this.accountingContractTypeId = null;
     this.contractNumber = '';
     this.contractValue = 0;
@@ -758,7 +1040,20 @@ export class AccountingContractDetailComponent implements OnInit, AfterViewInit 
     if (this.tb_ContractFile) {
       this.tb_ContractFile.setData(this.files);
     }
-    this.errors = {};
+    this.errors = {
+      dateReceived: '',
+      company: '',
+      contractGroup: '',
+      accountingContractTypeId: '',
+      contractNumber: '',
+      customerId: '',
+      supplierId: '',
+      contractContent: '',
+      contentPayment: '',
+      note: '',
+    };
+    this.originalContract = null;
+    this.originalNote = '';
   }
 
   cancel(): void {

@@ -320,6 +320,7 @@ export class RequestInvoiceSummaryComponent implements OnInit, AfterViewInit {
       { key: 'SomeBill', width: 20 },
       { key: 'ExpectedDate', width: 15 },
       { key: 'BillImportCode', width: 20 },
+      { key: 'CompanyText', width: 20 },
     ];
 
     // Add Band Row (Row 1)
@@ -329,7 +330,7 @@ export class RequestInvoiceSummaryComponent implements OnInit, AfterViewInit {
 
     // Merge cells for Band
     worksheet.mergeCells('A1:Y1');
-    worksheet.mergeCells('Z1:AE1');
+    worksheet.mergeCells('Z1:AF1');
 
     // Add Header Row (Row 2)
     const headerRow = worksheet.addRow([
@@ -338,7 +339,7 @@ export class RequestInvoiceSummaryComponent implements OnInit, AfterViewInit {
       'Ghi chú', 'Mã nội bộ', 'Mã sản phẩm', 'Mã theo khách', 'Tên sản phẩm',
       'ĐVT', 'Số lượng', 'Mã dự án', 'Dự án', 'Ghi chú (PO)',
       'Thông số kỹ thuật', 'Số hóa đơn', 'Ngày hóa đơn', 'Số PO', 'Mã PO',
-      'Ngày đặt hàng', 'Ngày hàng về', 'Nhà cung cấp', 'Hóa đơn đầu vào', 'Ngày hàng về dự kiến', 'PNK'
+      'Ngày đặt hàng', 'Ngày hàng về', 'Nhà cung cấp', 'Hóa đơn đầu vào', 'Ngày hàng về dự kiến', 'PNK', 'Công ty nhập'
     ]);
 
     // Style Band Row
@@ -409,6 +410,7 @@ export class RequestInvoiceSummaryComponent implements OnInit, AfterViewInit {
         SomeBill: item.SomeBill,
         ExpectedDate: item.ExpectedDate ? DateTime.fromISO(item.ExpectedDate).toFormat('dd/MM/yyyy') : '',
         BillImportCode: item.BillImportCode,
+        CompanyText: item.CompanyText || '',
       });
 
       // Color row if IsUrgency is true
@@ -654,8 +656,18 @@ export class RequestInvoiceSummaryComponent implements OnInit, AfterViewInit {
               sorter: 'string',
               frozen: true,
               width: 150,
+              headerFilter: 'input',
+              headerFilterPlaceholder: 'Lọc trạng thái',
             },
-            { title: 'Mã lệnh', frozen: true, field: 'Code', sorter: 'string', width: 150 },
+            { 
+              title: 'Mã lệnh', 
+              frozen: true, 
+              field: 'Code', 
+              sorter: 'string', 
+              width: 150,
+              headerFilter: 'input',
+              headerFilterPlaceholder: 'Lọc mã lệnh',
+            },
             {
               title: 'Tờ khai HQ',
               field: 'IsCustomsDeclared',
@@ -675,13 +687,17 @@ export class RequestInvoiceSummaryComponent implements OnInit, AfterViewInit {
               field: 'AmendReason',
               sorter: 'string',
               width: 215,
-              formatter: 'textarea'
+              formatter: 'textarea',
+              headerFilter: 'input',
+              headerFilterPlaceholder: 'Lọc lý do',
             },
             {
               title: 'Người yêu cầu',
               field: 'FullName',
               sorter: 'string',
               width: 150,
+              headerFilter: 'input',
+              headerFilterPlaceholder: 'Lọc người yêu cầu',
             },
             {
               title: 'Khách hàng',
@@ -689,27 +705,58 @@ export class RequestInvoiceSummaryComponent implements OnInit, AfterViewInit {
               sorter: 'string',
               formatter: 'textarea',
               width: 250,
+              headerFilter: 'input',
+              headerFilterPlaceholder: 'Lọc khách hàng',
             },
-            { title: 'Địa chỉ', field: 'Address', sorter: 'string', width: 300, formatter: 'textarea' },
-            { title: 'Công ty bán', field: 'Name', sorter: 'string', width: 140 },
-            { title: 'Ghi chú', field: 'Note', sorter: 'string', width: 200, formatter: 'textarea' },
+            { 
+              title: 'Địa chỉ', 
+              field: 'Address', 
+              sorter: 'string', 
+              width: 300, 
+              formatter: 'textarea',
+              headerFilter: 'input',
+              headerFilterPlaceholder: 'Lọc địa chỉ',
+            },
+            { 
+              title: 'Công ty bán', 
+              field: 'Name', 
+              sorter: 'string', 
+              width: 140,
+              headerFilter: 'input',
+              headerFilterPlaceholder: 'Lọc công ty bán',
+            },
+            { 
+              title: 'Ghi chú', 
+              field: 'Note', 
+              sorter: 'string', 
+              width: 200, 
+              formatter: 'textarea',
+              headerFilter: 'input',
+              headerFilterPlaceholder: 'Lọc ghi chú',
+            },
             {
               title: 'Mã nội bộ',
               field: 'ProductNewCode',
               sorter: 'string',
               width: 100,
+              headerFilter: 'input',
+              headerFilterPlaceholder: 'Lọc mã nội bộ',
             },
             {
               title: 'Mã sản phẩm',
               field: 'ProductCode',
               sorter: 'string',
               width: 150,
+              headerFilter: 'input',
+              headerFilterPlaceholder: 'Lọc mã sản phẩm',
             },
             {
               title: 'Mã theo khách',
               field: 'GuestCode',
               sorter: 'string',
               width: 150,
+              headerFilter: 'input',
+              headerFilterPlaceholder: 'Lọc mã theo khách',
             },
             {
               title: 'Tên sản phẩm',
@@ -717,28 +764,65 @@ export class RequestInvoiceSummaryComponent implements OnInit, AfterViewInit {
               sorter: 'string',
               formatter: 'textarea',
               width: 200,
+              headerFilter: 'input',
+              headerFilterPlaceholder: 'Lọc tên sản phẩm',
             },
-            { title: 'ĐVT', field: 'Unit', sorter: 'string', width: 150 },
-            { title: 'Số lượng', field: 'Quantity', sorter: 'string', width: 150 },
+            { 
+              title: 'ĐVT', 
+              field: 'Unit', 
+              sorter: 'string', 
+              width: 150,
+              headerFilter: 'input',
+              headerFilterPlaceholder: 'Lọc ĐVT',
+            },
+            { 
+              title: 'Số lượng', 
+              field: 'Quantity', 
+              sorter: 'string', 
+              width: 150,
+              headerFilter: 'input',
+              headerFilterPlaceholder: 'Lọc số lượng',
+            },
             {
               title: 'Mã dự án',
               field: 'ProjectCode',
               sorter: 'string',
               width: 150,
+              headerFilter: 'input',
+              headerFilterPlaceholder: 'Lọc mã dự án',
             },
-            { title: 'Dự án', field: 'ProjectName', sorter: 'string', width: 150 },
-            { title: 'Ghi chú (PO)', field: 'Note', sorter: 'string', width: 150, formatter: 'textarea' },
+            { 
+              title: 'Dự án', 
+              field: 'ProjectName', 
+              sorter: 'string', 
+              width: 150,
+              headerFilter: 'input',
+              headerFilterPlaceholder: 'Lọc dự án',
+            },
+            { 
+              title: 'Ghi chú (PO)', 
+              field: 'Note', 
+              sorter: 'string', 
+              width: 150, 
+              formatter: 'textarea',
+              headerFilter: 'input',
+              headerFilterPlaceholder: 'Lọc ghi chú PO',
+            },
             {
               title: 'Thông số kỹ thuật',
               field: 'Specifications',
               sorter: 'string',
               width: 150,
+              headerFilter: 'input',
+              headerFilterPlaceholder: 'Lọc thông số',
             },
             {
               title: 'Số hóa đơn',
               field: 'InvoiceNumber',
               sorter: 'string',
               width: 150,
+              headerFilter: 'input',
+              headerFilterPlaceholder: 'Lọc số hóa đơn',
             },
             {
               title: 'Ngày hóa đơn',
@@ -755,12 +839,16 @@ export class RequestInvoiceSummaryComponent implements OnInit, AfterViewInit {
               field: 'PONumber',
               sorter: 'string',
               width: 150,
+              headerFilter: 'input',
+              headerFilterPlaceholder: 'Lọc số PO',
             },
             {
               title: 'Mã PO',
               field: 'POCode',
               sorter: 'string',
               width: 150,
+              headerFilter: 'input',
+              headerFilterPlaceholder: 'Lọc mã PO',
             },
           ]
         },
@@ -773,22 +861,16 @@ export class RequestInvoiceSummaryComponent implements OnInit, AfterViewInit {
             {
               title: 'Ngày đặt hàng',
               field: 'RequestDate',
-              sorter: 'date',
+              sorter: 'string',
               width: 150,
-              formatter: (cell) => {
-                const date = cell.getValue();
-                return date ? new Date(date).toLocaleDateString('vi-VN') : '';
-              },
+
             },
             {
               title: 'Ngày hàng về',
               field: 'DateRequestImport',
-              sorter: 'date',
+              sorter: 'string',
               width: 150,
-              formatter: (cell) => {
-                const date = cell.getValue();
-                return date ? new Date(date).toLocaleDateString('vi-VN') : '';
-              },
+
             },
             {
               title: 'Nhà cung cấp',
@@ -796,30 +878,39 @@ export class RequestInvoiceSummaryComponent implements OnInit, AfterViewInit {
               sorter: 'string',
               formatter: 'textarea',
               width: 250,
+              headerFilter: 'input',
+              headerFilterPlaceholder: 'Lọc nhà cung cấp',
             },
             {
               title: 'Hóa đơn đầu vào',
               field: 'SomeBill',
               sorter: 'string',
               width: 250,
+              headerFilter: 'input',
+              headerFilterPlaceholder: 'Lọc hóa đơn đầu vào',
             },
             {
               title: 'Ngày hàng về dự kiến',
               field: 'ExpectedDate',
-              sorter: 'date',
+              sorter: 'string',
               width: 150,
-              formatter: (cell) => {
-                const date = cell.getValue();
-                return date ? new Date(date).toLocaleDateString('vi-VN') : '';
-              },
             },
             {
               title: 'PNK',
               field: 'BillImportCode',
               sorter: 'string',
               width: 250,
+              headerFilter: 'input',
+              headerFilterPlaceholder: 'Lọc PNK',
             },
-            { title: 'Công ty nhập', field: 'CompanyText', sorter: 'string', width: 120 },
+            { 
+              title: 'Công ty nhập', 
+              field: 'CompanyText', 
+              sorter: 'string', 
+              width: 120,
+              headerFilter: 'input',
+              headerFilterPlaceholder: 'Lọc công ty nhập',
+            },
           ]
         }
       ],

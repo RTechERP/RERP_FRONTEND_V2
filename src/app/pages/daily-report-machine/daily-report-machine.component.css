@@ -1,64 +1,64 @@
 :host {
     font-size: 12px !important;
-  }
-  
-  .tabulator {
+}
+
+.tabulator {
     font-size: 12px;
-  }
-  
-  .box {
+}
+
+.box {
     height: 100%;
     width: 100%;
-  }
-  
-  .card {
+}
+
+.card {
     display: flex;
     flex-direction: column;
     height: 100%;
     max-height: 93vh;
     overflow: hidden;
-  }
+}
 
-  .card-body {
+.card-body {
     flex: 1 1 auto;
     min-height: 0;
     overflow: hidden;
     display: flex;
     flex-direction: column;
-  }
+}
 
-  .card-body > div {
+.card-body>div {
     flex: 1 1 auto;
     min-height: 0;
     overflow: hidden;
-  }
-  
-  .ant-splitter-panel {
+}
+
+.ant-splitter-panel {
     position: relative;
-  }
-  
-  .ant-splitter {
+}
+
+.ant-splitter {
     height: 93vh !important;
-  }
-  
-  /* CSS để textarea cells tự xuống dòng */
-  :host ::ng-deep .tabulator-cell {
+}
+
+/* CSS để textarea cells tự xuống dòng */
+:host ::ng-deep .tabulator-cell {
     white-space: pre-wrap !important;
     word-wrap: break-word !important;
     overflow-wrap: break-word !important;
     word-break: break-word !important;
-  }
+}
 
-  /* Filter bar styles */
-  .filter-bar {
+/* Filter bar styles */
+.filter-bar {
     transition: all 0.3s ease;
-  }
+}
 
-  .filter-backdrop {
+.filter-backdrop {
     display: none;
-  }
+}
 
-  .filter-backdrop.mobile-only {
+.filter-backdrop.mobile-only {
     display: block;
     position: fixed;
     top: 0;
@@ -67,9 +67,9 @@
     bottom: 0;
     background-color: rgba(0, 0, 0, 0.5);
     z-index: 999;
-  }
+}
 
-  .filter-bar.mobile-modal {
+.filter-bar.mobile-modal {
     position: fixed;
     top: 0;
     left: 0;
@@ -80,7 +80,7 @@
     overflow-y: auto;
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
     padding: 16px !important;
-  }
+}
 
   .filter-bar.mobile-modal form.mobile-filter-form {
     width: 100%;
@@ -132,149 +132,153 @@
     width: 100% !important;
   }
 
-  /* Card header responsive */
-  .card-header {
+  /* .filter-bar.mobile-modal nz-col {
+    margin-bottom: 8px;
+  } */
+
+/* Card header responsive */
+.card-header {
     overflow-x: auto;
     -webkit-overflow-scrolling: touch;
-  }
+}
 
-  .card-header .d-flex {
+.card-header .d-flex {
     min-width: max-content;
-  }
+}
 
-  .card-header button {
+.card-header button {
     flex-shrink: 0;
     white-space: nowrap;
-  }
+}
 
-  @media (max-width: 768px) {
+@media (max-width: 768px) {
     .card-header {
-      padding: 8px 4px !important;
+        padding: 8px 4px !important;
     }
 
     .card-header button {
-      font-size: 11px !important;
-      padding: 4px 8px !important;
-      min-height: 32px;
-      touch-action: manipulation;
+        font-size: 11px !important;
+        padding: 4px 8px !important;
+        min-height: 32px;
+        touch-action: manipulation;
     }
 
     .card-header button img {
-      width: 14px;
-      height: 14px;
+        width: 14px;
+        height: 14px;
     }
 
     .sticky-toggle-btn {
-      position: sticky;
-      left: 0;
-      z-index: 10;
-      background-color: white;
-      min-width: 40px;
+        position: sticky;
+        left: 0;
+        z-index: 10;
+        background-color: white;
+        min-width: 40px;
     }
 
     .filter-bar.mobile-modal button {
-      width: 100%;
-      margin-bottom: 8px;
-      min-height: 40px;
-      touch-action: manipulation;
+        width: 100%;
+        margin-bottom: 8px;
+        min-height: 40px;
+        touch-action: manipulation;
     }
 
     /* Loại trừ button search trong div d-flex */
     .filter-bar.mobile-modal .d-flex button {
-      width: auto !important;
-      min-height: auto !important;
-      margin-bottom: 0 !important;
-      height: 24px; /* Match với input small size */
+        width: auto !important;
+        min-height: auto !important;
+        margin-bottom: 0 !important;
+        height: 24px; /* Match với input small size */
     }
 
     .filter-bar.mobile-modal button:last-child {
-      margin-bottom: 0;
+        margin-bottom: 0;
     }
 
     .filter-bar.mobile-modal .d-flex.gap-2 {
-      flex-direction: column;
-      gap: 8px !important;
+        flex-direction: column;
+        gap: 8px !important;
     }
 
     .filter-bar.mobile-modal .d-flex.gap-2 button {
-      width: 100%;
+        width: 100%;
     }
 
     .filter-bar.mobile-modal .filter-actions {
-      width: 100% !important;
+        width: 100% !important;
     }
 
     .filter-bar.mobile-modal .filter-actions .d-flex {
-      flex-direction: column;
-      width: 100%;
+        flex-direction: column;
+        width: 100%;
     }
 
     .filter-bar.mobile-modal .filter-actions button {
-      width: 100%;
-      margin-bottom: 8px;
+        width: 100%;
+        margin-bottom: 8px;
     }
 
     .filter-bar.mobile-modal .filter-actions button:last-child {
-      margin-bottom: 0;
+        margin-bottom: 0;
     }
-  }
+}
 
-  @media (min-width: 769px) {
+@media (min-width: 769px) {
     .filter-backdrop.mobile-only {
-      display: none;
+        display: none;
     }
 
     .filter-bar.mobile-modal {
-      position: relative;
-      max-height: none;
-      overflow-y: visible;
-      box-shadow: none;
-      padding: 8px 16px !important;
-      flex-shrink: 0;
+        position: relative;
+        max-height: none;
+        overflow-y: visible;
+        box-shadow: none;
+        padding: 8px 16px !important;
+        flex-shrink: 0;
     }
 
     .filter-bar.mobile-modal form.mobile-filter-form {
-      width: 100%;
+        width: 100%;
     }
 
     .filter-bar.mobile-modal nz-form-item {
-      width: 100%;
+        width: 100%;
     }
 
     /* Đảm bảo card không tăng chiều cao khi filter bar hiển thị */
     .card-header {
-      flex-shrink: 0;
+        flex-shrink: 0;
     }
 
     .card-body {
-      flex: 1 1 auto;
-      min-height: 0;
+        flex: 1 1 auto;
+        min-height: 0;
     }
-  }
+}
 
-  .sticky-toggle-btn {
+.sticky-toggle-btn {
     position: sticky;
     left: 0;
     z-index: 10;
     background-color: white;
-  }
-  
-  ::ng-deep .filter-bar .ant-form-item {
+}
+
+::ng-deep .filter-bar .ant-form-item {
     margin-bottom: 2px;
-  }
+}
 
-  ::ng-deep .filter-bar .ant-form-item-label {
+::ng-deep .filter-bar .ant-form-item-label {
     padding-bottom: 0;
-  }
+}
 
-  .mobile-filter-form {
+.mobile-filter-form {
     gap: 4px;
-  }
-  .ant-form-inline .ant-form-item {
+}
+.ant-form-inline .ant-form-item {
     margin-right: 0px !important;
   }
   /* Fix dropdown width - không co dãn theo text */
-  :host ::ng-deep .ant-select-dropdown {
+:host ::ng-deep .ant-select-dropdown {
     min-width: 200px !important;
     max-width: 400px !important;
   }

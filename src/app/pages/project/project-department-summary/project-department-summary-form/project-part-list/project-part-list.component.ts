@@ -170,6 +170,7 @@ export class ProjectPartListComponent implements OnInit, AfterViewInit {
     isTogglingChildren: boolean = false; // Flag để tránh vòng lặp vô hạn khi toggle children
     previousSelectedRows: Set<number> = new Set(); // Lưu lại các row đã được chọn trước đó
     independentlyDeselectedNodes: Set<number> = new Set(); // Lưu các node đã được bỏ chọn độc lập (không tự động chọn lại)
+    savedSelectedRowIds: Set<number> = new Set(); // Lưu các row ID đã được chọn trước khi reload data
     dataSolution: any[] = [];
     dataSolutionVersion: any[] = [];
     dataPOVersion: any[] = [];
@@ -464,6 +465,10 @@ export class ProjectPartListComponent implements OnInit, AfterViewInit {
             setTimeout(() => this.loadDataProjectPartList(), 100);
             return;
         }
+        
+        // Lưu lại các row đã được chọn trước khi reload
+        this.saveSelectedRows();
+        
         // Lấy versionID từ bảng đã chọn
         let selectedVersionID: number = 0;
         let projectTypeID: number = 0;
@@ -516,6 +521,8 @@ export class ProjectPartListComponent implements OnInit, AfterViewInit {
                             setTimeout(() => {
                                 this.applyDeletedRowStyle();
                                 this.applyCellColors();
+                                // Khôi phục các row đã được chọn trước đó
+                                this.restoreSelectedRows();
                                 this.stopLoading();
                             }, 100);
                         });
@@ -532,6 +539,72 @@ export class ProjectPartListComponent implements OnInit, AfterViewInit {
                 this.stopLoading();
             }
         });
+    }
+    
+    // Lưu các row đã được chọn trước khi reload
+    private saveSelectedRows(): void {
+        if (!this.tb_projectWorker) return;
+        
+        try {
+            const selectedRows = this.tb_projectWorker.getSelectedData();
+            if (selectedRows && selectedRows.length > 0) {
+                selectedRows.forEach((row: any) => {
+                    if (row.ID) {
+                        this.savedSelectedRowIds.add(row.ID);
+                    }
+                });
+            }
+        } catch (e) {
+            console.warn('Không thể lưu các row đã chọn:', e);
+        }
+    }
+    
+    // Khôi phục các row đã được chọn sau khi reload
+    private restoreSelectedRows(): void {
+        if (!this.tb_projectWorker || this.savedSelectedRowIds.size === 0) return;
+        
+        try {
+            // Tạm thời disable event listener để tránh trigger lại toggle children
+            this.isTogglingChildren = true;
+            
+            // Lấy tất cả rows bao gồm cả nested children
+            const selectRowsRecursive = (rows: any[]) => {
+                rows.forEach((row: any) => {
+                    const rowData = row.getData();
+                    if (rowData.ID && this.savedSelectedRowIds.has(rowData.ID)) {
+                        row.select();
+                        // Cũng thêm vào previousSelectedRows để logic toggle children hoạt động đúng
+                        this.previousSelectedRows.add(rowData.ID);
+                    }
+                    
+                    // Xử lý các children (tree data)
+                    try {
+                        const children = row.getTreeChildren();
+                        if (children && children.length > 0) {
+                            selectRowsRecursive(children);
+                        }
+                    } catch (e) {
+                        // Không có children hoặc không hỗ trợ getTreeChildren
+                    }
+                });
+            };
+            
+            const allRows = this.tb_projectWorker.getRows();
+            selectRowsRecursive(allRows);
+            
+            // Re-enable event listener
+            this.isTogglingChildren = false;
+        } catch (e) {
+            console.warn('Không thể khôi phục các row đã chọn:', e);
+            this.isTogglingChildren = false;
+        }
+    }
+    
+    // Xóa các row đã lưu (gọi khi muốn reset selection hoàn toàn)
+    clearSavedSelectedRows(): void {
+        this.savedSelectedRowIds.clear();
+        this.previousSelectedRows.clear();
+        this.independentlyDeselectedNodes.clear();
     }
     //#endregion
     //#region cập nhật trạng thái duyệt TBP

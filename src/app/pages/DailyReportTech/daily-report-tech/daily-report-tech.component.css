@@ -83,9 +83,7 @@
   }
 
   .filter-bar.mobile-modal form.mobile-filter-form {
-    flex-direction: column !important;
-    gap: 12px !important;
-    align-items: stretch !important;
+    width: 100%;
   }
 
   .filter-bar.mobile-modal nz-form-item {
@@ -95,7 +93,12 @@
 
   .filter-bar.mobile-modal nz-form-label {
     display: block !important;
-    margin-bottom: 4px !important;
+    margin-bottom: 2px !important;
+  }
+
+  /* Giảm padding của label trên mobile */
+  :host ::ng-deep .filter-bar.mobile-modal .ant-form-item-label {
+    padding-bottom: 0 !important;
   }
 
   .filter-bar.mobile-modal nz-form-control {
@@ -106,6 +109,22 @@
   .filter-bar.mobile-modal nz-select,
   .filter-bar.mobile-modal input[nz-input] {
     width: 100% !important;
+  }
+
+  /* Đảm bảo input và button trong d-flex có cùng height */
+  .filter-bar.mobile-modal .d-flex {
+    align-items: center;
+  }
+
+  .filter-bar.mobile-modal .d-flex input[nz-input] {
+    height: 24px;
+  }
+
+  .filter-bar.mobile-modal .d-flex button {
+    height: 24px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
   }
 
   .filter-bar.mobile-modal .ant-picker,
@@ -160,6 +179,14 @@
       touch-action: manipulation;
     }
 
+    /* Loại trừ button search trong div d-flex */
+    .filter-bar.mobile-modal .d-flex button {
+      width: auto !important;
+      min-height: auto !important;
+      margin-bottom: 0 !important;
+      height: 24px; /* Match với input small size */
+    }
+
     .filter-bar.mobile-modal button:last-child {
       margin-bottom: 0;
     }
@@ -207,12 +234,11 @@
     }
 
     .filter-bar.mobile-modal form.mobile-filter-form {
-      flex-direction: row !important;
-      align-items: flex-end !important;
+      width: 100%;
     }
 
     .filter-bar.mobile-modal nz-form-item {
-      width: auto !important;
+      width: 100%;
     }
 
     /* Đảm bảo card không tăng chiều cao khi filter bar hiển thị */
@@ -243,5 +269,46 @@
   .mobile-filter-form {
     gap: 4px;
   }
+  .ant-form-inline .ant-form-item {
+    margin-right: 0px !important;
+  }
+  /* Fix dropdown width - không co dãn theo text */
+  :host ::ng-deep .ant-select-dropdown {
+    min-width: 200px !important;
+    max-width: 400px !important;
+  }
   
+  /* Đảm bảo option text xuống dòng nếu quá dài */
+  :host ::ng-deep .ant-select-item-option-content {
+    white-space: normal !important;
+    word-wrap: break-word !important;
+    word-break: break-word !important;
+    line-height: 1.4 !important;
+    padding: 4px 0 !important;
+  }
+  
+  /* Hoặc nếu muốn cắt text với ... */
+  :host ::ng-deep .ant-select-item-option-content {
+    white-space: nowrap !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+  }
+  
+  /* Fix cho select box không bị giãn */
+  :host ::ng-deep .filter-bar .ant-select-selector {
+    min-width: 150px;
+  }
+
+  /* Đảm bảo các input trong filter bar hiển thị tốt */
+  :host ::ng-deep .filter-bar .ant-picker {
+    width: 100%;
+  }
+
+  :host ::ng-deep .filter-bar .ant-select {
+    width: 100%;
+  }
+
+  :host ::ng-deep .filter-bar input[nz-input] {
+    width: 100%;
+  }
   

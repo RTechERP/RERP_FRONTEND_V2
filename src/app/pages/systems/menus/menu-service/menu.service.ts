@@ -159,6 +159,8 @@ import { PonccNewComponent } from '../../../purchase/poncc-new/poncc-new.compone
 
 import { DailyReportThrComponent } from '../../../daily-report-thr/daily-report-thr.component';
 import { DailyReportLXCPComponent } from '../../../daily-report-lxcp/daily-report-lxcp.component';
+import { EmployeeContactComponent } from '../../../hrm/employee/employee-contact/employee-contact.component';
+import { OverTimeSummaryPersonComponent } from '../../../hrm/over-time/over-time-summary-person/over-time-summary-person.component';
 @Injectable({
     providedIn: 'root',
 })
@@ -2029,12 +2031,12 @@ export class MenuService {
 
                     {
                         kind: 'leaf',
-                        key: '/thongtinlienhe',
+                        key: '/EmployeeContactComponent',
                         title: 'Thông tin liên hệ',
                         isOpen: true,
                         isPermission: this.permissionService.hasPermission(''),
-                        comp: AppComponent,
-                        router: '/thongtinlienhe',
+                        comp: EmployeeContactComponent,
+                
                     },
 
                     {
@@ -2649,6 +2651,14 @@ export class MenuService {
                                 isOpen: true,
                                 isPermission: this.permissionService.hasPermission(''),
                                 comp: EmployeeNoFingerSummaryComponent,
+                            },
+                             {
+                                kind: 'leaf',
+                                key: 'OverTimeSummaryPersonComponent',
+                                title: 'Tổng hợp làm thêm',
+                                isOpen: true,
+                                isPermission: this.permissionService.hasPermission(''),
+                                comp: OverTimeSummaryPersonComponent,
                             },
                             {
                                 kind: 'leaf',
@@ -3355,6 +3365,30 @@ export class MenuService {
                         isPermission: this.permissionService.hasPermission('N55,N61'),
                         comp: PersonComponent,
                         router: '/ketoanduyetdntt',
+                    },
+                       {
+                        kind: 'leaf',
+                        key: 'TbpApproveJobRequirement',
+                        title: 'TBP duyệt yêu cầu công việc',
+                        isOpen: true,
+                        isPermission: this.permissionService.hasPermission('N32'),
+                        comp: JobRequirementComponent
+                    },
+                       {
+                        kind: 'leaf',
+                        key: 'HrApproveJobRequirement',
+                        title: 'HR duyệt yêu cầu công việc',
+                        isOpen: true,
+                        isPermission: this.permissionService.hasPermission('N1,N2,N32'),
+                        comp: JobRequirementComponent
+                    },
+                        {
+                        kind: 'leaf',
+                        key: 'BgdApproveJobRequirement',
+                        title: 'BGD duyệt yêu cầu công việc',
+                        isOpen: true,
+                        isPermission: this.permissionService.hasPermission(''),
+                        comp: JobRequirementComponent
                     },
 
                     {

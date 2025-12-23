@@ -112,6 +112,14 @@ export class EmployeeContractComponent implements OnInit, OnChanges {
     }
   }
 
+  onContractTypeChange(contractTypeId: number) {
+    if (contractTypeId === 5) {
+      this.employeeContractForm.patchValue({
+        DateEnd: null
+      });
+    }
+  }
+
   // loadEmployees() {
   //   this.employeeService.getEmployees().subscribe({
   //     next: (data) => {

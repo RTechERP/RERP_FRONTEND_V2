@@ -68,6 +68,19 @@ import { AuthService } from '../../../auth/auth.service';
 import { NoteFormComponent } from './note-form/note-form.component';
 import { ProjectPartlistPriceRequestFormComponent } from '../../old/project-partlist-price-request/project-partlist-price-request-form/project-partlist-price-request-form.component';
 import { JobRequirementPurchaseRequestViewComponent } from './job-requirement-purchase-request-view/job-requirement-purchase-request-view.component';
+import { JobRequirementSummaryComponent } from './job-requirement-summary/job-requirement-summary.component';
+import pdfMake from 'pdfmake/build/pdfmake';
+import vfs from '../../../shared/pdf/vfs_fonts_custom.js';
+
+(pdfMake as any).vfs = vfs;
+(pdfMake as any).fonts = {
+  Times: {
+    normal: 'TIMES.ttf',
+    bold: 'TIMESBD.ttf',
+    bolditalics: 'TIMESBI.ttf',
+    italics: 'TIMESI.ttf',
+  },
+};
 
 @Component({
   selector: 'app-job-requirement',
@@ -110,6 +123,8 @@ export class JobRequirementComponent implements OnInit, AfterViewInit {
     @ViewChild('JobrequirementFileTable') tableRef3!: ElementRef;
     @ViewChild('JobrequirementApprovedTable') tableRef4!: ElementRef;
   
+    @Input() approvalMode: 'TBP' | 'HR' | 'BGD' | null = null; 
+  
     searchParams = {
       DepartmentID: 0,
       EmployeeID: 0,
@@ -148,6 +163,25 @@ export class JobRequirementComponent implements OnInit, AfterViewInit {
     dataInput: any = {};
   
     ngOnInit(): void {
+      // Lấy approvalMode từ MenuEventService nếu có
+      this.menuEventService.onOpen$.subscribe((menuOpen) => {
+        const leafKey = menuOpen.leafKey;
+        if (leafKey === 'TbpApproveJobRequirement') {
+          this.approvalMode = 'TBP';
+          // Set ApprovedTBPID = currentUser.EmployeeID cho chế độ TBP
+          if (this.currentUser?.EmployeeID) {
+            this.searchParams.ApprovedTBPID = this.currentUser.EmployeeID;
+          }
+          this.getJobrequirement();
+        } else if (leafKey === 'HrApproveJobRequirement') {
+          this.approvalMode = 'HR';
+          this.getJobrequirement();
+        } else if (leafKey === 'BgdApproveJobRequirement') {
+          this.approvalMode = 'BGD';
+          this.getJobrequirement();
+        }
+      });
+      
       this.getJobrequirement();
       this.getdataEmployee();
       this.getdataDepartment();
@@ -621,6 +655,269 @@ export class JobRequirementComponent implements OnInit, AfterViewInit {
           // Modal dismissed
         }
       );
+    }
+
+    /**
+     * Tổng hợp yêu cầu công việc - mở modal JobRequirementSummaryComponent
+     */
+    onOpenSummary(): void {
+      const modalRef = this.modalService.open(JobRequirementSummaryComponent, {
+        fullscreen: true,
+        backdrop: 'static',
+        keyboard: false,
+        windowClass: 'job-requirement-summary-modal',
+      });
+
+      modalRef.result.then(
+        (result) => {
+          // Handle result if needed
+        },
+        () => {
+          // Modal dismissed
+        }
+      );
+    }
+
+    /**
+     * In phiếu yêu cầu công việc
+     */
+    onPrintJobRequirement(): void {
+      if (!this.JobrequirementID) {
+        this.notification.warning(
+          NOTIFICATION_TITLE.warning,
+          'Vui lòng chọn yêu cầu công việc cần in!'
+        );
+        return;
+      }
+
+      // Lấy dữ liệu chi tiết của yêu cầu công việc
+      this.JobRequirementService.getJobrequirementbyID(this.JobrequirementID).subscribe({
+        next: (response: any) => {
+          const data = response.data || {};
+          
+          // Lấy thông tin chính từ bảng JobrequirementData
+          const selectedRow = this.JobrequirementTable?.getSelectedData()[0];
+          const jobRequirement = selectedRow || {};
+          
+          // Lấy chi tiết từ response
+          const details = data.details || [];
+          
+          // Load logo và tạo PDF
+          this.loadImageAsBase64('assets/images/logo-RTC-2023-1200-banchuan.png').then((logoBase64) => {
+            const docDefinition = this.createJobRequirementPDF(jobRequirement, details, logoBase64);
+            pdfMake.createPdf(docDefinition).open();
+          }).catch((err) => {
+            // Nếu không load được logo, tạo PDF không có logo
+            const docDefinition = this.createJobRequirementPDF(jobRequirement, details, null);
+            pdfMake.createPdf(docDefinition).open();
+          });
+        },
+        error: (err: any) => {
+          this.notification.error(
+            NOTIFICATION_TITLE.error,
+            'Lỗi khi lấy dữ liệu: ' + (err?.error?.message || err?.message)
+          );
+        }
+      });
+    }
+
+    /**
+     * Load ảnh và chuyển sang base64
+     */
+    private loadImageAsBase64(url: string): Promise<string> {
+      return new Promise((resolve, reject) => {
+        const img = new Image();
+        img.crossOrigin = 'Anonymous';
+        img.onload = () => {
+          const canvas = document.createElement('canvas');
+          canvas.width = img.width;
+          canvas.height = img.height;
+          const ctx = canvas.getContext('2d');
+          if (ctx) {
+            ctx.drawImage(img, 0, 0);
+            const dataURL = canvas.toDataURL('image/png');
+            resolve(dataURL);
+          } else {
+            reject('Cannot get canvas context');
+          }
+        };
+        img.onerror = reject;
+        img.src = url;
+      });
+    }
+
+    /**
+     * Tạo PDF definition cho yêu cầu công việc
+     */
+    private createJobRequirementPDF(jobRequirement: any, details: any[], logoBase64: string | null): any {
+      // Format date helper
+      const formatDate = (date: any) => {
+        if (!date) return '';
+        return DateTime.fromISO(date).toFormat('dd/MM/yyyy');
+      };
+
+      // Tạo danh sách chi tiết cho bảng "Nội dung yêu cầu"
+      const detailRows = details.map((item: any, index: number) => [
+        { text: (index + 1).toString(), alignment: 'center', fontSize: 10 },
+        { text: item.Category || '', fontSize: 10 },
+        { text: item.Description || '', fontSize: 10 },
+        { text: item.Target || '', fontSize: 10 },
+        { text: item.Note || '', fontSize: 10 },
+      ]);
+
+      // Logo column
+      const logoColumn = logoBase64 
+        ? {
+            width: 100,
+            image: logoBase64,
+            fit: [150, 150],
+            margin: [0, 0, 10, 0],
+          }
+        : {
+            width: 80,
+            text: '',
+            margin: [0, 0, 10, 0],
+          };
+
+      const docDefinition = {
+        info: {
+          title: 'Phiếu yêu cầu công việc - ' + (jobRequirement.NumberRequest || ''),
+        },
+        pageSize: 'A4',
+        pageOrientation: 'portrait',
+        pageMargins: [40, 40, 40, 40],
+        content: [
+          // Header với logo và tiêu đề
+          {
+            columns: [
+              logoColumn,
+              {
+                width: '*',
+                stack: [
+                  {
+                    text: 'PHIẾU YÊU CẦU CÔNG VIỆC',
+                    alignment: 'center',
+                    bold: true,
+                    fontSize: 16,
+                  },
+                  {
+                    text: 'Số: ' + (jobRequirement.NumberRequest || ''),
+                    alignment: 'center',
+                    fontSize: 10,
+                    margin: [0, 5, 0, 0],
+                  },
+                ],
+              },
+            ],
+            margin: [0, 0, 0, 15],
+          },
+          // Thông tin bộ phận
+          {
+            table: {
+              widths: [140, '*'],
+              body: [
+                [
+                  { text: 'Bộ phận yêu cầu', bold: true },
+                  { text: ': ' + (jobRequirement.EmployeeDepartment || '') },
+                ],
+                [
+                  { text: 'Bộ phận được yêu cầu', bold: true },
+                  { text: ': ' + (jobRequirement.RequiredDepartment || '') },
+                ],
+                [
+                  { text: 'Bộ phận phối hợp', bold: true },
+                  { text: ': ' + (jobRequirement.CoordinationDepartment || '') },
+                ],
+                [
+                  { text: 'Người phê duyệt', bold: true },
+                  { text: ': ' + (jobRequirement.FullNameApprovedTBP || '') },
+                ],
+              ],
+            },
+            layout: 'noBorders',
+            margin: [0, 0, 0, 10],
+          },
+          // Nội dung yêu cầu
+          {
+            text: 'Nội dung yêu cầu:',
+            bold: true,
+            fontSize: 11,
+            margin: [0, 5, 0, 5],
+          },
+          {
+            table: {
+              headerRows: 1,
+              widths: [30, 80, '*', 100, 80],
+              body: [
+                [
+                  { text: 'TT', alignment: 'center', bold: true, fontSize: 11 },
+                  { text: 'Hạng mục', alignment: 'center', bold: true, fontSize: 11 },
+                  { text: 'Diễn giải', alignment: 'center', bold: true, fontSize: 11 },
+                  { text: 'Mục tiêu cần đạt', alignment: 'center', bold: true, fontSize: 11 },
+                  { text: 'Ghi chú', alignment: 'center', bold: true, fontSize: 11 },
+                ],
+                ...detailRows,
+              ],
+            },
+            layout: {
+              hLineWidth: () => 1,
+              vLineWidth: () => 1,
+              hLineColor: () => '#000000',
+              vLineColor: () => '#000000',
+            },
+            margin: [0, 0, 0, 10],
+          },
+          // Tài liệu kèm theo
+          {
+            text: 'Tài liệu kèm theo Phiếu yêu cầu công việc: ',
+            fontSize: 10,
+            margin: [0, 10, 0, 30],
+          },
+          // Đánh giá mức độ hoàn thành
+          {
+            text: 'Đánh giá mức độ hoàn thành: ',
+            bold: true,
+            fontSize: 10,
+            margin: [0, 10, 0, 20],
+          },
+          // Chữ ký
+          {
+            columns: [
+              {
+                width: '*',
+                stack: [
+                  { text: formatDate(jobRequirement.DateRequest), alignment: 'center', fontSize: 10, margin: [0, 0, 0, 5] },
+                  { text: 'Trưởng bộ phận yêu cầu', alignment: 'center', bold: true, fontSize: 10 },
+                  { text: jobRequirement.EmployeeName || '', alignment: 'center', fontSize: 10, margin: [0, 50, 0, 0] },
+                ],
+              },
+              {
+                width: '*',
+                stack: [
+                  { text: '', alignment: 'center', fontSize: 10, margin: [0, 0, 0, 5] },
+                  { text: 'Trưởng phòng HCNS', alignment: 'center', bold: true, fontSize: 10 },
+                  { text: '', alignment: 'center', fontSize: 10, margin: [0, 50, 0, 0] },
+                ],
+              },
+              {
+                width: '*',
+                stack: [
+                  { text: '', alignment: 'center', fontSize: 10, margin: [0, 0, 0, 5] },
+                  { text: 'Phê duyệt', alignment: 'center', bold: true, fontSize: 10 },
+                  { text: '', alignment: 'center', fontSize: 10, margin: [0, 50, 0, 0] },
+                ],
+              },
+            ],
+            margin: [0, 0, 0, 0],
+          },
+        ],
+        defaultStyle: {
+          fontSize: 10,
+          font: 'Times',
+        },
+      };
+
+      return docDefinition;
     }
 
     /**

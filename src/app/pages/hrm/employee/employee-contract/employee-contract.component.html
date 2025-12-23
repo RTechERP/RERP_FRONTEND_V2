@@ -70,7 +70,7 @@
 
 
 <div class="modal fade" id="addEmployeeContractModal" tabindex="-1" aria-labelledby="addEmployeeContractModalLabel"
-  aria-hidden="true">
+  aria-hidden="true" data-bs-backdrop="false">
   <div class="modal-dialog modal-dialog-centered fs-12">
     <div class="modal-content">
       <div class="modal-header bg-primary">
@@ -105,7 +105,7 @@
           <nz-form-item class="mb-1">
             <nz-form-label [nzSpan]="24">Loại HĐLĐ<span class="text-danger ps-1">*</span></nz-form-label>
             <nz-form-control [nzSpan]="24">
-              <nz-select formControlName="EmployeeLoaiHDLDID" nzAllowClear nzShowSearch>
+              <nz-select formControlName="EmployeeLoaiHDLDID" nzAllowClear nzShowSearch (ngModelChange)="onContractTypeChange($event)">
                 <nz-option *ngFor="let c of contractTypeList" [nzValue]="c.ID" [nzLabel]="c.Name"></nz-option>
               </nz-select>
             </nz-form-control>

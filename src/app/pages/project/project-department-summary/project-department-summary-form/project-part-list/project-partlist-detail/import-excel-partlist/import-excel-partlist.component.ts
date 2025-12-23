@@ -331,8 +331,11 @@ export class ImportExcelPartlistComponent implements OnInit, AfterViewInit {
           await this.workbook.xlsx.load(data);
           console.log('Workbook đã được tải bởi ExcelJS.');
 
-          this.excelSheets = this.workbook.worksheets.map(sheet => sheet.name);
-          console.log('Danh sách sheets tìm thấy:', this.excelSheets);
+          // Chỉ lấy các sheet visible (bỏ qua sheet ẩn)
+          this.excelSheets = this.workbook.worksheets
+            .filter(sheet => sheet.state === 'visible')
+            .map(sheet => sheet.name);
+          console.log('Danh sách sheets visible tìm thấy:', this.excelSheets);
 
           if (this.excelSheets.length > 0) {
             this.selectedSheet = this.excelSheets[0];
@@ -388,7 +391,7 @@ export class ImportExcelPartlistComponent implements OnInit, AfterViewInit {
       // Đọc ô D2 và so sánh với projectCode
       let cellD2 = ws.getCell("D2");
       let projectCodeExcel = this.getCellText(cellD2.master ?? cellD2).trim();
-      
+      console.log('projectCodeExcel', projectCodeExcel);
       // So sánh với projectCode
       if (projectCodeExcel && this.projectCode && projectCodeExcel !== this.projectCode.trim()) {
         this.notification.error('Thông báo', `Mã dự án excel [${projectCodeExcel}] khác với [${this.projectCode}]. Vui lòng kiểm tra lại`);

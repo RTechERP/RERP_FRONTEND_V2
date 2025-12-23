@@ -20,7 +20,6 @@ import { NzDatePickerModule } from 'ng-zorro-antd/date-picker';
 import { NzAutocompleteModule } from 'ng-zorro-antd/auto-complete';
 import { NzInputModule } from 'ng-zorro-antd/input';
 import { NzSelectModule } from 'ng-zorro-antd/select';
-import { NzFormModule } from 'ng-zorro-antd/form';
 import { NzTableModule } from 'ng-zorro-antd/table';
 import { TabulatorFull as Tabulator } from 'tabulator-tables';
 import 'tabulator-tables/dist/css/tabulator_simple.min.css';
@@ -84,7 +83,6 @@ import { Subject } from 'rxjs';
     NzAutocompleteModule,
     NzInputModule,
     NzSelectModule,
-    NzFormModule,
     NzTableModule,
     NzTabsModule,
     NzSpinModule,
@@ -142,7 +140,6 @@ export class ProjectComponent implements OnInit, AfterViewInit {
   isHide: any = false;
 
   sizeSearch: string = '0';
-  shouldShowSearchBar: boolean = false;
   sizeTbDetail: any = '0';
   project: any[] = [];
   projectTypes: any[] = [];
@@ -223,7 +220,6 @@ export class ProjectComponent implements OnInit, AfterViewInit {
 
   toggleSearchPanel() {
     this.sizeSearch = this.sizeSearch == '0' ? '22%' : '0';
-    this.shouldShowSearchBar = !this.shouldShowSearchBar;
   }
 
   createdText(text: String) {

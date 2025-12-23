@@ -19,6 +19,7 @@ import { NOTIFICATION_TITLE } from '../../../../app.config';
 import { AppUserService } from '../../../../services/app-user.service';
 import { NzUploadChangeParam, NzUploadFile, NzUploadModule } from 'ng-zorro-antd/upload';
 import { ChiTieitSanPhamSaleService } from '../../../old/Sale/chi-tiet-san-pham-sale/chi-tieit-san-pham-sale.service';
+import { NzIconModule } from 'ng-zorro-antd/icon';
 
 @Component({
     selector: 'app-payment-order-detail',
@@ -36,6 +37,7 @@ import { ChiTieitSanPhamSaleService } from '../../../old/Sale/chi-tiet-san-pham-
         NzUploadModule,
         FormsModule,
         AngularSlickgridModule,
+        NzIconModule
     ],
     templateUrl: './payment-order-detail.component.html',
     styleUrl: './payment-order-detail.component.css'
@@ -220,10 +222,10 @@ export class PaymentOrderDetailComponent implements OnInit, AfterViewInit {
         this.initFormGroup();
         this.initDataCombo();
         this.initGrid();
-    // Thêm xử lý khi ponccID > 0
-    if (this.ponccID > 0) {
-        this.loadDataFromPONCC();
-    }
+        // Thêm xử lý khi ponccID > 0
+        if (this.ponccID > 0) {
+            this.loadDataFromPONCC();
+        }
     }
     loadDataFromPONCC() {
         this.paymentService.getDataFromPONCC(this.ponccID).subscribe({
@@ -280,7 +282,7 @@ export class PaymentOrderDetailComponent implements OnInit, AfterViewInit {
                 }, 100);
             },
             error: (err) => {
-                this.notification.error(NOTIFICATION_TITLE.error, err.error?.message)
+                this.notification.error(NOTIFICATION_TITLE.error, err?.error?.message || err?.message);
             }
         });
     }
@@ -304,7 +306,7 @@ export class PaymentOrderDetailComponent implements OnInit, AfterViewInit {
                 this.projects = response.data.projects;
             },
             error: (err) => {
-                this.notification.error(NOTIFICATION_TITLE.error, err.error.message);
+                this.notification.error(NOTIFICATION_TITLE.error, err?.error?.message || err?.message);
             }
         });
 
@@ -435,6 +437,15 @@ export class PaymentOrderDetailComponent implements OnInit, AfterViewInit {
                 // filter: { model: Filters['compoundDate'] }
                 onCellClick: (e: Event, args: OnEventArgs) => {
                     this.deleteItem(e, args)
+                }
+                , header: {
+                    buttons: [
+                        {
+                            cssClass: 'fa fa-plus',
+                            tooltip: 'Thêm mới',
+                            command: 'add'
+                        }
+                    ]
                 }
             },
             {
@@ -663,6 +674,14 @@ export class PaymentOrderDetailComponent implements OnInit, AfterViewInit {
             },
             multiColumnSort: false,
 
+            enableHeaderButton: true,
+            headerButton: {
+                // you can use the "onCommand" (in Grid Options) and/or the "action" callback (in Column Definition)
+                onCommand: (_e, args) => {
+                    this.addItem(_e, args)
+                },
+
+            },
 
         };
 
@@ -744,7 +763,7 @@ export class PaymentOrderDetailComponent implements OnInit, AfterViewInit {
     submitForm() {
         // console.log('this.validateForm.valid', this.validateForm.valid);
         // console.log('this.fileUploads:', this.fileUploads);
-        this.uploadFile(14176);
+        // this.uploadFile(14176);
         if (!this.validateForm.valid) {
             Object.values(this.validateForm.controls).forEach(control => {
                 if (control.invalid) {
@@ -765,15 +784,17 @@ export class PaymentOrderDetailComponent implements OnInit, AfterViewInit {
                 PaymentOrderDetails: gridInstance.dataView.getItems(),
                 TotalMoney: parseFloat(columnElement.textContent ?? ''),
             };
-            console.log('submit data', this.paymentOrder);
+            // console.log('submit data', this.paymentOrder);
 
             this.paymentService.save(this.paymentOrder).subscribe({
                 next: (response) => {
-                    console.log(response);
+                    // console.log(response);
+                    this.uploadFile(response.data.ID);
+                    this.notification.success(NOTIFICATION_TITLE.success, response.message);
 
                 },
                 error: (err) => {
-                    this.notification.error(NOTIFICATION_TITLE.error, err.error.message);
+                    this.notification.error(NOTIFICATION_TITLE.error, err?.error?.message || err?.message);
                 }
             });
 
@@ -781,7 +802,7 @@ export class PaymentOrderDetailComponent implements OnInit, AfterViewInit {
         }
     }
 
-    addItem() {
+    addItem(_e: any, args: any) {
 
         let gridInstance = this.angularGrid;
         if (this.paymentOrder.TypeOrder == 2) gridInstance = this.angularGrid2;
@@ -901,15 +922,15 @@ export class PaymentOrderDetailComponent implements OnInit, AfterViewInit {
 
         // let fileDelete = this.fileDeletes.join(',');
 
-        console.log('uploadFile files:', files);
-        console.log('fileDelete:', JSON.stringify(this.fileDeletes));
-        console.log('paymentOrderID:', paymentOrderID);
+        // console.log('uploadFile files:', files);
+        // console.log('fileDelete:', JSON.stringify(this.fileDeletes));
+        // console.log('paymentOrderID:', paymentOrderID);
         this.paymentService.uploadFile(files, paymentOrderID, JSON.stringify(this.fileDeletes)).subscribe({
             next: (reponse) => {
                 console.log(reponse);
             },
             error: (err) => {
-                this.notification.error(NOTIFICATION_TITLE.error, err.error.message);
+                this.notification.error(NOTIFICATION_TITLE.error, err?.error?.message || err?.message);
             }
         })
     }

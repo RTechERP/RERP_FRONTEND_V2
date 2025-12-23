@@ -98,6 +98,8 @@ export class PaymentOrderComponent implements OnInit {
         isDelete: 0
     };
 
+    activeTab = '0';
+
     isAdvandShow = true;
 
     departments: any = [];
@@ -1773,7 +1775,9 @@ export class PaymentOrderComponent implements OnInit {
     }
 
     initModal(paymentOrder: any = new PaymentOrder()) {
-        paymentOrder.IsSpecialOrder = 1;
+
+
+        paymentOrder.IsSpecialOrder = this.activeTab == '1';
         if (!paymentOrder.IsSpecialOrder) {
             const modalRef = this.modalService.open(PaymentOrderDetailComponent, {
                 centered: true,
@@ -1794,14 +1798,14 @@ export class PaymentOrderComponent implements OnInit {
                 scrollable: true,
                 fullscreen: true,
             });
-
-            paymentOrder.IsSpecialOrder = true;
             modalRef.componentInstance.paymentOrder = paymentOrder;
         }
 
     }
 
     onCreate() {
+
+        // console.log('activeTab:', this.activeTab);
         this.initModal();
     }
 
@@ -2755,4 +2759,7 @@ export class PaymentOrderComponent implements OnInit {
         pdfMake.createPdf(docDefinition).open();
     }
 
+    onTabChange(value: string) {
+        console.log('Active tab:', value);
+    }
 }

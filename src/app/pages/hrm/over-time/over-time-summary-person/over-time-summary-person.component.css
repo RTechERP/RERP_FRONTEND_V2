@@ -7,12 +7,6 @@
   font-weight: bold;
 }
 
-::ng-deep .tabulator .tabulator-row.tabulator-group {
-  background-color: #6c757d !important;
-  color: white !important;
-  font-weight: bold;
-  text-transform: uppercase;
-}
 
 ::ng-deep .tabulator .tabulator-row:hover {
   background-color: #f1f3f5;

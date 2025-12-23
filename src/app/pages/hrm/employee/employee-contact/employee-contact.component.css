@@ -1,44 +1,44 @@
 @media (min-width: 768px) {
-  .table-responsive {
+  .employee-contact-page .table-responsive {
     display: block;
     height: 90vh !important;
   }
 
-  .card-contact {
+  .employee-contact-page .card-contact {
     display: none;
   }
 }
 
 @media (max-width: 768px) {
-  .table-responsive {
+  .employee-contact-page .table-responsive {
     display: none;
     height: 90vh !important;
   }
 
-  .card-contact {
+  .employee-contact-page .card-contact {
     display: block;
   }
 }
 
-.sticky-top {
+.employee-contact-page .sticky-top {
   position: sticky;
   top: 70px;
   z-index: 1;
 }
 
-.sticky-top-table {
+.employee-contact-page .sticky-top-table {
   position: sticky;
   top: -3px;
   z-index: 1;
   background-color: #c9ccd1 !important;
 }
 
-.sticky-top-table th {
+.employee-contact-page .sticky-top-table th {
   background-color: antiquewhite !important;
   color: #000000 !important;
 }
 
-.dt-sticky-left {
+.employee-contact-page .dt-sticky-left {
   position: sticky;
   left: 0;
   z-index: 0;
@@ -46,21 +46,21 @@
   vertical-align: middle !important;
 }
 
-.card-header h4 {
+.employee-contact-page .card-header h4 {
   text-align: center;
   flex: 1;
 }
 
-.card-header-action {
+.employee-contact-page .card-header-action {
   margin-left: auto;
 }
 
-.btn-icon {
+.employee-contact-page .btn-icon {
   border-top-right-radius: 5px !important;
   border-bottom-right-radius: 5px !important;
 }
 
-.dt-button {
+.employee-contact-page .dt-button {
   width: auto !important;
   height: 30px !important;
   margin: 0 0 0 5px !important;
@@ -68,44 +68,44 @@
 }
 
 /* Tabulator custom styles */
-::ng-deep .tabulator {
+.employee-contact-page ::ng-deep .tabulator {
   font-size: 12px;
   width: 100%;
   table-layout: auto !important;
 }
 
-::ng-deep .tabulator .tabulator-header {
+.employee-contact-page ::ng-deep .tabulator .tabulator-header {
   background-color: antiquewhite;
   font-weight: bold;
 }
 
-::ng-deep .tabulator .tabulator-row.tabulator-group {
+.employee-contact-page ::ng-deep .tabulator .tabulator-row.tabulator-group {
   background-color: #acafb1 !important;
   color: rgb(26, 26, 26) !important;
   font-weight: bold;
   text-transform: uppercase;
 }
 
-::ng-deep .tabulator .tabulator-row:hover {
+.employee-contact-page ::ng-deep .tabulator .tabulator-row:hover {
   background-color: #f1f3f5;
 }
 
-::ng-deep .tabulator .tabulator-row:focus {
+.employee-contact-page ::ng-deep .tabulator .tabulator-row:focus {
   background-color: #ffd800;
 }
 
-::ng-deep .tabulator tbody tr td {
+.employee-contact-page ::ng-deep .tabulator tbody tr td {
   padding: 0 !important;
   white-space: pre-line !important;
 }
 
-::ng-deep .tabulator .tabulator-col:nth-child(1) {
+.employee-contact-page ::ng-deep .tabulator .tabulator-col:nth-child(1) {
   width: 5% !important;
 }
 
-::ng-deep .tabulator .tabulator-col:nth-child(2),
-::ng-deep .tabulator .tabulator-col:nth-child(3),
-::ng-deep .tabulator .tabulator-col:nth-child(4),
-::ng-deep .tabulator .tabulator-col:nth-child(5) {
+.employee-contact-page ::ng-deep .tabulator .tabulator-col:nth-child(2),
+.employee-contact-page ::ng-deep .tabulator .tabulator-col:nth-child(3),
+.employee-contact-page ::ng-deep .tabulator .tabulator-col:nth-child(4),
+.employee-contact-page ::ng-deep .tabulator .tabulator-col:nth-child(5) {
   width: 20% !important;
 }

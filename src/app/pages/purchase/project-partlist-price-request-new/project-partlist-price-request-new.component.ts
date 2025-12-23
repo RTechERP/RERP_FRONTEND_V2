@@ -108,10 +108,6 @@ export class ProjectPartlistPriceRequestNewComponent implements OnInit, OnDestro
   @Input() isVPP: boolean = false;
   @Input() projectPartlistPriceRequestTypeID: number = 0;
   @Input() initialTabId: number = 0;
-  // Modal header properties
-  @Input() showHeader: boolean = false;
-  @Input() headerText: string = 'Yêu cầu báo giá';
-  @Input() showCloseButton: boolean = false;
   // Active tab tracking
   sizeSearch: string = '0';
   activeTabId = 2;
@@ -168,6 +164,9 @@ export class ProjectPartlistPriceRequestNewComponent implements OnInit, OnDestro
   labels: { [key: number]: string } = {};
   labeln: { [key: number]: string } = {};
   showSearchBar: boolean = false;
+  showHeader: boolean = false;
+  headerText: string = '';
+  showCloseButton: boolean = false;
 
   private cdr: ChangeDetectorRef = inject(ChangeDetectorRef);
   private ngZone: NgZone = inject(NgZone);
@@ -176,15 +175,6 @@ export class ProjectPartlistPriceRequestNewComponent implements OnInit, OnDestro
     @Optional() @Inject('tabData') private tabData: any,
     @Optional() public activeModal?: NgbActiveModal
   ) {
-    // Khi mở từ modal (activeModal tồn tại), tự động hiển thị header
-    if (this.activeModal) {
-      this.showHeader = true;
-      this.showCloseButton = true;
-      if (!this.headerText || this.headerText === 'Yêu cầu báo giá') {
-        this.headerText = 'Yêu cầu báo giá';
-      }
-    }
-
     // Khi mở từ new tab, data được truyền qua injector
     if (this.tabData) {
       // Nếu có initialTabId trong tabData, set activeTabId trực tiếp

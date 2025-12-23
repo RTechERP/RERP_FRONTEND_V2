@@ -1904,58 +1904,79 @@ export class PonccNewComponent implements OnInit, AfterViewInit {
     onImportWareHouse(warehouseID: number) {
         const selectedRows = this.getSelectedMasterRows();
 
+        // Validate selection
         if (!selectedRows || selectedRows.length === 0) {
             this.notification.warning(
                 NOTIFICATION_TITLE.warning,
-                'Vui lòng chọn ít nhất một PO để nhập kho!'
+                'Vui lòng chọn PO!'
             );
             return;
         }
 
-        const ponccIds = selectedRows
-            .map((po: any) => po.ID)
-            .filter((id: number) => id > 0);
+        // Validate status - chỉ cho phép status 0 hoặc 5
+        for (const po of selectedRows) {
+            const id = po.ID || 0;
+            if (id <= 0) continue;
 
-        if (ponccIds.length === 0) {
-            this.notification.warning(
-                NOTIFICATION_TITLE.warning,
-                'Không có PO hợp lệ để nhập kho!'
-            );
-            return;
+            const status = po.Status || 0;
+            const statusText = po.StatusText || '';
+            const code = po.POCode || '';
+
+            if (status !== 0 && status !== 5) {
+                this.modal.warning({
+                    nzTitle: 'Thông báo',
+                    nzContent: `PO [${code}] đã ${statusText}.\nBạn không thể yêu cầu nhập kho!`,
+                    nzOkText: 'Đóng',
+                });
+                return;
+            }
         }
 
-        this.isLoading = true;
+        this.modal.confirm({
+            nzTitle: `Xác nhận yêu cầu nhập kho`,
+            nzContent: `Bạn có chắc muốn yêu cầu nhập kho danh sách PO đã chọn không?`,
+            nzOkText: 'OK',
+            nzOkType: 'primary',
+            nzCancelText: 'Hủy',
+            nzOnOk: () => {
+                const ids = selectedRows.map((x) => x.ID).join(',');
+                // Lấy tất cả detail IDs từ masterDetailsMap
+                const idString = Array.from(this.masterDetailsMap.values())
+                    .flat()
+                    .map((x) => x.ID)
+                    .filter((id) => id != null && id > 0)
+                    .join(',');
+                
+                this.srv.getPonccDetail(ids, warehouseID, idString).subscribe((res) => {
+                    let dataSale = res.data.dataSale || [];
+                    let dataDemo = res.data.dataDemo || [];
+                    let listSaleDetail = res.data.listSaleDetail || [];
+                    let listDemoDetail = res.data.listDemoDetail || [];
+                    let listDemoPonccId = res.data.listDemoPonccId || [];
+                    let listSalePonccId = res.data.listSalePonccId || [];
 
-        this.srv.validateRequestImport(ponccIds, warehouseID).subscribe({
-            next: (response: any) => {
-                this.isLoading = false;
-                const listData = response.data?.listData || [];
-                const listDetail = response.data?.listDetail || [];
-                const listPonccId = response.data?.listPonccId || [];
+                    if (dataSale.length > 0) {
+                        this.openBillImportModalSequentially(
+                            dataSale,
+                            listSaleDetail,
+                            listSalePonccId,
+                            warehouseID,
+                            0,
+                            0
+                        );
+                    }
 
-                if (listData.length === 0) {
-                    this.notification.warning(
-                        NOTIFICATION_TITLE.warning,
-                        'Không có dữ liệu để nhập kho!'
-                    );
-                    return;
-                }
-
-                this.openBillImportModalSequentially(
-                    listData,
-                    listDetail,
-                    listPonccId,
-                    warehouseID,
-                    0,
-                    1
-                );
-            },
-            error: (err) => {
-                this.isLoading = false;
-                this.notification.error(
-                    NOTIFICATION_TITLE.error,
-                    err.error?.message || 'Không thể validate request import!'
-                );
+                    if (dataDemo.length > 0) {
+                        this.openBillImportModalSequentially(
+                            dataDemo,
+                            listDemoDetail,
+                            listDemoPonccId,
+                            warehouseID,
+                            0,
+                            1
+                        );
+                    }
+                });
             },
         });
     }
@@ -1968,45 +1989,112 @@ export class PonccNewComponent implements OnInit, AfterViewInit {
         index: number,
         type: number
     ) {
+        let warehouseCode = '';
+        switch (warehouseID) {
+            case 1:
+                warehouseCode = 'HN';
+                break;
+            case 2:
+                warehouseCode = 'HCM';
+                break;
+            case 3:
+                warehouseCode = 'BN';
+                break;
+            case 4:
+                warehouseCode = 'HP';
+                break;
+            case 6:
+                warehouseCode = 'DP';
+                break;
+            default:
+                warehouseCode = '';
+                break;
+        }
+
         if (index >= listData.length) {
-            this.notification.success(
-                NOTIFICATION_TITLE.success,
-                'Đã xử lý xong tất cả các PO!'
-            );
-            this.onSearch();
             return;
         }
 
-        const currentData = listData[index];
-        const currentDetail = listDetail.filter(
-            (d: any) => d.PONCCID === currentData.ID
-        );
+        let dataMaster = listData[index];
+        let dataDetail = listDetail[index];
+        let ponccId = listPonccId[index];
 
-        const modalRef = this.modalService.open(BillImportDetailComponent, {
-            size: 'xl',
-            backdrop: 'static',
-            keyboard: false,
-            centered: true,
-        });
+        if (type === 0) {
+            const modalRef = this.modalService.open(BillImportDetailComponent, {
+                backdrop: 'static',
+                keyboard: false,
+                centered: true,
+                windowClass: 'full-screen-modal',
+            });
 
-        modalRef.componentInstance.dataInput = currentData;
-        modalRef.componentInstance.listDetail = currentDetail;
-        modalRef.componentInstance.warehouseID = warehouseID;
-        modalRef.componentInstance.type = type;
-        modalRef.componentInstance.listPonccId = listPonccId;
+            modalRef.componentInstance.newBillImport = dataMaster;
+            modalRef.componentInstance.WarehouseCode = warehouseCode;
+            modalRef.componentInstance.selectedList = dataDetail;
+            modalRef.componentInstance.id = dataMaster.ID ?? 0;
+            modalRef.componentInstance.poNCCId = ponccId ?? 0;
 
-        modalRef.result.finally(() => {
-            setTimeout(() => {
-                this.openBillImportModalSequentially(
-                    listData,
-                    listDetail,
-                    listPonccId,
-                    warehouseID,
-                    index + 1,
-                    type
-                );
-            }, 100);
-        });
+            modalRef.result
+                .then((result) => {
+                    this.openBillImportModalSequentially(
+                        listData,
+                        listDetail,
+                        listPonccId,
+                        warehouseID,
+                        index + 1,
+                        type
+                    );
+                })
+                .catch((reason) => {
+                    this.openBillImportModalSequentially(
+                        listData,
+                        listDetail,
+                        listPonccId,
+                        warehouseID,
+                        index + 1,
+                        type
+                    );
+                });
+        }
+
+        if (type === 1) {
+            const modalRef = this.modalService.open(
+                BillImportTechnicalFormComponent,
+                {
+                    backdrop: 'static',
+                    keyboard: false,
+                    centered: true,
+                    windowClass: 'full-screen-modal',
+                }
+            );
+
+            modalRef.componentInstance.newBillImport = dataMaster;
+            modalRef.componentInstance.warehouseID = warehouseID;
+            modalRef.componentInstance.flag = 1;
+            modalRef.componentInstance.dtDetails = dataDetail;
+            modalRef.componentInstance.PonccID = ponccId ?? 0;
+
+            modalRef.result
+                .then((result) => {
+                    this.openBillImportModalSequentially(
+                        listData,
+                        listDetail,
+                        listPonccId,
+                        warehouseID,
+                        index + 1,
+                        type
+                    );
+                })
+                .catch((reason) => {
+                    this.openBillImportModalSequentially(
+                        listData,
+                        listDetail,
+                        listPonccId,
+                        warehouseID,
+                        index + 1,
+                        type
+                    );
+                });
+        }
     }
 
     onOpenSummary() {

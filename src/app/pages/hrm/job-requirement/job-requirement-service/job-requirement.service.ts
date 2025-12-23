@@ -182,4 +182,26 @@ export class JobRequirementService {
       environment.host + `api/jobrequirement/get-all`
     );
   }
+
+  getSummaryJobRequirement(
+    dateStart: Date,
+    dateEnd: Date,
+    request: string,
+    employeeID: number,
+    step: number,
+    departmentID: number
+  ): Observable<any> {
+    const params: any = {
+      DateStart: dateStart,
+      DateEnd: dateEnd,
+      request: request || '',
+      EmployeeID: employeeID || 0,
+      Step: step || 0,
+      DepartmentID: departmentID || 0
+    };
+    return this.http.post<any>(
+      environment.host + `api/jobrequirement/get-summary-jobrequirement`,
+      params
+    );
+  }
 }

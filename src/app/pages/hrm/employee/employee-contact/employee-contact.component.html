@@ -1,0 +1,33 @@
+<nz-splitter class="employee-contact-page" style="height: 90vh;">
+  <nz-splitter-panel>
+    <div class="card card-primary rounded-0 border-0 h-100 d-flex flex-column">
+      <div class="card-header p-1 bg-white border-bottom d-flex justify-content-between align-items-center">
+        <h4 class="text-uppercase m-0">
+          <span class="text-dark font-weight-bold">THÔNG TIN LIÊN HỆ NHÂN VIÊN ({{ totalEmployees }} NS)</span>
+        </h4>
+        <div class="card-header-action">
+          <form class="card-header-form mt-0" (submit)="onSearch(); $event.preventDefault()">
+            <div class="input-group">
+              <input
+                type="text"
+                class="form-control form-control-sm"
+                [(ngModel)]="keyword"
+                name="keyword"
+                placeholder="Từ khóa..."
+                (keyup.enter)="onSearch()"
+              />
+              <button type="submit" class="btn btn-success btn-sm btn-icon">
+                <i nz-icon nzType="search" nzTheme="outline"></i>
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+      <div class="card-body p-1 flex-grow-1 overflow-hidden">
+        <div class="table-responsive p-0 h-100">
+          <div #contactTable></div>
+        </div>
+      </div>
+    </div>
+  </nz-splitter-panel>
+</nz-splitter>

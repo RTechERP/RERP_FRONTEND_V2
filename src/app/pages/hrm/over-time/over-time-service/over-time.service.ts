@@ -96,4 +96,12 @@ export class OverTimeService {
   getProjectItem(request: any): Observable<any> {
     return this.http.post<any>(this._url + 'ProjectItem/get-project-item-over-time', request);
   }
+
+  /**
+   * Lấy tổng hợp làm đêm theo người với phân trang
+   * @param request EmployeeOverTimeSummaryPersonParam
+   */
+  getSummaryOverTimePerson(request: any): Observable<any> {
+    return this.http.post<any>(this._url + 'EmployeeOverTime/get-summary-over-time-person', request);
+  }
 }

@@ -328,6 +328,7 @@ export class VehicleScheduleFormComponent implements OnInit {
           VehicleManagementID: formValue.vehicleTypeID,
           Status: 2,
           ID: item.ID,
+          DepartureDateActual:item.DepartureDate,
           VehicleMoney: formValue.priceVehicle,
           DriverPhoneNumber: formValue.SDT,
           LicensePlate: formValue.licensePlates,

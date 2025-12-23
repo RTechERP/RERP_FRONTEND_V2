@@ -151,6 +151,7 @@ export class VehicleBookingManagementDetailComponent implements OnInit {
   showTimeReturn: boolean = true;
   showDepartureReturn: boolean = false;
   isProblem: boolean = false;
+  isSaving: boolean = false;
 
   provinceDepartureIDs: number[] = [1, 2, 3, 4];
 
@@ -268,7 +269,7 @@ export class VehicleBookingManagementDetailComponent implements OnInit {
         if (Array.isArray(responseData)) {
           this.projects = responseData.map((item: any) => ({
             value: item.ID || item.Id || item.ProjectID,
-            label: item.Project || item.ProjectName || item.Name || item.FullName || item.Label
+            label: item.ProjectCode + ' - ' + item.ProjectName
           }));
         } else {
           this.projects = [];
@@ -774,7 +775,14 @@ export class VehicleBookingManagementDetailComponent implements OnInit {
   }
 
   save(): void {
+    if (this.isSaving) {
+      return; // Prevent multiple clicks
+    }
+
+    this.isSaving = true;
+
     if (!this.validate()) {
+      this.isSaving = false;
       return;
     }
 
@@ -882,6 +890,7 @@ export class VehicleBookingManagementDetailComponent implements OnInit {
         // Tất cả booking đã được tạo, gửi email
         this.sendEmailNotification();
         this.notification.success('Thành công', 'Đặt xe thành công');
+        this.isSaving = false;
         this.activeModal.close(true);
         return;
       }
@@ -909,10 +918,12 @@ export class VehicleBookingManagementDetailComponent implements OnInit {
             currentIndex++;
             saveNext();
           } else {
+            this.isSaving = false;
             this.notification.error('Lỗi', result?.message || result?.Message || 'Có lỗi xảy ra khi lưu');
           }
         },
         error: (err) => {
+          this.isSaving = false;
           this.notification.error('Lỗi', err?.error?.message || err?.error?.Message || 'Có lỗi xảy ra khi lưu dữ liệu');
         }
       });

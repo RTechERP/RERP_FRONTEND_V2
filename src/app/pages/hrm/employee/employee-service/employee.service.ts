@@ -25,6 +25,11 @@ export class EmployeeService {
     );
   }
 
+  getEmployeesLoginManager(): Observable<any> {
+    return this.http.get(
+      this._url + 'Employee?status=-1&departmentID=0&keyword='
+    );
+  }
   filterEmployee(
     status: number,
     departmentID: number,
@@ -116,5 +121,18 @@ export class EmployeeService {
 
   saveEmployeeTeam(employeeTeam: any) {
     return this.http.post<any>(this._url + 'EmployeeTeam', employeeTeam);
+  }
+
+  /**
+   * Lấy danh sách thông tin liên hệ nhân viên
+   * @param departmentID ID phòng ban (0 = tất cả)
+   * @param keyword Từ khóa tìm kiếm
+   */
+  getAllContact(departmentID: number, keyword: string): Observable<any> {
+    const params = {
+      departmentID: departmentID,
+      keyword: keyword || ''
+    };
+    return this.http.get<any>(this._url + 'Home/get-all-contact', { params });
   }
 }

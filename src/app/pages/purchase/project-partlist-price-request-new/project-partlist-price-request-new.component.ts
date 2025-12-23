@@ -164,6 +164,9 @@ export class ProjectPartlistPriceRequestNewComponent implements OnInit, OnDestro
   labels: { [key: number]: string } = {};
   labeln: { [key: number]: string } = {};
   showSearchBar: boolean = false;
+  showHeader: boolean = false;
+  headerText: string = '';
+  showCloseButton: boolean = false;
 
   private cdr: ChangeDetectorRef = inject(ChangeDetectorRef);
   private ngZone: NgZone = inject(NgZone);

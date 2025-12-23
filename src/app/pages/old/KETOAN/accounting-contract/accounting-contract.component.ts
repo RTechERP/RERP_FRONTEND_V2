@@ -361,6 +361,33 @@ export class AccountingContractComponent implements OnInit, AfterViewInit {
   }
   
   onReceiveContract() {
+    if (!this.selectedRow || !this.selectedRow.ID) {
+      this.notification.warning(
+        NOTIFICATION_TITLE.warning, 
+        'Vui lòng chọn hợp đồng để sửa'
+      );
+      return;
+    }
+
+    const modalRef = this.modalService.open(AccountingContractDetailComponent, {
+      size: 'xl',
+      backdrop: 'static',
+      centered: true,
+    });
+    
+    modalRef.componentInstance.editId = this.selectedRow.ID;
+    modalRef.componentInstance.isReceivedContractMode = true;
+    
+    modalRef.result.then(
+      (result) => {
+        if (result === 'saved' || result === 'success') {
+          this.loadData();
+        }
+      },
+      () => {
+        // Modal dismissed
+      }
+    );
   }
 
   onCancelReceiveContract() {
@@ -554,7 +581,7 @@ export class AccountingContractComponent implements OnInit, AfterViewInit {
           sorter: 'string',
           width: 200,
           headerFilter: 'input',
-          headerFilterPlaceholder: 'Lọc loại',
+          headerFilterPlaceholder: 'Lọc tên công ty',
         },
         {
           title: 'Phân loại HĐ chính',
@@ -562,7 +589,7 @@ export class AccountingContractComponent implements OnInit, AfterViewInit {
           sorter: 'string',
           width: 200,
           headerFilter: 'input',
-          headerFilterPlaceholder: 'Lọc loại',
+          headerFilterPlaceholder: 'Lọc phân loại HĐ chính',
         },
         {
           title: 'Loại HĐ',
@@ -570,15 +597,15 @@ export class AccountingContractComponent implements OnInit, AfterViewInit {
           sorter: 'string',
           width: 200,
           headerFilter: 'input',
-          headerFilterPlaceholder: 'Lọc loại',
+          headerFilterPlaceholder: 'Lọc loại HĐ',
         },
         {
           title: 'Tên khách hàng / Nhà cung cấp',
           field: 'CustomerOrSupplier',
           sorter: 'string',
-          width: 200,
+          width: 250,
           headerFilter: 'input',
-          headerFilterPlaceholder: 'Lọc loại',
+          headerFilterPlaceholder: 'Lọc tên KH / NCC',
         },
         {
           title: 'Số HĐ/PL',
@@ -586,7 +613,7 @@ export class AccountingContractComponent implements OnInit, AfterViewInit {
           sorter: 'string',
           width: 200,
           headerFilter: 'input',
-          headerFilterPlaceholder: 'Lọc loại',
+          headerFilterPlaceholder: 'Lọc số HĐ/PL',
         },
         {
           title: 'Ngày HĐ',
@@ -646,6 +673,8 @@ export class AccountingContractComponent implements OnInit, AfterViewInit {
           sorter: 'string',
           formatter: 'textarea',
           width: 350,
+          headerFilter: 'input',
+          headerFilterPlaceholder: 'Lọc nội dung thanh toán',
         },
         {
           title: 'Hiệu lực HĐ',
@@ -691,6 +720,8 @@ export class AccountingContractComponent implements OnInit, AfterViewInit {
           sorter: 'string',
           formatter: 'textarea',
           width: 250,
+          headerFilter: 'input',
+          headerFilterPlaceholder: 'Lọc thông tin thay đổi',
         },
         {
           title: 'Ngày trả hồ sơ gốc',

@@ -285,7 +285,9 @@ export class VehicleBookingManagementComponent
     });
     modalRef.result.then(
       (result) => {
-        console.log('Modal dismissed');
+        if (result) {
+          setTimeout(() => this.getVehicleBookingManagement(), 100);
+        }
       },
       () => {
         console.log('Modal dismissed');

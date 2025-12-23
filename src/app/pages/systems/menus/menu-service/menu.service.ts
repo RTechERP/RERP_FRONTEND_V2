@@ -159,6 +159,8 @@ import { PonccNewComponent } from '../../../purchase/poncc-new/poncc-new.compone
 
 import { DailyReportThrComponent } from '../../../daily-report-thr/daily-report-thr.component';
 import { DailyReportLXCPComponent } from '../../../daily-report-lxcp/daily-report-lxcp.component';
+import { EmployeeContactComponent } from '../../../hrm/employee/employee-contact/employee-contact.component';
+import { OverTimeSummaryPersonComponent } from '../../../hrm/over-time/over-time-summary-person/over-time-summary-person.component';
 import { MenuAppComponent } from '../../menu-app/menu-app.component';
 
 @Injectable({
@@ -698,7 +700,7 @@ export class MenuService {
                                     {
                                         kind: 'leaf',
                                         key: 'InventoryComponent_HCM',
-                                        title: 'TỒN KHO',
+                                        title: 'TỒN KHO HCM',
                                         isOpen: true,
                                         isPermission: this.permissionService.hasPermission(
                                             'N27,N31,N30,N33,N29,N54,N1,N36'
@@ -914,7 +916,7 @@ export class MenuService {
                                     {
                                         kind: 'leaf',
                                         key: 'InventoryComponent_BN',
-                                        title: 'TỒN KHO',
+                                        title: 'TỒN KHO BN',
                                         isOpen: true,
                                         isPermission: this.permissionService.hasPermission(
                                             'N27,N29,N31,N30,N1,N36'
@@ -925,7 +927,7 @@ export class MenuService {
                                     {
                                         kind: 'leaf',
                                         key: 'BillImportComponent_BN',
-                                        title: 'PHIẾU NHẬP',
+                                        title: 'PHIẾU NHẬP BN',
                                         isOpen: true,
                                         isPermission: this.permissionService.hasPermission(
                                             'N27,N29,N50,N1,N36,N52,N35,N33,N34,N69'
@@ -936,7 +938,7 @@ export class MenuService {
                                     {
                                         kind: 'leaf',
                                         key: 'BillExportComponent_BN',
-                                        title: 'PHIẾU XUẤT',
+                                        title: 'PHIẾU XUẤT BN',
                                         isOpen: true,
                                         isPermission: this.permissionService.hasPermission(
                                             'N27,N29,N50,N1,N36,N52,N35,N33,N34,N69'
@@ -947,7 +949,7 @@ export class MenuService {
                                     {
                                         kind: 'leaf',
                                         key: 'HistoryImportExportComponent_BN',
-                                        title: 'LỊCH SỬ NHẬP - XUẤT',
+                                        title: 'LỊCH SỬ NHẬP - XUẤT BN',
                                         isOpen: true,
                                         isPermission:
                                             this.permissionService.hasPermission(
@@ -959,7 +961,7 @@ export class MenuService {
                                     {
                                         kind: 'leaf',
                                         key: 'HistoryBorrowSaleComponent_BN',
-                                        title: 'LỊCH SỬ MƯỢN',
+                                        title: 'LỊCH SỬ MƯỢN BN',
                                         isOpen: true,
                                         isPermission: this.permissionService.hasPermission(''),
                                         comp: HistoryBorrowSaleComponent,
@@ -968,7 +970,7 @@ export class MenuService {
                                     {
                                         kind: 'leaf',
                                         key: 'ReportImportExportComponent_BN',
-                                        title: 'BÁO CÁO NHẬP - XUẤT',
+                                        title: 'BÁO CÁO NHẬP - XUẤT BN',
                                         isOpen: true,
                                         isPermission:
                                             this.permissionService.hasPermission(
@@ -980,7 +982,7 @@ export class MenuService {
                                     {
                                         kind: 'leaf',
                                         key: 'ListProductProjectComponent_BN',
-                                        title: 'SẢN PHẨM THEO DỰ ÁN',
+                                        title: 'SẢN PHẨM THEO DỰ ÁN BN',
                                         isOpen: true,
                                         isPermission: this.permissionService.hasPermission(''),
                                         comp: ListProductProjectComponent,
@@ -1007,7 +1009,7 @@ export class MenuService {
                                     {
                                         kind: 'leaf',
                                         key: 'InventoryDemoComponent_BN',
-                                        title: 'TỒN KHO DEMO',
+                                        title: 'TỒN KHO DEMO BN',
                                         isOpen: true,
                                         isPermission: this.permissionService.hasPermission(''),
                                         comp: InventoryDemoComponent,
@@ -1016,7 +1018,7 @@ export class MenuService {
                                     {
                                         kind: 'leaf',
                                         key: 'BillImportTechnicalComponent_BN',
-                                        title: 'PHIẾU NHẬP DEMO',
+                                        title: 'PHIẾU NHẬP DEMO BN',
                                         isOpen: true,
                                         isPermission: this.permissionService.hasPermission(''),
                                         comp: BillImportTechnicalComponent,
@@ -1025,7 +1027,7 @@ export class MenuService {
                                     {
                                         kind: 'leaf',
                                         key: 'BillExportTechnicalComponent_BN',
-                                        title: 'PHIẾU XUẤT DEMO',
+                                        title: 'PHIẾU XUẤT DEMO BN',
                                         isOpen: true,
                                         isPermission: this.permissionService.hasPermission(''),
                                         comp: BillExportTechnicalComponent,
@@ -1034,7 +1036,7 @@ export class MenuService {
                                     {
                                         kind: 'leaf',
                                         key: 'ProductReportNewRtcComponent_BN',
-                                        title: 'LỊCH SỬ NHẬP - XUẤT DEMO',
+                                        title: 'LỊCH SỬ NHẬP - XUẤT DEMO BN',
                                         isOpen: true,
                                         isPermission: this.permissionService.hasPermission(''),
                                         comp: ProductReportNewComponent,
@@ -1043,7 +1045,7 @@ export class MenuService {
                                     {
                                         kind: 'leaf',
                                         key: 'ProductExportAndBorrowComponent_BN',
-                                        title: 'SẢN PHẨM KHÔNG DÙNG',
+                                        title: 'SẢN PHẨM KHÔNG DÙNG BN',
                                         isOpen: true,
                                         isPermission: this.permissionService.hasPermission(''),
                                         comp: ProductExportAndBorrowComponent,
@@ -1052,7 +1054,7 @@ export class MenuService {
                                     {
                                         kind: 'leaf',
                                         key: 'BorrowReportComponent_BN',
-                                        title: 'BÁO CÁO MƯỢN DEMO',
+                                        title: 'BÁO CÁO MƯỢN DEMO BN',
                                         isOpen: true,
                                         isPermission: this.permissionService.hasPermission(''),
                                         comp: BorrowReportComponent,
@@ -1061,7 +1063,7 @@ export class MenuService {
                                     {
                                         kind: 'leaf',
                                         key: 'BorrowProductHistoryComponent_BN',
-                                        title: 'LỊCH SỬ MƯỢN DEMO',
+                                        title: 'LỊCH SỬ MƯỢN DEMO BN',
                                         isOpen: true,
                                         isPermission: this.permissionService.hasPermission(''),
                                         comp: BorrowProductHistoryComponent,
@@ -1070,7 +1072,7 @@ export class MenuService {
                                     {
                                         kind: 'leaf',
                                         key: 'SearchProductTechSerialComponent_BN',
-                                        title: 'TRA CỨU SERIAL NUMBER DEMO',
+                                        title: 'TRA CỨU SERIAL NUMBER DEMO BN',
                                         isOpen: true,
                                         isPermission: this.permissionService.hasPermission(''),
                                         comp: SearchProductTechSerialComponent,
@@ -1079,7 +1081,7 @@ export class MenuService {
                                     {
                                         kind: 'leaf',
                                         key: 'ProductRtcQrCodeComponent_BN',
-                                        title: 'QR Code',
+                                        title: 'QR Code BN',
                                         isOpen: true,
                                         isPermission: this.permissionService.hasPermission(''),
                                         comp: ProductRtcQrCodeComponent,
@@ -1112,7 +1114,7 @@ export class MenuService {
                                     {
                                         kind: 'leaf',
                                         key: 'InventoryComponent_DP',
-                                        title: 'TỒN KHO',
+                                        title: 'TỒN KHO DP',
                                         isOpen: true,
                                         isPermission: this.permissionService.hasPermission(
                                             'N27,N29,N31,N30,N1,N36'
@@ -1123,7 +1125,7 @@ export class MenuService {
                                     {
                                         kind: 'leaf',
                                         key: 'BillImportComponent_DP',
-                                        title: 'PHIẾU NHẬP',
+                                        title: 'PHIẾU NHẬP DP',
                                         isOpen: true,
                                         isPermission: this.permissionService.hasPermission(
                                             'N27,N29,N50,N1,N36,N52,N35,N33,N34,N69'
@@ -1134,7 +1136,7 @@ export class MenuService {
                                     {
                                         kind: 'leaf',
                                         key: 'BillExportComponent_DP',
-                                        title: 'PHIẾU XUẤT',
+                                        title: 'PHIẾU XUẤT DP',
                                         isOpen: true,
                                         isPermission: this.permissionService.hasPermission(
                                             'N27,N29,N50,N1,N36,N52,N35,N33,N34,N69'
@@ -1145,7 +1147,7 @@ export class MenuService {
                                     {
                                         kind: 'leaf',
                                         key: 'HistoryImportExportComponent_DP',
-                                        title: 'LỊCH SỬ NHẬP - XUẤT',
+                                        title: 'LỊCH SỬ NHẬP - XUẤT DP',
                                         isOpen: true,
                                         isPermission:
                                             this.permissionService.hasPermission(
@@ -1157,7 +1159,7 @@ export class MenuService {
                                     {
                                         kind: 'leaf',
                                         key: 'HistoryBorrowSaleComponent_DP',
-                                        title: 'LỊCH SỬ MƯỢN',
+                                        title: 'LỊCH SỬ MƯỢN DP',
                                         isOpen: true,
                                         isPermission: this.permissionService.hasPermission(''),
                                         comp: HistoryBorrowSaleComponent,
@@ -1166,7 +1168,7 @@ export class MenuService {
                                     {
                                         kind: 'leaf',
                                         key: 'ReportImportExportComponent_DP',
-                                        title: 'BÁO CÁO NHẬP - XUẤT',
+                                        title: 'BÁO CÁO NHẬP - XUẤT DP',
                                         isOpen: true,
                                         isPermission:
                                             this.permissionService.hasPermission(
@@ -1178,7 +1180,7 @@ export class MenuService {
                                     {
                                         kind: 'leaf',
                                         key: 'ListProductProjectComponent_DP',
-                                        title: 'SẢN PHẨM THEO DỰ ÁN',
+                                        title: 'SẢN PHẨM THEO DỰ ÁN DP',
                                         isOpen: true,
                                         isPermission: this.permissionService.hasPermission(''),
                                         comp: ListProductProjectComponent,
@@ -1187,7 +1189,7 @@ export class MenuService {
                                     {
                                         kind: 'leaf',
                                         key: 'SearchProductSerialNumberComponent_DP',
-                                        title: 'TRA CỨU SERIAL NUMBER',
+                                        title: 'TRA CỨU SERIAL NUMBER DP',
                                         isOpen: true,
                                         isPermission: this.permissionService.hasPermission(''),
                                         comp: SearchProductSerialNumberComponent,
@@ -1205,7 +1207,7 @@ export class MenuService {
                                     {
                                         kind: 'leaf',
                                         key: 'InventoryDemoComponent_DP',
-                                        title: 'TỒN KHO DEMO',
+                                        title: 'TỒN KHO DEMO DP',
                                         isOpen: true,
                                         isPermission: this.permissionService.hasPermission(''),
                                         comp: InventoryDemoComponent,
@@ -1214,7 +1216,7 @@ export class MenuService {
                                     {
                                         kind: 'leaf',
                                         key: 'BillImportTechnicalComponent_DP',
-                                        title: 'PHIẾU NHẬP DEMO',
+                                        title: 'PHIẾU NHẬP DEMO DP',
                                         isOpen: true,
                                         isPermission: this.permissionService.hasPermission(''),
                                         comp: BillImportTechnicalComponent,
@@ -1223,7 +1225,7 @@ export class MenuService {
                                     {
                                         kind: 'leaf',
                                         key: 'BillExportTechnicalComponent_DP',
-                                        title: 'PHIẾU XUẤT DEMO',
+                                        title: 'PHIẾU XUẤT DEMO DP',
                                         isOpen: true,
                                         isPermission: this.permissionService.hasPermission(''),
                                         comp: BillExportTechnicalComponent,
@@ -1232,7 +1234,7 @@ export class MenuService {
                                     {
                                         kind: 'leaf',
                                         key: 'ProductReportNewRtcComponent_DP',
-                                        title: 'LỊCH SỬ NHẬP - XUẤT DEMO',
+                                        title: 'LỊCH SỬ NHẬP - XUẤT DEMO DP',
                                         isOpen: true,
                                         isPermission: this.permissionService.hasPermission(''),
                                         comp: ProductReportNewComponent,
@@ -1241,7 +1243,7 @@ export class MenuService {
                                     {
                                         kind: 'leaf',
                                         key: 'ProductExportAndBorrowComponent_DP',
-                                        title: 'SẢN PHẨM KHÔNG DÙNG',
+                                        title: 'SẢN PHẨM KHÔNG DÙNG DP',
                                         isOpen: true,
                                         isPermission: this.permissionService.hasPermission(''),
                                         comp: ProductExportAndBorrowComponent,
@@ -1250,7 +1252,7 @@ export class MenuService {
                                     {
                                         kind: 'leaf',
                                         key: 'BorrowReportComponent_DP',
-                                        title: 'BÁO CÁO MƯỢN DEMO',
+                                        title: 'BÁO CÁO MƯỢN DEMO DP',
                                         isOpen: true,
                                         isPermission: this.permissionService.hasPermission(''),
                                         comp: BorrowReportComponent,
@@ -1259,7 +1261,7 @@ export class MenuService {
                                     {
                                         kind: 'leaf',
                                         key: 'BorrowProductHistoryComponent_DP',
-                                        title: 'LỊCH SỬ MƯỢN DEMO',
+                                        title: 'LỊCH SỬ MƯỢN DEMO DP',
                                         isOpen: true,
                                         isPermission: this.permissionService.hasPermission(''),
                                         comp: BorrowProductHistoryComponent,
@@ -1268,7 +1270,7 @@ export class MenuService {
                                     {
                                         kind: 'leaf',
                                         key: 'SearchProductTechSerialComponent_DP',
-                                        title: 'TRA CỨU SERIAL NUMBER DEMO',
+                                        title: 'TRA CỨU SERIAL NUMBER DEMO DP',
                                         isOpen: true,
                                         isPermission: this.permissionService.hasPermission(''),
                                         comp: SearchProductTechSerialComponent,
@@ -1277,7 +1279,7 @@ export class MenuService {
                                     {
                                         kind: 'leaf',
                                         key: 'ProductRtcQrCodeComponent_DP',
-                                        title: 'QR Code',
+                                        title: 'QR Code DP',
                                         isOpen: true,
                                         isPermission: this.permissionService.hasPermission(''),
                                         comp: ProductRtcQrCodeComponent,
@@ -1393,7 +1395,7 @@ export class MenuService {
                         key: 'JobRequirementComponent',
                         title: 'Yêu cầu công việc',
                         isOpen: true,
-                        isPermission: this.permissionService.hasPermission(''),
+                        isPermission: this.permissionService.hasPermission('N2,N34,N1'),
                         // icon: 'assets/icon/hr_asset_24.svg',
                         children: [
                             {
@@ -1401,7 +1403,7 @@ export class MenuService {
                                 key: 'yeucaucongviec',
                                 title: 'Yêu cầu công việc',
                                 isOpen: true,
-                                isPermission: this.permissionService.hasPermission(''),
+                                isPermission: this.permissionService.hasPermission('N2,N34,N1'),
                                 comp: JobRequirementComponent,
                                 //       icon: 'assets/icon/hr_documentt_24.svg',
                             },
@@ -2052,12 +2054,12 @@ export class MenuService {
 
                     {
                         kind: 'leaf',
-                        key: '/thongtinlienhe',
+                        key: '/EmployeeContactComponent',
                         title: 'Thông tin liên hệ',
                         isOpen: true,
                         isPermission: this.permissionService.hasPermission(''),
-                        comp: AppComponent,
-                        router: '/thongtinlienhe',
+                        comp: EmployeeContactComponent,
+
                     },
 
                     {
@@ -2673,6 +2675,14 @@ export class MenuService {
                                 isOpen: true,
                                 isPermission: this.permissionService.hasPermission(''),
                                 comp: EmployeeNoFingerSummaryComponent,
+                            },
+                            {
+                                kind: 'leaf',
+                                key: 'OverTimeSummaryPersonComponent',
+                                title: 'Tổng hợp làm thêm',
+                                isOpen: true,
+                                isPermission: this.permissionService.hasPermission(''),
+                                comp: OverTimeSummaryPersonComponent,
                             },
                             {
                                 kind: 'leaf',
@@ -3410,6 +3420,30 @@ export class MenuService {
                         comp: PersonComponent,
                         router: '/ketoanduyetdntt',
                     },
+                    {
+                        kind: 'leaf',
+                        key: 'TbpApproveJobRequirement',
+                        title: 'TBP duyệt yêu cầu công việc',
+                        isOpen: true,
+                        isPermission: this.permissionService.hasPermission('N32'),
+                        comp: JobRequirementComponent
+                    },
+                    {
+                        kind: 'leaf',
+                        key: 'HrApproveJobRequirement',
+                        title: 'HR duyệt yêu cầu công việc',
+                        isOpen: true,
+                        isPermission: this.permissionService.hasPermission('N1,N2,N32'),
+                        comp: JobRequirementComponent
+                    },
+                    {
+                        kind: 'leaf',
+                        key: 'BgdApproveJobRequirement',
+                        title: 'BGD duyệt yêu cầu công việc',
+                        isOpen: true,
+                        isPermission: this.permissionService.hasPermission(''),
+                        comp: JobRequirementComponent
+                    },
 
                     {
                         kind: 'group',
@@ -3436,17 +3470,17 @@ export class MenuService {
                                 comp: PersonComponent,
                                 router: '/bgdduyetyccv',
                             },
-{
-                        kind: 'leaf',
-                        key: 'bgdduyetyeucaumuahang',
-                        title: 'BGĐ duyệt YCMH',
-                        isOpen: true,
-                        isPermission: this.permissionService.hasPermission(''),
-                        comp: ProjectPartListPurchaseRequestSlickGridComponent,
-                        data: {
-                            isApprovedBGD: true,
-                        },
-                    },
+                            {
+                                kind: 'leaf',
+                                key: 'bgdduyetyeucaumuahang',
+                                title: 'BGĐ duyệt YCMH',
+                                isOpen: true,
+                                isPermission: this.permissionService.hasPermission(''),
+                                comp: ProjectPartListPurchaseRequestSlickGridComponent,
+                                data: {
+                                    isApprovedBGD: true,
+                                },
+                            },
 
                         ],
                     },

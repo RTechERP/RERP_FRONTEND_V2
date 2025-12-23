@@ -1,0 +1,45 @@
+::ng-deep .tabulator {
+  font-size: 12px !important;
+}
+
+::ng-deep .tabulator .tabulator-header {
+  background-color: #f8f9fa;
+  font-weight: bold;
+}
+
+::ng-deep .tabulator .tabulator-row.tabulator-group {
+  background-color: #6c757d !important;
+  color: white !important;
+  font-weight: bold;
+  text-transform: uppercase;
+}
+
+::ng-deep .tabulator .tabulator-row:hover {
+  background-color: #f1f3f5;
+}
+
+::ng-deep .tabulator .tabulator-cell {
+  font-size: 12px !important;
+}
+
+::ng-deep .tabulator .tabulator-col-title {
+  font-size: 12px !important;
+}
+
+::ng-deep .tabulator .tabulator-footer {
+  font-size: 12px !important;
+}
+
+::ng-deep .tabulator .tabulator-paginator {
+  font-size: 12px !important;
+}
+
+.fs-12 {
+  font-size: 12px !important;
+}
+
+.card-header {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+}

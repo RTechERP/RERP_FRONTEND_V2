@@ -137,7 +137,7 @@ export class EmployeeLoginManagerComponent implements OnInit, OnChanges {
   }
 
   loadEmployee() {
-    this.employeeService.getEmployees().subscribe({
+    this.employeeService.getEmployeesLoginManager().subscribe({
       next: (data: any) => {
         // Tạo list cho select mã nhân viên
         this.employeeList = data.data.map((employee: any) => ({

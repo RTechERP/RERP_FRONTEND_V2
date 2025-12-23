@@ -610,6 +610,15 @@ export class MarketingPurchaseRequestComponent implements OnInit, AfterViewInit,
     this.angularGridInstance = angularGrid;
     this.gridService = angularGrid.gridService;
     
+    // Tự động sync dataset khi có thay đổi (giống payment-order-detail)
+    this.angularGridInstance.dataView.onRowCountChanged.subscribe(() => {
+      this.dataset = [...this.angularGridInstance.dataView.getItems()];
+    });
+
+    this.angularGridInstance.dataView.onRowsChanged.subscribe(() => {
+      this.dataset = [...this.angularGridInstance.dataView.getItems()];
+    });
+    
     setTimeout(() => {
       if (angularGrid.resizerService) {
         angularGrid.resizerService.resizeGrid();
@@ -643,6 +652,9 @@ export class MarketingPurchaseRequestComponent implements OnInit, AfterViewInit,
     this.angularGridInstance.dataView.updateItem(item.id, item);
     this.angularGridInstance.slickGrid.invalidate();
     this.angularGridInstance.slickGrid.render();
+
+    // Sync dataset (giống payment-order-detail)
+    this.dataset = [...this.angularGridInstance.dataView.getItems()];
   }
 
   // Handle ProductSale selection change
@@ -720,11 +732,11 @@ export class MarketingPurchaseRequestComponent implements OnInit, AfterViewInit,
     }
   }
 
-  // Add new row - sử dụng gridService.addItem()
+  // Add new row - sử dụng gridService.addItem() (giống payment-order-detail)
   addNewRow(): void {
     if (!this.angularGridInstance || !this.gridService) return;
 
-    // Lấy dataset hiện tại để tính STT
+    // Lấy dataset hiện tại để tính STT và ID
     const currentItems = this.angularGridInstance.dataView.getItems() || [];
     const maxId = currentItems.length > 0 
       ? Math.max(...currentItems.map((item: any) => item.id || 0))
@@ -748,22 +760,48 @@ export class MarketingPurchaseRequestComponent implements OnInit, AfterViewInit,
       ID: 0 // New row
     };
 
-    // Sử dụng gridService.addItem() để thêm item (sẽ tự động thêm vào đầu danh sách)
+    // Sử dụng gridService.addItem() - event listeners sẽ tự động sync dataset
     this.gridService.addItem(newRow, { position: 'top', highlightRow: true });
 
-    // Cập nhật lại STT cho tất cả các dòng
+    // Cập nhật lại STT cho tất cả các dòng và focus vào cell để edit
     setTimeout(() => {
       this.updateSTT();
       
-      // Focus on new row (row 0 vì thêm vào đầu)
+      // Focus on new row (row 0 vì thêm vào đầu) và enable edit
       setTimeout(() => {
-        this.angularGridInstance.slickGrid.setActiveCell(0, 3); // Focus on ProductNewCode column
-        this.angularGridInstance.slickGrid.editActiveCell();
-      }, 50);
+        // Tìm index của cột ProductNewCode
+        const columns = this.angularGridInstance.slickGrid.getColumns();
+        let productNewCodeColIndex = -1;
+        
+        for (let i = 0; i < columns.length; i++) {
+          if (columns[i].field === 'ProductNewCode') {
+            productNewCodeColIndex = i;
+            break;
+          }
+        }
+        
+        if (productNewCodeColIndex >= 0) {
+          // Set active cell
+          this.angularGridInstance.slickGrid.setActiveCell(0, productNewCodeColIndex);
+          
+          // Đợi một chút để đảm bảo cell đã được set active, sau đó edit
+          setTimeout(() => {
+            try {
+              this.angularGridInstance.slickGrid.editActiveCell();
+            } catch (e) {
+              console.warn('Could not edit active cell:', e);
+              // Thử lại một lần nữa
+              setTimeout(() => {
+                this.angularGridInstance.slickGrid.editActiveCell();
+              }, 100);
+            }
+          }, 150);
+        }
+      }, 100);
     }, 100);
   }
 
-  // Delete row - sử dụng gridService.deleteItemById()
+  // Delete row - sử dụng gridService.deleteItemById() (giống payment-order-detail)
   deleteRow(args: OnEventArgs): void {
     if (!this.angularGridInstance || !this.gridService) return;
 
@@ -777,7 +815,7 @@ export class MarketingPurchaseRequestComponent implements OnInit, AfterViewInit,
       nzOkDanger: true,
       nzCancelText: 'Hủy',
       nzOnOk: () => {
-        // Sử dụng gridService.deleteItemById() để xóa item
+        // Sử dụng gridService.deleteItemById() - event listeners sẽ tự động sync dataset
         this.gridService.deleteItemById(item.id);
         
         // Cập nhật lại STT cho tất cả các dòng
@@ -797,7 +835,7 @@ export class MarketingPurchaseRequestComponent implements OnInit, AfterViewInit,
       item.TT = index + 1;
     });
 
-    // Refresh grid để hiển thị STT mới
+    // Update items trong grid (event listeners sẽ tự động sync dataset)
     this.angularGridInstance.dataView.refresh();
     this.angularGridInstance.slickGrid.render();
   }
@@ -815,6 +853,10 @@ export class MarketingPurchaseRequestComponent implements OnInit, AfterViewInit,
 
     // End edit
     this.angularGridInstance.slickGrid.setActiveCell(-1, -1);
+
+    // Sync dataset từ dataView trước khi validate và lưu (đảm bảo dữ liệu mới nhất)
+    const currentItems = this.angularGridInstance.dataView.getItems() || [];
+    this.dataset = [...currentItems];
 
     // Validate
     if (!this.validateData()) {

@@ -6067,7 +6067,9 @@ export class ProjectPartListComponent implements OnInit, AfterViewInit {
             SerialNumber: detail.SerialNumber || '',
             // Các field để hiển thị trong modal (nếu cần)
             ProjectNameText: detail.ProjectName || '',
-            TotalInventory: detail.TotalQty || 0
+            // ✅ Không set TotalInventory từ detail.TotalQty - để bill-export-detail tự fill từ productOptions
+            // TotalInventory sẽ được fill từ productOptions trong updateTotalInventoryForExistingRows()
+            TotalInventory: 0
         }));
         const modalRef = this.ngbModal.open(BillExportDetailComponent, {
             centered: true,

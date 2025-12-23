@@ -34,7 +34,6 @@ import { DEFAULT_TABLE_CONFIG } from '../../../../tabulator-default.config';
 import { HasPermissionDirective } from '../../../../directives/has-permission.directive';
 import { NzSpinModule } from 'ng-zorro-antd/spin';
 import { ProjectPartlistPriceRequestComponent } from '../../project-partlist-price-request/project-partlist-price-request.component';
-import { ProjectPartlistPriceRequestNewComponent } from '../../../purchase/project-partlist-price-request-new/project-partlist-price-request-new.component';
 import { MarketingPurchaseRequestComponent } from '../../../purchase/marketing-purchase-request/marketing-purchase-request.component';
 import { ProjectPartListService } from '../../../project/project-department-summary/project-department-summary-form/project-part-list/project-partlist-service/project-part-list-service.service';
 
@@ -1043,7 +1042,7 @@ export class ProductSaleComponent implements OnInit, AfterViewInit {
 
     //#region Yêu cầu báo giá
     openPriceRequest(): void {
-        const modalRef = this.modalService.open(ProjectPartlistPriceRequestNewComponent, {
+        const modalRef = this.modalService.open(ProjectPartlistPriceRequestComponent, {
             centered: true,
             size: 'xl',
             backdrop: 'static',
@@ -1051,12 +1050,8 @@ export class ProductSaleComponent implements OnInit, AfterViewInit {
             windowClass: 'full-screen-modal',
         });
 
-        // Truyền dữ liệu vào component - theo rule của component cũ
+        // Truyền dữ liệu vào component
         modalRef.componentInstance.projectPartlistPriceRequestTypeID = 4;
-        // Tự động set showHeader và headerText khi mở từ modal
-        modalRef.componentInstance.showHeader = true;
-        modalRef.componentInstance.headerText = 'Yêu cầu báo giá';
-        modalRef.componentInstance.showCloseButton = true;
 
         modalRef.result.then(
             (result) => {

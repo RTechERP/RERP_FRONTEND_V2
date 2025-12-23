@@ -823,7 +823,9 @@ export class WarehouseReleaseRequestComponent implements OnInit {
       ProductCode: detail.ProductCode || '',
       ProductName: detail.ProductName || '',
       Unit: detail.Unit || '',
-      TotalInventory: detail.TotalInventory || 0,
+      // ✅ Không set TotalInventory ở đây - để bill-export-detail tự fill từ productOptions
+      // TotalInventory sẽ được fill từ productOptions trong updateTotalInventoryForExistingRows()
+      TotalInventory: 0,
       Qty: detail.Qty || 0,
       QuantityRemain: detail.QuantityRemain || 0,
       ProjectID: detail.ProjectID || 0,

@@ -153,6 +153,8 @@ import { DailyReportMachineComponent } from './pages/daily-report-machine/daily-
 import { ProjectComponent } from './pages/project/project.component';
 import { EmployeeContactComponent } from './pages/hrm/employee/employee-contact/employee-contact.component';
 import { SearchProductTechSerialComponent } from './pages/old/Technical/search-product-tech-serial/search-product-tech-serial.component';
+import { VehicleRepairTypeComponent } from './pages/hrm/vehicle/vehicle-repair/vehicle-repair-type/vehicle-repair-type.component';
+import { OfficeSupplyUnitComponent } from './pages/hrm/office-supply/OfficeSupplyUnit/office-supply-unit.component';
 
 export const routes: Routes = [
     {
@@ -580,6 +582,55 @@ export const routes: Routes = [
             { path: 'product-demo', component: TbProductRtcComponent, canActivate: [authGuard] },
             { path: 'product-agv', component: TbProductRtcComponent, canActivate: [authGuard] },
 
+
+            //Nhân dự
+            { path: 'hr-hiring-request', component: HrhiringRequestComponent, canActivate: [authGuard] },
+            { path: 'job-requirement-hr', component: JobRequirementComponent, canActivate: [authGuard] },
+            { path: 'proposal-hr', component: HrPurchaseProposalComponent, canActivate: [authGuard] },
+            { path: 'document', component: DocumentComponent, canActivate: [authGuard] },
+            { path: 'asset-management', component: TsAssetManagementComponent, canActivate: [authGuard] },
+            { path: 'asset-type', component: TsAssetTypeComponent, canActivate: [authGuard] },
+            { path: 'asset-source', component: TsAssetSourceComponent, canActivate: [authGuard] },
+            { path: 'asset-allocation', component: TsAssetAllocationComponent, canActivate: [authGuard] },
+            { path: 'asset-recovery', component: TsAssetRecoveryComponent, canActivate: [authGuard] },
+            { path: 'asset-transfer', component: TsAssetTransferComponent, canActivate: [authGuard] },
+            { path: 'asset-management-person', component: TsAssetManagementPersonalComponent, canActivate: [authGuard] },
+            { path: 'asset-type-person', component: TsAssetManagementPersonalTypeComponent, canActivate: [authGuard] },
+            { path: 'asset-allocation-person', component: TsAssetAllocationPersonalComponent, canActivate: [authGuard] },
+            { path: 'asset-recovery-person', component: TsAssetRecoveryPersonalNewComponent, canActivate: [authGuard] },
+            { path: 'vehicle-management', component: VehicleManagementComponent, canActivate: [authGuard] },
+            { path: 'vehicle-booking', component: VehicleBookingManagementComponent, canActivate: [authGuard] },
+            { path: 'vehicle-repair-type', component: VehicleRepairTypeComponent, canActivate: [authGuard] },
+            { path: 'vehicle-repair-propose', component: ProposeVehicleRepairComponent, canActivate: [authGuard] },
+            { path: 'vehicle-repair-history', component: VehicleRepairHistoryComponent, canActivate: [authGuard] },
+            { path: 'office-supply', component: OfficeSupplyComponent, canActivate: [authGuard] },
+            { path: 'office-supply-unit', component: OfficeSupplyUnitComponent, canActivate: [authGuard] },
+            { path: 'office-supply-request', component: OfficeSupplyRequestsComponent, canActivate: [authGuard] },
+            { path: 'office-supply-summary', component: OfficeSupplyRequestSummaryComponent, canActivate: [authGuard] },
+            { path: 'film-management', component: FilmManagementComponent, canActivate: [authGuard] },
+            { path: 'deparment', component: DepartmentComponent, canActivate: [authGuard] },
+            { path: 'team', component: TeamComponent, canActivate: [authGuard] },
+            { path: 'positions', component: PositionsComponent, canActivate: [authGuard] },
+            { path: 'employee', component: EmployeeComponent, canActivate: [authGuard] },
+            { path: 'contract', component: ContractComponent, canActivate: [authGuard] },
+            { path: 'handover', component: HandoverComponent, canActivate: [authGuard] },
+            { path: 'holiday', component: HolidayComponent, canActivate: [authGuard] },
+            { path: 'food-order-hr', component: FoodOrderComponent, canActivate: [authGuard] },
+            { path: 'dayoff-hr', component: DayOffComponent, canActivate: [authGuard] },
+            { path: 'early-late-hr', component: EarlyLateComponent, canActivate: [authGuard] },
+            { path: 'overtime-hr', component: OverTimeComponent, canActivate: [authGuard] },
+            { path: 'bussiness-hr', component: EmployeeBussinessComponent, canActivate: [authGuard] },
+            { path: 'nightshift-hr', component: EmployeeNightShiftComponent, canActivate: [authGuard] },
+            { path: 'wfh-hr', component: WFHComponent, canActivate: [authGuard] },
+            { path: 'nofinger-hr', component: EmployeeNoFingerprintComponent, canActivate: [authGuard] },
+            { path: 'attendance-hr', component: EmployeeAttendanceComponent, canActivate: [authGuard] },
+            { path: 'curricular-hr', component: EmployeeCurricularComponent, canActivate: [authGuard] },
+            { path: 'payroll-hr', component: PayrollComponent, canActivate: [authGuard] },
+            { path: 'timekeeping-hr', component: EmployeeTimekeepingComponent, canActivate: [authGuard] },
+            { path: 'synthetic-hr', component: EmployeeSyntheticComponent, canActivate: [authGuard] },
+            { path: 'dailyreport-hr', component: DailyReportHrComponent, canActivate: [authGuard] },
+            { path: 'protect-gear-hr', component: ProtectgearComponent, canActivate: [authGuard] },
+            { path: 'phase-allocation-hr', component: PhaseAllocationPersonComponent, canActivate: [authGuard] },
 
 
 

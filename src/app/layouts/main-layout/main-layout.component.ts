@@ -243,7 +243,7 @@ export class MainLayoutComponent implements OnInit, AfterViewInit {
                         stt: item.STT,
                         key: item.Code,
                         title: item.Title,
-                        router: item.Router == '' ? '#' : `${environment.baseHref}/${item.Router}`,
+                        router: item.Router == '' ? '#' : `${item.Router}`,
                         icon: `${environment.host}api/share/software/icon/${item.Icon}`,
                         isPermission: item.IsPermission,
                         ParentID: item.ParentID,

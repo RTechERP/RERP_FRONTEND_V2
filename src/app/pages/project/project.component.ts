@@ -64,7 +64,7 @@ import { PermissionService } from '../../services/permission.service';
 import { environment } from '../../../environments/environment';
 import { debounceTime } from 'rxjs/operators';
 import { Subject } from 'rxjs';
-import { ProjectPartListSlickGridComponent } from '../project-part-list-slick-grid/project-part-list-slick-grid.component';
+// import { ProjectPartListSlickGridComponent } from '../project-part-list-slick-grid/project-part-list-slick-grid.component';
 @Component({
   selector: 'app-projects',
   standalone: true,
@@ -1869,20 +1869,20 @@ export class ProjectComponent implements OnInit, AfterViewInit {
       this.notification.error('Thông báo','Vui lòng chọn 1 dự án!')
       return;
     }
-    // const modalRef = this.modalService.open(ProjectPartListComponent, {
-    //   centered: true,
-    //   backdrop: 'static',
-    //   keyboard: false,
-    //   windowClass: 'full-screen-modal',
-    //   scrollable:false,
-    // });
-    const modalRef = this.modalService.open(ProjectPartListSlickGridComponent, {
+    const modalRef = this.modalService.open(ProjectPartListComponent, {
       centered: true,
       backdrop: 'static',
       keyboard: false,
       windowClass: 'full-screen-modal',
       scrollable:false,
     });
+    // const modalRef = this.modalService.open(ProjectPartListSlickGridComponent, {
+    //   centered: true,
+    //   backdrop: 'static',
+    //   keyboard: false,
+    //   windowClass: 'full-screen-modal',
+    //   scrollable:false,
+    // });
     modalRef.componentInstance.projectId = this.projectId;
     modalRef.componentInstance.projectNameX = this.tb_projects.getSelectedData()[0].ProjectName;
     modalRef.componentInstance.projectCodex = this.tb_projects.getSelectedData()[0].ProjectCode;

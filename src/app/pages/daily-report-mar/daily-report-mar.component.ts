@@ -429,34 +429,6 @@ export class DailyReportMarComponent implements OnInit, AfterViewInit {
         height: '87vh',
         paginationMode: 'local',
         columns: [
-          // {
-          //   title: '',
-          //   field: 'ID',
-          //   width: 100,
-          //   formatter: (cell: any) => {
-          //     return `
-          //       <button class="btn btn-primary btn-sm me-1 btn-edit-row" title="Sửa">
-          //         <i class="fas fa-pen"></i>
-          //       </button>
-          //       <button class="btn btn-danger btn-sm btn-delete-row" title="Xóa">
-          //         <i class="fas fa-trash"></i>
-          //       </button>
-          //     `;
-          //   },
-          //   cellClick: (e: any, cell: any) => {
-          //     const row = cell.getRow().getData();
-          //     const id = row.ID || 0;
-          //     const target = e.target as HTMLElement;
-              
-          //     if (target.closest('.btn-edit-row')) {
-          //       this.editDailyReportById(id);
-          //     } else if (target.closest('.btn-delete-row')) {
-          //       this.deleteDailyReportById(id);
-          //     }
-          //   },
-          //   headerSort: false,
-          //   hozAlign: 'center',
-          // },
           {
             title: 'Họ tên',
             field: 'FullName',
@@ -480,13 +452,6 @@ export class DailyReportMarComponent implements OnInit, AfterViewInit {
             hozAlign: 'center',
             width: 120,
           },
-          // {
-          //   title: 'Tổng giờ',
-          //   field: 'TotalHours',
-          //   hozAlign: 'right',
-          //   width: 80,
-          //   headerSort: false,
-          // },
           {
             title: 'Nội dung',
             field: 'Content',
@@ -505,27 +470,16 @@ export class DailyReportMarComponent implements OnInit, AfterViewInit {
             width: 300,
             formatter: 'textarea',
           },
+          
           {
-            title: 'Tồn đọng',
-            field: 'Backlog',
+            title: 'Đề xuất cải tiến',
+            field: 'Note',
             width: 300,
             formatter: 'textarea',
           },
           {
-            title: 'Vấn đề phát sinh',
-            field: 'Problem',
-            width: 300,
-            formatter: 'textarea',
-          },
-          {
-            title: 'Giải pháp',
-            field: 'ProblemSolve',
-            width: 300,
-            formatter: 'textarea',
-          },
-          {
-            title: 'Lý do tồn đọng',
-            field: 'BacklogReason',
+            title: 'File đính kèm',
+            field: '',
             width: 300,
             formatter: 'textarea',
           },

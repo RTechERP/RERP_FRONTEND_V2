@@ -160,6 +160,7 @@ import { PonccNewComponent } from '../../../purchase/poncc-new/poncc-new.compone
 import { DailyReportThrComponent } from '../../../daily-report-thr/daily-report-thr.component';
 import { DailyReportLXCPComponent } from '../../../daily-report-lxcp/daily-report-lxcp.component';
 import { DailyReportMachineComponent } from '../../../daily-report-machine/daily-report-machine.component';
+import { DailyReportMarComponent } from '../../../daily-report-mar/daily-report-mar.component';     
 import { EmployeeContactComponent } from '../../../hrm/employee/employee-contact/employee-contact.component';
 import { OverTimeSummaryPersonComponent } from '../../../hrm/over-time/over-time-summary-person/over-time-summary-person.component';
 import { MenuAppComponent } from '../../menu-app/menu-app.component';
@@ -3294,14 +3295,22 @@ export class MenuService {
                                 router: '/baocaocongvieckythuat',
                             },
 
+                            // {
+                            //     kind: 'leaf',
+                            //     key: 'baocaocongviecmarketing',
+                            //     title: 'Phòng Marketing',
+                            //     isOpen: true,
+                            //     isPermission: isAdmin || this.marketings.includes(departmentID),
+                            //     comp: PersonComponent,
+                            //     router: '/baocaocongviecmarketing',
+                            // },
                             {
                                 kind: 'leaf',
                                 key: 'baocaocongviecmarketing',
                                 title: 'Phòng Marketing',
                                 isOpen: true,
                                 isPermission: isAdmin || this.marketings.includes(departmentID),
-                                comp: PersonComponent,
-                                router: '/baocaocongviecmarketing',
+                                comp: DailyReportMarComponent,
                             },
                         ],
                     },

@@ -13,6 +13,8 @@ import {
   Component,
   OnInit,
   AfterViewInit,
+  OnChanges,
+  SimpleChanges,
   Input,
   EnvironmentInjector,
   ApplicationRef,
@@ -126,7 +128,7 @@ interface BillExport {
   styleUrl: './bill-export-detail.component.css',
 })
 export class BillExportDetailComponent
-  implements OnInit, AfterViewInit, OnDestroy
+  implements OnInit, AfterViewInit, OnChanges, OnDestroy
 {
   @ViewChild('tableBillExportDetails', { static: false }) tableBillExportDetailsRef!: ElementRef;
   table_billExportDetail: any;
@@ -157,7 +159,7 @@ export class BillExportDetailComponent
   @Input() lstBillImportID: number[] = [];
   @Input() billImport: any;
   @Input() isAddExport: boolean = false;
-  @Input() wareHouseCode: string = 'HN  ';
+  @Input() wareHouseCode: string = 'HN'; // ✅ Removed trailing spaces from default value
   @Input() isPOKH: boolean = false;
   @Input() customerID: number = 0;
   @Input() KhoTypeID: number = 0;
@@ -304,9 +306,59 @@ export class BillExportDetailComponent
     });
   }
 
+  ngOnChanges(changes: SimpleChanges): void {
+    if (changes['wareHouseCode']) {
+      const currValue = changes['wareHouseCode'].currentValue;
+      
+      // Normalize ngay khi có thay đổi từ component cha
+      if (currValue && typeof currValue === 'string') {
+        const trimmed = currValue.trim();
+        if (trimmed) {
+          this.wareHouseCode = trimmed;
+          
+          // Nếu đã có WarehouseID hoặc đang trong quá trình init, update lại
+          // Delay một chút để đảm bảo các initialization khác đã hoàn thành
+          setTimeout(() => {
+            this.getWarehouseID();
+          }, 50);
+        }
+      }
+    }
+  }
+
   ngOnInit(): void {
-    // Get WarehouseID from wareHouseCode - MUST be called first
-    this.getWarehouseID();
+    // ✅ Normalize wareHouseCode ngay từ đầu để đảm bảo giá trị đúng (trim spaces)
+    // Fix issue: giá trị mặc định 'HN  ' (có khoảng trắng) hoặc giá trị từ component cha có thể có khoảng trắng
+    const trimmed = (this.wareHouseCode || '').trim();
+    if (trimmed && trimmed !== '') {
+      // Có giá trị hợp lệ, normalize nó
+      this.wareHouseCode = trimmed;
+    } else if (!this.wareHouseCode || this.wareHouseCode === '') {
+      // Chỉ set default nếu thực sự không có giá trị
+      // Nhưng delay một chút để đợi component cha set giá trị (nếu có)
+      setTimeout(() => {
+        const delayedValue = this.wareHouseCode;
+        const delayedTrimmed = (delayedValue || '').trim();
+        if (delayedTrimmed && delayedTrimmed !== '') {
+          this.wareHouseCode = delayedTrimmed;
+          this.getWarehouseID();
+        } else {
+          this.wareHouseCode = 'HN';
+          this.getWarehouseID();
+        }
+      }, 100);
+    }
+    
+    // Get WarehouseID from wareHouseCode - Delay để đợi @Input được set từ component cha
+    // Nếu wareHouseCode đã có giá trị hợp lệ, gọi ngay
+    if (this.wareHouseCode && this.wareHouseCode.trim() !== '' && this.wareHouseCode !== 'HN') {
+      this.getWarehouseID();
+    } else {
+      // Delay để đợi component cha set giá trị
+      setTimeout(() => {
+        this.getWarehouseID();
+      }, 150);
+    }
 
     this.getDataCbbAdressStock();
     this.getDataCbbCustomer();
@@ -1198,6 +1250,10 @@ export class BillExportDetailComponent
     if (ID === 4 && (!this.newBillExport.Id || this.newBillExport.Id <= 0)) {
     }
 
+    // ✅ Normalize wareHouseCode: trim spaces and ensure it's not empty
+    // This fixes the issue where default value 'HN  ' (with spaces) or component parent value might be used incorrectly
+    const normalizedWareHouseCode = (this.wareHouseCode || '').trim() || 'HN';
+    
     // Auto-set SenderID from ProductGroupWarehouse (matching C# cbKhoType_EditValueChanged)
     // Only when creating new bill, not when updating existing bill
     if (!this.newBillExport.Id || this.newBillExport.Id <= 0) {
@@ -1213,7 +1269,7 @@ export class BillExportDetailComponent
                 this.validateForm.patchValue({ SenderID: userId });
                 this.newBillExport.SenderID = userId;
               } else {
-                const defaultSenderId = this.wareHouseCode?.includes('HCM')
+                const defaultSenderId = normalizedWareHouseCode.includes('HCM')
                   ? 88
                   : 0;
                 this.validateForm.patchValue({ SenderID: defaultSenderId });
@@ -1224,7 +1280,7 @@ export class BillExportDetailComponent
                 'Error getting SenderID from ProductGroupWarehouse:',
                 err
               );
-              const defaultSenderId = this.wareHouseCode?.includes('HCM')
+              const defaultSenderId = normalizedWareHouseCode.includes('HCM')
                 ? 88
                 : 0;
               this.validateForm.patchValue({ SenderID: defaultSenderId });
@@ -1234,10 +1290,12 @@ export class BillExportDetailComponent
     }
 
     // truyền đúng tham số theo BE: warehouseCode + productGroupID
-    this.billExportService.getOptionProduct(this.wareHouseCode, ID).subscribe({
+    // ✅ Sử dụng normalizedWareHouseCode thay vì this.wareHouseCode trực tiếp
+    this.billExportService.getOptionProduct(normalizedWareHouseCode, ID).subscribe({
       next: (res: any) => {
+
         const productData = res.data;
-        console.log('🔵 [changeProductGroup] Raw productData from API:', productData);
+
         if (Array.isArray(productData)) {
           this.productOptions = productData
             .filter(
@@ -1248,27 +1306,22 @@ export class BillExportDetailComponent
             )
             .map((product) => {
               const mappedProduct = {
-                // Hiển thị đầy đủ: ProductNewCode | ProductCode | ProductName khi popup
                 label: `${product.ProductNewCode || ''} | ${
                   product.ProductCode || ''
                 } | ${product.ProductName || ''}`,
                 value: product.ProductSaleID,
                 ProductCode: product.ProductCode,
-                // ✅ TotalInventory được lấy từ API getOptionProduct, field TotalQuantityLast
-                // Đây là số lượng tồn kho hiện tại của sản phẩm
                 TotalInventory: product.TotalQuantityLast,
                 ProductName: product.ProductName,
                 Unit: product.Unit,
                 Note: product.Note,
                 ProductID: product.ProductSaleID,
                 ProductNewCode: product.ProductNewCode,
-                // Lưu thêm TotalQuantityLast để debug
                 TotalQuantityLast: product.TotalQuantityLast,
               };
-           
+
               return mappedProduct;
             });
-            console.log('🟢 [changeProductGroup] Final productOptions array:', this.productOptions);
         } else {
           this.productOptions = [];
         }
@@ -1290,7 +1343,7 @@ export class BillExportDetailComponent
         }
       },
       error: (err: any) => {
-        console.error(err);
+        console.error('Error getting product options:', err);
         this.notification.error(
           'Thông báo',
           'Có lỗi khi tải danh sách sản phẩm!'
@@ -1394,17 +1447,16 @@ export class BillExportDetailComponent
         const list = res.data || [];
 
         // Find current warehouse by WarehouseCode (e.g., HN, HCM)
+        const searchCode = String(this.wareHouseCode).toUpperCase().trim();
+        
         const currentWarehouse = list.find(
           (item: any) =>
-            String(item.WarehouseCode).toUpperCase().trim() ===
-            String(this.wareHouseCode).toUpperCase().trim()
+            String(item.WarehouseCode).toUpperCase().trim() === searchCode
         );
 
         if (currentWarehouse) {
           const warehouseID = currentWarehouse.ID || 0;
           this.newBillExport.WarehouseID = warehouseID;
-        } else {
-          console.warn('Warehouse not found for code:', this.wareHouseCode);
         }
       },
       error: (err: any) => {
@@ -1824,7 +1876,7 @@ export class BillExportDetailComponent
    * Made public so it can be called from warehouse-release-request after data is set
    */
   private updateTotalInventoryCallCount = 0;
-  
+
   public updateTotalInventoryForExistingRows(): void {
     this.updateTotalInventoryCallCount++;
     const callId = this.updateTotalInventoryCallCount;
@@ -1833,7 +1885,7 @@ export class BillExportDetailComponent
     console.log(`🟡 [updateTotalInventoryForExistingRows #${callId}] Call stack:`, new Error().stack?.split('\n').slice(1, 4).join('\n'));
     console.log(`🟡 [updateTotalInventoryForExistingRows #${callId}] table_billExportDetail exists:`, !!this.table_billExportDetail);
     console.log(`🟡 [updateTotalInventoryForExistingRows #${callId}] productOptions:`, this.productOptions.length);
-    
+
     if (!this.table_billExportDetail || this.productOptions.length === 0) {
       console.log(`⚠️ [updateTotalInventoryForExistingRows #${callId}] EARLY RETURN - Missing table or productOptions`);
       return;
@@ -1876,7 +1928,7 @@ export class BillExportDetailComponent
       // Không dùng giá trị cũ từ data để đảm bảo luôn có số lượng tồn kho chính xác
       const currentInventory = parseFloat(String(row.TotalInventory || 0));
       const isWarehouseReleaseFlow = this.isFromWarehouseRelease || this.isFromProjectPartList;
-      
+
       // Log để debug
       if (currentInventory > 0) {
         console.log(`🟡 [updateTotalInventoryForExistingRows #${callId}] Row ${index} - Current inventory is ${currentInventory}, will update from productOptions to get latest value`);
@@ -1937,11 +1989,11 @@ export class BillExportDetailComponent
     if (hasUpdates) {
       console.log(`✅ [updateTotalInventoryForExistingRows #${callId}] Redrawing table`);
       this.table_billExportDetail.redraw(true);
-      
+
       // Verify final values after redraw
       setTimeout(() => {
         const finalData = this.table_billExportDetail.getData() || [];
-        console.log(`🔍 [updateTotalInventoryForExistingRows #${callId}] Final verification after redraw:`, 
+        console.log(`🔍 [updateTotalInventoryForExistingRows #${callId}] Final verification after redraw:`,
           finalData.map((r: any) => ({
             ProductID: r.ProductID,
             ProductCode: r.ProductCode,
@@ -1998,7 +2050,7 @@ export class BillExportDetailComponent
         TotalInventory: this.dataTableBillExportDetail[0].TotalInventory,
       });
     }
-    
+
     if (this.table_billExportDetail) {
       console.log('🟣 [drawTable] Table exists, replacing data');
       this.table_billExportDetail.replaceData(this.dataTableBillExportDetail);
@@ -2630,7 +2682,7 @@ export class BillExportDetailComponent
     }
 
     console.log('🟢 [onRecheckQty] START - Calculating total Qty by ProductID');
-    
+
     // Tính tổng Qty theo ProductID
     const productQtyMap = new Map<number, number>();
     const productRowsMap = new Map<number, any[]>(); // Lưu tất cả rows của mỗi ProductID
@@ -2641,7 +2693,7 @@ export class BillExportDetailComponent
         const currentSum = productQtyMap.get(productId) || 0;
         const qty = parseFloat(row.Qty || 0);
         productQtyMap.set(productId, currentSum + qty);
-        
+
         // Lưu row vào map để có thể log sau
         if (!productRowsMap.has(productId)) {
           productRowsMap.set(productId, []);
@@ -2654,7 +2706,7 @@ export class BillExportDetailComponent
 
     // ✅ So sánh tổng Qty với TotalInventory từ productOptions
     const validationErrors: string[] = [];
-    
+
     productQtyMap.forEach((totalQty, productId) => {
       // Tìm product trong productOptions để lấy TotalInventory chính xác
       const product = this.productOptions.find(
@@ -2667,7 +2719,7 @@ export class BillExportDetailComponent
       if (product) {
         const totalInventory = product.TotalInventory || product.TotalQuantityLast || 0;
         const unitName = (productRowsMap.get(productId)?.[0]?.Unit || '').toLowerCase().trim();
-        
+
         // Bỏ qua validation cho đơn vị m, mét (có thể xuất vượt tồn)
         if (unitName !== 'm' && unitName !== 'mét' && unitName !== 'met') {
           if (totalQty > totalInventory) {
@@ -2679,7 +2731,7 @@ export class BillExportDetailComponent
             );
           }
         }
-        
+
         console.log(`🟢 [onRecheckQty] ProductID ${productId}:`, {
           ProductCode: product.ProductCode,
           TotalQty: totalQty,
@@ -2715,7 +2767,7 @@ export class BillExportDetailComponent
       this.dataTableBillExportDetail = updatedData;
       console.log('🟢 [onRecheckQty] Updated data with TotalQty:', updatedData);
     }
-    
+
     console.log('🟢 [onRecheckQty] END');
   }
 

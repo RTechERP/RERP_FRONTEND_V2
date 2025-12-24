@@ -41,6 +41,11 @@ import { environment } from '../../../../environments/environment';
 import { NzSwitchModule } from 'ng-zorro-antd/switch';
 import { SafeUrlPipe } from '../../../../safeUrl.pipe';
 import { PaymentOrderDetailComponent } from '../../general-category/payment-order/payment-order-detail/payment-order-detail.component';
+import {
+    FillterHeaderComponent,
+    HeaderFilterApplyEvent,
+    HeaderFilterOption,
+} from '../../../shared/filters/fillter-header/fillter-header.component';
 
 (pdfMake as any).vfs = vfs;
 (pdfMake as any).fonts = {
@@ -74,6 +79,7 @@ import { PaymentOrderDetailComponent } from '../../general-category/payment-orde
         NzSwitchModule,
         SafeUrlPipe,
         AngularSlickgridModule,
+        FillterHeaderComponent,
     ],
     templateUrl: './poncc-new.component.html',
     styleUrls: ['./poncc-new.component.css'],
@@ -122,6 +128,14 @@ export class PonccNewComponent implements OnInit, AfterViewInit {
     angularGridPoThuongMai!: AngularGridInstance;
     angularGridPoMuon!: AngularGridInstance;
     angularGridDetail!: AngularGridInstance;
+
+    // Header Filter
+    @ViewChild('headerFilter') headerFilter?: FillterHeaderComponent;
+    
+    // Maps for Header Filters
+    datasetsAllMapMaster: Map<string, any[]> = new Map(); // key: 'master-0' or 'master-1'
+    datasetsAllMapDetail: any[] = []; // Original detail data
+    headerFilterAppliedValuesMap: Map<string, string[] | null> = new Map(); // key: 'columnId-gridType-gridIndex'
 
 
     // Column definitions
@@ -187,26 +201,26 @@ export class PonccNewComponent implements OnInit, AfterViewInit {
     }
 
     private initGridColumns(): void {
-        // Master columns
+        // Master columns - Note: filter icons will be updated when grid is ready
         this.columnDefinitionsMaster = [
             {
                 id: 'IsApproved',
                 name: 'Duyệt',
                 field: 'IsApproved',
                 width: 70,
-                sortable: true,
-                filterable: true,
+                sortable: false,
+                filterable: false,
                 formatter: Formatters.iconBoolean,
                 params: { cssClass: 'mdi mdi-check' },
                 filter: { model: Filters['compoundInputNumber'] },
             },
             {
                 id: 'StatusText',
-                name: 'Trạng thái',
+                name: this.createHeaderWithFilterIcon('Trạng thái', 'statustext-filter-icon', 'master', 0, 'StatusText'),
                 field: 'StatusText',
                 width: 120,
-                sortable: true,
-                filterable: true,
+                sortable: false,
+                filterable: false,
                 filter: { model: Filters['compoundInputText'] },
 
                 formatter: (_row, _cell, value, _column, dataContext) => {
@@ -228,33 +242,33 @@ export class PonccNewComponent implements OnInit, AfterViewInit {
             },
             {
                 id: 'RequestDate',
-                name: 'Ngày PO',
+                name: this.createHeaderWithFilterIcon('Ngày PO', 'requestdate-filter-icon', 'master', 0, 'RequestDate'),
                 field: 'RequestDate',
                 width: 100,
-                sortable: true,
-                filterable: true,
+                sortable: false,
+                filterable: false,
                 formatter: Formatters.date,
                 params: { dateFormat: 'DD/MM/YYYY' },
                 filter: { model: Filters['compoundDate'] },
             },
             {
                 id: 'DeliveryDate',
-                name: 'Ngày giao hàng',
+                name: this.createHeaderWithFilterIcon('Ngày giao hàng', 'deliverydate-filter-icon', 'master', 0, 'DeliveryDate'),
                 field: 'DeliveryDate',
                 width: 100,
-                sortable: true,
-                filterable: true,
+                sortable: false,
+                filterable: false,
                 formatter: Formatters.date,
                 params: { dateFormat: 'DD/MM/YYYY' },
                 filter: { model: Filters['compoundDate'] },
             },
             {
                 id: 'POCode',
-                name: 'Số PO',
+                name: this.createHeaderWithFilterIcon('Số PO', 'pocode-filter-icon', 'master', 0, 'POCode'),
                 field: 'POCode',
                 width: 120,
-                sortable: true,
-                filterable: true,
+                sortable: false,
+                filterable: false,
                 filter: { model: Filters['compoundInputText'] },
 
                 formatter: (_row, _cell, value, _column, dataContext) => {
@@ -276,11 +290,11 @@ export class PonccNewComponent implements OnInit, AfterViewInit {
             },
             {
                 id: 'BillCode',
-                name: 'Số đơn hàng',
+                name: this.createHeaderWithFilterIcon('Số đơn hàng', 'billcode-filter-icon', 'master', 0, 'BillCode'),
                 field: 'BillCode',
                 width: 120,
-                sortable: true,
-                filterable: true,
+                sortable: false,
+                filterable: false,
                 filter: { model: Filters['compoundInputText'] },
 
                 formatter: (_row, _cell, value, _column, dataContext) => {
@@ -302,21 +316,21 @@ export class PonccNewComponent implements OnInit, AfterViewInit {
             },
             {
                 id: 'TotalMoneyPO',
-                name: 'Tổng tiền',
+                name: this.createHeaderWithFilterIcon('Tổng tiền', 'totalmoneypo-filter-icon', 'master', 0, 'TotalMoneyPO'),
                 field: 'TotalMoneyPO',
                 width: 120,
-                sortable: true,
-                filterable: true,
+                sortable: false,
+                filterable: false,
                 formatter: (row: number, cell: number, value: any) => this.formatNumberEnUS(value),
                 filter: { model: Filters['compoundInputNumber'] },
             },
             {
                 id: 'CurrencyText',
-                name: 'Loại tiền',
+                name: this.createHeaderWithFilterIcon('Loại tiền', 'currencytext-filter-icon', 'master', 0, 'CurrencyText'),
                 field: 'CurrencyText',
                 width: 80,
-                sortable: true,
-                filterable: true,
+                sortable: false,
+                filterable: false,
                 filter: { model: Filters['compoundInputText'] },
 
                 formatter: (_row, _cell, value, _column, dataContext) => {
@@ -338,21 +352,21 @@ export class PonccNewComponent implements OnInit, AfterViewInit {
             },
             {
                 id: 'CurrencyRate',
-                name: 'Tỷ giá',
+                name: this.createHeaderWithFilterIcon('Tỷ giá', 'currencyrate-filter-icon', 'master', 0, 'CurrencyRate'),
                 field: 'CurrencyRate',
                 width: 100,
-                sortable: true,
-                filterable: true,
+                sortable: false,
+                filterable: false,
                 formatter: (row: number, cell: number, value: any) => this.formatNumberEnUS(value),
                 filter: { model: Filters['compoundInputNumber'] },
             },
             {
                 id: 'NameNCC',
-                name: 'Nhà cung cấp',
+                name: this.createHeaderWithFilterIcon('Nhà cung cấp', 'namencc-filter-icon', 'master', 0, 'NameNCC'),
                 field: 'NameNCC',
                 width: 200,
-                sortable: true,
-                filterable: true,
+                sortable: false,
+                filterable: false,
                 filter: { model: Filters['compoundInputText'] },
 
                 formatter: (_row, _cell, value, _column, dataContext) => {
@@ -374,11 +388,11 @@ export class PonccNewComponent implements OnInit, AfterViewInit {
             },
             {
                 id: 'FullName',
-                name: 'Nhân viên mua',
+                name: this.createHeaderWithFilterIcon('Nhân viên mua', 'fullname-filter-icon', 'master', 0, 'FullName'),
                 field: 'FullName',
                 width: 150,
-                sortable: true,
-                filterable: true,
+                sortable: false,
+                filterable: false,
                 filter: { model: Filters['compoundInputText'] },
 
                 formatter: (_row, _cell, value, _column, dataContext) => {
@@ -400,32 +414,32 @@ export class PonccNewComponent implements OnInit, AfterViewInit {
             },
             {
                 id: 'DeptSupplier',
-                name: 'Công nợ',
+                name: this.createHeaderWithFilterIcon('Công nợ', 'deptsupplier-filter-icon', 'master', 0, 'DeptSupplier'),
                 field: 'DeptSupplier',
                 width: 120,
-                sortable: true,
-                filterable: true,
+                sortable: false,
+                filterable: false,
                 formatter: Formatters.iconBoolean,
                 params: { cssClass: 'mdi mdi-check' },
                 filter: { model: Filters['compoundInputNumber'] },
             },
             {
                 id: 'BankCharge',
-                name: 'Bank charge',
+                name: this.createHeaderWithFilterIcon('Bank charge', 'bankcharge-filter-icon', 'master', 0, 'BankCharge'),
                 field: 'BankCharge',
                 width: 120,
-                sortable: true,
-                filterable: true,
+                sortable: false,
+                filterable: false,
                 formatter: (row: number, cell: number, value: any) => this.formatNumberEnUS(value),
                 filter: { model: Filters['compoundInputNumber'] },
             },
             {
                 id: 'RulePayName',
-                name: 'Điều khoản TT',
+                name: this.createHeaderWithFilterIcon('Điều khoản TT', 'rulepayname-filter-icon', 'master', 0, 'RulePayName'),
                 field: 'RulePayName',
                 width: 150,
-                sortable: true,
-                filterable: true,
+                sortable: false,
+                filterable: false,
                 filter: { model: Filters['compoundInputText'] },
 
                 formatter: (_row, _cell, value, _column, dataContext) => {
@@ -447,11 +461,11 @@ export class PonccNewComponent implements OnInit, AfterViewInit {
             },
             {
                 id: 'CompanyText',
-                name: 'Công ty',
+                name: this.createHeaderWithFilterIcon('Công ty', 'companytext-filter-icon', 'master', 0, 'CompanyText'),
                 field: 'CompanyText',
                 width: 150,
-                sortable: true,
-                filterable: true,
+                sortable: false,
+                filterable: false,
                 filter: { model: Filters['compoundInputText'] },
 
                 formatter: (_row, _cell, value, _column, dataContext) => {
@@ -473,20 +487,20 @@ export class PonccNewComponent implements OnInit, AfterViewInit {
             },
             {
                 id: 'FedexAccount',
-                name: 'Fedex account',
+                name: this.createHeaderWithFilterIcon('Fedex account', 'fedexaccount-filter-icon', 'master', 0, 'FedexAccount'),
                 field: 'FedexAccount',
                 width: 120,
-                sortable: true,
-                filterable: true,
+                sortable: false,
+                filterable: false,
                 filter: { model: Filters['compoundInputText'] },
             },
             {
                 id: 'RuleIncoterm',
-                name: 'Điều khoản Incoterm',
+                name: this.createHeaderWithFilterIcon('Điều khoản Incoterm', 'ruleincoterm-filter-icon', 'master', 0, 'RuleIncoterm'),
                 field: 'RuleIncoterm',
                 width: 120,
-                sortable: true,
-                filterable: true,
+                sortable: false,
+                filterable: false,
                 filter: { model: Filters['compoundInputText'] },
 
                 formatter: (_row, _cell, value, _column, dataContext) => {
@@ -508,11 +522,11 @@ export class PonccNewComponent implements OnInit, AfterViewInit {
             },
             {
                 id: 'SupplierVoucher',
-                name: 'Chứng từ NCC',
+                name: this.createHeaderWithFilterIcon('Chứng từ NCC', 'suppliervoucher-filter-icon', 'master', 0, 'SupplierVoucher'),
                 field: 'SupplierVoucher',
                 width: 120,
-                sortable: true,
-                filterable: true,
+                sortable: false,
+                filterable: false,
                 filter: { model: Filters['compoundInputText'] },
 
                 formatter: (_row, _cell, value, _column, dataContext) => {
@@ -534,11 +548,11 @@ export class PonccNewComponent implements OnInit, AfterViewInit {
             },
             {
                 id: 'OriginItem',
-                name: 'Xuất xứ',
+                name: this.createHeaderWithFilterIcon('Xuất xứ', 'originitem-filter-icon', 'master', 0, 'OriginItem'),
                 field: 'OriginItem',
                 width: 120,
-                sortable: true,
-                filterable: true,
+                sortable: false,
+                filterable: false,
                 filter: { model: Filters['compoundInputText'] },
 
                 formatter: (_row, _cell, value, _column, dataContext) => {
@@ -586,11 +600,11 @@ export class PonccNewComponent implements OnInit, AfterViewInit {
             },
             {
                 id: 'POTypeText',
-                name: 'Loại PO',
+                name: this.createHeaderWithFilterIcon('Loại PO', 'potypetext-filter-icon', 'master', 0, 'POTypeText'),
                 field: 'POTypeText',
                 width: 120,
-                sortable: true,
-                filterable: true,
+                sortable: false,
+                filterable: false,
                 filter: { model: Filters['compoundInputText'] },
 
                 formatter: (_row, _cell, value, _column, dataContext) => {
@@ -616,20 +630,20 @@ export class PonccNewComponent implements OnInit, AfterViewInit {
         this.columnDefinitionsDetail = [
             {
                 id: 'STT',
-                name: 'STT',
+                name: this.createHeaderWithFilterIcon('STT', 'stt-filter-icon', 'detail', 'detail', 'STT'),
                 field: 'STT',
                 width: 50,
-                sortable: true,
-                filterable: true,
+                sortable: false,
+                filterable: false,
                 filter: { model: Filters['compoundInputNumber'] },
             },
             {
                 id: 'ProductCode',
-                name: 'Mã sản phẩm',
+                name: this.createHeaderWithFilterIcon('Mã sản phẩm', 'productcode-filter-icon', 'detail', 'detail', 'ProductCode'),
                 field: 'ProductCode',
                 width: 120,
-                sortable: true,
-                filterable: true,
+                sortable: false,
+                filterable: false,
                 filter: { model: Filters['compoundInputText'] },
 
                 formatter: (_row, _cell, value, _column, dataContext) => {
@@ -651,11 +665,11 @@ export class PonccNewComponent implements OnInit, AfterViewInit {
             },
             {
                 id: 'ProductName',
-                name: 'Tên sản phẩm',
+                name: this.createHeaderWithFilterIcon('Tên sản phẩm', 'productname-filter-icon', 'detail', 'detail', 'ProductName'),
                 field: 'ProductName',
                 width: 200,
-                sortable: true,
-                filterable: true,
+                sortable: false,
+                filterable: false,
                 filter: { model: Filters['compoundInputText'] },
 
                 formatter: (_row, _cell, value, _column, dataContext) => {
@@ -677,11 +691,11 @@ export class PonccNewComponent implements OnInit, AfterViewInit {
             },
             {
                 id: 'ProductNewCode',
-                name: 'Mã nội bộ',
+                name: this.createHeaderWithFilterIcon('Mã nội bộ', 'productnewcode-filter-icon', 'detail', 'detail', 'ProductNewCode'),
                 field: 'ProductNewCode',
                 width: 120,
-                sortable: true,
-                filterable: true,
+                sortable: false,
+                filterable: false,
                 filter: { model: Filters['compoundInputText'] },
 
                 formatter: (_row, _cell, value, _column, dataContext) => {
@@ -703,11 +717,11 @@ export class PonccNewComponent implements OnInit, AfterViewInit {
             },
             {
                 id: 'ProductGroupName',
-                name: 'Tên nhóm',
+                name: this.createHeaderWithFilterIcon('Tên nhóm', 'productgroupname-filter-icon', 'detail', 'detail', 'ProductGroupName'),
                 field: 'ProductGroupName',
                 width: 120,
-                sortable: true,
-                filterable: true,
+                sortable: false,
+                filterable: false,
                 filter: { model: Filters['compoundInputText'] },
 
                 formatter: (_row, _cell, value, _column, dataContext) => {
@@ -729,11 +743,11 @@ export class PonccNewComponent implements OnInit, AfterViewInit {
             },
             {
                 id: 'ProductCodeOfSupplier',
-                name: 'Mã SP NCC',
+                name: this.createHeaderWithFilterIcon('Mã SP NCC', 'productcodeofsupplier-filter-icon', 'detail', 'detail', 'ProductCodeOfSupplier'),
                 field: 'ProductCodeOfSupplier',
                 width: 200,
-                sortable: true,
-                filterable: true,
+                sortable: false,
+                filterable: false,
                 filter: { model: Filters['compoundInputText'] },
 
                 formatter: (_row, _cell, value, _column, dataContext) => {
@@ -755,11 +769,11 @@ export class PonccNewComponent implements OnInit, AfterViewInit {
             },
             {
                 id: 'ParentProductCode',
-                name: 'Mã cha',
+                name: this.createHeaderWithFilterIcon('Mã cha', 'parentproductcode-filter-icon', 'detail', 'detail', 'ParentProductCode'),
                 field: 'ParentProductCode',
                 width: 120,
-                sortable: true,
-                filterable: true,
+                sortable: false,
+                filterable: false,
                 filter: { model: Filters['compoundInputText'] },
 
                 formatter: (_row, _cell, value, _column, dataContext) => {
@@ -781,11 +795,11 @@ export class PonccNewComponent implements OnInit, AfterViewInit {
             },
             {
                 id: 'ProjectCode',
-                name: 'Mã dự án',
+                name: this.createHeaderWithFilterIcon('Mã dự án', 'projectcode-filter-icon', 'detail', 'detail', 'ProjectCode'),
                 field: 'ProjectCode',
                 width: 120,
-                sortable: true,
-                filterable: true,
+                sortable: false,
+                filterable: false,
                 filter: { model: Filters['compoundInputText'] },
 
                 formatter: (_row, _cell, value, _column, dataContext) => {
@@ -807,11 +821,11 @@ export class PonccNewComponent implements OnInit, AfterViewInit {
             },
             {
                 id: 'ProjectName',
-                name: 'Tên dự án',
+                name: this.createHeaderWithFilterIcon('Tên dự án', 'projectname-filter-icon', 'detail', 'detail', 'ProjectName'),
                 field: 'ProjectName',
                 width: 200,
-                sortable: true,
-                filterable: true,
+                sortable: false,
+                filterable: false,
                 filter: { model: Filters['compoundInputText'] },
 
                 formatter: (_row, _cell, value, _column, dataContext) => {
@@ -833,11 +847,11 @@ export class PonccNewComponent implements OnInit, AfterViewInit {
             },
             {
                 id: 'UnitName',
-                name: 'ĐVT',
+                name: this.createHeaderWithFilterIcon('ĐVT', 'unitname-filter-icon', 'detail', 'detail', 'UnitName'),
                 field: 'UnitName',
                 width: 80,
-                sortable: true,
-                filterable: true,
+                sortable: false,
+                filterable: false,
                 filter: { model: Filters['compoundInputText'] },
 
                 formatter: (_row, _cell, value, _column, dataContext) => {
@@ -859,203 +873,203 @@ export class PonccNewComponent implements OnInit, AfterViewInit {
             },
             {
                 id: 'QtyRequest',
-                name: 'SL yêu cầu',
+                name: this.createHeaderWithFilterIcon('SL yêu cầu', 'qtyrequest-filter-icon', 'detail', 'detail', 'QtyRequest'),
                 field: 'QtyRequest',
                 width: 100,
-                sortable: true,
-                filterable: true,
+                sortable: false,
+                filterable: false,
                 formatter: (row: number, cell: number, value: any) => this.formatNumberEnUS(value, 0),
                 filter: { model: Filters['compoundInputNumber'] },
             },
             {
                 id: 'QuantityRequested',
-                name: 'SL đã yêu cầu',
+                name: this.createHeaderWithFilterIcon('SL đã yêu cầu', 'quantityrequested-filter-icon', 'detail', 'detail', 'QuantityRequested'),
                 field: 'QuantityRequested',
                 width: 100,
-                sortable: true,
-                filterable: true,
+                sortable: false,
+                filterable: false,
                 formatter: (row: number, cell: number, value: any) => this.formatNumberEnUS(value, 0),
                 filter: { model: Filters['compoundInputNumber'] },
             },
             {
                 id: 'QuantityReturn',
-                name: 'SL đã về',
+                name: this.createHeaderWithFilterIcon('SL đã về', 'quantityreturn-filter-icon', 'detail', 'detail', 'QuantityReturn'),
                 field: 'QuantityReturn',
                 width: 100,
-                sortable: true,
-                filterable: true,
+                sortable: false,
+                filterable: false,
                 formatter: (row: number, cell: number, value: any) => this.formatNumberEnUS(value, 0),
                 filter: { model: Filters['compoundInputNumber'] },
             },
             {
                 id: 'QuantityRemain',
-                name: 'SL còn lại',
+                name: this.createHeaderWithFilterIcon('SL còn lại', 'quantityremain-filter-icon', 'detail', 'detail', 'QuantityRemain'),
                 field: 'QuantityRemain',
                 width: 100,
-                sortable: true,
-                filterable: true,
+                sortable: false,
+                filterable: false,
                 formatter: (row: number, cell: number, value: any) => this.formatNumberEnUS(value, 0),
                 filter: { model: Filters['compoundInputNumber'] },
             },
             {
                 id: 'UnitPrice',
-                name: 'Đơn giá',
+                name: this.createHeaderWithFilterIcon('Đơn giá', 'unitprice-filter-icon', 'detail', 'detail', 'UnitPrice'),
                 field: 'UnitPrice',
                 width: 120,
-                sortable: true,
-                filterable: true,
+                sortable: false,
+                filterable: false,
                 formatter: (row: number, cell: number, value: any) => this.formatNumberEnUS(value),
                 filter: { model: Filters['compoundInputNumber'] },
             },
             {
                 id: 'ThanhTien',
-                name: 'Thành tiền',
+                name: this.createHeaderWithFilterIcon('Thành tiền', 'thanhtien-filter-icon', 'detail', 'detail', 'ThanhTien'),
                 field: 'ThanhTien',
                 width: 120,
-                sortable: true,
-                filterable: true,
+                sortable: false,
+                filterable: false,
                 formatter: (row: number, cell: number, value: any) => this.formatNumberEnUS(value),
                 filter: { model: Filters['compoundInputNumber'] },
             },
             {
                 id: 'VAT',
-                name: 'VAT (%)',
+                name: this.createHeaderWithFilterIcon('VAT (%)', 'vat-filter-icon', 'detail', 'detail', 'VAT'),
                 field: 'VAT',
                 width: 80,
-                sortable: true,
-                filterable: true,
+                sortable: false,
+                filterable: false,
                 filter: { model: Filters['compoundInputNumber'] },
             },
             {
                 id: 'VATMoney',
-                name: 'Tổng tiền VAT',
+                name: this.createHeaderWithFilterIcon('Tổng tiền VAT', 'vatmoney-filter-icon', 'detail', 'detail', 'VATMoney'),
                 field: 'VATMoney',
                 width: 120,
-                sortable: true,
-                filterable: true,
+                sortable: false,
+                filterable: false,
                 formatter: (row: number, cell: number, value: any) => this.formatNumberEnUS(value),
                 filter: { model: Filters['compoundInputNumber'] },
             },
             {
                 id: 'IsBill',
-                name: 'Hóa đơn',
+                name: this.createHeaderWithFilterIcon('Hóa đơn', 'isbill-filter-icon', 'detail', 'detail', 'IsBill'),
                 field: 'IsBill',
                 width: 80,
-                sortable: true,
-                filterable: true,
+                sortable: false,
+                filterable: false,
                 formatter: Formatters.iconBoolean,
                 params: { cssClass: 'mdi mdi-check' },
                 filter: { model: Filters['compoundInputNumber'] },
             },
             {
                 id: 'DiscountPercent',
-                name: 'Chiết khấu (%)',
+                name: this.createHeaderWithFilterIcon('Chiết khấu (%)', 'discountpercent-filter-icon', 'detail', 'detail', 'DiscountPercent'),
                 field: 'DiscountPercent',
                 width: 100,
-                sortable: true,
-                filterable: true,
+                sortable: false,
+                filterable: false,
                 filter: { model: Filters['compoundInputNumber'] },
             },
             {
                 id: 'Discount',
-                name: 'Tiền chiết khấu',
+                name: this.createHeaderWithFilterIcon('Tiền chiết khấu', 'discount-filter-icon', 'detail', 'detail', 'Discount'),
                 field: 'Discount',
                 width: 120,
-                sortable: true,
-                filterable: true,
+                sortable: false,
+                filterable: false,
                 formatter: (row: number, cell: number, value: any) => this.formatNumberEnUS(value),
                 filter: { model: Filters['compoundInputNumber'] },
             },
             {
                 id: 'FeeShip',
-                name: 'Phí vận chuyển',
+                name: this.createHeaderWithFilterIcon('Phí vận chuyển', 'feeship-filter-icon', 'detail', 'detail', 'FeeShip'),
                 field: 'FeeShip',
                 width: 120,
-                sortable: true,
-                filterable: true,
+                sortable: false,
+                filterable: false,
                 formatter: (row: number, cell: number, value: any) => this.formatNumberEnUS(value),
                 filter: { model: Filters['compoundInputNumber'] },
             },
             {
                 id: 'TotalPrice',
-                name: 'Tổng tiền',
+                name: this.createHeaderWithFilterIcon('Tổng tiền', 'totalprice-filter-icon', 'detail', 'detail', 'TotalPrice'),
                 field: 'TotalPrice',
                 width: 120,
-                sortable: true,
-                filterable: true,
+                sortable: false,
+                filterable: false,
                 formatter: (row: number, cell: number, value: any) => this.formatNumberEnUS(value),
                 filter: { model: Filters['compoundInputNumber'] },
             },
             {
                 id: 'DeadlineDelivery',
-                name: 'Deadline giao hàng',
+                name: this.createHeaderWithFilterIcon('Deadline giao hàng', 'deadlinedelivery-filter-icon', 'detail', 'detail', 'DeadlineDelivery'),
                 field: 'DeadlineDelivery',
                 width: 100,
-                sortable: true,
-                filterable: true,
+                sortable: false,
+                filterable: false,
                 formatter: Formatters.date,
                 params: { dateFormat: 'DD/MM/YYYY' },
                 filter: { model: Filters['compoundDate'] },
             },
             {
                 id: 'ExpectedDate',
-                name: 'Ngày dự kiến',
+                name: this.createHeaderWithFilterIcon('Ngày dự kiến', 'expecteddate-filter-icon', 'detail', 'detail', 'ExpectedDate'),
                 field: 'ExpectedDate',
                 width: 100,
-                sortable: true,
-                filterable: true,
+                sortable: false,
+                filterable: false,
                 formatter: Formatters.date,
                 params: { dateFormat: 'DD/MM/YYYY' },
                 filter: { model: Filters['compoundDate'] },
             },
             {
                 id: 'ActualDate',
-                name: 'Ngày thực tế',
+                name: this.createHeaderWithFilterIcon('Ngày thực tế', 'actualdate-filter-icon', 'detail', 'detail', 'ActualDate'),
                 field: 'ActualDate',
                 width: 100,
-                sortable: true,
-                filterable: true,
+                sortable: false,
+                filterable: false,
                 formatter: Formatters.date,
                 params: { dateFormat: 'DD/MM/YYYY' },
                 filter: { model: Filters['compoundDate'] },
             },
             {
                 id: 'PriceSale',
-                name: 'Giá bán',
+                name: this.createHeaderWithFilterIcon('Giá bán', 'pricesale-filter-icon', 'detail', 'detail', 'PriceSale'),
                 field: 'PriceSale',
                 width: 120,
-                sortable: true,
-                filterable: true,
+                sortable: false,
+                filterable: false,
                 formatter: (row: number, cell: number, value: any) => this.formatNumberEnUS(value),
                 filter: { model: Filters['compoundInputNumber'] },
             },
             {
                 id: 'PriceHistory',
-                name: 'Giá lịch sử',
+                name: this.createHeaderWithFilterIcon('Giá lịch sử', 'pricehistory-filter-icon', 'detail', 'detail', 'PriceHistory'),
                 field: 'PriceHistory',
                 width: 120,
-                sortable: true,
-                filterable: true,
+                sortable: false,
+                filterable: false,
                 formatter: (row: number, cell: number, value: any) => this.formatNumberEnUS(value),
                 filter: { model: Filters['compoundInputNumber'] },
             },
             {
                 id: 'BiddingPrice',
-                name: 'Giá thầu',
+                name: this.createHeaderWithFilterIcon('Giá thầu', 'biddingprice-filter-icon', 'detail', 'detail', 'BiddingPrice'),
                 field: 'BiddingPrice',
                 width: 120,
-                sortable: true,
-                filterable: true,
+                sortable: false,
+                filterable: false,
                 formatter: (row: number, cell: number, value: any) => this.formatNumberEnUS(value),
                 filter: { model: Filters['compoundInputNumber'] },
             },
             {
                 id: 'Note',
-                name: 'Diễn giải',
+                name: this.createHeaderWithFilterIcon('Diễn giải', 'note-filter-icon', 'detail', 'detail', 'Note'),
                 field: 'Note',
                 width: 200,
-                sortable: true,
-                filterable: true,
+                sortable: false,
+                filterable: false,
                 filter: { model: Filters['compoundInputText'] },
 
                 formatter: (_row, _cell, value, _column, dataContext) => {
@@ -1103,6 +1117,7 @@ export class PonccNewComponent implements OnInit, AfterViewInit {
             autoFitColumnsOnFirstLoad: false,
             enableAutoSizeColumns: false,
             frozenColumn: 5,
+            enableHeaderMenu: false,
             enableExcelExport: true,
             excelExportOptions: {
                 filename: 'poncc',
@@ -1150,8 +1165,361 @@ export class PonccNewComponent implements OnInit, AfterViewInit {
             autoFitColumnsOnFirstLoad: false,
             enableAutoSizeColumns: false,
             frozenColumn: 3,
+            enableHeaderMenu: false,
         };
     }
+
+    //#region Header Filter Methods
+    /**
+     * Helper method to create column header name with filter icon
+     * @param baseName - Base name of the column (e.g., "Mã sản phẩm")
+     * @param iconClass - CSS class for the filter icon (e.g., "productcode-filter-icon")
+     * @param gridType - Grid type: 'master' or 'detail'
+     * @param gridIndex - Grid index for master (0 or 1) or 'detail' for detail grid
+     * @param columnId - Optional: Column ID to check filter status
+     * @returns Header name string with filter icon HTML
+     */
+    private createHeaderWithFilterIcon(baseName: string, iconClass: string, gridType: 'master' | 'detail', gridIndex: number | 'detail', columnId?: string): string {
+        let iconColor = '#1890ff'; // Default blue color
+        
+        // If columnId is provided, check if filter is active
+        if (columnId) {
+            const filterKey = `${columnId}-${gridType}-${gridIndex}`;
+            const appliedValues = this.headerFilterAppliedValuesMap.get(filterKey);
+            const hasFilter = appliedValues && appliedValues.length > 0;
+            // Orange color when filter is active
+            if (hasFilter) {
+                iconColor = '#ff9800';
+            }
+        }
+        
+        return `${baseName} <i class="fas fa-filter ${iconClass}" style="cursor:pointer; margin-left:6px; color:${iconColor};" title="Lọc"></i>`;
+    }
+
+    onHeaderFilterApply(e: HeaderFilterApplyEvent) {
+        // Key format: "columnId-gridType-gridIndex"
+        const match = e.key.match(/^(.+)-(master|detail)-(.+)$/);
+        if (match) {
+            const columnId = match[1];
+            const gridType = match[2];
+            const gridIndex = match[3];
+            
+            this.headerFilterAppliedValuesMap.set(e.key, e.appliedValues);
+            
+            if (gridType === 'master') {
+                const tabIndex = parseInt(gridIndex, 10);
+                this.applyAllHeaderFiltersToViewMaster(tabIndex);
+            } else {
+                this.applyAllHeaderFiltersToViewDetail();
+            }
+            
+            // Update column header to reflect filter status
+            if (gridType === 'master') {
+                const tabIndex = parseInt(gridIndex, 10);
+                this.updateColumnHeaderFilterIconMaster(tabIndex, columnId);
+            } else {
+                this.updateColumnHeaderFilterIconDetail(columnId);
+            }
+        }
+    }
+
+    private syncAllDataIfNeededMaster(tabIndex: number) {
+        const key = `master-${tabIndex}`;
+        if (!this.datasetsAllMapMaster.has(key) || this.datasetsAllMapMaster.get(key)?.length === 0) {
+            const originalData = tabIndex === 0 ? this.datasetPoThuongMai : this.datasetPoMuon;
+            if (originalData.length > 0) {
+                this.datasetsAllMapMaster.set(key, [...originalData]);
+            }
+        }
+    }
+
+    private syncAllDataIfNeededDetail() {
+        if (this.datasetsAllMapDetail.length === 0 && this.datasetDetail.length > 0) {
+            this.datasetsAllMapDetail = [...this.datasetDetail];
+        }
+    }
+
+    private getHeaderFilterOptions(columnId: string, gridType: 'master' | 'detail', gridIndex: number | 'detail'): HeaderFilterOption[] {
+        if (gridType === 'master') {
+            this.syncAllDataIfNeededMaster(gridIndex as number);
+            const allData = this.datasetsAllMapMaster.get(`master-${gridIndex}`) || [];
+            const map = new Map<string, string>();
+            map.set('', '');
+            
+            for (const row of allData) {
+                const value = String(row?.[columnId] ?? '');
+                if (value && !map.has(value)) {
+                    map.set(value, value);
+                }
+            }
+            
+            return Array.from(map.entries())
+                .map(([value, label]) => ({ value, label }))
+                .sort((a, b) => a.label.localeCompare(b.label));
+        } else {
+            this.syncAllDataIfNeededDetail();
+            const allData = this.datasetsAllMapDetail;
+            const map = new Map<string, string>();
+            map.set('', '');
+            
+            for (const row of allData) {
+                const value = String(row?.[columnId] ?? '');
+                if (value && !map.has(value)) {
+                    map.set(value, value);
+                }
+            }
+            
+            return Array.from(map.entries())
+                .map(([value, label]) => ({ value, label }))
+                .sort((a, b) => a.label.localeCompare(b.label));
+        }
+    }
+
+    private applyAllHeaderFiltersToViewMaster(tabIndex: number) {
+        this.syncAllDataIfNeededMaster(tabIndex);
+        const allData = this.datasetsAllMapMaster.get(`master-${tabIndex}`) || [];
+        
+        if (!allData.length) {
+            if (tabIndex === 0) {
+                this.datasetPoThuongMai = [];
+            } else {
+                this.datasetPoMuon = [];
+            }
+            this.refreshGridForTabMaster(tabIndex);
+            return;
+        }
+        
+        let filteredData = [...allData];
+        
+        // Apply all active filters
+        for (const [key, appliedValues] of this.headerFilterAppliedValuesMap.entries()) {
+            const match = key.match(/^(.+)-master-(\d+)$/);
+            if (match && parseInt(match[2], 10) === tabIndex) {
+                const columnId = match[1];
+                if (appliedValues && appliedValues.length > 0) {
+                    filteredData = filteredData.filter((row) => {
+                        const value = String(row?.[columnId] ?? '');
+                        return appliedValues.includes(value);
+                    });
+                }
+            }
+        }
+        
+        // Update dataset
+        if (tabIndex === 0) {
+            this.datasetPoThuongMai = filteredData;
+        } else {
+            this.datasetPoMuon = filteredData;
+        }
+        
+        this.refreshGridForTabMaster(tabIndex);
+    }
+
+    private applyAllHeaderFiltersToViewDetail() {
+        this.syncAllDataIfNeededDetail();
+        const allData = this.datasetsAllMapDetail;
+        
+        if (!allData.length) {
+            this.datasetDetail = [];
+            this.refreshGridForTabDetail();
+            return;
+        }
+        
+        let filteredData = [...allData];
+        
+        // Apply all active filters
+        for (const [key, appliedValues] of this.headerFilterAppliedValuesMap.entries()) {
+            const match = key.match(/^(.+)-detail-detail$/);
+            if (match) {
+                const columnId = match[1];
+                if (appliedValues && appliedValues.length > 0) {
+                    filteredData = filteredData.filter((row) => {
+                        const value = String(row?.[columnId] ?? '');
+                        return appliedValues.includes(value);
+                    });
+                }
+            }
+        }
+        
+        // Update dataset
+        this.datasetDetail = filteredData;
+        
+        this.refreshGridForTabDetail();
+    }
+
+    private refreshGridForTabMaster(tabIndex: number) {
+        const angularGrid = tabIndex === 0 ? this.angularGridPoThuongMai : this.angularGridPoMuon;
+        if (angularGrid && angularGrid.dataView) {
+            angularGrid.dataView.refresh();
+            angularGrid.slickGrid?.render();
+        }
+        
+        // Update all column header filter icons to reflect current filter status
+        this.updateAllColumnHeaderFilterIconsMaster(tabIndex);
+    }
+
+    private refreshGridForTabDetail() {
+        const angularGrid = this.angularGridDetail;
+        if (angularGrid && angularGrid.dataView) {
+            angularGrid.dataView.refresh();
+            angularGrid.slickGrid?.render();
+        }
+        
+        // Update all column header filter icons to reflect current filter status
+        this.updateAllColumnHeaderFilterIconsDetail();
+    }
+
+    private updateColumnHeaderFilterIconMaster(tabIndex: number, columnId: string): void {
+        const angularGrid = tabIndex === 0 ? this.angularGridPoThuongMai : this.angularGridPoMuon;
+        if (!angularGrid || !angularGrid.slickGrid) return;
+
+        const columns = angularGrid.slickGrid.getColumns();
+        const column = columns.find((col: any) => col.id === columnId);
+        if (!column) return;
+
+        // Get base name from column definition
+        const colDef = this.columnDefinitionsMaster.find((col: any) => col.id === columnId);
+        if (!colDef) return;
+
+        // Extract base name (remove any existing filter icon)
+        let baseName: string = '';
+        if (typeof colDef.name === 'string') {
+            baseName = colDef.name;
+        } else {
+            baseName = '';
+        }
+        // Remove filter icon if exists
+        baseName = baseName.replace(/<i class="fas fa-filter.*?<\/i>/g, '').trim();
+        // If baseName is empty after removing icon, try to get from original name
+        if (!baseName) {
+            // Try to get from a map of original names
+            const originalNames: { [key: string]: string } = {
+                'IsApproved': 'Duyệt',
+                'StatusText': 'Trạng thái',
+                'RequestDate': 'Ngày PO',
+                'DeliveryDate': 'Ngày giao hàng',
+                'POCode': 'Số PO',
+                'BillCode': 'Số đơn hàng',
+                'TotalMoneyPO': 'Tổng tiền',
+                'CurrencyText': 'Loại tiền',
+                'CurrencyRate': 'Tỷ giá',
+                'NameNCC': 'Nhà cung cấp',
+                'FullName': 'Nhân viên mua',
+                'DeptSupplier': 'Công nợ',
+                'BankCharge': 'Bank charge',
+                'RulePayName': 'Điều khoản TT',
+                'CompanyText': 'Công ty',
+                'FedexAccount': 'Fedex account',
+                'RuleIncoterm': 'Điều khoản Incoterm',
+                'SupplierVoucher': 'Chứng từ NCC',
+                'OriginItem': 'Xuất xứ',
+                'Note': 'Diễn giải',
+                'POTypeText': 'Loại PO',
+            };
+            baseName = originalNames[columnId] || columnId;
+        }
+        
+        // Get icon class
+        const iconClass = `${columnId.toLowerCase()}-filter-icon`;
+        
+        // Update column name with filter icon
+        const newName = this.createHeaderWithFilterIcon(baseName, iconClass, 'master', tabIndex, columnId);
+        column.name = newName;
+        colDef.name = newName;
+
+        // Update grid columns
+        angularGrid.slickGrid.setColumns(columns);
+        angularGrid.slickGrid.render();
+    }
+
+    private updateColumnHeaderFilterIconDetail(columnId: string): void {
+        const angularGrid = this.angularGridDetail;
+        if (!angularGrid || !angularGrid.slickGrid) return;
+
+        const columns = angularGrid.slickGrid.getColumns();
+        const column = columns.find((col: any) => col.id === columnId);
+        if (!column) return;
+
+        // Get base name from column definition
+        const colDef = this.columnDefinitionsDetail.find((col: any) => col.id === columnId);
+        if (!colDef) return;
+
+        // Extract base name (remove any existing filter icon)
+        let baseName: string = '';
+        if (typeof colDef.name === 'string') {
+            baseName = colDef.name;
+        } else {
+            baseName = '';
+        }
+        // Remove filter icon if exists
+        baseName = baseName.replace(/<i class="fas fa-filter.*?<\/i>/g, '').trim();
+        // If baseName is empty after removing icon, try to get from original name
+        if (!baseName) {
+            // Try to get from a map of original names
+            const originalNames: { [key: string]: string } = {
+                'STT': 'STT',
+                'ProductCode': 'Mã sản phẩm',
+                'ProductName': 'Tên sản phẩm',
+                'ProductNewCode': 'Mã nội bộ',
+                'ProductGroupName': 'Tên nhóm',
+                'ProductCodeOfSupplier': 'Mã SP NCC',
+                'ParentProductCode': 'Mã cha',
+                'ProjectCode': 'Mã dự án',
+                'ProjectName': 'Tên dự án',
+                'UnitName': 'ĐVT',
+                'QtyRequest': 'SL yêu cầu',
+                'QuantityRequested': 'SL đã yêu cầu',
+                'QuantityReturn': 'SL đã về',
+                'QuantityRemain': 'SL còn lại',
+                'UnitPrice': 'Đơn giá',
+                'ThanhTien': 'Thành tiền',
+                'VAT': 'VAT (%)',
+                'VATMoney': 'Tổng tiền VAT',
+                'IsBill': 'Hóa đơn',
+                'DiscountPercent': 'Chiết khấu (%)',
+                'Discount': 'Tiền chiết khấu',
+                'FeeShip': 'Phí vận chuyển',
+                'TotalPrice': 'Tổng tiền',
+                'DeadlineDelivery': 'Deadline giao hàng',
+                'ExpectedDate': 'Ngày dự kiến',
+                'ActualDate': 'Ngày thực tế',
+                'PriceSale': 'Giá bán',
+                'PriceHistory': 'Giá lịch sử',
+                'BiddingPrice': 'Giá thầu',
+                'Note': 'Diễn giải',
+            };
+            baseName = originalNames[columnId] || columnId;
+        }
+        
+        // Get icon class
+        const iconClass = `${columnId.toLowerCase()}-filter-icon`;
+        
+        // Update column name with filter icon
+        const newName = this.createHeaderWithFilterIcon(baseName, iconClass, 'detail', 'detail', columnId);
+        column.name = newName;
+        colDef.name = newName;
+
+        // Update grid columns
+        angularGrid.slickGrid.setColumns(columns);
+        angularGrid.slickGrid.render();
+    }
+
+    private updateAllColumnHeaderFilterIconsMaster(tabIndex: number): void {
+        this.columnDefinitionsMaster.forEach((colDef: any) => {
+            if (colDef.id) {
+                this.updateColumnHeaderFilterIconMaster(tabIndex, colDef.id);
+            }
+        });
+    }
+
+    private updateAllColumnHeaderFilterIconsDetail(): void {
+        this.columnDefinitionsDetail.forEach((colDef: any) => {
+            if (colDef.id) {
+                this.updateColumnHeaderFilterIconDetail(colDef.id);
+            }
+        });
+    }
+    //#endregion
 
     loadLookups() {
         this.supplierSaleService.getNCC().subscribe({
@@ -1229,8 +1597,12 @@ export class PonccNewComponent implements OnInit, AfterViewInit {
                 // Set data vào grid tương ứng
                 if (this.activeTabIndex === 0) {
                     this.datasetPoThuongMai = mappedData;
+                    // Sync to all data map for filters
+                    this.datasetsAllMapMaster.set('master-0', [...mappedData]);
                 } else {
                     this.datasetPoMuon = mappedData;
+                    // Sync to all data map for filters
+                    this.datasetsAllMapMaster.set('master-1', [...mappedData]);
                 }
 
                 this.isLoading = false;
@@ -1388,11 +1760,15 @@ export class PonccNewComponent implements OnInit, AfterViewInit {
     private displayDetailsForMaster(masterId: number): void {
         const details = this.masterDetailsMap.get(masterId) || [];
         this.datasetDetail = details;
+        // Sync to all data map for filters
+        this.datasetsAllMapDetail = [...details];
         this.cdr.detectChanges();
         // Resize detail grid sau khi data được set
         if (this.angularGridDetail) {
             setTimeout(() => {
                 this.angularGridDetail.resizerService.resizeGrid();
+                // Update all column header filter icons
+                this.updateAllColumnHeaderFilterIconsDetail();
             }, 100);
         }
     }
@@ -1459,6 +1835,43 @@ export class PonccNewComponent implements OnInit, AfterViewInit {
     // Grid ready handlers
     angularGridPoThuongMaiReady(angularGrid: AngularGridInstance) {
         this.angularGridPoThuongMai = angularGrid;
+        
+        // Subscribe to header click event for filter icons
+        if (angularGrid.slickGrid) {
+            angularGrid.slickGrid.onHeaderClick.subscribe((e: any, args: any) => {
+                const column = args.column;
+                const target = (e as MouseEvent)?.target as HTMLElement | null;
+                if (!column || !target) return;
+
+                const columnId = column.id;
+                const filterKey = `${columnId}-master-0`;
+                
+                // Check if clicked on filter icon
+                const iconClass = `${columnId.toLowerCase()}-filter-icon`;
+                const isFilterIcon = target.classList?.contains(iconClass) || 
+                                    target.closest(`.${iconClass}`) ||
+                                    (target.tagName === 'I' && target.classList?.contains('fa-filter') && target.closest(`.${iconClass}`));
+                
+                if (isFilterIcon) {
+                    (e as any).stopImmediatePropagation?.();
+                    e.preventDefault();
+                    e.stopPropagation();
+                    
+                    this.headerFilter?.toggle({
+                        key: filterKey,
+                        anchor: target,
+                        options: this.getHeaderFilterOptions(columnId, 'master', 0),
+                        appliedValues: this.headerFilterAppliedValuesMap.get(filterKey) || null,
+                    });
+                }
+            });
+        }
+        
+        // Update all column header filter icons
+        setTimeout(() => {
+            this.updateAllColumnHeaderFilterIconsMaster(0);
+        }, 150);
+        
         // Resize grid sau khi container đã render
         setTimeout(() => {
             angularGrid.resizerService.resizeGrid();
@@ -1467,6 +1880,43 @@ export class PonccNewComponent implements OnInit, AfterViewInit {
 
     angularGridPoMuonReady(angularGrid: AngularGridInstance) {
         this.angularGridPoMuon = angularGrid;
+        
+        // Subscribe to header click event for filter icons
+        if (angularGrid.slickGrid) {
+            angularGrid.slickGrid.onHeaderClick.subscribe((e: any, args: any) => {
+                const column = args.column;
+                const target = (e as MouseEvent)?.target as HTMLElement | null;
+                if (!column || !target) return;
+
+                const columnId = column.id;
+                const filterKey = `${columnId}-master-1`;
+                
+                // Check if clicked on filter icon
+                const iconClass = `${columnId.toLowerCase()}-filter-icon`;
+                const isFilterIcon = target.classList?.contains(iconClass) || 
+                                    target.closest(`.${iconClass}`) ||
+                                    (target.tagName === 'I' && target.classList?.contains('fa-filter') && target.closest(`.${iconClass}`));
+                
+                if (isFilterIcon) {
+                    (e as any).stopImmediatePropagation?.();
+                    e.preventDefault();
+                    e.stopPropagation();
+                    
+                    this.headerFilter?.toggle({
+                        key: filterKey,
+                        anchor: target,
+                        options: this.getHeaderFilterOptions(columnId, 'master', 1),
+                        appliedValues: this.headerFilterAppliedValuesMap.get(filterKey) || null,
+                    });
+                }
+            });
+        }
+        
+        // Update all column header filter icons
+        setTimeout(() => {
+            this.updateAllColumnHeaderFilterIconsMaster(1);
+        }, 150);
+        
         // Resize grid sau khi container đã render
         setTimeout(() => {
             angularGrid.resizerService.resizeGrid();
@@ -1475,6 +1925,43 @@ export class PonccNewComponent implements OnInit, AfterViewInit {
 
     angularGridDetailReady(angularGrid: AngularGridInstance) {
         this.angularGridDetail = angularGrid;
+        
+        // Subscribe to header click event for filter icons
+        if (angularGrid.slickGrid) {
+            angularGrid.slickGrid.onHeaderClick.subscribe((e: any, args: any) => {
+                const column = args.column;
+                const target = (e as MouseEvent)?.target as HTMLElement | null;
+                if (!column || !target) return;
+
+                const columnId = column.id;
+                const filterKey = `${columnId}-detail-detail`;
+                
+                // Check if clicked on filter icon
+                const iconClass = `${columnId.toLowerCase()}-filter-icon`;
+                const isFilterIcon = target.classList?.contains(iconClass) || 
+                                    target.closest(`.${iconClass}`) ||
+                                    (target.tagName === 'I' && target.classList?.contains('fa-filter') && target.closest(`.${iconClass}`));
+                
+                if (isFilterIcon) {
+                    (e as any).stopImmediatePropagation?.();
+                    e.preventDefault();
+                    e.stopPropagation();
+                    
+                    this.headerFilter?.toggle({
+                        key: filterKey,
+                        anchor: target,
+                        options: this.getHeaderFilterOptions(columnId, 'detail', 'detail'),
+                        appliedValues: this.headerFilterAppliedValuesMap.get(filterKey) || null,
+                    });
+                }
+            });
+        }
+        
+        // Update all column header filter icons
+        setTimeout(() => {
+            this.updateAllColumnHeaderFilterIconsDetail();
+        }, 150);
+        
         // Resize grid sau khi container đã render
         setTimeout(() => {
             angularGrid.resizerService.resizeGrid();

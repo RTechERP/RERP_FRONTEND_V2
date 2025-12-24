@@ -69,7 +69,7 @@
                             @for (c of item.Children; track $index) {
                             <li class="list-group-item border-0"
                                 [ngClass]="{'border-bottom':$index < item.Children.length - 1,'':$index == item.Children.length - 1}">
-                                <a [href]="c.Router == '' ? '#' :  '/rerpweb' + c.Router">
+                                <a [href]="c.Router == '' ? '#' :  c.Router">
                                     <img [src]="c.Icon">
                                     <span> {{c.Title}}</span>
                                 </a>
@@ -110,8 +110,7 @@
                             @for (c1 of item.Children; track $index) {
 
                             <li class="list-group-item border-0 border-bottom">
-                                <a class="text-uppercase text-dark"
-                                    [href]="c1.Router == '' ? '#' :  '/rerpweb' + c1.Router">
+                                <a class="text-uppercase text-dark" [href]="c1.Router == '' ? '#' :   c1.Router">
                                     <img [src]="c1.Icon">
                                     <span> {{c1.Title}}</span>
                                 </a>
@@ -119,7 +118,7 @@
                                     @for (c2 of c1.Children; track $index) {
                                     <li class="list-group-item border-0"
                                         [ngClass]="{'border-bottom':$index < c1.Children.length - 1,'':$index == c1.Children.length - 1}">
-                                        <a [href]="c2.Router == '' ? '#' :  '/rerpweb' + c2.Router"
+                                        <a [href]="c2.Router == '' ? '#' :   c2.Router"
                                             (click)="handleClickLink($event, c2.Router, c2.Title)">
                                             <img [src]="c2.Icon">
                                             <span> {{c2.Title}}</span>

@@ -478,8 +478,8 @@ export class PaymentOrderComponent implements OnInit {
                         const month = dateOrder.getMonth() + 1;
                         const day = dateOrder.getDate();
                         const pathPattern = `/năm ${year}/đề nghị thanh toán/tháng ${month}.${year}/${day}.${month}.${year}/${item.Code}`;
-                        // const url = environment.host + 'api/share/Accountant/2.NỘI BỘ' + pathPattern;
-                        const url = environment.host + 'api/share/Software/Test/UPLOADFILE' + pathPattern;
+                        const url = environment.host + 'api/share/Accountant/2.NỘI BỘ' + pathPattern;
+                        // const url = environment.host + 'api/share/Software/Test/UPLOADFILE' + pathPattern;
 
                         const width = 1000;
                         const height = 700;

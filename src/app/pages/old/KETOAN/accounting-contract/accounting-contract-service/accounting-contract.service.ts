@@ -87,4 +87,16 @@ export class AccountingContractService {
       responseType: 'blob',
     });
   }
+
+  // API để lấy danh sách users
+  getUsers(): Observable<any> {
+    return this.http.get<any>(`${this._url}get-users`);
+  }
+
+  // API để lấy danh sách hợp đồng cho log
+  getContractForLog(): Observable<any> {
+    return this.http.get<any>(`${this._url}get-contract-for-log`);
+  }
+
+  
 }

@@ -159,9 +159,15 @@ import { PonccNewComponent } from '../../../purchase/poncc-new/poncc-new.compone
 
 import { DailyReportThrComponent } from '../../../daily-report-thr/daily-report-thr.component';
 import { DailyReportLXCPComponent } from '../../../daily-report-lxcp/daily-report-lxcp.component';
+import { DailyReportMachineComponent } from '../../../daily-report-machine/daily-report-machine.component';
 import { EmployeeContactComponent } from '../../../hrm/employee/employee-contact/employee-contact.component';
 import { OverTimeSummaryPersonComponent } from '../../../hrm/over-time/over-time-summary-person/over-time-summary-person.component';
 import { MenuAppComponent } from '../../menu-app/menu-app.component';
+import { HistoryExportAccountantComponent } from '../../../old/KETOAN/history-export-accountant/history-export-accountant.component';
+import { HistoryApprovedBillLogComponent } from '../../../old/KETOAN/history-approved-bill-log/history-approved-bill-log.component';
+import { InventoryByDateComponent } from '../../../old/KETOAN/inventory-by-date/inventory-by-date.component';
+import { AccountingContractTypeMasterComponent } from '../../../old/KETOAN/accounting-contract-type-master/accounting-contract-type-master.component';
+import { AccountingContractComponent } from '../../../old/KETOAN/accounting-contract/accounting-contract.component';
 
 @Injectable({
     providedIn: 'root',
@@ -2521,7 +2527,7 @@ export class MenuService {
                                         key: 'EmployeeSaleManagerComponent',
                                         title: 'Nhân viên Sale',
                                         isOpen: true,
-                                        isPermission: this.permissionService.hasPermission("''"),
+                                        isPermission: this.permissionService.hasPermission(""),
                                         comp: EmployeeSaleManagerComponent,
                                     },
                                     {
@@ -2607,6 +2613,68 @@ export class MenuService {
                 children: [
                     {
                         kind: 'leaf',
+                        key: 'HistoryExportAccountantComponent',
+                        title: 'TRẠNG THÁI SẢN PHẨM',
+                        isOpen: true,
+                        isPermission: this.permissionService.hasPermission(''),
+                        comp: HistoryExportAccountantComponent,
+                        data: { warehouseId: 0 },
+                    },
+                    {
+                        kind: 'leaf',
+                        key: 'HistoryApproveBillLogComponent',
+                        title: 'LỊCH SỬ HỦY - NHẬN CHỨNG TỪ',
+                        isOpen: true,
+                        isPermission: this.permissionService.hasPermission(''),
+                        comp: HistoryApprovedBillLogComponent,
+                        data: { warehouseId: 0 },
+                    },
+                    // {
+                    //     kind: 'leaf',
+                    //     key: 'InventoryByDateComponent',
+                    //     title: 'BÁO CÁO TỒN KHO',
+                    //     isOpen: true,
+                    //     isPermission: this.permissionService.hasPermission(''),
+                    //     comp: InventoryByDateComponent,
+                    //     data: { warehouseId: 0 },
+                    // },
+                    {
+                        kind: 'group',
+                        key: 'QuanLyHopDongGroupComponent',
+                        title: 'QUẢN LÝ HỢP ĐỒNG',
+                        isOpen: true,
+                        isPermission: this.permissionService.hasPermission(''),
+                        children: [
+                            {
+                                kind: 'leaf',
+                                key: 'AccountingContractTypeMasterComponent',
+                                title: 'LOẠI HỢP ĐỒNG',
+                                isOpen: true,
+                                isPermission: this.permissionService.hasPermission('N53,N52,N1,N36'),
+                                comp: AccountingContractTypeMasterComponent,
+                            },
+                            // {
+                            //     kind: 'leaf',
+                            //     key: 'AccountingContractComponent',
+                            //     title: 'HỢP ĐỒNG',
+                            //     isOpen: true,
+                            //     isPermission: this.permissionService.hasPermission('N52,N53,N1,N36'),
+                            //     comp: AccountingContractComponent,
+                            // },
+                            // {
+                            //     kind: 'leaf',
+                            //     key: 'POKHComponent_HCM',
+                            //     title: 'PO KHÁCH HÀNG - HCM',
+                            //     isOpen: true,
+                            //     isPermission:
+                            //         this.permissionService.hasPermission(''),
+                            //     comp: PokhComponent,
+                            //     data: { warehouseId: 2 },
+                            // },
+                        ]
+                    },
+                    {
+                        kind: 'leaf',
                         key: 'RequestInvoiceComponent_KT',
                         title: 'YÊU CẦU XUẤT HÓA ĐƠN - KẾ TOÁN',
                         isOpen: true,
@@ -2623,6 +2691,7 @@ export class MenuService {
                         isPermission: this.permissionService.hasPermission(''),
                         comp: PaymentOrderComponent,
                     },
+
                 ],
             },
             //#endregion
@@ -3093,15 +3162,23 @@ export class MenuService {
                             {
                                 kind: 'leaf',
                                 key: 'baocaocongviecagv',
-                                title: 'Phòng AGV - Cơ khí',
+                                title: 'Phòng AGV - Cơ Khí',
                                 isOpen: true,
-                                isPermission:
-                                    isAdmin ||
+                                isPermission: isAdmin ||
                                     this.departmentAgvCokhis.includes(departmentID) ||
                                     this.userAllReportTechs.includes(id),
-                                comp: PersonComponent,
-                                router: '/baocaocongviec',
+                                comp: DailyReportMachineComponent,
                             },
+                            // {
+                            //     kind: 'leaf',
+                            //     key: 'baocaocongviecagv',
+                            //     title: 'Phòng AGV - Cơ khí',
+                            //     isOpen: true,
+                            //     isPermission:
+                            //        
+                            //     comp: PersonComponent,
+                            //     router: '/baocaocongviec',
+                            // },
                             {
                                 kind: 'group',
                                 key: 'dailyreportsale',
@@ -3363,12 +3440,12 @@ export class MenuService {
                             },
                             {
                                 kind: 'leaf',
-                                key: 'tbpduyetyccv',
-                                title: 'Yêu cầu công việc',
+                                key: 'TbpApproveJobRequirement',
+                                title: 'TBP duyệt yêu cầu công việc',
                                 isOpen: true,
                                 isPermission: this.permissionService.hasPermission('N57'),
-                                comp: PersonComponent,
-                                router: '/tbpduyetyccv',
+                                comp: JobRequirementComponent,
+                                data: { typeApprove: 2 }
                             },
                             {
                                 kind: 'leaf',
@@ -3401,12 +3478,12 @@ export class MenuService {
                             },
                             {
                                 kind: 'leaf',
-                                key: 'hrduyetyccv',
-                                title: 'Yêu cầu công việc',
+                                key: 'JobRequirementComponent',
+                                title: 'HR duyệt yêu cầu công việc',
                                 isOpen: true,
                                 isPermission: this.permissionService.hasPermission('N34,N56'),
-                                comp: PersonComponent,
-                                router: '/hrduyetyccv',
+                                comp: JobRequirementComponent,
+                                data: { typeApprove: 1 }
                             },
                         ],
                     },
@@ -3463,12 +3540,12 @@ export class MenuService {
                             },
                             {
                                 kind: 'leaf',
-                                key: 'bgdduyetyccv',
-                                title: 'Yêu cầu công việc',
+                                key: 'BgdApproveJobRequirement',
+                                title: 'BGD duyệt yêu cầu công việc',
                                 isOpen: true,
                                 isPermission: this.permissionService.hasPermission('N58'),
-                                comp: PersonComponent,
-                                router: '/bgdduyetyccv',
+                                comp: JobRequirementComponent,
+                                data: { typeApprove: 3 }
                             },
                             {
                                 kind: 'leaf',

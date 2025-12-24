@@ -379,18 +379,16 @@ export class ProjectService {
     let selected: any[] = [];
   
     data.forEach((row) => {
-      // Chỉ lấy dòng được chọn (Selected === true)
-      if (row.Selected === true) {
-        selected.push({
-          ProjectTypeLinkID: row.ProjectTypeLinkID || row.ID || 0,
-          ID: row.ID,
-          LeaderID: row.LeaderID || 0,
-          Selected: row.Selected,
-          projectTypeID: row.ProjectTypeID || row.ID
-        });
-      }
+      // Lấy dòng cha (parent) - lấy tất cả các dòng
+      selected.push({
+        ProjectTypeLinkID: row.ProjectTypeLinkID || 0,
+        ID: row.ID,
+        LeaderID: row.LeaderID || 0,
+        Selected: row.Selected,
+        projectTypeID: row.ProjectTypeID || row.ID
+      });
       
-      // Đệ quy kiểm tra children
+      // Đệ quy lấy tất cả các dòng con (children) nếu có
       if (row._children && Array.isArray(row._children)) {
         selected = selected.concat(
           this.getSelectedRowsRecursive(row._children)

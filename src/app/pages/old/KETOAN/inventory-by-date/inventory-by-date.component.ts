@@ -79,7 +79,7 @@ import { ChiTietSanPhamSaleForKtComponent } from './chi-tiet-san-pham-sale-for-k
     NzFlexModule,
     NzDrawerModule,
     NzSplitterModule,
-    NzGridModule,
+    NzGridModule, 
     NzDatePickerModule,
     NzAutocompleteModule,
     NzInputModule,

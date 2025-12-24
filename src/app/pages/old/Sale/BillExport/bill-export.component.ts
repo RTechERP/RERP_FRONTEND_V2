@@ -386,10 +386,10 @@ export class BillExportComponent implements OnInit, AfterViewInit {
             keyboard: false,
         });
 
-        modalRef.componentInstance.newBillExport = this.newBillExport;
-        modalRef.componentInstance.isCheckmode = this.isCheckmode;
-        modalRef.componentInstance.id = this.id;
-        modalRef.componentInstance.warehouseCode = this.warehouseCode;
+    modalRef.componentInstance.newBillExport = this.newBillExport;
+    modalRef.componentInstance.isCheckmode = this.isCheckmode;
+    modalRef.componentInstance.id = this.id;
+    modalRef.componentInstance.wareHouseCode = this.warehouseCode;
 
         modalRef.result.catch((result) => {
             if (result == true) {

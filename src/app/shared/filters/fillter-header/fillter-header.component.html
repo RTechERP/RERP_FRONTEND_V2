@@ -1,0 +1,33 @@
+<div
+  #panel
+  class="filter-panel"
+  [style.display]="isOpen ? 'block' : 'none'"
+  [style.left.px]="left"
+  [style.top.px]="top"
+>
+  <input
+    #searchInput
+    type="text"
+    class="filter-search"
+    placeholder="Tìm..."
+    [(ngModel)]="searchTerm"
+  />
+
+  <div class="filter-actions">
+    <button type="button" class="filter-btn" (click)="onSelectAll()">Chọn tất cả</button>
+    <button type="button" class="filter-btn" (click)="onSelectNone()">Bỏ chọn</button>
+  </div>
+
+  <div class="filter-list">
+    <label class="filter-item" *ngFor="let opt of visibleOptions; trackBy: trackByValue">
+      <input type="checkbox" [(ngModel)]="opt.checked" />
+      <span class="filter-item-text">{{ opt.label || opt.value }}</span>
+    </label>
+  </div>
+
+  <div class="filter-footer">
+    <button type="button" class="filter-btn" (click)="onClearClick()">Clear</button>
+    <button type="button" class="filter-btn primary" (click)="onApplyClick()">Apply</button>
+    <button type="button" class="filter-btn" (click)="close()">Cancel</button>
+  </div>
+</div>

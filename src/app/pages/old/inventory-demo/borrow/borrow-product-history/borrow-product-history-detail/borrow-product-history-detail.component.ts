@@ -424,13 +424,12 @@ export class BorrowProductHistoryDetailComponent implements OnInit {
               const userId = this.appUserService?.id || 0;
               const isAdmin = IDAdminDemo.includes(userId);
               const isGlobalAdmin = this.appUserService?.isAdmin || false;
-              const employeeID = this.appUserService?.employeeID || 0;
             // trạng thái đang mượn nếu là admin
-            if (isAdmin || isGlobalAdmin || employeeID == 78) {
+            if (isAdmin || isGlobalAdmin ) {
               data.Status = 1;
             }
             console.log('data',data);
-            
+
             return this.borrowService.postSaveHistoryProductRTC(data).toPromise()
               .then(() => {
                 return { item, success: true, message: null }

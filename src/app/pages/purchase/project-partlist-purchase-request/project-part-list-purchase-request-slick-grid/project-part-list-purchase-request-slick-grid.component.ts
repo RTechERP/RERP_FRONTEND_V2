@@ -1,22 +1,36 @@
-import { Component, OnInit, OnDestroy, AfterViewInit, ViewChild, TemplateRef, ChangeDetectorRef, Input, Optional, Inject } from '@angular/core';
+import {
+  Component,
+  OnInit,
+  OnDestroy,
+  AfterViewInit,
+  ViewChild,
+  TemplateRef,
+  ChangeDetectorRef,
+  Input,
+  Optional,
+  Inject,
+} from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import {
-    AngularGridInstance,
-    Column,
-    GridOption,
-    Filters,
-    Formatters,
-    Editors,
-    OnClickEventArgs,
-    OnCellChangeEventArgs,
-    OnSelectedRowsChangedEventArgs,
-    Aggregators,
-    SortComparers,
-    GroupTotalFormatters,
-    AngularSlickgridModule
+  AngularGridInstance,
+  Column,
+  GridOption,
+  Filters,
+  Formatters,
+  Editors,
+  OnClickEventArgs,
+  OnCellChangeEventArgs,
+  OnSelectedRowsChangedEventArgs,
+  Aggregators,
+  SortComparers,
+  GroupTotalFormatters,
+  AngularSlickgridModule,
 } from 'angular-slickgrid';
-import { SortDirectionNumber } from '@slickgrid-universal/common';
+import {
+  MultipleSelectOption,
+  SortDirectionNumber,
+} from '@slickgrid-universal/common';
 import { ProjectPartlistPurchaseRequestService } from '../project-partlist-purchase-request.service';
 import { ProjectPartlistPurchaseRequestParam } from '../project-partlist-purchase-request.model';
 import { NzNotificationService } from 'ng-zorro-antd/notification';
@@ -32,7 +46,11 @@ import { NzSpinModule } from 'ng-zorro-antd/spin';
 import { NzDropDownModule } from 'ng-zorro-antd/dropdown';
 import { Subscription } from 'rxjs';
 import { HasPermissionDirective } from '../../../../directives/has-permission.directive';
-import { NgbActiveModal, NgbModal, NgbModule } from '@ng-bootstrap/ng-bootstrap';
+import {
+  NgbActiveModal,
+  NgbModal,
+  NgbModule,
+} from '@ng-bootstrap/ng-bootstrap';
 import { NOTIFICATION_TITLE } from '../../../../app.config';
 import { SupplierSaleDetailComponent } from '../../supplier-sale/supplier-sale-detail/supplier-sale-detail.component';
 import { ProjectPartlistPurchaseRequestDetailComponent } from '../project-partlist-purchase-request-detail/project-partlist-purchase-request-detail.component';
@@ -42,6 +60,13 @@ import { PermissionService } from '../../../../services/permission.service';
 import { SupplierSaleService } from '../../supplier-sale/supplier-sale.service';
 import { PonccDetailComponent } from '../../poncc/poncc-detail/poncc-detail.component';
 import { PONCCService } from '../../poncc/poncc.service';
+import { DateTime } from 'luxon';
+import * as ExcelJS from 'exceljs';
+import {
+  FillterHeaderComponent,
+  HeaderFilterApplyEvent,
+  HeaderFilterOption,
+} from '../../../../shared/filters/fillter-header/fillter-header.component';
 import { ActivatedRoute } from '@angular/router';
 
 interface Tab {
@@ -49,37 +74,390 @@ interface Tab {
     title: string;
 }
 
-@Component({
-    selector: 'app-project-part-list-purchase-request-slick-grid',
-    standalone: true,
-    imports: [
-        CommonModule,
-        FormsModule,
-        AngularSlickgridModule,
-        NzFormModule,
-        NzSelectModule,
-        NzButtonModule,
-        NzIconModule,
-        NzDatePickerModule,
-        NzInputModule,
-        NzTabsModule,
-        NzSpinModule,
-        NzModalModule,
-        NzDropDownModule,
-        NgbModule,
-        HasPermissionDirective
-    ],
-    templateUrl: './project-part-list-purchase-request-slick-grid.component.html',
-    styleUrls: ['./project-part-list-purchase-request-slick-grid.component.css']
-})
-export class ProjectPartListPurchaseRequestSlickGridComponent implements OnInit, AfterViewInit, OnDestroy {
-    @ViewChild('rejectReasonTpl', { static: false }) rejectReasonTpl!: TemplateRef<any>;
+/**
+ * Custom editor for single select with searchable dropdown and grouped options support
+ */
+class GroupSelectEditor {
+  private args: any;
+  private wrapperElm!: HTMLDivElement;
+  private inputElm!: HTMLInputElement;
+  private dropdownElm!: HTMLDivElement;
+  private defaultValue: string = '';
+  private selectedValue: string = '';
+  private collection: Array<any> = [];
+  private visibleOptions: Array<{
+    value: string;
+    label: string;
+    group?: string;
+  }> = [];
+  private activeIndex = -1;
 
-    // Grid instances for each tab
-    angularGrids: Map<number, AngularGridInstance> = new Map();
-    columnDefinitionsMap: Map<number, Column[]> = new Map();
-    gridOptionsMap: Map<number, GridOption> = new Map();
-    datasetsMap: Map<number, any[]> = new Map();
+  private handleOutsideMouseDown!: (e: Event) => void;
+  private handleReposition!: () => void;
+
+  constructor(args: any) {
+    this.args = args;
+    this.init();
+  }
+
+  init() {
+    const editor = this.args?.column?.editor ?? {};
+    this.collection = editor.collection ?? [];
+
+    this.wrapperElm = document.createElement('div');
+    this.wrapperElm.style.width = '100%';
+    this.wrapperElm.style.height = '100%';
+
+    this.inputElm = document.createElement('input');
+    this.inputElm.type = 'text';
+    this.inputElm.placeholder = 'Tìm...';
+    this.inputElm.style.width = '100%';
+    this.inputElm.style.height = '100%';
+    this.inputElm.style.boxSizing = 'border-box';
+    this.inputElm.style.padding = '2px 6px';
+    this.inputElm.style.fontSize = '12px';
+
+    this.wrapperElm.appendChild(this.inputElm);
+    this.args.container.appendChild(this.wrapperElm);
+
+    this.dropdownElm = document.createElement('div');
+    this.dropdownElm.style.position = 'fixed';
+    this.dropdownElm.style.zIndex = '99999';
+    this.dropdownElm.style.background = '#fff';
+    this.dropdownElm.style.border = '1px solid #d9d9d9';
+    this.dropdownElm.style.borderRadius = '4px';
+    this.dropdownElm.style.boxShadow = '0 6px 16px rgba(0,0,0,.08)';
+    this.dropdownElm.style.maxHeight = '260px';
+    this.dropdownElm.style.overflow = 'auto';
+    this.dropdownElm.style.display = 'none';
+    document.body.appendChild(this.dropdownElm);
+
+    this.inputElm.addEventListener('input', () => {
+      this.activeIndex = -1;
+      this.buildDropdown(this.inputElm.value);
+      this.openDropdown();
+    });
+
+    this.inputElm.addEventListener('focus', () => {
+      this.activeIndex = -1;
+      this.buildDropdown(this.inputElm.value);
+      this.openDropdown();
+    });
+
+    this.inputElm.addEventListener('keydown', (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        this.closeDropdown();
+        e.preventDefault();
+        return;
+      }
+
+      if (e.key === 'ArrowDown') {
+        this.moveActive(1);
+        e.preventDefault();
+        return;
+      }
+
+      if (e.key === 'ArrowUp') {
+        this.moveActive(-1);
+        e.preventDefault();
+        return;
+      }
+
+      if (e.key === 'Enter') {
+        this.selectActiveOrCommit();
+        e.preventDefault();
+      }
+    });
+
+    this.dropdownElm.addEventListener('mousedown', (e) => {
+      e.preventDefault();
+    });
+
+    this.handleOutsideMouseDown = (e: Event) => {
+      const target = e.target as Node;
+      if (
+        this.wrapperElm?.contains(target) ||
+        this.dropdownElm?.contains(target)
+      )
+        return;
+      this.closeDropdown();
+    };
+
+    this.handleReposition = () => {
+      if (this.dropdownElm?.style.display !== 'none') {
+        this.repositionDropdown();
+      }
+    };
+
+    document.addEventListener('mousedown', this.handleOutsideMouseDown, true);
+    window.addEventListener('scroll', this.handleReposition, true);
+    window.addEventListener('resize', this.handleReposition, true);
+
+    this.buildDropdown('');
+    this.openDropdown();
+    this.inputElm.focus();
+  }
+
+  private openDropdown() {
+    this.repositionDropdown();
+    this.dropdownElm.style.display = 'block';
+  }
+
+  private closeDropdown() {
+    if (this.dropdownElm) {
+      this.dropdownElm.style.display = 'none';
+    }
+  }
+
+  private repositionDropdown() {
+    const rect = this.wrapperElm.getBoundingClientRect();
+    this.dropdownElm.style.left = `${rect.left}px`;
+    this.dropdownElm.style.top = `${rect.bottom}px`;
+    this.dropdownElm.style.width = `${rect.width}px`;
+  }
+
+  private commit() {
+    const grid = this.args?.grid;
+    const lock = grid?.getEditorLock?.();
+    lock?.commitCurrentEdit?.();
+  }
+
+  private getFlattenedCollection(): Array<{
+    group?: string;
+    value: string;
+    label: string;
+  }> {
+    const out: Array<{ group?: string; value: string; label: string }> = [];
+    const editor = this.args?.column?.editor ?? {};
+    const addBlankEntry = editor?.collectionOptions?.addBlankEntry !== false;
+
+    if (addBlankEntry) {
+      out.push({ value: '', label: '' });
+    }
+
+    for (const item of this.collection) {
+      if (item?.options?.length) {
+        for (const opt of item.options) {
+          out.push({
+            group: item.label ?? '',
+            value: String(opt.value ?? ''),
+            label: String(opt.label ?? ''),
+          });
+        }
+      } else {
+        out.push({
+          value: String(item.value ?? ''),
+          label: String(item.label ?? ''),
+        });
+      }
+    }
+    return out;
+  }
+
+  private buildDropdown(searchTerm: string) {
+    const term = (searchTerm ?? '').trim().toLowerCase();
+    const currentValue = String(this.selectedValue ?? '');
+    const all = this.getFlattenedCollection();
+
+    const filtered = all.filter((x) => {
+      if (!term) return true;
+      if (String(x.value ?? '') === currentValue) return true;
+      const label = String(x.label ?? '').toLowerCase();
+      const value = String(x.value ?? '').toLowerCase();
+      return label.includes(term) || value.includes(term);
+    });
+
+    this.visibleOptions = filtered;
+
+    const root = document.createElement('div');
+    root.style.padding = '4px 0';
+
+    const grouped = new Map<string, Array<{ value: string; label: string }>>();
+    const noGroup: Array<{ value: string; label: string }> = [];
+
+    for (const x of filtered) {
+      const item = { value: x.value, label: x.label };
+      if (x.group) {
+        if (!grouped.has(x.group)) grouped.set(x.group, []);
+        grouped.get(x.group)!.push(item);
+      } else {
+        noGroup.push(item);
+      }
+    }
+
+    const appendOption = (
+      opt: { value: string; label: string },
+      optIndex: number
+    ) => {
+      const row = document.createElement('div');
+      row.setAttribute('data-idx', String(optIndex));
+      row.style.padding = '6px 10px';
+      row.style.cursor = 'pointer';
+      row.style.userSelect = 'none';
+      row.style.whiteSpace = 'nowrap';
+      row.style.overflow = 'hidden';
+      row.style.textOverflow = 'ellipsis';
+      row.textContent = opt.label;
+
+      if (opt.value === currentValue) {
+        row.style.background = '#e6f4ff';
+      }
+      if (optIndex === this.activeIndex) {
+        row.style.background = '#f5f5f5';
+      }
+
+      row.addEventListener('click', () => {
+        this.selectValue(opt.value);
+      });
+
+      root.appendChild(row);
+    };
+
+    let optIndex = 0;
+    for (const opt of noGroup) {
+      appendOption(opt, optIndex);
+      optIndex++;
+    }
+
+    for (const [groupLabel, items] of grouped.entries()) {
+      const header = document.createElement('div');
+      header.style.padding = '6px 10px';
+      header.style.fontWeight = '600';
+      header.style.color = '#666';
+      header.textContent = groupLabel;
+      root.appendChild(header);
+
+      for (const opt of items) {
+        appendOption(opt, optIndex);
+        optIndex++;
+      }
+    }
+
+    this.dropdownElm.innerHTML = '';
+    this.dropdownElm.appendChild(root);
+  }
+
+  private moveActive(delta: number) {
+    const count = this.visibleOptions?.length ?? 0;
+    if (count <= 0) return;
+    const next = Math.max(0, Math.min(count - 1, this.activeIndex + delta));
+    this.activeIndex = next;
+    this.buildDropdown(this.inputElm.value);
+
+    const active = this.dropdownElm.querySelector(
+      `[data-idx="${this.activeIndex}"]`
+    ) as HTMLDivElement | null;
+    active?.scrollIntoView({ block: 'nearest' });
+  }
+
+  private selectActiveOrCommit() {
+    if (
+      this.activeIndex >= 0 &&
+      this.activeIndex < (this.visibleOptions?.length ?? 0)
+    ) {
+      this.selectValue(this.visibleOptions[this.activeIndex].value);
+      return;
+    }
+    this.commit();
+  }
+
+  private selectValue(val: string) {
+    this.selectedValue = String(val ?? '');
+    const flat = this.getFlattenedCollection();
+    const found = flat.find(
+      (x) => String(x.value ?? '') === this.selectedValue
+    );
+    this.inputElm.value = found?.label ?? '';
+    this.closeDropdown();
+    this.commit();
+  }
+
+  destroy() {
+    document.removeEventListener(
+      'mousedown',
+      this.handleOutsideMouseDown,
+      true
+    );
+    window.removeEventListener('scroll', this.handleReposition, true);
+    window.removeEventListener('resize', this.handleReposition, true);
+    this.dropdownElm?.remove();
+    this.wrapperElm?.remove();
+  }
+
+  focus() {
+    this.inputElm?.focus();
+  }
+
+  loadValue(item: any) {
+    this.defaultValue = String(item?.[this.args.column.field] ?? '');
+    this.selectedValue = this.defaultValue;
+    const flat = this.getFlattenedCollection();
+    const found = flat.find(
+      (x) => String(x.value ?? '') === this.selectedValue
+    );
+    this.inputElm.value = found?.label ?? '';
+    this.buildDropdown('');
+    this.openDropdown();
+  }
+
+  serializeValue() {
+    return this.selectedValue ?? '';
+  }
+
+  applyValue(item: any, state: any) {
+    item[this.args.column.field] = state;
+  }
+
+  isValueChanged() {
+    return String(this.selectedValue ?? '') !== String(this.defaultValue ?? '');
+  }
+
+  validate() {
+    return { valid: true, msg: null };
+  }
+}
+
+@Component({
+  selector: 'app-project-part-list-purchase-request-slick-grid',
+  standalone: true,
+  imports: [
+    CommonModule,
+    FormsModule,
+    AngularSlickgridModule,
+    NzFormModule,
+    NzSelectModule,
+    NzButtonModule,
+    NzIconModule,
+    NzDatePickerModule,
+    NzInputModule,
+    NzTabsModule,
+    NzSpinModule,
+    NzModalModule,
+    NzDropDownModule,
+    NgbModule,
+    HasPermissionDirective,
+    FillterHeaderComponent,
+  ],
+  templateUrl: './project-part-list-purchase-request-slick-grid.component.html',
+  styleUrls: ['./project-part-list-purchase-request-slick-grid.component.css'],
+})
+export class ProjectPartListPurchaseRequestSlickGridComponent
+  implements OnInit, AfterViewInit, OnDestroy
+{
+  @ViewChild('rejectReasonTpl', { static: false })
+  rejectReasonTpl!: TemplateRef<any>;
+
+  @ViewChild('headerFilter') headerFilter?: FillterHeaderComponent;
+
+  // Grid instances for each tab
+  angularGrids: Map<number, AngularGridInstance> = new Map();
+  columnDefinitionsMap: Map<number, Column[]> = new Map();
+  gridOptionsMap: Map<number, GridOption> = new Map();
+  datasetsMap: Map<number, any[]> = new Map();
+  // Store original data for each tab (before filters)
+  datasetsAllMap: Map<number, any[]> = new Map();
+  // Store applied filter values for each tab and column
+  headerFilterAppliedValuesMap: Map<string, string[] | null> = new Map(); // key: "columnId-typeId"
 
     // Tabs
     tabs: Tab[] = [];
@@ -87,14 +465,14 @@ export class ProjectPartListPurchaseRequestSlickGridComponent implements OnInit,
     requestTypes: any[] = [];
     visitedTabs: Set<number> = new Set(); // Track which tabs have been visited
 
-    // Get filtered tabs based on isApprovedTBP
-    get filteredTabs(): Tab[] {
-        if (this.isApprovedTBP) {
-            // Chỉ hiển thị tab Mượn demo (id = 4)
-            return this.tabs.filter(tab => tab.id === 4);
-        }
-        return this.tabs;
+  // Get filtered tabs based on isApprovedTBP
+  get filteredTabs(): Tab[] {
+    if (this.isApprovedTBP) {
+      // Chỉ hiển thị tab Mượn demo (id = 4)
+      return this.tabs.filter((tab) => tab.id === 4);
     }
+    return this.tabs;
+  }
 
     // Get typeId from activeTabIndex (sử dụng filteredTabs)
     getActiveTabTypeId(): number | undefined {
@@ -116,60 +494,68 @@ export class ProjectPartListPurchaseRequestSlickGridComponent implements OnInit,
     dtwarehouses: any[] = [];
     lstPOKH: any[] = [];
 
-    // Filters
-    dateStart: Date = new Date(new Date().getFullYear(), new Date().getMonth(), 1);
-    dateEnd: Date = new Date(new Date().getFullYear(), new Date().getMonth() + 2, 0);
-    keyword: string = '';
-    statusRequestFilter: number = 1;
-    projectIdFilter: number | null = null;
-    supplierId: number | null = null;
-    isDeletedFilter: number = 0;
-    isApprovedBGDFilter: number = -1;
-    isApprovedTBPFilter: number = -1;
-    pokhIdFilter: number | null = null;
+  // Filters
+  dateStart: Date = new Date(
+    new Date().getFullYear(),
+    new Date().getMonth(),
+    1
+  );
+  dateEnd: Date = new Date(
+    new Date().getFullYear(),
+    new Date().getMonth() + 2,
+    0
+  );
+  keyword: string = '';
+  statusRequestFilter: number = 1;
+  projectIdFilter: number | null = null;
+  supplierId: number | null = null;
+  isDeletedFilter: number = 0;
+  isApprovedBGDFilter: number = -1;
+  isApprovedTBPFilter: number = -1;
+  pokhIdFilter: number | null = null;
 
-    // Filter options
-    statusOptions: any[] = [
-        { value: 0, label: '--Tất cả--' },
-        { value: 1, label: 'Yêu cầu mua / mượn hàng' },
-        { value: 2, label: 'Huỷ yêu cầu mua hàng' },
-        { value: 3, label: 'Đã đặt hàng' },
-        { value: 4, label: 'Đang về' },
-        { value: 5, label: 'Đã về' },
-        { value: 6, label: 'Không đặt hàng' }
-    ];
+  // Filter options
+  statusOptions: any[] = [
+    { value: 0, label: '--Tất cả--' },
+    { value: 1, label: 'Yêu cầu mua / mượn hàng' },
+    { value: 2, label: 'Huỷ yêu cầu mua hàng' },
+    { value: 3, label: 'Đã đặt hàng' },
+    { value: 4, label: 'Đang về' },
+    { value: 5, label: 'Đã về' },
+    { value: 6, label: 'Không đặt hàng' },
+  ];
 
-    deletedOptions: any[] = [
-        { value: -1, label: '--Tất cả--' },
-        { value: 0, label: 'Chưa xóa' },
-        { value: 1, label: 'Đã xóa' }
-    ];
+  deletedOptions: any[] = [
+    { value: -1, label: '--Tất cả--' },
+    { value: 0, label: 'Chưa xóa' },
+    { value: 1, label: 'Đã xóa' },
+  ];
 
-    approvalOptions: any[] = [
-        { value: -1, label: '--Tất cả--' },
-        { value: 0, label: 'Chưa duyệt' },
-        { value: 1, label: 'Đã duyệt' }
-    ];
+  approvalOptions: any[] = [
+    { value: -1, label: '--Tất cả--' },
+    { value: 0, label: 'Chưa duyệt' },
+    { value: 1, label: 'Đã duyệt' },
+  ];
 
     projects: any[] = [];
     supplierSales: any[] = [];
 
-    // UI state
-    @Input() showHeader: boolean = false;
-    @Input() headerText: string = 'YÊU CẦU MUA HÀNG';
-    @Input() showCloseButton: boolean = false;
-    @Input() isYCMH: boolean = false;
-    showSearchBar: boolean = true;
-    @Input() isApprovedTBP: boolean = false;
-    @Input() isSelectedPO: boolean = false;
-    @Input() isApprovedBGD: boolean = false;
-    @Input() listRequestBuySelect: boolean = false;
-    shouldShowSearchBar: boolean = true;
-    isLoading: boolean = false;
-    @Input() isPurchaseRequestDemo: boolean = false;
-    WarehouseType: number = 1;
-    // Subscriptions
-    private subscriptions: Subscription[] = [];
+  // UI state
+  @Input() showHeader: boolean = false;
+  @Input() headerText: string = 'YÊU CẦU MUA HÀNG';
+  @Input() showCloseButton: boolean = false;
+  @Input() isYCMH: boolean = false;
+  showSearchBar: boolean = true;
+  @Input() isApprovedTBP: boolean = false;
+  @Input() isSelectedPO: boolean = false;
+  @Input() isApprovedBGD: boolean = false;
+  @Input() listRequestBuySelect: boolean = false;
+  shouldShowSearchBar: boolean = true;
+  isLoading: boolean = false;
+  @Input() isPurchaseRequestDemo: boolean = false;
+  WarehouseType: number = 1;
+  // Subscriptions
+  private subscriptions: Subscription[] = [];
 
     // Track changes for save functionality
     changedRows: any[] = [];
@@ -216,107 +602,111 @@ export class ProjectPartListPurchaseRequestSlickGridComponent implements OnInit,
             this.isApprovedBGD = params['isApprovedBGD'] || false;
         });
 
-        this.loadMasterData();
-        this.getRequestTypes();
-    }
+    this.loadMasterData();
+    this.getRequestTypes();
+  }
 
+  ngOnDestroy() {
+    this.subscriptions.forEach((sub) => sub.unsubscribe());
+    this.headerFilter?.close();
+  }
 
-    ngOnDestroy() {
-        this.subscriptions.forEach(sub => sub.unsubscribe());
-    }
+  // Load master data
+  loadMasterData() {
+    const sub1 = this.srv.getProductGroups().subscribe({
+      next: (data) => (this.dtproductGroups = data || []),
+      error: (err) => console.error('Error loading product groups:', err),
+    });
+    if (this.activeTabIndex === 3 || this.activeTabIndex === 4)
+      this.WarehouseType = 1;
 
-    // Load master data
-    loadMasterData() {
-        const sub1 = this.srv.getProductGroups().subscribe({
-            next: (data) => this.dtproductGroups = data || [],
-            error: (err) => console.error('Error loading product groups:', err)
-        });
-        if (this.activeTabIndex === 3 || this.activeTabIndex === 4) this.WarehouseType = 1;
+    const sub2 = this.srv.getProductGroupsRTC(this.WarehouseType).subscribe({
+      next: (data) => (this.dtproductGroupsRTC = data || []),
+      error: (err) => console.error('Error loading product groups RTC:', err),
+    });
 
-        const sub2 = this.srv.getProductGroupsRTC(this.WarehouseType).subscribe({
-            next: (data) => this.dtproductGroupsRTC = data || [],
-            error: (err) => console.error('Error loading product groups RTC:', err)
-        });
+    const sub3 = this.srv.getSupplierSales().subscribe({
+      next: (data) => {
+        this.dtSupplierSale = data || [];
+        this.supplierSales = data || [];
+        // Update editor collections after data is loaded
+        this.updateEditorCollections();
+      },
+      error: (err) => console.error('Error loading suppliers:', err),
+    });
 
-        const sub3 = this.srv.getSupplierSales().subscribe({
-            next: (data) => {
-                this.dtSupplierSale = data || [];
-                this.supplierSales = data || [];
-                // Update editor collections after data is loaded
-                this.updateEditorCollections();
-            },
-            error: (err) => console.error('Error loading suppliers:', err)
-        });
+    const sub4 = this.srv.getCurrencies().subscribe({
+      next: (data) => {
+        this.dtcurrency = data || [];
+        // Update editor collections after data is loaded
+        this.updateEditorCollections();
+      },
+      error: (err) => console.error('Error loading currencies:', err),
+    });
 
-        const sub4 = this.srv.getCurrencies().subscribe({
-            next: (data) => {
-                this.dtcurrency = data || [];
-                // Update editor collections after data is loaded
-                this.updateEditorCollections();
-            },
-            error: (err) => console.error('Error loading currencies:', err)
-        });
+    const sub5 = this.srv.getProjects().subscribe({
+      next: (data) => {
+        this.dtprojects = data || [];
+        this.projects = data || [];
+      },
+      error: (err) => console.error('Error loading projects:', err),
+    });
 
-        const sub5 = this.srv.getProjects().subscribe({
-            next: (data) => {
-                this.dtprojects = data || [];
-                this.projects = data || [];
-            },
-            error: (err) => console.error('Error loading projects:', err)
-        });
+    const sub6 = this.srv.getWarehouses().subscribe({
+      next: (data) => (this.dtwarehouses = data || []),
+      error: (err) => console.error('Error loading warehouses:', err),
+    });
 
-        const sub6 = this.srv.getWarehouses().subscribe({
-            next: (data) => this.dtwarehouses = data || [],
-            error: (err) => console.error('Error loading warehouses:', err)
-        });
-
-        const sub7 = this.srv.getPOKH().subscribe({
-            next: (data) => this.lstPOKH = data || [],
-            error: (err) => console.error('Error loading POKH:', err)
-        });
+    const sub7 = this.srv.getPOKH().subscribe({
+      next: (data) => (this.lstPOKH = data || []),
+      error: (err) => console.error('Error loading POKH:', err),
+    });
 
         this.subscriptions.push(sub1, sub2, sub3, sub4, sub5, sub6, sub7);
     }
 
-    // Get request types and create tabs
-    getRequestTypes() {
-        const sub = this.srv.getRequestTypes().subscribe({
-            next: (types: any[]) => {
-                this.requestTypes = types || [];
-                this.tabs = (types || []).map((t) => ({ id: t.ID, title: t.RequestTypeName.toUpperCase() }));
+  // Get request types and create tabs
+  getRequestTypes() {
+    const sub = this.srv.getRequestTypes().subscribe({
+      next: (types: any[]) => {
+        this.requestTypes = types || [];
+        this.tabs = (types || []).map((t) => ({
+          id: t.ID,
+          title: t.RequestTypeName.toUpperCase(),
+        }));
 
-                // Initialize grids for each tab first
-                this.initAllGrids();
+        // Initialize grids for each tab first
+        this.initAllGrids();
 
                 // Trigger change detection to update view
                 this.cdr.detectChanges();
 
-                // Mark first tab as visited after a delay to ensure DOM is ready
-                // This is done here instead of ngAfterViewInit because getRequestTypes
-                // might complete after ngAfterViewInit
-                if (this.tabs.length > 0) {
-                    setTimeout(() => {
-                        // Nếu isApprovedTBP = true, chỉ mark tab 4 (Mượn demo) là visited
-                        if (this.isApprovedTBP) {
-                            const muonDemoTab = this.tabs.find(tab => tab.id === 4);
-                            if (muonDemoTab) {
-                                this.visitedTabs.add(muonDemoTab.id);
-                                this.activeTabIndex = 0; // Index trong filteredTabs sẽ là 0
-                            }
-                        } else {
-                            this.visitedTabs.add(this.tabs[0].id);
-                        }
-                        this.cdr.detectChanges();
+        // Mark first tab as visited after a delay to ensure DOM is ready
+        // This is done here instead of ngAfterViewInit because getRequestTypes
+        // might complete after ngAfterViewInit
+        if (this.tabs.length > 0) {
+          setTimeout(() => {
+            // Nếu isApprovedTBP = true, chỉ mark tab 4 (Mượn demo) là visited
+            if (this.isApprovedTBP) {
+              const muonDemoTab = this.tabs.find((tab) => tab.id === 4);
+              if (muonDemoTab) {
+                this.visitedTabs.add(muonDemoTab.id);
+                this.activeTabIndex = 0; // Index trong filteredTabs sẽ là 0
+              }
+            } else {
+              this.visitedTabs.add(this.tabs[0].id);
+            }
+            this.cdr.detectChanges();
 
-                        // Load data after grid container is rendered
-                        setTimeout(() => {
-                            this.onSearch();
-                        }, 150);
-                    }, 200);
-                }
-            },
-            error: (err) => this.notify.error('Lỗi', err.error.message),
-        });
+            // Load data after grid container is rendered
+            setTimeout(() => {
+              this.onSearch();
+            }, 150);
+          }, 200);
+        }
+      },
+      error: (err) => this.notify.error('Lỗi', err.error.message),
+    });
 
         this.subscriptions.push(sub);
     }
@@ -336,14 +726,14 @@ export class ProjectPartListPurchaseRequestSlickGridComponent implements OnInit,
         }
     }
 
-    // Initialize all grids
-    initAllGrids() {
-        this.tabs.forEach(tab => {
-            this.columnDefinitionsMap.set(tab.id, this.initGridColumns(tab.id));
-            this.gridOptionsMap.set(tab.id, this.initGridOptions(tab.id));
-            this.datasetsMap.set(tab.id, []);
-        });
-    }
+  // Initialize all grids
+  initAllGrids() {
+    this.tabs.forEach((tab) => {
+      this.columnDefinitionsMap.set(tab.id, this.initGridColumns(tab.id));
+      this.gridOptionsMap.set(tab.id, this.initGridOptions(tab.id));
+      this.datasetsMap.set(tab.id, []);
+    });
+  }
 
     // Initialize grid columns for a specific tab
     private initGridColumns(typeId: number): Column[] {
@@ -352,41 +742,75 @@ export class ProjectPartListPurchaseRequestSlickGridComponent implements OnInit,
         // Check if this is tab 4 (Mượn demo - RTC) - only this tab has TBP columns
         const isTBPTab = typeId === 4;
 
-        const columns: Column[] = [
-            // TT - Row number (frozen)
-            {
-                id: 'TT',
-                field: 'TT',
-                name: 'TT',
-                width: 50,
-                sortable: false,
-                filterable: false,
-            },
-        ];
+    const columns: Column[] = [
+      // TT - Row number (frozen)
+      {
+        id: 'TT',
+        field: 'TT',
+        name: 'TT',
+        width: 50,
+        sortable: false,
+        filterable: false,
+      },
+      {
+        id: 'WarehouseID',
+        field: 'WarehouseID',
+        // WarehouseID FILTER (ADVANCED DROPDOWN): icon filter ở header
+        name: this.createHeaderWithFilterIcon('Kho nhập hàng', 'warehouseid-filter-icon', typeId, 'WarehouseID'),
+        width: 120,
+        sortable: false,
+        // WarehouseID FILTER (ADVANCED DROPDOWN): tắt filter row mặc định để dùng dropdown custom
+        filterable: false,
+        editor: {
+          model: GroupSelectEditor,
+          collection: this.getWarehouseCollection(),
+          collectionOptions: {
+            addBlankEntry: false,
+          },
+          editorOptions: {
+            enableClear: true,
+          },
+        },
+        formatter: (row: number, cell: number, value: any) => {
+          const warehouse = this.dtwarehouses.find((w: any) => w.ID === value);
+          return warehouse ? warehouse.WarehouseName : '';
+        },
+      },
+    ];
 
-        // Add TBP columns only for typeId === 3
-        if (isTBPTab) {
-            columns.push(
-                // IsApprovedTBP - Checkbox (read-only)
-                {
-                    id: 'IsApprovedTBP',
-                    field: 'IsApprovedTBP',
-                    name: 'TBP duyệt',
-                    width: 80,
-                    sortable: true,
-                    filterable: true,
-                    formatter: Formatters.iconBoolean,
-                    params: { cssClass: 'mdi mdi-check' },
-                    filter: { model: Filters['compoundInputNumber'] },
-                },
-                {
-                    id: 'ApprovedTBPName',
-                    field: 'ApprovedTBPName',
-                    name: 'TBP',
-                    width: 120,
-                    sortable: true,
-                    filterable: true,
-                    filter: { model: Filters['compoundInputText'] },
+    // Add TBP columns only for typeId === 3
+    if (isTBPTab) {
+      columns.push(
+        // IsApprovedTBP - Checkbox (read-only)
+        {
+          id: 'IsApprovedTBP',
+          field: 'IsApprovedTBP',
+          name: 'TBP duyệt',
+          width: 80,
+          sortable: true,
+          filterable: true,
+          formatter: Formatters.iconBoolean,
+          params: { cssClass: 'mdi mdi-check' },
+          filter: {
+            collection: [
+              { value: true, label: 'Đã duyệt' },
+              { value: false, label: 'Chưa duyệt' },
+            ],
+            model: Filters['multipleSelect'],
+            options: {
+              offsetLeft: 14,
+              width: 100,
+            } as Partial<MultipleSelectOption>,
+          },
+        },
+        {
+          id: 'ApprovedTBPName',
+          field: 'ApprovedTBPName',
+          name: 'TBP',
+          width: 120,
+          sortable: true,
+          filterable: true,
+          filter: { model: Filters['compoundInputText'] },
 
                     formatter: (_row, _cell, value, _column, dataContext) => {
                         if (!value) return '';
@@ -421,70 +845,83 @@ export class ProjectPartListPurchaseRequestSlickGridComponent implements OnInit,
             );
         }
 
-        // Continue with common columns
-        columns.push(
-            // IsRequestApproved
-            {
-                id: 'IsRequestApproved',
-                field: 'IsRequestApproved',
-                name: 'YC duyệt',
-                width: 80,
-                sortable: true,
-                filterable: true,
-                formatter: Formatters.iconBoolean,
-                params: { cssClass: 'mdi mdi-check' },
-                filter: { model: Filters['compoundInputNumber'] },
-            },
-            // IsApprovedBGD
-            {
-                id: 'IsApprovedBGD',
-                field: 'IsApprovedBGD',
-                name: 'BGĐ duyệt',
-                width: 80,
-                sortable: true,
-                filterable: true,
-                formatter: Formatters.iconBoolean,
-                params: { cssClass: 'mdi mdi-check' },
-                filter: { model: Filters['compoundInputNumber'] },
-            },
-            // CustomerName
-            {
-                id: 'CustomerName',
-                field: 'CustomerName',
-                name: 'Khách hàng',
-                width: 150,
-                sortable: true,
-                filterable: true,
-                filter: { model: Filters['compoundInputText'] },
-                formatter: (_row, _cell, value, _column, dataContext) => {
-                    if (!value) return '';
-                    return `
-            <span
-              title="${dataContext.CustomerName}"
-              style="display:block; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;"
-            >
-              ${value}
-            </span>
-          `;
-                },
+    // Continue with common columns
+    // Chỉ thêm 2 cột YC duyệt và BGĐ duyệt nếu KHÔNG phải tab "Mua hàng dự án" (typeId !== 1) và KHÔNG phải tab "Mượn demo" (typeId !== 4)
+    if (typeId !== 1 && typeId !== 4) {
+      columns.push(
+        // IsRequestApproved
+        {
+          id: 'IsRequestApproved',
+          field: 'IsRequestApproved',
+          name: 'YC duyệt',
+          width: 80,
+          sortable: true,
+          filterable: true,
+          formatter: Formatters.iconBoolean,
+          params: { cssClass: 'mdi mdi-check' },
+          filter: { model: Filters['compoundInputNumber'] },
+        },
+        // IsApprovedBGD
+        {
+          id: 'IsApprovedBGD',
+          field: 'IsApprovedBGD',
+          name: 'BGĐ duyệt',
+          width: 80,
+          sortable: true,
+          filterable: true,
+          formatter: Formatters.iconBoolean,
+          params: { cssClass: 'mdi mdi-check' },
+          filter: { model: Filters['compoundInputNumber'] },
+        }
+      );
+    }
 
-                customTooltip: {
-                    useRegularTooltip: true,
-                    // useRegularTooltipFromCellTextOnly: true,
-                },
-            },
-            // ProjectCode
-            {
-                id: 'ProjectCode',
-                field: 'ProjectCode',
-                name: 'Mã dự án',
-                width: 120,
-                sortable: true,
-                filterable: true,
-                filter: { model: Filters['compoundInputText'] },
-                formatter: (_row, _cell, value, _column, dataContext) => {
-                    if (!value) return '';
-                    return `
+    // Chỉ thêm cột CustomerName nếu KHÔNG phải tab "Mua hàng dự án" (typeId !== 1)
+    if (typeId !== 1) {
+      columns.push(
+        // CustomerName
+        {
+          id: 'CustomerName',
+          field: 'CustomerName',
+          name: 'Khách hàng',
+          width: 150,
+          sortable: true,
+          filterable: true,
+          filter: { model: Filters['compoundInputText'] },
+          formatter: (_row, _cell, value, _column, dataContext) => {
+            if (!value) return '';
+            return `
+              <span
+                title="${dataContext.CustomerName}"
+                style="display:block; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;"
+              >
+                ${value}
+              </span>
+            `;
+          },
+
+          customTooltip: {
+            useRegularTooltip: true,
+            // useRegularTooltipFromCellTextOnly: true,
+          },
+        }
+      );
+    }
+
+    columns.push(
+      // ProjectCode
+      {
+        id: 'ProjectCode',
+        field: 'ProjectCode',
+        // ProjectCode FILTER (ADVANCED DROPDOWN): icon filter ở header
+        name: this.createHeaderWithFilterIcon('Mã dự án', 'projectcode-filter-icon', typeId, 'ProjectCode'),
+        width: 100,
+        sortable: false,
+        // ProjectCode FILTER (ADVANCED DROPDOWN): tắt filter row mặc định để dùng dropdown custom
+        filterable: false,
+        formatter: (_row, _cell, value, _column, dataContext) => {
+          if (!value) return '';
+          return `
             <span
               title="${dataContext.ProjectCode}"
               style="display:block; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;"
@@ -492,24 +929,79 @@ export class ProjectPartListPurchaseRequestSlickGridComponent implements OnInit,
               ${value}
             </span>
           `;
-                },
-                customTooltip: {
-                    useRegularTooltip: true,
-                    // useRegularTooltipFromCellTextOnly: true,
-                },
-            },
-            // ProductCode
-            {
-                id: 'ProductCode',
-                field: 'ProductCode',
-                name: 'Mã sản phẩm',
-                width: 120,
-                sortable: true,
-                filterable: true,
-                filter: { model: Filters['compoundInputText'] },
-                formatter: (_row, _cell, value, _column, dataContext) => {
-                    if (!value) return '';
-                    return `
+        },
+        customTooltip: {
+          useRegularTooltip: true,
+          // useRegularTooltipFromCellTextOnly: true,
+        },
+      },
+      {
+        id: isRTCTab ? 'ProductGroupRTCID' : 'ProductGroupID',
+        field: isRTCTab ? 'ProductGroupRTCID' : 'ProductGroupID',
+        // ProductGroup FILTER (ADVANCED DROPDOWN): icon filter ở header
+        name: this.createHeaderWithFilterIcon('Loại kho', 'productgroup-filter-icon', typeId, isRTCTab ? 'ProductGroupRTCID' : 'ProductGroupID'),
+        width: 100,
+        sortable: false,
+        // ProductGroup FILTER (ADVANCED DROPDOWN): tắt filter row mặc định để dùng dropdown custom
+        filterable: false,
+        editor: {
+          model: GroupSelectEditor,
+          collection: this.getProductGroupCollection(isRTCTab),
+          collectionOptions: {
+            addBlankEntry: false,
+          },
+          editorOptions: {
+            enableClear: true,
+          },
+        },
+        formatter: (row: number, cell: number, value: any) => {
+          const groups = isRTCTab
+            ? this.dtproductGroupsRTC
+            : this.dtproductGroups;
+          const group = groups.find((g: any) => g.ID === value);
+          return group ? group.ProductGroupName : '';
+        },
+        filter: { model: Filters['compoundInputNumber'] },
+      }, // ProductNewCode or ProductCodeRTC for RTC tabs
+      {
+        id: isRTCTab ? 'ProductCodeRTC' : 'ProductNewCode',
+        field: isRTCTab ? 'ProductCodeRTC' : 'ProductNewCode',
+        // ProductNewCode/ProductCodeRTC FILTER (ADVANCED DROPDOWN): icon filter ở header
+        name: this.createHeaderWithFilterIcon('Mã nội bộ', 'productnewcode-filter-icon', typeId, isRTCTab ? 'ProductCodeRTC' : 'ProductNewCode'),
+        width: 100,
+        sortable: false,
+        // ProductNewCode/ProductCodeRTC FILTER (ADVANCED DROPDOWN): tắt filter row mặc định để dùng dropdown custom
+        filterable: false,
+        formatter: (_row, _cell, value, _column, dataContext) => {
+          if (!value) return '';
+          const fieldValue = isRTCTab ? dataContext.ProductCodeRTC : dataContext.ProductNewCode;
+          return `
+            <span
+              title="${fieldValue}"
+              style="display:block; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;"
+            >
+              ${value}
+            </span>
+          `;
+        },
+        customTooltip: {
+          useRegularTooltip: true,
+          // useRegularTooltipFromCellTextOnly: true,
+        },
+      },
+      // ProductCode
+      {
+        id: 'ProductCode',
+        // ProductCode FILTER (ADVANCED DROPDOWN): icon filter ở header
+        name: this.createHeaderWithFilterIcon('Mã sản phẩm', 'productcode-filter-icon', typeId, 'ProductCode'),
+        field: 'ProductCode',
+        width: 100,
+        sortable: false,
+        // ProductCode FILTER (ADVANCED DROPDOWN): tắt filter row mặc định để dùng dropdown custom
+        filterable: false,
+        formatter: (_row, _cell, value, _column, dataContext) => {
+          if (!value) return '';
+          return `
             <span
               title="${dataContext.ProductCode}"
               style="display:block; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;"
@@ -517,24 +1009,25 @@ export class ProjectPartListPurchaseRequestSlickGridComponent implements OnInit,
               ${value}
             </span>
           `;
-                },
-                customTooltip: {
-                    useRegularTooltip: true,
-                    // useRegularTooltipFromCellTextOnly: true,
-                },
-            },
-            // ProductName
-            {
-                id: 'ProductName',
-                field: 'ProductName',
-                name: 'Tên sản phẩm',
-                width: 200,
-                sortable: true,
-                filterable: true,
-                filter: { model: Filters['compoundInputText'] },
-                formatter: (_row, _cell, value, _column, dataContext) => {
-                    if (!value) return '';
-                    return `
+        },
+        customTooltip: {
+          useRegularTooltip: true,
+          // useRegularTooltipFromCellTextOnly: true,
+        },
+      },
+      // ProductName
+      {
+        id: 'ProductName',
+        field: 'ProductName',
+        // ProductName FILTER (ADVANCED DROPDOWN): icon filter ở header
+        name: this.createHeaderWithFilterIcon('Tên sản phẩm', 'productname-filter-icon', typeId, 'ProductName'),
+        width: 160,
+        sortable: false,
+        // ProductName FILTER (ADVANCED DROPDOWN): tắt filter row mặc định để dùng dropdown custom
+        filterable: false,
+        formatter: (_row, _cell, value, _column, dataContext) => {
+          if (!value) return '';
+          return `
             <span
               title="${dataContext.ProductName}"
               style="display:block; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;"
@@ -542,126 +1035,49 @@ export class ProjectPartListPurchaseRequestSlickGridComponent implements OnInit,
               ${value}
             </span>
           `;
-                },
-                customTooltip: {
-                    useRegularTooltip: true,
-                    // useRegularTooltipFromCellTextOnly: true,
-                },
-            },
-            // ProductNewCode or ProductCodeRTC for RTC tabs
-            {
-                id: isRTCTab ? 'ProductCodeRTC' : 'ProductNewCode',
-                field: isRTCTab ? 'ProductCodeRTC' : 'ProductNewCode',
-                name: 'Mã nội bộ',
-                width: 120,
-                sortable: true,
-                filterable: true,
-                filter: { model: Filters['compoundInputText'] },
-                formatter: (_row, _cell, value, _column, dataContext) => {
-                    if (!value) return '';
-                    return `
+        },
+        customTooltip: {
+          useRegularTooltip: true,
+          // useRegularTooltipFromCellTextOnly: true,
+        },
+      },
+      // Model
+      {
+        id: 'Model',
+        field: 'Model',
+        name: 'Thông số kỹ thuật',
+        width: 180,
+        sortable: true,
+        filterable: true,
+        filter: { model: Filters['compoundInputText'] },
+        formatter: (_row, _cell, value, _column, dataContext) => {
+          if (!value) return '';
+          return `
             <span
-              title="${dataContext.ProductNewCode}"
+              title="${dataContext.Model}"
               style="display:block; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;"
             >
               ${value}
             </span>
           `;
-                },
-                customTooltip: {
-                    useRegularTooltip: true,
-                    // useRegularTooltipFromCellTextOnly: true,
-                },
-            },
-            // Quantity
-            {
-                id: 'Quantity',
-                field: 'Quantity',
-                name: 'Số lượng',
-                width: 100,
-                sortable: true,
-                filterable: true,
-                type: 'number',
-                editor: {
-                    model: Editors['float'],
-                    decimal: 2,
-                },
-                formatter: (row: number, cell: number, value: any) => this.formatNumberEnUS(value, 0),
-                filter: { model: Filters['compoundInputNumber'] },
-                groupTotalsFormatter: (totals: any, columnDef: any) => this.sumTotalsFormatterWithFormat(totals, columnDef),
-                params: { groupFormatterPrefix: 'Tổng: ' },
-            },
-            // ProductGroupID or ProductGroupRTCID for RTC tabs
-            {
-                id: isRTCTab ? 'ProductGroupRTCID' : 'ProductGroupID',
-                field: isRTCTab ? 'ProductGroupRTCID' : 'ProductGroupID',
-                name: 'Nhóm SP',
-                width: 150,
-                sortable: true,
-                filterable: true,
-                editor: {
-                    model: Editors['singleSelect'],
-                    collection: this.getProductGroupCollection(isRTCTab),
-                    collectionOptions: {
-                        addBlankEntry: false
-                    },
-                    editorOptions: {
-                        enableClear: true
-                    }
-                },
-                formatter: (row: number, cell: number, value: any) => {
-                    const groups = isRTCTab ? this.dtproductGroupsRTC : this.dtproductGroups;
-                    const group = groups.find((g: any) => g.ID === value);
-                    return group ? group.ProductGroupName : '';
-                },
-                filter: { model: Filters['compoundInputNumber'] },
-            },
-            // UnitName
-            {
-                id: 'UnitName',
-                field: 'UnitName',
-                name: 'ĐVT',
-                width: 80,
-                sortable: true,
-                filterable: true,
-                filter: { model: Filters['compoundInputText'] },
-            },
-            // WarehouseID
-            {
-                id: 'WarehouseID',
-                field: 'WarehouseID',
-                name: 'Kho',
-                width: 120,
-                sortable: true,
-                filterable: true,
-                editor: {
-                    model: Editors['singleSelect'],
-                    collection: this.getWarehouseCollection(),
-                    collectionOptions: {
-                        addBlankEntry: false
-                    },
-                    editorOptions: {
-                        enableClear: true
-                    }
-                },
-                formatter: (row: number, cell: number, value: any) => {
-                    const warehouse = this.dtwarehouses.find((w: any) => w.ID === value);
-                    return warehouse ? warehouse.WarehouseName : '';
-                },
-                filter: { model: Filters['compoundInputNumber'] },
-            },
-            // Manufacturer
-            {
-                id: 'Manufacturer',
-                field: 'Manufacturer',
-                name: 'Hãng',
-                width: 120,
-                sortable: true,
-                filterable: true,
-                filter: { model: Filters['compoundInputText'] },
-                formatter: (_row, _cell, value, _column, dataContext) => {
-                    if (!value) return '';
-                    return `
+        },
+        customTooltip: {
+          useRegularTooltip: true,
+          // useRegularTooltipFromCellTextOnly: true,
+        },
+      },
+      {
+        id: 'Manufacturer',
+        field: 'Manufacturer',
+        // Manufacturer FILTER (ADVANCED DROPDOWN): icon filter ở header
+        name: this.createHeaderWithFilterIcon('Hãng', 'manufacturer-filter-icon', typeId, 'Manufacturer'),
+        width: 90,
+        sortable: false,
+        // Manufacturer FILTER (ADVANCED DROPDOWN): tắt filter row mặc định để dùng dropdown custom
+        filterable: false,
+        formatter: (_row, _cell, value, _column, dataContext) => {
+          if (!value) return '';
+          return `
             <span
               title="${dataContext.Manufacturer}"
               style="display:block; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;"
@@ -669,24 +1085,83 @@ export class ProjectPartListPurchaseRequestSlickGridComponent implements OnInit,
               ${value}
             </span>
           `;
-                },
-                customTooltip: {
-                    useRegularTooltip: true,
-                    // useRegularTooltipFromCellTextOnly: true,
-                },
-            },
-            // StatusRequestText
-            {
-                id: 'StatusRequestText',
-                field: 'StatusRequestText',
-                name: 'Trạng thái',
-                width: 120,
-                sortable: true,
-                filterable: true,
-                filter: { model: Filters['compoundInputText'] },
-                formatter: (_row, _cell, value, _column, dataContext) => {
-                    if (!value) return '';
-                    return `
+        },
+        customTooltip: {
+          useRegularTooltip: true,
+          // useRegularTooltipFromCellTextOnly: true,
+        },
+      },
+      // Quantity
+      {
+        id: 'Quantity',
+        field: 'Quantity',
+        name: 'Số lượng',
+        width: 80,
+        sortable: true,
+        filterable: true,
+        type: 'number',
+        editor: {
+          model: Editors['float'],
+          decimal: 2,
+        },
+        formatter: (row: number, cell: number, value: any) =>
+          this.formatNumberEnUS(value, 0),
+        filter: { model: Filters['compoundInputNumber'] },
+        groupTotalsFormatter: (totals: any, columnDef: any) =>
+          this.sumTotalsFormatterWithFormat(totals, columnDef),
+        params: { groupFormatterPrefix: 'Tổng: ' },
+      },
+      // ProductGroupID or ProductGroupRTCID for RTC tabs
+
+      // UnitName
+      {
+        id: 'UnitName',
+        field: 'UnitName',
+        name: 'ĐVT',
+        width: 60,
+        sortable: true,
+        filterable: true,
+        filter: { model: Filters['compoundInputText'] },
+      },
+      // WarehouseID
+      // {
+      //   id: 'WarehouseID',
+      //   field: 'WarehouseID',
+      //   name: 'Kho',
+      //   width: 120,
+      //   sortable: true,
+      //   filterable: true,
+      //   editor: {
+      //     model: Editors['singleSelect'],
+      //     collection: this.getWarehouseCollection(),
+      //     collectionOptions: {
+      //       addBlankEntry: false
+      //     },
+      //     editorOptions: {
+      //       enableClear: true
+      //     }
+      //   },
+      //   formatter: (row: number, cell: number, value: any) => {
+      //     const warehouse = this.dtwarehouses.find((w: any) => w.ID === value);
+      //     return warehouse ? warehouse.WarehouseName : '';
+      //   },
+      //   filter: { model: Filters['compoundInputNumber'] },
+      // },
+      // Manufacturer
+
+      // StatusRequestText
+      {
+        id: 'StatusRequestText',
+        field: 'StatusRequestText',
+        // StatusRequestText FILTER (ADVANCED DROPDOWN): icon filter ở header
+        name: this.createHeaderWithFilterIcon('Trạng thái', 'statusrequesttext-filter-icon', typeId, 'StatusRequestText'),
+        width: 100,
+        sortable: false,
+        // StatusRequestText FILTER (ADVANCED DROPDOWN): tắt filter row mặc định để dùng dropdown custom
+        filterable: false,
+        formatter: (_row, _cell, value, _column, dataContext) => {
+          if (!value) return '';
+          return `
             <span
               title="${dataContext.StatusRequestText}"
               style="display:block; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;"
@@ -694,24 +1169,25 @@ export class ProjectPartListPurchaseRequestSlickGridComponent implements OnInit,
               ${value}
             </span>
           `;
-                },
-                customTooltip: {
-                    useRegularTooltip: true,
-                    // useRegularTooltipFromCellTextOnly: true,
-                },
-            },
-            // FullName
-            {
-                id: 'FullName',
-                field: 'FullName',
-                name: 'Người YC',
-                width: 120,
-                sortable: true,
-                filterable: true,
-                filter: { model: Filters['compoundInputText'] },
-                formatter: (_row, _cell, value, _column, dataContext) => {
-                    if (!value) return '';
-                    return `
+        },
+        customTooltip: {
+          useRegularTooltip: true,
+          // useRegularTooltipFromCellTextOnly: true,
+        },
+      },
+      // FullName
+      {
+        id: 'FullName',
+        field: 'FullName',
+        // FullName FILTER (ADVANCED DROPDOWN): icon filter ở header
+        name: this.createHeaderWithFilterIcon('Người YC', 'fullname-filter-icon', typeId, 'FullName'),
+        width: 100,
+        sortable: false,
+        // FullName FILTER (ADVANCED DROPDOWN): tắt filter row mặc định để dùng dropdown custom
+        filterable: false,
+        formatter: (_row, _cell, value, _column, dataContext) => {
+          if (!value) return '';
+          return `
             <span
               title="${dataContext.FullName}"
               style="display:block; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;"
@@ -744,258 +1220,263 @@ export class ProjectPartListPurchaseRequestSlickGridComponent implements OnInit,
               ${value}
             </span>
           `;
-                },
-                customTooltip: {
-                    useRegularTooltip: true,
-                    // useRegularTooltipFromCellTextOnly: true,
-                },
-            },
-            // DateRequest
-            {
-                id: 'DateRequest',
-                field: 'DateRequest',
-                name: 'Ngày YC',
-                width: 100,
-                sortable: true,
-                filterable: true,
-                formatter: Formatters.date,
-                params: { dateFormat: 'DD/MM/YYYY' },
-                filter: { model: Filters['compoundDate'] },
-            },
-            // DateReturnExpected
-            {
-                id: 'DateReturnExpected',
-                field: 'DateReturnExpected',
-                name: 'Deadline',
-                width: 100,
-                sortable: true,
-                filterable: true,
-                formatter: Formatters.date,
-                params: { dateFormat: 'DD/MM/YYYY' },
-                filter: { model: Filters['compoundDate'] },
-            },
-            // CurrencyID
-            {
-                id: 'CurrencyID',
-                field: 'CurrencyID',
-                name: 'Loại tiền',
-                width: 100,
-                sortable: true,
-                filterable: true,
-                editor: {
-                    model: Editors['singleSelect'],
-                    collection: this.getCurrencyCollection(),
-                    collectionOptions: {
-                        addBlankEntry: false
-                    },
-                    editorOptions: {
-                        enableClear: true
-                    }
-                },
-                formatter: (row: number, cell: number, value: any) => {
-                    const currency = this.dtcurrency.find((c: any) => c.ID === value);
-                    return currency ? currency.Code : '';
-                },
-                filter: { model: Filters['compoundInputNumber'] },
-            },
-            // CurrencyRate
-            {
-                id: 'CurrencyRate',
-                field: 'CurrencyRate',
-                name: 'Tỷ giá',
-                width: 100,
-                sortable: true,
-                filterable: true,
-                formatter: (row: number, cell: number, value: any) => this.formatNumberEnUS(value, 0),
-                filter: { model: Filters['compoundInputNumber'] },
-                groupTotalsFormatter: (totals: any, columnDef: any) => this.sumTotalsFormatterWithFormat(totals, columnDef),
-                params: { groupFormatterPrefix: 'Tổng: ' },
-            },
-            // UnitPricePOKH
-            {
-                id: 'UnitPricePOKH',
-                field: 'UnitPricePOKH',
-                name: 'Đơn giá bán (Sale Admin up)',
-                width: 120,
-                sortable: true,
-                filterable: true,
-                formatter: (row: number, cell: number, value: any) => this.formatNumberEnUS(value, 0),
-                filter: { model: Filters['compoundInputNumber'] },
-            },
-            // UnitPrice (editable)
-            {
-                id: 'UnitPrice',
-                field: 'UnitPrice',
-                name: 'Đơn giá',
-                width: 120,
-                sortable: true,
-                filterable: true,
-                type: 'number',
-                editor: {
-                    model: Editors['float'],
-                    decimal: 0,
-                },
-                formatter: (row: number, cell: number, value: any) => this.formatNumberEnUS(value, 0),
-                filter: { model: Filters['compoundInputNumber'] },
-                groupTotalsFormatter: (totals: any, columnDef: any) => this.sumTotalsFormatterWithFormat(totals, columnDef),
-                params: { groupFormatterPrefix: 'Tổng: ' },
-            },
-            // HistoryPrice
-            {
-                id: 'HistoryPrice',
-                field: 'HistoryPrice',
-                name: 'Giá lịch sử',
-                width: 120,
-                sortable: true,
-                filterable: true,
-                editor: {
-                    model: Editors['float'],
-                    decimal: 2,
-                },
-                formatter: (row: number, cell: number, value: any) => this.formatNumberEnUS(value, 2),
-                filter: { model: Filters['compoundInputNumber'] },
-            },
-            // TotalPriceHistory
-            {
-                id: 'TotalPriceHistory',
-                field: 'TotalPriceHistory',
-                name: 'Tổng giá LS',
-                width: 120,
-                sortable: true,
-                filterable: true,
-                formatter: (row: number, cell: number, value: any) => this.formatNumberEnUS(value, 0),
-                filter: { model: Filters['compoundInputNumber'] },
-                groupTotalsFormatter: (totals: any, columnDef: any) => this.sumTotalsFormatterWithFormat(totals, columnDef),
-                params: { groupFormatterPrefix: 'Tổng: ' },
-            },
-            // TotalPrice
-            {
-                id: 'TotalPrice',
-                field: 'TotalPrice',
-                name: 'Thành tiền',
-                width: 120,
-                sortable: true,
-                filterable: true,
-                formatter: (row: number, cell: number, value: any) => this.formatNumberEnUS(value, 0),
-                filter: { model: Filters['compoundInputNumber'] },
-                groupTotalsFormatter: (totals: any, columnDef: any) => this.sumTotalsFormatterWithFormat(totals, columnDef),
-                params: { groupFormatterPrefix: 'Tổng: ' },
-            },
-            // TotalPriceExchange
-            {
-                id: 'TotalPriceExchange',
-                field: 'TotalPriceExchange',
-                name: 'Thành tiền QĐ',
-                width: 120,
-                sortable: true,
-                filterable: true,
-                formatter: (row: number, cell: number, value: any) => this.formatNumberEnUS(value, 0),
-                filter: { model: Filters['compoundInputNumber'] },
-                groupTotalsFormatter: (totals: any, columnDef: any) => this.sumTotalsFormatterWithFormat(totals, columnDef),
-                params: { groupFormatterPrefix: 'Tổng: ' },
-            },
-            // VAT
-            {
-                id: 'VAT',
-                field: 'VAT',
-                name: 'VAT (%)',
-                width: 80,
-                sortable: true,
-                filterable: true,
-                editor: {
-                    model: Editors['float'],
-                    decimal: 2,
-                },
-                formatter: (row: number, cell: number, value: any) => this.formatNumberEnUS(value, 2),
-                filter: { model: Filters['compoundInputNumber'] },
-            },
-            // TotaMoneyVAT
-            {
-                id: 'TotaMoneyVAT',
-                field: 'TotaMoneyVAT',
-                name: 'Tổng tiền có VAT',
-                width: 120,
-                sortable: true,
-                filterable: true,
-                formatter: (row: number, cell: number, value: any) => this.formatNumberEnUS(value, 2),
-                filter: { model: Filters['compoundInputNumber'] },
-                groupTotalsFormatter: (totals: any, columnDef: any) => this.sumTotalsFormatterWithFormat(totals, columnDef),
-                params: { groupFormatterPrefix: 'Tổng: ' },
-            },
-            // TargetPrice
-            {
-                id: 'TargetPrice',
-                field: 'TargetPrice',
-                name: 'Giá Target',
-                width: 120,
-                sortable: true,
-                filterable: true,
-                editor: {
-                    model: Editors['float'],
-                    decimal: 2,
-                },
-                formatter: (row: number, cell: number, value: any) => this.formatNumberEnUS(value, 2),
-                filter: { model: Filters['compoundInputNumber'] },
-            },
-            // SupplierSaleID
-            {
-                id: 'SupplierSaleID',
-                field: 'SupplierSaleID',
-                name: 'Nhà cung cấp',
-                width: 200,
-                sortable: true,
-                filterable: true,
-                editor: {
-                    model: Editors['singleSelect'],
-                    collection: this.getSupplierCollection(),
-                    collectionOptions: {
-                        addBlankEntry: false
-                    },
-                    editorOptions: {
-                        enableClear: true
-                    }
-                },
-                formatter: (row: number, cell: number, value: any) => {
-                    const supplier = this.dtSupplierSale.find((s: any) => s.ID === value);
-                    return supplier ? supplier.NameNCC : '';
-                },
+        },
+        customTooltip: {
+          useRegularTooltip: true,
+          // useRegularTooltipFromCellTextOnly: true,
+        },
+      },
+      // DateRequest
+      {
+        id: 'DateRequest',
+        field: 'DateRequest',
+        name: 'Ngày YC',
+        width: 100,
+        sortable: true,
+        filterable: true,
+        formatter: Formatters.date,
+        params: { dateFormat: 'DD/MM/YYYY' },
+        filter: { model: Filters['compoundDate'] },
+      },
+      // DateReturnExpected
+      {
+        id: 'DateReturnExpected',
+        field: 'DateReturnExpected',
+        name: 'Deadline',
+        width: 100,
+        sortable: true,
+        filterable: true,
+        formatter: Formatters.date,
+        params: { dateFormat: 'DD/MM/YYYY' },
+        filter: { model: Filters['compoundDate'] },
+      },
+      // CurrencyID
+      {
+        id: 'CurrencyID',
+        field: 'CurrencyID',
+        // CurrencyID FILTER (ADVANCED DROPDOWN): icon filter ở header
+        name: this.createHeaderWithFilterIcon('Loại tiền', 'currencyid-filter-icon', typeId, 'CurrencyID'),
+        width: 100,
+        sortable: false,
+        // CurrencyID FILTER (ADVANCED DROPDOWN): tắt filter row mặc định để dùng dropdown custom
+        filterable: false,
+        editor: {
+          model: GroupSelectEditor,
+          collection: this.getCurrencyCollection(),
+          collectionOptions: {
+            addBlankEntry: false,
+          },
+          editorOptions: {
+            enableClear: true,
+          },
+        },
+        formatter: (row: number, cell: number, value: any) => {
+          const currency = this.dtcurrency.find((c: any) => c.ID === value);
+          return currency ? currency.Code : '';
+        },
+      },
 
-                customTooltip: {
-                    useRegularTooltip: true,
-                    // useRegularTooltipFromCellTextOnly: true,
-                },
-                filter: { model: Filters['compoundInputNumber'] },
-            },
-            // TotalDayLeadTime
-            {
-                id: 'TotalDayLeadTime',
-                field: 'TotalDayLeadTime',
-                name: 'Lead time (ngày)',
-                width: 100,
-                sortable: true,
-                filterable: true,
-                editor: {
-                    model: Editors['float'],
-                    decimal: 2,
-                },
-                formatter: (row: number, cell: number, value: any) => this.formatNumberEnUS(value, 2),
-                filter: { model: Filters['compoundInputNumber'] },
-            },
-            // Note (editable)
-            {
-                id: 'Note',
-                field: 'Note',
-                name: 'Ghi chú',
-                width: 200,
-                sortable: true,
-                filterable: true,
-                editor: {
-                    model: Editors['longText'],
-                },
-                filter: { model: Filters['compoundInputText'] },
-                formatter: (_row, _cell, value, _column, dataContext) => {
-                    if (!value) return '';
-                    return `
+      // UnitPricePOKH
+      {
+        id: 'UnitPricePOKH',
+        field: 'UnitPricePOKH',
+        name: 'Đơn giá bán (Sale Admin up)',
+        width: 120,
+        sortable: true,
+        filterable: true,
+        formatter: (row: number, cell: number, value: any) =>
+          this.formatNumberEnUS(value, 0),
+        filter: { model: Filters['compoundInputNumber'] },
+      },
+      // UnitPrice (editable)
+      {
+        id: 'UnitPrice',
+        field: 'UnitPrice',
+        name: 'Đơn giá',
+        width: 120,
+        sortable: true,
+        filterable: true,
+        type: 'number',
+        editor: {
+          model: Editors['float'],
+          decimal: 0,
+        },
+        formatter: (row: number, cell: number, value: any) =>
+          this.formatNumberEnUS(value, 0),
+        filter: { model: Filters['compoundInputNumber'] },
+        groupTotalsFormatter: (totals: any, columnDef: any) =>
+          this.sumTotalsFormatterWithFormat(totals, columnDef),
+        params: { groupFormatterPrefix: 'Tổng: ' },
+      },
+      // HistoryPrice
+      {
+        id: 'HistoryPrice',
+        field: 'HistoryPrice',
+        name: 'Giá lịch sử',
+        width: 120,
+        sortable: true,
+        filterable: true,
+        editor: {
+          model: Editors['float'],
+          decimal: 2,
+        },
+        formatter: (row: number, cell: number, value: any) =>
+          this.formatNumberEnUS(value, 2),
+        filter: { model: Filters['compoundInputNumber'] },
+      },
+      // TotalPriceHistory
+      {
+        id: 'TotalPriceHistory',
+        field: 'TotalPriceHistory',
+        name: 'Tổng giá LS',
+        width: 120,
+        sortable: true,
+        filterable: true,
+        formatter: (row: number, cell: number, value: any) =>
+          this.formatNumberEnUS(value, 0),
+        filter: { model: Filters['compoundInputNumber'] },
+        groupTotalsFormatter: (totals: any, columnDef: any) =>
+          this.sumTotalsFormatterWithFormat(totals, columnDef),
+        params: { groupFormatterPrefix: 'Tổng: ' },
+      },
+      // TotalPrice
+      {
+        id: 'TotalPrice',
+        field: 'TotalPrice',
+        name: 'Thành tiền',
+        width: 120,
+        sortable: true,
+        filterable: true,
+        formatter: (row: number, cell: number, value: any) =>
+          this.formatNumberEnUS(value, 0),
+        filter: { model: Filters['compoundInputNumber'] },
+        groupTotalsFormatter: (totals: any, columnDef: any) =>
+          this.sumTotalsFormatterWithFormat(totals, columnDef),
+        params: { groupFormatterPrefix: 'Tổng: ' },
+      },
+      // TotalPriceExchange
+      {
+        id: 'TotalPriceExchange',
+        field: 'TotalPriceExchange',
+        name: 'Thành tiền QĐ',
+        width: 120,
+        sortable: true,
+        filterable: true,
+        formatter: (row: number, cell: number, value: any) =>
+          this.formatNumberEnUS(value, 0),
+        filter: { model: Filters['compoundInputNumber'] },
+        groupTotalsFormatter: (totals: any, columnDef: any) =>
+          this.sumTotalsFormatterWithFormat(totals, columnDef),
+        params: { groupFormatterPrefix: 'Tổng: ' },
+      },
+      // VAT
+      {
+        id: 'VAT',
+        field: 'VAT',
+        name: 'VAT (%)',
+        width: 80,
+        sortable: true,
+        filterable: true,
+        editor: {
+          model: Editors['float'],
+          decimal: 2,
+        },
+        formatter: (row: number, cell: number, value: any) =>
+          this.formatNumberEnUS(value, 2),
+        filter: { model: Filters['compoundInputNumber'] },
+      },
+      // TotaMoneyVAT
+      {
+        id: 'TotaMoneyVAT',
+        field: 'TotaMoneyVAT',
+        name: 'Tổng tiền có VAT',
+        width: 120,
+        sortable: true,
+        filterable: true,
+        formatter: (row: number, cell: number, value: any) =>
+          this.formatNumberEnUS(value, 2),
+        filter: { model: Filters['compoundInputNumber'] },
+        groupTotalsFormatter: (totals: any, columnDef: any) =>
+          this.sumTotalsFormatterWithFormat(totals, columnDef),
+        params: { groupFormatterPrefix: 'Tổng: ' },
+      },
+      // TargetPrice
+      {
+        id: 'TargetPrice',
+        field: 'TargetPrice',
+        name: 'Giá Target',
+        width: 120,
+        sortable: true,
+        filterable: true,
+        editor: {
+          model: Editors['float'],
+          decimal: 2,
+        },
+        formatter: (row: number, cell: number, value: any) =>
+          this.formatNumberEnUS(value, 2),
+        filter: { model: Filters['compoundInputNumber'] },
+      },
+      // SupplierSaleID
+      {
+        id: 'SupplierSaleID',
+        field: 'SupplierSaleID',
+        // SupplierSaleID FILTER (ADVANCED DROPDOWN): icon filter ở header
+        name: this.createHeaderWithFilterIcon('Nhà cung cấp', 'suppliersaleid-filter-icon', typeId, 'SupplierSaleID'),
+        width: 200,
+        sortable: false,
+        // SupplierSaleID FILTER (ADVANCED DROPDOWN): tắt filter row mặc định để dùng dropdown custom
+        filterable: false,
+        editor: {
+          model: GroupSelectEditor,
+          collection: this.getSupplierCollection(),
+          collectionOptions: {
+            addBlankEntry: false,
+          },
+          editorOptions: {
+            enableClear: true,
+          },
+        },
+        formatter: (row: number, cell: number, value: any) => {
+          const supplier = this.dtSupplierSale.find((s: any) => s.ID === value);
+          return supplier ? supplier.NameNCC : '';
+        },
+
+        customTooltip: {
+          useRegularTooltip: true,
+          // useRegularTooltipFromCellTextOnly: true,
+        },
+      },
+      // TotalDayLeadTime
+      {
+        id: 'TotalDayLeadTime',
+        field: 'TotalDayLeadTime',
+        name: 'Lead time (ngày)',
+        width: 100,
+        sortable: true,
+        filterable: true,
+        editor: {
+          model: Editors['float'],
+          decimal: 2,
+        },
+        formatter: (row: number, cell: number, value: any) =>
+          this.formatNumberEnUS(value, 2),
+        filter: { model: Filters['compoundInputNumber'] },
+      },
+      // Note (editable)
+      {
+        id: 'Note',
+        field: 'Note',
+        name: 'Ghi chú',
+        width: 200,
+        sortable: true,
+        filterable: true,
+        editor: {
+          model: Editors['longText'],
+        },
+        filter: { model: Filters['compoundInputText'] },
+        formatter: (_row, _cell, value, _column, dataContext) => {
+          if (!value) return '';
+          return `
             <span
               title="${dataContext.Model}"
               style="display:block; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;"
@@ -1003,49 +1484,64 @@ export class ProjectPartListPurchaseRequestSlickGridComponent implements OnInit,
               ${value}
             </span>
           `;
-                },
-                customTooltip: {
-                    useRegularTooltip: true,
-                    // useRegularTooltipFromCellTextOnly: true,
-                },
-            },
-            // Model
-            {
-                id: 'Model',
-                field: 'Model',
-                name: 'Thông số kỹ thuật',
-                width: 200,
-                sortable: true,
-                filterable: true,
-                filter: { model: Filters['compoundInputText'] },
-                formatter: (_row, _cell, value, _column, dataContext) => {
-                    if (!value) return '';
-                    return `
-            <span
-              title="${dataContext.Model}"
-              style="display:block; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;"
-            >
-              ${value}
-            </span>
-          `;
-                },
-                customTooltip: {
-                    useRegularTooltip: true,
-                    // useRegularTooltipFromCellTextOnly: true,
-                },
-            },
-            // NotePartlist
-            {
-                id: 'NotePartlist',
-                field: 'NotePartlist',
-                name: 'Ghi chú KT',
-                width: 200,
-                sortable: true,
-                filterable: true,
-                filter: { model: Filters['compoundInputText'] },
-                formatter: (_row, _cell, value, _column, dataContext) => {
-                    if (!value) return '';
-                    return `
+        },
+        customTooltip: {
+          useRegularTooltip: true,
+          // useRegularTooltipFromCellTextOnly: true,
+        },
+      },
+      // Model
+      // {
+      //   id: 'Model',
+      //   field: 'Model',
+      //   name: 'Thông số kỹ thuật',
+      //   width: 200,
+      //   sortable: true,
+      //   filterable: true,
+      //   filter: { model: Filters['compoundInputText'] },
+      //   formatter: (_row, _cell, value, _column, dataContext) => {
+      //     if (!value) return '';
+      //     return `
+      //       <span
+      //         title="${dataContext.Model}"
+      //         style="display:block; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;"
+      //       >
+      //         ${value}
+      //       </span>
+      //     `;
+      //   },
+      //   customTooltip: {
+      //     useRegularTooltip: true,
+      //     // useRegularTooltipFromCellTextOnly: true,
+      //   },
+      // },
+      // CurrencyRate
+      {
+        id: 'CurrencyRate',
+        field: 'CurrencyRate',
+        name: 'Tỷ giá',
+        width: 100,
+        sortable: true,
+        filterable: true,
+        formatter: (row: number, cell: number, value: any) =>
+          this.formatNumberEnUS(value, 0),
+        filter: { model: Filters['compoundInputNumber'] },
+        groupTotalsFormatter: (totals: any, columnDef: any) =>
+          this.sumTotalsFormatterWithFormat(totals, columnDef),
+        params: { groupFormatterPrefix: 'Tổng: ' },
+      },
+      // NotePartlist
+      {
+        id: 'NotePartlist',
+        field: 'NotePartlist',
+        name: 'Ghi chú KT',
+        width: 200,
+        sortable: true,
+        filterable: true,
+        filter: { model: Filters['compoundInputText'] },
+        formatter: (_row, _cell, value, _column, dataContext) => {
+          if (!value) return '';
+          return `
             <span
               title="${dataContext.NotePartlist}"
               style="display:block; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;"
@@ -1053,291 +1549,308 @@ export class ProjectPartListPurchaseRequestSlickGridComponent implements OnInit,
               ${value}
             </span>
           `;
-                },
-                customTooltip: {
-                    useRegularTooltip: true,
-                    // useRegularTooltipFromCellTextOnly: true,
-                },
-            },
-            // RequestDate
-            {
-                id: 'RequestDate',
-                field: 'RequestDate',
-                name: 'Ngày đặt hàng',
-                width: 120,
-                sortable: true,
-                filterable: true,
-                formatter: Formatters.date,
-                params: { dateFormat: 'DD/MM/YYYY' },
-                filter: { model: Filters['compoundDate'] },
-            },
-            // ReasonCancel
-            {
-                id: 'ReasonCancel',
-                field: 'ReasonCancel',
-                name: 'Lý do hủy',
-                width: 200,
-                sortable: true,
-                filterable: true,
-                filter: { model: Filters['compoundInputText'] },
-            },
-            // DeadlineDelivery
-            {
-                id: 'DeadlineDelivery',
-                field: 'DeadlineDelivery',
-                name: 'Ngày về dự kiến',
-                width: 120,
-                sortable: true,
-                filterable: true,
-                formatter: Formatters.date,
-                params: { dateFormat: 'DD/MM/YYYY' },
-                filter: { model: Filters['compoundDate'] },
-            },
-            // DateReturnActual
-            {
-                id: 'DateReturnActual',
-                field: 'DateReturnActual',
-                name: 'Ngày về thực tế',
-                width: 120,
-                sortable: true,
-                filterable: true,
-                formatter: Formatters.date,
-                params: { dateFormat: 'DD/MM/YYYY' },
-                filter: { model: Filters['compoundDate'] },
-            },
-            // DateReceive
-            {
-                id: 'DateReceive',
-                field: 'DateReceive',
-                name: 'Ngày nhận',
-                width: 100,
-                sortable: true,
-                filterable: true,
-                formatter: Formatters.date,
-                params: { dateFormat: 'DD/MM/YYYY' },
-                filter: { model: Filters['compoundDate'] },
-            },
-            // IsImport (editable checkbox)
-            {
-                id: 'IsImport',
-                field: 'IsImport',
-                name: 'Hàng nhập khẩu',
-                width: 120,
-                sortable: true,
-                filterable: true,
-                formatter: Formatters.iconBoolean,
-                params: { cssClass: 'mdi mdi-check' },
-                editor: {
-                    model: Editors['checkbox'],
-                },
-                filter: { model: Filters['compoundInputNumber'] },
-            },
-            // UnitFactoryExportPrice
-            {
-                id: 'UnitFactoryExportPrice',
-                field: 'UnitFactoryExportPrice',
-                name: 'Đơn giá xuất xưởng',
-                width: 120,
-                sortable: true,
-                filterable: true,
-                editor: {
-                    model: Editors['float'],
-                    decimal: 2,
-                },
-                formatter: (row: number, cell: number, value: any) => this.formatNumberEnUS(value, 2),
-                filter: { model: Filters['compoundInputNumber'] },
-                groupTotalsFormatter: (totals: any, columnDef: any) => this.sumTotalsFormatterWithFormat(totals, columnDef),
-                params: { groupFormatterPrefix: 'Tổng: ' },
-            },
-            // UnitImportPrice
-            {
-                id: 'UnitImportPrice',
-                field: 'UnitImportPrice',
-                name: 'Giá nhập khẩu',
-                width: 120,
-                sortable: true,
-                filterable: true,
-                editor: {
-                    model: Editors['float'],
-                    decimal: 2,
-                },
-                formatter: (row: number, cell: number, value: any) => this.formatNumberEnUS(value, 2),
-                filter: { model: Filters['compoundInputNumber'] },
-            },
-            // TotalImportPrice
-            {
-                id: 'TotalImportPrice',
-                field: 'TotalImportPrice',
-                name: 'Tổng tiền nhập khẩu',
-                width: 120,
-                sortable: true,
-                filterable: true,
-                formatter: (row: number, cell: number, value: any) => this.formatNumberEnUS(value, 0),
-                filter: { model: Filters['compoundInputNumber'] },
-                groupTotalsFormatter: (totals: any, columnDef: any) => this.sumTotalsFormatterWithFormat(totals, columnDef),
-                params: { groupFormatterPrefix: 'Tổng: ' },
-            },
-            // LeadTime
-            {
-                id: 'LeadTime',
-                field: 'LeadTime',
-                name: 'Lead time',
-                width: 100,
-                sortable: true,
-                filterable: true,
-                formatter: Formatters.date,
-                params: { dateFormat: 'DD/MM/YYYY' },
-                filter: { model: Filters['compoundDate'] },
-            },
-            // BillCode
-            {
-                id: 'BillCode',
-                field: 'BillCode',
-                name: 'Đơn mua hàng',
-                width: 120,
-                sortable: true,
-                filterable: true,
-                filter: { model: Filters['compoundInputText'] },
-            },
-            // POKHCode
-            {
-                id: 'POKHCode',
-                field: 'POKHCode',
-                name: 'Mã POKH',
-                width: 120,
-                sortable: true,
-                filterable: true,
-                filter: { model: Filters['compoundInputText'] },
-            },
-            // ParentProductCodePO
-            {
-                id: 'ParentProductCodePO',
-                field: 'ParentProductCodePO',
-                name: 'Mã cha',
-                width: 120,
-                sortable: true,
-                filterable: true,
-                filter: { model: Filters['compoundInputText'] },
-            },
-            // GuestCode
-            {
-                id: 'GuestCode',
-                field: 'GuestCode',
-                name: 'Mã KH',
-                width: 100,
-                sortable: true,
-                filterable: true,
-                filter: { model: Filters['compoundInputText'] },
-            },
-            // StatusPOKHText
-            {
-                id: 'StatusPOKHText',
-                field: 'StatusPOKHText',
-                name: 'Trạng thái PO',
-                width: 120,
-                sortable: true,
-                filterable: true,
-                filter: { model: Filters['compoundInputText'] },
-            },
-            // SpecialCode
-            {
-                id: 'SpecialCode',
-                field: 'SpecialCode',
-                name: 'Mã đặc biệt',
-                width: 120,
-                sortable: true,
-                filterable: true,
-                filter: { model: Filters['compoundInputText'] },
-            },
-            // FullNamePriceRequest
-            {
-                id: 'FullNamePriceRequest',
-                field: 'FullNamePriceRequest',
-                name: 'Kỹ thuật phụ trách',
-                width: 120,
-                sortable: true,
-                filterable: true,
-                filter: { model: Filters['compoundInputText'] },
-            },
-            // Inventory columns
-            {
-                id: 'TotalHN',
-                field: 'TotalHN',
-                name: 'Tồn HN',
-                width: 100,
-                sortable: true,
-                filterable: true,
-                formatter: (row: number, cell: number, value: any) => this.formatNumberEnUS(value, 0),
-                filter: { model: Filters['compoundInputNumber'] },
-                groupTotalsFormatter: (totals: any, columnDef: any) => this.sumTotalsFormatterWithFormat(totals, columnDef),
-                params: { groupFormatterPrefix: 'Tổng: ' },
-            },
-            {
-                id: 'TotalHCM',
-                field: 'TotalHCM',
-                name: 'Tồn HCM',
-                width: 100,
-                sortable: true,
-                filterable: true,
-                formatter: (row: number, cell: number, value: any) => this.formatNumberEnUS(value, 0),
-                filter: { model: Filters['compoundInputNumber'] },
-                groupTotalsFormatter: (totals: any, columnDef: any) => this.sumTotalsFormatterWithFormat(totals, columnDef),
-                params: { groupFormatterPrefix: 'Tổng: ' },
-            },
-            {
-                id: 'TotalHP',
-                field: 'TotalHP',
-                name: 'Tồn HP',
-                width: 100,
-                sortable: true,
-                filterable: true,
-                formatter: (row: number, cell: number, value: any) => this.formatNumberEnUS(value, 0),
-                filter: { model: Filters['compoundInputNumber'] },
-                groupTotalsFormatter: (totals: any, columnDef: any) => this.sumTotalsFormatterWithFormat(totals, columnDef),
-                params: { groupFormatterPrefix: 'Tổng: ' },
-            },
-            {
-                id: 'TotalDP',
-                field: 'TotalDP',
-                name: 'Tồn ĐN',
-                width: 100,
-                sortable: true,
-                filterable: true,
-                formatter: (row: number, cell: number, value: any) => this.formatNumberEnUS(value, 0),
-                filter: { model: Filters['compoundInputNumber'] },
-                groupTotalsFormatter: (totals: any, columnDef: any) => this.sumTotalsFormatterWithFormat(totals, columnDef),
-                params: { groupFormatterPrefix: 'Tổng: ' },
-            },
-            {
-                id: 'TotalBN',
-                field: 'TotalBN',
-                name: 'Tồn BN',
-                width: 100,
-                sortable: true,
-                filterable: true,
-                formatter: (row: number, cell: number, value: any) => this.formatNumberEnUS(value, 0),
-                filter: { model: Filters['compoundInputNumber'] },
-                groupTotalsFormatter: (totals: any, columnDef: any) => this.sumTotalsFormatterWithFormat(totals, columnDef),
-                params: { groupFormatterPrefix: 'Tổng: ' },
-            },
-            // IsPaidLater
-            {
-                id: 'IsPaidLater',
-                field: 'IsPaidLater',
-                name: 'Trả sau',
-                width: 80,
-                sortable: true,
-                filterable: true,
-                formatter: Formatters.iconBoolean,
-                params: { cssClass: 'mdi mdi-check' },
-                filter: { model: Filters['compoundInputNumber'] },
-            }
-        );
+        },
+        customTooltip: {
+          useRegularTooltip: true,
+          // useRegularTooltipFromCellTextOnly: true,
+        },
+      },
+      // RequestDate
+      {
+        id: 'RequestDate',
+        field: 'RequestDate',
+        name: 'Ngày đặt hàng',
+        width: 120,
+        sortable: true,
+        filterable: true,
+        formatter: Formatters.date,
+        params: { dateFormat: 'DD/MM/YYYY' },
+        filter: { model: Filters['compoundDate'] },
+      },
+      // ReasonCancel
+      {
+        id: 'ReasonCancel',
+        field: 'ReasonCancel',
+        name: 'Lý do hủy',
+        width: 200,
+        sortable: true,
+        filterable: true,
+        filter: { model: Filters['compoundInputText'] },
+      },
+      // DeadlineDelivery
+      {
+        id: 'DeadlineDelivery',
+        field: 'DeadlineDelivery',
+        name: 'Ngày về dự kiến',
+        width: 120,
+        sortable: true,
+        filterable: true,
+        formatter: Formatters.date,
+        params: { dateFormat: 'DD/MM/YYYY' },
+        filter: { model: Filters['compoundDate'] },
+      },
+      // DateReturnActual
+      {
+        id: 'DateReturnActual',
+        field: 'DateReturnActual',
+        name: 'Ngày về thực tế',
+        width: 120,
+        sortable: true,
+        filterable: true,
+        formatter: Formatters.date,
+        params: { dateFormat: 'DD/MM/YYYY' },
+        filter: { model: Filters['compoundDate'] },
+      },
+      // DateReceive
+      {
+        id: 'DateReceive',
+        field: 'DateReceive',
+        name: 'Ngày nhận',
+        width: 100,
+        sortable: true,
+        filterable: true,
+        formatter: Formatters.date,
+        params: { dateFormat: 'DD/MM/YYYY' },
+        filter: { model: Filters['compoundDate'] },
+      },
+      // IsImport (editable checkbox)
+      {
+        id: 'IsImport',
+        field: 'IsImport',
+        name: 'Hàng nhập khẩu',
+        width: 120,
+        sortable: true,
+        filterable: true,
+        formatter: Formatters.iconBoolean,
+        params: { cssClass: 'mdi mdi-check' },
+        editor: {
+          model: Editors['checkbox'],
+        },
+        filter: { model: Filters['compoundInputNumber'] },
+      },
+      // UnitFactoryExportPrice
+      {
+        id: 'UnitFactoryExportPrice',
+        field: 'UnitFactoryExportPrice',
+        name: 'Đơn giá xuất xưởng',
+        width: 120,
+        sortable: true,
+        filterable: true,
+        editor: {
+          model: Editors['float'],
+          decimal: 2,
+        },
+        formatter: (row: number, cell: number, value: any) =>
+          this.formatNumberEnUS(value, 2),
+        filter: { model: Filters['compoundInputNumber'] },
+        groupTotalsFormatter: (totals: any, columnDef: any) =>
+          this.sumTotalsFormatterWithFormat(totals, columnDef),
+        params: { groupFormatterPrefix: 'Tổng: ' },
+      },
+      // UnitImportPrice
+      {
+        id: 'UnitImportPrice',
+        field: 'UnitImportPrice',
+        name: 'Giá nhập khẩu',
+        width: 120,
+        sortable: true,
+        filterable: true,
+        editor: {
+          model: Editors['float'],
+          decimal: 2,
+        },
+        formatter: (row: number, cell: number, value: any) =>
+          this.formatNumberEnUS(value, 2),
+        filter: { model: Filters['compoundInputNumber'] },
+      },
+      // TotalImportPrice
+      {
+        id: 'TotalImportPrice',
+        field: 'TotalImportPrice',
+        name: 'Tổng tiền nhập khẩu',
+        width: 120,
+        sortable: true,
+        filterable: true,
+        formatter: (row: number, cell: number, value: any) =>
+          this.formatNumberEnUS(value, 0),
+        filter: { model: Filters['compoundInputNumber'] },
+        groupTotalsFormatter: (totals: any, columnDef: any) =>
+          this.sumTotalsFormatterWithFormat(totals, columnDef),
+        params: { groupFormatterPrefix: 'Tổng: ' },
+      },
+      // LeadTime
+      {
+        id: 'LeadTime',
+        field: 'LeadTime',
+        name: 'Lead time',
+        width: 100,
+        sortable: true,
+        filterable: true,
+        formatter: Formatters.date,
+        params: { dateFormat: 'DD/MM/YYYY' },
+        filter: { model: Filters['compoundDate'] },
+      },
+      // BillCode
+      {
+        id: 'BillCode',
+        field: 'BillCode',
+        name: 'Đơn mua hàng',
+        width: 120,
+        sortable: true,
+        filterable: true,
+        filter: { model: Filters['compoundInputText'] },
+      },
+      // POKHCode
+      {
+        id: 'POKHCode',
+        field: 'POKHCode',
+        name: 'Mã POKH',
+        width: 120,
+        sortable: true,
+        filterable: true,
+        filter: { model: Filters['compoundInputText'] },
+      },
+      // ParentProductCodePO
+      {
+        id: 'ParentProductCodePO',
+        field: 'ParentProductCodePO',
+        name: 'Mã cha',
+        width: 120,
+        sortable: true,
+        filterable: true,
+        filter: { model: Filters['compoundInputText'] },
+      },
+      // GuestCode
+      {
+        id: 'GuestCode',
+        field: 'GuestCode',
+        name: 'Mã KH',
+        width: 100,
+        sortable: true,
+        filterable: true,
+        filter: { model: Filters['compoundInputText'] },
+      },
+      // StatusPOKHText
+      {
+        id: 'StatusPOKHText',
+        field: 'StatusPOKHText',
+        name: 'Trạng thái PO',
+        width: 120,
+        sortable: true,
+        filterable: true,
+        filter: { model: Filters['compoundInputText'] },
+      },
+      // SpecialCode
+      {
+        id: 'SpecialCode',
+        field: 'SpecialCode',
+        name: 'Mã đặc biệt',
+        width: 120,
+        sortable: true,
+        filterable: true,
+        filter: { model: Filters['compoundInputText'] },
+      },
+      // FullNamePriceRequest
+      {
+        id: 'FullNamePriceRequest',
+        field: 'FullNamePriceRequest',
+        name: 'Kỹ thuật phụ trách',
+        width: 120,
+        sortable: true,
+        filterable: true,
+        filter: { model: Filters['compoundInputText'] },
+      },
+      // Inventory columns
+      {
+        id: 'TotalHN',
+        field: 'TotalHN',
+        name: 'Tồn HN',
+        width: 100,
+        sortable: true,
+        filterable: true,
+        formatter: (row: number, cell: number, value: any) =>
+          this.formatNumberEnUS(value, 0),
+        filter: { model: Filters['compoundInputNumber'] },
+        groupTotalsFormatter: (totals: any, columnDef: any) =>
+          this.sumTotalsFormatterWithFormat(totals, columnDef),
+        params: { groupFormatterPrefix: 'Tổng: ' },
+      },
+      {
+        id: 'TotalHCM',
+        field: 'TotalHCM',
+        name: 'Tồn HCM',
+        width: 100,
+        sortable: true,
+        filterable: true,
+        formatter: (row: number, cell: number, value: any) =>
+          this.formatNumberEnUS(value, 0),
+        filter: { model: Filters['compoundInputNumber'] },
+        groupTotalsFormatter: (totals: any, columnDef: any) =>
+          this.sumTotalsFormatterWithFormat(totals, columnDef),
+        params: { groupFormatterPrefix: 'Tổng: ' },
+      },
+      {
+        id: 'TotalHP',
+        field: 'TotalHP',
+        name: 'Tồn HP',
+        width: 100,
+        sortable: true,
+        filterable: true,
+        formatter: (row: number, cell: number, value: any) =>
+          this.formatNumberEnUS(value, 0),
+        filter: { model: Filters['compoundInputNumber'] },
+        groupTotalsFormatter: (totals: any, columnDef: any) =>
+          this.sumTotalsFormatterWithFormat(totals, columnDef),
+        params: { groupFormatterPrefix: 'Tổng: ' },
+      },
+      {
+        id: 'TotalDP',
+        field: 'TotalDP',
+        name: 'Tồn ĐN',
+        width: 100,
+        sortable: true,
+        filterable: true,
+        formatter: (row: number, cell: number, value: any) =>
+          this.formatNumberEnUS(value, 0),
+        filter: { model: Filters['compoundInputNumber'] },
+        groupTotalsFormatter: (totals: any, columnDef: any) =>
+          this.sumTotalsFormatterWithFormat(totals, columnDef),
+        params: { groupFormatterPrefix: 'Tổng: ' },
+      },
+      {
+        id: 'TotalBN',
+        field: 'TotalBN',
+        name: 'Tồn BN',
+        width: 100,
+        sortable: true,
+        filterable: true,
+        formatter: (row: number, cell: number, value: any) =>
+          this.formatNumberEnUS(value, 0),
+        filter: { model: Filters['compoundInputNumber'] },
+        groupTotalsFormatter: (totals: any, columnDef: any) =>
+          this.sumTotalsFormatterWithFormat(totals, columnDef),
+        params: { groupFormatterPrefix: 'Tổng: ' },
+      },
+      // IsPaidLater
+      {
+        id: 'IsPaidLater',
+        field: 'IsPaidLater',
+        name: 'Trả sau',
+        width: 80,
+        sortable: true,
+        filterable: true,
+        formatter: Formatters.iconBoolean,
+        params: { cssClass: 'mdi mdi-check' },
+        filter: { model: Filters['compoundInputNumber'] },
+      }
+    );
 
-        // Nếu là tab 1 (Mua dự án), đổi chỗ cột Model và CustomerName
-        if (typeId === 1) {
-            const customerNameIndex = columns.findIndex(col => col.id === 'CustomerName');
-            const modelIndex = columns.findIndex(col => col.id === 'Model');
+    // Nếu là tab 1 (Mua dự án), đổi chỗ cột Model và CustomerName
+    if (typeId === 1) {
+      const customerNameIndex = columns.findIndex(
+        (col) => col.id === 'CustomerName'
+      );
+      const modelIndex = columns.findIndex((col) => col.id === 'Model');
 
             if (customerNameIndex !== -1 && modelIndex !== -1) {
                 // Swap vị trí: đặt Model trước CustomerName
@@ -1350,20 +1863,20 @@ export class ProjectPartListPurchaseRequestSlickGridComponent implements OnInit,
         return columns;
     }
 
-    // Initialize grid options for a specific tab
-    private initGridOptions(typeId: number): GridOption {
-        // Tab 1 (Mua dự án) sẽ readonly khi isSelectedPO = true
-        const isReadOnly = this.isSelectedPO && typeId === 1;
+  // Initialize grid options for a specific tab
+  private initGridOptions(typeId: number): GridOption {
+    // Tab 1 (Mua dự án) sẽ readonly khi isSelectedPO = true
+    const isReadOnly = this.isSelectedPO && typeId === 1;
 
-        return {
-            enableAutoResize: true,
-            autoResize: {
-                container: `.grid-container-${typeId}`,
-                calculateAvailableSizeBy: 'container',
-                resizeDetection: 'container',
-            },
-            gridWidth: '100%',
-            datasetIdPropertyName: 'id',
+    return {
+      enableAutoResize: true,
+      autoResize: {
+        container: `.grid-container-${typeId}`,
+        calculateAvailableSizeBy: 'container',
+        resizeDetection: 'container',
+      },
+      gridWidth: '100%',
+      datasetIdPropertyName: 'id',
 
             // ROW SELECTION CONFIGURATION
             enableRowSelection: true,
@@ -1387,9 +1900,12 @@ export class ProjectPartListPurchaseRequestSlickGridComponent implements OnInit,
             autoEdit: !isReadOnly,
             autoCommitEdit: true,
 
-            // FILTERING & GROUPING
-            enableFiltering: true,
-            enableGrouping: true,
+      // FILTERING & GROUPING
+      enableFiltering: true,
+      enableGrouping: true,
+
+      // HEADER MENU - Disable dropdown menu
+      enableHeaderMenu: false,
 
             // COLUMNS
             autoFitColumnsOnFirstLoad: false,
@@ -1442,60 +1958,130 @@ export class ProjectPartListPurchaseRequestSlickGridComponent implements OnInit,
                 new Aggregators['Sum']('TotalBN'),
             ];
 
-            if (this.listRequestBuySelect) {
-                // Nested grouping: ProjectFullName -> POKHCode
-                angularGrid.dataView.setGrouping([
-                    {
-                        getter: 'ProjectFullName',
-                        formatter: (g: any) => {
-                            const projectName = g.value || '';
-                            return `Dự án: ${projectName} <span style="color:green; margin-left:10px;">(${g.count} sản phẩm)</span>`;
-                        },
-                        comparer: (a: any, b: any) => {
-                            return SortComparers.string(a.value, b.value, SortDirectionNumber.asc);
-                        },
-                        aggregators: aggregators,
-                        aggregateCollapsed: false,
-                        lazyTotalsCalculation: true,
-                        collapsed: false,
-                    },
-                    {
-                        getter: 'POKHCode',
-                        formatter: (g: any) => {
-                            const pokhCode = g.value || '';
-                            return `Mã POKH: ${pokhCode} <span style="color:blue; margin-left:10px;">(${g.count} sản phẩm)</span>`;
-                        },
-                        comparer: (a: any, b: any) => {
-                            return SortComparers.string(a.value, b.value, SortDirectionNumber.asc);
-                        },
-                        aggregators: aggregators,
-                        aggregateCollapsed: false,
-                        lazyTotalsCalculation: true,
-                        collapsed: false,
-                    }
-                ]);
-            } else {
-                // Single grouping: ProjectFullName only
-                angularGrid.dataView.setGrouping({
-                    getter: 'ProjectFullName',
-                    formatter: (g: any) => {
-                        const projectName = g.value || '';
-                        return `Dự án: ${projectName} <span style="color:green; margin-left:10px;">(${g.count} sản phẩm)</span>`;
-                    },
-                    comparer: (a: any, b: any) => {
-                        return SortComparers.string(a.value, b.value, SortDirectionNumber.asc);
-                    },
-                    aggregators: aggregators,
-                    aggregateCollapsed: false,
-                    lazyTotalsCalculation: true,
-                    collapsed: false,
-                });
-            }
+      if (this.listRequestBuySelect) {
+        // Nested grouping: ProjectFullName -> POKHCode
+        angularGrid.dataView.setGrouping([
+          {
+            getter: 'ProjectFullName',
+            formatter: (g: any) => {
+              const projectName = g.value || '';
+              return `Dự án: ${projectName} <span style="color:green; margin-left:10px;">(${g.count} sản phẩm)</span>`;
+            },
+            comparer: (a: any, b: any) => {
+              return SortComparers.string(
+                a.value,
+                b.value,
+                SortDirectionNumber.asc
+              );
+            },
+            aggregators: aggregators,
+            aggregateCollapsed: false,
+            lazyTotalsCalculation: true,
+            collapsed: false,
+          },
+          {
+            getter: 'POKHCode',
+            formatter: (g: any) => {
+              const pokhCode = g.value || '';
+              return `Mã POKH: ${pokhCode} <span style="color:blue; margin-left:10px;">(${g.count} sản phẩm)</span>`;
+            },
+            comparer: (a: any, b: any) => {
+              return SortComparers.string(
+                a.value,
+                b.value,
+                SortDirectionNumber.asc
+              );
+            },
+            aggregators: aggregators,
+            aggregateCollapsed: false,
+            lazyTotalsCalculation: true,
+            collapsed: false,
+          },
+        ]);
+      } else {
+        // Single grouping: ProjectFullName only
+        angularGrid.dataView.setGrouping({
+          getter: 'ProjectFullName',
+          formatter: (g: any) => {
+            const projectName = g.value || '';
+            return `Dự án: ${projectName} <span style="color:green; margin-left:10px;">(${g.count} sản phẩm)</span>`;
+          },
+          comparer: (a: any, b: any) => {
+            return SortComparers.string(
+              a.value,
+              b.value,
+              SortDirectionNumber.asc
+            );
+          },
+          aggregators: aggregators,
+          aggregateCollapsed: false,
+          lazyTotalsCalculation: true,
+          collapsed: false,
+        });
+      }
 
-            angularGrid.dataView.refresh();
-            angularGrid.slickGrid.render();
-            this.ensureCheckboxSelector(angularGrid, 50);
+      angularGrid.dataView.refresh();
+      angularGrid.slickGrid.render();
+      this.ensureCheckboxSelector(angularGrid, 50);
+    }
+
+    // Setup header click handler for all header filters
+    if (angularGrid && angularGrid.slickGrid) {
+      // Bind header click event handler
+      angularGrid.slickGrid.onHeaderClick.subscribe((e: any, args: any) => {
+        const column = args.column;
+        const target = (e as MouseEvent)?.target as HTMLElement | null;
+        if (!column || !target) return;
+
+        let columnId = column.id;
+        // Handle ProductGroupID/ProductGroupRTCID - use actual field name
+        if (columnId === 'ProductGroupID' || columnId === 'ProductGroupRTCID') {
+          const isRTCTab = typeId === 3 || typeId === 4;
+          columnId = isRTCTab ? 'ProductGroupRTCID' : 'ProductGroupID';
         }
+        // Handle ProductNewCode/ProductCodeRTC - use actual field name
+        if (columnId === 'ProductNewCode' || columnId === 'ProductCodeRTC') {
+          const isRTCTab = typeId === 3 || typeId === 4;
+          columnId = isRTCTab ? 'ProductCodeRTC' : 'ProductNewCode';
+        }
+        const filterKey = `${columnId}-${typeId}`;
+        
+        // Check if clicked on filter icon for any supported column
+        const filterIconClasses = [
+          'productcode-filter-icon',
+          'projectcode-filter-icon',
+          'productgroup-filter-icon',
+          'warehouseid-filter-icon',
+          'productname-filter-icon',
+          'manufacturer-filter-icon',
+          'statusrequesttext-filter-icon',
+          'fullname-filter-icon',
+          'currencyid-filter-icon',
+          'suppliersaleid-filter-icon',
+          'productnewcode-filter-icon',
+        ];
+
+        const isFilterIcon = filterIconClasses.some(cls => target.classList?.contains(cls));
+        
+        if (isFilterIcon) {
+          (e as any).stopImmediatePropagation?.();
+          e.preventDefault();
+          e.stopPropagation();
+          
+          this.headerFilter?.toggle({
+            key: filterKey,
+            anchor: target,
+            options: this.getHeaderFilterOptions(columnId, typeId),
+            appliedValues: this.headerFilterAppliedValuesMap.get(filterKey) || null,
+          });
+        }
+      });
+    }
+
+    // Update all column header filter icons to reflect current filter status
+    setTimeout(() => {
+      this.updateAllColumnHeaderFilterIcons(typeId);
+    }, 150);
 
         // Resize grid
         setTimeout(() => {
@@ -1507,9 +2093,12 @@ export class ProjectPartListPurchaseRequestSlickGridComponent implements OnInit,
         }, 100);
     }
 
-    // Helper method to ensure checkbox selector stays enabled
-    private ensureCheckboxSelector(angularGrid: AngularGridInstance | undefined, delay: number = 0): void {
-        if (!angularGrid || !angularGrid.slickGrid) return;
+  // Helper method to ensure checkbox selector stays enabled
+  private ensureCheckboxSelector(
+    angularGrid: AngularGridInstance | undefined,
+    delay: number = 0
+  ): void {
+    if (!angularGrid || !angularGrid.slickGrid) return;
 
         const enableCheckbox = () => {
             angularGrid!.slickGrid!.setOptions({
@@ -1536,71 +2125,125 @@ export class ProjectPartListPurchaseRequestSlickGridComponent implements OnInit,
         }
     }
 
-    // Update editor collections for all grids after master data is loaded
-    private updateEditorCollections(): void {
-        // Update columns for all tabs
-        this.tabs.forEach(tab => {
-            const angularGrid = this.angularGrids.get(tab.id);
-            if (!angularGrid || !angularGrid.slickGrid) return;
+  // Update editor collections for all grids after master data is loaded
+  private updateEditorCollections(): void {
+    // Update columns for all tabs
+    this.tabs.forEach((tab) => {
+      const angularGrid = this.angularGrids.get(tab.id);
+      if (!angularGrid || !angularGrid.slickGrid) return;
 
             const columns = angularGrid.slickGrid.getColumns();
             if (!columns) return;
 
-            // Update CurrencyID column editor collection
-            const currencyColumn = columns.find((col: any) => col.field === 'CurrencyID');
-            if (currencyColumn && currencyColumn.editor) {
-                currencyColumn.editor.collection = this.getCurrencyCollection();
-            }
+      // Update CurrencyID column editor collection
+      const currencyColumn = columns.find(
+        (col: any) => col.field === 'CurrencyID'
+      );
+      if (currencyColumn) {
+        if (currencyColumn.editor) {
+          currencyColumn.editor.collection = this.getCurrencyCollection();
+        }
+        if (currencyColumn.filter) {
+          const currencyCollection = this.getCurrencyCollection();
+          // Filter out empty entries but keep entries with valid value
+          const filteredCollection = currencyCollection.filter(x => x.value > 0);
+          currencyColumn.filter.collection = filteredCollection;
+        }
+      }
 
-            // Update SupplierSaleID column editor collection
-            const supplierColumn = columns.find((col: any) => col.field === 'SupplierSaleID');
-            if (supplierColumn && supplierColumn.editor) {
-                supplierColumn.editor.collection = this.getSupplierCollection();
-            }
+      // Update SupplierSaleID column editor collection
+      const supplierColumn = columns.find(
+        (col: any) => col.field === 'SupplierSaleID'
+      );
+      if (supplierColumn) {
+        if (supplierColumn.editor) {
+          supplierColumn.editor.collection = this.getSupplierCollection();
+        }
+        if (supplierColumn.filter) {
+          const supplierCollection = this.getSupplierCollection();
+          // Filter out empty entries but keep entries with valid value
+          const filteredCollection = supplierCollection.filter(x => x.value > 0);
+          supplierColumn.filter.collection = filteredCollection;
+        }
+      }
 
-            // Update ProductGroupID/ProductGroupRTCID columns
-            const isRTCTab = tab.id === 3 || tab.id === 4;
-            const productGroupField = isRTCTab ? 'ProductGroupRTCID' : 'ProductGroupID';
-            const productGroupColumn = columns.find((col: any) => col.field === productGroupField);
-            if (productGroupColumn && productGroupColumn.editor) {
-                productGroupColumn.editor.collection = this.getProductGroupCollection(isRTCTab);
-            }
+      // Update ProductGroupID/ProductGroupRTCID columns
+      const isRTCTab = tab.id === 3 || tab.id === 4;
+      const productGroupField = isRTCTab
+        ? 'ProductGroupRTCID'
+        : 'ProductGroupID';
+      const productGroupColumn = columns.find(
+        (col: any) => col.field === productGroupField
+      );
+      if (productGroupColumn && productGroupColumn.editor) {
+        productGroupColumn.editor.collection =
+          this.getProductGroupCollection(isRTCTab);
+      }
 
-            // Update WarehouseID column editor collection
-            const warehouseColumn = columns.find((col: any) => col.field === 'WarehouseID');
-            if (warehouseColumn && warehouseColumn.editor) {
-                warehouseColumn.editor.collection = this.getWarehouseCollection();
-            }
+      // Update WarehouseID column editor collection
+      const warehouseColumn = columns.find(
+        (col: any) => col.field === 'WarehouseID'
+      );
+      if (warehouseColumn && warehouseColumn.editor) {
+        warehouseColumn.editor.collection = this.getWarehouseCollection();
+      }
 
-            // Update column definitions in the map to keep them in sync
-            const columnDefs = this.columnDefinitionsMap.get(tab.id);
-            if (columnDefs) {
-                const currencyColDef = columnDefs.find((col: any) => col.field === 'CurrencyID');
-                if (currencyColDef && currencyColDef.editor) {
-                    currencyColDef.editor.collection = this.getCurrencyCollection();
-                }
+      // Update column definitions in the map to keep them in sync
+      const columnDefs = this.columnDefinitionsMap.get(tab.id);
+      if (columnDefs) {
+        const currencyColDef = columnDefs.find(
+          (col: any) => col.field === 'CurrencyID'
+        );
+        if (currencyColDef) {
+          if (currencyColDef.editor) {
+            currencyColDef.editor.collection = this.getCurrencyCollection();
+          }
+          if (currencyColDef.filter) {
+            const currencyCollection = this.getCurrencyCollection();
+            // Filter out empty entries but keep entries with valid value
+            const filteredCollection = currencyCollection.filter(x => x.value > 0);
+            currencyColDef.filter.collection = filteredCollection;
+          }
+        }
 
-                const supplierColDef = columnDefs.find((col: any) => col.field === 'SupplierSaleID');
-                if (supplierColDef && supplierColDef.editor) {
-                    supplierColDef.editor.collection = this.getSupplierCollection();
-                }
+        const supplierColDef = columnDefs.find(
+          (col: any) => col.field === 'SupplierSaleID'
+        );
+        if (supplierColDef) {
+          if (supplierColDef.editor) {
+            supplierColDef.editor.collection = this.getSupplierCollection();
+          }
+          if (supplierColDef.filter) {
+            const supplierCollection = this.getSupplierCollection();
+            // Filter out empty entries but keep entries with valid value
+            const filteredCollection = supplierCollection.filter(x => x.value > 0);
+            supplierColDef.filter.collection = filteredCollection;
+          }
+        }
 
-                const productGroupColDef = columnDefs.find((col: any) => col.field === productGroupField);
-                if (productGroupColDef && productGroupColDef.editor) {
-                    productGroupColDef.editor.collection = this.getProductGroupCollection(isRTCTab);
-                }
+        const productGroupColDef = columnDefs.find(
+          (col: any) => col.field === productGroupField
+        );
+        if (productGroupColDef && productGroupColDef.editor) {
+          productGroupColDef.editor.collection =
+            this.getProductGroupCollection(isRTCTab);
+        }
 
-                const warehouseColDef = columnDefs.find((col: any) => col.field === 'WarehouseID');
-                if (warehouseColDef && warehouseColDef.editor) {
-                    warehouseColDef.editor.collection = this.getWarehouseCollection();
-                }
-            }
+        const warehouseColDef = columnDefs.find(
+          (col: any) => col.field === 'WarehouseID'
+        );
+        if (warehouseColDef && warehouseColDef.editor) {
+          warehouseColDef.editor.collection = this.getWarehouseCollection();
+        }
+      }
 
-            // Refresh grid to apply changes
-            angularGrid.slickGrid.invalidate();
-            angularGrid.slickGrid.render();
-        });
-    }
+      // Refresh grid to apply changes
+      const updatedColumns = angularGrid.slickGrid.getColumns();
+      angularGrid.slickGrid.setColumns(updatedColumns);
+      angularGrid.slickGrid.invalidate();
+      angularGrid.slickGrid.render();
+    });
+  }
 
     // Build context menu items for a specific tab
     private buildContextMenuItems(typeId: number): any[] {
@@ -1640,192 +2283,194 @@ export class ProjectPartListPurchaseRequestSlickGridComponent implements OnInit,
         //   }
         // });
 
-        // Duplicate - yêu cầu quyền N35 hoặc N1
-        if (hasN35OrN1) {
-            menuItems.push({
-                command: 'duplicate',
-                title: 'Duplicate',
-                iconCssClass: 'mdi mdi-content-copy',
-                positionOrder: positionOrder++,
-                action: (e: any, args: any) => {
-                    const tabIndex = this.tabs.findIndex(t => t.id === typeId);
-                    if (tabIndex >= 0) {
-                        this.duplicateRow(tabIndex);
-                    }
-                }
-            });
+    // Duplicate - yêu cầu quyền N35 hoặc N1
+    if (hasN35OrN1) {
+      menuItems.push({
+        command: 'duplicate',
+        title: 'Duplicate',
+        iconCssClass: 'mdi mdi-content-copy',
+        positionOrder: positionOrder++,
+        action: (e: any, args: any) => {
+          const tabIndex = this.tabs.findIndex((t) => t.id === typeId);
+          if (tabIndex >= 0) {
+            this.duplicateRow(tabIndex);
+          }
+        },
+      });
+    }
+
+    // Lịch sử hỏi giá - luôn hiển thị
+    menuItems.push({
+      command: 'history-price',
+      title: 'Lịch sử hỏi giá',
+      iconCssClass: 'mdi mdi-history',
+      positionOrder: positionOrder++,
+      action: (e: any, args: any) => {
+        const tabIndex = this.tabs.findIndex((t) => t.id === typeId);
+        if (tabIndex >= 0) {
+          this.onHistoryPrice(tabIndex);
         }
+      },
+    });
 
-        // Lịch sử hỏi giá - luôn hiển thị
-        menuItems.push({
-            command: 'history-price',
-            title: 'Lịch sử hỏi giá',
-            iconCssClass: 'mdi mdi-history',
-            positionOrder: positionOrder++,
-            action: (e: any, args: any) => {
-                const tabIndex = this.tabs.findIndex(t => t.id === typeId);
-                if (tabIndex >= 0) {
-                    this.onHistoryPrice(tabIndex);
-                }
-            }
-        });
+    // Hàng nhập khẩu - yêu cầu quyền N35 hoặc N1
+    if (hasN35OrN1) {
+      menuItems.push({
+        command: 'set-import',
+        title: 'Hàng nhập khẩu',
+        iconCssClass: 'mdi mdi-check',
+        positionOrder: positionOrder++,
+        action: (e: any, args: any) => {
+          const tabIndex = this.tabs.findIndex((t) => t.id === typeId);
+          if (tabIndex >= 0) {
+            this.updateProductImport(tabIndex, true);
+          }
+        },
+      });
 
-        // Hàng nhập khẩu - yêu cầu quyền N35 hoặc N1
-        if (hasN35OrN1) {
-            menuItems.push({
-                command: 'set-import',
-                title: 'Hàng nhập khẩu',
-                iconCssClass: 'mdi mdi-check',
-                positionOrder: positionOrder++,
-                action: (e: any, args: any) => {
-                    const tabIndex = this.tabs.findIndex(t => t.id === typeId);
-                    if (tabIndex >= 0) {
-                        this.updateProductImport(tabIndex, true);
-                    }
-                }
-            });
+      menuItems.push({
+        command: 'unset-import',
+        title: 'Hủy hàng nhập khẩu',
+        iconCssClass: 'mdi mdi-close',
+        positionOrder: positionOrder++,
+        action: (e: any, args: any) => {
+          const tabIndex = this.tabs.findIndex((t) => t.id === typeId);
+          if (tabIndex >= 0) {
+            this.updateProductImport(tabIndex, false);
+          }
+        },
+      });
+    }
 
-            menuItems.push({
-                command: 'unset-import',
-                title: 'Hủy hàng nhập khẩu',
-                iconCssClass: 'mdi mdi-close',
-                positionOrder: positionOrder++,
-                action: (e: any, args: any) => {
-                    const tabIndex = this.tabs.findIndex(t => t.id === typeId);
-                    if (tabIndex >= 0) {
-                        this.updateProductImport(tabIndex, false);
-                    }
-                }
-            });
-        }
+    // Yêu cầu duyệt mua - yêu cầu quyền N35 hoặc N1
+    if (hasN35OrN1) {
+      menuItems.push({
+        command: 'request-approved',
+        title: 'Yêu cầu duyệt mua',
+        iconCssClass: 'mdi mdi-check',
+        positionOrder: positionOrder++,
+        action: (e: any, args: any) => {
+          const tabIndex = this.tabs.findIndex((t) => t.id === typeId);
+          if (tabIndex >= 0) {
+            this.onRequestApproved(tabIndex, true);
+          }
+        },
+      });
 
-        // Yêu cầu duyệt mua - yêu cầu quyền N35 hoặc N1
-        if (hasN35OrN1) {
-            menuItems.push({
-                command: 'request-approved',
-                title: 'Yêu cầu duyệt mua',
-                iconCssClass: 'mdi mdi-check',
-                positionOrder: positionOrder++,
-                action: (e: any, args: any) => {
-                    const tabIndex = this.tabs.findIndex(t => t.id === typeId);
-                    if (tabIndex >= 0) {
-                        this.onRequestApproved(tabIndex, true);
-                    }
-                }
-            });
+      menuItems.push({
+        command: 'cancel-request-approved',
+        title: 'Hủy yêu cầu duyệt mua',
+        iconCssClass: 'mdi mdi-close',
+        positionOrder: positionOrder++,
+        action: (e: any, args: any) => {
+          const tabIndex = this.tabs.findIndex((t) => t.id === typeId);
+          if (tabIndex >= 0) {
+            this.onRequestApproved(tabIndex, false);
+          }
+        },
+      });
+    }
 
-            menuItems.push({
-                command: 'cancel-request-approved',
-                title: 'Hủy yêu cầu duyệt mua',
-                iconCssClass: 'mdi mdi-close',
-                positionOrder: positionOrder++,
-                action: (e: any, args: any) => {
-                    const tabIndex = this.tabs.findIndex(t => t.id === typeId);
-                    if (tabIndex >= 0) {
-                        this.onRequestApproved(tabIndex, false);
-                    }
-                }
-            });
-        }
+    // Separator
+    if (menuItems.length > 0) {
+      menuItems.push({
+        divider: true,
+        command: '',
+        positionOrder: positionOrder++,
+      });
+    }
 
-        // Separator
-        if (menuItems.length > 0) {
-            menuItems.push({
-                divider: true,
-                command: '',
-                positionOrder: positionOrder++
-            });
-        }
+    // Giữ hàng - yêu cầu quyền N35 hoặc N1
+    if (hasN35OrN1) {
+      menuItems.push({
+        command: 'keep-product',
+        title: 'Giữ hàng',
+        iconCssClass: 'mdi mdi-check',
+        positionOrder: positionOrder++,
+        action: (e: any, args: any) => {
+          const tabIndex = this.tabs.findIndex((t) => t.id === typeId);
+          if (tabIndex >= 0) {
+            this.onKeepProduct(tabIndex);
+          }
+        },
+      });
+    }
 
-        // Giữ hàng - yêu cầu quyền N35 hoặc N1
-        if (hasN35OrN1) {
-            menuItems.push({
-                command: 'keep-product',
-                title: 'Giữ hàng',
-                iconCssClass: 'mdi mdi-check',
-                positionOrder: positionOrder++,
-                action: (e: any, args: any) => {
-                    const tabIndex = this.tabs.findIndex(t => t.id === typeId);
-                    if (tabIndex >= 0) {
-                        this.onKeepProduct(tabIndex);
-                    }
-                }
-            });
-        }
-
-        // Cập nhật mã nội bộ - yêu cầu quyền N35 hoặc N1 và chỉ cho tab index 3
-        const tabIndex = this.tabs.findIndex(t => t.id === typeId);
-        if (hasN35OrN1 && tabIndex === 3) {
-            menuItems.push({
-                command: 'update-internal-code',
-                title: 'Cập nhật mã nội bộ',
-                iconCssClass: 'mdi mdi-refresh',
-                positionOrder: positionOrder++,
-                action: (e: any, args: any) => {
-                    if (tabIndex >= 0) {
-                        this.updateInternalCode(tabIndex);
-                    }
-                }
-            });
-        }
+    // Cập nhật mã nội bộ - yêu cầu quyền N35 hoặc N1 và chỉ cho tab index 3
+    const tabIndex = this.tabs.findIndex((t) => t.id === typeId);
+    if (hasN35OrN1 && tabIndex === 3) {
+      menuItems.push({
+        command: 'update-internal-code',
+        title: 'Cập nhật mã nội bộ',
+        iconCssClass: 'mdi mdi-refresh',
+        positionOrder: positionOrder++,
+        action: (e: any, args: any) => {
+          if (tabIndex >= 0) {
+            this.updateInternalCode(tabIndex);
+          }
+        },
+      });
+    }
 
         return menuItems;
     }
 
-    // Collection helper methods
-    private getProductGroupCollection(isRTC: boolean): Array<{ value: number; label: string }> {
-        const groups = isRTC ? this.dtproductGroupsRTC : this.dtproductGroups;
-        const collection = (groups || []).map((g: any) => ({
-            value: g.ID,
-            label: g.ProductGroupName || ''
-        }));
-        return [
-            { value: 0, label: '' },
-            ...collection
-        ];
-    }
+  // Collection helper methods
+  private getProductGroupCollection(
+    isRTC: boolean
+  ): Array<{ value: number; label: string }> {
+    const groups = isRTC ? this.dtproductGroupsRTC : this.dtproductGroups;
+    const collection = (groups || []).map((g: any) => ({
+      value: g.ID,
+      label: g.ProductGroupName || '',
+    }));
+    return [{ value: 0, label: '' }, ...collection];
+  }
 
-    private getWarehouseCollection(): Array<{ value: number; label: string }> {
-        const warehouses = (this.dtwarehouses || []).map((w: any) => ({
-            value: w.ID,
-            label: w.WarehouseCode + ' - ' + w.WarehouseName || ''
-        }));
-        return [
-            { value: 0, label: '' },
-            ...warehouses
-        ];
-    }
+  private getWarehouseCollection(): Array<{ value: number; label: string }> {
+    const warehouses = (this.dtwarehouses || []).map((w: any) => ({
+      value: w.ID,
+      label: w.WarehouseCode + ' - ' + w.WarehouseName || '',
+    }));
+    return [{ value: 0, label: '' }, ...warehouses];
+  }
 
-    private getCurrencyCollection(): Array<{ value: number; label: string; currencyRate: number }> {
-        const currencies = (this.dtcurrency || []).map((c: any) => ({
-            value: c.ID,
-            label: `${c.Code || ''} - ${this.formatNumberEnUS(c.CurrencyRate || 0, 2)}`,
-            currencyRate: c.CurrencyRate || 0
-        }));
-        return [
-            { value: 0, label: '', currencyRate: 0 },
-            ...currencies
-        ];
-    }
+  private getCurrencyCollection(): Array<{
+    value: number;
+    label: string;
+    currencyRate: number;
+  }> {
+    const currencies = (this.dtcurrency || []).map((c: any) => ({
+      value: c.ID,
+      label: c.Code || '',
+      currencyRate: c.CurrencyRate || 0,
+    }));
+    return [{ value: 0, label: '', currencyRate: 0 }, ...currencies];
+  }
 
-    private getSupplierCollection(): Array<{ value: number; label: string }> {
-        const suppliers = (this.dtSupplierSale || []).map((s: any) => ({
-            value: s.ID,
-            label: `${s.CodeNCC || ''} - ${s.NameNCC || ''}`.replace(/^ - |^ -$| - $/g, '').trim() || s.NameNCC || ''
-        }));
-        return [
-            { value: 0, label: '' },
-            ...suppliers
-        ];
-    }
+  private getSupplierCollection(): Array<{ value: number; label: string }> {
+    const suppliers = (this.dtSupplierSale || []).map((s: any) => ({
+      value: s.ID,
+      label:
+        `${s.CodeNCC || ''} - ${s.NameNCC || ''}`
+          .replace(/^ - |^ -$| - $/g, '')
+          .trim() ||
+        s.NameNCC ||
+        '',
+    }));
+    return [{ value: 0, label: '' }, ...suppliers];
+  }
 
-    // Format number with en-US locale
-    formatNumberEnUS(value: any, decimals: number = 0): string {
-        if (value === null || value === undefined || value === '') return '';
-        const num = typeof value === 'string' ? parseFloat(value) : value;
-        if (isNaN(num)) return '';
-        return num.toLocaleString('en-US', { minimumFractionDigits: decimals, maximumFractionDigits: decimals });
-    }
+  // Format number with en-US locale
+  formatNumberEnUS(value: any, decimals: number = 0): string {
+    if (value === null || value === undefined || value === '') return '';
+    const num = typeof value === 'string' ? parseFloat(value) : value;
+    if (isNaN(num)) return '';
+    return num.toLocaleString('en-US', {
+      minimumFractionDigits: decimals,
+      maximumFractionDigits: decimals,
+    });
+  }
 
     // Sum totals formatter with format
     sumTotalsFormatterWithFormat(totals: any, columnDef: any): string {
@@ -1839,15 +2484,15 @@ export class ProjectPartListPurchaseRequestSlickGridComponent implements OnInit,
         return '';
     }
 
-    // Getting selected rows
-    private getSelectedGridData(typeId: number): any[] {
-        const angularGrid = this.angularGrids.get(typeId);
-        if (!angularGrid) return [];
-        const selectedRowIndexes = angularGrid.slickGrid.getSelectedRows();
-        return selectedRowIndexes.map((rowIndex: number) =>
-            angularGrid.dataView.getItem(rowIndex)
-        ).filter((item: any) => item);
-    }
+  // Getting selected rows
+  private getSelectedGridData(typeId: number): any[] {
+    const angularGrid = this.angularGrids.get(typeId);
+    if (!angularGrid) return [];
+    const selectedRowIndexes = angularGrid.slickGrid.getSelectedRows();
+    return selectedRowIndexes
+      .map((rowIndex: number) => angularGrid.dataView.getItem(rowIndex))
+      .filter((item: any) => item);
+  }
 
     // Event handlers
     onCellClicked(typeId: number, e: Event, args: OnClickEventArgs): void {
@@ -1894,27 +2539,36 @@ export class ProjectPartListPurchaseRequestSlickGridComponent implements OnInit,
             // Recalculate totals after currency change
             this.recalculateTotals(item);
 
-            // Update the CurrencyRate cell directly in the grid to ensure it displays immediately
-            const currencyRateColumn = columns.find((col: any) => col.field === 'CurrencyRate');
-            if (currencyRateColumn) {
-                const currencyRateColIndex = columns.indexOf(currencyRateColumn);
-                // Update item in dataView first
-                angularGrid.dataView.updateItem(item.id, item);
-                // Invalidate and update the specific cell
-                angularGrid.slickGrid.updateCell(rowIndex, currencyRateColIndex);
-            }
-        }
+      // Update the CurrencyRate cell directly in the grid to ensure it displays immediately
+      const currencyRateColumn = columns.find(
+        (col: any) => col.field === 'CurrencyRate'
+      );
+      if (currencyRateColumn) {
+        const currencyRateColIndex = columns.indexOf(currencyRateColumn);
+        // Update item in dataView first
+        angularGrid.dataView.updateItem(item.id, item);
+        // Invalidate and update the specific cell
+        angularGrid.slickGrid.updateCell(rowIndex, currencyRateColIndex);
+      }
+    }
 
-        // Recalculate totals when prices change
-        if (changedColumn && ['UnitPrice', 'Quantity', 'CurrencyRate', 'VAT'].includes(changedColumn.field || '')) {
-            this.recalculateTotals(item);
-        }
+    // Recalculate totals when prices change
+    if (
+      changedColumn &&
+      ['UnitPrice', 'Quantity', 'CurrencyRate', 'VAT'].includes(
+        changedColumn.field || ''
+      )
+    ) {
+      this.recalculateTotals(item);
+    }
 
-        // Track changes: Add to changedRows array if not already exists
-        const rowId = Number(item.ID || 0);
-        if (rowId > 0) {
-            // Check if row already exists in changedRows
-            const existingIndex = this.changedRows.findIndex((r: any) => Number(r.ID) === rowId);
+    // Track changes: Add to changedRows array if not already exists
+    const rowId = Number(item.ID || 0);
+    if (rowId > 0) {
+      // Check if row already exists in changedRows
+      const existingIndex = this.changedRows.findIndex(
+        (r: any) => Number(r.ID) === rowId
+      );
 
             if (existingIndex >= 0) {
                 // Update existing row with latest data
@@ -1934,9 +2588,13 @@ export class ProjectPartListPurchaseRequestSlickGridComponent implements OnInit,
         this.ensureCheckboxSelector(angularGrid);
     }
 
-    handleRowSelection(typeId: number, e: Event, args: OnSelectedRowsChangedEventArgs): void {
-        // Handle row selection changes if needed
-    }
+  handleRowSelection(
+    typeId: number,
+    e: Event,
+    args: OnSelectedRowsChangedEventArgs
+  ): void {
+    // Handle row selection changes if needed
+  }
 
     // Recalculate totals for an item
     private recalculateTotals(item: any): void {
@@ -2017,11 +2675,13 @@ export class ProjectPartListPurchaseRequestSlickGridComponent implements OnInit,
             Size: 5000,
         };
 
-        const sub = this.srv.getAll(filter).subscribe({
-            next: (response) => {
-                const data = Array.isArray(response?.data) ? response.data : response?.data || response || [];
-                const allData = data;
-                this.allData = allData;
+    const sub = this.srv.getAll(filter).subscribe({
+      next: (response) => {
+        const data = Array.isArray(response?.data)
+          ? response.data
+          : response?.data || response || [];
+        const allData = data;
+        this.allData = allData;
 
                 // Clear changedRows khi reload data
                 this.changedRows = [];
@@ -2043,86 +2703,94 @@ export class ProjectPartListPurchaseRequestSlickGridComponent implements OnInit,
                     }
                 });
 
-                // Filter data for each tab - logic giống file gốc
-                this.tabs.forEach(tab => {
-                    let filteredData: any[] = [];
-                    const typeId = Number(tab.id);
+        // Filter data for each tab - logic giống file gốc
+        this.tabs.forEach((tab) => {
+          let filteredData: any[] = [];
+          const typeId = Number(tab.id);
 
-                    // Lọc theo từng loại tab (tương ứng với logic WinForm)
-                    switch (typeId) {
-                        case 1:
-                            filteredData = allData.filter((x: any) =>
-                                Number(x.ProjectPartlistPurchaseRequestTypeID) == 1
-                            );
-                            break;
+          // Lọc theo từng loại tab (tương ứng với logic WinForm)
+          switch (typeId) {
+            case 1:
+              filteredData = allData.filter(
+                (x: any) => Number(x.ProjectPartlistPurchaseRequestTypeID) == 1
+              );
+              break;
 
-                        case 2:
-                            filteredData = allData.filter((x: any) =>
-                                Number(x.ProjectPartlistPurchaseRequestTypeID) == 2
-                            );
-                            break;
+            case 2:
+              filteredData = allData.filter(
+                (x: any) => Number(x.ProjectPartlistPurchaseRequestTypeID) == 2
+              );
+              break;
 
-                        case 3:
-                            filteredData = allData.filter((x: any) =>
-                                Number(x.ProjectPartlistPurchaseRequestTypeID) == 3
-                            );
-                            break;
+            case 3:
+              filteredData = allData.filter(
+                (x: any) => Number(x.ProjectPartlistPurchaseRequestTypeID) == 3
+              );
+              break;
 
-                        case 4:
-                            filteredData = allData.filter((x: any) =>
-                                Number(x.ProjectPartlistPurchaseRequestTypeID) == 4
-                            );
-                            break;
+            case 4:
+              filteredData = allData.filter(
+                (x: any) => Number(x.ProjectPartlistPurchaseRequestTypeID) == 4
+              );
+              break;
 
-                        case 5:
-                            filteredData = allData.filter((x: any) =>
-                                Number(x.ProjectPartlistPurchaseRequestTypeID) == 5
-                            );
-                            break;
+            case 5:
+              filteredData = allData.filter(
+                (x: any) => Number(x.ProjectPartlistPurchaseRequestTypeID) == 5
+              );
+              break;
 
-                        case 6:
-                            filteredData = allData.filter((x: any) =>
-                                Number(x.ProjectPartlistPurchaseRequestTypeID) == 6
-                            );
-                            break;
+            case 6:
+              filteredData = allData.filter(
+                (x: any) => Number(x.ProjectPartlistPurchaseRequestTypeID) == 6
+              );
+              break;
 
-                        case 7:
-                            filteredData = allData.filter((x: any) =>
-                                Number(x.ProjectPartlistPurchaseRequestTypeID) == 7
-                            );
-                            break;
+            case 7:
+              filteredData = allData.filter(
+                (x: any) => Number(x.ProjectPartlistPurchaseRequestTypeID) == 7
+              );
+              break;
 
                         default:
                             break;
                     }
 
-                    // Add id property for grid
-                    const dataWithId = filteredData.map((item: any, index: number) => ({
-                        ...item,
-                        id: item.ID || index
-                    }));
+          // Add id property for grid
+          const dataWithId = filteredData.map((item: any, index: number) => ({
+            ...item,
+            id: item.ID || index,
+          }));
 
-                    // Cập nhật title tab với số lượng (giống file gốc)
-                    const countText = (filteredData?.length || 0).toLocaleString('vi-VN');
-                    tab.title = `${tab.title.split('(')[0].trim()} (${countText})`;
+          // Store original data (before filters)
+          this.datasetsAllMap.set(tab.id, dataWithId);
 
-                    this.datasetsMap.set(tab.id, dataWithId);
+          // Apply all header filters if any
+          this.applyAllHeaderFiltersToView(tab.id);
 
-                    // Refresh grid if it exists
-                    const angularGrid = this.angularGrids.get(tab.id);
-                    if (angularGrid && angularGrid.dataView) {
-                        angularGrid.dataView.setItems(dataWithId);
-                        angularGrid.dataView.refresh();
-                    }
-                });
+          // Cập nhật title tab với số lượng (giống file gốc)
+          const filteredDataForTitle = this.datasetsMap.get(tab.id) || [];
+          const countText = (filteredDataForTitle?.length || 0).toLocaleString('vi-VN');
+          tab.title = `${tab.title.split('(')[0].trim()} (${countText})`;
 
-                this.isLoading = false;
-            },
-            error: (err) => {
-                this.notify.error('Lỗi', 'Không thể tải dữ liệu');
-                this.isLoading = false;
-            }
+          // Refresh grid if it exists
+          const angularGrid = this.angularGrids.get(tab.id);
+          if (angularGrid && angularGrid.dataView) {
+            angularGrid.dataView.setItems(dataWithId);
+            angularGrid.dataView.refresh();
+          }
         });
+
+        // Apply distinct filters after data is loaded
+        this.applyDistinctFilters();
+
+        this.isLoading = false;
+      },
+      error: (err) => {
+        this.notify.error('Lỗi', 'Không thể tải dữ liệu');
+        this.isLoading = false;
+      },
+    });
 
         this.subscriptions.push(sub);
     }
@@ -2136,62 +2804,79 @@ export class ProjectPartListPurchaseRequestSlickGridComponent implements OnInit,
         this.shouldShowSearchBar = this.showSearchBar;
     }
 
-    // Action methods
-    onCheckOrder(tabIndex: number, status: boolean): void {
-        if (this.changedRows.length > 0) {
-            this.notify.warning(NOTIFICATION_TITLE.warning, `Dữ liệu đã thay đổi!\nVui lòng lưu lại dữ liệu hoặc load lại trước khi thao tác!`);
-            return;
-        }
+  // Action methods
+  onCheckOrder(tabIndex: number, status: boolean): void {
+    if (this.changedRows.length > 0) {
+      this.notify.warning(
+        NOTIFICATION_TITLE.warning,
+        `Dữ liệu đã thay đổi!\nVui lòng lưu lại dữ liệu hoặc load lại trước khi thao tác!`
+      );
+      return;
+    }
 
         const typeId = this.getTypeIdFromTabIndex(tabIndex);
         if (!typeId) return;
 
-        const selected = this.getSelectedGridData(typeId);
-        if (selected.length === 0) {
-            const textStatus = status ? "check" : "hủy check";
-            this.notify.warning(NOTIFICATION_TITLE.warning, `Vui lòng chọn dòng cần ${textStatus}!`);
-            return;
-        }
-
-        const textStatus = status ? "check" : "hủy check";
-        this.modal.confirm({
-            nzTitle: `Bạn có chắc chắn muốn ${textStatus} danh sách đang chọn không?
-      \nNhững sản phẩm đã có NV mua check sẽ tự động được bỏ qua!`,
-            nzOkText: 'Ok',
-            nzOkType: 'primary',
-            nzCancelText: 'Hủy',
-            nzOkDanger: false,
-            nzClosable: false,
-            nzOnOk: () => {
-                // Lưu lại các ID đã chọn và tab index trước khi gọi API
-                this.selectedRowIds = selected.map(r => r.ID);
-                this.selectedTabIndex = tabIndex;
-
-                // API cần List<int> listIds - chỉ gửi mảng các ID (số nguyên)
-                const listIds = selected.map(r => Number(r.ID || 0)).filter(id => id > 0);
-
-                const sub = this.srv.checkOrder(listIds, status).subscribe({
-                    next: (rs) => {
-                        this.notify.success(NOTIFICATION_TITLE.success, rs.message || `${textStatus} thành công`);
-                        this.onSearch();
-                    },
-                    error: (error) => {
-                        this.notify.error(NOTIFICATION_TITLE.error, error.error?.message || `${textStatus} thất bại`);
-                        // Xóa selectedRowIds nếu có lỗi
-                        this.selectedRowIds = [];
-                        this.selectedTabIndex = -1;
-                    }
-                });
-                this.subscriptions.push(sub);
-            }
-        });
+    const selected = this.getSelectedGridData(typeId);
+    if (selected.length === 0) {
+      const textStatus = status ? 'check' : 'hủy check';
+      this.notify.warning(
+        NOTIFICATION_TITLE.warning,
+        `Vui lòng chọn dòng cần ${textStatus}!`
+      );
+      return;
     }
 
-    onSaveData(tabIndex: number): void {
-        if (this.changedRows.length <= 0 || this.changedRows == null) {
-            this.notify.warning(NOTIFICATION_TITLE.warning, "Không có dữ liệu thay đổi!");
-            return;
-        }
+    const textStatus = status ? 'check' : 'hủy check';
+    this.modal.confirm({
+      nzTitle: `Bạn có chắc chắn muốn ${textStatus} danh sách đang chọn không?
+      \nNhững sản phẩm đã có NV mua check sẽ tự động được bỏ qua!`,
+      nzOkText: 'Ok',
+      nzOkType: 'primary',
+      nzCancelText: 'Hủy',
+      nzOkDanger: false,
+      nzClosable: false,
+      nzOnOk: () => {
+        // Lưu lại các ID đã chọn và tab index trước khi gọi API
+        this.selectedRowIds = selected.map((r) => r.ID);
+        this.selectedTabIndex = tabIndex;
+
+        // API cần List<int> listIds - chỉ gửi mảng các ID (số nguyên)
+        const listIds = selected
+          .map((r) => Number(r.ID || 0))
+          .filter((id) => id > 0);
+
+        const sub = this.srv.checkOrder(listIds, status).subscribe({
+          next: (rs) => {
+            this.notify.success(
+              NOTIFICATION_TITLE.success,
+              rs.message || `${textStatus} thành công`
+            );
+            this.onSearch();
+          },
+          error: (error) => {
+            this.notify.error(
+              NOTIFICATION_TITLE.error,
+              error.error?.message || `${textStatus} thất bại`
+            );
+            // Xóa selectedRowIds nếu có lỗi
+            this.selectedRowIds = [];
+            this.selectedTabIndex = -1;
+          },
+        });
+        this.subscriptions.push(sub);
+      },
+    });
+  }
+
+  onSaveData(tabIndex: number): void {
+    if (this.changedRows.length <= 0 || this.changedRows == null) {
+      this.notify.warning(
+        NOTIFICATION_TITLE.warning,
+        'Không có dữ liệu thay đổi!'
+      );
+      return;
+    }
 
         const typeId = this.getTypeIdFromTabIndex(tabIndex);
         if (!typeId) return;
@@ -2208,69 +2893,82 @@ export class ProjectPartListPurchaseRequestSlickGridComponent implements OnInit,
                 }
             }
 
-            // Cập nhật changedRows với dữ liệu mới nhất từ grid
-            this.changedRows = this.changedRows.map(changedRow => {
-                const rowId = Number(changedRow.ID || 0);
-                if (rowId > 0) {
-                    const latestRowData = allGridData.find((row: any) => Number(row.ID) === rowId);
-                    if (latestRowData) {
-                        return latestRowData;
-                    }
-                }
-                return changedRow;
-            }).filter((row: any) => row && row.ID);
-        }
+      // Cập nhật changedRows với dữ liệu mới nhất từ grid
+      this.changedRows = this.changedRows
+        .map((changedRow) => {
+          const rowId = Number(changedRow.ID || 0);
+          if (rowId > 0) {
+            const latestRowData = allGridData.find(
+              (row: any) => Number(row.ID) === rowId
+            );
+            if (latestRowData) {
+              return latestRowData;
+            }
+          }
+          return changedRow;
+        })
+        .filter((row: any) => row && row.ID);
+    }
 
-        if (this.changedRows.length <= 0) {
-            this.notify.warning(NOTIFICATION_TITLE.warning, "Không có dữ liệu thay đổi!");
-            return;
-        }
+    if (this.changedRows.length <= 0) {
+      this.notify.warning(
+        NOTIFICATION_TITLE.warning,
+        'Không có dữ liệu thay đổi!'
+      );
+      return;
+    }
 
-        this.selectedRowIds = this.changedRows.map(r => r.ID);
-        this.selectedTabIndex = tabIndex;
+    this.selectedRowIds = this.changedRows.map((r) => r.ID);
+    this.selectedTabIndex = tabIndex;
 
         // Lấy danh sách các dòng cần lưu (bao gồm cả các dòng duplicate liên quan)
         const dataToSave = this.getDataToSave();
 
-        this.modal.confirm({
-            nzTitle: `Bạn có muốn lưu các thay đổi không?`,
-            nzOkText: 'Lưu',
-            nzOkType: 'primary',
-            nzCancelText: 'Hủy',
-            nzOkDanger: false,
-            nzClosable: false,
-            nzOnOk: () => {
-                this.isLoading = true;
+    this.modal.confirm({
+      nzTitle: `Bạn có muốn lưu các thay đổi không?`,
+      nzOkText: 'Lưu',
+      nzOkType: 'primary',
+      nzCancelText: 'Hủy',
+      nzOkDanger: false,
+      nzClosable: false,
+      nzOnOk: () => {
+        this.isLoading = true;
 
-                // API expects List<ProjectPartlistPurchaseRequestDTO> directly (array)
-                const sub = this.srv.saveData(dataToSave).subscribe({
-                    next: (rs) => {
-                        this.notify.success(NOTIFICATION_TITLE.success, rs.message || 'Lưu dữ liệu thành công');
-                        this.changedRows = [];
-                        this.isLoading = false;
-                        this.onSearch();
-                    },
-                    error: (error) => {
-                        this.notify.error(NOTIFICATION_TITLE.error, error.error?.message || 'Lưu dữ liệu thất bại');
-                        this.isLoading = false;
-                        this.selectedRowIds = [];
-                        this.selectedTabIndex = -1;
-                    }
-                });
-                this.subscriptions.push(sub);
-            }
+        // API expects List<ProjectPartlistPurchaseRequestDTO> directly (array)
+        const sub = this.srv.saveData(dataToSave).subscribe({
+          next: (rs) => {
+            this.notify.success(
+              NOTIFICATION_TITLE.success,
+              rs.message || 'Lưu dữ liệu thành công'
+            );
+            this.changedRows = [];
+            this.isLoading = false;
+            this.onSearch();
+          },
+          error: (error) => {
+            this.notify.error(
+              NOTIFICATION_TITLE.error,
+              error.error?.message || 'Lưu dữ liệu thất bại'
+            );
+            this.isLoading = false;
+            this.selectedRowIds = [];
+            this.selectedTabIndex = -1;
+          },
         });
-    }
+        this.subscriptions.push(sub);
+      },
+    });
+  }
 
     // Hàm lấy dữ liệu cần lưu (bao gồm các dòng duplicate liên quan)
     private getDataToSave(): any[] {
         const result: any[] = [];
         const addedIds = new Set<number>();
 
-        // Duyệt qua từng dòng đã thay đổi
-        this.changedRows.forEach(changedRow => {
-            const rowId = changedRow.ID;
-            const duplicateId = changedRow.DuplicateID;
+    // Duyệt qua từng dòng đã thay đổi
+    this.changedRows.forEach((changedRow) => {
+      const rowId = changedRow.ID;
+      const duplicateId = changedRow.DuplicateID;
 
             // Thêm dòng hiện tại nếu chưa có (đã normalize)
             if (!addedIds.has(rowId)) {
@@ -2288,17 +2986,20 @@ export class ProjectPartListPurchaseRequestSlickGridComponent implements OnInit,
                         itemId === duplicateId ||
                         (itemDuplicateId && itemDuplicateId === duplicateId);
 
-                    if (isRelated && !addedIds.has(itemId)) {
-                        const relatedItem = {
-                            ...item,
-                            IsMarketing: Boolean(this.activeTabIndex === 7 || this.activeTabIndex === 1) || false
-                        };
-                        result.push(this.normalizeRowData(relatedItem));
-                        addedIds.add(itemId);
-                    }
-                });
-            }
+          if (isRelated && !addedIds.has(itemId)) {
+            const relatedItem = {
+              ...item,
+              IsMarketing:
+                Boolean(
+                  this.activeTabIndex === 7 || this.activeTabIndex === 1
+                ) || false,
+            };
+            result.push(this.normalizeRowData(relatedItem));
+            addedIds.add(itemId);
+          }
         });
+      }
+    });
 
         return result;
     }
@@ -2309,201 +3010,276 @@ export class ProjectPartListPurchaseRequestSlickGridComponent implements OnInit,
         const { id, TT, ...rowData } = row;
         const normalized: any = { ...rowData };
 
-        // Danh sách các field số nguyên
-        const integerFields = [
-            'ID', 'SupplierSaleID', 'CurrencyID', 'ProductGroupID', 'ProductGroupRTCID',
-            'WarehouseID', 'ProjectID', 'ProductRTCID', 'ProductSaleID',
-            'DuplicateID', 'PONCCID', 'POKHID', 'JobRequirementID', 'CustomerID',
-            'TotalDayLeadTime', 'StatusRequest', 'ProjectPartlistPurchaseRequestTypeID',
-            'TicketType', 'UnitCountID', 'ApprovedTBP', 'ApprovedBGD',
-            'EmployeeID', 'EmployeeIDRequestApproved', 'EmployeeApproveID',
-            'InventoryProjectID', 'ProjectPartListID', 'POKHDetailID'
-        ];
+    // Danh sách các field số nguyên
+    const integerFields = [
+      'ID',
+      'SupplierSaleID',
+      'CurrencyID',
+      'ProductGroupID',
+      'ProductGroupRTCID',
+      'WarehouseID',
+      'ProjectID',
+      'ProductRTCID',
+      'ProductSaleID',
+      'DuplicateID',
+      'PONCCID',
+      'POKHID',
+      'JobRequirementID',
+      'CustomerID',
+      'TotalDayLeadTime',
+      'StatusRequest',
+      'ProjectPartlistPurchaseRequestTypeID',
+      'TicketType',
+      'UnitCountID',
+      'ApprovedTBP',
+      'ApprovedBGD',
+      'EmployeeID',
+      'EmployeeIDRequestApproved',
+      'EmployeeApproveID',
+      'InventoryProjectID',
+      'ProjectPartListID',
+      'POKHDetailID',
+    ];
 
-        // Danh sách các field số thập phân
-        const decimalFields = [
-            'Quantity', 'UnitPrice', 'UnitImportPrice', 'VAT', 'TargetPrice',
-            'CurrencyRate', 'HistoryPrice', 'TotalPrice', 'TotalPriceExchange',
-            'TotaMoneyVAT', 'UnitFactoryExportPrice', 'TotalImportPrice',
-            'TotalPriceHistory', 'OriginQuantity'
-        ];
+    // Danh sách các field số thập phân
+    const decimalFields = [
+      'Quantity',
+      'UnitPrice',
+      'UnitImportPrice',
+      'VAT',
+      'TargetPrice',
+      'CurrencyRate',
+      'HistoryPrice',
+      'TotalPrice',
+      'TotalPriceExchange',
+      'TotaMoneyVAT',
+      'UnitFactoryExportPrice',
+      'TotalImportPrice',
+      'TotalPriceHistory',
+      'OriginQuantity',
+    ];
 
-        // Xử lý integer fields
-        integerFields.forEach(field => {
-            if (normalized[field] !== undefined && normalized[field] !== null) {
-                const value = normalized[field];
-                if (value === '' || value === 'null' || value === 'undefined') {
-                    normalized[field] = null;
-                } else {
-                    const numValue = Number(value);
-                    if (!isNaN(numValue) && isFinite(numValue)) {
-                        normalized[field] = Math.floor(numValue); // Làm tròn xuống cho integer
-                    } else {
-                        normalized[field] = null;
-                    }
-                }
-            } else {
-                normalized[field] = null;
-            }
-        });
+    // Xử lý integer fields
+    integerFields.forEach((field) => {
+      if (normalized[field] !== undefined && normalized[field] !== null) {
+        const value = normalized[field];
+        if (value === '' || value === 'null' || value === 'undefined') {
+          normalized[field] = null;
+        } else {
+          const numValue = Number(value);
+          if (!isNaN(numValue) && isFinite(numValue)) {
+            normalized[field] = Math.floor(numValue); // Làm tròn xuống cho integer
+          } else {
+            normalized[field] = null;
+          }
+        }
+      } else {
+        normalized[field] = null;
+      }
+    });
 
-        // Xử lý decimal fields
-        decimalFields.forEach(field => {
-            if (normalized[field] !== undefined && normalized[field] !== null) {
-                const value = normalized[field];
-                if (value === '' || value === 'null' || value === 'undefined') {
-                    normalized[field] = null;
-                } else {
-                    const numValue = Number(value);
-                    if (!isNaN(numValue) && isFinite(numValue)) {
-                        normalized[field] = numValue;
-                    } else {
-                        normalized[field] = null;
-                    }
-                }
-            } else {
-                normalized[field] = null;
-            }
-        });
+    // Xử lý decimal fields
+    decimalFields.forEach((field) => {
+      if (normalized[field] !== undefined && normalized[field] !== null) {
+        const value = normalized[field];
+        if (value === '' || value === 'null' || value === 'undefined') {
+          normalized[field] = null;
+        } else {
+          const numValue = Number(value);
+          if (!isNaN(numValue) && isFinite(numValue)) {
+            normalized[field] = numValue;
+          } else {
+            normalized[field] = null;
+          }
+        }
+      } else {
+        normalized[field] = null;
+      }
+    });
 
-        // Xử lý boolean fields - đảm bảo convert đúng sang boolean
-        const booleanFields = [
-            'IsApprovedTBP', 'IsApprovedBGD', 'IsImport', 'IsRequestApproved',
-            'IsCommercialProduct', 'IsDeleted', 'IsTechBought', 'IsPurchase',
-            'IsPaidLater', 'IsMarketing'
-        ];
+    // Xử lý boolean fields - đảm bảo convert đúng sang boolean
+    const booleanFields = [
+      'IsApprovedTBP',
+      'IsApprovedBGD',
+      'IsImport',
+      'IsRequestApproved',
+      'IsCommercialProduct',
+      'IsDeleted',
+      'IsTechBought',
+      'IsPurchase',
+      'IsPaidLater',
+      'IsMarketing',
+    ];
 
-        booleanFields.forEach(field => {
-            if (normalized[field] !== undefined && normalized[field] !== null) {
-                const value = normalized[field];
-                // Xử lý các trường hợp đặc biệt
-                if (typeof value === 'string') {
-                    normalized[field] = value.toLowerCase() === 'true' || value === '1';
-                } else if (typeof value === 'number') {
-                    normalized[field] = value !== 0;
-                } else {
-                    normalized[field] = Boolean(value);
-                }
-            } else {
-                normalized[field] = false;
-            }
-        });
+    booleanFields.forEach((field) => {
+      if (normalized[field] !== undefined && normalized[field] !== null) {
+        const value = normalized[field];
+        // Xử lý các trường hợp đặc biệt
+        if (typeof value === 'string') {
+          normalized[field] = value.toLowerCase() === 'true' || value === '1';
+        } else if (typeof value === 'number') {
+          normalized[field] = value !== 0;
+        } else {
+          normalized[field] = Boolean(value);
+        }
+      } else {
+        normalized[field] = false;
+      }
+    });
 
-        // Xử lý date fields - chuyển sang string ISO nếu là Date object
-        const dateFields = [
-            'DateRequest', 'DateReturnExpected', 'DateOrder', 'DateEstimate',
-            'DateReturnActual', 'DateReceive', 'DateApprovedTBP', 'DateApprovedBGD',
-            'DateReturnEstimated', 'CreatedDate', 'UpdatedDate'
-        ];
+    // Xử lý date fields - chuyển sang string ISO nếu là Date object
+    const dateFields = [
+      'DateRequest',
+      'DateReturnExpected',
+      'DateOrder',
+      'DateEstimate',
+      'DateReturnActual',
+      'DateReceive',
+      'DateApprovedTBP',
+      'DateApprovedBGD',
+      'DateReturnEstimated',
+      'CreatedDate',
+      'UpdatedDate',
+    ];
 
-        dateFields.forEach(field => {
-            if (normalized[field]) {
-                if (normalized[field] instanceof Date) {
-                    normalized[field] = normalized[field].toISOString();
-                } else if (typeof normalized[field] === 'string') {
-                    // Giữ nguyên nếu đã là string
-                } else {
-                    normalized[field] = null;
-                }
-            } else {
-                normalized[field] = null;
-            }
-        });
+    dateFields.forEach((field) => {
+      if (normalized[field]) {
+        if (normalized[field] instanceof Date) {
+          normalized[field] = normalized[field].toISOString();
+        } else if (typeof normalized[field] === 'string') {
+          // Giữ nguyên nếu đã là string
+        } else {
+          normalized[field] = null;
+        }
+      } else {
+        normalized[field] = null;
+      }
+    });
 
         return normalized;
     }
 
-    onEdit(tabIndex: number): void {
-        if (this.changedRows.length > 0) {
-            this.notify.warning(NOTIFICATION_TITLE.warning, `Dữ liệu đã thay đổi!\nVui lòng lưu lại dữ liệu hoặc load lại trước khi thao tác!`);
-            return;
-        }
+  onEdit(tabIndex: number): void {
+    if (this.changedRows.length > 0) {
+      this.notify.warning(
+        NOTIFICATION_TITLE.warning,
+        `Dữ liệu đã thay đổi!\nVui lòng lưu lại dữ liệu hoặc load lại trước khi thao tác!`
+      );
+      return;
+    }
 
         const typeId = this.getTypeIdFromTabIndex(tabIndex);
         if (!typeId) return;
 
-        const selected = this.getSelectedGridData(typeId);
-        if (selected.length === 0) {
-            this.notify.warning(NOTIFICATION_TITLE.warning, `Vui lòng chọn dòng cần sửa!`);
-            return;
-        }
+    const selected = this.getSelectedGridData(typeId);
+    if (selected.length === 0) {
+      this.notify.warning(
+        NOTIFICATION_TITLE.warning,
+        `Vui lòng chọn dòng cần sửa!`
+      );
+      return;
+    }
 
-        if (selected.length !== 1) {
-            this.notify.warning(NOTIFICATION_TITLE.warning, `Vui lòng chọn 1 dòng cần sửa!`);
-            return;
-        }
+    if (selected.length !== 1) {
+      this.notify.warning(
+        NOTIFICATION_TITLE.warning,
+        `Vui lòng chọn 1 dòng cần sửa!`
+      );
+      return;
+    }
 
         const row = selected[0];
         const isCommercialProduct = row.IsCommercialProduct;
         const poNCC = row.PONCCID;
 
-        if (!isCommercialProduct || poNCC > 0) {
-            this.notify.warning(NOTIFICATION_TITLE.warning, `Sửa Y/C chỉ áp dụng với [Hàng thương mại] và yêu cầu [Chưa có PO]!`);
-            return;
-        }
+    if (!isCommercialProduct || poNCC > 0) {
+      this.notify.warning(
+        NOTIFICATION_TITLE.warning,
+        `Sửa Y/C chỉ áp dụng với [Hàng thương mại] và yêu cầu [Chưa có PO]!`
+      );
+      return;
+    }
 
         this.selectedRowIds = [row.ID];
         this.selectedTabIndex = tabIndex;
 
-        const sub = this.srv.getDetailByID(row.ID).subscribe({
-            next: (rs) => {
-                const modalRef = this.modalService.open(ProjectPartlistPurchaseRequestDetailComponent, {
-                    centered: false,
-                    backdrop: 'static',
-                    keyboard: false,
-                    windowClass: 'full-screen-modal'
-                });
-                let data = {
-                    ...rs.data,
-                    Unit: row.UnitName || '',
-                    CustomerID: row.CustomerID || 0,
-                    Maker: row.Manufacturer || '',
-                };
-                modalRef.componentInstance.projectPartlistDetail = data;
-                modalRef.result.catch((reason) => {
-                    this.onSearch();
-                });
-            },
-            error: (error) => {
-                this.isLoading = false;
-                this.notify.error(NOTIFICATION_TITLE.error, error.error?.message || 'Lỗi khi lấy dữ liệu chi tiết!');
-                this.selectedRowIds = [];
-                this.selectedTabIndex = -1;
-            }
+    const sub = this.srv.getDetailByID(row.ID).subscribe({
+      next: (rs) => {
+        const modalRef = this.modalService.open(
+          ProjectPartlistPurchaseRequestDetailComponent,
+          {
+            centered: false,
+            backdrop: 'static',
+            keyboard: false,
+            windowClass: 'full-screen-modal',
+          }
+        );
+        let data = {
+          ...rs.data,
+          Unit: row.UnitName || '',
+          CustomerID: row.CustomerID || 0,
+          Maker: row.Manufacturer || '',
+        };
+        modalRef.componentInstance.projectPartlistDetail = data;
+        modalRef.result.catch((reason) => {
+          this.onSearch();
         });
-        this.subscriptions.push(sub);
-    }
+      },
+      error: (error) => {
+        this.isLoading = false;
+        this.notify.error(
+          NOTIFICATION_TITLE.error,
+          error.error?.message || 'Lỗi khi lấy dữ liệu chi tiết!'
+        );
+        this.selectedRowIds = [];
+        this.selectedTabIndex = -1;
+      },
+    });
+    this.subscriptions.push(sub);
+  }
 
     onDeleteRequest(tabIndex: number): void {
         const typeId = this.getTypeIdFromTabIndex(tabIndex);
         if (!typeId) return;
 
-        const selected = this.getSelectedGridData(typeId);
-        if (selected.length === 0) {
-            this.notify.warning(NOTIFICATION_TITLE.warning, `Vui lòng chọn dòng cần hủy yêu cầu!`);
-            return;
-        }
-
-        this.modal.confirm({
-            nzTitle: `Bạn có chắc chắn muốn hủy danh sách đang chọn không?`,
-            nzOkText: 'Ok',
-            nzOkType: 'primary',
-            nzCancelText: 'Hủy',
-            nzOkDanger: false,
-            nzClosable: false,
-            nzOnOk: () => {
-                const isPurchaseRequestDemo = typeId === 2 || typeId === 3; // RTC tabs
-                const sub = this.srv.deletedRequest(selected, isPurchaseRequestDemo).subscribe({
-                    next: (rs) => {
-                        this.notify.success(NOTIFICATION_TITLE.success, rs.message || 'Hủy yêu cầu thành công');
-                        this.onSearch();
-                    },
-                    error: (error) => this.notify.error(NOTIFICATION_TITLE.error, error.error?.message || 'Hủy yêu cầu thất bại')
-                });
-                this.subscriptions.push(sub);
-            }
-        });
+    const selected = this.getSelectedGridData(typeId);
+    if (selected.length === 0) {
+      this.notify.warning(
+        NOTIFICATION_TITLE.warning,
+        `Vui lòng chọn dòng cần hủy yêu cầu!`
+      );
+      return;
     }
+
+    this.modal.confirm({
+      nzTitle: `Bạn có chắc chắn muốn hủy danh sách đang chọn không?`,
+      nzOkText: 'Ok',
+      nzOkType: 'primary',
+      nzCancelText: 'Hủy',
+      nzOkDanger: false,
+      nzClosable: false,
+      nzOnOk: () => {
+        const isPurchaseRequestDemo = typeId === 2 || typeId === 3; // RTC tabs
+        const sub = this.srv
+          .deletedRequest(selected, isPurchaseRequestDemo)
+          .subscribe({
+            next: (rs) => {
+              this.notify.success(
+                NOTIFICATION_TITLE.success,
+                rs.message || 'Hủy yêu cầu thành công'
+              );
+              this.onSearch();
+            },
+            error: (error) =>
+              this.notify.error(
+                NOTIFICATION_TITLE.error,
+                error.error?.message || 'Hủy yêu cầu thất bại'
+              ),
+          });
+        this.subscriptions.push(sub);
+      },
+    });
+  }
 
     onAddSupplierSale(): void {
         const modalRef = this.modalService.open(SupplierSaleDetailComponent, {
@@ -2523,111 +3299,141 @@ export class ProjectPartListPurchaseRequestSlickGridComponent implements OnInit,
         });
     }
 
-    onRequestApproved(tabIndex: number, status: boolean): void {
-        if (this.changedRows.length > 0) {
-            this.notify.warning(NOTIFICATION_TITLE.warning, `Dữ liệu đã thay đổi!\nVui lòng lưu lại dữ liệu hoặc load lại trước khi thao tác!`);
-            return;
-        }
-
-        const typeId = this.getTypeIdFromTabIndex(tabIndex);
-        if (!typeId) return;
-
-        const selected = this.getSelectedGridData(typeId);
-        if (selected.length === 0) {
-            const textStatus = status ? "Y/C duyệt mua" : "hủy Y/C duyệt mua";
-            this.notify.warning(NOTIFICATION_TITLE.warning, `Vui lòng chọn dòng cần ${textStatus}!`);
-            return;
-        }
-
-        this.selectedRowIds = selected.map(r => r.ID);
-        this.selectedTabIndex = tabIndex;
-
-        const textStatus = status ? "Y/C duyệt mua" : "hủy Y/C duyệt mua";
-        this.modal.confirm({
-            nzTitle: `Bạn có chắc chắn muốn ${textStatus} danh sách đang chọn không?
-      \nNhững sản phẩm đã có NV mua không phải bạn sẽ tự động được bỏ qua!`,
-            nzOkText: 'Ok',
-            nzOkType: 'primary',
-            nzCancelText: 'Hủy',
-            nzOkDanger: false,
-            nzClosable: false,
-            nzOnOk: () => {
-                const sub = this.srv.requestApproved(selected, status).subscribe({
-                    next: (rs) => {
-                        this.notify.success(NOTIFICATION_TITLE.success, rs.message || `${textStatus} thành công`);
-                        this.onSearch();
-                    },
-                    error: (error) => {
-                        this.notify.error(NOTIFICATION_TITLE.error, error.error?.message || `${textStatus} thất bại`);
-                        this.selectedRowIds = [];
-                        this.selectedTabIndex = -1;
-                    }
-                });
-                this.subscriptions.push(sub);
-            }
-        });
+  onRequestApproved(tabIndex: number, status: boolean): void {
+    if (this.changedRows.length > 0) {
+      this.notify.warning(
+        NOTIFICATION_TITLE.warning,
+        `Dữ liệu đã thay đổi!\nVui lòng lưu lại dữ liệu hoặc load lại trước khi thao tác!`
+      );
+      return;
     }
 
-    onCompleteRequest(tabIndex: number, statusValue: number): void {
-        if (this.changedRows.length > 0) {
-            this.notify.warning(NOTIFICATION_TITLE.warning, `Dữ liệu đã thay đổi!\nVui lòng lưu lại dữ liệu hoặc load lại trước khi thao tác!`);
-            return;
-        }
-
         const typeId = this.getTypeIdFromTabIndex(tabIndex);
         if (!typeId) return;
 
-        const selected = this.getSelectedGridData(typeId);
-        if (selected.length === 0) {
-            const textStatus = statusValue == 7 ? "hoàn thành" : "hủy hoàn thành";
-            this.notify.warning(NOTIFICATION_TITLE.warning, `Vui lòng chọn dòng cần ${textStatus}!`);
-            return;
-        }
-
-        this.selectedRowIds = selected.map(r => r.ID);
-        this.selectedTabIndex = tabIndex;
-
-        const textStatus = statusValue == 7 ? "hoàn thành" : "hủy hoàn thành";
-        this.modal.confirm({
-            nzTitle: `Bạn có chắc chắn muốn ${textStatus} danh sách đang chọn không?
-      \nNhững sản phẩm đã có NV mua không phải bạn sẽ tự động được bỏ qua!`,
-            nzOkText: 'Ok',
-            nzOkType: 'primary',
-            nzCancelText: 'Hủy',
-            nzOkDanger: false,
-            nzClosable: false,
-            nzOnOk: () => {
-                const sub = this.srv.completeRequest(selected, statusValue).subscribe({
-                    next: (rs) => {
-                        this.notify.success(NOTIFICATION_TITLE.success, rs.message || `${textStatus} thành công`);
-                        this.onSearch();
-                    },
-                    error: (error) => {
-                        this.notify.error(NOTIFICATION_TITLE.error, error.error?.message || `${textStatus} thất bại`);
-                        this.selectedRowIds = [];
-                        this.selectedTabIndex = -1;
-                    }
-                });
-                this.subscriptions.push(sub);
-            }
-        });
+    const selected = this.getSelectedGridData(typeId);
+    if (selected.length === 0) {
+      const textStatus = status ? 'Y/C duyệt mua' : 'hủy Y/C duyệt mua';
+      this.notify.warning(
+        NOTIFICATION_TITLE.warning,
+        `Vui lòng chọn dòng cần ${textStatus}!`
+      );
+      return;
     }
 
-    onApproved(tabIndex: number, status: boolean, type: boolean): void {
-        if (this.changedRows.length > 0) {
-            this.notify.warning(NOTIFICATION_TITLE.warning, `Dữ liệu đã thay đổi!\nVui lòng lưu lại dữ liệu hoặc load lại trước khi thao tác!`);
-            return;
-        }
+    this.selectedRowIds = selected.map((r) => r.ID);
+    this.selectedTabIndex = tabIndex;
+
+    const textStatus = status ? 'Y/C duyệt mua' : 'hủy Y/C duyệt mua';
+    this.modal.confirm({
+      nzTitle: `Bạn có chắc chắn muốn ${textStatus} danh sách đang chọn không?
+      \nNhững sản phẩm đã có NV mua không phải bạn sẽ tự động được bỏ qua!`,
+      nzOkText: 'Ok',
+      nzOkType: 'primary',
+      nzCancelText: 'Hủy',
+      nzOkDanger: false,
+      nzClosable: false,
+      nzOnOk: () => {
+        const sub = this.srv.requestApproved(selected, status).subscribe({
+          next: (rs) => {
+            this.notify.success(
+              NOTIFICATION_TITLE.success,
+              rs.message || `${textStatus} thành công`
+            );
+            this.onSearch();
+          },
+          error: (error) => {
+            this.notify.error(
+              NOTIFICATION_TITLE.error,
+              error.error?.message || `${textStatus} thất bại`
+            );
+            this.selectedRowIds = [];
+            this.selectedTabIndex = -1;
+          },
+        });
+        this.subscriptions.push(sub);
+      },
+    });
+  }
+
+  onCompleteRequest(tabIndex: number, statusValue: number): void {
+    if (this.changedRows.length > 0) {
+      this.notify.warning(
+        NOTIFICATION_TITLE.warning,
+        `Dữ liệu đã thay đổi!\nVui lòng lưu lại dữ liệu hoặc load lại trước khi thao tác!`
+      );
+      return;
+    }
 
         const typeId = this.getTypeIdFromTabIndex(tabIndex);
         if (!typeId) return;
 
-        const selected = this.getSelectedGridData(typeId);
-        if (selected.length === 0) {
-            const textStatus = status ? "duyệt" : "hủy duyệt";
-            this.notify.warning(NOTIFICATION_TITLE.warning, `Vui lòng chọn dòng cần ${textStatus}!`);
-            return;
-        }
+    const selected = this.getSelectedGridData(typeId);
+    if (selected.length === 0) {
+      const textStatus = statusValue == 7 ? 'hoàn thành' : 'hủy hoàn thành';
+      this.notify.warning(
+        NOTIFICATION_TITLE.warning,
+        `Vui lòng chọn dòng cần ${textStatus}!`
+      );
+      return;
+    }
+
+    this.selectedRowIds = selected.map((r) => r.ID);
+    this.selectedTabIndex = tabIndex;
+
+    const textStatus = statusValue == 7 ? 'hoàn thành' : 'hủy hoàn thành';
+    this.modal.confirm({
+      nzTitle: `Bạn có chắc chắn muốn ${textStatus} danh sách đang chọn không?
+      \nNhững sản phẩm đã có NV mua không phải bạn sẽ tự động được bỏ qua!`,
+      nzOkText: 'Ok',
+      nzOkType: 'primary',
+      nzCancelText: 'Hủy',
+      nzOkDanger: false,
+      nzClosable: false,
+      nzOnOk: () => {
+        const sub = this.srv.completeRequest(selected, statusValue).subscribe({
+          next: (rs) => {
+            this.notify.success(
+              NOTIFICATION_TITLE.success,
+              rs.message || `${textStatus} thành công`
+            );
+            this.onSearch();
+          },
+          error: (error) => {
+            this.notify.error(
+              NOTIFICATION_TITLE.error,
+              error.error?.message || `${textStatus} thất bại`
+            );
+            this.selectedRowIds = [];
+            this.selectedTabIndex = -1;
+          },
+        });
+        this.subscriptions.push(sub);
+      },
+    });
+  }
+
+  onApproved(tabIndex: number, status: boolean, type: boolean): void {
+    if (this.changedRows.length > 0) {
+      this.notify.warning(
+        NOTIFICATION_TITLE.warning,
+        `Dữ liệu đã thay đổi!\nVui lòng lưu lại dữ liệu hoặc load lại trước khi thao tác!`
+      );
+      return;
+    }
+
+        const typeId = this.getTypeIdFromTabIndex(tabIndex);
+        if (!typeId) return;
+
+    const selected = this.getSelectedGridData(typeId);
+    if (selected.length === 0) {
+      const textStatus = status ? 'duyệt' : 'hủy duyệt';
+      this.notify.warning(
+        NOTIFICATION_TITLE.warning,
+        `Vui lòng chọn dòng cần ${textStatus}!`
+      );
+      return;
+    }
 
         // Validation cho TBP duyệt: kiểm tra ProductNewCode nếu ProductSaleID <= 0
         if (type && status) {
@@ -2646,64 +3452,81 @@ export class ProjectPartListPurchaseRequestSlickGridComponent implements OnInit,
             }
         }
 
-        this.selectedRowIds = selected.map(r => r.ID);
-        this.selectedTabIndex = tabIndex;
+    this.selectedRowIds = selected.map((r) => r.ID);
+    this.selectedTabIndex = tabIndex;
 
-        const textStatus = status ? "duyệt" : "hủy duyệt";
-        const typeText = type ? "TBP" : "BGD";
-        let message = '';
-        // if (type && !status) message = `Những sản phẩm đã được BGĐ duyệt sẽ không thể ${textStatus}!`;
-        // if (!type && status) message = `Những sản phẩm chưa được TBP duyệt sẽ không thể ${textStatus}!`;
+    const textStatus = status ? 'duyệt' : 'hủy duyệt';
+    const typeText = type ? 'TBP' : 'BGD';
+    let message = '';
+    // if (type && !status) message = `Những sản phẩm đã được BGĐ duyệt sẽ không thể ${textStatus}!`;
+    // if (!type && status) message = `Những sản phẩm chưa được TBP duyệt sẽ không thể ${textStatus}!`;
 
-        this.modal.confirm({
-            nzTitle: `Bạn có chắc muốn ${textStatus} danh sách sản phẩm đã chọn không?${message ? '\n' + message : ''}`,
-            nzOkText: 'Ok',
-            nzOkType: 'primary',
-            nzCancelText: 'Hủy',
-            nzOkDanger: false,
-            nzClosable: false,
-            nzOnOk: () => {
-                const sub = this.srv.approved(selected, status, type).subscribe({
-                    next: (rs) => {
-                        this.notify.success(NOTIFICATION_TITLE.success, rs.message || `${textStatus} thành công`);
-                        this.onSearch();
-                    },
-                    error: (error) => {
-                        this.notify.error(NOTIFICATION_TITLE.error, error.error?.message || `${textStatus} thất bại`);
-                        this.selectedRowIds = [];
-                        this.selectedTabIndex = -1;
-                    }
-                });
-                this.subscriptions.push(sub);
-            }
+    this.modal.confirm({
+      nzTitle: `Bạn có chắc muốn ${textStatus} danh sách sản phẩm đã chọn không?${
+        message ? '\n' + message : ''
+      }`,
+      nzOkText: 'Ok',
+      nzOkType: 'primary',
+      nzCancelText: 'Hủy',
+      nzOkDanger: false,
+      nzClosable: false,
+      nzOnOk: () => {
+        const sub = this.srv.approved(selected, status, type).subscribe({
+          next: (rs) => {
+            this.notify.success(
+              NOTIFICATION_TITLE.success,
+              rs.message || `${textStatus} thành công`
+            );
+            this.onSearch();
+          },
+          error: (error) => {
+            this.notify.error(
+              NOTIFICATION_TITLE.error,
+              error.error?.message || `${textStatus} thất bại`
+            );
+            this.selectedRowIds = [];
+            this.selectedTabIndex = -1;
+          },
         });
-    }
+        this.subscriptions.push(sub);
+      },
+    });
+  }
 
-    onAddPoncc(): void {
-        const tabIndex = this.activeTabIndex;
-        if (this.changedRows.length > 0) {
-            this.notify.warning(NOTIFICATION_TITLE.warning, `Dữ liệu đã thay đổi!\nVui lòng lưu lại dữ liệu hoặc load lại trước khi thao tác!`);
-            return;
-        }
+  onAddPoncc(): void {
+    const tabIndex = this.activeTabIndex;
+    if (this.changedRows.length > 0) {
+      this.notify.warning(
+        NOTIFICATION_TITLE.warning,
+        `Dữ liệu đã thay đổi!\nVui lòng lưu lại dữ liệu hoặc load lại trước khi thao tác!`
+      );
+      return;
+    }
 
         const typeId = this.getTypeIdFromTabIndex(tabIndex);
         if (!typeId) return;
 
-        const angularGrid = this.angularGrids.get(typeId);
-        if (!angularGrid) {
-            this.notify.warning(NOTIFICATION_TITLE.warning, 'Không tìm thấy bảng dữ liệu!');
-            return;
-        }
+    const angularGrid = this.angularGrids.get(typeId);
+    if (!angularGrid) {
+      this.notify.warning(
+        NOTIFICATION_TITLE.warning,
+        'Không tìm thấy bảng dữ liệu!'
+      );
+      return;
+    }
 
-        const selectedRowIndexes = angularGrid.slickGrid.getSelectedRows();
-        if (!selectedRowIndexes || selectedRowIndexes.length <= 0) {
-            this.notify.warning(NOTIFICATION_TITLE.warning, 'Vui lòng chọn sản phẩm muốn Tạo PO NCC!');
-            return;
-        }
+    const selectedRowIndexes = angularGrid.slickGrid.getSelectedRows();
+    if (!selectedRowIndexes || selectedRowIndexes.length <= 0) {
+      this.notify.warning(
+        NOTIFICATION_TITLE.warning,
+        'Vui lòng chọn sản phẩm muốn Tạo PO NCC!'
+      );
+      return;
+    }
 
-        const selectedData = selectedRowIndexes.map((rowIndex: number) =>
-            angularGrid.dataView.getItem(rowIndex)
-        ).filter((item: any) => item);
+    const selectedData = selectedRowIndexes
+      .map((rowIndex: number) => angularGrid.dataView.getItem(rowIndex))
+      .filter((item: any) => item);
 
         // Validate từng sản phẩm theo logic WinForm
         for (const row of selectedData) {
@@ -2719,9 +3542,13 @@ export class ProjectPartListPurchaseRequestSlickGridComponent implements OnInit,
             const unitPrice = Number(row.UnitPrice || 0);
             const ticketType = Number(row.TicketType || 0); // 0: mua, 1: mượn
 
-            // Lấy IsApprovedTBP từ requestModel (từ database) thay vì từ row
-            const requestModel = this.allData.find((item: any) => Number(item.ID) === id);
-            const isTBPApproved = Boolean(requestModel?.IsApprovedTBP || row.IsApprovedTBP);
+      // Lấy IsApprovedTBP từ requestModel (từ database) thay vì từ row
+      const requestModel = this.allData.find(
+        (item: any) => Number(item.ID) === id
+      );
+      const isTBPApproved = Boolean(
+        requestModel?.IsApprovedTBP || row.IsApprovedTBP
+      );
 
             // Validate: productRtcId <= 0 && productSaleId <= 0
             if (productRtcId <= 0 && productSaleId <= 0) {
@@ -2795,17 +3622,23 @@ export class ProjectPartListPurchaseRequestSlickGridComponent implements OnInit,
             }
         });
 
-        // Kiểm tra nếu có nhiều hơn 1 nhà cung cấp
-        if (listSupplierSale.length > 1) {
-            this.notify.warning(NOTIFICATION_TITLE.warning, 'Vui lòng chỉ chọn sản phẩm từ 1 Nhà cung cấp!');
-            return;
-        }
+    // Kiểm tra nếu có nhiều hơn 1 nhà cung cấp
+    if (listSupplierSale.length > 1) {
+      this.notify.warning(
+        NOTIFICATION_TITLE.warning,
+        'Vui lòng chỉ chọn sản phẩm từ 1 Nhà cung cấp!'
+      );
+      return;
+    }
 
-        // Kiểm tra nếu không có nhà cung cấp nào
-        if (listSupplierSale.length === 0) {
-            this.notify.warning(NOTIFICATION_TITLE.warning, 'Vui lòng chọn sản phẩm có Nhà cung cấp!');
-            return;
-        }
+    // Kiểm tra nếu không có nhà cung cấp nào
+    if (listSupplierSale.length === 0) {
+      this.notify.warning(
+        NOTIFICATION_TITLE.warning,
+        'Vui lòng chọn sản phẩm có Nhà cung cấp!'
+      );
+      return;
+    }
 
         // Thu thập danh sách ID hợp lệ để gửi lên API
         const validData: any[] = [];
@@ -2816,10 +3649,13 @@ export class ProjectPartListPurchaseRequestSlickGridComponent implements OnInit,
             }
         });
 
-        if (validData.length === 0) {
-            this.notify.warning(NOTIFICATION_TITLE.warning, 'Không có sản phẩm hợp lệ để tạo PO!');
-            return;
-        }
+    if (validData.length === 0) {
+      this.notify.warning(
+        NOTIFICATION_TITLE.warning,
+        'Không có sản phẩm hợp lệ để tạo PO!'
+      );
+      return;
+    }
 
         if (this.isYCMH) {
             for (const row of selectedData) {
@@ -2833,163 +3669,216 @@ export class ProjectPartListPurchaseRequestSlickGridComponent implements OnInit,
                     const isBGDApproved = Boolean(row.IsApprovedBGD);
                     const isTechBought = Boolean(row.IsTechBought);
 
-                    // Kiểm tra BGD approval hoặc Tech Bought
-                    if (!isBGDApproved && !isTechBought) {
-                        this.notify.warning(NOTIFICATION_TITLE.warning, 'Sản phẩm chưa được BGĐ duyệt!');
-                        return;
-                    }
+          // Kiểm tra BGD approval hoặc Tech Bought
+          if (!isBGDApproved && !isTechBought) {
+            this.notify.warning(
+              NOTIFICATION_TITLE.warning,
+              'Sản phẩm chưa được BGĐ duyệt!'
+            );
+            return;
+          }
 
-                    // Kiểm tra mã nội bộ
-                    if (!code) {
-                        this.notify.warning(NOTIFICATION_TITLE.warning, 'Sản phẩm chưa có mã nội bộ!');
-                        return;
-                    }
-                }
-            }
-        } else {
-            this.isLoading = true;
-            const sub = this.srv.validateAddPoncc(validData).subscribe({
-                next: (rs) => {
-                    this.isLoading = false;
+          // Kiểm tra mã nội bộ
+          if (!code) {
+            this.notify.warning(
+              NOTIFICATION_TITLE.warning,
+              'Sản phẩm chưa có mã nội bộ!'
+            );
+            return;
+          }
+        }
+      }
+    } else {
+      this.isLoading = true;
+      const sub = this.srv.validateAddPoncc(validData).subscribe({
+        next: (rs) => {
+          this.isLoading = false;
 
                     this.modal.confirm({
                         nzTitle: `Bạn có chắc muốn tạo PO NCC danh sách sản phẩm đã chọn không?
           \nNhững sản phẩm chưa được BGĐ duyệt sẽ tự động được bỏ qua!`,
-                        nzOkText: 'Ok',
-                        nzOkType: 'primary',
-                        nzCancelText: 'Hủy',
-                        nzOkDanger: false,
-                        nzClosable: false,
-                        nzOnOk: () => {
-                            const { listRequest, currencys } = this.preparePonccData(validData, tabIndex);
+            nzOkText: 'Ok',
+            nzOkType: 'primary',
+            nzCancelText: 'Hủy',
+            nzOkDanger: false,
+            nzClosable: false,
+            nzOnOk: () => {
+              const { listRequest, currencys } = this.preparePonccData(
+                validData,
+                tabIndex
+              );
 
-                            const uniqueCurrencies = [...new Set(currencys)]; // Lọc distinct
-                            const currencyID = uniqueCurrencies.length > 1 ? 0 : (uniqueCurrencies[0] || 0);
+              const uniqueCurrencies = [...new Set(currencys)]; // Lọc distinct
+              const currencyID =
+                uniqueCurrencies.length > 1 ? 0 : uniqueCurrencies[0] || 0;
 
-                            const supplierSub = this.supplierSaleService.getSupplierSaleByID(listSupplierSale[0]).subscribe({
-                                next: (rs) => {
-                                    this.isLoading = false;
-                                    let data = rs.data;
-
-                                    // Kiểm tra xem có phải tab Mượn demo (index 3) hoặc có sản phẩm mượn không
-                                    const isMuonDemoTab = tabIndex === 3;
-                                    const hasMuonProduct = validData.some((row: any) => Number(row.TicketType || 0) === 1);
-                                    const poType = (isMuonDemoTab || hasMuonProduct) ? 1 : 0; // 0: PO Thương mại, 1: PO Mượn
-
-                                    // Lấy số đơn hàng (BillCode) theo POType
-                                    const billCodeSub = this.ponccService.getBillCode(poType).subscribe({
-                                        next: (billCodeRes: any) => {
-                                            // Thu thập tất cả các Model từ các dòng đã chọn
-                                            const models = validData
-                                                .map((row: any) => String(row.Model || '').trim())
-                                                .filter((model: string) => model !== '')
-                                                .filter((value: string, index: number, self: string[]) => self.indexOf(value) === index); // Lọc unique
-
-                                            const note = models.length > 0 ? models.join('; ') : '';
-
-                                            let poncc = {
-                                                SupplierSaleID: listSupplierSale[0],
-                                                AccountNumberSupplier: data.SoTK,
-                                                BankSupplier: data.NganHang,
-                                                AddressSupplier: data.AddressNCC,
-                                                MaSoThueNCC: data.MaSoThue,
-                                                EmployeeID: this.appUserService.employeeID,
-                                                CurrencyID: currencyID,
-                                                POType: poType, // 0: PO Thương mại, 1: PO Mượn
-                                                BillCode: billCodeRes.data || '', // Số đơn hàng theo POType
-                                                Note: note, // Gán Model từ projectpartlist vào Note
-                                            };
-
-                                            const modalRef = this.modalService.open(PonccDetailComponent, {
-                                                backdrop: 'static',
-                                                keyboard: false,
-                                                centered: true,
-                                                windowClass: 'full-screen-modal',
-                                            });
-
-                                            // Pass data to modal component
-                                            modalRef.componentInstance.poncc = poncc;
-                                            modalRef.componentInstance.ponccDetail = listRequest || [];
-                                            modalRef.componentInstance.isAddPoYCMH = true;
-                                            // Báo cho PonccDetailComponent biết BillCode đã được gen từ YCMH, không cần gen lại
-                                            modalRef.componentInstance.skipBillCodeGeneration = true;
-
-                                            // Reload table after modal closes
-                                            modalRef.result.finally(() => {
-                                                this.onSearch();
-                                            });
-                                        },
-                                        error: (error) => {
-                                            this.isLoading = false;
-                                            this.notify.error(NOTIFICATION_TITLE.error, error.error?.message || 'Lỗi khi lấy số đơn hàng!');
-                                        }
-                                    });
-                                    this.subscriptions.push(billCodeSub);
-                                },
-                                error: (error) => {
-                                    this.isLoading = false;
-                                    this.notify.error(NOTIFICATION_TITLE.error, error.error?.message || 'Lỗi khi validate dữ liệu!');
-                                }
-                            });
-                            this.subscriptions.push(supplierSub);
-                        },
-                    });
-                },
-                error: (error) => {
+              const supplierSub = this.supplierSaleService
+                .getSupplierSaleByID(listSupplierSale[0])
+                .subscribe({
+                  next: (rs) => {
                     this.isLoading = false;
-                    this.notify.error(NOTIFICATION_TITLE.error, error.error?.message || 'Lỗi khi validate dữ liệu!');
-                }
-            });
-            this.subscriptions.push(sub);
-        }
+                    let data = rs.data;
+
+                    // Kiểm tra xem có phải tab Mượn demo (index 3) hoặc có sản phẩm mượn không
+                    const isMuonDemoTab = tabIndex === 3;
+                    const hasMuonProduct = validData.some(
+                      (row: any) => Number(row.TicketType || 0) === 1
+                    );
+                    const poType = isMuonDemoTab || hasMuonProduct ? 1 : 0; // 0: PO Thương mại, 1: PO Mượn
+
+                    // Lấy số đơn hàng (BillCode) theo POType
+                    const billCodeSub = this.ponccService
+                      .getBillCode(poType)
+                      .subscribe({
+                        next: (billCodeRes: any) => {
+                          // Thu thập tất cả các Model từ các dòng đã chọn
+                          const models = validData
+                            .map((row: any) => String(row.Model || '').trim())
+                            .filter((model: string) => model !== '')
+                            .filter(
+                              (value: string, index: number, self: string[]) =>
+                                self.indexOf(value) === index
+                            ); // Lọc unique
+
+                          const note =
+                            models.length > 0 ? models.join('; ') : '';
+
+                          let poncc = {
+                            SupplierSaleID: listSupplierSale[0],
+                            AccountNumberSupplier: data.SoTK,
+                            BankSupplier: data.NganHang,
+                            AddressSupplier: data.AddressNCC,
+                            MaSoThueNCC: data.MaSoThue,
+                            EmployeeID: this.appUserService.employeeID,
+                            CurrencyID: currencyID,
+                            POType: poType, // 0: PO Thương mại, 1: PO Mượn
+                            BillCode: billCodeRes.data || '', // Số đơn hàng theo POType
+                            Note: note, // Gán Model từ projectpartlist vào Note
+                          };
+
+                          const modalRef = this.modalService.open(
+                            PonccDetailComponent,
+                            {
+                              backdrop: 'static',
+                              keyboard: false,
+                              centered: true,
+                              windowClass: 'full-screen-modal',
+                            }
+                          );
+
+                          // Pass data to modal component
+                          modalRef.componentInstance.poncc = poncc;
+                          modalRef.componentInstance.ponccDetail =
+                            listRequest || [];
+                          modalRef.componentInstance.isAddPoYCMH = true;
+                          // Báo cho PonccDetailComponent biết BillCode đã được gen từ YCMH, không cần gen lại
+                          modalRef.componentInstance.skipBillCodeGeneration =
+                            true;
+
+                          // Reload table after modal closes
+                          modalRef.result.finally(() => {
+                            this.onSearch();
+                          });
+                        },
+                        error: (error) => {
+                          this.isLoading = false;
+                          this.notify.error(
+                            NOTIFICATION_TITLE.error,
+                            error.error?.message || 'Lỗi khi lấy số đơn hàng!'
+                          );
+                        },
+                      });
+                    this.subscriptions.push(billCodeSub);
+                  },
+                  error: (error) => {
+                    this.isLoading = false;
+                    this.notify.error(
+                      NOTIFICATION_TITLE.error,
+                      error.error?.message || 'Lỗi khi validate dữ liệu!'
+                    );
+                  },
+                });
+              this.subscriptions.push(supplierSub);
+            },
+          });
+        },
+        error: (error) => {
+          this.isLoading = false;
+          this.notify.error(
+            NOTIFICATION_TITLE.error,
+            error.error?.message || 'Lỗi khi validate dữ liệu!'
+          );
+        },
+      });
+      this.subscriptions.push(sub);
     }
+  }
 
-    private preparePonccData(selectedData: any[], tabIndex: number): { listRequest: any[], currencys: number[] } {
-        const listRequest: any[] = [];
-        const currencys: number[] = [];
-        let stt = 0;
-        selectedData.forEach((row: any) => {
-            const id = Number(row.ID || 0);
-            if (id <= 0) return;
-            stt++;
-            // Lấy các giá trị từ row
-            const requestTypeID = Number(row.ProjectPartlistPurchaseRequestTypeID || 0);
-            const isApprovedBGD = Boolean(row.IsApprovedBGD);
-            const isCommercialProduct = Boolean(row.IsCommercialProduct);
-            const isTechBought = Boolean(row.IsTechBought);
-            const isTBPAprroved = Boolean(row.IsApprovedTBP);
-            const isBorrowProduct = Number(row.TicketType || 0); // 0: mua, 1: mượn
-            const productRtcId = Number(row.ProductRTCID || 0);
-            const jobRequirementID = Number(row.JobRequirementID || 0);
+  private preparePonccData(
+    selectedData: any[],
+    tabIndex: number
+  ): { listRequest: any[]; currencys: number[] } {
+    const listRequest: any[] = [];
+    const currencys: number[] = [];
+    let stt = 0;
+    selectedData.forEach((row: any) => {
+      const id = Number(row.ID || 0);
+      if (id <= 0) return;
+      stt++;
+      // Lấy các giá trị từ row
+      const requestTypeID = Number(
+        row.ProjectPartlistPurchaseRequestTypeID || 0
+      );
+      const isApprovedBGD = Boolean(row.IsApprovedBGD);
+      const isCommercialProduct = Boolean(row.IsCommercialProduct);
+      const isTechBought = Boolean(row.IsTechBought);
+      const isTBPAprroved = Boolean(row.IsApprovedTBP);
+      const isBorrowProduct = Number(row.TicketType || 0); // 0: mua, 1: mượn
+      const productRtcId = Number(row.ProductRTCID || 0);
+      const jobRequirementID = Number(row.JobRequirementID || 0);
 
-            const IsIgnoreBGD = this.requestTypes.find((x: any) => x.ID === requestTypeID)?.IsIgnoreBGD || false;
+      const IsIgnoreBGD =
+        this.requestTypes.find((x: any) => x.ID === requestTypeID)
+          ?.IsIgnoreBGD || false;
 
-            // Validation logic theo WinForm
-            if (jobRequirementID <= 0) {
-                if (isBorrowProduct === 0) { // Mua
-                    if (!isApprovedBGD && !isCommercialProduct && !isTechBought && productRtcId <= 0 && !IsIgnoreBGD) {
-                        return; // Skip row này
-                    }
-                } else { // Mượn
-                    if (!isTBPAprroved) {
-                        return; // Skip row này
-                    }
-                }
-            }
+      // Validation logic theo WinForm
+      if (jobRequirementID <= 0) {
+        if (isBorrowProduct === 0) {
+          // Mua
+          if (
+            !isApprovedBGD &&
+            !isCommercialProduct &&
+            !isTechBought &&
+            productRtcId <= 0 &&
+            !IsIgnoreBGD
+          ) {
+            return; // Skip row này
+          }
+        } else {
+          // Mượn
+          if (!isTBPAprroved) {
+            return; // Skip row này
+          }
+        }
+      }
 
-            // Lấy các giá trị cần thiết
-            const productId = Number(row.ProductSaleID || 0);
-            const productRTCID = Number(row.ProductRTCID || 0);
-            const quantity = Number(row.Quantity || 0);
-            const unitPrice = Number(row.UnitPrice || 0);
-            let projectId = Number(row.ProjectID || 0);
-            let projectName = String(row.ProjectName || '');
-            const deadline = row.DateReturnExpected ? new Date(row.DateReturnExpected) : null;
-            const productCode = String(row.ProductCode || '');
-            const vat = Number(row.VAT || 0);
-            const totaMoneyVAT = Number(row.TotaMoneyVAT || 0);
-            const ticketType = Number(row.TicketType || 0);
-            const dateReturnEstimated = row.DateReturnEstimated ? new Date(row.DateReturnEstimated) : null;
+      // Lấy các giá trị cần thiết
+      const productId = Number(row.ProductSaleID || 0);
+      const productRTCID = Number(row.ProductRTCID || 0);
+      const quantity = Number(row.Quantity || 0);
+      const unitPrice = Number(row.UnitPrice || 0);
+      let projectId = Number(row.ProjectID || 0);
+      let projectName = String(row.ProjectName || '');
+      const deadline = row.DateReturnExpected
+        ? new Date(row.DateReturnExpected)
+        : null;
+      const productCode = String(row.ProductCode || '');
+      const vat = Number(row.VAT || 0);
+      const totaMoneyVAT = Number(row.TotaMoneyVAT || 0);
+      const ticketType = Number(row.TicketType || 0);
+      const dateReturnEstimated = row.DateReturnEstimated
+        ? new Date(row.DateReturnEstimated)
+        : null;
 
             // Xử lý projectName cho hàng thương mại không có projectId
             if (isCommercialProduct && projectId <= 0) {
@@ -2998,31 +3887,35 @@ export class ProjectPartListPurchaseRequestSlickGridComponent implements OnInit,
                 projectName = `${customerCode}_${poNumber}`;
             }
 
-            // Lấy tên loại kho từ ProductGroupID hoặc ProductGroupRTCID (tùy theo tab)
-            const isRTCTab = tabIndex === 2 || tabIndex === 3;
-            // Ở tab RTC, lấy từ ProductGroupRTCID, ngược lại lấy từ ProductGroupID
-            const ProductGroupID = isRTCTab
-                ? Number(row.ProductGroupRTCID || 0)
-                : Number(row.ProductGroupID || 0);
-            const productGroupData = isRTCTab ? this.dtproductGroupsRTC : this.dtproductGroups;
-            const productGroup = productGroupData.find((x: any) => x.ID === ProductGroupID);
-            const ProductGroupName = productGroup?.ProductGroupName || '';
+      // Lấy tên loại kho từ ProductGroupID hoặc ProductGroupRTCID (tùy theo tab)
+      const isRTCTab = tabIndex === 2 || tabIndex === 3;
+      // Ở tab RTC, lấy từ ProductGroupRTCID, ngược lại lấy từ ProductGroupID
+      const ProductGroupID = isRTCTab
+        ? Number(row.ProductGroupRTCID || 0)
+        : Number(row.ProductGroupID || 0);
+      const productGroupData = isRTCTab
+        ? this.dtproductGroupsRTC
+        : this.dtproductGroups;
+      const productGroup = productGroupData.find(
+        (x: any) => x.ID === ProductGroupID
+      );
+      const ProductGroupName = productGroup?.ProductGroupName || '';
 
-            // Tạo request object
-            const request = {
-                ...row,
-                STT: stt,
-                ID: 0,
-                ProductCodeOfSupplier: String(row.GuestCode || ''),
-                ProductGroupName: ProductGroupName,
-                PriceHistory: Number(row.HistoryPrice || 0),
-                VATMoney: totaMoneyVAT,
-                VAT: vat,
-                ThanhTien: Number(row.TotalPrice || 0),
-                QtyRequest: Number(row.Quantity || 0),
-                IsBill: totaMoneyVAT > 0 ? true : false,
-                IsPurchase: false
-            };
+      // Tạo request object
+      const request = {
+        ...row,
+        STT: stt,
+        ID: 0,
+        ProductCodeOfSupplier: String(row.GuestCode || ''),
+        ProductGroupName: ProductGroupName,
+        PriceHistory: Number(row.HistoryPrice || 0),
+        VATMoney: totaMoneyVAT,
+        VAT: vat,
+        ThanhTien: Number(row.TotalPrice || 0),
+        QtyRequest: Number(row.Quantity || 0),
+        IsBill: totaMoneyVAT > 0 ? true : false,
+        IsPurchase: false,
+      };
 
             listRequest.push(request);
 
@@ -3046,129 +3939,156 @@ export class ProjectPartListPurchaseRequestSlickGridComponent implements OnInit,
             return;
         }
 
-        this.selectedRowIds = selected.map(r => r.ID);
-        this.selectedTabIndex = tabIndex;
+    this.selectedRowIds = selected.map((r) => r.ID);
+    this.selectedTabIndex = tabIndex;
 
-        this.isLoading = true;
-        const sub = this.srv.downloadFiles(selected).subscribe({
-            next: (blob: Blob) => {
-                const url = window.URL.createObjectURL(blob);
-                const a = document.createElement('a');
-                a.href = url;
-                a.download = "DownloadFiles.zip";
-                a.click();
-                window.URL.revokeObjectURL(url);
-                this.notify.success('Thành công', 'Tải file thành công');
-                this.isLoading = false;
-            },
-            error: (error) => {
-                if (error.error instanceof Blob) {
-                    this.selectedRowIds = [];
-                    this.selectedTabIndex = -1;
-                    error.error.text().then((text: string) => {
-                        try {
-                            const errorObj = JSON.parse(text);
-                            const errorMessage = errorObj.message || errorObj.Message || 'Lỗi khi tải file!';
-                            this.notify.error(NOTIFICATION_TITLE.error, errorMessage);
-                        } catch (e) {
-                            this.notify.error(NOTIFICATION_TITLE.error, 'Lỗi khi tải file!');
-                        }
-                    });
-                } else {
-                    const errorMessage = error.error?.message || error.message || 'Lỗi khi tải file!';
-                    this.notify.error(NOTIFICATION_TITLE.error, errorMessage);
-                }
-                console.error('Download error:', error);
-                this.isLoading = false;
+    this.isLoading = true;
+    const sub = this.srv.downloadFiles(selected).subscribe({
+      next: (blob: Blob) => {
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = 'DownloadFiles.zip';
+        a.click();
+        window.URL.revokeObjectURL(url);
+        this.notify.success('Thành công', 'Tải file thành công');
+        this.isLoading = false;
+      },
+      error: (error) => {
+        if (error.error instanceof Blob) {
+          this.selectedRowIds = [];
+          this.selectedTabIndex = -1;
+          error.error.text().then((text: string) => {
+            try {
+              const errorObj = JSON.parse(text);
+              const errorMessage =
+                errorObj.message || errorObj.Message || 'Lỗi khi tải file!';
+              this.notify.error(NOTIFICATION_TITLE.error, errorMessage);
+            } catch (e) {
+              this.notify.error(NOTIFICATION_TITLE.error, 'Lỗi khi tải file!');
             }
-        });
-        this.subscriptions.push(sub);
-    }
-
-    onHistoryPrice(tabIndex: number): void {
-        if (this.changedRows.length > 0) {
-            this.notify.warning(NOTIFICATION_TITLE.warning, `Dữ liệu đã thay đổi!\nVui lòng lưu lại dữ liệu hoặc load lại trước khi thao tác!`);
-            return;
+          });
+        } else {
+          const errorMessage =
+            error.error?.message || error.message || 'Lỗi khi tải file!';
+          this.notify.error(NOTIFICATION_TITLE.error, errorMessage);
         }
+        console.error('Download error:', error);
+        this.isLoading = false;
+      },
+    });
+    this.subscriptions.push(sub);
+  }
+
+  onHistoryPrice(tabIndex: number): void {
+    if (this.changedRows.length > 0) {
+      this.notify.warning(
+        NOTIFICATION_TITLE.warning,
+        `Dữ liệu đã thay đổi!\nVui lòng lưu lại dữ liệu hoặc load lại trước khi thao tác!`
+      );
+      return;
+    }
 
         const typeId = this.getTypeIdFromTabIndex(tabIndex);
         if (!typeId) return;
 
-        const selected = this.getSelectedGridData(typeId);
-        if (selected.length !== 1) {
-            this.notify.warning(NOTIFICATION_TITLE.warning, `Vui lòng chọn 1 sản phẩm cần xem lịch sử hỏi giá!`);
-            return;
-        }
+    const selected = this.getSelectedGridData(typeId);
+    if (selected.length !== 1) {
+      this.notify.warning(
+        NOTIFICATION_TITLE.warning,
+        `Vui lòng chọn 1 sản phẩm cần xem lịch sử hỏi giá!`
+      );
+      return;
+    }
 
         const productCode = selected[0].ProductCode;
 
-        const modalRef = this.modalService.open(HistoryPriceComponent, {
-            centered: false,
-            backdrop: 'static',
-            keyboard: false,
-            size: 'xl'
-        });
-        modalRef.componentInstance.searchKeyword = productCode;
-        modalRef.result.catch((reason) => {
-        });
-    }
+    const modalRef = this.modalService.open(HistoryPriceComponent, {
+      centered: false,
+      backdrop: 'static',
+      keyboard: false,
+      size: 'xl',
+    });
+    modalRef.componentInstance.searchKeyword = productCode;
+    modalRef.result.catch((reason) => {});
+  }
 
-    duplicateRow(tabIndex: number): void {
-        if (this.changedRows.length > 0) {
-            this.notify.warning(NOTIFICATION_TITLE.warning, `Dữ liệu đã thay đổi!\nVui lòng lưu lại dữ liệu hoặc load lại trước khi thao tác!`);
-            return;
-        }
+  duplicateRow(tabIndex: number): void {
+    if (this.changedRows.length > 0) {
+      this.notify.warning(
+        NOTIFICATION_TITLE.warning,
+        `Dữ liệu đã thay đổi!\nVui lòng lưu lại dữ liệu hoặc load lại trước khi thao tác!`
+      );
+      return;
+    }
 
         const typeId = this.getTypeIdFromTabIndex(tabIndex);
         if (!typeId) return;
 
-        const selected = this.getSelectedGridData(typeId);
-        if (selected.length !== 1) {
-            this.notify.warning(NOTIFICATION_TITLE.warning, `Vui lòng chọn sản phẩm cần sao chép!`);
-            return;
-        }
+    const selected = this.getSelectedGridData(typeId);
+    if (selected.length !== 1) {
+      this.notify.warning(
+        NOTIFICATION_TITLE.warning,
+        `Vui lòng chọn sản phẩm cần sao chép!`
+      );
+      return;
+    }
 
         const originalRow = selected[0];
         const originalId = Number(originalRow.ID || 0);
         const originalDuplicateId = Number(originalRow.DuplicateID || 0);
 
-        this.modal.confirm({
-            nzTitle: `Bạn có chắc chắn muốn sao chép các dòng đã chọn không?`,
-            nzOkText: 'Ok',
-            nzOkType: 'primary',
-            nzCancelText: 'Hủy',
-            nzOkDanger: false,
-            nzClosable: false,
-            nzOnOk: () => {
-                this.isLoading = true;
-                const sub = this.srv.duplicate(selected).subscribe({
-                    next: (rs) => {
-                        this.notify.success(NOTIFICATION_TITLE.success, rs.message || 'Sao chép thành công');
+    this.modal.confirm({
+      nzTitle: `Bạn có chắc chắn muốn sao chép các dòng đã chọn không?`,
+      nzOkText: 'Ok',
+      nzOkType: 'primary',
+      nzCancelText: 'Hủy',
+      nzOkDanger: false,
+      nzClosable: false,
+      nzOnOk: () => {
+        this.isLoading = true;
+        const sub = this.srv.duplicate(selected).subscribe({
+          next: (rs) => {
+            this.notify.success(
+              NOTIFICATION_TITLE.success,
+              rs.message || 'Sao chép thành công'
+            );
 
                         // Reload data và sau đó tìm và select cả 2 dòng (gốc và mới)
                         this.onSearch();
 
-                        // Đợi data load xong rồi tìm và select cả 2 dòng
-                        setTimeout(() => {
-                            this.selectAndEditDuplicateRows(tabIndex, originalId, originalDuplicateId);
-                        }, 500);
+            // Đợi data load xong rồi tìm và select cả 2 dòng
+            setTimeout(() => {
+              this.selectAndEditDuplicateRows(
+                tabIndex,
+                originalId,
+                originalDuplicateId
+              );
+            }, 500);
 
-                        this.isLoading = false;
-                    },
-                    error: (error) => {
-                        this.notify.error(NOTIFICATION_TITLE.error, error.error?.message || 'Sao chép thất bại');
-                        this.isLoading = false;
-                    }
-                });
-                this.subscriptions.push(sub);
-            },
+            this.isLoading = false;
+          },
+          error: (error) => {
+            this.notify.error(
+              NOTIFICATION_TITLE.error,
+              error.error?.message || 'Sao chép thất bại'
+            );
+            this.isLoading = false;
+          },
         });
-    }
+        this.subscriptions.push(sub);
+      },
+    });
+  }
 
-    // Method để tìm và select cả 2 dòng (gốc và mới) sau khi duplicate
-    private selectAndEditDuplicateRows(tabIndex: number, originalId: number, originalDuplicateId: number): void {
-        const typeId = this.getTypeIdFromTabIndex(tabIndex);
-        if (!typeId) return;
+  // Method để tìm và select cả 2 dòng (gốc và mới) sau khi duplicate
+  private selectAndEditDuplicateRows(
+    tabIndex: number,
+    originalId: number,
+    originalDuplicateId: number
+  ): void {
+    const typeId = this.getTypeIdFromTabIndex(tabIndex);
+    if (!typeId) return;
 
         const angularGrid = this.angularGrids.get(typeId);
         if (!angularGrid || !angularGrid.dataView) return;
@@ -3182,8 +4102,10 @@ export class ProjectPartListPurchaseRequestSlickGridComponent implements OnInit,
             }
         }
 
-        // Tìm dòng gốc và dòng mới
-        const originalRow = allItems.find((item: any) => Number(item.ID) === originalId);
+    // Tìm dòng gốc và dòng mới
+    const originalRow = allItems.find(
+      (item: any) => Number(item.ID) === originalId
+    );
 
         // Tìm dòng mới: có DuplicateID = originalId hoặc ID = originalDuplicateId (nếu có)
         // Hoặc tìm dòng có cùng ProductCode, ProjectID và các field khác giống nhưng ID khác originalId
@@ -3210,14 +4132,16 @@ export class ProjectPartListPurchaseRequestSlickGridComponent implements OnInit,
                 const itemId = Number(item.ID || 0);
                 if (itemId === originalId) return false; // Bỏ qua dòng gốc
 
-                // So sánh các field quan trọng để tìm dòng duplicate
-                return item.ProductCode === originalRow.ProductCode &&
-                    item.ProjectID === originalRow.ProjectID &&
-                    item.SupplierSaleID === originalRow.SupplierSaleID &&
-                    item.CurrencyID === originalRow.CurrencyID &&
-                    item.DateRequest === originalRow.DateRequest;
-            });
-        }
+        // So sánh các field quan trọng để tìm dòng duplicate
+        return (
+          item.ProductCode === originalRow.ProductCode &&
+          item.ProjectID === originalRow.ProjectID &&
+          item.SupplierSaleID === originalRow.SupplierSaleID &&
+          item.CurrencyID === originalRow.CurrencyID &&
+          item.DateRequest === originalRow.DateRequest
+        );
+      });
+    }
 
         if (!originalRow) {
             console.warn('Không tìm thấy dòng gốc sau khi duplicate');
@@ -3231,9 +4155,13 @@ export class ProjectPartListPurchaseRequestSlickGridComponent implements OnInit,
             return;
         }
 
-        // Select cả 2 dòng
-        const originalRowIndex = allItems.findIndex((item: any) => Number(item.ID) === Number(originalRow.ID));
-        const newRowIndex = allItems.findIndex((item: any) => Number(item.ID) === Number(newRow.ID));
+    // Select cả 2 dòng
+    const originalRowIndex = allItems.findIndex(
+      (item: any) => Number(item.ID) === Number(originalRow.ID)
+    );
+    const newRowIndex = allItems.findIndex(
+      (item: any) => Number(item.ID) === Number(newRow.ID)
+    );
 
         if (originalRowIndex >= 0 && newRowIndex >= 0) {
             // Select cả 2 dòng
@@ -3243,18 +4171,25 @@ export class ProjectPartListPurchaseRequestSlickGridComponent implements OnInit,
             angularGrid.slickGrid.invalidate();
             angularGrid.slickGrid.render();
 
-            // Đợi một chút để grid render xong
-            setTimeout(() => {
-                // Focus vào cột Quantity của dòng đầu tiên (dòng gốc)
-                const quantityColumn = angularGrid.slickGrid.getColumns().find((col: any) => col.field === 'Quantity');
-                if (quantityColumn) {
-                    const quantityColIndex = angularGrid.slickGrid.getColumnIndex(quantityColumn.id);
-                    if (quantityColIndex >= 0) {
-                        // Scroll đến dòng đầu tiên được select
-                        angularGrid.slickGrid.scrollRowIntoView(originalRowIndex, false);
+      // Đợi một chút để grid render xong
+      setTimeout(() => {
+        // Focus vào cột Quantity của dòng đầu tiên (dòng gốc)
+        const quantityColumn = angularGrid.slickGrid
+          .getColumns()
+          .find((col: any) => col.field === 'Quantity');
+        if (quantityColumn) {
+          const quantityColIndex = angularGrid.slickGrid.getColumnIndex(
+            quantityColumn.id
+          );
+          if (quantityColIndex >= 0) {
+            // Scroll đến dòng đầu tiên được select
+            angularGrid.slickGrid.scrollRowIntoView(originalRowIndex, false);
 
-                        // Focus vào cell Quantity của dòng gốc và bắt đầu edit
-                        angularGrid.slickGrid.setActiveCell(originalRowIndex, quantityColIndex);
+            // Focus vào cell Quantity của dòng gốc và bắt đầu edit
+            angularGrid.slickGrid.setActiveCell(
+              originalRowIndex,
+              quantityColIndex
+            );
 
                         // Đợi một chút rồi mới edit để đảm bảo cell đã được focus
                         setTimeout(() => {
@@ -3269,32 +4204,41 @@ export class ProjectPartListPurchaseRequestSlickGridComponent implements OnInit,
         }
     }
 
-    // Helper method để select một dòng và focus vào cột Quantity
-    private selectRowAndFocusQuantity(angularGrid: AngularGridInstance, row: any): void {
-        const allItems: any[] = [];
-        for (let i = 0; i < angularGrid.dataView.getLength(); i++) {
-            const item = angularGrid.dataView.getItem(i);
-            if (item) {
-                allItems.push(item);
-            }
-        }
+  // Helper method để select một dòng và focus vào cột Quantity
+  private selectRowAndFocusQuantity(
+    angularGrid: AngularGridInstance,
+    row: any
+  ): void {
+    const allItems: any[] = [];
+    for (let i = 0; i < angularGrid.dataView.getLength(); i++) {
+      const item = angularGrid.dataView.getItem(i);
+      if (item) {
+        allItems.push(item);
+      }
+    }
 
-        const rowIndex = allItems.findIndex((item: any) => Number(item.ID) === Number(row.ID));
-        if (rowIndex >= 0) {
-            angularGrid.slickGrid.setSelectedRows([rowIndex]);
+    const rowIndex = allItems.findIndex(
+      (item: any) => Number(item.ID) === Number(row.ID)
+    );
+    if (rowIndex >= 0) {
+      angularGrid.slickGrid.setSelectedRows([rowIndex]);
 
             // Refresh grid để đảm bảo selection được hiển thị
             angularGrid.slickGrid.invalidate();
             angularGrid.slickGrid.render();
 
-            // Đợi một chút để grid render xong
-            setTimeout(() => {
-                const quantityColumn = angularGrid.slickGrid.getColumns().find((col: any) => col.field === 'Quantity');
-                if (quantityColumn) {
-                    const quantityColIndex = angularGrid.slickGrid.getColumnIndex(quantityColumn.id);
-                    if (quantityColIndex >= 0) {
-                        // Scroll đến dòng
-                        angularGrid.slickGrid.scrollRowIntoView(rowIndex, false);
+      // Đợi một chút để grid render xong
+      setTimeout(() => {
+        const quantityColumn = angularGrid.slickGrid
+          .getColumns()
+          .find((col: any) => col.field === 'Quantity');
+        if (quantityColumn) {
+          const quantityColIndex = angularGrid.slickGrid.getColumnIndex(
+            quantityColumn.id
+          );
+          if (quantityColIndex >= 0) {
+            // Scroll đến dòng
+            angularGrid.slickGrid.scrollRowIntoView(rowIndex, false);
 
                         // Focus vào cell Quantity và bắt đầu edit
                         angularGrid.slickGrid.setActiveCell(rowIndex, quantityColIndex);
@@ -3309,103 +4253,137 @@ export class ProjectPartListPurchaseRequestSlickGridComponent implements OnInit,
         }
     }
 
-    onKeepProduct(tabIndex: number): void {
-        if (this.changedRows.length > 0) {
-            this.notify.warning(NOTIFICATION_TITLE.warning, `Dữ liệu đã thay đổi!\nVui lòng lưu lại dữ liệu hoặc load lại trước khi thao tác!`);
-            return;
-        }
-
-        const typeId = this.getTypeIdFromTabIndex(tabIndex);
-        if (!typeId) return;
-
-        const selected = this.getSelectedGridData(typeId);
-        if (selected.length !== 1) {
-            this.notify.warning(NOTIFICATION_TITLE.warning, `Vui lòng chọn sản phẩm cần giữ hàng!`);
-            return;
-        }
-
-        this.modal.confirm({
-            nzTitle: `Bạn có chắc chắn muốn giữ hàng sản phẩm đã chọn không?`,
-            nzOkText: 'Ok',
-            nzOkType: 'primary',
-            nzCancelText: 'Hủy',
-            nzOkDanger: false,
-            nzClosable: false,
-            nzOnOk: () => {
-                const sub = this.srv.keepProduct(selected).subscribe({
-                    next: (rs) => {
-                        this.notify.success(NOTIFICATION_TITLE.success, rs.message || 'Giữ hàng thành công');
-                        this.onSearch();
-                    },
-                    error: (error) => this.notify.error(NOTIFICATION_TITLE.error, error.error?.message || 'Giữ hàng thất bại')
-                });
-                this.subscriptions.push(sub);
-            },
-        });
+  onKeepProduct(tabIndex: number): void {
+    if (this.changedRows.length > 0) {
+      this.notify.warning(
+        NOTIFICATION_TITLE.warning,
+        `Dữ liệu đã thay đổi!\nVui lòng lưu lại dữ liệu hoặc load lại trước khi thao tác!`
+      );
+      return;
     }
 
-    updateProductImport(tabIndex: number, isImport: boolean): void {
-        const isImportText = isImport ? "hàng nhập khẩu" : "hủy hàng nhập khẩu";
+        const typeId = this.getTypeIdFromTabIndex(tabIndex);
+        if (!typeId) return;
 
-        if (this.changedRows.length > 0) {
-            this.notify.warning(NOTIFICATION_TITLE.warning, `Dữ liệu đã thay đổi!\nVui lòng lưu lại dữ liệu hoặc load lại trước khi thao tác!`);
-            return;
-        }
+    const selected = this.getSelectedGridData(typeId);
+    if (selected.length !== 1) {
+      this.notify.warning(
+        NOTIFICATION_TITLE.warning,
+        `Vui lòng chọn sản phẩm cần giữ hàng!`
+      );
+      return;
+    }
+
+    this.modal.confirm({
+      nzTitle: `Bạn có chắc chắn muốn giữ hàng sản phẩm đã chọn không?`,
+      nzOkText: 'Ok',
+      nzOkType: 'primary',
+      nzCancelText: 'Hủy',
+      nzOkDanger: false,
+      nzClosable: false,
+      nzOnOk: () => {
+        const sub = this.srv.keepProduct(selected).subscribe({
+          next: (rs) => {
+            this.notify.success(
+              NOTIFICATION_TITLE.success,
+              rs.message || 'Giữ hàng thành công'
+            );
+            this.onSearch();
+          },
+          error: (error) =>
+            this.notify.error(
+              NOTIFICATION_TITLE.error,
+              error.error?.message || 'Giữ hàng thất bại'
+            ),
+        });
+        this.subscriptions.push(sub);
+      },
+    });
+  }
+
+  updateProductImport(tabIndex: number, isImport: boolean): void {
+    const isImportText = isImport ? 'hàng nhập khẩu' : 'hủy hàng nhập khẩu';
+
+    if (this.changedRows.length > 0) {
+      this.notify.warning(
+        NOTIFICATION_TITLE.warning,
+        `Dữ liệu đã thay đổi!\nVui lòng lưu lại dữ liệu hoặc load lại trước khi thao tác!`
+      );
+      return;
+    }
 
         const typeId = this.getTypeIdFromTabIndex(tabIndex);
         if (!typeId) return;
 
-        const selected = this.getSelectedGridData(typeId);
-        if (selected.length === 0) {
-            this.notify.warning(NOTIFICATION_TITLE.warning, `Vui lòng chọn dòng cần chuyển thành ${isImportText}!`);
-            return;
-        }
+    const selected = this.getSelectedGridData(typeId);
+    if (selected.length === 0) {
+      this.notify.warning(
+        NOTIFICATION_TITLE.warning,
+        `Vui lòng chọn dòng cần chuyển thành ${isImportText}!`
+      );
+      return;
+    }
 
-        const rowsToUpdate = selected.filter((row: any) => row.IsImport !== isImport);
+    const rowsToUpdate = selected.filter(
+      (row: any) => row.IsImport !== isImport
+    );
 
         rowsToUpdate.forEach((row: any) => {
             row.IsImport = isImport;
         });
 
-        this.modal.confirm({
-            nzTitle: `Bạn có chắc chắn muốn chuyển sản phẩm đã chọn thành ${isImportText} không?`,
-            nzOkText: 'Ok',
-            nzOkType: 'primary',
-            nzCancelText: 'Hủy',
-            nzOkDanger: false,
-            nzClosable: false,
-            nzOnOk: () => {
-                const sub = this.srv.updateProductImport(rowsToUpdate).subscribe({
-                    next: (rs) => {
-                        this.notify.success(NOTIFICATION_TITLE.success, rs.message || `${isImportText} thành công`);
-                        this.onSearch();
-                    },
-                    error: (error) => this.notify.error(NOTIFICATION_TITLE.error, error.error?.message || `${isImportText} thất bại`)
-                });
-                this.subscriptions.push(sub);
-            },
+    this.modal.confirm({
+      nzTitle: `Bạn có chắc chắn muốn chuyển sản phẩm đã chọn thành ${isImportText} không?`,
+      nzOkText: 'Ok',
+      nzOkType: 'primary',
+      nzCancelText: 'Hủy',
+      nzOkDanger: false,
+      nzClosable: false,
+      nzOnOk: () => {
+        const sub = this.srv.updateProductImport(rowsToUpdate).subscribe({
+          next: (rs) => {
+            this.notify.success(
+              NOTIFICATION_TITLE.success,
+              rs.message || `${isImportText} thành công`
+            );
+            this.onSearch();
+          },
+          error: (error) =>
+            this.notify.error(
+              NOTIFICATION_TITLE.error,
+              error.error?.message || `${isImportText} thất bại`
+            ),
         });
-    }
+        this.subscriptions.push(sub);
+      },
+    });
+  }
 
     onSelectYCMH(): void {
         const typeId = this.tabs[this.activeTabIndex]?.id;
         if (!typeId) return;
 
-        const angularGrid = this.angularGrids.get(typeId);
-        if (!angularGrid) {
-            this.notify.warning(NOTIFICATION_TITLE.warning, 'Không tìm thấy bảng dữ liệu!');
-            return;
-        }
+    const angularGrid = this.angularGrids.get(typeId);
+    if (!angularGrid) {
+      this.notify.warning(
+        NOTIFICATION_TITLE.warning,
+        'Không tìm thấy bảng dữ liệu!'
+      );
+      return;
+    }
 
-        const selectedRowIndexes = angularGrid.slickGrid.getSelectedRows();
-        if (!selectedRowIndexes || selectedRowIndexes.length === 0) {
-            this.notify.warning(NOTIFICATION_TITLE.warning, 'Vui lòng chọn ít nhất một dòng!');
-            return;
-        }
+    const selectedRowIndexes = angularGrid.slickGrid.getSelectedRows();
+    if (!selectedRowIndexes || selectedRowIndexes.length === 0) {
+      this.notify.warning(
+        NOTIFICATION_TITLE.warning,
+        'Vui lòng chọn ít nhất một dòng!'
+      );
+      return;
+    }
 
-        const selected = selectedRowIndexes.map((rowIndex: number) =>
-            angularGrid.dataView.getItem(rowIndex)
-        ).filter((item: any) => item);
+    const selected = selectedRowIndexes
+      .map((rowIndex: number) => angularGrid.dataView.getItem(rowIndex))
+      .filter((item: any) => item);
 
         // Bước 1: Kiểm tra validation
         for (const data of selected) {
@@ -3416,16 +4394,22 @@ export class ProjectPartListPurchaseRequestSlickGridComponent implements OnInit,
             const isApprovedBGD = data['IsApprovedBGD'] || false;
             const isTechBought = data['IsTechBought'] || false;
 
-            if (!isApprovedBGD && !isTechBought) {
-                this.notify.warning(NOTIFICATION_TITLE.warning, 'Sản phẩm chưa được BGĐ duyệt!');
-                return;
-            }
+      if (!isApprovedBGD && !isTechBought) {
+        this.notify.warning(
+          NOTIFICATION_TITLE.warning,
+          'Sản phẩm chưa được BGĐ duyệt!'
+        );
+        return;
+      }
 
-            if (!code || code.toString().trim() === '') {
-                this.notify.warning(NOTIFICATION_TITLE.warning, 'Sản phẩm chưa có mã nội bộ!');
-                return;
-            }
-        }
+      if (!code || code.toString().trim() === '') {
+        this.notify.warning(
+          NOTIFICATION_TITLE.warning,
+          'Sản phẩm chưa có mã nội bộ!'
+        );
+        return;
+      }
+    }
 
         // Bước 2: Thu thập dữ liệu
         const lstYCMH: number[] = [];
@@ -3448,61 +4432,80 @@ export class ProjectPartListPurchaseRequestSlickGridComponent implements OnInit,
             }
         }
 
-        if (lstYCMH.length === 0) {
-            this.notify.warning(NOTIFICATION_TITLE.warning, 'Không có dòng nào thỏa mãn điều kiện!');
-            return;
-        }
+    if (lstYCMH.length === 0) {
+      this.notify.warning(
+        NOTIFICATION_TITLE.warning,
+        'Không có dòng nào thỏa mãn điều kiện!'
+      );
+      return;
+    }
 
-        if (this.activeModal) {
-            const strLstRequestBuyIDs = Array.isArray(lstYCMH) ? lstYCMH.join(';') : '';
-            const strLstCodes = Array.isArray(lstYCMHCode) ? lstYCMHCode.join('; ') : '';
+    if (this.activeModal) {
+      const strLstRequestBuyIDs = Array.isArray(lstYCMH)
+        ? lstYCMH.join(';')
+        : '';
+      const strLstCodes = Array.isArray(lstYCMHCode)
+        ? lstYCMHCode.join('; ')
+        : '';
 
             this.isYCMH = false;
             this.supplierId = null;
 
-            this.activeModal.close({
-                strLstRequestBuyIDs: strLstRequestBuyIDs,
-                strLstCodes: strLstCodes
-            });
-        }
+      this.activeModal.close({
+        strLstRequestBuyIDs: strLstRequestBuyIDs,
+        strLstCodes: strLstCodes,
+      });
     }
+  }
 
     updateInternalCode(tabIndex: number): void {
         const typeId = this.getTypeIdFromTabIndex(tabIndex);
         if (!typeId) return;
 
-        const selected = this.getSelectedGridData(typeId);
-        if (selected.length === 0) {
-            this.notify.warning(NOTIFICATION_TITLE.warning, `Vui lòng chọn dòng cần cập nhật!`);
-            return;
-        }
-        if (tabIndex !== 3) {
-            this.notify.warning(
-                NOTIFICATION_TITLE.warning,
-                'Chức năng này chỉ dành cho tab Mượn Demo!'
-            );
-            return;
-        }
-        if (!this.validateManufacturerForVision(selected)) {
-            return;
-        }
+    const selected = this.getSelectedGridData(typeId);
+    if (selected.length === 0) {
+      this.notify.warning(
+        NOTIFICATION_TITLE.warning,
+        `Vui lòng chọn dòng cần cập nhật!`
+      );
+      return;
+    }
+    if (tabIndex !== 3) {
+      this.notify.warning(
+        NOTIFICATION_TITLE.warning,
+        'Chức năng này chỉ dành cho tab Mượn Demo!'
+      );
+      return;
+    }
+    if (!this.validateManufacturerForVision(selected)) {
+      return;
+    }
 
-        // Kiểm tra nếu có thay đổi khác ngoài ProductGroupID/ProductGroupRTCID
-        const hasOtherChanges = this.changedRows.some(changedRow => {
-            const rowId = changedRow.ID;
-            const selectedRow = selected.find((r: any) => r.ID === rowId);
-            if (!selectedRow) return false;
+    // Kiểm tra nếu có thay đổi khác ngoài ProductGroupID/ProductGroupRTCID
+    const hasOtherChanges = this.changedRows.some((changedRow) => {
+      const rowId = changedRow.ID;
+      const selectedRow = selected.find((r: any) => r.ID === rowId);
+      if (!selectedRow) return false;
 
             // Lấy dữ liệu gốc
             const originalData = this.originalDataMap.get(rowId);
             if (!originalData) return false;
 
-            // So sánh các field ngoài ProductGroupID và ProductGroupRTCID
-            const fieldsToCheck = [
-                'Quantity', 'UnitPrice', 'UnitImportPrice', 'VAT', 'TargetPrice',
-                'CurrencyID', 'SupplierSaleID', 'WarehouseID', 'Note',
-                'CurrencyRate', 'UnitMoney', 'IsPaidLater'
-            ];
+      // So sánh các field ngoài ProductGroupID và ProductGroupRTCID
+      const fieldsToCheck = [
+        'Quantity',
+        'UnitPrice',
+        'UnitImportPrice',
+        'VAT',
+        'TargetPrice',
+        'CurrencyID',
+        'SupplierSaleID',
+        'WarehouseID',
+        'Note',
+        'CurrencyRate',
+        'UnitMoney',
+        'IsPaidLater',
+      ];
 
             for (const field of fieldsToCheck) {
                 const currentValue = this.normalizeValue(changedRow[field]);
@@ -3515,10 +4518,13 @@ export class ProjectPartListPurchaseRequestSlickGridComponent implements OnInit,
             return false; // Chỉ có thay đổi ProductGroupID/ProductGroupRTCID
         });
 
-        if (hasOtherChanges) {
-            this.notify.warning(NOTIFICATION_TITLE.warning, `Dữ liệu đã thay đổi!\nVui lòng lưu lại dữ liệu hoặc load lại trước khi thao tác!`);
-            return;
-        }
+    if (hasOtherChanges) {
+      this.notify.warning(
+        NOTIFICATION_TITLE.warning,
+        `Dữ liệu đã thay đổi!\nVui lòng lưu lại dữ liệu hoặc load lại trước khi thao tác!`
+      );
+      return;
+    }
 
         this.modal.confirm({
             nzTitle: `Bạn có chắc chắn muốn cập nhật không?`,
@@ -3530,36 +4536,43 @@ export class ProjectPartListPurchaseRequestSlickGridComponent implements OnInit,
             nzOnOk: () => {
                 this.isLoading = true;
 
-                // Lấy dữ liệu từ các dòng đã chọn, đảm bảo có ProductGroupRTCID
-                const dataToUpdate = selected.map(row => {
-                    const rowData = { ...row };
-                    // Đảm bảo có ProductGroupRTCID nếu là mượn demo
-                    const ticketType = Number(rowData['TicketType'] || 0);
-                    if (ticketType === 1) { // Mượn
-                        // Nếu chưa có ProductGroupRTCID, lấy từ ProductGroupID (nếu có)
-                        if (!rowData['ProductGroupRTCID'] && rowData['ProductGroupID']) {
-                            rowData['ProductGroupRTCID'] = rowData['ProductGroupID'];
-                        }
-                    }
-                    return rowData;
-                });
-
-                const sub = this.srv.createProductRTC(dataToUpdate).subscribe({
-                    next: (rs) => {
-                        this.notify.success(NOTIFICATION_TITLE.success, rs?.message || "Cập nhật thành công");
-                        this.isLoading = false;
-                        // Reload data sau khi update thành công
-                        this.onSearch();
-                    },
-                    error: (error) => {
-                        this.notify.error(NOTIFICATION_TITLE.error, error.error?.message || 'Cập nhật thất bại');
-                        this.isLoading = false;
-                    },
-                });
-                this.subscriptions.push(sub);
-            },
+        // Lấy dữ liệu từ các dòng đã chọn, đảm bảo có ProductGroupRTCID
+        const dataToUpdate = selected.map((row) => {
+          const rowData = { ...row };
+          // Đảm bảo có ProductGroupRTCID nếu là mượn demo
+          const ticketType = Number(rowData['TicketType'] || 0);
+          if (ticketType === 1) {
+            // Mượn
+            // Nếu chưa có ProductGroupRTCID, lấy từ ProductGroupID (nếu có)
+            if (!rowData['ProductGroupRTCID'] && rowData['ProductGroupID']) {
+              rowData['ProductGroupRTCID'] = rowData['ProductGroupID'];
+            }
+          }
+          return rowData;
         });
-    }
+
+        const sub = this.srv.createProductRTC(dataToUpdate).subscribe({
+          next: (rs) => {
+            this.notify.success(
+              NOTIFICATION_TITLE.success,
+              rs?.message || 'Cập nhật thành công'
+            );
+            this.isLoading = false;
+            // Reload data sau khi update thành công
+            this.onSearch();
+          },
+          error: (error) => {
+            this.notify.error(
+              NOTIFICATION_TITLE.error,
+              error.error?.message || 'Cập nhật thất bại'
+            );
+            this.isLoading = false;
+          },
+        });
+        this.subscriptions.push(sub);
+      },
+    });
+  }
 
     private validateManufacturerForVision(rows: any[]): boolean {
         const PRODUCT_GROUP_TVISION = 4;
@@ -3600,9 +4613,858 @@ export class ProjectPartListPurchaseRequestSlickGridComponent implements OnInit,
         return value;
     }
 
-    closeModal(): void {
-        if (this.activeModal) {
-            this.activeModal.dismiss();
-        }
+  closeModal(): void {
+    if (this.activeModal) {
+      this.activeModal.dismiss();
     }
+  }
+
+  //#region Chức năng Export Excel
+  async exportExcelSelectedRows() {
+    const typeId = this.getActiveTabTypeId();
+    if (!typeId) {
+      this.notify.error(
+        NOTIFICATION_TITLE.error,
+        'Không xác định được tab hiện tại!'
+      );
+      return;
+    }
+
+    const selectedData = this.getSelectedGridData(typeId);
+    if (!selectedData || selectedData.length <= 0) {
+      this.notify.error(
+        NOTIFICATION_TITLE.error,
+        'Vui lòng chọn sản phẩm cần xuất excel!'
+      );
+      return;
+    }
+
+    const angularGrid = this.angularGrids.get(typeId);
+    if (!angularGrid) {
+      this.notify.error(
+        NOTIFICATION_TITLE.error,
+        'Không tìm thấy bảng dữ liệu!'
+      );
+      return;
+    }
+
+    const title = this.filteredTabs[this.activeTabIndex].title;
+    const date = DateTime.fromJSDate(new Date()).toFormat('ddMMyy');
+    const fileName = `YeuCauMua_${title}_${date}`;
+
+    await this.exportExcelWithGroupAndFooter(
+      angularGrid,
+      selectedData,
+      title,
+      fileName,
+      typeId
+    );
+  }
+
+  async exportExcelAllTabs() {
+    const workbook = new ExcelJS.Workbook();
+    let hasData = false;
+
+    for (const tab of this.filteredTabs) {
+      const typeId = tab.id;
+      const angularGrid = this.angularGrids.get(typeId);
+
+      if (!angularGrid) continue;
+
+      const dataset = this.datasetsMap.get(typeId) || [];
+      if (dataset.length <= 0) continue;
+
+      hasData = true;
+      await this.addSheetToWorkbook(
+        workbook,
+        angularGrid,
+        dataset,
+        tab.title,
+        typeId
+      );
+    }
+
+    if (!hasData) {
+      this.notify.error(
+        NOTIFICATION_TITLE.error,
+        'Không có dữ liệu để xuất excel!'
+      );
+      return;
+    }
+
+    const date = DateTime.fromJSDate(new Date()).toFormat('ddMMyy');
+    const fileName = `YeuCauMua_TatCa_${date}`;
+
+    const buffer = await workbook.xlsx.writeBuffer();
+    const blob = new Blob([buffer], {
+      type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+    });
+
+    const link = document.createElement('a');
+    link.href = window.URL.createObjectURL(blob);
+    link.download = `${fileName}.xlsx`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    window.URL.revokeObjectURL(link.href);
+  }
+
+  private async exportExcelWithGroupAndFooter(
+    angularGrid: AngularGridInstance,
+    data: any[],
+    sheetName: string,
+    fileName: string,
+    typeId: number
+  ) {
+    const workbook = new ExcelJS.Workbook();
+    await this.addSheetToWorkbook(
+      workbook,
+      angularGrid,
+      data,
+      sheetName,
+      typeId
+    );
+
+    const buffer = await workbook.xlsx.writeBuffer();
+    const blob = new Blob([buffer], {
+      type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+    });
+
+    const link = document.createElement('a');
+    link.href = window.URL.createObjectURL(blob);
+    link.download = `${fileName}.xlsx`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    window.URL.revokeObjectURL(link.href);
+  }
+
+  private async addSheetToWorkbook(
+    workbook: ExcelJS.Workbook,
+    angularGrid: AngularGridInstance,
+    data: any[],
+    sheetName: string,
+    typeId: number
+  ) {
+    const worksheet = workbook.addWorksheet(sheetName);
+
+    // Lấy danh sách cột hiển thị (bỏ cột checkbox)
+    const allColumns = angularGrid.slickGrid.getColumns();
+    let visibleColumns = allColumns.filter(
+      (col: any) =>
+        col.id !== '_checkbox_selector' && col.field !== '_checkbox_selector'
+    );
+
+    // Nếu là tab "Mua hàng dự án" (typeId = 1), loại bỏ các cột không cần thiết
+    if (typeId === 1) {
+      const excludeFields = [
+        'IsRequestApproved',
+        'IsApprovedBGD',
+        'CustomerName',
+      ];
+      visibleColumns = visibleColumns.filter(
+        (col: any) => !excludeFields.includes(col.field)
+      );
+    }
+
+    const headers = visibleColumns.map((col: any) => col.name || col.field);
+
+    // Thêm header row - màu xám nhạt
+    const headerRow = worksheet.addRow(headers);
+    headerRow.font = { bold: true, color: { argb: 'FF000000' } };
+    headerRow.fill = {
+      type: 'pattern',
+      pattern: 'solid',
+      fgColor: { argb: 'FFE7E6E6' },
+    };
+    headerRow.alignment = { vertical: 'middle', horizontal: 'center' };
+    headerRow.height = 25;
+
+    // Phát hiện các cột cần tính tổng từ groupTotalsFormatter
+    const sumFields: string[] = [];
+    const countFields: string[] = [];
+    visibleColumns.forEach((col: any) => {
+      // Nếu column có groupTotalsFormatter thì là cột cần tính tổng (sum)
+      if (
+        col.groupTotalsFormatter &&
+        typeof col.groupTotalsFormatter === 'function'
+      ) {
+        sumFields.push(col.field);
+      }
+    });
+
+    // Group dữ liệu theo ProjectCode
+    const groupedData = new Map<string, any[]>();
+    data.forEach((row: any) => {
+      const projectCode = row['ProjectCode'] || '';
+      const projectName = row['ProjectName'] || '';
+      const groupKey = `${projectCode} - ${projectName}`;
+
+      if (!groupedData.has(groupKey)) {
+        groupedData.set(groupKey, []);
+      }
+      groupedData.get(groupKey)?.push(row);
+    });
+
+    // Duyệt qua từng nhóm và ghi dữ liệu
+    groupedData.forEach((rows, groupName) => {
+      // Thêm dòng tiêu đề nhóm
+      const groupRow = worksheet.addRow([groupName]);
+      const groupRowIndex = groupRow.number;
+
+      worksheet.mergeCells(
+        `A${groupRowIndex}:${this.getColumnLetter(
+          headers.length
+        )}${groupRowIndex}`
+      );
+
+      groupRow.font = { bold: true, size: 12, color: { argb: 'FF000000' } };
+      groupRow.fill = {
+        type: 'pattern',
+        pattern: 'solid',
+        fgColor: { argb: 'FFD9E1F2' },
+      };
+      groupRow.alignment = { vertical: 'middle', horizontal: 'left' };
+      groupRow.height = 22;
+
+      // Khởi tạo biến tổng
+      const totals: any = {};
+      sumFields.forEach((field) => (totals[field] = 0));
+      countFields.forEach((field) => (totals[field] = 0));
+
+      // Ghi dữ liệu
+      rows.forEach((row: any) => {
+        const rowData = visibleColumns.map((col: any) => {
+          const field = col.field;
+          let value = row[field];
+
+          // Tính tổng
+          if (sumFields.includes(field) && value) {
+            totals[field] += Number(value) || 0;
+          }
+          if (countFields.includes(field)) {
+            totals[field] += 1;
+          }
+
+          // Chuyển ID thành text
+          if (field === 'CurrencyID') {
+            const cur = this.dtcurrency.find((c) => c.ID === value);
+            return cur?.Code || '';
+          }
+          if (field === 'ProductGroupID') {
+            const isRTCTab =
+              this.activeTabIndex === 2 || this.activeTabIndex === 3;
+            const productGroupData = isRTCTab
+              ? this.dtproductGroupsRTC
+              : this.dtproductGroups;
+            const g = productGroupData.find((x) => x.ID === value);
+            return g?.ProductGroupName || '';
+          }
+          if (field === 'SupplierSaleID') {
+            const s = this.dtSupplierSale.find((x) => x.ID === value);
+            return s?.NameNCC || '';
+          }
+          if (field === 'WarehouseID') {
+            const w = this.dtwarehouses.find((x) => x.ID === value);
+            return w?.WarehouseCode || '';
+          }
+
+          if (typeof value === 'boolean') {
+            return value ? '☑' : '☐';
+          }
+
+          if (typeof value === 'string' && /^\d{4}-\d{2}-\d{2}T/.test(value)) {
+            value = new Date(value);
+          }
+
+          return value;
+        });
+
+        const dataRow = worksheet.addRow(rowData);
+        dataRow.alignment = { vertical: 'middle', wrapText: true };
+
+        dataRow.eachCell((cell, colNumber) => {
+          const field = visibleColumns[colNumber - 1]?.field;
+
+          if (sumFields.includes(field)) {
+            if (typeof cell.value === 'number') {
+              cell.numFmt = '#,##0';
+            }
+          }
+
+          if (cell.value instanceof Date) {
+            cell.numFmt = 'dd/mm/yyyy';
+          }
+        });
+      });
+
+      // Footer
+      const footerData = visibleColumns.map((col: any) => {
+        const field = col.field;
+
+        if (sumFields.includes(field) || countFields.includes(field)) {
+          return totals[field];
+        }
+
+        if (field === visibleColumns[0].field) {
+          return `${rows.length} sản phẩm`;
+        }
+
+        return '';
+      });
+
+      const footerRow = worksheet.addRow(footerData);
+      footerRow.font = { bold: true, color: { argb: 'FF000000' } };
+      footerRow.fill = {
+        type: 'pattern',
+        pattern: 'solid',
+        fgColor: { argb: 'FFFFD966' },
+      };
+      footerRow.alignment = { vertical: 'middle', horizontal: 'left' };
+      footerRow.height = 22;
+
+      footerRow.eachCell((cell, colNumber) => {
+        const field = visibleColumns[colNumber - 1]?.field;
+
+        if (sumFields.includes(field)) {
+          if (typeof cell.value === 'number') {
+            cell.numFmt = '#,##0';
+          }
+        }
+      });
+    });
+
+    // Dòng tổng cuối cùng
+    const grandTotals: any = {};
+    sumFields.forEach((field) => (grandTotals[field] = 0));
+    countFields.forEach((field) => (grandTotals[field] = 0));
+
+    data.forEach((row: any) => {
+      sumFields.forEach((field) => {
+        const val = Number(row[field]) || 0;
+        grandTotals[field] += val;
+      });
+      countFields.forEach((field) => {
+        grandTotals[field] += 1;
+      });
+    });
+
+    const grandTotalData = visibleColumns.map((col: any) => {
+      const field = col.field;
+      if (sumFields.includes(field) || countFields.includes(field)) {
+        return grandTotals[field];
+      }
+      if (field === visibleColumns[0].field) {
+        return 'Tổng cộng';
+      }
+      return '';
+    });
+
+    const grandRow = worksheet.addRow(grandTotalData);
+    grandRow.font = { bold: true, size: 12, color: { argb: 'FFFFFFFF' } };
+    grandRow.fill = {
+      type: 'pattern',
+      pattern: 'solid',
+      fgColor: { argb: 'FF4472C4' },
+    };
+    grandRow.alignment = { vertical: 'middle', horizontal: 'left' };
+    grandRow.height = 25;
+
+    grandRow.eachCell((cell, colNumber) => {
+      const field = visibleColumns[colNumber - 1]?.field;
+      if (sumFields.includes(field)) {
+        if (typeof cell.value === 'number') {
+          cell.numFmt = '#,##0';
+        }
+      }
+    });
+
+    // Auto width
+    worksheet.columns.forEach((column: any, colIndex: number) => {
+      const field = visibleColumns[colIndex]?.field;
+
+      if (field === 'ProductCode') column.width = 15;
+      else if (field === 'ProductName' || field === 'ProjectName')
+        column.width = 35;
+      else if (field === 'CustomerName' || field === 'NameNCC')
+        column.width = 30;
+      else if (field === 'SupplierSaleID') column.width = 40;
+      else if (sumFields.includes(field)) column.width = 18;
+      else if (field === 'Quantity') column.width = 12;
+      else if (field?.includes('Date')) column.width = 15;
+      else if (field?.includes('Status') || field?.includes('Text'))
+        column.width = 20;
+      else if (field === 'Note' || field === 'Model') column.width = 30;
+      else column.width = 15;
+    });
+
+    worksheet.autoFilter = {
+      from: { row: 1, column: 1 },
+      to: { row: 1, column: headers.length },
+    };
+  }
+private buildDistinctCollection(
+  data: any[],
+  field: string
+): Array<{ value: any; label: string }> {
+  const map = new Map<any, string>();
+
+  data.forEach(item => {
+    const val = item[field];
+    if (val === null || val === undefined || val === '') return;
+
+    if (!map.has(val)) {
+      map.set(val, String(val));
+    }
+  });
+
+  return Array.from(map.entries()).map(([value, label]) => ({
+    value,
+    label,
+  }));
+}
+
+  // Apply distinct filters for multiple columns after data is loaded
+  private applyDistinctFilters(): void {
+    this.tabs.forEach(tab => {
+      const angularGrid = this.angularGrids.get(tab.id);
+      if (!angularGrid || !angularGrid.slickGrid) return;
+
+      const dataView = angularGrid.dataView;
+      if (!dataView) return;
+
+      const data = dataView.getItems();
+      if (!data || data.length === 0) return;
+
+      const columns = angularGrid.slickGrid.getColumns();
+      if (!columns) return;
+
+      const isRTCTab = tab.id === 3 || tab.id === 4;
+
+      // Define columns that need distinct filters
+      const textColumns = [
+        'StatusRequestText',  // Trạng thái
+        'ProductCode',        // Mã sản phẩm
+        'ProductName',        // Tên sản phẩm
+        'FullName',           // Người YC
+        'UpdatedName',        // NV mua
+        isRTCTab ? 'ProductCodeRTC' : 'ProductNewCode', // Mã nội bộ
+      ];
+
+      // Apply distinct filter for text columns
+      textColumns.forEach(fieldName => {
+        const column = columns.find((col: any) => col.field === fieldName);
+        if (column && column.filter) {
+          const collection = this.buildDistinctCollection(data, fieldName);
+          if (collection.length > 0) {
+            column.filter.model = Filters['multipleSelect'];
+            column.filter.collection = collection;
+            column.filter.operator = 'IN';
+            column.filter.customStructure = {
+              value: 'value',
+              label: 'label',
+            };
+            if (!column.filter.options) {
+              column.filter.options = {};
+            }
+            column.filter.options.offsetLeft = 14;
+            column.filter.options.width = 150;
+
+          }
+        }
+      });
+
+      // Apply distinct filter for CurrencyID (using existing collection)
+      const currencyColumn = columns.find((col: any) => col.field === 'CurrencyID');
+      if (currencyColumn && currencyColumn.filter && currencyColumn.filter.collection) {
+        // Already handled in updateEditorCollections, just ensure it's multipleSelect
+        currencyColumn.filter.model = Filters['multipleSelect'];
+      }
+
+      // Apply distinct filter for ProductGroupID/ProductGroupRTCID (using existing collection)
+      const productGroupField = isRTCTab ? 'ProductGroupRTCID' : 'ProductGroupID';
+      const productGroupColumn = columns.find((col: any) => col.field === productGroupField);
+      if (productGroupColumn && productGroupColumn.editor && productGroupColumn.editor.collection) {
+        // Copy collection from editor to filter
+        if (!productGroupColumn.filter) {
+          productGroupColumn.filter = {};
+        }
+        productGroupColumn.filter.model = Filters['multipleSelect'];
+        productGroupColumn.filter.collection = productGroupColumn.editor.collection.filter((x: any) => x.value > 0);
+        productGroupColumn.filter.customStructure = {
+          value: 'value',
+          label: 'label',
+        };
+        if (!productGroupColumn.filter.options) {
+          productGroupColumn.filter.options = {};
+        }
+        productGroupColumn.filter.options.offsetLeft = 14;
+        productGroupColumn.filter.options.width = 150;
+      }
+
+      // Update column definitions in the map
+      const columnDefs = this.columnDefinitionsMap.get(tab.id);
+      if (columnDefs) {
+        textColumns.forEach(fieldName => {
+          const colDef = columnDefs.find((col: any) => col.field === fieldName);
+          if (colDef && colDef.filter) {
+            const collection = this.buildDistinctCollection(data, fieldName);
+            if (collection.length > 0) {
+              colDef.filter.model = Filters['multipleSelect'];
+              colDef.filter.collection = collection;
+              colDef.filter.customStructure = {
+                value: 'value',
+                label: 'label',
+              };
+              if (!colDef.filter.options) {
+                colDef.filter.options = {};
+              }
+              colDef.filter.options.offsetLeft = 14;
+              colDef.filter.options.width = 150;
+            }
+          }
+        });
+
+        // Update ProductGroup filter in columnDefs
+        const productGroupColDef = columnDefs.find((col: any) => col.field === productGroupField);
+        if (productGroupColDef && productGroupColDef.editor && productGroupColDef.editor.collection) {
+          if (!productGroupColDef.filter) {
+            productGroupColDef.filter = {};
+          }
+          productGroupColDef.filter.model = Filters['multipleSelect'];
+          productGroupColDef.filter.collection = productGroupColDef.editor.collection.filter((x: any) => x.value > 0);
+          productGroupColDef.filter.customStructure = {
+            value: 'value',
+            label: 'label',
+          };
+          if (!productGroupColDef.filter.options) {
+            productGroupColDef.filter.options = {};
+          }
+          productGroupColDef.filter.options.offsetLeft = 14;
+          productGroupColDef.filter.options.width = 150;
+        }
+      }
+
+      // Force refresh columns
+      const updatedColumns = angularGrid.slickGrid.getColumns();
+      angularGrid.slickGrid.setColumns(updatedColumns);
+      angularGrid.slickGrid.invalidate();
+      angularGrid.slickGrid.render();
+    });
+  }
+
+  /**
+   * Helper function để chuyển số cột thành chữ cái (A, B, C, ..., Z, AA, AB, ...)
+   */
+  private getColumnLetter(columnNumber: number): string {
+    let letter = '';
+    while (columnNumber > 0) {
+      const remainder = (columnNumber - 1) % 26;
+      letter = String.fromCharCode(65 + remainder) + letter;
+      columnNumber = Math.floor((columnNumber - 1) / 26);
+    }
+    return letter;
+  }
+  //#endregion
+
+  //#region Header Filter Methods
+  /**
+   * Helper method to create column header name with filter icon
+   * @param baseName - Base name of the column (e.g., "Mã sản phẩm")
+   * @param iconClass - CSS class for the filter icon (e.g., "productcode-filter-icon")
+   * @param typeId - Optional: Type ID to check filter status and change icon color
+   * @param columnId - Optional: Column ID to check filter status
+   * @returns Header name string with filter icon HTML
+   */
+  private createHeaderWithFilterIcon(baseName: string, iconClass: string, typeId?: number, columnId?: string): string {
+    let iconColor = '#1890ff'; // Default blue color
+    
+    // If typeId and columnId are provided, check if filter is active
+    if (typeId !== undefined && columnId) {
+      const filterKey = `${columnId}-${typeId}`;
+      const appliedValues = this.headerFilterAppliedValuesMap.get(filterKey);
+      const hasFilter = appliedValues && appliedValues.length > 0;
+      // Orange color when filter is active
+      if (hasFilter) {
+        iconColor = '#ff9800';
+      }
+    }
+    
+    return `${baseName} <i class="fas fa-filter ${iconClass}" style="cursor:pointer; margin-left:6px; color:${iconColor};" title="Lọc"></i>`;
+  }
+
+  onHeaderFilterApply(e: HeaderFilterApplyEvent) {
+    // Key format: "columnId-typeId"
+    const match = e.key.match(/^(.+)-(\d+)$/);
+    if (match) {
+      const columnId = match[1];
+      const typeId = parseInt(match[2], 10);
+      this.headerFilterAppliedValuesMap.set(e.key, e.appliedValues);
+      this.applyAllHeaderFiltersToView(typeId);
+      // Update column header to reflect filter status
+      this.updateColumnHeaderFilterIcon(typeId, columnId);
+    }
+  }
+
+  /**
+   * Helper method to get column header name with filter icon color based on filter status
+   * This method is used when updating existing columns after filter is applied
+   */
+  private getColumnHeaderNameWithFilterIcon(columnId: string, baseName: string, typeId: number, iconClass: string): string {
+    return this.createHeaderWithFilterIcon(baseName, iconClass, typeId, columnId);
+  }
+
+  /**
+   * Update column header filter icon color based on filter status
+   */
+  private updateColumnHeaderFilterIcon(typeId: number, columnId: string): void {
+    const angularGrid = this.angularGrids.get(typeId);
+    if (!angularGrid || !angularGrid.slickGrid) return;
+
+    const columns = angularGrid.slickGrid.getColumns();
+    const column = columns.find((col: any) => col.id === columnId);
+    if (!column) return;
+
+    // Map column IDs to their base names and icon classes
+    const columnConfig: { [key: string]: { baseName: string; iconClass: string } } = {
+      'ProductCode': { baseName: 'Mã sản phẩm', iconClass: 'productcode-filter-icon' },
+      'ProductNewCode': { baseName: 'Mã nội bộ', iconClass: 'productnewcode-filter-icon' },
+      'ProductCodeRTC': { baseName: 'Mã nội bộ', iconClass: 'productnewcode-filter-icon' },
+      'ProjectCode': { baseName: 'Mã dự án', iconClass: 'projectcode-filter-icon' },
+      'ProductGroupID': { baseName: 'Loại kho', iconClass: 'productgroup-filter-icon' },
+      'ProductGroupRTCID': { baseName: 'Loại kho', iconClass: 'productgroup-filter-icon' },
+      'WarehouseID': { baseName: 'Kho nhập hàng', iconClass: 'warehouseid-filter-icon' },
+      'ProductName': { baseName: 'Tên sản phẩm', iconClass: 'productname-filter-icon' },
+      'Manufacturer': { baseName: 'Hãng', iconClass: 'manufacturer-filter-icon' },
+      'StatusRequestText': { baseName: 'Trạng thái', iconClass: 'statusrequesttext-filter-icon' },
+      'FullName': { baseName: 'Người yêu cầu', iconClass: 'fullname-filter-icon' },
+      'CurrencyID': { baseName: 'Loại tiền', iconClass: 'currencyid-filter-icon' },
+      'SupplierSaleID': { baseName: 'Nhà cung cấp', iconClass: 'suppliersaleid-filter-icon' },
+    };
+
+    const config = columnConfig[columnId];
+    if (!config) return;
+
+    // Handle special cases for ProjectCode (can be "Mã dự án" or "Mã YCCV")
+    let baseName = config.baseName;
+    if (columnId === 'ProjectCode') {
+      const isJobRequirement = typeId === 3 || typeId === 4;
+      baseName = isJobRequirement ? 'Mã YCCV' : 'Mã dự án';
+    }
+
+    // Update column name with filter icon
+    const newName = this.getColumnHeaderNameWithFilterIcon(columnId, baseName, typeId, config.iconClass);
+    column.name = newName;
+
+    // Update column definition in the map
+    const columnDefs = this.columnDefinitionsMap.get(typeId);
+    if (columnDefs) {
+      const colDef = columnDefs.find((col: any) => col.id === columnId);
+      if (colDef) {
+        colDef.name = newName;
+      }
+    }
+
+    // Update grid columns
+    angularGrid.slickGrid.setColumns(columns);
+    angularGrid.slickGrid.render();
+  }
+
+  /**
+   * Update all column header filter icons for a tab
+   */
+  private updateAllColumnHeaderFilterIcons(typeId: number): void {
+    const filterableColumns = [
+      'ProductCode',
+      'ProductNewCode',
+      'ProductCodeRTC',
+      'ProjectCode',
+      'ProductGroupID',
+      'ProductGroupRTCID',
+      'WarehouseID',
+      'ProductName',
+      'Manufacturer',
+      'StatusRequestText',
+      'FullName',
+      'CurrencyID',
+      'SupplierSaleID',
+    ];
+
+    filterableColumns.forEach(columnId => {
+      this.updateColumnHeaderFilterIcon(typeId, columnId);
+    });
+  }
+
+  private syncAllDataIfNeeded(typeId: number) {
+    if ((!this.datasetsAllMap.has(typeId) || this.datasetsAllMap.get(typeId)?.length === 0) && this.datasetsMap.get(typeId)?.length) {
+      this.datasetsAllMap.set(typeId, [...(this.datasetsMap.get(typeId) || [])]);
+    }
+  }
+
+  private getHeaderFilterOptions(columnId: string, typeId: number): HeaderFilterOption[] {
+    this.syncAllDataIfNeeded(typeId);
+    const allData = this.datasetsAllMap.get(typeId) || [];
+    const map = new Map<string, string>();
+    map.set('', '');
+
+    // Get field name based on columnId
+    let fieldName = columnId;
+    let getValue: (row: any) => string;
+    let getLabel: (row: any, value: string) => string = (_, v) => v;
+
+    switch (columnId) {
+      case 'ProductCode':
+        getValue = (row) => String(row?.ProductCode ?? '');
+        break;
+      case 'ProductNewCode':
+      case 'ProductCodeRTC':
+        {
+          const isRTCTab = typeId === 3 || typeId === 4;
+          const actualField = isRTCTab ? 'ProductCodeRTC' : 'ProductNewCode';
+          getValue = (row) => String(row?.[actualField] ?? '');
+        }
+        break;
+      case 'ProjectCode':
+        getValue = (row) => String(row?.ProjectCode ?? '');
+        break;
+      case 'ProductGroupID':
+      case 'ProductGroupRTCID':
+        {
+          const isRTCTab = typeId === 3 || typeId === 4;
+          const actualField = isRTCTab ? 'ProductGroupRTCID' : 'ProductGroupID';
+          getValue = (row) => String(row?.[actualField] ?? '');
+          getLabel = (row, value) => {
+            const groups = isRTCTab ? this.dtproductGroupsRTC : this.dtproductGroups;
+            const group = groups.find((g: any) => g.ID === Number(value));
+            return group ? group.Name : value;
+          };
+        }
+        break;
+      case 'WarehouseID':
+        getValue = (row) => String(row?.WarehouseID ?? '');
+        getLabel = (row, value) => {
+          const warehouse = this.dtwarehouses.find((w: any) => w.ID === Number(value));
+          return warehouse ? warehouse.WarehouseName : value;
+        };
+        break;
+      case 'ProductName':
+        getValue = (row) => String(row?.ProductName ?? '');
+        break;
+      case 'Manufacturer':
+        getValue = (row) => String(row?.Manufacturer ?? '');
+        break;
+      case 'StatusRequestText':
+        getValue = (row) => String(row?.StatusRequestText ?? '');
+        break;
+      case 'FullName':
+        getValue = (row) => String(row?.FullName ?? '');
+        break;
+      case 'CurrencyID':
+        getValue = (row) => String(row?.CurrencyID ?? '');
+        getLabel = (row, value) => {
+          const currency = this.dtcurrency.find((c: any) => c.ID === Number(value));
+          return currency ? currency.Code : value;
+        };
+        break;
+      case 'SupplierSaleID':
+        getValue = (row) => String(row?.SupplierSaleID ?? '');
+        getLabel = (row, value) => {
+          const supplier = this.dtSupplierSale.find((s: any) => s.ID === Number(value));
+          return supplier ? supplier.NameNCC : value;
+        };
+        break;
+      default:
+        getValue = (row) => String(row?.[fieldName] ?? '');
+    }
+
+    for (const row of allData) {
+      const v = getValue(row);
+      if (v && !map.has(v)) {
+        const label = getLabel(row, v);
+        map.set(v, label);
+      }
+    }
+
+    return Array.from(map.entries())
+      .map(([value, label]) => ({ value, label }))
+      .sort((a, b) => a.label.localeCompare(b.label));
+  }
+
+  private applyAllHeaderFiltersToView(typeId: number) {
+    this.syncAllDataIfNeeded(typeId);
+    const allData = this.datasetsAllMap.get(typeId) || [];
+
+    if (!allData.length) {
+      this.datasetsMap.set(typeId, []);
+      this.refreshGridForTab(typeId);
+      return;
+    }
+
+    // Apply all filters sequentially
+    let filtered = [...allData];
+
+    // List of all filterable columns
+    const filterableColumns = [
+      'ProductCode',
+      'ProductNewCode',
+      'ProductCodeRTC',
+      'ProjectCode',
+      'ProductGroupID',
+      'ProductGroupRTCID',
+      'WarehouseID',
+      'ProductName',
+      'Manufacturer',
+      'StatusRequestText',
+      'FullName',
+      'CurrencyID',
+      'SupplierSaleID',
+    ];
+
+    for (const columnId of filterableColumns) {
+      const filterKey = `${columnId}-${typeId}`;
+      const appliedValues = this.headerFilterAppliedValuesMap.get(filterKey);
+      
+      if (appliedValues && appliedValues.length > 0) {
+        const allowed = new Set(appliedValues.map((x) => String(x ?? '')));
+        
+        // Get field name - handle ProductGroupID/ProductGroupRTCID and ProductNewCode/ProductCodeRTC based on tab
+        let fieldName = columnId;
+        if (columnId === 'ProductGroupID' || columnId === 'ProductGroupRTCID') {
+          const isRTCTab = typeId === 3 || typeId === 4;
+          fieldName = isRTCTab ? 'ProductGroupRTCID' : 'ProductGroupID';
+        } else if (columnId === 'ProductNewCode' || columnId === 'ProductCodeRTC') {
+          const isRTCTab = typeId === 3 || typeId === 4;
+          fieldName = isRTCTab ? 'ProductCodeRTC' : 'ProductNewCode';
+        }
+        
+        filtered = filtered.filter((row) => {
+          const value = String(row?.[fieldName] ?? '');
+          return allowed.has(value);
+        });
+      }
+    }
+
+    this.datasetsMap.set(typeId, filtered);
+    this.refreshGridForTab(typeId);
+  }
+
+  private refreshGridForTab(typeId: number) {
+    const angularGrid = this.angularGrids.get(typeId);
+    if (angularGrid && angularGrid.dataView) {
+      angularGrid.dataView.refresh();
+      angularGrid.slickGrid?.render();
+    }
+    
+    // Update all column header filter icons to reflect current filter status
+    this.updateAllColumnHeaderFilterIcons(typeId);
+    
+    // Update tab title with count
+    const tab = this.tabs.find((t) => t.id === typeId);
+    if (tab) {
+      const filteredData = this.datasetsMap.get(typeId) || [];
+      const countText = filteredData.length.toLocaleString('vi-VN');
+      tab.title = `${tab.title.split('(')[0].trim()} (${countText})`;
+    }
+  }
+  //#endregion
 }

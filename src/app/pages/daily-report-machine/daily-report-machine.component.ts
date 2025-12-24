@@ -8,7 +8,6 @@ import { NzDatePickerModule } from 'ng-zorro-antd/date-picker';
 import { NzInputModule } from 'ng-zorro-antd/input';
 import { NzSelectModule } from 'ng-zorro-antd/select';
 import { NzFormModule } from 'ng-zorro-antd/form';
-import { NzGridModule } from 'ng-zorro-antd/grid';
 import { NzSplitterModule } from 'ng-zorro-antd/splitter';
 import { NzNotificationModule, NzNotificationService } from 'ng-zorro-antd/notification';
 import { NzModalModule, NzModalService } from 'ng-zorro-antd/modal';
@@ -17,20 +16,20 @@ import { NgbModal } from '@ng-bootstrap/ng-bootstrap';
 import { TabulatorFull as Tabulator } from 'tabulator-tables';
 import 'tabulator-tables/dist/css/tabulator_simple.min.css';
 import { DateTime } from 'luxon';
-import { DailyReportTechService } from '../DailyReportTechService/daily-report-tech.service';
-import { AuthService } from '../../../auth/auth.service';
-import { DepartmentServiceService } from '../../hrm/department/department-service/department-service.service';
-import { TeamServiceService } from '../../hrm/team/team-service/team-service.service';
-import { ProjectService } from '../../project/project-service/project.service';
-import { DEFAULT_TABLE_CONFIG } from '../../../tabulator-default.config';
+import { DailyReportTechService } from '../DailyReportTech/DailyReportTechService/daily-report-tech.service';
+import { AuthService } from '../../auth/auth.service';
+import { DepartmentServiceService } from '../hrm/department/department-service/department-service.service';
+import { TeamServiceService } from '../hrm/team/team-service/team-service.service';
+import { ProjectService } from '../project/project-service/project.service';
+import { DEFAULT_TABLE_CONFIG } from '../../tabulator-default.config';
 import * as ExcelJS from 'exceljs';
 import { debounceTime } from 'rxjs/operators';
 import { Subject } from 'rxjs';
-import { DailyReportTechDetailComponent } from './daily-report-tech-detail/daily-report-tech-detail.component';
-import { DailyReportExcelComponent } from '../daily-report-excel/daily-report-excel.component';
+import { DailyReportExcelComponent } from '../DailyReportTech/daily-report-excel/daily-report-excel.component';
+import { DailyReportMachineDetailComponent } from './daily-report-machine-detail/daily-report-machine-detail.component';
 
 @Component({
-  selector: 'app-daily-report-tech',
+  selector: 'app-daily-report-machine',
 
   standalone: true,
   imports: [
@@ -43,18 +42,17 @@ import { DailyReportExcelComponent } from '../daily-report-excel/daily-report-ex
     NzInputModule,
     NzSelectModule,
     NzFormModule,
-    NzGridModule,
     NzSplitterModule,
     NzNotificationModule,
     NzModalModule,
     NzDropDownModule,
   ],
-  templateUrl: './daily-report-tech.component.html',
-  styleUrl: './daily-report-tech.component.css'
+  templateUrl: './daily-report-machine.component.html',
+  styleUrl: './daily-report-machine.component.css'
 })
 
-export class DailyReportTechComponent implements OnInit, AfterViewInit {
-  @ViewChild('tb_daily_report_tech', { static: false })
+export class DailyReportMachineComponent implements OnInit, AfterViewInit {
+  @ViewChild('tb_daily_report_machine', { static: false })
   tb_daily_report_techContainer!: ElementRef;
 
   private searchSubject = new Subject<string>();
@@ -66,7 +64,7 @@ export class DailyReportTechComponent implements OnInit, AfterViewInit {
   // Search filters
   dateStart: any = DateTime.local().minus({ days: 1 }).set({ hour: 0, minute: 0, second: 0 }).toISO();
   dateEnd: any = DateTime.local().set({ hour: 0, minute: 0, second: 0 }).toISO();
-  departmentId: number = 2;
+  departmentId: number = 10; // phòng cơ khí
   teamId: number = 0;
   userId: number = 0;
   keyword: string = '';
@@ -468,7 +466,13 @@ export class DailyReportTechComponent implements OnInit, AfterViewInit {
             formatter: 'textarea',
           },
           {
-            title: 'Ngày báo cáo',
+            title: 'Chức vụ',
+            field: 'PositionName',
+            width: 100,
+            formatter: 'textarea',
+          },
+          {
+            title: 'Ngày',
             field: 'DateReport',
             formatter: (cell: any) => {
               const value = cell.getValue() || '';
@@ -479,26 +483,10 @@ export class DailyReportTechComponent implements OnInit, AfterViewInit {
             width: 120,
           },
           {
-            title: 'Ngày tạo',
-            field: 'CreatedDate',
-            formatter: (cell: any) => {
-              const value = cell.getValue() || '';
-              const dateTime = DateTime.fromISO(value);
-              return dateTime.isValid ? dateTime.toFormat('dd/MM/yyyy HH:mm:ss') : '';
-            },
-            hozAlign: 'center',
-            width: 120,
-          },
-          {
             title: 'Dự án',
             field: 'ProjectText',
             width: 200,
             formatter: 'textarea',
-          },
-          {
-            title: 'Hạng mục',
-            field: 'ProjectItemCode',
-            width: 120,
           },
           {
             title: 'Tổng giờ',
@@ -513,17 +501,6 @@ export class DailyReportTechComponent implements OnInit, AfterViewInit {
             hozAlign: 'right',
             width: 70,
             headerSort: false,
-          },
-          {
-            title: '% Hoàn thành',
-            field: 'PercentComplete',
-            hozAlign: 'right',
-            width: 70,
-            headerSort: false,
-            formatter: (cell: any) => {
-              const value = cell.getValue() || 0;
-              return `${value}%`;
-            },
           },
           {
             title: 'Nội dung',
@@ -568,85 +545,24 @@ export class DailyReportTechComponent implements OnInit, AfterViewInit {
             formatter: 'textarea',
           },
           {
-            title: 'Tên hạng mục',
-            field: 'ProjectItemName',
-            width: 200,
-            formatter: 'textarea',
+            title: 'Ngày tạo',
+            field: 'CreatedDate',
+            width: 120,
+            formatter: (cell: any) => {
+              const value = cell.getValue() || '';
+              const dateTime = DateTime.fromISO(value);
+              return dateTime.isValid ? dateTime.toFormat('dd/MM/yyyy HH:mm:ss') : '';
+            },
+            hozAlign: 'center',
           },
-          {
-            title: 'Dự kiến',
-            columns: [
-            {
-              title: 'Ngày bắt đầu',
-              field: 'PlanStartDate', 
-              // formatter: (cell: any) => {
-              //   const value = cell.getValue() || '';
-              //   const dateTime = DateTime.fromISO(value);
-              //   return dateTime.isValid ? dateTime.toFormat('dd/MM/yyyy') : '';
-              // },
-              hozAlign: 'center',
-              width: 120,
-            },
-            {
-              title: 'Tổng số ngày',
-              field: 'TotalDayPlan',
-              hozAlign: 'right',
-              width: 100,
-            },
-            {
-              title: 'Ngày kết thúc',
-              field: 'PlanEndDate',
-              // formatter: (cell: any) => {
-              //   const value = cell.getValue() || '';
-              //   const dateTime = DateTime.fromISO(value);
-              //   return dateTime.isValid ? dateTime.toFormat('dd/MM/yyyy') : '';
-              // },
-              hozAlign: 'center',
-              width: 120,
-            },
-          ],
-          },
-          {
-            title: 'Thực tế',
-            columns: [
-            {
-              title: 'Ngày bắt đầu',
-              field: 'ActualStartDate',
-              // formatter: (cell: any) => {
-              //   const value = cell.getValue() || '';
-              //   const dateTime = DateTime.fromISO(value);
-              //   return dateTime.isValid ? dateTime.toFormat('dd/MM/yyyy') : '';
-              // },
-              hozAlign: 'center',
-              width: 120,
-            },
-            {
-              title: 'Tổng số ngày',
-              field: 'TotalDayActual',
-              hozAlign: 'right',
-              width: 100,
-            },
-            {
-              title: 'Ngày kết thúc',
-              field: 'ActualEndDate',
-              // formatter: (cell: any) => {
-              //   const value = cell.getValue() || '';
-              //   const dateTime = DateTime.fromISO(value);
-              //   return dateTime.isValid ? dateTime.toFormat('dd/MM/yyyy') : '';
-              // },
-              hozAlign: 'center',
-              width: 120,
-            },
-          ],
-        },
-      ],
-    });
+        ]
+      });
+    }
   }
-}
 
   // Header actions
   addDailyReport(): void {
-    const modalRef = this.modalService.open(DailyReportTechDetailComponent, {
+    const modalRef = this.modalService.open(DailyReportMachineDetailComponent, {
       size: 'xl',
       backdrop: 'static',
       keyboard: true,
@@ -690,7 +606,7 @@ export class DailyReportTechComponent implements OnInit, AfterViewInit {
       return;
     }
 
-    const modalRef = this.modalService.open(DailyReportTechDetailComponent, {
+    const modalRef = this.modalService.open(DailyReportMachineDetailComponent, {
       size: 'xl',
       backdrop: 'static',
       keyboard: true,
@@ -703,7 +619,7 @@ export class DailyReportTechComponent implements OnInit, AfterViewInit {
     modalRef.componentInstance.dataInput = dailyID; // Truyền ID để load dữ liệu
     modalRef.componentInstance.currentUser = this.currentUser;
     modalRef.componentInstance.projects = this.projects || [];
-    modalRef.componentInstance.projectItems = [];
+    modalRef.componentInstance.projectItems = []; // TODO: Load project items khi cần
 
     // Xử lý khi modal đóng
     modalRef.result.then(
@@ -766,48 +682,7 @@ export class DailyReportTechComponent implements OnInit, AfterViewInit {
   }
 
   copyDailyReport(): void {
-    // Lấy dữ liệu để copy dựa trên filter hiện tại
-    const searchParams = this.getSearchParams();
-    
-    // Tìm EmployeeID từ users dựa trên searchParams.userID (UserID từ dropdown)
-    // Dropdown bind [nzValue]="child.item.UserID", nên searchParams.userID là UserID
-    let employeeID = 0;
-    if (searchParams.userID && searchParams.userID > 0) {
-      for (const group of this.users) {
-        if (group.options && Array.isArray(group.options)) {
-          const foundUser = group.options.find((opt: any) => opt.item?.UserID === searchParams.userID);
-          if (foundUser && foundUser.item?.ID) {
-            employeeID = foundUser.item.ID;
-            break;
-          }
-        }
-      }
-    }
-    
-    // Gọi API để lấy dữ liệu copy
-    const copyParams = {
-      dateStart: searchParams.dateStart,
-      dateEnd: searchParams.dateEnd,
-      team_id: searchParams.teamID || 0,
-      keyword: searchParams.keyword || '',
-      userid: employeeID || 0,
-      departmentid: searchParams.departmentID || 0
-    };
-    
-    this.dailyReportTechService.getForCopy(copyParams).subscribe({
-      next: (response: any) => {
-        if (response.status === 1) {
-          const result = Array.isArray(response.data) ? response.data : [];
-          this.formatAndCopyReport(result);
-        } else {
-          this.notification.error('Thông báo', 'Không có dữ liệu để copy!');
-        }
-      },
-      error: (error: any) => {
-        const errorMsg = error?.error?.message || error?.message || 'Đã xảy ra lỗi khi lấy dữ liệu copy!';
-        this.notification.error('Thông báo', errorMsg);
-      }
-    });
+    this.formatAndCopyReport(this.dailyReportTechData);
   }
 
   private formatAndCopyReport(result: any[]): void {
@@ -816,23 +691,41 @@ export class DailyReportTechComponent implements OnInit, AfterViewInit {
       return;
     }
 
-    // Lấy danh sách ngày duy nhất
-    const uniqueDates = [...new Set(result.map(item => item.DateReport))];
+    // Lấy danh sách ngày duy nhất và sắp xếp
+    const uniqueDates = [...new Set(result.map(item => item.DateReport))].sort();
     
-    // Chỉ copy khi có đúng 1 ngày (giống RTCWeb)
-    if (uniqueDates.length === 1) {
-      // Copy 1 ngày
-      const contentSummary = this.formatSingleDayReport(result, uniqueDates[0]);
-      // Copy vào clipboard
-      this.copyToClipboard(contentSummary);
-    } else {
-      // Nếu có nhiều ngày, hiển thị cảnh báo
-      this.notification.warning('Thông báo', `Bạn không thể copy nội dung của ${uniqueDates.length} ngày!`);
-    }
+    // Format và copy nhiều ngày
+    const contentSummary = this.formatMultipleDaysReport(result, uniqueDates);
+    // Copy vào clipboard
+    this.copyToClipboard(contentSummary);
   }
 
-  private formatSingleDayReport(dayData: any[], dateReport: string): string {
-    let project = '';
+  private formatMultipleDaysReport(allData: any[], dates: string[]): string {
+    const departmentId = this.departmentId || this.currentUser?.DepartmentID || 0;
+    let fullContent = '';
+
+    dates.forEach((dateReport, index) => {
+      // Lọc dữ liệu theo ngày
+      const dayData = allData.filter(item => item.DateReport === dateReport);
+      
+      // Format từng ngày
+      const dayContent = this.formatSingleDayReport(dayData, dateReport, departmentId);
+      fullContent += dayContent;
+      
+      // Thêm khoảng cách giữa các ngày (trừ ngày cuối)
+      if (index < dates.length - 1) {
+        fullContent += '\n\n';
+      }
+    });
+
+    return fullContent;
+  }
+
+  private formatSingleDayReport(dayData: any[], dateReport: string, departmentId: number): string {
+    // Sử dụng Set để tránh trùng lặp
+    const projectSet = new Set<string>();
+    const projectItemCodeSet = new Set<string>();
+    
     let content = '';
     let resultReport = '';
     let backlog = '';
@@ -847,20 +740,21 @@ export class DailyReportTechComponent implements OnInit, AfterViewInit {
 
     dayData.forEach(item => {
       if (item) {
-        // Tránh trùng lặp ProjectItemCode trong content (giống RTCWeb)
-        if (item.ProjectItemCode && !content.includes(item.ProjectItemCode)) {
+        // Tránh trùng lặp ProjectItemCode trong content
+        if (item.ProjectItemCode && !projectItemCodeSet.has(item.ProjectItemCode)) {
+          projectItemCodeSet.add(item.ProjectItemCode);
           content += (item.Mission || item.Content || '') + '\n';
         } else if (!item.ProjectItemCode) {
           // Nếu không có ProjectItemCode, thêm trực tiếp
           content += (item.Mission || item.Content || '') + '\n';
         }
         
-        // Tránh trùng lặp ProjectCode trong project (giống RTCWeb)
-        if (item.ProjectCode && !project.includes(item.ProjectCode)) {
-          project += `${item.ProjectCode} - ${item.ProjectName || ''}\n`;
+        // Tránh trùng lặp ProjectCode trong project
+        if (item.ProjectCode && !projectSet.has(item.ProjectCode)) {
+          projectSet.add(item.ProjectCode);
         }
 
-        // Các field khác append trực tiếp (giống RTCWeb)
+        // Các field khác append trực tiếp
         if (item.Results) resultReport += item.Results + '\n';
         if (item.Backlog) backlog += item.Backlog + '\n';
         if (item.Problem) problem += item.Problem + '\n';
@@ -870,13 +764,19 @@ export class DailyReportTechComponent implements OnInit, AfterViewInit {
       }
     });
 
-    // Format theo departmentId (nếu departmentId == 6 thì không hiển thị Mã dự án)
-    // Lấy departmentId từ currentUser hoặc từ filter
-    const departmentId = this.departmentId || this.currentUser?.DepartmentID || 0;
-    
-    // Format giống RTCWeb
+    // Format mã dự án: mỗi dự án trên một dòng với dấu gạch đầu dòng
+    let projectList = '';
     if (departmentId !== 6) {
-      contentSummary += `* Mã dự án - Tên dự án: \n${project.trim()}\n`;
+      projectSet.forEach(projectCode => {
+        const projectItem = dayData.find(item => item.ProjectCode === projectCode);
+        if (projectItem) {
+          projectList += `- ${projectItem.ProjectCode}\n`;
+        }
+      });
+      
+      if (projectList.trim()) {
+        contentSummary += `\n* Mã dự án:\n${projectList.trim()}\n`;
+      }
     }
     
     contentSummary += `\n* Nội dung công việc:\n${content.trim()}\n`;

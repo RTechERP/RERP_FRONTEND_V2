@@ -12,7 +12,7 @@ import { NzNotificationService } from 'ng-zorro-antd/notification';
 import { NzMessageService } from 'ng-zorro-antd/message';
 import { NzSpinModule } from 'ng-zorro-antd/spin';
 import { NzSplitterModule } from 'ng-zorro-antd/splitter';
-import { NgbModal } from '@ng-bootstrap/ng-bootstrap';
+import { NgbModal, NgbActiveModal } from '@ng-bootstrap/ng-bootstrap';
 import { TabulatorFull as Tabulator } from 'tabulator-tables';
 import 'tabulator-tables/dist/css/tabulator_simple.min.css';
 import { DateTime } from 'luxon';
@@ -85,6 +85,7 @@ export class ProjectHistoryProblemComponent implements OnInit, AfterViewInit {
     private message: NzMessageService,
     private modal: NzModalService,
     private modalService: NgbModal,
+    private activeModal: NgbActiveModal,
     private projectHistoryProblemService: ProjectHistoryProblemService,
     private projectWorkerService: ProjectWorkerService,
     private projectService: ProjectService
@@ -1510,6 +1511,6 @@ export class ProjectHistoryProblemComponent implements OnInit, AfterViewInit {
   }
 
   onCloseModal(): void {
-    this.modalService.dismissAll();
+    this.activeModal.dismiss();
   }
 }

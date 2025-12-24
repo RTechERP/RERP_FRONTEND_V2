@@ -5,10 +5,12 @@
                 <div class="card-header bg-white p-1">
                     <div class="d-flex justify-content-between align-items-center">
                         <h6 class="m-0 ms-2">Tìm kiếm</h6>
-                        <button class="border-0 me-2" nz-button nzSize="small" nzType="default" nzDanger
+                        <button type="button" class="btn-close" (click)="toggleSearchPanel()" aria-label="Close"
+                            style="background-color:lightcyan !important; font-weight: bold;"></button>
+                        <!-- <button class="border-0 me-2" nz-button nzSize="small" nzType="default" nzDanger
                             (click)="toggleSearchPanel()">
                             <nz-icon nzType="close" nzTheme="outline" />
-                        </button>
+                        </button> -->
                     </div>
                 </div>
                 <div class="card-body">
@@ -40,8 +42,8 @@
                                     nzPlaceHolder="Chọn dự án" [(ngModel)]="projectId">
                                     <!-- Nội dung option của bạn ở đây -->
                                     @for (item of projects; track $index) {
-                                    <nz-option nzCustomContent="true" [nzLabel]="item.ProjectCode + ' - ' + item.ProjectName"
-                                        [nzValue]="item.ID">{{
+                                    <nz-option nzCustomContent="true"
+                                        [nzLabel]="item.ProjectCode + ' - ' + item.ProjectName" [nzValue]="item.ID">{{
                                         item.ProjectCode + " - " + item.ProjectName
                                         }}</nz-option>
                                     }
@@ -57,8 +59,7 @@
                                     nzPlaceHolder="Chọn nhà cung cấp" [(ngModel)]="supplierId">
                                     <!-- Nội dung option của bạn ở đây -->
                                     @for (item of suppliers; track $index) {
-                                    <nz-option nzCustomContent="true" [nzLabel]="item.CodeNCC"
-                                        [nzValue]="item.ID">{{
+                                    <nz-option nzCustomContent="true" [nzLabel]="item.CodeNCC" [nzValue]="item.ID">{{
                                         item.CodeNCC
                                         }}</nz-option>
                                     }
@@ -71,7 +72,8 @@
                     <button nz-button nzType="default" nzSize="small" (click)="resetSearch()">
                         Đặt lại
                     </button>
-                    <button nz-button nzType="primary" nzSize="small" (click)="getPriceHistoryPartlist()">Tìm kiếm</button>
+                    <button nz-button nzType="primary" nzSize="small" (click)="getPriceHistoryPartlist()">Tìm
+                        kiếm</button>
                 </div>
             </div>
         </nz-splitter-panel>
@@ -87,20 +89,13 @@
                             <img src="assets/icon/action_export_excel_16.png" alt="Xuất Excel" class="me-1" />Xuất excel
                         </button>
                     </div>
-                    
+
                     <!-- Bên phải: Tìm kiếm -->
                     <div class="d-flex gap-1 align-items-center">
-                        <input
-                            nz-input
-                            nzSize="small"
-                            nzAllowClear
-                            placeholder="Nhập từ khóa"
-                            style="width: 250px"
-                            [(ngModel)]="keyword"
-                            (keyup.enter)="getPriceHistoryPartlist()"
-                           
-                        />
-                        <button nz-button nzType="default" nzSize="small" (click)="getPriceHistoryPartlist()" class="btn">
+                        <input nz-input nzSize="small" nzAllowClear placeholder="Nhập từ khóa" style="width: 250px"
+                            [(ngModel)]="keyword" (keyup.enter)="getPriceHistoryPartlist()" />
+                        <button nz-button nzType="default" nzSize="small" (click)="getPriceHistoryPartlist()"
+                            class="btn">
                             <nz-icon nzType="search" />
                         </button>
                     </div>

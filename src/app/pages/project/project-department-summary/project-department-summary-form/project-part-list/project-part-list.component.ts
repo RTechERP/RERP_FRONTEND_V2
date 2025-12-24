@@ -170,6 +170,7 @@ export class ProjectPartListComponent implements OnInit, AfterViewInit {
     isTogglingChildren: boolean = false; // Flag để tránh vòng lặp vô hạn khi toggle children
     previousSelectedRows: Set<number> = new Set(); // Lưu lại các row đã được chọn trước đó
     independentlyDeselectedNodes: Set<number> = new Set(); // Lưu các node đã được bỏ chọn độc lập (không tự động chọn lại)
+    savedSelectedRowIds: Set<number> = new Set(); // Lưu các row ID đã được chọn trước khi reload data
     dataSolution: any[] = [];
     dataSolutionVersion: any[] = [];
     dataPOVersion: any[] = [];
@@ -361,26 +362,23 @@ export class ProjectPartListComponent implements OnInit, AfterViewInit {
                     console.log('dataSolution', response.data);
                     this.dataSolution = response.data || [];
                     if (this.dataSolution && this.dataSolution.length > 0) {
-                        this.projectSolutionId = this.dataSolution[0].ID;
+                        // Chỉ set data cho bảng giải pháp, KHÔNG tự động load version
+                        // User phải click chọn 1 dòng giải pháp thì mới load version
                         if (this.tb_solution) {
                             this.tb_solution.setData(this.dataSolution);
                         }
-                        // Dừng loading của loadDataSolution trước khi gọi 2 hàm con
-                        this.stopLoading();
-                        // Gọi 2 hàm load version, loading sẽ được quản lý trong các hàm đó
-                        // Chỉ load phiên bản giải pháp khi không phải PO KH
-                        if (!this.isPOKH) {
-                            this.loadDataProjectPartListVersion();
-                        }
-                        this.loadDataProjectPartListVersionPO();
+                        // Reset projectSolutionId về 0 vì chưa có dòng nào được chọn
+                        this.projectSolutionId = 0;
                     } else {
                         this.dataSolution = [];
                         if (this.tb_solution) {
                             this.tb_solution.setData([]);
                         }
                         this.projectSolutionId = 0;
-                        this.stopLoading();
                     }
+                    // Reset các bảng version và partlist về rỗng vì chưa có dòng nào được chọn
+                    this.resetVersionAndPartlistTables();
+                    this.stopLoading();
                 } else {
                     this.notification.error('Lỗi', response.message);
                     this.stopLoading();
@@ -392,6 +390,41 @@ export class ProjectPartListComponent implements OnInit, AfterViewInit {
                 this.stopLoading();
             },
         });
+    }
+    
+    // Reset các bảng version và partlist về rỗng
+    private resetVersionAndPartlistTables(): void {
+        // Reset bảng phiên bản giải pháp
+        this.dataSolutionVersion = [];
+        if (this.tb_projectPartListVersion) {
+            this.tb_projectPartListVersion.setData([]);
+        }
+        // Reset bảng phiên bản PO
+        this.dataPOVersion = [];
+        if (this.tb_projectPartListVersionPO) {
+            this.tb_projectPartListVersionPO.setData([]);
+        }
+        // Reset bảng partlist
+        this.resetPartlistTable();
+    }
+    
+    // Reset bảng partlist về rỗng
+    private resetPartlistTable(): void {
+        this.dataProjectWorker = [];
+        this.treeWorkerData = [];
+        if (this.tb_projectWorker) {
+            this.tb_projectWorker.setData([]);
+        }
+        // Reset các biến liên quan đến version đã chọn
+        this.type = 0;
+        this.versionID = 0;
+        this.versionPOID = 0;
+        this.selectionCode = '';
+        this.projectTypeID = 0;
+        this.projectTypeName = '';
+        this.CodeName = '';
+        // Xóa các selection đã lưu khi reset bảng
+        this.clearSavedSelectedRows();
     }
     loadDataProjectPartListVersion(): void {
         // Nếu là PO KH, không cần load phiên bản giải pháp
@@ -464,6 +497,10 @@ export class ProjectPartListComponent implements OnInit, AfterViewInit {
             setTimeout(() => this.loadDataProjectPartList(), 100);
             return;
         }
+        
+        // Lưu lại các row đã được chọn trước khi reload
+        this.saveSelectedRows();
+        
         // Lấy versionID từ bảng đã chọn
         let selectedVersionID: number = 0;
         let projectTypeID: number = 0;
@@ -516,6 +553,8 @@ export class ProjectPartListComponent implements OnInit, AfterViewInit {
                             setTimeout(() => {
                                 this.applyDeletedRowStyle();
                                 this.applyCellColors();
+                                // Khôi phục các row đã được chọn trước đó
+                                this.restoreSelectedRows();
                                 this.stopLoading();
                             }, 100);
                         });
@@ -532,6 +571,72 @@ export class ProjectPartListComponent implements OnInit, AfterViewInit {
                 this.stopLoading();
             }
         });
+    }
+    
+    // Lưu các row đã được chọn trước khi reload
+    private saveSelectedRows(): void {
+        if (!this.tb_projectWorker) return;
+        
+        try {
+            const selectedRows = this.tb_projectWorker.getSelectedData();
+            if (selectedRows && selectedRows.length > 0) {
+                selectedRows.forEach((row: any) => {
+                    if (row.ID) {
+                        this.savedSelectedRowIds.add(row.ID);
+                    }
+                });
+            }
+        } catch (e) {
+            console.warn('Không thể lưu các row đã chọn:', e);
+        }
+    }
+    
+    // Khôi phục các row đã được chọn sau khi reload
+    private restoreSelectedRows(): void {
+        if (!this.tb_projectWorker || this.savedSelectedRowIds.size === 0) return;
+        
+        try {
+            // Tạm thời disable event listener để tránh trigger lại toggle children
+            this.isTogglingChildren = true;
+            
+            // Lấy tất cả rows bao gồm cả nested children
+            const selectRowsRecursive = (rows: any[]) => {
+                rows.forEach((row: any) => {
+                    const rowData = row.getData();
+                    if (rowData.ID && this.savedSelectedRowIds.has(rowData.ID)) {
+                        row.select();
+                        // Cũng thêm vào previousSelectedRows để logic toggle children hoạt động đúng
+                        this.previousSelectedRows.add(rowData.ID);
+                    }
+                    
+                    // Xử lý các children (tree data)
+                    try {
+                        const children = row.getTreeChildren();
+                        if (children && children.length > 0) {
+                            selectRowsRecursive(children);
+                        }
+                    } catch (e) {
+                        // Không có children hoặc không hỗ trợ getTreeChildren
+                    }
+                });
+            };
+            
+            const allRows = this.tb_projectWorker.getRows();
+            selectRowsRecursive(allRows);
+            
+            // Re-enable event listener
+            this.isTogglingChildren = false;
+        } catch (e) {
+            console.warn('Không thể khôi phục các row đã chọn:', e);
+            this.isTogglingChildren = false;
+        }
+    }
+    
+    // Xóa các row đã lưu (gọi khi muốn reset selection hoàn toàn)
+    clearSavedSelectedRows(): void {
+        this.savedSelectedRowIds.clear();
+        this.previousSelectedRows.clear();
+        this.independentlyDeselectedNodes.clear();
     }
     //#endregion
     //#region cập nhật trạng thái duyệt TBP
@@ -2493,14 +2598,31 @@ export class ProjectPartListComponent implements OnInit, AfterViewInit {
         });
         this.tb_solution.on('rowClick', (e: any, row: any) => {
             console.log('row', row);
-            const data = row.getData();
-            this.projectSolutionId = data.ID;
-            this.selectionProjectSolutionName = data.CodeSolution;
-            this.loadDataProjectPartListVersion();
-            this.loadDataProjectPartListVersionPO();
-            this.dataProjectWorker = [];
-            if (this.tb_projectWorker) {
-                this.tb_projectWorker.setData([]);
+            // Kiểm tra nếu row đang được chọn hay bị bỏ chọn
+            const isSelected = row.isSelected();
+            
+            if (isSelected) {
+                // Row được chọn - load dữ liệu phiên bản
+                const data = row.getData();
+                this.projectSolutionId = data.ID;
+                this.selectionProjectSolutionName = data.CodeSolution;
+                // Load phiên bản giải pháp và phiên bản PO
+                if (!this.isPOKH) {
+                    this.loadDataProjectPartListVersion();
+                }
+                this.loadDataProjectPartListVersionPO();
+                // Reset bảng partlist vì chưa chọn phiên bản nào
+                this.resetPartlistTable();
+            } else {
+                // Row bị bỏ chọn - kiểm tra xem còn row nào được chọn không
+                const selectedRows = this.tb_solution.getSelectedRows();
+                if (selectedRows.length === 0) {
+                    // Không còn row nào được chọn - reset tất cả
+                    this.projectSolutionId = 0;
+                    this.selectionProjectSolutionName = '';
+                    // Reset các bảng version và partlist về rỗng
+                    this.resetVersionAndPartlistTables();
+                }
             }
         });
     }
@@ -2615,32 +2737,24 @@ export class ProjectPartListComponent implements OnInit, AfterViewInit {
                 this.projectTypeName = data.ProjectTypeName;
                 this.type = 1; // Giải pháp
                 this.CodeName = data.Code;
-                const selectedRows = this.tb_projectPartListVersionPO.getSelectedRows();
-                selectedRows.forEach((selectedRow: any) => {
-                    selectedRow.deselect();
-                });
+                // Bỏ chọn tất cả các dòng đã chọn trong bảng PO version
+                if (this.tb_projectPartListVersionPO) {
+                    const selectedRows = this.tb_projectPartListVersionPO.getSelectedRows();
+                    selectedRows.forEach((selectedRow: any) => {
+                        selectedRow.deselect();
+                    });
+                }
+                // Xóa các selection đã lưu khi chuyển version
+                this.clearSavedSelectedRows();
                 this.toggleTBPColumn();
                 this.loadDataProjectPartList();
             } else {
                 // Row bị bỏ chọn - reset các biến về giá trị mặc định
                 const selectedRows = this.tb_projectPartListVersion.getSelectedRows();
                 if (selectedRows.length === 0) {
-                    // Không còn row nào được chọn
-                    this.type = 0;
-                    this.versionID = 0;
-                    this.versionPOID = 0;
-                    this.selectionCode = '';
-                    this.projectTypeID = 0;
-                    this.projectTypeName = '';
-                    this.projectCode = '';
-                    this.CodeName = '';
-                    console.log('type reset to:', this.type);
+                    // Không còn row nào được chọn - reset bảng partlist
+                    this.resetPartlistTable();
                     this.toggleTBPColumn();
-                    //  this.loadDataProjectPartList();
-                    this.dataProjectWorker = [];
-                    if (this.tb_projectWorker) {
-                        this.tb_projectWorker.setData([]);
-                    }
                 }
             }
         });
@@ -2786,28 +2900,17 @@ export class ProjectPartListComponent implements OnInit, AfterViewInit {
                     });
                 }
                 console.log('type', this.type);
+                // Xóa các selection đã lưu khi chuyển version
+                this.clearSavedSelectedRows();
                 this.toggleTBPColumn();
                 this.loadDataProjectPartList();
             } else {
                 // Row bị bỏ chọn - reset các biến về giá trị mặc định
                 const selectedRows = this.tb_projectPartListVersionPO.getSelectedRows();
                 if (selectedRows.length === 0) {
-                    // Không còn row nào được chọn
-                    this.type = 0;
-                    this.versionID = 0;
-                    this.versionPOID = 0;
-                    this.selectionCode = '';
-                    this.projectTypeID = 0;
-                    this.projectTypeName = '';
-                    this.projectCode = '';
-                    this.CodeName = '';
-                    console.log('type reset to:', this.type);
+                    // Không còn row nào được chọn - reset bảng partlist
+                    this.resetPartlistTable();
                     this.toggleTBPColumn();
-                    //  this.loadDataProjectPartList();
-                    this.dataProjectWorker = [];
-                    if (this.tb_projectWorker) {
-                        this.tb_projectWorker.setData([]);
-                    }
                 }
             }
         });

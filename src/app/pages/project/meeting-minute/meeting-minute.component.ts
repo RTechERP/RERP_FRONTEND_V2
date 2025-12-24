@@ -150,6 +150,7 @@ export class MeetingMinuteComponent implements OnInit, AfterViewInit {
   meetingTypeTable: Tabulator | null = null;
   meetingTypeData: any[] = [];
   sizeSearch: string = '0';
+  shouldShowSearchBar: boolean = false;
 
   meetingTypeGroupsData: any[] = [];
 
@@ -425,6 +426,7 @@ export class MeetingMinuteComponent implements OnInit, AfterViewInit {
   }
   toggleSearchPanel() {
     this.sizeSearch = this.sizeSearch == '0' ? '22%' : '0';
+    this.shouldShowSearchBar = !this.shouldShowSearchBar;
   }
 
   onAddMeetingMinutes(isEditmode: boolean) {

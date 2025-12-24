@@ -159,6 +159,7 @@ import { PonccNewComponent } from '../../../purchase/poncc-new/poncc-new.compone
 
 import { DailyReportThrComponent } from '../../../daily-report-thr/daily-report-thr.component';
 import { DailyReportLXCPComponent } from '../../../daily-report-lxcp/daily-report-lxcp.component';
+import { DailyReportMachineComponent } from '../../../daily-report-machine/daily-report-machine.component';
 import { EmployeeContactComponent } from '../../../hrm/employee/employee-contact/employee-contact.component';
 import { OverTimeSummaryPersonComponent } from '../../../hrm/over-time/over-time-summary-person/over-time-summary-person.component';
 @Injectable({
@@ -3057,15 +3058,23 @@ export class MenuService {
                             {
                                 kind: 'leaf',
                                 key: 'baocaocongviecagv',
-                                title: 'Phòng AGV - Cơ khí',
+                                title: 'Phòng AGV - Cơ Khí',
                                 isOpen: true,
-                                isPermission:
-                                    isAdmin ||
+                                isPermission:  isAdmin ||
                                     this.departmentAgvCokhis.includes(departmentID) ||
                                     this.userAllReportTechs.includes(id),
-                                comp: PersonComponent,
-                                router: '/baocaocongviec',
+                                comp: DailyReportMachineComponent,
                             },
+                            // {
+                            //     kind: 'leaf',
+                            //     key: 'baocaocongviecagv',
+                            //     title: 'Phòng AGV - Cơ khí',
+                            //     isOpen: true,
+                            //     isPermission:
+                            //        
+                            //     comp: PersonComponent,
+                            //     router: '/baocaocongviec',
+                            // },
                             {
                                 kind: 'group',
                                 key: 'dailyreportsale',

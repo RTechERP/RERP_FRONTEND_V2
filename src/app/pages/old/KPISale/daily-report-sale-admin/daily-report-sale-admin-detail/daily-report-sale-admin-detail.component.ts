@@ -94,7 +94,6 @@ import { DailyReportSaleAdminService } from '../daily-report-sale-admin-service/
     NzFormModule,
     CommonModule,
     NzTreeSelectModule,
-    HasPermissionDirective,
   ],
   templateUrl: './daily-report-sale-admin-detail.component.html',
   styleUrl: './daily-report-sale-admin-detail.component.css'
@@ -115,6 +114,11 @@ export class DailyReportSaleAdminDetailComponent implements OnInit, AfterViewIni
   projects: any[] = [];
   customers: any[] = [];
   isSaveEnabled: boolean = false; // Trạng thái enable/disable nút lưu
+
+  // Modal thêm loại báo cáo
+  showReportTypeModal: boolean = false;
+  reportTypeForm!: FormGroup;
+  isSavingReportType: boolean = false;
 
   // Column definitions cho popup
   employeePopupColumns: ColumnDefinition[] = [
@@ -148,10 +152,18 @@ export class DailyReportSaleAdminDetailComponent implements OnInit, AfterViewIni
     private dailyReportSaleAdminService: DailyReportSaleAdminService,
     private appUserService: AppUserService,
     private tabulatorPopupService: TabulatorPopupService
-  ) { }
+  ) { 
+    this.initReportTypeForm();
+  }
 
   closeModal(): void {
     this.activeModal.close();
+  }
+
+  initReportTypeForm(): void {
+    this.reportTypeForm = this.fb.group({
+      reportTypeName: ['', Validators.required]
+    });
   }
 
   ngOnInit(): void {
@@ -814,5 +826,51 @@ export class DailyReportSaleAdminDetailComponent implements OnInit, AfterViewIni
       cellElement
     );
     cellElement.classList.add('popup-open');
+  }
+
+  // Các hàm xử lý modal loại báo cáo
+  onAddReportType(): void {
+    // Reset form và mở modal
+    this.reportTypeForm.reset({
+      reportTypeName: ''
+    });
+    this.showReportTypeModal = true;
+  }
+
+  onReportTypeModalCancel(): void {
+    this.showReportTypeModal = false;
+    this.reportTypeForm.reset();
+  }
+
+  saveAndCloseReportType(): void {
+    if (this.reportTypeForm.invalid) {
+      // Đánh dấu các trường là touched để hiển thị lỗi
+      Object.values(this.reportTypeForm.controls).forEach(control => {
+        control.markAsTouched();
+      });
+      return;
+    }
+
+    this.isSavingReportType = true;
+    const reportTypeName = this.reportTypeForm.get('reportTypeName')?.value;
+
+    // Gọi API để lưu loại báo cáo
+    this.dailyReportSaleAdminService.saveReportType(reportTypeName).subscribe({
+      next: (response) => {
+        if (response.status === 1) {
+          this.notification.success('Thành công', 'Thêm loại báo cáo thành công!');
+          this.loadReportTypes(); // Load lại danh sách loại báo cáo
+          this.showReportTypeModal = false;
+          this.reportTypeForm.reset();
+        } else {
+          this.notification.error('Lỗi', response.message || 'Thêm loại báo cáo thất bại!');
+        }
+        this.isSavingReportType = false;
+      },
+      error: (error) => {
+        this.notification.error('Lỗi', 'Có lỗi xảy ra khi thêm loại báo cáo!');
+        this.isSavingReportType = false;
+      }
+    });
   }
 }

@@ -30,6 +30,14 @@ export class PoRequestBuyService {
       },
     });
   }
+
+  getPOKHProductForRequestBuy(id: number = 0): Observable<any> {
+    return this.http.get<any>(environment.host + 'api/POKH/' + 'get-pokh-detail-request-buy', {
+      params: {
+        id: id.toString(),
+      },
+    });
+  }
   getDepartments(): Observable<any> {
     return this.http.get<any>(environment.host + 'api/Department/' + 'get-all');
   }

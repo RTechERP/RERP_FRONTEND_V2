@@ -200,9 +200,9 @@ export class MainLayoutComponent implements OnInit, AfterViewInit {
 
         this.menuService.menuKey$.subscribe((x) => {
             this.menuKey = x;
-            console.log(this.menuKey);
+            console.log('menuKey$:', this.menuKey);
         });
-
+        console.log('menuKey ngOnInit:', this.menuKey);
         this.setOpenMenu(this.menuKey);
 
         // Khôi phục các tabs đã mở từ localStorage
@@ -266,17 +266,17 @@ export class MainLayoutComponent implements OnInit, AfterViewInit {
                 });
 
 
-                console.log(this.menus);
+                // console.log(this.menus);
 
-                this.layoutEvent.toggleMenu$.pipe(take(1)).subscribe(key => {
-                    // this.menuKey = key;
-                    if (key) this.toggleMenu(key);
+                // this.layoutEvent.toggleMenu$.pipe(take(1)).subscribe(key => {
+                //     // this.menuKey = key;
+                //     if (key) this.toggleMenu(key);
 
-                    this.menuService.menuKey$.subscribe((key) => {
-                        this.menuKey = key;
-                    });
-                    this.setOpenMenu(key);
-                });
+                //     this.menuService.menuKey$.subscribe((key) => {
+                //         this.menuKey = key;
+                //     });
+                //     this.setOpenMenu(key);
+                // });
             },
             error: (err) => {
                 this.notification.error(NOTIFICATION_TITLE.error, err?.error?.message || err?.message);
@@ -422,6 +422,8 @@ export class MainLayoutComponent implements OnInit, AfterViewInit {
     private setOpenMenu(key: string | null) {
         this.menus.forEach((m) => (m.isOpen = key !== null && m.key === key));
         // localStorage.setItem('openMenuKey', key ?? '');
+
+        console.log('setOpenMenu:', this.menus);
     }
 
     isMenuOpen = (key: string) =>

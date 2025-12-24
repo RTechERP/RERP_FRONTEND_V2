@@ -19,6 +19,8 @@ import { FormsModule } from '@angular/forms';
 import { MenuAppService } from '../../../pages/systems/menu-app/menu-app.service';
 import { environment } from '../../../../environments/environment';
 import { LayoutEventService } from '../../layout-event.service';
+import { TabsModule } from 'primeng/tabs';
+import { NzLayoutModule } from 'ng-zorro-antd/layout';
 
 @Component({
     selector: 'app-home-layout-new',
@@ -31,7 +33,9 @@ import { LayoutEventService } from '../../layout-event.service';
         NzDropDownModule,
         NzGridModule,
         NzCalendarModule,
-        RouterLink
+        RouterLink,
+        TabsModule,
+        NzLayoutModule
     ],
     templateUrl: './home-layout-new.component.html',
     styleUrl: './home-layout-new.component.css'
@@ -93,7 +97,7 @@ export class HomeLayoutNewComponent implements OnInit {
         public menuService: MenuService,
         public menuAppService: MenuAppService,
         private permissionService: PermissionService,
-        private layoutEvent: LayoutEventService
+
     ) { }
 
     ngOnInit(): void {
@@ -130,6 +134,7 @@ export class HomeLayoutNewComponent implements OnInit {
                         Router: item.Router == '' ? '#' : `${environment.baseHref}/${item.Router}`,
                         Icon: `${environment.host}api/share/software/icon/${item.Icon}`,
                         IsPermission: item.IsPermission,
+                        IsOpen: true,
                         ParentID: item.ParentID,
                         Children: []
                     });
@@ -147,7 +152,7 @@ export class HomeLayoutNewComponent implements OnInit {
                     }
                 });
 
-                console.log(this.menus);
+                console.log('this.menus:', this.menus);
 
                 this.menuApproves = this.menus.filter((x) => x.Code == 'appvovedperson')[0];
                 console.log('this.menuApproves:', this.menuApproves);

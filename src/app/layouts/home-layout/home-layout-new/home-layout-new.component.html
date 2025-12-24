@@ -48,18 +48,68 @@
     <div class="col-xl-3 col-md-6 col-sm-12 col-12 pt-2 fixed-col">
         <div class="card">
             <div class="card-header">
+                <h5 class="card-title m-0 text-uppercase fw-bold py-1">truy cập nhập</h5>
+            </div>
+
+            <div class="card-body p-0">
+                <ul class="list-group list-group-flush">
+                    @for (item of menuApproves.Children; track $index) {
+                    <li class="list-group-item border-0 border-bottom">
+                        <a class="text-uppercase text-dark">
+                            <img [src]="item.Icon">
+                            <span>{{item.Title}}</span>
+                        </a>
+                        <ul class="list-group">
+                            @for (c of item.Children; track $index) {
+                            <li class="list-group-item border-0"
+                                [ngClass]="{'border-bottom':$index < item.Children.length - 1,'':$index == item.Children.length - 1}">
+                                <a [href]="c.Router == '' ? '#' :  c.Router">
+                                    <img [src]="c.Icon">
+                                    <span> {{c.Title}}</span>
+                                </a>
+                            </li>
+                            }
+                        </ul>
+                    </li>
+                    }
+                </ul>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title m-0 text-uppercase fw-bold py-1">chức năng</h5>
+            </div>
+            <div class="card-body p-1">
+                @for (m of menus; track $index) {
+                <div class="gutter-example">
+                    <div nz-row [nzGutter]="[16, 16]">
+                        @for (m of menus; track $index) {
+                        <div nz-col class="gutter-row" [nzXs]="12" [nzMd]="8" [nzLg]="6" *ngIf="m.IsPermission"
+                            (click)="openModule(m.Code)">
+                            <div class="grid-config text-center py-2 shadow">
+                                <img width="64" [src]="m.Icon?.replace('24','64')" alt="">
+                                <p class="m-0 mt-2 fw-bold">{{m.Title}}</p>
+                            </div>
+                        </div>
+                        }
+                    </div>
+                </div>
+                }
+            </div>
+        </div>
+    </div>
+
+    <div class="col-xl-3 col-md-6 col-sm-12 col-12 pt-2 fixed-col">
+
+        <div class="card">
+            <div class="card-header">
                 <h5 class="card-title m-0 text-uppercase fw-bold py-1">duyệt cá nhân</h5>
             </div>
 
             <div class="card-body p-0">
                 <ul class="list-group list-group-flush">
                     @for (item of menuApproves.Children; track $index) {
-                    <!-- <li class="list-group-item border-0">
-                        <a [href]="item.Router == '' ? '#' :  '/rerpweb' + item.Router">
-                            <img [src]="item.Icon">
-                            <span> {{item.Title}} </span>
-                        </a>
-                    </li> -->
                     <li class="list-group-item border-0 border-bottom">
                         <a class="text-uppercase text-dark">
                             <img [src]="item.Icon">
@@ -90,10 +140,10 @@
 
             </div>
         </div>
+
     </div>
 
     <div class="col-xl-3 col-md-6 col-sm-12 col-12 pt-2 fixed-col">
-
         <div class="card">
             <div class="card-header">
                 <h5 class="card-title m-0 text-uppercase fw-bold py-1">Cá nhân</h5>
@@ -128,75 +178,13 @@
                                 </ul>
                             </li>
 
-                            <!-- <li class="list-group-item border-0"
-                                [ngClass]="{'border-bottom':$index < item.Children.length - 1,'':$index == item.Children.length - 1}">
-                                <a href="/rerpweb/datcom" (click)="handleClickLink($event, c.Router, c.Title)">
-                                    <img [src]="c.Icon">
-                                    <span> {{c.Title}}</span>
-                                </a>
-                            </li> -->
                             }
                         </ul>
                     </li>
                     }
 
-                    <!-- <li class="list-group-item border-0 border-bottom">
-                        <a class="text-uppercase text-dark">
-                            <img src="http://113.190.234.64:8083/api/PathImageMenu/icons8-cutlery-20.png">
-                            <span>đăng ký công</span>
-                        </a>
-                        <ul class="list-group">
-                            <li class="list-group-item border-0 border-bottom">
-                                <a (click)="openModule('')">
-                                    <img src="http://113.190.234.64:8083/api/PathImageMenu/icons8-cutlery-20.png">
-                                    <span>Đặt cơm</span>
-                                </a>
-                            </li>
-                            <li class="list-group-item border-0 border-bottom">A third item</li>
-                            <li class="list-group-item border-0 border-bottom">A fourth item</li>
-                            <li class="list-group-item border-0 border-bottom">And a fifth one</li>
-                        </ul>
-                    </li>
-                    <li class="list-group-item border-0 border-bottom">
-                        <a class="text-uppercase text-dark">
-                            <img src="http://113.190.234.64:8083/api/PathImageMenu/icons8-cutlery-20.png">
-                            <span>đăng ký chung</span>
-                        </a>
-                        <ul class="list-group">
-                            <li class="list-group-item border-0 border-bottom">
-                                <a (click)="openModule('')">
-                                    <img src="http://113.190.234.64:8083/api/PathImageMenu/icons8-cutlery-20.png">
-                                    <span>Đặt cơm</span>
-                                </a>
-                            </li>
-                            <li class="list-group-item border-0 border-bottom">A third item</li>
-                            <li class="list-group-item border-0 border-bottom">A fourth item</li>
-                            <li class="list-group-item border-0 border-bottom">And a fifth one</li>
-                        </ul>
-                    </li> -->
+
                 </ul>
-            </div>
-        </div>
-
-    </div>
-
-    <div class="col-xl-3 col-md-6 col-sm-12 col-12 pt-2 fixed-col">
-        <div class="card">
-            <div class="card-header d-flex align-items-center">
-                <h5 class="card-title m-0 text-uppercase fw-bold py-1">Lịch làm việc - {{calendarDate | date:'MM/yyyy'}}
-                </h5>
-                <span class="badge bg-danger ms-auto">Ngày nghỉ</span>
-            </div>
-            <div class="card-body p-0 pt-1">
-                <nz-calendar [nzFullscreen]="false" [(ngModel)]="calendarDate" [nzCustomHeader]=""
-                    [nzDateFullCell]="dateCell" (nzSelectChange)="onSelectChangeCalendar($event)">
-                </nz-calendar>
-
-                <ng-template #dateCell let-date>
-                    <div class="custom-date-cell" [ngClass]="{holiday: isHoliday(date) || isSaturday(date)}">
-                        {{ date.getDate() }}
-                    </div>
-                </ng-template>
             </div>
         </div>
 
@@ -225,58 +213,91 @@
 
     <div class="col-xl-3 col-md-6 col-sm-12 col-12 pt-2 fixed-col">
         <div class="card">
-            <div class="card-header">
-                <h5 class="card-title m-0 text-uppercase fw-bold py-1">
-                    Nghỉ {{totalEmployeeOnleave == 0 ?'':`(${totalEmployeeOnleave}) - ${today | date:'dd/MM/yyyy'}`}}
-                </h5>
-            </div>
-            <div class="card-body p-0">
-                <ul class="list-group list-group-flush">
-                    @for (item of employeeOnleaves; track $index) {
-                    <li class="list-group-item border-0 border-bottom">
-                        <details open>
-                            <summary class="fw-bold">{{item.DepartmentName}} ({{item.Employees.length}})
-                            </summary>
-                            <ul class="list-group">
-                                @for (e of item.Employees; track $index) {
-                                <li class="list-group-item border-0">
-                                    <span>{{$index + 1}}.{{e.EmployeeLeave}}{{e.TimeOnLeaveText}}</span>
+            <p-tabs value="0">
+                <p-tablist>
+                    <p-tab value="0" class="p-2">Nghỉ</p-tab>
+                    <p-tab value="1" class="p-2">WFH</p-tab>
+                </p-tablist>
+                <p-tabpanels class="p-0">
+                    <p-tabpanel value="0">
+                        <div class="card-body p-0">
+                            <ul class="list-group list-group-flush">
+                                @for (item of employeeOnleaves; track $index) {
+                                <li class="list-group-item border-0 border-bottom">
+                                    <details open>
+                                        <summary class="fw-bold">{{item.DepartmentName}} ({{item.Employees.length}})
+                                        </summary>
+                                        <ul class="list-group">
+                                            @for (e of item.Employees; track $index) {
+                                            <li class="list-group-item border-0">
+                                                <span>{{$index + 1}}.{{e.EmployeeLeave}}{{e.TimeOnLeaveText}}</span>
+                                            </li>
+                                            }
+                                        </ul>
+                                    </details>
+
                                 </li>
                                 }
                             </ul>
-                        </details>
+                        </div>
+                    </p-tabpanel>
+                    <p-tabpanel value="1">
+                        <div class="card-body p-0">
+                            <ul class="list-group list-group-flush">
+                                @for (item of employeeWfhs; track $index) {
+                                <li class="list-group-item border-0 border-bottom">
+                                    <details open>
+                                        <summary class="fw-bold">{{item.DepartmentName}} ({{item.Employees.length}})
+                                        </summary>
+                                        <ul class="list-group">
+                                            @for (e of item.Employees; track $index) {
+                                            <li class="list-group-item border-0">
+                                                <span>{{$index + 1}}.{{e.TimeWFHText}}{{e.IsApprovedBGDText}}</span>
+                                            </li>
+                                            }
+                                        </ul>
+                                    </details>
 
-                    </li>
-                    }
-                </ul>
-            </div>
+                                </li>
+                                }
+                            </ul>
+                        </div>
+                    </p-tabpanel>
+
+                </p-tabpanels>
+            </p-tabs>
+            <!-- <div class="card-header">
+                <h5 class="card-title m-0 text-uppercase fw-bold py-1">
+                    Nghỉ {{totalEmployeeOnleave == 0 ?'':`(${totalEmployeeOnleave}) - ${today | date:'dd/MM/yyyy'}`}}
+                </h5>
+            </div> -->
+
         </div>
 
-        <div class="card">
+        <!-- <div class="card">
             <div class="card-header">
                 <h5 class="card-title m-0 text-uppercase fw-bold py-1">
                     WFH {{totalEmployeeWfh == 0 ?'':`(${totalEmployeeWfh}) - ${today | date:'dd/MM/yyyy'}`}}
                 </h5>
             </div>
-            <div class="card-body p-0">
-                <ul class="list-group list-group-flush">
-                    @for (item of employeeWfhs; track $index) {
-                    <li class="list-group-item border-0 border-bottom">
-                        <details open>
-                            <summary class="fw-bold">{{item.DepartmentName}} ({{item.Employees.length}})
-                            </summary>
-                            <ul class="list-group">
-                                @for (e of item.Employees; track $index) {
-                                <li class="list-group-item border-0">
-                                    <span>{{$index + 1}}.{{e.TimeWFHText}}{{e.IsApprovedBGDText}}</span>
-                                </li>
-                                }
-                            </ul>
-                        </details>
 
-                    </li>
-                    }
-                </ul>
+        </div> -->
+        <div class="card">
+            <div class="card-header d-flex align-items-center">
+                <h5 class="card-title m-0 text-uppercase fw-bold py-1">Lịch làm việc - {{calendarDate | date:'MM/yyyy'}}
+                </h5>
+                <span class="badge bg-danger ms-auto">Ngày nghỉ</span>
+            </div>
+            <div class="card-body p-0 pt-1">
+                <nz-calendar [nzFullscreen]="false" [(ngModel)]="calendarDate" [nzCustomHeader]=""
+                    [nzDateFullCell]="dateCell" (nzSelectChange)="onSelectChangeCalendar($event)">
+                </nz-calendar>
+
+                <ng-template #dateCell let-date>
+                    <div class="custom-date-cell" [ngClass]="{holiday: isHoliday(date) || isSaturday(date)}">
+                        {{ date.getDate() }}
+                    </div>
+                </ng-template>
             </div>
         </div>
 

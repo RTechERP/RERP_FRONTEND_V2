@@ -2,6 +2,6 @@
     padding: 0.5rem !important;
 }
 
-::ng-deep .ant-form-item{
+ .ant-form-item{
     margin: 0 !important;
 }

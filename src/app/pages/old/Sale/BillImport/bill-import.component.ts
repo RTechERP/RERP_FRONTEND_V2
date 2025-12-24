@@ -52,6 +52,7 @@ import { NOTIFICATION_TITLE } from '../../../../app.config';
 import { HasPermissionDirective } from '../../../../directives/has-permission.directive';
 import { environment } from '../../../../../environments/environment';
 import { PermissionService } from '../../../../services/permission.service';
+import { ActivatedRoute } from '@angular/router';
 
 interface BillImport {
     Id?: number;
@@ -109,7 +110,7 @@ export class BillImportComponent implements OnInit, AfterViewInit {
         private modalService: NgbModal,
         private appUserService: AppUserService,
         private permissionService: PermissionService,
-        @Optional() @Inject('tabData') private tabData: any
+        private route: ActivatedRoute
     ) { }
     wareHouseCode: string = 'HN';
     newBillImport: BillImport = {
@@ -178,11 +179,16 @@ export class BillImportComponent implements OnInit, AfterViewInit {
         { ID: 4, Name: 'Yêu cầu nhập kho' },
     ];
     ngOnInit(): void {
-        if (this.tabData?.warehouseCode) {
-            this.wareHouseCode = this.tabData.warehouseCode;
-            // Cập nhật searchParams với giá trị từ tabData
+        // if (this.tabData?.warehouseCode) {
+        //     this.wareHouseCode = this.tabData.warehouseCode;
+        //     // Cập nhật searchParams với giá trị từ tabData
+        //     this.searchParams.warehousecode = this.wareHouseCode;
+        // }
+
+        this.route.queryParams.subscribe(params => {
+            this.wareHouseCode = params['warehouseCode'] || 'HN';
             this.searchParams.warehousecode = this.wareHouseCode;
-        }
+        });
         this.getProductGroup();
     }
     ngAfterViewInit(): void {

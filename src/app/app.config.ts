@@ -3,7 +3,7 @@ import {
     provideZoneChangeDetection,
     importProvidersFrom,
 } from '@angular/core';
-import { provideRouter } from '@angular/router';
+import { provideRouter, RouteReuseStrategy } from '@angular/router';
 import { routes } from './app.routes';
 import { icons } from './icons-provider';
 import { provideNzIcons } from 'ng-zorro-antd/icon';
@@ -22,6 +22,7 @@ import Aura from '@primeuix/themes/aura'
 
 import { AngularSlickgridModule } from 'angular-slickgrid';
 import { TranslateModule } from '@ngx-translate/core';
+import { CustomRouteReuseStrategy } from './custom-route-reuse.strategy';
 
 registerLocaleData(vi);
 
@@ -51,6 +52,8 @@ export const appConfig: ApplicationConfig = {
         importProvidersFrom(TranslateModule.forRoot({
             defaultLanguage: 'vi',
         })),
+
+        { provide: RouteReuseStrategy, useClass: CustomRouteReuseStrategy }
 
     ],
 };

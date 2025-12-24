@@ -1,52 +1,44 @@
 import { inject, NgZone } from '@angular/core';
-import { CommonModule, formatCurrency } from '@angular/common';
+import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { NgbModal, NgbModalModule } from '@ng-bootstrap/ng-bootstrap';
 import {
   AfterViewInit,
   Component,
-  OnInit,
-  ViewEncapsulation,
-  ViewChild,
-  ElementRef,
-  Input,
+  OnInit
 } from '@angular/core';
 import { NzCardModule } from 'ng-zorro-antd/card';
-import { NzButtonModule, NzButtonSize } from 'ng-zorro-antd/button';
+import { NzButtonModule } from 'ng-zorro-antd/button';
 import { NzIconModule } from 'ng-zorro-antd/icon';
 import { NzRadioModule } from 'ng-zorro-antd/radio';
 import { NzSpaceModule } from 'ng-zorro-antd/space';
 import { NzLayoutModule } from 'ng-zorro-antd/layout';
-import { NzFlexModule, NzWrap } from 'ng-zorro-antd/flex';
-import { NzDrawerModule, NzDrawerPlacement } from 'ng-zorro-antd/drawer';
+import { NzFlexModule } from 'ng-zorro-antd/flex';
+import { NzDrawerModule } from 'ng-zorro-antd/drawer';
 import { NzSplitterModule } from 'ng-zorro-antd/splitter';
 import { NzGridModule } from 'ng-zorro-antd/grid';
 import { NzDatePickerModule } from 'ng-zorro-antd/date-picker';
 import { NzAutocompleteModule } from 'ng-zorro-antd/auto-complete';
 import { NzInputModule } from 'ng-zorro-antd/input';
-import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { NzSelectModule } from 'ng-zorro-antd/select';
 import { NzTableModule } from 'ng-zorro-antd/table';
 import {
-  TabulatorFull as Tabulator,
-  CellComponent,
-  ColumnDefinition,
-  RowComponent,
-} from 'tabulator-tables';
-import 'tabulator-tables/dist/css/tabulator_simple.min.css';
-import { ApplicationRef, createComponent, Type } from '@angular/core';
-import { setThrowInvalidWriteToSignalError } from '@angular/core/primitives/signals';
-import { EnvironmentInjector } from '@angular/core';
+  AngularGridInstance,
+  AngularSlickgridModule,
+  Column,
+  Filters,
+  Formatters,
+  GridOption,
+  OnClickEventArgs,
+  OnSelectedRowsChangedEventArgs
+} from 'angular-slickgrid';
 import { NzTabsModule } from 'ng-zorro-antd/tabs';
 import { TsAssetLiquidationComponent } from './ts-asset-liquidation/ts-asset-liquidation.component';
 import { DateTime } from 'luxon';
 import * as ExcelJS from 'exceljs';
 import { TsAssetManagementPersonalService } from '../../../../old/ts-asset-management-personal/ts-asset-management-personal-service/ts-asset-management-personal.service';
-import { updateCSS } from 'ng-zorro-antd/core/util';
 import { NzNotificationService } from 'ng-zorro-antd/notification';
-import { log } from 'ng-zorro-antd/core/logger';
 import { AssetStatusService } from '../ts-asset-status/ts-asset-status-service/ts-asset-status.service';
-import { UnitService } from '../ts-asset-unitcount/ts-asset-unit-service/ts-asset-unit.service';
 import { AssetsManagementService } from './ts-asset-management-service/ts-asset-management.service';
 import { TsAssetManagementFormComponent } from './ts-asset-management-form/ts-asset-management-form.component';
 import { TsAssetManagementReportBorkenFormComponent } from './ts-asset-management-report-borken-form/ts-asset-management-report-borken-form.component';
@@ -55,17 +47,11 @@ import { TsAssetManagementImportExcelComponent } from './ts-asset-management-imp
 import { TsAssetProposeLiquidationFormComponent } from './ts-asset-propose-liquidation-form/ts-asset-propose-liquidation-form.component';
 import { TsAssetRepairFormComponent } from './ts-asset-repair-form/ts-asset-repair-form.component';
 import { TsAssetReuseFormComponent } from './ts-asset-reuse-form/ts-asset-reuse-form.component';
-import { DEFAULT_TABLE_CONFIG } from '../../../../../tabulator-default.config';
-import { count, take } from 'rxjs';
 import { HasPermissionDirective } from '../../../../../directives/has-permission.directive';
 import { TsAssetSourceFormComponent } from '../ts-asset-source/ts-asset-source-form/ts-asset-source-form.component';
 import { NzDropDownModule } from 'ng-zorro-antd/dropdown';
 import { NzModalModule, NzModalService } from 'ng-zorro-antd/modal';
 import { NOTIFICATION_TITLE } from '../../../../../app.config';
-function formatDateCell(cell: CellComponent): string {
-  const val = cell.getValue();
-  return val ? DateTime.fromISO(val).toFormat('dd/MM/yyyy') : '';
-}
 @Component({
   standalone: true,
   imports: [
@@ -90,33 +76,36 @@ function formatDateCell(cell: CellComponent): string {
     NgbModalModule,
     HasPermissionDirective,
     NzModalModule,
-    NzDropDownModule
-
+    NzDropDownModule,
+    AngularSlickgridModule
   ],
   selector: 'app-ts-asset-management',
   templateUrl: './ts-asset-management.component.html',
   styleUrls: ['./ts-asset-management.component.css'],
 })
 export class TsAssetManagementComponent implements OnInit, AfterViewInit {
-  @ViewChild('datatableManagement', { static: false })
-  datatableManagementRef!: ElementRef;
+  // SlickGrid instances
+  angularGrid!: AngularGridInstance;
+  angularGridDetail!: AngularGridInstance;
+  gridData: any;
+  gridDetailData: any;
 
-  @ViewChild('datatableEmployee', { static: false })
-  datatableEmployeeRef!: ElementRef;
-  constructor(
-    private ngZone: NgZone,
-    private modal: NzModalService,
-    private notification: NzNotificationService,
-    private assetManagementService: AssetsManagementService,
-    private assetManagementPersonalService: TsAssetManagementPersonalService,
-    private assetStatusService: AssetStatusService
-  ) { }
+  // Column definitions
+  columnDefinitions: Column[] = [];
+  columnDefinitionsDetail: Column[] = [];
+
+  // Grid options
+  gridOptions: GridOption = {};
+  gridOptionsDetail: GridOption = {};
+
+  // Datasets
+  dataset: any[] = [];
+  datasetDetail: any[] = [];
+
   public detailTabTitle: string = 'Thông tin cấp phát biên bản:';
   selectedRow: any = '';
   modalData: any = [];
   private ngbModal = inject(NgbModal);
-  assetTable: Tabulator | null = null;
-  assetDetailtable: Tabulator | null = null;
   assetManagementDetail: any[] = [];
   assetData: any[] = [];
   isSearchVisible: boolean = false;
@@ -136,36 +125,47 @@ export class TsAssetManagementComponent implements OnInit, AfterViewInit {
   statusData: any[] = [];
   repairData: any[] = [];
    private resizeHandler = () => this.onResize();
-  ngOnInit() { }
+
+  constructor(
+    private ngZone: NgZone,
+    private modal: NzModalService,
+    private notification: NzNotificationService,
+    private assetManagementService: AssetsManagementService,
+    private assetManagementPersonalService: TsAssetManagementPersonalService,
+    private assetStatusService: AssetStatusService
+  ) { }
+  ngOnInit() {
+    this.initGrid();
+    this.initGridDetail();
+  }
+
   ngAfterViewInit(): void {
     this.updateIsMobile();
  window.addEventListener('resize', this.resizeHandler);
 
-    this.drawTable();
-    this.getAssetmanagement();
+   
     this.getListEmployee();
     this.getStatus();
     this.getDepartment();
-    // Khởi tạo bảng detail rỗng ngay từ đầu
-    setTimeout(() => {
-      this.drawEmployeeTable();
-    }, 100);
   }
+
     /** Hàm xác định đang là mobile hay desktop */
   private updateIsMobile() {
     this.isMobile = window.innerWidth <= 768;
   }
+
   private onResize() {
     const wasMobile = this.isMobile;
     this.updateIsMobile();
 
-    // Chỉ khi nào qua breakpoint mobile <-> desktop mới destroy + redraw
+    // SlickGrid tự động resize khi có autoResize enabled
     if (wasMobile !== this.isMobile) {
-      if (this.assetTable) {
-        this.assetTable.destroy();
-        this.assetTable = null;
+      if (this.angularGrid && this.angularGrid.resizerService) {
+        this.angularGrid.resizerService.resizeGrid();
       }
-      this.drawTable();
+      if (this.angularGridDetail && this.angularGridDetail.resizerService) {
+        this.angularGridDetail.resizerService.resizeGrid();
+      }
     }
   }
 
@@ -192,8 +192,12 @@ export class TsAssetManagementComponent implements OnInit, AfterViewInit {
     this.assetManagementService.getAsset(request).subscribe({
       next: (response) => {
         this.assetData = response.data?.assets || [];
-        console.log(this.assetData);
-        this.drawTable();
+        this.dataset = this.assetData.map((item, index) => ({
+          ...item,
+          id: item.ID, // SlickGrid requires lowercase 'id' property
+          STT: index + 1
+        }));
+        console.log('this.dataset:',this.dataset);
       },
       error: (err) => {
         console.error('Lỗi khi lấy dữ liệu tài sản:', err);
@@ -257,521 +261,591 @@ export class TsAssetManagementComponent implements OnInit, AfterViewInit {
   onFilterChange(): void {
     this.getAssetmanagement();
   }
-  public drawTable(): void {
-    if (!this.datatableManagementRef) {
-      return;
-    }
+  initGrid() {
+    // Format date helper
+    const formatDate = (row: number, cell: number, value: any) => {
+      if (!value) return '';
+      try {
+        // Thử parse từ nhiều format
+        let dateValue = DateTime.fromISO(value);
+        if (!dateValue.isValid) {
+          // Thử format yyyy-MM-dd
+          dateValue = DateTime.fromFormat(value, 'yyyy-MM-dd');
+        }
+        if (!dateValue.isValid) {
+          // Thử format khác
+          dateValue = DateTime.fromFormat(value, 'dd/MM/yyyy');
+        }
+        return dateValue.isValid ? dateValue.toFormat('dd/MM/yyyy') : value;
+      } catch (e) {
+        return value;
+      }
+    };
 
-    if (this.assetTable) {
-      this.assetTable.setData(this.assetData);
-      return;
-    }
-    // const isMobile = window.innerWidth <= 768;
-    // console.log('ismobile', isMobile);
-    
-    this.assetTable = new Tabulator(this.datatableManagementRef.nativeElement, {
-      data: this.assetData,
-      ...DEFAULT_TABLE_CONFIG,
-      height: this.isMobile ?'100%':'53vh',
-    
+    // Status formatter
+    const statusFormatter = (row: number, cell: number, value: any, columnDef: Column, dataContext: any) => {
+      const statusId: number = Number(dataContext.StatusID ?? dataContext.StatusId ?? dataContext.statusId ?? dataContext.statusID ?? 0);
+      
+      const statusLabelMap: Record<number, string> = {
+        1: 'Chưa sử dụng',
+        2: 'Đã cấp phát',
+        3: 'Sữa chữa, Bảo dưỡng',
+        4: 'Mất',
+        5: 'Hỏng',
+        6: 'Thanh lý',
+        7: 'Đề nghị thanh lý',
+      };
 
-      paginationMode: 'local',
-      // layout: "fitDataFill",
-      // pagination: true,
-      // selectableRows: 1,
-      // height: '83vh',
-      // movableColumns: true,
-      // paginationSize: 30,
-      // paginationSizeSelector: [5, 10, 20, 50, 100],
-      // reactiveData: true,
-      // placeholder: 'Không có dữ liệu',
-      // dataTree: true,
-      // addRowPos: "bottom",
+      const label = statusLabelMap[statusId] ?? value ?? '';
+      
+      const statusColorMap: Record<number, string> = {
+        1: 'display: inline-block; width: 100px; text-align: center; background-color: #AAAAAA; color: #fff; border-radius: 5px; padding: 4px 8px;',
+        2: 'display: inline-block; width: 100px; text-align: center; background-color: #b4ecb4ff; color: #2cb55aff; border-radius: 5px; padding: 4px 8px;',
+        3: 'display: inline-block; width: 100px; text-align: center; background-color: #bcaa93ff; color: #c37031ff; border-radius: 5px; padding: 4px 8px;',
+        4: 'display: inline-block; width: 100px; text-align: center; background-color: #fbc4c4ff; color: #d40000ff; border-radius: 5px; padding: 4px 8px;',
+        5: 'display: inline-block; width: 100px; text-align: center; background-color: #cadfffff; color: #4147f2ff; border-radius: 5px; padding: 4px 8px;',
+        6: 'display: inline-block; width: 100px; text-align: center; background-color: #d4fbffff; color: #08aabfff; border-radius: 5px; padding: 4px 8px;',
+        7: 'display: inline-block; width: 100px; text-align: center; background-color: #fde3c1ff; color: #f79346ff; border-radius: 5px; padding: 4px 8px;',
+      };
 
+      const style = statusColorMap[statusId] || 'background-color: #e0e0e0; border-radius: 5px; padding: 4px 8px;';
+      return `<span style="${style}">${label}</span>`;
+    };
 
-      columns: [
-
-        {
-          title: 'Name',
-          field: 'Name',
-          hozAlign: 'center',
-          width: 70,
-          headerHozAlign: 'center',
-          visible: false,
-          frozen: !this.isMobile,
-        },
-        {
-          title: 'STT',
-          field: 'STT',
-          hozAlign: 'center',
-          width: 70,
-          headerHozAlign: 'center',
-          bottomCalc: 'count',
-          frozen: !this.isMobile,
-        },
-        {
-          title: 'UnitID',
-          field: 'UnitID',
-          hozAlign: 'center',
-          width: 70,
-          visible: false,
-          headerHozAlign: 'center',
-          frozen: !this.isMobile
-          ,
-        },
-        {
-          title: 'TSAssetID',
-          field: 'TSAssetID',
-          hozAlign: 'center',
-          width: 70,
-          visible: false,
-          headerHozAlign: 'center',
-          frozen: !this.isMobile,
-        },
-        {
-          title: 'SourceID',
-          field: 'SourceID',
-          hozAlign: 'center',
-          width: 70,
-          visible: false,
-          headerHozAlign: 'center',
-          frozen: !this.isMobile,
-        },
-        {
-          title: 'DepartmentID',
-          field: 'DepartmentID',
-          hozAlign: 'center',
-          visible: false,
-          width: 70,
-          headerHozAlign: 'center',
-          frozen: !this.isMobile,
-        },
-        {
-          title: 'ID',
-          field: 'ID',
-          hozAlign: 'center',
-          width: 70,
-          visible: false,
-          headerHozAlign: 'center',
-          frozen: !this.isMobile,
-        },
-        {
-          title: 'Mã tài sản',
+    this.columnDefinitions = [
+      { id: 'Name', name: 'Name', field: 'Name', type: 'string', width: 70, sortable: true, filterable: true, excludeFromExport: true, hidden: true},
+      { id: 'STT', name: 'STT', field: 'STT', type: 'number', width: 50, sortable: true, filterable: true, filter: { model: Filters['compoundInputNumber'] } ,  cssClass: 'text-center',},
+      { id: 'UnitID', name: 'UnitID', field: 'UnitID', type: 'number', width: 70, sortable: true, excludeFromExport: true , hidden: true},
+      { id: 'TSAssetID', name: 'TSAssetID', field: 'TSAssetID', type: 'number', width: 70, sortable: true, excludeFromExport: true , hidden: true},
+      { id: 'SourceID', name: 'SourceID', field: 'SourceID', type: 'number', width: 70, sortable: true, excludeFromExport: true , hidden: true},
+      { id: 'DepartmentID', name: 'DepartmentID', field: 'DepartmentID', type: 'number', width: 70, sortable: true, excludeFromExport: true , hidden: true},
+      { id: 'ID', name: 'ID', field: 'ID', type: 'number', width: 70, sortable: true, excludeFromExport: true , hidden: true},
+      { 
+        id: 'TSCodeNCC', 
+        name: 'Mã tài sản', 
           field: 'TSCodeNCC',
-          headerHozAlign: 'center',
-          hozAlign: 'left',
-          frozen: !this.isMobile,
-          headerFilter: 'input',
-        },
-        {
-          title: 'Office Active',
+        type: 'string', 
+        width: 150, 
+        sortable: true, 
+        filterable: true,
+        filter: { model: Filters['compoundInputText'] }
+      },
+      { 
+        id: 'OfficeActiveStatusText', 
+        name: 'Office Active', 
           field: 'OfficeActiveStatusText',
-          HeaderhozAlign: 'center',
-          hozAlign: 'left',
-          frozen: !this.isMobile,
-        },
-        {
-          title: 'Windows Active',
+        type: 'string', 
+        width: 120, 
+        sortable: true, 
+        filterable: true,
+        filter: { model: Filters['compoundInputText'] }
+        
+      },
+      { 
+        id: 'WindowActiveStatusText', 
+        name: 'Windows Active', 
           field: 'WindowActiveStatusText',
-          HeaderhozAlign: 'center',
-          hozAlign: 'left',
-          frozen: !this.isMobile,
-        },
-        {
-          title: 'Tên tài sản',
+        type: 'string', 
+        width: 120, 
+        sortable: true, 
+        filterable: true,
+        filter: { model: Filters['compoundInputText'] }
+      },
+      { 
+        id: 'TSAssetName', 
+        name: 'Tên tài sản', 
           field: 'TSAssetName',
-          headerHozAlign: 'center',
+        type: 'string', 
           width: 200,
-          // hozAlign: 'left',
-          formatter: 'textarea',
-          frozen: !this.isMobile,
-          headerFilter: 'input',
-        },
-        {
-          title: 'Seri',
-          field: 'Seri',
-          hozAlign: 'left',
-          headerFilter: 'input',
-        },
-        {
-          title: 'Đơn vị',
-          field: 'UnitName',
-          formatter: function (
-            cell: any,
-            formatterParams: any,
-            onRendered: any
-          ) {
-            let value = cell.getValue() || '';
-            return value;
-          },
-          headerHozAlign: 'center',
-          hozAlign: 'left',
-        },
-        {
-          title: 'Thông số',
-          field: 'SpecificationsAsset',
-          headerHozAlign: 'center',
-          width: 200,
-          // hozAlign: 'left',
-          formatter: 'textarea',
-          headerFilter: 'input',
-        },
-        {
-          title: 'Model',
-          field: 'Model',
-          headerHozAlign: 'center',
-          width: 200,
-          // hozAlign: 'left',
-          formatter: 'textarea',
-          headerFilter: 'input',
-        },
-        {
-          title: 'Ngày mua',
-          field: 'DateBuy',
-          headerHozAlign: 'center',
-          hozAlign: 'center',
-          formatter: formatDateCell,
-        },
-        {
-          title: 'Ngày hiệu lực',
-          field: 'DateEffect',
-          formatter: formatDateCell,
-          hozAlign: 'center',
-          headerHozAlign: 'center',
-        },
-        {
-          title: 'Bảo hành (tháng)',
-          field: 'Insurance',
-          headerHozAlign: 'center',
-          hozAlign: 'right',
-        },
-        {
-          title: 'Loại tài sản',
+        sortable: true, 
+        filterable: true,
+        filter: { model: Filters['compoundInputText'] }
+        ,cssClass: 'cell-wrap',
+      },
+      { 
+        id: 'AssetCode', 
+        name: 'Mã loại tài sản', 
+          field: 'AssetCode',
+        type: 'string', 
+          width: 120,
+        sortable: true, 
+        filterable: true,
+        filter: { model: Filters['compoundInputText'] }
+        ,cssClass: 'cell-wrap',
+      },
+      { 
+        id: 'AssetType', 
+        name: 'Tên loại tài sản', 
           field: 'AssetType',
-          formatter: function (
-            cell: any,
-            formatterParams: any,
-            onRendered: any
-          ) {
-            let value = cell.getValue() || '';
-            return value;
-          },
-          headerHozAlign: 'center',
-          hozAlign: 'left',
-        },
-        {
-          title: 'Phòng ban',
-          field: 'Name',
-          hozAlign: 'left',
-        },
-        {
-          title: 'Trạng thái',
-          field: 'Status',
-          formatter: (cell: CellComponent) => {
-            const rowData: any = cell.getRow().getData() || {};
-            const statusId: number = Number(rowData.StatusID ?? rowData.StatusId ?? rowData.statusId ?? rowData.statusID ?? 0);
-            const el = cell.getElement();
-            // reset
-            el.style.backgroundColor = '';
-            el.style.color = '';
-            el.style.borderRadius = '5px';
-            el.style.outline = '';
-
-            // Map StatusID to label (for display fallback)
-            const statusLabelMap: Record<number, string> = {
-              1: 'Chưa sử dụng',
-              2: 'Đã cấp phát',
-              3: 'Sữa chữa, Bảo dưỡng',
-              4: 'Mất',
-              5: 'Hỏng',
-              6: 'Thanh lý',
-              7: 'Đề nghị thanh lý',
-            };
-
-            const label = statusLabelMap[statusId] ?? (cell.getValue() as string) ?? '';
-
-            switch (statusId) {
-              case 1: // Chưa sử dụng
-                el.style.backgroundColor = '#AAAAAA';
-                el.style.outline = '1px solid #EEEE';
-                el.style.color = '#fff';
-                break;
-              case 2: // Đã cấp phát
-                el.style.backgroundColor = '#b4ecb4ff';
-                el.style.color = '#2cb55aff';
-                el.style.outline = '1px solid #e0e0e0';
-                break;
-              case 3: // Sữa chữa, Bảo dưỡng
-                el.style.backgroundColor = '#bcaa93ff';
-                el.style.color = '#c37031ff';
-                
-                el.style.outline = '1px solid01 #14b1b1';
-                break;
-              case 4: // Mất
-                el.style.backgroundColor = '#fbc4c4ff';
-                el.style.color = '#d40000ff';
-                el.style.outline = '1px solid #e0e0e0';
-                break;
-              case 5: // Hỏng
-                el.style.backgroundColor = '#cadfffff';
-                el.style.color = '#4147f2ff';
-                el.style.outline = '1px solid #e0e0e0';
-                break;
-              case 6: // Thanh lý
-                el.style.backgroundColor = '#d4fbffff';
-                el.style.color = '#08aabfff';
-                el.style.outline = '1px solid rgb(196, 35, 35)';
-                break;
-              case 7: // Đề nghị thanh lý
-                el.style.backgroundColor = '#fde3c1ff';
-                el.style.color = '#f79346ff';
-                el.style.outline = '1px solid rgb(20, 177, 177)';
-                break;
-              default:
-                el.style.backgroundColor = '#e0e0e0';
-                el.style.color = '';
-                break;
-            }
-
-            return label; // hiển thị nhãn phù hợp
-          },
-          headerHozAlign: 'center',
-        },
-        {
-          title: 'Mã NCC',
-          field: 'TSCodeNCC',
-          hozAlign: 'left',
-          HeaderFilter: true,
-        },
-        {
-          title: 'Nguồn gốc',
+        type: 'string', 
+        width: 150, 
+        sortable: true, 
+        filterable: true,
+        filter: { model: Filters['compoundInputText'] }
+      },
+      { 
+        id: 'SourceCode', 
+        name: 'Mã nguồn gốc', 
+          field: 'SourceCode',
+        type: 'string', 
+        width: 150, 
+        sortable: true, 
+        filterable: true,
+        filter: { model: Filters['compoundInputText'] }
+      },
+      { 
+        id: 'SourceName', 
+        name: 'Tên nguồn gốc', 
           field: 'SourceName',
-          formatter: function (
-            cell: any,
-            formatterParams: any,
-            onRendered: any
-          ) {
-            let value = cell.getValue() || '';
-            return value;
-          },
-          headerHozAlign: 'center',
-          hozAlign: 'left',
-        },
-        {
-          title: 'Loại tài sản',
-          field: 'AssetType',
-          headerFilter: 'input',
-          hozAlign: 'left',
-        },
-        {
-          title: 'Người quản lý',
-          field: 'FullName',
-          headerHozAlign: 'center',
-          hozAlign: 'left',
-          headerFilter: 'input',
-        },
-        // {
-        //   title: 'Người tạo',
-        //   field: 'CreatedBy',
-        //   headerHozAlign: 'center',
-        //   hozAlign: 'left',
-        // },
-        // {
-        //   title: 'Ngày tạo',
-        //   field: 'CreatedDate',
-        //   headerHozAlign: 'center',
-        //   hozAlign: 'left',
-        // },
-        // {
-        //   title: 'Người cập nhật',
-        //   field: 'UpdatedBy',
-        //   headerHozAlign: 'center',
-        //   hozAlign: 'left',
-        // },
-        // {
-        //   title: 'Ngày cập nhật',
-        //   field: 'UpdatedDate',
-        //   headerHozAlign: 'center',
-        //   hozAlign: 'left',
-        //   formatter: formatDateCell,
-        // },
-        {
-          title: 'Cấp Phát',
-          field: 'IsAllocation',
-          formatter: (cell: CellComponent) =>
-            cell.getValue() ? 'Có' : 'Không',
-          HeaderhozAlign: 'center',
-        },
-
-        {
-          title: 'OfficeActiveStatus',
-          field: 'OfficeActiveStatus',
-          HeaderhozAlign: 'center',
-          hozAlign: 'right',
-          visible: false,
-
-        },
-        {
-          title: 'WindowActiveStatus',
-          field: 'WindowActiveStatus',
-          HeaderhozAlign: 'center',
-          hozAlign: 'right',
-          visible: false,
-        },
-        {
-          title: 'Mô tả chi tiết',
+        type: 'string', 
+        width: 150, 
+        sortable: true, 
+        filterable: true,
+        filter: { model: Filters['compoundInputText'] }
+      },
+      { 
+        id: 'SupplierCode', 
+        name: 'Mã nhà cung cấp', 
+          field: 'SupplierCode',
+        type: 'string', 
+        width: 150, 
+        sortable: true, 
+        filterable: true,
+        filter: { model: Filters['compoundInputText'] }
+      },
+      { 
+        id: 'SupplierName', 
+        name: 'Tên nhà cung cấp', 
+          field: 'SupplierName',
+        type: 'string', 
+        width: 150, 
+        sortable: true, 
+        filterable: true,
+        filter: { model: Filters['compoundInputText'] }
+      },
+      { 
+        id: 'SpecificationsAsset', 
+        name: 'Mô tả chi tiết', 
           field: 'SpecificationsAsset',
-          HeaderhozAlign: 'center',
-          hozAlign: 'left',
-          formatter: 'textarea'
-        },
-        {
-          title: 'Phòng ban',
+        type: 'string', 
+          width: 200,
+        sortable: true, 
+        filterable: true,
+        filter: { model: Filters['compoundInputText'] }
+        ,cssClass: 'cell-wrap',
+      },
+      { 
+        id: 'Seri', 
+        name: ' Số Seri', 
+          field: 'Seri',
+        type: 'string', 
+        width: 150, 
+        sortable: true, 
+        filterable: true,
+        filter: { model: Filters['compoundInputText'] }
+      },
+      { 
+        id: 'UnitName', 
+        name: 'Đơn vị', 
+          field: 'UnitName',
+        type: 'string', 
+        width: 100, 
+        sortable: true, 
+        filterable: true,
+        filter: { model: Filters['compoundInputText'] }
+      },
+      { 
+        id: 'Quantity', 
+        name: 'Số lượng ', 
+          field: 'Quantity',
+        type: 'number', 
+        width: 100, 
+        sortable: true, 
+        filterable: true,
+        filter: { model: Filters['compoundInputText'] }
+      },
+      { 
+        id: 'Status', 
+        name: 'Tình trạng', 
+          field: 'Status',
+        type: 'string', 
+        width: 150, 
+        sortable: true, 
+        filterable: true,
+        formatter: statusFormatter,
+        cssClass: 'text-center',
+        filter: { model: Filters['compoundInputText'] }
+      },
+      { 
+        id: 'Model', 
+        name: 'Model', 
+          field: 'Model',
+        type: 'string', 
+          width: 200,
+        sortable: true, 
+        filterable: true,
+        filter: { model: Filters['compoundInputText'] },
+        hidden: true,
+      },
+      { 
+        id: 'Name', 
+        name: 'Mã phòng ban', 
+          field: 'DepartmentCode',
+        type: 'string', 
+        width: 150, 
+        sortable: true, 
+        filterable: true,
+        filter: { model: Filters['compoundInputText'] }
+      },
+      { 
+        id: 'Name', 
+        name: 'Phòng ban', 
           field: 'Name',
-          HeaderhozAlign: 'center',
-          hozAlign: 'left',
-          formatter: 'textarea'
-          , visible: false
-        },
-        {
-          title: 'Vị trí`',
-          field: 'PositionName',
-          HeaderhozAlign: 'center',
-          hozAlign: 'left',
-          formatter: 'textarea'
-          , visible: false
-        },
-        {
-          title: 'Ghi chú',
+        type: 'string', 
+        width: 150, 
+        sortable: true, 
+        filterable: true,
+        filter: { model: Filters['compoundInputText'] }
+      },
+      { 
+        id: 'EmployeeCode', 
+        name: 'Mã nhân viên', 
+          field: 'EmployeeCode',
+        type: 'string', 
+        width: 150, 
+        sortable: true, 
+        filterable: true,
+        filter: { model: Filters['compoundInputText'] }
+      },
+      { 
+        id: 'FullName', 
+        name: 'Người quản lý', 
+          field: 'FullName',
+        type: 'string', 
+        width: 150, 
+        sortable: true, 
+        filterable: true,
+        filter: { model: Filters['compoundInputText'] }
+        ,cssClass: 'cell-wrap',
+      },
+      { 
+        id: 'DateBuy', 
+        name: 'Thời gian ghi tăng', 
+          field: 'DateBuy',
+        type: 'date', 
+        width: 120, 
+        sortable: true, 
+        filterable: true,
+        formatter: formatDate,
+        filter: { model: Filters['compoundDate'] },
+        cssClass: 'text-center',
+      },
+      { 
+        id: 'Insurance', 
+        name: 'Bảo hành (tháng)', 
+          field: 'Insurance',
+        type: 'number', 
+        width: 130, 
+        sortable: true, 
+        filterable: true,
+        filter: { model: Filters['compoundInputNumber'] }
+      },
+      { 
+        id: 'DateEffect', 
+        name: 'Ngày hiệu lực', 
+          field: 'DateEffect',
+        type: 'date', 
+        width: 120, 
+        sortable: true, 
+        filterable: true,
+        formatter: formatDate,
+        filter: { model: Filters['compoundDate'] },
+        cssClass: 'text-center',
+      },
+     
+   
+    
+      // { 
+      //   id: 'Status', 
+      //   name: 'Trạng thái', 
+      //     field: 'Status',
+      //   type: 'string', 
+      //   width: 150, 
+      //   sortable: true, 
+      //   filterable: true,
+      //   formatter: statusFormatter,
+      //   cssClass: 'text-center',
+      //   filter: { model: Filters['compoundInputText'] }
+      // },
+    
+    
+      // { 
+      //   id: 'IsAllocation', 
+      //   name: 'Cấp Phát', 
+      //     field: 'IsAllocation',
+      //   type: 'boolean', 
+      //   width: 100, 
+      //   sortable: true, 
+      //   filterable: true,
+      //   formatter: Formatters.checkmarkMaterial
+      // },
+      // { 
+      //   id: 'OfficeActiveStatus', 
+      //   name: 'OfficeActiveStatus', 
+      //     field: 'OfficeActiveStatus',
+      //   type: 'number', 
+      //   width: 100, 
+      //   sortable: true,
+      //   excludeFromExport: true,
+      //   hidden: true,
+        
+      // },
+      // { 
+      //   id: 'WindowActiveStatus', 
+      //   name: 'WindowActiveStatus', 
+      //     field: 'WindowActiveStatus',
+      //   type: 'number', 
+      //   width: 100, 
+      //   sortable: true,
+      //   excludeFromExport: true,
+      //   hidden: true,
+      // },
+      // { 
+      //   id: 'PositionName', 
+      //   name: 'Vị trí', 
+      //     field: 'PositionName',
+      //   type: 'string', 
+      //   width: 150, 
+      //   sortable: true, 
+      //   filterable: true,
+      //   filter: { model: Filters['compoundInputText'] },
+      //   excludeFromExport: true
+      // },
+      { 
+        id: 'Note', 
+        name: 'Ghi chú', 
           field: 'Note',
-          hozAlign: 'left',
+        type: 'string', 
+        width: 200, 
+        sortable: true, 
+        filterable: true,
+        filter: { model: Filters['compoundInputText'] }
+        ,cssClass: 'cell-wrap',
+      },
+    ];
 
-        },
-      ] as any[],
-    });
+    this.gridOptions = {
+      autoResize: {
+        container: '#demo-container',
+        calculateAvailableSizeBy: 'container'
+      },
+      enableAutoResize: true,
+      gridWidth: '100%',
+      forceFitColumns: false,
+      enableRowSelection: true,
+      rowSelectionOptions: {
+        selectActiveRow: false
+      },
+      checkboxSelector: {
+        hideInFilterHeaderRow: false,
+        hideInColumnTitleRow: true,
+        applySelectOnAllPages: true
+      },
+      enableCheckboxSelector: true,
+      enableCellNavigation: true,
+      enableFiltering: true,
+      autoFitColumnsOnFirstLoad: false,
+      enableAutoSizeColumns: false,
+      createPreHeaderPanel: false,
+      showPreHeaderPanel: false,
+      frozenColumn: 11
+    };
 
-    this.assetTable.on('rowClick', (evt, row: RowComponent) => {
-      const rowData = row.getData();
-      this.detailTabTitle = `Thông tin sử dụng tài sản: ${rowData['TSCodeNCC']}`;
-      const ID = rowData['ID'];
+    this.getAssetmanagement();
+  }
+  initGridDetail() {
+    // Format date helper for detail
+    const formatDateDetail = (row: number, cell: number, value: any) => {
+      if (!value) return '';
+      try {
+        // Thử parse từ nhiều format
+        let dateValue = DateTime.fromISO(value);
+        if (!dateValue.isValid) {
+          // Thử format yyyy-MM-dd
+          dateValue = DateTime.fromFormat(value, 'yyyy-MM-dd');
+        }
+        if (!dateValue.isValid) {
+          // Thử format khác
+          dateValue = DateTime.fromFormat(value, 'dd/MM/yyyy');
+        }
+        return dateValue.isValid ? dateValue.toFormat('dd/MM/yyyy') : value;
+      } catch (e) {
+        return value;
+      }
+    };
+
+    // Detail status formatter
+    const detailStatusFormatter = (row: number, cell: number, value: any) => {
+      const statusColorMap: Record<string, string> = {
+        'Chưa sử dụng': 'display: inline-block; width: 140px; text-align: center; background-color: #AAAAAA; color: #fff; border-radius: 5px; padding: 4px 8px;',
+        'Đang sử dụng': 'display: inline-block; width: 140px; text-align: center; background-color: #b4ecb4ff; color: #2cb55aff; border-radius: 5px; padding: 4px 8px;',
+        'Đã thu hồi': 'display: inline-block; width: 140px; text-align: center; background-color: #FFCCCC; color: #000000; border-radius: 5px; padding: 4px 8px;',
+        'Mất': 'display: inline-block; width: 140px; text-align: center; background-color: #fbc4c4ff; color: #d40000ff; border-radius: 5px; padding: 4px 8px;',
+        'Hỏng': 'display: inline-block; width: 140px; text-align: center; background-color: #cadfffff; color: #4147f2ff; border-radius: 5px; padding: 4px 8px;',
+        'Đã thanh lý': 'display: inline-block; width: 140px; text-align: center; background-color: #d4fbffff; color: #08aabfff; border-radius: 5px; padding: 4px 8px;',
+        'Đề nghị thanh lí': 'display: inline-block; width: 140px; text-align: center; background-color: #fde3c1ff; color: #f79346ff; border-radius: 5px; padding: 4px 8px;',
+        'Sữa chữa, Bảo dưỡng': 'display: inline-block; width: 140px; text-align: center; background-color: #bcaa93ff; color: #c37031ff; border-radius: 5px; padding: 4px 8px;',
+      };
+
+      const style = statusColorMap[value] || 'display: inline-block; width: 140px; text-align: center; background-color: #e0e0e0; border-radius: 5px; padding: 4px 8px;';
+      return `<span style="${style}">${value || ''}</span>`;
+    };
+
+    this.columnDefinitionsDetail = [
+      { 
+        id: 'Status', 
+        name: 'Trạng thái', 
+          field: 'Status',
+        type: 'string', 
+        width: 150, 
+        sortable: true, 
+        filterable: true,
+        formatter: detailStatusFormatter,
+        cssClass: 'text-center',
+        filter: { model: Filters['compoundInputText'] }
+      },
+      { 
+        id: 'Code', 
+        name: 'Mã NV', 
+        field: 'Code', 
+        type: 'string', 
+        width: 100, 
+        sortable: true, 
+        filterable: true,
+        filter: { model: Filters['compoundInputText'] }
+      },
+      { 
+        id: 'FullName', 
+        name: 'Họ và tên', 
+        field: 'FullName', 
+        type: 'string', 
+        width: 150, 
+        sortable: true, 
+        filterable: true,
+        filter: { model: Filters['compoundInputText'] }
+      },
+      { 
+        id: 'dpmName', 
+        name: 'Phòng ban', 
+        field: 'dpmName', 
+        type: 'string', 
+        width: 150, 
+        sortable: true, 
+        filterable: true,
+        filter: { model: Filters['compoundInputText'] }
+      },
+      { 
+        id: 'CVName', 
+        name: 'Chức vụ', 
+        field: 'CVName', 
+        type: 'string', 
+        width: 150, 
+        sortable: true, 
+        filterable: true,
+        filter: { model: Filters['compoundInputText'] }
+      },
+      { 
+        id: 'UpdatedDate', 
+        name: 'Ngày cập nhật', 
+          field: 'UpdatedDate',
+        type: 'date', 
+        width: 120, 
+        sortable: true, 
+        filterable: true,
+        formatter: formatDateDetail,
+        filter: { model: Filters['compoundDate'] },
+        hidden: true,
+      },
+      { 
+        id: 'CreatedDate', 
+        name: 'Ngày', 
+          field: 'CreatedDate',
+        type: 'date', 
+        width: 120, 
+        sortable: true, 
+        filterable: true,
+        formatter: formatDateDetail,
+        filter: { model: Filters['compoundDate'] }
+      },
+      { 
+        id: 'Note', 
+        name: 'Ghi chú', 
+          field: 'Note',
+        type: 'string', 
+        width: 300, 
+        sortable: true, 
+        filterable: true,
+        filter: { model: Filters['compoundInputText'] }
+      },
+    ];
+
+    this.gridOptionsDetail = {
+      autoResize: {
+        container: '#grid-container-detail',
+        calculateAvailableSizeBy: 'container'
+      },
+      enableAutoResize: true,
+      forceFitColumns: true,
+      enableRowSelection: true,
+      enableCellNavigation: true,
+      enableFiltering: true,
+      autoFitColumnsOnFirstLoad: false,
+      enableAutoSizeColumns: false
+    };
+
+    
+  }
+
+  // SlickGrid event handlers
+  angularGridReady(angularGrid: AngularGridInstance) {
+    this.angularGrid = angularGrid;
+    this.gridData = angularGrid?.slickGrid || {};
+  }
+
+  angularGridDetailReady(angularGrid: AngularGridInstance) {
+    this.angularGridDetail = angularGrid;
+    this.gridDetailData = angularGrid?.slickGrid || {};
+  }
+
+  handleRowSelection(e: any, args: OnSelectedRowsChangedEventArgs) {
+    if (args && args.rows && args.rows.length > 0) {
+      const selectedRow = this.gridData.getDataItem(args.rows[0]);
+      this.selectedRow = selectedRow;
+    }
+  }
+
+  onCellClicked(e: any, args: OnClickEventArgs) {
+    const item = args.grid.getDataItem(args.row);
+    if (item) {
+      this.detailTabTitle = `Thông tin sử dụng tài sản: ${item['TSCodeNCC']}`;
+      const ID = item['ID'];
       this.assetManagementService
         .getAssetAllocationDetail(ID)
         .subscribe((respon) => {
           this.assetManagementDetail = respon.data.assetsAllocation;
-          this.drawEmployeeTable();
+          this.datasetDetail = this.assetManagementDetail.map((item, index) => ({
+            ...item,
+            id: item.ID || index // SlickGrid requires lowercase 'id' property
+          }));
         });
-    });
-
-    this.assetTable.on('rowClick', (e: UIEvent, row: RowComponent) => {
-      this.selectedRow = row.getData();
-    });
-  }
-  private drawEmployeeTable(): void {
-    if (!this.datatableEmployeeRef) {
-      return;
     }
-
-    if (this.assetDetailtable) {
-      this.assetDetailtable.setData(this.assetManagementDetail);
-      return;
-    }
-
-    this.assetDetailtable = new Tabulator(this.datatableEmployeeRef.nativeElement, {
-      data: this.assetManagementDetail,
-      ...DEFAULT_TABLE_CONFIG,
-      layout: 'fitDataStretch',
-      height:'30vh',
-      paginationSize: 10,
-      paginationMode: 'local',
-      movableColumns: true,
-      reactiveData: true,
-      columns: [
-        {
-          title: 'Trạng thái',
-          field: 'Status',
-          formatter: (cell: CellComponent) => {
-            const val = cell.getValue() as string;
-            const el = cell.getElement();
-            el.style.backgroundColor = '';
-            el.style.color = '';
-            if (val === 'Chưa sử dụng') {
-              el.style.backgroundColor = '#AAAAAA';
-              el.style.outline = '1px solid #EEEE';
-              el.style.color = '#fff';
-              el.style.borderRadius = '5px';
-
-            } else if (val === 'Đang sử dụng') {
-              el.style.backgroundColor = '#b4ecb4ff';
-              el.style.color = '#2cb55aff';
-              el.style.outline = '1px solid #e0e0e0';
-              el.style.borderRadius = '5px';
-            } else if (val === 'Đã thu hồi') {
-              el.style.backgroundColor = '#FFCCCC';
-              el.style.color = '#000000';
-              el.style.borderRadius = '5px';
-              el.style.outline = '1px solid #e0e0e0';
-            } else if (val === 'Mất') {
-
-              el.style.backgroundColor = '#fbc4c4ff';
-              el.style.color = '#d40000ff';
-              el.style.borderRadius = '5px';
-              el.style.outline = '1px solid #e0e0e0';
-            } else if (val === 'Hỏng') {
-              el.style.backgroundColor = '#cadfffff';
-              el.style.color = '#4147f2ff';
-              el.style.outline = '1px solid #e0e0e0';
-              el.style.borderRadius = '5px';
-            } else if (val === 'Đã thanh lý') {
-              el.style.backgroundColor = '#d4fbffff';
-              el.style.color = '#08aabfff';
-              el.style.borderRadius = '5px';
-              el.style.outline = '1px solidrgb(196, 35, 35)';
-            } else if (val === 'Đề nghị thanh lí  ') {
-              el.style.backgroundColor = '#fde3c1ff';
-              el.style.color = '#f79346ff';
-              el.style.borderRadius = '5px';
-              el.style.outline = '1px solidrgb(20, 177, 177)';
-            }
-            else if (val === 'Sữa chữa, Bảo dưỡng') {
-              el.style.backgroundColor = '#bcaa93ff';
-              el.style.color = '#c37031ff';
-              el.style.borderRadius = '5px';
-              el.style.outline = '1px solidrgb(20, 177, 177)';
-            }
-            else {
-              el.style.backgroundColor = '#e0e0e0';
-              el.style.borderRadius = '5px';
-            }
-            return val; // vẫn hiển thị chữ
-          },
-          headerHozAlign: 'center',
-        },
-        { title: 'Mã NV', field: 'Code', headerHozAlign: 'center' },
-        { title: 'Họ và tên', field: 'FullName', headerHozAlign: 'center' },
-        { title: 'Phòng ban', field: 'dpmName', headerHozAlign: 'center' },
-        { title: 'Chức vụ', field: 'CVName', headerHozAlign: 'center' },
-        {
-          title: 'Ngày cập nhật',
-          field: 'UpdatedDate',
-          headerHozAlign: 'center',
-          formatter: formatDateCell,
-          hozAlign: 'center',
-        },
-        {
-          title: 'Ngày tạo',
-          field: 'CreatedDate',
-          headerHozAlign: 'center',
-          formatter: formatDateCell,
-          hozAlign: 'center',
-        },
-        { title: 'Ghi chú', field: 'Note', headerHozAlign: 'center', width: 300, formatter: 'textarea' },
-      ],
-    });
   }
+
   private getSingleSelectedAsset(actionText: string): any | null {
-    const selected = this.assetTable?.getSelectedData() || [];
+    const selected = this.angularGrid?.gridService?.getSelectedRows() || [];
+    const selectedData = selected.map((index: number) => this.gridData.getDataItem(index));
 
-  if (selected.length === 0) {
+    if (selectedData.length === 0) {
     this.notification.warning(
       NOTIFICATION_TITLE.warning,
       `Vui lòng chọn một tài sản để ${actionText}!`
@@ -779,8 +853,8 @@ export class TsAssetManagementComponent implements OnInit, AfterViewInit {
     return null;
   }
 
-  if (selected.length > 1) {
-    const codes = selected.map((x: any) => x.TSAssetCode).join(', ');
+    if (selectedData.length > 1) {
+      const codes = selectedData.map((x: any) => x.TSAssetCode).join(', ');
     this.notification.warning(
       NOTIFICATION_TITLE.warning,
       `Chỉ được chọn 1 tài sản để ${actionText}. Đang chọn: ${codes}`
@@ -788,25 +862,31 @@ export class TsAssetManagementComponent implements OnInit, AfterViewInit {
     return null;
   }
 
-    return { ...selected[0] }; // clone cho chắc
+    return { ...selectedData[0] }; // clone cho chắc
   }
+
   getSelectedIds(): number[] {
-    if (this.assetTable) {
-      const selectedRows = this.assetTable.getSelectedData();
-      return selectedRows.map((row: any) => row.ID);
+    if (this.angularGrid && this.angularGrid.gridService) {
+      const selectedRows = this.angularGrid.gridService.getSelectedRows();
+      return selectedRows.map((index: number) => {
+        const item = this.gridData.getDataItem(index);
+        return item.ID;
+      });
     }
     return [];
   }
-  onDeleteAsset() {
-    const selectedRows = this.assetTable?.getSelectedData?.() || [];
 
-    if (selectedRows.length === 0) {
+  onDeleteAsset() {
+    const selectedRows = this.angularGrid?.gridService?.getSelectedRows() || [];
+    const selectedRowData = selectedRows.map((index: number) => this.gridData.getDataItem(index));
+
+    if (selectedRowData.length === 0) {
       this.notification.warning('Cảnh báo', 'Chưa chọn tài sản để xóa');
       return;
     }
 
     // Kiểm tra tài sản đang sử dụng
-    const assetsInUse = selectedRows.filter((x: any) => 
+    const assetsInUse = selectedRowData.filter((x: any) => 
       x.Status === 'Đang sử dụng' || x.StatusID === 2
     );
 
@@ -819,8 +899,8 @@ export class TsAssetManagementComponent implements OnInit, AfterViewInit {
       return;
     }
 
-    const selectedIds = selectedRows.map((x: any) => x.ID);
-    const selectedCodes = selectedRows.map((x: any) => x.TSCodeNCC); 
+    const selectedIds = selectedRowData.map((x: any) => x.ID);
+    const selectedCodes = selectedRowData.map((x: any) => x.TSCodeNCC); 
     const codesText = selectedCodes.join(', ');
 
     this.modal.confirm({
@@ -845,7 +925,6 @@ export class TsAssetManagementComponent implements OnInit, AfterViewInit {
           next: () => {
             this.notification.success('Thành công', 'Xóa tài sản thành công');
             this.getAssetmanagement();
-            this.drawTable();
           },
           error: (err) => {
             console.error('Lỗi khi xóa:', err);
@@ -1128,7 +1207,7 @@ export class TsAssetManagementComponent implements OnInit, AfterViewInit {
   }
   onDisposeAsset() { }
   async exportToExcelAdvanced() {
-    if (!this.assetTable) return;
+    if (!this.angularGrid) return;
 
     const selectedData = [...this.assetData];
 
@@ -1142,28 +1221,17 @@ export class TsAssetManagementComponent implements OnInit, AfterViewInit {
     const workbook = new ExcelJS.Workbook();
     const worksheet = workbook.addWorksheet('Danh sách tài sản');
 
-    let columns = this.assetTable
-      .getColumnDefinitions()
-      .filter(
-        (col: any) =>
-          col.visible !== false && col.field && col.field.trim() !== ''
+    let columns = this.columnDefinitions.filter(
+      (col: Column) =>
+        col.excludeFromExport !== true && col.field && col.field.trim() !== ''
       );
 
     // Đảm bảo cột Model luôn được xuất ra
-    const hasModelColumn = columns.some((col: any) => col.field === 'Model');
+    const hasModelColumn = columns.some((col: Column) => col.field === 'Model');
     if (!hasModelColumn) {
-      const modelColumn = this.assetTable
-        .getColumnDefinitions()
-        .find((col: any) => col.field === 'Model');
+      const modelColumn = this.columnDefinitions.find((col: Column) => col.field === 'Model');
       if (modelColumn) {
         columns.push(modelColumn);
-      } else {
-        // Nếu không tìm thấy trong định nghĩa cột, thêm thủ công
-        columns.push({
-          title: 'Model',
-          field: 'Model',
-          headerHozAlign: 'center',
-        });
       }
     }
 
@@ -1173,7 +1241,7 @@ export class TsAssetManagementComponent implements OnInit, AfterViewInit {
     );
 
     const headerRow = worksheet.addRow(
-      columns.map((col: any) => col.title || col.field)
+      columns.map((col: Column) => col.name || col.field)
     );
     headerRow.font = { bold: true };
     headerRow.fill = {
@@ -1183,8 +1251,8 @@ export class TsAssetManagementComponent implements OnInit, AfterViewInit {
     };
 
     selectedData.forEach((row: any) => {
-      const rowData = columns.map((col: any) => {
-        const value = row[col.field];
+      const rowData = columns.map((col: Column) => {
+        const value = row[col.field!];
         switch (col.field) {
           case 'IsAllocation':
             return value ? 'Có' : 'Không';
@@ -1192,7 +1260,7 @@ export class TsAssetManagementComponent implements OnInit, AfterViewInit {
           case 'UpdatedDate':
           case 'DateBuy':
           case 'DateEffect':
-            return value ? new Date(value).toLocaleDateString('vi-VN') : '';
+            return value ? DateTime.fromISO(value).toFormat('dd/MM/yyyy') : '';
           case 'Status':
             return value || '';
           default:

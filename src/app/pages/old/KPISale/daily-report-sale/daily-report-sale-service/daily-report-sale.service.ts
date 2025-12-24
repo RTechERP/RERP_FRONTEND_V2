@@ -147,6 +147,14 @@ export class DailyReportSaleService {
     });
   }
 
+  saveProjectStatus(stt: number, statusName: string): Observable<any> {
+    const projectStatus = {
+      STT: stt,
+      StatusName: statusName
+    };
+    return this.http.post(this._url + 'save-project-status', projectStatus);
+  }
+
   importExcel(data: any[]): Observable<any> {
     return this.http.post(this._url + 'import-excel', data);
   }

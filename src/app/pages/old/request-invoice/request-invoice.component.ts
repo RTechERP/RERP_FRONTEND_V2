@@ -728,7 +728,7 @@ export class RequestInvoiceComponent implements OnInit, AfterViewInit {
               width: 150,
             },
             { title: 'ĐVT', field: 'Unit', sorter: 'string', width: 150 },
-            { title: 'Số lượng', field: 'Quantity', sorter: 'string', width: 150 },
+            { title: 'Số lượng', field: 'Quantity', sorter: 'string', width: 150, bottomCalc: 'sum' },
             {
               title: 'Mã dự án',
               field: 'ProjectCode',

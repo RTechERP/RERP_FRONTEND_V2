@@ -95,6 +95,7 @@ import { AccountingContractTypeMasterDetailComponent } from './accounting-contra
     NzFormModule,
     NzTreeSelectModule,
     CommonModule,
+    HasPermissionDirective
   ],
   templateUrl: './accounting-contract-type-master.component.html',
   styleUrl: './accounting-contract-type-master.component.css'

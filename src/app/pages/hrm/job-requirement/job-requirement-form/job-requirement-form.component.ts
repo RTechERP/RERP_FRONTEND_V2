@@ -63,6 +63,8 @@ export class JobRequirementFormComponent implements OnInit, AfterViewInit {
   jobRequirementDetailData: any[] = [];
   fileList: any[] = [];
   numberRequest: string = ''; // Lưu NumberRequest khi load dữ liệu
+  approverGroups: { department: string; list: any[] }[] = [];
+
   constructor(
     private fb: FormBuilder,
     private activeModal: NgbActiveModal,
@@ -78,7 +80,7 @@ export class JobRequirementFormComponent implements OnInit, AfterViewInit {
       STT: 0,
       NameDocument: [null, [Validators.maxLength(100)]],
       Code: ['', [Validators.maxLength(100)]],
-      DepartmentID: ['', [Validators.required]],
+      ApprovedTBPID: [null, [Validators.required]],
       EmployeeDepartment: [''],
       RequiredDepartment: ['', [Validators.required]],
       CoordinationDepartment: [''],
@@ -115,6 +117,7 @@ export class JobRequirementFormComponent implements OnInit, AfterViewInit {
     // Load danh sách nhân viên và phòng ban trước, sau đó mới load dữ liệu edit
     this.getdataDepartment();
     this.getdataEmployee();
+    this.loadApprovers();
     
     // Load dữ liệu khi ở chế độ edit (sau khi đã load danh sách nhân viên)
     if (this.isCheckmode && this.JobRequirementID > 0) {
@@ -319,7 +322,7 @@ export class JobRequirementFormComponent implements OnInit, AfterViewInit {
           
           if (jobData.ApprovedTBPID || mainData.ApprovedTBPID) {
             this.formGroup.patchValue({ 
-              DepartmentID: jobData.ApprovedTBPID || mainData.ApprovedTBPID 
+              ApprovedTBPID: jobData.ApprovedTBPID || mainData.ApprovedTBPID 
             });
           }
           
@@ -612,7 +615,7 @@ export class JobRequirementFormComponent implements OnInit, AfterViewInit {
       EmployeeID: formValue.EmployeeID || 0,
       CoordinationDepartmentID: formValue.CoordinationDepartment || 0,
       RequiredDepartmentID: formValue.RequiredDepartment || 0,
-      ApprovedTBPID: formValue.DepartmentID || 0,
+      ApprovedTBPID: formValue.ApprovedTBPID || 0,
       IsApprovedTBP: false,
       DateApprovedTBP: null,
       IsApprovedHR: false,
@@ -725,6 +728,39 @@ export class JobRequirementFormComponent implements OnInit, AfterViewInit {
           reject(err);
         },
       });
+    });
+  }
+
+  private loadApprovers(): void {
+    this.jobRequirementService.getApprovers().subscribe({
+      next: (res: any) => {
+        if (res && res.status === 1 && res.data) {
+          const approvers = res.data.approvers || [];
+          const grouped = approvers.reduce((acc: Record<string, any[]>, curr: any) => {
+            const dept = curr.DepartmentName || 'Khác';
+            if (!acc[dept]) {
+              acc[dept] = [];
+            }
+            acc[dept].push({
+              ID: curr.EmployeeID ?? curr.ID,
+              Code: curr.Code,
+              FullName: curr.FullName
+            });
+            return acc;
+          }, {});
+
+          this.approverGroups = Object.keys(grouped).map(department => ({
+            department,
+            list: grouped[department]
+          }));
+        } else {
+          this.notification.error('Lỗi', res?.message || 'Không thể tải danh sách người duyệt');
+        }
+      },
+      error: (error: any) => {
+        const errorMessage = error?.error?.message || error?.error?.Message || error?.message || 'Không thể tải danh sách người duyệt';
+        this.notification.error('Lỗi', errorMessage);
+      }
     });
   }
 }

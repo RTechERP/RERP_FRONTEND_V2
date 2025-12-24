@@ -122,7 +122,10 @@
             </nz-col>
             <nz-col [nzSpan]="12">
               <nz-form-item class="mb-1">
-                <nz-form-label [nzSpan]="24">Ngày kết thúc<span class="text-danger ps-1">*</span></nz-form-label>
+                <nz-form-label [nzSpan]="24">
+                  Ngày kết thúc
+                  <span *ngIf="isDateEndRequired" class="text-danger ps-1">*</span>
+                </nz-form-label>
                 <nz-form-control [nzSpan]="24">
                   <nz-date-picker formControlName="DateEnd" nzFormat="dd/MM/yyyy" style="width: 100%;"></nz-date-picker>
                 </nz-form-control>

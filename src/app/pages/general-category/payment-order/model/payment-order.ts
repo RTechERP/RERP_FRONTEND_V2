@@ -1,30 +1,30 @@
 export class PaymentOrder {
-    ID = 0;
-    Code = '';
+    ID: number = 0;
+    Code: string | null = '';
 
-    TypeOrder = 0;
-    PaymentOrderTypeID = 0;
+    TypeOrder: number | null = 0;
+    PaymentOrderTypeID: number | null = 0;
 
     DateOrder: Date | null = null;
-    EmployeeID = 0;
-    ReasonOrder = '';
+    EmployeeID: number | null = 0;
+    ReasonOrder: string | null = '';
     DatePayment: Date | null = null;
-    ReceiverInfo = '';
+    ReceiverInfo: string | null = '';
 
-    TypePayment = 0;
-    AccountNumber = '';
-    Bank = '';
+    TypePayment: number | null = 0;
+    AccountNumber: string | null = '';
+    Bank: string | null = '';
 
-    TotalMoney = 0;
-    TotalMoneyText = '';
-    Unit = '';
+    TotalMoney: number | null = 0;
+    TotalMoneyText: string | null = '';
+    Unit: string | null = '';
 
     IsDelete = false;
-    Note = '';
+    Note: string | null = '';
 
-    TypeBankTransfer = 0;
-    ContentBankTransfer = '';
-    AccountingNote = '';
+    TypeBankTransfer: number | null = 0;
+    ContentBankTransfer: string | null = '';
+    AccountingNote: string | null = '';
 
     CreatedBy: string | null = null;
     CreatedDate: Date | null = null;
@@ -34,86 +34,86 @@ export class PaymentOrder {
     DeadlinePayment: Date | null = null;
     IsUrgent = false;
 
-    PONCCID = 0;
-    SupplierSaleID = 0;
-    CustomerID = 0;
+    PONCCID: number | null = 0;
+    SupplierSaleID: number | null = 0;
+    CustomerID: number | null = 0;
 
-    TypeDocument = 0;
-    NumberDocument = '';
+    TypeDocument: number | null = 0;
+    NumberDocument: string | null = '';
 
     IsSpecialOrder: boolean | null = null;
-    ProjectID = 0;
+    ProjectID: number | null = 0;
     IsBill = false;
 
-    StartLocation = '';
-    EndLocation = '';
+    StartLocation: string | null = '';
+    EndLocation: string | null = '';
 
-    RegisterContractID = 0;
+    RegisterContractID: number | null = 0;
 
-    TypeCode = '';
-    TypeName = '';
-    FullName = '';
-    DepartmentName = '';
+    TypeCode: string | null = '';
+    TypeName: string | null = '';
+    FullName: string | null = '';
+    DepartmentName: string | null = '';
 
     IsIgnoreHR: boolean | null = null;
     PaymentOrderTypeSTT: number | null = null;
     DepartmentID: number | null = null;
 
-    TypeOrderText = '';
-    RowNum = 0;
+    TypeOrderText: string | null = '';
+    RowNum: number | null = 0;
 
     Step: number | null = 0;
-    StepName = '';
+    StepName: string | null = '';
 
     IsApproved: boolean | null = null;
-    ReasonCancel = '';
-    ContentLog = '';
-    ApproverName = '';
-    IsApprovedText = '';
+    ReasonCancel: string | null = '';
+    ContentLog: string | null = '';
+    ApproverName: string | null = '';
+    IsApprovedText: string | null = '';
     TypeBankTransferText: string | null = null;
 
-    POCode = '';
-    TotalPayment = 0;
-    CustomerName = '';
-    TypeDocumentText = '';
-    ProjectFullName = '';
+    POCode: string | null = '';
+    TotalPayment: number | null = 0;
+    CustomerName: string | null = '';
+    TypeDocumentText: string | null = '';
+    ProjectFullName: string | null = '';
 
-    StepNew = 0;
-    PaymentOrderTypeName = '';
+    StepNew: number | null = 0;
+    PaymentOrderTypeName: string | null = '';
 
-    TotalPaymentActual = 0;
-    SuplierName = '';
+    TotalPaymentActual: number | null = 0;
+    SuplierName: string | null = '';
 
-    ReasonRequestAppendFileHR = '';
-    FullNameEmployee = '';
+    ReasonRequestAppendFileHR: string | null = '';
+    FullNameEmployee: string | null = '';
     DateApprovedEmployee: Date | null = null;
 
-    FullNameTBP = '';
+    FullNameTBP: string | null = '';
     DateApprovedTBP: Date | null = null;
 
-    FullNameHR = '';
+    FullNameHR: string | null = '';
     DateApprovedHR: Date | null = null;
 
-    FullNameKT = '';
+    FullNameKT: string | null = '';
     DateApprovedKT: Date | null = null;
 
-    FullNameBGD = '';
+    FullNameBGD: string | null = '';
     DateApprovedBGD: Date | null = null;
 
     ReasonRequestAppendFileAC = '';
-    StatusBankSlip = '';
+    StatusBankSlip: string | null = '';
 
     POCodes: string | null = '';
     BillNumbers: string | null = null;
 
-    StatusContractText = '';
-    DocumentName = '';
-    UserTeamNameJoin = '';
-    PaymentMethodsJoin = '';
+    StatusContractText: string | null = '';
+    DocumentName: string | null = '';
+    UserTeamNameJoin: string | null = '';
+    PaymentMethodsJoin: string | null = '';
 
-    TotalPage = 0;
-    ApprovedTBPID = 0;
-    ApprovedBGDID = 0;
+    TotalPage: number | null = 0;
+    ApprovedTBPID: number | null = 0;
+    ApprovedBGDID: number | null = 0;
     PaymentOrderPOs: any[] = []
     PaymentOrderBillNumbers: any[] = []
 

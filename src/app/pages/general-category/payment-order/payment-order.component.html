@@ -171,7 +171,7 @@
 
 
 <nz-splitter nzLayout="vertical" style="height: 80vh !important;">
-    <nz-splitter-panel nzMin="20%" [nzCollapsible]="true" nzDefaultSize="60%">
+    <nz-splitter-panel nzMin="20%" [nzCollapsible]="true" [nzDefaultSize]="defaultSizeSplit">
         <!-- <div class="grid-container">
             <angular-slickgrid gridId="grvData" [columns]="columnDefinitions" [options]="gridOptions"
                 [dataset]="dataset" (onAngularGridCreated)="angularGridReady($event.detail)"
@@ -179,7 +179,7 @@
                 (onClick)="onCellClicked($event.detail.eventData, $event.detail.args)">
             </angular-slickgrid>
         </div> -->
-        <p-tabs [(value)]="activeTab">
+        <p-tabs [(value)]="activeTab" (valueChange)="loadData()">
             <p-tablist>
                 <p-tab value="0" class="p-2">ĐỀ NGHỊ THANH TOÁN</p-tab>
                 <p-tab value="1" class="p-2">ĐỀ NGHỊ THANH TOÁN ĐẶC BIỆT</p-tab>
@@ -192,9 +192,9 @@
                         (onClick)="onCellClicked($event.detail.eventData, $event.detail.args)">
                     </angular-slickgrid>
                 </p-tabpanel>
-                <p-tabpanel value="1">
+                <p-tabpanel value="1" class="grid-container">
                     <angular-slickgrid gridId="grvDataSpecial" [columns]="columnDefinitionsSpecial"
-                        [options]="gridOptionsSpecial" [dataset]="datasetSpecial"
+                        [options]="gridOptions" [dataset]="datasetSpecial"
                         (onAngularGridCreated)="angularGridReadySpecial($event.detail)"
                         (onSelectedRowsChanged)="handleRowSelection($event.detail.eventData, $event.detail.args)"
                         (onClick)="onCellClicked($event.detail.eventData, $event.detail.args)">
@@ -206,50 +206,42 @@
     </nz-splitter-panel>
     <nz-splitter-panel [nzCollapsible]="true">
         <nz-splitter>
-            <nz-splitter-panel nzMin="20%" [nzCollapsible]="false" nzDefaultSize="70%">
-                <!-- <div class="grid-container-detail">
-                    <angular-slickgrid gridId="grvDetail" [columns]="columnDefinitionDetails"
-                        [options]="gridOptionDetails" [dataset]="datasetDetails"
-                        (onAngularGridCreated)="angularGridDetailReady($event.detail)"
-                        (onSelectedRowsChanged)="handleRowSelection($event.detail.eventData, $event.detail.args)"
-                        (onClick)="onCellClicked($event.detail.eventData, $event.detail.args)">
-                    </angular-slickgrid>
-                </div> -->
-                <div class="grid-container-detail">
-                    <angular-slickgrid gridId="grvDetailSpecial" [columns]="columnDefinitionsSpecialDetail"
-                        [options]="gridOptionsSpecialDetail" [dataset]="datasetSpecialDetail"
-                        (onAngularGridCreated)="angularGridReadySpecialDetail($event.detail)"
-                        (onSelectedRowsChanged)="handleRowSelection($event.detail.eventData, $event.detail.args)"
-                        (onClick)="onCellClicked($event.detail.eventData, $event.detail.args)">
-                    </angular-slickgrid>
-                </div>
+            <nz-splitter-panel nzMin="20%" [nzCollapsible]="false" nzDefaultSize="70%" id="grid-container-detail">
+                <angular-slickgrid gridId="grvDetail" [columns]="columnDefinitionDetails" [options]="gridOptionDetails"
+                    [dataset]="datasetDetails" (onAngularGridCreated)="angularGridDetailReady($event.detail)"
+                    (onSelectedRowsChanged)="handleRowSelection($event.detail.eventData, $event.detail.args)"
+                    (onClick)="onCellClicked($event.detail.eventData, $event.detail.args)" *ngIf="activeTab =='0'">
+                </angular-slickgrid>
+
+                <angular-slickgrid gridId="grvDetailSpecial" [columns]="columnDefinitionsSpecialDetail"
+                    [options]="gridOptionsSpecialDetail" [dataset]="datasetSpecialDetail"
+                    (onAngularGridCreated)="angularGridReadySpecialDetail($event.detail)"
+                    (onSelectedRowsChanged)="handleRowSelection($event.detail.eventData, $event.detail.args)"
+                    (onClick)="onCellClicked($event.detail.eventData, $event.detail.args)" *ngIf="activeTab =='1'">
+                </angular-slickgrid>
             </nz-splitter-panel>
             <nz-splitter-panel [nzCollapsible]="false">
-                <p-tabs [value]="param.isSpecialOrder">
+                <p-tabs value="0">
                     <p-tablist>
-                        <p-tab value="1" class="p-2">File đính kèm</p-tab>
-                        <p-tab value="2" class="p-2">File bankslip</p-tab>
+                        <p-tab value="0" class="p-2">File đính kèm</p-tab>
+                        <p-tab value="1" class="p-2">File bankslip</p-tab>
                     </p-tablist>
                     <p-tabpanels class="p-0">
-                        <p-tabpanel value="1">
-                            <div class="grid-container-filebankslip">
-                                <angular-slickgrid gridId="grvFile" [columns]="columnDefinitionFiles"
-                                    [options]="gridOptionFiles" [dataset]="datasetFiles"
-                                    (onAngularGridCreated)="angularGridFileReady($event.detail)"
-                                    (onSelectedRowsChanged)="handleRowSelection($event.detail.eventData, $event.detail.args)"
-                                    (onClick)="onCellClicked($event.detail.eventData, $event.detail.args)">
-                                </angular-slickgrid>
-                            </div>
+                        <p-tabpanel value="0" id="grid-container-file" style="display: block; height: 100px;">
+                            <angular-slickgrid gridId="grvFile" [columns]="columnDefinitionFiles"
+                                [options]="gridOptionFiles" [dataset]="datasetFiles"
+                                (onAngularGridCreated)="angularGridFileReady($event.detail)"
+                                (onSelectedRowsChanged)="handleRowSelection($event.detail.eventData, $event.detail.args)"
+                                (onClick)="onCellClicked($event.detail.eventData, $event.detail.args)">
+                            </angular-slickgrid>
                         </p-tabpanel>
-                        <p-tabpanel value="2">
-                            <div class="grid-container-filebankslip">
-                                <angular-slickgrid gridId="grvFile" [columns]="columnDefinitionFiles"
-                                    [options]="gridOptionFiles" [dataset]="datasetFiles"
-                                    (onAngularGridCreated)="angularGridFileReady($event.detail)"
-                                    (onSelectedRowsChanged)="handleRowSelection($event.detail.eventData, $event.detail.args)"
-                                    (onClick)="onCellClicked($event.detail.eventData, $event.detail.args)">
-                                </angular-slickgrid>
-                            </div>
+                        <p-tabpanel value="1" id="grid-container-filebankslip" style="display: block; height: 100px;">
+                            <angular-slickgrid gridId="grvFileBankslip" [columns]="columnDefinitionFiles"
+                                [options]="gridOptionFiles" [dataset]="datasetFileBankslip"
+                                (onAngularGridCreated)="angularGridFileBankslipReady($event.detail)"
+                                (onSelectedRowsChanged)="handleRowSelection($event.detail.eventData, $event.detail.args)"
+                                (onClick)="onCellClicked($event.detail.eventData, $event.detail.args)">
+                            </angular-slickgrid>
                         </p-tabpanel>
 
                     </p-tabpanels>

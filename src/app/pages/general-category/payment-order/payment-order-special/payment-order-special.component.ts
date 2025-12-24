@@ -251,6 +251,27 @@ export class PaymentOrderSpecialComponent implements OnInit {
 
             },
         };
+
+
+        if (this.paymentOrder.ID > 0) {
+            this.paymentService.getDetail(this.paymentOrder.ID).subscribe({
+                next: (response) => {
+                    // console.log(response);
+
+                    this.dataset = response.data.details;
+                    this.dataset = this.dataset.map((x, i) => ({
+                        ...x,
+                        id: x.Id   // dành riêng cho SlickGrid
+                    }));
+
+                    this.datasetFile = response.data.files;
+                    this.datasetFile = this.datasetFile.map((x, i) => ({
+                        ...x,
+                        id: i + 1
+                    }));
+                }
+            })
+        }
     }
 
     initGridFile() {
@@ -288,6 +309,8 @@ export class PaymentOrderSpecialComponent implements OnInit {
     angularGridReady(angularGrid: AngularGridInstance) {
         this.angularGrid = angularGrid;
         this.gridData = angularGrid?.slickGrid || {};
+
+        this.updateTotal(3);
     }
     angularGridFileReady(angularGrid: AngularGridInstance) {
         this.angularGridFile = angularGrid;
@@ -321,6 +344,8 @@ export class PaymentOrderSpecialComponent implements OnInit {
 
 
     initForm() {
+
+        console.log('this.paymentOrder edit:', this.paymentOrder);
         this.validateForm = this.fb.group({
             FullName: this.fb.control({ value: this.appUserService.currentUser?.FullName, disabled: true }),
             DepartmentName: this.fb.control({ value: this.appUserService.currentUser?.DepartmentName, disabled: true }),
@@ -366,8 +391,8 @@ export class PaymentOrderSpecialComponent implements OnInit {
             // if (this.paymentOrder.TypeOrder == 2) gridInstance = this.angularGrid2;
 
 
-            // console.log('this.validateForm.getRawValue():', this.validateForm.getRawValue());
-            // console.log('this.angularGrid.dataView.getItems():', this.angularGrid.dataView.getItems());
+            console.log('this.validateForm.getRawValue():', this.validateForm.getRawValue());
+            console.log('this.angularGrid.dataView.getItems():', this.angularGrid.dataView.getItems());
 
             const formData = this.validateForm.getRawValue();
             const detailDatas = this.angularGrid.dataView.getItems();
@@ -381,12 +406,17 @@ export class PaymentOrderSpecialComponent implements OnInit {
                 ]
             }));
 
-            const maxLen = Math.max(formData.PaymentOrderPOs.length, formData.PaymentOrderBillNumbers.length);
-            let paymentOrderPOs = Array.from({ length: maxLen }, (_, i) => ({
-                POKHID: formData.PaymentOrderPOs[i] ?? null,
-                BillNumber: formData.PaymentOrderBillNumbers[i] ?? ''
-            }));
-            paymentOrderPOs = Object.values(paymentOrderPOs);
+            let paymentOrderPOs: any[] = [];
+            if ((formData.PaymentOrderPOs && formData.PaymentOrderPOs.length > 0) ||
+                (formData.PaymentOrderBillNumbers && formData.PaymentOrderBillNumbers.length > 0)) {
+                const maxLen = Math.max(formData.PaymentOrderPOs.length, formData.PaymentOrderBillNumbers.length);
+                paymentOrderPOs = Array.from({ length: maxLen }, (_, i) => ({
+                    POKHID: formData.PaymentOrderPOs[i] ?? null,
+                    BillNumber: formData.PaymentOrderBillNumbers[i] ?? ''
+                }));
+                paymentOrderPOs = Object.values(paymentOrderPOs);
+            }
+
 
             const columnId = this.angularGrid.slickGrid?.getColumns().findIndex(x => x.id == PaymentOrderDetailField.TotalMoney.field);
             const columnElement = this.angularGrid.slickGrid?.getFooterRowColumn(columnId);
@@ -525,6 +555,8 @@ export class PaymentOrderSpecialComponent implements OnInit {
 
 
     onCellChanged(e: Event, args: any) {
+
+        // console.log(args);
         this.updateTotal(args.cell);
     }
 

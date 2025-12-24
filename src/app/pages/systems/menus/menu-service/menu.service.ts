@@ -3318,12 +3318,12 @@ export class MenuService {
                             },
                             {
                                 kind: 'leaf',
-                                key: 'tbpduyetyccv',
-                                title: 'Yêu cầu công việc',
+                                key: 'TbpApproveJobRequirement',
+                                title: 'TBP duyệt yêu cầu công việc',
                                 isOpen: true,
                                 isPermission: this.permissionService.hasPermission('N57'),
-                                comp: PersonComponent,
-                                router: '/tbpduyetyccv',
+                                comp: JobRequirementComponent,
+                                data: { typeApprove: 2 }
                             },
                             {
                                 kind: 'leaf',
@@ -3356,12 +3356,12 @@ export class MenuService {
                             },
                             {
                                 kind: 'leaf',
-                                key: 'hrduyetyccv',
-                                title: 'Yêu cầu công việc',
+                                key: 'JobRequirementComponent',
+                                title: 'HR duyệt yêu cầu công việc',
                                 isOpen: true,
                                 isPermission: this.permissionService.hasPermission('N34,N56'),
-                                comp: PersonComponent,
-                                router: '/hrduyetyccv',
+                                comp: JobRequirementComponent,
+                                data: { typeApprove: 1 }
                             },
                         ],
                     },
@@ -3375,30 +3375,7 @@ export class MenuService {
                         comp: PersonComponent,
                         router: '/ketoanduyetdntt',
                     },
-                       {
-                        kind: 'leaf',
-                        key: 'TbpApproveJobRequirement',
-                        title: 'TBP duyệt yêu cầu công việc',
-                        isOpen: true,
-                        isPermission: this.permissionService.hasPermission('N32'),
-                        comp: JobRequirementComponent
-                    },
-                       {
-                        kind: 'leaf',
-                        key: 'HrApproveJobRequirement',
-                        title: 'HR duyệt yêu cầu công việc',
-                        isOpen: true,
-                        isPermission: this.permissionService.hasPermission('N1,N2,N32'),
-                        comp: JobRequirementComponent
-                    },
-                        {
-                        kind: 'leaf',
-                        key: 'BgdApproveJobRequirement',
-                        title: 'BGD duyệt yêu cầu công việc',
-                        isOpen: true,
-                        isPermission: this.permissionService.hasPermission(''),
-                        comp: JobRequirementComponent
-                    },
+                     
 
                     {
                         kind: 'group',
@@ -3418,12 +3395,12 @@ export class MenuService {
                             },
                             {
                                 kind: 'leaf',
-                                key: 'bgdduyetyccv',
-                                title: 'Yêu cầu công việc',
+                                key: 'BgdApproveJobRequirement',
+                                title: 'BGD duyệt yêu cầu công việc',
                                 isOpen: true,
                                 isPermission: this.permissionService.hasPermission('N58'),
-                                comp: PersonComponent,
-                                router: '/bgdduyetyccv',
+                                comp: JobRequirementComponent,
+                                data: { typeApprove: 3 }
                             },
 {
                         kind: 'leaf',

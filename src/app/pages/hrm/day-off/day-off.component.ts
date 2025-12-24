@@ -687,11 +687,20 @@ export class DayOffComponent implements OnInit, AfterViewInit {
 
     const dateNow = new Date();
     const dateRegister = new Date(formData.StartDate);
-    const employeeId = this.currentEmployee?.EmployeeID || formData.EmployeeID || 0;
+    
+    // Lấy EmployeeID từ form (combobox), không lấy từ currentEmployee
+    const employeeId = formData.EmployeeID;
+    
+    if (!employeeId || employeeId === 0) {
+      this.notification.warning(NOTIFICATION_TITLE.warning, 'Vui lòng chọn nhân viên');
+      this.dayOffForm.get('EmployeeID')?.markAsTouched();
+      return;
+    }
+    
     const loginName = this.currentUser?.LoginName || '';
     const fullName = this.currentEmployee?.FullName || '';
 
-    // Set các giá trị mặc định
+    // Set các giá trị mặc định - giữ nguyên EmployeeID từ form
     formData.EmployeeID = employeeId;
     formData.ApprovedHr = 0;
     formData.IsApprovedTP = false;

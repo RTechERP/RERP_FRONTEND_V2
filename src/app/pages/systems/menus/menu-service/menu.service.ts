@@ -300,9 +300,7 @@ export class MenuService {
                                             'N27,N29,N31,N30,N1,N36'
                                         ),
                                         comp: InventoryComponent,
-                                        data: {
-                                            warehouseCode: 'HN',
-                                        },
+                                        // data: { warehouseCode: 'HN', },
                                         //   icon: 'assets/icon/layers.png',
                                     },
                                     {
@@ -314,7 +312,7 @@ export class MenuService {
                                             'N27,N29,N50,N1,N36,N52,N35,N33,N34,N69'
                                         ),
                                         comp: BillImportComponent,
-                                        data: { warehouseCode: 'HN', warehouseID: 1, },
+                                        // data: { warehouseCode: 'HN', warehouseID: 1, },
                                         //   icon: 'assets/icon/layers.png',
                                     },
                                     {
@@ -326,9 +324,9 @@ export class MenuService {
                                             'N27,N29,N50,N1,N36,N52,N35,N33,N34,N69'
                                         ),
                                         comp: BillExportComponent,
-                                        data: {
-                                            warehouseCode: 'HN',
-                                        },
+                                        // data: {
+                                        //     warehouseCode: 'HN',
+                                        // },
                                         //   icon: 'assets/icon/layers.png',
                                     },
                                     {
@@ -341,9 +339,9 @@ export class MenuService {
                                                 'N27,N29,N1,N36,N35'
                                             ),
                                         comp: HistoryImportExportComponent,
-                                        data: {
-                                            warehouseCode: 'HN',
-                                        },
+                                        // data: {
+                                        //     warehouseCode: 'HN',
+                                        // },
                                         //   icon: 'assets/icon/layers.png',
                                     },
                                     {
@@ -353,9 +351,9 @@ export class MenuService {
                                         isOpen: true,
                                         isPermission: this.permissionService.hasPermission(''),
                                         comp: HistoryBorrowSaleComponent,
-                                        data: {
-                                            warehouseCode: 'HN',
-                                        },
+                                        // data: {
+                                        //     warehouseCode: 'HN',
+                                        // },
                                         //   icon: 'assets/icon/layers.png',
                                     },
                                     {
@@ -368,9 +366,9 @@ export class MenuService {
                                                 'N27,N29,N1,N36,N35'
                                             ),
                                         comp: ReportImportExportComponent,
-                                        data: {
-                                            warehousecode: 'HN',
-                                        },
+                                        // data: {
+                                        //     warehousecode: 'HN',
+                                        // },
                                         //   icon: 'assets/icon/layers.png',
                                     },
                                     {
@@ -380,9 +378,9 @@ export class MenuService {
                                         isOpen: true,
                                         isPermission: this.permissionService.hasPermission(''),
                                         comp: ListProductProjectComponent,
-                                        data: {
-                                            warehouseCode: 'HN',
-                                        },
+                                        // data: {
+                                        //     warehouseCode: 'HN',
+                                        // },
                                     },
                                     {
                                         kind: 'leaf',
@@ -391,9 +389,9 @@ export class MenuService {
                                         isOpen: true,
                                         isPermission: this.permissionService.hasPermission(''),
                                         comp: SearchProductSerialNumberComponent,
-                                        data: {
-                                            warehouseID: 1,
-                                        },
+                                        // data: {
+                                        //     warehouseID: 1,
+                                        // },
                                     },
                                 ],
                             },
@@ -415,10 +413,10 @@ export class MenuService {
                                         isOpen: true,
                                         isPermission: this.permissionService.hasPermission(''),
                                         comp: InventoryDemoComponent,
-                                        data: {
-                                            warehouseID: 1,
-                                            warehouseType: 1,
-                                        },
+                                        // data: {
+                                        //     warehouseID: 1,
+                                        //     warehouseType: 1,
+                                        // },
                                         //   icon: 'assets/icon/layers.png',
                                     },
 
@@ -429,10 +427,10 @@ export class MenuService {
                                         isOpen: true,
                                         isPermission: this.permissionService.hasPermission(''),
                                         comp: BillImportTechnicalComponent,
-                                        data: {
-                                            warehouseID: 1,
-                                            warehouseType: 1,
-                                        },
+                                        // data: {
+                                        //     warehouseID: 1,
+                                        //     warehouseType: 1,
+                                        // },
                                         //   icon: 'assets/icon/layers.png',
                                     },
                                     {
@@ -442,10 +440,10 @@ export class MenuService {
                                         isOpen: true,
                                         isPermission: this.permissionService.hasPermission(''),
                                         comp: BillExportTechnicalComponent,
-                                        data: {
-                                            warehouseID: 1,
-                                            warehouseType: 1,
-                                        },
+                                        // data: {
+                                        //     warehouseID: 1,
+                                        //     warehouseType: 1,
+                                        // },
                                         //   icon: 'assets/icon/layers.png',
                                     },
 
@@ -456,10 +454,10 @@ export class MenuService {
                                         isOpen: true,
                                         isPermission: this.permissionService.hasPermission(''),
                                         comp: ProductReportNewComponent,
-                                        data: {
-                                            warehouseID: 1,
-                                            warehouseType: 1,
-                                        },
+                                        // data: {
+                                        //     warehouseID: 1,
+                                        //     warehouseType: 1,
+                                        // },
                                     },
                                     {
                                         kind: 'leaf',
@@ -468,10 +466,10 @@ export class MenuService {
                                         isOpen: true,
                                         isPermission: this.permissionService.hasPermission(''),
                                         comp: ProductExportAndBorrowComponent,
-                                        data: {
-                                            warehouseID: 1,
-                                            warehouseType: 1,
-                                        },
+                                        // data: {
+                                        //     warehouseID: 1,
+                                        //     warehouseType: 1,
+                                        // },
                                     },
                                     {
                                         kind: 'leaf',
@@ -480,10 +478,10 @@ export class MenuService {
                                         isOpen: true,
                                         isPermission: this.permissionService.hasPermission(''),
                                         comp: BorrowReportComponent,
-                                        data: {
-                                            warehouseID: 1,
-                                            warehouseType: 1,
-                                        },
+                                        // data: {
+                                        //     warehouseID: 1,
+                                        //     warehouseType: 1,
+                                        // },
                                     },
                                     {
                                         kind: 'leaf',
@@ -492,10 +490,10 @@ export class MenuService {
                                         isOpen: true,
                                         isPermission: this.permissionService.hasPermission(''),
                                         comp: BorrowProductHistoryComponent,
-                                        data: {
-                                            warehouseID: 1,
-                                            warehouseType: 1,
-                                        },
+                                        // data: {
+                                        //     warehouseID: 1,
+                                        //     warehouseType: 1,
+                                        // },
                                     },
                                     {
                                         kind: 'leaf',
@@ -504,10 +502,10 @@ export class MenuService {
                                         isOpen: true,
                                         isPermission: this.permissionService.hasPermission(''),
                                         comp: SearchProductTechSerialComponent,
-                                        data: {
-                                            wearHouseID: 1,
-                                            warehouseType: 1,
-                                        },
+                                        // data: {
+                                        //     wearHouseID: 1,
+                                        //     warehouseType: 1,
+                                        // },
                                     },
                                     {
                                         kind: 'leaf',
@@ -516,10 +514,10 @@ export class MenuService {
                                         isOpen: true,
                                         isPermission: this.permissionService.hasPermission('N26'),
                                         comp: ProductLocationTechnicalComponent,
-                                        data: {
-                                            warehouseID: 1,
-                                            warehouseType: 1,
-                                        },
+                                        // data: {
+                                        //     warehouseID: 1,
+                                        //     warehouseType: 1,
+                                        // },
                                     },
                                     {
                                         kind: 'leaf',
@@ -528,10 +526,10 @@ export class MenuService {
                                         isOpen: true,
                                         isPermission: this.permissionService.hasPermission(''),
                                         comp: ProductRtcQrCodeComponent,
-                                        data: {
-                                            warehouseID: 1,
+                                        // data: {
+                                        //     warehouseID: 1,
 
-                                        },
+                                        // },
                                     },
                                     {
                                         kind: 'leaf',
@@ -540,10 +538,10 @@ export class MenuService {
                                         isOpen: true,
                                         isPermission: this.permissionService.hasPermission(''),
                                         comp: UnitCountKtComponent,
-                                        data: {
-                                            warehouseID: 1,
+                                        // data: {
+                                        //     warehouseID: 1,
 
-                                        },
+                                        // },
                                     },
                                 ],
                             },
@@ -565,10 +563,10 @@ export class MenuService {
                                         isOpen: true,
                                         isPermission: this.permissionService.hasPermission(''),
                                         comp: InventoryDemoComponent,
-                                        data: {
-                                            warehouseID: 1,
-                                            warehouseType: 2,
-                                        },
+                                        // data: {
+                                        //     warehouseID: 1,
+                                        //     warehouseType: 2,
+                                        // },
                                         //   icon: 'assets/icon/layers.png',
                                     },
                                     {
@@ -578,10 +576,10 @@ export class MenuService {
                                         isOpen: true,
                                         isPermission: this.permissionService.hasPermission(''),
                                         comp: BillImportTechnicalComponent,
-                                        data: {
-                                            warehouseID: 1,
-                                            warehouseType: 2,
-                                        },
+                                        // data: {
+                                        //     warehouseID: 1,
+                                        //     warehouseType: 2,
+                                        // },
                                         //   icon: 'assets/icon/layers.png',
                                     },
                                     {
@@ -591,10 +589,10 @@ export class MenuService {
                                         isOpen: true,
                                         isPermission: this.permissionService.hasPermission(''),
                                         comp: BillExportTechnicalComponent,
-                                        data: {
-                                            warehouseID: 1,
-                                            warehouseType: 2,
-                                        },
+                                        // data: {
+                                        //     warehouseID: 1,
+                                        //     warehouseType: 2,
+                                        // },
                                         //   icon: 'assets/icon/layers.png',
                                     },
 
@@ -605,10 +603,10 @@ export class MenuService {
                                         isOpen: true,
                                         isPermission: this.permissionService.hasPermission(''),
                                         comp: ProductReportNewComponent,
-                                        data: {
-                                            warehouseID: 1,
-                                            warehouseType: 2,
-                                        },
+                                        // data: {
+                                        //     warehouseID: 1,
+                                        //     warehouseType: 2,
+                                        // },
                                     },
                                     //   {
                                     //     kind: 'leaf',
@@ -629,10 +627,10 @@ export class MenuService {
                                         isOpen: true,
                                         isPermission: this.permissionService.hasPermission(''),
                                         comp: BorrowReportComponent,
-                                        data: {
-                                            warehouseID: 1,
-                                            warehouseType: 2,
-                                        },
+                                        // data: {
+                                        //     warehouseID: 1,
+                                        //     warehouseType: 2,
+                                        // },
                                     },
                                     {
                                         kind: 'leaf',
@@ -641,10 +639,10 @@ export class MenuService {
                                         isOpen: true,
                                         isPermission: this.permissionService.hasPermission(''),
                                         comp: BorrowProductHistoryComponent,
-                                        data: {
-                                            warehouseID: 1,
-                                            warehouseType: 2,
-                                        },
+                                        // data: {
+                                        //     warehouseID: 1,
+                                        //     warehouseType: 2,
+                                        // },
                                     },
                                     {
                                         kind: 'leaf',
@@ -653,10 +651,10 @@ export class MenuService {
                                         isOpen: true,
                                         isPermission: this.permissionService.hasPermission('N26'),
                                         comp: ProductLocationTechnicalComponent,
-                                        data: {
-                                            warehouseID: 1,
-                                            warehouseType: 2,
-                                        },
+                                        // data: {
+                                        //     warehouseID: 1,
+                                        //     warehouseType: 2,
+                                        // },
                                     },
                                 ],
                             },
@@ -712,7 +710,7 @@ export class MenuService {
                                             'N27,N31,N30,N33,N29,N54,N1,N36'
                                         ),
                                         comp: InventoryComponent,
-                                        data: { warehouseCode: 'HCM' },
+                                        // data: { warehouseCode: 'HCM' },
                                     },
                                     {
                                         kind: 'leaf',
@@ -723,7 +721,7 @@ export class MenuService {
                                             'N27,N29,N50,N1,N36,N52,N35,N33,N34,N69'
                                         ),
                                         comp: BillImportComponent,
-                                        data: { warehouseCode: 'HCM', warehouseID: 2 },
+                                        // data: { warehouseCode: 'HCM', warehouseID: 2 },
                                     },
                                     {
                                         kind: 'leaf',
@@ -734,7 +732,7 @@ export class MenuService {
                                             'N27,N29,N50,N54,N1,N36,N35'
                                         ),
                                         comp: BillExportComponent,
-                                        data: { warehouseCode: 'HCM' },
+                                        // data: { warehouseCode: 'HCM' },
                                     },
                                     {
                                         kind: 'leaf',
@@ -746,7 +744,7 @@ export class MenuService {
                                                 'N27,N29,N54,N1,N36'
                                             ),
                                         comp: HistoryImportExportComponent,
-                                        data: { warehouseCode: 'HCM' },
+                                        // data: { warehouseCode: 'HCM' },
                                     },
                                     {
                                         kind: 'leaf',
@@ -755,7 +753,7 @@ export class MenuService {
                                         isOpen: true,
                                         isPermission: this.permissionService.hasPermission(''),
                                         comp: HistoryBorrowSaleComponent,
-                                        data: { warehouseCode: 'HCM' },
+                                        // data: { warehouseCode: 'HCM' },
                                     },
                                     {
                                         kind: 'leaf',
@@ -767,7 +765,7 @@ export class MenuService {
                                                 'N27,N29,N54,N1,N36'
                                             ),
                                         comp: ReportImportExportComponent,
-                                        data: { warehousecode: 'HCM' }, // giữ nguyên lowercase như HN
+                                        // data: { warehousecode: 'HCM' }, // giữ nguyên lowercase như HN
                                     },
                                     {
                                         kind: 'leaf',
@@ -776,7 +774,7 @@ export class MenuService {
                                         isOpen: true,
                                         isPermission: this.permissionService.hasPermission(''),
                                         comp: ListProductProjectComponent,
-                                        data: { warehouseCode: 'HCM' },
+                                        // data: { warehouseCode: 'HCM' },
                                     },
                                     {
                                         kind: 'leaf',
@@ -785,7 +783,7 @@ export class MenuService {
                                         isOpen: true,
                                         isPermission: this.permissionService.hasPermission(''),
                                         comp: SearchProductSerialNumberComponent,
-                                        data: { warehouseID: 2 },
+                                        // data: { warehouseID: 2 },
                                     },
                                 ],
                             },
@@ -806,7 +804,7 @@ export class MenuService {
                                                 'N26,N36,N29,N54,N1'
                                             ),
                                         comp: InventoryDemoComponent,
-                                        data: { warehouseID: 2 },
+                                        // data: { warehouseID: 2 },
                                     },
                                     {
                                         kind: 'leaf',
@@ -817,7 +815,7 @@ export class MenuService {
                                             'N19,N18,N26,N36,N29,N50,N54,N1'
                                         ),
                                         comp: BillImportTechnicalComponent,
-                                        data: { warehouseID: 2 },
+                                        // data: { warehouseID: 2 },
                                     },
                                     {
                                         kind: 'leaf',
@@ -828,7 +826,7 @@ export class MenuService {
                                             'N19,N18,N26,N36,N29,N50,N54,N1'
                                         ),
                                         comp: BillExportTechnicalComponent,
-                                        data: { warehouseID: 2 },
+                                        // data: { warehouseID: 2 },
                                     },
                                     {
                                         kind: 'leaf',
@@ -840,7 +838,7 @@ export class MenuService {
                                                 'N26,N36,N29,N54,N1'
                                             ),
                                         comp: ProductReportNewComponent,
-                                        data: { warehouseID: 2 },
+                                        // data: { warehouseID: 2 },
                                     },
                                     {
                                         kind: 'leaf',
@@ -849,7 +847,7 @@ export class MenuService {
                                         isOpen: true,
                                         isPermission: this.permissionService.hasPermission(''),
                                         comp: ProductExportAndBorrowComponent,
-                                        data: { warehouseID: 2 },
+                                        // data: { warehouseID: 2 },
                                     },
                                     {
                                         kind: 'leaf',
@@ -861,7 +859,7 @@ export class MenuService {
                                                 'N26,N36,N29,N54,N1'
                                             ),
                                         comp: BorrowReportComponent,
-                                        data: { warehouseID: 2 },
+                                        // data: { warehouseID: 2 },
                                     },
                                     {
                                         kind: 'leaf',
@@ -873,7 +871,7 @@ export class MenuService {
                                                 'N26,N36,N29,N54,N1'
                                             ),
                                         comp: BorrowProductHistoryComponent,
-                                        data: { warehouseID: 2 },
+                                        // data: { warehouseID: 2 },
                                     },
                                     {
                                         kind: 'leaf',
@@ -883,7 +881,7 @@ export class MenuService {
                                         isPermission:
                                             this.permissionService.hasPermission('N26,N36,N54,N1'),
                                         comp: SearchProductTechSerialComponent,
-                                        data: { wearHouseID: 2 }, // giữ nguyên spelling sai
+                                        // data: { wearHouseID: 2 }, // giữ nguyên spelling sai
                                     },
                                     {
                                         kind: 'leaf',
@@ -893,7 +891,7 @@ export class MenuService {
                                         isPermission:
                                             this.permissionService.hasPermission('N26,N54,N1'),
                                         comp: ProductRtcQrCodeComponent,
-                                        data: { warehouseID: 2 },
+                                        // data: { warehouseID: 2 },
                                     },
                                 ],
                             },
@@ -928,7 +926,7 @@ export class MenuService {
                                             'N27,N29,N31,N30,N1,N36'
                                         ),
                                         comp: InventoryComponent,
-                                        data: { warehouseCode: 'BN' },
+                                        // data: { warehouseCode: 'BN' },
                                     },
                                     {
                                         kind: 'leaf',
@@ -939,7 +937,7 @@ export class MenuService {
                                             'N27,N29,N50,N1,N36,N52,N35,N33,N34,N69'
                                         ),
                                         comp: BillImportComponent,
-                                        data: { warehouseCode: 'BN' },
+                                        // data: { warehouseCode: 'BN' },
                                     },
                                     {
                                         kind: 'leaf',
@@ -950,7 +948,7 @@ export class MenuService {
                                             'N27,N29,N50,N1,N36,N52,N35,N33,N34,N69'
                                         ),
                                         comp: BillExportComponent,
-                                        data: { warehouseCode: 'BN' },
+                                        // data: { warehouseCode: 'BN' },
                                     },
                                     {
                                         kind: 'leaf',
@@ -962,7 +960,7 @@ export class MenuService {
                                                 'N27,N29,N1,N36,N35'
                                             ),
                                         comp: HistoryImportExportComponent,
-                                        data: { warehouseCode: 'BN' },
+                                        // data: { warehouseCode: 'BN' },
                                     },
                                     {
                                         kind: 'leaf',
@@ -971,7 +969,7 @@ export class MenuService {
                                         isOpen: true,
                                         isPermission: this.permissionService.hasPermission(''),
                                         comp: HistoryBorrowSaleComponent,
-                                        data: { warehouseCode: 'BN' },
+                                        // data: { warehouseCode: 'BN' },
                                     },
                                     {
                                         kind: 'leaf',
@@ -983,7 +981,7 @@ export class MenuService {
                                                 'N27,N29,N1,N36,N35'
                                             ),
                                         comp: ReportImportExportComponent,
-                                        data: { warehousecode: 'BN' },
+                                        // data: { warehousecode: 'BN' },
                                     },
                                     {
                                         kind: 'leaf',
@@ -992,7 +990,7 @@ export class MenuService {
                                         isOpen: true,
                                         isPermission: this.permissionService.hasPermission(''),
                                         comp: ListProductProjectComponent,
-                                        data: { warehouseCode: 'BN' },
+                                        // data: { warehouseCode: 'BN' },
                                     },
                                     {
                                         kind: 'leaf',
@@ -1001,7 +999,7 @@ export class MenuService {
                                         isOpen: true,
                                         isPermission: this.permissionService.hasPermission(''),
                                         comp: SearchProductSerialNumberComponent,
-                                        data: { warehouseID: 3 },
+                                        // data: { warehouseID: 3 },
                                     },
                                 ],
                             },
@@ -1019,7 +1017,7 @@ export class MenuService {
                                         isOpen: true,
                                         isPermission: this.permissionService.hasPermission(''),
                                         comp: InventoryDemoComponent,
-                                        data: { warehouseID: 3 },
+                                        // data: { warehouseID: 3 },
                                     },
                                     {
                                         kind: 'leaf',
@@ -1028,7 +1026,7 @@ export class MenuService {
                                         isOpen: true,
                                         isPermission: this.permissionService.hasPermission(''),
                                         comp: BillImportTechnicalComponent,
-                                        data: { warehouseID: 3 },
+                                        // data: { warehouseID: 3 },
                                     },
                                     {
                                         kind: 'leaf',
@@ -1037,7 +1035,7 @@ export class MenuService {
                                         isOpen: true,
                                         isPermission: this.permissionService.hasPermission(''),
                                         comp: BillExportTechnicalComponent,
-                                        data: { warehouseID: 3 },
+                                        // data: { warehouseID: 3 },
                                     },
                                     {
                                         kind: 'leaf',
@@ -1046,7 +1044,7 @@ export class MenuService {
                                         isOpen: true,
                                         isPermission: this.permissionService.hasPermission(''),
                                         comp: ProductReportNewComponent,
-                                        data: { warehouseID: 3 },
+                                        // data: { warehouseID: 3 },
                                     },
                                     {
                                         kind: 'leaf',
@@ -1055,7 +1053,7 @@ export class MenuService {
                                         isOpen: true,
                                         isPermission: this.permissionService.hasPermission(''),
                                         comp: ProductExportAndBorrowComponent,
-                                        data: { warehouseID: 3 },
+                                        // data: { warehouseID: 3 },
                                     },
                                     {
                                         kind: 'leaf',
@@ -1064,7 +1062,7 @@ export class MenuService {
                                         isOpen: true,
                                         isPermission: this.permissionService.hasPermission(''),
                                         comp: BorrowReportComponent,
-                                        data: { warehouseID: 3 },
+                                        // data: { warehouseID: 3 },
                                     },
                                     {
                                         kind: 'leaf',
@@ -1073,7 +1071,7 @@ export class MenuService {
                                         isOpen: true,
                                         isPermission: this.permissionService.hasPermission(''),
                                         comp: BorrowProductHistoryComponent,
-                                        data: { warehouseID: 3 },
+                                        // data: { warehouseID: 3 },
                                     },
                                     {
                                         kind: 'leaf',
@@ -1082,7 +1080,7 @@ export class MenuService {
                                         isOpen: true,
                                         isPermission: this.permissionService.hasPermission(''),
                                         comp: SearchProductTechSerialComponent,
-                                        data: { wearHouseID: 3 },
+                                        // data: { wearHouseID: 3 },
                                     },
                                     {
                                         kind: 'leaf',
@@ -1091,7 +1089,7 @@ export class MenuService {
                                         isOpen: true,
                                         isPermission: this.permissionService.hasPermission(''),
                                         comp: ProductRtcQrCodeComponent,
-                                        data: { warehouseID: 3 },
+                                        // data: { warehouseID: 3 },
                                     },
                                 ],
                             },
@@ -1126,7 +1124,7 @@ export class MenuService {
                                             'N27,N29,N31,N30,N1,N36'
                                         ),
                                         comp: InventoryComponent,
-                                        data: { warehouseCode: 'DP' },
+                                        // data: { warehouseCode: 'DP' },
                                     },
                                     {
                                         kind: 'leaf',
@@ -1137,7 +1135,7 @@ export class MenuService {
                                             'N27,N29,N50,N1,N36,N52,N35,N33,N34,N69'
                                         ),
                                         comp: BillImportComponent,
-                                        data: { warehouseCode: 'DP' },
+                                        // data: { warehouseCode: 'DP' },
                                     },
                                     {
                                         kind: 'leaf',
@@ -1148,7 +1146,7 @@ export class MenuService {
                                             'N27,N29,N50,N1,N36,N52,N35,N33,N34,N69'
                                         ),
                                         comp: BillExportComponent,
-                                        data: { warehouseCode: 'DP' },
+                                        // data: { warehouseCode: 'DP' },
                                     },
                                     {
                                         kind: 'leaf',
@@ -1160,7 +1158,7 @@ export class MenuService {
                                                 'N27,N29,N1,N36,N35'
                                             ),
                                         comp: HistoryImportExportComponent,
-                                        data: { warehouseCode: 'DP' },
+                                        // data: { warehouseCode: 'DP' },
                                     },
                                     {
                                         kind: 'leaf',
@@ -1169,7 +1167,7 @@ export class MenuService {
                                         isOpen: true,
                                         isPermission: this.permissionService.hasPermission(''),
                                         comp: HistoryBorrowSaleComponent,
-                                        data: { warehouseCode: 'DP' },
+                                        // data: { warehouseCode: 'DP' },
                                     },
                                     {
                                         kind: 'leaf',
@@ -1181,7 +1179,7 @@ export class MenuService {
                                                 'N27,N29,N1,N36,N35'
                                             ),
                                         comp: ReportImportExportComponent,
-                                        data: { warehousecode: 'DP' },
+                                        // data: { warehousecode: 'DP' },
                                     },
                                     {
                                         kind: 'leaf',
@@ -1190,7 +1188,7 @@ export class MenuService {
                                         isOpen: true,
                                         isPermission: this.permissionService.hasPermission(''),
                                         comp: ListProductProjectComponent,
-                                        data: { warehouseCode: 'DP' },
+                                        // data: { warehouseCode: 'DP' },
                                     },
                                     {
                                         kind: 'leaf',
@@ -1199,7 +1197,7 @@ export class MenuService {
                                         isOpen: true,
                                         isPermission: this.permissionService.hasPermission(''),
                                         comp: SearchProductSerialNumberComponent,
-                                        data: { warehouseID: 6 },
+                                        // data: { warehouseID: 6 },
                                     },
                                 ],
                             },
@@ -1217,7 +1215,7 @@ export class MenuService {
                                         isOpen: true,
                                         isPermission: this.permissionService.hasPermission(''),
                                         comp: InventoryDemoComponent,
-                                        data: { warehouseID: 6 },
+                                        // data: { warehouseID: 6 },
                                     },
                                     {
                                         kind: 'leaf',
@@ -1226,7 +1224,7 @@ export class MenuService {
                                         isOpen: true,
                                         isPermission: this.permissionService.hasPermission(''),
                                         comp: BillImportTechnicalComponent,
-                                        data: { warehouseID: 6 },
+                                        // data: { warehouseID: 6 },
                                     },
                                     {
                                         kind: 'leaf',
@@ -1235,7 +1233,7 @@ export class MenuService {
                                         isOpen: true,
                                         isPermission: this.permissionService.hasPermission(''),
                                         comp: BillExportTechnicalComponent,
-                                        data: { warehouseID: 6 },
+                                        // data: { warehouseID: 6 },
                                     },
                                     {
                                         kind: 'leaf',
@@ -1244,7 +1242,7 @@ export class MenuService {
                                         isOpen: true,
                                         isPermission: this.permissionService.hasPermission(''),
                                         comp: ProductReportNewComponent,
-                                        data: { warehouseID: 6 },
+                                        // data: { warehouseID: 6 },
                                     },
                                     {
                                         kind: 'leaf',
@@ -1253,7 +1251,7 @@ export class MenuService {
                                         isOpen: true,
                                         isPermission: this.permissionService.hasPermission(''),
                                         comp: ProductExportAndBorrowComponent,
-                                        data: { warehouseID: 6 },
+                                        // data: { warehouseID: 6 },
                                     },
                                     {
                                         kind: 'leaf',
@@ -1262,7 +1260,7 @@ export class MenuService {
                                         isOpen: true,
                                         isPermission: this.permissionService.hasPermission(''),
                                         comp: BorrowReportComponent,
-                                        data: { warehouseID: 6 },
+                                        // data: { warehouseID: 6 },
                                     },
                                     {
                                         kind: 'leaf',
@@ -1271,7 +1269,7 @@ export class MenuService {
                                         isOpen: true,
                                         isPermission: this.permissionService.hasPermission(''),
                                         comp: BorrowProductHistoryComponent,
-                                        data: { warehouseID: 6 },
+                                        // data: { warehouseID: 6 },
                                     },
                                     {
                                         kind: 'leaf',
@@ -1280,7 +1278,7 @@ export class MenuService {
                                         isOpen: true,
                                         isPermission: this.permissionService.hasPermission(''),
                                         comp: SearchProductTechSerialComponent,
-                                        data: { wearHouseID: 6 },
+                                        // data: { wearHouseID: 6 },
                                     },
                                     {
                                         kind: 'leaf',
@@ -1289,7 +1287,7 @@ export class MenuService {
                                         isOpen: true,
                                         isPermission: this.permissionService.hasPermission(''),
                                         comp: ProductRtcQrCodeComponent,
-                                        data: { warehouseID: 6 },
+                                        // data: { warehouseID: 6 },
                                     },
                                 ],
                             },
@@ -1351,9 +1349,7 @@ export class MenuService {
                                 isPermission:
                                     this.permissionService.hasPermission('N26,N1,N36,N73,N30'),
                                 comp: TbProductRtcComponent,
-                                data: {
-                                    warehouseType: 1,
-                                },
+                                // data: { warehouseType: 1, },
                             },
 
                             {
@@ -1364,9 +1360,9 @@ export class MenuService {
                                 isPermission:
                                     this.permissionService.hasPermission('N26,N1,N36,N73,N30'),
                                 comp: TbProductRtcComponent,
-                                data: {
-                                    warehouseType: 2,
-                                },
+                                // data: {
+                                //     warehouseType: 2,
+                                // },
                             },
                         ],
                     },
@@ -2437,7 +2433,7 @@ export class MenuService {
                                         isPermission:
                                             this.permissionService.hasPermission('N27,N36,N1,N31'),
                                         comp: PokhComponent,
-                                        data: { warehouseId: 1 },
+                                        // data: { warehouseId: 1 },
                                     },
                                     {
                                         kind: 'leaf',
@@ -2491,7 +2487,7 @@ export class MenuService {
                                         isOpen: true,
                                         isPermission: this.permissionService.hasPermission(''),
                                         comp: FollowProjectBaseComponent,
-                                        data: { warehouseId: 1 },
+                                        // data: { warehouseId: 1 },
                                     },
                                     {
                                         kind: 'leaf',
@@ -2537,7 +2533,7 @@ export class MenuService {
                                         isOpen: true,
                                         isPermission: this.permissionService.hasPermission(""),
                                         comp: DailyReportSaleComponent,
-                                        data: { warehouseId: 1 },
+                                        // data: { warehouseId: 1 },
                                     },
                                     {
                                         kind: 'leaf',
@@ -2546,7 +2542,7 @@ export class MenuService {
                                         isOpen: true,
                                         isPermission: this.permissionService.hasPermission(""),
                                         comp: DailyReportSaleAdminComponent,
-                                        data: { warehouseId: 1 },
+                                        // data: { warehouseId: 1 },
                                     },
                                 ],
                             },
@@ -2557,7 +2553,7 @@ export class MenuService {
                                 isOpen: true,
                                 isPermission: this.permissionService.hasPermission(''),
                                 comp: RequestInvoiceComponent,
-                                data: { warehouseId: 1 },
+                                // data: { warehouseId: 1 },
                             },
                         ],
                     },
@@ -2575,7 +2571,7 @@ export class MenuService {
                                 isOpen: true,
                                 isPermission: this.permissionService.hasPermission(''),
                                 comp: RequestInvoiceComponent,
-                                data: { warehouseId: 2 },
+                                // data: { warehouseId: 2 },
                             },
                             {
                                 kind: 'leaf',
@@ -2585,7 +2581,7 @@ export class MenuService {
                                 isPermission:
                                     this.permissionService.hasPermission('N54,N1,N36'),
                                 comp: PokhComponent,
-                                data: { warehouseId: 2 },
+                                // data: { warehouseId: 2 },
                             },
                             {
                                 kind: 'leaf',
@@ -2594,7 +2590,7 @@ export class MenuService {
                                 isOpen: true,
                                 isPermission: this.permissionService.hasPermission(''),
                                 comp: FollowProjectBaseComponent,
-                                data: { warehouseId: 2 },
+                                // data: { warehouseId: 2 },
                             },
                         ]
                     }
@@ -2618,7 +2614,7 @@ export class MenuService {
                         isOpen: true,
                         isPermission: this.permissionService.hasPermission(''),
                         comp: HistoryExportAccountantComponent,
-                        data: { warehouseId: 0 },
+                        // data: { warehouseId: 0 },
                     },
                     {
                         kind: 'leaf',
@@ -2627,7 +2623,7 @@ export class MenuService {
                         isOpen: true,
                         isPermission: this.permissionService.hasPermission(''),
                         comp: HistoryApprovedBillLogComponent,
-                        data: { warehouseId: 0 },
+                        // data: { warehouseId: 0 },
                     },
                     // {
                     //     kind: 'leaf',
@@ -2680,7 +2676,7 @@ export class MenuService {
                         isOpen: true,
                         isPermission: this.permissionService.hasPermission(''),
                         comp: RequestInvoiceComponent,
-                        data: { warehouseId: 0 },
+                        // data: { warehouseId: 0 },
                     },
 
                     {
@@ -3265,23 +3261,23 @@ export class MenuService {
                                     //     router: '/catphimlaixe',
                                     // },
 
-                                    {
-                                        kind: 'leaf',
-                                        key: 'baocaocongviechr',
-                                        title: 'Nhân viên hành chính',
-                                        isOpen: true,
-                                        isPermission: this.permissionService.hasPermission(''),
-                                        comp: DailyReportThrComponent,
-                                    },
-                                    {
-                                        kind: 'leaf',
-                                        key: 'catphimlaixe',
-                                        title: 'Cắt phim - Lái xe',
-                                        isOpen: true,
-                                        isPermission: this.permissionService.hasPermission(''),
-                                        comp: PersonComponent,
-                                        router: '/catphimlaixe',
-                                    },
+                                    // {
+                                    //     kind: 'leaf',
+                                    //     key: 'baocaocongviechr',
+                                    //     title: 'Nhân viên hành chính',
+                                    //     isOpen: true,
+                                    //     isPermission: this.permissionService.hasPermission(''),
+                                    //     comp: DailyReportThrComponent,
+                                    // },
+                                    // {
+                                    //     kind: 'leaf',
+                                    //     key: 'catphimlaixe',
+                                    //     title: 'Cắt phim - Lái xe',
+                                    //     isOpen: true,
+                                    //     isPermission: this.permissionService.hasPermission(''),
+                                    //     comp: PersonComponent,
+                                    //     router: '/catphimlaixe',
+                                    // },
                                 ],
                             },
 
@@ -3368,7 +3364,7 @@ export class MenuService {
                                 isPermission: this.permissionService.hasPermission(''),
                                 comp: PersonComponent,
                                 router: '/bieumauvanbanchung',
-                                data: { departmentID: 3 },
+                                // data: { departmentID: 3 },
                             },
 
                             {
@@ -3379,7 +3375,7 @@ export class MenuService {
                                 isPermission: this.permissionService.hasPermission(''),
                                 comp: PersonComponent,
                                 router: '/bieumauvanbanchung',
-                                data: { departmentID: 2 },
+                                // data: { departmentID: 2 },
                             },
 
                             {
@@ -3390,7 +3386,7 @@ export class MenuService {
                                 isPermission: this.permissionService.hasPermission(''),
                                 comp: PersonComponent,
                                 router: '/bieumauvanbanchung',
-                                data: { departmentID: 9 },
+                                // data: { departmentID: 9 },
                             },
 
                             {
@@ -3401,7 +3397,7 @@ export class MenuService {
                                 isPermission: this.permissionService.hasPermission(''),
                                 comp: PersonComponent,
                                 router: '/bieumauvanbanchung',
-                                data: { departmentID: 10 },
+                                // data: { departmentID: 10 },
                             },
                         ],
                     },
@@ -3445,7 +3441,7 @@ export class MenuService {
                                 isOpen: true,
                                 isPermission: this.permissionService.hasPermission('N57'),
                                 comp: JobRequirementComponent,
-                                data: { typeApprove: 2 }
+                                // data: { typeApprove: 2 }
                             },
                             {
                                 kind: 'leaf',
@@ -3455,7 +3451,7 @@ export class MenuService {
                                 isPermission: this.permissionService.hasPermission('N57'),
                                 comp: ProjectPartListPurchaseRequestSlickGridComponent,
                                 // router: '/tbpycmuonhangdemo',
-                                data: { isApprovedTBP: true },
+                                // data: { isApprovedTBP: true },
                             },
                         ],
                     },
@@ -3483,7 +3479,7 @@ export class MenuService {
                                 isOpen: true,
                                 isPermission: this.permissionService.hasPermission('N34,N56'),
                                 comp: JobRequirementComponent,
-                                data: { typeApprove: 1 }
+                                // data: { typeApprove: 1 }
                             },
                         ],
                     },
@@ -3497,30 +3493,30 @@ export class MenuService {
                         comp: PersonComponent,
                         router: '/ketoanduyetdntt',
                     },
-                    {
-                        kind: 'leaf',
-                        key: 'TbpApproveJobRequirement',
-                        title: 'TBP duyệt yêu cầu công việc',
-                        isOpen: true,
-                        isPermission: this.permissionService.hasPermission('N32'),
-                        comp: JobRequirementComponent
-                    },
-                    {
-                        kind: 'leaf',
-                        key: 'HrApproveJobRequirement',
-                        title: 'HR duyệt yêu cầu công việc',
-                        isOpen: true,
-                        isPermission: this.permissionService.hasPermission('N1,N2,N32'),
-                        comp: JobRequirementComponent
-                    },
-                    {
-                        kind: 'leaf',
-                        key: 'BgdApproveJobRequirement',
-                        title: 'BGD duyệt yêu cầu công việc',
-                        isOpen: true,
-                        isPermission: this.permissionService.hasPermission(''),
-                        comp: JobRequirementComponent
-                    },
+                    // {
+                    //     kind: 'leaf',
+                    //     key: 'TbpApproveJobRequirement',
+                    //     title: 'TBP duyệt yêu cầu công việc',
+                    //     isOpen: true,
+                    //     isPermission: this.permissionService.hasPermission('N32'),
+                    //     comp: JobRequirementComponent
+                    // },
+                    // {
+                    //     kind: 'leaf',
+                    //     key: 'HrApproveJobRequirement',
+                    //     title: 'HR duyệt yêu cầu công việc',
+                    //     isOpen: true,
+                    //     isPermission: this.permissionService.hasPermission('N1,N2,N32'),
+                    //     comp: JobRequirementComponent
+                    // },
+                    // {
+                    //     kind: 'leaf',
+                    //     key: 'BgdApproveJobRequirement',
+                    //     title: 'BGD duyệt yêu cầu công việc',
+                    //     isOpen: true,
+                    //     isPermission: this.permissionService.hasPermission(''),
+                    //     comp: JobRequirementComponent
+                    // },
 
                     {
                         kind: 'group',
@@ -3545,7 +3541,7 @@ export class MenuService {
                                 isOpen: true,
                                 isPermission: this.permissionService.hasPermission('N58'),
                                 comp: JobRequirementComponent,
-                                data: { typeApprove: 3 }
+                                // data: { typeApprove: 3 }
                             },
                             {
                                 kind: 'leaf',
@@ -3554,9 +3550,9 @@ export class MenuService {
                                 isOpen: true,
                                 isPermission: this.permissionService.hasPermission(''),
                                 comp: ProjectPartListPurchaseRequestSlickGridComponent,
-                                data: {
-                                    isApprovedBGD: true,
-                                },
+                                // data: {
+                                //     isApprovedBGD: true,
+                                // },
                             },
 
                         ],
@@ -3579,9 +3575,7 @@ export class MenuService {
                         isOpen: true,
                         isPermission: this.permissionService.hasPermission('N1,N32'),
                         comp: ApproveTpComponent,
-                        data: {
-                            isSeniorMode: false,
-                        },
+                        // data: { isSeniorMode: false, },
                     },
                     {
                         kind: 'leaf',
@@ -3590,9 +3584,9 @@ export class MenuService {
                         isOpen: true,
                         isPermission: this.permissionService.hasPermission('N85'),
                         comp: ApproveTpComponent,
-                        data: {
-                            isSeniorMode: true, // Khi true, tự động set type = 3 (làm thêm) và IDApprovedTP = 0
-                        },
+                        // data: {
+                        //     isSeniorMode: true, // Khi true, tự động set type = 3 (làm thêm) và IDApprovedTP = 0
+                        // },
                     },
                     {
                         kind: 'leaf',
@@ -3609,21 +3603,21 @@ export class MenuService {
                         isOpen: true,
                         isPermission: this.permissionService.hasPermission(''),
                         comp: ProjectPartListComponent,
-                        data: {
-                            tbp: true,
-                        },
+                        // data: {
+                        //     tbp: true,
+                        // },
                     },
-                    {
-                        kind: 'leaf',
-                        key: 'bgdduyetyeucaumuahang',
-                        title: 'BGĐ duyệt YCMH',
-                        isOpen: true,
-                        isPermission: this.permissionService.hasPermission(''),
-                        comp: ProjectPartListPurchaseRequestSlickGridComponent,
-                        data: {
-                            isApprovedBGD: true,
-                        },
-                    },
+                    // {
+                    //     kind: 'leaf',
+                    //     key: 'bgdduyetyeucaumuahang',
+                    //     title: 'BGĐ duyệt YCMH',
+                    //     isOpen: true,
+                    //     isPermission: this.permissionService.hasPermission(''),
+                    //     comp: ProjectPartListPurchaseRequestSlickGridComponent,
+                    //     data: {
+                    //         isApprovedBGD: true,
+                    //     },
+                    // },
 
                 ],
             },
@@ -3684,7 +3678,7 @@ type BaseItem = {
     isOpen: boolean;
     icon?: string | ''; // tùy chọn
     isPermission: boolean;
-    data?: {};
+    // data?: {};
     router?: string | '';
 };
 

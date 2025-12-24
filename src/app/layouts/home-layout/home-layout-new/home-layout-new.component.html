@@ -1,15 +1,15 @@
-<nav class="navbar sticky-top" style="background-color: #23458a;">
+<nav class="navbar sticky-top" style="background-color: #ffffff;">
     <div class="container-fluid">
         <a class="navbar-brand p-0" href="#" style="width: 5%;" routerLink="/home">
-            <img src="assets/images/logo-RTC-2023-1200-red-white.png" alt="" width="100%"
+            <img src="assets/images/logo-RTC-2023-1200-banchuan.png" alt="" width="100%"
                 class="d-inline-block align-text-top">
 
         </a>
 
-        <div class="d-flex">
+        <div class="">
             <button nz-button nz-dropdown [nzDropdownMenu]="appmenu" nzPlacement="bottomRight" nzType="text"
-                class=" text-light" nzTrigger="click">
-                <img src="assets/icon/app_store.svg">
+                style="border: none !important; background-color:transparent;" nzTrigger="click">
+                <img src="assets/icon/app_store - Copy.svg">
             </button>
 
             <nz-dropdown-menu #appmenu="nzDropdownMenu">
@@ -19,7 +19,7 @@
 
                         <a (click)="openModule(m.Code)" *ngIf="m.IsPermission">
                             <img [src]="m.Icon" />
-                            <span class="mt-1">{{m.Code}}.{{m.Title}}</span>
+                            <span class="mt-1">{{m.Title}}</span>
                         </a>
                         }
                     </div>
@@ -27,23 +27,24 @@
             </nz-dropdown-menu>
 
             <app-app-notifycation-dropdown [items]="notifItems" (itemClick)="onPick($event)">
-                <button nz-button nzType="text" class="text-light fs-7" trigger>
+                <button style="border: none !important;background-color: transparent; margin:0 5px;" nz-button
+                    nzType="text" class=" fs-7" trigger>
                     <nz-badge [nzOverflowCount]="9" [nzCount]="notifItems.length" class="fs-7">
-                        <img src="assets/icon/notification_home.svg" class="bell-icon">
+                        <img src="assets/icon/notification_home - Copy.svg" class="bell-icon">
                     </nz-badge>
                 </button>
             </app-app-notifycation-dropdown>
 
             <app-app-user-dropdown>
-                <button nz-button nzType="text" trigger>
-                    <img src="assets/icon/user.svg">
+                <button nz-button nzType="text" trigger style="border: none !important;background-color: transparent;">
+                    <img src="assets/icon/user - Copy.svg">
                 </button>
             </app-app-user-dropdown>
         </div>
     </div>
 </nav>
 
-<div class="row m-0">
+<div class="row m-0" style="background-color: rgb(230, 230, 230);">
     <div class="col-xl-3 col-md-6 col-sm-12 col-12 pt-2 fixed-col">
         <div class="card">
             <div class="card-header">
@@ -51,34 +52,33 @@
             </div>
 
             <div class="card-body p-0">
-                <!-- <ul class="list-group list-group-flush">
-                    @for (item of menuApproves.children; track $index) {
-                    <li class="list-group-item border-0" *ngIf="isLeaf(item) && item.isPermission && item.isOpen">
-                        <a [routerLink]="'/datcom'">
-                            <img [src]="item.icon">
-                            <span> {{item.title}}</span>
+                <ul class="list-group list-group-flush">
+                    @for (item of menuApproves.Children; track $index) {
+                    <!-- <li class="list-group-item border-0">
+                        <a [href]="item.Router == '' ? '#' :  '/rerpweb' + item.Router">
+                            <img [src]="item.Icon">
+                            <span> {{item.Title}} </span>
                         </a>
-                    </li>
-                    <li class="list-group-item border-0 border-bottom"
-                        *ngIf="isGroup(item) && item.isPermission && item.isOpen">
+                    </li> -->
+                    <li class="list-group-item border-0 border-bottom">
                         <a class="text-uppercase text-dark">
-                            <img [src]="item.icon">
-                            <span>{{item.title}}</span>
+                            <img [src]="item.Icon">
+                            <span>{{item.Title}}</span>
                         </a>
                         <ul class="list-group">
-                            @for (c of item.children; track $index) {
+                            @for (c of item.Children; track $index) {
                             <li class="list-group-item border-0"
-                                [ngClass]="{'border-bottom':$index < item.children.length - 1,'':$index == item.children.length - 1}">
-                                <a>
-                                    <img [src]="c.icon">
-                                    <span> {{c.title}}</span>
+                                [ngClass]="{'border-bottom':$index < item.Children.length - 1,'':$index == item.Children.length - 1}">
+                                <a [href]="c.Router == '' ? '#' :  '/rerpweb' + c.Router">
+                                    <img [src]="c.Icon">
+                                    <span> {{c.Title}}</span>
                                 </a>
                             </li>
                             }
                         </ul>
                     </li>
                     }
-                </ul> -->
+                </ul>
             </div>
         </div>
 
@@ -110,15 +110,17 @@
                             @for (c1 of item.Children; track $index) {
 
                             <li class="list-group-item border-0 border-bottom">
-                                <a class="text-uppercase text-dark">
+                                <a class="text-uppercase text-dark"
+                                    [href]="c1.Router == '' ? '#' :  '/rerpweb' + c1.Router">
                                     <img [src]="c1.Icon">
-                                    <span>{{c1.Title}}</span>
+                                    <span> {{c1.Title}}</span>
                                 </a>
                                 <ul class="list-group">
                                     @for (c2 of c1.Children; track $index) {
                                     <li class="list-group-item border-0"
                                         [ngClass]="{'border-bottom':$index < c1.Children.length - 1,'':$index == c1.Children.length - 1}">
-                                        <a [href]="c2.Router" (click)="handleClickLink($event, c2.Router, c2.Title)">
+                                        <a [href]="c2.Router == '' ? '#' :  '/rerpweb' + c2.Router"
+                                            (click)="handleClickLink($event, c2.Router, c2.Title)">
                                             <img [src]="c2.Icon">
                                             <span> {{c2.Title}}</span>
                                         </a>

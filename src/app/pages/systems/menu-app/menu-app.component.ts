@@ -186,7 +186,7 @@ export class MenuAppComponent implements OnInit {
             treeDataOptions: {
                 columnId: 'STT',           // the column where you will have the Tree with collapse/expand icons
                 parentPropName: 'parentId',  // the parent/child key relation in your dataset
-                initiallyCollapsed: false,
+                // initiallyCollapsed: true,
                 // roo:0,
                 levelPropName: 'treeLevel',  // optionally, you can define the tree level property name, it nothing is provided it will use "__treeLevel"
                 indentMarginLeft: 25,        // optionally provide the indent spacer width in pixel, for example if you provide 10 and your tree level is 2 then it will have 20px of indentation

@@ -196,3 +196,166 @@
   overflow-y: auto;
   min-height: 0;   /* 🔥 BẮT BUỘC */
 }
+
+
+
+.app-launcher {
+  width: 360px;
+  background: #ffffff;
+  border: 1px solid #ffffff;
+  /* viền 2px màu xanh */
+  border-radius: 2px;
+  overflow: hidden;
+  /* cắt nội dung lòi ra ngoài */
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+.app-launcher-inner {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px;
+  padding: 12px;
+  max-height: 330px;
+  overflow-y: auto;
+  /* chỉ lớp con scroll */
+}
+
+.app-launcher-inner::-webkit-scrollbar {
+  width: 6px;
+}
+
+.app-launcher-inner::-webkit-scrollbar-thumb {
+  background: rgba(0, 0, 0, 0.2);
+  border-radius: 3px;
+}
+
+.app-launcher a {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-decoration: none;
+  color: #000000;
+  font-size: 12px;
+  border-radius: 8px;
+  transition: background 0.2s ease;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  text-align: center;
+  font-weight: bold;
+  height: 100px;
+}
+
+.app-launcher a img {
+  width: 50%;
+}
+
+.app-launcher a:hover {
+  background: #ef4723;
+  color: #fff;
+}
+
+/* .app-launcher a:hover img {
+  transform: scale(1.08);
+} */
+
+.app-launcher-inner a.active {
+  background: #ef4723;
+  color: #fff;
+}
+
+.notif-dropdown {
+  min-width: 423px;
+  max-height: 570px;
+  overflow-y: auto;
+  background: #fff;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+.notif-header {
+  padding: 12px;
+  font-size: 16px;
+  border-bottom: 1px solid #f0f0f0;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.notif-count {
+  font-size: 12px;
+  color: #999;
+}
+
+.notif-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 12px;
+  cursor: pointer;
+  border: 1px solid #b9b9b9;
+}
+
+.notif-item:hover {
+  background: #f5f5f5;
+}
+
+.notif-footer {
+  padding: 10px;
+  text-align: center;
+  font-size: 13px;
+  color: #1890ff;
+  border-top: 1px solid #f0f0f0;
+  cursor: pointer;
+}
+
+.notif-footer:hover {
+  background: #f0f0f0;
+}
+
+.notif-item img {
+  width: 42px;
+  height: 42px;
+}
+
+.notif-text {
+  flex: 1;
+  /* text chiếm phần còn lại */
+  font-size: 14px;
+}
+
+.notif-time {
+  font-size: 12px;
+  color: #999;
+  white-space: nowrap;
+  /* không xuống dòng */
+}
+
+:host ::ng-deep .ant-badge-count {
+  font-size: 8px;
+  /* chữ nhỏ hơn */
+  min-width: 14px;
+  /* thu hẹp nền tròn */
+  height: 14px;
+  /* thu hẹp chiều cao */
+  line-height: 14px;
+  /* căn giữa số */
+  padding: 0 3px;
+  /* giảm padding */
+}
+
+.user-icon {
+  width: 24px;
+  height: 24px;
+}
+
+.header-trigger {
+  /* height: 64px; */
+  padding: 0 24px;
+  font-size: 20px;
+  cursor: pointer;
+  transition: all 0.3s, padding 0s;
+
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  /* width: 100%; */
+}

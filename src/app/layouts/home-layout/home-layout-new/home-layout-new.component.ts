@@ -45,9 +45,9 @@ export class HomeLayoutNewComponent implements OnInit {
     menuWeekplans: any = {};
     // menuKey: string = '';
 
-    isMenuOpen = (key: string) => this.menus.some((m) => m.key === key && m.isOpen);
-    isGroup = (m: MenuItem): m is GroupItem => m.kind === 'group';
-    isLeaf = (m: MenuItem): m is LeafItem => m.kind === 'leaf';
+    // isMenuOpen = (key: string) => this.menus.some((m) => m.key === key && m.isOpen);
+    // isGroup = (m: MenuItem): m is GroupItem => m.kind === 'group';
+    // isLeaf = (m: MenuItem): m is LeafItem => m.kind === 'leaf';
 
     dynamicTabs: any[] = [];
     selectedIndex = 0;
@@ -150,14 +150,15 @@ export class HomeLayoutNewComponent implements OnInit {
                 console.log(this.menus);
 
                 this.menuApproves = this.menus.filter((x) => x.Code == 'appvovedperson')[0];
+                console.log('this.menuApproves:', this.menuApproves);
 
-                var pesons: any[] = this.menus.filter((x) => x.Code == 'M6');
-                // this.menuPersons = pesons[0].children.filter((x: any) => x.key == 'registerpayroll' || x.key == 'dailyreport' || x.key == 'registercommon');
-                this.menuPersons = this.menus.filter((x) => x.Code == 'M6');
+                var pesons: any[] = this.menus.filter((x) => x.Code == 'person');
+                console.log('this.pesons', pesons);
+                this.menuPersons = pesons[0].Children.filter((x: any) => x.Code == 'registerpayroll' || x.Code == 'dailyreport' || x.Code == 'registercommon');
+                // this.menuPersons = this.menus.filter((x) => x.Code == 'M6');
 
-                // console.log('this.menuPersons', this.menuPersons);
 
-                // this.menuWeekplans = pesons[0].children.filter((x: any) => x.key == 'planweek')[0];
+                this.menuWeekplans = pesons[0].Children.filter((x: any) => x.Code == 'planweek')[0];
             },
             error: (err) => {
                 this.notification.error(NOTIFICATION_TITLE.error, err?.error?.message || err?.message);

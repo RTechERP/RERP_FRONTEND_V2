@@ -1,4 +1,4 @@
-<nav class="navbar sticky-top" style="background-color: #23458a;">
+<nav class="navbar sticky-top" style="background-color: #c5c9d1;">
     <div class="container-fluid">
         <a class="navbar-brand p-0" href="#" style="width: 5%;" routerLink="/home">
             <img src="assets/images/logo-RTC-2023-1200-red-white.png" alt="" width="100%"
@@ -55,7 +55,7 @@
                                     <ul>
                                         @for (c2 of c1.children; track c2.key) {
                                         <li nz-menu-item *ngIf="isLeaf(c2) && c2.isPermission && c2.isOpen"
-                                            (click)="newTab(c2.comp, c2.title, c2.data) ">
+                                            (click)="newTab(c2.comp, c2.title) ">
                                             <img [src]="c2.icon" class="menu-icon" *ngIf="(c2.icon || '') != ''"
                                                 width="24px" />
                                             <nz-icon nzType="caret-right" nzTheme="outline"
@@ -76,7 +76,7 @@
                                             <ul>
                                                 @for (c3 of c2.children; track c3.key) {
                                                 <li nz-menu-item *ngIf="isLeaf(c3) && c3.isPermission && c3.isOpen"
-                                                    (click)="newTab(c3.comp, c3.title, c3.data) ">
+                                                    (click)="newTab(c3.comp, c3.title) ">
                                                     <img [src]="c3.icon" class="menu-icon" *ngIf="(c3.icon || '') != ''"
                                                         width="24px" />
                                                     <nz-icon nzType="caret-right" nzTheme="outline"

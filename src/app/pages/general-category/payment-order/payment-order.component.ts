@@ -221,7 +221,7 @@ export class PaymentOrderComponent implements OnInit {
             {
                 label: 'TBP xác nhận',
                 icon: PrimeIcons.CHECK,
-                visible: this.permissionService.hasPermission(""),
+                visible: this.permissionService.hasPermission("N57"),
                 items: [
                     {
                         label: 'Duyệt',
@@ -247,12 +247,12 @@ export class PaymentOrderComponent implements OnInit {
             {
                 label: 'HR xác nhận',
                 icon: PrimeIcons.CHECK,
-                visible: this.permissionService.hasPermission(""),
+                visible: this.permissionService.hasPermission("N59,N56"),
                 items: [
                     {
                         label: 'Duyệt hồ sơ',
                         icon: PrimeIcons.CHECK,
-                        visible: this.permissionService.hasPermission(""),
+                        visible: this.permissionService.hasPermission("N59"),
                         command: () => {
                             this.onApprovedHR(1, {
                                 ButtonActionGroup: 'btnHR', ButtonActionName: 'btnApproveDocumentHR', ButtonActionText: 'HR xác nhận',
@@ -262,7 +262,7 @@ export class PaymentOrderComponent implements OnInit {
                     {
                         label: 'Hủy duyệt hồ sơ',
                         icon: PrimeIcons.UNLOCK,
-                        visible: this.permissionService.hasPermission(""),
+                        visible: this.permissionService.hasPermission("N59"),
                         command: () => {
                             this.onApprovedHR(2, {
                                 ButtonActionGroup: 'btnHR', ButtonActionName: 'btnUnApproveDocumentHR', ButtonActionText: 'HR xác nhận',
@@ -273,7 +273,7 @@ export class PaymentOrderComponent implements OnInit {
                     {
                         label: 'Bổ sung chứng từ',
                         icon: PrimeIcons.UNLOCK,
-                        visible: this.permissionService.hasPermission(""),
+                        visible: this.permissionService.hasPermission("N59"),
                         command: () => {
                             this.onApprovedHR(3, {
                                 ButtonActionGroup: 'btnHR', ButtonActionName: 'btnHRUpdateDocument', ButtonActionText: 'HR xác nhận',
@@ -286,7 +286,7 @@ export class PaymentOrderComponent implements OnInit {
                     {
                         label: 'TBP duyệt',
                         icon: PrimeIcons.UNLOCK,
-                        visible: this.permissionService.hasPermission(""),
+                        visible: this.permissionService.hasPermission("N56"),
                         command: () => {
                             this.onApprovedHR(1, {
                                 ButtonActionGroup: 'btnHR', ButtonActionName: 'btnApproveHR', ButtonActionText: 'HR xác nhận',
@@ -296,7 +296,7 @@ export class PaymentOrderComponent implements OnInit {
                     {
                         label: 'TBP hủy duyệt',
                         icon: PrimeIcons.UNLOCK,
-                        visible: this.permissionService.hasPermission(""),
+                        visible: this.permissionService.hasPermission("N56"),
                         command: () => {
                             this.onApprovedHR(2, {
                                 ButtonActionGroup: 'btnHR', ButtonActionName: 'btnUnApproveHR', ButtonActionText: 'HR xác nhận',
@@ -310,12 +310,12 @@ export class PaymentOrderComponent implements OnInit {
             {
                 label: 'Kế toán xác nhận',
                 icon: PrimeIcons.CHECK,
-                visible: this.permissionService.hasPermission(""),
+                visible: this.permissionService.hasPermission("N55,N61"),
                 items: [
                     {
                         label: 'Duyệt hồ sơ',
                         icon: PrimeIcons.CHECK,
-                        visible: this.permissionService.hasPermission(""),
+                        visible: this.permissionService.hasPermission("N55,N61"),
                         command: () => {
                             this.onApprovedKTTT(1, {
                                 ButtonActionGroup: 'btnKTTT', ButtonActionName: 'btnApproveDocument', ButtonActionText: 'Kế toán xác nhận',
@@ -325,7 +325,7 @@ export class PaymentOrderComponent implements OnInit {
                     {
                         label: 'Bổ sung chứng từ',
                         icon: PrimeIcons.UNLOCK,
-                        visible: this.permissionService.hasPermission(""),
+                        visible: this.permissionService.hasPermission("N55,N61"),
                         command: () => {
                             this.onApprovedKTTT(3, {
                                 ButtonActionGroup: 'btnKTTT', ButtonActionName: 'btnUpdateDocument', ButtonActionText: 'Kế toán xác nhận',
@@ -335,7 +335,7 @@ export class PaymentOrderComponent implements OnInit {
                     {
                         label: 'Hủy duyệt hồ sơ',
                         icon: PrimeIcons.UNLOCK,
-                        visible: this.permissionService.hasPermission(""),
+                        visible: this.permissionService.hasPermission("N55,N61"),
                         command: () => {
                             this.onApprovedKTTT(2, {
                                 ButtonActionGroup: 'btnKTTT', ButtonActionName: 'btnUnApproveDocument', ButtonActionText: 'Kế toán xác nhận',
@@ -349,7 +349,7 @@ export class PaymentOrderComponent implements OnInit {
                     {
                         label: 'Nhận chứng từ',
                         icon: PrimeIcons.UNLOCK,
-                        visible: this.permissionService.hasPermission(""),
+                        visible: this.permissionService.hasPermission("N55,N61"),
                         command: () => {
                             this.onApprovedKTTT(1, {
                                 ButtonActionGroup: 'btnKTTT', ButtonActionName: 'btnReceiveDocument', ButtonActionText: 'Kế toán xác nhận',
@@ -359,7 +359,7 @@ export class PaymentOrderComponent implements OnInit {
                     {
                         label: 'Hủy nhận chứng từ',
                         icon: PrimeIcons.UNLOCK,
-                        visible: this.permissionService.hasPermission(""),
+                        visible: this.permissionService.hasPermission("N55,N61"),
                         command: () => {
                             this.onApprovedKTTT(2, {
                                 ButtonActionGroup: 'btnKTTT', ButtonActionName: 'btnUnReceiveDocument', ButtonActionText: 'Kế toán xác nhận',
@@ -372,7 +372,7 @@ export class PaymentOrderComponent implements OnInit {
                     {
                         label: 'TBP duyệt',
                         icon: PrimeIcons.UNLOCK,
-                        visible: this.permissionService.hasPermission(""),
+                        visible: this.permissionService.hasPermission("N61"),
                         command: () => {
                             this.onApprovedKTT(1, {
                                 ButtonActionGroup: 'btnKTT', ButtonActionName: 'btnApproveKT', ButtonActionText: 'Kế toán xác nhận',
@@ -382,7 +382,7 @@ export class PaymentOrderComponent implements OnInit {
                     {
                         label: 'TBP hủy duyệt',
                         icon: PrimeIcons.UNLOCK,
-                        visible: this.permissionService.hasPermission(""),
+                        visible: this.permissionService.hasPermission("N61"),
                         command: () => {
                             this.onApprovedKTT(2, {
                                 ButtonActionGroup: 'btnKTT', ButtonActionName: 'btnUnApproveKT', ButtonActionText: 'Kế toán xác nhận',
@@ -394,7 +394,7 @@ export class PaymentOrderComponent implements OnInit {
                     },
                     {
                         label: 'Đã thanh toán',
-                        visible: this.permissionService.hasPermission(""),
+                        visible: this.permissionService.hasPermission("N55,N61"),
                         icon: PrimeIcons.UNLOCK, command: () => {
                             this.onApprovedKTTT(1, {
                                 ButtonActionGroup: 'btnKTTT', ButtonActionName: 'btnIsPayment', ButtonActionText: 'Kế toán xác nhận',
@@ -404,7 +404,7 @@ export class PaymentOrderComponent implements OnInit {
                     {
                         label: 'Hủy thanh toán',
                         icon: PrimeIcons.UNLOCK,
-                        visible: this.permissionService.hasPermission(""),
+                        visible: this.permissionService.hasPermission("N55,N61"),
                         command: () => {
                             this.onApprovedKTTT(2, {
                                 ButtonActionGroup: 'btnKTTT', ButtonActionName: 'btnUnPayment', ButtonActionText: 'Kế toán xác nhận',
@@ -414,26 +414,27 @@ export class PaymentOrderComponent implements OnInit {
                     {
                         label: 'Đính kèm file Bank slip',
                         icon: PrimeIcons.UNLOCK,
-                        visible: this.permissionService.hasPermission(""),
+                        visible: this.permissionService.hasPermission("N55,N61"),
                         command: () => {
                             this.onAttachFileBankslip();
                         }
 
                     },
-                    {
-                        separator: true,
-                    },
-                    {
-                        label: 'Hợp đồng',
-                        icon: PrimeIcons.UNLOCK,
-                        visible: this.permissionService.hasPermission(""),
-                    }
+                    // {
+                    //     separator: true,
+                    // },
+                    // {
+                    //     label: 'Hợp đồng',
+                    //     icon: PrimeIcons.UNLOCK,
+                    //     visible: this.permissionService.hasPermission("N55,N61"),
+                    // }
                 ]
             },
 
             {
                 label: 'BGĐ xác nhận',
                 icon: PrimeIcons.CHECK,
+                visible: this.permissionService.hasPermission("N58"),
                 items: [
                     {
                         label: 'Duyệt',
@@ -453,10 +454,10 @@ export class PaymentOrderComponent implements OnInit {
                             });
                         }
                     },
-                    {
-                        label: 'Duyệt đặc biệt (ko cần check những bước trước)',
-                        icon: PrimeIcons.UNLOCK
-                    }
+                    // {
+                    //     label: 'Duyệt đặc biệt (ko cần check những bước trước)',
+                    //     icon: PrimeIcons.UNLOCK
+                    // }
                 ]
             },
 

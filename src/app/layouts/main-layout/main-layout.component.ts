@@ -232,6 +232,8 @@ export class MainLayoutComponent implements OnInit, AfterViewInit {
         this.menuAppService.getAll().subscribe({
             next: (response) => {
 
+                console.log(response);
+
                 const map = new Map<number, any>();
                 // this.nodes = [];
                 // Tạo map trước
@@ -264,7 +266,7 @@ export class MainLayoutComponent implements OnInit, AfterViewInit {
                 });
 
 
-                // console.log(this.menus);
+                console.log(this.menus);
 
                 this.layoutEvent.toggleMenu$.pipe(take(1)).subscribe(key => {
                     // this.menuKey = key;

@@ -147,6 +147,12 @@ import { ProjectPartListPurchaseRequestSlickGridComponent } from './pages/purcha
 import { RulePayComponent } from './pages/purchase/rulepay/rule-pay.component';
 import { SupplierSaleComponent } from './pages/purchase/supplier-sale/supplier-sale.component';
 import { TrainingRegistrationComponent } from './pages/training-registration/training-registration.component';
+import { OverTimeSummaryPersonComponent } from './pages/hrm/over-time/over-time-summary-person/over-time-summary-person.component';
+import { WorkItemComponent } from './pages/project/work-item/work-item.component';
+import { DailyReportMachineComponent } from './pages/daily-report-machine/daily-report-machine.component';
+import { ProjectComponent } from './pages/project/project.component';
+import { EmployeeContactComponent } from './pages/hrm/employee/employee-contact/employee-contact.component';
+import { SearchProductTechSerialComponent } from './pages/old/Technical/search-product-tech-serial/search-product-tech-serial.component';
 
 export const routes: Routes = [
     {
@@ -175,7 +181,7 @@ export const routes: Routes = [
             { path: 'welcome', component: WelcomeComponent, canActivate: [authGuard] },
 
             //#region hệ thống
-            { path: 'menuApp', component: MenuAppComponent, canActivate: [authGuard] },
+            { path: 'menu-app', component: MenuAppComponent, canActivate: [authGuard] },
             //#endregion
 
             //#region crm
@@ -325,6 +331,264 @@ export const routes: Routes = [
             { path: 'approve-tp', component: ApproveTpComponent, canActivate: [authGuard] },
             { path: 'office-supply-requests', component: OfficeSupplyRequestsComponent, canActivate: [authGuard] },
             { path: 'project-partlist', component: ProjectPartListComponent, canActivate: [authGuard] },
+
+            //TBP duyệt
+            { path: 'tbp-payment-order', component: PaymentOrderComponent, canActivate: [authGuard] },
+            { path: 'tbp-job-requirement', component: JobRequirementComponent, canActivate: [authGuard] },
+            { path: 'tbp-project-partlist', component: ProjectPartListComponent, canActivate: [authGuard] },
+            { path: 'tbp-project-partlist-purchase-request', component: ProjectPartListPurchaseRequestSlickGridComponent, canActivate: [authGuard] },
+
+            //HR duyệt
+            { path: 'hr-payment-order', component: PaymentOrderComponent, canActivate: [authGuard] },
+            { path: 'hr-job-requirement', component: JobRequirementComponent, canActivate: [authGuard] },
+
+            //BGD duyệt
+            { path: 'bgd-payment-order', component: PaymentOrderComponent, canActivate: [authGuard] },
+            { path: 'bgd-job-requirement', component: JobRequirementComponent, canActivate: [authGuard] },
+            { path: 'bgd-project-partlist-purchase-request', component: ProjectPartListPurchaseRequestSlickGridComponent, canActivate: [authGuard] },
+
+            { path: 'sale-payment-order', component: PaymentOrderComponent, canActivate: [authGuard] },
+            { path: 'tbp-approve', component: ApproveTpComponent, canActivate: [authGuard] },
+            { path: 'senior-approve', component: ApproveTpComponent, canActivate: [authGuard] },
+
+
+            //Tổng hợp công
+            { path: 'person-dayoff', component: PersonDayOffComponent, canActivate: [authGuard] },
+            { path: 'early-late-summary', component: EarlyLateSummaryComponent, canActivate: [authGuard] },
+            { path: 'wfh-summary', component: WFHSummaryComponent, canActivate: [authGuard] },
+            { path: 'nofinger-summary', component: EmployeeNoFingerSummaryComponent, canActivate: [authGuard] },
+            { path: 'overtime-summary', component: OverTimeSummaryPersonComponent, canActivate: [authGuard] },
+            { path: 'bussiness-summary', component: EmployeeBussinessPersonSummaryComponent, canActivate: [authGuard] },
+            { path: 'nightshift-summary', component: EmployeeNightShiftPersonSummaryComponent, canActivate: [authGuard] },
+
+            //đăng ký công
+            { path: 'food-order', component: FoodOrderComponent, canActivate: [authGuard] },
+            { path: 'dayoff', component: DayOffComponent, canActivate: [authGuard] },
+            { path: 'early-late', component: EarlyLateComponent, canActivate: [authGuard] },
+            { path: 'overtime', component: OverTimePersonComponent, canActivate: [authGuard] },
+            { path: 'bussiness', component: EmployeeRegisterBussinessComponent, canActivate: [authGuard] },
+            { path: 'nightshift', component: EmployeeRegisterBussinessComponent, canActivate: [authGuard] },
+            { path: 'wfh', component: WFHComponent, canActivate: [authGuard] },
+            { path: 'nofinger', component: EmployeeNoFingerprintComponent, canActivate: [authGuard] },
+            { path: 'person-summary', component: SummaryEmployeeComponent, canActivate: [authGuard] },
+            { path: 'person-summary-payroll', component: EmployeeSyntheticPersonalComponent, canActivate: [authGuard] },
+
+            //Đăng ký chung
+            { path: 'booking-room', component: BookingRoomComponent, canActivate: [authGuard] },
+            { path: 'tracking-mark', component: TrackingMarksComponent, canActivate: [authGuard] },
+            { path: 'booking-vehicle', component: VehicleBookingManagementComponent, canActivate: [authGuard] },
+            { path: 'payment-order', component: PaymentOrderComponent, canActivate: [authGuard] },
+            { path: 'payment-order-special', component: PaymentOrderComponent, canActivate: [authGuard] },
+            { path: 'job-requirement', component: JobRequirementComponent, canActivate: [authGuard] },
+            { path: 'register-idea', component: RegisterIdeaComponent, canActivate: [authGuard] },
+            { path: 'register-contract', component: RegisterContractComponent, canActivate: [authGuard] },
+            { path: 'office-supply-requests', component: OfficeSupplyRequestsComponent, canActivate: [authGuard] },
+
+            { path: 'work-item', component: WorkItemComponent, canActivate: [authGuard] },
+
+            //Báo cáo công việc
+            { path: 'daily-report-machine', component: DailyReportMachineComponent, canActivate: [authGuard] },
+            { path: 'daily-report-sale-admin', component: DailyReportSaleAdminComponent, canActivate: [authGuard] },
+            { path: 'daily-report-sale', component: DailyReportSaleComponent, canActivate: [authGuard] },
+            { path: 'daily-report-tech', component: DailyReportTechComponent, canActivate: [authGuard] },
+            { path: 'daily-report-thr', component: DailyReportThrComponent, canActivate: [authGuard] },
+            { path: 'daily-report-lxcp', component: DailyReportLXCPComponent, canActivate: [authGuard] },
+            { path: 'daily-report-lr', component: DailyReportMachineComponent, canActivate: [authGuard] },
+
+            //Kế hoạch tuần
+            { path: 'work-plan', component: WorkplanComponent, canActivate: [authGuard] },
+
+            //Kế toán
+            { path: 'history-export-accountant', component: HistoryExportAccountantComponent, canActivate: [authGuard] },
+            { path: 'history-approved-bill', component: HistoryApprovedBillLogComponent, canActivate: [authGuard] },
+            { path: 'accounting-contract-type', component: AccountingContractTypeMasterComponent, canActivate: [authGuard] },
+            { path: 'accounting-contract', component: AccountingContractComponent, canActivate: [authGuard] },
+            { path: 'request-invoice-kt', component: RequestInvoiceComponent, canActivate: [authGuard] },
+            { path: 'payment-order-kt', component: PaymentOrderComponent, canActivate: [authGuard] },
+            { path: 'payment-order-kt', component: PaymentOrderComponent, canActivate: [authGuard] },
+
+            //Phòng sale
+            //HN
+            { path: 'pokh-hn', component: PokhComponent, canActivate: [authGuard] },
+            { path: 'quotationkh-hn', component: QuotationKhComponent, canActivate: [authGuard] },
+            { path: 'pokh-kpi-hn', component: PokhKpiComponent, canActivate: [authGuard] },
+            { path: 'pokh-history-hn', component: PokhHistoryComponent, canActivate: [authGuard] },
+            { path: 'plan-week-hn', component: PlanWeekComponent, canActivate: [authGuard] },
+            { path: 'follow-project-base-hn', component: FollowProjectBaseComponent, canActivate: [authGuard] },
+            { path: 'customer-sale-hn', component: CustomerComponent, canActivate: [authGuard] },
+
+            //KPI
+            { path: 'bonus-coefficient-hn', component: BonusCoefficientComponent, canActivate: [authGuard] },
+            { path: 'employee-sale-hn', component: EmployeeSaleManagerComponent, canActivate: [authGuard] },
+            { path: 'daily-report-sale-hn', component: DailyReportSaleComponent, canActivate: [authGuard] },
+            { path: 'daily-report-saleadmin-hn', component: DailyReportSaleAdminComponent, canActivate: [authGuard] },
+
+            { path: 'request-invoice-hn', component: RequestInvoiceComponent, canActivate: [authGuard] },
+
+            //HCM
+            { path: 'request-invoice-hcm', component: RequestInvoiceComponent, canActivate: [authGuard] },
+            { path: 'pokh-hcm', component: PokhComponent, canActivate: [authGuard] },
+            { path: 'follow-project-base-hcm', component: FollowProjectBaseComponent, canActivate: [authGuard] },
+
+
+            //Dự án
+            { path: 'project', component: ProjectComponent, canActivate: [authGuard] },
+            { path: 'project-workpropress', component: ProjectWorkPropressComponent, canActivate: [authGuard] },
+            { path: 'project-worktimeline', component: ProjectWorkTimelineComponent, canActivate: [authGuard] },
+            { path: 'project-survey', component: ProjectSurveyComponent, canActivate: [authGuard] },
+            { path: 'meeting-minute', component: MeetingMinuteComponent, canActivate: [authGuard] },
+            { path: 'project-itemlate', component: ProjectItemLateComponent, canActivate: [authGuard] },
+            { path: 'project-workitem-timeline', component: ProjectWorkItemTimelineComponent, canActivate: [authGuard] },
+            { path: 'synthesis-of-generated-materials', component: SynthesisOfGeneratedMaterialsComponent, canActivate: [authGuard] },
+            { path: 'project-agv-summary', component: ProjectAgvSummaryComponent, canActivate: [authGuard] },
+            { path: 'project-dept-summary', component: ProjectDepartmentSummaryComponent, canActivate: [authGuard] },
+            { path: 'price-history-partlist', component: PriceHistoryPartlistComponent, canActivate: [authGuard] },
+            { path: 'project-type', component: ProjectTypeComponent, canActivate: [authGuard] },
+            { path: 'project-field', component: ProjectFieldComponent, canActivate: [authGuard] },
+            { path: 'meeting-minute-type', component: MeetingMinuteTypeComponent, canActivate: [authGuard] },
+
+            //Mua hàng
+            { path: 'employee-purchase', component: EmployeePurchaseComponent, canActivate: [authGuard] },
+            { path: 'rulepay', component: RulePayComponent, canActivate: [authGuard] },
+            { path: 'currency', component: CurrencyListComponent, canActivate: [authGuard] },
+            { path: 'supplier', component: SupplierSaleComponent, canActivate: [authGuard] },
+            { path: 'price-request', component: ProjectPartlistPriceRequestNewComponent, canActivate: [authGuard] },
+            { path: 'assign-work', component: AssignWorkComponent, canActivate: [authGuard] },
+            { path: 'poncc', component: PonccNewComponent, canActivate: [authGuard] },
+            { path: 'inventory-project', component: InventoryProjectComponent, canActivate: [authGuard] },
+            { path: 'purchase-request', component: ProjectPartListPurchaseRequestSlickGridComponent, canActivate: [authGuard] },
+
+            //Danh mục chung
+            { path: 'training-registration', component: TrainingRegistrationComponent, canActivate: [authGuard] },
+            { path: 'factory-visit-registration', component: FactoryVisitRegistrationComponent, canActivate: [authGuard] },
+            { path: 'employee-contact', component: EmployeeContactComponent, canActivate: [authGuard] },
+            { path: 'warehouse', component: WarehouseComponent1, canActivate: [authGuard] },
+            { path: 'inventory-by-product', component: InventoryByProductComponent, canActivate: [authGuard] },
+
+
+            //Kho sale hn
+            { path: 'inventory-hn', component: InventoryComponent, canActivate: [authGuard] },
+            { path: 'bill-import-hn', component: BillImportComponent, canActivate: [authGuard] },
+            { path: 'bill-export-hn', component: BillExportComponent, canActivate: [authGuard] },
+            { path: 'history-import-export-hn', component: HistoryImportExportComponent, canActivate: [authGuard] },
+            { path: 'history-borrow-hn', component: HistoryBorrowSaleComponent, canActivate: [authGuard] },
+            { path: 'report-import-export-hn', component: ReportImportExportComponent, canActivate: [authGuard] },
+            { path: 'product-project-hn', component: ListProductProjectComponent, canActivate: [authGuard] },
+            { path: 'search-serialnumber-hn', component: SearchProductSerialNumberComponent, canActivate: [authGuard] },
+
+            //kho demo hn
+            { path: 'inventory-demo-hn', component: InventoryDemoComponent, canActivate: [authGuard] },
+            { path: 'bill-import-tech-hn', component: BillImportTechnicalComponent, canActivate: [authGuard] },
+            { path: 'bill-export-tech-hn', component: BillExportTechnicalComponent, canActivate: [authGuard] },
+            { path: 'product-report-hn', component: ProductReportNewComponent, canActivate: [authGuard] },
+            { path: 'product-export-borrow-hn', component: ProductExportAndBorrowComponent, canActivate: [authGuard] },
+            { path: 'borrow-report-hn', component: BorrowReportComponent, canActivate: [authGuard] },
+            { path: 'borrow-product-history-hn', component: BorrowProductHistoryComponent, canActivate: [authGuard] },
+            { path: 'search-serialnumber-tech-hn', component: SearchProductTechSerialComponent, canActivate: [authGuard] },
+            { path: 'product-location-hn', component: ProductLocationTechnicalComponent, canActivate: [authGuard] },
+            { path: 'unit-count-hn', component: UnitCountKtComponent, canActivate: [authGuard] },
+
+            //kho agv
+            { path: 'inventory-agv-hn', component: InventoryDemoComponent, canActivate: [authGuard] },
+            { path: 'bill-import-agv-hn', component: BillImportTechnicalComponent, canActivate: [authGuard] },
+            { path: 'bill-export-agv-hn', component: BillExportTechnicalComponent, canActivate: [authGuard] },
+            { path: 'product-report-agv-hn', component: ProductReportNewComponent, canActivate: [authGuard] },
+            // { path: 'product-export-borrow-hn', component: ProductExportAndBorrowComponent, canActivate: [authGuard] },
+            { path: 'borrow-report-agv-hn', component: BorrowReportComponent, canActivate: [authGuard] },
+            { path: 'borrow-product-history-agv-hn', component: BorrowProductHistoryComponent, canActivate: [authGuard] },
+            // { path: 'search-serialnumber-tech-hn', component: SearchProductTechSerialComponent, canActivate: [authGuard] },
+            { path: 'product-location-agv-hn', component: ProductLocationTechnicalComponent, canActivate: [authGuard] },
+            // { path: 'unit-count-hn', component: UnitCountKtComponent, canActivate: [authGuard] },
+
+
+            //Sale HCM
+            { path: 'inventory-hcm', component: InventoryComponent, canActivate: [authGuard] },
+            { path: 'bill-import-hcm', component: BillImportComponent, canActivate: [authGuard] },
+            { path: 'bill-export-hcm', component: BillExportComponent, canActivate: [authGuard] },
+            { path: 'history-import-export-hcm', component: HistoryImportExportComponent, canActivate: [authGuard] },
+            { path: 'history-borrow-hcm', component: HistoryBorrowSaleComponent, canActivate: [authGuard] },
+            { path: 'report-import-export-hcm', component: ReportImportExportComponent, canActivate: [authGuard] },
+            { path: 'product-project-hcm', component: ListProductProjectComponent, canActivate: [authGuard] },
+            { path: 'search-serialnumber-hcm', component: SearchProductSerialNumberComponent, canActivate: [authGuard] },
+
+
+            //Sale demo
+            { path: 'inventory-demo-hcm', component: InventoryDemoComponent, canActivate: [authGuard] },
+            { path: 'bill-import-tech-hcm', component: BillImportTechnicalComponent, canActivate: [authGuard] },
+            { path: 'bill-export-tech-hcm', component: BillExportTechnicalComponent, canActivate: [authGuard] },
+            { path: 'product-report-hcm', component: ProductReportNewComponent, canActivate: [authGuard] },
+            { path: 'product-export-borrow-hcm', component: ProductExportAndBorrowComponent, canActivate: [authGuard] },
+            { path: 'borrow-report-hcm', component: BorrowReportComponent, canActivate: [authGuard] },
+            { path: 'borrow-product-history-hcm', component: BorrowProductHistoryComponent, canActivate: [authGuard] },
+            { path: 'search-serialnumber-tech-hcm', component: SearchProductTechSerialComponent, canActivate: [authGuard] },
+            // { path: 'product-location-hn', component: ProductLocationTechnicalComponent, canActivate: [authGuard] },
+            // { path: 'unit-count-hn', component: UnitCountKtComponent, canActivate: [authGuard] },
+            { path: 'product-qrcode-hcm', component: ProductRtcQrCodeComponent, canActivate: [authGuard] },
+
+            //Sale BẮc ning
+            { path: 'inventory-bn', component: InventoryComponent, canActivate: [authGuard] },
+            { path: 'bill-import-bn', component: BillImportComponent, canActivate: [authGuard] },
+            { path: 'bill-export-bn', component: BillExportComponent, canActivate: [authGuard] },
+            { path: 'history-import-export-bn', component: HistoryImportExportComponent, canActivate: [authGuard] },
+            { path: 'history-borrow-bn', component: HistoryBorrowSaleComponent, canActivate: [authGuard] },
+            { path: 'report-import-export-bn', component: ReportImportExportComponent, canActivate: [authGuard] },
+            { path: 'product-project-bn', component: ListProductProjectComponent, canActivate: [authGuard] },
+            { path: 'search-serialnumber-bn', component: SearchProductSerialNumberComponent, canActivate: [authGuard] },
+
+            //Demo Băc nign
+            { path: 'inventory-demo-bn', component: InventoryDemoComponent, canActivate: [authGuard] },
+            { path: 'bill-import-tech-bn', component: BillImportTechnicalComponent, canActivate: [authGuard] },
+            { path: 'bill-export-tech-bn', component: BillExportTechnicalComponent, canActivate: [authGuard] },
+            { path: 'product-report-bn', component: ProductReportNewComponent, canActivate: [authGuard] },
+            { path: 'product-export-borrow-bn', component: ProductExportAndBorrowComponent, canActivate: [authGuard] },
+            { path: 'borrow-report-bn', component: BorrowReportComponent, canActivate: [authGuard] },
+            { path: 'borrow-product-history-bn', component: BorrowProductHistoryComponent, canActivate: [authGuard] },
+            { path: 'search-serialnumber-tech-bn', component: SearchProductTechSerialComponent, canActivate: [authGuard] },
+            // { path: 'product-location-hn', component: ProductLocationTechnicalComponent, canActivate: [authGuard] },
+            // { path: 'unit-count-hn', component: UnitCountKtComponent, canActivate: [authGuard] },
+            { path: 'product-qrcode-bn', component: ProductRtcQrCodeComponent, canActivate: [authGuard] },
+
+            //Sale Đan phương
+            { path: 'inventory-dp', component: InventoryComponent, canActivate: [authGuard] },
+            { path: 'bill-import-dp', component: BillImportComponent, canActivate: [authGuard] },
+            { path: 'bill-export-dp', component: BillExportComponent, canActivate: [authGuard] },
+            { path: 'history-import-export-dp', component: HistoryImportExportComponent, canActivate: [authGuard] },
+            { path: 'history-borrow-dp', component: HistoryBorrowSaleComponent, canActivate: [authGuard] },
+            { path: 'report-import-export-dp', component: ReportImportExportComponent, canActivate: [authGuard] },
+            { path: 'product-project-dp', component: ListProductProjectComponent, canActivate: [authGuard] },
+            { path: 'search-serialnumber-dp', component: SearchProductSerialNumberComponent, canActivate: [authGuard] },
+
+            //Demo BĐan phương
+            { path: 'inventory-demo-dp', component: InventoryDemoComponent, canActivate: [authGuard] },
+            { path: 'bill-import-tech-dp', component: BillImportTechnicalComponent, canActivate: [authGuard] },
+            { path: 'bill-export-tech-dp', component: BillExportTechnicalComponent, canActivate: [authGuard] },
+            { path: 'product-report-dp', component: ProductReportNewComponent, canActivate: [authGuard] },
+            { path: 'product-export-borrow-dp', component: ProductExportAndBorrowComponent, canActivate: [authGuard] },
+            { path: 'borrow-report-dp', component: BorrowReportComponent, canActivate: [authGuard] },
+            { path: 'borrow-product-history-dp', component: BorrowProductHistoryComponent, canActivate: [authGuard] },
+            { path: 'search-serialnumber-tech-dp', component: SearchProductTechSerialComponent, canActivate: [authGuard] },
+            // { path: 'product-location-hn', component: ProductLocationTechnicalComponent, canActivate: [authGuard] },
+            // { path: 'unit-count-hn', component: UnitCountKtComponent, canActivate: [authGuard] },
+            { path: 'product-qrcode-dp', component: ProductRtcQrCodeComponent, canActivate: [authGuard] },
+
+
+            //Cài đặt
+            { path: 'product-location', component: ProductLocationComponent, canActivate: [authGuard] },
+            { path: 'firm', component: FirmComponent, canActivate: [authGuard] },
+            { path: 'unit-count', component: UnitCountComponent, canActivate: [authGuard] },
+            { path: 'product-sale', component: ProductSaleComponent, canActivate: [authGuard] },
+            { path: 'product-demo', component: TbProductRtcComponent, canActivate: [authGuard] },
+            { path: 'product-agv', component: TbProductRtcComponent, canActivate: [authGuard] },
+
+
+
+
+
+
+
+
+
+
 
         ],
     },

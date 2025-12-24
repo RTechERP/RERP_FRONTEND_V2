@@ -26,168 +26,174 @@ import { NzUploadModule } from 'ng-zorro-antd/upload';
 import { NzCheckboxModule } from 'ng-zorro-antd/checkbox';
 import { NzNotificationService } from 'ng-zorro-antd/notification';
 import { DEFAULT_TABLE_CONFIG } from '../../../../tabulator-default.config';
+import { ActivatedRoute } from '@angular/router';
 
 @Component({
-  standalone: true,
-  imports: [
-    NzCheckboxModule,
-    NzUploadModule,
-    CommonModule,
-    NzCardModule,
-    FormsModule,
-    NzButtonModule,
-    NzIconModule,
-    NzRadioModule,
-    NzSpaceModule,
-    NzLayoutModule,
-    NzFlexModule,
-    NzDrawerModule,
-    NzSplitterModule,
-    NzGridModule,
-    NzDatePickerModule,
-    NzAutocompleteModule,
-    NzInputModule,
-    NzSelectModule,
-    NzTableModule,
-    NzTabsModule,
-    NgbModalModule,
-  ],
-  selector: 'app-search-product-tech-serial',
-  templateUrl: './search-product-tech-serial.component.html',
-  styleUrls: ['./search-product-tech-serial.component.css']
+    standalone: true,
+    imports: [
+        NzCheckboxModule,
+        NzUploadModule,
+        CommonModule,
+        NzCardModule,
+        FormsModule,
+        NzButtonModule,
+        NzIconModule,
+        NzRadioModule,
+        NzSpaceModule,
+        NzLayoutModule,
+        NzFlexModule,
+        NzDrawerModule,
+        NzSplitterModule,
+        NzGridModule,
+        NzDatePickerModule,
+        NzAutocompleteModule,
+        NzInputModule,
+        NzSelectModule,
+        NzTableModule,
+        NzTabsModule,
+        NgbModalModule,
+    ],
+    selector: 'app-search-product-tech-serial',
+    templateUrl: './search-product-tech-serial.component.html',
+    styleUrls: ['./search-product-tech-serial.component.css']
 })
 export class SearchProductTechSerialComponent implements OnInit, AfterViewInit {
 
-  wearHouseID: number = 1;
-  warehouseType: number = 1;
-  serialNumber: string = "";
-  exportDataTable: any[] = [];
-  importDataTable: any[] = [];
-  importTable: Tabulator | null = null;
-  exportTable: Tabulator | null = null;
-  constructor(private notification: NzNotificationService,
-    private modalService: NgbModal,
-    private searchProductTechSerialService: SearchProductTechSerialService,
-    @Optional() @Inject('tabData') private tabData: any
-  ) { }
-searchTimeout: any;
-  ngOnInit() {
-    if (this.tabData?.wearHouseID) {
-      this.wearHouseID = this.tabData.wearHouseID;
-    } else if (this.tabData?.warehouseID) {
-      this.wearHouseID = this.tabData.warehouseID;
-    }
-    if (this.tabData?.warehouseType) {
-      this.warehouseType = this.tabData.warehouseType;
-    }
-  }
-  ngAfterViewInit(): void {
-    this.drawExportTB();
-    this.drawImportTB();
-    this.getSearchProductTechSerial();
-  }
-  onSearchChange() {
-  clearTimeout(this.searchTimeout);
-  this.searchTimeout = setTimeout(() => {
-    this.getSearchProductTechSerial();
-  }, 500);
-}
-  getSearchProductTechSerial() {
-    let request = { 
-      wearHouseID: this.wearHouseID || 1,
-      serialNumber: this.serialNumber || ""
-    };
+    wearHouseID: number = 1;
+    warehouseType: number = 1;
+    serialNumber: string = "";
+    exportDataTable: any[] = [];
+    importDataTable: any[] = [];
+    importTable: Tabulator | null = null;
+    exportTable: Tabulator | null = null;
+    constructor(private notification: NzNotificationService,
+        private modalService: NgbModal,
+        private searchProductTechSerialService: SearchProductTechSerialService,
+        private route: ActivatedRoute
+    ) { }
+    searchTimeout: any;
+    ngOnInit() {
+        // if (this.tabData?.wearHouseID) {
+        //   this.wearHouseID = this.tabData.wearHouseID;
+        // } else if (this.tabData?.warehouseID) {
+        //   this.wearHouseID = this.tabData.warehouseID;
+        // }
+        // if (this.tabData?.warehouseType) {
+        //   this.warehouseType = this.tabData.warehouseType;
+        // }
 
-    this.searchProductTechSerialService.getSearchProductTechSerial(request)
-      .subscribe((response: any) => {
-        this.exportDataTable = response.export;
-        this.importDataTable = response.import;
-        if (this.exportDataTable && this.exportDataTable.length > 0) {
-          this.drawExportTB();
-        } else if (this.importDataTable && this.importDataTable.length > 0) {
-          this.drawImportTB();
+        this.route.queryParams.subscribe(params => {
+            this.wearHouseID = params['wearHouseID'] || 1
+            this.warehouseType = params['warehouseType'] || 1;
+        });
+    }
+    ngAfterViewInit(): void {
+        this.drawExportTB();
+        this.drawImportTB();
+        this.getSearchProductTechSerial();
+    }
+    onSearchChange() {
+        clearTimeout(this.searchTimeout);
+        this.searchTimeout = setTimeout(() => {
+            this.getSearchProductTechSerial();
+        }, 500);
+    }
+    getSearchProductTechSerial() {
+        let request = {
+            wearHouseID: this.wearHouseID || 1,
+            serialNumber: this.serialNumber || ""
+        };
+
+        this.searchProductTechSerialService.getSearchProductTechSerial(request)
+            .subscribe((response: any) => {
+                this.exportDataTable = response.export;
+                this.importDataTable = response.import;
+                if (this.exportDataTable && this.exportDataTable.length > 0) {
+                    this.drawExportTB();
+                } else if (this.importDataTable && this.importDataTable.length > 0) {
+                    this.drawImportTB();
+                }
+            });
+    }
+    drawExportTB() {
+        if (this.exportTable) {
+            this.exportTable.setData(this.exportDataTable);
+        } else {
+            this.exportTable = new Tabulator('#exportTable', {
+                ...DEFAULT_TABLE_CONFIG,
+                data: this.exportDataTable,
+                layout: "fitDataStretch",
+                pagination: true,
+                selectableRows: 1,
+                height: '86vh',
+                movableColumns: true,
+                paginationMode: 'local',
+                reactiveData: true,
+                placeholder: 'Không có dữ liệu',
+                dataTree: true,
+                addRowPos: "bottom",
+                history: true,
+                columns: [
+                    {
+                        title: 'Duyệt',
+                        field: 'Status',
+                        formatter: function (cell: any) {
+                            const value = cell.getValue();
+                            const checked = value === true || value === 'true' || value === 1 || value === '1';
+                            return `<input type="checkbox" ${checked ? 'checked' : ''} disabled/>`;
+                        },
+                        hozAlign: 'center',
+                        headerHozAlign: 'center',
+                    },
+                    { title: "Mã phiếu xuất", field: "Code" },
+                    { title: "Mã sản phẩm", field: "ProductCode" },
+                    { title: "Tên sản phẩm", field: "ProductName" },
+                    { title: "Mã nội bộ RTC", field: "ProductCodeRTC" },
+                    { title: "Hãng", field: "Maker" },
+                    { title: "Mã QR Code", field: "ProductQRCode" },
+                    { title: "Ghi chú", field: "Note" }
+                ],
+            });
         }
-      });
-  }
-  drawExportTB() {
-    if (this.exportTable) {
-      this.exportTable.setData(this.exportDataTable);
-    } else {
-      this.exportTable = new Tabulator('#exportTable', {
-        ...DEFAULT_TABLE_CONFIG,
-        data: this.exportDataTable,
-        layout: "fitDataStretch",
-        pagination: true,
-        selectableRows: 1,
-        height: '86vh',
-        movableColumns: true,
-        paginationMode:'local',
-        reactiveData: true,
-        placeholder: 'Không có dữ liệu',
-        dataTree: true,
-        addRowPos: "bottom",
-        history: true,
-        columns: [
-          {
-            title: 'Duyệt',
-            field: 'Status',
-            formatter: function (cell: any) {
-              const value = cell.getValue();
-              const checked = value === true || value === 'true' || value === 1 || value === '1';
-              return `<input type="checkbox" ${checked ? 'checked' : ''} disabled/>`;
-            },
-            hozAlign: 'center',
-            headerHozAlign: 'center',
-          },
-          { title: "Mã phiếu xuất", field: "Code" },
-          { title: "Mã sản phẩm", field: "ProductCode" },
-          { title: "Tên sản phẩm", field: "ProductName" },
-          { title: "Mã nội bộ RTC", field: "ProductCodeRTC" },
-          { title: "Hãng", field: "Maker" },
-          { title: "Mã QR Code", field: "ProductQRCode" },
-          { title: "Ghi chú", field: "Note" }
-        ],
-      });
     }
-  }
-  drawImportTB() {
-    if (this.importTable) {
-      this.importTable.setData(this.importDataTable);
-    } else {
-      this.importTable = new Tabulator('#importTable', {
-        ...DEFAULT_TABLE_CONFIG,
-        data: this.importDataTable,
-        layout: "fitDataStretch",
-        pagination: true,
-        selectableRows: 1,
-        height: '86vh',
-        movableColumns: true,paginationMode:'local',
-        reactiveData: true,
-        placeholder: 'Không có dữ liệu',
-        dataTree: true,
-        addRowPos: "bottom",
-        history: true,
-        columns:  [
-          {
-            title: 'Duyệt',
-            field: 'Status',
-            formatter: function (cell: any) {
-              const value = cell.getValue();
-              const checked = value === true || value === 'true' || value === 1 || value === '1';
-              return `<input type="checkbox" ${checked ? 'checked' : ''} disabled/>`;
-            },
-            hozAlign: 'center',
-            headerHozAlign: 'center',
-          },
-          { title: "Mã phiếu nhập", field: "BillCode" },
-          { title: "Mã sản phẩm", field: "ProductCode" },
-          { title: "Tên sản phẩm", field: "ProductName" },
-          { title: "Mã nội bộ RTC", field: "ProductCodeRTC" },
-          { title: "Hãng", field: "Maker" },
-       //   { title: "Mã QR Code", field: "ProductQRCode" },
-          { title: "Ghi chú", field: "Note" }
-        ],
-      });
+    drawImportTB() {
+        if (this.importTable) {
+            this.importTable.setData(this.importDataTable);
+        } else {
+            this.importTable = new Tabulator('#importTable', {
+                ...DEFAULT_TABLE_CONFIG,
+                data: this.importDataTable,
+                layout: "fitDataStretch",
+                pagination: true,
+                selectableRows: 1,
+                height: '86vh',
+                movableColumns: true, paginationMode: 'local',
+                reactiveData: true,
+                placeholder: 'Không có dữ liệu',
+                dataTree: true,
+                addRowPos: "bottom",
+                history: true,
+                columns: [
+                    {
+                        title: 'Duyệt',
+                        field: 'Status',
+                        formatter: function (cell: any) {
+                            const value = cell.getValue();
+                            const checked = value === true || value === 'true' || value === 1 || value === '1';
+                            return `<input type="checkbox" ${checked ? 'checked' : ''} disabled/>`;
+                        },
+                        hozAlign: 'center',
+                        headerHozAlign: 'center',
+                    },
+                    { title: "Mã phiếu nhập", field: "BillCode" },
+                    { title: "Mã sản phẩm", field: "ProductCode" },
+                    { title: "Tên sản phẩm", field: "ProductName" },
+                    { title: "Mã nội bộ RTC", field: "ProductCodeRTC" },
+                    { title: "Hãng", field: "Maker" },
+                    //   { title: "Mã QR Code", field: "ProductQRCode" },
+                    { title: "Ghi chú", field: "Note" }
+                ],
+            });
+        }
     }
-  }
 }

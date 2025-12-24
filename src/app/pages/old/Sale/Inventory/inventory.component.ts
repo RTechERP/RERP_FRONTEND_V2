@@ -47,6 +47,7 @@ import { DEFAULT_TABLE_CONFIG } from '../../../../tabulator-default.config';
 import { NOTIFICATION_TITLE } from '../../../../app.config';
 import { MenuEventService } from '../../../systems/menus/menu-service/menu-event.service';
 import { ChiTietSanPhamSaleComponent } from '../chi-tiet-san-pham-sale/chi-tiet-san-pham-sale.component';
+import { ActivatedRoute } from '@angular/router';
 
 interface ProductGroup {
     ID?: number;
@@ -106,7 +107,7 @@ export class InventoryComponent implements OnInit, AfterViewInit {
         private modal: NzModalService,
         private zone: NgZone,
         private menuEventService: MenuEventService,
-        @Optional() @Inject('tabData') private tabData: any
+        private route: ActivatedRoute
     ) { }
 
     id: number = 0;
@@ -158,9 +159,15 @@ export class InventoryComponent implements OnInit, AfterViewInit {
         Note: '',
     };
     ngOnInit(): void {
-        if (this.tabData?.warehouseCode) {
-            this.warehouseCode = this.tabData.warehouseCode;
-        }
+        // if (this.tabData?.warehouseCode) {
+        //     this.warehouseCode = this.tabData.warehouseCode;
+        // }
+
+        this.route.queryParams.subscribe(params => {
+            this.warehouseCode = params['warehouseCode'] || 'HN';
+
+            console.log('this.warehouseCode:', this.warehouseCode);
+        });
     }
     ngAfterViewInit(): void {
         this.drawTable_ProductGroup();

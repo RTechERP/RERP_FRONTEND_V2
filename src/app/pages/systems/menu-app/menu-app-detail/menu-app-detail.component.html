@@ -1,0 +1,139 @@
+<div class="modal-content">
+    <div class="modal-header bg-primary py-2">
+        <h5 class="modal-title text-uppercase text-light" id="staticBackdropLabel">Chi tiết menu</h5>
+        <button type="button" class="btn-close" aria-label="Close" (click)="activeModal.close()"></button>
+    </div>
+    <div class="modal-body">
+        <form nz-form nzLayout="vertical" [formGroup]="validateForm">
+            <div nz-row [nzGutter]="16">
+                <div nz-col nzXs="24" nzSm="12" nzMd="6" nzLg="8">
+                    <nz-form-item>
+                        <nz-form-label>STT<span class="text-danger ps-1">(*)</span></nz-form-label>
+                        <nz-form-control nzErrorTip="Stt phải >=1 và <= 99999">
+                            <nz-input-number class="w-100" [formControlName]="'STT'" [nzMin]="1" [nzMax]="99999"
+                                [nzStep]="1"></nz-input-number>
+                        </nz-form-control>
+                    </nz-form-item>
+                </div>
+
+                <div nz-col nzXs="24" nzSm="12" nzMd="6" nzLg="16">
+                    <nz-form-item>
+                        <nz-form-label>Mã<span class="text-danger ps-1">(*)</span></nz-form-label>
+                        <nz-form-control nzErrorTip="Nhập mã">
+                            <nz-input-group [nzSuffix]="inputClearTpl">
+                                <input type="text" nz-input [formControlName]="'Code'" placeholder="" />
+                            </nz-input-group>
+                            <ng-template #inputClearTpl>
+                                @if (inputValue) {
+                                <span nz-icon class="ant-input-clear-icon" nzTheme="fill" nzType="close-circle"
+                                    (click)="inputValue = null"></span>
+                                }
+                            </ng-template>
+                        </nz-form-control>
+                    </nz-form-item>
+                </div>
+            </div>
+            <div nz-row [nzGutter]="16">
+                <div nz-col nzXs="24" nzSm="12" nzMd="6" nzLg="24">
+                    <nz-form-item>
+                        <nz-form-label>Tiêu đề<span class="text-danger ps-1">(*)</span></nz-form-label>
+                        <nz-form-control nzErrorTip="Nhập tên menu">
+                            <nz-input-group [nzSuffix]="inputClearTpl">
+                                <input type="text" nz-input [formControlName]="'Title'" placeholder="" />
+                            </nz-input-group>
+                            <ng-template #inputClearTpl>
+                                <span nz-icon class="ant-input-clear-icon" nzTheme="fill" nzType="close-circle"
+                                    (click)="inputValue = null"></span>
+                            </ng-template>
+                        </nz-form-control>
+                    </nz-form-item>
+                </div>
+            </div>
+
+
+            <div nz-row [nzGutter]="16">
+                <div nz-col nzXs="24" nzSm="12" nzMd="6" nzLg="8">
+                    <nz-form-item>
+                        <nz-form-label>Router</nz-form-label>
+                        <nz-form-control nzErrorTip="">
+                            <nz-input-group [nzSuffix]="inputClearTpl">
+                                <input type="text" nz-input [formControlName]="'Router'" placeholder="" />
+                            </nz-input-group>
+                            <ng-template #inputClearTpl>
+                                @if (inputValue) {
+                                <span nz-icon class="ant-input-clear-icon" nzTheme="fill" nzType="close-circle"
+                                    (click)="inputValue = null"></span>
+                                }
+                            </ng-template>
+                        </nz-form-control>
+                    </nz-form-item>
+                </div>
+                <div nz-col nzXs="24" nzSm="12" nzMd="6" nzLg="8">
+                    <nz-form-item>
+                        <nz-form-label>Param</nz-form-label>
+                        <nz-form-control nzErrorTip="">
+                            <nz-input-group [nzSuffix]="inputClearTpl">
+                                <input type="text" nz-input [formControlName]="'QueryParam'" placeholder="" />
+                            </nz-input-group>
+                            <ng-template #inputClearTpl>
+                                @if (inputValue) {
+                                <span nz-icon class="ant-input-clear-icon" nzTheme="fill" nzType="close-circle"
+                                    (click)="inputValue = null"></span>
+                                }
+                            </ng-template>
+                        </nz-form-control>
+                    </nz-form-item>
+                </div>
+                <div nz-col nzXs="24" nzSm="12" nzMd="6" nzLg="8">
+                    <nz-form-item>
+                        <nz-form-label>Icon</nz-form-label>
+                        <nz-form-control nzErrorTip="">
+                            <nz-input-group [nzSuffix]="inputClearTpl">
+                                <input type="text" nz-input [formControlName]="'Icon'" placeholder="" />
+                            </nz-input-group>
+                            <ng-template #inputClearTpl>
+                                @if (inputValue) {
+                                <span nz-icon class="ant-input-clear-icon" nzTheme="fill" nzType="close-circle"
+                                    (click)="inputValue = null"></span>
+                                }
+                            </ng-template>
+                        </nz-form-control>
+                    </nz-form-item>
+
+                </div>
+            </div>
+
+            <div nz-row [nzGutter]="16">
+                <div nz-col nzXs="24" nzSm="12" nzMd="6" nzLg="24">
+                    <nz-form-item>
+                        <nz-form-label>Menu cha</nz-form-label>
+                        <nz-form-control nzErrorTip="">
+                            <nz-tree-select class="w-100" [nzNodes]="nodes" nzShowSearch nzPlaceHolder=""
+                                [formControlName]="'ParentID'"></nz-tree-select>
+                        </nz-form-control>
+                    </nz-form-item>
+                </div>
+            </div>
+        </form>
+
+
+        <div class="grid-container-detail border" style="height:30vh;">
+            <angular-slickgrid gridId="grdDetail" [columns]="columnDefinitions" [options]="gridOptions"
+                [dataset]="userGroups" (onAngularGridCreated)="angularGridReady($event.detail)">
+            </angular-slickgrid>
+
+
+        </div>
+    </div>
+
+
+
+    <div class="modal-footer py-2">
+        <button nz-button nzType="default" nzDanger="" (click)="activeModal.close()">
+            <nz-icon nzType="close" nzTheme="outline" /> Đóng
+        </button>
+        <button nz-button nzType="primary" (click)="submitForm()">
+            <nz-icon nzType="save" nzTheme="outline" /> Lưu
+        </button>
+    </div>
+</div>

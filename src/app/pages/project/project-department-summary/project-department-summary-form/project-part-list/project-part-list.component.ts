@@ -45,7 +45,7 @@ import { NzNotificationService } from 'ng-zorro-antd/notification';
 import { NzModalModule, NzModalService } from 'ng-zorro-antd/modal';
 import { NgModel } from '@angular/forms';
 import { NgbModal } from '@ng-bootstrap/ng-bootstrap';
-import { Router } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
 import { ProjectService } from '../../../project-service/project.service';
 import { NgbActiveModal } from '@ng-bootstrap/ng-bootstrap';
 import { DEFAULT_TABLE_CONFIG } from '../../../../../tabulator-default.config';
@@ -136,7 +136,7 @@ export class ProjectPartListComponent implements OnInit, AfterViewInit {
         private appUserService: AppUserService,
         private billExportService: BillExportService,
         private authService: AuthService,
-        @Optional() @Inject('tabData') private tabData: any
+        private route: ActivatedRoute
     ) { }
     sizeLeftPanel: string = ''; // Khởi tạo rỗng
     sizeRightPanel: string = ''; // Khởi tạo rỗng
@@ -204,14 +204,18 @@ export class ProjectPartListComponent implements OnInit, AfterViewInit {
     private loadingCounter: number = 0; // Counter để track số lượng request đang chạy
     private loadingTimeout: any = null; // Timeout để đảm bảo loading không bị kẹt
     ngOnInit(): void {
-        if (this.tabData?.tbp) {
-            this.tbp = this.tabData.tbp;
-            // cập nhật ẩn hiện 
-            if (this.tbp) {
+        // if (this.tabData?.tbp) {
+        //     this.tbp = this.tabData.tbp;
+        //     // cập nhật ẩn hiện 
+        //     if (this.tbp) {
 
-            }
+        //     }
 
-        }
+        // }
+
+        this.route.queryParams.subscribe(params => {
+            this.tbp = params['tbp'] || false;
+        });
         this.isDeleted = 0;
         this.isApprovedTBP = -1;
         this.isApprovedPurchase = -1;
@@ -391,7 +395,7 @@ export class ProjectPartListComponent implements OnInit, AfterViewInit {
             },
         });
     }
-    
+
     // Reset các bảng version và partlist về rỗng
     private resetVersionAndPartlistTables(): void {
         // Reset bảng phiên bản giải pháp
@@ -407,7 +411,7 @@ export class ProjectPartListComponent implements OnInit, AfterViewInit {
         // Reset bảng partlist
         this.resetPartlistTable();
     }
-    
+
     // Reset bảng partlist về rỗng
     private resetPartlistTable(): void {
         this.dataProjectWorker = [];
@@ -497,10 +501,10 @@ export class ProjectPartListComponent implements OnInit, AfterViewInit {
             setTimeout(() => this.loadDataProjectPartList(), 100);
             return;
         }
-        
+
         // Lưu lại các row đã được chọn trước khi reload
         this.saveSelectedRows();
-        
+
         // Lấy versionID từ bảng đã chọn
         let selectedVersionID: number = 0;
         let projectTypeID: number = 0;
@@ -572,11 +576,11 @@ export class ProjectPartListComponent implements OnInit, AfterViewInit {
             }
         });
     }
-    
+
     // Lưu các row đã được chọn trước khi reload
     private saveSelectedRows(): void {
         if (!this.tb_projectWorker) return;
-        
+
         try {
             const selectedRows = this.tb_projectWorker.getSelectedData();
             if (selectedRows && selectedRows.length > 0) {
@@ -590,15 +594,15 @@ export class ProjectPartListComponent implements OnInit, AfterViewInit {
             console.warn('Không thể lưu các row đã chọn:', e);
         }
     }
-    
+
     // Khôi phục các row đã được chọn sau khi reload
     private restoreSelectedRows(): void {
         if (!this.tb_projectWorker || this.savedSelectedRowIds.size === 0) return;
-        
+
         try {
             // Tạm thời disable event listener để tránh trigger lại toggle children
             this.isTogglingChildren = true;
-            
+
             // Lấy tất cả rows bao gồm cả nested children
             const selectRowsRecursive = (rows: any[]) => {
                 rows.forEach((row: any) => {
@@ -608,7 +612,7 @@ export class ProjectPartListComponent implements OnInit, AfterViewInit {
                         // Cũng thêm vào previousSelectedRows để logic toggle children hoạt động đúng
                         this.previousSelectedRows.add(rowData.ID);
                     }
-                    
+
                     // Xử lý các children (tree data)
                     try {
                         const children = row.getTreeChildren();
@@ -620,10 +624,10 @@ export class ProjectPartListComponent implements OnInit, AfterViewInit {
                     }
                 });
             };
-            
+
             const allRows = this.tb_projectWorker.getRows();
             selectRowsRecursive(allRows);
-            
+
             // Re-enable event listener
             this.isTogglingChildren = false;
         } catch (e) {
@@ -631,7 +635,7 @@ export class ProjectPartListComponent implements OnInit, AfterViewInit {
             this.isTogglingChildren = false;
         }
     }
-    
+
     // Xóa các row đã lưu (gọi khi muốn reset selection hoàn toàn)
     clearSavedSelectedRows(): void {
         this.savedSelectedRowIds.clear();
@@ -2600,7 +2604,7 @@ export class ProjectPartListComponent implements OnInit, AfterViewInit {
             console.log('row', row);
             // Kiểm tra nếu row đang được chọn hay bị bỏ chọn
             const isSelected = row.isSelected();
-            
+
             if (isSelected) {
                 // Row được chọn - load dữ liệu phiên bản
                 const data = row.getData();

@@ -1,6 +1,6 @@
 import { CommonModule } from '@angular/common';
-import { Component, Input, OnInit } from '@angular/core';
-import { Params, Router, RouterLink, RouterOutlet } from '@angular/router';
+import { AfterViewInit, Component, Input, OnInit } from '@angular/core';
+import { Params, Router, RouteReuseStrategy, RouterLink, RouterOutlet } from '@angular/router';
 import { AuthService } from '../../auth/auth.service';
 import { NzIconModule } from 'ng-zorro-antd/icon';
 import { NzLayoutModule } from 'ng-zorro-antd/layout';
@@ -28,25 +28,35 @@ import { CustomerComponent } from '../../pages/crm/customers/customer/customer.c
 
 // import { menus } from '../../pages/old/menus/menus.component';
 import {
-  GroupItem,
-  LeafItem,
-  MenuItem,
-  MenuService,
+    GroupItem,
+    LeafItem,
+    MenuItem,
+    MenuService,
 } from '../../pages/systems/menus/menu-service/menu.service';
 import { MenuEventService } from '../../pages/systems/menus/menu-service/menu-event.service';
 import { AppUserDropdownComponent } from '../../pages/systems/app-user/app-user-dropdown.component';
 import {
-  AppNotifycationDropdownComponent,
-  NotifyItem,
+    AppNotifycationDropdownComponent,
+    NotifyItem,
 } from '../../pages/old/app-notifycation-dropdown/app-notifycation-dropdown.component';
 import { MenusComponent } from '../../pages/old/menus/menus.component';
 import { NzGridModule } from 'ng-zorro-antd/grid';
+import { ɵɵRouterOutlet } from "@angular/router/testing";
+import { MenuAppService } from '../../pages/systems/menu-app/menu-app.service';
+import { NOTIFICATION_TITLE } from '../../app.config';
+import { environment } from '../../../environments/environment';
+import { CustomRouteReuseStrategy } from '../../custom-route-reuse.strategy';
+import { LayoutEventService } from '../layout-event.service';
+import { take } from 'rxjs';
 
 type TabItem = {
-  title: string;
-  comp: Type<any>;
-  injector?: Injector;
-  data?: any; // Lưu data để so sánh unique key
+    title: string;
+    // comp: Type<any>;
+    // injector?: Injector;
+    data?: any; // Lưu data để so sánh unique key
+    route: string;
+    queryParams?: any;    // vd: { warehouseCode: 'HN' }
+    key: string;
 };
 // export type BaseItem = {
 //   key: string;
@@ -72,265 +82,409 @@ export const isLeaf = (m: MenuItem): m is LeafItem => m.kind === 'leaf';
 export const isGroup = (m: MenuItem): m is GroupItem => m.kind === 'group';
 
 const COMPONENT_REGISTRY: Record<string, Type<any>> = {
-  customer: CustomerComponent,
-  productRTC: TbProductRtcComponent,
-  project: ProjectComponent,
+    customer: CustomerComponent,
+    productRTC: TbProductRtcComponent,
+    project: ProjectComponent,
 };
 
 // Reverse mapping để serialize component -> key
 const COMPONENT_TO_KEY: Map<Type<any>, string> = new Map(
-  Object.entries(COMPONENT_REGISTRY).map(([key, comp]) => [comp, key])
+    Object.entries(COMPONENT_REGISTRY).map(([key, comp]) => [comp, key])
 );
 @Component({
-  selector: 'app-main-layout',
-  imports: [
-    RouterLink,
-    NzBadgeModule,
-    // RouterOutlet,
-    NzIconModule,
-    NzLayoutModule,
-    NzMenuModule,
-    NzButtonModule,
-    NzTabsModule,
-    NzDropDownModule,
-    ReactiveFormsModule,
-    CommonModule,
-    AppNotifycationDropdownComponent,
-    AppUserDropdownComponent,
-    NgComponentOutlet,
-    NzGridModule,
-  ],
-  templateUrl: '../../app.component.html',
-  styleUrl: '../../app.component.css',
-  standalone: true,
+    selector: 'app-main-layout',
+    imports: [
+        RouterLink,
+        NzBadgeModule,
+        RouterOutlet,
+        NzIconModule,
+        NzLayoutModule,
+        NzMenuModule,
+        NzButtonModule,
+        NzTabsModule,
+        NzDropDownModule,
+        ReactiveFormsModule,
+        CommonModule,
+        AppNotifycationDropdownComponent,
+        AppUserDropdownComponent,
+        NzGridModule,
+    ],
+    templateUrl: '../../app.component.html',
+    styleUrl: '../../app.component.css',
+    standalone: true,
 })
-export class MainLayoutComponent implements OnInit {
-  CustomerComponent = CustomerComponent;
-  ProductRtcComponent = TbProductRtcComponent;
-  ProjectComponent = ProjectComponent;
-  constructor(
-    private auth: AuthService,
-    private router: Router,
-    public menuService: MenuService,
-    private notification: NzNotificationService,
-    private injector: Injector,
-    private menuEventService: MenuEventService,
-  ) {
-    this.menus = this.menuService.getMenus();
-  }
-  notificationComponent = AppNotifycationDropdownComponent;
-  //#region Khai báo biến
-  isCollapsed = true;
-  isMobile = window.innerHeight <= 768;
-  isDatcom = false;
-  selectedIndex = 0;
-  trackKey = (_: number, x: any) => x?.key ?? x?.title ?? _;
-  isGroup = (m: MenuItem): m is GroupItem => m.kind === 'group';
-  isLeaf = (m: MenuItem): m is LeafItem => m.kind === 'leaf';
-  menus: MenuItem[] = [];
-  dynamicTabs: TabItem[] = [];
+export class MainLayoutComponent implements OnInit, AfterViewInit {
+    CustomerComponent = CustomerComponent;
+    ProductRtcComponent = TbProductRtcComponent;
+    ProjectComponent = ProjectComponent;
+    constructor(
+        private auth: AuthService,
+        private router: Router,
+        public menuService: MenuService,
+        public menuAppService: MenuAppService,
+        private notification: NzNotificationService,
+        private injector: Injector,
+        private menuEventService: MenuEventService,
+        private reuse: RouteReuseStrategy,
+        private layoutEvent: LayoutEventService
+    ) {
+        // this.menus = this.menuService.getMenus();
+    }
+    notificationComponent = AppNotifycationDropdownComponent;
+    //#region Khai báo biến
+    isCollapsed = true;
+    isMobile = window.innerHeight <= 768;
+    isDatcom = false;
+    selectedIndex = 0;
+    trackKey = (_: number, x: any) => x?.key ?? x?.title ?? _;
+    // isGroup = (m: MenuItem): m is GroupItem => m.kind === 'group';
+    // isLeaf = (m: MenuItem): m is LeafItem => m.kind === 'leaf';
+    menus: any[] = [];
+    dynamicTabs: TabItem[] = [];
 
-  menu: any = {};
-  //#endregion
-  notifItems: NotifyItem[] = [
-    // {
-    //   id: 1,
-    //   title: 'Phiếu xe #A123 đã duyệt',
-    //   detail: 'Xe VP Hà Nội',
-    //   time: '09:12',
-    //   group: 'today',
-    //   icon: 'car',
-    // },
-    // {
-    //   id: 2,
-    //   title: 'Bàn giao TS BM-09 hoàn tất',
-    //   detail: 'Phòng IT • BB556',
-    //   time: '08:55',
-    //   group: 'today',
-    //   icon: 'file-done',
-    // },
-    // {
-    //   id: 3,
-    //   title: 'Đơn cấp phát #CP-778 tạo mới',
-    //   detail: 'Kho TB • 5 mục',
-    //   time: '16:40',
-    //   group: 'yesterday',
-    //   icon: 'plus-square',
-    // },
-    // {
-    //   id: 1,
-    //   title: 'Phiếu xe #A123 đã duyệt',
-    //   detail: 'Xe VP Hà Nội',
-    //   time: '09:12',
-    //   group: 'today',
-    //   icon: 'car',
-    // },
-    // {
-    //   id: 2,
-    //   title: 'Bàn giao TS BM-09 hoàn tất',
-    //   detail:
-    //     'Phòng IT • BB556Phòng IT • BB556Phòng IT • BB556Phòng IT • BB556Phòng IT • BB556Phòng IT • BB556Phòng IT • BB556Phòng IT • BB556Phòng IT • BB556Phòng IT • BB556Phòng IT • BB556Phòng IT • BB556',
-    //   time: '08:55',
-    //   group: 'today',
-    //   icon: 'file-done',
-    // },
-  ];
+    menu: any = {};
+    //#endregion
+    notifItems: NotifyItem[] = [
+        // {
+        //   id: 1,
+        //   title: 'Phiếu xe #A123 đã duyệt',
+        //   detail: 'Xe VP Hà Nội',
+        //   time: '09:12',
+        //   group: 'today',
+        //   icon: 'car',
+        // },
+        // {
+        //   id: 2,
+        //   title: 'Bàn giao TS BM-09 hoàn tất',
+        //   detail: 'Phòng IT • BB556',
+        //   time: '08:55',
+        //   group: 'today',
+        //   icon: 'file-done',
+        // },
+        // {
+        //   id: 3,
+        //   title: 'Đơn cấp phát #CP-778 tạo mới',
+        //   detail: 'Kho TB • 5 mục',
+        //   time: '16:40',
+        //   group: 'yesterday',
+        //   icon: 'plus-square',
+        // },
+        // {
+        //   id: 1,
+        //   title: 'Phiếu xe #A123 đã duyệt',
+        //   detail: 'Xe VP Hà Nội',
+        //   time: '09:12',
+        //   group: 'today',
+        //   icon: 'car',
+        // },
+        // {
+        //   id: 2,
+        //   title: 'Bàn giao TS BM-09 hoàn tất',
+        //   detail:
+        //     'Phòng IT • BB556Phòng IT • BB556Phòng IT • BB556Phòng IT • BB556Phòng IT • BB556Phòng IT • BB556Phòng IT • BB556Phòng IT • BB556Phòng IT • BB556Phòng IT • BB556Phòng IT • BB556Phòng IT • BB556',
+        //   time: '08:55',
+        //   group: 'today',
+        //   icon: 'file-done',
+        // },
+    ];
 
-  menuKey: string = '';
-  ngOnInit(): void {
-    // const saved = localStorage.getItem('openMenuKey') || '';
-    // console.log(this.menus);
-    // this.setOpenMenu(saved || null);
+    menuKey: string = '';
+    ngOnInit(): void {
+        // const saved = localStorage.getItem('openMenuKey') || '';
+        // console.log(this.menus);
+        // this.setOpenMenu(saved || null);
 
-    this.menuService.menuKey$.subscribe((x) => {
-      this.menuKey = x;
-    });
-    this.setOpenMenu(this.menuKey);
+        this.getMenus();
 
-    // Khôi phục các tabs đã mở từ localStorage
-    // this.restoreTabs();
+        // console.log(' this.menuKey :', this.menuKey);
 
-    // Subscribe vào event mở tab từ các component con
-    this.menuEventService.onOpenTab$.subscribe((tabData) => {
-      this.newTab(tabData.comp, tabData.title, tabData.data);
-    });
-  }
-  //   newTab(comp: Type<any>, title: string, injector?: Injector) {
-  //     const idx = this.dynamicTabs.findIndex((t) => t.title === title);
-  //     if (idx >= 0) {
-  //       this.selectedIndex = idx;
-  //       return;
-  //     }
+        this.menuService.menuKey$.subscribe((x) => {
+            this.menuKey = x;
+            console.log(this.menuKey);
+        });
 
-  //     this.dynamicTabs = [...this.dynamicTabs, { title, comp, injector }];
-  //     setTimeout(() => (this.selectedIndex = this.dynamicTabs.length - 1));
-  //   }
+        this.setOpenMenu(this.menuKey);
 
-  newTab(comp: Type<any>, title: string, data?: any) {
-    if (this.isMobile) {
-      this.isCollapsed = !this.isCollapsed;
+        // Khôi phục các tabs đã mở từ localStorage
+        // this.restoreTabs();
+
+        // // Subscribe vào event mở tab từ các component con
+        // this.menuEventService.onOpenTab$.subscribe((tabData) => {
+        //     // this.newTab(tabData.comp, tabData.title, tabData.data);
+        // });
+
+
     }
 
-    const idx = this.dynamicTabs.findIndex((t) => t.title === title);
-    if (idx >= 0) {
-      this.selectedIndex = idx;
-      return;
+    ngAfterViewInit(): void {
+        this.layoutEvent.toggleMenu$.pipe(take(1)).subscribe(key => {
+            // this.menuKey = key;
+            if (key) this.toggleMenu(key);
+
+            this.menuService.menuKey$.subscribe((key) => {
+                this.menuKey = key;
+            });
+            this.setOpenMenu(key);
+        });
     }
 
-    const injector = Injector.create({
-      providers: [{ provide: 'tabData', useValue: data }],
-      parent: this.injector,
-    });
+    getMenus() {
+        this.menuAppService.getAll().subscribe({
+            next: (response) => {
 
-    this.dynamicTabs = [...this.dynamicTabs, { title, comp, injector }];
-    setTimeout(() => (this.selectedIndex = this.dynamicTabs.length - 1));
+                console.log(response);
 
-    // Lưu tabs vào localStorage
-    // this.saveTabs();
-  }
+                const map = new Map<number, any>();
+                // this.nodes = [];
+                // Tạo map trước
+                response.data.menus.forEach((item: any) => {
+                    map.set(item.ID, {
+                        id: item.ID,
+                        stt: item.STT,
+                        key: item.Code,
+                        title: item.Title,
+                        router: item.Router == '' ? '#' : `${environment.baseHref}/${item.Router}`,
+                        icon: `${environment.host}api/share/software/icon/${item.Icon}`,
+                        isPermission: item.IsPermission,
+                        ParentID: item.ParentID,
+                        children: [],
+                        isOpen: item.ParentID > 0,
+                        queryParams: (item.QueryParam || ''),
+                    });
+                });
 
-  closeTab({ index }: { index: number }) {
-    this.dynamicTabs.splice(index, 1);
-    if (this.selectedIndex >= this.dynamicTabs.length)
-      this.selectedIndex = this.dynamicTabs.length - 1;
+                // Gắn cha – con
+                response.data.menus.forEach((item: any) => {
+                    const node = map.get(item.ID);
 
-    // Lưu tabs vào localStorage sau khi đóng
-    // this.saveTabs();
-  }
-  //   getMenus(id: number): void {
-  //     this.menuService.getMenus(id).subscribe({
-  //       next: (response: any) => {
-  //         if (response.status == 1) {
-  //           this.menu = response.data;
-  //           //   console.log(this.menu);
-  //         }
-  //       },
-  //       error: (err) => {
-  //         // console.log(err);
-  //         // this.notification.error(NOTIFICATION_TITLE.error, err.error.message);
-  //       },
-  //     });
-  //   }
+                    if (item.ParentID && map.has(item.ParentID)) {
+                        const parent = map.get(item.ParentID);
+                        parent.children.push(node);
+                    } else {
+                        this.menus.push(node);
+                    }
+                });
 
-  logout() {
-    this.auth.logout();
-  }
-  onPick(n: NotifyItem) {
-    console.log('picked:', n);
-    // TODO: điều hướng/đánh dấu đã đọc...
-  }
-  // toggleMenu(key: string) {
-  //   const m = this.menus.find((x) => x.key === key);
-  //   if (m) m.isOpen = !m.isOpen;
-  // }
-  // isMenuOpen(key: string): boolean {
-  //   const m = this.menus.find((x) => x.key === key);
-  //   return !!m && !!m.isOpen;
-  // }
-  private setOpenMenu(key: string | null) {
-    this.menus.forEach((m) => (m.isOpen = key !== null && m.key === key));
-    // localStorage.setItem('openMenuKey', key ?? '');
-  }
 
-  isMenuOpen = (key: string) =>
-    this.menus.some((m) => m.key === key && m.isOpen);
-  toggleMenu(key: string) {
-    // this.menus.forEach((x) => (x.isOpen = false));
-    const m = this.menus.find((x) => x.key === key);
-    if (m) m.isOpen = !m.isOpen;
+                console.log(this.menus);
 
-    if (m?.isOpen) this.menuKey = key;
-  }
+                this.layoutEvent.toggleMenu$.pipe(take(1)).subscribe(key => {
+                    // this.menuKey = key;
+                    if (key) this.toggleMenu(key);
 
-  // dùng khi muốn mở thẳng 1 group từ nơi khác
-  openOnly(key: string) {
-    this.setOpenMenu(key);
-  }
+                    this.menuService.menuKey$.subscribe((key) => {
+                        this.menuKey = key;
+                    });
+                    this.setOpenMenu(key);
+                });
+            },
+            error: (err) => {
+                this.notification.error(NOTIFICATION_TITLE.error, err?.error?.message || err?.message);
+            },
+        })
+    }
 
-  /**
-   * Lưu các tabs hiện tại vào localStorage
-   */
-  //   private saveTabs() {
-  //     const tabsData = this.dynamicTabs.map((tab) => ({
-  //       title: tab.title,
-  //       compKey: COMPONENT_TO_KEY.get(tab.comp) || '',
-  //     }));
-  //     localStorage.setItem('openTabs', JSON.stringify(tabsData));
-  //     localStorage.setItem('selectedTabIndex', String(this.selectedIndex));
-  //   }
+    // newTab(comp: Type<any>, title: string, data?: any) {
+    //     if (this.isMobile) {
+    //         this.isCollapsed = !this.isCollapsed;
+    //     }
 
-  //   /**
-  //    * Khôi phục các tabs từ localStorage
-  //    */
-  //   private restoreTabs() {
-  //     try {
-  //       const savedTabs = localStorage.getItem('openTabs');
-  //       const savedIndex = localStorage.getItem('selectedTabIndex');
+    //     const idx = this.dynamicTabs.findIndex((t) => t.title === title);
+    //     if (idx >= 0) {
+    //         this.selectedIndex = idx;
+    //         return;
+    //     }
 
-  //       if (savedTabs) {
-  //         const tabsData = JSON.parse(savedTabs) as Array<{
-  //           title: string;
-  //           compKey: string;
-  //         }>;
+    //     const injector = Injector.create({
+    //         providers: [{ provide: 'tabData', useValue: data }],
+    //         parent: this.injector,
+    //     });
 
-  //         tabsData.forEach(({ title, compKey }) => {
-  //           const comp = COMPONENT_REGISTRY[compKey];
-  //           if (comp) {
-  //             const injector = Injector.create({
-  //               providers: [{ provide: 'tabData', useValue: undefined }],
-  //               parent: this.injector,
-  //             });
-  //             this.dynamicTabs.push({ title, comp, injector });
-  //           }
-  //         });
+    //     this.dynamicTabs = [...this.dynamicTabs, { title, comp, injector }];
+    //     setTimeout(() => (this.selectedIndex = this.dynamicTabs.length - 1));
 
-  //         if (savedIndex && this.dynamicTabs.length > 0) {
-  //           const index = parseInt(savedIndex, 10);
-  //           this.selectedIndex = Math.min(index, this.dynamicTabs.length - 1);
-  //         }
-  //       }
-  //     } catch (error) {
-  //       console.error('Error restoring tabs:', error);
-  //     }
-  //   }
+    //     // Lưu tabs vào localStorage
+    //     // this.saveTabs();
+    // }
+
+
+
+    // newTab(route: string, title: string) {
+    //     const idx = this.dynamicTabs.findIndex(t => t.route === route);
+
+    //     if (idx >= 0) {
+    //         this.selectedIndex = idx;
+    //         this.router.navigateByUrl(route);
+    //         return;
+    //     }
+
+    //     this.dynamicTabs = [...this.dynamicTabs, { title, route }];
+
+    //     setTimeout(() => {
+    //         this.selectedIndex = this.dynamicTabs.length - 1;
+    //         this.router.navigateByUrl(route);
+    //     });
+    // }
+
+    newTab(route: string, title: string, queryParams?: any) {
+
+        // console.log('queryParams new tab:', queryParams, typeof queryParams);
+        queryParams = queryParams == '' ? '' : JSON.parse(queryParams);
+        const normalizedParams =
+            typeof queryParams === 'string'
+                ? undefined
+                : (queryParams && Object.keys(queryParams).length ? queryParams : undefined);
+        // const key = route + JSON.stringify(queryParams ?? {});
+        const key = route + JSON.stringify(normalizedParams ?? {});
+
+        const idx = this.dynamicTabs.findIndex(t => t.key === key);
+        if (idx >= 0) {
+            this.selectedIndex = idx;
+            this.router.navigate([route], { queryParams });
+            return;
+        }
+
+        this.dynamicTabs = [
+            ...this.dynamicTabs,
+            { title, route, queryParams, key }
+        ];
+
+        setTimeout(() => {
+            this.selectedIndex = this.dynamicTabs.length - 1;
+            this.router.navigate([route], { queryParams });
+        });
+    }
+
+
+
+    onTabChange(index: number) {
+        const tab = this.dynamicTabs[index];
+        if (tab) {
+            this.router.navigateByUrl(tab.route);
+        }
+    }
+
+
+    // closeTab({ index }: { index: number }) {
+    //     this.dynamicTabs.splice(index, 1);
+    //     if (this.selectedIndex >= this.dynamicTabs.length)
+    //         this.selectedIndex = this.dynamicTabs.length - 1;
+
+    //     // Lưu tabs vào localStorage sau khi đóng
+    //     // this.saveTabs();
+    // }
+
+    closeTab(index: number): void {
+        const tab = this.dynamicTabs[index];
+        if (!tab) return;
+
+        // 1. Clear route cache (nếu có RouteReuseStrategy)
+        const reuse = this.reuse as CustomRouteReuseStrategy;
+        reuse?.clear(tab.route);
+
+        const isActive = this.selectedIndex === index;
+
+        // 2. Remove tab
+        this.dynamicTabs.splice(index, 1);
+
+        // 3. Xử lý selectedIndex
+        if (this.dynamicTabs.length === 0) {
+            this.selectedIndex = 0;
+            this.router.navigateByUrl('/app'); // route mặc định
+            return;
+        }
+
+        if (isActive) {
+            const nextIndex = Math.max(index - 1, 0);
+            this.selectedIndex = nextIndex;
+            this.router.navigateByUrl(this.dynamicTabs[nextIndex].route);
+        } else if (this.selectedIndex > index) {
+            // đóng tab phía trước tab đang active
+            this.selectedIndex--;
+        }
+    }
+
+    logout() {
+        this.auth.logout();
+    }
+    onPick(n: NotifyItem) {
+        console.log('picked:', n);
+        // TODO: điều hướng/đánh dấu đã đọc...
+    }
+    // toggleMenu(key: string) {
+    //   const m = this.menus.find((x) => x.key === key);
+    //   if (m) m.isOpen = !m.isOpen;
+    // }
+    // isMenuOpen(key: string): boolean {
+    //   const m = this.menus.find((x) => x.key === key);
+    //   return !!m && !!m.isOpen;
+    // }
+    private setOpenMenu(key: string | null) {
+        this.menus.forEach((m) => (m.isOpen = key !== null && m.key === key));
+        // localStorage.setItem('openMenuKey', key ?? '');
+    }
+
+    isMenuOpen = (key: string) =>
+        this.menus.some((m) => m.key === key && m.isOpen);
+
+    toggleMenu(key: string) {
+        // this.menus.forEach((x) => (x.isOpen = false));
+
+        const m = this.menus.find((x) => x.key === key);
+        if (m) m.isOpen = !m.isOpen;
+
+        if (m?.isOpen) this.menuKey = key;
+    }
+
+    // dùng khi muốn mở thẳng 1 group từ nơi khác
+    openOnly(key: string) {
+        this.setOpenMenu(key);
+    }
+
+    /**
+     * Lưu các tabs hiện tại vào localStorage
+     */
+    //   private saveTabs() {
+    //     const tabsData = this.dynamicTabs.map((tab) => ({
+    //       title: tab.title,
+    //       compKey: COMPONENT_TO_KEY.get(tab.comp) || '',
+    //     }));
+    //     localStorage.setItem('openTabs', JSON.stringify(tabsData));
+    //     localStorage.setItem('selectedTabIndex', String(this.selectedIndex));
+    //   }
+
+    //   /**
+    //    * Khôi phục các tabs từ localStorage
+    //    */
+    //   private restoreTabs() {
+    //     try {
+    //       const savedTabs = localStorage.getItem('openTabs');
+    //       const savedIndex = localStorage.getItem('selectedTabIndex');
+
+    //       if (savedTabs) {
+    //         const tabsData = JSON.parse(savedTabs) as Array<{
+    //           title: string;
+    //           compKey: string;
+    //         }>;
+
+    //         tabsData.forEach(({ title, compKey }) => {
+    //           const comp = COMPONENT_REGISTRY[compKey];
+    //           if (comp) {
+    //             const injector = Injector.create({
+    //               providers: [{ provide: 'tabData', useValue: undefined }],
+    //               parent: this.injector,
+    //             });
+    //             this.dynamicTabs.push({ title, comp, injector });
+    //           }
+    //         });
+
+    //         if (savedIndex && this.dynamicTabs.length > 0) {
+    //           const index = parseInt(savedIndex, 10);
+    //           this.selectedIndex = Math.min(index, this.dynamicTabs.length - 1);
+    //         }
+    //       }
+    //     } catch (error) {
+    //       console.error('Error restoring tabs:', error);
+    //     }
+    //   }
 }

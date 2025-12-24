@@ -47,6 +47,7 @@ import { CheckHistoryTechComponent } from './check-history-tech/check-history-te
 import { NOTIFICATION_TITLE } from '../../../app.config';
 import { HasPermissionDirective } from '../../../directives/has-permission.directive';
 import { DEFAULT_TABLE_CONFIG } from '../../../tabulator-default.config';
+import { ActivatedRoute } from '@angular/router';
 function formatDateCell(cell: CellComponent): string {
     const val = cell.getValue();
     return val ? DateTime.fromISO(val).toFormat('dd/MM/yyyy') : '';
@@ -88,7 +89,7 @@ export class BillImportTechnicalComponent implements OnInit, AfterViewInit {
         private modal: NzModalService,
         private TsAssetManagementPersonalService: TsAssetManagementPersonalService,
         private injector: Injector,
-        @Optional() @Inject('tabData') private tabData: any
+        private route: ActivatedRoute
     ) { }
     private ngbModal = inject(NgbModal);
     selectedRow: any = '';
@@ -127,10 +128,15 @@ export class BillImportTechnicalComponent implements OnInit, AfterViewInit {
         const now = new Date();
         this.dateStart = new Date(now.getFullYear(), now.getMonth(), 1); // Ngày đầu tháng
         this.dateEnd = new Date(); // Hôm nay
-        if (this.tabData?.warehouseID) {
-            this.warehouseID = this.tabData.warehouseID;
-            this.warehouseType = this.tabData.warehouseType;
-        }
+        // if (this.tabData?.warehouseID) {
+        //     this.warehouseID = this.tabData.warehouseID;
+        //     this.warehouseType = this.tabData.warehouseType;
+        // }
+
+        this.route.queryParams.subscribe(params => {
+            this.warehouseID = params['warehouseID'] || 1
+            this.warehouseType = params['warehouseType'] || 1;
+        });
     }
     ngAfterViewInit(): void {
         this.drawTable();
@@ -803,32 +809,32 @@ export class BillImportTechnicalComponent implements OnInit, AfterViewInit {
 
     openCheckHistoryTech() {
         const modalRef = this.modalService.open(CheckHistoryTechComponent, {
-          centered: false,
-          fullscreen: true,
-          backdrop: 'static',
-          keyboard: false,
-          scrollable: true,
-          windowClass: 'full-screen-modal',
-          injector: this.injector
+            centered: false,
+            fullscreen: true,
+            backdrop: 'static',
+            keyboard: false,
+            scrollable: true,
+            windowClass: 'full-screen-modal',
+            injector: this.injector
         });
 
         // Truyền warehouseId và warehouseType vào modal qua @Input
         if (modalRef.componentInstance) {
-          modalRef.componentInstance.warehouseID = this.warehouseID || 1;
-          modalRef.componentInstance.warehouseType = this.warehouseType || 1;
+            modalRef.componentInstance.warehouseID = this.warehouseID || 1;
+            modalRef.componentInstance.warehouseType = this.warehouseType || 1;
         }
 
         // Xử lý khi modal đóng
         modalRef.result.then(
-          (result) => {
-            // Có thể reload data nếu cần
-            if (result === 'success') {
-              // this.drawTable();
+            (result) => {
+                // Có thể reload data nếu cần
+                if (result === 'success') {
+                    // this.drawTable();
+                }
+            },
+            (dismissed) => {
+                // Modal dismissed
             }
-          },
-          (dismissed) => {
-            // Modal dismissed
-          }
         );
     }
 }

@@ -1,0 +1,251 @@
+import { ChangeDetectorRef, Component, Injector, OnInit, Type } from '@angular/core';
+import { AppNotifycationDropdownComponent, NotifyItem } from "../../../pages/old/app-notifycation-dropdown/app-notifycation-dropdown.component";
+import { AppUserDropdownComponent } from "../../../pages/systems/app-user/app-user-dropdown.component";
+import { NzBadgeComponent } from "ng-zorro-antd/badge";
+import { NzDropDownModule } from "ng-zorro-antd/dropdown";
+
+import { CommonModule } from '@angular/common';
+import { NzNotificationService } from 'ng-zorro-antd/notification';
+import { HomeLayoutService } from '../home-layout-service/home-layout.service';
+import { HolidayServiceService } from '../../../pages/hrm/holiday/holiday-service/holiday-service.service';
+import { Router, RouterLink } from '@angular/router';
+import { AppUserService } from '../../../services/app-user.service';
+import { PermissionService } from '../../../services/permission.service';
+import { GroupItem, LeafItem, MenuItem, MenuService } from '../../../pages/systems/menus/menu-service/menu.service';
+import { NzGridModule } from 'ng-zorro-antd/grid';
+import { NzCalendarModule } from 'ng-zorro-antd/calendar';
+import { NOTIFICATION_TITLE } from '../../../app.config';
+import { FormsModule } from '@angular/forms';
+import { MenuAppService } from '../../../pages/systems/menu-app/menu-app.service';
+import { environment } from '../../../../environments/environment';
+import { LayoutEventService } from '../../layout-event.service';
+
+@Component({
+    selector: 'app-home-layout-new',
+    imports: [
+        CommonModule,
+        FormsModule,
+        AppNotifycationDropdownComponent,
+        AppUserDropdownComponent,
+        NzBadgeComponent,
+        NzDropDownModule,
+        NzGridModule,
+        NzCalendarModule,
+        RouterLink
+    ],
+    templateUrl: './home-layout-new.component.html',
+    styleUrl: './home-layout-new.component.css'
+})
+export class HomeLayoutNewComponent implements OnInit {
+
+    notifItems: NotifyItem[] = [];
+    menus: any[] = [];
+    menuApproves: any = {};
+    menuPersons: any[] = [];
+    menuWeekplans: any = {};
+    // menuKey: string = '';
+
+    // isMenuOpen = (key: string) => this.menus.some((m) => m.key === key && m.isOpen);
+    // isGroup = (m: MenuItem): m is GroupItem => m.kind === 'group';
+    // isLeaf = (m: MenuItem): m is LeafItem => m.kind === 'leaf';
+
+    dynamicTabs: any[] = [];
+    selectedIndex = 0;
+
+    today = new Date();
+    calendarDate = new Date();
+    holidays: any[] = [];
+    scheduleWorkSaturdays: any[] = [];
+
+    isHoliday(date: Date): boolean {
+        let isHoliday = this.holidays.some(
+            (x) =>
+                x.HolidayYear === date.getFullYear() &&
+                x.HolidayMonth === date.getMonth() + 1 &&
+                x.HolidayDay === date.getDate()
+        );
+        return isHoliday;
+    }
+
+    isSaturday(date: Date): boolean {
+        let isSaturday = this.scheduleWorkSaturdays.some(
+            (x) =>
+                x.WorkYear === date.getFullYear() &&
+                x.WorkMonth === date.getMonth() + 1 &&
+                x.WorkDay === date.getDate()
+        );
+        return isSaturday;
+    }
+
+    employeeOnleaves: any = [];
+    employeeWfhs: any = [];
+
+    totalEmployeeOnleave = 0;
+    totalEmployeeWfh = 0;
+
+    constructor(
+        private notification: NzNotificationService,
+        private homepageService: HomeLayoutService,
+        private cdr: ChangeDetectorRef,
+        private holidayService: HolidayServiceService,
+        private router: Router,
+        private appUserService: AppUserService,
+        public menuService: MenuService,
+        public menuAppService: MenuAppService,
+        private permissionService: PermissionService,
+        private layoutEvent: LayoutEventService
+    ) { }
+
+    ngOnInit(): void {
+        this.getMenus();
+        this.appUserService.user$.subscribe(() => {
+            this.permissionService.refreshPermissions();
+            // this.menus = this.menuService
+            //     .getMenus()
+            //     .sort((a, b) => (a.stt ?? 1) - (b.stt ?? 1));
+
+
+
+            this.cdr.markForCheck?.();
+
+        });
+
+        this.getHoliday(this.today.getFullYear(), this.today.getMonth());
+        this.getEmployeeOnleaveAndWFH();
+    }
+
+
+    getMenus() {
+        this.menuAppService.getAll().subscribe({
+            next: (response) => {
+
+                const map = new Map<number, any>();
+                // this.nodes = [];
+                // Tạo map trước
+                response.data.menus.forEach((item: any) => {
+                    map.set(item.ID, {
+                        STT: item.STT,
+                        Code: item.Code,
+                        Title: item.Title,
+                        Router: item.Router == '' ? '#' : `${environment.baseHref}/${item.Router}`,
+                        Icon: `${environment.host}api/share/software/icon/${item.Icon}`,
+                        IsPermission: item.IsPermission,
+                        ParentID: item.ParentID,
+                        Children: []
+                    });
+                });
+
+                // Gắn cha – con
+                response.data.menus.forEach((item: any) => {
+                    const node = map.get(item.ID);
+
+                    if (item.ParentID && map.has(item.ParentID)) {
+                        const parent = map.get(item.ParentID);
+                        parent.Children.push(node);
+                    } else {
+                        this.menus.push(node);
+                    }
+                });
+
+                console.log(this.menus);
+
+                this.menuApproves = this.menus.filter((x) => x.Code == 'appvovedperson')[0];
+                console.log('this.menuApproves:', this.menuApproves);
+
+                var pesons: any[] = this.menus.filter((x) => x.Code == 'person');
+                console.log('this.pesons', pesons);
+                this.menuPersons = pesons[0].Children.filter((x: any) => x.Code == 'registerpayroll' || x.Code == 'dailyreport' || x.Code == 'registercommon');
+                // this.menuPersons = this.menus.filter((x) => x.Code == 'M6');
+
+
+                this.menuWeekplans = pesons[0].Children.filter((x: any) => x.Code == 'planweek')[0];
+            },
+            error: (err) => {
+                this.notification.error(NOTIFICATION_TITLE.error, err?.error?.message || err?.message);
+            },
+        })
+    }
+
+
+    getHoliday(year: number, month: number): void {
+        this.holidayService.getHolidays(month + 1, year).subscribe({
+            next: (response) => {
+                this.holidays = response.data.holidays;
+                this.scheduleWorkSaturdays = response.data.scheduleWorkSaturdays;
+            },
+            error: (err) => {
+                this.notification.error(NOTIFICATION_TITLE.error, err?.error?.message || err?.message);
+            },
+        });
+    }
+
+    getEmployeeOnleaveAndWFH(): void {
+
+        this.homepageService.getEmployeeOnleaveAndWFH().subscribe({
+            next: (response) => {
+                this.employeeOnleaves = response.data.employeeOnleaves || [];
+                this.employeeWfhs = response.data.employeeWfhs || [];
+
+                this.totalEmployeeOnleave = this.employeeOnleaves.reduce(
+                    (sum: any, dept: any) => sum + dept.Employees.length,
+                    0
+                );
+                this.totalEmployeeWfh = this.employeeWfhs.reduce(
+                    (sum: any, dept: any) => sum + dept.Employees.length,
+                    0
+                );
+            },
+            error: (error: any) => {
+                this.notification.error(NOTIFICATION_TITLE.error, error.error.message);
+            }
+        })
+
+    }
+
+    onPick(n: NotifyItem) {
+        console.log('picked:', n);
+    }
+
+
+    openModule(key: string) {
+        // this.layoutEvent.toggleMenu(key);
+        // this.router.navigate(['/app']);
+
+        // console.log(key);
+
+        this.menuService.setMenuKey(key);
+        this.router.navigate(['/app']); // hoặc route tới MainLayout
+    }
+
+    newTab(route: string, title: string, data?: any) {
+        const idx = this.dynamicTabs.findIndex(t => t.route === route);
+
+        if (idx >= 0) {
+            this.selectedIndex = idx;
+            this.router.navigateByUrl(route);
+            return;
+        }
+
+        this.dynamicTabs = [
+            ...this.dynamicTabs,
+            { title, route, data }
+        ];
+
+        setTimeout(() => {
+            this.selectedIndex = this.dynamicTabs.length - 1;
+            this.router.navigateByUrl(route);
+        });
+    }
+
+    handleClickLink(event: MouseEvent, route: string, title: string) {
+        if (event.button === 0 && !event.ctrlKey && !event.metaKey) {
+            event.preventDefault(); // chặn reload
+            this.newTab(route, title);
+        }
+    }
+
+    onSelectChangeCalendar(value: Date): void {
+        // this.calendarDate = value;
+        this.getHoliday(value.getFullYear(), value.getMonth());
+    }
+}

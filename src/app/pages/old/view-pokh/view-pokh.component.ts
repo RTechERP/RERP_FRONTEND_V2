@@ -346,27 +346,24 @@ export class ViewPokhComponent implements OnInit, AfterViewInit {
         if (!acc[key]) acc[key] = [];
 
         // Lấy các export đã chọn từ selectedExportRowsAll dựa trên POKHDetailID
-        const selectedExportIds = this.selectedExportRowsAll
-          .filter(x => x.POKHDetailID === row.ID)
-          .map(x => x.BillExportDetailID);
+        const selectedExportsForThisParent = this.selectedExportRowsAll
+          .filter(x => x.POKHDetailID === row.ID);
 
-        // Lấy các export detail từ row.exportDetails dựa trên BillExportDetailID đã chọn
-        const selectedExports = (row.exportDetails || []).filter((ex: any) => 
-          selectedExportIds.includes(ex.BillExportDetailID)
-        );
+        // Nếu không có export nào được chọn, bỏ qua dòng parent này
+        if (selectedExportsForThisParent.length === 0) {
+          return acc;
+        }
 
-        // Nếu KHÔNG có export được chọn → tạo 1 export rỗng mặc định
-        const exportsToProcess = selectedExports.length > 0
-          ? selectedExports
-          : [
-            {
-              Qty: 0,
-              Code: '',
-              TotalQty: 0
-            }
-          ];
+        // Lấy các export detail từ row.exportDetails dựa trên cả POKHDetailID và Code (để tránh trùng Code)
+        const selectedExports = (row.exportDetails || []).filter((ex: any) => {
+          // Match cả 2 điều kiện: POKHDetailID và Code
+          return selectedExportsForThisParent.some((selected: any) => 
+            selected.POKHDetailID === row.ID && selected.Code === ex.Code
+          );
+        });
 
-        exportsToProcess.forEach((ex: any) => {
+        // Chỉ xử lý các export đã được chọn
+        selectedExports.forEach((ex: any) => {
           acc[key].push({
             // from parent
             POKHID: row.POKHID,
@@ -743,7 +740,8 @@ export class ViewPokhComponent implements OnInit, AfterViewInit {
       movableColumns: true,
       pagination: true,
       paginationSize: 50,
-      paginationSizeSelector: [10, 20, 50, 100],
+      paginationSizeSelector: [10, 20, 50, 100, 200, 500],
+      paginationMode: 'local',
       height: '87vh',
       resizableRows: true,
       reactiveData: true,
@@ -1216,11 +1214,16 @@ export class ViewPokhComponent implements OnInit, AfterViewInit {
           });
           this.nestedExportTables.set(data['ID'], exportTable);
 
-          // Chọn lại các dòng export đã lưu
-          const selectedExportIds = this.selectedExportRowsAll.map(x => x['BillExportDetailID']);
+          // Chọn lại các dòng export đã lưu (dùng cả Code và POKHDetailID để match chính xác)
+          const selectedExportsForThisParent = this.selectedExportRowsAll
+            .filter(x => x.POKHDetailID === data['ID']);
           exportTable.getRows().forEach(row => {
             const rowData = row.getData();
-            if (selectedExportIds.includes(rowData['BillExportDetailID'])) {
+            // Match cả 2 điều kiện: POKHDetailID và Code
+            const isSelected = selectedExportsForThisParent.some((selected: any) => 
+              selected.POKHDetailID === data['ID'] && selected.Code === rowData['Code']
+            );
+            if (isSelected) {
               row.select();
             }
           });
@@ -1242,7 +1245,7 @@ export class ViewPokhComponent implements OnInit, AfterViewInit {
             parentData['selectedExports'] = selected;
 
             // Lấy danh sách BillExportDetailID của các dòng đã chọn
-            const selectedIdsFromThisParent = selected.map((s: any) => s.BillExportDetailID || s.ID);
+            // const selectedIdsFromThisParent = selected.map((s: any) => s.BillExportDetailID || s.ID);
 
             // Xóa tất cả export của parent này khỏi selectedExportRowsAll trước
             this.selectedExportRowsAll = this.selectedExportRowsAll.filter(
@@ -1252,9 +1255,11 @@ export class ViewPokhComponent implements OnInit, AfterViewInit {
             // Thêm lại các export đang được chọn vào selectedExportRowsAll
             selected.forEach((selectedRow: any) => {
               const billExportDetailID = selectedRow.BillExportDetailID || selectedRow.ID;
+              const code = selectedRow.Code || '';
               this.selectedExportRowsAll.push({
                 POKHDetailID: parentData['ID'],
                 BillExportDetailID: billExportDetailID,
+                Code: code, // Lưu Code để có thể match sau này
               });
             });
 
@@ -1423,7 +1428,9 @@ export class ViewPokhComponent implements OnInit, AfterViewInit {
     });
 
     setupTabulatorCellCopy(this.viewPOKH, this.viewPOKHTableElement.nativeElement);
-
+    this.viewPOKH.on("pageLoaded", () => {
+      this.viewPOKH.redraw();
+    });
   }
   //#endregion
 

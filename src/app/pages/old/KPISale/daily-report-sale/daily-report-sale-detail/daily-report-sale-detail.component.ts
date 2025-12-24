@@ -107,6 +107,11 @@ export class DailyReportSaleDetailComponent implements OnInit, AfterViewInit {
   isEditMode: boolean = false; // Chế độ sửa
   isLoading: boolean = false; // Đang load dữ liệu
 
+  // Modal thêm trạng thái dự án
+  showProjectStatusModal: boolean = false;
+  projectStatusForm!: FormGroup;
+  isSavingProjectStatus: boolean = false;
+  
   users: any[] = [];
   projects: any[] = [];
   customers: any[] = [];
@@ -129,6 +134,7 @@ export class DailyReportSaleDetailComponent implements OnInit, AfterViewInit {
     private firmService: FirmService,
   ) {
     this.initForm();
+    this.initProjectStatusForm();
   }
 
   initForm(): void {
@@ -152,6 +158,13 @@ export class DailyReportSaleDetailComponent implements OnInit, AfterViewInit {
       planNext: ['', Validators.required],
       productOfCustomer: ['', Validators.required],
       dateStatusLog: [null], // Ngày thay đổi trạng thái
+    });
+  }
+
+  initProjectStatusForm(): void {
+    this.projectStatusForm = this.fb.group({
+      stt: [1, [Validators.required, Validators.min(1)]],
+      statusName: ['', Validators.required]
     });
   }
 
@@ -556,7 +569,51 @@ export class DailyReportSaleDetailComponent implements OnInit, AfterViewInit {
   }
 
   onAddProjectStatus(): void {
-    this.notification.info('Thông báo', 'Chức năng thêm trạng thái dự án đang được phát triển');
+    // Reset form và mở modal
+    this.projectStatusForm.reset({
+      stt: this.projectStatuses.length + 1,
+      statusName: ''
+    });
+    this.showProjectStatusModal = true;
+  }
+
+  // Các hàm xử lý modal trạng thái dự án
+  onProjectStatusModalCancel(): void {
+    this.showProjectStatusModal = false;
+    this.projectStatusForm.reset();
+  }
+
+  saveAndCloseProjectStatus(): void {
+    if (this.projectStatusForm.invalid) {
+      // Đánh dấu các trường là touched để hiển thị lỗi
+      Object.values(this.projectStatusForm.controls).forEach(control => {
+        control.markAsTouched();
+      });
+      return;
+    }
+
+    this.isSavingProjectStatus = true;
+    const stt = this.projectStatusForm.get('stt')?.value;
+    const statusName = this.projectStatusForm.get('statusName')?.value;
+
+    // Gọi API để lưu trạng thái dự án
+    this.dailyReportSaleService.saveProjectStatus(stt, statusName).subscribe({
+      next: (response) => {
+        if (response.status === 1) {
+          this.notification.success('Thành công', 'Thêm trạng thái dự án thành công!');
+          this.loadProjectStatuses(); // Load lại danh sách trạng thái
+          this.showProjectStatusModal = false;
+          this.projectStatusForm.reset();
+        } else {
+          this.notification.error('Lỗi', response.message || 'Thêm trạng thái dự án thất bại!');
+        }
+        this.isSavingProjectStatus = false;
+      },
+      error: (error) => {
+        this.notification.error('Lỗi', 'Có lỗi xảy ra khi thêm trạng thái dự án!');
+        this.isSavingProjectStatus = false;
+      }
+    });
   }
 
   onAddPart(): void {

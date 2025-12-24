@@ -238,6 +238,14 @@ paginationMode: 'local',
 
             formatter: formatDateCell, width: 160,
           },
+             {
+            title: 'Ngày HR duyệt',
+            field: 'DateApprovedHR',
+            hozAlign: 'center',
+            headerHozAlign: 'center',
+            visible:false,
+            formatter: formatDateCell, width: 160,
+          },
           {
             title: 'Cấp phát cho', field: 'EmployeeName', width: 260,
             headerHozAlign: 'center'
@@ -635,7 +643,16 @@ validateApprove(
 
 
 
-  const currentDate = new Date().toISOString();
+  const currentDate = new Intl.DateTimeFormat('sv-SE', {
+    timeZone: 'Asia/Bangkok',
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+    hour: '2-digit',
+    minute: '2-digit',
+    second: '2-digit',
+    hour12: false
+  }).format(new Date()).replace(' ', 'T') + '+07:00';
 
   const payloads = validRows.map(row => {
     const ID = row.ID;
@@ -967,6 +984,7 @@ validateApprove(
       Possition: selectedMaster.Possition,
       Note: selectedMaster.Note,
       CreatedDate: selectedMaster.CreatedDate,
+      DateApprovedHR:selectedMaster.DateApprovedHR,
       DateApprovedPersonalProperty: selectedMaster.DateApprovedPersonalProperty
     };
 

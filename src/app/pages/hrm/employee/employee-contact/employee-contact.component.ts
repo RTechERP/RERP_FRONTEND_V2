@@ -6,10 +6,12 @@ import { NzButtonModule } from 'ng-zorro-antd/button';
 import { NzInputModule } from 'ng-zorro-antd/input';
 import { NzIconModule } from 'ng-zorro-antd/icon';
 import { NzSplitterModule } from 'ng-zorro-antd/splitter';
+import { NzSelectModule } from 'ng-zorro-antd/select';
 import { NzNotificationService } from 'ng-zorro-antd/notification';
 import { TabulatorFull as Tabulator } from 'tabulator-tables';
 import { DateTime } from 'luxon';
 import { EmployeeService } from '../employee-service/employee.service';
+import { DepartmentServiceService } from '../../department/department-service/department-service.service';
 import { NOTIFICATION_TITLE } from '../../../../app.config';
 import 'tabulator-tables/dist/css/tabulator_simple.min.css';
 
@@ -24,6 +26,7 @@ import 'tabulator-tables/dist/css/tabulator_simple.min.css';
     NzInputModule,
     NzIconModule,
     NzSplitterModule,
+    NzSelectModule,
   ],
   templateUrl: './employee-contact.component.html',
   styleUrl: './employee-contact.component.css'
@@ -32,16 +35,22 @@ export class EmployeeContactComponent implements OnInit, AfterViewInit {
   @ViewChild('contactTable') tableRef!: ElementRef;
 
   keyword: string = '';
+  departmentId: number = 0;
+  departments: any[] = [];
+  viewMode: 'table' | 'card' = 'table';
+  isPermissDownload = false;
   contactData: any[] = [];
   contactTable: Tabulator | null = null;
   totalEmployees: number = 0;
 
   constructor(
     private employeeService: EmployeeService,
+    private departmentService: DepartmentServiceService,
     private notification: NzNotificationService
   ) {}
 
   ngOnInit(): void {
+    this.loadDepartments();
     this.loadContactData();
   }
 
@@ -53,9 +62,11 @@ export class EmployeeContactComponent implements OnInit, AfterViewInit {
    * Load dữ liệu liên hệ nhân viên
    */
   loadContactData(): void {
-    this.employeeService.getAllContact(0, this.keyword).subscribe({
+    this.employeeService.getAllContact(this.departmentId, this.keyword).subscribe({
       next: (response: any) => {
-        this.contactData = response.data || [];
+        const data = response?.data || {};
+        this.contactData = data.list || [];
+        this.isPermissDownload = Boolean(data.isPermissDownload);
         this.totalEmployees = this.contactData.length;
         
         if (this.contactTable) {
@@ -76,6 +87,27 @@ export class EmployeeContactComponent implements OnInit, AfterViewInit {
    */
   onSearch(): void {
     this.loadContactData();
+  }
+
+  loadDepartments(): void {
+    this.departmentService.getDepartments().subscribe({
+      next: (res: any) => {
+        this.departments = res?.data || [];
+      },
+      error: (err: any) => {
+        this.notification.error(
+          NOTIFICATION_TITLE.error,
+          'Lỗi khi tải danh sách phòng ban: ' + (err?.error?.message || err?.message)
+        );
+      }
+    });
+  }
+
+  onViewModeChange(mode: 'table' | 'card'): void {
+    this.viewMode = mode;
+    if (mode === 'table') {
+      this.drawContactTable();
+    }
   }
 
   /**

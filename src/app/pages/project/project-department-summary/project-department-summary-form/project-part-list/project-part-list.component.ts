@@ -3731,7 +3731,7 @@ export class ProjectPartListComponent implements OnInit, AfterViewInit {
                             },
                             {
                                 title: 'Thành tiền báo giá',
-                                field: 'TotalPriceQuote1',  // Sửa: dùng TotalPriceQuote1
+                                field: 'TotalPriceQuote',  // Sửa: dùng TotalPriceQuote1
                                 hozAlign: 'right',
                                 formatter: (cell: any) => {
                                     return this.formatMoney(cell.getValue(), 2);

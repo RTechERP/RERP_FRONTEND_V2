@@ -14,7 +14,7 @@ import { SplitterModule } from 'primeng/splitter';
 import { PaymentOrderService } from './payment-order.service';
 import { NzNotificationService } from 'ng-zorro-antd/notification';
 import { PaymentOrderDetailComponent } from './payment-order-detail/payment-order-detail.component';
-import { AngularGridInstance, AngularSlickgridModule, Column, Filters, Formatters, GridOption, OnClickEventArgs, OnEventArgs, OnSelectedRowsChangedEventArgs } from 'angular-slickgrid';
+import { AngularGridInstance, AngularSlickgridModule, Column, Filters, Formatters, GridOption, MultipleSelectOption, OnClickEventArgs, OnEventArgs, OnSelectedRowsChangedEventArgs } from 'angular-slickgrid';
 import { PaymentOrder, PaymentOrderDetailField, PaymentOrderField } from './model/payment-order';
 import { CommonModule } from '@angular/common';
 import { NOTIFICATION_TITLE } from '../../../app.config';
@@ -35,6 +35,7 @@ import pdfMake from 'pdfmake/build/pdfmake';
 import vfs from '../../../shared/pdf/vfs_fonts_custom.js';
 import { NzIconModule } from 'ng-zorro-antd/icon';
 import { PaymentOrderSpecialComponent } from './payment-order-special/payment-order-special.component';
+import { environment } from '../../../../environments/environment';
 
 (pdfMake as any).vfs = vfs;
 (pdfMake as any).fonts = {
@@ -72,7 +73,7 @@ export class PaymentOrderComponent implements OnInit {
     menuBars: MenuItem[] = [];
     param: any = {
         pageNumber: 1,
-        pageSize: 50,
+        pageSize: 999999999,
 
         typeOrder: 0,
         paymentOrderTypeID: 0,
@@ -97,6 +98,9 @@ export class PaymentOrderComponent implements OnInit {
         statuslog: 0,
         isDelete: 0
     };
+
+    activeTab = '0';
+    defaultSizeSplit = '100%';
 
     isAdvandShow = true;
 
@@ -162,7 +166,7 @@ export class PaymentOrderComponent implements OnInit {
 
     ngOnInit(): void {
         this.loadDataCombo();
-        // this.initMenuBar();
+        this.initMenuBar();
         this.initGrid();
         this.initGridSpecial();
         this.initGridSpecialDetail();
@@ -217,7 +221,7 @@ export class PaymentOrderComponent implements OnInit {
             {
                 label: 'TBP xác nhận',
                 icon: PrimeIcons.CHECK,
-                visible: this.permissionService.hasPermission(""),
+                visible: this.permissionService.hasPermission("N57"),
                 items: [
                     {
                         label: 'Duyệt',
@@ -243,12 +247,12 @@ export class PaymentOrderComponent implements OnInit {
             {
                 label: 'HR xác nhận',
                 icon: PrimeIcons.CHECK,
-                visible: this.permissionService.hasPermission(""),
+                visible: this.permissionService.hasPermission("N59,N56"),
                 items: [
                     {
                         label: 'Duyệt hồ sơ',
                         icon: PrimeIcons.CHECK,
-                        visible: this.permissionService.hasPermission(""),
+                        visible: this.permissionService.hasPermission("N59"),
                         command: () => {
                             this.onApprovedHR(1, {
                                 ButtonActionGroup: 'btnHR', ButtonActionName: 'btnApproveDocumentHR', ButtonActionText: 'HR xác nhận',
@@ -258,7 +262,7 @@ export class PaymentOrderComponent implements OnInit {
                     {
                         label: 'Hủy duyệt hồ sơ',
                         icon: PrimeIcons.UNLOCK,
-                        visible: this.permissionService.hasPermission(""),
+                        visible: this.permissionService.hasPermission("N59"),
                         command: () => {
                             this.onApprovedHR(2, {
                                 ButtonActionGroup: 'btnHR', ButtonActionName: 'btnUnApproveDocumentHR', ButtonActionText: 'HR xác nhận',
@@ -269,7 +273,7 @@ export class PaymentOrderComponent implements OnInit {
                     {
                         label: 'Bổ sung chứng từ',
                         icon: PrimeIcons.UNLOCK,
-                        visible: this.permissionService.hasPermission(""),
+                        visible: this.permissionService.hasPermission("N59"),
                         command: () => {
                             this.onApprovedHR(3, {
                                 ButtonActionGroup: 'btnHR', ButtonActionName: 'btnHRUpdateDocument', ButtonActionText: 'HR xác nhận',
@@ -282,7 +286,7 @@ export class PaymentOrderComponent implements OnInit {
                     {
                         label: 'TBP duyệt',
                         icon: PrimeIcons.UNLOCK,
-                        visible: this.permissionService.hasPermission(""),
+                        visible: this.permissionService.hasPermission("N56"),
                         command: () => {
                             this.onApprovedHR(1, {
                                 ButtonActionGroup: 'btnHR', ButtonActionName: 'btnApproveHR', ButtonActionText: 'HR xác nhận',
@@ -292,7 +296,7 @@ export class PaymentOrderComponent implements OnInit {
                     {
                         label: 'TBP hủy duyệt',
                         icon: PrimeIcons.UNLOCK,
-                        visible: this.permissionService.hasPermission(""),
+                        visible: this.permissionService.hasPermission("N56"),
                         command: () => {
                             this.onApprovedHR(2, {
                                 ButtonActionGroup: 'btnHR', ButtonActionName: 'btnUnApproveHR', ButtonActionText: 'HR xác nhận',
@@ -306,12 +310,12 @@ export class PaymentOrderComponent implements OnInit {
             {
                 label: 'Kế toán xác nhận',
                 icon: PrimeIcons.CHECK,
-                visible: this.permissionService.hasPermission(""),
+                visible: this.permissionService.hasPermission("N55,N61"),
                 items: [
                     {
                         label: 'Duyệt hồ sơ',
                         icon: PrimeIcons.CHECK,
-                        visible: this.permissionService.hasPermission(""),
+                        visible: this.permissionService.hasPermission("N55,N61"),
                         command: () => {
                             this.onApprovedKTTT(1, {
                                 ButtonActionGroup: 'btnKTTT', ButtonActionName: 'btnApproveDocument', ButtonActionText: 'Kế toán xác nhận',
@@ -321,7 +325,7 @@ export class PaymentOrderComponent implements OnInit {
                     {
                         label: 'Bổ sung chứng từ',
                         icon: PrimeIcons.UNLOCK,
-                        visible: this.permissionService.hasPermission(""),
+                        visible: this.permissionService.hasPermission("N55,N61"),
                         command: () => {
                             this.onApprovedKTTT(3, {
                                 ButtonActionGroup: 'btnKTTT', ButtonActionName: 'btnUpdateDocument', ButtonActionText: 'Kế toán xác nhận',
@@ -331,7 +335,7 @@ export class PaymentOrderComponent implements OnInit {
                     {
                         label: 'Hủy duyệt hồ sơ',
                         icon: PrimeIcons.UNLOCK,
-                        visible: this.permissionService.hasPermission(""),
+                        visible: this.permissionService.hasPermission("N55,N61"),
                         command: () => {
                             this.onApprovedKTTT(2, {
                                 ButtonActionGroup: 'btnKTTT', ButtonActionName: 'btnUnApproveDocument', ButtonActionText: 'Kế toán xác nhận',
@@ -345,7 +349,7 @@ export class PaymentOrderComponent implements OnInit {
                     {
                         label: 'Nhận chứng từ',
                         icon: PrimeIcons.UNLOCK,
-                        visible: this.permissionService.hasPermission(""),
+                        visible: this.permissionService.hasPermission("N55,N61"),
                         command: () => {
                             this.onApprovedKTTT(1, {
                                 ButtonActionGroup: 'btnKTTT', ButtonActionName: 'btnReceiveDocument', ButtonActionText: 'Kế toán xác nhận',
@@ -355,7 +359,7 @@ export class PaymentOrderComponent implements OnInit {
                     {
                         label: 'Hủy nhận chứng từ',
                         icon: PrimeIcons.UNLOCK,
-                        visible: this.permissionService.hasPermission(""),
+                        visible: this.permissionService.hasPermission("N55,N61"),
                         command: () => {
                             this.onApprovedKTTT(2, {
                                 ButtonActionGroup: 'btnKTTT', ButtonActionName: 'btnUnReceiveDocument', ButtonActionText: 'Kế toán xác nhận',
@@ -368,7 +372,7 @@ export class PaymentOrderComponent implements OnInit {
                     {
                         label: 'TBP duyệt',
                         icon: PrimeIcons.UNLOCK,
-                        visible: this.permissionService.hasPermission(""),
+                        visible: this.permissionService.hasPermission("N61"),
                         command: () => {
                             this.onApprovedKTT(1, {
                                 ButtonActionGroup: 'btnKTT', ButtonActionName: 'btnApproveKT', ButtonActionText: 'Kế toán xác nhận',
@@ -378,7 +382,7 @@ export class PaymentOrderComponent implements OnInit {
                     {
                         label: 'TBP hủy duyệt',
                         icon: PrimeIcons.UNLOCK,
-                        visible: this.permissionService.hasPermission(""),
+                        visible: this.permissionService.hasPermission("N61"),
                         command: () => {
                             this.onApprovedKTT(2, {
                                 ButtonActionGroup: 'btnKTT', ButtonActionName: 'btnUnApproveKT', ButtonActionText: 'Kế toán xác nhận',
@@ -390,7 +394,7 @@ export class PaymentOrderComponent implements OnInit {
                     },
                     {
                         label: 'Đã thanh toán',
-                        visible: this.permissionService.hasPermission(""),
+                        visible: this.permissionService.hasPermission("N55,N61"),
                         icon: PrimeIcons.UNLOCK, command: () => {
                             this.onApprovedKTTT(1, {
                                 ButtonActionGroup: 'btnKTTT', ButtonActionName: 'btnIsPayment', ButtonActionText: 'Kế toán xác nhận',
@@ -400,7 +404,7 @@ export class PaymentOrderComponent implements OnInit {
                     {
                         label: 'Hủy thanh toán',
                         icon: PrimeIcons.UNLOCK,
-                        visible: this.permissionService.hasPermission(""),
+                        visible: this.permissionService.hasPermission("N55,N61"),
                         command: () => {
                             this.onApprovedKTTT(2, {
                                 ButtonActionGroup: 'btnKTTT', ButtonActionName: 'btnUnPayment', ButtonActionText: 'Kế toán xác nhận',
@@ -410,26 +414,27 @@ export class PaymentOrderComponent implements OnInit {
                     {
                         label: 'Đính kèm file Bank slip',
                         icon: PrimeIcons.UNLOCK,
-                        visible: this.permissionService.hasPermission(""),
+                        visible: this.permissionService.hasPermission("N55,N61"),
                         command: () => {
                             this.onAttachFileBankslip();
                         }
 
                     },
-                    {
-                        separator: true,
-                    },
-                    {
-                        label: 'Hợp đồng',
-                        icon: PrimeIcons.UNLOCK,
-                        visible: this.permissionService.hasPermission(""),
-                    }
+                    // {
+                    //     separator: true,
+                    // },
+                    // {
+                    //     label: 'Hợp đồng',
+                    //     icon: PrimeIcons.UNLOCK,
+                    //     visible: this.permissionService.hasPermission("N55,N61"),
+                    // }
                 ]
             },
 
             {
                 label: 'BGĐ xác nhận',
                 icon: PrimeIcons.CHECK,
+                visible: this.permissionService.hasPermission("N58"),
                 items: [
                     {
                         label: 'Duyệt',
@@ -449,16 +454,47 @@ export class PaymentOrderComponent implements OnInit {
                             });
                         }
                     },
-                    {
-                        label: 'Duyệt đặc biệt (ko cần check những bước trước)',
-                        icon: PrimeIcons.UNLOCK
-                    }
+                    // {
+                    //     label: 'Duyệt đặc biệt (ko cần check những bước trước)',
+                    //     icon: PrimeIcons.UNLOCK
+                    // }
                 ]
             },
 
             {
                 label: 'Cây thư mục',
-                icon: PrimeIcons.FOLDER
+                icon: PrimeIcons.FOLDER,
+                command: () => {
+                    let grid = this.angularGrid;
+                    if (this.activeTab == '1') grid = this.angularGridSpecial;
+
+                    let activeCell = grid.slickGrid.getActiveCell();
+                    if (activeCell) {
+                        const rowIndex = activeCell.row;        // index trong grid
+                        const item = grid.dataView.getItem(rowIndex); // data object
+
+                        const dateOrder = new Date(item.DateOrder);
+                        const year = dateOrder.getFullYear();
+                        const month = dateOrder.getMonth() + 1;
+                        const day = dateOrder.getDate();
+                        const pathPattern = `/năm ${year}/đề nghị thanh toán/tháng ${month}.${year}/${day}.${month}.${year}/${item.Code}`;
+                        // const url = environment.host + 'api/share/Accountant/2.NỘI BỘ' + pathPattern;
+                        const url = environment.host + 'api/share/Software/Test/UPLOADFILE' + pathPattern;
+
+                        const width = 1000;
+                        const height = 700;
+
+                        const left = (window.screen.width - width) / 2;
+                        const top = (window.screen.height - height) / 2;
+
+                        window.open(
+                            url,
+                            '_blank',
+                            `width=${width},height=${height},left=${left},top=${top}`
+                        );
+
+                    }
+                }
             },
             {
                 label: 'Xuất excel',
@@ -487,7 +523,15 @@ export class PaymentOrderComponent implements OnInit {
                 sortable: true, filterable: true,
                 width: 80,
                 formatter: Formatters.iconBoolean, params: { cssClass: "mdi mdi-check" },
-                filter: { model: Filters['compoundInputNumber'] },
+                filter: {
+                    collection: [
+                        { value: '', label: '' },
+                        { value: true, label: 'True' },
+                        { value: false, label: 'False' },
+                    ],
+                    model: Filters['singleSelect'],
+                    filterOptions: { autoAdjustDropHeight: true } as MultipleSelectOption,
+                },
             },
             {
                 id: PaymentOrderField.DateOrder.field,
@@ -994,7 +1038,9 @@ export class PaymentOrderComponent implements OnInit {
 
         this.gridOptions = {
             autoResize: {
-                container: '#demo-container' // container DOM selector
+                container: '.ant-splitter-panel',
+                calculateAvailableSizeBy: 'container',
+                resizeDetection: 'container',
             },
             enableAutoResize: true,
             gridWidth: '100%',
@@ -1127,7 +1173,9 @@ export class PaymentOrderComponent implements OnInit {
         this.gridOptionDetails = {
             enableAutoResize: true,
             autoResize: {
-                container: '.grid-container-detail',
+                container: '#grid-container-detail',
+                calculateAvailableSizeBy: 'container',
+                resizeDetection: 'container',
             },
             gridWidth: '100%',
             // datasetIdPropertyName: 'Id',
@@ -1159,7 +1207,7 @@ export class PaymentOrderComponent implements OnInit {
                 name: 'File đính kèm',
                 field: 'FileName',
                 type: 'string',
-                // width: 100,
+                width: 100,
                 sortable: true, filterable: false,
                 // formatter: Formatters.iconBoolean,
                 // filter: { model: Filters['compoundInputNumber'] },
@@ -1169,7 +1217,10 @@ export class PaymentOrderComponent implements OnInit {
         this.gridOptionFiles = {
             enableAutoResize: true,
             autoResize: {
-                container: '.grid-container-file',
+                container: 'grid-container-file',
+                calculateAvailableSizeBy: 'container',
+                resizeDetection: 'container',
+
             },
             gridWidth: '100%',
             // datasetIdPropertyName: 'Id',
@@ -1189,19 +1240,40 @@ export class PaymentOrderComponent implements OnInit {
                     //     }
                     // },
                     {
-                        command: 'edit', title: 'Xem file', iconCssClass: 'mdi mdi-help-circle', positionOrder: 62,
+                        command: '', title: 'Xem file', iconCssClass: 'mdi mdi-help-circle', positionOrder: 62,
                         action: (e, args) => {
-                            console.log(args.dataContext, args.column);
+                            // console.log('args.dataContext:', args.dataContext);
                             // this.handleRowSelection(e, args);
+
+
+                            const filePath = args.dataContext?.ServerPath || '';
+                            if (filePath) {
+                                const host = environment.host + 'api/share';
+                                let urlImg = filePath.replace("\\\\192.168.1.190", host) + `/${args.dataContext?.FileName}`;
+                                // window.open(urlImg, '_blank', 'width=1000,height=700,left=200,top=100');
+
+                                const newWindow = window.open(
+                                    urlImg,
+                                    '_blank',
+                                    'width=1000,height=700'
+                                );
+
+                                if (newWindow) {
+                                    newWindow.onload = () => {
+                                        newWindow.document.title = args.dataContext?.FileName;
+                                        // newWindow.document.icon = args.dataContext?.FileName;
+                                    };
+                                }
+                            }
                         }
                     },
 
-                    {
-                        command: 'delete', title: 'Tải file', iconCssClass: 'mdi mdi-help-circle', positionOrder: 62,
-                        action: (e, args) => {
-                            console.log(args.dataContext, args.column);
-                        }
-                    },
+                    // {
+                    //     command: '', title: 'Tải file', iconCssClass: 'mdi mdi-help-circle', positionOrder: 62,
+                    //     action: (e, args) => {
+                    //         console.log('args.dataContext:', args.dataContext);
+                    //     }
+                    // },
 
                 ],
             }
@@ -1213,7 +1285,7 @@ export class PaymentOrderComponent implements OnInit {
                 name: 'File đính kèm',
                 field: 'FileName',
                 type: 'string',
-                // width: 100,
+                width: 100,
                 sortable: true, filterable: false,
                 // formatter: Formatters.iconBoolean,
                 // filter: { model: Filters['compoundInputNumber'] },
@@ -1223,7 +1295,9 @@ export class PaymentOrderComponent implements OnInit {
         this.gridOptionFileBankSlips = {
             enableAutoResize: true,
             autoResize: {
-                container: '.grid-container-filebankslip',
+                container: 'grid-container-filebankslip',
+                calculateAvailableSizeBy: 'container',
+                resizeDetection: 'container',
             },
             gridWidth: '100%',
             // datasetIdPropertyName: 'Id',
@@ -1441,7 +1515,9 @@ export class PaymentOrderComponent implements OnInit {
         ];
         this.gridOptionsSpecial = {
             autoResize: {
-                container: '#demo-container' // container DOM selector
+                container: '#demo-container',// container DOM selector
+                calculateAvailableSizeBy: 'container',
+                resizeDetection: 'container',
             },
             enableAutoResize: true,
             gridWidth: '100%',
@@ -1484,7 +1560,7 @@ export class PaymentOrderComponent implements OnInit {
                 type: PaymentOrderDetailField.STT.type,
                 width: 70,
                 sortable: true, filterable: false,
-                formatter: Formatters.tree,
+                // formatter: Formatters.tree,
 
                 // filter: { model: Filters['compoundInputNumber'] },
             },
@@ -1556,7 +1632,9 @@ export class PaymentOrderComponent implements OnInit {
         this.gridOptionsSpecialDetail = {
             enableAutoResize: true,
             autoResize: {
-                container: '.grid-container-detail',
+                container: '.ant-splitter-panel',
+                calculateAvailableSizeBy: 'container',
+                resizeDetection: 'container',
             },
             gridWidth: '100%',
             // datasetIdPropertyName: 'Id',
@@ -1566,7 +1644,7 @@ export class PaymentOrderComponent implements OnInit {
             enableAutoSizeColumns: false,
 
             enableFiltering: false,
-            // enableTreeData: true,
+            enableTreeData: false,
             // treeDataOptions: {
             //     columnId: 'Stt',           // the column where you will have the Tree with collapse/expand icons
             //     parentPropName: 'parentid',  // the parent/child key relation in your dataset
@@ -1649,14 +1727,18 @@ export class PaymentOrderComponent implements OnInit {
     }
 
     loadData() {
-        // let param = {
-        //     Keyword: ''
-        // };
+        this.loadDataNormal();
+        this.loadDataSpecial();
+    }
 
+    loadDataNormal() {
 
-        // this.param.isSpecialOrder = isSpecialOrder;
-        console.log(this.param);
-        this.paymentService.get(this.param).subscribe({
+        const p = {
+            ...this.param,
+            isSpecialOrder: 0,
+        }
+        // console.log(this.param);
+        this.paymentService.get(p).subscribe({
             next: (response) => {
                 // console.log(response);
                 this.dataset = response.data;
@@ -1670,9 +1752,17 @@ export class PaymentOrderComponent implements OnInit {
                 this.notification.error(NOTIFICATION_TITLE.error, err.error.message);
             }
         })
+    }
 
-        this.param.isSpecialOrder = 1;
-        this.paymentService.get(this.param).subscribe({
+    loadDataSpecial() {
+        // this.param.isSpecialOrder = 1;
+
+        const p = {
+            ...this.param,
+            isSpecialOrder: 1,
+            typeOrder: 0
+        }
+        this.paymentService.get(p).subscribe({
             next: (response) => {
                 console.log(response);
                 this.datasetSpecial = response.data;
@@ -1694,6 +1784,7 @@ export class PaymentOrderComponent implements OnInit {
             next: (response) => {
                 // console.log('loadDetail response:', response);
                 this.datasetDetails = response.data.details;
+                this.datasetSpecialDetail = response.data.details;
                 this.datasetFiles = response.data.files;
                 this.datasetFileBankslip = response.data.fileBankSlips;
 
@@ -1704,6 +1795,15 @@ export class PaymentOrderComponent implements OnInit {
                     id: item.Id,
                     treeLevel: item.ParentId == 0 ? 0 : (item.ParentId == null ? 0 : 1)
                 }));
+
+                this.datasetSpecialDetail = this.datasetSpecialDetail.map(item => ({
+                    ...item,
+                    // parentid: item.ParentId == 0 ? null : item.ParentId,
+                    id: item.Id,
+                    // treeLevel: item.ParentId == 0 ? 0 : (item.ParentId == null ? 0 : 1)
+                }));
+
+                console.log('his.datasetSpecialDetail:', this.datasetSpecialDetail);
 
                 this.datasetFiles = this.datasetFiles.map(item => ({
                     ...item,
@@ -1766,11 +1866,15 @@ export class PaymentOrderComponent implements OnInit {
             const item = args.grid.getDataItem(args.row)
             // console.log('selected item:', item);
             this.loadDetail(item.ID);
+
+            this.defaultSizeSplit = '60%';
         }
     }
 
     initModal(paymentOrder: any = new PaymentOrder()) {
-        paymentOrder.IsSpecialOrder = 1;
+
+
+        paymentOrder.IsSpecialOrder = this.activeTab == '1';
         if (!paymentOrder.IsSpecialOrder) {
             const modalRef = this.modalService.open(PaymentOrderDetailComponent, {
                 centered: true,
@@ -1791,22 +1895,27 @@ export class PaymentOrderComponent implements OnInit {
                 scrollable: true,
                 fullscreen: true,
             });
-
             modalRef.componentInstance.paymentOrder = paymentOrder;
         }
 
     }
 
     onCreate() {
+
+        // console.log('activeTab:', this.activeTab);
         this.initModal();
     }
 
     onEdit() {
-        const activeCell = this.angularGrid.slickGrid.getActiveCell();
 
+
+        let grid = this.angularGrid;
+        if (this.activeTab == '1') grid = this.angularGridSpecial;
+
+        let activeCell = grid.slickGrid.getActiveCell();
         if (activeCell) {
             const rowIndex = activeCell.row;        // index trong grid
-            const item = this.angularGrid.dataView.getItem(rowIndex) as PaymentOrder; // data object
+            const item = grid.dataView.getItem(rowIndex) as PaymentOrder; // data object
 
             // console.log('Row index:', rowIndex);
             // console.log('Row data:', item);
@@ -1815,11 +1924,14 @@ export class PaymentOrderComponent implements OnInit {
     }
 
     onDelete() {
-        const activeCell = this.angularGrid.slickGrid.getActiveCell();
+        let grid = this.angularGrid;
+        if (this.activeTab == '1') grid = this.angularGridSpecial;
+
+        const activeCell = grid.slickGrid.getActiveCell();
 
         if (activeCell) {
             const rowIndex = activeCell.row;        // index trong grid
-            const item = this.angularGrid.dataView.getItem(rowIndex) as PaymentOrder; // data object
+            const item = grid.dataView.getItem(rowIndex) as PaymentOrder; // data object
 
             Swal.fire({
                 title: 'Xác nhận duyệt?',
@@ -1912,17 +2024,14 @@ export class PaymentOrderComponent implements OnInit {
 
 
     async onApprovedTBP(isApproved: number, action: any) {
-        const grid = this.angularGrid.slickGrid;
-        const dataView = this.angularGrid.dataView;
+        let gridInstance = this.angularGrid;
+        if (this.activeTab == '1') gridInstance = this.angularGridSpecial;
+
+        const grid = gridInstance.slickGrid;
+        const dataView = gridInstance.dataView;
 
         const rowIndexes = grid.getSelectedRows();
 
-        // const action = {
-        //     ButtonActionGroup: 'btnTBP',
-        //     ButtonActionName: 'btnApproveTBP',
-        //     ButtonActionText: 'Trưởng bộ phận',
-
-        // }
         let selectedItems = rowIndexes
             .map(i => dataView.getItem(i));
 
@@ -1981,17 +2090,14 @@ export class PaymentOrderComponent implements OnInit {
     }
 
     async onApprovedHR(isApproved: number, action: any) {
-        const grid = this.angularGrid.slickGrid;
-        const dataView = this.angularGrid.dataView;
+        let gridInstance = this.angularGrid;
+        if (this.activeTab == '1') gridInstance = this.angularGridSpecial;
+
+        const grid = gridInstance.slickGrid;
+        const dataView = gridInstance.dataView;
 
         const rowIndexes = grid.getSelectedRows();
 
-        // const action = {
-        //     ButtonActionGroup: 'btnTBP',
-        //     ButtonActionName: 'btnApproveTBP',
-        //     ButtonActionText: 'Trưởng bộ phận',
-
-        // }
         let selectedItems = rowIndexes
             .map(i => dataView.getItem(i));
 
@@ -2079,17 +2185,13 @@ export class PaymentOrderComponent implements OnInit {
     }
 
     async onApprovedKTTT(isApproved: number, action: any) {
-        const grid = this.angularGrid.slickGrid;
-        const dataView = this.angularGrid.dataView;
+        let gridInstance = this.angularGrid;
+        if (this.activeTab == '1') gridInstance = this.angularGridSpecial;
+
+        const grid = gridInstance.slickGrid;
+        const dataView = gridInstance.dataView;
 
         const rowIndexes = grid.getSelectedRows();
-
-        // const action = {
-        //     ButtonActionGroup: 'btnTBP',
-        //     ButtonActionName: 'btnApproveTBP',
-        //     ButtonActionText: 'Trưởng bộ phận',
-
-        // }
         let selectedItems = rowIndexes
             .map(i => dataView.getItem(i));
 
@@ -2242,17 +2344,14 @@ export class PaymentOrderComponent implements OnInit {
 
 
     async onApprovedKTT(isApproved: number, action: any) {
-        const grid = this.angularGrid.slickGrid;
-        const dataView = this.angularGrid.dataView;
+        let gridInstance = this.angularGrid;
+        if (this.activeTab == '1') gridInstance = this.angularGridSpecial;
+
+        const grid = gridInstance.slickGrid;
+        const dataView = gridInstance.dataView;
 
         const rowIndexes = grid.getSelectedRows();
 
-        // const action = {
-        //     ButtonActionGroup: 'btnTBP',
-        //     ButtonActionName: 'btnApproveTBP',
-        //     ButtonActionText: 'Trưởng bộ phận',
-
-        // }
         let selectedItems = rowIndexes
             .map(i => dataView.getItem(i));
 
@@ -2347,8 +2446,11 @@ export class PaymentOrderComponent implements OnInit {
     }
 
     async onApprovedBGD(isApproved: number, action: any) {
-        const grid = this.angularGrid.slickGrid;
-        const dataView = this.angularGrid.dataView;
+        let gridInstance = this.angularGrid;
+        if (this.activeTab == '1') gridInstance = this.angularGridSpecial;
+
+        const grid = gridInstance.slickGrid;
+        const dataView = gridInstance.dataView;
 
         const rowIndexes = grid.getSelectedRows();
 
@@ -2372,8 +2474,6 @@ export class PaymentOrderComponent implements OnInit {
         }));
 
         if (isApproved == 1) {
-
-
             Swal.fire({
                 title: 'Xác nhận duyệt?',
                 text: `Bạn có chắc muốn duyệt ${selectedItems.length} đã chọn không?`,
@@ -2422,11 +2522,13 @@ export class PaymentOrderComponent implements OnInit {
 
 
     async onAttachFileBankslip() {
-        const activeCell = this.angularGrid.slickGrid.getActiveCell();
+        let gridInstance = this.angularGrid;
+        if (this.activeTab == '1') gridInstance = this.angularGridSpecial;
+        const activeCell = gridInstance.slickGrid.getActiveCell();
 
         if (activeCell) {
             const rowIndex = activeCell.row;        // index trong grid
-            const item = this.angularGrid.dataView.getItem(rowIndex) as PaymentOrder; // data object
+            const item = gridInstance.dataView.getItem(rowIndex) as PaymentOrder; // data object
 
             const { value: files } = await Swal.fire({
                 input: 'file',
@@ -2492,7 +2594,11 @@ export class PaymentOrderComponent implements OnInit {
 
 
     onPrint() {
-        const activeCell = this.angularGrid.slickGrid.getActiveCell();
+
+        let gridInstance = this.angularGrid;
+        if (this.activeTab == '1') gridInstance = this.angularGridSpecial;
+
+        const activeCell = gridInstance.slickGrid.getActiveCell();
 
         if (!activeCell) return;
 
@@ -2750,5 +2856,4 @@ export class PaymentOrderComponent implements OnInit {
 
         pdfMake.createPdf(docDefinition).open();
     }
-
 }

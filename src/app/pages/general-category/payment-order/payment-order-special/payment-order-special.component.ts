@@ -11,11 +11,14 @@ import { NzInputModule } from 'ng-zorro-antd/input';
 import { NzRadioModule } from 'ng-zorro-antd/radio';
 import { NzSelectModule } from 'ng-zorro-antd/select';
 import { NzUploadModule } from 'ng-zorro-antd/upload';
-import { PaymentOrder, PaymentOrderDetailField, PaymentOrderField } from '../model/payment-order';
+import { PaymentOrder, PaymentOrderDetailField, PaymentOrderField, PaymentOrderFile } from '../model/payment-order';
 import { NgbActiveModal } from '@ng-bootstrap/ng-bootstrap';
 import { NzNotificationService } from 'ng-zorro-antd/notification';
 import { AppUserService } from '../../../../services/app-user.service';
-import { PaymentOrderService } from '../payment-order.service';
+import { CURRENCY_CONFIGS, PaymentOrderService } from '../payment-order.service';
+import { NOTIFICATION_TITLE } from '../../../../app.config';
+import { Subject, takeUntil } from 'rxjs';
+import { NzIconModule } from 'ng-zorro-antd/icon';
 
 @Component({
     selector: 'app-payment-order-special',
@@ -33,6 +36,7 @@ import { PaymentOrderService } from '../payment-order.service';
         NzUploadModule,
         FormsModule,
         AngularSlickgridModule,
+        NzIconModule
     ],
     templateUrl: './payment-order-special.component.html',
     styleUrl: './payment-order-special.component.css',
@@ -40,6 +44,7 @@ import { PaymentOrderService } from '../payment-order.service';
 })
 export class PaymentOrderSpecialComponent implements OnInit {
     @Input() paymentOrder = new PaymentOrder();
+    private destroy$ = new Subject<void>();
 
     validateForm !: FormGroup;
     paymentOrderField = PaymentOrderField;
@@ -50,10 +55,7 @@ export class PaymentOrderSpecialComponent implements OnInit {
     pokhs: any[] = [];
     billBumbers: any[] = [];
     units: any[] = [];
-    userTeamNames: any[] = [
-        { value: 1, label: 'Admin' },
-        { value: 2, label: 'HCM' },
-    ];
+    userTeamNames: any[] = [];
 
     //biến slick-grid
     angularGrid!: AngularGridInstance;
@@ -66,8 +68,9 @@ export class PaymentOrderSpecialComponent implements OnInit {
     gridDataFile: any;
     columnDefinitionFiles: Column[] = [];
     gridOptionFiles: GridOption = {};
-    datasetFile: any[] = [];
-
+    datasetFile: PaymentOrderFile[] = [];
+    fileUploads: any[] = []; //Lưu những file chọn đẻ upload
+    fileDeletes: any[] = []; //Lưu những file xóa
 
     constructor(
         public activeModal: NgbActiveModal,
@@ -78,6 +81,7 @@ export class PaymentOrderSpecialComponent implements OnInit {
     ) { }
 
     ngOnInit(): void {
+        this.initDataCombo();
         this.initForm();
         this.initGrid();
         this.initGridFile();
@@ -190,9 +194,9 @@ export class PaymentOrderSpecialComponent implements OnInit {
                 },
             },
             {
-                id: 'UserTeamName',
+                id: 'EmployeeID',
                 name: 'Team kinh doanh',
-                field: 'UserTeamName',
+                field: 'EmployeeID',
                 type: 'string',
                 width: 150,
                 sortable: true, filterable: false,
@@ -202,7 +206,6 @@ export class PaymentOrderSpecialComponent implements OnInit {
                 },
                 editor: {
                     model: Editors['singleSelect'],
-
                     collection: this.userTeamNames
                 },
             },
@@ -248,6 +251,27 @@ export class PaymentOrderSpecialComponent implements OnInit {
 
             },
         };
+
+
+        if (this.paymentOrder.ID > 0) {
+            this.paymentService.getDetail(this.paymentOrder.ID).subscribe({
+                next: (response) => {
+                    // console.log(response);
+
+                    this.dataset = response.data.details;
+                    this.dataset = this.dataset.map((x, i) => ({
+                        ...x,
+                        id: x.Id   // dành riêng cho SlickGrid
+                    }));
+
+                    this.datasetFile = response.data.files;
+                    this.datasetFile = this.datasetFile.map((x, i) => ({
+                        ...x,
+                        id: i + 1
+                    }));
+                }
+            })
+        }
     }
 
     initGridFile() {
@@ -258,10 +282,10 @@ export class PaymentOrderSpecialComponent implements OnInit {
                 field: 'ID',
                 type: 'number',
                 // sortable: true, filterable: true,
-                formatter: Formatters.icon, params: { iconCssClass: 'mdi mdi-trash-can pointer' },
+                formatter: Formatters.icon, params: { iconCssClass: 'mdi mdi-trash-can pointer text-danger' },
                 // filter: { model: Filters['compoundDate'] }
                 onCellClick: (e: Event, args: OnEventArgs) => {
-                    // this.deleteFile(e, args)
+                    this.deleteFile(e, args)
                 }
             },
             {
@@ -285,6 +309,8 @@ export class PaymentOrderSpecialComponent implements OnInit {
     angularGridReady(angularGrid: AngularGridInstance) {
         this.angularGrid = angularGrid;
         this.gridData = angularGrid?.slickGrid || {};
+
+        this.updateTotal(3);
     }
     angularGridFileReady(angularGrid: AngularGridInstance) {
         this.angularGridFile = angularGrid;
@@ -292,7 +318,34 @@ export class PaymentOrderSpecialComponent implements OnInit {
     }
 
 
+    initDataCombo() {
+        this.paymentService.getDataCombo().subscribe({
+            next: (response) => {
+                console.log('initDataCombo:', response);
+                this.customers = response.data.customers;
+                this.approvedTBPs = response.data.approvedTBPs;
+                this.pokhs = response.data.pokhs;
+                this.billBumbers = response.data.pokhDetails;
+                this.userTeamNames = response.data.userTeamNames.map((x: any) => ({
+                    value: x.ID.toString(),
+                    label: x.Name
+                }))
+
+
+                console.log('this.userTeamNames:', this.userTeamNames);
+            },
+            error: (err) => {
+                this.notification.error(NOTIFICATION_TITLE.error, err.error.message);
+            }
+        });
+
+        this.units = CURRENCY_CONFIGS;
+    }
+
+
     initForm() {
+
+        console.log('this.paymentOrder edit:', this.paymentOrder);
         this.validateForm = this.fb.group({
             FullName: this.fb.control({ value: this.appUserService.currentUser?.FullName, disabled: true }),
             DepartmentName: this.fb.control({ value: this.appUserService.currentUser?.DepartmentName, disabled: true }),
@@ -304,19 +357,163 @@ export class PaymentOrderSpecialComponent implements OnInit {
             DateOrder: this.fb.control(this.paymentOrder.DateOrder, [Validators.required]),
             DatePayment: this.fb.control(this.paymentOrder.DatePayment),
             PaymentOrderTypeID: this.fb.control(this.paymentOrder.PaymentOrderTypeID, [Validators.required]),
-            POCode: this.fb.control(this.paymentOrder.POCode),
-            BillNumbers: this.fb.control(this.paymentOrder.BillNumbers),
+            PaymentOrderPOs: this.fb.control(this.paymentOrder.PaymentOrderPOs),
+            PaymentOrderBillNumbers: this.fb.control(this.paymentOrder.PaymentOrderBillNumbers),
             ReasonOrder: this.fb.control(this.paymentOrder.ReasonOrder, [Validators.required]),
             Unit: this.fb.control(this.paymentOrder.Unit, [Validators.required]),
         });
+
+
+        this.validateForm
+            .get(this.paymentOrderField.Unit.field)
+            ?.valueChanges.pipe(takeUntil(this.destroy$))
+            .subscribe((value: string) => {
+                const columnId = this.angularGrid.slickGrid?.getColumns().findIndex(x => x.id == PaymentOrderDetailField.TotalMoney.field);
+                const columnElement = this.angularGrid.slickGrid?.getFooterRowColumn(columnId);
+                this.paymentOrder.TotalMoneyText = this.paymentService.readMoney(parseFloat(columnElement.textContent || ''), value);
+            });
     }
 
     submitForm() {
-        console.log('this.dataset:', this.dataset);
+        // console.log('this.validateForm.valid', this.validateForm.valid);
+        // console.log('this.fileUploads:', this.fileUploads);
+        // this.uploadFile(14176);
+        if (!this.validateForm.valid) {
+            Object.values(this.validateForm.controls).forEach(control => {
+                if (control.invalid) {
+                    control.markAsDirty();
+                    control.updateValueAndValidity({ onlySelf: true });
+                }
+            });
+        } else {
+
+            // let gridInstance = this.angularGrid;
+            // if (this.paymentOrder.TypeOrder == 2) gridInstance = this.angularGrid2;
+
+
+            console.log('this.validateForm.getRawValue():', this.validateForm.getRawValue());
+            console.log('this.angularGrid.dataView.getItems():', this.angularGrid.dataView.getItems());
+
+            const formData = this.validateForm.getRawValue();
+            const detailDatas = this.angularGrid.dataView.getItems();
+
+            let paymentOrderDetails = detailDatas.map((x) => ({
+                ...x,
+                PaymentOrderDetailUserTeamSales: [
+                    {
+                        UserTeamSaleID: x.EmployeeID
+                    }
+                ]
+            }));
+
+            let paymentOrderPOs: any[] = [];
+            if ((formData.PaymentOrderPOs && formData.PaymentOrderPOs.length > 0) ||
+                (formData.PaymentOrderBillNumbers && formData.PaymentOrderBillNumbers.length > 0)) {
+                const maxLen = Math.max(formData.PaymentOrderPOs.length, formData.PaymentOrderBillNumbers.length);
+                paymentOrderPOs = Array.from({ length: maxLen }, (_, i) => ({
+                    POKHID: formData.PaymentOrderPOs[i] ?? null,
+                    BillNumber: formData.PaymentOrderBillNumbers[i] ?? ''
+                }));
+                paymentOrderPOs = Object.values(paymentOrderPOs);
+            }
+
+
+            const columnId = this.angularGrid.slickGrid?.getColumns().findIndex(x => x.id == PaymentOrderDetailField.TotalMoney.field);
+            const columnElement = this.angularGrid.slickGrid?.getFooterRowColumn(columnId);
+            this.paymentOrder = {
+                ...this.paymentOrder,
+                ...this.validateForm.getRawValue(),
+                PaymentOrderDetails: paymentOrderDetails,
+                TotalMoney: parseFloat(columnElement.textContent ?? ''),
+                PaymentOrderPOs: paymentOrderPOs,
+            };
+            // console.log('submit data', this.paymentOrder);
+
+            this.paymentService.save(this.paymentOrder).subscribe({
+                next: (response) => {
+                    // console.log(response);
+                    this.uploadFile(response.data.ID);
+                    this.notification.success(NOTIFICATION_TITLE.success, response.message);
+
+                },
+                error: (err) => {
+                    this.notification.error(NOTIFICATION_TITLE.error, err?.error?.message || err?.message);
+                },
+            });
+        }
+    }
+
+    uploadFile(paymentOrderID: number) {
+        let files = this.fileUploads.map(x => x.file);
+
+        // let fileDelete = this.fileDeletes.join(',');
+
+        // console.log('uploadFile files:', files);
+        // console.log('fileDelete:', JSON.stringify(this.fileDeletes));
+        // console.log('paymentOrderID:', paymentOrderID);
+        this.paymentService.uploadFile(files, paymentOrderID, JSON.stringify(this.fileDeletes)).subscribe({
+            next: (reponse) => {
+                // console.log(reponse);
+            },
+            error: (err) => {
+                this.notification.error(NOTIFICATION_TITLE.error, err.error.message);
+            }
+        })
     }
 
 
     handleChangeFile(e: Event) {
+        const input = e.target as HTMLInputElement;
+        if (input.files && input.files.length > 0) {
+
+
+            for (let i = 0; i < input.files.length; i++) {
+                const file = input.files[i];
+                this.datasetFile.push({
+                    ID: i + i,
+                    FileName: file.name
+                });
+
+                this.fileUploads.push({
+                    id: i + 1,
+                    file: file
+                });
+            }
+
+            this.datasetFile = this.datasetFile.map((x, i) => ({
+                ...x,
+                id: i + 1   // dành riêng cho SlickGrid
+            }));
+        }
+    }
+
+    deleteFile(e: Event, args: OnEventArgs) {
+
+        // let gridInstance = this.angularGridFile;
+        // if (this.paymentOrder.TypeOrder == 2) gridInstance = this.angularGrid2;
+
+        const metadata = this.angularGridFile.gridService.getColumnFromEventArguments(args);
+        // console.log(metadata);
+
+        const id = metadata.dataContext.id;
+        this.angularGridFile.gridService.deleteItemById(id);
+
+        //Xóa file trên list file đã chọn
+        const fileRemove = this.fileUploads.findIndex(x => x.id === id);
+        if (fileRemove >= 0) {
+            this.fileUploads.splice(fileRemove, 1);
+        }
+
+        //Xóa file trong DB
+        // console.log('metadata.dataContext.ID:', metadata.dataContext.Id);
+        if (metadata.dataContext.Id > 0) {
+            this.fileDeletes.push(
+                {
+                    Id: metadata.dataContext.Id,
+                    IsDeleted: true
+                }
+            )
+        }
 
     }
 
@@ -349,7 +546,6 @@ export class PaymentOrderSpecialComponent implements OnInit {
 
     }
 
-
     deleteItem(e: Event, args: OnEventArgs) {
 
         const metadata = this.angularGrid.gridService.getColumnFromEventArguments(args);
@@ -359,6 +555,31 @@ export class PaymentOrderSpecialComponent implements OnInit {
 
 
     onCellChanged(e: Event, args: any) {
-        // this.dataset = [...this.angularGrid.dataView.getItems()];
+
+        // console.log(args);
+        this.updateTotal(args.cell);
+    }
+
+
+    updateTotal(cell: number) {
+
+        if (cell <= 0) return;
+        const columnId = this.angularGrid.slickGrid?.getColumns()[cell].id;
+
+        if (columnId != PaymentOrderField.TotalMoney.field) return;
+
+        let total = 0;
+        // let i = this.dataset.length;
+        let data = this.angularGrid.dataView.getItems();
+        let i = data.length;
+        while (i--) {
+            total += parseFloat(data[i][columnId]) || 0;
+        }
+        const columnElement = this.angularGrid.slickGrid?.getFooterRowColumn(columnId);
+        if (columnElement) {
+            columnElement.textContent = `${total}`;
+
+            this.paymentOrder.TotalMoneyText = this.paymentService.readMoney(total, this.validateForm.value.Unit);
+        }
     }
 }

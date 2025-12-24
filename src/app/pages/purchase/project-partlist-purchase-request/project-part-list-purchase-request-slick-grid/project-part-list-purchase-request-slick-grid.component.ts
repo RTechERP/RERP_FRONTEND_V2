@@ -67,10 +67,11 @@ import {
   HeaderFilterApplyEvent,
   HeaderFilterOption,
 } from '../../../../shared/filters/fillter-header/fillter-header.component';
+import { ActivatedRoute } from '@angular/router';
 
 interface Tab {
-  id: number;
-  title: string;
+    id: number;
+    title: string;
 }
 
 /**
@@ -458,11 +459,11 @@ export class ProjectPartListPurchaseRequestSlickGridComponent
   // Store applied filter values for each tab and column
   headerFilterAppliedValuesMap: Map<string, string[] | null> = new Map(); // key: "columnId-typeId"
 
-  // Tabs
-  tabs: Tab[] = [];
-  activeTabIndex: number = 0;
-  requestTypes: any[] = [];
-  visitedTabs: Set<number> = new Set(); // Track which tabs have been visited
+    // Tabs
+    tabs: Tab[] = [];
+    activeTabIndex: number = 0;
+    requestTypes: any[] = [];
+    visitedTabs: Set<number> = new Set(); // Track which tabs have been visited
 
   // Get filtered tabs based on isApprovedTBP
   get filteredTabs(): Tab[] {
@@ -473,25 +474,25 @@ export class ProjectPartListPurchaseRequestSlickGridComponent
     return this.tabs;
   }
 
-  // Get typeId from activeTabIndex (sử dụng filteredTabs)
-  getActiveTabTypeId(): number | undefined {
-    return this.filteredTabs[this.activeTabIndex]?.id;
-  }
+    // Get typeId from activeTabIndex (sử dụng filteredTabs)
+    getActiveTabTypeId(): number | undefined {
+        return this.filteredTabs[this.activeTabIndex]?.id;
+    }
 
-  // Get typeId from tabIndex (sử dụng filteredTabs)
-  getTypeIdFromTabIndex(tabIndex: number): number | undefined {
-    return this.filteredTabs[tabIndex]?.id;
-  }
+    // Get typeId from tabIndex (sử dụng filteredTabs)
+    getTypeIdFromTabIndex(tabIndex: number): number | undefined {
+        return this.filteredTabs[tabIndex]?.id;
+    }
 
-  // Data
-  dtproducts: any[] = [];
-  dtproductGroups: any[] = [];
-  dtproductGroupsRTC: any[] = [];
-  dtSupplierSale: any[] = [];
-  dtcurrency: any[] = [];
-  dtprojects: any[] = [];
-  dtwarehouses: any[] = [];
-  lstPOKH: any[] = [];
+    // Data
+    dtproducts: any[] = [];
+    dtproductGroups: any[] = [];
+    dtproductGroupsRTC: any[] = [];
+    dtSupplierSale: any[] = [];
+    dtcurrency: any[] = [];
+    dtprojects: any[] = [];
+    dtwarehouses: any[] = [];
+    lstPOKH: any[] = [];
 
   // Filters
   dateStart: Date = new Date(
@@ -536,8 +537,8 @@ export class ProjectPartListPurchaseRequestSlickGridComponent
     { value: 1, label: 'Đã duyệt' },
   ];
 
-  projects: any[] = [];
-  supplierSales: any[] = [];
+    projects: any[] = [];
+    supplierSales: any[] = [];
 
   // UI state
   @Input() showHeader: boolean = false;
@@ -556,44 +557,50 @@ export class ProjectPartListPurchaseRequestSlickGridComponent
   // Subscriptions
   private subscriptions: Subscription[] = [];
 
-  // Track changes for save functionality
-  changedRows: any[] = [];
-  originalDataMap: Map<number, any> = new Map();
-  selectedRowIds: number[] = [];
-  selectedTabIndex: number = -1;
-  allData: any[] = [];
-  duplicateIdList: number[] = [];
+    // Track changes for save functionality
+    changedRows: any[] = [];
+    originalDataMap: Map<number, any> = new Map();
+    selectedRowIds: number[] = [];
+    selectedTabIndex: number = -1;
+    allData: any[] = [];
+    duplicateIdList: number[] = [];
 
-  constructor(
-    private srv: ProjectPartlistPurchaseRequestService,
-    private notify: NzNotificationService,
-    private modal: NzModalService,
-    private modalService: NgbModal,
-    private cdr: ChangeDetectorRef,
-    private appUserService: AppUserService,
-    private permissionService: PermissionService,
-    private supplierSaleService: SupplierSaleService,
-    private ponccService: PONCCService,
-    @Optional() public activeModal?: NgbActiveModal,
-    @Optional() @Inject('tabData') private tabData?: any
-  ) {}
+    constructor(
+        private srv: ProjectPartlistPurchaseRequestService,
+        private notify: NzNotificationService,
+        private modal: NzModalService,
+        private modalService: NgbModal,
+        private cdr: ChangeDetectorRef,
+        private appUserService: AppUserService,
+        private permissionService: PermissionService,
+        private supplierSaleService: SupplierSaleService,
+        private ponccService: PONCCService,
+        private route: ActivatedRoute,
+        @Optional() public activeModal?: NgbActiveModal,
+    ) { }
 
-  ngOnInit() {
-    // Lấy data từ tabData nếu có (khi component được sử dụng như tab component)
-    if (this.tabData) {
-      if (this.tabData.isApprovedTBP !== undefined) {
-        this.isApprovedTBP = this.tabData.isApprovedTBP;
-      }
-      // if (this.tabData.isSelectedPO !== undefined) {
-      //   this.isSelectedPO = this.tabData.isSelectedPO;
-      // }
-      if (this.tabData.isApprovedBGD !== undefined) {
-        this.isApprovedBGD = this.tabData.isApprovedBGD;
-      }
-      // if (this.tabData.listRequestBuySelect !== undefined) {
-      //   this.listRequestBuySelect = this.tabData.listRequestBuySelect;
-      // }
-    }
+    ngOnInit() {
+        // Lấy data từ tabData nếu có (khi component được sử dụng như tab component)
+        // if (this.tabData) {
+        //     if (this.tabData.isApprovedTBP !== undefined) {
+        //         this.isApprovedTBP = this.tabData.isApprovedTBP;
+        //     }
+        //     // if (this.tabData.isSelectedPO !== undefined) {
+        //     //   this.isSelectedPO = this.tabData.isSelectedPO;
+        //     // }
+        //     if (this.tabData.isApprovedBGD !== undefined) {
+        //         this.isApprovedBGD = this.tabData.isApprovedBGD;
+        //     }
+        //     // if (this.tabData.listRequestBuySelect !== undefined) {
+        //     //   this.listRequestBuySelect = this.tabData.listRequestBuySelect;
+        //     // }
+        // }
+
+
+        this.route.queryParams.subscribe(params => {
+            this.isApprovedTBP = params['isApprovedTBP'] || false;
+            this.isApprovedBGD = params['isApprovedBGD'] || false;
+        });
 
     this.loadMasterData();
     this.getRequestTypes();
@@ -655,8 +662,8 @@ export class ProjectPartListPurchaseRequestSlickGridComponent
       error: (err) => console.error('Error loading POKH:', err),
     });
 
-    this.subscriptions.push(sub1, sub2, sub3, sub4, sub5, sub6, sub7);
-  }
+        this.subscriptions.push(sub1, sub2, sub3, sub4, sub5, sub6, sub7);
+    }
 
   // Get request types and create tabs
   getRequestTypes() {
@@ -671,8 +678,8 @@ export class ProjectPartListPurchaseRequestSlickGridComponent
         // Initialize grids for each tab first
         this.initAllGrids();
 
-        // Trigger change detection to update view
-        this.cdr.detectChanges();
+                // Trigger change detection to update view
+                this.cdr.detectChanges();
 
         // Mark first tab as visited after a delay to ensure DOM is ready
         // This is done here instead of ngAfterViewInit because getRequestTypes
@@ -701,23 +708,23 @@ export class ProjectPartListPurchaseRequestSlickGridComponent
       error: (err) => this.notify.error('Lỗi', err.error.message),
     });
 
-    this.subscriptions.push(sub);
-  }
-
-  ngAfterViewInit() {
-    // If tabs are already loaded, ensure first tab is marked as visited
-    // This handles the case where getRequestTypes completes before ngAfterViewInit
-    if (this.tabs.length > 0 && !this.visitedTabs.has(this.tabs[0].id)) {
-      setTimeout(() => {
-        this.visitedTabs.add(this.tabs[0].id);
-        this.cdr.detectChanges();
-
-        setTimeout(() => {
-          this.onSearch();
-        }, 150);
-      }, 200);
+        this.subscriptions.push(sub);
     }
-  }
+
+    ngAfterViewInit() {
+        // If tabs are already loaded, ensure first tab is marked as visited
+        // This handles the case where getRequestTypes completes before ngAfterViewInit
+        if (this.tabs.length > 0 && !this.visitedTabs.has(this.tabs[0].id)) {
+            setTimeout(() => {
+                this.visitedTabs.add(this.tabs[0].id);
+                this.cdr.detectChanges();
+
+                setTimeout(() => {
+                    this.onSearch();
+                }, 150);
+            }, 200);
+        }
+    }
 
   // Initialize all grids
   initAllGrids() {
@@ -728,12 +735,12 @@ export class ProjectPartListPurchaseRequestSlickGridComponent
     });
   }
 
-  // Initialize grid columns for a specific tab
-  private initGridColumns(typeId: number): Column[] {
-    // Check if this is an RTC tab (indexes 3 and 4 = typeId 3 and 4)
-    const isRTCTab = typeId === 3 || typeId === 4;
-    // Check if this is tab 4 (Mượn demo - RTC) - only this tab has TBP columns
-    const isTBPTab = typeId === 4;
+    // Initialize grid columns for a specific tab
+    private initGridColumns(typeId: number): Column[] {
+        // Check if this is an RTC tab (indexes 3 and 4 = typeId 3 and 4)
+        const isRTCTab = typeId === 3 || typeId === 4;
+        // Check if this is tab 4 (Mượn demo - RTC) - only this tab has TBP columns
+        const isTBPTab = typeId === 4;
 
     const columns: Column[] = [
       // TT - Row number (frozen)
@@ -805,9 +812,9 @@ export class ProjectPartListPurchaseRequestSlickGridComponent
           filterable: true,
           filter: { model: Filters['compoundInputText'] },
 
-          formatter: (_row, _cell, value, _column, dataContext) => {
-            if (!value) return '';
-            return `
+                    formatter: (_row, _cell, value, _column, dataContext) => {
+                        if (!value) return '';
+                        return `
               <span
                 title="${dataContext.ApprovedTBPName}"
                 style="display:block; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;"
@@ -815,28 +822,28 @@ export class ProjectPartListPurchaseRequestSlickGridComponent
                 ${value}
               </span>
             `;
-          },
+                    },
 
-          customTooltip: {
-            useRegularTooltip: true,
-            // useRegularTooltipFromCellTextOnly: true,
-          },
-        },
+                    customTooltip: {
+                        useRegularTooltip: true,
+                        // useRegularTooltipFromCellTextOnly: true,
+                    },
+                },
 
-        // DateApprovedTBP
-        {
-          id: 'DateApprovedTBP',
-          field: 'DateApprovedTBP',
-          name: 'Ngày TBP duyệt',
-          width: 120,
-          sortable: true,
-          filterable: true,
-          formatter: Formatters.date,
-          params: { dateFormat: 'DD/MM/YYYY' },
-          filter: { model: Filters['compoundDate'] },
+                // DateApprovedTBP
+                {
+                    id: 'DateApprovedTBP',
+                    field: 'DateApprovedTBP',
+                    name: 'Ngày TBP duyệt',
+                    width: 120,
+                    sortable: true,
+                    filterable: true,
+                    formatter: Formatters.date,
+                    params: { dateFormat: 'DD/MM/YYYY' },
+                    filter: { model: Filters['compoundDate'] },
+                }
+            );
         }
-      );
-    }
 
     // Continue with common columns
     // Chỉ thêm 2 cột YC duyệt và BGĐ duyệt nếu KHÔNG phải tab "Mua hàng dự án" (typeId !== 1) và KHÔNG phải tab "Mượn demo" (typeId !== 4)
@@ -908,7 +915,7 @@ export class ProjectPartListPurchaseRequestSlickGridComponent
         field: 'ProjectCode',
         // ProjectCode FILTER (ADVANCED DROPDOWN): icon filter ở header
         name: this.createHeaderWithFilterIcon('Mã dự án', 'projectcode-filter-icon', typeId, 'ProjectCode'),
-        width: 120,
+        width: 100,
         sortable: false,
         // ProjectCode FILTER (ADVANCED DROPDOWN): tắt filter row mặc định để dùng dropdown custom
         filterable: false,
@@ -933,7 +940,7 @@ export class ProjectPartListPurchaseRequestSlickGridComponent
         field: isRTCTab ? 'ProductGroupRTCID' : 'ProductGroupID',
         // ProductGroup FILTER (ADVANCED DROPDOWN): icon filter ở header
         name: this.createHeaderWithFilterIcon('Loại kho', 'productgroup-filter-icon', typeId, isRTCTab ? 'ProductGroupRTCID' : 'ProductGroupID'),
-        width: 150,
+        width: 100,
         sortable: false,
         // ProductGroup FILTER (ADVANCED DROPDOWN): tắt filter row mặc định để dùng dropdown custom
         filterable: false,
@@ -961,7 +968,7 @@ export class ProjectPartListPurchaseRequestSlickGridComponent
         field: isRTCTab ? 'ProductCodeRTC' : 'ProductNewCode',
         // ProductNewCode/ProductCodeRTC FILTER (ADVANCED DROPDOWN): icon filter ở header
         name: this.createHeaderWithFilterIcon('Mã nội bộ', 'productnewcode-filter-icon', typeId, isRTCTab ? 'ProductCodeRTC' : 'ProductNewCode'),
-        width: 120,
+        width: 100,
         sortable: false,
         // ProductNewCode/ProductCodeRTC FILTER (ADVANCED DROPDOWN): tắt filter row mặc định để dùng dropdown custom
         filterable: false,
@@ -988,7 +995,7 @@ export class ProjectPartListPurchaseRequestSlickGridComponent
         // ProductCode FILTER (ADVANCED DROPDOWN): icon filter ở header
         name: this.createHeaderWithFilterIcon('Mã sản phẩm', 'productcode-filter-icon', typeId, 'ProductCode'),
         field: 'ProductCode',
-        width: 120,
+        width: 100,
         sortable: false,
         // ProductCode FILTER (ADVANCED DROPDOWN): tắt filter row mặc định để dùng dropdown custom
         filterable: false,
@@ -1014,7 +1021,7 @@ export class ProjectPartListPurchaseRequestSlickGridComponent
         field: 'ProductName',
         // ProductName FILTER (ADVANCED DROPDOWN): icon filter ở header
         name: this.createHeaderWithFilterIcon('Tên sản phẩm', 'productname-filter-icon', typeId, 'ProductName'),
-        width: 200,
+        width: 160,
         sortable: false,
         // ProductName FILTER (ADVANCED DROPDOWN): tắt filter row mặc định để dùng dropdown custom
         filterable: false,
@@ -1039,7 +1046,7 @@ export class ProjectPartListPurchaseRequestSlickGridComponent
         id: 'Model',
         field: 'Model',
         name: 'Thông số kỹ thuật',
-        width: 200,
+        width: 180,
         sortable: true,
         filterable: true,
         filter: { model: Filters['compoundInputText'] },
@@ -1064,7 +1071,7 @@ export class ProjectPartListPurchaseRequestSlickGridComponent
         field: 'Manufacturer',
         // Manufacturer FILTER (ADVANCED DROPDOWN): icon filter ở header
         name: this.createHeaderWithFilterIcon('Hãng', 'manufacturer-filter-icon', typeId, 'Manufacturer'),
-        width: 120,
+        width: 90,
         sortable: false,
         // Manufacturer FILTER (ADVANCED DROPDOWN): tắt filter row mặc định để dùng dropdown custom
         filterable: false,
@@ -1089,7 +1096,7 @@ export class ProjectPartListPurchaseRequestSlickGridComponent
         id: 'Quantity',
         field: 'Quantity',
         name: 'Số lượng',
-        width: 100,
+        width: 80,
         sortable: true,
         filterable: true,
         type: 'number',
@@ -1111,7 +1118,7 @@ export class ProjectPartListPurchaseRequestSlickGridComponent
         id: 'UnitName',
         field: 'UnitName',
         name: 'ĐVT',
-        width: 80,
+        width: 60,
         sortable: true,
         filterable: true,
         filter: { model: Filters['compoundInputText'] },
@@ -1148,7 +1155,7 @@ export class ProjectPartListPurchaseRequestSlickGridComponent
         field: 'StatusRequestText',
         // StatusRequestText FILTER (ADVANCED DROPDOWN): icon filter ở header
         name: this.createHeaderWithFilterIcon('Trạng thái', 'statusrequesttext-filter-icon', typeId, 'StatusRequestText'),
-        width: 120,
+        width: 100,
         sortable: false,
         // StatusRequestText FILTER (ADVANCED DROPDOWN): tắt filter row mặc định để dùng dropdown custom
         filterable: false,
@@ -1174,7 +1181,7 @@ export class ProjectPartListPurchaseRequestSlickGridComponent
         field: 'FullName',
         // FullName FILTER (ADVANCED DROPDOWN): icon filter ở header
         name: this.createHeaderWithFilterIcon('Người YC', 'fullname-filter-icon', typeId, 'FullName'),
-        width: 120,
+        width: 100,
         sortable: false,
         // FullName FILTER (ADVANCED DROPDOWN): tắt filter row mặc định để dùng dropdown custom
         filterable: false,
@@ -1188,24 +1195,24 @@ export class ProjectPartListPurchaseRequestSlickGridComponent
               ${value}
             </span>
           `;
-        },
-        customTooltip: {
-          useRegularTooltip: true,
-          // useRegularTooltipFromCellTextOnly: true,
-        },
-      },
-      // UpdatedName
-      {
-        id: 'UpdatedName',
-        field: 'UpdatedName',
-        name: 'NV mua',
-        width: 120,
-        sortable: true,
-        filterable: true,
-        filter: { model: Filters['compoundInputText'] },
-        formatter: (_row, _cell, value, _column, dataContext) => {
-          if (!value) return '';
-          return `
+                },
+                customTooltip: {
+                    useRegularTooltip: true,
+                    // useRegularTooltipFromCellTextOnly: true,
+                },
+            },
+            // UpdatedName
+            {
+                id: 'UpdatedName',
+                field: 'UpdatedName',
+                name: 'NV mua',
+                width: 120,
+                sortable: true,
+                filterable: true,
+                filter: { model: Filters['compoundInputText'] },
+                formatter: (_row, _cell, value, _column, dataContext) => {
+                    if (!value) return '';
+                    return `
             <span
               title="${dataContext.UpdatedName}"
               style="display:block; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;"
@@ -1845,16 +1852,16 @@ export class ProjectPartListPurchaseRequestSlickGridComponent
       );
       const modelIndex = columns.findIndex((col) => col.id === 'Model');
 
-      if (customerNameIndex !== -1 && modelIndex !== -1) {
-        // Swap vị trí: đặt Model trước CustomerName
-        const temp = columns[customerNameIndex];
-        columns[customerNameIndex] = columns[modelIndex];
-        columns[modelIndex] = temp;
-      }
-    }
+            if (customerNameIndex !== -1 && modelIndex !== -1) {
+                // Swap vị trí: đặt Model trước CustomerName
+                const temp = columns[customerNameIndex];
+                columns[customerNameIndex] = columns[modelIndex];
+                columns[modelIndex] = temp;
+            }
+        }
 
-    return columns;
-  }
+        return columns;
+    }
 
   // Initialize grid options for a specific tab
   private initGridOptions(typeId: number): GridOption {
@@ -1871,27 +1878,27 @@ export class ProjectPartListPurchaseRequestSlickGridComponent
       gridWidth: '100%',
       datasetIdPropertyName: 'id',
 
-      // ROW SELECTION CONFIGURATION
-      enableRowSelection: true,
-      rowSelectionOptions: {
-        selectActiveRow: false, // False = Multiple Selections
-      },
+            // ROW SELECTION CONFIGURATION
+            enableRowSelection: true,
+            rowSelectionOptions: {
+                selectActiveRow: false, // False = Multiple Selections
+            },
 
-      // CHECKBOX SELECTOR CONFIGURATION
-      enableCheckboxSelector: true,
-      checkboxSelector: {
-        hideInFilterHeaderRow: false,
-        hideInColumnTitleRow: true,
-        applySelectOnAllPages: true,
-        columnIndexPosition: 0,
-        width: 35,
-      },
+            // CHECKBOX SELECTOR CONFIGURATION
+            enableCheckboxSelector: true,
+            checkboxSelector: {
+                hideInFilterHeaderRow: false,
+                hideInColumnTitleRow: true,
+                applySelectOnAllPages: true,
+                columnIndexPosition: 0,
+                width: 35,
+            },
 
-      // EDITING
-      editable: !isReadOnly,
-      enableCellNavigation: true,
-      autoEdit: !isReadOnly,
-      autoCommitEdit: true,
+            // EDITING
+            editable: !isReadOnly,
+            enableCellNavigation: true,
+            autoEdit: !isReadOnly,
+            autoCommitEdit: true,
 
       // FILTERING & GROUPING
       enableFiltering: true,
@@ -1900,56 +1907,56 @@ export class ProjectPartListPurchaseRequestSlickGridComponent
       // HEADER MENU - Disable dropdown menu
       enableHeaderMenu: false,
 
-      // COLUMNS
-      autoFitColumnsOnFirstLoad: false,
-      enableAutoSizeColumns: false,
-      frozenColumn: 10, // Freeze first 10 columns
+            // COLUMNS
+            autoFitColumnsOnFirstLoad: false,
+            enableAutoSizeColumns: false,
+            frozenColumn: 10, // Freeze first 10 columns
 
-      // PAGINATION
-      enablePagination: false,
+            // PAGINATION
+            enablePagination: false,
 
-      // CONTEXT MENU
-      contextMenu: {
-        hideCloseButton: false,
-        commandTitle: '',
-        commandItems: this.buildContextMenuItems(typeId),
-      },
-    };
-  }
-
-  // Grid ready event handler
-  angularGridReady(typeId: number, angularGrid: AngularGridInstance): void {
-    // Store grid instance
-    this.angularGrids.set(typeId, angularGrid);
-
-    // Ensure config exists
-    if (!this.gridOptionsMap.has(typeId)) {
-      this.columnDefinitionsMap.set(typeId, this.initGridColumns(typeId));
-      this.gridOptionsMap.set(typeId, this.initGridOptions(typeId));
-      this.datasetsMap.set(typeId, []);
+            // CONTEXT MENU
+            contextMenu: {
+                hideCloseButton: false,
+                commandTitle: '',
+                commandItems: this.buildContextMenuItems(typeId),
+            },
+        };
     }
 
-    // Enable checkbox selector
-    this.ensureCheckboxSelector(angularGrid);
+    // Grid ready event handler
+    angularGridReady(typeId: number, angularGrid: AngularGridInstance): void {
+        // Store grid instance
+        this.angularGrids.set(typeId, angularGrid);
 
-    // Setup grouping by ProjectFullName (và POKHCode nếu listRequestBuySelect = true)
-    if (angularGrid && angularGrid.dataView) {
-      const aggregators = [
-        new Aggregators['Sum']('Quantity'),
-        new Aggregators['Sum']('TotalPrice'),
-        new Aggregators['Sum']('TotalPriceExchange'),
-        new Aggregators['Sum']('TotaMoneyVAT'),
-        new Aggregators['Sum']('TotalImportPrice'),
-        new Aggregators['Sum']('TotalPriceHistory'),
-        new Aggregators['Sum']('CurrencyRate'),
-        new Aggregators['Sum']('UnitPrice'),
-        new Aggregators['Sum']('UnitFactoryExportPrice'),
-        new Aggregators['Sum']('TotalHN'),
-        new Aggregators['Sum']('TotalHCM'),
-        new Aggregators['Sum']('TotalHP'),
-        new Aggregators['Sum']('TotalDP'),
-        new Aggregators['Sum']('TotalBN'),
-      ];
+        // Ensure config exists
+        if (!this.gridOptionsMap.has(typeId)) {
+            this.columnDefinitionsMap.set(typeId, this.initGridColumns(typeId));
+            this.gridOptionsMap.set(typeId, this.initGridOptions(typeId));
+            this.datasetsMap.set(typeId, []);
+        }
+
+        // Enable checkbox selector
+        this.ensureCheckboxSelector(angularGrid);
+
+        // Setup grouping by ProjectFullName (và POKHCode nếu listRequestBuySelect = true)
+        if (angularGrid && angularGrid.dataView) {
+            const aggregators = [
+                new Aggregators['Sum']('Quantity'),
+                new Aggregators['Sum']('TotalPrice'),
+                new Aggregators['Sum']('TotalPriceExchange'),
+                new Aggregators['Sum']('TotaMoneyVAT'),
+                new Aggregators['Sum']('TotalImportPrice'),
+                new Aggregators['Sum']('TotalPriceHistory'),
+                new Aggregators['Sum']('CurrencyRate'),
+                new Aggregators['Sum']('UnitPrice'),
+                new Aggregators['Sum']('UnitFactoryExportPrice'),
+                new Aggregators['Sum']('TotalHN'),
+                new Aggregators['Sum']('TotalHCM'),
+                new Aggregators['Sum']('TotalHP'),
+                new Aggregators['Sum']('TotalDP'),
+                new Aggregators['Sum']('TotalBN'),
+            ];
 
       if (this.listRequestBuySelect) {
         // Nested grouping: ProjectFullName -> POKHCode
@@ -2076,15 +2083,15 @@ export class ProjectPartListPurchaseRequestSlickGridComponent
       this.updateAllColumnHeaderFilterIcons(typeId);
     }, 150);
 
-    // Resize grid
-    setTimeout(() => {
-      angularGrid.resizerService.resizeGrid();
-      this.ensureCheckboxSelector(angularGrid);
-      if (angularGrid.slickGrid) {
-        angularGrid.slickGrid.render();
-      }
-    }, 100);
-  }
+        // Resize grid
+        setTimeout(() => {
+            angularGrid.resizerService.resizeGrid();
+            this.ensureCheckboxSelector(angularGrid);
+            if (angularGrid.slickGrid) {
+                angularGrid.slickGrid.render();
+            }
+        }, 100);
+    }
 
   // Helper method to ensure checkbox selector stays enabled
   private ensureCheckboxSelector(
@@ -2093,30 +2100,30 @@ export class ProjectPartListPurchaseRequestSlickGridComponent
   ): void {
     if (!angularGrid || !angularGrid.slickGrid) return;
 
-    const enableCheckbox = () => {
-      angularGrid!.slickGrid!.setOptions({
-        enableCheckboxSelector: true,
-        enableRowSelection: true,
-        rowSelectionOptions: {
-          selectActiveRow: false,
-        },
-        checkboxSelector: {
-          hideInFilterHeaderRow: false,
-          hideInColumnTitleRow: true,
-          applySelectOnAllPages: true,
-          columnIndexPosition: 0,
-          width: 35,
-        },
-      });
-      angularGrid!.slickGrid!.render();
-    };
+        const enableCheckbox = () => {
+            angularGrid!.slickGrid!.setOptions({
+                enableCheckboxSelector: true,
+                enableRowSelection: true,
+                rowSelectionOptions: {
+                    selectActiveRow: false,
+                },
+                checkboxSelector: {
+                    hideInFilterHeaderRow: false,
+                    hideInColumnTitleRow: true,
+                    applySelectOnAllPages: true,
+                    columnIndexPosition: 0,
+                    width: 35,
+                },
+            });
+            angularGrid!.slickGrid!.render();
+        };
 
-    if (delay > 0) {
-      setTimeout(enableCheckbox, delay);
-    } else {
-      enableCheckbox();
+        if (delay > 0) {
+            setTimeout(enableCheckbox, delay);
+        } else {
+            enableCheckbox();
+        }
     }
-  }
 
   // Update editor collections for all grids after master data is loaded
   private updateEditorCollections(): void {
@@ -2125,8 +2132,8 @@ export class ProjectPartListPurchaseRequestSlickGridComponent
       const angularGrid = this.angularGrids.get(tab.id);
       if (!angularGrid || !angularGrid.slickGrid) return;
 
-      const columns = angularGrid.slickGrid.getColumns();
-      if (!columns) return;
+            const columns = angularGrid.slickGrid.getColumns();
+            if (!columns) return;
 
       // Update CurrencyID column editor collection
       const currencyColumn = columns.find(
@@ -2238,43 +2245,43 @@ export class ProjectPartListPurchaseRequestSlickGridComponent
     });
   }
 
-  // Build context menu items for a specific tab
-  private buildContextMenuItems(typeId: number): any[] {
-    // Kiểm tra quyền N35 và N1
-    const hasN35Permission = this.permissionService.hasPermission('N35');
-    const hasN1Permission = this.permissionService.hasPermission('N1');
-    const hasN35OrN1 = hasN35Permission || hasN1Permission;
+    // Build context menu items for a specific tab
+    private buildContextMenuItems(typeId: number): any[] {
+        // Kiểm tra quyền N35 và N1
+        const hasN35Permission = this.permissionService.hasPermission('N35');
+        const hasN1Permission = this.permissionService.hasPermission('N1');
+        const hasN35OrN1 = hasN35Permission || hasN1Permission;
 
-    const menuItems: any[] = [];
-    let positionOrder = 10;
+        const menuItems: any[] = [];
+        let positionOrder = 10;
 
-    // Xuất Excel - luôn hiển thị (nếu có method export)
-    // Note: Method exportExcel chưa có trong component này, có thể thêm sau
-    // menuItems.push({
-    //   command: 'export-selected',
-    //   title: 'Xuất SP chọn',
-    //   iconCssClass: 'mdi mdi-file-excel',
-    //   positionOrder: positionOrder++,
-    //   action: (e: any, args: any) => {
-    //     const tabIndex = this.tabs.findIndex(t => t.id === typeId);
-    //     if (tabIndex >= 0) {
-    //       // this.exportExcel(tabIndex, false);
-    //     }
-    //   }
-    // });
+        // Xuất Excel - luôn hiển thị (nếu có method export)
+        // Note: Method exportExcel chưa có trong component này, có thể thêm sau
+        // menuItems.push({
+        //   command: 'export-selected',
+        //   title: 'Xuất SP chọn',
+        //   iconCssClass: 'mdi mdi-file-excel',
+        //   positionOrder: positionOrder++,
+        //   action: (e: any, args: any) => {
+        //     const tabIndex = this.tabs.findIndex(t => t.id === typeId);
+        //     if (tabIndex >= 0) {
+        //       // this.exportExcel(tabIndex, false);
+        //     }
+        //   }
+        // });
 
-    // menuItems.push({
-    //   command: 'export-all',
-    //   title: 'Xuất tất cả',
-    //   iconCssClass: 'mdi mdi-file-excel',
-    //   positionOrder: positionOrder++,
-    //   action: (e: any, args: any) => {
-    //     const tabIndex = this.tabs.findIndex(t => t.id === typeId);
-    //     if (tabIndex >= 0) {
-    //       // this.exportExcel(tabIndex, true);
-    //     }
-    //   }
-    // });
+        // menuItems.push({
+        //   command: 'export-all',
+        //   title: 'Xuất tất cả',
+        //   iconCssClass: 'mdi mdi-file-excel',
+        //   positionOrder: positionOrder++,
+        //   action: (e: any, args: any) => {
+        //     const tabIndex = this.tabs.findIndex(t => t.id === typeId);
+        //     if (tabIndex >= 0) {
+        //       // this.exportExcel(tabIndex, true);
+        //     }
+        //   }
+        // });
 
     // Duplicate - yêu cầu quyền N35 hoặc N1
     if (hasN35OrN1) {
@@ -2405,8 +2412,8 @@ export class ProjectPartListPurchaseRequestSlickGridComponent
       });
     }
 
-    return menuItems;
-  }
+        return menuItems;
+    }
 
   // Collection helper methods
   private getProductGroupCollection(
@@ -2465,17 +2472,17 @@ export class ProjectPartListPurchaseRequestSlickGridComponent
     });
   }
 
-  // Sum totals formatter with format
-  sumTotalsFormatterWithFormat(totals: any, columnDef: any): string {
-    const field = columnDef.field;
-    const sum = totals.sum && totals.sum[field];
-    const prefix = columnDef.params?.groupFormatterPrefix || '';
+    // Sum totals formatter with format
+    sumTotalsFormatterWithFormat(totals: any, columnDef: any): string {
+        const field = columnDef.field;
+        const sum = totals.sum && totals.sum[field];
+        const prefix = columnDef.params?.groupFormatterPrefix || '';
 
-    if (sum !== undefined && sum !== null) {
-      return `${prefix}${this.formatNumberEnUS(sum, 0)}`;
+        if (sum !== undefined && sum !== null) {
+            return `${prefix}${this.formatNumberEnUS(sum, 0)}`;
+        }
+        return '';
     }
-    return '';
-  }
 
   // Getting selected rows
   private getSelectedGridData(typeId: number): any[] {
@@ -2487,50 +2494,50 @@ export class ProjectPartListPurchaseRequestSlickGridComponent
       .filter((item: any) => item);
   }
 
-  // Event handlers
-  onCellClicked(typeId: number, e: Event, args: OnClickEventArgs): void {
-    // Handle cell click events if needed
-  }
-
-  onCellChange(typeId: number, e: Event, args: OnCellChangeEventArgs): void {
-    // Handle cell change events
-    const angularGrid = this.angularGrids.get(typeId);
-    if (!angularGrid) return;
-
-    const rowIndex = args.row;
-    const item = angularGrid.dataView.getItem(rowIndex);
-    if (!item) return;
-
-    const column = args.column;
-    const field = column?.field || '';
-    const newValue = args.item?.[field];
-
-    // Update the item with new value
-    if (field && newValue !== undefined) {
-      item[field] = newValue;
+    // Event handlers
+    onCellClicked(typeId: number, e: Event, args: OnClickEventArgs): void {
+        // Handle cell click events if needed
     }
 
-    // Get the column info from the grid
-    const columns = angularGrid.slickGrid.getColumns();
-    const changedColumn = columns[args.cell];
+    onCellChange(typeId: number, e: Event, args: OnCellChangeEventArgs): void {
+        // Handle cell change events
+        const angularGrid = this.angularGrids.get(typeId);
+        if (!angularGrid) return;
 
-    // Handle CurrencyID change - update CurrencyRate automatically
-    if (field === 'CurrencyID') {
-      const currencyId = Number(newValue) || 0;
-      let newCurrencyRate = 0;
+        const rowIndex = args.row;
+        const item = angularGrid.dataView.getItem(rowIndex);
+        if (!item) return;
 
-      if (currencyId > 0) {
-        const currency = this.dtcurrency.find((c: any) => c.ID === currencyId);
-        if (currency) {
-          newCurrencyRate = currency.CurrencyRate || 0;
+        const column = args.column;
+        const field = column?.field || '';
+        const newValue = args.item?.[field];
+
+        // Update the item with new value
+        if (field && newValue !== undefined) {
+            item[field] = newValue;
         }
-      }
 
-      // Update CurrencyRate in item
-      item.CurrencyRate = newCurrencyRate;
+        // Get the column info from the grid
+        const columns = angularGrid.slickGrid.getColumns();
+        const changedColumn = columns[args.cell];
 
-      // Recalculate totals after currency change
-      this.recalculateTotals(item);
+        // Handle CurrencyID change - update CurrencyRate automatically
+        if (field === 'CurrencyID') {
+            const currencyId = Number(newValue) || 0;
+            let newCurrencyRate = 0;
+
+            if (currencyId > 0) {
+                const currency = this.dtcurrency.find((c: any) => c.ID === currencyId);
+                if (currency) {
+                    newCurrencyRate = currency.CurrencyRate || 0;
+                }
+            }
+
+            // Update CurrencyRate in item
+            item.CurrencyRate = newCurrencyRate;
+
+            // Recalculate totals after currency change
+            this.recalculateTotals(item);
 
       // Update the CurrencyRate cell directly in the grid to ensure it displays immediately
       const currencyRateColumn = columns.find(
@@ -2563,23 +2570,23 @@ export class ProjectPartListPurchaseRequestSlickGridComponent
         (r: any) => Number(r.ID) === rowId
       );
 
-      if (existingIndex >= 0) {
-        // Update existing row with latest data
-        this.changedRows[existingIndex] = { ...item };
-      } else {
-        // Add new changed row
-        this.changedRows.push({ ...item });
-      }
+            if (existingIndex >= 0) {
+                // Update existing row with latest data
+                this.changedRows[existingIndex] = { ...item };
+            } else {
+                // Add new changed row
+                this.changedRows.push({ ...item });
+            }
+        }
+
+        // Update item in dataView
+        angularGrid.dataView.updateItem(item.id, item);
+
+        // Refresh grid
+        angularGrid.slickGrid.invalidate();
+        angularGrid.slickGrid.render();
+        this.ensureCheckboxSelector(angularGrid);
     }
-
-    // Update item in dataView
-    angularGrid.dataView.updateItem(item.id, item);
-
-    // Refresh grid
-    angularGrid.slickGrid.invalidate();
-    angularGrid.slickGrid.render();
-    this.ensureCheckboxSelector(angularGrid);
-  }
 
   handleRowSelection(
     typeId: number,
@@ -2589,84 +2596,84 @@ export class ProjectPartListPurchaseRequestSlickGridComponent
     // Handle row selection changes if needed
   }
 
-  // Recalculate totals for an item
-  private recalculateTotals(item: any): void {
-    const quantity = parseFloat(item.Quantity) || 0;
-    const unitPrice = parseFloat(item.UnitPrice) || 0;
-    const currencyRate = parseFloat(item.CurrencyRate) || 1;
-    const vat = parseFloat(item.VAT) || 0;
+    // Recalculate totals for an item
+    private recalculateTotals(item: any): void {
+        const quantity = parseFloat(item.Quantity) || 0;
+        const unitPrice = parseFloat(item.UnitPrice) || 0;
+        const currencyRate = parseFloat(item.CurrencyRate) || 1;
+        const vat = parseFloat(item.VAT) || 0;
 
-    item.TotalPrice = quantity * unitPrice;
-    item.TotalPriceExchange = item.TotalPrice * currencyRate;
-    item.TotaMoneyVAT = item.TotalPriceExchange * (1 + vat / 100);
-  }
-
-  // Tab change handler
-  onTabChange(index: number): void {
-    this.activeTabIndex = index;
-    const typeId = this.filteredTabs[index]?.id;
-    if (typeId) {
-      // Mark tab as visited
-      this.visitedTabs.add(typeId);
-
-      const angularGrid = this.angularGrids.get(typeId);
-      if (angularGrid) {
-        setTimeout(() => {
-          angularGrid.resizerService.resizeGrid();
-          this.ensureCheckboxSelector(angularGrid);
-        }, 100);
-      }
+        item.TotalPrice = quantity * unitPrice;
+        item.TotalPriceExchange = item.TotalPrice * currencyRate;
+        item.TotaMoneyVAT = item.TotalPriceExchange * (1 + vat / 100);
     }
-  }
 
-  // Check if tab should render grid
-  shouldRenderGrid(tabId: number): boolean {
-    return this.visitedTabs.has(tabId);
-  }
+    // Tab change handler
+    onTabChange(index: number): void {
+        this.activeTabIndex = index;
+        const typeId = this.filteredTabs[index]?.id;
+        if (typeId) {
+            // Mark tab as visited
+            this.visitedTabs.add(typeId);
 
-  // Helper functions for date formatting (giống file gốc)
-  private toStartOfDayISO(d: Date): string {
-    const x = new Date(d);
-    x.setHours(0, 0, 0, 0);
-    // Format theo múi giờ local (GMT+7) thay vì UTC
-    const year = x.getFullYear();
-    const month = String(x.getMonth() + 1).padStart(2, '0');
-    const day = String(x.getDate()).padStart(2, '0');
-    return `${year}-${month}-${day}T00:00:00`;
-  }
+            const angularGrid = this.angularGrids.get(typeId);
+            if (angularGrid) {
+                setTimeout(() => {
+                    angularGrid.resizerService.resizeGrid();
+                    this.ensureCheckboxSelector(angularGrid);
+                }, 100);
+            }
+        }
+    }
 
-  private toEndOfDayISO(d: Date): string {
-    const x = new Date(d);
-    x.setHours(23, 59, 59, 999);
-    // Format theo múi giờ local (GMT+7) thay vì UTC
-    const year = x.getFullYear();
-    const month = String(x.getMonth() + 1).padStart(2, '0');
-    const day = String(x.getDate()).padStart(2, '0');
-    return `${year}-${month}-${day}T23:59:59`;
-  }
+    // Check if tab should render grid
+    shouldRenderGrid(tabId: number): boolean {
+        return this.visitedTabs.has(tabId);
+    }
 
-  // Search/filter methods
-  onSearch(): void {
-    this.isLoading = true;
+    // Helper functions for date formatting (giống file gốc)
+    private toStartOfDayISO(d: Date): string {
+        const x = new Date(d);
+        x.setHours(0, 0, 0, 0);
+        // Format theo múi giờ local (GMT+7) thay vì UTC
+        const year = x.getFullYear();
+        const month = String(x.getMonth() + 1).padStart(2, '0');
+        const day = String(x.getDate()).padStart(2, '0');
+        return `${year}-${month}-${day}T00:00:00`;
+    }
 
-    const filter: any = {
-      DateStart: this.toStartOfDayISO(this.dateStart),
-      DateEnd: this.toEndOfDayISO(this.dateEnd),
-      StatusRequest: this.statusRequestFilter,
-      ProjectID: this.projectIdFilter || 0,
-      Keyword: this.keyword?.trim() || '',
-      SupplierSaleID: this.supplierId || 0,
-      IsApprovedTBP: this.isApprovedTBPFilter,
-      IsApprovedBGD: this.isApprovedBGDFilter,
-      IsCommercialProduct: -1,
-      POKHID: this.pokhIdFilter || 0,
-      ProductRTCID: -1,
-      IsDeleted: this.isDeletedFilter,
-      IsTechBought: -1,
-      IsJobRequirement: -1,
-      Page: 1,
-      Size: 5000,
-    };
+    private toEndOfDayISO(d: Date): string {
+        const x = new Date(d);
+        x.setHours(23, 59, 59, 999);
+        // Format theo múi giờ local (GMT+7) thay vì UTC
+        const year = x.getFullYear();
+        const month = String(x.getMonth() + 1).padStart(2, '0');
+        const day = String(x.getDate()).padStart(2, '0');
+        return `${year}-${month}-${day}T23:59:59`;
+    }
+
+    // Search/filter methods
+    onSearch(): void {
+        this.isLoading = true;
+
+        const filter: any = {
+            DateStart: this.toStartOfDayISO(this.dateStart),
+            DateEnd: this.toEndOfDayISO(this.dateEnd),
+            StatusRequest: this.statusRequestFilter,
+            ProjectID: this.projectIdFilter || 0,
+            Keyword: this.keyword?.trim() || '',
+            SupplierSaleID: this.supplierId || 0,
+            IsApprovedTBP: this.isApprovedTBPFilter,
+            IsApprovedBGD: this.isApprovedBGDFilter,
+            IsCommercialProduct: -1,
+            POKHID: this.pokhIdFilter || 0,
+            ProductRTCID: -1,
+            IsDeleted: this.isDeletedFilter,
+            IsTechBought: -1,
+            IsJobRequirement: -1,
+            Page: 1,
+            Size: 5000,
+        };
 
     const sub = this.srv.getAll(filter).subscribe({
       next: (response) => {
@@ -2676,25 +2683,25 @@ export class ProjectPartListPurchaseRequestSlickGridComponent
         const allData = data;
         this.allData = allData;
 
-        // Clear changedRows khi reload data
-        this.changedRows = [];
+                // Clear changedRows khi reload data
+                this.changedRows = [];
 
-        // Lưu dữ liệu gốc vào Map để so sánh sau này
-        this.originalDataMap.clear();
-        allData.forEach((item: any) => {
-          if (item.ID) {
-            this.originalDataMap.set(item.ID, { ...item });
-          }
-        });
+                // Lưu dữ liệu gốc vào Map để so sánh sau này
+                this.originalDataMap.clear();
+                allData.forEach((item: any) => {
+                    if (item.ID) {
+                        this.originalDataMap.set(item.ID, { ...item });
+                    }
+                });
 
-        // Tạo danh sách các DuplicateID
-        this.duplicateIdList = [];
-        allData.forEach((item: any) => {
-          const duplicateId = Number(item.DuplicateID || 0);
-          if (duplicateId > 0 && !this.duplicateIdList.includes(duplicateId)) {
-            this.duplicateIdList.push(duplicateId);
-          }
-        });
+                // Tạo danh sách các DuplicateID
+                this.duplicateIdList = [];
+                allData.forEach((item: any) => {
+                    const duplicateId = Number(item.DuplicateID || 0);
+                    if (duplicateId > 0 && !this.duplicateIdList.includes(duplicateId)) {
+                        this.duplicateIdList.push(duplicateId);
+                    }
+                });
 
         // Filter data for each tab - logic giống file gốc
         this.tabs.forEach((tab) => {
@@ -2745,9 +2752,9 @@ export class ProjectPartListPurchaseRequestSlickGridComponent
               );
               break;
 
-            default:
-              break;
-          }
+                        default:
+                            break;
+                    }
 
           // Add id property for grid
           const dataWithId = filteredData.map((item: any, index: number) => ({
@@ -2785,17 +2792,17 @@ export class ProjectPartListPurchaseRequestSlickGridComponent
       },
     });
 
-    this.subscriptions.push(sub);
-  }
-
-  ToggleSearchPanelNew(event?: Event): void {
-    if (event) {
-      event.preventDefault();
-      event.stopPropagation();
+        this.subscriptions.push(sub);
     }
-    this.showSearchBar = !this.showSearchBar;
-    this.shouldShowSearchBar = this.showSearchBar;
-  }
+
+    ToggleSearchPanelNew(event?: Event): void {
+        if (event) {
+            event.preventDefault();
+            event.stopPropagation();
+        }
+        this.showSearchBar = !this.showSearchBar;
+        this.shouldShowSearchBar = this.showSearchBar;
+    }
 
   // Action methods
   onCheckOrder(tabIndex: number, status: boolean): void {
@@ -2807,8 +2814,8 @@ export class ProjectPartListPurchaseRequestSlickGridComponent
       return;
     }
 
-    const typeId = this.getTypeIdFromTabIndex(tabIndex);
-    if (!typeId) return;
+        const typeId = this.getTypeIdFromTabIndex(tabIndex);
+        if (!typeId) return;
 
     const selected = this.getSelectedGridData(typeId);
     if (selected.length === 0) {
@@ -2871,20 +2878,20 @@ export class ProjectPartListPurchaseRequestSlickGridComponent
       return;
     }
 
-    const typeId = this.getTypeIdFromTabIndex(tabIndex);
-    if (!typeId) return;
+        const typeId = this.getTypeIdFromTabIndex(tabIndex);
+        if (!typeId) return;
 
-    // Lấy dữ liệu mới nhất từ grid để đảm bảo có đầy đủ thông tin
-    const angularGrid = this.angularGrids.get(typeId);
-    if (angularGrid && angularGrid.dataView) {
-      // Update changedRows với dữ liệu mới nhất từ grid
-      const allGridData: any[] = [];
-      for (let i = 0; i < angularGrid.dataView.getLength(); i++) {
-        const item = angularGrid.dataView.getItem(i);
-        if (item) {
-          allGridData.push(item);
-        }
-      }
+        // Lấy dữ liệu mới nhất từ grid để đảm bảo có đầy đủ thông tin
+        const angularGrid = this.angularGrids.get(typeId);
+        if (angularGrid && angularGrid.dataView) {
+            // Update changedRows với dữ liệu mới nhất từ grid
+            const allGridData: any[] = [];
+            for (let i = 0; i < angularGrid.dataView.getLength(); i++) {
+                const item = angularGrid.dataView.getItem(i);
+                if (item) {
+                    allGridData.push(item);
+                }
+            }
 
       // Cập nhật changedRows với dữ liệu mới nhất từ grid
       this.changedRows = this.changedRows
@@ -2914,8 +2921,8 @@ export class ProjectPartListPurchaseRequestSlickGridComponent
     this.selectedRowIds = this.changedRows.map((r) => r.ID);
     this.selectedTabIndex = tabIndex;
 
-    // Lấy danh sách các dòng cần lưu (bao gồm cả các dòng duplicate liên quan)
-    const dataToSave = this.getDataToSave();
+        // Lấy danh sách các dòng cần lưu (bao gồm cả các dòng duplicate liên quan)
+        const dataToSave = this.getDataToSave();
 
     this.modal.confirm({
       nzTitle: `Bạn có muốn lưu các thay đổi không?`,
@@ -2953,31 +2960,31 @@ export class ProjectPartListPurchaseRequestSlickGridComponent
     });
   }
 
-  // Hàm lấy dữ liệu cần lưu (bao gồm các dòng duplicate liên quan)
-  private getDataToSave(): any[] {
-    const result: any[] = [];
-    const addedIds = new Set<number>();
+    // Hàm lấy dữ liệu cần lưu (bao gồm các dòng duplicate liên quan)
+    private getDataToSave(): any[] {
+        const result: any[] = [];
+        const addedIds = new Set<number>();
 
     // Duyệt qua từng dòng đã thay đổi
     this.changedRows.forEach((changedRow) => {
       const rowId = changedRow.ID;
       const duplicateId = changedRow.DuplicateID;
 
-      // Thêm dòng hiện tại nếu chưa có (đã normalize)
-      if (!addedIds.has(rowId)) {
-        result.push(this.normalizeRowData(changedRow));
-        addedIds.add(rowId);
-      }
+            // Thêm dòng hiện tại nếu chưa có (đã normalize)
+            if (!addedIds.has(rowId)) {
+                result.push(this.normalizeRowData(changedRow));
+                addedIds.add(rowId);
+            }
 
-      // Nếu có DuplicateID, tìm tất cả các dòng liên quan
-      if (duplicateId && duplicateId > 0) {
-        this.allData.forEach((item: any) => {
-          const itemId = item.ID;
-          const itemDuplicateId = item.DuplicateID;
+            // Nếu có DuplicateID, tìm tất cả các dòng liên quan
+            if (duplicateId && duplicateId > 0) {
+                this.allData.forEach((item: any) => {
+                    const itemId = item.ID;
+                    const itemDuplicateId = item.DuplicateID;
 
-          const isRelated =
-            itemId === duplicateId ||
-            (itemDuplicateId && itemDuplicateId === duplicateId);
+                    const isRelated =
+                        itemId === duplicateId ||
+                        (itemDuplicateId && itemDuplicateId === duplicateId);
 
           if (isRelated && !addedIds.has(itemId)) {
             const relatedItem = {
@@ -2994,14 +3001,14 @@ export class ProjectPartListPurchaseRequestSlickGridComponent
       }
     });
 
-    return result;
-  }
+        return result;
+    }
 
-  // Hàm normalize dữ liệu row trước khi gửi lên API
-  private normalizeRowData(row: any): any {
-    // Loại bỏ các field không cần thiết từ grid (như 'id', 'TT')
-    const { id, TT, ...rowData } = row;
-    const normalized: any = { ...rowData };
+    // Hàm normalize dữ liệu row trước khi gửi lên API
+    private normalizeRowData(row: any): any {
+        // Loại bỏ các field không cần thiết từ grid (như 'id', 'TT')
+        const { id, TT, ...rowData } = row;
+        const normalized: any = { ...rowData };
 
     // Danh sách các field số nguyên
     const integerFields = [
@@ -3149,8 +3156,8 @@ export class ProjectPartListPurchaseRequestSlickGridComponent
       }
     });
 
-    return normalized;
-  }
+        return normalized;
+    }
 
   onEdit(tabIndex: number): void {
     if (this.changedRows.length > 0) {
@@ -3161,8 +3168,8 @@ export class ProjectPartListPurchaseRequestSlickGridComponent
       return;
     }
 
-    const typeId = this.getTypeIdFromTabIndex(tabIndex);
-    if (!typeId) return;
+        const typeId = this.getTypeIdFromTabIndex(tabIndex);
+        if (!typeId) return;
 
     const selected = this.getSelectedGridData(typeId);
     if (selected.length === 0) {
@@ -3181,9 +3188,9 @@ export class ProjectPartListPurchaseRequestSlickGridComponent
       return;
     }
 
-    const row = selected[0];
-    const isCommercialProduct = row.IsCommercialProduct;
-    const poNCC = row.PONCCID;
+        const row = selected[0];
+        const isCommercialProduct = row.IsCommercialProduct;
+        const poNCC = row.PONCCID;
 
     if (!isCommercialProduct || poNCC > 0) {
       this.notify.warning(
@@ -3193,8 +3200,8 @@ export class ProjectPartListPurchaseRequestSlickGridComponent
       return;
     }
 
-    this.selectedRowIds = [row.ID];
-    this.selectedTabIndex = tabIndex;
+        this.selectedRowIds = [row.ID];
+        this.selectedTabIndex = tabIndex;
 
     const sub = this.srv.getDetailByID(row.ID).subscribe({
       next: (rs) => {
@@ -3231,9 +3238,9 @@ export class ProjectPartListPurchaseRequestSlickGridComponent
     this.subscriptions.push(sub);
   }
 
-  onDeleteRequest(tabIndex: number): void {
-    const typeId = this.getTypeIdFromTabIndex(tabIndex);
-    if (!typeId) return;
+    onDeleteRequest(tabIndex: number): void {
+        const typeId = this.getTypeIdFromTabIndex(tabIndex);
+        if (!typeId) return;
 
     const selected = this.getSelectedGridData(typeId);
     if (selected.length === 0) {
@@ -3274,23 +3281,23 @@ export class ProjectPartListPurchaseRequestSlickGridComponent
     });
   }
 
-  onAddSupplierSale(): void {
-    const modalRef = this.modalService.open(SupplierSaleDetailComponent, {
-      backdrop: 'static',
-      keyboard: false,
-      windowClass: 'full-screen-modal',
-    });
-    modalRef.componentInstance.supplierSaleID = 0;
-    modalRef.result.finally(() => {
-      const sub = this.srv.getSupplierSales().subscribe({
-        next: (res) => {
-          this.dtSupplierSale = res || [];
-          // Update supplier sales list
-        },
-      });
-      this.subscriptions.push(sub);
-    });
-  }
+    onAddSupplierSale(): void {
+        const modalRef = this.modalService.open(SupplierSaleDetailComponent, {
+            backdrop: 'static',
+            keyboard: false,
+            windowClass: 'full-screen-modal',
+        });
+        modalRef.componentInstance.supplierSaleID = 0;
+        modalRef.result.finally(() => {
+            const sub = this.srv.getSupplierSales().subscribe({
+                next: (res) => {
+                    this.dtSupplierSale = res || [];
+                    // Update supplier sales list
+                },
+            });
+            this.subscriptions.push(sub);
+        });
+    }
 
   onRequestApproved(tabIndex: number, status: boolean): void {
     if (this.changedRows.length > 0) {
@@ -3301,8 +3308,8 @@ export class ProjectPartListPurchaseRequestSlickGridComponent
       return;
     }
 
-    const typeId = this.getTypeIdFromTabIndex(tabIndex);
-    if (!typeId) return;
+        const typeId = this.getTypeIdFromTabIndex(tabIndex);
+        if (!typeId) return;
 
     const selected = this.getSelectedGridData(typeId);
     if (selected.length === 0) {
@@ -3358,8 +3365,8 @@ export class ProjectPartListPurchaseRequestSlickGridComponent
       return;
     }
 
-    const typeId = this.getTypeIdFromTabIndex(tabIndex);
-    if (!typeId) return;
+        const typeId = this.getTypeIdFromTabIndex(tabIndex);
+        if (!typeId) return;
 
     const selected = this.getSelectedGridData(typeId);
     if (selected.length === 0) {
@@ -3415,8 +3422,8 @@ export class ProjectPartListPurchaseRequestSlickGridComponent
       return;
     }
 
-    const typeId = this.getTypeIdFromTabIndex(tabIndex);
-    if (!typeId) return;
+        const typeId = this.getTypeIdFromTabIndex(tabIndex);
+        if (!typeId) return;
 
     const selected = this.getSelectedGridData(typeId);
     if (selected.length === 0) {
@@ -3428,22 +3435,22 @@ export class ProjectPartListPurchaseRequestSlickGridComponent
       return;
     }
 
-    // Validation cho TBP duyệt: kiểm tra ProductNewCode nếu ProductSaleID <= 0
-    if (type && status) {
-      for (const row of selected) {
-        const productSaleId = Number(row.ProductSaleID || 0);
-        const productNewCode = String(row.ProductNewCode || '').trim();
-        const productCode = String(row.ProductCode || '');
+        // Validation cho TBP duyệt: kiểm tra ProductNewCode nếu ProductSaleID <= 0
+        if (type && status) {
+            for (const row of selected) {
+                const productSaleId = Number(row.ProductSaleID || 0);
+                const productNewCode = String(row.ProductNewCode || '').trim();
+                const productCode = String(row.ProductCode || '');
 
-        if (productSaleId <= 0 && !productNewCode) {
-          this.notify.warning(
-            NOTIFICATION_TITLE.warning,
-            `Vui lòng tạo Mã nội bộ cho sản phẩm [${productCode}].\nChọn Loại kho sau đó chọn Lưu thay đổi để tạo Mã nội bộ!`
-          );
-          return;
+                if (productSaleId <= 0 && !productNewCode) {
+                    this.notify.warning(
+                        NOTIFICATION_TITLE.warning,
+                        `Vui lòng tạo Mã nội bộ cho sản phẩm [${productCode}].\nChọn Loại kho sau đó chọn Lưu thay đổi để tạo Mã nội bộ!`
+                    );
+                    return;
+                }
+            }
         }
-      }
-    }
 
     this.selectedRowIds = selected.map((r) => r.ID);
     this.selectedTabIndex = tabIndex;
@@ -3496,8 +3503,8 @@ export class ProjectPartListPurchaseRequestSlickGridComponent
       return;
     }
 
-    const typeId = this.getTypeIdFromTabIndex(tabIndex);
-    if (!typeId) return;
+        const typeId = this.getTypeIdFromTabIndex(tabIndex);
+        if (!typeId) return;
 
     const angularGrid = this.angularGrids.get(typeId);
     if (!angularGrid) {
@@ -3521,19 +3528,19 @@ export class ProjectPartListPurchaseRequestSlickGridComponent
       .map((rowIndex: number) => angularGrid.dataView.getItem(rowIndex))
       .filter((item: any) => item);
 
-    // Validate từng sản phẩm theo logic WinForm
-    for (const row of selectedData) {
-      const id = Number(row.ID || 0);
-      if (id <= 0) continue;
+        // Validate từng sản phẩm theo logic WinForm
+        for (const row of selectedData) {
+            const id = Number(row.ID || 0);
+            if (id <= 0) continue;
 
-      const productCode = String(row.ProductCode || '');
-      const productRtcId = Number(row.ProductRTCID || 0);
-      const productSaleId = Number(row.ProductSaleID || 0);
-      const currencyID = Number(row.CurrencyID || 0);
-      const parentProductCode = String(row.ParentProductCodePO || '').trim();
-      const supplierSaleId = Number(row.SupplierSaleID || 0);
-      const unitPrice = Number(row.UnitPrice || 0);
-      const ticketType = Number(row.TicketType || 0); // 0: mua, 1: mượn
+            const productCode = String(row.ProductCode || '');
+            const productRtcId = Number(row.ProductRTCID || 0);
+            const productSaleId = Number(row.ProductSaleID || 0);
+            const currencyID = Number(row.CurrencyID || 0);
+            const parentProductCode = String(row.ParentProductCodePO || '').trim();
+            const supplierSaleId = Number(row.SupplierSaleID || 0);
+            const unitPrice = Number(row.UnitPrice || 0);
+            const ticketType = Number(row.TicketType || 0); // 0: mua, 1: mượn
 
       // Lấy IsApprovedTBP từ requestModel (từ database) thay vì từ row
       const requestModel = this.allData.find(
@@ -3543,77 +3550,77 @@ export class ProjectPartListPurchaseRequestSlickGridComponent
         requestModel?.IsApprovedTBP || row.IsApprovedTBP
       );
 
-      // Validate: productRtcId <= 0 && productSaleId <= 0
-      if (productRtcId <= 0 && productSaleId <= 0) {
-        this.notify.warning(
-          NOTIFICATION_TITLE.warning,
-          `Vui lòng tạo Mã nội bộ cho sản phẩm [${productCode}].\nChọn Loại kho sau đó chọn Lưu thay đổi để tạo Mã nội bộ!`
-        );
-        return;
-      }
+            // Validate: productRtcId <= 0 && productSaleId <= 0
+            if (productRtcId <= 0 && productSaleId <= 0) {
+                this.notify.warning(
+                    NOTIFICATION_TITLE.warning,
+                    `Vui lòng tạo Mã nội bộ cho sản phẩm [${productCode}].\nChọn Loại kho sau đó chọn Lưu thay đổi để tạo Mã nội bộ!`
+                );
+                return;
+            }
 
-      // Validate: currencyID <= 0
-      if (currencyID <= 0) {
-        this.notify.warning(
-          NOTIFICATION_TITLE.warning,
-          `Vui lòng chọn loại tiền tệ cho sản phẩm [${productCode}].\nChọn Loại tiền sau đó chọn Lưu thay đổi!`
-        );
-        return;
-      }
+            // Validate: currencyID <= 0
+            if (currencyID <= 0) {
+                this.notify.warning(
+                    NOTIFICATION_TITLE.warning,
+                    `Vui lòng chọn loại tiền tệ cho sản phẩm [${productCode}].\nChọn Loại tiền sau đó chọn Lưu thay đổi!`
+                );
+                return;
+            }
 
-      // Nếu có parentProductCode, chỉ cần validate supplierSaleId
-      if (parentProductCode) {
-        if (supplierSaleId <= 0) {
-          this.notify.warning(
-            NOTIFICATION_TITLE.warning,
-            `Vui lòng nhập Nhà cung cấp cho sản phẩm con [${productCode}].\nChọn Nhà cung cấp sau đó chọn Lưu thay đổi!`
-          );
-          return;
+            // Nếu có parentProductCode, chỉ cần validate supplierSaleId
+            if (parentProductCode) {
+                if (supplierSaleId <= 0) {
+                    this.notify.warning(
+                        NOTIFICATION_TITLE.warning,
+                        `Vui lòng nhập Nhà cung cấp cho sản phẩm con [${productCode}].\nChọn Nhà cung cấp sau đó chọn Lưu thay đổi!`
+                    );
+                    return;
+                }
+                // Bỏ qua validate khác cho sản phẩm con
+                continue;
+            }
+
+            // Validate: supplierSaleId <= 0
+            if (supplierSaleId <= 0) {
+                this.notify.warning(
+                    NOTIFICATION_TITLE.warning,
+                    `Vui lòng nhập Nhà cung cấp cho sản phẩm [${productCode}].\nChọn Nhà cung cấp sau đó chọn Lưu thay đổi!`
+                );
+                return;
+            }
+
+            // Validate: unitPrice <= 0 && isBorrowProduct == 0
+            if (unitPrice <= 0 && ticketType === 0) {
+                this.notify.warning(
+                    NOTIFICATION_TITLE.warning,
+                    `Vui lòng nhập Đơn giá cho sản phẩm [${productCode}]!`
+                );
+                return;
+            }
+
+            // Validate: !isTBPAprroved && isBorrowProduct == 1
+            if (!isTBPApproved && ticketType === 1) {
+                this.notify.warning(
+                    NOTIFICATION_TITLE.warning,
+                    `Sản phẩm [${productCode}] chưa được TBP duyệt!`
+                );
+                return;
+            }
         }
-        // Bỏ qua validate khác cho sản phẩm con
-        continue;
-      }
 
-      // Validate: supplierSaleId <= 0
-      if (supplierSaleId <= 0) {
-        this.notify.warning(
-          NOTIFICATION_TITLE.warning,
-          `Vui lòng nhập Nhà cung cấp cho sản phẩm [${productCode}].\nChọn Nhà cung cấp sau đó chọn Lưu thay đổi!`
-        );
-        return;
-      }
+        // Check validate: danh sách sản phẩm có cùng nhà cung cấp không
+        const listSupplierSale: number[] = [];
 
-      // Validate: unitPrice <= 0 && isBorrowProduct == 0
-      if (unitPrice <= 0 && ticketType === 0) {
-        this.notify.warning(
-          NOTIFICATION_TITLE.warning,
-          `Vui lòng nhập Đơn giá cho sản phẩm [${productCode}]!`
-        );
-        return;
-      }
+        selectedData.forEach((row: any) => {
+            const id = Number(row.ID || 0);
+            if (id <= 0) return;
 
-      // Validate: !isTBPAprroved && isBorrowProduct == 1
-      if (!isTBPApproved && ticketType === 1) {
-        this.notify.warning(
-          NOTIFICATION_TITLE.warning,
-          `Sản phẩm [${productCode}] chưa được TBP duyệt!`
-        );
-        return;
-      }
-    }
-
-    // Check validate: danh sách sản phẩm có cùng nhà cung cấp không
-    const listSupplierSale: number[] = [];
-
-    selectedData.forEach((row: any) => {
-      const id = Number(row.ID || 0);
-      if (id <= 0) return;
-
-      const supplierSaleId = Number(row.SupplierSaleID || 0);
-      if (supplierSaleId > 0 && !listSupplierSale.includes(supplierSaleId)) {
-        listSupplierSale.push(supplierSaleId);
-      }
-    });
+            const supplierSaleId = Number(row.SupplierSaleID || 0);
+            if (supplierSaleId > 0 && !listSupplierSale.includes(supplierSaleId)) {
+                listSupplierSale.push(supplierSaleId);
+            }
+        });
 
     // Kiểm tra nếu có nhiều hơn 1 nhà cung cấp
     if (listSupplierSale.length > 1) {
@@ -3633,14 +3640,14 @@ export class ProjectPartListPurchaseRequestSlickGridComponent
       return;
     }
 
-    // Thu thập danh sách ID hợp lệ để gửi lên API
-    const validData: any[] = [];
-    selectedData.forEach((row: any) => {
-      const id = Number(row.ID || 0);
-      if (id > 0) {
-        validData.push(row);
-      }
-    });
+        // Thu thập danh sách ID hợp lệ để gửi lên API
+        const validData: any[] = [];
+        selectedData.forEach((row: any) => {
+            const id = Number(row.ID || 0);
+            if (id > 0) {
+                validData.push(row);
+            }
+        });
 
     if (validData.length === 0) {
       this.notify.warning(
@@ -3650,17 +3657,17 @@ export class ProjectPartListPurchaseRequestSlickGridComponent
       return;
     }
 
-    if (this.isYCMH) {
-      for (const row of selectedData) {
-        const id = Number(row.ID || 0);
-        if (id <= 0) continue;
+        if (this.isYCMH) {
+            for (const row of selectedData) {
+                const id = Number(row.ID || 0);
+                if (id <= 0) continue;
 
-        const code = String(row.ProductNewCode || '').trim();
+                const code = String(row.ProductNewCode || '').trim();
 
-        // Chỉ kiểm tra khi không phải tab 5 hoặc 6 (activeTabIndex 4 hoặc 5)
-        if (tabIndex !== 4 && tabIndex !== 5) {
-          const isBGDApproved = Boolean(row.IsApprovedBGD);
-          const isTechBought = Boolean(row.IsTechBought);
+                // Chỉ kiểm tra khi không phải tab 5 hoặc 6 (activeTabIndex 4 hoặc 5)
+                if (tabIndex !== 4 && tabIndex !== 5) {
+                    const isBGDApproved = Boolean(row.IsApprovedBGD);
+                    const isTechBought = Boolean(row.IsTechBought);
 
           // Kiểm tra BGD approval hoặc Tech Bought
           if (!isBGDApproved && !isTechBought) {
@@ -3687,8 +3694,8 @@ export class ProjectPartListPurchaseRequestSlickGridComponent
         next: (rs) => {
           this.isLoading = false;
 
-          this.modal.confirm({
-            nzTitle: `Bạn có chắc muốn tạo PO NCC danh sách sản phẩm đã chọn không?
+                    this.modal.confirm({
+                        nzTitle: `Bạn có chắc muốn tạo PO NCC danh sách sản phẩm đã chọn không?
           \nNhững sản phẩm chưa được BGĐ duyệt sẽ tự động được bỏ qua!`,
             nzOkText: 'Ok',
             nzOkType: 'primary',
@@ -3873,12 +3880,12 @@ export class ProjectPartListPurchaseRequestSlickGridComponent
         ? new Date(row.DateReturnEstimated)
         : null;
 
-      // Xử lý projectName cho hàng thương mại không có projectId
-      if (isCommercialProduct && projectId <= 0) {
-        const customerCode = String(row.CustomerCode || '');
-        const poNumber = String(row.PONumber || '');
-        projectName = `${customerCode}_${poNumber}`;
-      }
+            // Xử lý projectName cho hàng thương mại không có projectId
+            if (isCommercialProduct && projectId <= 0) {
+                const customerCode = String(row.CustomerCode || '');
+                const poNumber = String(row.PONumber || '');
+                projectName = `${customerCode}_${poNumber}`;
+            }
 
       // Lấy tên loại kho từ ProductGroupID hoặc ProductGroupRTCID (tùy theo tab)
       const isRTCTab = tabIndex === 2 || tabIndex === 3;
@@ -3910,27 +3917,27 @@ export class ProjectPartListPurchaseRequestSlickGridComponent
         IsPurchase: false,
       };
 
-      listRequest.push(request);
+            listRequest.push(request);
 
-      // Thu thập currency IDs
-      const currencyId = Number(row.CurrencyID || 0);
-      if (currencyId > 0) {
-        currencys.push(currencyId);
-      }
-    });
+            // Thu thập currency IDs
+            const currencyId = Number(row.CurrencyID || 0);
+            if (currencyId > 0) {
+                currencys.push(currencyId);
+            }
+        });
 
-    return { listRequest, currencys };
-  }
-
-  onDownloadFile(tabIndex: number): void {
-    const typeId = this.getTypeIdFromTabIndex(tabIndex);
-    if (!typeId) return;
-
-    const selected = this.getSelectedGridData(typeId);
-    if (selected.length === 0) {
-      this.notify.warning('Thông báo', 'Vui lòng chọn sản phẩm muốn tải file!');
-      return;
+        return { listRequest, currencys };
     }
+
+    onDownloadFile(tabIndex: number): void {
+        const typeId = this.getTypeIdFromTabIndex(tabIndex);
+        if (!typeId) return;
+
+        const selected = this.getSelectedGridData(typeId);
+        if (selected.length === 0) {
+            this.notify.warning('Thông báo', 'Vui lòng chọn sản phẩm muốn tải file!');
+            return;
+        }
 
     this.selectedRowIds = selected.map((r) => r.ID);
     this.selectedTabIndex = tabIndex;
@@ -3982,8 +3989,8 @@ export class ProjectPartListPurchaseRequestSlickGridComponent
       return;
     }
 
-    const typeId = this.getTypeIdFromTabIndex(tabIndex);
-    if (!typeId) return;
+        const typeId = this.getTypeIdFromTabIndex(tabIndex);
+        if (!typeId) return;
 
     const selected = this.getSelectedGridData(typeId);
     if (selected.length !== 1) {
@@ -3994,7 +4001,7 @@ export class ProjectPartListPurchaseRequestSlickGridComponent
       return;
     }
 
-    const productCode = selected[0].ProductCode;
+        const productCode = selected[0].ProductCode;
 
     const modalRef = this.modalService.open(HistoryPriceComponent, {
       centered: false,
@@ -4015,8 +4022,8 @@ export class ProjectPartListPurchaseRequestSlickGridComponent
       return;
     }
 
-    const typeId = this.getTypeIdFromTabIndex(tabIndex);
-    if (!typeId) return;
+        const typeId = this.getTypeIdFromTabIndex(tabIndex);
+        if (!typeId) return;
 
     const selected = this.getSelectedGridData(typeId);
     if (selected.length !== 1) {
@@ -4027,9 +4034,9 @@ export class ProjectPartListPurchaseRequestSlickGridComponent
       return;
     }
 
-    const originalRow = selected[0];
-    const originalId = Number(originalRow.ID || 0);
-    const originalDuplicateId = Number(originalRow.DuplicateID || 0);
+        const originalRow = selected[0];
+        const originalId = Number(originalRow.ID || 0);
+        const originalDuplicateId = Number(originalRow.DuplicateID || 0);
 
     this.modal.confirm({
       nzTitle: `Bạn có chắc chắn muốn sao chép các dòng đã chọn không?`,
@@ -4047,8 +4054,8 @@ export class ProjectPartListPurchaseRequestSlickGridComponent
               rs.message || 'Sao chép thành công'
             );
 
-            // Reload data và sau đó tìm và select cả 2 dòng (gốc và mới)
-            this.onSearch();
+                        // Reload data và sau đó tìm và select cả 2 dòng (gốc và mới)
+                        this.onSearch();
 
             // Đợi data load xong rồi tìm và select cả 2 dòng
             setTimeout(() => {
@@ -4083,47 +4090,47 @@ export class ProjectPartListPurchaseRequestSlickGridComponent
     const typeId = this.getTypeIdFromTabIndex(tabIndex);
     if (!typeId) return;
 
-    const angularGrid = this.angularGrids.get(typeId);
-    if (!angularGrid || !angularGrid.dataView) return;
+        const angularGrid = this.angularGrids.get(typeId);
+        if (!angularGrid || !angularGrid.dataView) return;
 
-    // Lấy tất cả dữ liệu từ grid
-    const allItems: any[] = [];
-    for (let i = 0; i < angularGrid.dataView.getLength(); i++) {
-      const item = angularGrid.dataView.getItem(i);
-      if (item) {
-        allItems.push(item);
-      }
-    }
+        // Lấy tất cả dữ liệu từ grid
+        const allItems: any[] = [];
+        for (let i = 0; i < angularGrid.dataView.getLength(); i++) {
+            const item = angularGrid.dataView.getItem(i);
+            if (item) {
+                allItems.push(item);
+            }
+        }
 
     // Tìm dòng gốc và dòng mới
     const originalRow = allItems.find(
       (item: any) => Number(item.ID) === originalId
     );
 
-    // Tìm dòng mới: có DuplicateID = originalId hoặc ID = originalDuplicateId (nếu có)
-    // Hoặc tìm dòng có cùng ProductCode, ProjectID và các field khác giống nhưng ID khác originalId
-    let newRow = allItems.find((item: any) => {
-      const itemId = Number(item.ID || 0);
-      const itemDuplicateId = Number(item.DuplicateID || 0);
+        // Tìm dòng mới: có DuplicateID = originalId hoặc ID = originalDuplicateId (nếu có)
+        // Hoặc tìm dòng có cùng ProductCode, ProjectID và các field khác giống nhưng ID khác originalId
+        let newRow = allItems.find((item: any) => {
+            const itemId = Number(item.ID || 0);
+            const itemDuplicateId = Number(item.DuplicateID || 0);
 
-      // Dòng mới sẽ có DuplicateID = originalId
-      if (itemDuplicateId === originalId && itemId !== originalId) {
-        return true;
-      }
+            // Dòng mới sẽ có DuplicateID = originalId
+            if (itemDuplicateId === originalId && itemId !== originalId) {
+                return true;
+            }
 
-      // Hoặc nếu originalDuplicateId > 0, tìm dòng có ID = originalDuplicateId
-      if (originalDuplicateId > 0 && itemId === originalDuplicateId) {
-        return true;
-      }
+            // Hoặc nếu originalDuplicateId > 0, tìm dòng có ID = originalDuplicateId
+            if (originalDuplicateId > 0 && itemId === originalDuplicateId) {
+                return true;
+            }
 
-      return false;
-    });
+            return false;
+        });
 
-    // Nếu không tìm thấy bằng DuplicateID, tìm bằng cách so sánh các field khác
-    if (!newRow && originalRow) {
-      newRow = allItems.find((item: any) => {
-        const itemId = Number(item.ID || 0);
-        if (itemId === originalId) return false; // Bỏ qua dòng gốc
+        // Nếu không tìm thấy bằng DuplicateID, tìm bằng cách so sánh các field khác
+        if (!newRow && originalRow) {
+            newRow = allItems.find((item: any) => {
+                const itemId = Number(item.ID || 0);
+                if (itemId === originalId) return false; // Bỏ qua dòng gốc
 
         // So sánh các field quan trọng để tìm dòng duplicate
         return (
@@ -4136,17 +4143,17 @@ export class ProjectPartListPurchaseRequestSlickGridComponent
       });
     }
 
-    if (!originalRow) {
-      console.warn('Không tìm thấy dòng gốc sau khi duplicate');
-      return;
-    }
+        if (!originalRow) {
+            console.warn('Không tìm thấy dòng gốc sau khi duplicate');
+            return;
+        }
 
-    if (!newRow) {
-      console.warn('Không tìm thấy dòng mới sau khi duplicate');
-      // Chỉ select dòng gốc nếu không tìm thấy dòng mới
-      this.selectRowAndFocusQuantity(angularGrid, originalRow);
-      return;
-    }
+        if (!newRow) {
+            console.warn('Không tìm thấy dòng mới sau khi duplicate');
+            // Chỉ select dòng gốc nếu không tìm thấy dòng mới
+            this.selectRowAndFocusQuantity(angularGrid, originalRow);
+            return;
+        }
 
     // Select cả 2 dòng
     const originalRowIndex = allItems.findIndex(
@@ -4156,13 +4163,13 @@ export class ProjectPartListPurchaseRequestSlickGridComponent
       (item: any) => Number(item.ID) === Number(newRow.ID)
     );
 
-    if (originalRowIndex >= 0 && newRowIndex >= 0) {
-      // Select cả 2 dòng
-      angularGrid.slickGrid.setSelectedRows([originalRowIndex, newRowIndex]);
+        if (originalRowIndex >= 0 && newRowIndex >= 0) {
+            // Select cả 2 dòng
+            angularGrid.slickGrid.setSelectedRows([originalRowIndex, newRowIndex]);
 
-      // Refresh grid để đảm bảo selection được hiển thị
-      angularGrid.slickGrid.invalidate();
-      angularGrid.slickGrid.render();
+            // Refresh grid để đảm bảo selection được hiển thị
+            angularGrid.slickGrid.invalidate();
+            angularGrid.slickGrid.render();
 
       // Đợi một chút để grid render xong
       setTimeout(() => {
@@ -4184,18 +4191,18 @@ export class ProjectPartListPurchaseRequestSlickGridComponent
               quantityColIndex
             );
 
-            // Đợi một chút rồi mới edit để đảm bảo cell đã được focus
-            setTimeout(() => {
-              angularGrid.slickGrid.editActiveCell();
+                        // Đợi một chút rồi mới edit để đảm bảo cell đã được focus
+                        setTimeout(() => {
+                            angularGrid.slickGrid.editActiveCell();
+                        }, 100);
+                    }
+                }
             }, 100);
-          }
+        } else if (originalRowIndex >= 0) {
+            // Chỉ select dòng gốc nếu không tìm thấy dòng mới
+            this.selectRowAndFocusQuantity(angularGrid, originalRow);
         }
-      }, 100);
-    } else if (originalRowIndex >= 0) {
-      // Chỉ select dòng gốc nếu không tìm thấy dòng mới
-      this.selectRowAndFocusQuantity(angularGrid, originalRow);
     }
-  }
 
   // Helper method để select một dòng và focus vào cột Quantity
   private selectRowAndFocusQuantity(
@@ -4216,9 +4223,9 @@ export class ProjectPartListPurchaseRequestSlickGridComponent
     if (rowIndex >= 0) {
       angularGrid.slickGrid.setSelectedRows([rowIndex]);
 
-      // Refresh grid để đảm bảo selection được hiển thị
-      angularGrid.slickGrid.invalidate();
-      angularGrid.slickGrid.render();
+            // Refresh grid để đảm bảo selection được hiển thị
+            angularGrid.slickGrid.invalidate();
+            angularGrid.slickGrid.render();
 
       // Đợi một chút để grid render xong
       setTimeout(() => {
@@ -4233,18 +4240,18 @@ export class ProjectPartListPurchaseRequestSlickGridComponent
             // Scroll đến dòng
             angularGrid.slickGrid.scrollRowIntoView(rowIndex, false);
 
-            // Focus vào cell Quantity và bắt đầu edit
-            angularGrid.slickGrid.setActiveCell(rowIndex, quantityColIndex);
+                        // Focus vào cell Quantity và bắt đầu edit
+                        angularGrid.slickGrid.setActiveCell(rowIndex, quantityColIndex);
 
-            // Đợi một chút rồi mới edit để đảm bảo cell đã được focus
-            setTimeout(() => {
-              angularGrid.slickGrid.editActiveCell();
+                        // Đợi một chút rồi mới edit để đảm bảo cell đã được focus
+                        setTimeout(() => {
+                            angularGrid.slickGrid.editActiveCell();
+                        }, 100);
+                    }
+                }
             }, 100);
-          }
         }
-      }, 100);
     }
-  }
 
   onKeepProduct(tabIndex: number): void {
     if (this.changedRows.length > 0) {
@@ -4255,8 +4262,8 @@ export class ProjectPartListPurchaseRequestSlickGridComponent
       return;
     }
 
-    const typeId = this.getTypeIdFromTabIndex(tabIndex);
-    if (!typeId) return;
+        const typeId = this.getTypeIdFromTabIndex(tabIndex);
+        if (!typeId) return;
 
     const selected = this.getSelectedGridData(typeId);
     if (selected.length !== 1) {
@@ -4305,8 +4312,8 @@ export class ProjectPartListPurchaseRequestSlickGridComponent
       return;
     }
 
-    const typeId = this.getTypeIdFromTabIndex(tabIndex);
-    if (!typeId) return;
+        const typeId = this.getTypeIdFromTabIndex(tabIndex);
+        if (!typeId) return;
 
     const selected = this.getSelectedGridData(typeId);
     if (selected.length === 0) {
@@ -4321,9 +4328,9 @@ export class ProjectPartListPurchaseRequestSlickGridComponent
       (row: any) => row.IsImport !== isImport
     );
 
-    rowsToUpdate.forEach((row: any) => {
-      row.IsImport = isImport;
-    });
+        rowsToUpdate.forEach((row: any) => {
+            row.IsImport = isImport;
+        });
 
     this.modal.confirm({
       nzTitle: `Bạn có chắc chắn muốn chuyển sản phẩm đã chọn thành ${isImportText} không?`,
@@ -4352,9 +4359,9 @@ export class ProjectPartListPurchaseRequestSlickGridComponent
     });
   }
 
-  onSelectYCMH(): void {
-    const typeId = this.tabs[this.activeTabIndex]?.id;
-    if (!typeId) return;
+    onSelectYCMH(): void {
+        const typeId = this.tabs[this.activeTabIndex]?.id;
+        if (!typeId) return;
 
     const angularGrid = this.angularGrids.get(typeId);
     if (!angularGrid) {
@@ -4378,14 +4385,14 @@ export class ProjectPartListPurchaseRequestSlickGridComponent
       .map((rowIndex: number) => angularGrid.dataView.getItem(rowIndex))
       .filter((item: any) => item);
 
-    // Bước 1: Kiểm tra validation
-    for (const data of selected) {
-      const id = data['ID'] || 0;
-      if (id <= 0) continue;
+        // Bước 1: Kiểm tra validation
+        for (const data of selected) {
+            const id = data['ID'] || 0;
+            if (id <= 0) continue;
 
-      const code = data['ProductNewCode'] || '';
-      const isApprovedBGD = data['IsApprovedBGD'] || false;
-      const isTechBought = data['IsTechBought'] || false;
+            const code = data['ProductNewCode'] || '';
+            const isApprovedBGD = data['IsApprovedBGD'] || false;
+            const isTechBought = data['IsTechBought'] || false;
 
       if (!isApprovedBGD && !isTechBought) {
         this.notify.warning(
@@ -4404,26 +4411,26 @@ export class ProjectPartListPurchaseRequestSlickGridComponent
       }
     }
 
-    // Bước 2: Thu thập dữ liệu
-    const lstYCMH: number[] = [];
-    const lstYCMHCode: string[] = [];
+        // Bước 2: Thu thập dữ liệu
+        const lstYCMH: number[] = [];
+        const lstYCMHCode: string[] = [];
 
-    for (const data of selected) {
-      const id = data['ID'] || 0;
-      const code = data['ProductNewCode'] || '';
+        for (const data of selected) {
+            const id = data['ID'] || 0;
+            const code = data['ProductNewCode'] || '';
 
-      if (id <= 0) continue;
+            if (id <= 0) continue;
 
-      const isApprovedBGD = data['IsApprovedBGD'] || false;
+            const isApprovedBGD = data['IsApprovedBGD'] || false;
 
-      if (!isApprovedBGD) continue;
-      if (!code || code.toString().trim() === '') continue;
+            if (!isApprovedBGD) continue;
+            if (!code || code.toString().trim() === '') continue;
 
-      if (!lstYCMH.includes(id)) {
-        lstYCMH.push(id);
-        lstYCMHCode.push(code);
-      }
-    }
+            if (!lstYCMH.includes(id)) {
+                lstYCMH.push(id);
+                lstYCMHCode.push(code);
+            }
+        }
 
     if (lstYCMH.length === 0) {
       this.notify.warning(
@@ -4441,8 +4448,8 @@ export class ProjectPartListPurchaseRequestSlickGridComponent
         ? lstYCMHCode.join('; ')
         : '';
 
-      this.isYCMH = false;
-      this.supplierId = null;
+            this.isYCMH = false;
+            this.supplierId = null;
 
       this.activeModal.close({
         strLstRequestBuyIDs: strLstRequestBuyIDs,
@@ -4451,9 +4458,9 @@ export class ProjectPartListPurchaseRequestSlickGridComponent
     }
   }
 
-  updateInternalCode(tabIndex: number): void {
-    const typeId = this.getTypeIdFromTabIndex(tabIndex);
-    if (!typeId) return;
+    updateInternalCode(tabIndex: number): void {
+        const typeId = this.getTypeIdFromTabIndex(tabIndex);
+        if (!typeId) return;
 
     const selected = this.getSelectedGridData(typeId);
     if (selected.length === 0) {
@@ -4480,9 +4487,9 @@ export class ProjectPartListPurchaseRequestSlickGridComponent
       const selectedRow = selected.find((r: any) => r.ID === rowId);
       if (!selectedRow) return false;
 
-      // Lấy dữ liệu gốc
-      const originalData = this.originalDataMap.get(rowId);
-      if (!originalData) return false;
+            // Lấy dữ liệu gốc
+            const originalData = this.originalDataMap.get(rowId);
+            if (!originalData) return false;
 
       // So sánh các field ngoài ProductGroupID và ProductGroupRTCID
       const fieldsToCheck = [
@@ -4500,16 +4507,16 @@ export class ProjectPartListPurchaseRequestSlickGridComponent
         'IsPaidLater',
       ];
 
-      for (const field of fieldsToCheck) {
-        const currentValue = this.normalizeValue(changedRow[field]);
-        const originalValue = this.normalizeValue(originalData[field]);
-        if (currentValue !== originalValue) {
-          return true; // Có thay đổi field khác
-        }
-      }
+            for (const field of fieldsToCheck) {
+                const currentValue = this.normalizeValue(changedRow[field]);
+                const originalValue = this.normalizeValue(originalData[field]);
+                if (currentValue !== originalValue) {
+                    return true; // Có thay đổi field khác
+                }
+            }
 
-      return false; // Chỉ có thay đổi ProductGroupID/ProductGroupRTCID
-    });
+            return false; // Chỉ có thay đổi ProductGroupID/ProductGroupRTCID
+        });
 
     if (hasOtherChanges) {
       this.notify.warning(
@@ -4519,15 +4526,15 @@ export class ProjectPartListPurchaseRequestSlickGridComponent
       return;
     }
 
-    this.modal.confirm({
-      nzTitle: `Bạn có chắc chắn muốn cập nhật không?`,
-      nzOkText: 'Cập nhật',
-      nzOkType: 'primary',
-      nzCancelText: 'Hủy',
-      nzOkDanger: false,
-      nzClosable: false,
-      nzOnOk: () => {
-        this.isLoading = true;
+        this.modal.confirm({
+            nzTitle: `Bạn có chắc chắn muốn cập nhật không?`,
+            nzOkText: 'Cập nhật',
+            nzOkType: 'primary',
+            nzCancelText: 'Hủy',
+            nzOkDanger: false,
+            nzClosable: false,
+            nzOnOk: () => {
+                this.isLoading = true;
 
         // Lấy dữ liệu từ các dòng đã chọn, đảm bảo có ProductGroupRTCID
         const dataToUpdate = selected.map((row) => {
@@ -4567,44 +4574,44 @@ export class ProjectPartListPurchaseRequestSlickGridComponent
     });
   }
 
-  private validateManufacturerForVision(rows: any[]): boolean {
-    const PRODUCT_GROUP_TVISION = 4;
+    private validateManufacturerForVision(rows: any[]): boolean {
+        const PRODUCT_GROUP_TVISION = 4;
 
-    for (const row of rows) {
-      const manufacturer = String(row.Manufacturer || '').trim();
-      const productGroupID = Number(row.ProductGroupID || 0);
-      const productSaleID = Number(row.ProductSaleID || 0);
-      const productCode = String(row.ProductCode || '');
-      const tt = String(row.TT || '');
+        for (const row of rows) {
+            const manufacturer = String(row.Manufacturer || '').trim();
+            const productGroupID = Number(row.ProductGroupID || 0);
+            const productSaleID = Number(row.ProductSaleID || 0);
+            const productCode = String(row.ProductCode || '');
+            const tt = String(row.TT || '');
 
-      if (productSaleID <= 0) {
-        if (!manufacturer && productGroupID === PRODUCT_GROUP_TVISION) {
-          this.notify.error(
-            NOTIFICATION_TITLE.error,
-            `Yêu cầu mua hàng kho vision có mã sản phẩm ${productCode} ở vị trí ${tt} phải có hãng!`
-          );
-          return false;
+            if (productSaleID <= 0) {
+                if (!manufacturer && productGroupID === PRODUCT_GROUP_TVISION) {
+                    this.notify.error(
+                        NOTIFICATION_TITLE.error,
+                        `Yêu cầu mua hàng kho vision có mã sản phẩm ${productCode} ở vị trí ${tt} phải có hãng!`
+                    );
+                    return false;
+                }
+            }
         }
-      }
+
+        return true;
     }
 
-    return true;
-  }
+    private normalizeValue(value: any): any {
+        // Nếu là null hoặc undefined, trả về null
+        if (value === null || value === undefined || value === '') {
+            return null;
+        }
 
-  private normalizeValue(value: any): any {
-    // Nếu là null hoặc undefined, trả về null
-    if (value === null || value === undefined || value === '') {
-      return null;
+        // Nếu là số, chuyển về dạng số để so sánh
+        if (typeof value === 'number' || !isNaN(Number(value))) {
+            return Number(value);
+        }
+
+        // Các giá trị khác giữ nguyên
+        return value;
     }
-
-    // Nếu là số, chuyển về dạng số để so sánh
-    if (typeof value === 'number' || !isNaN(Number(value))) {
-      return Number(value);
-    }
-
-    // Các giá trị khác giữ nguyên
-    return value;
-  }
 
   closeModal(): void {
     if (this.activeModal) {

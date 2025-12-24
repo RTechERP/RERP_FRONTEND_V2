@@ -55,6 +55,9 @@ export class EmployeeContractComponent implements OnInit, OnChanges {
   selectedContract: any = null;
   isPrinting: boolean = false;
 
+  readonly INDEFINITE_CONTRACT_TYPE_ID = 5;
+  isDateEndRequired: boolean = true;
+
   contractId: any = 0;
   keyword: any = '';
 
@@ -82,6 +85,12 @@ export class EmployeeContractComponent implements OnInit, OnChanges {
       DateSign: [''],
       IsDelete: false
     });
+
+    this.employeeContractForm.get('EmployeeLoaiHDLDID')?.valueChanges.subscribe((contractTypeId: number | null) => {
+      this.onContractTypeChange(contractTypeId);
+    });
+
+    this.onContractTypeChange(this.employeeContractForm.get('EmployeeLoaiHDLDID')?.value);
   }
 
   initFormSearch() {
@@ -112,12 +121,23 @@ export class EmployeeContractComponent implements OnInit, OnChanges {
     }
   }
 
-  onContractTypeChange(contractTypeId: number) {
-    if (contractTypeId === 5) {
-      this.employeeContractForm.patchValue({
-        DateEnd: null
-      });
+  onContractTypeChange(contractTypeId: number | null) {
+    const dateEndControl = this.employeeContractForm?.get('DateEnd');
+    if (!dateEndControl) {
+      return;
     }
+
+    const isIndefinite = contractTypeId === this.INDEFINITE_CONTRACT_TYPE_ID;
+    this.isDateEndRequired = !isIndefinite;
+
+    if (isIndefinite) {
+      dateEndControl.clearValidators();
+      dateEndControl.setValue(null, { emitEvent: false });
+    } else {
+      dateEndControl.setValidators([Validators.required]);
+    }
+
+    dateEndControl.updateValueAndValidity({ emitEvent: false });
   }
 
   // loadEmployees() {

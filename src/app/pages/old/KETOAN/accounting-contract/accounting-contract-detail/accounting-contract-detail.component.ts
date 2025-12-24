@@ -41,6 +41,7 @@ import { CustomerDetailComponent } from '../../../../crm/customers/customer-deta
 })
 export class AccountingContractDetailComponent implements OnInit, AfterViewInit {
   @Input() editId: number = 0;
+  @Input() isCopyMode: boolean = false;
   @Input() isReceivedContractMode: boolean = false;
   @ViewChild('tb_ContractFile', { static: false })
   tb_ContractFileElement!: ElementRef;
@@ -192,6 +193,15 @@ export class AccountingContractDetailComponent implements OnInit, AfterViewInit 
 
           // Cập nhật trạng thái disable/enable và required dựa trên contractGroup
           this.onContractGroupChange();
+
+          // Nếu là copy mode, xóa data các trường không cần thiết
+          if (this.isCopyMode) {
+            this.dateReceived = null;
+            this.quantityDocument = 0;
+            this.contractNumber = '';
+            this.dateContract = null;
+            this.contractId = null;
+          }
 
           // Load files sau khi load data
           this.loadContractFiles();
@@ -964,7 +974,7 @@ export class AccountingContractDetailComponent implements OnInit, AfterViewInit 
 
     // Build DTO theo format API yêu cầu
     const accountingContract = {
-      ID: this.editId || 0,
+      ID: this.isCopyMode ? 0 : (this.editId || 0),
       DateInput: this.formatLocalDate(this.dateInput),
       Company: Number(this.company) || 0,
       ContractGroup: this.contractGroup || 0,

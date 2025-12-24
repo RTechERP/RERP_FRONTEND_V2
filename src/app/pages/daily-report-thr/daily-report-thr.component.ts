@@ -8,6 +8,7 @@ import { NzDatePickerModule } from 'ng-zorro-antd/date-picker';
 import { NzInputModule } from 'ng-zorro-antd/input';
 import { NzSelectModule } from 'ng-zorro-antd/select';
 import { NzFormModule } from 'ng-zorro-antd/form';
+import { NzGridModule } from 'ng-zorro-antd/grid';
 import { NzSplitterModule } from 'ng-zorro-antd/splitter';
 import { NzNotificationModule, NzNotificationService } from 'ng-zorro-antd/notification';
 import { NzModalModule, NzModalService } from 'ng-zorro-antd/modal';
@@ -39,6 +40,7 @@ import { DailyReportHrDetailComponent } from '../DailyReportTech/daily-report-hr
     NzInputModule,
     NzSelectModule,
     NzFormModule,
+    NzGridModule,
     NzSplitterModule,
     NzNotificationModule,
     NzModalModule,

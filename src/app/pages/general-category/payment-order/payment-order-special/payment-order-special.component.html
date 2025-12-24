@@ -1,6 +1,7 @@
 <div class="modal-content">
-    <div class="modal-header bg-primary">
-        <h5 class="modal-title" id="staticBackdropLabel">Chi tiết đề nghị thanh toán</h5>
+    <div class="modal-header bg-primary py-2">
+        <h5 class="modal-title text-uppercase text-light" id="staticBackdropLabel">Chi tiết đề nghị thanh toán đặc biệt
+        </h5>
         <button type="button" class="btn-close" aria-label="Close" (click)="activeModal.close()"></button>
     </div>
     <div class="modal-body">
@@ -47,7 +48,8 @@
                             <nz-select nzShowSearch nzAllowClear nzPlaceHolder="Chọn khách hàng"
                                 [formControlName]="paymentOrderField.CustomerID.field">
                                 @for (item of customers; track item) {
-                                <nz-option nzLabel="{{item.NameNCC}}" nzValue="{{item.ID}}"></nz-option>
+                                <nz-option nzLabel="{{item.CustomerCode}} - {{item.CustomerName}}"
+                                    [nzValue]="item.ID"></nz-option>
                                 }
                             </nz-select>
                         </nz-form-control>
@@ -63,7 +65,7 @@
                             <nz-select nzShowSearch nzAllowClear nzPlaceHolder="Chọn loại"
                                 [formControlName]="paymentOrderField.ApprovedTBPID.field">
                                 @for (item of approvedTBPs; track item) {
-                                <nz-option nzLabel="{{item.FullName}}" nzValue="{{item.EmployeeID}}"></nz-option>
+                                <nz-option nzLabel="{{item.FullName}}" [nzValue]="item.EmployeeID"></nz-option>
                                 }
                             </nz-select>
                         </nz-form-control>
@@ -77,7 +79,7 @@
                             <nz-select nzShowSearch nzAllowClear nzPlaceHolder="Chọn giám đốc"
                                 [formControlName]="paymentOrderField.ApprovedBGDID.field">
                                 @for (item of approvedTBPs; track item) {
-                                <nz-option nzLabel="{{item.FullName}}" nzValue="{{item.EmployeeID}}"></nz-option>
+                                <nz-option nzLabel="{{item.FullName}}" [nzValue]="item.EmployeeID"></nz-option>
                                 }
                             </nz-select>
                         </nz-form-control>
@@ -127,9 +129,10 @@
                         <nz-form-label>Số PO</nz-form-label>
                         <nz-form-control nzErrorTip="Chọn po">
                             <nz-select nzShowSearch nzAllowClear nzPlaceHolder="Chọn loại"
-                                [formControlName]="paymentOrderField.POCode.field">
+                                [formControlName]="'PaymentOrderPOs'" nzMode="multiple">
                                 @for (item of pokhs; track item) {
-                                <nz-option nzLabel="{{item.BillCode}}" nzValue="{{item.ID}}"></nz-option>
+                                <nz-option nzLabel="{{item.PONumber}} - {{item.POCode}}"
+                                    [nzValue]="item.ID"></nz-option>
                                 }
                             </nz-select>
                         </nz-form-control>
@@ -141,11 +144,10 @@
                     <nz-form-item>
                         <nz-form-label>Số hóa đơn</nz-form-label>
                         <nz-form-control nzErrorTip="">
-                            <nz-select nzShowSearch nzAllowClear nzPlaceHolder="Chọn dự án"
-                                [formControlName]="paymentOrderField.BillNumbers.field">
+                            <nz-select nzShowSearch nzAllowClear nzPlaceHolder=""
+                                [formControlName]="'PaymentOrderBillNumbers'" nzMode="multiple">
                                 @for (item of billBumbers; track item) {
-                                <nz-option nzLabel="{{item.ProjectCode}} - {{item.ProjectName}}"
-                                    nzValue="{{item.ID}}"></nz-option>
+                                <nz-option nzLabel="{{item.BillNumber}}" [nzValue]="item.BillNumber"></nz-option>
                                 }
                             </nz-select>
                         </nz-form-control>
@@ -221,7 +223,7 @@
 
         </div>
     </div>
-    <div class="modal-footer">
+    <div class="modal-footer py-2">
         <button nz-button nzType="default" nzDanger="" (click)="activeModal.close()">
             <nz-icon nzType="close" nzTheme="outline" /> Đóng
         </button>

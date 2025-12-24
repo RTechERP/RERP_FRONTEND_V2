@@ -68,6 +68,13 @@ export class DailyReportSaleAdminService {
     return this.http.post<any>(this._url + 'save-data', payload);
   }
 
+  saveReportType(reportTypeName: string): Observable<any> {
+    const model = {
+      ReportTypeName: reportTypeName
+    };
+    return this.http.post(this._url + 'save-reporttype', model);
+  }
+
   delete(id: number): Observable<any> {
     return this.http.post<any>(this._url + 'delete', null, {
       params: {

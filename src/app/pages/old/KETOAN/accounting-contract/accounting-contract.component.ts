@@ -150,7 +150,8 @@ export class AccountingContractComponent implements OnInit, AfterViewInit {
 
   search() {
     // Update ajaxParams và reload data
-    this.tb_AccountingContract.setData(this.accountingContractService.getAccountingContractAjax(), this.getAjaxParams());
+    this.tb_AccountingContract.setData(this.accountingContractService.getAccountingContractAjax());
+    this.tb_AccountingContract.replaceData();
   }
 
   loadData() {
@@ -258,6 +259,7 @@ export class AccountingContractComponent implements OnInit, AfterViewInit {
     });
     
     modalRef.componentInstance.editId = this.selectedRow.ID;
+    modalRef.componentInstance.isReceivedContractMode = this.selectedRow.IsReceivedContract === true;
     
     modalRef.result.then(
       (result) => {
@@ -426,7 +428,71 @@ export class AccountingContractComponent implements OnInit, AfterViewInit {
     });
   }
 
+  onOpenAccountingContractLogModal(){
+      if (!this.selectedRow) {
+      this.notification.warning(
+        NOTIFICATION_TITLE.warning, 
+        'Vui lòng chọn hợp đồng để xem lịch sử cập nhật'
+      );
+      return;
+    }
+
+    this.modal.confirm({
+      nzTitle: `Xác nhận`,
+      nzContent: `Bạn có chắc chắn muốn hủy nhận chứng từ hợp đồng đã chọn?`,
+      nzOkText: 'Xác nhận',
+      nzCancelText: 'Hủy',
+      nzOnOk: () => {
+        this.accountingContractService.cancelContract(this.selectedRow.ID).subscribe({
+          next: (response: any) => {
+            if (response && (response.status === 1 || response.Status === 1)) {
+              const message = 'Hủy nhận chứng từ hợp đồng thành công';
+              this.notification.success(NOTIFICATION_TITLE.success, message);
+              this.loadData();
+            } else {
+              const errorMessage = response?.message || response?.Message || 'Có lỗi xảy ra';
+              this.notification.error(NOTIFICATION_TITLE.error, errorMessage);
+            }
+          },
+          error: (error: any) => {
+            console.error('Error in onCancelReceiveContract:', error);
+            const errorMessage = error?.error?.message || error?.error?.Message || error?.message || 'Có lỗi xảy ra khi hủy nhận chứng từ hợp đồng';
+            this.notification.error(NOTIFICATION_TITLE.error, errorMessage);
+          }
+        });
+      }
+    });
+  }
+
   onCopy() {
+    if (!this.selectedRow || !this.selectedRow.ID) {
+      this.notification.warning(
+        NOTIFICATION_TITLE.warning, 
+        'Vui lòng chọn hợp đồng để sửa'
+      );
+      return;
+    }
+
+    const modalRef = this.modalService.open(AccountingContractDetailComponent, {
+      size: 'xl',
+      backdrop: 'static',
+      centered: true,
+    });
+
+    modalRef.componentInstance.editId = this.selectedRow.ID;
+    modalRef.componentInstance.isCopyMode = true;
+    modalRef.componentInstance.isReceivedContractMode = false;
+    
+    modalRef.result.then(
+      (result) => {
+        if (result === 'saved' || result === 'success') {
+          this.loadData();
+        }
+      },
+      () => {
+        // Modal dismissed
+      }
+    );
   }
 
   getAjaxParams(): any {
@@ -456,13 +522,16 @@ export class AccountingContractComponent implements OnInit, AfterViewInit {
     this.tb_AccountingContract = new Tabulator(this.tb_AccountingContractElement.nativeElement, {
       layout: 'fitColumns',
       height: '100%',
+      dataTree: true,
+      dataTreeStartExpanded: true,
+      dataTreeChildField: '_children',
       selectableRows: 1,
       pagination: true,
       paginationMode: 'remote',
       paginationSize: 50,
       paginationSizeSelector: [10, 30, 50, 100, 300, 500, 99999999],
       ajaxURL: this.accountingContractService.getAccountingContractAjax(),
-      ajaxParams: this.getAjaxParams(),
+      ajaxParams: () => this.getAjaxParams(),
       ajaxConfig: {
         method: 'GET',
         headers: {
@@ -471,14 +540,19 @@ export class AccountingContractComponent implements OnInit, AfterViewInit {
         },
       },
       ajaxResponse: (url, params, res) => {
-        const data = res.data || [];
-        const totalPage = data.length > 0 && data[0].TotalPage ? data[0].TotalPage : 1;
-        
+        const flatData = res.data || [];
+        const totalPage = flatData.length > 0 && flatData[0].TotalPage ? flatData[0].TotalPage : 1;
+
         console.log('total', totalPage);
-        console.log('data', data);
-        
+        console.log('flat data', flatData);
+
+        // Convert flat data to tree structure
+        const treeData = this.convertToTreeData(flatData);
+
+        console.log('tree data', treeData);
+
         return {
-          data: data,
+          data: treeData,
           last_page: totalPage,
         };
       },
@@ -579,9 +653,9 @@ export class AccountingContractComponent implements OnInit, AfterViewInit {
           title: 'Công ty',
           field: 'CompanyName',
           sorter: 'string',
-          width: 200,
+          width: 100,
           headerFilter: 'input',
-          headerFilterPlaceholder: 'Lọc tên công ty',
+          headerFilterPlaceholder: 'Lọc công ty',
         },
         {
           title: 'Phân loại HĐ chính',
@@ -788,6 +862,11 @@ export class AccountingContractComponent implements OnInit, AfterViewInit {
       {
         label:
           '<span style="font-size: 0.75rem;"><i class="fas fa-eye"></i>Hủy nhận chứng từ</span>',
+        // action: () => this.exportToExcel(),
+      },
+      {
+        label:
+          '<span style="font-size: 0.75rem;"><i class="fas fa-eye"></i>Lịch sử cập nhật</span>',
         // action: () => this.exportToExcel(),
       },
     ];
@@ -1026,6 +1105,33 @@ export class AccountingContractComponent implements OnInit, AfterViewInit {
     const month = String(date.getMonth() + 1).padStart(2, '0');
     const year = date.getFullYear();
     return `${day}/${month}/${year}`;
+  }
+
+  private convertToTreeData(flatData: any[]): any[] {
+    const treeData: any[] = [];
+    const map = new Map();
+
+    // Đầu tiên, tạo map với key là ID của mỗi item
+    flatData.forEach((item) => {
+      map.set(item.ID, { ...item, _children: [] });
+    });
+
+    // Sau đó, xây dựng cấu trúc cây
+    flatData.forEach((item) => {
+      const node = map.get(item.ID);
+      if (item.ParentID === 0 || item.ParentID === null) {
+        // Nếu là node gốc (không có parent)
+        treeData.push(node);
+      } else {
+        // Nếu là node con, thêm vào mảng _children của parent
+        const parent = map.get(item.ParentID);
+        if (parent) {
+          parent._children.push(node);
+        }
+      }
+    });
+
+    return treeData;
   }
 
 }

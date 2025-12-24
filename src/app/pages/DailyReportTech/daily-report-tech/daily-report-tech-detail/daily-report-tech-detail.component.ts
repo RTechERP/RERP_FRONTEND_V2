@@ -2,7 +2,9 @@ import {
   Component,
   OnInit,
   Input,
-  AfterViewInit
+  AfterViewInit,
+  ViewChild,
+  TemplateRef
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule, ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
@@ -122,6 +124,10 @@ export class DailyReportTechDetailComponent implements OnInit, AfterViewInit {
   activeAccordion: { [key: string]: boolean } = {
     additional_info: false // Mặc định đóng
   };
+
+  // Template reference cho preview modal
+  @ViewChild('previewModalContent', { static: false }) previewModalTemplate!: TemplateRef<any>;
+  previewContent: string = '';
 
   constructor(
     private fb: FormBuilder,
@@ -699,7 +705,7 @@ export class DailyReportTechDetailComponent implements OnInit, AfterViewInit {
     }
   }
 
-  // Mở modal preview
+
   openPreviewModal(): void {
     const summaryContent = this.generateSummary();
    
@@ -707,33 +713,12 @@ export class DailyReportTechDetailComponent implements OnInit, AfterViewInit {
       return;
     }
    
-    // Escape HTML
-    const escapedContent = summaryContent
-      .replace(/&/g, '&amp;')
-      .replace(/</g, '&lt;')
-      .replace(/>/g, '&gt;')
-      .replace(/"/g, '&quot;')
-      .replace(/'/g, '&#39;');
+    // Set nội dung để bind vào template
+    this.previewContent = summaryContent;
    
     const modal = this.modalService.create({
       nzTitle: 'Tổng hợp báo cáo',
-      nzContent: `
-        <div style="max-height: 60vh; overflow-y: auto; padding: 10px;">
-          <pre style="
-            width: 100%; 
-            padding: 15px; 
-            font-family: 'Courier New', monospace; 
-            font-size: 13px; 
-            line-height: 1.6;
-            background-color: #f5f5f5;
-            border: 1px solid #d9d9d9; 
-            border-radius: 4px; 
-            white-space: pre-wrap; 
-            word-wrap: break-word; 
-            margin: 0;
-          ">${escapedContent}</pre>
-        </div>
-      `,
+      nzContent: this.previewModalTemplate,
       nzFooter: [
         {
           label: 'Huỷ',
@@ -756,38 +741,47 @@ export class DailyReportTechDetailComponent implements OnInit, AfterViewInit {
           }
         }
       ],
-      nzWidth: '90%',
-      nzStyle: { top: '20px' },
+      nzWidth: '85%',
+      nzStyle: { 
+        top: '50px',
+        maxWidth: '1200px'
+      },
       nzClosable: true,
-      nzMaskClosable: false
+      nzMaskClosable: false,
+      nzBodyStyle: {
+        padding: '0',
+        maxHeight: 'calc(100vh - 200px)',
+        overflow: 'hidden'
+      },
+      nzClassName: 'custom-report-modal'
     });
   }
-
+  
   // Chuyển đổi dữ liệu từ nested sang flat (1 project + 1 projectItem = 1 report)
   private convertToFlatData(): any[] {
     const dateReport = this.formGroup.get('DateReport')?.value;
     if (!dateReport) {
       return [];
     }
-
+  
     // Format date thành YYYY-MM-DD
     const dateReportStr = DateTime.fromJSDate(dateReport).toFormat('yyyy-MM-dd');
     const userReport = this.currentUser?.ID || 0;
-
+  
     const reports: any[] = [];
-
+  
     // Duyệt qua từng dự án
     for (const project of this.projectList) {
       if (!project.ProjectID || project.ProjectID === 0) {
         continue;
       }
-
+  
       // Duyệt qua từng hạng mục công việc trong dự án
       for (const item of project.ProjectItems) {
         if (!item.ProjectItemID || item.ProjectItemID === 0) {
           continue;
         }
-
+  
         // Tạo 1 báo cáo cho mỗi cặp project + projectItem
         // Nếu ở chế độ edit và item có ID, giữ lại ID để update
         const report: any = {
@@ -816,14 +810,13 @@ export class DailyReportTechDetailComponent implements OnInit, AfterViewInit {
           DeleteFlag: 0,
           Confirm: false
         };
-
+  
         reports.push(report);
       }
     }
-
+  
     return reports;
   }
-
   // Lấy prefix cho message lỗi (hạng mục hoặc công việc)
   private getMessagePrefix(projectID: number, projectItemID: number): string {
     // Tìm project

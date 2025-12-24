@@ -20,6 +20,7 @@ import { NzGridModule } from 'ng-zorro-antd/grid';
 import { NzDatePickerModule } from 'ng-zorro-antd/date-picker';
 import { NzInputModule } from 'ng-zorro-antd/input';
 import { NzSelectModule } from 'ng-zorro-antd/select';
+import { NzFormModule } from 'ng-zorro-antd/form';
 import { NzTableModule } from 'ng-zorro-antd/table';
 import { NzSpinModule } from 'ng-zorro-antd/spin';
 import { NzModalModule } from 'ng-zorro-antd/modal';
@@ -52,6 +53,7 @@ import { RegistercontractdetailComponent } from './register-contract-detail/regi
     NzDatePickerModule,
     NzInputModule,
     NzSelectModule,
+    NzFormModule,
     NzTableModule,
     NzSpinModule,
     NzModalModule,
@@ -75,7 +77,8 @@ export class RegisterContractComponent implements OnInit, AfterViewInit {
   @ViewChild('cancelReasonTemplate', { static: false })
   cancelReasonTemplate!: TemplateRef<any>;
 
-  sizeSearch: string = '22%';
+  // Search panel state
+  showSearchBar: boolean = false; // Mặc định ẩn, sẽ được set trong ngOnInit
   isLoadTable: any = false;
   cancelReason: string = '';
 
@@ -110,7 +113,11 @@ export class RegisterContractComponent implements OnInit, AfterViewInit {
   //#endregion
 
   //#region Chạy khi mở
-  ngOnInit(): void {}
+  ngOnInit(): void {
+    // Kiểm tra nếu là mobile thì ẩn filter bar, desktop thì hiển thị
+    const isMobile = window.innerWidth <= 768;
+    this.showSearchBar = !isMobile;
+  }
 
   ngAfterViewInit(): void {
     this.drawTbRegisterContract(this.tb_registerContractContainer.nativeElement);
@@ -145,8 +152,38 @@ export class RegisterContractComponent implements OnInit, AfterViewInit {
     });
   }
 
-  toggleSearchPanel() {
-    this.sizeSearch = this.sizeSearch == '0' ? '22%' : '0';
+  get shouldShowSearchBar(): boolean {
+    return this.showSearchBar;
+  }
+
+  ToggleSearchPanelNew(event?: Event): void {
+    if (event) {
+      event.preventDefault();
+      event.stopPropagation();
+    }
+
+    const isMobile = window.innerWidth <= 768;
+    const wasOpen = this.showSearchBar;
+
+    this.showSearchBar = !this.showSearchBar;
+
+    if (isMobile) {
+      if (this.showSearchBar) {
+        document.body.style.overflow = 'hidden';
+        document.body.style.position = 'fixed';
+        document.body.style.width = '100%';
+      } else {
+        document.body.style.overflow = '';
+        document.body.style.position = '';
+        document.body.style.width = '';
+      }
+    }
+
+    requestAnimationFrame(() => {
+      if (isMobile && this.showSearchBar && !wasOpen) {
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+      }
+    });
   }
 
   getDepartment() {
@@ -288,7 +325,7 @@ export class RegisterContractComponent implements OnInit, AfterViewInit {
       ...DEFAULT_TABLE_CONFIG,
       pagination: true,
       layout: 'fitDataStretch',
-      height: '87vh',
+      height: '83vh',
       paginationMode: 'local',
       selectableRows: 1,
       rowHeader:false,
@@ -544,6 +581,17 @@ export class RegisterContractComponent implements OnInit, AfterViewInit {
         console.log('Dữ liệu nhận được:', response.data?.length || 0, 'bản ghi');
         this.tb_registerContract.setData(response.data || []);
         this.isLoadTable = false;
+
+        // Tự động ẩn filter bar trên mobile sau khi tìm kiếm
+        const isMobile = window.innerWidth <= 768;
+        if (isMobile && this.showSearchBar) {
+          document.body.style.overflow = '';
+          document.body.style.position = '';
+          document.body.style.width = '';
+          setTimeout(() => {
+            this.showSearchBar = false;
+          }, 100);
+        }
       },
       error: (error) => {
         const msg = error.message || 'Lỗi không xác định';

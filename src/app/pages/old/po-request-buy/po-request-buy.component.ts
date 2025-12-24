@@ -119,7 +119,7 @@ export class PoRequestBuyComponent implements OnInit, AfterViewInit {
 
     this.loadDepartment();
     this.loadEmployee();
-    this.loadPOKHProducts(this.pokhId, 0);
+    this.loadPOKHProducts(this.pokhId);
   }
   ngAfterViewInit(): void {
     this.initDataTable();
@@ -127,8 +127,9 @@ export class PoRequestBuyComponent implements OnInit, AfterViewInit {
   closeModal(): void {
     this.activeModal.close();
   }
-  loadPOKHProducts(id: number = 0, idDetail: number = 0): void {
-    this.PoRequestBuyService.getPOKHProduct(id, idDetail).subscribe({
+
+  loadPOKHProducts(id: number = 0): void {
+    this.PoRequestBuyService.getPOKHProductForRequestBuy(id).subscribe({
       next: (response) => {
         if (response.status === 1) {
           const gridData = response.data;
@@ -239,8 +240,8 @@ export class PoRequestBuyComponent implements OnInit, AfterViewInit {
       EmployeeID: this.selectedEmployee,
       ProductCode: row.ProductCode,
       ProductName: row.ProductName,
-      DateRequest: this.dateRequest,
-      DateReturnExpected: this.dateReturnExpected,
+      DateRequest: this.formatLocalDate(this.dateRequest),
+      DateReturnExpected: this.formatLocalDate(this.dateReturnExpected),
       Quantity: row.QuantityRequestRemain,
       Note: row.Note,
       ProductSaleID: row.ProductID,
@@ -273,6 +274,8 @@ export class PoRequestBuyComponent implements OnInit, AfterViewInit {
       },
     });
   }
+
+  
   initDataTable(): void {
     this.dataTable = new Tabulator(this.dataTableElement.nativeElement, {
       data: this.gridData,
@@ -393,6 +396,7 @@ export class PoRequestBuyComponent implements OnInit, AfterViewInit {
           title: 'SL yêu cầu',
           field: 'QuantityRequestRemain',
           sorter: 'number',
+          editor: 'number',
           width: 100,
         },
         {
@@ -589,6 +593,19 @@ export class PoRequestBuyComponent implements OnInit, AfterViewInit {
     this.dataTable.deselectRow();
     this.selectedRows = [];
     console.log('All Deselected');
+  }
+
+  private formatLocalDate(date: Date | null): string | null {
+    if (!date) {
+      return null;
+    }
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+    const hours = String(date.getHours()).padStart(2, '0');
+    const minutes = String(date.getMinutes()).padStart(2, '0');
+    const seconds = String(date.getSeconds()).padStart(2, '0');
+    return `${year}-${month}-${day}T${hours}:${minutes}:${seconds}`;
   }
 
   private updateHeaderCheckbox(): void {

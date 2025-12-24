@@ -1000,29 +1000,29 @@ export class VehicleBookingManagementComponent
             this.openUpdateVehicleMoneyModal(rowData);
           }
         },
-        {
-          label: 'Lưu thời gian xuất phát thực tế',
-          action: (e: any, row: any) => {
-            const rowData = row.getData();
-            const rowId = rowData['ID'];
+        // {
+        //   label: 'Lưu thời gian xuất phát thực tế',
+        //   action: (e: any, row: any) => {
+        //     const rowData = row.getData();
+        //     const rowId = rowData['ID'];
             
-            // Kiểm tra xem dòng này có thay đổi pending không
-            if (this.pendingChanges.has(rowId)) {
-              const change = this.pendingChanges.get(rowId);
-              if (change) {
-                // Lưu thay đổi của dòng này
-                this.saveSingleChange(rowId, change.departureDateActual);
-              }
-            } else {
-              this.notification.info('Thông báo', 'Dòng này không có thay đổi để lưu.');
-            }
-          },
-          visible: (e: any, row: any) => {
-            const rowData = row.getData();
-            const rowId = rowData['ID'];
-            return this.pendingChanges.has(rowId);
-          }
-        }
+        //     // Kiểm tra xem dòng này có thay đổi pending không
+        //     if (this.pendingChanges.has(rowId)) {
+        //       const change = this.pendingChanges.get(rowId);
+        //       if (change) {
+        //         // Lưu thay đổi của dòng này
+        //         this.saveSingleChange(rowId, change.departureDateActual);
+        //       }
+        //     } else {
+        //       this.notification.info('Thông báo', 'Dòng này không có thay đổi để lưu.');
+        //     }
+        //   },
+        //   visible: (e: any, row: any) => {
+        //     const rowData = row.getData();
+        //     const rowId = rowData['ID'];
+        //     return this.pendingChanges.has(rowId);
+        //   }
+        // }
       ];
 
       this.vehicleBookingManagementTable = new Tabulator(
@@ -1086,34 +1086,28 @@ export class VehicleBookingManagementComponent
               cssClass: 'group-booking-info',
               title: 'Thông tin đặt xe',
               columns: [
-                { title: 'TBP duyệt', field: 'ApprovedTBPText', width: 100 },
-                { title: 'Tên TBP duyệt', field: 'FullNameTBP', width: 120 },
-                {
-                  title: 'Lý do phát sinh',
-                  field: 'ProblemArises',
-                  width: 120,
-                  formatter:'textarea',
-                },
+              
                 { title: 'Hình thức đặt', field: 'CategoryText', width: 120 },
                 {
                   title: 'Họ tên',
                   // field: 'FullName',
                   field: 'BookerVehicles',
-                  width: 150,
+                  width: 100,
                   bottomCalc: 'count',
+                    formatter:'textarea',
                 },
-                { title: 'Phòng ban', field: 'DepartmentName',   formatter:'textarea',width: 120 },
+                { title: 'Phòng ban', field: 'DepartmentName',width: 120,  formatter:'textarea', },
                 {
                   title: 'Điểm xuất phát',
                   field: 'DepartureAddress',
-                  width: 150,
-                  formatter:'textarea',
+                  width: 100,
+                   formatter:'textarea',
                 },
                 {
                   title: 'Thời gian xuất phát',
                   field: 'DepartureDate',
                   hozAlign: 'center',
-                  width: 150,
+                  width: 120,
                   formatter: (cell) => {
                     const value = cell.getValue();
                     if (!value) return '';
@@ -1133,7 +1127,7 @@ export class VehicleBookingManagementComponent
                   title: 'Thời gian xuất phát thực tế',
                   field: 'DepartureDateActual',
                   hozAlign: 'center',
-                  width: 200,
+                  width: 120,
                   editor: this.createDateTimeEditor.bind(this),
                   formatter: (cell) => {
                     const value = cell.getValue();
@@ -1153,13 +1147,13 @@ export class VehicleBookingManagementComponent
                 {
                   title: 'Ghi chú',
                   field: 'Note',
-                  width: 300,
-                  formatter: 'textarea',
+                  width: 150,
+                   formatter:'textarea',
                 },
                 {
                   title: 'Loại phương tiện',
                   field: 'VehicleTypeText',
-                  width: 140,
+                  width: 100,
                 },
               ],
             },
@@ -1174,12 +1168,13 @@ export class VehicleBookingManagementComponent
                   width: 100,
                   formatter:'textarea',
                 },
-                { title: 'Tỉnh', field: 'ProvinceName', width: 120, formatter:'textarea' },
-                {
+                 {
                   title: 'Địa chỉ cụ thể',
                   field: 'SpecificDestinationAddress',
                   width: 160,  formatter:'textarea',
                 },
+                { title: 'Tỉnh', field: 'ProvinceName', width: 100, formatter:'textarea' },
+               
                 {
                   title: 'Thời gian cần đến',
                   field: 'TimeNeedPresent',
@@ -1277,7 +1272,17 @@ export class VehicleBookingManagementComponent
                 { title: 'Dự án', field: 'ProjectFullName', width: 300, formatter:'textarea' },
               ],
             },
+                { title: 'Tên TBP duyệt', field: 'FullNameTBP', width: 120 },
+                  { title: 'TBP duyệt', field: 'ApprovedTBPText', width: 100 },
+            
+                {
+                  title: 'Lý do phát sinh',
+                  field: 'ProblemArises',
+                  width: 120,
+                  formatter:'textarea',
+                },
           ],
+          
         }
       );
 

@@ -68,7 +68,7 @@ function formatDateCell(cell: CellComponent): string {
     NzTableModule,
     NzTabsModule,
     NzDropDownModule,
-    NgbModalModule, HasPermissionDirective,NzModalModule
+    NgbModalModule, HasPermissionDirective, NzModalModule
   ]
 })
 export class TsAssetTransferComponent implements OnInit, AfterViewInit {
@@ -77,7 +77,7 @@ export class TsAssetTransferComponent implements OnInit, AfterViewInit {
     private tsAssetTransferService: TsAssetTransferService,
     private TsAssetManagementPersonalService: TsAssetManagementPersonalService,
     private authService: AuthService,
-         private modal: NzModalService,
+    private modal: NzModalService,
   ) { }
   @ViewChild('dataAssetTranfer', { static: false })
   dataAssetTranferEl!: ElementRef<HTMLDivElement>;
@@ -86,7 +86,7 @@ export class TsAssetTransferComponent implements OnInit, AfterViewInit {
   dataAssetTranferDetailEl!: ElementRef<HTMLDivElement>;
   private ngbModal = inject(NgbModal);
   emPloyeeLists: any[] = [];
-    deletedDetailIds: number[] = [];
+  deletedDetailIds: number[] = [];
   modalData: any = [];
   selectedRow: any = "";
   DateStart: string = '';
@@ -183,7 +183,7 @@ export class TsAssetTransferComponent implements OnInit, AfterViewInit {
       this.assetTranferTable = new Tabulator(this.dataAssetTranferEl.nativeElement, {
         data: this.assetTranferData,
         ...DEFAULT_TABLE_CONFIG,
-        height:'53vh',
+        height: '53vh',
         paginationMode: 'local',
         layout: "fitDataFill",
 
@@ -241,6 +241,24 @@ export class TsAssetTransferComponent implements OnInit, AfterViewInit {
             width: 160
           },
           {
+            title: 'Ngày duyệt',
+            field: 'DateApprovedHR',
+            hozAlign: 'center',
+            headerHozAlign: 'center',
+            formatter: formatDateCell,
+            width: 160,
+            visible: false
+          },
+          {
+            title: 'Ngày cá nhân duyệt',
+            field: 'DateApprovedPersonalProperty',
+            hozAlign: 'center',
+            headerHozAlign: 'center',
+            formatter: formatDateCell,
+            width: 160,
+            visible: false
+          },
+          {
             title: 'Người giao',
             field: 'DeliverName',
             headerHozAlign: 'center',
@@ -288,7 +306,7 @@ export class TsAssetTransferComponent implements OnInit, AfterViewInit {
       this.assetTranferTable.on('rowClick', (evt, row: RowComponent) => {
         const rowData = row.getData();
         const id = rowData['ID'];
-  this.detailTabTitle = `Thông tin biên bản điều chuyển: ${rowData['CodeReport']}`;
+        this.detailTabTitle = `Thông tin biên bản điều chuyển: ${rowData['CodeReport']}`;
         // set row đang chọn
         this.selectedRow = rowData;
 
@@ -337,431 +355,440 @@ export class TsAssetTransferComponent implements OnInit, AfterViewInit {
     return [];
   }
   onDeleteAssetTranfer() {
-  if (!this.assetTranferTable) {
-    this.notification.warning(NOTIFICATION_TITLE.warning, 'Lỗi bảng, không thể thao tác');
-    return;
-  }
-
-  const selectedRows = this.assetTranferTable.getSelectedData() as any[];
-
-  if (!selectedRows || selectedRows.length === 0) {
-    this.notification.warning(NOTIFICATION_TITLE.warning, 'Chưa chọn biên bản để xóa!');
-    return;
-  }
-
-  // Những cái HR đã duyệt (không được phép xóa)
-  const locked = selectedRows.filter(x =>
-    ['true', true, 1, '1'].includes(x.IsApprovedPersonalProperty)
-  );
-
-  // Những cái được phép xóa
-  const deletable = selectedRows.filter(x =>
-    !['true', true, 1, '1'].includes(x.IsApprovedPersonalProperty)
-  );
-
-  if (deletable.length === 0) {
-    const lockedCodes = locked.map(x => x.CodeReport ?? x.Code).join(', ');
-    this.notification.warning(
-      'Không thể xóa',
-      `Biên bản đã được cá nhân duyệt, không thể xóa. Danh sách: ${lockedCodes}`
-    );
-    return;
-  }
-
-  if (locked.length > 0) {
-    const lockedCodes = locked.map(x => x.CodeReport ?? x.Code).join(', ');
-    this.notification.warning(
-      'Không thể xóa',
-      `Biên bản đã được cá nhân duyệt sẽ không bị xóa: ${lockedCodes}`
-    );
-  }
-
-  const codesText = deletable
-    .map(x => x.CodeReport ?? x.Code)
-    .join(', ');
-
-  this.modal.confirm({
-    nzTitle: `Bạn có chắc muốn xóa các biên bản sau: <b>${codesText}</b>?`,
-    nzContent: 'Thao tác này sẽ đánh dấu biên bản là đã xóa.',
-    nzOkText: 'Xóa',
-    nzOkType: 'primary',
-    nzOkDanger: true,
-    nzCancelText: 'Hủy',
-    nzOnOk: () => {
-      const payloads = deletable.map(row => ({
-        tSTranferAsset: {
-          ID: row.ID,
-          IsDeleted: true
-        }
-      }));
-
-      const requests$ = payloads.map(p =>
-        this.tsAssetTransferService.saveData(p)
-      );
-
-      return forkJoin(requests$).toPromise().then(() => {
-        this.notification.success(NOTIFICATION_TITLE.success,
-          `Đã xóa thành công các biên bản: ${codesText}`
-        );
-        this.getTranferAsset();
-        this.drawTable();
-      }).catch(err => {
-        console.error('Lỗi khi xóa nhiều:', err);
-        this.notification.warning('Lỗi', 'Lỗi kết nối máy chủ!');
-      });
+    if (!this.assetTranferTable) {
+      this.notification.warning(NOTIFICATION_TITLE.warning, 'Lỗi bảng, không thể thao tác');
+      return;
     }
-  });
-}
+
+    const selectedRows = this.assetTranferTable.getSelectedData() as any[];
+
+    if (!selectedRows || selectedRows.length === 0) {
+      this.notification.warning(NOTIFICATION_TITLE.warning, 'Chưa chọn biên bản để xóa!');
+      return;
+    }
+
+    // Những cái HR đã duyệt (không được phép xóa)
+    const locked = selectedRows.filter(x =>
+      ['true', true, 1, '1'].includes(x.IsApprovedPersonalProperty)
+    );
+
+    // Những cái được phép xóa
+    const deletable = selectedRows.filter(x =>
+      !['true', true, 1, '1'].includes(x.IsApprovedPersonalProperty)
+    );
+
+    if (deletable.length === 0) {
+      const lockedCodes = locked.map(x => x.CodeReport ?? x.Code).join(', ');
+      this.notification.warning(
+        'Không thể xóa',
+        `Biên bản đã được cá nhân duyệt, không thể xóa. Danh sách: ${lockedCodes}`
+      );
+      return;
+    }
+
+    if (locked.length > 0) {
+      const lockedCodes = locked.map(x => x.CodeReport ?? x.Code).join(', ');
+      this.notification.warning(
+        'Không thể xóa',
+        `Biên bản đã được cá nhân duyệt sẽ không bị xóa: ${lockedCodes}`
+      );
+    }
+
+    const codesText = deletable
+      .map(x => x.CodeReport ?? x.Code)
+      .join(', ');
+
+    this.modal.confirm({
+      nzTitle: `Bạn có chắc muốn xóa các biên bản sau: <b>${codesText}</b>?`,
+      nzContent: 'Thao tác này sẽ đánh dấu biên bản là đã xóa.',
+      nzOkText: 'Xóa',
+      nzOkType: 'primary',
+      nzOkDanger: true,
+      nzCancelText: 'Hủy',
+      nzOnOk: () => {
+        const payloads = deletable.map(row => ({
+          tSTranferAsset: {
+            ID: row.ID,
+            IsDeleted: true
+          }
+        }));
+
+        const requests$ = payloads.map(p =>
+          this.tsAssetTransferService.saveData(p)
+        );
+
+        return forkJoin(requests$).toPromise().then(() => {
+          this.notification.success(NOTIFICATION_TITLE.success,
+            `Đã xóa thành công các biên bản: ${codesText}`
+          );
+          this.getTranferAsset();
+          this.drawTable();
+        }).catch(err => {
+          console.error('Lỗi khi xóa nhiều:', err);
+          this.notification.warning('Lỗi', 'Lỗi kết nối máy chủ!');
+        });
+      }
+    });
+  }
 
 
   // validate 1 dòng, nếu lỗi trả về message, nếu ok trả về null
   // validate 1 dòng, nếu lỗi trả về CODE, nếu ok trả về null
-validateApprove(
-  action: 1 | 2 | 3 | 4 | 5 | 6,
-  row: any
-): string | null {
-  // 1 & 2: chỉ người nhận tài sản mới được duyệt / hủy cá nhân
-  if (action === 1 || action === 2) {
-    const empIdRaw = this.currentUser?.EmployeeID;
-    const empId = empIdRaw != null ? Number(empIdRaw) : null;
-    const receiverId = row.ReceiverID != null ? Number(row.ReceiverID) : null;
+  validateApprove(
+    action: 1 | 2 | 3 | 4 | 5 | 6,
+    row: any
+  ): string | null {
+    // 1 & 2: chỉ người nhận tài sản mới được duyệt / hủy cá nhân
+    if (action === 1 || action === 2) {
+      const empIdRaw = this.currentUser?.EmployeeID;
+      const empId = empIdRaw != null ? Number(empIdRaw) : null;
+      const receiverId = row.ReceiverID != null ? Number(row.ReceiverID) : null;
 
-    if (!empId || receiverId !== empId) {
-      return 'NOT_RECEIVER'; // sẽ gom message ở ngoài
+      if (!empId || receiverId !== empId) {
+        return 'NOT_RECEIVER'; // sẽ gom message ở ngoài
+      }
     }
-  }
 
-  switch (action) {
-    case 2: // Hủy cá nhân
-      if (row.Status == 1) {
-        return 'PERSONAL_CANNOT_CANCEL_AFTER_HR_TRANSFER';
-      }
-      break;
+    switch (action) {
+      case 2: // Hủy cá nhân
+        if (row.Status == 1) {
+          return 'PERSONAL_CANNOT_CANCEL_AFTER_HR_TRANSFER';
+        }
+        break;
 
-    case 3: // HR duyệt
-     
-      break;
+      case 3: // HR duyệt
 
-    case 4: // Hủy HR
-      if (row.IsApproveAccountant == true) {
-        return 'HR_CANNOT_CANCEL_AFTER_KT_TRANSFER';
-      }
-      break;
+        break;
 
-    case 5: // KT duyệt
-      if (row.IsApproved != true) {
-        return 'KT_NEED_HR_TRANSFER';
-      }
-      if (row.IsApproveAccountant == true) {
-        return 'KT_ALREADY_APPROVED_TRANSFER';
-      }
-      break;
+      case 4: // Hủy HR
+        if (row.IsApproveAccountant == true) {
+          return 'HR_CANNOT_CANCEL_AFTER_KT_TRANSFER';
+        }
+        break;
 
-    case 6: // KT hủy duyệt
-      if (row.IsApproveAccountant != true) {
-        return 'KT_CANNOT_UNAPPROVE_NOT_APPROVED_TRANSFER';
-      }
-      break;
-  }
+      case 5: // KT duyệt
+        if (row.IsApproved != true) {
+          return 'KT_NEED_HR_TRANSFER';
+        }
+        if (row.IsApproveAccountant == true) {
+          return 'KT_ALREADY_APPROVED_TRANSFER';
+        }
+        break;
 
-  return null; // hợp lệ
-}
-updateApprove(action: 1 | 2 | 3 | 4 | 5 | 6) {
-  if (!this.assetTranferTable) {
-    this.notification.warning('Thông báo', 'Lỗi bảng, không thể thao tác');
-    return;
-  }
-
-  const selectedRows = this.assetTranferTable.getSelectedData() as any[];
-  if (!selectedRows || selectedRows.length === 0) {
-    this.notification.warning('Thông báo', 'Chưa chọn biên bản để duyệt');
-    return;
-  }
-
-  const validRows: any[] = [];
-  const invalidRows: { row: any; code: string }[] = [];
-
-  // validate từng row -> trả CODE
-  for (const row of selectedRows) {
-    const code = this.validateApprove(action, row);
-    if (code) {
-      invalidRows.push({ row, code });
-    } else {
-      validRows.push(row);
+      case 6: // KT hủy duyệt
+        if (row.IsApproveAccountant != true) {
+          return 'KT_CANNOT_UNAPPROVE_NOT_APPROVED_TRANSFER';
+        }
+        break;
     }
+
+    return null; // hợp lệ
   }
+  updateApprove(action: 1 | 2 | 3 | 4 | 5 | 6) {
+    if (!this.assetTranferTable) {
+      this.notification.warning('Thông báo', 'Lỗi bảng, không thể thao tác');
+      return;
+    }
 
-  // helper gom message theo code
-  const buildErrorMessages = (items: { row: any; code: string }[]): string[] => {
-    const byCode = new Map<string, any[]>();
+    const selectedRows = this.assetTranferTable.getSelectedData() as any[];
+    if (!selectedRows || selectedRows.length === 0) {
+      this.notification.warning('Thông báo', 'Chưa chọn biên bản để duyệt');
+      return;
+    }
 
-    items.forEach(x => {
-      if (!byCode.has(x.code)) byCode.set(x.code, []);
-      byCode.get(x.code)!.push(x.row);
-    });
+    const validRows: any[] = [];
+    const invalidRows: { row: any; code: string }[] = [];
 
-    const messages: string[] = [];
-
-    byCode.forEach((rows, code) => {
-      const codes = rows.map((r: any) => r.CodeReport ?? r.Code).join(', ');
-
-      switch (code) {
-        case 'NOT_RECEIVER':
-          messages.push(
-            `Bạn không được phép duyệt các biên bản điều chuyển ${codes} vì không phải người nhận tài sản.`
-          );
-          break;
-
-        case 'PERSONAL_CANNOT_CANCEL_AFTER_HR_TRANSFER':
-          messages.push(
-            `Các biên bản điều chuyển ${codes} đã được HR duyệt, cá nhân không thể hủy.`
-          );
-          break;
-
-        case 'HR_NEED_PERSONAL_TRANSFER':
-          messages.push(
-            `Các biên bản điều chuyển ${codes} chưa được cá nhân duyệt, HR không thể duyệt!`
-          );
-          break;
-
-        case 'HR_CANNOT_CANCEL_AFTER_KT_TRANSFER':
-          messages.push(
-            `Các biên bản điều chuyển ${codes} đã được Kế toán duyệt, HR không thể hủy.`
-          );
-          break;
-
-        case 'KT_NEED_HR_TRANSFER':
-          messages.push(
-            `Các biên bản điều chuyển ${codes} chưa được HR duyệt, Kế toán không thể duyệt!`
-          );
-          break;
-
-        case 'KT_ALREADY_APPROVED_TRANSFER':
-          messages.push(
-            `Các biên bản điều chuyển ${codes} đã được Kế toán duyệt, không thể duyệt lại.`
-          );
-          break;
-
-        case 'KT_CANNOT_UNAPPROVE_NOT_APPROVED_TRANSFER':
-          messages.push(
-            `Các biên bản điều chuyển ${codes} chưa được Kế toán duyệt, không thể hủy duyệt!`
-          );
-          break;
-
-        default:
-          messages.push(`Lỗi với các biên bản điều chuyển ${codes} (code: ${code}).`);
-          break;
+    // validate từng row -> trả CODE
+    for (const row of selectedRows) {
+      const code = this.validateApprove(action, row);
+      if (code) {
+        invalidRows.push({ row, code });
+      } else {
+        validRows.push(row);
       }
-    });
+    }
 
-    return messages;
-  };
+    // helper gom message theo code
+    const buildErrorMessages = (items: { row: any; code: string }[]): string[] => {
+      const byCode = new Map<string, any[]>();
 
-  // Nếu TẤT CẢ đều lỗi
-  if (validRows.length === 0) {
+      items.forEach(x => {
+        if (!byCode.has(x.code)) byCode.set(x.code, []);
+        byCode.get(x.code)!.push(x.row);
+      });
+
+      const messages: string[] = [];
+
+      byCode.forEach((rows, code) => {
+        const codes = rows.map((r: any) => r.CodeReport ?? r.Code).join(', ');
+
+        switch (code) {
+          case 'NOT_RECEIVER':
+            messages.push(
+              `Bạn không được phép duyệt các biên bản điều chuyển ${codes} vì không phải người nhận tài sản.`
+            );
+            break;
+
+          case 'PERSONAL_CANNOT_CANCEL_AFTER_HR_TRANSFER':
+            messages.push(
+              `Các biên bản điều chuyển ${codes} đã được HR duyệt, cá nhân không thể hủy.`
+            );
+            break;
+
+          case 'HR_NEED_PERSONAL_TRANSFER':
+            messages.push(
+              `Các biên bản điều chuyển ${codes} chưa được cá nhân duyệt, HR không thể duyệt!`
+            );
+            break;
+
+          case 'HR_CANNOT_CANCEL_AFTER_KT_TRANSFER':
+            messages.push(
+              `Các biên bản điều chuyển ${codes} đã được Kế toán duyệt, HR không thể hủy.`
+            );
+            break;
+
+          case 'KT_NEED_HR_TRANSFER':
+            messages.push(
+              `Các biên bản điều chuyển ${codes} chưa được HR duyệt, Kế toán không thể duyệt!`
+            );
+            break;
+
+          case 'KT_ALREADY_APPROVED_TRANSFER':
+            messages.push(
+              `Các biên bản điều chuyển ${codes} đã được Kế toán duyệt, không thể duyệt lại.`
+            );
+            break;
+
+          case 'KT_CANNOT_UNAPPROVE_NOT_APPROVED_TRANSFER':
+            messages.push(
+              `Các biên bản điều chuyển ${codes} chưa được Kế toán duyệt, không thể hủy duyệt!`
+            );
+            break;
+
+          default:
+            messages.push(`Lỗi với các biên bản điều chuyển ${codes} (code: ${code}).`);
+            break;
+        }
+      });
+
+      return messages;
+    };
+
+    // Nếu TẤT CẢ đều lỗi
+    if (validRows.length === 0) {
+      if (invalidRows.length > 0) {
+        const messages = buildErrorMessages(invalidRows);
+        this.notification.warning(
+          'Không thể thực hiện',
+          messages.join('\n')
+        );
+      } else {
+        this.notification.error(
+          'Thất bại',
+          'Không có biên bản nào hợp lệ để duyệt.'
+        );
+      }
+      return;
+    }
+
+    // Nếu vừa có đúng vừa có sai -> vẫn duyệt phần đúng, báo list sai
     if (invalidRows.length > 0) {
       const messages = buildErrorMessages(invalidRows);
       this.notification.warning(
-        'Không thể thực hiện',
+        'Biên bản không được duyệt:',
         messages.join('\n')
       );
-    } else {
-      this.notification.error(
-        'Thất bại',
-        'Không có biên bản nào hợp lệ để duyệt.'
-      );
     }
-    return;
-  }
+      const currentDate = new Intl.DateTimeFormat('sv-SE', {
+      timeZone: 'Asia/Bangkok',
+      year: 'numeric',
+      month: '2-digit',
+      day: '2-digit',
+      hour: '2-digit',
+      minute: '2-digit',
+      second: '2-digit',
+      hour12: false
+    }).format(new Date()).replace(' ', 'T') + '+07:00';
 
-  // Nếu vừa có đúng vừa có sai -> vẫn duyệt phần đúng, báo list sai
-  if (invalidRows.length > 0) {
-    const messages = buildErrorMessages(invalidRows);
-    this.notification.warning(
-      'Biên bản không được duyệt:',
-      messages.join('\n')
-    );
-  }
-  const currentDate = new Date().toISOString();
+    // Chỉ build payload từ validRows
+    const payloads = validRows.map(row => {
+      const ID = row.ID;
 
-  // Chỉ build payload từ validRows
-  const payloads = validRows.map(row => {
-    const ID = row.ID;
+      const updatePayload: {
+        tSTranferAsset: {
+          ID: number;
+          IsApproved?: boolean;
+          IsApproveAccountant?: boolean;
+          IsApprovedPersonalProperty?: boolean;
+          DateApproveAccountant?: string;
+          DateApprovedPersonalProperty?: string;
+          DateApprovedHR?: string;
+        };
+      } = { tSTranferAsset: { ID } };
 
-    const updatePayload: {
-      tSTranferAsset: {
-        ID: number;
-        IsApproved?: boolean;
-        IsApproveAccountant?: boolean;
-        IsApprovedPersonalProperty?: boolean;
-        DateApproveAccountant?: string;
-        DateApprovedPersonalProperty?: string;
-        DateApprovedHR?: string;
-      };
-    } = { tSTranferAsset: { ID } };
+      switch (action) {
+        case 1:
+          updatePayload.tSTranferAsset.IsApprovedPersonalProperty = true;
+          updatePayload.tSTranferAsset.DateApprovedPersonalProperty = currentDate;
+          break;
 
-    switch (action) {
-      case 1:
-        updatePayload.tSTranferAsset.IsApprovedPersonalProperty = true;
-        updatePayload.tSTranferAsset.DateApprovedPersonalProperty = currentDate;
-        break;
+        case 2:
+          updatePayload.tSTranferAsset.IsApprovedPersonalProperty = false;
+          updatePayload.tSTranferAsset.DateApprovedPersonalProperty = currentDate;
+          break;
 
-      case 2:
-        updatePayload.tSTranferAsset.IsApprovedPersonalProperty = false;
-        updatePayload.tSTranferAsset.DateApprovedPersonalProperty = currentDate;
-        break;
+        case 3:
+          updatePayload.tSTranferAsset.IsApproved = true;
+          updatePayload.tSTranferAsset.DateApprovedHR = currentDate;
+          break;
 
-      case 3:
-        updatePayload.tSTranferAsset.IsApproved = true;
-        updatePayload.tSTranferAsset.DateApprovedHR = currentDate;
-        break;
+        case 4:
+          updatePayload.tSTranferAsset.IsApproved = false;
+          updatePayload.tSTranferAsset.DateApprovedHR = currentDate;
+          break;
 
-      case 4:
-        updatePayload.tSTranferAsset.IsApproved = false;
-        updatePayload.tSTranferAsset.DateApprovedHR = currentDate;
-        break;
+        case 5:
+          updatePayload.tSTranferAsset.IsApproveAccountant = true;
+          updatePayload.tSTranferAsset.DateApproveAccountant = currentDate;
+          break;
 
-      case 5:
-        updatePayload.tSTranferAsset.IsApproveAccountant = true;
-        updatePayload.tSTranferAsset.DateApproveAccountant = currentDate;
-        break;
-
-      case 6:
-        updatePayload.tSTranferAsset.IsApproveAccountant = false;
-        updatePayload.tSTranferAsset.DateApproveAccountant = currentDate;
-        break;
-    }
-
-    return updatePayload;
-  });
-
-  // Chọn service theo action
-  const requests$ = payloads.map(payload => {
-    if (action === 1 || action === 2) {
-      return this.tsAssetTransferService.saveDataPersonal(payload);
-    } else if (action === 5 || action === 6) {
-      return this.tsAssetTransferService.saveDataKT(payload);
-    } else {
-      // 3, 4
-      return this.tsAssetTransferService.saveData(payload);
-    }
-  });
-
-
-
-  forkJoin(requests$).subscribe({
-    next: () => {
-      const approvedCodes = validRows
-        .map(x => x.CodeReport ?? x.Code)
-        .join(', ');
-
-      this.notification.success(
-        'Thành công',
-        `Đã cập nhật thành công biên bản điều chuyển: ${approvedCodes}`
-      );
-
-      // HR duyệt xong header -> cập nhật luôn tài sản cho nhiều biên bản
-      if (action === 3&& validRows.length > 0) {
-        this.updateOnApproveMultiple(validRows);
-      } else {
-        this.getTranferAsset();
-        this.assetTranferData = [];
-        this.drawDetail();
+        case 6:
+          updatePayload.tSTranferAsset.IsApproveAccountant = false;
+          updatePayload.tSTranferAsset.DateApproveAccountant = currentDate;
+          break;
       }
-    },
-    error: (err: any) => {
-      console.error('Lỗi updateApprove (nhiều)', err);
-      const msg = err?.error?.message || 'Một số cập nhật thất bại';
-      this.notification.error('Lỗi', msg);
-    }
-  });
-}
-private updateOnApproveMultiple(masters: any[]) {
-  // 1. Lấy detail cho từng biên bản điều chuyển
-  const detailRequests = masters.map(m =>
-    this.tsAssetTransferService.getAssetTranferDetail(m.ID)
-  );
 
-  forkJoin(detailRequests).subscribe({
-    next: (responses: any[]) => {
-      const allAssetManagements: any[] = [];
-      const allAllocationEvictions: any[] = [];
+      return updatePayload;
+    });
 
-      responses.forEach((res, index) => {
-        const master = masters[index];
+    // Chọn service theo action
+    const requests$ = payloads.map(payload => {
+      if (action === 1 || action === 2) {
+        return this.tsAssetTransferService.saveDataPersonal(payload);
+      } else if (action === 5 || action === 6) {
+        return this.tsAssetTransferService.saveDataKT(payload);
+      } else {
+        // 3, 4
+        return this.tsAssetTransferService.saveData(payload);
+      }
+    });
 
-        const details = Array.isArray(res?.data?.assetTransferDetail)
-          ? res.data.assetTransferDetail
-          : [];
 
-        if (!details || details.length === 0) {
-          console.warn(`Biên bản ${master.CodeReport ?? master.Code} không có chi tiết, bỏ qua.`);
+
+    forkJoin(requests$).subscribe({
+      next: () => {
+        const approvedCodes = validRows
+          .map(x => x.CodeReport ?? x.Code)
+          .join(', ');
+
+        this.notification.success(
+          'Thành công',
+          `Đã cập nhật thành công biên bản điều chuyển: ${approvedCodes}`
+        );
+
+        // HR duyệt xong header -> cập nhật luôn tài sản cho nhiều biên bản
+        if (action === 3 && validRows.length > 0) {
+          this.updateOnApproveMultiple(validRows);
+        } else {
+          this.getTranferAsset();
+          this.assetTranferData = [];
+          this.drawDetail();
+        }
+      },
+      error: (err: any) => {
+        console.error('Lỗi updateApprove (nhiều)', err);
+        const msg = err?.error?.message || 'Một số cập nhật thất bại';
+        this.notification.error('Lỗi', msg);
+      }
+    });
+  }
+  private updateOnApproveMultiple(masters: any[]) {
+    // 1. Lấy detail cho từng biên bản điều chuyển
+    const detailRequests = masters.map(m =>
+      this.tsAssetTransferService.getAssetTranferDetail(m.ID)
+    );
+
+    forkJoin(detailRequests).subscribe({
+      next: (responses: any[]) => {
+        const allAssetManagements: any[] = [];
+        const allAllocationEvictions: any[] = [];
+
+        responses.forEach((res, index) => {
+          const master = masters[index];
+
+          const details = Array.isArray(res?.data?.assetTransferDetail)
+            ? res.data.assetTransferDetail
+            : [];
+
+          if (!details || details.length === 0) {
+            console.warn(`Biên bản ${master.CodeReport ?? master.Code} không có chi tiết, bỏ qua.`);
+            return;
+          }
+
+          details.forEach((item: any) => {
+            const safeAssetId = Number(item.AssetManagementID) || 0;
+
+            allAssetManagements.push({
+              ID: safeAssetId,
+              StatusID: 2,
+
+              DepartmentID: master.ToDepartmentID || 0,
+              EmployeeID: master.ReceiverID,
+              Node: `Đã điều chuyển cho ${master.ReceiverName}`,
+            });
+
+            allAllocationEvictions.push({
+              ID: 0,
+              AssetManagementID: safeAssetId,
+              EmployeeID: master.ReceiverID || 0,
+              DepartmentID: master.ToDepartmentID,
+              ChucVuID: master.ToChucVuID,
+              DateAllocation: master.TranferDate,
+              Status: 'Đang sử dụng',
+              Note: `Được điều chuyển từ ${master.DeliverName}`,
+            });
+          });
+        });
+
+        if (allAssetManagements.length === 0) {
+          this.notification.warning('Cảnh báo', 'Không có chi tiết tài sản nào để cập nhật.');
           return;
         }
 
-        details.forEach((item: any) => {
-          const safeAssetId = Number(item.AssetManagementID) || 0;
+        const payloadTranfer = {
+          tSAssetManagements: allAssetManagements,
+          tSAllocationEvictionAssets: allAllocationEvictions
+        };
 
-          allAssetManagements.push({
-            ID: safeAssetId,
-            StatusID: 2,
+        console.log('payload transfer (multi):', payloadTranfer);
 
-            DepartmentID: master.ToDepartmentID || 0,
-            EmployeeID: master.ReceiverID,
-            Node: `Đã điều chuyển cho ${master.ReceiverName}`,
-          });
-
-          allAllocationEvictions.push({
-            ID: 0,
-            AssetManagementID: safeAssetId,
-            EmployeeID: master.ReceiverID || 0,
-            DepartmentID: master.ToDepartmentID,
-            ChucVuID: master.ToChucVuID,
-            DateAllocation: master.TranferDate,
-            Status: 'Đang sử dụng',
-            Note: `Được điều chuyển từ ${master.DeliverName}`,
-          });
+        // 2. Gửi 1 request để update tất cả tài sản
+        this.tsAssetTransferService.saveDataKT(payloadTranfer).subscribe({
+          next: () => {
+            const codes = masters.map(x => x.CodeReport ?? x.Code).join(', ');
+            // this.notification.success(
+            //   'Thành công',
+            //   `Đã cập nhật tài sản cho các biên bản điều chuyển: ${codes}`
+            // );
+            this.getTranferAsset();
+            this.assetTranferDetailData = [];
+          },
+          error: (err) => {
+            console.error('Lỗi saveDataKT (multi transfer):', err);
+            this.notification.error(
+              'Lỗi',
+              err?.error?.message || 'Duyệt tài sản điều chuyển thất bại.'
+            );
+          }
         });
-      });
-
-      if (allAssetManagements.length === 0) {
-        this.notification.warning('Cảnh báo', 'Không có chi tiết tài sản nào để cập nhật.');
-        return;
+      },
+      error: (err) => {
+        console.error('Lỗi load detail điều chuyển (multi):', err);
+        this.notification.error('Lỗi', 'Không tải được chi tiết biên bản điều chuyển.');
       }
-
-      const payloadTranfer = {
-        tSAssetManagements: allAssetManagements,
-        tSAllocationEvictionAssets: allAllocationEvictions
-      };
-
-      console.log('payload transfer (multi):', payloadTranfer);
-
-      // 2. Gửi 1 request để update tất cả tài sản
-      this.tsAssetTransferService.saveDataKT(payloadTranfer).subscribe({
-        next: () => {
-          const codes = masters.map(x => x.CodeReport ?? x.Code).join(', ');
-          // this.notification.success(
-          //   'Thành công',
-          //   `Đã cập nhật tài sản cho các biên bản điều chuyển: ${codes}`
-          // );
-          this.getTranferAsset();
-          this.assetTranferDetailData = [];
-        },
-        error: (err) => {
-          console.error('Lỗi saveDataKT (multi transfer):', err);
-          this.notification.error(
-            'Lỗi',
-            err?.error?.message || 'Duyệt tài sản điều chuyển thất bại.'
-          );
-        }
-      });
-    },
-    error: (err) => {
-      console.error('Lỗi load detail điều chuyển (multi):', err);
-      this.notification.error('Lỗi', 'Không tải được chi tiết biên bản điều chuyển.');
-    }
-  });
-}
+    });
+  }
 
   updateOnApprove() {
     const selectedDetail = this.assetTranferDetailTable?.getData();
@@ -799,83 +826,83 @@ private updateOnApproveMultiple(masters: any[]) {
       }
     });
   }
-onAddATranfer() {
-  const modalRef = this.ngbModal.open(TsAssetTransferFormComponent, {
-    size: 'xl',
-    backdrop: 'static',
-    keyboard: false,
-    centered: true,
-  });
+  onAddATranfer() {
+    const modalRef = this.ngbModal.open(TsAssetTransferFormComponent, {
+      size: 'xl',
+      backdrop: 'static',
+      keyboard: false,
+      centered: true,
+    });
 
-  // ✅ luôn tạo object mới, không dùng lại this.modalData
-  modalRef.componentInstance.dataInput = {
-    ID: 0,
-    TranferDate: DateTime.now().toISODate(),
-    DeliverID: null,
-    ReceiverID: null,
-    FromDepartmentID: null,
-    ToDepartmentID: null,
-    FromChucVuID: null,
-    ToChucVuID: null,
-    Reason: '',
-    CodeReport: '',
-    // thêm field nào form cần thì liệt kê ở đây
-  };
+    // ✅ luôn tạo object mới, không dùng lại this.modalData
+    modalRef.componentInstance.dataInput = {
+      ID: 0,
+      TranferDate: DateTime.now().toISODate(),
+      DeliverID: null,
+      ReceiverID: null,
+      FromDepartmentID: null,
+      ToDepartmentID: null,
+      FromChucVuID: null,
+      ToChucVuID: null,
+      Reason: '',
+      CodeReport: '',
+      // thêm field nào form cần thì liệt kê ở đây
+    };
 
-  modalRef.result.then(
-    (result) => {
-      console.log('Modal closed with result:', result);
-      this.getTranferAsset();
-    },
-    () => {
-      console.log('Modal dismissed');
-    }
-  );
-}
- onEditTranfer() {
-  if (!this.assetTranferTable) {
-    this.notification.warning('Thông báo', 'Bảng chưa khởi tạo, không thể sửa!');
-    return;
-  }
-
-  const selected = this.assetTranferTable.getSelectedData();
-  if (!selected || selected.length === 0) {
-    this.notification.warning('Thông báo', 'Vui lòng chọn một biên bản để sửa!');
-    return;
-  }
-
-  const selectedAssets = { ...selected[0] };
-
-  // ✅ CHECK: nếu cá nhân đã duyệt thì không cho sửa
-  const isPersonalApproved = ['true', true, 1, '1'].includes(
-    selectedAssets.IsApprovedPersonalProperty
-  );
-
-  if (isPersonalApproved) {
-    this.notification.warning(
-      'Thông báo',
-      `Biên bản ${selectedAssets.CodeReport} đã được cá nhân duyệt, không thể sửa.`
+    modalRef.result.then(
+      (result) => {
+        console.log('Modal closed with result:', result);
+        this.getTranferAsset();
+      },
+      () => {
+        console.log('Modal dismissed');
+      }
     );
-    return;
   }
-
-  const modalRef = this.ngbModal.open(TsAssetTransferFormComponent, {
-    size: 'xl',
-    backdrop: 'static',
-    keyboard: false,
-    centered: true
-  });
-
-  modalRef.componentInstance.dataInput = selectedAssets;
-  modalRef.result.then(
-    (result) => {
-      this.getTranferAsset();
-    },
-    () => {
-      console.log('Modal dismissed');
+  onEditTranfer() {
+    if (!this.assetTranferTable) {
+      this.notification.warning('Thông báo', 'Bảng chưa khởi tạo, không thể sửa!');
+      return;
     }
-  );
-}
+
+    const selected = this.assetTranferTable.getSelectedData();
+    if (!selected || selected.length === 0) {
+      this.notification.warning('Thông báo', 'Vui lòng chọn một biên bản để sửa!');
+      return;
+    }
+
+    const selectedAssets = { ...selected[0] };
+
+    // ✅ CHECK: nếu cá nhân đã duyệt thì không cho sửa
+    const isPersonalApproved = ['true', true, 1, '1'].includes(
+      selectedAssets.IsApprovedPersonalProperty
+    );
+
+    if (isPersonalApproved) {
+      this.notification.warning(
+        'Thông báo',
+        `Biên bản ${selectedAssets.CodeReport} đã được cá nhân duyệt, không thể sửa.`
+      );
+      return;
+    }
+
+    const modalRef = this.ngbModal.open(TsAssetTransferFormComponent, {
+      size: 'xl',
+      backdrop: 'static',
+      keyboard: false,
+      centered: true
+    });
+
+    modalRef.componentInstance.dataInput = selectedAssets;
+    modalRef.result.then(
+      (result) => {
+        this.getTranferAsset();
+      },
+      () => {
+        console.log('Modal dismissed');
+      }
+    );
+  }
 
   //#region xuất excel
   async exportExcel() {
@@ -981,6 +1008,7 @@ onAddATranfer() {
         DepartmentReceiver: selectedMaster.DepartmentReceiver,
         Reason: selectedMaster.Reason,
         CreatedDate: selectedMaster.CreatedDate,
+        DateApprovedHR: selectedMaster.DateApprovedHR,
         DateApprovedPersonalProperty: selectedMaster.DateApprovedPersonalProperty,
       },
       details: details.map((d: any) => ({

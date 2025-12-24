@@ -179,7 +179,7 @@ export class TsAssetRecoveryComponent implements OnInit, AfterViewInit {
         data: this.assetRecoveryData,
 
         ...DEFAULT_TABLE_CONFIG,
-        height:'53vh',
+        height: '53vh',
         paginationMode: 'local',
         pagination: true,
         selectableRows: true,
@@ -248,6 +248,15 @@ export class TsAssetRecoveryComponent implements OnInit, AfterViewInit {
             width: 160,
           },
           {
+            title: 'Ngày duyệt',
+            field: 'DateApprovedHR',
+            headerHozAlign: 'center',
+            formatter: formatDateCell,
+            hozAlign: 'center',
+            width: 160,
+            visible: false
+          },
+          {
             title: 'Thu hồi từ',
             field: 'EmployeeReturnName',
             headerHozAlign: 'center',
@@ -257,7 +266,7 @@ export class TsAssetRecoveryComponent implements OnInit, AfterViewInit {
             title: 'Thu hồi từ',
             field: 'EmployeeReturnID',
             headerHozAlign: 'center',
-            visible:false,
+            visible: false,
 
             width: 160,
           },
@@ -339,7 +348,7 @@ export class TsAssetRecoveryComponent implements OnInit, AfterViewInit {
       { title: 'Tên tài sản', field: 'TSAssetName' },
       { title: 'Số lượng', field: 'Quantity', headerHozAlign: 'center' },
       { title: 'Đơn vị', field: 'UnitName', headerHozAlign: 'center' },
-      { title: 'Tình trạng', field: 'Status', headerHozAlign: 'center', visible:false },
+      { title: 'Tình trạng', field: 'Status', headerHozAlign: 'center', visible: false },
       { title: 'Ghi chú', field: 'Note' }
     ];
     if (this.recoveryDetailTable) {
@@ -446,264 +455,273 @@ export class TsAssetRecoveryComponent implements OnInit, AfterViewInit {
     });
   }
 
- validateApprove(
-  action: 1 | 2 | 3 | 4 | 5 | 6,
-  row: any
-): string | null {
-  // Rule: chỉ người trả tài sản mới được duyệt / hủy cá nhân
-  if (action === 1 || action === 2) {
-    const empIdRaw = this.currentUser?.EmployeeID;
-    const empId = empIdRaw != null ? Number(empIdRaw) : null;
-    const returnId = row.EmployeeReturnID != null ? Number(row.EmployeeReturnID) : null;
+  validateApprove(
+    action: 1 | 2 | 3 | 4 | 5 | 6,
+    row: any
+  ): string | null {
+    // Rule: chỉ người trả tài sản mới được duyệt / hủy cá nhân
+    if (action === 1 || action === 2) {
+      const empIdRaw = this.currentUser?.EmployeeID;
+      const empId = empIdRaw != null ? Number(empIdRaw) : null;
+      const returnId = row.EmployeeReturnID != null ? Number(row.EmployeeReturnID) : null;
 
-    if (!empId || returnId !== empId) {
-      // dùng code, gom message ở trên gọi
-      return 'NOT_OWNER';
+      if (!empId || returnId !== empId) {
+        // dùng code, gom message ở trên gọi
+        return 'NOT_OWNER';
+      }
     }
-  }
-
-  switch (action) {
-    case 2: // Hủy cá nhân
-      if (row.Status == 1) {
-        return 'PERSONAL_CANNOT_CANCEL_AFTER_HR';
-      }
-      break;
-
-    case 3: // HR duyệt
-      // HR có thể duyệt bất kể cá nhân đã duyệt hay chưa
-      break;
-
-    case 4: // Hủy HR
-      if (row.IsApproveAccountant == true) {
-        return 'HR_CANNOT_CANCEL_AFTER_KT';
-      }
-      break;
-
-    case 5: // KT duyệt
-      if (row.IsApproved != true) {
-        return 'KT_NEED_HR';
-      }
-      if (row.IsApproveAccountant == true) {
-        return 'KT_ALREADY_APPROVED';
-      }
-      break;
-
-    case 6: // KT hủy duyệt
-      if (row.IsApproveAccountant != true) {
-        return 'KT_CANNOT_UNAPPROVE_NOT_APPROVED';
-      }
-      break;
-  }
-
-  return null; // hợp lệ
-}
-
- updateApprove(action: 1 | 2 | 3 | 4 | 5 | 6) {
-  if (!this.recoveryTable) {
-    this.notification.warning('Thông báo', 'Lỗi bảng, không thể thao tác');
-    return;
-  }
-
-  const selectedRows = this.recoveryTable.getSelectedData() as any[];
-  if (!selectedRows || selectedRows.length === 0) {
-    this.notification.warning('Thông báo', 'Chọn ít nhất 1 bản ghi để duyệt');
-    return;
-  }
-
- const validRows: any[] = [];
-const invalidRows: { row: any; code: string }[] = [];
-
-// validate từng row -> trả code
-for (const row of selectedRows) {
-  const code = this.validateApprove(action, row);
-  if (code) {
-    invalidRows.push({ row, code });
-  } else {
-    validRows.push(row);
-  }
-}
-
-// helper gom message theo code
-const buildErrorMessages = (items: { row: any; code: string }[]): string[] => {
-  const byCode = new Map<string, any[]>();
-
-  items.forEach(x => {
-    if (!byCode.has(x.code)) byCode.set(x.code, []);
-    byCode.get(x.code)!.push(x.row);
-  });
-
-  const messages: string[] = [];
-
-  byCode.forEach((rows, code) => {
-    const codes = rows.map((r: any) => r.Code).join(', ');
-
-    switch (code) {
-      case 'NOT_OWNER':
-        messages.push(
-          `Bạn không được phép duyệt các biên bản ${codes} vì không phải người trả tài sản.`
-        );
-        break;
-
-      case 'PERSONAL_CANNOT_CANCEL_AFTER_HR':
-        messages.push(
-          `Các biên bản ${codes} đã được HR duyệt, cá nhân không thể hủy.`
-        );
-        break;
-
-      case 'HR_NEED_PERSONAL':
-        messages.push(
-          `Các biên bản ${codes} chưa được cá nhân duyệt, HR không thể duyệt!`
-        );
-        break;
-
-      case 'HR_CANNOT_CANCEL_AFTER_KT':
-        messages.push(
-          `Các biên bản ${codes} đã được Kế toán duyệt, HR không thể hủy.`
-        );
-        break;
-
-      case 'KT_NEED_HR':
-        messages.push(
-          `Các biên bản ${codes} chưa được HR duyệt, Kế toán không thể duyệt!`
-        );
-        break;
-
-      case 'KT_ALREADY_APPROVED':
-        messages.push(
-          `Các biên bản ${codes} đã được Kế toán duyệt, không thể duyệt lại.`
-        );
-        break;
-
-      case 'KT_CANNOT_UNAPPROVE_NOT_APPROVED':
-        messages.push(
-          `Các biên bản ${codes} chưa được Kế toán duyệt, không thể hủy duyệt!`
-        );
-        break;
-
-      default:
-        // fallback nếu sau này thêm code mới mà quên map
-        messages.push(`Lỗi với các biên bản ${codes} (code: ${code}).`);
-        break;
-    }
-  });
-
-  return messages;
-};
-
-// Nếu TẤT CẢ đều lỗi
-if (validRows.length === 0) {
-  if (invalidRows.length > 0) {
-    const messages = buildErrorMessages(invalidRows);
-    this.notification.warning(
-      'Không thể thực hiện',
-      messages.join('\n')
-    );
-  } else {
-    this.notification.error(
-      'Thất bại',
-      'Không có biên bản nào hợp lệ để thực hiện.'
-    );
-  }
-  return;
-}
-
-// Nếu vừa có đúng vừa có sai -> báo lỗi cho phần sai nhưng vẫn xử lý phần đúng
-if (invalidRows.length > 0) {
-  const messages = buildErrorMessages(invalidRows);
-  this.notification.warning(
-    'Danh sách biên bản không được duyệt:',
-    messages.join('\n')
-  );
-}
-  const currentDate = new Date().toISOString();
-
-  // payload chỉ cho validRows
-  const payloads = validRows.map(row => {
-    const ID = row.ID;
-
-    const updatePayload: {
-      tSAssetRecovery: {
-        ID: number;
-        Status?: number;
-        IsApproveAccountant?: boolean;
-        IsApprovedPersonalProperty?: boolean;
-        DateApproveAccountant?: string;
-        DateApprovedPersonalProperty?: string;
-        DateApprovedHR?: string;
-      };
-    } = { tSAssetRecovery: { ID } };
 
     switch (action) {
-      case 1:
-        updatePayload.tSAssetRecovery.IsApprovedPersonalProperty = true;
-        updatePayload.tSAssetRecovery.DateApprovedPersonalProperty = currentDate;
+      case 2: // Hủy cá nhân
+        if (row.Status == 1) {
+          return 'PERSONAL_CANNOT_CANCEL_AFTER_HR';
+        }
         break;
 
-      case 2:
-        updatePayload.tSAssetRecovery.IsApprovedPersonalProperty = false;
-        updatePayload.tSAssetRecovery.DateApprovedPersonalProperty = currentDate;
+      case 3: // HR duyệt
+        // HR có thể duyệt bất kể cá nhân đã duyệt hay chưa
         break;
 
-      case 3:
-        updatePayload.tSAssetRecovery.Status = 1;
-        updatePayload.tSAssetRecovery.DateApprovedHR = currentDate;
+      case 4: // Hủy HR
+        if (row.IsApproveAccountant == true) {
+          return 'HR_CANNOT_CANCEL_AFTER_KT';
+        }
         break;
 
-      case 4:
-        updatePayload.tSAssetRecovery.Status = 0;
-        updatePayload.tSAssetRecovery.DateApprovedHR = currentDate;
+      case 5: // KT duyệt
+        if (row.IsApproved != true) {
+          return 'KT_NEED_HR';
+        }
+        if (row.IsApproveAccountant == true) {
+          return 'KT_ALREADY_APPROVED';
+        }
         break;
 
-      case 5:
-        updatePayload.tSAssetRecovery.IsApproveAccountant = true;
-        updatePayload.tSAssetRecovery.DateApproveAccountant = currentDate;
-        break;
-
-      case 6:
-        updatePayload.tSAssetRecovery.IsApproveAccountant = false;
-        updatePayload.tSAssetRecovery.DateApproveAccountant = currentDate;
+      case 6: // KT hủy duyệt
+        if (row.IsApproveAccountant != true) {
+          return 'KT_CANNOT_UNAPPROVE_NOT_APPROVED';
+        }
         break;
     }
 
-    return updatePayload;
-  });
+    return null; // hợp lệ
+  }
 
-  const requests$ = payloads.map(payload => {
-    if (action === 1 || action === 2) {
-      return this.assetsRecoveryService.saveDataPersonal(payload);
-    } else if (action === 5 || action === 6) {
-      return this.assetsRecoveryService.saveDataKT(payload);
-    } else {
-      return this.assetsRecoveryService.saveAssetRecovery(payload);
+  updateApprove(action: 1 | 2 | 3 | 4 | 5 | 6) {
+    if (!this.recoveryTable) {
+      this.notification.warning('Thông báo', 'Lỗi bảng, không thể thao tác');
+      return;
     }
-  });
 
-  forkJoin(requests$).subscribe({
-    next: () => {
-      const approvedCodes = validRows
-        .map(x => x.CodeReport ?? x.Code)
-        .join(', ');
+    const selectedRows = this.recoveryTable.getSelectedData() as any[];
+    if (!selectedRows || selectedRows.length === 0) {
+      this.notification.warning('Thông báo', 'Chọn ít nhất 1 bản ghi để duyệt');
+      return;
+    }
 
-      this.notification.success(
-        'Thành công',
-        `Đã cập nhật thành công các biên bản: ${approvedCodes}`
-      );
+    const validRows: any[] = [];
+    const invalidRows: { row: any; code: string }[] = [];
 
-      if (action === 3 && validRows.length > 0) {
-        this.updateOnApproveMultiple(validRows);
+    // validate từng row -> trả code
+    for (const row of selectedRows) {
+      const code = this.validateApprove(action, row);
+      if (code) {
+        invalidRows.push({ row, code });
       } else {
-        this.getRecovery();
-        this.assetRecoveryData = [];
-        this.drawDetail();
+        validRows.push(row);
       }
-    },
-    error: (err: any) => {
-      console.error('Lỗi updateApprove (nhiều)', err);
-      const msg = err?.error?.message || 'Duyệt thất bại';
-      this.notification.error('Lỗi', msg);
     }
-  });
-}
+
+    // helper gom message theo code
+    const buildErrorMessages = (items: { row: any; code: string }[]): string[] => {
+      const byCode = new Map<string, any[]>();
+
+      items.forEach(x => {
+        if (!byCode.has(x.code)) byCode.set(x.code, []);
+        byCode.get(x.code)!.push(x.row);
+      });
+
+      const messages: string[] = [];
+
+      byCode.forEach((rows, code) => {
+        const codes = rows.map((r: any) => r.Code).join(', ');
+
+        switch (code) {
+          case 'NOT_OWNER':
+            messages.push(
+              `Bạn không được phép duyệt các biên bản ${codes} vì không phải người trả tài sản.`
+            );
+            break;
+
+          case 'PERSONAL_CANNOT_CANCEL_AFTER_HR':
+            messages.push(
+              `Các biên bản ${codes} đã được HR duyệt, cá nhân không thể hủy.`
+            );
+            break;
+
+          case 'HR_NEED_PERSONAL':
+            messages.push(
+              `Các biên bản ${codes} chưa được cá nhân duyệt, HR không thể duyệt!`
+            );
+            break;
+
+          case 'HR_CANNOT_CANCEL_AFTER_KT':
+            messages.push(
+              `Các biên bản ${codes} đã được Kế toán duyệt, HR không thể hủy.`
+            );
+            break;
+
+          case 'KT_NEED_HR':
+            messages.push(
+              `Các biên bản ${codes} chưa được HR duyệt, Kế toán không thể duyệt!`
+            );
+            break;
+
+          case 'KT_ALREADY_APPROVED':
+            messages.push(
+              `Các biên bản ${codes} đã được Kế toán duyệt, không thể duyệt lại.`
+            );
+            break;
+
+          case 'KT_CANNOT_UNAPPROVE_NOT_APPROVED':
+            messages.push(
+              `Các biên bản ${codes} chưa được Kế toán duyệt, không thể hủy duyệt!`
+            );
+            break;
+
+          default:
+            // fallback nếu sau này thêm code mới mà quên map
+            messages.push(`Lỗi với các biên bản ${codes} (code: ${code}).`);
+            break;
+        }
+      });
+
+      return messages;
+    };
+
+    // Nếu TẤT CẢ đều lỗi
+    if (validRows.length === 0) {
+      if (invalidRows.length > 0) {
+        const messages = buildErrorMessages(invalidRows);
+        this.notification.warning(
+          'Không thể thực hiện',
+          messages.join('\n')
+        );
+      } else {
+        this.notification.error(
+          'Thất bại',
+          'Không có biên bản nào hợp lệ để thực hiện.'
+        );
+      }
+      return;
+    }
+
+    // Nếu vừa có đúng vừa có sai -> báo lỗi cho phần sai nhưng vẫn xử lý phần đúng
+    if (invalidRows.length > 0) {
+      const messages = buildErrorMessages(invalidRows);
+      this.notification.warning(
+        'Danh sách biên bản không được duyệt:',
+        messages.join('\n')
+      );
+    }
+    const currentDate = new Intl.DateTimeFormat('sv-SE', {
+      timeZone: 'Asia/Bangkok',
+      year: 'numeric',
+      month: '2-digit',
+      day: '2-digit',
+      hour: '2-digit',
+      minute: '2-digit',
+      second: '2-digit',
+      hour12: false
+    }).format(new Date()).replace(' ', 'T') + '+07:00';
+
+    // payload chỉ cho validRows
+    const payloads = validRows.map(row => {
+      const ID = row.ID;
+
+      const updatePayload: {
+        tSAssetRecovery: {
+          ID: number;
+          Status?: number;
+          IsApproveAccountant?: boolean;
+          IsApprovedPersonalProperty?: boolean;
+          DateApproveAccountant?: string;
+          DateApprovedPersonalProperty?: string;
+          DateApprovedHR?: string;
+        };
+      } = { tSAssetRecovery: { ID } };
+
+      switch (action) {
+        case 1:
+          updatePayload.tSAssetRecovery.IsApprovedPersonalProperty = true;
+          updatePayload.tSAssetRecovery.DateApprovedPersonalProperty = currentDate;
+          break;
+
+        case 2:
+          updatePayload.tSAssetRecovery.IsApprovedPersonalProperty = false;
+          updatePayload.tSAssetRecovery.DateApprovedPersonalProperty = currentDate;
+          break;
+
+        case 3:
+          updatePayload.tSAssetRecovery.Status = 1;
+          updatePayload.tSAssetRecovery.DateApprovedHR = currentDate;
+          break;
+
+        case 4:
+          updatePayload.tSAssetRecovery.Status = 0;
+          updatePayload.tSAssetRecovery.DateApprovedHR = currentDate;
+          break;
+
+        case 5:
+          updatePayload.tSAssetRecovery.IsApproveAccountant = true;
+          updatePayload.tSAssetRecovery.DateApproveAccountant = currentDate;
+          break;
+
+        case 6:
+          updatePayload.tSAssetRecovery.IsApproveAccountant = false;
+          updatePayload.tSAssetRecovery.DateApproveAccountant = currentDate;
+          break;
+      }
+
+      return updatePayload;
+    });
+
+    const requests$ = payloads.map(payload => {
+      if (action === 1 || action === 2) {
+        return this.assetsRecoveryService.saveDataPersonal(payload);
+      } else if (action === 5 || action === 6) {
+        return this.assetsRecoveryService.saveDataKT(payload);
+      } else {
+        return this.assetsRecoveryService.saveAssetRecovery(payload);
+      }
+    });
+
+    forkJoin(requests$).subscribe({
+      next: () => {
+        const approvedCodes = validRows
+          .map(x => x.CodeReport ?? x.Code)
+          .join(', ');
+
+        this.notification.success(
+          'Thành công',
+          `Đã cập nhật thành công các biên bản: ${approvedCodes}`
+        );
+
+        if (action === 3 && validRows.length > 0) {
+          this.updateOnApproveMultiple(validRows);
+        } else {
+          this.getRecovery();
+          this.assetRecoveryData = [];
+          this.drawDetail();
+        }
+      },
+      error: (err: any) => {
+        console.error('Lỗi updateApprove (nhiều)', err);
+        const msg = err?.error?.message || 'Duyệt thất bại';
+        this.notification.error('Lỗi', msg);
+      }
+    });
+  }
 
   private updateOnApproveMultiple(masters: any[]) {
     // Lấy detail cho từng biên bản thu hồi
@@ -786,40 +804,40 @@ if (invalidRows.length > 0) {
       }
     });
   }
- onAddRecovery() {
-  const modalRef = this.ngbModal.open(TsAssetRecoveryFormComponent, {
-    size: 'xl',
-    backdrop: 'static',
-    keyboard: false,
-    centered: true,
-  });
+  onAddRecovery() {
+    const modalRef = this.ngbModal.open(TsAssetRecoveryFormComponent, {
+      size: 'xl',
+      backdrop: 'static',
+      keyboard: false,
+      centered: true,
+    });
 
-  // ✅ Dữ liệu mặc định cho THÊM MỚI
-  modalRef.componentInstance.dataInput = {
-    ID: 0,
-    Code: '',
-    DateRecovery: DateTime.now().toISODate(),
-    EmployeeReturnID: null,
-    EmployeeRecoveryID: null,
-    DepartmentReturn: '',
-    PossitionReturn: '',
-    DepartmentRecovery: '',
-    PossitionRecovery: '',
-    Status: 0,
-    Note: '',
-    IsApproveAccountant: false,
-    IsApprovedPersonalProperty: false
-  };
+    // ✅ Dữ liệu mặc định cho THÊM MỚI
+    modalRef.componentInstance.dataInput = {
+      ID: 0,
+      Code: '',
+      DateRecovery: DateTime.now().toISODate(),
+      EmployeeReturnID: null,
+      EmployeeRecoveryID: null,
+      DepartmentReturn: '',
+      PossitionReturn: '',
+      DepartmentRecovery: '',
+      PossitionRecovery: '',
+      Status: 0,
+      Note: '',
+      IsApproveAccountant: false,
+      IsApprovedPersonalProperty: false
+    };
 
-  modalRef.result.then(
-    () => {
-      this.getRecovery();
-    },
-    () => {
-      console.log('Modal dismissed');
-    }
-  );
-}
+    modalRef.result.then(
+      () => {
+        this.getRecovery();
+      },
+      () => {
+        console.log('Modal dismissed');
+      }
+    );
+  }
 
   onEditRecovery() {
     if (!this.recoveryTable) {
@@ -1009,6 +1027,8 @@ if (invalidRows.length > 0) {
         EmployeeRecoveryName: selectedMaster.EmployeeRecoveryName,
         DepartmentRecovery: selectedMaster.DepartmentRecovery,
         PossitionRecovery: selectedMaster.PossitionRecovery,
+        DateApprovedHR: selectedMaster.DateApprovedHR,
+        DateApprovedPersonalProperty: selectedMaster.DateApprovedPersonalProperty,
         Note: selectedMaster.Note,
       },
       Details: details.map((d: any) => ({

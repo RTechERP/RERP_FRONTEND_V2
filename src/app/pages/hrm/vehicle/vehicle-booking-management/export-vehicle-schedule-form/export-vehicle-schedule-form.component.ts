@@ -37,6 +37,7 @@ import { NgbActiveModal } from '@ng-bootstrap/ng-bootstrap';
 import * as ExcelJS from 'exceljs';
 import { DateTime } from 'luxon';
   import { CommonModule } from '@angular/common';
+import { NOTIFICATION_TITLE } from '../../../../../app.config';
 
 @Component({
   selector: 'app-export-vehicle-schedule-form',
@@ -178,7 +179,7 @@ export class ExportVehicleScheduleFormComponent implements OnInit {
 
     if (startDate.isValid && endDate < startDate) {
       this.dateEnd = startDate.set({ hour: 23, minute: 59, second: 59, millisecond: 999 }).toISO();
-      this.notification.warning('Thông báo', 'Ngày kết thúc không được nhỏ hơn ngày bắt đầu!');
+      this.notification.warning(NOTIFICATION_TITLE.warning, 'Ngày kết thúc không được nhỏ hơn ngày bắt đầu!');
       return;
     }
 
@@ -209,8 +210,6 @@ export class ExportVehicleScheduleFormComponent implements OnInit {
           ? parsed.set({ hour: 0, minute: 0, second: 0, millisecond: 0 }).toISO() || ''
           : DateTime.local().set({ hour: 0, minute: 0, second: 0, millisecond: 0 }).toISO() || '';
       }
-
-      // Xử lý dateEnd - có thể là Date object, ISO string, hoặc Date string
       if (!this.dateEnd) {
         endDate = DateTime.local().set({ hour: 23, minute: 59, second: 59, millisecond: 999 }).toISO() || '';
       } else if (this.dateEnd instanceof Date) {
@@ -222,7 +221,7 @@ export class ExportVehicleScheduleFormComponent implements OnInit {
           : DateTime.local().set({ hour: 23, minute: 59, second: 59, millisecond: 999 }).toISO() || '';
       }
       if (!startDate || !endDate) {
-        this.notification.error('Thông báo', 'Ngày bắt đầu và ngày kết thúc không hợp lệ!');
+        this.notification.error(NOTIFICATION_TITLE.error, 'Ngày bắt đầu và ngày kết thúc không hợp lệ!');
         return;
       }
 
@@ -238,17 +237,23 @@ export class ExportVehicleScheduleFormComponent implements OnInit {
           // Lấy dữ liệu từ response.data.data.data (nested structure)
           const dataArray = response?.data?.data?.data || response?.data?.data || response?.data || [];
           this.exportVehicleScheduleList = Array.isArray(dataArray) ? dataArray : [];
+         
+          this.exportVehicleScheduleList.sort((a: any, b: any) => {
+            const aStt = Number(a?.STT ?? Infinity);
+            const bStt = Number(b?.STT ?? Infinity);
+            return aStt - bStt;
+          });
           this.processGroupedData();
           console.log("exportVehicleScheduleList", this.exportVehicleScheduleList)
         },
-        error: (error) => {
+        error: (error:any) => {
           console.error('Lỗi:', error);
-          this.notification.error('Thông báo', 'Lỗi khi tải dữ liệu lịch trình xe!');
+          this.notification.error(NOTIFICATION_TITLE.error, error.error.message||error.message);
         }
       });
-    } catch (error) {
+    } catch (error: any) {
       console.error('Lỗi xử lý ngày:', error);
-      this.notification.error('Thông báo', 'Lỗi khi xử lý ngày bắt đầu và ngày kết thúc!');
+      this.notification.error(NOTIFICATION_TITLE.error, error?.error?.message || error?.message || 'Lỗi khi xử lý ngày bắt đầu và ngày kết thúc!');
     }
   }
     //#region Xử lý dữ liệu group theo xe và buổi
@@ -557,7 +562,7 @@ export class ExportVehicleScheduleFormComponent implements OnInit {
 
   async exportToExcel() {
       if (!this.groupedScheduleData || this.groupedScheduleData.length === 0) {
-      this.notification.error('', 'Không có dữ liệu để xuất!', {
+      this.notification.error(NOTIFICATION_TITLE.error, 'Không có dữ liệu để xuất!', {
         nzStyle: { fontSize: '0.75rem' },
       });
       return;

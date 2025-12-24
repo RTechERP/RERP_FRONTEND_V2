@@ -1165,7 +1165,7 @@ export class OverTimePersonFormComponent implements OnInit {
   uploadFileAndSaveForTab(employeeOvertime: any, tab: any, onSuccess: () => void, onError: (error: any) => void): void {
     if (tab.selectedFile && !tab.tempFileRecord) {
       const employeeCode = this.currentUser?.Code || 'UNKNOWN';
-      const dateRegister = tab.form.get('DateRegister')?.value;
+      const dateRegister = tab.form.get('DateRegister')?.value || this.commonForm.get('DateRegister')?.value;
       const dateRegisterDate = dateRegister ? new Date(dateRegister) : new Date();
       const subPath = this.generateSubPath(dateRegisterDate, employeeCode);
       const uploadKey = 'EmployeeOvertime';

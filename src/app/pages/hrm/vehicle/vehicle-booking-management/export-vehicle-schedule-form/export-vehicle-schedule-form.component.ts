@@ -236,12 +236,16 @@ export class ExportVehicleScheduleFormComponent implements OnInit {
           console.log("tb_vehicleManagement", response);
           // Lấy dữ liệu từ response.data.data.data (nested structure)
           const dataArray = response?.data?.data?.data || response?.data?.data || response?.data || [];
-          this.exportVehicleScheduleList = Array.isArray(dataArray) ? dataArray : [];
+          // Lưu kèm chỉ số gốc để giữ thứ tự backend khi cần
+          this.exportVehicleScheduleList = Array.isArray(dataArray)
+            ? dataArray.map((item, idx) => ({ ...item, __idx: idx }))
+            : [];
          
           this.exportVehicleScheduleList.sort((a: any, b: any) => {
             const aStt = Number(a?.STT ?? Infinity);
             const bStt = Number(b?.STT ?? Infinity);
-            return aStt - bStt;
+            if (aStt !== bStt) return aStt - bStt;
+            return (a.__idx ?? Infinity) - (b.__idx ?? Infinity);
           });
           this.processGroupedData();
           console.log("exportVehicleScheduleList", this.exportVehicleScheduleList)
@@ -277,9 +281,12 @@ export class ExportVehicleScheduleFormComponent implements OnInit {
         const dayGroups = new Map<string, any[]>();
         
         items.forEach((item: any) => {
+          // giữ thứ tự gốc khi chia nhóm
+          const itemWithIdx = item.__idx !== undefined ? item : { ...item, __idx: items.indexOf(item) };
+
           // Lấy ngày từ DepartureDateRegister (ngày đăng ký), nếu không có thì dùng DepartureDate
           let dateKey = '';
-          const dateSource = item.DepartureDateRegister || item.DepartureDate;
+          const dateSource = itemWithIdx.DepartureDateRegister || itemWithIdx.DepartureDate;
           if (dateSource) {
             try {
               const date = new Date(dateSource);
@@ -293,56 +300,58 @@ export class ExportVehicleScheduleFormComponent implements OnInit {
           }
           
           // Kết hợp ngày và buổi
-          const daySessionKey = `${dateKey}_${item.TypeDate || ''}`;
+          const daySessionKey = `${dateKey}_${itemWithIdx.TypeDate || ''}`;
           
           if (!dayGroups.has(daySessionKey)) {
             dayGroups.set(daySessionKey, []);
           }
-          dayGroups.get(daySessionKey)!.push(item);
+          dayGroups.get(daySessionKey)!.push(itemWithIdx);
         });
 
-        // Chuyển đổi thành mảng với thông tin ngày và buổi
+        dayGroups.forEach((sessionItems, key) => {
+          const sorted = [...sessionItems].sort((a: any, b: any) => {
+            const aStt = Number(a?.STT ?? Infinity);
+            const bStt = Number(b?.STT ?? Infinity);
+            if (aStt !== bStt) return aStt - bStt;
+            return (a.__idx ?? Infinity) - (b.__idx ?? Infinity); 
+          });
+          dayGroups.set(key, sorted);
+        });
         const daySessions = Array.from(dayGroups.entries()).map(([daySessionKey, sessionItems]) => {
           const [dateKey, session] = daySessionKey.split('_');
+          const minStt = Math.min(...sessionItems.map((x: any) => Number(x?.STT ?? Infinity)));
           return {
             date: dateKey,
             session: session || '',
-            items: sessionItems
+            items: sessionItems,
+            minStt
           };
         });
-
-        // Sắp xếp theo ngày và buổi (sáng trước, chiều sau)
         daySessions.sort((a, b) => {
-          if (a.date !== b.date) {
-            return a.date.localeCompare(b.date);
-          }
-          // Sáng (Sáng, Morning) trước, Chiều (Chiều, Afternoon) sau
+          const diff = (a.minStt ?? Infinity) - (b.minStt ?? Infinity);
+          if (diff !== 0) return diff;
+          // fallback theo ngày nếu STT không có
+          if (a.date !== b.date) return a.date.localeCompare(b.date);
           const sessionOrder: any = { 'Sáng': 1, 'Morning': 1, 'Chiều': 2, 'Afternoon': 2, '': 0 };
           return (sessionOrder[a.session] || 0) - (sessionOrder[b.session] || 0);
         });
 
+        const groupMinStt = Math.min(...items.map((x: any) => Number(x?.STT ?? Infinity)));
+
         return {
           vehicleInfo: vehicleInfo,
-          daySessions: daySessions,
-          totalItems: items.length
+          daySessions: daySessions.map(ds => ({ date: ds.date, session: ds.session, items: ds.items })), // loại bỏ minStt khi trả về
+          totalItems: items.length,
+          __minStt: groupMinStt
         };
       });
 
-      // Sắp xếp các nhóm xe theo số ở đầu (1, 2, 3...)
+      // Sắp xếp các nhóm xe theo STT nhỏ nhất trong nhóm để giữ đúng thứ tự backend
       this.groupedScheduleData.sort((a, b) => {
-        const aValue = a.vehicleInfo || '';
-        const bValue = b.vehicleInfo || '';
-        // Extract số từ đầu chuỗi
-        const aMatch = aValue.match(/^(\d+)/);
-        const bMatch = bValue.match(/^(\d+)/);
-        const aNum = aMatch ? parseInt(aMatch[1], 10) : Infinity;
-        const bNum = bMatch ? parseInt(bMatch[1], 10) : Infinity;
-        // Sắp xếp theo số, nếu không có số thì đưa xuống cuối
-        if (aNum !== bNum) {
-          return aNum - bNum;
-        }
-        // Nếu cùng số hoặc không có số, sắp xếp theo chuỗi
-        return aValue.localeCompare(bValue);
+        const diff = (a.__minStt ?? Infinity) - (b.__minStt ?? Infinity);
+        if (diff !== 0) return diff;
+        // Fallback giữ nguyên nếu không có STT
+        return 0;
       });
 
       // Mặc định tất cả group đều mở

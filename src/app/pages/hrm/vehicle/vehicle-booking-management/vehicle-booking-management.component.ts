@@ -1000,29 +1000,29 @@ export class VehicleBookingManagementComponent
             this.openUpdateVehicleMoneyModal(rowData);
           }
         },
-        {
-          label: 'Lưu thời gian xuất phát thực tế',
-          action: (e: any, row: any) => {
-            const rowData = row.getData();
-            const rowId = rowData['ID'];
+        // {
+        //   label: 'Lưu thời gian xuất phát thực tế',
+        //   action: (e: any, row: any) => {
+        //     const rowData = row.getData();
+        //     const rowId = rowData['ID'];
             
-            // Kiểm tra xem dòng này có thay đổi pending không
-            if (this.pendingChanges.has(rowId)) {
-              const change = this.pendingChanges.get(rowId);
-              if (change) {
-                // Lưu thay đổi của dòng này
-                this.saveSingleChange(rowId, change.departureDateActual);
-              }
-            } else {
-              this.notification.info('Thông báo', 'Dòng này không có thay đổi để lưu.');
-            }
-          },
-          visible: (e: any, row: any) => {
-            const rowData = row.getData();
-            const rowId = rowData['ID'];
-            return this.pendingChanges.has(rowId);
-          }
-        }
+        //     // Kiểm tra xem dòng này có thay đổi pending không
+        //     if (this.pendingChanges.has(rowId)) {
+        //       const change = this.pendingChanges.get(rowId);
+        //       if (change) {
+        //         // Lưu thay đổi của dòng này
+        //         this.saveSingleChange(rowId, change.departureDateActual);
+        //       }
+        //     } else {
+        //       this.notification.info('Thông báo', 'Dòng này không có thay đổi để lưu.');
+        //     }
+        //   },
+        //   visible: (e: any, row: any) => {
+        //     const rowData = row.getData();
+        //     const rowId = rowData['ID'];
+        //     return this.pendingChanges.has(rowId);
+        //   }
+        // }
       ];
 
       this.vehicleBookingManagementTable = new Tabulator(

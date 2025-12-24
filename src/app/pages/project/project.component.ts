@@ -64,6 +64,7 @@ import { PermissionService } from '../../services/permission.service';
 import { environment } from '../../../environments/environment';
 import { debounceTime } from 'rxjs/operators';
 import { Subject } from 'rxjs';
+// import { ProjectPartListSlickGridComponent } from '../project-part-list-slick-grid/project-part-list-slick-grid.component';
 @Component({
   selector: 'app-projects',
   standalone: true,
@@ -1875,6 +1876,13 @@ export class ProjectComponent implements OnInit, AfterViewInit {
       windowClass: 'full-screen-modal',
       scrollable:false,
     });
+    // const modalRef = this.modalService.open(ProjectPartListSlickGridComponent, {
+    //   centered: true,
+    //   backdrop: 'static',
+    //   keyboard: false,
+    //   windowClass: 'full-screen-modal',
+    //   scrollable:false,
+    // });
     modalRef.componentInstance.projectId = this.projectId;
     modalRef.componentInstance.projectNameX = this.tb_projects.getSelectedData()[0].ProjectName;
     modalRef.componentInstance.projectCodex = this.tb_projects.getSelectedData()[0].ProjectCode;
@@ -1916,5 +1924,9 @@ export class ProjectComponent implements OnInit, AfterViewInit {
       console.log('Modal dismissed:', reason);
     });
   }
+  //#endregion
+  //#region Xuất Excel
+  // exportExcel() {
+  // }
   //#endregion
 }

@@ -1925,4 +1925,8 @@ export class ProjectComponent implements OnInit, AfterViewInit {
     });
   }
   //#endregion
+  //#region Xuất Excel
+  // exportExcel() {
+  // }
+  //#endregion
 }

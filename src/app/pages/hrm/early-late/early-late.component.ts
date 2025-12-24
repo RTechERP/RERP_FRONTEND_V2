@@ -160,9 +160,12 @@ export class EarlyLateComponent implements OnInit, AfterViewInit {
     const label = option.nzLabel?.toLowerCase() || '';
     return label.includes(searchText);
   };
-
-  // Disable past dates - only allow dates from today onwards
   disabledDate = (current: Date): boolean => {
+    // Chếch quyền HR thêm được những ngày khác
+    if (this.permissionService.hasPermission('N1') || this.permissionService.hasPermission('N2')||this.currentUser.IsAdmin) {
+      return false;
+    }
+
     if (!current) return false;
     const today = new Date();
     today.setHours(0, 0, 0, 0);
@@ -268,6 +271,7 @@ export class EarlyLateComponent implements OnInit, AfterViewInit {
 
   // Setup listener for Type changes
   private typeChangeSubscription: any;
+  private dateRegisterChangeSubscription: any;
   private setupTypeChangeListener(): void {
     // Unsubscribe previous subscription if exists
     if (this.typeChangeSubscription) {
@@ -283,6 +287,47 @@ export class EarlyLateComponent implements OnInit, AfterViewInit {
           DateEnd: times.end
         }, { emitEvent: false }); // Prevent infinite loop
       }
+    });
+  }
+
+//Update theo ngày đăng kí
+  private syncDateRangeWithRegister(): void {
+    const registerRaw = this.earlyLateForm.get('DateRegister')?.value;
+    if (!registerRaw) return;
+
+    const registerDate = new Date(registerRaw);
+    if (isNaN(registerDate.getTime())) return;
+
+    const currentStart = this.earlyLateForm.get('DateStart')?.value ? new Date(this.earlyLateForm.get('DateStart')?.value) : null;
+    const currentEnd = this.earlyLateForm.get('DateEnd')?.value ? new Date(this.earlyLateForm.get('DateEnd')?.value) : null;
+
+    const buildWithDate = (source: Date | null, fallbackHour: number, fallbackMinute: number) => {
+      const date = new Date(registerDate);
+      const hour = source ? source.getHours() : fallbackHour;
+      const minute = source ? source.getMinutes() : fallbackMinute;
+      const second = source ? source.getSeconds() : 0;
+      const ms = source ? source.getMilliseconds() : 0;
+      date.setHours(hour, minute, second, ms);
+      return date;
+    };
+
+    const newStart = buildWithDate(currentStart, 0, 0);
+    const newEnd = buildWithDate(currentEnd, 0, 0);
+
+    this.earlyLateForm.patchValue({
+      DateStart: newStart,
+      DateEnd: newEnd
+    }, { emitEvent: false });
+  }
+
+  // Lắng nghe thay đổi DateRegister để cập nhật DateStart/DateEnd cùng ngày
+  private setupDateRegisterChangeListener(): void {
+    if (this.dateRegisterChangeSubscription) {
+      this.dateRegisterChangeSubscription.unsubscribe();
+    }
+
+    this.dateRegisterChangeSubscription = this.earlyLateForm.get('DateRegister')?.valueChanges.subscribe(() => {
+      this.syncDateRangeWithRegister();
     });
   }
 
@@ -429,6 +474,8 @@ export class EarlyLateComponent implements OnInit, AfterViewInit {
     
     // Subscribe to Type changes
     this.setupTypeChangeListener();
+    // Subscribe to DateRegister changes
+    this.setupDateRegisterChangeListener();
     
     const modal = new (window as any).bootstrap.Modal(document.getElementById('addEarlyLateModal'));
     modal.show();
@@ -482,6 +529,8 @@ export class EarlyLateComponent implements OnInit, AfterViewInit {
 
     // Subscribe to Type changes for edit mode as well (after patching)
     this.setupTypeChangeListener();
+    // Subscribe to DateRegister changes for edit mode
+    this.setupDateRegisterChangeListener();
 
     const modal = new (window as any).bootstrap.Modal(document.getElementById('addEarlyLateModal'));
     modal.show();
@@ -681,18 +730,15 @@ export class EarlyLateComponent implements OnInit, AfterViewInit {
 
     if (isNaN(startDate.getTime())) {
       this.notification.error(NOTIFICATION_TITLE.error, 'Ngày bắt đầu không hợp lệ. Vui lòng kiểm tra lại.');
-      this.notification.error(NOTIFICATION_TITLE.error, 'Ngày bắt đầu không hợp lệ. Vui lòng kiểm tra lại.');
+   
       this.earlyLateForm.get('StartDate')?.markAsTouched();
       return;
     }
-
     if (isNaN(endDate.getTime())) {
-      this.notification.error(NOTIFICATION_TITLE.error, 'Ngày kết thúc không hợp lệ. Vui lòng kiểm tra lại.');
-      this.notification.error(NOTIFICATION_TITLE.error, 'Ngày kết thúc không hợp lệ. Vui lòng kiểm tra lại.');
+      this.notification.error(NOTIFICATION_TITLE.error, 'Ngày kết thúc không hợp lệ. Vui lòng kiểm tra lại.');  
       this.earlyLateForm.get('EndDate')?.markAsTouched();
       return;
     }
-
     // Convert to UTC ISO strings
     const startDateObj = new Date(Date.UTC(
       startDate.getUTCFullYear(),
@@ -732,10 +778,6 @@ export class EarlyLateComponent implements OnInit, AfterViewInit {
         return;
       }
     }
-
-    // Log final formData for debugging
-    console.log('Form Data:', JSON.stringify(formData));
-
     this.earlyLateService.saveEmployeeEarlyLate(formData).subscribe({
       next: () => {
         this.notification.success(NOTIFICATION_TITLE.success, 'Lưu đăng ký thành công');
@@ -748,19 +790,16 @@ export class EarlyLateComponent implements OnInit, AfterViewInit {
       },
     });
   }
-
   resetSearch() {
     this.initializeForm();
     this.loadEarlyLate();
   }
-
   isApproveTBP(status: boolean) {
     const selectedRows = this.tabulator.getSelectedRows();
     if (selectedRows.length == 0) {
       this.notification.warning(NOTIFICATION_TITLE.warning, "Vui lòng chọn nhân viên để duyệt");
       return;
     }
-
     if (!status) {
       for (let row of selectedRows) {
         const data = row.getData();
@@ -775,9 +814,6 @@ export class EarlyLateComponent implements OnInit, AfterViewInit {
 
       }
     }
-
-
-    // Nếu là duyệt → làm như cũ
     if (status) {
       return this.handleApproveTP(status, selectedRows);
     }
@@ -792,8 +828,6 @@ export class EarlyLateComponent implements OnInit, AfterViewInit {
           this.notification.warning("Thông báo", "Vui lòng nhập lý do hủy duyệt");
           return false; // ngăn modal đóng
         }
-
-        // Gọi chung 1 hàm xử lý
         this.handleApproveTP(status, selectedRows, this.reasonText);
         return true;
       }

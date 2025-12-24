@@ -1338,7 +1338,7 @@ export class MenuService {
                                 title: 'SẢN PHẨM KHO SALE',
                                 isOpen: true,
                                 isPermission:
-                                    this.permissionService.hasPermission('N26,N1,N36,N73,N30'),
+                                    this.permissionService.hasPermission('N27,N29,N35,N1,N36,N33,N3'),
                                 comp: ProductSaleComponent,
                             },
                             {

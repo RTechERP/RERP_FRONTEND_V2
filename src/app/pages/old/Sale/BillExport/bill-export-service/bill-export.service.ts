@@ -197,7 +197,11 @@ getBillImportDetail(billIDs: number[]): Observable<any> {
   }
 
   getOptionProduct(warehouseCode: string, productGroupID: number): Observable<any> {
+    console.log('warehouseCode:', warehouseCode);
+
     const code = (warehouseCode ?? '').trim() || 'HN';
+    console.log('warehouseCode:', code);
+
     const params = new HttpParams()
       .set('warehouseCode', code)
       .set('productGroupID', String(productGroupID ?? 0));

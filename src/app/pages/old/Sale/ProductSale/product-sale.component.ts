@@ -33,7 +33,7 @@ import { NOTIFICATION_TITLE } from '../../../../app.config';
 import { DEFAULT_TABLE_CONFIG } from '../../../../tabulator-default.config';
 import { HasPermissionDirective } from '../../../../directives/has-permission.directive';
 import { NzSpinModule } from 'ng-zorro-antd/spin';
-import { ProjectPartlistPriceRequestComponent } from '../../project-partlist-price-request/project-partlist-price-request.component';
+import { ProjectPartlistPriceRequestNewComponent } from '../../../purchase/project-partlist-price-request-new/project-partlist-price-request-new.component';
 import { MarketingPurchaseRequestComponent } from '../../../purchase/marketing-purchase-request/marketing-purchase-request.component';
 import { ProjectPartListService } from '../../../project/project-department-summary/project-department-summary-form/project-part-list/project-partlist-service/project-part-list-service.service';
 
@@ -1042,7 +1042,7 @@ export class ProductSaleComponent implements OnInit, AfterViewInit {
 
     //#region Yêu cầu báo giá
     openPriceRequest(): void {
-        const modalRef = this.modalService.open(ProjectPartlistPriceRequestComponent, {
+        const modalRef = this.modalService.open(ProjectPartlistPriceRequestNewComponent, {
             centered: true,
             size: 'xl',
             backdrop: 'static',

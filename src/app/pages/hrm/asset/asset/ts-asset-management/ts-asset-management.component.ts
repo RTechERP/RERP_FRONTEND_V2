@@ -201,6 +201,7 @@ export class TsAssetManagementComponent implements OnInit, AfterViewInit {
       },
       error: (err) => {
         console.error('Lỗi khi lấy dữ liệu tài sản:', err);
+        this.notification.error(NOTIFICATION_TITLE.error, err?.error?.message || err.message);
       },
     });
   }
@@ -225,6 +226,7 @@ export class TsAssetManagementComponent implements OnInit, AfterViewInit {
       },
       error: (err) => {
         console.error('Lỗi khi lấy dữ liệu tài sản:', err);
+        this.notification.error(NOTIFICATION_TITLE.error, err?.error?.message || err.message);
       },
     });
   }
@@ -236,6 +238,7 @@ export class TsAssetManagementComponent implements OnInit, AfterViewInit {
       },
       error: (err) => {
         console.error('Lỗi khi lấy dữ liệu tài sản:', err);
+        this.notification.error(NOTIFICATION_TITLE.error, err?.error?.message || err.message);
       },
     });
   }
@@ -247,11 +250,17 @@ export class TsAssetManagementComponent implements OnInit, AfterViewInit {
     };
     this.assetManagementPersonalService
       .getEmployee(request)
-      .subscribe((respon: any) => {
-        this.emPloyeeLists = respon.employees;
-        console.log(this.emPloyeeLists);
-        this.employeeID = null;
-        this.selectedEmployee = null;
+      .subscribe({
+        next: (respon: any) => {
+          this.emPloyeeLists = respon.employees;
+          console.log(this.emPloyeeLists);
+          this.employeeID = null;
+          this.selectedEmployee = null;
+        },
+        error: (err) => {
+          console.error('Lỗi khi lấy danh sách nhân viên:', err);
+          this.notification.error(NOTIFICATION_TITLE.error, err?.error?.message || err.message);
+        }
       });
   }
   toggleSearchPanel() {
@@ -831,12 +840,18 @@ export class TsAssetManagementComponent implements OnInit, AfterViewInit {
       const ID = item['ID'];
       this.assetManagementService
         .getAssetAllocationDetail(ID)
-        .subscribe((respon) => {
-          this.assetManagementDetail = respon.data.assetsAllocation;
-          this.datasetDetail = this.assetManagementDetail.map((item, index) => ({
-            ...item,
-            id: item.ID || index // SlickGrid requires lowercase 'id' property
-          }));
+        .subscribe({
+          next: (respon) => {
+            this.assetManagementDetail = respon.data.assetsAllocation;
+            this.datasetDetail = this.assetManagementDetail.map((item, index) => ({
+              ...item,
+              id: item.ID || index // SlickGrid requires lowercase 'id' property
+            }));
+          },
+          error: (err) => {
+            console.error('Lỗi khi lấy chi tiết cấp phát:', err);
+            this.notification.error(NOTIFICATION_TITLE.error, err?.error?.message || err.message);
+          }
         });
     }
   }
@@ -928,7 +943,7 @@ export class TsAssetManagementComponent implements OnInit, AfterViewInit {
           },
           error: (err) => {
             console.error('Lỗi khi xóa:', err);
-            this.notification.warning('Lỗi', 'Lỗi kết nối máy chủ');
+            this.notification.error(NOTIFICATION_TITLE.error, err?.error?.message || err.message);
           },
         });
       },
@@ -1067,21 +1082,27 @@ export class TsAssetManagementComponent implements OnInit, AfterViewInit {
 
     this.assetManagementService
       .getAssetRepair(selectedAssets.ID)
-      .subscribe((respon) => {
-        this.repairData = respon.data;
-        const modalRef = this.ngbModal.open(TsAssetReuseFormComponent, {
-          size: 'xl',
-          backdrop: 'static',
-          keyboard: false,
-          centered: true,
-        });
-        modalRef.componentInstance.dataInput1 = this.repairData;
-        modalRef.componentInstance.dataInput = selectedAssets;
+      .subscribe({
+        next: (respon) => {
+          this.repairData = respon.data;
+          const modalRef = this.ngbModal.open(TsAssetReuseFormComponent, {
+            size: 'xl',
+            backdrop: 'static',
+            keyboard: false,
+            centered: true,
+          });
+          modalRef.componentInstance.dataInput1 = this.repairData;
+          modalRef.componentInstance.dataInput = selectedAssets;
 
-        modalRef.result.then(
-          () => this.getAssetmanagement(),
-          () => { }
-        );
+          modalRef.result.then(
+            () => this.getAssetmanagement(),
+            () => { }
+          );
+        },
+        error: (err) => {
+          console.error('Lỗi khi lấy thông tin sửa chữa:', err);
+          this.notification.error(NOTIFICATION_TITLE.error, err?.error?.message || err.message);
+        }
       });
   }
   onReportBroken() {
@@ -1207,11 +1228,19 @@ export class TsAssetManagementComponent implements OnInit, AfterViewInit {
   }
   onDisposeAsset() { }
   async exportToExcelAdvanced() {
-    if (!this.angularGrid) return;
+    if (!this.angularGrid || !this.angularGrid.dataView) return;
 
-    const selectedData = [...this.assetData];
+    // Lấy dữ liệu đã được filter từ grid (dataView) - đã được filter và sort
+    const selectedData: any[] = [];
+    const dataLength = this.angularGrid.dataView.getLength();
+    for (let i = 0; i < dataLength; i++) {
+      const item = this.angularGrid.dataView.getItem(i);
+      if (item) {
+        selectedData.push(item);
+      }
+    }
 
-    console.log('selectedData:', selectedData);
+    console.log('selectedData (filtered):', selectedData);
 
     if (!selectedData || selectedData.length === 0) {
       this.notification.info('Thông báo', 'Không có dữ liệu để xuất Excel.');

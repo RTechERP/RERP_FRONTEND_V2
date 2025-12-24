@@ -63,7 +63,6 @@ export class ApproveTpComponent implements OnInit, AfterViewInit {
   employeeList: any[] = [];
   teamList: any[] = [];
   loadingData = false;
-  sizeSearch: string = '0';
   currentUser: any = null;
   isSenior: boolean = false;
   isBGD: boolean = false;
@@ -88,11 +87,15 @@ export class ApproveTpComponent implements OnInit, AfterViewInit {
     this.getCurrentUser();
     this.loadTeams();
     this.loadEmployees();
+
+    // Subscribe to teamId changes to reload employees
+    if (this.searchForm) {
+      this.searchForm.get('teamId')?.valueChanges.subscribe(() => {
+        this.loadEmployees();
+      });
+    }
   }
 
-  toggleSearchPanel() {
-    this.sizeSearch = this.sizeSearch == '0' ? '20%' : '0';
-  }
   getCurrentUser() {
     this.authService.getCurrentUser().subscribe((res: any) => {
       if (res && res.status === 1 && res.data) {
@@ -151,7 +154,7 @@ export class ApproveTpComponent implements OnInit, AfterViewInit {
     const firstDay = new Date(today.getFullYear(), today.getMonth(), 1);
     const lastDay = new Date(today.getFullYear(), today.getMonth() + 1, 0);
 
-    const defaultType = this.isSeniorMode ? 3 : 0;
+    const defaultType = this.isSeniorMode ? 3 : null;
     const idApprovedTP = this.isSeniorMode ? 0 : (this.currentUser?.EmployeeID || 0);
 
     this.searchForm.reset({
@@ -162,8 +165,8 @@ export class ApproveTpComponent implements OnInit, AfterViewInit {
       status: 0, // Mặc định: Chờ duyệt
       deleteFlag: 0,
       type: defaultType,
-      statusHR: -1,
-      statusBGD: -1,
+      statusHR: null,
+      statusBGD: null,
       keyWord: '',
       IDApprovedTP: idApprovedTP
     });
@@ -179,7 +182,7 @@ export class ApproveTpComponent implements OnInit, AfterViewInit {
     const firstDay = new Date(today.getFullYear(), today.getMonth(), 1);
     const lastDay = new Date(today.getFullYear(), today.getMonth() + 1, 0);
 
-    const defaultType = this.isSeniorMode ? 3 : 0;
+    const defaultType = this.isSeniorMode ? 3 : null;
 
     this.searchForm = this.fb.group({
       startDate: [DateTime.now().minus({ days: 7 }).toJSDate()],
@@ -189,8 +192,8 @@ export class ApproveTpComponent implements OnInit, AfterViewInit {
       status: [0], 
       deleteFlag: [0],
       type: [defaultType],
-      statusHR: [-1],
-      statusBGD: [-1],
+      statusHR: [null],
+      statusBGD: [null],
       keyWord: [''],
       IDApprovedTP: [0]
     });
@@ -249,15 +252,16 @@ export class ApproveTpComponent implements OnInit, AfterViewInit {
     this.tabulator = new Tabulator(this.tbApproveTpRef.nativeElement, {
       ...DEFAULT_TABLE_CONFIG,
       layout: 'fitDataStretch',
-      height: '90vh',
+      height: '77vh',
       paginationMode: 'local',
+      paginationSize: 200,
       groupBy: 'TypeText',
       groupHeader: function (value, count, data, group) {
         return "Hạng mục : " + value + "(" + count + " )";
       },
       columns: [
         {
-          title: 'Senior duyệt', field: 'IsSeniorApprovedText', hozAlign: 'center', headerHozAlign: 'center', width: 120, headerWordWrap: true, headerSort: false,
+          title: 'Senior duyệt', field: 'IsSeniorApprovedText', hozAlign: 'center', headerHozAlign: 'center', width: 70, headerWordWrap: true, headerSort: false,
           formatter: (cell: any) => {
             const rowData = cell.getRow().getData();
             const tableName = rowData.TableName ? String(rowData.TableName) : '';
@@ -298,7 +302,7 @@ export class ApproveTpComponent implements OnInit, AfterViewInit {
           },
         },
         {
-          title: 'TBP duyệt', field: 'StatusText', hozAlign: 'center', headerHozAlign: 'center', width: 120, headerWordWrap: true, headerSort: false,
+          title: 'TBP duyệt', field: 'StatusText', hozAlign: 'center', headerHozAlign: 'center', width: 70, headerWordWrap: true, headerSort: false,
           formatter: (cell: any) => {
             const value = cell.getValue();
             let numValue = 0;
@@ -319,7 +323,7 @@ export class ApproveTpComponent implements OnInit, AfterViewInit {
 
         },
         {
-          title: 'HR Duyệt', field: 'StatusHRText', hozAlign: 'center', headerHozAlign: 'center', width: 120, headerWordWrap: true, headerSort: false,
+          title: 'HR Duyệt', field: 'StatusHRText', hozAlign: 'center', headerHozAlign: 'center', width: 70, headerWordWrap: true, headerSort: false,
           formatter: (cell: any) => {
             const rowData = cell.getRow().getData();
             const value = cell.getValue();
@@ -355,7 +359,7 @@ export class ApproveTpComponent implements OnInit, AfterViewInit {
 
         },
         {
-          title: 'BGĐ duyệt', field: 'StatusBGDText', hozAlign: 'center', headerHozAlign: 'center', width: 120, headerWordWrap: true, headerSort: false,
+          title: 'BGĐ duyệt', field: 'StatusBGDText', hozAlign: 'center', headerHozAlign: 'center', width: 70, headerWordWrap: true, headerSort: false,
           formatter: (cell: any) => {
             const value = cell.getValue();
             let numValue = 0;
@@ -376,23 +380,23 @@ export class ApproveTpComponent implements OnInit, AfterViewInit {
 
         },
         {
-          title: 'Mã nhân viên', field: 'Code', hozAlign: 'left', headerHozAlign: 'center', width: 100, headerWordWrap: true, headerSort: false,
+          title: 'Mã nhân viên', field: 'Code', hozAlign: 'left', headerHozAlign: 'center', width: 55, headerWordWrap: true, headerSort: false,
         },
         {
-          title: 'Tên nhân viên', field: 'FullName', hozAlign: 'left', headerHozAlign: 'center', width: 180, headerWordWrap: true, formatter: 'textarea', headerSort: false, bottomCalc: 'count',
+          title: 'Tên nhân viên', field: 'FullName', hozAlign: 'left', headerHozAlign: 'center', width: 120, headerWordWrap: true, formatter: 'textarea', headerSort: false, bottomCalc: 'count',
         },
         {
-          title: 'Ngày', field: 'NgayDangKy', hozAlign: 'center', headerHozAlign: 'center', width: 150, headerSort: false,
+          title: 'Ngày', field: 'NgayDangKy', hozAlign: 'center', headerHozAlign: 'center', width: 90, headerSort: false,
           formatter: (cell) => {
             const value = cell.getValue();
             return value ? DateTime.fromISO(value).toFormat('dd/MM/yyyy') : '';
           }
         },
         {
-          title: 'Tên TBP duyệt', field: 'NguoiDuyet', hozAlign: 'left', headerHozAlign: 'center', width: 150, headerWordWrap: true, headerSort: false,
+          title: 'Tên TBP duyệt', field: 'NguoiDuyet', hozAlign: 'left', headerHozAlign: 'center', width: 120, headerWordWrap: true, headerSort: false,
         },
         {
-          title: 'Tên BGĐ duyệt', field: 'FullNameBGD', hozAlign: 'left', headerHozAlign: 'center', width: 150, headerWordWrap: true, headerSort: false,
+          title: 'Tên BGĐ duyệt', field: 'FullNameBGD', hozAlign: 'left', headerHozAlign: 'center', width: 120, headerWordWrap: true, headerSort: false,
         },
         {
           title: 'Nội dung', field: 'NoiDung', hozAlign: 'left', headerHozAlign: 'center', width: 350, headerSort: false, formatter: 'textarea',
@@ -1407,30 +1411,98 @@ export class ApproveTpComponent implements OnInit, AfterViewInit {
   }
 
   downloadFile(rowData: any) {
+    const filePath = rowData?.FilePath || '';
+    const fileName = rowData?.FileName || 'file';
+
+    if (!filePath) {
+      this.notification.warning(
+        NOTIFICATION_TITLE.warning,
+        'Không tìm thấy đường dẫn file!'
+      );
+      return;
+    }
+
+    if (!fileName) {
+      this.notification.warning(NOTIFICATION_TITLE.warning, 'Không có file để tải!');
+      return;
+    }
+
     try {
-      const tableName = rowData.TableName || '';
-      const filePath = rowData.FilePath || '';
-      const fileName = rowData.FileName || '';
+      const cleanFileName = fileName.split(';')[0].trim();
 
-      if (!fileName) {
-        this.notification.warning(NOTIFICATION_TITLE.warning, 'Không có file để tải!');
-        return;
-      }
+      const softwareIndex = filePath.toLowerCase().indexOf('software');
+      let pathToUse = filePath;
 
-      let folderName = '';
-      if (tableName === 'EmployeeBussiness') {
-        folderName = 'CongTac';
-      } else if (tableName === 'EmployeeOvertime') {
-        folderName = 'LamThem';
+      if (softwareIndex !== -1) {
+        pathToUse = filePath.substring(softwareIndex);
       } else {
-        this.notification.warning(NOTIFICATION_TITLE.warning, 'Loại file không được hỗ trợ!');
-        return;
+        const cleanPath = filePath.replace(/^\\+/, '');
+        const lowerClean = cleanPath.toLowerCase();
+
+        if (lowerClean.startsWith('lamthem')) {
+          pathToUse = `software\\Test\\${cleanPath}`;
+        } else {
+          pathToUse = `software\\${cleanPath}`;
+        }
       }
 
-      const downloadUrl = `${environment.host}api/home/download-by-key?key=${folderName}&subPath=${encodeURIComponent(filePath)}&fileName=${encodeURIComponent(fileName)}`;
-      window.open(downloadUrl, '_blank');
+      let normalizedPath = pathToUse.replace(/\\/g, '/');
+      normalizedPath = normalizedPath.replace(/\+(?=\w)/g, '/');
+      if (normalizedPath.startsWith('/')) {
+        normalizedPath = normalizedPath.substring(1);
+      }
+
+      const lowerPath = normalizedPath.toLowerCase();
+      if (!lowerPath.startsWith('software/')) {
+        normalizedPath = 'software/' + normalizedPath;
+      } else {
+        normalizedPath = normalizedPath.replace(/^software\//i, 'software/');
+      }
+
+      const withSoftwareLower = normalizedPath.toLowerCase();
+      const needsTestPrefix =
+        withSoftwareLower.startsWith('software/lamthem/') || withSoftwareLower === 'software/lamthem';
+      const hasTestPrefix =
+        withSoftwareLower.startsWith('software/test/') || withSoftwareLower.startsWith('software\\test\\');
+      if (needsTestPrefix && !hasTestPrefix) {
+        normalizedPath = normalizedPath.replace(/^software\//i, 'software/Test/');
+      }
+
+      normalizedPath = normalizedPath.replace(/\/+$/, '');
+
+      const pathLower = normalizedPath.toLowerCase();
+      const fileNameLower = cleanFileName.toLowerCase();
+      const pathEndsWithFileName = pathLower.endsWith('/' + fileNameLower) || pathLower.endsWith(fileNameLower);
+
+      if (!pathEndsWithFileName) {
+        normalizedPath = normalizedPath + '/' + cleanFileName;
+      }
+
+      normalizedPath = normalizedPath.replace(/\/+/g, '/').replace(/^\/+/, '');
+
+      const pathParts = normalizedPath.split('/');
+      const encodedParts = pathParts.map((part: string) => {
+        try {
+          const decoded = decodeURIComponent(part);
+          return encodeURIComponent(decoded);
+        } catch {
+          return encodeURIComponent(part);
+        }
+      });
+      const encodedPath = encodedParts.join('/');
+
+      const url = `${environment.host}api/share/${encodedPath}`;
+
+      window.open(url, '_blank');
+      this.notification.success(
+        NOTIFICATION_TITLE.success,
+        `Đang tải file: ${cleanFileName}`
+      );
     } catch (error: any) {
-      this.notification.error(NOTIFICATION_TITLE.error, `Lỗi khi tải file: ${error.message}`);
+      this.notification.error(
+        NOTIFICATION_TITLE.error,
+        'Lỗi khi tải file: ' + (error?.message || '')
+      );
     }
   }
 

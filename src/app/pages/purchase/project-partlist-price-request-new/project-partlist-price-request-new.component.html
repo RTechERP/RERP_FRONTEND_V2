@@ -584,3 +584,8 @@
 <app-project-partlist-price-request-form *ngIf="showDetailModal" [dataInput]="modalData"
     (formSubmitted)="OnFormSubmit()" (closeModal)="showDetailModal = false">
 </app-project-partlist-price-request-form>
+
+<app-fillter-header
+    #headerFilter
+    (apply)="onHeaderFilterApply($event)">
+</app-fillter-header>

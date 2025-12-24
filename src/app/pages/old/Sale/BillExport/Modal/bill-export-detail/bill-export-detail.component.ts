@@ -13,6 +13,8 @@ import {
   Component,
   OnInit,
   AfterViewInit,
+  OnChanges,
+  SimpleChanges,
   Input,
   EnvironmentInjector,
   ApplicationRef,
@@ -126,7 +128,7 @@ interface BillExport {
   styleUrl: './bill-export-detail.component.css',
 })
 export class BillExportDetailComponent
-  implements OnInit, AfterViewInit, OnDestroy
+  implements OnInit, AfterViewInit, OnChanges, OnDestroy
 {
   @ViewChild('tableBillExportDetails', { static: false }) tableBillExportDetailsRef!: ElementRef;
   table_billExportDetail: any;
@@ -304,14 +306,59 @@ export class BillExportDetailComponent
     });
   }
 
+  ngOnChanges(changes: SimpleChanges): void {
+    if (changes['wareHouseCode']) {
+      const currValue = changes['wareHouseCode'].currentValue;
+      
+      // Normalize ngay khi có thay đổi từ component cha
+      if (currValue && typeof currValue === 'string') {
+        const trimmed = currValue.trim();
+        if (trimmed) {
+          this.wareHouseCode = trimmed;
+          
+          // Nếu đã có WarehouseID hoặc đang trong quá trình init, update lại
+          // Delay một chút để đảm bảo các initialization khác đã hoàn thành
+          setTimeout(() => {
+            this.getWarehouseID();
+          }, 50);
+        }
+      }
+    }
+  }
+
   ngOnInit(): void {
     // ✅ Normalize wareHouseCode ngay từ đầu để đảm bảo giá trị đúng (trim spaces)
     // Fix issue: giá trị mặc định 'HN  ' (có khoảng trắng) hoặc giá trị từ component cha có thể có khoảng trắng
-    this.wareHouseCode = (this.wareHouseCode || '').trim() || 'HN';
-    console.log('🔵 [ngOnInit] Normalized wareHouseCode:', this.wareHouseCode);
+    const trimmed = (this.wareHouseCode || '').trim();
+    if (trimmed && trimmed !== '') {
+      // Có giá trị hợp lệ, normalize nó
+      this.wareHouseCode = trimmed;
+    } else if (!this.wareHouseCode || this.wareHouseCode === '') {
+      // Chỉ set default nếu thực sự không có giá trị
+      // Nhưng delay một chút để đợi component cha set giá trị (nếu có)
+      setTimeout(() => {
+        const delayedValue = this.wareHouseCode;
+        const delayedTrimmed = (delayedValue || '').trim();
+        if (delayedTrimmed && delayedTrimmed !== '') {
+          this.wareHouseCode = delayedTrimmed;
+          this.getWarehouseID();
+        } else {
+          this.wareHouseCode = 'HN';
+          this.getWarehouseID();
+        }
+      }, 100);
+    }
     
-    // Get WarehouseID from wareHouseCode - MUST be called first
-    this.getWarehouseID();
+    // Get WarehouseID from wareHouseCode - Delay để đợi @Input được set từ component cha
+    // Nếu wareHouseCode đã có giá trị hợp lệ, gọi ngay
+    if (this.wareHouseCode && this.wareHouseCode.trim() !== '' && this.wareHouseCode !== 'HN') {
+      this.getWarehouseID();
+    } else {
+      // Delay để đợi component cha set giá trị
+      setTimeout(() => {
+        this.getWarehouseID();
+      }, 150);
+    }
 
     this.getDataCbbAdressStock();
     this.getDataCbbCustomer();
@@ -1244,9 +1291,6 @@ export class BillExportDetailComponent
 
     // truyền đúng tham số theo BE: warehouseCode + productGroupID
     // ✅ Sử dụng normalizedWareHouseCode thay vì this.wareHouseCode trực tiếp
-    console.log('warehousecode (original):', this.wareHouseCode);
-    console.log('warehousecode (normalized):', normalizedWareHouseCode);
-
     this.billExportService.getOptionProduct(normalizedWareHouseCode, ID).subscribe({
       next: (res: any) => {
 
@@ -1278,7 +1322,6 @@ export class BillExportDetailComponent
 
               return mappedProduct;
             });
-            console.log('🟢 [changeProductGroup] Final productOptions array:', this.productOptions);
         } else {
           this.productOptions = [];
         }
@@ -1300,7 +1343,7 @@ export class BillExportDetailComponent
         }
       },
       error: (err: any) => {
-        console.error(err);
+        console.error('Error getting product options:', err);
         this.notification.error(
           'Thông báo',
           'Có lỗi khi tải danh sách sản phẩm!'
@@ -1404,17 +1447,16 @@ export class BillExportDetailComponent
         const list = res.data || [];
 
         // Find current warehouse by WarehouseCode (e.g., HN, HCM)
+        const searchCode = String(this.wareHouseCode).toUpperCase().trim();
+        
         const currentWarehouse = list.find(
           (item: any) =>
-            String(item.WarehouseCode).toUpperCase().trim() ===
-            String(this.wareHouseCode).toUpperCase().trim()
+            String(item.WarehouseCode).toUpperCase().trim() === searchCode
         );
 
         if (currentWarehouse) {
           const warehouseID = currentWarehouse.ID || 0;
           this.newBillExport.WarehouseID = warehouseID;
-        } else {
-          console.warn('Warehouse not found for code:', this.wareHouseCode);
         }
       },
       error: (err: any) => {

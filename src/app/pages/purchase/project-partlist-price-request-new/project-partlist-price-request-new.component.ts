@@ -63,6 +63,355 @@ import { HasPermissionDirective } from '../../../directives/has-permission.direc
 import { HorizontalScrollDirective } from '../../../directives/horizontalScroll.directive';
 import { Subscription } from 'rxjs';
 import { TabulatorPopupService } from '../../../shared/components/tabulator-popup/tabulator-popup.service';
+import {
+  FillterHeaderComponent,
+  HeaderFilterApplyEvent,
+  HeaderFilterOption,
+} from '../../../shared/filters/fillter-header/fillter-header.component';
+
+/**
+ * Custom editor for single select with searchable dropdown and grouped options support
+ */
+class GroupSelectEditor {
+  private args: any;
+  private wrapperElm!: HTMLDivElement;
+  private inputElm!: HTMLInputElement;
+  private dropdownElm!: HTMLDivElement;
+  private defaultValue: string = '';
+  private selectedValue: string = '';
+  private collection: Array<any> = [];
+  private visibleOptions: Array<{
+    value: string;
+    label: string;
+    group?: string;
+  }> = [];
+  private activeIndex = -1;
+
+  private handleOutsideMouseDown!: (e: Event) => void;
+  private handleReposition!: () => void;
+
+  constructor(args: any) {
+    this.args = args;
+    this.init();
+  }
+
+  init() {
+    const editor = this.args?.column?.editor ?? {};
+    this.collection = editor.collection ?? [];
+
+    this.wrapperElm = document.createElement('div');
+    this.wrapperElm.style.width = '100%';
+    this.wrapperElm.style.height = '100%';
+
+    this.inputElm = document.createElement('input');
+    this.inputElm.type = 'text';
+    this.inputElm.placeholder = 'Tìm...';
+    this.inputElm.style.width = '100%';
+    this.inputElm.style.height = '100%';
+    this.inputElm.style.boxSizing = 'border-box';
+    this.inputElm.style.padding = '2px 6px';
+    this.inputElm.style.fontSize = '12px';
+
+    this.wrapperElm.appendChild(this.inputElm);
+    this.args.container.appendChild(this.wrapperElm);
+
+    this.dropdownElm = document.createElement('div');
+    this.dropdownElm.style.position = 'fixed';
+    this.dropdownElm.style.zIndex = '99999';
+    this.dropdownElm.style.background = '#fff';
+    this.dropdownElm.style.border = '1px solid #d9d9d9';
+    this.dropdownElm.style.borderRadius = '4px';
+    this.dropdownElm.style.boxShadow = '0 6px 16px rgba(0,0,0,.08)';
+    this.dropdownElm.style.maxHeight = '260px';
+    this.dropdownElm.style.overflow = 'auto';
+    this.dropdownElm.style.display = 'none';
+    document.body.appendChild(this.dropdownElm);
+
+    this.inputElm.addEventListener('input', () => {
+      this.activeIndex = -1;
+      this.buildDropdown(this.inputElm.value);
+      this.openDropdown();
+    });
+
+    this.inputElm.addEventListener('focus', () => {
+      this.activeIndex = -1;
+      this.buildDropdown(this.inputElm.value);
+      this.openDropdown();
+    });
+
+    this.inputElm.addEventListener('keydown', (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        this.closeDropdown();
+        e.preventDefault();
+        return;
+      }
+
+      if (e.key === 'ArrowDown') {
+        this.moveActive(1);
+        e.preventDefault();
+        return;
+      }
+
+      if (e.key === 'ArrowUp') {
+        this.moveActive(-1);
+        e.preventDefault();
+        return;
+      }
+
+      if (e.key === 'Enter') {
+        this.selectActiveOrCommit();
+        e.preventDefault();
+      }
+    });
+
+    this.dropdownElm.addEventListener('mousedown', (e) => {
+      e.preventDefault();
+    });
+
+    this.handleOutsideMouseDown = (e: Event) => {
+      const target = e.target as Node;
+      if (
+        this.wrapperElm?.contains(target) ||
+        this.dropdownElm?.contains(target)
+      )
+        return;
+      this.closeDropdown();
+    };
+
+    this.handleReposition = () => {
+      if (this.dropdownElm?.style.display !== 'none') {
+        this.repositionDropdown();
+      }
+    };
+
+    document.addEventListener('mousedown', this.handleOutsideMouseDown, true);
+    window.addEventListener('scroll', this.handleReposition, true);
+    window.addEventListener('resize', this.handleReposition, true);
+
+    this.buildDropdown('');
+    this.openDropdown();
+    this.inputElm.focus();
+  }
+
+  private openDropdown() {
+    this.repositionDropdown();
+    this.dropdownElm.style.display = 'block';
+  }
+
+  private closeDropdown() {
+    if (this.dropdownElm) {
+      this.dropdownElm.style.display = 'none';
+    }
+  }
+
+  private repositionDropdown() {
+    const rect = this.wrapperElm.getBoundingClientRect();
+    this.dropdownElm.style.left = `${rect.left}px`;
+    this.dropdownElm.style.top = `${rect.bottom}px`;
+    this.dropdownElm.style.width = `${rect.width}px`;
+  }
+
+  private commit() {
+    const grid = this.args?.grid;
+    const lock = grid?.getEditorLock?.();
+    lock?.commitCurrentEdit?.();
+  }
+
+  private getFlattenedCollection(): Array<{
+    group?: string;
+    value: string;
+    label: string;
+  }> {
+    const out: Array<{ group?: string; value: string; label: string }> = [];
+    const editor = this.args?.column?.editor ?? {};
+    const addBlankEntry = editor?.collectionOptions?.addBlankEntry !== false;
+
+    if (addBlankEntry) {
+      out.push({ value: '', label: '' });
+    }
+
+    for (const item of this.collection) {
+      if (item?.options?.length) {
+        for (const opt of item.options) {
+          out.push({
+            group: item.label ?? '',
+            value: String(opt.value ?? ''),
+            label: String(opt.label ?? ''),
+          });
+        }
+      } else {
+        out.push({
+          value: String(item.value ?? ''),
+          label: String(item.label ?? ''),
+        });
+      }
+    }
+    return out;
+  }
+
+  private buildDropdown(searchTerm: string) {
+    const term = (searchTerm ?? '').trim().toLowerCase();
+    const currentValue = String(this.selectedValue ?? '');
+    const all = this.getFlattenedCollection();
+
+    const filtered = all.filter((x) => {
+      if (!term) return true;
+      if (String(x.value ?? '') === currentValue) return true;
+      const label = String(x.label ?? '').toLowerCase();
+      const value = String(x.value ?? '').toLowerCase();
+      return label.includes(term) || value.includes(term);
+    });
+
+    this.visibleOptions = filtered;
+
+    const root = document.createElement('div');
+    root.style.padding = '4px 0';
+
+    const grouped = new Map<string, Array<{ value: string; label: string }>>();
+    const noGroup: Array<{ value: string; label: string }> = [];
+
+    for (const x of filtered) {
+      const item = { value: x.value, label: x.label };
+      if (x.group) {
+        if (!grouped.has(x.group)) grouped.set(x.group, []);
+        grouped.get(x.group)!.push(item);
+      } else {
+        noGroup.push(item);
+      }
+    }
+
+    const appendOption = (
+      opt: { value: string; label: string },
+      optIndex: number
+    ) => {
+      const row = document.createElement('div');
+      row.setAttribute('data-idx', String(optIndex));
+      row.style.padding = '6px 10px';
+      row.style.cursor = 'pointer';
+      row.style.userSelect = 'none';
+      row.style.whiteSpace = 'nowrap';
+      row.style.overflow = 'hidden';
+      row.style.textOverflow = 'ellipsis';
+      row.textContent = opt.label;
+
+      if (opt.value === currentValue) {
+        row.style.background = '#e6f4ff';
+      }
+      if (optIndex === this.activeIndex) {
+        row.style.background = '#f5f5f5';
+      }
+
+      row.addEventListener('click', () => {
+        this.selectValue(opt.value);
+      });
+
+      root.appendChild(row);
+    };
+
+    let optIndex = 0;
+    for (const opt of noGroup) {
+      appendOption(opt, optIndex);
+      optIndex++;
+    }
+
+    for (const [groupLabel, items] of grouped.entries()) {
+      const header = document.createElement('div');
+      header.style.padding = '6px 10px';
+      header.style.fontWeight = '600';
+      header.style.color = '#666';
+      header.textContent = groupLabel;
+      root.appendChild(header);
+
+      for (const opt of items) {
+        appendOption(opt, optIndex);
+        optIndex++;
+      }
+    }
+
+    this.dropdownElm.innerHTML = '';
+    this.dropdownElm.appendChild(root);
+  }
+
+  private moveActive(delta: number) {
+    const count = this.visibleOptions?.length ?? 0;
+    if (count <= 0) return;
+    const next = Math.max(0, Math.min(count - 1, this.activeIndex + delta));
+    this.activeIndex = next;
+    this.buildDropdown(this.inputElm.value);
+
+    const active = this.dropdownElm.querySelector(
+      `[data-idx="${this.activeIndex}"]`
+    ) as HTMLDivElement | null;
+    active?.scrollIntoView({ block: 'nearest' });
+  }
+
+  private selectActiveOrCommit() {
+    if (
+      this.activeIndex >= 0 &&
+      this.activeIndex < (this.visibleOptions?.length ?? 0)
+    ) {
+      this.selectValue(this.visibleOptions[this.activeIndex].value);
+      return;
+    }
+    this.commit();
+  }
+
+  private selectValue(val: string) {
+    this.selectedValue = String(val ?? '');
+    const flat = this.getFlattenedCollection();
+    const found = flat.find(
+      (x) => String(x.value ?? '') === this.selectedValue
+    );
+    this.inputElm.value = found?.label ?? '';
+    this.closeDropdown();
+    this.commit();
+  }
+
+  destroy() {
+    document.removeEventListener(
+      'mousedown',
+      this.handleOutsideMouseDown,
+      true
+    );
+    window.removeEventListener('scroll', this.handleReposition, true);
+    window.removeEventListener('resize', this.handleReposition, true);
+    this.dropdownElm?.remove();
+    this.wrapperElm?.remove();
+  }
+
+  focus() {
+    this.inputElm?.focus();
+  }
+
+  loadValue(item: any) {
+    this.defaultValue = String(item?.[this.args.column.field] ?? '');
+    this.selectedValue = this.defaultValue;
+    const flat = this.getFlattenedCollection();
+    const found = flat.find(
+      (x) => String(x.value ?? '') === this.selectedValue
+    );
+    this.inputElm.value = found?.label ?? '';
+    this.buildDropdown('');
+    this.openDropdown();
+  }
+
+  serializeValue() {
+    return this.selectedValue ?? '';
+  }
+
+  applyValue(item: any, state: any) {
+    item[this.args.column.field] = state;
+  }
+
+  isValueChanged() {
+    return String(this.selectedValue ?? '') !== String(this.defaultValue ?? '');
+  }
+
+  validate() {
+    return { valid: true, msg: null };
+  }
+}
+
 @Component({
   selector: 'app-project-partlist-price-request-new',
   standalone: true,
@@ -96,7 +445,8 @@ import { TabulatorPopupService } from '../../../shared/components/tabulator-popu
     ImportExcelProjectPartlistPriceRequestComponent,
     HasPermissionDirective,
     HorizontalScrollDirective,
-    AngularSlickgridModule
+    AngularSlickgridModule,
+    FillterHeaderComponent,
   ],
   templateUrl: './project-partlist-price-request-new.component.html',
   styleUrls: ['./project-partlist-price-request-new.component.css']
@@ -133,6 +483,10 @@ export class ProjectPartlistPriceRequestNewComponent implements OnInit, OnDestro
   dtProductSale: any[] = [];
   // Map để lưu dữ liệu theo từng type (cho local pagination)
   allDataByType: Map<number, any[]> = new Map();
+  // Store original data for each tab (before filters)
+  datasetsAllMap: Map<number, any[]> = new Map();
+  // Store applied filter values for each tab and column
+  headerFilterAppliedValuesMap: Map<string, string[] | null> = new Map(); // key: "columnId-typeId"
   // Quản lý subscriptions để có thể hủy khi cần
   private dataLoadingSubscriptions: Subscription[] = [];
   // Request ID để đảm bảo chỉ xử lý response từ request hiện tại
@@ -157,6 +511,8 @@ export class ProjectPartlistPriceRequestNewComponent implements OnInit, OnDestro
 
   @ViewChild('requestBuyTpl', { static: false })
   requestBuyTpl!: TemplateRef<any>;
+
+  @ViewChild('headerFilter') headerFilter?: FillterHeaderComponent;
   requestBuyDeadline: Date | null = null;
   requestBuyIsVPP: boolean = false;
   requestBuyJobRequirementID: number = 0;
@@ -1322,11 +1678,12 @@ export class ProjectPartlistPriceRequestNewComponent implements OnInit, OnDestro
       {
         id: 'ProjectCode',
         field: 'ProjectCode',
-        name: isJobRequirement ? 'Mã YCCV' : 'Mã dự án',
+        // ProjectCode FILTER (ADVANCED DROPDOWN): icon filter ở header
+        name: this.createHeaderWithFilterIcon(isJobRequirement ? 'Mã YCCV' : 'Mã dự án', 'projectcode-filter-icon', typeId, 'ProjectCode'),
         width: 120,
-        sortable: true,
-        filterable: true,
-        filter: { model: Filters['compoundInputText'] },
+        sortable: false,
+        // ProjectCode FILTER (ADVANCED DROPDOWN): tắt filter row mặc định để dùng dropdown custom
+        filterable: false,
 
         formatter: (_row, _cell, value, _column, dataContext) => {
           if (!value) return '';
@@ -1348,11 +1705,12 @@ export class ProjectPartlistPriceRequestNewComponent implements OnInit, OnDestro
       {
         id: 'ProductCode',
         field: 'ProductCode',
-        name: 'Mã sản phẩm',
+        // ProductCode FILTER (ADVANCED DROPDOWN): icon filter ở header
+        name: this.createHeaderWithFilterIcon('Mã sản phẩm', 'productcode-filter-icon', typeId, 'ProductCode'),
         width: 120,
-        sortable: true,
-        filterable: true,
-        filter: { model: Filters['compoundInputText'] },
+        sortable: false,
+        // ProductCode FILTER (ADVANCED DROPDOWN): tắt filter row mặc định để dùng dropdown custom
+        filterable: false,
 
         formatter: (_row, _cell, value, _column, dataContext) => {
           if (!value) return '';
@@ -1374,11 +1732,12 @@ export class ProjectPartlistPriceRequestNewComponent implements OnInit, OnDestro
       {
         id: 'ProductName',
         field: 'ProductName',
-        name: 'Tên sản phẩm',
+        // ProductName FILTER (ADVANCED DROPDOWN): icon filter ở header
+        name: this.createHeaderWithFilterIcon('Tên sản phẩm', 'productname-filter-icon', typeId, 'ProductName'),
         width: 200,
-        sortable: true,
-        filterable: true,
-        filter: { model: Filters['compoundInputText'] },
+        sortable: false,
+        // ProductName FILTER (ADVANCED DROPDOWN): tắt filter row mặc định để dùng dropdown custom
+        filterable: false,
 
         formatter: (_row, _cell, value, _column, dataContext) => {
           if (!value) return '';
@@ -1400,11 +1759,12 @@ export class ProjectPartlistPriceRequestNewComponent implements OnInit, OnDestro
       {
         id: 'Manufacturer',
         field: 'Manufacturer',
-        name: 'Hãng',
+        // Manufacturer FILTER (ADVANCED DROPDOWN): icon filter ở header
+        name: this.createHeaderWithFilterIcon('Hãng', 'manufacturer-filter-icon', typeId, 'Manufacturer'),
         width: 100,
-        sortable: true,
-        filterable: true,
-        filter: { model: Filters['compoundInputText'] },
+        sortable: false,
+        // Manufacturer FILTER (ADVANCED DROPDOWN): tắt filter row mặc định để dùng dropdown custom
+        filterable: false,
 
         formatter: (_row, _cell, value, _column, dataContext) => {
           if (!value) return '';
@@ -1484,11 +1844,12 @@ export class ProjectPartlistPriceRequestNewComponent implements OnInit, OnDestro
       {
         id: 'StatusRequestText',
         field: 'StatusRequestText',
-        name: 'Trạng thái',
+        // StatusRequestText FILTER (ADVANCED DROPDOWN): icon filter ở header
+        name: this.createHeaderWithFilterIcon('Trạng thái', 'statusrequesttext-filter-icon', typeId, 'StatusRequestText'),
         width: 120,
-        sortable: true,
-        filterable: true,
-        filter: { model: Filters['compoundInputText'] },
+        sortable: false,
+        // StatusRequestText FILTER (ADVANCED DROPDOWN): tắt filter row mặc định để dùng dropdown custom
+        filterable: false,
 
         formatter: (_row, _cell, value, _column, dataContext) => {
           if (!value) return '';
@@ -1510,11 +1871,12 @@ export class ProjectPartlistPriceRequestNewComponent implements OnInit, OnDestro
       {
         id: 'FullName',
         field: 'FullName',
-        name: 'Người yêu cầu',
+        // FullName FILTER (ADVANCED DROPDOWN): icon filter ở header
+        name: this.createHeaderWithFilterIcon('Người yêu cầu', 'fullname-filter-icon', typeId, 'FullName'),
         width: 120,
-        sortable: true,
-        filterable: true,
-        filter: { model: Filters['compoundInputText'] },
+        sortable: false,
+        // FullName FILTER (ADVANCED DROPDOWN): tắt filter row mặc định để dùng dropdown custom
+        filterable: false,
 
         formatter: (_row, _cell, value, _column, dataContext) => {
           if (!value) return '';
@@ -1621,12 +1983,14 @@ export class ProjectPartlistPriceRequestNewComponent implements OnInit, OnDestro
       {
         id: 'CurrencyID',
         field: 'CurrencyID',
-        name: 'Loại tiền',
+        // CurrencyID FILTER (ADVANCED DROPDOWN): icon filter ở header
+        name: this.createHeaderWithFilterIcon('Loại tiền', 'currencyid-filter-icon', typeId, 'CurrencyID'),
         width: 100,
-        sortable: true,
-        filterable: true,
+        sortable: false,
+        // CurrencyID FILTER (ADVANCED DROPDOWN): tắt filter row mặc định để dùng dropdown custom
+        filterable: false,
         editor: {
-          model: Editors['singleSelect'],
+          model: GroupSelectEditor,
           collection: this.getCurrencyCollection(),
           collectionOptions: {
             addBlankEntry: false
@@ -1639,7 +2003,6 @@ export class ProjectPartlistPriceRequestNewComponent implements OnInit, OnDestro
           const currency = this.dtcurrency.find((c: any) => c.ID === value);
           return currency ? currency.Code : '';
         },
-        filter: { model: Filters['compoundInputNumber'] },
       },
       {
         id: 'CurrencyRate',
@@ -1760,12 +2123,14 @@ export class ProjectPartlistPriceRequestNewComponent implements OnInit, OnDestro
       {
         id: 'SupplierSaleID',
         field: 'SupplierSaleID',
-        name: 'Nhà cung cấp',
+        // SupplierSaleID FILTER (ADVANCED DROPDOWN): icon filter ở header
+        name: this.createHeaderWithFilterIcon('Nhà cung cấp', 'suppliersaleid-filter-icon', typeId, 'SupplierSaleID'),
         width: 200,
-        sortable: true,
-        filterable: true,
+        sortable: false,
+        // SupplierSaleID FILTER (ADVANCED DROPDOWN): tắt filter row mặc định để dùng dropdown custom
+        filterable: false,
         editor: {
-          model: Editors['singleSelect'],
+          model: GroupSelectEditor,
           collection: this.getSupplierCollection(),
           collectionOptions: {
             addBlankEntry: false
@@ -1775,18 +2140,6 @@ export class ProjectPartlistPriceRequestNewComponent implements OnInit, OnDestro
           const supplier = this.dtSupplierSale.find((s: any) => s.ID === value);
           return supplier ? supplier.NameNCC : '';
         },
-         filter: {
-                  collection: [],
-                  model: Filters['multipleSelect'],
-                  customStructure: {
-                    value: 'value',
-                    label: 'label',
-                  },
-                  options: {
-                    offsetLeft: 14,
-                    width: 100,
-                  } as Partial<MultipleSelectOption>,
-                },
       },
       {
         id: 'TotalDayLeadTime',
@@ -2055,6 +2408,7 @@ export class ProjectPartlistPriceRequestNewComponent implements OnInit, OnDestro
       enableAutoSizeColumns: false,
       frozenColumn: 10, // Freeze first 10 columns
       enablePagination: false,
+      enableHeaderMenu: false, // Disable default header dropdown menu
     };
   }
 
@@ -2147,6 +2501,51 @@ export class ProjectPartlistPriceRequestNewComponent implements OnInit, OnDestro
       // Đảm bảo checkbox selector vẫn được enable sau khi refresh/render (với delay nhỏ)
       this.ensureCheckboxSelector(angularGrid, 50);
     }
+
+    // Setup header click handler for all header filters
+    if (angularGrid && angularGrid.slickGrid) {
+      // Bind header click event handler
+      angularGrid.slickGrid.onHeaderClick.subscribe((e: any, args: any) => {
+        const column = args.column;
+        const target = (e as MouseEvent)?.target as HTMLElement | null;
+        if (!column || !target) return;
+
+        const columnId = column.id;
+        const filterKey = `${columnId}-${typeId}`;
+        
+        // Check if clicked on filter icon for any supported column
+        const filterIconClasses = [
+          'productcode-filter-icon',
+          'projectcode-filter-icon',
+          'productname-filter-icon',
+          'manufacturer-filter-icon',
+          'statusrequesttext-filter-icon',
+          'fullname-filter-icon',
+          'currencyid-filter-icon',
+          'suppliersaleid-filter-icon',
+        ];
+
+        const isFilterIcon = filterIconClasses.some(cls => target.classList?.contains(cls));
+        
+        if (isFilterIcon) {
+          (e as any).stopImmediatePropagation?.();
+          e.preventDefault();
+          e.stopPropagation();
+          
+          this.headerFilter?.toggle({
+            key: filterKey,
+            anchor: target,
+            options: this.getHeaderFilterOptions(columnId, typeId),
+            appliedValues: this.headerFilterAppliedValuesMap.get(filterKey) || null,
+          });
+        }
+      });
+    }
+
+      // Update all column header filter icons to reflect current filter status
+      setTimeout(() => {
+        this.updateAllColumnHeaderFilterIcons(typeId);
+      }, 150);
 
       // Resize grid after initialization và đảm bảo checkbox selector vẫn hiển thị
       setTimeout(() => {
@@ -2279,6 +2678,15 @@ export class ProjectPartlistPriceRequestNewComponent implements OnInit, OnDestro
   private setGridData(typeId: number, data: any[]): void {
     // Đảm bảo data là mảng (kể cả khi rỗng)
     const safeData = Array.isArray(data) ? data : [];
+
+    // Sync to datasetsAllMap if needed (for header filters)
+    // Store original unfiltered data from allDataByType
+    if (!this.datasetsAllMap.has(typeId) || this.datasetsAllMap.get(typeId)?.length === 0) {
+      const originalData = this.allDataByType.get(typeId) || [];
+      if (originalData.length > 0) {
+        this.datasetsAllMap.set(typeId, [...originalData]);
+      }
+    }
 
     // Map data với id unique
     const usedIds = new Set<string>();
@@ -5148,6 +5556,260 @@ private buildDistinctCollection(
   // Column definitions are now handled by initGridColumns()
 
   // Removed old Tabulator column definitions - now using Angular SlickGrid columns defined in initGridColumns()
+
+  //#region Header Filter Methods
+  /**
+   * Helper method to create column header name with filter icon
+   * @param baseName - Base name of the column (e.g., "Mã sản phẩm")
+   * @param iconClass - CSS class for the filter icon (e.g., "productcode-filter-icon")
+   * @param typeId - Optional: Type ID to check filter status and change icon color
+   * @param columnId - Optional: Column ID to check filter status
+   * @returns Header name string with filter icon HTML
+   */
+  private createHeaderWithFilterIcon(baseName: string, iconClass: string, typeId?: number, columnId?: string): string {
+    let iconColor = '#1890ff'; // Default blue color
+    
+    // If typeId and columnId are provided, check if filter is active
+    if (typeId !== undefined && columnId) {
+      const filterKey = `${columnId}-${typeId}`;
+      const appliedValues = this.headerFilterAppliedValuesMap.get(filterKey);
+      const hasFilter = appliedValues && appliedValues.length > 0;
+      // Orange color when filter is active
+      if (hasFilter) {
+        iconColor = '#ff9800';
+      }
+    }
+    
+    return `${baseName} <i class="fas fa-filter ${iconClass}" style="cursor:pointer; margin-left:6px; color:${iconColor};" title="Lọc"></i>`;
+  }
+
+  onHeaderFilterApply(e: HeaderFilterApplyEvent) {
+    // Key format: "columnId-typeId"
+    const match = e.key.match(/^(.+)-(\d+)$/);
+    if (match) {
+      const columnId = match[1];
+      const typeId = parseInt(match[2], 10);
+      this.headerFilterAppliedValuesMap.set(e.key, e.appliedValues);
+      this.applyAllHeaderFiltersToView(typeId);
+      // Update column header to reflect filter status
+      this.updateColumnHeaderFilterIcon(typeId, columnId);
+    }
+  }
+
+  /**
+   * Helper method to get column header name with filter icon color based on filter status
+   * This method is used when updating existing columns after filter is applied
+   */
+  private getColumnHeaderNameWithFilterIcon(columnId: string, baseName: string, typeId: number, iconClass: string): string {
+    return this.createHeaderWithFilterIcon(baseName, iconClass, typeId, columnId);
+  }
+
+  /**
+   * Update column header filter icon color based on filter status
+   */
+  private updateColumnHeaderFilterIcon(typeId: number, columnId: string): void {
+    const angularGrid = this.angularGrids.get(typeId);
+    if (!angularGrid || !angularGrid.slickGrid) return;
+
+    const columns = angularGrid.slickGrid.getColumns();
+    const column = columns.find((col: any) => col.id === columnId);
+    if (!column) return;
+
+    // Map column IDs to their base names and icon classes
+    const columnConfig: { [key: string]: { baseName: string; iconClass: string } } = {
+      'ProductCode': { baseName: 'Mã sản phẩm', iconClass: 'productcode-filter-icon' },
+      'ProjectCode': { baseName: 'Mã dự án', iconClass: 'projectcode-filter-icon' },
+      'ProductName': { baseName: 'Tên sản phẩm', iconClass: 'productname-filter-icon' },
+      'Manufacturer': { baseName: 'Hãng', iconClass: 'manufacturer-filter-icon' },
+      'StatusRequestText': { baseName: 'Trạng thái', iconClass: 'statusrequesttext-filter-icon' },
+      'FullName': { baseName: 'Người yêu cầu', iconClass: 'fullname-filter-icon' },
+      'CurrencyID': { baseName: 'Loại tiền', iconClass: 'currencyid-filter-icon' },
+      'SupplierSaleID': { baseName: 'Nhà cung cấp', iconClass: 'suppliersaleid-filter-icon' },
+    };
+
+    const config = columnConfig[columnId];
+    if (!config) return;
+
+    // Handle special cases for ProjectCode (can be "Mã dự án" or "Mã YCCV")
+    let baseName = config.baseName;
+    if (columnId === 'ProjectCode') {
+      const isJobRequirement = typeId === -2 || this.jobRequirementID > 0 || this.isVPP;
+      baseName = isJobRequirement ? 'Mã YCCV' : 'Mã dự án';
+    }
+
+    // Update column name with filter icon
+    const newName = this.getColumnHeaderNameWithFilterIcon(columnId, baseName, typeId, config.iconClass);
+    column.name = newName;
+
+    // Update column definition in the map
+    const columnDefs = this.columnDefinitionsMap.get(typeId);
+    if (columnDefs) {
+      const colDef = columnDefs.find((col: any) => col.id === columnId);
+      if (colDef) {
+        colDef.name = newName;
+      }
+    }
+
+    // Update grid columns
+    angularGrid.slickGrid.setColumns(columns);
+    angularGrid.slickGrid.render();
+  }
+
+  /**
+   * Update all column header filter icons for a tab
+   */
+  private updateAllColumnHeaderFilterIcons(typeId: number): void {
+    const filterableColumns = [
+      'ProductCode',
+      'ProjectCode',
+      'ProductName',
+      'Manufacturer',
+      'StatusRequestText',
+      'FullName',
+      'CurrencyID',
+      'SupplierSaleID',
+    ];
+
+    filterableColumns.forEach(columnId => {
+      this.updateColumnHeaderFilterIcon(typeId, columnId);
+    });
+  }
+
+  private syncAllDataIfNeeded(typeId: number) {
+    // Sync original data from allDataByType to datasetsAllMap for header filters
+    if ((!this.datasetsAllMap.has(typeId) || this.datasetsAllMap.get(typeId)?.length === 0)) {
+      const originalData = this.allDataByType.get(typeId) || [];
+      if (originalData.length > 0) {
+        this.datasetsAllMap.set(typeId, [...originalData]);
+      }
+    }
+  }
+
+  private getHeaderFilterOptions(columnId: string, typeId: number): HeaderFilterOption[] {
+    this.syncAllDataIfNeeded(typeId);
+    const allData = this.datasetsAllMap.get(typeId) || [];
+    const map = new Map<string, string>();
+    map.set('', '');
+
+    // Get field name based on columnId
+    let fieldName = columnId;
+    let getValue: (row: any) => string;
+    let getLabel: (row: any, value: string) => string = (_, v) => v;
+
+    switch (columnId) {
+      case 'ProductCode':
+        getValue = (row) => String(row?.ProductCode ?? '');
+        break;
+      case 'ProjectCode':
+        getValue = (row) => String(row?.ProjectCode ?? '');
+        break;
+      case 'ProductName':
+        getValue = (row) => String(row?.ProductName ?? '');
+        break;
+      case 'Manufacturer':
+        getValue = (row) => String(row?.Manufacturer ?? '');
+        break;
+      case 'StatusRequestText':
+        getValue = (row) => String(row?.StatusRequestText ?? '');
+        break;
+      case 'FullName':
+        getValue = (row) => String(row?.FullName ?? '');
+        break;
+      case 'CurrencyID':
+        getValue = (row) => String(row?.CurrencyID ?? '');
+        getLabel = (row, value) => {
+          const currency = this.dtcurrency.find((c: any) => c.ID === Number(value));
+          return currency ? currency.Code : value;
+        };
+        break;
+      case 'SupplierSaleID':
+        getValue = (row) => String(row?.SupplierSaleID ?? '');
+        getLabel = (row, value) => {
+          const supplier = this.dtSupplierSale.find((s: any) => s.ID === Number(value));
+          return supplier ? supplier.NameNCC : value;
+        };
+        break;
+      default:
+        getValue = (row) => String(row?.[fieldName] ?? '');
+    }
+
+    for (const row of allData) {
+      const v = getValue(row);
+      if (v && !map.has(v)) {
+        const label = getLabel(row, v);
+        map.set(v, label);
+      }
+    }
+
+    return Array.from(map.entries())
+      .map(([value, label]) => ({ value, label }))
+      .sort((a, b) => a.label.localeCompare(b.label));
+  }
+
+  private applyAllHeaderFiltersToView(typeId: number) {
+    this.syncAllDataIfNeeded(typeId);
+    const allData = this.datasetsAllMap.get(typeId) || [];
+
+    if (!allData.length) {
+      this.allDataByType.set(typeId, []);
+      this.refreshGridForTab(typeId);
+      return;
+    }
+
+    // Apply all filters sequentially
+    let filtered = [...allData];
+
+    // List of all filterable columns
+    const filterableColumns = [
+      'ProductCode',
+      'ProjectCode',
+      'ProductName',
+      'Manufacturer',
+      'StatusRequestText',
+      'FullName',
+      'CurrencyID',
+      'SupplierSaleID',
+    ];
+
+    for (const columnId of filterableColumns) {
+      const filterKey = `${columnId}-${typeId}`;
+      const appliedValues = this.headerFilterAppliedValuesMap.get(filterKey);
+      
+      if (appliedValues && appliedValues.length > 0) {
+        const allowed = new Set(appliedValues.map((x) => String(x ?? '')));
+        
+        filtered = filtered.filter((row) => {
+          const value = String(row?.[columnId] ?? '');
+          return allowed.has(value);
+        });
+      }
+    }
+
+    this.allDataByType.set(typeId, filtered);
+    this.refreshGridForTab(typeId);
+  }
+
+  private refreshGridForTab(typeId: number) {
+    const angularGrid = this.angularGrids.get(typeId);
+    if (angularGrid && angularGrid.dataView) {
+      // Update dataset in datasetsMap
+      const filteredData = this.allDataByType.get(typeId) || [];
+      this.datasetsMap.set(typeId, filteredData);
+      
+      // Update grid data
+      this.setGridData(typeId, filteredData);
+      
+      // Update all column header filter icons to reflect current filter status
+      this.updateAllColumnHeaderFilterIcons(typeId);
+      
+      // Update tab title with filtered count if needed
+      const projectType = this.projectTypes.find(t => t.ProjectTypeID === typeId);
+      if (projectType) {
+        // You can update tab title here if needed
+      }
+    }
+  }
+  //#endregion
 
   /**
    * Helper function để chuyển số cột thành chữ cái (A, B, C, ..., Z, AA, AB, ...)

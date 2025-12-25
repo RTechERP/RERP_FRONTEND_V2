@@ -23,6 +23,7 @@ import Aura from '@primeuix/themes/aura'
 import { AngularSlickgridModule } from 'angular-slickgrid';
 import { TranslateModule } from '@ngx-translate/core';
 import { CustomRouteReuseStrategy } from './custom-route-reuse.strategy';
+import { ExcelExportService } from '@slickgrid-universal/common';
 
 registerLocaleData(vi);
 

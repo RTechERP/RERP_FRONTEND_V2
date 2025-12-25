@@ -42,6 +42,8 @@ import { NzLayoutModule } from 'ng-zorro-antd/layout';
 })
 export class HomeLayoutNewComponent implements OnInit {
 
+    isMobile = window.innerHeight <= 768;
+
     notifItems: NotifyItem[] = [];
     menus: any[] = [];
     menuApproves: any = {};

@@ -155,6 +155,7 @@ import { EmployeeContactComponent } from './pages/hrm/employee/employee-contact/
 import { SearchProductTechSerialComponent } from './pages/old/Technical/search-product-tech-serial/search-product-tech-serial.component';
 import { VehicleRepairTypeComponent } from './pages/hrm/vehicle/vehicle-repair/vehicle-repair-type/vehicle-repair-type.component';
 import { OfficeSupplyUnitComponent } from './pages/hrm/office-supply/OfficeSupplyUnit/office-supply-unit.component';
+import { DocumentCommonComponent } from './pages/hrm/document/document-common/document-common.component';
 
 export const routes: Routes = [
     {
@@ -588,6 +589,7 @@ export const routes: Routes = [
             { path: 'job-requirement-hr', component: JobRequirementComponent, canActivate: [authGuard] },
             { path: 'proposal-hr', component: HrPurchaseProposalComponent, canActivate: [authGuard] },
             { path: 'document', component: DocumentComponent, canActivate: [authGuard] },
+            { path: 'document-common', component: DocumentCommonComponent, canActivate: [authGuard] },
             { path: 'asset-management', component: TsAssetManagementComponent, canActivate: [authGuard] },
             { path: 'asset-type', component: TsAssetTypeComponent, canActivate: [authGuard] },
             { path: 'asset-source', component: TsAssetSourceComponent, canActivate: [authGuard] },

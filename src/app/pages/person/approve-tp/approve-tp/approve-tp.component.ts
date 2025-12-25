@@ -257,7 +257,7 @@ export class ApproveTpComponent implements OnInit, AfterViewInit {
     this.tabulator = new Tabulator(this.tbApproveTpRef.nativeElement, {
       ...DEFAULT_TABLE_CONFIG,
       layout: 'fitDataStretch',
-      height: '77vh',
+      height: '80vh',
       paginationMode: 'local',
       paginationSize: 200,
       groupBy: 'TypeText',

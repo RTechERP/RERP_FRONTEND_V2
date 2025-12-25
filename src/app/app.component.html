@@ -10,7 +10,6 @@
             </a>
         </div>
 
-
         <ul nz-menu nzMode="inline">
             @for (m of menus; track m.id) {
 
@@ -66,7 +65,7 @@
                                     @for (c3 of c2.children; track c3.id) {
                                     <li nz-menu-item nzMatchRouter
                                         *ngIf=" c3.isPermission && c3.isOpen && c3.children.length <= 0"
-                                        (click)="newTab((c3.router || ''), c3.title,c3.queryParams) "
+                                        (click)="newTab((c3.router || ''), c3.title,c3.queryParams)"
                                         style="font-size: 10px !important;">
                                         <img [src]="c3.icon" class="menu-icon" *ngIf="(c3.icon || '') != ''"
                                             width="24px" />

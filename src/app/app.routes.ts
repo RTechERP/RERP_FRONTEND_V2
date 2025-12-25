@@ -635,14 +635,6 @@ export const routes: Routes = [
             { path: 'phase-allocation-hr', component: PhaseAllocationPersonComponent, canActivate: [authGuard] },
 
 
-
-
-
-
-
-
-
-
         ],
     },
 ];

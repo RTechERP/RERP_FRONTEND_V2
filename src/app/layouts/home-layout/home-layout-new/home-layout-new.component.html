@@ -54,7 +54,7 @@
             <div class="card-body p-0">
                 <ul class="list-group list-group-flush">
                     @for (item of menuQickAcesss.Children; track $index) {
-                    <li class="list-group-item border-0"
+                    <li class="list-group-item border-0 py-1"
                         *ngIf="item.Code =='M136' || item.Code == 'M137' || item.Code == 'M139'">
                         <a [attr.href]="item.Router ? item.Router : null"
                             (click)="handleClickLink($event, item.Router, item.Title)">
@@ -62,7 +62,7 @@
                             <span> {{item.Title}}</span>
                         </a>
                     </li>
-                    }
+                    } -->
                 </ul>
             </div>
         </div>
@@ -75,11 +75,12 @@
                 <div class="gutter-example">
                     <div nz-row [nzGutter]="[16, 16]">
                         @for (m of menus; track $index) {
-                        <div nz-col class="gutter-row" [nzXs]="12" [nzMd]="8" [nzLg]="6" *ngIf="m.IsPermission"
+                        <div nz-col class="gutter-row" [nzXs]="8" [nzMd]="6" [nzLg]="6" *ngIf="m.IsPermission"
                             (click)="openModule(m.Code)">
-                            <div class="grid-config text-center py-2 shadow" style="height: 140px;">
-                                <img width="64" [src]="m.Icon?.replace('24','64')" alt="">
-                                <p class="m-0 mt-2 fw-bold">{{m.Title}}</p>
+                            <div class="grid-config text-center py-1 shadow"
+                                style="display: flex; flex-flow: column;justify-content: center;align-items: center; height: 107px;">
+                                <img [style.width]="isMobile ? '35%' : '50%'" [src]="m.Icon?.replace('24','64')" alt="">
+                                <p class="m-0 mt-2 fw-bold" style="line-height: normal;">{{m.Title}}</p>
                             </div>
                         </div>
                         }
@@ -99,7 +100,7 @@
             <div class="card-body p-0">
                 <ul class="list-group list-group-flush">
                     @for (item of menuApproves.Children; track $index) {
-                    <li class="list-group-item border-0 border-bottom">
+                    <li class="list-group-item border-0 border-bottom py-1">
                         <a class=" text-dark" [attr.href]="item.Router ? item.Router : null"
                             (click)="handleClickLink($event, item.Router, item.Title)">
                             <img [src]="item.Icon">
@@ -107,7 +108,7 @@
                         </a>
                         <ul class="list-group">
                             @for (c of item.Children; track $index) {
-                            <li class="list-group-item border-0"
+                            <li class="list-group-item border-0 py-1"
                                 [ngClass]="{'border-bottom':$index < item.Children.length - 1,'':$index == item.Children.length - 1}">
                                 <a [attr.href]="c.Router ? c.Router : null"
                                     (click)="handleClickLink($event, c.Router, c.Title)">
@@ -142,7 +143,7 @@
             <div class="card-body p-0" style="height: 80vh; overflow: auto;">
                 <ul class="list-group list-group-flush">
                     @for (item of menuPersons; track $index) {
-                    <li class="list-group-item border-0 border-bottom">
+                    <li class="list-group-item border-0 border-bottom py-1">
                         <a class=" text-dark" [attr.href]="item.Router ? item.Router : null"
                             (click)="handleClickLink($event, item.Router, item.Title)">
                             <img [src]="item.Icon">
@@ -151,7 +152,7 @@
                         <ul class="list-group">
                             @for (c1 of item.Children; track $index) {
 
-                            <li class="list-group-item border-0 border-bottom">
+                            <li class="list-group-item border-0 border-bottom py-1">
                                 <a class=" text-dark" [attr.href]="c1.Router ? c1.Router : null"
                                     (click)="handleClickLink($event, c1.Router, c1.Title)">
                                     <img [src]="c1.Icon">
@@ -159,7 +160,7 @@
                                 </a>
                                 <ul class="list-group">
                                     @for (c2 of c1.Children; track $index) {
-                                    <li class="list-group-item border-0"
+                                    <li class="list-group-item border-0 py-1"
                                         [ngClass]="{'border-bottom':$index < c1.Children.length - 1,'':$index == c1.Children.length - 1}">
                                         <a [attr.href]="c2.Router ? c2.Router : null"
                                             (click)="handleClickLink($event, c2.Router, c2.Title)">
@@ -188,7 +189,7 @@
             <div class="card-body p-0">
                 <ul class="list-group list-group-flush">
                     @for (item of menuWeekplans.Children; track $index) {
-                    <li class="list-group-item border-0">
+                    <li class="list-group-item border-0 py-1">
                         <a [href]="item.Router == '' ? '#' : item.Router"
                             (click)="handleClickLink($event, item.Router, item.Title)">
                             <img [src]="item.Icon">
@@ -212,17 +213,18 @@
                         date:'dd/MM/yyyy'}`}}</p-tab>
                 </p-tablist>
                 <p-tabpanels class="p-0">
-                    <p-tabpanel value="0" style="display: block; height: 377px; overflow: auto;">
+                    <p-tabpanel value="0" style="display: block; height: 38vh; overflow: auto;">
                         <div class="card-body p-0">
                             <ul class="list-group list-group-flush">
                                 @for (item of employeeOnleaves; track $index) {
-                                <li class="list-group-item border-0 border-bottom">
+                                <li class="list-group-item border-0 border-bottom py-1">
                                     <details open>
-                                        <summary class="fw-bold">{{item.DepartmentName}} ({{item.Employees.length}})
+                                        <summary class="fw-bold" style="font-size: 12px;">{{item.DepartmentName}}
+                                            ({{item.Employees.length}})
                                         </summary>
                                         <ul class="list-group">
                                             @for (e of item.Employees; track $index) {
-                                            <li class="list-group-item border-0">
+                                            <li class="list-group-item border-0 py-1" style="font-size: 12px;">
                                                 <span>{{$index + 1}}.{{e.EmployeeLeave}}{{e.TimeOnLeaveText}}</span>
                                             </li>
                                             }
@@ -238,13 +240,13 @@
                         <div class="card-body p-0">
                             <ul class="list-group list-group-flush">
                                 @for (item of employeeWfhs; track $index) {
-                                <li class="list-group-item border-0 border-bottom">
+                                <li class="list-group-item border-0 border-bottom py-1">
                                     <details open>
                                         <summary class="fw-bold">{{item.DepartmentName}} ({{item.Employees.length}})
                                         </summary>
                                         <ul class="list-group">
                                             @for (e of item.Employees; track $index) {
-                                            <li class="list-group-item border-0">
+                                            <li class="list-group-item border-0 py-1">
                                                 <span>{{$index + 1}}.{{e.TimeWFHText}}{{e.IsApprovedBGDText}}</span>
                                             </li>
                                             }

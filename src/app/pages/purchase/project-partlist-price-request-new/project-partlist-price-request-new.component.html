@@ -248,11 +248,11 @@
     (formSubmitted)="OnFormSubmit()" (closeModal)="showDetailModal = false">
 </app-project-partlist-price-request-form> -->
 
-<div *ngIf="showHeader || activeModal"
+<div *ngIf="showHeader || activeModal || isFromPOKH"
     style="display: flex; flex-direction: column; height: 99.6vh; position: relative;">
     <ng-container class="w-100">
         <!-- Modal header - hiển thị khi activeModal tồn tại hoặc showHeader = true -->
-        <div *ngIf="showHeader || activeModal" class="modal-header bg-primary text-uppercase py-2">
+        <div *ngIf="showHeader || activeModal || isFromPOKH" class="modal-header bg-primary text-uppercase py-2">
             <h6 class="modal-title text-white">{{ headerText }}</h6>
             <button type="button" class="btn-close" (click)="closeModal()" aria-label="Close"></button>
         </div>
@@ -570,8 +570,3 @@
 <app-project-partlist-price-request-form *ngIf="showDetailModal" [dataInput]="modalData"
     (formSubmitted)="OnFormSubmit()" (closeModal)="showDetailModal = false">
 </app-project-partlist-price-request-form>
-
-<!-- <app-fillter-header
-    #headerFilter
-    (apply)="onHeaderFilterApply($event)">
-</app-fillter-header> -->

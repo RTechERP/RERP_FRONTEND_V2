@@ -43,6 +43,8 @@ import { TabServiceService } from '../../tab-service.service';
 })
 export class HomeLayoutNewComponent implements OnInit {
 
+    isMobile = window.innerHeight <= 768;
+
     notifItems: NotifyItem[] = [];
     menus: any[] = [];
     menuApproves: any = {};
@@ -214,28 +216,56 @@ export class HomeLayoutNewComponent implements OnInit {
         this.router.navigate(['/app']); // hoặc route tới MainLayout
     }
 
-    newTab(route: string, title: string, queryParams?: any) {
+    // newTab(route: string, title: string, data?: any) {
+    //     route = route.replace(environment.baseHref, '');
+    //     console.log('this.dynamicTabs:', this.dynamicTabs);
 
-        this.tabService.openTab({ route: route, title: title, queryParams: queryParams });
-        this.router.navigate(['/app']);
-        // route = route.replace(environment.baseHref, '');
-        // const idx = this.dynamicTabs.findIndex(t => t.route === route);
+    //     const idx = this.dynamicTabs.findIndex(t => t.route === route);
 
-        // if (idx >= 0) {
-        //     this.selectedIndex = idx;
-        //     this.router.navigateByUrl(route);
-        //     return;
-        // }
+    //     this.tabService.openTab({ route: route, title: title, queryParams: queryParams });
+    //     this.router.navigate(['/app']);
+    //     // route = route.replace(environment.baseHref, '');
+    //     // const idx = this.dynamicTabs.findIndex(t => t.route === route);
 
-        // this.dynamicTabs = [
-        //     ...this.dynamicTabs,
-        //     { title, route, data }
-        // ];
+    //     this.dynamicTabs = [
+    //         ...this.dynamicTabs,
+    //         { title, route, data }
+    //     ];
+    //     console.log('this.dynamicTabs after add:', this.dynamicTabs);
 
-        // setTimeout(() => {
-        //     this.selectedIndex = this.dynamicTabs.length - 1;
-        //     this.router.navigateByUrl(route);
-        // });
+    //     // this.dynamicTabs = [
+    //     //     ...this.dynamicTabs,
+    //     //     { title, route, data }
+    //     // ];
+
+    //     // setTimeout(() => {
+    //     //     this.selectedIndex = this.dynamicTabs.length - 1;
+    //     //     this.router.navigateByUrl(route);
+    //     // });
+    // }
+
+    newTab(route: string, title: string, data?: any) {
+        route = route.replace(environment.baseHref, '');
+        console.log('this.dynamicTabs:', this.dynamicTabs);
+
+        const idx = this.dynamicTabs.findIndex(t => t.route === route);
+
+        if (idx >= 0) {
+            this.selectedIndex = idx;
+            this.router.navigateByUrl(route);
+            return;
+        }
+
+        this.dynamicTabs = [
+            ...this.dynamicTabs,
+            { title, route, data }
+        ];
+        console.log('this.dynamicTabs after add:', this.dynamicTabs);
+
+        setTimeout(() => {
+            this.selectedIndex = this.dynamicTabs.length - 1;
+            this.router.navigateByUrl(route);
+        });
     }
 
     handleClickLink(event: MouseEvent, route: string, title: string) {

@@ -379,6 +379,12 @@ body .slickgrid-container .slick-header-columns .slick-header-column.slick-state
     line-height: normal !important;
     padding-top: 5px;
     background-color: #f4f4f4;
+    flex-wrap: wrap;
+    font-size: 12px !important;
+}
+
+body .slickgrid-container .slick-header-columns .slick-header-column.slick-state-default >.slick-column-name{
+    margin-bottom: 0;
 }
 .slickgrid-container .slick-pane-header{
     background-color: #f4f4f4 !important;
@@ -387,13 +393,13 @@ body .slickgrid-container .slick-header-columns .slick-header-column.slick-state
 body .slickgrid-container .grid-canvas .slick-cell{
     line-height: normal #ddd !important;
     border-left: 1px solid #ddd !important;
-    /* border-top: 1px solid !important; */
-    /* border-bottom: 1px solid  #ddd !important; */
+     /* border-top: 1px solid !important; 
+    border-bottom: 1px solid  #ddd !important; */
+    font-size: 12px !important;
 }
 
 .slickgrid-container .slick-headerrow .slick-headerrow-columns .slick-headerrow-column{
     border-left: 1px solid #ddd !important;
-    /* border-top: 1px solid !important; */
     border-bottom: 1px solid  #ddd !important;
 }
 
@@ -401,9 +407,11 @@ body .slickgrid-container .grid-canvas .slick-cell{
     background-color: unset !important;
 }
 
-/* .slickgrid-container{
-    height: 100% !important;
-} */
+.slickgrid-container .slick-preheader-panel.slick-state-default .slick-header-columns .slick-header-column{
+
+}
+
+/* end style slick grid */
 
 .btn-copy img {
   width: 16px;

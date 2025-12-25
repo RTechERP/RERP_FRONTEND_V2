@@ -561,7 +561,7 @@ export class ProjectPartlistPriceRequestNewComponent implements OnInit, OnDestro
       this.activeTabId = -3; // Tab tương ứng với type 4
     }
     if (this.isFromPOKH) {
-      this.activeTabId = -1;
+      this.activeTabId = 5;
     }
 
     this.filters = {
@@ -1637,6 +1637,33 @@ export class ProjectPartlistPriceRequestNewComponent implements OnInit, OnDestro
     ];
   }
 
+  /**
+   * Tính toán số cột được freeze dựa trên vị trí của cột target trong mảng columns
+   * Trong Angular SlickGrid, checkbox selector được thêm như cột đầu tiên (index 0)
+   * Các columns trong mảng bắt đầu từ index 1 trong grid thực tế
+   * 
+   * Ví dụ: Nếu Unit có index 7 trong mảng columns:
+   * - Grid thực tế: checkbox(0) + columns[0..7] = các cột từ index 0 đến 8
+   * - frozenColumn = 9 (để freeze từ index 0 đến 8, tức là bao gồm cả Unit)
+   * 
+   * Công thức: targetIndex (trong mảng columns) + 2
+   * - +1: để bao gồm chính cột target (vì index bắt đầu từ 0)
+   * - +1: để bao gồm checkbox selector (luôn ở index 0)
+   */
+  private calculateFrozenColumnCount(columns: Column[], targetField: string = 'Unit'): number {
+    // Tìm index của cột target trong mảng columns (không tính checkbox selector)
+    const targetIndex = columns.findIndex(col => col.field === targetField);
+    
+    if (targetIndex === -1) {
+      console.warn(`Column with field '${targetField}' not found, defaulting to 0`);
+      return 0;
+    }
+
+    // Checkbox selector luôn được bật và là cột đầu tiên trong grid (index 0)
+    // Vậy frozenColumn = targetIndex + 2 (targetIndex + 1 cho chính nó + 1 cho checkbox)
+    return targetIndex + 2;
+  }
+
   private initGridColumns(typeId: number): Column[] {
     const isJobRequirement = typeId === -2 || this.jobRequirementID > 0 || this.isVPP;
 
@@ -1653,17 +1680,6 @@ export class ProjectPartlistPriceRequestNewComponent implements OnInit, OnDestro
         excludeFromQuery: true,
       },
       {
-        id: 'IsCheckPrice',
-        field: 'IsCheckPrice',
-        name: 'Check giá',
-        width: 70,
-        sortable: true,
-        filterable: true,
-        formatter: Formatters.iconBoolean,
-        params: { cssClass: 'mdi mdi-check' },
-        filter: { model: Filters['compoundInputNumber'] },
-      },
-      {
         id: 'TT',
         field: 'TT',
         name: 'TT',
@@ -1676,8 +1692,16 @@ export class ProjectPartlistPriceRequestNewComponent implements OnInit, OnDestro
         field: 'ProjectCode',
         name: isJobRequirement ? 'Mã YCCV' : 'Mã dự án',
         width: 120,
-        sortable: true,
+        sortable: false,
         filterable: true,
+        filter: {
+          model: Filters['multipleSelect'],
+          collection: [],
+          filterOptions: {
+            filter: true,
+          } as MultipleSelectOption,
+        },
+
         formatter: (_row, _cell, value, _column, dataContext) => {
           if (!value) return '';
           return `
@@ -1689,16 +1713,10 @@ export class ProjectPartlistPriceRequestNewComponent implements OnInit, OnDestro
             </span>
           `;
         },
+
         customTooltip: {
           useRegularTooltip: true,
           // useRegularTooltipFromCellTextOnly: true,
-        },
-        filter: {
-          model: Filters['multipleSelect'],
-          collection: [],
-          filterOptions: {
-            filter: true,
-          } as Partial<MultipleSelectOption>,
         },
       },
       {
@@ -1706,8 +1724,16 @@ export class ProjectPartlistPriceRequestNewComponent implements OnInit, OnDestro
         field: 'ProductCode',
         name: 'Mã sản phẩm',
         width: 120,
-        sortable: true,
+        sortable: false,
         filterable: true,
+        filter: {
+          model: Filters['multipleSelect'],
+          collection: [],
+          filterOptions: {
+            filter: true,
+          } as MultipleSelectOption,
+        },
+
         formatter: (_row, _cell, value, _column, dataContext) => {
           if (!value) return '';
           return `
@@ -1719,16 +1745,10 @@ export class ProjectPartlistPriceRequestNewComponent implements OnInit, OnDestro
             </span>
           `;
         },
+
         customTooltip: {
           useRegularTooltip: true,
           // useRegularTooltipFromCellTextOnly: true,
-        },
-        filter: {
-          model: Filters['multipleSelect'],
-          collection: [],
-          filterOptions: {
-            filter: true,
-          } as Partial<MultipleSelectOption>,
         },
       },
       {
@@ -1736,8 +1756,16 @@ export class ProjectPartlistPriceRequestNewComponent implements OnInit, OnDestro
         field: 'ProductName',
         name: 'Tên sản phẩm',
         width: 200,
-        sortable: true,
+        sortable: false,
         filterable: true,
+        filter: {
+          model: Filters['multipleSelect'],
+          collection: [],
+          filterOptions: {
+            filter: true,
+          } as MultipleSelectOption,
+        },
+
         formatter: (_row, _cell, value, _column, dataContext) => {
           if (!value) return '';
           return `
@@ -1749,16 +1777,10 @@ export class ProjectPartlistPriceRequestNewComponent implements OnInit, OnDestro
             </span>
           `;
         },
+
         customTooltip: {
           useRegularTooltip: true,
           // useRegularTooltipFromCellTextOnly: true,
-        },
-        filter: {
-          model: Filters['multipleSelect'],
-          collection: [],
-          filterOptions: {
-            filter: true,
-          } as Partial<MultipleSelectOption>,
         },
       },
       {
@@ -1766,8 +1788,16 @@ export class ProjectPartlistPriceRequestNewComponent implements OnInit, OnDestro
         field: 'Manufacturer',
         name: 'Hãng',
         width: 100,
-        sortable: true,
+        sortable: false,
         filterable: true,
+        filter: {
+          model: Filters['multipleSelect'],
+          collection: [],
+          filterOptions: {
+            filter: true,
+          } as MultipleSelectOption,
+        },
+
         formatter: (_row, _cell, value, _column, dataContext) => {
           if (!value) return '';
           return `
@@ -1779,16 +1809,10 @@ export class ProjectPartlistPriceRequestNewComponent implements OnInit, OnDestro
             </span>
           `;
         },
+
         customTooltip: {
           useRegularTooltip: true,
           // useRegularTooltipFromCellTextOnly: true,
-        },
-        filter: {
-          model: Filters['multipleSelect'],
-          collection: [],
-          filterOptions: {
-            filter: true,
-          } as Partial<MultipleSelectOption>,
         },
       },
       {
@@ -1854,8 +1878,16 @@ export class ProjectPartlistPriceRequestNewComponent implements OnInit, OnDestro
         field: 'StatusRequestText',
         name: 'Trạng thái',
         width: 120,
-        sortable: true,
+        sortable: false,
         filterable: true,
+        filter: {
+          model: Filters['multipleSelect'],
+          collection: [],
+          filterOptions: {
+            filter: true,
+          } as MultipleSelectOption,
+        },
+
         formatter: (_row, _cell, value, _column, dataContext) => {
           if (!value) return '';
           return `
@@ -1867,16 +1899,10 @@ export class ProjectPartlistPriceRequestNewComponent implements OnInit, OnDestro
             </span>
           `;
         },
+
         customTooltip: {
           useRegularTooltip: true,
           // useRegularTooltipFromCellTextOnly: true,
-        },
-        filter: {
-          model: Filters['multipleSelect'],
-          collection: [],
-          filterOptions: {
-            filter: true,
-          } as Partial<MultipleSelectOption>,
         },
       },
       {
@@ -1884,8 +1910,16 @@ export class ProjectPartlistPriceRequestNewComponent implements OnInit, OnDestro
         field: 'FullName',
         name: 'Người yêu cầu',
         width: 120,
-        sortable: true,
+        sortable: false,
         filterable: true,
+        filter: {
+          model: Filters['multipleSelect'],
+          collection: [],
+          filterOptions: {
+            filter: true,
+          } as MultipleSelectOption,
+        },
+
         formatter: (_row, _cell, value, _column, dataContext) => {
           if (!value) return '';
           return `
@@ -1897,16 +1931,10 @@ export class ProjectPartlistPriceRequestNewComponent implements OnInit, OnDestro
             </span>
           `;
         },
+
         customTooltip: {
           useRegularTooltip: true,
           // useRegularTooltipFromCellTextOnly: true,
-        },
-        filter: {
-          model: Filters['multipleSelect'],
-          collection: [],
-          filterOptions: {
-            filter: true,
-          } as Partial<MultipleSelectOption>,
         },
       },
       {
@@ -1999,8 +2027,15 @@ export class ProjectPartlistPriceRequestNewComponent implements OnInit, OnDestro
         field: 'CurrencyID',
         name: 'Loại tiền',
         width: 100,
-        sortable: true,
+        sortable: false,
         filterable: true,
+        filter: {
+          model: Filters['multipleSelect'],
+          collection: [],
+          filterOptions: {
+            filter: true,
+          } as MultipleSelectOption,
+        },
         editor: {
           model: GroupSelectEditor,
           collection: this.getCurrencyCollection(),
@@ -2014,13 +2049,6 @@ export class ProjectPartlistPriceRequestNewComponent implements OnInit, OnDestro
         formatter: (row: number, cell: number, value: any) => {
           const currency = this.dtcurrency.find((c: any) => c.ID === value);
           return currency ? currency.Code : '';
-        },
-        filter: {
-          model: Filters['multipleSelect'],
-          collection: [],
-          filterOptions: {
-            filter: true,
-          } as Partial<MultipleSelectOption>,
         },
       },
       {
@@ -2144,8 +2172,15 @@ export class ProjectPartlistPriceRequestNewComponent implements OnInit, OnDestro
         field: 'SupplierSaleID',
         name: 'Nhà cung cấp',
         width: 200,
-        sortable: true,
+        sortable: false,
         filterable: true,
+        filter: {
+          model: Filters['multipleSelect'],
+          collection: [],
+          filterOptions: {
+            filter: true,
+          } as MultipleSelectOption,
+        },
         editor: {
           model: GroupSelectEditor,
           collection: this.getSupplierCollection(),
@@ -2156,13 +2191,6 @@ export class ProjectPartlistPriceRequestNewComponent implements OnInit, OnDestro
         formatter: (row: number, cell: number, value: any) => {
           const supplier = this.dtSupplierSale.find((s: any) => s.ID === value);
           return supplier ? supplier.NameNCC : '';
-        },
-        filter: {
-          model: Filters['multipleSelect'],
-          collection: [],
-          filterOptions: {
-            filter: true,
-          } as Partial<MultipleSelectOption>,
         },
       },
       {
@@ -2402,6 +2430,10 @@ export class ProjectPartlistPriceRequestNewComponent implements OnInit, OnDestro
 
   // Initialize grid options for Angular SlickGrid
   private initGridOptions(typeId: number): GridOption {
+    // Lấy columns để tính toán frozenColumn
+    const columns = this.columnDefinitionsMap.get(typeId) || this.initGridColumns(typeId);
+    const frozenColumnCount = this.calculateFrozenColumnCount(columns, 'Unit');
+
     return {
       enableAutoResize: true,
       autoResize: {
@@ -2430,7 +2462,7 @@ export class ProjectPartlistPriceRequestNewComponent implements OnInit, OnDestro
       enableGrouping: true,
       autoFitColumnsOnFirstLoad: false,
       enableAutoSizeColumns: false,
-      frozenColumn: 10, // Freeze first 10 columns
+      frozenColumn: frozenColumnCount, // Calculated dynamically to freeze up to Unit (DVT) column
       enablePagination: false,
       enableHeaderMenu: false, // Disable default header dropdown menu
     };
@@ -5167,29 +5199,23 @@ export class ProjectPartlistPriceRequestNewComponent implements OnInit, OnDestro
     document.body.removeChild(link);
     window.URL.revokeObjectURL(link.href);
   }
-private buildDistinctCollection(
-  data: any[],
-  field: string
-): Array<{ value: any; label: string }> {
-  const map = new Map<any, string>();
-
-  data.forEach(item => {
-    const val = item[field];
-    if (val === null || val === undefined || val === '') return;
-
-    if (!map.has(val)) {
-      map.set(val, String(val));
-    }
-  });
-
-  return Array.from(map.entries()).map(([value, label]) => ({
-    value,
-    label,
-  }));
-}
 
   // Apply distinct filters for multiple columns after data is loaded
   private applyDistinctFilters(): void {
+    // Helper function to get unique values for a field
+    const getUniqueValues = (data: any[], field: string): Array<{ value: string; label: string }> => {
+      const map = new Map<string, string>();
+      data.forEach((row: any) => {
+        const value = String(row?.[field] ?? '');
+        if (value && !map.has(value)) {
+          map.set(value, value);
+        }
+      });
+      return Array.from(map.entries())
+        .map(([value, label]) => ({ value, label }))
+        .sort((a, b) => a.label.localeCompare(b.label));
+    };
+
     // Iterate through all project types (tabs)
     this.projectTypes.forEach(projectType => {
       const typeId = projectType.ProjectTypeID;
@@ -5205,160 +5231,71 @@ private buildDistinctCollection(
       const columns = angularGrid.slickGrid.getColumns();
       if (!columns) return;
 
-      // Define all filterable text columns
-      const textColumns = [
-        'ProjectCode',        // Mã dự án / Mã YCCV
-        'ProductCode',        // Mã sản phẩm
-        'ProductName',        // Tên sản phẩm
-        'Manufacturer',       // Hãng
-        'StatusRequestText',  // Trạng thái
-        'FullName',           // Người yêu cầu
-        'FullNameSale',       // NV bán (nếu có)
-      ];
+      // Update collections for each filterable column with multipleSelect
+      columns.forEach((column: any) => {
+        if (column.filter && column.filter.model === Filters['multipleSelect']) {
+          const field = column.field;
+          if (!field) return;
 
-      // Apply distinct filter for text columns
-      textColumns.forEach(fieldName => {
-        const column = columns.find((col: any) => col.field === fieldName);
-        if (column && column.filter) {
-          const collection = this.buildDistinctCollection(data, fieldName);
-          if (collection.length > 0) {
-            column.filter.model = Filters['multipleSelect'];
-            column.filter.collection = collection;
-            column.filter.customStructure = {
-              value: 'value',
-              label: 'label',
-            };
-            if (!column.filter.filterOptions) {
-              column.filter.filterOptions = {};
+          // Handle CurrencyID - use collection from editor
+          if (field === 'CurrencyID') {
+            const currencyCollection = this.getCurrencyCollection();
+            const filteredCollection = currencyCollection.filter(x => x.value > 0);
+            if (column.filter) {
+              column.filter.collection = filteredCollection;
             }
-            column.filter.filterOptions.filter = true;
+          }
+          // Handle SupplierSaleID - use collection from editor
+          else if (field === 'SupplierSaleID') {
+            const supplierCollection = this.getSupplierCollection();
+            const filteredCollection = supplierCollection.filter(x => x.value > 0);
+            if (column.filter) {
+              column.filter.collection = filteredCollection;
+            }
+          }
+          // Handle text columns - get unique values from data
+          else if (['ProductCode', 'ProjectCode', 'ProductName', 'Manufacturer', 'StatusRequestText', 'FullName'].includes(field)) {
+            const collection = getUniqueValues(data, field);
+            if (column.filter) {
+              column.filter.collection = collection;
+            }
           }
         }
       });
 
-      // Apply distinct filter for CurrencyID
-      const currencyColumn = columns.find((col: any) => col.field === 'CurrencyID');
-      if (currencyColumn && currencyColumn.filter) {
-        const collection = this.buildDistinctCollection(data, 'CurrencyID');
-        if (collection.length > 0) {
-          // Map currency IDs to codes
-          const currencyCollection = collection.map(item => {
-            const currency = this.dtcurrency.find((c: any) => c.ID === Number(item.value));
-            return {
-              value: item.value,
-              label: currency ? currency.Code : item.label,
-            };
-          });
-          currencyColumn.filter.model = Filters['multipleSelect'];
-          currencyColumn.filter.collection = currencyCollection;
-          currencyColumn.filter.customStructure = {
-            value: 'value',
-            label: 'label',
-          };
-          if (!currencyColumn.filter.filterOptions) {
-            currencyColumn.filter.filterOptions = {};
-          }
-          currencyColumn.filter.filterOptions.filter = true;
-        }
-      }
-
-      // Apply distinct filter for SupplierSaleID
-      const supplierColumn = columns.find((col: any) => col.field === 'SupplierSaleID');
-      if (supplierColumn && supplierColumn.filter) {
-        const collection = this.buildDistinctCollection(data, 'SupplierSaleID');
-        if (collection.length > 0) {
-          // Map supplier IDs to names
-          const supplierCollection = collection.map(item => {
-            const supplier = this.dtSupplierSale.find((s: any) => s.ID === Number(item.value));
-            return {
-              value: item.value,
-              label: supplier ? supplier.NameNCC : item.label,
-            };
-          });
-          supplierColumn.filter.model = Filters['multipleSelect'];
-          supplierColumn.filter.collection = supplierCollection;
-          supplierColumn.filter.customStructure = {
-            value: 'value',
-            label: 'label',
-          };
-          if (!supplierColumn.filter.filterOptions) {
-            supplierColumn.filter.filterOptions = {};
-          }
-          supplierColumn.filter.filterOptions.filter = true;
-        }
-      }
-
       // Update column definitions in the map
       const columnDefs = this.columnDefinitionsMap.get(typeId);
       if (columnDefs) {
-        textColumns.forEach(fieldName => {
-          const colDef = columnDefs.find((col: any) => col.field === fieldName);
-          if (colDef && colDef.filter) {
-            const collection = this.buildDistinctCollection(data, fieldName);
-            if (collection.length > 0) {
-              colDef.filter.model = Filters['multipleSelect'];
-              colDef.filter.collection = collection;
-              colDef.filter.customStructure = {
-                value: 'value',
-                label: 'label',
-              };
-              if (!colDef.filter.filterOptions) {
-                colDef.filter.filterOptions = {};
+        columnDefs.forEach((colDef: any) => {
+          if (colDef.filter && colDef.filter.model === Filters['multipleSelect']) {
+            const field = colDef.field;
+            if (!field) return;
+
+            // Handle CurrencyID - use collection from editor
+            if (field === 'CurrencyID') {
+              const currencyCollection = this.getCurrencyCollection();
+              const filteredCollection = currencyCollection.filter(x => x.value > 0);
+              if (colDef.filter) {
+                colDef.filter.collection = filteredCollection;
               }
-              colDef.filter.filterOptions.filter = true;
+            }
+            // Handle SupplierSaleID - use collection from editor
+            else if (field === 'SupplierSaleID') {
+              const supplierCollection = this.getSupplierCollection();
+              const filteredCollection = supplierCollection.filter(x => x.value > 0);
+              if (colDef.filter) {
+                colDef.filter.collection = filteredCollection;
+              }
+            }
+            // Handle text columns - get unique values from data
+            else if (['ProductCode', 'ProjectCode', 'ProductName', 'Manufacturer', 'StatusRequestText', 'FullName'].includes(field)) {
+              const collection = getUniqueValues(data, field);
+              if (colDef.filter) {
+                colDef.filter.collection = collection;
+              }
             }
           }
         });
-
-        // Update CurrencyID filter in columnDefs
-        const currencyColDef = columnDefs.find((col: any) => col.field === 'CurrencyID');
-        if (currencyColDef && currencyColDef.filter) {
-          const collection = this.buildDistinctCollection(data, 'CurrencyID');
-          if (collection.length > 0) {
-            const currencyCollection = collection.map(item => {
-              const currency = this.dtcurrency.find((c: any) => c.ID === Number(item.value));
-              return {
-                value: item.value,
-                label: currency ? currency.Code : item.label,
-              };
-            });
-            currencyColDef.filter.model = Filters['multipleSelect'];
-            currencyColDef.filter.collection = currencyCollection;
-            currencyColDef.filter.customStructure = {
-              value: 'value',
-              label: 'label',
-            };
-            if (!currencyColDef.filter.filterOptions) {
-              currencyColDef.filter.filterOptions = {};
-            }
-            currencyColDef.filter.filterOptions.filter = true;
-          }
-        }
-
-        // Update SupplierSaleID filter in columnDefs
-        const supplierColDef = columnDefs.find((col: any) => col.field === 'SupplierSaleID');
-        if (supplierColDef && supplierColDef.filter) {
-          const collection = this.buildDistinctCollection(data, 'SupplierSaleID');
-          if (collection.length > 0) {
-            const supplierCollection = collection.map(item => {
-              const supplier = this.dtSupplierSale.find((s: any) => s.ID === Number(item.value));
-              return {
-                value: item.value,
-                label: supplier ? supplier.NameNCC : item.label,
-              };
-            });
-            supplierColDef.filter.model = Filters['multipleSelect'];
-            supplierColDef.filter.collection = supplierCollection;
-            supplierColDef.filter.customStructure = {
-              value: 'value',
-              label: 'label',
-            };
-            if (!supplierColDef.filter.filterOptions) {
-              supplierColDef.filter.filterOptions = {};
-            }
-            supplierColDef.filter.filterOptions.filter = true;
-          }
-        }
       }
 
       // Force refresh columns
@@ -5550,6 +5487,7 @@ private buildDistinctCollection(
   // Column definitions are now handled by initGridColumns()
 
   // Removed old Tabulator column definitions - now using Angular SlickGrid columns defined in initGridColumns()
+
 
   /**
    * Helper function để chuyển số cột thành chữ cái (A, B, C, ..., Z, AA, AB, ...)

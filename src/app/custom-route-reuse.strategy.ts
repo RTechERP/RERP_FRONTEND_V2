@@ -29,7 +29,14 @@ export class CustomRouteReuseStrategy implements RouteReuseStrategy {
     }
 
     clear(route: string) {
-        this.handlers.delete(route);
+        // Xóa tất cả các keys bắt đầu bằng route path (vì key bao gồm cả params và queryParams)
+        const keysToDelete: string[] = [];
+        for (const key of this.handlers.keys()) {
+            if (key.startsWith(route)) {
+                keysToDelete.push(key);
+            }
+        }
+        keysToDelete.forEach(key => this.handlers.delete(key));
     }
 
     clearAll() {
@@ -37,6 +44,9 @@ export class CustomRouteReuseStrategy implements RouteReuseStrategy {
     }
 
     private getKey(route: ActivatedRouteSnapshot): string {
-        return route.routeConfig?.path + JSON.stringify(route.params);
+        // Bao gồm cả params và queryParams trong key để tránh reuse sai
+        const params = JSON.stringify(route.params);
+        const queryParams = JSON.stringify(route.queryParams);
+        return route.routeConfig?.path + params + queryParams;
     }
 }

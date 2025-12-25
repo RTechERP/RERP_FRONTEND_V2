@@ -3,8 +3,13 @@
     <!-- Header với các nút action -->
     <div class="card-header bg-white p-1" style="overflow-x: auto;">
       <div class="d-flex gap-1">
-        <button style="min-width: 25px;" nz-button nzType="default" nzSize="small" (click)="toggleSearchPanel()">
-          <nz-icon [nzType]="showSearchBar ? 'up' : 'down'"></nz-icon>
+        <button nz-button nzType="default" nzSize="small"
+            (click)="toggleSearchPanel($event); $event.stopPropagation()"
+            (mousedown)="$event.stopPropagation()" (touchstart)="$event.stopPropagation()"
+            (touchend)="$event.stopPropagation()" class="sticky-toggle-btn"
+            [attr.aria-label]="showSearchBar ? 'Ẩn tìm kiếm' : 'Hiện tìm kiếm'"
+            [attr.aria-expanded]="showSearchBar" type="button">
+            <nz-icon [nzType]="showSearchBar ? 'up' : 'down'" />
         </button>
         <button nz-button nzType="default" nzSize="small" class="fs-12 btn-add" (click)="openModal()" *hasPermission="''">
           <img src="assets/icon/action_add_item_16.png" alt="Thêm " />Thêm
@@ -16,7 +21,7 @@
           *hasPermission="''">
           <img src="assets/icon/action_delete_item_16.png" alt="Xóa" /> Xóa
         </button>
-        <button class="fs-12" nz-button nzType="default" nzSize="small" title="Cây thư mục">
+        <button class="fs-12" nz-button nzType="default" nzSize="small" title="Cây thư mục" (click)="openTreeFolder()">
           <nz-icon nzType="folder-view"></nz-icon> Cây thư mục
         </button>
         <button class="fs-12" nz-button nzType="default" nzSize="small" title="Tổng hợp"

@@ -62,11 +62,6 @@ import { PonccDetailComponent } from '../../poncc/poncc-detail/poncc-detail.comp
 import { PONCCService } from '../../poncc/poncc.service';
 import { DateTime } from 'luxon';
 import * as ExcelJS from 'exceljs';
-import {
-  FillterHeaderComponent,
-  HeaderFilterApplyEvent,
-  HeaderFilterOption,
-} from '../../../../shared/filters/fillter-header/fillter-header.component';
 import { ActivatedRoute } from '@angular/router';
 
 interface Tab {
@@ -436,7 +431,6 @@ class GroupSelectEditor {
     NzDropDownModule,
     NgbModule,
     HasPermissionDirective,
-    FillterHeaderComponent,
   ],
   templateUrl: './project-part-list-purchase-request-slick-grid.component.html',
   styleUrls: ['./project-part-list-purchase-request-slick-grid.component.css'],
@@ -447,7 +441,6 @@ export class ProjectPartListPurchaseRequestSlickGridComponent
   @ViewChild('rejectReasonTpl', { static: false })
   rejectReasonTpl!: TemplateRef<any>;
 
-  @ViewChild('headerFilter') headerFilter?: FillterHeaderComponent;
 
   // Grid instances for each tab
   angularGrids: Map<number, AngularGridInstance> = new Map();
@@ -456,8 +449,6 @@ export class ProjectPartListPurchaseRequestSlickGridComponent
   datasetsMap: Map<number, any[]> = new Map();
   // Store original data for each tab (before filters)
   datasetsAllMap: Map<number, any[]> = new Map();
-  // Store applied filter values for each tab and column
-  headerFilterAppliedValuesMap: Map<string, string[] | null> = new Map(); // key: "columnId-typeId"
 
     // Tabs
     tabs: Tab[] = [];
@@ -512,7 +503,7 @@ export class ProjectPartListPurchaseRequestSlickGridComponent
   isDeletedFilter: number = 0;
   isApprovedBGDFilter: number = -1;
   isApprovedTBPFilter: number = -1;
-  pokhIdFilter: number | null = null;
+  @Input() pokhIdFilter: number | null = null;
 
   // Filter options
   statusOptions: any[] = [
@@ -608,7 +599,6 @@ export class ProjectPartListPurchaseRequestSlickGridComponent
 
   ngOnDestroy() {
     this.subscriptions.forEach((sub) => sub.unsubscribe());
-    this.headerFilter?.close();
   }
 
   // Load master data
@@ -755,12 +745,10 @@ export class ProjectPartListPurchaseRequestSlickGridComponent
       {
         id: 'WarehouseID',
         field: 'WarehouseID',
-        // WarehouseID FILTER (ADVANCED DROPDOWN): icon filter ở header
-        name: this.createHeaderWithFilterIcon('Kho nhập hàng', 'warehouseid-filter-icon', typeId, 'WarehouseID'),
+        name: 'Kho nhập hàng',
         width: 120,
-        sortable: false,
-        // WarehouseID FILTER (ADVANCED DROPDOWN): tắt filter row mặc định để dùng dropdown custom
-        filterable: false,
+        sortable: true,
+        filterable: true,
         editor: {
           model: GroupSelectEditor,
           collection: this.getWarehouseCollection(),
@@ -774,6 +762,13 @@ export class ProjectPartListPurchaseRequestSlickGridComponent
         formatter: (row: number, cell: number, value: any) => {
           const warehouse = this.dtwarehouses.find((w: any) => w.ID === value);
           return warehouse ? warehouse.WarehouseName : '';
+        },
+        filter: {
+          model: Filters['multipleSelect'],
+          collection: [],
+          filterOptions: {
+            filter: true,
+          } as Partial<MultipleSelectOption>,
         },
       },
     ];
@@ -913,12 +908,10 @@ export class ProjectPartListPurchaseRequestSlickGridComponent
       {
         id: 'ProjectCode',
         field: 'ProjectCode',
-        // ProjectCode FILTER (ADVANCED DROPDOWN): icon filter ở header
-        name: this.createHeaderWithFilterIcon('Mã dự án', 'projectcode-filter-icon', typeId, 'ProjectCode'),
+        name: 'Mã dự án',
         width: 100,
-        sortable: false,
-        // ProjectCode FILTER (ADVANCED DROPDOWN): tắt filter row mặc định để dùng dropdown custom
-        filterable: false,
+        sortable: true,
+        filterable: true,
         formatter: (_row, _cell, value, _column, dataContext) => {
           if (!value) return '';
           return `
@@ -934,16 +927,21 @@ export class ProjectPartListPurchaseRequestSlickGridComponent
           useRegularTooltip: true,
           // useRegularTooltipFromCellTextOnly: true,
         },
+        filter: {
+          model: Filters['multipleSelect'],
+          collection: [],
+          filterOptions: {
+            filter: true,
+          } as Partial<MultipleSelectOption>,
+        },
       },
       {
         id: isRTCTab ? 'ProductGroupRTCID' : 'ProductGroupID',
         field: isRTCTab ? 'ProductGroupRTCID' : 'ProductGroupID',
-        // ProductGroup FILTER (ADVANCED DROPDOWN): icon filter ở header
-        name: this.createHeaderWithFilterIcon('Loại kho', 'productgroup-filter-icon', typeId, isRTCTab ? 'ProductGroupRTCID' : 'ProductGroupID'),
+        name: 'Loại kho',
         width: 100,
-        sortable: false,
-        // ProductGroup FILTER (ADVANCED DROPDOWN): tắt filter row mặc định để dùng dropdown custom
-        filterable: false,
+        sortable: true,
+        filterable: true,
         editor: {
           model: GroupSelectEditor,
           collection: this.getProductGroupCollection(isRTCTab),
@@ -961,17 +959,21 @@ export class ProjectPartListPurchaseRequestSlickGridComponent
           const group = groups.find((g: any) => g.ID === value);
           return group ? group.ProductGroupName : '';
         },
-        filter: { model: Filters['compoundInputNumber'] },
-      }, // ProductNewCode or ProductCodeRTC for RTC tabs
+        filter: {
+          model: Filters['multipleSelect'],
+          collection: [],
+          filterOptions: {
+            filter: true,
+          } as Partial<MultipleSelectOption>,
+        },
+      },       // ProductNewCode or ProductCodeRTC for RTC tabs
       {
         id: isRTCTab ? 'ProductCodeRTC' : 'ProductNewCode',
         field: isRTCTab ? 'ProductCodeRTC' : 'ProductNewCode',
-        // ProductNewCode/ProductCodeRTC FILTER (ADVANCED DROPDOWN): icon filter ở header
-        name: this.createHeaderWithFilterIcon('Mã nội bộ', 'productnewcode-filter-icon', typeId, isRTCTab ? 'ProductCodeRTC' : 'ProductNewCode'),
+        name: 'Mã nội bộ',
         width: 100,
-        sortable: false,
-        // ProductNewCode/ProductCodeRTC FILTER (ADVANCED DROPDOWN): tắt filter row mặc định để dùng dropdown custom
-        filterable: false,
+        sortable: true,
+        filterable: true,
         formatter: (_row, _cell, value, _column, dataContext) => {
           if (!value) return '';
           const fieldValue = isRTCTab ? dataContext.ProductCodeRTC : dataContext.ProductNewCode;
@@ -988,17 +990,22 @@ export class ProjectPartListPurchaseRequestSlickGridComponent
           useRegularTooltip: true,
           // useRegularTooltipFromCellTextOnly: true,
         },
+        filter: {
+          model: Filters['multipleSelect'],
+          collection: [],
+          filterOptions: {
+            filter: true,
+          } as Partial<MultipleSelectOption>,
+        },
       },
       // ProductCode
       {
         id: 'ProductCode',
-        // ProductCode FILTER (ADVANCED DROPDOWN): icon filter ở header
-        name: this.createHeaderWithFilterIcon('Mã sản phẩm', 'productcode-filter-icon', typeId, 'ProductCode'),
         field: 'ProductCode',
+        name: 'Mã sản phẩm',
         width: 100,
-        sortable: false,
-        // ProductCode FILTER (ADVANCED DROPDOWN): tắt filter row mặc định để dùng dropdown custom
-        filterable: false,
+        sortable: true,
+        filterable: true,
         formatter: (_row, _cell, value, _column, dataContext) => {
           if (!value) return '';
           return `
@@ -1014,17 +1021,22 @@ export class ProjectPartListPurchaseRequestSlickGridComponent
           useRegularTooltip: true,
           // useRegularTooltipFromCellTextOnly: true,
         },
+        filter: {
+          model: Filters['multipleSelect'],
+          collection: [],
+          filterOptions: {
+            filter: true,
+          } as Partial<MultipleSelectOption>,
+        },
       },
       // ProductName
       {
         id: 'ProductName',
         field: 'ProductName',
-        // ProductName FILTER (ADVANCED DROPDOWN): icon filter ở header
-        name: this.createHeaderWithFilterIcon('Tên sản phẩm', 'productname-filter-icon', typeId, 'ProductName'),
+        name: 'Tên sản phẩm',
         width: 160,
-        sortable: false,
-        // ProductName FILTER (ADVANCED DROPDOWN): tắt filter row mặc định để dùng dropdown custom
-        filterable: false,
+        sortable: true,
+        filterable: true,
         formatter: (_row, _cell, value, _column, dataContext) => {
           if (!value) return '';
           return `
@@ -1039,6 +1051,13 @@ export class ProjectPartListPurchaseRequestSlickGridComponent
         customTooltip: {
           useRegularTooltip: true,
           // useRegularTooltipFromCellTextOnly: true,
+        },
+        filter: {
+          model: Filters['multipleSelect'],
+          collection: [],
+          filterOptions: {
+            filter: true,
+          } as Partial<MultipleSelectOption>,
         },
       },
       // Model
@@ -1069,12 +1088,10 @@ export class ProjectPartListPurchaseRequestSlickGridComponent
       {
         id: 'Manufacturer',
         field: 'Manufacturer',
-        // Manufacturer FILTER (ADVANCED DROPDOWN): icon filter ở header
-        name: this.createHeaderWithFilterIcon('Hãng', 'manufacturer-filter-icon', typeId, 'Manufacturer'),
+        name: 'Hãng',
         width: 90,
-        sortable: false,
-        // Manufacturer FILTER (ADVANCED DROPDOWN): tắt filter row mặc định để dùng dropdown custom
-        filterable: false,
+        sortable: true,
+        filterable: true,
         formatter: (_row, _cell, value, _column, dataContext) => {
           if (!value) return '';
           return `
@@ -1089,6 +1106,13 @@ export class ProjectPartListPurchaseRequestSlickGridComponent
         customTooltip: {
           useRegularTooltip: true,
           // useRegularTooltipFromCellTextOnly: true,
+        },
+        filter: {
+          model: Filters['multipleSelect'],
+          collection: [],
+          filterOptions: {
+            filter: true,
+          } as Partial<MultipleSelectOption>,
         },
       },
       // Quantity
@@ -1153,12 +1177,10 @@ export class ProjectPartListPurchaseRequestSlickGridComponent
       {
         id: 'StatusRequestText',
         field: 'StatusRequestText',
-        // StatusRequestText FILTER (ADVANCED DROPDOWN): icon filter ở header
-        name: this.createHeaderWithFilterIcon('Trạng thái', 'statusrequesttext-filter-icon', typeId, 'StatusRequestText'),
+        name: 'Trạng thái',
         width: 100,
-        sortable: false,
-        // StatusRequestText FILTER (ADVANCED DROPDOWN): tắt filter row mặc định để dùng dropdown custom
-        filterable: false,
+        sortable: true,
+        filterable: true,
         formatter: (_row, _cell, value, _column, dataContext) => {
           if (!value) return '';
           return `
@@ -1174,17 +1196,22 @@ export class ProjectPartListPurchaseRequestSlickGridComponent
           useRegularTooltip: true,
           // useRegularTooltipFromCellTextOnly: true,
         },
+        filter: {
+          model: Filters['multipleSelect'],
+          collection: [],
+          filterOptions: {
+            filter: true,
+          } as Partial<MultipleSelectOption>,
+        },
       },
       // FullName
       {
         id: 'FullName',
         field: 'FullName',
-        // FullName FILTER (ADVANCED DROPDOWN): icon filter ở header
-        name: this.createHeaderWithFilterIcon('Người YC', 'fullname-filter-icon', typeId, 'FullName'),
+        name: 'Người YC',
         width: 100,
-        sortable: false,
-        // FullName FILTER (ADVANCED DROPDOWN): tắt filter row mặc định để dùng dropdown custom
-        filterable: false,
+        sortable: true,
+        filterable: true,
         formatter: (_row, _cell, value, _column, dataContext) => {
           if (!value) return '';
           return `
@@ -1195,12 +1222,19 @@ export class ProjectPartListPurchaseRequestSlickGridComponent
               ${value}
             </span>
           `;
-                },
-                customTooltip: {
-                    useRegularTooltip: true,
-                    // useRegularTooltipFromCellTextOnly: true,
-                },
-            },
+        },
+        customTooltip: {
+          useRegularTooltip: true,
+          // useRegularTooltipFromCellTextOnly: true,
+        },
+        filter: {
+          model: Filters['multipleSelect'],
+          collection: [],
+          filterOptions: {
+            filter: true,
+          } as Partial<MultipleSelectOption>,
+        },
+      },
             // UpdatedName
             {
                 id: 'UpdatedName',
@@ -1254,12 +1288,10 @@ export class ProjectPartListPurchaseRequestSlickGridComponent
       {
         id: 'CurrencyID',
         field: 'CurrencyID',
-        // CurrencyID FILTER (ADVANCED DROPDOWN): icon filter ở header
-        name: this.createHeaderWithFilterIcon('Loại tiền', 'currencyid-filter-icon', typeId, 'CurrencyID'),
+        name: 'Loại tiền',
         width: 100,
-        sortable: false,
-        // CurrencyID FILTER (ADVANCED DROPDOWN): tắt filter row mặc định để dùng dropdown custom
-        filterable: false,
+        sortable: true,
+        filterable: true,
         editor: {
           model: GroupSelectEditor,
           collection: this.getCurrencyCollection(),
@@ -1273,6 +1305,13 @@ export class ProjectPartListPurchaseRequestSlickGridComponent
         formatter: (row: number, cell: number, value: any) => {
           const currency = this.dtcurrency.find((c: any) => c.ID === value);
           return currency ? currency.Code : '';
+        },
+        filter: {
+          model: Filters['multipleSelect'],
+          collection: [],
+          filterOptions: {
+            filter: true,
+          } as Partial<MultipleSelectOption>,
         },
       },
 
@@ -1420,12 +1459,10 @@ export class ProjectPartListPurchaseRequestSlickGridComponent
       {
         id: 'SupplierSaleID',
         field: 'SupplierSaleID',
-        // SupplierSaleID FILTER (ADVANCED DROPDOWN): icon filter ở header
-        name: this.createHeaderWithFilterIcon('Nhà cung cấp', 'suppliersaleid-filter-icon', typeId, 'SupplierSaleID'),
+        name: 'Nhà cung cấp',
         width: 200,
-        sortable: false,
-        // SupplierSaleID FILTER (ADVANCED DROPDOWN): tắt filter row mặc định để dùng dropdown custom
-        filterable: false,
+        sortable: true,
+        filterable: true,
         editor: {
           model: GroupSelectEditor,
           collection: this.getSupplierCollection(),
@@ -1440,10 +1477,16 @@ export class ProjectPartListPurchaseRequestSlickGridComponent
           const supplier = this.dtSupplierSale.find((s: any) => s.ID === value);
           return supplier ? supplier.NameNCC : '';
         },
-
         customTooltip: {
           useRegularTooltip: true,
           // useRegularTooltipFromCellTextOnly: true,
+        },
+        filter: {
+          model: Filters['multipleSelect'],
+          collection: [],
+          filterOptions: {
+            filter: true,
+          } as Partial<MultipleSelectOption>,
         },
       },
       // TotalDayLeadTime
@@ -2025,63 +2068,6 @@ export class ProjectPartListPurchaseRequestSlickGridComponent
       this.ensureCheckboxSelector(angularGrid, 50);
     }
 
-    // Setup header click handler for all header filters
-    if (angularGrid && angularGrid.slickGrid) {
-      // Bind header click event handler
-      angularGrid.slickGrid.onHeaderClick.subscribe((e: any, args: any) => {
-        const column = args.column;
-        const target = (e as MouseEvent)?.target as HTMLElement | null;
-        if (!column || !target) return;
-
-        let columnId = column.id;
-        // Handle ProductGroupID/ProductGroupRTCID - use actual field name
-        if (columnId === 'ProductGroupID' || columnId === 'ProductGroupRTCID') {
-          const isRTCTab = typeId === 3 || typeId === 4;
-          columnId = isRTCTab ? 'ProductGroupRTCID' : 'ProductGroupID';
-        }
-        // Handle ProductNewCode/ProductCodeRTC - use actual field name
-        if (columnId === 'ProductNewCode' || columnId === 'ProductCodeRTC') {
-          const isRTCTab = typeId === 3 || typeId === 4;
-          columnId = isRTCTab ? 'ProductCodeRTC' : 'ProductNewCode';
-        }
-        const filterKey = `${columnId}-${typeId}`;
-        
-        // Check if clicked on filter icon for any supported column
-        const filterIconClasses = [
-          'productcode-filter-icon',
-          'projectcode-filter-icon',
-          'productgroup-filter-icon',
-          'warehouseid-filter-icon',
-          'productname-filter-icon',
-          'manufacturer-filter-icon',
-          'statusrequesttext-filter-icon',
-          'fullname-filter-icon',
-          'currencyid-filter-icon',
-          'suppliersaleid-filter-icon',
-          'productnewcode-filter-icon',
-        ];
-
-        const isFilterIcon = filterIconClasses.some(cls => target.classList?.contains(cls));
-        
-        if (isFilterIcon) {
-          (e as any).stopImmediatePropagation?.();
-          e.preventDefault();
-          e.stopPropagation();
-          
-          this.headerFilter?.toggle({
-            key: filterKey,
-            anchor: target,
-            options: this.getHeaderFilterOptions(columnId, typeId),
-            appliedValues: this.headerFilterAppliedValuesMap.get(filterKey) || null,
-          });
-        }
-      });
-    }
-
-    // Update all column header filter icons to reflect current filter status
-    setTimeout(() => {
-      this.updateAllColumnHeaderFilterIcons(typeId);
-    }, 150);
 
         // Resize grid
         setTimeout(() => {
@@ -2764,9 +2750,6 @@ export class ProjectPartListPurchaseRequestSlickGridComponent
 
           // Store original data (before filters)
           this.datasetsAllMap.set(tab.id, dataWithId);
-
-          // Apply all header filters if any
-          this.applyAllHeaderFiltersToView(tab.id);
 
           // Cập nhật title tab với số lượng (giống file gốc)
           const filteredDataForTitle = this.datasetsMap.get(tab.id) || [];
@@ -4056,7 +4039,6 @@ export class ProjectPartListPurchaseRequestSlickGridComponent
 
                         // Reload data và sau đó tìm và select cả 2 dòng (gốc và mới)
                         this.onSearch();
-
             // Đợi data load xong rồi tìm và select cả 2 dòng
             setTimeout(() => {
               this.selectAndEditDuplicateRows(
@@ -4199,7 +4181,6 @@ export class ProjectPartListPurchaseRequestSlickGridComponent
                 }
             }, 100);
         } else if (originalRowIndex >= 0) {
-            // Chỉ select dòng gốc nếu không tìm thấy dòng mới
             this.selectRowAndFocusQuantity(angularGrid, originalRow);
         }
     }
@@ -4237,7 +4218,6 @@ export class ProjectPartListPurchaseRequestSlickGridComponent
             quantityColumn.id
           );
           if (quantityColIndex >= 0) {
-            // Scroll đến dòng
             angularGrid.slickGrid.scrollRowIntoView(rowIndex, false);
 
                         // Focus vào cell Quantity và bắt đầu edit
@@ -5041,11 +5021,13 @@ private buildDistinctCollection(
 
       const isRTCTab = tab.id === 3 || tab.id === 4;
 
-      // Define columns that need distinct filters
+      // Define all filterable text columns
       const textColumns = [
-        'StatusRequestText',  // Trạng thái
+        'ProjectCode',        // Mã dự án
         'ProductCode',        // Mã sản phẩm
         'ProductName',        // Tên sản phẩm
+        'Manufacturer',       // Hãng
+        'StatusRequestText',  // Trạng thái
         'FullName',           // Người YC
         'UpdatedName',        // NV mua
         isRTCTab ? 'ProductCodeRTC' : 'ProductNewCode', // Mã nội bộ
@@ -5059,47 +5041,125 @@ private buildDistinctCollection(
           if (collection.length > 0) {
             column.filter.model = Filters['multipleSelect'];
             column.filter.collection = collection;
-            column.filter.operator = 'IN';
             column.filter.customStructure = {
               value: 'value',
               label: 'label',
             };
-            if (!column.filter.options) {
-              column.filter.options = {};
+            if (!column.filter.filterOptions) {
+              column.filter.filterOptions = {};
             }
-            column.filter.options.offsetLeft = 14;
-            column.filter.options.width = 150;
-
+            column.filter.filterOptions.filter = true;
           }
         }
       });
 
-      // Apply distinct filter for CurrencyID (using existing collection)
-      const currencyColumn = columns.find((col: any) => col.field === 'CurrencyID');
-      if (currencyColumn && currencyColumn.filter && currencyColumn.filter.collection) {
-        // Already handled in updateEditorCollections, just ensure it's multipleSelect
-        currencyColumn.filter.model = Filters['multipleSelect'];
+      // Apply distinct filter for WarehouseID
+      const warehouseColumn = columns.find((col: any) => col.field === 'WarehouseID');
+      if (warehouseColumn && warehouseColumn.filter) {
+        const collection = this.buildDistinctCollection(data, 'WarehouseID');
+        if (collection.length > 0) {
+          // Map warehouse IDs to names
+          const warehouseCollection = collection.map(item => {
+            const warehouse = this.dtwarehouses.find((w: any) => w.ID === Number(item.value));
+            return {
+              value: item.value,
+              label: warehouse ? warehouse.WarehouseName : item.label,
+            };
+          });
+          warehouseColumn.filter.model = Filters['multipleSelect'];
+          warehouseColumn.filter.collection = warehouseCollection;
+          warehouseColumn.filter.customStructure = {
+            value: 'value',
+            label: 'label',
+          };
+          if (!warehouseColumn.filter.filterOptions) {
+            warehouseColumn.filter.filterOptions = {};
+          }
+          warehouseColumn.filter.filterOptions.filter = true;
+        }
       }
 
-      // Apply distinct filter for ProductGroupID/ProductGroupRTCID (using existing collection)
+      // Apply distinct filter for CurrencyID
+      const currencyColumn = columns.find((col: any) => col.field === 'CurrencyID');
+      if (currencyColumn && currencyColumn.filter) {
+        const collection = this.buildDistinctCollection(data, 'CurrencyID');
+        if (collection.length > 0) {
+          // Map currency IDs to codes
+          const currencyCollection = collection.map(item => {
+            const currency = this.dtcurrency.find((c: any) => c.ID === Number(item.value));
+            return {
+              value: item.value,
+              label: currency ? currency.Code : item.label,
+            };
+          });
+          currencyColumn.filter.model = Filters['multipleSelect'];
+          currencyColumn.filter.collection = currencyCollection;
+          currencyColumn.filter.customStructure = {
+            value: 'value',
+            label: 'label',
+          };
+          if (!currencyColumn.filter.filterOptions) {
+            currencyColumn.filter.filterOptions = {};
+          }
+          currencyColumn.filter.filterOptions.filter = true;
+        }
+      }
+
+      // Apply distinct filter for SupplierSaleID
+      const supplierColumn = columns.find((col: any) => col.field === 'SupplierSaleID');
+      if (supplierColumn && supplierColumn.filter) {
+        const collection = this.buildDistinctCollection(data, 'SupplierSaleID');
+        if (collection.length > 0) {
+          // Map supplier IDs to names
+          const supplierCollection = collection.map(item => {
+            const supplier = this.dtSupplierSale.find((s: any) => s.ID === Number(item.value));
+            return {
+              value: item.value,
+              label: supplier ? supplier.NameNCC : item.label,
+            };
+          });
+          supplierColumn.filter.model = Filters['multipleSelect'];
+          supplierColumn.filter.collection = supplierCollection;
+          supplierColumn.filter.customStructure = {
+            value: 'value',
+            label: 'label',
+          };
+          if (!supplierColumn.filter.filterOptions) {
+            supplierColumn.filter.filterOptions = {};
+          }
+          supplierColumn.filter.filterOptions.filter = true;
+        }
+      }
+
+      // Apply distinct filter for ProductGroupID/ProductGroupRTCID
       const productGroupField = isRTCTab ? 'ProductGroupRTCID' : 'ProductGroupID';
       const productGroupColumn = columns.find((col: any) => col.field === productGroupField);
       if (productGroupColumn && productGroupColumn.editor && productGroupColumn.editor.collection) {
-        // Copy collection from editor to filter
         if (!productGroupColumn.filter) {
           productGroupColumn.filter = {};
         }
-        productGroupColumn.filter.model = Filters['multipleSelect'];
-        productGroupColumn.filter.collection = productGroupColumn.editor.collection.filter((x: any) => x.value > 0);
-        productGroupColumn.filter.customStructure = {
-          value: 'value',
-          label: 'label',
-        };
-        if (!productGroupColumn.filter.options) {
-          productGroupColumn.filter.options = {};
+        const collection = this.buildDistinctCollection(data, productGroupField);
+        if (collection.length > 0) {
+          // Map product group IDs to names
+          const groups = isRTCTab ? this.dtproductGroupsRTC : this.dtproductGroups;
+          const productGroupCollection = collection.map(item => {
+            const group = groups.find((g: any) => g.ID === Number(item.value));
+            return {
+              value: item.value,
+              label: group ? group.ProductGroupName : item.label,
+            };
+          });
+          productGroupColumn.filter.model = Filters['multipleSelect'];
+          productGroupColumn.filter.collection = productGroupCollection;
+          productGroupColumn.filter.customStructure = {
+            value: 'value',
+            label: 'label',
+          };
+          if (!productGroupColumn.filter.filterOptions) {
+            productGroupColumn.filter.filterOptions = {};
+          }
+          productGroupColumn.filter.filterOptions.filter = true;
         }
-        productGroupColumn.filter.options.offsetLeft = 14;
-        productGroupColumn.filter.options.width = 150;
       }
 
       // Update column definitions in the map
@@ -5116,14 +5176,88 @@ private buildDistinctCollection(
                 value: 'value',
                 label: 'label',
               };
-              if (!colDef.filter.options) {
-                colDef.filter.options = {};
+              if (!colDef.filter.filterOptions) {
+                colDef.filter.filterOptions = {};
               }
-              colDef.filter.options.offsetLeft = 14;
-              colDef.filter.options.width = 150;
+              colDef.filter.filterOptions.filter = true;
             }
           }
         });
+
+        // Update WarehouseID filter in columnDefs
+        const warehouseColDef = columnDefs.find((col: any) => col.field === 'WarehouseID');
+        if (warehouseColDef && warehouseColDef.filter) {
+          const collection = this.buildDistinctCollection(data, 'WarehouseID');
+          if (collection.length > 0) {
+            const warehouseCollection = collection.map(item => {
+              const warehouse = this.dtwarehouses.find((w: any) => w.ID === Number(item.value));
+              return {
+                value: item.value,
+                label: warehouse ? warehouse.WarehouseName : item.label,
+              };
+            });
+            warehouseColDef.filter.model = Filters['multipleSelect'];
+            warehouseColDef.filter.collection = warehouseCollection;
+            warehouseColDef.filter.customStructure = {
+              value: 'value',
+              label: 'label',
+            };
+            if (!warehouseColDef.filter.filterOptions) {
+              warehouseColDef.filter.filterOptions = {};
+            }
+            warehouseColDef.filter.filterOptions.filter = true;
+          }
+        }
+
+        // Update CurrencyID filter in columnDefs
+        const currencyColDef = columnDefs.find((col: any) => col.field === 'CurrencyID');
+        if (currencyColDef && currencyColDef.filter) {
+          const collection = this.buildDistinctCollection(data, 'CurrencyID');
+          if (collection.length > 0) {
+            const currencyCollection = collection.map(item => {
+              const currency = this.dtcurrency.find((c: any) => c.ID === Number(item.value));
+              return {
+                value: item.value,
+                label: currency ? currency.Code : item.label,
+              };
+            });
+            currencyColDef.filter.model = Filters['multipleSelect'];
+            currencyColDef.filter.collection = currencyCollection;
+            currencyColDef.filter.customStructure = {
+              value: 'value',
+              label: 'label',
+            };
+            if (!currencyColDef.filter.filterOptions) {
+              currencyColDef.filter.filterOptions = {};
+            }
+            currencyColDef.filter.filterOptions.filter = true;
+          }
+        }
+
+        // Update SupplierSaleID filter in columnDefs
+        const supplierColDef = columnDefs.find((col: any) => col.field === 'SupplierSaleID');
+        if (supplierColDef && supplierColDef.filter) {
+          const collection = this.buildDistinctCollection(data, 'SupplierSaleID');
+          if (collection.length > 0) {
+            const supplierCollection = collection.map(item => {
+              const supplier = this.dtSupplierSale.find((s: any) => s.ID === Number(item.value));
+              return {
+                value: item.value,
+                label: supplier ? supplier.NameNCC : item.label,
+              };
+            });
+            supplierColDef.filter.model = Filters['multipleSelect'];
+            supplierColDef.filter.collection = supplierCollection;
+            supplierColDef.filter.customStructure = {
+              value: 'value',
+              label: 'label',
+            };
+            if (!supplierColDef.filter.filterOptions) {
+              supplierColDef.filter.filterOptions = {};
+            }
+            supplierColDef.filter.filterOptions.filter = true;
+          }
+        }
 
         // Update ProductGroup filter in columnDefs
         const productGroupColDef = columnDefs.find((col: any) => col.field === productGroupField);
@@ -5131,17 +5265,27 @@ private buildDistinctCollection(
           if (!productGroupColDef.filter) {
             productGroupColDef.filter = {};
           }
-          productGroupColDef.filter.model = Filters['multipleSelect'];
-          productGroupColDef.filter.collection = productGroupColDef.editor.collection.filter((x: any) => x.value > 0);
-          productGroupColDef.filter.customStructure = {
-            value: 'value',
-            label: 'label',
-          };
-          if (!productGroupColDef.filter.options) {
-            productGroupColDef.filter.options = {};
+          const collection = this.buildDistinctCollection(data, productGroupField);
+          if (collection.length > 0) {
+            const groups = isRTCTab ? this.dtproductGroupsRTC : this.dtproductGroups;
+            const productGroupCollection = collection.map(item => {
+              const group = groups.find((g: any) => g.ID === Number(item.value));
+              return {
+                value: item.value,
+                label: group ? group.ProductGroupName : item.label,
+              };
+            });
+            productGroupColDef.filter.model = Filters['multipleSelect'];
+            productGroupColDef.filter.collection = productGroupCollection;
+            productGroupColDef.filter.customStructure = {
+              value: 'value',
+              label: 'label',
+            };
+            if (!productGroupColDef.filter.filterOptions) {
+              productGroupColDef.filter.filterOptions = {};
+            }
+            productGroupColDef.filter.filterOptions.filter = true;
           }
-          productGroupColDef.filter.options.offsetLeft = 14;
-          productGroupColDef.filter.options.width = 150;
         }
       }
 
@@ -5164,307 +5308,6 @@ private buildDistinctCollection(
       columnNumber = Math.floor((columnNumber - 1) / 26);
     }
     return letter;
-  }
-  //#endregion
-
-  //#region Header Filter Methods
-  /**
-   * Helper method to create column header name with filter icon
-   * @param baseName - Base name of the column (e.g., "Mã sản phẩm")
-   * @param iconClass - CSS class for the filter icon (e.g., "productcode-filter-icon")
-   * @param typeId - Optional: Type ID to check filter status and change icon color
-   * @param columnId - Optional: Column ID to check filter status
-   * @returns Header name string with filter icon HTML
-   */
-  private createHeaderWithFilterIcon(baseName: string, iconClass: string, typeId?: number, columnId?: string): string {
-    let iconColor = '#1890ff'; // Default blue color
-    
-    // If typeId and columnId are provided, check if filter is active
-    if (typeId !== undefined && columnId) {
-      const filterKey = `${columnId}-${typeId}`;
-      const appliedValues = this.headerFilterAppliedValuesMap.get(filterKey);
-      const hasFilter = appliedValues && appliedValues.length > 0;
-      // Orange color when filter is active
-      if (hasFilter) {
-        iconColor = '#ff9800';
-      }
-    }
-    
-    return `${baseName} <i class="fas fa-filter ${iconClass}" style="cursor:pointer; margin-left:6px; color:${iconColor};" title="Lọc"></i>`;
-  }
-
-  onHeaderFilterApply(e: HeaderFilterApplyEvent) {
-    // Key format: "columnId-typeId"
-    const match = e.key.match(/^(.+)-(\d+)$/);
-    if (match) {
-      const columnId = match[1];
-      const typeId = parseInt(match[2], 10);
-      this.headerFilterAppliedValuesMap.set(e.key, e.appliedValues);
-      this.applyAllHeaderFiltersToView(typeId);
-      // Update column header to reflect filter status
-      this.updateColumnHeaderFilterIcon(typeId, columnId);
-    }
-  }
-
-  /**
-   * Helper method to get column header name with filter icon color based on filter status
-   * This method is used when updating existing columns after filter is applied
-   */
-  private getColumnHeaderNameWithFilterIcon(columnId: string, baseName: string, typeId: number, iconClass: string): string {
-    return this.createHeaderWithFilterIcon(baseName, iconClass, typeId, columnId);
-  }
-
-  /**
-   * Update column header filter icon color based on filter status
-   */
-  private updateColumnHeaderFilterIcon(typeId: number, columnId: string): void {
-    const angularGrid = this.angularGrids.get(typeId);
-    if (!angularGrid || !angularGrid.slickGrid) return;
-
-    const columns = angularGrid.slickGrid.getColumns();
-    const column = columns.find((col: any) => col.id === columnId);
-    if (!column) return;
-
-    // Map column IDs to their base names and icon classes
-    const columnConfig: { [key: string]: { baseName: string; iconClass: string } } = {
-      'ProductCode': { baseName: 'Mã sản phẩm', iconClass: 'productcode-filter-icon' },
-      'ProductNewCode': { baseName: 'Mã nội bộ', iconClass: 'productnewcode-filter-icon' },
-      'ProductCodeRTC': { baseName: 'Mã nội bộ', iconClass: 'productnewcode-filter-icon' },
-      'ProjectCode': { baseName: 'Mã dự án', iconClass: 'projectcode-filter-icon' },
-      'ProductGroupID': { baseName: 'Loại kho', iconClass: 'productgroup-filter-icon' },
-      'ProductGroupRTCID': { baseName: 'Loại kho', iconClass: 'productgroup-filter-icon' },
-      'WarehouseID': { baseName: 'Kho nhập hàng', iconClass: 'warehouseid-filter-icon' },
-      'ProductName': { baseName: 'Tên sản phẩm', iconClass: 'productname-filter-icon' },
-      'Manufacturer': { baseName: 'Hãng', iconClass: 'manufacturer-filter-icon' },
-      'StatusRequestText': { baseName: 'Trạng thái', iconClass: 'statusrequesttext-filter-icon' },
-      'FullName': { baseName: 'Người yêu cầu', iconClass: 'fullname-filter-icon' },
-      'CurrencyID': { baseName: 'Loại tiền', iconClass: 'currencyid-filter-icon' },
-      'SupplierSaleID': { baseName: 'Nhà cung cấp', iconClass: 'suppliersaleid-filter-icon' },
-    };
-
-    const config = columnConfig[columnId];
-    if (!config) return;
-
-    // Handle special cases for ProjectCode (can be "Mã dự án" or "Mã YCCV")
-    let baseName = config.baseName;
-    if (columnId === 'ProjectCode') {
-      const isJobRequirement = typeId === 3 || typeId === 4;
-      baseName = isJobRequirement ? 'Mã YCCV' : 'Mã dự án';
-    }
-
-    // Update column name with filter icon
-    const newName = this.getColumnHeaderNameWithFilterIcon(columnId, baseName, typeId, config.iconClass);
-    column.name = newName;
-
-    // Update column definition in the map
-    const columnDefs = this.columnDefinitionsMap.get(typeId);
-    if (columnDefs) {
-      const colDef = columnDefs.find((col: any) => col.id === columnId);
-      if (colDef) {
-        colDef.name = newName;
-      }
-    }
-
-    // Update grid columns
-    angularGrid.slickGrid.setColumns(columns);
-    angularGrid.slickGrid.render();
-  }
-
-  /**
-   * Update all column header filter icons for a tab
-   */
-  private updateAllColumnHeaderFilterIcons(typeId: number): void {
-    const filterableColumns = [
-      'ProductCode',
-      'ProductNewCode',
-      'ProductCodeRTC',
-      'ProjectCode',
-      'ProductGroupID',
-      'ProductGroupRTCID',
-      'WarehouseID',
-      'ProductName',
-      'Manufacturer',
-      'StatusRequestText',
-      'FullName',
-      'CurrencyID',
-      'SupplierSaleID',
-    ];
-
-    filterableColumns.forEach(columnId => {
-      this.updateColumnHeaderFilterIcon(typeId, columnId);
-    });
-  }
-
-  private syncAllDataIfNeeded(typeId: number) {
-    if ((!this.datasetsAllMap.has(typeId) || this.datasetsAllMap.get(typeId)?.length === 0) && this.datasetsMap.get(typeId)?.length) {
-      this.datasetsAllMap.set(typeId, [...(this.datasetsMap.get(typeId) || [])]);
-    }
-  }
-
-  private getHeaderFilterOptions(columnId: string, typeId: number): HeaderFilterOption[] {
-    this.syncAllDataIfNeeded(typeId);
-    const allData = this.datasetsAllMap.get(typeId) || [];
-    const map = new Map<string, string>();
-    map.set('', '');
-
-    // Get field name based on columnId
-    let fieldName = columnId;
-    let getValue: (row: any) => string;
-    let getLabel: (row: any, value: string) => string = (_, v) => v;
-
-    switch (columnId) {
-      case 'ProductCode':
-        getValue = (row) => String(row?.ProductCode ?? '');
-        break;
-      case 'ProductNewCode':
-      case 'ProductCodeRTC':
-        {
-          const isRTCTab = typeId === 3 || typeId === 4;
-          const actualField = isRTCTab ? 'ProductCodeRTC' : 'ProductNewCode';
-          getValue = (row) => String(row?.[actualField] ?? '');
-        }
-        break;
-      case 'ProjectCode':
-        getValue = (row) => String(row?.ProjectCode ?? '');
-        break;
-      case 'ProductGroupID':
-      case 'ProductGroupRTCID':
-        {
-          const isRTCTab = typeId === 3 || typeId === 4;
-          const actualField = isRTCTab ? 'ProductGroupRTCID' : 'ProductGroupID';
-          getValue = (row) => String(row?.[actualField] ?? '');
-          getLabel = (row, value) => {
-            const groups = isRTCTab ? this.dtproductGroupsRTC : this.dtproductGroups;
-            const group = groups.find((g: any) => g.ID === Number(value));
-            return group ? group.Name : value;
-          };
-        }
-        break;
-      case 'WarehouseID':
-        getValue = (row) => String(row?.WarehouseID ?? '');
-        getLabel = (row, value) => {
-          const warehouse = this.dtwarehouses.find((w: any) => w.ID === Number(value));
-          return warehouse ? warehouse.WarehouseName : value;
-        };
-        break;
-      case 'ProductName':
-        getValue = (row) => String(row?.ProductName ?? '');
-        break;
-      case 'Manufacturer':
-        getValue = (row) => String(row?.Manufacturer ?? '');
-        break;
-      case 'StatusRequestText':
-        getValue = (row) => String(row?.StatusRequestText ?? '');
-        break;
-      case 'FullName':
-        getValue = (row) => String(row?.FullName ?? '');
-        break;
-      case 'CurrencyID':
-        getValue = (row) => String(row?.CurrencyID ?? '');
-        getLabel = (row, value) => {
-          const currency = this.dtcurrency.find((c: any) => c.ID === Number(value));
-          return currency ? currency.Code : value;
-        };
-        break;
-      case 'SupplierSaleID':
-        getValue = (row) => String(row?.SupplierSaleID ?? '');
-        getLabel = (row, value) => {
-          const supplier = this.dtSupplierSale.find((s: any) => s.ID === Number(value));
-          return supplier ? supplier.NameNCC : value;
-        };
-        break;
-      default:
-        getValue = (row) => String(row?.[fieldName] ?? '');
-    }
-
-    for (const row of allData) {
-      const v = getValue(row);
-      if (v && !map.has(v)) {
-        const label = getLabel(row, v);
-        map.set(v, label);
-      }
-    }
-
-    return Array.from(map.entries())
-      .map(([value, label]) => ({ value, label }))
-      .sort((a, b) => a.label.localeCompare(b.label));
-  }
-
-  private applyAllHeaderFiltersToView(typeId: number) {
-    this.syncAllDataIfNeeded(typeId);
-    const allData = this.datasetsAllMap.get(typeId) || [];
-
-    if (!allData.length) {
-      this.datasetsMap.set(typeId, []);
-      this.refreshGridForTab(typeId);
-      return;
-    }
-
-    // Apply all filters sequentially
-    let filtered = [...allData];
-
-    // List of all filterable columns
-    const filterableColumns = [
-      'ProductCode',
-      'ProductNewCode',
-      'ProductCodeRTC',
-      'ProjectCode',
-      'ProductGroupID',
-      'ProductGroupRTCID',
-      'WarehouseID',
-      'ProductName',
-      'Manufacturer',
-      'StatusRequestText',
-      'FullName',
-      'CurrencyID',
-      'SupplierSaleID',
-    ];
-
-    for (const columnId of filterableColumns) {
-      const filterKey = `${columnId}-${typeId}`;
-      const appliedValues = this.headerFilterAppliedValuesMap.get(filterKey);
-      
-      if (appliedValues && appliedValues.length > 0) {
-        const allowed = new Set(appliedValues.map((x) => String(x ?? '')));
-        
-        // Get field name - handle ProductGroupID/ProductGroupRTCID and ProductNewCode/ProductCodeRTC based on tab
-        let fieldName = columnId;
-        if (columnId === 'ProductGroupID' || columnId === 'ProductGroupRTCID') {
-          const isRTCTab = typeId === 3 || typeId === 4;
-          fieldName = isRTCTab ? 'ProductGroupRTCID' : 'ProductGroupID';
-        } else if (columnId === 'ProductNewCode' || columnId === 'ProductCodeRTC') {
-          const isRTCTab = typeId === 3 || typeId === 4;
-          fieldName = isRTCTab ? 'ProductCodeRTC' : 'ProductNewCode';
-        }
-        
-        filtered = filtered.filter((row) => {
-          const value = String(row?.[fieldName] ?? '');
-          return allowed.has(value);
-        });
-      }
-    }
-
-    this.datasetsMap.set(typeId, filtered);
-    this.refreshGridForTab(typeId);
-  }
-
-  private refreshGridForTab(typeId: number) {
-    const angularGrid = this.angularGrids.get(typeId);
-    if (angularGrid && angularGrid.dataView) {
-      angularGrid.dataView.refresh();
-      angularGrid.slickGrid?.render();
-    }
-    
-    // Update all column header filter icons to reflect current filter status
-    this.updateAllColumnHeaderFilterIcons(typeId);
-    
-    // Update tab title with count
-    const tab = this.tabs.find((t) => t.id === typeId);
-    if (tab) {
-      const filteredData = this.datasetsMap.get(typeId) || [];
-      const countText = filteredData.length.toLocaleString('vi-VN');
-      tab.title = `${tab.title.split('(')[0].trim()} (${countText})`;
-    }
   }
   //#endregion
 }

@@ -186,6 +186,8 @@ export class BillImportComponent implements OnInit, AfterViewInit {
         // }
 
         this.route.queryParams.subscribe(params => {
+
+            console.log('param:', params);
             this.wareHouseCode = params['warehouseCode'] || 'HN';
             this.searchParams.warehousecode = this.wareHouseCode;
         });

@@ -1,0 +1,28 @@
+.document-common-page {
+  height: 90vh;
+}
+
+.card-header {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+}
+
+.download-link {
+  color: #1890ff;
+  text-decoration: underline;
+  cursor: pointer;
+}
+
+.download-link:hover {
+  color: #40a9ff;
+}
+.document-common-page {
+  height: 100vh; /* splitter phải có height thật */
+}
+
+.grid-wrapper {
+  height: calc(100vh - 180px); /* trừ header */
+  min-height: 800px;
+  width: 100%;
+}

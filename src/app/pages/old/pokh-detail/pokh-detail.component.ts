@@ -258,7 +258,7 @@ export class PokhDetailComponent implements OnInit, AfterViewInit {
   //#endregion
   //#region : Hàm khởi tạo
   ngOnInit(): void {
-    if(this.warehouseId) {
+    if (this.warehouseId) {
       this.filters.warehouseId = this.warehouseId;
     }
     const endDate = new Date();
@@ -321,7 +321,7 @@ export class PokhDetailComponent implements OnInit, AfterViewInit {
               this.selectedCustomer = fullCustomer;
             }
           }
-          
+
           if (callback) callback();
         } else {
           this.notification.error('Lỗi khi tải khách hàng:', response.message);
@@ -532,14 +532,14 @@ export class PokhDetailComponent implements OnInit, AfterViewInit {
       console.warn('loadPOKHData: Invalid id', id);
       return;
     }
-    
+
     if (this.isLoadingData) {
       console.warn('loadPOKHData: Already loading data');
       return;
     }
-    
+
     this.isLoadingData = true;
-    
+
     this.POKHService.getPOKHByID(id).subscribe(
       (response) => {
         if (response.status === 1) {
@@ -580,7 +580,7 @@ export class PokhDetailComponent implements OnInit, AfterViewInit {
           this.selectedCustomer = this.dataCustomers.find(
             (c) => c.ID === pokhData.CustomerID
           );
-          
+
           if (!this.selectedCustomer && pokhData.CustomerID) {
             this.selectedCustomer = {
               ID: pokhData.CustomerID,
@@ -588,7 +588,7 @@ export class PokhDetailComponent implements OnInit, AfterViewInit {
               CustomerShortName: '',
             };
           }
-          
+
           this.isResponsibleUsersEnabled = pokhData.UserType === 1;
 
           // Tính toán chiết khấu lần đầu khi load dữ liệu: chỉ tính từ moneyDiscount, không tính từ %
@@ -599,7 +599,7 @@ export class PokhDetailComponent implements OnInit, AfterViewInit {
           if (this.isCopy) {
             this.dataPOKHDetailFile = [];
             this.dataPOKHFiles = [];
-            
+
             let item = this.selectedCustomer || this.dataCustomers.find(
               (c) => c.ID === pokhData.CustomerID
             );
@@ -713,7 +713,7 @@ export class PokhDetailComponent implements OnInit, AfterViewInit {
 
               // Tính lại chiết khấu sau khi load xong tất cả dữ liệu: chỉ tính từ moneyDiscount, không tính từ %
               this.calculateTotalFromMoneyDiscount();
-              
+
               this.isLoadingData = false;
             },
             (forkJoinError) => {
@@ -724,7 +724,7 @@ export class PokhDetailComponent implements OnInit, AfterViewInit {
               this.tb_ProductDetailTreeList?.setData([]);
               this.tb_POKHDetailFile?.setData([]);
               if (this.tb_DetailUser) this.tb_DetailUser.setData([]);
-              
+
               this.isLoadingData = false;
             }
           );
@@ -1266,13 +1266,13 @@ export class PokhDetailComponent implements OnInit, AfterViewInit {
   }
   getPOKHData() {
     const poDate = new Date(this.poFormData.poDate || new Date());
-    
+
     if (!this.selectedCustomer && this.poFormData.customerId > 0) {
       this.selectedCustomer = this.dataCustomers.find(
         (c) => c.ID === this.poFormData.customerId
       );
     }
-    
+
     return {
       ID: this.selectedId || 0,
       Status: this.poFormData.status || 0,
@@ -1979,7 +1979,7 @@ export class PokhDetailComponent implements OnInit, AfterViewInit {
     });
   }
 
-  openProductSaleTab(){
+  openProductSaleTab() {
     // this.activeModal.close();
     // this.openComponentInTab(ProductSaleComponent, 'VẬT TƯ')
 
@@ -2263,9 +2263,9 @@ export class PokhDetailComponent implements OnInit, AfterViewInit {
               const productNewCode = product ? product.ProductNewCode : '';
               return `
               <button class="btn-toggle-detail w-100 h-100" style="background-color: white; border: 1px solid #d9d9d9;" title="${productNewCode || 'Chọn sản phẩm'
-              }">
+                }">
                 <span class="product-code-text">${productNewCode || 'Chọn SP'
-              }</span>
+                }</span>
                 <span class="arrow">&#9662;</span>
               </button>
             `;
@@ -2385,6 +2385,17 @@ export class PokhDetailComponent implements OnInit, AfterViewInit {
             editor: 'number',
             formatter: 'money',
             formatterParams: {
+              precision: 0,
+              decimal: '.',
+              thousand: ',',
+              symbol: '',
+              symbolAfter: true,
+            },
+            bottomCalc: (values, data) => {
+              return this.accumulateTreeValues(data, 'IntoMoney');
+            },
+            bottomCalcFormatter: 'money',
+            bottomCalcFormatterParams: {
               precision: 0,
               decimal: '.',
               thousand: ',',

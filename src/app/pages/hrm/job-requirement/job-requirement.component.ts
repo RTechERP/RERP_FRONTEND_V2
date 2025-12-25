@@ -222,14 +222,14 @@ export class JobRequirementComponent implements OnInit, AfterViewInit {
                     // this.warehouseID = params['warehouseId'] || 1
 
                     const typeApprove = params['typeApprove'] || 0;
-                    if (typeApprove === 2) {
+                    if (typeApprove === "2") {
                         this.approvalMode = 1;
                         if (this.currentUser?.EmployeeID) {
                             this.searchParams.ApprovedTBPID = this.currentUser.EmployeeID;
                         }
-                    } else if (typeApprove === 1) {
+                    } else if (typeApprove === "1") {
                         this.approvalMode = 2;
-                    } else if (typeApprove === 3) {
+                    } else if (typeApprove === "3") {
                         this.approvalMode = 3;
                     }
                 });
@@ -281,21 +281,24 @@ export class JobRequirementComponent implements OnInit, AfterViewInit {
             this.searchParams.DateStart,
             this.searchParams.DateEnd
         ).subscribe((response: any) => {
+
             this.JobrequirementData = response.data || [];
-            if (this.JobrequirementTable) {
-                this.JobrequirementTable.setData(this.JobrequirementData || []);
-                this.JobrequirementID =
-                    this.JobrequirementData.length > 0
-                        ? this.JobrequirementData[0].ID
-                        : 0;
-                //   if (this.JobrequirementID) {
-                //  //    this.getJobrequirementDetails(this.JobrequirementID);
-                //   }
-            } else {
+
+            if (!this.JobrequirementTable) {
                 this.draw_JobrequirementTable();
             }
+
+            setTimeout(() => {
+                this.JobrequirementTable!.replaceData(this.JobrequirementData);
+            });
+
+            this.JobrequirementID =
+                this.JobrequirementData.length > 0
+                    ? this.JobrequirementData[0].ID
+                    : 0;
         });
     }
+
 
     /**
      * Gọi API một lần để lấy tất cả dữ liệu: details, files, approves
@@ -531,6 +534,37 @@ export class JobRequirementComponent implements OnInit, AfterViewInit {
             this.notification.warning(
                 NOTIFICATION_TITLE.warning,
                 'Không tìm thấy ID của bản ghi cần xóa!'
+            );
+            return;
+        }
+
+        // Validate: Kiểm tra quyền xóa - chỉ được xóa phiếu của chính mình
+        const currentEmployeeID = this.currentUser?.EmployeeID;
+        const notOwnedRecords = selected.filter((row: any) => row.EmployeeID !== currentEmployeeID);
+        if (notOwnedRecords.length > 0) {
+            const notOwnedCodes = notOwnedRecords.map((row: any) => row.NumberRequest || row.Code || `ID: ${row.ID}`).join(', ');
+            this.notification.warning(
+                NOTIFICATION_TITLE.warning,
+                `Bạn không thể xóa phiếu của người khác: ${notOwnedCodes}`
+            );
+            return;
+        }
+
+        // Validate: Kiểm tra bản ghi đã được duyệt (Step > 1 và IsApproved = 1)
+        const approvedRecords: string[] = [];
+        for (const row of selected) {
+            // Kiểm tra trong JobrequirementApprovedData nếu có
+            // Hoặc kiểm tra trực tiếp từ row data nếu có thông tin duyệt
+            if (row.IsApprovedTBP === true || row.IsApprovedTBP === 1 || row.IsApprovedTBP === '1' ||
+                row.IsApprovedHR === true || row.IsApprovedHR === 1 || row.IsApprovedHR === '1' ||
+                row.IsApprovedBGD === true || row.IsApprovedBGD === 1 || row.IsApprovedBGD === '1') {
+                approvedRecords.push(row.NumberRequest || row.Code || `ID: ${row.ID}`);
+            }
+        }
+        if (approvedRecords.length > 0) {
+            this.notification.warning(
+                NOTIFICATION_TITLE.warning,
+                `Không thể xóa bản ghi đã được duyệt: ${approvedRecords.join(', ')}`
             );
             return;
         }
@@ -948,9 +982,9 @@ export class JobRequirementComponent implements OnInit, AfterViewInit {
                         {
                             width: '*',
                             stack: [
-                                { text: formatDate(jobRequirement.DateRequest), alignment: 'center', fontSize: 10, margin: [0, 0, 0, 5] },
+                                { text: tbpApproval.date, alignment: 'center', fontSize: 10, margin: [0, 0, 0, 5] },
                                 { text: 'Trưởng bộ phận yêu cầu', alignment: 'center', bold: true, fontSize: 10 },
-                                { text: jobRequirement.EmployeeName || '', alignment: 'center', fontSize: 10, margin: [0, 50, 0, 0] },
+                                { text: jobRequirement.FullNameApprovedTBP || '', alignment: 'center', fontSize: 10, margin: [0, 10, 0, 0] },
                             ],
                         },
                         {
@@ -958,7 +992,7 @@ export class JobRequirementComponent implements OnInit, AfterViewInit {
                             stack: [
                                 { text: hrApproval.date, alignment: 'center', fontSize: 10, margin: [0, 0, 0, 5] },
                                 { text: 'TBP HCNS duyệt', alignment: 'center', bold: true, fontSize: 10 },
-                                { text: hrApproval.approver, alignment: 'center', fontSize: 10, margin: [0, 50, 0, 0] },
+                                { text: hrApproval.approver, alignment: 'center', fontSize: 10, margin: [0, 10, 0, 0] },
                             ],
                         },
                         {
@@ -966,7 +1000,7 @@ export class JobRequirementComponent implements OnInit, AfterViewInit {
                             stack: [
                                 { text: bgdApproval.date, alignment: 'center', fontSize: 10, margin: [0, 0, 0, 5] },
                                 { text: 'BGĐ duyệt', alignment: 'center', bold: true, fontSize: 10 },
-                                { text: bgdApproval.approver, alignment: 'center', fontSize: 10, margin: [0, 50, 0, 0] },
+                                { text: bgdApproval.approver, alignment: 'center', fontSize: 10, margin: [0, 10, 0, 0] },
                             ],
                         },
                     ],
@@ -1678,7 +1712,22 @@ export class JobRequirementComponent implements OnInit, AfterViewInit {
     }
 
     toggleSearchPanel() {
-        this.sizeSearch = this.sizeSearch == '0' ? '22%' : '0';
+        this.sizeSearch = this.sizeSearch === '0' ? '22%' : '0';
+        // Force redraw tables after splitter resize to fix layout issues
+        setTimeout(() => {
+            if (this.JobrequirementTable) {
+                this.JobrequirementTable.redraw(true);
+            }
+            if (this.JobrequirementDetailTable) {
+                this.JobrequirementDetailTable.redraw(true);
+            }
+            if (this.JobrequirementFileTable) {
+                this.JobrequirementFileTable.redraw(true);
+            }
+            if (this.JobrequirementApprovedTable) {
+                this.JobrequirementApprovedTable.redraw(true);
+            }
+        }, 300);
     }
     searchData() {
 
@@ -1688,6 +1737,127 @@ export class JobRequirementComponent implements OnInit, AfterViewInit {
     onKeywordChange(value: string) {
 
         this.searchParams.Request = value;
+    }
+
+    /**
+     * Xuất dữ liệu Excel theo các cột hiển thị trên bảng
+     */
+    exportToExcel(): void {
+        if (!this.JobrequirementTable || this.JobrequirementData.length === 0) {
+            this.notification.warning(
+                NOTIFICATION_TITLE.warning,
+                'Không có dữ liệu để xuất Excel!'
+            );
+            return;
+        }
+
+        try {
+            const workbook = new ExcelJS.Workbook();
+            const worksheet = workbook.addWorksheet('Yêu cầu công việc');
+
+            // Get columns from table
+            const columns = this.JobrequirementTable.getColumns();
+            const headers: string[] = [];
+            const columnFields: string[] = [];
+            const columnWidths: number[] = [];
+
+            columns.forEach((col: any) => {
+                const def = col.getDefinition();
+                if (def.field && def.title) {
+                    headers.push(def.title);
+                    columnFields.push(def.field);
+                    columnWidths.push(def.width || 120);
+                }
+            });
+
+            // Add headers
+            worksheet.addRow(headers);
+
+            // Style header row
+            const headerRow = worksheet.getRow(1);
+            headerRow.eachCell((cell: ExcelJS.Cell) => {
+                cell.font = { name: 'Times New Roman', size: 10, bold: true, color: { argb: 'FFFFFFFF' } };
+                cell.alignment = { vertical: 'middle', horizontal: 'center', wrapText: true };
+                cell.fill = {
+                    type: 'pattern',
+                    pattern: 'solid',
+                    fgColor: { argb: 'FF1677FF' }
+                };
+            });
+            headerRow.height = 30;
+
+            // Add data rows
+            this.JobrequirementData.forEach((row: any) => {
+                const rowData = columnFields.map(field => {
+                    const value = row[field];
+                    // Format date fields
+                    if (field === 'DateRequest' || field === 'DeadlineRequest' || field === 'DateApprovedTBP' || 
+                        field === 'DateApprovedHR' || field === 'DateApprovedBGD') {
+                        if (value) {
+                            return DateTime.fromISO(value).toFormat('dd/MM/yyyy');
+                        }
+                        return '';
+                    }
+                    // Format boolean/checkbox fields
+                    if (field === 'IsRequestBGDApproved' || field === 'IsRequestBuy' || field === 'IsRequestPriceQuote') {
+                        return (value === true || value === 'true' || value === 1 || value === '1') ? 'Có' : 'Không';
+                    }
+                    return value ?? '';
+                });
+                worksheet.addRow(rowData);
+            });
+
+            // Set font Times New Roman cỡ 10 và wrap text cho tất cả các cell dữ liệu
+            worksheet.eachRow((row: ExcelJS.Row, rowNumber: number) => {
+                if (rowNumber !== 1) {
+                    row.height = 25;
+                    row.eachCell((cell: ExcelJS.Cell) => {
+                        cell.font = { name: 'Times New Roman', size: 10 };
+                        cell.alignment = { 
+                            vertical: 'middle', 
+                            horizontal: 'left',
+                            wrapText: true 
+                        };
+                        cell.border = {
+                            top: { style: 'thin' },
+                            left: { style: 'thin' },
+                            bottom: { style: 'thin' },
+                            right: { style: 'thin' }
+                        };
+                    });
+                }
+            });
+
+            // Auto fit columns
+            worksheet.columns.forEach((column: any, index: number) => {
+                if (column && column.eachCell) {
+                    let maxLength = 0;
+                    column.eachCell({ includeEmpty: false }, (cell: any) => {
+                        const cellValue = cell.value ? cell.value.toString() : '';
+                        if (cellValue.length > maxLength) {
+                            maxLength = cellValue.length;
+                        }
+                    });
+                    column.width = Math.min(Math.max(maxLength + 2, 10), 50);
+                }
+            });
+
+            // Generate file
+            workbook.xlsx.writeBuffer().then((buffer: any) => {
+                const blob = new Blob([buffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+                const fileName = `Yeu_cau_cong_viec_${DateTime.now().toFormat('yyyyMMdd_HHmmss')}.xlsx`;
+                saveAs(blob, fileName);
+                this.notification.success(
+                    NOTIFICATION_TITLE.success,
+                    'Xuất Excel thành công!'
+                );
+            });
+        } catch (error: any) {
+            this.notification.error(
+                NOTIFICATION_TITLE.error,
+                'Lỗi khi xuất Excel: ' + (error?.message || 'Unknown error')
+            );
+        }
     }
 
     private draw_JobrequirementTable(): void {
@@ -1717,11 +1887,12 @@ export class JobRequirementComponent implements OnInit, AfterViewInit {
             ];
 
             this.JobrequirementTable = new Tabulator(this.tableRef1.nativeElement, {
-                data: this.JobrequirementData || [],
+                data: [],
                 ...DEFAULT_TABLE_CONFIG,
                 selectableRows: true,
                 paginationMode: 'local',
                 height: '100%',
+
                 rowContextMenu: contextMenuItems,
                 columns: [
                     {
@@ -1830,7 +2001,9 @@ export class JobRequirementComponent implements OnInit, AfterViewInit {
             });
             this.JobrequirementTable.on(
                 'rowClick',
+
                 (e: UIEvent, row: RowComponent) => {
+
                     const rowData = row.getData();
                     const mouseEvent = e as MouseEvent;
                     const jobRequirementID = rowData['ID'];
@@ -1842,6 +2015,10 @@ export class JobRequirementComponent implements OnInit, AfterViewInit {
                     }
                 }
             );
+            this.JobrequirementTable?.on("rowClick", (e, row) => {
+                this.JobrequirementTable?.deselectRow();
+                row.select();
+            });
 
             // Double click để mở modal sửa
             this.JobrequirementTable.on('rowDblClick', (e: UIEvent, row: RowComponent) => {

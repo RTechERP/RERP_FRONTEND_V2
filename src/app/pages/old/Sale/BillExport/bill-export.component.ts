@@ -188,6 +188,8 @@ export class BillExportComponent implements OnInit, AfterViewInit {
     ngOnInit(): void {
         // Đọc wareHouseCode từ query params
         // Đọc wareHouseCode từ query params
+
+        console.log('this.route.queryParams:', this.route.queryParams);
         this.route.queryParams.subscribe((params) => {
             this.warehouseCode = params['warehouseCode'] || '';
         });
@@ -201,6 +203,9 @@ export class BillExportComponent implements OnInit, AfterViewInit {
             this.warehouseCode = params['warehouseCode'] || 'HN';
             this.searchParams.warehousecode = this.warehouseCode;
         });
+
+        console.log('this.warehouseCode:', this.warehouseCode);
+
         this.getProductGroup();
     }
     ngAfterViewInit(): void {
@@ -386,10 +391,10 @@ export class BillExportComponent implements OnInit, AfterViewInit {
             keyboard: false,
         });
 
-    modalRef.componentInstance.newBillExport = this.newBillExport;
-    modalRef.componentInstance.isCheckmode = this.isCheckmode;
-    modalRef.componentInstance.id = this.id;
-    modalRef.componentInstance.wareHouseCode = this.warehouseCode;
+        modalRef.componentInstance.newBillExport = this.newBillExport;
+        modalRef.componentInstance.isCheckmode = this.isCheckmode;
+        modalRef.componentInstance.id = this.id;
+        modalRef.componentInstance.wareHouseCode = this.warehouseCode;
 
         modalRef.result.catch((result) => {
             if (result == true) {

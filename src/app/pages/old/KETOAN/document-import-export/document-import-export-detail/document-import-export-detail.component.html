@@ -1,0 +1,58 @@
+<div class="modal-header bg-primary text-uppercase py-2">
+  <h6 class="modal-title text-white">{{ isEditMode ? 'SỬA CHỨNG TỪ' : 'THÊM CHỨNG TỪ' }}</h6>
+  <button type="button" class="btn-close" (click)="cancel()" aria-label="Close"></button>
+</div>
+
+<div class="modal-body p-1" style="max-height: 300px; overflow: auto;">
+  <form>
+    <div class="row m-0">
+      <!-- Panel chính -->
+      <div class="col-sm-12 p-1">
+        <!-- Mã chứng từ -->
+        <div class="form-group mb-2">
+          <label class="m-0">
+            Mã chứng từ
+            <span class="text-danger">(*)</span>
+          </label>
+          <input 
+            nz-input 
+            type="text" 
+            nzSize="default" 
+            [(ngModel)]="documentCode" 
+            name="documentCode"
+            placeholder="Nhập mã chứng từ"
+            (blur)="errors.documentCode = ''" />
+          <span class="text-danger" style="font-size: 0.75rem;" *ngIf="errors.documentCode">{{ errors.documentCode }}</span>
+        </div>
+
+        <!-- Tên chứng từ -->
+        <div class="form-group mb-2">
+          <label class="m-0">
+            Tên chứng từ
+            <span class="text-danger">(*)</span>
+          </label>
+          <input 
+            nz-input 
+            type="text" 
+            nzSize="default" 
+            [(ngModel)]="documentName" 
+            name="documentName"
+            placeholder="Nhập tên chứng từ"
+            (blur)="errors.documentName = ''" />
+          <span class="text-danger" style="font-size: 0.75rem;" *ngIf="errors.documentName">{{ errors.documentName }}</span>
+        </div>
+      </div>
+    </div>
+  </form>
+</div>
+
+<div class="modal-footer br p-1 d-flex align-items-center">
+  <div class="d-flex align-items-center flex-wrap gap-1">
+    <button nz-button nzType="default" nzDanger (click)="cancel()">
+      Đóng
+    </button>
+    <button nz-button nzType="primary" (click)="saveAndClose()" [disabled]="!isFormValid()">
+      Lưu
+    </button>
+  </div>
+</div>

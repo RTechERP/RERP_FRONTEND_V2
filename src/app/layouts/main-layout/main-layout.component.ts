@@ -46,8 +46,9 @@ import { MenuAppService } from '../../pages/systems/menu-app/menu-app.service';
 import { NOTIFICATION_TITLE } from '../../app.config';
 import { environment } from '../../../environments/environment';
 import { CustomRouteReuseStrategy } from '../../custom-route-reuse.strategy';
-import { LayoutEventService } from '../layout-event.service';
+// import { LayoutEventService } from '../layout-event.service';
 import { take } from 'rxjs';
+import { TabServiceService } from '../tab-service.service';
 
 type TabItem = {
     title: string;
@@ -127,9 +128,10 @@ export class MainLayoutComponent implements OnInit, AfterViewInit {
         private injector: Injector,
         private menuEventService: MenuEventService,
         private reuse: RouteReuseStrategy,
-        private layoutEvent: LayoutEventService,
+        // private layoutEvent: LayoutEventService,
         private cd: ChangeDetectorRef,
-        private route: ActivatedRoute
+        private route: ActivatedRoute,
+        private tabService: TabServiceService
     ) {
         // this.menus = this.menuService.getMenus();
     }
@@ -220,27 +222,29 @@ export class MainLayoutComponent implements OnInit, AfterViewInit {
         // this.menuEventService.onOpenTab$.subscribe((tabData) => {
         //     // this.newTab(tabData.comp, tabData.title, tabData.data);
         // });
-
+        this.tabService.tabRequest$.subscribe(payload => {
+            this.newTab(payload.route, payload.title, payload.queryParams);
+        })
 
     }
 
     ngAfterViewInit(): void {
-        this.layoutEvent.toggleMenu$.pipe(take(1)).subscribe(key => {
-            // this.menuKey = key;
-            if (key) this.toggleMenu(key);
+        // this.layoutEvent.toggleMenu$.pipe(take(1)).subscribe(key => {
+        //     // this.menuKey = key;
+        //     if (key) this.toggleMenu(key);
 
-            this.menuService.menuKey$.subscribe((key) => {
-                this.menuKey = key;
-            });
-            this.setOpenMenu(key);
-        });
+        //     this.menuService.menuKey$.subscribe((key) => {
+        //         this.menuKey = key;
+        //     });
+        //     this.setOpenMenu(key);
+        // });
     }
 
     getMenus() {
         this.menuAppService.getAll().subscribe({
             next: (response) => {
 
-                console.log(response);
+                // console.log(response);
 
                 this.menuService.menuKey$.subscribe((x) => {
                     this.menuKey = x;

@@ -151,38 +151,58 @@
   color: #fff;
 }
 
+/* .list-group-item a{
+    color: #6777ef !important;
+    font-size: 12px;
+} */
+
 .list-group-item a{
-    color: #6777ef;
+    /* text-transform: uppercase; */
+    /* color: #6777ef; */
     font-size: 12px;
 }
 
-.list-group-item a:hover{
-    color: #6777ef;
+
+.list-group-item a:not([href]){
+    text-transform: uppercase;
+    /* color: #6777ef; */
+    /* font-size: 12px; */
+}
+
+.list-group-item a[href]{
+    /* text-transform: uppercase; */
+    color: #6777ef !important;
+    /* font-size: 12px; */
+}
+
+.list-group-item a[href]:hover{
+    color: #6777ef !important;
     text-decoration: underline;
 }
 
+/*
 /* Cột cha */
 .fixed-col {
   height: 92vh;
   display: flex;
   flex-direction: column;
-  gap: 0.5rem; /* thay cho mb-2 */
+  gap: 0.5rem; 
    min-height: 0;
 }
 
 /* Mỗi card chiếm đều chiều cao */
-.fixed-col .card:first-child {
+.fixed-col .card {
   flex: 1;
   display: flex;
   flex-direction: column;
-  min-height: 0;   /* 🔥 BẮT BUỘC */
+  min-height: 0;   
 }
 
-.fixed-col .card:last-child {
+.fixed-col .card {
   flex: 1;
   display: flex;
   flex-direction: column;
-  min-height: 0;   /* 🔥 BẮT BUỘC */
+  min-height: 0;   
 }
 
 /* Header không bị co */
@@ -194,9 +214,8 @@
 .fixed-col .card .card-body {
   flex: 1 1 auto;  
   overflow-y: auto;
-  min-height: 0;   /* 🔥 BẮT BUỘC */
+  min-height: 0;   
 }
-
 
 
 .app-launcher {

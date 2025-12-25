@@ -198,12 +198,16 @@ export class MainLayoutComponent implements OnInit, AfterViewInit {
 
         // console.log(' this.menuKey :', this.menuKey);
 
-        this.menuService.menuKey$.subscribe((x) => {
-            this.menuKey = x;
-            console.log('menuKey$:', this.menuKey);
-        });
-        console.log('menuKey ngOnInit:', this.menuKey);
-        this.setOpenMenu(this.menuKey);
+        // this.menuService.menuKey$.subscribe((x) => {
+        //     this.menuKey = x;
+        //     console.log('menuKey$:', this.menuKey);
+
+        //     this.setOpenMenu(this.menuKey);
+        //     this.toggleMenu(this.menuKey);
+        // });
+        // console.log('menuKey ngOnInit:', this.menuKey);
+        // this.setOpenMenu(this.menuKey);
+        // this.toggleMenu(this.menuKey);
 
         // Khôi phục các tabs đã mở từ localStorage
         // this.restoreTabs();
@@ -234,6 +238,14 @@ export class MainLayoutComponent implements OnInit, AfterViewInit {
 
                 console.log(response);
 
+                this.menuService.menuKey$.subscribe((x) => {
+                    this.menuKey = x;
+                    // this.setOpenMenu(this.menuKey);
+                    // this.toggleMenu(this.menuKey);
+                });
+                // console.log('getMenus menuKey$:', this.menuKey);
+
+
                 const map = new Map<number, any>();
                 // this.nodes = [];
                 // Tạo map trước
@@ -248,7 +260,7 @@ export class MainLayoutComponent implements OnInit, AfterViewInit {
                         isPermission: item.IsPermission,
                         ParentID: item.ParentID,
                         children: [],
-                        isOpen: item.ParentID > 0,
+                        isOpen: item.ParentID > 0 || item.Code == this.menuKey,
                         queryParams: (item.QueryParam || ''),
                     });
                 });
@@ -268,15 +280,7 @@ export class MainLayoutComponent implements OnInit, AfterViewInit {
 
                 // console.log(this.menus);
 
-                // this.layoutEvent.toggleMenu$.pipe(take(1)).subscribe(key => {
-                //     // this.menuKey = key;
-                //     if (key) this.toggleMenu(key);
 
-                //     this.menuService.menuKey$.subscribe((key) => {
-                //         this.menuKey = key;
-                //     });
-                //     this.setOpenMenu(key);
-                // });
             },
             error: (err) => {
                 this.notification.error(NOTIFICATION_TITLE.error, err?.error?.message || err?.message);
@@ -329,6 +333,7 @@ export class MainLayoutComponent implements OnInit, AfterViewInit {
     newTab(route: string, title: string, queryParams?: any) {
 
         // console.log('queryParams new tab:', queryParams, typeof queryParams);
+        console.log('route:', route);
         queryParams = queryParams == '' ? '' : JSON.parse(queryParams);
         const normalizedParams =
             typeof queryParams === 'string'
@@ -343,6 +348,8 @@ export class MainLayoutComponent implements OnInit, AfterViewInit {
             this.router.navigate([route], { queryParams });
             return;
         }
+
+        console.log(this.dynamicTabs);
 
         this.dynamicTabs = [
             ...this.dynamicTabs,
@@ -420,19 +427,28 @@ export class MainLayoutComponent implements OnInit, AfterViewInit {
     //   return !!m && !!m.isOpen;
     // }
     private setOpenMenu(key: string | null) {
+        // console.log('setOpenMenu key:', key);
+        // console.log('setOpenMenu trước:', this.menus);
         this.menus.forEach((m) => (m.isOpen = key !== null && m.key === key));
+
+
+        // this.menus.forEach(item => item.isOpen = true);
+
+
+        // console.log('setOpenMenu sau:', this.menus);
         // localStorage.setItem('openMenuKey', key ?? '');
 
-        console.log('setOpenMenu:', this.menus);
     }
 
     isMenuOpen = (key: string) =>
         this.menus.some((m) => m.key === key && m.isOpen);
 
     toggleMenu(key: string) {
+        // console.log('toggler menus:', this.menus);
         // this.menus.forEach((x) => (x.isOpen = false));
-
+        // console.log('toggleMenu key:', key);
         const m = this.menus.find((x) => x.key === key);
+        // console.log('toggleMenu m:', m);
         if (m) m.isOpen = !m.isOpen;
 
         if (m?.isOpen) this.menuKey = key;

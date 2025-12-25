@@ -47,6 +47,7 @@ export class HomeLayoutNewComponent implements OnInit {
     menuApproves: any = {};
     menuPersons: any[] = [];
     menuWeekplans: any = {};
+    menuQickAcesss: any = {};
     // menuKey: string = '';
 
     // isMenuOpen = (key: string) => this.menus.some((m) => m.key === key && m.isOpen);
@@ -131,7 +132,7 @@ export class HomeLayoutNewComponent implements OnInit {
                         STT: item.STT,
                         Code: item.Code,
                         Title: item.Title,
-                        Router: item.Router == '' ? '#' : `${environment.baseHref}/${item.Router}`,
+                        Router: item.Router == '' ? '' : `${environment.baseHref}/${item.Router}`,
                         Icon: `${environment.host}api/share/software/icon/${item.Icon}`,
                         IsPermission: item.IsPermission,
                         IsOpen: true,
@@ -154,16 +155,18 @@ export class HomeLayoutNewComponent implements OnInit {
 
                 console.log('this.menus:', this.menus);
 
-                this.menuApproves = this.menus.filter((x) => x.Code == 'appvovedperson')[0];
+                this.menuApproves = this.menus.find((x) => x.Code == 'appvovedperson');
                 console.log('this.menuApproves:', this.menuApproves);
 
-                var pesons: any[] = this.menus.filter((x) => x.Code == 'person');
-                console.log('this.pesons', pesons);
-                this.menuPersons = pesons[0].Children.filter((x: any) => x.Code == 'registerpayroll' || x.Code == 'dailyreport' || x.Code == 'registercommon');
-                // this.menuPersons = this.menus.filter((x) => x.Code == 'M6');
+                var pesons = this.menus.find((x) => x.Code == 'person');
+                this.menuPersons = pesons.Children.filter((x: any) => x.Code == 'registerpayroll' || x.Code == 'dailyreport' || x.Code == 'registercommon');
+                console.log('this.menuPersons', this.menuPersons);
+                this.menuWeekplans = pesons.Children.find((x: any) => x.Code == 'planweek');
 
+                this.menuQickAcesss = this.menus.find((x) => x.Code == 'M4');
+                // console.log('this.menuQickAcesss:', this.menuQickAcesss);
+                // console.log('this.menuWeekplans:', this.menuWeekplans);
 
-                this.menuWeekplans = pesons[0].Children.filter((x: any) => x.Code == 'planweek')[0];
             },
             error: (err) => {
                 this.notification.error(NOTIFICATION_TITLE.error, err?.error?.message || err?.message);
@@ -223,6 +226,7 @@ export class HomeLayoutNewComponent implements OnInit {
     }
 
     newTab(route: string, title: string, data?: any) {
+        route = route.replace(environment.baseHref, '');
         const idx = this.dynamicTabs.findIndex(t => t.route === route);
 
         if (idx >= 0) {
@@ -243,6 +247,8 @@ export class HomeLayoutNewComponent implements OnInit {
     }
 
     handleClickLink(event: MouseEvent, route: string, title: string) {
+        // console.log('route:', route);
+        if (route == '') return;
         if (event.button === 0 && !event.ctrlKey && !event.metaKey) {
             event.preventDefault(); // chặn reload
             this.newTab(route, title);

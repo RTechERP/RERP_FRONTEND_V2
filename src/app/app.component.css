@@ -473,3 +473,23 @@ nz-sider {
 }
 
 /*end style active menu */
+
+::ng-deep .cdk-overlay-pane .ant-menu-submenu-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 16px;
+}
+
+::ng-deep .cdk-overlay-pane .ant-menu-submenu-title img.menu-icon {
+  width: 10% !important ;
+  /* filter: brightness(0) invert(1); */
+}
+
+::ng-deep .cdk-overlay-pane
+  .ant-menu-submenu-title p {
+  /* color: #fff; */
+  margin: 0;
+  white-space: unset !important;
+}
+

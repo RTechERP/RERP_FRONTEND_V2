@@ -48,28 +48,19 @@
     <div class="col-xl-3 col-md-6 col-sm-12 col-12 pt-2 fixed-col">
         <div class="card">
             <div class="card-header">
-                <h5 class="card-title m-0 text-uppercase fw-bold py-1">truy cập nhập</h5>
+                <h5 class="card-title m-0 text-uppercase fw-bold py-1">truy cập nhanh</h5>
             </div>
 
             <div class="card-body p-0">
                 <ul class="list-group list-group-flush">
-                    @for (item of menuApproves.Children; track $index) {
-                    <li class="list-group-item border-0 border-bottom">
-                        <a class="text-uppercase text-dark">
+                    @for (item of menuQickAcesss.Children; track $index) {
+                    <li class="list-group-item border-0"
+                        *ngIf="item.Code =='M136' || item.Code == 'M137' || item.Code == 'M139'">
+                        <a [attr.href]="item.Router ? item.Router : null"
+                            (click)="handleClickLink($event, item.Router, item.Title)">
                             <img [src]="item.Icon">
-                            <span>{{item.Title}}</span>
+                            <span> {{item.Title}}</span>
                         </a>
-                        <ul class="list-group">
-                            @for (c of item.Children; track $index) {
-                            <li class="list-group-item border-0"
-                                [ngClass]="{'border-bottom':$index < item.Children.length - 1,'':$index == item.Children.length - 1}">
-                                <a [href]="c.Router == '' ? '#' :  c.Router">
-                                    <img [src]="c.Icon">
-                                    <span> {{c.Title}}</span>
-                                </a>
-                            </li>
-                            }
-                        </ul>
                     </li>
                     }
                 </ul>
@@ -80,14 +71,13 @@
             <div class="card-header">
                 <h5 class="card-title m-0 text-uppercase fw-bold py-1">chức năng</h5>
             </div>
-            <div class="card-body p-1">
-                @for (m of menus; track $index) {
+            <div class="card-body p-2">
                 <div class="gutter-example">
                     <div nz-row [nzGutter]="[16, 16]">
                         @for (m of menus; track $index) {
                         <div nz-col class="gutter-row" [nzXs]="12" [nzMd]="8" [nzLg]="6" *ngIf="m.IsPermission"
                             (click)="openModule(m.Code)">
-                            <div class="grid-config text-center py-2 shadow">
+                            <div class="grid-config text-center py-2 shadow" style="height: 140px;">
                                 <img width="64" [src]="m.Icon?.replace('24','64')" alt="">
                                 <p class="m-0 mt-2 fw-bold">{{m.Title}}</p>
                             </div>
@@ -95,7 +85,6 @@
                         }
                     </div>
                 </div>
-                }
             </div>
         </div>
     </div>
@@ -111,7 +100,8 @@
                 <ul class="list-group list-group-flush">
                     @for (item of menuApproves.Children; track $index) {
                     <li class="list-group-item border-0 border-bottom">
-                        <a class="text-uppercase text-dark">
+                        <a class=" text-dark" [attr.href]="item.Router ? item.Router : null"
+                            (click)="handleClickLink($event, item.Router, item.Title)">
                             <img [src]="item.Icon">
                             <span>{{item.Title}}</span>
                         </a>
@@ -119,7 +109,8 @@
                             @for (c of item.Children; track $index) {
                             <li class="list-group-item border-0"
                                 [ngClass]="{'border-bottom':$index < item.Children.length - 1,'':$index == item.Children.length - 1}">
-                                <a [href]="c.Router == '' ? '#' :  c.Router">
+                                <a [attr.href]="c.Router ? c.Router : null"
+                                    (click)="handleClickLink($event, c.Router, c.Title)">
                                     <img [src]="c.Icon">
                                     <span> {{c.Title}}</span>
                                 </a>
@@ -152,7 +143,8 @@
                 <ul class="list-group list-group-flush">
                     @for (item of menuPersons; track $index) {
                     <li class="list-group-item border-0 border-bottom">
-                        <a class="text-uppercase text-dark">
+                        <a class=" text-dark" [attr.href]="item.Router ? item.Router : null"
+                            (click)="handleClickLink($event, item.Router, item.Title)">
                             <img [src]="item.Icon">
                             <span>{{item.Title}}</span>
                         </a>
@@ -160,7 +152,8 @@
                             @for (c1 of item.Children; track $index) {
 
                             <li class="list-group-item border-0 border-bottom">
-                                <a class="text-uppercase text-dark" [href]="c1.Router == '' ? '#' :   c1.Router">
+                                <a class=" text-dark" [attr.href]="c1.Router ? c1.Router : null"
+                                    (click)="handleClickLink($event, c1.Router, c1.Title)">
                                     <img [src]="c1.Icon">
                                     <span> {{c1.Title}}</span>
                                 </a>
@@ -168,7 +161,7 @@
                                     @for (c2 of c1.Children; track $index) {
                                     <li class="list-group-item border-0"
                                         [ngClass]="{'border-bottom':$index < c1.Children.length - 1,'':$index == c1.Children.length - 1}">
-                                        <a [href]="c2.Router == '' ? '#' :   c2.Router"
+                                        <a [attr.href]="c2.Router ? c2.Router : null"
                                             (click)="handleClickLink($event, c2.Router, c2.Title)">
                                             <img [src]="c2.Icon">
                                             <span> {{c2.Title}}</span>
@@ -193,19 +186,17 @@
                 <h5 class="card-title m-0 text-uppercase fw-bold py-1">Kế hoạch tuần</h5>
             </div>
             <div class="card-body p-0">
-                <!-- <ul class="list-group list-group-flush">
-                    @for (item of menuWeekplans.children; track $index) {
-
+                <ul class="list-group list-group-flush">
+                    @for (item of menuWeekplans.Children; track $index) {
                     <li class="list-group-item border-0">
-                        <a>
-                            <img [src]="item.icon">
-                            <span> {{item.title}}</span>
+                        <a [href]="item.Router == '' ? '#' : item.Router"
+                            (click)="handleClickLink($event, item.Router, item.Title)">
+                            <img [src]="item.Icon">
+                            <span> {{item.Title}}</span>
                         </a>
                     </li>
-
-
                     }
-                </ul> -->
+                </ul>
             </div>
         </div>
 
@@ -215,11 +206,13 @@
         <div class="card">
             <p-tabs value="0">
                 <p-tablist>
-                    <p-tab value="0" class="p-2">Nghỉ</p-tab>
-                    <p-tab value="1" class="p-2">WFH</p-tab>
+                    <p-tab value="0" class="p-2">Nghỉ {{totalEmployeeOnleave == 0 ?'':`(${totalEmployeeOnleave}) -
+                        ${today | date:'dd/MM/yyyy'}`}}</p-tab>
+                    <p-tab value="1" class="p-2">WFH {{totalEmployeeWfh == 0 ?'':`(${totalEmployeeWfh}) - ${today |
+                        date:'dd/MM/yyyy'}`}}</p-tab>
                 </p-tablist>
                 <p-tabpanels class="p-0">
-                    <p-tabpanel value="0">
+                    <p-tabpanel value="0" style="display: block; height: 377px; overflow: auto;">
                         <div class="card-body p-0">
                             <ul class="list-group list-group-flush">
                                 @for (item of employeeOnleaves; track $index) {
@@ -241,7 +234,7 @@
                             </ul>
                         </div>
                     </p-tabpanel>
-                    <p-tabpanel value="1">
+                    <p-tabpanel value="1" style="display: block; height: 377px; overflow: auto;">
                         <div class="card-body p-0">
                             <ul class="list-group list-group-flush">
                                 @for (item of employeeWfhs; track $index) {

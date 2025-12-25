@@ -341,7 +341,7 @@ export class RequestInvoiceComponent implements OnInit, AfterViewInit {
     }
 
     openRequestInvoiceSummary() {
-        const newWindow = window.open(`/request-invoice-summary?warehouseId=${this.warehouseId}`, '_blank', 'width=1280,height=960,scrollbars=yes,resizable=yes');
+        const newWindow = window.open(`/rerpweb/request-invoice-summary?warehouseId=${this.warehouseId}`, '_blank', 'width=1280,height=960,scrollbars=yes,resizable=yes');
     }
 
     openRequestInvoiceStatusLinkModal(): void {
@@ -370,6 +370,59 @@ export class RequestInvoiceComponent implements OnInit, AfterViewInit {
                 console.log('Modal closed');
             }
         );
+    }
+
+    openTreeFolder(): void {
+        if (this.selectedId <= 0) {
+            this.notification.error(NOTIFICATION_TITLE.error, 'Vui lòng chọn yêu cầu xuất hóa đơn để xem cây thư mục');
+            return;
+        }
+        
+        this.RequestInvoiceService.getTreeFolderPath(this.selectedId).subscribe({
+            next: (response) => {
+                if (response.status === 1) {
+                    const folderPath = response.data;
+                    this.showFolderModal(folderPath);
+                } else {
+                    this.notification.error(NOTIFICATION_TITLE.error, response.message || 'Không thể lấy đường dẫn thư mục');
+                }
+            },
+            error: (error) => {
+                this.notification.error(NOTIFICATION_TITLE.error, 'Lỗi khi lấy đường dẫn thư mục');
+            }
+        });
+    }
+
+    showFolderModal(folderPath: string): void {
+        this.modal.info({
+            nzTitle: 'Đường dẫn thư mục',
+            nzContent: `
+                <div style="word-break: break-all; font-family: monospace; background: #f5f5f5; padding: 10px; border-radius: 4px; margin: 10px 0;">
+                    ${folderPath}
+                </div>
+                <br></br>
+                <div style="color: #666; font-size: 12px;">
+                    Đường dẫn đã được copy vào clipboard. Bạn có thể dán vào Windows Explorer.
+                </div>
+            `,
+            nzOkText: 'Đóng',
+            nzWidth: 600,
+            nzCentered: true
+        });
+        
+        this.copyToClipboard(folderPath);
+    }
+
+    copyToClipboard(text: string): void {
+        navigator.clipboard.writeText(text).catch(err => {
+            console.error('Failed to copy text: ', err);
+            const textArea = document.createElement('textarea');
+            textArea.value = text;
+            document.body.appendChild(textArea);
+            textArea.select();
+            document.execCommand('copy');
+            document.body.removeChild(textArea);
+        });
     }
 
     openModal() {

@@ -201,6 +201,18 @@ export class DailyReportMachineComponent implements OnInit, AfterViewInit {
             { ID: 0, Name: 'Tất cả' },
             ...(response.data || [])
           ];
+
+          // Nếu có currentUser, kiểm tra LeaderID để tự động chọn team
+          if (this.currentUser && this.currentUser.EmployeeID) {
+            const leaderTeam = (response.data || []).find(
+              (team: any) => team.LeaderID === this.currentUser.EmployeeID
+            );
+            if (leaderTeam && leaderTeam.ID) {
+              this.teamId = leaderTeam.ID;
+              // Reload users theo team vừa chọn
+              this.loadUsers();
+            }
+          }
         },
         error: (error) => {
           console.error('Error loading teams:', error);

@@ -90,7 +90,7 @@ export class WorkItemComponent implements OnInit, AfterViewInit {
     public activeModal: NgbActiveModal,
     private router: Router,
     private authService: AuthService
-  ) {}
+  ) { }
   sizeSearch: string = '0';
   keyword: string = '';
   isLoadTable: boolean = false;
@@ -695,7 +695,7 @@ export class WorkItemComponent implements OnInit, AfterViewInit {
       }
       container.appendChild(hostEl);
       appRef.attachView(componentRef.hostView);
-      onRendered(() => {});
+      onRendered(() => { });
 
       return container;
     };
@@ -927,7 +927,7 @@ export class WorkItemComponent implements OnInit, AfterViewInit {
             this.tb_workItem.setData(this.dataTableWorkItem).then(() => {
               // Áp dụng filter ngay sau setData, trước khi redraw để tránh hiển thị tất cả dữ liệu
               this.filterByStatus();
-              
+
               // Redraw với false để chỉ redraw cells, không reset scroll
               setTimeout(() => {
                 this.tb_workItem.redraw(false);
@@ -1199,7 +1199,7 @@ export class WorkItemComponent implements OnInit, AfterViewInit {
 
     // Thêm dòng mới vào đầu mảng để nó hiển thị đầu tiên
     this.dataTableWorkItem = [newRow, ...this.dataTableWorkItem];
-    
+
     // Sort dataTableWorkItem theo STT giảm dần (chỉ sort các parent rows, giữ nguyên children)
     this.dataTableWorkItem.sort((a: any, b: any) => {
       const aSTT = parseInt(a.STT, 10) || 0;
@@ -1599,11 +1599,11 @@ export class WorkItemComponent implements OnInit, AfterViewInit {
                 if (data['ID'] > 0) {
                   // Kiểm tra IsAdmin trước
                   const isAdmin = this.currentUser?.IsAdmin || this.currentUser?.ISADMIN || false;
-                  
+
                   if (!isAdmin) {
                     const isApproved = data['IsApproved'] || 0;
                     const isApprovedText = data['IsApprovedText'] || '';
-                    
+
                     if (isApproved > 0) {
                       this.notification.warning(
                         'Thông báo',
@@ -1616,12 +1616,12 @@ export class WorkItemComponent implements OnInit, AfterViewInit {
                     const currentEmployeeID = this.currentUser?.EmployeeID || 0;
                     const headOfDepartment = this.currentUser?.HeadofDepartment || this.currentUser?.HeadOfDepartment || 0;
                     const positionCode = this.currentUser?.PositionCode || '';
-                    
-                    const isTBP = 
-                      currentEmployeeID == 54 || 
+
+                    const isTBP =
+                      currentEmployeeID == 54 ||
                       currentEmployeeID == headOfDepartment;
-                    const isPBP = 
-                      positionCode == 'CV57' || 
+                    const isPBP =
+                      positionCode == 'CV57' ||
                       positionCode == 'CV28';
 
                     if (!isTBP && !isPBP) {
@@ -1677,7 +1677,7 @@ export class WorkItemComponent implements OnInit, AfterViewInit {
           title: 'STT',
           field: 'STT',
           hozAlign: 'center',
-          width:50,
+          width: 50,
           frozen: true,
         },
         {
@@ -1774,6 +1774,7 @@ export class WorkItemComponent implements OnInit, AfterViewInit {
           field: 'UserID',
           hozAlign: 'center',
           width: 150,
+          headerFilter: 'input',
           editor: this.createdControl(
             SelectControlComponent,
             this.injector,
@@ -1851,7 +1852,7 @@ export class WorkItemComponent implements OnInit, AfterViewInit {
           title: 'Mã người yêu cầu',
           field: 'EmployeeRequestID',
           hozAlign: 'center',
-          width:250,
+          width: 250,
           editor: this.createdControl(
             SelectControlComponent,
             this.injector,
@@ -1919,7 +1920,31 @@ export class WorkItemComponent implements OnInit, AfterViewInit {
           formatter: 'textarea',
           width: 300,
         },
-
+        {
+          title: '%',
+          field: 'PercentItem',
+          hozAlign: 'right',
+          editor: 'input',
+          formatter: (cell: any) => {
+            const value = cell.getValue();
+            if (value === null || value === undefined || value === '') {
+              return '';
+            }
+            const numValue = Number(value);
+            if (isNaN(numValue)) {
+              return value;
+            }
+            return numValue.toFixed(2) + '%';
+          },
+        },
+        {
+          title: 'Công việc',
+          field: 'Mission',
+          hozAlign: 'left',
+          editor: 'textarea',
+          formatter: 'textarea',
+          width: 300,
+        },
         // --- KẾ HOẠCH ---
         {
           title: 'KẾ HOẠCH',
@@ -2257,7 +2282,7 @@ export class WorkItemComponent implements OnInit, AfterViewInit {
             value = ''; // Không tìm thấy label thì để trống
           }
         }
-        
+
         // Status
         if (field === 'Status' && value !== null && value !== undefined) {
           const status = this.dataStatus.find((s: any) => s.id === value);
@@ -2267,7 +2292,7 @@ export class WorkItemComponent implements OnInit, AfterViewInit {
             value = ''; // Không tìm thấy label thì để trống
           }
         }
-        
+
         // UserID (Người phụ trách) - nếu value = 0 hoặc không có label thì để trống
         if (field === 'UserID') {
           if (value === null || value === undefined || value === 0 || value === '') {
@@ -2292,7 +2317,7 @@ export class WorkItemComponent implements OnInit, AfterViewInit {
             }
           }
         }
-        
+
         // EmployeeIDRequest (Người giao việc/Người yêu cầu) - nếu value = 0 hoặc không có label thì để trống
         if (field === 'EmployeeIDRequest') {
           if (value === null || value === undefined || value === 0 || value === '') {
@@ -2306,7 +2331,7 @@ export class WorkItemComponent implements OnInit, AfterViewInit {
             }
           }
         }
-        
+
         // EmployeeRequestID (Mã người yêu cầu) - nếu value = 0 hoặc không có label thì để trống
         if (field === 'EmployeeRequestID') {
           if (value === null || value === undefined || value === 0 || value === '') {
@@ -2320,7 +2345,7 @@ export class WorkItemComponent implements OnInit, AfterViewInit {
             }
           }
         }
-        
+
         // EmployeeRequestName (Tên người yêu cầu) - nếu không có giá trị thì để trống
         if (field === 'EmployeeRequestName') {
           if (!value || value === null || value === undefined || value === '') {
@@ -2411,7 +2436,7 @@ export class WorkItemComponent implements OnInit, AfterViewInit {
         this.notification.error('Lỗi', 'Không thể xuất Excel!');
       });
   }
-  onsearchData() {}
+  onsearchData() { }
   onCloseModal(): void {
     this.activeModal.dismiss();
   }

@@ -164,10 +164,6 @@ import { InventoryNewComponent } from './pages/old/Sale/Inventory/inventory-new/
 import { BillImportTechnicalNewComponent } from './pages/old/bill-import-technical/bill-import-technical-new/bill-import-technical-new.component';
 import { VehicleRepairTypeComponent } from './pages/hrm/vehicle/vehicle-repair/vehicle-repair-type/vehicle-repair-type.component';
 import { OfficeSupplyUnitComponent } from './pages/hrm/office-supply/OfficeSupplyUnit/office-supply-unit.component';
-import { DocumentImportExportComponent } from './pages/old/KETOAN/document-import-export/document-import-export.component';
-import { DocumentCommonComponent } from './pages/hrm/document/document-common/document-common.component';
-import { ProjectPartlistPurchaseRequestVer2Component } from './pages/purchase/project-partlist-purchase-request/project-partlist-purchase-request-ver2/project-partlist-purchase-request-ver2.component';
-import { ProjectPartlistPriceRequestComponent } from './pages/old/project-partlist-price-request/project-partlist-price-request.component';
 
 export const routes: Routes = [
     {
@@ -417,7 +413,6 @@ export const routes: Routes = [
             { path: 'daily-report-lxcp', component: DailyReportLXCPComponent, canActivate: [authGuard] },
             { path: 'daily-report-lr', component: DailyReportMachineComponent, canActivate: [authGuard] },
 
-
             //Kế hoạch tuần
             { path: 'work-plan', component: WorkplanComponent, canActivate: [authGuard] },
 
@@ -472,7 +467,6 @@ export const routes: Routes = [
             { path: 'project-type', component: ProjectTypeComponent, canActivate: [authGuard] },
             { path: 'project-field', component: ProjectFieldComponent, canActivate: [authGuard] },
             { path: 'meeting-minute-type', component: MeetingMinuteTypeComponent, canActivate: [authGuard] },
-
 
             //Mua hàng
             { path: 'employee-purchase', component: EmployeePurchaseComponent, canActivate: [authGuard] },

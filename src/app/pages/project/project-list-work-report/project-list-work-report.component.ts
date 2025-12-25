@@ -507,6 +507,12 @@ export class ProjectListWorkReportComponent implements OnInit, AfterViewInit {
             formatter: this.textWithTooltipFormatter,
           },
           {
+            title: 'Kế hoạch ngày tiếp theo',
+            field: 'PlanNextDay',
+            headerHozAlign: 'left',
+            formatter: this.textWithTooltipFormatter,
+          },
+          {
             title: 'Ghi chú',
             field: 'Note',
             headerHozAlign: 'center',

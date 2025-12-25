@@ -7,6 +7,7 @@ import { environment } from '../../../../environments/environment';
   providedIn: 'root'
 })
 export class DailyReportTechService {
+  private api = environment.host + 'api/';
   private urlFilmManagement = `${environment.host}api/FilmManagement/`;
   private apiUrl = environment.host + 'api/DailyReportTech/';
   private apiUrlLXCP = environment.host + 'api/DailyReportHr/';
@@ -42,9 +43,23 @@ export class DailyReportTechService {
     return this.http.post<any>(this.apiUrlLXCP + 'save-report-hr', report);
   }
 
+  saveReportMar(report: any): Observable<any> {
+    return this.http.post<any>(this.apiUrl + 'save-report-mar', report);
+  }
+
   getDataByID(dailyID: number): Observable<any> {
     const params = new HttpParams().set('dailyID', dailyID.toString());
     return this.http.get<any>(this.apiUrl + 'get-by-id', { params });
+  }
+
+  /**
+   * Lấy dữ liệu báo cáo Marketing theo ID (cho chức năng sửa)
+   * @param dailyID ID của báo cáo
+   * @returns Observable với { dailyData, dailyFileData }
+   */
+  getDataByIDHR(dailyID: number): Observable<any> {
+    const params = new HttpParams().set('dailyID', dailyID.toString());
+    return this.http.get<any>(this.apiUrl + 'get-by-id-hr', { params });
   }
 
   //#region Get DailyReportHR by ID
@@ -89,6 +104,15 @@ export class DailyReportTechService {
       DateReport: dateReport ? dateReport.toISOString() : null
     };
     return this.http.post<any>(this.apiUrl + 'send-email-report', request);
+  }
+
+  sendEmailMarketingReport(body: string, dateReport?: Date, fileLinks?: any[]): Observable<any> {
+    const request = {
+      Body: body,
+      DateReport: dateReport ? dateReport.toISOString() : null,
+      FileLinks: Array.isArray(fileLinks) ? fileLinks : []
+    };
+    return this.http.post<any>(this.apiUrl + 'send-email-marketing-report', request);
   }
 
   /**
@@ -151,4 +175,16 @@ export class DailyReportTechService {
     return this.http.post<any>(this.apiUrlLXCP + 'save-report-lxcp', report);
   }
   //#endregion
+   //ham upload file
+   uploadMultipleFiles(files: File[], subPath?: string): Observable<any> {
+    const formData = new FormData();
+    files.forEach((file) => {
+      formData.append('files', file);
+    });
+    formData.append('key', 'PathDailyReportMarketing'); 
+    if (subPath && subPath.trim()) {
+      formData.append('subPath', subPath.trim());
+    }
+    return this.http.post<any>(this.api +`home/upload-multiple`, formData);
+  }
 }

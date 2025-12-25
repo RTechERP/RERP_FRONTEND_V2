@@ -215,16 +215,15 @@ export class ProjectWorkerComponent implements OnInit, AfterViewInit {
           console.log('dataSolution', response.data);
           this.dataSolution = response.data || [];
           if (this.dataSolution && this.dataSolution.length > 0) {
-            this.projectSolutionId = this.dataSolution[0].ID;
             // Đảm bảo bảng đã được khởi tạo trước khi setData
             if (this.tb_solution) {
               this.tb_solution.setData(this.dataSolution);
-              // Dừng loading của loadDataSolution trước khi gọi 2 hàm con
-              this.stopLoading();
-              // Gọi 2 hàm load version, loading sẽ được quản lý trong các hàm đó
-              this.loadDataSolutionVersion();
-              this.loadDataPOVersion();
             }
+            // KHÔNG tự động load phiên bản - chờ user click vào giải pháp
+            // Clear các bảng phụ thuộc
+            this.clearVersionTables();
+            this.clearWorkerTable();
+            this.projectSolutionId = 0;
           } else {
             this.dataSolution = [];
             // Đảm bảo bảng đã được khởi tạo trước khi setData
@@ -232,12 +231,14 @@ export class ProjectWorkerComponent implements OnInit, AfterViewInit {
               this.tb_solution.setData([]);
             }
             this.projectSolutionId = 0;
-            this.stopLoading();
+            // Clear các bảng phụ thuộc
+            this.clearVersionTables();
+            this.clearWorkerTable();
           }
         } else {
           this.notification.error('Lỗi', response.message);
-          this.stopLoading();
         }
+        this.stopLoading();
       },
       error: (error: any) => {
         console.error('Error loading solution:', error);
@@ -245,6 +246,29 @@ export class ProjectWorkerComponent implements OnInit, AfterViewInit {
         this.stopLoading();
       },
     });
+  }
+
+  // Clear bảng phiên bản giải pháp và PO
+  clearVersionTables(): void {
+    this.dataSolutionVersion = [];
+    this.dataPOVersion = [];
+    if (this.tb_solutionVersion) {
+      this.tb_solutionVersion.setData([]);
+    }
+    if (this.tb_POVersion) {
+      this.tb_POVersion.setData([]);
+    }
+    this.versionID = 0;
+    this.type = 0;
+  }
+
+  // Clear bảng nhân công
+  clearWorkerTable(): void {
+    this.dataProjectWorker = [];
+    this.treeWorkerData = [];
+    if (this.tb_projectWorker) {
+      this.tb_projectWorker.setData([]);
+    }
   }
   loadDataSolutionVersion(): void {
     // Kiểm tra bảng đã được khởi tạo chưa
@@ -966,23 +990,27 @@ export class ProjectWorkerComponent implements OnInit, AfterViewInit {
       const data = row.getData();
       this.projectSolutionId = data.ID;
       this.selectionProjectSolutionName = data.CodeSolution;
+      // Load phiên bản giải pháp và PO khi click vào giải pháp
       this.loadDataSolutionVersion();
       this.loadDataPOVersion();
-      this.loadDataProjectWorker();
+      // Clear bảng nhân công - chờ user click vào phiên bản
+      this.clearWorkerTable();
     });
     this.tb_solution.on('rowDeselected', (row: any) => {
       console.log('row deselected:', row);
-      const data = row.getData();
-      this.loadDataSolutionVersion();
-      this.loadDataPOVersion();
-      this.loadDataProjectWorker();
+      // Khi bỏ chọn giải pháp → clear tất cả bảng phụ thuộc
+      this.projectSolutionId = 0;
+      this.clearVersionTables();
+      this.clearWorkerTable();
     });
   }
   drawTbSolutionVersion(): void {
     this.tb_solutionVersion = new Tabulator(
       this.tb_solutionVersionContainer.nativeElement,
       {
+        ...DEFAULT_TABLE_CONFIG,
         pagination: false,
+        rowHeader:false,
         paginationMode: 'local',
         data: this.dataSolutionVersion,
         layout: 'fitDataStretch',
@@ -1070,7 +1098,15 @@ export class ProjectWorkerComponent implements OnInit, AfterViewInit {
       this.type = 1; // Giải pháp
       this.tb_POVersion.deselectRow();
       this.toggleTBPColumn();
+      // Load nhân công khi click vào phiên bản giải pháp
       this.loadDataProjectWorker();
+    });
+    this.tb_solutionVersion.on('rowDeselected', (row: any) => {
+      console.log('solutionVersion row deselected:', row);
+      // Khi bỏ chọn phiên bản giải pháp → clear bảng nhân công
+      this.versionID = 0;
+      this.type = 0;
+      this.clearWorkerTable();
     });
   }
   //set data tree cho bảng
@@ -1105,7 +1141,9 @@ export class ProjectWorkerComponent implements OnInit, AfterViewInit {
     this.tb_POVersion = new Tabulator(
       this.tb_POVersionContainer.nativeElement,
       {
+        ...DEFAULT_TABLE_CONFIG,
         pagination: false,
+        rowHeader:false,
         paginationMode: 'local',
         data: this.dataPOVersion,
         layout: 'fitDataStretch',
@@ -1199,7 +1237,15 @@ export class ProjectWorkerComponent implements OnInit, AfterViewInit {
       });
       console.log('type', this.type);
       this.toggleTBPColumn();
+      // Load nhân công khi click vào phiên bản PO
       this.loadDataProjectWorker();
+    });
+    this.tb_POVersion.on('rowDeselected', (row: any) => {
+      console.log('POVersion row deselected:', row);
+      // Khi bỏ chọn phiên bản PO → clear bảng nhân công
+      this.versionID = 0;
+      this.type = 0;
+      this.clearWorkerTable();
     });
   }
 
@@ -1207,6 +1253,7 @@ export class ProjectWorkerComponent implements OnInit, AfterViewInit {
     this.tb_projectWorker = new Tabulator(
       this.tb_projectWorkerContainer.nativeElement,
       {
+        ...DEFAULT_TABLE_CONFIG,
         dataTree: true,
         dataTreeStartExpanded: true,
         dataTreeChildField: '_children', // Quan trọng: dùng _children
@@ -1235,29 +1282,29 @@ export class ProjectWorkerComponent implements OnInit, AfterViewInit {
           // Không cần else → không reset gì cả!
         },
         columns: [
-          {
-            title: 'rowSelection',
-            hozAlign: 'center',
-            headerHozAlign: 'center',
-            width: 150,
-            formatter: 'rowSelection',
-            titleFormatter: 'rowSelection',
-            cellClick: (e: any, cell: any) => {
-              // Logic chính được xử lý trong rowSelectionChanged
-              // cellClick chỉ để debug nếu cần
-              // const row = cell.getRow();
-              // const rowData = row.getData();
-              // console.log('Checkbox clicked for row:', rowData.ID, rowData.TT);
-            },
-          },
+          // {
+          //   title: 'rowSelection',
+          //   hozAlign: 'center',
+          //   headerHozAlign: 'center',
+          //   width: 70,
+          //   formatter: 'rowSelection',
+          //   titleFormatter: 'rowSelection',
+          //   cellClick: (e: any, cell: any) => {
+          //     // Logic chính được xử lý trong rowSelectionChanged
+          //     // cellClick chỉ để debug nếu cần
+          //     // const row = cell.getRow();
+          //     // const rowData = row.getData();
+          //     // console.log('Checkbox clicked for row:', rowData.ID, rowData.TT);
+          //   },
+          // },
           { title: 'ID', field: 'ID', visible: false },
-          { title: 'TT', field: 'TT', width: 150, hozAlign: 'left' },
+          { title: 'TT', field: 'TT', width: 100, hozAlign: 'left' },
           {
             title: 'TBP duyệt',
             field: 'IsApprovedTBPText',
             hozAlign: 'center',
             headerHozAlign: 'center',
-            width: 200,
+            width: 90,
           },
           {
             title: 'Nội dung công việc',
@@ -1282,6 +1329,7 @@ export class ProjectWorkerComponent implements OnInit, AfterViewInit {
             title: 'Số ngày',
             field: 'NumberOfDay',
             hozAlign: 'center',
+            width: 100,
             formatter: (cell: any) => {
               const row = cell.getRow().getData();
               return row._children && row._children.length > 0
@@ -1293,6 +1341,7 @@ export class ProjectWorkerComponent implements OnInit, AfterViewInit {
             title: 'Tổng nhân công',
             field: 'TotalWorkforce',
             hozAlign: 'right',
+            width: 100,
             headerHozAlign: 'center',
             formatter: (cell: any) => {
               const value = cell.getValue();
@@ -1306,9 +1355,11 @@ export class ProjectWorkerComponent implements OnInit, AfterViewInit {
             hozAlign: 'right',
             formatter: (cell: any) => {
               const row = cell.getRow().getData();
-              return row._children && row._children.length > 0
-                ? ''
-                : cell.getValue();
+              if (row._children && row._children.length > 0) {
+                return '';
+              }
+              const value = cell.getValue();
+              return value ? Number(value).toLocaleString('vi-VN') : '';
             },
           },
           {

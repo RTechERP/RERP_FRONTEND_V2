@@ -98,5 +98,13 @@ export class AccountingContractService {
     return this.http.get<any>(`${this._url}get-contract-for-log`);
   }
 
+  // API để lấy log hợp đồng kế toán
+  getAccountingContractLog(accountingContractId: number, userId: number): Observable<any> {
+    const params = new HttpParams()
+      .set('accountingContractId', accountingContractId.toString())
+      .set('userId', userId.toString());
+    return this.http.get<any>(`${this._url}get-accounting-contract-log`, { params });
+  }
+
   
 }

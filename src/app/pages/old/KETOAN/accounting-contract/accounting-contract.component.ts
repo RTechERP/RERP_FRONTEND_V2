@@ -62,6 +62,7 @@ import { setupTabulatorCellCopy } from '../../../../shared/utils/tabulator-cell-
 
 import { AccountingContractService } from './accounting-contract-service/accounting-contract.service';
 import { AccountingContractDetailComponent } from './accounting-contract-detail/accounting-contract-detail.component';
+import { AccountingContractLogComponent } from './accounting-contract-log/accounting-contract-log.component';
 
 @Component({
   selector: 'app-accounting-contract',
@@ -111,7 +112,7 @@ export class AccountingContractComponent implements OnInit, AfterViewInit {
   dataSuppliers: any[] = [];
   dataAccountingContractFiles: any[] = [];
   selectedRow: any = null;
-  
+
   filters: any = {
     startDate: (() => {
       const now = new Date();
@@ -246,7 +247,7 @@ export class AccountingContractComponent implements OnInit, AfterViewInit {
   onEdit() {
     if (!this.selectedRow || !this.selectedRow.ID) {
       this.notification.warning(
-        NOTIFICATION_TITLE.warning, 
+        NOTIFICATION_TITLE.warning,
         'Vui lòng chọn hợp đồng để sửa'
       );
       return;
@@ -257,10 +258,10 @@ export class AccountingContractComponent implements OnInit, AfterViewInit {
       backdrop: 'static',
       centered: true,
     });
-    
+
     modalRef.componentInstance.editId = this.selectedRow.ID;
     modalRef.componentInstance.isReceivedContractMode = this.selectedRow.IsReceivedContract === true;
-    
+
     modalRef.result.then(
       (result) => {
         if (result === 'saved' || result === 'success') {
@@ -276,7 +277,7 @@ export class AccountingContractComponent implements OnInit, AfterViewInit {
   onDelete() {
     if (!this.selectedRow) {
       this.notification.warning(
-        NOTIFICATION_TITLE.warning, 
+        NOTIFICATION_TITLE.warning,
         'Vui lòng chọn ít nhất một hợp đồng để xóa'
       );
       return;
@@ -311,10 +312,10 @@ export class AccountingContractComponent implements OnInit, AfterViewInit {
 
   handleApproval(isApprove: boolean) {
     const selectedRows = this.tb_AccountingContract.getSelectedData();
-    
+
     if (!selectedRows || selectedRows.length === 0) {
       this.notification.warning(
-        NOTIFICATION_TITLE.warning, 
+        NOTIFICATION_TITLE.warning,
         'Vui lòng chọn ít nhất một hợp đồng để ' + (isApprove ? 'duyệt' : 'hủy duyệt')
       );
       return;
@@ -326,7 +327,7 @@ export class AccountingContractComponent implements OnInit, AfterViewInit {
 
     if (contractIds.length === 0) {
       this.notification.warning(
-        NOTIFICATION_TITLE.warning, 
+        NOTIFICATION_TITLE.warning,
         'Không tìm thấy ID hợp đồng hợp lệ'
       );
       return;
@@ -334,7 +335,7 @@ export class AccountingContractComponent implements OnInit, AfterViewInit {
 
     const actionText = isApprove ? 'duyệt' : 'hủy duyệt';
     const actionTextCapitalized = isApprove ? 'Duyệt' : 'Hủy duyệt';
-    
+
     this.modal.confirm({
       nzTitle: `Xác nhận ${actionTextCapitalized}`,
       nzContent: `Bạn có chắc chắn muốn ${actionText} ${contractIds.length} hợp đồng đã chọn?`,
@@ -361,11 +362,11 @@ export class AccountingContractComponent implements OnInit, AfterViewInit {
       }
     });
   }
-  
+
   onReceiveContract() {
     if (!this.selectedRow || !this.selectedRow.ID) {
       this.notification.warning(
-        NOTIFICATION_TITLE.warning, 
+        NOTIFICATION_TITLE.warning,
         'Vui lòng chọn hợp đồng để sửa'
       );
       return;
@@ -376,10 +377,10 @@ export class AccountingContractComponent implements OnInit, AfterViewInit {
       backdrop: 'static',
       centered: true,
     });
-    
+
     modalRef.componentInstance.editId = this.selectedRow.ID;
     modalRef.componentInstance.isReceivedContractMode = true;
-    
+
     modalRef.result.then(
       (result) => {
         if (result === 'saved' || result === 'success') {
@@ -395,7 +396,7 @@ export class AccountingContractComponent implements OnInit, AfterViewInit {
   onCancelReceiveContract() {
     if (!this.selectedRow) {
       this.notification.warning(
-        NOTIFICATION_TITLE.warning, 
+        NOTIFICATION_TITLE.warning,
         'Vui lòng chọn hợp đồng để hủy nhận chứng từ'
       );
       return;
@@ -428,46 +429,28 @@ export class AccountingContractComponent implements OnInit, AfterViewInit {
     });
   }
 
-  onOpenAccountingContractLogModal(){
-      if (!this.selectedRow) {
+  onOpenAccountingContractLogModal() {
+    if (!this.selectedRow) {
       this.notification.warning(
-        NOTIFICATION_TITLE.warning, 
+        NOTIFICATION_TITLE.warning,
         'Vui lòng chọn hợp đồng để xem lịch sử cập nhật'
       );
       return;
     }
-
-    this.modal.confirm({
-      nzTitle: `Xác nhận`,
-      nzContent: `Bạn có chắc chắn muốn hủy nhận chứng từ hợp đồng đã chọn?`,
-      nzOkText: 'Xác nhận',
-      nzCancelText: 'Hủy',
-      nzOnOk: () => {
-        this.accountingContractService.cancelContract(this.selectedRow.ID).subscribe({
-          next: (response: any) => {
-            if (response && (response.status === 1 || response.Status === 1)) {
-              const message = 'Hủy nhận chứng từ hợp đồng thành công';
-              this.notification.success(NOTIFICATION_TITLE.success, message);
-              this.loadData();
-            } else {
-              const errorMessage = response?.message || response?.Message || 'Có lỗi xảy ra';
-              this.notification.error(NOTIFICATION_TITLE.error, errorMessage);
-            }
-          },
-          error: (error: any) => {
-            console.error('Error in onCancelReceiveContract:', error);
-            const errorMessage = error?.error?.message || error?.error?.Message || error?.message || 'Có lỗi xảy ra khi hủy nhận chứng từ hợp đồng';
-            this.notification.error(NOTIFICATION_TITLE.error, errorMessage);
-          }
-        });
-      }
+    const modalRef = this.modalService.open(AccountingContractLogComponent, {
+      size: 'xl',
+      backdrop: 'static',
+      centered: true,
     });
+
+    modalRef.componentInstance.contractIdfromAccountingContract = this.selectedRow.ID;
+
   }
 
   onCopy() {
     if (!this.selectedRow || !this.selectedRow.ID) {
       this.notification.warning(
-        NOTIFICATION_TITLE.warning, 
+        NOTIFICATION_TITLE.warning,
         'Vui lòng chọn hợp đồng để sửa'
       );
       return;
@@ -482,7 +465,7 @@ export class AccountingContractComponent implements OnInit, AfterViewInit {
     modalRef.componentInstance.editId = this.selectedRow.ID;
     modalRef.componentInstance.isCopyMode = true;
     modalRef.componentInstance.isReceivedContractMode = false;
-    
+
     modalRef.result.then(
       (result) => {
         if (result === 'saved' || result === 'success') {
@@ -505,7 +488,7 @@ export class AccountingContractComponent implements OnInit, AfterViewInit {
       const seconds = String(date.getSeconds()).padStart(2, '0');
       return `${year}-${month}-${day}T${hours}:${minutes}:${seconds}`;
     };
-    
+
     return {
       dateStart: formatLocalDate(this.filters.startDate),
       dateEnd: formatLocalDate(this.filters.endDate),
@@ -584,12 +567,12 @@ export class AccountingContractComponent implements OnInit, AfterViewInit {
         const data = row.getData();
         const isComingExpired = data.IsComingExpired || 0;
         const accountingContractTypeID = data.AccountingContractTypeID || 0;
-        
+
         // Bôi màu cam nếu isComingExpired == 1 và AccountingContractTypeID == 1 (HĐ Nguyên tắc)
         if (isComingExpired === 1 && accountingContractTypeID === 1) {
           const rowElement = row.getElement();
           if (rowElement) {
-            rowElement.style.backgroundColor = '#FFA500'; 
+            rowElement.style.backgroundColor = '#FFA500';
           }
         }
         return '';
@@ -867,7 +850,7 @@ export class AccountingContractComponent implements OnInit, AfterViewInit {
       {
         label:
           '<span style="font-size: 0.75rem;"><i class="fas fa-eye"></i>Lịch sử cập nhật</span>',
-        // action: () => this.exportToExcel(),
+        action: () => this.onOpenAccountingContractLogModal(),
       },
     ];
   }

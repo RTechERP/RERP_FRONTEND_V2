@@ -248,18 +248,13 @@
     (formSubmitted)="OnFormSubmit()" (closeModal)="showDetailModal = false">
 </app-project-partlist-price-request-form> -->
 
-<ng-container class="w-100">
-    <!-- Modal header - hiển thị khi activeModal tồn tại hoặc showHeader = true -->
-    <div *ngIf="showHeader || activeModal" class="modal-header p-1 fs-12" style="background-color: #3469f7; border-radius: 0;">
-        <h4 class="modal-title text-white uppercase">{{ headerText }}</h4>
-        <button *ngIf="showCloseButton || activeModal" 
-                type="button" 
-                class="btn-close me-2" 
-                aria-label="Close" 
-                (click)="closeModal()"
-                style="filter: brightness(0) invert(1);">
-        </button>
-    </div>
+<div *ngIf="showHeader || activeModal" style="display: flex; flex-direction: column; height: 99.6vh; position: relative;">
+    <ng-container class="w-100">
+        <!-- Modal header - hiển thị khi activeModal tồn tại hoặc showHeader = true -->
+        <div *ngIf="showHeader || activeModal" class="modal-header bg-primary text-uppercase py-2">
+            <h6 class="modal-title text-white">{{ headerText }}</h6>
+            <button type="button" class="btn-close" (click)="closeModal()" aria-label="Close"></button>
+        </div>
     
     <div class="card h-100 border-0 rounded-0">
         <!-- Header với các nút action -->
@@ -536,7 +531,7 @@
         </div>
     </div>
 </ng-container>
-
+</div>
 <ng-template #rejectReasonTpl>
     <div class="mb-2">Vui lòng nhập lý do từ chối:</div>
     <textarea nz-input [(ngModel)]="rejectReason" rows="3" placeholder="Nhập lý do..." class="w-100"></textarea>

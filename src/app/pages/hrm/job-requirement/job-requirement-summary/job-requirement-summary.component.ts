@@ -196,18 +196,26 @@ export class JobRequirementSummaryComponent implements OnInit, AfterViewInit {
       const workbook = new ExcelJS.Workbook();
       const worksheet = workbook.addWorksheet('Tổng hợp yêu cầu công việc');
 
-      // Get columns from table
-      const columns = this.summaryTable.getColumns();
-      const headers: string[] = [];
-      const columnFields: string[] = [];
+      // Định nghĩa tất cả các cột cần xuất (đồng bộ với columns trong drawTable)
+      const exportColumns = [
+        { title: 'STT', field: '', isRowNum: true },
+        { title: 'Yêu cầu mua', field: 'IsRequestBuy', isCheckbox: true },
+        { title: 'Trạng thái', field: 'StatusText' },
+        { title: 'Mã yêu cầu', field: 'NumberRequest' },
+        { title: 'Ngày yêu cầu', field: 'DateRequest', isDate: true },
+        { title: 'Tên nhân viên', field: 'EmployeeName' },
+        { title: 'Bộ phận yêu cầu', field: 'EmployeeDepartment' },
+        { title: 'Bộ phận được yêu cầu', field: 'RequiredDepartment' },
+        { title: 'Bộ phận phối hợp', field: 'CoordinationDepartment' },
+        { title: 'Trạng thái duyệt', field: 'IsApprovedText' },
+        { title: 'Thời gian hoàn thành', field: 'DeadlineRequest', isDate: true },
+        { title: 'Đề mục', field: 'Category' },
+        { title: 'Diễn giải', field: 'Description' },
+        { title: 'Mục tiêu cần đạt', field: 'Target' },
+        { title: 'Ghi chú', field: 'Note' },
+      ];
 
-      columns.forEach((col: any) => {
-        const def = col.getDefinition();
-        if (def.field && def.title) {
-          headers.push(def.title);
-          columnFields.push(def.field);
-        }
-      });
+      const headers = exportColumns.map(col => col.title);
 
       // Add headers
       worksheet.addRow(headers);
@@ -222,17 +230,40 @@ export class JobRequirementSummaryComponent implements OnInit, AfterViewInit {
           pattern: 'solid',
           fgColor: { argb: 'FF1677FF' }
         };
+        cell.border = {
+          top: { style: 'thin' },
+          left: { style: 'thin' },
+          bottom: { style: 'thin' },
+          right: { style: 'thin' }
+        };
       });
       headerRow.height = 30;
 
       // Add data rows
-      this.summaryData.forEach((row: any) => {
-        const rowData = columnFields.map(field => {
-          const value = row[field];
-          if (value instanceof Date) {
-            return DateTime.fromJSDate(value).toFormat('dd/MM/yyyy');
+      this.summaryData.forEach((row: any, index: number) => {
+        const rowData = exportColumns.map(col => {
+          // STT column
+          if (col.isRowNum) {
+            return index + 1;
           }
-          return value || '';
+          
+          const value = row[col.field];
+          
+          // Checkbox columns
+          if (col.isCheckbox) {
+            return (value === true || value === 'true' || value === 1 || value === '1') ? 'Có' : 'Không';
+          }
+          
+          // Date columns
+          if (col.isDate && value) {
+            try {
+              return DateTime.fromISO(value).toFormat('dd/MM/yyyy');
+            } catch {
+              return value || '';
+            }
+          }
+          
+          return value ?? '';
         });
         worksheet.addRow(rowData);
       });
@@ -240,13 +271,19 @@ export class JobRequirementSummaryComponent implements OnInit, AfterViewInit {
       // Set font Times New Roman cỡ 10 và wrap text cho tất cả các cell dữ liệu
       worksheet.eachRow((row: ExcelJS.Row, rowNumber: number) => {
         if (rowNumber !== 1) {
-          row.height = 30;
+          row.height = 25;
           row.eachCell((cell: ExcelJS.Cell) => {
             cell.font = { name: 'Times New Roman', size: 10 };
             cell.alignment = { 
               vertical: 'middle', 
-              horizontal: cell.alignment?.horizontal || 'left',
+              horizontal: 'left',
               wrapText: true 
+            };
+            cell.border = {
+              top: { style: 'thin' },
+              left: { style: 'thin' },
+              bottom: { style: 'thin' },
+              right: { style: 'thin' }
             };
           });
         }

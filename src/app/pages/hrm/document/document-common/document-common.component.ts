@@ -40,7 +40,7 @@ export class DocumentCommonComponent implements OnInit, AfterViewInit {
 
   keyword: string = '';
   departmentId: number = -1;
-  groupType: number = 0;
+  groupType: number = 1;
   departments: any[] = [];
   documentData: any[] = [];
   totalDocuments: number = 0;
@@ -67,11 +67,11 @@ export class DocumentCommonComponent implements OnInit, AfterViewInit {
   }
 
   loadDocumentData(): void {
-    this.documentService.getDocumentCommon("", -1, 1).subscribe({
+    this.documentService.getDocumentCommon(this.keyword, this.departmentId ?? 0, this.groupType ?? 1).subscribe({
       next: (response: any) => {
         this.documentData = response?.data || [];
         this.totalDocuments = this.documentData.length;
-        
+
         const data = this.documentData.map((item, index) => ({
           ...item,
           id: item.ID || index + 1,
@@ -127,14 +127,15 @@ export class DocumentCommonComponent implements OnInit, AfterViewInit {
     this.tabulator = new Tabulator(this.tbDocumentCommonRef.nativeElement, {
       ...DEFAULT_TABLE_CONFIG,
       layout: 'fitDataStretch',
-      height: 'calc(100vh - 180px)',
+      height: '89vh',
       paginationMode: 'local',
       paginationSize: 100,
+      groupBy: ["DepartmentName", "NameDocumentType"],
       columns: [
-        { title: 'STT', field: 'STT', width: 60, hozAlign: 'center', headerHozAlign: 'center', headerSort: false },
-        { title: 'Loại văn bản', field: 'NameDocumentType', width: 180, headerSort: true },
+        { title: 'STT', field: 'STT', width: 60, hozAlign: 'center', headerHozAlign: 'center', headerSort: false, visible: false },
+        { title: 'Loại văn bản', field: 'NameDocumentType', width: 300, headerSort: true },
         {
-          title: 'Mã văn bản', field: 'Code', width: 150, headerSort: true,
+          title: 'Mã văn bản', field: 'Code', width: 250, headerSort: true,
           formatter: (cell: any) => {
             const rowData = cell.getRow().getData();
             const value = cell.getValue();
@@ -150,9 +151,9 @@ export class DocumentCommonComponent implements OnInit, AfterViewInit {
             }
           }
         },
-        { title: 'Tên văn bản', field: 'NameDocument', width: 300, headerSort: true, formatter: 'textarea' },
+        { title: 'Tên văn bản', field: 'NameDocument', width: 350, headerSort: true, formatter: 'textarea' },
         {
-          title: 'Ngày ban hành', field: 'DatePromulgate', width: 120, hozAlign: 'center', headerHozAlign: 'center', headerSort: true,
+          title: 'Ngày ban hành', field: 'DatePromulgate', width: 180, hozAlign: 'center', headerHozAlign: 'center', headerSort: true,
           formatter: (cell: any) => {
             const value = cell.getValue();
             if (!value) return '';
@@ -190,7 +191,7 @@ export class DocumentCommonComponent implements OnInit, AfterViewInit {
     }
 
     const filePath = `${this.downloadBasePath}${fileName}`;
-    
+
     const loadingMsg = this.message.loading('Đang tải xuống file...', {
       nzDuration: 0,
     }).messageId;

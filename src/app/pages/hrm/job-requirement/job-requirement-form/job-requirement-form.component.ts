@@ -561,15 +561,21 @@ export class JobRequirementFormComponent implements OnInit, AfterViewInit {
   }
 
   deleteFileByRecord(fileRecord: any): void {
-    // Xóa từ fileList
+    // Đánh dấu file là đã xóa thay vì xóa khỏi list
+    // Để khi save sẽ gửi kèm danh sách file bị xóa với IsDeleted=true
     if (fileRecord.uid) {
       const fileIndex = this.fileList.findIndex(f => f.uid === fileRecord.uid);
       if (fileIndex !== -1) {
         this.fileList[fileIndex].isDeleted = true;
+        this.fileList[fileIndex].IsDeleted = true;
       }
-    } else {
-      // Fallback: xóa theo ID nếu không có uid
-      this.fileList = this.fileList.filter(f => f.ID !== fileRecord.ID);
+    } else if (fileRecord.ID) {
+      // Fallback: đánh dấu xóa theo ID nếu không có uid
+      const fileIndex = this.fileList.findIndex(f => f.ID === fileRecord.ID);
+      if (fileIndex !== -1) {
+        this.fileList[fileIndex].isDeleted = true;
+        this.fileList[fileIndex].IsDeleted = true;
+      }
     }
     
     this.notification.success('Thông báo', 'Đã xóa file!');
@@ -645,17 +651,32 @@ export class JobRequirementFormComponent implements OnInit, AfterViewInit {
         Note: item.Note || '',
         IsDeleted: false
       })),
-      JobRequirementFiles: this.fileList
-        .filter(f => f.IsUploaded && !f.isDeleted && !f.IsDeleted)
-        .map((file: any) => ({
-          ID: file.ID || 0,
-          JobRequirementID: this.JobRequirementID || 0,
-          FileName: file.FileName || '',
-          FilePath: file.FilePath || '',
-          ServerPath: this.getServerPathFromFilePath(file.FilePath) || '',
-          OriginPath: '',
-          IsDeleted: false
-        }))
+      JobRequirementFiles: [
+        // Files còn lại (không bị xóa)
+        ...this.fileList
+          .filter(f => f.IsUploaded && !f.isDeleted && !f.IsDeleted)
+          .map((file: any) => ({
+            ID: file.ID || 0,
+            JobRequirementID: this.JobRequirementID || 0,
+            FileName: file.FileName || '',
+            FilePath: file.FilePath || '',
+            ServerPath: this.getServerPathFromFilePath(file.FilePath) || '',
+            OriginPath: '',
+            IsDeleted: false
+          })),
+        // Files bị xóa (gửi kèm ID và IsDeleted=true)
+        ...this.fileList
+          .filter(f => (f.isDeleted || f.IsDeleted) && f.ID && f.ID > 0)
+          .map((file: any) => ({
+            ID: file.ID,
+            JobRequirementID: this.JobRequirementID || 0,
+            FileName: file.FileName || '',
+            FilePath: file.FilePath || '',
+            ServerPath: this.getServerPathFromFilePath(file.FilePath) || '',
+            OriginPath: '',
+            IsDeleted: true
+          }))
+      ]
     };
 
     // Save data

@@ -3,7 +3,7 @@ import {
     provideZoneChangeDetection,
     importProvidersFrom,
 } from '@angular/core';
-import { provideRouter, RouteReuseStrategy } from '@angular/router';
+import { provideRouter, RouteReuseStrategy, withRouterConfig } from '@angular/router';
 import { routes } from './app.routes';
 import { icons } from './icons-provider';
 import { provideNzIcons } from 'ng-zorro-antd/icon';
@@ -53,7 +53,9 @@ export const appConfig: ApplicationConfig = {
             defaultLanguage: 'vi',
         })),
 
-        { provide: RouteReuseStrategy, useClass: CustomRouteReuseStrategy }
+        // { provide: RouteReuseStrategy, useClass: CustomRouteReuseStrategy },
+
+
 
     ],
 };

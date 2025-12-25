@@ -1,6 +1,6 @@
 import { CommonModule } from '@angular/common';
-import { AfterViewInit, Component, Input, OnInit } from '@angular/core';
-import { Params, Router, RouteReuseStrategy, RouterLink, RouterOutlet } from '@angular/router';
+import { AfterViewInit, ChangeDetectorRef, Component, Input, OnInit } from '@angular/core';
+import { ActivatedRoute, Params, Router, RouteReuseStrategy, RouterLink, RouterOutlet } from '@angular/router';
 import { AuthService } from '../../auth/auth.service';
 import { NzIconModule } from 'ng-zorro-antd/icon';
 import { NzLayoutModule } from 'ng-zorro-antd/layout';
@@ -57,6 +57,7 @@ type TabItem = {
     route: string;
     queryParams?: any;    // vd: { warehouseCode: 'HN' }
     key: string;
+    outlet: string; // 👈 RẤT QUAN TRỌNG
 };
 // export type BaseItem = {
 //   key: string;
@@ -126,7 +127,9 @@ export class MainLayoutComponent implements OnInit, AfterViewInit {
         private injector: Injector,
         private menuEventService: MenuEventService,
         private reuse: RouteReuseStrategy,
-        private layoutEvent: LayoutEventService
+        private layoutEvent: LayoutEventService,
+        private cd: ChangeDetectorRef,
+        private route: ActivatedRoute
     ) {
         // this.menus = this.menuService.getMenus();
     }
@@ -141,6 +144,7 @@ export class MainLayoutComponent implements OnInit, AfterViewInit {
     // isLeaf = (m: MenuItem): m is LeafItem => m.kind === 'leaf';
     menus: any[] = [];
     dynamicTabs: TabItem[] = [];
+
 
     menu: any = {};
     //#endregion
@@ -288,6 +292,10 @@ export class MainLayoutComponent implements OnInit, AfterViewInit {
         })
     }
 
+    get currentTab() {
+        return this.dynamicTabs[this.selectedIndex];
+    }
+
     // newTab(comp: Type<any>, title: string, data?: any) {
     //     if (this.isMobile) {
     //         this.isCollapsed = !this.isCollapsed;
@@ -330,37 +338,94 @@ export class MainLayoutComponent implements OnInit, AfterViewInit {
     //     });
     // }
 
+    // newTab(route: string, title: string, queryParams?: any) {
+
+    //     console.log('queryParams new tab:', queryParams, typeof queryParams);
+    //     console.log('route newTab:', route);
+    //     queryParams = queryParams == '' ? '' : JSON.parse(queryParams);
+    //     const normalizedParams =
+    //         typeof queryParams === 'string'
+    //             ? undefined
+    //             : (queryParams && Object.keys(queryParams).length ? queryParams : undefined);
+    //     // const key = route + JSON.stringify(queryParams ?? {});
+    //     const key = route + JSON.stringify(normalizedParams ?? {});
+
+    //     console.log('new tab key:', key);
+    //     console.log('new tab normalizedParams:', normalizedParams);
+
+
+
+    //     const idx = this.dynamicTabs.findIndex(t => t.key === key);
+    //     if (idx >= 0) {
+    //         this.selectedIndex = idx;
+    //         // this.router.navigate([route], { queryParams });
+    //         this.router.navigate(
+    //             ['/', route],
+    //             { queryParams: normalizedParams }
+    //         );
+    //         return;
+    //     }
+
+    //     // console.log(this.dynamicTabs);
+
+    //     this.dynamicTabs = [
+    //         ...this.dynamicTabs,
+    //         // { title, route, queryParams, key }
+    //         { title, route, queryParams: normalizedParams, key }
+    //     ];
+
+    //     console.log('new tab this.dynamicTabs:', this.dynamicTabs);
+
+    //     // setTimeout(() => {
+
+    //     this.cd.detectChanges();
+    //     this.selectedIndex = this.dynamicTabs.length - 1;
+    //     // this.router.navigate([route], { queryParams });
+    //     this.router.navigate(
+    //         ['/', route],
+    //         { queryParams: normalizedParams }
+    //     );
+    //     // });
+    // }
+
     newTab(route: string, title: string, queryParams?: any) {
 
-        // console.log('queryParams new tab:', queryParams, typeof queryParams);
-        console.log('route:', route);
-        queryParams = queryParams == '' ? '' : JSON.parse(queryParams);
-        const normalizedParams =
-            typeof queryParams === 'string'
-                ? undefined
-                : (queryParams && Object.keys(queryParams).length ? queryParams : undefined);
-        // const key = route + JSON.stringify(queryParams ?? {});
-        const key = route + JSON.stringify(normalizedParams ?? {});
+        // const lastDash = route.lastIndexOf('-');
+        // const result = route.slice(lastDash + 1); // "HN"
 
-        const idx = this.dynamicTabs.findIndex(t => t.key === key);
-        if (idx >= 0) {
-            this.selectedIndex = idx;
-            this.router.navigate([route], { queryParams });
-            return;
+        const outlet = route;
+        let normalizedParams: any = null;
+        if (queryParams) {
+            try {
+                normalizedParams = typeof queryParams === 'string' ? JSON.parse(queryParams) : queryParams;
+                normalizedParams = Object.keys(normalizedParams || {}).length ? normalizedParams : null;
+            } catch {
+                normalizedParams = null;
+            }
         }
 
-        console.log(this.dynamicTabs);
-
-        this.dynamicTabs = [
-            ...this.dynamicTabs,
-            { title, route, queryParams, key }
-        ];
-
-        setTimeout(() => {
+        // Check nếu tab đã tồn tại
+        const existingIndex = this.dynamicTabs.findIndex(t => t.route === route);
+        if (existingIndex !== -1) {
+            this.selectedIndex = existingIndex;
+        } else {
+            this.dynamicTabs.push({
+                title,
+                route,
+                outlet,
+                queryParams: normalizedParams,
+                key: route
+            });
             this.selectedIndex = this.dynamicTabs.length - 1;
-            this.router.navigate([route], { queryParams });
-        });
+        }
+
+        // Navigate
+        this.router.navigate(
+            [{ outlets: { [this.currentTab.outlet]: [route] } }],
+            { relativeTo: this.route, queryParams: normalizedParams || undefined }
+        );
     }
+
 
 
 
@@ -381,35 +446,69 @@ export class MainLayoutComponent implements OnInit, AfterViewInit {
     //     // this.saveTabs();
     // }
 
+    // closeTab(index: number): void {
+    //     const tab = this.dynamicTabs[index];
+    //     if (!tab) return;
+
+    //     // 1. Clear route cache (nếu có RouteReuseStrategy)
+    //     const reuse = this.reuse as CustomRouteReuseStrategy;
+    //     reuse?.clear(tab.route);
+
+    //     const isActive = this.selectedIndex === index;
+
+    //     // 2. Remove tab
+    //     this.dynamicTabs.splice(index, 1);
+
+    //     // 3. Xử lý selectedIndex
+    //     if (this.dynamicTabs.length === 0) {
+    //         this.selectedIndex = 0;
+    //         this.router.navigateByUrl('/app'); // route mặc định
+    //         return;
+    //     }
+
+    //     if (isActive) {
+    //         const nextIndex = Math.max(index - 1, 0);
+    //         this.selectedIndex = nextIndex;
+    //         this.router.navigateByUrl(this.dynamicTabs[nextIndex].route);
+    //     } else if (this.selectedIndex > index) {
+    //         // đóng tab phía trước tab đang active
+    //         this.selectedIndex--;
+    //     }
+    // }
+
     closeTab(index: number): void {
         const tab = this.dynamicTabs[index];
         if (!tab) return;
 
-        // 1. Clear route cache (nếu có RouteReuseStrategy)
-        const reuse = this.reuse as CustomRouteReuseStrategy;
-        reuse?.clear(tab.route);
-
         const isActive = this.selectedIndex === index;
 
-        // 2. Remove tab
+        // 1. Xóa tab khỏi mảng
         this.dynamicTabs.splice(index, 1);
 
-        // 3. Xử lý selectedIndex
+        // 2. Xử lý selectedIndex
         if (this.dynamicTabs.length === 0) {
             this.selectedIndex = 0;
-            this.router.navigateByUrl('/app'); // route mặc định
+            this.router.navigate(['/app']); // route mặc định
             return;
         }
 
         if (isActive) {
+            // nếu tab active bị đóng → chọn tab bên trái, hoặc tab đầu tiên
             const nextIndex = Math.max(index - 1, 0);
             this.selectedIndex = nextIndex;
-            this.router.navigateByUrl(this.dynamicTabs[nextIndex].route);
+
+            const nextTab = this.dynamicTabs[nextIndex];
+            this.router.navigate(
+                [{ outlets: { [nextTab.outlet]: [nextTab.route] } }],
+                { relativeTo: this.route, queryParams: nextTab.queryParams || undefined }
+            );
         } else if (this.selectedIndex > index) {
-            // đóng tab phía trước tab đang active
+            // nếu đóng tab phía trước tab đang active → giảm selectedIndex
             this.selectedIndex--;
         }
     }
+
+
 
     logout() {
         this.auth.logout();

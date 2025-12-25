@@ -63,11 +63,6 @@ import { HasPermissionDirective } from '../../../directives/has-permission.direc
 import { HorizontalScrollDirective } from '../../../directives/horizontalScroll.directive';
 import { Subscription } from 'rxjs';
 import { TabulatorPopupService } from '../../../shared/components/tabulator-popup/tabulator-popup.service';
-import {
-  FillterHeaderComponent,
-  HeaderFilterApplyEvent,
-  HeaderFilterOption,
-} from '../../../shared/filters/fillter-header/fillter-header.component';
 
 /**
  * Custom editor for single select with searchable dropdown and grouped options support
@@ -446,7 +441,6 @@ class GroupSelectEditor {
     HasPermissionDirective,
     HorizontalScrollDirective,
     AngularSlickgridModule,
-    FillterHeaderComponent,
   ],
   templateUrl: './project-partlist-price-request-new.component.html',
   styleUrls: ['./project-partlist-price-request-new.component.css']
@@ -458,6 +452,7 @@ export class ProjectPartlistPriceRequestNewComponent implements OnInit, OnDestro
   @Input() isVPP: boolean = false;
   @Input() projectPartlistPriceRequestTypeID: number = 0;
   @Input() initialTabId: number = 0;
+  @Input() isFromPOKH: boolean = false;
   // Active tab tracking
   sizeSearch: string = '0';
   activeTabId = 2;
@@ -485,8 +480,6 @@ export class ProjectPartlistPriceRequestNewComponent implements OnInit, OnDestro
   allDataByType: Map<number, any[]> = new Map();
   // Store original data for each tab (before filters)
   datasetsAllMap: Map<number, any[]> = new Map();
-  // Store applied filter values for each tab and column
-  headerFilterAppliedValuesMap: Map<string, string[] | null> = new Map(); // key: "columnId-typeId"
   // Quản lý subscriptions để có thể hủy khi cần
   private dataLoadingSubscriptions: Subscription[] = [];
   // Request ID để đảm bảo chỉ xử lý response từ request hiện tại
@@ -512,7 +505,6 @@ export class ProjectPartlistPriceRequestNewComponent implements OnInit, OnDestro
   @ViewChild('requestBuyTpl', { static: false })
   requestBuyTpl!: TemplateRef<any>;
 
-  @ViewChild('headerFilter') headerFilter?: FillterHeaderComponent;
   requestBuyDeadline: Date | null = null;
   requestBuyIsVPP: boolean = false;
   requestBuyJobRequirementID: number = 0;
@@ -521,7 +513,8 @@ export class ProjectPartlistPriceRequestNewComponent implements OnInit, OnDestro
   labeln: { [key: number]: string } = {};
   showSearchBar: boolean = false;
   showHeader: boolean = false;
-  headerText: string = '';
+  headerText: string = 'DANH SÁCH YÊU CẦU BÁO GIÁ';
+
   showCloseButton: boolean = false;
 
   private cdr: ChangeDetectorRef = inject(ChangeDetectorRef);
@@ -566,6 +559,9 @@ export class ProjectPartlistPriceRequestNewComponent implements OnInit, OnDestro
       this.activeTabId = -2; // HCNS tab
     } else if (this.projectPartlistPriceRequestTypeID === 4) {
       this.activeTabId = -3; // Tab tương ứng với type 4
+    }
+    if (this.isFromPOKH) {
+      this.activeTabId = -1;
     }
 
     this.filters = {
@@ -1678,13 +1674,10 @@ export class ProjectPartlistPriceRequestNewComponent implements OnInit, OnDestro
       {
         id: 'ProjectCode',
         field: 'ProjectCode',
-        // ProjectCode FILTER (ADVANCED DROPDOWN): icon filter ở header
-        name: this.createHeaderWithFilterIcon(isJobRequirement ? 'Mã YCCV' : 'Mã dự án', 'projectcode-filter-icon', typeId, 'ProjectCode'),
+        name: isJobRequirement ? 'Mã YCCV' : 'Mã dự án',
         width: 120,
-        sortable: false,
-        // ProjectCode FILTER (ADVANCED DROPDOWN): tắt filter row mặc định để dùng dropdown custom
-        filterable: false,
-
+        sortable: true,
+        filterable: true,
         formatter: (_row, _cell, value, _column, dataContext) => {
           if (!value) return '';
           return `
@@ -1696,22 +1689,25 @@ export class ProjectPartlistPriceRequestNewComponent implements OnInit, OnDestro
             </span>
           `;
         },
-
         customTooltip: {
           useRegularTooltip: true,
           // useRegularTooltipFromCellTextOnly: true,
+        },
+        filter: {
+          model: Filters['multipleSelect'],
+          collection: [],
+          filterOptions: {
+            filter: true,
+          } as Partial<MultipleSelectOption>,
         },
       },
       {
         id: 'ProductCode',
         field: 'ProductCode',
-        // ProductCode FILTER (ADVANCED DROPDOWN): icon filter ở header
-        name: this.createHeaderWithFilterIcon('Mã sản phẩm', 'productcode-filter-icon', typeId, 'ProductCode'),
+        name: 'Mã sản phẩm',
         width: 120,
-        sortable: false,
-        // ProductCode FILTER (ADVANCED DROPDOWN): tắt filter row mặc định để dùng dropdown custom
-        filterable: false,
-
+        sortable: true,
+        filterable: true,
         formatter: (_row, _cell, value, _column, dataContext) => {
           if (!value) return '';
           return `
@@ -1723,22 +1719,25 @@ export class ProjectPartlistPriceRequestNewComponent implements OnInit, OnDestro
             </span>
           `;
         },
-
         customTooltip: {
           useRegularTooltip: true,
           // useRegularTooltipFromCellTextOnly: true,
+        },
+        filter: {
+          model: Filters['multipleSelect'],
+          collection: [],
+          filterOptions: {
+            filter: true,
+          } as Partial<MultipleSelectOption>,
         },
       },
       {
         id: 'ProductName',
         field: 'ProductName',
-        // ProductName FILTER (ADVANCED DROPDOWN): icon filter ở header
-        name: this.createHeaderWithFilterIcon('Tên sản phẩm', 'productname-filter-icon', typeId, 'ProductName'),
+        name: 'Tên sản phẩm',
         width: 200,
-        sortable: false,
-        // ProductName FILTER (ADVANCED DROPDOWN): tắt filter row mặc định để dùng dropdown custom
-        filterable: false,
-
+        sortable: true,
+        filterable: true,
         formatter: (_row, _cell, value, _column, dataContext) => {
           if (!value) return '';
           return `
@@ -1750,22 +1749,25 @@ export class ProjectPartlistPriceRequestNewComponent implements OnInit, OnDestro
             </span>
           `;
         },
-
         customTooltip: {
           useRegularTooltip: true,
           // useRegularTooltipFromCellTextOnly: true,
+        },
+        filter: {
+          model: Filters['multipleSelect'],
+          collection: [],
+          filterOptions: {
+            filter: true,
+          } as Partial<MultipleSelectOption>,
         },
       },
       {
         id: 'Manufacturer',
         field: 'Manufacturer',
-        // Manufacturer FILTER (ADVANCED DROPDOWN): icon filter ở header
-        name: this.createHeaderWithFilterIcon('Hãng', 'manufacturer-filter-icon', typeId, 'Manufacturer'),
+        name: 'Hãng',
         width: 100,
-        sortable: false,
-        // Manufacturer FILTER (ADVANCED DROPDOWN): tắt filter row mặc định để dùng dropdown custom
-        filterable: false,
-
+        sortable: true,
+        filterable: true,
         formatter: (_row, _cell, value, _column, dataContext) => {
           if (!value) return '';
           return `
@@ -1777,10 +1779,16 @@ export class ProjectPartlistPriceRequestNewComponent implements OnInit, OnDestro
             </span>
           `;
         },
-
         customTooltip: {
           useRegularTooltip: true,
           // useRegularTooltipFromCellTextOnly: true,
+        },
+        filter: {
+          model: Filters['multipleSelect'],
+          collection: [],
+          filterOptions: {
+            filter: true,
+          } as Partial<MultipleSelectOption>,
         },
       },
       {
@@ -1844,13 +1852,10 @@ export class ProjectPartlistPriceRequestNewComponent implements OnInit, OnDestro
       {
         id: 'StatusRequestText',
         field: 'StatusRequestText',
-        // StatusRequestText FILTER (ADVANCED DROPDOWN): icon filter ở header
-        name: this.createHeaderWithFilterIcon('Trạng thái', 'statusrequesttext-filter-icon', typeId, 'StatusRequestText'),
+        name: 'Trạng thái',
         width: 120,
-        sortable: false,
-        // StatusRequestText FILTER (ADVANCED DROPDOWN): tắt filter row mặc định để dùng dropdown custom
-        filterable: false,
-
+        sortable: true,
+        filterable: true,
         formatter: (_row, _cell, value, _column, dataContext) => {
           if (!value) return '';
           return `
@@ -1862,22 +1867,25 @@ export class ProjectPartlistPriceRequestNewComponent implements OnInit, OnDestro
             </span>
           `;
         },
-
         customTooltip: {
           useRegularTooltip: true,
           // useRegularTooltipFromCellTextOnly: true,
+        },
+        filter: {
+          model: Filters['multipleSelect'],
+          collection: [],
+          filterOptions: {
+            filter: true,
+          } as Partial<MultipleSelectOption>,
         },
       },
       {
         id: 'FullName',
         field: 'FullName',
-        // FullName FILTER (ADVANCED DROPDOWN): icon filter ở header
-        name: this.createHeaderWithFilterIcon('Người yêu cầu', 'fullname-filter-icon', typeId, 'FullName'),
+        name: 'Người yêu cầu',
         width: 120,
-        sortable: false,
-        // FullName FILTER (ADVANCED DROPDOWN): tắt filter row mặc định để dùng dropdown custom
-        filterable: false,
-
+        sortable: true,
+        filterable: true,
         formatter: (_row, _cell, value, _column, dataContext) => {
           if (!value) return '';
           return `
@@ -1889,10 +1897,16 @@ export class ProjectPartlistPriceRequestNewComponent implements OnInit, OnDestro
             </span>
           `;
         },
-
         customTooltip: {
           useRegularTooltip: true,
           // useRegularTooltipFromCellTextOnly: true,
+        },
+        filter: {
+          model: Filters['multipleSelect'],
+          collection: [],
+          filterOptions: {
+            filter: true,
+          } as Partial<MultipleSelectOption>,
         },
       },
       {
@@ -1983,12 +1997,10 @@ export class ProjectPartlistPriceRequestNewComponent implements OnInit, OnDestro
       {
         id: 'CurrencyID',
         field: 'CurrencyID',
-        // CurrencyID FILTER (ADVANCED DROPDOWN): icon filter ở header
-        name: this.createHeaderWithFilterIcon('Loại tiền', 'currencyid-filter-icon', typeId, 'CurrencyID'),
+        name: 'Loại tiền',
         width: 100,
-        sortable: false,
-        // CurrencyID FILTER (ADVANCED DROPDOWN): tắt filter row mặc định để dùng dropdown custom
-        filterable: false,
+        sortable: true,
+        filterable: true,
         editor: {
           model: GroupSelectEditor,
           collection: this.getCurrencyCollection(),
@@ -2002,6 +2014,13 @@ export class ProjectPartlistPriceRequestNewComponent implements OnInit, OnDestro
         formatter: (row: number, cell: number, value: any) => {
           const currency = this.dtcurrency.find((c: any) => c.ID === value);
           return currency ? currency.Code : '';
+        },
+        filter: {
+          model: Filters['multipleSelect'],
+          collection: [],
+          filterOptions: {
+            filter: true,
+          } as Partial<MultipleSelectOption>,
         },
       },
       {
@@ -2123,12 +2142,10 @@ export class ProjectPartlistPriceRequestNewComponent implements OnInit, OnDestro
       {
         id: 'SupplierSaleID',
         field: 'SupplierSaleID',
-        // SupplierSaleID FILTER (ADVANCED DROPDOWN): icon filter ở header
-        name: this.createHeaderWithFilterIcon('Nhà cung cấp', 'suppliersaleid-filter-icon', typeId, 'SupplierSaleID'),
+        name: 'Nhà cung cấp',
         width: 200,
-        sortable: false,
-        // SupplierSaleID FILTER (ADVANCED DROPDOWN): tắt filter row mặc định để dùng dropdown custom
-        filterable: false,
+        sortable: true,
+        filterable: true,
         editor: {
           model: GroupSelectEditor,
           collection: this.getSupplierCollection(),
@@ -2139,6 +2156,13 @@ export class ProjectPartlistPriceRequestNewComponent implements OnInit, OnDestro
         formatter: (row: number, cell: number, value: any) => {
           const supplier = this.dtSupplierSale.find((s: any) => s.ID === value);
           return supplier ? supplier.NameNCC : '';
+        },
+        filter: {
+          model: Filters['multipleSelect'],
+          collection: [],
+          filterOptions: {
+            filter: true,
+          } as Partial<MultipleSelectOption>,
         },
       },
       {
@@ -2502,50 +2526,6 @@ export class ProjectPartlistPriceRequestNewComponent implements OnInit, OnDestro
       this.ensureCheckboxSelector(angularGrid, 50);
     }
 
-    // Setup header click handler for all header filters
-    if (angularGrid && angularGrid.slickGrid) {
-      // Bind header click event handler
-      angularGrid.slickGrid.onHeaderClick.subscribe((e: any, args: any) => {
-        const column = args.column;
-        const target = (e as MouseEvent)?.target as HTMLElement | null;
-        if (!column || !target) return;
-
-        const columnId = column.id;
-        const filterKey = `${columnId}-${typeId}`;
-        
-        // Check if clicked on filter icon for any supported column
-        const filterIconClasses = [
-          'productcode-filter-icon',
-          'projectcode-filter-icon',
-          'productname-filter-icon',
-          'manufacturer-filter-icon',
-          'statusrequesttext-filter-icon',
-          'fullname-filter-icon',
-          'currencyid-filter-icon',
-          'suppliersaleid-filter-icon',
-        ];
-
-        const isFilterIcon = filterIconClasses.some(cls => target.classList?.contains(cls));
-        
-        if (isFilterIcon) {
-          (e as any).stopImmediatePropagation?.();
-          e.preventDefault();
-          e.stopPropagation();
-          
-          this.headerFilter?.toggle({
-            key: filterKey,
-            anchor: target,
-            options: this.getHeaderFilterOptions(columnId, typeId),
-            appliedValues: this.headerFilterAppliedValuesMap.get(filterKey) || null,
-          });
-        }
-      });
-    }
-
-      // Update all column header filter icons to reflect current filter status
-      setTimeout(() => {
-        this.updateAllColumnHeaderFilterIcons(typeId);
-      }, 150);
 
       // Resize grid after initialization và đảm bảo checkbox selector vẫn hiển thị
       setTimeout(() => {
@@ -5225,11 +5205,13 @@ private buildDistinctCollection(
       const columns = angularGrid.slickGrid.getColumns();
       if (!columns) return;
 
-      // Define columns that need distinct filters (based on this component's columns)
+      // Define all filterable text columns
       const textColumns = [
-        'StatusRequestText',  // Trạng thái
+        'ProjectCode',        // Mã dự án / Mã YCCV
         'ProductCode',        // Mã sản phẩm
         'ProductName',        // Tên sản phẩm
+        'Manufacturer',       // Hãng
+        'StatusRequestText',  // Trạng thái
         'FullName',           // Người yêu cầu
         'FullNameSale',       // NV bán (nếu có)
       ];
@@ -5242,62 +5224,68 @@ private buildDistinctCollection(
           if (collection.length > 0) {
             column.filter.model = Filters['multipleSelect'];
             column.filter.collection = collection;
-            column.filter.operator = 'IN';
             column.filter.customStructure = {
               value: 'value',
               label: 'label',
             };
-            if (!column.filter.options) {
-              column.filter.options = {};
+            if (!column.filter.filterOptions) {
+              column.filter.filterOptions = {};
             }
-            column.filter.options.offsetLeft = 14;
-            column.filter.options.width = 150;
+            column.filter.filterOptions.filter = true;
           }
         }
       });
 
-      // Apply distinct filter for CurrencyID (using existing collection from editor)
+      // Apply distinct filter for CurrencyID
       const currencyColumn = columns.find((col: any) => col.field === 'CurrencyID');
-      if (currencyColumn && currencyColumn.editor && currencyColumn.editor.collection) {
-        if (!currencyColumn.filter) {
-          currencyColumn.filter = {};
+      if (currencyColumn && currencyColumn.filter) {
+        const collection = this.buildDistinctCollection(data, 'CurrencyID');
+        if (collection.length > 0) {
+          // Map currency IDs to codes
+          const currencyCollection = collection.map(item => {
+            const currency = this.dtcurrency.find((c: any) => c.ID === Number(item.value));
+            return {
+              value: item.value,
+              label: currency ? currency.Code : item.label,
+            };
+          });
+          currencyColumn.filter.model = Filters['multipleSelect'];
+          currencyColumn.filter.collection = currencyCollection;
+          currencyColumn.filter.customStructure = {
+            value: 'value',
+            label: 'label',
+          };
+          if (!currencyColumn.filter.filterOptions) {
+            currencyColumn.filter.filterOptions = {};
+          }
+          currencyColumn.filter.filterOptions.filter = true;
         }
-        const currencyCollection = this.getCurrencyCollection();
-        // Filter out empty entries but keep entries with valid value
-        const filteredCollection = currencyCollection.filter(x => x.value > 0);
-        currencyColumn.filter.model = Filters['multipleSelect'];
-        currencyColumn.filter.collection = filteredCollection;
-        currencyColumn.filter.customStructure = {
-          value: 'value',
-          label: 'label',
-        };
-        if (!currencyColumn.filter.options) {
-          currencyColumn.filter.options = {};
-        }
-        currencyColumn.filter.options.offsetLeft = 14;
-        currencyColumn.filter.options.width = 100;
       }
 
-      // Apply distinct filter for SupplierSaleID (using existing collection from editor)
+      // Apply distinct filter for SupplierSaleID
       const supplierColumn = columns.find((col: any) => col.field === 'SupplierSaleID');
-      if (supplierColumn && supplierColumn.editor && supplierColumn.editor.collection) {
-        if (!supplierColumn.filter) {
-          supplierColumn.filter = {};
+      if (supplierColumn && supplierColumn.filter) {
+        const collection = this.buildDistinctCollection(data, 'SupplierSaleID');
+        if (collection.length > 0) {
+          // Map supplier IDs to names
+          const supplierCollection = collection.map(item => {
+            const supplier = this.dtSupplierSale.find((s: any) => s.ID === Number(item.value));
+            return {
+              value: item.value,
+              label: supplier ? supplier.NameNCC : item.label,
+            };
+          });
+          supplierColumn.filter.model = Filters['multipleSelect'];
+          supplierColumn.filter.collection = supplierCollection;
+          supplierColumn.filter.customStructure = {
+            value: 'value',
+            label: 'label',
+          };
+          if (!supplierColumn.filter.filterOptions) {
+            supplierColumn.filter.filterOptions = {};
+          }
+          supplierColumn.filter.filterOptions.filter = true;
         }
-        const supplierCollection = this.getSupplierCollection();
-        // Filter out empty entries but keep entries with valid value
-        const filteredCollection = supplierCollection.filter(x => x.value > 0);
-        supplierColumn.filter.model = Filters['multipleSelect'];
-        supplierColumn.filter.collection = filteredCollection;
-        supplierColumn.filter.customStructure = {
-          value: 'value',
-          label: 'label',
-        };
-        if (!supplierColumn.filter.options) {
-          supplierColumn.filter.options = {};
-        }
-        supplierColumn.filter.options.offsetLeft = 14;
-        supplierColumn.filter.options.width = 200;
       }
 
       // Update column definitions in the map
@@ -5310,60 +5298,66 @@ private buildDistinctCollection(
             if (collection.length > 0) {
               colDef.filter.model = Filters['multipleSelect'];
               colDef.filter.collection = collection;
-              colDef.filter.operator = 'IN';
               colDef.filter.customStructure = {
                 value: 'value',
                 label: 'label',
               };
-              if (!colDef.filter.options) {
-                colDef.filter.options = {};
+              if (!colDef.filter.filterOptions) {
+                colDef.filter.filterOptions = {};
               }
-              colDef.filter.options.offsetLeft = 14;
-              colDef.filter.options.width = 150;
+              colDef.filter.filterOptions.filter = true;
             }
           }
         });
 
         // Update CurrencyID filter in columnDefs
         const currencyColDef = columnDefs.find((col: any) => col.field === 'CurrencyID');
-        if (currencyColDef && currencyColDef.editor && currencyColDef.editor.collection) {
-          if (!currencyColDef.filter) {
-            currencyColDef.filter = {};
+        if (currencyColDef && currencyColDef.filter) {
+          const collection = this.buildDistinctCollection(data, 'CurrencyID');
+          if (collection.length > 0) {
+            const currencyCollection = collection.map(item => {
+              const currency = this.dtcurrency.find((c: any) => c.ID === Number(item.value));
+              return {
+                value: item.value,
+                label: currency ? currency.Code : item.label,
+              };
+            });
+            currencyColDef.filter.model = Filters['multipleSelect'];
+            currencyColDef.filter.collection = currencyCollection;
+            currencyColDef.filter.customStructure = {
+              value: 'value',
+              label: 'label',
+            };
+            if (!currencyColDef.filter.filterOptions) {
+              currencyColDef.filter.filterOptions = {};
+            }
+            currencyColDef.filter.filterOptions.filter = true;
           }
-          const currencyCollection = this.getCurrencyCollection();
-          const filteredCollection = currencyCollection.filter(x => x.value > 0);
-          currencyColDef.filter.model = Filters['multipleSelect'];
-          currencyColDef.filter.collection = filteredCollection;
-          currencyColDef.filter.customStructure = {
-            value: 'value',
-            label: 'label',
-          };
-          if (!currencyColDef.filter.options) {
-            currencyColDef.filter.options = {};
-          }
-          currencyColDef.filter.options.offsetLeft = 14;
-          currencyColDef.filter.options.width = 100;
         }
 
         // Update SupplierSaleID filter in columnDefs
         const supplierColDef = columnDefs.find((col: any) => col.field === 'SupplierSaleID');
-        if (supplierColDef && supplierColDef.editor && supplierColDef.editor.collection) {
-          if (!supplierColDef.filter) {
-            supplierColDef.filter = {};
+        if (supplierColDef && supplierColDef.filter) {
+          const collection = this.buildDistinctCollection(data, 'SupplierSaleID');
+          if (collection.length > 0) {
+            const supplierCollection = collection.map(item => {
+              const supplier = this.dtSupplierSale.find((s: any) => s.ID === Number(item.value));
+              return {
+                value: item.value,
+                label: supplier ? supplier.NameNCC : item.label,
+              };
+            });
+            supplierColDef.filter.model = Filters['multipleSelect'];
+            supplierColDef.filter.collection = supplierCollection;
+            supplierColDef.filter.customStructure = {
+              value: 'value',
+              label: 'label',
+            };
+            if (!supplierColDef.filter.filterOptions) {
+              supplierColDef.filter.filterOptions = {};
+            }
+            supplierColDef.filter.filterOptions.filter = true;
           }
-          const supplierCollection = this.getSupplierCollection();
-          const filteredCollection = supplierCollection.filter(x => x.value > 0);
-          supplierColDef.filter.model = Filters['multipleSelect'];
-          supplierColDef.filter.collection = filteredCollection;
-          supplierColDef.filter.customStructure = {
-            value: 'value',
-            label: 'label',
-          };
-          if (!supplierColDef.filter.options) {
-            supplierColDef.filter.options = {};
-          }
-          supplierColDef.filter.options.offsetLeft = 14;
-          supplierColDef.filter.options.width = 200;
         }
       }
 
@@ -5556,260 +5550,6 @@ private buildDistinctCollection(
   // Column definitions are now handled by initGridColumns()
 
   // Removed old Tabulator column definitions - now using Angular SlickGrid columns defined in initGridColumns()
-
-  //#region Header Filter Methods
-  /**
-   * Helper method to create column header name with filter icon
-   * @param baseName - Base name of the column (e.g., "Mã sản phẩm")
-   * @param iconClass - CSS class for the filter icon (e.g., "productcode-filter-icon")
-   * @param typeId - Optional: Type ID to check filter status and change icon color
-   * @param columnId - Optional: Column ID to check filter status
-   * @returns Header name string with filter icon HTML
-   */
-  private createHeaderWithFilterIcon(baseName: string, iconClass: string, typeId?: number, columnId?: string): string {
-    let iconColor = '#1890ff'; // Default blue color
-    
-    // If typeId and columnId are provided, check if filter is active
-    if (typeId !== undefined && columnId) {
-      const filterKey = `${columnId}-${typeId}`;
-      const appliedValues = this.headerFilterAppliedValuesMap.get(filterKey);
-      const hasFilter = appliedValues && appliedValues.length > 0;
-      // Orange color when filter is active
-      if (hasFilter) {
-        iconColor = '#ff9800';
-      }
-    }
-    
-    return `${baseName} <i class="fas fa-filter ${iconClass}" style="cursor:pointer; margin-left:6px; color:${iconColor};" title="Lọc"></i>`;
-  }
-
-  onHeaderFilterApply(e: HeaderFilterApplyEvent) {
-    // Key format: "columnId-typeId"
-    const match = e.key.match(/^(.+)-(\d+)$/);
-    if (match) {
-      const columnId = match[1];
-      const typeId = parseInt(match[2], 10);
-      this.headerFilterAppliedValuesMap.set(e.key, e.appliedValues);
-      this.applyAllHeaderFiltersToView(typeId);
-      // Update column header to reflect filter status
-      this.updateColumnHeaderFilterIcon(typeId, columnId);
-    }
-  }
-
-  /**
-   * Helper method to get column header name with filter icon color based on filter status
-   * This method is used when updating existing columns after filter is applied
-   */
-  private getColumnHeaderNameWithFilterIcon(columnId: string, baseName: string, typeId: number, iconClass: string): string {
-    return this.createHeaderWithFilterIcon(baseName, iconClass, typeId, columnId);
-  }
-
-  /**
-   * Update column header filter icon color based on filter status
-   */
-  private updateColumnHeaderFilterIcon(typeId: number, columnId: string): void {
-    const angularGrid = this.angularGrids.get(typeId);
-    if (!angularGrid || !angularGrid.slickGrid) return;
-
-    const columns = angularGrid.slickGrid.getColumns();
-    const column = columns.find((col: any) => col.id === columnId);
-    if (!column) return;
-
-    // Map column IDs to their base names and icon classes
-    const columnConfig: { [key: string]: { baseName: string; iconClass: string } } = {
-      'ProductCode': { baseName: 'Mã sản phẩm', iconClass: 'productcode-filter-icon' },
-      'ProjectCode': { baseName: 'Mã dự án', iconClass: 'projectcode-filter-icon' },
-      'ProductName': { baseName: 'Tên sản phẩm', iconClass: 'productname-filter-icon' },
-      'Manufacturer': { baseName: 'Hãng', iconClass: 'manufacturer-filter-icon' },
-      'StatusRequestText': { baseName: 'Trạng thái', iconClass: 'statusrequesttext-filter-icon' },
-      'FullName': { baseName: 'Người yêu cầu', iconClass: 'fullname-filter-icon' },
-      'CurrencyID': { baseName: 'Loại tiền', iconClass: 'currencyid-filter-icon' },
-      'SupplierSaleID': { baseName: 'Nhà cung cấp', iconClass: 'suppliersaleid-filter-icon' },
-    };
-
-    const config = columnConfig[columnId];
-    if (!config) return;
-
-    // Handle special cases for ProjectCode (can be "Mã dự án" or "Mã YCCV")
-    let baseName = config.baseName;
-    if (columnId === 'ProjectCode') {
-      const isJobRequirement = typeId === -2 || this.jobRequirementID > 0 || this.isVPP;
-      baseName = isJobRequirement ? 'Mã YCCV' : 'Mã dự án';
-    }
-
-    // Update column name with filter icon
-    const newName = this.getColumnHeaderNameWithFilterIcon(columnId, baseName, typeId, config.iconClass);
-    column.name = newName;
-
-    // Update column definition in the map
-    const columnDefs = this.columnDefinitionsMap.get(typeId);
-    if (columnDefs) {
-      const colDef = columnDefs.find((col: any) => col.id === columnId);
-      if (colDef) {
-        colDef.name = newName;
-      }
-    }
-
-    // Update grid columns
-    angularGrid.slickGrid.setColumns(columns);
-    angularGrid.slickGrid.render();
-  }
-
-  /**
-   * Update all column header filter icons for a tab
-   */
-  private updateAllColumnHeaderFilterIcons(typeId: number): void {
-    const filterableColumns = [
-      'ProductCode',
-      'ProjectCode',
-      'ProductName',
-      'Manufacturer',
-      'StatusRequestText',
-      'FullName',
-      'CurrencyID',
-      'SupplierSaleID',
-    ];
-
-    filterableColumns.forEach(columnId => {
-      this.updateColumnHeaderFilterIcon(typeId, columnId);
-    });
-  }
-
-  private syncAllDataIfNeeded(typeId: number) {
-    // Sync original data from allDataByType to datasetsAllMap for header filters
-    if ((!this.datasetsAllMap.has(typeId) || this.datasetsAllMap.get(typeId)?.length === 0)) {
-      const originalData = this.allDataByType.get(typeId) || [];
-      if (originalData.length > 0) {
-        this.datasetsAllMap.set(typeId, [...originalData]);
-      }
-    }
-  }
-
-  private getHeaderFilterOptions(columnId: string, typeId: number): HeaderFilterOption[] {
-    this.syncAllDataIfNeeded(typeId);
-    const allData = this.datasetsAllMap.get(typeId) || [];
-    const map = new Map<string, string>();
-    map.set('', '');
-
-    // Get field name based on columnId
-    let fieldName = columnId;
-    let getValue: (row: any) => string;
-    let getLabel: (row: any, value: string) => string = (_, v) => v;
-
-    switch (columnId) {
-      case 'ProductCode':
-        getValue = (row) => String(row?.ProductCode ?? '');
-        break;
-      case 'ProjectCode':
-        getValue = (row) => String(row?.ProjectCode ?? '');
-        break;
-      case 'ProductName':
-        getValue = (row) => String(row?.ProductName ?? '');
-        break;
-      case 'Manufacturer':
-        getValue = (row) => String(row?.Manufacturer ?? '');
-        break;
-      case 'StatusRequestText':
-        getValue = (row) => String(row?.StatusRequestText ?? '');
-        break;
-      case 'FullName':
-        getValue = (row) => String(row?.FullName ?? '');
-        break;
-      case 'CurrencyID':
-        getValue = (row) => String(row?.CurrencyID ?? '');
-        getLabel = (row, value) => {
-          const currency = this.dtcurrency.find((c: any) => c.ID === Number(value));
-          return currency ? currency.Code : value;
-        };
-        break;
-      case 'SupplierSaleID':
-        getValue = (row) => String(row?.SupplierSaleID ?? '');
-        getLabel = (row, value) => {
-          const supplier = this.dtSupplierSale.find((s: any) => s.ID === Number(value));
-          return supplier ? supplier.NameNCC : value;
-        };
-        break;
-      default:
-        getValue = (row) => String(row?.[fieldName] ?? '');
-    }
-
-    for (const row of allData) {
-      const v = getValue(row);
-      if (v && !map.has(v)) {
-        const label = getLabel(row, v);
-        map.set(v, label);
-      }
-    }
-
-    return Array.from(map.entries())
-      .map(([value, label]) => ({ value, label }))
-      .sort((a, b) => a.label.localeCompare(b.label));
-  }
-
-  private applyAllHeaderFiltersToView(typeId: number) {
-    this.syncAllDataIfNeeded(typeId);
-    const allData = this.datasetsAllMap.get(typeId) || [];
-
-    if (!allData.length) {
-      this.allDataByType.set(typeId, []);
-      this.refreshGridForTab(typeId);
-      return;
-    }
-
-    // Apply all filters sequentially
-    let filtered = [...allData];
-
-    // List of all filterable columns
-    const filterableColumns = [
-      'ProductCode',
-      'ProjectCode',
-      'ProductName',
-      'Manufacturer',
-      'StatusRequestText',
-      'FullName',
-      'CurrencyID',
-      'SupplierSaleID',
-    ];
-
-    for (const columnId of filterableColumns) {
-      const filterKey = `${columnId}-${typeId}`;
-      const appliedValues = this.headerFilterAppliedValuesMap.get(filterKey);
-      
-      if (appliedValues && appliedValues.length > 0) {
-        const allowed = new Set(appliedValues.map((x) => String(x ?? '')));
-        
-        filtered = filtered.filter((row) => {
-          const value = String(row?.[columnId] ?? '');
-          return allowed.has(value);
-        });
-      }
-    }
-
-    this.allDataByType.set(typeId, filtered);
-    this.refreshGridForTab(typeId);
-  }
-
-  private refreshGridForTab(typeId: number) {
-    const angularGrid = this.angularGrids.get(typeId);
-    if (angularGrid && angularGrid.dataView) {
-      // Update dataset in datasetsMap
-      const filteredData = this.allDataByType.get(typeId) || [];
-      this.datasetsMap.set(typeId, filteredData);
-      
-      // Update grid data
-      this.setGridData(typeId, filteredData);
-      
-      // Update all column header filter icons to reflect current filter status
-      this.updateAllColumnHeaderFilterIcons(typeId);
-      
-      // Update tab title with filtered count if needed
-      const projectType = this.projectTypes.find(t => t.ProjectTypeID === typeId);
-      if (projectType) {
-        // You can update tab title here if needed
-      }
-    }
-  }
-  //#endregion
 
   /**
    * Helper function để chuyển số cột thành chữ cái (A, B, C, ..., Z, AA, AB, ...)

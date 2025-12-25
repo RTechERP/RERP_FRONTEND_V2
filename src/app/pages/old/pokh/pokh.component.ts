@@ -1290,16 +1290,16 @@ export class PokhComponent implements OnInit, AfterViewInit {
           '<span style="font-size: 0.75rem;"><i class="fas fa-eye"></i> Lịch sử tiền về</span>',
         action: () => this.openHistoryMoneyModal(),
       },
-      {
-        label:
-          '<span style="font-size: 0.75rem;"><i class="fas fa-eye"></i> Danh sách yêu cầu mua hàng</span>',
-        action: () => this.openProjectPartlistPurchaseRequest(),
-      },
-      {
-        label:
-          '<span style="font-size: 0.75rem;"><i class="fas fa-eye"></i> Danh sách yêu cầu báo giá</span>',
-        action: () => this.openProjectPartlistPriceRequestNew(),
-      },
+      // {
+      //   label:
+      //     '<span style="font-size: 0.75rem;"><i class="fas fa-eye"></i> Danh sách yêu cầu mua hàng</span>',
+      //   action: () => this.openProjectPartlistPurchaseRequest(),
+      // },
+      // {
+      //   label:
+      //     '<span style="font-size: 0.75rem;"><i class="fas fa-eye"></i> Danh sách yêu cầu báo giá</span>',
+      //   action: () => this.openProjectPartlistPriceRequestNew(),
+      // },
     ];
   }
 

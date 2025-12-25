@@ -14,9 +14,20 @@ import { SplitterModule } from 'primeng/splitter';
 import { PaymentOrderService } from './payment-order.service';
 import { NzNotificationService } from 'ng-zorro-antd/notification';
 import { PaymentOrderDetailComponent } from './payment-order-detail/payment-order-detail.component';
-import { AngularGridInstance, AngularSlickgridModule, Column, Filters, Formatters, GridOption, MultipleSelectOption, OnClickEventArgs, OnEventArgs, OnSelectedRowsChangedEventArgs } from 'angular-slickgrid';
+import {
+    AngularGridInstance,
+    AngularSlickgridModule,
+    Column, Filters,
+    Formatter,
+    Formatters,
+    GridOption,
+    MultipleSelectOption,
+    OnClickEventArgs,
+    OnEventArgs,
+    OnSelectedRowsChangedEventArgs,
+    // ExcelExportService,
+} from 'angular-slickgrid';
 import { PaymentOrder, PaymentOrderDetailField, PaymentOrderField } from './model/payment-order';
-
 import { CommonModule } from '@angular/common';
 import { NOTIFICATION_TITLE } from '../../../app.config';
 import { NzSplitterModule } from 'ng-zorro-antd/splitter';
@@ -37,6 +48,8 @@ import vfs from '../../../shared/pdf/vfs_fonts_custom.js';
 import { NzIconModule } from 'ng-zorro-antd/icon';
 import { PaymentOrderSpecialComponent } from './payment-order-special/payment-order-special.component';
 import { environment } from '../../../../environments/environment';
+import { ExcelExportService } from '@slickgrid-universal/excel-export';
+import { DateTime } from 'luxon';
 
 (pdfMake as any).vfs = vfs;
 (pdfMake as any).fonts = {
@@ -111,7 +124,6 @@ export class PaymentOrderComponent implements OnInit {
     typeOrders: any = [];
     paymentOrderTypes: any = [];
 
-
     angularGrid!: AngularGridInstance;
     angularGridDetail!: AngularGridInstance;
     angularGridFile!: AngularGridInstance;
@@ -153,8 +165,15 @@ export class PaymentOrderComponent implements OnInit {
     datasetSpecialDetail: any[] = [];
 
     dataPrint: any = {};
-    excelExportService!: ExcelExportService;
+    excelExportService = new ExcelExportService();
+    excelExportServiceSpecial = new ExcelExportService();
 
+    processingExport = false;
+    excelBooleanFormatter: Formatter = (_row, _cell, value) => {
+        if (value === true) return 'x';
+        if (value === false) return '';
+        return '';
+    };
 
     constructor(
         private modalService: NgbModal,
@@ -164,7 +183,6 @@ export class PaymentOrderComponent implements OnInit {
         private departmentService: DepartmentServiceService,
         private employeeService: EmployeeService,
         private paymentOrderTypeService: PaymentOrderTypeService,
-        // private excelExportService: ExcelExportService,
 
     ) { }
 
@@ -504,7 +522,28 @@ export class PaymentOrderComponent implements OnInit {
                 label: 'Xuất excel',
                 icon: PrimeIcons.FOLDER,
                 command: () => {
-                    this.excelExportService.exportToExcel();
+                    const dateStart = DateTime.fromJSDate(this.param.dateStart).toFormat('ddMMyyyy');
+                    const dateEnd = DateTime.fromJSDate(this.param.dateEnd).toFormat('ddMMyyyy');
+                    const now = DateTime.fromJSDate(new Date()).toFormat('HHmmss');
+                    if (this.activeTab == '0') {
+                        // this.columnDefinitions = this.angularGrid.slickGrid?.getColumns().map(col => ({
+                        //     ...col,
+                        //     exportColumnWidth: col.width
+                        // }));
+
+                        // console.log(this.columnDefinitions);
+
+                        this.excelExportService.exportToExcel({
+                            filename: `TheoDoiChiPhiVP_${dateStart}_${dateEnd}_${now}`,
+                            format: 'xlsx'
+                        });
+                    } else {
+                        this.excelExportServiceSpecial.exportToExcel({
+                            filename: `TheoDoiChiPhiVPDB_${dateStart}_${dateEnd}_${now}`,
+                            format: 'xlsx'
+                        });
+                    }
+
                 }
             }
         ]
@@ -521,6 +560,7 @@ export class PaymentOrderComponent implements OnInit {
                 sortable: true, filterable: true,
                 // formatter: Formatters.iconBoolean,
                 filter: { model: Filters['compoundInputNumber'] },
+                // exportColumnWidth:80
             },
             {
                 id: PaymentOrderField.IsUrgent.field,
@@ -529,12 +569,13 @@ export class PaymentOrderComponent implements OnInit {
                 type: PaymentOrderField.IsUrgent.type,
                 sortable: true, filterable: true,
                 width: 80,
-                formatter: Formatters.iconBoolean, params: { cssClass: "mdi mdi-check" },
+                formatter: Formatters.checkmarkMaterial,
+                exportCustomFormatter: this.excelBooleanFormatter,
                 filter: {
                     collection: [
                         { value: '', label: '' },
                         { value: true, label: 'Gấp' },
-                        { value: false, label: 'False' },
+                        { value: false, label: 'Không gấp' },
                     ],
                     model: Filters['singleSelect'],
                     filterOptions: {
@@ -676,7 +717,19 @@ export class PaymentOrderComponent implements OnInit {
                 sortable: true, filterable: true,
                 width: 80,
                 formatter: Formatters.iconBoolean, params: { cssClass: "mdi mdi-check" },
-                filter: { model: Filters['compoundInputText'] },
+                exportCustomFormatter: this.excelBooleanFormatter,
+                filter: {
+                    collection: [
+                        { value: '', label: '' },
+                        { value: true, label: 'Có hóa đơn' },
+                        { value: false, label: 'Không có' },
+                    ],
+                    model: Filters['singleSelect'],
+                    filterOptions: {
+                        autoAdjustDropHeight: true,
+                        filter: true,
+                    } as MultipleSelectOption,
+                },
             },
             {
                 id: PaymentOrderField.StartLocation.field,
@@ -1305,35 +1358,37 @@ export class PaymentOrderComponent implements OnInit {
             createPreHeaderPanel: true,
             showPreHeaderPanel: true,
 
+            //Config xuất excel
             externalResources: [this.excelExportService],
             enableExcelExport: true,
             excelExportOptions: {
-                filename: 'grocery-list',
+                // filename: `TheoDoiChiPhiVP_${DateTime.fromJSDate(new Date()).toFormat()}`,
                 sanitizeDataExport: true,
-                sheetName: 'Grocery List',
-                columnHeaderStyle: {
-                    font: { color: 'FFFFFFFF' },
-                    fill: { type: 'pattern', patternType: 'solid', fgColor: 'FF4a6c91' },
-                },
+                exportWithFormatter: true,
+                // sheetName: 'Grocery List',
+                // columnHeaderStyle: {
+                //     font: { color: 'FFFFFFFF' },
+                //     fill: { type: 'pattern', patternType: 'solid', fgColor: 'FF4a6c91' },
+                // },
 
                 // optionally pass a custom header to the Excel Sheet
                 // a lot of the info can be found on Web Archive of Excel-Builder
                 // https://ghiscoding.gitbook.io/excel-builder-vanilla/cookbook/fonts-and-colors
-                customExcelHeader: (workbook, sheet) => {
-                    const excelFormat = workbook.getStyleSheet().createFormat({
-                        // every color is prefixed with FF, then regular HTML color
-                        font: { size: 18, fontName: 'Calibri', bold: true, color: 'FFFFFFFF' },
-                        alignment: { wrapText: true, horizontal: 'center' },
-                        fill: { type: 'pattern', patternType: 'solid', fgColor: 'FF203764' },
-                    });
-                    sheet.setRowInstructions(0, { height: 40 }); // change height of row 0
+                // customExcelHeader: (workbook, sheet) => {
+                //     const excelFormat = workbook.getStyleSheet().createFormat({
+                //         // every color is prefixed with FF, then regular HTML color
+                //         font: { size: 18, fontName: 'Calibri', bold: true, color: 'FFFFFFFF' },
+                //         alignment: { wrapText: true, horizontal: 'center' },
+                //         fill: { type: 'pattern', patternType: 'solid', fgColor: 'FF203764' },
+                //     });
+                //     sheet.setRowInstructions(0, { height: 40 }); // change height of row 0
 
-                    // excel cells start with A1 which is upper left corner
-                    const customTitle = 'Grocery Shopping List';
-                    //   const lastCellMerge = this.isDataGrouped ? 'H1' : 'G1';
-                    //   sheet.mergeCells('A1', lastCellMerge);
-                    sheet.data.push([{ value: customTitle, metadata: { style: excelFormat.id } }]);
-                },
+                //     // excel cells start with A1 which is upper left corner
+                //     const customTitle = '';
+                //     //   const lastCellMerge = this.isDataGrouped ? 'H1' : 'G1';
+                //     //   sheet.mergeCells('A1', lastCellMerge);
+                //     sheet.data.push([{ value: customTitle, metadata: { style: excelFormat.id } }]);
+                // },
             },
         };
 
@@ -1597,7 +1652,19 @@ export class PaymentOrderComponent implements OnInit {
                 sortable: true, filterable: true,
                 width: 80,
                 formatter: Formatters.iconBoolean, params: { cssClass: "mdi mdi-check" },
-                filter: { model: Filters['compoundInputNumber'] },
+                exportCustomFormatter: this.excelBooleanFormatter,
+                filter: {
+                    collection: [
+                        { value: '', label: '' },
+                        { value: true, label: 'Gấp' },
+                        { value: false, label: 'Không gấp' },
+                    ],
+                    model: Filters['singleSelect'],
+                    filterOptions: {
+                        autoAdjustDropHeight: true,
+                        filter: true,
+                    } as MultipleSelectOption,
+                },
             },
             {
                 id: PaymentOrderField.DateOrder.field,
@@ -1627,7 +1694,14 @@ export class PaymentOrderComponent implements OnInit {
                 sortable: true, filterable: true,
                 width: 200,
                 // formatter: Formatters.icon,
-                filter: { model: Filters['compoundInputText'] },
+                filter: {
+                    collection: [],
+                    model: Filters['multipleSelect'],
+                    filterOptions: {
+                        autoAdjustDropHeight: true,
+                        filter: true,
+                    } as MultipleSelectOption,
+                },
             },
             {
                 id: PaymentOrderField.FullName.field,
@@ -1637,7 +1711,14 @@ export class PaymentOrderComponent implements OnInit {
                 sortable: true, filterable: true,
                 width: 200,
                 // formatter: Formatters.icon,
-                filter: { model: Filters['compoundInputText'] },
+                filter: {
+                    collection: [],
+                    model: Filters['multipleSelect'],
+                    filterOptions: {
+                        autoAdjustDropHeight: true,
+                        filter: true,
+                    } as MultipleSelectOption,
+                },
             },
             {
                 id: PaymentOrderField.ReceiverInfo.field,
@@ -1647,7 +1728,14 @@ export class PaymentOrderComponent implements OnInit {
                 sortable: true, filterable: true,
                 width: 200,
                 // formatter: Formatters.icon,
-                filter: { model: Filters['compoundInputText'] },
+                filter: {
+                    collection: [],
+                    model: Filters['multipleSelect'],
+                    filterOptions: {
+                        autoAdjustDropHeight: true,
+                        filter: true,
+                    } as MultipleSelectOption,
+                },
             },
 
             {
@@ -1658,7 +1746,14 @@ export class PaymentOrderComponent implements OnInit {
                 sortable: true, filterable: true,
                 width: 200,
                 // formatter: Formatters.icon,
-                filter: { model: Filters['compoundInputText'] },
+                filter: {
+                    collection: [],
+                    model: Filters['multipleSelect'],
+                    filterOptions: {
+                        autoAdjustDropHeight: true,
+                        filter: true,
+                    } as MultipleSelectOption,
+                },
             },
 
             {
@@ -1669,17 +1764,31 @@ export class PaymentOrderComponent implements OnInit {
                 sortable: true, filterable: true,
                 width: 250,
                 // formatter: Formatters,
-                filter: { model: Filters['compoundInputText'] },
+                filter: {
+                    collection: [],
+                    model: Filters['multipleSelect'],
+                    filterOptions: {
+                        autoAdjustDropHeight: true,
+                        filter: true,
+                    } as MultipleSelectOption,
+                },
             },
             {
                 id: PaymentOrderField.CustomerName.field,
-                name: 'Khách hành',
+                name: 'Khách hàng',
                 field: PaymentOrderField.CustomerName.field,
                 type: PaymentOrderField.CustomerName.type,
                 sortable: true, filterable: true,
                 width: 250,
                 // formatter: Formatters.icon,
-                filter: { model: Filters['compoundInputText'] },
+                filter: {
+                    collection: [],
+                    model: Filters['multipleSelect'],
+                    filterOptions: {
+                        autoAdjustDropHeight: true,
+                        filter: true,
+                    } as MultipleSelectOption,
+                },
             },
             {
                 id: PaymentOrderField.TypeDocumentText.field,
@@ -1688,8 +1797,15 @@ export class PaymentOrderComponent implements OnInit {
                 type: PaymentOrderField.TypeDocumentText.type,
                 sortable: true, filterable: true,
                 width: 80,
-                formatter: Formatters.iconBoolean, params: { cssClass: "mdi mdi-check" },
-                filter: { model: Filters['compoundInputText'] },
+                // formatter: Formatters.iconBoolean, params: { cssClass: "mdi mdi-check" },
+                filter: {
+                    collection: [],
+                    model: Filters['multipleSelect'],
+                    filterOptions: {
+                        autoAdjustDropHeight: true,
+                        filter: true,
+                    } as MultipleSelectOption,
+                },
             },
             {
                 id: PaymentOrderField.NumberDocument.field,
@@ -1699,7 +1815,14 @@ export class PaymentOrderComponent implements OnInit {
                 sortable: true, filterable: true,
                 width: 200,
                 // formatter: Formatters.icon,
-                filter: { model: Filters['compoundInputText'] },
+                filter: {
+                    collection: [],
+                    model: Filters['multipleSelect'],
+                    filterOptions: {
+                        autoAdjustDropHeight: true,
+                        filter: true,
+                    } as MultipleSelectOption,
+                },
             },
 
             {
@@ -1722,7 +1845,14 @@ export class PaymentOrderComponent implements OnInit {
                 sortable: true, filterable: true,
                 width: 80,
                 // formatter: Formatters.icon,
-                filter: { model: Filters['compoundInputText'] },
+                filter: {
+                    collection: [],
+                    model: Filters['multipleSelect'],
+                    filterOptions: {
+                        autoAdjustDropHeight: true,
+                        filter: true,
+                    } as MultipleSelectOption,
+                },
             },
             {
                 id: PaymentOrderField.PaymentMethodsJoin.field,
@@ -1732,7 +1862,14 @@ export class PaymentOrderComponent implements OnInit {
                 sortable: true, filterable: true,
                 width: 170,
                 // formatter: Formatters.icon,
-                filter: { model: Filters['compoundInputText'] },
+                filter: {
+                    collection: [],
+                    model: Filters['multipleSelect'],
+                    filterOptions: {
+                        autoAdjustDropHeight: true,
+                        filter: true,
+                    } as MultipleSelectOption,
+                },
             },
 
             {
@@ -1743,7 +1880,14 @@ export class PaymentOrderComponent implements OnInit {
                 sortable: true, filterable: true,
                 width: 200,
                 // formatter: Formatters.icon,
-                filter: { model: Filters['compoundInputText'] },
+                filter: {
+                    collection: [],
+                    model: Filters['multipleSelect'],
+                    filterOptions: {
+                        autoAdjustDropHeight: true,
+                        filter: true,
+                    } as MultipleSelectOption,
+                },
             },
 
 
@@ -1755,7 +1899,14 @@ export class PaymentOrderComponent implements OnInit {
                 sortable: true, filterable: true,
                 width: 200,
                 // formatter: Formatters.icon,
-                filter: { model: Filters['compoundInputText'] },
+                filter: {
+                    collection: [],
+                    model: Filters['multipleSelect'],
+                    filterOptions: {
+                        autoAdjustDropHeight: true,
+                        filter: true,
+                    } as MultipleSelectOption,
+                },
             },
             {
                 id: PaymentOrderField.ReasonCancel.field,
@@ -1765,7 +1916,14 @@ export class PaymentOrderComponent implements OnInit {
                 sortable: true, filterable: true,
                 width: 200,
                 // formatter: Formatters.icon,
-                filter: { model: Filters['compoundInputText'] },
+                filter: {
+                    collection: [],
+                    model: Filters['multipleSelect'],
+                    filterOptions: {
+                        autoAdjustDropHeight: true,
+                        filter: true,
+                    } as MultipleSelectOption,
+                },
             },
 
             {
@@ -1776,7 +1934,14 @@ export class PaymentOrderComponent implements OnInit {
                 sortable: true, filterable: true,
                 width: 300,
                 // formatter: Formatters.icon,
-                filter: { model: Filters['compoundInputText'] },
+                filter: {
+                    collection: [],
+                    model: Filters['multipleSelect'],
+                    filterOptions: {
+                        autoAdjustDropHeight: true,
+                        filter: true,
+                    } as MultipleSelectOption,
+                },
             }
         ];
         this.gridOptionsSpecial = {
@@ -1812,6 +1977,39 @@ export class PaymentOrderComponent implements OnInit {
 
             createPreHeaderPanel: true,
             showPreHeaderPanel: true,
+
+            //Config xuất excel
+            externalResources: [this.excelExportServiceSpecial],
+            enableExcelExport: true,
+            excelExportOptions: {
+                // filename: `TheoDoiChiPhiVP_${DateTime.fromJSDate(new Date()).toFormat()}`,
+                sanitizeDataExport: true,
+                exportWithFormatter: true,
+                // sheetName: 'Grocery List',
+                // columnHeaderStyle: {
+                //     font: { color: 'FFFFFFFF' },
+                //     fill: { type: 'pattern', patternType: 'solid', fgColor: 'FF4a6c91' },
+                // },
+
+                // optionally pass a custom header to the Excel Sheet
+                // a lot of the info can be found on Web Archive of Excel-Builder
+                // https://ghiscoding.gitbook.io/excel-builder-vanilla/cookbook/fonts-and-colors
+                // customExcelHeader: (workbook, sheet) => {
+                //     const excelFormat = workbook.getStyleSheet().createFormat({
+                //         // every color is prefixed with FF, then regular HTML color
+                //         font: { size: 18, fontName: 'Calibri', bold: true, color: 'FFFFFFFF' },
+                //         alignment: { wrapText: true, horizontal: 'center' },
+                //         fill: { type: 'pattern', patternType: 'solid', fgColor: 'FF203764' },
+                //     });
+                //     sheet.setRowInstructions(0, { height: 40 }); // change height of row 0
+
+                //     // excel cells start with A1 which is upper left corner
+                //     const customTitle = '';
+                //     //   const lastCellMerge = this.isDataGrouped ? 'H1' : 'G1';
+                //     //   sheet.mergeCells('A1', lastCellMerge);
+                //     sheet.data.push([{ value: customTitle, metadata: { style: excelFormat.id } }]);
+                // },
+            },
         }
 
         this.loadData();
@@ -1930,7 +2128,6 @@ export class PaymentOrderComponent implements OnInit {
         this.angularGridSpecial = angularGrid;
         this.gridDataSpecial = angularGrid?.slickGrid || {};
 
-        this.excelExportService = angularGrid.excelExportService;
     }
 
     angularGridReadySpecialDetail(angularGrid: AngularGridInstance) {
@@ -2016,7 +2213,7 @@ export class PaymentOrderComponent implements OnInit {
                     id: x.ID   // dành riêng cho SlickGrid
                 }));
 
-                this.updateFilterCollections();
+                this.updateFilterCollections(this.angularGrid);
             },
             error: (err) => {
                 this.notification.error(NOTIFICATION_TITLE.error, err.error.message);
@@ -2041,6 +2238,8 @@ export class PaymentOrderComponent implements OnInit {
                     ...x,
                     id: x.ID   // dành riêng cho SlickGrid
                 }));
+
+                this.updateFilterCollections(this.angularGridSpecial);
             },
             error: (err) => {
                 this.notification.error(NOTIFICATION_TITLE.error, err.error.message);
@@ -2097,11 +2296,11 @@ export class PaymentOrderComponent implements OnInit {
     }
 
 
-    private updateFilterCollections(): void {
-        if (!this.angularGrid || !this.angularGrid.slickGrid) return;
+    private updateFilterCollections(angularGrid: AngularGridInstance): void {
+        if (!angularGrid || !angularGrid.slickGrid) return;
 
-        const columns = this.angularGrid.slickGrid.getColumns();
-        const allData = this.dataset;
+        const columns = angularGrid.slickGrid.getColumns();
+        const allData = angularGrid.dataView?.getItems();
 
         // Helper function to get unique values for a field
         const getUniqueValues = (field: string): Array<{ value: string; label: string }> => {
@@ -2147,6 +2346,8 @@ export class PaymentOrderComponent implements OnInit {
     angularGridReady(angularGrid: AngularGridInstance) {
         this.angularGrid = angularGrid;
         this.gridData = angularGrid?.slickGrid || {};
+        // const ext = this.angularGrid.extensionService.getExtensionByType('excelExport');
+        // this.excelExportService = angularGrid.extensionService.getExtensionByName('excelExport') as ExtensionModel<ExcelExportService>;
     }
 
     angularGridDetailReady(angularGrid: AngularGridInstance) {

@@ -46,7 +46,7 @@ import { MenuAppService } from '../../pages/systems/menu-app/menu-app.service';
 import { NOTIFICATION_TITLE } from '../../app.config';
 import { environment } from '../../../environments/environment';
 import { CustomRouteReuseStrategy } from '../../custom-route-reuse.strategy';
-import { LayoutEventService } from '../layout-event.service';
+// import { LayoutEventService } from '../layout-event.service';
 import { take, filter } from 'rxjs/operators';
 import { Subscription } from 'rxjs';
 
@@ -131,7 +131,7 @@ export class MainLayoutComponent implements OnInit, AfterViewInit, OnDestroy {
         // private layoutEvent: LayoutEventService,
         private cd: ChangeDetectorRef,
         private route: ActivatedRoute,
-        private tabService: TabServiceService
+        // private tabService: TabServiceService
     ) {
         // this.menus = this.menuService.getMenus();
     }

@@ -2299,6 +2299,8 @@ export class PaymentOrderComponent implements OnInit {
     private updateFilterCollections(angularGrid: AngularGridInstance): void {
         if (!angularGrid || !angularGrid.slickGrid) return;
 
+        // console.log('angularGrid',angularGrid);
+
         const columns = angularGrid.slickGrid.getColumns();
         const allData = angularGrid.dataView?.getItems();
 
@@ -2329,18 +2331,10 @@ export class PaymentOrderComponent implements OnInit {
             }
         });
 
-        // Update ProductGroupName collection from productGroupData
-        // const productGroupColumn = columns.find((col: any) => col.field === 'ProductGroupName');
-        // if (productGroupColumn && productGroupColumn.filter) {
-        //     productGroupColumn.filter.collection = this.productGroupData.map((group: any) => ({
-        //         value: group.ProductGroupName || '',
-        //         label: group.ProductGroupName || '',
-        //     }));
-        // }
 
         // Update grid columns
-        this.angularGrid.slickGrid.setColumns(columns);
-        this.angularGrid.slickGrid.render();
+        angularGrid.slickGrid.setColumns(columns);
+        angularGrid.slickGrid.render();
     }
 
     angularGridReady(angularGrid: AngularGridInstance) {

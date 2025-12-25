@@ -493,3 +493,8 @@ nz-sider {
   white-space: unset !important;
 }
 
+
+.hidden-tab-header ::ng-deep .ant-tabs-nav {
+  display: none;
+}
+

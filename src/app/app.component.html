@@ -142,6 +142,15 @@
         </nz-header>
         <nz-content class="">
 
+            <nz-tabset [(nzSelectedIndex)]="selectedIndex" class="hidden-tab-header">
+                <nz-tab *ngFor="let tab of dynamicTabs; let i = index">
+                    <ng-template nz-tab>
+                        <router-outlet [name]="tab.outlet"></router-outlet>
+                    </ng-template>
+                </nz-tab>
+            </nz-tabset>
+
+
             <!-- <div class="content-host">
                 <ng-container *ngFor="let tab of dynamicTabs; let i = index">
                     <div [hidden]="selectedIndex !== i" class="tab-pane">
@@ -150,7 +159,7 @@
                     </div>
                 </ng-container>
             </div> -->
-            <router-outlet></router-outlet>
+            <!-- <router-outlet name="HN"></router-outlet> -->
         </nz-content>
         <!-- <nz-footer class="p-2 text-uppercase"> &copy; 2025, made by rtc technology việt nam</nz-footer> -->
     </nz-layout>

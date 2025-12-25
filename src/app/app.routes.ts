@@ -99,6 +99,7 @@ import { ProductReportNewComponent } from './pages/old/product-report-new/produc
 import { ProductRtcQrCodeComponent } from './pages/old/product-rtc-qr-code/product-rtc-qr-code/product-rtc-qr-code.component';
 import { QuotationKhComponent } from './pages/old/quotation-kh/quotation-kh.component';
 import { RequestInvoiceComponent } from './pages/old/request-invoice/request-invoice.component';
+import { RequestInvoiceSummaryComponent } from './pages/old/request-invoice-summary/request-invoice-summary.component';
 import { BillExportComponent } from './pages/old/Sale/BillExport/bill-export.component';
 import { BillImportComponent } from './pages/old/Sale/BillImport/bill-import.component';
 import { HistoryBorrowSaleComponent } from './pages/old/Sale/HistoryBorrowSale/history-borrow-sale.component';
@@ -155,6 +156,7 @@ import { EmployeeContactComponent } from './pages/hrm/employee/employee-contact/
 import { SearchProductTechSerialComponent } from './pages/old/Technical/search-product-tech-serial/search-product-tech-serial.component';
 import { VehicleRepairTypeComponent } from './pages/hrm/vehicle/vehicle-repair/vehicle-repair-type/vehicle-repair-type.component';
 import { OfficeSupplyUnitComponent } from './pages/hrm/office-supply/OfficeSupplyUnit/office-supply-unit.component';
+import { DocumentImportExportComponent } from './pages/old/KETOAN/document-import-export/document-import-export.component';
 
 export const routes: Routes = [
     {
@@ -305,6 +307,7 @@ export const routes: Routes = [
             { path: 'daily-report-sale', component: DailyReportSaleComponent, canActivate: [authGuard] },
             { path: 'daily-report-sale-admin', component: DailyReportSaleAdminComponent, canActivate: [authGuard] },
             { path: 'request-invoice', component: RequestInvoiceComponent, canActivate: [authGuard] },
+            { path: 'request-invoice-summary', component: RequestInvoiceSummaryComponent, canActivate: [authGuard] },
             { path: 'history-export-accountant', component: HistoryExportAccountantComponent, canActivate: [authGuard] },
             { path: 'history-approved-bill-log', component: HistoryApprovedBillLogComponent, canActivate: [authGuard] },
             { path: 'inventory-by-date', component: InventoryByDateComponent, canActivate: [authGuard] },
@@ -408,6 +411,7 @@ export const routes: Routes = [
             { path: 'request-invoice-kt', component: RequestInvoiceComponent, canActivate: [authGuard] },
             { path: 'payment-order-kt', component: PaymentOrderComponent, canActivate: [authGuard] },
             { path: 'payment-order-kt', component: PaymentOrderComponent, canActivate: [authGuard] },
+            { path: 'document-import-export', component: DocumentImportExportComponent, canActivate: [authGuard] },
 
             //Phòng sale
             //HN

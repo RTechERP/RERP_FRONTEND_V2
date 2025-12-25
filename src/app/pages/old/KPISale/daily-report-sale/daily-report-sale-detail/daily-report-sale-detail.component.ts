@@ -140,7 +140,7 @@ export class DailyReportSaleDetailComponent implements OnInit, AfterViewInit {
   initForm(): void {
     this.dailyReportSaleForm = this.fb.group({
       userId: [null, Validators.required],
-      projectId: [null, Validators.required],
+      projectId: [null],
       customerId: [null, Validators.required],
       firmId: [null, Validators.required],
       projectTypeId: [null, Validators.required],

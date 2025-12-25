@@ -101,8 +101,7 @@ import { AccountingContractService } from '../accounting-contract-service/accoun
   styleUrl: './accounting-contract-log.component.css'
 })
 export class AccountingContractLogComponent implements OnInit, AfterViewInit {
-
-
+  @Input() contractIdfromAccountingContract!: any;
   @ViewChild('tb_Master', { static: false }) tb_MasterElement!: ElementRef;
   tb_Master!: Tabulator;
   contractId: number = 0;
@@ -111,6 +110,7 @@ export class AccountingContractLogComponent implements OnInit, AfterViewInit {
   dataUser: any[] = [];
   constructor(
     private modalService: NgbModal,
+    private activeModal: NgbActiveModal,
     private notification: NzNotificationService,
     private fb: FormBuilder,
     private modal: NzModalService,
@@ -118,23 +118,220 @@ export class AccountingContractLogComponent implements OnInit, AfterViewInit {
     @Optional() @Inject('tabData') private tabData: any
   ) { }
 
-  ngOnInit(): void {
+  closeModal(): void {
+    this.activeModal.close({ success: false, reloadData: false });
+  }
 
+  ngOnInit(): void {
+    this.loadContract();
+    this.loadUsers();
+    this.contractId = this.contractIdfromAccountingContract;
   }
 
   ngAfterViewInit(): void {
-
-  }
-
-  loadUsers() {
-    
-  }
-
-  exportToExcel() {
-
+    this.initMasterTable();
+    this.loadAccountingContractLog();
   }
 
   search() {
-    
+    this.loadAccountingContractLog();
   }
+
+  loadAccountingContractLog() {
+    if (this.contractId === 0) {
+      this.notification.warning('Cảnh báo', 'Vui lòng chọn hợp đồng');
+      return;
+    }
+
+    this.accountingContractService.getAccountingContractLog(this.contractId, this.userId).subscribe(
+      (response) => {
+        if (response.status === 1) {
+          this.tb_Master.setData(response.data);
+        } else {
+          this.notification.error('Lỗi khi tải dữ liệu log:', response.message);
+          return;
+        }
+      },
+      (error) => {
+        this.notification.error('Lỗi kết nối khi tải dữ liệu log:', error);
+        return;
+      }
+    );
+  }
+
+  loadContract() {
+    this.accountingContractService.getContractForLog().subscribe(
+      (response) => {
+        if (response.status === 1) {
+          this.dataContract = response.data;
+        } else {
+          this.notification.error('Lỗi khi tải nhà cung cấp:', response.message);
+          return;
+        }
+      },
+      (error) => {
+        this.notification.error('Lỗi kết nối khi tải nhà cung cấp:', error);
+        return;
+      }
+    );
+  }
+
+  loadUsers() {
+    this.accountingContractService.getUsers().subscribe(
+      (response) => {
+        if (response.status === 1) {
+          this.dataUser = response.data;
+        } else {
+          this.notification.error('Lỗi khi tải nhà cung cấp:', response.message);
+          return;
+        }
+      },
+      (error) => {
+        this.notification.error('Lỗi kết nối khi tải nhà cung cấp:', error);
+        return;
+      }
+    );
+  }
+
+  initMasterTable() {
+    this.tb_Master = new Tabulator(this.tb_MasterElement.nativeElement, {
+      layout: 'fitColumns',
+      height: '100%',
+      selectableRows: 1,
+      pagination: true,
+      paginationMode: 'local',
+      paginationSize: 50,
+      paginationSizeSelector: [10, 30, 50, 100, 300, 500, 99999999],
+      langs: {
+        vi: {
+          pagination: {
+            first: '<<',
+            last: '>>',
+            prev: '<',
+            next: '>',
+          },
+        },
+      },
+      locale: 'vi',
+      movableColumns: true,
+      resizableRows: true,
+      reactiveData: true,
+      columnDefaults: {
+        headerWordWrap: true,
+        headerVertical: false,
+        headerHozAlign: 'center',
+        minWidth: 60,
+        hozAlign: 'left',
+        vertAlign: 'middle',
+        resizable: true,
+      },
+      columns: [
+        {
+          title: 'ID',
+          field: 'ID',
+          sorter: 'number',
+          visible: false,
+        },
+        {
+          title: 'Số HĐ/PL',
+          field: 'ContractNumber',
+          sorter: 'string',
+          width: '15%',
+          headerFilter: 'input',
+          headerFilterPlaceholder: 'Lọc số HĐ/PL',
+        },
+        {
+          title: 'Ngày thay đổi',
+          field: 'DateLog',
+          sorter: 'date',
+          width: '12%',
+          formatter: (cell: any) => {
+            const value = cell.getValue();
+            if (!value) return '';
+            const date = new Date(value);
+            if (isNaN(date.getTime())) return value;
+            const day = String(date.getDate()).padStart(2, '0');
+            const month = String(date.getMonth() + 1).padStart(2, '0');
+            const year = date.getFullYear();
+            return `${day}/${month}/${year}`;
+          },
+        },
+        {
+          title: 'Tình trạng hồ sơ gốc',
+          field: 'IsReceivedContractText',
+          sorter: 'string',
+          width: '18%',
+          headerFilter: 'input',
+          headerFilterPlaceholder: 'Lọc tình trạng hồ sơ gốc',
+        },
+        {
+          title: 'Tình trạng hợp đồng',
+          field: 'IsApprovedText',
+          sorter: 'string',
+          width: '18%',
+          headerFilter: 'input',
+          headerFilterPlaceholder: 'Lọc tình trạng hợp đồng',
+        },
+        {
+          title: 'Nội dung thay đổi',
+          field: 'ContentLog',
+          sorter: 'string',
+          width: '25%',
+          formatter: 'textarea',
+          headerFilter: 'input',
+          headerFilterPlaceholder: 'Lọc nội dung thay đổi',
+        },
+        {
+          title: 'Người thực hiện',
+          field: 'FullName',
+          sorter: 'string',
+          width: '12%',
+          headerFilter: 'input',
+          headerFilterPlaceholder: 'Lọc người thực hiện',
+        },
+      ],
+    });
+  }
+
+  exportToExcel() {
+    const data = this.tb_Master?.getData() || [];
+    if (data.length === 0) {
+      this.notification.warning('Cảnh báo', 'Không có dữ liệu để xuất!');
+      return;
+    }
+
+    const workbook = new ExcelJS.Workbook();
+    const worksheet = workbook.addWorksheet('Lịch sử cập nhật hợp đồng');
+
+    worksheet.columns = [
+      { header: 'Số HĐ/PL', key: 'ContractNumber', width: 20 },
+      { header: 'Ngày thay đổi', key: 'DateLog', width: 15 },
+      { header: 'Tình trạng hồ sơ gốc', key: 'IsReceivedContractText', width: 20 },
+      { header: 'Tình trạng hợp đồng', key: 'IsApprovedText', width: 20 },
+      { header: 'Nội dung thay đổi', key: 'ContentLog', width: 40 },
+      { header: 'Người thực hiện', key: 'FullName', width: 20 },
+    ];
+
+    worksheet.getRow(1).font = { bold: true };
+    worksheet.getRow(1).fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFD3D3D3' } };
+
+    data.forEach((row: any) => {
+      worksheet.addRow({
+        ...row,
+        DateLog: row.DateLog ? new Date(row.DateLog).toLocaleDateString('vi-VN') : '',
+      });
+    });
+
+    workbook.xlsx.writeBuffer().then((buffer) => {
+      const blob = new Blob([buffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `LichSuCapNhatHopDong_${new Date().toLocaleDateString('vi-VN').replace(/\//g, '-')}.xlsx`;
+      a.click();
+      window.URL.revokeObjectURL(url);
+    });
+  }
+
+
 }

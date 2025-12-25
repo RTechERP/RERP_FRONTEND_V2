@@ -53,14 +53,23 @@
 
 ::ng-deep .ant-form-item {
   margin-bottom: 4px !important;
+  display: flex !important;
+  flex-direction: row !important;
+  align-items: center !important;
 }
 
 ::ng-deep .ant-form-item-label {
-  padding-bottom: 2px !important;
+  padding-bottom: 0 !important;
+  display: flex !important;
+  align-items: center !important;
 }
 
 ::ng-deep .ant-form-item-label > label {
   margin-bottom: 0 !important;
   height: auto !important;
+}
+
+::ng-deep .ant-form-item-control {
+  flex: 1 !important;
 }
 

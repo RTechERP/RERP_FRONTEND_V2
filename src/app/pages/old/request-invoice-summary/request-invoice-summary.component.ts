@@ -62,6 +62,7 @@ import { RequestInvoiceService } from '../request-invoice/request-invoice-servic
 import { RequestInvoiceStatusLinkComponent } from '../request-invoice-status-link/request-invoice-status-link.component';
 import { ViewPokhService } from '../view-pokh/view-pokh/view-pokh.service';
 import { setupTabulatorCellCopy } from '../../../shared/utils/tabulator-cell-copy.util';
+import { ActivatedRoute } from '@angular/router';
 @Component({
   selector: 'app-request-invoice-summary',
   standalone: true,
@@ -131,6 +132,7 @@ export class RequestInvoiceSummaryComponent implements OnInit, AfterViewInit {
     private appRef: ApplicationRef,
     private requestInvoiceService: RequestInvoiceService,
     private viewPokhService: ViewPokhService,
+    private route: ActivatedRoute,
     @Optional() @Inject('tabData') private tabData: any
   ) {
     // Nhận data từ tab nếu có
@@ -145,6 +147,16 @@ export class RequestInvoiceSummaryComponent implements OnInit, AfterViewInit {
   }
 
   ngOnInit(): void {
+    // Set title cho trang
+    document.title = 'TỔNG HỢP YÊU CẦU XUẤT HÓA ĐƠN';
+
+    // Lấy warehouseId từ query params
+    this.route.queryParams.subscribe(params => {
+      if (params['warehouseId']) {
+        this.warehouseId = params['warehouseId'];
+      }
+    });
+
     const endDate = new Date();
     const startDate = new Date();
     startDate.setDate(startDate.getDate() - 1); // Lấy dữ liệu 1 ngày trước

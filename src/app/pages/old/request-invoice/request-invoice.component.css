@@ -90,3 +90,33 @@
     display: flex;
     flex-direction: column;
 }
+
+  .card-body {
+    flex: 1 1 auto;
+    min-height: 0;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+  }
+
+/* Filter bar với position absolute để không đẩy nội dung */
+.filter-bar {
+    position: absolute;
+    top: 30px;
+    left: 0;
+    right: 0;
+    z-index: 100;
+    background: white;
+    border-bottom: 1px solid #dee2e6;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+/* Điều chỉnh splitter để không bị che */
+.ant-splitter {
+    margin-top: 0 !important;
+}
+
+/* Card body cần position relative */
+.card-body {
+    position: relative !important;
+}

@@ -48,8 +48,7 @@
                     <div class="row g-2 mt-1">
                         <div class="col-md-6">
                             <label class="mb-0 fs-12 d-inline">
-                                <span>Dự án</span> 
-                                <span class="text-danger">*</span>
+                                <span>Dự án</span>
                                 <!-- <button class="p-0 m-0 px-1 fs-12 h-auto" nz-button nzType="text" nzSize="small"
                                     title="Thêm dự án" (click)="onAddProject()">
                                     <i class="fas fa-plus"></i>
@@ -60,9 +59,6 @@
                                 <nz-option *ngFor="let item of projects" [nzValue]="item.ID"
                                     [nzLabel]="item.ProjectCode + ' - ' + item.ProjectName"></nz-option>
                             </nz-select>
-                            <small class="text-danger" *ngIf="isSubmitted && dailyReportSaleForm.get('projectId')?.invalid">
-                                Vui lòng chọn dự án
-                            </small>
                         </div>
                         <div class="col-md-6">
                             <label class="mb-0 fs-12 d-inline">

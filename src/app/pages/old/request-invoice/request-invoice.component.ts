@@ -148,7 +148,7 @@ export class RequestInvoiceComponent implements OnInit, AfterViewInit {
     };
 
     showSearchBar: boolean = false;
-    toggleSearchPanel() {
+    toggleSearchPanel(event?: Event) {
         this.showSearchBar = !this.showSearchBar;
     }
 
@@ -341,33 +341,7 @@ export class RequestInvoiceComponent implements OnInit, AfterViewInit {
     }
 
     openRequestInvoiceSummary() {
-        // const modalRef = this.modalService.open(RequestInvoiceSummaryComponent, {
-        //   centered: true,
-        //   backdrop: 'static',
-        //   windowClass: 'full-screen-modal',
-        // });
-
-        // modalRef.result.then(
-        //   (result) => {
-        //     if (result.success && result.reloadData) {
-        //       this.loadMainData(
-        //         this.filters.startDate,
-        //         this.filters.endDate,
-        //         this.filters.filterText
-        //       );
-        //     }
-        //   },
-        //   (reason) => {
-        //     console.log('Modal closed');
-        //   }
-        // );
-
-        // Mở tab mới thay vì modal
-        this.menuEventService.openNewTab(
-            RequestInvoiceSummaryComponent,
-            'Tổng hợp yêu cầu xuất hóa đơn',
-            { warehouseId: this.warehouseId }
-        );
+        const newWindow = window.open(`/request-invoice-summary?warehouseId=${this.warehouseId}`, '_blank', 'width=1280,height=960,scrollbars=yes,resizable=yes');
     }
 
     openRequestInvoiceStatusLinkModal(): void {

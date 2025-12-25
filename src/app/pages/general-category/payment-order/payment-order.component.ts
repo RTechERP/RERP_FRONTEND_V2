@@ -16,6 +16,7 @@ import { NzNotificationService } from 'ng-zorro-antd/notification';
 import { PaymentOrderDetailComponent } from './payment-order-detail/payment-order-detail.component';
 import { AngularGridInstance, AngularSlickgridModule, Column, Filters, Formatters, GridOption, MultipleSelectOption, OnClickEventArgs, OnEventArgs, OnSelectedRowsChangedEventArgs } from 'angular-slickgrid';
 import { PaymentOrder, PaymentOrderDetailField, PaymentOrderField } from './model/payment-order';
+
 import { CommonModule } from '@angular/common';
 import { NOTIFICATION_TITLE } from '../../../app.config';
 import { NzSplitterModule } from 'ng-zorro-antd/splitter';
@@ -152,6 +153,8 @@ export class PaymentOrderComponent implements OnInit {
     datasetSpecialDetail: any[] = [];
 
     dataPrint: any = {};
+    excelExportService!: ExcelExportService;
+
 
     constructor(
         private modalService: NgbModal,
@@ -161,6 +164,7 @@ export class PaymentOrderComponent implements OnInit {
         private departmentService: DepartmentServiceService,
         private employeeService: EmployeeService,
         private paymentOrderTypeService: PaymentOrderTypeService,
+        // private excelExportService: ExcelExportService,
 
     ) { }
 
@@ -498,7 +502,10 @@ export class PaymentOrderComponent implements OnInit {
             },
             {
                 label: 'Xuất excel',
-                icon: PrimeIcons.FOLDER
+                icon: PrimeIcons.FOLDER,
+                command: () => {
+                    this.excelExportService.exportToExcel();
+                }
             }
         ]
     }
@@ -526,11 +533,14 @@ export class PaymentOrderComponent implements OnInit {
                 filter: {
                     collection: [
                         { value: '', label: '' },
-                        { value: true, label: 'True' },
+                        { value: true, label: 'Gấp' },
                         { value: false, label: 'False' },
                     ],
                     model: Filters['singleSelect'],
-                    filterOptions: { autoAdjustDropHeight: true } as MultipleSelectOption,
+                    filterOptions: {
+                        autoAdjustDropHeight: true,
+                        filter: true,
+                    } as MultipleSelectOption,
                 },
             },
             {
@@ -561,7 +571,15 @@ export class PaymentOrderComponent implements OnInit {
                 sortable: true, filterable: true,
                 width: 170,
                 // formatter: Formatters.icon,
-                filter: { model: Filters['compoundInputText'] },
+                // filter: { model: Filters['compoundInputText'] },
+                filter: {
+                    collection: [],
+                    model: Filters['multipleSelect'],
+                    filterOptions: {
+                        autoAdjustDropHeight: true,
+                        filter: true,
+                    } as MultipleSelectOption,
+                },
             },
             {
                 id: PaymentOrderField.FullName.field,
@@ -571,7 +589,14 @@ export class PaymentOrderComponent implements OnInit {
                 sortable: true, filterable: true,
                 width: 200,
                 // formatter: Formatters.icon,
-                filter: { model: Filters['compoundInputText'] },
+                filter: {
+                    collection: [],
+                    model: Filters['multipleSelect'],
+                    filterOptions: {
+                        autoAdjustDropHeight: true,
+                        filter: true,
+                    } as MultipleSelectOption,
+                },
             },
             {
                 id: PaymentOrderField.DepartmentName.field,
@@ -581,7 +606,14 @@ export class PaymentOrderComponent implements OnInit {
                 sortable: true, filterable: true,
                 width: 200,
                 // formatter: Formatters.icon,
-                filter: { model: Filters['compoundInputText'] },
+                filter: {
+                    collection: [],
+                    model: Filters['multipleSelect'],
+                    filterOptions: {
+                        autoAdjustDropHeight: true,
+                        filter: true,
+                    } as MultipleSelectOption,
+                },
             },
 
             {
@@ -592,7 +624,14 @@ export class PaymentOrderComponent implements OnInit {
                 sortable: true, filterable: true,
                 width: 200,
                 // formatter: Formatters.icon,
-                filter: { model: Filters['compoundInputText'] },
+                filter: {
+                    collection: [],
+                    model: Filters['multipleSelect'],
+                    filterOptions: {
+                        autoAdjustDropHeight: true,
+                        filter: true,
+                    } as MultipleSelectOption,
+                },
             },
 
             {
@@ -603,7 +642,14 @@ export class PaymentOrderComponent implements OnInit {
                 sortable: true, filterable: true,
                 width: 250,
                 // formatter: Formatters,
-                filter: { model: Filters['compoundInputText'] },
+                filter: {
+                    collection: [],
+                    model: Filters['multipleSelect'],
+                    filterOptions: {
+                        autoAdjustDropHeight: true,
+                        filter: true,
+                    } as MultipleSelectOption,
+                },
             },
             {
                 id: PaymentOrderField.ReasonOrder.field,
@@ -613,7 +659,14 @@ export class PaymentOrderComponent implements OnInit {
                 sortable: true, filterable: true,
                 width: 250,
                 // formatter: Formatters.icon,
-                filter: { model: Filters['compoundInputText'] },
+                filter: {
+                    collection: [],
+                    model: Filters['multipleSelect'],
+                    filterOptions: {
+                        autoAdjustDropHeight: true,
+                        filter: true,
+                    } as MultipleSelectOption,
+                },
             },
             {
                 id: PaymentOrderField.IsBill.field,
@@ -633,7 +686,14 @@ export class PaymentOrderComponent implements OnInit {
                 sortable: true, filterable: true,
                 width: 200,
                 // formatter: Formatters.icon,
-                filter: { model: Filters['compoundInputText'] },
+                filter: {
+                    collection: [],
+                    model: Filters['multipleSelect'],
+                    filterOptions: {
+                        autoAdjustDropHeight: true,
+                        filter: true,
+                    } as MultipleSelectOption,
+                },
             },
             {
                 id: PaymentOrderField.EndLocation.field,
@@ -643,7 +703,14 @@ export class PaymentOrderComponent implements OnInit {
                 sortable: true, filterable: true,
                 width: 200,
                 // formatter: Formatters.icon,
-                filter: { model: Filters['compoundInputText'] },
+                filter: {
+                    collection: [],
+                    model: Filters['multipleSelect'],
+                    filterOptions: {
+                        autoAdjustDropHeight: true,
+                        filter: true,
+                    } as MultipleSelectOption,
+                },
             },
             {
                 id: PaymentOrderField.TotalMoney.field,
@@ -653,7 +720,14 @@ export class PaymentOrderComponent implements OnInit {
                 sortable: true, filterable: true,
                 width: 150,
                 formatter: Formatters.currency,
-                filter: { model: Filters['compoundInputNumber'] },
+                filter: {
+                    collection: [],
+                    model: Filters['multipleSelect'],
+                    filterOptions: {
+                        autoAdjustDropHeight: true,
+                        filter: true,
+                    } as MultipleSelectOption,
+                },
             },
 
             {
@@ -664,7 +738,14 @@ export class PaymentOrderComponent implements OnInit {
                 sortable: true, filterable: true,
                 width: 150,
                 formatter: Formatters.currency,
-                filter: { model: Filters['compoundInputNumber'] },
+                filter: {
+                    collection: [],
+                    model: Filters['multipleSelect'],
+                    filterOptions: {
+                        autoAdjustDropHeight: true,
+                        filter: true,
+                    } as MultipleSelectOption,
+                },
             },
 
             {
@@ -675,7 +756,14 @@ export class PaymentOrderComponent implements OnInit {
                 sortable: true, filterable: true,
                 width: 150,
                 formatter: Formatters.currency,
-                filter: { model: Filters['compoundInputNumber'] },
+                filter: {
+                    collection: [],
+                    model: Filters['multipleSelect'],
+                    filterOptions: {
+                        autoAdjustDropHeight: true,
+                        filter: true,
+                    } as MultipleSelectOption,
+                },
             },
             {
                 id: PaymentOrderField.Unit.field,
@@ -685,7 +773,14 @@ export class PaymentOrderComponent implements OnInit {
                 sortable: true, filterable: true,
                 width: 80,
                 // formatter: Formatters.icon,
-                filter: { model: Filters['compoundInputText'] },
+                filter: {
+                    collection: [],
+                    model: Filters['multipleSelect'],
+                    filterOptions: {
+                        autoAdjustDropHeight: true,
+                        filter: true,
+                    } as MultipleSelectOption,
+                },
             },
             {
                 id: PaymentOrderField.TypeBankTransferText.field,
@@ -695,7 +790,14 @@ export class PaymentOrderComponent implements OnInit {
                 sortable: true, filterable: true,
                 width: 170,
                 // formatter: Formatters.icon,
-                filter: { model: Filters['compoundInputText'] },
+                filter: {
+                    collection: [],
+                    model: Filters['multipleSelect'],
+                    filterOptions: {
+                        autoAdjustDropHeight: true,
+                        filter: true,
+                    } as MultipleSelectOption,
+                },
             },
             {
                 id: PaymentOrderField.ContentBankTransfer.field,
@@ -705,7 +807,14 @@ export class PaymentOrderComponent implements OnInit {
                 sortable: true, filterable: true,
                 width: 200,
                 // formatter: Formatters.icon,
-                filter: { model: Filters['compoundInputText'] },
+                filter: {
+                    collection: [],
+                    model: Filters['multipleSelect'],
+                    filterOptions: {
+                        autoAdjustDropHeight: true,
+                        filter: true,
+                    } as MultipleSelectOption,
+                },
             },
 
             {
@@ -716,7 +825,14 @@ export class PaymentOrderComponent implements OnInit {
                 sortable: true, filterable: true,
                 width: 200,
                 // formatter: Formatters.icon,
-                filter: { model: Filters['compoundInputText'] },
+                filter: {
+                    collection: [],
+                    model: Filters['multipleSelect'],
+                    filterOptions: {
+                        autoAdjustDropHeight: true,
+                        filter: true,
+                    } as MultipleSelectOption,
+                },
             },
 
             {
@@ -727,7 +843,14 @@ export class PaymentOrderComponent implements OnInit {
                 sortable: true, filterable: true,
                 width: 200,
                 // formatter: Formatters.icon,
-                filter: { model: Filters['compoundInputText'] },
+                filter: {
+                    collection: [],
+                    model: Filters['multipleSelect'],
+                    filterOptions: {
+                        autoAdjustDropHeight: true,
+                        filter: true,
+                    } as MultipleSelectOption,
+                },
             },
 
             {
@@ -738,7 +861,14 @@ export class PaymentOrderComponent implements OnInit {
                 sortable: true, filterable: true,
                 width: 170,
                 // formatter: Formatters.icon,
-                filter: { model: Filters['compoundInputText'] },
+                filter: {
+                    collection: [],
+                    model: Filters['multipleSelect'],
+                    filterOptions: {
+                        autoAdjustDropHeight: true,
+                        filter: true,
+                    } as MultipleSelectOption,
+                },
             },
 
             {
@@ -749,7 +879,14 @@ export class PaymentOrderComponent implements OnInit {
                 sortable: true, filterable: true,
                 width: 200,
                 // formatter: Formatters.icon,
-                filter: { model: Filters['compoundInputText'] },
+                filter: {
+                    collection: [],
+                    model: Filters['multipleSelect'],
+                    filterOptions: {
+                        autoAdjustDropHeight: true,
+                        filter: true,
+                    } as MultipleSelectOption,
+                },
             },
             {
                 id: PaymentOrderField.ReasonCancel.field,
@@ -759,7 +896,14 @@ export class PaymentOrderComponent implements OnInit {
                 sortable: true, filterable: true,
                 width: 200,
                 // formatter: Formatters.icon,
-                filter: { model: Filters['compoundInputText'] },
+                filter: {
+                    collection: [],
+                    model: Filters['multipleSelect'],
+                    filterOptions: {
+                        autoAdjustDropHeight: true,
+                        filter: true,
+                    } as MultipleSelectOption,
+                },
             },
 
             {
@@ -770,7 +914,14 @@ export class PaymentOrderComponent implements OnInit {
                 sortable: true, filterable: true,
                 width: 300,
                 // formatter: Formatters.icon,
-                filter: { model: Filters['compoundInputText'] },
+                filter: {
+                    collection: [],
+                    model: Filters['multipleSelect'],
+                    filterOptions: {
+                        autoAdjustDropHeight: true,
+                        filter: true,
+                    } as MultipleSelectOption,
+                },
             },
 
             {
@@ -781,7 +932,14 @@ export class PaymentOrderComponent implements OnInit {
                 sortable: true, filterable: true,
                 width: 200,
                 // formatter: Formatters.icon,
-                filter: { model: Filters['compoundInputText'] },
+                filter: {
+                    collection: [],
+                    model: Filters['multipleSelect'],
+                    filterOptions: {
+                        autoAdjustDropHeight: true,
+                        filter: true,
+                    } as MultipleSelectOption,
+                },
             },
 
             {
@@ -792,7 +950,14 @@ export class PaymentOrderComponent implements OnInit {
                 sortable: true, filterable: true,
                 width: 200,
                 // formatter: Formatters.icon,
-                filter: { model: Filters['compoundInputText'] },
+                filter: {
+                    collection: [],
+                    model: Filters['multipleSelect'],
+                    filterOptions: {
+                        autoAdjustDropHeight: true,
+                        filter: true,
+                    } as MultipleSelectOption,
+                },
             },
 
             {
@@ -803,7 +968,14 @@ export class PaymentOrderComponent implements OnInit {
                 sortable: true, filterable: true,
                 width: 200,
                 // formatter: Formatters.icon,
-                filter: { model: Filters['compoundInputText'] },
+                filter: {
+                    collection: [],
+                    model: Filters['multipleSelect'],
+                    filterOptions: {
+                        autoAdjustDropHeight: true,
+                        filter: true,
+                    } as MultipleSelectOption,
+                },
             },
 
             {
@@ -814,7 +986,14 @@ export class PaymentOrderComponent implements OnInit {
                 sortable: true, filterable: true,
                 width: 200,
                 // formatter: Formatters.icon,
-                filter: { model: Filters['compoundInputText'] },
+                filter: {
+                    collection: [],
+                    model: Filters['multipleSelect'],
+                    filterOptions: {
+                        autoAdjustDropHeight: true,
+                        filter: true,
+                    } as MultipleSelectOption,
+                },
             },
 
             {
@@ -825,7 +1004,14 @@ export class PaymentOrderComponent implements OnInit {
                 sortable: true, filterable: true,
                 width: 200,
                 // formatter: Formatters.icon,
-                filter: { model: Filters['compoundInputText'] },
+                filter: {
+                    collection: [],
+                    model: Filters['multipleSelect'],
+                    filterOptions: {
+                        autoAdjustDropHeight: true,
+                        filter: true,
+                    } as MultipleSelectOption,
+                },
             },
 
             {
@@ -847,7 +1033,14 @@ export class PaymentOrderComponent implements OnInit {
                 sortable: true, filterable: true,
                 width: 200,
                 // formatter: Formatters.icon,
-                filter: { model: Filters['compoundInputText'] },
+                filter: {
+                    collection: [],
+                    model: Filters['multipleSelect'],
+                    filterOptions: {
+                        autoAdjustDropHeight: true,
+                        filter: true,
+                    } as MultipleSelectOption,
+                },
             },
 
             {
@@ -858,7 +1051,14 @@ export class PaymentOrderComponent implements OnInit {
                 sortable: true, filterable: true,
                 width: 200,
                 // formatter: Formatters.icon,
-                filter: { model: Filters['compoundInputText'] },
+                filter: {
+                    collection: [],
+                    model: Filters['multipleSelect'],
+                    filterOptions: {
+                        autoAdjustDropHeight: true,
+                        filter: true,
+                    } as MultipleSelectOption,
+                },
             },
 
             //Nhân viên đk
@@ -871,7 +1071,14 @@ export class PaymentOrderComponent implements OnInit {
                 width: 200,
                 columnGroup: 'NHÂN VIÊN ĐĂNG KÝ',
                 // formatter: Formatters.icon,
-                filter: { model: Filters['compoundInputText'] },
+                filter: {
+                    collection: [],
+                    model: Filters['multipleSelect'],
+                    filterOptions: {
+                        autoAdjustDropHeight: true,
+                        filter: true,
+                    } as MultipleSelectOption,
+                },
             },
             {
                 id: PaymentOrderField.DateApprovedEmployee.field,
@@ -882,7 +1089,7 @@ export class PaymentOrderComponent implements OnInit {
                 width: 100,
                 columnGroup: 'NHÂN VIÊN ĐĂNG KÝ',
                 formatter: Formatters.date, params: { dateFormat: 'DD/MM/YYYY' },
-                filter: { model: Filters['compoundInputText'] },
+                filter: { model: Filters['compoundInputDate'] },
             },
             {
                 id: PaymentOrderField.DateApprovedEmployee.field,
@@ -893,7 +1100,7 @@ export class PaymentOrderComponent implements OnInit {
                 width: 80,
                 columnGroup: 'NHÂN VIÊN ĐĂNG KÝ',
                 formatter: Formatters.date, params: { dateFormat: 'HH:mm' },
-                filter: { model: Filters['compoundInputText'] },
+                filter: { model: Filters['compoundInputDate'] },
             },
 
             //TBP
@@ -906,7 +1113,14 @@ export class PaymentOrderComponent implements OnInit {
                 width: 200,
                 columnGroup: 'TRƯỞNG BỘ PHẬN',
                 // formatter: Formatters.icon,
-                filter: { model: Filters['compoundInputText'] },
+                filter: {
+                    collection: [],
+                    model: Filters['multipleSelect'],
+                    filterOptions: {
+                        autoAdjustDropHeight: true,
+                        filter: true,
+                    } as MultipleSelectOption,
+                },
             },
             {
                 id: PaymentOrderField.DateApprovedTBP.field,
@@ -917,7 +1131,7 @@ export class PaymentOrderComponent implements OnInit {
                 width: 100,
                 columnGroup: 'TRƯỞNG BỘ PHẬN',
                 formatter: Formatters.date, params: { dateFormat: 'DD/MM/YYYY' },
-                filter: { model: Filters['compoundInputText'] },
+                filter: { model: Filters['compoundInputDate'] },
             },
             {
                 id: PaymentOrderField.DateApprovedTBP.field,
@@ -928,7 +1142,7 @@ export class PaymentOrderComponent implements OnInit {
                 width: 80,
                 columnGroup: 'TRƯỞNG BỘ PHẬN',
                 formatter: Formatters.date, params: { dateFormat: 'HH:mm' },
-                filter: { model: Filters['compoundInputText'] },
+                filter: { model: Filters['compoundInputDate'] },
             },
             //Nhân sự
             {
@@ -940,7 +1154,14 @@ export class PaymentOrderComponent implements OnInit {
                 width: 200,
                 columnGroup: 'NHÂN SỰ',
                 // formatter: Formatters.icon,
-                filter: { model: Filters['compoundInputText'] },
+                filter: {
+                    collection: [],
+                    model: Filters['multipleSelect'],
+                    filterOptions: {
+                        autoAdjustDropHeight: true,
+                        filter: true,
+                    } as MultipleSelectOption,
+                },
             },
             {
                 id: PaymentOrderField.DateApprovedHR.field,
@@ -951,7 +1172,7 @@ export class PaymentOrderComponent implements OnInit {
                 width: 100,
                 columnGroup: 'NHÂN SỰ',
                 formatter: Formatters.date, params: { dateFormat: 'DD/MM/YYYY' },
-                filter: { model: Filters['compoundInputText'] },
+                filter: { model: Filters['compoundInputDate'] },
             },
             {
                 id: PaymentOrderField.DateApprovedHR.field,
@@ -962,7 +1183,7 @@ export class PaymentOrderComponent implements OnInit {
                 width: 80,
                 columnGroup: 'NHÂN SỰ',
                 formatter: Formatters.date, params: { dateFormat: 'HH:mm' },
-                filter: { model: Filters['compoundInputText'] },
+                filter: { model: Filters['compoundInputDate'] },
             },
 
             //Kế toán
@@ -975,7 +1196,14 @@ export class PaymentOrderComponent implements OnInit {
                 width: 200,
                 columnGroup: 'KẾ TOÁN',
                 // formatter: Formatters.icon,
-                filter: { model: Filters['compoundInputText'] },
+                filter: {
+                    collection: [],
+                    model: Filters['multipleSelect'],
+                    filterOptions: {
+                        autoAdjustDropHeight: true,
+                        filter: true,
+                    } as MultipleSelectOption,
+                },
             },
             {
                 id: PaymentOrderField.DateApprovedKT.field,
@@ -986,7 +1214,7 @@ export class PaymentOrderComponent implements OnInit {
                 width: 100,
                 columnGroup: 'KẾ TOÁN',
                 formatter: Formatters.date, params: { dateFormat: 'DD/MM/YYYY' },
-                filter: { model: Filters['compoundInputText'] },
+                filter: { model: Filters['compoundInputDate'] },
             },
             {
                 id: PaymentOrderField.DateApprovedKT.field,
@@ -997,7 +1225,7 @@ export class PaymentOrderComponent implements OnInit {
                 width: 80,
                 columnGroup: 'KẾ TOÁN',
                 formatter: Formatters.date, params: { dateFormat: 'HH:mm' },
-                filter: { model: Filters['compoundInputText'] },
+                filter: { model: Filters['compoundInputDate'] },
             },
 
             //BGĐ
@@ -1010,7 +1238,14 @@ export class PaymentOrderComponent implements OnInit {
                 width: 200,
                 columnGroup: 'BAN GIÁM ĐỐC',
                 // formatter: Formatters.icon,
-                filter: { model: Filters['compoundInputText'] },
+                filter: {
+                    collection: [],
+                    model: Filters['multipleSelect'],
+                    filterOptions: {
+                        autoAdjustDropHeight: true,
+                        filter: true,
+                    } as MultipleSelectOption,
+                },
             },
             {
                 id: PaymentOrderField.DateApprovedBGD.field,
@@ -1021,7 +1256,7 @@ export class PaymentOrderComponent implements OnInit {
                 width: 100,
                 columnGroup: 'BAN GIÁM ĐỐC',
                 formatter: Formatters.date, params: { dateFormat: 'DD/MM/YYYY' },
-                filter: { model: Filters['compoundInputText'] },
+                filter: { model: Filters['compoundDate'] },
             },
             {
                 id: PaymentOrderField.DateApprovedBGD.field,
@@ -1032,13 +1267,13 @@ export class PaymentOrderComponent implements OnInit {
                 width: 80,
                 columnGroup: 'BAN GIÁM ĐỐC',
                 formatter: Formatters.date, params: { dateFormat: 'HH:mm' },
-                filter: { model: Filters['compoundInputText'] },
+                filter: { model: Filters['compoundDate'] },
             },
         ];
 
         this.gridOptions = {
             autoResize: {
-                container: '.ant-splitter-panel',
+                container: '.grid-container',
                 calculateAvailableSizeBy: 'container',
                 resizeDetection: 'container',
             },
@@ -1069,6 +1304,37 @@ export class PaymentOrderComponent implements OnInit {
 
             createPreHeaderPanel: true,
             showPreHeaderPanel: true,
+
+            externalResources: [this.excelExportService],
+            enableExcelExport: true,
+            excelExportOptions: {
+                filename: 'grocery-list',
+                sanitizeDataExport: true,
+                sheetName: 'Grocery List',
+                columnHeaderStyle: {
+                    font: { color: 'FFFFFFFF' },
+                    fill: { type: 'pattern', patternType: 'solid', fgColor: 'FF4a6c91' },
+                },
+
+                // optionally pass a custom header to the Excel Sheet
+                // a lot of the info can be found on Web Archive of Excel-Builder
+                // https://ghiscoding.gitbook.io/excel-builder-vanilla/cookbook/fonts-and-colors
+                customExcelHeader: (workbook, sheet) => {
+                    const excelFormat = workbook.getStyleSheet().createFormat({
+                        // every color is prefixed with FF, then regular HTML color
+                        font: { size: 18, fontName: 'Calibri', bold: true, color: 'FFFFFFFF' },
+                        alignment: { wrapText: true, horizontal: 'center' },
+                        fill: { type: 'pattern', patternType: 'solid', fgColor: 'FF203764' },
+                    });
+                    sheet.setRowInstructions(0, { height: 40 }); // change height of row 0
+
+                    // excel cells start with A1 which is upper left corner
+                    const customTitle = 'Grocery Shopping List';
+                    //   const lastCellMerge = this.isDataGrouped ? 'H1' : 'G1';
+                    //   sheet.mergeCells('A1', lastCellMerge);
+                    sheet.data.push([{ value: customTitle, metadata: { style: excelFormat.id } }]);
+                },
+            },
         };
 
         this.columnDefinitionDetails = [
@@ -1173,7 +1439,7 @@ export class PaymentOrderComponent implements OnInit {
         this.gridOptionDetails = {
             enableAutoResize: true,
             autoResize: {
-                container: '#grid-container-detail',
+                container: '.grid-container-detail',
                 calculateAvailableSizeBy: 'container',
                 resizeDetection: 'container',
             },
@@ -1217,7 +1483,7 @@ export class PaymentOrderComponent implements OnInit {
         this.gridOptionFiles = {
             enableAutoResize: true,
             autoResize: {
-                container: 'grid-container-file',
+                container: '.grid-container-file',
                 calculateAvailableSizeBy: 'container',
                 resizeDetection: 'container',
 
@@ -1295,7 +1561,7 @@ export class PaymentOrderComponent implements OnInit {
         this.gridOptionFileBankSlips = {
             enableAutoResize: true,
             autoResize: {
-                container: 'grid-container-filebankslip',
+                container: '.grid-container-filebankslip',
                 calculateAvailableSizeBy: 'container',
                 resizeDetection: 'container',
             },
@@ -1515,7 +1781,7 @@ export class PaymentOrderComponent implements OnInit {
         ];
         this.gridOptionsSpecial = {
             autoResize: {
-                container: '#demo-container',// container DOM selector
+                container: '.grid-container-special',// container DOM selector
                 calculateAvailableSizeBy: 'container',
                 resizeDetection: 'container',
             },
@@ -1632,7 +1898,7 @@ export class PaymentOrderComponent implements OnInit {
         this.gridOptionsSpecialDetail = {
             enableAutoResize: true,
             autoResize: {
-                container: '.ant-splitter-panel',
+                container: '.grid-container-detail-special',
                 calculateAvailableSizeBy: 'container',
                 resizeDetection: 'container',
             },
@@ -1663,6 +1929,8 @@ export class PaymentOrderComponent implements OnInit {
     angularGridReadySpecial(angularGrid: AngularGridInstance) {
         this.angularGridSpecial = angularGrid;
         this.gridDataSpecial = angularGrid?.slickGrid || {};
+
+        this.excelExportService = angularGrid.excelExportService;
     }
 
     angularGridReadySpecialDetail(angularGrid: AngularGridInstance) {
@@ -1747,6 +2015,8 @@ export class PaymentOrderComponent implements OnInit {
                     ...x,
                     id: x.ID   // dành riêng cho SlickGrid
                 }));
+
+                this.updateFilterCollections();
             },
             error: (err) => {
                 this.notification.error(NOTIFICATION_TITLE.error, err.error.message);
@@ -1824,6 +2094,54 @@ export class PaymentOrderComponent implements OnInit {
                 }
             }
         })
+    }
+
+
+    private updateFilterCollections(): void {
+        if (!this.angularGrid || !this.angularGrid.slickGrid) return;
+
+        const columns = this.angularGrid.slickGrid.getColumns();
+        const allData = this.dataset;
+
+        // Helper function to get unique values for a field
+        const getUniqueValues = (field: string): Array<{ value: string; label: string }> => {
+            const map = new Map<string, string>();
+            allData.forEach((row: any) => {
+                const value = String(row?.[field] ?? '');
+                if (value && !map.has(value)) {
+                    map.set(value, value);
+                }
+            });
+            return Array.from(map.entries())
+                .map(([value, label]) => ({ value, label }))
+                .sort((a, b) => a.label.localeCompare(b.label));
+        };
+
+        // Update collections for each filterable column
+        columns.forEach((column: any) => {
+            if (column.filter && column.filter.model === Filters['multipleSelect']) {
+                const field = column.field;
+                if (field && field !== 'BorrowCustomer') {
+                    const collection = getUniqueValues(field);
+                    if (column.filter) {
+                        column.filter.collection = collection;
+                    }
+                }
+            }
+        });
+
+        // Update ProductGroupName collection from productGroupData
+        // const productGroupColumn = columns.find((col: any) => col.field === 'ProductGroupName');
+        // if (productGroupColumn && productGroupColumn.filter) {
+        //     productGroupColumn.filter.collection = this.productGroupData.map((group: any) => ({
+        //         value: group.ProductGroupName || '',
+        //         label: group.ProductGroupName || '',
+        //     }));
+        // }
+
+        // Update grid columns
+        this.angularGrid.slickGrid.setColumns(columns);
+        this.angularGrid.slickGrid.render();
     }
 
     angularGridReady(angularGrid: AngularGridInstance) {

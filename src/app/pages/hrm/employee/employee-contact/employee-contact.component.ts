@@ -1,4 +1,4 @@
-import { Component, OnInit, ViewChild, ElementRef, AfterViewInit } from '@angular/core';
+import { Component, OnInit, AfterViewInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { NzCardModule } from 'ng-zorro-antd/card';
@@ -8,12 +8,17 @@ import { NzIconModule } from 'ng-zorro-antd/icon';
 import { NzSplitterModule } from 'ng-zorro-antd/splitter';
 import { NzSelectModule } from 'ng-zorro-antd/select';
 import { NzNotificationService } from 'ng-zorro-antd/notification';
-import { TabulatorFull as Tabulator } from 'tabulator-tables';
 import { DateTime } from 'luxon';
+import * as ExcelJS from 'exceljs';
 import { EmployeeService } from '../employee-service/employee.service';
 import { DepartmentServiceService } from '../../department/department-service/department-service.service';
 import { NOTIFICATION_TITLE } from '../../../../app.config';
-import 'tabulator-tables/dist/css/tabulator_simple.min.css';
+import {
+  AngularGridInstance,
+  AngularSlickgridModule,
+  Column,
+  GridOption
+} from 'angular-slickgrid';
 
 @Component({
   selector: 'app-employee-contact',
@@ -27,12 +32,17 @@ import 'tabulator-tables/dist/css/tabulator_simple.min.css';
     NzIconModule,
     NzSplitterModule,
     NzSelectModule,
+    AngularSlickgridModule,
   ],
   templateUrl: './employee-contact.component.html',
   styleUrl: './employee-contact.component.css'
 })
 export class EmployeeContactComponent implements OnInit, AfterViewInit {
-  @ViewChild('contactTable') tableRef!: ElementRef;
+  // SlickGrid
+  angularGrid!: AngularGridInstance;
+  columnDefinitions: Column[] = [];
+  gridOptions: GridOption = {};
+  dataset: any[] = [];
 
   keyword: string = '';
   departmentId: number = 0;
@@ -40,7 +50,6 @@ export class EmployeeContactComponent implements OnInit, AfterViewInit {
   viewMode: 'table' | 'card' = 'table';
   isPermissDownload = false;
   contactData: any[] = [];
-  contactTable: Tabulator | null = null;
   totalEmployees: number = 0;
 
   constructor(
@@ -50,12 +59,12 @@ export class EmployeeContactComponent implements OnInit, AfterViewInit {
   ) {}
 
   ngOnInit(): void {
+    this.initGrid();
     this.loadDepartments();
-    this.loadContactData();
   }
 
   ngAfterViewInit(): void {
-    this.drawContactTable();
+    this.loadContactData();
   }
 
   /**
@@ -69,9 +78,11 @@ export class EmployeeContactComponent implements OnInit, AfterViewInit {
         this.isPermissDownload = Boolean(data.isPermissDownload);
         this.totalEmployees = this.contactData.length;
         
-        if (this.contactTable) {
-          this.contactTable.setData(this.contactData);
-        }
+        this.dataset = this.contactData.map((item, index) => ({
+          ...item,
+          id: item.ID || index + 1,
+          STT: index + 1
+        }));
       },
       error: (err: any) => {
         this.notification.error(
@@ -106,171 +117,173 @@ export class EmployeeContactComponent implements OnInit, AfterViewInit {
   onViewModeChange(mode: 'table' | 'card'): void {
     this.viewMode = mode;
     if (mode === 'table') {
-      this.drawContactTable();
+      // Đảm bảo grid được render lại khi chuyển về table mode
+      setTimeout(() => {
+        if (this.angularGrid?.resizerService) {
+          this.angularGrid.resizerService.resizeGrid();
+        }
+        // Force re-render grid
+        if (this.angularGrid?.slickGrid) {
+          this.angularGrid.slickGrid.invalidate();
+          this.angularGrid.slickGrid.render();
+        }
+      }, 100);
     }
   }
 
   /**
-   * Vẽ bảng Tabulator
+   * Khởi tạo SlickGrid
    */
-  private drawContactTable(): void {
-    if (this.contactTable) {
-      this.contactTable.setData(this.contactData);
-      return;
+  private initGrid(): void {
+    const formatDate = (row: number, cell: number, value: any) => {
+      if (!value) return '';
+      try {
+        const dateValue = DateTime.fromISO(value);
+        return dateValue.isValid ? dateValue.toFormat('dd/MM/yyyy') : value;
+      } catch (e) {
+        return value;
+      }
+    };
+
+    const formatYear = (row: number, cell: number, value: any) => {
+      if (!value) return '';
+      try {
+        const dateValue = DateTime.fromISO(value);
+        return dateValue.isValid ? dateValue.toFormat('yyyy') : value;
+      } catch (e) {
+        return value;
+      }
+    };
+
+    const phoneFormatter = (row: number, cell: number, value: any) => {
+      if (!value) return '';
+      const list = String(value).split('\n');
+      return list.map((p: string) => `<a href="tel:${p.trim()}">${p}</a>`).join('<br/>');
+    };
+
+    this.columnDefinitions = [
+      { id: 'STT', name: 'STT', field: 'STT', width: 60, sortable: true},
+      { id: 'Code', name: 'Mã NV', field: 'Code', width: 100, sortable: true, filterable: true },
+      { id: 'FullName', name: 'Họ tên', field: 'FullName', width: 200, sortable: true, filterable: true },
+      { id: 'DepartmentName', name: 'Phòng ban', field: 'DepartmentName', width: 180, sortable: true, filterable: true },
+      { id: 'ChucVu', name: 'Chức vụ', field: 'ChucVu', width: 200, sortable: true, filterable: true },
+      { id: 'SDTCaNhan', name: 'Điện thoại', field: 'SDTCaNhan', width: 150, formatter: phoneFormatter, filterable: true },
+      { id: 'EmailCongTy', name: 'Email', field: 'EmailCongTy', width: 250, sortable: true, filterable: true },
+      { id: 'StartWorking', name: 'Ngày vào', field: 'StartWorking', width: 100, sortable: true, formatter: formatDate, },
+      { id: 'BirthOfDate', name: 'Năm sinh', field: 'BirthOfDate', width: 90, sortable: true, formatter: formatYear },
+    ];
+
+    this.gridOptions = {
+      autoResize: {
+        container: '#grid-container-contact',
+        calculateAvailableSizeBy: 'container'
+      },
+      enableAutoResize: true,
+      gridWidth: '100%',
+     forceFitColumns: true,
+      enableCellNavigation: true,
+      
+      enableFiltering: true,
+     
+      rowHeight: 35,
+      headerRowHeight: 40,
+      datasetIdPropertyName: 'id',
+      enableGrouping: true,
+     
+    };
+  }
+
+  angularGridReady(angularGrid: AngularGridInstance): void {
+    this.angularGrid = angularGrid;
+    
+    // Setup grouping by DepartmentName và EmployeeTeamName
+    if (angularGrid && angularGrid.dataView) {
+     angularGrid.dataView.setGrouping([
+  {
+    getter: 'DepartmentName',
+    comparer: () => 0, 
+    formatter: (g: any) => {
+      const deptName = g.value || 'Chưa phân phòng';
+      return `Phòng ban: ${deptName}
+        <span style="color:green; margin-left:10px;">
+          (${g.count} nhân viên)
+        </span>`;
     }
-
-    // Tính scale screen
-    const screenWidth = window.screen.width;
-    const baseWidth = 1920;
-    const scaleX = screenWidth / baseWidth;
-    const scale = Math.min(scaleX, 1);
-    const width = scale !== 1 ? 300 : 0;
-
-    this.contactTable = new Tabulator(this.tableRef.nativeElement, {
-      data: this.contactData,
-      layout: 'fitDataStretch',
-      height: '100%',
-      groupBy: ['DepartmentName', 'EmployeeTeamName'],
-      groupClosedShowCalcs: false,
-      columnCalcs: 'table',
-      columnDefaults: {
-        vertAlign: 'middle',
-        headerHozAlign: 'center',
-        headerWordWrap: true,
-        hozAlign: 'center',
-      },
-      columns: [
-        {
-          title: 'STT',
-          field: 'STT',
-          width: 70,
-          frozen: true,
-          formatter: 'textarea',
-        },
-        {
-          title: 'Mã nhân viên',
-          field: 'Code',
-          width: 100,
-          frozen: true,
-          hozAlign: 'left',
-          formatter: 'textarea',
-        },
-        {
-          title: 'Họ tên',
-          field: 'FullName',
-          width: 250,
-          frozen: true,
-          formatter: 'textarea',
-          hozAlign: 'left',
-        },
-        {
-          title: 'Phòng ban',
-          width: 200,
-          field: 'DepartmentName',
-          formatter: 'textarea',
-          hozAlign: 'left',
-        },
-        {
-          title: 'Chức vụ',
-          field: 'ChucVu',
-          width: width || 200,
-          formatter: 'textarea',
-          hozAlign: 'left',
-        },
-        {
-          title: 'Điện thoại',
-          field: 'SDTCaNhan',
-          width: 200,
-          formatter: (cell: any) => {
-            const value = cell.getValue() || '';
-            const listSdt = value.split('\n');
-            let html = '';
-            listSdt.forEach((item: string, i: number) => {
-              const separator = listSdt.length <= 1 ? '' : (i % 2 === 0 ? '<br/>' : '');
-              html += `<a href="tel:${item}">${item}</a> ${separator}`;
-            });
-            return html;
-          },
-          hozAlign: 'left',
-        },
-        {
-          title: 'Email',
-          field: 'EmailCongTy',
-          width: 300,
-          formatter: 'textarea',
-          hozAlign: 'left',
-        },
-        {
-          title: 'Ngày vào',
-          field: 'StartWorking',
-          width: 100,
-          formatter: (cell: any) => {
-            const value = cell.getValue() || '';
-            return value ? DateTime.fromISO(value).toFormat('dd/MM/yyyy') : '';
-          },
-          accessorDownload: (value: any) => {
-            return value ? DateTime.fromISO(value).toFormat('dd/MM/yyyy') : '';
-          },
-        },
-        {
-          title: 'Năm sinh',
-          field: 'BirthOfDate',
-          width: 100,
-          formatter: (cell: any) => {
-            const value = cell.getValue() || '';
-            return value ? DateTime.fromISO(value).toFormat('yyyy') : '';
-          },
-          accessorDownload: (value: any) => {
-            return value ? DateTime.fromISO(value).toFormat('dd/MM/yyyy') : '';
-          },
-        },
-      ],
-      rowFormatter: (row: any) => {
-        const data = row.getData();
-        const position = data.ChucVu || '';
-        if (position.includes('Intern')) {
-          row.getElement().style.backgroundColor = '#a5c4e7';
-        }
-      },
-    });
-
-    // Set group header
-    this.contactTable.setGroupHeader((value: any, count: number) => {
-      return `${value} (${count} NS)`;
-    });
+  },
+  {
+    getter: 'EmployeeTeamName',
+    comparer: () => 0, 
+    formatter: (g: any) => {
+      const teamName = g.value || '';
+      return `Team: ${teamName}
+        <span style="color:blue; margin-left:10px;">
+          (${g.count} nhân viên)
+        </span>`;
+    }
+  }
+]);
+    }
   }
 
   /**
    * Xuất Excel
    */
   onExportExcel(): void {
-    if (!this.contactTable) return;
+    if (!this.dataset.length) {
+      this.notification.info('Thông báo', 'Không có dữ liệu để xuất Excel.');
+      return;
+    }
+
+    const workbook = new ExcelJS.Workbook();
+    const worksheet = workbook.addWorksheet('THÔNG TIN LIÊN HỆ');
+
+    const columns = this.columnDefinitions.filter(c => c.field && c.field.trim() !== '');
+
+    worksheet.addRow(columns.map(c => c.name || c.field || ''));
+    this.dataset.forEach(row => {
+      worksheet.addRow(
+        columns.map(c => {
+          const val = row[c.field!];
+          switch (c.field) {
+            case 'StartWorking':
+              return val ? DateTime.fromISO(val).toFormat('dd/MM/yyyy') : '';
+            case 'BirthOfDate':
+              return val ? DateTime.fromISO(val).toFormat('yyyy') : '';
+            default:
+              return val ?? '';
+          }
+        })
+      );
+    });
+
+    worksheet.columns.forEach(col => {
+      col.width = 20;
+    });
+
+    worksheet.eachRow((row, rowNumber) => {
+      row.eachCell(cell => {
+        cell.border = {
+          top: { style: 'thin' },
+          left: { style: 'thin' },
+          bottom: { style: 'thin' },
+          right: { style: 'thin' },
+        };
+        if (rowNumber === 1) {
+          cell.font = { bold: true };
+          cell.alignment = { horizontal: 'center', vertical: 'middle' };
+        }
+      });
+    });
 
     const currentMonth = DateTime.now().toFormat('MM-yy');
-    this.contactTable.download('xlsx', `DanhSachLienHeNhanVien_T${currentMonth}.xlsx`, {
-      sheetName: 'THÔNG TIN LIÊN HỆ',
-      documentProcessing: (workbook: any) => {
-        const ws_name = workbook.SheetNames[0];
-        const ws = workbook.Sheets[ws_name];
-
-        // Setting column width
-        const wscols = [
-          { wch: 7 },   // STT
-          { wch: 10 },  // Mã NV
-          { wch: 25 },  // Họ tên
-          { wch: 20 },  // Phòng ban
-          { wch: 50 },  // Chức vụ
-          { wch: 20 },  // Điện thoại
-          { wch: 30 },  // Email
-          { wch: 10 },  // Ngày vào
-          { wch: 10 },  // Năm sinh
-        ];
-
-        ws['!cols'] = wscols;
-        ws['!autofilter'] = { ref: 'A1:I1' };
-
-        return workbook;
-      },
+    workbook.xlsx.writeBuffer().then(buffer => {
+      const blob = new Blob([buffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `DanhSachLienHeNhanVien_T${currentMonth}.xlsx`;
+      a.click();
+      window.URL.revokeObjectURL(url);
     });
   }
 }

@@ -86,4 +86,12 @@ export class DocumentService {
     getEmployee(request: any): Observable<any> {
         return this.http.get<any>(`${this.urlEmployee}`, request);
     }
+
+    getDocumentCommon(keyword: string, departID: number, groupType: number): Observable<any> {
+        const params = new HttpParams()
+            .set('keyword', keyword || '')
+            .set('departID', departID.toString())
+            .set('groupType', groupType.toString());
+        return this.http.get<any>(environment.host + `api/document/get-document-common`, { params });
+    }
 }

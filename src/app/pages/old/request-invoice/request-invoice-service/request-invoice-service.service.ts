@@ -77,4 +77,12 @@ export class RequestInvoiceService {
     return this.http.get<any>(this._urlSummary + 'get-customer');
   }
 
+  getTreeFolderPath(requestInvoiceID: number): Observable<any> {
+    return this.http.get<any>(this._url + 'get-tree-folder-path', {
+      params: {
+        requestInvoiceID: requestInvoiceID.toString(),
+      },
+    });
+  }
+
 }

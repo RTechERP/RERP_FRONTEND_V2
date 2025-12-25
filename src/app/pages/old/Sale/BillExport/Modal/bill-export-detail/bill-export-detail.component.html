@@ -256,3 +256,21 @@
     <button class="fs-12 btn" nz-button nzType="primary" *hasPermission="'N27,N1,N33,N34,N69'" (click)="saveDataBillExport()">Lưu</button>
   </ng-container>
 </div>
+
+<!-- Custom Error Notification Popup -->
+<div *ngIf="showErrorPopup" class="error-popup-overlay" (click)="closeErrorPopup()">
+  <div class="error-popup-container" (click)="$event.stopPropagation()">
+    <div class="error-popup-header">
+      <h5 class="error-popup-title">
+        <nz-icon nzType="warning" nzTheme="fill" class="text-warning me-2"></nz-icon>
+        Thông báo
+      </h5>
+    </div>
+    <div class="error-popup-body">
+      <div class="error-popup-message">{{ errorMessage }}</div>
+    </div>
+    <div class="error-popup-footer">
+      <button class="fs-12 btn" nz-button nzType="primary" (click)="closeErrorPopup()">OK</button>
+    </div>
+  </div>
+</div>

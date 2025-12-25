@@ -54,7 +54,7 @@ import { NzModalModule, NzModalService } from 'ng-zorro-antd/modal';
 import { HasPermissionDirective } from '../../../directives/has-permission.directive';
 import { NOTIFICATION_TITLE } from '../../../app.config';
 import { ProductRtcPurchaseRequestComponent } from '../../purchase/project-partlist-purchase-request/product-rtc-purchase-request/product-rtc-purchase-request.component';
-import { PurchaseRequestDemoComponent } from '../../purchase/project-partlist-purchase-request/purchase-request-demo/purchase-request-demo.component';
+import { ProjectPartListPurchaseRequestSlickGridComponent } from '../../purchase/project-partlist-purchase-request/project-part-list-purchase-request-slick-grid/project-part-list-purchase-request-slick-grid.component';
 import { AppUserService } from '../../../services/app-user.service';
 import { ActivatedRoute } from '@angular/router';
 @Component({
@@ -85,7 +85,7 @@ import { ActivatedRoute } from '@angular/router';
         HasPermissionDirective,
         NgbDropdownModule, // thêm để dùng ngbDropdown
         ProductRtcPurchaseRequestComponent, // Component để tạo yêu cầu mua hàng ProductRTC
-        PurchaseRequestDemoComponent, // Component để xem danh sách yêu cầu mua hàng
+        ProjectPartListPurchaseRequestSlickGridComponent, // Component để xem danh sách yêu cầu mua hàng
     ],
     selector: 'app-tb-product-rtc',
     templateUrl: './tb-product-rtc.component.html',
@@ -914,10 +914,7 @@ export class TbProductRtcComponent implements OnInit, AfterViewInit {
     }
 
     onOpenPurchaseRequestList() {
-        // Lấy EmployeeID từ AppUserService
-        const employeeID = this.appUserService.employeeID || 0;
-
-        const modalRef = this.ngbModal.open(PurchaseRequestDemoComponent, {
+        const modalRef = this.ngbModal.open(ProjectPartListPurchaseRequestSlickGridComponent, {
             size: 'fullscreen',
             backdrop: 'static',
             keyboard: false,
@@ -925,11 +922,11 @@ export class TbProductRtcComponent implements OnInit, AfterViewInit {
             modalDialogClass: 'modal-fullscreen',
         });
 
-        // Truyền EmployeeID vào component
-        modalRef.componentInstance.employeeID = employeeID;
+        // Truyền các tham số vào component
         modalRef.componentInstance.showHeader = true;
         modalRef.componentInstance.headerText = 'Danh sách yêu cầu mua hàng';
         modalRef.componentInstance.showCloseButton = true;
+        modalRef.componentInstance.isPurchaseRequestDemo = true;
 
         modalRef.result.then(
             (result) => {

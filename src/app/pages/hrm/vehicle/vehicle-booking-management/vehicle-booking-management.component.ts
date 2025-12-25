@@ -374,7 +374,7 @@ export class VehicleBookingManagementComponent
         ID: item.ID,
         Status: 1,
         IsCancel: false,
-        DepartureDateActual: null,
+        DepartureDateActual: item.DepartureDateActual ,
       };
       this.vehicleBookingManagementService
         .postVehicleBookingManagement(request)

@@ -157,6 +157,7 @@ import { SearchProductTechSerialComponent } from './pages/old/Technical/search-p
 import { VehicleRepairTypeComponent } from './pages/hrm/vehicle/vehicle-repair/vehicle-repair-type/vehicle-repair-type.component';
 import { OfficeSupplyUnitComponent } from './pages/hrm/office-supply/OfficeSupplyUnit/office-supply-unit.component';
 import { DocumentImportExportComponent } from './pages/old/KETOAN/document-import-export/document-import-export.component';
+import { DocumentCommonComponent } from './pages/hrm/document/document-common/document-common.component';
 
 export const routes: Routes = [
     {
@@ -592,6 +593,7 @@ export const routes: Routes = [
             { path: 'job-requirement-hr', component: JobRequirementComponent, canActivate: [authGuard] },
             { path: 'proposal-hr', component: HrPurchaseProposalComponent, canActivate: [authGuard] },
             { path: 'document', component: DocumentComponent, canActivate: [authGuard] },
+            { path: 'document-common', component: DocumentCommonComponent, canActivate: [authGuard] },
             { path: 'asset-management', component: TsAssetManagementComponent, canActivate: [authGuard] },
             { path: 'asset-type', component: TsAssetTypeComponent, canActivate: [authGuard] },
             { path: 'asset-source', component: TsAssetSourceComponent, canActivate: [authGuard] },

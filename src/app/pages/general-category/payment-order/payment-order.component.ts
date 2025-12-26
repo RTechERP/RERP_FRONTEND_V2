@@ -214,8 +214,28 @@ export class PaymentOrderComponent implements OnInit {
             this.param.departmentID = this.appUserService.currentUser?.DepartmentID;
             this.param.employeeID = this.appUserService.currentUser?.EmployeeID;
             // console.log('this.param:', this.param);
-        } else if (this.appUserService.currentUser?.Permissions.includes(permissionCodeTBP)) {
-            this.param.departmentID = this.appUserService.currentUser?.DepartmentID;
+        } else {
+            if (this.appUserService.currentUser?.Permissions.includes(permissionCodeTBP)) {
+                this.param.departmentID = this.appUserService.currentUser?.DepartmentID;
+            }
+
+            if (this.appUserService.currentUser?.Permissions.includes(permissionCodeTbpHR)) {
+                this.param.departmentID = 0;
+            }
+
+            if (this.appUserService.currentUser?.Permissions.includes(permissionCodeKT)) {
+                this.param.departmentID = 0;
+            }
+
+            if (this.appUserService.currentUser?.Permissions.includes(permissionCodeKTT)) {
+                this.param.departmentID = 0;
+            }
+            if (this.appUserService.currentUser?.Permissions.includes(permissionCodeBGD)) {
+                this.param.departmentID = 0;
+            }
+            if (this.appUserService.currentUser?.Permissions.includes(permissionCodeTBP)) {
+                this.param.departmentID = 0;
+            }
         }
 
         this.initGrid();

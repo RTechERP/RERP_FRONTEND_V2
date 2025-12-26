@@ -22,11 +22,6 @@ export class WorkplanService {
         return this.http.post<any>(`${this.url}/save-data`, workPlan);
     }
 
-    // Xóa kế hoạch tuần
-    deleteWorkPlan(id: number): Observable<any> {
-        return this.http.post<any>(`${this.url}/${id}`, {});
-    }
-
     // Lấy kế hoạch theo ID
     getWorkPlanById(id: number): Observable<any> {
         return this.http.get<any>(`${this.url}/${id}`);

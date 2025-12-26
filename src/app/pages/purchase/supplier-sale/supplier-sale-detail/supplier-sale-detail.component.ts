@@ -1,6 +1,25 @@
-import { Component, ElementRef, OnInit, ViewChild, AfterViewInit, AfterViewChecked, IterableDiffers, TemplateRef, input, Input, inject } from '@angular/core';
+import {
+  Component,
+  ElementRef,
+  OnInit,
+  ViewChild,
+  AfterViewInit,
+  AfterViewChecked,
+  IterableDiffers,
+  TemplateRef,
+  input,
+  Input,
+  inject,
+} from '@angular/core';
 import { NzCardModule } from 'ng-zorro-antd/card';
-import { FormsModule, ReactiveFormsModule, FormBuilder, FormGroup, Validators, NonNullableFormBuilder } from '@angular/forms';
+import {
+  FormsModule,
+  ReactiveFormsModule,
+  FormBuilder,
+  FormGroup,
+  Validators,
+  NonNullableFormBuilder,
+} from '@angular/forms';
 import { NzButtonModule, NzButtonSize } from 'ng-zorro-antd/button';
 import { NzIconModule } from 'ng-zorro-antd/icon';
 import { NzRadioModule } from 'ng-zorro-antd/radio';
@@ -70,10 +89,9 @@ import { concatMap } from 'rxjs/operators';
     CommonModule,
   ],
   templateUrl: './supplier-sale-detail.component.html',
-  styleUrl: './supplier-sale-detail.component.css'
+  styleUrl: './supplier-sale-detail.component.css',
 })
 export class SupplierSaleDetailComponent {
-
   //#region Khai báo biến
   @Input() supplierSaleID: number = -1;
   @ViewChild('tb_supplierSaleContact', { static: false })
@@ -95,8 +113,8 @@ export class SupplierSaleDetailComponent {
     AddressNCC: this.fb.control('', [Validators.required]),
     Company: this.fb.control('', [Validators.required]),
     PhoneNCC: this.fb.control('', [
-      Validators.required,
-      Validators.pattern(/^(?:\+84|0)(3|5|7|8|9)[0-9]{8}$/)
+      //Validators.required,
+      Validators.pattern(/^(?:0|\+84)(3|5|7|8|9)[0-9]{8}$/),
     ]),
     OrdererNCC: this.fb.control(''),
     Debt: this.fb.control(''),
@@ -117,7 +135,7 @@ export class SupplierSaleDetailComponent {
     AddressDelivery: this.fb.control(''),
     RulePayID: this.fb.control(0),
     Description: this.fb.control(''),
-    RuleIncoterm: this.fb.control('')
+    RuleIncoterm: this.fb.control(''),
   });
 
   constructor(
@@ -126,7 +144,7 @@ export class SupplierSaleDetailComponent {
     private notification: NzNotificationService,
     private modalService: NgbModal,
     private projectService: ProjectService
-  ) { }
+  ) {}
   //#endregion
 
   //#region Hàm chạy khi mở chương trình
@@ -138,7 +156,9 @@ export class SupplierSaleDetailComponent {
   }
 
   ngAfterViewInit() {
-    this.drawTbSupplierSaleContact(this.tb_supplierSaleContactContainer.nativeElement);
+    this.drawTbSupplierSaleContact(
+      this.tb_supplierSaleContactContainer.nativeElement
+    );
     if (this.supplierSaleID > 0) {
       this.getSupplierSaleContact(this.supplierSaleID);
     }
@@ -181,7 +201,7 @@ export class SupplierSaleDetailComponent {
               AddressDelivery: supplier.AddressDelivery,
               RulePayID: supplier.RulePayID,
               Description: supplier.Description,
-              RuleIncoterm: supplier.RuleIncoterm
+              RuleIncoterm: supplier.RuleIncoterm,
             });
             console.log(this.validateForm.getRawValue());
           } else {
@@ -196,7 +216,7 @@ export class SupplierSaleDetailComponent {
             NOTIFICATION_TITLE.error,
             'Không thể tải dữ liệu liên hệ. Vui lòng thử lại sau.'
           );
-        }
+        },
       });
     }
   }
@@ -210,7 +230,10 @@ export class SupplierSaleDetailComponent {
         );
       },
       error: (error) => {
-        this.notification.error(NOTIFICATION_TITLE.error, 'Lỗi khi tải danh sách nhân viên: ' + error.message);
+        this.notification.error(
+          NOTIFICATION_TITLE.error,
+          'Lỗi khi tải danh sách nhân viên: ' + error.message
+        );
       },
     });
   }
@@ -226,16 +249,22 @@ export class SupplierSaleDetailComponent {
     if (this.tb_supplierSaleContactBody) {
       const data = this.tb_supplierSaleContactBody.getData();
       // Tìm STT lớn nhất hiện tại, nếu chưa có thì là 0
-      const maxSTT = data.length > 0 ? Math.max(...data.map((row: any) => Number(row.STT) || 0)) : 0;
-      this.tb_supplierSaleContactBody.addRow({
-        ID: 0, // ID = 0 cho dòng mới
-        STT: maxSTT + 1,
-        SupplierID: this.supplierSaleID,
-        SupplierName: "",
-        SupplierPhone: "",
-        SupplierEmail: "",
-        Describe: ""
-      }, false); // false = thêm vào cuối bảng
+      const maxSTT =
+        data.length > 0
+          ? Math.max(...data.map((row: any) => Number(row.STT) || 0))
+          : 0;
+      this.tb_supplierSaleContactBody.addRow(
+        {
+          ID: 0, // ID = 0 cho dòng mới
+          STT: maxSTT + 1,
+          SupplierID: this.supplierSaleID,
+          SupplierName: '',
+          SupplierPhone: '',
+          SupplierEmail: '',
+          Describe: '',
+        },
+        false
+      ); // false = thêm vào cuối bảng
     }
   }
 
@@ -270,15 +299,44 @@ export class SupplierSaleDetailComponent {
             if (id > 0) return;
             cell.getRow().delete();
             this.resetSTT();
-          }
+          },
         } as any,
-        { title: 'STT', field: 'STT', width: 60, headerSort: false, hozAlign: 'center' },
-        { title: 'Tên liên hệ', field: 'SupplierName', editor: "input", width: 200, headerSort: false },
-        { title: 'Số điện thoại', field: 'SupplierPhone', editor: "input", width: 150, headerSort: false },
-        { title: 'Email', field: 'SupplierEmail', editor: "input", width: 200, headerSort: false },
-        { title: 'Mô tả', field: 'Describe', editor: "input", width: 250, headerSort: false }
+        {
+          title: 'STT',
+          field: 'STT',
+          width: 60,
+          headerSort: false,
+          hozAlign: 'center',
+        },
+        {
+          title: 'Tên liên hệ',
+          field: 'SupplierName',
+          editor: 'input',
+          width: 200,
+          headerSort: false,
+        },
+        {
+          title: 'Số điện thoại',
+          field: 'SupplierPhone',
+          editor: 'input',
+          width: 150,
+          headerSort: false,
+        },
+        {
+          title: 'Email',
+          field: 'SupplierEmail',
+          editor: 'input',
+          width: 200,
+          headerSort: false,
+        },
+        {
+          title: 'Mô tả',
+          field: 'Describe',
+          editor: 'input',
+          width: 250,
+          headerSort: false,
+        },
       ],
-
     });
   }
 
@@ -299,7 +357,7 @@ export class SupplierSaleDetailComponent {
         );
         // Clear bảng khi có lỗi
         this.tb_supplierSaleContactBody.clearData();
-      }
+      },
     });
   }
 
@@ -308,8 +366,8 @@ export class SupplierSaleDetailComponent {
       next: (data) => {
         if (data.status == 1) {
           this.rulepays = data.data.map((item: any) => ({
-            title: item.Code + " - " + item.Note,
-            value: item.ID
+            title: item.Code + ' - ' + item.Note,
+            value: item.ID,
           }));
         } else {
           this.notification.warning(
@@ -323,7 +381,7 @@ export class SupplierSaleDetailComponent {
           NOTIFICATION_TITLE.error,
           'Không thể tải dữ liệu liên hệ. Vui lòng thử lại sau.'
         );
-      }
+      },
     });
   }
 
@@ -333,7 +391,7 @@ export class SupplierSaleDetailComponent {
         if (data.status == 1) {
           this.companies = data.data.map((item: any) => ({
             title: item.Name,
-            value: item.ID
+            value: item.ID,
           }));
         } else {
           this.notification.warning(
@@ -347,13 +405,13 @@ export class SupplierSaleDetailComponent {
           NOTIFICATION_TITLE.error,
           'Không thể tải dữ liệu liên hệ. Vui lòng thử lại sau.'
         );
-      }
+      },
     });
   }
 
   async saveData() {
     try {
-      Object.keys(this.validateForm.controls).forEach(key => {
+      Object.keys(this.validateForm.controls).forEach((key) => {
         const control = this.validateForm.get(key);
         if (control && typeof control.value === 'string') {
           control.setValue(control.value.trim());
@@ -379,11 +437,11 @@ export class SupplierSaleDetailComponent {
       let dataContact = this.tb_supplierSaleContactBody.getData();
       dataContact = dataContact.map((c: any) => ({
         ...c,
-        SupplierID: supplierSaleId
+        SupplierID: supplierSaleId,
       }));
       await lastValueFrom(
         from(dataContact).pipe(
-          concatMap(item =>
+          concatMap((item) =>
             this.supplierSaleService.saveSupplierSaleContact(item)
           ),
           toArray()
@@ -396,7 +454,6 @@ export class SupplierSaleDetailComponent {
       );
 
       this.modalService.dismissAll();
-
     } catch (error: any) {
       this.notification.error(
         NOTIFICATION_TITLE.error,
@@ -405,12 +462,11 @@ export class SupplierSaleDetailComponent {
     }
   }
 
-
   onSubmit(): void {
     if (this.validateForm.valid) {
       this.saveData(); // modal sẽ tự đóng khi save xong
     } else {
-      Object.values(this.validateForm.controls).forEach(control => {
+      Object.values(this.validateForm.controls).forEach((control) => {
         if (control.invalid) {
           control.markAsDirty();
           control.updateValueAndValidity({ onlySelf: true });

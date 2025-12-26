@@ -46,7 +46,7 @@ import { MenuAppService } from '../../pages/systems/menu-app/menu-app.service';
 import { NOTIFICATION_TITLE } from '../../app.config';
 import { environment } from '../../../environments/environment';
 import { CustomRouteReuseStrategy } from '../../custom-route-reuse.strategy';
-import { LayoutEventService } from '../layout-event.service';
+// import { LayoutEventService } from '../layout-event.service';
 import { take, filter } from 'rxjs/operators';
 import { Subscription } from 'rxjs';
 
@@ -128,9 +128,10 @@ export class MainLayoutComponent implements OnInit, AfterViewInit, OnDestroy {
         private injector: Injector,
         private menuEventService: MenuEventService,
         private reuse: RouteReuseStrategy,
-        private layoutEvent: LayoutEventService,
+        // private layoutEvent: LayoutEventService,
         private cd: ChangeDetectorRef,
-        private route: ActivatedRoute
+        private route: ActivatedRoute,
+        // private tabService: TabServiceService
     ) {
         // this.menus = this.menuService.getMenus();
     }
@@ -196,7 +197,7 @@ export class MainLayoutComponent implements OnInit, AfterViewInit, OnDestroy {
 
     menuKey: string = '';
     private routerSubscription?: Subscription;
-    
+
     ngOnInit(): void {
         // const saved = localStorage.getItem('openMenuKey') || '';
         // console.log(this.menus);
@@ -228,13 +229,13 @@ export class MainLayoutComponent implements OnInit, AfterViewInit, OnDestroy {
         // Subscribe vào router events để tự động tạo tab khi paste URL trực tiếp
         // Subscribe sau khi menus đã load (sẽ được setup trong getMenus)
     }
-    
+
     ngOnDestroy(): void {
         if (this.routerSubscription) {
             this.routerSubscription.unsubscribe();
         }
     }
-    
+
     // Hàm check và tạo tab từ current route (khi paste URL trực tiếp lần đầu)
     private checkAndCreateTabFromCurrentRoute(): void {
         const currentUrl = this.router.url;
@@ -242,7 +243,7 @@ export class MainLayoutComponent implements OnInit, AfterViewInit, OnDestroy {
             this.handleDirectNavigation(currentUrl);
         }
     }
-    
+
     // Hàm tìm menu item theo route
     private findMenuItemByRoute(route: string, items: any[]): any | null {
         for (const item of items) {
@@ -258,7 +259,7 @@ export class MainLayoutComponent implements OnInit, AfterViewInit, OnDestroy {
         }
         return null;
     }
-    
+
     // Hàm xử lý khi navigate trực tiếp từ URL (paste URL)
     private handleDirectNavigation(url: string): void {
         // Bỏ qua nếu navigation đến từ newTab (để tránh tạo tab trùng)
@@ -266,34 +267,34 @@ export class MainLayoutComponent implements OnInit, AfterViewInit, OnDestroy {
             console.log('Skipping handleDirectNavigation - navigation from newTab');
             return;
         }
-        
+
         // Loại bỏ base path và query string để lấy route
         const urlWithoutQuery = url.split('?')[0];
         const route = urlWithoutQuery.startsWith('/') ? urlWithoutQuery.substring(1) : urlWithoutQuery;
-        
+
         // Bỏ qua nếu là route mặc định hoặc không phải route con
         if (!route || route === 'app' || route === 'home' || route === 'login') {
             return;
         }
-        
+
         // Lấy queryParams từ URL (nếu có)
         const urlObj = new URL(url, window.location.origin);
         let queryParams: any = {};
         urlObj.searchParams.forEach((value, key) => {
             queryParams[key] = value;
         });
-        
+
         // Nếu URL không có queryParams, tìm trong menu app xem có queryParams không
         let menuItem: any = null;
         let menuQueryParams: any = null;
-        
+
         if (Object.keys(queryParams).length === 0 && this.menus.length > 0) {
             menuItem = this.findMenuItemByRoute(route, this.menus);
             if (menuItem && menuItem.queryParams && menuItem.queryParams !== '') {
                 // Parse queryParams từ menu
                 try {
-                    menuQueryParams = typeof menuItem.queryParams === 'string' 
-                        ? JSON.parse(menuItem.queryParams) 
+                    menuQueryParams = typeof menuItem.queryParams === 'string'
+                        ? JSON.parse(menuItem.queryParams)
                         : menuItem.queryParams;
                     console.log('Found queryParams from menu for route:', route, menuQueryParams);
                 } catch (e) {
@@ -301,11 +302,11 @@ export class MainLayoutComponent implements OnInit, AfterViewInit, OnDestroy {
                 }
             }
         }
-        
+
         // Ưu tiên queryParams từ URL, nếu không có thì dùng từ menu
         const finalQueryParams = Object.keys(queryParams).length > 0 ? queryParams : menuQueryParams;
         const normalizedParams = finalQueryParams && Object.keys(finalQueryParams).length > 0 ? finalQueryParams : undefined;
-        
+
         // Nếu có queryParams từ menu mà URL không có, navigate lại với queryParams
         if (menuQueryParams && Object.keys(queryParams).length === 0) {
             // Build URL với queryParams từ menu
@@ -321,10 +322,10 @@ export class MainLayoutComponent implements OnInit, AfterViewInit, OnDestroy {
             this.router.navigateByUrl(newUrl);
             return; // Return để đợi navigation xong, sẽ gọi lại handleDirectNavigation
         }
-        
+
         // Tạo key giống như trong newTab
         const key = route + JSON.stringify(normalizedParams ?? {});
-        
+
         // Kiểm tra xem tab đã tồn tại chưa
         const existingTab = this.dynamicTabs.find(t => t.key === key);
         if (existingTab) {
@@ -332,7 +333,7 @@ export class MainLayoutComponent implements OnInit, AfterViewInit, OnDestroy {
             this.selectedIndex = this.dynamicTabs.indexOf(existingTab);
             return;
         }
-        
+
         // Tìm title từ menu
         let title = route; // default title
         if (!menuItem) {
@@ -341,7 +342,7 @@ export class MainLayoutComponent implements OnInit, AfterViewInit, OnDestroy {
         if (menuItem && menuItem.title) {
             title = menuItem.title;
         }
-        
+
         // Tạo tab mới
         const newTab: TabItem = {
             title,
@@ -349,30 +350,30 @@ export class MainLayoutComponent implements OnInit, AfterViewInit, OnDestroy {
             queryParams: normalizedParams,
             key
         };
-        
+
         this.dynamicTabs = [...this.dynamicTabs, newTab];
         this.selectedIndex = this.dynamicTabs.length - 1;
-        
+
         console.log('Auto-created tab from direct navigation:', newTab);
     }
 
     ngAfterViewInit(): void {
-        this.layoutEvent.toggleMenu$.pipe(take(1)).subscribe(key => {
-            // this.menuKey = key;
-            if (key) this.toggleMenu(key);
+        // this.layoutEvent.toggleMenu$.pipe(take(1)).subscribe(key => {
+        //     // this.menuKey = key;
+        //     if (key) this.toggleMenu(key);
 
-            this.menuService.menuKey$.subscribe((key) => {
-                this.menuKey = key;
-            });
-            this.setOpenMenu(key);
-        });
+        //     this.menuService.menuKey$.subscribe((key) => {
+        //         this.menuKey = key;
+        //     });
+        //     this.setOpenMenu(key);
+        // });
     }
 
     getMenus() {
         this.menuAppService.getAll().subscribe({
             next: (response) => {
 
-                console.log(response);
+                // console.log(response);
 
                 this.menuService.menuKey$.subscribe((x) => {
                     this.menuKey = x;
@@ -399,12 +400,12 @@ export class MainLayoutComponent implements OnInit, AfterViewInit, OnDestroy {
                         isOpen: item.ParentID > 0 || item.Code == this.menuKey,
                         queryParams: (item.QueryParam || ''),
                     };
-                    
+
                     // Log để debug queryParams từ database
                     if (item.QueryParam && item.QueryParam !== '') {
                         console.log(`Menu item [${item.Code}] - QueryParam from DB:`, item.QueryParam, 'Type:', typeof item.QueryParam);
                     }
-                    
+
                     map.set(item.ID, menuItem);
                 });
 
@@ -421,13 +422,13 @@ export class MainLayoutComponent implements OnInit, AfterViewInit, OnDestroy {
                 });
 
                 // console.log(this.menus);
-                
+
                 // Sau khi menus đã load, check current route và tự động tạo tab nếu cần
                 // (khi paste URL trực tiếp)
                 setTimeout(() => {
                     this.checkAndCreateTabFromCurrentRoute();
                 }, 0);
-                
+
                 // Subscribe vào router events để tự động tạo tab khi navigate trực tiếp
                 if (!this.routerSubscription) {
                     this.routerSubscription = this.router.events
@@ -503,7 +504,7 @@ export class MainLayoutComponent implements OnInit, AfterViewInit, OnDestroy {
         console.log('title:', title);
         console.log('queryParams (raw):', queryParams);
         console.log('queryParams type:', typeof queryParams);
-        
+
         // Parse queryParams nếu là string JSON từ database
         let parsedParams: any = null;
         if (queryParams && queryParams !== '') {
@@ -523,13 +524,13 @@ export class MainLayoutComponent implements OnInit, AfterViewInit, OnDestroy {
         } else {
             console.log('queryParams is empty or undefined');
         }
-        
+
         // Normalize: chỉ lấy object có keys, loại bỏ null/undefined/empty
         const normalizedParams =
             parsedParams && typeof parsedParams === 'object' && Object.keys(parsedParams).length > 0
                 ? parsedParams
                 : undefined;
-        
+
         // const key = route + JSON.stringify(queryParams ?? {});
         const key = route + JSON.stringify(normalizedParams ?? {});
 

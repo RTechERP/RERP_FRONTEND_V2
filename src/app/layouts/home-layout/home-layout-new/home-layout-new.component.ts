@@ -18,9 +18,10 @@ import { NOTIFICATION_TITLE } from '../../../app.config';
 import { FormsModule } from '@angular/forms';
 import { MenuAppService } from '../../../pages/systems/menu-app/menu-app.service';
 import { environment } from '../../../../environments/environment';
-import { LayoutEventService } from '../../layout-event.service';
+// import { LayoutEventService } from '../../layout-event.service';
 import { TabsModule } from 'primeng/tabs';
 import { NzLayoutModule } from 'ng-zorro-antd/layout';
+import { TabServiceService } from '../../tab-service.service';
 
 @Component({
     selector: 'app-home-layout-new',
@@ -100,21 +101,14 @@ export class HomeLayoutNewComponent implements OnInit {
         public menuService: MenuService,
         public menuAppService: MenuAppService,
         private permissionService: PermissionService,
-
+        private tabService: TabServiceService
     ) { }
 
     ngOnInit(): void {
         this.getMenus();
         this.appUserService.user$.subscribe(() => {
             this.permissionService.refreshPermissions();
-            // this.menus = this.menuService
-            //     .getMenus()
-            //     .sort((a, b) => (a.stt ?? 1) - (b.stt ?? 1));
-
-
-
             this.cdr.markForCheck?.();
-
         });
 
         this.getHoliday(this.today.getFullYear(), this.today.getMonth());
@@ -218,19 +212,42 @@ export class HomeLayoutNewComponent implements OnInit {
 
 
     openModule(key: string) {
-        // this.layoutEvent.toggleMenu(key);
-        // this.router.navigate(['/app']);
-
-        // console.log(key);
-
         this.menuService.setMenuKey(key);
         this.router.navigate(['/app']); // hoặc route tới MainLayout
     }
 
+    // newTab(route: string, title: string, data?: any) {
+    //     route = route.replace(environment.baseHref, '');
+    //     console.log('this.dynamicTabs:', this.dynamicTabs);
+
+    //     const idx = this.dynamicTabs.findIndex(t => t.route === route);
+
+    //     this.tabService.openTab({ route: route, title: title, queryParams: queryParams });
+    //     this.router.navigate(['/app']);
+    //     // route = route.replace(environment.baseHref, '');
+    //     // const idx = this.dynamicTabs.findIndex(t => t.route === route);
+
+    //     this.dynamicTabs = [
+    //         ...this.dynamicTabs,
+    //         { title, route, data }
+    //     ];
+    //     console.log('this.dynamicTabs after add:', this.dynamicTabs);
+
+    //     // this.dynamicTabs = [
+    //     //     ...this.dynamicTabs,
+    //     //     { title, route, data }
+    //     // ];
+
+    //     // setTimeout(() => {
+    //     //     this.selectedIndex = this.dynamicTabs.length - 1;
+    //     //     this.router.navigateByUrl(route);
+    //     // });
+    // }
+
     newTab(route: string, title: string, data?: any) {
         route = route.replace(environment.baseHref, '');
         console.log('this.dynamicTabs:', this.dynamicTabs);
-        
+
         const idx = this.dynamicTabs.findIndex(t => t.route === route);
 
         if (idx >= 0) {
@@ -243,7 +260,7 @@ export class HomeLayoutNewComponent implements OnInit {
             ...this.dynamicTabs,
             { title, route, data }
         ];
-console.log('this.dynamicTabs after add:', this.dynamicTabs);
+        console.log('this.dynamicTabs after add:', this.dynamicTabs);
 
         setTimeout(() => {
             this.selectedIndex = this.dynamicTabs.length - 1;

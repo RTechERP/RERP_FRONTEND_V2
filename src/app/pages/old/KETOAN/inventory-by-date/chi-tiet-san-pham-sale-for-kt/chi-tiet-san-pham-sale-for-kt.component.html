@@ -11,12 +11,12 @@
 
           <div class="col">
             <label class="mb-0 fs-12">Mã nội bộ</label>
-            <input type="text" class="form-control form-control-sm fs-12" [(ngModel)]="productCode">
+            <nz-input type="text" class="form-control form-control-sm fs-12" [(ngModel)]="productCode" nzDisable="true"></nz-input>
           </div>
 
           <div class="col">
             <label class="mb-0 fs-12">Tồn kho đầu kỳ</label>
-            <input type="text" class="form-control form-control-sm fs-12" [(ngModel)]="totalQuantityFirst">
+            <nz-input type="text" class="form-control form-control-sm fs-12" [(ngModel)]="totalQuantityFirst" nzDisable="true"></nz-input>
           </div>
         </div>
 
@@ -25,24 +25,16 @@
           <div class="col-12">
             <nz-splitter style="height: 200px;">
               <nz-splitter-panel nzDefaultSize="50%" [nzResizable]="true">
-                <div class="card h-100">
-                  <div class="card-header bg-primary text-white py-1">
+                  <div class="card-header text-white py-1">
                     <h6 class="mb-0 fs-12">Nhập kho</h6>
                   </div>
-                  <div class="card-body p-2" style="overflow: hidden;">
-                    <div #tb_ImportTable style="height: 100%;"></div>
-                  </div>
-                </div>
+                  <div #tb_ImportTable></div>
               </nz-splitter-panel>
               <nz-splitter-panel nzDefaultSize="50%" [nzResizable]="true">
-                <div class="card h-100">
-                  <div class="card-header bg-success text-white py-1">
+                  <div class="card-header text-white py-1">
                     <h6 class="mb-0 fs-12">Xuất kho</h6>
                   </div>
-                  <div class="card-body p-2" style="overflow: hidden;">
-                    <div #tb_ExportTable style="height: 100%;"></div>
-                  </div>
-                </div>
+                    <div #tb_ExportTable></div>
               </nz-splitter-panel>
             </nz-splitter>
           </div>
@@ -50,7 +42,7 @@
       </div>
     </form>
 
-    <div class="modal-footer py-1 d-flex justify-content-between">
+    <div class="modal-footer py-1 d-flex justify-content-end">
       <div class="d-flex gap-2">
         <button nz-button nzType="default" nzDanger="true" nzSize="default" (click)="closeModal()">Đóng</button>
       </div>

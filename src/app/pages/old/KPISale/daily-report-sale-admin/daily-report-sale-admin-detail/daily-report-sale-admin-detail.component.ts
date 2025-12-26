@@ -132,7 +132,7 @@ export class DailyReportSaleAdminDetailComponent implements OnInit, AfterViewIni
   ];
 
   projectPopupColumns: ColumnDefinition[] = [
-    { title: 'Mã dự án', field: 'ProjectCode', width: 150 },
+    { title: 'Mã dự án', field: 'ProjectCode', width: 250 },
     { title: 'Tên dự án', field: 'ProjectName', width: 250 },
   ];
 
@@ -468,7 +468,7 @@ export class DailyReportSaleAdminDetailComponent implements OnInit, AfterViewIni
       data: this.mainData,
       pagination: false,
       paginationMode: 'local',
-      height: '70vh',
+      height: '75vh',
       rowHeader: false,
       selectableRows: 1,
       layout: 'fitColumns',
@@ -584,6 +584,7 @@ export class DailyReportSaleAdminDetailComponent implements OnInit, AfterViewIni
           hozAlign: 'center',
           headerHozAlign: 'center',
           tooltip: true,
+          width: 200,
           formatter: (cell) => {
             const value = cell.getValue();
             const project = this.projects.find((p) => p.ID === value);
@@ -602,7 +603,7 @@ export class DailyReportSaleAdminDetailComponent implements OnInit, AfterViewIni
         {
           title: 'Khách hàng',
           field: 'CustomerID',
-          width: 250,
+          width: 200,
           hozAlign: 'center',
           headerHozAlign: 'center',
           tooltip: true,

@@ -233,8 +233,31 @@ export class DocumentImportExportComponent implements OnInit, AfterViewInit {
       return;
     }
 
-    // TODO: Implement delete functionality
-    this.notification.info('Thông báo', 'Chức năng xóa đang phát triển');
+    const selectedData = this.tb_Import.getRow(selectedRows[0]).getData();
+    const documentId = selectedData['ID'];
+    
+    this.modal.confirm({
+      nzTitle: 'Xác nhận xóa',
+      nzContent: `Bạn có chắc chắn muốn xóa chứng từ "${selectedData['DocumentImportCode']}"?`,
+      nzOkText: 'Xóa',
+      nzOkDanger: true,
+      nzCancelText: 'Hủy',
+      nzOnOk: () => {
+        this.documentImportExportService.deleteDocument(1, documentId).subscribe(
+          (response) => {
+            if (response.status === 1) {
+              this.notification.success('Thành công', 'Xóa chứng từ nhập thành công');
+              this.loadDataImportTable();
+            } else {
+              this.notification.error('Lỗi', response.message || 'Xóa chứng từ nhập thất bại');
+            }
+          },
+          (error) => {
+            this.notification.error('Lỗi kết nối', 'Không thể kết nối đến máy chủ');
+          }
+        );
+      }
+    });
   }
 
   onAddExport() {
@@ -300,8 +323,31 @@ export class DocumentImportExportComponent implements OnInit, AfterViewInit {
       return;
     }
 
-    // TODO: Implement delete functionality
-    this.notification.info('Thông báo', 'Chức năng xóa đang phát triển');
+    const selectedData = this.tb_Export.getRow(selectedRows[0]).getData();
+    const documentId = selectedData['ID'];
+    
+    this.modal.confirm({
+      nzTitle: 'Xác nhận xóa',
+      nzContent: `Bạn có chắc chắn muốn xóa chứng từ "${selectedData['Code']}"?`,
+      nzOkText: 'Xóa',
+      nzOkDanger: true,
+      nzCancelText: 'Hủy',
+      nzOnOk: () => {
+        this.documentImportExportService.deleteDocument(2, documentId).subscribe(
+          (response) => {
+            if (response.status === 1) {
+              this.notification.success('Thành công', 'Xóa chứng từ xuất thành công');
+              this.loadDataExportTable();
+            } else {
+              this.notification.error('Lỗi', response.message || 'Xóa chứng từ xuất thất bại');
+            }
+          },
+          (error) => {
+            this.notification.error('Lỗi kết nối', 'Không thể kết nối đến máy chủ');
+          }
+        );
+      }
+    });
   }
 
   initImportTable(): void {

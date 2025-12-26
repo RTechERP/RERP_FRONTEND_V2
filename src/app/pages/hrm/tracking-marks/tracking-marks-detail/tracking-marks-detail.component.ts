@@ -605,7 +605,8 @@ export class TrackingMarksDetailComponent implements OnInit, AfterViewInit {
         }
       },
       error: (error) => {
-        this.notification.error(NOTIFICATION_TITLE.error, 'Lỗi khi lưu phiếu');
+        const errorMessage = error?.error?.message || error?.message || 'Lỗi khi lưu phiếu';
+        this.notification.error(NOTIFICATION_TITLE.error, errorMessage);
       }
     });
   }

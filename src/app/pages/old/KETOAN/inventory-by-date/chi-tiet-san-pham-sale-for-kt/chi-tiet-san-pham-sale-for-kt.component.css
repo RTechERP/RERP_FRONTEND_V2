@@ -1,0 +1,11 @@
+.ant-splitter {
+  height: 75vh !important;
+}
+.tabulator {
+  font-size: 0.75rem !important;
+  /* position: absolute !important; */
+  width: 100% !important;
+}
+.ant-tabs-tab-btn {
+  font-size: 0.75rem;
+}

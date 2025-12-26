@@ -28,6 +28,7 @@ import { debounceTime } from 'rxjs/operators';
 import { Subject } from 'rxjs';
 import { DailyReportTechDetailComponent } from './daily-report-tech-detail/daily-report-tech-detail.component';
 import { DailyReportExcelComponent } from '../daily-report-excel/daily-report-excel.component';
+import { USER_ALL_REPORT_TECH } from '../../../app.config';
 
 @Component({
   selector: 'app-daily-report-tech',
@@ -151,12 +152,12 @@ export class DailyReportTechComponent implements OnInit, AfterViewInit {
         // Sau khi có currentUser, nếu users đã được load thì set userId
         if (this.users.length > 0) {
           // Thử tìm theo ID trước, nếu không có thì tìm theo EmployeeID
-          if(data.IsAdmin == true){
+          if(data.IsAdmin == true || USER_ALL_REPORT_TECH.includes(this.currentUser.ID)){
             this.userId = 0;
           }
-          else if(data.ID && data.IsAdmin != true){
+          else if(data.ID && data.IsAdmin != true && !USER_ALL_REPORT_TECH.includes(this.currentUser.ID)){
             this.setUserIdFromEmployeeID(data.ID);
-          } else if (data.EmployeeID && data.IsAdmin != true) {
+          } else if (data.EmployeeID && data.IsAdmin != true && !USER_ALL_REPORT_TECH.includes(this.currentUser.ID)) {
             this.setUserIdFromEmployeeID(data.EmployeeID);
           } else {
             // Nếu không có ID hoặc EmployeeID, set về "Tất cả"
@@ -256,9 +257,9 @@ export class DailyReportTechComponent implements OnInit, AfterViewInit {
         // Sau khi load users, tìm và set userId từ currentUser
         // Nếu không tìm thấy currentUser trong danh sách, tự động set về "Tất cả" (ID = 0)
         if (this.currentUser) {
-          if (this.currentUser.ID && this.currentUser.IsAdmin != true) {
+          if (this.currentUser.ID && this.currentUser.IsAdmin != true &&!USER_ALL_REPORT_TECH.includes(this.currentUser.ID)) {
             this.setUserIdFromEmployeeID(this.currentUser.ID);
-          } else if (this.currentUser.EmployeeID && this.currentUser.IsAdmin != true) {
+          } else if (this.currentUser.EmployeeID && this.currentUser.IsAdmin != true && !USER_ALL_REPORT_TECH.includes(this.currentUser.ID)) {
             this.setUserIdFromEmployeeID(this.currentUser.EmployeeID);
           } else {
             // Nếu không có ID hoặc EmployeeID, set về "Tất cả"
@@ -443,7 +444,7 @@ export class DailyReportTechComponent implements OnInit, AfterViewInit {
     // Xử lý userID an toàn khi currentUser có thể là null
     let userID = 0;
     if (this.currentUser) {
-      if (this.currentUser.IsLeader > 1 || this.currentUser.IsAdmin == true) {
+      if (this.currentUser.IsLeader > 1 || this.currentUser.IsAdmin == true || USER_ALL_REPORT_TECH.includes(this.currentUser.ID)) {
         userID = this.userId || 0;
       } else {
         userID = this.currentUser.ID || 0;

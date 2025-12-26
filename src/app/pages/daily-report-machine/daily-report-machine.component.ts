@@ -27,6 +27,7 @@ import { debounceTime } from 'rxjs/operators';
 import { Subject } from 'rxjs';
 import { DailyReportExcelComponent } from '../DailyReportTech/daily-report-excel/daily-report-excel.component';
 import { DailyReportMachineDetailComponent } from './daily-report-machine-detail/daily-report-machine-detail.component';
+import { USER_ALL_REPORT_TECH } from '../../app.config';
 
 @Component({
   selector: 'app-daily-report-machine',
@@ -149,12 +150,12 @@ export class DailyReportMachineComponent implements OnInit, AfterViewInit {
         // Sau khi có currentUser, nếu users đã được load thì set userId
         if (this.users.length > 0) {
           // Thử tìm theo ID trước, nếu không có thì tìm theo EmployeeID
-          if(data.IsAdmin == true){
+          if (data.IsAdmin == true || USER_ALL_REPORT_TECH.includes(this.currentUser.ID)) {
             this.userId = 0;
           }
-          else if(data.ID && data.IsAdmin != true){
+          else if (data.ID && data.IsAdmin != true && !USER_ALL_REPORT_TECH.includes(this.currentUser.ID)) {
             this.setUserIdFromEmployeeID(data.ID);
-          } else if (data.EmployeeID && data.IsAdmin != true) {
+          } else if (data.EmployeeID && data.IsAdmin != true && !USER_ALL_REPORT_TECH.includes(this.currentUser.ID)) {
             this.setUserIdFromEmployeeID(data.EmployeeID);
           } else {
             // Nếu không có ID hoặc EmployeeID, set về "Tất cả"
@@ -254,9 +255,17 @@ export class DailyReportMachineComponent implements OnInit, AfterViewInit {
         // Sau khi load users, tìm và set userId từ currentUser
         // Nếu không tìm thấy currentUser trong danh sách, tự động set về "Tất cả" (ID = 0)
         if (this.currentUser) {
-          if (this.currentUser.ID && this.currentUser.IsAdmin != true) {
+          if (
+            this.currentUser.ID &&
+            this.currentUser.IsAdmin != true &&
+            !USER_ALL_REPORT_TECH.includes(this.currentUser.ID)
+          ) {
             this.setUserIdFromEmployeeID(this.currentUser.ID);
-          } else if (this.currentUser.EmployeeID && this.currentUser.IsAdmin != true) {
+          } else if (
+            this.currentUser.EmployeeID &&
+            this.currentUser.IsAdmin != true &&
+            !USER_ALL_REPORT_TECH.includes(this.currentUser.ID)
+          ) {
             this.setUserIdFromEmployeeID(this.currentUser.EmployeeID);
           } else {
             // Nếu không có ID hoặc EmployeeID, set về "Tất cả"
@@ -409,7 +418,7 @@ export class DailyReportMachineComponent implements OnInit, AfterViewInit {
   setDefaultSearch(): void {
     this.dateStart = DateTime.local().minus({ days: 1 }).set({ hour: 0, minute: 0, second: 0 }).toISO();
     this.dateEnd = DateTime.local().set({ hour: 0, minute: 0, second: 0 }).toISO();
-    this.departmentId = 2;
+    this.departmentId = 10;
     this.teamId = 0;
     this.userId = 0;
     this.keyword = '';
@@ -441,7 +450,11 @@ export class DailyReportMachineComponent implements OnInit, AfterViewInit {
     // Xử lý userID an toàn khi currentUser có thể là null
     let userID = 0;
     if (this.currentUser) {
-      if (this.currentUser.IsLeader > 1 || this.currentUser.IsAdmin == true) {
+      if (
+        this.currentUser.IsLeader > 1 ||
+        this.currentUser.IsAdmin == true ||
+        USER_ALL_REPORT_TECH.includes(this.currentUser.ID)
+      ) {
         userID = this.userId || 0;
       } else {
         userID = this.currentUser.ID || 0;

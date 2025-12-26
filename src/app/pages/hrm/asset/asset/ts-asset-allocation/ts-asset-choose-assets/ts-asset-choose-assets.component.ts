@@ -344,7 +344,7 @@ export class TsAssetChooseAssetsComponent implements OnInit, AfterViewInit {
         'SpecificationsAsset',
         'SourceName',
         'FullName',
-        'Name',      // phòng ban
+        'Name', 
         'Note'
       ];
 

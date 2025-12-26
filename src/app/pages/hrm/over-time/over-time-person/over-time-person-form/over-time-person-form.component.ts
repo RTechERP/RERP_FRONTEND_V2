@@ -110,6 +110,7 @@ export class OverTimePersonFormComponent implements OnInit {
       if (cur.getSeconds() !== 0 || cur.getMilliseconds() !== 0) {
         form.patchValue({ TimeStart: n }, { emitEvent: false });
       }
+      this.calculateTotalHour(form);
     });
 
     form.get('EndTime')?.valueChanges.subscribe((v) => {
@@ -120,7 +121,28 @@ export class OverTimePersonFormComponent implements OnInit {
       if (cur.getSeconds() !== 0 || cur.getMilliseconds() !== 0) {
         form.patchValue({ EndTime: n }, { emitEvent: false });
       }
+      this.calculateTotalHour(form);
     });
+  }
+
+  private calculateTotalHour(form: FormGroup): void {
+    const timeStart = form.get('TimeStart')?.value;
+    const endTime = form.get('EndTime')?.value;
+
+    if (timeStart && endTime) {
+      const startDate = new Date(timeStart);
+      const endDate = new Date(endTime);
+      
+      if (!isNaN(startDate.getTime()) && !isNaN(endDate.getTime())) {
+        const diffMs = endDate.getTime() - startDate.getTime();
+        const diffHours = diffMs / (1000 * 60 * 60);
+        const totalHours = Math.round(diffHours * 100) / 100;
+        
+        form.patchValue({ TotalHour: totalHours }, { emitEvent: false });
+      }
+    } else {
+      form.patchValue({ TotalHour: null }, { emitEvent: false });
+    }
   }
 
   locationList = [
@@ -416,8 +438,15 @@ export class OverTimePersonFormComponent implements OnInit {
           const data = response.data;
           const employeeOverTime = data.employeeOverTime || data;
           const overTimeFile = data.overTimeFile || null;
+          const overTimeDetails = data.overTimeDetails || data.details || [];
           
+          // Load main data
           this.patchFormData(employeeOverTime);
+          
+          // Load multiple entries if exist
+          if (overTimeDetails && overTimeDetails.length > 0) {
+            this.loadMultipleEntries(overTimeDetails);
+          }
           
           if (overTimeFile) {
             this.existingFiles = [overTimeFile];
@@ -499,6 +528,7 @@ export class OverTimePersonFormComponent implements OnInit {
       ID: data.ID !== null && data.ID !== undefined ? data.ID : 0,
       TimeStart: timeStartValue,
       EndTime: endTimeValue,
+      TotalHour: data.TimeReality || data.TotalHour || null,
       Location: location,
       TypeID: typeID,
       ProjectID: projectId,
@@ -580,6 +610,7 @@ export class OverTimePersonFormComponent implements OnInit {
       ApprovedID: null,
       TimeStart: defaultTimeStart,
       EndTime: null,
+      TotalHour: null,
       Location: 1,
       TypeID: null,
       ProjectID: null,
@@ -612,6 +643,7 @@ export class OverTimePersonFormComponent implements OnInit {
       ID: [0],
       TimeStart: [null, Validators.required],
       EndTime: [null, Validators.required],
+      TotalHour: [null],
       Location: [1, [
         Validators.required,
         (control: any) => {
@@ -1825,6 +1857,7 @@ export class OverTimePersonFormComponent implements OnInit {
       ID: [0],
       TimeStart: [defaultTimeStart, Validators.required],
       EndTime: [null, Validators.required],
+      TotalHour: [null],
       Location: [1, [
         Validators.required,
         (control: any) => {
@@ -1887,6 +1920,84 @@ export class OverTimePersonFormComponent implements OnInit {
       DateRegister: today,
       ApprovedID: null,
       IsProblem: false
+    }, { emitEvent: false });
+  }
+
+  private loadMultipleEntries(entries: any[]): void {
+    // Clear existing tabs except the first one
+    while (this.formTabs.length > 1) {
+      this.formTabs.pop();
+    }
+    
+    // Load data for each entry
+    entries.forEach((entry, index) => {
+      if (index === 0) {
+        // First entry - use existing form
+        this.patchFormData(entry);
+      } else {
+        // Additional entries - create new tabs
+        const newTabId = this.formTabs.length + 1;
+        const newForm = this.createNewForm();
+        
+        // Patch data to new form
+        this.patchFormDataToForm(entry, newForm);
+        
+        this.formTabs.push({
+          id: newTabId,
+          title: ` ${newTabId}`,
+          form: newForm,
+          data: entry,
+          selectedFile: null,
+          uploadedFileData: null,
+          tempFileRecord: null,
+          existingFileRecord: null,
+          fileList: [],
+          existingFiles: [],
+          deletedFileIds: [],
+          deletedFiles: [],
+          attachFileName: ''
+        });
+      }
+    });
+    
+    // Load first tab state
+    if (this.formTabs.length > 0) {
+      this.loadTabState(0);
+    }
+  }
+
+  private patchFormDataToForm(data: any, form: FormGroup): void {
+    const defaultEmployeeID = (this.currentUser && this.currentUser.EmployeeID) ? this.currentUser.EmployeeID : 0;
+    const employeeID = (data.EmployeeID && data.EmployeeID > 0) ? data.EmployeeID : defaultEmployeeID;
+    
+    const approvedId = data.ApprovedID || data.ApprovedId || null;
+    const typeID = data.TypeID || data.Type || null;
+    const location = (data.Location || data.LocationID) && (data.Location || data.LocationID) > 0 ? (data.Location || data.LocationID) : null;
+    const projectId = (data.ProjectID || data.ProjectId) && (data.ProjectID || data.ProjectId) > 0 ? (data.ProjectID || data.ProjectId) : null;
+
+    const timeStartValueRaw = data.TimeStart
+      ? data.TimeStart instanceof Date
+        ? data.TimeStart
+        : new Date(data.TimeStart)
+      : null;
+    const endTimeValueRaw = data.EndTime
+      ? data.EndTime instanceof Date
+        ? data.EndTime
+        : new Date(data.EndTime)
+      : null;
+    const timeStartValue = this.normalizeToMinute(timeStartValueRaw);
+    const endTimeValue = this.normalizeToMinute(endTimeValueRaw);
+
+    form.patchValue({
+      ID: data.ID !== null && data.ID !== undefined ? data.ID : 0,
+      TimeStart: timeStartValue,
+      EndTime: endTimeValue,
+      TotalHour: data.TimeReality || data.TotalHour || null,
+      Location: location,
+      TypeID: typeID,
+      ProjectID: projectId,
+      Overnight: data.Overnight || false,
+      Reason: data.Reason || ''
     }, { emitEvent: false });
   }
 

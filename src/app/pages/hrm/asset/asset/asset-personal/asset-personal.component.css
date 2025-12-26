@@ -1,0 +1,51 @@
+.card {
+    height: 100%;
+}
+
+.card-header {
+    flex-shrink: 0;
+}
+
+.card-body {
+    flex-grow: 1;
+    overflow: hidden;
+}
+
+nz-form-label {
+    font-size: 12px;
+    font-weight: 500;
+}
+
+:host ::ng-deep .ant-tabs-content {
+    height: calc(100% - 46px);
+}
+
+:host ::ng-deep .ant-tabs-tabpane {
+    height: 100%;
+}
+
+/* Custom tab title styling */
+/* .custom-tab-title {
+    padding: 8px 16px;
+    font-weight: 500;
+    font-size: 14px;
+    color: #1890ff;
+    border-radius: 4px;
+    transition: all 0.3s ease;
+}
+
+:host ::ng-deep .ant-tabs-tab-active .custom-tab-title {
+    color: #1890ff;
+    background-color: #e6f7ff;
+    font-weight: 600;
+}
+
+:host ::ng-deep .ant-tabs-tab:hover .custom-tab-title {
+    color: #40a9ff;
+    background-color: #f0f8ff;
+} */
+:host ::ng-deep nz-tabset.approval-tabs .ant-tabs-tab-btn {
+
+  padding: 4px !important;
+  padding-left: 12px !important;
+}

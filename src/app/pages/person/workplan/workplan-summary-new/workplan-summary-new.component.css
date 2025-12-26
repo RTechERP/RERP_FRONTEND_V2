@@ -1,0 +1,79 @@
+.card {
+    height: 100%;
+}
+
+.card-header {
+    flex-shrink: 0;
+}
+
+.card-body {
+    flex-grow: 1;
+    overflow: hidden;
+}
+
+.badges .badge {
+    font-size: 11px;
+    padding: 4px 8px;
+}
+
+/* Table styles giống mẫu jQuery cũ */
+.table-wrapper {
+    font-size: 12px;
+}
+
+.table-wrapper table {
+    border-collapse: separate;
+    border-spacing: 0;
+    width: 100%;
+    table-layout: auto;
+}
+
+.table-wrapper th,
+.table-wrapper td {
+    padding: 1px 2px !important;
+    vertical-align: middle;
+    border: 1px solid #949494;
+}
+
+/* Sticky header */
+.table-wrapper thead {
+    position: sticky;
+    top: 0;
+    z-index: 10;
+}
+
+.table-wrapper thead th {
+    background-color: #f2f4f7 !important;
+    color: #000000 !important;
+}
+
+/* Sticky left columns */
+.sticky-left {
+    position: sticky;
+    left: 0;
+    z-index: 5;
+    background-color: #fff !important;
+}
+
+/* Responsive cho màn hình nhỏ */
+@media (max-width: 1400px) {
+    .card-header .d-flex.gap-1 {
+        gap: 4px !important;
+    }
+    .card-header nz-select,
+    .card-header input[nz-input] {
+        width: 100px !important;
+    }
+}
+
+@media (max-width: 1200px) {
+    .card-header .d-flex.justify-content-between {
+        flex-direction: column;
+        align-items: flex-start !important;
+        gap: 8px;
+    }
+    .card-header .d-flex.gap-1 {
+        margin-left: 0 !important;
+        width: 100%;
+    }
+}

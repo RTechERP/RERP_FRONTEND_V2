@@ -64,6 +64,7 @@ export class JobRequirementFormComponent implements OnInit, AfterViewInit {
   fileList: any[] = [];
   numberRequest: string = ''; // Lưu NumberRequest khi load dữ liệu
   approverGroups: { department: string; list: any[] }[] = [];
+  currentUser: any = null;
 
   constructor(
     private fb: FormBuilder,
@@ -98,6 +99,7 @@ export class JobRequirementFormComponent implements OnInit, AfterViewInit {
   }
 
   ngOnInit(): void {
+    this.getCurrentUser();
     this.setDefaultRows();
     
     // Subscribe to DeadlineRequest changes to update Description of STT 7
@@ -125,6 +127,35 @@ export class JobRequirementFormComponent implements OnInit, AfterViewInit {
       setTimeout(() => {
         this.loadJobRequirementData();
       }, 300);
+    } else {
+      // Khi thêm mới, mặc định chọn nhân viên hiện tại
+      this.setDefaultEmployee();
+    }
+  }
+
+  private getCurrentUser(): void {
+    this.authService.getCurrentUser().subscribe((user: any) => {
+      this.currentUser = user;
+    });
+  }
+
+  private setDefaultEmployee(): void {
+    if (this.currentUser && this.currentUser.EmployeeID) {
+      // Đợi cho danh sách nhân viên load xong rồi mới set default
+      const checkAndSetEmployee = () => {
+        if (this.cbbEmployee && this.cbbEmployee.length > 0) {
+          this.formGroup.patchValue({
+            EmployeeID: this.currentUser.EmployeeID
+          });
+          this.onSelectEmployee(this.currentUser.EmployeeID);
+        } else {
+          // Nếu danh sách nhân viên chưa load xong, thử lại sau
+          setTimeout(checkAndSetEmployee, 100);
+        }
+      };
+      
+      // Bắt đầu kiểm tra sau một khoảng thời gian ngắn để đảm bảo getdataEmployee đã được gọi
+      setTimeout(checkAndSetEmployee, 200);
     }
   }
 

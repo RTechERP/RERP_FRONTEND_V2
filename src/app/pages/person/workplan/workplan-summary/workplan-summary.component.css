@@ -1,0 +1,202 @@
+/* Table styling */
+#tbl_workplan_detail {
+    width: 100%;
+    table-layout: auto;
+    border: 2px solid #dee2e6 !important;
+}
+
+#tbl_workplan_detail th,
+#tbl_workplan_detail td {
+    min-width: 120px;
+    white-space: nowrap;
+    border: 1px solid #909396 !important;
+}
+
+#tbl_workplan_detail th.sticky-left,
+#tbl_workplan_detail td.sticky-left {
+    min-width: 250px !important;
+    width: 250px !important;
+    max-width: 300px !important;
+}
+
+/* Sticky columns */
+.sticky-top {
+    position: sticky;
+    top: 70px;
+    z-index: 9999;
+}
+
+.sticky-top-table {
+    position: sticky;
+    top: -3px;
+    z-index: 1;
+    background-color: antiquewhite !important;
+}
+
+.sticky-top-table th {
+    background-color: antiquewhite !important;
+    color: #000000 !important;
+    text-align: center !important;
+    vertical-align: middle !important;
+}
+
+.sticky-top-table th.sticky-left {
+    text-align: left !important;
+}
+
+.sticky-left {
+    position: sticky;
+    left: -3px;
+    z-index: 2;
+   
+}
+
+#tbl_workplan_detail tbody tr td {
+    cursor: pointer;
+    padding: 12px 8px !important;
+    height: 60px !important;
+    vertical-align: top !important;
+}
+
+#tbl_workplan_detail tbody tr td.sticky-left {
+    text-align: left !important;
+    vertical-align: middle !important;
+}
+
+/* Form field vertical layout */
+.form-field-vertical {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.form-field-vertical label {
+    font-size: 12px;
+    font-weight: 500;
+    margin: 0;
+    white-space: nowrap;
+}
+
+/* Responsive form */
+@media (min-width: 768px) {
+    .card-body form {
+        display: block;
+    }
+    .form-search-workplan {
+        display: none;
+    }
+}
+
+@media (max-width: 768px) {
+    .card-body form {
+        display: none;
+    }
+    .form-search-workplan {
+        display: block;
+    }
+}
+
+/* Header responsive layout */
+.header-content-mobile {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+.title-section {
+    flex: 1;
+    min-width: 200px;
+}
+
+.radio-section {
+    flex-shrink: 0;
+}
+
+/* Mobile responsive styles */
+@media (max-width: 768px) {
+    .header-content-mobile {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 12px;
+    }
+    
+    .title-section {
+        width: 100%;
+        min-width: auto;
+    }
+    
+    .radio-section {
+        width: 100%;
+        display: flex;
+        justify-content: center;
+    }
+    
+    .radio-section nz-radio-group {
+        width: 100%;
+        max-width: 300px;
+    }
+}
+
+/* Mobile responsive styles */
+@media (max-width: 576px) {
+    /* Table responsive for mobile */
+    .table-responsive {
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+    }
+    
+    #tbl_workplan_detail th,
+    #tbl_workplan_detail td {
+        min-width: 100px;
+        font-size: 12px;
+        padding: 8px 4px !important;
+    }
+    
+    #tbl_workplan_detail th.sticky-left,
+    #tbl_workplan_detail td.sticky-left {
+        min-width: 150px !important;
+        width: 150px !important;
+        max-width: 180px !important;
+        font-size: 13px;
+    }
+    
+    /* Form responsive for mobile */
+    .card-header .ant-row {
+        margin: 0 !important;
+    }
+    
+    .card-header .ant-col {
+        margin-bottom: 8px;
+    }
+    
+    .form-field-vertical label {
+        font-size: 11px;
+    }
+    
+    .form-field-vertical .d-flex.gap-2 {
+        justify-content: stretch;
+    }
+    
+    .form-field-vertical .d-flex.gap-2 button {
+        flex: 1;
+    }
+}
+
+@media (max-width: 768px) and (min-width: 577px) {
+    /* Tablet styles */
+    #tbl_workplan_detail th,
+    #tbl_workplan_detail td {
+        min-width: 110px;
+        font-size: 13px;
+        padding: 10px 6px !important;
+    }
+    
+    #tbl_workplan_detail th.sticky-left,
+    #tbl_workplan_detail td.sticky-left {
+        min-width: 200px !important;
+        width: 200px !important;
+        max-width: 250px !important;
+    }
+}

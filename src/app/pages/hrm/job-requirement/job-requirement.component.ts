@@ -458,6 +458,20 @@ export class JobRequirementComponent implements OnInit, AfterViewInit {
                 return;
             }
 
+            // Kiểm tra nếu đã có bước duyệt > 1 thì không cho phép sửa
+            const approvedStep = this.JobrequirementApprovedData.find((item: any) =>
+                item.JobRequirementID === jobRequirementID &&
+                item.Step > 1 &&
+                (item.IsApproved === 1 || item.IsApproved === '1')
+            );
+            if (approvedStep) {
+                this.notification.warning(
+                    NOTIFICATION_TITLE.warning,
+                    'Phiếu đã được duyệt, không thể sửa!'
+                );
+                return;
+            }
+
             // Kiểm tra nếu đã duyệt thì không cho phép sửa
             if (this.isHCNSApproved) {
                 this.notification.warning(
@@ -828,7 +842,7 @@ export class JobRequirementComponent implements OnInit, AfterViewInit {
             if (approval) {
                 return {
                     date: formatDateTime(approval.DateApproved),
-                    approver: approval.EmployeeActualName || approval.EmployeeName || ''
+                    approver: approval.FullNameApprovedTBP || ''
                 };
             }
             return { date: '', approver: '' };
@@ -984,7 +998,7 @@ export class JobRequirementComponent implements OnInit, AfterViewInit {
                             stack: [
                                 { text: tbpApproval.date, alignment: 'center', fontSize: 10, margin: [0, 0, 0, 5] },
                                 { text: 'Trưởng bộ phận yêu cầu', alignment: 'center', bold: true, fontSize: 10 },
-                                { text: jobRequirement.FullNameApprovedTBP || '', alignment: 'center', fontSize: 10, margin: [0, 10, 0, 0] },
+                                { text: tbpApproval.approver, alignment: 'center', fontSize: 10, margin: [0, 10, 0, 0] },
                             ],
                         },
                         {
@@ -999,7 +1013,7 @@ export class JobRequirementComponent implements OnInit, AfterViewInit {
                             width: '*',
                             stack: [
                                 { text: bgdApproval.date, alignment: 'center', fontSize: 10, margin: [0, 0, 0, 5] },
-                                { text: 'BGĐ duyệt', alignment: 'center', bold: true, fontSize: 10 },
+                                { text: 'Phê duyệt', alignment: 'center', bold: true, fontSize: 10 },
                                 { text: bgdApproval.approver, alignment: 'center', fontSize: 10, margin: [0, 10, 0, 0] },
                             ],
                         },
@@ -1516,6 +1530,24 @@ export class JobRequirementComponent implements OnInit, AfterViewInit {
         }
 
         const { step, status } = stepStatus;
+
+        // Kiểm tra HR không thể hủy duyệt nếu BGD đã duyệt (Step 4 hủy duyệt khi Step 5 đã duyệt)
+        if (step === 4 && status === 2) {
+            for (const row of selected) {
+                const bgdApproved = this.JobrequirementApprovedData.find((item: any) =>
+                    item.JobRequirementID === row.ID &&
+                    item.Step === 5 &&
+                    (item.IsApproved === 1 || item.IsApproved === '1')
+                );
+                if (bgdApproved) {
+                    this.notification.warning(
+                        NOTIFICATION_TITLE.warning,
+                        `Không thể hủy duyệt HR vì BGĐ đã duyệt phiếu "${row.NumberRequest || row.ID}"!`
+                    );
+                    return;
+                }
+            }
+        }
 
         // Nếu là hủy duyệt (status = 2), cần nhập lý do
         if (status === 2) {

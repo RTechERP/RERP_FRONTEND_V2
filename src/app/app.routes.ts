@@ -122,6 +122,9 @@ import { ApproveTpComponent } from './pages/person/approve-tp/approve-tp/approve
 import { PersonComponent } from './pages/person/person.component';
 import { RegisterContractComponent } from './pages/person/register-contract/register-contract.component';
 import { WorkplanComponent } from './pages/person/workplan/workplan.component';
+import { WorkplanSummaryComponent } from './pages/person/workplan/workplan-summary/workplan-summary.component';
+import { WorkplanSummaryNewComponent } from './pages/person/workplan/workplan-summary-new/workplan-summary-new.component';
+import { AssetPersonalComponent } from './pages/hrm/asset/asset/asset-personal/asset-personal.component';
 import { LeaderProjectComponent } from './pages/project/leader-project/leader-project.component';
 import { MeetingMinuteTypeComponent } from './pages/project/meeting-minute/meeting-minute-type/meeting-minute-type.component';
 import { MeetingMinuteComponent } from './pages/project/meeting-minute/meeting-minute.component';
@@ -344,6 +347,9 @@ export const routes: Routes = [
             { path: 'daily-report-thr', component: DailyReportThrComponent, canActivate: [authGuard] },
             { path: 'daily-report-lxcp', component: DailyReportLXCPComponent, canActivate: [authGuard] },
             { path: 'workplan', component: WorkplanComponent, canActivate: [authGuard] },
+            { path: 'workplan-summary', component: WorkplanSummaryComponent, canActivate: [authGuard] },
+            { path: 'workplan-summary-new', component: WorkplanSummaryNewComponent, canActivate: [authGuard] },
+            { path: 'asset-personal', component: AssetPersonalComponent, canActivate: [authGuard] },
             { path: 'approve-tp', component: ApproveTpComponent, canActivate: [authGuard] },
             { path: 'office-supply-requests', component: OfficeSupplyRequestsComponent, canActivate: [authGuard] },
             { path: 'project-partlist', component: ProjectPartListComponent, canActivate: [authGuard] },
@@ -662,7 +668,7 @@ export const routes: Routes = [
             // { path: 'phase-allocation-hr', component: PhaseAllocationPersonComponent, canActivate: [authGuard] },
 
             //Kho sale hn
-            { path: 'inventory-hn', component: InventoryComponent, canActivate: [authGuard] },
+            { path: 'inventory-hn',component: InventoryComponent, canActivate: [authGuard] },
             { path: 'bill-import-hn', component: BillImportComponent, canActivate: [authGuard] },
             { path: 'bill-export-hn', component: BillExportComponent, canActivate: [authGuard] },
             { path: 'history-import-export-hn', component: HistoryImportExportComponent, canActivate: [authGuard] },
@@ -756,7 +762,7 @@ export const routes: Routes = [
             //Demo BĐan phương
             { path: 'inventory-demo-dp', component: InventoryDemoComponent, canActivate: [authGuard] },
             { path: 'bill-import-tech-dp', component: BillImportTechnicalComponent, canActivate: [authGuard] },
-            { path: 'bill-export-tech-dp', component: BillExportTechnicalComponent, canActivate: [authGuard] },
+            { path: 'bill-export-tech-dp',  component: BillExportTechnicalComponent, canActivate: [authGuard] },
             { path: 'product-report-dp', component: ProductReportNewComponent, canActivate: [authGuard] },
             { path: 'product-export-borrow-dp', component: ProductExportAndBorrowComponent, canActivate: [authGuard] },
             { path: 'borrow-report-dp', component: BorrowReportComponent, canActivate: [authGuard] },
@@ -823,8 +829,9 @@ export const routes: Routes = [
             { path: 'timekeeping-hr', component: EmployeeTimekeepingComponent, canActivate: [authGuard] },
             { path: 'synthetic-hr', component: EmployeeSyntheticComponent, canActivate: [authGuard] },
             { path: 'dailyreport-hr', component: DailyReportHrComponent, canActivate: [authGuard] },
-            { path: 'protect-gear-hr', component: ProtectgearComponent, canActivate: [authGuard] },
-            { path: 'phase-allocation-hr', component: PhaseAllocationPersonComponent, canActivate: [authGuard] },
+            { path: 'protect-gear-hr',component: ProtectgearComponent, canActivate: [authGuard] },
+            { path: 'phase-allocation-hr',component: PhaseAllocationPersonComponent, canActivate: [authGuard] },
+            { path: 'workplan-summary',component: WorkplanSummaryComponent, canActivate: [authGuard] },
 
 
 

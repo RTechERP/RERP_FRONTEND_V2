@@ -136,27 +136,33 @@ export class JobRequirementFormComponent implements OnInit, AfterViewInit {
   private getCurrentUser(): void {
     this.authService.getCurrentUser().subscribe((user: any) => {
       this.currentUser = user;
+      // Sau khi có currentUser, nếu đang ở chế độ thêm mới thì set default employee
+      if (!this.isCheckmode || this.JobRequirementID <= 0) {
+        this.setDefaultEmployee();
+      }
     });
   }
 
   private setDefaultEmployee(): void {
-    if (this.currentUser && this.currentUser.EmployeeID) {
-      // Đợi cho danh sách nhân viên load xong rồi mới set default
-      const checkAndSetEmployee = () => {
-        if (this.cbbEmployee && this.cbbEmployee.length > 0) {
-          this.formGroup.patchValue({
-            EmployeeID: this.currentUser.EmployeeID
-          });
-          this.onSelectEmployee(this.currentUser.EmployeeID);
-        } else {
-          // Nếu danh sách nhân viên chưa load xong, thử lại sau
-          setTimeout(checkAndSetEmployee, 100);
-        }
-      };
-      
-      // Bắt đầu kiểm tra sau một khoảng thời gian ngắn để đảm bảo getdataEmployee đã được gọi
-      setTimeout(checkAndSetEmployee, 200);
+    if (!this.currentUser || !this.currentUser.EmployeeID) {
+      return;
     }
+    
+    // Đợi cho danh sách nhân viên load xong rồi mới set default
+    const checkAndSetEmployee = () => {
+      if (this.cbbEmployee && this.cbbEmployee.length > 0) {
+        this.formGroup.patchValue({
+          EmployeeID: this.currentUser.EmployeeID
+        });
+        this.onSelectEmployee(this.currentUser.EmployeeID);
+      } else {
+        // Nếu danh sách nhân viên chưa load xong, thử lại sau
+        setTimeout(checkAndSetEmployee, 100);
+      }
+    };
+    
+    // Bắt đầu kiểm tra
+    checkAndSetEmployee();
   }
 
   ngAfterViewInit(): void {

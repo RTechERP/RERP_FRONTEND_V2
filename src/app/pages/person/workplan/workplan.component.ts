@@ -179,6 +179,14 @@ export class WorkplanComponent implements OnInit, AfterViewInit {
             return;
         }
 
+        // Tìm data của workplan được chọn
+        const selectedWorkPlan = this.dataset?.find((item: any) => item.ID === this.selectedWorkPlanId);
+        
+        if (!selectedWorkPlan) {
+            this.notification.error(NOTIFICATION_TITLE.error, 'Không tìm thấy kế hoạch đã chọn!');
+            return;
+        }
+
         this.modal.confirm({
             nzTitle: 'Xác nhận xóa',
             nzContent: 'Bạn có chắc chắn muốn xóa kế hoạch này?',
@@ -187,7 +195,13 @@ export class WorkplanComponent implements OnInit, AfterViewInit {
             nzOkDanger: true,
             nzCancelText: 'Hủy',
             nzOnOk: () => {
-                this.service.deleteWorkPlan(this.selectedWorkPlanId).subscribe({
+          
+                const deletePayload = {
+                    ...selectedWorkPlan,
+                    IsDeleted: true
+                };
+                
+                this.service.saveWorkPlan(deletePayload).subscribe({
                     next: (response: any) => {
                         if (response && response.status === 1) {
                             this.notification.success(NOTIFICATION_TITLE.success, response.message || 'Xóa thành công!');
@@ -205,13 +219,11 @@ export class WorkplanComponent implements OnInit, AfterViewInit {
             }
         });
     }
-
     private drawTable(): void {
         if (this.workplanTable) {
             this.workplanTable.setData(this.dataset || []);
             return;
         }
-
         // Date formatter
         const dateFormatter = (cell: any) => {
             const value = cell.getValue();
@@ -353,7 +365,13 @@ export class WorkplanComponent implements OnInit, AfterViewInit {
             nzOkDanger: true,
             nzCancelText: 'Hủy',
             nzOnOk: () => {
-                this.service.deleteWorkPlan(data.ID).subscribe({
+                // Tạo payload với IsDeleted = true
+                const deletePayload = {
+                    ...data,
+                    IsDeleted: true
+                };
+                
+                this.service.saveWorkPlan(deletePayload).subscribe({
                     next: (response: any) => {
                         if (response && response.status === 1) {
                             this.notification.success(NOTIFICATION_TITLE.success, response.message || 'Xóa thành công!');

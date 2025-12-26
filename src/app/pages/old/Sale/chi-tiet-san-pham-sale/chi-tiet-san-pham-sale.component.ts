@@ -304,7 +304,7 @@ export class ChiTietSanPhamSaleComponent
     modalRef.componentInstance.newBillImport = rowData;
     modalRef.componentInstance.isCheckmode = true;
     modalRef.componentInstance.id = rowData.ID || rowData.id || 0;
-    modalRef.componentInstance.wareHouseCode = this.wareHouseCode;
+    modalRef.componentInstance.WarehouseCode = this.wareHouseCode;
 
     // Reload data after modal closes
     modalRef.result.finally(() => {

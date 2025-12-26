@@ -330,7 +330,7 @@ export class BillImportComponent implements OnInit, AfterViewInit {
         modalRef.componentInstance.newBillImport = this.newBillImport;
         modalRef.componentInstance.isCheckmode = this.isCheckmode;
         modalRef.componentInstance.id = this.id;
-        modalRef.componentInstance.wareHouseCode = this.wareHouseCode;
+        modalRef.componentInstance.WarehouseCode = this.wareHouseCode;
 
         modalRef.result.finally(() => {
             this.id = 0;

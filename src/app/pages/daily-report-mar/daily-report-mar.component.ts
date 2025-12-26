@@ -25,7 +25,7 @@ import { DEFAULT_TABLE_CONFIG } from '../../tabulator-default.config';
 import * as ExcelJS from 'exceljs';
 import { debounceTime } from 'rxjs/operators';
 import { Subject } from 'rxjs';
-import { DailyReportHrDetailComponent } from '../DailyReportTech/daily-report-hr-detail/daily-report-hr-detail.component';
+import { DailyReportMarDetailComponent } from './daily-report-mar-detail/daily-report-mar-detail.component';
 
 @Component({
   selector: 'app-daily-report-mar',
@@ -107,6 +107,7 @@ export class DailyReportMarComponent implements OnInit, AfterViewInit {
   }
 
   getCurrentUser(): void {
+    console.log("đã chạy qua");
     this.authService.getCurrentUser().subscribe((res: any) => {
       if (res && res.status === 1 && res.data) {
         const data = Array.isArray(res.data) ? res.data[0] : res.data;
@@ -472,16 +473,23 @@ export class DailyReportMarComponent implements OnInit, AfterViewInit {
           },
           
           {
-            title: 'Đề xuất cải tiến',
+            title: 'Đề xuất cải tiến phòng Marketing',
             field: 'Note',
             width: 300,
             formatter: 'textarea',
           },
           {
             title: 'File đính kèm',
-            field: '',
+            field: 'dailyReportMarketingFiles',
             width: 300,
-            formatter: 'textarea',
+            formatter: (cell: any) => {
+              const files = cell.getValue() || [];
+              if (!Array.isArray(files) || files.length === 0) return '';
+              const names = files
+                .map((f: any) => f?.FileNameOrigin || f?.OriginName || f?.FileName || f?.Name)
+                .filter((x: any) => !!x);
+              return names.join('\n');
+            },
           },
           {
             title: 'Ngày tạo',
@@ -500,7 +508,7 @@ export class DailyReportMarComponent implements OnInit, AfterViewInit {
   }
 
   editDailyReportById(id: number): void {
-    const modalRef = this.modalService.open(DailyReportHrDetailComponent, {
+    const modalRef = this.modalService.open(DailyReportMarDetailComponent, {
       size: 'xl',
       backdrop: 'static',
       keyboard: true,
@@ -554,7 +562,7 @@ export class DailyReportMarComponent implements OnInit, AfterViewInit {
 
   // Header actions
   addDailyReport(): void {
-    const modalRef = this.modalService.open(DailyReportHrDetailComponent, {
+    const modalRef = this.modalService.open(DailyReportMarDetailComponent, {
       size: 'xl',
       backdrop: 'static',
       keyboard: true,
@@ -592,7 +600,7 @@ export class DailyReportMarComponent implements OnInit, AfterViewInit {
       return;
     }
 
-    const modalRef = this.modalService.open(DailyReportHrDetailComponent, {
+    const modalRef = this.modalService.open(DailyReportMarDetailComponent, {
       size: 'xl',
       backdrop: 'static',
       keyboard: true,
@@ -718,11 +726,9 @@ export class DailyReportMarComponent implements OnInit, AfterViewInit {
   private formatSingleDayReport(dayData: any[], dateReport: string): string {
     let content = '';
     let resultReport = '';
-    let backlog = '';
-    let problem = '';
-    let problemSolve = '';
     let planNextDay = '';
     let note = '';
+    const attachments: string[] = [];
 
     const dateTime = DateTime.fromISO(dateReport);
     const formattedDate = dateTime.isValid ? dateTime.toFormat('dd/MM/yyyy') : dateReport;
@@ -732,21 +738,30 @@ export class DailyReportMarComponent implements OnInit, AfterViewInit {
       if (item) {
         if (item.Content) content += item.Content + '\n';
         if (item.Results) resultReport += item.Results + '\n';
-        if (item.Backlog) backlog += item.Backlog + '\n';
-        if (item.Problem) problem += item.Problem + '\n';
-        if (item.ProblemSolve) problemSolve += item.ProblemSolve + '\n';
         if (item.Note) note += item.Note + '\n';
         if (item.PlanNextDay) planNextDay = item.PlanNextDay;
+
+        const files = item.dailyReportMarketingFiles || item.DailyReportMarketingFiles || item.Files || [];
+        if (Array.isArray(files) && files.length > 0) {
+          files.forEach((f: any) => {
+            const name =
+              f?.FileNameOrigin ||
+              f?.OriginName ||
+              f?.FileName ||
+              f?.OriginalName ||
+              f?.Name ||
+              '';
+            if (name) attachments.push(name);
+          });
+        }
       }
     });
 
     contentSummary += `\n* Nội dung công việc:\n${content.trim()}\n`;
     contentSummary += `\n* Kết quả công việc:\n${resultReport.trim()}\n`;
-    contentSummary += `\n* Tồn đọng:\n${backlog.trim() === '' ? '- Không có' : backlog.trim()}\n`;
-    contentSummary += `\n* Ghi chú:\n${note.trim() === '' ? '- Không có' : note.trim()}\n`;
-    contentSummary += `\n* Vấn đề phát sinh:\n${problem.trim() === '' ? '- Không có' : problem.trim()}\n`;
-    contentSummary += `\n* Giải pháp cho vấn đề phát sinh:\n${problemSolve.trim() === '' ? '- Không có' : problemSolve.trim()}\n`;
+    contentSummary += `\n* Đề xuất cải tiến phòng Marketing:\n${note.trim() === '' ? '- Không có' : note.trim()}\n`;
     contentSummary += `\n* Kế hoạch ngày tiếp theo:\n${planNextDay.trim() === '' ? '- Không có' : planNextDay.trim()}\n`;
+    contentSummary += `\n* Bảng đính kèm file:\n${attachments.length === 0 ? '- Không có' : attachments.map(x => `- ${x}`).join('\n')}\n`;
 
     return contentSummary;
   }

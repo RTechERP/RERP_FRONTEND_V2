@@ -1358,6 +1358,9 @@ export class PaymentOrderComponent implements OnInit {
             createPreHeaderPanel: true,
             showPreHeaderPanel: true,
 
+            showFooterRow: true,
+            createFooterRow: true,
+
             //Config xuất excel
             externalResources: [this.excelExportService],
             enableExcelExport: true,
@@ -1978,6 +1981,9 @@ export class PaymentOrderComponent implements OnInit {
             createPreHeaderPanel: true,
             showPreHeaderPanel: true,
 
+            showFooterRow: true,
+            createFooterRow: true,
+
             //Config xuất excel
             externalResources: [this.excelExportServiceSpecial],
             enableExcelExport: true,
@@ -2127,7 +2133,7 @@ export class PaymentOrderComponent implements OnInit {
     angularGridReadySpecial(angularGrid: AngularGridInstance) {
         this.angularGridSpecial = angularGrid;
         this.gridDataSpecial = angularGrid?.slickGrid || {};
-
+        this.updateTotal(5, this.angularGridSpecial);
     }
 
     angularGridReadySpecialDetail(angularGrid: AngularGridInstance) {
@@ -2194,6 +2200,8 @@ export class PaymentOrderComponent implements OnInit {
     loadData() {
         this.loadDataNormal();
         this.loadDataSpecial();
+
+        // this.updateTotal(5);
     }
 
     loadDataNormal() {
@@ -2340,8 +2348,7 @@ export class PaymentOrderComponent implements OnInit {
     angularGridReady(angularGrid: AngularGridInstance) {
         this.angularGrid = angularGrid;
         this.gridData = angularGrid?.slickGrid || {};
-        // const ext = this.angularGrid.extensionService.getExtensionByType('excelExport');
-        // this.excelExportService = angularGrid.extensionService.getExtensionByName('excelExport') as ExtensionModel<ExcelExportService>;
+        this.updateTotal(5, this.angularGrid);
     }
 
     angularGridDetailReady(angularGrid: AngularGridInstance) {
@@ -2382,6 +2389,40 @@ export class PaymentOrderComponent implements OnInit {
 
             this.defaultSizeSplit = '60%';
         }
+    }
+
+    updateTotal(cell: number, angularGrid: AngularGridInstance) {
+
+        if (cell <= 0) return;
+
+        const columnId = angularGrid.slickGrid?.getColumns()[cell].id;
+        // let total = 0;
+        // let i = this.dataset.length;
+        let data = angularGrid.dataView.getItems();
+        // let i = data.length;
+        // while (i--) {
+        //     total += parseFloat(data[i][columnId]) || 0;
+        // }
+        const columnElement = angularGrid.slickGrid?.getFooterRowColumn(columnId);
+        if (columnElement) {
+            columnElement.textContent = `${data.length}`;
+        }
+
+
+        // const columnSpeId = this.angularGrid.slickGrid?.getColumns()[cell].id;
+        // let total = 0;
+        // let i = this.dataset.length;
+        // let dataSpecial = this.angularGridSpecial.dataView.getItems();
+        // // let i = data.length;
+        // // while (i--) {
+        // //     total += parseFloat(data[i][columnId]) || 0;
+        // // }
+        // const columnElementSpecial = this.angularGridSpecial.slickGrid?.getFooterRowColumn(columnId);
+        // if (columnElementSpecial) {
+        //     columnElementSpecial.textContent = `${dataSpecial.length}`;
+        // }
+
+
     }
 
     initModal(paymentOrder: any = new PaymentOrder()) {

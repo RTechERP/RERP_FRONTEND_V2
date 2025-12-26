@@ -122,7 +122,7 @@ export class FoodOrderComponent implements OnInit, AfterViewInit {
     }
     // Kiểm tra quyền N1, N2, N34
     return this.permissionService.hasPermission('N1') || 
-           this.permissionService.hasPermission('N2') || 
+           this.permissionService.hasPermission('N80') || 
            this.permissionService.hasPermission('N34');
   }
 
@@ -184,7 +184,7 @@ export class FoodOrderComponent implements OnInit, AfterViewInit {
   }
 
   private initForm() {
-    const canEditEmployee = this.permissionService.hasPermission('N2,N1,N34');
+    const canEditEmployee = this.permissionService.hasPermission('N80,N1,N34');
     const today = new Date();
     today.setHours(0, 0, 0, 0);
 
@@ -203,14 +203,17 @@ export class FoodOrderComponent implements OnInit, AfterViewInit {
 
     if (canEditEmployee) {
       this.foodOrderForm.get('EmployeeID')?.enable();
+      this.foodOrderForm.get('DateOrder')?.enable();
     }
   }
 
   private setupLocationChangeListener(): void {
     this.foodOrderForm.get('Location')?.valueChanges.subscribe((location: string) => {
-      // Chỉ tự động cập nhật khi không phải edit mode (ID = 0)
+      // Chỉ tự động cập nhật khi không phải edit mode (ID = 0) và user không có quyền admin
       const currentID = this.foodOrderForm.get('ID')?.value;
-      if (currentID === 0 || currentID === null || currentID === undefined) {
+      const hasAdminPermission = this.hasAdminPermission();
+      
+      if ((currentID === 0 || currentID === null || currentID === undefined) && !hasAdminPermission) {
         if (location === '2') {
           // Xưởng Đan Phượng: set ngày mai
           const tomorrow = new Date();
@@ -539,7 +542,7 @@ export class FoodOrderComponent implements OnInit, AfterViewInit {
       FullName: '',
       IsDeleted: false,
     });
-    this.foodOrderForm.get('DateOrder')?.disable();
+    
 
     const modal = new (window as any).bootstrap.Modal(
       document.getElementById('addFoodOrderModal')
@@ -620,7 +623,7 @@ export class FoodOrderComponent implements OnInit, AfterViewInit {
         IsDeleted: this.selectedFoodOrderĐP.IsDeleted,
       });
     }
-    this.foodOrderForm.get('DateOrder')?.disable();
+   
     const modal = new (window as any).bootstrap.Modal(
       document.getElementById('addFoodOrderModal')
     );
@@ -941,7 +944,7 @@ export class FoodOrderComponent implements OnInit, AfterViewInit {
       FullName: '',
       IsDeleted: false,
     });
-    this.foodOrderForm.get('DateOrder')?.disable();
+
   }
 
   async exportToExcel() {

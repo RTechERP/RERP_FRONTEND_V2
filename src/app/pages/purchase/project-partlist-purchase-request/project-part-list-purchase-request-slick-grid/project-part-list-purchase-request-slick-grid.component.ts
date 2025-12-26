@@ -571,6 +571,10 @@ export class ProjectPartListPurchaseRequestSlickGridComponent
     ) { }
 
     ngOnInit() {
+        if (this.listRequestBuySelect) {
+            this.showHeader = true;
+        }
+        
         // Lấy data từ tabData nếu có (khi component được sử dụng như tab component)
         // if (this.tabData) {
         //     if (this.tabData.isApprovedTBP !== undefined) {
@@ -683,6 +687,27 @@ export class ProjectPartListPurchaseRequestSlickGridComponent
                 this.visitedTabs.add(muonDemoTab.id);
                 this.activeTabIndex = 0; // Index trong filteredTabs sẽ là 0
               }
+            } else if (this.listRequestBuySelect) {  //NTA B update 2612
+              // Nếu listRequestBuySelect = true, chuyển sang tab hàng thương mại id = 5
+              const hangThuongMaiTab = this.tabs.find((tab) => tab.id === 5);
+              if (hangThuongMaiTab) {
+                // Tìm index của tab "Hàng thương mại" trong filteredTabs
+                const tabIndex = this.filteredTabs.findIndex((tab) => tab.id === 5);
+                // set activeTabIndex để nztabset chuyển tab
+                this.activeTabIndex = tabIndex >= 0 ? tabIndex : 0;
+                this.cdr.detectChanges();
+
+                // Sau đó thêm vào visitedTabs để render grid
+                setTimeout(() => {
+                  this.visitedTabs.add(hangThuongMaiTab.id);
+                  this.cdr.detectChanges();
+                  //load lại data khi chuyên tab
+                  setTimeout(() => {
+                    this.onSearch();
+                  }, 150);
+                }, 100);
+                return; 
+              }
             } else {
               this.visitedTabs.add(this.tabs[0].id);
             }
@@ -704,7 +729,7 @@ export class ProjectPartListPurchaseRequestSlickGridComponent
     ngAfterViewInit() {
         // If tabs are already loaded, ensure first tab is marked as visited
         // This handles the case where getRequestTypes completes before ngAfterViewInit
-        if (this.tabs.length > 0 && !this.visitedTabs.has(this.tabs[0].id)) {
+        if (this.tabs.length > 0 && !this.listRequestBuySelect && !this.visitedTabs.has(this.tabs[0].id)) { //NTA B update 2612
             setTimeout(() => {
                 this.visitedTabs.add(this.tabs[0].id);
                 this.cdr.detectChanges();

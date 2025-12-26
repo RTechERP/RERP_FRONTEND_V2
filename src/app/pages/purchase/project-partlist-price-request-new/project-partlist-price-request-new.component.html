@@ -270,74 +270,79 @@
                     <nz-icon [nzType]="showSearchBar ? 'up' : 'down'" />
                 </button>
                 <!-- Refresh - load lại toàn bộ dữ liệu -->
-                <button nz-button nzType="default" nzSize="small" (click)="RefreshAll()" title="Làm mới">
+                <button *ngIf="!isFromPOKH" nz-button nzType="default" nzSize="small" (click)="RefreshAll()"
+                    title="Làm mới">
                     <img src="assets/icon/btn_refresh.png" />
                     Làm mới
                 </button>
                 <!-- Thêm - luôn hiển thị khi có quyền -->
-                <button *hasPermission="'N27,N34,N69,N80'" nz-button class="btn-add" nzType="default"
-                    (click)="OnAddClick()" nzSize="small">
-                    <img src="assets/icon/action_add_item_16.png" /> Thêm
-                </button>
+                <ng-container *ngIf="!isFromPOKH">
+                    <button *hasPermission="'N27,N34,N69,N80'" nz-button class="btn-add" nzType="default"
+                        (click)="OnAddClick()" nzSize="small">
+                        <img src="assets/icon/action_add_item_16.png" /> Thêm
+                    </button>
+                </ng-container>
                 <!-- Sửa - luôn hiển thị khi có quyền -->
-                <button *hasPermission="'N27,N34,N69,N80'" nz-button class="btn-edit" nzType="default"
-                    (click)="OnEditClick()" nzSize="small">
-                    <img src="assets/icon/action_edit_item_16.png" />Sửa
-                </button>
+                <ng-container *ngIf="!isFromPOKH">
+                    <button *hasPermission="'N27,N34,N69,N80'" nz-button class="btn-edit" nzType="default"
+                        (click)="OnEditClick()" nzSize="small">
+                        <img src="assets/icon/action_edit_item_16.png" /> Sửa
+                    </button>
+                </ng-container>
                 <!-- Lưu dữ liệu - ẩn khi restrictedView -->
-                <ng-container *ngIf="!restrictedView">
+                <ng-container *ngIf="!restrictedView && !isFromPOKH">
                     <button *hasPermission="'N35,N1'" nz-button nzType="default" (click)="OnSaveData()" nzSize="small">
                         <img class="btn-action-icon" src="assets/icon/action_save_24.svg" />Lưu dữ liệu
                     </button>
                 </ng-container>
                 <!-- Check giá - ẩn khi restrictedView -->
-                <ng-container *ngIf="!restrictedView">
+                <ng-container *ngIf="!restrictedView && !isFromPOKH">
                     <button *hasPermission="'N35,N1'" nz-button nzType="default" (click)="CheckPrice(true)"
                         nzSize="small">
                         <img class="btn-action-icon" src="assets/icon/action_check_24.svg" />Check giá
                     </button>
                 </ng-container>
                 <!-- Hủy check giá - ẩn khi restrictedView -->
-                <ng-container *ngIf="!restrictedView">
+                <ng-container *ngIf="!restrictedView && !isFromPOKH">
                     <button *hasPermission="'N35,N1'" nz-button nzType="default" (click)="CheckPrice(false)"
                         nzSize="small">
                         <img class="btn-action-icon" src="assets/icon/action_cancle_24.svg" />Hủy check giá
                     </button>
                 </ng-container>
                 <!-- Báo giá - ẩn khi restrictedView -->
-                <ng-container *ngIf="!restrictedView">
+                <ng-container *ngIf="!restrictedView && !isFromPOKH">
                     <button *hasPermission="'N35,N1'" nz-button nzType="default" (click)="QuotePrice()" nzSize="small">
                         <img class="btn-action-icon" src="assets/icon/action_check_24.svg" />Báo giá
                     </button>
                 </ng-container>
                 <!-- Hủy báo giá - ẩn khi restrictedView -->
-                <ng-container *ngIf="!restrictedView">
+                <ng-container *ngIf="!restrictedView && !isFromPOKH">
                     <button *hasPermission="'N35,N1'" nz-button nzType="default" (click)="QuotePrice(1)" nzSize="small">
                         <img class="btn-action-icon" src="assets/icon/action_cancle_24.svg" />Hủy báo giá
                     </button>
                 </ng-container>
                 <!-- Từ chối báo giá - ẩn khi restrictedView -->
-                <ng-container *ngIf="!restrictedView">
+                <ng-container *ngIf="!restrictedView && !isFromPOKH">
                     <button *hasPermission="'N35,N1'" nz-button nzType="default" (click)="RejectPriceRequest()"
                         nzSize="small">
                         <img class="btn-action-icon" src="assets/icon/action_reject.svg" />Từ chối báo giá
                     </button>
                 </ng-container>
                 <!-- Hủy từ chối báo giá - ẩn khi restrictedView -->
-                <ng-container *ngIf="!restrictedView">
+                <ng-container *ngIf="!restrictedView && !isFromPOKH">
                     <button *hasPermission="'N35,N1'" nz-button nzType="default" (click)="CancelRejectPriceRequest()"
                         nzSize="small">
                         <img class="btn-action-icon" src="assets/icon/action_cancle_24.svg" />Hủy từ chối báo giá
                     </button>
                 </ng-container>
                 <!-- Hoàn thành - ẩn khi restrictedView -->
-                <ng-container *ngIf="!restrictedView">
+                <ng-container *ngIf="!restrictedView && !isFromPOKH">
                     <button *hasPermission="'N35,N1'" nz-button nzType="default" (click)="QuotePrice(3)" nzSize="small">
                         <img class="btn-action-icon" src="assets/icon/action_check_24.svg" />Hoàn thành
                     </button>
                 </ng-container>
                 <!-- Hủy hoàn thành - ẩn khi restrictedView -->
-                <ng-container *ngIf="!restrictedView">
+                <ng-container *ngIf="!restrictedView && !isFromPOKH">
                     <button *hasPermission="'N35,N1'" nz-button nzType="default" (click)="QuotePrice(0)" nzSize="small">
                         <img class="btn-action-icon" src="assets/icon/action_cancle_24.svg" />Chưa hoàn thành
                     </button>
@@ -348,35 +353,35 @@
                     <img src="assets/icon/action_delete_item_16.png" />Xóa
                 </button>
                 <!-- Tải xuống - ẩn khi restrictedView -->
-                <ng-container *ngIf="!restrictedView">
+                <ng-container *ngIf="!restrictedView && !isFromPOKH">
                     <button *hasPermission="'N35,N1'" nz-button nzType="default" (click)="DownloadFile()"
                         nzSize="small">
                         <img class="btn-action-icon" src="assets/icon/action_dowload_file_24.svg" />Tải xuống
                     </button>
                 </ng-container>
                 <!-- Thêm nhà cung cấp - ẩn khi restrictedView -->
-                <ng-container *ngIf="!restrictedView">
+                <ng-container *ngIf="!restrictedView && !isFromPOKH">
                     <button *hasPermission="'N35,N1'" nz-button nzType="default" (click)="OpenAddSupplierModal()"
                         nzSize="small">
                         <img class="btn-action-icon" src="assets/icon/action_add_24.svg" />Thêm nhà cung cấp
                     </button>
                 </ng-container>
                 <!-- Yêu cầu mua - hiển thị khi restrictedView, ẩn khi isHRDept, luôn hiển thị khi projectPartlistPriceRequestTypeID === 4 -->
-                <ng-container *ngIf="!isHRDept || projectPartlistPriceRequestTypeID === 4">
+                <ng-container *ngIf="(!isHRDept || projectPartlistPriceRequestTypeID === 4) && !isFromPOKH">
                     <button *hasPermission="'N34,N69,N80'" nz-button nzType="default" (click)="OpenRequestBuyModal()"
                         nzSize="small">
                         <img class="btn-action-icon" src="assets/icon/purchase_request.png " />Yêu cầu mua
                     </button>
                 </ng-container>
                 <!-- Nhập Excel - hiển thị khi restrictedView, ẩn khi isHRDept, luôn hiển thị khi projectPartlistPriceRequestTypeID === 4 -->
-                <ng-container *ngIf="!isHRDept || projectPartlistPriceRequestTypeID === 4">
+                <ng-container *ngIf="(!isHRDept || projectPartlistPriceRequestTypeID === 4) && !isFromPOKH">
                     <button *hasPermission="'N27,N34,N69,N80'" nz-button nzType="default" (click)="OpenImportExcel()"
                         nzSize="small">
                         <img class="btn-action-icon" src="assets/icon/action_import_excel_24.svg" />Nhập Excel
                     </button>
                 </ng-container>
                 <!-- Xuất Excel - ẩn khi restrictedView -->
-                <div *ngIf="!restrictedView" class="btn-group">
+                <div *ngIf="!restrictedView && !isFromPOKH" class="btn-group">
                     <button *hasPermission="'N27,N34,N69,N80'" nz-button nzType="default" nzSize="small" nz-dropdown
                         [nzDropdownMenu]="menu">
                         <img class="btn-action-icon" src="assets/icon/action_export_excel_16.png" />Xuất Excel

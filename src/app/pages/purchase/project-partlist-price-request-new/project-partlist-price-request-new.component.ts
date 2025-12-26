@@ -561,7 +561,7 @@ export class ProjectPartlistPriceRequestNewComponent implements OnInit, OnDestro
       this.activeTabId = -3; // Tab tương ứng với type 4
     }
     if (this.isFromPOKH) {
-      this.activeTabId = 5;
+      this.activeTabId = -1; // Tab thương mại
     }
 
     this.filters = {

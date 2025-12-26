@@ -219,7 +219,7 @@
                     justifyContent: 'center'
                     }"></nz-spin>
             </div>
-            <nz-tabset class="ms-2 h-100" (nzSelectedIndexChange)="onTabChange($event)">
+            <nz-tabset class="ms-2 h-100" [nzSelectedIndex]="activeTabIndex" (nzSelectedIndexChange)="onTabChange($event)"> 
                 <nz-tab class="purchase-tab h-100" *ngFor="let tab of filteredTabs; let i = index"
                     [nzTitle]="tab.title">
                     <div class="table-container mt-1 grid-container h-100" [class]="'grid-container-' + tab.id"

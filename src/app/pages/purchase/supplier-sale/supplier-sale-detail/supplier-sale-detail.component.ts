@@ -107,14 +107,17 @@ export class SupplierSaleDetailComponent {
   validateForm = this.fb.group({
     ID: this.fb.control(0),
     NgayUpdate: this.fb.control('', [Validators.required]),
-    CodeNCC: this.fb.control('', [Validators.required]),
+    CodeNCC: this.fb.control('', [Validators.required,
+      Validators.pattern(/^[^àáảãạâầấẩẫậăằắẳẵặèéẻẽẹêềếểễệìíỉĩịòóỏõọôồốổỗộơờớởỡợùúủũụưừứửữựỳýỷỹỵÀÁẢÃẠÂẦẤẨẪẬĂẰẮẲẴẶÈÉẺẼẸÊỀẾỂỄỆÌÍỈĨỊÒÓỎÕỌÔỒỐỔỖỘƠỜỚỞỠỢÙÚỦŨỤƯỪỨỬỮỰỲÝỶỸỴ]+$/)
+,
+    ]),
     NameNCC: this.fb.control('', [Validators.required]),
     NganHang: this.fb.control('', [Validators.required]),
     AddressNCC: this.fb.control('', [Validators.required]),
     Company: this.fb.control('', [Validators.required]),
     PhoneNCC: this.fb.control('', [
       //Validators.required,
-      Validators.pattern(/^(?:0|\+84)(3|5|7|8|9)[0-9]{8}$/),
+      Validators.pattern(/^[+]*[(]{0,1}[0-9]{1,4}[)]{0,1}[-\s./0-9]*$/),
     ]),
     OrdererNCC: this.fb.control(''),
     Debt: this.fb.control(''),

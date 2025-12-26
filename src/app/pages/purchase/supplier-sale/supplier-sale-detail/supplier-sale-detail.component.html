@@ -67,7 +67,7 @@
             <nz-form-label [nzSpan]="24" class="fw-semibold">
               Mã NCC <span class="text-danger">(*)</span>
             </nz-form-label>
-            <nz-form-control [nzSpan]="24" nzErrorTip="Vui lòng nhập mã NCC!">
+            <nz-form-control [nzSpan]="24" [nzErrorTip]="codeNccErrorTpl">
               <input
                 nz-input
                 name="CodeNCC"
@@ -126,7 +126,7 @@
                   >
                   <nz-form-control
                     [nzSpan]="24"
-                    nzErrorTip="Sai định dạng số điện thoại! (0123456789 hoặc +84123456789)"
+                    nzErrorTip="Sai định dạng số điện thoại! (0123 456 789 hoặc +84 123 456 789)"
                   >
                     <input
                       nz-input
@@ -521,3 +521,13 @@
     </button>
   </div>
 </div>
+
+<ng-template #codeNccErrorTpl let-control>
+  <ng-container *ngIf="control.hasError('required')">
+    Vui lòng nhập mã NCC!
+  </ng-container>
+
+  <ng-container *ngIf="control.hasError('pattern')">
+    Mã NCC không được chứa dấu, khoảng trắng hoặc ký tự đặc biệt!
+  </ng-container>
+</ng-template>

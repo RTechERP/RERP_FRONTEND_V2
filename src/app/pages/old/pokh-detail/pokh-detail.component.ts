@@ -1918,16 +1918,11 @@ export class PokhDetailComponent implements OnInit, AfterViewInit {
       backdrop: 'static',
     });
 
-    modalRef.componentInstance.wa
-    modalRef.result.then(
-      (result) => {
-        if (result) {
+    modalRef.result.catch((result) => {
+        if (result == true) {
+            this.loadProducts();
         }
-      },
-      (reason) => {
-        console.log('Modal dismissed');
-      }
-    );
+    });
   }
 
   openQuotationKhDataModal() {
@@ -2086,7 +2081,7 @@ export class PokhDetailComponent implements OnInit, AfterViewInit {
           title: '',
           field: 'actions',
           formatter: (cell) => {
-            return `<img src="/assets/icon/delete-btn.png" class="delete-btn" style="width: 20px; height: 20px; cursor: pointer;" alt="Xóa" />`;
+            return `<button id="btn-header-click" class="btn text-danger p-0 border-0" style="font-size: 0.75rem;"><i class="fas fa-trash"></i></button>`;
           },
           width: '1px',
           hozAlign: 'center',
@@ -2191,7 +2186,7 @@ export class PokhDetailComponent implements OnInit, AfterViewInit {
             field: 'actions',
             frozen: true,
             formatter: (cell) => {
-              return `<img src="/assets/icon/delete-btn.png" class="delete-btn" style="width: 20px; height: 20px; cursor: pointer;" alt="Xóa" />`;
+              return `<button id="btn-header-click" class="btn text-danger p-0 border-0" style="font-size: 0.75rem;"><i class="fas fa-trash"></i></button>`;
             },
             width: '5%',
             hozAlign: 'center',

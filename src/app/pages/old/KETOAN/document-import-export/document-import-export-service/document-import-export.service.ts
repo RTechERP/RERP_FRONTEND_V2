@@ -33,4 +33,13 @@ export class DocumentImportExportService {
 
     return this.http.post<any>(`${this._url}save-document-import-export`, null, { params });
   }
+
+  // API để xóa chứng từ nhập/xuất
+  deleteDocument(documentType: number, id: number): Observable<any> {
+    let params = new HttpParams()
+      .set('documentType', documentType.toString())
+      .set('id', id.toString());
+
+    return this.http.post<any>(`${this._url}delete-document`, null, { params });
+  }
 }

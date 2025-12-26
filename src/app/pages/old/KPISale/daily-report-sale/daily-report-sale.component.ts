@@ -122,7 +122,7 @@ export class DailyReportSaleComponent implements OnInit, AfterViewInit {
     selectedRowId: number = 0;
 
     filters: any = {
-        dateStart: new Date(),
+        dateStart: new Date(new Date().setMonth(new Date().getMonth() - 1)),
         dateEnd: new Date(),
         projectId: 0,
         customerId: 0,
@@ -151,7 +151,8 @@ export class DailyReportSaleComponent implements OnInit, AfterViewInit {
             this.warehouseId = params['warehouseId'] || 1
         });
         // Kiểm tra quyền admin và set employeeId
-        this.isAdmin = this.appUserService.isAdmin;
+        const currentUser = this.appUserService.currentUser;
+        this.isAdmin = this.appUserService.isAdmin || (currentUser?.IsAdminSale === 1);
         this.isEmployeeIdDisabled = !this.isAdmin;
 
         // Nếu không phải admin, set employeeId của user hiện tại
@@ -423,8 +424,10 @@ export class DailyReportSaleComponent implements OnInit, AfterViewInit {
             paginationSizeSelector: [10, 30, 50, 100, 200, 300, 500],
             ajaxURL: 'dummy',
             ajaxRequestFunc: (url, config, params) => {
-                // Nếu là admin thì userId = 0, nếu không thì lấy userId của user đăng nhập
-                const userId = this.appUserService.isAdmin ? 0 : (this.appUserService.id || 0);
+                // Nếu là admin hoặc admin sale thì userId = 0, nếu không thì lấy userId của user đăng nhập
+                const currentUser = this.appUserService.currentUser;
+                const isAdminOrAdminSale = this.appUserService.isAdmin || (currentUser?.IsAdminSale === 1);
+                const userId = isAdminOrAdminSale ? 0 : (this.appUserService.id || 0);
                 const page = params.page || 1;
                 const size = params.size || 50;
 

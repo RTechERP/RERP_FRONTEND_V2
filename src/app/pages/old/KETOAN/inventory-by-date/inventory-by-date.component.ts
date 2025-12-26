@@ -141,7 +141,7 @@ export class InventoryByDateComponent implements OnInit, AfterViewInit {
         label: '<span style="font-size: 0.75rem;"><i class="fas fa-eye"></i> Chi tiết</span>',
         action: (e: UIEvent, row: RowComponent) => {
           const rowData = row.getData();
-          // this.openDetailModal(rowData);
+          this.openDetailModal(rowData);
         },
       },
     ];
@@ -152,18 +152,22 @@ export class InventoryByDateComponent implements OnInit, AfterViewInit {
       centered: true,
       size: 'xl',
       backdrop: 'static',
+      windowClass: 'modal-focus-fix'
     });
 
-    this.inventoryByDateService.getInventoryByProductSaleId(rowData.ProductID).subscribe((response: any) => {
-      if (response.status === 1 && response.data) {
-        modalRef.componentInstance.totalQuantityFirst = response.data.TotalQuantityFirst || 0;
-        modalRef.componentInstance.productSaleId = rowData.ProductID;
-        modalRef.componentInstance.warehouseCode = 'HN';
-        const datePlusOne = new Date(this.dateTime);
-        datePlusOne.setDate(datePlusOne.getDate() + 1);
-        modalRef.componentInstance.dateValues = datePlusOne;
-      }
-    });
+    setTimeout(() => {
+      this.inventoryByDateService.getInventoryByProductSaleId(rowData.ProductID).subscribe((response: any) => {
+        if (response.status === 1 && response.data) {
+          modalRef.componentInstance.totalQuantityFirst = response.data.TotalQuantityFirst || 0;
+          modalRef.componentInstance.productSaleId = rowData.ProductID;
+          modalRef.componentInstance.productCode = rowData.ProductCode || '';
+          modalRef.componentInstance.warehouseCode = 'HN';
+          const datePlusOne = new Date(this.dateTime);
+          datePlusOne.setDate(datePlusOne.getDate() + 1);
+          modalRef.componentInstance.dateValues = datePlusOne;
+        }
+      });
+    }, 200);
 
     modalRef.result.then(
       (result) => {

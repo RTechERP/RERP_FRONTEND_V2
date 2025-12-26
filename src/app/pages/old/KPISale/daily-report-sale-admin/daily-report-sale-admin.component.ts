@@ -151,7 +151,8 @@ export class DailyReportSaleAdminComponent implements OnInit, AfterViewInit {
     openModal() {
         const modalRef = this.modalService.open(DailyReportSaleAdminDetailComponent, {
             centered: true,
-            size: 'xl',
+            // size: 'xl',
+            windowClass: 'full-screen-modal',
             backdrop: 'static',
         });
         modalRef.result.then((result) => {

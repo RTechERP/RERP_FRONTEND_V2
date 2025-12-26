@@ -168,6 +168,7 @@ import { DocumentImportExportComponent } from './pages/old/KETOAN/document-impor
 import { DocumentCommonComponent } from './pages/hrm/document/document-common/document-common.component';
 // import { ProjectPartlistPurchaseRequestVer2Component } from './pages/purchase/project-partlist-purchase-request/project-partlist-purchase-request-ver2/project-partlist-purchase-request-ver2.component';
 import { ProjectPartlistPriceRequestComponent } from './pages/old/project-partlist-price-request/project-partlist-price-request.component';
+import { BillDocumentImportTypeComponent } from './pages/old/KETOAN/bill-document-import-type/bill-document-import-type.component';
 
 export const routes: Routes = [
     {
@@ -428,6 +429,7 @@ export const routes: Routes = [
             { path: 'request-invoice-kt', component: RequestInvoiceComponent, canActivate: [authGuard] },
             { path: 'payment-order-kt', component: PaymentOrderComponent, canActivate: [authGuard] },
             { path: 'document-import-export', component: DocumentImportExportComponent, canActivate: [authGuard] },
+            { path: 'bill-document-import-type', component: BillDocumentImportTypeComponent, canActivate: [authGuard] },
 
 
             //Phòng sale

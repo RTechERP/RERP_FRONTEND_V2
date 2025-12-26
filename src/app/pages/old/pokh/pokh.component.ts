@@ -1070,6 +1070,22 @@ export class PokhComponent implements OnInit, AfterViewInit {
       );
       return;
     }
+    const modalRef = this.modalService.open(PoRequestBuyComponent, {
+            centered: true,
+            backdrop: 'static',
+            windowClass: 'full-screen-modal',
+        });
+        modalRef.componentInstance.pokhId = this.selectedId;
+
+        modalRef.result.then(
+            (result) => {
+                if (result) {
+                }
+            },
+            (reason) => {
+                console.log('Modal dismissed');
+            }
+        );
   }
 
   formatFileSize(bytes: number): string {
@@ -1290,16 +1306,16 @@ export class PokhComponent implements OnInit, AfterViewInit {
           '<span style="font-size: 0.75rem;"><i class="fas fa-eye"></i> Lịch sử tiền về</span>',
         action: () => this.openHistoryMoneyModal(),
       },
-      // {
-      //   label:
-      //     '<span style="font-size: 0.75rem;"><i class="fas fa-eye"></i> Danh sách yêu cầu mua hàng</span>',
-      //   action: () => this.openProjectPartlistPurchaseRequest(),
-      // },
-      // {
-      //   label:
-      //     '<span style="font-size: 0.75rem;"><i class="fas fa-eye"></i> Danh sách yêu cầu báo giá</span>',
-      //   action: () => this.openProjectPartlistPriceRequestNew(),
-      // },
+      {
+        label:
+          '<span style="font-size: 0.75rem;"><i class="fas fa-eye"></i> Danh sách yêu cầu mua hàng</span>',
+        action: () => this.openProjectPartlistPurchaseRequest(),
+      },
+      {
+        label:
+          '<span style="font-size: 0.75rem;"><i class="fas fa-eye"></i> Danh sách yêu cầu báo giá</span>',
+        action: () => this.openProjectPartlistPriceRequestNew(),
+      },
     ];
   }
 

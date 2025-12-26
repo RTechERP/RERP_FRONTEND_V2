@@ -37,6 +37,7 @@ import { AuthService } from '../../../auth/auth.service';
 import { RegistercontractdetailComponent } from '../../person/register-contract/register-contract-detail/register-contract-detail.component';
 import { ProjectItemPersonService } from './project-item-person-service/project-item-person.service';
 import { ProjectService } from '../project-service/project.service';
+import { ProjectItemPersonDetailComponent } from './project-item-person-detail/project-item-person-detail.component';
 
 @Component({
   //selector: 'app-r',
@@ -75,8 +76,8 @@ export class ProjectItemPersonComponent implements OnInit, AfterViewInit {
     private nzModal: NzModalService
   ) { }
 
-  @ViewChild('tb_registerContract', { static: false })
-  tb_registerContractContainer!: ElementRef;
+  @ViewChild('tb_projectItemPerson', { static: false })
+  tb_projectItemPersonContainer!: ElementRef;
 
   @ViewChild('cancelReasonTemplate', { static: false })
   cancelReasonTemplate!: TemplateRef<any>;
@@ -86,7 +87,7 @@ export class ProjectItemPersonComponent implements OnInit, AfterViewInit {
   isLoadTable: any = false;
   cancelReason: string = '';
 
-  tb_registerContract: any;
+  tb_projectItemPerson: any;
 
   // Bộ lọc hạng mục công việc cá nhân
   dataStatus: any[] = [
@@ -142,7 +143,7 @@ export class ProjectItemPersonComponent implements OnInit, AfterViewInit {
   }
 
   ngAfterViewInit(): void {
-    this.drawTbRegisterContract(this.tb_registerContractContainer.nativeElement);
+    this.drawTbProjectItemPerson(this.tb_projectItemPersonContainer.nativeElement);
     // Load dữ liệu cho combobox
     this.loadProjects();
     this.loadEmployees();
@@ -253,11 +254,11 @@ export class ProjectItemPersonComponent implements OnInit, AfterViewInit {
       next: (response: any) => {
         console.log('Dữ liệu hạng mục công việc cá nhân:', response.data?.length || 0, 'bản ghi');
 
-        // Kiểm tra tb_registerContract đã được khởi tạo chưa
-        if (this.tb_registerContract) {
-          this.tb_registerContract.setData(response.data || []);
+        // Kiểm tra tb_projectItemPerson đã được khởi tạo chưa
+        if (this.tb_projectItemPerson) {
+          this.tb_projectItemPerson.setData(response.data || []);
         } else {
-          console.warn('tb_registerContract chưa được khởi tạo, dữ liệu sẽ được load sau');
+          console.warn('tb_projectItemPerson chưa được khởi tạo, dữ liệu sẽ được load sau');
         }
 
         this.isLoadTable = false;
@@ -369,8 +370,8 @@ export class ProjectItemPersonComponent implements OnInit, AfterViewInit {
   }
 
   //#region Xử lý bảng đăng ký hợp đồng
-  drawTbRegisterContract(container: HTMLElement) {
-    this.tb_registerContract = new Tabulator(container, {
+  drawTbProjectItemPerson(container: HTMLElement) {
+    this.tb_projectItemPerson = new Tabulator(container, {
       ...DEFAULT_TABLE_CONFIG,
       pagination: true,
       layout: 'fitDataStretch',
@@ -378,6 +379,61 @@ export class ProjectItemPersonComponent implements OnInit, AfterViewInit {
       paginationMode: 'local',
       paginationSize: 50,
       paginationSizeSelector: [10, 20, 50, 100, 200],
+      rowFormatter: (row: any) => {
+        const data = row.getData();
+
+        // Reset màu mặc định
+        row.getElement().style.backgroundColor = '';
+        row.getElement().style.color = '';
+
+        // Kiểm tra xem có children không (parent node)
+        const hasChildren = data._children && data._children.length > 0;
+
+        // Lấy giá trị ItemLate và ItemLateActual
+        const itemLate = parseInt(data['ItemLate'] || '0');
+        const itemLateActual = parseInt(data['ItemLateActual'] || '0');
+        const totalDayExpridSoon = parseInt(data['TotalDayExpridSoon'] || '0');
+        const planEndDate = data['PlanEndDate']
+          ? DateTime.fromISO(data['PlanEndDate'])
+          : null;
+        const actualEndDate = data['ActualEndDate']
+          ? DateTime.fromISO(data['ActualEndDate'])
+          : null;
+        const hasActualEndDate = actualEndDate && actualEndDate.isValid;
+
+        // Áp dụng màu theo thứ tự ưu tiên (giống WinForm)
+        // Lưu ý: Màu đỏ (ItemLate = 2) ưu tiên cao nhất, kể cả parent nodes
+
+        // 1. ItemLate = 2 hoặc ItemLateActual = 2: Red + White text (ưu tiên cao nhất, kể cả parent)
+        if (itemLate === 2 || itemLateActual === 2) {
+          row.getElement().style.backgroundColor = 'Red';
+          row.getElement().style.color = 'White';
+          return; // Dừng lại
+        }
+
+        // 2. ItemLate = 1 hoặc ItemLateActual = 1: Orange (ưu tiên cao hơn parent)
+        if (itemLate === 1 || itemLateActual === 1) {
+          row.getElement().style.backgroundColor = 'Orange';
+          return; // Dừng lại
+        }
+
+        // 3. Parent nodes: LightGray (chỉ khi không có ItemLate = 1 hoặc 2)
+        if (hasChildren) {
+          row.getElement().style.backgroundColor = 'LightGray';
+          return; // Dừng lại
+        }
+
+        // 4. Sắp hết hạn: LightYellow (ưu tiên thấp nhất)
+        // Điều kiện: PlanEndDate != null AND TotalDayExpridSoon <= 3 AND (ActualEndDate is null or empty)
+        if (
+          planEndDate &&
+          planEndDate.isValid &&
+          totalDayExpridSoon <= 3 &&
+          !hasActualEndDate
+        ) {
+          row.getElement().style.backgroundColor = 'LightYellow';
+        }
+      },
       columns: [
         {
           title: 'STT',
@@ -557,17 +613,17 @@ export class ProjectItemPersonComponent implements OnInit, AfterViewInit {
       ],
     });
 
-    this.tb_registerContract.on('pageLoaded', () => {
-      this.tb_registerContract.redraw();
+    this.tb_projectItemPerson.on('pageLoaded', () => {
+      this.tb_projectItemPerson.redraw();
     });
 
     // Thêm sự kiện double-click để mở modal
-    this.tb_registerContract.on('rowDblClick', (e: any, row: any) => {
+    this.tb_projectItemPerson.on('rowDblClick', (e: any, row: any) => {
       this.openModal(row.getData());
     });
 
     // Thêm sự kiện row selection để cập nhật quyền
-    this.tb_registerContract.on('rowSelectionChanged', (data: any, rows: any) => {
+    this.tb_projectItemPerson.on('rowSelectionChanged', (data: any, rows: any) => {
       this.onRowSelectionChanged(rows);
     });
 
@@ -595,7 +651,7 @@ export class ProjectItemPersonComponent implements OnInit, AfterViewInit {
     this.registerContractService.getAllRegisterContracts(params).subscribe({
       next: (response: any) => {
         console.log('Dữ liệu nhận được:', response.data?.length || 0, 'bản ghi');
-        this.tb_registerContract.setData(response.data || []);
+        this.tb_projectItemPerson.setData(response.data || []);
         this.isLoadTable = false;
 
         // Tự động ẩn filter bar trên mobile sau khi tìm kiếm
@@ -622,7 +678,7 @@ export class ProjectItemPersonComponent implements OnInit, AfterViewInit {
   //#region Xuất excel
   exportExcel() {
     let date = DateTime.local().toFormat('ddMMyy');
-    this.tb_registerContract.download('xlsx', `DangKyHopDong_${date}.xlsx`, {
+    this.tb_projectItemPerson.download('xlsx', `DangKyHopDong_${date}.xlsx`, {
       sheetName: 'Đăng ký hợp đồng',
     });
   }
@@ -630,9 +686,9 @@ export class ProjectItemPersonComponent implements OnInit, AfterViewInit {
 
   //#region Xử lý trạng thái
   filterByStatus() {
-    if (this.tb_registerContract) {
+    if (this.tb_projectItemPerson) {
       if (this.statusId != -1) {
-        this.tb_registerContract.setFilter([
+        this.tb_projectItemPerson.setFilter([
           {
             field: 'Status',
             type: '=',
@@ -640,7 +696,7 @@ export class ProjectItemPersonComponent implements OnInit, AfterViewInit {
           },
         ]);
       } else {
-        this.tb_registerContract.clearFilter();
+        this.tb_projectItemPerson.clearFilter();
       }
     }
   }
@@ -721,7 +777,7 @@ export class ProjectItemPersonComponent implements OnInit, AfterViewInit {
 
   //#region Xử lý Modal
   openModal(data?: any): void {
-    const modalRef = this.modal.open(RegistercontractdetailComponent, {
+    const modalRef = this.modal.open(ProjectItemPersonDetailComponent, {
       size: 'xl',
       backdrop: 'static',
       keyboard: true,
@@ -751,7 +807,7 @@ export class ProjectItemPersonComponent implements OnInit, AfterViewInit {
   }
 
   editSelected(): void {
-    const selectedRows = this.tb_registerContract.getSelectedRows();
+    const selectedRows = this.tb_projectItemPerson.getSelectedRows();
 
     if (selectedRows.length === 0) {
       this.notification.warning(NOTIFICATION_TITLE.warning, 'Vui lòng chọn dòng cần sửa');
@@ -768,7 +824,7 @@ export class ProjectItemPersonComponent implements OnInit, AfterViewInit {
   }
 
   deleteSelected(): void {
-    const selectedRows = this.tb_registerContract.getSelectedRows();
+    const selectedRows = this.tb_projectItemPerson.getSelectedRows();
 
     if (selectedRows.length === 0) {
       this.notification.warning(NOTIFICATION_TITLE.warning, 'Vui lòng chọn dòng cần xóa');
@@ -954,7 +1010,7 @@ export class ProjectItemPersonComponent implements OnInit, AfterViewInit {
 
   // Giữ lại cho toolbar (nếu cần)
   approveSelected(): void {
-    const selectedRows = this.tb_registerContract.getSelectedRows();
+    const selectedRows = this.tb_projectItemPerson.getSelectedRows();
 
     if (selectedRows.length === 0) {
       this.notification.warning(NOTIFICATION_TITLE.warning, 'Vui lòng chọn dòng cần xác nhận');
@@ -978,7 +1034,7 @@ export class ProjectItemPersonComponent implements OnInit, AfterViewInit {
   }
 
   cancelSelected(): void {
-    const selectedRows = this.tb_registerContract.getSelectedRows();
+    const selectedRows = this.tb_projectItemPerson.getSelectedRows();
 
     if (selectedRows.length === 0) {
       this.notification.warning(NOTIFICATION_TITLE.warning, 'Vui lòng chọn dòng cần hủy');

@@ -75,3 +75,4 @@ export const NOTIFICATION_TITLE = {
     warning: 'Thông báo',
 };
 export const ID_ADMIN_DEMO_LIST: number[] = [24, 1434, 88, 1534, 1700];
+export const USER_ALL_REPORT_TECH: number[]=[1,23,24,78,88,1221,1313,1434,1431,53,51,1534,1700];

@@ -105,6 +105,26 @@
                         </nz-form-item>
                     </nz-col>
 
+                    <!-- Nhân viên -->
+                    <nz-col [nzXs]="24" [nzSm]="12" [nzMd]="6" [nzLg]="5" [nzXl]="5">
+                        <nz-form-item class="mb-0">
+                            <nz-form-label class="fs-12" style="font-size: 12px;">Nhân viên</nz-form-label>
+                            <nz-form-control>
+                                <nz-select [(ngModel)]="userId" name="userId" nzShowSearch nzAllowClear nzSize="small"
+                                    nzPlaceHolder="Chọn nhân viên" class="w-100">
+                                    <nz-option [nzValue]="0" nzLabel="Tất cả">Tất cả</nz-option>
+                                    <nz-option-group *ngFor="let parent of users" [nzLabel]="parent.label">
+                                        <nz-option *ngFor="let child of parent.options" nzCustomContent="true"
+                                            [nzLabel]="child.item?.Code + ' - ' + child.item?.FullName"
+                                            [nzValue]="child.item.UserID">
+                                            {{ child.item.Code + " - " + child.item.FullName }}
+                                        </nz-option>
+                                    </nz-option-group>
+                                </nz-select>
+                            </nz-form-control>
+                        </nz-form-item>
+                    </nz-col>
+
                     <!-- Từ khóa và nút tìm kiếm -->
                     <nz-col [nzXs]="24" [nzSm]="24" [nzMd]="12" [nzLg]="6" [nzXl]="6">
                         <nz-form-item class="mb-0">

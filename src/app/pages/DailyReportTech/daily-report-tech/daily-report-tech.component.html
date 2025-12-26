@@ -105,7 +105,7 @@
                             <nz-form-control>
                                 <nz-select [(ngModel)]="userId" name="userId" nzShowSearch nzAllowClear nzSize="small"
                                     nzPlaceHolder="Chọn nhân viên" class="w-100">
-                                    <nz-option nzValue="0" nzLabel="Tất cả">Tất cả</nz-option>
+                                    <nz-option [nzValue]="0" nzLabel="Tất cả">Tất cả</nz-option>
                                     <nz-option-group *ngFor="let parent of users" [nzLabel]="parent.label">
                                         <nz-option *ngFor="let child of parent.options" nzCustomContent="true"
                                             [nzLabel]="child.item?.Code + ' - ' + child.item?.FullName"

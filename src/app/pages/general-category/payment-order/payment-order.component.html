@@ -75,7 +75,8 @@
                     <nz-form-label>Nhân viên</nz-form-label>
                     <nz-form-control>
                         <nz-select nzShowSearch nzAllowClear nzPlaceHolder="Chọn nhân viên"
-                            [(ngModel)]="param.employeeID" [ngModelOptions]="{ standalone: true }" nzSize="small">
+                            [(ngModel)]="param.employeeID" [ngModelOptions]="{ standalone: true }" nzSize="small"
+                            [disabled]="!isPermisstion">
                             @for (g of employees; track $index) {
                             <nz-option-group [nzLabel]="g.DepartmentName || ''">
                                 @for (item of g.items; track $index) {
@@ -116,7 +117,8 @@
                     <nz-form-label>Phòng ban</nz-form-label>
                     <nz-form-control>
                         <nz-select nzShowSearch nzAllowClear nzPlaceHolder="Chọn phòng ban"
-                            [(ngModel)]="param.departmentID" [ngModelOptions]="{ standalone: true }" nzSize="small">
+                            [(ngModel)]="param.departmentID" [ngModelOptions]="{ standalone: true }" nzSize="small"
+                            [disabled]="!isPermisstion">
                             @for (item of departments; track item) {
                             <nz-option [nzLabel]="item.Name" [nzValue]="item.ID"></nz-option>
                             }

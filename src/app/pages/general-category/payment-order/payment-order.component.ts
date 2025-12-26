@@ -50,6 +50,7 @@ import { PaymentOrderSpecialComponent } from './payment-order-special/payment-or
 import { environment } from '../../../../environments/environment';
 import { ExcelExportService } from '@slickgrid-universal/excel-export';
 import { DateTime } from 'luxon';
+import { AppUserService } from '../../../services/app-user.service';
 
 (pdfMake as any).vfs = vfs;
 (pdfMake as any).fonts = {
@@ -175,6 +176,8 @@ export class PaymentOrderComponent implements OnInit {
         return '';
     };
 
+    isPermisstion: boolean = false;
+
     constructor(
         private modalService: NgbModal,
         private paymentService: PaymentOrderService,
@@ -183,15 +186,42 @@ export class PaymentOrderComponent implements OnInit {
         private departmentService: DepartmentServiceService,
         private employeeService: EmployeeService,
         private paymentOrderTypeService: PaymentOrderTypeService,
+        private appUserService: AppUserService,
 
     ) { }
 
     ngOnInit(): void {
         this.loadDataCombo();
         this.initMenuBar();
+
+        const permissionCodeTBP = "N57";
+        const permissionCodeHR = "N59";
+        const permissionCodeTbpHR = "N56";
+        const permissionCodeKT = "N55";
+        const permissionCodeKTT = "N61";
+        const permissionCodeBGD = "N58";
+
+        this.isPermisstion = (this.appUserService.currentUser?.Permissions.includes(permissionCodeTBP) ||
+            this.appUserService.currentUser?.Permissions.includes(permissionCodeHR) ||
+            this.appUserService.currentUser?.Permissions.includes(permissionCodeTbpHR) ||
+            this.appUserService.currentUser?.Permissions.includes(permissionCodeKT) ||
+            this.appUserService.currentUser?.Permissions.includes(permissionCodeKTT) ||
+            this.appUserService.currentUser?.Permissions.includes(permissionCodeBGD) ||
+            this.appUserService.currentUser?.IsAdmin) || false;
+
+        // console.log('this.isPermisstion:', this.isPermisstion);
+        if (!this.isPermisstion) {
+            this.param.departmentID = this.appUserService.currentUser?.DepartmentID;
+            this.param.employeeID = this.appUserService.currentUser?.EmployeeID;
+            // console.log('this.param:', this.param);
+        } else if (this.appUserService.currentUser?.Permissions.includes(permissionCodeTBP)) {
+            this.param.departmentID = this.appUserService.currentUser?.DepartmentID;
+        }
+
         this.initGrid();
         this.initGridSpecial();
         this.initGridSpecialDetail();
+
     }
 
     initMenuBar() {
@@ -249,7 +279,7 @@ export class PaymentOrderComponent implements OnInit {
                         label: 'Duyệt',
                         icon: PrimeIcons.CHECK,
                         command: () => {
-                            this.onApprovedTBP(2, {
+                            this.onApprovedTBP(1, {
                                 ButtonActionGroup: 'btnTBP', ButtonActionName: 'btnApproveTBP', ButtonActionText: 'Trưởng bộ phận',
                             });
                         }
@@ -367,6 +397,30 @@ export class PaymentOrderComponent implements OnInit {
                     {
                         separator: true,
                     },
+                    {
+                        label: 'TBP duyệt',
+                        icon: PrimeIcons.UNLOCK,
+                        visible: this.permissionService.hasPermission("N61"),
+                        command: () => {
+                            this.onApprovedKTT(1, {
+                                ButtonActionGroup: 'btnKTT', ButtonActionName: 'btnApproveKT', ButtonActionText: 'Kế toán xác nhận',
+                            });
+                        }
+                    },
+                    {
+                        label: 'TBP hủy duyệt',
+                        icon: PrimeIcons.UNLOCK,
+                        visible: this.permissionService.hasPermission("N61"),
+                        command: () => {
+                            this.onApprovedKTT(2, {
+                                ButtonActionGroup: 'btnKTT', ButtonActionName: 'btnUnApproveKT', ButtonActionText: 'Kế toán xác nhận',
+                            });
+                        }
+                    },
+                    {
+                        separator: true,
+                    },
+
 
                     {
                         label: 'Nhận chứng từ',
@@ -388,29 +442,7 @@ export class PaymentOrderComponent implements OnInit {
                             });
                         }
                     },
-                    {
-                        separator: true,
-                    },
-                    {
-                        label: 'TBP duyệt',
-                        icon: PrimeIcons.UNLOCK,
-                        visible: this.permissionService.hasPermission("N61"),
-                        command: () => {
-                            this.onApprovedKTT(1, {
-                                ButtonActionGroup: 'btnKTT', ButtonActionName: 'btnApproveKT', ButtonActionText: 'Kế toán xác nhận',
-                            });
-                        }
-                    },
-                    {
-                        label: 'TBP hủy duyệt',
-                        icon: PrimeIcons.UNLOCK,
-                        visible: this.permissionService.hasPermission("N61"),
-                        command: () => {
-                            this.onApprovedKTT(2, {
-                                ButtonActionGroup: 'btnKTT', ButtonActionName: 'btnUnApproveKT', ButtonActionText: 'Kế toán xác nhận',
-                            });
-                        }
-                    },
+
                     {
                         separator: true,
                     },

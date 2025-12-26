@@ -3263,7 +3263,7 @@ export class BillExportDetailComponent
       const inventoryProjects = res.inventoryProjects || [];
       const totalInventoryFromProjects = inventoryProjects.reduce(
         (sum: number, inv: any) =>
-          sum + Number(inv.TotalQuantityRemain || 0),
+          sum + Number(inv.TotalQuantity || 0),
         0
       );
   

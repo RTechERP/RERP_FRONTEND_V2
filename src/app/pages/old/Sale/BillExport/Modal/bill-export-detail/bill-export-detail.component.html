@@ -253,7 +253,7 @@
 <div class="modal-footer flex-shrink-0">
   <button class="fs-12 btn" nz-button nzDanger (click)="closeModal()">Đóng</button>
   <ng-container *ngIf="!newBillExport.IsApproved">
-    <button class="fs-12 btn" nz-button nzType="primary" *hasPermission="'N27,N1,N33,N34,N69'" (click)="saveDataBillExport()">Lưu</button>
+    <button class="fs-12 btn" nz-button nzType="primary" (click)="saveDataBillExport()">Lưu</button>
   </ng-container>
 </div>
 

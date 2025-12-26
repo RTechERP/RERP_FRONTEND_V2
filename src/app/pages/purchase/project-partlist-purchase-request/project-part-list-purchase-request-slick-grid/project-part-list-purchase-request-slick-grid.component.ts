@@ -3,6 +3,8 @@ import {
   OnInit,
   OnDestroy,
   AfterViewInit,
+  OnChanges,
+  SimpleChanges,
   ViewChild,
   TemplateRef,
   ChangeDetectorRef,
@@ -436,7 +438,7 @@ class GroupSelectEditor {
   styleUrls: ['./project-part-list-purchase-request-slick-grid.component.css'],
 })
 export class ProjectPartListPurchaseRequestSlickGridComponent
-  implements OnInit, AfterViewInit, OnDestroy
+  implements OnInit, AfterViewInit, OnDestroy, OnChanges
 {
   @ViewChild('rejectReasonTpl', { static: false })
   rejectReasonTpl!: TemplateRef<any>;
@@ -503,7 +505,7 @@ export class ProjectPartListPurchaseRequestSlickGridComponent
   isDeletedFilter: number = 0;
   isApprovedBGDFilter: number = -1;
   isApprovedTBPFilter: number = -1;
-  @Input() pokhIdFilter: number | null = null;
+  @Input() pokhIdFilter: number = 0;
 
   // Filter options
   statusOptions: any[] = [
@@ -545,6 +547,10 @@ export class ProjectPartListPurchaseRequestSlickGridComponent
   isLoading: boolean = false;
   @Input() isPurchaseRequestDemo: boolean = false;
   WarehouseType: number = 1;
+  // Flag to track if grids are ready and initial data has been loaded
+  private gridsInitialized: boolean = false;
+  // Flag to indicate a reload is pending (Input changed before grids ready)
+  private pendingReload: boolean = false;
   // Subscriptions
   private subscriptions: Subscription[] = [];
 
@@ -596,13 +602,34 @@ export class ProjectPartListPurchaseRequestSlickGridComponent
             this.isApprovedTBP = params['isApprovedTBP'] || false;
             this.isApprovedBGD = params['isApprovedBGD'] || false;
         });
+        this.loadMasterData();
+        this.getRequestTypes();
+        if(this.listRequestBuySelect){
+          this.activeTabIndex = -1;
 
-    this.loadMasterData();
-    this.getRequestTypes();
+          this.onSearch();
+        }
   }
 
   ngOnDestroy() {
     this.subscriptions.forEach((sub) => sub.unsubscribe());
+  }
+
+  ngOnChanges(changes: SimpleChanges) {
+    // Khi listRequestBuySelect hoặc pokhIdFilter thay đổi và grids đã được khởi tạo, reload data
+    const hasRelevantChanges = changes['listRequestBuySelect'] || changes['pokhIdFilter'];
+
+    if (hasRelevantChanges) {
+      if (this.gridsInitialized) {
+        // Reload data khi Input values thay đổi sau khi grids đã sẵn sàng
+        setTimeout(() => {
+          this.onSearch();
+        }, 100);
+      } else {
+        // Đánh dấu cần reload khi grids sẵn sàng
+        this.pendingReload = true;
+      }
+    }
   }
 
   // Load master data
@@ -716,6 +743,12 @@ export class ProjectPartListPurchaseRequestSlickGridComponent
             // Load data after grid container is rendered
             setTimeout(() => {
               this.onSearch();
+              this.gridsInitialized = true;
+              // Nếu có pending reload (Input values đã thay đổi trước khi grids sẵn sàng), reload lại
+              if (this.pendingReload) {
+                this.pendingReload = false;
+                setTimeout(() => this.onSearch(), 100);
+              }
             }, 150);
           }, 200);
         }
@@ -736,6 +769,12 @@ export class ProjectPartListPurchaseRequestSlickGridComponent
 
                 setTimeout(() => {
                     this.onSearch();
+                    this.gridsInitialized = true;
+                    // Nếu có pending reload, reload lại
+                    if (this.pendingReload) {
+                        this.pendingReload = false;
+                        setTimeout(() => this.onSearch(), 100);
+                    }
                 }, 150);
             }, 200);
         }
@@ -1928,6 +1967,25 @@ export class ProjectPartListPurchaseRequestSlickGridComponent
                 columns[modelIndex] = temp;
             }
         }
+
+    // Nếu là tab 5 (Thương mại) và listRequestBuySelect = true, chuyển GuestCode lên trước ProjectCode
+    if (typeId === 5 && this.listRequestBuySelect) {
+      const projectCodeIndex = columns.findIndex(
+        (col) => col.id === 'ProjectCode'
+      );
+      const guestCodeIndex = columns.findIndex(
+        (col) => col.id === 'GuestCode'
+      );
+
+      if (projectCodeIndex !== -1 && guestCodeIndex !== -1 && guestCodeIndex > projectCodeIndex) {
+        // Lấy cột GuestCode ra
+        const guestCodeColumn = columns[guestCodeIndex];
+        // Xóa GuestCode khỏi vị trí cũ (xóa từ vị trí lớn hơn trước để không ảnh hưởng đến index của ProjectCode)
+        columns.splice(guestCodeIndex, 1);
+        // Chèn GuestCode vào trước ProjectCode (sau khi xóa, projectCodeIndex vẫn đúng)
+        columns.splice(projectCodeIndex, 0, guestCodeColumn);
+      }
+    }
 
         return columns;
     }
@@ -5081,7 +5139,7 @@ export class ProjectPartListPurchaseRequestSlickGridComponent
             }
           }
           // Handle text columns - get unique values from data
-          else if (['ProductCode', 'ProjectCode', 'ProductName', 'Manufacturer', 'StatusRequestText', 'FullName', 
+          else if (['ProductCode', 'ProjectCode', 'ProductName', 'Manufacturer', 'StatusRequestText', 'FullName',
                     'ProductNewCode', 'ProductCodeRTC'].includes(field)) {
             const collection = getUniqueValues(data, field);
             if (column.filter) {

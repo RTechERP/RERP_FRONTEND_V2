@@ -282,8 +282,6 @@ export class ProductSaleDetailComponent implements OnInit, AfterViewInit {
           LocationID: formValue.LocationID,
           Note: formValue.Note,
           IsFix: isFix,
-          UpdatedBy: 'admin',
-          UpdatedDate: new Date()
         },
         Inventory: {
           Note: formValue.Note,

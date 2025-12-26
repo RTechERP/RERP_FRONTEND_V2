@@ -63,6 +63,7 @@ import { ProductSaleDetailComponent } from '../../../ProductSale/product-sale-de
 import { BillImportChoseSerialComponent } from '../../../../bill-import-technical/bill-import-chose-serial/bill-import-chose-serial.component';
 import { HistoryDeleteBillComponent } from '../history-delete-bill/history-delete-bill.component';
 import { NzSpinModule } from 'ng-zorro-antd/spin';
+import { PermissionService } from '../../../../../../services/permission.service';
 
 interface ProductSale {
   Id?: number;
@@ -293,7 +294,8 @@ export class BillExportDetailComponent
     private notification: NzNotificationService,
     private injector: EnvironmentInjector,
     private appRef: ApplicationRef,
-    public activeModal: NgbActiveModal
+    public activeModal: NgbActiveModal,
+    private permissionService: PermissionService
   ) {
     this.validateForm = this.fb.group({
       Code: [{ value: '', disabled: true }], // Bỏ required vì Code disabled và được tự động generate
@@ -3620,7 +3622,21 @@ export class BillExportDetailComponent
   //     });
   //   }
   // }
- async saveDataBillExport() {
+  async saveDataBillExport() {
+   const formValues = this.validateForm.getRawValue();
+   const status =
+     formValues.Status ||
+     this.validateForm.value.Status ||
+     this.newBillExport.Status ||
+     0;
+    //  let isPermission = this.permissionService.hasPermission('N27,N1,N33,N34,N69');
+    const billID = this.newBillExport.Id || 0;
+    if(billID > 0 || this.id > 0) {
+      if(!this.permissionService.hasPermission('N27,N1,N33,N34,N69')) {
+        this.showErrorNotification('Bạn không có quyền thực hiện hành động này!');
+        return;
+      }
+    }
     // this.onRecheckQty();
 
     // ================= VALIDATE FORM =================
@@ -3646,12 +3662,6 @@ export class BillExportDetailComponent
     }
   
     // ================= LOAD INVENTORY TRƯỚC KHI VALIDATE =================
-    const formValues = this.validateForm.getRawValue();
-    const status =
-      formValues.Status ||
-      this.validateForm.value.Status ||
-      this.newBillExport.Status ||
-      0;
   
     // if (status === 2 || status === 6) {
     //   console.log('🟢 Loading inventory before validate...');
@@ -3792,7 +3802,7 @@ export class BillExportDetailComponent
         },
         error: (err: any) => {
           console.error('Save error:', err);
-          this.showErrorNotification(err.error.message || 'Có lỗi xảy ra khi thêm mới!');
+          this.showErrorNotification(err?.error?.message || err?.message);
         },
       });
     }

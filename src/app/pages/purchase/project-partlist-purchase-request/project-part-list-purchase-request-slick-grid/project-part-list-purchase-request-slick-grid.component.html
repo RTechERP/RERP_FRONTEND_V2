@@ -1,7 +1,7 @@
 <!-- <div *ngIf="showHeader || activeModal"
     style="display: flex; flex-direction: column; height: 99.6vh; position: relative;"> -->
 <ng-container>
-    <div *ngIf="showHeader" class="modal-header p-1 fs-12" style="background-color: #3469f7; border-radius: 0;">
+    <div *ngIf="showHeader || listRequestBuySelect" class="modal-header p-1 fs-12" style="background-color: #3469f7; border-radius: 0;">
         <h4 class="modal-title text-white uppercase">{{ headerText }}</h4>
         <button type="button" class="btn-close" (click)="closeModal()" aria-label="Close" style="margin-right: 15px;"></button>
     </div>

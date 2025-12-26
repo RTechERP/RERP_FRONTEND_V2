@@ -145,9 +145,9 @@
                     <nz-form-label>Từ<span class="text-danger ps-2 me-1"> (*)</span></nz-form-label>
                     <nz-form-control [nzErrorTip]="'Vui lòng chọn thời gian bắt đầu'">
                       <nz-date-picker [formControl]="$any(tab.form.get('TimeStart'))"
-                        nzPlaceHolder="Chọn thời gian bắt đầu" [nzShowTime]="{ nzFormat: 'HH:mm' }" [nzFormat]="'dd/MM/yyyy HH:mm'"
-                        [nzShowToday]="false" [nzDisabledDate]="disabledDateForTimeStart"
-                        style="width: 100%"></nz-date-picker>
+                        nzPlaceHolder="Chọn thời gian bắt đầu" [nzShowTime]="{ nzFormat: 'HH:mm' }"
+                        [nzFormat]="'dd/MM/yyyy HH:mm'" [nzShowToday]="false"
+                        [nzDisabledDate]="disabledDateForTimeStart" style="width: 100%"></nz-date-picker>
                     </nz-form-control>
                   </nz-form-item>
                 </nz-col>
@@ -157,8 +157,8 @@
                     <nz-form-label>Đến<span class="text-danger ps-1 me-1"> (*)</span></nz-form-label>
                     <nz-form-control [nzErrorTip]="'Vui lòng chọn thời gian kết thúc'">
                       <nz-date-picker [formControl]="$any(tab.form.get('EndTime'))"
-                        nzPlaceHolder="Chọn thời gian kết thúc" [nzShowTime]="{ nzFormat: 'HH:mm' }" [nzFormat]="'dd/MM/yyyy HH:mm'"
-                        [nzShowToday]="false" [nzDisabledDate]="disabledDateForEndTime"
+                        nzPlaceHolder="Chọn thời gian kết thúc" [nzShowTime]="{ nzFormat: 'HH:mm' }"
+                        [nzFormat]="'dd/MM/yyyy HH:mm'" [nzShowToday]="false" [nzDisabledDate]="disabledDateForEndTime"
                         style="width: 100%"></nz-date-picker>
                     </nz-form-control>
                   </nz-form-item>
@@ -193,11 +193,19 @@
               </nz-row>
 
               <nz-row [nzGutter]="16">
-                <nz-col [nzXs]="24" [nzSm]="24" [nzMd]="6" [nzLg]="6" [nzXl]="6">
+                <nz-col [nzXs]="24" [nzSm]="24" [nzMd]="6" [nzLg]="6" [nzXl]="4">
                   <nz-form-item>
                     <nz-form-label>Phụ cấp</nz-form-label>
                     <nz-form-control>
                       <label nz-checkbox [formControl]="$any(tab.form.get('Overnight'))">Phụ cấp ăn tối</label>
+                    </nz-form-control>
+                  </nz-form-item>
+                </nz-col>
+                <nz-col [nzXs]="24" [nzSm]="24" [nzMd]="6" [nzLg]="6" [nzXl]="4">
+                  <nz-form-item>
+                    <nz-form-label>Số giờ</nz-form-label>
+                    <nz-form-control>
+                      <input nz-input [formControl]="$any(tab.form.get('TotalHour'))" readonly>
                     </nz-form-control>
                   </nz-form-item>
                 </nz-col>
@@ -214,7 +222,7 @@
                   </nz-form-item>
                 </nz-col>
 
-                <nz-col [nzXs]="24" [nzSm]="24" [nzMd]="12" [nzLg]="12" [nzXl]="12">
+                <nz-col [nzXs]="24" [nzSm]="24" [nzMd]="12" [nzLg]="12" [nzXl]="10">
                   <nz-form-item>
                     <nz-form-label>Lý do<span class="text-danger ps-1 "> (*)</span></nz-form-label>
                     <nz-form-control [nzErrorTip]="'Vui lòng nhập lý do'">

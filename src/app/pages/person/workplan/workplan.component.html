@@ -1,45 +1,71 @@
-<p-menubar [model]="items" />
+<div class="card border-0 rounded-0 h-100 d-flex flex-column">
+    <!-- Header với search và buttons -->
+    <div class="card-header bg-white p-2 flex-shrink-0">
+        <div class="d-flex justify-content-between align-items-center flex-wrap gap-2">
+            <h6 class="m-0 text-uppercase fw-bold">Kế hoạch công việc cá nhân</h6>
+            <div class="d-flex gap-2 align-items-center flex-wrap">
+                <!-- Search form -->
+                <form nz-form nzLayout="inline" class="d-flex gap-2 align-items-end flex-wrap" (ngSubmit)="onSearch()">
+                    <nz-form-item>
+                        <nz-form-label class="mb-1" style="font-size: 12px;">Từ ngày</nz-form-label>
+                        <nz-form-control>
+                            <nz-date-picker 
+                                [(ngModel)]="dateStart" 
+                                nzPlaceHolder="Từ ngày" 
+                                nzFormat="dd/MM/yyyy"
+                                nzSize="small"
+                                name="dateStart"
+                                style="width: 120px;">
+                            </nz-date-picker>
+                        </nz-form-control>
+                    </nz-form-item>
+                    
+                    <nz-form-item>
+                        <nz-form-label class="mb-1" style="font-size: 12px;">Đến ngày</nz-form-label>
+                        <nz-form-control>
+                            <nz-date-picker 
+                                [(ngModel)]="dateEnd" 
+                                nzPlaceHolder="Đến ngày" 
+                                nzFormat="dd/MM/yyyy"
+                                nzSize="small"
+                                name="dateEnd"
+                                style="width: 120px;">
+                            </nz-date-picker>
+                        </nz-form-control>
+                    </nz-form-item>
 
-<!-- <div class="grid-container" style="height: 50vh;">
-    <angular-slickgrid gridId="grid1" [columns]="columnDefinitions" [options]="gridOptions" [dataset]="dataset"
-        (onAngularGridCreated)="angularGridReady($event.detail)"
-        (onSelectedRowsChanged)="handleRowSelection($event.detail.eventData, $event.detail.args)" style="height: 50vh;">
-    </angular-slickgrid>
-</div> -->
+                    <nz-form-item>
+                        <nz-form-label class="mb-1" style="font-size: 12px;">Từ khóa</nz-form-label>
+                        <nz-form-control>
+                            <input 
+                                nz-input 
+                                placeholder="Từ khóa..." 
+                                [(ngModel)]="keyword"
+                                nzSize="small"
+                                name="keyword"
+                                style="width: 150px;" />
+                        </nz-form-control>
+                    </nz-form-item>
+                </form>
 
+                <button nz-button nzType="default" nzSize="small" (click)="resetSearch()">
+                    Đặt lại
+                </button>
+                
+                <button nz-button nzType="primary" nzSize="small" (click)="onSearch()">
+                    <span nz-icon nzType="search"></span>
+                    Tìm kiếm
+                </button>
 
-<angular-slickgrid gridId="grid1" [columns]="columnDefinitions" [options]="gridOptions" [dataset]="dataset"
-    (onAngularGridCreated)="angularGridReady($event.detail)"
-    (onSelectedRowsChanged)="handleRowSelection($event.detail.eventData, $event.detail.args)">
-    <ng-template #slickgridHeader>
+              
+            </div>
+        </div>
+    </div>
 
-        <form class="my-2" nz-form [nzLayout]="'inline'" (ngSubmit)="onSearch()">
-            <nz-form-item>
-                <nz-form-control nzErrorTip="Please input your username!">
-                    <nz-input-group nzPrefixIcon="user">
-                        <input formControlName="username" nz-input placeholder="username" />
-                    </nz-input-group>
-                </nz-form-control>
-            </nz-form-item>
-            <nz-form-item>
-                <nz-form-control nzErrorTip="Please input your Password!">
-                    <nz-input-group nzSearch [nzAddOnAfter]="suffixIconButton">
-                        <input type="text" nz-input placeholder="input search text" />
-                    </nz-input-group>
-                    <ng-template #suffixIconButton>
-                        <button nz-button nzType="primary" nzSearch><span nz-icon nzType="search"></span></button>
-                    </ng-template>
-                </nz-form-control>
-            </nz-form-item>
-            <!-- <nz-form-item>
-                <nz-form-control>
-                    <button nz-button nzType="primary">Log in</button>
-                </nz-form-control>
-            </nz-form-item> -->
-        </form>
-    </ng-template>
-
-    <!-- <ng-template #slickgridFooter>
-        <h3>Grid with header and footer slot</h3>
-    </ng-template> -->
-</angular-slickgrid>
+    <!-- Table -->
+    <div class="card-body p-1 position-relative flex-grow-1" style="min-height: 0; height: 100%;">
+        <nz-spin [nzSpinning]="isLoading" nzTip="Đang tải dữ liệu..." style="height: 100%;">
+            <div #workplanTable style="height: 100%;"></div>
+        </nz-spin>
+    </div>
+</div>

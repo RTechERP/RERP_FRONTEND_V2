@@ -186,7 +186,7 @@ export class EmployeeNightShiftPersonSummaryComponent implements OnInit, AfterVi
         const request: any = {
           EmployeeID: 0,
           Page: params.page || 1,
-          Size: params.size || 50,
+          Size: 100000,
           KeyWord: formValue.keyWord || "",
           DateStart: startDate,
           DateEnd: endDate,

@@ -213,6 +213,7 @@ export class JobRequirementSummaryComponent implements OnInit, AfterViewInit {
         { title: 'Diễn giải', field: 'Description' },
         { title: 'Mục tiêu cần đạt', field: 'Target' },
         { title: 'Ghi chú', field: 'Note' },
+        { title: 'Ghi chú chi tiết', field: 'Remark' },
       ];
 
       const headers = exportColumns.map(col => col.title);
@@ -461,6 +462,13 @@ export class JobRequirementSummaryComponent implements OnInit, AfterViewInit {
           {
             title: 'Ghi chú',
             field: 'Note',
+            headerHozAlign: 'center',
+            width: 200,
+            formatter: 'textarea',
+          },
+          {
+            title: 'Ghi chú chi tiết',
+            field: 'Remark',
             headerHozAlign: 'center',
             widthGrow: 1,
             formatter: 'textarea',

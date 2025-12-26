@@ -1,0 +1,105 @@
+<div class="modal-header bg-primary py-2">
+    <h6 class="modal-title text-white text-uppercase m-0">{{ isEditMode ? 'Cập nhật' : 'Thêm mới' }} kế hoạch công việc</h6>
+    <button type="button" class="btn-close  " (click)="closeModal()" aria-label="Close"></button>
+</div>
+
+<div class="modal-body p-2">
+    <form nz-form [formGroup]="formGroup" nzLayout="vertical">
+        <!-- Row 1: Ngày bắt đầu, Ngày kết thúc, Tổng số ngày -->
+        <div nz-row [nzGutter]="16">
+            <div nz-col [nzXs]="24" [nzSm]="8">
+                <nz-form-item>
+                    <nz-form-label nzRequired>Ngày bắt đầu</nz-form-label>
+                    <nz-form-control nzErrorTip="Vui lòng chọn ngày bắt đầu!">
+                        <nz-date-picker 
+                            formControlName="StartDate" 
+                            nzFormat="dd/MM/yyyy"
+                            nzPlaceHolder="Chọn ngày bắt đầu"
+                            (ngModelChange)="onDateChange()"
+                            style="width: 100%;">
+                        </nz-date-picker>
+                    </nz-form-control>
+                </nz-form-item>
+            </div>
+            <div nz-col [nzXs]="24" [nzSm]="8">
+                <nz-form-item>
+                    <nz-form-label nzRequired>Ngày kết thúc</nz-form-label>
+                    <nz-form-control nzErrorTip="Vui lòng chọn ngày kết thúc!">
+                        <nz-date-picker 
+                            formControlName="EndDate" 
+                            nzFormat="dd/MM/yyyy"
+                            nzPlaceHolder="Chọn ngày kết thúc"
+                            (ngModelChange)="onDateChange()"
+                            style="width: 100%;">
+                        </nz-date-picker>
+                    </nz-form-control>
+                </nz-form-item>
+            </div>
+            <div nz-col [nzXs]="24" [nzSm]="8">
+                <nz-form-item>
+                    <nz-form-label>Tổng số ngày</nz-form-label>
+                    <nz-form-control>
+                        <input nz-input type="number" formControlName="TotalDay" class="text-end" />
+                    </nz-form-control>
+                </nz-form-item>
+            </div>
+        </div>
+
+        <!-- Row 2: Dự án -->
+        <div nz-row [nzGutter]="16">
+            <div nz-col [nzXs]="24">
+                <nz-form-item>
+                    <nz-form-label>Dự án</nz-form-label>
+                    <nz-form-control>
+                        <nz-select formControlName="ProjectID" nzPlaceHolder="-- Chọn dự án --" nzShowSearch nzAllowClear style="width: 100%">
+                            <nz-option [nzValue]="0" nzLabel="-- Chọn dự án --"></nz-option>
+                            <nz-option *ngFor="let project of projects" 
+                                [nzValue]="project.ID" 
+                                [nzLabel]="project.ProjectCode + ' - ' + project.ProjectName">
+                            </nz-option>
+                        </nz-select>
+                    </nz-form-control>
+                </nz-form-item>
+            </div>
+        </div>
+
+        <!-- Row 3: Nơi làm việc -->
+        <div nz-row [nzGutter]="16">
+            <div nz-col [nzXs]="24">
+                <nz-form-item>
+                    <nz-form-label nzRequired>Nơi làm việc</nz-form-label>
+                    <nz-form-control nzErrorTip="Vui lòng nhập nơi làm việc!">
+                        <div nz-row [nzGutter]="16" class="align-items-center">
+                            <div nz-col [nzXs]="24" [nzSm]="8">
+                                <nz-radio-group [(ngModel)]="locationType" [ngModelOptions]="{standalone: true}" (ngModelChange)="onLocationTypeChange($event)">
+                                    <label nz-radio [nzValue]="1">VP RTC</label>
+                                    <label nz-radio [nzValue]="0">Địa điểm khác</label>
+                                </nz-radio-group>
+                            </div>
+                            <div nz-col [nzXs]="24" [nzSm]="16">
+                                <input nz-input formControlName="Location" placeholder="Nơi làm việc ..." [disabled]="locationType === 1" />
+                            </div>
+                        </div>
+                    </nz-form-control>
+                </nz-form-item>
+            </div>
+        </div>
+
+        <!-- Row 4: Nội dung công việc -->
+        <div nz-row [nzGutter]="16">
+            <div nz-col [nzXs]="24">
+                <nz-form-item>
+                    <nz-form-label nzRequired>Nội dung công việc</nz-form-label>
+                    <nz-form-control nzErrorTip="Vui lòng nhập nội dung công việc!">
+                        <textarea nz-input formControlName="WorkContent" rows="4" placeholder="Nhập nội dung công việc..."></textarea>
+                    </nz-form-control>
+                </nz-form-item>
+            </div>
+        </div>
+    </form>
+</div>
+
+<div class="modal-footer bg-light">
+    <button nz-button nzDanger nzType="default" (click)="closeModal()">Đóng</button>
+    <button nz-button nzType="primary" (click)="saveData()">Lưu</button>
+</div>

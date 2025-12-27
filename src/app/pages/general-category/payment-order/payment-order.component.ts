@@ -23,6 +23,7 @@ import {
     GridOption,
     MultipleSelectOption,
     OnClickEventArgs,
+    OnDblClickEventArgs,
     OnEventArgs,
     OnSelectedRowsChangedEventArgs,
     // ExcelExportService,
@@ -270,15 +271,6 @@ export class PaymentOrderComponent implements OnInit {
             //     visible: this.permissionService.hasPermission(""),
             //     command: () => {
             //         // this.onCopy();
-            //     }
-            // },
-
-            // {
-            //     label: 'In đề nghị',
-            //     icon: PrimeIcons.PRINT,
-            //     visible: this.permissionService.hasPermission(""),
-            //     command: () => {
-            //         this.onPrint();
             //     }
             // },
 
@@ -594,7 +586,7 @@ export class PaymentOrderComponent implements OnInit {
                 label: 'In PO',
                 icon: PrimeIcons.PRINT,
                 command: () => {
-                    this.onPrint();
+                    // this.onPrint();
 
                 }
             }
@@ -2301,7 +2293,7 @@ export class PaymentOrderComponent implements OnInit {
         this.loadDataNormal();
         this.loadDataSpecial();
 
-        // this.updateTotal(5);
+
     }
 
     loadDataNormal() {
@@ -2323,6 +2315,7 @@ export class PaymentOrderComponent implements OnInit {
 
                 this.updateFilterCollections(this.angularGrid, this.dataset);
                 this.rowStyle(this.angularGrid);
+                this.updateTotal(5, this.angularGrid);
             },
             error: (err) => {
                 this.notification.error(NOTIFICATION_TITLE.error, err.error.message);
@@ -2382,7 +2375,7 @@ export class PaymentOrderComponent implements OnInit {
                     // treeLevel: item.ParentId == 0 ? 0 : (item.ParentId == null ? 0 : 1)
                 }));
 
-                console.log('his.datasetSpecialDetail:', this.datasetSpecialDetail);
+                // console.log('his.datasetSpecialDetail:', this.datasetSpecialDetail);
 
                 this.datasetFiles = this.datasetFiles.map(item => ({
                     ...item,
@@ -2396,11 +2389,11 @@ export class PaymentOrderComponent implements OnInit {
 
 
                 // console.log(response.data);
-                this.dataPrint = {
-                    paymentOrder: response.data.paymentOrder,
-                    details: response.data.details,
-                    signs: response.data.signs
-                }
+                // this.dataPrint = {
+                //     paymentOrder: response.data.paymentOrder,
+                //     details: response.data.details,
+                //     signs: response.data.signs
+                // }
             }
         })
     }
@@ -3290,22 +3283,46 @@ export class PaymentOrderComponent implements OnInit {
     }
 
 
-    onPrint() {
+    onPrint(e: Event, args: OnDblClickEventArgs) {
 
-        let gridInstance = this.angularGrid;
-        if (this.activeTab == '1') gridInstance = this.angularGridSpecial;
+        // console.log('args:', args);
 
-        const activeCell = gridInstance.slickGrid.getActiveCell();
-        if (!activeCell) return;
+        const item = args.grid.getDataItem(args.row);
+
+        this.paymentService.getDetail(item.ID).subscribe({
+            next: (response) => {
+                // console.log(response.data);
+                const dataPrint = {
+                    paymentOrder: response.data.paymentOrder,
+                    details: response.data.details,
+                    signs: response.data.signs
+                }
+
+                this.drawPDF(dataPrint);
+            }
+        })
 
 
-        const paymentOrder = this.dataPrint.paymentOrder[0];
-        const details = this.dataPrint.details;
-        const signs = this.dataPrint.signs;
+
+        // console.log('this.dataPrint:', this.dataPrint);
+
+
+        // const paymentOrder = this.dataPrint.paymentOrder[0];
+        // const details = this.dataPrint.details;
+        // const signs = this.dataPrint.signs;
 
         // console.log('.paymentOrder:', paymentOrder);
         // console.log('.details:', details);
         // console.log('.signs:', signs);
+
+
+    }
+
+
+    drawPDF(dataPrint: any) {
+        const paymentOrder = dataPrint.paymentOrder[0];
+        const details = dataPrint.details;
+        const signs = dataPrint.signs;
 
         const numberDocument = paymentOrder.TypeOrder == 1 ? "BM01-RTC.AC-QT03" : "BM02-RTC.AC-QT03";
         const dateOrder = new Date(paymentOrder.DateOrder);
@@ -3321,7 +3338,6 @@ export class PaymentOrderComponent implements OnInit {
                     widths: [120, '*', 40, 120],
                     body:
                         [
-
                             [
                                 '3. Nhà cung cấp',
                                 { text: `:${paymentOrder.NameNCC}` },

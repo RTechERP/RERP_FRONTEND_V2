@@ -174,6 +174,7 @@ import { DocumentCommonComponent } from './pages/hrm/document/document-common/do
 // import { ProjectPartlistPurchaseRequestVer2Component } from './pages/purchase/project-partlist-purchase-request/project-partlist-purchase-request-ver2/project-partlist-purchase-request-ver2.component';
 import { ProjectPartlistPriceRequestComponent } from './pages/old/project-partlist-price-request/project-partlist-price-request.component';
 import { BillDocumentImportTypeComponent } from './pages/old/KETOAN/bill-document-import-type/bill-document-import-type.component';
+import { BillImportQcComponent } from './pages/old/Sale/bill-import-qc/bill-import-qc.component';
 
 export const routes: Routes = [
     {
@@ -494,7 +495,7 @@ export const routes: Routes = [
             { path: 'inventory-project', component: InventoryProjectComponent, canActivate: [authGuard] },
             // { path: 'purchase-request', component: ProjectPartListPurchaseRequestSlickGridComponent, canActivate: [authGuard] },
             { path: 'project-item-person', component: ProjectItemPersonComponent, canActivate: [authGuard] },
-            
+
 
 
             //Danh mục chung
@@ -672,7 +673,7 @@ export const routes: Routes = [
             // { path: 'phase-allocation-hr', component: PhaseAllocationPersonComponent, canActivate: [authGuard] },
 
             //Kho sale hn
-            { path: 'inventory-hn',component: InventoryComponent, canActivate: [authGuard] },
+            { path: 'inventory-hn', component: InventoryComponent, canActivate: [authGuard] },
             { path: 'bill-import-hn', component: BillImportComponent, canActivate: [authGuard] },
             { path: 'bill-export-hn', component: BillExportComponent, canActivate: [authGuard] },
             { path: 'history-import-export-hn', component: HistoryImportExportComponent, canActivate: [authGuard] },
@@ -766,7 +767,7 @@ export const routes: Routes = [
             //Demo BĐan phương
             { path: 'inventory-demo-dp', component: InventoryDemoComponent, canActivate: [authGuard] },
             { path: 'bill-import-tech-dp', component: BillImportTechnicalComponent, canActivate: [authGuard] },
-            { path: 'bill-export-tech-dp',  component: BillExportTechnicalComponent, canActivate: [authGuard] },
+            { path: 'bill-export-tech-dp', component: BillExportTechnicalComponent, canActivate: [authGuard] },
             { path: 'product-report-dp', component: ProductReportNewComponent, canActivate: [authGuard] },
             { path: 'product-export-borrow-dp', component: ProductExportAndBorrowComponent, canActivate: [authGuard] },
             { path: 'borrow-report-dp', component: BorrowReportComponent, canActivate: [authGuard] },
@@ -833,10 +834,12 @@ export const routes: Routes = [
             { path: 'timekeeping-hr', component: EmployeeTimekeepingComponent, canActivate: [authGuard] },
             { path: 'synthetic-hr', component: EmployeeSyntheticComponent, canActivate: [authGuard] },
             { path: 'dailyreport-hr', component: DailyReportHrComponent, canActivate: [authGuard] },
-            { path: 'protect-gear-hr',component: ProtectgearComponent, canActivate: [authGuard] },
-            { path: 'phase-allocation-hr',component: PhaseAllocationPersonComponent, canActivate: [authGuard] },
-            { path: 'workplan-summary',component: WorkplanSummaryComponent, canActivate: [authGuard] },
+            { path: 'protect-gear-hr', component: ProtectgearComponent, canActivate: [authGuard] },
+            { path: 'phase-allocation-hr', component: PhaseAllocationPersonComponent, canActivate: [authGuard] },
+            { path: 'workplan-summary', component: WorkplanSummaryComponent, canActivate: [authGuard] },
 
+
+            { path: 'bill-import-qc', component: BillImportQcComponent, canActivate: [authGuard] },
 
 
         ],

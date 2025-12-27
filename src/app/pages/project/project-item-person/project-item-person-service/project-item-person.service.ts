@@ -44,4 +44,9 @@ export class ProjectItemPersonService {
     getById(projectItemID: number): Observable<any> {
       return this.http.get<any>(this.api + 'projectitemnew/get-by-id?projectItemID=' + projectItemID);
     }
+
+    // Lấy danh sách hạng mục cha
+    getProjectItemParent(projectID: number): Observable<any> {
+      return this.http.get<any>(this.api + 'projectitemnew/get-project-item-parent?projectID=' + projectID);
+    }
 }

@@ -19,7 +19,26 @@
                     (click)="openModal()"
                 >
                     <img src="assets/icon/action_add_item_16.png" alt="Thêm mới " />
-                    Thêm mới hạng mục công việc
+                    Thêm
+                </button>
+                <button 
+                    class="fs-12 btn-edit" 
+                    nz-button 
+                    nzType="default" 
+                    nzSize="small"
+                    (click)="editSelected()"
+                >
+                    <img src="assets/icon/action_edit_item_16.png" alt="Sửa">Sửa
+                </button>
+                <button 
+                    class="fs-12"
+                    nz-button 
+                    nzType="default" 
+                    nzSize="small" 
+                    nzDanger
+                    (click)="openProblemDetailSelected()"
+                >
+                    <img src="assets/icon/problem_16.png" alt="Phát sinh " /> Phát sinh
                 </button>
             </div>
         </div>

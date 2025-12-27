@@ -30,6 +30,7 @@ interface ProjectItemTab {
   oldStatus: number; // Lưu trạng thái cũ để so sánh
   UserID: number | null;
   EmployeeIDRequest: number | null;
+  ParentID: number | null; // ID hạng mục cha
   Mission: string;
   PlanStartDate: Date | null;
   TotalDayPlan: number | null;
@@ -75,6 +76,7 @@ export class ProjectItemPersonDetailComponent implements OnInit {
   employees: any[] = [];
   employeesRequest: any[] = [];
   typeProjectItems: any[] = [];
+  ParentList: any[] = []; // Danh sách hạng mục cha
   statusList: any[] = [
     { id: 0, name: 'Chưa làm' },
     { id: 1, name: 'Đang làm' },
@@ -93,6 +95,7 @@ export class ProjectItemPersonDetailComponent implements OnInit {
 
   defaultEmployeeRequestId: number = 0;
   editingItemId: number = 0; // ID của item đang edit
+  private previousProjectID: number | null = null; // Lưu ProjectID trước đó để so sánh
 
   additionalInfo: {
     Problem: string;
@@ -218,6 +221,45 @@ export class ProjectItemPersonDetailComponent implements OnInit {
       ID: [0],
       ProjectID: [null, [Validators.required]],
     });
+
+    // Lắng nghe thay đổi ProjectID để load danh sách hạng mục cha
+    this.formGroup.get('ProjectID')?.valueChanges.subscribe((projectID: number) => {
+      // Chỉ xử lý khi ProjectID thực sự thay đổi
+      if (this.previousProjectID !== projectID) {
+        this.previousProjectID = projectID;
+        
+        if (projectID && projectID > 0) {
+          this.loadParentList(projectID);
+          // Clear ParentID của tất cả các tab khi đổi dự án
+          this.tabs.forEach(tab => {
+            tab.ParentID = null;
+          });
+        } else {
+          this.ParentList = [];
+          this.tabs.forEach(tab => {
+            tab.ParentID = null;
+          });
+        }
+      } else if (projectID && projectID > 0) {
+        // Load lại ParentList nếu ProjectID không đổi (trường hợp load data by ID)
+        this.loadParentList(projectID);
+      }
+    });
+  }
+
+  loadParentList(projectID: number): void {
+    this.projectItemPersonService.getProjectItemParent(projectID).subscribe({
+      next: (response: any) => {
+        if (response && response.status === 1 && response.data) {
+          this.ParentList = Array.isArray(response.data) ? response.data : [];
+        } else {
+          this.ParentList = [];
+        }
+      },
+      error: (error: any) => {
+        this.ParentList = [];
+      }
+    });
   }
 
   loadDataById(id: number): void {
@@ -228,11 +270,19 @@ export class ProjectItemPersonDetailComponent implements OnInit {
         if (response && response.status === 1 && response.data) {
           const data = response.data;
           
+          // Set previousProjectID trước để tránh trigger valueChanges không cần thiết
+          this.previousProjectID = data.ProjectID || null;
+          
           // Set ProjectID vào form
           this.formGroup.patchValue({
             ID: data.ID,
             ProjectID: data.ProjectID,
           });
+
+          // Load danh sách hạng mục cha khi đã có ProjectID
+          if (data.ProjectID) {
+            this.loadParentList(data.ProjectID);
+          }
 
           // Tạo tab từ dữ liệu API
           const editTab: ProjectItemTab = {
@@ -242,6 +292,7 @@ export class ProjectItemPersonDetailComponent implements OnInit {
             oldStatus: data.Status ?? 0,
             UserID: data.UserID || null,
             EmployeeIDRequest: data.EmployeeIDRequest || null,
+            ParentID: data.ParentID || null,
             Mission: data.Mission || '',
             PlanStartDate: data.PlanStartDate ? new Date(data.PlanStartDate) : null,
             TotalDayPlan: data.TotalDayPlan || null,
@@ -348,6 +399,7 @@ export class ProjectItemPersonDetailComponent implements OnInit {
       oldStatus: 0, // Lưu trạng thái ban đầu
       UserID: this.currentUser?.EmployeeID ?? this.currentUser?.EmployeeId ?? this.currentUser?.ID ?? null,
       EmployeeIDRequest: null,
+      ParentID: null, // Mặc định không chọn hạng mục cha
       Mission: '',
       PlanStartDate: null,
       TotalDayPlan: null,
@@ -618,6 +670,16 @@ export class ProjectItemPersonDetailComponent implements OnInit {
           }
         }
 
+        // Xử lý ParentID: chuyển sang number và kiểm tra
+        let parentID = 0;
+        if (tab.ParentID !== null && tab.ParentID !== undefined) {
+          const parentIdValue = tab.ParentID;
+          const parentIdNum = typeof parentIdValue === 'string' ? parseInt(parentIdValue, 10) : Number(parentIdValue);
+          if (!isNaN(parentIdNum) && parentIdNum > 0) {
+            parentID = parentIdNum;
+          }
+        }
+
         // Map tab sang format ProjectItem entity
         const projectItem = {
           ID: isEditMode ? this.editingItemId : 0, // Nếu edit thì gửi ID, nếu add thì gửi 0
@@ -633,7 +695,7 @@ export class ProjectItemPersonDetailComponent implements OnInit {
           Note: this.additionalInfo.Note || '',
           TotalDayPlan: tab.TotalDayPlan ?? 0,
           PercentItem: tab.PercentItem ?? 0,
-          ParentID: 0,
+          ParentID: parentID, // Gửi giá trị đã xử lý
           TotalDayActual: 0,
           ItemLate: 0,
           TimeSpan: 0,
@@ -716,6 +778,22 @@ export class ProjectItemPersonDetailComponent implements OnInit {
     if (tab.ActualEndDate) {
       tab.Status = this.STATUS_COMPLETED;
       tab.PercentItem = 100;
+    }
+  }
+
+  // Xử lý khi thay đổi ParentID
+  onParentIDChange(tab: ProjectItemTab, value: any): void {
+    if (value !== null && value !== undefined) {
+      const parentIdNum = typeof value === 'string' ? parseInt(value, 10) : Number(value);
+      tab.ParentID = !isNaN(parentIdNum) && parentIdNum > 0 ? parentIdNum : null;
+    } else {
+      tab.ParentID = null;
+    }
+    
+    // Cập nhật vào tabs array để đảm bảo reference đúng
+    const tabIndex = this.tabs.findIndex(t => t.id === tab.id);
+    if (tabIndex >= 0) {
+      this.tabs[tabIndex].ParentID = tab.ParentID;
     }
   }
 

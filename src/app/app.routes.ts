@@ -176,6 +176,7 @@ import { DocumentCommonComponent } from './pages/hrm/document/document-common/do
 import { ProjectPartlistPriceRequestComponent } from './pages/old/project-partlist-price-request/project-partlist-price-request.component';
 import { BillDocumentImportTypeComponent } from './pages/old/KETOAN/bill-document-import-type/bill-document-import-type.component';
 import { BillImportQcComponent } from './pages/old/Sale/bill-import-qc/bill-import-qc.component';
+import { SummaryProjectJoinComponent } from './pages/person/summary-project-join/summary-project-join.component';
 
 export const routes: Routes = [
     {
@@ -486,6 +487,9 @@ export const routes: Routes = [
             { path: 'project-field', component: ProjectFieldComponent, canActivate: [authGuard] },
             { path: 'meeting-minute-type', component: MeetingMinuteTypeComponent, canActivate: [authGuard] },
             { path: 'leader-project', component: LeaderProjectComponent, canActivate: [authGuard] },
+            { path: 'project-item-person', component: ProjectItemPersonComponent, canActivate: [authGuard] },
+            { path: 'summary-project-join', component: SummaryProjectJoinComponent, canActivate: [authGuard] },
+
 
             //Mua hàng
             { path: 'employee-purchase', component: EmployeePurchaseComponent, canActivate: [authGuard] },
@@ -498,7 +502,7 @@ export const routes: Routes = [
             { path: 'poncc', component: PonccNewComponent, canActivate: [authGuard] },
             { path: 'inventory-project', component: InventoryProjectComponent, canActivate: [authGuard] },
             // { path: 'purchase-request', component: ProjectPartListPurchaseRequestSlickGridComponent, canActivate: [authGuard] },
-            { path: 'project-item-person', component: ProjectItemPersonComponent, canActivate: [authGuard] },
+
 
 
 

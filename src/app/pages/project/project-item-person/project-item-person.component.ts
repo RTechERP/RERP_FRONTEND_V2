@@ -254,11 +254,14 @@ export class ProjectItemPersonComponent implements OnInit, AfterViewInit {
     };
     this.projectItemPersonService.getProjectItemPerson(request).subscribe({
       next: (response: any) => {
-        console.log('Dữ liệu hạng mục công việc cá nhân:', response.data?.length || 0, 'bản ghi');
+        const flatData = response.data || [];
+        
+        // Convert flat data thành tree structure
+        const treeData = this.convertToTreeData(flatData);
 
         // Kiểm tra tb_projectItemPerson đã được khởi tạo chưa
         if (this.tb_projectItemPerson) {
-          this.tb_projectItemPerson.setData(response.data || []);
+          this.tb_projectItemPerson.setData(treeData);
         } else {
           console.warn('tb_projectItemPerson chưa được khởi tạo, dữ liệu sẽ được load sau');
         }
@@ -371,10 +374,44 @@ export class ProjectItemPersonComponent implements OnInit, AfterViewInit {
     return parts.join('');
   }
 
+  // Convert flat data thành tree structure dựa trên ParentID
+  convertToTreeData(flatData: any[]): any[] {
+    const map = new Map<number, any>();
+    const tree: any[] = [];
+
+    // Bước 1: Tạo map với _children
+    flatData.forEach((item) => {
+      map.set(item.ID, { ...item, _children: [] });
+    });
+
+    // Bước 2: Xây dựng cây
+    flatData.forEach((item) => {
+      const node = map.get(item.ID);
+      if (item.ParentID && item.ParentID !== 0) {
+        const parent = map.get(item.ParentID);
+        if (parent) {
+          parent._children.push(node);
+        } else {
+          // Nếu không tìm thấy parent, thêm vào root
+          tree.push(node);
+        }
+      } else {
+        // ParentID = 0 hoặc null → node gốc
+        tree.push(node);
+      }
+    });
+
+    return tree;
+  }
+
   //#region Xử lý bảng đăng ký hợp đồng
   drawTbProjectItemPerson(container: HTMLElement) {
     this.tb_projectItemPerson = new Tabulator(container, {
       ...DEFAULT_TABLE_CONFIG,
+      dataTree: true,
+      dataTreeStartExpanded: true,
+      dataTreeChildField: '_children',
+      selectableRows: true,
       pagination: true,
       layout: 'fitDataStretch',
       height: '83vh',
@@ -384,10 +421,11 @@ export class ProjectItemPersonComponent implements OnInit, AfterViewInit {
       paginationSizeSelector: [10, 20, 50, 100, 200],
       rowFormatter: (row: any) => {
         const data = row.getData();
+        const el = row.getElement();
 
-        // Reset màu mặc định
-        row.getElement().style.backgroundColor = '';
-        row.getElement().style.color = '';
+        // Reset style
+        el.style.backgroundColor = '';
+        el.style.color = '';
 
         // Kiểm tra xem có children không (parent node)
         const hasChildren = data._children && data._children.length > 0;
@@ -404,88 +442,41 @@ export class ProjectItemPersonComponent implements OnInit, AfterViewInit {
           : null;
         const hasActualEndDate = actualEndDate && actualEndDate.isValid;
 
-        // Áp dụng màu theo thứ tự ưu tiên (giống WinForm)
-        // Lưu ý: Màu đỏ (ItemLate = 2) ưu tiên cao nhất, kể cả parent nodes
-
-        // 1. ItemLate = 2 hoặc ItemLateActual = 2: Red + White text (ưu tiên cao nhất, kể cả parent)
+        // Áp dụng màu theo thứ tự ưu tiên
+        // 1. ItemLate = 2 hoặc ItemLateActual = 2: Red + White text (ưu tiên cao nhất)
         if (itemLate === 2 || itemLateActual === 2) {
-          row.getElement().style.backgroundColor = 'Red';
-          row.getElement().style.color = 'White';
-          return; // Dừng lại
+          el.style.backgroundColor = 'Red';
+          el.style.color = 'White';
+          return;
         }
 
-        // 2. ItemLate = 1 hoặc ItemLateActual = 1: Orange (ưu tiên cao hơn parent)
+        // 2. ItemLate = 1 hoặc ItemLateActual = 1: Orange
         if (itemLate === 1 || itemLateActual === 1) {
-          row.getElement().style.backgroundColor = 'Orange';
-          return; // Dừng lại
+          el.style.backgroundColor = 'Orange';
+          return;
         }
 
         // 3. Parent nodes: LightGray (chỉ khi không có ItemLate = 1 hoặc 2)
         if (hasChildren) {
-          row.getElement().style.backgroundColor = 'LightGray';
-          return; // Dừng lại
+          el.style.backgroundColor = 'LightGray';
+          return;
         }
 
-        // 4. Sắp hết hạn: LightYellow (ưu tiên thấp nhất)
-        // Điều kiện: PlanEndDate != null AND TotalDayExpridSoon <= 3 AND (ActualEndDate is null or empty)
+        // 4. Sắp hết hạn: LightYellow
         if (
           planEndDate &&
           planEndDate.isValid &&
           totalDayExpridSoon <= 3 &&
           !hasActualEndDate
         ) {
-          row.getElement().style.backgroundColor = 'LightYellow';
+          el.style.backgroundColor = 'LightYellow';
         }
       },
       columns: [
         {
-          title: '',
-          field: 'actions',
-          width: 120,
-          headerHozAlign: 'center',
-          hozAlign: 'center',
-          frozen: true,
-          headerSort: false,
-          formatter: (cell: any) => {
-            const data = cell.getRow().getData();
-
-            let buttons = '';
-
-            // Luôn hiển thị nút Sửa và Xóa
-            buttons += `
-      <button class="btn btn-primary btn-sm" title="Sửa" data-action="edit">
-        <i class="fas fa-pen"></i>
-      </button>
-      <button class="btn btn-warning btn-sm" data-action="problem" title="problem" >
-        <i class="fas fa-exclamation-circle"></i>
-      </button>
-    `;
-
-            return buttons;
-          },
-          cellClick: (e: any, cell: any) => {
-            const target = e.target;
-            const button = target.closest('button');
-
-            if (button) {
-              const action = button.getAttribute('data-action');
-              const data = cell.getRow().getData();
-
-              switch (action) {
-                case 'edit':
-                  this.openModal(data);
-                  break;
-                case 'problem':
-                  this.openProblemDetail(data); // Hoặc bạn có thể đổi thành this.confirmDeleteSingle(data) nếu cần
-                  break;
-              }
-            }
-          }
-        },
-        {
           title: 'STT',
           field: 'STT',
-          hozAlign: 'center',
+          hozAlign: 'left',
           width: 50,
           frozen: true,
           bottomCalc:'count'
@@ -740,6 +731,23 @@ export class ProjectItemPersonComponent implements OnInit, AfterViewInit {
 
     const selectedData = selectedRows[0].getData();
     this.openModal(selectedData);
+  }
+
+  openProblemDetailSelected(): void {
+    const selectedRows = this.tb_projectItemPerson.getSelectedRows();
+
+    if (selectedRows.length === 0) {
+      this.notification.warning(NOTIFICATION_TITLE.warning, 'Vui lòng chọn dòng cần xem phát sinh');
+      return;
+    }
+
+    if (selectedRows.length > 1) {
+      this.notification.warning(NOTIFICATION_TITLE.warning, 'Chỉ được chọn 1 dòng để xem phát sinh');
+      return;
+    }
+
+    const selectedData = selectedRows[0].getData();
+    this.openProblemDetail(selectedData);
   }
 
   openProblemDetail(data:any): void {

@@ -47,3 +47,11 @@
   background-color: #218838;
   border-color: #1e7e34;
 }
+.table-action-btn {
+  font-size: 10px;      /* nhỏ text + icon */
+  padding: 2px 4px;     /* thu gọn nút hơn btn-sm */
+}
+
+.table-action-btn i {
+  font-size: 10px;      /* icon nhỏ theo */
+}

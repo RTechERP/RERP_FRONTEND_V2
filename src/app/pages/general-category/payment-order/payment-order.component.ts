@@ -590,14 +590,14 @@ export class PaymentOrderComponent implements OnInit {
 
                 }
             },
-            // {
-            //     label: 'In PO',
-            //     icon: PrimeIcons.PRINT,
-            //     command: () => {
-            //         this.onPrint();
+            {
+                label: 'In PO',
+                icon: PrimeIcons.PRINT,
+                command: () => {
+                    this.onPrint();
 
-            //     }
-            // }
+                }
+            }
         ]
     }
 
@@ -3281,6 +3281,14 @@ export class PaymentOrderComponent implements OnInit {
 
     }
 
+    formatNumber(num: number, digits: number = 2) {
+        num = num || 0;
+        return num.toLocaleString('vi-VN', {
+            minimumFractionDigits: digits,
+            maximumFractionDigits: digits,
+        });
+    }
+
 
     onPrint() {
 
@@ -3288,18 +3296,16 @@ export class PaymentOrderComponent implements OnInit {
         if (this.activeTab == '1') gridInstance = this.angularGridSpecial;
 
         const activeCell = gridInstance.slickGrid.getActiveCell();
-
         if (!activeCell) return;
 
 
         const paymentOrder = this.dataPrint.paymentOrder[0];
-        const details = this.dataPrint.paymentOrder;
+        const details = this.dataPrint.details;
         const signs = this.dataPrint.signs;
 
         console.log('.paymentOrder:', paymentOrder);
         console.log('.details:', details);
         console.log('.signs:', signs);
-
 
         const numberDocument = paymentOrder.TypeOrder == 1 ? "BM01-RTC.AC-QT03" : "BM02-RTC.AC-QT03";
         const dateOrder = new Date(paymentOrder.DateOrder);
@@ -3322,13 +3328,14 @@ export class PaymentOrderComponent implements OnInit {
                                 'Số PO',
                                 `:${paymentOrder.POCode || ''}`,
                             ],
-                            // ...groupHeader6
                         ],
                 },
                 layout: 'noBorders',
             }
 
         }
+
+        const isVND = (paymentOrder.Unit?.toUpperCase() ?? '') == 'VND';
 
         let groupHeader3: any = {};
         let sumTotalFooter: any = [];
@@ -3347,13 +3354,26 @@ export class PaymentOrderComponent implements OnInit {
                 layout: 'noBorders',
             };
 
+
+
+            let totalQuantity = details.reduce((sum: number, x: any) => sum + x.Quantity, 0);
+            totalQuantity = totalQuantity <= 0 ? '' : totalQuantity;
+
+            let totalUnitPrice = details.reduce((sum: number, x: any) => sum + x.UnitPrice, 0);
+            totalUnitPrice = totalUnitPrice <= 0 ? '' : (isVND ? this.formatNumber(totalUnitPrice, 0) : this.formatNumber(totalUnitPrice));
+
+            let totalMoney = details.reduce((sum: number, x: any) => sum + x.TotalMoney, 0);
+            totalMoney = totalMoney <= 0 ? '' : (isVND ? this.formatNumber(totalMoney, 0) : this.formatNumber(totalMoney));
+
             sumTotalFooter = [
-                { colSpan: 2, text: 'Tổng cộng tạm ứng', bold: true, border: [true, false, true, true] }, {},
-                { colSpan: 1, text: '', bold: true, border: [true, false, true, true] },
-                { colSpan: 1, text: 'SL', bold: true, alignment: 'right', border: [true, false, true, true] },
-                { colSpan: 1, text: 'sumSum([UnitPice]', bold: true, alignment: 'right', border: [true, false, true, true] },
-                { colSpan: 1, text: 'sumSum([Thanhtien]', bold: true, alignment: 'right', border: [true, false, true, true] },
-                { colSpan: 3, text: '' }, {}, {},
+                [
+                    { colSpan: 2, text: 'Tổng cộng tạm ứng', bold: true, border: [true, false, true, true] }, {},
+                    { colSpan: 1, text: '', bold: true, border: [true, false, true, true] },
+                    { colSpan: 1, text: totalQuantity, bold: true, alignment: 'right', border: [true, false, true, true] },
+                    { colSpan: 1, text: totalUnitPrice, bold: true, alignment: 'right', border: [true, false, true, true] },
+                    { colSpan: 1, text: totalMoney, bold: true, alignment: 'right', border: [true, false, true, true] },
+                    { colSpan: 3, text: '' }, {}, {},
+                ]
             ]
         }
 
@@ -3379,6 +3399,116 @@ export class PaymentOrderComponent implements OnInit {
             }
         }
 
+
+
+        let items: any = [];
+        for (let i = 0; i < details.length; i++) {
+
+            const detail = details[i];
+            const quantity = detail.Quantity <= 0 ? '' : this.formatNumber(detail.Quantity);
+            const unitPrice = detail.UnitPrice <= 0 ? '' : (isVND ? this.formatNumber(detail.UnitPrice, 0) : this.formatNumber(detail.UnitPrice));
+            const totalMoney = detail.TotalMoney <= 0 ? '' : (isVND ? this.formatNumber(detail.TotalMoney, 0) : this.formatNumber(detail.TotalMoney));
+            const paymentPercentage = detail.PaymentPercentage <= 0 ? '' : detail.PaymentPercentage;
+            const totalPaymentAmount = detail.TotalPaymentAmount <= 0 ? '' : (isVND ? this.formatNumber(detail.TotalPaymentAmount, 0) : this.formatNumber(detail.TotalPaymentAmount));
+            let item = [
+                { text: detail.Stt, alignment: 'center' },
+                { text: detail.ContentPayment, alignment: '' },
+
+                { text: detail.Unit, alignment: '' },
+                {
+                    text: quantity,
+                    alignment: 'right',
+                },
+                { text: unitPrice, alignment: 'right' },
+                { text: totalMoney, alignment: 'right' },
+                { text: paymentPercentage, alignment: 'right' },
+                { text: totalPaymentAmount, alignment: 'right' },
+                { text: detail.Note, alignment: 'right' },
+            ];
+            items.push(item);
+        }
+
+        console.log('items:', items);
+        console.log('sumTotalFooter:', sumTotalFooter);
+
+        //Chữ ký
+
+        const signEmp = signs.find((x: any) => x.Step == 1 && x.IsApproved == 1);
+        const signTBP = signs.find((x: any) => x.Step == 2 && x.IsApproved == 1);
+        const signHR = signs.find((x: any) => x.Step == 3 && x.IsApproved == 1);
+        const signKT = signs.find((x: any) => x.Step == 4 && x.IsApproved == 1);
+        const signBGD = signs.find((x: any) => x.Step == 5 && x.IsApproved == 1);
+
+        const dateApprovedEmp = signEmp?.DateApproved ? DateTime.fromISO(signEmp?.DateApproved).toFormat('dd/MM/yyyy HH:mm') : '';
+        const dateApprovedTBP = (signTBP?.DateApproved || '') != '' ? DateTime.fromISO(signTBP?.DateApproved).toFormat('dd/MM/yyyy HH:mm') : '';
+        const dateApprovedHR = (signHR?.DateApproved || '') != '' ? DateTime.fromISO(signHR?.DateApproved).toFormat('dd/MM/yyyy HH:mm') : '';
+        const dateApprovedKT = (signKT?.DateApproved || '') != '' ? DateTime.fromISO(signKT?.DateApproved).toFormat('dd/MM/yyyy HH:mm') : '';
+        const dateApprovedBGD = (signBGD?.DateApproved || '') != '' ? DateTime.fromISO(signBGD?.DateApproved).toFormat('dd/MM/yyyy HH:mm') : '';
+
+        console.log('signTBP?.DateApproved', signTBP?.DateApproved || '');
+        let signFooter: any = [
+            {
+                alignment: 'justify',
+                columns: [
+                    { text: 'Người đề nghị thanh toán', alignment: 'center', bold: true },
+                    { text: 'Trưởng bộ phận', alignment: 'center', bold: true },
+                    { text: 'Phòng nhân sự', alignment: 'center', bold: true },
+                    { text: 'Phòng kế toán', alignment: 'center', bold: true },
+                    { text: 'Ban giám đốc', alignment: 'center', bold: true },
+                ],
+            },
+            {
+                alignment: 'justify',
+                columns: [
+                    {
+                        text: `${signEmp?.FullNameDefault || ''}\n${dateApprovedEmp}`, alignment: 'center', bold: true, margin: [0, 10, 0, 0]
+                    },
+                    {
+                        text: `${signTBP?.FullNameDefault || ''}\n${dateApprovedTBP}`, alignment: 'center', bold: true, margin: [0, 10, 0, 0]
+                    },
+                    {
+                        text: `${signHR?.FullNameDefault || ''}\n${dateApprovedHR}`, alignment: 'center', bold: true, margin: [0, 10, 0, 0]
+                    },
+                    {
+                        text: `${signKT?.FullNameDefault || ''}\n${dateApprovedKT}`, alignment: 'center', bold: true, margin: [0, 10, 0, 0]
+                    },
+                    {
+                        text: `${signBGD?.FullNameDefault || ''}\n${dateApprovedBGD}`, alignment: 'center', bold: true, margin: [0, 10, 0, 0]
+                    },
+                ],
+            }
+        ];
+        if (paymentOrder.IsIgnoreHR) {
+            signFooter = [
+                {
+                    alignment: 'justify',
+                    columns: [
+                        { text: 'Người đề nghị thanh toán', alignment: 'center', bold: true },
+                        { text: 'Trưởng bộ phận', alignment: 'center', bold: true },
+                        { text: 'Phòng kế toán', alignment: 'center', bold: true },
+                        { text: 'Ban giám đốc', alignment: 'center', bold: true },
+                    ],
+                },
+                {
+                    alignment: 'justify',
+                    columns: [
+                        {
+                            text: `${signEmp?.FullNameDefault || ''}\n${dateApprovedEmp}`, alignment: 'center', bold: true, margin: [0, 10, 0, 0]
+                        },
+                        {
+                            text: `${signTBP?.FullNameDefault || ''}\n${dateApprovedTBP}`, alignment: 'center', bold: true, margin: [0, 10, 0, 0]
+                        },
+                        {
+                            text: `${signKT?.FullNameDefault || ''}\n${dateApprovedKT}`, alignment: 'center', bold: true, margin: [0, 10, 0, 0]
+                        },
+                        {
+                            text: `${signBGD?.FullNameDefault || ''}\n${dateApprovedBGD}`, alignment: 'center', bold: true, margin: [0, 10, 0, 0]
+                        },
+                    ],
+                }
+            ]
+        }
+
         let docDefinition = {
             info: {
                 title: paymentOrder.Code,
@@ -3397,7 +3527,7 @@ export class PaymentOrderComponent implements OnInit {
                             fontSize: 12,
                             alignment: 'center',
                             bold: true,
-                            margin: [0, 20, 0, 0],
+                            margin: [0, 10, 0, 0],
                         },
                         {
                             text: `Mã số: ${numberDocument}`,
@@ -3417,14 +3547,14 @@ export class PaymentOrderComponent implements OnInit {
                 },
 
                 {
-                    style: 'tableExample',
+                    style: 'tableExample1',
                     table: {
-                        widths: [120, '*', 40, 120],
+                        widths: [120, '*', 50, 100],
                         body: [
                             [
                                 '1. Họ và tên người đề nghị',
                                 { text: `:${paymentOrder.FullName}` },
-                                'Bộ phận:',
+                                'Bộ phận',
                                 `:${paymentOrder.DepartmentName}`,
                             ],
                             [
@@ -3445,9 +3575,9 @@ export class PaymentOrderComponent implements OnInit {
 
                 //Thông tin nhận tiền
                 {
-                    style: 'tableExample',
+                    style: 'tableExample4',
                     table: {
-                        widths: [120, '*', 40, 70],
+                        widths: [120, '*', 45, 100],
                         body: [
                             [
                                 '4. Thông tin người nhận tiền',
@@ -3455,14 +3585,14 @@ export class PaymentOrderComponent implements OnInit {
                             ],
 
                             [
-                                '- Hình thức thu tiền',
-                                // '- Hình thức thanh toán',
+                                { text: paymentOrder.TypeOrder == 3 ? '- Hình thức thu tiền' : '- Hình thức thanh toán' },
+                                // {},
                                 { text: paymentOrder.TypePayment == 1 ? '[x] Chuyển khoản' : '[ ] Chuyển khoản' },
-                                { colSpan: 2, text: paymentOrder.TypePayment == 2 ? '[x] Tiền mặt' : '[ ] Tiền mặt' }, {}
+                                { colSpan: 2, text: paymentOrder.TypePayment == 2 ? '[x] Tiền mặt' : '[ ] Tiền mặt' }
                             ],
                             [
                                 '- Số tài khoản', { text: `:${paymentOrder.AccountNumber}` },
-                                'Ngân hàng:', `:${paymentOrder.Bank}`
+                                'Ngân hàng', `:${paymentOrder.Bank}`
                             ],
 
                         ],
@@ -3472,14 +3602,14 @@ export class PaymentOrderComponent implements OnInit {
                 groupHeader4,
 
                 {
-                    style: 'tableExample',
+                    style: 'tableExample5',
                     table: {
-                        widths: [120, '*', 40, 30, 40],
+                        widths: [120, '*', 45, 30, 30],
                         body: [
                             [
                                 { colSpan: 3, text: '5. Số tiền đề nghị được ghi theo bảng kê dưới đây:' }, {}, {},
                                 { text: 'ĐVT:' },
-                                { text: `${paymentOrder.Unit?.toUpperCase() ?? ''}` }
+                                { text: `${paymentOrder.Unit?.toUpperCase() ?? ''}`, margin: [0, 0, 0, 0] }
                             ]
                         ],
                     },
@@ -3489,14 +3619,16 @@ export class PaymentOrderComponent implements OnInit {
 
                 //Bảng chi tiết
                 {
-                    style: 'tableExample',
+                    style: 'tableDetails',
                     table: {
                         widths: [20, 130, 27, 25, 50, 50, 30, 50, '*'],
                         body: [
-                            //Header table
                             [
                                 { text: 'STT', alignment: 'center', bold: true },
-                                { text: 'Nội dung thu tiền', alignment: 'center', bold: true },
+                                {
+                                    text: paymentOrder.TypeOrder == 3 ? 'Nội dung thu tiền' : 'Nội dung thanh toán',
+                                    alignment: 'center', bold: true
+                                },
                                 { text: 'ĐVT', alignment: 'center', bold: true },
                                 { text: 'SL', alignment: 'center', bold: true },
                                 { text: 'Đơn giá', alignment: 'center', bold: true },
@@ -3505,20 +3637,9 @@ export class PaymentOrderComponent implements OnInit {
                                 { text: 'Tổng thanh toán', alignment: 'center', bold: true },
                                 { text: 'Ghi chú / Chứng từ', alignment: 'center', bold: true },
                             ],
-
-                            //list item
-                            // ...items,
-                            //sum footer table
+                            ...items,
                             ...sumTotalFooter,
-                            // [
-                            //     { colSpan: 2, text: 'Tổng cộng tạm ứng', bold: true, border: [true, false, true, true] }, {},
-                            //     { colSpan: 1, text: '', bold: true, border: [true, false, true, true] },
-                            //     { colSpan: 1, text: 'SL', bold: true, alignment: 'right', border: [true, false, true, true] },
-                            //     { colSpan: 1, text: 'sumSum([UnitPice]', bold: true, alignment: 'right', border: [true, false, true, true] },
-                            //     { colSpan: 1, text: 'sumSum([Thanhtien]', bold: true, alignment: 'right', border: [true, false, true, true] },
-                            //     { colSpan: 3, text: '' }, {}, {},
-                            // ],
-                            [{ colSpan: 9, text: 'thnahf iền bằng chữ', bold: true, italics: true }]
+                            [{ colSpan: 9, text: paymentOrder.TotalMoneyText, bold: true, italics: true }]
 
                         ],
                     },
@@ -3529,51 +3650,52 @@ export class PaymentOrderComponent implements OnInit {
                     height: 60,
                 },
                 { text: "GHI CHÚ KẾ TOÁN:", bold: true, margin: [0, 10, 0, 0] },
-                { text: '?AccountingNote', bold: true, margin: [0, 0, 0, 60] },
+                { text: paymentOrder.AccountingNote, bold: true, margin: [0, 0, 0, 60] },
 
-                'Chữ ký nếu có HR duyệt',
-                {
-                    alignment: 'justify',
-                    columns: [
-                        { text: 'Người đề nghị thanh toán', alignment: 'center', bold: true },
-                        { text: 'Trưởng bộ phận', alignment: 'center', bold: true },
-                        { text: 'Phòng nhân sự', alignment: 'center', bold: true },
-                        { text: 'Phòng kế toán', alignment: 'center', bold: true },
-                        { text: 'Ban giám đốc', alignment: 'center', bold: true },
-                    ],
-                },
-                {
-                    alignment: 'justify',
-                    columns: [
-                        { text: '?EmployeeSign', alignment: 'center', bold: true },
-                        { text: '?TBPSign', alignment: 'center', bold: true },
-                        { text: '?HRSign', alignment: 'center', bold: true },
-                        { text: '?KTSign', alignment: 'center', bold: true },
-                        { text: '?BGDSign', alignment: 'center', bold: true },
-                    ],
-                },
+                signFooter
+                // 'Chữ ký nếu có HR duyệt',
+                // {
+                //     alignment: 'justify',
+                //     columns: [
+                //         { text: 'Người đề nghị thanh toán', alignment: 'center', bold: true },
+                //         { text: 'Trưởng bộ phận', alignment: 'center', bold: true },
+                //         { text: 'Phòng nhân sự', alignment: 'center', bold: true },
+                //         { text: 'Phòng kế toán', alignment: 'center', bold: true },
+                //         { text: 'Ban giám đốc', alignment: 'center', bold: true },
+                //     ],
+                // },
+                // {
+                //     alignment: 'justify',
+                //     columns: [
+                //         { text: '?EmployeeSign', alignment: 'center', bold: true },
+                //         { text: '?TBPSign', alignment: 'center', bold: true },
+                //         { text: '?HRSign', alignment: 'center', bold: true },
+                //         { text: '?KTSign', alignment: 'center', bold: true },
+                //         { text: '?BGDSign', alignment: 'center', bold: true },
+                //     ],
+                // },
 
-                'Chữ ký nếu kô cần HR duyệt',
-                {
-                    alignment: 'justify',
-                    columns: [
-                        { text: 'Người đề nghị thanh toán', alignment: 'center', bold: true },
-                        { text: 'Trưởng bộ phận', alignment: 'center', bold: true },
-                        // { text: 'Phòng nhân sự', alignment: 'center', bold: true },
-                        { text: 'Phòng kế toán', alignment: 'center', bold: true },
-                        { text: 'Ban giám đốc', alignment: 'center', bold: true },
-                    ],
-                },
-                {
-                    alignment: 'justify',
-                    columns: [
-                        { text: '?EmployeeSign', alignment: 'center', bold: true },
-                        { text: '?TBPSign', alignment: 'center', bold: true },
-                        // { text: '?HRSign', alignment: 'center', bold: true },
-                        { text: '?KTSign', alignment: 'center', bold: true },
-                        { text: '?BGDSign', alignment: 'center', bold: true },
-                    ],
-                },
+                // 'Chữ ký nếu kô cần HR duyệt',
+                // {
+                //     alignment: 'justify',
+                //     columns: [
+                //         { text: 'Người đề nghị thanh toán', alignment: 'center', bold: true },
+                //         { text: 'Trưởng bộ phận', alignment: 'center', bold: true },
+                //         // { text: 'Phòng nhân sự', alignment: 'center', bold: true },
+                //         { text: 'Phòng kế toán', alignment: 'center', bold: true },
+                //         { text: 'Ban giám đốc', alignment: 'center', bold: true },
+                //     ],
+                // },
+                // {
+                //     alignment: 'justify',
+                //     columns: [
+                //         { text: '?EmployeeSign', alignment: 'center', bold: true },
+                //         { text: '?TBPSign', alignment: 'center', bold: true },
+                //         // { text: '?HRSign', alignment: 'center', bold: true },
+                //         { text: '?KTSign', alignment: 'center', bold: true },
+                //         { text: '?BGDSign', alignment: 'center', bold: true },
+                //     ],
+                // },
             ],
 
             defaultStyle: {
@@ -3581,15 +3703,12 @@ export class PaymentOrderComponent implements OnInit {
                 alignment: 'justify',
                 font: 'Times',
             },
-            // styles: {
-            //     groupHeader4: {
-
-            //         vis
-            //     },
-
-            // },
         };
 
-        pdfMake.createPdf(docDefinition).open();
+        // pdfMake.createPdf(docDefinition).open();
+        pdfMake.createPdf(docDefinition).getBlob((blob: any) => {
+            const url = URL.createObjectURL(blob);
+            window.open(url, '_blank', `width=${window.screen.width / 2},height=${window.screen.height}`);
+        });
     }
 }

@@ -6015,6 +6015,35 @@ export class ProjectPartListComponent implements OnInit, AfterViewInit {
         }
     }
     //#endregion
+    //#region 
+    requestTransfer(warehouseCode?: string): void {
+        // Lấy danh sách vật tư đã chọn
+        const selectedRows = this.tb_projectWorker?.getSelectedData() || [];
+        if (!selectedRows || selectedRows.length === 0) {
+            this.notification.warning('Thông báo', 'Vui lòng chọn sản phẩm muốn yêu cầu chuyển kho!');
+            return;
+        }
+        // Lọc chỉ lấy node lá (không có children) - bỏ comment để validate
+        const leafNodes = selectedRows.filter((row: any) => {
+            const hasChildren = row._children && Array.isArray(row._children) && row._children.length > 0;
+            return !hasChildren;
+        });
+        if (leafNodes.length === 0) {
+            this.notification.warning('Thông báo', 'Vui lòng chọn các sản phẩm  để yêu cầu chuyển kho!');
+            return;
+        }
+        // Nếu đã có warehouseCode, xử lý trực tiếp
+        if (warehouseCode) {
+            this.confirmRequestExport(leafNodes, warehouseCode);
+            return;
+        }
+        // Nếu chưa có warehouseCode, mở modal chọn kho
+        if (!this.warehouses || this.warehouses.length === 0) {
+            this.notification.error('Lỗi', 'Không có kho nào để chọn!');
+            return;
+        }
+    }
+    //#endregion
     //#region Yêu cầu xuất kho
     requestExport(warehouseCode?: string): void {
         // Lấy danh sách vật tư đã chọn
@@ -6047,6 +6076,25 @@ export class ProjectPartListComponent implements OnInit, AfterViewInit {
     requestExportByWarehouse(warehouseCode: string): void {
         this.requestExport(warehouseCode);
     }
+    //yêu cầu chuyển kho theo kho cụ thể
+    requestTransferByWarehouse(warehouseCode: string): void {
+        this.requestTransfer(warehouseCode);
+    }
+    //#xác nhận và gọi api yêu cầu chuyển kho
+    confirmRequestTransfer(selectedNodes: any[], warehouseCode: string): void {
+        const itemCount = selectedNodes.length;
+        const ttList = selectedNodes.map((node: any) => node.TT || node.STT).join(', ');
+        this.modal.confirm({
+            nzTitle: 'Xác nhận yêu cầu xuất kho',
+            nzContent: `Bạn có chắc muốn yêu cầu chuyển kho ${itemCount} sản phẩm (TT: ${ttList}) không?`,
+            nzOkText: 'Xác nhận',
+            nzCancelText: 'Hủy',
+            nzOkType: 'primary',
+            nzOnOk: () => {
+                this.executeRequestTransfer(selectedNodes, warehouseCode);
+            }
+        });
+    }
     // Xác nhận và gọi API yêu cầu xuất kho
     confirmRequestExport(selectedNodes: any[], warehouseCode: string): void {
         const itemCount = selectedNodes.length;
@@ -6059,6 +6107,62 @@ export class ProjectPartListComponent implements OnInit, AfterViewInit {
             nzOkType: 'primary',
             nzOnOk: () => {
                 this.executeRequestExport(selectedNodes, warehouseCode);
+            }
+        });
+    }
+    //Thực hiện yêu cầu chuyển kho 
+     executeRequestTransfer(selectedNodes: any[], warehouseCode: string): void {
+        // Chuẩn bị payload theo ProjectPartListExportDTO structure mới
+        // Chỉ gửi các field cần thiết theo DTO (không extends ProjectPartList nữa)
+        const listItem = selectedNodes.map((node: any) => {
+            const item: any = {
+                // Các field từ TreeListNode (UI) - BẮT BUỘC theo DTO mới
+                ID: node.ID || 0,
+                RemainQuantity: node.RemainQuantity || 0, // Số lượng còn lại có thể xuất
+                QuantityReturn: node.QuantityReturn || 0, // Số lượng trả (MỚI THÊM - quan trọng!)
+                QtyFull: node.QtyFull || 0, // Số lượng đầy đủ
+                ProductNewCode: node.ProductNewCode || '', // Mã nội bộ
+                GroupMaterial: node.GroupMaterial || '', // Tên sản phẩm
+                Unit: node.Unit || '', // Đơn vị tính
+                ProjectCode: node.ProjectCode || this.projectCodex || '', // Mã dự án
+                ProjectID: node.ProjectID || 0,
+                // Các field khác nếu cần cho ValidateKeep
+                ProductID: node.ProductID || 0,
+                TT: node.TT || '',
+                WarehouseID: 0 // Backend sẽ xử lý từ warehouseCode, có thể để 0 hoặc không cần gửi
+
+            };
+            return item;
+        });
+        const request = {
+            WarehouseCode: warehouseCode,
+            ListItem: listItem
+        };
+        this.projectPartListService.requestExport(request).subscribe({
+            next: (response: any) => {
+                if (response.status === 1 && response.data) {
+                    const billsData = response.data.Bills || [];
+                    const warningMessage = response.data.Warning || '';
+                    // Hiển thị cảnh báo nếu có
+                    if (warningMessage) {
+                        this.notification.warning('Thông báo', warningMessage);
+                    }
+                    // Kiểm tra có bills để mở modal không
+                    if (billsData.length === 0) {
+                        this.notification.warning('Thông báo', 'Không có dữ liệu để xuất kho!');
+                        return;
+                    }
+                    // Mở modal BillExportDetail tuần tự cho từng bill
+                    this.openBillExportDetailModals(billsData, 0,true);
+                    // Reload data sau khi hoàn thành (sẽ được gọi trong openBillExportDetailModals)
+                } else {
+                    this.notification.error('Lỗi', response.message || 'Không thể yêu cầu xuất kho!');
+                }
+            },
+            error: (error: any) => {
+                console.error('Error requesting export:', error);
+                const errorMessage = error?.error?.message || error?.message || 'Không thể yêu cầu xuất kho';
+                this.notification.error('Lỗi', errorMessage);
             }
         });
     }
@@ -6105,7 +6209,7 @@ export class ProjectPartListComponent implements OnInit, AfterViewInit {
                         return;
                     }
                     // Mở modal BillExportDetail tuần tự cho từng bill
-                    this.openBillExportDetailModals(billsData, 0);
+                    this.openBillExportDetailModals(billsData, 0, false);
                     // Reload data sau khi hoàn thành (sẽ được gọi trong openBillExportDetailModals)
                 } else {
                     this.notification.error('Lỗi', response.message || 'Không thể yêu cầu xuất kho!');
@@ -6119,7 +6223,7 @@ export class ProjectPartListComponent implements OnInit, AfterViewInit {
         });
     }
     // Mở modal BillExportDetail tuần tự cho từng bill
-    private openBillExportDetailModals(billsData: any[], index: number): void {
+    private openBillExportDetailModals(billsData: any[], index: number, isTransfer:boolean): void {
         if (index >= billsData.length) {
             // Đã mở hết tất cả modal → reload data
             this.loadDataProjectPartList();
@@ -6174,6 +6278,7 @@ export class ProjectPartListComponent implements OnInit, AfterViewInit {
             SerialNumber: detail.SerialNumber || '',
             // Các field để hiển thị trong modal (nếu cần)
             ProjectNameText: detail.ProjectName || '',
+            IsTransfer: isTransfer,
             // ✅ Không set TotalInventory từ detail.TotalQty - để bill-export-detail tự fill từ productOptions
             // TotalInventory sẽ được fill từ productOptions trong updateTotalInventoryForExistingRows()
             TotalInventory: 0
@@ -6207,7 +6312,7 @@ export class ProjectPartListComponent implements OnInit, AfterViewInit {
             (result) => {
                 // Modal đóng thành công → mở modal tiếp theo
                 if (result === true && index < billsData.length - 1) {
-                    this.openBillExportDetailModals(billsData, index + 1);
+                    this.openBillExportDetailModals(billsData, index + 1, false);
                 } else if (result === true && index === billsData.length - 1) {
                     // Modal cuối cùng đóng → reload data và gọi API thông báo
                     const text = "Mã phiếu xuất: " + bill.Code + "\nNgười yêu cầu: " + (this.currentUser?.FullName || '');
@@ -6233,7 +6338,7 @@ export class ProjectPartListComponent implements OnInit, AfterViewInit {
             (dismissed) => {
                 // Modal bị dismiss → vẫn tiếp tục mở modal tiếp theo nếu có
                 if (index < billsData.length - 1) {
-                    this.openBillExportDetailModals(billsData, index + 1);
+                    this.openBillExportDetailModals(billsData, index + 1,false);
                 } else {
                     // Modal cuối cùng bị dismiss → reload data
                     this.loadDataProjectPartList();

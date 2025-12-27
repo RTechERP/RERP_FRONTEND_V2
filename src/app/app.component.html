@@ -23,12 +23,12 @@
                 <ul>
                     @for (c1 of m.children; track c1.id) {
                     <li nz-menu-item nzMatchRouter *ngIf="c1.isPermission && c1.isOpen && c1.children.length <= 0"
-                        (click)="$event.preventDefault(); newTab((c1.router || ''), c1.title,c1.queryParams)">
+                        (click)="newTab((c1.router || ''), c1.title,c1.queryParams)">
                         <img [src]="c1.icon" class="menu-icon" *ngIf="(c1.icon || '') != ''" width="24px" />
                         <nz-icon nzType="caret-right" nzTheme="outline" *ngIf="(c1.icon || '') == ''" />
                         <!-- {{c1.title}} -->
 
-                        <a [routerLink]="c1.router" (click)="$event.preventDefault()">{{c1.title}}</a>
+                        <a [routerLink]="c1.router">{{c1.title}}</a>
                         <!-- <p>{{c1.isPermission }}- {{c1.isOpen}} - {{c1.children.length}}</p> -->
                     </li>
 
@@ -43,12 +43,12 @@
                             @for (c2 of c1.children; track c2.id) {
                             <li nz-menu-item nzMatchRouter
                                 *ngIf=" c2.isPermission && c2.isOpen  && c2.children.length <= 0"
-                                (click)="$event.preventDefault(); newTab((c2.router || ''), c2.title,c2.queryParams)"
+                                (click)="newTab((c2.router || ''), c2.title,c2.queryParams)"
                                 style="font-size: 11px !important;">
                                 <img [src]="c2.icon" class="menu-icon" *ngIf="(c2.icon || '') != ''" width="24px" />
                                 <nz-icon nzType="caret-right" nzTheme="outline" *ngIf="(c2.icon || '') == ''" />
                                 <!-- {{c2.title}} -->
-                                <a [routerLink]="c2.router" (click)="$event.preventDefault()">{{c2.title}}</a>
+                                <a [routerLink]="c2.router">{{c2.title}}</a>
                             </li>
 
 
@@ -65,13 +65,13 @@
                                     @for (c3 of c2.children; track c3.id) {
                                     <li nz-menu-item nzMatchRouter
                                         *ngIf=" c3.isPermission && c3.isOpen && c3.children.length <= 0"
-                                        (click)="$event.preventDefault(); newTab((c3.router || ''), c3.title,c3.queryParams)"
+                                        (click)="newTab((c3.router || ''), c3.title,c3.queryParams)"
                                         style="font-size: 10px !important;">
                                         <img [src]="c3.icon" class="menu-icon" *ngIf="(c3.icon || '') != ''"
                                             width="24px" />
                                         <nz-icon nzType="caret-right" nzTheme="outline" *ngIf="(c3.icon || '') == ''" />
                                         <!-- <a [href]="c3.router">{{c3.title}}</a> -->
-                                        <a [routerLink]="c3.router" (click)="$event.preventDefault()">{{c3.title}}</a>
+                                        <a [routerLink]="c3.router">{{c3.title}}</a>
                                     </li>
                                     }
 

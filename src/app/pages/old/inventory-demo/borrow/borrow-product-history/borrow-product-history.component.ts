@@ -53,6 +53,7 @@ import { MenuEventService } from '../../../../systems/menus/menu-service/menu-ev
 import { MaterialDetailOfProductRtcComponent } from '../../material-detail-of-product-rtc/material-detail-of-product-rtc.component';
 import { BillExportTechnicalFormComponent } from '../../../bill-export-technical/bill-export-technical-form/bill-export-technical-form.component';
 import { ID_ADMIN_DEMO_LIST } from '../../../../../app.config';
+import { HasPermissionDirective } from '../../../../../directives/has-permission.directive';
 
 @Component({
     selector: 'app-borrow-product-history',
@@ -80,6 +81,7 @@ import { ID_ADMIN_DEMO_LIST } from '../../../../../app.config';
         NzTreeSelectModule,
         NzModalModule,
         CommonModule,
+        HasPermissionDirective,
     ],
     encapsulation: ViewEncapsulation.None,
 })
@@ -602,7 +604,13 @@ export class BorrowProductHistoryComponent implements OnInit {
                 },
                 {
                     label: 'Xóa',
-                    action: (e, row) => { },
+                    action: (e, row) => {
+                        const rowData = row.getData();
+                        const id = rowData['ID'];
+                        if (id > 0) {
+                            this.deleteHistoryProduct([id]);
+                        }
+                    },
                 },
             ],
             pagination: true,
@@ -864,7 +872,11 @@ export class BorrowProductHistoryComponent implements OnInit {
             this.tb_productHistoryBody.deselectRow();
         });
         this.tb_productHistoryBody.on('rowDblClick', (e: any, row: any) => {
-            this.productHistoryBorrowDetail();
+            const rowData = row.getData();
+            const id = rowData?.ID || 0;
+            if (id > 0) {
+                this.productHistoryBorrowDetail(id, rowData);
+            }
         });
         // Lắng nghe sự kiện chọn
         this.tb_productHistoryBody.on('rowSelected', (row: any) => {
@@ -964,6 +976,57 @@ export class BorrowProductHistoryComponent implements OnInit {
         }
     }
 
+    deleteHistoryProduct(ids?: number[]) {
+        // Nếu không truyền ids thì lấy từ selectedArrHistoryProductID
+        const idsToDelete = ids ?? Array.from(this.selectedArrHistoryProductID);
+
+        if (idsToDelete.length === 0) {
+            this.notification.create(
+                'warning',
+                'Thông báo',
+                'Vui lòng chọn sản phẩm cần xóa!'
+            );
+            return;
+        }
+
+        this.modal.confirm({
+            nzTitle: 'Xác nhận xóa',
+            nzContent: `Bạn có chắc muốn xóa ${idsToDelete.length} thiết bị đã chọn khỏi lịch sử mượn không?`,
+            nzOkText: 'Có',
+            nzCancelText: 'Không',
+            nzOkDanger: true,
+            nzOnOk: async () => {
+                try {
+                    const response = await firstValueFrom(
+                        this.borrowService.postDeleteHistoryProduct(idsToDelete)
+                    );
+
+                    if (response?.status === 1) {
+                        this.notification.success(
+                            'Thông báo',
+                            `Xóa thành công ${idsToDelete.length} thiết bị khỏi lịch sử mượn.`
+                        );
+                        // Refresh lại bảng
+                        this.drawTbProductHistory(
+                            this.tb_productHistoryContainer.nativeElement
+                        );
+                        // Clear selection
+                        this.selectedArrHistoryProductID.clear();
+                        this.selectedProductsMap.clear();
+                    } else {
+                        this.notification.error(
+                            'Thông báo',
+                            response?.message || 'Xóa thất bại!'
+                        );
+                    }
+                } catch (error: any) {
+                    const message = error?.error?.message || 'Đã xảy ra lỗi khi xóa!';
+                    this.notification.error('Lỗi', message);
+                }
+            },
+        });
+    }
+
     // INTEGRATION: Xuất sản phẩm đã chọn sang bill import technical
     exportSelectedProducts() {
         if (this.selectedArrHistoryProductID.size === 0) {
@@ -1003,7 +1066,7 @@ export class BorrowProductHistoryComponent implements OnInit {
         }
     }
 
-    productHistoryBorrowDetail() {
+    productHistoryBorrowDetail(id?: number, rowData?: any) {
         const modalRef = this.modalService.open(
             BorrowProductHistoryBorrowDetailAdminComponent,
             {
@@ -1014,8 +1077,23 @@ export class BorrowProductHistoryComponent implements OnInit {
                 size: 'xl',
             }
         );
+        // Ưu tiên dùng ID từ tham số (double click), nếu không thì dùng ID từ selection
         modalRef.componentInstance.HistoryProductID =
-            Array.from(this.selectedArrHistoryProductID).at(-1) ?? 0;
+            id ?? Array.from(this.selectedArrHistoryProductID).at(-1) ?? 0;
+
+        // Refresh khi modal đóng và có thay đổi
+        modalRef.result.then(
+            (result) => {
+                if (result === true) {
+                    // Reload data sau khi save
+                    this.drawTbProductHistory(
+                        this.tb_productHistoryContainer.nativeElement
+                    );
+                }
+            }
+        ).catch(() => {
+            // Modal dismissed, không làm gì
+        });
     }
     productHistoryDetail() {
         const modalRef = this.modalService.open(
@@ -1219,24 +1297,23 @@ export class BorrowProductHistoryComponent implements OnInit {
      * Tương tự như btnDetail_Click trong WinForm
      */
     openDetailTab(rowData: any): void {
-        const title = `Chi tiết: ${rowData.ProductName || rowData.ProductCode}`;
-        const data = {
-            productRTCID1: rowData.ProductRTCID || 0,
-            warehouseID1: this.warehouseID || 1,
+        const params = new URLSearchParams({
+            productRTCID1: String(rowData.ProductRTCID || 0),
+            warehouseID1: String(this.warehouseID || 1),
             ProductCode: rowData.ProductCode || '',
             ProductName: rowData.ProductName || '',
-            NumberBegin: rowData.Number || 0,
-            InventoryLatest: rowData.InventoryLatest || 0,
-            NumberImport: rowData.NumberImport || 0,
-            NumberExport: rowData.NumberExport || 0,
-            NumberBorrowing: rowData.NumberBorrowing || 0,
-            InventoryReal: rowData.InventoryReal || 0,
-        };
+            NumberBegin: String(rowData.Number || 0),
+            InventoryLatest: String(rowData.InventoryLatest || 0),
+            NumberImport: String(rowData.NumberImport || 0),
+            NumberExport: String(rowData.NumberExport || 0),
+            NumberBorrowing: String(rowData.NumberBorrowing || 0),
+            InventoryReal: String(rowData.InventoryReal || 0),
+        });
 
-        this.menuEventService.openNewTab(
-            MaterialDetailOfProductRtcComponent,
-            title,
-            data
+        window.open(
+            `/material-detail-of-product-rtc?${params.toString()}`,
+            '_blank',
+            'width=1200,height=800,scrollbars=yes,resizable=yes'
         );
     }
 }

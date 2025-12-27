@@ -580,7 +580,7 @@ export class ProjectPartListPurchaseRequestSlickGridComponent
         if (this.listRequestBuySelect) {
             this.showHeader = true;
         }
-        
+
         // Lấy data từ tabData nếu có (khi component được sử dụng như tab component)
         // if (this.tabData) {
         //     if (this.tabData.isApprovedTBP !== undefined) {
@@ -733,7 +733,7 @@ export class ProjectPartListPurchaseRequestSlickGridComponent
                     this.onSearch();
                   }, 150);
                 }, 100);
-                return; 
+                return;
               }
             } else {
               this.visitedTabs.add(this.tabs[0].id);
@@ -2691,12 +2691,13 @@ export class ProjectPartListPurchaseRequestSlickGridComponent
                 setTimeout(() => {
                     angularGrid.resizerService.resizeGrid();
                     this.ensureCheckboxSelector(angularGrid);
+          // Cập nhật lại header filter cho tab vừa active
+          this.applyDistinctFilters();
                 }, 100);
             }
         }
     }
 
-    // Check if tab should render grid
     shouldRenderGrid(tabId: number): boolean {
         return this.visitedTabs.has(tabId);
     }
@@ -2832,13 +2833,15 @@ export class ProjectPartListPurchaseRequestSlickGridComponent
             id: item.ID || index,
           }));
 
+          // Lưu dataset hiển thị cho tab
+          this.datasetsMap.set(tab.id, dataWithId);
           // Store original data (before filters)
           this.datasetsAllMap.set(tab.id, dataWithId);
 
 
           // Cập nhật title tab với số lượng (giống file gốc)
-          const filteredDataForTitle = this.datasetsMap.get(tab.id) || [];
-          const countText = (filteredDataForTitle?.length || 0).toLocaleString('vi-VN');
+          const filteredDataForTitle = this.datasetsMap.get(tab.id) || dataWithId;
+          const countText = (filteredDataForTitle?.length || dataWithId.length || 0).toLocaleString('vi-VN');
           tab.title = `${tab.title.split('(')[0].trim()} (${countText})`;
 
           // Refresh grid if it exists
@@ -3071,14 +3074,10 @@ export class ProjectPartListPurchaseRequestSlickGridComponent
 
         return result;
     }
-
-    // Hàm normalize dữ liệu row trước khi gửi lên API
     private normalizeRowData(row: any): any {
-        // Loại bỏ các field không cần thiết từ grid (như 'id', 'TT')
         const { id, TT, ...rowData } = row;
         const normalized: any = { ...rowData };
 
-    // Danh sách các field số nguyên
     const integerFields = [
       'ID',
       'SupplierSaleID',
@@ -3108,8 +3107,6 @@ export class ProjectPartListPurchaseRequestSlickGridComponent
       'ProjectPartListID',
       'POKHDetailID',
     ];
-
-    // Danh sách các field số thập phân
     const decimalFields = [
       'Quantity',
       'UnitPrice',

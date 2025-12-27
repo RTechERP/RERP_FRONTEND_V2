@@ -247,7 +247,8 @@
                                         <ul class="list-group">
                                             @for (e of item.Employees; track $index) {
                                             <li class="list-group-item border-0 py-1">
-                                                <span>{{$index + 1}}.{{e.TimeWFHText}}{{e.IsApprovedBGDText}}</span>
+                                                <span>{{$index + 1}}.{{e.EmployeeName}}
+                                                    {{e.TimeWFHText}}{{e.IsApprovedBGDText}}</span>
                                             </li>
                                             }
                                         </ul>

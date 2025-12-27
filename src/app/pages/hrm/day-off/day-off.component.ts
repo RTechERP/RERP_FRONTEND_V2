@@ -24,6 +24,7 @@ import { saveAs } from 'file-saver';
 import { DepartmentServiceService } from '../department/department-service/department-service.service';
 import { EmployeeService } from '../employee/employee-service/employee.service';
 import { NzSplitterModule } from 'ng-zorro-antd/splitter';
+import { NzGridModule } from 'ng-zorro-antd/grid';
 import { DayOffService } from './day-off-service/day-off.service';
 import { SummaryDayOffComponent } from './summary-day-off/summary-day-off.component';
 import { DeclareDayOffComponent } from './declare-day-off/declare-day-off.component';
@@ -58,6 +59,7 @@ import { WFHService } from '../employee-management/employee-wfh/WFH-service/WFH.
     NzDatePickerModule,
     NzTabsModule,
     NzSplitterModule,
+    NzGridModule,
     SummaryDayOffComponent,
     DeclareDayOffComponent,
     NgIf,
@@ -79,6 +81,18 @@ export class DayOffComponent implements OnInit, AfterViewInit {
 
   sizeSearch: string = '0';
   sizeTbDetail: any = '0';
+  showSearchBar: boolean = typeof window !== 'undefined' ? window.innerWidth > 768 : true;
+
+  get shouldShowSearchBar(): boolean {
+    return this.showSearchBar;
+  }
+
+  ToggleSearchPanelNew(event?: Event): void {
+    if (event) {
+      event.stopPropagation();
+    }
+    this.showSearchBar = !this.showSearchBar;
+  }
 
   isEditModal = false;
   isLoading = false;

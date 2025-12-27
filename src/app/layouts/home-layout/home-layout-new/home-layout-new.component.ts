@@ -198,6 +198,8 @@ export class HomeLayoutNewComponent implements OnInit {
                     (sum: any, dept: any) => sum + dept.Employees.length,
                     0
                 );
+
+                // console.log('employeeWfhs:', this.employeeWfhs);
             },
             error: (error: any) => {
                 this.notification.error(NOTIFICATION_TITLE.error, error.error.message);

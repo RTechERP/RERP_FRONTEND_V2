@@ -25,6 +25,7 @@ import { DepartmentServiceService } from '../../department/department-service/de
 import { EmployeeService } from '../../employee/employee-service/employee.service';
 import { NzSplitterModule } from 'ng-zorro-antd/splitter';
 import { NzSpinModule } from 'ng-zorro-antd/spin';
+import { NzGridModule } from 'ng-zorro-antd/grid';
 import { EmployeeBussinessService } from './employee-bussiness-service/employee-bussiness.service';
 import { EmployeeBussinessDetailComponent } from './employee-bussiness-detail/employee-bussiness-detail.component';
 
@@ -62,6 +63,7 @@ import { AuthService } from '../../../../auth/auth.service';
     NzSplitterModule,
     NgIf,
     NzSpinModule,
+    NzGridModule,
     HasPermissionDirective
   ]
 })
@@ -69,6 +71,7 @@ export class EmployeeBussinessComponent implements OnInit, AfterViewInit, OnChan
 
   private tabulator!: Tabulator;
   sizeSearch: string = '0';
+  showSearchBar: boolean = true;
   searchForm!: FormGroup;
   employeeBussinessForm!: FormGroup;
   departmentList: any[] = [];
@@ -76,6 +79,10 @@ export class EmployeeBussinessComponent implements OnInit, AfterViewInit, OnChan
   selectedEmployeeBussiness: any = null;
   employeeBussinessDetailData: any[] = [];
   isLoading = false;
+
+  get shouldShowSearchBar(): boolean {
+    return this.showSearchBar;
+  }
 
   // Current user info
   currentUser: any = null;
@@ -142,6 +149,13 @@ export class EmployeeBussinessComponent implements OnInit, AfterViewInit, OnChan
 
   toggleSearchPanel() {
     this.sizeSearch = this.sizeSearch == '0' ? '22%' : '0';
+  }
+
+  ToggleSearchPanelNew(event?: Event): void {
+    if (event) {
+      event.stopPropagation();
+    }
+    this.showSearchBar = !this.showSearchBar;
   }
 
   loadDepartment() {

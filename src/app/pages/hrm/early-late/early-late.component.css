@@ -2,8 +2,42 @@
     padding: 01rem !important;
 }
 
+:host {
+    font-size: 12px !important;
+}
+
+.tabulator {
+    font-size: 12px;
+}
+
+.box {
+    height: 100%;
+    width: 100%;
+}
+
+.card {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    max-height: 93vh;
+    overflow: hidden;
+}
+
+.card-body {
+    flex: 1 1 auto;
+    min-height: 0;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+}
+
+.card-body > div {
+    flex: 1 1 auto;
+    min-height: 0;
+    overflow: hidden;
+}
+
 /* Set font-size 12px for all elements in the component */
-:host,
 :host *,
 :host ::ng-deep * {
     font-size: 12px !important;
@@ -27,6 +61,13 @@
 :host ::ng-deep .card-footer,
 :host ::ng-deep textarea {
     font-size: 12px !important;
+}
+
+:host ::ng-deep .tabulator-cell {
+    white-space: pre-wrap !important;
+    word-wrap: break-word !important;
+    overflow-wrap: break-word !important;
+    word-break: break-word !important;
 }
 
 /* Mobile: action buttons in header can overflow -> allow horizontal scroll */

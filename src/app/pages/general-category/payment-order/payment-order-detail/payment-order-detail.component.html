@@ -68,11 +68,11 @@
                 <div nz-col nzXs="24" nzSm="12" nzMd="6" nzLg="4">
                     <nz-form-item>
                         <nz-form-label>TBP duyệt<span class="text-danger ps-1">(*)</span></nz-form-label>
-                        <nz-form-control nzErrorTip="Chọn trưởng bộ phận">
+                        <nz-form-control nzErrorTip="Vui lòng chọn Trưởng bộ phận">
                             <nz-select nzShowSearch nzAllowClear nzPlaceHolder="Chọn loại"
                                 [formControlName]="paymentOrderField.ApprovedTBPID.field">
                                 @for (item of approvedTBPs; track item) {
-                                <nz-option nzLabel="{{item.FullName}}" nzValue="{{item.EmployeeID}}"></nz-option>
+                                <nz-option nzLabel="{{item.FullName}}" [nzValue]="item.EmployeeID"></nz-option>
                                 }
                             </nz-select>
                         </nz-form-control>
@@ -109,7 +109,7 @@
 
                 <div nz-col nzXs="24" nzSm="12" nzMd="6" nzLg="4">
                     <nz-form-item>
-                        <nz-form-label>Hợp đồng <span class="text-danger ps-1">(*)</span></nz-form-label>
+                        <nz-form-label>Hợp đồng</nz-form-label>
                         <nz-form-control nzErrorTip="">
                             <nz-select nzShowSearch nzAllowClear nzPlaceHolder="Chọn loại"
                                 [formControlName]="paymentOrderField.RegisterContractID.field">
@@ -201,7 +201,7 @@
                 <div nz-col nzXs="24" nzSm="12" nzMd="6" nzLg="8">
                     <nz-form-item>
                         <nz-form-label>Hình thức thanh toán</nz-form-label>
-                        <nz-form-control nzErrorTip="">
+                        <nz-form-control nzErrorTip="Vui lòng chọn hình thức thanh toán">
                             <nz-radio-group [formControlName]="paymentOrderField.TypePayment.field">
                                 <label nz-radio [nzValue]="1">Chuyển khoản</label>
                                 <label nz-radio [nzValue]="2">Tiền mặt</label>
@@ -225,7 +225,7 @@
                 <div nz-col nzXs="24" nzSm="12" nzMd="6" nzLg="8" *ngIf="paymentOrder.TypePayment == 1">
                     <nz-form-item>
                         <nz-form-label>Hình thức chuyển khoản</nz-form-label>
-                        <nz-form-control nzErrorTip="">
+                        <nz-form-control nzErrorTip="Vui lòng chọn hình thức chuyển khoản">
                             <nz-select nzShowSearch nzAllowClear nzPlaceHolder="Chọn hình thức"
                                 [formControlName]="paymentOrderField.TypeBankTransfer.field">
                                 @for (item of typeBankTransfers; track item) {

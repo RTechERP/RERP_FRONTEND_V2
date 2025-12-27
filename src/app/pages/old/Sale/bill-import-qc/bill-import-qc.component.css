@@ -1,0 +1,102 @@
+.horizontal-scroll-container {
+    overflow-x: auto;
+    overflow-y: hidden;
+    -webkit-overflow-scrolling: touch;
+    white-space: nowrap;
+    width: 100%;
+    scrollbar-width: thin;
+    scrollbar-color: #c1c1c1 transparent;
+}
+
+.horizontal-scroll-container::-webkit-scrollbar {
+    height: 6px;
+}
+
+.horizontal-scroll-container::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+.horizontal-scroll-container::-webkit-scrollbar-thumb {
+    background-color: #c1c1c1;
+    border-radius: 3px;
+}
+
+.horizontal-scroll-container::-webkit-scrollbar-thumb:hover {
+    background-color: #a1a1a1;
+}
+
+.horizontal-scroll-container>* {
+    flex-shrink: 0;
+}
+
+.table-container {
+    height: 83vh !important;
+}
+
+.ant-splitter {
+    height: 86vh !important;
+}
+
+::ng-deep .filter-bar {
+    nz-form-label {
+        font-size: 12px !important;
+    }
+
+    nz-select {
+        font-size: 12px !important;
+
+        .ant-select-selector {
+            font-size: 12px !important;
+        }
+
+        .ant-select-selection-item {
+            font-size: 12px !important;
+        }
+
+        .ant-select-selection-placeholder {
+            font-size: 12px !important;
+        }
+    }
+
+    nz-date-picker {
+        font-size: 12px !important;
+
+        .ant-picker {
+            font-size: 12px !important;
+        }
+
+        .ant-picker-input input {
+            font-size: 12px !important;
+        }
+    }
+
+    input[nz-input] {
+        font-size: 12px !important;
+    }
+}
+
+.grid-container-master {
+    height: 100%;
+    width: 100%;
+}
+
+.grid-container-detail {
+    width: 100%;
+}
+
+::ng-deep #gridQC {
+    height: 42.8vh !important;
+}
+
+::ng-deep #gridQCDetail {
+    height: 39.5vh !important;
+}
+
+/* Cell highlighting for status-based coloring */
+::ng-deep .cell-overdue {
+    background-color: orange !important;
+}
+
+::ng-deep .cell-completed {
+    background-color: lime !important;
+}

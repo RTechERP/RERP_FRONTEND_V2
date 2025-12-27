@@ -62,7 +62,7 @@ export class DailyReportMarComponent implements OnInit, AfterViewInit {
   // Search filters
   dateStart: any = DateTime.local().minus({ days: 1 }).set({ hour: 0, minute: 0, second: 0 }).toISO();
   dateEnd: any = DateTime.local().set({ hour: 0, minute: 0, second: 0 }).toISO();
-  departmentId: number = 0;
+  departmentId: number = 8;
   teamId: number = 0;
   userId: number = 0;
   keyword: string = '';
@@ -117,7 +117,7 @@ export class DailyReportMarComponent implements OnInit, AfterViewInit {
         this.loadDepartments(() => {
           // Set departmentId từ currentUser.DepartmentID sau khi departments đã load xong
           if(this.currentUser.IsAdmin == true){
-            this.departmentId = 6;
+            this.departmentId = 8;
           }
           else if(this.currentUser.DepartmentID && this.currentUser.IsAdmin != true){
             this.departmentId = this.currentUser.DepartmentID;

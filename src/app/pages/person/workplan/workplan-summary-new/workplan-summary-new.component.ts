@@ -408,7 +408,7 @@ console.log('dayCols length:', dayCols.length);
                     const v = r[c.field];
                     const n = v == null ? null : parseInt(String(v).trim(), 10);
                     const isOne = Number.isFinite(n) && n === 1;
-                    return `<td style="${isOne ? 'background:#c40363;color:#fff;' : ''}"></td>`;
+                    return `<td style="${isOne ? 'background:#d85898;color:#fff;' : ''}"></td>`;
                 }).join('');
 
                 bodyHtml += `<tr>${tdTypeAct}${actCells}</tr>`;

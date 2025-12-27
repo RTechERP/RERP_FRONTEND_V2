@@ -22,6 +22,7 @@ import { FormControl } from '@angular/forms';
 import * as ExcelJS from 'exceljs';
 import { saveAs } from 'file-saver';
 import { NzSplitterModule } from 'ng-zorro-antd/splitter';
+import { NzGridModule } from 'ng-zorro-antd/grid';
 import { EmployeeService } from '../employee/employee-service/employee.service';
 import { NzRadioModule } from 'ng-zorro-antd/radio';
 import { EarlyLateService } from './early-late-service/early-late.service';
@@ -56,6 +57,7 @@ import { PermissionService } from '../../../services/permission.service';
     NzDatePickerModule,
     NzTabsModule,
     NzSplitterModule,
+    NzGridModule,
     NzRadioModule,
     NzTimePickerModule,
     NzSpinModule,
@@ -68,6 +70,19 @@ export class EarlyLateComponent implements OnInit, AfterViewInit {
 
   private tabulator!: Tabulator;
   sizeSearch: string = '0';
+  showSearchBar: boolean = typeof window !== 'undefined' ? window.innerWidth > 768 : true;
+
+  get shouldShowSearchBar(): boolean {
+    return this.showSearchBar;
+  }
+
+  ToggleSearchPanelNew(event?: Event): void {
+    if (event) {
+      event.stopPropagation();
+    }
+    this.showSearchBar = !this.showSearchBar;
+  }
+
   searchForm!: FormGroup;
   earlyLateForm!: FormGroup;
   departmentList: any[] = [];
@@ -391,7 +406,7 @@ export class EarlyLateComponent implements OnInit, AfterViewInit {
           title: 'Mã nhân viên', field: 'Code', hozAlign: 'left', headerHozAlign: 'center', width: 140, headerSort: false, frozen: frozenOn,
         },
         {
-          title: 'Tên nhân viên', field: 'FullName', hozAlign: 'left', headerHozAlign: 'center', width: 200, headerSort: false, frozen: frozenOn,
+          title: 'Tên nhân viên', field: 'FullName', hozAlign: 'left', headerHozAlign: 'center', width: 200, headerSort: false, frozen: frozenOn, bottomCalc:'count'
         },
         {
           title: 'Người duyệt', field: 'ApprovedName', hozAlign: 'left', headerHozAlign: 'center', width: 200, headerSort: false,

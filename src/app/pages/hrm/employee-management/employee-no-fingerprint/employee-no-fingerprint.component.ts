@@ -20,6 +20,7 @@ import { NzNotificationService } from 'ng-zorro-antd/notification';
 import { NzSelectModule } from 'ng-zorro-antd/select';
 import { NzSpinModule } from 'ng-zorro-antd/spin';
 import { NzSplitterModule } from 'ng-zorro-antd/splitter';
+import { NzGridModule } from 'ng-zorro-antd/grid';
 import { NzModalModule, NzModalService } from 'ng-zorro-antd/modal';
 import { firstValueFrom } from 'rxjs';
 import { NzDropDownModule } from 'ng-zorro-antd/dropdown';
@@ -56,6 +57,7 @@ import { AuthService } from '../../../../auth/auth.service';
     NzSelectModule,
     NzSpinModule,
     NzSplitterModule,
+    NzGridModule,
     NzModalModule,
     NgbModalModule, //
     // ENFDetailComponent,
@@ -80,6 +82,18 @@ export class EmployeeNoFingerprintComponent
 
   // UI states
   sizeSearch: string = '0';
+  showSearchBar: boolean = typeof window !== 'undefined' ? window.innerWidth > 768 : true;
+
+  get shouldShowSearchBar(): boolean {
+    return this.showSearchBar;
+  }
+
+  ToggleSearchPanelNew(event?: Event): void {
+    if (event) {
+      event.stopPropagation();
+    }
+    this.showSearchBar = !this.showSearchBar;
+  }
 
   // Search filters
   selectedDepartmentFilter: number | null = null;

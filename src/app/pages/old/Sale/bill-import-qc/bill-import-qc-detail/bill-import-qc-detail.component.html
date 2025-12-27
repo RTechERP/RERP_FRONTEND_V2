@@ -152,6 +152,12 @@
                 [options]="gridOptionsMaster"
                 [dataset]="dataMaster"
                 (onAngularGridCreated)="angularGridMasterReady($event.detail)"
+                (onSelectedRowsChanged)="
+                  onSelectedRowsChangedMaster(
+                    $event.detail.eventData,
+                    $event.detail.args
+                  )
+                "
                 (onHeaderClick)="
                   onGridMasterHeaderClick(
                     $event.detail.eventData,

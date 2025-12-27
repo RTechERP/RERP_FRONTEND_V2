@@ -43,7 +43,6 @@ import { NzSelectModule } from 'ng-zorro-antd/select';
 import { NzDatePickerModule } from 'ng-zorro-antd/date-picker';
 import { NzInputNumberModule } from 'ng-zorro-antd/input-number';
 import { NzButtonModule } from 'ng-zorro-antd/button';
-import { NzCheckboxModule } from 'ng-zorro-antd/checkbox';
 import { NzTabsModule } from 'ng-zorro-antd/tabs';
 import { NzGridModule } from 'ng-zorro-antd/grid';
 import { NzDropDownModule } from 'ng-zorro-antd/dropdown';
@@ -447,7 +446,6 @@ class GroupSelectEditor {
     NzDatePickerModule,
     NzInputNumberModule,
     NzButtonModule,
-    NzCheckboxModule,
     NzTabsModule,
     NzGridModule,
     NzDropDownModule,
@@ -547,6 +545,7 @@ export class BillImportQcDetailComponent
 
   private headerFilterAppliedMap: Record<string, string[]> = {};
   private masterAllInitialized = false;
+  selectedRowIds: Set<number> = new Set();
 
   //#endregion
 
@@ -572,6 +571,22 @@ export class BillImportQcDetailComponent
         this.gridOptionsMaster.autoEdit = false;
       }
     }
+  }
+
+  onSelectedRowsChangedMaster(_e: Event, args: OnSelectedRowsChangedEventArgs) {
+    if (this.isCheckBillQC) return;
+
+    this.selectedRowIds.clear();
+    const grid = this.angularGridMaster?.slickGrid;
+    if (!grid) return;
+
+    const rows = args?.rows || [];
+    rows.forEach((rowIndex: number) => {
+      const item: any = grid.getDataItem(rowIndex);
+      if (item?.ID !== undefined && item?.ID !== null) {
+        this.selectedRowIds.add(Number(item.ID));
+      }
+    });
   }
 
   ngAfterViewInit(): void {}
@@ -873,7 +888,7 @@ export class BillImportQcDetailComponent
       // Cột ProductSaleID hoặc action: người yêu cầu + status phù hợp
       if (fieldName === 'ProductSaleID' || columnDef.id === 'action') {
         const status = Number(item.Status);
-        const validStatuses = [0, 3]; // Status = 0 hoặc 3
+        const validStatuses = [0, 3, null, undefined]; // Status = 0 hoặc 3
 
         if (
           validStatuses.includes(status) &&
@@ -916,6 +931,27 @@ export class BillImportQcDetailComponent
 
         // Update lại row
         angularGrid.gridService.updateItem(args.item);
+      }
+
+      // Fill LeaderTechID hoặc EmployeeTechID vào các dòng đã chọn
+      if (
+        columnDef.field === 'LeaderTechID' ||
+        columnDef.field === 'EmployeeTechID'
+      ) {
+        if (this.selectedRowIds.size > 0) {
+          const newValue = args.item[columnDef.field];
+
+          // Cập nhật tất cả các dòng đã chọn
+          this.dataMasterAll.forEach((rowData: any) => {
+            if (
+              this.selectedRowIds.has(Number(rowData.ID)) &&
+              Number(rowData.ID) !== Number(args.item.ID)
+            ) {
+              rowData[columnDef.field] = newValue;
+              angularGrid.gridService.updateItem(rowData);
+            }
+          });
+        }
       }
 
       if (
@@ -1076,6 +1112,7 @@ export class BillImportQcDetailComponent
     if (this.isCheckBillQC) return;
 
     const column = args.column;
+
     if (column.id === 'action') {
       const clickedElement = e.target as HTMLElement;
 
@@ -1151,14 +1188,13 @@ export class BillImportQcDetailComponent
   }
 
   addNewRow() {
-    const newId =
-      this.dataMasterAll.length > 0
-        ? Math.max(...this.dataMasterAll.map((x) => x.id || 0)) + 1
-        : 1;
+    const tempIds = this.dataMasterAll
+      .filter((x) => Number(x?.ID) < 0)
+      .map((x) => Math.abs(Number(x?.ID)));
+    const nextTempId = tempIds.length > 0 ? Math.max(...tempIds) + 1 : 1;
 
     const newRow = {
-      id: newId,
-      ID: -newId,
+      ID: -nextTempId,
       STT: this.dataMasterAll.length + 1,
       ProductCode: '',
       ProductName: '',
@@ -1167,7 +1203,7 @@ export class BillImportQcDetailComponent
       LeaderTechID: 0,
       LeaderFullName: '',
       EmTechFullName: '',
-      StatusText: '',
+      Status: 0,
       ProjectCode: '',
       ProjectName: '',
       POKHCode: '',
@@ -1235,7 +1271,10 @@ export class BillImportQcDetailComponent
       this.masterDeleteIds.push(item.ID);
     }
 
-    this.dataMasterAll = this.dataMasterAll.filter((x) => x.id !== item.id);
+    this.dataMasterAll = this.dataMasterAll.filter(
+      (x) => Number(x?.ID) !== Number(item?.ID)
+    );
+    this.selectedRowIds.delete(Number(item?.ID));
     // Cập nhật lại STT
     this.dataMasterAll = this.dataMasterAll.map((x, index) => ({
       ...x,
@@ -1321,12 +1360,12 @@ export class BillImportQcDetailComponent
       rowSelectionOptions: {
         selectActiveRow: false,
       },
+      multiSelect: true,
+      enableCheckboxSelector: true,
       checkboxSelector: {
         hideInFilterHeaderRow: false,
-        hideInColumnTitleRow: true,
-        applySelectOnAllPages: true,
+        hideInColumnTitleRow: false,
       },
-      enableCheckboxSelector: true,
       enableCellNavigation: true,
       editable: true,
       autoEdit: true,
@@ -1337,7 +1376,7 @@ export class BillImportQcDetailComponent
       createFooterRow: true,
       showFooterRow: true,
       footerRowHeight: 30,
-      frozenColumn: 4,
+      //frozenColumn: 4,
       forceFitColumns: true,
       enableColumnReorder: true,
     };
@@ -1378,7 +1417,7 @@ export class BillImportQcDetailComponent
   }
 
   initGridColumns() {
-    this.columnDefinitionsMaster = [
+    const newColumnDefs: Column[] = [
       {
         id: 'action',
         name: '<i class="fas fa-plus" style="cursor:pointer; color:#1890ff;" title="Thêm dòng mới"></i>',
@@ -1856,6 +1895,23 @@ export class BillImportQcDetailComponent
         filter: { model: Filters['compoundInputText'] },
       },
     ];
+
+    const gridService = this.angularGridMaster?.gridService;
+    const existingAllColumns = gridService?.getAllColumnDefinitions?.() || [];
+    if (existingAllColumns.length) {
+      const newById = new Map(newColumnDefs.map((c) => [c.id, c]));
+      const merged = existingAllColumns.map((c: any) => newById.get(c.id) ?? c);
+
+      newColumnDefs.forEach((c) => {
+        if (!merged.some((m: any) => m?.id === c.id)) {
+          merged.push(c);
+        }
+      });
+
+      this.columnDefinitionsMaster = merged as Column[];
+    } else {
+      this.columnDefinitionsMaster = newColumnDefs;
+    }
   }
   //#endregion
 

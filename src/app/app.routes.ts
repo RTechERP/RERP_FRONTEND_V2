@@ -120,6 +120,7 @@ import { FollowProjectBaseComponent } from './pages/old/VisionBase/kho-base/foll
 import { PlanWeekComponent } from './pages/old/VisionBase/plan-week/plan-week.component';
 import { ApproveTpComponent } from './pages/person/approve-tp/approve-tp/approve-tp.component';
 import { PersonComponent } from './pages/person/person.component';
+import { OrgChartRtcComponent } from './pages/general-category/org-chart-rtc/org-chart-rtc.component';
 import { RegisterContractComponent } from './pages/person/register-contract/register-contract.component';
 import { WorkplanComponent } from './pages/person/workplan/workplan.component';
 import { WorkplanSummaryComponent } from './pages/person/workplan/workplan-summary/workplan-summary.component';
@@ -357,6 +358,8 @@ export const routes: Routes = [
             { path: 'approve-tp', component: ApproveTpComponent, canActivate: [authGuard] },
             { path: 'office-supply-requests', component: OfficeSupplyRequestsComponent, canActivate: [authGuard] },
             { path: 'project-partlist', component: ProjectPartListComponent, canActivate: [authGuard] },
+            { path: 'org-chart-rtc', component: OrgChartRtcComponent, canActivate: [authGuard] },
+
 
 
             //TBP duyệt

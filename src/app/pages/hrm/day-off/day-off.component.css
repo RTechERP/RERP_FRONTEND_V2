@@ -1,5 +1,36 @@
+:host {
+    font-size: 12px !important;
+}
+
 .tabulator {
-    font-size: 0.75rem;
+    font-size: 12px;
+}
+
+.box {
+    height: 100%;
+    width: 100%;
+}
+
+.card {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    max-height: 93vh;
+    overflow: hidden;
+}
+
+.card-body {
+    flex: 1 1 auto;
+    min-height: 0;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+}
+
+.card-body > div {
+    flex: 1 1 auto;
+    min-height: 0;
+    overflow: hidden;
 }
 
 .fs-12 {
@@ -13,6 +44,14 @@
 .reset {
     all: revert;
 }
+
+:host ::ng-deep .tabulator-cell {
+    white-space: pre-wrap !important;
+    word-wrap: break-word !important;
+    overflow-wrap: break-word !important;
+    word-break: break-word !important;
+}
+
 .ant-splitter{
   height: 94vh !important;
 }

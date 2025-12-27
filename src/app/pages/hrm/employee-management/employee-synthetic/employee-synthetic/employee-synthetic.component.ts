@@ -12,6 +12,7 @@ import { FormsModule } from '@angular/forms';
 import { NzButtonModule } from 'ng-zorro-antd/button';
 import { NzIconModule } from 'ng-zorro-antd/icon';
 import { NzSplitterModule } from 'ng-zorro-antd/splitter';
+import { NzGridModule } from 'ng-zorro-antd/grid';
 import { NzDatePickerModule } from 'ng-zorro-antd/date-picker';
 import { NzSelectModule } from 'ng-zorro-antd/select';
 import { NzInputModule } from 'ng-zorro-antd/input';
@@ -45,6 +46,7 @@ import { DEFAULT_TABLE_CONFIG } from '../../../../../tabulator-default.config';
     NzButtonModule,
     NzIconModule,
     NzSplitterModule,
+    NzGridModule,
     NzDatePickerModule,
     NzSelectModule,
     NzInputModule,
@@ -72,6 +74,18 @@ export class EmployeeSyntheticComponent
 
   sizeSearch = '22%';
   isLoadTable = false;
+  showSearchBar: boolean = typeof window !== 'undefined' ? window.innerWidth > 768 : true;
+
+  get shouldShowSearchBar(): boolean {
+    return this.showSearchBar;
+  }
+
+  ToggleSearchPanelNew(event?: Event): void {
+    if (event) {
+      event.stopPropagation();
+    }
+    this.showSearchBar = !this.showSearchBar;
+  }
 
   departments: any[] = [];
   allEmployees: any[] = [];

@@ -1,3 +1,33 @@
+:host {
+  font-size: 12px !important;
+}
+
+.tabulator {
+  font-size: 12px;
+}
+
+.card {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  max-height: 93vh;
+  overflow: hidden;
+}
+
+.card-body {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+.card-body > div {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow: hidden;
+}
+
 .fs-12 {
   font-size: 0.75rem;
 }
@@ -6,46 +36,11 @@
   all: revert;
 }
 
-.ant-splitter-panel{
-  position: relative;
-}
-
-.tabulator {
-  font-size: 0.75rem;
-  position: absolute;
-  width: 100%;
-}
-
-.tabulator-cell {
-  padding: 0px;
-}
-
-.inner-content {
-  padding: 0 !important;
-}
-
-.ant-tabs-tab-btn {
-  font-size: 0.75rem;
-}
-
-/* Mobile: action buttons in header can overflow -> allow horizontal scroll */
-@media (max-width: 768px) {
-  .wfh-actions-scroll {
-    overflow-x: auto;
-    overflow-y: hidden;
-    -webkit-overflow-scrolling: touch;
-    width: 100%;
-  }
-
-  .wfh-actions {
-    flex-wrap: nowrap !important;
-    width: max-content;
-    padding-bottom: 4px;
-  }
-
-  .wfh-actions > * {
-    flex: 0 0 auto;
-  }
+:host ::ng-deep .tabulator-cell {
+  white-space: pre-wrap !important;
+  word-wrap: break-word !important;
+  overflow-wrap: break-word !important;
+  word-break: break-word !important;
 }
 
 

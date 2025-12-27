@@ -26,6 +26,7 @@ import { EmployeeService } from '../employee/employee-service/employee.service';
 import { NzSplitterModule } from 'ng-zorro-antd/splitter';
 import { NzSpinModule } from 'ng-zorro-antd/spin';
 import { NzCardModule } from 'ng-zorro-antd/card';
+import { NzGridModule } from 'ng-zorro-antd/grid';
 import { OverTimeService } from './over-time-service/over-time.service';
 import { OverTimeDetailComponent } from "./over-time-detail/over-time-detail.component";
 import { OverTimeTypeComponent } from "./over-time-type/over-time-type.component";
@@ -60,6 +61,7 @@ import { AuthService } from '../../../auth/auth.service';
     NgIf,
     NzSpinModule,
     NzCardModule,
+    NzGridModule,
     OverTimeDetailComponent,
     OverTimeTypeComponent,
     SummaryOverTimeComponent,
@@ -70,6 +72,7 @@ export class OverTimeComponent implements OnInit, AfterViewInit {
 
   private tabulator!: Tabulator;
   sizeSearch: string = '0';
+  showSearchBar: boolean = true;
   searchForm!: FormGroup;
   overTimeForm!: FormGroup;
   departmentList: any[] = [];
@@ -78,6 +81,10 @@ export class OverTimeComponent implements OnInit, AfterViewInit {
   overTimeDetailData: any[] = [];
   isLoading = false;
   currentUser: any = null;
+
+  get shouldShowSearchBar(): boolean {
+    return this.showSearchBar;
+  }
 
   constructor(
     private fb: FormBuilder,
@@ -132,6 +139,13 @@ export class OverTimeComponent implements OnInit, AfterViewInit {
     this.sizeSearch = this.sizeSearch == '0' ? '22%' : '0';
   }
 
+  ToggleSearchPanelNew(event?: Event): void {
+    if (event) {
+      event.stopPropagation();
+    }
+    this.showSearchBar = !this.showSearchBar;
+  }
+
   loadDepartment() {
     this.departmentService.getDepartments().subscribe({
       next: (data) => {
@@ -159,6 +173,7 @@ export class OverTimeComponent implements OnInit, AfterViewInit {
     this.tabulator = new Tabulator('#tb_over_time', {
       data: this.overTimeList,
       layout: 'fitColumns',
+      columnCalcs:'both',
       selectableRows: true,
       height: '88vh',
       rowHeader: {

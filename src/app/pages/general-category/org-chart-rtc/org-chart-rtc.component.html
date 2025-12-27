@@ -1,0 +1,54 @@
+<div class="card h-100">
+  <!-- Header -->
+  <div class="card-header p-2 bg-light d-flex justify-content-between align-items-center">
+    <h5 class="m-0">Sơ đồ tổ chức RTC</h5>
+    <button nz-button nzType="primary" nzSize="small" (click)="exportToPDF()">
+      <i nz-icon nzType="file-pdf"></i>
+    </button>
+  </div>
+
+  <!-- Body -->
+  <div class="card-body p-2">
+    <!-- Loading -->
+    <div *ngIf="isLoading" class="text-center py-4">
+      <nz-spin nzSimple></nz-spin>
+    </div>
+
+    <!-- Department Tabs -->
+    <ul class="nav nav-tabs mb-3">
+      <li class="nav-item">
+        <button class="nav-link" [class.active]="selectedDepartmentId === 0" (click)="onDepartmentTabClick(0)">
+          Tất cả
+        </button>
+      </li>
+      <li class="nav-item" *ngFor="let dept of departments">
+        <button class="nav-link" [class.active]="selectedDepartmentId === dept.ID" (click)="onDepartmentTabClick(dept.ID)">
+          {{ dept.Name }}
+        </button>
+      </li>
+    </ul>
+
+    <!-- Search -->
+    <div class="row mb-3">
+      <div class="col-md-3 ml-auto">
+        <nz-select 
+          [(ngModel)]="selectedNodeKey" 
+          (ngModelChange)="searchDiagram($event)"
+          nzShowSearch 
+          nzAllowClear
+          nzPlaceHolder="Tìm kiếm..."
+          style="width: 100%;">
+          <nz-option [nzValue]="''" nzLabel="--Tất cả--"></nz-option>
+          <nz-option 
+            *ngFor="let node of nodeOptions" 
+            [nzValue]="node.key" 
+            [nzLabel]="node.label">
+          </nz-option>
+        </nz-select>
+      </div>
+    </div>
+
+    <!-- Diagram Container -->
+    <div id="myDiagramDiv" style="width: 100%; height: 70vh; border: 1px solid #ddd; border-radius: 4px;"></div>
+  </div>
+</div>

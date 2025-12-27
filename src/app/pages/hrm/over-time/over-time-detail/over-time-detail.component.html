@@ -19,7 +19,7 @@
                         <nz-form-control>
                             <nz-select formControlName="approverId" nzPlaceHolder="Chọn người duyệt" nzAllowClear
                                 nzSize="small" style="width: 10vw;">
-                                <nz-option *ngFor="let a of approverList" [nzValue]="a.ID"
+                                <nz-option *ngFor="let a of approverList" [nzValue]="a.EmployeeID"
                                     [nzLabel]="a.FullName"></nz-option>
                             </nz-select>
                         </nz-form-control>

@@ -18,6 +18,7 @@ import { NzNotificationService } from 'ng-zorro-antd/notification';
 import { NzSelectModule } from 'ng-zorro-antd/select';
 import { NzSpinModule } from 'ng-zorro-antd/spin';
 import { NzSplitterModule } from 'ng-zorro-antd/splitter';
+import { NzGridModule } from 'ng-zorro-antd/grid';
 import { NzModalModule, NzModalService } from 'ng-zorro-antd/modal';
 import { NzDropDownModule } from 'ng-zorro-antd/dropdown';
 import { NzMenuModule } from 'ng-zorro-antd/menu';
@@ -45,6 +46,7 @@ import{HasPermissionDirective} from '../../../../directives/has-permission.direc
     NzSelectModule,
     NzSpinModule,
     NzSplitterModule,
+    NzGridModule,
     NzModalModule,
     NzDropDownModule,
     NzMenuModule,
@@ -60,6 +62,19 @@ export class WFHComponent implements OnInit, AfterViewInit, OnDestroy {
   isLoadTable: boolean = false;
   isTableReady: boolean = false;
   sizeSearch: string = '0';
+  showSearchBar: boolean = typeof window !== 'undefined' ? window.innerWidth > 768 : true;
+
+  get shouldShowSearchBar(): boolean {
+    return this.showSearchBar;
+  }
+
+  ToggleSearchPanelNew(event?: Event): void {
+    if (event) {
+      event.stopPropagation();
+    }
+    this.showSearchBar = !this.showSearchBar;
+  }
+
   year: Date = new Date();
   month: number = new Date().getMonth() + 1;
   selectedDepartmentFilter: number | null = null;

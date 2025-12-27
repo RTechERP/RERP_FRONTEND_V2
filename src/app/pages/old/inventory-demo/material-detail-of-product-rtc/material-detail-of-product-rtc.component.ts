@@ -1,5 +1,6 @@
 import { NzNotificationService } from 'ng-zorro-antd/notification'
 import { Component, OnInit, Input, Output, EventEmitter, inject, AfterViewInit, Optional, Inject, ViewChild, ElementRef } from '@angular/core';
+import { ActivatedRoute } from '@angular/router';
 import { DateTime } from 'luxon';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
@@ -70,16 +71,16 @@ export class MaterialDetailOfProductRtcComponent implements OnInit, AfterViewIni
   //ds sản phẩm
   productData: any[] = [];
   //requet gọi store
-@Input()  warehouseID: number = 0;
- @Input()  productRTCID: number = 0;
-@Input()   ProductCode: string = '';
-@Input()   ProductName: string = '';
- @Input()  NumberBegin: number = 0;
- @Input()  InventoryLatest: number = 0;
- @Input()  NumberImport: number = 0;
- @Input()  NumberExport: number = 0;
- @Input()  NumberBorrowing: number = 0;
- @Input()  InventoryReal: number = 0;
+@Input() warehouseID: number = 0;
+ @Input() productRTCID: number = 0;
+@Input() ProductCode: string = '';
+@Input() ProductName: string = '';
+ @Input() NumberBegin: number = 0;
+ @Input() InventoryLatest: number = 0;
+ @Input() NumberImport: number = 0;
+ @Input() NumberExport: number = 0;
+ @Input() NumberBorrowing: number = 0;
+ @Input() InventoryReal: number = 0;
   // Tabulator instances
   tableBorrow: Tabulator | null = null;
   tableImport: Tabulator | null = null;
@@ -89,6 +90,7 @@ export class MaterialDetailOfProductRtcComponent implements OnInit, AfterViewIni
     private notification: NzNotificationService,
     private inventoryDemoService: InventoryDemoService,
     private ngbModal: NgbModal,
+    private route: ActivatedRoute,
     @Optional() public activeModal: NgbActiveModal,
     @Optional() @Inject('tabData') private tabData: any
   ) { }
@@ -99,7 +101,23 @@ export class MaterialDetailOfProductRtcComponent implements OnInit, AfterViewIni
     });
   }
   ngOnInit() {
-    // Lấy dữ liệu từ tabData injector nếu có
+    // Read data from query params (when opened via window.open with route)
+    this.route.queryParams.subscribe((params) => {
+      if (Object.keys(params).length > 0) {
+        this.productRTCID1 = parseInt(params['productRTCID1'] || '0', 10);
+        this.warehouseID1 = parseInt(params['warehouseID1'] || '0', 10);
+        this.ProductCode = params['ProductCode'] || '';
+        this.ProductName = params['ProductName'] || '';
+        this.NumberBegin = parseFloat(params['NumberBegin'] || '0');
+        this.InventoryLatest = parseFloat(params['InventoryLatest'] || '0');
+        this.NumberImport = parseFloat(params['NumberImport'] || '0');
+        this.NumberExport = parseFloat(params['NumberExport'] || '0');
+        this.NumberBorrowing = parseFloat(params['NumberBorrowing'] || '0');
+        this.InventoryReal = parseFloat(params['InventoryReal'] || '0');
+      }
+    });
+
+    // Lấy dữ liệu từ tabData injector nếu có (override query params)
     if (this.tabData) {
       this.productRTCID1 = this.tabData.productRTCID1 || 0;
       this.warehouseID1 = this.tabData.warehouseID1 || 0;

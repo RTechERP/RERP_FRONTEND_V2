@@ -255,7 +255,6 @@ export class PoRequestBuyComponent implements OnInit, AfterViewInit {
       UnitName: row.Unit,
       DateReceive: row.DeliveryRequestedDate,
       ParentProductCode: row.ParentProductCode,
-
     }));
     this.PoRequestBuyService.saveData(requestData).subscribe({
       next: (res) => {

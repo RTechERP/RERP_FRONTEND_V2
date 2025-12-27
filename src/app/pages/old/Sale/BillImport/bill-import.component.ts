@@ -727,6 +727,7 @@ export class BillImportComponent implements OnInit, AfterViewInit {
             code = selected?.BillImportCode || '';
         }
 
+        console.log("id phiếu nhập", importId)
         const modalRef = this.modalService.open(BillDocumentImportComponent, {
             centered: true,
             size: 'xl',

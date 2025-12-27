@@ -480,6 +480,7 @@ export class BillImportQcDetailComponent
   @Input() billImportQCMaster: any = [];
   @Input() isCheckBillQC: boolean = false;
   @Input() isAddNewToBillImport: boolean = false;
+  @Input() dataImport: any = [];
   isDisabledEmployeeRequest: boolean = false;
   isDisabledDateRequest: boolean = false;
   isDisabledDeadline: boolean = false;
@@ -708,6 +709,25 @@ export class BillImportQcDetailComponent
           );
         },
       });
+
+      console.log('dataImport:', this.dataImport);
+      if (this.dataImport.length > 0) {
+        this.dataMasterAll = this.dataImport;
+        this.dataMaster = this.dataImport;
+        this.masterAllInitialized = true;
+        this.applyHeaderFiltersToView();
+
+        setTimeout(() => {
+          if (this.angularGridMaster?.dataView) {
+            this.angularGridMaster.dataView.setItems(this.dataMaster);
+            this.angularGridMaster.slickGrid?.invalidate();
+            this.angularGridMaster.slickGrid?.render();
+            setTimeout(() => {
+              this.updateMasterFooter();
+            }, 1000);
+          }
+        }, 0);
+      }
     }
   }
 

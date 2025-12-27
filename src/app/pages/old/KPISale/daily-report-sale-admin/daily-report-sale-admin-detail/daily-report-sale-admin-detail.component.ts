@@ -747,6 +747,7 @@ export class DailyReportSaleAdminDetailComponent implements OnInit, AfterViewIni
           const parentRow = cell.getRow();
           parentRow.update({
             ProjectID: selectedProject.ID,
+            CustomerID: selectedProject.CustomerID,
           });
           this.tabulatorPopupService.close();
         },

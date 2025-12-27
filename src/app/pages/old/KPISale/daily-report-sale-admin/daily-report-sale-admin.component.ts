@@ -156,8 +156,8 @@ export class DailyReportSaleAdminComponent implements OnInit, AfterViewInit {
             backdrop: 'static',
         });
         modalRef.result.then((result) => {
-            if (result && result.success && result.reloadData) {
-                this.tb_Master?.replaceData();
+            if (result.success && result.reloadData) {
+                this.loadData();
             }
         }, () => { });
     }
@@ -462,13 +462,14 @@ export class DailyReportSaleAdminComponent implements OnInit, AfterViewInit {
                     field: 'ProjectCode',
                     sorter: 'string',
                     minWidth: 150,
-                    width: 250,
+                    width: 150,
                 },
                 {
                     title: 'Khách hàng',
                     field: 'CustomerName',
                     sorter: 'string',
-                    width: 150,
+                    formatter: 'textarea',
+                    width: 200,
                 },
                 {
                     title: 'Người yêu cầu',

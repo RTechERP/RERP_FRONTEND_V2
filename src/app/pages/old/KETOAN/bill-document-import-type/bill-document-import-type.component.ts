@@ -63,6 +63,7 @@ import { NOTIFICATION_TITLE } from '../../../../app.config';
 
 import { DEFAULT_TABLE_CONFIG } from '../../../../tabulator-default.config';
 import { BillDocumentImportTypeService } from './bill-document-import-type-service/bill-document-import-type.service';
+import { BillDocumentImportComponent } from '../../Sale/BillImport/Modal/bill-document-import/bill-document-import.component';
 @Component({
   selector: 'app-bill-document-import-type',
   imports: [
@@ -101,6 +102,8 @@ export class BillDocumentImportTypeComponent implements OnInit, AfterViewInit {
   @ViewChild('tb_Master', { static: false }) tb_MasterElement!: ElementRef;
   tb_Master!: Tabulator;
   sizeSearch: string = '0';
+  private modalRef: any;
+
   toggleSearchPanel() {
     this.sizeSearch = this.sizeSearch == '0' ? '22%' : '0';
   }
@@ -155,6 +158,17 @@ export class BillDocumentImportTypeComponent implements OnInit, AfterViewInit {
 
   search() {
     this.tb_Master.setData(null, true);
+  }
+
+  onOpenBillDocumentImport(id: number, code: string) {
+    this.modalRef = this.modalService.open(BillDocumentImportComponent, {
+      centered: true,
+      // windowClass: 'full-screen-modal',
+      size: 'xl',
+      backdrop: 'static',
+    });
+    this.modalRef.componentInstance.id = id;
+    this.modalRef.componentInstance.code = code;
   }
 
   getAjaxParams(): any {
@@ -234,7 +248,7 @@ export class BillDocumentImportTypeComponent implements OnInit, AfterViewInit {
         vertAlign: 'middle',
         resizable: true,
       },
-            columns: [
+      columns: [
         {
           title: '',
           columns: [
@@ -245,12 +259,12 @@ export class BillDocumentImportTypeComponent implements OnInit, AfterViewInit {
               width: 200,
               formatter: (cell) => {
                 const value = cell.getValue();
-                
+
                 // Tô màu cho "Chưa hoàn thành"
                 if (value === 'Chưa hoàn thành') {
                   cell.getElement().style.backgroundColor = '#FFFF00'; // Yellow
                 }
-                
+
                 return value;
               },
             },
@@ -295,7 +309,10 @@ export class BillDocumentImportTypeComponent implements OnInit, AfterViewInit {
               field: 'BillImportCode',
               sorter: 'string',
               width: 200,
-
+              bottomCalc: 'count',
+              bottomCalcFormatter: (value: any) => {
+                return `Tổng: ${value || 0}`;
+              },
             },
           ]
         },
@@ -310,12 +327,12 @@ export class BillDocumentImportTypeComponent implements OnInit, AfterViewInit {
               formatter: (cell) => {
                 const id = cell.getValue();
                 const statusName = this.getStatusName(id);
-                
+
                 // Tô màu cho giá trị = 2 hoặc 0
                 if (id == 2 || id == 0) {
                   cell.getElement().style.backgroundColor = '#FFFF00'; // Yellow
                 }
-                
+
                 return statusName;
               },
             },
@@ -340,12 +357,12 @@ export class BillDocumentImportTypeComponent implements OnInit, AfterViewInit {
               formatter: (cell) => {
                 const id = cell.getValue();
                 const statusName = this.getStatusName(id);
-                
+
                 // Tô màu cho giá trị = 2 hoặc 0
                 if (id == 2 || id == 0) {
                   cell.getElement().style.backgroundColor = '#FFFF00'; // Yellow
                 }
-                
+
                 return statusName;
               },
             },
@@ -370,12 +387,12 @@ export class BillDocumentImportTypeComponent implements OnInit, AfterViewInit {
               formatter: (cell) => {
                 const id = cell.getValue();
                 const statusName = this.getStatusName(id);
-                
+
                 // Tô màu cho giá trị = 2 hoặc 0
                 if (id == 2 || id == 0) {
                   cell.getElement().style.backgroundColor = '#FFFF00'; // Yellow
                 }
-                
+
                 return statusName;
               },
             },
@@ -450,10 +467,73 @@ export class BillDocumentImportTypeComponent implements OnInit, AfterViewInit {
 
       ],
     });
+    this.tb_Master.on('rowDblClick', (e: UIEvent, row: RowComponent) => {
+      const id = row.getData()['ID'];
+      const code = row.getData()['Code'];
+      this.onOpenBillDocumentImport(id, code);
+    });
   }
 
-  exportTableToExcel() {
-    this.tb_Master.download('xlsx', 'BillDocumentImportType');
+  exportTableToExcel(): void {
+    const data = this.tb_Master?.getData() || [];
+    if (data.length === 0) {
+      this.notification.warning('Cảnh báo', 'Không có dữ liệu để xuất!');
+      return;
+    }
+
+    const workbook = new ExcelJS.Workbook();
+    const worksheet = workbook.addWorksheet('Loại Phiếu Nhập Chứng Từ');
+
+    worksheet.columns = [
+      { header: 'Trạng thái chứng từ', key: 'BillDocumentImportTypeText', width: 25 },
+      { header: 'Nhận chứng từ', key: 'Status', width: 15 },
+      { header: 'Ngày nhận', key: 'DateStatus', width: 15 },
+      { header: 'Loại phiếu', key: 'BillTypeText', width: 20 },
+      { header: 'Số phiếu', key: 'BillImportCode', width: 20 },
+      { header: 'Trạng thái BBBG', key: 'BBBGtext', width: 15 },
+      { header: 'Lý do / Ghi chú BBBG', key: 'BBBG_Note', width: 25 },
+      { header: 'Trạng thái PO', key: 'POtext', width: 15 },
+      { header: 'Lý do / Ghi chú PO', key: 'PO_Note', width: 25 },
+      { header: 'Trạng thái PXK', key: 'PXKtext', width: 15 },
+      { header: 'Lý do / Ghi chú PXK', key: 'PXK_Note', width: 25 },
+      { header: 'Nhà cung cấp / Bộ phận', key: 'Suplier', width: 30 },
+      { header: 'Người giao / Người trả', key: 'Deliver', width: 20 },
+      { header: 'Người nhận', key: 'Reciver', width: 20 },
+      { header: 'Ngày tạo', key: 'CreatDate', width: 15 },
+      { header: 'Loại vật tư', key: 'KhoType', width: 15 },
+      { header: 'Kho', key: 'WarehouseName', width: 20 },
+    ];
+
+    worksheet.getRow(1).font = { bold: true };
+    worksheet.getRow(1).fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFD3D3D3' } };
+
+    data.forEach((row: any) => {
+      worksheet.addRow({
+        ...row,
+        Status: row.Status ? 'Đã nhận' : 'Chưa nhận',
+        DateStatus: row.DateStatus ? new Date(row.DateStatus).toLocaleDateString('vi-VN') : '',
+        CreatDate: row.CreatDate ? new Date(row.CreatDate).toLocaleDateString('vi-VN') : '',
+        BBBGtext: this.getStatusName(row.BBBGtext),
+        POtext: this.getStatusName(row.POtext),
+        PXKtext: this.getStatusName(row.PXKtext),
+      });
+    });
+
+    // Add bottom calculation row
+    const bottomRow = worksheet.addRow({});
+    bottomRow.getCell(5).value = `Tổng: ${data.length}`;
+    bottomRow.getCell(5).font = { bold: true };
+    bottomRow.getCell(5).fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFE6E6E6' } };
+
+    workbook.xlsx.writeBuffer().then((buffer) => {
+      const blob = new Blob([buffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `HoSoChungTuPhieuNhapSale_${new Date().toLocaleDateString('vi-VN').replace(/\//g, '-')}.xlsx`;
+      a.click();
+      window.URL.revokeObjectURL(url);
+    });
   }
 
 }

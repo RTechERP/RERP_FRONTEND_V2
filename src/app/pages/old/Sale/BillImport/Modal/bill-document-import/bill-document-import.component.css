@@ -1,3 +1,10 @@
 .modal-body {
     height: 70vh !important;
 }
+
+.ant-splitter-panel {
+    position: relative;
+}
+.ant-splitter {
+    height: 72vh !important;
+  }

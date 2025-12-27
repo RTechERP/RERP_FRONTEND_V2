@@ -19,6 +19,17 @@ import {
   NgbModule,
   NgbActiveModal,
 } from '@ng-bootstrap/ng-bootstrap';
+import {
+  AngularGridInstance,
+  AngularSlickgridModule,
+  Column,
+  Editors,
+  Filters,
+  Formatters,
+  GridOption,
+  OnClickEventArgs,
+  OnSelectedRowsChangedEventArgs
+} from 'angular-slickgrid';
 import { NzModalModule, NzModalService } from 'ng-zorro-antd/modal';
 import { NzNotificationService } from 'ng-zorro-antd/notification';
 import { NzSelectModule } from 'ng-zorro-antd/select';
@@ -80,6 +91,7 @@ interface DocumentImportPoNCC {
     // ProductSaleDetailComponent,
     // SelectControlComponent,
     HasPermissionDirective,
+    AngularSlickgridModule
   ],
   templateUrl: './bill-document-import.component.html',
   styleUrls: ['./bill-document-import.component.css'],
@@ -89,16 +101,21 @@ export class BillDocumentImportComponent implements OnInit, AfterViewInit {
   @Input() code: string = '';
   @Output() dataSaved = new EventEmitter<void>(); // To notify parent to reload
 
-  @ViewChild('tableBillDocumentImport') tableBillDocumentImportRef!: ElementRef;
-  @ViewChild('tableBillDocumentImportLog')
-  tableBillDocumentImportLogRef!: ElementRef;
+  // Store original BillImportID
+  billImportID: number = 0;
+
+  angularGridMaster!: AngularGridInstance;
+  columnDefinitionsMaster: Column[] = [];
+  gridOptionsMaster: GridOption = {};
+  dataBillDocumentImport: any[] = [];
+
+  angularGridLog!: AngularGridInstance;
+  columnDefinitionsLog: Column[] = [];
+  gridOptionsLog: GridOption = {};
+  dataBillDocumentImportLog: any[] = [];
 
   displayedData: any;
   flag: boolean = true;
-  dataBillDocumentImport: any[] = [];
-  table_billDocumentImport: any;
-  dataBillDocumentImportLog: any[] = [];
-  table_billDocumentImportLog: any;
   bdeID: number = 0;
   activeKT: boolean = false;
   activeHR: boolean = false;
@@ -127,9 +144,11 @@ export class BillDocumentImportComponent implements OnInit, AfterViewInit {
     public activeModal: NgbActiveModal,
     private modalServiceConfirm: NzModalService,
     private appUserService: AppUserService
-  ) {}
+  ) { }
 
   ngOnInit(): void {
+    this.billImportID = this.id;
+    
     if (this.appUserService.isAdmin) {
       this.activeKT = true;
       this.activeHR = true;
@@ -141,13 +160,12 @@ export class BillDocumentImportComponent implements OnInit, AfterViewInit {
     } else if (this.appUserService.departmentID === 4) {
       this.activePur = true;
     }
+    this.initGridMaster();
+    this.initGridLog();
     this.getBillDocumentImport();
   }
 
   ngAfterViewInit(): void {
-    setTimeout(() => {
-      this.drawTable();
-    }, 100);
   }
 
   getBillDocumentImport() {
@@ -155,12 +173,14 @@ export class BillDocumentImportComponent implements OnInit, AfterViewInit {
       next: (res) => {
         if (res?.data && Array.isArray(res.data)) {
           this.displayedData = res.data;
-          console.log(res.data);
-          this.dataBillDocumentImport = JSON.parse(JSON.stringify(res.data)); // bản sao để so sánh'
-          this.table_billDocumentImport?.replaceData(this.displayedData);
-          // this.dataBillDocumentImport = res.data;
-          // this.table_billDocumentImport?.replaceData(this.dataBillDocumentImport);
-          // this.getBillDocumentImportLog(this.id, res.data[0].DocumentImportID);
+          console.log('Data received:', res.data);
+          this.dataBillDocumentImport = res.data.map((item: any, index: number) => ({
+            ...item,
+            id: item.ID || index, 
+            _edited: false 
+          }));
+          console.log('Data mapped for SlickGrid:', this.dataBillDocumentImport);
+          this.flag = true; 
         }
       },
       error: (err) => {
@@ -179,12 +199,11 @@ export class BillDocumentImportComponent implements OnInit, AfterViewInit {
       .subscribe({
         next: (res) => {
           if (res?.data && Array.isArray(res.data)) {
-            this.dataBillDocumentImportLog = res.data;
-            console.log('datalog:', this.dataBillDocumentImportLog);
-
-            this.table_billDocumentImportLog?.replaceData(
-              this.dataBillDocumentImportLog
-            );
+            this.dataBillDocumentImportLog = res.data.map((item: any, index: number) => ({
+              ...item,
+              id: item.ID || index // SlickGrid requires lowercase 'id' property
+            }));
+            console.log('Log data mapped for SlickGrid:', this.dataBillDocumentImportLog);
           }
         },
         error: (err) => {
@@ -215,7 +234,18 @@ export class BillDocumentImportComponent implements OnInit, AfterViewInit {
   }
 
   saveData() {
-    const currentData = this.table_billDocumentImport.getData();
+    // Commit any pending edits before saving
+    try {
+      const slickGrid = (this.angularGridMaster as any).grid || (this.angularGridMaster as any).slickGrid;
+      if (slickGrid && slickGrid.getEditorLock && slickGrid.getEditorLock().isActive()) {
+        slickGrid.getEditorLock().commitCurrentEdit();
+      }
+    } catch (e) {
+      console.log('Could not commit current edit:', e);
+    }
+    
+    // const currentData = this.table_billDocumentImport.getData();
+    const currentData = this.dataBillDocumentImport;
 
     const changedData = [];
 
@@ -227,8 +257,7 @@ export class BillDocumentImportComponent implements OnInit, AfterViewInit {
         ) {
           this.notification.error(
             'Lỗi',
-            `Vui lòng nhập Lý do hủy cho chứng từ [${
-              item.DocumentImportCode || 'N/A'
+            `Vui lòng nhập Lý do hủy cho chứng từ [${item.DocumentImportCode || 'N/A'
             }].`
           );
           return;
@@ -239,7 +268,7 @@ export class BillDocumentImportComponent implements OnInit, AfterViewInit {
           Status: parseInt(item.DocumentStatus, 10) || null,
           DateRecive: DateTime.now().toISO(),
           ReasonCancel: item.ReasonCancel || '',
-          BillImportID: this.id,
+          BillImportID: this.billImportID, // Use stored BillImportID from @Input
           DocumentImportID: item.DocumentImportID,
           Note: item.Note || '',
           StatusHr: parseInt(item.DocumentStatusHR, 10) || null,
@@ -264,6 +293,8 @@ export class BillDocumentImportComponent implements OnInit, AfterViewInit {
           this.flag = true;
           this.getBillDocumentImport(); // load lại bảng + reset cờ _edited
           this.dataSaved.emit();
+          // Close modal after successful save
+          this.activeModal.dismiss(true);
         } else {
           this.notification.error(
             'Lỗi',
@@ -280,272 +311,321 @@ export class BillDocumentImportComponent implements OnInit, AfterViewInit {
       },
     });
   }
-  createdControl(
-    component: Type<any>,
-    injector: EnvironmentInjector,
-    appRef: ApplicationRef,
-    getData: () => any[],
-    config: { valueField: string; labelField: string; placeholder?: string }
-  ) {
-    return (cell: any, onRendered: any, success: any, cancel: any) => {
-      const container = document.createElement('div');
-      const componentRef = createComponent(component, {
-        environmentInjector: injector,
-      });
 
-      componentRef.instance.id = cell.getValue();
-      componentRef.instance.data = getData();
-      componentRef.instance.valueField = config.valueField;
-      componentRef.instance.labelField = config.labelField;
-      if (config.placeholder)
-        componentRef.instance.placeholder = config.placeholder;
+  initGridMaster() {
+    const formatDate = (row: number, cell: number, value: any) => {
+      if (!value) return '';
+      try {
+        const date = new Date(value);
+        if (isNaN(date.getTime())) return '';
+        return `${('0' + date.getDate()).slice(-2)}/${('0' + (date.getMonth() + 1)).slice(-2)}/${date.getFullYear()}`;
+      } catch (e) {
+        return value;
+      }
+    };
 
-      componentRef.instance.valueChange.subscribe((val: any) => success(val));
+    this.columnDefinitionsMaster = [
+      {
+        id: 'DocumentStatus',
+        name: 'Trạng thái KT',
+        field: 'DocumentStatus',
+        type: 'string',
+        width: 150,
+        sortable: true,
+        filterable: true,
+        editor: this.activeKT ? {
+          model: Editors['singleSelect'],
+          collection: [{ ID: null, Name: '-- Chọn --' }, ...this.cbbStatus],
+          customStructure: {
+            value: 'ID',
+            label: 'Name'
+          }
+        } : undefined,
+        formatter: (row: number, cell: number, value: any) => {
+          if ((!value && value !== 0) || value == 0) return '';
+          const st = this.cbbStatus.find((p: any) => p.ID === parseInt(value) || p.ID === value);
+          return st ? st.Name : value;
+        }
+      },
+      {
+        id: 'DocumentStatusPur',
+        name: 'Trạng thái Pur',
+        field: 'DocumentStatusPur',
+        type: 'string',
+        width: 150,
+        sortable: true,
+        filterable: true,
+        editor: this.activePur ? {
+          model: Editors['singleSelect'],
+          collection: [{ ID: null, Name: '-- Chọn --' }, ...this.cbbStatusPur],
+          customStructure: {
+            value: 'ID',
+            label: 'Name'
+          }
+        } : undefined,
+        formatter: (row: number, cell: number, value: any) => {
+          if ((!value && value !== 0) || value == 0) return '';
+          const st = this.cbbStatusPur.find((p: any) => p.ID === parseInt(value) || p.ID === value);
+          return st ? st.Name : value;
+        }
+      },
+      {
+        id: 'DocumentStatusHR',
+        name: 'Trạng thái HR',
+        field: 'DocumentStatusHR',
+        type: 'string',
+        width: 150,
+        sortable: true,
+        filterable: true,
+        editor: this.activeHR ? {
+          model: Editors['singleSelect'],
+          collection: [{ ID: null, Name: '-- Chọn --' }, ...this.cbbStatus],
+          customStructure: {
+            value: 'ID',
+            label: 'Name'
+          }
+        } : undefined,
+        formatter: (row: number, cell: number, value: any) => {
+          if ((!value && value !== 0) || value == 0) return '';
+          const st = this.cbbStatus.find((p: any) => p.ID === parseInt(value) || p.ID === value);
+          return st ? st.Name : value;
+        }
+      },
+      {
+        id: 'DocumentImportCode',
+        name: 'Mã chứng từ',
+        field: 'DocumentImportCode',
+        type: 'string',
+        width: 150,
+        sortable: true,
+        filterable: true
+      },
+      {
+        id: 'DocumentImportName',
+        name: 'Tên chứng từ',
+        field: 'DocumentImportName',
+        type: 'string',
+        width: 200,
+        sortable: true,
+        filterable: true
+      },
+      {
+        id: 'ReasonCancel',
+        name: 'Lý do',
+        field: 'ReasonCancel',
+        type: 'string',
+        width: 200,
+        sortable: true,
+        filterable: true,
+        editor: {
+          model: Editors['text']
+        }
+      },
+      {
+        id: 'Note',
+        name: 'Ghi chú',
+        field: 'Note',
+        type: 'string',
+        width: 200,
+        sortable: true,
+        filterable: true,
+        editor: {
+          model: Editors['text']
+        }
+      },
+      {
+        id: 'UpdatedBy',
+        name: 'Người thay đổi',
+        field: 'UpdatedBy',
+        type: 'string',
+        width: 150,
+        sortable: true,
+        filterable: true
+      },
+      {
+        id: 'UpdatedDate',
+        name: 'Ngày thay đổi',
+        field: 'UpdatedDate',
+        type: 'date',
+        width: 120,
+        sortable: true,
+        filterable: true,
+        formatter: formatDate,
+        cssClass: 'text-center'
+      }
+    ];
 
-      container.appendChild((componentRef.hostView as any).rootNodes[0]);
-      appRef.attachView(componentRef.hostView);
-      onRendered(() => {});
-
-      return container;
+    this.gridOptionsMaster = {
+      autoResize: {
+        container: '#grid-container',
+        calculateAvailableSizeBy: 'container'
+      },
+      enableAutoResize: true,
+      gridWidth: '100%',
+      forceFitColumns: false,
+      enableRowSelection: true,
+      rowSelectionOptions: {
+        selectActiveRow: false
+      },
+      enableCellNavigation: true,
+      enableFiltering: true,
+      autoFitColumnsOnFirstLoad: false,
+      enableAutoSizeColumns: false,
+      createPreHeaderPanel: false,
+      showPreHeaderPanel: false,
+      editable: true,
+      autoEdit: true,
     };
   }
 
-  drawTable() {
-    const formatDate = (cell: any) => {
-      const value = cell.getValue();
-      const date = new Date(value);
-      if (!value || isNaN(date.getTime())) return '';
-      return `${('0' + date.getDate()).slice(-2)}/${(
-        '0' +
-        (date.getMonth() + 1)
-      ).slice(-2)}/${date.getFullYear()}`;
+  angularGridMasterReady(angularGrid: AngularGridInstance) {
+    this.angularGridMaster = angularGrid;
+    
+    // Add cell change handler using DataView
+    angularGrid.dataView.onRowsChanged.subscribe((e: any, args: any) => {
+      // Check if any rows were updated
+      if (args.rows && args.rows.length > 0) {
+        for (const row of args.rows) {
+          const item = this.dataBillDocumentImport[row];
+          if (item) {
+            item._edited = true;
+            this.flag = false; // Set flag to false when data is edited
+            console.log('Row changed - row:', row, 'item:', item);
+          }
+        }
+      }
+    });
+  }
+
+  onCellClicked(e: any, args: OnClickEventArgs) {
+    const item = args.grid.getDataItem(args.row);
+    if (item) {
+      this.id = item['ID'] || 0;
+      console.log('documentimportid', this.id);
+      this.documentImportID = item['DocumentImportID'] || 0;
+      this.getBillDocumentImportLog(this.id, this.documentImportID);
+    }
+  }
+
+  handleRowSelection(e: any, args: OnSelectedRowsChangedEventArgs) {
+    if (args && args.rows && args.rows.length > 0) {
+      const selectedRow = this.dataBillDocumentImport[args.rows[0]];
+      if (selectedRow) {
+        this.id = selectedRow['ID'] || 0;
+        this.documentImportID = selectedRow['DocumentImportID'] || 0;
+        console.log('Selected row - ID:', this.id, 'DocumentImportID:', this.documentImportID);
+        this.getBillDocumentImportLog(this.id, this.documentImportID);
+      }
+    } else {
+      // Clear selection
+      this.bdeID = 0;
+      this.documentImportID = 0;
+      this.dataBillDocumentImportLog = [];
+      console.log('Row deselected, cleared log data');
+    }
+  }
+
+  initGridLog() {
+    // Format date helper for log
+    const formatDate = (row: number, cell: number, value: any) => {
+      if (!value) return '';
+      try {
+        const date = new Date(value);
+        if (isNaN(date.getTime())) return '';
+        return `${('0' + date.getDate()).slice(-2)}/${('0' + (date.getMonth() + 1)).slice(-2)}/${date.getFullYear()}`;
+      } catch (e) {
+        return value;
+      }
     };
 
-    if (!this.table_billDocumentImport) {
-      this.table_billDocumentImport = new Tabulator(
-        this.tableBillDocumentImportRef.nativeElement,
-        {
-          index: 'ID',
-          data: this.dataBillDocumentImport,
-          layout: 'fitDataStretch',
-          height: '100%',
-          reactiveData: true,
-          resizableRows: true,
-          selectableRows: 1,
+    this.columnDefinitionsLog = [
+      {
+        id: 'DocumentStatusText',
+        name: 'Trạng thái',
+        field: 'DocumentStatusText',
+        type: 'string',
+        width: 150,
+        sortable: true,
+        filterable: true
+      },
+      {
+        id: 'DocumentImportCode',
+        name: 'Mã chứng từ',
+        field: 'DocumentImportCode',
+        type: 'string',
+        width: 150,
+        sortable: true,
+        filterable: true
+      },
+      {
+        id: 'DocumentImportName',
+        name: 'Tên chứng từ',
+        field: 'DocumentImportName',
+        type: 'string',
+        width: 200,
+        sortable: true,
+        filterable: true
+      },
+      {
+        id: 'Note',
+        name: 'Lý do / Ghi chú',
+        field: 'Note',
+        type: 'string',
+        width: 350,
+        sortable: true,
+        filterable: true
+      },
+      {
+        id: 'UpdatedDate',
+        name: 'Ngày thay đổi',
+        field: 'UpdatedDate',
+        type: 'date',
+        width: 120,
+        sortable: true,
+        filterable: true,
+        formatter: formatDate,
+        cssClass: 'text-center'
+      },
+      {
+        id: 'UpdatedBy',
+        name: 'Người thay đổi',
+        field: 'UpdatedBy',
+        type: 'string',
+        width: 150,
+        sortable: true,
+        filterable: true
+      }
+    ];
 
-          columns: [
-            {
-              title: 'Trạng thái KT',
-              field: 'DocumentStatus',
-              hozAlign: 'left',
-              headerHozAlign: 'center',
-              width: 150,
-              editable: this.activeKT,
-              editor: this.createdControl(
-                SelectControlComponent,
-                this.injector,
-                this.appRef,
-                () => this.cbbStatus,
-                { valueField: 'ID', labelField: 'Name' }
-              ),
-              formatter: (cell) => {
-                const val = cell.getValue();
-                if ((!val && val !== 0) || val == 0)
-                  return '<div class="d-flex justify-content-between align-items-center"><p class="w-100 m-0 text-muted"></p><i class="fas fa-angle-down"></i></div>';
-                const st = this.cbbStatus.find(
-                  (p: any) => p.ID === parseInt(val) || p.ID === val
-                );
-                return `<div class="d-flex justify-content-between align-items-center"><p class="w-100 m-0">${
-                  st ? st.Name : val
-                }</p><i class="fas fa-angle-down"></i></div>`;
-              },
-            },
-            {
-              title: 'Trạng thái Pur',
-              field: 'DocumentStatusPur',
-              hozAlign: 'left',
-              headerHozAlign: 'center',
-              width: 150,
-              editable: this.activePur,
-              editor: this.createdControl(
-                SelectControlComponent,
-                this.injector,
-                this.appRef,
-                () => this.cbbStatusPur,
-                { valueField: 'ID', labelField: 'Name' }
-              ),
-              formatter: (cell) => {
-                const val = cell.getValue();
-                if ((!val && val !== 0) || val == 0)
-                  return '<div class="d-flex justify-content-between align-items-center"><p class="w-100 m-0 text-muted"></p><i class="fas fa-angle-down"></i></div>';
-                const st = this.cbbStatusPur.find(
-                  (p: any) => p.ID === parseInt(val) || p.ID === val
-                );
-                return `<div class="d-flex justify-content-between align-items-center"><p class="w-100 m-0">${
-                  st ? st.Name : val
-                }</p><i class="fas fa-angle-down"></i></div>`;
-              },
-            },
-            {
-              title: 'Trạng thái HR',
-              field: 'DocumentStatusHR',
-              hozAlign: 'left',
-              headerHozAlign: 'center',
-              editable: this.activeHR,
-              width: 150,
-              editor: this.createdControl(
-                SelectControlComponent,
-                this.injector,
-                this.appRef,
-                () => this.cbbStatus,
-                { valueField: 'ID', labelField: 'Name' }
-              ),
-              formatter: (cell) => {
-                const val = cell.getValue();
-                if ((!val && val !== 0) || val == 0)
-                  return '<div class="d-flex justify-content-between align-items-center"><p class="w-100 m-0 text-muted"></p><i class="fas fa-angle-down"></i></div>';
-                const st = this.cbbStatus.find(
-                  (p: any) => p.ID === parseInt(val) || p.ID === val
-                );
-                return `<div class="d-flex justify-content-between align-items-center"><p class="w-100 m-0">${
-                  st ? st.Name : val
-                }</p><i class="fas fa-angle-down"></i></div>`;
-              },
-            },
-            {
-              title: 'Mã chứng từ',
-              field: 'DocumentImportCode',
-              hozAlign: 'left',
-              headerHozAlign: 'center',
-            },
-            {
-              title: 'Tên chứng từ',
-              field: 'DocumentImportName',
-              hozAlign: 'left',
-              headerHozAlign: 'center',
-            },
-            {
-              title: 'Lý do',
-              field: 'ReasonCancel',
-              hozAlign: 'left',
-              headerHozAlign: 'center',
-              editor: 'input',
-              width: 200,
-            },
-            {
-              title: 'Ghi chú',
-              field: 'Note',
-              hozAlign: 'left',
-              headerHozAlign: 'center',
-              editor: 'input',
-              width: 200,
-            },
-            {
-              title: 'Người thay đổi',
-              field: 'UpdatedBy',
-              hozAlign: 'left',
-              headerHozAlign: 'center',
-            },
-            {
-              title: 'Ngày thay đổi',
-              field: 'UpdatedDate',
-              hozAlign: 'center',
-              headerHozAlign: 'center',
-              formatter: formatDate,
-            },
-          ],
-        }
-      );
+    this.gridOptionsLog = {
+      autoResize: {
+        container: '#grid-container',
+        calculateAvailableSizeBy: 'container'
+      },
+      enableAutoResize: true,
+      gridWidth: '100%',
+      forceFitColumns: false,
+      enableRowSelection: true,
+      rowSelectionOptions: {
+        selectActiveRow: false
+      },
+      enableCellNavigation: true,
+      enableFiltering: true,
+      autoFitColumnsOnFirstLoad: false,
+      enableAutoSizeColumns: false,
+      createPreHeaderPanel: false,
+      showPreHeaderPanel: false
+    };
+  }
 
-      this.table_billDocumentImport.on('rowSelected', (row: RowComponent) => {
-        const rowData = row.getData();
-        this.id = rowData['ID'] || 0;
-        console.log('documentimportid', this.id);
+  angularGridLogReady(angularGrid: AngularGridInstance) {
+    this.angularGridLog = angularGrid;
+  }
 
-        this.documentImportID = rowData['DocumentImportID'] || 0;
+  onCellLogClicked(e: any, args: OnClickEventArgs) {
+    const item = args.grid.getDataItem(args.row);
+  }
 
-        this.getBillDocumentImportLog(this.id, this.documentImportID);
-      });
-
-      this.table_billDocumentImport.on('rowDeselected', () => {
-        if (this.table_billDocumentImport.getSelectedRows().length === 0) {
-          this.bdeID = 0;
-          this.documentImportID = 0;
-          this.table_billDocumentImportLog?.replaceData([]);
-        }
-      });
-      this.table_billDocumentImport.on('cellEdited', (cell: any) => {
-        const rowData = cell.getRow().getData();
-        rowData._edited = true; // đánh dấu là dòng đã sửa
-        this.flag = false;
-      });
-    } else {
-      this.table_billDocumentImport.replaceData(this.dataBillDocumentImport);
-    }
-
-    if (!this.table_billDocumentImportLog) {
-      this.table_billDocumentImportLog = new Tabulator(
-        this.tableBillDocumentImportLogRef.nativeElement,
-        {
-          index: 'ID',
-          data: this.dataBillDocumentImportLog,
-          layout: 'fitDataStretch',
-          height: '30vh',
-          reactiveData: true,
-          resizableRows: true,
-          selectableRows: 1,
-          columns: [
-            {
-              title: 'Trạng thái',
-              field: 'DocumentStatusText',
-              hozAlign: 'left',
-              headerHozAlign: 'center',
-            },
-            {
-              title: 'Mã chứng từ',
-              field: 'DocumentImportCode',
-              hozAlign: 'left',
-              headerHozAlign: 'center',
-            },
-            {
-              title: 'Tên chứng từ',
-              field: 'DocumentImportName',
-              hozAlign: 'left',
-              headerHozAlign: 'center',
-            },
-            {
-              title: 'Lý do / Ghi chú',
-              field: 'Note',
-              hozAlign: 'left',
-              headerHozAlign: 'center',
-            },
-            {
-              title: 'Ngày thay đổi',
-              field: 'UpdatedDate',
-              hozAlign: 'center',
-              headerHozAlign: 'center',
-              formatter: formatDate,
-            },
-            {
-              title: 'Người thay đổi',
-              field: 'UpdatedBy',
-              hozAlign: 'left',
-              headerHozAlign: 'center',
-            },
-            {
-              title: 'Ngày thay đổi',
-              field: 'UpdatedDate',
-              hozAlign: 'center',
-              headerHozAlign: 'center',
-              formatter: formatDate,
-            },
-          ],
-        }
-      );
-    } else {
-      this.table_billDocumentImportLog.replaceData(
-        this.dataBillDocumentImportLog
-      );
-    }
+  handleRowLogSelection(e: any, args: OnSelectedRowsChangedEventArgs) {
   }
 }

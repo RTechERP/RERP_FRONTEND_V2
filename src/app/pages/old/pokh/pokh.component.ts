@@ -1419,7 +1419,7 @@ export class PokhComponent implements OnInit, AfterViewInit {
       pagination: true,
       paginationMode: 'remote',
       paginationSize: 50,
-      paginationSizeSelector: [10, 30, 50, 100, 300, 500, 9999999999],
+      paginationSizeSelector: [10, 30, 50, 100, 300, 500, 99999999],
       ajaxURL: this.POKHService.getPOKHAjax(),
       ajaxParams: this.getPOKHAjaxParams(),
       ajaxConfig: {
@@ -1579,6 +1579,7 @@ export class PokhComponent implements OnInit, AfterViewInit {
           sorter: 'number',
           width: 150,
           formatter: 'money',
+          hozAlign: 'right',
         },
         {
           title: 'Tổng tiền nhận PO',
@@ -1586,6 +1587,7 @@ export class PokhComponent implements OnInit, AfterViewInit {
           sorter: 'number',
           width: 150,
           formatter: 'money',
+          hozAlign: 'right',
           formatterParams: {
             precision: 0,
             decimal: '.',
@@ -1609,6 +1611,7 @@ export class PokhComponent implements OnInit, AfterViewInit {
           sorter: 'number',
           width: 150,
           formatter: 'money',
+          hozAlign: 'right',
         },
         {
           title: 'Tình trạng tiến độ giao hàng',
@@ -1854,6 +1857,7 @@ export class PokhComponent implements OnInit, AfterViewInit {
             sorter: 'number',
             width: 200,
             formatter: 'money',
+            hozAlign: 'right',
             formatterParams: {
               precision: 0,
               decimal: '.',
@@ -1868,6 +1872,7 @@ export class PokhComponent implements OnInit, AfterViewInit {
             sorter: 'number',
             width: 200,
             formatter: 'money',
+            hozAlign: 'right',
             formatterParams: {
               precision: 0,
               decimal: '.',
@@ -1912,6 +1917,7 @@ export class PokhComponent implements OnInit, AfterViewInit {
             sorter: 'number',
             width: 200,
             formatter: 'money',
+            hozAlign: 'right',
             formatterParams: {
               precision: 0,
               decimal: '.',

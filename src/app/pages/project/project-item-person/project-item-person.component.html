@@ -55,8 +55,8 @@
                                 <nz-select [(ngModel)]="projectId" name="projectId" nzShowSearch nzAllowClear
                                     nzSize="small" nzPlaceHolder="Chọn dự án" class="w-100">
                                     @for (item of projects; track $index) {
-                                    <nz-option nzCustomContent="true" [nzLabel]="item.Name" [nzValue]="item.ID">
-                                        {{ item.ProjectName }}
+                                    <nz-option nzCustomContent="true" [nzLabel]="item.ProjectName +'-' + item.ProjectCode" [nzValue]="item.ID">
+                                        {{ item.ProjectName +'-' + item.ProjectCode}}
                                     </nz-option>
                                     }
                                 </nz-select>
@@ -70,7 +70,7 @@
                             <nz-form-label class="fs-12" style="font-size: 12px;">Nhân viên</nz-form-label>
                             <nz-form-control>
                                 <nz-select [(ngModel)]="userId" name="userId" nzShowSearch nzAllowClear nzSize="small"
-                                    nzPlaceHolder="Chọn nhân viên" class="w-100" [nzDisabled]="true">
+                                    nzPlaceHolder="Chọn nhân viên" class="w-100" [nzDisabled]="!canSelect">
                                     @for (item of employees; track $index) {
                                     <nz-option nzCustomContent="true"
                                         [nzLabel]="item.FullName"

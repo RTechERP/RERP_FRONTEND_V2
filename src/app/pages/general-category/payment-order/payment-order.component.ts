@@ -3303,9 +3303,9 @@ export class PaymentOrderComponent implements OnInit {
         const details = this.dataPrint.details;
         const signs = this.dataPrint.signs;
 
-        console.log('.paymentOrder:', paymentOrder);
-        console.log('.details:', details);
-        console.log('.signs:', signs);
+        // console.log('.paymentOrder:', paymentOrder);
+        // console.log('.details:', details);
+        // console.log('.signs:', signs);
 
         const numberDocument = paymentOrder.TypeOrder == 1 ? "BM01-RTC.AC-QT03" : "BM02-RTC.AC-QT03";
         const dateOrder = new Date(paymentOrder.DateOrder);
@@ -3428,8 +3428,8 @@ export class PaymentOrderComponent implements OnInit {
             items.push(item);
         }
 
-        console.log('items:', items);
-        console.log('sumTotalFooter:', sumTotalFooter);
+        // console.log('items:', items);
+        // console.log('sumTotalFooter:', sumTotalFooter);
 
         //Chữ ký
 

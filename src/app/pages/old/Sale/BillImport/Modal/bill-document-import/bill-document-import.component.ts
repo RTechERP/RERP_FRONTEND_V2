@@ -294,7 +294,7 @@ export class BillDocumentImportComponent implements OnInit, AfterViewInit {
           this.getBillDocumentImport(); // load lại bảng + reset cờ _edited
           this.dataSaved.emit();
           // Close modal after successful save
-          this.activeModal.dismiss(true);
+            this.activeModal.dismiss(true);
         } else {
           this.notification.error(
             'Lỗi',
@@ -330,12 +330,12 @@ export class BillDocumentImportComponent implements OnInit, AfterViewInit {
         name: 'Trạng thái KT',
         field: 'DocumentStatus',
         type: 'string',
-        width: 150,
+        width: 100,
         sortable: true,
         filterable: true,
         editor: this.activeKT ? {
           model: Editors['singleSelect'],
-          collection: [{ ID: null, Name: '-- Chọn --' }, ...this.cbbStatus],
+          collection: [{ ID: null, Name: '-- Bỏ chọn --' }, ...this.cbbStatus],
           customStructure: {
             value: 'ID',
             label: 'Name'
@@ -352,7 +352,7 @@ export class BillDocumentImportComponent implements OnInit, AfterViewInit {
         name: 'Trạng thái Pur',
         field: 'DocumentStatusPur',
         type: 'string',
-        width: 150,
+        width: 100,
         sortable: true,
         filterable: true,
         editor: this.activePur ? {
@@ -374,7 +374,7 @@ export class BillDocumentImportComponent implements OnInit, AfterViewInit {
         name: 'Trạng thái HR',
         field: 'DocumentStatusHR',
         type: 'string',
-        width: 150,
+        width: 100,
         sortable: true,
         filterable: true,
         editor: this.activeHR ? {
@@ -418,7 +418,7 @@ export class BillDocumentImportComponent implements OnInit, AfterViewInit {
         sortable: true,
         filterable: true,
         editor: {
-          model: Editors['text']
+          model: Editors['longText']
         }
       },
       {
@@ -430,7 +430,7 @@ export class BillDocumentImportComponent implements OnInit, AfterViewInit {
         sortable: true,
         filterable: true,
         editor: {
-          model: Editors['text']
+          model: Editors['longText']
         }
       },
       {
@@ -438,7 +438,7 @@ export class BillDocumentImportComponent implements OnInit, AfterViewInit {
         name: 'Người thay đổi',
         field: 'UpdatedBy',
         type: 'string',
-        width: 150,
+        width: 100,
         sortable: true,
         filterable: true
       },

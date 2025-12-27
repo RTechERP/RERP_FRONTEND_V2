@@ -176,6 +176,7 @@ import { DocumentCommonComponent } from './pages/hrm/document/document-common/do
 import { ProjectPartlistPriceRequestComponent } from './pages/old/project-partlist-price-request/project-partlist-price-request.component';
 import { BillDocumentImportTypeComponent } from './pages/old/KETOAN/bill-document-import-type/bill-document-import-type.component';
 import { BillImportQcComponent } from './pages/old/Sale/bill-import-qc/bill-import-qc.component';
+import { TaxCompanyComponent } from './pages/old/KETOAN/tax-company/tax-company.component';
 
 export const routes: Routes = [
     {
@@ -442,6 +443,7 @@ export const routes: Routes = [
             { path: 'payment-order-kt', component: PaymentOrderComponent, canActivate: [authGuard] },
             { path: 'document-import-export', component: DocumentImportExportComponent, canActivate: [authGuard] },
             { path: 'bill-document-import-type', component: BillDocumentImportTypeComponent, canActivate: [authGuard] },
+            { path: 'tax-company', component: TaxCompanyComponent, canActivate: [authGuard] },
 
 
             //Phòng sale

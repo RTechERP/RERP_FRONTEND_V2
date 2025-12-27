@@ -175,6 +175,7 @@ export class OverTimePersonComponent implements OnInit, AfterViewInit {
       ...DEFAULT_TABLE_CONFIG,
       layout: 'fitDataStretch',
       height: '90vh',
+      
       selectableRows: true,
       paginationMode: 'local',
       rowHeader: { formatter: "rowSelection", titleFormatter: "rowSelection", headerSort: false, width: 50, frozen: true, headerHozAlign: "center", hozAlign: "center" },

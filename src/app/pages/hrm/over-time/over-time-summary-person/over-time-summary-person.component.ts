@@ -180,7 +180,8 @@ export class OverTimeSummaryPersonComponent implements OnInit, AfterViewInit {
       height: '90vh',
       pagination: true,
       paginationMode: 'remote',
-      paginationSize: 30,
+      paginationSize: 10000000,
+      rowHeader: false,
       paginationSizeSelector: [10, 20, 30, 50, 100],
       ajaxURL: 'dummy',
       ajaxRequestFunc: (_url, _config, params) => {
@@ -299,13 +300,13 @@ export class OverTimeSummaryPersonComponent implements OnInit, AfterViewInit {
           field: 'TimeStart',
           hozAlign: 'center',
           headerHozAlign: 'center',
-          width: 120,
+          width: 150,
           headerSort: false,
           formatter: (cell) => {
             const value = cell.getValue();
             if (!value) return '';
             try {
-              return DateTime.fromISO(value).toFormat('dd/MM/yyyy HH:mm:ss');
+              return DateTime.fromISO(value).toFormat('dd/MM/yyyy HH:mm');
             } catch {
               return value;
             }
@@ -313,16 +314,16 @@ export class OverTimeSummaryPersonComponent implements OnInit, AfterViewInit {
         },
         {
           title: 'Đến',
-          field: 'TimeEnd',
+          field: 'EndTime',
           hozAlign: 'center',
           headerHozAlign: 'center',
-          width: 120,
+          width: 150,
           headerSort: false,
           formatter: (cell) => {
             const value = cell.getValue();
             if (!value) return '';
             try {
-              return DateTime.fromISO(value).toFormat('dd/MM/yyyy HH:mm:ss');
+              return DateTime.fromISO(value).toFormat('dd/MM/yyyy HH:mm');
             } catch {
               return value;
             }
@@ -378,15 +379,7 @@ export class OverTimeSummaryPersonComponent implements OnInit, AfterViewInit {
           formatter: 'textarea',
           headerSort: false,
         },
-        {
-          title: 'Team',
-          field: 'TeamName',
-          hozAlign: 'left',
-          headerHozAlign: 'center',
-          width: 150,
-          formatter: 'textarea',
-          headerSort: false,
-        },
+    
         {
           title: 'Phòng ban',
           field: 'DepartmentName',
@@ -412,11 +405,12 @@ export class OverTimeSummaryPersonComponent implements OnInit, AfterViewInit {
     if (!this.tbOverTimeSummaryRef?.nativeElement) {
       return;
     }
-    
     this.summaryTabulator = new Tabulator(this.tbOverTimeSummaryRef.nativeElement, {
       ...DEFAULT_TABLE_CONFIG,
       layout: 'fitDataStretch',
       height: '90vh',
+      rowHeader: false,
+      paginationSize: 10000000,
       paginationMode: 'local',
       data: this.summaryData,
       columns: [
@@ -425,7 +419,7 @@ export class OverTimeSummaryPersonComponent implements OnInit, AfterViewInit {
           field: 'FullName',
           hozAlign: 'left',
           headerHozAlign: 'center',
-          width: 200,
+          width: 150,
           headerWordWrap: true,
           formatter: 'textarea',
           headerSort: false,
@@ -440,7 +434,7 @@ export class OverTimeSummaryPersonComponent implements OnInit, AfterViewInit {
           field: 'HourSummary',
           hozAlign: 'right',
           headerHozAlign: 'center',
-          width: 150,
+          width: 120,
           headerSort: false,
           formatter: (cell) => {
             const value = cell.getValue();
@@ -459,7 +453,7 @@ export class OverTimeSummaryPersonComponent implements OnInit, AfterViewInit {
           field: 'TotalBenefitPeriod',
           hozAlign: 'right',
           headerHozAlign: 'center',
-          width: 150,
+          width: 120,
           headerSort: false,
           formatter: (cell) => {
             const value = cell.getValue();
@@ -486,121 +480,76 @@ export class OverTimeSummaryPersonComponent implements OnInit, AfterViewInit {
     this.exportingExcel = true;
 
     try {
-      const formValue = this.searchForm.value;
+      // Lấy data trực tiếp từ Tabulator
+      const tabulatorData = this.tabulator.getData();
       
-      let startDateISO: string | null = null;
-      let endDateISO: string | null = null;
-      
-      if (formValue.startDate) {
-        const start = new Date(formValue.startDate);
-        start.setHours(0, 0, 0, 0);
-        startDateISO = start.toISOString();
-      }
-      
-      if (formValue.endDate) {
-        const end = new Date(formValue.endDate);
-        end.setHours(23, 59, 59, 999);
-        endDateISO = end.toISOString();
+      if (!tabulatorData || tabulatorData.length === 0) {
+        this.notification.error(NOTIFICATION_TITLE.error, 'Không có dữ liệu để xuất excel!');
+        this.exportingExcel = false;
+        return;
       }
 
-      const request: any = {
-        filterText: formValue.filterText || "",
-        page: 1,
-        size: 1000000,
-        dateStart: startDateISO,
-        dateEnd: endDateISO,
-        departmentID: formValue.departmentId || 0,
-        idApprovedTP: formValue.idApprovedTP || 0,
-        status: formValue.status ?? -1,
-        employeeID: formValue.employeeId || 0,
-        teamID: formValue.teamId || 0
+      const formatDate = (val: any) => {
+        if (!val) return '';
+        try {
+          return DateTime.fromISO(val).toFormat('dd/MM/yyyy');
+        } catch {
+          const date = new Date(val);
+          return isNaN(date.getTime()) ? '' : DateTime.fromJSDate(date).toFormat('dd/MM/yyyy');
+        }
+      };
+      
+      const formatDateTime = (val: any) => {
+        if (!val) return '';
+        try {
+          return DateTime.fromISO(val).toFormat('dd/MM/yyyy HH:mm');
+        } catch {
+          return val;
+        }
+      };
+      
+      const formatNumber = (val: any) => {
+        if (val == null || val === undefined) return '';
+        return new Intl.NumberFormat('vi-VN', { minimumFractionDigits: 1, maximumFractionDigits: 2 }).format(Number(val));
       };
 
-      const response = await this.overTimeService.getSummaryOverTimePerson(request).toPromise();
+      // Map data từ Tabulator sang format Excel
+      const exportData = tabulatorData.map((item: any, idx: number) => ({
+        'STT': idx + 1,
       
-      if (!response || response.status !== 1 || !response.data || !response.data.data) {
-        this.notification.error(NOTIFICATION_TITLE.error, 'Không có dữ liệu để xuất excel!');
-        this.exportingExcel = false;
-        return;
-      }
-
-      const allData = Array.isArray(response.data.data) ? response.data.data : [];
-      
-      if (allData.length === 0) {
-        this.notification.error(NOTIFICATION_TITLE.error, 'Không có dữ liệu để xuất excel!');
-        this.exportingExcel = false;
-        return;
-      }
-
-      const exportData = allData
-        .filter((item: any) => Object.keys(item).length > 0)
-        .map((item: any, idx: number) => {
-          const formatDate = (val: any) => {
-            if (!val) return '';
-            try {
-              return DateTime.fromISO(val).toFormat('dd/MM/yyyy');
-            } catch {
-              const date = new Date(val);
-              return isNaN(date.getTime()) ? '' : DateTime.fromJSDate(date).toFormat('dd/MM/yyyy');
-            }
-          };
-          
-          const formatTime = (val: any) => {
-            if (!val) return '';
-            try {
-              return DateTime.fromISO(val).toFormat('HH:mm');
-            } catch {
-              return val;
-            }
-          };
-          
-          const formatNumber = (val: any) => {
-            if (val == null || val === undefined) return '';
-            return new Intl.NumberFormat('vi-VN', { minimumFractionDigits: 1, maximumFractionDigits: 2 }).format(Number(val));
-          };
-          
-          return {
-            'STT': idx + 1,
-            'Mã nhân viên': item.Code || '',
-            'Tên nhân viên': item.FullName || '',
-            'Phòng ban': item.DepartmentName || '',
-            'Ngày làm đêm': formatDate(item.DateOverTime),
-            'Giờ bắt đầu': formatTime(item.TimeStart),
-            'Giờ kết thúc': formatTime(item.TimeEnd),
-            'Tổng giờ': formatNumber(item.TotalHours),
-            'Ghi chú': item.Note || ''
-          };
-        });
+        'Tên nhân viên': item.FullName || '',
+        'Phòng ban': item.DepartmentName || '',
+        'Ngày': formatDate(item.DateRegister),
+        'Từ': formatDateTime(item.TimeStart),
+        'Đến': formatDateTime(item.EndTime),
+        'Số giờ': formatNumber(item.TimeReality),
+        'Địa điểm': item.LocationText || '',
+        'Lý do': item.Reason || '',
+        'Loại': item.Type || ''
+      }));
 
       const workbook = new ExcelJS.Workbook();
-      const worksheet = workbook.addWorksheet('TongHopLamDem');
+      const worksheet = workbook.addWorksheet('TongHopLamThem');
 
       worksheet.columns = [
         { header: 'STT', key: 'STT', width: 8 },
-        { header: 'Mã nhân viên', key: 'Mã nhân viên', width: 15 },
+     
         { header: 'Tên nhân viên', key: 'Tên nhân viên', width: 30 },
         { header: 'Phòng ban', key: 'Phòng ban', width: 25 },
-        { header: 'Ngày làm đêm', key: 'Ngày làm đêm', width: 18 },
-        { header: 'Giờ bắt đầu', key: 'Giờ bắt đầu', width: 15 },
-        { header: 'Giờ kết thúc', key: 'Giờ kết thúc', width: 15 },
-        { header: 'Tổng giờ', key: 'Tổng giờ', width: 15 },
-        { header: 'Ghi chú', key: 'Ghi chú', width: 40 },
+        { header: 'Ngày', key: 'Ngày', width: 18 },
+        { header: 'Từ', key: 'Từ', width: 20 },
+        { header: 'Đến', key: 'Đến', width: 20 },
+        { header: 'Số giờ', key: 'Số giờ', width: 15 },
+        { header: 'Địa điểm', key: 'Địa điểm', width: 30 },
+        { header: 'Lý do', key: 'Lý do', width: 30 },
+        { header: 'Loại', key: 'Loại', width: 15 },
       ];
 
       exportData.forEach((row: any) => worksheet.addRow(row));
 
-      worksheet.eachRow((row: ExcelJS.Row) => {
-        row.eachCell((cell: ExcelJS.Cell) => {
-          if (!cell.font) {
-            cell.font = { name: 'Times New Roman', size: 10 };
-          } else {
-            cell.font = { ...cell.font, name: 'Times New Roman', size: 10 };
-          }
-        });
-      });
-
+      // Style cho header
       worksheet.getRow(1).eachCell((cell: ExcelJS.Cell) => {
-        cell.font = { name: 'Times New Roman', size: 10, bold: true, color: { argb: 'FFFFFFFF' } };
+        cell.font = { name: 'Times New Roman', size: 11, bold: true, color: { argb: 'FFFFFFFF' } };
         cell.alignment = { horizontal: 'center', vertical: 'middle', wrapText: true };
         cell.fill = {
           type: 'pattern',
@@ -610,22 +559,18 @@ export class OverTimeSummaryPersonComponent implements OnInit, AfterViewInit {
       });
       worksheet.getRow(1).height = 30;
 
+      // Style cho data rows
       worksheet.eachRow((row: ExcelJS.Row, rowNumber: number) => {
         if (rowNumber !== 1) {
           row.height = 30;
-          row.getCell('STT').alignment = { horizontal: 'center', vertical: 'middle', wrapText: true };
-          
-          ['Ngày làm đêm', 'Giờ bắt đầu', 'Giờ kết thúc'].forEach((colName: string) => {
-            const cell = row.getCell(colName);
-            if (cell) {
-              cell.alignment = { horizontal: 'center', vertical: 'middle', wrapText: true };
-            }
+          row.eachCell((cell: ExcelJS.Cell, colNumber: number) => {
+            cell.font = { name: 'Times New Roman', size: 10 };
+            cell.alignment = { 
+              horizontal: colNumber === 8 ? 'right' : 'left',
+              vertical: 'middle', 
+              wrapText: true
+            };
           });
-          
-          const totalHoursCell = row.getCell('Tổng giờ');
-          if (totalHoursCell) {
-            totalHoursCell.alignment = { horizontal: 'right', vertical: 'middle', wrapText: true };
-          }
         }
       });
 
@@ -635,8 +580,9 @@ export class OverTimeSummaryPersonComponent implements OnInit, AfterViewInit {
       const endDate = this.searchForm.get('endDate')?.value;
       const startDateStr = startDate ? DateTime.fromJSDate(new Date(startDate)).toFormat('ddMMyyyy') : '';
       const endDateStr = endDate ? DateTime.fromJSDate(new Date(endDate)).toFormat('ddMMyyyy') : '';
-      saveAs(blob, `TongHopLamDem_${startDateStr}_${endDateStr}.xlsx`);
+      saveAs(blob, `TongHopLamThem_${startDateStr}_${endDateStr}.xlsx`);
       
+      this.notification.success(NOTIFICATION_TITLE.success, 'Xuất Excel thành công!');
     } catch (error: any) {
       this.notification.error(NOTIFICATION_TITLE.error, 'Lỗi khi xuất Excel: ' + error.message);
     } finally {

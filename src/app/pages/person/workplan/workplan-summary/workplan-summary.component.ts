@@ -20,7 +20,7 @@ import { EmployeeService } from '../../../hrm/employee/employee-service/employee
 import { DEFAULT_TABLE_CONFIG } from '../../../../tabulator-default.config';
 import { NOTIFICATION_TITLE } from '../../../../app.config';
 import { DateTime } from 'luxon';
-
+import{TeamServiceService} from '../../../hrm/team/team-service/team-service.service';
 @Component({
     selector: 'app-workplan-summary',
     standalone: true,
@@ -67,7 +67,8 @@ export class WorkplanSummaryComponent implements OnInit, AfterViewInit {
         private notification: NzNotificationService,
         private workplanService: WorkplanService,
         private projectService: ProjectService,
-        private employeeService: EmployeeService
+        private employeeService: EmployeeService,
+        private TeamService: TeamServiceService
     ) {
         // Set default dates: đầu tuần đến cuối tuần hiện tại
         const now = new Date();
@@ -127,7 +128,7 @@ export class WorkplanSummaryComponent implements OnInit, AfterViewInit {
     }
 
     loadUserTeams(): void {
-        this.projectService.getUserTeams().subscribe({
+        this.TeamService.getTeams(2).subscribe({
             next: (response: any) => {
                 if (response && response.status === 1 && response.data) {
                     this.teamList = Array.isArray(response.data) ? response.data : [];
@@ -143,7 +144,8 @@ export class WorkplanSummaryComponent implements OnInit, AfterViewInit {
         this.employeeService.getEmployees().subscribe({
             next: (response: any) => {
                 if (response && response.data) {
-                    this.userList = Array.isArray(response.data) ? response.data : [];
+                    const allEmployees = Array.isArray(response.data) ? response.data : [];
+                    this.userList = allEmployees.filter((emp: any) => emp.DepartmentID === 2);
                 }
             },
             error: (error: any) => {
@@ -163,9 +165,17 @@ export class WorkplanSummaryComponent implements OnInit, AfterViewInit {
         }
 
         this.isLoading = true;
+        // Format dates to yyyy-MM-dd string để tránh timezone issue
+        const formatDate = (date: Date): string => {
+            const year = date.getFullYear();
+            const month = String(date.getMonth() + 1).padStart(2, '0');
+            const day = String(date.getDate()).padStart(2, '0');
+            return `${year}-${month}-${day}`;
+        };
+        
         const params = {
-            dateStart: this.dateStart,
-            dateEnd: this.dateEnd,
+            dateStart: formatDate(this.dateStart),
+            dateEnd: formatDate(this.dateEnd),
             keyword: this.keyword || '',
             departmentId:2,
             teamId: this.teamId || 0,
@@ -173,7 +183,7 @@ export class WorkplanSummaryComponent implements OnInit, AfterViewInit {
             userId: this.userId || 0
         };
 
-        this.workplanService.getWorkPlanSummary(params).subscribe({
+        this.workplanService.getWorkPlanSummary(params as any).subscribe({
             next: (response: any) => {
                 this.isLoading = false;
                 if (response && response.status === 1 && response.data) {

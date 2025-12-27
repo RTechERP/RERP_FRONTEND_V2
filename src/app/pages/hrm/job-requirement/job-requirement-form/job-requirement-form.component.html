@@ -34,14 +34,14 @@
         <nz-form-item class="mb-0">
           <nz-form-label class="fs-12 p-0" [nzSpan]="24">Bộ phận yêu cầu</nz-form-label>
           <nz-form-control [nzSpan]="24" [nzErrorTip]="
-              formGroup.get('EmployeeDepartment')?.hasError('required') &&
-              (formGroup.get('EmployeeDepartment')?.dirty ||
-                formGroup.get('EmployeeDepartment')?.touched)
+              formGroup.get('DepartmentID')?.hasError('required') &&
+              (formGroup.get('DepartmentID')?.dirty ||
+                formGroup.get('DepartmentID')?.touched)
                 ? 'Vui lòng chọn phòng ban!'
                 : undefined
             ">
-            <nz-select formControlName="EmployeeDepartment" [nzPlaceHolder]="'Chọn phòng ban'" style="width: 100%"
-              name="EmployeeDepartment" [nzDisabled]="true">
+            <nz-select formControlName="DepartmentID" [nzPlaceHolder]="'Chọn phòng ban'" style="width: 100%"
+              name="DepartmentID" [nzDisabled]="true">
               <nz-option *ngFor="let item of dataDepartment" [nzLabel]="item.Name" [nzValue]="item.ID"></nz-option>
             </nz-select>
           </nz-form-control>

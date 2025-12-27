@@ -82,10 +82,10 @@ export class JobRequirementFormComponent implements OnInit, AfterViewInit {
       NameDocument: [null, [Validators.maxLength(100)]],
       Code: ['', [Validators.maxLength(100)]],
       ApprovedTBPID: [null, [Validators.required]],
-      EmployeeDepartment: [''],
+      DepartmentID: [''],
       RequiredDepartment: ['', [Validators.required]],
       CoordinationDepartment: [''],
-      EmployeeID: ['', [Validators.required]],
+      EmployeeID: [null, [Validators.required]],
       DateRequest: [today, [Validators.required]],
       DeadlineRequest: [today, [Validators.required]],
       DatePromulgate: [''],
@@ -101,7 +101,15 @@ export class JobRequirementFormComponent implements OnInit, AfterViewInit {
   ngOnInit(): void {
     this.getCurrentUser();
     this.setDefaultRows();
-    
+    if (!this.isCheckmode && this.JobRequirementID <= 0) {
+    this.authService.getCurrentUser().subscribe(res => {
+      this.currentUser = res.data;
+      this.formGroup.patchValue({
+        EmployeeID: this.currentUser.EmployeeID,
+        DepartmentID: this.currentUser.DepartmentID
+      });
+    });
+  }
     // Subscribe to DeadlineRequest changes to update Description of STT 7
     this.formGroup.get('DeadlineRequest')?.valueChanges.subscribe((value) => {
       if (value) {
@@ -128,21 +136,14 @@ export class JobRequirementFormComponent implements OnInit, AfterViewInit {
         this.loadJobRequirementData();
       }, 300);
     } else {
-      // Khi thêm mới, mặc định chọn nhân viên hiện tại
-      this.setDefaultEmployee();
+    
     }
   }
-
   private getCurrentUser(): void {
-    this.authService.getCurrentUser().subscribe((user: any) => {
-      this.currentUser = user;
-      // Sau khi có currentUser, nếu đang ở chế độ thêm mới thì set default employee
-      if (!this.isCheckmode || this.JobRequirementID <= 0) {
-        this.setDefaultEmployee();
-      }
+    this.authService.getCurrentUser().subscribe((res: any) => {
+      this.currentUser =res.data;
     });
   }
-
   private setDefaultEmployee(): void {
     if (!this.currentUser || !this.currentUser.EmployeeID) {
       return;
@@ -182,7 +183,7 @@ export class JobRequirementFormComponent implements OnInit, AfterViewInit {
     if (!employeeID) {
       this.formGroup.patchValue({
         EmployeeID: null,
-        EmployeeDepartment: null,
+        DepartmentID: null,
       });
       // Xóa FullName khi bỏ chọn nhân viên
       const row2 = this.jobRequirementDetailData.find((row: any) => row.STT === 2);
@@ -195,7 +196,7 @@ export class JobRequirementFormComponent implements OnInit, AfterViewInit {
     if (selected) {
       this.formGroup.patchValue({
         EmployeeID: selected.ID,
-        EmployeeDepartment: selected.DepartmentID || null
+        DepartmentID: selected.DepartmentID || null
       });
       
       // Tự động bind FullName vào cột Diễn giải của "Người yêu cầu" (STT = 2)

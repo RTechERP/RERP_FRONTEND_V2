@@ -25,6 +25,7 @@ import { DepartmentServiceService } from '../department/department-service/depar
 import { EmployeeService } from '../employee/employee-service/employee.service';
 import { NzSplitterModule } from 'ng-zorro-antd/splitter';
 import { NzSpinModule } from 'ng-zorro-antd/spin';
+import { NzCardModule } from 'ng-zorro-antd/card';
 import { OverTimeService } from './over-time-service/over-time.service';
 import { OverTimeDetailComponent } from "./over-time-detail/over-time-detail.component";
 import { OverTimeTypeComponent } from "./over-time-type/over-time-type.component";
@@ -58,6 +59,7 @@ import { AuthService } from '../../../auth/auth.service';
     NzSplitterModule,
     NgIf,
     NzSpinModule,
+    NzCardModule,
     OverTimeDetailComponent,
     OverTimeTypeComponent,
     SummaryOverTimeComponent,
@@ -168,6 +170,7 @@ export class OverTimeComponent implements OnInit, AfterViewInit {
         headerHozAlign: "center",
         hozAlign: "center"
       },
+      
       groupBy: 'DepartmentName',
       groupHeader: function (value, count, data, group) {
         return "<span style='color:black'>Phòng ban: </span>" + value;
@@ -185,16 +188,53 @@ export class OverTimeComponent implements OnInit, AfterViewInit {
       locale: 'vi',
       columns: [
         {
-          title: 'TBP duyệt', field: 'StatusText', hozAlign: 'center', headerHozAlign: 'center', width: 110
+          title: 'TBP duyệt', field: 'StatusText', hozAlign: 'center', headerHozAlign: 'center', width: 110,
+           formatter: (cell: any) => {
+            const value = cell.getValue();
+            // Nếu là string, convert sang number; nếu là number/null, dùng trực tiếp
+            let numValue = 0;
+            if (value === null || value === undefined) {
+              numValue = 0;
+            } else if (typeof value === 'number') {
+              numValue = value;
+            } else if (typeof value === 'string') {
+              // Map string sang number
+              if (value === 'Đã duyệt') numValue = 1;
+              else if (value === 'Từ chối' || value === 'Không duyệt') numValue = 2;
+              else numValue = 0; // Chưa duyệt hoặc giá trị khác
+            }
+            return this.formatApprovalBadge(numValue);
+          },
         },
         {
-          title: 'HR duyệt', field: 'StatusHRText', hozAlign: 'center', headerHozAlign: 'center', width: 110
+          title: 'HR duyệt', field: 'StatusHRText', hozAlign: 'center', headerHozAlign: 'center', width: 110,
+           formatter: (cell: any) => {
+            const value = cell.getValue();
+            // Nếu là string, convert sang number; nếu là number/null, dùng trực tiếp
+            let numValue = 0;
+            if (value === null || value === undefined) {
+              numValue = 0;
+            } else if (typeof value === 'number') {
+              numValue = value;
+            } else if (typeof value === 'string') {
+              // Map string sang number
+              if (value === 'Đã duyệt') numValue = 1;
+              else if (value === 'Từ chối' || value === 'Không duyệt') numValue = 2;
+              else numValue = 0; // Chưa duyệt hoặc giá trị khác
+            }
+            return this.formatApprovalBadge(numValue);
+          },
         },
         {
-          title: 'BGD duyệt', field: 'IsApprovedBGD', hozAlign: 'center', headerHozAlign: 'center', width: 110
+          title: 'BGD duyệt', field: 'IsApprovedBGD', hozAlign: 'center', headerHozAlign: 'center', width: 110,
+             formatter: function (cell: any) {
+            const value = cell.getValue();
+            const checked = value === true || value === 'true' || value === 1 || value === '1';
+            return `<input type="checkbox" ${checked ? 'checked' : ''} style="pointer-events: none; accent-color: #1677ff;" />`;
+          },
         },
         {
-          title: 'Tên', field: 'FullName', hozAlign: 'left', headerHozAlign: 'center', width: 200
+          title: 'Tên', field: 'FullName', hozAlign: 'left', headerHozAlign: 'center', width: 200, bottomCalc:'count'
         },
         {
           title: 'Người duyệt', field: 'NguoiDuyet', hozAlign: 'left', headerHozAlign: 'center', width: 200
@@ -218,14 +258,14 @@ export class OverTimeComponent implements OnInit, AfterViewInit {
           title: 'Từ', field: 'TimeStart', hozAlign: 'center', headerHozAlign: 'center', width: 150,
           formatter: (cell) => {
             const value = cell.getValue();
-            return value ? DateTime.fromISO(value).toFormat('HH:mm dd/MM/yyyy') : '';
+            return value ? DateTime.fromISO(value).toFormat('dd/MM/yyyy HH:mm ') : '';
           }
         },
         {
           title: 'Đến', field: 'EndTime', hozAlign: 'center', headerHozAlign: 'center', width: 150,
           formatter: (cell) => {
             const value = cell.getValue();
-            return value ? DateTime.fromISO(value).toFormat('HH:mm dd/MM/yyyy') : '';
+            return value ? DateTime.fromISO(value).toFormat(' dd/MM/yyyy HH:mm') : '';
           }
         },
         {
@@ -599,5 +639,21 @@ export class OverTimeComponent implements OnInit, AfterViewInit {
     this.initializeForm();
     this.loadEmployeeOverTime();
   }
+   private formatApprovalBadge(status: number): string {
+    // 0 hoặc null: Chưa duyệt, 1: Đã duyệt, 2: Không duyệt
+    const numStatus = status === null || status === undefined ? 0 : Number(status);
+    
+    switch (numStatus) {
+      case 0:
+        return '<span class="badge bg-warning text-dark" style="display: inline-block; text-align: center;">Chưa duyệt</span>';
+      case 1:
+        return '<span class="badge bg-success" style="display: inline-block; text-align: center;">Đã duyệt</span>';
+      case 2:
+        return '<span class="badge bg-danger" style="display: inline-block; text-align: center;">Không duyệt</span>';
+      default:
+        return '<span class="badge bg-secondary" style="display: inline-block; text-align: center;">Không xác định</span>';
+    }
+  }
+
 }
 

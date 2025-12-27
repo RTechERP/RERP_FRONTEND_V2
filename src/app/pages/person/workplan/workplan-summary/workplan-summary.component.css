@@ -1,3 +1,25 @@
+/* Main container - flex layout */
+.workplan-container {
+    display: flex;
+    flex-direction: column;
+    height: 94vh;
+    overflow: hidden;
+}
+
+/* Sticky header sections */
+.sticky-header {
+    flex-shrink: 0;
+    background: white;
+    z-index: 10;
+}
+
+/* Scrollable table container */
+.table-scroll-container {
+    flex: 1;
+    overflow: auto;
+    min-height: 0;
+}
+
 /* Table styling */
 #tbl_workplan_detail {
     width: 100%;
@@ -26,22 +48,25 @@
     z-index: 9999;
 }
 
-.sticky-top-table {
-    position: sticky;
-    top: -3px;
-    z-index: 1;
-    background-color: antiquewhite !important;
+/* Sticky thead for table header */
+.sticky-thead {
+    position: sticky !important;
+    top: 0 !important;
+    z-index: 100 !important;
 }
 
-.sticky-top-table th {
+.sticky-thead th {
     background-color: antiquewhite !important;
     color: #000000 !important;
     text-align: center !important;
     vertical-align: middle !important;
+    position: sticky !important;
+    top: 0 !important;
 }
 
-.sticky-top-table th.sticky-left {
+.sticky-thead th.sticky-left {
     text-align: left !important;
+    z-index: 101 !important;
 }
 
 .sticky-left {

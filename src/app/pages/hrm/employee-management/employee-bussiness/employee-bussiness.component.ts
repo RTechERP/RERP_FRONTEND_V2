@@ -236,13 +236,13 @@ export class EmployeeBussinessComponent implements OnInit, AfterViewInit, OnChan
           },
         },
         {
-          title: 'Mã nhân viên', field: 'Code', hozAlign: 'left', headerHozAlign: 'center', width: 200, headerSort: false,
+          title: 'Mã nhân viên', field: 'Code', hozAlign: 'left', headerHozAlign: 'center', width: 90, headerSort: false, formatter:'textarea'
         },
         {
-          title: 'Tên nhân viên', field: 'FullName', hozAlign: 'left', headerHozAlign: 'center', width: 200, headerSort: false,
+          title: 'Tên nhân viên', field: 'FullName', hozAlign: 'left', headerHozAlign: 'center', width: 140, headerSort: false, bottomCalc:'count', formatter:'textarea'
         },
         {
-          title: 'Người duyệt', field: 'ApFullName', hozAlign: 'left', headerHozAlign: 'center', width: 200, headerSort: false,
+          title: 'Người duyệt', field: 'ApFullName', hozAlign: 'left', headerHozAlign: 'center', width: 140, headerSort: false, formatter:'textarea'
         },
         {
           title: 'Bổ sung', field: 'IsProblem', hozAlign: 'center', headerHozAlign: 'center', width: 90, headerSort: false,
@@ -325,13 +325,13 @@ export class EmployeeBussinessComponent implements OnInit, AfterViewInit, OnChan
           }
         },
         {
-          title: 'Ghi chú', field: 'Note', hozAlign: 'left', headerHozAlign: 'center', width: 250, headerSort: false,
+          title: 'Ghi chú', field: 'Note', hozAlign: 'left', headerHozAlign: 'center', width: 250, headerSort: false,formatter:'textarea'
         },
         {
-          title: 'Lý do sửa', field: 'ReasonHREdit', hozAlign: 'left', headerHozAlign: 'center', width: 500, headerSort: false,
+          title: 'Lý do sửa', field: 'ReasonHREdit', hozAlign: 'left', headerHozAlign: 'center', width: 500, headerSort: false,formatter:'textarea'
         },
         {
-          title: 'Lý do không đồng ý duyệt', field: 'ReasonDeciline', hozAlign: 'left', headerHozAlign: 'center', width: 500, headerSort: false,
+          title: 'Lý do không đồng ý duyệt', field: 'ReasonDeciline', hozAlign: 'left', headerHozAlign: 'center', width: 500, headerSort: false,formatter:'textarea'
         },
 
       ],

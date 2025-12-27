@@ -232,11 +232,11 @@ export class PoRequestPriceRtcComponent implements OnInit, AfterViewInit{
       // Tạo request mới
       const request: any = {
         DateRequest: this.formData.requestDate 
-          ? DateTime.fromJSDate(new Date(this.formData.requestDate)).toFormat('yyyy-MM-dd')
-          : DateTime.now().toFormat('yyyy-MM-dd'),
+          ? DateTime.fromJSDate(new Date(this.formData.requestDate)).toFormat('yyyy-MM-dd\'T\'HH:mm:ss')
+          : DateTime.now().toFormat('yyyy-MM-dd\'T\'HH:mm:ss'),
         EmployeeID: this.formData.userId || 0,
         Deadline: rowData['Deadline'] 
-          ? DateTime.fromISO(rowData['Deadline']).toFormat('yyyy-MM-dd')
+          ? DateTime.fromISO(rowData['Deadline']).toFormat('yyyy-MM-dd\'T\'HH:mm:ss')
           : null,
         ProductCode: rowData['ProductCode'] || '',
         ProductName: rowData['ProductName'] || '',

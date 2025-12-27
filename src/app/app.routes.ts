@@ -485,6 +485,7 @@ export const routes: Routes = [
             { path: 'project-type', component: ProjectTypeComponent, canActivate: [authGuard] },
             { path: 'project-field', component: ProjectFieldComponent, canActivate: [authGuard] },
             { path: 'meeting-minute-type', component: MeetingMinuteTypeComponent, canActivate: [authGuard] },
+            { path: 'leader-project', component: LeaderProjectComponent, canActivate: [authGuard] },
 
             //Mua hàng
             { path: 'employee-purchase', component: EmployeePurchaseComponent, canActivate: [authGuard] },

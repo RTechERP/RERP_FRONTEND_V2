@@ -219,8 +219,8 @@ export class PaymentOrderDetailComponent implements OnInit, AfterViewInit {
     ) { }
 
     ngOnInit(): void {
-        this.initFormGroup();
         this.initDataCombo();
+        this.initFormGroup();
         this.initGrid();
         // Thêm xử lý khi ponccID > 0
         if (this.ponccID > 0) {
@@ -304,6 +304,8 @@ export class PaymentOrderDetailComponent implements OnInit, AfterViewInit {
                 this.poNCCs = response.data.poNCCs;
                 this.registerContracts = response.data.registerContracts;
                 this.projects = response.data.projects;
+
+                this.initFormGroup();
             },
             error: (err) => {
                 this.notification.error(NOTIFICATION_TITLE.error, err?.error?.message || err?.message);
@@ -324,11 +326,13 @@ export class PaymentOrderDetailComponent implements OnInit, AfterViewInit {
 
     initFormGroup() {
 
+        console.log('this.paymentOrder edit:', this.paymentOrder);
 
+        const dateOrder = this.paymentOrder.DateOrder || new Date();
         this.validateForm = this.fb.group({
             TypeOrder: this.fb.control(this.paymentOrder.TypeOrder, [Validators.required]),
             PaymentOrderTypeID: this.fb.control(this.paymentOrder.PaymentOrderTypeID, [Validators.required]),
-            DateOrder: this.fb.control(this.paymentOrder.DateOrder, [Validators.required]),
+            DateOrder: this.fb.control(dateOrder, [Validators.required]),
             FullName: this.fb.control({ value: this.appUserService.currentUser?.FullName, disabled: true }),
             DepartmentName: this.fb.control({ value: this.appUserService.currentUser?.DepartmentName, disabled: true }),
             ApprovedTBPID: this.fb.control(this.paymentOrder.ApprovedTBPID, [Validators.required]),
@@ -342,13 +346,16 @@ export class PaymentOrderDetailComponent implements OnInit, AfterViewInit {
             ReceiverInfo: this.fb.control(this.paymentOrder.ReceiverInfo, [Validators.required]),
             TypePayment: this.fb.control(this.paymentOrder.TypePayment, [Validators.required]),
             DatePayment: this.fb.control(this.paymentOrder.DatePayment),
-            TypeBankTransfer: this.fb.control(this.paymentOrder.TypeBankTransfer, [Validators.required]),
-            AccountNumber: this.fb.control(this.paymentOrder.AccountNumber, [Validators.required]),
-            Bank: this.fb.control(this.paymentOrder.Bank, [Validators.required]),
-            ContentBankTransfer: this.fb.control(this.paymentOrder.ContentBankTransfer, [Validators.required]),
+            TypeBankTransfer: this.fb.control(this.paymentOrder.TypeBankTransfer),
+            AccountNumber: this.fb.control(this.paymentOrder.AccountNumber),
+            Bank: this.fb.control(this.paymentOrder.Bank),
+            ContentBankTransfer: this.fb.control(this.paymentOrder.ContentBankTransfer),
             Unit: this.fb.control(this.paymentOrder.Unit, [Validators.required]),
 
         });
+
+        // this.validateForm.get(this.paymentOrderField.TypePayment.field)
+        //     ?.setValue(this.paymentOrder.TypePayment, { emitEvent: true });
 
         //Sự kiện chọn loại đề nghị
         this.validateForm
@@ -407,7 +414,7 @@ export class PaymentOrderDetailComponent implements OnInit, AfterViewInit {
                 this.validateForm.get(this.paymentOrderField.AccountNumber.field)?.updateValueAndValidity();
                 this.validateForm.get(this.paymentOrderField.Bank.field)?.updateValueAndValidity();
                 this.validateForm.get(this.paymentOrderField.ContentBankTransfer.field)?.updateValueAndValidity();
-                this.onChangeTypeOrder(value);
+                // this.onChangeTypeOrder(value);
             });
 
         //Sự kiện chọn đơn vị
@@ -499,6 +506,7 @@ export class PaymentOrderDetailComponent implements OnInit, AfterViewInit {
                     model: Editors['float'],
                     decimal: 2
                 },
+                formatter: Formatters.decimal, params: { minDecimal: 0, maxDecimal: 2 },
                 onCellChange: (e: Event, args: OnEventArgs) => {
                     this.updateTotalMoney(args.cell, args.row);
                     this.updateTotal(args.cell);
@@ -519,6 +527,7 @@ export class PaymentOrderDetailComponent implements OnInit, AfterViewInit {
                     model: Editors['float'],
                     decimal: 2
                 },
+                formatter: Formatters.decimal, params: { minDecimal: 0, maxDecimal: 2 },
                 onCellChange: (e: Event, args: OnEventArgs) => {
                     this.updateTotalMoney(args.cell, args.row);
                     this.updateTotal(args.cell);
@@ -539,6 +548,7 @@ export class PaymentOrderDetailComponent implements OnInit, AfterViewInit {
                     model: Editors['float'],
                     decimal: 2
                 },
+                formatter: Formatters.decimal, params: { minDecimal: 0, maxDecimal: 2 },
                 onCellChange: (e: Event, args: OnEventArgs) => {
                     this.updateTotal(args.cell);
                     this.updateTotalPaymentAmount(args.cell, args.row);
@@ -561,6 +571,7 @@ export class PaymentOrderDetailComponent implements OnInit, AfterViewInit {
                     decimal: 2,
                     options: { max: 100 }
                 },
+                formatter: Formatters.decimal, params: { minDecimal: 0, maxDecimal: 2 },
                 onCellChange: (e: Event, args: OnEventArgs) => {
                     this.updateTotalPaymentAmount(args.cell, args.row);
                 }
@@ -580,7 +591,8 @@ export class PaymentOrderDetailComponent implements OnInit, AfterViewInit {
                 editor: {
                     model: Editors['float'],
                     decimal: 2
-                }
+                },
+                formatter: Formatters.decimal, params: { minDecimal: 0, maxDecimal: 2 },
             },
             {
                 id: PaymentOrderDetailField.Note.field,
@@ -683,6 +695,15 @@ export class PaymentOrderDetailComponent implements OnInit, AfterViewInit {
 
             },
 
+            formatterOptions: {
+                // dateSeparator: '.',
+                decimalSeparator: '.',
+                displayNegativeNumberWithParentheses: true,
+                minDecimal: 0,
+                maxDecimal: 2,
+                thousandSeparator: ','
+            },
+
         };
 
         // console.log('init grid"');
@@ -764,6 +785,11 @@ export class PaymentOrderDetailComponent implements OnInit, AfterViewInit {
         // console.log('this.validateForm.valid', this.validateForm.valid);
         // console.log('this.fileUploads:', this.fileUploads);
         // this.uploadFile(14176);
+
+        console.log('this.validateForm:', this.validateForm.value);
+        console.log('this.validateForm invalid:', this.validateForm.invalid);
+        console.log('this.validateForm valid:', this.validateForm.valid);
+
         if (!this.validateForm.valid) {
             Object.values(this.validateForm.controls).forEach(control => {
                 if (control.invalid) {
@@ -784,7 +810,7 @@ export class PaymentOrderDetailComponent implements OnInit, AfterViewInit {
                 PaymentOrderDetails: gridInstance.dataView.getItems(),
                 TotalMoney: parseFloat(columnElement.textContent ?? ''),
             };
-            // console.log('submit data', this.paymentOrder);
+            console.log('submit data', this.paymentOrder);
 
             this.paymentService.save(this.paymentOrder).subscribe({
                 next: (response) => {
@@ -954,7 +980,10 @@ export class PaymentOrderDetailComponent implements OnInit, AfterViewInit {
             }
             const columnElement = gridInstance.slickGrid?.getFooterRowColumn(columnId);
             if (columnElement) {
-                columnElement.textContent = `${total}`;
+                columnElement.textContent = `${new Intl.NumberFormat('en-US', {
+                    minimumFractionDigits: 2,
+                    maximumFractionDigits: 2
+                }).format(total)}`;
 
                 if (columnId == PaymentOrderField.TotalMoney.field) {
                     this.paymentOrder.TotalMoneyText = this.paymentService.readMoney(total, this.validateForm.value.Unit);

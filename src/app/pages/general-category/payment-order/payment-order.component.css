@@ -47,3 +47,12 @@
 
 
 
+:host ::ng-deep .bg-isurgent{
+    background-color: orange !important;
+}
+
+:host ::ng-deep .slick-cell.ellipsis {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}

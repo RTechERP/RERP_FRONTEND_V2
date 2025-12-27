@@ -2,27 +2,27 @@ export class PaymentOrder {
     ID: number = 0;
     Code: string | null = '';
 
-    TypeOrder: number | null = 0;
-    PaymentOrderTypeID: number | null = 0;
+    TypeOrder: number | null = null;
+    PaymentOrderTypeID: number | null = null;
 
     DateOrder: Date | null = null;
-    EmployeeID: number | null = 0;
-    ReasonOrder: string | null = '';
+    EmployeeID: number | null = null;
+    ReasonOrder: string | null = null;
     DatePayment: Date | null = null;
-    ReceiverInfo: string | null = '';
+    ReceiverInfo: string | null = null;
 
-    TypePayment: number | null = 0;
+    TypePayment: number | null = null;
     AccountNumber: string | null = '';
     Bank: string | null = '';
 
-    TotalMoney: number | null = 0;
+    TotalMoney: number | null = null;
     TotalMoneyText: string | null = '';
     Unit: string | null = '';
 
     IsDelete = false;
     Note: string | null = '';
 
-    TypeBankTransfer: number | null = 0;
+    TypeBankTransfer: number | null = null;
     ContentBankTransfer: string | null = '';
     AccountingNote: string | null = '';
 
@@ -34,21 +34,21 @@ export class PaymentOrder {
     DeadlinePayment: Date | null = null;
     IsUrgent = false;
 
-    PONCCID: number | null = 0;
-    SupplierSaleID: number | null = 0;
-    CustomerID: number | null = 0;
+    PONCCID: number | null = null;
+    SupplierSaleID: number | null = null;
+    CustomerID: number | null = null;
 
-    TypeDocument: number | null = 0;
+    TypeDocument: number | null = null;
     NumberDocument: string | null = '';
 
     IsSpecialOrder: boolean | null = null;
-    ProjectID: number | null = 0;
+    ProjectID: number | null = null;
     IsBill = false;
 
     StartLocation: string | null = '';
     EndLocation: string | null = '';
 
-    RegisterContractID: number | null = 0;
+    RegisterContractID: number | null = null;
 
     TypeCode: string | null = '';
     TypeName: string | null = '';
@@ -62,7 +62,7 @@ export class PaymentOrder {
     TypeOrderText: string | null = '';
     RowNum: number | null = 0;
 
-    Step: number | null = 0;
+    Step: number | null = null;
     StepName: string | null = '';
 
     IsApproved: boolean | null = null;
@@ -73,15 +73,15 @@ export class PaymentOrder {
     TypeBankTransferText: string | null = null;
 
     POCode: string | null = '';
-    TotalPayment: number | null = 0;
+    TotalPayment: number | null = null;
     CustomerName: string | null = '';
     TypeDocumentText: string | null = '';
     ProjectFullName: string | null = '';
 
-    StepNew: number | null = 0;
+    StepNew: number | null = null;
     PaymentOrderTypeName: string | null = '';
 
-    TotalPaymentActual: number | null = 0;
+    TotalPaymentActual: number | null = null;
     SuplierName: string | null = '';
 
     ReasonRequestAppendFileHR: string | null = '';
@@ -112,7 +112,7 @@ export class PaymentOrder {
     PaymentMethodsJoin: string | null = '';
 
     TotalPage: number | null = 0;
-    ApprovedTBPID: number | null = 0;
+    ApprovedTBPID: number | null = null;
     ApprovedBGDID: number | null = 0;
     PaymentOrderPOs: any[] = []
     PaymentOrderBillNumbers: any[] = []

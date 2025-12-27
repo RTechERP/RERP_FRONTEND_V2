@@ -214,14 +214,26 @@ export class PaymentOrderComponent implements OnInit {
             this.param.departmentID = this.appUserService.currentUser?.DepartmentID;
             this.param.employeeID = this.appUserService.currentUser?.EmployeeID;
             // console.log('this.param:', this.param);
-        } else if (this.appUserService.currentUser?.Permissions.includes(permissionCodeTBP)) {
-            this.param.departmentID = this.appUserService.currentUser?.DepartmentID;
+        } else {
+            if (this.appUserService.currentUser?.Permissions.includes(permissionCodeTBP)) {
+                this.param.departmentID = this.appUserService.currentUser?.DepartmentID;
+            }
+
+            if (this.appUserService.currentUser?.Permissions.includes(permissionCodeHR) ||
+                this.appUserService.currentUser?.Permissions.includes(permissionCodeTbpHR) ||
+                this.appUserService.currentUser?.Permissions.includes(permissionCodeKT) ||
+                this.appUserService.currentUser?.Permissions.includes(permissionCodeKTT) ||
+                this.appUserService.currentUser?.Permissions.includes(permissionCodeBGD) ||
+                this.appUserService.currentUser?.IsAdmin) {
+                this.param.departmentID = 0;
+            }
+
+
         }
 
         this.initGrid();
         this.initGridSpecial();
         this.initGridSpecialDetail();
-
     }
 
     initMenuBar() {
@@ -577,7 +589,15 @@ export class PaymentOrderComponent implements OnInit {
                     }
 
                 }
-            }
+            },
+            // {
+            //     label: 'In PO',
+            //     icon: PrimeIcons.PRINT,
+            //     command: () => {
+            //         this.onPrint();
+
+            //     }
+            // }
         ]
     }
 
@@ -606,8 +626,8 @@ export class PaymentOrderComponent implements OnInit {
                 filter: {
                     collection: [
                         { value: '', label: '' },
-                        { value: true, label: 'Gấp' },
-                        { value: false, label: 'Không gấp' },
+                        { value: true, label: 'Thanh toán gấp' },
+                        // { value: false, label: 'Không gấp' },
                     ],
                     model: Filters['singleSelect'],
                     filterOptions: {
@@ -754,7 +774,7 @@ export class PaymentOrderComponent implements OnInit {
                     collection: [
                         { value: '', label: '' },
                         { value: true, label: 'Có hóa đơn' },
-                        { value: false, label: 'Không có' },
+                        // { value: false, label: 'Không có' },
                     ],
                     model: Filters['singleSelect'],
                     filterOptions: {
@@ -804,15 +824,16 @@ export class PaymentOrderComponent implements OnInit {
                 type: PaymentOrderField.TotalMoney.type,
                 sortable: true, filterable: true,
                 width: 150,
-                formatter: Formatters.currency,
-                filter: {
-                    collection: [],
-                    model: Filters['multipleSelect'],
-                    filterOptions: {
-                        autoAdjustDropHeight: true,
-                        filter: true,
-                    } as MultipleSelectOption,
-                },
+                formatter: Formatters.decimal, params: { minDecimal: 0, maxDecimal: 2 },
+                filter: { model: Filters['compoundInputNumber'] },
+                // filter: {
+                //     collection: [],
+                //     model: Filters['multipleSelect'],
+                //     filterOptions: {
+                //         autoAdjustDropHeight: true,
+                //         filter: true,
+                //     } as MultipleSelectOption,
+                // },
             },
 
             {
@@ -822,15 +843,16 @@ export class PaymentOrderComponent implements OnInit {
                 type: PaymentOrderField.TotalPayment.type,
                 sortable: true, filterable: true,
                 width: 150,
-                formatter: Formatters.currency,
-                filter: {
-                    collection: [],
-                    model: Filters['multipleSelect'],
-                    filterOptions: {
-                        autoAdjustDropHeight: true,
-                        filter: true,
-                    } as MultipleSelectOption,
-                },
+                formatter: Formatters.decimal, params: { minDecimal: 0, maxDecimal: 2 },
+                filter: { model: Filters['compoundInputNumber'] },
+                // filter: {
+                //     collection: [],
+                //     model: Filters['multipleSelect'],
+                //     filterOptions: {
+                //         autoAdjustDropHeight: true,
+                //         filter: true,
+                //     } as MultipleSelectOption,
+                // },
             },
 
             {
@@ -840,15 +862,16 @@ export class PaymentOrderComponent implements OnInit {
                 type: PaymentOrderField.TotalPaymentActual.type,
                 sortable: true, filterable: true,
                 width: 150,
-                formatter: Formatters.currency,
-                filter: {
-                    collection: [],
-                    model: Filters['multipleSelect'],
-                    filterOptions: {
-                        autoAdjustDropHeight: true,
-                        filter: true,
-                    } as MultipleSelectOption,
-                },
+                formatter: Formatters.decimal, params: { minDecimal: 0, maxDecimal: 2 },
+                filter: { model: Filters['compoundInputNumber'] },
+                // filter: {
+                //     collection: [],
+                //     model: Filters['compoundInputNumber'],
+                //     filterOptions: {
+                //         autoAdjustDropHeight: true,
+                //         filter: true,
+                //     } as MultipleSelectOption,
+                // },
             },
             {
                 id: PaymentOrderField.Unit.field,
@@ -1107,7 +1130,20 @@ export class PaymentOrderComponent implements OnInit {
                 sortable: true, filterable: true,
                 width: 150,
                 formatter: Formatters.iconBoolean, params: { cssClass: "mdi mdi-check" },
-                filter: { model: Filters['compoundInputText'] },
+                // filter: { model: Filters['compoundInputText'] },
+                exportCustomFormatter: this.excelBooleanFormatter,
+                filter: {
+                    collection: [
+                        { value: '', label: '' },
+                        { value: true, label: 'Bỏ qua HR' },
+                        // { value: false, label: 'Không có' },
+                    ],
+                    model: Filters['singleSelect'],
+                    filterOptions: {
+                        autoAdjustDropHeight: true,
+                        filter: true,
+                    } as MultipleSelectOption,
+                },
             },
 
             {
@@ -1425,6 +1461,15 @@ export class PaymentOrderComponent implements OnInit {
                 //     sheet.data.push([{ value: customTitle, metadata: { style: excelFormat.id } }]);
                 // },
             },
+
+            formatterOptions: {
+                // dateSeparator: '.',
+                decimalSeparator: '.',
+                displayNegativeNumberWithParentheses: true,
+                minDecimal: 0,
+                maxDecimal: 2,
+                thousandSeparator: ','
+            },
         };
 
         this.columnDefinitionDetails = [
@@ -1434,10 +1479,9 @@ export class PaymentOrderComponent implements OnInit {
                 field: 'Stt',
                 type: PaymentOrderDetailField.STT.type,
                 width: 70,
-                sortable: true, filterable: false,
+                sortable: true, filterable: true,
                 formatter: Formatters.tree,
-
-                // filter: { model: Filters['compoundInputNumber'] },
+                filter: { model: Filters['compoundInputText'] },
             },
 
             {
@@ -1446,9 +1490,9 @@ export class PaymentOrderComponent implements OnInit {
                 field: PaymentOrderDetailField.ContentPayment.field,
                 type: PaymentOrderDetailField.ContentPayment.type,
                 width: 250,
-                sortable: true, filterable: false,
+                sortable: true, filterable: true,
                 // formatter: Formatters.iconBoolean,
-                // filter: { model: Filters['compoundInputText'] },
+                filter: { model: Filters['compoundInputText'] },
             },
 
             {
@@ -1457,9 +1501,9 @@ export class PaymentOrderComponent implements OnInit {
                 field: PaymentOrderDetailField.Unit.field,
                 type: PaymentOrderDetailField.Unit.type,
                 width: 70,
-                sortable: true, filterable: false,
+                sortable: true, filterable: true,
                 // formatter: Formatters.iconBoolean,
-                // filter: { model: Filters['compoundInputText'] },
+                filter: { model: Filters['compoundInputText'] },
             },
 
             {
@@ -1468,9 +1512,9 @@ export class PaymentOrderComponent implements OnInit {
                 field: PaymentOrderDetailField.Quantity.field,
                 type: PaymentOrderDetailField.Quantity.type,
                 width: 80,
-                sortable: true, filterable: false,
-                // formatter: Formatters.iconBoolean,
-                // filter: { model: Filters['compoundInputText'] },
+                sortable: true, filterable: true,
+                formatter: Formatters.decimal, params: { minDecimal: 0, maxDecimal: 2 },
+                filter: { model: Filters['compoundInputNumber'] },
             },
 
             {
@@ -1479,9 +1523,9 @@ export class PaymentOrderComponent implements OnInit {
                 field: PaymentOrderDetailField.UnitPrice.field,
                 type: PaymentOrderDetailField.UnitPrice.type,
                 width: 100,
-                sortable: true, filterable: false,
-                // formatter: Formatters.iconBoolean,
-                // filter: { model: Filters['compoundInputText'] },
+                sortable: true, filterable: true,
+                formatter: Formatters.decimal, params: { minDecimal: 0, maxDecimal: 2 },
+                filter: { model: Filters['compoundInputNumber'] },
             },
 
             {
@@ -1490,9 +1534,9 @@ export class PaymentOrderComponent implements OnInit {
                 field: PaymentOrderDetailField.TotalMoney.field,
                 type: PaymentOrderDetailField.TotalMoney.type,
                 width: 150,
-                sortable: true, filterable: false,
-                // formatter: Formatters.iconBoolean,
-                // filter: { model: Filters['compoundInputText'] },
+                sortable: true, filterable: true,
+                formatter: Formatters.decimal, params: { minDecimal: 0, maxDecimal: 2 },
+                filter: { model: Filters['compoundInputNumber'] },
             },
             {
                 id: PaymentOrderDetailField.PaymentPercentage.field,
@@ -1500,9 +1544,9 @@ export class PaymentOrderComponent implements OnInit {
                 field: PaymentOrderDetailField.PaymentPercentage.field,
                 type: PaymentOrderDetailField.PaymentPercentage.type,
                 width: 100,
-                sortable: true, filterable: false,
-                // formatter: Formatters.iconBoolean,
-                // filter: { model: Filters['compoundInputText'] },
+                sortable: true, filterable: true,
+                formatter: Formatters.decimal, params: { minDecimal: 0, maxDecimal: 2 },
+                filter: { model: Filters['compoundInputNumber'] },
             },
             {
                 id: PaymentOrderDetailField.TotalPaymentAmount.field,
@@ -1510,9 +1554,9 @@ export class PaymentOrderComponent implements OnInit {
                 field: PaymentOrderDetailField.TotalPaymentAmount.field,
                 type: PaymentOrderDetailField.TotalPaymentAmount.type,
                 width: 150,
-                sortable: true, filterable: false,
-                // formatter: Formatters.iconBoolean,
-                // filter: { model: Filters['compoundInputText'] },
+                sortable: true, filterable: true,
+                formatter: Formatters.decimal, params: { minDecimal: 0, maxDecimal: 2 },
+                filter: { model: Filters['compoundInputNumber'] },
             },
             {
                 id: PaymentOrderDetailField.Note.field,
@@ -1520,9 +1564,9 @@ export class PaymentOrderComponent implements OnInit {
                 field: PaymentOrderDetailField.Note.field,
                 type: PaymentOrderDetailField.Note.type,
                 width: 300,
-                sortable: true, filterable: false,
+                sortable: true, filterable: true,
                 // formatter: Formatters.iconBoolean,
-                // filter: { model: Filters['compoundInputText'] },
+                filter: { model: Filters['compoundInputText'] },
             },
         ]
 
@@ -1552,8 +1596,16 @@ export class PaymentOrderComponent implements OnInit {
                 exportIndentMarginLeft: 4,   // similar to `indentMarginLeft` but represent a space instead of pixels for the Export CSV/Excel
             },
             multiColumnSort: false,
-
             frozenColumn: 2,
+
+            formatterOptions: {
+                // dateSeparator: '.',
+                decimalSeparator: '.',
+                displayNegativeNumberWithParentheses: true,
+                minDecimal: 0,
+                maxDecimal: 2,
+                thousandSeparator: ','
+            },
         }
 
 
@@ -1566,7 +1618,7 @@ export class PaymentOrderComponent implements OnInit {
                 width: 100,
                 sortable: true, filterable: false,
                 // formatter: Formatters.iconBoolean,
-                // filter: { model: Filters['compoundInputNumber'] },
+                filter: { model: Filters['compoundInputText'] },
             },
         ]
 
@@ -1642,9 +1694,9 @@ export class PaymentOrderComponent implements OnInit {
                 field: 'FileName',
                 type: 'string',
                 width: 100,
-                sortable: true, filterable: false,
+                sortable: true, filterable: true,
                 // formatter: Formatters.iconBoolean,
-                // filter: { model: Filters['compoundInputNumber'] },
+                filter: { model: Filters['compoundInputText'] },
             },
         ]
 
@@ -1867,7 +1919,7 @@ export class PaymentOrderComponent implements OnInit {
                 type: PaymentOrderField.TotalMoney.type,
                 sortable: true, filterable: true,
                 width: 150,
-                formatter: Formatters.currency,
+                formatter: Formatters.decimal, params: { minDecimal: 0, maxDecimal: 2 },
                 filter: { model: Filters['compoundInputNumber'] },
             },
 
@@ -2048,6 +2100,14 @@ export class PaymentOrderComponent implements OnInit {
                 //     sheet.data.push([{ value: customTitle, metadata: { style: excelFormat.id } }]);
                 // },
             },
+            formatterOptions: {
+                // dateSeparator: '.',
+                decimalSeparator: '.',
+                displayNegativeNumberWithParentheses: true,
+                minDecimal: 0,
+                maxDecimal: 2,
+                thousandSeparator: ','
+            },
         }
 
         this.loadData();
@@ -2061,10 +2121,10 @@ export class PaymentOrderComponent implements OnInit {
                 field: 'Stt',
                 type: PaymentOrderDetailField.STT.type,
                 width: 70,
-                sortable: true, filterable: false,
+                sortable: true, filterable: true,
                 // formatter: Formatters.tree,
 
-                // filter: { model: Filters['compoundInputNumber'] },
+                filter: { model: Filters['compoundInputText'] },
             },
 
             {
@@ -2073,9 +2133,9 @@ export class PaymentOrderComponent implements OnInit {
                 field: PaymentOrderDetailField.ContentPayment.field,
                 type: PaymentOrderDetailField.ContentPayment.type,
                 width: 250,
-                sortable: true, filterable: false,
+                sortable: true, filterable: true,
                 // formatter: Formatters.iconBoolean,
-                // filter: { model: Filters['compoundInputText'] },
+                filter: { model: Filters['compoundInputText'] },
             },
 
 
@@ -2085,9 +2145,9 @@ export class PaymentOrderComponent implements OnInit {
                 field: PaymentOrderDetailField.TotalMoney.field,
                 type: PaymentOrderDetailField.TotalMoney.type,
                 width: 150,
-                sortable: true, filterable: false,
-                // formatter: Formatters.iconBoolean,
-                // filter: { model: Filters['compoundInputText'] },
+                sortable: true, filterable: true,
+                formatter: Formatters.decimal, params: { minDecimal: 0, maxDecimal: 2 },
+                filter: { model: Filters['compoundInputNumber'] },
             },
             {
                 id: PaymentOrderDetailField.PaymentMethods.field,
@@ -2095,9 +2155,9 @@ export class PaymentOrderComponent implements OnInit {
                 field: PaymentOrderDetailField.PaymentMethods.field,
                 type: PaymentOrderDetailField.PaymentMethods.type,
                 width: 100,
-                sortable: true, filterable: false,
+                sortable: true, filterable: true,
                 // formatter: Formatters.iconBoolean,
-                // filter: { model: Filters['compoundInputText'] },
+                filter: { model: Filters['compoundInputText'] },
             },
             {
                 id: PaymentOrderDetailField.PaymentInfor.field,
@@ -2105,9 +2165,9 @@ export class PaymentOrderComponent implements OnInit {
                 field: PaymentOrderDetailField.PaymentInfor.field,
                 type: PaymentOrderDetailField.PaymentInfor.type,
                 width: 150,
-                sortable: true, filterable: false,
+                sortable: true, filterable: true,
                 // formatter: Formatters.iconBoolean,
-                // filter: { model: Filters['compoundInputText'] },
+                filter: { model: Filters['compoundInputText'] },
             },
             {
                 id: 'UserTeamName',
@@ -2115,9 +2175,9 @@ export class PaymentOrderComponent implements OnInit {
                 field: 'UserTeamName',
                 type: 'string',
                 width: 150,
-                sortable: true, filterable: false,
+                sortable: true, filterable: true,
                 // formatter: Formatters.iconBoolean,
-                // filter: { model: Filters['compoundInputText'] },
+                filter: { model: Filters['compoundInputText'] },
             },
             {
                 id: PaymentOrderDetailField.Note.field,
@@ -2125,9 +2185,9 @@ export class PaymentOrderComponent implements OnInit {
                 field: PaymentOrderDetailField.Note.field,
                 type: PaymentOrderDetailField.Note.type,
                 width: 300,
-                sortable: true, filterable: false,
+                sortable: true, filterable: true,
                 // formatter: Formatters.iconBoolean,
-                // filter: { model: Filters['compoundInputText'] },
+                filter: { model: Filters['compoundInputText'] },
             },
         ]
 
@@ -2159,6 +2219,14 @@ export class PaymentOrderComponent implements OnInit {
             // multiColumnSort: false,
 
             frozenColumn: 2,
+            formatterOptions: {
+                // dateSeparator: '.',
+                decimalSeparator: '.',
+                displayNegativeNumberWithParentheses: true,
+                minDecimal: 0,
+                maxDecimal: 2,
+                thousandSeparator: ','
+            },
         }
     }
 
@@ -2253,7 +2321,8 @@ export class PaymentOrderComponent implements OnInit {
                     id: x.ID   // dành riêng cho SlickGrid
                 }));
 
-                this.updateFilterCollections(this.angularGrid);
+                this.updateFilterCollections(this.angularGrid, this.dataset);
+                this.rowStyle(this.angularGrid);
             },
             error: (err) => {
                 this.notification.error(NOTIFICATION_TITLE.error, err.error.message);
@@ -2279,7 +2348,8 @@ export class PaymentOrderComponent implements OnInit {
                     id: x.ID   // dành riêng cho SlickGrid
                 }));
 
-                this.updateFilterCollections(this.angularGridSpecial);
+                this.updateFilterCollections(this.angularGridSpecial, this.datasetSpecial);
+                this.rowStyle(this.angularGridSpecial);
             },
             error: (err) => {
                 this.notification.error(NOTIFICATION_TITLE.error, err.error.message);
@@ -2336,13 +2406,14 @@ export class PaymentOrderComponent implements OnInit {
     }
 
 
-    private updateFilterCollections(angularGrid: AngularGridInstance): void {
+    private updateFilterCollections(angularGrid: AngularGridInstance, data: any[]): void {
         if (!angularGrid || !angularGrid.slickGrid) return;
 
         // console.log('angularGrid',angularGrid);
 
         const columns = angularGrid.slickGrid.getColumns();
-        const allData = angularGrid.dataView?.getItems();
+        // const allData = angularGrid.dataView?.getItems();
+        const allData = data;
 
         // Helper function to get unique values for a field
         const getUniqueValues = (field: string): Array<{ value: string; label: string }> => {
@@ -2375,6 +2446,37 @@ export class PaymentOrderComponent implements OnInit {
         // Update grid columns
         angularGrid.slickGrid.setColumns(columns);
         angularGrid.slickGrid.render();
+    }
+
+
+    rowStyle(angularGrid: AngularGridInstance) {
+        angularGrid.dataView.getItemMetadata = this.rowStyleIsUrgent(angularGrid.dataView.getItemMetadata, angularGrid);
+
+        this.gridData.invalidate();
+        this.gridData.render();
+
+        this.gridDataSpecial.invalidate();
+        this.gridDataSpecial.render();
+    }
+
+    rowStyleIsUrgent(previousItemMetadata: any, angularGrid: AngularGridInstance) {
+        const newCssClass = 'bg-isurgent';
+
+        return (rowNumber: number) => {
+            const item = angularGrid.dataView.getItem(rowNumber);
+            let meta = {
+                cssClasses: '',
+            };
+            if (typeof previousItemMetadata === 'object') {
+                meta = previousItemMetadata(rowNumber);
+            }
+
+            if (meta && item && item.IsUrgent) {
+                meta.cssClasses = (meta.cssClasses || '') + '' + newCssClass;
+            }
+
+            return meta;
+        };
     }
 
     angularGridReady(angularGrid: AngularGridInstance) {
@@ -2532,7 +2634,8 @@ export class PaymentOrderComponent implements OnInit {
                 if (result.isConfirmed) {
                     const paymentDeleted = {
                         ID: item.ID,
-                        IsDelete: true
+                        IsDelete: true,
+                        Code: item.Code
                     }
 
                     this.paymentService.save(paymentDeleted).subscribe({
@@ -3188,14 +3291,97 @@ export class PaymentOrderComponent implements OnInit {
 
         if (!activeCell) return;
 
-        // const rowIndex = activeCell.row;        // index trong grid
-        // const item = this.angularGrid.dataView.getItem(rowIndex) as PaymentOrder; // data object
 
-        console.log('this.dataPrint:', this.dataPrint);
+        const paymentOrder = this.dataPrint.paymentOrder[0];
+        const details = this.dataPrint.paymentOrder;
+        const signs = this.dataPrint.signs;
+
+        console.log('.paymentOrder:', paymentOrder);
+        console.log('.details:', details);
+        console.log('.signs:', signs);
+
+
+        const numberDocument = paymentOrder.TypeOrder == 1 ? "BM01-RTC.AC-QT03" : "BM02-RTC.AC-QT03";
+        const dateOrder = new Date(paymentOrder.DateOrder);
+        const datePayment = new Date(paymentOrder.DatePayment);
+
+        let groupHeader6: any = {};
+        const nameNCC = paymentOrder.NameNCC || '';
+        const poCode = paymentOrder.POCode || '';
+        if ((nameNCC && poCode)) {
+            groupHeader6 = {
+                style: 'groupHeader6',
+                table: {
+                    widths: [120, '*', 40, 120],
+                    body:
+                        [
+
+                            [
+                                '3. Nhà cung cấp',
+                                { text: `:${paymentOrder.NameNCC}` },
+                                'Số PO',
+                                `:${paymentOrder.POCode || ''}`,
+                            ],
+                            // ...groupHeader6
+                        ],
+                },
+                layout: 'noBorders',
+            }
+
+        }
+
+        let groupHeader3: any = {};
+        let sumTotalFooter: any = [];
+        if (paymentOrder.TypeOrder == 1) {
+            groupHeader3 = {
+                style: 'groupHeader3',
+                table: {
+                    widths: [120, '*', 40, 70],
+                    body: [
+                        [
+                            '3. Thời gian thanh quyết toán',
+                            { colSpan: 3, text: `:Ngày ${datePayment.getDate()} tháng ${datePayment.getMonth() + 1} năm ${datePayment.getFullYear()}` }
+                        ]
+                    ],
+                },
+                layout: 'noBorders',
+            };
+
+            sumTotalFooter = [
+                { colSpan: 2, text: 'Tổng cộng tạm ứng', bold: true, border: [true, false, true, true] }, {},
+                { colSpan: 1, text: '', bold: true, border: [true, false, true, true] },
+                { colSpan: 1, text: 'SL', bold: true, alignment: 'right', border: [true, false, true, true] },
+                { colSpan: 1, text: 'sumSum([UnitPice]', bold: true, alignment: 'right', border: [true, false, true, true] },
+                { colSpan: 1, text: 'sumSum([Thanhtien]', bold: true, alignment: 'right', border: [true, false, true, true] },
+                { colSpan: 3, text: '' }, {}, {},
+            ]
+        }
+
+        let groupHeader4: any = {};
+        if (paymentOrder.TypePayment == 1) {
+            groupHeader4 = {
+                style: 'groupHeader4',
+                table: {
+                    widths: [120, '*', 40, 70],
+                    body: [
+                        [
+                            '- Hình thức chuyển khoản',
+                            { colSpan: 3, text: `:${paymentOrder.TypeBankTransferText}` }, {}, {}
+                        ],
+                        [
+                            '- Nội dung chuyển khoản',
+                            { colSpan: 3, text: `:${paymentOrder.ContentBankTransfer}` }, {}, {}
+                        ]
+
+                    ],
+                },
+                layout: 'noBorders',
+            }
+        }
 
         let docDefinition = {
             info: {
-                title: 'po.BillCode',
+                title: paymentOrder.Code,
             },
             content: [
                 {
@@ -3214,7 +3400,7 @@ export class PaymentOrderComponent implements OnInit {
                             margin: [0, 20, 0, 0],
                         },
                         {
-                            text: "?NumberDocument",
+                            text: `Mã số: ${numberDocument}`,
                             fontSize: 12,
                             alignment: 'center',
                             bold: true,
@@ -3223,175 +3409,116 @@ export class PaymentOrderComponent implements OnInit {
                     ],
                 },
 
-                { text: '?PayementOrderTitle', bold: true },
-                { text: '?Code', bold: true },
-                { text: '?DateOrder', bold: false },
+                { text: `GIẤY ${paymentOrder.TypeOrderText?.toUpperCase() ?? ''}`, bold: true, alignment: 'center', },
+                { text: `Số ${paymentOrder.Code}`, bold: true, alignment: 'center', },
+                {
+                    text: `Ngày ${dateOrder.getDate()} tháng ${dateOrder.getMonth() + 1} năm ${dateOrder.getFullYear()}`,
+                    bold: false, alignment: 'center',
+                },
 
                 {
                     style: 'tableExample',
                     table: {
-                        widths: [90, '*', 40, 70],
+                        widths: [120, '*', 40, 120],
                         body: [
                             [
                                 '1. Họ và tên người đề nghị',
-                                { text: this.dataPrint.paymentOrder.FullName },
+                                { text: `:${paymentOrder.FullName}` },
                                 'Bộ phận:',
-                                this.dataPrint.paymentOrder.DepartmentName,
+                                `:${paymentOrder.DepartmentName}`,
                             ],
                             [
-                                this.dataPrint.paymentOrder.TypeOrder == 3 ? '2. Lý do thu tiền' : '2. Lý do thanh toán',
-                                { colSpan: 3, text: this.dataPrint.paymentOrder.ReasonOrder }
+                                // Iif(?TypeOrder == 3 ,'2. Lý do thu tiền','2. Lý do thanh toán' )
+                                { text: paymentOrder.TypeOrder == 3 ? '2. Lý do thu tiền' : '2. Lý do thanh toán' },
+                                { colSpan: 3, text: `:${paymentOrder.ReasonOrder}` }
                             ],
                         ],
                     },
                     layout: 'noBorders',
                 },
 
-                //Group nhà cung cấp
-                {
-                    style: 'tableExample',
-                    table: {
-                        widths: [90, '*', 40, 70],
-                        body: [
-                            [
-                                '3. Nhà cung cấp',
-                                { text: this.dataPrint.paymentOrder.NameNCC },
-                                'Số PO:',
-                                this.dataPrint.paymentOrder.POCode,
-                            ],
-                        ],
-                    },
-                    layout: 'noBorders',
-                },
+                //Nhà cung cấp
+                groupHeader6,
 
-                //Group Thời gian thanh quyết toán
-                {
-                    style: 'tableExample',
-                    table: {
-                        widths: [90, '*'],
-                        body: [
-                            [
-                                '3. Thời gian thanh quyết toán',
-                                { text: this.dataPrint.paymentOrder.DatePayment },
-                            ],
-                        ],
-                    },
-                    layout: 'noBorders',
-                },
+                //Thời gian thanh quyết toán
+                groupHeader3,
 
-                //Group Thông tin người nhận tiền
+                //Thông tin nhận tiền
                 {
                     style: 'tableExample',
                     table: {
-                        widths: [90, '*', 40, 70],
+                        widths: [120, '*', 40, 70],
                         body: [
                             [
                                 '4. Thông tin người nhận tiền',
-                                { colSpan: 3, text: this.dataPrint.paymentOrder.ReceiveInfo },
-                            ],
-                            [
-                                this.dataPrint.paymentOrder.TypeOrder == 3 ? '- Hình thức thu tiền' : '- Hình thức thanh toán',
-                                { text: 'Chuyển khoản' },
-                                { colSpan: 2, text: 'Tiền mặt' },
-                            ],
-                            [
-                                '- Số tài khoản',
-                                this.dataPrint.paymentOrder.AccountNumber,
-                                'Ngân hàng',
-                                this.dataPrint.paymentOrder.Bank,
+                                { colSpan: 3, text: `:${paymentOrder.ReceiverInfo}` }, {}, {}
                             ],
 
-                            //
                             [
-                                '- Hình thức chuyển khoản',
-                                { colSpan: 4, text: this.dataPrint.paymentOrder.TypeBankTransferText },
+                                '- Hình thức thu tiền',
+                                // '- Hình thức thanh toán',
+                                { text: paymentOrder.TypePayment == 1 ? '[x] Chuyển khoản' : '[ ] Chuyển khoản' },
+                                { colSpan: 2, text: paymentOrder.TypePayment == 2 ? '[x] Tiền mặt' : '[ ] Tiền mặt' }, {}
                             ],
                             [
-                                '- Nội dung chuyển khoản',
-                                { colSpan: 4, text: this.dataPrint.paymentOrder.ContentBankTransfer },
+                                '- Số tài khoản', { text: `:${paymentOrder.AccountNumber}` },
+                                'Ngân hàng:', `:${paymentOrder.Bank}`
                             ],
+
                         ],
                     },
                     layout: 'noBorders',
                 },
+                groupHeader4,
+
                 {
                     style: 'tableExample',
                     table: {
-                        widths: ['*', , 30, 40],
+                        widths: [120, '*', 40, 30, 40],
                         body: [
                             [
-                                '5. Số tiền đề nghị được ghi theo bảng kê dưới đây:',
-                                'ĐVT:',
-                                this.dataPrint.paymentOrder.Unit
-                            ],
+                                { colSpan: 3, text: '5. Số tiền đề nghị được ghi theo bảng kê dưới đây:' }, {}, {},
+                                { text: 'ĐVT:' },
+                                { text: `${paymentOrder.Unit?.toUpperCase() ?? ''}` }
+                            ]
                         ],
                     },
                     layout: 'noBorders',
                 },
+
+
+                //Bảng chi tiết
                 {
                     style: 'tableExample',
                     table: {
-                        widths: [20, 130, 30, 46, '*', '*', 30, '*'],
+                        widths: [20, 130, 27, 25, 50, 50, 30, 50, '*'],
                         body: [
                             //Header table
                             [
                                 { text: 'STT', alignment: 'center', bold: true },
-                                { text: this.dataPrint.paymentOrder.TypeOrder == 3, 'Nội dung thu tiền': 'Nội dung thanh toán', alignment: 'center', bold: true },
+                                { text: 'Nội dung thu tiền', alignment: 'center', bold: true },
                                 { text: 'ĐVT', alignment: 'center', bold: true },
-                                { text: 'S:', alignment: 'center', bold: true },
+                                { text: 'SL', alignment: 'center', bold: true },
                                 { text: 'Đơn giá', alignment: 'center', bold: true },
                                 { text: 'Thành tiền', alignment: 'center', bold: true },
                                 { text: '% TT', alignment: 'center', bold: true },
                                 { text: 'Tổng thanh toán', alignment: 'center', bold: true },
-                                { text: 'Ghi chú / Chứng từ kèm theo', alignment: 'center', bold: true },
+                                { text: 'Ghi chú / Chứng từ', alignment: 'center', bold: true },
                             ],
 
                             //list item
                             // ...items,
                             //sum footer table
-                            [
-                                {
-                                    colSpan: 2,
-                                    text: 'Tổng cộng tạm ứng',
-                                    bold: true,
-                                    // border: [true, false, true, true],
-                                },
-                            ],
-                            [
-                                {
-                                    // colSpan: 2,
-                                    text: '',
-                                    // border: [true, false, false, true],
-                                },
-                                // '',
-                                {
-                                    // colSpan: 3,
-                                    text: `Iif(sumSum([Quantity]) <= 0, '' ,sumSum([Quantity]))`,
-                                    bold: true,
-                                    alignment: 'right',
-                                    // border: [false, false, false, true],
-                                },
-                                // '',
-                                // '',
-                                {
-                                    // colSpan: 3,
-                                    text: `Iif(sumSum([UnitPrice]) == 0,'' ,Iif(?Unit == 'VND',FormatString('{0:n0}',sumSum([UnitPrice])) , FormatString('{0:n2}',sumSum([UnitPrice]))))`,
-                                    alignment: 'right',
-                                    // border: [false, false, true, true],
-                                },
-                                {
-                                    // colSpan: 3,
-                                    text: `Iif(?Unit == 'VND',FormatString('{0:n0}',sumSum([TotalMoney])) ,FormatString('{0:n2}',sumSum([TotalMoney])))`,
-                                    alignment: 'right',
-                                    // border: [false, false, true, true],
-                                },
-                                {
-                                    colSpan: 3,
-                                    text: '',
-                                    alignment: '',
-                                    // border: [false, false, true, true],
-                                },
-                            ],
+                            ...sumTotalFooter,
+                            // [
+                            //     { colSpan: 2, text: 'Tổng cộng tạm ứng', bold: true, border: [true, false, true, true] }, {},
+                            //     { colSpan: 1, text: '', bold: true, border: [true, false, true, true] },
+                            //     { colSpan: 1, text: 'SL', bold: true, alignment: 'right', border: [true, false, true, true] },
+                            //     { colSpan: 1, text: 'sumSum([UnitPice]', bold: true, alignment: 'right', border: [true, false, true, true] },
+                            //     { colSpan: 1, text: 'sumSum([Thanhtien]', bold: true, alignment: 'right', border: [true, false, true, true] },
+                            //     { colSpan: 3, text: '' }, {}, {},
+                            // ],
+                            [{ colSpan: 9, text: 'thnahf iền bằng chữ', bold: true, italics: true }]
 
                         ],
                     },
@@ -3401,36 +3528,52 @@ export class PaymentOrderComponent implements OnInit {
                     },
                     height: 60,
                 },
+                { text: "GHI CHÚ KẾ TOÁN:", bold: true, margin: [0, 10, 0, 0] },
+                { text: '?AccountingNote', bold: true, margin: [0, 0, 0, 60] },
 
-
+                'Chữ ký nếu có HR duyệt',
                 {
                     alignment: 'justify',
                     columns: [
-                        { text: 'Supplier', alignment: 'center', bold: true },
-                        { text: 'Prepared by', alignment: 'center', bold: true },
-                        { text: 'Director', alignment: 'center', bold: true },
+                        { text: 'Người đề nghị thanh toán', alignment: 'center', bold: true },
+                        { text: 'Trưởng bộ phận', alignment: 'center', bold: true },
+                        { text: 'Phòng nhân sự', alignment: 'center', bold: true },
+                        { text: 'Phòng kế toán', alignment: 'center', bold: true },
+                        { text: 'Ban giám đốc', alignment: 'center', bold: true },
                     ],
                 },
                 {
                     alignment: 'justify',
                     columns: [
-                        {
-                            text: '(Signature, full name)',
-                            italics: true,
-                            alignment: 'center',
-                        },
-                        {
-                            text: '(Signature, full name)',
-                            italics: true,
-                            alignment: 'center',
-                        },
-                        {
-                            text: '(Signature, full name)',
-                            italics: true,
-                            alignment: 'center',
-                        },
+                        { text: '?EmployeeSign', alignment: 'center', bold: true },
+                        { text: '?TBPSign', alignment: 'center', bold: true },
+                        { text: '?HRSign', alignment: 'center', bold: true },
+                        { text: '?KTSign', alignment: 'center', bold: true },
+                        { text: '?BGDSign', alignment: 'center', bold: true },
                     ],
-                }
+                },
+
+                'Chữ ký nếu kô cần HR duyệt',
+                {
+                    alignment: 'justify',
+                    columns: [
+                        { text: 'Người đề nghị thanh toán', alignment: 'center', bold: true },
+                        { text: 'Trưởng bộ phận', alignment: 'center', bold: true },
+                        // { text: 'Phòng nhân sự', alignment: 'center', bold: true },
+                        { text: 'Phòng kế toán', alignment: 'center', bold: true },
+                        { text: 'Ban giám đốc', alignment: 'center', bold: true },
+                    ],
+                },
+                {
+                    alignment: 'justify',
+                    columns: [
+                        { text: '?EmployeeSign', alignment: 'center', bold: true },
+                        { text: '?TBPSign', alignment: 'center', bold: true },
+                        // { text: '?HRSign', alignment: 'center', bold: true },
+                        { text: '?KTSign', alignment: 'center', bold: true },
+                        { text: '?BGDSign', alignment: 'center', bold: true },
+                    ],
+                },
             ],
 
             defaultStyle: {
@@ -3438,6 +3581,13 @@ export class PaymentOrderComponent implements OnInit {
                 alignment: 'justify',
                 font: 'Times',
             },
+            // styles: {
+            //     groupHeader4: {
+
+            //         vis
+            //     },
+
+            // },
         };
 
         pdfMake.createPdf(docDefinition).open();

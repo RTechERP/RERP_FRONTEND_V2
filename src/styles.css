@@ -403,9 +403,9 @@ body .slickgrid-container .grid-canvas .slick-cell{
     border-bottom: 1px solid  #ddd !important;
 }
 
-.slickgrid-container .slick-row.odd{
-    background-color: unset !important;
-}
+/* .slickgrid-container .slick-row.odd{
+    background-color: transparent !important;
+} */
 
 .slickgrid-container .slick-preheader-panel.slick-state-default .slick-header-columns .slick-header-column{
 

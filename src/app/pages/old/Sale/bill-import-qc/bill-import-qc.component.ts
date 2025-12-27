@@ -78,7 +78,7 @@ import { HorizontalScrollDirective } from '../../../../directives/horizontalScro
 import { Subscription } from 'rxjs';
 import { TabulatorPopupService } from '../../../../shared/components/tabulator-popup';
 import { ProjectService } from '../../../project/project-service/project.service';
-import { BillImportQcServiceService } from './bill-import-qc-service/bill-import-qc-service.service';
+import { BillImportQcService } from './bill-import-qc-service/bill-import-qc-service.service';
 import { BillImportQcDetailComponent } from './bill-import-qc-detail/bill-import-qc-detail.component';
 
 @Component({
@@ -160,7 +160,7 @@ export class BillImportQcComponent implements OnInit, AfterViewInit {
     private modalService: NgbModal,
     private cdr: ChangeDetectorRef,
     private projectService: ProjectService,
-    private billImportQcService: BillImportQcServiceService
+    private billImportQcService: BillImportQcService
   ) {}
   //#endregion
 

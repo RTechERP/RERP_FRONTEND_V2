@@ -1318,9 +1318,10 @@ export class BillExportTechnicalFormComponent implements OnInit, AfterViewInit {
       backdrop: 'static',
       keyboard: false,
     });
-    modalRef.componentInstance.quantity = quantity;
-    modalRef.componentInstance.productCode = productCode;
-    modalRef.componentInstance.existingSerials = existingSerials;
+    modalRef.componentInstance.dataBillDetail = rowData;
+    modalRef.componentInstance.type = 1;
+    modalRef.componentInstance.isTechBill = true;
+    modalRef.componentInstance.warehouseId = this.warehouseID;
     modalRef.result
       .then((serials: { ID: number; Serial: string }[]) => {
         const newSerial = serials.map((s) => s.Serial).join(', ');

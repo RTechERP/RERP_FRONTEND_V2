@@ -136,7 +136,8 @@
                 </div>
                 <div nz-col nzXs="24" nzSm="12" nzMd="6" nzLg="4">
                     <nz-form-item>
-                        <nz-form-label>Deadline thanh toán</nz-form-label>
+                        <nz-form-label>Deadline thanh toán<span class="text-danger ps-1"
+                                *ngIf="this.paymentOrder.IsUrgent ">(*)</span></nz-form-label>
                         <nz-form-control nzErrorTip="Chọn thời gian">
                             <nz-input-group nzSearch [nzAddOnBefore]="suffixIconButton">
                                 <nz-date-picker class="w-100"
@@ -157,10 +158,13 @@
                     <nz-form-item>
                         <nz-form-label>Lý do<span class="text-danger ps-1">(*)</span></nz-form-label>
                         <nz-form-control nzErrorTip="Nhập lý do">
-                            <nz-textarea-count [nzMaxCharacterCount]="100">
+                            <!-- <nz-textarea-count [nzMaxCharacterCount]="100">
                                 <textarea rows="4" [formControlName]="paymentOrderField.ReasonOrder.field"
                                     nz-input></textarea>
-                            </nz-textarea-count>
+                            </nz-textarea-count> -->
+                            <textarea rows="4" [formControlName]="paymentOrderField.ReasonOrder.field"
+                                nz-input></textarea>
+
                         </nz-form-control>
                     </nz-form-item>
                 </div>
@@ -170,10 +174,12 @@
                         <nz-form-label>Thông tin người nhân tiền<span
                                 class="text-danger ps-1">(*)</span></nz-form-label>
                         <nz-form-control nzErrorTip="Nhập thông tin">
-                            <nz-textarea-count [nzMaxCharacterCount]="100">
+                            <!-- <nz-textarea-count [nzMaxCharacterCount]="100">
                                 <textarea rows="4" [formControlName]="paymentOrderField.ReceiverInfo.field"
                                     nz-input></textarea>
-                            </nz-textarea-count>
+                            </nz-textarea-count> -->
+                            <textarea rows="4" [formControlName]="paymentOrderField.ReceiverInfo.field"
+                                nz-input></textarea>
                         </nz-form-control>
                     </nz-form-item>
                 </div>
@@ -294,7 +300,7 @@
         <!-- <button nz-button nzType="default" (click)="addItem()">
             <nz-icon nzType="plus" nzTheme="outline" /> Thêm chi tiết
         </button> -->
-        <div class="grid-container">
+        <div class="grid-container border">
             <angular-slickgrid gridId="grdData" [columns]="columnDefinitions" [options]="gridOptions"
                 [dataset]="dataset" (onAngularGridCreated)="angularGridReady($event.detail)"
                 (onCellChange)="onCellChanged($event.detail.eventData, $event.detail.args)"

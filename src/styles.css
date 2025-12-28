@@ -393,8 +393,6 @@ body .slickgrid-container .slick-header-columns .slick-header-column.slick-state
 body .slickgrid-container .grid-canvas .slick-cell{
     line-height: normal #ddd !important;
     border-left: 1px solid #ddd !important;
-     /* border-top: 1px solid !important; 
-    border-bottom: 1px solid  #ddd !important; */
     font-size: 12px !important;
 }
 
@@ -407,8 +405,9 @@ body .slickgrid-container .grid-canvas .slick-cell{
     background-color: transparent !important;
 } */
 
-.slickgrid-container .slick-preheader-panel.slick-state-default .slick-header-columns .slick-header-column{
-
+.slick-header-button{
+    float: left !important;
+    margin-bottom: 0 !important;
 }
 
 /* end style slick grid */

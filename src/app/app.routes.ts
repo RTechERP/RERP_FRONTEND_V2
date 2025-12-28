@@ -708,6 +708,7 @@ export const routes: Routes = [
             { path: 'search-serialnumber-tech-hn', component: SearchProductTechSerialComponent, canActivate: [authGuard] },
             { path: 'product-location-hn', component: ProductLocationTechnicalComponent, canActivate: [authGuard] },
             { path: 'unit-count-hn', component: UnitCountKtComponent, canActivate: [authGuard] },
+            { path: 'product-qrcode-hn', component: ProductRtcQrCodeComponent, canActivate: [authGuard] },
 
             //kho agv
             { path: 'inventory-agv-hn', component: InventoryDemoComponent, canActivate: [authGuard] },

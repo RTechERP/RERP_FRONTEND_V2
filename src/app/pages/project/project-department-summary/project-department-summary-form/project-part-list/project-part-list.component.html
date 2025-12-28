@@ -460,7 +460,44 @@
                     <img src="assets/icon/warehouse_16.png" />
                     <span class="ms-1">Kho Đan Phượng</span>
                   </li>
-                 
+                </ul>
+              </nz-dropdown-menu>
+              <!-- yêu cầu chuyển kho -->
+              <ng-container>
+                <button
+                  class="fs-12"
+                  nz-button
+                  nzType="default"
+                  nzSize="small"
+                  nz-dropdown
+                  [nzDropdownMenu]="menuTransfer"
+                >
+                  <img src="assets/icon/action_confirm_tbp_16.png" alt="TBP duyệt" />Yêu cầu chuyển kho
+                  <i nz-icon nzType="down"></i>
+                </button>
+              </ng-container>
+                <nz-dropdown-menu #menuTransfer="nzDropdownMenu">
+                <ul nz-menu>
+                  <li nz-menu-item (click)="requestExportByWarehouse('HN')">
+                    <img src="assets/icon/warehouse_16.png" />
+                    <span class="ms-1">Kho HN</span>
+                  </li>
+                  <li nz-menu-item (click)="requestExportByWarehouse('HCM')">
+                    <img src="assets/icon/warehouse_16.png" />
+                    <span class="ms-1">Kho HCM</span>
+                  </li>
+                  <li nz-menu-item (click)="requestExportByWarehouse('BN')">
+                    <img src="assets/icon/warehouse_16.png" />
+                    <span class="ms-1">Kho Bắc Ninh</span>
+                  </li>
+                  <li nz-menu-item (click)="requestExportByWarehouse('HP')">
+                    <img src="assets/icon/warehouse_16.png" />
+                    <span class="ms-1">Kho Hải Phòng</span>
+                  </li>
+                  <li nz-menu-item (click)="requestExportByWarehouse('DP')">
+                    <img src="assets/icon/warehouse_16.png" />
+                    <span class="ms-1">Kho Đan Phượng</span>
+                  </li>
                 </ul>
               </nz-dropdown-menu>
               <!-- end -->

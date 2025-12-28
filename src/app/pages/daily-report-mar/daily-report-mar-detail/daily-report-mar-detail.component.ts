@@ -37,7 +37,6 @@ export class DailyReportMarDetailComponent implements OnInit, AfterViewInit {
 
   formGroup: FormGroup;
   saving: boolean = false;
-  sendingEmail: boolean = false;
 
   @ViewChild('tb_FileMar', { static: false })
   tb_FileMarElement!: ElementRef;
@@ -149,189 +148,6 @@ export class DailyReportMarDetailComponent implements OnInit, AfterViewInit {
     this.activeModal.close(true);
   }
 
-  private escapeHtml(text: string): string {
-    return (text || '')
-      .replace(/&/g, '&amp;')
-      .replace(/</g, '&lt;')
-      .replace(/>/g, '&gt;')
-      .replace(/"/g, '&quot;')
-      .replace(/'/g, '&#39;');
-  }
-
-  private toHtmlPreserveLines(text: string): string {
-    const escaped = this.escapeHtml(text || '');
-    return escaped.replace(/\r\n|\r|\n/g, '<br>');
-  }
-
-  private buildFileLinks(): any[] {
-    const activeFiles = this.fileData.filter((f: any) => !f?.IsDeleted);
-    return activeFiles
-      .map((f: any) => {
-        const fileName = f?.FileNameOrigin || f?.FileName || '';
-        const path = f?.ServerPath || f?.PathServer || f?.FilePath || '';
-        if (!fileName || !path) return null;
-        return {
-          FileName: fileName,
-          Url: `/api/home/download?path=${encodeURIComponent(path)}`,
-          PathServer: path,
-        };
-      })
-      .filter((x: any) => !!x);
-  }
-
-  private buildEmailBodyHtml(dateReport: Date, content: string, results: string, planNextDay: string, note: string, fileLinks: any[]): string {
-    const dateStr = dateReport ? DateTime.fromJSDate(dateReport).toFormat('dd/MM/yyyy') : '';
-
-    const fileLinksHtml = (Array.isArray(fileLinks) && fileLinks.length > 0)
-      ? fileLinks
-          .map((f: any) => {
-            const name = this.escapeHtml(f?.FileName || '');
-            const url = this.escapeHtml(f?.Url || '');
-            if (!name || !url) return '';
-            return `<a href="${url}" target="_blank">${name}</a><br>`;
-          })
-          .join('')
-      : '<i>- Không có</i>';
-
-    return `<!DOCTYPE html>
-<html lang="vi">
-<head>
-  <meta charset="UTF-8">
-  <title>BÁO CÁO CÔNG VIỆC NGÀY ${dateStr}</title>
-  <style>
-    body{font-family:Arial,Helvetica,sans-serif;line-height:1.5;color:#333;margin:0;padding:20px;background:#f9f9f9}
-    .container{max-width:720px;margin:auto;background:#fff;padding:25px;border-radius:8px;box-shadow:0 2px 8px rgba(0,0,0,.1)}
-    h3{color:#2c3e50;margin-top:0}
-    hr{border:none;border-top:1px solid #ddd;margin:20px 0}
-    .label{font-weight:bold;color:#555}
-    .file-links a{color:#0066cc;text-decoration:none}
-    .file-links a:hover{text-decoration:underline}
-    .footer{margin-top:30px;font-size:.9em;color:#777}
-  </style>
-</head>
-<body>
-  <div class="container">
-    <h3>BÁO CÁO CÔNG VIỆC NGÀY ${dateStr}</h3>
-    <hr>
-    <p><span class="label">* Nội dung công việc:</span><br>${this.toHtmlPreserveLines(content)}</p>
-    <p><span class="label">* Kết quả công việc:</span><br>${this.toHtmlPreserveLines(results)}</p>
-    <p><span class="label">* Kế hoạch ngày tiếp theo:</span><br>${this.toHtmlPreserveLines(planNextDay)}</p>
-    <p><span class="label">* Đề xuất cải tiến:</span><br>${this.toHtmlPreserveLines(note || '- Không có')}</p>
-    <p class="label">* File đính kèm:</p>
-    <div class="file-links">${fileLinksHtml}</div>
-    <hr>
-    <div class="footer">
-      <p>Người gửi: <strong>${this.escapeHtml(this.currentUser?.FullName || '')}</strong></p>
-      <p>Ngày gửi: ${DateTime.local().toFormat('dd/MM/yyyy HH:mm')}</p>
-    </div>
-  </div>
-</body>
-</html>`;
-  }
-
-  private sendEmailAfterSave(valueRaw: any): void {
-    if (this.sendingEmail) return;
-
-    const dateReport: Date | null = valueRaw?.DateReport ? new Date(valueRaw.DateReport) : null;
-    if (!dateReport || isNaN(dateReport.getTime())) {
-      this.notification.warning('Thông báo', 'Không xác định được ngày báo cáo để gửi email!');
-      return;
-    }
-
-    const fileLinks = this.buildFileLinks();
-    const bodyHtml = this.buildEmailBodyHtml(
-      dateReport,
-      valueRaw?.Content || '',
-      valueRaw?.Results || '',
-      valueRaw?.PlanNextDay || '',
-      valueRaw?.Note || '',
-      fileLinks
-    );
-
-    this.sendingEmail = true;
-    this.dailyReportTechService.sendEmailMarketingReport(bodyHtml, dateReport, fileLinks).subscribe({
-      next: (response: any) => {
-        this.sendingEmail = false;
-      },
-      error: (error: any) => {
-        this.sendingEmail = false;
-      }
-    });
-  }
-
-  sendEmailMarketing(): void {
-    if (this.sendingEmail) return;
-
-    if (this.formGroup.invalid) {
-      this.formGroup.markAllAsTouched();
-      this.notification.warning('Thông báo', 'Vui lòng nhập đầy đủ các trường bắt buộc!');
-      return;
-    }
-
-    const valueRaw = this.formGroup.getRawValue();
-    const dateReport: Date | null = valueRaw.DateReport ? new Date(valueRaw.DateReport) : null;
-    if (!dateReport) {
-      this.notification.warning('Thông báo', 'Vui lòng chọn ngày báo cáo!');
-      return;
-    }
-
-    const doSend = () => {
-      const fileLinks = this.buildFileLinks();
-      const bodyHtml = this.buildEmailBodyHtml(
-        dateReport,
-        valueRaw.Content || '',
-        valueRaw.Results || '',
-        valueRaw.PlanNextDay || '',
-        valueRaw.Note || '',
-        fileLinks
-      );
-
-      this.sendingEmail = true;
-      this.dailyReportTechService.sendEmailMarketingReport(bodyHtml, dateReport, fileLinks).subscribe({
-        next: (response: any) => {
-          this.sendingEmail = false;
-          if (response?.status === 1) {
-            this.notification.success('Thông báo', response?.message || 'Gửi email báo cáo thành công!');
-          } else {
-            this.notification.error('Thông báo', response?.message || 'Gửi email báo cáo thất bại!');
-          }
-        },
-        error: (error: any) => {
-          this.sendingEmail = false;
-          this.notification.error('Thông báo', error?.error?.message || error?.message || 'Gửi email báo cáo thất bại!');
-        }
-      });
-    };
-
-    const filesToUpload: File[] = this.fileData
-      .filter((f) => f?.File && !f?.ServerPath)
-      .map((f) => f.File as File);
-
-    if (filesToUpload.length > 0) {
-      const subPath = this.getSubPath(dateReport);
-      this.notification.info('Thông báo', 'Đang upload file trước khi gửi email...');
-      this.dailyReportTechService.uploadMultipleFiles(filesToUpload, subPath).subscribe({
-        next: (res: any) => {
-          if (res?.status === 1 && Array.isArray(res?.data)) {
-            let fileIndex = 0;
-            this.fileData.forEach((f) => {
-              if (f?.File && !f?.ServerPath && res.data[fileIndex]) {
-                f.ServerPath = res.data[fileIndex].FilePath || res.data[fileIndex].filePath || res.data[fileIndex].ServerPath || '';
-                fileIndex++;
-              }
-            });
-          }
-          doSend();
-        },
-        error: (error: any) => {
-          this.notification.error('Thông báo', error?.error?.message || error?.message || 'Upload file thất bại!');
-        },
-      });
-    } else {
-      doSend();
-    }
-  }
-
   saveData(): void {
     if (this.formGroup.invalid) {
       this.formGroup.markAllAsTouched();
@@ -401,7 +217,6 @@ export class DailyReportMarDetailComponent implements OnInit, AfterViewInit {
         this.saving = false;
         if (response?.status === 1) {
           this.notification.success('Thông báo', response?.message || 'Lưu dữ liệu thành công');
-          this.sendEmailAfterSave(valueRaw);
           this.closeModal();
         } else {
           this.notification.error('Thông báo', response?.message || 'Không thể lưu dữ liệu');

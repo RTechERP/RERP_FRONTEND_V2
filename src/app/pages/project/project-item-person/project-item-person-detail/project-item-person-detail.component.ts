@@ -12,13 +12,15 @@ import { NzNotificationService } from 'ng-zorro-antd/notification';
 import { NzIconModule } from 'ng-zorro-antd/icon';
 import { NzTabsModule } from 'ng-zorro-antd/tabs';
 import { NzRadioModule } from 'ng-zorro-antd/radio';
-import { NzModalModule, NzModalService } from 'ng-zorro-antd/modal';
-import { NgbActiveModal } from '@ng-bootstrap/ng-bootstrap';
+import { NzModalModule } from 'ng-zorro-antd/modal';
+import { NgbActiveModal, NgbModal } from '@ng-bootstrap/ng-bootstrap';
 import { NOTIFICATION_TITLE } from '../../../../app.config';
 import { AuthService } from '../../../../auth/auth.service';
 import { ProjectService } from '../../project-service/project.service';
 import { WorkItemServiceService } from '../../work-item/work-item-service/work-item-service.service';
 import { DateTime } from 'luxon';
+import { ProjectItemProblemComponent } from '../../work-item/work-item-form/project-item-problem/project-item-problem.component';
+import { ProjectItemPersonService } from '../project-item-person-service/project-item-person.service';
 
 // Interface cho tab hạng mục công việc
 interface ProjectItemTab {
@@ -28,6 +30,7 @@ interface ProjectItemTab {
   oldStatus: number; // Lưu trạng thái cũ để so sánh
   UserID: number | null;
   EmployeeIDRequest: number | null;
+  ParentID: number | null; // ID hạng mục cha
   Mission: string;
   PlanStartDate: Date | null;
   TotalDayPlan: number | null;
@@ -71,7 +74,9 @@ export class ProjectItemPersonDetailComponent implements OnInit {
   // Dữ liệu cho combobox
   projects: any[] = [];
   employees: any[] = [];
+  employeesRequest: any[] = [];
   typeProjectItems: any[] = [];
+  ParentList: any[] = []; // Danh sách hạng mục cha
   statusList: any[] = [
     { id: 0, name: 'Chưa làm' },
     { id: 1, name: 'Đang làm' },
@@ -88,6 +93,26 @@ export class ProjectItemPersonDetailComponent implements OnInit {
   workLocation: number = 1; // 1 = VP RTC, 0 = Địa điểm khác
   workLocationText: string = '';
 
+  defaultEmployeeRequestId: number = 0;
+  editingItemId: number = 0; // ID của item đang edit
+  private previousProjectID: number | null = null; // Lưu ProjectID trước đó để so sánh
+
+  additionalInfo: {
+    Problem: string;
+    Note: string;
+    UpdateDate: Date | null;
+    CreatedBy: number | null;
+  } = {
+    Problem: '',
+    Note: '',
+    UpdateDate: null,
+    CreatedBy: null,
+  };
+
+  activeAccordion: Record<string, boolean> = {
+    additional_info: true,
+  };
+
   // Date change status modal
   isDateChangeModalVisible: boolean = false;
   tempDateChangeStatus: Date | null = new Date();
@@ -98,17 +123,21 @@ export class ProjectItemPersonDetailComponent implements OnInit {
   percentFormatter = (value: number): string => `${value}%`;
   percentParser = (value: string): number => Number(value.replace('%', '')) || 0;
 
-  // Status đặc biệt cần auto fill ActualEndDate
-  readonly STATUS_COMPLETED = 2; // Hoàn thành
+  // Status constants
+  readonly STATUS_NOT_STARTED = 0; // Chưa làm
+  readonly STATUS_IN_PROGRESS = 1; // Đang làm
+  readonly STATUS_COMPLETED = 2;   // Hoàn thành
+  readonly STATUS_PENDING = 3;     // Pending
   readonly STATUS_MAINTENANCE = 6;
   readonly STATUS_FINISHED = 9;
 
   constructor(
     private fb: FormBuilder,
     private projectService: ProjectService,
+    private projectItemPersonService : ProjectItemPersonService,
     private workItemService: WorkItemServiceService,
     private notification: NzNotificationService,
-    private modalService: NzModalService,
+    private ngbModalService: NgbModal,
     public activeModal: NgbActiveModal,
     private authService: AuthService
   ) { }
@@ -119,6 +148,7 @@ export class ProjectItemPersonDetailComponent implements OnInit {
     this.getCurrentUser();
     this.loadProjects();
     this.loadEmployees();
+    this.loadEmployeesRequest();
     this.loadTypeProjectItems();
 
     // Khởi tạo tab đầu tiên
@@ -130,6 +160,38 @@ export class ProjectItemPersonDetailComponent implements OnInit {
     }
   }
 
+  toggleAccordion(key: string): void {
+    this.activeAccordion[key] = !this.activeAccordion[key];
+  }
+
+  openProjectItemProblemDetail(projectItemId: number | null | undefined): void {
+    const id = Number(projectItemId || 0);
+    if (!id || id <= 0) {
+      this.notification.warning(NOTIFICATION_TITLE.warning, 'Chỉ xem/nhập phát sinh khi đã có bản ghi!');
+      return;
+    }
+
+    const modalRef = this.ngbModalService.open(ProjectItemProblemComponent, {
+      centered: true,
+      size: 'xl',
+      keyboard: false,
+    });
+
+    modalRef.componentInstance.projectItemId = id;
+
+    modalRef.result
+      .then((result: any) => {
+        if (result && result.success) {
+          if (result.contentProblem !== undefined) {
+            this.additionalInfo.Problem = result.contentProblem;
+          }
+        }
+      })
+      .catch((error: any) => {
+        console.error('Error opening project item problem detail:', error);
+      });
+  }
+
   getCurrentUser(): void {
     this.authService.getCurrentUser().subscribe({
       next: (res: any) => {
@@ -137,10 +199,13 @@ export class ProjectItemPersonDetailComponent implements OnInit {
           const data = Array.isArray(res.data) ? res.data[0] : res.data;
           this.currentUser = data;
 
+          const defaultResponsibleEmployeeId =
+            data?.ID ?? null;
+
           // Cập nhật người phụ trách cho tất cả tabs
           this.tabs.forEach(tab => {
             if (!tab.UserID) {
-              tab.UserID = data.ID || null;
+              tab.UserID = defaultResponsibleEmployeeId;
             }
           });
         }
@@ -156,12 +221,110 @@ export class ProjectItemPersonDetailComponent implements OnInit {
       ID: [0],
       ProjectID: [null, [Validators.required]],
     });
+
+    // Lắng nghe thay đổi ProjectID để load danh sách hạng mục cha
+    this.formGroup.get('ProjectID')?.valueChanges.subscribe((projectID: number) => {
+      // Chỉ xử lý khi ProjectID thực sự thay đổi
+      if (this.previousProjectID !== projectID) {
+        this.previousProjectID = projectID;
+        
+        if (projectID && projectID > 0) {
+          this.loadParentList(projectID);
+          // Clear ParentID của tất cả các tab khi đổi dự án
+          this.tabs.forEach(tab => {
+            tab.ParentID = null;
+          });
+        } else {
+          this.ParentList = [];
+          this.tabs.forEach(tab => {
+            tab.ParentID = null;
+          });
+        }
+      } else if (projectID && projectID > 0) {
+        // Load lại ParentList nếu ProjectID không đổi (trường hợp load data by ID)
+        this.loadParentList(projectID);
+      }
+    });
+  }
+
+  loadParentList(projectID: number): void {
+    this.projectItemPersonService.getProjectItemParent(projectID).subscribe({
+      next: (response: any) => {
+        if (response && response.status === 1 && response.data) {
+          this.ParentList = Array.isArray(response.data) ? response.data : [];
+        } else {
+          this.ParentList = [];
+        }
+      },
+      error: (error: any) => {
+        this.ParentList = [];
+      }
+    });
   }
 
   loadDataById(id: number): void {
     this.saving = true;
-    // TODO: Implement API call to get project item by ID
-    this.saving = false;
+    this.projectItemPersonService.getById(id).subscribe({
+      next: (response: any) => {
+        this.saving = false;
+        if (response && response.status === 1 && response.data) {
+          const data = response.data;
+          
+          // Set previousProjectID trước để tránh trigger valueChanges không cần thiết
+          this.previousProjectID = data.ProjectID || null;
+          
+          // Set ProjectID vào form
+          this.formGroup.patchValue({
+            ID: data.ID,
+            ProjectID: data.ProjectID,
+          });
+
+          // Load danh sách hạng mục cha khi đã có ProjectID
+          if (data.ProjectID) {
+            this.loadParentList(data.ProjectID);
+          }
+
+          // Tạo tab từ dữ liệu API
+          const editTab: ProjectItemTab = {
+            id: this.tabIdCounter++,
+            TypeProjectItemID: data.TypeProjectItem || null,
+            Status: data.Status ?? 0,
+            oldStatus: data.Status ?? 0,
+            UserID: data.UserID || null,
+            EmployeeIDRequest: data.EmployeeIDRequest || null,
+            ParentID: data.ParentID || null,
+            Mission: data.Mission || '',
+            PlanStartDate: data.PlanStartDate ? new Date(data.PlanStartDate) : null,
+            TotalDayPlan: data.TotalDayPlan || null,
+            PlanEndDate: data.PlanEndDate ? new Date(data.PlanEndDate) : null,
+            ActualStartDate: data.ActualStartDate ? new Date(data.ActualStartDate) : null,
+            ActualEndDate: data.ActualEndDate ? new Date(data.ActualEndDate) : null,
+            PercentItem: data.PercentageActual ?? 0,
+            dateChangeStatus: null,
+          };
+          this.tabs = [editTab];
+          this.selectedTabIndex = 0;
+
+          // Load thông tin khác
+          this.additionalInfo = {
+            Problem: data.ReasonLate || '',
+            Note: data.Note || '',
+            UpdateDate: data.UpdatedDate ? new Date(data.UpdatedDate) : null,
+            CreatedBy: data.CreatedBy || null,
+          };
+
+          // Lưu ID của item đang edit
+          this.editingItemId = data.ID;
+        } else {
+          this.notification.error(NOTIFICATION_TITLE.error, response?.message || 'Không thể tải dữ liệu');
+        }
+      },
+      error: (error: any) => {
+        this.saving = false;
+        console.error('Error loading data by ID:', error);
+        this.notification.error(NOTIFICATION_TITLE.error, 'Có lỗi xảy ra khi tải dữ liệu');
+      }
+    });
   }
 
   loadProjects(): void {
@@ -189,6 +352,30 @@ export class ProjectItemPersonDetailComponent implements OnInit {
       }
     });
   }
+  loadEmployeesRequest(): void {
+    this.projectItemPersonService.cbbEmployeeRequest().subscribe({
+      next: (response: any) => {
+        this.employeesRequest = response?.data?.rows || [];
+        this.defaultEmployeeRequestId = Number(response?.data?.employeeRequest || 0);
+
+        if (this.defaultEmployeeRequestId > 0) {
+          this.tabs.forEach(tab => {
+            if (!tab.EmployeeIDRequest || tab.EmployeeIDRequest === 0) {
+              tab.EmployeeIDRequest = this.defaultEmployeeRequestId;
+            }
+          });
+        }
+
+        console.log('EmployeesRequest loaded:', this.employeesRequest.length, 'items');
+      },
+      error: (error: any) => {
+        console.error('Error loading employees:', error);
+        this.employeesRequest = [];
+        this.defaultEmployeeRequestId = 0;
+      }
+    });
+  }
+
 
   loadTypeProjectItems(): void {
     this.workItemService.cbbTypeProject().subscribe({
@@ -210,8 +397,9 @@ export class ProjectItemPersonDetailComponent implements OnInit {
       TypeProjectItemID: null,
       Status: 0, // Mặc định: Chưa làm
       oldStatus: 0, // Lưu trạng thái ban đầu
-      UserID: this.currentUser?.ID || null,
+      UserID: this.currentUser?.EmployeeID ?? this.currentUser?.EmployeeId ?? this.currentUser?.ID ?? null,
       EmployeeIDRequest: null,
+      ParentID: null, // Mặc định không chọn hạng mục cha
       Mission: '',
       PlanStartDate: null,
       TotalDayPlan: null,
@@ -231,6 +419,8 @@ export class ProjectItemPersonDetailComponent implements OnInit {
       if (this.selectedTabIndex >= this.tabs.length) {
         this.selectedTabIndex = this.tabs.length - 1;
       }
+    } else {
+      this.notification.warning(NOTIFICATION_TITLE.warning, 'Phải có ít nhất 1 hạng mục!');
     }
   }
 
@@ -271,12 +461,9 @@ export class ProjectItemPersonDetailComponent implements OnInit {
     const previousStatus = tab.Status;
     tab.Status = newStatus;
 
-    if (this.isSkipDatePopupTransition(previousStatus, newStatus)) {
-      this.commitStatusChange(tab, new Date());
-      return;
-    }
-
-    this.showDateChangeStatusModal(tab, previousStatus);
+    // Không show modal chọn ngày khi đổi trạng thái.
+    // Chỉ khi status = Hoàn thành thì tự set ngày.
+    this.commitStatusChange(tab, new Date());
   }
 
   private isSkipDatePopupTransition(oldStatus: number, newStatus: number): boolean {
@@ -293,9 +480,26 @@ export class ProjectItemPersonDetailComponent implements OnInit {
   private commitStatusChange(tab: ProjectItemTab, dateChangeStatus: Date): void {
     tab.dateChangeStatus = dateChangeStatus;
 
-    if (this.isAutoFillActualEndDateStatus(tab.Status)) {
-      this.checkAndAutoFillActualEndDate(tab, dateChangeStatus);
+    // Đang làm → fill ActualStartDate = hôm nay (nếu chưa có)
+    if (tab.Status === this.STATUS_IN_PROGRESS) {
+      if (!tab.ActualStartDate) {
+        tab.ActualStartDate = dateChangeStatus;
+      }
+      return;
     }
+
+    // Hoàn thành → fill ActualEndDate = hôm nay, % = 100
+    if (tab.Status === this.STATUS_COMPLETED) {
+      if (!tab.ActualEndDate) {
+        tab.ActualEndDate = dateChangeStatus;
+      }
+      tab.PercentItem = 100;
+      return;
+    }
+
+    // Status khác (Chưa làm, Pending, ...) → reset dates
+    tab.ActualStartDate = null;
+    tab.ActualEndDate = null;
   }
 
   private cancelStatusChange(tab: ProjectItemTab): void {
@@ -377,67 +581,177 @@ export class ProjectItemPersonDetailComponent implements OnInit {
       control.updateValueAndValidity({ onlySelf: true });
     });
 
-    // Validate tabs
-    let isValid = this.formGroup.valid;
-    for (const tab of this.tabs) {
-      if (!tab.TypeProjectItemID || !tab.EmployeeIDRequest || !tab.PlanStartDate || !tab.PlanEndDate) {
-        isValid = false;
-        break;
-      }
-      // Kiểm tra: nếu status thay đổi nhưng chưa chọn ngày thay đổi
-      if (tab.Status !== tab.oldStatus && !tab.dateChangeStatus) {
-        this.notification.warning(NOTIFICATION_TITLE.warning, 'Vui lòng chọn ngày thay đổi trạng thái!');
-        this.showDateChangeStatusModal(tab, tab.oldStatus);
+    // Validate formGroup (ProjectID)
+    if (!this.formGroup.valid) {
+      this.notification.warning(NOTIFICATION_TITLE.warning, 'Vui lòng chọn dự án!');
+      return;
+    }
+
+    const formValue = this.formGroup.value;
+    const projectId = formValue.ProjectID;
+
+    // Validate từng tab theo yêu cầu backend
+    for (let i = 0; i < this.tabs.length; i++) {
+      const tab = this.tabs[i];
+      const tabName = `Hạng mục ${i + 1}`;
+
+      if (!tab.TypeProjectItemID || tab.TypeProjectItemID <= 0) {
+        this.notification.warning(NOTIFICATION_TITLE.warning, `${tabName}: Vui lòng chọn kiểu hạng mục!`);
+        this.selectedTabIndex = i;
         return;
+      }
+      if (!tab.EmployeeIDRequest || tab.EmployeeIDRequest <= 0) {
+        this.notification.warning(NOTIFICATION_TITLE.warning, `${tabName}: Vui lòng chọn người giao việc!`);
+        this.selectedTabIndex = i;
+        return;
+      }
+      if (!tab.Mission || tab.Mission.trim() === '') {
+        this.notification.warning(NOTIFICATION_TITLE.warning, `${tabName}: Vui lòng nhập công việc!`);
+        this.selectedTabIndex = i;
+        return;
+      }
+      if (!tab.UserID || tab.UserID <= 0) {
+        this.notification.warning(NOTIFICATION_TITLE.warning, `${tabName}: Vui lòng chọn người phụ trách!`);
+        this.selectedTabIndex = i;
+        return;
+      }
+      if (!tab.PlanStartDate) {
+        this.notification.warning(NOTIFICATION_TITLE.warning, `${tabName}: Vui lòng nhập ngày bắt đầu!`);
+        this.selectedTabIndex = i;
+        return;
+      }
+      if (!tab.PlanEndDate) {
+        this.notification.warning(NOTIFICATION_TITLE.warning, `${tabName}: Vui lòng nhập ngày kết thúc!`);
+        this.selectedTabIndex = i;
+        return;
+      }
+      // Validate thực tế nếu status = 2 (Hoàn thành)
+      if (tab.Status === 2) {
+        if (!tab.ActualEndDate) {
+          this.notification.warning(NOTIFICATION_TITLE.warning, `${tabName}: Vui lòng nhập ngày kết thúc thực tế!`);
+          this.selectedTabIndex = i;
+          return;
+        }
+        if (tab.ActualStartDate && tab.ActualEndDate) {
+          const start = DateTime.fromJSDate(new Date(tab.ActualStartDate));
+          const end = DateTime.fromJSDate(new Date(tab.ActualEndDate));
+          if (start > end) {
+            this.notification.warning(NOTIFICATION_TITLE.warning, `${tabName}: Ngày kết thúc thực tế phải lớn hơn ngày bắt đầu thực tế!`);
+            this.selectedTabIndex = i;
+            return;
+          }
+        }
       }
     }
 
-    if (isValid) {
-      this.saving = true;
-      const formValue = this.formGroup.value;
+    // Tất cả validate passed, bắt đầu lưu
+    this.saving = true;
 
-      // Chuẩn bị dữ liệu để lưu
-      const dataToSave = this.tabs.map(tab => ({
-        ProjectID: formValue.ProjectID,
-        TypeProjectItemID: tab.TypeProjectItemID,
-        Status: tab.Status,
-        OldStatus: tab.oldStatus,
-        UserID: tab.UserID,
-        EmployeeIDRequest: tab.EmployeeIDRequest,
-        Mission: tab.Mission || '',
-        PlanStartDate: tab.PlanStartDate ? DateTime.fromJSDate(new Date(tab.PlanStartDate)).toISO() : null,
-        TotalDayPlan: tab.TotalDayPlan || 0,
-        PlanEndDate: tab.PlanEndDate ? DateTime.fromJSDate(new Date(tab.PlanEndDate)).toISO() : null,
-        ActualStartDate: tab.ActualStartDate ? DateTime.fromJSDate(new Date(tab.ActualStartDate)).toISO() : null,
-        ActualEndDate: tab.ActualEndDate ? DateTime.fromJSDate(new Date(tab.ActualEndDate)).toISO() : null,
-        PercentItem: tab.PercentItem || 0,
-        // Thêm thông tin thay đổi trạng thái
-        DateChangeStatus: tab.dateChangeStatus ? DateTime.fromJSDate(new Date(tab.dateChangeStatus)).toISO() : null,
-        IsStatusChanged: tab.Status !== tab.oldStatus,
-      }));
+    // Gọi API lấy code cho từng tab (chạy tuần tự)
+    this.generateCodesAndSave(projectId);
+  }
 
-      console.log('Data to save:', dataToSave);
+  private async generateCodesAndSave(projectId: number): Promise<void> {
+    try {
+      const projectItems: any[] = [];
+      const isEditMode = this.mode === 'edit' && this.editingItemId > 0;
 
-      // TODO: Implement API call to save data
-      this.workItemService.saveData(dataToSave).subscribe({
+      for (const tab of this.tabs) {
+        // Chỉ gọi API lấy code mới khi thêm mới (không phải edit)
+        let code = '';
+        if (!isEditMode) {
+          try {
+            const response: any = await this.projectItemPersonService.getProjectItemCode(projectId).toPromise();
+            if (response && response.status === 1 && response.data) {
+              code = response.data;
+            }
+          } catch (err) {
+            console.error('Error getting project item code:', err);
+          }
+        }
+
+        // Xử lý ParentID: chuyển sang number và kiểm tra
+        let parentID = 0;
+        if (tab.ParentID !== null && tab.ParentID !== undefined) {
+          const parentIdValue = tab.ParentID;
+          const parentIdNum = typeof parentIdValue === 'string' ? parseInt(parentIdValue, 10) : Number(parentIdValue);
+          if (!isNaN(parentIdNum) && parentIdNum > 0) {
+            parentID = parentIdNum;
+          }
+        }
+
+        // Map tab sang format ProjectItem entity
+        const projectItem = {
+          ID: isEditMode ? this.editingItemId : 0, // Nếu edit thì gửi ID, nếu add thì gửi 0
+          Status: tab.Status ?? 0,
+          STT: null,
+          UserID: tab.UserID ?? 0,
+          ProjectID: projectId,
+          Mission: tab.Mission || '',
+          PlanStartDate: tab.PlanStartDate ? DateTime.fromJSDate(new Date(tab.PlanStartDate)).toISO() : null,
+          PlanEndDate: tab.PlanEndDate ? DateTime.fromJSDate(new Date(tab.PlanEndDate)).toISO() : null,
+          ActualStartDate: tab.ActualStartDate ? DateTime.fromJSDate(new Date(tab.ActualStartDate)).toISO() : null,
+          ActualEndDate: tab.ActualEndDate ? DateTime.fromJSDate(new Date(tab.ActualEndDate)).toISO() : null,
+          Note: this.additionalInfo.Note || '',
+          TotalDayPlan: tab.TotalDayPlan ?? 0,
+          PercentItem: tab.PercentItem ?? 0,
+          ParentID: parentID, // Gửi giá trị đã xử lý
+          TotalDayActual: 0,
+          ItemLate: 0,
+          TimeSpan: 0,
+          TypeProjectItem: tab.TypeProjectItemID ?? 0,
+          PercentageActual: 0,
+          EmployeeIDRequest: tab.EmployeeIDRequest ?? 0,
+          UpdatedDateActual: tab.ActualEndDate ? DateTime.fromJSDate(new Date(tab.ActualEndDate)).toISO() : null,
+          IsApproved: 0,
+          Code: code,
+          CreatedDate: null,
+          CreatedBy: null,
+          UpdatedDate: this.additionalInfo.UpdateDate ? DateTime.fromJSDate(new Date(this.additionalInfo.UpdateDate)).toISO() : null,
+          UpdatedBy: null,
+          IsUpdateLate: false,
+          ReasonLate: this.additionalInfo.Problem || '',
+          UpdatedDateReasonLate: null,
+          IsApprovedLate: false,
+          EmployeeRequestID: 0,
+          EmployeeRequestName: null,
+          IsDeleted: false,
+          Location: this.workLocation === 1 ? 'VP RTC' : this.workLocationText,
+        };
+
+        projectItems.push(projectItem);
+      }
+
+      // Tạo payload theo format ProjectItemFullDTO
+      const payload = {
+        projectItems: projectItems,
+        projectItemProblem: null,
+        ProjectItemFile: null,
+      };
+
+      console.log('Payload to save:', payload);
+
+      // Gọi API lưu
+      this.projectItemPersonService.saveData(payload).subscribe({
         next: (response: any) => {
+          this.saving = false;
           if (response && response.status === 1) {
             this.notification.success(NOTIFICATION_TITLE.success, response.message || 'Lưu thành công');
-            this.saving = false;
             this.activeModal.close(true);
           } else {
             this.notification.error(NOTIFICATION_TITLE.error, response.message || 'Lỗi không xác định');
-            this.saving = false;
           }
         },
         error: (error: any) => {
+          this.saving = false;
           const msg = error.error?.message || error.message || 'Lỗi không xác định';
           this.notification.error(NOTIFICATION_TITLE.error, msg);
-          this.saving = false;
         }
       });
-    } else {
-      this.notification.warning(NOTIFICATION_TITLE.warning, 'Vui lòng điền đầy đủ thông tin bắt buộc');
+    } catch (error: any) {
+      this.saving = false;
+      console.error('Error in generateCodesAndSave:', error);
+      this.notification.error(NOTIFICATION_TITLE.error, 'Có lỗi xảy ra khi lưu dữ liệu!');
     }
   }
 
@@ -451,4 +765,36 @@ export class ProjectItemPersonDetailComponent implements OnInit {
       this.workLocationText = ''; // Reset text khi chọn VP RTC
     }
   }
+
+  // Khi nhập ngày bắt đầu thực tế → tự chuyển status sang Đang làm
+  onActualStartDateChange(tab: ProjectItemTab): void {
+    if (tab.ActualStartDate && tab.Status !== this.STATUS_IN_PROGRESS && tab.Status !== this.STATUS_COMPLETED) {
+      tab.Status = this.STATUS_IN_PROGRESS;
+    }
+  }
+
+  // Khi nhập ngày kết thúc thực tế → tự chuyển status sang Hoàn thành, % = 100
+  onActualEndDateChange(tab: ProjectItemTab): void {
+    if (tab.ActualEndDate) {
+      tab.Status = this.STATUS_COMPLETED;
+      tab.PercentItem = 100;
+    }
+  }
+
+  // Xử lý khi thay đổi ParentID
+  onParentIDChange(tab: ProjectItemTab, value: any): void {
+    if (value !== null && value !== undefined) {
+      const parentIdNum = typeof value === 'string' ? parseInt(value, 10) : Number(value);
+      tab.ParentID = !isNaN(parentIdNum) && parentIdNum > 0 ? parentIdNum : null;
+    } else {
+      tab.ParentID = null;
+    }
+    
+    // Cập nhật vào tabs array để đảm bảo reference đúng
+    const tabIndex = this.tabs.findIndex(t => t.id === tab.id);
+    if (tabIndex >= 0) {
+      this.tabs[tabIndex].ParentID = tab.ParentID;
+    }
+  }
+
 }

@@ -177,6 +177,8 @@ import { ProjectPartlistPriceRequestComponent } from './pages/old/project-partli
 import { BillDocumentImportTypeComponent } from './pages/old/KETOAN/bill-document-import-type/bill-document-import-type.component';
 import { BillImportQcComponent } from './pages/old/Sale/bill-import-qc/bill-import-qc.component';
 import { TaxCompanyComponent } from './pages/old/KETOAN/tax-company/tax-company.component';
+import { SummaryProjectJoinComponent } from './pages/person/summary-project-join/summary-project-join.component';
+import { ProjectSlickGrid2Component } from './pages/project-slick-grid2/project-slick-grid2.component';
 
 export const routes: Routes = [
     {
@@ -473,7 +475,8 @@ export const routes: Routes = [
 
 
             //Dự án
-            { path: 'project', component: ProjectComponent, canActivate: [authGuard] },
+            { path: 'project', component: ProjectSlickGrid2Component, canActivate: [authGuard] },
+            { path: 'project-slick-grid2', component: ProjectComponent, canActivate: [authGuard] },
             { path: 'project-workpropress', component: ProjectWorkPropressComponent, canActivate: [authGuard] },
             { path: 'project-worktimeline', component: ProjectWorkTimelineComponent, canActivate: [authGuard] },
             { path: 'project-survey', component: ProjectSurveyComponent, canActivate: [authGuard] },
@@ -488,6 +491,10 @@ export const routes: Routes = [
             { path: 'project-field', component: ProjectFieldComponent, canActivate: [authGuard] },
             { path: 'meeting-minute-type', component: MeetingMinuteTypeComponent, canActivate: [authGuard] },
             { path: 'leader-project', component: LeaderProjectComponent, canActivate: [authGuard] },
+            { path: 'project-item-person', component: ProjectItemPersonComponent, canActivate: [authGuard] },
+            { path: 'summary-project-join', component: SummaryProjectJoinComponent, canActivate: [authGuard] },
+            
+
 
             //Mua hàng
             { path: 'employee-purchase', component: EmployeePurchaseComponent, canActivate: [authGuard] },
@@ -500,7 +507,7 @@ export const routes: Routes = [
             { path: 'poncc', component: PonccNewComponent, canActivate: [authGuard] },
             { path: 'inventory-project', component: InventoryProjectComponent, canActivate: [authGuard] },
             // { path: 'purchase-request', component: ProjectPartListPurchaseRequestSlickGridComponent, canActivate: [authGuard] },
-            { path: 'project-item-person', component: ProjectItemPersonComponent, canActivate: [authGuard] },
+
 
 
 

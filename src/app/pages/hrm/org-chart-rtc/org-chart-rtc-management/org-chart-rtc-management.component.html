@@ -1,0 +1,36 @@
+<nz-row [nzGutter]="16" style="height: calc(100vh - 60px);">
+    <!-- Master Grid - Left -->
+    <nz-col [nzSpan]="14">
+        <div class="master-section h-100">
+            <p-menubar [model]="masterMenuBars"></p-menubar>
+            <div class="master-grid-container border" style="height: calc(100vh - 110px);">
+                <angular-slickgrid 
+                    gridId="masterGrid" 
+                    [columns]="masterColumnDefinitions" 
+                    [options]="masterGridOptions" 
+                    [dataset]="masterDataset"
+                    (onAngularGridCreated)="masterGridReady($event.detail)">
+                </angular-slickgrid>
+            </div>
+        </div>
+    </nz-col>
+
+    <!-- Detail Grid - Right -->
+    <nz-col [nzSpan]="10">
+        <div class="detail-section h-100">
+            <p-menubar [model]="detailMenuBars"></p-menubar>
+            <div class="detail-header" *ngIf="selectedMasterRow">
+                <span class="badge bg-primary">Team: {{ selectedMasterRow?.TeamName }}</span>
+            </div>
+            <div class="detail-grid-container border" style="height: calc(100vh - 140px);">
+                <angular-slickgrid 
+                    gridId="detailGrid" 
+                    [columns]="detailColumnDefinitions" 
+                    [options]="detailGridOptions" 
+                    [dataset]="detailDataset"
+                    (onAngularGridCreated)="detailGridReady($event.detail)">
+                </angular-slickgrid>
+            </div>
+        </div>
+    </nz-col>
+</nz-row>

@@ -1,0 +1,49 @@
+<div class="card h-100">
+  <!-- Header -->
+  <div class="card-header p-2 bg-light d-flex justify-content-between align-items-center">
+    <div style="width: 40px;"></div>
+    <div class="flex-grow-1 text-center">
+      <h5 class="m-0" style="font-weight: bold
+      ;">Organizational Chart RTC (SĐTC)</h5>
+    </div>
+    <div class="d-flex gap-2">
+      <nz-select 
+        [(ngModel)]="selectedNodeKey" 
+        (ngModelChange)="searchDiagram($event)"
+        nzShowSearch 
+        nzAllowClear
+        nzPlaceHolder="Tìm kiếm..."
+        style="width: 200px;" nzSize="small">
+        <nz-option [nzValue]="''" nzLabel="--Tất cả--"></nz-option>
+        <nz-option 
+          *ngFor="let node of nodeOptions" 
+          [nzValue]="node.key" 
+          [nzLabel]="node.label">
+        </nz-option>
+      </nz-select>
+      <button nz-button nzType="primary" nzSize="small" (click)="exportToPDF()">
+        <i nz-icon nzType="file-pdf"></i>
+      </button>
+    </div>
+  </div>
+
+  <!-- Body -->
+  <div class="card-body p-2">
+    <!-- Loading -->
+    <div *ngIf="isLoading" class="text-center py-4">
+      <nz-spin nzSimple></nz-spin>
+    </div>
+
+    <!-- Department Tabs -->
+    <nz-tabset [(nzSelectedIndex)]="selectedTabIndex" (nzSelectedIndexChange)="onDepartmentTabChange($event)">
+      <nz-tab nzTitle="Org Chart">
+      </nz-tab>
+      <nz-tab *ngFor="let dept of departments" [nzTitle]="dept.Name">
+      </nz-tab>
+    </nz-tabset>
+
+    
+    <!-- Diagram Container -->
+    <div id="myDiagramDiv" style="width: 100%; height: 83vh; border: 1px solid #ddd; border-radius: 4px;"></div>
+  </div>
+</div>

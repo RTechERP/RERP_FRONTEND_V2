@@ -34,7 +34,7 @@ import { NOTIFICATION_TITLE } from '../../../app.config';
 import { DEFAULT_TABLE_CONFIG } from '../../../tabulator-default.config';
 import { AuthService } from '../../../auth/auth.service';
 import { WFHService } from '../employee-management/employee-wfh/WFH-service/WFH.service';
-
+import { NzDropDownModule } from 'ng-zorro-antd/dropdown';
 
 
 @Component({
@@ -64,7 +64,8 @@ import { WFHService } from '../employee-management/employee-wfh/WFH-service/WFH.
     DeclareDayOffComponent,
     NgIf,
     NzSpinModule,
-    HasPermissionDirective
+    HasPermissionDirective,
+    NzDropDownModule
   ]
 })
 export class DayOffComponent implements OnInit, AfterViewInit {

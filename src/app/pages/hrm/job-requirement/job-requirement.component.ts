@@ -174,34 +174,26 @@ export class JobRequirementComponent implements OnInit, AfterViewInit {
 
     dataInput: any = {};
 
-    ngOnInit(): void {
-        this.route.queryParams.subscribe(params => {
-            const typeApprove = params['typeApprove'] || 0;
-            if (typeApprove === "2") {
-                this.approvalMode = 1;
-                this.searchParams.Step = 1;
-            } else if (typeApprove === "1") {
-                this.approvalMode = 2;
-            } else if (typeApprove === "3") {
-                this.approvalMode = 3;
-            }
-        });
-        if (this.approvalMode === 1) {
-            this.searchParams.Step = 1; // NV đề nghị
-        }
-    
-        if (this.currentUser && this.approvalMode === 1) {
-            this.searchParams.ApprovedTBPID = this.currentUser.EmployeeID;
-            this.getJobrequirement();
-        } else if (!this.currentUser) {
+   ngOnInit(): void {
+  this.route.queryParams.subscribe(params => {
+    const typeApprove = params['typeApprove'] || 0;
 
-        } else {
-            this.getJobrequirement();
-        }
-        
-        this.getdataEmployee();
-        this.getdataDepartment();
+    if (typeApprove === '2') {
+      this.approvalMode = 1;
+      this.searchParams.Step = 1;
+    } else if (typeApprove === '1') {
+      this.approvalMode = 2;
+    } else if (typeApprove === '3') {
+      this.approvalMode = 3;
     }
+    
+    // Call getCurrentUser AFTER approvalMode is set
+    this.getCurrentUser();
+  });
+
+  this.getdataEmployee();
+  this.getdataDepartment();
+}
     ngAfterViewInit(): void {
         this.draw_JobrequirementTable();
         this.draw_JobrequirementDetailTable();
@@ -222,32 +214,22 @@ export class JobRequirementComponent implements OnInit, AfterViewInit {
         private authService: AuthService,
         private route: ActivatedRoute
     ) {
-        this.getCurrentUser();
     }
-
-    getCurrentUser(): void {
-        this.authService.getCurrentUser().subscribe({
-            next: (res: any) => {
-                const data = res?.data;
-                this.currentUser = Array.isArray(data) ? data[0] : data;
-
-                // Không cần đọc lại query params vì đã đọc trong ngOnInit
-                // Chỉ cần xử lý logic set ApprovedTBPID và gọi API
-                
-                // Nếu ở TBP mode và có user data, set ApprovedTBPID
-                if (this.approvalMode === 1 && this.currentUser?.EmployeeID) {
-                    this.searchParams.ApprovedTBPID = this.currentUser.EmployeeID;
-                    this.getJobrequirement();
-                } else if (this.approvalMode !== 1) {
-                    // Các mode khác không cần ApprovedTBPID, có thể gọi API
-                    this.getJobrequirement();
-                }
-            },
-            error: (err: any) => {
-                this.notification.error("Lỗi", err.error.message);
-            }
-        });
+getCurrentUser(): void {
+  this.authService.getCurrentUser().subscribe({
+    next: (res: any) => {
+      const data = res?.data;
+      this.currentUser = Array.isArray(data) ? data[0] : data;
+      if (this.approvalMode === 1 && this.currentUser?.EmployeeID) {
+        this.searchParams.ApprovedTBPID = this.currentUser.EmployeeID;
+      }
+      this.getJobrequirement(); 
+    },
+    error: (err) => {
+      this.notification.error("Lỗi", err.error.message);
     }
+  });
+}
 
     //search
     filterOption = (input: string, option: any): boolean => {

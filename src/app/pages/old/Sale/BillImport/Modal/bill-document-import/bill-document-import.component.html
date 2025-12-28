@@ -37,8 +37,8 @@
 </div>
 <div class="modal-footer flex-shrink-0">
     <button class="fs-12 btn" nz-button nzDanger (click)="closeModal()">Đóng</button>
-    <!-- <button class="fs-12 btn" nz-button nzType="default" *hasPermission="'N52,N36,N1,N34'"
-        (click)="saveAndAddNew()">Lưu và thêm mới</button> -->
+    <button class="fs-12 btn" nz-button nzType="default" *hasPermission="'N52,N36,N1,N34'"
+        (click)="saveOnly()">Lưu</button>
     <button class="fs-12 btn" nz-button nzType="primary" *hasPermission="'N52,N36,N1,N34'"
-        (click)="saveData()">Lưu</button>
+        (click)="saveDataAndClose()">Lưu và đóng</button>
 </div>

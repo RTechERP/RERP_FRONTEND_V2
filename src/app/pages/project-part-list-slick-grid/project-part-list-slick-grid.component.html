@@ -1,0 +1,202 @@
+<div style="display: flex; flex-direction: column; position: relative;" [style.height]="tbp ? '93vh' : '100vh'">
+  <!-- Modal Header -->
+  <div class="modal-header bg-primary align-items-center ps-2" style="flex-shrink: 0" *ngIf="!tbp">
+    <h6 class="text-light text-uppercase m-0" style="padding: 0 0.5rem">
+      Danh mục vật tư dự án {{ projectCodex }}
+    </h6>
+    <button
+      type="button"
+      class="btn-close"
+      (click)="closeModal()"
+      aria-label="Close"
+      style="background-color:lightcyan !important; font-weight: bold;"
+    ></button>
+  </div>
+
+  <!-- Modal Body -->
+  <div class="modal-body p-0" style="overflow: hidden; min-height: 0;">
+    <nz-splitter nzLayout="horizontal" style="height: 100%; min-height: 0;">
+      <!-- Phần trái: 3 bảng dọc -->
+      <nz-splitter-panel 
+        [nzSize]="sizeLeftPanel === '' ? undefined : sizeLeftPanel" 
+        nzDefaultSize="25%"
+        nzMin="10%" 
+        nzMax="50%" 
+        [nzCollapsible]="true" 
+        nzResizable="true">
+        <nz-splitter nzLayout="vertical" style="height: 100%">
+          <!-- Bảng 1: Giải pháp -->
+          <nz-splitter-panel>
+            <div class="card h-100 border-0 rounded-0 d-flex flex-column">
+              <div class="card-header bg-white p-1 d-flex justify-content-between align-items-center" style="font-weight: bold !important; background-color: #efebebe7 !important;">
+                <p class="m-0">Giải pháp</p>
+                <button
+                  nz-button
+                  nzType="text"
+                  class="btn-close-panel"
+                  style="color: red;"
+                  (click)="closeLeftPanel()"
+                  *ngIf="sizeLeftPanel !== '0'"
+                >
+                  <i nz-icon nzType="close"></i>
+                </button>
+              </div>
+              <div class="card-header bg-white p-1 d-flex gap-1" *ngIf="!tbp">
+                <button
+                  nz-button
+                  nzSize="small"
+                  class="fs-12 button button-succes btn-add"
+                  (click)="openProjectSolutionDetail(false)"
+                  *hasPermission="'N13,N1,N27,N63'"
+                >
+                  <img src="assets/icon/action_add_item_16.png" alt="Thêm mới" />
+                  Thêm
+                </button>
+                <button
+                  class="fs-12 btn-edit"
+                  nz-button
+                  nzType="default"
+                  nzSize="small"
+                  (click)="openProjectSolutionDetail(true)"
+                  *hasPermission="'N13,N1,N27,N63'"
+                >
+                  <img src="assets/icon/action_edit_item_16.png" alt="Sửa" />
+                  Sửa
+                </button>
+              </div>
+              <div class="card-body p-0 flex-grow-1 overflow-hidden grid-solution-container" style="min-height: 0;">
+                <angular-slickgrid
+                  [gridId]="'grid-solution'"
+                  [columns]="solutionColumns"
+                  [options]="solutionGridOptions"
+                  [dataset]="dataSolution"
+                  (onAngularGridCreated)="onSolutionGridReady($event)"
+                  (onSelectedRowsChanged)="onSolutionRowSelectionChanged($event)"
+                ></angular-slickgrid>
+              </div>
+            </div>
+          </nz-splitter-panel>
+
+          <!-- Bảng 2: Phiên bản giải pháp -->
+          <nz-splitter-panel *ngIf="!isPOKH && !tbp">
+            <div class="card h-100 border-0 rounded-0 d-flex flex-column">
+              <div class="card-header bg-white p-1" style="font-weight: bold !important; background-color: #efebebe7 !important;">
+                <p class="m-0">Phiên bản giải pháp</p>
+              </div>
+              <div class="card-header bg-white p-1 d-flex gap-1">
+                <button
+                  nz-button
+                  nzSize="small"
+                  class="fs-12 button button-succes btn-add"
+                  (click)="openProjectSolutionVersionDetail(1, false)"
+                  *hasPermission="'N38,N62,N1,N27,N28'"
+                >
+                  <img src="assets/icon/action_add_item_16.png" alt="Thêm mới" />
+                  Thêm
+                </button>
+                <button
+                  class="fs-12 btn-edit"
+                  nz-button
+                  nzType="default"
+                  nzSize="small"
+                  (click)="openProjectSolutionVersionDetail(1, true)"
+                  *hasPermission="'N38,N62,N1,N27,N28'"
+                >
+                  <img src="assets/icon/action_edit_item_16.png" alt="Sửa" />
+                  Sửa
+                </button>
+              </div>
+              <div class="card-body p-0 flex-grow-1 overflow-hidden grid-solution-version-container" style="min-height: 0;">
+                <angular-slickgrid
+                  [gridId]="'grid-solution-version'"
+                  [columns]="solutionVersionColumns"
+                  [options]="solutionVersionGridOptions"
+                  [dataset]="dataSolutionVersion"
+                  (onAngularGridCreated)="onSolutionVersionGridReady($event)"
+                  (onSelectedRowsChanged)="onSolutionVersionRowSelectionChanged($event)"
+                ></angular-slickgrid>
+              </div>
+            </div>
+          </nz-splitter-panel>
+
+          <!-- Bảng 3: Phiên bản PO -->
+          <nz-splitter-panel>
+            <div class="card h-100 border-0 rounded-0 d-flex flex-column">
+              <div class="card-header bg-white p-1" style="font-weight: bold !important; background-color: #efebebe7 !important;">
+                <p class="m-0">Phiên bản PO</p>
+              </div>
+              <div class="card-header bg-white p-1 d-flex gap-1">
+                <button
+                  nz-button
+                  nzSize="small"
+                  class="fs-12 button button-succes btn-add"
+                  (click)="openProjectSolutionVersionDetail(2, false)"
+                  *hasPermission="'N38,N62,N1,N27,N28'"
+                >
+                  <img src="assets/icon/action_add_item_16.png" alt="Thêm mới" />
+                  Thêm
+                </button>
+                <button
+                  class="fs-12 btn-edit"
+                  nz-button
+                  nzType="default"
+                  nzSize="small"
+                  (click)="openProjectSolutionVersionDetail(2, true)"
+                  *hasPermission="'N38,N62,N1,N27,N28'"
+                >
+                  <img src="assets/icon/action_edit_item_16.png" alt="Sửa" />
+                  Sửa
+                </button>
+              </div>
+              <div class="card-body p-0 flex-grow-1 overflow-hidden grid-po-version-container" style="min-height: 0;">
+                <angular-slickgrid
+                  [gridId]="'grid-po-version'"
+                  [columns]="poVersionColumns"
+                  [options]="poVersionGridOptions"
+                  [dataset]="dataPOVersion"
+                  (onAngularGridCreated)="onPOVersionGridReady($event)"
+                  (onSelectedRowsChanged)="onPOVersionRowSelectionChanged($event)"
+                ></angular-slickgrid>
+              </div>
+            </div>
+          </nz-splitter-panel>
+        </nz-splitter>
+      </nz-splitter-panel>
+
+      <!-- Phần phải: Bảng vật tư dự án -->
+      <nz-splitter-panel [nzSize]="sizeRightPanel === '' ? undefined : sizeRightPanel" nzDefaultSize="75%">
+        <div class="card h-100 border-0 rounded-0 d-flex flex-column">
+          <div class="card-header bg-white p-1" style="font-weight: bold !important; background-color: #efebebe7 !important;">
+            <p class="m-0">Vật tư dự án</p>
+          </div>
+          <div class="card-header bg-white p-1 d-flex gap-1" *ngIf="!tbp">
+            <!-- TODO: Add action buttons here -->
+          </div>
+          <div class="card-body p-0 flex-grow-1 overflow-hidden grid-partlist-container" style="min-height: 0;">
+            <div *ngIf="isLoading">
+              <nz-spin [nzSpinning]="isLoading" nzSimple [style]="{
+                position: 'absolute',
+                top: '0',
+                left: '0',
+                width: '100%',
+                height: '100%',
+                background: 'rgba(255,255,255,0.4)',
+                zIndex: '999',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center'
+              }"></nz-spin>
+            </div>
+            <angular-slickgrid
+              [gridId]="'grid-partlist'"
+              [columns]="partListColumns"
+              [options]="partListGridOptions"
+              [dataset]="dataProjectPartList"
+              (onAngularGridCreated)="onPartListGridReady($event)"
+            ></angular-slickgrid>
+          </div>
+        </div>
+      </nz-splitter-panel>
+    </nz-splitter>
+  </div>
+</div>

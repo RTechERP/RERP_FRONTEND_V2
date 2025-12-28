@@ -35,6 +35,23 @@ export class BillImportChoseSerialService {
     return this.http.get<any>(`${this.baseUrl}location-modula`);
   }
 
+  countSerialBillImport(id: number): Observable<any> {
+    return this.http.get<any>(`${this.baseUrl}serial-bill-import?id=${id}`);
+  }
+  countSerialBillExport(id: number): Observable<any> {
+    return this.http.get<any>(`${this.baseUrl}serial-bill-export?id=${id}`);
+  }
+  countSerialBillImportTech(id: number): Observable<any> {
+    return this.http.get<any>(
+      `${this.baseUrl}serial-bill-import-tech?id=${id}`
+    );
+  }
+  countSerialBillExportTech(id: number): Observable<any> {
+    return this.http.get<any>(
+      `${this.baseUrl}serial-bill-export-tech?id=${id}`
+    );
+  }
+
   getSerialTechByBillDetailID(
     id: number,
     type: number,

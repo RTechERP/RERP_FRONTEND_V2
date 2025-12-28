@@ -309,7 +309,8 @@ export class BillImportDetailComponent
     private billExportService: BillExportService,
     private appUserService: AppUserService,
     private projectService: ProjectService,
-    private billImportQcService: BillImportQcService
+    private billImportQcService: BillImportQcService,
+    private billImportChoseSerialService: BillImportChoseSerialService
   ) {
     this.validateForm = this.fb.group({
       BillImportCode: [{ value: '', disabled: true }, [Validators.required]],
@@ -1482,7 +1483,16 @@ export class BillImportDetailComponent
       }
     });
   }
-  closeModal() {
+  async closeModal() {
+    const isValid = await this.checkSerial();
+    if (!isValid) {
+      this.notification.warning(
+        NOTIFICATION_TITLE.warning,
+        'Số lượng serial không đủ, vui lòng kiểm tra lại'
+      );
+      return;
+    }
+
     this.activeModal.close();
   }
 
@@ -1583,7 +1593,16 @@ export class BillImportDetailComponent
       };
     });
   }
-  saveDataBillImport() {
+  async saveDataBillImport() {
+    const isValid = await this.checkSerial();
+    if (!isValid) {
+      this.notification.warning(
+        NOTIFICATION_TITLE.warning,
+        'Số lượng serial lớn hơn số lượng yêu cầu, vui lòng kiểm tra lại'
+      );
+      return;
+    }
+
     if (!this.validateForm.valid) {
       this.notification.warning(
         NOTIFICATION_TITLE.warning,
@@ -3179,5 +3198,33 @@ export class BillImportDetailComponent
         );
       }
     }
+  }
+
+  async checkSerial(): Promise<boolean> {
+    const tableData = this.table_billImportDetail?.getData();
+
+    for (const detail of tableData) {
+      const qty = detail.Quantity || detail.Qty || 0;
+      const detailId = detail.ID;
+
+      if (!detailId || detailId <= 0) {
+        continue;
+      }
+
+      try {
+        const result = await this.billImportChoseSerialService
+          .countSerialBillImport(detailId)
+          .toPromise();
+
+        if (qty < (result?.data || 0)) {
+          return false;
+        }
+      } catch (error) {
+        console.error('Lỗi check serial', detailId, error);
+        return false;
+      }
+    }
+
+    return true;
   }
 }

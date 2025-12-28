@@ -57,6 +57,7 @@ import { NzSpinModule } from 'ng-zorro-antd/spin';
 import { TabulatorPopupService } from '../../../../shared/components/tabulator-popup';
 import { HasPermissionDirective } from '../../../../directives/has-permission.directive';
 import { BillExportService } from '../../Sale/BillExport/bill-export-service/bill-export.service';
+import { BillImportChoseSerialService } from '../bill-import-chose-serial/bill-import-chose-serial.service';
 
 @Component({
   standalone: true,
@@ -188,7 +189,8 @@ export class BillImportTechnicalFormComponent implements OnInit, AfterViewInit {
     private tbProductRtcService: TbProductRtcService,
     private appUserService: AppUserService,
     private tabulatorPopupService: TabulatorPopupService,
-    private billExportService: BillExportService
+    private billExportService: BillExportService,
+    private billImportChoseSerialService: BillImportChoseSerialService
   ) {}
 
   supplierOrCustomerValidator(
@@ -625,7 +627,15 @@ export class BillImportTechnicalFormComponent implements OnInit, AfterViewInit {
   changeStatus() {
     this.getNewCode();
   }
-  close() {
+  async close() {
+    const isValid = await this.checkSerial();
+    if (!isValid) {
+      this.notification.warning(
+        NOTIFICATION_TITLE.warning,
+        'Số lượng serial lớn hơn số lượng yêu cầu, vui lòng kiểm tra lại'
+      );
+      return;
+    }
     this.closeModal.emit();
     this.activeModal.dismiss('cancel');
   }
@@ -1479,6 +1489,15 @@ export class BillImportTechnicalFormComponent implements OnInit, AfterViewInit {
 
   // Lưu dữ liệu
   async saveData() {
+    const isValid = await this.checkSerial();
+    if (!isValid) {
+      this.notification.warning(
+        NOTIFICATION_TITLE.warning,
+        'Số lượng serial không đủ, vui lòng kiểm tra lại'
+      );
+      return;
+    }
+
     // PHASE 3.1: Validate form
     if (this.formDeviceInfo.invalid) {
       Object.values(this.formDeviceInfo.controls).forEach((control) => {
@@ -2084,4 +2103,32 @@ export class BillImportTechnicalFormComponent implements OnInit, AfterViewInit {
     }, 0);
   }
   */
+
+  async checkSerial(): Promise<boolean> {
+    const tableData = this.deviceTempTable?.getData() || this.selectedDevices;
+
+    for (const detail of tableData) {
+      const qty = detail.Quantity || detail.Qty || 0;
+      const detailId = detail.ID;
+
+      if (!detailId || detailId <= 0) {
+        continue;
+      }
+
+      try {
+        const result = await this.billImportChoseSerialService
+          .countSerialBillImportTech(detailId)
+          .toPromise();
+
+        if (qty < (result?.data || 0)) {
+          return false;
+        }
+      } catch (error) {
+        console.error('Lỗi check serial', detailId, error);
+        return false;
+      }
+    }
+
+    return true;
+  }
 }

@@ -64,6 +64,7 @@ import { BillImportChoseSerialComponent } from '../../../../bill-import-technica
 import { HistoryDeleteBillComponent } from '../history-delete-bill/history-delete-bill.component';
 import { NzSpinModule } from 'ng-zorro-antd/spin';
 import { PermissionService } from '../../../../../../services/permission.service';
+import { BillImportChoseSerialService } from '../../../../bill-import-technical/bill-import-chose-serial/bill-import-chose-serial.service';
 
 interface ProductSale {
   Id?: number;
@@ -296,7 +297,8 @@ export class BillExportDetailComponent
     private injector: EnvironmentInjector,
     private appRef: ApplicationRef,
     public activeModal: NgbActiveModal,
-    private permissionService: PermissionService
+    private permissionService: PermissionService,
+    private billImportChoseSerialService: BillImportChoseSerialService
   ) {
     this.validateForm = this.fb.group({
       Code: [{ value: '', disabled: true }], // Bỏ required vì Code disabled và được tự động generate
@@ -1666,7 +1668,16 @@ export class BillExportDetailComponent
     });
   }
 
-  closeModal() {
+  async closeModal() {
+    const isValid = await this.checkSerial();
+    if (!isValid) {
+      this.notification.warning(
+        NOTIFICATION_TITLE.warning,
+        'Số lượng serial lớn hơn số lượng yêu cầu, vui lòng kiểm tra lại'
+      );
+      return;
+    }
+
     this.activeModal.close();
   }
 
@@ -3407,8 +3418,7 @@ export class BillExportDetailComponent
 
       const inventoryProjects = res.inventoryProjects || [];
       const totalInventoryFromProjects = inventoryProjects.reduce(
-        (sum: number, inv: any) =>
-          sum + Number(inv.TotalQuantity || 0),
+        (sum: number, inv: any) => sum + Number(inv.TotalQuantity || 0),
         0
       );
 
@@ -3757,17 +3767,28 @@ export class BillExportDetailComponent
   //   }
   // }
   async saveDataBillExport() {
-   const formValues = this.validateForm.getRawValue();
-   const status =
-     formValues.Status ||
-     this.validateForm.value.Status ||
-     this.newBillExport.Status ||
-     0;
+    const isValid = await this.checkSerial();
+    if (!isValid) {
+      this.notification.warning(
+        NOTIFICATION_TITLE.warning,
+        'Số lượng serial không đủ, vui lòng kiểm tra lại'
+      );
+      return;
+    }
+
+    const formValues = this.validateForm.getRawValue();
+    const status =
+      formValues.Status ||
+      this.validateForm.value.Status ||
+      this.newBillExport.Status ||
+      0;
     //  let isPermission = this.permissionService.hasPermission('N27,N1,N33,N34,N69');
     const billID = this.newBillExport.Id || 0;
-    if(billID > 0 || this.id > 0) {
-      if(!this.permissionService.hasPermission('N27,N1,N33,N34,N69')) {
-        this.showErrorNotification('Bạn không có quyền thực hiện hành động này!');
+    if (billID > 0 || this.id > 0) {
+      if (!this.permissionService.hasPermission('N27,N1,N33,N34,N69')) {
+        this.showErrorNotification(
+          'Bạn không có quyền thực hiện hành động này!'
+        );
         return;
       }
     }
@@ -3799,7 +3820,7 @@ export class BillExportDetailComponent
     }
 
     // ================= LOAD INVENTORY TRƯỚC KHI VALIDATE =================
-  
+
     // if (status === 2 || status === 6) {
     //   console.log('🟢 Loading inventory before validate...');
     //   this.loadInventoryForAllRows();
@@ -4041,5 +4062,33 @@ export class BillExportDetailComponent
         ImportDetailID: row.ImportDetailID || row.BillImportDetailID || 0, // ✅ Alias
       };
     });
+  }
+
+  async checkSerial(): Promise<boolean> {
+    const tableData = this.table_billExportDetail?.getData();
+
+    for (const detail of tableData) {
+      const qty = detail.Quantity || detail.Qty || 0;
+      const detailId = detail.ID;
+
+      if (!detailId || detailId <= 0) {
+        continue;
+      }
+
+      try {
+        const result = await this.billImportChoseSerialService
+          .countSerialBillExport(detailId)
+          .toPromise();
+
+        if (qty < (result?.data || 0)) {
+          return false;
+        }
+      } catch (error) {
+        console.error('Lỗi check serial', detailId, error);
+        return false;
+      }
+    }
+
+    return true;
   }
 }

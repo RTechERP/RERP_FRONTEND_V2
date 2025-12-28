@@ -25,6 +25,7 @@ import { AngularGridInstance, AngularSlickgridModule, Column, Filters, Formatter
 import { NgbModal, NgbModalModule } from '@ng-bootstrap/ng-bootstrap';
 import { NOTIFICATION_TITLE } from '../../../../app.config';
 import { BillExportTechnicalFormComponent } from '../bill-export-technical-form/bill-export-technical-form.component';
+import { BillImportTechnicalSummaryComponent } from '../bill-import-technical-summary/bill-import-technical-summary.component';
 import { HasPermissionDirective } from '../../../../directives/has-permission.directive';
 import { ActivatedRoute } from '@angular/router';
 import { Subscription } from 'rxjs';
@@ -820,6 +821,21 @@ export class BillExportTechnicalNewComponent implements OnInit, AfterViewInit, O
         modalRef.componentInstance.formSubmitted.subscribe(() => {
             this.loadData();
         });
+    }
+
+    /**
+     * Mở modal fullscreen Tổng hợp chi tiết phiếu nhập phòng kỹ thuật
+     */
+    openSummaryModal() {
+        const modalRef = this.ngbModal.open(BillImportTechnicalSummaryComponent, {
+            centered: true,
+            backdrop: 'static',
+            keyboard: false,
+            windowClass: 'full-screen-modal',
+            size: 'xl',
+        });
+        // Truyền warehouseID vào component
+        modalRef.componentInstance.warehouseId = this.warehouseID;
     }
 
     onExportExcel() {

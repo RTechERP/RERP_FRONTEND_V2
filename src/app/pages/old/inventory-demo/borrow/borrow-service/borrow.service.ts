@@ -40,6 +40,17 @@ export class BorrowService {
   getApiUrlProductHistory() {
     return this.apiUrl + `borrow/get-product-history`;
   }
+
+  getProductHistory(params: any): Observable<any> {
+    let httpParams = new HttpParams();
+    Object.keys(params).forEach(key => {
+      if (params[key] !== null && params[key] !== undefined) {
+        httpParams = httpParams.append(key, params[key].toString());
+      }
+    });
+    return this.http.get<any>(this.apiUrl + `borrow/get-product-history`, { params: httpParams });
+  }
+
   getEmployeeTeamAndDepartment(): Observable<any> {
     return this.http.get<any>(
       this.apiUrl + `borrow/get-employee-team-and-department`,

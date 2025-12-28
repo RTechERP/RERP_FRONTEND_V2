@@ -664,16 +664,17 @@ export class InventoryDemoNewComponent implements OnInit, AfterViewInit, OnDestr
                 // Update filter collections after data is loaded
                 this.updateFilterCollections();
 
-                // Show spec columns based on product group
-                this.showSpec();
-
                 this.isLoading = false;
                 this.cdr.detectChanges();
 
-                // Refresh grid to apply row metadata
+                // Show/hide spec columns based on product group (chỉ khi grid đã ready)
                 if (this.angularGrid && this.angularGrid.slickGrid) {
+                    this.showSpec();
+                    // Refresh grid to apply row metadata
                     this.angularGrid.slickGrid.invalidate();
                     this.angularGrid.slickGrid.render();
+                } else {
+                    // Nếu grid chưa ready, sẽ được xử lý trong angularGridReady()
                 }
 
                 // Resize grid after data is loaded
@@ -772,12 +773,25 @@ export class InventoryDemoNewComponent implements OnInit, AfterViewInit, OnDestr
 
     /**
      * Show/hide spec columns based on ProductGroupID
+     * Chỉ hiển thị spec columns khi productGroupID có trong specColumnsConfig
      */
     showSpec(): void {
         if (!this.angularGrid || !this.angularGrid.slickGrid) return;
 
-        const groupId = this.productGroupID || 0;
+        const groupId = this.productGroupID;
+
+        // Kiểm tra xem productGroupID có trong specColumnsConfig không
+        // Chỉ các ID: 74, 75, 78, 79, 81, 139, 92 mới có spec columns
+        const hasConfig = groupId && this.specColumnsConfig.hasOwnProperty(groupId);
+
+        // Nếu không có config (productGroupID = 0 hoặc không có trong config), ẩn tất cả spec columns
+        if (!hasConfig) {
+            this.hideAllSpecColumnsInGrid();
+            return;
+        }
+
         const configs = this.specColumnsConfig[groupId];
+        // Chỉ hiển thị các cột được định nghĩa trong config
         const columnsToShow = new Set(configs?.map((c) => c.field) || []);
 
         const allSpecFields = [
@@ -803,10 +817,14 @@ export class InventoryDemoNewComponent implements OnInit, AfterViewInit, OnDestr
             'CurrentIntensityMax',
         ];
 
-        const columns = this.angularGrid.slickGrid.getColumns();
-        const updatedColumns = columns.map((col: any) => {
-            if (allSpecFields.includes(col.field)) {
-                if (columnsToShow.has(col.field)) {
+        // Lấy tất cả columns từ columnDefinitions để đảm bảo có đầy đủ columns
+        const allColumns = [...this.columnDefinitions];
+        
+        // Map columns để cập nhật spec columns
+        const updatedColumns = allColumns.map((col: any) => {
+            if (allSpecFields.includes(col.field as string)) {
+                // Chỉ hiển thị nếu cột đó có trong config
+                if (columnsToShow.has(col.field as string)) {
                     const config = configs?.find((c) => c.field === col.field);
                     return {
                         ...col,
@@ -815,6 +833,7 @@ export class InventoryDemoNewComponent implements OnInit, AfterViewInit, OnDestr
                         excludeFromGridMenu: false,
                     };
                 } else {
+                    // Ẩn các cột spec không có trong config
                     return {
                         ...col,
                         excludeFromColumnPicker: true,
@@ -825,7 +844,65 @@ export class InventoryDemoNewComponent implements OnInit, AfterViewInit, OnDestr
             return col;
         });
 
-        this.angularGrid.slickGrid.setColumns(updatedColumns);
+        // Filter: chỉ hiển thị các columns không phải spec HOẶC spec columns có trong config
+        const visibleColumns = updatedColumns.filter((col: any) => {
+            if (allSpecFields.includes(col.field as string)) {
+                return columnsToShow.has(col.field as string);
+            }
+            return true; // Giữ lại tất cả non-spec columns
+        });
+
+        this.angularGrid.slickGrid.setColumns(visibleColumns);
+        this.angularGrid.slickGrid.render();
+    }
+
+    /**
+     * Hide all spec columns in grid (khi grid đã được khởi tạo)
+     */
+    private hideAllSpecColumnsInGrid(): void {
+        if (!this.angularGrid || !this.angularGrid.slickGrid) return;
+
+        const allSpecFields = [
+            'Resolution',
+            'MonoColor',
+            'SensorSize',
+            'SensorSizeMax',
+            'DataInterface',
+            'LensMount',
+            'ShutterMode',
+            'PixelSize',
+            'LampType',
+            'LampPower',
+            'LampWattage',
+            'LampColor',
+            'MOD',
+            'FNo',
+            'WD',
+            'Magnification',
+            'FocalLength',
+            'InputValue',
+            'OutputValue',
+            'CurrentIntensityMax',
+        ];
+
+        const columns = this.angularGrid.slickGrid.getColumns();
+        // Filter out spec columns - chỉ giữ lại các columns không phải spec
+        const visibleColumns = columns.filter((col: any) => !allSpecFields.includes(col.field));
+        
+        // Update column definitions để đảm bảo spec columns có excludeFromColumnPicker và excludeFromGridMenu
+        const updatedColumns = columns.map((col: any) => {
+            if (allSpecFields.includes(col.field)) {
+                return {
+                    ...col,
+                    excludeFromColumnPicker: true,
+                    excludeFromGridMenu: true,
+                };
+            }
+            return col;
+        });
+
+        // Set columns với chỉ các columns không phải spec (ẩn hoàn toàn spec columns)
+        this.angularGrid.slickGrid.setColumns(visibleColumns);
         this.angularGrid.slickGrid.render();
     }
 
@@ -889,8 +966,11 @@ export class InventoryDemoNewComponent implements OnInit, AfterViewInit, OnDestr
             };
         }
 
-        // Resize grid after container is rendered
+        // Xử lý spec columns khi grid ready
         setTimeout(() => {
+            // Luôn gọi showSpec() để đảm bảo spec columns được xử lý đúng
+            // showSpec() sẽ tự động ẩn nếu không có config hoặc hiển thị nếu có config
+            this.showSpec();
             angularGrid.resizerService.resizeGrid();
         }, 100);
     }

@@ -146,8 +146,12 @@ export class BorrowProductHistoryComponent implements OnInit {
     }
 
     ngAfterViewInit(): void {
+        // Load date trước
         this.loadDate();
-        this.drawTbProductHistory(this.tb_productHistoryContainer.nativeElement);
+        // Đợi một chút để đảm bảo date đã được set
+        setTimeout(() => {
+            this.drawTbProductHistory(this.tb_productHistoryContainer.nativeElement);
+        }, 0);
     }
     toggleSearchPanel() {
         this.sizeSearch = this.sizeSearch == '0' ? '22%' : '0';
@@ -570,6 +574,7 @@ export class BorrowProductHistoryComponent implements OnInit {
             height: '100%',
             layout: 'fitDataStretch',
             selectableRows: true,
+            autoResize: true,
 
             rowContextMenu: [
                 {
@@ -618,23 +623,20 @@ export class BorrowProductHistoryComponent implements OnInit {
             paginationSize: 30,
             paginationSizeSelector: [30, 50, 100, 200, 500],
             ajaxURL: this.borrowService.getApiUrlProductHistory(),
-            ajaxParams: {
-                keyWords: this.keyWords?.trim() || '',
-                dateStart: this.dateStart
-                    ? this.borrowService.formatDateVN(new Date(this.dateStart as any))
-                    : '',
-                dateEnd: this.dateEnd
-                    ? this.borrowService.formatDateVN(new Date(this.dateEnd as any))
-                    : '',
-                warehouseID: this.warehouseID ?? 0,
-                userID: this.userID ?? 0,
-                status:
-                    this.selectedStatus && this.selectedStatus.length > 0
-                        ? this.selectedStatus.join(',')
-                        : '1',
-
-                isDeleted: 0,
-                warehouseType: this.warehouseType ?? 1,
+            ajaxParams: () => {
+                return {
+                    keyWords: this.keyWords?.trim() || '',
+                    dateStart: this.dateStart || '',
+                    dateEnd: this.dateEnd || '',
+                    warehouseID: this.warehouseID ?? 0,
+                    userID: this.userID ?? 0,
+                    status:
+                        this.selectedStatus && this.selectedStatus.length > 0
+                            ? this.selectedStatus.join(',')
+                            : '1',
+                    isDeleted: 0,
+                    warehouseType: this.warehouseType ?? 1,
+                };
             },
             ajaxResponse: (url, params, res) => {
                 let totalPage = 0;
@@ -906,6 +908,11 @@ export class BorrowProductHistoryComponent implements OnInit {
             this.selectedArrHistoryProductID.delete(id);
             // Xóa khỏi Map khi bỏ chọn
             this.selectedProductsMap.delete(id);
+        });
+
+        // Trigger load data ngay sau khi table được khởi tạo
+        this.tb_productHistoryBody.on('tableBuilt', () => {
+            this.tb_productHistoryBody.setData();
         });
     }
 

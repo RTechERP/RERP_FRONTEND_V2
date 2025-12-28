@@ -37,6 +37,7 @@ import { VehiceDetailComponent } from './vehice-detail/vehice-detail.component';
 import { EmployeeBussinessBonusComponent } from './employee-bussiness-bonus/employee-bussiness-bonus.component';
 import { EmployeeBussinessSummaryComponent } from './employee-bussiness-summary/employee-bussiness-summary.component';
 import { DEFAULT_TABLE_CONFIG } from '../../../../tabulator-default.config';
+import { NzDropDownModule } from 'ng-zorro-antd/dropdown';
 import { AuthService } from '../../../../auth/auth.service';
 
 @Component({
@@ -64,7 +65,8 @@ import { AuthService } from '../../../../auth/auth.service';
     NgIf,
     NzSpinModule,
     NzGridModule,
-    HasPermissionDirective
+    HasPermissionDirective,
+    NzDropDownModule
   ]
 })
 export class EmployeeBussinessComponent implements OnInit, AfterViewInit, OnChanges {

@@ -1,0 +1,105 @@
+<div class="w-100 page-container">
+  <!-- Toolbar -->
+  <div class="card-header bg-white p-1 border-bottom">
+    <div class="d-flex gap-1 align-items-center">
+      <button type="button" nz-button nzType="default" nzSize="small" class="fs-12 btn-add" *hasPermission="'N33'" (click)="onRejectKeep()">
+        <img src="assets/icon/action_add_item_16.png" alt="Nhả giữ" />Nhả giữ
+      </button>
+
+      <button type="button" nz-button nzType="default" nzSize="small" class="btn-delete" (click)="onDelete()" *hasPermission="'N35,N27'">
+        <img src="assets/icon/action_delete_item_16.png" alt="Xóa" />Xóa
+      </button>
+
+      <button type="button" nz-button nzType="default" nzSize="small" (click)="exportToExcel()" [nzLoading]="exportingExcel">
+        <img src="assets/icon/action_export_excel_16.png" alt="Xuất Excel" />Xuất Excel
+      </button>
+    </div>
+  </div>
+
+  <!-- Filter Panel -->
+  <div class="card-body bg-white p-2 border-bottom">
+    <form nz-form [nzLayout]="'inline'">
+      <nz-form-item class="col-md-3">
+        <nz-form-label class="fs-12">Dự án</nz-form-label>
+        <nz-form-control>
+          <nz-select
+            class="fs-12 select-project w-100"
+            nzSize="small"
+            nzShowSearch
+            nzAllowClear
+            nzPlaceHolder="Chọn dự án..."
+            [(ngModel)]="projectID"
+            (ngModelChange)="projectID = ($event ?? 0)"
+            name="projectID">
+            <nz-option [nzValue]="0" nzLabel="-- Tất cả --"></nz-option>
+            <nz-option
+              *ngFor="let project of projectList"
+              [nzValue]="project.ID"
+              [nzLabel]="project.ProjectCode + ' - ' + project.ProjectName">
+            </nz-option>
+          </nz-select>
+        </nz-form-control>
+      </nz-form-item>
+
+      <nz-form-item class="col-md-3">
+        <nz-form-label class="fs-12">Nhân viên</nz-form-label>
+        <nz-form-control>
+          <nz-select
+            class="fs-12 select-employee w-100"
+            nzSize="small"
+            nzShowSearch
+            nzAllowClear
+            nzPlaceHolder="Chọn nhân viên..."
+            [(ngModel)]="employeeID"
+            (ngModelChange)="employeeID = ($event ?? 0)"
+            name="employeeID">
+            <nz-option [nzValue]="0" nzLabel="-- Tất cả --"></nz-option>
+            <nz-option
+              *ngFor="let employee of employeeList"
+              [nzValue]="employee.ID"
+              [nzLabel]="employee.FullName">
+            </nz-option>
+          </nz-select>
+        </nz-form-control>
+      </nz-form-item>
+
+      <nz-form-item class="col-md-3">
+        <nz-form-label class="fs-12">Từ khóa</nz-form-label>
+        <nz-form-control>
+          <input
+            nz-input
+            class="input-keyword fs-12 w-100"
+            placeholder="Nhập mã SP, tên SP..."
+            [(ngModel)]="keyword"
+            nzSize="small"
+            (keyup.enter)="searchData()"
+            name="keyword" />
+        </nz-form-control>
+      </nz-form-item>
+
+      <nz-form-item class="col-md-1">
+        <nz-form-control>
+          <button type="button" nz-button nzType="primary" nzSize="small" (click)="searchData()">
+            <nz-icon nzType="search" nzTheme="outline"></nz-icon> Tìm kiếm
+          </button>
+        </nz-form-control>
+      </nz-form-item>
+    </form>
+  </div>
+
+  <!-- Grid -->
+  <div class="grid-wrapper">
+      <div class="grid-container grid-full-height">
+        <angular-slickgrid
+          gridId="inventory-project-grid"
+          [columns]="columnDefinitions"
+          [options]="gridOptions"
+          [dataset]="dataset"
+          (onAngularGridCreated)="angularGridReady($event.detail)"
+          (onClick)="onRowClick($event.detail.eventData, $event.detail.args)"
+          (onDblClick)="onRowDblClick($event.detail.eventData, $event.detail.args)"
+          (onSelectedRowsChanged)="onSelectedRowsChanged($event.detail.eventData, $event.detail.args)">
+        </angular-slickgrid>
+      </div>
+  </div>
+</div>

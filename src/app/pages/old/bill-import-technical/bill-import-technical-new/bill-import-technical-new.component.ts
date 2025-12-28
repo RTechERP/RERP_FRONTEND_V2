@@ -32,6 +32,7 @@ import { BillImportTechnicalService } from '../bill-import-technical-service/bil
 import { DateTime } from 'luxon';
 // @ts-ignore
 import { saveAs } from 'file-saver';
+import { BillImportTechnicalSummaryComponent } from '../../bill-export-technical/bill-import-technical-summary/bill-import-technical-summary.component';
 
 function formatDateCell(value: any): string {
     if (!value) return '';
@@ -362,7 +363,17 @@ export class BillImportTechnicalNewComponent implements OnInit, AfterViewInit, O
             enableHeaderMenu: false,
         };
     }
-
+    openSummaryModal() {
+        const modalRef = this.ngbModal.open(BillImportTechnicalSummaryComponent, {
+            centered: true,
+            backdrop: 'static',
+            keyboard: false,
+            windowClass: 'full-screen-modal',
+            size: 'xl',
+        });
+        // Truyền warehouseID vào component
+        modalRef.componentInstance.warehouseId = this.warehouseID;
+    }
     private initDetailGridColumns(): void {
         this.columnDefinitionsDetail = [
             {
@@ -963,21 +974,22 @@ export class BillImportTechnicalNewComponent implements OnInit, AfterViewInit, O
         );
 
         const payload = {
-            master: {
+            Master: {
                 ID: selectedMaster.ID,
-                BillCode: selectedMaster.BillCode,
-                CreatDate: selectedMaster.CreatDate,
-                Suplier: selectedMaster.Suplier,
+                Code: selectedMaster.BillCode,
+                CreatedDate: selectedMaster.CreatDate,
+                SupplierName: selectedMaster.NCC || selectedMaster.Suplier,
                 CustomerName: selectedMaster.CustomerName,
                 Deliver: selectedMaster.Deliver,
-                EmployeeReceiverName: selectedMaster.EmployeeReceiverName,
+                Receiver: selectedMaster.EmployeeReceiverName,
                 DepartmentName: selectedMaster.DepartmentName,
+                Addres: selectedMaster.Addres || '',
             },
-            details: details.map((item: any) => ({
+            Details: details.map((item: any) => ({
                 ProductCode: item.ProductCode,
                 ProductName: item.ProductName,
                 Quantity: item.Quantity,
-                UnitName: item.UnitName,
+                UnitName: item.UnitCountName || item.UnitName,
                 Maker: item.Maker,
                 WarehouseType: item.WarehouseType,
                 ProductCodeRTC: item.ProductCodeRTC,

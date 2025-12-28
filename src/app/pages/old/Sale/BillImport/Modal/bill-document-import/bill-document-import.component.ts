@@ -233,7 +233,7 @@ export class BillDocumentImportComponent implements OnInit, AfterViewInit {
     }
   }
 
-  saveData() {
+  saveDataAndClose() {
     // Commit any pending edits before saving
     try {
       const slickGrid = (this.angularGridMaster as any).grid || (this.angularGridMaster as any).slickGrid;
@@ -294,7 +294,90 @@ export class BillDocumentImportComponent implements OnInit, AfterViewInit {
           this.getBillDocumentImport(); // load lại bảng + reset cờ _edited
           this.dataSaved.emit();
           // Close modal after successful save
-          this.activeModal.dismiss(true);
+            this.activeModal.dismiss(true);
+        } else {
+          this.notification.error(
+            'Lỗi',
+            res.error || 'Có lỗi xảy ra khi lưu dữ liệu.'
+          );
+        }
+      },
+      error: (err) => {
+        const errorMsg = err.error?.errors
+          ? Object.values(err.error.errors).flat().join('; ')
+          : err.error?.error || 'Có lỗi xảy ra khi lưu dữ liệu.';
+        this.notification.error(NOTIFICATION_TITLE.error, errorMsg);
+        console.error('Lỗi khi lưu dữ liệu:', err);
+      },
+    });
+  }
+
+  saveOnly() {
+    // Commit any pending edits before saving
+    try {
+      const slickGrid = (this.angularGridMaster as any).grid || (this.angularGridMaster as any).slickGrid;
+      if (slickGrid && slickGrid.getEditorLock && slickGrid.getEditorLock().isActive()) {
+        slickGrid.getEditorLock().commitCurrentEdit();
+      }
+    } catch (e) {
+      console.log('Could not commit current edit:', e);
+    }
+    
+    const currentData = this.dataBillDocumentImport;
+    const changedData = [];
+
+    for (const item of currentData) {
+      if (item._edited) {
+        if (
+          item.DocumentStatus === 2 &&
+          (!item.ReasonCancel || item.ReasonCancel.trim() === '')
+        ) {
+          this.notification.error(
+            'Lỗi',
+            `Vui lòng nhập Lý do hủy cho chứng từ [${item.DocumentImportCode || 'N/A'
+            }].`
+          );
+          return;
+        }
+
+        changedData.push({
+          ID: item.ID || 0,
+          Status: parseInt(item.DocumentStatus, 10) || null,
+          DateRecive: DateTime.now().toISO(),
+          ReasonCancel: item.ReasonCancel || '',
+          BillImportID: this.billImportID,
+          DocumentImportID: item.DocumentImportID,
+          Note: item.Note || '',
+          StatusHr: parseInt(item.DocumentStatusHR, 10) || null,
+          StatusPurchase: parseInt(item.DocumentStatusPur, 10) || null,
+          UpdateDate: DateTime.now().toISO(),
+        });
+      }
+    }
+
+    if (changedData.length === 0) {
+      this.notification.info('Thông báo', 'Không có dữ liệu thay đổi để lưu.');
+      return;
+    }
+
+    this.billImportService.saveBillDocumentImport(changedData).subscribe({
+      next: (res) => {
+        if (res.status === 1) {
+          this.notification.success(
+            NOTIFICATION_TITLE.success,
+            'Dữ liệu đã được lưu.'
+          );
+          this.flag = true;
+          
+          // Reset cờ _edited cho các items đã lưu
+          for (const item of currentData) {
+            if (item._edited) {
+              item._edited = false;
+            }
+          }
+          
+          this.dataSaved.emit();
+          // Không reload, không đóng modal - người dùng tiếp tục sửa
         } else {
           this.notification.error(
             'Lỗi',
@@ -330,12 +413,12 @@ export class BillDocumentImportComponent implements OnInit, AfterViewInit {
         name: 'Trạng thái KT',
         field: 'DocumentStatus',
         type: 'string',
-        width: 150,
+        width: 100,
         sortable: true,
         filterable: true,
         editor: this.activeKT ? {
           model: Editors['singleSelect'],
-          collection: [{ ID: null, Name: '-- Chọn --' }, ...this.cbbStatus],
+          collection: [{ ID: null, Name: '-- Bỏ chọn --' }, ...this.cbbStatus],
           customStructure: {
             value: 'ID',
             label: 'Name'
@@ -352,7 +435,7 @@ export class BillDocumentImportComponent implements OnInit, AfterViewInit {
         name: 'Trạng thái Pur',
         field: 'DocumentStatusPur',
         type: 'string',
-        width: 150,
+        width: 100,
         sortable: true,
         filterable: true,
         editor: this.activePur ? {
@@ -374,7 +457,7 @@ export class BillDocumentImportComponent implements OnInit, AfterViewInit {
         name: 'Trạng thái HR',
         field: 'DocumentStatusHR',
         type: 'string',
-        width: 150,
+        width: 100,
         sortable: true,
         filterable: true,
         editor: this.activeHR ? {
@@ -418,7 +501,7 @@ export class BillDocumentImportComponent implements OnInit, AfterViewInit {
         sortable: true,
         filterable: true,
         editor: {
-          model: Editors['text']
+          model: Editors['longText']
         }
       },
       {
@@ -430,7 +513,7 @@ export class BillDocumentImportComponent implements OnInit, AfterViewInit {
         sortable: true,
         filterable: true,
         editor: {
-          model: Editors['text']
+          model: Editors['longText']
         }
       },
       {
@@ -438,7 +521,7 @@ export class BillDocumentImportComponent implements OnInit, AfterViewInit {
         name: 'Người thay đổi',
         field: 'UpdatedBy',
         type: 'string',
-        width: 150,
+        width: 100,
         sortable: true,
         filterable: true
       },
@@ -493,6 +576,16 @@ export class BillDocumentImportComponent implements OnInit, AfterViewInit {
             console.log('Row changed - row:', row, 'item:', item);
           }
         }
+      }
+    });
+
+    // Add onCellChange event to track cell edits
+    angularGrid.slickGrid.onCellChange.subscribe((e: any, args: any) => {
+      const item = angularGrid.dataView.getItem(args.row);
+      if (item) {
+        item._edited = true;
+        this.flag = false;
+        console.log('Cell changed - row:', args.row, 'cell:', args.cell, 'item:', item);
       }
     });
   }

@@ -8,7 +8,7 @@
             <nz-splitter nzLayout="vertical">
                 <nz-splitter-panel [nzCollapsible]="true" nzResizable="true">
                     <!-- <div #tableBillDocumentImport style="height: 30vh;"></div> -->
-                    <div id="grid-container" style="height: 285px;">
+                    <div id="grid-container" style="height: 35vh;">
                         <angular-slickgrid gridId="gridBillDocumentImport" [columns]="columnDefinitionsMaster"
                             [options]="gridOptionsMaster" [dataset]="dataBillDocumentImport"
                             (onAngularGridCreated)="angularGridMasterReady($event.detail)"
@@ -20,7 +20,7 @@
                 <!-- table productGroupWareHouse -->
                 <nz-splitter-panel [nzCollapsible]="true" nzResizable="true">
                     <!-- <div #tableBillDocumentImportLog style="height: 30vh;"></div> -->
-                    <div id="grid-container" style="height: 200px;">
+                    <div id="grid-container" style="height: 30vh;">
                         <angular-slickgrid gridId="gridBillDocumentImportLog" 
                             [columns]="columnDefinitionsLog"
                             [options]="gridOptionsLog" 
@@ -37,6 +37,8 @@
 </div>
 <div class="modal-footer flex-shrink-0">
     <button class="fs-12 btn" nz-button nzDanger (click)="closeModal()">Đóng</button>
+    <button class="fs-12 btn" nz-button nzType="default" *hasPermission="'N52,N36,N1,N34'"
+        (click)="saveOnly()">Lưu</button>
     <button class="fs-12 btn" nz-button nzType="primary" *hasPermission="'N52,N36,N1,N34'"
-        (click)="saveData()">Lưu</button>
+        (click)="saveDataAndClose()">Lưu và đóng</button>
 </div>

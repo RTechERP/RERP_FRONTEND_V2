@@ -385,6 +385,7 @@ export class PaymentOrderDetailComponent implements OnInit, AfterViewInit {
             .get(this.paymentOrderField.IsUrgent.field)
             ?.valueChanges.pipe(takeUntil(this.destroy$))
             .subscribe((value: boolean) => {
+                this.paymentOrder.IsUrgent = value;
                 if (value) this.validateForm.get(this.paymentOrderField.DeadlinePayment.field)?.setValidators([Validators.required]);
                 else this.validateForm.get(this.paymentOrderField.DeadlinePayment.field)?.clearValidators();
 
@@ -436,24 +437,27 @@ export class PaymentOrderDetailComponent implements OnInit, AfterViewInit {
         this.columnDefinitions = [
             {
                 id: 'deletete',
-                name: PaymentOrderDetailField.ID.name,
+                name: '',
                 field: '_id',
                 type: PaymentOrderDetailField.ID.type,
-                // sortable: true, filterable: true,
-                formatter: Formatters.icon, params: { iconCssClass: 'mdi mdi-trash-can pointer' },
+                width: 50,
+                maxWidth: 50,
+                sortable: false, filterable: false,
+                formatter: Formatters.icon, params: { iconCssClass: 'mdi mdi-trash-can pointer text-danger' },
                 // filter: { model: Filters['compoundDate'] }
                 onCellClick: (e: Event, args: OnEventArgs) => {
                     this.deleteItem(e, args)
-                }
-                , header: {
+                },
+                header: {
                     buttons: [
                         {
                             cssClass: 'fa fa-plus',
                             tooltip: 'Thêm mới',
                             command: 'add'
-                        }
+                        },
                     ]
-                }
+                },
+                cssClass: 'text-center'
             },
             {
                 id: PaymentOrderDetailField.STT.field,
@@ -465,7 +469,8 @@ export class PaymentOrderDetailComponent implements OnInit, AfterViewInit {
                 // filter: { model: Filters['compoundDate'] }
                 editor: {
                     model: Editors['text']
-                }
+                },
+                cssClass: 'text-center'
 
             },
             {
@@ -477,7 +482,7 @@ export class PaymentOrderDetailComponent implements OnInit, AfterViewInit {
                 // formatter: Formatters.date, params: { dateFormat: 'DD/MM/YYYY' },
                 // filter: { model: Filters['compoundDate'] }
                 editor: {
-                    model: Editors['text']
+                    model: Editors['longText']
                 }
             },
             {
@@ -511,6 +516,7 @@ export class PaymentOrderDetailComponent implements OnInit, AfterViewInit {
                     this.updateTotalMoney(args.cell, args.row);
                     this.updateTotal(args.cell);
                 },
+                cssClass: 'text-end'
             },
             {
                 id: PaymentOrderDetailField.UnitPrice.field,
@@ -532,6 +538,7 @@ export class PaymentOrderDetailComponent implements OnInit, AfterViewInit {
                     this.updateTotalMoney(args.cell, args.row);
                     this.updateTotal(args.cell);
                 },
+                cssClass: 'text-end'
             },
             {
                 id: PaymentOrderDetailField.TotalMoney.field,
@@ -552,7 +559,8 @@ export class PaymentOrderDetailComponent implements OnInit, AfterViewInit {
                 onCellChange: (e: Event, args: OnEventArgs) => {
                     this.updateTotal(args.cell);
                     this.updateTotalPaymentAmount(args.cell, args.row);
-                }
+                },
+                cssClass: 'text-end'
             },
 
             {
@@ -574,7 +582,8 @@ export class PaymentOrderDetailComponent implements OnInit, AfterViewInit {
                 formatter: Formatters.decimal, params: { minDecimal: 0, maxDecimal: 2 },
                 onCellChange: (e: Event, args: OnEventArgs) => {
                     this.updateTotalPaymentAmount(args.cell, args.row);
-                }
+                },
+                cssClass: 'text-end'
             },
 
             {
@@ -593,6 +602,7 @@ export class PaymentOrderDetailComponent implements OnInit, AfterViewInit {
                     decimal: 2
                 },
                 formatter: Formatters.decimal, params: { minDecimal: 0, maxDecimal: 2 },
+                cssClass: 'text-end'
             },
             {
                 id: PaymentOrderDetailField.Note.field,
@@ -616,15 +626,17 @@ export class PaymentOrderDetailComponent implements OnInit, AfterViewInit {
         this.columnFileDefinitions = [
             {
                 id: 'deletete',
-                name: 'ID',
+                name: '',
                 field: 'ID',
                 type: 'number',
-                // sortable: true, filterable: true,
-                formatter: Formatters.icon, params: { iconCssClass: 'mdi mdi-trash-can pointer' },
+                width: 50, maxWidth: 50,
+                sortable: false, filterable: false,
+                formatter: Formatters.icon, params: { iconCssClass: 'mdi mdi-trash-can pointer text-danger' },
                 // filter: { model: Filters['compoundDate'] }
                 onCellClick: (e: Event, args: OnEventArgs) => {
                     this.deleteFile(e, args)
-                }
+                },
+                cssClass: 'text-center'
             },
             {
                 id: 'FileName',
@@ -645,12 +657,16 @@ export class PaymentOrderDetailComponent implements OnInit, AfterViewInit {
                 container: '.grid-container-file',
             },
             gridWidth: '100%',
+            frozenColumn: 0,
+            autoFitColumnsOnFirstLoad: false,
         }
 
         this.gridOptions = {
             enableAutoResize: true,
             autoResize: {
                 container: '.grid-container',
+                calculateAvailableSizeBy: 'container',
+                resizeDetection: 'container',
             },
             gridWidth: '100%',
             datasetIdPropertyName: '_id',
@@ -686,14 +702,16 @@ export class PaymentOrderDetailComponent implements OnInit, AfterViewInit {
             },
             multiColumnSort: false,
 
+            autoFitColumnsOnFirstLoad: false,
             enableHeaderButton: true,
             headerButton: {
                 // you can use the "onCommand" (in Grid Options) and/or the "action" callback (in Column Definition)
                 onCommand: (_e, args) => {
-                    this.addItem(_e, args)
+                    this.onAddItem(_e, args);
                 },
 
             },
+
 
             formatterOptions: {
                 // dateSeparator: '.',
@@ -704,6 +722,7 @@ export class PaymentOrderDetailComponent implements OnInit, AfterViewInit {
                 thousandSeparator: ','
             },
 
+            frozenColumn: 0,
         };
 
         // console.log('init grid"');
@@ -828,7 +847,9 @@ export class PaymentOrderDetailComponent implements OnInit, AfterViewInit {
         }
     }
 
-    addItem(_e: any, args: any) {
+    onAddItem(_e: any, args: any) {
+
+        console.log('onAddItem args', args);
 
         let gridInstance = this.angularGrid;
         if (this.paymentOrder.TypeOrder == 2) gridInstance = this.angularGrid2;

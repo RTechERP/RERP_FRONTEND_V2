@@ -33,6 +33,7 @@ import { OverTimeTypeComponent } from "./over-time-type/over-time-type.component
 import { SummaryOverTimeComponent } from './summary-over-time/summary-over-time.component';
 import { HasPermissionDirective } from '../../../directives/has-permission.directive';
 import { NOTIFICATION_TITLE } from '../../../app.config';
+import { NzDropDownModule } from 'ng-zorro-antd/dropdown';
 import { AuthService } from '../../../auth/auth.service';
 
 
@@ -65,7 +66,8 @@ import { AuthService } from '../../../auth/auth.service';
     OverTimeDetailComponent,
     OverTimeTypeComponent,
     SummaryOverTimeComponent,
-    HasPermissionDirective
+    HasPermissionDirective,
+    NzDropDownModule
   ]
 })
 export class OverTimeComponent implements OnInit, AfterViewInit {

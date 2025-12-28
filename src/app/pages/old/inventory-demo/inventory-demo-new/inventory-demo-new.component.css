@@ -33,3 +33,6 @@
   font-size: 14px;
   color: #666;
 }
+::ng-deep div[id^="inventoryDemoGrid-"] {
+  height: 85vh;
+}

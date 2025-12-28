@@ -164,16 +164,36 @@ export class JobRequirementComponent implements OnInit, AfterViewInit {
     isHCNSApproved: boolean = false; // Trạng thái đã duyệt HCNS hay chưa
 
     sizeSearch: string = '0';
+    showSearchBar: boolean = true;
     isCheckmode: boolean = false;
     dateFormat = 'dd/MM/yyyy';
 
+    get shouldShowSearchBar(): boolean {
+        return this.showSearchBar;
+    }
+
     dataInput: any = {};
 
-    ngOnInit(): void {
-        this.getJobrequirement();
-        this.getdataEmployee();
-        this.getdataDepartment();
+   ngOnInit(): void {
+  this.route.queryParams.subscribe(params => {
+    const typeApprove = params['typeApprove'] || 0;
+
+    if (typeApprove === '2') {
+      this.approvalMode = 1;
+      this.searchParams.Step = 1;
+    } else if (typeApprove === '1') {
+      this.approvalMode = 2;
+    } else if (typeApprove === '3') {
+      this.approvalMode = 3;
     }
+    
+    // Call getCurrentUser AFTER approvalMode is set
+    this.getCurrentUser();
+  });
+
+  this.getdataEmployee();
+  this.getdataDepartment();
+}
     ngAfterViewInit(): void {
         this.draw_JobrequirementTable();
         this.draw_JobrequirementDetailTable();
@@ -194,56 +214,22 @@ export class JobRequirementComponent implements OnInit, AfterViewInit {
         private authService: AuthService,
         private route: ActivatedRoute
     ) {
-        this.getCurrentUser();
     }
-
-    getCurrentUser(): void {
-        this.authService.getCurrentUser().subscribe({
-            next: (res: any) => {
-                const data = res?.data;
-                this.currentUser = Array.isArray(data) ? data[0] : data;
-
-                // Xử lý tabData sau khi currentUser đã được load
-                // if (this.tabData?.typeApprove) {
-                //     const typeApprove = this.tabData.typeApprove;
-                //     if (typeApprove === 2) {
-                //         this.approvalMode = 1;
-                //         if (this.currentUser?.EmployeeID) {
-                //             this.searchParams.ApprovedTBPID = this.currentUser.EmployeeID;
-                //         }
-                //     } else if (typeApprove === 1) {
-                //         this.approvalMode = 2;
-                //     } else if (typeApprove === 3) {
-                //         this.approvalMode = 3;
-                //     }
-                // }
-
-                this.route.queryParams.subscribe(params => {
-                    // this.warehouseID = params['warehouseId'] || 1
-
-                    const typeApprove = params['typeApprove'] || 0;
-                    if (typeApprove === "2") {
-                        this.approvalMode = 1;
-                        if (this.currentUser?.EmployeeID) {
-                            this.searchParams.ApprovedTBPID = this.currentUser.EmployeeID;
-                        }
-                    } else if (typeApprove === "1") {
-                        this.approvalMode = 2;
-                    } else if (typeApprove === "3") {
-                        this.approvalMode = 3;
-                    }
-                });
-
-                if (this.approvalMode === 1 && this.currentUser?.EmployeeID) {
-                    this.searchParams.ApprovedTBPID = this.currentUser.EmployeeID;
-                    this.getJobrequirement();
-                }
-            },
-            error: (err: any) => {
-                this.notification.error("Lỗi", err.error.message);
-            }
-        });
+getCurrentUser(): void {
+  this.authService.getCurrentUser().subscribe({
+    next: (res: any) => {
+      const data = res?.data;
+      this.currentUser = Array.isArray(data) ? data[0] : data;
+      if (this.approvalMode === 1 && this.currentUser?.EmployeeID) {
+        this.searchParams.ApprovedTBPID = this.currentUser.EmployeeID;
+      }
+      this.getJobrequirement(); 
+    },
+    error: (err) => {
+      this.notification.error("Lỗi", err.error.message);
     }
+  });
+}
 
     //search
     filterOption = (input: string, option: any): boolean => {
@@ -288,14 +274,23 @@ export class JobRequirementComponent implements OnInit, AfterViewInit {
                 this.draw_JobrequirementTable();
             }
 
-            setTimeout(() => {
+            // Thay thế setTimeout bằng Promise để tránh nested setTimeout
+            Promise.resolve().then(() => {
                 this.JobrequirementTable!.replaceData(this.JobrequirementData);
+                
+                // Focus on first row and load details if data exists
+                if (this.JobrequirementData.length > 0) {
+                    this.JobrequirementID = this.JobrequirementData[0].ID;
+                    
+                    // Chỉ select row, data sẽ được load qua sự kiện rowSelected
+                    const firstRow = this.JobrequirementTable!.getRow(0);
+                    if (firstRow) {
+                        firstRow.select();
+                    }
+                } else {
+                    this.JobrequirementID = 0;
+                }
             });
-
-            this.JobrequirementID =
-                this.JobrequirementData.length > 0
-                    ? this.JobrequirementData[0].ID
-                    : 0;
         });
     }
 
@@ -842,7 +837,7 @@ export class JobRequirementComponent implements OnInit, AfterViewInit {
             if (approval) {
                 return {
                     date: formatDateTime(approval.DateApproved),
-                    approver: approval.FullNameApprovedTBP || ''
+                    approver: approval.EmployeeName || ''
                 };
             }
             return { date: '', approver: '' };
@@ -1761,6 +1756,14 @@ export class JobRequirementComponent implements OnInit, AfterViewInit {
             }
         }, 300);
     }
+
+    ToggleSearchPanelNew(event?: Event): void {
+        if (event) {
+            event.stopPropagation();
+        }
+        this.showSearchBar = !this.showSearchBar;
+    }
+
     searchData() {
 
         this.getJobrequirement();
@@ -1986,7 +1989,7 @@ export class JobRequirementComponent implements OnInit, AfterViewInit {
                         field: 'DateRequest',
                         hozAlign: 'left',
                         headerHozAlign: 'center',
-                        width: 200,
+                        width: 100,
                         formatter: (cell: any) => {
                             const value = cell.getValue();
                             return value
@@ -2071,8 +2074,9 @@ export class JobRequirementComponent implements OnInit, AfterViewInit {
                 this.data = [rowData]; // Giả sử bạn luôn muốn this.data chứa mảng 1 phần tử
                 this.JobrequirementID = this.data[0].ID;
 
-                // Kiểm tra trạng thái duyệt HCNS khi chọn row
+                // Load details và HCNS data khi select row
                 if (this.JobrequirementID) {
+                    this.getJobrequirementDetails(this.JobrequirementID);
                     this.getHCNSData(this.JobrequirementID);
                 }
             });
@@ -2083,8 +2087,6 @@ export class JobRequirementComponent implements OnInit, AfterViewInit {
                     this.data = []; // Reset data
                 }
             });
-
-            // Set font-size 12px cho bảng và 10px cho badge
             setTimeout(() => {
                 const tableElement = this.tableRef1.nativeElement;
                 if (tableElement) {

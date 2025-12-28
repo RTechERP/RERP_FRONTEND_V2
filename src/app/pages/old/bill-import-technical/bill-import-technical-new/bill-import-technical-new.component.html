@@ -94,6 +94,10 @@
                             (click)="openCheckHistoryTech()">
                             <nz-icon nzType="history" nzTheme="outline"></nz-icon>Lịch sử mượn NCC
                         </button>
+                        <button class="fs-12" *hasPermission="'N26,N1,N73,N80'" nz-button nzType="default" nzSize="small"
+                            (click)="openSummaryModal()">
+                            <img class="btn-action-icon" src="assets\icon\action_summary_24.svg" /> Tổng hợp
+                        </button>
                     </div>
                 </div>
 

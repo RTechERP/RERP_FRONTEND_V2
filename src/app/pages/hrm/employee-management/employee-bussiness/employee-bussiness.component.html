@@ -23,22 +23,38 @@
                     *hasPermission="'N1,N2'">
                     <img src="assets/icon/action_delete_item_16.png" alt="Xóa" /> Xóa
                 </button>
-                <button class="fs-12" nz-button nzType="default" nzSize="small" (click)="approved(true, true)"
-                    *hasPermission="'N1'">
-                    <img src="assets/icon/action_approved_16.png" alt="Duyệt" /> TBP duyệt
+                <button class="fs-12" nz-button nzType="default" nzSize="small" nz-dropdown [nzDropdownMenu]="menuTBP" *hasPermission="'N1'">
+                    <img src="assets/icon/action_confirm_tbp_16.png" />TBP xác nhận
+                    <i nz-icon nzType="down"></i>
                 </button>
-                <button class="fs-12" nz-button nzType="default" nzSize="small" (click)="approved(false, true)"
-                    *hasPermission="'N1'">
-                    <img src="assets/icon/action_unapproved_16.png" alt="Hủy duyệt" /> TBP hủy duyệt
+                <nz-dropdown-menu #menuTBP="nzDropdownMenu">
+                    <ul nz-menu>
+                        <li nz-menu-item (click)="approved(true, true)" *hasPermission="'N1'">
+                            <img src="assets/icon/action_approved_16.png" />
+                            <span class="ms-1">TBP duyệt</span>
+                        </li>
+                        <li nz-menu-item (click)="approved(false, true)" *hasPermission="'N1'">
+                            <img src="assets/icon/action_unapproved_16.png" />
+                            <span class="ms-1">TBP hủy duyệt</span>
+                        </li>
+                    </ul>
+                </nz-dropdown-menu>
+                <button class="fs-12" nz-button nzType="default" nzSize="small" nz-dropdown [nzDropdownMenu]="menuHR" *hasPermission="'N2,N1'">
+                    <img src="assets/icon/action_confirm_tbp_16.png" />HR xác nhận
+                    <i nz-icon nzType="down"></i>
                 </button>
-                <button class="fs-12" nz-button nzType="default" nzSize="small" (click)="approved(true, false)"
-                    *hasPermission="'N2,N1'">
-                    <img src="assets/icon/action_approved_16.png" alt="Duyệt" /> HR duyệt
-                </button>
-                <button class="fs-12" nz-button nzType="default" nzSize="small" (click)="approved(false, false)"
-                    *hasPermission="'N2,N1'">
-                    <img src="assets/icon/action_unapproved_16.png" alt="Hủy duyệt" /> HR hủy duyệt
-                </button>
+                <nz-dropdown-menu #menuHR="nzDropdownMenu">
+                    <ul nz-menu>
+                        <li nz-menu-item (click)="approved(true, false)" *hasPermission="'N2,N1'">
+                            <img src="assets/icon/action_approved_16.png" />
+                            <span class="ms-1">HR duyệt</span>
+                        </li>
+                        <li nz-menu-item (click)="approved(false, false)" *hasPermission="'N2,N1'">
+                            <img src="assets/icon/action_unapproved_16.png" />
+                            <span class="ms-1">HR hủy duyệt</span>
+                        </li>
+                    </ul>
+                </nz-dropdown-menu>
                 <button class="fs-12" nz-button nzType="default" nzSize="small" (click)="openEmployeeBussinessBonusModal()"
                     *hasPermission="'N2,N1'">
                     <img src="assets/icon/action_payroll_report_16.png" alt="Phụ phí" /> Phụ phí

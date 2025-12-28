@@ -379,15 +379,37 @@ class GroupSelectEditor {
   }
 
   loadValue(item: any) {
-    this.defaultValue = String(item?.[this.args.column.field] ?? '');
+    // Lấy lại collection từ args để đảm bảo collection luôn mới nhất
+    const editor = this.args?.column?.editor ?? {};
+    this.collection = editor.collection ?? [];
+    
+    const fieldValue = item?.[this.args.column.field];
+    this.defaultValue = fieldValue !== null && fieldValue !== undefined ? String(fieldValue) : '';
     this.selectedValue = this.defaultValue;
+    
     const flat = this.getFlattenedCollection();
-    const found = flat.find(
-      (x) => String(x.value ?? '') === this.selectedValue
-    );
+    // So sánh linh hoạt: chuyển cả hai về number nếu có thể, nếu không thì so sánh string
+    const found = flat.find((x) => {
+      const xValue = x.value ?? '';
+      const selectedValue = this.selectedValue ?? '';
+      
+      // Thử so sánh số trước
+      const xNum = Number(xValue);
+      const selectedNum = Number(selectedValue);
+      if (!isNaN(xNum) && !isNaN(selectedNum)) {
+        return xNum === selectedNum;
+      }
+      
+      // Nếu không phải số, so sánh string
+      return String(xValue) === String(selectedValue);
+    });
+    
+    // Hiển thị label trong input, không mở dropdown ngay
     this.inputElm.value = found?.label ?? '';
+    // Chỉ build dropdown nhưng không mở (để khi user click vào input mới mở)
     this.buildDropdown('');
-    this.openDropdown();
+    // Không tự động mở dropdown khi load value
+    this.closeDropdown();
   }
 
   serializeValue() {
@@ -1743,6 +1765,18 @@ private updateFilterCollections(columns: any[], data: any[]): void {
     ];
   }
 
+  private getCurrencyCollectionForSelect(): Array<{ value: number; label: string }> {
+    const currencies = (this.dtcurrency || []).map((c: any) => ({
+      value: c.ID,
+      label: `${c.Code || ''} - ${this.formatNumberEnUS(c.CurrencyRate || 0, 2)}`
+    }));
+    // Thêm dòng mặc định ở đầu với ID=0
+    return [
+      { value: 0, label: '' },
+      ...currencies
+    ];
+  }
+
   private getSupplierCollection(): Array<{ value: number; label: string }> {
     const suppliers = (this.dtSupplierSale || []).map((s: any) => ({
       value: s.ID,
@@ -2167,14 +2201,11 @@ private updateFilterCollections(columns: any[], data: any[]): void {
           } as MultipleSelectOption,
         },
         editor: {
-          model: GroupSelectEditor,
-          collection: this.getCurrencyCollection(),
+          model: Editors['singleSelect'],
+          collection: this.getCurrencyCollectionForSelect(),
           collectionOptions: {
-            addBlankEntry: false
+            addBlankEntry: true
           },
-          editorOptions: {
-            enableClear: true
-          }
         },
         formatter: (row: number, cell: number, value: any) => {
           const currency = this.dtcurrency.find((c: any) => c.ID === value);
@@ -2316,14 +2347,21 @@ private updateFilterCollections(columns: any[], data: any[]): void {
           } as MultipleSelectOption,
         },
         editor: {
-          model: GroupSelectEditor,
+          model: Editors['multipleSelect'],
           collection: this.getSupplierCollection(),
           collectionOptions: {
-            addBlankEntry: false
-          }
+            addBlankEntry: true
+          },
+          editorOptions: {
+            maxItemSelection: 1,
+            closeOnSelect: true,    
+            autoDropUp: true,
+          },
         },
         formatter: (row: number, cell: number, value: any) => {
-          const supplier = this.dtSupplierSale.find((s: any) => s.ID === value);
+          // Xử lý cả trường hợp value là array (từ multiselect) hoặc số đơn
+          const supplierId = Array.isArray(value) ? (value[0] || value) : value;
+          const supplier = this.dtSupplierSale.find((s: any) => s.ID === supplierId);
           return supplier ? supplier.NameNCC : '';
         },
       },
@@ -2743,7 +2781,13 @@ private updateFilterCollections(columns: any[], data: any[]): void {
 
     // Cập nhật giá trị mới vào item
     if (field && newValue !== undefined) {
-      item[field] = newValue;
+      // Xử lý đặc biệt cho SupplierSaleID: chuyển từ array (multiselect) sang giá trị đơn
+      if (field === 'SupplierSaleID' && Array.isArray(newValue)) {
+        // Lấy giá trị đầu tiên từ array (vì chỉ cho phép chọn 1)
+        item[field] = newValue.length > 0 ? newValue[0] : null;
+      } else {
+        item[field] = newValue;
+      }
     }
 
     // Xử lý thay đổi cell

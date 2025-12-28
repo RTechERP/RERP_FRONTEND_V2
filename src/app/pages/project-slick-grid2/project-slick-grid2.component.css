@@ -1,0 +1,224 @@
+.fs-12 {
+  font-size: 0.75rem;
+}
+
+.reset {
+  all: revert;
+}
+
+.ant-splitter-panel {
+  position: relative;
+}
+
+.inner-content {
+  padding: 0 !important;
+}
+
+.ant-tabs-tab-btn {
+  font-size: 0.75rem;
+}
+
+/* SlickGrid styling */
+.grid-container {
+  width: 100%;
+  height: 100%;
+}
+
+::ng-deep .slickgrid-container {
+  font-size: 0.75rem !important;
+}
+
+::ng-deep .slick-cell {
+  font-size: 0.75rem !important;
+  padding: 2px 4px !important;
+}
+
+::ng-deep .slick-header-column {
+  font-size: 0.75rem !important;
+  font-weight: 600;
+}
+
+::ng-deep .slick-row {
+  cursor: pointer;
+}
+
+::ng-deep .slick-row:hover {
+  background-color: #f5f5f5;
+}
+
+::ng-deep .slick-row.selected {
+  background-color: #e6f7ff !important;
+}
+
+/* Cell wrap for long text */
+::ng-deep .cell-wrap {
+  white-space: normal !important;
+  line-height: 1.4 !important;
+  overflow: visible !important;
+  text-overflow: clip !important;
+  word-wrap: break-word !important;
+  padding: 4px !important;
+}
+
+/* Đảm bảo row có thể mở rộng chiều cao khi wrap */
+::ng-deep .slick-row {
+  min-height: 35px !important;
+}
+
+/* Cho phép cell tự động mở rộng chiều cao */
+::ng-deep .slick-cell {
+  overflow: visible !important;
+  white-space: normal !important;
+}
+
+/* Cell wrap - tự động tăng chiều cao theo nội dung */
+::ng-deep .cell-wrap {
+  white-space: normal !important;
+  line-height: 1.5 !important;
+  overflow: visible !important;
+  text-overflow: clip !important;
+  word-wrap: break-word !important;
+  word-break: break-word !important;
+  padding: 6px 4px !important;
+  vertical-align: top !important;
+  height: auto !important;
+  min-height: 35px !important;
+}
+
+/* Đảm bảo row height tự động điều chỉnh theo cell cao nhất */
+::ng-deep .slick-row .slick-cell.cell-wrap {
+  display: table-cell !important;
+  vertical-align: top !important;
+}
+
+/* Text alignment */
+::ng-deep .text-center {
+  text-align: center !important;
+}
+
+::ng-deep .text-end {
+  text-align: right !important;
+}
+
+/* Tab buttons styling */
+.d-flex button.active {
+  color: #1890ff;
+  border-bottom: 2px solid #1890ff;
+}
+
+/* Dropdown menu styling */
+::ng-deep .ant-dropdown-menu {
+  font-size: 0.75rem;
+}
+
+::ng-deep .ant-dropdown-menu-item {
+  font-size: 0.75rem;
+  padding: 5px 12px;
+}
+
+::ng-deep .ant-dropdown-menu-item img {
+  width: 16px;
+  height: 16px;
+  vertical-align: middle;
+}
+
+/* Filter row styling */
+::ng-deep .slick-headerrow {
+  background-color: #fafafa;
+}
+
+::ng-deep .slick-headerrow-column {
+  padding: 2px !important;
+}
+
+::ng-deep .slick-headerrow-column input {
+  font-size: 0.7rem;
+  padding: 2px 4px;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+/* Row status colors for work reports */
+::ng-deep .row-late-1 {
+  background-color: Orange !important;
+  color: white !important;
+}
+
+::ng-deep .row-late-2 {
+  background-color: Red !important;
+  color: white !important;
+}
+
+::ng-deep .row-warning {
+  background-color: LightYellow !important;
+}
+
+/* Tree data styling */
+::ng-deep .slick-group-toggle {
+  display: inline-block;
+  width: 9px;
+  height: 9px;
+  margin-right: 5px;
+  cursor: pointer;
+  position: relative;
+}
+
+::ng-deep .slick-group-toggle.collapsed::before {
+  content: '▶';
+  font-size: 8px;
+  color: #666;
+}
+
+::ng-deep .slick-group-toggle.expanded::before {
+  content: '▼';
+  font-size: 8px;
+  color: #666;
+}
+
+::ng-deep .slick-group-toggle:not(.collapsed):not(.expanded)::before {
+  content: '';
+  display: inline-block;
+  width: 9px;
+  height: 9px;
+}
+
+/* Folder icons */
+::ng-deep .mdi {
+  font-family: 'Material Design Icons' !important;
+  font-style: normal;
+  font-weight: normal;
+  font-size: 16px;
+  vertical-align: middle;
+}
+
+::ng-deep .mdi-folder,
+::ng-deep .mdi-folder-open {
+  color: #ffa500;
+  margin-right: 4px;
+}
+
+/* Màu cam cho trễ nhẹ */
+.slick-row.row-late-1 {
+  background-color: orange !important;
+  color: white !important;
+}
+
+/* Màu đỏ cho trễ nặng */
+.slick-row.row-late-2 {
+  background-color: red !important;
+  color: white !important;
+}
+
+/* Màu vàng cảnh báo sắp hết hạn */
+.slick-row.row-warning {
+  background-color: lightyellow !important;
+  color: black !important;
+}
+
+/* Đảm bảo màu không bị override bởi theme */
+.slick-row.row-late-1 .slick-cell,
+.slick-row.row-late-2 .slick-cell,
+.slick-row.row-warning .slick-cell {
+  background-color: inherit !important;
+  color: inherit !important;
+}

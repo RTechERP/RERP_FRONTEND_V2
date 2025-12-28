@@ -1,0 +1,82 @@
+<div class="modal-header bg-primary py-2">
+    <h6 class="modal-title text-white">Thêm nhân viên vào team: {{ teamName }}</h6>
+   <button type="button" class="btn-close" (click)="onClose()" aria-label="Close"></button>
+</div>
+
+<div class="modal-body">
+    <!-- Filters -->
+    <nz-row [nzGutter]="24" class="mb-3">
+        <nz-col [nzSpan]="8">
+            <label class="fs-12 p-0 d-block mb-1">Phòng ban</label>
+            <nz-select 
+                [(ngModel)]="selectedDepartmentId" 
+                (ngModelChange)="onDepartmentChange()"
+                nzPlaceHolder="Tất cả phòng ban" 
+                nzShowSearch 
+                nzAllowClear
+                style="width: 100%;">
+                <nz-option [nzValue]="null" nzLabel="-- Tất cả --"></nz-option>
+                <nz-option *ngFor="let dept of departmentList" [nzValue]="dept.ID" [nzLabel]="dept.Name"></nz-option>
+            </nz-select>
+        </nz-col>
+        <nz-col [nzSpan]="8">
+            <label class="fs-12 p-0 d-block mb-1">Tìm kiếm</label>
+            <input nz-input 
+                   [(ngModel)]="searchText" 
+                   (ngModelChange)="onSearchChange()"
+                   placeholder="Nhập mã NV hoặc tên..." />
+        </nz-col>
+        <nz-col [nzSpan]="8" class="d-flex align-items-end">
+            <label nz-checkbox [(ngModel)]="selectAll" (ngModelChange)="onSelectAll($event)">
+                Chọn tất cả
+            </label>
+        </nz-col>
+    </nz-row>
+
+    <!-- Employee Table -->
+    <div class="employee-table-container" style="height: 400px; overflow-y: auto;">
+        <table class="table table-sm table-bordered">
+            <thead class="table-light sticky-top">
+                <tr>
+                    <th style="width: 50px;"></th>
+                    <th style="width: 100px;">Mã NV</th>
+                    <th>Họ tên</th>
+                    <th style="width: 150px;">Phòng ban</th>
+                </tr>
+            </thead>
+            <tbody>
+                <ng-container *ngFor="let item of filteredEmployees">
+                    <!-- Department Header -->
+                    <tr *ngIf="item.isDepartmentHeader" class="table-secondary fw-bold">
+                        <td colspan="4">
+                            {{ item.DepartmentName }} ({{ item.Count }} nhân viên)
+                        </td>
+                    </tr>
+                    <!-- Employee Row -->
+                    <tr *ngIf="!item.isDepartmentHeader">
+                        <td>
+                            <label nz-checkbox 
+                                   [ngModel]="isSelected(item.ID)" 
+                                   (ngModelChange)="onSelectEmployee(item.ID, $event)">
+                            </label>
+                        </td>
+                        <td>{{ item.Code }}</td>
+                        <td>{{ item.FullName }}</td>
+                        <td>{{ item.DepartmentName }}</td>
+                    </tr>
+                </ng-container>
+            </tbody>
+        </table>
+    </div>
+
+    <div class="mt-2 text-muted">
+        Đã chọn: {{ selectedEmployees.size }} nhân viên
+    </div>
+</div>
+
+<div class="modal-footer">
+    <button nz-button nzDanger  nzType="default" (click)="onClose()">Đóng</button>
+    <button nz-button nzType="primary" (click)="onSave()" [disabled]="selectedEmployees.size === 0">
+        Thêm {{ selectedEmployees.size }} nhân viên
+    </button>
+</div>

@@ -67,7 +67,19 @@ export class ApproveTpComponent implements OnInit, AfterViewInit {
   currentUser: any = null;
   isSenior: boolean = false;
   isBGD: boolean = false;
-  isSeniorMode: boolean = false; // true: Senior duyệt làm thêm, false: Duyệt công
+  isSeniorMode: boolean = false;
+  showSearchBar: boolean = typeof window !== 'undefined' ? window.innerWidth > 768 : true;
+
+  get shouldShowSearchBar(): boolean {
+    return this.showSearchBar;
+  }
+
+  ToggleSearchPanelNew(event?: Event): void {
+    if (event) {
+      event.stopPropagation();
+    }
+    this.showSearchBar = !this.showSearchBar;
+  } // true: Senior duyệt làm thêm, false: Duyệt công
 
     constructor(
         private fb: FormBuilder,
@@ -83,7 +95,7 @@ export class ApproveTpComponent implements OnInit, AfterViewInit {
         // }
 
         this.route.queryParams.subscribe(params => {
-            this.isSeniorMode = params['isSeniorMode'] || false;
+            this.isSeniorMode = params['isSeniorMode'] ;
         });
     }
 

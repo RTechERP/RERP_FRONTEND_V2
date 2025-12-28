@@ -31,5 +31,6 @@
   font-size: 12px;
   font-size: 0.75rem;
 }
-
-
+::ng-deep div[id^="grid-"] {
+  height: 83vh!important;
+}

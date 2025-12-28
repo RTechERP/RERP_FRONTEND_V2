@@ -40,6 +40,17 @@ export class BorrowService {
   getApiUrlProductHistory() {
     return this.apiUrl + `borrow/get-product-history`;
   }
+
+  getProductHistory(params: any): Observable<any> {
+    let httpParams = new HttpParams();
+    Object.keys(params).forEach(key => {
+      if (params[key] !== null && params[key] !== undefined) {
+        httpParams = httpParams.append(key, params[key].toString());
+      }
+    });
+    return this.http.get<any>(this.apiUrl + `borrow/get-product-history`, { params: httpParams });
+  }
+
   getEmployeeTeamAndDepartment(): Observable<any> {
     return this.http.get<any>(
       this.apiUrl + `borrow/get-employee-team-and-department`,
@@ -68,7 +79,7 @@ export class BorrowService {
   }
   getHistoryProductRTCLog(historyId: number): Observable<any> {
     return this.http.get<any>(
-      this.apiUrl + `borrow/get-historyproductrtc-log?historyId=${historyId}`,
+      this.apiUrl + `borrow/get-history-productrtc-log?historyID=${historyId}`,
     )
   }
   getHistoryError(productHistoryID: number): Observable<any> {
@@ -152,6 +163,13 @@ postSaveHistoryProduct(data: any): Observable<any> {
     return this.http.post<any>(
       `${this.apiUrl}borrow/approve-borrowing`,
       body
+    );
+  }
+
+  postDeleteHistoryProduct(ids: number[]): Observable<any> {
+    return this.http.post<any>(
+      `${this.apiUrl}borrow/delete`,
+      ids
     );
   }
 

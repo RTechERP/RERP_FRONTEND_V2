@@ -32,6 +32,7 @@ import { AppUserService } from '../../../../services/app-user.service';
 import { DateTime } from 'luxon';
 import { DEFAULT_TABLE_CONFIG } from '../../../../tabulator-default.config';
 import { NzSpinModule } from 'ng-zorro-antd/spin';
+import { ActivatedRoute } from '@angular/router';
 import { NzTabsModule } from 'ng-zorro-antd/tabs';
 import { environment } from '../../../../../environments/environment';
 import { HasPermissionDirective } from '../../../../directives/has-permission.directive';
@@ -97,6 +98,7 @@ export class ChiTietSanPhamSaleComponent
     private modalService: NgbModal,
     private menuEventService: MenuEventService,
     private zone: NgZone,
+    private route: ActivatedRoute,
     @Optional() @Inject('tabData') private tabData: any
   ) {
     // When opened from inventory via menuEventService, data comes through injector
@@ -136,6 +138,20 @@ export class ChiTietSanPhamSaleComponent
   totalLast: number = 0;
 
   ngOnInit() {
+    // Read data from query params (when opened via window.open with route)
+    this.route.queryParams.subscribe((params) => {
+      if (params['code']) {
+        this.code = params['code'] || '';
+        this.suplier = params['suplier'] || '';
+        this.productName = params['productName'] || '';
+        this.numberDauKy = params['numberDauKy'] || '';
+        this.numberCuoiKy = params['numberCuoiKy'] || '';
+        this.import = params['import'] || '';
+        this.export = params['export'] || '';
+        this.productSaleID = parseInt(params['productSaleID'] || '0', 10);
+        this.wareHouseCode = params['wareHouseCode'] || '';
+      }
+    });
     // Data will be loaded in ngAfterViewInit after tables are initialized
   }
 

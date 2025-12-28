@@ -87,20 +87,23 @@
                             <img src="assets/icon/action_add_item_16.png" alt="Thêm mới " />
                             Đăng ký mượn
                         </button>
-                        <button class="fs-12" nz-button nzType="default" nzSize="small" (click)="returnProduct()">
+                        <button class="fs-12" nz-button nzType="default" nzSize="small" (click)="returnProduct()" *hasPermission="'N26,N1,N80'">
                             <img src="assets/icon/return_16.png" alt="Trả thiết bị" class="me-1" /> Trả thiết bị
                         </button>
-                        <button class="fs-12" nz-button nzType="default" nzSize="small" (click)="approveBorrowing()">
+                        <button class="fs-12" nz-button nzType="default" nzSize="small" (click)="approveBorrowing()" *hasPermission="'N26,N1,N80'">
                             <img src="assets/icon/action_approved_16.png" alt="Duyệt mượn" class="me-1" /> Duyệt mượn
                         </button>
                         <button class="fs-12" nz-button nzType="default" nzSize="small" (click)="refresh()">
                             <img src="assets/icon/refresh_16.png" alt="làm mới" class="me-1" /> Làm mới
                         </button>
-                        <button class="fs-12" nz-button nzType="default" nzSize="small" (click)="editBorrower()">
-                            <img src="assets/icon/person_edit_16.png" alt="làm mới" class="me-1" /> Sửa người mượn
+                        <button class="fs-12" nz-button nzType="default" nzSize="small" (click)="editBorrower()" *hasPermission="'N26,N1,N34,N80'">
+                            <img src="assets/icon/person_edit_16.png" alt="Sửa người mượn" class="me-1" /> Sửa người mượn
                         </button>
+                        <!-- <button class="fs-12" nz-button nzType="default" nzSize="small" nzDanger (click)="deleteHistoryProduct()">
+                            <img src="assets/icon/action_delete_16.png" alt="Xóa" class="me-1" /> Xóa
+                        </button> -->
                         <button class="fs-12" nz-button nzType="default" nzSize="small" (click)="expiredProduct()">
-                            <img src="assets/icon/expire_16.png" alt="làm mới" class="me-1" /> Quá hạn
+                            <img src="assets/icon/expire_16.png" alt="Quá hạn" class="me-1" /> Quá hạn
                         </button>
                         <button class="fs-12" nz-button nzType="default" nzSize="small" (click)="exportExcel()">
                             <img src="assets/icon/action_export_excel_16.png" alt="Xuất Excel" class="me-1" /> Xuất

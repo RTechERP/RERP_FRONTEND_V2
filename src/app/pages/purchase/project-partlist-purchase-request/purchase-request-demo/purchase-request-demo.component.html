@@ -123,9 +123,23 @@
                             justifyContent: 'center'
                             }"></nz-spin>
                     </div>
-                    <nz-tabset class="ms-2" (nzSelectedIndexChange)="onTabChange($event)">
-                        <nz-tab class="purchase-tab" *ngFor="let tab of tabs; let i = index" [nzTitle]="tab.title">
-                            <div class="table-container mt-1" #tbContainer></div>
+                    <nz-tabset class="ms-2 h-100" [nzSelectedIndex]="activeTabIndex" (nzSelectedIndexChange)="onTabChange($event)">
+                        <nz-tab class="purchase-tab h-100" *ngFor="let tab of tabs; let i = index" [nzTitle]="tab.title">
+                            <div class="table-container mt-1 grid-container h-100" 
+                                 [class]="'grid-container-' + tab.id"
+                                 *ngIf="shouldRenderGrid(tab.id) && columnDefinitionsMap.has(tab.id)"
+                                 style="height: 100%; width: 100%;">
+                                <angular-slickgrid 
+                                    [gridId]="'grid-' + tab.id"
+                                    [columns]="columnDefinitionsMap.get(tab.id) || []"
+                                    [options]="gridOptionsMap.get(tab.id) || {}" 
+                                    [dataset]="datasetsMap.get(tab.id) || []"
+                                    (onAngularGridCreated)="angularGridReady(tab.id, $event.detail)"
+                                    (onClick)="onCellClicked(tab.id, $event.detail.eventData, $event.detail.args)"
+                                    (onCellChange)="onCellChange(tab.id, $event.detail.eventData, $event.detail.args)"
+                                    (onSelectedRowsChanged)="handleRowSelection(tab.id, $event.detail.eventData, $event.detail.args)">
+                                </angular-slickgrid>
+                            </div>
                         </nz-tab>
                     </nz-tabset>
                 </div>

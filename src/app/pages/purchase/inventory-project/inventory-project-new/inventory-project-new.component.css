@@ -1,0 +1,13 @@
+::ng-deep .grid-wrapper{
+  height: 100%;
+}
+::ng-deep .grid-container{
+  height: 100%;
+}
+::ng-deep .page-container{
+  height: 90%;
+}
+::ng-deep #inventory-project-grid{
+  height: 86vh !important;
+}
+

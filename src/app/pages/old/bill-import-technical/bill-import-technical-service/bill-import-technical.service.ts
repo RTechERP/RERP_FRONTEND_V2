@@ -185,9 +185,53 @@ export class BillImportTechnicalService {
       .set('supplierId', params.supplierId.toString())
       .set('wareHouseId', params.wareHouseId.toString())
       .set('filterText', params.filterText || '');
-    
+
     return this.http.get(`${this.url}export-check-history-tech`, {
       params: httpParams,
     });
+  }
+
+  /**
+   * Lấy tổng hợp chi tiết phiếu nhập phòng kỹ thuật
+   * Tương ứng với stored procedure: spGetBillImportTechnicalSummary
+   * @param filter Điều kiện lọc
+   * @returns Observable<any> Trả về { status, message, data, documents }
+   */
+  getBillImportTechnicalSummary(filter: {
+    pageNumber?: number;
+    pageSize?: number;
+    dateStart: string | null;
+    dateEnd: string;
+    status: number;
+    filterText: string;
+    warehouseId: number;
+    isAll: boolean;
+  }): Observable<any> {
+    // Map frontend params to backend DTO
+    const params = {
+      DateStart: filter.dateStart,
+      DateEnd: filter.dateEnd,
+      Status: filter.status,
+      FilterText: filter.filterText,
+      WarehouseId: filter.warehouseId,
+      IsAll: filter.isAll,
+    };
+
+    return this.http.post<any>(
+      `${this.url}get-bill-import-technical-summary`,
+      params
+    );
+  }
+
+  /**
+   * Cập nhật thông tin chi tiết phiếu nhập (hóa đơn, DPO, DueDate, etc)
+   * @param data Danh sách chi tiết cần cập nhật
+   * @returns Observable<any>
+   */
+  updateBillImportDetails(data: any[]): Observable<any> {
+    return this.http.post<any>(
+      `${this.url}save-bill-import-summary`,
+      data
+    );
   }
 }

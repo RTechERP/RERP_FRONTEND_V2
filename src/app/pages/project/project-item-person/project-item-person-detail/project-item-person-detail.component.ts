@@ -425,28 +425,31 @@ export class ProjectItemPersonDetailComponent implements OnInit {
   }
 
   // Date calculation methods
-  onPlanStartDateChange(tab: ProjectItemTab): void {
-    if (tab.PlanStartDate && tab.TotalDayPlan && tab.TotalDayPlan > 0) {
-      const startDate = DateTime.fromJSDate(new Date(tab.PlanStartDate));
-      tab.PlanEndDate = startDate.plus({ days: tab.TotalDayPlan }).toJSDate();
-    }
+onPlanStartDateChange(tab: ProjectItemTab): void {
+  if (tab.PlanStartDate && tab.TotalDayPlan && tab.TotalDayPlan > 0) {
+    const startDate = DateTime.fromJSDate(new Date(tab.PlanStartDate));
+    // Trừ 1 vì ngày bắt đầu đã tính là ngày thứ 1
+    tab.PlanEndDate = startDate.plus({ days: tab.TotalDayPlan - 1 }).toJSDate();
   }
+}
 
-  onTotalDayPlanChange(tab: ProjectItemTab): void {
-    if (tab.PlanStartDate && tab.TotalDayPlan && tab.TotalDayPlan > 0) {
-      const startDate = DateTime.fromJSDate(new Date(tab.PlanStartDate));
-      tab.PlanEndDate = startDate.plus({ days: tab.TotalDayPlan }).toJSDate();
-    }
+onTotalDayPlanChange(tab: ProjectItemTab): void {
+  if (tab.PlanStartDate && tab.TotalDayPlan && tab.TotalDayPlan > 0) {
+    const startDate = DateTime.fromJSDate(new Date(tab.PlanStartDate));
+    // Trừ 1 vì ngày bắt đầu đã tính là ngày thứ 1
+    tab.PlanEndDate = startDate.plus({ days: tab.TotalDayPlan - 1 }).toJSDate();
   }
+}
 
-  onPlanEndDateChange(tab: ProjectItemTab): void {
-    if (tab.PlanStartDate && tab.PlanEndDate) {
-      const startDate = DateTime.fromJSDate(new Date(tab.PlanStartDate));
-      const endDate = DateTime.fromJSDate(new Date(tab.PlanEndDate));
-      const diff = endDate.diff(startDate, 'days').days;
-      tab.TotalDayPlan = Math.max(0, Math.round(diff));
-    }
+onPlanEndDateChange(tab: ProjectItemTab): void {
+  if (tab.PlanStartDate && tab.PlanEndDate) {
+    const startDate = DateTime.fromJSDate(new Date(tab.PlanStartDate));
+    const endDate = DateTime.fromJSDate(new Date(tab.PlanEndDate));
+    const diff = endDate.diff(startDate, 'days').days;
+    // Cộng 1 vì cả ngày bắt đầu và ngày kết thúc đều được tính
+    tab.TotalDayPlan = Math.max(1, Math.round(diff) + 1);
   }
+}
 
   // Xử lý khi thay đổi trạng thái
   onStatusChange(tab: ProjectItemTab, newStatus: number): void {

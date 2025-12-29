@@ -6,7 +6,8 @@ import {
   OnInit,
   AfterViewInit,
   ViewChild,
-  OnDestroy
+  OnDestroy,
+  HostListener
 } from '@angular/core';
 import { NzCardModule } from 'ng-zorro-antd/card';
 import { FormsModule } from '@angular/forms';
@@ -34,6 +35,7 @@ import {
   OnClickEventArgs,
   OnSelectedRowsChangedEventArgs
 } from 'angular-slickgrid';
+import { MultipleSelectOption } from '@slickgrid-universal/common';
 import { NzTabsModule } from 'ng-zorro-antd/tabs';
 import { NzSpinModule } from 'ng-zorro-antd/spin';
 import { NzTreeSelectModule } from 'ng-zorro-antd/tree-select';
@@ -65,6 +67,10 @@ import { PermissionService } from '../../services/permission.service';
 import { debounceTime } from 'rxjs/operators';
 import { Subject } from 'rxjs';
 import { DateTime } from 'luxon';
+import { ProjectPartListSlickGridComponent } from '../project-part-list-slick-grid/project-part-list-slick-grid.component';
+
+import { MenuItem, PrimeIcons } from 'primeng/api';
+import { Menubar } from 'primeng/menubar';
 
 @Component({
   selector: 'app-project-slick-grid2',
@@ -93,12 +99,17 @@ import { DateTime } from 'luxon';
     NzDropDownModule,
     CommonModule,
     HasPermissionDirective,
+    Menubar,
   ],
   templateUrl: './project-slick-grid2.component.html',
   styleUrls: ['./project-slick-grid2.component.css']
 })
 export class ProjectSlickGrid2Component implements OnInit, AfterViewInit, OnDestroy {
   private searchSubject = new Subject<string>();
+  showSearchBar: boolean = false;
+  isMobile: boolean = false;
+  menuBars: MenuItem[] = [];
+  isLoading: boolean = false;
   @Input() value: string = '';
   @Output() valueChange = new EventEmitter<string>();
 
@@ -192,6 +203,10 @@ export class ProjectSlickGrid2Component implements OnInit, AfterViewInit, OnDest
 
   //#region Lifecycle hooks
   ngOnInit(): void {
+    this.updateResponsiveState();
+    this.initMenuBar();
+    this.isLoading = true;
+
     this.initGridProjects();
     this.initGridWorkReports();
     this.initGridTypeLinks();
@@ -223,14 +238,83 @@ export class ProjectSlickGrid2Component implements OnInit, AfterViewInit, OnDest
   }
   //#endregion
 
+  @HostListener('window:resize')
+  onWindowResize(): void {
+    this.updateResponsiveState();
+  }
+
+  private updateResponsiveState(): void {
+    const nextIsMobile = window.innerWidth <= 768;
+    const modeChanged = this.isMobile !== nextIsMobile;
+    this.isMobile = nextIsMobile;
+
+    // Only apply default when switching between mobile/desktop.
+    // Otherwise user toggle should be preserved.
+    if (modeChanged) {
+      this.showSearchBar = !this.isMobile;
+    }
+  }
+
+  private initMenuBar(): void {
+    this.menuBars = [
+      {
+        label: 'Tìm kiếm',
+        icon: PrimeIcons.SEARCH,
+        command: () => this.ToggleSearchPanelNew(),
+      },
+      {
+        label: 'Thêm',
+        icon: PrimeIcons.PLUS,
+        visible: this.permissionService.hasPermission('N1') || this.permissionService.hasPermission('N13') || this.permissionService.hasPermission('N27'),
+        command: () => this.updateProject(0),
+      },
+      {
+        label: 'Sửa',
+        icon: PrimeIcons.PENCIL,
+        visible: this.permissionService.hasPermission('N1') || this.permissionService.hasPermission('N13') || this.permissionService.hasPermission('N27'),
+        command: () => this.updateProject(1),
+      },
+      {
+        label: 'Xóa',
+        icon: PrimeIcons.TRASH,
+        visible: this.permissionService.hasPermission('N1') || this.permissionService.hasPermission('N13') || this.permissionService.hasPermission('N27'),
+        command: () => this.deletedProjects(),
+      },
+      {
+        label: 'Cây thư mục',
+        icon: PrimeIcons.SITEMAP,
+        command: () => this.openFolder(),
+      },
+      {
+        label: 'Ds báo cáo công việc',
+        icon: PrimeIcons.LIST,
+        command: () => this.openProjectWorkReportModal(),
+      },
+      {
+        label: 'Hạng mục công việc',
+        icon: PrimeIcons.BRIEFCASE,
+        command: () => this.openWorkItemModal(),
+      },
+      {
+        label: 'Nhân công dự án',
+        icon: PrimeIcons.USERS,
+        command: () => this.openProjectWorkerModal(),
+      },
+      {
+        label: 'Danh mục vật tư',
+        icon: PrimeIcons.BOX,
+        command: () => this.openProjectPartListModal(),
+      },
+      {
+        label: 'Xuất Excel',
+        icon: PrimeIcons.FILE_EXCEL,
+        command: () => this.exportExcel(),
+      },
+    ];
+  }
+
   //#region SlickGrid initialization
   initGridProjects() {
-    const formatDate = (row: number, cell: number, value: any) => {
-      if (!value) return '';
-      const dateTime = DateTime.fromISO(value);
-      return dateTime.isValid ? dateTime.toFormat('dd/MM/yyyy') : '';
-    };
-
     // Đảm bảo column definitions không có null values
     this.columnDefinitions = [
       { id: 'ID', name: 'ID', field: 'ID', hidden: true },
@@ -241,7 +325,15 @@ export class ProjectSlickGrid2Component implements OnInit, AfterViewInit, OnDest
         width: 100,
         sortable: true,
         filterable: true,
-        filter: { model: Filters['compoundInputText'] },
+        filter: { 
+          model: Filters['multipleSelect'],
+          collection: [],
+          collectionOptions: { addBlankEntry: true },
+          filterOptions: {
+            filter: true,
+            autoAdjustDropWidthByTextSize: true,
+          } as MultipleSelectOption
+        },
         formatter: (_row: any, _cell: any, value: any, _column: any, dataContext: any) => {
           if (!value) return '';
           return `
@@ -265,7 +357,15 @@ export class ProjectSlickGrid2Component implements OnInit, AfterViewInit, OnDest
         width: 150,
         sortable: true,
         filterable: true,
-        filter: { model: Filters['compoundInputText'] }
+        filter: { 
+          model: Filters['multipleSelect'],
+          collection: [],
+          collectionOptions: { addBlankEntry: true },
+          filterOptions: {
+            filter: true,
+            autoAdjustDropWidthByTextSize: true,
+          } as MultipleSelectOption
+        }
       },
       {
         id: 'ProjectName',
@@ -274,7 +374,15 @@ export class ProjectSlickGrid2Component implements OnInit, AfterViewInit, OnDest
         width: 200,
         sortable: true,
         filterable: true,
-        filter: { model: Filters['compoundInputText'] },
+        filter: { 
+          model: Filters['multipleSelect'],
+          collection: [],
+          collectionOptions: { addBlankEntry: true },
+          filterOptions: {
+            filter: true,
+            autoAdjustDropWidthByTextSize: true,
+          } as MultipleSelectOption
+        },
         cssClass: 'cell-wrap',
         formatter: (_row: any, _cell: any, value: any, _column: any, dataContext: any) => {
           if (!value) return '';
@@ -299,7 +407,15 @@ export class ProjectSlickGrid2Component implements OnInit, AfterViewInit, OnDest
         width: 200,
         sortable: true,
         filterable: true,
-        filter: { model: Filters['compoundInputText'] },
+        filter: { 
+          model: Filters['multipleSelect'],
+          collection: [],
+          collectionOptions: { addBlankEntry: true },
+          filterOptions: {
+            filter: true,
+            autoAdjustDropWidthByTextSize: true,
+          } as MultipleSelectOption
+        },
         cssClass: 'cell-wrap',
         formatter: (_row: any, _cell: any, value: any, _column: any, dataContext: any) => {
           if (!value) return '';
@@ -324,7 +440,30 @@ export class ProjectSlickGrid2Component implements OnInit, AfterViewInit, OnDest
         width: 150,
         sortable: true,
         filterable: true,
-        filter: { model: Filters['compoundInputText'] }
+        filter: { 
+          model: Filters['multipleSelect'],
+          collection: [],
+          collectionOptions: { addBlankEntry: true },
+          filterOptions: {
+            filter: true,
+            autoAdjustDropWidthByTextSize: true,
+          } as MultipleSelectOption
+        },
+        formatter: (_row: any, _cell: any, value: any, _column: any, dataContext: any) => {
+          if (!value) return '';
+          return `
+            <span
+              title="${dataContext.FullNameSale}"
+              style="display:block; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;"
+            >
+              ${value}
+            </span>
+          `;
+        },
+        customTooltip: {
+          useRegularTooltip: true,
+          // useRegularTooltipFromCellTextOnly: true,
+        },
       },
       {
         id: 'FullNameTech',
@@ -333,7 +472,30 @@ export class ProjectSlickGrid2Component implements OnInit, AfterViewInit, OnDest
         width: 150,
         sortable: true,
         filterable: true,
-        filter: { model: Filters['compoundInputText'] }
+        filter: { 
+          model: Filters['multipleSelect'],
+          collection: [],
+          collectionOptions: { addBlankEntry: true },
+          filterOptions: {
+            filter: true,
+            autoAdjustDropWidthByTextSize: true,
+          } as MultipleSelectOption
+        },
+        formatter: (_row: any, _cell: any, value: any, _column: any, dataContext: any) => {
+          if (!value) return '';
+          return `
+            <span
+              title="${dataContext.FullNameTech}"
+              style="display:block; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;"
+            >
+              ${value}
+            </span>
+          `;
+        },
+        customTooltip: {
+          useRegularTooltip: true,
+          // useRegularTooltipFromCellTextOnly: true,
+        },
       },
       {
         id: 'FullNamePM',
@@ -342,7 +504,27 @@ export class ProjectSlickGrid2Component implements OnInit, AfterViewInit, OnDest
         width: 150,
         sortable: true,
         filterable: true,
-        filter: { model: Filters['compoundInputText'] }
+        filter: { 
+          model: Filters['multipleSelect'],
+          collection: [],
+          collectionOptions: { addBlankEntry: true },
+          filterOptions: { autoAdjustDropWidthByTextSize: true }
+        },
+        formatter: (_row: any, _cell: any, value: any, _column: any, dataContext: any) => {
+          if (!value) return '';
+          return `
+            <span
+              title="${dataContext.FullNamePM}"
+              style="display:block; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;"
+            >
+              ${value}
+            </span>
+          `;
+        },
+        customTooltip: {
+          useRegularTooltip: true,
+          // useRegularTooltipFromCellTextOnly: true,
+        },
       },
       {
         id: 'PriotityText',
@@ -351,7 +533,8 @@ export class ProjectSlickGrid2Component implements OnInit, AfterViewInit, OnDest
         width: 70,
         sortable: true,
         filterable: true,
-        cssClass: 'text-end'
+        cssClass: 'text-end',
+        filter: { model: Filters['compoundInputNumber'] }
       },
       {
         id: 'PersonalPriotity',
@@ -360,7 +543,8 @@ export class ProjectSlickGrid2Component implements OnInit, AfterViewInit, OnDest
         width: 90,
         sortable: true,
         filterable: true,
-        cssClass: 'text-end'
+        cssClass: 'text-end',
+        filter: { model: Filters['compoundInputNumber'] }
       },
       {
         id: 'BussinessField',
@@ -369,7 +553,15 @@ export class ProjectSlickGrid2Component implements OnInit, AfterViewInit, OnDest
         width: 150,
         sortable: true,
         filterable: true,
-        filter: { model: Filters['compoundInputText'] }
+        filter: { 
+          model: Filters['multipleSelect'],
+          collection: [],
+          collectionOptions: { addBlankEntry: true },
+          filterOptions: {
+            filter: true,
+            autoAdjustDropWidthByTextSize: true,
+          } as MultipleSelectOption
+        }
       },
       {
         id: 'CurrentSituation',
@@ -378,7 +570,15 @@ export class ProjectSlickGrid2Component implements OnInit, AfterViewInit, OnDest
         width: 200,
         sortable: true,
         filterable: true,
-        filter: { model: Filters['compoundInputText'] },
+        filter: { 
+          model: Filters['multipleSelect'],
+          collection: [],
+          collectionOptions: { addBlankEntry: true },
+          filterOptions: {
+            filter: true,
+            autoAdjustDropWidthByTextSize: true,
+          } as MultipleSelectOption
+        },
         cssClass: 'cell-wrap'
       },
       {
@@ -388,7 +588,15 @@ export class ProjectSlickGrid2Component implements OnInit, AfterViewInit, OnDest
         width: 200,
         sortable: true,
         filterable: true,
-        filter: { model: Filters['compoundInputText'] },
+        filter: { 
+          model: Filters['multipleSelect'],
+          collection: [],
+          collectionOptions: { addBlankEntry: true },
+          filterOptions: {
+            filter: true,
+            autoAdjustDropWidthByTextSize: true,
+          } as MultipleSelectOption
+        },
         formatter: (_row: any, _cell: any, value: any, _column: any, dataContext: any) => {
           if (!value) return '';
           return `
@@ -421,7 +629,8 @@ export class ProjectSlickGrid2Component implements OnInit, AfterViewInit, OnDest
         width: 100,
         sortable: true,
         filterable: true,
-        formatter: formatDate,
+        formatter: Formatters.date,
+        params: { dateFormat: 'DD/MM/YYYY' },
         cssClass: 'text-center',
         filter: { model: Filters['compoundDate'] }
       },
@@ -432,7 +641,8 @@ export class ProjectSlickGrid2Component implements OnInit, AfterViewInit, OnDest
         width: 120,
         sortable: true,
         filterable: true,
-        formatter: formatDate,
+        formatter: Formatters.date,
+        params: { dateFormat: 'DD/MM/YYYY' },
         cssClass: 'text-center',
         filter: { model: Filters['compoundDate'] }
       },
@@ -443,7 +653,8 @@ export class ProjectSlickGrid2Component implements OnInit, AfterViewInit, OnDest
         width: 120,
         sortable: true,
         filterable: true,
-        formatter: formatDate,
+        formatter: Formatters.date,
+        params: { dateFormat: 'DD/MM/YYYY' },
         cssClass: 'text-center',
         filter: { model: Filters['compoundDate'] }
       },
@@ -454,7 +665,8 @@ export class ProjectSlickGrid2Component implements OnInit, AfterViewInit, OnDest
         width: 120,
         sortable: true,
         filterable: true,
-        formatter: formatDate,
+        formatter: Formatters.date,
+        params: { dateFormat: 'DD/MM/YYYY' },
         cssClass: 'text-center',
         filter: { model: Filters['compoundDate'] }
       },
@@ -465,7 +677,8 @@ export class ProjectSlickGrid2Component implements OnInit, AfterViewInit, OnDest
         width: 120,
         sortable: true,
         filterable: true,
-        formatter: formatDate,
+        formatter: Formatters.date,
+        params: { dateFormat: 'DD/MM/YYYY' },
         cssClass: 'text-center',
         filter: { model: Filters['compoundDate'] }
       },
@@ -476,7 +689,8 @@ export class ProjectSlickGrid2Component implements OnInit, AfterViewInit, OnDest
         width: 100,
         sortable: true,
         filterable: true,
-        formatter: formatDate,
+        formatter: Formatters.date,
+        params: { dateFormat: 'DD/MM/YYYY' },
         cssClass: 'text-center',
         filter: { model: Filters['compoundDate'] }
       },
@@ -487,7 +701,8 @@ export class ProjectSlickGrid2Component implements OnInit, AfterViewInit, OnDest
         width: 100,
         sortable: true,
         filterable: true,
-        formatter: formatDate,
+        formatter: Formatters.date,
+        params: { dateFormat: 'DD/MM/YYYY' },
         cssClass: 'text-center',
         filter: { model: Filters['compoundDate'] }
       },
@@ -498,7 +713,15 @@ export class ProjectSlickGrid2Component implements OnInit, AfterViewInit, OnDest
         width: 100,
         sortable: true,
         filterable: true,
-        filter: { model: Filters['compoundInputText'] }
+        filter: { 
+          model: Filters['multipleSelect'],
+          collection: [],
+          collectionOptions: { addBlankEntry: true },
+          filterOptions: {
+            filter: true,
+            autoAdjustDropWidthByTextSize: true,
+          } as MultipleSelectOption
+        }
       },
       {
         id: 'UpdatedBy',
@@ -507,7 +730,15 @@ export class ProjectSlickGrid2Component implements OnInit, AfterViewInit, OnDest
         width: 100,
         sortable: true,
         filterable: true,
-        filter: { model: Filters['compoundInputText'] }
+        filter: { 
+          model: Filters['multipleSelect'],
+          collection: [],
+          collectionOptions: { addBlankEntry: true },
+          filterOptions: {
+            filter: true,
+            autoAdjustDropWidthByTextSize: true,
+          } as MultipleSelectOption
+        }
       },
     ].filter(col => col !== null && col !== undefined) as Column[]; // Filter out any null/undefined columns
 
@@ -529,17 +760,10 @@ export class ProjectSlickGrid2Component implements OnInit, AfterViewInit, OnDest
       enableAutoSizeColumns: false,
       frozenColumn: 3,
       rowHeight: 33, // Base height - sẽ tự động tăng theo nội dung qua CSS
-      autoHeight: false
-    };
+          };
   }
 
   initGridWorkReports() {
-    const formatDate = (row: number, cell: number, value: any) => {
-      if (!value) return '';
-      const dateTime = DateTime.fromISO(value);
-      return dateTime.isValid ? dateTime.toFormat('dd/MM/yyyy') : '';
-    };
-
     
     this.columnDefinitionsWorkReport = [
       { id: 'ID', name: 'ID', field: 'ID', hidden: true },
@@ -547,9 +771,11 @@ export class ProjectSlickGrid2Component implements OnInit, AfterViewInit, OnDest
         id: 'STT',
         name: 'STT',
         field: 'STT',
-        width: 50,
+        width: 70,
         sortable: true,
-        cssClass: 'text-center'
+        cssClass: 'text-center',
+        filterable: true,
+        filter: { model: Filters['compoundInputNumber'] }
       },
       {
         id: 'Code',
@@ -558,7 +784,14 @@ export class ProjectSlickGrid2Component implements OnInit, AfterViewInit, OnDest
         width: 120,
         sortable: true,
         filterable: true,
-        filter: { model: Filters['compoundInputText'] },
+        filter: {
+          model: Filters['multipleSelect'],
+          collection: [],
+          filterOptions: {
+            filter: true,
+            autoAdjustDropWidthByTextSize: true,
+          } as MultipleSelectOption,
+        },
         formatter: (_row: any, _cell: any, value: any, _column: any, dataContext: any) => {
           if (!value) return '';
           return `
@@ -582,7 +815,14 @@ export class ProjectSlickGrid2Component implements OnInit, AfterViewInit, OnDest
         width: 150,
         sortable: true,
         filterable: true,
-        filter: { model: Filters['compoundInputText'] },
+        filter: {
+          model: Filters['multipleSelect'],
+          collection: [],
+          filterOptions: {
+            filter: true,
+            autoAdjustDropWidthByTextSize: true,
+          } as MultipleSelectOption,
+        },
         formatter: (_row: any, _cell: any, value: any, _column: any, dataContext: any) => {
           if (!value) return '';
           return `
@@ -606,7 +846,14 @@ export class ProjectSlickGrid2Component implements OnInit, AfterViewInit, OnDest
         width: 150,
         sortable: true,
         filterable: true,
-        filter: { model: Filters['compoundInputText'] }
+        filter: {
+          model: Filters['multipleSelect'],
+          collection: [],
+          filterOptions: {
+            filter: true,
+            autoAdjustDropWidthByTextSize: true,
+          } as MultipleSelectOption,
+        }
       },
       {
         id: 'FullName',
@@ -615,7 +862,29 @@ export class ProjectSlickGrid2Component implements OnInit, AfterViewInit, OnDest
         width: 150,
         sortable: true,
         filterable: true,
-        filter: { model: Filters['compoundInputText'] }
+        filter: {
+          model: Filters['multipleSelect'],
+          collection: [],
+          filterOptions: {
+            filter: true,
+            autoAdjustDropWidthByTextSize: true,
+          } as MultipleSelectOption,
+        },
+        formatter: (_row: any, _cell: any, value: any, _column: any, dataContext: any) => {
+          if (!value) return '';
+          return `
+            <span
+              title="${dataContext.FullName}"
+              style="display:block; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;"
+            >
+              ${value}
+            </span>
+          `;
+        },
+        customTooltip: {
+          useRegularTooltip: true,
+          // useRegularTooltipFromCellTextOnly: true,
+        },
       },
       {
         id: 'PercentItem',
@@ -623,7 +892,9 @@ export class ProjectSlickGrid2Component implements OnInit, AfterViewInit, OnDest
         field: 'PercentItem',
         width: 50,
         sortable: true,
-        cssClass: 'text-end'
+        cssClass: 'text-end',
+        filterable: true,
+        filter: { model: Filters['compoundInputNumber'] }
       },
       {
         id: 'Mission',
@@ -632,7 +903,14 @@ export class ProjectSlickGrid2Component implements OnInit, AfterViewInit, OnDest
         width: 300,
         sortable: true,
         filterable: true,
-        filter: { model: Filters['compoundInputText'] },
+        filter: {
+          model: Filters['multipleSelect'],
+          collection: [],
+          filterOptions: {
+            filter: true,
+            autoAdjustDropWidthByTextSize: true,
+          } as MultipleSelectOption,
+        },
         cssClass: 'cell-wrap',
         formatter: (_row: any, _cell: any, value: any, _column: any, dataContext: any) => {
           if (!value) return '';
@@ -657,7 +935,14 @@ export class ProjectSlickGrid2Component implements OnInit, AfterViewInit, OnDest
         width: 150,
         sortable: true,
         filterable: true,
-        filter: { model: Filters['compoundInputText'] }
+        filter: {
+          model: Filters['multipleSelect'],
+          collection: [],
+          filterOptions: {
+            filter: true,
+            autoAdjustDropWidthByTextSize: true,
+          } as MultipleSelectOption,
+        }
       },
       {
         id: 'PlanStartDate',
@@ -666,7 +951,8 @@ export class ProjectSlickGrid2Component implements OnInit, AfterViewInit, OnDest
         width: 120,
         sortable: true,
         filterable: true,
-        formatter: formatDate,
+        formatter: Formatters.date,
+        params: { dateFormat: 'DD/MM/YYYY' },
         cssClass: 'text-center',
         filter: { model: Filters['compoundDate'] }
       },
@@ -685,7 +971,8 @@ export class ProjectSlickGrid2Component implements OnInit, AfterViewInit, OnDest
         width: 120,
         sortable: true,
         filterable: true,
-        formatter: formatDate,
+        formatter: Formatters.date,
+        params: { dateFormat: 'DD/MM/YYYY' },
         cssClass: 'text-center',
         filter: { model: Filters['compoundDate'] }
       },
@@ -696,7 +983,8 @@ export class ProjectSlickGrid2Component implements OnInit, AfterViewInit, OnDest
         width: 120,
         sortable: true,
         filterable: true,
-        formatter: formatDate,
+        formatter: Formatters.date,
+        params: { dateFormat: 'DD/MM/YYYY' },
         cssClass: 'text-center',
         filter: { model: Filters['compoundDate'] }
       },
@@ -707,7 +995,8 @@ export class ProjectSlickGrid2Component implements OnInit, AfterViewInit, OnDest
         width: 120,
         sortable: true,
         filterable: true,
-        formatter: formatDate,
+        formatter: Formatters.date,
+        params: { dateFormat: 'DD/MM/YYYY' },
         cssClass: 'text-center',
         filter: { model: Filters['compoundDate'] }
       },
@@ -715,9 +1004,11 @@ export class ProjectSlickGrid2Component implements OnInit, AfterViewInit, OnDest
         id: 'PercentageActual',
         name: '% Thực tế',
         field: 'PercentageActual',
-        width: 50,
+        width: 80,
         sortable: true,
-        cssClass: 'text-end'
+        cssClass: 'text-end',
+        filterable: true,
+        filter: { model: Filters['compoundInputNumber'] }
       },
       {
         id: 'Note',
@@ -726,7 +1017,14 @@ export class ProjectSlickGrid2Component implements OnInit, AfterViewInit, OnDest
         width: 300,
         sortable: true,
         filterable: true,
-        filter: { model: Filters['compoundInputText'] },
+        filter: {
+          model: Filters['multipleSelect'],
+          collection: [],
+          filterOptions: {
+            filter: true,
+            autoAdjustDropWidthByTextSize: true,
+          } as MultipleSelectOption,
+        },
         cssClass: 'cell-wrap'
       },
       {
@@ -736,7 +1034,14 @@ export class ProjectSlickGrid2Component implements OnInit, AfterViewInit, OnDest
         width: 300,
         sortable: true,
         filterable: true,
-        filter: { model: Filters['compoundInputText'] },
+        filter: {
+          model: Filters['multipleSelect'],
+          collection: [],
+          filterOptions: {
+            filter: true,
+            autoAdjustDropWidthByTextSize: true,
+          } as MultipleSelectOption,
+        },
         cssClass: 'cell-wrap'
       },
     ].filter(col => col !== null && col !== undefined) as Column[]; // Filter out any null/undefined columns
@@ -775,7 +1080,16 @@ export class ProjectSlickGrid2Component implements OnInit, AfterViewInit, OnDest
           return `<input type="checkbox" ${checked ? 'checked' : ''} disabled style="pointer-events: none; accent-color: #1677ff;" />`;
         },
         cssClass: 'text-center',
-        filter: { model: Filters['compoundInputText'] }
+        filter: {
+          model: Filters['multipleSelect'],
+          collection: [
+            { value: 'true', label: 'true' },
+            { value: 'false', label: 'false' },
+          ],
+          filterOptions: {
+            filter: true,
+          } as MultipleSelectOption,
+        }
       },
       {
         id: 'ProjectTypeName',
@@ -785,7 +1099,14 @@ export class ProjectSlickGrid2Component implements OnInit, AfterViewInit, OnDest
         sortable: true,
         filterable: true,
         formatter: Formatters.tree, // Sử dụng Formatters.tree giống menu-app
-        filter: { model: Filters['compoundInputText'] }
+        filter: {
+          model: Filters['multipleSelect'],
+          collection: [],
+          filterOptions: {
+            filter: true,
+            autoAdjustDropWidthByTextSize: true,
+          } as MultipleSelectOption,
+        }
       },
       {
         id: 'FullName',
@@ -794,7 +1115,14 @@ export class ProjectSlickGrid2Component implements OnInit, AfterViewInit, OnDest
         width: 150,
         sortable: true,
         filterable: true,
-        filter: { model: Filters['compoundInputText'] },
+        filter: {
+          model: Filters['multipleSelect'],
+          collection: [],
+          filterOptions: {
+            filter: true,
+            autoAdjustDropWidthByTextSize: true,
+          } as MultipleSelectOption,
+        },
         hidden: !this.isHide
       },
     ].filter(col => col !== null && col !== undefined) as Column[]; // Filter out any null/undefined columns
@@ -1209,17 +1537,21 @@ export class ProjectSlickGrid2Component implements OnInit, AfterViewInit, OnDest
               STT: index + 1
             }));
             
-            // Điều chỉnh row height sau khi data được load
+            // Điều chỉnh row height và apply distinct filters sau khi data được load
             setTimeout(() => {
               this.adjustRowHeights();
+              this.applyDistinctFilters();
+              this.isLoading = false;
             }, 100);
           } else {
             this.dataset = [];
+            this.isLoading = false;
           }
         },
         error: (err) => {
           console.error('Error loading project data:', err);
           this.notification.error('Lỗi', 'Không thể tải dữ liệu dự án');
+          this.isLoading = false;
         },
       });
   }
@@ -1244,26 +1576,6 @@ export class ProjectSlickGrid2Component implements OnInit, AfterViewInit, OnDest
   //           id: item.ID || index,
   //           STT: index + 1
   //         }));
-          
-  //         // Refresh grid sau khi set data để áp dụng màu
-  //         setTimeout(() => {
-  //           if (this.angularGridWorkReport?.dataView && this.angularGridWorkReport?.slickGrid) {
-  //             this.angularGridWorkReport.dataView.refresh();
-  //             this.angularGridWorkReport.slickGrid.invalidate();
-  //             this.angularGridWorkReport.slickGrid.render();
-  //             // Áp dụng màu và điều chỉnh row height sau khi render
-  //             this.applyRowColorsWorkReport();
-  //             this.adjustWorkReportRowHeights();
-  //           }
-  //         }, 100);
-  //       } else {
-  //         this.datasetWorkReport = [];
-  //       }
-  //     },
-  //     error: (err) => {
-  //       console.error('Error loading project work reports:', err);
-  //     },
-  //   });
   // }
   getProjectWorkReports() {
     if (!this.projectId || this.projectId === 0) {
@@ -1293,6 +1605,7 @@ export class ProjectSlickGrid2Component implements OnInit, AfterViewInit, OnDest
               this.angularGridWorkReport.slickGrid.invalidate();
               this.angularGridWorkReport.slickGrid.render();
               this.adjustWorkReportRowHeights();
+              this.applyDistinctFiltersWorkReport();
             }
           }, 100);
         } else {
@@ -1323,6 +1636,10 @@ export class ProjectSlickGrid2Component implements OnInit, AfterViewInit, OnDest
           id: x.ID,
           parentId: x.ParentID == 0 ? null : x.ParentID
         }));
+
+        setTimeout(() => {
+          this.applyDistinctFiltersTypeLink();
+        }, 100);
         
         // Refresh grid sau khi data được load (nếu grid đã được khởi tạo)
         setTimeout(() => {
@@ -1446,6 +1763,18 @@ export class ProjectSlickGrid2Component implements OnInit, AfterViewInit, OnDest
 
   onSearchChange(value: string) {
     this.searchSubject.next(value);
+  }
+
+  get shouldShowSearchBar(): boolean {
+    return this.showSearchBar;
+  }
+
+  ToggleSearchPanelNew(event?: Event): void {
+    if (event) {
+      event.preventDefault();
+      event.stopPropagation();
+    }
+    this.showSearchBar = !this.showSearchBar;
   }
   //#endregion
 
@@ -2052,6 +2381,94 @@ export class ProjectSlickGrid2Component implements OnInit, AfterViewInit, OnDest
   getCurrentUser() {
     this.authService.getCurrentUser().subscribe((res: any) => {
       this.currentUser = res.data;
+    });
+  }
+
+  // Apply distinct filters for multiple columns after data is loaded
+  private applyDistinctFilters(): void {
+    const fieldsToFilter = [
+      'ProjectStatusName', 'ProjectCode', 'ProjectName', 'EndUserName',
+      'FullNameSale', 'FullNameTech', 'FullNamePM', 'BussinessField',
+      'CurrentSituation', 'CustomerName', 'CreatedBy', 'UpdatedBy'
+    ];
+    this.applyDistinctFiltersToGrid(this.angularGrid, this.columnDefinitions, fieldsToFilter);
+  }
+
+  private applyDistinctFiltersWorkReport(): void {
+    const fieldsToFilter = [
+      'Code', 'StatusText', 'ProjectTypeName', 'FullName',
+      'Mission', 'EmployeeRequest', 'Note', 'ProjectEmployeeName'
+    ];
+    this.applyDistinctFiltersToGrid(this.angularGridWorkReport, this.columnDefinitionsWorkReport, fieldsToFilter);
+  }
+
+  private applyDistinctFiltersTypeLink(): void {
+    const fieldsToFilter = ['ProjectTypeName', 'FullName'];
+    this.applyDistinctFiltersToGrid(this.angularGridTypeLink, this.columnDefinitionsTypeLink, fieldsToFilter);
+  }
+
+  private applyDistinctFiltersToGrid(
+    angularGrid: AngularGridInstance | undefined,
+    columnDefs: Column[],
+    fieldsToFilter: string[]
+  ): void {
+    if (!angularGrid?.slickGrid || !angularGrid?.dataView) return;
+
+    const data = angularGrid.dataView.getItems();
+    if (!data || data.length === 0) return;
+
+    const getUniqueValues = (dataArray: any[], field: string): Array<{ value: string; label: string }> => {
+      const map = new Map<string, string>();
+      dataArray.forEach((row: any) => {
+        const value = String(row?.[field] ?? '');
+        if (value && !map.has(value)) {
+          map.set(value, value);
+        }
+      });
+      return Array.from(map.entries())
+        .map(([value, label]) => ({ value, label }))
+        .sort((a, b) => a.label.localeCompare(b.label));
+    };
+
+    const columns = angularGrid.slickGrid.getColumns();
+    if (!columns) return;
+
+    // Update runtime columns
+    columns.forEach((column: any) => {
+      if (column?.filter && column.filter.model === Filters['multipleSelect']) {
+        const field = column.field;
+        if (!field || !fieldsToFilter.includes(field)) return;
+        column.filter.collection = getUniqueValues(data, field);
+      }
+    });
+
+    // Update column definitions (so when grid re-renders, it keeps the collections)
+    columnDefs.forEach((colDef: any) => {
+      if (colDef?.filter && colDef.filter.model === Filters['multipleSelect']) {
+        const field = colDef.field;
+        if (!field || !fieldsToFilter.includes(field)) return;
+        colDef.filter.collection = getUniqueValues(data, field);
+      }
+    });
+
+    angularGrid.slickGrid.setColumns(angularGrid.slickGrid.getColumns());
+    angularGrid.slickGrid.invalidate();
+    angularGrid.slickGrid.render();
+
+    // Thêm tooltip cho dropdown options sau khi render
+    setTimeout(() => {
+      this.addTooltipsToDropdownOptions();
+    }, 100);
+  }
+
+  private addTooltipsToDropdownOptions(): void {
+    // Tìm tất cả dropdown options và thêm title attribute
+    const dropdownOptions = document.querySelectorAll('.ms-drop.bottom .ms-list li label span');
+    dropdownOptions.forEach((span: Element) => {
+      const text = span.textContent || '';
+      if (text && text.length > 30) { // Chỉ thêm tooltip cho text dài
+        (span as HTMLElement).setAttribute('title', text);
+      }
     });
   }
   //#endregion

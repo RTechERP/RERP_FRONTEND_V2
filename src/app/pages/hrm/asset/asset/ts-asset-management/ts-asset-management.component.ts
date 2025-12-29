@@ -370,6 +370,21 @@ export class TsAssetManagementComponent implements OnInit, AfterViewInit {
         filterable: true,
         filter: { model: Filters['compoundInputText'] }
         ,cssClass: 'cell-wrap',
+        formatter: (_row: any, _cell: any, value: any, _column: any, dataContext: any) => {
+          if (!value) return '';
+          return `
+            <span
+              title="${dataContext.TSAssetName}"
+              style="display:block; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;"
+            >
+              ${value}
+            </span>
+          `;
+        },
+        customTooltip: {
+          useRegularTooltip: true,
+          // useRegularTooltipFromCellTextOnly: true,
+        },
       },
       { 
         id: 'AssetCode', 
@@ -442,6 +457,21 @@ export class TsAssetManagementComponent implements OnInit, AfterViewInit {
         filterable: true,
         filter: { model: Filters['compoundInputText'] }
         ,cssClass: 'cell-wrap',
+         formatter: (_row: any, _cell: any, value: any, _column: any, dataContext: any) => {
+          if (!value) return '';
+          return `
+            <span
+              title="${dataContext.SpecificationsAsset}"
+              style="display:block; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;"
+            >
+              ${value}
+            </span>
+          `;
+        },
+        customTooltip: {
+          useRegularTooltip: true,
+          // useRegularTooltipFromCellTextOnly: true,
+        },
       },
       { 
         id: 'Seri', 

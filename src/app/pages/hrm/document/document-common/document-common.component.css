@@ -1,5 +1,6 @@
 .document-common-page {
   height: 90vh;
+  font-size: 12px;
 }
 
 .card-header {
@@ -17,12 +18,29 @@
 .download-link:hover {
   color: #40a9ff;
 }
-.document-common-page {
-  height: 100vh; /* splitter phải có height thật */
-}
 
 .grid-wrapper {
   height: calc(100vh - 180px); /* trừ header */
   min-height: 800px;
   width: 100%;
+}
+
+/* Font size cho Tabulator */
+.grid-wrapper .tabulator,
+.grid-wrapper .tabulator .tabulator-header,
+.grid-wrapper .tabulator .tabulator-table,
+.grid-wrapper .tabulator .tabulator-row,
+.grid-wrapper .tabulator .tabulator-cell {
+  font-size: 12px !important;
+}
+
+/* Font size cho các elements khác trong component */
+.document-common-page .card,
+.document-common-page .card-header,
+.document-common-page .card-body,
+.document-common-page label,
+.document-common-page input,
+.document-common-page .ant-select,
+.document-common-page .ant-btn {
+  font-size: 12px !important;
 }

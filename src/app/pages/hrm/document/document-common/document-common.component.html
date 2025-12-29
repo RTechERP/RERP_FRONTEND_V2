@@ -1,11 +1,11 @@
 <div class="card card-primary rounded-0 border-0 h-100 d-flex flex-column">
     <div
         class="card-header p-1 bg-white border-bottom d-flex justify-content-between align-items-center flex-wrap gap-2">
-        <h4 class="text-uppercase m-0">
+        <h6 class="text-uppercase m-0">
             <span class="text-dark font-weight-bold">QUY ĐỊNH / THÔNG BÁO</span>
-        </h4>
+        </h6>
         <div class="d-flex gap-2 flex-wrap align-items-center">
-            <label>+: </label>
+            <label>Phòng ban: </label>
             <nz-select nzSize="default" style="min-width: 200px" [(ngModel)]="departmentId" name="departmentId"
                 nzPlaceHolder="Chọn phòng ban" (ngModelChange)="onDepartmentChange()">
                 <nz-option [nzLabel]="'Tất cả'" [nzValue]="-1"></nz-option>

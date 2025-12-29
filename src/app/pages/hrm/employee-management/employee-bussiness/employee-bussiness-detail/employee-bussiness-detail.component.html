@@ -39,19 +39,13 @@
                 <nz-select formControlName="approverId" nzPlaceHolder="Chọn người duyệt" nzAllowClear nzShowSearch nzSize="small"
                   [nzFilterOption]="filterApproverOption"
                   style="width: 15vw;">
-                  <nz-option-group *ngFor="let group of approverGroups" [nzLabel]="group.label">
-                    <nz-option
-                      *ngFor="let appr of group.options"
-                      [nzLabel]="appr.Code + ' - ' + appr.FullName"
-                      [nzValue]="appr.ID"
-                    >
-                      <div>
-                        <span>{{ appr.Code }}</span>
-                        <span> - {{ appr.FullName }}</span>
-                        <small class="text-muted d-block">{{ appr.DepartmentName }}</small>
-                      </div>
-                    </nz-option>
-                  </nz-option-group>
+                  <nz-option
+                    *ngFor="let appr of approverList"
+                    [nzLabel]="appr.Code + ' - ' + appr.FullName"
+                    [nzValue]="appr.EmployeeID"
+                  >
+                
+                  </nz-option>
                 </nz-select>
               </nz-form-control>
             </div>

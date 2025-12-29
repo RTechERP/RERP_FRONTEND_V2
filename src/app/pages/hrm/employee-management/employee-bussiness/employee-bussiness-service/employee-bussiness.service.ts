@@ -23,7 +23,9 @@ export class EmployeeBussinessService {
       employeeBussiness
     );
   }
-
+  getEmployeeApprove(): Observable<any> {
+    return this.http.get(this._url + `Employee/get-approve`);
+  }
   getEmployeeBussinessDetail(employeeId: Number, dayBussiness: any): Observable<any> {
     return this.http.get(this._url + `EmployeeBussiness/detail?employeeId=${employeeId}&dayBussiness=${dayBussiness}`);
   }

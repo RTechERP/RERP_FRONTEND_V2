@@ -481,45 +481,12 @@ export class EmployeeBussinessDetailComponent implements OnInit, AfterViewInit, 
   }
 
   loadApprover() {
-    this.wfhService.getEmloyeeApprover().subscribe({
+    this.employeeBussinessService.getEmployeeApprove().subscribe({
       next: (res) => {
-        if (res && res.status === 1 && res.data) {
-          // Lưu danh sách approver gốc (để tương thích với code cũ nếu cần)
-          this.approverList = res.data.approvers || [];
-
-          // Group approvers by DepartmentName
-          const apprGroups: { [key: string]: any[] } = {};
-          (res.data.approvers || []).forEach((appr: any) => {
-            const dept = appr.DepartmentName || 'Không xác định';
-            if (!apprGroups[dept]) apprGroups[dept] = [];
-            apprGroups[dept].push({
-              ID: appr.EmployeeID,
-              FullName: appr.FullName,
-              DepartmentName: appr.DepartmentName,
-              Code: appr.Code,
-            });
-          });
-
-          // Sort approvers within each group by Code
-          Object.keys(apprGroups).forEach((dept) => {
-            apprGroups[dept].sort((a, b) => (a.Code || '').localeCompare(b.Code || ''));
-          });
-
-          // Sort groups by department name
-          this.approverGroups = Object.keys(apprGroups)
-            .sort((a, b) => a.localeCompare(b))
-            .map((dept) => ({
-              label: `Phòng ban: ${dept}`,
-              options: apprGroups[dept],
-            }));
-        } else {
-          this.notification.error(NOTIFICATION_TITLE.error, res?.message || 'Không thể tải dữ liệu người duyệt');
-          this.approverList = [];
-          this.approverGroups = [];
-        }
+          this.approverList = res.data || [];
       },
       error: (error: any) => {
-        this.notification.warning("Lỗi", "Lỗi khi lấy danh sách người duyệt");
+        this.notification.warning(NOTIFICATION_TITLE.error, error.error?.message || "Lỗi khi lấy danh sách người duyệt");
         this.approverList = [];
         this.approverGroups = [];
       }
@@ -549,9 +516,7 @@ export class EmployeeBussinessDetailComponent implements OnInit, AfterViewInit, 
     if (!input) return true;
     const searchText = input.toLowerCase();
     const optionValue = option.nzValue;
-    const approver = this.approverGroups
-      .flatMap(g => g.options)
-      .find(a => a.ID === optionValue);
+    const approver = this.approverList.find(a => a.EmployeeID === optionValue);
     
     if (!approver) return false;
     
@@ -734,11 +699,13 @@ export class EmployeeBussinessDetailComponent implements OnInit, AfterViewInit, 
         {
           title: 'Địa điểm',
           field: 'Location',
-          editor: 'input',
-          hozAlign: 'center',
+          editor: 'textarea',
+          hozAlign: 'left',
           headerHozAlign: 'center',
-          width: 200, headerSort: false,
-
+          width: 200, 
+          headerSort: false,
+          variableHeight: true,
+          formatter: 'textarea'
         },
         {
           title: 'Loại',
@@ -888,7 +855,17 @@ export class EmployeeBussinessDetailComponent implements OnInit, AfterViewInit, 
             }
           }
         },
-          { title: 'Lý do công tác', field: 'Reason', editor: 'input', hozAlign: 'left', headerHozAlign: 'center', width: 500, headerSort: false,formatter:'textarea' },
+          { 
+          title: 'Lý do công tác', 
+          field: 'Reason', 
+          editor: 'textarea', 
+          hozAlign: 'left', 
+          headerHozAlign: 'center', 
+          width: 500, 
+          headerSort: false,
+          variableHeight: true,
+          formatter: 'textarea'
+        },
         {
           title: 'Tổng chi phí phương tiện',
           field: 'TotalCostVehicle',
@@ -939,8 +916,28 @@ export class EmployeeBussinessDetailComponent implements OnInit, AfterViewInit, 
         //     this.editVehiceDetail(rowData);
         //   }
         // },
-        { title: 'Lý do sửa', field: 'ReasonHREdit', editor: 'input', hozAlign: 'left', headerHozAlign: 'center', width: 500, headerSort: false, },
-        { title: 'Ghi chú', field: 'Note', editor: 'input', hozAlign: 'left', headerHozAlign: 'center', width: 500, headerSort: false, },
+        { 
+          title: 'Lý do sửa', 
+          field: 'ReasonHREdit', 
+          editor: 'textarea', 
+          hozAlign: 'left', 
+          headerHozAlign: 'center', 
+          width: 500, 
+          headerSort: false,
+          variableHeight: true,
+          formatter: 'textarea'
+        },
+        { 
+          title: 'Ghi chú', 
+          field: 'Note', 
+          editor: 'textarea', 
+          hozAlign: 'left', 
+          headerHozAlign: 'center', 
+          width: 500, 
+          headerSort: false,
+          variableHeight: true,
+          formatter: 'textarea'
+        },
 
       ]
       });

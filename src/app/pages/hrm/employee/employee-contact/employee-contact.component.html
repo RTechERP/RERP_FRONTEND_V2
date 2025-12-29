@@ -1,98 +1,96 @@
-<nz-splitter class="employee-contact-page" style="height: 90vh;">
-    <nz-splitter-panel>
-        <div class="card card-primary rounded-0 border-0 h-100 d-flex flex-column">
-            <div
-                class="card-header p-1 bg-white border-bottom d-flex justify-content-between align-items-center flex-wrap gap-2">
-                <h4 class="text-uppercase m-0">
-                    <span class="text-dark font-weight-bold">THÔNG TIN LIÊN HỆ NHÂN VIÊN ({{ totalEmployees }}
-                        NS)</span>
-                </h4>
-                <div class="d-flex gap-2 flex-wrap align-items-center">
-                    <label>Phòng ban: </label>
-                    <nz-select nzSize="default" style="min-width: 200px" [(ngModel)]="departmentId" name="departmentId"
-                        nzPlaceHolder="Chọn phòng ban" (ngModelChange)="loadContactData()">
-                        <nz-option [nzLabel]="'Tất cả phòng ban'" [nzValue]="0"></nz-option>
-                        <nz-option *ngFor="let d of departments" [nzLabel]="d.Name" [nzValue]="d.ID"></nz-option>
-                    </nz-select>
+<ng-container class="employee-contact-page">
+    <div class="card card-primary rounded-0 border-0 h-100 d-flex flex-column" style="height: 90vh;">
+        <div
+            class="card-header p-1 bg-white border-bottom d-flex justify-content-between align-items-center flex-wrap gap-2">
+            <h4 class="text-uppercase m-0">
+                <span class="text-dark font-weight-bold">THÔNG TIN LIÊN HỆ NHÂN VIÊN ({{ totalEmployees }}
+                    NS)</span>
+            </h4>
+            <div class="d-flex gap-2 flex-wrap align-items-center">
+                <label>Phòng ban: </label>
+                <nz-select nzSize="default" style="min-width: 200px" [(ngModel)]="departmentId" name="departmentId"
+                    nzPlaceHolder="Chọn phòng ban" (ngModelChange)="loadContactData()">
+                    <nz-option [nzLabel]="'Tất cả phòng ban'" [nzValue]="0"></nz-option>
+                    <nz-option *ngFor="let d of departments" [nzLabel]="d.Name" [nzValue]="d.ID"></nz-option>
+                </nz-select>
 
-                    <form class="card-header-form mt-0" (submit)="onSearch(); $event.preventDefault()">
-                        <div class="input-group">
-                            <input type="text" class="form-control form-control-sm" [(ngModel)]="keyword" name="keyword"
-                                placeholder="Từ khóa..." (keyup.enter)="onSearch()" />
-                            <button type="submit" class="btn btn-success btn-sm btn-icon">
-                                <i nz-icon nzType="search" nzTheme="outline"></i>
-                            </button>
-                        </div>
-                    </form>
-
-                    <div class="btn-group btn-group-sm" role="group" aria-label="Chế độ hiển thị">
-                        <button type="button" class="btn"
-                            [ngClass]="{'btn-primary': viewMode==='table', 'btn-outline-primary': viewMode!=='table'}"
-                            (click)="onViewModeChange('table')" nz-tooltip nzTooltipTitle="Dạng bảng">
-                            <i nz-icon nzType="table"></i>
-                        </button>
-                        <button type="button" class="btn"
-                            [ngClass]="{'btn-primary': viewMode==='card', 'btn-outline-primary': viewMode!=='card'}"
-                            (click)="onViewModeChange('card')" nz-tooltip nzTooltipTitle="Dạng thẻ">
-                            <i nz-icon nzType="appstore"></i>
+                <form class="card-header-form mt-0" (submit)="onSearch(); $event.preventDefault()">
+                    <div class="input-group">
+                        <input type="text" class="form-control form-control-sm" [(ngModel)]="keyword" name="keyword"
+                            placeholder="Từ khóa..." (keyup.enter)="onSearch()" />
+                        <button type="submit" class="btn btn-success btn-sm btn-icon">
+                            <i nz-icon nzType="search" nzTheme="outline"></i>
                         </button>
                     </div>
+                </form>
 
-                    <button *ngIf="isPermissDownload" type="button" class="btn btn-outline-success btn-sm"
-                        (click)="onExportExcel()">
-                        <i nz-icon nzType="download"></i>
+                <div class="btn-group btn-group-sm" role="group" aria-label="Chế độ hiển thị">
+                    <button type="button" class="btn"
+                        [ngClass]="{'btn-primary': viewMode==='table', 'btn-outline-primary': viewMode!=='table'}"
+                        (click)="onViewModeChange('table')" nz-tooltip nzTooltipTitle="Dạng bảng">
+                        <i nz-icon nzType="table"></i>
+                    </button>
+                    <button type="button" class="btn"
+                        [ngClass]="{'btn-primary': viewMode==='card', 'btn-outline-primary': viewMode!=='card'}"
+                        (click)="onViewModeChange('card')" nz-tooltip nzTooltipTitle="Dạng thẻ">
+                        <i nz-icon nzType="appstore"></i>
                     </button>
                 </div>
+
+                <button *ngIf="isPermissDownload" type="button" class="btn btn-outline-success btn-sm"
+                    (click)="onExportExcel()">
+                    <i nz-icon nzType="download"></i>
+                </button>
             </div>
-            <div class="card-body p-0 flex-grow-1 overflow-hidden">
-                <div [hidden]="viewMode !== 'table'" id="grid-container-contact" style="height: 89vh; width: 100%;">
-                    <angular-slickgrid gridId="employeeContactGrid" [columns]="columnDefinitions"
-                        [options]="gridOptions" [dataset]="dataset"
-                        (onAngularGridCreated)="angularGridReady($event.detail)">
-                    </angular-slickgrid>
-                </div>
+        </div>
+        <div class="card-body p-0 flex-grow-1 overflow-hidden">
+            <div [hidden]="viewMode !== 'table'" id="grid-container-contact" style="height: 89vh; width: 100%;">
+                <angular-slickgrid gridId="employeeContactGrid" [columns]="columnDefinitions"
+                    [options]="gridOptions" [dataset]="dataset"
+                    (onAngularGridCreated)="angularGridReady($event.detail)">
+                </angular-slickgrid>
+            </div>
 
-                <div [hidden]="viewMode !== 'card'" class="row g-2 h-100 overflow-auto p-2">
-                    <div class="col-12 col-md-6 col-lg-4" *ngFor="let item of contactData">
-                        <div class="card h-100 shadow-sm">
-                            <div class="card-body p-3">
-                                <div class="d-flex justify-content-between align-items-start mb-2">
-                                    <div>
-                                        <div class="fw-bold">{{ item.Code }}-{{ item.FullName }}</div>
+            <div [hidden]="viewMode !== 'card'" class="row g-2 h-100 overflow-auto p-2">
+                <div class="col-12 col-md-6 col-lg-4" *ngFor="let item of contactData">
+                    <div class="card h-100 shadow-sm">
+                        <div class="card-body p-3">
+                            <div class="d-flex justify-content-between align-items-start mb-2">
+                                <div>
+                                    <div class="fw-bold">{{ item.Code }}-{{ item.FullName }}</div>
 
-                                    </div>
-                                    <span class="badge bg-primary">{{ item.DepartmentName || 'N/A' }}</span>
                                 </div>
-                                <!-- <div class="small text-muted mb-2">{{ item.EmployeeTeamName }}</div> -->
-                                <div class="mb-1">
-                                    <i nz-icon nzType="team" class="me-1"></i>
-                                    <span>{{ item.ChucVu || '---' }}</span>
-                                </div>
-                                <div class="mb-1">
-                                    <i nz-icon nzType="phone" class="me-1"></i>
-                                    <ng-container *ngIf="item.SDTCaNhan; else noPhone">
-                                        <ng-container *ngFor="let phone of item.SDTCaNhan.split('\n'); let last = last">
-                                            <a class="me-1" [href]="'tel:' + phone.trim()">{{ phone }}</a>
-                                            <span *ngIf="!last">|</span>
-                                        </ng-container>
+                                <span class="badge bg-primary">{{ item.DepartmentName || 'N/A' }}</span>
+                            </div>
+                            <!-- <div class="small text-muted mb-2">{{ item.EmployeeTeamName }}</div> -->
+                            <div class="mb-1">
+                                <i nz-icon nzType="team" class="me-1"></i>
+                                <span>{{ item.ChucVu || '---' }}</span>
+                            </div>
+                            <div class="mb-1">
+                                <i nz-icon nzType="phone" class="me-1"></i>
+                                <ng-container *ngIf="item.SDTCaNhan; else noPhone">
+                                    <ng-container *ngFor="let phone of item.SDTCaNhan.split('\n'); let last = last">
+                                        <a class="me-1" [href]="'tel:' + phone.trim()">{{ phone }}</a>
+                                        <span *ngIf="!last">|</span>
                                     </ng-container>
-                                    <ng-template #noPhone><span>---</span></ng-template>
-                                </div>
-                                <div class="mb-1">
-                                    <i nz-icon nzType="mail" class="me-1"></i>
-                                    <span>{{ item.EmailCongTy || '---' }}</span>
-                                </div>
-                                <div class="d-flex justify-content-between text-muted small mt-2">
-                                    <span>Ngày vào: {{ item.StartWorking ? (item.StartWorking | date:'dd/MM/yyyy') :
-                                        '--' }}</span>
-                                    <span>Năm sinh: {{ item.BirthOfDate ? (item.BirthOfDate | date:'yyyy') : '--'
-                                        }}</span>
-                                </div>
+                                </ng-container>
+                                <ng-template #noPhone><span>---</span></ng-template>
+                            </div>
+                            <div class="mb-1">
+                                <i nz-icon nzType="mail" class="me-1"></i>
+                                <span>{{ item.EmailCongTy || '---' }}</span>
+                            </div>
+                            <div class="d-flex justify-content-between text-muted small mt-2">
+                                <span>Ngày vào: {{ item.StartWorking ? (item.StartWorking | date:'dd/MM/yyyy') :
+                                    '--' }}</span>
+                                <span>Năm sinh: {{ item.BirthOfDate ? (item.BirthOfDate | date:'yyyy') : '--'
+                                    }}</span>
                             </div>
                         </div>
                     </div>
                 </div>
             </div>
         </div>
-    </nz-splitter-panel>
-</nz-splitter>
+    </div>
+</ng-container>

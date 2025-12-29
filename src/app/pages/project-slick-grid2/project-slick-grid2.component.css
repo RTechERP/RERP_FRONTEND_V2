@@ -269,7 +269,7 @@
   position: relative;
 }
 ::ng-deep #grvProjects{
-  height: 88vh !important;
+  height: 85vh !important;
 }
 
 ::ng-deep .slick-group-toggle.collapsed::before {

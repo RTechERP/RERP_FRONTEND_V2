@@ -254,7 +254,7 @@ export const routes: Routes = [
             { path: 'product-location', component: ProductLocationComponent, canActivate: [authGuard] },
             { path: 'firm', component: FirmComponent, canActivate: [authGuard] },
             { path: 'unit-count', component: UnitCountComponent, canActivate: [authGuard] },
-            { path: 'product-sale', component: ProductSaleComponent, canActivate: [authGuard] },
+            // { path: 'product-sale', component: ProductSaleComponent, canActivate: [authGuard] },
             { path: 'tb-product-rtc', component: TbProductRtcComponent, canActivate: [authGuard] },
             { path: 'hrhiring-request', component: HrhiringRequestComponent, canActivate: [authGuard] },
             { path: 'job-requirement', component: JobRequirementComponent, canActivate: [authGuard] },

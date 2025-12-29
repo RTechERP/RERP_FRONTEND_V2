@@ -19,4 +19,32 @@ export class MenuAppService {
     saveData(menu: MenuApp): Observable<any> {
         return this.http.post<any>(this.url + '/save-data', menu);
     }
+
+    sortBySTTImmutable(
+        items: any[],
+        getOrder: (item: any) => number,
+        childrenKeys: string[] = ['Children', 'children']
+    ): any[] {
+        return [...items]
+            .sort((a, b) => getOrder(a) - getOrder(b))
+            .map(item => {
+                // tìm key children đang tồn tại trên item
+                const childKey = childrenKeys.find(k => Array.isArray(item[k]));
+
+                if (!childKey) {
+                    return { ...item }; // không có children
+                }
+
+                return {
+                    ...item,
+                    [childKey]: this.sortBySTTImmutable(
+                        item[childKey],
+                        getOrder,
+                        childrenKeys
+                    )
+                };
+            });
+    }
+
+
 }

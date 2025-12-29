@@ -22,6 +22,7 @@ import { environment } from '../../../../environments/environment';
 import { TabsModule } from 'primeng/tabs';
 import { NzLayoutModule } from 'ng-zorro-antd/layout';
 import { TabServiceService } from '../../tab-service.service';
+import { AvatarModule } from 'primeng/avatar';
 
 @Component({
     selector: 'app-home-layout-new',
@@ -36,7 +37,8 @@ import { TabServiceService } from '../../tab-service.service';
         NzCalendarModule,
         RouterLink,
         TabsModule,
-        NzLayoutModule
+        NzLayoutModule,
+        AvatarModule
     ],
     templateUrl: './home-layout-new.component.html',
     styleUrl: './home-layout-new.component.css'
@@ -116,16 +118,7 @@ export class HomeLayoutNewComponent implements OnInit {
     }
 
 
-    sortBySTTImmutable(items: any[]): any[] {
-        return [...items]
-            .sort((a, b) => (a.STT ?? 0) - (b.STT ?? 0))
-            .map(item => ({
-                ...item,
-                Children: item.Children?.length
-                    ? this.sortBySTTImmutable(item.Children)
-                    : []
-            }));
-    }
+
 
 
     getMenus() {
@@ -145,7 +138,8 @@ export class HomeLayoutNewComponent implements OnInit {
                         IsPermission: item.IsPermission,
                         IsOpen: true,
                         ParentID: item.ParentID,
-                        Children: []
+                        Children: [],
+                        ID: item.ID
                     });
                 });
 
@@ -163,7 +157,7 @@ export class HomeLayoutNewComponent implements OnInit {
 
                 // console.log('this.menus:', this.menus);
 
-                this.menus = this.sortBySTTImmutable(this.menus);
+                this.menus = this.menuAppService.sortBySTTImmutable(this.menus, i => i.STT ?? i.stt ?? 0);
 
                 this.menuApproves = this.menus.find((x) => x.Code == 'appvovedperson');
                 // console.log('this.menuApproves:', this.menuApproves);
@@ -174,7 +168,7 @@ export class HomeLayoutNewComponent implements OnInit {
                 this.menuWeekplans = pesons.Children.find((x: any) => x.Code == 'planweek');
 
                 this.menuQickAcesss = this.menus.find((x) => x.Code == 'M4');
-                console.log('this.menuQickAcesss:', this.menuQickAcesss);
+                // console.log('this.menuQickAcesss:', this.menuQickAcesss);
                 // console.log('this.menuWeekplans:', this.menuWeekplans);
 
             },

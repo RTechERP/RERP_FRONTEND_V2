@@ -278,8 +278,11 @@ export class EmployeeBussinessComponent implements OnInit, AfterViewInit, OnChan
         {
           title: 'Nơi công tác', field: 'Location', hozAlign: 'left', headerHozAlign: 'center', width: 300, headerSort: false,
         },
+           {
+          title: 'Lý do công tác', field: 'Reason', hozAlign: 'left', headerHozAlign: 'center', width: 300, headerSort: false,
+        },
         {
-          title: 'Loại', field: 'TypeName', hozAlign: 'left', headerHozAlign: 'center', width: 300, headerSort: false,
+          title: 'Loại', field: 'TypeName', hozAlign: 'left', headerHozAlign: 'center', width: 220, headerSort: false,
         },
         {
           title: 'Phương tiện', field: 'VehicleName', hozAlign: 'left', headerHozAlign: 'center', width: 200, headerSort: false,
@@ -298,7 +301,7 @@ export class EmployeeBussinessComponent implements OnInit, AfterViewInit, OnChan
           }
         },
         {
-          title: 'Loại ắn tối', field: 'OvernightTypeText', hozAlign: 'left', headerHozAlign: 'center', width: 200, headerSort: false,
+          title: 'Loại ăn tối', field: 'OvernightTypeText', hozAlign: 'left', headerHozAlign: 'center', width: 200, headerSort: false,
         },
         {
           title: 'Phụ cấp đi làm sớm', field: 'CostWorkEarly', hozAlign: 'left', headerHozAlign: 'center', width: 200, headerSort: false,

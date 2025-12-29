@@ -1,0 +1,161 @@
+<div class="card h-100 border-0 rounded-0">
+  <!-- Toolbar -->
+  <div class="card-header bg-white p-0">
+    <p-menubar [model]="menuItems">
+      <ng-template #end>
+        <div class="d-flex gap-2 align-items-center">
+          <div class="color-legend">
+            <span class="color-box color-dual"></span>
+            <span class="fs-12">Sắp hết hạn</span>
+          </div>
+          <div class="color-legend">
+            <span class="color-box color-overdue"></span>
+            <span class="fs-12">Quá hạn</span>
+          </div>
+        </div>
+      </ng-template>
+    </p-menubar>
+  </div>
+
+  <!-- Filter Form - Ngang -->
+  <div class="card-body p-2 bg-light">
+    <form nz-form nzLayout="inline" class="w-100">
+      <nz-form-item class="mb-2">
+        <label class="fs-12 me-2 mt-1">Từ ngày</label>
+        <nz-form-control>
+          <nz-date-picker
+            [nzFormat]="dateFormat"
+            nzSize="small"
+            [(ngModel)]="searchParams.dateStart"
+            name="dateStart"
+            (keyup.enter)="searchData()">
+          </nz-date-picker>
+        </nz-form-control>
+      </nz-form-item>
+
+      <nz-form-item class="mb-2">
+        <label class="fs-12 me-2 mt-1">Đến ngày</label>
+        <nz-form-control>
+          <nz-date-picker
+            [nzFormat]="dateFormat"
+            nzSize="small"
+            [(ngModel)]="searchParams.dateEnd"
+            name="dateEnd"
+            (keyup.enter)="searchData()">
+          </nz-date-picker>
+        </nz-form-control>
+      </nz-form-item>
+
+      <nz-form-item class="mb-2">
+        <label class="fs-12 me-2 mt-1">Từ khóa</label>
+        <nz-form-control>
+          <input
+            (keyup.enter)="searchData()"
+            class="input-keyword"
+            nz-input
+            placeholder="Nhập từ khóa"
+            [(ngModel)]="searchParams.keyword"
+            name="keyword"
+            nzSize="small" />
+        </nz-form-control>
+      </nz-form-item>
+
+      <nz-form-item class="mb-2">
+        <label class="fs-12 me-2 mt-1">Trạng thái</label>
+        <nz-form-control>
+          <nz-select
+            class="select-status"
+            nzShowSearch
+            nzSize="small"
+            [(ngModel)]="searchParams.status"
+            name="status"
+            (ngModelChange)="onStatusChange($event)">
+            <nz-option *ngFor="let item of cbbStatus" [nzValue]="item.ID" [nzLabel]="item.Name"></nz-option>
+          </nz-select>
+        </nz-form-control>
+      </nz-form-item>
+
+      <!-- Nút tìm kiếm với dropdown cho filter bổ sung -->
+      <nz-form-item class="mb-2">
+        <nz-form-control>
+          <div class="btn-group">
+            <button type="button" nz-button nzType="primary" nzSize="small" (click)="searchData()">
+              Tìm kiếm
+            </button>
+            <button
+              type="button"
+              nz-button
+              nzType="primary"
+              nzSize="small"
+              nz-dropdown
+              [nzDropdownMenu]="advancedFiltersMenu"
+              nzTrigger="click"
+              nzPlacement="bottomRight"
+              title="Bộ lọc nâng cao"
+              class="ps-2 pe-2">
+              <i nz-icon nzType="down"></i>
+            </button>
+            <nz-dropdown-menu #advancedFiltersMenu="nzDropdownMenu">
+              <div class="p-3 advanced-filters-container">
+                <ng-container [ngTemplateOutlet]="advancedFiltersTemplate"></ng-container>
+              </div>
+            </nz-dropdown-menu>
+          </div>
+        </nz-form-control>
+      </nz-form-item>
+    </form>
+      <!-- Grid Container -->
+  <div class="p-0 position-relative grid-container">
+    <nz-spin [nzSpinning]="loading" nzTip="Đang tải dữ liệu...">
+      <angular-slickgrid
+        [gridId]="'historyBorrowSaleGrid-' + warehouseCode"
+        [columns]="columnDefinitions"
+        [options]="gridOptions"
+        [dataset]="dataset"
+        (onAngularGridCreated)="angularGridReady($event.detail)">
+      </angular-slickgrid>
+    </nz-spin>
+  </div>
+  </div>
+</div>
+
+<!-- Advanced Filters Template -->
+<ng-template #advancedFiltersTemplate>
+  <div class="advanced-filters-content">
+    <form nz-form nzLayout="vertical">
+      <nz-form-item>
+        <nz-form-label class="fs-12">Lọc kho</nz-form-label>
+        <nz-form-control>
+          <nz-select
+            class="w-100"
+            nzShowSearch
+            nzAllowClear
+            nzSize="small"
+            nzPlaceHolder="Chọn kho"
+            [(ngModel)]="searchParams.productGroupID"
+            name="productGroupID"
+            (ngModelChange)="onProductGroupChange($event)">
+            <nz-option *ngFor="let item of cbbProductGroup" [nzValue]="item.ID" [nzLabel]="item.ProductGroupName"></nz-option>
+          </nz-select>
+        </nz-form-control>
+      </nz-form-item>
+
+      <nz-form-item class="mt-1">
+        <nz-form-label class="fs-12">Nhân viên</nz-form-label>
+        <nz-form-control>
+          <nz-select
+            class="w-100"
+            nzShowSearch
+            nzAllowClear
+            nzSize="small"
+            nzPlaceHolder="Chọn nhân viên"
+            [(ngModel)]="searchParams.employeeID"
+            name="employeeID"
+            (ngModelChange)="onEmployeeChange($event)">
+            <nz-option *ngFor="let item of cbbEmployee" [nzValue]="item.ID" [nzLabel]="item.FullName"></nz-option>
+          </nz-select>
+        </nz-form-control>
+      </nz-form-item>
+    </form>
+  </div>
+</ng-template>

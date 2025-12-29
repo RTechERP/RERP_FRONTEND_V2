@@ -187,9 +187,10 @@ import { InventoryDemoNewComponent } from './pages/old/inventory-demo/inventory-
 import { BillExportTechnicalNewComponent } from './pages/old/bill-export-technical/bill-export-technical-new/bill-export-technical-new.component';
 import { HistoryProductRtcComponent } from './pages/old/inventory-demo/borrow/borrow-product-history/history-product-rtc/history-product-rtc.component';
 import { ProductRtcComponent } from './pages/old/tb-product-rtc/product-rtc/product-rtc.component';
-// import { ProductSaleNewComponent } from './pages/old/Sale/ProductSale/product-sale-new/product-sale-new.component';
-// import { HistoryBorrowSaleNewComponent } from './pages/old/Sale/HistoryBorrowSale/history-borrow-sale-new/history-borrow-sale-new.component';
-import { PokhSlickgridComponent } from './pages/old/pokh-slickgrid/pokh-slickgrid.component';
+import { ProductSaleNewComponent } from './pages/old/Sale/ProductSale/product-sale-new/product-sale-new.component';
+import { HistoryBorrowSaleNewComponent } from './pages/old/Sale/HistoryBorrowSale/history-borrow-sale-new/history-borrow-sale-new.component';
+import { MaterialDetailOfProductRtcComponent } from './pages/old/inventory-demo/material-detail-of-product-rtc/material-detail-of-product-rtc.component';
+import { ChiTietSanPhamSaleComponent } from './pages/old/Sale/chi-tiet-san-pham-sale/chi-tiet-san-pham-sale.component';
 
 export const routes: Routes = [
     {
@@ -519,7 +520,7 @@ export const routes: Routes = [
             { path: 'assign-work', component: AssignWorkComponent, canActivate: [authGuard] },
             { path: 'poncc', component: PonccNewComponent, canActivate: [authGuard] },
             { path: 'inventory-project', component: InventoryProjectComponent, canActivate: [authGuard] },
-            // { path: 'purchase-request', component: ProjectPartListPurchaseRequestSlickGridComponent, canActivate: [authGuard] },
+            { path: 'purchase-request', component: ProjectPartListPurchaseRequestSlickGridComponent, canActivate: [authGuard] },
 
 
 
@@ -804,7 +805,6 @@ export const routes: Routes = [
             // { path: 'unit-count-hn', component: UnitCountKtComponent, canActivate: [authGuard] },
             { path: 'product-qrcode-dp', component: ProductRtcQrCodeComponent, canActivate: [authGuard] },
 
-
             //Cài đặt
             { path: 'product-location', component: ProductLocationComponent, canActivate: [authGuard] },
             { path: 'firm', component: FirmComponent, canActivate: [authGuard] },
@@ -812,6 +812,8 @@ export const routes: Routes = [
             { path: 'product-sale', component: ProductSaleComponent, canActivate: [authGuard] },
             { path: 'product-demo', component: ProductRtcComponent, canActivate: [authGuard] },
             { path: 'product-agv', component: ProductRtcComponent, canActivate: [authGuard] },
+            { path: 'material-detail-of-product-rtc', component: MaterialDetailOfProductRtcComponent, canActivate: [authGuard] },
+            { path: 'chi-tiet-san-pham-sale', component: ChiTietSanPhamSaleComponent, canActivate: [authGuard] },
 
 
             //Nhân dự

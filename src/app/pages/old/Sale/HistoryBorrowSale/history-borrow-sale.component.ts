@@ -120,6 +120,7 @@ export class HistoryBorrowSaleComponent implements OnInit, AfterViewInit {
         pageSize: 50, // Giảm xuống 50 để phân trang
         productGroupID: 0,
         employeeID: 0,
+        warehouseID: 0
     };
 
     data: number[] = [];
@@ -266,7 +267,8 @@ export class HistoryBorrowSaleComponent implements OnInit, AfterViewInit {
                     page,
                     size,
                     this.searchParams.employeeID || 0,
-                    this.searchParams.productGroupID || 0
+                    this.searchParams.productGroupID || 0,
+                    this.searchParams.warehouseID || 0
                 )
                 .subscribe({
                     next: (res: any) => {
@@ -337,6 +339,7 @@ export class HistoryBorrowSaleComponent implements OnInit, AfterViewInit {
             pageSize: 50,
             productGroupID: 0,
             employeeID: 0,
+            warehouseID: 0
         };
         // Reset về trang đầu và reload dữ liệu
         if (this.table) {

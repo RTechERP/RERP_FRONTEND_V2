@@ -1,0 +1,156 @@
+/* Grid container styles */
+.grid-container-product-group,
+.grid-container-pg-warehouse,
+.grid-container-product-sale {
+    flex: 1;
+    min-height: 0;
+    height: 100% !important;
+}
+
+/* Row disabled state (for IsVisible = false) */
+:host ::ng-deep .slick-row.row-disabled {
+    pointer-events: auto !important; /* Allow clicking */
+    opacity: 0.5 !important;
+    background-color: #f0f0f0 !important;
+    filter: grayscale(100%) !important;
+}
+
+/* Selected row styling */
+:host ::ng-deep .slick-row.active {
+    background-color: #CCE5FF !important;
+    color: #000 !important;
+}
+
+/* Text wrapping for long content */
+:host ::ng-deep .slick-cell {
+    white-space: normal !important;
+    word-wrap: break-word !important;
+    overflow: visible !important;
+}
+
+/* Center alignment for specific columns */
+:host ::ng-deep .text-center {
+    text-align: center !important;
+}
+
+/* Ensure splitter panels work correctly */
+:host ::ng-deep .ant-splitter-panel {
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+}
+
+/* Layout wrapper */
+.layout-wrapper {
+    height: 100%;
+    display: flex;
+    overflow: hidden;
+    position: relative;
+}
+
+/* Card styling */
+.card {
+    height: 100%;
+}
+
+.row > * {
+    padding-right: 5px !important;
+    padding-left: 5px !important;
+}
+
+.row {
+    height: 100%;
+}
+
+/* Action bar styling */
+.card-header.action-bar {
+    background-color: #ecedf0 !important;
+    padding: 6px;
+    border-radius: 0;
+}
+
+.action-bar button[nz-button],
+.action-bar .btn {
+    border-radius: 0 !important;
+}
+
+.action-bar .dropdown-menu {
+    border-radius: 0 !important;
+    padding: 4px 0;
+}
+
+.action-bar .dropdown-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 12px;
+    padding: 6px 12px;
+}
+
+.action-bar .dropdown-item img {
+    width: 16px;
+    height: 16px;
+}
+
+.btn-primary {
+    padding: 3px 6px;
+}
+
+/* Font size */
+.fs-12 {
+    font-size: 0.75rem;
+}
+
+/* ng-select styling */
+::ng-deep ng-select .ng-value-container {
+    display: flex !important;
+    flex-wrap: nowrap !important;
+    overflow-x: auto !important;
+    white-space: nowrap !important;
+}
+
+::ng-deep ng-select.form-control .ng-clear-wrapper {
+    display: flex;
+    align-items: center;
+}
+
+::ng-deep ng-select.form-control .ng-clear-wrapper:hover {
+    color: #d9363e;
+}
+
+::ng-deep .ng-select.ng-select-multiple .ng-select-container .ng-value-container .ng-value {
+    margin-top: 3px;
+    margin-right: 1px;
+    font-size: .75rem;
+    background-color: #fafafa;
+    border: none;
+    border-radius: 2px;
+    height: 24px;
+    line-height: 22px;
+}
+
+::ng-deep .ng-select .ng-dropdown-panel .ng-dropdown-panel-items .ng-option.ng-option-child {
+    font-size: 12px !important;
+}
+
+/* Divider */
+.divider {
+    display: inline-block;
+    width: 1px;
+    height: 24px;
+    background-color: #d9d9d9;
+}
+
+/* Height utilities */
+.h-40 {
+    height: 40px;
+}
+
+/* Responsive utilities */
+@media (max-width: 768px) {
+    .grid-container-product-group,
+    .grid-container-pg-warehouse,
+    .grid-container-product-sale {
+        font-size: 0.7rem;
+    }
+}

@@ -285,12 +285,15 @@ export class BillExportDetailComponent
   ];
 
   projectSearchFields: string[] = ['ProjectCode', 'label'];
- private originalInventoryRelatedData: Map<number, {
-    ProductID: number;
-    Qty: number;
-    ProjectID: number;
-    POKHDetailID: number;
-  }> = new Map(); // Key = row ID hoặc index
+  private originalInventoryRelatedData: Map<
+    number,
+    {
+      ProductID: number;
+      Qty: number;
+      ProjectID: number;
+      POKHDetailID: number;
+    }
+  > = new Map(); // Key = row ID hoặc index
 
   private hasInventoryRelatedChange: boolean = false;
   constructor(
@@ -1092,123 +1095,125 @@ export class BillExportDetailComponent
       },
     });
   }
-getBillExportDetailID() {
-  this.isLoading = true;
-  this.billExportService.getBillExportDetail(this.id).subscribe({
-    next: (res) => {
-      if (res?.data) {
-        const rawData = Array.isArray(res.data) ? res.data : [res.data];
+  getBillExportDetailID() {
+    this.isLoading = true;
+    this.billExportService.getBillExportDetail(this.id).subscribe({
+      next: (res) => {
+        if (res?.data) {
+          const rawData = Array.isArray(res.data) ? res.data : [res.data];
 
-        this.dataTableBillExportDetail = rawData.map((item: any, index: number) => {
-          const productInfo =
-            this.productOptions.find(
-              (p: any) => p.value === item.ProductID
-            ) || {};
-          const projectInfo =
-            this.projectOptions.find(
-              (p: any) => p.value === item.ProjectID
-            ) || {};
+          this.dataTableBillExportDetail = rawData.map(
+            (item: any, index: number) => {
+              const productInfo =
+                this.productOptions.find(
+                  (p: any) => p.value === item.ProductID
+                ) || {};
+              const projectInfo =
+                this.projectOptions.find(
+                  (p: any) => p.value === item.ProjectID
+                ) || {};
 
-          // ✅ LẤY TotalInventory từ productOptions (đã được map từ TotalQuantityLast)
-          const totalInventory = productInfo.TotalInventory ?? productInfo.TotalQuantityLast ?? 0;
+              // ✅ LẤY TotalInventory từ productOptions (đã được map từ TotalQuantityLast)
+              const totalInventory =
+                productInfo.TotalInventory ??
+                productInfo.TotalQuantityLast ??
+                0;
 
-          const mappedItem = {
-            ID: item.ID || 0,
-            POKHDetailID: item.POKHDetailID || 0,
-            ProductID: item.ProductID || 0,
-            ProductNewCode:
-              item.ProductNewCode || productInfo.ProductNewCode || '',
-            ProductCode: item.ProductCode || productInfo.ProductCode || '',
-            ProductName: item.ProductName || productInfo.ProductName || '',
-            Unit: item.Unit || productInfo.Unit || '',
-            TotalInventory: totalInventory, // ✅ FIXED: Đã khai báo ở trên
-            Qty: item.Qty || 0,
-            QuantityRemain: item.QuantityRemain || 0,
-            ProjectID: item.ProjectID || 0,
-            ProjectCodeExport:
-              item.ProjectCodeExport || projectInfo.ProjectCode || '',
-            ProjectNameText: item.ProjectNameText || projectInfo.label || '',
-            ProductFullName: item.ProductFullName || '',
-            Note: item.Note || '',
-            UnitPricePOKH: item.UnitPricePOKH || 0,
-            UnitPricePurchase: item.UnitPricePurchase || 0,
-            BillCode: item.BillCode || '',
-            Specifications: item.Specifications || '',
-            GroupExport: item.GroupExport || '',
-            UserReceiver: item.UserReceiver || '',
-            POKHID: item.POKHID || 0,
-            'Add Serial': item.SerialNumber || '',
-            ProductType: item.ProductType || 0,
-            IsInvoice: item.IsInvoice || false,
-            InvoiceNumber: item.InvoiceNumber || '',
-            SerialNumber: item.SerialNumber || '',
-            ReturnedStatus: item.ReturnedStatus || false,
-            ProjectPartListID: item.ProjectPartListID || 0,
-            TradePriceDetailID: item.TradePriceDetailID || 0,
-            BillImportDetailID: item.BillImportDetailID || 0,
-            ExpectReturnDate: item.ExpectReturnDate
-              ? new Date(item.ExpectReturnDate)
-              : new Date(),
-            InventoryProjectIDs: item.ProjectID ? [item.ProjectID] : [],
-            CustomerResponse: item.CustomerResponse || '',
-            POKHDetailIDActual: item.POKHDetailIDActual || 0,
-            PONumber: item.PONumber || '',
-          };
+              const mappedItem = {
+                ID: item.ID || 0,
+                POKHDetailID: item.POKHDetailID || 0,
+                ProductID: item.ProductID || 0,
+                ProductNewCode:
+                  item.ProductNewCode || productInfo.ProductNewCode || '',
+                ProductCode: item.ProductCode || productInfo.ProductCode || '',
+                ProductName: item.ProductName || productInfo.ProductName || '',
+                Unit: item.Unit || productInfo.Unit || '',
+                TotalInventory: totalInventory, // ✅ FIXED: Đã khai báo ở trên
+                Qty: item.Qty || 0,
+                QuantityRemain: item.QuantityRemain || 0,
+                ProjectID: item.ProjectID || 0,
+                ProjectCodeExport:
+                  item.ProjectCodeExport || projectInfo.ProjectCode || '',
+                ProjectNameText:
+                  item.ProjectNameText || projectInfo.label || '',
+                ProductFullName: item.ProductFullName || '',
+                Note: item.Note || '',
+                UnitPricePOKH: item.UnitPricePOKH || 0,
+                UnitPricePurchase: item.UnitPricePurchase || 0,
+                BillCode: item.BillCode || '',
+                Specifications: item.Specifications || '',
+                GroupExport: item.GroupExport || '',
+                UserReceiver: item.UserReceiver || '',
+                POKHID: item.POKHID || 0,
+                'Add Serial': item.SerialNumber || '',
+                ProductType: item.ProductType || 0,
+                IsInvoice: item.IsInvoice || false,
+                InvoiceNumber: item.InvoiceNumber || '',
+                SerialNumber: item.SerialNumber || '',
+                ReturnedStatus: item.ReturnedStatus || false,
+                ProjectPartListID: item.ProjectPartListID || 0,
+                TradePriceDetailID: item.TradePriceDetailID || 0,
+                BillImportDetailID: item.BillImportDetailID || 0,
+                ExpectReturnDate: item.ExpectReturnDate
+                  ? new Date(item.ExpectReturnDate)
+                  : new Date(),
+                InventoryProjectIDs: item.ProjectID ? [item.ProjectID] : [],
+                CustomerResponse: item.CustomerResponse || '',
+                POKHDetailIDActual: item.POKHDetailIDActual || 0,
+                PONumber: item.PONumber || '',
+              };
 
-          // ✅ LƯU CHỈ CÁC FIELD LIÊN QUAN ĐẾN INVENTORY
-          const rowKey = item.ID || index;
-          this.originalInventoryRelatedData.set(rowKey, {
-            ProductID: item.ProductID || 0,
-            Qty: item.Qty || 0,
-            ProjectID: item.ProjectID || 0,
-            POKHDetailID: (item.POKHDetailIDActual || item.POKHDetailID || 0),
-          });
+              // ✅ LƯU CHỈ CÁC FIELD LIÊN QUAN ĐẾN INVENTORY
+              const rowKey = item.ID || index;
+              this.originalInventoryRelatedData.set(rowKey, {
+                ProductID: item.ProductID || 0,
+                Qty: item.Qty || 0,
+                ProjectID: item.ProjectID || 0,
+                POKHDetailID: item.POKHDetailIDActual || item.POKHDetailID || 0,
+              });
 
-          return mappedItem;
-        });
-
-        // ✅ RESET FLAG
-        this.hasInventoryRelatedChange = false;
-
-        if (this.table_billExportDetail) {
-
-          const oldData = this.table_billExportDetail.getData();
-
-          this.table_billExportDetail.replaceData(
-            this.dataTableBillExportDetail
+              return mappedItem;
+            }
           );
 
-          setTimeout(() => {
-            this.table_billExportDetail.redraw(true);
-          }, 100);
+          // ✅ RESET FLAG
+          this.hasInventoryRelatedChange = false;
+
+          if (this.table_billExportDetail) {
+            const oldData = this.table_billExportDetail.getData();
+
+            this.table_billExportDetail.replaceData(
+              this.dataTableBillExportDetail
+            );
+
+            setTimeout(() => {
+              this.table_billExportDetail.redraw(true);
+            }, 100);
+          }
+          this.isLoading = false;
+        } else {
+          this.notification.warning(
+            'Thông báo',
+            res.message || 'Không có dữ liệu chi tiết phiếu xuất!'
+          );
+          this.dataTableBillExportDetail = [];
+          if (this.table_billExportDetail) {
+            this.table_billExportDetail.replaceData([]);
+          }
+          this.isLoading = false;
         }
-        this.isLoading = false;
-      } else {
-        this.notification.warning(
-          'Thông báo',
-          res.message || 'Không có dữ liệu chi tiết phiếu xuất!'
-        );
+      },
+      error: (err) => {
+        this.notification.error('Thông báo', err.error.message);
+        console.error(err);
         this.dataTableBillExportDetail = [];
         if (this.table_billExportDetail) {
           this.table_billExportDetail.replaceData([]);
         }
         this.isLoading = false;
-      }
-    },
-    error: (err) => {
-      this.notification.error(
-        'Thông báo',
-        err.error.message
-      );
-      console.error(err);
-      this.dataTableBillExportDetail = [];
-      if (this.table_billExportDetail) {
-        this.table_billExportDetail.replaceData([]);
-      }
-      this.isLoading = false;
-    },
-  });
-}
+      },
+    });
+  }
 
   getProductById(productId: number) {
     this.productSaleService.getDataProductSalebyID(productId).subscribe({
@@ -1733,31 +1738,31 @@ getBillExportDetailID() {
     return supplier ? supplier.NameNCC : '';
   }
 
-addRow() {
-  if (this.table_billExportDetail) {
-    this.table_billExportDetail.addRow({
-      ProductNewCode: '',
-      ProductCode: null,
-      TotalInventory: 0,
-      ProductName: '',
-      ProductFullName: '',
-      Unit: '',
-      Qty: 0,
-      ProductGroupName: '',
-      ProductTypeText: '',
-      Note: '',
-      UnitPricePOKH: 0,
-      UnitPricePurchase: 0,
-      BillCode: '',
-      ProjectCodeExport: '',
-      ProjectNameText: '',
-    });
+  addRow() {
+    if (this.table_billExportDetail) {
+      this.table_billExportDetail.addRow({
+        ProductNewCode: '',
+        ProductCode: null,
+        TotalInventory: 0,
+        ProductName: '',
+        ProductFullName: '',
+        Unit: '',
+        Qty: 0,
+        ProductGroupName: '',
+        ProductTypeText: '',
+        Note: '',
+        UnitPricePOKH: 0,
+        UnitPricePurchase: 0,
+        BillCode: '',
+        ProjectCodeExport: '',
+        ProjectNameText: '',
+      });
 
-    // ✅ THÊM ROW = THAY ĐỔI INVENTORY
-    this.hasInventoryRelatedChange = true;
-    console.log('🟡 Row added - inventory related change');
+      // ✅ THÊM ROW = THAY ĐỔI INVENTORY
+      this.hasInventoryRelatedChange = true;
+      console.log('🟡 Row added - inventory related change');
+    }
   }
-}
   createdControl(
     component: Type<any>,
     injector: EnvironmentInjector,
@@ -1849,96 +1854,101 @@ addRow() {
     this.showProjectPopup = true;
   }
 
- onProductSelected(selectedProduct: any) {
-  if (!this.currentEditingCell) return;
+  onProductSelected(selectedProduct: any) {
+    if (!this.currentEditingCell) return;
 
-  const row = this.currentEditingCell.getRow();
-  const rowData = row.getData();
-  const rowKey = rowData.ID || rowData.ChildID || row.getPosition();
+    const row = this.currentEditingCell.getRow();
+    const rowData = row.getData();
+    const rowKey = rowData.ID || rowData.ChildID || row.getPosition();
 
-  const oldProductID = rowData.ProductID;
-  const newProductID = selectedProduct.value || selectedProduct.ProductID || selectedProduct.ProductSaleID || selectedProduct.ID;
+    const oldProductID = rowData.ProductID;
+    const newProductID =
+      selectedProduct.value ||
+      selectedProduct.ProductID ||
+      selectedProduct.ProductSaleID ||
+      selectedProduct.ID;
 
-  // ✅ CHỈ ĐÁNH DẤU NẾU PRODUCTID THAY ĐỔI
-  const original = this.originalInventoryRelatedData.get(rowKey);
-  if (original && original.ProductID !== newProductID) {
-    this.hasInventoryRelatedChange = true;
-    console.log('🟡 ProductID changed:', {
-      rowKey,
-      old: original.ProductID,
-      new: newProductID
-    });
-  }
-
-  let totalInventory = selectedProduct.TotalInventory ??
-                      selectedProduct.TotalQuantityLast ??
-                      0;
-
-  if (!totalInventory || totalInventory === 0) {
-    const fullProduct = this.productOptions.find(
-      (p: any) =>
-        (p.value === newProductID) ||
-        (p.ProductID === newProductID) ||
-        (p.ProductSaleID === newProductID)
-    );
-    if (fullProduct) {
-      totalInventory = fullProduct.TotalInventory ?? fullProduct.TotalQuantityLast ?? 0;
+    // ✅ CHỈ ĐÁNH DẤU NẾU PRODUCTID THAY ĐỔI
+    const original = this.originalInventoryRelatedData.get(rowKey);
+    if (original && original.ProductID !== newProductID) {
+      this.hasInventoryRelatedChange = true;
+      console.log('🟡 ProductID changed:', {
+        rowKey,
+        old: original.ProductID,
+        new: newProductID,
+      });
     }
+
+    let totalInventory =
+      selectedProduct.TotalInventory ?? selectedProduct.TotalQuantityLast ?? 0;
+
+    if (!totalInventory || totalInventory === 0) {
+      const fullProduct = this.productOptions.find(
+        (p: any) =>
+          p.value === newProductID ||
+          p.ProductID === newProductID ||
+          p.ProductSaleID === newProductID
+      );
+      if (fullProduct) {
+        totalInventory =
+          fullProduct.TotalInventory ?? fullProduct.TotalQuantityLast ?? 0;
+      }
+    }
+
+    row.update({
+      ProductID: newProductID,
+      ProductCode: selectedProduct.ProductCode || '',
+      ProductNewCode: selectedProduct.ProductNewCode || '',
+      Unit: selectedProduct.Unit || '',
+      TotalInventory: totalInventory,
+      ProductName: selectedProduct.ProductName || '',
+      // ✅ XÓA ChosenInventoryProject KHI PRODUCT THAY ĐỔI
+      ChosenInventoryProject: '',
+      ProductCodeExport: '',
+    });
+
+    this.showProductPopup = false;
+    this.currentEditingCell = null;
   }
-
-  row.update({
-    ProductID: newProductID,
-    ProductCode: selectedProduct.ProductCode || '',
-    ProductNewCode: selectedProduct.ProductNewCode || '',
-    Unit: selectedProduct.Unit || '',
-    TotalInventory: totalInventory,
-    ProductName: selectedProduct.ProductName || '',
-    // ✅ XÓA ChosenInventoryProject KHI PRODUCT THAY ĐỔI
-    ChosenInventoryProject: '',
-    ProductCodeExport: ''
-  });
-
-  this.showProductPopup = false;
-  this.currentEditingCell = null;
-}
 
   // Handle Project Selection
   onProjectSelected(selectedProject: any) {
-  if (!this.currentEditingCell) return;
+    if (!this.currentEditingCell) return;
 
-  const row = this.currentEditingCell.getRow();
-  const rowData = row.getData();
-  const rowKey = rowData.ID || rowData.ChildID || row.getPosition();
+    const row = this.currentEditingCell.getRow();
+    const rowData = row.getData();
+    const rowKey = rowData.ID || rowData.ChildID || row.getPosition();
 
-  const oldProjectID = rowData.ProjectID;
-  const newProjectID = selectedProject.value || selectedProject.ID;
+    const oldProjectID = rowData.ProjectID;
+    const newProjectID = selectedProject.value || selectedProject.ID;
 
-  // ✅ CHỈ ĐÁNH DẤU NẾU PROJECTID THAY ĐỔI
-  const original = this.originalInventoryRelatedData.get(rowKey);
-  if (original && original.ProjectID !== newProjectID) {
-    this.hasInventoryRelatedChange = true;
-    console.log('🟡 ProjectID changed:', {
-      rowKey,
-      old: original.ProjectID,
-      new: newProjectID
+    // ✅ CHỈ ĐÁNH DẤU NẾU PROJECTID THAY ĐỔI
+    const original = this.originalInventoryRelatedData.get(rowKey);
+    if (original && original.ProjectID !== newProjectID) {
+      this.hasInventoryRelatedChange = true;
+      console.log('🟡 ProjectID changed:', {
+        rowKey,
+        old: original.ProjectID,
+        new: newProjectID,
+      });
+    }
+
+    const projectLabel =
+      selectedProject.label || selectedProject.ProjectName || '';
+    row.update({
+      ProjectID: newProjectID,
+      ProjectCodeExport: selectedProject.ProjectCode || '',
+      InventoryProjectIDs: [newProjectID],
+      ProjectName: projectLabel,
+      ProjectNameText: projectLabel,
+      // ✅ XÓA ChosenInventoryProject KHI PROJECT THAY ĐỔI
+      ChosenInventoryProject: '',
+      ProductCodeExport: '',
     });
+
+    this.showProjectPopup = false;
+    this.currentEditingCell = null;
   }
-
-  const projectLabel = selectedProject.label || selectedProject.ProjectName || '';
-  row.update({
-    ProjectID: newProjectID,
-    ProjectCodeExport: selectedProject.ProjectCode || '',
-    InventoryProjectIDs: [newProjectID],
-    ProjectName: projectLabel,
-    ProjectNameText: projectLabel,
-    // ✅ XÓA ChosenInventoryProject KHI PROJECT THAY ĐỔI
-    ChosenInventoryProject: '',
-    ProductCodeExport: ''
-  });
-
-  this.showProjectPopup = false;
-  this.currentEditingCell = null;
-}
 
   // Handle Popup Close
   onPopupClosed() {
@@ -2220,26 +2230,27 @@ addRow() {
               formatter: () =>
                 `<i class="fas fa-times text-danger cursor-pointer delete-btn" title="Xóa dòng"></i>`,
               cellClick: (e, cell) => {
-  if ((e.target as HTMLElement).classList.contains('fas')) {
-    this.modal.confirm({
-      nzTitle: 'Xác nhận xóa',
-      nzContent: 'Bạn có chắc chắn muốn xóa không?',
-      nzOkText: 'Đồng ý',
-      nzCancelText: 'Hủy',
-      nzOnOk: () => {
-        const row = cell.getRow();
-        const rowData = row.getData();
-        if (rowData['ID']) {
-          this.deletedDetailIds.push(rowData['ID']);
-        }
-        row.delete();
+                if ((e.target as HTMLElement).classList.contains('fas')) {
+                  this.modal.confirm({
+                    nzTitle: 'Xác nhận xóa',
+                    nzContent: 'Bạn có chắc chắn muốn xóa không?',
+                    nzOkText: 'Đồng ý',
+                    nzCancelText: 'Hủy',
+                    nzOnOk: () => {
+                      const row = cell.getRow();
+                      const rowData = row.getData();
+                      if (rowData['ID']) {
+                        this.deletedDetailIds.push(rowData['ID']);
+                      }
+                      row.delete();
 
-        // ✅ XÓA ROW = THAY ĐỔI INVENTORY
-        this.hasInventoryRelatedChange = true;
-        console.log('🟡 Row deleted - inventory related change');
-      },
-    });
-  }}
+                      // ✅ XÓA ROW = THAY ĐỔI INVENTORY
+                      this.hasInventoryRelatedChange = true;
+                      console.log('🟡 Row deleted - inventory related change');
+                    },
+                  });
+                }
+              },
             },
             {
               title: 'STT',
@@ -2327,29 +2338,30 @@ addRow() {
               headerHozAlign: 'center',
               editor: 'input',
               cellEdited: (cell) => {
-            const row = cell.getRow();
-            const rowData = row.getData();
-            const rowKey = rowData['ID'] || rowData['ChildID'] || row.getPosition();
+                const row = cell.getRow();
+                const rowData = row.getData();
+                const rowKey =
+                  rowData['ID'] || rowData['ChildID'] || row.getPosition();
 
-            // ✅ KIỂM TRA XEM QTY CÓ THAY ĐỔI KHÔNG
-            const original = this.originalInventoryRelatedData.get(rowKey);
-            const newQty = parseFloat(rowData['Qty'] || 0);
+                // ✅ KIỂM TRA XEM QTY CÓ THAY ĐỔI KHÔNG
+                const original = this.originalInventoryRelatedData.get(rowKey);
+                const newQty = parseFloat(rowData['Qty'] || 0);
 
-            if (original && original.Qty !== newQty) {
-              this.hasInventoryRelatedChange = true;
-              console.log('🟡 Qty changed:', {
-                rowKey,
-                old: original.Qty,
-                new: newQty
-              });
-            }
+                if (original && original.Qty !== newQty) {
+                  this.hasInventoryRelatedChange = true;
+                  console.log('🟡 Qty changed:', {
+                    rowKey,
+                    old: original.Qty,
+                    new: newQty,
+                  });
+                }
 
-            // ✅ XÓA ChosenInventoryProject KHI QTY THAY ĐỔI
-            row.update({
-              ChosenInventoryProject: '',
-              ProductCodeExport: ''
-            });
-          },
+                // ✅ XÓA ChosenInventoryProject KHI QTY THAY ĐỔI
+                row.update({
+                  ChosenInventoryProject: '',
+                  ProductCodeExport: '',
+                });
+              },
             },
             {
               title: 'SL còn lại',
@@ -3909,221 +3921,253 @@ addRow() {
   //     });
   //   }
   // }
-async saveDataBillExport() {
-  const formValues = this.validateForm.getRawValue();
-  const status = formValues.Status || this.validateForm.value.Status || this.newBillExport.Status || 0;
-  const billID = this.newBillExport.Id || 0;
-
-  // ✅ CHECK PERMISSION
-  if (billID > 0 || this.id > 0) {
-    if (!this.permissionService.hasPermission('N27,N1,N33,N34,N69')) {
-      this.showErrorNotification('Bạn không có quyền thực hiện hành động này!');
+  async saveDataBillExport() {
+    const isValid = await this.checkSerial();
+    if (!isValid) {
+      this.notification.warning(
+        NOTIFICATION_TITLE.warning,
+        'Số lượng serial không đủ, vui lòng kiểm tra lại'
+      );
       return;
     }
-  }
 
-  // ✅ VALIDATE FORM
-  if (!this.validateForm.valid) {
-    this.notification.warning(
-      NOTIFICATION_TITLE.warning,
-      'Vui lòng điền đầy đủ thông tin bắt buộc và kiểm tra lỗi!'
-    );
-    this.validateForm.markAllAsTouched();
-    Object.values(this.validateForm.controls).forEach((control) => {
-      if (control.invalid) {
-        control.markAsDirty();
-        control.updateValueAndValidity({ onlySelf: true });
+    const formValues = this.validateForm.getRawValue();
+    const status =
+      formValues.Status ||
+      this.validateForm.value.Status ||
+      this.newBillExport.Status ||
+      0;
+    const billID = this.newBillExport.Id || 0;
+
+    // ✅ CHECK PERMISSION
+    if (billID > 0 || this.id > 0) {
+      if (!this.permissionService.hasPermission('N27,N1,N33,N34,N69')) {
+        this.showErrorNotification(
+          'Bạn không có quyền thực hiện hành động này!'
+        );
+        return;
       }
+    }
+
+    // ✅ VALIDATE FORM
+    if (!this.validateForm.valid) {
+      this.notification.warning(
+        NOTIFICATION_TITLE.warning,
+        'Vui lòng điền đầy đủ thông tin bắt buộc và kiểm tra lỗi!'
+      );
+      this.validateForm.markAllAsTouched();
+      Object.values(this.validateForm.controls).forEach((control) => {
+        if (control.invalid) {
+          control.markAsDirty();
+          control.updateValueAndValidity({ onlySelf: true });
+        }
+      });
+      return;
+    }
+
+    const formValidation = this.validateFormData();
+    if (!formValidation.isValid) {
+      this.notification.warning(
+        NOTIFICATION_TITLE.error,
+        formValidation.message
+      );
+      return;
+    }
+
+    const billExportDetailsFromTable =
+      this.table_billExportDetail?.getData() || [];
+
+    if (billExportDetailsFromTable.length === 0) {
+      this.notification.warning(
+        NOTIFICATION_TITLE.warning,
+        'Vui lòng thêm ít nhất một sản phẩm vào bảng!'
+      );
+      return;
+    }
+
+    // ✅ CHỈ VALIDATE NẾU:
+    // 1. Tạo mới HOẶC
+    // 2. Sửa + CÓ THAY ĐỔI INVENTORY-RELATED FIELDS HOẶC
+    // 3. Sửa + CÓ XÓA ROW
+    const isEditMode = this.isCheckmode || billID > 0 || this.id > 0;
+    const needInventoryValidation =
+      !isEditMode || // Tạo mới → luôn validate
+      this.hasInventoryRelatedChange || // ✅ Sửa + có thay đổi ProductID/Qty/ProjectID → validate
+      this.deletedDetailIds.length > 0; // Sửa + có xóa row → validate
+
+    console.log('🔍 Validation decision:', {
+      isEditMode,
+      hasInventoryRelatedChange: this.hasInventoryRelatedChange, // ✅ Chỉ track inventory fields
+      hasDeletedRows: this.deletedDetailIds.length > 0,
+      needInventoryValidation,
+      status,
     });
-    return;
-  }
 
-  const formValidation = this.validateFormData();
-  if (!formValidation.isValid) {
-    this.notification.warning(NOTIFICATION_TITLE.error, formValidation.message);
-    return;
-  }
+    // ✅ VALIDATE INVENTORY NẾU CẦN
+    if (needInventoryValidation && (status === 2 || status === 6)) {
+      console.log('🟢 Loading inventory for validation...');
 
-  const billExportDetailsFromTable = this.table_billExportDetail?.getData() || [];
+      // Load inventory cho các sản phẩm chưa có trong cache
+      const loadTasks = billExportDetailsFromTable
+        .filter((row: any) => {
+          const productID = row.ProductID || 0;
+          return (
+            productID > 0 && !this.productAvailableInventoryMap.has(productID)
+          );
+        })
+        .map((row: any) => this.loadInventoryForValidation(row));
 
-  if (billExportDetailsFromTable.length === 0) {
-    this.notification.warning(
-      NOTIFICATION_TITLE.warning,
-      'Vui lòng thêm ít nhất một sản phẩm vào bảng!'
-    );
-    return;
-  }
+      if (loadTasks.length > 0) {
+        await Promise.all(loadTasks);
+        console.log(
+          '🟢 Inventory loaded:',
+          Array.from(this.productAvailableInventoryMap.entries())
+        );
+      }
 
-  // ✅ CHỈ VALIDATE NẾU:
-  // 1. Tạo mới HOẶC
-  // 2. Sửa + CÓ THAY ĐỔI INVENTORY-RELATED FIELDS HOẶC
-  // 3. Sửa + CÓ XÓA ROW
-  const isEditMode = this.isCheckmode || (billID > 0) || (this.id > 0);
-  const needInventoryValidation =
-    !isEditMode ||                           // Tạo mới → luôn validate
-    this.hasInventoryRelatedChange ||        // ✅ Sửa + có thay đổi ProductID/Qty/ProjectID → validate
-    this.deletedDetailIds.length > 0;        // Sửa + có xóa row → validate
-
-  console.log('🔍 Validation decision:', {
-    isEditMode,
-    hasInventoryRelatedChange: this.hasInventoryRelatedChange, // ✅ Chỉ track inventory fields
-    hasDeletedRows: this.deletedDetailIds.length > 0,
-    needInventoryValidation,
-    status
-  });
-
-  // ✅ VALIDATE INVENTORY NẾU CẦN
-  if (needInventoryValidation && (status === 2 || status === 6)) {
-    console.log('🟢 Loading inventory for validation...');
-
-    // Load inventory cho các sản phẩm chưa có trong cache
-    const loadTasks = billExportDetailsFromTable
-      .filter((row: any) => {
-        const productID = row.ProductID || 0;
-        return productID > 0 && !this.productAvailableInventoryMap.has(productID);
-      })
-      .map((row: any) => this.loadInventoryForValidation(row));
-
-    if (loadTasks.length > 0) {
-      await Promise.all(loadTasks);
-      console.log('🟢 Inventory loaded:',
-        Array.from(this.productAvailableInventoryMap.entries())
+      // ✅ VALIDATE INVENTORY
+      const inventoryValidation = this.validateInventoryStock();
+      if (!inventoryValidation.isValid) {
+        this.showErrorNotification(inventoryValidation.message);
+        return;
+      }
+    } else {
+      console.log(
+        '🟡 Skip FE inventory validation - No inventory-related changes detected'
       );
     }
 
-    // ✅ VALIDATE INVENTORY
-    const inventoryValidation = this.validateInventoryStock();
-    if (!inventoryValidation.isValid) {
-      this.showErrorNotification(inventoryValidation.message);
-      return;
-    }
-  } else {
-    console.log('🟡 Skip FE inventory validation - No inventory-related changes detected');
-  }
+    // ✅ VALIDATE PHIẾU MƯỢN
+    if (status === 7 || status === 0) {
+      for (const row of billExportDetailsFromTable) {
+        if (!row.ExpectReturnDate) {
+          this.notification.warning(
+            'Thông báo',
+            `Vui lòng nhập Ngày dự kiến trả dòng [${row.STT}]`
+          );
+          return;
+        }
 
-  // ✅ VALIDATE PHIẾU MƯỢN
-  if (status === 7 || status === 0) {
-    for (const row of billExportDetailsFromTable) {
-      if (!row.ExpectReturnDate) {
-        this.notification.warning(
-          'Thông báo',
-          `Vui lòng nhập Ngày dự kiến trả dòng [${row.STT}]`
-        );
-        return;
-      }
-
-      if (!row.ProjectID || row.ProjectID <= 0) {
-        this.notification.warning(
-          'Thông báo',
-          `Vui lòng nhập Dự án dòng [${row.STT}]`
-        );
-        return;
+        if (!row.ProjectID || row.ProjectID <= 0) {
+          this.notification.warning(
+            'Thông báo',
+            `Vui lòng nhập Dự án dòng [${row.STT}]`
+          );
+          return;
+        }
       }
     }
-  }
 
-  // ✅ CHUẨN BỊ PAYLOAD (giữ nguyên như cũ)
-  const wareHouseCode = this.dataCbbProductGroup.find(
-    (p: any) => p.ID === formValues.KhoTypeID
-  );
+    // ✅ CHUẨN BỊ PAYLOAD (giữ nguyên như cũ)
+    const wareHouseCode = this.dataCbbProductGroup.find(
+      (p: any) => p.ID === formValues.KhoTypeID
+    );
 
-  const payload = {
-    BillExport: this.isCheckmode ? {
-      ID: this.newBillExport.Id,
-      Code: formValues.Code,
-      TypeBill: false,
-      SupplierID: formValues.SupplierID,
-      CustomerID: formValues.CustomerID,
-      UserID: formValues.UserID,
-      SenderID: formValues.SenderID,
-      StockID: this.newBillExport.AddressStockID,
-      Description: '',
-      Address: formValues.Address,
-      Status: formValues.Status,
-      GroupID: this.newBillExport.GroupID,
-      WarehouseType: this.newBillExport.WarehouseType,
-      KhoTypeID: formValues.KhoTypeID,
-      UpdatedDate: new Date(),
-      CreatDate: formValues.CreatDate,
-      ProductType: formValues.ProductType,
-      AddressStockID: this.newBillExport.AddressStockID,
-      WarehouseID: this.newBillExport.WarehouseID,
-      RequestDate: formValues.RequestDate,
-      BillDocumentExportType: 2,
-    } : {
-      ID: this.newBillExport.Id || 0,
-      Code: formValues.Code,
-      TypeBill: false,
-      SupplierID: formValues.SupplierID,
-      CustomerID: formValues.CustomerID,
-      UserID: formValues.UserID,
-      SenderID: formValues.SenderID,
-      StockID: this.newBillExport.AddressStockID,
-      Description: '',
-      Address: formValues.Address,
-      CreatDate: new Date(),
-      IsApproved: false,
-      Status: formValues.Status,
-      GroupID: this.newBillExport.GroupID,
-      WarehouseType: wareHouseCode ? wareHouseCode.ProductGroupName : '',
-      KhoTypeID: formValues.KhoTypeID,
-      CreatedDate: formValues.CreatDate,
-      UpdatedDate: new Date(),
-      ProductType: formValues.ProductType,
-      AddressStockID: this.newBillExport.AddressStockID,
-      WarehouseID: this.newBillExport.WarehouseID,
-      IsPrepared: false,
-      IsReceived: false,
-      RequestDate: formValues.RequestDate,
-      BillDocumentExportType: 2,
-      IsDeleted: false,
-    },
-    billExportDetail: this.mapTableDataToBillExportDetails(billExportDetailsFromTable),
-    DeletedDetailIds: this.deletedDetailIds || [],
-  };
+    const payload = {
+      BillExport: this.isCheckmode
+        ? {
+            ID: this.newBillExport.Id,
+            Code: formValues.Code,
+            TypeBill: false,
+            SupplierID: formValues.SupplierID,
+            CustomerID: formValues.CustomerID,
+            UserID: formValues.UserID,
+            SenderID: formValues.SenderID,
+            StockID: this.newBillExport.AddressStockID,
+            Description: '',
+            Address: formValues.Address,
+            Status: formValues.Status,
+            GroupID: this.newBillExport.GroupID,
+            WarehouseType: this.newBillExport.WarehouseType,
+            KhoTypeID: formValues.KhoTypeID,
+            UpdatedDate: new Date(),
+            CreatDate: formValues.CreatDate,
+            ProductType: formValues.ProductType,
+            AddressStockID: this.newBillExport.AddressStockID,
+            WarehouseID: this.newBillExport.WarehouseID,
+            RequestDate: formValues.RequestDate,
+            BillDocumentExportType: 2,
+          }
+        : {
+            ID: this.newBillExport.Id || 0,
+            Code: formValues.Code,
+            TypeBill: false,
+            SupplierID: formValues.SupplierID,
+            CustomerID: formValues.CustomerID,
+            UserID: formValues.UserID,
+            SenderID: formValues.SenderID,
+            StockID: this.newBillExport.AddressStockID,
+            Description: '',
+            Address: formValues.Address,
+            CreatDate: new Date(),
+            IsApproved: false,
+            Status: formValues.Status,
+            GroupID: this.newBillExport.GroupID,
+            WarehouseType: wareHouseCode ? wareHouseCode.ProductGroupName : '',
+            KhoTypeID: formValues.KhoTypeID,
+            CreatedDate: formValues.CreatDate,
+            UpdatedDate: new Date(),
+            ProductType: formValues.ProductType,
+            AddressStockID: this.newBillExport.AddressStockID,
+            WarehouseID: this.newBillExport.WarehouseID,
+            IsPrepared: false,
+            IsReceived: false,
+            RequestDate: formValues.RequestDate,
+            BillDocumentExportType: 2,
+            IsDeleted: false,
+          },
+      billExportDetail: this.mapTableDataToBillExportDetails(
+        billExportDetailsFromTable
+      ),
+      DeletedDetailIds: this.deletedDetailIds || [],
+    };
 
-  console.log('🟢 Sending payload to API');
+    console.log('🟢 Sending payload to API');
 
-  // ✅ GỬI LÊN API
-  this.billExportService.saveBillExport(payload).subscribe({
-    next: (res: any) => {
-      if (res.status === 1) {
-        this.notification.success(
-          NOTIFICATION_TITLE.success,
-          this.isCheckmode ? 'Cập nhật thành công!' : 'Thêm mới thành công!'
-        );
+    // ✅ GỬI LÊN API
+    this.billExportService.saveBillExport(payload).subscribe({
+      next: (res: any) => {
+        if (res.status === 1) {
+          this.notification.success(
+            NOTIFICATION_TITLE.success,
+            this.isCheckmode ? 'Cập nhật thành công!' : 'Thêm mới thành công!'
+          );
 
-        // ✅ RESET FLAG SAU KHI LƯU THÀNH CÔNG
-        this.hasInventoryRelatedChange = false;
-        // Update original data
-        const currentData = this.table_billExportDetail?.getData() || [];
-        this.originalInventoryRelatedData.clear();
-        currentData.forEach((row: any, index: number) => {
-          const rowKey = row.ID || index;
-          this.originalInventoryRelatedData.set(rowKey, {
-            ProductID: row.ProductID || 0,
-            Qty: row.Qty || 0,
-            ProjectID: row.ProjectID || 0,
-            POKHDetailID: (row.POKHDetailIDActual || row.POKHDetailID || 0),
+          // ✅ RESET FLAG SAU KHI LƯU THÀNH CÔNG
+          this.hasInventoryRelatedChange = false;
+          // Update original data
+          const currentData = this.table_billExportDetail?.getData() || [];
+          this.originalInventoryRelatedData.clear();
+          currentData.forEach((row: any, index: number) => {
+            const rowKey = row.ID || index;
+            this.originalInventoryRelatedData.set(rowKey, {
+              ProductID: row.ProductID || 0,
+              Qty: row.Qty || 0,
+              ProjectID: row.ProjectID || 0,
+              POKHDetailID: row.POKHDetailIDActual || row.POKHDetailID || 0,
+            });
           });
-        });
 
-        this.closeModal();
-      } else {
-        this.notification.warning(
-          NOTIFICATION_TITLE.warning,
-          res.message || `Không thể ${this.isCheckmode ? 'cập nhật' : 'thêm'} phiếu xuất!`
-        );
-      }
-    },
-    error: (err: any) => {
-      const backendMsg = err?.error?.message || err?.error?.error || err?.message ||
-                        `Có lỗi xảy ra khi ${this.isCheckmode ? 'cập nhật' : 'thêm mới'}!`;
-      this.showErrorNotification(backendMsg);
-      console.error('API error:', err);
-    },
-  });
-}
+          this.closeModal();
+        } else {
+          this.notification.warning(
+            NOTIFICATION_TITLE.warning,
+            res.message ||
+              `Không thể ${this.isCheckmode ? 'cập nhật' : 'thêm'} phiếu xuất!`
+          );
+        }
+      },
+      error: (err: any) => {
+        const backendMsg =
+          err?.error?.message ||
+          err?.error?.error ||
+          err?.message ||
+          `Có lỗi xảy ra khi ${this.isCheckmode ? 'cập nhật' : 'thêm mới'}!`;
+        this.showErrorNotification(backendMsg);
+        console.error('API error:', err);
+      },
+    });
+  }
 
   private async loadInventoryForValidation(rowData: any): Promise<void> {
     const qty = Number(rowData.Qty || 0);
@@ -4180,16 +4224,17 @@ async saveDataBillExport() {
   }
   private mapTableDataToBillExportDetails(tableData: any[]): any[] {
     return tableData.map((row: any, index: number) => {
-       const rowKey = row.ID || index;
-    const original = this.originalInventoryRelatedData.get(rowKey);
+      const rowKey = row.ID || index;
+      const original = this.originalInventoryRelatedData.get(rowKey);
 
-    // Check nếu có thay đổi inventory-related fields
-    const hasInventoryChange = original && (
-      original.ProductID !== (row.ProductID || 0) ||
-      original.Qty !== (row.Qty || 0) ||
-      original.ProjectID !== (row.ProjectID || 0) ||
-      original.POKHDetailID !== (row.POKHDetailIDActual || row.POKHDetailID || 0)
-    );
+      // Check nếu có thay đổi inventory-related fields
+      const hasInventoryChange =
+        original &&
+        (original.ProductID !== (row.ProductID || 0) ||
+          original.Qty !== (row.Qty || 0) ||
+          original.ProjectID !== (row.ProjectID || 0) ||
+          original.POKHDetailID !==
+            (row.POKHDetailIDActual || row.POKHDetailID || 0));
       return {
         ID: row.ID || 0,
         ProductID: row.ProductID || 0,

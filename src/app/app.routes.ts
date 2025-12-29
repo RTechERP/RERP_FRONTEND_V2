@@ -191,6 +191,7 @@ import { ProductSaleNewComponent } from './pages/old/Sale/ProductSale/product-sa
 import { HistoryBorrowSaleNewComponent } from './pages/old/Sale/HistoryBorrowSale/history-borrow-sale-new/history-borrow-sale-new.component';
 import { MaterialDetailOfProductRtcComponent } from './pages/old/inventory-demo/material-detail-of-product-rtc/material-detail-of-product-rtc.component';
 import { ChiTietSanPhamSaleComponent } from './pages/old/Sale/chi-tiet-san-pham-sale/chi-tiet-san-pham-sale.component';
+import { PokhSlickgridComponent } from './pages/old/pokh-slickgrid/pokh-slickgrid.component';
 
 export const routes: Routes = [
     {

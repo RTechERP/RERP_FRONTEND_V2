@@ -262,7 +262,7 @@
 
                             <nz-form-label class="fs-12" style="font-size: 12px;">Khách hàng</nz-form-label>
                         <nz-select [(ngModel)]="customerId" [ngModelOptions]="{standalone: true}" nzShowSearch nzAllowClear
-                            nzSize="small" nzPlaceHolder="Khách hàng" style="width: 220px;">
+                            nzSize="small" nzPlaceHolder="Khách hàng" style="width: 500px;">
                             @for (item of customers; track $index) {
                             <nz-option nzCustomContent="true" [nzLabel]="item.CustomerCode + ' - ' + item.CustomerName" [nzValue]="item.ID">
                                 {{ item.CustomerCode + " - " + item.CustomerName }}

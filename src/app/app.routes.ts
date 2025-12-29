@@ -180,6 +180,7 @@ import { OrgChartRtcManagementComponent } from './pages/hrm/org-chart-rtc/org-ch
 import { TaxCompanyComponent } from './pages/old/KETOAN/tax-company/tax-company.component';
 import { SummaryProjectJoinComponent } from './pages/person/summary-project-join/summary-project-join.component';
 import { ProjectSlickGrid2Component } from './pages/project-slick-grid2/project-slick-grid2.component';
+import { ProjectPartListSlickGridComponent } from './pages/project-part-list-slick-grid/project-part-list-slick-grid.component';
 import { InventoryNewComponent } from './pages/old/Sale/Inventory/inventory-new/inventory-new.component';
 import { BillImportTechnicalNewComponent } from './pages/old/bill-import-technical/bill-import-technical-new/bill-import-technical-new.component';
 import { InventoryDemoNewComponent } from './pages/old/inventory-demo/inventory-demo-new/inventory-demo-new.component';

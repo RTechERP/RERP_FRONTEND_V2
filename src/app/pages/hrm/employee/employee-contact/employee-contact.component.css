@@ -47,8 +47,40 @@
   }
   
   /* Center title only on mobile */
-  .card-header h4 {
+  .card-header h6 {
     text-align: center !important;
     width: 100%;
+  }
+  
+  /* Mobile form layout */
+  .card-header form {
+    width: 100%;
+  }
+  
+  /* Department select - full width on mobile */
+  .card-header nz-select {
+    flex: 0 0 100%;
+    width: 100% !important;
+    min-width: 100% !important;
+  }
+  
+  /* Search input group - takes remaining space */
+  .card-header .input-group {
+    flex: 1 1 0;
+    min-width: 0;
+  }
+  
+  .card-header .input-group input {
+    flex: 1;
+  }
+  
+  /* Download button - fixed width, same row as search */
+  .card-header form > button[type="button"] {
+    flex: 0 0 auto;
+  }
+  
+  /* View mode buttons - same row as search and download */
+  .card-header .btn-group {
+    flex: 0 0 auto;
   }
 }

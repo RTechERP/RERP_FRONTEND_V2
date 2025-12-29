@@ -518,10 +518,7 @@ export const routes: Routes = [
             { path: 'assign-work', component: AssignWorkComponent, canActivate: [authGuard] },
             { path: 'poncc', component: PonccNewComponent, canActivate: [authGuard] },
             { path: 'inventory-project', component: InventoryProjectComponent, canActivate: [authGuard] },
-            // { path: 'purchase-request', component: ProjectPartListPurchaseRequestSlickGridComponent, canActivate: [authGuard] },
-
-
-
+            { path: 'purchase-request', component: ProjectPartListPurchaseRequestSlickGridComponent, canActivate: [authGuard] },
 
             //Danh mục chung
             { path: 'training-registration', component: TrainingRegistrationComponent, canActivate: [authGuard] },

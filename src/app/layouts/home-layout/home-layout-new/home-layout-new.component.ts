@@ -116,6 +116,18 @@ export class HomeLayoutNewComponent implements OnInit {
     }
 
 
+    sortBySTTImmutable(items: any[]): any[] {
+        return [...items]
+            .sort((a, b) => (a.STT ?? 0) - (b.STT ?? 0))
+            .map(item => ({
+                ...item,
+                Children: item.Children?.length
+                    ? this.sortBySTTImmutable(item.Children)
+                    : []
+            }));
+    }
+
+
     getMenus() {
         this.menuAppService.getAll().subscribe({
             next: (response) => {
@@ -149,10 +161,12 @@ export class HomeLayoutNewComponent implements OnInit {
                     }
                 });
 
-                console.log('this.menus:', this.menus);
+                // console.log('this.menus:', this.menus);
+
+                this.menus = this.sortBySTTImmutable(this.menus);
 
                 this.menuApproves = this.menus.find((x) => x.Code == 'appvovedperson');
-                console.log('this.menuApproves:', this.menuApproves);
+                // console.log('this.menuApproves:', this.menuApproves);
 
                 var pesons = this.menus.find((x) => x.Code == 'person');
                 this.menuPersons = pesons.Children.filter((x: any) => x.Code == 'registerpayroll' || x.Code == 'dailyreport' || x.Code == 'registercommon');
@@ -160,7 +174,7 @@ export class HomeLayoutNewComponent implements OnInit {
                 this.menuWeekplans = pesons.Children.find((x: any) => x.Code == 'planweek');
 
                 this.menuQickAcesss = this.menus.find((x) => x.Code == 'M4');
-                // console.log('this.menuQickAcesss:', this.menuQickAcesss);
+                console.log('this.menuQickAcesss:', this.menuQickAcesss);
                 // console.log('this.menuWeekplans:', this.menuWeekplans);
 
             },

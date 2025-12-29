@@ -55,15 +55,51 @@
                 <ul class="list-group list-group-flush">
                     @for (item of menuQickAcesss.Children; track $index) {
                     <li class="list-group-item border-0 py-1"
-                        *ngIf="item.Code =='M136' || item.Code == 'M137' || item.Code == 'M139'">
+                        *ngIf="item.Code =='M79' || item.Code =='M136' || item.Code =='M137' || item.Code =='M139'">
                         <a [attr.href]="item.Router ? item.Router : null"
                             (click)="handleClickLink($event, item.Router, item.Title)">
-                            <img [src]="item.Icon">
+                            <img [src]="item.Icon" width="5%">
                             <span> {{item.Title}}</span>
                         </a>
+                        <ul class="list-group">
+                            @for (c of item.Children; track $index) {
+                            <li class="list-group-item border-0 py-1"
+                                [ngClass]="{'border-bottom':$index < item.Children.length - 1,'':$index == item.Children.length - 1}">
+                                <a [attr.href]="c.Router ? c.Router : null"
+                                    (click)="handleClickLink($event, c.Router, c.Title)">
+                                    <img [src]="c.Icon" width="5%">
+                                    <span> {{c.Title}}</span>
+                                </a>
+                            </li>
+                            }
+                        </ul>
                     </li>
                     }
                 </ul>
+
+                <!-- <ul class="list-group list-group-flush">
+                    @for (item of menuQickAcesss; track $index) {
+                    <li class="list-group-item border-0 border-bottom py-1">
+                        <a class=" text-dark" [attr.href]="item.Router ? item.Router : null"
+                            (click)="handleClickLink($event, item.Router, item.Title)">
+                            <img [src]="item.Icon">
+                            <span>{{item.Title}}</span>
+                        </a>
+                        <ul class="list-group">
+                            @for (c of item.Children; track $index) {
+                            <li class="list-group-item border-0 py-1"
+                                [ngClass]="{'border-bottom':$index < item.Children.length - 1,'':$index == item.Children.length - 1}">
+                                <a [attr.href]="c.Router ? c.Router : null"
+                                    (click)="handleClickLink($event, c.Router, c.Title)">
+                                    <img [src]="c.Icon">
+                                    <span> {{c.Title}}</span>
+                                </a>
+                            </li>
+                            }
+                        </ul>
+                    </li>
+                    }
+                </ul> -->
             </div>
         </div>
 

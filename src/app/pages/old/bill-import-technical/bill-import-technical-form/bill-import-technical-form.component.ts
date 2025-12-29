@@ -362,13 +362,16 @@ export class BillImportTechnicalFormComponent implements OnInit, AfterViewInit {
     });
   }
   getWarehouse() {
+    // Lưu warehouseID từ input trước khi gọi API (để không bị mất khi dataEdit được patch)
+    const inputWarehouseID = this.warehouseID;
+    
     this.billImportTechnicalService.getWarehouse().subscribe((res: any) => {
       const list = res.data || [];
       this.warehouses = list;
       console.log('Warehouse List:', list);
 
-      // Ưu tiên dùng warehouseID nếu đã được truyền vào
-      let currentId = this.warehouseID;
+      // Ưu tiên dùng warehouseID từ input nếu đã được truyền vào
+      let currentId = inputWarehouseID && inputWarehouseID > 0 ? inputWarehouseID : this.warehouseID;
 
       // Nếu không có warehouseID hoặc = 0, tìm theo WarehouseCode
       if (!currentId || currentId === 0) {
@@ -380,12 +383,22 @@ export class BillImportTechnicalFormComponent implements OnInit, AfterViewInit {
         currentId = currentWarehouse?.ID ?? 0;
       }
 
+      // Nếu vẫn không có, lấy từ dataEdit (nếu có)
+      if ((!currentId || currentId === 0) && this.dataEdit?.WarehouseID) {
+        currentId = this.dataEdit.WarehouseID;
+      }
+
       // Set WarehouseID và disable control để người dùng không thay đổi
       if (currentId > 0) {
-        this.formDeviceInfo.patchValue({ WarehouseID: currentId });
-        // Lưu giá trị WarehouseID vào biến instance để sử dụng khi lưu
-        this.warehouseID = currentId;
-        this.formDeviceInfo.get('WarehouseID')?.disable();
+        // Sử dụng setTimeout để đảm bảo form đã được khởi tạo và dataEdit đã được patch (nếu có)
+        setTimeout(() => {
+          // Luôn ưu tiên warehouseID từ input nếu có
+          const finalWarehouseID = inputWarehouseID && inputWarehouseID > 0 ? inputWarehouseID : currentId;
+          this.formDeviceInfo.patchValue({ WarehouseID: finalWarehouseID });
+          // Lưu giá trị WarehouseID vào biến instance để sử dụng khi lưu
+          this.warehouseID = finalWarehouseID;
+          this.formDeviceInfo.get('WarehouseID')?.disable();
+        }, 300);
       }
     });
   }
@@ -559,7 +572,22 @@ export class BillImportTechnicalFormComponent implements OnInit, AfterViewInit {
       this.isFormDisabled = true;
     }
 
+    // Load các lookup data trước
+    this.getRulepay();
+    this.getNCC();
+    this.getCustomer();
+    this.getDocumentImport();
+    this.getListEmployee();
+    this.getProductList();
+    this.getEmployeeApprove();
+    
+    // Load warehouse và set WarehouseID (phải load trước khi patch dataEdit)
+    this.getWarehouse();
+
     if (this.dataEdit) {
+      // Lưu warehouseID từ input trước khi patch dataEdit (để không bị override)
+      const inputWarehouseID = this.warehouseID;
+      
       this.formDeviceInfo.patchValue({
         ...this.dataEdit,
         CreatDate: this.dataEdit?.CreatDate
@@ -568,7 +596,23 @@ export class BillImportTechnicalFormComponent implements OnInit, AfterViewInit {
         DateRequestImport: this.dataEdit?.DateRequestImport
           ? DateTime.fromISO(this.dataEdit.DateRequestImport).toJSDate()
           : null,
+        // Ưu tiên warehouseID từ input nếu có, nếu không thì dùng từ dataEdit
+        WarehouseID: inputWarehouseID && inputWarehouseID > 0 ? inputWarehouseID : (this.dataEdit.WarehouseID || this.warehouseID),
       });
+      
+      // Restore warehouseID từ input để getWarehouse() sử dụng
+      if (inputWarehouseID && inputWarehouseID > 0) {
+        this.warehouseID = inputWarehouseID;
+      }
+      
+      // Đảm bảo WarehouseID được set lại sau khi patch (nếu warehouseID từ input đã được set)
+      if (inputWarehouseID && inputWarehouseID > 0) {
+        setTimeout(() => {
+          this.formDeviceInfo.patchValue({ WarehouseID: inputWarehouseID });
+          this.formDeviceInfo.get('WarehouseID')?.disable();
+        }, 300);
+      }
+      
       // Update column visibility after data is loaded
       setTimeout(() => {
         const billType = this.formDeviceInfo.get('BillTypeNew')?.value ?? 0;
@@ -594,14 +638,6 @@ export class BillImportTechnicalFormComponent implements OnInit, AfterViewInit {
     if (!this.dataEdit) {
       this.getNewCode();
     }
-    this.getRulepay();
-    this.getNCC();
-    this.getCustomer();
-    this.getDocumentImport();
-    this.getListEmployee();
-    this.getProductList();
-    this.getWarehouse();
-    this.getEmployeeApprove();
     // Set người nhận mặc định là user đang đăng nhập (chỉ khi tạo mới)
     const currentUser = this.appUserService.currentUser;
     if (currentUser?.ID && !this.dataEdit) {

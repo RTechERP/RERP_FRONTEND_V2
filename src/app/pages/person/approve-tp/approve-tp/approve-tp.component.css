@@ -1,5 +1,59 @@
-.fs-12 {
+:host {
+  font-size: 12px !important;
+}
+
+.tabulator {
   font-size: 12px;
+}
+
+.box {
+  height: 100%;
+  width: 100%;
+}
+
+.card {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  max-height: 93vh;
+  overflow: hidden;
+}
+
+.card-body {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+.card-body > div {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow: hidden;
+}
+
+.fs-12 {
+  font-size: 0.75rem;
+}
+
+.btn {
+  font-size: 0.75rem;
+}
+
+.reset {
+  all: revert;
+}
+
+:host ::ng-deep .tabulator-cell {
+  white-space: pre-wrap !important;
+  word-wrap: break-word !important;
+  overflow-wrap: break-word !important;
+  word-break: break-word !important;
+}
+
+.ant-splitter {
+  height: 94vh !important;
 }
 
 ::ng-deep .modal-fullscreen {
@@ -11,65 +65,5 @@
 ::ng-deep .modal-fullscreen .modal-content {
   height: 100vh;
   border-radius: 0;
-}
-
-::ng-deep .tabulator {
-  font-size: 12px !important;
-}
-
-::ng-deep .tabulator-header {
-  background-color: #f5f5f5;
-  font-weight: bold;
-  font-size: 12px !important;
-}
-
-::ng-deep .tabulator-col {
-  font-size: 12px !important;
-}
-
-::ng-deep .tabulator-col-title {
-  font-size: 12px !important;
-}
-
-::ng-deep .tabulator-row {
-  min-height: 30px;
-  font-size: 12px !important;
-}
-
-::ng-deep .tabulator-cell {
-  padding: 4px 8px;
-  font-size: 12px !important;
-}
-
-.ant-splitter {
-  height: 94vh !important;
-}
-
-::ng-deep .card.h-100 {
-  display: flex !important;
-  flex-direction: column !important;
-  height: 100% !important;
-}
-
-::ng-deep .ant-form-item {
-  margin-bottom: 4px !important;
-  display: flex !important;
-  flex-direction: row !important;
-  align-items: center !important;
-}
-
-::ng-deep .ant-form-item-label {
-  padding-bottom: 0 !important;
-  display: flex !important;
-  align-items: center !important;
-}
-
-::ng-deep .ant-form-item-label > label {
-  margin-bottom: 0 !important;
-  height: auto !important;
-}
-
-::ng-deep .ant-form-item-control {
-  flex: 1 !important;
 }
 

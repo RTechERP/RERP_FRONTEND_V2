@@ -71,6 +71,7 @@ import { FirmService } from '../../../general-category/firm/firm-service/firm.se
 import { EmployeeService } from '../../../hrm/employee/employee-service/employee.service';
 import { ProjectPartListService } from '../../../project/project-department-summary/project-department-summary-form/project-part-list/project-partlist-service/project-part-list-service.service';
 import { AppUserService } from '../../../../services/app-user.service';
+import { TbProductRtcFormComponent } from '../../../old/tb-product-rtc/tb-product-rtc-form/tb-product-rtc-form.component';
 
 
 @Component({
@@ -280,12 +281,15 @@ export class ProductRtcPurchaseRequestComponent implements OnInit, AfterViewInit
   ngAfterViewInit(): void { }
 
   // Disable các field không được phép chỉnh sửa
-  // Chỉ cho phép chỉnh sửa: CustomerID, TicketType, ProductRTCID, EmployeeBuyID, EmployeeRequestID, 
+  // Chỉ cho phép chỉnh sửa: TicketType, ProductRTCID, EmployeeBuyID, EmployeeRequestID, 
   // DateReturnExpected, DateRequest, UnitPrice, CurrencyID, Quantity, SupplierSaleID, Note
+  // CustomerID luôn luôn disable
   private disableReadOnlyFields() {
+    // Disable CustomerID luôn luôn
+    this.validateForm.get('CustomerID')?.disable();
+    
     // Danh sách các field được phép chỉnh sửa
     const allowedFields = [
-      'CustomerID',
       'TicketType',
       'ProductRTCID',
       'EmployeeBuyID',
@@ -301,8 +305,9 @@ export class ProductRtcPurchaseRequestComponent implements OnInit, AfterViewInit
 
     // Disable tất cả các field trừ các field được phép
     Object.keys(this.validateForm.controls).forEach(key => {
-      if (!allowedFields.includes(key) && key !== 'StatusRequest') {
+      if (!allowedFields.includes(key) && key !== 'StatusRequest' && key !== 'CustomerID') {
         // StatusRequest đã được disable trong initForm
+        // CustomerID đã được disable ở trên
         this.validateForm.get(key)?.disable();
       }
     });
@@ -465,6 +470,7 @@ export class ProductRtcPurchaseRequestComponent implements OnInit, AfterViewInit
         this.validateForm.get('FirmID')?.disable();
         this.validateForm.get('UnitCountID')?.disable();
         this.validateForm.get('ProductGroupRTCID')?.disable();
+        this.validateForm.get('SupplierSaleID')?.disable();
       }
       
       // Xử lý TicketType để enable/disable các field liên quan
@@ -900,13 +906,24 @@ export class ProductRtcPurchaseRequestComponent implements OnInit, AfterViewInit
     this.isEditingMode = false;
     
     if (!productRTCId || productRTCId <= 0) {
-      // Nếu không chọn gì, enable lại các field
+      // Nếu không chọn gì (clear), enable lại các field: ProductCode, ProductName, UnitCountID, FirmID, SupplierSaleID
       this.validateForm.get('ProductName')?.enable();
       this.validateForm.get('ProductCode')?.enable();
       this.validateForm.get('ProductCodeRTC')?.enable();
       this.validateForm.get('FirmID')?.enable();
       this.validateForm.get('UnitCountID')?.enable();
       this.validateForm.get('ProductGroupRTCID')?.enable();
+      this.validateForm.get('SupplierSaleID')?.enable();
+      
+      // Clear các giá trị khi clear sản phẩm
+      this.validateForm.patchValue({
+        ProductName: '',
+        ProductCode: '',
+        ProductCodeRTC: '',
+        FirmID: 0,
+        UnitCountID: 0,
+        ProductGroupRTCID: 0,
+      });
       return;
     }
 
@@ -952,6 +969,7 @@ export class ProductRtcPurchaseRequestComponent implements OnInit, AfterViewInit
       this.validateForm.get('FirmID')?.disable();
       this.validateForm.get('UnitCountID')?.disable();
       this.validateForm.get('ProductGroupRTCID')?.disable();
+      this.validateForm.get('SupplierSaleID')?.disable();
     } else {
       this.validateForm.get('ProductName')?.enable();
       this.validateForm.get('ProductCode')?.enable();
@@ -959,6 +977,7 @@ export class ProductRtcPurchaseRequestComponent implements OnInit, AfterViewInit
       this.validateForm.get('FirmID')?.enable();
       this.validateForm.get('UnitCountID')?.enable();
       this.validateForm.get('ProductGroupRTCID')?.enable();
+      this.validateForm.get('SupplierSaleID')?.enable();
     }
     
     if (productRTCId > 0) {
@@ -998,6 +1017,7 @@ export class ProductRtcPurchaseRequestComponent implements OnInit, AfterViewInit
       this.validateForm.get('FirmID')?.disable();
       this.validateForm.get('UnitCountID')?.disable();
       this.validateForm.get('ProductGroupRTCID')?.disable();
+      this.validateForm.get('SupplierSaleID')?.disable();
     }
   }
 
@@ -1019,9 +1039,32 @@ export class ProductRtcPurchaseRequestComponent implements OnInit, AfterViewInit
     this.validateForm.get('EmployeeApproveID')?.updateValueAndValidity();
   }
 
-  // Add ProductRTC (placeholder - có thể mở rộng sau)
+  // Add ProductRTC - Mở modal thêm sản phẩm RTC
   onAddProductRTC() {
-    this.notification.info('Thông báo', 'Chức năng thêm ProductRTC đang được phát triển');
+    const modalRef = this.modalService.open(TbProductRtcFormComponent, {
+      size: 'lg',
+      backdrop: 'static',
+      keyboard: false,
+      centered: true,
+      scrollable: true,
+    });
+
+    // Truyền warehouseType vào modal
+    modalRef.componentInstance.warehouseType = this.warehouseType || 1;
+    modalRef.componentInstance.dataInput = null; // Tạo mới
+
+    // Xử lý khi modal đóng - reload lại danh sách sản phẩm RTC
+    modalRef.result.then(
+      (result) => {
+        if (result && result.refresh) {
+          // Reload danh sách sản phẩm RTC sau khi thêm mới
+          this.getProductsRTC();
+        }
+      },
+      () => {
+        // Modal bị dismiss, không làm gì
+      }
+    );
   }
 
   onSave() {

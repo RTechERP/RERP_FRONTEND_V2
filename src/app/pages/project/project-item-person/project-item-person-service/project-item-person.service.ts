@@ -25,4 +25,28 @@ export class ProjectItemPersonService {
   }): Observable<any> {
     return this.http.post<any>(this.api + 'projectitemnew/get-project-item-person', request);
   }
+    // người giao việc 
+    cbbEmployeeRequest(): Observable<any> {
+      return this.http.get<any>(this.api + 'projectitemnew/get-employee-request');
+    }
+
+    // Lấy mã hạng mục công việc mới
+    getProjectItemCode(projectId: number): Observable<any> {
+      return this.http.get<any>(this.api + 'projectitemnew/get-project-item-code?projectId=' + projectId);
+    }
+
+    // Lưu hạng mục công việc cá nhân
+    saveData(payload: any): Observable<any> {
+      return this.http.post<any>(this.api + 'projectitemnew/save-data-person', payload);
+    }
+
+    // Lấy chi tiết hạng mục công việc theo ID
+    getById(projectItemID: number): Observable<any> {
+      return this.http.get<any>(this.api + 'projectitemnew/get-by-id?projectItemID=' + projectItemID);
+    }
+
+    // Lấy danh sách hạng mục cha
+    getProjectItemParent(projectID: number): Observable<any> {
+      return this.http.get<any>(this.api + 'projectitemnew/get-project-item-parent?projectID=' + projectID);
+    }
 }

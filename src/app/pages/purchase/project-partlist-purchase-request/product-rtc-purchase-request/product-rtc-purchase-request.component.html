@@ -7,14 +7,14 @@
 
     <div class="modal-body">
         <form nz-form [formGroup]="validateForm" class="container-fluid" nzLayout="vertical">
-            <!-- Row 1: Khách hàng, Trạng thái, Loại phiếu -->
+            <!-- Row 1: Cột 1 - Khách hàng, Cột 2 - Trạng thái, Cột 3 - Loại phiếu -->
             <div nz-row [nzGutter]="16">
                 <div nz-col [nzSpan]="8">
                     <nz-form-item>
                         <nz-form-label>Khách hàng</nz-form-label>
                         <nz-form-control>
                             <nz-select formControlName="CustomerID" nzPlaceHolder="Chọn khách hàng" name="CustomerID"
-                                nzShowSearch="true">
+                                nzShowSearch="true" [nzDisabled]="true">
                                 <nz-option *ngFor="let item of customers" [nzValue]="item.ID"
                                     [nzLabel]="item.CustomerCode + '-' + item.CustomerName">
                                 </nz-option>
@@ -46,9 +46,9 @@
                 </div>
             </div>
 
-            <!-- Row 2: Sản phẩm RTC, Tên sản phẩm -->
+            <!-- Row 2: Cột 1 - Mã nội bộ, Cột 2 - Tên sản phẩm, Cột 3 - Mã sản phẩm -->
             <div nz-row [nzGutter]="16">
-                <div nz-col [nzSpan]="6">
+                <div nz-col [nzSpan]="8">
                     <nz-form-item>
                         <nz-form-label class="fs-12 d-flex align-items-center">
                             <div class="d-flex"> Mã nội bộ
@@ -63,6 +63,7 @@
                             <nz-select formControlName="ProductRTCID" 
                                        nzPlaceHolder="Chọn sản phẩm "
                                        nzShowSearch="true" 
+                                       nzAllowClear="true"
                                        name="ProductRTCID"
                                        (ngModelChange)="onProductRTCChange($event)">
                                 <nz-option *ngFor="let item of productsRTC" 
@@ -75,7 +76,7 @@
                         </nz-form-control>
                     </nz-form-item>
                 </div>
-                <div nz-col [nzSpan]="6">
+                <div nz-col [nzSpan]="8">
                     <nz-form-item>
                         <nz-form-label>Tên sản phẩm <span class="text-danger">(*)</span></nz-form-label>
                         <nz-form-control nzErrorTip="Vui lòng nhập tên sản phẩm!">
@@ -84,7 +85,20 @@
                         </nz-form-control>
                     </nz-form-item>
                 </div>
-                <div nz-col [nzSpan]="6">
+                <div nz-col [nzSpan]="8">
+                    <nz-form-item>
+                        <nz-form-label nzRequired>Mã sản phẩm <span class="text-danger">(*)</span></nz-form-label>
+                        <nz-form-control nzErrorTip="Vui lòng nhập mã sản phẩm!">
+                            <input nz-input name="ProductCode" formControlName="ProductCode"
+                                placeholder="Nhập mã sản phẩm" />
+                        </nz-form-control>
+                    </nz-form-item>
+                </div>
+            </div>
+
+            <!-- Row 3: Cột 1 - Hãng, Cột 2 - Đơn vị, Cột 3 - Loại kho -->
+            <div nz-row [nzGutter]="16">
+                <div nz-col [nzSpan]="8">
                     <nz-form-item>
                         <nz-form-label nzRequired>Hãng</nz-form-label>
                         <nz-form-control nzErrorTip="Vui lòng chọn hãng">
@@ -99,28 +113,6 @@
                                     <span>{{ (item.FirmCode || '') + ' - ' + (item.FirmName || '') }}</span>
                                 </nz-option>
                             </nz-select>
-                        </nz-form-control>
-                    </nz-form-item>
-                </div>
-                <div nz-col [nzSpan]="6">
-                    <nz-form-item>
-                        <nz-form-label>Trạng thái</nz-form-label>
-                        <nz-form-control>
-                            <input nz-input name="StatusRequest" formControlName="StatusRequest"
-                                placeholder="Yêu cầu mua hàng" [disabled]="true" />
-                        </nz-form-control>
-                    </nz-form-item>
-                </div>
-            </div>
-
-            <!-- Row 3: Mã sản phẩm, Đơn vị, Loại kho -->
-            <div nz-row [nzGutter]="16">
-                <div nz-col [nzSpan]="8">
-                    <nz-form-item>
-                        <nz-form-label nzRequired>Mã sản phẩm <span class="text-danger">(*)</span></nz-form-label>
-                        <nz-form-control nzErrorTip="Vui lòng nhập mã sản phẩm!">
-                            <input nz-input name="ProductCode" formControlName="ProductCode"
-                                placeholder="Nhập mã sản phẩm" />
                         </nz-form-control>
                     </nz-form-item>
                 </div>
@@ -162,9 +154,9 @@
                 </div>
             </div>
 
-            <!-- Row 3: Người yêu cầu, Nhân viên mua, Ngày yêu cầu, Deadline -->
+            <!-- Row 4: Cột 1 - Người yêu cầu, Cột 2 - Nhân viên mua, Cột 3 - Ngày yêu cầu -->
             <div nz-row [nzGutter]="16">
-                <div nz-col [nzSpan]="6">
+                <div nz-col [nzSpan]="8">
                     <nz-form-item>
                         <label class="form-label mb-2">Người yêu cầu</label>
                         <nz-select name="EmployeeRequestID" formControlName="EmployeeRequestID" class="w-100"
@@ -180,7 +172,7 @@
                         </nz-select>
                     </nz-form-item>
                 </div>
-                <div nz-col [nzSpan]="6">
+                <div nz-col [nzSpan]="8">
                     <nz-form-item>
                         <label class="form-label mb-2">Nhân viên mua <span class="text-danger">(*)</span></label>
                         <nz-form-control nzErrorTip="Vui lòng chọn nhân viên mua!">
@@ -198,7 +190,7 @@
                         </nz-form-control>
                     </nz-form-item>
                 </div>
-                <div nz-col [nzSpan]="6">
+                <div nz-col [nzSpan]="8">
                     <nz-form-item>
                         <nz-form-label>Ngày yêu cầu</nz-form-label>
                         <nz-form-control>
@@ -207,7 +199,11 @@
                         </nz-form-control>
                     </nz-form-item>
                 </div>
-                <div nz-col [nzSpan]="6">
+            </div>
+
+            <!-- Row 5: Cột 1 - Deadline, Cột 2 - Ngày trả dự kiến (chỉ khi TicketType = 1), Cột 3 - Người duyệt (chỉ khi TicketType = 1) -->
+            <div nz-row [nzGutter]="16">
+                <div nz-col [nzSpan]="8">
                     <nz-form-item>
                         <nz-form-label>Deadline <span class="text-danger">(*)</span></nz-form-label>
                         <nz-form-control nzErrorTip="Vui lòng chọn deadline!">
@@ -216,11 +212,7 @@
                         </nz-form-control>
                     </nz-form-item>
                 </div>
-            </div>
-
-            <!-- Row 4: Phiếu mượn - Ngày trả dự kiến, Người duyệt (chỉ hiển thị khi TicketType = 1) -->
-            <div nz-row [nzGutter]="16" *ngIf="validateForm.get('TicketType')?.value === 1">
-                <div nz-col [nzSpan]="6">
+                <div nz-col [nzSpan]="8" *ngIf="validateForm.get('TicketType')?.value === 1">
                     <nz-form-item>
                         <nz-form-label>Ngày trả dự kiến</nz-form-label>
                         <nz-form-control>
@@ -229,7 +221,7 @@
                         </nz-form-control>
                     </nz-form-item>
                 </div>
-                <div nz-col [nzSpan]="6">
+                <div nz-col [nzSpan]="8" *ngIf="validateForm.get('TicketType')?.value === 1">
                     <nz-form-item>
                         <nz-form-label nzRequired>Người duyệt <span class="text-danger">(*)</span></nz-form-label>
                         <nz-form-control nzErrorTip="Vui lòng chọn người duyệt!">
@@ -245,9 +237,9 @@
                 </div>
             </div>
 
-            <!-- Row 5: Đơn giá, Loại tiền, Số lượng, Tỷ giá, VAT -->
+            <!-- Row 6: Cột 1 - Đơn giá, Cột 2 - Loại tiền, Cột 3 - Số lượng -->
             <div nz-row [nzGutter]="16">
-                <div nz-col [nzSpan]="4">
+                <div nz-col [nzSpan]="8">
                     <nz-form-item>
                         <nz-form-label>Đơn giá</nz-form-label>
                         <nz-form-control>
@@ -258,7 +250,7 @@
                         </nz-form-control>
                     </nz-form-item>
                 </div>
-                <div nz-col [nzSpan]="4">
+                <div nz-col [nzSpan]="8">
                     <nz-form-item>
                         <label class="form-label mb-2">Loại tiền</label>
                         <nz-form-control>
@@ -270,7 +262,7 @@
                         </nz-form-control>
                     </nz-form-item>
                 </div>
-                <div nz-col [nzSpan]="4">
+                <div nz-col [nzSpan]="8">
                     <nz-form-item>
                         <nz-form-label>Số lượng <span class="text-danger">(*)</span></nz-form-label>
                         <nz-form-control nzErrorTip="Vui lòng nhập số lượng!">
@@ -280,7 +272,11 @@
                         </nz-form-control>
                     </nz-form-item>
                 </div>
-                <div nz-col [nzSpan]="4">
+            </div>
+
+            <!-- Row 7: Cột 1 - Tỷ giá, Cột 2 - % VAT, Cột 3 - Giá lịch sử -->
+            <div nz-row [nzGutter]="16">
+                <div nz-col [nzSpan]="8">
                     <nz-form-item>
                         <nz-form-label>Tỷ giá</nz-form-label>
                         <nz-form-control>
@@ -291,7 +287,7 @@
                         </nz-form-control>
                     </nz-form-item>
                 </div>
-                <div nz-col [nzSpan]="4">
+                <div nz-col [nzSpan]="8">
                     <nz-form-item>
                         <nz-form-label>% VAT</nz-form-label>
                         <nz-form-control>
@@ -301,7 +297,7 @@
                         </nz-form-control>
                     </nz-form-item>
                 </div>
-                <div nz-col [nzSpan]="4">
+                <div nz-col [nzSpan]="8">
                     <nz-form-item>
                         <nz-form-label>Giá lịch sử</nz-form-label>
                         <nz-form-control>
@@ -314,9 +310,9 @@
                 </div>
             </div>
 
-            <!-- Row 6: Thành tiền -->
+            <!-- Row 8: Cột 1 - Thành tiền chưa VAT, Cột 2 - Thành tiền quy đổi (VNĐ), Cột 3 - Thành tiền có VAT -->
             <div nz-row [nzGutter]="16">
-                <div nz-col [nzSpan]="6">
+                <div nz-col [nzSpan]="8">
                     <nz-form-item>
                         <nz-form-label>Thành tiền chưa VAT</nz-form-label>
                         <nz-form-control>
@@ -327,7 +323,7 @@
                         </nz-form-control>
                     </nz-form-item>
                 </div>
-                <div nz-col [nzSpan]="6">
+                <div nz-col [nzSpan]="8">
                     <nz-form-item>
                         <nz-form-label>Thành tiền quy đổi (VNĐ)</nz-form-label>
                         <nz-form-control>
@@ -338,7 +334,7 @@
                         </nz-form-control>
                     </nz-form-item>
                 </div>
-                <div nz-col [nzSpan]="6">
+                <div nz-col [nzSpan]="8">
                     <nz-form-item>
                         <nz-form-label>Thành tiền có VAT</nz-form-label>
                         <nz-form-control>
@@ -349,7 +345,11 @@
                         </nz-form-control>
                     </nz-form-item>
                 </div>
-                <div nz-col [nzSpan]="6">
+            </div>
+
+            <!-- Row 9: Cột 1 - Nhà cung cấp -->
+            <div nz-row [nzGutter]="16">
+                <div nz-col [nzSpan]="8">
                     <nz-form-item>
                         <nz-form-label>Nhà cung cấp</nz-form-label>
                         <nz-form-control nzErrorTip="Vui lòng chọn NCC!">
@@ -363,9 +363,9 @@
                 </div>
             </div>
 
-            <!-- Row 7: Import fields -->
+            <!-- Row 10: Cột 1 - Đơn giá xuất xưởng, Cột 2 - Giá nhập khẩu, Cột 3 - Tổng tiền nhập khẩu -->
             <div nz-row [nzGutter]="16">
-                <div nz-col [nzSpan]="4">
+                <div nz-col [nzSpan]="8">
                     <nz-form-item>
                         <nz-form-label>Đơn giá xuất xưởng</nz-form-label>
                         <nz-form-control>
@@ -376,7 +376,7 @@
                         </nz-form-control>
                     </nz-form-item>
                 </div>
-                <div nz-col [nzSpan]="4">
+                <div nz-col [nzSpan]="8">
                     <nz-form-item>
                         <nz-form-label>Giá nhập khẩu</nz-form-label>
                         <nz-form-control>
@@ -386,7 +386,7 @@
                         </nz-form-control>
                     </nz-form-item>
                 </div>
-                <div nz-col [nzSpan]="4">
+                <div nz-col [nzSpan]="8">
                     <nz-form-item>
                         <nz-form-label>Tổng tiền nhập khẩu</nz-form-label>
                         <nz-form-control>
@@ -397,7 +397,11 @@
                         </nz-form-control>
                     </nz-form-item>
                 </div>
-                <div nz-col [nzSpan]="4">
+            </div>
+
+            <!-- Row 11: Cột 1 - Lead Time, Cột 2 - Hàng nhập khẩu -->
+            <div nz-row [nzGutter]="16">
+                <div nz-col [nzSpan]="8">
                     <nz-form-item>
                         <nz-form-label>Lead Time</nz-form-label>
                         <nz-form-control>
@@ -407,7 +411,7 @@
                         </nz-form-control>
                     </nz-form-item>
                 </div>
-                <div nz-col [nzSpan]="4">
+                <div nz-col [nzSpan]="8">
                     <nz-form-item>
                         <nz-form-label>&nbsp;</nz-form-label>
                         <nz-form-control>

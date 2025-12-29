@@ -106,15 +106,6 @@ export class DailyReportTechService {
     return this.http.post<any>(this.apiUrl + 'send-email-report', request);
   }
 
-  sendEmailMarketingReport(body: string, dateReport?: Date, fileLinks?: any[]): Observable<any> {
-    const request = {
-      Body: body,
-      DateReport: dateReport ? dateReport.toISOString() : null,
-      FileLinks: Array.isArray(fileLinks) ? fileLinks : []
-    };
-    return this.http.post<any>(this.apiUrl + 'send-email-marketing-report', request);
-  }
-
   /**
    * Xuất Excel báo cáo kỹ thuật
    * @param request ExportExcelDailyReportTechRequest

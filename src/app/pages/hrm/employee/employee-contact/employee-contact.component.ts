@@ -169,8 +169,8 @@ export class EmployeeContactComponent implements OnInit, AfterViewInit {
       { id: 'ChucVu', name: 'Chức vụ', field: 'ChucVu', width: 200, sortable: true, filterable: true },
       { id: 'SDTCaNhan', name: 'Điện thoại', field: 'SDTCaNhan', width: 150, formatter: phoneFormatter, filterable: true },
       { id: 'EmailCongTy', name: 'Email', field: 'EmailCongTy', width: 250, sortable: true, filterable: true },
-      { id: 'StartWorking', name: 'Ngày vào', field: 'StartWorking', width: 100, sortable: true, formatter: formatDate, },
-      { id: 'BirthOfDate', name: 'Năm sinh', field: 'BirthOfDate', width: 90, sortable: true, formatter: formatYear },
+      { id: 'StartWorking', name: 'Ngày vào', field: 'StartWorking', width: 100, sortable: true, formatter: formatDate,  filterable: true },
+      { id: 'BirthOfDate', name: 'Năm sinh', field: 'BirthOfDate', width: 90, sortable: true, formatter: formatYear, filterable: true },
     ];
 
     this.gridOptions = {

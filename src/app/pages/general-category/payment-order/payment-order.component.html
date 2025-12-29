@@ -112,7 +112,7 @@
 
         </div>
         <div nz-row [nzGutter]="16" [hidden]="!isAdvandShow">
-            <div nz-col [nzSpan]="6">
+            <div nz-col [nzSpan]="4">
                 <nz-form-item>
                     <nz-form-label>Phòng ban</nz-form-label>
                     <nz-form-control>
@@ -127,13 +127,13 @@
                 </nz-form-item>
             </div>
 
-            <div nz-col [nzSpan]="4">
+            <div nz-col [nzSpan]="6">
                 <nz-form-item>
                     <nz-form-label>Tình trạng</nz-form-label>
                     <nz-form-control>
-                        <nz-select nzShowSearch nzAllowClear nzPlaceHolder="Chọn tình trạng"
-                            [(ngModel)]="param.isApproved" [ngModelOptions]="{ standalone: true }" nzSize="small">
-                            @for (item of isApproveds; track item) {
+                        <nz-select nzShowSearch nzAllowClear nzPlaceHolder="Chọn tình trạng" [(ngModel)]="param.step"
+                            [ngModelOptions]="{ standalone: true }" nzSize="small">
+                            @for (item of steps; track item) {
                             <nz-option [nzLabel]="item.text" [nzValue]="item.value"></nz-option>
                             }
                         </nz-select>
@@ -184,7 +184,7 @@
         <p-tabs [(value)]="activeTab" class="tabs-full">
             <p-tablist>
                 <p-tab value="0" class="p-2">ĐỀ NGHỊ THANH TOÁN</p-tab>
-                <p-tab value="1" class="p-2">ĐỀ NGHỊ THANH TOÁN ĐẶC BIỆT</p-tab>
+                <p-tab value="1" class="p-2" [hidden]="!isPermisstionDB">ĐỀ NGHỊ THANH TOÁN ĐẶC BIỆT</p-tab>
             </p-tablist>
             <p-tabpanels class="p-0">
                 <p-tabpanel value="0">
@@ -197,17 +197,19 @@
                             (onSelectedRowsChanged)="handleRowSelection($event.detail.eventData, $event.detail.args)"
                             (onClick)="onCellClicked($event.detail.eventData, $event.detail.args)"
                             (onBeforeExportToExcel)="processingExport = true"
-                            (onAfterExportToExcel)="processingExport = false" (onDblClick)="onPrint()">
+                            (onAfterExportToExcel)="processingExport = false"
+                            (onDblClick)="onPrint($event.detail.eventData, $event.detail.args)">
                         </angular-slickgrid>
                     </div>
                 </p-tabpanel>
-                <p-tabpanel value="1">
+                <p-tabpanel value="1" [hidden]="!isPermisstionDB">
                     <div class="grid-container-special">
                         <angular-slickgrid gridId="grvDataSpecial" [columns]="columnDefinitionsSpecial"
                             [options]="gridOptionsSpecial" [dataset]="datasetSpecial"
                             (onAngularGridCreated)="angularGridReadySpecial($event.detail)"
                             (onSelectedRowsChanged)="handleRowSelection($event.detail.eventData, $event.detail.args)"
-                            (onClick)="onCellClicked($event.detail.eventData, $event.detail.args)">
+                            (onClick)="onCellClicked($event.detail.eventData, $event.detail.args)"
+                            (onDblClick)="onPrint($event.detail.eventData, $event.detail.args)">
                         </angular-slickgrid>
                     </div>
                 </p-tabpanel>

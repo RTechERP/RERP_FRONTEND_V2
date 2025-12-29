@@ -5,6 +5,7 @@ import { NzIconModule } from 'ng-zorro-antd/icon';
 import { NzSelectModule } from 'ng-zorro-antd/select';
 import { NzNotificationService } from 'ng-zorro-antd/notification';
 import { NzSpinModule } from 'ng-zorro-antd/spin';
+import { NzTabsModule } from 'ng-zorro-antd/tabs';
 import { FormsModule } from '@angular/forms';
 import { OrgChartService } from './service/org-chart.service';
 import { NOTIFICATION_TITLE } from '../../../app.config';
@@ -26,6 +27,7 @@ const TAGS_COLORS = ["#ffe0b2", "#fff9c4", "#b3e5fc", "#f8bbd0", "#6CBA41", "lim
     NzIconModule,
     NzSelectModule,
     NzSpinModule,
+    NzTabsModule,
     FormsModule
   ],
   templateUrl: './org-chart-rtc.component.html',
@@ -34,6 +36,7 @@ const TAGS_COLORS = ["#ffe0b2", "#fff9c4", "#b3e5fc", "#f8bbd0", "#6CBA41", "lim
 export class OrgChartRtcComponent implements OnInit, AfterViewInit, OnDestroy {
   departments: any[] = [];
   selectedDepartmentId: number = 0;
+  selectedTabIndex: number = 0;
   orgChartData: any[] = [];
   orgChartDetail: any[] = [];
   isLoading: boolean = false;
@@ -79,6 +82,19 @@ export class OrgChartRtcComponent implements OnInit, AfterViewInit, OnDestroy {
 
   onDepartmentTabClick(departmentId: number): void {
     this.selectedDepartmentId = departmentId;
+    this.loadOrgChart();
+  }
+
+  onDepartmentTabChange(index: number): void {
+    this.selectedTabIndex = index;
+    // Clear search when changing tab
+    this.selectedNodeKey = '';
+    // Map tab index to department ID
+    if (index === 0) {
+      this.selectedDepartmentId = 0; // "Tất cả"
+    } else if (index > 0 && this.departments.length >= index) {
+      this.selectedDepartmentId = this.departments[index - 1].ID;
+    }
     this.loadOrgChart();
   }
 
@@ -316,8 +332,8 @@ export class OrgChartRtcComponent implements OnInit, AfterViewInit, OnDestroy {
               name: "",
               parent: "RTC",
               position: "RTC",
-              color: "#fff",
-              colorStroke: "#e45637"
+              color: "#e4985dff",
+              colorStroke: "#303030ff"
             });
           }
 

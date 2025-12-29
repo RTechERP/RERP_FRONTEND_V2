@@ -17,8 +17,12 @@ import { NzNotificationService } from 'ng-zorro-antd/notification';
 import { AppUserService } from '../../../../services/app-user.service';
 import { CURRENCY_CONFIGS, PaymentOrderService } from '../payment-order.service';
 import { NOTIFICATION_TITLE } from '../../../../app.config';
-import { Subject, takeUntil } from 'rxjs';
+import { map, Observable, shareReplay, Subject, takeUntil } from 'rxjs';
 import { NzIconModule } from 'ng-zorro-antd/icon';
+import { HttpClient } from '@angular/common/http';
+import { environment } from '../../../../../environments/environment';
+import { NzOptionSelectionChange } from 'ng-zorro-antd/auto-complete';
+import Swal from 'sweetalert2';
 
 @Component({
     selector: 'app-payment-order-special',
@@ -43,6 +47,7 @@ import { NzIconModule } from 'ng-zorro-antd/icon';
     standalone: true
 })
 export class PaymentOrderSpecialComponent implements OnInit {
+    private url = environment.host + 'api/paymentorder';
     @Input() paymentOrder = new PaymentOrder();
     private destroy$ = new Subject<void>();
 
@@ -51,11 +56,91 @@ export class PaymentOrderSpecialComponent implements OnInit {
 
     //Khai báo biến combo
     customers: any[] = [];
-    approvedTBPs: any[] = [];
+    approverBGDs: any[] = [];
     pokhs: any[] = [];
-    billBumbers: any[] = [];
+    pokhDetails: any[] = [];
+    billNumbers: any[] = [];
     units: any[] = [];
-    userTeamNames: any[] = [];
+    approverSales: any[] = [];
+    // userTeamNames$!: Observable<{ value: any; label: string }[]>;
+    userTeamNames: any = [
+        {
+            "value": 18,
+            "label": "Admin (HCM)"
+        },
+        {
+            "value": 17,
+            "label": "Sales (HCM)"
+        },
+        {
+            "value": 16,
+            "label": "HCM ()"
+        },
+        {
+            "value": 15,
+            "label": "Admin (Bless)"
+        },
+        {
+            "value": 14,
+            "label": "Sales (Bless)"
+        },
+        {
+            "value": 13,
+            "label": "Bless ()"
+        },
+        {
+            "value": 12,
+            "label": "Admin (VP BẮC NINH)"
+        },
+        {
+            "value": 11,
+            "label": "PM (VP BẮC NINH)"
+        },
+        {
+            "value": 10,
+            "label": "Sales (VP BẮC NINH)"
+        },
+        {
+            "value": 9,
+            "label": "VP BẮC NINH ()"
+        },
+        {
+            "value": 8,
+            "label": "Admin (Shark)"
+        },
+        {
+            "value": 7,
+            "label": "PM (Shark)"
+        },
+        {
+            "value": 6,
+            "label": "Sales (Shark)"
+        },
+        {
+            "value": 5,
+            "label": "Shark ()"
+        },
+        {
+            "value": 4,
+            "label": "Admin (Bob)"
+        },
+        {
+            "value": 3,
+            "label": "PM (Bob)"
+        },
+        {
+            "value": 2,
+            "label": "Sales (Bob)"
+        },
+        {
+            "value": 1,
+            "label": "Bob ()"
+        }
+    ];
+
+
+    selectedPOKHs: any[] = [];
+    selectedBillNumbers: any[] = [];
 
     //biến slick-grid
     angularGrid!: AngularGridInstance;
@@ -78,9 +163,23 @@ export class PaymentOrderSpecialComponent implements OnInit {
         private notification: NzNotificationService,
         private appUserService: AppUserService,
         private paymentService: PaymentOrderService,
+        private http: HttpClient,
     ) { }
 
     ngOnInit(): void {
+        // this.userTeamNames$ = this.http.get<any>(`${this.url}/get-data-combo`).pipe(
+        //     map(res => res.data.userTeamNames),
+        //     map(list =>
+        //         list.map((x: any) => ({
+        //             value: x.ID,   // ⚠️ phải trùng field trong row
+        //             label: x.Name
+        //         }))
+        //     ),
+        //     shareReplay(1)
+        // );
+
+        // console.log('this.userTeamNames$:', this.userTeamNames$);
+
         this.initDataCombo();
         this.initForm();
         this.initGrid();
@@ -88,14 +187,15 @@ export class PaymentOrderSpecialComponent implements OnInit {
     }
 
     initGrid() {
+        // console.log('this.userTeamNames:', this.userTeamNames);
         this.columnDefinitions = [
             {
                 id: 'deletete',
-                name: PaymentOrderDetailField.ID.name,
+                name: '',
                 field: 'id',
                 type: PaymentOrderDetailField.ID.type,
-                // sortable: true, filterable: true,
-                formatter: Formatters.icon, params: { iconCssClass: 'mdi mdi-trash-can pointer' },
+                sortable: false, filterable: false,
+                formatter: Formatters.icon, params: { iconCssClass: 'mdi mdi-trash-can pointer text-danger' },
                 // filter: { model: Filters['compoundDate'] }
                 onCellClick: (e: Event, args: OnEventArgs) => {
                     this.deleteItem(e, args)
@@ -106,9 +206,11 @@ export class PaymentOrderSpecialComponent implements OnInit {
                             cssClass: 'fa fa-plus',
                             tooltip: 'Thêm mới',
                             command: 'add'
-                        }
+                        },
+
                     ]
-                }
+                },
+                cssClass: 'text-center'
             },
             {
                 id: PaymentOrderDetailField.STT.field,
@@ -120,7 +222,8 @@ export class PaymentOrderSpecialComponent implements OnInit {
                 // formatter: Formatters.tree,
                 editor: {
                     model: Editors['text']
-                }
+                },
+                cssClass: 'text-center'
             },
 
             {
@@ -132,7 +235,7 @@ export class PaymentOrderSpecialComponent implements OnInit {
                 sortable: true, filterable: false,
                 // formatter: Formatters.iconBoolean,
                 editor: {
-                    model: Editors['text']
+                    model: Editors['longText']
                 }
             },
 
@@ -144,11 +247,13 @@ export class PaymentOrderSpecialComponent implements OnInit {
                 type: PaymentOrderDetailField.TotalMoney.type,
                 width: 150,
                 sortable: true, filterable: false,
-                // formatter: Formatters.iconBoolean,
+                formatter: Formatters.decimal, params: { minDecimal: 0, maxDecimal: 2 },
                 editor: {
                     model: Editors['float'],
                     decimal: 2
                 },
+
+                cssClass: 'text-end'
             },
             {
                 id: PaymentOrderDetailField.PaymentMethods.field,
@@ -160,25 +265,25 @@ export class PaymentOrderSpecialComponent implements OnInit {
                 formatter: Formatters.collection,
                 params: {
                     collection: [
-                        { value: 0, label: 'Tiền mặt' },
-                        { value: 1, label: 'Chuyển khoản' }
-                    ]
+                        { value: 1, label: 'Tiền mặt' },
+                        { value: 2, label: 'Chuyển khoản' }
+                    ],
                 },
                 editor: {
                     model: Editors['singleSelect'],
-
                     collection: [
                         {
-                            value: 0,
+                            value: 1,
                             label: 'Tiền mặt',
-                            symbol: '<i class="mdi mdi-percent-outline" style="color:cadetblue"></i>',
+                            // symbol: '<i class="mdi mdi-percent-outline" style="color:cadetblue"></i>',
                         },
                         {
-                            value: 1,
+                            value: 2,
                             label: 'Chuyển khoản',
-                            symbol: '<i class="mdi mdi-percent-outline" style="color:cadetblue"></i>',
+                            // symbol: '<i class="mdi mdi-percent-outline" style="color:cadetblue"></i>',
                         }
-                    ]
+                    ],
+
                 },
             },
             {
@@ -197,7 +302,7 @@ export class PaymentOrderSpecialComponent implements OnInit {
                 id: 'EmployeeID',
                 name: 'Team kinh doanh',
                 field: 'EmployeeID',
-                type: 'string',
+                type: 'number',
                 width: 150,
                 sortable: true, filterable: false,
                 formatter: Formatters.collection,
@@ -234,6 +339,7 @@ export class PaymentOrderSpecialComponent implements OnInit {
             enableCellNavigation: true,
 
             enableFiltering: false,
+            enableSorting: false,
 
             autoEdit: true,
             autoCommitEdit: true,
@@ -242,13 +348,25 @@ export class PaymentOrderSpecialComponent implements OnInit {
             showFooterRow: true,
             createFooterRow: true,
 
+            frozenColumn: 0,
+            autoFitColumnsOnFirstLoad: false,
+
             enableHeaderButton: true,
             headerButton: {
                 // you can use the "onCommand" (in Grid Options) and/or the "action" callback (in Column Definition)
                 onCommand: (_e, args) => {
-                    this.addItem(_e, args)
+                    this.onAddItem(_e, args);
                 },
 
+            },
+
+            formatterOptions: {
+                // dateSeparator: '.',
+                decimalSeparator: '.',
+                displayNegativeNumberWithParentheses: true,
+                minDecimal: 0,
+                maxDecimal: 2,
+                thousandSeparator: ','
             },
         };
 
@@ -281,12 +399,14 @@ export class PaymentOrderSpecialComponent implements OnInit {
                 name: 'ID',
                 field: 'ID',
                 type: 'number',
-                // sortable: true, filterable: true,
+                width: 50, maxWidth: 50,
+                sortable: false, filterable: false,
                 formatter: Formatters.icon, params: { iconCssClass: 'mdi mdi-trash-can pointer text-danger' },
                 // filter: { model: Filters['compoundDate'] }
                 onCellClick: (e: Event, args: OnEventArgs) => {
                     this.deleteFile(e, args)
-                }
+                },
+                cssClass: 'text-center'
             },
             {
                 id: 'FileName',
@@ -303,6 +423,8 @@ export class PaymentOrderSpecialComponent implements OnInit {
                 container: '.grid-container-file',
             },
             gridWidth: '100%',
+            frozenColumn: 0,
+            autoFitColumnsOnFirstLoad: false,
         }
     }
 
@@ -323,16 +445,19 @@ export class PaymentOrderSpecialComponent implements OnInit {
             next: (response) => {
                 console.log('initDataCombo:', response);
                 this.customers = response.data.customers;
-                this.approvedTBPs = response.data.approvedTBPs;
+                this.approverSales = response.data.approverSales;
                 this.pokhs = response.data.pokhs;
-                this.billBumbers = response.data.pokhDetails;
-                this.userTeamNames = response.data.userTeamNames.map((x: any) => ({
-                    value: x.ID.toString(),
-                    label: x.Name
-                }))
+                this.pokhDetails = response.data.pokhDetails;
+                this.approverBGDs = response.data.approverBGDs;
+                // this.userTeamNames = response.data.userTeamNames.map((x: any) => ({
+                //     value: x.ID.toString(),
+                //     label: x.Name
+                // }))
 
-
-                console.log('this.userTeamNames:', this.userTeamNames);
+                // // this.initGrid();
+                // this.angularGrid.slickGrid.setColumns(this.columnDefinitions);
+                // this.angularGrid.dataView.refresh();
+                // console.log('this.userTeamNames:', this.userTeamNames);
             },
             error: (err) => {
                 this.notification.error(NOTIFICATION_TITLE.error, err.error.message);
@@ -346,15 +471,16 @@ export class PaymentOrderSpecialComponent implements OnInit {
     initForm() {
 
         console.log('this.paymentOrder edit:', this.paymentOrder);
+        const dateOrder = this.paymentOrder.DateOrder || new Date();
         this.validateForm = this.fb.group({
             FullName: this.fb.control({ value: this.appUserService.currentUser?.FullName, disabled: true }),
             DepartmentName: this.fb.control({ value: this.appUserService.currentUser?.DepartmentName, disabled: true }),
             IsUrgent: this.fb.control(this.paymentOrder.IsUrgent),
             DeadlinePayment: this.fb.control(this.paymentOrder.DeadlinePayment),
-            CustomerID: this.fb.control(this.paymentOrder.CustomerID),
+            CustomerID: this.fb.control(this.paymentOrder.CustomerID, [Validators.required]),
             ApprovedTBPID: this.fb.control(this.paymentOrder.ApprovedTBPID, [Validators.required]),
-            ApprovedBGDID: this.fb.control(this.paymentOrder.ApprovedBGDID),
-            DateOrder: this.fb.control(this.paymentOrder.DateOrder, [Validators.required]),
+            ApprovedBGDID: this.fb.control(this.paymentOrder.ApprovedBGDID, [Validators.required]),
+            DateOrder: this.fb.control(dateOrder, [Validators.required]),
             DatePayment: this.fb.control(this.paymentOrder.DatePayment),
             PaymentOrderTypeID: this.fb.control(this.paymentOrder.PaymentOrderTypeID, [Validators.required]),
             PaymentOrderPOs: this.fb.control(this.paymentOrder.PaymentOrderPOs),
@@ -364,6 +490,63 @@ export class PaymentOrderSpecialComponent implements OnInit {
         });
 
 
+
+
+        //Sự kiện tích gấp
+        this.validateForm
+            .get(this.paymentOrderField.IsUrgent.field)
+            ?.valueChanges.pipe(takeUntil(this.destroy$))
+            .subscribe((value: boolean) => {
+                this.paymentOrder.IsUrgent = value;
+                if (value) this.validateForm.get(this.paymentOrderField.DeadlinePayment.field)?.setValidators([Validators.required]);
+                else this.validateForm.get(this.paymentOrderField.DeadlinePayment.field)?.clearValidators();
+
+                this.validateForm.get(this.paymentOrderField.DeadlinePayment.field)?.updateValueAndValidity();
+            });
+
+        //Sự kiện chọn Khách hàng
+        this.validateForm
+            .get(this.paymentOrderField.CustomerID.field)
+            ?.valueChanges.pipe(takeUntil(this.destroy$))
+            .subscribe((value: number) => {
+
+                this.pokhs = this.pokhs.filter(x => x.CustomerID == value);
+                // console.log('valueChanges:', value, this.pokhs);
+            });
+
+        //Sự kiện chọn pokh
+        this.validateForm
+            .get("PaymentOrderPOs")
+            ?.valueChanges.pipe(takeUntil(this.destroy$))
+            .subscribe((value: any) => {
+                this.selectedPOKHs = value;
+                this.selectedBillNumbers = this.validateForm.get('PaymentOrderBillNumbers')?.value;
+
+                console.log('this.selectedPOKHs:', this.selectedPOKHs);
+                console.log('this.selectedBillNumbers:', this.selectedBillNumbers);
+
+                //Check add thêm vào billNumber
+                for (let i = 0; i < this.selectedPOKHs.length; i++) {
+                    const pokhID = this.selectedPOKHs[i];
+                    const pokh = this.pokhs.find(x => x.ID == pokhID);
+                    if (pokh) {
+                        const pokhDetail = this.pokhDetails.filter(x => x.POKHID == pokh.ID);
+                        const billBumber = this.billNumbers.find(x => x.POKHID == pokhID);
+                        // if (pokhDetail && !billBumber) {
+                        //     this.billBumbers.push({
+                        //         POKHID: pokhID,
+                        //         BillNumber: pokh.PONumber + ' - ' + pokhDetail.BillNumber
+                        //     })
+
+                        //     console.log('this.billBumbers:', this.billBumbers);
+                        // }
+
+                    }
+                }
+            });
+
+
+        //Sự kiện chọn loại tiền (đvt)
         this.validateForm
             .get(this.paymentOrderField.Unit.field)
             ?.valueChanges.pipe(takeUntil(this.destroy$))
@@ -391,14 +574,15 @@ export class PaymentOrderSpecialComponent implements OnInit {
             // if (this.paymentOrder.TypeOrder == 2) gridInstance = this.angularGrid2;
 
 
-            console.log('this.validateForm.getRawValue():', this.validateForm.getRawValue());
-            console.log('this.angularGrid.dataView.getItems():', this.angularGrid.dataView.getItems());
+            // console.log('this.validateForm.getRawValue():', this.validateForm.getRawValue());
+            // console.log('this.angularGrid.dataView.getItems():', this.angularGrid.dataView.getItems());
 
             const formData = this.validateForm.getRawValue();
             const detailDatas = this.angularGrid.dataView.getItems();
 
             let paymentOrderDetails = detailDatas.map((x) => ({
                 ...x,
+                PaymentMethods: x.PaymentMethods - 1,
                 PaymentOrderDetailUserTeamSales: [
                     {
                         UserTeamSaleID: x.EmployeeID
@@ -411,7 +595,7 @@ export class PaymentOrderSpecialComponent implements OnInit {
                 (formData.PaymentOrderBillNumbers && formData.PaymentOrderBillNumbers.length > 0)) {
                 const maxLen = Math.max(formData.PaymentOrderPOs.length, formData.PaymentOrderBillNumbers.length);
                 paymentOrderPOs = Array.from({ length: maxLen }, (_, i) => ({
-                    POKHID: formData.PaymentOrderPOs[i] ?? null,
+                    POKHID: formData.PaymentOrderPOs[i] ?? 0,
                     BillNumber: formData.PaymentOrderBillNumbers[i] ?? ''
                 }));
                 paymentOrderPOs = Object.values(paymentOrderPOs);
@@ -427,7 +611,7 @@ export class PaymentOrderSpecialComponent implements OnInit {
                 TotalMoney: parseFloat(columnElement.textContent ?? ''),
                 PaymentOrderPOs: paymentOrderPOs,
             };
-            // console.log('submit data', this.paymentOrder);
+            console.log('submit data', this.paymentOrder);
 
             this.paymentService.save(this.paymentOrder).subscribe({
                 next: (response) => {
@@ -517,7 +701,7 @@ export class PaymentOrderSpecialComponent implements OnInit {
 
     }
 
-    addItem(_e: any, args: any) {
+    onAddItem(_e: any, args: any) {
         const column = args.column;
         const button = args.button;
         const command = args.command;
@@ -535,14 +719,15 @@ export class PaymentOrderSpecialComponent implements OnInit {
             TotalMoney: 0,
             Note: '',
             ParentID: 0,
-            PaymentMethods: 0,
+            PaymentMethods: null,
             PaymentInfor: '',
-            EmployeeID: 0,
+            EmployeeID: null,
             TotalPaymentAmount: 0,
             PaymentPercentage: 100,
         };
 
         this.angularGrid.gridService.addItem(newItem, { position: 'bottom' });
+        // this.dataset = [...this.dataset, newItem];
 
     }
 
@@ -582,4 +767,28 @@ export class PaymentOrderSpecialComponent implements OnInit {
             this.paymentOrder.TotalMoneyText = this.paymentService.readMoney(total, this.validateForm.value.Unit);
         }
     }
+
+    async onAddBillNumber() {
+        const { value: billNumber }: { value?: string } = await Swal.fire({
+            input: 'text',
+            inputLabel: 'Số hóa đơn',
+            // inputPlaceholder: 'Nhập lý do hủy duyệt...',
+            // inputAttributes: {
+            //     'aria-label': 'Vui lòng nhập Lý do hủy',
+            // },
+            showCancelButton: true,
+            confirmButtonColor: '#28a745 ',
+            cancelButtonColor: '#dc3545 ',
+            confirmButtonText: 'Thêm',
+            cancelButtonText: 'Hủy',
+        });
+        if (billNumber) {
+
+            this.billNumbers.push({
+                POKHID: 0,
+                BillNumber: billNumber
+            })
+        }
+    }
+
 }

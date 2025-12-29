@@ -1,0 +1,168 @@
+<nz-card [nzTitle]="isExportMode ? 'Chọn thiết bị xuất' : 'Đăng ký mượn thiết bị'" [nzBordered]="false">
+    <nz-space nzDirection="vertical" [nzSize]="16" style="width: 100%">
+        <!-- Form Section -->
+        <div *nzSpaceItem>
+            <div nz-row [nzGutter]="16">
+                <!-- Người mượn -->
+                <div nz-col [nzSpan]="8" *ngIf="!isExportMode">
+                    <nz-form-item>
+                        <nz-form-label [nzSpan]="24">Người mượn</nz-form-label>
+                        <nz-form-control [nzSpan]="24">
+                            <nz-tree-select
+                                [(ngModel)]="PeopleID"
+                                [nzNodes]="users"
+                                nzPlaceHolder="Chọn người mượn"
+                                [nzShowSearch]="true"
+                                nzAllowClear
+                                style="width: 100%"
+                            >
+                                <ng-template #nzTreeTemplate let-node>
+                                    <span *ngIf="node.origin.item">
+                                        {{ node.origin.item.UserName }} - {{ node.origin.item.FullName }}
+                                    </span>
+                                    <span *ngIf="!node.origin.item">
+                                        {{ node.title }}
+                                    </span>
+                                </ng-template>
+                            </nz-tree-select>
+                        </nz-form-control>
+                    </nz-form-item>
+                </div>
+
+                <!-- Dự án -->
+                <div nz-col [nzSpan]="8" *ngIf="!isExportMode">
+                    <nz-form-item>
+                        <nz-form-label [nzSpan]="24">Dự án</nz-form-label>
+                        <nz-form-control [nzSpan]="24">
+                            <input nz-input [(ngModel)]="Project" placeholder="Nhập dự án" />
+                        </nz-form-control>
+                    </nz-form-item>
+                </div>
+
+                <!-- Ngày dự kiến trả -->
+                <div nz-col [nzSpan]="8" *ngIf="!isExportMode">
+                    <nz-form-item>
+                        <nz-form-label [nzSpan]="24">Ngày dự kiến trả</nz-form-label>
+                        <nz-form-control [nzSpan]="24">
+                            <nz-date-picker
+                                [(ngModel)]="DateReturnExpected"
+                                nzFormat="dd/MM/yyyy"
+                                nzPlaceHolder="Chọn ngày"
+                                style="width: 100%"
+                            ></nz-date-picker>
+                        </nz-form-control>
+                    </nz-form-item>
+                </div>
+
+                <!-- Ghi chú -->
+                <div nz-col [nzSpan]="24" *ngIf="!isExportMode">
+                    <nz-form-item>
+                        <nz-form-label [nzSpan]="24">Ghi chú</nz-form-label>
+                        <nz-form-control [nzSpan]="24">
+                            <textarea
+                                nz-input
+                                [(ngModel)]="Note"
+                                placeholder="Nhập ghi chú"
+                                [nzAutosize]="{ minRows: 2, maxRows: 4 }"
+                            ></textarea>
+                        </nz-form-control>
+                    </nz-form-item>
+                </div>
+            </div>
+        </div>
+
+        <!-- Search Box -->
+        <div *nzSpaceItem>
+            <nz-form-item>
+                <nz-form-control>
+                    <nz-input-group [nzPrefix]="prefixIconSearch">
+                        <input
+                            nz-input
+                            placeholder="Tìm kiếm thiết bị..."
+                            (input)="onSearch($event)"
+                        />
+                    </nz-input-group>
+                    <ng-template #prefixIconSearch>
+                        <span nz-icon nzType="search"></span>
+                    </ng-template>
+                </nz-form-control>
+            </nz-form-item>
+        </div>
+
+        <!-- Main Grid - Danh sách sản phẩm -->
+        <div *nzSpaceItem>
+            <h4>Danh sách thiết bị</h4>
+            <div id="grid-container-main" style="width: 100%; height: 400px;">
+                <angular-slickgrid
+                    gridId="grid-main"
+                    [columns]="columnDefinitionsMain"
+                    [options]="gridOptionsMain"
+                    [dataset]="datasetMain"
+                    (onAngularGridCreated)="angularGridMainReady($event.detail)"
+                    (onSelectedRowsChanged)="onRowSelectionChangedMain($event.detail.eventData, $event.detail.args)"
+                ></angular-slickgrid>
+            </div>
+        </div>
+
+        <!-- Move/Remove Buttons -->
+        <div *nzSpaceItem style="text-align: center;">
+            <nz-space [nzSize]="8">
+                <button *nzSpaceItem nz-button nzType="primary" (click)="moveData()">
+                    <span nz-icon nzType="arrow-down"></span>
+                    Chuyển xuống
+                </button>
+                <button *nzSpaceItem nz-button nzType="default" (click)="removeData()">
+                    <span nz-icon nzType="arrow-up"></span>
+                    Trả lại
+                </button>
+            </nz-space>
+        </div>
+
+        <!-- Borrow Grid - Sản phẩm đã chọn -->
+        <div *nzSpaceItem>
+            <h4>Thiết bị đã chọn ({{ arrProductBorrow.length }})</h4>
+            <div id="grid-container-borrow" style="width: 100%; height: 300px;">
+                <angular-slickgrid
+                    gridId="grid-borrow"
+                    [columns]="columnDefinitionsBorrow"
+                    [options]="gridOptionsBorrow"
+                    [dataset]="datasetBorrow"
+                    (onAngularGridCreated)="angularGridBorrowReady($event.detail)"
+                    (onSelectedRowsChanged)="onRowSelectionChangedBorrow($event.detail.eventData, $event.detail.args)"
+                ></angular-slickgrid>
+            </div>
+        </div>
+
+        <!-- Action Buttons -->
+        <div *nzSpaceItem style="text-align: right;">
+            <nz-space [nzSize]="8">
+                <button *nzSpaceItem nz-button nzType="default" (click)="activeModal.dismiss()">
+                    <span nz-icon nzType="close"></span>
+                    Hủy
+                </button>
+                <ng-container *ngIf="isExportMode">
+                    <button 
+                        *nzSpaceItem 
+                        nz-button 
+                        nzType="primary" 
+                        (click)="exportToBillExport()"
+                    >
+                        <span nz-icon nzType="export"></span>
+                        Xuất sang phiếu xuất
+                    </button>
+                </ng-container>
+                <ng-container *ngIf="!isExportMode">
+                    <button 
+                        *nzSpaceItem 
+                        nz-button 
+                        nzType="primary" 
+                        (click)="onSubmit()"
+                    >
+                        <span nz-icon nzType="check"></span>
+                        Xác nhận
+                    </button>
+                </ng-container>
+            </nz-space>
+        </div>
+    </nz-space>
+</nz-card>

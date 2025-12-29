@@ -1,6 +1,8 @@
 <div class="modal-header bg-primary p-2">
-    <h6 class="modal-title text-white text-uppercase">Chi tiết hạng mục công việc cá nhân</h6>
-    <button type="button" class="btn-close me-1" style="background-color:lightcyan !important; font-weight: bold;"
+    <h6 class="modal-title text-white text-uppercase">
+        Chi tiết hạng mục công việc cá nhân
+    </h6>
+    <button type="button" class="btn-close me-1" style="background-color: lightcyan !important; font-weight: bold"
         aria-label="Close" (click)="close()"></button>
 </div>
 
@@ -16,7 +18,7 @@
                     <nz-form-control [nzSpan]="24" nzErrorTip="Vui lòng chọn dự án!">
                         <nz-select formControlName="ProjectID" class="w-100" nzPlaceHolder="Chọn dự án" nzShowSearch
                             nzAllowClear>
-                            @for (project of projects; track project.ID) {
+                            @for (project of projects; track $index) {
                             <nz-option [nzLabel]="project.ProjectName + ' - ' + project.ProjectCode"
                                 [nzValue]="project.ID"></nz-option>
                             }
@@ -26,33 +28,37 @@
             </nz-col>
         </nz-row>
 
-        <!-- Dòng 2: Fieldset với nút + để thêm tab -->
+        <!-- Dòng 2: Fieldset với nút + để thêm tab (ẩn khi edit) -->
         <fieldset class="reset mt-2">
-            <legend class="reset d-flex align-items-center justify-content-between me-2">
+            <!-- <legend class="reset d-flex align-items-center justify-content-between me-2">
+                @if (mode === 'add') {
                 <button nz-button nzType="primary" nzSize="small" (click)="addTab()" type="button">
                     <nz-icon nzType="plus"></nz-icon>
                 </button>
-            </legend>
+                }
+            </legend> -->
 
             <!-- Tabs cho các hạng mục công việc -->
-            <nz-tabset nzType="editable-card" [nzHideAdd]="true" (nzClose)="closeTab($event)"
-                [(nzSelectedIndex)]="selectedTabIndex">
+            <nz-tabset [(nzSelectedIndex)]="selectedTabIndex" [nzType]="mode === 'edit' ? 'card' : 'editable-card'"
+                (nzAdd)="mode === 'add' ? addTab() : null" (nzClose)="mode === 'add' ? closeTab($event) : null"
+                [nzAnimated]="false">
                 @for (tab of tabs; track tab.id; let i = $index) {
-                <nz-tab [nzTitle]="'Hạng mục ' + (i + 1)" [nzClosable]="tabs.length > 1">
+                <nz-tab [nzTitle]="'Hạng mục ' + (i + 1)" [nzClosable]="mode === 'add' && tabs.length > 1"
+                    [nzForceRender]="true">
                     <ng-template nz-tab>
                         <!-- Dòng 2.1: Kiểu hạng mục, Tình trạng, Người phụ trách, Người giao việc -->
                         <nz-row [nzGutter]="16" class="mt-2">
                             <!-- Kiểu hạng mục -->
-                            <nz-col [nzXs]="24" [nzSm]="12" [nzMd]="6" [nzLg]="6" [nzXl]="6">
+                            <nz-col [nzXs]="24" [nzSm]="12" [nzMd]="4" [nzLg]="4" [nzXl]="4">
                                 <nz-form-item>
                                     <nz-form-label class="fs-12 p-0">
                                         Kiểu hạng mục<span class="text-danger ps-1">*</span>
                                     </nz-form-label>
                                     <nz-form-control [nzSpan]="24" nzErrorTip="Vui lòng chọn kiểu hạng mục!">
                                         <nz-select [(ngModel)]="tab.TypeProjectItemID"
-                                            [ngModelOptions]="{standalone: true}" class="w-100"
+                                            [ngModelOptions]="{ standalone: true }" class="w-100"
                                             nzPlaceHolder="Chọn kiểu hạng mục" nzShowSearch nzAllowClear>
-                                            @for (type of typeProjectItems; track type.ID) {
+                                            @for (type of typeProjectItems; track $index) {
                                             <nz-option [nzLabel]="type.ProjectTypeName" [nzValue]="type.ID"></nz-option>
                                             }
                                         </nz-select>
@@ -61,16 +67,16 @@
                             </nz-col>
 
                             <!-- Tình trạng -->
-                            <nz-col [nzXs]="24" [nzSm]="12" [nzMd]="6" [nzLg]="6" [nzXl]="6">
+                            <nz-col [nzXs]="24" [nzSm]="12" [nzMd]="4" [nzLg]="4" [nzXl]="4">
                                 <nz-form-item>
                                     <nz-form-label class="fs-12 p-0">
                                         Tình trạng<span class="text-danger ps-1">*</span>
                                     </nz-form-label>
                                     <nz-form-control [nzSpan]="24" nzErrorTip="Vui lòng chọn tình trạng!">
-                                        <nz-select [ngModel]="tab.Status" [ngModelOptions]="{standalone: true}"
-                                            (ngModelChange)="onStatusChange(tab, $event)"
-                                            class="w-100" nzPlaceHolder="Chọn tình trạng">
-                                            @for (status of statusList; track status.id) {
+                                        <nz-select [ngModel]="tab.Status" [ngModelOptions]="{ standalone: true }"
+                                            (ngModelChange)="onStatusChange(tab, $event)" class="w-100"
+                                            nzPlaceHolder="Chọn tình trạng">
+                                            @for (status of statusList; track $index) {
                                             <nz-option [nzLabel]="status.name" [nzValue]="status.id"></nz-option>
                                             }
                                         </nz-select>
@@ -79,17 +85,17 @@
                             </nz-col>
 
                             <!-- Người phụ trách -->
-                            <nz-col [nzXs]="24" [nzSm]="12" [nzMd]="6" [nzLg]="6" [nzXl]="6">
+                            <nz-col [nzXs]="24" [nzSm]="12" [nzMd]="4" [nzLg]="4" [nzXl]="4">
                                 <nz-form-item>
                                     <nz-form-label class="fs-12 p-0">
                                         Người phụ trách<span class="text-danger ps-1">*</span>
                                     </nz-form-label>
                                     <nz-form-control [nzSpan]="24" nzErrorTip="Vui lòng chọn người phụ trách!">
-                                        <nz-select [(ngModel)]="tab.UserID" [ngModelOptions]="{standalone: true}"
+                                        <nz-select [(ngModel)]="tab.UserID" [ngModelOptions]="{ standalone: true }"
                                             class="w-100" nzPlaceHolder="Chọn người phụ trách" nzShowSearch nzAllowClear
                                             [nzDisabled]="true">
-                                            @for (emp of employees; track emp.ID) {
-                                            <nz-option [nzLabel]="emp.FullName" [nzValue]="emp.ID"></nz-option>
+                                            @for (emp of employees; track $index) {
+                                            <nz-option [nzLabel]="emp.FullName" [nzValue]="emp.UserID"></nz-option>
                                             }
                                         </nz-select>
                                     </nz-form-control>
@@ -97,17 +103,34 @@
                             </nz-col>
 
                             <!-- Người giao việc -->
-                            <nz-col [nzXs]="24" [nzSm]="12" [nzMd]="6" [nzLg]="6" [nzXl]="6">
+                            <nz-col [nzXs]="24" [nzSm]="12" [nzMd]="5" [nzLg]="5" [nzXl]="5">
                                 <nz-form-item>
                                     <nz-form-label class="fs-12 p-0">
                                         Người giao việc<span class="text-danger ps-1">*</span>
                                     </nz-form-label>
                                     <nz-form-control [nzSpan]="24" nzErrorTip="Vui lòng chọn người giao việc!">
                                         <nz-select [(ngModel)]="tab.EmployeeIDRequest"
-                                            [ngModelOptions]="{standalone: true}" class="w-100"
+                                            [ngModelOptions]="{ standalone: true }" class="w-100"
                                             nzPlaceHolder="Chọn người giao việc" nzShowSearch nzAllowClear>
-                                            @for (emp of employees; track emp.ID) {
+                                            @for (emp of employeesRequest; track $index) {
                                             <nz-option [nzLabel]="emp.FullName" [nzValue]="emp.ID"></nz-option>
+                                            }
+                                        </nz-select>
+                                    </nz-form-control>
+                                </nz-form-item>
+                            </nz-col>
+                            <nz-col [nzXs]="24" [nzSm]="12" [nzMd]="7" [nzLg]="7" [nzXl]="7">
+                                <nz-form-item>
+                                    <nz-form-label class="fs-12 p-0">
+                                        Chọn hạng mục cấp cha (nếu có)
+                                    </nz-form-label>
+                                    <nz-form-control [nzSpan]="24">
+                                        <nz-select [ngModel]="tab.ParentID" [ngModelOptions]="{ standalone: true }"
+                                            (ngModelChange)="onParentIDChange(tab, $event)"
+                                            class="w-100" nzPlaceHolder="Chọn hạng mục cha" nzShowSearch nzAllowClear>
+                                            @for (parent of ParentList; track $index) {
+                                            <nz-option [nzLabel]="parent.Code + ' - ' + parent.Mission"
+                                                [nzValue]="parent.ID"></nz-option>
                                             }
                                         </nz-select>
                                     </nz-form-control>
@@ -116,8 +139,8 @@
                         </nz-row>
                         <nz-row [nzGutter]="16" class="mt-2">
                             <nz-col [nzXs]="24" [nzSm]="24" [nzMd]="12" [nzLg]="12" [nzXl]="24">
-                                <fieldset  class="reset h-100" >
-                                    <legend  class="reset">
+                                <fieldset class="reset h-100">
+                                    <legend class="reset">
                                         <span>Nơi làm việc<span class="text-danger ps-1">*</span></span>
                                     </legend>
                                     <div>
@@ -128,7 +151,7 @@
                                                     <nz-form-control [nzSpan]="24">
                                                         <nz-radio-group [(ngModel)]="workLocation"
                                                             (ngModelChange)="onWorkLocationChange($event)"
-                                                            [ngModelOptions]="{standalone: true}">
+                                                            [ngModelOptions]="{ standalone: true }">
                                                             <label nz-radio [nzValue]="1">VP RTC</label>
                                                             <label nz-radio [nzValue]="0">Địa điểm khác</label>
                                                         </nz-radio-group>
@@ -140,7 +163,7 @@
                                                 <nz-form-item>
                                                     <nz-form-control [nzSpan]="24">
                                                         <input nz-input [(ngModel)]="workLocationText"
-                                                            [ngModelOptions]="{standalone: true}"
+                                                            [ngModelOptions]="{ standalone: true }"
                                                             [disabled]="workLocation === 1"
                                                             placeholder="Nhập nơi làm việc..." class="w-100" />
                                                     </nz-form-control>
@@ -149,7 +172,6 @@
                                         </nz-row>
                                     </div>
                                 </fieldset>
-
                             </nz-col>
                         </nz-row>
 
@@ -162,7 +184,7 @@
                                     <nz-form-item class="mb-0">
                                         <nz-form-control [nzSpan]="24">
                                             <textarea nz-input [(ngModel)]="tab.Mission"
-                                                [ngModelOptions]="{standalone: true}"
+                                                [ngModelOptions]="{ standalone: true }"
                                                 placeholder="Nhập nội dung công việc..." rows="5"
                                                 class="w-100"></textarea>
                                         </nz-form-control>
@@ -184,7 +206,7 @@
                                                 </nz-form-label>
                                                 <nz-form-control [nzSpan]="24">
                                                     <nz-date-picker [(ngModel)]="tab.PlanStartDate"
-                                                        [ngModelOptions]="{standalone: true}" class="w-100"
+                                                        [ngModelOptions]="{ standalone: true }" class="w-100"
                                                         nzFormat="dd/MM/yyyy" nzPlaceHolder="Chọn ngày"
                                                         (ngModelChange)="onPlanStartDateChange(tab)"></nz-date-picker>
                                                 </nz-form-control>
@@ -195,7 +217,7 @@
                                                 <nz-form-label class="fs-12 p-0">Số ngày</nz-form-label>
                                                 <nz-form-control [nzSpan]="24">
                                                     <nz-input-number [(ngModel)]="tab.TotalDayPlan"
-                                                        [ngModelOptions]="{standalone: true}" [nzMin]="0" [nzStep]="1"
+                                                        [ngModelOptions]="{ standalone: true }" [nzMin]="0" [nzStep]="1"
                                                         class="w-100" nzPlaceHolder="Số ngày"
                                                         (ngModelChange)="onTotalDayPlanChange(tab)"></nz-input-number>
                                                 </nz-form-control>
@@ -208,7 +230,7 @@
                                                 </nz-form-label>
                                                 <nz-form-control [nzSpan]="24">
                                                     <nz-date-picker [(ngModel)]="tab.PlanEndDate"
-                                                        [ngModelOptions]="{standalone: true}" class="w-100"
+                                                        [ngModelOptions]="{ standalone: true }" class="w-100"
                                                         nzFormat="dd/MM/yyyy" nzPlaceHolder="Chọn ngày"
                                                         (ngModelChange)="onPlanEndDateChange(tab)"></nz-date-picker>
                                                 </nz-form-control>
@@ -223,9 +245,9 @@
                                                 <nz-form-label class="fs-12 p-0">Thực tế bắt đầu</nz-form-label>
                                                 <nz-form-control [nzSpan]="24">
                                                     <nz-date-picker [(ngModel)]="tab.ActualStartDate"
-                                                        [ngModelOptions]="{standalone: true}" class="w-100"
-                                                        nzFormat="dd/MM/yyyy"
-                                                        nzPlaceHolder="Chọn ngày"></nz-date-picker>
+                                                        [ngModelOptions]="{ standalone: true }" class="w-100"
+                                                        nzFormat="dd/MM/yyyy" nzPlaceHolder="Chọn ngày"
+                                                        (ngModelChange)="onActualStartDateChange(tab)"></nz-date-picker>
                                                 </nz-form-control>
                                             </nz-form-item>
                                         </nz-col>
@@ -234,9 +256,9 @@
                                                 <nz-form-label class="fs-12 p-0">Thực tế kết thúc</nz-form-label>
                                                 <nz-form-control [nzSpan]="24">
                                                     <nz-date-picker [(ngModel)]="tab.ActualEndDate"
-                                                        [ngModelOptions]="{standalone: true}" class="w-100"
-                                                        nzFormat="dd/MM/yyyy"
-                                                        nzPlaceHolder="Chọn ngày"></nz-date-picker>
+                                                        [ngModelOptions]="{ standalone: true }" class="w-100"
+                                                        nzFormat="dd/MM/yyyy" nzPlaceHolder="Chọn ngày"
+                                                        (ngModelChange)="onActualEndDateChange(tab)"></nz-date-picker>
                                                 </nz-form-control>
                                             </nz-form-item>
                                         </nz-col>
@@ -245,8 +267,8 @@
                                                 <nz-form-label class="fs-12 p-0">% Hoàn thành</nz-form-label>
                                                 <nz-form-control [nzSpan]="24">
                                                     <nz-input-number [(ngModel)]="tab.PercentItem"
-                                                        [ngModelOptions]="{standalone: true}" [nzMin]="0" [nzMax]="100"
-                                                        [nzStep]="1" [nzFormatter]="percentFormatter"
+                                                        [ngModelOptions]="{ standalone: true }" [nzMin]="0"
+                                                        [nzMax]="100" [nzStep]="1" [nzFormatter]="percentFormatter"
                                                         [nzParser]="percentParser" class="w-100"
                                                         nzPlaceHolder="%"></nz-input-number>
                                                 </nz-form-control>
@@ -261,37 +283,119 @@
                 }
             </nz-tabset>
         </fieldset>
+
+        @if (mode === 'edit') {
+        <!-- Dòng 3: Thông tin khác (fieldset) -->
+        <fieldset class="reset mt-2">
+            <legend class="reset h-100">
+                <button nz-button nzType="text" nzSize="small" (click)="toggleAccordion('additional_info')" class="p-0"
+                    type="button">
+                    <i nz-icon [nzType]="activeAccordion['additional_info'] ? 'down' : 'right'" nzTheme="outline"
+                        class="me-1"></i>
+                    <span>Thông tin thêm</span>
+                </button>
+            </legend>
+            @if (activeAccordion['additional_info']) {
+            <div class="p-2">
+                <nz-row [nzGutter]="16" class="mb-2">
+                    <nz-col [nzSpan]="24">
+                        <button nz-button nzType="primary" nzSize="default"
+                            (click)="openProjectItemProblemDetail(dataInput?.ID)" type="button">
+                            <i nz-icon nzType="history" nzTheme="outline" class="me-1"></i>
+                            Thêm lịch sử phát sinh
+                        </button>
+                    </nz-col>
+                </nz-row>
+
+                <!-- Dòng 3.2: Vấn đề phát sinh (col-8), Ghi chú (col-8), Ngày cập nhật + Người tạo (col-8) -->
+                <nz-row [nzGutter]="16">
+                    <!-- Vấn đề phát sinh: col-8 -->
+                    <nz-col [nzXs]="24" [nzSm]="24" [nzMd]="8" [nzLg]="8" [nzXl]="8">
+                        <nz-form-item>
+                            <nz-form-label class="fs-12 p-0">
+                                Vấn đề phát sinh
+                                <span class="font-italic font-weight-normal">(nếu có)</span>
+                                <button nz-button nzType="link" nzSize="small" class="p-0 ps-1" type="button"
+                                    (click)="openProjectItemProblemDetail(dataInput?.ID)"></button>
+                            </nz-form-label>
+                            <nz-form-control [nzSpan]="24">
+                                <textarea nz-input [(ngModel)]="additionalInfo.Problem"
+                                    [ngModelOptions]="{ standalone: true }" rows="3" class="w-100" disabled></textarea>
+                            </nz-form-control>
+                        </nz-form-item>
+                    </nz-col>
+
+                    <!-- Ghi chú: col-8 -->
+                    <nz-col [nzXs]="24" [nzSm]="24" [nzMd]="8" [nzLg]="8" [nzXl]="8">
+                        <nz-form-item>
+                            <nz-form-label class="fs-12 p-0">Ghi chú
+                                <span class="font-italic font-weight-normal">(nếu có)</span>
+                            </nz-form-label>
+                            <nz-form-control [nzSpan]="24">
+                                <textarea nz-input [(ngModel)]="additionalInfo.Note"
+                                    [ngModelOptions]="{ standalone: true }" rows="3" class="w-100"></textarea>
+                            </nz-form-control>
+                        </nz-form-item>
+                    </nz-col>
+
+                    <!-- Ngày cập nhật (trên) + Người tạo (dưới): col-8 -->
+                    <nz-col [nzXs]="24" [nzSm]="24" [nzMd]="8" [nzLg]="8" [nzXl]="8">
+                        <!-- Ngày cập nhật -->
+                        <nz-form-item class="mb-2">
+                            <nz-form-label class="fs-12 p-0">Ngày cập nhật</nz-form-label>
+                            <nz-form-control [nzSpan]="24">
+                                <nz-date-picker [(ngModel)]="additionalInfo.UpdateDate"
+                                    [ngModelOptions]="{ standalone: true }" nzFormat="dd/MM/yyyy"
+                                    nzPlaceHolder="Chọn ngày" class="w-100">
+                                </nz-date-picker>
+                            </nz-form-control>
+                        </nz-form-item>
+
+                        <!-- Người tạo -->
+                        <nz-form-item class="mb-0">
+                            <nz-form-label class="fs-12 p-0">Người tạo</nz-form-label>
+                            <nz-form-control [nzSpan]="24">
+                                <input nz-input [(ngModel)]="additionalInfo.CreatedBy"
+                                    [ngModelOptions]="{ standalone: true }" nzPlaceHolder="Chọn người tạo" nzShowSearch
+                                    nzAllowClear [disabled]="true" />
+                                <!-- <nz-select [(ngModel)]="additionalInfo.CreatedBy"
+                                    [ngModelOptions]="{standalone: true}" class="w-100" nzPlaceHolder="Chọn người tạo"
+                                    nzShowSearch nzAllowClear [nzDisabled]="true">
+                                    @for (emp of employees; track emp.ID) {
+                                    <nz-option [nzLabel]="emp.FullName" [nzValue]="emp.ID"></nz-option>
+                                    }
+                                </nz-select> -->
+                            </nz-form-control>
+                        </nz-form-item>
+                    </nz-col>
+                </nz-row>
+            </div>
+            }
+        </fieldset>
+        }
     </form>
 </div>
 
 <div class="modal-footer bg-light p-2">
-    <button nz-button nzDanger nzType="default" (click)="close()" [disabled]="saving">
+    <button nz-button nzDanger nzType="default" (click)="close()" [disabled]="saving" type="button">
         Đóng
     </button>
-    <button nz-button nzType="primary" (click)="saveData()" [disabled]="saving">
+    <button nz-button nzType="primary" (click)="saveData()" [disabled]="saving" type="button">
         <i *ngIf="saving" nz-icon nzType="loading" class="me-2"></i>
         {{ saving ? "Đang lưu..." : mode === "add" ? "Lưu" : "Cập nhật" }}
     </button>
 </div>
 
 <!-- Modal chọn ngày thay đổi trạng thái -->
-<nz-modal
-    [(nzVisible)]="isDateChangeModalVisible"
-    nzTitle="Chọn ngày thay đổi trạng thái"
-    (nzOnCancel)="handleDateChangeStatusCancel()"
-    (nzOnOk)="handleDateChangeStatusOk()"
-    nzOkText="Xác nhận"
-    nzCancelText="Hủy"
-    [nzWidth]="400">
+<nz-modal [(nzVisible)]="isDateChangeModalVisible" nzTitle="Chọn ngày thay đổi trạng thái"
+    (nzOnCancel)="handleDateChangeStatusCancel()" (nzOnOk)="handleDateChangeStatusOk()" nzOkText="Xác nhận"
+    nzCancelText="Hủy" [nzWidth]="400">
     <ng-container *nzModalContent>
-        <div style="padding: 10px 0;">
-            <label style="display: block; margin-bottom: 8px;">
-                Ngày thay đổi trạng thái <span style="color: red;">*</span>
+        <div style="padding: 10px 0">
+            <label style="display: block; margin-bottom: 8px">
+                Ngày thay đổi trạng thái <span style="color: red">*</span>
             </label>
-            <nz-date-picker
-                [(ngModel)]="tempDateChangeStatus"
-                style="width: 100%;"
-                nzFormat="dd/MM/yyyy"
+            <nz-date-picker [(ngModel)]="tempDateChangeStatus" style="width: 100%" nzFormat="dd/MM/yyyy"
                 nzPlaceHolder="Chọn ngày">
             </nz-date-picker>
         </div>

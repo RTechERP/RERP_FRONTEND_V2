@@ -37,7 +37,7 @@
                                 nzPlaceHolder="Chọn nhóm sản phẩm..." [(ngModel)]="productGroupID"
                                 (ngModelChange)="onGroupChange($event)" name="productGroupIDFilter">
                                 <nz-option *ngFor="let emp of productGroupData"
-                                    [nzLabel]="emp.NumberOrder + '. ' + emp.ProductGroupNo + '-' + emp.ProductGroupName"
+                                    [nzLabel]="emp.NumberOrder + '. ' + emp.ProductGroupName"
                                     [nzValue]="emp.ID"></nz-option>
                             </nz-select>
                         </nz-form-control>

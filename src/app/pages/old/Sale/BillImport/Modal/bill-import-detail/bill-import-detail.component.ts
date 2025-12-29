@@ -65,6 +65,10 @@ import { AppUserService } from '../../../../../../services/app-user.service';
 import { NOTIFICATION_TITLE } from '../../../../../../app.config';
 import { BillReturnComponent } from '../bill-return/bill-return.component';
 import { HasPermissionDirective } from '../../../../../../directives/has-permission.directive';
+import { BillImportQcComponent } from '../../../bill-import-qc/bill-import-qc.component';
+import { BillImportQcDetailComponent } from '../../../bill-import-qc/bill-import-qc-detail/bill-import-qc-detail.component';
+import { BillImportChoseSerialService } from '../../../../bill-import-technical/bill-import-chose-serial/bill-import-chose-serial.service';
+import { BillImportQcService } from '../../../bill-import-qc/bill-import-qc-service/bill-import-qc-service.service';
 
 interface ProductSale {
   Id?: number;
@@ -304,7 +308,9 @@ export class BillImportDetailComponent
     public activeModal: NgbActiveModal,
     private billExportService: BillExportService,
     private appUserService: AppUserService,
-    private projectService: ProjectService
+    private projectService: ProjectService,
+    private billImportQcService: BillImportQcService,
+    private billImportChoseSerialService: BillImportChoseSerialService
   ) {
     this.validateForm = this.fb.group({
       BillImportCode: [{ value: '', disabled: true }, [Validators.required]],
@@ -345,7 +351,11 @@ export class BillImportDetailComponent
     if (this.id > 0) {
       this.billImportService.getBillImportByID(this.id).subscribe((res) => {
         const data = res.data;
-        if (data && (data.Status === true || data.Status === 1)  && !this.appUserService.isAdmin) {
+        if (
+          data &&
+          (data.Status === true || data.Status === 1) &&
+          !this.appUserService.isAdmin
+        ) {
           this.isApproved = true;
         }
       });
@@ -1292,6 +1302,7 @@ export class BillImportDetailComponent
                 POKHDetailQuantity: item.POKHDetailQuantity || '',
                 ProjectIDKeep: item.ProjectIDKeep || 0,
                 StatusQCText: item.StatusQCText || '',
+                BillImportQCID: item.BillImportQCID || 0,
               };
             });
 
@@ -1472,7 +1483,16 @@ export class BillImportDetailComponent
       }
     });
   }
-  closeModal() {
+  async closeModal() {
+    const isValid = await this.checkSerial();
+    if (!isValid) {
+      this.notification.warning(
+        NOTIFICATION_TITLE.warning,
+        'Số lượng serial không đủ, vui lòng kiểm tra lại'
+      );
+      return;
+    }
+
     this.activeModal.close();
   }
 
@@ -1573,7 +1593,16 @@ export class BillImportDetailComponent
       };
     });
   }
-  saveDataBillImport() {
+  async saveDataBillImport() {
+    const isValid = await this.checkSerial();
+    if (!isValid) {
+      this.notification.warning(
+        NOTIFICATION_TITLE.warning,
+        'Số lượng serial lớn hơn số lượng yêu cầu, vui lòng kiểm tra lại'
+      );
+      return;
+    }
+
     if (!this.validateForm.valid) {
       this.notification.warning(
         NOTIFICATION_TITLE.warning,
@@ -2070,27 +2099,29 @@ export class BillImportDetailComponent
     modalRef.componentInstance.productCode = productCode;
     modalRef.componentInstance.existingSerials = existingSerials;
     modalRef.componentInstance.type = 1;
+    modalRef.componentInstance.dataBillDetail = rowData;
+    console.log('3', rowData);
 
-    modalRef.result.then(
-      (serials: { ID: number; Serial: string }[]) => {
-        if (Array.isArray(serials) && serials.length > 0) {
-          const serialsID = serials.map((s) => s.ID).join(',');
-          row.update({ SerialNumber: serialsID });
-          this.notification.success(
-            NOTIFICATION_TITLE.success,
-            'Cập nhật serial thành công!'
-          );
-        } else {
-          this.notification.error(
-            NOTIFICATION_TITLE.error,
-            'Dữ liệu serial không hợp lệ!'
-          );
-        }
-      },
-      (reason) => {
-        console.log('Modal dismissed:', reason);
-      }
-    );
+    // modalRef.result.then(
+    //   (serials: { ID: number; Serial: string }[]) => {
+    //     if (Array.isArray(serials) && serials.length > 0) {
+    //       const serialsID = serials.map((s) => s.ID).join(',');
+    //       row.update({ SerialNumber: serialsID });
+    //       this.notification.success(
+    //         NOTIFICATION_TITLE.success,
+    //         'Cập nhật serial thành công!'
+    //       );
+    //     } else {
+    //       this.notification.error(
+    //         NOTIFICATION_TITLE.error,
+    //         'Dữ liệu serial không hợp lệ!'
+    //       );
+    //     }
+    //   },
+    //   (reason) => {
+    //     console.log('Modal dismissed:', reason);
+    //   }
+    // );
   }
 
   openBillReturnModal(rowData: any, row: RowComponent) {
@@ -2133,8 +2164,35 @@ export class BillImportDetailComponent
           movableColumns: true,
           resizableRows: true,
           reactiveData: true,
-          selectableRows: 1,
+          selectableRows: true,
+          rowContextMenu: [
+            {
+              label: '<i class="fas fa-clipboard-check"></i> Yêu cầu QC',
+              action: (e, row) => {
+                this.openModalRequestQC();
+              },
+            },
+            {
+              label: '<i class="fas fa-eye"></i> Xem yêu cầu QC',
+              action: (e, row) => {
+                this.onViewBillImportQC();
+              },
+            },
+          ],
           columns: [
+            {
+              title: '',
+              formatter: 'rowSelection',
+              titleFormatter: 'rowSelection',
+              hozAlign: 'center',
+              headerHozAlign: 'center',
+              headerSort: false,
+              width: 40,
+              frozen: true,
+              cellClick: (e, cell) => {
+                cell.getRow().toggleSelect();
+              },
+            },
             {
               title: '',
               field: 'addRow',
@@ -2170,14 +2228,6 @@ export class BillImportDetailComponent
               },
             },
             {
-              title: 'ID',
-              field: 'ID',
-              hozAlign: 'center',
-              width: 60,
-              headerSort: false,
-              visible: false,
-            },
-            {
               title: 'STT',
               field: 'STT',
               formatter: 'rownum',
@@ -2199,7 +2249,6 @@ export class BillImportDetailComponent
               hozAlign: 'left',
               headerHozAlign: 'center',
               width: 450,
-              frozen: true,
               formatter: (cell) => {
                 const val = cell.getValue();
                 if (!val) {
@@ -2228,8 +2277,6 @@ export class BillImportDetailComponent
               hozAlign: 'left',
               headerHozAlign: 'center',
               editor: 'input',
-              frozen: true,
-
               width: 450,
             },
 
@@ -2854,6 +2901,7 @@ export class BillImportDetailComponent
                           ID: item.ID,
                           Serial: item.SerialNumber || item.Serial || '',
                         }));
+
                         this.openSerialModal(
                           rowData,
                           row,
@@ -2997,5 +3045,186 @@ export class BillImportDetailComponent
 
       this.isLoading = false;
     }, 300);
+  }
+
+  openModalRequestQC() {
+    // Lấy các dòng đã chọn
+    const selectedRows = this.table_billImportDetail.getSelectedRows();
+
+    // Kiểm tra có dòng nào được chọn không
+    if (!selectedRows || selectedRows.length === 0) {
+      this.notification.warning(
+        NOTIFICATION_TITLE.warning,
+        'Vui lòng chọn sản phẩm cần QC!'
+      );
+      return;
+    }
+
+    // Chuẩn bị dữ liệu
+    const lsProductID: number[] = [];
+    const dtDetails: any[] = [];
+    let stt = 1;
+
+    for (let i = 0; i < selectedRows.length; i++) {
+      const rowData = selectedRows[i].getData();
+      console.log(rowData);
+      const billImportDetailID = rowData['ID'] || 0;
+      const productSaleID = rowData['ProductID'] || 0;
+      const productName = rowData['ProductName'] || '';
+      const billImportQCId = rowData['BillImportQCID'] || 0;
+
+      // Kiểm tra sản phẩm đã được QC chưa
+      if (billImportQCId > 0) {
+        this.notification.warning(
+          NOTIFICATION_TITLE.warning,
+          `Sản phẩm thứ [${i + 1}] đã được QC!`
+        );
+        return;
+      }
+
+      // Thêm ProductID vào danh sách nếu chưa tồn tại
+      if (!lsProductID.includes(productSaleID) && productSaleID > 0) {
+        lsProductID.push(productSaleID);
+      }
+
+      // Tạo dòng detail
+      const detailRow = {
+        ID: -(i + 1), // ID âm duy nhất cho mỗi dòng mới
+        STT: stt++,
+        ProductSaleID: productSaleID,
+        ProductName: productName,
+        Quantity: rowData['Qty'] || 0,
+        LeaderTechID: 0,
+        EmployeeTechID: 0,
+        ProjectID: rowData['ProjectID'] || 0,
+        Status: 0,
+        BillImportDetailID: billImportDetailID,
+        POKHCode: rowData['BillCodePO'] || '',
+        BillCode: rowData['BillCodePO'] || '',
+      };
+
+      dtDetails.push(detailRow);
+    }
+
+    // Mở modal với dữ liệu đã chuẩn bị
+    const modalRef = this.modalService.open(BillImportQcDetailComponent, {
+      backdrop: 'static',
+      keyboard: false,
+      centered: true,
+      windowClass: 'full-screen-modal',
+      size: 'xl',
+    });
+    console.log(dtDetails);
+    modalRef.componentInstance.dataImport = dtDetails;
+    modalRef.componentInstance.isAddNewToBillImport = true;
+
+    modalRef.result.then(
+      (result: any) => {
+        this.getBillImportDetailID();
+      },
+      (reason) => {}
+    );
+  }
+
+  async onViewBillImportQC() {
+    // Lấy các dòng đã chọn
+    const selectedRows = this.table_billImportDetail.getSelectedRows();
+
+    // Kiểm tra có dòng nào được chọn không
+    if (!selectedRows || selectedRows.length === 0) {
+      this.notification.warning(
+        NOTIFICATION_TITLE.warning,
+        'Vui lòng chọn sản phẩm cần xem QC!'
+      );
+      return;
+    }
+
+    // Lấy danh sách BillImportQCID duy nhất
+    const lsBillImportQCIds: number[] = [];
+    for (let i = 0; i < selectedRows.length; i++) {
+      const rowData = selectedRows[i].getData();
+      const billImportQCId = rowData['BillImportQCID'] || 0;
+
+      // Thêm vào danh sách nếu chưa tồn tại và > 0
+      if (!lsBillImportQCIds.includes(billImportQCId) && billImportQCId > 0) {
+        lsBillImportQCIds.push(billImportQCId);
+      }
+    }
+
+    // Kiểm tra có yêu cầu QC nào không
+    if (lsBillImportQCIds.length === 0) {
+      this.notification.warning(
+        NOTIFICATION_TITLE.warning,
+        'Sản phẩm chưa được yêu cầu QC!'
+      );
+      return;
+    }
+
+    // Mở modal tuần tự cho từng yêu cầu QC
+    for (const billImportQCId of lsBillImportQCIds) {
+      try {
+        const res: any = await this.billImportQcService
+          .getDataMasterById(billImportQCId)
+          .toPromise();
+
+        if (res && res.data) {
+          const modalRef = this.modalService.open(BillImportQcDetailComponent, {
+            backdrop: 'static',
+            keyboard: false,
+            centered: true,
+            windowClass: 'full-screen-modal',
+            size: 'xl',
+          });
+
+          modalRef.componentInstance.billImportQCMaster = res.data;
+          modalRef.componentInstance.isCheckBillQC = true;
+
+          // Đợi modal đóng mới mở modal tiếp theo
+          try {
+            await modalRef.result;
+          } catch {
+            // Modal bị dismiss, tiếp tục mở modal tiếp theo
+          }
+        } else {
+          this.notification.error(
+            NOTIFICATION_TITLE.error,
+            `Không tìm thấy yêu cầu QC với ID: ${billImportQCId}`
+          );
+        }
+      } catch (error: any) {
+        this.notification.error(
+          NOTIFICATION_TITLE.error,
+          `Lỗi khi tải yêu cầu QC: ${error.message || error}`
+        );
+      }
+    }
+  }
+
+  async checkSerial(): Promise<boolean> {
+    const tableData = this.table_billImportDetail?.getData();
+
+    for (const detail of tableData) {
+      const qty = detail.Quantity || detail.Qty || 0;
+      const detailId = detail.ID;
+
+      if (!detailId || detailId <= 0) {
+        continue;
+      }
+
+      try {
+        const result = await this.billImportChoseSerialService
+          .countSerialBillImport(detailId)
+          .toPromise();
+
+        if (qty < (result?.data || 0)) {
+          return false;
+        }
+      } catch (error) {
+        console.error('Lỗi check serial', detailId, error);
+        return false;
+      }
+    }
+
+    return true;
   }
 }

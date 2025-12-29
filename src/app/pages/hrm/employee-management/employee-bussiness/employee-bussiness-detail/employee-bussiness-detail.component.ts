@@ -11,7 +11,7 @@ import { NzFormModule } from 'ng-zorro-antd/form';
 import { NzInputModule } from 'ng-zorro-antd/input';
 import { NzNotificationService } from 'ng-zorro-antd/notification';
 import { NzNotificationModule } from 'ng-zorro-antd/notification';
-import { ReactiveFormsModule, FormBuilder, FormGroup, Validators, Form } from '@angular/forms';
+import { ReactiveFormsModule, FormsModule, FormBuilder, FormGroup, Validators, Form } from '@angular/forms';
 import { TabulatorFull as Tabulator, RowComponent } from 'tabulator-tables';
 import 'tabulator-tables/dist/css/tabulator_simple.min.css';
 import { NzCheckboxModule } from 'ng-zorro-antd/checkbox';
@@ -23,6 +23,10 @@ import * as ExcelJS from 'exceljs';
 import { saveAs } from 'file-saver';
 import { NzSplitterModule } from 'ng-zorro-antd/splitter';
 import { NzSpinModule } from 'ng-zorro-antd/spin';
+import { NzUploadModule } from 'ng-zorro-antd/upload';
+import { NzMessageService } from 'ng-zorro-antd/message';
+import { NzMessageModule } from 'ng-zorro-antd/message';
+import { AuthService } from '../../../../../auth/auth.service';
 import { EmployeeService } from '../../../employee/employee-service/employee.service';
 import { EmployeeBussinessService } from '../employee-bussiness-service/employee-bussiness.service';
 import { NOTIFICATION_TITLE } from '../../../../../app.config';
@@ -47,6 +51,7 @@ import { WFHService } from '../../employee-wfh/WFH-service/WFH.service';
     NzInputModule,
     NzNotificationModule,
     ReactiveFormsModule,
+    FormsModule,
     NzIconModule,
     NzCheckboxModule,
     NzInputNumberModule,
@@ -55,6 +60,8 @@ import { WFHService } from '../../employee-wfh/WFH-service/WFH.service';
     NzSplitterModule,
     NgIf,
     NzSpinModule,
+    NzUploadModule,
+    NzMessageModule,
   ]
 })
 export class EmployeeBussinessDetailComponent implements OnInit, AfterViewInit, OnChanges {
@@ -77,6 +84,19 @@ export class EmployeeBussinessDetailComponent implements OnInit, AfterViewInit, 
   vehicleList: any[] = []; // Danh sách phương tiện
   listId: number[] = []; // Danh sách ID cần xóa
   hasDataChanges = false; // Flag để kiểm tra có thay đổi không
+  
+  // Đăng ký bổ sung và upload file
+  isProblem = false;
+  selectedFile: File | null = null;
+  uploadedFileData: any = null;
+  tempFileRecord: any = null;
+  existingFileRecord: any = null;
+  fileList: any[] = [];
+  existingFiles: any[] = [];
+  deletedFileIds: number[] = [];
+  deletedFiles: any[] = [];
+  attachFileName: string = '';
+  currentUser: any = null;
 
   constructor(
     private fb: FormBuilder,
@@ -88,9 +108,12 @@ export class EmployeeBussinessDetailComponent implements OnInit, AfterViewInit, 
     public activeModal: NgbActiveModal,
     private appUserService: AppUserService,
     private wfhService: WFHService,
+    private message: NzMessageService,
+    private authService: AuthService,
   ) { }
 
   overNightTypeList = [
+    { value: 0, label: 'Không có' },
     { value: 1, label: 'Từ sau 20h' },
     { value: 2, label: 'Theo loại CT' },
   ];
@@ -100,6 +123,7 @@ export class EmployeeBussinessDetailComponent implements OnInit, AfterViewInit, 
     this.initSearchForm();
     this.loadApprover();
     this.loadEmployee();
+    this.getCurrentUser();
     // Load vehicleList trước để có dữ liệu khi map VehicleID
     this.loadVehicleList(() => {
       // Sau khi vehicleList load xong, mới load detailData
@@ -146,27 +170,48 @@ export class EmployeeBussinessDetailComponent implements OnInit, AfterViewInit, 
   loadDetailData() {
     this.listId = []; // Reset list ID cần xóa
     this.hasDataChanges = false; // Reset flag thay đổi
+    
+    // Reset file data
+    this.existingFiles = [];
+    this.existingFileRecord = null;
+    this.attachFileName = '';
+    this.selectedFile = null;
+    this.tempFileRecord = null;
+    this.fileList = [];
+    this.deletedFileIds = [];
+    this.deletedFiles = [];
 
     // Set form values from the first item in detail data
     const firstItem = this.detailData[0];
     if (firstItem != null) {
+      // Set IsProblem từ dữ liệu
+      this.isProblem = firstItem['IsProblem'] || false;
+      
       this.searchForm.patchValue({
         employeeId: firstItem['EmployeeID'] ?? 0,
         approverId: firstItem['ApprovedID'] ?? 0,
-        dateRegister: new Date(firstItem['DayBussiness'])
+        dateRegister: new Date(firstItem['DayBussiness']),
+        isProblem: this.isProblem
       });
 
       // Disable employee và approver khi có dữ liệu
       this.searchForm.get('employeeId')?.disable();
       this.searchForm.get('approverId')?.disable();
+      
+      // Load file đính kèm nếu có ID
+      if (firstItem['ID'] && firstItem['ID'] > 0) {
+        this.loadFilesByBussinessID(firstItem['ID']);
+      }
     } else {
       // Enable khi không có dữ liệu
       this.searchForm.get('employeeId')?.enable();
       this.searchForm.get('approverId')?.enable();
+      this.isProblem = false;
       this.searchForm.patchValue({
         employeeId: null,
         approverId: null,
-        dateRegister: new Date()
+        dateRegister: new Date(),
+        isProblem: false
       });
     }
 
@@ -246,8 +291,149 @@ export class EmployeeBussinessDetailComponent implements OnInit, AfterViewInit, 
     this.searchForm = this.fb.group({
       approverId: null,
       employeeId: null,
-      dateRegister: new Date()
+      dateRegister: new Date(),
+      isProblem: [false]
     });
+  }
+
+  getCurrentUser() {
+    this.authService.getCurrentUser().subscribe({
+      next: (res: any) => {
+        if (res && res.status === 1 && res.data) {
+          const data = res.data;
+          this.currentUser = Array.isArray(data) ? data[0] : data;
+        }
+      },
+      error: () => {}
+    });
+  }
+
+  onIsProblemChange(checked: boolean) {
+    this.isProblem = checked;
+    this.searchForm.patchValue({ isProblem: checked });
+    
+    if (!checked) {
+      // Khi bỏ chọn đăng ký bổ sung, xóa file đã chọn
+      this.selectedFile = null;
+      this.uploadedFileData = null;
+      this.tempFileRecord = null;
+      this.fileList = [];
+      if (!this.existingFileRecord) {
+        this.attachFileName = '';
+      }
+    }
+  }
+
+  // Xử lý khi chọn file với nz-upload
+  beforeUpload = (file: any): boolean => {
+    if (this.existingFiles.length > 0) {
+      this.existingFiles.forEach(existingFile => {
+        if (existingFile.ID && existingFile.ID > 0 && !this.deletedFileIds.includes(existingFile.ID)) {
+          this.deletedFileIds.push(existingFile.ID);
+          this.deletedFiles.push({
+            ...existingFile,
+            IsDeleted: true
+          });
+        }
+      });
+      this.existingFiles = [];
+      this.existingFileRecord = null;
+    }
+    
+    this.selectedFile = null;
+    this.tempFileRecord = null;
+    this.uploadedFileData = null;
+    this.fileList = [file];
+    this.selectedFile = file;
+    this.attachFileName = file.name;
+    return false;
+  };
+
+  removeFile() {
+    this.selectedFile = null;
+    this.uploadedFileData = null;
+    this.attachFileName = '';
+    this.tempFileRecord = null;
+    this.fileList = [];
+  }
+
+  // Xóa file đính kèm đã có
+  deleteExistingFile(fileId: number) {
+    const fileToDelete = this.existingFiles.find(f => f.ID === fileId);
+    if (!fileToDelete) {
+      return;
+    }
+
+    if (fileId > 0 && !this.deletedFileIds.includes(fileId)) {
+      this.deletedFileIds.push(fileId);
+      this.deletedFiles.push({
+        ...fileToDelete,
+        IsDeleted: true
+      });
+    }
+    
+    this.existingFiles = this.existingFiles.filter(f => f.ID !== fileId);
+    
+    const remainingFiles = this.existingFiles.filter(f => f.ID && !this.deletedFileIds.includes(f.ID));
+    
+    if (remainingFiles.length === 0) {
+      this.existingFileRecord = null;
+      this.attachFileName = '';
+    } else {
+      const firstFile = remainingFiles[0];
+      this.existingFileRecord = {
+        ID: firstFile.ID || 0,
+        EmployeeBussinessID: firstFile.EmployeeBussinessID || 0,
+        FileName: firstFile.FileName || '',
+        OriginPath: firstFile.OriginPath || '',
+        ServerPath: firstFile.ServerPath || ''
+      };
+      this.attachFileName = firstFile.FileName || firstFile.OriginPath || '';
+    }
+  }
+
+  // Load danh sách file đính kèm
+  loadFilesByBussinessID(bussinessID: number) {
+    if (!bussinessID || bussinessID <= 0) {
+      this.existingFiles = [];
+      return;
+    }
+
+    this.employeeBussinessService.getFileByID(bussinessID).subscribe({
+      next: (response: any) => {
+        if (response && response.status === 1 && response.data) {
+          this.existingFiles = Array.isArray(response.data) ? response.data : [response.data];
+          
+          if (this.existingFiles.length > 0) {
+            const firstFile = this.existingFiles[0];
+            this.existingFileRecord = {
+              ID: firstFile.ID || 0,
+              EmployeeBussinessID: firstFile.EmployeeBussinessID || 0,
+              FileName: firstFile.FileName || '',
+              OriginPath: firstFile.OriginPath || '',
+              ServerPath: firstFile.ServerPath || ''
+            };
+            this.attachFileName = firstFile.FileName || firstFile.OriginPath || '';
+          }
+        } else {
+          this.existingFiles = [];
+        }
+      },
+      error: () => {
+        this.existingFiles = [];
+      }
+    });
+  }
+
+  // Tạo subpath dựa trên ngày công tác và code nhân viên
+  private generateSubPath(dayBussiness: Date, employeeCode: string): string {
+    const date = new Date(dayBussiness);
+    const year = date.getFullYear();
+    const month = date.getMonth() + 1;
+    const day = date.getDate();
+    const monthName = `Tháng ${month}`;
+    const dayFormatted = `Ngày ${day.toString().padStart(2, '0')}.${month.toString().padStart(2, '0')}.${year}`;
+    return `Năm ${year}\\${monthName}\\${dayFormatted}\\${employeeCode}\\`;
   }
 
   loadEmployee() {
@@ -256,8 +442,6 @@ export class EmployeeBussinessDetailComponent implements OnInit, AfterViewInit, 
         if (res && res.status === 1 && res.data) {
           // Lưu danh sách employee gốc (để tương thích với code cũ nếu cần)
           this.employeeList = res.data.employees || [];
-
-          // Group employees by DepartmentName
           const empGroups: { [key: string]: any[] } = {};
           (res.data.employees || []).forEach((emp: any) => {
             const dept = emp.DepartmentName || 'Không xác định';
@@ -665,7 +849,7 @@ export class EmployeeBussinessDetailComponent implements OnInit, AfterViewInit, 
           field: 'VehicleID',
           hozAlign: 'left',
           headerHozAlign: 'center',
-          width: 500,
+          width: 200,
           headerSort: false,
           editor: 'list',
           editorParams: {
@@ -704,6 +888,7 @@ export class EmployeeBussinessDetailComponent implements OnInit, AfterViewInit, 
             }
           }
         },
+          { title: 'Lý do công tác', field: 'Reason', editor: 'input', hozAlign: 'left', headerHozAlign: 'center', width: 500, headerSort: false,formatter:'textarea' },
         {
           title: 'Tổng chi phí phương tiện',
           field: 'TotalCostVehicle',
@@ -966,6 +1151,7 @@ export class EmployeeBussinessDetailComponent implements OnInit, AfterViewInit, 
 
     const employeeBussiness = this.tabulator.getData() || [];
     const formValue = this.searchForm.getRawValue(); // getRawValue để lấy cả disabled fields
+    const isProblemValue = this.isProblem;
 
     // Tính toán các chi phí cho từng dòng
     const formData = {
@@ -976,7 +1162,7 @@ export class EmployeeBussinessDetailComponent implements OnInit, AfterViewInit, 
 
         // Tính các chi phí
         const costWorkEarly = (item.WorkEarly === true || item.WorkEarly === 1 || item.WorkEarly === 'true') ? 50000 : 0;
-        const costOvernight = (item.OvernightType > 0) ? 35000 : 0;
+        const costOvernight = (item.OvernightType > 0 && item.OvernightType !== 0) ? 35000 : 0;
         const costVehicle = item.TotalCostVehicle || 0;
         const totalMoney = costBussiness + costOvernight + costWorkEarly + costVehicle;
 
@@ -995,6 +1181,8 @@ export class EmployeeBussinessDetailComponent implements OnInit, AfterViewInit, 
           CostVehicle: item.TotalCostVehicle ?? 0,
           ReasonHREdit: item.ReasonHREdit ?? '',
           Note: item.Note ?? '',
+          Reason: item.Reason ?? '',
+          IsProblem: isProblemValue,
           CostBussiness: costBussiness,
           CostOvernight: costOvernight,
           CostWorkEarly: costWorkEarly,
@@ -1007,47 +1195,184 @@ export class EmployeeBussinessDetailComponent implements OnInit, AfterViewInit, 
       })
     };
 
-    // Lưu dữ liệu
-    this.employeeBussinessService.saveEmployeeBussiness(formData.EmployeeBussinesses).subscribe({
-      next: (response) => {
-        // Xóa các dòng đã đánh dấu xóa
-        if (this.listId.length > 0) {
-          this.employeeBussinessService.deletedEmployeeBussiness(this.listId).subscribe({
-            next: () => {
-              this.listId = [];
-              this.hasDataChanges = false;
-              this.isSaving = false;
-              this.activeModal.close({ success: true });
-              this.notification.success(NOTIFICATION_TITLE.success, 'Cập nhật đăng ký công tác thành công');
-            },
-            error: (error) => {
-              this.isSaving = false;
-              this.notification.error(NOTIFICATION_TITLE.error, 'Xóa công tác thất bại');
-            }
-          });
+    // Nếu có file mới, upload trước rồi save
+    if (this.selectedFile) {
+      this.uploadFileAndSave(formData.EmployeeBussinesses);
+    } else {
+      this.saveDataWithFile(formData.EmployeeBussinesses);
+    }
+  }
+
+  // Upload file và sau đó save
+  uploadFileAndSave(data: any[]): void {
+    if (!this.selectedFile) {
+      this.saveDataWithFile(data);
+      return;
+    }
+
+    const formValue = this.searchForm.getRawValue();
+    const employeeID = formValue.employeeId;
+    const employee = this.employeeList.find(emp => emp.ID === employeeID);
+    const employeeCode = employee?.Code || 'UNKNOWN';
+    const dayBussiness = formValue.dateRegister ? new Date(formValue.dateRegister) : new Date();
+    const subPath = this.generateSubPath(dayBussiness, employeeCode);
+
+    const loadingMsg = this.message.loading(`Đang tải lên ${this.selectedFile.name}...`, {
+      nzDuration: 0,
+    }).messageId;
+
+    this.employeeBussinessService.uploadMultipleFiles([this.selectedFile], subPath).subscribe({
+      next: (res: any) => {
+        this.message.remove(loadingMsg);
+
+        if (res?.status === 1 && res?.data?.length > 0) {
+          const uploadedFile = res.data[0];
+          this.uploadedFileData = uploadedFile;
+          
+          const fileRecord: any = {
+            ID: this.existingFileRecord?.ID || 0,
+            EmployeeBussinessID: 0,
+            FileName: uploadedFile.SavedFileName || uploadedFile.FileName || '',
+            OriginPath: uploadedFile.OriginPath || uploadedFile.OriginalFileName || uploadedFile.OriginName || (this.selectedFile ? this.selectedFile.name : '') || '',
+            ServerPath: uploadedFile.ServerPath || uploadedFile.FilePath || '',
+          };
+
+          this.tempFileRecord = fileRecord;
+          this.saveDataWithFile(data);
         } else {
-          this.hasDataChanges = false;
+          this.message.remove(loadingMsg);
+          this.notification.error(NOTIFICATION_TITLE.error, res?.message || 'Upload file thất bại!');
           this.isSaving = false;
-          this.activeModal.close({ success: true });
-          this.notification.success(NOTIFICATION_TITLE.success, 'Cập nhật đăng ký công tác thành công');
         }
       },
-      error: (error) => {
+      error: (err: any) => {
+        this.message.remove(loadingMsg);
+        this.notification.error(NOTIFICATION_TITLE.error, err?.error?.message || 'Upload file thất bại!');
+        this.isSaving = false;
+      },
+    });
+  }
+
+  // Save employee bussiness và file
+  saveDataWithFile(data: any[]): void {
+    // Lưu dữ liệu
+    this.employeeBussinessService.saveEmployeeBussiness(data).subscribe({
+      next: (response: any) => {
+        const savedIds = response?.data || [];
+        
+        // Nếu có file mới hoặc file đã tồn tại, lưu file cho từng bản ghi
+        if (this.tempFileRecord || this.existingFileRecord) {
+          this.saveFilesForRecords(savedIds, data);
+        } else {
+          this.processAfterSave();
+        }
+      },
+      error: (error: any) => {
         this.isSaving = false;
         this.notification.error(NOTIFICATION_TITLE.error, 'Cập nhật đăng ký công tác thất bại');
       }
     });
   }
 
+  // Lưu file cho các bản ghi
+  saveFilesForRecords(savedIds: any[], data: any[]): void {
+    // Nếu không có file record, bỏ qua
+    if (!this.tempFileRecord && !this.existingFileRecord) {
+      this.processAfterSave();
+      return;
+    }
+
+    const fileRecord = this.tempFileRecord || this.existingFileRecord;
+    
+    // Lưu file cho bản ghi đầu tiên (hoặc tất cả nếu cần)
+    if (savedIds && savedIds.length > 0) {
+      const firstSavedId = savedIds[0]?.ID || savedIds[0] || data[0]?.ID || 0;
+      if (firstSavedId > 0) {
+        const filePayload = {
+          ...fileRecord,
+          EmployeeBussinessID: firstSavedId
+        };
+        
+        this.employeeBussinessService.saveEmployeeBussinessFile(filePayload).subscribe({
+          next: () => {
+            this.processDeletedFiles();
+          },
+          error: () => {
+            this.processDeletedFiles();
+          }
+        });
+      } else {
+        this.processDeletedFiles();
+      }
+    } else {
+      this.processDeletedFiles();
+    }
+  }
+
+  // Xử lý xóa các file đã đánh dấu
+  processDeletedFiles(): void {
+    if (this.deletedFiles.length > 0) {
+      let completedCount = 0;
+      const totalFiles = this.deletedFiles.length;
+      
+      this.deletedFiles.forEach((deletedFile) => {
+        const filePayload = {
+          ...deletedFile,
+          IsDeleted: true,
+          UpdatedBy: this.currentUser?.UserName || 'admin'
+        };
+        
+        this.employeeBussinessService.saveEmployeeBussinessFile(filePayload).subscribe({
+          next: () => {
+            completedCount++;
+            if (completedCount === totalFiles) {
+              this.processAfterSave();
+            }
+          },
+          error: () => {
+            completedCount++;
+            if (completedCount === totalFiles) {
+              this.processAfterSave();
+            }
+          }
+        });
+      });
+    } else {
+      this.processAfterSave();
+    }
+  }
+
+  // Xử lý sau khi save xong
+  processAfterSave(): void {
+    // Xóa các dòng đã đánh dấu xóa
+    if (this.listId.length > 0) {
+      this.employeeBussinessService.deletedEmployeeBussiness(this.listId).subscribe({
+        next: () => {
+          this.listId = [];
+          this.hasDataChanges = false;
+          this.isSaving = false;
+          this.activeModal.close({ success: true });
+          this.notification.success(NOTIFICATION_TITLE.success, 'Cập nhật đăng ký công tác thành công');
+        },
+        error: () => {
+          this.isSaving = false;
+          this.notification.error(NOTIFICATION_TITLE.error, 'Xóa công tác thất bại');
+        }
+      });
+    } else {
+      this.hasDataChanges = false;
+      this.isSaving = false;
+      this.activeModal.close({ success: true });
+      this.notification.success(NOTIFICATION_TITLE.success, 'Cập nhật đăng ký công tác thành công');
+    }
+  }
+
   // Tính tổng chi phí cho một dòng
   setTotalCost(row: any) {
     const rowData = row.getData();
-    console.log('setTotalCost - rowData:', rowData);
-    console.log('setTotalCost - rowData.TypeBusiness:', rowData.TypeBusiness);
 
+    
     const typeBussinessID = parseInt(rowData.TypeBusiness) || 0;
-    console.log('setTotalCost - typeBussinessID after parse:', typeBussinessID);
-    console.log('setTotalCost - employeeTypeBussinessList:', this.employeeTypeBussinessList);
 
     // Tìm loại công tác với so sánh chính xác cả number và string
     const typeBussiness = this.employeeTypeBussinessList.find((t: any) => {
@@ -1055,45 +1380,38 @@ export class EmployeeBussinessDetailComponent implements OnInit, AfterViewInit, 
       return tValue === typeBussinessID;
     });
 
-    console.log('setTotalCost - typeBussiness found:', typeBussiness);
 
     // Lấy Cost từ typeData
     let costBussiness = 0;
     if (typeBussiness && typeBussiness.typeData) {
       const typeData = typeBussiness.typeData;
-      console.log('setTotalCost - typeData:', typeData);
 
       // Kiểm tra typeData.Cost (chữ hoa) - ưu tiên nhất
       if (typeData.Cost != null && typeData.Cost !== undefined && typeData.Cost !== '') {
         costBussiness = parseFloat(typeData.Cost) || 0;
-        console.log('setTotalCost - costBussiness from typeData.Cost:', costBussiness);
       }
       // Kiểm tra typeData.cost (chữ thường)
       else if (typeData.cost != null && typeData.cost !== undefined && typeData.cost !== '') {
         costBussiness = parseFloat(typeData.cost) || 0;
-        console.log('setTotalCost - costBussiness from typeData.cost:', costBussiness);
       }
       // Kiểm tra các trường khác có thể chứa Cost
       else if (typeData.COST != null && typeData.COST !== undefined && typeData.COST !== '') {
         costBussiness = parseFloat(typeData.COST) || 0;
-        console.log('setTotalCost - costBussiness from typeData.COST:', costBussiness);
       }
     }
 
-    // Nếu vẫn không tìm thấy, kiểm tra trực tiếp từ typeBussiness
+
     if (costBussiness === 0 && typeBussiness) {
       if (typeBussiness.Cost != null && typeBussiness.Cost !== undefined && typeBussiness.Cost !== '') {
         costBussiness = parseFloat(typeBussiness.Cost) || 0;
-        console.log('setTotalCost - costBussiness from typeBussiness.Cost:', costBussiness);
       }
       else if (typeBussiness.cost != null && typeBussiness.cost !== undefined && typeBussiness.cost !== '') {
         costBussiness = parseFloat(typeBussiness.cost) || 0;
-        console.log('setTotalCost - costBussiness from typeBussiness.cost:', costBussiness);
       }
     }
 
     const costWorkEarly = (rowData.WorkEarly === true || rowData.WorkEarly === 1 || rowData.WorkEarly === 'true' || rowData.WorkEarly === '1') ? 50000 : 0;
-    const costOvernight = (rowData.OvernightType > 0 && rowData.OvernightType != null) ? 35000 : 0;
+    const costOvernight = (rowData.OvernightType > 0 && rowData.OvernightType != null && rowData.OvernightType !== 0) ? 35000 : 0;
     const costVehicle = parseFloat(rowData.TotalCostVehicle) || 0;
 
     const totalCost = costBussiness + costWorkEarly + costOvernight + costVehicle;

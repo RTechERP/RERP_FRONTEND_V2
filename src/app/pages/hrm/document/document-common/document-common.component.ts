@@ -52,22 +52,41 @@ export class DocumentCommonComponent implements OnInit, AfterViewInit {
     private notification: NzNotificationService,
     private message: NzMessageService,
     private route: ActivatedRoute
-  ) {
-    this.route.queryParams.subscribe(params => {
-      this.departmentId = params['departmentID'] ? +params['departmentID'] : -1;
-    });
-  }
+  ) {}
 
   ngOnInit(): void {
     this.loadDepartments();
+    
+    // Subscribe to query params và set departmentId
+    this.route.queryParams.subscribe(params => {
+      const deptId = params['departmentID'];
+      if (deptId) {
+        const parsedId = parseInt(deptId, 10);
+        if (!isNaN(parsedId)) {
+          this.departmentId = parsedId;
+        }
+      }
+      
+      // Nếu tabulator đã được khởi tạo, load data ngay
+      if (this.tabulator) {
+        this.loadDocumentData();
+      }
+    });
   }
 
   ngAfterViewInit(): void {
     this.initializeTable();
+    
+    // Load data sau khi table được khởi tạo
+    // Lúc này departmentId đã được set từ query params
+    setTimeout(() => {
+      this.loadDocumentData();
+    }, 0);
   }
 
   loadDocumentData(): void {
-    this.documentService.getDocumentCommon(this.keyword, this.departmentId ?? 0, this.groupType ?? 1).subscribe({
+    const deptId = this.departmentId === -1 ? 0 : this.departmentId;
+    this.documentService.getDocumentCommon(this.keyword, deptId, this.groupType ?? 1).subscribe({
       next: (response: any) => {
         this.documentData = response?.data || [];
         this.totalDocuments = this.documentData.length;
@@ -180,8 +199,6 @@ export class DocumentCommonComponent implements OnInit, AfterViewInit {
         },
       ],
     });
-
-    this.loadDocumentData();
   }
 
   downloadFile(fileName: string): void {

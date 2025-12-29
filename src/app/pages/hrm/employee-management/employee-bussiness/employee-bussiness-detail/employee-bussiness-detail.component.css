@@ -21,3 +21,27 @@
   max-height: calc(100vh - 120px);
 }
 
+/* Tabulator text wrapping styles */
+::ng-deep .tabulator .tabulator-cell {
+  white-space: pre-wrap !important;
+  word-wrap: break-word !important;
+  overflow-wrap: break-word !important;
+  vertical-align: top !important;
+}
+
+::ng-deep .tabulator .tabulator-cell .tabulator-cell-value {
+  white-space: pre-wrap !important;
+  word-wrap: break-word !important;
+  overflow-wrap: break-word !important;
+}
+
+::ng-deep .tabulator .tabulator-row {
+  min-height: 40px !important;
+}
+
+/* Textarea editor styles */
+::ng-deep .tabulator-edit-select-list {
+  max-height: 200px;
+  overflow-y: auto;
+}
+

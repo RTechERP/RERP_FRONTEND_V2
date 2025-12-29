@@ -817,6 +817,11 @@ export const routes: Routes = [
             { path: 'proposal-hr', component: HrPurchaseProposalComponent, canActivate: [authGuard] },
             { path: 'document', component: DocumentComponent, canActivate: [authGuard] },
             { path: 'document-common', component: DocumentCommonComponent, canActivate: [authGuard] },
+            { path: 'document-common-kt', component: DocumentCommonComponent, canActivate: [authGuard] },
+            { path: 'document-common-sale', component: DocumentCommonComponent, canActivate: [authGuard] },
+            { path: 'document-common-agv', component: DocumentCommonComponent, canActivate: [authGuard] },
+            { path: 'document-common-tkck', component: DocumentCommonComponent, canActivate: [authGuard] },
+
             { path: 'asset-management', component: TsAssetManagementComponent, canActivate: [authGuard] },
             { path: 'asset-type', component: TsAssetTypeComponent, canActivate: [authGuard] },
             { path: 'asset-source', component: TsAssetSourceComponent, canActivate: [authGuard] },

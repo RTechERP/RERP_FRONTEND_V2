@@ -20,6 +20,7 @@ import { FormGroup, FormBuilder, Validators } from '@angular/forms';
 import { AngularSlickgridModule, AngularGridInstance, Column, GridOption, Formatters } from 'angular-slickgrid';
 
 import { SplitterModule } from 'primeng/splitter';
+import { CardModule } from 'primeng/card';
 import { BillImportTechnicalService } from '../../bill-import-technical/bill-import-technical-service/bill-import-technical.service';
 import { InventoryDemoService } from '../inventory-demo-service/inventory-demo.service';
 import { filter, last } from 'rxjs';
@@ -31,6 +32,7 @@ import { BillExportTechnicalService } from '../../bill-export-technical/bill-exp
   standalone: true,
   imports: [
     SplitterModule,
+    CardModule,
     AngularSlickgridModule,
     NzCheckboxModule,
     ReactiveFormsModule,

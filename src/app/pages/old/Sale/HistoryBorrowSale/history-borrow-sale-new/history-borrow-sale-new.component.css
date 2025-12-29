@@ -1,0 +1,48 @@
+
+/* Color legend */
+.color-legend {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+}
+
+.color-box {
+    width: 20px;
+    height: 20px;
+    border: 1px solid #ccc;
+    border-radius: 3px;
+}
+
+.color-dual {
+    background-color: #ffff99;
+}
+
+.color-overdue {
+    background-color: #ffb3d9;
+}
+
+/* Row colors for SlickGrid */
+:host ::ng-deep .slick-row.row-overdue {
+    background-color: #ffb3d9 !important;
+}
+
+:host ::ng-deep .slick-row.row-dual {
+    background-color: #ffff99 !important;
+}
+
+::ng-deep div[id^="historyBorrowSaleGrid-"] {
+    height: 85vh !important;
+}
+
+/* Advanced filters dropdown */
+.advanced-filters-container {
+    min-width: 300px;
+    background-color: #ffffff;
+    border: 1px solid #d9d9d9;
+    border-radius: 4px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+}
+
+.advanced-filters-content {
+    background-color: #ffffff;
+}

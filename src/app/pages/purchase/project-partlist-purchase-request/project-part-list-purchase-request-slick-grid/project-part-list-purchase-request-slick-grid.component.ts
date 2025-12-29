@@ -1201,7 +1201,7 @@ export class ProjectPartListPurchaseRequestSlickGridComponent
       },
       // ProductGroupID or ProductGroupRTCID for RTC tabs
 
-      // UnitName
+      // UnitName - Cột cố định, tính index để đảm bảo các cột sau luôn đúng vị trí khi có ẩn/hiện cột động
       {
         id: 'UnitName',
         field: 'UnitName',
@@ -1210,6 +1210,9 @@ export class ProjectPartListPurchaseRequestSlickGridComponent
         sortable: true,
         filterable: true,
         filter: { model: Filters['compoundInputText'] },
+        // Tính index cố định: TT(0) + WarehouseID(1) + TBP columns(0-3) + Approval columns(0-2) + CustomerName(0-1) + Fixed columns before UnitName
+        // Fixed columns trước UnitName: ProjectCode, ProductGroupID/ProductGroupRTCID, ProductNewCode/ProductCodeRTC, ProductCode, ProductName, Model, Manufacturer, Quantity = 8 columns
+        // Index = 2 + (isTBPTab ? 3 : 0) + (typeId !== 1 && typeId !== 4 ? 2 : 0) + (typeId !== 1 ? 1 : 0) + 8
       },
       // WarehouseID
       // {
@@ -1504,21 +1507,7 @@ export class ProjectPartListPurchaseRequestSlickGridComponent
         params: { groupFormatterPrefix: 'Tổng: ' },
       },
       // TargetPrice
-      {
-        id: 'TargetPrice',
-        field: 'TargetPrice',
-        name: 'Giá Target',
-        width: 120,
-        sortable: true,
-        filterable: true,
-        editor: {
-          model: Editors['float'],
-          decimal: 2,
-        },
-        formatter: (row: number, cell: number, value: any) =>
-          this.formatNumberEnUS(value, 2),
-        filter: { model: Filters['compoundInputNumber'] },
-      },
+      
       // SupplierSaleID
       {
         id: 'SupplierSaleID',
@@ -1560,6 +1549,21 @@ export class ProjectPartListPurchaseRequestSlickGridComponent
         field: 'TotalDayLeadTime',
         name: 'Lead time (ngày)',
         width: 100,
+        sortable: true,
+        filterable: true,
+        editor: {
+          model: Editors['float'],
+          decimal: 2,
+        },
+        formatter: (row: number, cell: number, value: any) =>
+          this.formatNumberEnUS(value, 2),
+        filter: { model: Filters['compoundInputNumber'] },
+      },
+      {
+        id: 'TargetPrice',
+        field: 'TargetPrice',
+        name: 'Giá Target',
+        width: 120,
         sortable: true,
         filterable: true,
         editor: {
@@ -2037,7 +2041,8 @@ export class ProjectPartListPurchaseRequestSlickGridComponent
             // COLUMNS
             autoFitColumnsOnFirstLoad: false,
             enableAutoSizeColumns: false,
-            frozenColumn: 10, // Freeze first 10 columns
+            // Freeze columns đến cột ĐVT (UnitName) - index được tính động dựa trên các cột có thể ẩn/hiện
+            frozenColumn: this.getUnitNameColumnIndex(typeId)+1,
 
             // PAGINATION
             enablePagination: false,
@@ -2160,6 +2165,8 @@ export class ProjectPartListPurchaseRequestSlickGridComponent
             if (angularGrid.slickGrid) {
                 angularGrid.slickGrid.render();
             }
+            // Apply distinct filters for this grid after it's ready
+            this.applyDistinctFilters();
         }, 100);
     }
 
@@ -5217,6 +5224,40 @@ export class ProjectPartListPurchaseRequestSlickGridComponent
       columnNumber = Math.floor((columnNumber - 1) / 26);
     }
     return letter;
+  }
+
+  /**
+   * Tính index cố định của cột ĐVT (UnitName) dựa trên các cột động có thể ẩn/hiện
+   * @param typeId - ID của tab để xác định các cột động
+   * @returns Index của cột UnitName trong mảng columns
+   */
+  private getUnitNameColumnIndex(typeId: number): number {
+    const isTBPTab = typeId === 4; // Tab "Mượn demo - RTC" có thêm 3 cột TBP
+
+    let index = 0;
+
+    // Cột cố định luôn có
+    index += 2; // TT + WarehouseID
+
+    // Cột TBP (chỉ có khi typeId === 4)
+    if (isTBPTab) {
+      index += 3; // IsApprovedTBP + ApprovedTBPName + DateApprovedTBP
+    }
+
+    // Cột Approval (có khi typeId !== 1 && typeId !== 4)
+    if (typeId !== 1 && typeId !== 4) {
+      index += 2; // IsRequestApproved + IsApprovedBGD
+    }
+
+    // Cột CustomerName (có khi typeId !== 1)
+    if (typeId !== 1) {
+      index += 1; // CustomerName
+    }
+
+    // Các cột cố định trước UnitName
+    index += 8; // ProjectCode + ProductGroupID/ProductGroupRTCID + ProductNewCode/ProductCodeRTC + ProductCode + ProductName + Model + Manufacturer + Quantity
+
+    return index;
   }
   //#endregion
 

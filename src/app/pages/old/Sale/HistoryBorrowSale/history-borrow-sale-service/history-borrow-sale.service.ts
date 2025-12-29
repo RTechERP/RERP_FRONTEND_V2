@@ -10,13 +10,7 @@ import { environment } from '../../../../../../environments/environment';
 export class HistoryBorrowSaleService {
   constructor(private http: HttpClient) {}
 getCbbEmployee(): Observable<any> {
-  const params = {
-    status: 0,
-    departmentid: 0,
-    keyword: ''
-  };
-
-  return this.http.get<any>(environment.host + 'api/employee', { params });
+  return this.http.get<any>(environment.host + 'api/historyborrowsale/get-user');
 }
 
   getHistoryBorrowSale(
@@ -27,7 +21,8 @@ getCbbEmployee(): Observable<any> {
     pageNumber: number,
     pageSize: number,
     EmployeeID: number,
-    productGroupID: number
+    productGroupID: number,
+    WareHouseID: number
   ): Observable<any> {
     const params: any = {
       Status: status,
@@ -38,6 +33,7 @@ getCbbEmployee(): Observable<any> {
       PageSize: pageSize.toString(),
       EmployeeID: EmployeeID,
       ProductGroupID: productGroupID,
+      WareHouseID: WareHouseID
     };
 
     return this.http.post(environment.host + `api/historyborrowsale`, params);

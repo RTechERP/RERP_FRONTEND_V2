@@ -108,63 +108,57 @@
     </nz-row>
   </form>
 
-  <div style="flex: 1; min-height: 0; overflow: hidden; height: 80vh;">
+  <div style="flex: 1; height: 80vh;">
     <!-- Splitter layout giống C# form -->
   <p-splitter [style]="{'height': '100%'}" [panelSizes]="[50, 50]">
-    <!-- Left Panel: Bảng Mượn với Tab -->
+    <!-- Left Panel: Card Mượn -->
     <ng-template #panel>
-      <nz-tabset class="borrow-tab custom-tab-title">
-        <nz-tab nzTitle="Danh sách Mượn">
-          <div class="grid-container-borrow" style="height: 100%; width: 100%;">
-            <angular-slickgrid
-              gridId="gridBorrow"
-              [columns]="columnDefinitionsBorrow"
-              [options]="gridOptionsBorrow"
-              [dataset]="datasetBorrow"
-              (onAngularGridCreated)="angularGridReadyBorrow($event.detail)">
-            </angular-slickgrid>
-          </div>
-        </nz-tab>
-      </nz-tabset>
+      <p-card header="Danh sách Mượn" styleClass="h-100">
+        <div class="grid-container-borrow">
+          <angular-slickgrid
+            gridId="gridBorrow"
+            [columns]="columnDefinitionsBorrow"
+            [options]="gridOptionsBorrow"
+            [dataset]="datasetBorrow"
+            (onAngularGridCreated)="angularGridReadyBorrow($event.detail)">
+          </angular-slickgrid>
+        </div>
+      </p-card>
     </ng-template>
 
     <!-- Right Panel: Splitter vertical cho Export (trên) và Import (dưới) -->
     <ng-template #panel>
-      <p-splitter layout="vertical" [style]="{'height': '100%'}" [panelSizes]="[50, 50]">
-        <!-- Top: Bảng Xuất với Tab -->
+      <p-splitter layout="vertical"  [panelSizes]="[50, 50]">
+        <!-- Top: Card Xuất -->
         <ng-template #panel>
-          <nz-tabset class="export-tab custom-tab-title">
-            <nz-tab nzTitle="Danh sách Xuất">
-              <div class="grid-container-export" style="height: 100%; width: 100%;">
-                <angular-slickgrid
-                  gridId="gridExport"
-                  [columns]="columnDefinitionsExport"
-                  [options]="gridOptionsExport"
-                  [dataset]="datasetExport"
-                  (onAngularGridCreated)="angularGridReadyExport($event.detail)"
-                  (onDblClick)="onExportDblClick($event)">
-                </angular-slickgrid>
-              </div>
-            </nz-tab>
-          </nz-tabset>
+          <p-card header="Danh sách Xuất" styleClass="h-100">
+            <div class="grid-container-export">
+              <angular-slickgrid
+                gridId="gridExport"
+                [columns]="columnDefinitionsExport"
+                [options]="gridOptionsExport"
+                [dataset]="datasetExport"
+                (onAngularGridCreated)="angularGridReadyExport($event.detail)"
+                (onDblClick)="onExportDblClick($event)">
+              </angular-slickgrid>
+            </div>
+          </p-card>
         </ng-template>
 
-        <!-- Bottom: Bảng Nhập với Tab -->
+        <!-- Bottom: Card Nhập -->
         <ng-template #panel>
-          <nz-tabset class="import-tab custom-tab-title">
-            <nz-tab nzTitle="Danh sách Nhập">
-              <div class="grid-container-import" style="height: 100%; width: 100%;">
-                <angular-slickgrid
-                  gridId="gridImport"
-                  [columns]="columnDefinitionsImport"
-                  [options]="gridOptionsImport"
-                  [dataset]="datasetImport"
-                  (onAngularGridCreated)="angularGridReadyImport($event.detail)"
-                  (onDblClick)="onImportDblClick($event)">
-                </angular-slickgrid>
-              </div>
-            </nz-tab>
-          </nz-tabset>
+          <p-card header="Danh sách Nhập" styleClass="h-100">
+            <div class="grid-container-import">
+              <angular-slickgrid
+                gridId="gridImport"
+                [columns]="columnDefinitionsImport"
+                [options]="gridOptionsImport"
+                [dataset]="datasetImport"
+                (onAngularGridCreated)="angularGridReadyImport($event.detail)"
+                (onDblClick)="onImportDblClick($event)">
+              </angular-slickgrid>
+            </div>
+          </p-card>
         </ng-template>
       </p-splitter>
     </ng-template>

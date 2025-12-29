@@ -410,6 +410,13 @@ body .slickgrid-container .grid-canvas .slick-cell{
     margin-bottom: 0 !important;
 }
 
+
+.slickgrid-container .slick-group{
+    background-color: #b3b3b3 !important;
+    font-weight: bold !important;
+    text-transform: uppercase !important;
+}
+
 /* end style slick grid */
 
 .btn-copy img {

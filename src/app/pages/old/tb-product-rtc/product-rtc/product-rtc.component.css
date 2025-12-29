@@ -50,4 +50,6 @@
     border-color: #ff7875;
     color: white;
 }
-
+::ng-deep div[id^="productRtcGrid-"] {
+    height: 90vh!important;
+}

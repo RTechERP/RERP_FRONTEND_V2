@@ -1,9 +1,4 @@
-import {
-  Component,
-  OnInit,
-  AfterViewInit,
-  Input,
-} from '@angular/core';
+import { Component, OnInit, AfterViewInit, Input } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { NzNotificationService } from 'ng-zorro-antd/notification';
@@ -95,7 +90,9 @@ interface BillImportTechnicalSummary {
   templateUrl: './bill-import-technical-summary.component.html',
   styleUrls: ['./bill-import-technical-summary.component.css'],
 })
-export class BillImportTechnicalSummaryComponent implements OnInit, AfterViewInit {
+export class BillImportTechnicalSummaryComponent
+  implements OnInit, AfterViewInit
+{
   @Input() warehouseId: number = 0;
 
   // Grid
@@ -185,6 +182,12 @@ export class BillImportTechnicalSummaryComponent implements OnInit, AfterViewIni
       frozenColumn: 5, // Frozen đến cột Mã NCC (index 5, tính từ 0)
       forceFitColumns: false, // Tắt auto-fit columns
       enableExcelExport: true,
+      autoFitColumnsOnFirstLoad: false,
+      enableAutoSizeColumns: false,
+      enableCheckboxSelector: true,
+      rowSelectionOptions: {
+        selectActiveRow: false,
+      },
       excelExportOptions: {
         exportWithFormatter: true,
       },
@@ -229,7 +232,9 @@ export class BillImportTechnicalSummaryComponent implements OnInit, AfterViewIni
       const originalGetItemMetadata = this.angularGrid.dataView.getItemMetadata;
       this.angularGrid.dataView.getItemMetadata = (row: number) => {
         const item = this.angularGrid.dataView.getItem(row);
-        let metadata = originalGetItemMetadata ? originalGetItemMetadata.call(this.angularGrid.dataView, row) : {};
+        let metadata = originalGetItemMetadata
+          ? originalGetItemMetadata.call(this.angularGrid.dataView, row)
+          : {};
 
         if (item && item.IsSuccess === 0) {
           metadata = metadata || {};
@@ -309,11 +314,10 @@ export class BillImportTechnicalSummaryComponent implements OnInit, AfterViewIni
             this.documents = res.documents || [];
             let index = 1;
             this.dataset = res.data || [];
-            this.dataset = this.dataset.map(item => ({
+            this.dataset = this.dataset.map((item) => ({
               ...item,
-              id: index++
+              id: index++,
             }));
-
 
             if (this.dataset.length > 0) {
               this.totalPages = this.dataset[0].TotalPage || 1;
@@ -450,6 +454,92 @@ export class BillImportTechnicalSummaryComponent implements OnInit, AfterViewIni
         width: 200,
       },
       {
+        id: 'Receiver',
+        name: 'Người nhận',
+        field: 'Receiver',
+        sortable: true,
+        filterable: true,
+        width: 150,
+      },
+      {
+        id: 'CreatDate',
+        name: 'Ngày nhập kho',
+        field: 'CreatDate',
+        sortable: true,
+        filterable: true,
+        formatter: Formatters.dateIso,
+        width: 130,
+      },
+      {
+        id: 'ProductCode',
+        name: 'Mã hàng',
+        field: 'ProductCode',
+        sortable: true,
+        filterable: true,
+        width: 150,
+      },
+      {
+        id: 'WarehouseName',
+        name: 'Kho',
+        field: 'WarehouseName',
+        sortable: true,
+        filterable: true,
+        width: 120,
+      },
+      {
+        id: 'ProductCodeRTC',
+        name: 'Mã nội bộ',
+        field: 'ProductCodeRTC',
+        sortable: true,
+        filterable: true,
+        width: 150,
+      },
+      {
+        id: 'UnitCode',
+        name: 'DVT',
+        field: 'UnitCode',
+        sortable: true,
+        filterable: true,
+        width: 80,
+      },
+      {
+        id: 'Maker',
+        name: 'Hãng',
+        field: 'Maker',
+        sortable: true,
+        filterable: true,
+        width: 150,
+      },
+      {
+        id: 'Quantity',
+        name: 'SL thực tế',
+        field: 'Quantity',
+        sortable: true,
+        filterable: true,
+        formatter: Formatters.decimal,
+        width: 100,
+      },
+      {
+        id: 'ProductGroupRTCID',
+        name: 'Loại hàng',
+        field: 'ProductGroupName',
+        sortable: true,
+        filterable: true,
+        width: 100,
+      },
+      {
+        id: 'IsBill',
+        name: 'Hóa đơn',
+        field: 'IsBill',
+        sortable: true,
+        filterable: true,
+        formatter: (_row: number, _cell: number, value: any) => {
+          return value ? '✓' : '';
+        },
+        width: 80,
+        cssClass: 'text-center',
+      },
+      {
         id: 'SomeBill',
         name: 'Số hóa đơn',
         field: 'SomeBill',
@@ -517,6 +607,91 @@ export class BillImportTechnicalSummaryComponent implements OnInit, AfterViewIni
           decimal: 2,
         },
         width: 150,
+      },
+      {
+        id: 'DoccumentReceiver',
+        name: 'Người giao',
+        field: 'DoccumentReceiver',
+        sortable: true,
+        filterable: true,
+        width: 150,
+      },
+      {
+        id: 'ProductName',
+        name: 'Tên sản phẩm',
+        field: 'ProductName',
+        sortable: true,
+        filterable: true,
+        width: 250,
+      },
+      {
+        id: 'BillCodePO',
+        name: 'Đơn mua hàng',
+        field: 'BillCodePO',
+        sortable: true,
+        filterable: true,
+        width: 150,
+      },
+      {
+        id: 'Price',
+        name: 'Đơn giá',
+        field: 'Price',
+        sortable: true,
+        filterable: true,
+        formatter: Formatters.decimal,
+        width: 120,
+      },
+      {
+        id: 'TotalPrice',
+        name: 'Tổng tiền',
+        field: 'TotalPrice',
+        sortable: true,
+        filterable: true,
+        formatter: Formatters.decimal,
+        width: 150,
+      },
+      {
+        id: 'UnitPricePO',
+        name: 'Đơn giá PO',
+        field: 'UnitPricePO',
+        sortable: true,
+        filterable: true,
+        formatter: Formatters.decimal,
+        width: 120,
+      },
+      {
+        id: 'VATPO',
+        name: 'Thuế',
+        field: 'VATPO',
+        sortable: true,
+        filterable: true,
+        formatter: Formatters.decimal,
+        width: 100,
+      },
+      {
+        id: 'TotalPricePO',
+        name: 'Tổng tiền PO',
+        field: 'TotalPricePO',
+        sortable: true,
+        filterable: true,
+        formatter: Formatters.decimal,
+        width: 150,
+      },
+      {
+        id: 'CurrencyCode',
+        name: 'Loại tiền',
+        field: 'CurrencyCode',
+        sortable: true,
+        filterable: true,
+        width: 100,
+      },
+      {
+        id: 'Note',
+        name: 'Ghi chú',
+        field: 'Note',
+        sortable: true,
+        filterable: true,
+        width: 200,
       },
     ];
   }
@@ -694,7 +869,6 @@ export class BillImportTechnicalSummaryComponent implements OnInit, AfterViewIni
       }
     );
   }
-
 
   /**
    * Đóng modal

@@ -5,3 +5,50 @@
 .slick-group-title {
   text-align: left !important;
 }
+
+/* Title font size */
+.card-header h6 {
+  font-size: 14px !important;
+  font-weight: 600 !important;
+}
+
+/* Enable horizontal scroll for grid on mobile */
+#grid-container-contact {
+  overflow-x: auto;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch; /* Smooth scrolling on iOS */
+}
+
+.slickgrid-container {
+  min-width: max-content; /* Ensure grid takes full width of content */
+}
+
+/* Ensure grid doesn't shrink columns on small screens */
+@media (max-width: 768px) {
+  .card-body {
+    overflow-x: auto !important;
+  }
+  
+  #grid-container-contact {
+    width: 100%;
+    overflow-x: auto !important;
+    min-width: 800px !important;
+  }
+  
+  .slickgrid-container {
+    width: max-content !important;
+    min-width: 800px !important;
+  }
+  
+  /* Force grid to maintain width */
+  .slickgrid-container .slick-grid {
+    width: auto !important;
+    min-width: 800px !important;
+  }
+  
+  /* Center title only on mobile */
+  .card-header h4 {
+    text-align: center !important;
+    width: 100%;
+  }
+}

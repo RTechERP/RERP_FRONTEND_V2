@@ -148,6 +148,7 @@ export class DocumentCommonComponent implements OnInit, AfterViewInit {
       layout: 'fitDataStretch',
       height: '89vh',
       paginationMode: 'local',
+      rowHeader:false,
       paginationSize: 100,
       groupBy: ["DepartmentName", "NameDocumentType"],
       columns: [

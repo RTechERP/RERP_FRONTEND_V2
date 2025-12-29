@@ -2011,13 +2011,13 @@ export class BillImportQcDetailComponent
       }
 
       const productId = item.ProductSaleID;
-      if (productId && productIds.includes(productId)) {
-        this.notification.error(
-          NOTIFICATION_TITLE.error,
-          `Sản phẩm dòng ${stt} đã tồn tại!`
-        );
-        return false;
-      }
+      // if (productId && productIds.includes(productId)) {
+      //   this.notification.error(
+      //     NOTIFICATION_TITLE.error,
+      //     `Sản phẩm dòng ${stt} đã tồn tại!`
+      //   );
+      //   return false;
+      // }
       if (productId) {
         productIds.push(productId);
       }
@@ -2152,10 +2152,11 @@ export class BillImportQcDetailComponent
         this.activeModal.close();
       },
       error: (err) => {
-        this.notification.error(
-          NOTIFICATION_TITLE.error,
-          err?.error?.message || err?.message
-        );
+        const msg =
+          err?.status === 403
+            ? 'Không có quyền truy cập thư mục lưu file. Vui lòng liên hệ IT.'
+            : err?.error?.message || err?.message;
+        this.notification.error(NOTIFICATION_TITLE.error, msg);
         this.isLoading = false;
       },
     });

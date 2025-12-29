@@ -881,7 +881,7 @@ export class BillImportQcComponent implements OnInit, AfterViewInit {
           error: (error: any) => {
             this.notification.error(
               NOTIFICATION_TITLE.error,
-              'Lỗi khi xóa phiếu: ' + (error?.message || error)
+              'Lỗi khi xóa phiếu: ' + (error?.message || error?.error?.message)
             );
           },
         });

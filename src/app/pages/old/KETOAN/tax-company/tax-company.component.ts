@@ -52,6 +52,7 @@ import { updateCSS } from 'ng-zorro-antd/core/util';
 import { NOTIFICATION_TITLE } from '../../../../app.config';
 import { HasPermissionDirective } from '../../../../directives/has-permission.directive';
 import { TaxCompanyService } from './tax-company-service/tax-company.service';
+import { TaxCompanyDetailComponent } from './tax-company-detail/tax-company-detail.component';
 
 
 @Component({
@@ -98,11 +99,11 @@ export class TaxCompanyComponent implements OnInit, AfterViewInit {
   ) { }
 
   ngOnInit(): void {
+    this.initGridMaster();
     this.loadData();
   }
 
   ngAfterViewInit(): void {
-    this.initGridMaster();
   }
 
   loadData(): void {
@@ -125,15 +126,77 @@ export class TaxCompanyComponent implements OnInit, AfterViewInit {
   }
 
   onAdd() {
+    const modalRef = this.modalService.open(TaxCompanyDetailComponent, {
+      size: 'xl',
+      backdrop: 'static',
+      keyboard: false
+    });
     
+    modalRef.componentInstance.mode = 'add';
+    modalRef.componentInstance.onSaved.subscribe(() => {
+      this.loadData();
+    });
   }
 
-  onEdit(){
+  onEdit() {
+    const selectedRows = this.angularGridMaster?.slickGrid?.getSelectedRows();
+    if (!selectedRows || selectedRows.length === 0) {
+      this.notification.warning(NOTIFICATION_TITLE.warning, 'Vui lòng chọn một dòng để sửa');
+      return;
+    }
 
+    const selectedData = this.angularGridMaster.dataView.getItem(selectedRows[0]);
+    
+    const modalRef = this.modalService.open(TaxCompanyDetailComponent, {
+      size: 'xl',
+      backdrop: 'static',
+      keyboard: false
+    });
+    
+    modalRef.componentInstance.mode = 'edit';
+    modalRef.componentInstance.id = selectedData.ID;
+    modalRef.componentInstance.onSaved.subscribe(() => {
+      this.loadData();
+    });
   }
 
-  onDelete(){
-    
+  onDelete() {
+    const selectedRows = this.angularGridMaster?.slickGrid?.getSelectedRows();
+    if (!selectedRows || selectedRows.length === 0) {
+      this.notification.warning(NOTIFICATION_TITLE.warning, 'Vui lòng chọn một dòng để xóa');
+      return;
+    }
+
+    this.modalServiceConfirm.confirm({
+      nzTitle: 'Xác nhận xóa',
+      nzContent: 'Bạn có chắc chắn muốn xóa công ty này?',
+      nzOkText: 'Xóa',
+      nzOkType: 'primary',
+      nzOkDanger: true,
+      nzCancelText: 'Hủy',
+      nzOnOk: () => {
+        const selectedData = this.angularGridMaster.dataView.getItem(selectedRows[0]);
+        const deleteData = {
+          ...selectedData,
+          IsDeleted: true
+        };
+        
+        this.taxCompanyService.saveTaxCompany(deleteData).subscribe({
+          next: (response) => {
+            if (response && response.status === 1) {
+              this.notification.success('Thông báo', 'Xóa thành công');
+              this.loadData();
+            } else {
+              this.notification.error(NOTIFICATION_TITLE.error, response?.message || 'Xóa thất bại');
+            }
+          },
+          error: (error) => {
+            console.error('Error deleting tax company:', error);
+            this.notification.error(NOTIFICATION_TITLE.error, 'Có lỗi xảy ra khi xóa dữ liệu');
+          }
+        });
+      }
+    });
   }
 
   initGridMaster() {
@@ -275,17 +338,16 @@ export class TaxCompanyComponent implements OnInit, AfterViewInit {
     //#endregion
 
     this.gridOptionsMaster = {
-      autoResize: {
-        container: '.grid-container',
-        calculateAvailableSizeBy: 'container',
-        resizeDetection: 'container',
-      },
       enableAutoResize: true,
+      autoResize: {
+        container: '#grid-container-master',
+        calculateAvailableSizeBy: 'container'
+      },
       gridWidth: '100%',
       forceFitColumns: false,
       enableRowSelection: true,
       rowSelectionOptions: {
-        selectActiveRow: false
+        selectActiveRow: true
       },
       enableCellNavigation: true,
       enableFiltering: true,
@@ -300,14 +362,10 @@ export class TaxCompanyComponent implements OnInit, AfterViewInit {
 
   angularGridMasterReady(angularGrid: AngularGridInstance) {
     this.angularGridMaster = angularGrid;
-    
-    // Refresh grid nếu đã có dữ liệu
-    if (this.data && this.data.length > 0) {
-      setTimeout(() => {
-        this.angularGridMaster.dataView?.setItems(this.data);
-        this.angularGridMaster.slickGrid?.invalidate();
-      }, 0);
-    }
+
+    setTimeout(() => {
+      this.angularGridMaster.resizerService.resizeGrid();
+    });
   }
 
   onCellClicked(e: any, args: OnClickEventArgs) {

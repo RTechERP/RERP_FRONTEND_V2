@@ -33,13 +33,26 @@ import { NzTableModule } from 'ng-zorro-antd/table';
 import { NzModalModule, NzModalService } from 'ng-zorro-antd/modal';
 import { NzSwitchModule } from 'ng-zorro-antd/switch';
 import { NzCheckboxModule } from 'ng-zorro-antd/checkbox';
+// import {
+//   TabulatorFull as Tabulator,
+//   RowComponent,
+//   CellComponent,
+// } from 'tabulator-tables';
 import {
-  TabulatorFull as Tabulator,
-  RowComponent,
-  CellComponent,
-} from 'tabulator-tables';
+  AngularGridInstance,
+  AngularSlickgridModule,
+  Column,
+  Filters,
+  Formatters,
+  GridOption,
+  OnEventArgs,
+  SlickGrid,
+  MenuCommandItem,
+  MenuCommandItemCallbackArgs,
+} from 'angular-slickgrid';
 // import 'tabulator-tables/dist/css/tabulator_simple.min.css';
 // import 'bootstrap-icons/font/bootstrap-icons.css';
+import { NgModule, CUSTOM_ELEMENTS_SCHEMA } from '@angular/core';
 import { OnInit, AfterViewInit } from '@angular/core';
 import { ApplicationRef, createComponent, Type } from '@angular/core';
 import { setThrowInvalidWriteToSignalError } from '@angular/core/primitives/signals';
@@ -55,7 +68,7 @@ import { NgbActiveModal } from '@ng-bootstrap/ng-bootstrap';
 import { NzNotificationService } from 'ng-zorro-antd/notification';
 import * as ExcelJS from 'exceljs';
 
-import { PokhService } from './pokh-service/pokh.service';
+import { PokhSlickgridService } from './pokh-slickgrid-service/pokh-slickgrid.service';
 import { CustomerPartService } from '../customer-part/customer-part/customer-part.service';
 import { CustomerPartComponent } from '../customer-part/customer-part.component';
 import { ViewPokhComponent } from '../view-pokh/view-pokh.component';
@@ -71,13 +84,13 @@ import { HasPermissionDirective } from '../../../directives/has-permission.direc
 import { PoRequestPriceRtcComponent } from '../po-request-price-rtc/po-request-price-rtc.component';
 import { HistoryMoneyComponent } from '../history-money/history-money.component';
 import { ProjectPartlistPriceRequestNewComponent } from '../../purchase/project-partlist-price-request-new/project-partlist-price-request-new.component';
-import { setupTabulatorCellCopy } from '../../../shared/utils/tabulator-cell-copy.util';
+// import { setupTabulatorCellCopy } from '../../../shared/utils/tabulator-cell-copy.util';
 import { ActivatedRoute } from '@angular/router';
 import { ProjectPartlistPurchaseRequestNewComponent } from '../../purchase/project-partlist-purchase-request-new/project-partlist-purchase-request-new.component';
 import { ProjectPartListPurchaseRequestSlickGridComponent } from '../../purchase/project-partlist-purchase-request/project-part-list-purchase-request-slick-grid/project-part-list-purchase-request-slick-grid.component';
 import { WarehouseReleaseRequestSlickGridComponent } from '../warehouse-release-request-slick-grid/warehouse-release-request-slick-grid.component';
 @Component({
-  selector: 'app-pokh',
+  selector: 'app-pokh-slickgrid',
   imports: [
     NzCardModule,
     FormsModule,
@@ -104,22 +117,42 @@ import { WarehouseReleaseRequestSlickGridComponent } from '../warehouse-release-
     NzCheckboxModule,
     CommonModule,
     HasPermissionDirective,
+    AngularSlickgridModule,
   ],
-  templateUrl: './pokh.component.html',
-  styleUrl: './pokh.component.css',
+  templateUrl: './pokh-slickgrid.component.html',
+  styleUrl: './pokh-slickgrid.component.css',
+  schemas: [CUSTOM_ELEMENTS_SCHEMA],
 })
-export class PokhComponent implements OnInit, AfterViewInit {
+export class PokhSlickgridComponent implements OnInit, AfterViewInit {
   @ViewChild('addModalContent') addModalContent!: TemplateRef<any>;
-  @ViewChild('tbProductDetailTreeList', { static: false })
-  tbProductDetailTreeListElement!: ElementRef;
-  @ViewChild('tbDetailUser', { static: false })
-  tbDetailUserElement!: ElementRef;
-  @ViewChild('tb_POKH', { static: false })
-  tb_POKHElement!: ElementRef;
-  @ViewChild('tb_POKHProduct', { static: false })
-  tb_POKHProductElement!: ElementRef;
-  @ViewChild('tb_POKHFile', { static: false })
-  tb_POKHFileElement!: ElementRef;
+  // @ViewChild('tbProductDetailTreeList', { static: false })
+  // tbProductDetailTreeListElement!: ElementRef;
+  // @ViewChild('tbDetailUser', { static: false })
+  // tbDetailUserElement!: ElementRef;
+  // @ViewChild('tb_POKH', { static: false })
+  // tb_POKHElement!: ElementRef;
+  // @ViewChild('tb_POKHProduct', { static: false })
+  // tb_POKHProductElement!: ElementRef;
+  // @ViewChild('tb_POKHFile', { static: false })
+  // tb_POKHFileElement!: ElementRef;
+
+  // SlickGrid properties for POKH table
+  angularGridPOKH!: AngularGridInstance;
+  columnDefinitionsPOKH: Column[] = [];
+  gridOptionsPOKH: GridOption = {};
+  datasetPOKH: any[] = [];
+
+  // SlickGrid properties for POKHProduct table (Tree Data)
+  angularGridPOKHProduct!: AngularGridInstance;
+  columnDefinitionsPOKHProduct: Column[] = [];
+  gridOptionsPOKHProduct: GridOption = {};
+  datasetPOKHProduct: any[] = [];
+
+  // SlickGrid properties for POKHFile table
+  angularGridPOKHFile!: AngularGridInstance;
+  columnDefinitionsPOKHFile: Column[] = [];
+  gridOptionsPOKHFile: GridOption = {};
+  datasetPOKHFile: any[] = [];
   sizeSearch: string = '0';
   toggleSearchPanel() {
     this.sizeSearch = this.sizeSearch == '0' ? '22%' : '0';
@@ -127,7 +160,7 @@ export class PokhComponent implements OnInit, AfterViewInit {
   constructor(
     private injector: EnvironmentInjector,
     private appRef: ApplicationRef,
-    private POKHService: PokhService,
+    private POKHService: PokhSlickgridService,
     private modal: NzModalService,
     private customerPartService: CustomerPartService,
     private modalService: NgbModal,
@@ -137,13 +170,13 @@ export class PokhComponent implements OnInit, AfterViewInit {
   ) { }
 
   //#region : Khai báo
-  //Khai báo các bảng
-  tb_POKH!: Tabulator;
-  tb_POKHProduct!: Tabulator;
-  tb_POKHFile!: Tabulator;
-  tb_POKHDetailFile!: Tabulator;
-  tb_ProductDetailTreeList!: Tabulator;
-  tb_DetailUser!: Tabulator;
+  //Khai báo các bảng (commented out old Tabulator)
+  // tb_POKH!: Tabulator;
+  // tb_POKHProduct!: Tabulator;
+  // tb_POKHFile!: Tabulator;
+  // tb_POKHDetailFile!: Tabulator;
+  // tb_ProductDetailTreeList!: Tabulator;
+  // tb_DetailUser!: Tabulator;
   private modalRef: any;
 
   //Lưu dữ liệu
@@ -187,6 +220,9 @@ export class PokhComponent implements OnInit, AfterViewInit {
     endDate: new Date(),
   };
 
+  totalPage: number = 1;
+  readonly pageSizeOptions: number[] = [10, 30, 50, 100, 300, 500, 999999];
+
   //Mode
   isEditMode: boolean = false;
   isModalOpen: boolean = false;
@@ -214,7 +250,13 @@ export class PokhComponent implements OnInit, AfterViewInit {
 
     this.filters.startDate = startDate;
     this.filters.endDate = endDate;
-    this.loadPOKH();
+
+    // Initialize SlickGrid tables (like payment-order)
+    this.initGridPOKH();
+    this.initGridPOKHProduct();
+    this.initGridPOKHFile();
+
+    // Load lookup data
     this.loadCustomers();
     this.loadUser();
     this.loadEmployeeTeamSale();
@@ -225,19 +267,72 @@ export class PokhComponent implements OnInit, AfterViewInit {
   }
 
   ngAfterViewInit(): void {
-    this.drawPOKHTable();
-    this.initProductTable();
-    this.initFileTable();
-    setupTabulatorCellCopy(this.tb_POKHProduct, this.tb_POKHProductElement.nativeElement);
-    setupTabulatorCellCopy(this.tb_POKH, this.tb_POKHElement.nativeElement);
   }
   //#endregion
 
   loadPOKH(): void {
-    if (this.tb_POKH) {
-      // Gọi setData() với tham số true để force reload data từ server
-      this.tb_POKH.setData(null, true);
+    const params = this.getPOKHAjaxParamsObject();
+    this.POKHService.getPOKHData(params).subscribe({
+      next: (response: any) => {
+        this.updatePaginationFromResponse(response);
+        if (response.data && Array.isArray(response.data)) {
+          this.datasetPOKH = response.data.map((item: any, index: number) => ({
+            ...item,
+            id: `${item.ID}_${index}`
+          }));
+        } else {
+          this.datasetPOKH = [];
+        }
+      },
+      error: (error: any) => {
+        this.notification.error(NOTIFICATION_TITLE.error, 'Lỗi khi tải dữ liệu POKH: ' + error);
+      }
+    });
+  }
+
+  private updatePaginationFromResponse(response: any): void {
+    const apiTotalPage = Number(response?.totalPages?.[0]?.TotalPage);
+    this.totalPage = Number.isFinite(apiTotalPage) && apiTotalPage > 0 ? apiTotalPage : 1;
+
+    const currentPage = Number(this.filters?.pageNumber) || 1;
+    if (currentPage > this.totalPage) {
+      this.filters.pageNumber = this.totalPage;
     }
+    if (currentPage < 1) {
+      this.filters.pageNumber = 1;
+    }
+  }
+
+  getPOKHAjaxParamsObject(): any {
+    const formatDateToLocalISO = (date: Date, isStartDate: boolean = true): string => {
+      const dateCopy = new Date(date);
+      if (isStartDate) {
+        dateCopy.setHours(0, 0, 0, 0);
+      } else {
+        dateCopy.setHours(23, 59, 59, 999);
+      }
+      const timezoneOffset = dateCopy.getTimezoneOffset();
+      const adjustedDate = new Date(dateCopy.getTime() - timezoneOffset * 60 * 1000);
+      return adjustedDate.toISOString();
+    };
+
+    const startDate = this.filters.startDate || new Date();
+    const endDate = this.filters.endDate || new Date();
+
+    return {
+      filterText: (this.filters.filterText || '').trim(),
+      customerId: this.filters.customerId || 0,
+      userId: this.filters.userId || 0,
+      POType: this.filters.status || 0,
+      status: 0,
+      group: this.filters.group || 0,
+      warehouseId: this.filters.warehouseId || 1,
+      employeeTeamSaleId: this.filters.employeeTeamSaleId || 0,
+      startDate: formatDateToLocalISO(startDate, true),
+      endDate: formatDateToLocalISO(endDate, false),
+      page: this.filters.pageNumber || 1,
+      size: this.filters.pageSize || 50,
+    };
   }
 
   getPOKHAjaxParams(): any {
@@ -361,9 +456,11 @@ export class PokhComponent implements OnInit, AfterViewInit {
       next: (response) => {
         if (response.status === 1) {
           const flatData = response.data;
-          const treeData = this.convertToTreeData(flatData);
-          this.dataPOKHProduct = treeData;
-          this.tb_POKHProduct.setData(this.dataPOKHProduct);
+          this.datasetPOKHProduct = flatData.map((item: any) => ({
+            ...item,
+            id: item.ID,
+            parentId: item.ParentID === 0 ? null : item.ParentID
+          }));
         } else {
           this.notification.error(
             NOTIFICATION_TITLE.error,
@@ -384,7 +481,12 @@ export class PokhComponent implements OnInit, AfterViewInit {
       next: (response) => {
         if (response.status === 1) {
           this.dataPOKHFiles = response.data;
-          this.tb_POKHFile.setData(this.dataPOKHFiles);
+          // Update SlickGrid dataset
+          this.datasetPOKHFile = this.dataPOKHFiles.map((item: any, index: number) => ({
+            ...item,
+            id: item.ID,
+            STT: index + 1
+          }));
         } else {
           this.notification.error(
             NOTIFICATION_TITLE.error,
@@ -393,10 +495,7 @@ export class PokhComponent implements OnInit, AfterViewInit {
         }
       },
       error: (error) => {
-        // this.notification.error(
-        //   'Thông báo',
-        //   'Lỗi kết nối khi tải tệp POKH: ' + error
-        // );
+        // Silent error
       },
     });
   }
@@ -581,264 +680,90 @@ export class PokhComponent implements OnInit, AfterViewInit {
     }
   }
   //#endregion
-  //#region : Hàm xử lý xuất excel PO
+  //#region : Hàm xử lý xuất excel PO (SlickGrid version)
   async exportToExcel() {
-    if (!this.tb_POKHProduct) {
-      this.notification.warning(
-        'Cảnh báo!',
-        'Vui lòng chọn một PO để xuất Excel'
-      );
+    if (!this.datasetPOKHProduct || this.datasetPOKHProduct.length === 0) {
+      this.notification.warning('Cảnh báo!', 'Vui lòng chọn một PO để xuất Excel');
       return;
     }
 
     const workbook = new ExcelJS.Workbook();
     const worksheet = workbook.addWorksheet('PO Details');
 
-    // Get column definitions from the table
-    const columns = this.tb_POKHProduct.getColumns();
-
-    // Add headers
-    const headerRow = worksheet.addRow(
-      columns.map((col) => col.getDefinition().title)
-    );
+    // Add headers from SlickGrid column definitions
+    const headers = this.columnDefinitionsPOKHProduct.map((col: any) => col.name);
+    const headerRow = worksheet.addRow(headers);
     headerRow.font = { bold: true };
-    headerRow.fill = {
-      type: 'pattern',
-      pattern: 'solid',
-      fgColor: { argb: 'FFE0E0E0' },
-    };
+    headerRow.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFE0E0E0' } };
 
-    // Function to process rows recursively
-    const processRows = (rows: any[], level: number = 0) => {
-      rows.forEach((row) => {
-        const rowData = columns.map((col) => {
-          const field = col.getField();
-          return row.getData()[field];
-        });
-
-        // Add indentation for child rows
-        if (level > 0) {
-          rowData[0] = '  '.repeat(level) + rowData[0]; // Indent the first column (STT)
-        }
-
-        const excelRow = worksheet.addRow(rowData);
-
-        // Add indentation style for child rows
-        if (level > 0) {
-          excelRow.font = { italic: true };
-        }
-
-        // Process child rows if they exist
-        const children = row.getTreeChildren();
-        if (children && children.length > 0) {
-          processRows(children, level + 1);
-        }
-      });
-    };
-
-    // Start processing from root rows
-    const rootRows = this.tb_POKHProduct
-      .getRows()
-      .filter((row) => !row.getTreeParent());
-    processRows(rootRows);
-
-    // Function to calculate total for a column including all children
-    const calculateTotal = (column: any) => {
-      let total = 0;
-      const processRow = (row: any) => {
-        const value = row.getData()[column.getField()];
+    // Add data rows from SlickGrid dataset
+    this.datasetPOKHProduct.forEach((rowData: any) => {
+      const row = this.columnDefinitionsPOKHProduct.map((col: any) => {
+        const value = rowData[col.field];
         if (typeof value === 'number') {
-          total += value;
+          return new Intl.NumberFormat('vi-VN').format(value);
         }
-        const children = row.getTreeChildren();
-        if (children && children.length > 0) {
-          children.forEach(processRow);
-        }
-      };
-      rootRows.forEach(processRow);
-      return total;
-    };
-
-    // Add bottom calculations
-    const bottomCalcRow = worksheet.addRow(
-      columns.map((col) => {
-        const column = col.getDefinition();
-        if (column.bottomCalc) {
-          const total = calculateTotal(col);
-
-          // Format the total based on the column's formatter
-          if (column.bottomCalcFormatter === 'money') {
-            return new Intl.NumberFormat('vi-VN', {
-              minimumFractionDigits: 0,
-              maximumFractionDigits: 0,
-            }).format(total);
-          }
-          return total;
-        }
-        return '';
-      })
-    );
-
-    // Style the bottom calc row
-    bottomCalcRow.font = { bold: true };
-    bottomCalcRow.fill = {
-      type: 'pattern',
-      pattern: 'solid',
-      fgColor: { argb: 'FFE0E0E0' },
-    };
-
-    // Add a label for the total row
-    const totalLabelCell = bottomCalcRow.getCell(1);
-    totalLabelCell.value = 'Tổng cộng';
-    totalLabelCell.font = { bold: true };
+        return value ?? '';
+      });
+      worksheet.addRow(row);
+    });
 
     // Auto-fit columns
-    worksheet.columns.forEach((column: any) => {
-      column.width = 15;
-    });
+    worksheet.columns.forEach((column: any) => { column.width = 15; });
 
-    // Generate Excel file
+    // Generate and download Excel file
     const buffer = await workbook.xlsx.writeBuffer();
-    const blob = new Blob([buffer], {
-      type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
-    });
+    const blob = new Blob([buffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
     const url = window.URL.createObjectURL(blob);
     const link = document.createElement('a');
     link.href = url;
-    link.download = `PO_${this.selectedId}_${new Date().toISOString().split('T')[0]
-      }.xlsx`;
+    link.download = `PO_${this.selectedId}_${new Date().toISOString().split('T')[0]}.xlsx`;
     link.click();
     window.URL.revokeObjectURL(url);
   }
-  //#endregion
-  //#region : Hàm xử lý xuất excel Phiếu
+
+  
+  //#region : Hàm xử lý xuất excel Phiếu (SlickGrid version)
   async exportMainTableToExcel() {
-    if (!this.tb_POKH) {
-      this.notification.error(
-        NOTIFICATION_TITLE.error,
-        'Không có dữ liệu để xuất Excel'
-      );
+    if (!this.datasetPOKH || this.datasetPOKH.length === 0) {
+      this.notification.error(NOTIFICATION_TITLE.error, 'Không có dữ liệu để xuất Excel');
       return;
     }
 
     const workbook = new ExcelJS.Workbook();
     const worksheet = workbook.addWorksheet('POKH List');
 
-    // Get column definitions from the table
-    const columns = this.tb_POKH.getColumns();
-
-    // Add headers
-    const headerRow = worksheet.addRow(
-      columns.map((col) => col.getDefinition().title)
-    );
+    // Add headers from SlickGrid column definitions
+    const headers = this.columnDefinitionsPOKH.map((col: any) => col.name);
+    const headerRow = worksheet.addRow(headers);
     headerRow.font = { bold: true };
-    headerRow.fill = {
-      type: 'pattern',
-      pattern: 'solid',
-      fgColor: { argb: 'FFE0E0E0' },
-    };
+    headerRow.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFE0E0E0' } };
 
-    // Get current page data
-    const currentPage = Number(this.tb_POKH.getPage());
-    const pageSize = Number(this.tb_POKH.getPageSize());
-    const startIndex = (currentPage - 1) * pageSize;
-    const endIndex = startIndex + pageSize;
-
-    // Get all data and slice for current page
-    const allData = this.tb_POKH.getData();
-    const currentPageData = allData.slice(startIndex, endIndex);
-
-    // Process rows
-    currentPageData.forEach((rowData) => {
-      const row = columns.map((col) => {
-        const field = col.getField();
-        const value = rowData[field];
-
-        // Format boolean values
+    // Add data rows from SlickGrid dataset
+    this.datasetPOKH.forEach((rowData: any) => {
+      const row = this.columnDefinitionsPOKH.map((col: any) => {
+        const value = rowData[col.field];
         if (typeof value === 'boolean') {
           return value ? 'Có' : 'Không';
         }
-
-        // Format date values
-        if (field === 'ReceivedDatePO' && value) {
-          return new Date(value).toLocaleDateString('vi-VN');
+        if (typeof value === 'number') {
+          return new Intl.NumberFormat('vi-VN').format(value);
         }
-
-        // Format money values
-        if (
-          typeof value === 'number' &&
-          (field === 'TotalMoneyPO' ||
-            field === 'TotalMoneyKoVAT' ||
-            field === 'ReceiveMoney' ||
-            field === 'Debt')
-        ) {
-          return new Intl.NumberFormat('vi-VN', {
-            minimumFractionDigits: 0,
-            maximumFractionDigits: 0,
-          }).format(value);
-        }
-
-        return value;
+        return value ?? '';
       });
-
       worksheet.addRow(row);
     });
 
-    // Add bottom calculations for money columns
-    const bottomCalcRow = worksheet.addRow(
-      columns.map((col) => {
-        const column = col.getDefinition();
-        if (column.bottomCalc) {
-          // Calculate total for current page only
-          let total = 0;
-          currentPageData.forEach((rowData) => {
-            const value = rowData[column.field as string];
-            if (typeof value === 'number') {
-              total += value;
-            }
-          });
-
-          // Format the total based on the column's formatter
-          if (column.bottomCalcFormatter === 'money') {
-            return new Intl.NumberFormat('vi-VN', {
-              minimumFractionDigits: 0,
-              maximumFractionDigits: 0,
-            }).format(total);
-          }
-          return total;
-        }
-        return '';
-      })
-    );
-
-    // Style the bottom calc row
-    bottomCalcRow.font = { bold: true };
-    bottomCalcRow.fill = {
-      type: 'pattern',
-      pattern: 'solid',
-      fgColor: { argb: 'FFE0E0E0' },
-    };
-
-    // Add a label for the total row
-    const totalLabelCell = bottomCalcRow.getCell(1);
-    totalLabelCell.value = 'Tổng cộng';
-    totalLabelCell.font = { bold: true };
-
     // Auto-fit columns
-    worksheet.columns.forEach((column: any) => {
-      column.width = 15;
-    });
+    worksheet.columns.forEach((column: any) => { column.width = 15; });
 
-    // Generate Excel file
+    // Generate and download Excel file
     const buffer = await workbook.xlsx.writeBuffer();
-    const blob = new Blob([buffer], {
-      type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
-    });
+    const blob = new Blob([buffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
     const url = window.URL.createObjectURL(blob);
     const link = document.createElement('a');
     link.href = url;
-    link.download = `POKH_List_Page_${currentPage}_${new Date().toISOString().split('T')[0]
-      }.xlsx`;
+    link.download = `POKH_List_${new Date().toISOString().split('T')[0]}.xlsx`;
     link.click();
     window.URL.revokeObjectURL(url);
   }
@@ -935,7 +860,8 @@ export class PokhComponent implements OnInit, AfterViewInit {
         }
       });
     };
-    processRows(this.tb_ProductDetailTreeList.getData());
+    // Updated for SlickGrid - use datasetPOKHProduct instead of tb_ProductDetailTreeList
+    processRows(this.datasetPOKHProduct);
     return total;
   }
   formatCurrency = (value: number): string => {
@@ -1011,6 +937,34 @@ export class PokhComponent implements OnInit, AfterViewInit {
     window.URL.revokeObjectURL(url);
   }
 
+  openHistoryMoneyModal(): void {
+    if (!this.selectedId) {
+      this.notification.warning(
+        NOTIFICATION_TITLE.warning,
+        'Vui lòng chọn POKH cần xem lịch sử tiền về'
+      );
+      return;
+    }
+    const modalRef = this.modalService.open(HistoryMoneyComponent, {
+      centered: true,
+      size: 'xl',
+      backdrop: 'static',
+    });
+
+    if (this.selectedRow && this.selectedRow['POCode']) {
+      modalRef.componentInstance.filterText = this.selectedRow['POCode'];
+    }
+
+    modalRef.result.then(
+      (result: any) => {
+        console.log('History money modal closed:', result);
+      },
+      (reason: any) => {
+        console.log('History money modal dismissed:', reason);
+      }
+    );
+  }
+
   openProjectPartlistPurchaseRequest(): void {
     if (!this.selectedId) {
       this.notification.warning(
@@ -1043,6 +997,106 @@ export class PokhComponent implements OnInit, AfterViewInit {
     });
     this.modalRef.componentInstance.poKHID = this.selectedId;
     this.modalRef.componentInstance.isFromPOKH = true;
+  }
+
+  private getContextMenuOptions(): MenuCommandItem[] {
+    return [
+      {
+        iconCssClass: 'fas fa-eye',
+        title: 'Lịch sử tiền về',
+        command: 'history-money',
+        positionOrder: 60,
+      },
+      {
+        iconCssClass: 'fas fa-eye',
+        title: 'Danh sách yêu cầu mua hàng',
+        command: 'purchase-request',
+        positionOrder: 61,
+      },
+      {
+        iconCssClass: 'fas fa-eye',
+        title: 'Danh sách yêu cầu báo giá',
+        command: 'price-request',
+        positionOrder: 62,
+      },
+    ];
+  }
+
+  private getContextFileMenuOptions(): MenuCommandItem[] {
+    return [
+      {
+        iconCssClass: 'fas fa-file-download',
+        title: 'Tải file',
+        command: 'download-file',
+        positionOrder: 60,
+      },
+    ];
+  }
+
+  handleContextMenuCommand(e: any, args: MenuCommandItemCallbackArgs): void {
+    const command = args.command;
+    const dataContext = args.dataContext;
+
+    switch (command) {
+      case 'history-money':
+        this.openHistoryMoneyModal();
+        break;
+      case 'purchase-request':
+        this.openProjectPartlistPurchaseRequest();
+        break;
+      case 'price-request':
+        this.openProjectPartlistPriceRequestNew();
+        break;
+    }
+  }
+
+  handleContextFileMenuCommand(e: any, args: MenuCommandItemCallbackArgs): void {
+    const command = args.command;
+    const dataContext = args.dataContext;
+
+    if (command === 'download-file') {
+      const fileId = dataContext['ID'];
+      const fileName = dataContext['FileName'] || `file_${fileId}`;
+
+      if (fileId) {
+        this.POKHService.downloadFile(fileId).subscribe({
+          next: (blob: Blob) => {
+            if (blob.type === 'application/json' || blob.size === 0) {
+              const reader = new FileReader();
+              reader.onload = () => {
+                try {
+                  const json = JSON.parse(reader.result as string);
+                  if (json?.status === 0) {
+                    this.notification.error(
+                      NOTIFICATION_TITLE.error,
+                      json.message || 'Không thể tải file!'
+                    );
+                    return;
+                  }
+                } catch {
+                  this.downloadBlob(blob, fileName);
+                }
+              };
+              reader.readAsText(blob);
+            } else {
+              this.downloadBlob(blob, fileName);
+            }
+          },
+          error: (error) => {
+            this.notification.error(
+              NOTIFICATION_TITLE.error,
+              'Lỗi khi tải file: ' + (error?.message || error)
+            );
+            console.error('Error downloading file:', error);
+          },
+        });
+      } else {
+        this.notification.warning(
+          NOTIFICATION_TITLE.warning,
+          'Không tìm thấy ID file để tải!'
+        );
+      }
+    }
   }
 
   openModalViewPOKH() {
@@ -1147,7 +1201,7 @@ export class PokhComponent implements OnInit, AfterViewInit {
                 'Xóa PO thành công'
               );
               this.loadPOKH();
-              this.tb_POKH.setData(null, true);
+              // SlickGrid data is reactive, no need to manually setData
               this.selectedRow = null;
               this.selectedId = 0;
             } else {
@@ -1204,36 +1258,7 @@ export class PokhComponent implements OnInit, AfterViewInit {
       backdrop: 'static',
     });
   }
-  openHistoryMoneyModal() {
-    if (!this.selectedId) {
-      this.notification.warning(
-        'Thông báo',
-        'Vui lòng chọn POKH cần xem lịch sử tiền về'
-      );
-      return;
-    }
-    const modalRef = this.modalService.open(HistoryMoneyComponent, {
-      centered: true,
-      size: 'xl',
-      backdrop: 'static',
-    });
 
-    if (this.selectedRow && this.selectedRow['POCode']) {
-      modalRef.componentInstance.filterText = this.selectedRow['POCode'];
-    }
-
-    modalRef.result.then(
-      (result: any) => {
-        console.log('Modal closed:', result);
-        if (result && result.success) {
-          // Handle success if needed
-        }
-      },
-      (reason: any) => {
-        console.log('Modal dismissed:', reason);
-      }
-    );
-  }
   onFileSelected(event: any) {
     const files = event.target.files;
     if (files && files.length > 0) {
@@ -1253,18 +1278,6 @@ export class PokhComponent implements OnInit, AfterViewInit {
     }
   }
 
-  addRowDetailUser(): void {
-    const newRow = {
-      ResponsibleUser: '',
-      PercentUser: 0,
-      MoneyUser: 0,
-    };
-    this.dataPOKHDetailUser = [...this.dataPOKHDetailUser, newRow];
-    if (this.tb_DetailUser) {
-      this.tb_DetailUser.setData(this.dataPOKHDetailUser);
-    }
-  }
-
   addFileToTable(file: File): void {
     const newFile = {
       fileName: file.name,
@@ -1274,9 +1287,7 @@ export class PokhComponent implements OnInit, AfterViewInit {
       file: file, // Lưu file gốc
     };
     this.dataPOKHDetailFile = [...this.dataPOKHDetailFile, newFile];
-    if (this.tb_POKHDetailFile) {
-      this.tb_POKHDetailFile.setData(this.dataPOKHDetailFile);
-    }
+    // SlickGrid uses reactive data binding, no need to manually setData
   }
   // deleteFile(index: number): void {
   //   if (confirm('Bạn có chắc chắn muốn xóa file này?')) {
@@ -1288,6 +1299,34 @@ export class PokhComponent implements OnInit, AfterViewInit {
   // }
 
   searchPOKH() {
+    this.filters.pageNumber = 1;
+    this.loadPOKH();
+  }
+
+  prevPage(): void {
+    const current = Number(this.filters.pageNumber) || 1;
+    if (current <= 1) return;
+    this.filters.pageNumber = current - 1;
+    this.loadPOKH();
+  }
+
+  nextPage(): void {
+    const current = Number(this.filters.pageNumber) || 1;
+    if (current >= this.totalPage) return;
+    this.filters.pageNumber = current + 1;
+    this.loadPOKH();
+  }
+
+  goToPage(page: number): void {
+    const next = Math.min(Math.max(Number(page) || 1, 1), this.totalPage || 1);
+    this.filters.pageNumber = next;
+    this.loadPOKH();
+  }
+
+  onPageSizeChange(size: number): void {
+    const nextSize = Number(size) || 50;
+    this.filters.pageSize = nextSize;
+    this.filters.pageNumber = 1;
     this.loadPOKH();
   }
   // Thêm hàm xử lý khi bấm Thêm mới
@@ -1332,8 +1371,8 @@ export class PokhComponent implements OnInit, AfterViewInit {
       {
         label:
           '<span style="font-size: 0.75rem;"><i class="fas fa-file-download"></i> Tải file</span>',
-        action: (e: any, row: RowComponent) => {
-          const rowData = row.getData();
+        action: (e: any, row: any) => {
+          const rowData = row;
           const fileId = rowData['ID'];
           const fileName = rowData['FileName'] || `file_${fileId}`;
 
@@ -1405,7 +1444,7 @@ export class PokhComponent implements OnInit, AfterViewInit {
         console.log('result: ', result);
         if (result.success) {
           this.loadPOKH();
-          this.tb_POKH.setData(null, true);
+          // SlickGrid data is reactive, no need to manually setData
         }
         this.isCopy = false;
       },
@@ -1417,7 +1456,236 @@ export class PokhComponent implements OnInit, AfterViewInit {
   }
 
   //#endregion
-  //#region : Các hàm vẽ bảng
+  //#region : Các hàm vẽ bảng SlickGrid
+
+  dateFormatter(row: number, cell: number, value: any, columnDef: any, dataContext: any): string {
+    if (!value) return '';
+    const date = new Date(value);
+    if (isNaN(date.getTime())) return value;
+    const day = String(date.getDate()).padStart(2, '0');
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const year = date.getFullYear();
+    return `${day}/${month}/${year}`;
+  }
+
+  moneyFormatter(row: number, cell: number, value: any, columnDef: any, dataContext: any): string {
+    if (value === null || value === undefined) return '';
+    return new Intl.NumberFormat('vi-VN').format(value);
+  }
+
+  checkboxFormatter(row: number, cell: number, value: any, columnDef: any, dataContext: any): string {
+    const checked = value ? 'checked' : '';
+    return `<div style="text-align: center;">
+      <input type="checkbox" ${checked} disabled style="opacity: 1; pointer-events: none; cursor: default; width: 16px; height: 16px;"/>
+    </div>`;
+  }
+
+  initGridPOKH(): void {
+    this.columnDefinitionsPOKH = [
+      { id: 'IsApproved', name: 'Duyệt', field: 'IsApproved', width: 80, minWidth: 50, formatter: this.checkboxFormatter, sortable: true, filterable: true },
+      { id: 'StatusTextNew', name: 'Trạng thái', field: 'StatusTextNew', width: 150, minWidth: 150, sortable: true, filterable: true, filter: { model: Filters['compoundInputText'] } },
+      { id: 'MainIndex', name: 'Loại', field: 'MainIndex', width: 200, minWidth: 200, sortable: true, filterable: true, filter: { model: Filters['compoundInputText'] } },
+      { id: 'NewAccount', name: 'New Account', field: 'NewAccount', width: 100, minWidth: 70, formatter: this.checkboxFormatter, sortable: true, filterable: true },
+      { id: 'PONumber', name: 'Số POKH', field: 'PONumber', width: 100, minWidth: 100, sortable: true, filterable: true, filter: { model: Filters['compoundInputNumber'] } },
+      { id: 'POCode', name: 'Mã PO', field: 'POCode', width: 150, minWidth: 150, sortable: true, filterable: true, filter: { model: Filters['compoundInputText'] } },
+      { id: 'CustomerName', name: 'Khách hàng', field: 'CustomerName', width: 300, minWidth: 300, sortable: true, filterable: true, filter: { model: Filters['compoundInputText'] } },
+      { id: 'FullName', name: 'Người phụ trách', field: 'FullName', width: 150, minWidth: 150, sortable: true, filterable: true, filter: { model: Filters['compoundInputText'] } },
+      { id: 'ProjectName', name: 'Dự án', field: 'ProjectName', width: 200, minWidth: 200, sortable: true, filterable: true, filter: { model: Filters['compoundInputText'] } },
+      { id: 'ReceivedDatePO', name: 'Ngày nhận PO', field: 'ReceivedDatePO', width: 150, minWidth: 150, sortable: true, filterable: true, formatter: this.dateFormatter },
+      { id: 'CurrencyCode', name: 'Loại tiền', field: 'CurrencyCode', width: 80, minWidth: 80, sortable: true, filterable: true },
+      { id: 'TotalMoneyKoVAT', name: 'Tổng tiền Xuất VAT', field: 'TotalMoneyKoVAT', width: 150, minWidth: 150, sortable: true, filterable: true, formatter: this.moneyFormatter, cssClass: 'text-right' },
+      { id: 'TotalMoneyPO', name: 'Tổng tiền nhận PO', field: 'TotalMoneyPO', width: 150, minWidth: 150, sortable: true, filterable: true, formatter: this.moneyFormatter, cssClass: 'text-right' },
+      { id: 'ReceiveMoney', name: 'Tiền về', field: 'ReceiveMoney', width: 150, minWidth: 150, sortable: true, filterable: true, formatter: this.moneyFormatter, cssClass: 'text-right' },
+      { id: 'DeliveryStatusText', name: 'Tình trạng tiến độ giao hàng', field: 'DeliveryStatusText', width: 150, minWidth: 150, sortable: true, filterable: true },
+      { id: 'ExportStatusText', name: 'Tình trạng xuất kho', field: 'ExportStatusText', width: 150, minWidth: 150, sortable: true, filterable: true },
+      { id: 'EndUser', name: 'End User', field: 'EndUser', width: 150, minWidth: 150, sortable: true, filterable: true, filter: { model: Filters['compoundInputText'] } },
+      { id: 'Note', name: 'Ghi chú', field: 'Note', width: 120, minWidth: 120, sortable: true, filterable: true, filter: { model: Filters['compoundInputText'] } },
+      { id: 'Debt', name: 'Công nợ', field: 'Debt', width: 120, minWidth: 120, sortable: true, filterable: true, formatter: this.moneyFormatter, cssClass: 'text-right' },
+      { id: 'ImportStatus', name: 'Hóa đơn', field: 'ImportStatus', width: 150, minWidth: 150, sortable: true, filterable: true, filter: { model: Filters['compoundInputText'] } },
+    ];
+
+    this.gridOptionsPOKH = {
+      enableAutoResize: true,
+      autoResize: {
+        container: '.grid-container-pokh',
+        calculateAvailableSizeBy: 'container',
+        resizeDetection: 'container',
+      },
+      gridWidth: '100%',
+      enableCellNavigation: true,
+      enableFiltering: true,
+      enableRowSelection: true,
+      rowSelectionOptions: {
+        selectActiveRow: true
+      },
+      enableCheckboxSelector: false,
+      multiColumnSort: true,
+      enableContextMenu: true,
+      contextMenu: {
+        commandItems: this.getContextMenuOptions(),
+        onCommand: (e, args) => this.handleContextMenuCommand(e, args),
+      },
+    };
+
+  }
+
+  angularGridReadyPOKH(angularGrid: AngularGridInstance): void {
+    this.angularGridPOKH = angularGrid;
+    this.loadPOKH();
+  }
+
+  onPOKHRowClick(e: any, args: any): void {
+    const item = args?.grid?.getDataItem(args?.row);
+    if (item) {
+      this.selectedId = item['ID'];
+      this.selectedRow = item;
+      this.loadPOKHProducts(this.selectedId);
+      this.loadPOKHFiles(this.selectedId);
+    } else {
+      console.log('No item found - args:', args);
+    }
+  }
+
+  onPOKHRowDblClick(e: any, args: any): void {
+    const item = args?.dataContext;
+    if (item) {
+      this.selectedId = item['ID'];
+      this.onEdit();
+    }
+  }
+
+  initGridPOKHProduct(): void {
+    this.columnDefinitionsPOKHProduct = [
+      { id: 'STT', name: 'STT', field: 'STT', width: 70, minWidth: 70, sortable: true, filterable: true, formatter: Formatters.tree, filter: { model: Filters['compoundInputNumber'] } },
+      { id: 'ProductNewCode', name: 'Mã Nội Bộ', field: 'ProductNewCode', width: 100, minWidth: 100, sortable: true, filterable: true, filter: { model: Filters['compoundInputText'] } },
+      { id: 'ProductCode', name: 'Mã Sản Phẩm (Cũ)', field: 'ProductCode', width: 150, minWidth: 150, sortable: true, filterable: true, filter: { model: Filters['compoundInputText'] } },
+      { id: 'ProductName', name: 'Tên sản phẩm', field: 'ProductName', width: 200, minWidth: 200, sortable: true, filterable: true, filter: { model: Filters['compoundInputText'] } },
+      { id: 'GuestCode', name: 'Mã theo khách', field: 'GuestCode', width: 200, minWidth: 200, sortable: true, filterable: true, filter: { model: Filters['compoundInputText'] } },
+      { id: 'Maker', name: 'Hãng', field: 'Maker', width: 100, minWidth: 100, sortable: true, filterable: true, filter: { model: Filters['compoundInputText'] } },
+      { id: 'Qty', name: 'Số lượng', field: 'Qty', width: 100, minWidth: 100, sortable: true, filterable: true, formatter: this.moneyFormatter, cssClass: 'text-right' },
+      { id: 'QuantityReturn', name: 'SL đã về', field: 'QuantityReturn', width: 100, minWidth: 100, sortable: true, filterable: true, formatter: this.moneyFormatter, cssClass: 'text-right' },
+      { id: 'QuantityExport', name: 'SL đã xuất', field: 'QuantityExport', width: 100, minWidth: 100, sortable: true, filterable: true, formatter: this.moneyFormatter, cssClass: 'text-right' },
+      { id: 'QuantityRemain', name: 'SL còn lại', field: 'QuantityRemain', width: 100, minWidth: 100, sortable: true, filterable: true, formatter: this.moneyFormatter, cssClass: 'text-right' },
+      { id: 'FilmSize', name: 'Kích thước phim cắt/Model', field: 'FilmSize', width: 150, minWidth: 150, sortable: true, filterable: true },
+      { id: 'Unit', name: 'ĐVT', field: 'Unit', width: 100, minWidth: 100, sortable: true, filterable: true },
+      { id: 'UnitPrice', name: 'Đơn giá trước VAT', field: 'UnitPrice', width: 200, minWidth: 200, sortable: true, filterable: true, formatter: this.moneyFormatter, cssClass: 'text-right' },
+      { id: 'IntoMoney', name: 'Tổng tiền trước VAT', field: 'IntoMoney', width: 200, minWidth: 200, sortable: true, filterable: true, formatter: this.moneyFormatter, cssClass: 'text-right' },
+      { id: 'VAT', name: 'VAT (%)', field: 'VAT', width: 150, minWidth: 150, sortable: true, filterable: true },
+      { id: 'TotalPriceIncludeVAT', name: 'Tổng tiền sau VAT', field: 'TotalPriceIncludeVAT', width: 200, minWidth: 200, sortable: true, filterable: true, formatter: this.moneyFormatter, cssClass: 'text-right' },
+      { id: 'UserReceiver', name: 'Người nhận', field: 'UserReceiver', width: 200, minWidth: 200, sortable: true, filterable: true },
+      { id: 'DeliveryRequestedDate', name: 'Ngày yêu cầu giao hàng', field: 'DeliveryRequestedDate', width: 200, minWidth: 200, sortable: true, filterable: true, formatter: this.dateFormatter },
+      { id: 'EstimatedPay', name: 'Thanh toán dự kiến', field: 'EstimatedPay', width: 200, minWidth: 200, sortable: true, filterable: true },
+      { id: 'BillDate', name: 'Ngày hóa đơn', field: 'BillDate', width: 200, minWidth: 200, sortable: true, filterable: true, formatter: this.dateFormatter },
+      { id: 'BillNumber', name: 'Số hóa đơn', field: 'BillNumber', width: 200, minWidth: 200, sortable: true, filterable: true },
+      { id: 'Debt', name: 'Công nợ', field: 'Debt', width: 200, minWidth: 200, sortable: true, filterable: true, formatter: this.moneyFormatter, cssClass: 'text-right' },
+      { id: 'PayDate', name: 'Ngày yêu cầu thanh toán', field: 'PayDate', width: 200, minWidth: 200, sortable: true, filterable: true, formatter: this.dateFormatter },
+      { id: 'GroupPO', name: 'Nhóm', field: 'GroupPO', width: 100, minWidth: 100, sortable: true, filterable: true },
+      { id: 'ActualDeliveryDate', name: 'Ngày giao hàng thực tế', field: 'ActualDeliveryDate', width: 200, minWidth: 200, sortable: true, filterable: true, formatter: this.dateFormatter },
+      { id: 'RecivedMoneyDate', name: 'Ngày tiền về', field: 'RecivedMoneyDate', width: 200, minWidth: 200, sortable: true, filterable: true },
+    ];
+
+    this.gridOptionsPOKHProduct = {
+      enableAutoResize: true,
+      autoResize: {
+        container: '.grid-container-pokh-product',
+        calculateAvailableSizeBy: 'container',
+        resizeDetection: 'container',
+      },
+      gridWidth: '100%',
+      enableCellNavigation: true,
+      enableFiltering: true,
+      enableTreeData: true,
+      treeDataOptions: {
+        columnId: 'STT',
+        parentPropName: 'parentId',
+        levelPropName: 'treeLevel',
+        indentMarginLeft: 15,
+        initiallyCollapsed: false,
+      },
+      enableRowSelection: true,
+      rowSelectionOptions: {
+        selectActiveRow: true
+      },
+      enableCheckboxSelector: false,
+      multiColumnSort: false,
+    };
+  }
+
+  angularGridReadyPOKHProduct(angularGrid: AngularGridInstance): void {
+    this.angularGridPOKHProduct = angularGrid;
+  }
+
+  initGridPOKHFile(): void {
+    this.columnDefinitionsPOKHFile = [
+      { id: 'STT', name: 'STT', field: 'STT', width: 60, sortable: true },
+      { id: 'FileName', name: 'Tên file', field: 'FileName', width: 250, sortable: true, filterable: true },
+    ];
+
+    this.gridOptionsPOKHFile = {
+      enableAutoResize: true,
+      autoResize: {
+        container: '.grid-container-pokh-file',
+        calculateAvailableSizeBy: 'container',
+        resizeDetection: 'container',
+      },  
+      gridWidth: '100%',
+      enableCellNavigation: true,
+      enableFiltering: false,
+      enableRowSelection: true,
+      rowSelectionOptions: {
+        selectActiveRow: true
+      },
+      enableCheckboxSelector: false,
+      enableContextMenu: true,
+      contextMenu: {
+        commandItems: this.getContextFileMenuOptions(),
+        onCommand: (e, args) => this.handleContextFileMenuCommand(e, args),
+      },
+    };
+  }
+
+  angularGridReadyPOKHFile(angularGrid: AngularGridInstance): void {
+    this.angularGridPOKHFile = angularGrid;
+  }
+
+  onPOKHFileRowDblClick(e: any, args: any): void {
+    const item = args?.dataContext;
+    if (item && item['ID']) {
+      this.downloadFileFromGrid(item['ID'], item['FileName']);
+    }
+  }
+
+  downloadFileFromGrid(fileId: number, fileName: string): void {
+    this.POKHService.downloadFile(fileId).subscribe({
+      next: (blob: Blob) => {
+        if (blob.type === 'application/json' || blob.size === 0) {
+          const reader = new FileReader();
+          reader.onload = () => {
+            try {
+              const json = JSON.parse(reader.result as string);
+              if (json?.status === 0) {
+                this.notification.error(NOTIFICATION_TITLE.error, json.message || 'Không thể tải file!');
+                return;
+              }
+            } catch {
+              this.downloadBlob(blob, fileName);
+            }
+          };
+          reader.readAsText(blob);
+        } else {
+          this.downloadBlob(blob, fileName);
+        }
+      },
+      error: (error) => {
+        this.notification.error(NOTIFICATION_TITLE.error, 'Lỗi khi tải file: ' + (error?.message || error));
+      },
+    });
+  }
+
+  //#endregion
+
+  //#region : OLD TABULATOR CODE (commented out)
+  /*
   drawPOKHTable(): void {
     const token = localStorage.getItem('token');
     this.tb_POKH = new Tabulator(this.tb_POKHElement.nativeElement, {
@@ -2079,7 +2347,7 @@ export class PokhComponent implements OnInit, AfterViewInit {
       ],
     });
   }
-
+  */
   //#endregion
 
   // Hàm flatten dữ liệu chi tiết sản phẩm (tree -> flat array)

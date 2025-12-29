@@ -1,0 +1,199 @@
+<div class="modal-header bg-primary text-uppercase py-2">
+  <h6 class="modal-title text-white">CHI TIẾT CÔNG TY</h6>
+  <button type="button" class="btn-close" (click)="cancel()" aria-label="Close"></button>
+</div>
+
+<div class="modal-body p-1" style="max-height: 700px; overflow: auto;">
+  <form>
+    <div class="row m-0">
+      <!-- Panel 1: Thông tin cơ bản bên trái -->
+      <div class="col-sm-6 p-1">
+        <!-- Mã công ty -->
+        <div class="form-group mb-1">
+          <label class="m-0">
+            Mã công ty
+            <span class="text-danger">(*)</span>
+          </label>
+          <input 
+            nz-input 
+            type="text" 
+            nzSize="small" 
+            [(ngModel)]="code" 
+            name="code"
+            (blur)="errors.code = ''" />
+          <span class="text-danger" style="font-size: 0.75rem;" *ngIf="errors.code">{{ errors.code }}</span>
+        </div>
+
+        <!-- Tên công ty -->
+        <div class="form-group mb-1">
+          <label class="m-0">
+            Tên công ty
+            <span class="text-danger">(*)</span>
+          </label>
+          <input 
+            nz-input 
+            type="text" 
+            nzSize="small" 
+            [(ngModel)]="name" 
+            name="name"
+            (blur)="errors.name = ''" />
+          <span class="text-danger" style="font-size: 0.75rem;" *ngIf="errors.name">{{ errors.name }}</span>
+        </div>
+
+        <!-- Tên đầy đủ -->
+        <div class="form-group mb-1">
+          <label class="m-0">Tên đầy đủ</label>
+          <input 
+            nz-input 
+            type="text" 
+            nzSize="small" 
+            [(ngModel)]="fullName" 
+            name="fullName" />
+        </div>
+
+        <!-- Mã số thuế -->
+        <div class="form-group mb-1">
+          <label class="m-0">Mã số thuế</label>
+          <input 
+            nz-input 
+            type="text" 
+            nzSize="small" 
+            [(ngModel)]="taxCode" 
+            name="taxCode" />
+        </div>
+
+        <!-- Trụ sở chính -->
+        <div class="form-group mb-1">
+          <label class="m-0">Trụ sở chính</label>
+          <textarea 
+            nz-input 
+            nzSize="small" 
+            [(ngModel)]="address" 
+            name="address"
+            rows="3"></textarea>
+        </div>
+
+        <!-- Điện thoại -->
+        <div class="form-group mb-1">
+          <label class="m-0">Điện thoại</label>
+          <input 
+            nz-input 
+            type="text" 
+            nzSize="small" 
+            [(ngModel)]="phoneNumber" 
+            name="phoneNumber" />
+        </div>
+
+        <!-- Giám đốc -->
+        <div class="form-group mb-1">
+          <label class="m-0">Giám đốc</label>
+          <input 
+            nz-input 
+            type="text" 
+            nzSize="small" 
+            [(ngModel)]="director" 
+            name="director" />
+        </div>
+
+        <!-- Chức vụ -->
+        <div class="form-group mb-1">
+          <label class="m-0">Chức vụ</label>
+          <input 
+            nz-input 
+            type="text" 
+            nzSize="small" 
+            [(ngModel)]="position" 
+            name="position" />
+        </div>
+      </div>
+
+      <!-- Panel 2: Thông tin in PO bên phải -->
+      <div class="col-sm-6 p-1">
+        <!-- Group: Thông tin in PO Tiếng anh -->
+        <div class="border rounded p-2 mb-2">
+          <h6 class="mb-2">Thông tin in PO Tiếng anh</h6>
+          
+          <!-- Buyer -->
+          <div class="form-group mb-1">
+            <label class="m-0">Buyer</label>
+            <input 
+              nz-input 
+              type="text" 
+              nzSize="small" 
+              [(ngModel)]="buyerEnglish" 
+              name="buyerEnglish" />
+          </div>
+
+          <!-- AddressBuyer -->
+          <div class="form-group mb-1">
+            <label class="m-0">AddressBuyer</label>
+            <textarea 
+              nz-input 
+              nzSize="small" 
+              [(ngModel)]="addressBuyerEnglish" 
+              name="addressBuyerEnglish"
+              rows="2"></textarea>
+          </div>
+
+          <!-- Legal Representative -->
+          <div class="form-group mb-1">
+            <label class="m-0">Legal Representative</label>
+            <input 
+              nz-input 
+              type="text" 
+              nzSize="small" 
+              [(ngModel)]="legalRepresentativeEnglish" 
+              name="legalRepresentativeEnglish" />
+          </div>
+        </div>
+
+        <!-- Group: Thông tin in PO Tiếng việt -->
+        <div class="border rounded p-2">
+          <h6 class="mb-2">Thông tin in PO Tiếng việt</h6>
+          
+          <!-- Tên người mua -->
+          <div class="form-group mb-1">
+            <label class="m-0">Tên người mua</label>
+            <input 
+              nz-input 
+              type="text" 
+              nzSize="small" 
+              [(ngModel)]="buyerVietnamese" 
+              name="buyerVietnamese" />
+          </div>
+
+          <!-- Địa chỉ -->
+          <div class="form-group mb-1">
+            <label class="m-0">Địa chỉ</label>
+            <textarea 
+              nz-input 
+              nzSize="small" 
+              [(ngModel)]="addressBuyerVienamese" 
+              name="addressBuyerVienamese"
+              rows="2"></textarea>
+          </div>
+
+          <!-- Mã số thuế -->
+          <div class="form-group mb-1">
+            <label class="m-0">Mã số thuế</label>
+            <input 
+              nz-input 
+              type="text" 
+              nzSize="small" 
+              [(ngModel)]="taxVietnamese" 
+              name="taxVietnamese" />
+          </div>
+        </div>
+      </div>
+    </div>
+  </form>
+</div>
+
+<div class="modal-footer p-1">
+  <button nz-button nzType="primary" nzSize="default" (click)="saveAndClose()">
+    <i class="fas fa-save"></i> Lưu
+  </button>
+  <button nz-button nzType="default" nzSize="default" (click)="cancel()">
+    <i class="fas fa-times"></i> Đóng
+  </button>
+</div>

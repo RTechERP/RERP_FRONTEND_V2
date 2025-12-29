@@ -188,6 +188,7 @@ import { HistoryProductRtcComponent } from './pages/old/inventory-demo/borrow/bo
 import { ProductRtcComponent } from './pages/old/tb-product-rtc/product-rtc/product-rtc.component';
 // import { ProductSaleNewComponent } from './pages/old/Sale/ProductSale/product-sale-new/product-sale-new.component';
 // import { HistoryBorrowSaleNewComponent } from './pages/old/Sale/HistoryBorrowSale/history-borrow-sale-new/history-borrow-sale-new.component';
+import { PokhSlickgridComponent } from './pages/old/pokh-slickgrid/pokh-slickgrid.component';
 
 export const routes: Routes = [
     {
@@ -460,7 +461,8 @@ export const routes: Routes = [
 
             //Phòng sale
             //HN
-            { path: 'pokh-hn', component: PokhComponent, canActivate: [authGuard] },
+            { path: 'pokh-hn-old', component: PokhComponent, canActivate: [authGuard] },
+            { path: 'pokh-hn', component: PokhSlickgridComponent, canActivate: [authGuard] },
             { path: 'quotationkh-hn', component: QuotationKhComponent, canActivate: [authGuard] },
             { path: 'pokh-kpi-hn', component: PokhKpiComponent, canActivate: [authGuard] },
             { path: 'pokh-history-hn', component: PokhHistoryComponent, canActivate: [authGuard] },

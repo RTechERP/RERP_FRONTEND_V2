@@ -337,10 +337,6 @@ export class ViewPokhComponent implements OnInit, AfterViewInit {
     const groupedData = this.selectedRowsAll.reduce<Record<string, any[]>>(
       (acc, row) => {
 
-        // if (!row.selectedExports || row.selectedExports.length === 0) {
-        //   return acc;  // Không có export được chọn → bỏ dòng cha
-        // }
-
         const customerID = row.CustomerID;
         const key = `${customerID}`;
         if (!acc[key]) acc[key] = [];
@@ -349,18 +345,51 @@ export class ViewPokhComponent implements OnInit, AfterViewInit {
         const selectedExportsForThisParent = this.selectedExportRowsAll
           .filter(x => x.POKHDetailID === row.ID);
 
-        // Nếu không có export nào được chọn, bỏ qua dòng parent này
+        // Nếu không có export nào được chọn, đẩy dòng cha với số lượng Qty của dòng cha
         if (selectedExportsForThisParent.length === 0) {
+          acc[key].push({
+            // from parent
+            POKHID: row.POKHID,
+            POKHDetailID: row.ID,
+            ProductName: row.ProductName,
+            ProductSaleID: row.ProductID,
+            ProjectCode: row.ProjectCode,
+            ProjectName: row.ProjectName,
+            ProductNewCode: row.ProductNewCode,
+            POCode: row.POCode,
+            Unit: row.Unit,
+            CustomerName: this.customers.find(x => x.ID == customerID)?.CustomerName,
+            RequestDate: row.RequestDate,
+            DateRequestImport: row.DateRequestImport,
+            ExpectedDate: row.ExpectedDate,
+            SupplierName: row.SupplierName,
+            SomeBill: row.SomeBill,
+            BillImportCode: row.BillImportCode,
+            ProjectID: row.ProjectID,
+            PONumber: row.PONumber,
+            GuestCode: row.GuestCode,
+            // Sử dụng số lượng của dòng cha
+            Quantity: row.Qty,
+            Code: '',
+            TotalQty: 0,
+            BillExportCode: '',
+
+            STT: acc[key].length + 1,
+            InvoiceDate: null,
+            InvoiceNumber: null,
+          });
           return acc;
         }
 
-        // Lấy các export detail từ row.exportDetails dựa trên cả POKHDetailID và Code (để tránh trùng Code)
+        // Lấy các export detail từ row.exportDetails dựa trên BillExportDetailID
         const selectedExports = (row.exportDetails || []).filter((ex: any) => {
-          // Match cả 2 điều kiện: POKHDetailID và Code
+          // Match theo BillExportDetailID để chính xác
           return selectedExportsForThisParent.some((selected: any) => 
-            selected.POKHDetailID === row.ID && selected.Code === ex.Code
+            selected.BillExportDetailID === ex.BillExportDetailID
           );
         });
+
+        console.log('selectedExports after filter:', selectedExports);
 
         // Chỉ xử lý các export đã được chọn
         selectedExports.forEach((ex: any) => {
@@ -1399,6 +1428,10 @@ export class ViewPokhComponent implements OnInit, AfterViewInit {
         nestedTable.selectRow();
       } else if (rowData['exportDetails']?.length > 0) {
         rowData['selectedExports'] = [...rowData['exportDetails']];
+      } else {
+        // Nếu không có export nào, vẫn đánh dấu dòng cha đã được chọn
+        // và sẽ sử dụng số lượng Qty của dòng cha khi đẩy sang
+        rowData['selectedExports'] = [];
       }
     });
 

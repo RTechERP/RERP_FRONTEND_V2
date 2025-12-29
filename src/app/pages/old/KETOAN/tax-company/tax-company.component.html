@@ -13,7 +13,7 @@
         </div>
     </div>
     <!-- <div #tb_Master id="tb_Master" style="height: 100%;"></div> -->
-    <div class="grid-container" style="width: 100%; height: calc(100vh - 150px); overflow: auto;">
+    <div class="grid-container" id="grid-container-master" style="width: 100%; height: 89vh; overflow: auto;">
         <angular-slickgrid gridId="gridMaster" [columns]="columnDefinitionsMaster"
             [options]="gridOptionsMaster" [dataset]="data"
             (onAngularGridCreated)="angularGridMasterReady($event.detail)"

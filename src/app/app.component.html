@@ -14,8 +14,7 @@
             @for (m of menus; track m.id) {
 
             <ng-template #nzTitle style="padding: 0 16px;">
-                <img [src]="m.icon" class="menu-icon" *ngIf="(m.icon || '') != ''" width="24px"
-                    style="margin-right: 8px; vertical-align: bottom;" />
+                <img [src]="m.icon" class="menu-icon m-1" *ngIf="(m.icon || '') != ''" width="24px" />
                 <nz-icon nzType="caret-down" nzTheme="outline" *ngIf="(m.icon || '') == ''" />
                 <p class="m-0 fw-bold">{{ m.title }}</p>
             </ng-template>
@@ -24,7 +23,7 @@
                     @for (c1 of m.children; track c1.id) {
                     <li nz-menu-item nzMatchRouter *ngIf="c1.isPermission && c1.isOpen && c1.children.length <= 0"
                         (click)="newTab((c1.router || ''), c1.title,c1.queryParams)">
-                        <img [src]="c1.icon" class="menu-icon" *ngIf="(c1.icon || '') != ''" width="24px" />
+                        <img [src]="c1.icon" class="menu-icon m-1" *ngIf="(c1.icon || '') != ''" width="24px" />
                         <nz-icon nzType="caret-right" nzTheme="outline" *ngIf="(c1.icon || '') == ''" />
                         <!-- {{c1.title}} -->
 
@@ -33,8 +32,7 @@
                     </li>
 
                     <ng-template #nzTitle1 style="padding: 0 16px;">
-                        <img [src]="c1.icon" class="menu-icon" *ngIf="(c1.icon || '') != ''" width="24px"
-                            style="margin-right: 8px; vertical-align: middle;" />
+                        <img [src]="c1.icon" class="menu-icon m-1" *ngIf="(c1.icon || '') != ''" width="24px" />
                         <nz-icon nzType="caret-down" nzTheme="outline" *ngIf="(c1.icon || '') == ''" />
                         <p class="m-0" style="white-space: pre-line;">{{ c1.title }}</p>
                     </ng-template>
@@ -45,7 +43,7 @@
                                 *ngIf=" c2.isPermission && c2.isOpen  && c2.children.length <= 0"
                                 (click)="newTab((c2.router || ''), c2.title,c2.queryParams)"
                                 style="font-size: 11px !important;">
-                                <img [src]="c2.icon" class="menu-icon" *ngIf="(c2.icon || '') != ''" width="24px" />
+                                <img [src]="c2.icon" class="menu-icon m-1" *ngIf="(c2.icon || '') != ''" width="24px" />
                                 <nz-icon nzType="caret-right" nzTheme="outline" *ngIf="(c2.icon || '') == ''" />
                                 <!-- {{c2.title}} -->
                                 <a [routerLink]="c2.router">{{c2.title}}</a>
@@ -53,8 +51,7 @@
 
 
                             <ng-template #nzTitle2 style="padding: 0 16px;">
-                                <img [src]="c2.icon" class="menu-icon" *ngIf="(c2.icon || '') != ''" width="24px"
-                                    style="margin-right: 8px; vertical-align: middle;" />
+                                <img [src]="c2.icon" class="menu-icon m-1" *ngIf="(c2.icon || '') != ''" width="24px" />
                                 <nz-icon nzType="caret-down" nzTheme="outline" *ngIf="(c2.icon || '') == ''" />
                                 <p class="m-0" style="white-space: pre-line !important;font-size: 11px !important;">{{
                                     c2.title }} </p>
@@ -67,7 +64,7 @@
                                         *ngIf=" c3.isPermission && c3.isOpen && c3.children.length <= 0"
                                         (click)="newTab((c3.router || ''), c3.title,c3.queryParams)"
                                         style="font-size: 10px !important;">
-                                        <img [src]="c3.icon" class="menu-icon" *ngIf="(c3.icon || '') != ''"
+                                        <img [src]="c3.icon" class="menu-icon m-1" *ngIf="(c3.icon || '') != ''"
                                             width="24px" />
                                         <nz-icon nzType="caret-right" nzTheme="outline" *ngIf="(c3.icon || '') == ''" />
                                         <!-- <a [href]="c3.router">{{c3.title}}</a> -->

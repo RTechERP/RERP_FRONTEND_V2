@@ -2,10 +2,10 @@
     <div class="card card-primary rounded-0 border-0 h-100 d-flex flex-column" style="height: 90vh;">
         <div
             class="card-header p-1 bg-white border-bottom d-flex justify-content-between align-items-center flex-wrap gap-2">
-            <h4 class="text-uppercase m-0">
+            <h6 class="text-uppercase m-0">
                 <span class="text-dark font-weight-bold">THÔNG TIN LIÊN HỆ NHÂN VIÊN ({{ totalEmployees }}
                     NS)</span>
-            </h4>
+            </h6>
             <div class="d-flex gap-2 flex-wrap align-items-center">
                 <label>Phòng ban: </label>
                 <nz-select nzSize="default" style="min-width: 200px" [(ngModel)]="departmentId" name="departmentId"
@@ -14,40 +14,41 @@
                     <nz-option *ngFor="let d of departments" [nzLabel]="d.Name" [nzValue]="d.ID"></nz-option>
                 </nz-select>
 
-                <form class="card-header-form mt-0" (submit)="onSearch(); $event.preventDefault()">
-                    <div class="input-group">
-                        <input type="text" class="form-control form-control-sm" [(ngModel)]="keyword" name="keyword"
-                            placeholder="Từ khóa..." (keyup.enter)="onSearch()" />
-                        <button type="submit" class="btn btn-success btn-sm btn-icon">
-                            <i nz-icon nzType="search" nzTheme="outline"></i>
+                <div class="d-flex gap-2 align-items-center">
+                    <form class="card-header-form mt-0" (submit)="onSearch(); $event.preventDefault()">
+                        <div class="input-group">
+                            <input type="text" class="form-control form-control-sm" [(ngModel)]="keyword" name="keyword"
+                                placeholder="Từ khóa..." (keyup.enter)="onSearch()" style="width: 165px;" />
+                            <button type="submit" class="btn btn-success btn-sm btn-icon">
+                                <i nz-icon nzType="search" nzTheme="outline"></i>
+                            </button>
+                        </div>
+                    </form>
+                    <button *ngIf="isPermissDownload" type="button" class="btn btn-outline-success btn-sm"
+                        (click)="onExportExcel()">
+                        <i nz-icon nzType="download"></i>
+                    </button>
+                    <div class="btn-group btn-group-sm" role="group" aria-label="Chế độ hiển thị">
+                        <button type="button" class="btn"
+                            [ngClass]="{'btn-primary': viewMode==='table', 'btn-outline-primary': viewMode!=='table'}"
+                            (click)="onViewModeChange('table')" nz-tooltip nzTooltipTitle="Dạng bảng">
+                            <i nz-icon nzType="table"></i>
+                        </button>
+                        <button type="button" class="btn"
+                            [ngClass]="{'btn-primary': viewMode==='card', 'btn-outline-primary': viewMode!=='card'}"
+                            (click)="onViewModeChange('card')" nz-tooltip nzTooltipTitle="Dạng thẻ">
+                            <i nz-icon nzType="appstore"></i>
                         </button>
                     </div>
-                </form>
 
-                <div class="btn-group btn-group-sm" role="group" aria-label="Chế độ hiển thị">
-                    <button type="button" class="btn"
-                        [ngClass]="{'btn-primary': viewMode==='table', 'btn-outline-primary': viewMode!=='table'}"
-                        (click)="onViewModeChange('table')" nz-tooltip nzTooltipTitle="Dạng bảng">
-                        <i nz-icon nzType="table"></i>
-                    </button>
-                    <button type="button" class="btn"
-                        [ngClass]="{'btn-primary': viewMode==='card', 'btn-outline-primary': viewMode!=='card'}"
-                        (click)="onViewModeChange('card')" nz-tooltip nzTooltipTitle="Dạng thẻ">
-                        <i nz-icon nzType="appstore"></i>
-                    </button>
+
                 </div>
-
-                <button *ngIf="isPermissDownload" type="button" class="btn btn-outline-success btn-sm"
-                    (click)="onExportExcel()">
-                    <i nz-icon nzType="download"></i>
-                </button>
             </div>
         </div>
         <div class="card-body p-0 flex-grow-1 overflow-hidden">
             <div [hidden]="viewMode !== 'table'" id="grid-container-contact" style="height: 89vh; width: 100%;">
-                <angular-slickgrid gridId="employeeContactGrid" [columns]="columnDefinitions"
-                    [options]="gridOptions" [dataset]="dataset"
-                    (onAngularGridCreated)="angularGridReady($event.detail)">
+                <angular-slickgrid gridId="employeeContactGrid" [columns]="columnDefinitions" [options]="gridOptions"
+                    [dataset]="dataset" (onAngularGridCreated)="angularGridReady($event.detail)">
                 </angular-slickgrid>
             </div>
 

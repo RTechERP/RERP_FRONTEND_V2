@@ -174,7 +174,7 @@ export class EmployeeContactComponent implements OnInit, AfterViewInit {
                 filter: { model: Filters['compoundInputText'] }
             },
             {
-                id: 'FullName', name: 'Họ tên', field: 'FullName', width: 200, sortable: true, filterable: true,
+                id: 'FullName', name: 'Họ tên', field: 'FullName', width: 250, sortable: true, filterable: true,
                 filter: { model: Filters['compoundInputText'] }
             },
             {
@@ -182,15 +182,15 @@ export class EmployeeContactComponent implements OnInit, AfterViewInit {
                 filter: { model: Filters['compoundInputText'] }
             },
             {
-                id: 'ChucVu', name: 'Chức vụ', field: 'ChucVu', width: 200, sortable: true, filterable: true,
+                id: 'ChucVu', name: 'Chức vụ', field: 'ChucVu', width: 250, sortable: true, filterable: true,
                 filter: { model: Filters['compoundInputText'] }
             },
             {
-                id: 'SDTCaNhan', name: 'Điện thoại', field: 'SDTCaNhan', width: 150, formatter: phoneFormatter, filterable: true,
+                id: 'SDTCaNhan', name: 'Điện thoại', field: 'SDTCaNhan', width: 200, formatter: phoneFormatter, filterable: true,
                 filter: { model: Filters['compoundInputText'] }
             },
             {
-                id: 'EmailCongTy', name: 'Email', field: 'EmailCongTy', width: 250, sortable: true, filterable: true,
+                id: 'EmailCongTy', name: 'Email', field: 'EmailCongTy', width: 200, sortable: true, filterable: true,
                 filter: { model: Filters['compoundInputText'] }
             },
             {
@@ -205,6 +205,8 @@ export class EmployeeContactComponent implements OnInit, AfterViewInit {
             },
         ];
 
+        const isMobile = typeof window !== 'undefined' ? window.innerWidth <= 768 : false;
+        
         this.gridOptions = {
             autoResize: {
                 container: '#grid-container-contact',
@@ -212,8 +214,8 @@ export class EmployeeContactComponent implements OnInit, AfterViewInit {
                 resizeDetection: 'container',
             },
             enableAutoResize: true,
-            gridWidth: '100%',
-            forceFitColumns: true,
+            gridWidth: isMobile ? 'auto' : '100%',
+            forceFitColumns: !isMobile, // Disable force fit on mobile to allow horizontal scroll
             enableCellNavigation: true,
 
             enableFiltering: true,

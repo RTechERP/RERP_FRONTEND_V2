@@ -18,7 +18,8 @@
                 <nz-icon nzType="caret-down" nzTheme="outline" *ngIf="(m.icon || '') == ''" />
                 <p class="m-0 fw-bold">{{ m.title }}</p>
             </ng-template>
-            <li nz-submenu [nzTitle]="nzTitle" *ngIf=" m.isPermission && m.isOpen" [nzOpen]="menuKey === m.key">
+            <li nz-submenu [nzTitle]="nzTitle" *ngIf=" m.isPermission && m.isOpen"
+                [nzOpen]="menuKey === m.key || rootMenuKey ===m.key">
                 <ul>
                     @for (c1 of m.children; track c1.id) {
                     <li nz-menu-item nzMatchRouter *ngIf="c1.isPermission && c1.isOpen && c1.children.length <= 0"
@@ -36,7 +37,8 @@
                         <nz-icon nzType="caret-down" nzTheme="outline" *ngIf="(c1.icon || '') == ''" />
                         <p class="m-0" style="white-space: pre-line;">{{ c1.title }}</p>
                     </ng-template>
-                    <li nz-submenu [nzTitle]="nzTitle1" *ngIf=" c1.isPermission && c1.isOpen && c1.children.length > 0">
+                    <li nz-submenu [nzTitle]="nzTitle1" *ngIf=" c1.isPermission && c1.isOpen && c1.children.length > 0"
+                        [nzOpen]="menuKey === c1.key || rootMenuKey === c1.key">
                         <ul>
                             @for (c2 of c1.children; track c2.id) {
                             <li nz-menu-item nzMatchRouter
@@ -57,7 +59,8 @@
                                     c2.title }} </p>
                             </ng-template>
                             <li nz-submenu [nzTitle]="nzTitle2"
-                                *ngIf="c2.isPermission && c2.isOpen && c2.children.length > 0">
+                                *ngIf="c2.isPermission && c2.isOpen && c2.children.length > 0"
+                                [nzOpen]="menuKey === c2.key || rootMenuKey === c2.key">
                                 <ul>
                                     @for (c3 of c2.children; track c3.id) {
                                     <li nz-menu-item nzMatchRouter

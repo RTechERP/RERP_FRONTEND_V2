@@ -55,15 +55,28 @@
                 <ul class="list-group list-group-flush">
                     @for (item of menuQickAcesss.Children; track $index) {
                     <li class="list-group-item border-0 py-1"
-                        *ngIf="item.Code =='M136' || item.Code == 'M137' || item.Code == 'M139'">
+                        *ngIf="item.Code =='M79' || item.Code =='M136' || item.Code =='M137' || item.Code =='M139'">
                         <a [attr.href]="item.Router ? item.Router : null"
                             (click)="handleClickLink($event, item.Router, item.Title)">
-                            <img [src]="item.Icon">
+                            <img [src]="item.Icon" width="5%">
                             <span> {{item.Title}}</span>
                         </a>
+                        <ul class="list-group">
+                            @for (c of item.Children; track $index) {
+                            <li class="list-group-item border-0 py-1"
+                                [ngClass]="{'border-bottom':$index < item.Children.length - 1,'':$index == item.Children.length - 1}">
+                                <a [attr.href]="c.Router ? c.Router : null"
+                                    (click)="handleClickLink($event, c.Router, c.Title)">
+                                    <img [src]="c.Icon" width="5%">
+                                    <span> {{c.Title}}</span>
+                                </a>
+                            </li>
+                            }
+                        </ul>
                     </li>
                     }
                 </ul>
+
             </div>
         </div>
 
@@ -141,7 +154,7 @@
                 <h5 class="card-title m-0 text-uppercase fw-bold py-1">Cá nhân</h5>
             </div>
             <div class="card-body p-0" style="height: 80vh; overflow: auto;">
-                <ul class="list-group list-group-flush">
+                <!-- <ul class="list-group list-group-flush">
                     @for (item of menuPersons; track $index) {
                     <li class="list-group-item border-0 border-bottom py-1">
                         <a class=" text-dark" [attr.href]="item.Router ? item.Router : null"
@@ -176,9 +189,55 @@
                         </ul>
                     </li>
                     }
+                </ul> -->
 
 
-                </ul>
+                <p-tabs [value]="menuPersons[0].ID" scrollable>
+                    <p-tablist>
+                        @for (item of menuPersons; track $index){
+                        <p-tab [value]="item.ID" class="d-flex justify-content-start align-items-center">
+                            <p-avatar [image]="item.Icon" width="20%" />
+                            <span class="font-bold whitespace-nowrap">{{item.Title}}</span>
+                        </p-tab>
+                        }
+                    </p-tablist>
+                    <p-tabpanels class="p-0">
+                        @for (item of menuPersons; track $index){
+                        <p-tabpanel [value]="item.ID">
+                            <ul class="list-group">
+                                @for (c1 of item.Children; track $index) {
+
+                                <li class="list-group-item border-0 border-bottom py-1">
+                                    <a class=" text-dark" [attr.href]="c1.Router ? c1.Router : null"
+                                        (click)="handleClickLink($event, c1.Router, c1.Title)">
+                                        <img [src]="c1.Icon">
+                                        <span> {{c1.Title}}</span>
+                                    </a>
+                                    <ul class="list-group">
+                                        @for (c2 of c1.Children; track $index) {
+                                        <li class="list-group-item border-0 py-1"
+                                            [ngClass]="{'border-bottom':$index < c1.Children.length - 1,'':$index == c1.Children.length - 1}">
+                                            <a [attr.href]="c2.Router ? c2.Router : null"
+                                                (click)="handleClickLink($event, c2.Router, c2.Title)">
+                                                <img [src]="c2.Icon">
+                                                <span> {{c2.Title}}</span>
+                                            </a>
+                                        </li>
+                                        }
+                                    </ul>
+                                </li>
+
+                                }
+                            </ul>
+                        </p-tabpanel>
+                        }
+
+                        <!-- <p-tabpanel value="1">
+
+                        </p-tabpanel> -->
+
+                    </p-tabpanels>
+                </p-tabs>
             </div>
         </div>
 

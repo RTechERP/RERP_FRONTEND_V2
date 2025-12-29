@@ -198,6 +198,8 @@ export class MainLayoutComponent implements OnInit, AfterViewInit, OnDestroy {
     menuKey: string = '';
     private routerSubscription?: Subscription;
 
+    rootMenuKey: string = '';
+
     ngOnInit(): void {
         // const saved = localStorage.getItem('openMenuKey') || '';
         // console.log(this.menus);
@@ -264,7 +266,7 @@ export class MainLayoutComponent implements OnInit, AfterViewInit, OnDestroy {
     private handleDirectNavigation(url: string): void {
         // Bỏ qua nếu navigation đến từ newTab (để tránh tạo tab trùng)
         if (this.isNavigatingFromNewTab) {
-            console.log('Skipping handleDirectNavigation - navigation from newTab');
+            // console.log('Skipping handleDirectNavigation - navigation from newTab');
             return;
         }
 
@@ -296,9 +298,9 @@ export class MainLayoutComponent implements OnInit, AfterViewInit, OnDestroy {
                     menuQueryParams = typeof menuItem.queryParams === 'string'
                         ? JSON.parse(menuItem.queryParams)
                         : menuItem.queryParams;
-                    console.log('Found queryParams from menu for route:', route, menuQueryParams);
+                    // console.log('Found queryParams from menu for route:', route, menuQueryParams);
                 } catch (e) {
-                    console.error('Error parsing menu queryParams:', e);
+                    // console.error('Error parsing menu queryParams:', e);
                 }
             }
         }
@@ -318,7 +320,7 @@ export class MainLayoutComponent implements OnInit, AfterViewInit, OnDestroy {
                 });
                 newUrl += `?${params.toString()}`;
             }
-            console.log('Navigating with queryParams from menu:', newUrl);
+            // console.log('Navigating with queryParams from menu:', newUrl);
             this.router.navigateByUrl(newUrl);
             return; // Return để đợi navigation xong, sẽ gọi lại handleDirectNavigation
         }
@@ -354,7 +356,7 @@ export class MainLayoutComponent implements OnInit, AfterViewInit, OnDestroy {
         this.dynamicTabs = [...this.dynamicTabs, newTab];
         this.selectedIndex = this.dynamicTabs.length - 1;
 
-        console.log('Auto-created tab from direct navigation:', newTab);
+        // console.log('Auto-created tab from direct navigation:', newTab);
     }
 
     ngAfterViewInit(): void {
@@ -369,6 +371,45 @@ export class MainLayoutComponent implements OnInit, AfterViewInit, OnDestroy {
         // });
     }
 
+
+    findRootKeyByRouter(
+        items: any[],
+        router: string
+    ): string | null {
+        for (const root of items) {
+            // nếu chính root match
+            if (root.router === router) {
+                return root.key;
+            }
+
+            // nếu route nằm trong children của root
+            if (root.children?.length) {
+                const found = this.findKeyByRouter(root.children, router);
+                if (found) {
+                    return root.key; // 👈 TRẢ VỀ KEY CẤP 0
+                }
+            }
+        }
+        return null;
+    }
+
+    private findKeyByRouter(
+        items: any[],
+        router: string
+    ): string | null {
+        for (const item of items) {
+            if (item.router === router) return item.key;
+
+            if (item.children?.length) {
+                const found = this.findKeyByRouter(item.children, router);
+                if (found) return found;
+            }
+        }
+        return null;
+    }
+
+
+
     getMenus() {
         this.menuAppService.getAll().subscribe({
             next: (response) => {
@@ -377,10 +418,9 @@ export class MainLayoutComponent implements OnInit, AfterViewInit, OnDestroy {
 
                 this.menuService.menuKey$.subscribe((x) => {
                     this.menuKey = x;
-                    // this.setOpenMenu(this.menuKey);
-                    // this.toggleMenu(this.menuKey);
                 });
-                // console.log('getMenus menuKey$:', this.menuKey);
+
+
 
 
                 const map = new Map<number, any>();
@@ -403,7 +443,7 @@ export class MainLayoutComponent implements OnInit, AfterViewInit, OnDestroy {
 
                     // Log để debug queryParams từ database
                     if (item.QueryParam && item.QueryParam !== '') {
-                        console.log(`Menu item [${item.Code}] - QueryParam from DB:`, item.QueryParam, 'Type:', typeof item.QueryParam);
+                        // console.log(`Menu item [${item.Code}] - QueryParam from DB:`, item.QueryParam, 'Type:', typeof item.QueryParam);
                     }
 
                     map.set(item.ID, menuItem);
@@ -422,6 +462,18 @@ export class MainLayoutComponent implements OnInit, AfterViewInit, OnDestroy {
                 });
 
                 // console.log(this.menus);
+
+                this.menus = this.menuAppService.sortBySTTImmutable(this.menus, i => i.STT ?? i.stt ?? 0);
+
+                // console.log('response.data.menus:', this.router.url.split('?')[0]);
+
+                const router = this.router.url.split('?')[0].replace('/', '');
+                this.rootMenuKey = this.findRootKeyByRouter(this.menus, router) || '';
+                if (this.rootMenuKey) {
+                    this.menus.forEach(item => {
+                        item.isOpen = item.key === this.rootMenuKey
+                    });
+                }
 
                 // Sau khi menus đã load, check current route và tự động tạo tab nếu cần
                 // (khi paste URL trực tiếp)
@@ -499,11 +551,11 @@ export class MainLayoutComponent implements OnInit, AfterViewInit, OnDestroy {
 
     newTab(route: string, title: string, queryParams?: any) {
 
-        console.log('=== newTab called ===');
-        console.log('route:', route);
-        console.log('title:', title);
-        console.log('queryParams (raw):', queryParams);
-        console.log('queryParams type:', typeof queryParams);
+        // console.log('=== newTab called ===');
+        // console.log('route:', route);
+        // console.log('title:', title);
+        // console.log('queryParams (raw):', queryParams);
+        // console.log('queryParams type:', typeof queryParams);
 
         // Parse queryParams nếu là string JSON từ database
         let parsedParams: any = null;
@@ -511,18 +563,18 @@ export class MainLayoutComponent implements OnInit, AfterViewInit, OnDestroy {
             if (typeof queryParams === 'string') {
                 try {
                     parsedParams = JSON.parse(queryParams);
-                    console.log('Parsed queryParams:', parsedParams);
+                    // console.log('Parsed queryParams:', parsedParams);
                 } catch (e) {
-                    console.error('Error parsing queryParams:', e, 'queryParams value:', queryParams);
+                    // console.error('Error parsing queryParams:', e, 'queryParams value:', queryParams);
                     parsedParams = null;
                 }
             } else if (typeof queryParams === 'object') {
                 // Đã là object rồi, không cần parse
                 parsedParams = queryParams;
-                console.log('queryParams already object:', parsedParams);
+                // console.log('queryParams already object:', parsedParams);
             }
         } else {
-            console.log('queryParams is empty or undefined');
+            // console.log('queryParams is empty or undefined');
         }
 
         // Normalize: chỉ lấy object có keys, loại bỏ null/undefined/empty
@@ -534,9 +586,9 @@ export class MainLayoutComponent implements OnInit, AfterViewInit, OnDestroy {
         // const key = route + JSON.stringify(queryParams ?? {});
         const key = route + JSON.stringify(normalizedParams ?? {});
 
-        console.log('new tab key:', key);
-        console.log('new tab normalizedParams:', normalizedParams);
-        console.log('=== end newTab ===');
+        // console.log('new tab key:', key);
+        // console.log('new tab normalizedParams:', normalizedParams);
+        // console.log('=== end newTab ===');
 
 
 
@@ -547,7 +599,7 @@ export class MainLayoutComponent implements OnInit, AfterViewInit, OnDestroy {
         if (idx >= 0) {
             this.selectedIndex = idx;
             // this.router.navigate([route], { queryParams });
-            console.log('Navigate to existing tab:', cleanRoute, 'with queryParams:', normalizedParams);
+            // console.log('Navigate to existing tab:', cleanRoute, 'with queryParams:', normalizedParams);
             // Build URL với queryParams - convert tất cả values sang string
             let url = `/${cleanRoute}`;
             if (normalizedParams) {
@@ -559,7 +611,7 @@ export class MainLayoutComponent implements OnInit, AfterViewInit, OnDestroy {
                 });
                 url += `?${params.toString()}`;
             }
-            console.log('Navigating to URL:', url);
+            // console.log('Navigating to URL:', url);
             // Set flag để skip handleDirectNavigation
             this.isNavigatingFromNewTab = true;
             this.router.navigateByUrl(url).then(() => {
@@ -579,14 +631,14 @@ export class MainLayoutComponent implements OnInit, AfterViewInit, OnDestroy {
             { title, route: cleanRoute, queryParams: normalizedParams, key }
         ];
 
-        console.log('new tab this.dynamicTabs:', this.dynamicTabs);
+        // console.log('new tab this.dynamicTabs:', this.dynamicTabs);
 
         // setTimeout(() => {
 
         this.cd.detectChanges();
         this.selectedIndex = this.dynamicTabs.length - 1;
         // this.router.navigate([route], { queryParams });
-        console.log('Navigate to new tab:', cleanRoute, 'with queryParams:', normalizedParams);
+        // console.log('Navigate to new tab:', cleanRoute, 'with queryParams:', normalizedParams);
         // Build URL với queryParams - convert tất cả values sang string
         let url = `/${cleanRoute}`;
         if (normalizedParams) {
@@ -598,7 +650,7 @@ export class MainLayoutComponent implements OnInit, AfterViewInit, OnDestroy {
             });
             url += `?${params.toString()}`;
         }
-        console.log('Navigating to URL:', url);
+        // console.log('Navigating to URL:', url);
         // Set flag để skip handleDirectNavigation
         this.isNavigatingFromNewTab = true;
         this.router.navigateByUrl(url).then(() => {
@@ -656,7 +708,7 @@ export class MainLayoutComponent implements OnInit, AfterViewInit, OnDestroy {
         if (tab) {
             // this.router.navigateByUrl(tab.route);
             // Đảm bảo truyền queryParams khi chuyển tab
-            console.log('onTabChange - Navigate to:', tab.route, 'with queryParams:', tab.queryParams);
+            // console.log('onTabChange - Navigate to:', tab.route, 'with queryParams:', tab.queryParams);
             // Build URL với queryParams - convert tất cả values sang string
             let url = `/${tab.route}`;
             if (tab.queryParams) {
@@ -668,7 +720,7 @@ export class MainLayoutComponent implements OnInit, AfterViewInit, OnDestroy {
                 });
                 url += `?${params.toString()}`;
             }
-            console.log('onTabChange - Navigating to URL:', url);
+            // console.log('onTabChange - Navigating to URL:', url);
             // Set flag để skip handleDirectNavigation
             this.isNavigatingFromNewTab = true;
             this.router.navigateByUrl(url).then(() => {

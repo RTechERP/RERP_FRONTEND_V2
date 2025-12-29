@@ -22,6 +22,7 @@ import { environment } from '../../../../environments/environment';
 import { TabsModule } from 'primeng/tabs';
 import { NzLayoutModule } from 'ng-zorro-antd/layout';
 import { TabServiceService } from '../../tab-service.service';
+import { AvatarModule } from 'primeng/avatar';
 
 @Component({
     selector: 'app-home-layout-new',
@@ -36,7 +37,8 @@ import { TabServiceService } from '../../tab-service.service';
         NzCalendarModule,
         RouterLink,
         TabsModule,
-        NzLayoutModule
+        NzLayoutModule,
+        AvatarModule
     ],
     templateUrl: './home-layout-new.component.html',
     styleUrl: './home-layout-new.component.css'
@@ -116,6 +118,9 @@ export class HomeLayoutNewComponent implements OnInit {
     }
 
 
+
+
+
     getMenus() {
         this.menuAppService.getAll().subscribe({
             next: (response) => {
@@ -133,7 +138,8 @@ export class HomeLayoutNewComponent implements OnInit {
                         IsPermission: item.IsPermission,
                         IsOpen: true,
                         ParentID: item.ParentID,
-                        Children: []
+                        Children: [],
+                        ID: item.ID
                     });
                 });
 
@@ -149,10 +155,12 @@ export class HomeLayoutNewComponent implements OnInit {
                     }
                 });
 
-                console.log('this.menus:', this.menus);
+                // console.log('this.menus:', this.menus);
+
+                this.menus = this.menuAppService.sortBySTTImmutable(this.menus, i => i.STT ?? i.stt ?? 0);
 
                 this.menuApproves = this.menus.find((x) => x.Code == 'appvovedperson');
-                console.log('this.menuApproves:', this.menuApproves);
+                // console.log('this.menuApproves:', this.menuApproves);
 
                 var pesons = this.menus.find((x) => x.Code == 'person');
                 this.menuPersons = pesons.Children.filter((x: any) => x.Code == 'registerpayroll' || x.Code == 'dailyreport' || x.Code == 'registercommon');

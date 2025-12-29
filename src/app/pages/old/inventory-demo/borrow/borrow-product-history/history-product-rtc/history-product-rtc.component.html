@@ -87,7 +87,7 @@
                             <img src="assets/icon/action_add_item_16.png" alt="Thêm mới " />
                             Đăng ký mượn
                         </button>
-                        <button class="fs-12" nz-button nzType="default" nzSize="small" (click)="returnProduct()" *hasPermission="'N26,N1,N80'">
+                        <button class="fs-12" nz-button nzType="default" nzSize="small" (click)="returnProduct()">
                             <img src="assets/icon/return_16.png" alt="Trả thiết bị" class="me-1" /> Trả thiết bị
                         </button>
                         <button class="fs-12" nz-button nzType="default" nzSize="small" (click)="approveBorrowing()" *hasPermission="'N26,N1,N80'">
@@ -103,14 +103,11 @@
                             <img src="assets/icon/expire_16.png" alt="Quá hạn" class="me-1" /> Quá hạn
                         </button>
                         <button class="fs-12" nz-button nzType="default" nzSize="small" (click)="exportExcel()">
-                            <img src="assets/icon/action_export_excel_16.png" alt="Xuất Excel" class="me-1" /> Xuất
-                            Excel
+                            <img src="assets/icon/action_export_excel_16.png" alt="Xuất Excel" class="me-1" /> Xuất Excel
                         </button>
-
-                        <!-- INTEGRATION: Nút Xuất chỉ hiển thị khi mở từ bill import technical -->
                         <button *ngIf="isModalMode" class="fs-12" nz-button nzType="primary" nzSize="small"
                             (click)="exportSelectedProducts()">
-                            <nz-icon nzType="export" nzTheme="outline" /> Xuất
+                            <nz-icon nzType="export" nzTheme="outline" /> Xuất Excel
                         </button>
 
                         <span class="ms-auto d-flex align-items-center gap-1">
@@ -134,11 +131,11 @@
                         <nz-spin [nzSpinning]="isLoading"></nz-spin>
                     </div>
                     <div class="grid-container" style="height: 100%;">
-                        <angular-slickgrid 
-                            [gridId]="'historyProductRtcGrid-' + warehouseID" 
+                        <angular-slickgrid
+                            [gridId]="'historyProductRtcGrid-' + warehouseID + '-' + warehouseType"
                             [columns]="columnDefinitions"
-                            [options]="gridOptions" 
-                            [dataset]="dataset" 
+                            [options]="gridOptions"
+                            [dataset]="dataset"
                             (onAngularGridCreated)="angularGridReady($event.detail)"
                             (onSelectedRowsChanged)="onRowSelectionChanged($event.detail.eventData, $event.detail.args)"
                             (onDblClick)="productHistoryBorrowDetail()">
@@ -146,7 +143,6 @@
                     </div>
                 </div>
             </div>
-
         </nz-splitter-panel>
     </nz-splitter>
 </ng-container>

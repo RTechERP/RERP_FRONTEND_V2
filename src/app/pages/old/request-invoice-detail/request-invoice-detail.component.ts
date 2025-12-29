@@ -1132,14 +1132,14 @@ export class RequestInvoiceDetailComponent implements OnInit {
     });
   }
 
-  // Hàm xử lý khi edit cell - tự động cập nhật các dòng đã chọn (chỉ cho cột Số hóa đơn và Ngày hóa đơn)
+  // Hàm xử lý khi edit cell - tự động cập nhật các dòng đã chọn (cho cột Số hóa đơn, Ngày hóa đơn và Tồn kho)
   handleCellEditForSelectedRows(cell: CellComponent): void {
     const editedRow = cell.getRow();
     const editedField = cell.getColumn().getField();
     const newValue = cell.getValue();
     
-    // Chỉ xử lý cho 2 cột: Số hóa đơn và Ngày hóa đơn
-    if (editedField !== 'InvoiceNumber' && editedField !== 'InvoiceDate') {
+    // Chỉ xử lý cho 3 cột: Số hóa đơn, Ngày hóa đơn và Tồn kho
+    if (editedField !== 'InvoiceNumber' && editedField !== 'InvoiceDate' && editedField !== 'IsStock') {
       return;
     }
 

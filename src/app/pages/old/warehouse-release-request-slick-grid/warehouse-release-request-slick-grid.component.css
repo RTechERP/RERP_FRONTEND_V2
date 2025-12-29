@@ -1,0 +1,161 @@
+.modal-header {
+  background-color: #f8f9fa;
+  border-bottom: 1px solid #dee2e6;
+  padding: 1rem;
+
+  .modal-title {
+    margin: 0;
+    font-size: 1.25rem;
+    font-weight: 500;
+  }
+
+  .close {
+    padding: 1rem;
+    margin: -1rem -1rem -1rem auto;
+  }
+}
+
+.modal-body {
+  padding: 1rem;
+
+  .toolbar {
+    .btn-group {
+      .dropdown-toggle {
+        min-width: 150px;
+      }
+    }
+  }
+
+  .search-panel {
+    background-color: #f8f9fa;
+    padding: 1rem;
+    border-radius: 0.25rem;
+
+    .form-label {
+      font-weight: 500;
+      margin-bottom: 0.5rem;
+    }
+
+    ng-select {
+      width: 100%;
+    }
+
+    .row {
+      margin: 0 -8px;
+
+      >[class*="col-"] {
+        padding: 0 8px;
+      }
+    }
+
+    button[nz-button] {
+      white-space: nowrap;
+      min-width: 40px;
+      height: 32px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 0 8px;
+    }
+
+    @media (max-width: 768px) {
+      .row {
+        flex-wrap: wrap;
+      }
+
+      .col-md-1 {
+        width: 100%;
+        margin-top: 1rem;
+        padding: 0 8px;
+      }
+
+      button[nz-button] {
+        width: 100%;
+      }
+    }
+  }
+
+  .grid-container {
+    margin-top: 1rem;
+
+    ::ng-deep {
+      .ag-header-cell {
+        font-weight: bold;
+        background-color: #f8f9fa;
+      }
+
+      .ag-row {
+        border-bottom: 1px solid #dee2e6;
+      }
+
+      .ag-row-selected {
+        background-color: #e9ecef;
+      }
+    }
+  }
+}
+
+.modal-footer {
+  background-color: #f8f9fa;
+  border-top: 1px solid #dee2e6;
+  padding: 1rem;
+
+  .btn {
+    min-width: 100px;
+  }
+}
+
+.fs-12 {
+  font-size: 0.75rem;
+}
+
+.reset {
+  all: revert;
+}
+
+.ant-splitter-panel {
+  position: relative;
+}
+
+.inner-content {
+  padding: 0 !important;
+}
+
+.ant-tabs-tab-btn {
+  font-size: 0.75rem;
+}
+
+.ant-splitter {
+  height: 90vh !important;
+}
+
+/* SlickGrid Styles */
+#gridContainer {
+  height: 73.8vh;
+}
+
+::ng-deep .slick-header-column {
+  font-weight: bold;
+  background-color: #f8f9fa;
+}
+
+::ng-deep .slick-row {
+  border-bottom: 1px solid #dee2e6;
+}
+
+::ng-deep .slick-row.selected {
+  background-color: #e9ecef !important;
+}
+
+::ng-deep .slick-cell {
+  font-size: 0.75rem;
+  padding: 4px 6px;
+}
+
+::ng-deep .slick-cell.text-right {
+  text-align: right;
+}
+
+::ng-deep .slick-cell.cell-selection {
+  text-align: center;
+}

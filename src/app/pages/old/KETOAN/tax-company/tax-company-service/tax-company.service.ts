@@ -16,6 +16,12 @@ export class TaxCompanyService {
     return this.http.get(this._url + 'get-tax-companies');
   }
 
+  // Lấy chi tiết công ty thuế theo ID
+  getTaxCompanyById(id: number): Observable<any> {
+    const params = new HttpParams().set('id', id.toString());
+    return this.http.get(this._url + 'get-tax-company-by-id', { params });
+  }
+
   // Lưu công ty thuế (thêm mới hoặc cập nhật)
   saveTaxCompany(model: any): Observable<any> {
     return this.http.post(this._url + 'save-tax-company', model);

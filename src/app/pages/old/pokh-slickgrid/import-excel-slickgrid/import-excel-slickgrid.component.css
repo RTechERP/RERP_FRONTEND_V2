@@ -1,0 +1,61 @@
+.modal-dialog-scrollable {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+.modal-header {
+  flex-shrink: 0;
+}
+
+.modal-body {
+  flex: 1;
+  overflow-y: auto;
+}
+
+.modal-footer {
+  flex-shrink: 0;
+  border-top: 1px solid #dee2e6;
+  padding: 1rem;
+  background-color: #f8f9fa;
+}
+
+.card {
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.card-header {
+  padding: 0.75rem 1rem;
+}
+
+.form-control {
+  border-radius: 4px;
+}
+
+.form-control:focus {
+  border-color: #1890ff;
+  box-shadow: 0 0 0 2px rgba(24, 144, 255, 0.2);
+}
+
+/* Tabulator custom styles */
+:host ::ng-deep .tabulator {
+  border: 1px solid #dee2e6;
+  border-radius: 4px;
+}
+
+:host ::ng-deep .tabulator-header {
+  background-color: #f8f9fa;
+  border-bottom: 2px solid #dee2e6;
+}
+
+:host ::ng-deep .tabulator-header .tabulator-col {
+  background-color: #f8f9fa;
+}
+
+:host ::ng-deep .tabulator-row:hover {
+  background-color: #e6f7ff;
+}
+
+:host ::ng-deep .tabulator-row.tabulator-selected {
+  background-color: #bae7ff;
+}

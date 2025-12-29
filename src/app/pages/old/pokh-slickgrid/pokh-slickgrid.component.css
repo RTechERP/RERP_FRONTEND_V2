@@ -1,0 +1,102 @@
+.ant-advanced-search-form {
+  padding: 24px;
+  background: #fbfbfb;
+  border: 1px solid #d9d9d9;
+  border-radius: 6px;
+}
+
+
+label[nz-checkbox] {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  /* Điều chỉnh khoảng cách giữa checkbox và văn bản */
+  margin-left: 20px;
+}
+
+:host ::ng-deep .ant-select-selection-item {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 200px;
+}
+
+:host ::ng-deep .ant-select-item-option-content {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+::ng-deep .ant-select-dropdown .ant-select-item {
+  white-space: nowrap !important;
+  overflow: visible !important;
+}
+
+::ng-deep .ant-select-dropdown .ant-select-item-option-content {
+  white-space: nowrap !important;
+  overflow-x: auto !important;
+  text-overflow: initial !important;
+  max-width: none !important;
+}
+
+::ng-deep .ant-select-dropdown .ant-select-item-option-content::-webkit-scrollbar {
+  height: 4px;
+}
+
+::ng-deep .ant-select-dropdown .ant-select-item-option-content::-webkit-scrollbar-thumb {
+  background: #ccc;
+  border-radius: 2px;
+}
+
+.ant-splitter {
+  height: 93vh !important;
+}
+
+/* Đảm bảo các splitter panel có height 100% */
+:host ::ng-deep .ant-splitter-panel {
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+/* Đảm bảo các card trong splitter panel có height 100% */
+:host ::ng-deep .ant-splitter-panel .card {
+  min-height: 0;
+}
+
+/* Đảm bảo các card-body có thể scroll */
+:host ::ng-deep .ant-splitter-panel .card-body {
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.fs-12 {
+  font-size: 0.75rem;
+}
+
+.reset {
+  all: revert;
+}
+
+.ant-splitter-panel {
+  position: relative;
+}
+
+.tabulator {
+  font-size: 0.75rem !important;
+  /* position: absolute !important; */
+  width: 100% !important;
+}
+
+.tabulator-cell {
+  padding: 0px;
+}
+
+.inner-content {
+  padding: 0 !important;
+}
+
+.ant-tabs-tab-btn {
+  font-size: 0.75rem;
+}

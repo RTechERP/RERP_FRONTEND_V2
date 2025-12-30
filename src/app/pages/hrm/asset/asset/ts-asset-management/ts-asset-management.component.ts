@@ -32,6 +32,7 @@ import {
   OnClickEventArgs,
   OnSelectedRowsChangedEventArgs
 } from 'angular-slickgrid';
+import { MultipleSelectOption } from '@slickgrid-universal/common';
 import { NzTabsModule } from 'ng-zorro-antd/tabs';
 import { TsAssetLiquidationComponent } from './ts-asset-liquidation/ts-asset-liquidation.component';
 import { DateTime } from 'luxon';
@@ -198,6 +199,11 @@ export class TsAssetManagementComponent implements OnInit, AfterViewInit {
           STT: index + 1
         }));
         console.log('this.dataset:',this.dataset);
+        
+        // Apply distinct filters after data is loaded
+        setTimeout(() => {
+          this.applyDistinctFilters();
+        }, 100);
       },
       error: (err) => {
         console.error('Lỗi khi lấy dữ liệu tài sản:', err);
@@ -337,7 +343,15 @@ export class TsAssetManagementComponent implements OnInit, AfterViewInit {
         width: 150, 
         sortable: true, 
         filterable: true,
-        filter: { model: Filters['compoundInputText'] }
+        filter: { 
+          model: Filters['multipleSelect'],
+          collection: [],
+          collectionOptions: { addBlankEntry: true },
+          filterOptions: {
+            filter: true,
+            autoAdjustDropWidthByTextSize: true,
+          } as MultipleSelectOption
+        }
       },
       { 
         id: 'OfficeActiveStatusText', 
@@ -347,8 +361,15 @@ export class TsAssetManagementComponent implements OnInit, AfterViewInit {
         width: 120, 
         sortable: true, 
         filterable: true,
-        filter: { model: Filters['compoundInputText'] }
-        
+        filter: { 
+          model: Filters['multipleSelect'],
+          collection: [],
+          collectionOptions: { addBlankEntry: true },
+          filterOptions: {
+            filter: true,
+            autoAdjustDropWidthByTextSize: true,
+          } as MultipleSelectOption
+        }
       },
       { 
         id: 'WindowActiveStatusText', 
@@ -358,7 +379,15 @@ export class TsAssetManagementComponent implements OnInit, AfterViewInit {
         width: 120, 
         sortable: true, 
         filterable: true,
-        filter: { model: Filters['compoundInputText'] }
+        filter: { 
+          model: Filters['multipleSelect'],
+          collection: [],
+          collectionOptions: { addBlankEntry: true },
+          filterOptions: {
+            filter: true,
+            autoAdjustDropWidthByTextSize: true,
+          } as MultipleSelectOption
+        }
       },
       { 
         id: 'TSAssetName', 
@@ -368,8 +397,16 @@ export class TsAssetManagementComponent implements OnInit, AfterViewInit {
           width: 200,
         sortable: true, 
         filterable: true,
-        filter: { model: Filters['compoundInputText'] }
-        ,cssClass: 'cell-wrap',
+        filter: { 
+          model: Filters['multipleSelect'],
+          collection: [],
+          collectionOptions: { addBlankEntry: true },
+          filterOptions: {
+            filter: true,
+            autoAdjustDropWidthByTextSize: true,
+          } as MultipleSelectOption
+        },
+        cssClass: 'cell-wrap',
         formatter: (_row: any, _cell: any, value: any, _column: any, dataContext: any) => {
           if (!value) return '';
           return `
@@ -394,8 +431,16 @@ export class TsAssetManagementComponent implements OnInit, AfterViewInit {
           width: 120,
         sortable: true, 
         filterable: true,
-        filter: { model: Filters['compoundInputText'] }
-        ,cssClass: 'cell-wrap',
+        filter: { 
+          model: Filters['multipleSelect'],
+          collection: [],
+          collectionOptions: { addBlankEntry: true },
+          filterOptions: {
+            filter: true,
+            autoAdjustDropWidthByTextSize: true,
+          } as MultipleSelectOption
+        },
+        cssClass: 'cell-wrap',
       },
       { 
         id: 'AssetType', 
@@ -405,7 +450,15 @@ export class TsAssetManagementComponent implements OnInit, AfterViewInit {
         width: 150, 
         sortable: true, 
         filterable: true,
-        filter: { model: Filters['compoundInputText'] }
+        filter: { 
+          model: Filters['multipleSelect'],
+          collection: [],
+          collectionOptions: { addBlankEntry: true },
+          filterOptions: {
+            filter: true,
+            autoAdjustDropWidthByTextSize: true,
+          } as MultipleSelectOption
+        }
       },
       { 
         id: 'SourceCode', 
@@ -415,7 +468,15 @@ export class TsAssetManagementComponent implements OnInit, AfterViewInit {
         width: 150, 
         sortable: true, 
         filterable: true,
-        filter: { model: Filters['compoundInputText'] }
+        filter: { 
+          model: Filters['multipleSelect'],
+          collection: [],
+          collectionOptions: { addBlankEntry: true },
+          filterOptions: {
+            filter: true,
+            autoAdjustDropWidthByTextSize: true,
+          } as MultipleSelectOption
+        }
       },
       { 
         id: 'SourceName', 
@@ -425,7 +486,15 @@ export class TsAssetManagementComponent implements OnInit, AfterViewInit {
         width: 150, 
         sortable: true, 
         filterable: true,
-        filter: { model: Filters['compoundInputText'] }
+        filter: { 
+          model: Filters['multipleSelect'],
+          collection: [],
+          collectionOptions: { addBlankEntry: true },
+          filterOptions: {
+            filter: true,
+            autoAdjustDropWidthByTextSize: true,
+          } as MultipleSelectOption
+        }
       },
       { 
         id: 'SupplierCode', 
@@ -435,7 +504,15 @@ export class TsAssetManagementComponent implements OnInit, AfterViewInit {
         width: 150, 
         sortable: true, 
         filterable: true,
-        filter: { model: Filters['compoundInputText'] }
+        filter: { 
+          model: Filters['multipleSelect'],
+          collection: [],
+          collectionOptions: { addBlankEntry: true },
+          filterOptions: {
+            filter: true,
+            autoAdjustDropWidthByTextSize: true,
+          } as MultipleSelectOption
+        }
       },
       { 
         id: 'SupplierName', 
@@ -445,7 +522,15 @@ export class TsAssetManagementComponent implements OnInit, AfterViewInit {
         width: 150, 
         sortable: true, 
         filterable: true,
-        filter: { model: Filters['compoundInputText'] }
+        filter: { 
+          model: Filters['multipleSelect'],
+          collection: [],
+          collectionOptions: { addBlankEntry: true },
+          filterOptions: {
+            filter: true,
+            autoAdjustDropWidthByTextSize: true,
+          } as MultipleSelectOption
+        }
       },
       { 
         id: 'SpecificationsAsset', 
@@ -481,7 +566,15 @@ export class TsAssetManagementComponent implements OnInit, AfterViewInit {
         width: 150, 
         sortable: true, 
         filterable: true,
-        filter: { model: Filters['compoundInputText'] }
+        filter: { 
+          model: Filters['multipleSelect'],
+          collection: [],
+          collectionOptions: { addBlankEntry: true },
+          filterOptions: {
+            filter: true,
+            autoAdjustDropWidthByTextSize: true,
+          } as MultipleSelectOption
+        }
       },
       { 
         id: 'UnitName', 
@@ -491,7 +584,15 @@ export class TsAssetManagementComponent implements OnInit, AfterViewInit {
         width: 100, 
         sortable: true, 
         filterable: true,
-        filter: { model: Filters['compoundInputText'] }
+        filter: { 
+          model: Filters['multipleSelect'],
+          collection: [],
+          collectionOptions: { addBlankEntry: true },
+          filterOptions: {
+            filter: true,
+            autoAdjustDropWidthByTextSize: true,
+          } as MultipleSelectOption
+        }
       },
       { 
         id: 'Quantity', 
@@ -501,7 +602,15 @@ export class TsAssetManagementComponent implements OnInit, AfterViewInit {
         width: 100, 
         sortable: true, 
         filterable: true,
-        filter: { model: Filters['compoundInputText'] }
+        filter: { 
+          model: Filters['multipleSelect'],
+          collection: [],
+          collectionOptions: { addBlankEntry: true },
+          filterOptions: {
+            filter: true,
+            autoAdjustDropWidthByTextSize: true,
+          } as MultipleSelectOption
+        }
       },
       { 
         id: 'Status', 
@@ -513,7 +622,15 @@ export class TsAssetManagementComponent implements OnInit, AfterViewInit {
         filterable: true,
         formatter: statusFormatter,
         cssClass: 'text-center',
-        filter: { model: Filters['compoundInputText'] }
+        filter: { 
+          model: Filters['multipleSelect'],
+          collection: [],
+          collectionOptions: { addBlankEntry: true },
+          filterOptions: {
+            filter: true,
+            autoAdjustDropWidthByTextSize: true,
+          } as MultipleSelectOption
+        }
       },
       { 
         id: 'Model', 
@@ -523,28 +640,52 @@ export class TsAssetManagementComponent implements OnInit, AfterViewInit {
           width: 200,
         sortable: true, 
         filterable: true,
-        filter: { model: Filters['compoundInputText'] },
+        filter: { 
+          model: Filters['multipleSelect'],
+          collection: [],
+          collectionOptions: { addBlankEntry: true },
+          filterOptions: {
+            filter: true,
+            autoAdjustDropWidthByTextSize: true,
+          } as MultipleSelectOption
+        },
         hidden: true,
       },
       { 
-        id: 'Name', 
+        id: 'DepartmentCode', 
         name: 'Mã phòng ban', 
           field: 'DepartmentCode',
         type: 'string', 
         width: 150, 
         sortable: true, 
         filterable: true,
-        filter: { model: Filters['compoundInputText'] }
+        filter: { 
+          model: Filters['multipleSelect'],
+          collection: [],
+          collectionOptions: { addBlankEntry: true },
+          filterOptions: {
+            filter: true,
+            autoAdjustDropWidthByTextSize: true,
+          } as MultipleSelectOption
+        }
       },
       { 
-        id: 'Name', 
+        id: 'DepartmentName', 
         name: 'Phòng ban', 
           field: 'Name',
         type: 'string', 
         width: 150, 
         sortable: true, 
         filterable: true,
-        filter: { model: Filters['compoundInputText'] }
+        filter: { 
+          model: Filters['multipleSelect'],
+          collection: [],
+          collectionOptions: { addBlankEntry: true },
+          filterOptions: {
+            filter: true,
+            autoAdjustDropWidthByTextSize: true,
+          } as MultipleSelectOption
+        }
       },
       { 
         id: 'EmployeeCode', 
@@ -554,7 +695,15 @@ export class TsAssetManagementComponent implements OnInit, AfterViewInit {
         width: 150, 
         sortable: true, 
         filterable: true,
-        filter: { model: Filters['compoundInputText'] }
+        filter: { 
+          model: Filters['multipleSelect'],
+          collection: [],
+          collectionOptions: { addBlankEntry: true },
+          filterOptions: {
+            filter: true,
+            autoAdjustDropWidthByTextSize: true,
+          } as MultipleSelectOption
+        }
       },
       { 
         id: 'FullName', 
@@ -564,8 +713,16 @@ export class TsAssetManagementComponent implements OnInit, AfterViewInit {
         width: 150, 
         sortable: true, 
         filterable: true,
-        filter: { model: Filters['compoundInputText'] }
-        ,cssClass: 'cell-wrap',
+        filter: { 
+          model: Filters['multipleSelect'],
+          collection: [],
+          collectionOptions: { addBlankEntry: true },
+          filterOptions: {
+            filter: true,
+            autoAdjustDropWidthByTextSize: true,
+          } as MultipleSelectOption
+        },
+        cssClass: 'cell-wrap',
       },
       { 
         id: 'DateBuy', 
@@ -1373,6 +1530,66 @@ export class TsAssetManagementComponent implements OnInit, AfterViewInit {
       if (result == true) {
       }
     });
+  }
+
+  // Apply distinct filters for multiple columns after data is loaded
+  private applyDistinctFilters(): void {
+    const fieldsToFilter = [
+      'TSCodeNCC', 'OfficeActiveStatusText', 'WindowActiveStatusText', 'TSAssetName',
+      'AssetCode', 'AssetType', 'SourceCode', 'SourceName', 'SupplierCode', 'SupplierName',
+      'Seri', 'UnitName', 'Quantity', 'Status', 'Model', 'DepartmentCode', 'Name',
+      'EmployeeCode', 'FullName'
+    ];
+    this.applyDistinctFiltersToGrid(this.angularGrid, this.columnDefinitions, fieldsToFilter);
+  }
+
+  private applyDistinctFiltersToGrid(
+    angularGrid: AngularGridInstance | undefined,
+    columnDefs: Column[],
+    fieldsToFilter: string[]
+  ): void {
+    if (!angularGrid?.slickGrid || !angularGrid?.dataView) return;
+
+    const data = angularGrid.dataView.getItems();
+    if (!data || data.length === 0) return;
+
+    const getUniqueValues = (dataArray: any[], field: string): Array<{ value: string; label: string }> => {
+      const map = new Map<string, string>();
+      dataArray.forEach((row: any) => {
+        const value = String(row?.[field] ?? '');
+        if (value && !map.has(value)) {
+          map.set(value, value);
+        }
+      });
+      return Array.from(map.entries())
+        .map(([value, label]) => ({ value, label }))
+        .sort((a, b) => a.label.localeCompare(b.label));
+    };
+
+    const columns = angularGrid.slickGrid.getColumns();
+    if (!columns) return;
+
+    // Update runtime columns
+    columns.forEach((column: any) => {
+      if (column?.filter && column.filter.model === Filters['multipleSelect']) {
+        const field = column.field;
+        if (!field || !fieldsToFilter.includes(field)) return;
+        column.filter.collection = getUniqueValues(data, field);
+      }
+    });
+
+    // Update column definitions (so when grid re-renders, it keeps the collections)
+    columnDefs.forEach((colDef: any) => {
+      if (colDef?.filter && colDef.filter.model === Filters['multipleSelect']) {
+        const field = colDef.field;
+        if (!field || !fieldsToFilter.includes(field)) return;
+        colDef.filter.collection = getUniqueValues(data, field);
+      }
+    });
+
+    angularGrid.slickGrid.setColumns(angularGrid.slickGrid.getColumns());
+    angularGrid.slickGrid.invalidate();
+    angularGrid.slickGrid.render();
   }
 
 }

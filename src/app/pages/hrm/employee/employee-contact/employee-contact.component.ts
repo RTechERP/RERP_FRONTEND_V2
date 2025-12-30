@@ -7,6 +7,7 @@ import { NzInputModule } from 'ng-zorro-antd/input';
 import { NzIconModule } from 'ng-zorro-antd/icon';
 import { NzSplitterModule } from 'ng-zorro-antd/splitter';
 import { NzSelectModule } from 'ng-zorro-antd/select';
+import { NzSpinModule } from 'ng-zorro-antd/spin';
 import { NzNotificationService } from 'ng-zorro-antd/notification';
 import { DateTime } from 'luxon';
 import * as ExcelJS from 'exceljs';
@@ -34,6 +35,7 @@ import {
         NzIconModule,
         NzSplitterModule,
         NzSelectModule,
+        NzSpinModule,
         AngularSlickgridModule,
     ],
     templateUrl: './employee-contact.component.html',
@@ -53,6 +55,7 @@ export class EmployeeContactComponent implements OnInit, AfterViewInit {
     isPermissDownload = false;
     contactData: any[] = [];
     totalEmployees: number = 0;
+    isLoading = false;
 
     constructor(
         private employeeService: EmployeeService,
@@ -73,6 +76,7 @@ export class EmployeeContactComponent implements OnInit, AfterViewInit {
      * Load dữ liệu liên hệ nhân viên
      */
     loadContactData(): void {
+        this.isLoading = true;
         this.employeeService.getAllContact(this.departmentId, this.keyword).subscribe({
             next: (response: any) => {
                 const data = response?.data || {};
@@ -85,8 +89,10 @@ export class EmployeeContactComponent implements OnInit, AfterViewInit {
                     id: item.ID || index + 1,
                     STT: index + 1
                 }));
+                this.isLoading = false;
             },
             error: (err: any) => {
+                this.isLoading = false;
                 this.notification.error(
                     NOTIFICATION_TITLE.error,
                     'Lỗi khi tải dữ liệu: ' + (err?.error?.message || err?.message)

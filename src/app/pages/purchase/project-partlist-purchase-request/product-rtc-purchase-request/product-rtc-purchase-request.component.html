@@ -353,7 +353,7 @@
                     <nz-form-item>
                         <nz-form-label>Nhà cung cấp</nz-form-label>
                         <nz-form-control nzErrorTip="Vui lòng chọn NCC!">
-                            <nz-select name="SupplierSaleID" formControlName="SupplierSaleID" nzPlaceHolder="Chọn NCC">
+                            <nz-select name="SupplierSaleID" formControlName="SupplierSaleID" nzPlaceHolder="Chọn NCC" nzShowSearch="true" nzAllowClear="true">
                                 <nz-option *ngFor="let item of supplierSales" [nzValue]="item.ID"
                                     [nzLabel]="item.CodeNCC+' - '+ item.NameNCC">
                                 </nz-option>
@@ -449,9 +449,9 @@
     </div>
 
     <div class="modal-footer py-1">
-        <button nz-button nzType="default" nzDanger (click)="activeModal.dismiss()">Đóng</button>
-        <button nz-button nzType="primary" (click)="onSave()">
-            <i class="fas fa-save me-1"></i> Lưu
+        <button nz-button nzType="default" nzDanger (click)="activeModal.dismiss()" [disabled]="isSaving">Đóng</button>
+        <button nz-button nzType="primary" (click)="onSave()" [nzLoading]="isSaving" [disabled]="isSaving">
+            <i class="fas fa-save me-1" *ngIf="!isSaving"></i> Lưu
         </button>
     </div>
 </div>

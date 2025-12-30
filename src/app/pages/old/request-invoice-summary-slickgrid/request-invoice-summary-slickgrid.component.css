@@ -1,0 +1,96 @@
+.fs-12 {
+    font-size: 0.75rem;
+}
+
+.reset {
+    all: revert;
+}
+
+.ant-splitter-panel {
+    position: relative;
+}
+
+/* Keep Tabulator styles for file tables */
+.tabulator {
+    font-size: 0.75rem !important;
+    width: 100% !important;
+}
+
+.tabulator-cell {
+    padding: 0px;
+}
+
+.inner-content {
+    padding: 0 !important;
+}
+
+.ant-tabs-tab-btn {
+    font-size: 0.75rem;
+}
+
+.ant-splitter {
+    height: 89.5vh !important;
+}
+
+/* Đổi màu chữ trong headerFilter thành đen */
+::ng-deep .tabulator-header-filter input {
+    color: #000000 !important;
+}
+
+::ng-deep .tabulator-header-filter select {
+    color: #000000 !important;
+}
+
+/* SlickGrid Styles */
+.grid-container {
+    height: 100%;
+}
+
+#gridContainer {
+    height: 100%;
+}
+
+::ng-deep .slick-header-column {
+    font-weight: bold;
+    background-color: #f8f9fa;
+}
+
+::ng-deep .slick-row {
+    border-bottom: 1px solid #dee2e6;
+}
+
+::ng-deep .slick-row.selected {
+    background-color: #e9ecef !important;
+}
+
+::ng-deep .slick-row.urgent-row {
+    background-color: #FFA500 !important;
+}
+
+::ng-deep .slick-cell {
+    font-size: 0.75rem;
+    padding: 4px 6px;
+}
+
+::ng-deep .slick-cell.text-right {
+    text-align: right;
+}
+
+::ng-deep .slick-cell.text-center {
+    text-align: center;
+}
+
+::ng-deep .slick-cell.cell-selection {
+    text-align: center;
+}
+
+/* SlickGrid filter header */
+::ng-deep .slick-headerrow {
+    background-color: #f8f9fa;
+}
+
+::ng-deep .slick-headerrow-column input {
+    color: #000000 !important;
+    width: 100%;
+    box-sizing: border-box;
+}

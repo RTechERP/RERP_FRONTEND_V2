@@ -79,6 +79,7 @@ class GroupSelectEditor {
   private wrapperElm!: HTMLDivElement;
   private inputElm!: HTMLInputElement;
   private dropdownElm!: HTMLDivElement;
+  private dropdownContentElm!: HTMLDivElement;
   private defaultValue: string = '';
   private selectedValue: string = '';
   private collection: Array<any> = [];
@@ -89,8 +90,13 @@ class GroupSelectEditor {
   }> = [];
   private activeIndex = -1;
 
+  // Virtual scrolling properties
+  private readonly BATCH_SIZE = 50; // Load 50 items at a time
+  private renderedCount = 0; // Number of items currently rendered
+
   private handleOutsideMouseDown!: (e: Event) => void;
   private handleReposition!: () => void;
+  private handleScroll!: (e: Event) => void;
 
   constructor(args: any) {
     this.args = args;
@@ -186,9 +192,22 @@ class GroupSelectEditor {
       }
     };
 
+    this.handleScroll = (e: Event) => {
+      const target = e.target as HTMLElement;
+      const scrollTop = target.scrollTop;
+      const scrollHeight = target.scrollHeight;
+      const clientHeight = target.clientHeight;
+
+      // Load more when scrolled to 80% of the way down
+      if (scrollTop + clientHeight >= scrollHeight * 0.8) {
+        this.loadMoreItems();
+      }
+    };
+
     document.addEventListener('mousedown', this.handleOutsideMouseDown, true);
     window.addEventListener('scroll', this.handleReposition, true);
     window.addEventListener('resize', this.handleReposition, true);
+    this.dropdownElm.addEventListener('scroll', this.handleScroll);
 
     this.buildDropdown('');
     this.openDropdown();
@@ -210,7 +229,9 @@ class GroupSelectEditor {
     const rect = this.wrapperElm.getBoundingClientRect();
     this.dropdownElm.style.left = `${rect.left}px`;
     this.dropdownElm.style.top = `${rect.bottom}px`;
-    this.dropdownElm.style.width = `${rect.width}px`;
+    this.dropdownElm.style.minWidth = `${rect.width}px`;
+    this.dropdownElm.style.maxWidth = '500px'; // Giới hạn tối đa 500px
+    this.dropdownElm.style.width = 'auto'; // Cho phép tự động mở rộng theo nội dung
   }
 
   private commit() {
@@ -265,41 +286,53 @@ class GroupSelectEditor {
     });
 
     this.visibleOptions = filtered;
+    this.renderedCount = 0; // Reset rendered count
 
-    const root = document.createElement('div');
-    root.style.padding = '4px 0';
+    // Create dropdown container
+    this.dropdownContentElm = document.createElement('div');
+    this.dropdownContentElm.style.padding = '4px 0';
 
-    const grouped = new Map<string, Array<{ value: string; label: string }>>();
-    const noGroup: Array<{ value: string; label: string }> = [];
+    this.dropdownElm.innerHTML = '';
+    this.dropdownElm.appendChild(this.dropdownContentElm);
 
-    for (const x of filtered) {
-      const item = { value: x.value, label: x.label };
+    // Render initial batch
+    this.renderItems(0, Math.min(this.BATCH_SIZE, filtered.length));
+  }
+
+  private renderItems(startIndex: number, endIndex: number) {
+    const currentValue = String(this.selectedValue ?? '');
+    const itemsToRender = this.visibleOptions.slice(startIndex, endIndex);
+
+    const grouped = new Map<string, Array<{ value: string; label: string; originalIndex: number }>>();
+    const noGroup: Array<{ value: string; label: string; originalIndex: number }> = [];
+
+    itemsToRender.forEach((x, localIdx) => {
+      const originalIndex = startIndex + localIdx;
+      const item = { value: x.value, label: x.label, originalIndex };
       if (x.group) {
         if (!grouped.has(x.group)) grouped.set(x.group, []);
         grouped.get(x.group)!.push(item);
       } else {
         noGroup.push(item);
       }
-    }
+    });
 
     const appendOption = (
-      opt: { value: string; label: string },
-      optIndex: number
+      opt: { value: string; label: string; originalIndex: number }
     ) => {
       const row = document.createElement('div');
-      row.setAttribute('data-idx', String(optIndex));
+      row.setAttribute('data-idx', String(opt.originalIndex));
       row.style.padding = '6px 10px';
       row.style.cursor = 'pointer';
       row.style.userSelect = 'none';
-      row.style.whiteSpace = 'nowrap';
-      row.style.overflow = 'hidden';
-      row.style.textOverflow = 'ellipsis';
+      row.style.wordBreak = 'break-word';
+      row.style.overflowWrap = 'break-word';
       row.textContent = opt.label;
 
       if (opt.value === currentValue) {
         row.style.background = '#e6f4ff';
       }
-      if (optIndex === this.activeIndex) {
+      if (opt.originalIndex === this.activeIndex) {
         row.style.background = '#f5f5f5';
       }
 
@@ -307,13 +340,11 @@ class GroupSelectEditor {
         this.selectValue(opt.value);
       });
 
-      root.appendChild(row);
+      this.dropdownContentElm.appendChild(row);
     };
 
-    let optIndex = 0;
     for (const opt of noGroup) {
-      appendOption(opt, optIndex);
-      optIndex++;
+      appendOption(opt);
     }
 
     for (const [groupLabel, items] of grouped.entries()) {
@@ -322,16 +353,22 @@ class GroupSelectEditor {
       header.style.fontWeight = '600';
       header.style.color = '#666';
       header.textContent = groupLabel;
-      root.appendChild(header);
+      this.dropdownContentElm.appendChild(header);
 
       for (const opt of items) {
-        appendOption(opt, optIndex);
-        optIndex++;
+        appendOption(opt);
       }
     }
 
-    this.dropdownElm.innerHTML = '';
-    this.dropdownElm.appendChild(root);
+    this.renderedCount = endIndex;
+  }
+
+  private loadMoreItems() {
+    const totalCount = this.visibleOptions.length;
+    if (this.renderedCount >= totalCount) return; // All items already rendered
+
+    const nextBatchEnd = Math.min(this.renderedCount + this.BATCH_SIZE, totalCount);
+    this.renderItems(this.renderedCount, nextBatchEnd);
   }
 
   private moveActive(delta: number) {
@@ -377,6 +414,7 @@ class GroupSelectEditor {
     );
     window.removeEventListener('scroll', this.handleReposition, true);
     window.removeEventListener('resize', this.handleReposition, true);
+    this.dropdownElm?.removeEventListener('scroll', this.handleScroll);
     this.dropdownElm?.remove();
     this.wrapperElm?.remove();
   }
@@ -398,7 +436,10 @@ class GroupSelectEditor {
   }
 
   serializeValue() {
-    return this.selectedValue ?? '';
+    // Convert to number if the value is numeric
+    const val = this.selectedValue ?? '';
+    const numVal = Number(val);
+    return !isNaN(numVal) && val !== '' ? numVal : val;
   }
 
   applyValue(item: any, state: any) {
@@ -696,15 +737,10 @@ export class ProjectPartListPurchaseRequestSlickGridComponent
           title: t.RequestTypeName.toUpperCase(),
         }));
 
-        // Initialize grids for each tab first
         this.initAllGrids();
 
-                // Trigger change detection to update view
                 this.cdr.detectChanges();
 
-        // Mark first tab as visited after a delay to ensure DOM is ready
-        // This is done here instead of ngAfterViewInit because getRequestTypes
-        // might complete after ngAfterViewInit
         if (this.tabs.length > 0) {
           setTimeout(() => {
             // Nếu isApprovedTBP = true, chỉ mark tab 4 (Mượn demo) là visited
@@ -821,14 +857,11 @@ export class ProjectPartListPurchaseRequestSlickGridComponent
           } as MultipleSelectOption,
         },
         editor: {
-          model: GroupSelectEditor,
+          model: Editors['singleSelect'],
           collection: this.getWarehouseCollection(),
-          collectionOptions: {
-            addBlankEntry: false,
-          },
           editorOptions: {
-            enableClear: true,
-          },
+            filter: true,
+          } as MultipleSelectOption,
         },
         formatter: (row: number, cell: number, value: any) => {
           const warehouse = this.dtwarehouses.find((w: any) => w.ID === value);
@@ -1014,14 +1047,11 @@ export class ProjectPartListPurchaseRequestSlickGridComponent
           } as MultipleSelectOption,
         },
         editor: {
-          model: GroupSelectEditor,
+          model: Editors['singleSelect'],
           collection: this.getProductGroupCollection(isRTCTab),
-          collectionOptions: {
-            addBlankEntry: false,
-          },
           editorOptions: {
-            enableClear: true,
-          },
+            filter: true,
+          } as MultipleSelectOption,
         },
         formatter: (row: number, cell: number, value: any) => {
           const groups = isRTCTab
@@ -1188,6 +1218,7 @@ export class ProjectPartListPurchaseRequestSlickGridComponent
         sortable: true,
         filterable: true,
         type: 'number',
+        cssClass: 'text-right',
         editor: {
           model: Editors['float'],
           decimal: 2,
@@ -1367,14 +1398,11 @@ export class ProjectPartListPurchaseRequestSlickGridComponent
           } as MultipleSelectOption,
         },
         editor: {
-          model: GroupSelectEditor,
+          model: Editors['singleSelect'],
           collection: this.getCurrencyCollection(),
-          collectionOptions: {
-            addBlankEntry: false,
-          },
           editorOptions: {
-            enableClear: true,
-          },
+            filter: true,
+          } as MultipleSelectOption,
         },
         formatter: (row: number, cell: number, value: any) => {
           const currency = this.dtcurrency.find((c: any) => c.ID === value);
@@ -1390,6 +1418,7 @@ export class ProjectPartListPurchaseRequestSlickGridComponent
         width: 120,
         sortable: true,
         filterable: true,
+        cssClass: 'text-right',
         formatter: (row: number, cell: number, value: any) =>
           this.formatNumberEnUS(value, 0),
         filter: { model: Filters['compoundInputNumber'] },
@@ -1403,6 +1432,7 @@ export class ProjectPartListPurchaseRequestSlickGridComponent
         sortable: true,
         filterable: true,
         type: 'number',
+        cssClass: 'text-right',
         editor: {
           model: Editors['float'],
           decimal: 0,
@@ -1422,6 +1452,7 @@ export class ProjectPartListPurchaseRequestSlickGridComponent
         width: 120,
         sortable: true,
         filterable: true,
+        cssClass: 'text-right',
         editor: {
           model: Editors['float'],
           decimal: 2,
@@ -1438,6 +1469,7 @@ export class ProjectPartListPurchaseRequestSlickGridComponent
         width: 120,
         sortable: true,
         filterable: true,
+        cssClass: 'text-right',
         formatter: (row: number, cell: number, value: any) =>
           this.formatNumberEnUS(value, 0),
         filter: { model: Filters['compoundInputNumber'] },
@@ -1453,6 +1485,7 @@ export class ProjectPartListPurchaseRequestSlickGridComponent
         width: 120,
         sortable: true,
         filterable: true,
+        cssClass: 'text-right',
         formatter: (row: number, cell: number, value: any) =>
           this.formatNumberEnUS(value, 0),
         filter: { model: Filters['compoundInputNumber'] },
@@ -1468,6 +1501,7 @@ export class ProjectPartListPurchaseRequestSlickGridComponent
         width: 120,
         sortable: true,
         filterable: true,
+        cssClass: 'text-right',
         formatter: (row: number, cell: number, value: any) =>
           this.formatNumberEnUS(value, 0),
         filter: { model: Filters['compoundInputNumber'] },
@@ -1483,6 +1517,7 @@ export class ProjectPartListPurchaseRequestSlickGridComponent
         width: 80,
         sortable: true,
         filterable: true,
+        cssClass: 'text-right',
         editor: {
           model: Editors['float'],
           decimal: 2,
@@ -1499,6 +1534,7 @@ export class ProjectPartListPurchaseRequestSlickGridComponent
         width: 120,
         sortable: true,
         filterable: true,
+        cssClass: 'text-right',
         formatter: (row: number, cell: number, value: any) =>
           this.formatNumberEnUS(value, 2),
         filter: { model: Filters['compoundInputNumber'] },
@@ -1524,14 +1560,11 @@ export class ProjectPartListPurchaseRequestSlickGridComponent
           } as MultipleSelectOption,
         },
         editor: {
-          model: GroupSelectEditor,
+          model: Editors['singleSelect'],
           collection: this.getSupplierCollection(),
-          collectionOptions: {
-            addBlankEntry: false,
-          },
           editorOptions: {
-            enableClear: true,
-          },
+            filter: true,
+          } as MultipleSelectOption,
         },
         formatter: (row: number, cell: number, value: any) => {
           const supplier = this.dtSupplierSale.find((s: any) => s.ID === value);
@@ -1551,6 +1584,7 @@ export class ProjectPartListPurchaseRequestSlickGridComponent
         width: 100,
         sortable: true,
         filterable: true,
+        cssClass: 'text-right',
         editor: {
           model: Editors['float'],
           decimal: 2,
@@ -1566,6 +1600,7 @@ export class ProjectPartListPurchaseRequestSlickGridComponent
         width: 120,
         sortable: true,
         filterable: true,
+        cssClass: 'text-right',
         editor: {
           model: Editors['float'],
           decimal: 2,
@@ -1635,6 +1670,7 @@ export class ProjectPartListPurchaseRequestSlickGridComponent
         width: 100,
         sortable: true,
         filterable: true,
+        cssClass: 'text-right',
         formatter: (row: number, cell: number, value: any) =>
           this.formatNumberEnUS(value, 0),
         filter: { model: Filters['compoundInputNumber'] },
@@ -1748,6 +1784,7 @@ export class ProjectPartListPurchaseRequestSlickGridComponent
         width: 120,
         sortable: true,
         filterable: true,
+        cssClass: 'text-right',
         editor: {
           model: Editors['float'],
           decimal: 2,
@@ -1767,6 +1804,7 @@ export class ProjectPartListPurchaseRequestSlickGridComponent
         width: 120,
         sortable: true,
         filterable: true,
+        cssClass: 'text-right',
         editor: {
           model: Editors['float'],
           decimal: 2,
@@ -1783,6 +1821,7 @@ export class ProjectPartListPurchaseRequestSlickGridComponent
         width: 120,
         sortable: true,
         filterable: true,
+        cssClass: 'text-right',
         formatter: (row: number, cell: number, value: any) =>
           this.formatNumberEnUS(value, 0),
         filter: { model: Filters['compoundInputNumber'] },
@@ -1880,6 +1919,7 @@ export class ProjectPartListPurchaseRequestSlickGridComponent
         width: 100,
         sortable: true,
         filterable: true,
+        cssClass: 'text-right',
         formatter: (row: number, cell: number, value: any) =>
           this.formatNumberEnUS(value, 0),
         filter: { model: Filters['compoundInputNumber'] },
@@ -1894,6 +1934,7 @@ export class ProjectPartListPurchaseRequestSlickGridComponent
         width: 100,
         sortable: true,
         filterable: true,
+        cssClass: 'text-right',
         formatter: (row: number, cell: number, value: any) =>
           this.formatNumberEnUS(value, 0),
         filter: { model: Filters['compoundInputNumber'] },
@@ -1908,6 +1949,7 @@ export class ProjectPartListPurchaseRequestSlickGridComponent
         width: 100,
         sortable: true,
         filterable: true,
+        cssClass: 'text-right',
         formatter: (row: number, cell: number, value: any) =>
           this.formatNumberEnUS(value, 0),
         filter: { model: Filters['compoundInputNumber'] },
@@ -1922,6 +1964,7 @@ export class ProjectPartListPurchaseRequestSlickGridComponent
         width: 100,
         sortable: true,
         filterable: true,
+        cssClass: 'text-right',
         formatter: (row: number, cell: number, value: any) =>
           this.formatNumberEnUS(value, 0),
         filter: { model: Filters['compoundInputNumber'] },
@@ -1936,6 +1979,7 @@ export class ProjectPartListPurchaseRequestSlickGridComponent
         width: 100,
         sortable: true,
         filterable: true,
+        cssClass: 'text-right',
         formatter: (row: number, cell: number, value: any) =>
           this.formatNumberEnUS(value, 0),
         filter: { model: Filters['compoundInputNumber'] },
@@ -1988,6 +2032,50 @@ export class ProjectPartListPurchaseRequestSlickGridComponent
         columns.splice(guestCodeIndex, 1);
         // Chèn GuestCode vào trước ProjectCode (sau khi xóa, projectCodeIndex vẫn đúng)
         columns.splice(projectCodeIndex, 0, guestCodeColumn);
+      }
+    }
+
+    // Xóa cột UnitPricePOKH (Đơn giá bán Sale Admin up) nếu KHÔNG phải tab hàng thương mại (typeId !== 5)
+    // Chỉ hiển thị cột này ở tab hàng thương mại (typeId === 5)
+    if (typeId !== 5) {
+      const unitPricePOKHIndex = columns.findIndex(
+        (col) => col.id === 'UnitPricePOKH'
+      );
+      if (unitPricePOKHIndex !== -1) {
+        columns.splice(unitPricePOKHIndex, 1);
+      }
+    }
+
+    // Di chuyển cột Loại kho và Mã nội bộ ra sau cột Đơn vị tính (UnitName) ở tab Mua dự án (typeId = 1)
+    if (typeId === 1) {
+      const unitNameIndex = columns.findIndex((col) => col.id === 'UnitName');
+      const productGroupIndex = columns.findIndex(
+        (col) => col.id === 'ProductGroupID' || col.id === 'ProductGroupRTCID'
+      );
+      const productCodeRTCIndex = columns.findIndex(
+        (col) => col.id === 'ProductNewCode' || col.id === 'ProductCodeRTC'
+      );
+
+      if (unitNameIndex !== -1 && productGroupIndex !== -1 && productCodeRTCIndex !== -1) {
+        // Lấy 2 cột cần di chuyển
+        const productGroupColumn = columns[productGroupIndex];
+        const productCodeRTCColumn = columns[productCodeRTCIndex];
+
+        // Xóa 2 cột khỏi vị trí cũ (xóa từ vị trí lớn hơn trước)
+        if (productGroupIndex > productCodeRTCIndex) {
+          columns.splice(productGroupIndex, 1);
+          columns.splice(productCodeRTCIndex, 1);
+        } else {
+          columns.splice(productCodeRTCIndex, 1);
+          columns.splice(productGroupIndex, 1);
+        }
+
+        // Tìm lại index của UnitName sau khi xóa
+        const newUnitNameIndex = columns.findIndex((col) => col.id === 'UnitName');
+
+        // Chèn 2 cột vào sau UnitName
+        columns.splice(newUnitNameIndex + 1, 0, productGroupColumn);
+        columns.splice(newUnitNameIndex + 2, 0, productCodeRTCColumn);
       }
     }
 
@@ -2167,6 +2255,8 @@ export class ProjectPartListPurchaseRequestSlickGridComponent
             }
             // Apply distinct filters for this grid after it's ready
             this.applyDistinctFilters();
+            // Update editor collections after grid is ready (để đảm bảo data đã load)
+            this.updateEditorCollections();
         }, 100);
     }
 
@@ -5255,7 +5345,16 @@ export class ProjectPartListPurchaseRequestSlickGridComponent
     }
 
     // Các cột cố định trước UnitName
-    index += 8; // ProjectCode + ProductGroupID/ProductGroupRTCID + ProductNewCode/ProductCodeRTC + ProductCode + ProductName + Model + Manufacturer + Quantity
+    // CHÚ Ý: Ở tab 1, ProductGroupID và ProductNewCode được di chuyển ra SAU UnitName
+    // nên chỉ tính 6 cột thay vì 8 cột
+    if (typeId === 1) {
+      // Tab Mua dự án: ProjectCode + ProductCode + ProductName + Model + Manufacturer + Quantity = 6 cột
+      // (ProductGroupID và ProductNewCode đã được di chuyển ra sau UnitName)
+      index += 6;
+    } else {
+      // Các tab khác: ProjectCode + ProductGroupID/ProductGroupRTCID + ProductNewCode/ProductCodeRTC + ProductCode + ProductName + Model + Manufacturer + Quantity = 8 cột
+      index += 8;
+    }
 
     return index;
   }

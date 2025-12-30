@@ -9,14 +9,6 @@
         <!-- Header với các nút action -->
         <div class="card-header bg-white p-1 position-relative">
             <div class="d-flex gap-1 horizontal-scroll-container" horizontalScroll>
-                <button nz-button nzType="default" nzSize="small"
-                    (click)="ToggleSearchPanelNew($event); $event.stopPropagation()"
-                    (mousedown)="$event.stopPropagation()" (touchstart)="$event.stopPropagation()"
-                    (touchend)="$event.stopPropagation()" class="sticky-toggle-btn"
-                    [attr.aria-label]="showSearchBar ? 'Ẩn tìm kiếm' : 'Hiện tìm kiếm'"
-                    [attr.aria-expanded]="showSearchBar" type="button">
-                    <nz-icon [nzType]="showSearchBar ? 'up' : 'down'" />
-                </button>
                 <!-- Refresh - load lại toàn bộ dữ liệu -->
                 <button *ngIf="!isFromPOKH" nz-button nzType="default" nzSize="small" (click)="RefreshAll()"
                     title="Làm mới">
@@ -152,13 +144,8 @@
             </div>
         </div>
 
-        <!-- Backdrop overlay cho mobile -->
-        <div class="filter-backdrop" *ngIf="shouldShowSearchBar" (click)="ToggleSearchPanelNew()"
-            [class.mobile-only]="true">
-        </div>
-
         <!-- Filter bar - hiển thị dạng hàng ngang trên desktop, modal trên mobile - ẩn khi isHRDept -->
-        <div class="filter-bar bg-light border-bottom p-2" *ngIf="shouldShowSearchBar" [class.mobile-modal]="true">
+        <div class="filter-bar bg-light border-bottom p-2" [class.mobile-modal]="true">
 
             <form nz-form nzLayout="inline" class="d-flex flex-wrap gap-2 align-items-end">
                 <!-- Các filter mặc định hiển thị -->
@@ -226,8 +213,7 @@
         </div>
 
         <!-- Content với tabs động -->
-        <div class="card-body p-0" [class.with-search-bar]="shouldShowSearchBar"
-            [class.without-search-bar]="!shouldShowSearchBar">
+        <div class="card-body p-0 with-search-bar">
             <div class="custom-tabs-container">
                 <ul class="nav nav-tabs" id="customTab" role="tablist">
                     <li class="nav-item" role="presentation"

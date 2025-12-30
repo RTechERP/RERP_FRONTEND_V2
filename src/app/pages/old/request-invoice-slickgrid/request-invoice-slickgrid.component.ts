@@ -1,0 +1,1105 @@
+import {
+    Component,
+    ViewEncapsulation,
+    ViewChild,
+    TemplateRef,
+    ElementRef,
+    Input,
+    Optional,
+    Inject,
+} from '@angular/core';
+import { NzCardModule } from 'ng-zorro-antd/card';
+import { FormsModule, ReactiveFormsModule } from '@angular/forms';
+import { NzButtonModule, NzButtonSize } from 'ng-zorro-antd/button';
+import { NzIconModule } from 'ng-zorro-antd/icon';
+import { NzRadioModule } from 'ng-zorro-antd/radio';
+import { NzSpaceModule } from 'ng-zorro-antd/space';
+import { NzLayoutModule } from 'ng-zorro-antd/layout';
+import { NzFlexModule, NzWrap } from 'ng-zorro-antd/flex';
+import { NzDrawerModule, NzDrawerPlacement } from 'ng-zorro-antd/drawer';
+import { NzSplitterModule } from 'ng-zorro-antd/splitter';
+import { NzGridModule } from 'ng-zorro-antd/grid';
+import { NzDatePickerModule } from 'ng-zorro-antd/date-picker';
+import { NzAutocompleteModule } from 'ng-zorro-antd/auto-complete';
+import { NzInputModule } from 'ng-zorro-antd/input';
+import {
+    NzUploadModule,
+    NzUploadFile,
+    NzUploadXHRArgs,
+} from 'ng-zorro-antd/upload';
+import { NzInputNumberModule } from 'ng-zorro-antd/input-number';
+import { NzSelectModule } from 'ng-zorro-antd/select';
+import { NzTableModule } from 'ng-zorro-antd/table';
+import { NzModalModule, NzModalService } from 'ng-zorro-antd/modal';
+import { NzFormModule } from 'ng-zorro-antd/form';
+import { NzSwitchModule } from 'ng-zorro-antd/switch';
+import { NzCheckboxModule } from 'ng-zorro-antd/checkbox';
+import {
+    AngularGridInstance,
+    AngularSlickgridModule,
+    Column,
+    Filters,
+    Formatters,
+    GridOption,
+    OnEventArgs,
+    SlickGrid,
+    MenuCommandItem,
+    MenuCommandItemCallbackArgs,
+    MultipleSelectOption,
+} from 'angular-slickgrid';
+import { NgModule, CUSTOM_ELEMENTS_SCHEMA } from '@angular/core';
+import { OnInit, AfterViewInit } from '@angular/core';
+import { ApplicationRef, createComponent, Type } from '@angular/core';
+import { EnvironmentInjector } from '@angular/core';
+import { NzTabsModule } from 'ng-zorro-antd/tabs';
+import { DateTime } from 'luxon';
+import { FormGroup, FormBuilder } from '@angular/forms';
+import { Observable } from 'rxjs';
+import { CommonModule } from '@angular/common';
+import { NgbModal } from '@ng-bootstrap/ng-bootstrap';
+import { map, catchError, of, forkJoin } from 'rxjs';
+import { NgbActiveModal } from '@ng-bootstrap/ng-bootstrap';
+import { NzNotificationService } from 'ng-zorro-antd/notification';
+import { NzMessageService } from 'ng-zorro-antd/message';
+import * as ExcelJS from 'exceljs';
+
+import { RequestInvoiceSlickgridService } from './request-invoice-slickgrid-service/request-invoice-slickgrid-service.service';
+import { RequestInvoiceDetailService } from '../request-invoice-detail/request-invoice-detail-service/request-invoice-detail-service.service';
+import { RequestInvoiceDetailComponent } from '../request-invoice-detail/request-invoice-detail.component';
+import { NOTIFICATION_TITLE } from '../../../app.config';
+import { HasPermissionDirective } from '../../../directives/has-permission.directive';
+import { RequestInvoiceStatusLinkComponent } from '../request-invoice-status-link/request-invoice-status-link.component';
+import { RequestInvoiceSummaryComponent } from '../request-invoice-summary/request-invoice-summary.component';
+import { MenuEventService } from '../../systems/menus/menu-service/menu-event.service';
+import { RequestInvoiceStatusLinkService } from '../request-invoice-status-link/request-invoice-status-link-service/request-invoice-status-link.service';
+import { ActivatedRoute } from '@angular/router';
+
+@Component({
+    selector: 'app-request-invoice-slickgrid',
+    imports: [
+        NzCardModule,
+        FormsModule,
+        ReactiveFormsModule,
+        NzButtonModule,
+        NzIconModule,
+        NzRadioModule,
+        NzSpaceModule,
+        NzLayoutModule,
+        NzFlexModule,
+        NzDrawerModule,
+        NzSplitterModule,
+        NzGridModule,
+        NzDatePickerModule,
+        NzAutocompleteModule,
+        NzInputModule,
+        NzInputNumberModule,
+        NzSelectModule,
+        NzTableModule,
+        NzTabsModule,
+        NzModalModule,
+        NzUploadModule,
+        NzSwitchModule,
+        NzCheckboxModule,
+        NzFormModule,
+        CommonModule,
+        HasPermissionDirective,
+        AngularSlickgridModule,
+    ],
+    templateUrl: './request-invoice-slickgrid.component.html',
+    styleUrl: './request-invoice-slickgrid.component.css',
+    schemas: [CUSTOM_ELEMENTS_SCHEMA],
+})
+export class RequestInvoiceSlickgridComponent implements OnInit, AfterViewInit {
+
+    @Input() warehouseId: number = 0;
+
+    // SlickGrid properties for Main table
+    angularGridMain!: AngularGridInstance;
+    columnDefinitionsMain: Column[] = [];
+    gridOptionsMain: GridOption = {};
+    datasetMain: any[] = [];
+
+    // SlickGrid properties for Detail table
+    angularGridDetail!: AngularGridInstance;
+    columnDefinitionsDetail: Column[] = [];
+    gridOptionsDetail: GridOption = {};
+    datasetDetail: any[] = [];
+
+    // SlickGrid properties for File table
+    angularGridFile!: AngularGridInstance;
+    columnDefinitionsFile: Column[] = [];
+    gridOptionsFile: GridOption = {};
+    datasetFile: any[] = [];
+
+    // SlickGrid properties for POFile table
+    angularGridPOFile!: AngularGridInstance;
+    columnDefinitionsPOFile: Column[] = [];
+    gridOptionsPOFile: GridOption = {};
+    datasetPOFile: any[] = [];
+
+    constructor(
+        private modalService: NgbModal,
+        private RequestInvoiceSlickgridService: RequestInvoiceSlickgridService,
+        private notification: NzNotificationService,
+        private message: NzMessageService,
+        private modal: NzModalService,
+        private injector: EnvironmentInjector,
+        private appRef: ApplicationRef,
+        private RequestInvoiceDetailService: RequestInvoiceDetailService,
+        private menuEventService: MenuEventService,
+        private requestInvoiceStatusLinkService: RequestInvoiceStatusLinkService,
+        private route: ActivatedRoute
+    ) { }
+
+    data: any[] = [];
+    dataDetail: any[] = [];
+    dataFile: any[] = [];
+    POFiles: any[] = [];
+    selectedId: number = 0;
+    selectedRow: any = null;
+    selectedFile: any = null;
+    selectedPOFile: any = null;
+    statusData: any[] = [];
+
+    filters: any = {
+        filterText: '',
+        startDate: new Date(),
+        endDate: new Date(),
+    };
+
+    showSearchBar: boolean = false;
+    toggleSearchPanel(event?: Event) {
+        this.showSearchBar = !this.showSearchBar;
+    }
+
+    ngOnInit(): void {
+        this.route.queryParams.subscribe(params => {
+            this.warehouseId = params['warehouseId'] || 0;
+        });
+        const now = new Date();
+        const startDate = new Date(now.getFullYear(), now.getMonth(), 1);
+        const endDate = new Date(now.getFullYear(), now.getMonth() + 1, 0);
+        startDate.setHours(0, 0, 0, 0);
+        endDate.setHours(23, 59, 59, 999);
+        this.filters.startDate = startDate;
+        this.filters.endDate = endDate;
+
+        // Initialize SlickGrid tables
+        this.initGridMain();
+        this.initGridDetail();
+        this.initGridFile();
+        this.initGridPOFile();
+
+        this.loadStatusData();
+    }
+
+    ngAfterViewInit(): void {
+    }
+
+    // Formatter functions
+    dateFormatter(row: number, cell: number, value: any, columnDef: any, dataContext: any): string {
+        if (!value) return '';
+        const date = new Date(value);
+        if (isNaN(date.getTime())) return value;
+        const day = String(date.getDate()).padStart(2, '0');
+        const month = String(date.getMonth() + 1).padStart(2, '0');
+        const year = date.getFullYear();
+        return `${day}/${month}/${year}`;
+    }
+
+    checkboxFormatter(row: number, cell: number, value: any, columnDef: any, dataContext: any): string {
+        const checked = value ? 'checked' : '';
+        return `<div style="text-align: center;">
+            <input type="checkbox" ${checked} disabled style="opacity: 1; pointer-events: none; cursor: default; width: 16px; height: 16px;"/>
+        </div>`;
+    }
+
+    moneyFormatter(row: number, cell: number, value: any, columnDef: any, dataContext: any): string {
+        if (value === null || value === undefined) return '';
+        return new Intl.NumberFormat('vi-VN').format(value);
+    }
+
+    urgentRowFormatter(row: number, cell: number, value: any, columnDef: any, dataContext: any): string {
+        if (dataContext && dataContext['IsUrgency']) {
+            return `<div style="background-color: #FFA500; padding: 2px 4px;">${value || ''}</div>`;
+        }
+        return value || '';
+    }
+
+    // Initialize Main Table
+    initGridMain(): void {
+        this.columnDefinitionsMain = [
+            // { id: 'ID', name: 'ID', field: 'ID', width: 50, minWidth: 50, sortable: true, filterable: false },
+            {
+                id: 'IsUrgency',
+                name: 'Yêu cầu gấp',
+                field: 'IsUrgency',
+                width: 80,
+                minWidth: 80,
+                sortable: true,
+                filterable: true,
+                formatter: this.checkboxFormatter,
+                filter: { model: Filters['singleSelect'], collection: [{ value: true, label: 'Có' }, { value: false, label: 'Không' }] }
+            },
+            {
+                id: 'StatusText',
+                name: 'Trạng thái',
+                field: 'StatusText',
+                width: 200,
+                minWidth: 200,
+                sortable: true,
+                filterable: true,
+                filter: {
+                    model: Filters['singleSelect'],
+                    collection: this.statusData.map(item => ({ value: item.StatusName, label: item.StatusName })),
+                    collectionOptions: { addBlankEntry: true },
+                    filterOptions: { autoAdjustDropHeight: true, filter: true } as MultipleSelectOption,
+                }
+            },
+            { id: 'DealineUrgency', name: 'Deadline', field: 'DealineUrgency', width: 100, minWidth: 100, sortable: true, filterable: false, formatter: this.dateFormatter, cssClass: 'text-center' },
+            { id: 'Code', name: 'Mã lệnh', field: 'Code', width: 200, minWidth: 200, sortable: true, filterable: true, filter: { model: Filters['compoundInputText'] } },
+            { id: 'DateRequest', name: 'Ngày yêu cầu', field: 'DateRequest', width: 150, minWidth: 150, sortable: true, filterable: false, formatter: this.dateFormatter, cssClass: 'text-center' },
+            { id: 'FullName', name: 'Người yêu cầu', field: 'FullName', width: 150, minWidth: 150, sortable: true, filterable: true, filter: { model: Filters['compoundInputText'] } },
+            {
+                id: 'IsCustomsDeclared',
+                name: 'Tờ khai HQ',
+                field: 'IsCustomsDeclared',
+                width: 100,
+                minWidth: 100,
+                sortable: true,
+                filterable: true,
+                formatter: this.checkboxFormatter,
+                filter: { model: Filters['singleSelect'], collection: [{ value: true, label: 'Có' }, { value: false, label: 'Không' }] }
+            },
+            { id: 'CustomerName', name: 'Khách hàng', field: 'CustomerName', width: 250, minWidth: 250, sortable: true, filterable: true, filter: { model: Filters['compoundInputText'] } },
+            { id: 'Address', name: 'Địa chỉ', field: 'Address', width: 300, minWidth: 300, sortable: true, filterable: true, filter: { model: Filters['compoundInputText'] } },
+            { id: 'Name', name: 'Công ty bán', field: 'Name', width: 140, minWidth: 140, sortable: true, filterable: true, filter: { model: Filters['multipleSelect'], collection: [], collectionOptions: { addBlankEntry: true }, filterOptions: { autoAdjustDropHeight: true, filter: true, } as any, } },
+            { id: 'AmendReason', name: 'Lý do yêu cầu bổ sung', field: 'AmendReason', width: 215, minWidth: 215, sortable: true, filterable: true, filter: { model: Filters['compoundInputText'] } },
+            { id: 'Note', name: 'Ghi chú', field: 'Note', width: 200, minWidth: 200, sortable: true, filterable: true, filter: { model: Filters['compoundInputText'] } },
+        ];
+
+        this.gridOptionsMain = {
+            enableAutoResize: true,
+            autoResize: {
+                container: '.grid-container-main',
+                calculateAvailableSizeBy: 'container',
+                resizeDetection: 'container',
+            },
+            gridWidth: '100%',
+            enableCellNavigation: true,
+            enableFiltering: true,
+            enableRowSelection: true,
+            rowSelectionOptions: {
+                selectActiveRow: true
+            },
+            enableCheckboxSelector: false,
+        };
+    }
+
+    angularGridReadyMain(angularGrid: AngularGridInstance): void {
+        this.angularGridMain = angularGrid;
+        this.loadMainData(
+            this.filters.startDate,
+            this.filters.endDate,
+            this.filters.filterText
+        );
+    }
+
+    onMainRowClick(e: any, args: any): void {
+        const item = args?.grid?.getDataItem(args?.row);
+        if (item) {
+            this.selectedId = item['ID'];
+            this.selectedRow = item;
+            this.loadDetailData(this.selectedId);
+        }
+    }
+
+    onMainRowDblClick(e: any, args: any): void {
+        const item = args?.dataContext;
+        if (item) {
+            this.selectedId = item['ID'];
+            this.selectedRow = item;
+            this.onEdit();
+        }
+    }
+
+    // Initialize Detail Table
+    initGridDetail(): void {
+        this.columnDefinitionsDetail = [
+            { id: 'STT', name: 'STT', field: 'STT', width: 70, minWidth: 70, sortable: true, filterable: true, filter: { model: Filters['compoundInputNumber'] } },
+            { id: 'ProductNewCode', name: 'Mã nội bộ', field: 'ProductNewCode', width: 100, minWidth: 100, sortable: true, filterable: true, filter: { model: Filters['compoundInputText'] } },
+            { id: 'ProductCode', name: 'Mã sản phẩm', field: 'ProductCode', width: 150, minWidth: 150, sortable: true, filterable: true, filter: { model: Filters['compoundInputText'] } },
+            { id: 'GuestCode', name: 'Mã theo khách', field: 'GuestCode', width: 150, minWidth: 150, sortable: true, filterable: true, filter: { model: Filters['compoundInputText'] } },
+            { id: 'ProductName', name: 'Tên sản phẩm', field: 'ProductName', width: 150, minWidth: 150, sortable: true, filterable: true, filter: { model: Filters['compoundInputText'] } },
+            { id: 'Unit', name: 'ĐVT', field: 'Unit', width: 100, minWidth: 100, sortable: true, filterable: true, filter: { model: Filters['multipleSelect'], collection: [], collectionOptions: { addBlankEntry: true }, filterOptions: { autoAdjustDropHeight: true, filter: true, } as any, } },
+            { id: 'Quantity', name: 'Số lượng', field: 'Quantity', width: 100, minWidth: 100, sortable: true, formatter: this.moneyFormatter, cssClass: 'text-end', filterable: true, filter: { model: Filters['compoundInputNumber'] } },
+            { id: 'ProjectCode', name: 'Mã dự án', field: 'ProjectCode', width: 150, minWidth: 150, sortable: true, filterable: true, filter: { model: Filters['compoundInputText'] } },
+            { id: 'ProjectName', name: 'Dự án', field: 'ProjectName', width: 150, minWidth: 150, sortable: true, filterable: true, filter: { model: Filters['compoundInputText'] } },
+            { id: 'Note', name: 'Ghi chú', field: 'Note', width: 150, minWidth: 150, sortable: true, filterable: true, filter: { model: Filters['compoundInputText'] } },
+            { id: 'Specifications', name: 'Thông số kỹ thuật', field: 'Specifications', width: 150, minWidth: 150, sortable: true, filterable: true, filter: { model: Filters['compoundInputText'] } },
+            { id: 'InvoiceNumber', name: 'Số hóa đơn', field: 'InvoiceNumber', width: 150, minWidth: 150, sortable: true, filterable: true, filter: { model: Filters['compoundInputText'] } },
+            { id: 'InvoiceDate', name: 'Ngày hóa đơn', field: 'InvoiceDate', width: 150, minWidth: 150, sortable: true, formatter: this.dateFormatter, cssClass: 'text-center' },
+            { id: 'RequestDate', name: 'Ngày đặt hàng', field: 'RequestDate', width: 150, minWidth: 150, sortable: true, filterable: true, filter: { model: Filters['compoundInputText'] } },
+            { id: 'DateRequestImport', name: 'Ngày hàng về', field: 'DateRequestImport', width: 150, minWidth: 150, sortable: true, filterable: true, filter: { model: Filters['compoundInputText'] } },
+            { id: 'SupplierName', name: 'Nhà cung cấp', field: 'SupplierName', width: 250, minWidth: 250, sortable: true, filterable: true, filter: { model: Filters['compoundInputText'] } },
+            { id: 'SomeBill', name: 'Hóa đơn đầu vào', field: 'SomeBill', width: 200, minWidth: 200, sortable: true, filterable: true, filter: { model: Filters['compoundInputText'] } },
+            { id: 'ExpectedDate', name: 'Ngày hàng về dự kiến', field: 'ExpectedDate', width: 150, minWidth: 150, sortable: true, filterable: true, filter: { model: Filters['compoundInputText'] } },
+            { id: 'BillImportCode', name: 'PNK', field: 'BillImportCode', width: 200, minWidth: 200, sortable: true, filterable: true, filter: { model: Filters['compoundInputText'] } },
+            { id: 'CompanyText', name: 'Công ty nhập', field: 'CompanyText', width: 120, minWidth: 120, sortable: true, filterable: true, filter: { model: Filters['multipleSelect'], collection: [], collectionOptions: { addBlankEntry: true }, filterOptions: { autoAdjustDropHeight: true, filter: true, } as any, } },
+        ];
+
+        this.gridOptionsDetail = {
+            enableAutoResize: true,
+            autoResize: {
+                container: '.grid-container-detail',
+                calculateAvailableSizeBy: 'container',
+                resizeDetection: 'container',
+            },
+            gridWidth: '100%',
+            enableCellNavigation: true,
+            enableFiltering: true,
+            enableRowSelection: true,
+            rowSelectionOptions: {
+                selectActiveRow: true
+            },
+            enableCheckboxSelector: false,
+        };
+    }
+
+    angularGridReadyDetail(angularGrid: AngularGridInstance): void {
+        this.angularGridDetail = angularGrid;
+    }
+
+    onDetailRowClick(e: any, args: any): void {
+        const item = args?.grid?.getDataItem(args?.row);
+        if (item && item['POKHID']) {
+            this.loadPOKHFile(item['POKHID']);
+        }
+    }
+
+    // Initialize File Table
+    initGridFile(): void {
+        this.columnDefinitionsFile = [
+            { id: 'FileName', name: 'Tên file', field: 'FileName', width: 300, minWidth: 200, sortable: true, filterable: true, filter: { model: Filters['compoundInputText'] } },
+            { id: 'ServerPath', name: 'Server Path', field: 'ServerPath', width: 100, sortable: false },
+        ];
+
+        this.gridOptionsFile = {
+            enableAutoResize: true,
+            autoResize: {
+                container: '.grid-container-file',
+                calculateAvailableSizeBy: 'container',
+                resizeDetection: 'container',
+            },
+            gridWidth: '100%',
+            enableCellNavigation: true,
+            enableFiltering: false,
+            enableRowSelection: true,
+            rowSelectionOptions: {
+                selectActiveRow: true
+            },
+            enableCheckboxSelector: false,
+            enableContextMenu: true,
+            contextMenu: {
+                commandItems: this.getFileContextMenuOptions(),
+                onCommand: (e, args) => this.handleFileContextMenuCommand(e, args),
+            },
+        };
+    }
+
+    angularGridReadyFile(angularGrid: AngularGridInstance): void {
+        this.angularGridFile = angularGrid;
+    }
+
+    private getFileContextMenuOptions(): MenuCommandItem[] {
+        return [
+            {
+                iconCssClass: 'fa fa-download',
+                title: 'Tải xuống',
+                command: 'download',
+                positionOrder: 60,
+            }
+        ];
+    }
+
+    handleFileContextMenuCommand(e: any, args: MenuCommandItemCallbackArgs): void {
+        const command = args.command;
+        const dataContext = args.dataContext;
+
+        switch (command) {
+            case 'download':
+                this.selectedFile = dataContext;
+                this.downloadFile(dataContext);
+                break;
+        }
+    }
+
+    onFileRowClick(e: any, args: any): void {
+        const item = args?.grid?.getDataItem(args?.row);
+        if (item) {
+            this.selectedFile = item;
+        }
+    }
+
+    onFileRowDblClick(e: any, args: any): void {
+        const item = args?.dataContext;
+        if (item) {
+            this.selectedFile = item;
+            this.downloadFile(item);
+        }
+    }
+
+    // Initialize POFile Table
+    initGridPOFile(): void {
+        this.columnDefinitionsPOFile = [
+            { id: 'FileName', name: 'Tên file', field: 'FileName', width: 300, minWidth: 200, sortable: true, filterable: true, filter: { model: Filters['compoundInputText'] } },
+        ];
+
+        this.gridOptionsPOFile = {
+            enableAutoResize: true,
+            autoResize: {
+                container: '.grid-container-pofile',
+                calculateAvailableSizeBy: 'container',
+                resizeDetection: 'container',
+            },
+            gridWidth: '100%',
+            enableCellNavigation: true,
+            enableFiltering: false,
+            enableRowSelection: true,
+            rowSelectionOptions: {
+                selectActiveRow: true
+            },
+            enableCheckboxSelector: false,
+            enableContextMenu: true,
+            contextMenu: {
+                commandItems: this.getPOFileContextMenuOptions(),
+                onCommand: (e, args) => this.handlePOFileContextMenuCommand(e, args),
+            },
+        };
+    }
+
+    angularGridReadyPOFile(angularGrid: AngularGridInstance): void {
+        this.angularGridPOFile = angularGrid;
+    }
+
+    private getPOFileContextMenuOptions(): MenuCommandItem[] {
+        return [
+            {
+                iconCssClass: 'fa fa-download',
+                title: 'Tải xuống',
+                command: 'download',
+                positionOrder: 60,
+            }
+        ];
+    }
+
+    handlePOFileContextMenuCommand(e: any, args: MenuCommandItemCallbackArgs): void {
+        const command = args.command;
+        const dataContext = args.dataContext;
+
+        switch (command) {
+            case 'download':
+                this.selectedPOFile = dataContext;
+                this.downloadPOFile(dataContext);
+                break;
+        }
+    }
+
+    onPOFileRowClick(e: any, args: any): void {
+        const item = args?.grid?.getDataItem(args?.row);
+        if (item) {
+            this.selectedPOFile = item;
+        }
+    }
+
+    onPOFileRowDblClick(e: any, args: any): void {
+        const item = args?.dataContext;
+        if (item) {
+            this.selectedPOFile = item;
+            this.downloadPOFile(item);
+        }
+    }
+
+    // Data Loading Functions
+    loadMainData(startDate: Date, endDate: Date, keywords: string): void {
+        const start = new Date(startDate);
+        start.setHours(0, 0, 0, 0);
+        const end = new Date(endDate);
+        end.setHours(23, 59, 59, 999);
+        this.RequestInvoiceSlickgridService.getRequestInvoice(
+            start,
+            end,
+            keywords,
+            this.warehouseId
+        ).subscribe({
+            next: (response) => {
+                if (response.status === 1) {
+                    this.data = response.data;
+                    this.datasetMain = this.data.map((item: any, index: number) => ({
+                        ...item,
+                        id: `${item.ID}_${index}`
+                    }));
+                    
+                    // Apply distinct filters after data is loaded
+                    setTimeout(() => {
+                        this.applyDistinctFiltersToGrid(this.angularGridMain, this.columnDefinitionsMain, ['Name']);
+                    }, 500);
+                } else {
+                    this.notification.error(NOTIFICATION_TITLE.error, response.message);
+                }
+            },
+            error: (error) => {
+                this.notification.error(NOTIFICATION_TITLE.error, error);
+            },
+        });
+    }
+
+    loadStatusData(): void {
+        this.requestInvoiceStatusLinkService.getStatus().subscribe({
+            next: (response) => {
+                if (response.status === 1) {
+                    this.statusData = response.data;
+                    this.updateStatusFilter();
+                } else {
+                    this.notification.error(NOTIFICATION_TITLE.error, response.message);
+                }
+            },
+            error: (error) => {
+                this.notification.error(NOTIFICATION_TITLE.error, error);
+            },
+        });
+    }
+
+    updateStatusFilter(): void {
+        if (this.angularGridMain && this.statusData.length > 0) {
+            const statusColumn = this.columnDefinitionsMain.find(col => col.id === 'StatusText');
+            if (statusColumn && statusColumn.filter) {
+                statusColumn.filter.collection = this.statusData.map(item => ({
+                    value: item.StatusName,
+                    label: item.StatusName
+                }));
+                this.angularGridMain.slickGrid?.setColumns(this.columnDefinitionsMain);
+            }
+        }
+    }
+
+    loadDetailData(id: number): void {
+        this.RequestInvoiceSlickgridService.getDetail(id).subscribe({
+            next: (response) => {
+                if (response.status === 1) {
+                    this.dataDetail = response.data;
+                    this.dataFile = response.files;
+                    this.selectedFile = null;
+
+                    this.datasetDetail = this.dataDetail.map((item: any, index: number) => ({
+                        ...item,
+                        id: item.ID || `detail_${index}`,
+                        STT: index + 1
+                    }));
+
+                    this.datasetFile = this.dataFile.map((item: any, index: number) => ({
+                        ...item,
+                        id: item.ID || `file_${index}`
+                    }));
+
+                    // Apply distinct filters after data is loaded
+                    setTimeout(() => {
+                        this.applyDistinctFiltersToGrid(this.angularGridDetail, this.columnDefinitionsDetail, ['Unit', 'CompanyText']);
+                    }, 500);
+
+                    // Auto select first row and load POFile
+                    if (this.dataDetail.length > 0) {
+                        const firstRow = this.dataDetail[0];
+                        if (firstRow['POKHID']) {
+                            this.loadPOKHFile(firstRow['POKHID']);
+                        }
+                    }
+                } else {
+                    this.notification.error(NOTIFICATION_TITLE.error, response.message);
+                }
+            },
+            error: (error) => {
+                this.notification.error(NOTIFICATION_TITLE.error, error);
+            },
+        });
+    }
+
+    loadPOKHFile(POKHID: number): void {
+        this.RequestInvoiceSlickgridService.getPOKHFile(POKHID).subscribe(
+            (response) => {
+                if (response.status === 1) {
+                    this.POFiles = response.data;
+                    this.selectedPOFile = null;
+                    this.datasetPOFile = this.POFiles.map((item: any, index: number) => ({
+                        ...item,
+                        id: item.ID || `pofile_${index}`
+                    }));
+                }
+            },
+            (error) => {
+                console.error('Lỗi kết nối khi tải POKHFile:', error);
+            }
+        );
+    }
+
+    // Edit function
+    onEdit() {
+        if (!this.selectedId) {
+            this.notification.error(NOTIFICATION_TITLE.error, 'Vui lòng chọn bản ghi cần sửa');
+            return;
+        }
+        this.RequestInvoiceSlickgridService.getDetail(this.selectedId).subscribe({
+            next: (response) => {
+                if (response.status === 1) {
+                    const DETAIL = response.data;
+                    const FILE = response.files;
+                    const MAINDATA = this.data.find(
+                        (item) => item.ID === this.selectedId
+                    );
+                    const groupedData = [
+                        {
+                            MainData: MAINDATA,
+                            ID: this.selectedId,
+                            items: DETAIL,
+                            files: FILE,
+                        },
+                    ];
+                    const modalRef = this.modalService.open(
+                        RequestInvoiceDetailComponent,
+                        {
+                            centered: true,
+                            windowClass: 'full-screen-modal',
+                            backdrop: 'static',
+                        }
+                    );
+                    modalRef.componentInstance.groupedData = groupedData;
+                    modalRef.componentInstance.isEditMode = true;
+                    modalRef.componentInstance.selectedId = this.selectedId;
+                    modalRef.componentInstance.POKHID = DETAIL[0]?.POKHID || 0;
+                    modalRef.result.then(
+                        (result) => {
+                            if (result.success && result.reloadData) {
+                                this.loadMainData(
+                                    this.filters.startDate,
+                                    this.filters.endDate,
+                                    this.filters.filterText
+                                );
+                            }
+                        },
+                        (reason) => {
+                            console.log('Modal closed');
+                        }
+                    );
+                } else {
+                    this.notification.error(NOTIFICATION_TITLE.error, response.message);
+                }
+            },
+            error: (error) => {
+                this.notification.error(NOTIFICATION_TITLE.error, error);
+            },
+        });
+    }
+
+    openRequestInvoiceSummary() {
+        const url = `${window.location.origin}/rerpweb/request-invoice-summary?warehouseId=${this.warehouseId}`;
+        window.open(url, '_blank', 'width=1280,height=960,scrollbars=yes,resizable=yes');
+    }
+
+    openRequestInvoiceStatusLinkModal(): void {
+        if (this.selectedId <= 0) {
+            this.notification.error(NOTIFICATION_TITLE.error, 'Vui lòng chọn yêu cầu xuất hóa đơn');
+            return;
+        }
+        const modalRef = this.modalService.open(RequestInvoiceStatusLinkComponent, {
+            centered: true,
+            size: 'xl',
+            backdrop: 'static',
+        });
+        modalRef.componentInstance.requestInvoiceID = this.selectedId;
+
+        modalRef.result.then(
+            (result) => {
+                if (result.success && result.reloadData) {
+                    this.loadMainData(
+                        this.filters.startDate,
+                        this.filters.endDate,
+                        this.filters.filterText
+                    );
+                }
+            },
+            (reason) => {
+                console.log('Modal closed');
+            }
+        );
+    }
+
+    openTreeFolder(): void {
+        if (this.selectedId <= 0) {
+            this.notification.error(NOTIFICATION_TITLE.error, 'Vui lòng chọn yêu cầu xuất hóa đơn để xem cây thư mục');
+            return;
+        }
+
+        this.RequestInvoiceSlickgridService.getTreeFolderPath(this.selectedId).subscribe({
+            next: (response) => {
+                if (response.status === 1) {
+                    const folderPath = response.data;
+                    this.showFolderModal(folderPath);
+                } else {
+                    this.notification.error(NOTIFICATION_TITLE.error, response.message || 'Không thể lấy đường dẫn thư mục');
+                }
+            },
+            error: (error) => {
+                this.notification.error(NOTIFICATION_TITLE.error, 'Lỗi khi lấy đường dẫn thư mục');
+            }
+        });
+    }
+
+    showFolderModal(folderPath: string): void {
+        this.modal.info({
+            nzTitle: 'Đường dẫn thư mục',
+            nzContent: `
+                <div style="word-break: break-all; font-family: monospace; background: #f5f5f5; padding: 10px; border-radius: 4px; margin: 10px 0;">
+                    ${folderPath}
+                </div>
+                <br></br>
+                <div style="color: #666; font-size: 12px;">
+                    Đường dẫn đã được copy vào clipboard. Bạn có thể dán vào Windows Explorer.
+                </div>
+            `,
+            nzOkText: 'Đóng',
+            nzWidth: 600,
+            nzCentered: true
+        });
+
+        this.copyToClipboard(folderPath);
+    }
+
+    copyToClipboard(text: string): void {
+        navigator.clipboard.writeText(text).catch(err => {
+            console.error('Failed to copy text: ', err);
+            const textArea = document.createElement('textarea');
+            textArea.value = text;
+            document.body.appendChild(textArea);
+            textArea.select();
+            document.execCommand('copy');
+            document.body.removeChild(textArea);
+        });
+    }
+
+    openModal() {
+        const modalRef = this.modalService.open(RequestInvoiceDetailComponent, {
+            centered: true,
+            windowClass: 'full-screen-modal',
+            backdrop: 'static',
+        });
+        modalRef.componentInstance.groupedData = [
+            {
+                ID: 0,
+                items: [],
+            },
+        ];
+        modalRef.componentInstance.isMultipleGroups = false;
+        modalRef.componentInstance.selectedId = this.selectedId;
+
+        modalRef.result.then(
+            (result) => {
+                if (result.success && result.reloadData) {
+                    this.loadMainData(
+                        this.filters.startDate,
+                        this.filters.endDate,
+                        this.filters.filterText
+                    );
+                }
+            },
+            (reason) => {
+                console.log('Modal closed');
+            }
+        );
+    }
+
+    onDelete() {
+        if (!this.selectedId) {
+            this.notification.error('Thông báo!', 'Vui lòng chọn yêu cầu cần xóa!');
+            return;
+        }
+        this.modal.confirm({
+            nzTitle: 'Bạn có chắc chắn muốn xóa?',
+            nzContent: 'Hành động này không thể hoàn tác.',
+            nzOkText: 'Xóa',
+            nzCancelText: 'Hủy',
+            nzOnOk: () => {
+                const DATA = {
+                    ID: this.selectedId,
+                    IsDeleted: true,
+                };
+
+                this.RequestInvoiceDetailService.saveData({
+                    RequestInvoices: DATA,
+                    RequestInvoiceDetails: [],
+                }).subscribe({
+                    next: (response) => {
+                        if (response.status === 1) {
+                            this.notification.success(NOTIFICATION_TITLE.success, 'Xóa dữ liệu thành công');
+                            this.loadMainData(
+                                this.filters.startDate,
+                                this.filters.endDate,
+                                this.filters.filterText
+                            );
+                        } else {
+                            this.notification.error(
+                                NOTIFICATION_TITLE.error,
+                                response.message || 'Xóa dữ liệu thất bại!'
+                            );
+                        }
+                    },
+                    error: (err) => {
+                        this.notification.error(NOTIFICATION_TITLE.error, 'Không thể xóa dữ liệu!');
+                    },
+                });
+            },
+        });
+    }
+
+    exportTableToExcel(): void {
+        const data = this.datasetMain || [];
+        if (data.length === 0) {
+            this.notification.warning('Cảnh báo', 'Không có dữ liệu để xuất!');
+            return;
+        }
+
+        const workbook = new ExcelJS.Workbook();
+        const worksheet = workbook.addWorksheet('Yêu cầu xuất hóa đơn');
+
+        worksheet.columns = [
+            { header: 'Yêu cầu gấp', key: 'IsUrgency', width: 15 },
+            { header: 'Trạng thái', key: 'StatusText', width: 30 },
+            { header: 'Deadline', key: 'DealineUrgency', width: 15 },
+            { header: 'Mã lệnh', key: 'Code', width: 15 },
+            { header: 'Ngày yêu cầu', key: 'DateRequest', width: 15 },
+            { header: 'Người yêu cầu', key: 'FullName', width: 20 },
+            { header: 'Tờ khai HQ', key: 'IsCustomsDeclared', width: 15 },
+            { header: 'Khách hàng', key: 'CustomerName', width: 30 },
+            { header: 'Địa chỉ', key: 'Address', width: 30 },
+            { header: 'Công ty bán', key: 'Name', width: 20 },
+            { header: 'Lý do yêu cầu bổ sung', key: 'AmendReason', width: 30 },
+            { header: 'Ghi chú', key: 'Note', width: 30 },
+        ];
+
+        worksheet.getRow(1).font = { bold: true };
+        worksheet.getRow(1).fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFD3D3D3' } };
+
+        data.forEach((row: any) => {
+            worksheet.addRow({
+                IsUrgency: row.IsUrgency ? 'Có' : 'Không',
+                StatusText: row.StatusText || '',
+                DealineUrgency: row.DealineUrgency ? DateTime.fromISO(row.DealineUrgency).toFormat('dd/MM/yyyy') : '',
+                Code: row.Code || '',
+                DateRequest: row.DateRequest ? DateTime.fromISO(row.DateRequest).toFormat('dd/MM/yyyy') : '',
+                FullName: row.FullName || '',
+                IsCustomsDeclared: row.IsCustomsDeclared ? 'Có' : 'Không',
+                CustomerName: row.CustomerName || '',
+                Address: row.Address || '',
+                Name: row.Name || '',
+                AmendReason: row.AmendReason || '',
+                Note: row.Note || '',
+            });
+        });
+
+        workbook.xlsx.writeBuffer().then((buffer) => {
+            const blob = new Blob([buffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `YeuCauXuatHoaDon_${new Date().toLocaleDateString('vi-VN').replace(/\//g, '-')}.xlsx`;
+            a.click();
+            window.URL.revokeObjectURL(url);
+        });
+    }
+
+    // File download functions
+    private buildFullFilePath(file: any): string {
+        if (!file) {
+            return '';
+        }
+        const serverPath = (file.ServerPath || '').trim();
+        const fileName = (file.FileName || file.FileNameOrigin || '').trim();
+
+        if (!serverPath) {
+            return '';
+        }
+
+        if (fileName && serverPath.toLowerCase().includes(fileName.toLowerCase())) {
+            return serverPath;
+        }
+
+        if (!fileName) {
+            return serverPath;
+        }
+
+        const normalizedPath = serverPath.replace(/[\\/]+$/, '');
+        return `${normalizedPath}\\${fileName}`;
+    }
+
+    downloadFile(file: any): void {
+        if (!file || !file.ServerPath) {
+            this.notification.warning('Thông báo', 'Vui lòng chọn một file để tải xuống!');
+            return;
+        }
+
+        const fullPath = this.buildFullFilePath(file);
+        if (!fullPath) {
+            this.notification.error('Thông báo', 'Không xác định được đường dẫn file!');
+            return;
+        }
+
+        const loadingMsg = this.message.loading('Đang tải xuống file...', {
+            nzDuration: 0,
+        }).messageId;
+
+        this.RequestInvoiceSlickgridService.downloadFile(fullPath).subscribe({
+            next: (blob: Blob) => {
+                this.message.remove(loadingMsg);
+
+                if (blob && blob.size > 0) {
+                    const url = window.URL.createObjectURL(blob);
+                    const link = document.createElement('a');
+                    link.href = url;
+                    link.download = file.FileName || file.FileNameOrigin || 'downloaded_file';
+                    document.body.appendChild(link);
+                    link.click();
+                    document.body.removeChild(link);
+                    window.URL.revokeObjectURL(url);
+                    this.notification.success('Thông báo', 'Tải xuống thành công!');
+                } else {
+                    this.notification.error('Thông báo', 'File tải về không hợp lệ!');
+                }
+            },
+            error: (res: any) => {
+                this.message.remove(loadingMsg);
+                console.error('Lỗi khi tải file:', res);
+
+                if (res.error instanceof Blob) {
+                    const reader = new FileReader();
+                    reader.onload = () => {
+                        try {
+                            const errorText = JSON.parse(reader.result as string);
+                            this.notification.error('Thông báo', errorText.message || 'Tải xuống thất bại!');
+                        } catch {
+                            this.notification.error('Thông báo', 'Tải xuống thất bại!');
+                        }
+                    };
+                    reader.readAsText(res.error);
+                } else {
+                    const errorMsg = res?.error?.message || res?.message || 'Tải xuống thất bại! Vui lòng thử lại.';
+                    this.notification.error('Thông báo', errorMsg);
+                }
+            },
+        });
+    }
+
+    downloadPOFile(file: any): void {
+        if (!file || !file.ServerPath) {
+            this.notification.warning('Thông báo', 'Vui lòng chọn một file để tải xuống!');
+            return;
+        }
+
+        const fullPath = this.buildFullFilePath(file);
+        if (!fullPath) {
+            this.notification.error('Thông báo', 'Không xác định được đường dẫn file!');
+            return;
+        }
+
+        const loadingMsg = this.message.loading('Đang tải xuống file...', {
+            nzDuration: 0,
+        }).messageId;
+
+        this.RequestInvoiceSlickgridService.downloadFile(fullPath).subscribe({
+            next: (blob: Blob) => {
+                this.message.remove(loadingMsg);
+
+                if (blob && blob.size > 0) {
+                    const url = window.URL.createObjectURL(blob);
+                    const link = document.createElement('a');
+                    link.href = url;
+                    link.download = file.FileName || file.FileNameOrigin || 'downloaded_file';
+                    document.body.appendChild(link);
+                    link.click();
+                    document.body.removeChild(link);
+                    window.URL.revokeObjectURL(url);
+                    this.notification.success('Thông báo', 'Tải xuống thành công!');
+                } else {
+                    this.notification.error('Thông báo', 'File tải về không hợp lệ!');
+                }
+            },
+            error: (res: any) => {
+                this.message.remove(loadingMsg);
+                console.error('Lỗi khi tải file:', res);
+
+                if (res.error instanceof Blob) {
+                    const reader = new FileReader();
+                    reader.onload = () => {
+                        try {
+                            const errorText = JSON.parse(reader.result as string);
+                            this.notification.error('Thông báo', errorText.message || 'Tải xuống thất bại!');
+                        } catch {
+                            this.notification.error('Thông báo', 'Tải xuống thất bại!');
+                        }
+                    };
+                    reader.readAsText(res.error);
+                } else {
+                    const errorMsg = res?.error?.message || res?.message || 'Tải xuống thất bại! Vui lòng thử lại.';
+                    this.notification.error('Thông báo', errorMsg);
+                }
+            },
+        });
+    }
+
+    private applyDistinctFiltersToGrid(
+        angularGrid: AngularGridInstance,
+        columnDefinitions: Column[],
+        fieldsToFilter: string[]
+    ): void {
+        if (!angularGrid?.slickGrid || !angularGrid?.dataView) return;
+
+        const data = angularGrid.dataView.getItems();
+        if (!data || data.length === 0) return;
+
+        const getUniqueValues = (dataArray: any[], field: string): Array<{ value: string; label: string }> => {
+            const map = new Map<string, string>();
+            dataArray.forEach((row: any) => {
+                const value = String(row?.[field] ?? '');
+                if (value && !map.has(value)) {
+                    map.set(value, value);
+                }
+            });
+            return Array.from(map.entries())
+                .map(([value, label]) => ({ value, label }))
+                .sort((a, b) => a.label.localeCompare(b.label));
+        };
+
+        const columns = angularGrid.slickGrid.getColumns();
+        if (!columns) return;
+
+        // Update runtime columns
+        columns.forEach((column: any) => {
+            if (column?.filter && column.filter.model === Filters['multipleSelect']) {
+                const field = column.field;
+                if (!field || !fieldsToFilter.includes(field)) return;
+                column.filter.collection = getUniqueValues(data, field);
+            }
+        });
+
+        // Update column definitions
+        columnDefinitions.forEach((colDef: any) => {
+            if (colDef?.filter && colDef.filter.model === Filters['multipleSelect']) {
+                const field = colDef.field;
+                if (!field || !fieldsToFilter.includes(field)) return;
+                colDef.filter.collection = getUniqueValues(data, field);
+            }
+        });
+
+        angularGrid.slickGrid.setColumns(angularGrid.slickGrid.getColumns());
+        angularGrid.slickGrid.invalidate();
+        angularGrid.slickGrid.render();
+    }
+}

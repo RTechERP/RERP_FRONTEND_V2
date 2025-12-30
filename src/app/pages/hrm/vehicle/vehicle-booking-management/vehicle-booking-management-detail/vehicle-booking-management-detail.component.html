@@ -75,7 +75,7 @@
           <span class="text-danger">(*)</span>
         </label>
         <nz-select class="w-100" nzSize="small" nzShowSearch nzAllowClear [(ngModel)]="province" name="province" (ngModelChange)="errors.province = ''">
-          <nz-option *ngFor="let prov of provinces" [nzLabel]="prov.label" [nzValue]="prov.label"></nz-option>
+          <nz-option *ngFor="let prov of provincesArrives" [nzLabel]="prov.label" [nzValue]="prov.label"></nz-option>
         </nz-select>
         <span class="text-danger" style="font-size: 0.75rem;" *ngIf="errors.province">{{ errors.province }}</span>
       </div>

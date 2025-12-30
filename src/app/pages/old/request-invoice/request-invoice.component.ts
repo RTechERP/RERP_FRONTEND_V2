@@ -340,9 +340,14 @@ export class RequestInvoiceComponent implements OnInit, AfterViewInit {
         });
     }
 
+    // openRequestInvoiceSummary() {
+    //     const newWindow = window.open(`/rerpweb/request-invoice-summary?warehouseId=${this.warehouseId}`, '_blank', 'width=1280,height=960,scrollbars=yes,resizable=yes');
+    // }
     openRequestInvoiceSummary() {
-        const newWindow = window.open(`/rerpweb/request-invoice-summary?warehouseId=${this.warehouseId}`, '_blank', 'width=1280,height=960,scrollbars=yes,resizable=yes');
+        const url = `${window.location.origin}/rerpweb/request-invoice-summary?warehouseId=${this.warehouseId}`;
+        window.open(url, '_blank', 'width=1280,height=960,scrollbars=yes,resizable=yes');
     }
+
 
     openRequestInvoiceStatusLinkModal(): void {
         if (this.selectedId <= 0) {
@@ -377,7 +382,7 @@ export class RequestInvoiceComponent implements OnInit, AfterViewInit {
             this.notification.error(NOTIFICATION_TITLE.error, 'Vui lòng chọn yêu cầu xuất hóa đơn để xem cây thư mục');
             return;
         }
-        
+
         this.RequestInvoiceService.getTreeFolderPath(this.selectedId).subscribe({
             next: (response) => {
                 if (response.status === 1) {
@@ -409,7 +414,7 @@ export class RequestInvoiceComponent implements OnInit, AfterViewInit {
             nzWidth: 600,
             nzCentered: true
         });
-        
+
         this.copyToClipboard(folderPath);
     }
 

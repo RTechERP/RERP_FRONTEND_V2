@@ -5,7 +5,6 @@ import {
     TemplateRef,
     ElementRef,
     Input,
-    IterableDiffers,
     Optional,
     Inject,
 } from '@angular/core';
@@ -36,15 +35,21 @@ import { NzFormModule } from 'ng-zorro-antd/form';
 import { NzSwitchModule } from 'ng-zorro-antd/switch';
 import { NzCheckboxModule } from 'ng-zorro-antd/checkbox';
 import {
-    TabulatorFull as Tabulator,
-    RowComponent,
-    CellComponent,
-} from 'tabulator-tables';
-// import 'tabulator-tables/dist/css/tabulator_simple.min.css';
-// import 'bootstrap-icons/font/bootstrap-icons.css';
+    AngularGridInstance,
+    AngularSlickgridModule,
+    Column,
+    Filters,
+    Formatters,
+    GridOption,
+    OnEventArgs,
+    SlickGrid,
+    MenuCommandItem,
+    MenuCommandItemCallbackArgs,
+    MultipleSelectOption,
+} from 'angular-slickgrid';
+import { NgModule, CUSTOM_ELEMENTS_SCHEMA } from '@angular/core';
 import { OnInit, AfterViewInit } from '@angular/core';
 import { ApplicationRef, createComponent, Type } from '@angular/core';
-import { setThrowInvalidWriteToSignalError } from '@angular/core/primitives/signals';
 import { EnvironmentInjector } from '@angular/core';
 import { NzTabsModule } from 'ng-zorro-antd/tabs';
 import { DateTime } from 'luxon';
@@ -58,20 +63,19 @@ import { NzNotificationService } from 'ng-zorro-antd/notification';
 import { NzMessageService } from 'ng-zorro-antd/message';
 import * as ExcelJS from 'exceljs';
 
-import { RequestInvoiceService } from './request-invoice-service/request-invoice-service.service';
+import { RequestInvoiceSlickgridService } from './request-invoice-slickgrid-service/request-invoice-slickgrid-service.service';
 import { RequestInvoiceDetailService } from '../request-invoice-detail/request-invoice-detail-service/request-invoice-detail-service.service';
 import { RequestInvoiceDetailComponent } from '../request-invoice-detail/request-invoice-detail.component';
 import { NOTIFICATION_TITLE } from '../../../app.config';
 import { HasPermissionDirective } from '../../../directives/has-permission.directive';
-import { DEFAULT_TABLE_CONFIG } from '../../../tabulator-default.config';
 import { RequestInvoiceStatusLinkComponent } from '../request-invoice-status-link/request-invoice-status-link.component';
 import { RequestInvoiceSummaryComponent } from '../request-invoice-summary/request-invoice-summary.component';
 import { MenuEventService } from '../../systems/menus/menu-service/menu-event.service';
 import { RequestInvoiceStatusLinkService } from '../request-invoice-status-link/request-invoice-status-link-service/request-invoice-status-link.service';
-import { setupTabulatorCellCopy } from '../../../shared/utils/tabulator-cell-copy.util';
 import { ActivatedRoute } from '@angular/router';
+
 @Component({
-    selector: 'app-request-invoice',
+    selector: 'app-request-invoice-slickgrid',
     imports: [
         NzCardModule,
         FormsModule,
@@ -99,28 +103,43 @@ import { ActivatedRoute } from '@angular/router';
         NzFormModule,
         CommonModule,
         HasPermissionDirective,
+        AngularSlickgridModule,
     ],
-    templateUrl: './request-invoice.component.html',
-    styleUrl: './request-invoice.component.css',
+    templateUrl: './request-invoice-slickgrid.component.html',
+    styleUrl: './request-invoice-slickgrid.component.css',
+    schemas: [CUSTOM_ELEMENTS_SCHEMA],
 })
-export class RequestInvoiceComponent implements OnInit, AfterViewInit {
+export class RequestInvoiceSlickgridComponent implements OnInit, AfterViewInit {
 
     @Input() warehouseId: number = 0;
-    @ViewChild('tb_MainTable', { static: false })
-    tb_MainTableElement!: ElementRef;
-    @ViewChild('tb_Detail', { static: false }) tb_DetailTableElement!: ElementRef;
-    @ViewChild('tb_File', { static: false }) tb_FileTableElement!: ElementRef;
-    @ViewChild('tb_POFile', { static: false })
-    tb_POFileElement!: ElementRef;
 
-    private mainTable!: Tabulator;
-    private detailTable!: Tabulator;
-    private fileTable!: Tabulator;
-    private tb_POFile!: Tabulator;
+    // SlickGrid properties for Main table
+    angularGridMain!: AngularGridInstance;
+    columnDefinitionsMain: Column[] = [];
+    gridOptionsMain: GridOption = {};
+    datasetMain: any[] = [];
+
+    // SlickGrid properties for Detail table
+    angularGridDetail!: AngularGridInstance;
+    columnDefinitionsDetail: Column[] = [];
+    gridOptionsDetail: GridOption = {};
+    datasetDetail: any[] = [];
+
+    // SlickGrid properties for File table
+    angularGridFile!: AngularGridInstance;
+    columnDefinitionsFile: Column[] = [];
+    gridOptionsFile: GridOption = {};
+    datasetFile: any[] = [];
+
+    // SlickGrid properties for POFile table
+    angularGridPOFile!: AngularGridInstance;
+    columnDefinitionsPOFile: Column[] = [];
+    gridOptionsPOFile: GridOption = {};
+    datasetPOFile: any[] = [];
 
     constructor(
         private modalService: NgbModal,
-        private RequestInvoiceService: RequestInvoiceService,
+        private RequestInvoiceSlickgridService: RequestInvoiceSlickgridService,
         private notification: NzNotificationService,
         private message: NzMessageService,
         private modal: NzModalService,
@@ -137,6 +156,7 @@ export class RequestInvoiceComponent implements OnInit, AfterViewInit {
     dataFile: any[] = [];
     POFiles: any[] = [];
     selectedId: number = 0;
+    selectedRow: any = null;
     selectedFile: any = null;
     selectedPOFile: any = null;
     statusData: any[] = [];
@@ -153,15 +173,9 @@ export class RequestInvoiceComponent implements OnInit, AfterViewInit {
     }
 
     ngOnInit(): void {
-        // Lấy dữ liệu từ tabData injector nếu có
-        // if (this.tabData && this.tabData.warehouseId) {
-        //   this.warehouseId = this.tabData.warehouseId;
-        // }
-
         this.route.queryParams.subscribe(params => {
             this.warehouseId = params['warehouseId'] || 0;
         });
-        // Set startDate to first day and endDate to last day of current month
         const now = new Date();
         const startDate = new Date(now.getFullYear(), now.getMonth(), 1);
         const endDate = new Date(now.getFullYear(), now.getMonth() + 1, 0);
@@ -169,7 +183,121 @@ export class RequestInvoiceComponent implements OnInit, AfterViewInit {
         endDate.setHours(23, 59, 59, 999);
         this.filters.startDate = startDate;
         this.filters.endDate = endDate;
+
+        // Initialize SlickGrid tables
+        this.initGridMain();
+        this.initGridDetail();
+        this.initGridFile();
+        this.initGridPOFile();
+
         this.loadStatusData();
+    }
+
+    ngAfterViewInit(): void {
+    }
+
+    // Formatter functions
+    dateFormatter(row: number, cell: number, value: any, columnDef: any, dataContext: any): string {
+        if (!value) return '';
+        const date = new Date(value);
+        if (isNaN(date.getTime())) return value;
+        const day = String(date.getDate()).padStart(2, '0');
+        const month = String(date.getMonth() + 1).padStart(2, '0');
+        const year = date.getFullYear();
+        return `${day}/${month}/${year}`;
+    }
+
+    checkboxFormatter(row: number, cell: number, value: any, columnDef: any, dataContext: any): string {
+        const checked = value ? 'checked' : '';
+        return `<div style="text-align: center;">
+            <input type="checkbox" ${checked} disabled style="opacity: 1; pointer-events: none; cursor: default; width: 16px; height: 16px;"/>
+        </div>`;
+    }
+
+    moneyFormatter(row: number, cell: number, value: any, columnDef: any, dataContext: any): string {
+        if (value === null || value === undefined) return '';
+        return new Intl.NumberFormat('vi-VN').format(value);
+    }
+
+    urgentRowFormatter(row: number, cell: number, value: any, columnDef: any, dataContext: any): string {
+        if (dataContext && dataContext['IsUrgency']) {
+            return `<div style="background-color: #FFA500; padding: 2px 4px;">${value || ''}</div>`;
+        }
+        return value || '';
+    }
+
+    // Initialize Main Table
+    initGridMain(): void {
+        this.columnDefinitionsMain = [
+            // { id: 'ID', name: 'ID', field: 'ID', width: 50, minWidth: 50, sortable: true, filterable: false },
+            {
+                id: 'IsUrgency',
+                name: 'Yêu cầu gấp',
+                field: 'IsUrgency',
+                width: 80,
+                minWidth: 80,
+                sortable: true,
+                filterable: true,
+                formatter: this.checkboxFormatter,
+                filter: { model: Filters['singleSelect'], collection: [{ value: true, label: 'Có' }, { value: false, label: 'Không' }] }
+            },
+            {
+                id: 'StatusText',
+                name: 'Trạng thái',
+                field: 'StatusText',
+                width: 200,
+                minWidth: 200,
+                sortable: true,
+                filterable: true,
+                filter: {
+                    model: Filters['singleSelect'],
+                    collection: this.statusData.map(item => ({ value: item.StatusName, label: item.StatusName })),
+                    collectionOptions: { addBlankEntry: true },
+                    filterOptions: { autoAdjustDropHeight: true, filter: true } as MultipleSelectOption,
+                }
+            },
+            { id: 'DealineUrgency', name: 'Deadline', field: 'DealineUrgency', width: 100, minWidth: 100, sortable: true, filterable: false, formatter: this.dateFormatter, cssClass: 'text-center' },
+            { id: 'Code', name: 'Mã lệnh', field: 'Code', width: 200, minWidth: 200, sortable: true, filterable: true, filter: { model: Filters['compoundInputText'] } },
+            { id: 'DateRequest', name: 'Ngày yêu cầu', field: 'DateRequest', width: 150, minWidth: 150, sortable: true, filterable: false, formatter: this.dateFormatter, cssClass: 'text-center' },
+            { id: 'FullName', name: 'Người yêu cầu', field: 'FullName', width: 150, minWidth: 150, sortable: true, filterable: true, filter: { model: Filters['compoundInputText'] } },
+            {
+                id: 'IsCustomsDeclared',
+                name: 'Tờ khai HQ',
+                field: 'IsCustomsDeclared',
+                width: 100,
+                minWidth: 100,
+                sortable: true,
+                filterable: true,
+                formatter: this.checkboxFormatter,
+                filter: { model: Filters['singleSelect'], collection: [{ value: true, label: 'Có' }, { value: false, label: 'Không' }] }
+            },
+            { id: 'CustomerName', name: 'Khách hàng', field: 'CustomerName', width: 250, minWidth: 250, sortable: true, filterable: true, filter: { model: Filters['compoundInputText'] } },
+            { id: 'Address', name: 'Địa chỉ', field: 'Address', width: 300, minWidth: 300, sortable: true, filterable: true, filter: { model: Filters['compoundInputText'] } },
+            { id: 'Name', name: 'Công ty bán', field: 'Name', width: 140, minWidth: 140, sortable: true, filterable: true, filter: { model: Filters['multipleSelect'], collection: [], collectionOptions: { addBlankEntry: true }, filterOptions: { autoAdjustDropHeight: true, filter: true, } as any, } },
+            { id: 'AmendReason', name: 'Lý do yêu cầu bổ sung', field: 'AmendReason', width: 215, minWidth: 215, sortable: true, filterable: true, filter: { model: Filters['compoundInputText'] } },
+            { id: 'Note', name: 'Ghi chú', field: 'Note', width: 200, minWidth: 200, sortable: true, filterable: true, filter: { model: Filters['compoundInputText'] } },
+        ];
+
+        this.gridOptionsMain = {
+            enableAutoResize: true,
+            autoResize: {
+                container: '.grid-container-main',
+                calculateAvailableSizeBy: 'container',
+                resizeDetection: 'container',
+            },
+            gridWidth: '100%',
+            enableCellNavigation: true,
+            enableFiltering: true,
+            enableRowSelection: true,
+            rowSelectionOptions: {
+                selectActiveRow: true
+            },
+            enableCheckboxSelector: false,
+        };
+    }
+
+    angularGridReadyMain(angularGrid: AngularGridInstance): void {
+        this.angularGridMain = angularGrid;
         this.loadMainData(
             this.filters.startDate,
             this.filters.endDate,
@@ -177,20 +305,228 @@ export class RequestInvoiceComponent implements OnInit, AfterViewInit {
         );
     }
 
-    ngAfterViewInit(): void {
-        this.initMainTable();
-        this.initDetailTable();
-        this.initFileTable();
-        this.initPOFileTable();
+    onMainRowClick(e: any, args: any): void {
+        const item = args?.grid?.getDataItem(args?.row);
+        if (item) {
+            this.selectedId = item['ID'];
+            this.selectedRow = item;
+            this.loadDetailData(this.selectedId);
+        }
     }
 
+    onMainRowDblClick(e: any, args: any): void {
+        const item = args?.dataContext;
+        if (item) {
+            this.selectedId = item['ID'];
+            this.selectedRow = item;
+            this.onEdit();
+        }
+    }
+
+    // Initialize Detail Table
+    initGridDetail(): void {
+        this.columnDefinitionsDetail = [
+            { id: 'STT', name: 'STT', field: 'STT', width: 70, minWidth: 70, sortable: true, filterable: true, filter: { model: Filters['compoundInputNumber'] } },
+            { id: 'ProductNewCode', name: 'Mã nội bộ', field: 'ProductNewCode', width: 100, minWidth: 100, sortable: true, filterable: true, filter: { model: Filters['compoundInputText'] } },
+            { id: 'ProductCode', name: 'Mã sản phẩm', field: 'ProductCode', width: 150, minWidth: 150, sortable: true, filterable: true, filter: { model: Filters['compoundInputText'] } },
+            { id: 'GuestCode', name: 'Mã theo khách', field: 'GuestCode', width: 150, minWidth: 150, sortable: true, filterable: true, filter: { model: Filters['compoundInputText'] } },
+            { id: 'ProductName', name: 'Tên sản phẩm', field: 'ProductName', width: 150, minWidth: 150, sortable: true, filterable: true, filter: { model: Filters['compoundInputText'] } },
+            { id: 'Unit', name: 'ĐVT', field: 'Unit', width: 100, minWidth: 100, sortable: true, filterable: true, filter: { model: Filters['multipleSelect'], collection: [], collectionOptions: { addBlankEntry: true }, filterOptions: { autoAdjustDropHeight: true, filter: true, } as any, } },
+            { id: 'Quantity', name: 'Số lượng', field: 'Quantity', width: 100, minWidth: 100, sortable: true, formatter: this.moneyFormatter, cssClass: 'text-end', filterable: true, filter: { model: Filters['compoundInputNumber'] } },
+            { id: 'ProjectCode', name: 'Mã dự án', field: 'ProjectCode', width: 150, minWidth: 150, sortable: true, filterable: true, filter: { model: Filters['compoundInputText'] } },
+            { id: 'ProjectName', name: 'Dự án', field: 'ProjectName', width: 150, minWidth: 150, sortable: true, filterable: true, filter: { model: Filters['compoundInputText'] } },
+            { id: 'Note', name: 'Ghi chú', field: 'Note', width: 150, minWidth: 150, sortable: true, filterable: true, filter: { model: Filters['compoundInputText'] } },
+            { id: 'Specifications', name: 'Thông số kỹ thuật', field: 'Specifications', width: 150, minWidth: 150, sortable: true, filterable: true, filter: { model: Filters['compoundInputText'] } },
+            { id: 'InvoiceNumber', name: 'Số hóa đơn', field: 'InvoiceNumber', width: 150, minWidth: 150, sortable: true, filterable: true, filter: { model: Filters['compoundInputText'] } },
+            { id: 'InvoiceDate', name: 'Ngày hóa đơn', field: 'InvoiceDate', width: 150, minWidth: 150, sortable: true, formatter: this.dateFormatter, cssClass: 'text-center' },
+            { id: 'RequestDate', name: 'Ngày đặt hàng', field: 'RequestDate', width: 150, minWidth: 150, sortable: true, filterable: true, filter: { model: Filters['compoundInputText'] } },
+            { id: 'DateRequestImport', name: 'Ngày hàng về', field: 'DateRequestImport', width: 150, minWidth: 150, sortable: true, filterable: true, filter: { model: Filters['compoundInputText'] } },
+            { id: 'SupplierName', name: 'Nhà cung cấp', field: 'SupplierName', width: 250, minWidth: 250, sortable: true, filterable: true, filter: { model: Filters['compoundInputText'] } },
+            { id: 'SomeBill', name: 'Hóa đơn đầu vào', field: 'SomeBill', width: 200, minWidth: 200, sortable: true, filterable: true, filter: { model: Filters['compoundInputText'] } },
+            { id: 'ExpectedDate', name: 'Ngày hàng về dự kiến', field: 'ExpectedDate', width: 150, minWidth: 150, sortable: true, filterable: true, filter: { model: Filters['compoundInputText'] } },
+            { id: 'BillImportCode', name: 'PNK', field: 'BillImportCode', width: 200, minWidth: 200, sortable: true, filterable: true, filter: { model: Filters['compoundInputText'] } },
+            { id: 'CompanyText', name: 'Công ty nhập', field: 'CompanyText', width: 120, minWidth: 120, sortable: true, filterable: true, filter: { model: Filters['multipleSelect'], collection: [], collectionOptions: { addBlankEntry: true }, filterOptions: { autoAdjustDropHeight: true, filter: true, } as any, } },
+        ];
+
+        this.gridOptionsDetail = {
+            enableAutoResize: true,
+            autoResize: {
+                container: '.grid-container-detail',
+                calculateAvailableSizeBy: 'container',
+                resizeDetection: 'container',
+            },
+            gridWidth: '100%',
+            enableCellNavigation: true,
+            enableFiltering: true,
+            enableRowSelection: true,
+            rowSelectionOptions: {
+                selectActiveRow: true
+            },
+            enableCheckboxSelector: false,
+        };
+    }
+
+    angularGridReadyDetail(angularGrid: AngularGridInstance): void {
+        this.angularGridDetail = angularGrid;
+    }
+
+    onDetailRowClick(e: any, args: any): void {
+        const item = args?.grid?.getDataItem(args?.row);
+        if (item && item['POKHID']) {
+            this.loadPOKHFile(item['POKHID']);
+        }
+    }
+
+    // Initialize File Table
+    initGridFile(): void {
+        this.columnDefinitionsFile = [
+            { id: 'FileName', name: 'Tên file', field: 'FileName', width: 300, minWidth: 200, sortable: true, filterable: true, filter: { model: Filters['compoundInputText'] } },
+            { id: 'ServerPath', name: 'Server Path', field: 'ServerPath', width: 100, sortable: false },
+        ];
+
+        this.gridOptionsFile = {
+            enableAutoResize: true,
+            autoResize: {
+                container: '.grid-container-file',
+                calculateAvailableSizeBy: 'container',
+                resizeDetection: 'container',
+            },
+            gridWidth: '100%',
+            enableCellNavigation: true,
+            enableFiltering: false,
+            enableRowSelection: true,
+            rowSelectionOptions: {
+                selectActiveRow: true
+            },
+            enableCheckboxSelector: false,
+            enableContextMenu: true,
+            contextMenu: {
+                commandItems: this.getFileContextMenuOptions(),
+                onCommand: (e, args) => this.handleFileContextMenuCommand(e, args),
+            },
+        };
+    }
+
+    angularGridReadyFile(angularGrid: AngularGridInstance): void {
+        this.angularGridFile = angularGrid;
+    }
+
+    private getFileContextMenuOptions(): MenuCommandItem[] {
+        return [
+            {
+                iconCssClass: 'fa fa-download',
+                title: 'Tải xuống',
+                command: 'download',
+                positionOrder: 60,
+            }
+        ];
+    }
+
+    handleFileContextMenuCommand(e: any, args: MenuCommandItemCallbackArgs): void {
+        const command = args.command;
+        const dataContext = args.dataContext;
+
+        switch (command) {
+            case 'download':
+                this.selectedFile = dataContext;
+                this.downloadFile(dataContext);
+                break;
+        }
+    }
+
+    onFileRowClick(e: any, args: any): void {
+        const item = args?.grid?.getDataItem(args?.row);
+        if (item) {
+            this.selectedFile = item;
+        }
+    }
+
+    onFileRowDblClick(e: any, args: any): void {
+        const item = args?.dataContext;
+        if (item) {
+            this.selectedFile = item;
+            this.downloadFile(item);
+        }
+    }
+
+    // Initialize POFile Table
+    initGridPOFile(): void {
+        this.columnDefinitionsPOFile = [
+            { id: 'FileName', name: 'Tên file', field: 'FileName', width: 300, minWidth: 200, sortable: true, filterable: true, filter: { model: Filters['compoundInputText'] } },
+        ];
+
+        this.gridOptionsPOFile = {
+            enableAutoResize: true,
+            autoResize: {
+                container: '.grid-container-pofile',
+                calculateAvailableSizeBy: 'container',
+                resizeDetection: 'container',
+            },
+            gridWidth: '100%',
+            enableCellNavigation: true,
+            enableFiltering: false,
+            enableRowSelection: true,
+            rowSelectionOptions: {
+                selectActiveRow: true
+            },
+            enableCheckboxSelector: false,
+            enableContextMenu: true,
+            contextMenu: {
+                commandItems: this.getPOFileContextMenuOptions(),
+                onCommand: (e, args) => this.handlePOFileContextMenuCommand(e, args),
+            },
+        };
+    }
+
+    angularGridReadyPOFile(angularGrid: AngularGridInstance): void {
+        this.angularGridPOFile = angularGrid;
+    }
+
+    private getPOFileContextMenuOptions(): MenuCommandItem[] {
+        return [
+            {
+                iconCssClass: 'fa fa-download',
+                title: 'Tải xuống',
+                command: 'download',
+                positionOrder: 60,
+            }
+        ];
+    }
+
+    handlePOFileContextMenuCommand(e: any, args: MenuCommandItemCallbackArgs): void {
+        const command = args.command;
+        const dataContext = args.dataContext;
+
+        switch (command) {
+            case 'download':
+                this.selectedPOFile = dataContext;
+                this.downloadPOFile(dataContext);
+                break;
+        }
+    }
+
+    onPOFileRowClick(e: any, args: any): void {
+        const item = args?.grid?.getDataItem(args?.row);
+        if (item) {
+            this.selectedPOFile = item;
+        }
+    }
+
+    onPOFileRowDblClick(e: any, args: any): void {
+        const item = args?.dataContext;
+        if (item) {
+            this.selectedPOFile = item;
+            this.downloadPOFile(item);
+        }
+    }
+
+    // Data Loading Functions
     loadMainData(startDate: Date, endDate: Date, keywords: string): void {
-        // Đặt giờ bắt đầu là 00:00:00 và giờ kết thúc là 23:59:59
         const start = new Date(startDate);
         start.setHours(0, 0, 0, 0);
         const end = new Date(endDate);
         end.setHours(23, 59, 59, 999);
-        this.RequestInvoiceService.getRequestInvoice(
+        this.RequestInvoiceSlickgridService.getRequestInvoice(
             start,
             end,
             keywords,
@@ -199,10 +535,15 @@ export class RequestInvoiceComponent implements OnInit, AfterViewInit {
             next: (response) => {
                 if (response.status === 1) {
                     this.data = response.data;
-                    this.initMainTable();
-                    if (this.mainTable) {
-                        this.mainTable.setData(this.data);
-                    }
+                    this.datasetMain = this.data.map((item: any, index: number) => ({
+                        ...item,
+                        id: `${item.ID}_${index}`
+                    }));
+                    
+                    // Apply distinct filters after data is loaded
+                    setTimeout(() => {
+                        this.applyDistinctFiltersToGrid(this.angularGridMain, this.columnDefinitionsMain, ['Name']);
+                    }, 500);
                 } else {
                     this.notification.error(NOTIFICATION_TITLE.error, response.message);
                 }
@@ -218,6 +559,7 @@ export class RequestInvoiceComponent implements OnInit, AfterViewInit {
             next: (response) => {
                 if (response.status === 1) {
                     this.statusData = response.data;
+                    this.updateStatusFilter();
                 } else {
                     this.notification.error(NOTIFICATION_TITLE.error, response.message);
                 }
@@ -228,32 +570,49 @@ export class RequestInvoiceComponent implements OnInit, AfterViewInit {
         });
     }
 
+    updateStatusFilter(): void {
+        if (this.angularGridMain && this.statusData.length > 0) {
+            const statusColumn = this.columnDefinitionsMain.find(col => col.id === 'StatusText');
+            if (statusColumn && statusColumn.filter) {
+                statusColumn.filter.collection = this.statusData.map(item => ({
+                    value: item.StatusName,
+                    label: item.StatusName
+                }));
+                this.angularGridMain.slickGrid?.setColumns(this.columnDefinitionsMain);
+            }
+        }
+    }
+
     loadDetailData(id: number): void {
-        this.RequestInvoiceService.getDetail(id).subscribe({
+        this.RequestInvoiceSlickgridService.getDetail(id).subscribe({
             next: (response) => {
                 if (response.status === 1) {
                     this.dataDetail = response.data;
                     this.dataFile = response.files;
-                    this.selectedFile = null; // Reset selected file
-                    if (this.detailTable) {
-                        this.detailTable.setData(this.dataDetail);
+                    this.selectedFile = null;
 
-                        // Tự động chọn dòng đầu tiên của bảng detail và load POFile
-                        setTimeout(() => {
-                            const rows = this.detailTable.getRows();
-                            if (rows && rows.length > 0) {
-                                const firstRow = rows[0];
-                                firstRow.select();
-                                const firstRowData = firstRow.getData();
-                                const POKHID = firstRowData['POKHID'];
-                                if (POKHID) {
-                                    this.loadPOKHFile(POKHID);
-                                }
-                            }
-                        }, 100);
-                    }
-                    if (this.fileTable) {
-                        this.fileTable.setData(this.dataFile);
+                    this.datasetDetail = this.dataDetail.map((item: any, index: number) => ({
+                        ...item,
+                        id: item.ID || `detail_${index}`,
+                        STT: index + 1
+                    }));
+
+                    this.datasetFile = this.dataFile.map((item: any, index: number) => ({
+                        ...item,
+                        id: item.ID || `file_${index}`
+                    }));
+
+                    // Apply distinct filters after data is loaded
+                    setTimeout(() => {
+                        this.applyDistinctFiltersToGrid(this.angularGridDetail, this.columnDefinitionsDetail, ['Unit', 'CompanyText']);
+                    }, 500);
+
+                    // Auto select first row and load POFile
+                    if (this.dataDetail.length > 0) {
+                        const firstRow = this.dataDetail[0];
+                        if (firstRow['POKHID']) {
+                            this.loadPOKHFile(firstRow['POKHID']);
+                        }
                     }
                 } else {
                     this.notification.error(NOTIFICATION_TITLE.error, response.message);
@@ -266,14 +625,15 @@ export class RequestInvoiceComponent implements OnInit, AfterViewInit {
     }
 
     loadPOKHFile(POKHID: number): void {
-        this.RequestInvoiceService.getPOKHFile(POKHID).subscribe(
+        this.RequestInvoiceSlickgridService.getPOKHFile(POKHID).subscribe(
             (response) => {
                 if (response.status === 1) {
                     this.POFiles = response.data;
-                    this.selectedPOFile = null; // Reset selected PO file
-                    if (this.tb_POFile) {
-                        this.tb_POFile.setData(this.POFiles);
-                    }
+                    this.selectedPOFile = null;
+                    this.datasetPOFile = this.POFiles.map((item: any, index: number) => ({
+                        ...item,
+                        id: item.ID || `pofile_${index}`
+                    }));
                 }
             },
             (error) => {
@@ -282,12 +642,13 @@ export class RequestInvoiceComponent implements OnInit, AfterViewInit {
         );
     }
 
+    // Edit function
     onEdit() {
         if (!this.selectedId) {
             this.notification.error(NOTIFICATION_TITLE.error, 'Vui lòng chọn bản ghi cần sửa');
             return;
         }
-        this.RequestInvoiceService.getDetail(this.selectedId).subscribe({
+        this.RequestInvoiceSlickgridService.getDetail(this.selectedId).subscribe({
             next: (response) => {
                 if (response.status === 1) {
                     const DETAIL = response.data;
@@ -307,7 +668,6 @@ export class RequestInvoiceComponent implements OnInit, AfterViewInit {
                         RequestInvoiceDetailComponent,
                         {
                             centered: true,
-                            // size: 'xl',
                             windowClass: 'full-screen-modal',
                             backdrop: 'static',
                         }
@@ -340,14 +700,10 @@ export class RequestInvoiceComponent implements OnInit, AfterViewInit {
         });
     }
 
-    // openRequestInvoiceSummary() {
-    //     const newWindow = window.open(`/rerpweb/request-invoice-summary?warehouseId=${this.warehouseId}`, '_blank', 'width=1280,height=960,scrollbars=yes,resizable=yes');
-    // }
     openRequestInvoiceSummary() {
         const url = `${window.location.origin}/rerpweb/request-invoice-summary?warehouseId=${this.warehouseId}`;
         window.open(url, '_blank', 'width=1280,height=960,scrollbars=yes,resizable=yes');
     }
-
 
     openRequestInvoiceStatusLinkModal(): void {
         if (this.selectedId <= 0) {
@@ -383,7 +739,7 @@ export class RequestInvoiceComponent implements OnInit, AfterViewInit {
             return;
         }
 
-        this.RequestInvoiceService.getTreeFolderPath(this.selectedId).subscribe({
+        this.RequestInvoiceSlickgridService.getTreeFolderPath(this.selectedId).subscribe({
             next: (response) => {
                 if (response.status === 1) {
                     const folderPath = response.data;
@@ -433,7 +789,6 @@ export class RequestInvoiceComponent implements OnInit, AfterViewInit {
     openModal() {
         const modalRef = this.modalService.open(RequestInvoiceDetailComponent, {
             centered: true,
-            // size: 'xl',
             windowClass: 'full-screen-modal',
             backdrop: 'static',
         });
@@ -461,6 +816,7 @@ export class RequestInvoiceComponent implements OnInit, AfterViewInit {
             }
         );
     }
+
     onDelete() {
         if (!this.selectedId) {
             this.notification.error('Thông báo!', 'Vui lòng chọn yêu cầu cần xóa!');
@@ -505,7 +861,7 @@ export class RequestInvoiceComponent implements OnInit, AfterViewInit {
     }
 
     exportTableToExcel(): void {
-        const data = this.mainTable?.getData() || [];
+        const data = this.datasetMain || [];
         if (data.length === 0) {
             this.notification.warning('Cảnh báo', 'Không có dữ liệu để xuất!');
             return;
@@ -560,311 +916,7 @@ export class RequestInvoiceComponent implements OnInit, AfterViewInit {
         });
     }
 
-
-    initMainTable(): void {
-        this.mainTable = new Tabulator(this.tb_MainTableElement.nativeElement, {
-            ...DEFAULT_TABLE_CONFIG,
-            data: this.data,
-            layout: 'fitDataFill',
-            paginationMode: 'local',
-            height: '100%',
-            selectableRows: 1,
-            rowHeader: false,
-            rowFormatter: (row: RowComponent) => {
-                const data = row.getData();
-                const element = row.getElement();
-                if (element) {
-                    if (data['IsUrgency']) {
-                        element.style.backgroundColor = '#FFA500';
-                    } else {
-                        element.style.backgroundColor = '';
-                    }
-                }
-            },
-            columns: [
-                { title: 'ID', field: 'ID', sorter: 'string', width: 50, visible: false },
-                {
-                    title: 'Yêu cầu gấp',
-                    field: 'IsUrgency',
-                    sorter: 'boolean',
-                    width: 50,
-                    hozAlign: 'center',
-                    formatter: (cell) => {
-                        const checked = cell.getValue() ? 'checked' : '';
-                        return `<div style="text-align: center;">
-            <input type="checkbox" ${checked} disabled style="opacity: 1; pointer-events: none; cursor: default; width: 16px; height: 16px;"/>
-          </div>`;
-                    },
-                },
-                {
-                    title: 'Trạng thái',
-                    field: 'StatusText',
-                    sorter: 'string',
-                    formatter: 'textarea',
-                    width: 200,
-                    headerFilter: 'list',
-                    headerFilterFunc: 'like',
-                    headerFilterParams: {
-                        values: [
-                            { value: '', label: 'Tất cả' },
-                            ...this.statusData.map(item => ({
-                                value: item.StatusName,
-                                label: item.StatusName
-                            }))
-                        ],
-                        clearable: true,
-                    },
-                },
-                {
-                    title: 'Deadline',
-                    field: 'DealineUrgency',
-                    sorter: 'date',
-                    width: 100,
-                    formatter: (cell) => {
-                        const value = cell.getValue();
-                        return value ? DateTime.fromISO(value).toFormat('dd/MM/yyyy') : '';
-                    },
-                },
-                {
-                    title: 'Mã lệnh',
-                    field: 'Code',
-                    sorter: 'string',
-                    width: 200,
-                    headerFilter: 'input',
-                    headerFilterPlaceholder: 'Lọc mã lệnh...',
-                },
-                {
-                    title: 'Ngày yêu cầu',
-                    field: 'DateRequest',
-                    sorter: 'date',
-                    width: 200,
-                    formatter: (cell) => {
-                        const value = cell.getValue();
-                        return value ? DateTime.fromISO(value).toFormat('dd/MM/yyyy') : '';
-                    },
-                },
-                {
-                    title: 'Người yêu cầu',
-                    field: 'FullName',
-                    sorter: 'string',
-                    width: 150,
-                    headerFilter: 'input',
-                    headerFilterPlaceholder: 'Lọc người yêu cầu...',
-                },
-                {
-                    title: 'Tờ khai HQ',
-                    field: 'IsCustomsDeclared',
-                    sorter: 'boolean',
-                    width: 100,
-                    hozAlign: 'center',
-                    formatter: (cell) => {
-                        const checked = cell.getValue() ? 'checked' : '';
-                        return `<div style="text-align: center;">
-            <input type="checkbox" ${checked} disabled style="opacity: 1; pointer-events: none; cursor: default; width: 16px; height: 16px;"/>
-          </div>`;
-                    },
-                },
-                {
-                    title: 'Khách hàng',
-                    field: 'CustomerName',
-                    sorter: 'string',
-                    formatter: 'textarea',
-                    width: 250,
-                    headerFilter: 'input',
-                    headerFilterPlaceholder: 'Lọc khách hàng...',
-                },
-                {
-                    title: 'Địa chỉ',
-                    field: 'Address',
-                    sorter: 'string',
-                    width: 300,
-                    formatter: 'textarea',
-                    headerFilter: 'input',
-                    headerFilterPlaceholder: 'Lọc địa chỉ...',
-                },
-                {
-                    title: 'Công ty bán',
-                    field: 'Name',
-                    sorter: 'string',
-                    width: 140,
-                    headerFilter: 'input',
-                    headerFilterPlaceholder: 'Lọc công ty...',
-                },
-                {
-                    title: 'Lý do yêu cầu bổ sung',
-                    field: 'AmendReason',
-                    sorter: 'string',
-                    width: 215,
-                    formatter: 'textarea',
-                    headerFilter: 'input',
-                    headerFilterPlaceholder: 'Lọc lý do...',
-                },
-                {
-                    title: 'Ghi chú',
-                    field: 'Note',
-                    sorter: 'string',
-                    width: 200,
-                    formatter: 'textarea',
-                    headerFilter: 'input',
-                    headerFilterPlaceholder: 'Lọc ghi chú...',
-                },
-            ],
-        });
-        this.mainTable.on('rowClick', (e: any, row: RowComponent) => {
-            const ID = row.getData()['ID'];
-            this.selectedId = ID;
-            this.loadDetailData(ID);
-        });
-        setupTabulatorCellCopy(this.mainTable, this.tb_MainTableElement.nativeElement);
-    }
-    initDetailTable(): void {
-        this.detailTable = new Tabulator(this.tb_DetailTableElement.nativeElement, {
-            ...DEFAULT_TABLE_CONFIG,
-            data: this.dataDetail,
-            layout: 'fitDataFill',
-            height: '100%',
-            selectableRows: 1,
-            paginationMode: 'local',
-            rowHeader: false,
-            columns: [
-                {
-                    title: '',
-                    columns: [
-                        {
-                            title: 'STT',
-                            field: 'STT',
-                            sorter: 'number',
-                            width: 100,
-                            frozen: true,
-                        },
-                        {
-                            title: 'Mã nội bộ',
-                            field: 'ProductNewCode',
-                            sorter: 'string',
-                            width: 100,
-                            frozen: true,
-                        },
-                        {
-                            title: 'Mã sản phẩm',
-                            field: 'ProductCode',
-                            sorter: 'string',
-                            width: 150,
-                            frozen: true,
-                        },
-                        {
-                            title: 'Mã theo khách',
-                            field: 'GuestCode',
-                            sorter: 'string',
-                            width: 150,
-                        },
-                        {
-                            title: 'Tên sản phẩm',
-                            field: 'ProductName',
-                            sorter: 'string',
-                            width: 150,
-                        },
-                        { title: 'ĐVT', field: 'Unit', sorter: 'string', width: 150 },
-                        { title: 'Số lượng', field: 'Quantity', sorter: 'string', width: 150, bottomCalc: 'sum' },
-                        {
-                            title: 'Mã dự án',
-                            field: 'ProjectCode',
-                            sorter: 'string',
-                            width: 150,
-                        },
-                        { title: 'Dự án', field: 'ProjectName', sorter: 'string', width: 150 },
-                        { title: 'Ghi chú', field: 'Note', sorter: 'string', width: 150 },
-                        {
-                            title: 'Thông số kỹ thuật',
-                            field: 'Specifications',
-                            sorter: 'string',
-                            width: 150,
-                        },
-                        {
-                            title: 'Số hóa đơn',
-                            field: 'InvoiceNumber',
-                            sorter: 'string',
-                            width: 150,
-                        },
-                        {
-                            title: 'Ngày hóa đơn',
-                            field: 'InvoiceDate',
-                            sorter: 'date',
-                            width: 150,
-                            formatter: (cell) => {
-                                const value = cell.getValue();
-                                return value ? DateTime.fromISO(value).toFormat('dd/MM/yyyy') : '';
-                            },
-                        },
-                    ]
-                },
-                {
-                    title: 'Thông tin đầu vào',
-                    field: '',
-                    sorter: 'string',
-                    width: 200,
-                    columns: [
-                        {
-                            title: 'Ngày đặt hàng',
-                            field: 'RequestDate',
-                            sorter: 'string',
-                            width: 150,
-                        },
-                        {
-                            title: 'Ngày hàng về',
-                            field: 'DateRequestImport',
-                            sorter: 'string',
-                            width: 150,
-                        },
-                        {
-                            title: 'Nhà cung cấp',
-                            field: 'SupplierName',
-                            sorter: 'string',
-                            formatter: 'textarea',
-                            width: 250,
-                        },
-                        {
-                            title: 'Hóa đơn đầu vào',
-                            field: 'SomeBill',
-                            sorter: 'string',
-                            width: 250,
-                        },
-                        {
-                            title: 'Ngày hàng về dự kiến',
-                            field: 'ExpectedDate',
-                            sorter: 'string',
-                            width: 150,
-                        },
-                        {
-                            title: 'PNK',
-                            field: 'BillImportCode',
-                            sorter: 'string',
-                            width: 250,
-                        },
-                        { title: 'Công ty nhập', field: 'CompanyText', sorter: 'string', width: 120 },
-                    ]
-                }
-            ],
-        });
-
-        this.detailTable.on('rowClick', (e: any, row: RowComponent) => {
-            const POKHID = row.getData()['POKHID'];
-            this.loadPOKHFile(POKHID);
-        });
-
-        setupTabulatorCellCopy(this.detailTable, this.tb_DetailTableElement.nativeElement);
-
-        const detailContainer = this.tb_DetailTableElement.nativeElement.parentElement;
-        if (detailContainer) {
-            const resizeObserver = new ResizeObserver(() => {
-                if (this.detailTable) {
-                    setTimeout(() => {
-                        this.detailTable.redraw(true);
-                    }, 50);
-                }
-            });
-            resizeObserver.observe(detailContainer);
-        }
-    }
+    // File download functions
     private buildFullFilePath(file: any): string {
         if (!file) {
             return '';
@@ -876,7 +928,6 @@ export class RequestInvoiceComponent implements OnInit, AfterViewInit {
             return '';
         }
 
-        // Nếu ServerPath đã chứa tên file thì dùng luôn
         if (fileName && serverPath.toLowerCase().includes(fileName.toLowerCase())) {
             return serverPath;
         }
@@ -901,16 +952,14 @@ export class RequestInvoiceComponent implements OnInit, AfterViewInit {
             return;
         }
 
-        // Hiển thị loading message
         const loadingMsg = this.message.loading('Đang tải xuống file...', {
             nzDuration: 0,
         }).messageId;
 
-        this.RequestInvoiceService.downloadFile(fullPath).subscribe({
+        this.RequestInvoiceSlickgridService.downloadFile(fullPath).subscribe({
             next: (blob: Blob) => {
                 this.message.remove(loadingMsg);
 
-                // Kiểm tra xem có phải là blob hợp lệ không
                 if (blob && blob.size > 0) {
                     const url = window.URL.createObjectURL(blob);
                     const link = document.createElement('a');
@@ -929,7 +978,6 @@ export class RequestInvoiceComponent implements OnInit, AfterViewInit {
                 this.message.remove(loadingMsg);
                 console.error('Lỗi khi tải file:', res);
 
-                // Nếu error response là blob (có thể server trả về lỗi dạng blob)
                 if (res.error instanceof Blob) {
                     const reader = new FileReader();
                     reader.onload = () => {
@@ -961,16 +1009,14 @@ export class RequestInvoiceComponent implements OnInit, AfterViewInit {
             return;
         }
 
-        // Hiển thị loading message
         const loadingMsg = this.message.loading('Đang tải xuống file...', {
             nzDuration: 0,
         }).messageId;
 
-        this.RequestInvoiceService.downloadFile(fullPath).subscribe({
+        this.RequestInvoiceSlickgridService.downloadFile(fullPath).subscribe({
             next: (blob: Blob) => {
                 this.message.remove(loadingMsg);
 
-                // Kiểm tra xem có phải là blob hợp lệ không
                 if (blob && blob.size > 0) {
                     const url = window.URL.createObjectURL(blob);
                     const link = document.createElement('a');
@@ -989,7 +1035,6 @@ export class RequestInvoiceComponent implements OnInit, AfterViewInit {
                 this.message.remove(loadingMsg);
                 console.error('Lỗi khi tải file:', res);
 
-                // Nếu error response là blob (có thể server trả về lỗi dạng blob)
                 if (res.error instanceof Blob) {
                     const reader = new FileReader();
                     reader.onload = () => {
@@ -1009,133 +1054,52 @@ export class RequestInvoiceComponent implements OnInit, AfterViewInit {
         });
     }
 
-    initFileTable(): void {
-        // Tạo context menu
-        const contextMenuItems: any[] = [
-            {
-                label: 'Tải xuống',
-                action: () => {
-                    if (this.selectedFile) {
-                        this.downloadFile(this.selectedFile);
-                    } else {
-                        this.notification.warning('Thông báo', 'Vui lòng chọn một file để tải xuống!');
-                    }
+    private applyDistinctFiltersToGrid(
+        angularGrid: AngularGridInstance,
+        columnDefinitions: Column[],
+        fieldsToFilter: string[]
+    ): void {
+        if (!angularGrid?.slickGrid || !angularGrid?.dataView) return;
+
+        const data = angularGrid.dataView.getItems();
+        if (!data || data.length === 0) return;
+
+        const getUniqueValues = (dataArray: any[], field: string): Array<{ value: string; label: string }> => {
+            const map = new Map<string, string>();
+            dataArray.forEach((row: any) => {
+                const value = String(row?.[field] ?? '');
+                if (value && !map.has(value)) {
+                    map.set(value, value);
                 }
-            }
-        ];
+            });
+            return Array.from(map.entries())
+                .map(([value, label]) => ({ value, label }))
+                .sort((a, b) => a.label.localeCompare(b.label));
+        };
 
-        this.fileTable = new Tabulator(this.tb_FileTableElement.nativeElement, {
-            ...DEFAULT_TABLE_CONFIG,
-            data: this.dataFile,
-            layout: 'fitDataFill',
-            height: '100%',
-            selectableRows: 1,
-            rowHeader: false,
-            pagination: false,
-            rowContextMenu: contextMenuItems,
-            columns: [
-                {
-                    title: 'Tên file',
-                    field: 'FileName',
-                    sorter: 'string',
-                    width: '100%',
-                    formatter: (cell: any) => {
-                        const value = cell.getValue();
-                        if (value) {
-                            return `<span style="color: #1890ff; text-decoration: underline; cursor: pointer;">${value}</span>`;
-                        }
-                        return '';
-                    }
-                },
-                {
-                    title: 'Server Path',
-                    field: 'ServerPath',
-                    sorter: 'string',
-                    visible: false,
-                },
-            ],
-        });
+        const columns = angularGrid.slickGrid.getColumns();
+        if (!columns) return;
 
-        // Thêm sự kiện rowSelected để lưu file được chọn
-        this.fileTable.on('rowSelected', (row: RowComponent) => {
-            const rowData = row.getData();
-            this.selectedFile = rowData;
-        });
-
-        this.fileTable.on('rowDeselected', (row: RowComponent) => {
-            const selectedRows = this.fileTable!.getSelectedRows();
-            if (selectedRows.length === 0) {
-                this.selectedFile = null;
+        // Update runtime columns
+        columns.forEach((column: any) => {
+            if (column?.filter && column.filter.model === Filters['multipleSelect']) {
+                const field = column.field;
+                if (!field || !fieldsToFilter.includes(field)) return;
+                column.filter.collection = getUniqueValues(data, field);
             }
         });
 
-        // Double click để tải file
-        this.fileTable.on('rowDblClick', (e: UIEvent, row: RowComponent) => {
-            const rowData = row.getData();
-            this.selectedFile = rowData;
-            this.downloadFile(rowData);
-        });
-    }
-
-    initPOFileTable(): void {
-        // Tạo context menu
-        const contextMenuItems: any[] = [
-            {
-                label: 'Tải xuống',
-                action: () => {
-                    if (this.selectedPOFile) {
-                        this.downloadPOFile(this.selectedPOFile);
-                    } else {
-                        this.notification.warning('Thông báo', 'Vui lòng chọn một file để tải xuống!');
-                    }
-                }
-            }
-        ];
-
-        this.tb_POFile = new Tabulator(this.tb_POFileElement.nativeElement, {
-            ...DEFAULT_TABLE_CONFIG,
-            data: this.POFiles,
-            layout: 'fitDataFill',
-            height: '100%',
-            selectableRows: 1,
-            pagination: false,
-            rowHeader: false,
-            rowContextMenu: contextMenuItems,
-            columns: [
-                {
-                    title: 'Tên file',
-                    field: 'FileName',
-                    sorter: 'string',
-                    width: '100%',
-                    formatter: (cell: any) => {
-                        const value = cell.getValue();
-                        if (value) {
-                            return `<span style="color: #1890ff; text-decoration: underline; cursor: pointer;">${value}</span>`;
-                        }
-                        return '';
-                    }
-                },
-            ],
-        });
-
-        // Thêm sự kiện rowSelected để lưu file được chọn
-        this.tb_POFile.on('rowSelected', (row: RowComponent) => {
-            const rowData = row.getData();
-            this.selectedPOFile = rowData;
-        });
-
-        this.tb_POFile.on('rowDeselected', (row: RowComponent) => {
-            const selectedRows = this.tb_POFile!.getSelectedRows();
-            if (selectedRows.length === 0) {
-                this.selectedPOFile = null;
+        // Update column definitions
+        columnDefinitions.forEach((colDef: any) => {
+            if (colDef?.filter && colDef.filter.model === Filters['multipleSelect']) {
+                const field = colDef.field;
+                if (!field || !fieldsToFilter.includes(field)) return;
+                colDef.filter.collection = getUniqueValues(data, field);
             }
         });
 
-        // Double click để tải file
-        this.tb_POFile.on('rowDblClick', (e: UIEvent, row: RowComponent) => {
-            const rowData = row.getData();
-            this.selectedPOFile = rowData;
-            this.downloadPOFile(rowData);
-        });
+        angularGrid.slickGrid.setColumns(angularGrid.slickGrid.getColumns());
+        angularGrid.slickGrid.invalidate();
+        angularGrid.slickGrid.render();
     }
 }

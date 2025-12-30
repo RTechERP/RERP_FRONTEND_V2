@@ -192,6 +192,7 @@ import { HistoryBorrowSaleNewComponent } from './pages/old/Sale/HistoryBorrowSal
 import { MaterialDetailOfProductRtcComponent } from './pages/old/inventory-demo/material-detail-of-product-rtc/material-detail-of-product-rtc.component';
 import { ChiTietSanPhamSaleComponent } from './pages/old/Sale/chi-tiet-san-pham-sale/chi-tiet-san-pham-sale.component';
 import { PokhSlickgridComponent } from './pages/old/pokh-slickgrid/pokh-slickgrid.component';
+import { RequestInvoiceSlickgridComponent } from './pages/old/request-invoice-slickgrid/request-invoice-slickgrid.component';
 
 export const routes: Routes = [
     {
@@ -341,7 +342,8 @@ export const routes: Routes = [
             { path: 'employee-sale-manager', component: EmployeeSaleManagerComponent, canActivate: [authGuard] },
             { path: 'daily-report-sale', component: DailyReportSaleComponent, canActivate: [authGuard] },
             { path: 'daily-report-sale-admin', component: DailyReportSaleAdminComponent, canActivate: [authGuard] },
-            { path: 'request-invoice', component: RequestInvoiceComponent, canActivate: [authGuard] },
+            { path: 'request-invoice-old', component: RequestInvoiceComponent, canActivate: [authGuard] },
+            { path: 'request-invoice', component: RequestInvoiceSlickgridComponent, canActivate: [authGuard] },
             { path: 'request-invoice-summary', component: RequestInvoiceSummaryComponent, canActivate: [authGuard] },
             { path: 'history-export-accountant', component: HistoryExportAccountantComponent, canActivate: [authGuard] },
             { path: 'history-approved-bill-log', component: HistoryApprovedBillLogComponent, canActivate: [authGuard] },

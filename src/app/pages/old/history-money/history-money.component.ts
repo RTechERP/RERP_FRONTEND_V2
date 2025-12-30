@@ -307,6 +307,7 @@ export class HistoryMoneyComponent implements OnInit, AfterViewInit {
           field: 'TotalPriceIncludeVAT',
           sorter: 'number',
           width: 150,
+          hozAlign: 'right',
           formatter: 'money',
           formatterParams: {
             precision: 0,
@@ -321,6 +322,7 @@ export class HistoryMoneyComponent implements OnInit, AfterViewInit {
           field: 'TotalMoneyRemaining',
           sorter: 'number',
           width: 150,
+          hozAlign: 'right',
           formatter: 'money',
           formatterParams: {
             precision: 0,
@@ -335,6 +337,7 @@ export class HistoryMoneyComponent implements OnInit, AfterViewInit {
           field: 'Qty',
           sorter: 'number',
           width: 70,
+          hozAlign: 'right',
         },
         {
           title: 'PO',
@@ -476,6 +479,7 @@ export class HistoryMoneyComponent implements OnInit, AfterViewInit {
           sorter: 'date',
           editor: 'date',
           width: 150,
+          hozAlign: 'center',
           formatter: (cell: any) => {
             const value = cell.getValue();
             if (!value) return '';
@@ -492,6 +496,7 @@ export class HistoryMoneyComponent implements OnInit, AfterViewInit {
           field: 'Money',
           sorter: 'number',
           width: 150,
+          hozAlign: 'right',
           editor: 'input',
           formatter: 'money',
           formatterParams: {
@@ -537,6 +542,7 @@ export class HistoryMoneyComponent implements OnInit, AfterViewInit {
           sorter: 'number',
           editor: 'input',
           width: 70,
+          hozAlign: 'right',
           formatter: function (cell) {
             return cell.getValue() + '%';
           },
@@ -546,6 +552,7 @@ export class HistoryMoneyComponent implements OnInit, AfterViewInit {
           field: 'MoneyVAT',
           sorter: 'number',
           width: 150,
+          hozAlign: 'right',
           editor: 'input',
           formatter: 'money',
           formatterParams: {

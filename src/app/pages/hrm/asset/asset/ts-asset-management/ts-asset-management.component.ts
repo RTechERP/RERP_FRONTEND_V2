@@ -52,6 +52,7 @@ import { HasPermissionDirective } from '../../../../../directives/has-permission
 import { TsAssetSourceFormComponent } from '../ts-asset-source/ts-asset-source-form/ts-asset-source-form.component';
 import { NzDropDownModule } from 'ng-zorro-antd/dropdown';
 import { NzModalModule, NzModalService } from 'ng-zorro-antd/modal';
+import { NzSpinModule } from 'ng-zorro-antd/spin';
 import { NOTIFICATION_TITLE } from '../../../../../app.config';
 @Component({
   standalone: true,
@@ -78,6 +79,7 @@ import { NOTIFICATION_TITLE } from '../../../../../app.config';
     HasPermissionDirective,
     NzModalModule,
     NzDropDownModule,
+    NzSpinModule,
     AngularSlickgridModule
   ],
   selector: 'app-ts-asset-management',
@@ -125,6 +127,7 @@ export class TsAssetManagementComponent implements OnInit, AfterViewInit {
   departmentData: any[] = [];
   statusData: any[] = [];
   repairData: any[] = [];
+  isLoading: boolean = false;
    private resizeHandler = () => this.onResize();
 
   constructor(
@@ -171,6 +174,7 @@ export class TsAssetManagementComponent implements OnInit, AfterViewInit {
   }
 
   getAssetmanagement() {
+    this.isLoading = true;
     const statusString =
       this.status.length > 0 ? this.status.join(',') : '0,1,2,3,4,5,6,7,8';
     const departmentString =
@@ -204,8 +208,10 @@ export class TsAssetManagementComponent implements OnInit, AfterViewInit {
         setTimeout(() => {
           this.applyDistinctFilters();
         }, 100);
+        this.isLoading = false;
       },
       error: (err) => {
+        this.isLoading = false;
         console.error('Lỗi khi lấy dữ liệu tài sản:', err);
         this.notification.error(NOTIFICATION_TITLE.error, err?.error?.message || err.message);
       },

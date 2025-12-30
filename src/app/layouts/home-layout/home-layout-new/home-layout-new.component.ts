@@ -256,7 +256,6 @@ export class HomeLayoutNewComponent implements OnInit {
 
     newTab(route: string, title: string, data?: any) {
         route = route.replace(environment.baseHref, '');
-        console.log('this.dynamicTabs:', this.dynamicTabs);
 
         const idx = this.dynamicTabs.findIndex(t => t.route === route);
 
@@ -270,7 +269,7 @@ export class HomeLayoutNewComponent implements OnInit {
             ...this.dynamicTabs,
             { title, route, data }
         ];
-        console.log('this.dynamicTabs after add:', this.dynamicTabs);
+        // console.log('this.dynamicTabs after add:', this.dynamicTabs);
 
         setTimeout(() => {
             this.selectedIndex = this.dynamicTabs.length - 1;

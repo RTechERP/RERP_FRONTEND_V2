@@ -445,6 +445,24 @@ export class ProductSaleNewComponent implements OnInit, AfterViewInit {
 
     //#region Grid 3: Product Sale Grid Initialization
 
+    cleanXml(value: any): string {
+        if (value === null || value === undefined) return '';
+
+        return String(value)
+            // remove invalid XML chars
+            .replace(/[\u0000-\u0008\u000B\u000C\u000E-\u001F]/g, '')
+            // remove nbsp
+            .replace(/\u00A0/g, ' ')
+            // remove emoji (optional nhưng nên)
+            .replace(/[\u{1F300}-\u{1FAFF}]/gu, '');
+    }
+
+    excelBooleanFormatter: Formatter = (_row, _cell, value) => {
+        if (value === true) return 'x';
+        if (value === false) return '';
+        return '';
+    };
+
     initColumnDefinitionsProductSale() {
         this.columnDefinitionsProductSale = [
             {
@@ -462,6 +480,8 @@ export class ProductSaleNewComponent implements OnInit, AfterViewInit {
                         filter: true,
                     } as MultipleSelectOption,
                 },
+                formatter: (_r, _c, v) => v, // UI
+                exportCustomFormatter: (_r, _c, v) => this.cleanXml(v)
             },
             {
                 id: 'IsFix',
@@ -484,6 +504,8 @@ export class ProductSaleNewComponent implements OnInit, AfterViewInit {
                         autoAdjustDropHeight: true,
                     } as MultipleSelectOption,
                 },
+                // formatter: (_r, _c, v) => v, // UI
+                exportCustomFormatter: this.excelBooleanFormatter,
             },
             {
                 id: 'ProductCode',
@@ -500,6 +522,8 @@ export class ProductSaleNewComponent implements OnInit, AfterViewInit {
                         filter: true,
                     } as MultipleSelectOption,
                 },
+                formatter: (_r, _c, v) => v, // UI
+                exportCustomFormatter: (_r, _c, v) => this.cleanXml(v)
             },
             {
                 id: 'ProductNewCode',
@@ -516,6 +540,8 @@ export class ProductSaleNewComponent implements OnInit, AfterViewInit {
                         filter: true,
                     } as MultipleSelectOption,
                 },
+                formatter: (_r, _c, v) => v, // UI
+                exportCustomFormatter: (_r, _c, v) => this.cleanXml(v)
             },
             {
                 id: 'ProductName',
@@ -532,6 +558,8 @@ export class ProductSaleNewComponent implements OnInit, AfterViewInit {
                         filter: true,
                     } as MultipleSelectOption,
                 },
+                formatter: (_r, _c, v) => v, // UI
+                exportCustomFormatter: (_r, _c, v) => this.cleanXml(v)
             },
             {
                 id: 'Maker',
@@ -548,6 +576,8 @@ export class ProductSaleNewComponent implements OnInit, AfterViewInit {
                         filter: true,
                     } as MultipleSelectOption,
                 },
+                formatter: (_r, _c, v) => v, // UI
+                exportCustomFormatter: (_r, _c, v) => this.cleanXml(v)
             },
             {
                 id: 'Unit',
@@ -564,6 +594,8 @@ export class ProductSaleNewComponent implements OnInit, AfterViewInit {
                         filter: true,
                     } as MultipleSelectOption,
                 },
+                formatter: (_r, _c, v) => v, // UI
+                exportCustomFormatter: (_r, _c, v) => this.cleanXml(v)
             },
             {
                 id: 'LocationName',
@@ -580,6 +612,8 @@ export class ProductSaleNewComponent implements OnInit, AfterViewInit {
                         filter: true,
                     } as MultipleSelectOption,
                 },
+                formatter: (_r, _c, v) => v, // UI
+                exportCustomFormatter: (_r, _c, v) => this.cleanXml(v)
             },
             {
                 id: 'Detail',
@@ -589,6 +623,8 @@ export class ProductSaleNewComponent implements OnInit, AfterViewInit {
                 sortable: true,
                 filterable: true,
                 filter: { model: Filters['compoundInputText'] },
+                formatter: (_r, _c, v) => v, // UI
+                exportCustomFormatter: (_r, _c, v) => this.cleanXml(v)
             },
             {
                 id: 'Note',
@@ -598,6 +634,8 @@ export class ProductSaleNewComponent implements OnInit, AfterViewInit {
                 sortable: true,
                 filterable: true,
                 filter: { model: Filters['compoundInputText'] },
+                formatter: (_r, _c, v) => v, // UI
+                exportCustomFormatter: (_r, _c, v) => this.cleanXml(v)
             },
         ];
     }
@@ -634,6 +672,7 @@ export class ProductSaleNewComponent implements OnInit, AfterViewInit {
             excelExportOptions: {
                 sanitizeDataExport: true,
                 exportWithFormatter: true,
+                // autoFitColumns: true
             },
         };
     }

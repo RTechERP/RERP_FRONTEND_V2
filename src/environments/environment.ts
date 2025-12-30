@@ -5,5 +5,5 @@ export const environment = {
     host: 'https://localhost:44365/',
     // host: 'http://10.20.28.213:8087/',
     hostwebold: 'https://localhost:19028/',
-    baseHref: '',
+    baseHref: '/rerpweb',
 };

@@ -171,7 +171,7 @@ export class EmployeeRegisterBussinessComponent implements OnInit, AfterViewInit
       DateEnd: endDate,
       Keyword: formValue.keyWord || "",
       EmployeeID: 0,
-      IsApproved: formValue.status !== -1 ? formValue.status : null,
+      IsApproved: formValue.status !== -1 ? formValue.status : -1,
       Type: formValue.type || null,
       VehicleID: formValue.vehicleId || null,
       NotCheckIn: notCheckInValue

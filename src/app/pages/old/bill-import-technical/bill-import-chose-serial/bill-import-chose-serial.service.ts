@@ -24,7 +24,7 @@ export class BillImportChoseSerialService {
   }
 
   saveData(data: any): Observable<any> {
-    return this.http.post<any>(`${this.baseUrl}save-data`, data);
+    return this.http.post<any>(`${this.baseUrl}save-data-sale`, data);
   }
 
   saveDataTech(data: any): Observable<any> {

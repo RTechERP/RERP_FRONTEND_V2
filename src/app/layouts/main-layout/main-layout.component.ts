@@ -420,9 +420,6 @@ export class MainLayoutComponent implements OnInit, AfterViewInit, OnDestroy {
                     this.menuKey = x;
                 });
 
-
-
-
                 const map = new Map<number, any>();
                 // this.nodes = [];
                 // Tạo map trước
@@ -864,15 +861,18 @@ export class MainLayoutComponent implements OnInit, AfterViewInit, OnDestroy {
     isMenuOpen = (key: string) =>
         this.menus.some((m) => m.key === key && m.isOpen);
 
-    toggleMenu(key: string) {
-        // console.log('toggler menus:', this.menus);
-        // this.menus.forEach((x) => (x.isOpen = false));
-        // console.log('toggleMenu key:', key);
-        const m = this.menus.find((x) => x.key === key);
-        // console.log('toggleMenu m:', m);
-        if (m) m.isOpen = !m.isOpen;
+    toggleMenu(event: MouseEvent, route: string, key: string) {
 
-        if (m?.isOpen) this.menuKey = key;
+        if (route == '') return;
+        if (event.button === 0 && !event.ctrlKey && !event.metaKey) {
+            event.preventDefault(); // chặn reload
+
+            const m = this.menus.find((x) => x.key === key);
+            if (m) m.isOpen = !m.isOpen;
+
+            if (m?.isOpen) this.menuKey = key;
+
+        }
     }
 
     // dùng khi muốn mở thẳng 1 group từ nơi khác

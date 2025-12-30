@@ -192,6 +192,15 @@ import { HistoryBorrowSaleNewComponent } from './pages/old/Sale/HistoryBorrowSal
 import { MaterialDetailOfProductRtcComponent } from './pages/old/inventory-demo/material-detail-of-product-rtc/material-detail-of-product-rtc.component';
 import { ChiTietSanPhamSaleComponent } from './pages/old/Sale/chi-tiet-san-pham-sale/chi-tiet-san-pham-sale.component';
 import { PokhSlickgridComponent } from './pages/old/pokh-slickgrid/pokh-slickgrid.component';
+import { CrmComponent } from './pages/crm/crm.component';
+import { GeneralCategoryComponent } from './pages/general-category/general-category.component';
+import { SystemsComponent } from './pages/systems/systems.component';
+import { WarehouseComponent } from './pages/warehouse/warehouse.component';
+import { SalesComponent } from './pages/sales/sales.component';
+import { AccountingComponent } from './pages/accounting/accounting.component';
+import { PurchaseComponent } from './pages/purchase/purchase.component';
+import { HrmComponent } from './pages/hrm/hrm.component';
+import { ApproveComponent } from './pages/approve/approve.component';
 
 export const routes: Routes = [
     {
@@ -230,6 +239,21 @@ export const routes: Routes = [
             //#region kế toán
             { path: 'paymentorder', component: PaymentOrderComponent, canActivate: [authGuard] },
 
+            //#endregion
+
+
+            //#region  Các phân hệ chính
+            { path: 'approve', component: ApproveComponent, canActivate: [authGuard] },
+            { path: 'person', component: PersonComponent, canActivate: [authGuard] },
+            { path: 'category', component: GeneralCategoryComponent, canActivate: [authGuard] },
+            { path: 'system', component: SystemsComponent, canActivate: [authGuard] },
+            { path: 'crm', component: CrmComponent, canActivate: [authGuard] },
+            { path: 'warehouses', component: WarehouseComponent, canActivate: [authGuard] },
+            { path: 'sale', component: SalesComponent, canActivate: [authGuard] },
+            { path: 'accounting', component: AccountingComponent, canActivate: [authGuard] },
+            { path: 'purchase', component: PurchaseComponent, canActivate: [authGuard] },
+            { path: 'projects', component: ProjectComponent, canActivate: [authGuard] },
+            { path: 'hrm', component: HrmComponent, canActivate: [authGuard] },
             //#endregion
 
             // { path: 'customer', component: CustomerComponent, canActivate: [authGuard] },
@@ -376,6 +400,7 @@ export const routes: Routes = [
             { path: 'project-partlist', component: ProjectPartListComponent, canActivate: [authGuard] },
             { path: 'org-chart-rtc', component: OrgChartRtcComponent, canActivate: [authGuard] },
             { path: 'org-chart-rtc-management', component: OrgChartRtcManagementComponent, canActivate: [authGuard] },
+
 
 
 

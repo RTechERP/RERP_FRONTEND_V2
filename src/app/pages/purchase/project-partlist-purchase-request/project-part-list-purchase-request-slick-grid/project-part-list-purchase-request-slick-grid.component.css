@@ -34,3 +34,9 @@
 ::ng-deep div[id^="grid-"] {
   height: 80vh!important;
 }
+
+/* Căn phải các cột số */
+::ng-deep .slick-cell.text-right {
+  text-align: right !important;
+  padding-right: 8px !important;
+}

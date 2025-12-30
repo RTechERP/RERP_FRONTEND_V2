@@ -17,7 +17,7 @@ import { NzSelectModule } from 'ng-zorro-antd/select';
 import { NzSplitterModule } from 'ng-zorro-antd/splitter';
 import { NzTabSetComponent, NzTabComponent } from 'ng-zorro-antd/tabs';
 import { NzModalService, NzModalModule } from 'ng-zorro-antd/modal';
-import { AngularGridInstance, AngularSlickgridModule, Column, Filters, Formatters, GridOption, OnClickEventArgs, OnSelectedRowsChangedEventArgs } from 'angular-slickgrid';
+import { AngularGridInstance, AngularSlickgridModule, Column, Filters, Formatters, GridOption, MultipleSelectOption, OnClickEventArgs, OnSelectedRowsChangedEventArgs } from 'angular-slickgrid';
 import { PONCCService } from '../poncc/poncc.service';
 import { NgbModal } from '@ng-bootstrap/ng-bootstrap';
 import { ProjectService } from '../../project/project-service/project.service';
@@ -213,6 +213,9 @@ export class PonccNewComponent implements OnInit, AfterViewInit {
                 filter: {
                     model: Filters['multipleSelect'],
                     collection: [],
+                    filterOptions: {
+                      filter:true
+                    } as MultipleSelectOption,
                 },
 
                 formatter: (_row, _cell, value, _column, dataContext) => {
@@ -264,6 +267,9 @@ export class PonccNewComponent implements OnInit, AfterViewInit {
                 filter: {
                     model: Filters['multipleSelect'],
                     collection: [],
+                    filterOptions: {
+                      filter:true
+                    } as MultipleSelectOption,
                 },
 
                 formatter: (_row, _cell, value, _column, dataContext) => {
@@ -293,6 +299,9 @@ export class PonccNewComponent implements OnInit, AfterViewInit {
                 filter: {
                     model: Filters['multipleSelect'],
                     collection: [],
+                    filterOptions: {
+                      filter:true
+                    } as MultipleSelectOption,
                 },
 
                 formatter: (_row, _cell, value, _column, dataContext) => {
@@ -332,6 +341,9 @@ export class PonccNewComponent implements OnInit, AfterViewInit {
                 filter: {
                     model: Filters['multipleSelect'],
                     collection: [],
+                    filterOptions: {
+                      filter:true
+                    } as MultipleSelectOption,
                 },
 
                 formatter: (_row, _cell, value, _column, dataContext) => {
@@ -371,6 +383,9 @@ export class PonccNewComponent implements OnInit, AfterViewInit {
                 filter: {
                     model: Filters['multipleSelect'],
                     collection: [],
+                    filterOptions: {
+                      filter:true
+                    } as MultipleSelectOption,
                 },
 
                 formatter: (_row, _cell, value, _column, dataContext) => {
@@ -400,6 +415,9 @@ export class PonccNewComponent implements OnInit, AfterViewInit {
                 filter: {
                     model: Filters['multipleSelect'],
                     collection: [],
+                    filterOptions: {
+                      filter:true
+                    } as MultipleSelectOption,
                 },
 
                 formatter: (_row, _cell, value, _column, dataContext) => {
@@ -450,6 +468,9 @@ export class PonccNewComponent implements OnInit, AfterViewInit {
                 filter: {
                     model: Filters['multipleSelect'],
                     collection: [],
+                    filterOptions: {
+                      filter:true
+                    } as MultipleSelectOption,
                 },
 
                 formatter: (_row, _cell, value, _column, dataContext) => {
@@ -508,6 +529,9 @@ export class PonccNewComponent implements OnInit, AfterViewInit {
                 filter: {
                     model: Filters['multipleSelect'],
                     collection: [],
+                    filterOptions: {
+                      filter:true
+                    } as MultipleSelectOption,
                 },
             },
             {
@@ -520,6 +544,9 @@ export class PonccNewComponent implements OnInit, AfterViewInit {
                 filter: {
                     model: Filters['multipleSelect'],
                     collection: [],
+                    filterOptions: {
+                      filter:true
+                    } as MultipleSelectOption,
                 },
 
                 formatter: (_row, _cell, value, _column, dataContext) => {
@@ -549,6 +576,9 @@ export class PonccNewComponent implements OnInit, AfterViewInit {
                 filter: {
                     model: Filters['multipleSelect'],
                     collection: [],
+                    filterOptions: {
+                      filter:true
+                    } as MultipleSelectOption,
                 },
 
                 formatter: (_row, _cell, value, _column, dataContext) => {
@@ -578,6 +608,9 @@ export class PonccNewComponent implements OnInit, AfterViewInit {
                 filter: {
                     model: Filters['multipleSelect'],
                     collection: [],
+                    filterOptions: {
+                      filter:true
+                    } as MultipleSelectOption,
                 },
 
                 formatter: (_row, _cell, value, _column, dataContext) => {
@@ -633,6 +666,9 @@ export class PonccNewComponent implements OnInit, AfterViewInit {
                 filter: {
                     model: Filters['multipleSelect'],
                     collection: [],
+                    filterOptions: {
+                      filter:true
+                    } as MultipleSelectOption,
                 },
 
                 formatter: (_row, _cell, value, _column, dataContext) => {

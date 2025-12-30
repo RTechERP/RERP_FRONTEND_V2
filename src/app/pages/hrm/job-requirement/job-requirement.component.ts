@@ -17,6 +17,7 @@ import {
     Input,
     Optional,
     Inject,
+    CUSTOM_ELEMENTS_SCHEMA,
 } from '@angular/core';
 import { NzFormModule } from 'ng-zorro-antd/form';
 import { NzCardModule } from 'ng-zorro-antd/card';
@@ -38,14 +39,19 @@ import { NzTableModule } from 'ng-zorro-antd/table';
 import { NzModalModule } from 'ng-zorro-antd/modal';
 import { NzInputNumberModule } from 'ng-zorro-antd/input-number';
 import {
-    TabulatorFull as Tabulator,
-    CellComponent,
-    ColumnDefinition,
-    RowComponent,
-} from 'tabulator-tables';
+    AngularGridInstance,
+    AngularSlickgridModule,
+    Column,
+    Filters,
+    Formatters,
+    GridOption,
+    OnClickEventArgs,
+    OnSelectedRowsChangedEventArgs
+} from 'angular-slickgrid';
+import { MultipleSelectOption } from '@slickgrid-universal/common';
 import { NzUploadModule } from 'ng-zorro-antd/upload';
-import 'tabulator-tables/dist/css/tabulator_simple.min.css';
 import { NzTabsModule } from 'ng-zorro-antd/tabs';
+import { NzSpinModule } from 'ng-zorro-antd/spin';
 import { DateTime } from 'luxon';
 
 import { NzNotificationService } from 'ng-zorro-antd/notification';
@@ -55,7 +61,6 @@ import * as ExcelJS from 'exceljs';
 import { format, isValid, parseISO } from 'date-fns';
 import { ChangeDetectorRef } from '@angular/core';
 import { NzDropDownModule } from 'ng-zorro-antd/dropdown';
-import { DEFAULT_TABLE_CONFIG } from '../../../tabulator-default.config';
 
 // @ts-ignore
 import { saveAs } from 'file-saver';
@@ -115,19 +120,41 @@ import { ActivatedRoute } from '@angular/router';
         NzInputNumberModule,
         NzDropDownModule,
         NzMenuModule,
+        NzSpinModule,
         HasPermissionDirective,
+        AngularSlickgridModule,
     ],
     templateUrl: './job-requirement.component.html',
-    styleUrl: './job-requirement.component.css'
+    styleUrl: './job-requirement.component.css',
+    schemas: [CUSTOM_ELEMENTS_SCHEMA]
 })
 export class JobRequirementComponent implements OnInit, AfterViewInit {
 
-    @ViewChild('JobrequirementTable') tableRef1!: ElementRef;
-    @ViewChild('JobrequirementDetailTable') tableRef2!: ElementRef;
-    @ViewChild('JobrequirementFileTable') tableRef3!: ElementRef;
-    @ViewChild('JobrequirementApprovedTable') tableRef4!: ElementRef;
-
     @Input() approvalMode: 1 | 2 | 3 | null = null;
+
+    // SlickGrid instances
+    angularGrid!: AngularGridInstance;
+    angularGridDetail!: AngularGridInstance;
+    angularGridFile!: AngularGridInstance;
+    angularGridApproved!: AngularGridInstance;
+
+    // Column definitions
+    columnDefinitions: Column[] = [];
+    columnDefinitionsDetail: Column[] = [];
+    columnDefinitionsFile: Column[] = [];
+    columnDefinitionsApproved: Column[] = [];
+
+    // Grid options
+    gridOptions: GridOption = {};
+    gridOptionsDetail: GridOption = {};
+    gridOptionsFile: GridOption = {};
+    gridOptionsApproved: GridOption = {};
+
+    // Datasets
+    dataset: any[] = [];
+    datasetDetail: any[] = [];
+    datasetFile: any[] = [];
+    datasetApproved: any[] = [];
 
     searchParams = {
         DateStart: new Date(new Date().getFullYear(), new Date().getMonth(), 1),
@@ -135,16 +162,11 @@ export class JobRequirementComponent implements OnInit, AfterViewInit {
         Request: '',
         EmployeeID: 0,
         DepartmentID: 0,
-
         ApprovedTBPID: 0,
         Step: 0,
-
-
     };
 
     JobrequirementData: any[] = [];
-    JobrequirementTable: Tabulator | null = null;
-
     JobrequirementID: number = 0;
     DepartmentRequiredID: number = 0;
     data: any[] = [];
@@ -152,13 +174,8 @@ export class JobRequirementComponent implements OnInit, AfterViewInit {
     cbbEmployee: any[] = [];
 
     JobrequirementDetailData: any[] = [];
-    JobrequirementDetailTable: Tabulator | null = null;
-
     JobrequirementFileData: any[] = [];
-    JobrequirementFileTable: Tabulator | null = null;
-
     JobrequirementApprovedData: any[] = [];
-    JobrequirementApprovedTable: Tabulator | null = null;
 
     HCNSApprovalData: any[] = [];
     isHCNSApproved: boolean = false; // Trạng thái đã duyệt HCNS hay chưa
@@ -166,6 +183,7 @@ export class JobRequirementComponent implements OnInit, AfterViewInit {
     sizeSearch: string = '0';
     showSearchBar: boolean = true;
     isCheckmode: boolean = false;
+    isLoading: boolean = false;
     dateFormat = 'dd/MM/yyyy';
 
     get shouldShowSearchBar(): boolean {
@@ -175,6 +193,12 @@ export class JobRequirementComponent implements OnInit, AfterViewInit {
     dataInput: any = {};
 
    ngOnInit(): void {
+  // Initialize grids first to ensure columns are defined before view renders
+  this.initGrid();
+  this.initGridDetail();
+  this.initGridFile();
+  this.initGridApproved();
+
   this.route.queryParams.subscribe(params => {
     const typeApprove = params['typeApprove'] || 0;
 
@@ -195,10 +219,7 @@ export class JobRequirementComponent implements OnInit, AfterViewInit {
   this.getdataDepartment();
 }
     ngAfterViewInit(): void {
-        this.draw_JobrequirementTable();
-        this.draw_JobrequirementDetailTable();
-        this.draw_JobrequirementFileTable();
-        this.draw_JobrequirementApprovedTable();
+        // Grid initialization moved to ngOnInit
     }
 
     currentUser: any = null;
@@ -258,6 +279,7 @@ getCurrentUser(): void {
     }
 
     getJobrequirement(): void {
+        this.isLoading = true;
         this.JobRequirementService.getJobrequirement(
             this.searchParams.DepartmentID,
             this.searchParams.EmployeeID,
@@ -266,31 +288,40 @@ getCurrentUser(): void {
             this.searchParams.Request,
             this.searchParams.DateStart,
             this.searchParams.DateEnd
-        ).subscribe((response: any) => {
-
-            this.JobrequirementData = response.data || [];
-
-            if (!this.JobrequirementTable) {
-                this.draw_JobrequirementTable();
-            }
-
-            // Thay thế setTimeout bằng Promise để tránh nested setTimeout
-            Promise.resolve().then(() => {
-                this.JobrequirementTable!.replaceData(this.JobrequirementData);
+        ).subscribe({
+            next: (response: any) => {
+                this.JobrequirementData = response.data || [];
                 
-                // Focus on first row and load details if data exists
-                if (this.JobrequirementData.length > 0) {
-                    this.JobrequirementID = this.JobrequirementData[0].ID;
+                // Map data with id for SlickGrid
+                this.dataset = this.JobrequirementData.map((item: any, index: number) => ({
+                    ...item,
+                    id: item.ID,
+                    RowIndex: index + 1
+                }));
+
+                // Apply distinct filters after data is loaded
+                setTimeout(() => {
+                    this.applyDistinctFilters();
                     
-                    // Chỉ select row, data sẽ được load qua sự kiện rowSelected
-                    const firstRow = this.JobrequirementTable!.getRow(0);
-                    if (firstRow) {
-                        firstRow.select();
+                    // Select first row if data exists
+                    if (this.dataset.length > 0 && this.angularGrid?.slickGrid) {
+                        this.JobrequirementID = this.dataset[0].ID;
+                        this.angularGrid.slickGrid.setSelectedRows([0]);
+                        this.getJobrequirementDetails(this.JobrequirementID);
+                        this.getHCNSData(this.JobrequirementID);
+                    } else {
+                        this.JobrequirementID = 0;
                     }
-                } else {
-                    this.JobrequirementID = 0;
-                }
-            });
+                }, 100);
+                this.isLoading = false;
+            },
+            error: (err: any) => {
+                this.isLoading = false;
+                this.notification.error(
+                    NOTIFICATION_TITLE.error,
+                    'Lỗi khi tải dữ liệu: ' + (err?.error?.message || err?.message)
+                );
+            }
         });
     }
 
@@ -303,31 +334,26 @@ getCurrentUser(): void {
             (response: any) => {
                 const data = response.data || {};
 
-                // Cập nhật details
+                // Cập nhật details - map with id for SlickGrid
                 this.JobrequirementDetailData = data.details || [];
-                if (this.JobrequirementDetailTable) {
-                    this.JobrequirementDetailTable.setData(this.JobrequirementDetailData);
-                } else {
-                    this.draw_JobrequirementDetailTable();
-                }
+                this.datasetDetail = this.JobrequirementDetailData.map((item: any, index: number) => ({
+                    ...item,
+                    id: item.ID || index
+                }));
 
-                // Cập nhật files
+                // Cập nhật files - map with id for SlickGrid
                 this.JobrequirementFileData = data.files || [];
-                if (this.JobrequirementFileTable) {
-                    this.JobrequirementFileTable.setData(this.JobrequirementFileData);
-                } else {
-                    this.draw_JobrequirementFileTable();
-                }
+                this.datasetFile = this.JobrequirementFileData.map((item: any, index: number) => ({
+                    ...item,
+                    id: item.ID || index
+                }));
 
-                // Cập nhật approves
+                // Cập nhật approves - map with id for SlickGrid
                 this.JobrequirementApprovedData = data.approves || [];
-                if (this.JobrequirementApprovedTable) {
-                    this.JobrequirementApprovedTable.setData(
-                        this.JobrequirementApprovedData
-                    );
-                } else {
-                    this.draw_JobrequirementApprovedTable();
-                }
+                this.datasetApproved = this.JobrequirementApprovedData.map((item: any, index: number) => ({
+                    ...item,
+                    id: item.ID || index
+                }));
             }
         );
     }
@@ -402,7 +428,7 @@ getCurrentUser(): void {
             return;
         }
 
-        const selected = this.JobrequirementTable?.getSelectedData() || [];
+        const selected = this.getSelectedData() || [];
         const rowData = { ...selected[0] };
         const modalRef = this.modalService.open(RecommendSupplierFormComponent, {
             size: 'xl',
@@ -418,7 +444,7 @@ getCurrentUser(): void {
             .then((result) => {
                 if (result == true) {
                     this.getJobrequirement();
-                    this.draw_JobrequirementTable();
+                    // Refresh grid data after changes
                     // Reload HCNS data để cập nhật trạng thái
                     if (this.JobrequirementID) {
                         this.getHCNSData(this.JobrequirementID);
@@ -433,7 +459,7 @@ getCurrentUser(): void {
 
         // Nếu là chế độ sửa, cần kiểm tra có row được chọn không
         if (this.isCheckmode == true) {
-            const selected = this.JobrequirementTable?.getSelectedData() || [];
+            const selected = this.getSelectedData() || [];
             if (selected.length === 0) {
                 this.notification.warning(
                     NOTIFICATION_TITLE.warning,
@@ -490,7 +516,7 @@ getCurrentUser(): void {
                 .then((result) => {
                     if (result == true) {
                         this.getJobrequirement();
-                        this.draw_JobrequirementTable();
+                        // Refresh grid data after changes
                     }
                 })
                 .catch(() => { });
@@ -519,14 +545,14 @@ getCurrentUser(): void {
                 .then((result) => {
                     if (result == true) {
                         this.getJobrequirement();
-                        this.draw_JobrequirementTable();
+                        // Refresh grid data after changes
                     }
                 })
                 .catch(() => { });
         }
     }
     onDeleteJobRequirement() {
-        const selected = this.JobrequirementTable?.getSelectedData() || [];
+        const selected = this.getSelectedData() || [];
 
         if (selected.length === 0) {
             this.notification.warning(
@@ -601,15 +627,10 @@ getCurrentUser(): void {
                             this.JobrequirementDetailData = [];
                             this.JobrequirementFileData = [];
                             this.JobrequirementApprovedData = [];
-                            if (this.JobrequirementDetailTable) {
-                                this.JobrequirementDetailTable.setData([]);
-                            }
-                            if (this.JobrequirementFileTable) {
-                                this.JobrequirementFileTable.setData([]);
-                            }
-                            if (this.JobrequirementApprovedTable) {
-                                this.JobrequirementApprovedTable.setData([]);
-                            }
+                            // Reset SlickGrid datasets
+                            this.datasetDetail = [];
+                            this.datasetFile = [];
+                            this.datasetApproved = [];
                         } else {
                             this.notification.error(
                                 NOTIFICATION_TITLE.error,
@@ -630,7 +651,7 @@ getCurrentUser(): void {
     }
 
     onOpenDepartmentRequired() {
-        const selected = this.JobrequirementTable?.getSelectedData() || [];
+        const selected = this.getSelectedData() || [];
         const rowData = { ...selected[0] };
 
         // Lấy JobrequirementID từ row đã chọn hoặc từ biến
@@ -654,7 +675,7 @@ getCurrentUser(): void {
      * Xem yêu cầu báo giá
      */
     onViewPriceQuote(): void {
-        const selected = this.JobrequirementTable?.getSelectedData() || [];
+        const selected = this.getSelectedData() || [];
 
         if (selected.length === 0) {
             this.notification.warning(
@@ -680,7 +701,7 @@ getCurrentUser(): void {
      * Xem yêu cầu mua hàng
      */
     onViewPurchaseRequest(): void {
-        const selected = this.JobrequirementTable?.getSelectedData() || [];
+        const selected = this.getSelectedData() || [];
 
         if (selected.length === 0) {
             this.notification.warning(
@@ -763,7 +784,7 @@ getCurrentUser(): void {
                 const data = response.data || {};
 
                 // Lấy thông tin chính từ bảng JobrequirementData
-                const selectedRow = this.JobrequirementTable?.getSelectedData()[0];
+                const selectedRow = this.getSelectedData()[0];
                 const jobRequirement = selectedRow || {};
 
                 // Lấy chi tiết từ response
@@ -1029,7 +1050,7 @@ getCurrentUser(): void {
      * Yêu cầu báo giá - mở form ProjectPartlistPriceRequestFormComponent
      */
     onRequestPriceQuote(): void {
-        const selected = this.JobrequirementTable?.getSelectedData() || [];
+        const selected = this.getSelectedData() || [];
 
         if (selected.length === 0) {
             this.notification.warning(
@@ -1140,7 +1161,7 @@ getCurrentUser(): void {
      * Xác nhận hoàn thành yêu cầu công việc (BPPH)
      */
     onConfirmComplete(): void {
-        const selected = this.JobrequirementTable?.getSelectedData() || [];
+        const selected = this.getSelectedData() || [];
 
         if (selected.length === 0) {
             this.notification.warning(
@@ -1240,7 +1261,7 @@ getCurrentUser(): void {
      * Mở modal để nhập ghi chú
      */
     onOpenNoteModal(): void {
-        const selected = this.JobrequirementTable?.getSelectedData() || [];
+        const selected = this.getSelectedData() || [];
 
         if (selected.length === 0) {
             this.notification.warning(
@@ -1504,7 +1525,7 @@ getCurrentUser(): void {
      * @param buttonName Tên button được click
      */
     onApproveJobRequirement(buttonName: string): void {
-        const selected = this.JobrequirementTable?.getSelectedData() || [];
+        const selected = this.getSelectedData() || [];
 
         if (selected.length === 0) {
             this.notification.warning(
@@ -1663,7 +1684,7 @@ getCurrentUser(): void {
      * Xử lý yêu cầu/hủy yêu cầu BGD duyệt
      */
     onRequestBGDApprove(isRequest: boolean): void {
-        const selected = this.JobrequirementTable?.getSelectedData() || [];
+        const selected = this.getSelectedData() || [];
 
         if (selected.length === 0) {
             this.notification.warning(
@@ -1740,19 +1761,19 @@ getCurrentUser(): void {
 
     toggleSearchPanel() {
         this.sizeSearch = this.sizeSearch === '0' ? '22%' : '0';
-        // Force redraw tables after splitter resize to fix layout issues
+        // Force resize grids after splitter resize
         setTimeout(() => {
-            if (this.JobrequirementTable) {
-                this.JobrequirementTable.redraw(true);
+            if (this.angularGrid?.resizerService) {
+                this.angularGrid.resizerService.resizeGrid();
             }
-            if (this.JobrequirementDetailTable) {
-                this.JobrequirementDetailTable.redraw(true);
+            if (this.angularGridDetail?.resizerService) {
+                this.angularGridDetail.resizerService.resizeGrid();
             }
-            if (this.JobrequirementFileTable) {
-                this.JobrequirementFileTable.redraw(true);
+            if (this.angularGridFile?.resizerService) {
+                this.angularGridFile.resizerService.resizeGrid();
             }
-            if (this.JobrequirementApprovedTable) {
-                this.JobrequirementApprovedTable.redraw(true);
+            if (this.angularGridApproved?.resizerService) {
+                this.angularGridApproved.resizerService.resizeGrid();
             }
         }, 300);
     }
@@ -1778,7 +1799,7 @@ getCurrentUser(): void {
      * Xuất dữ liệu Excel theo các cột hiển thị trên bảng
      */
     exportToExcel(): void {
-        if (!this.JobrequirementTable || this.JobrequirementData.length === 0) {
+        if (!this.dataset || this.dataset.length === 0) {
             this.notification.warning(
                 NOTIFICATION_TITLE.warning,
                 'Không có dữ liệu để xuất Excel!'
@@ -1790,18 +1811,16 @@ getCurrentUser(): void {
             const workbook = new ExcelJS.Workbook();
             const worksheet = workbook.addWorksheet('Yêu cầu công việc');
 
-            // Get columns from table
-            const columns = this.JobrequirementTable.getColumns();
+            // Get columns from SlickGrid column definitions
             const headers: string[] = [];
             const columnFields: string[] = [];
             const columnWidths: number[] = [];
 
-            columns.forEach((col: any) => {
-                const def = col.getDefinition();
-                if (def.field && def.title) {
-                    headers.push(def.title);
-                    columnFields.push(def.field);
-                    columnWidths.push(def.width || 120);
+            this.columnDefinitions.forEach((col: Column) => {
+                if (col.field && col.name && !col.hidden) {
+                    headers.push(col.name as string);
+                    columnFields.push(col.field);
+                    columnWidths.push(col.width || 120);
                 }
             });
 
@@ -1895,433 +1914,519 @@ getCurrentUser(): void {
         }
     }
 
-    private draw_JobrequirementTable(): void {
-        if (this.JobrequirementTable) {
-            this.JobrequirementTable.setData(this.JobrequirementData || []);
-        } else {
-            // Tạo context menu
-            const contextMenuItems: any[] = [
-                {
-                    label: 'Ghi chú',
-                    action: (e: any, row: RowComponent) => {
-                        const rowData = row.getData();
-                        // Select row trước khi mở modal
-                        row.select();
-                        this.onOpenNoteModal();
-                    }
-                },
-                {
-                    label: 'Xem yêu cầu báo giá',
-                    action: (e: any, row: RowComponent) => {
-                        const rowData = row.getData();
-                        // Select row trước khi mở
-                        row.select();
-                        this.onViewPriceQuote();
-                    }
+    // SlickGrid ready handlers
+    angularGridReady(angularGrid: AngularGridInstance): void {
+        this.angularGrid = angularGrid;
+    }
+
+    angularGridDetailReady(angularGrid: AngularGridInstance): void {
+        this.angularGridDetail = angularGrid;
+    }
+
+    angularGridFileReady(angularGrid: AngularGridInstance): void {
+        this.angularGridFile = angularGrid;
+    }
+
+    angularGridApprovedReady(angularGrid: AngularGridInstance): void {
+        this.angularGridApproved = angularGrid;
+    }
+
+    // Initialize main grid
+    initGrid(): void {
+        const formatDate = (row: number, cell: number, value: any) => {
+            if (!value) return '';
+            try {
+                const dateValue = DateTime.fromISO(value);
+                return dateValue.isValid ? dateValue.toFormat('dd/MM/yyyy') : value;
+            } catch (e) {
+                return value;
+            }
+        };
+
+        const checkboxFormatter = (row: number, cell: number, value: any) => {
+            const checked = value === true || value === 'true' || value === 1 || value === '1';
+            return `<div style="text-align: center;"><input type="checkbox" ${checked ? 'checked' : ''} style="pointer-events: none; accent-color: #1677ff;" /></div>`;
+        };
+
+        const tooltipFormatter = (_row: any, _cell: any, value: any, _column: any, dataContext: any) => {
+            if (!value) return '';
+            const fieldName = _column.field;
+            return `
+                <span
+                    title="${dataContext[fieldName] || value}"
+                    style="display:block; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;"
+                >
+                    ${value}
+                </span>
+            `;
+        };
+
+        this.columnDefinitions = [
+            { id: 'ID', name: 'ID', field: 'ID', type: 'number', excludeFromExport: true, hidden: true },
+            { id: 'RowIndex', name: 'STT', field: 'RowIndex', type: 'number', width: 60, sortable: true, filterable: true, filter: { model: Filters['compoundInputNumber'] }, cssClass: 'text-center' },
+            {
+                id: 'IsRequestBGDApproved',
+                name: 'Yêu cầu BGĐ duyệt',
+                field: 'IsRequestBGDApproved',
+                type: 'string',
+                width: 100,
+                sortable: true,
+                filterable: true,
+                formatter: checkboxFormatter,
+                cssClass: 'text-center'
+            },
+            {
+                id: 'IsRequestBuy',
+                name: 'Yêu cầu mua',
+                field: 'IsRequestBuy',
+                type: 'string',
+                width: 100,
+                sortable: true,
+                filterable: true,
+                formatter: checkboxFormatter,
+                cssClass: 'text-center'
+            },
+            {
+                id: 'IsRequestPriceQuote',
+                name: 'Yêu cầu báo giá',
+                field: 'IsRequestPriceQuote',
+                type: 'string',
+                width: 100,
+                sortable: true,
+                filterable: true,
+                formatter: checkboxFormatter,
+                cssClass: 'text-center'
+            },
+            {
+                id: 'StatusText',
+                name: 'Trạng thái',
+                field: 'StatusText',
+                type: 'string',
+                width: 120,
+                sortable: true,
+                filterable: true,
+                formatter: tooltipFormatter,
+                filter: {
+                    model: Filters['multipleSelect'],
+                    collection: [],
+                    collectionOptions: { addBlankEntry: true },
+                    filterOptions: { filter: true, autoAdjustDropWidthByTextSize: true } as MultipleSelectOption
                 }
-            ];
+            },
+            {
+                id: 'NumberRequest',
+                name: 'Mã yêu cầu',
+                field: 'NumberRequest',
+                type: 'string',
+                width: 130,
+                sortable: true,
+                filterable: true,
+                formatter: tooltipFormatter,
+                filter: {
+                    model: Filters['multipleSelect'],
+                    collection: [],
+                    collectionOptions: { addBlankEntry: true },
+                    filterOptions: { filter: true, autoAdjustDropWidthByTextSize: true } as MultipleSelectOption
+                }
+            },
+            {
+                id: 'DateRequest',
+                name: 'Ngày yêu cầu',
+                field: 'DateRequest',
+                type: 'string',
+                width: 110,
+                sortable: true,
+                filterable: true,
+                formatter: formatDate,
+                filter: { model: Filters['compoundDate'] }
+            },
+            {
+                id: 'EmployeeName',
+                name: 'Tên nhân viên',
+                field: 'EmployeeName',
+                type: 'string',
+                width: 150,
+                sortable: true,
+                filterable: true,
+                formatter: tooltipFormatter,
+                filter: {
+                    model: Filters['multipleSelect'],
+                    collection: [],
+                    collectionOptions: { addBlankEntry: true },
+                    filterOptions: { filter: true, autoAdjustDropWidthByTextSize: true } as MultipleSelectOption
+                }
+            },
+            {
+                id: 'EmployeeDepartment',
+                name: 'Bộ phận yêu cầu',
+                field: 'EmployeeDepartment',
+                type: 'string',
+                width: 150,
+                sortable: true,
+                filterable: true,
+                formatter: tooltipFormatter,
+                filter: {
+                    model: Filters['multipleSelect'],
+                    collection: [],
+                    collectionOptions: { addBlankEntry: true },
+                    filterOptions: { filter: true, autoAdjustDropWidthByTextSize: true } as MultipleSelectOption
+                }
+            },
+            {
+                id: 'FullNameApprovedTBP',
+                name: 'TBP duyệt',
+                field: 'FullNameApprovedTBP',
+                type: 'string',
+                width: 150,
+                sortable: true,
+                filterable: true,
+                formatter: tooltipFormatter,
+                filter: {
+                    model: Filters['multipleSelect'],
+                    collection: [],
+                    collectionOptions: { addBlankEntry: true },
+                    filterOptions: { filter: true, autoAdjustDropWidthByTextSize: true } as MultipleSelectOption
+                }
+            },
+            {
+                id: 'RequiredDepartment',
+                name: 'Bộ phận được yêu cầu',
+                field: 'RequiredDepartment',
+                type: 'string',
+                width: 150,
+                sortable: true,
+                filterable: true,
+                formatter: tooltipFormatter,
+                filter: {
+                    model: Filters['multipleSelect'],
+                    collection: [],
+                    collectionOptions: { addBlankEntry: true },
+                    filterOptions: { filter: true, autoAdjustDropWidthByTextSize: true } as MultipleSelectOption
+                }
+            },
+            {
+                id: 'CoordinationDepartment',
+                name: 'Bộ phận phối hợp',
+                field: 'CoordinationDepartment',
+                type: 'string',
+                width: 150,
+                sortable: true,
+                filterable: true,
+                formatter: tooltipFormatter,
+                filter: {
+                    model: Filters['multipleSelect'],
+                    collection: [],
+                    collectionOptions: { addBlankEntry: true },
+                    filterOptions: { filter: true, autoAdjustDropWidthByTextSize: true } as MultipleSelectOption
+                }
+            },
+            {
+                id: 'IsApprovedText',
+                name: 'Trạng thái duyệt',
+                field: 'IsApprovedText',
+                type: 'string',
+                width: 120,
+                sortable: true,
+                filterable: true,
+                formatter: tooltipFormatter,
+                filter: {
+                    model: Filters['multipleSelect'],
+                    collection: [],
+                    collectionOptions: { addBlankEntry: true },
+                    filterOptions: { filter: true, autoAdjustDropWidthByTextSize: true } as MultipleSelectOption
+                }
+            },
+            {
+                id: 'Note',
+                name: 'Ghi chú',
+                field: 'Note',
+                type: 'string',
+                width: 200,
+                sortable: true,
+                filterable: true,
+                formatter: tooltipFormatter,
+                filter: { model: Filters['compoundInputText'] }
+            }
+        ];
 
-            this.JobrequirementTable = new Tabulator(this.tableRef1.nativeElement, {
-                data: [],
-                ...DEFAULT_TABLE_CONFIG,
-                selectableRows: true,
-                paginationMode: 'local',
-                height: '100%',
+        this.gridOptions = {
+            autoResize: {
+                container: '#jobRequirementGridContainer',
+                rightPadding: 0,
+                bottomPadding: 0,
+                calculateAvailableSizeBy: 'container'
+                
+            },
+            enableAutoResize: true,
+            enableCellNavigation: true,
+            enableColumnReorder: true,
+            enableSorting: true,
+            enableFiltering: true,
+            enableRowSelection: true,
+            enableCheckboxSelector: true,
+            checkboxSelector: { hideSelectAllCheckbox: false },
+            rowSelectionOptions: { selectActiveRow: true },
+            multiSelect: true,
+            rowHeight: 35,
+            headerRowHeight: 40,
+            forceFitColumns: false,
+            enableAutoSizeColumns: false,
+            autoFitColumnsOnFirstLoad: false,
+            gridWidth: '100%'
+        };
 
-                rowContextMenu: contextMenuItems,
-                columns: [
-                    {
-                        title: 'STT',
-                        hozAlign: 'center',
-                        headerHozAlign: 'center',
-                        field: 'RowIndex',
-                    },
-                    {
-                        title: 'Yêu cầu BGĐ duyệt',
-                        field: 'IsRequestBGDApproved',
-                        width: 80,
-                        hozAlign: 'center',
-                        formatter: (cell: any) => {
-                            const value = cell.getValue();
-                            const checked = value === true || value === 'true' || value === 1 || value === '1';
-                            return `<div style="text-align: center;"><input type="checkbox" ${checked ? 'checked' : ''} style="pointer-events: none; accent-color: #1677ff;" /></div>`;
-                        },
-                        frozen: true,
-                    },
-                    {
-                        title: 'Yêu cầu mua',
-                        field: 'IsRequestBuy',
-                        headerHozAlign: 'center',
-                        hozAlign: 'center',
-                        width: 80,
-                        formatter: (cell: any) => {
-                            const value = cell.getValue();
-                            const checked = value === true || value === 'true' || value === 1 || value === '1';
-                            return `<div style="text-align: center;"><input type="checkbox" ${checked ? 'checked' : ''} style="pointer-events: none; accent-color: #1677ff;" /></div>`;
-                        },
-                        frozen: true,
-                    },
-                    {
-                        title: 'Yêu cầu báo giá',
-                        field: 'IsRequestPriceQuote',
-                        headerHozAlign: 'center',
-                        hozAlign: 'center',
-                        width: 80,
-                        formatter: (cell: any) => {
-                            const value = cell.getValue();
-                            const checked = value === true || value === 'true' || value === 1 || value === '1';
-                            return `<div style="text-align: center;"><input type="checkbox" ${checked ? 'checked' : ''} style="pointer-events: none; accent-color: #1677ff;" /></div>`;
-                        },
-                        frozen: true,
-                    },
-                    {
-                        title: 'Trạng thái',
-                        field: 'StatusText',
-                        headerHozAlign: 'center',
-                    },
-                    {
-                        title: 'Mã yêu cầu',
-                        field: 'NumberRequest',
-                        headerHozAlign: 'center',
-                    },
-                    {
-                        title: 'Ngày yêu cầu',
-                        field: 'DateRequest',
-                        hozAlign: 'left',
-                        headerHozAlign: 'center',
-                        width: 100,
-                        formatter: (cell: any) => {
-                            const value = cell.getValue();
-                            return value
-                                ? DateTime.fromISO(value).toFormat('dd/MM/yyyy')
-                                : '';
-                        },
-                    },
-                    {
-                        title: 'Tên nhân viên',
-                        field: 'EmployeeName',
-                        headerHozAlign: 'center',
-                    },
-                    {
-                        title: 'Bộ phận yêu cầu',
-                        field: 'EmployeeDepartment',
-                        headerHozAlign: 'center',
-                    },
-                    {
-                        title: 'TBP duyệt',
-                        field: 'FullNameApprovedTBP',
-                        headerHozAlign: 'center',
-                    },
-                    {
-                        title: 'Bộ phận được yêu cầu',
-                        field: 'RequiredDepartment',
-                        headerHozAlign: 'center',
-                    },
-                    {
-                        title: 'Bộ phận phối hợp',
-                        field: 'CoordinationDepartment',
-                        headerHozAlign: 'center',
-                    },
-                    {
-                        title: 'Trạng thái duyệt',
-                        field: 'IsApprovedText',
-                        headerHozAlign: 'center',
-                    },
-                    {
-                        title: 'Ghi chú',
-                        field: 'Note',
-                        headerHozAlign: 'center',
-                    },
-                ],
-            });
-            this.JobrequirementTable.on(
-                'rowClick',
+        this.getJobrequirement();
+    }
 
-                (e: UIEvent, row: RowComponent) => {
+    // Initialize detail grid
+    initGridDetail(): void {
+        const tooltipFormatter = (_row: any, _cell: any, value: any, _column: any, dataContext: any) => {
+            if (!value) return '';
+            const fieldName = _column.field;
+            return `
+                <span
+                    title="${dataContext[fieldName] || value}"
+                    style="display:block; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;"
+                >
+                    ${value}
+                </span>
+            `;
+        };
 
-                    const rowData = row.getData();
-                    const mouseEvent = e as MouseEvent;
-                    const jobRequirementID = rowData['ID'];
-                    this.getJobrequirementDetails(jobRequirementID);
+        this.columnDefinitionsDetail = [
+            { id: 'STT', name: 'STT', field: 'STT', type: 'number', width: 60, sortable: true, cssClass: 'text-center' },
+            { id: 'Category', name: 'Đề mục', field: 'Category', type: 'string', width: 150, sortable: true, filterable: true, formatter: tooltipFormatter },
+            { id: 'Description', name: 'Diễn giải', field: 'Description', type: 'string', width: 250, sortable: true, filterable: true, formatter: tooltipFormatter },
+            { id: 'Target', name: 'Mục tiêu cần đạt', field: 'Target', type: 'string', width: 200, sortable: true, filterable: true, formatter: tooltipFormatter },
+            { id: 'Note', name: 'Ghi chú', field: 'Note', type: 'string', width: 150, sortable: true, filterable: true, formatter: tooltipFormatter }
+        ];
 
-                    // Kiểm tra trạng thái duyệt HCNS khi click row
-                    if (jobRequirementID) {
-                        this.getHCNSData(jobRequirementID);
+        this.gridOptionsDetail = {
+            autoResize: {
+                container: '#jobRequirementDetailGridContainer',
+                rightPadding: 0,
+                bottomPadding: 0,
+                calculateAvailableSizeBy: 'container'
+            },
+            enableAutoResize: true,
+            enableCellNavigation: true,
+            enableSorting: true,
+            enableFiltering: true,
+            rowHeight: 35,
+            headerRowHeight: 40,
+            forceFitColumns: false,
+            enableAutoSizeColumns: false,
+            autoFitColumnsOnFirstLoad: false,
+            gridWidth: '100%'
+        };
+    }
+
+    // Initialize file grid
+    initGridFile(): void {
+        const tooltipFormatter = (_row: any, _cell: any, value: any, _column: any, dataContext: any) => {
+            if (!value) return '';
+            const fieldName = _column.field;
+            return `
+                <span
+                    title="${dataContext[fieldName] || value}"
+                    style="display:block; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;"
+                >
+                    ${value}
+                </span>
+            `;
+        };
+
+        this.columnDefinitionsFile = [
+            { id: 'FileName', name: 'File đính kèm', field: 'FileName', type: 'string', width: 300, sortable: true, filterable: true, formatter: tooltipFormatter }
+        ];
+
+        this.gridOptionsFile = {
+            autoResize: {
+                container: '#jobRequirementFileGridContainer',
+                rightPadding: 0,
+                bottomPadding: 0,
+                calculateAvailableSizeBy: 'container'
+            },
+            enableAutoResize: true,
+            enableCellNavigation: true,
+            enableSorting: true,
+            rowHeight: 35,
+            headerRowHeight: 40,
+            forceFitColumns: false,
+            enableAutoSizeColumns: false,
+            autoFitColumnsOnFirstLoad: false,
+            gridWidth: '100%',
+            enableContextMenu: true,
+            contextMenu: {
+                commandItems: [
+                    {
+                        command: 'view-file',
+                        title: '👁️ Xem file',
+                        action: (_e: Event, args: any) => {
+                            const item = args.dataContext;
+                            this.viewFile(item);
+                        }
+                    },
+                    {
+                        command: 'download-file',
+                        title: '⬇️ Tải file',
+                        action: (_e: Event, args: any) => {
+                            const item = args.dataContext;
+                            this.downloadFile(item);
+                        }
                     }
-                }
-            );
-            this.JobrequirementTable?.on("rowClick", (e, row) => {
-                this.JobrequirementTable?.deselectRow();
-                row.select();
-            });
+                ]
+            }
+        };
+    }
 
-            // Double click để mở modal sửa
-            this.JobrequirementTable.on('rowDblClick', (e: UIEvent, row: RowComponent) => {
-                const rowData = row.getData();
-                const jobRequirementID = rowData['ID'] || 0;
+    // Initialize approved grid
+    initGridApproved(): void {
+        const formatDateTime = (row: number, cell: number, value: any) => {
+            if (!value) return '';
+            try {
+                const dateValue = DateTime.fromISO(value);
+                return dateValue.isValid ? dateValue.toFormat('dd/MM/yyyy HH:mm') : value;
+            } catch (e) {
+                return value;
+            }
+        };
 
-                if (jobRequirementID > 0) {
-                    // Select row trước
-                    row.select();
-                    // Mở modal sửa
-                    this.onAddJobRequirement(true);
-                }
-            });
+        const tooltipFormatter = (_row: any, _cell: any, value: any, _column: any, dataContext: any) => {
+            if (!value) return '';
+            const fieldName = _column.field;
+            return `
+                <span
+                    title="${dataContext[fieldName] || value}"
+                    style="display:block; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;"
+                >
+                    ${value}
+                </span>
+            `;
+        };
 
-            // THÊM SỰ KIỆN rowSelected VÀ rowDeselected
-            this.JobrequirementTable.on('rowSelected', (row: RowComponent) => {
-                const rowData = row.getData();
-                this.data = [rowData]; // Giả sử bạn luôn muốn this.data chứa mảng 1 phần tử
-                this.JobrequirementID = this.data[0].ID;
+        this.columnDefinitionsApproved = [
+            { id: 'Step', name: 'Bước', field: 'Step', type: 'number', width: 60, sortable: true, cssClass: 'text-center' },
+            { id: 'StepName', name: 'Tên bước', field: 'StepName', type: 'string', width: 150, sortable: true, formatter: tooltipFormatter },
+            { id: 'DateApproved', name: 'Ngày duyệt', field: 'DateApproved', type: 'string', width: 130, sortable: true, formatter: formatDateTime },
+            { id: 'IsApprovedText', name: 'Trạng thái', field: 'IsApprovedText', type: 'string', width: 100, sortable: true, formatter: tooltipFormatter },
+            { id: 'EmployeeName', name: 'Người thực hiện', field: 'EmployeeName', type: 'string', width: 150, sortable: true, formatter: tooltipFormatter },
+            { id: 'EmployeeActualName', name: 'Người duyệt', field: 'EmployeeActualName', type: 'string', width: 150, sortable: true, formatter: tooltipFormatter },
+            { id: 'ReasonCancel', name: 'Lý do hủy duyệt', field: 'ReasonCancel', type: 'string', width: 200, sortable: true, formatter: tooltipFormatter }
+        ];
 
-                // Load details và HCNS data khi select row
+        this.gridOptionsApproved = {
+            autoResize: {
+                container: '#jobRequirementApprovedGridContainer',
+                rightPadding: 0,
+                bottomPadding: 0,
+                calculateAvailableSizeBy: 'container'
+            },
+            enableAutoResize: true,
+            enableCellNavigation: true,
+            enableSorting: true,
+            rowHeight: 35,
+            headerRowHeight: 40,
+            forceFitColumns: false,
+            enableAutoSizeColumns: false,
+            autoFitColumnsOnFirstLoad: false,
+            gridWidth: '100%'
+        };
+    }
+
+    // Handle row click
+    onCellClicked(e: Event, args: OnClickEventArgs): void {
+        const item = (args as any)?.dataContext;
+        if (item) {
+            this.JobrequirementID = item.ID || 0;
+            this.data = [item];
+            if (this.JobrequirementID) {
+                this.getJobrequirementDetails(this.JobrequirementID);
+                this.getHCNSData(this.JobrequirementID);
+            }
+        }
+    }
+
+    // Handle row selection changed
+    onSelectedRowsChanged(e: Event, args: OnSelectedRowsChangedEventArgs): void {
+        if (args?.rows?.length > 0 && this.angularGrid?.dataView) {
+            const selectedIdx = args.rows[0];
+            const item = this.angularGrid.dataView.getItem(selectedIdx);
+            if (item) {
+                this.JobrequirementID = item.ID || 0;
+                this.data = [item];
                 if (this.JobrequirementID) {
                     this.getJobrequirementDetails(this.JobrequirementID);
                     this.getHCNSData(this.JobrequirementID);
                 }
+            }
+        } else {
+            this.JobrequirementID = 0;
+            this.data = [];
+        }
+    }
+
+    // Get selected data from grid
+    getSelectedData(): any[] {
+        if (!this.angularGrid?.slickGrid) return [];
+        const selectedRows = this.angularGrid.slickGrid.getSelectedRows();
+        if (!selectedRows || selectedRows.length === 0) return [];
+        return selectedRows.map((idx: number) => this.angularGrid.dataView.getItem(idx)).filter((item: any) => item);
+    }
+
+    // Apply distinct filters for multiple columns after data is loaded
+    private applyDistinctFilters(): void {
+        const fieldsToFilter = [
+            'StatusText', 'NumberRequest', 'EmployeeName', 'EmployeeDepartment',
+            'FullNameApprovedTBP', 'RequiredDepartment', 'CoordinationDepartment', 'IsApprovedText'
+        ];
+        this.applyDistinctFiltersToGrid(this.angularGrid, this.columnDefinitions, fieldsToFilter);
+    }
+
+    private applyDistinctFiltersToGrid(
+        angularGrid: AngularGridInstance | undefined,
+        columnDefs: Column[],
+        fieldsToFilter: string[]
+    ): void {
+        if (!angularGrid?.slickGrid || !angularGrid?.dataView) return;
+
+        const data = angularGrid.dataView.getItems();
+        if (!data || data.length === 0) return;
+
+        const getUniqueValues = (dataArray: any[], field: string): Array<{ value: string; label: string }> => {
+            const map = new Map<string, string>();
+            dataArray.forEach((row: any) => {
+                const value = String(row?.[field] ?? '');
+                if (value && !map.has(value)) {
+                    map.set(value, value);
+                }
             });
-            this.JobrequirementTable.on('rowDeselected', (row: RowComponent) => {
-                const selectedRows = this.JobrequirementTable!.getSelectedRows();
-                this.JobrequirementID = 0;
-                if (selectedRows.length === 0) {
-                    this.data = []; // Reset data
-                }
-            });
-            setTimeout(() => {
-                const tableElement = this.tableRef1.nativeElement;
-                if (tableElement) {
-                    tableElement.style.fontSize = '12px';
-                    const allElements = tableElement.querySelectorAll('*');
-                    allElements.forEach((el: any) => {
-                        if (el.style) {
-                            if (el.classList && el.classList.contains('badge')) {
-                                el.style.fontSize = '10px';
-                                el.style.padding = '2px 6px';
-                            } else {
-                                el.style.fontSize = '12px';
-                            }
-                        }
-                    });
-                }
-            }, 200);
-        }
-    }
+            return Array.from(map.entries())
+                .map(([value, label]) => ({ value, label }))
+                .sort((a, b) => a.label.localeCompare(b.label));
+        };
 
-    private draw_JobrequirementDetailTable(): void {
-        if (this.JobrequirementDetailTable) {
-            this.JobrequirementDetailTable.setData(
-                this.JobrequirementDetailData || []
-            );
-        } else {
-            this.JobrequirementDetailTable = new Tabulator(
-                this.tableRef2.nativeElement,
-                {
-                    data: this.JobrequirementDetailData || [],
-                    ...DEFAULT_TABLE_CONFIG,
-                    selectableRows: 1,
-                    layout: 'fitDataStretch',
-                    height: '100%',
-                    rowHeader: false,
-                    paginationMode: 'local',
-                    columns: [
-                        {
-                            title: 'STT',
-                            hozAlign: 'center',
-                            headerHozAlign: 'center',
-                            field: 'STT',
-                        },
-                        {
-                            title: 'Đề mục',
-                            field: 'Category',
-                            headerHozAlign: 'center',
-                        },
-                        {
-                            title: 'Diễn giản',
-                            field: 'Description',
-                            headerHozAlign: 'center',
-                        },
-                        {
-                            title: 'Mục tiêu cần đạt',
-                            field: 'Target',
-                            headerHozAlign: 'center',
-                        },
-                        {
-                            title: 'Ghi chú',
-                            field: 'Note',
-                            headerHozAlign: 'center',
-                        },
-                    ],
-                }
-            );
+        const columns = angularGrid.slickGrid.getColumns();
+        if (!columns) return;
 
-            // Set font-size 12px cho bảng
-            setTimeout(() => {
-                const tableElement = this.tableRef2.nativeElement;
-                if (tableElement) {
-                    tableElement.style.fontSize = '12px';
-                    const allElements = tableElement.querySelectorAll('*');
-                    allElements.forEach((el: any) => {
-                        if (el.style) {
-                            el.style.fontSize = '12px';
-                        }
-                    });
-                }
-            }, 200);
-        }
-    }
+        columns.forEach((column: any) => {
+            if (column?.filter && column.filter.model === Filters['multipleSelect']) {
+                const field = column.field;
+                if (!field || !fieldsToFilter.includes(field)) return;
+                column.filter.collection = getUniqueValues(data, field);
+            }
+        });
 
-    private draw_JobrequirementFileTable(): void {
-        if (this.JobrequirementFileTable) {
-            this.JobrequirementFileTable.setData(this.JobrequirementFileData || []);
-        } else {
-            // Tạo context menu cho bảng file
-            const fileContextMenuItems: any[] = [
-                {
-                    label: 'Xem file',
-                    action: (e: any, row: RowComponent) => {
-                        const rowData = row.getData();
-                        this.viewFile(rowData);
-                    }
-                },
-                {
-                    label: 'Tải file',
-                    action: (e: any, row: RowComponent) => {
-                        const rowData = row.getData();
-                        this.downloadFile(rowData);
-                    }
-                }
-            ];
+        columnDefs.forEach((colDef: any) => {
+            if (colDef?.filter && colDef.filter.model === Filters['multipleSelect']) {
+                const field = colDef.field;
+                if (!field || !fieldsToFilter.includes(field)) return;
+                colDef.filter.collection = getUniqueValues(data, field);
+            }
+        });
 
-            this.JobrequirementFileTable = new Tabulator(
-                this.tableRef3.nativeElement,
-                {
-                    data: this.JobrequirementFileData || [],
-                    ...DEFAULT_TABLE_CONFIG,
-                    selectableRows: 1,
-                    height: '100%',
-                    layout: 'fitDataStretch',
-                    paginationMode: 'local',
-                    rowContextMenu: fileContextMenuItems,
-                    columns: [
-
-                        {
-                            title: 'File đính kèm',
-                            field: 'FileName',
-                            headerHozAlign: 'center',
-                        },
-                    ],
-                }
-            );
-
-            // Set font-size 12px cho bảng
-            setTimeout(() => {
-                const tableElement = this.tableRef3.nativeElement;
-                if (tableElement) {
-                    tableElement.style.fontSize = '12px';
-                    const allElements = tableElement.querySelectorAll('*');
-                    allElements.forEach((el: any) => {
-                        if (el.style) {
-                            el.style.fontSize = '12px';
-                        }
-                    });
-                }
-            }, 200);
-        }
-    }
-
-    private draw_JobrequirementApprovedTable(): void {
-        if (this.JobrequirementApprovedTable) {
-            this.JobrequirementApprovedTable.setData(
-                this.JobrequirementApprovedData || []
-            );
-        } else {
-            this.JobrequirementApprovedTable = new Tabulator(
-                this.tableRef4.nativeElement,
-                {
-                    data: this.JobrequirementApprovedData || [],
-                    ...DEFAULT_TABLE_CONFIG,
-                    selectableRows: 1,
-                    height: '100%',
-                    layout: 'fitDataStretch',
-                    paginationMode: 'local',
-                    rowHeader: false,
-                    rowFormatter: (row: RowComponent) => {
-                        const data = row.getData();
-                        const isApproved = data['IsApproved'];
-
-                        // Bôi màu dựa trên trạng thái duyệt
-                        if (isApproved === 1 || isApproved === '1') {
-                            // Đã duyệt - màu xanh lá
-                            row.getElement().style.backgroundColor = '#009900';
-                        } else if (isApproved === 2 || isApproved === '2') {
-                            // Đã hủy - màu đỏ
-                            row.getElement().style.backgroundColor = '#CC3300';
-                        }
-                        // Chưa duyệt (0 hoặc null) - không bôi màu
-                    },
-                    columns: [
-
-                        {
-                            title: 'Bước',
-                            field: 'Step',
-                            hozAlign: 'center',
-                            headerHozAlign: 'center',
-                        },
-                        {
-                            title: 'Tên bước',
-                            field: 'StepName',
-                            headerHozAlign: 'center',
-                        },
-                        {
-                            title: 'Ngày duyệt',
-                            field: 'DateApproved',
-                            hozAlign: 'left',
-                            headerHozAlign: 'center',
-                            width: 120,
-                            formatter: (cell: any) => {
-                                const value = cell.getValue();
-                                return value
-                                    ? DateTime.fromISO(value).toFormat('dd/MM/yyyy HH:mm')
-                                    : '';
-                            },
-                        },
-                        {
-                            title: 'Trạng thái',
-                            field: 'IsApprovedText',
-                            headerHozAlign: 'center',
-                        },
-                        {
-                            title: 'Người thức hiện',
-                            field: 'EmployeeName',
-                            headerHozAlign: 'center',
-                        },
-                        {
-                            title: 'Người duyệt',
-                            field: 'EmployeeActualName',
-                            headerHozAlign: 'center',
-                        },
-                        {
-                            title: 'Lý do hủy duyệt',
-                            field: 'ReasonCancel',
-                            headerHozAlign: 'center',
-                        },
-                    ],
-                }
-            );
-
-            // Set font-size 12px cho bảng
-            setTimeout(() => {
-                const tableElement = this.tableRef4.nativeElement;
-                if (tableElement) {
-                    tableElement.style.fontSize = '12px';
-                    const allElements = tableElement.querySelectorAll('*');
-                    allElements.forEach((el: any) => {
-                        if (el.style) {
-                            el.style.fontSize = '12px';
-                        }
-                    });
-                }
-            }, 200);
-        }
+        angularGrid.slickGrid.setColumns(angularGrid.slickGrid.getColumns());
+        angularGrid.slickGrid.invalidate();
+        angularGrid.slickGrid.render();
     }
 }

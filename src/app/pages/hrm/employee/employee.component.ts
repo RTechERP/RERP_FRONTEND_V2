@@ -2390,7 +2390,11 @@ export class EmployeeComponent implements OnInit, AfterViewInit {
   @ViewChild(EmployeeTeamComponent) employeeTeamComponent!: EmployeeTeamComponent;
   openEmployeeTeamForm() {
     const modal = new (window as any).bootstrap.Modal(
-      document.getElementById('employeeTeamForm')
+      document.getElementById('employeeTeamForm'),
+      {
+        backdrop: false,
+        keyboard: true
+      }
     );
     modal.show();
     this.employeeTeamComponent.ngOnInit();

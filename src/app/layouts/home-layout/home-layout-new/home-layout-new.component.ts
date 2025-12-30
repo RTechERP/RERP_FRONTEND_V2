@@ -4,7 +4,7 @@ import { AppUserDropdownComponent } from "../../../pages/systems/app-user/app-us
 import { NzBadgeComponent } from "ng-zorro-antd/badge";
 import { NzDropDownModule } from "ng-zorro-antd/dropdown";
 
-import { CommonModule } from '@angular/common';
+import { CommonModule, NgSwitchCase } from '@angular/common';
 import { NzNotificationService } from 'ng-zorro-antd/notification';
 import { HomeLayoutService } from '../home-layout-service/home-layout.service';
 import { HolidayServiceService } from '../../../pages/hrm/holiday/holiday-service/holiday-service.service';
@@ -23,6 +23,7 @@ import { TabsModule } from 'primeng/tabs';
 import { NzLayoutModule } from 'ng-zorro-antd/layout';
 import { TabServiceService } from '../../tab-service.service';
 import { AvatarModule } from 'primeng/avatar';
+import { NzTabsModule } from 'ng-zorro-antd/tabs';
 
 @Component({
     selector: 'app-home-layout-new',
@@ -38,7 +39,9 @@ import { AvatarModule } from 'primeng/avatar';
         RouterLink,
         TabsModule,
         NzLayoutModule,
-        AvatarModule
+        AvatarModule,
+        NzTabsModule,
+        NgSwitchCase
     ],
     templateUrl: './home-layout-new.component.html',
     styleUrl: './home-layout-new.component.css'
@@ -92,6 +95,9 @@ export class HomeLayoutNewComponent implements OnInit {
 
     totalEmployeeOnleave = 0;
     totalEmployeeWfh = 0;
+
+    activeTab = 0;
+
 
     constructor(
         private notification: NzNotificationService,
@@ -221,9 +227,17 @@ export class HomeLayoutNewComponent implements OnInit {
     }
 
 
-    openModule(key: string) {
-        this.menuService.setMenuKey(key);
-        this.router.navigate(['/app']); // hoặc route tới MainLayout
+    openModule(event: MouseEvent, route: string, key: string) {
+
+
+        if (route == '') return;
+        if (event.button === 0 && !event.ctrlKey && !event.metaKey) {
+            event.preventDefault(); // chặn reload
+            // this.newTab(route, title);
+
+            this.menuService.setMenuKey(key);
+            this.router.navigate(['/app']); // hoặc route tới MainLayout
+        }
     }
 
     // newTab(route: string, title: string, data?: any) {

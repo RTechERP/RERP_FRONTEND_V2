@@ -27,8 +27,9 @@
 }
 
 ::ng-deep .ant-picker-calendar-header {
-  justify-content: space-between !important;
+  justify-content: center !important;
   padding-top: 0 !important;
+  padding-bottom: 0.25rem !important;
 }
 ::ng-deep .ant-list-vertical .ant-list-item-meta-title {
   margin: 0 !important;
@@ -103,7 +104,7 @@
   grid-template-columns: repeat(3, 1fr);
   gap: 12px;
   padding: 12px;
-  max-height: 330px;
+  /* max-height: 330px; */
   overflow-y: auto;
   /* chỉ lớp con scroll */
 }

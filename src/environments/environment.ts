@@ -6,4 +6,5 @@ export const environment = {
     // host: 'http://10.20.28.213:8087/',
     hostwebold: 'https://localhost:19028/',
     baseHref: '/rerpweb',
+    title: 'R-ERP',
 };

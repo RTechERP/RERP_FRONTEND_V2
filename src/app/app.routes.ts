@@ -465,7 +465,7 @@ export const routes: Routes = [
             //Phòng sale
             //HN
             { path: 'pokh-hn-old', component: PokhComponent, canActivate: [authGuard] },
-            // { path: 'pokh-hn', component: PokhSlickgridComponent, canActivate: [authGuard] }, // Component not found - commented out
+            { path: 'pokh-hn', component: PokhSlickgridComponent, canActivate: [authGuard] },
             { path: 'quotationkh-hn', component: QuotationKhComponent, canActivate: [authGuard] },
             { path: 'pokh-kpi-hn', component: PokhKpiComponent, canActivate: [authGuard] },
             { path: 'pokh-history-hn', component: PokhHistoryComponent, canActivate: [authGuard] },

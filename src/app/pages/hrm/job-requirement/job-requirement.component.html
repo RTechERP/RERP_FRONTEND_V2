@@ -282,32 +282,68 @@
         <!-- Content với bảng -->
         <div class="card-body p-0 position-relative" [class.with-search-bar]="shouldShowSearchBar"
             [class.without-search-bar]="!shouldShowSearchBar">
-            <nz-splitter>
-                <nz-splitter-panel>
-                    <nz-splitter>
-                        <nz-splitter-panel nzDefaultSize="70%">
-                            <nz-splitter nzLayout="vertical">
-                                <nz-splitter-panel>
-                                    <div #JobrequirementTable></div>
-                                </nz-splitter-panel>
-                                <nz-splitter-panel>
-                                    <div #JobrequirementDetailTable></div>
-                                </nz-splitter-panel>
-                            </nz-splitter>
-                        </nz-splitter-panel>
-                        <nz-splitter-panel nzDefaultSize="30%">
-                            <nz-splitter nzLayout="vertical">
-                                <nz-splitter-panel>
-                                    <div #JobrequirementFileTable></div>
-                                </nz-splitter-panel>
-                                <nz-splitter-panel>
-                                    <div #JobrequirementApprovedTable></div>
-                                </nz-splitter-panel>
-                            </nz-splitter>
-                        </nz-splitter-panel>
-                    </nz-splitter>
-                </nz-splitter-panel>
-            </nz-splitter>
+            <nz-spin [nzSpinning]="isLoading" nzTip="Đang tải dữ liệu...">
+                <nz-splitter>
+                    <nz-splitter-panel>
+                        <nz-splitter>
+                            <nz-splitter-panel nzDefaultSize="70%">
+                                <nz-splitter nzLayout="vertical">
+                                    <nz-splitter-panel>
+                                        <div id="jobRequirementGridContainer" style="width: 100%; height: 100%;">
+                                            <angular-slickgrid
+                                                gridId="jobRequirementGrid"
+                                                [columns]="columnDefinitions"
+                                                [options]="gridOptions"
+                                                [dataset]="dataset"
+                                                (onAngularGridCreated)="angularGridReady($event.detail)"
+                                                (onClick)="onCellClicked($event.detail.eventData, $event.detail.args)"
+                                                (onSelectedRowsChanged)="onSelectedRowsChanged($event.detail.eventData, $event.detail.args)">
+                                            </angular-slickgrid>
+                                        </div>
+                                    </nz-splitter-panel>
+                                    <nz-splitter-panel>
+                                        <div id="jobRequirementDetailGridContainer" style="width: 100%; height: 100%;">
+                                            <angular-slickgrid
+                                                gridId="jobRequirementDetailGrid"
+                                                [columns]="columnDefinitionsDetail"
+                                                [options]="gridOptionsDetail"
+                                                [dataset]="datasetDetail"
+                                                (onAngularGridCreated)="angularGridDetailReady($event.detail)">
+                                            </angular-slickgrid>
+                                        </div>
+                                    </nz-splitter-panel>
+                                </nz-splitter>
+                            </nz-splitter-panel>
+                            <nz-splitter-panel nzDefaultSize="30%">
+                                <nz-splitter nzLayout="vertical">
+                                    <nz-splitter-panel>
+                                        <div id="jobRequirementFileGridContainer" style="width: 100%; height: 100%;">
+                                            <angular-slickgrid
+                                                gridId="jobRequirementFileGrid"
+                                                [columns]="columnDefinitionsFile"
+                                                [options]="gridOptionsFile"
+                                                [dataset]="datasetFile"
+                                                (onAngularGridCreated)="angularGridFileReady($event.detail)">
+                                            </angular-slickgrid>
+                                        </div>
+                                    </nz-splitter-panel>
+                                    <nz-splitter-panel>
+                                        <div id="jobRequirementApprovedGridContainer" style="width: 100%; height: 100%;">
+                                            <angular-slickgrid
+                                                gridId="jobRequirementApprovedGrid"
+                                                [columns]="columnDefinitionsApproved"
+                                                [options]="gridOptionsApproved"
+                                                [dataset]="datasetApproved"
+                                                (onAngularGridCreated)="angularGridApprovedReady($event.detail)">
+                                            </angular-slickgrid>
+                                        </div>
+                                    </nz-splitter-panel>
+                                </nz-splitter>
+                            </nz-splitter-panel>
+                        </nz-splitter>
+                    </nz-splitter-panel>
+                </nz-splitter>
+            </nz-spin>
         </div>
     </div>
 </ng-container>

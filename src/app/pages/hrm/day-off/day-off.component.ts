@@ -281,31 +281,9 @@ export class DayOffComponent implements OnInit, AfterViewInit {
   };
 
    loadApprovers(): void {
-      this.wfhService.getEmloyeeApprover().subscribe({
-        next: (res: any) => {
-          if (res && res.status === 1 && res.data) {
-            this.approverList = res.data.approvers || [];
-  
-            const grouped = this.approverList.reduce((acc: any, curr: any) => {
-              const dept = curr.DepartmentName || 'Khác';
-              if (!acc[dept]) {
-                acc[dept] = [];
-              }
-              acc[dept].push({
-                ID: curr.EmployeeID,
-                Code: curr.Code,
-                FullName: curr.FullName
-              });
-              return acc;
-            }, {});
-  
-            this.approvers = Object.keys(grouped).map(dept => ({
-              department: dept,
-              list: grouped[dept]
-            }));
-          } else {
-            this.notification.error(NOTIFICATION_TITLE.error, res?.message || 'Không thể tải danh sách người duyệt');
-          }
+      this.employeeService.getEmployeeApprove().subscribe({
+        next: (res: any) => {     
+            this.approverList = res.data || [];
         },
         error: (res: any) => {
           this.notification.error(NOTIFICATION_TITLE.error, res.error?.message || 'Không thể tải danh sách người duyệt');

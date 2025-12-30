@@ -298,11 +298,9 @@
                 <nz-form-control [nzSpan]="24" nzErrorTip="Vui lòng chọn người duyệt">
                   <nz-select formControlName="ApprovedTP" nzPlaceHolder="Chọn người duyệt" nzShowSearch nzAllowClear
                     [nzFilterOption]="filterOption" class="fs-12 w-100">
-                    <nz-option-group *ngFor="let group of approvers" [nzLabel]="group.department">
-                      <nz-option *ngFor="let approver of group.list" [nzValue]="approver.ID"
-                        [nzLabel]="approver.Code + ' - ' + approver.FullName">
-                      </nz-option>
-                    </nz-option-group>
+                    <nz-option *ngFor="let approver of approverList" [nzValue]="approver.EmployeeID"
+                      [nzLabel]="approver.Code + ' - ' + approver.FullName">
+                    </nz-option>
                   </nz-select>
                 </nz-form-control>
               </nz-form-item>

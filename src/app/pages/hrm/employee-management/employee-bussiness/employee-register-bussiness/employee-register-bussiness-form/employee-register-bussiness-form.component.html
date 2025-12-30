@@ -65,10 +65,8 @@
                 nzShowSearch
                 style="width: 100%"
               >
-                <nz-option-group *ngFor="let group of approverGroups" [nzLabel]="group.label">
-                  <nz-option *ngFor="let approver of group.options" [nzValue]="approver.EmployeeID" 
-                    [nzLabel]="approver.Code + ' - ' + approver.FullName"></nz-option>
-                </nz-option-group>
+                <nz-option *ngFor="let approver of approverList" [nzValue]="approver.EmployeeID" 
+                  [nzLabel]="approver.Code + ' - ' + approver.FullName"></nz-option>
               </nz-select>
             </nz-form-control>
           </nz-form-item>

@@ -444,7 +444,7 @@ export const routes: Routes = [
             { path: 'early-late', component: EarlyLateComponent, canActivate: [authGuard] },
             { path: 'overtime', component: OverTimePersonComponent, canActivate: [authGuard] },
             { path: 'bussiness', component: EmployeeRegisterBussinessComponent, canActivate: [authGuard] },
-            { path: 'nightshift', component: EmployeeRegisterBussinessComponent, canActivate: [authGuard] },
+            { path: 'nightshift', component: EmployeeNightShiftComponent, canActivate: [authGuard] },
             { path: 'wfh', component: WFHComponent, canActivate: [authGuard] },
             { path: 'nofinger', component: EmployeeNoFingerprintComponent, canActivate: [authGuard] },
             { path: 'person-summary', component: SummaryEmployeeComponent, canActivate: [authGuard] },

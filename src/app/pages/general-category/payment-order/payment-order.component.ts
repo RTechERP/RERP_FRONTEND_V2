@@ -3397,6 +3397,7 @@ export class PaymentOrderComponent implements OnInit {
 
         const numberDocument = paymentOrder.TypeOrder == 1 ? "BM01-RTC.AC-QT03" : "BM02-RTC.AC-QT03";
         const dateOrder = new Date(paymentOrder.DateOrder);
+        dateOrder.setHours(0, 0, 0, 0);
         const datePayment = new Date(paymentOrder.DatePayment);
 
         let groupHeader6: any = {};
@@ -3522,9 +3523,34 @@ export class PaymentOrderComponent implements OnInit {
 
         const signEmp = signs.find((x: any) => x.Step == 1 && x.IsApproved == 1);
         const signTBP = signs.find((x: any) => x.Step == 2 && x.IsApproved == 1);
-        const signHR = signs.find((x: any) => x.Step == 3 && x.IsApproved == 1);
-        const signKT = signs.find((x: any) => x.Step == 4 && x.IsApproved == 1);
-        const signBGD = signs.find((x: any) => x.Step == 5 && x.IsApproved == 1);
+        let signHR = signs.find((x: any) => x.Step == 3 && x.IsApproved == 1);
+        let signKT = signs.find((x: any) => x.Step == 4 && x.IsApproved == 1);
+        let signBGD = signs.find((x: any) => x.Step == 5 && x.IsApproved == 1);
+
+        const dateFix = new Date('2024-03-03T00:00:00');
+        console.log('dateOrder:', dateOrder);
+        console.log('dateFix:', dateFix);
+
+        if (dateOrder.getTime() <= dateFix.getTime()) {
+            if (!paymentOrder.IsIgnoreHR) {
+                // signHR = signs.find((x: any) => x.Step == 3 && x.IsApproved == 1);
+                signKT = signs.find((x: any) => x.Step == 5 && x.IsApproved == 1);
+                signBGD = signs.find((x: any) => x.Step == 6 && x.IsApproved == 1);
+            }
+        } else {
+            if (!paymentOrder.IsIgnoreHR) {
+                signHR = signs.find((x: any) => x.Step == 4 && x.IsApproved == 1);
+                signKT = signs.find((x: any) => x.Step == 6 && x.IsApproved == 1);
+                signBGD = signs.find((x: any) => x.Step == 7 && x.IsApproved == 1);
+            }
+        }
+
+
+        console.log('signHR:', signHR);
+        console.log('signKT:', signKT);
+        console.log('signBGD:', signBGD);
+
+
 
         const dateApprovedEmp = signEmp?.DateApproved ? DateTime.fromISO(signEmp?.DateApproved).toFormat('dd/MM/yyyy HH:mm') : '';
         const dateApprovedTBP = (signTBP?.DateApproved || '') != '' ? DateTime.fromISO(signTBP?.DateApproved).toFormat('dd/MM/yyyy HH:mm') : '';
@@ -3548,19 +3574,19 @@ export class PaymentOrderComponent implements OnInit {
                 alignment: 'justify',
                 columns: [
                     {
-                        text: `${signEmp?.FullNameDefault || ''}\n${dateApprovedEmp}`, alignment: 'center', bold: true, margin: [0, 10, 0, 0]
+                        text: `${signEmp?.FullName || ''}\n${dateApprovedEmp}`, alignment: 'center', bold: true, margin: [0, 10, 0, 0]
                     },
                     {
-                        text: `${signTBP?.FullNameDefault || ''}\n${dateApprovedTBP}`, alignment: 'center', bold: true, margin: [0, 10, 0, 0]
+                        text: `${signTBP?.FullName || ''}\n${dateApprovedTBP}`, alignment: 'center', bold: true, margin: [0, 10, 0, 0]
                     },
                     {
-                        text: `${signHR?.FullNameDefault || ''}\n${dateApprovedHR}`, alignment: 'center', bold: true, margin: [0, 10, 0, 0]
+                        text: `${signHR?.FullName || ''}\n${dateApprovedHR}`, alignment: 'center', bold: true, margin: [0, 10, 0, 0]
                     },
                     {
-                        text: `${signKT?.FullNameDefault || ''}\n${dateApprovedKT}`, alignment: 'center', bold: true, margin: [0, 10, 0, 0]
+                        text: `${signKT?.FullName || ''}\n${dateApprovedKT}`, alignment: 'center', bold: true, margin: [0, 10, 0, 0]
                     },
                     {
-                        text: `${signBGD?.FullNameDefault || ''}\n${dateApprovedBGD}`, alignment: 'center', bold: true, margin: [0, 10, 0, 0]
+                        text: `${signBGD?.FullName || ''}\n${dateApprovedBGD}`, alignment: 'center', bold: true, margin: [0, 10, 0, 0]
                     },
                 ],
             }
@@ -3580,16 +3606,16 @@ export class PaymentOrderComponent implements OnInit {
                     alignment: 'justify',
                     columns: [
                         {
-                            text: `${signEmp?.FullNameDefault || ''}\n${dateApprovedEmp}`, alignment: 'center', bold: true, margin: [0, 10, 0, 0]
+                            text: `${signEmp?.FullName || ''}\n${dateApprovedEmp}`, alignment: 'center', bold: true, margin: [0, 10, 0, 0]
                         },
                         {
-                            text: `${signTBP?.FullNameDefault || ''}\n${dateApprovedTBP}`, alignment: 'center', bold: true, margin: [0, 10, 0, 0]
+                            text: `${signTBP?.FullName || ''}\n${dateApprovedTBP}`, alignment: 'center', bold: true, margin: [0, 10, 0, 0]
                         },
                         {
-                            text: `${signKT?.FullNameDefault || ''}\n${dateApprovedKT}`, alignment: 'center', bold: true, margin: [0, 10, 0, 0]
+                            text: `${signKT?.FullName || ''}\n${dateApprovedKT}`, alignment: 'center', bold: true, margin: [0, 10, 0, 0]
                         },
                         {
-                            text: `${signBGD?.FullNameDefault || ''}\n${dateApprovedBGD}`, alignment: 'center', bold: true, margin: [0, 10, 0, 0]
+                            text: `${signBGD?.FullName || ''}\n${dateApprovedBGD}`, alignment: 'center', bold: true, margin: [0, 10, 0, 0]
                         },
                     ],
                 }
@@ -3890,8 +3916,8 @@ export class PaymentOrderComponent implements OnInit {
         const signEmp = signs.find((x: any) => x.Step == 1 && x.IsApproved == 1);
         const signTBP = signs.find((x: any) => x.Step == 2 && x.IsApproved == 1);
         // const signHR = signs.find((x: any) => x.Step == 3 && x.IsApproved == 1);
-        const signKT = signs.find((x: any) => x.Step == 4 && x.IsApproved == 1);
-        const signBGD = signs.find((x: any) => x.Step == 5 && x.IsApproved == 1);
+        const signKT = signs.find((x: any) => x.Step == 3 && x.IsApproved == 1);
+        const signBGD = signs.find((x: any) => x.Step == 4 && x.IsApproved == 1);
 
         const dateApprovedEmp = signEmp?.DateApproved ? DateTime.fromISO(signEmp?.DateApproved).toFormat('dd/MM/yyyy HH:mm') : '';
         const dateApprovedTBP = (signTBP?.DateApproved || '') != '' ? DateTime.fromISO(signTBP?.DateApproved).toFormat('dd/MM/yyyy HH:mm') : '';

@@ -16,6 +16,8 @@ import { EmployeeNofingerprintService } from '../employee-no-fingerprint-service
 import { HasPermissionDirective } from '../../../../../directives/has-permission.directive';
 import { PermissionService } from '../../../../../services/permission.service';
 import { AuthService } from '../../../../../auth/auth.service';
+import { EmployeeService } from '../../../employee/employee-service/employee.service';
+import { NOTIFICATION_TITLE } from '../../../../../app.config';
 
 export interface ENFDetailDto {
   ID?: number;
@@ -76,7 +78,7 @@ export class ENFDetailComponent implements OnInit {
 
   employeeGroups: { label: string; options: any[] }[] = [];
   approverGroups: { label: string; options: any[] }[] = [];
-
+  approverList: any[] = [];
   typeOptions = [
     { value: 1, label: 'Quên lúc đến' },
     { value: 2, label: 'Quên lúc về' },
@@ -137,6 +139,7 @@ export class ENFDetailComponent implements OnInit {
     private fb: FormBuilder,
     private permissionService: PermissionService,
     private authService: AuthService,
+    private employeeService: EmployeeService
   ) {}
 
   private initForm(): void {
@@ -198,6 +201,16 @@ export class ENFDetailComponent implements OnInit {
     }
   }
 
+  loadApprovers() {
+    this.employeeService.getEmployeeApprove().subscribe({
+      next: (res: any) => {
+        this.approverList = res.data || [];
+      },
+      error: (error: any) => {
+        this.notification.error(NOTIFICATION_TITLE.error, error.error.message || 'Lỗi khi tải danh sách phương tiện: ' + error.message);
+      }
+    });
+  }
   loadEmployeesAndApprovers(): void {
     this.loading = true;
     this.enfService.getEmloyeeApprover().subscribe({
@@ -214,41 +227,26 @@ export class ENFDetailComponent implements OnInit {
             label: dept,
             options: empGroups[dept],
           }));
-
-          const apprGroups: { [key: string]: any[] } = {};
-          (res.data.approvers || []).forEach((appr: any) => {
-            const dept = appr.DepartmentName || 'Không xác định';
-            if (!apprGroups[dept]) apprGroups[dept] = [];
-            apprGroups[dept].push({
-              ID: appr.EmployeeID,
-              FullName: appr.FullName,
-              DepartmentName: appr.DepartmentName,
-              Code: appr.Code,
-            });
-          });
-          this.approverGroups = Object.keys(apprGroups).map((dept) => ({
-            label: dept,
-            options: apprGroups[dept],
-          }));
         } else {
           this.notification.error(
             'Lỗi',
-            res?.message || 'Không thể tải dữ liệu nhân viên và người duyệt'
+            res?.message || 'Không thể tải dữ liệu nhân viên'
           );
           this.employeeGroups = [];
-          this.approverGroups = [];
         }
       },
       error: () => {
         this.loading = false;
         this.notification.error(
           'Lỗi',
-          'Không thể tải dữ liệu nhân viên và người duyệt'
+          'Không thể tải dữ liệu nhân viên'
         );
         this.employeeGroups = [];
-        this.approverGroups = [];
       },
     });
+    
+    // Load approvers separately using new API
+    this.loadApprovers();
   }
 
   setupFormData(): void {

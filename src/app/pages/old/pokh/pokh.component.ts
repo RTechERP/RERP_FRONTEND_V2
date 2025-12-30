@@ -63,7 +63,6 @@ import { WarehouseReleaseRequestComponent } from '../warehouse-release-request/w
 import { AppComponent } from '../../../app.component';
 import { POKHControllerComponent } from '../pokh-control/pokh-control';
 import { FollowProductReturnComponent } from '../follow-product-return/follow-product-return.component';
-import { PoRequestBuyComponent } from '../po-request-buy/po-request-buy.component';
 import { ViewPokhService } from '../view-pokh/view-pokh/view-pokh.service';
 import { PokhDetailComponent } from '../pokh-detail/pokh-detail.component';
 import { NOTIFICATION_TITLE } from '../../../app.config';
@@ -76,6 +75,8 @@ import { ActivatedRoute } from '@angular/router';
 import { ProjectPartlistPurchaseRequestNewComponent } from '../../purchase/project-partlist-purchase-request-new/project-partlist-purchase-request-new.component';
 import { ProjectPartListPurchaseRequestSlickGridComponent } from '../../purchase/project-partlist-purchase-request/project-part-list-purchase-request-slick-grid/project-part-list-purchase-request-slick-grid.component';
 import { WarehouseReleaseRequestSlickGridComponent } from '../warehouse-release-request-slick-grid/warehouse-release-request-slick-grid.component';
+import { PoRequestBuySlickgridComponent } from '../po-request-buy-slickgrid/po-request-buy-slickgrid.component';
+import { PoRequestBuyComponent } from '../po-request-buy/po-request-buy.component';
 @Component({
   selector: 'app-pokh',
   imports: [
@@ -1070,6 +1071,32 @@ export class PokhComponent implements OnInit, AfterViewInit {
     this.modalRef.componentInstance.warehouseId = this.filters.warehouseId;
   }
 
+  // openPORequestBuyModal() {
+  //   if (!this.selectedId) {
+  //     this.notification.warning(
+  //       NOTIFICATION_TITLE.warning,
+  //       'Vui lòng chọn POKH trước!'
+  //     );
+  //     return;
+  //   }
+  //   const modalRef = this.modalService.open(PoRequestBuyComponent, {
+  //           centered: true,
+  //           backdrop: 'static',
+  //           windowClass: 'full-screen-modal',
+  //       });
+  //       modalRef.componentInstance.pokhId = this.selectedId;
+
+  //       modalRef.result.then(
+  //           (result) => {
+  //               if (result) {
+  //               }
+  //           },
+  //           (reason) => {
+  //               console.log('Modal dismissed');
+  //           }
+  //       );
+  // }
+
   openPORequestBuyModal() {
     if (!this.selectedId) {
       this.notification.warning(
@@ -1079,21 +1106,21 @@ export class PokhComponent implements OnInit, AfterViewInit {
       return;
     }
     const modalRef = this.modalService.open(PoRequestBuyComponent, {
-            centered: true,
-            backdrop: 'static',
-            windowClass: 'full-screen-modal',
-        });
-        modalRef.componentInstance.pokhId = this.selectedId;
+      centered: true,
+      backdrop: 'static',
+      windowClass: 'full-screen-modal',
+    });
+    modalRef.componentInstance.pokhId = this.selectedId;
 
-        modalRef.result.then(
-            (result) => {
-                if (result) {
-                }
-            },
-            (reason) => {
-                console.log('Modal dismissed');
-            }
-        );
+    modalRef.result.then(
+      (result) => {
+        if (result) {
+        }
+      },
+      (reason) => {
+        console.log('Modal dismissed');
+      }
+    );
   }
 
   formatFileSize(bytes: number): string {

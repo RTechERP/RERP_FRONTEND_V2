@@ -95,6 +95,7 @@ export class VehicleBookingManagementDetailComponent implements OnInit {
   employees: any[] = [];
   employeesGrouped: any[] = [];
   provinces: any[] = [];
+  provincesArrives: any[] = [];
   projects: any[] = [];
   approvedList: any[] = [];
   categories: any[] = [
@@ -181,6 +182,35 @@ export class VehicleBookingManagementDetailComponent implements OnInit {
     }
   }
 
+  loadProvincesArrives(): void {
+    this.vehicleBookingService.getProvinceArrives(this.employeeId).subscribe({
+      next: (data: any) => {
+        const responseData = data?.data || data?.Data || data;
+        if (Array.isArray(responseData)) {
+          this.provincesArrives = responseData.map((item: any) => ({
+            value: item.ID || item.Id || item.Value,
+            label: item.ProvinceName || item.Name || item.Label || item.Text
+          }));
+        } else {
+          this.provincesArrives = [];
+        }
+        if (!this.provincesArrives.find((p: any) => p.value === 0)) {
+          this.provincesArrives.push({ value: 0, label: 'Khác' });
+        }
+      },
+      error: (err) => {
+        console.error('Error loading provinces arrives:', err);
+        this.provincesArrives = [
+          { value: 1, label: 'Hà Nội' },
+          { value: 2, label: 'Bắc Ninh' },
+          { value: 3, label: 'Hải Phòng' },
+          { value: 4, label: 'Hồ Chí Minh' },
+          { value: 0, label: 'Khác' },
+        ];
+      }
+    });
+  }
+
   loadInitialData(): void {
     // Load employees
     this.vehicleBookingService.getEmployee().subscribe({
@@ -260,6 +290,8 @@ export class VehicleBookingManagementDetailComponent implements OnInit {
         ];
       }
     });
+
+    this.loadProvincesArrives();
 
     // Load projects
     this.vehicleBookingService.getProjects().subscribe({

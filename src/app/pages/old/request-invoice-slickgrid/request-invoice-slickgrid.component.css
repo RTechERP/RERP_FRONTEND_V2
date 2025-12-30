@@ -1,0 +1,137 @@
+:host {
+    display: block;
+    height: 93vh;
+}
+
+.ant-splitter {
+    height: 100% !important;
+}
+
+:host ::ng-deep .ant-splitter-panel {
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+}
+
+:host ::ng-deep .ant-splitter-panel .card {
+    min-height: 0;
+}
+
+:host ::ng-deep .ant-splitter-panel .card-body {
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
+}
+
+.fs-12 {
+    font-size: 0.75rem;
+}
+
+.reset {
+    all: revert;
+}
+
+.ant-splitter-panel {
+    position: relative;
+}
+
+.inner-content {
+    padding: 0 !important;
+}
+
+.ant-tabs-tab-btn {
+    font-size: 0.75rem;
+}
+
+.card-body {
+    flex: 1 1 auto;
+    min-height: 0;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+}
+
+.filter-bar {
+    position: absolute;
+    top: 30px;
+    left: 0;
+    right: 0;
+    z-index: 100;
+    background: white;
+    border-bottom: 1px solid #dee2e6;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.ant-splitter {
+    margin-top: 0 !important;
+}
+
+.card-body {
+    position: relative !important;
+}
+
+/* SlickGrid container styles */
+.grid-container-main {
+    width: 100%;
+    height: 100%;
+    position: relative;
+}
+
+.grid-container-detail {
+    width: 100%;
+    height: 100%;
+    position: relative;
+}
+
+.grid-container-file {
+    width: 100%;
+    height: 100%;
+    position: relative;
+}
+
+.grid-container-pofile {
+    width: 100%;
+    height: 100%;
+    position: relative;
+}
+
+/* SlickGrid styling */
+:host ::ng-deep .slick-header-column {
+    font-size: 0.75rem !important;
+}
+
+:host ::ng-deep .slick-cell {
+    font-size: 0.75rem !important;
+    padding: 2px 4px !important;
+}
+
+:host ::ng-deep .slick-row {
+    font-size: 0.75rem !important;
+}
+
+/* Urgent row styling */
+:host ::ng-deep .urgent-row {
+    background-color: #FFA500 !important;
+}
+
+/* Tab content styles */
+:host ::ng-deep .ant-tabs-content-holder {
+    flex: 1;
+    min-height: 0;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+}
+
+:host ::ng-deep .ant-tabs-tabpane {
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+}
+
+:host ::ng-deep .ant-tabs-tabpane-active {
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+}

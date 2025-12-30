@@ -1,32 +1,24 @@
-/* Set font-size 12px cho tất cả các bảng Tabulator (trừ badge) */
-#JobrequirementTable,
-#JobrequirementTable *:not(.badge):not(.badge *),
-#JobrequirementDetailTable,
-#JobrequirementDetailTable *:not(.badge):not(.badge *),
-#JobrequirementFileTable,
-#JobrequirementFileTable *:not(.badge):not(.badge *),
-#JobrequirementApprovedTable,
-#JobrequirementApprovedTable *:not(.badge):not(.badge *) {
+/* Set font-size 12px cho tất cả các bảng SlickGrid (trừ badge) */
+#jobRequirementGridContainer,
+#jobRequirementGridContainer *:not(.badge):not(.badge *),
+#jobRequirementDetailGridContainer,
+#jobRequirementDetailGridContainer *:not(.badge):not(.badge *),
+#jobRequirementFileGridContainer,
+#jobRequirementFileGridContainer *:not(.badge):not(.badge *),
+#jobRequirementApprovedGridContainer,
+#jobRequirementApprovedGridContainer *:not(.badge):not(.badge *) {
   font-size: 12px !important;
 }
 
 /* Đảm bảo tất cả text trong bảng đều 12px */
-#JobrequirementTable .tabulator-cell,
-#JobrequirementTable .tabulator-cell-content,
-#JobrequirementTable .tabulator-header,
-#JobrequirementTable .tabulator-col-title,
-#JobrequirementDetailTable .tabulator-cell,
-#JobrequirementDetailTable .tabulator-cell-content,
-#JobrequirementDetailTable .tabulator-header,
-#JobrequirementDetailTable .tabulator-col-title,
-#JobrequirementFileTable .tabulator-cell,
-#JobrequirementFileTable .tabulator-cell-content,
-#JobrequirementFileTable .tabulator-header,
-#JobrequirementFileTable .tabulator-col-title,
-#JobrequirementApprovedTable .tabulator-cell,
-#JobrequirementApprovedTable .tabulator-cell-content,
-#JobrequirementApprovedTable .tabulator-header,
-#JobrequirementApprovedTable .tabulator-col-title {
+#jobRequirementGridContainer .slick-cell,
+#jobRequirementGridContainer .slick-header-column,
+#jobRequirementDetailGridContainer .slick-cell,
+#jobRequirementDetailGridContainer .slick-header-column,
+#jobRequirementFileGridContainer .slick-cell,
+#jobRequirementFileGridContainer .slick-header-column,
+#jobRequirementApprovedGridContainer .slick-cell,
+#jobRequirementApprovedGridContainer .slick-header-column {
   font-size: 12px !important;
 }
 
@@ -57,27 +49,72 @@
 }
 
 /* Set font-size 10px cho các badge duyệt - độ ưu tiên cao nhất */
-#JobrequirementTable .badge,
-#JobrequirementTable .tabulator-cell .badge,
-#JobrequirementTable .tabulator-cell-content .badge,
-#JobrequirementTable .badge span,
-#JobrequirementTable .badge *,
-#JobrequirementDetailTable .badge,
-#JobrequirementDetailTable .tabulator-cell .badge,
-#JobrequirementDetailTable .tabulator-cell-content .badge,
-#JobrequirementDetailTable .badge span,
-#JobrequirementDetailTable .badge *,
-#JobrequirementFileTable .badge,
-#JobrequirementFileTable .tabulator-cell .badge,
-#JobrequirementFileTable .tabulator-cell-content .badge,
-#JobrequirementFileTable .badge span,
-#JobrequirementFileTable .badge *,
-#JobrequirementApprovedTable .badge,
-#JobrequirementApprovedTable .tabulator-cell .badge,
-#JobrequirementApprovedTable .tabulator-cell-content .badge,
-#JobrequirementApprovedTable .badge span,
-#JobrequirementApprovedTable .badge * {
+#jobRequirementGridContainer .badge,
+#jobRequirementGridContainer .slick-cell .badge,
+#jobRequirementGridContainer .badge span,
+#jobRequirementGridContainer .badge *,
+#jobRequirementDetailGridContainer .badge,
+#jobRequirementDetailGridContainer .slick-cell .badge,
+#jobRequirementDetailGridContainer .badge span,
+#jobRequirementDetailGridContainer .badge *,
+#jobRequirementFileGridContainer .badge,
+#jobRequirementFileGridContainer .slick-cell .badge,
+#jobRequirementFileGridContainer .badge span,
+#jobRequirementFileGridContainer .badge *,
+#jobRequirementApprovedGridContainer .badge,
+#jobRequirementApprovedGridContainer .slick-cell .badge,
+#jobRequirementApprovedGridContainer .badge span,
+#jobRequirementApprovedGridContainer .badge * {
   font-size: 10px !important;
   padding: 2px 6px !important;
   line-height: 1.2 !important;
+}
+
+/* Enable proper horizontal scrolling for slickgrid */
+#jobRequirementGridContainer .slick-viewport,
+#jobRequirementDetailGridContainer .slick-viewport,
+#jobRequirementFileGridContainer .slick-viewport,
+#jobRequirementApprovedGridContainer .slick-viewport {
+  overflow-x: auto !important;
+  overflow-y: auto !important;
+  width: 100% !important;
+}
+
+/* Ensure grid containers don't restrict scrolling */
+#jobRequirementGridContainer,
+#jobRequirementDetailGridContainer,
+#jobRequirementFileGridContainer,
+#jobRequirementApprovedGridContainer {
+  width: 100% !important;
+  height: 100% !important;
+  overflow: visible !important;
+}
+
+/* Allow grid canvas to expand horizontally */
+#jobRequirementGridContainer .slick-grid,
+#jobRequirementDetailGridContainer .slick-grid,
+#jobRequirementFileGridContainer .slick-grid,
+#jobRequirementApprovedGridContainer .slick-grid {
+  width: auto !important;
+  min-width: 100% !important;
+}
+
+/* Prevent text truncation but allow scrolling */
+#jobRequirementGridContainer .slick-cell,
+#jobRequirementDetailGridContainer .slick-cell,
+#jobRequirementFileGridContainer .slick-cell,
+#jobRequirementApprovedGridContainer .slick-cell {
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+  white-space: nowrap !important;
+}
+
+::ng-deep #jobRequirementGrid {
+    min-height: 47vh !important;
+}
+::ng-deep #jobRequirementFileGrid {
+    min-height: 47vh !important;
+}
+::ng-deep #jobRequirementApprovedGrid {
+    min-height: 40vh !important;
 }

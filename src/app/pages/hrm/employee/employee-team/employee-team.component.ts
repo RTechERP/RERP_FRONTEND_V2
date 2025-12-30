@@ -173,7 +173,12 @@ export class EmployeeTeamComponent implements OnInit {
       DepartmentID: null,
       IsDeleted: false
     });
-    const modal = new (window as any).bootstrap.Modal(document.getElementById('addEmployeeTeamModal'));
+    
+        
+    const modal = new (window as any).bootstrap.Modal(document.getElementById('addEmployeeTeamModal'), {
+      backdrop: false,
+      keyboard: true
+    });
     modal.show();
 
   }
@@ -194,7 +199,12 @@ export class EmployeeTeamComponent implements OnInit {
       Name: this.selectedEmployeeTeam.Name,
       IsDeleted: false
     });
-    const modal = new (window as any).bootstrap.Modal(document.getElementById('addEmployeeTeamModal'));
+    
+        
+    const modal = new (window as any).bootstrap.Modal(document.getElementById('addEmployeeTeamModal'), {
+      backdrop: false,
+      keyboard: true
+    });
     modal.show();
   }
 
@@ -203,6 +213,8 @@ export class EmployeeTeamComponent implements OnInit {
     if (modal) {
       (window as any).bootstrap.Modal.getInstance(modal).hide();
     }
+    
+        
     this.employeeTeamForm.reset();
   }
 

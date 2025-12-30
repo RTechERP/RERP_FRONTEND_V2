@@ -26,7 +26,7 @@ import { NgbModal, NgbModalModule } from '@ng-bootstrap/ng-bootstrap';
 import { OverTimeComponent } from '../../../over-time/over-time.component';
 import { OverTimeDetailComponent } from '../../../over-time/over-time-detail/over-time-detail.component';
 import { OverTimePersonFormComponent } from '../../../over-time/over-time-person/over-time-person-form/over-time-person-form.component';
-
+import { EmployeeService } from '../../../employee/employee-service/employee.service';
 
 
 
@@ -60,7 +60,7 @@ export class EmployeeNightShiftFormComponent implements OnInit {
   formGroup!: FormGroup;
   isEditMode: boolean = false;
   employees: { department: string, list: any[] }[] = [];
-  approvers: { department: string, list: any[] }[] = [];
+  approverList: any[] = [];
   dateFormat = 'dd/MM/yyyy HH:mm';
   currentUser: any = null;
   isSelfDeclaration: boolean = false; // Người đăng nhập tự khai báo
@@ -98,6 +98,7 @@ export class EmployeeNightShiftFormComponent implements OnInit {
     private modalService: NgbModal,
     private modal: NzModalService,
     private permissionService: PermissionService,
+    private employeeService: EmployeeService,
   ) {
     this.initForm();
   }
@@ -414,34 +415,10 @@ export class EmployeeNightShiftFormComponent implements OnInit {
   }
 
   loadApprovers(): void {
-    this.wfhService.getEmloyeeApprover().subscribe({
+    this.employeeService.getEmployeeApprove().subscribe({
       next: (res: any) => {
-        if (res && res.status === 1 && res.data) {
-          const rawApprovers = res.data.approvers || [];
-
-          // Group by DepartmentName
-          const grouped = rawApprovers.reduce((acc: any, curr: any) => {
-            const dept = curr.DepartmentName || 'Khác';
-            if (!acc[dept]) {
-              acc[dept] = [];
-            }
-            // Map to match the structure expected by the template if needed, 
-            // or just push the object if it has ID, Code, FullName
-            acc[dept].push({
-              ID: curr.EmployeeID, // WFH service returns EmployeeID for approvers
-              Code: curr.Code,
-              FullName: curr.FullName
-            });
-            return acc;
-          }, {});
-
-          this.approvers = Object.keys(grouped).map(dept => ({
-            department: dept,
-            list: grouped[dept]
-          }));
-        } else {
-          this.notification.error(NOTIFICATION_TITLE.error, res?.message || 'Không thể tải danh sách người duyệt');
-        }
+      
+           this.approverList = res.data || [];
       },
       error: (res: any) => {
         this.notification.error(NOTIFICATION_TITLE.error, res.error?.message || 'Không thể tải danh sách người duyệt');

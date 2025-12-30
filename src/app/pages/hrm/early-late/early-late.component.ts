@@ -192,34 +192,9 @@ export class EarlyLateComponent implements OnInit, AfterViewInit {
   };
 
    loadApprovers(): void {
-    this.wfhService.getEmloyeeApprover().subscribe({
+    this.employeeService.getEmployeeApprove().subscribe({
       next: (res: any) => {
-        if (res && res.status === 1 && res.data) {
-          this.approverList = res.data.approvers || [];
-
-          // Group by DepartmentName
-          const grouped = this.approverList.reduce((acc: any, curr: any) => {
-            const dept = curr.DepartmentName || 'Khác';
-            if (!acc[dept]) {
-              acc[dept] = [];
-            }
-            // Map to match the structure expected by the template if needed, 
-            // or just push the object if it has ID, Code, FullName
-            acc[dept].push({
-              ID: curr.EmployeeID, // WFH service returns EmployeeID for approvers
-              Code: curr.Code,
-              FullName: curr.FullName
-            });
-            return acc;
-          }, {});
-
-          this.approvers = Object.keys(grouped).map(dept => ({
-            department: dept,
-            list: grouped[dept]
-          }));
-        } else {
-          this.notification.error(NOTIFICATION_TITLE.error, res?.message || 'Không thể tải danh sách người duyệt');
-        }
+          this.approverList = res.data || [];
       },
       error: (error: any) => {
         const errorMessage = error?.error?.message || error?.error?.Message || error?.message || 'Không thể tải danh sách người duyệt';

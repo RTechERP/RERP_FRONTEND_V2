@@ -99,7 +99,7 @@ export class EmployeeRegisterBussinessFormComponent implements OnInit {
     this.loadApprovers();
     this.loadEmployees();
     this.getCurrentUser();
-    
+
     if (this.isEditMode && this.id > 0) {
       this.loadDataById();
     } else if (this.data) {
@@ -119,11 +119,11 @@ export class EmployeeRegisterBussinessFormComponent implements OnInit {
         const result = response?.data || response?.employee || response;
         if (result) {
           const employeeBussinessID = result.Id || result.ID || 0;
-          
+
           if (employeeBussinessID > 0) {
             this.loadFilesByBussinessID(employeeBussinessID);
           }
-          
+
           setTimeout(() => {
             this.patchFormData({
               ID: result.Id || result.ID || 0,
@@ -146,7 +146,7 @@ export class EmployeeRegisterBussinessFormComponent implements OnInit {
               IsProblem: result.IsProblem || false,
               AttachFileName: result.AttachFileName || ''
             });
-            
+
             this.onVehicleChange(result.VehicleID || result.VehicleId);
             this.cdr.detectChanges();
           }, 100);
@@ -171,7 +171,7 @@ export class EmployeeRegisterBussinessFormComponent implements OnInit {
       next: (response: any) => {
         if (response && response.status === 1 && response.data) {
           this.existingFiles = Array.isArray(response.data) ? response.data : [response.data];
-          
+
           if (this.existingFiles.length > 0) {
             const firstFile = this.existingFiles[0];
             this.existingFileRecord = {
@@ -208,11 +208,11 @@ export class EmployeeRegisterBussinessFormComponent implements OnInit {
         IsDeleted: true
       });
     }
-    
+
     this.existingFiles = this.existingFiles.filter(f => f.ID !== fileId);
-    
+
     const remainingFiles = this.existingFiles.filter(f => f.ID && !this.deletedFileIds.includes(f.ID));
-    
+
     if (remainingFiles.length === 0) {
       this.existingFileRecord = null;
       this.attachFileName = '';
@@ -227,7 +227,7 @@ export class EmployeeRegisterBussinessFormComponent implements OnInit {
       };
       this.attachFileName = firstFile.FileName || firstFile.OriginPath || '';
     }
-    
+
     this.cdr.detectChanges();
   }
 
@@ -244,7 +244,7 @@ export class EmployeeRegisterBussinessFormComponent implements OnInit {
     const typeValue = data.Type || data.TypeID || data.TypeBusiness || null;
     const approvedId = data.ApprovedID || data.ApprovedId || data.ApproverID || null;
     const workEarlyValue = this.convertToBoolean(data.WorkEarly);
-    
+
     this.bussinessForm.patchValue({
       ID: data.ID !== null && data.ID !== undefined ? data.ID : 0,
       EmployeeID: employeeID,
@@ -265,10 +265,10 @@ export class EmployeeRegisterBussinessFormComponent implements OnInit {
       Reason: data.Reason || '',
       IsProblem: data.IsProblem || false
     }, { emitEvent: false });
-    
+
     // Force update WorkEarly checkbox to ensure binding
     this.bussinessForm.get('WorkEarly')?.setValue(workEarlyValue, { emitEvent: false });
-    
+
     this.isProblemValue = data.IsProblem || false;
     this.attachFileName = data.AttachFileName || '';
     this.calculateTotal();
@@ -302,14 +302,14 @@ export class EmployeeRegisterBussinessFormComponent implements OnInit {
     this.minDate = null;
     this.selectedFile = null;
     this.uploadedFileData = null;
-      this.tempFileRecord = null;
-      this.existingFileRecord = null;
-      this.fileList = [];
-      this.existingFiles = [];
-      this.deletedFileIds = [];
-      this.deletedFiles = [];
-      this.selectedVehicles = [];
-      this.vehicleDisplayText = '';
+    this.tempFileRecord = null;
+    this.existingFileRecord = null;
+    this.fileList = [];
+    this.existingFiles = [];
+    this.deletedFileIds = [];
+    this.deletedFiles = [];
+    this.selectedVehicles = [];
+    this.vehicleDisplayText = '';
   }
 
   private initializeForm(): void {
@@ -344,34 +344,34 @@ export class EmployeeRegisterBussinessFormComponent implements OnInit {
     this.bussinessForm.get('Overnight')?.valueChanges.subscribe((value) => this.onOvernightTypeChange(value));
     this.bussinessForm.get('IsProblem')?.valueChanges.subscribe((value) => {
       this.isProblemValue = value || false;
-      
+
       if (!value) {
         const dayBussiness = this.bussinessForm.get('DayBussiness')?.value;
-        
+
         if (dayBussiness) {
           const today = new Date();
           today.setHours(0, 0, 0, 0);
-          
+
           const yesterday = new Date(today);
           yesterday.setDate(yesterday.getDate() - 1);
           yesterday.setHours(0, 0, 0, 0);
-          
+
           const bussinessDate = new Date(dayBussiness);
           bussinessDate.setHours(0, 0, 0, 0);
-          
+
           const isToday = bussinessDate.getTime() === today.getTime();
           const isYesterday = bussinessDate.getTime() === yesterday.getTime();
-          
+
           if (!isToday && !isYesterday) {
             const todayDate = new Date();
             todayDate.setHours(0, 0, 0, 0);
-            
+
             this.bussinessForm.patchValue({
               DayBussiness: todayDate
             }, { emitEvent: false });
           }
         }
-        
+
         this.selectedFile = null;
         this.uploadedFileData = null;
         this.tempFileRecord = null;
@@ -380,7 +380,7 @@ export class EmployeeRegisterBussinessFormComponent implements OnInit {
           this.attachFileName = '';
         }
       }
-      
+
       this.datePickerKey++;
       this.cdr.detectChanges();
     });
@@ -413,16 +413,12 @@ export class EmployeeRegisterBussinessFormComponent implements OnInit {
   }
 
   loadApprovers() {
-    this.wfhService.getEmloyeeApprover().subscribe({
+    this.employeeService.getEmployeeApprove().subscribe({
       next: (res: any) => {
-        if (res && res.status === 1 && res.data) {
-          this.approverList = res.data.approvers || [];
-          // Group approvers theo phòng ban
-          this.buildApproverGroups();
-        }
+        this.approverList = res.data || [];
       },
-      error: (error) => {
-        // Silent fail
+      error: (error: any) => {
+        this.notification.error(NOTIFICATION_TITLE.error, error.error.message || 'Lỗi khi tải danh sách phương tiện: ' + error.message);
       }
     });
   }
@@ -563,7 +559,7 @@ export class EmployeeRegisterBussinessFormComponent implements OnInit {
     if (this.selectedVehicles && this.selectedVehicles.length > 0) {
       totalCost = this.selectedVehicles.reduce((sum, v) => sum + (v.cost || 0), 0);
     }
-    
+
     const costVehicleControl = this.bussinessForm.get('CostVehicle');
     if (costVehicleControl) {
       costVehicleControl.setValue(totalCost);
@@ -626,11 +622,11 @@ export class EmployeeRegisterBussinessFormComponent implements OnInit {
     try {
       const today = new Date();
       today.setHours(0, 0, 0, 0);
-      
+
       const yesterday = new Date(today);
       yesterday.setDate(yesterday.getDate() - 1);
       yesterday.setHours(0, 0, 0, 0);
-      
+
       const currentDate = new Date(current);
       currentDate.setHours(0, 0, 0, 0);
 
@@ -646,11 +642,11 @@ export class EmployeeRegisterBussinessFormComponent implements OnInit {
       if (isProblem) {
         const firstDayOfMonth = new Date(today.getFullYear(), today.getMonth(), 1);
         firstDayOfMonth.setHours(0, 0, 0, 0);
-        
+
         if (allowSelectedDate) {
           return false;
         }
-        
+
         const isBeforeFirstDay = currentDate.getTime() < firstDayOfMonth.getTime();
         const isAfterToday = currentDate.getTime() > today.getTime();
         return isBeforeFirstDay || isAfterToday;
@@ -672,7 +668,7 @@ export class EmployeeRegisterBussinessFormComponent implements OnInit {
     const costVehicle = this.bussinessForm.get('CostVehicle')?.value || 0;
     const costWorkEarly = this.bussinessForm.get('CostWorkEarly')?.value || 0;
     const costOvernight = this.bussinessForm.get('CostOvernight')?.value || 0;
-    
+
     const total = Number(costBussiness) + Number(costVehicle) + Number(costWorkEarly) + Number(costOvernight);
     this.bussinessForm.patchValue({ TotalMoney: total }, { emitEvent: false });
   }
@@ -691,7 +687,7 @@ export class EmployeeRegisterBussinessFormComponent implements OnInit {
     }
 
     const formValue = this.bussinessForm.getRawValue();
-    
+
     if (!formValue.Type || formValue.Type === null) {
       this.notification.warning(NOTIFICATION_TITLE.warning, 'Vui lòng chọn loại công tác');
       return;
@@ -738,7 +734,7 @@ export class EmployeeRegisterBussinessFormComponent implements OnInit {
       const hasNewFile = !!(this.selectedFile || this.tempFileRecord || this.uploadedFileData);
       const remainingFiles = this.existingFiles.filter(f => f.ID && !this.deletedFileIds.includes(f.ID));
       const hasExistingFile = remainingFiles.length > 0 || (this.existingFileRecord && this.existingFileRecord.ID > 0 && !this.deletedFileIds.includes(this.existingFileRecord.ID));
-      
+
       if (!hasNewFile && !hasExistingFile) {
         this.notification.warning(NOTIFICATION_TITLE.warning, 'Vui lòng chọn file đính kèm khi đăng ký bổ sung');
         return;
@@ -778,7 +774,7 @@ export class EmployeeRegisterBussinessFormComponent implements OnInit {
       this.existingFiles = [];
       this.existingFileRecord = null;
     }
-    
+
     this.selectedFile = null;
     this.tempFileRecord = null;
     this.uploadedFileData = null;
@@ -812,7 +808,7 @@ export class EmployeeRegisterBussinessFormComponent implements OnInit {
         if (res?.status === 1 && res?.data?.length > 0) {
           const uploadedFile = res.data[0];
           this.uploadedFileData = uploadedFile;
-          
+
           const fileRecord: any = {
             ID: this.existingFileRecord?.ID || 0,
             EmployeeBussinessID: 0,
@@ -844,16 +840,16 @@ export class EmployeeRegisterBussinessFormComponent implements OnInit {
       const hasNewFile = !!(this.selectedFile || this.tempFileRecord || this.uploadedFileData);
       const remainingFiles = this.existingFiles.filter(f => f.ID && !this.deletedFileIds.includes(f.ID));
       const hasExistingFile = remainingFiles.length > 0 || (this.existingFileRecord && this.existingFileRecord.ID > 0 && !this.deletedFileIds.includes(this.existingFileRecord.ID));
-      
+
       if (!hasNewFile && !hasExistingFile) {
         this.isLoading = false;
         this.notification.warning(NOTIFICATION_TITLE.warning, 'Vui lòng chọn file đính kèm khi đăng ký bổ sung');
         return;
       }
     }
-    
+
     this.isLoading = true;
-    
+
     const dto: any = {
       employeeBussiness: data[0] || null,
       employeeBussinessFiles: null,
@@ -883,7 +879,7 @@ export class EmployeeRegisterBussinessFormComponent implements OnInit {
         };
       }
     }
-    
+
     // Nếu IsProblem = true nhưng không có file hợp lệ, không cho phép lưu
     if (data[0].IsProblem && !dto.employeeBussinessFiles) {
       this.isLoading = false;
@@ -907,7 +903,7 @@ export class EmployeeRegisterBussinessFormComponent implements OnInit {
     this.bussinessService.saveDataEmployee(dto).subscribe({
       next: (response: any) => {
         const savedBussinessID = response?.data?.ID || response?.ID || data[0].ID || 0;
-        
+
         if (dto.employeeBussinessVehicle && savedBussinessID > 0 && dto.employeeBussinessVehicle.EmployeeBussinesID !== savedBussinessID) {
           dto.employeeBussinessVehicle.EmployeeBussinesID = savedBussinessID;
           this.bussinessService.saveDataEmployee({
@@ -941,7 +937,7 @@ export class EmployeeRegisterBussinessFormComponent implements OnInit {
       error: (error) => {
         const message = this.isEditMode ? 'Cập nhật bản ghi thất bại' : 'Thêm bản ghi thất bại';
         let errorMessage = error.message || 'Có lỗi xảy ra';
-        
+
         if (error.error && error.error.errors) {
           const validationErrors = error.error.errors;
           const errorDetails = Object.keys(validationErrors).map(key => {
@@ -949,7 +945,7 @@ export class EmployeeRegisterBussinessFormComponent implements OnInit {
           }).join('; ');
           errorMessage = errorDetails || errorMessage;
         }
-        
+
         this.notification.error(NOTIFICATION_TITLE.error, message + ': ' + errorMessage);
         this.isLoading = false;
       }
@@ -1004,14 +1000,14 @@ export class EmployeeRegisterBussinessFormComponent implements OnInit {
     if (this.deletedFiles.length > 0) {
       let completedCount = 0;
       const totalFiles = this.deletedFiles.length;
-      
+
       this.deletedFiles.forEach((deletedFile, index) => {
         const filePayload = {
           ...deletedFile,
           IsDeleted: true,
           UpdatedBy: this.currentUser?.UserName || 'admin'
         };
-        
+
         this.bussinessService.saveEmployeeBussinessFile(filePayload).subscribe({
           next: () => {
             completedCount++;

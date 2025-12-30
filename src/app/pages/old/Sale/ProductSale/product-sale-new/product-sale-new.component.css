@@ -154,3 +154,6 @@
         font-size: 0.7rem;
     }
 }
+::ng-deep div[id^="grvProductSale-"] {
+    height: 83vh !important;
+}

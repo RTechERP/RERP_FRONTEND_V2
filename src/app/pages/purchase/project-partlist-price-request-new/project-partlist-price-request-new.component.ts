@@ -64,371 +64,6 @@ import { HorizontalScrollDirective } from '../../../directives/horizontalScroll.
 import { Subscription } from 'rxjs';
 import { TabulatorPopupService } from '../../../shared/components/tabulator-popup/tabulator-popup.service';
 
-/**
- * Custom editor for single select with searchable dropdown and grouped options support
- */
-class GroupSelectEditor {
-  private args: any;
-  private wrapperElm!: HTMLDivElement;
-  private inputElm!: HTMLInputElement;
-  private dropdownElm!: HTMLDivElement;
-  private defaultValue: string = '';
-  private selectedValue: string = '';
-  private collection: Array<any> = [];
-  private visibleOptions: Array<{
-    value: string;
-    label: string;
-    group?: string;
-  }> = [];
-  private activeIndex = -1;
-
-  private handleOutsideMouseDown!: (e: Event) => void;
-  private handleReposition!: () => void;
-
-  constructor(args: any) {
-    this.args = args;
-    this.init();
-  }
-
-  init() {
-    const editor = this.args?.column?.editor ?? {};
-    this.collection = editor.collection ?? [];
-
-    this.wrapperElm = document.createElement('div');
-    this.wrapperElm.style.width = '100%';
-    this.wrapperElm.style.height = '100%';
-
-    this.inputElm = document.createElement('input');
-    this.inputElm.type = 'text';
-    this.inputElm.placeholder = 'Tìm...';
-    this.inputElm.style.width = '100%';
-    this.inputElm.style.height = '100%';
-    this.inputElm.style.boxSizing = 'border-box';
-    this.inputElm.style.padding = '2px 6px';
-    this.inputElm.style.fontSize = '12px';
-
-    this.wrapperElm.appendChild(this.inputElm);
-    this.args.container.appendChild(this.wrapperElm);
-
-    this.dropdownElm = document.createElement('div');
-    this.dropdownElm.style.position = 'fixed';
-    this.dropdownElm.style.zIndex = '99999';
-    this.dropdownElm.style.background = '#fff';
-    this.dropdownElm.style.border = '1px solid #d9d9d9';
-    this.dropdownElm.style.borderRadius = '4px';
-    this.dropdownElm.style.boxShadow = '0 6px 16px rgba(0,0,0,.08)';
-    this.dropdownElm.style.maxHeight = '260px';
-    this.dropdownElm.style.overflow = 'auto';
-    this.dropdownElm.style.display = 'none';
-    document.body.appendChild(this.dropdownElm);
-
-    this.inputElm.addEventListener('input', () => {
-      this.activeIndex = -1;
-      this.buildDropdown(this.inputElm.value);
-      this.openDropdown();
-    });
-
-    this.inputElm.addEventListener('focus', () => {
-      this.activeIndex = -1;
-      this.buildDropdown(this.inputElm.value);
-      this.openDropdown();
-    });
-
-    this.inputElm.addEventListener('keydown', (e: KeyboardEvent) => {
-      if (e.key === 'Escape') {
-        this.closeDropdown();
-        e.preventDefault();
-        return;
-      }
-
-      if (e.key === 'ArrowDown') {
-        this.moveActive(1);
-        e.preventDefault();
-        return;
-      }
-
-      if (e.key === 'ArrowUp') {
-        this.moveActive(-1);
-        e.preventDefault();
-        return;
-      }
-
-      if (e.key === 'Enter') {
-        this.selectActiveOrCommit();
-        e.preventDefault();
-      }
-    });
-
-    this.dropdownElm.addEventListener('mousedown', (e) => {
-      e.preventDefault();
-    });
-
-    this.handleOutsideMouseDown = (e: Event) => {
-      const target = e.target as Node;
-      if (
-        this.wrapperElm?.contains(target) ||
-        this.dropdownElm?.contains(target)
-      )
-        return;
-      this.closeDropdown();
-    };
-
-    this.handleReposition = () => {
-      if (this.dropdownElm?.style.display !== 'none') {
-        this.repositionDropdown();
-      }
-    };
-
-    document.addEventListener('mousedown', this.handleOutsideMouseDown, true);
-    window.addEventListener('scroll', this.handleReposition, true);
-    window.addEventListener('resize', this.handleReposition, true);
-
-    this.buildDropdown('');
-    this.openDropdown();
-    this.inputElm.focus();
-  }
-
-  private openDropdown() {
-    this.repositionDropdown();
-    this.dropdownElm.style.display = 'block';
-  }
-
-  private closeDropdown() {
-    if (this.dropdownElm) {
-      this.dropdownElm.style.display = 'none';
-    }
-  }
-
-  private repositionDropdown() {
-    const rect = this.wrapperElm.getBoundingClientRect();
-    this.dropdownElm.style.left = `${rect.left}px`;
-    this.dropdownElm.style.top = `${rect.bottom}px`;
-    this.dropdownElm.style.width = `${rect.width}px`;
-  }
-
-  private commit() {
-    const grid = this.args?.grid;
-    const lock = grid?.getEditorLock?.();
-    lock?.commitCurrentEdit?.();
-  }
-
-  private getFlattenedCollection(): Array<{
-    group?: string;
-    value: string;
-    label: string;
-  }> {
-    const out: Array<{ group?: string; value: string; label: string }> = [];
-    const editor = this.args?.column?.editor ?? {};
-    const addBlankEntry = editor?.collectionOptions?.addBlankEntry !== false;
-
-    if (addBlankEntry) {
-      out.push({ value: '', label: '' });
-    }
-
-    for (const item of this.collection) {
-      if (item?.options?.length) {
-        for (const opt of item.options) {
-          out.push({
-            group: item.label ?? '',
-            value: String(opt.value ?? ''),
-            label: String(opt.label ?? ''),
-          });
-        }
-      } else {
-        out.push({
-          value: String(item.value ?? ''),
-          label: String(item.label ?? ''),
-        });
-      }
-    }
-    return out;
-  }
-
-  private buildDropdown(searchTerm: string) {
-    const term = (searchTerm ?? '').trim().toLowerCase();
-    const currentValue = String(this.selectedValue ?? '');
-    const all = this.getFlattenedCollection();
-
-    const filtered = all.filter((x) => {
-      if (!term) return true;
-      if (String(x.value ?? '') === currentValue) return true;
-      const label = String(x.label ?? '').toLowerCase();
-      const value = String(x.value ?? '').toLowerCase();
-      return label.includes(term) || value.includes(term);
-    });
-
-    this.visibleOptions = filtered;
-
-    const root = document.createElement('div');
-    root.style.padding = '4px 0';
-
-    const grouped = new Map<string, Array<{ value: string; label: string }>>();
-    const noGroup: Array<{ value: string; label: string }> = [];
-
-    for (const x of filtered) {
-      const item = { value: x.value, label: x.label };
-      if (x.group) {
-        if (!grouped.has(x.group)) grouped.set(x.group, []);
-        grouped.get(x.group)!.push(item);
-      } else {
-        noGroup.push(item);
-      }
-    }
-
-    const appendOption = (
-      opt: { value: string; label: string },
-      optIndex: number
-    ) => {
-      const row = document.createElement('div');
-      row.setAttribute('data-idx', String(optIndex));
-      row.style.padding = '6px 10px';
-      row.style.cursor = 'pointer';
-      row.style.userSelect = 'none';
-      row.style.whiteSpace = 'nowrap';
-      row.style.overflow = 'hidden';
-      row.style.textOverflow = 'ellipsis';
-      row.textContent = opt.label;
-
-      if (opt.value === currentValue) {
-        row.style.background = '#e6f4ff';
-      }
-      if (optIndex === this.activeIndex) {
-        row.style.background = '#f5f5f5';
-      }
-
-      row.addEventListener('click', () => {
-        this.selectValue(opt.value);
-      });
-
-      root.appendChild(row);
-    };
-
-    let optIndex = 0;
-    for (const opt of noGroup) {
-      appendOption(opt, optIndex);
-      optIndex++;
-    }
-
-    for (const [groupLabel, items] of grouped.entries()) {
-      const header = document.createElement('div');
-      header.style.padding = '6px 10px';
-      header.style.fontWeight = '600';
-      header.style.color = '#666';
-      header.textContent = groupLabel;
-      root.appendChild(header);
-
-      for (const opt of items) {
-        appendOption(opt, optIndex);
-        optIndex++;
-      }
-    }
-
-    this.dropdownElm.innerHTML = '';
-    this.dropdownElm.appendChild(root);
-  }
-
-  private moveActive(delta: number) {
-    const count = this.visibleOptions?.length ?? 0;
-    if (count <= 0) return;
-    const next = Math.max(0, Math.min(count - 1, this.activeIndex + delta));
-    this.activeIndex = next;
-    this.buildDropdown(this.inputElm.value);
-
-    const active = this.dropdownElm.querySelector(
-      `[data-idx="${this.activeIndex}"]`
-    ) as HTMLDivElement | null;
-    active?.scrollIntoView({ block: 'nearest' });
-  }
-
-  private selectActiveOrCommit() {
-    if (
-      this.activeIndex >= 0 &&
-      this.activeIndex < (this.visibleOptions?.length ?? 0)
-    ) {
-      this.selectValue(this.visibleOptions[this.activeIndex].value);
-      return;
-    }
-    this.commit();
-  }
-
-  private selectValue(val: string) {
-    this.selectedValue = String(val ?? '');
-    const flat = this.getFlattenedCollection();
-    const found = flat.find(
-      (x) => String(x.value ?? '') === this.selectedValue
-    );
-    this.inputElm.value = found?.label ?? '';
-    this.closeDropdown();
-    this.commit();
-  }
-
-  destroy() {
-    document.removeEventListener(
-      'mousedown',
-      this.handleOutsideMouseDown,
-      true
-    );
-    window.removeEventListener('scroll', this.handleReposition, true);
-    window.removeEventListener('resize', this.handleReposition, true);
-    this.dropdownElm?.remove();
-    this.wrapperElm?.remove();
-  }
-
-  focus() {
-    this.inputElm?.focus();
-  }
-
-  loadValue(item: any) {
-    // Lấy lại collection từ args để đảm bảo collection luôn mới nhất
-    const editor = this.args?.column?.editor ?? {};
-    this.collection = editor.collection ?? [];
-    
-    const fieldValue = item?.[this.args.column.field];
-    this.defaultValue = fieldValue !== null && fieldValue !== undefined ? String(fieldValue) : '';
-    this.selectedValue = this.defaultValue;
-    
-    const flat = this.getFlattenedCollection();
-    // So sánh linh hoạt: chuyển cả hai về number nếu có thể, nếu không thì so sánh string
-    const found = flat.find((x) => {
-      const xValue = x.value ?? '';
-      const selectedValue = this.selectedValue ?? '';
-      
-      // Thử so sánh số trước
-      const xNum = Number(xValue);
-      const selectedNum = Number(selectedValue);
-      if (!isNaN(xNum) && !isNaN(selectedNum)) {
-        return xNum === selectedNum;
-      }
-      
-      // Nếu không phải số, so sánh string
-      return String(xValue) === String(selectedValue);
-    });
-    
-    // Hiển thị label trong input, không mở dropdown ngay
-    this.inputElm.value = found?.label ?? '';
-    // Chỉ build dropdown nhưng không mở (để khi user click vào input mới mở)
-    this.buildDropdown('');
-    // Không tự động mở dropdown khi load value
-    this.closeDropdown();
-  }
-
-  serializeValue() {
-    return this.selectedValue ?? '';
-  }
-
-  applyValue(item: any, state: any) {
-    item[this.args.column.field] = state;
-  }
-
-  isValueChanged() {
-    return String(this.selectedValue ?? '') !== String(this.defaultValue ?? '');
-  }
-
-  validate() {
-    return { valid: true, msg: null };
-  }
-}
-
 @Component({
   selector: 'app-project-partlist-price-request-new',
   standalone: true,
@@ -2206,6 +1841,9 @@ private updateFilterCollections(columns: any[], data: any[]): void {
           collectionOptions: {
             addBlankEntry: true
           },
+            editorOptions: {
+            filter: true,
+          } as MultipleSelectOption,
         },
         formatter: (row: number, cell: number, value: any) => {
           const currency = this.dtcurrency.find((c: any) => c.ID === value);
@@ -2347,16 +1985,14 @@ private updateFilterCollections(columns: any[], data: any[]): void {
           } as MultipleSelectOption,
         },
         editor: {
-          model: Editors['multipleSelect'],
+          model: Editors['singleSelect'],
           collection: this.getSupplierCollection(),
           collectionOptions: {
             addBlankEntry: true
           },
-          editorOptions: {
-            maxItemSelection: 1,
-            closeOnSelect: true,    
-            autoDropUp: true,
-          },
+            editorOptions: {
+            filter: true,
+          } as MultipleSelectOption,
         },
         formatter: (row: number, cell: number, value: any) => {
           // Xử lý cả trường hợp value là array (từ multiselect) hoặc số đơn
@@ -2635,6 +2271,7 @@ private updateFilterCollections(columns: any[], data: any[]): void {
         width: 35, // Width of checkbox column
       },
       editable: true,
+      autoEdit: true, // Single click to edit instead of double click
 
       enableCheckboxSelector: true,
       enableCellNavigation: true,
@@ -2647,6 +2284,7 @@ private updateFilterCollections(columns: any[], data: any[]): void {
       frozenColumn: frozenColumnCount, // Calculated dynamically to freeze up to Unit (DVT) column
       enablePagination: false,
       enableHeaderMenu: false, // Disable default header dropdown menu
+      autoCommitEdit: true,
     };
   }
 
@@ -2691,6 +2329,25 @@ private updateFilterCollections(columns: any[], data: any[]): void {
       this.columnDefinitionsMap.set(typeId, this.initGridColumns(typeId));
       this.gridOptionsMap.set(typeId, this.initGridOptions(typeId));
       this.datasetsMap.set(typeId, []);
+    }
+
+    // Ngăn việc tự động nhảy xuống dòng sau khi chọn xong trong editor
+    if (angularGrid.slickGrid) {
+      const grid = angularGrid.slickGrid;
+      const editorLock = grid.getEditorLock();
+
+      // Override hành vi commit để không move down
+      grid.onKeyDown.subscribe((e: any) => {
+        if (e.which === 13) { // Enter key
+          const activeCell = grid.getActiveCell();
+          if (activeCell && editorLock.isActive()) {
+            // Commit edit nhưng không move
+            editorLock.commitCurrentEdit();
+            e.preventDefault();
+            e.stopImmediatePropagation();
+          }
+        }
+      });
     }
 
     // Đảm bảo checkbox selector được enable ngay sau khi grid ready

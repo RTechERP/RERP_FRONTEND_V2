@@ -138,6 +138,7 @@ export class ProductRtcPurchaseRequestComponent implements OnInit, AfterViewInit
   isDisable: any = false;
   IsTechBought: any = false;
   isLoadingData: boolean = false; // Flag để tránh trigger valueChanges khi đang load data
+  isSaving: boolean = false; // Flag để hiển thị spinner khi đang lưu
   private isEditingMode: boolean = false; // Flag để biết khi nào đang edit và đã load data
   
   // ProductRTC specific data
@@ -456,7 +457,6 @@ export class ProductRtcPurchaseRequestComponent implements OnInit, AfterViewInit
         const controlsToDisable = [
           'CurrencyID',
           'VAT',
-          'SupplierSaleID',
           'IsImport',
           'LeadTime',
         ];
@@ -470,10 +470,11 @@ export class ProductRtcPurchaseRequestComponent implements OnInit, AfterViewInit
         this.validateForm.get('FirmID')?.disable();
         this.validateForm.get('UnitCountID')?.disable();
         this.validateForm.get('ProductGroupRTCID')?.disable();
-        this.validateForm.get('SupplierSaleID')?.disable();
+        // Không disable SupplierSaleID ở đây - để TicketType quản lý
       }
-      
+
       // Xử lý TicketType để enable/disable các field liên quan
+      // QUAN TRỌNG: Gọi handleTicketTypeChange CUỐI CÙNG để đảm bảo SupplierSaleID được set đúng
       this.handleTicketTypeChange(formValue.TicketType);
     } else {
       // New record
@@ -904,17 +905,17 @@ export class ProductRtcPurchaseRequestComponent implements OnInit, AfterViewInit
   onProductRTCChange(productRTCId: number) {
     // Khi user thay đổi ProductRTCID thủ công, reset isEditingMode để cho phép getProductRTC() chạy
     this.isEditingMode = false;
-    
+
     if (!productRTCId || productRTCId <= 0) {
-      // Nếu không chọn gì (clear), enable lại các field: ProductCode, ProductName, UnitCountID, FirmID, SupplierSaleID
+      // Nếu không chọn gì (clear), enable lại các field: ProductCode, ProductName, UnitCountID, FirmID
+      // Không bao gồm SupplierSaleID - để TicketType quản lý
       this.validateForm.get('ProductName')?.enable();
       this.validateForm.get('ProductCode')?.enable();
       this.validateForm.get('ProductCodeRTC')?.enable();
       this.validateForm.get('FirmID')?.enable();
       this.validateForm.get('UnitCountID')?.enable();
       this.validateForm.get('ProductGroupRTCID')?.enable();
-      this.validateForm.get('SupplierSaleID')?.enable();
-      
+
       // Clear các giá trị khi clear sản phẩm
       this.validateForm.patchValue({
         ProductName: '',
@@ -957,10 +958,10 @@ export class ProductRtcPurchaseRequestComponent implements OnInit, AfterViewInit
     if (this.isLoadingData) {
       return;
     }
-    
+
     let data = this.validateForm.getRawValue();
     const productRTCId = data.ProductRTCID;
-    
+
     const shouldDisable = productRTCId > 0;
     if (shouldDisable) {
       this.validateForm.get('ProductName')?.disable();
@@ -969,7 +970,7 @@ export class ProductRtcPurchaseRequestComponent implements OnInit, AfterViewInit
       this.validateForm.get('FirmID')?.disable();
       this.validateForm.get('UnitCountID')?.disable();
       this.validateForm.get('ProductGroupRTCID')?.disable();
-      this.validateForm.get('SupplierSaleID')?.disable();
+      // Không disable SupplierSaleID ở đây - để TicketType quản lý
     } else {
       this.validateForm.get('ProductName')?.enable();
       this.validateForm.get('ProductCode')?.enable();
@@ -977,7 +978,7 @@ export class ProductRtcPurchaseRequestComponent implements OnInit, AfterViewInit
       this.validateForm.get('FirmID')?.enable();
       this.validateForm.get('UnitCountID')?.enable();
       this.validateForm.get('ProductGroupRTCID')?.enable();
-      this.validateForm.get('SupplierSaleID')?.enable();
+      // Không enable SupplierSaleID ở đây - để TicketType quản lý
     }
     
     if (productRTCId > 0) {
@@ -1017,26 +1018,43 @@ export class ProductRtcPurchaseRequestComponent implements OnInit, AfterViewInit
       this.validateForm.get('FirmID')?.disable();
       this.validateForm.get('UnitCountID')?.disable();
       this.validateForm.get('ProductGroupRTCID')?.disable();
-      this.validateForm.get('SupplierSaleID')?.disable();
+      // Không disable SupplierSaleID ở đây - để TicketType quản lý
     }
   }
 
   // Handle Ticket Type change - xử lý khi chọn loại phiếu (mua/mượn)
   handleTicketTypeChange(ticketType: number) {
     if (ticketType === 1) { // Phiếu mượn
+      // Enable các field cho phiếu mượn
       this.validateForm.get('DateReturnEstimated')?.enable();
       this.validateForm.get('EmployeeApproveID')?.enable();
+      this.validateForm.get('SupplierSaleID')?.enable();
+
+      // Set validators cho phiếu mượn
       this.validateForm.get('EmployeeApproveID')?.setValidators([Validators.required]);
-    } else { // Phiếu mua
+      this.validateForm.get('SupplierSaleID')?.setValidators([Validators.required]);
+    } else { // Phiếu mua (TicketType = 0)
+      // Clear các giá trị không cần thiết cho phiếu mua
       this.validateForm.patchValue({
         DateReturnEstimated: null,
         EmployeeApproveID: 0
       });
+
+      // Disable các field không cần cho phiếu mua
       this.validateForm.get('DateReturnEstimated')?.disable();
       this.validateForm.get('EmployeeApproveID')?.disable();
+
+      // Enable nhà cung cấp cho phiếu mua (không bắt buộc nhưng cho phép nhập)
+      this.validateForm.get('SupplierSaleID')?.enable();
+
+      // Clear validators
       this.validateForm.get('EmployeeApproveID')?.clearValidators();
+      this.validateForm.get('SupplierSaleID')?.clearValidators();
     }
+
+    // Update validity
     this.validateForm.get('EmployeeApproveID')?.updateValueAndValidity();
+    this.validateForm.get('SupplierSaleID')?.updateValueAndValidity();
   }
 
   // Add ProductRTC - Mở modal thêm sản phẩm RTC
@@ -1103,12 +1121,15 @@ export class ProductRtcPurchaseRequestComponent implements OnInit, AfterViewInit
         this.notification.error(NOTIFICATION_TITLE.error, 'Vui lòng chọn người duyệt!');
         return;
       }
-      
+
+      // Chỉ validate nhà cung cấp cho phiếu mượn
       if (data.SupplierSaleID <= 0) {
         this.notification.error(NOTIFICATION_TITLE.error, 'Vui lòng chọn nhà cung cấp!');
         return;
       }
     }
+
+    // Phiếu mua (TicketType = 0) không cần validate nhà cung cấp
 
     // Kiểm tra người mua
     if (this.projectPartlistDetail?.ID <= 0 && data.EmployeeBuyID <= 0) {
@@ -1203,8 +1224,12 @@ export class ProductRtcPurchaseRequestComponent implements OnInit, AfterViewInit
     // Build model
     const model = this.buildSaveModel(data);
 
+    // Set flag để hiển thị spinner
+    this.isSaving = true;
+
     this.projectPartlistPurchaseRequestService.saveDataRTC(model).subscribe({
       next: (response: any) => {
+        this.isSaving = false;
         this.notification.success(
           NOTIFICATION_TITLE.success,
           'Lưu thành công!'
@@ -1212,6 +1237,7 @@ export class ProductRtcPurchaseRequestComponent implements OnInit, AfterViewInit
         this.activeModal.dismiss();
       },
       error: (error) => {
+        this.isSaving = false;
         this.notification.error(NOTIFICATION_TITLE.error, error.error.message);
       },
     });

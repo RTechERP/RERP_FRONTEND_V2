@@ -17,7 +17,7 @@ import { NzSelectModule } from 'ng-zorro-antd/select';
 import { NzSplitterModule } from 'ng-zorro-antd/splitter';
 import { NzTabSetComponent, NzTabComponent } from 'ng-zorro-antd/tabs';
 import { NzModalService, NzModalModule } from 'ng-zorro-antd/modal';
-import { AngularGridInstance, AngularSlickgridModule, Column, Filters, Formatters, GridOption, OnClickEventArgs, OnSelectedRowsChangedEventArgs } from 'angular-slickgrid';
+import { AngularGridInstance, AngularSlickgridModule, Column, Filters, Formatters, GridOption, MultipleSelectOption, OnClickEventArgs, OnSelectedRowsChangedEventArgs } from 'angular-slickgrid';
 import { PONCCService } from '../poncc/poncc.service';
 import { NgbModal } from '@ng-bootstrap/ng-bootstrap';
 import { ProjectService } from '../../project/project-service/project.service';
@@ -213,6 +213,9 @@ export class PonccNewComponent implements OnInit, AfterViewInit {
                 filter: {
                     model: Filters['multipleSelect'],
                     collection: [],
+                    filterOptions: {
+                      filter:true
+                    } as MultipleSelectOption,
                 },
 
                 formatter: (_row, _cell, value, _column, dataContext) => {
@@ -264,6 +267,9 @@ export class PonccNewComponent implements OnInit, AfterViewInit {
                 filter: {
                     model: Filters['multipleSelect'],
                     collection: [],
+                    filterOptions: {
+                      filter:true
+                    } as MultipleSelectOption,
                 },
 
                 formatter: (_row, _cell, value, _column, dataContext) => {
@@ -293,6 +299,9 @@ export class PonccNewComponent implements OnInit, AfterViewInit {
                 filter: {
                     model: Filters['multipleSelect'],
                     collection: [],
+                    filterOptions: {
+                      filter:true
+                    } as MultipleSelectOption,
                 },
 
                 formatter: (_row, _cell, value, _column, dataContext) => {
@@ -332,6 +341,9 @@ export class PonccNewComponent implements OnInit, AfterViewInit {
                 filter: {
                     model: Filters['multipleSelect'],
                     collection: [],
+                    filterOptions: {
+                      filter:true
+                    } as MultipleSelectOption,
                 },
 
                 formatter: (_row, _cell, value, _column, dataContext) => {
@@ -371,6 +383,9 @@ export class PonccNewComponent implements OnInit, AfterViewInit {
                 filter: {
                     model: Filters['multipleSelect'],
                     collection: [],
+                    filterOptions: {
+                      filter:true
+                    } as MultipleSelectOption,
                 },
 
                 formatter: (_row, _cell, value, _column, dataContext) => {
@@ -400,6 +415,9 @@ export class PonccNewComponent implements OnInit, AfterViewInit {
                 filter: {
                     model: Filters['multipleSelect'],
                     collection: [],
+                    filterOptions: {
+                      filter:true
+                    } as MultipleSelectOption,
                 },
 
                 formatter: (_row, _cell, value, _column, dataContext) => {
@@ -450,6 +468,9 @@ export class PonccNewComponent implements OnInit, AfterViewInit {
                 filter: {
                     model: Filters['multipleSelect'],
                     collection: [],
+                    filterOptions: {
+                      filter:true
+                    } as MultipleSelectOption,
                 },
 
                 formatter: (_row, _cell, value, _column, dataContext) => {
@@ -508,6 +529,9 @@ export class PonccNewComponent implements OnInit, AfterViewInit {
                 filter: {
                     model: Filters['multipleSelect'],
                     collection: [],
+                    filterOptions: {
+                      filter:true
+                    } as MultipleSelectOption,
                 },
             },
             {
@@ -520,6 +544,9 @@ export class PonccNewComponent implements OnInit, AfterViewInit {
                 filter: {
                     model: Filters['multipleSelect'],
                     collection: [],
+                    filterOptions: {
+                      filter:true
+                    } as MultipleSelectOption,
                 },
 
                 formatter: (_row, _cell, value, _column, dataContext) => {
@@ -549,6 +576,9 @@ export class PonccNewComponent implements OnInit, AfterViewInit {
                 filter: {
                     model: Filters['multipleSelect'],
                     collection: [],
+                    filterOptions: {
+                      filter:true
+                    } as MultipleSelectOption,
                 },
 
                 formatter: (_row, _cell, value, _column, dataContext) => {
@@ -578,6 +608,9 @@ export class PonccNewComponent implements OnInit, AfterViewInit {
                 filter: {
                     model: Filters['multipleSelect'],
                     collection: [],
+                    filterOptions: {
+                      filter:true
+                    } as MultipleSelectOption,
                 },
 
                 formatter: (_row, _cell, value, _column, dataContext) => {
@@ -633,6 +666,9 @@ export class PonccNewComponent implements OnInit, AfterViewInit {
                 filter: {
                     model: Filters['multipleSelect'],
                     collection: [],
+                    filterOptions: {
+                      filter:true
+                    } as MultipleSelectOption,
                 },
 
                 formatter: (_row, _cell, value, _column, dataContext) => {
@@ -1174,8 +1210,9 @@ export class PonccNewComponent implements OnInit, AfterViewInit {
             enableFiltering: true,
             autoFitColumnsOnFirstLoad: false,
             enableAutoSizeColumns: false,
+            enableSorting: true,           
             frozenColumn: 5,
-            enableHeaderMenu: false,
+            enableHeaderMenu: true,
             enableExcelExport: true,
             excelExportOptions: {
                 filename: 'poncc',
@@ -2305,6 +2342,23 @@ export class PonccNewComponent implements OnInit, AfterViewInit {
                 });
         }
     }
+onMasterDblClick(event: any): void {
+  const args = event?.args;
+  const row = args?.row;
+
+  // đảm bảo click trúng row
+  if (row == null) return;
+  if (this.activeTabIndex === 0) {
+  // chọn luôn row được double click
+  const grid = this.angularGridPoThuongMai?.slickGrid;
+  grid?.setSelectedRows([row]);
+  } else if (this.activeTabIndex === 1) {
+  const grid = this.angularGridPoMuon?.slickGrid;
+  grid?.setSelectedRows([row]);
+  }
+  // gọi hàm edit
+  this.onEditPoncc();
+}
 
     onOpenSummary() {
         const modalRef = this.modalService.open(PonccSummaryComponent, {
@@ -2312,6 +2366,7 @@ export class PonccNewComponent implements OnInit, AfterViewInit {
             backdrop: 'static',
             keyboard: false,
             centered: true,
+            windowClass: 'full-screen-modal',
         });
     }
 
@@ -2963,7 +3018,24 @@ export class PonccNewComponent implements OnInit, AfterViewInit {
                         if (loadedCount === totalPOs) {
                             this.isLoading = false;
                             this.showPreview = true;
-                            this.cdr.detectChanges();
+
+                            // Load data and render PDF for the first tab to show preview immediately
+                            if (this.tabs.length > 0) {
+                                const firstTab = this.tabs[0];
+                                this.srv.printPO(firstTab.id, firstTab.isMerge).subscribe({
+                                    next: (response) => {
+                                        this.dataPrint = response.data;
+                                        this.renderPDF(this.language, 0);
+                                        this.cdr.detectChanges();
+                                    },
+                                    error: () => {
+                                        // If API fails, still show the preview with initial dataUrl
+                                        this.cdr.detectChanges();
+                                    }
+                                });
+                            } else {
+                                this.cdr.detectChanges();
+                            }
                         }
                     });
                 },

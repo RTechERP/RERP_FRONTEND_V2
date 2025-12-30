@@ -103,5 +103,5 @@
   height: 100% !important;
 } */
  ::ng-deep div[id^="grid-"] {
-  height: 83vh!important;
+  height: 81vh!important;
 }

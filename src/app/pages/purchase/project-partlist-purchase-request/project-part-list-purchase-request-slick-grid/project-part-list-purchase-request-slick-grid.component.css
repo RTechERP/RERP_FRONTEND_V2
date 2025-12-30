@@ -32,5 +32,5 @@
   font-size: 0.75rem;
 }
 ::ng-deep div[id^="grid-"] {
-  height: 83vh!important;
+  height: 80vh!important;
 }

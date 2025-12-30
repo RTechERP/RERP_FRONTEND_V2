@@ -203,6 +203,39 @@
                 </div>
             </div>
 
+            <div nz-row [nzGutter]="16" *ngIf="paymentOrder.PaymentOrderTypeID == 22">
+                <div nz-col nzXs="24" nzSm="12" nzMd="6" nzLg="12">
+                    <nz-form-item>
+                        <nz-form-label>Điểm đi<span class="text-danger ps-1">(*)</span></nz-form-label>
+                        <nz-form-control nzErrorTip="Nhập điểm đến">
+                            <nz-input-group nzSearch [nzAddOnBefore]="isBill">
+                                <input nz-input [formControlName]="'StartLocation'">
+                            </nz-input-group>
+                            <ng-template #isBill>
+                                <label nz-checkbox [formControlName]="'IsBill'">Có hóa đơn</label>
+                            </ng-template>
+                        </nz-form-control>
+                    </nz-form-item>
+                </div>
+                <!-- <div nz-col nzXs="24" nzSm="12" nzMd="6" nzLg="10">
+                    <nz-form-item>
+                        <nz-form-label>Điểm đi<span class="text-danger ps-1">(*)</span></nz-form-label>
+                        <nz-form-control nzErrorTip="Nhập điểm đến">
+                            <input nz-input [formControlName]="'StartLocation'">
+                        </nz-form-control>
+                    </nz-form-item>
+                </div> -->
+
+                <div nz-col nzXs="24" nzSm="12" nzMd="6" nzLg="12">
+                    <nz-form-item>
+                        <nz-form-label>Điểm đến<nav></nav><span class="text-danger ps-1">(*)</span></nz-form-label>
+                        <nz-form-control nzErrorTip="Nhập điểm đến">
+                            <input nz-input [formControlName]="'EndLocation'">
+                        </nz-form-control>
+                    </nz-form-item>
+                </div>
+            </div>
+
             <div nz-row [nzGutter]="16">
                 <div nz-col nzXs="24" nzSm="12" nzMd="6" nzLg="8">
                     <nz-form-item>

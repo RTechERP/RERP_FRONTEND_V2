@@ -212,7 +212,7 @@ export class EmployeeContactComponent implements OnInit, AfterViewInit {
         ];
 
         const isMobile = typeof window !== 'undefined' ? window.innerWidth <= 768 : false;
-        
+
         this.gridOptions = {
             autoResize: {
                 container: '#grid-container-contact',
@@ -247,7 +247,7 @@ export class EmployeeContactComponent implements OnInit, AfterViewInit {
                     getter: 'DepartmentName',
                     comparer: () => 0,
                     formatter: (g: any) => {
-                        const deptName = g.value || 'Chưa phân phòng';
+                        const deptName = g.value || '';
                         return `Phòng ban: ${deptName}
                                 <span margin-left:10px;">
                                 (${g.count} NS)

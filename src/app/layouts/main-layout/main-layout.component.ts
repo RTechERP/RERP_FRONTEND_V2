@@ -623,6 +623,8 @@ export class MainLayoutComponent implements OnInit, AfterViewInit, OnDestroy {
             return;
         }
 
+        this.dynamicTabs = [];
+
         // console.log(this.dynamicTabs);
 
         this.dynamicTabs = [

@@ -91,7 +91,7 @@
                             (click)="openModule(m.Code)">
                             <div class="grid-config text-center py-1 shadow"
                                 style="display: flex; flex-flow: column;justify-content: center;align-items: center; height: 107px;">
-                                <img [style.width]="isMobile ? '35%' : '50%'" [src]="m.Icon?.replace('24','64')" alt="">
+                                <img [style.width]="isMobile ? '35%' : '70%'" [src]="m.Icon?.replace('24','64')" alt="">
                                 <p class="m-0 mt-2 fw-bold" style="line-height: normal;">{{m.Title}}</p>
                             </div>
                         </div>
@@ -191,12 +191,13 @@
                 </ul> -->
 
 
-                <p-tabs [value]="menuPersons[0].ID" scrollable>
+                <p-tabs [value]="menuPersons[0].ID">
                     <p-tablist>
                         @for (item of menuPersons; track $index){
-                        <p-tab [value]="item.ID" class="d-flex justify-content-start align-items-center">
-                            <p-avatar [image]="item.Icon" width="20%" />
-                            <span class="font-bold whitespace-nowrap">{{item.Title}}</span>
+                        <p-tab [value]="item.ID">
+                            {{item.Title}}
+                            <!-- <p-avatar [image]="item.Icon" width="20%" />
+                            <span class="font-bold whitespace-nowrap">{{item.Title}}</span> -->
                         </p-tab>
                         }
                     </p-tablist>

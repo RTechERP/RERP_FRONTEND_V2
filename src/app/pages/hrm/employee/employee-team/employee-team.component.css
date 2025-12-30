@@ -1,27 +1,24 @@
-.modal-backdrop {
-  background-color: rgba(0, 0, 0, 0.5);
-  backdrop-filter: blur(5px);
-  -webkit-backdrop-filter: blur(5px);
-}
-
-.modal-backdrop.show {
-  opacity: 1;
-}
-
-.modal {
-  background-color: rgba(0, 0, 0, 0.5);
-}
-
-.modal-dialog {
-  position: relative;
-  z-index: 1050;
-}
 ::ng-deep nz-splitter {
   height: 95vh !important;
 }
 
 ::ng-deep .ant-splitter {
   height: 95vh !important;
+}
+
+/* Fix nested modal z-index issue */
+#addEmployeeTeamModal {
+  z-index: 9999 !important;
+}
+
+#addEmployeeTeamModal .modal-dialog {
+  z-index: 10000 !important;
+}
+
+/* Ensure modal content is always on top */
+#addEmployeeTeamModal .modal-content {
+  z-index: 10001 !important;
+  position: relative;
 }
 /* ::ng-deep .tabulator .tabulator-header .tabulator-col{
   height: auto !important;

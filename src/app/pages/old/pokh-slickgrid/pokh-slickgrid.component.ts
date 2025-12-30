@@ -286,6 +286,10 @@ export class PokhSlickgridComponent implements OnInit, AfterViewInit {
         } else {
           this.datasetPOKH = [];
         }
+
+        setTimeout(() => {
+          this.applyDistinctFiltersToGrid(this.angularGridPOKH, this.columnDefinitionsPOKH, ['MainIndex', 'CurrencyCode']);
+        }, 0);
       },
       error: (error: any) => {
         this.notification.error(NOTIFICATION_TITLE.error, 'Lỗi khi tải dữ liệu POKH: ' + error);
@@ -421,8 +425,6 @@ export class PokhSlickgridComponent implements OnInit, AfterViewInit {
         if (response.status === 1) {
           this.mainIndexes = response.data;
           console.log('main', this.mainIndexes);
-          // Update filter collection after data is loaded
-          this.updateMainIndexFilter();
         } else {
           this.notification.error('Lỗi khi tải Lọc:', response.message);
           return;
@@ -462,8 +464,6 @@ export class PokhSlickgridComponent implements OnInit, AfterViewInit {
         if (response.status === 1) {
           this.dataCurrencies = response.data;
           console.log('currencies', this.dataCurrencies);
-          // Update filter collection after data is loaded
-          this.updateCurrencyFilter();
         } else {
           this.notification.error(
             NOTIFICATION_TITLE.error,
@@ -491,7 +491,6 @@ export class PokhSlickgridComponent implements OnInit, AfterViewInit {
             parentId: item.ParentID === 0 ? null : item.ParentID
           }));
           
-          // Apply distinct filters after data is loaded
           setTimeout(() => {
             this.applyDistinctFiltersToGrid(this.angularGridPOKHProduct, this.columnDefinitionsPOKHProduct, ['Maker', 'Unit']);
           }, 500);
@@ -1542,7 +1541,7 @@ export class PokhSlickgridComponent implements OnInit, AfterViewInit {
 
   initGridPOKH(): void {
     this.columnDefinitionsPOKH = [
-      { id: 'IsApproved', name: 'Duyệt', field: 'IsApproved', width: 80, minWidth: 50, formatter: this.checkboxFormatter, sortable: true, filterable: true, filter: { model: Filters['singleSelect'], collection: [{ value: true, label: 'Đã duyệt' }, { value: false, label: 'Chưa duyệt' }] } },
+      { id: 'IsApproved', name: 'Duyệt', field: 'IsApproved', width: 80, minWidth: 50, formatter: this.checkboxFormatter, sortable: true, filterable: true, filter: { model: Filters['singleSelect'], collection: [{ value: null, label: 'Tất cả' }, { value: true, label: 'Đã duyệt' }, { value: false, label: 'Chưa duyệt' }] } },
       { id: 'StatusTextNew', name: 'Trạng thái', field: 'StatusTextNew', width: 150, minWidth: 150, sortable: true, filterable: true, filter: { model: Filters['compoundInputText'] } },
       {
         id: 'MainIndex',
@@ -1553,8 +1552,8 @@ export class PokhSlickgridComponent implements OnInit, AfterViewInit {
         sortable: true,
         filterable: true,
         filter: {
-          model: Filters['singleSelect'],
-          collection: this.mainIndexes.map(item => ({ value: item.MainIndex1, label: item.MainIndex1 })),
+          model: Filters['multipleSelect'],
+          collection: [],
           collectionOptions: {
             addBlankEntry: true
           },
@@ -1564,7 +1563,7 @@ export class PokhSlickgridComponent implements OnInit, AfterViewInit {
           } as MultipleSelectOption,
         }
       },
-      { id: 'NewAccount', name: 'New Account', field: 'NewAccount', width: 100, minWidth: 70, formatter: this.checkboxFormatter, sortable: true, filterable: true, filter: { model: Filters['singleSelect'], collection: [{ value: true, label: 'Có' }, { value: false, label: 'Không' }] } },
+      { id: 'NewAccount', name: 'New Account', field: 'NewAccount', width: 100, minWidth: 70, formatter: this.checkboxFormatter, sortable: true, filterable: true, filter: { model: Filters['singleSelect'], collection: [{ value: null, label: 'Tất cả' }, { value: true, label: 'Có' }, { value: false, label: 'Không' }] } },
       { id: 'PONumber', name: 'Số POKH', field: 'PONumber', width: 100, minWidth: 100, sortable: true, filterable: true, filter: { model: Filters['compoundInputNumber'] } },
       { id: 'POCode', name: 'Mã PO', field: 'POCode', width: 150, minWidth: 150, sortable: true, filterable: true, filter: { model: Filters['compoundInputText'] } },
       { id: 'CustomerName', name: 'Khách hàng', field: 'CustomerName', width: 300, minWidth: 300, sortable: true, filterable: true, filter: { model: Filters['compoundInputText'] } },
@@ -1581,8 +1580,8 @@ export class PokhSlickgridComponent implements OnInit, AfterViewInit {
         sortable: true,
         filterable: true,
         filter: {
-          model: Filters['singleSelect'],
-          collection: this.dataCurrencies.map(item => ({ value: item.Code, label: item.Code })),
+          model: Filters['multipleSelect'],
+          collection: [],
           collectionOptions: {
             addBlankEntry: true
           },

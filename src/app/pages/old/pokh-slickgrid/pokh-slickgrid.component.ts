@@ -49,6 +49,7 @@ import {
   SlickGrid,
   MenuCommandItem,
   MenuCommandItemCallbackArgs,
+  MultipleSelectOption,
 } from 'angular-slickgrid';
 // import 'tabulator-tables/dist/css/tabulator_simple.min.css';
 // import 'bootstrap-icons/font/bootstrap-icons.css';
@@ -89,6 +90,7 @@ import { ActivatedRoute } from '@angular/router';
 import { ProjectPartlistPurchaseRequestNewComponent } from '../../purchase/project-partlist-purchase-request-new/project-partlist-purchase-request-new.component';
 import { ProjectPartListPurchaseRequestSlickGridComponent } from '../../purchase/project-partlist-purchase-request/project-part-list-purchase-request-slick-grid/project-part-list-purchase-request-slick-grid.component';
 import { WarehouseReleaseRequestSlickGridComponent } from '../warehouse-release-request-slick-grid/warehouse-release-request-slick-grid.component';
+import { PoRequestBuySlickgridComponent } from '../po-request-buy-slickgrid/po-request-buy-slickgrid.component';
 @Component({
   selector: 'app-pokh-slickgrid',
   imports: [
@@ -263,6 +265,7 @@ export class PokhSlickgridComponent implements OnInit, AfterViewInit {
     this.loadProjects();
     this.loadTypePO();
     this.loadFilterMainIndexes();
+    this.loadCurrencies();
     this.loadProducts();
   }
 
@@ -283,6 +286,10 @@ export class PokhSlickgridComponent implements OnInit, AfterViewInit {
         } else {
           this.datasetPOKH = [];
         }
+
+        setTimeout(() => {
+          this.applyDistinctFiltersToGrid(this.angularGridPOKH, this.columnDefinitionsPOKH, ['MainIndex', 'CurrencyCode']);
+        }, 0);
       },
       error: (error: any) => {
         this.notification.error(NOTIFICATION_TITLE.error, 'Lỗi khi tải dữ liệu POKH: ' + error);
@@ -451,6 +458,28 @@ export class PokhSlickgridComponent implements OnInit, AfterViewInit {
     });
   }
 
+  loadCurrencies(): void {
+    this.POKHService.getCurrency().subscribe({
+      next: (response) => {
+        if (response.status === 1) {
+          this.dataCurrencies = response.data;
+          console.log('currencies', this.dataCurrencies);
+        } else {
+          this.notification.error(
+            NOTIFICATION_TITLE.error,
+            'Lỗi khi tải loại tiền: ' + response.message
+          );
+        }
+      },
+      error: (error) => {
+        this.notification.error(
+          NOTIFICATION_TITLE.error,
+          'Lỗi kết nối khi tải loại tiền: ' + error
+        );
+      },
+    });
+  }
+
   loadPOKHProducts(id: number = 0, idDetail: number = 0): void {
     this.POKHService.getPOKHProduct(id, idDetail).subscribe({
       next: (response) => {
@@ -461,6 +490,10 @@ export class PokhSlickgridComponent implements OnInit, AfterViewInit {
             id: item.ID,
             parentId: item.ParentID === 0 ? null : item.ParentID
           }));
+          
+          setTimeout(() => {
+            this.applyDistinctFiltersToGrid(this.angularGridPOKHProduct, this.columnDefinitionsPOKHProduct, ['Maker', 'Unit']);
+          }, 500);
         } else {
           this.notification.error(
             NOTIFICATION_TITLE.error,
@@ -722,7 +755,7 @@ export class PokhSlickgridComponent implements OnInit, AfterViewInit {
     window.URL.revokeObjectURL(url);
   }
 
-  
+
   //#region : Hàm xử lý xuất excel Phiếu (SlickGrid version)
   async exportMainTableToExcel() {
     if (!this.datasetPOKH || this.datasetPOKH.length === 0) {
@@ -1124,6 +1157,32 @@ export class PokhSlickgridComponent implements OnInit, AfterViewInit {
     this.modalRef.componentInstance.warehouseId = this.filters.warehouseId;
   }
 
+  // openPORequestBuyModal() {
+  //   if (!this.selectedId) {
+  //     this.notification.warning(
+  //       NOTIFICATION_TITLE.warning,
+  //       'Vui lòng chọn POKH trước!'
+  //     );
+  //     return;
+  //   }
+  //   const modalRef = this.modalService.open(PoRequestBuyComponent, {
+  //           centered: true,
+  //           backdrop: 'static',
+  //           windowClass: 'full-screen-modal',
+  //       });
+  //       modalRef.componentInstance.pokhId = this.selectedId;
+
+  //       modalRef.result.then(
+  //           (result) => {
+  //               if (result) {
+  //               }
+  //           },
+  //           (reason) => {
+  //               console.log('Modal dismissed');
+  //           }
+  //       );
+  // }
+  
   openPORequestBuyModal() {
     if (!this.selectedId) {
       this.notification.warning(
@@ -1132,22 +1191,22 @@ export class PokhSlickgridComponent implements OnInit, AfterViewInit {
       );
       return;
     }
-    const modalRef = this.modalService.open(PoRequestBuyComponent, {
-            centered: true,
-            backdrop: 'static',
-            windowClass: 'full-screen-modal',
-        });
-        modalRef.componentInstance.pokhId = this.selectedId;
+    const modalRef = this.modalService.open(PoRequestBuySlickgridComponent, {
+      centered: true,
+      backdrop: 'static',
+      windowClass: 'full-screen-modal',
+    });
+    modalRef.componentInstance.pokhId = this.selectedId;
 
-        modalRef.result.then(
-            (result) => {
-                if (result) {
-                }
-            },
-            (reason) => {
-                console.log('Modal dismissed');
-            }
-        );
+    modalRef.result.then(
+      (result) => {
+        if (result) {
+        }
+      },
+      (reason) => {
+        console.log('Modal dismissed');
+      }
+    );
   }
 
   formatFileSize(bytes: number): string {
@@ -1482,25 +1541,64 @@ export class PokhSlickgridComponent implements OnInit, AfterViewInit {
 
   initGridPOKH(): void {
     this.columnDefinitionsPOKH = [
-      { id: 'IsApproved', name: 'Duyệt', field: 'IsApproved', width: 80, minWidth: 50, formatter: this.checkboxFormatter, sortable: true, filterable: true },
+      { id: 'IsApproved', name: 'Duyệt', field: 'IsApproved', width: 80, minWidth: 50, formatter: this.checkboxFormatter, sortable: true, filterable: true, filter: { model: Filters['singleSelect'], collection: [{ value: null, label: 'Tất cả' }, { value: true, label: 'Đã duyệt' }, { value: false, label: 'Chưa duyệt' }] } },
       { id: 'StatusTextNew', name: 'Trạng thái', field: 'StatusTextNew', width: 150, minWidth: 150, sortable: true, filterable: true, filter: { model: Filters['compoundInputText'] } },
-      { id: 'MainIndex', name: 'Loại', field: 'MainIndex', width: 200, minWidth: 200, sortable: true, filterable: true, filter: { model: Filters['compoundInputText'] } },
-      { id: 'NewAccount', name: 'New Account', field: 'NewAccount', width: 100, minWidth: 70, formatter: this.checkboxFormatter, sortable: true, filterable: true },
+      {
+        id: 'MainIndex',
+        name: 'Loại',
+        field: 'MainIndex',
+        width: 200,
+        minWidth: 200,
+        sortable: true,
+        filterable: true,
+        filter: {
+          model: Filters['multipleSelect'],
+          collection: [],
+          collectionOptions: {
+            addBlankEntry: true
+          },
+          filterOptions: {
+            autoAdjustDropHeight: true,
+            filter: true,
+          } as MultipleSelectOption,
+        }
+      },
+      { id: 'NewAccount', name: 'New Account', field: 'NewAccount', width: 100, minWidth: 70, formatter: this.checkboxFormatter, sortable: true, filterable: true, filter: { model: Filters['singleSelect'], collection: [{ value: null, label: 'Tất cả' }, { value: true, label: 'Có' }, { value: false, label: 'Không' }] } },
       { id: 'PONumber', name: 'Số POKH', field: 'PONumber', width: 100, minWidth: 100, sortable: true, filterable: true, filter: { model: Filters['compoundInputNumber'] } },
       { id: 'POCode', name: 'Mã PO', field: 'POCode', width: 150, minWidth: 150, sortable: true, filterable: true, filter: { model: Filters['compoundInputText'] } },
       { id: 'CustomerName', name: 'Khách hàng', field: 'CustomerName', width: 300, minWidth: 300, sortable: true, filterable: true, filter: { model: Filters['compoundInputText'] } },
       { id: 'FullName', name: 'Người phụ trách', field: 'FullName', width: 150, minWidth: 150, sortable: true, filterable: true, filter: { model: Filters['compoundInputText'] } },
       { id: 'ProjectName', name: 'Dự án', field: 'ProjectName', width: 200, minWidth: 200, sortable: true, filterable: true, filter: { model: Filters['compoundInputText'] } },
-      { id: 'ReceivedDatePO', name: 'Ngày nhận PO', field: 'ReceivedDatePO', width: 150, minWidth: 150, sortable: true, filterable: true, formatter: this.dateFormatter },
-      { id: 'CurrencyCode', name: 'Loại tiền', field: 'CurrencyCode', width: 80, minWidth: 80, sortable: true, filterable: true },
-      { id: 'TotalMoneyKoVAT', name: 'Tổng tiền Xuất VAT', field: 'TotalMoneyKoVAT', width: 150, minWidth: 150, sortable: true, filterable: true, formatter: this.moneyFormatter, cssClass: 'text-right' },
-      { id: 'TotalMoneyPO', name: 'Tổng tiền nhận PO', field: 'TotalMoneyPO', width: 150, minWidth: 150, sortable: true, filterable: true, formatter: this.moneyFormatter, cssClass: 'text-right' },
-      { id: 'ReceiveMoney', name: 'Tiền về', field: 'ReceiveMoney', width: 150, minWidth: 150, sortable: true, filterable: true, formatter: this.moneyFormatter, cssClass: 'text-right' },
+      { id: 'ReceivedDatePO', name: 'Ngày nhận PO', field: 'ReceivedDatePO', width: 150, minWidth: 150, sortable: true, filterable: true, formatter: this.dateFormatter, cssClass: 'text-center' },
+      { id: 'RecivedMoneyDate', name: 'Ngày tiền về', field: 'RecivedMoneyDate', width: 200, minWidth: 200, sortable: true, filterable: true, formatter: this.dateFormatter, cssClass: 'text-center' },
+      {
+        id: 'CurrencyCode',
+        name: 'Loại tiền',
+        field: 'CurrencyCode',
+        width: 80,
+        minWidth: 80,
+        sortable: true,
+        filterable: true,
+        filter: {
+          model: Filters['multipleSelect'],
+          collection: [],
+          collectionOptions: {
+            addBlankEntry: true
+          },
+          filterOptions: {
+            autoAdjustDropHeight: true,
+            filter: true,
+          } as MultipleSelectOption,
+        }
+      },
+      { id: 'TotalMoneyKoVAT', name: 'Tổng tiền Xuất VAT', field: 'TotalMoneyKoVAT', width: 150, minWidth: 150, sortable: true, filterable: true, formatter: this.moneyFormatter, cssClass: 'text-end', filter: { model: Filters['compoundInputNumber'] } },
+      { id: 'TotalMoneyPO', name: 'Tổng tiền nhận PO', field: 'TotalMoneyPO', width: 150, minWidth: 150, sortable: true, filterable: true, formatter: this.moneyFormatter, cssClass: 'text-end', filter: { model: Filters['compoundInputNumber'] } },
+      { id: 'ReceiveMoney', name: 'Tiền về', field: 'ReceiveMoney', width: 150, minWidth: 150, sortable: true, filterable: true, formatter: this.moneyFormatter, cssClass: 'text-end', filter: { model: Filters['compoundInputNumber'] } },
       { id: 'DeliveryStatusText', name: 'Tình trạng tiến độ giao hàng', field: 'DeliveryStatusText', width: 150, minWidth: 150, sortable: true, filterable: true },
       { id: 'ExportStatusText', name: 'Tình trạng xuất kho', field: 'ExportStatusText', width: 150, minWidth: 150, sortable: true, filterable: true },
       { id: 'EndUser', name: 'End User', field: 'EndUser', width: 150, minWidth: 150, sortable: true, filterable: true, filter: { model: Filters['compoundInputText'] } },
       { id: 'Note', name: 'Ghi chú', field: 'Note', width: 120, minWidth: 120, sortable: true, filterable: true, filter: { model: Filters['compoundInputText'] } },
-      { id: 'Debt', name: 'Công nợ', field: 'Debt', width: 120, minWidth: 120, sortable: true, filterable: true, formatter: this.moneyFormatter, cssClass: 'text-right' },
+      { id: 'Debt', name: 'Công nợ', field: 'Debt', width: 120, minWidth: 120, sortable: true, filterable: true },
       { id: 'ImportStatus', name: 'Hóa đơn', field: 'ImportStatus', width: 150, minWidth: 150, sortable: true, filterable: true, filter: { model: Filters['compoundInputText'] } },
     ];
 
@@ -1534,6 +1632,34 @@ export class PokhSlickgridComponent implements OnInit, AfterViewInit {
     this.loadPOKH();
   }
 
+  updateMainIndexFilter(): void {
+    if (this.angularGridPOKH && this.mainIndexes.length > 0) {
+      const mainIndexColumn = this.columnDefinitionsPOKH.find(col => col.id === 'MainIndex');
+      if (mainIndexColumn && mainIndexColumn.filter) {
+        mainIndexColumn.filter.collection = this.mainIndexes.map(item => ({
+          value: item.MainIndex1,
+          label: item.MainIndex1
+        }));
+        // Update the column definition in the grid
+        this.angularGridPOKH.slickGrid?.setColumns(this.columnDefinitionsPOKH);
+      }
+    }
+  }
+
+  updateCurrencyFilter(): void {
+    if (this.angularGridPOKH && this.dataCurrencies.length > 0) {
+      const currencyColumn = this.columnDefinitionsPOKH.find(col => col.id === 'CurrencyCode');
+      if (currencyColumn && currencyColumn.filter) {
+        currencyColumn.filter.collection = this.dataCurrencies.map(item => ({
+          value: item.Code,
+          label: item.Code
+        }));
+        // Update the column definition in the grid
+        this.angularGridPOKH.slickGrid?.setColumns(this.columnDefinitionsPOKH);
+      }
+    }
+  }
+
   onPOKHRowClick(e: any, args: any): void {
     const item = args?.grid?.getDataItem(args?.row);
     if (item) {
@@ -1561,27 +1687,27 @@ export class PokhSlickgridComponent implements OnInit, AfterViewInit {
       { id: 'ProductCode', name: 'Mã Sản Phẩm (Cũ)', field: 'ProductCode', width: 150, minWidth: 150, sortable: true, filterable: true, filter: { model: Filters['compoundInputText'] } },
       { id: 'ProductName', name: 'Tên sản phẩm', field: 'ProductName', width: 200, minWidth: 200, sortable: true, filterable: true, filter: { model: Filters['compoundInputText'] } },
       { id: 'GuestCode', name: 'Mã theo khách', field: 'GuestCode', width: 200, minWidth: 200, sortable: true, filterable: true, filter: { model: Filters['compoundInputText'] } },
-      { id: 'Maker', name: 'Hãng', field: 'Maker', width: 100, minWidth: 100, sortable: true, filterable: true, filter: { model: Filters['compoundInputText'] } },
-      { id: 'Qty', name: 'Số lượng', field: 'Qty', width: 100, minWidth: 100, sortable: true, filterable: true, formatter: this.moneyFormatter, cssClass: 'text-right' },
-      { id: 'QuantityReturn', name: 'SL đã về', field: 'QuantityReturn', width: 100, minWidth: 100, sortable: true, filterable: true, formatter: this.moneyFormatter, cssClass: 'text-right' },
-      { id: 'QuantityExport', name: 'SL đã xuất', field: 'QuantityExport', width: 100, minWidth: 100, sortable: true, filterable: true, formatter: this.moneyFormatter, cssClass: 'text-right' },
-      { id: 'QuantityRemain', name: 'SL còn lại', field: 'QuantityRemain', width: 100, minWidth: 100, sortable: true, filterable: true, formatter: this.moneyFormatter, cssClass: 'text-right' },
+      { id: 'Maker', name: 'Hãng', field: 'Maker', width: 100, minWidth: 100, sortable: true, filterable: true, filter: { model: Filters['multipleSelect'], collection: [], collectionOptions: { addBlankEntry: true }, filterOptions: { autoAdjustDropHeight: true, filter: true, } as any, } },
+      { id: 'Qty', name: 'Số lượng', field: 'Qty', width: 100, minWidth: 100, sortable: true, filterable: true, formatter: this.moneyFormatter, cssClass: 'text-end', filter: { model: Filters['compoundInputNumber'] } },
+      { id: 'QuantityReturn', name: 'SL đã về', field: 'QuantityReturn', width: 100, minWidth: 100, sortable: true, filterable: true, formatter: this.moneyFormatter, cssClass: 'text-end', filter: { model: Filters['compoundInputNumber'] } },
+      { id: 'QuantityExport', name: 'SL đã xuất', field: 'QuantityExport', width: 100, minWidth: 100, sortable: true, filterable: true, formatter: this.moneyFormatter, cssClass: 'text-end', filter: { model: Filters['compoundInputNumber'] } },
+      { id: 'QuantityRemain', name: 'SL còn lại', field: 'QuantityRemain', width: 100, minWidth: 100, sortable: true, filterable: true, formatter: this.moneyFormatter, cssClass: 'text-end', filter: { model: Filters['compoundInputNumber'] } },
       { id: 'FilmSize', name: 'Kích thước phim cắt/Model', field: 'FilmSize', width: 150, minWidth: 150, sortable: true, filterable: true },
-      { id: 'Unit', name: 'ĐVT', field: 'Unit', width: 100, minWidth: 100, sortable: true, filterable: true },
-      { id: 'UnitPrice', name: 'Đơn giá trước VAT', field: 'UnitPrice', width: 200, minWidth: 200, sortable: true, filterable: true, formatter: this.moneyFormatter, cssClass: 'text-right' },
-      { id: 'IntoMoney', name: 'Tổng tiền trước VAT', field: 'IntoMoney', width: 200, minWidth: 200, sortable: true, filterable: true, formatter: this.moneyFormatter, cssClass: 'text-right' },
-      { id: 'VAT', name: 'VAT (%)', field: 'VAT', width: 150, minWidth: 150, sortable: true, filterable: true },
-      { id: 'TotalPriceIncludeVAT', name: 'Tổng tiền sau VAT', field: 'TotalPriceIncludeVAT', width: 200, minWidth: 200, sortable: true, filterable: true, formatter: this.moneyFormatter, cssClass: 'text-right' },
+      { id: 'Unit', name: 'ĐVT', field: 'Unit', width: 100, minWidth: 100, sortable: true, filterable: true, filter: { model: Filters['multipleSelect'], collection: [], collectionOptions: { addBlankEntry: true }, filterOptions: { autoAdjustDropHeight: true, filter: true, } as any, } },
+      { id: 'UnitPrice', name: 'Đơn giá trước VAT', field: 'UnitPrice', width: 200, minWidth: 200, sortable: true, filterable: true, formatter: this.moneyFormatter, cssClass: 'text-end', filter: { model: Filters['compoundInputNumber'] } },
+      { id: 'IntoMoney', name: 'Tổng tiền trước VAT', field: 'IntoMoney', width: 200, minWidth: 200, sortable: true, filterable: true, formatter: this.moneyFormatter, cssClass: 'text-end', filter: { model: Filters['compoundInputNumber'] } },
+      { id: 'VAT', name: 'VAT (%)', field: 'VAT', width: 150, minWidth: 150, sortable: true, filterable: true, cssClass: 'text-end' },
+      { id: 'TotalPriceIncludeVAT', name: 'Tổng tiền sau VAT', field: 'TotalPriceIncludeVAT', width: 200, minWidth: 200, sortable: true, filterable: true, formatter: this.moneyFormatter, cssClass: 'text-end', filter: { model: Filters['compoundInputNumber'] } },
       { id: 'UserReceiver', name: 'Người nhận', field: 'UserReceiver', width: 200, minWidth: 200, sortable: true, filterable: true },
-      { id: 'DeliveryRequestedDate', name: 'Ngày yêu cầu giao hàng', field: 'DeliveryRequestedDate', width: 200, minWidth: 200, sortable: true, filterable: true, formatter: this.dateFormatter },
+      { id: 'DeliveryRequestedDate', name: 'Ngày yêu cầu giao hàng', field: 'DeliveryRequestedDate', width: 200, minWidth: 200, sortable: true, filterable: true, formatter: this.dateFormatter, cssClass: 'text-center' },
       { id: 'EstimatedPay', name: 'Thanh toán dự kiến', field: 'EstimatedPay', width: 200, minWidth: 200, sortable: true, filterable: true },
-      { id: 'BillDate', name: 'Ngày hóa đơn', field: 'BillDate', width: 200, minWidth: 200, sortable: true, filterable: true, formatter: this.dateFormatter },
+      { id: 'BillDate', name: 'Ngày hóa đơn', field: 'BillDate', width: 200, minWidth: 200, sortable: true, filterable: true, formatter: this.dateFormatter, cssClass: 'text-center' },
       { id: 'BillNumber', name: 'Số hóa đơn', field: 'BillNumber', width: 200, minWidth: 200, sortable: true, filterable: true },
-      { id: 'Debt', name: 'Công nợ', field: 'Debt', width: 200, minWidth: 200, sortable: true, filterable: true, formatter: this.moneyFormatter, cssClass: 'text-right' },
-      { id: 'PayDate', name: 'Ngày yêu cầu thanh toán', field: 'PayDate', width: 200, minWidth: 200, sortable: true, filterable: true, formatter: this.dateFormatter },
+      { id: 'Debt', name: 'Công nợ', field: 'Debt', width: 200, minWidth: 200, sortable: true, filterable: true, formatter: this.moneyFormatter, cssClass: 'text-end', filter: { model: Filters['compoundInputNumber'] } },
+      { id: 'PayDate', name: 'Ngày yêu cầu thanh toán', field: 'PayDate', width: 200, minWidth: 200, sortable: true, filterable: true, formatter: this.dateFormatter, cssClass: 'text-center' },
       { id: 'GroupPO', name: 'Nhóm', field: 'GroupPO', width: 100, minWidth: 100, sortable: true, filterable: true },
-      { id: 'ActualDeliveryDate', name: 'Ngày giao hàng thực tế', field: 'ActualDeliveryDate', width: 200, minWidth: 200, sortable: true, filterable: true, formatter: this.dateFormatter },
-      { id: 'RecivedMoneyDate', name: 'Ngày tiền về', field: 'RecivedMoneyDate', width: 200, minWidth: 200, sortable: true, filterable: true },
+      { id: 'ActualDeliveryDate', name: 'Ngày giao hàng thực tế', field: 'ActualDeliveryDate', width: 200, minWidth: 200, sortable: true, filterable: true, formatter: this.dateFormatter, cssClass: 'text-center' },
+      { id: 'RecivedMoneyDate', name: 'Ngày tiền về', field: 'RecivedMoneyDate', width: 200, minWidth: 200, sortable: true, filterable: true, formatter: this.dateFormatter, cssClass: 'text-center' },
     ];
 
     this.gridOptionsPOKHProduct = {
@@ -1627,7 +1753,7 @@ export class PokhSlickgridComponent implements OnInit, AfterViewInit {
         container: '.grid-container-pokh-file',
         calculateAvailableSizeBy: 'container',
         resizeDetection: 'container',
-      },  
+      },
       gridWidth: '100%',
       enableCellNavigation: true,
       enableFiltering: false,
@@ -2368,5 +2494,54 @@ export class PokhSlickgridComponent implements OnInit, AfterViewInit {
       }
     });
     return flatList;
+  }
+
+  private applyDistinctFiltersToGrid(
+    angularGrid: AngularGridInstance,
+    columnDefinitions: Column[],
+    fieldsToFilter: string[]
+  ): void {
+    if (!angularGrid?.slickGrid || !angularGrid?.dataView) return;
+
+    const data = angularGrid.dataView.getItems();
+    if (!data || data.length === 0) return;
+
+    const getUniqueValues = (dataArray: any[], field: string): Array<{ value: string; label: string }> => {
+      const map = new Map<string, string>();
+      dataArray.forEach((row: any) => {
+        const value = String(row?.[field] ?? '');
+        if (value && !map.has(value)) {
+          map.set(value, value);
+        }
+      });
+      return Array.from(map.entries())
+        .map(([value, label]) => ({ value, label }))
+        .sort((a, b) => a.label.localeCompare(b.label));
+    };
+
+    const columns = angularGrid.slickGrid.getColumns();
+    if (!columns) return;
+
+    // Update runtime columns
+    columns.forEach((column: any) => {
+      if (column?.filter && column.filter.model === Filters['multipleSelect']) {
+        const field = column.field;
+        if (!field || !fieldsToFilter.includes(field)) return;
+        column.filter.collection = getUniqueValues(data, field);
+      }
+    });
+
+    // Update column definitions
+    columnDefinitions.forEach((colDef: any) => {
+      if (colDef?.filter && colDef.filter.model === Filters['multipleSelect']) {
+        const field = colDef.field;
+        if (!field || !fieldsToFilter.includes(field)) return;
+        colDef.filter.collection = getUniqueValues(data, field);
+      }
+    });
+
+    angularGrid.slickGrid.setColumns(angularGrid.slickGrid.getColumns());
+    angularGrid.slickGrid.invalidate();
+    angularGrid.slickGrid.render();
   }
 }

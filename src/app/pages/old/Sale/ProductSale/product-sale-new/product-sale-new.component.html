@@ -154,7 +154,7 @@
                             <!-- Product Group Grid -->
                             <nz-splitter-panel nzDefaultSize="70%" >
                                 <div class="grid-container-product-group" style="height: 100%;">
-                                    <angular-slickgrid gridId="grvProductGroup"
+                                    <angular-slickgrid [gridId]="'grvProductGroup-'+ warehouseCode"
                                         [columns]="columnDefinitionsProductGroup"
                                         [options]="gridOptionsProductGroup"
                                         [dataset]="datasetProductGroup"
@@ -168,7 +168,7 @@
                             <!-- Product Group Warehouse Grid -->
                             <nz-splitter-panel [nzCollapsible]="true" nzResizable="true" style="overflow: auto;">
                                 <div class="grid-container-pg-warehouse" style="height: 100%;">
-                                    <angular-slickgrid gridId="grvPGWarehouse"
+                                    <angular-slickgrid [gridId]="'grvPGWarehouse-'+ warehouseCode"
                                         [columns]="columnDefinitionsPGWarehouse"
                                         [options]="gridOptionsPGWarehouse"
                                         [dataset]="datasetPGWarehouse"
@@ -184,7 +184,7 @@
                         <div class="position-relative h-100">
                             <div class="grid-container-product-sale" style="height: 100%;">
                                 <nz-spin [nzSpinning]="isLoading">
-                                    <angular-slickgrid [gridId]="'grvProductSale' + warehouseCode"
+                                    <angular-slickgrid [gridId]="'grvProductSale-' + warehouseCode"
                                         [columns]="columnDefinitionsProductSale"
                                         [options]="gridOptionsProductSale"
                                         [dataset]="datasetProductSale"

@@ -51,5 +51,5 @@
     color: white;
 }
 ::ng-deep div[id^="productRtcGrid-"] {
-    height: 90vh!important;
+    height: 89vh!important;
 }

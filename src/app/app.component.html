@@ -115,8 +115,8 @@
                             <div class="app-launcher-inner">
                                 @for (m of menus; track m.id) {
 
-                                <a (click)="toggleMenu(m.key)" [class.active]="isMenuOpen(m.key)"
-                                    *ngIf="m.isPermission">
+                                <a [href]="m.router" (click)="toggleMenu($event, m.router, m.key)"
+                                    [class.active]="isMenuOpen(m.key)" *ngIf="m.isPermission">
                                     <img [src]="m.icon?.replace('24','64')" />
                                     <span class="mt-1">{{m.title}}</span>
                                 </a>

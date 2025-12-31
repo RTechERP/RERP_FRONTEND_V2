@@ -59,27 +59,31 @@ import { ActivatedRoute } from '@angular/router';
 export class ApproveTpComponent implements OnInit, AfterViewInit {
     @ViewChild('tb_approve_tp', { static: false }) tbApproveTpRef!: ElementRef<HTMLDivElement>;
 
-  private tabulator!: Tabulator;
-  searchForm!: FormGroup;
-  employeeList: any[] = [];
-  teamList: any[] = [];
-  loadingData = false;
-  currentUser: any = null;
-  isSenior: boolean = false;
-  isBGD: boolean = false;
-  isSeniorMode: boolean = false;
-  showSearchBar: boolean = typeof window !== 'undefined' ? window.innerWidth > 768 : true;
+    private tabulator!: Tabulator;
+    searchForm!: FormGroup;
+    employeeList: any[] = [];
+    teamList: any[] = [];
+    loadingData = false;
+    currentUser: any = null;
+    isSenior: boolean = false;
+    isBGD: boolean = false;
+    isSeniorMode: boolean = false;
+    showSearchBar: boolean = typeof window !== 'undefined' ? window.innerWidth > 768 : true;
 
-  get shouldShowSearchBar(): boolean {
-    return this.showSearchBar;
-  }
-
-  ToggleSearchPanelNew(event?: Event): void {
-    if (event) {
-      event.stopPropagation();
+    get shouldShowSearchBar(): boolean {
+        return this.showSearchBar;
     }
-    this.showSearchBar = !this.showSearchBar;
-  } // true: Senior duyệt làm thêm, false: Duyệt công
+
+    isMobile(): boolean {
+        return typeof window !== 'undefined' && window.innerWidth <= 768;
+    }
+
+    ToggleSearchPanelNew(event?: Event): void {
+        if (event) {
+            event.stopPropagation();
+        }
+        this.showSearchBar = !this.showSearchBar;
+    } // true: Senior duyệt làm thêm, false: Duyệt công
 
     constructor(
         private fb: FormBuilder,
@@ -95,43 +99,43 @@ export class ApproveTpComponent implements OnInit, AfterViewInit {
         // }
 
         this.route.queryParams.subscribe(params => {
-            this.isSeniorMode = params['isSeniorMode'] ;
+            this.isSeniorMode = params['isSeniorMode'];
         });
     }
 
-  ngOnInit() {
-    this.initializeForm();
-    this.getCurrentUser();
-    this.loadTeams();
-    this.loadEmployees();
-
-    // Subscribe to teamId changes to reload employees
-    if (this.searchForm) {
-      this.searchForm.get('teamId')?.valueChanges.subscribe(() => {
+    ngOnInit() {
+        this.initializeForm();
+        this.getCurrentUser();
+        this.loadTeams();
         this.loadEmployees();
-      });
-    }
-  }
 
-  getCurrentUser() {
-    this.authService.getCurrentUser().subscribe((res: any) => {
-      if (res && res.status === 1 && res.data) {
-        const data = Array.isArray(res.data) ? res.data[0] : res.data;
-        this.currentUser = data;
-        this.isBGD = (data?.DepartmentID == 1 && data?.EmployeeID != 54) || data?.IsAdmin;
-        this.isSenior = false;
-        const idApprovedTP = this.isSeniorMode ? 0 : (data?.EmployeeID || 0);
+        // Subscribe to teamId changes to reload employees
         if (this.searchForm) {
-          this.searchForm.patchValue({
-            IDApprovedTP: idApprovedTP
-          });
+            this.searchForm.get('teamId')?.valueChanges.subscribe(() => {
+                this.loadEmployees();
+            });
         }
-        if (this.tabulator) {
-          this.loadData();
-        }
-      }
-    });
-  }
+    }
+
+    getCurrentUser() {
+        this.authService.getCurrentUser().subscribe((res: any) => {
+            if (res && res.status === 1 && res.data) {
+                const data = Array.isArray(res.data) ? res.data[0] : res.data;
+                this.currentUser = data;
+                this.isBGD = (data?.DepartmentID == 1 && data?.EmployeeID != 54) || data?.IsAdmin;
+                this.isSenior = false;
+                const idApprovedTP = this.isSeniorMode ? 0 : (data?.EmployeeID || 0);
+                if (this.searchForm) {
+                    this.searchForm.patchValue({
+                        IDApprovedTP: idApprovedTP
+                    });
+                }
+                if (this.tabulator) {
+                    this.loadData();
+                }
+            }
+        });
+    }
 
     loadTeams() {
         this.approveTpService.getUserTeam().subscribe({
@@ -171,24 +175,25 @@ export class ApproveTpComponent implements OnInit, AfterViewInit {
         const firstDay = new Date(today.getFullYear(), today.getMonth(), 1);
         const lastDay = new Date(today.getFullYear(), today.getMonth() + 1, 0);
 
-    const defaultType = this.isSeniorMode ? 3 : null;
-    const idApprovedTP = this.isSeniorMode ? 0 : (this.currentUser?.EmployeeID || 0);
+   
+        const idApprovedTP = this.isSeniorMode ? 0 : (this.currentUser?.EmployeeID || 0);
 
-    this.searchForm.reset({
-      startDate: DateTime.now().minus({ days: 7 }).toJSDate(),
-      endDate: lastDay,
-      employeeId: null,
-      teamId: 0,
-      status: 0, // Mặc định: Chờ duyệt
-      deleteFlag: 0,
-      type: defaultType,
-      statusHR: null,
-      statusBGD: null,
-      keyWord: '',
-      IDApprovedTP: idApprovedTP
-    });
-    this.loadData();
-  }
+        this.searchForm.reset({
+            startDate: DateTime.now().minus({ days: 7 }).toJSDate(),
+            endDate: lastDay,
+            employeeId: null,
+            teamId: 0,
+            status: 0, // Mặc định: Chờ duyệt
+            deleteFlag: 0,
+            type: 0,
+            statusSenior:0,
+            statusHR: null,
+            statusBGD: null,
+            keyWord: '',
+            IDApprovedTP: idApprovedTP
+        });
+        this.loadData();
+    }
 
     ngAfterViewInit(): void {
         this.initializeTable();
@@ -199,22 +204,23 @@ export class ApproveTpComponent implements OnInit, AfterViewInit {
         const firstDay = new Date(today.getFullYear(), today.getMonth(), 1);
         const lastDay = new Date(today.getFullYear(), today.getMonth() + 1, 0);
 
-    const defaultType = this.isSeniorMode ? 3 : null;
+        const defaultType = 0;
 
-    this.searchForm = this.fb.group({
-      startDate: [DateTime.now().minus({ days: 7 }).toJSDate()],
-      endDate: [lastDay],
-      employeeId: [null],
-      teamId: [0],
-      status: [0], 
-      deleteFlag: [0],
-      type: [defaultType],
-      statusHR: [null],
-      statusBGD: [null],
-      keyWord: [''],
-      IDApprovedTP: [0]
-    });
-  }
+        this.searchForm = this.fb.group({
+            startDate: [DateTime.now().minus({ days: 7 }).toJSDate()],
+            endDate: [lastDay],
+            employeeId: [null],
+            teamId: [0],
+            status: [this.isSeniorMode ? -1 : 0],
+            deleteFlag: [0],
+            statusSenior: [this.isSeniorMode ? 0 : -1],
+            type: [defaultType],
+            statusHR: [-1],
+            statusBGD: [-1],
+            keyWord: [''],
+            IDApprovedTP: [0]
+        });
+    }
 
     loadData() {
         if (!this.tabulator) {
@@ -227,22 +233,23 @@ export class ApproveTpComponent implements OnInit, AfterViewInit {
         const startDate = formValue.startDate ? new Date(formValue.startDate).toISOString() : undefined;
         const endDate = formValue.endDate ? new Date(formValue.endDate).toISOString() : undefined;
 
-        const ttype = this.isSeniorMode ? 3 : (formValue.type ?? 0);
+        const ttype = formValue.type ?? 0;
 
         const request: ApproveByApproveTPRequestParam = {
             FilterText: formValue.keyWord || '',
             DateStart: startDate,
             DateEnd: endDate,
             IDApprovedTP: this.isSeniorMode ? 0 : (formValue.IDApprovedTP || 0),
-            Status: formValue.status ?? 0,
+            Status: this.isSeniorMode ? -1 : (formValue.status ?? 0),
             DeleteFlag: formValue.deleteFlag ?? 0,
             EmployeeID: formValue.employeeId || 0,
             TType: ttype,
-            StatusHR: formValue.statusHR ?? -1,
-            StatusBGD: formValue.statusBGD ?? -1,
-            UserTeamID: formValue.teamId || 0
+            StatusSenior: this.isSeniorMode ? formValue.statusSenior : -1,
+            StatusHR: -1,
+            StatusBGD: -1,
+            UserTeamID: formValue.teamId || 0,
+            SeniorID: this.isSeniorMode ? (this.currentUser?.EmployeeID || 0) : 0
         };
-
         this.approveTpService.getApproveByApproveTP(request).subscribe({
             next: (response: any) => {
                 if (response && response.status === 1 && response.data) {
@@ -265,163 +272,191 @@ export class ApproveTpComponent implements OnInit, AfterViewInit {
         if (!this.tbApproveTpRef?.nativeElement) {
             return;
         }
+        this.tabulator = new Tabulator(this.tbApproveTpRef.nativeElement, {
+            ...DEFAULT_TABLE_CONFIG,
+            layout: 'fitDataStretch',
+            height: '80vh',
+            paginationMode: 'local',
+            paginationSize: 200,
+            groupBy: 'TypeText',
+            groupHeader: function (value, count, data, group) {
+                return "Hạng mục : " + value + "(" + count + " )";
+            },
+            columns: [
+                {
+                    title: 'Senior duyệt', field: 'IsSeniorApprovedText', hozAlign: 'center', headerHozAlign: 'center', width: 70, headerWordWrap: true, headerSort: false,
+                    formatter: (cell: any) => {
+                        const rowData = cell.getRow().getData();
+                        const textValue = cell.getValue();
+                        const isSeniorApproved = rowData.IsSeniorApproved;
 
-    this.tabulator = new Tabulator(this.tbApproveTpRef.nativeElement, {
-      ...DEFAULT_TABLE_CONFIG,
-      layout: 'fitDataStretch',
-      height: '80vh',
-      paginationMode: 'local',
-      paginationSize: 200,
-      groupBy: 'TypeText',
-      groupHeader: function (value, count, data, group) {
-        return "Hạng mục : " + value + "(" + count + " )";
-      },
-      columns: [
-        {
-          title: 'Senior duyệt', field: 'IsSeniorApprovedText', hozAlign: 'center', headerHozAlign: 'center', width: 70, headerWordWrap: true, headerSort: false,
-          formatter: (cell: any) => {
-            const rowData = cell.getRow().getData();
-            const tableName = rowData.TableName ? String(rowData.TableName) : '';
-            
-            // Chỉ hiển thị giá trị cho làm thêm (EmployeeOvertime)
-            if (tableName !== 'EmployeeOvertime') {
-              return '';
-            }
-            
-            const textValue = cell.getValue();
-            const isSeniorApproved = rowData.IsSeniorApproved;
-            
-            let numValue = 0;
-            
-            // Ưu tiên kiểm tra giá trị boolean/number từ IsSeniorApproved
-            if (isSeniorApproved !== undefined && isSeniorApproved !== null) {
-              if (typeof isSeniorApproved === 'boolean') {
-                numValue = isSeniorApproved ? 1 : 0;
-              } else if (typeof isSeniorApproved === 'number') {
-                numValue = isSeniorApproved === 0 ? 0 : (isSeniorApproved === 1 ? 1 : (isSeniorApproved === 2 ? 2 : 0));
-              }
-            } else if (textValue !== null && textValue !== undefined && typeof textValue === 'string') {
-              // Nếu không có IsSeniorApproved, kiểm tra text value
-              if (textValue === 'Chờ duyệt' || textValue === 'Chưa duyệt') {
-                numValue = 0;
-              } else if (textValue === 'Đã duyệt') {
-                numValue = 1;
-              } else if (textValue === 'Từ chối' || textValue === 'Không duyệt' || textValue === 'Không đồng ý duyệt') {
-                numValue = 2;
-              } else {
-                numValue = 0; // Mặc định là chờ duyệt
-              }
-            } else {
-              numValue = 0; // Mặc định là chờ duyệt
-            }
-            
-            return this.formatApprovalBadge(numValue);
-          },
-        },
-        {
-          title: 'TBP duyệt', field: 'StatusText', hozAlign: 'center', headerHozAlign: 'center', width: 70, headerWordWrap: true, headerSort: false,
-          formatter: (cell: any) => {
-            const value = cell.getValue();
-            let numValue = 0;
-            if (value === null || value === undefined) {
-              numValue = 0;
-            } else if (typeof value === 'number') {
-              numValue = value;
-            } else if (typeof value === 'string') {
-              if (value === 'Chờ duyệt' || value === 'Chưa duyệt') numValue = 0;
-              else if (value === 'Đã duyệt') numValue = 1;
-              else if (value === 'Không đồng ý duyệt' || value === 'Từ chối' || value === 'Không duyệt') numValue = 2;
-              else if (value === 'Chờ duyệt hủy đăng ký') numValue = 3;
-              else if (value === 'Đã duyệt hủy đăng ký') numValue = 4;
-              else numValue = 0;
-            }
-            return this.formatApprovalBadge(numValue);
-          },
+                        let numValue = 0;
+                        if (isSeniorApproved !== undefined && isSeniorApproved !== null) {
+                            if (typeof isSeniorApproved === 'boolean') {
+                                numValue = isSeniorApproved ? 1 : 0;
+                            } else if (typeof isSeniorApproved === 'number') {
+                                numValue = isSeniorApproved === 0 ? 0 : (isSeniorApproved === 1 ? 1 : (isSeniorApproved === 2 ? 2 : 0));
+                            }
+                        } else if (textValue !== null && textValue !== undefined && typeof textValue === 'string') {
+                            // Nếu không có IsSeniorApproved, kiểm tra text value
+                            if (textValue === 'Chờ duyệt' || textValue === 'Chưa duyệt') {
+                                numValue = 0;
+                            } else if (textValue === 'Đã duyệt') {
+                                numValue = 1;
+                            } else if (textValue === 'Từ chối' || textValue === 'Không duyệt' || textValue === 'Không đồng ý duyệt') {
+                                numValue = 2;
+                            } else {
+                                numValue = 0;
+                            }
+                        } else {
+                            numValue = 0;
+                        }
 
-        },
-        {
-          title: 'HR Duyệt', field: 'StatusHRText', hozAlign: 'center', headerHozAlign: 'center', width: 70, headerWordWrap: true, headerSort: false,
-          formatter: (cell: any) => {
-            const rowData = cell.getRow().getData();
-            const value = cell.getValue();
-            let numValue = 0;
-            
-            // Ưu tiên lấy từ StatusHRNumber hoặc IsApprovedHR nếu StatusHRText rỗng
-            if (value === null || value === undefined || value === '') {
-              // Nếu StatusHRText rỗng, lấy từ StatusHRNumber hoặc IsApprovedHR
-              if (rowData.StatusHRNumber !== undefined && rowData.StatusHRNumber !== null) {
-                numValue = Number(rowData.StatusHRNumber);
-              } else if (rowData.IsApprovedHR !== undefined && rowData.IsApprovedHR !== null) {
-                const hrValue = Number(rowData.IsApprovedHR);
-                // Convert: 0 = chờ duyệt, 1 = đã duyệt, 2 = không đồng ý duyệt
-                if (hrValue === 0) numValue = 0;
-                else if (hrValue === 1) numValue = 1;
-                else if (hrValue === 2) numValue = 2;
-                else numValue = 0;
-              } else {
-                numValue = 0;
-              }
-            } else if (typeof value === 'number') {
-              numValue = value;
-            } else if (typeof value === 'string') {
-              if (value === 'Chờ duyệt' || value === 'Chưa duyệt') numValue = 0;
-              else if (value === 'Đã duyệt') numValue = 1;
-              else if (value === 'Không đồng ý duyệt' || value === 'Từ chối' || value === 'Không duyệt') numValue = 2;
-              else if (value === 'Chờ duyệt hủy đăng ký') numValue = 3;
-              else if (value === 'Đã duyệt hủy đăng ký') numValue = 4;
-              else numValue = 0;
-            }
-            return this.formatApprovalBadge(numValue);
-          },
+                        return this.formatApprovalBadge(numValue);
+                    },
+                },
+                {
+                    title: 'TBP duyệt', field: 'StatusText', hozAlign: 'center', headerHozAlign: 'center', width: 70, headerWordWrap: true, headerSort: false,
+                    formatter: (cell: any) => {
+                        const value = cell.getValue();
+                        let numValue = 0;
+                        if (value === null || value === undefined) {
+                            numValue = 0;
+                        } else if (typeof value === 'number') {
+                            numValue = value;
+                        } else if (typeof value === 'string') {
+                            if (value === 'Chờ duyệt' || value === 'Chưa duyệt') numValue = 0;
+                            else if (value === 'Đã duyệt') numValue = 1;
+                            else if (value === 'Không đồng ý duyệt' || value === 'Từ chối' || value === 'Không duyệt') numValue = 2;
+                            else if (value === 'Chờ duyệt hủy đăng ký') numValue = 3;
+                            else if (value === 'Đã duyệt hủy đăng ký') numValue = 4;
+                            else numValue = 0;
+                        }
+                        return this.formatApprovalBadge(numValue);
+                    },
 
-        },
-        {
-          title: 'BGĐ duyệt', field: 'StatusBGDText', hozAlign: 'center', headerHozAlign: 'center', width: 70, headerWordWrap: true, headerSort: false,
-          formatter: (cell: any) => {
-            const value = cell.getValue();
-            let numValue = 0;
-            if (value === null || value === undefined) {
-              numValue = 0;
-            } else if (typeof value === 'number') {
-              numValue = value;
-            } else if (typeof value === 'string') {
-              if (value === 'Chờ duyệt' || value === 'Chưa duyệt') numValue = 0;
-              else if (value === 'Đã duyệt') numValue = 1;
-              else if (value === 'Không đồng ý duyệt' || value === 'Từ chối' || value === 'Không duyệt') numValue = 2;
-              else if (value === 'Chờ duyệt hủy đăng ký') numValue = 3;
-              else if (value === 'Đã duyệt hủy đăng ký') numValue = 4;
-              else numValue = 0;
-            }
-            return this.formatApprovalBadge(numValue);
-          },
+                },
+                {
+                    title: 'HR Duyệt', field: 'StatusHRText', hozAlign: 'center', headerHozAlign: 'center', width: 70, headerWordWrap: true, headerSort: false,
+                    formatter: (cell: any) => {
+                        const rowData = cell.getRow().getData();
+                        const value = cell.getValue();
+                        let numValue = 0;
 
-        },
-        {
-          title: 'Mã nhân viên', field: 'Code', hozAlign: 'left', headerHozAlign: 'center', width: 55, headerWordWrap: true, headerSort: false,
-        },
-        {
-          title: 'Tên nhân viên', field: 'FullName', hozAlign: 'left', headerHozAlign: 'center', width: 120, headerWordWrap: true, formatter: 'textarea', headerSort: false, bottomCalc: 'count',
-        },
-        {
-          title: 'Ngày', field: 'NgayDangKy', hozAlign: 'center', headerHozAlign: 'center', width: 90, headerSort: false,
-          formatter: (cell) => {
-            const value = cell.getValue();
-            return value ? DateTime.fromISO(value).toFormat('dd/MM/yyyy') : '';
-          }
-        },
-        {
-          title: 'Tên TBP duyệt', field: 'NguoiDuyet', hozAlign: 'left', headerHozAlign: 'center', width: 120, headerWordWrap: true, headerSort: false,
-        },
-        {
-          title: 'Tên BGĐ duyệt', field: 'FullNameBGD', hozAlign: 'left', headerHozAlign: 'center', width: 120, headerWordWrap: true, headerSort: false,
-        },
-        {
-          title: 'Nội dung', field: 'NoiDung', hozAlign: 'left', headerHozAlign: 'center', width: 350, headerSort: false, formatter: 'textarea',
-        },
-        {
-          title: 'Lí do', field: 'Reason', hozAlign: 'left', headerHozAlign: 'center', width: 300, formatter: 'textarea', headerSort: false,
-        },
+                        // Ưu tiên lấy từ StatusHRNumber hoặc IsApprovedHR nếu StatusHRText rỗng
+                        if (value === null || value === undefined || value === '') {
+                            // Nếu StatusHRText rỗng, lấy từ StatusHRNumber hoặc IsApprovedHR
+                            if (rowData.StatusHRNumber !== undefined && rowData.StatusHRNumber !== null) {
+                                numValue = Number(rowData.StatusHRNumber);
+                            } else if (rowData.IsApprovedHR !== undefined && rowData.IsApprovedHR !== null) {
+                                const hrValue = Number(rowData.IsApprovedHR);
+                                // Convert: 0 = chờ duyệt, 1 = đã duyệt, 2 = không đồng ý duyệt
+                                if (hrValue === 0) numValue = 0;
+                                else if (hrValue === 1) numValue = 1;
+                                else if (hrValue === 2) numValue = 2;
+                                else numValue = 0;
+                            } else {
+                                numValue = 0;
+                            }
+                        } else if (typeof value === 'number') {
+                            numValue = value;
+                        } else if (typeof value === 'string') {
+                            if (value === 'Chờ duyệt' || value === 'Chưa duyệt') numValue = 0;
+                            else if (value === 'Đã duyệt') numValue = 1;
+                            else if (value === 'Không đồng ý duyệt' || value === 'Từ chối' || value === 'Không duyệt') numValue = 2;
+                            else if (value === 'Chờ duyệt hủy đăng ký') numValue = 3;
+                            else if (value === 'Đã duyệt hủy đăng ký') numValue = 4;
+                            else numValue = 0;
+                        }
+                        return this.formatApprovalBadge(numValue);
+                    },
 
+                },
+                {
+                    title: 'BGĐ duyệt', field: 'StatusBGDText', hozAlign: 'center', headerHozAlign: 'center', width: 70, headerWordWrap: true, headerSort: false,
+                    formatter: (cell: any) => {
+                        const value = cell.getValue();
+                        let numValue = 0;
+                        if (value === null || value === undefined) {
+                            numValue = 0;
+                        } else if (typeof value === 'number') {
+                            numValue = value;
+                        } else if (typeof value === 'string') {
+                            if (value === 'Chờ duyệt' || value === 'Chưa duyệt') numValue = 0;
+                            else if (value === 'Đã duyệt') numValue = 1;
+                            else if (value === 'Không đồng ý duyệt' || value === 'Từ chối' || value === 'Không duyệt') numValue = 2;
+                            else if (value === 'Chờ duyệt hủy đăng ký') numValue = 3;
+                            else if (value === 'Đã duyệt hủy đăng ký') numValue = 4;
+                            else numValue = 0;
+                        }
+                        return this.formatApprovalBadge(numValue);
+                    },
+
+                },
+                {
+                    title: 'Mã nhân viên', field: 'Code', hozAlign: 'left', headerHozAlign: 'center', width: 55, headerWordWrap: true, headerSort: false,
+                },
+                {
+                    title: 'Tên nhân viên', field: 'FullName', hozAlign: 'left', headerHozAlign: 'center', width: 120, headerWordWrap: true, formatter: 'textarea', headerSort: false, bottomCalc: 'count',
+                },
+                {
+                    title: 'Ngày', field: 'NgayDangKy', hozAlign: 'center', headerHozAlign: 'center', width: 90, headerSort: false,
+                    formatter: (cell) => {
+                        const value = cell.getValue();
+                        return value ? DateTime.fromISO(value).toFormat('dd/MM/yyyy') : '';
+                    }
+                },
+                {
+                    title: 'Tên TBP duyệt', field: 'NguoiDuyet', hozAlign: 'left', headerHozAlign: 'center', width: 120, headerWordWrap: true, headerSort: false,
+                },
+                {
+                    title: 'Tên BGĐ duyệt', field: 'FullNameBGD', hozAlign: 'left', headerHozAlign: 'center', width: 120, headerWordWrap: true, headerSort: false,
+                },
+                {
+                    title: 'Nội dung',
+                    field: 'NoiDung',
+                    hozAlign: 'left',
+                    headerHozAlign: 'center',
+                    width: 350,
+                    headerSort: false,
+                    formatter: (cell: any) => {
+                        const rowData = cell.getRow().getData();
+                        const value = cell.getValue() || '';
+                        
+                        // Set background color trực tiếp trên cell element
+                        if (rowData.IsNotValid === 1 || rowData.IsNotValid === true) {
+                            setTimeout(() => {
+                                cell.getElement().style.backgroundColor = '#ede4baff';
+                            }, 0);
+                        }
+                        
+                        // Return HTML string - Tabulator sẽ tự động render nó
+                        return `<div style="white-space: normal;">${value}</div>`;
+                    }
+                },
+                {
+                    title: 'Lí do', field: 'Reason', hozAlign: 'left', headerHozAlign: 'center', width: 300, formatter: 'textarea', headerSort: false,
+                },
+                {
+                    title: 'Chấm công',
+                    columns: [
+                        {
+                            title: 'CheckIn', field: 'CheckIn', hozAlign: 'center', headerHozAlign: 'center', width: 100, headerSort: false,
+
+                        },
+                        {
+                            title: 'CheckOut', field: 'CheckOut', hozAlign: 'center', headerHozAlign: 'center', width: 100, headerSort: false,
+                            //   formatter: (cell) => {
+                            //     const value = cell.getValue();
+                            //     const row = cell.getRow().getData();
+                            //     if (row['IsNotValid'] === 1) {
+                            //       return `<span style="color: red; font-weight: bold;">${value || ''}</span>`;
+                            //     }
+                            //     return value || '';
+                            //   }
+                        }
+                    ]
+                },
                 {
                     title: 'File bổ sung', field: 'FileName', hozAlign: 'center', headerHozAlign: 'center', width: 150, headerSort: false,
                     formatter: (cell) => {
@@ -436,6 +471,9 @@ export class ApproveTpComponent implements OnInit, AfterViewInit {
                             this.downloadFile(cell.getRow().getData());
                         }
                     }
+                },
+                {
+                    title: 'Tên Senior duyệt', field: 'ApprovedSeniorName', hozAlign: 'left', headerHozAlign: 'center', width: 300, formatter: 'textarea', headerSort: false,
                 },
                 {
                     title: 'Đánh giá công việc', field: 'EvaluateResults', hozAlign: 'left', headerHozAlign: 'center', width: 300, formatter: 'textarea', headerSort: false,
@@ -889,15 +927,10 @@ export class ApproveTpComponent implements OnInit, AfterViewInit {
                     nzOkText: 'Đồng ý',
                     nzCancelText: 'Hủy',
                     nzOnOk: () => {
-                        // Chỉ filter những bản ghi là EmployeeOvertime và nhân viên thuộc team của senior
+                        // Chỉ filter những bản ghi nhân viên thuộc team của senior
                         // Các validation khác để API xử lý
                         const items: ApproveItemParam[] = selectedRows
                             .filter(row => {
-                                const tableName = row.TableName ? String(row.TableName) : '';
-                                if (tableName !== 'EmployeeOvertime') {
-                                    return false;
-                                }
-
                                 const employeeID = row.EmployeeID ? Number(row.EmployeeID) : 0;
                                 const isSenior = seniorList.some((senior: any) =>
                                     senior.EmployeeID === employeeID
@@ -908,7 +941,7 @@ export class ApproveTpComponent implements OnInit, AfterViewInit {
                                 const employeeID = row.EmployeeID ? Number(row.EmployeeID) : 0;
                                 return {
                                     Id: row.ID ? Number(row.ID) : null,
-                                    TableName: "EmployeeOvertime",
+                                    TableName: row.TableName ? String(row.TableName) : '',
                                     FieldName: 'IsSeniorApproved',
                                     FullName: row.FullName ? String(row.FullName) : '',
                                     DeleteFlag: row.DeleteFlag !== undefined ? Boolean(row.DeleteFlag) : null,
@@ -925,10 +958,10 @@ export class ApproveTpComponent implements OnInit, AfterViewInit {
                                 };
                             });
 
-                        if (items.length === 0) {
+                        if (items.length === 0) {   
                             this.notification.warning(
                                 NOTIFICATION_TITLE.warning,
-                                'Không có bản ghi nào phù hợp để xử lý! Vui lòng kiểm tra:\n- Chỉ xử lý đăng ký làm thêm (EmployeeOvertime)\n- Bạn phải là Senior của nhân viên đó'
+                                'Không có bản ghi nào phù hợp để xử lý! Vui lòng kiểm tra:\n- Bạn phải là Senior của nhân viên đó'
                             );
                             return;
                         }
@@ -994,15 +1027,10 @@ export class ApproveTpComponent implements OnInit, AfterViewInit {
                     nzOkText: 'Đồng ý',
                     nzCancelText: 'Hủy',
                     nzOnOk: () => {
-                        // Chỉ filter những bản ghi là EmployeeOvertime và nhân viên thuộc team của senior
-                        // Các validation khác để API xử lý
+                        // Chỉ filter những bản ghi nhân viên thuộc team của senior
+                        // Bỏ filter theo TableName để xử lý tất cả các bảng
                         const items: ApproveItemParam[] = selectedRows
                             .filter(row => {
-                                const tableName = row.TableName ? String(row.TableName) : '';
-                                if (tableName !== 'EmployeeOvertime') {
-                                    return false;
-                                }
-
                                 const employeeID = row.EmployeeID ? Number(row.EmployeeID) : 0;
                                 const isSenior = seniorList.some((senior: any) =>
                                     senior.EmployeeID === employeeID
@@ -1010,11 +1038,12 @@ export class ApproveTpComponent implements OnInit, AfterViewInit {
                                 return isSenior;
                             })
                             .map(row => {
+                                const tableName = row.TableName ? String(row.TableName) : '';
 
                                 return {
                                     EmployeeID: row.EmployeeID ? Number(row.EmployeeID) : 0,
                                     Id: row.ID ? Number(row.ID) : null,
-                                    TableName: "EmployeeOvertime",
+                                    TableName: tableName,
                                     FieldName: 'IsSeniorApproved',
                                     FullName: row.FullName ? String(row.FullName) : '',
                                     DeleteFlag: row.DeleteFlag !== undefined ? Boolean(row.DeleteFlag) : null,
@@ -1053,12 +1082,12 @@ export class ApproveTpComponent implements OnInit, AfterViewInit {
 
                                     if (notProcessed.length > 0) {
                                         const reasons = notProcessed.map((item: any) =>
-                                            `${item.Item?.FullName || 'N/A'}: ${item.Reason || 'Không xác định'}`
+                                            `${item.Item?.FullName || 'N/A'}: ${item.Reason || 'Không xác định'}` 
                                         ).join('\n');
 
                                         this.notification.warning(
                                             NOTIFICATION_TITLE.warning,
-                                            `Đã ${actionText} thành công ${successCount}/${totalItems} bản ghi. Có ${notProcessed.length} bản ghi không được xử lý:\n${reasons}`
+                                            `Đã ${actionText} thành công ${successCount}/${totalItems} bản ghi. Có ${notProcessed.length} bản ghi không được xử lý:\n${reasons}` 
                                         );
                                     } else {
                                         this.notification.success(NOTIFICATION_TITLE.success, response?.message || `Đã ${actionText} thành công ${totalItems} bản ghi!`);
@@ -1427,101 +1456,101 @@ export class ApproveTpComponent implements OnInit, AfterViewInit {
         });
     }
 
-  downloadFile(rowData: any) {
-    const filePath = rowData?.FilePath || '';
-    const fileName = rowData?.FileName || 'file';
+    downloadFile(rowData: any) {
+        const filePath = rowData?.FilePath || '';
+        const fileName = rowData?.FileName || 'file';
 
-    if (!filePath) {
-      this.notification.warning(
-        NOTIFICATION_TITLE.warning,
-        'Không tìm thấy đường dẫn file!'
-      );
-      return;
-    }
-
-    if (!fileName) {
-      this.notification.warning(NOTIFICATION_TITLE.warning, 'Không có file để tải!');
-      return;
-    }
-
-    try {
-      const cleanFileName = fileName.split(';')[0].trim();
-
-      const softwareIndex = filePath.toLowerCase().indexOf('software');
-      let pathToUse = filePath;
-
-      if (softwareIndex !== -1) {
-        pathToUse = filePath.substring(softwareIndex);
-      } else {
-        const cleanPath = filePath.replace(/^\\+/, '');
-        const lowerClean = cleanPath.toLowerCase();
-
-        if (lowerClean.startsWith('lamthem')) {
-          pathToUse = `software\\Test\\${cleanPath}`;
-        } else {
-          pathToUse = `software\\${cleanPath}`;
+        if (!filePath) {
+            this.notification.warning(
+                NOTIFICATION_TITLE.warning,
+                'Không tìm thấy đường dẫn file!'
+            );
+            return;
         }
-      }
 
-      let normalizedPath = pathToUse.replace(/\\/g, '/');
-      normalizedPath = normalizedPath.replace(/\+(?=\w)/g, '/');
-      if (normalizedPath.startsWith('/')) {
-        normalizedPath = normalizedPath.substring(1);
-      }
+        if (!fileName) {
+            this.notification.warning(NOTIFICATION_TITLE.warning, 'Không có file để tải!');
+            return;
+        }
 
-      const lowerPath = normalizedPath.toLowerCase();
-      if (!lowerPath.startsWith('software/')) {
-        normalizedPath = 'software/' + normalizedPath;
-      } else {
-        normalizedPath = normalizedPath.replace(/^software\//i, 'software/');
-      }
-
-      const withSoftwareLower = normalizedPath.toLowerCase();
-      const needsTestPrefix =
-        withSoftwareLower.startsWith('software/lamthem/') || withSoftwareLower === 'software/lamthem';
-      const hasTestPrefix =
-        withSoftwareLower.startsWith('software/test/') || withSoftwareLower.startsWith('software\\test\\');
-      if (needsTestPrefix && !hasTestPrefix) {
-        normalizedPath = normalizedPath.replace(/^software\//i, 'software/Test/');
-      }
-
-      normalizedPath = normalizedPath.replace(/\/+$/, '');
-
-      const pathLower = normalizedPath.toLowerCase();
-      const fileNameLower = cleanFileName.toLowerCase();
-      const pathEndsWithFileName = pathLower.endsWith('/' + fileNameLower) || pathLower.endsWith(fileNameLower);
-
-      if (!pathEndsWithFileName) {
-        normalizedPath = normalizedPath + '/' + cleanFileName;
-      }
-
-      normalizedPath = normalizedPath.replace(/\/+/g, '/').replace(/^\/+/, '');
-
-      const pathParts = normalizedPath.split('/');
-      const encodedParts = pathParts.map((part: string) => {
         try {
-          const decoded = decodeURIComponent(part);
-          return encodeURIComponent(decoded);
-        } catch {
-          return encodeURIComponent(part);
+            const cleanFileName = fileName.split(';')[0].trim();
+
+            const softwareIndex = filePath.toLowerCase().indexOf('software');
+            let pathToUse = filePath;
+
+            if (softwareIndex !== -1) {
+                pathToUse = filePath.substring(softwareIndex);
+            } else {
+                const cleanPath = filePath.replace(/^\\+/, '');
+                const lowerClean = cleanPath.toLowerCase();
+
+                if (lowerClean.startsWith('lamthem')) {
+                    pathToUse = `software\\Test\\${cleanPath}`;
+                } else {
+                    pathToUse = `software\\${cleanPath}`;
+                }
+            }
+
+            let normalizedPath = pathToUse.replace(/\\/g, '/');
+            normalizedPath = normalizedPath.replace(/\+(?=\w)/g, '/');
+            if (normalizedPath.startsWith('/')) {
+                normalizedPath = normalizedPath.substring(1);
+            }
+
+            const lowerPath = normalizedPath.toLowerCase();
+            if (!lowerPath.startsWith('software/')) {
+                normalizedPath = 'software/' + normalizedPath;
+            } else {
+                normalizedPath = normalizedPath.replace(/^software\//i, 'software/');
+            }
+
+            const withSoftwareLower = normalizedPath.toLowerCase();
+            const needsTestPrefix =
+                withSoftwareLower.startsWith('software/lamthem/') || withSoftwareLower === 'software/lamthem';
+            const hasTestPrefix =
+                withSoftwareLower.startsWith('software/test/') || withSoftwareLower.startsWith('software\\test\\');
+            if (needsTestPrefix && !hasTestPrefix) {
+                normalizedPath = normalizedPath.replace(/^software\//i, 'software/Test/');
+            }
+
+            normalizedPath = normalizedPath.replace(/\/+$/, '');
+
+            const pathLower = normalizedPath.toLowerCase();
+            const fileNameLower = cleanFileName.toLowerCase();
+            const pathEndsWithFileName = pathLower.endsWith('/' + fileNameLower) || pathLower.endsWith(fileNameLower);
+
+            if (!pathEndsWithFileName) {
+                normalizedPath = normalizedPath + '/' + cleanFileName;
+            }
+
+            normalizedPath = normalizedPath.replace(/\/+/g, '/').replace(/^\/+/, '');
+
+            const pathParts = normalizedPath.split('/');
+            const encodedParts = pathParts.map((part: string) => {
+                try {
+                    const decoded = decodeURIComponent(part);
+                    return encodeURIComponent(decoded);
+                } catch {
+                    return encodeURIComponent(part);
+                }
+            });
+            const encodedPath = encodedParts.join('/');
+
+            const url = `${environment.host}api/share/${encodedPath}`;
+
+            window.open(url, '_blank');
+            this.notification.success(
+                NOTIFICATION_TITLE.success,
+                `Đang tải file: ${cleanFileName}`
+            );
+        } catch (error: any) {
+            this.notification.error(
+                NOTIFICATION_TITLE.error,
+                'Lỗi khi tải file: ' + (error?.message || '')
+            );
         }
-      });
-      const encodedPath = encodedParts.join('/');
-
-      const url = `${environment.host}api/share/${encodedPath}`;
-
-      window.open(url, '_blank');
-      this.notification.success(
-        NOTIFICATION_TITLE.success,
-        `Đang tải file: ${cleanFileName}`
-      );
-    } catch (error: any) {
-      this.notification.error(
-        NOTIFICATION_TITLE.error,
-        'Lỗi khi tải file: ' + (error?.message || '')
-      );
     }
-  }
 
 
     /**

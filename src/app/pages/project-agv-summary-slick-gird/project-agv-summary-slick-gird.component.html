@@ -1,0 +1,385 @@
+<ng-container class="w-100">
+  <nz-splitter style="height: 94vh!important;">
+    <!-- Search Panel (left side) -->
+    <nz-splitter-panel [nzSize]="sizeSearch" nzResizable="false">
+      <div class="card h-100 border-0 rounded-0">
+        <div class="card-header bg-white p-1" style="overflow-x: auto !important;">
+          <div class="d-flex justify-content-between align-items-center">
+            <h6 class="m-0 ms-2">Tìm kiếm</h6>
+            <button class="border-0 me-2" nz-button nzSize="small" nzType="default" nzDanger
+              (click)="toggleSearchPanel()">
+              <nz-icon nzType="close" nzTheme="outline"></nz-icon>
+            </button>
+          </div>
+        </div>
+        <div class="card-body">
+          <form nz-form nzLayout="vertical">
+            <nz-form-item class="mt-2">
+              <nz-form-label class="fs-12" [nzSpan]="24">Từ ngày</nz-form-label>
+              <nz-form-control [nzSpan]="24">
+                <nz-date-picker name="dateStart" class="w-100" nzFormat="dd/MM/yyyy" [(ngModel)]="dateStart"
+                  nzAllowClear="false" (ngModelChange)="getDay()"></nz-date-picker>
+              </nz-form-control>
+            </nz-form-item>
+            <nz-form-item class="mt-2">
+              <nz-form-label class="fs-12" [nzSpan]="24">Đến ngày</nz-form-label>
+              <nz-form-control [nzSpan]="24">
+                <nz-date-picker name="dateEnd" class="w-100" nzFormat="dd/MM/yyyy" [(ngModel)]="dateEnd"
+                  nzAllowClear="false"></nz-date-picker>
+              </nz-form-control>
+            </nz-form-item>
+            <nz-form-item class="mt-2">
+              <nz-form-label class="fs-12" [nzSpan]="24">Sale</nz-form-label>
+              <nz-form-control [nzSpan]="24">
+                <nz-select name="userId" class="w-100" nzShowSearch nzAllowClear nzPlaceHolder="Chọn Sale"
+                  [(ngModel)]="userId">
+                  @for (parent of users; track $index) {
+                  <nz-option-group [nzLabel]="parent.label">
+                    @for (child of parent.options; track $index) {
+                    <nz-option nzCustomContent="true" [nzLabel]="child.item?.Code + ' - ' + child.item?.FullName"
+                      [nzValue]="child.item.ID">
+                      {{ child.item.Code + " - " + child.item.FullName }}
+                    </nz-option>
+                    }
+                  </nz-option-group>
+                  }
+                </nz-select>
+              </nz-form-control>
+            </nz-form-item>
+            <nz-form-item class="mt-2">
+              <nz-form-label class="fs-12" [nzSpan]="24">PM</nz-form-label>
+              <nz-form-control [nzSpan]="24">
+                <nz-select name="pmId" class="w-100" nzShowSearch nzAllowClear nzPlaceHolder="Chọn PM"
+                  [(ngModel)]="pmId">
+                  @for (parent of pms; track $index) {
+                  <nz-option-group [nzLabel]="parent.label">
+                    @for (child of parent.options; track $index) {
+                    <nz-option nzCustomContent="true" [nzLabel]="child.item?.Code + ' - ' + child.item?.FullName"
+                      [nzValue]="child.item.EmployeeID">
+                      {{ child.item.Code + " - " + child.item.FullName }}
+                    </nz-option>
+                    }
+                  </nz-option-group>
+                  }
+                </nz-select>
+              </nz-form-control>
+            </nz-form-item>
+            <nz-form-item class="mt-2">
+              <nz-form-label class="fs-12" [nzSpan]="24">Kỹ thuật</nz-form-label>
+              <nz-form-control [nzSpan]="24">
+                <nz-select name="technicalId" class="w-100" nzShowSearch nzAllowClear
+                  nzPlaceHolder="Chọn kỹ thuật thực hiện" [(ngModel)]="technicalId">
+                  @for (parent of users; track $index) {
+                  <nz-option-group [nzLabel]="parent.label">
+                    @for (child of parent.options; track $index) {
+                    <nz-option nzCustomContent="true" [nzLabel]="child.item?.Code + ' - ' + child.item?.FullName"
+                      [nzValue]="child.item.ID">
+                      {{ child.item.Code + " - " + child.item.FullName }}
+                    </nz-option>
+                    }
+                  </nz-option-group>
+                  }
+                </nz-select>
+              </nz-form-control>
+            </nz-form-item>
+            <nz-form-item class="mt-2">
+              <nz-form-label class="fs-12" [nzSpan]="24">Lĩnh vực dự án</nz-form-label>
+              <nz-form-control [nzSpan]="24">
+                <nz-select name="businessFieldId" class="w-100" nzShowSearch nzAllowClear
+                  nzPlaceHolder="Chọn lĩnh vực dự án" [(ngModel)]="businessFieldId">
+                  @for (item of businessFields; track $index) {
+                  <nz-option nzCustomContent="true" [nzLabel]="item.Code + ' - ' + item.Name" [nzValue]="item.ID">
+                    {{ item.Code + " - " + item.Name }}
+                  </nz-option>
+                  }
+                </nz-select>
+              </nz-form-control>
+            </nz-form-item>
+            <nz-form-item class="mt-2">
+              <nz-form-label class="fs-12" [nzSpan]="24">Khách hàng</nz-form-label>
+              <nz-form-control [nzSpan]="24">
+                <nz-select name="customerId" class="w-100" nzShowSearch nzAllowClear nzPlaceHolder="Chọn khách hàng"
+                  [(ngModel)]="customerId">
+                  @for (item of customers; track $index) {
+                  <nz-option nzCustomContent="true" [nzLabel]="item.CustomerCode + ' - ' + item.CustomerName"
+                    [nzValue]="item.ID">
+                    {{ item.CustomerCode + " - " + item.CustomerName }}
+                  </nz-option>
+                  }
+                </nz-select>
+              </nz-form-control>
+            </nz-form-item>
+            <nz-form-item class="mt-2">
+              <nz-form-label class="fs-12" [nzSpan]="24">Kiểu dự án</nz-form-label>
+              <nz-form-control [nzSpan]="24">
+                <nz-select name="projectTypeIds" class="w-100" [nzMaxTagCount]="2" nzAllowClear
+                  [nzMaxTagPlaceholder]="tagPlaceHolder" nzMode="multiple" nzPlaceHolder="Chọn kiểu dự án"
+                  [(ngModel)]="projectTypeIds">
+                  @for (item of projectTypes; track $index) {
+                  <nz-option [nzLabel]="item.ProjectTypeCode + ' - ' + item.ProjectTypeName"
+                    [nzValue]="item.ID"></nz-option>
+                  }
+                </nz-select>
+                <ng-template #tagPlaceHolder let-selectedList>...</ng-template>
+              </nz-form-control>
+            </nz-form-item>
+            <nz-form-item class="mt-2" *ngIf="isHide">
+              <nz-form-label class="fs-12" [nzSpan]="24">Trạng thái</nz-form-label>
+              <nz-form-control [nzSpan]="24">
+                <nz-select name="projecStatusIds" class="w-100" [nzMaxTagCount]="1" nzAllowClear
+                  [nzMaxTagPlaceholder]="tagPlaceHolder" nzMode="multiple" nzPlaceHolder="Chọn trạng thái"
+                  [(ngModel)]="projecStatusIds">
+                  @for (item of projecStatuses; track $index) {
+                  <nz-option [nzLabel]="item.StatusName" [nzValue]="item.ID"></nz-option>
+                  }
+                </nz-select>
+                <ng-template #tagPlaceHolder let-selectedList>...</ng-template>
+              </nz-form-control>
+            </nz-form-item>
+          </form>
+        </div>
+        <div class="card-footer bg-white p-1 d-flex gap-1 justify-content-end">
+          <button nz-button nzType="default" nzSize="small" (click)="setDefautSearch()">
+            Đặt lại
+          </button>
+          <button nz-button nzType="primary" nzSize="small" (click)="searchProjects()">
+            Tìm kiếm
+          </button>
+        </div>
+      </div>
+    </nz-splitter-panel>
+
+    <!-- Main Content Panel -->
+    <nz-splitter-panel nzDefaultSize="100%">
+      <div class="card h-100 border-0 rounded-0">
+        <!-- Header with action buttons -->
+        <div class="card-header bg-white p-1">
+          <div class="d-flex gap-1 flex-wrap align-items-center">
+            <button nz-button nzType="default" nzSize="small" (click)="ToggleSearchPanelNew($event)"
+              class="sticky-toggle-btn" [attr.aria-label]="showSearchBar ? 'Ẩn tìm kiếm' : 'Hiện tìm kiếm'"
+              [attr.aria-expanded]="showSearchBar" type="button">
+              <nz-icon [nzType]="showSearchBar ? 'up' : 'down'" />
+            </button>
+            <button class="fs-12" nz-button nzType="default" nzSize="small" (click)="exportExcel()">
+              <img src="assets/icon/action_export_excel_16.png" /> Xuất Excel
+            </button>
+          </div>
+        </div>
+
+        <!-- Compact search bar -->
+        <div class="bg-light border-bottom p-2" *ngIf="showSearchBar">
+          <div class="d-flex gap-1 align-items-center flex-wrap">
+            <nz-form-label class="fs-12" style="font-size: 12px;">Từ ngày</nz-form-label>
+            <nz-date-picker [(ngModel)]="dateStart" [ngModelOptions]="{standalone: true}" nzFormat="dd/MM/yyyy"
+              nzSize="small" nzAllowClear="false" (ngModelChange)="getDay()" style="width: 140px;" />
+            <nz-form-label class="fs-12" style="font-size: 12px;">Đến ngày</nz-form-label>
+            <nz-date-picker [(ngModel)]="dateEnd" [ngModelOptions]="{standalone: true}" nzFormat="dd/MM/yyyy"
+              nzSize="small" nzAllowClear="false" style="width: 140px;" />
+
+            <nz-form-label class="fs-12" style="font-size: 12px;">Khách hàng</nz-form-label>
+            <nz-select [(ngModel)]="customerId" [ngModelOptions]="{standalone: true}" nzShowSearch nzAllowClear
+              nzSize="small" nzPlaceHolder="Khách hàng" style="width: 500px;">
+              @for (item of customers; track $index) {
+              <nz-option nzCustomContent="true" [nzLabel]="item.CustomerCode + ' - ' + item.CustomerName"
+                [nzValue]="item.ID">
+                {{ item.CustomerCode + " - " + item.CustomerName }}
+              </nz-option>
+              }
+            </nz-select>
+
+            <input nz-input nzSize="small" placeholder="Nhập từ khóa..." style="width: 280px" [(ngModel)]="keyword"
+              [ngModelOptions]="{standalone: true}" (keyup.enter)="searchProjects()"
+              (ngModelChange)="onSearchChange($event)" />
+
+            <button nz-button nzType="primary" nzSize="small" (click)="searchProjects()">
+              <nz-icon nzType="search" />
+            </button>
+
+            <button nz-button nzType="primary" nzSize="small" nz-dropdown [nzDropdownMenu]="searchMenu"
+              nzTrigger="click" nzPlacement="bottomRight" style="padding-left: 8px; padding-right: 8px;">
+              <i nz-icon nzType="down"></i>
+            </button>
+
+            <nz-dropdown-menu #searchMenu="nzDropdownMenu">
+              <div class="p-3 advanced-filters-container"
+                style="min-width: 320px; background-color: #ffffff; border: 1px solid #d9d9d9; border-radius: 4px; box-shadow: 0 2px 8px rgba(0,0,0,0.15);">
+                <ng-container *ngTemplateOutlet="advancedFiltersTemplate"></ng-container>
+              </div>
+            </nz-dropdown-menu>
+
+            <ng-template #advancedFiltersTemplate>
+              <form nz-form nzLayout="vertical">
+                <nz-form-item class="mb-0">
+                  <nz-form-label class="fs-12" style="font-size: 12px;">Sale</nz-form-label>
+                  <nz-form-control class="w-100">
+                    <nz-select [(ngModel)]="userId" name="userId" nzShowSearch nzAllowClear nzSize="small"
+                      nzPlaceHolder="Chọn Sale" style="width: 100%;">
+                      @for (parent of users; track $index) {
+                      <nz-option-group [nzLabel]="parent.label">
+                        @for (child of parent.options; track $index) {
+                        <nz-option nzCustomContent="true" [nzLabel]="child.item?.Code + ' - ' + child.item?.FullName"
+                          [nzValue]="child.item.ID">
+                          {{ child.item.Code + " - " + child.item.FullName }}
+                        </nz-option>
+                        }
+                      </nz-option-group>
+                      }
+                    </nz-select>
+                  </nz-form-control>
+                </nz-form-item>
+
+                <nz-form-item class="mb-0">
+                  <nz-form-label class="fs-12" style="font-size: 12px;">PM</nz-form-label>
+                  <nz-form-control class="w-100">
+                    <nz-select [(ngModel)]="pmId" name="pmId" nzShowSearch nzAllowClear nzSize="small"
+                      nzPlaceHolder="Chọn PM" style="width: 100%;">
+                      @for (parent of pms; track $index) {
+                      <nz-option-group [nzLabel]="parent.label">
+                        @for (child of parent.options; track $index) {
+                        <nz-option nzCustomContent="true" [nzLabel]="child.item?.Code + ' - ' + child.item?.FullName"
+                          [nzValue]="child.item.EmployeeID">
+                          {{ child.item.Code + " - " + child.item.FullName }}
+                        </nz-option>
+                        }
+                      </nz-option-group>
+                      }
+                    </nz-select>
+                  </nz-form-control>
+                </nz-form-item>
+
+                <nz-form-item class="mb-0">
+                  <nz-form-label class="fs-12" style="font-size: 12px;">Kỹ thuật</nz-form-label>
+                  <nz-form-control class="w-100">
+                    <nz-select [(ngModel)]="technicalId" name="technicalId" nzShowSearch nzAllowClear nzSize="small"
+                      nzPlaceHolder="Chọn kỹ thuật" style="width: 100%;">
+                      @for (parent of users; track $index) {
+                      <nz-option-group [nzLabel]="parent.label">
+                        @for (child of parent.options; track $index) {
+                        <nz-option nzCustomContent="true" [nzLabel]="child.item?.Code + ' - ' + child.item?.FullName"
+                          [nzValue]="child.item.ID">
+                          {{ child.item.Code + " - " + child.item.FullName }}
+                        </nz-option>
+                        }
+                      </nz-option-group>
+                      }
+                    </nz-select>
+                  </nz-form-control>
+                </nz-form-item>
+
+                <nz-form-item class="mb-0">
+                  <nz-form-label class="fs-12" style="font-size: 12px;">Lĩnh vực</nz-form-label>
+                  <nz-form-control class="w-100">
+                    <nz-select [(ngModel)]="businessFieldId" name="businessFieldId" nzShowSearch nzAllowClear
+                      nzSize="small" nzPlaceHolder="Chọn lĩnh vực" style="width: 100%;">
+                      @for (item of businessFields; track $index) {
+                      <nz-option nzCustomContent="true" [nzLabel]="item.Code + ' - ' + item.Name" [nzValue]="item.ID">
+                        {{ item.Code + " - " + item.Name }}
+                      </nz-option>
+                      }
+                    </nz-select>
+                  </nz-form-control>
+                </nz-form-item>
+
+                <nz-form-item class="mb-0">
+                  <nz-form-label class="fs-12" style="font-size: 12px;">Kiểu dự án</nz-form-label>
+                  <nz-form-control class="w-100">
+                    <nz-select [(ngModel)]="projectTypeIds" name="projectTypeIds" nzMode="multiple" nzAllowClear
+                      [nzMaxTagCount]="2" nzSize="small" nzPlaceHolder="Chọn kiểu dự án" style="width: 100%;">
+                      @for (item of projectTypes; track $index) {
+                      <nz-option [nzLabel]="item.ProjectTypeCode + ' - ' + item.ProjectTypeName"
+                        [nzValue]="item.ID"></nz-option>
+                      }
+                    </nz-select>
+                  </nz-form-control>
+                </nz-form-item>
+
+                <nz-form-item class="mb-0" *ngIf="isHide">
+                  <nz-form-label class="fs-12" style="font-size: 12px;">Trạng thái</nz-form-label>
+                  <nz-form-control class="w-100">
+                    <nz-select [(ngModel)]="projecStatusIds" name="projecStatusIds" nzMode="multiple" nzAllowClear
+                      [nzMaxTagCount]="1" nzSize="small" nzPlaceHolder="Chọn trạng thái" style="width: 100%;">
+                      @for (item of projecStatuses; track $index) {
+                      <nz-option [nzLabel]="item.StatusName" [nzValue]="item.ID"></nz-option>
+                      }
+                    </nz-select>
+                  </nz-form-control>
+                </nz-form-item>
+
+                <nz-form-item class="mb-0">
+                  <nz-form-control class="w-100 m-1">
+                    <div class="d-flex gap-1 justify-content-end ">
+                      <button nz-button nzType="default" nzSize="small" (click)="setDefautSearch()">Đặt lại</button>
+                      <button nz-button nzType="primary" nzSize="small" (click)="searchProjects()">Tìm kiếm</button>
+                    </div>
+                  </nz-form-control>
+                </nz-form-item>
+              </form>
+            </ng-template>
+          </div>
+        </div>
+
+        <!-- Grid content -->
+        <div class="card-body p-0" style="height: calc(100vh - 120px); display: flex; flex-direction: column;"
+          [class.with-search-bar]="shouldShowSearchBar" [class.without-search-bar]="!shouldShowSearchBar">
+          <nz-spin [nzSpinning]="isLoading" [nzDelay]="200">
+            <nz-splitter style="height: 100%; flex: 1;">
+              <!-- Master Grid -->
+              <nz-splitter-panel [nzCollapsible]="true" nzResizable="true" [nzSize]="sizeTbMaster">
+                <div class="grid-container" id="grid-container-agv-projects" style="height: 100%;">
+                  <angular-slickgrid gridId="grvAgvProjects" [columns]="columnDefinitions"
+                    [options]="gridOptions" [dataset]="dataset" (onAngularGridCreated)="angularGridReady($event.detail)"
+                    (onSelectedRowsChanged)="handleRowSelection($event.detail.eventData, $event.detail.args)"
+                    (onClick)="onCellClicked($event.detail.eventData, $event.detail.args)">
+                  </angular-slickgrid>
+                </div>
+              </nz-splitter-panel>
+
+              <!-- Detail Panel -->
+              <nz-splitter-panel [nzCollapsible]="true" nzResizable="true" [nzSize]="sizeTbDetail">
+                <ng-template #tabClose>
+                  <button nz-button nzType="text" class="btn-close-panel" style="color: red;" (click)="closePanel()">
+                    <i nz-icon nzType="close"></i>
+                  </button>
+                </ng-template>
+                <nz-tabset *ngIf="detailGridsReady" style="padding-left: 10px !important;"
+                  [nzTabBarExtraContent]="tabClose"
+                  (nzSelectedIndexChange)="switchTab($event === 0 ? 'workreport' : 'typelink')">
+                  <nz-tab nzTitle="Danh sách hạng mục">
+                    <div class="d-flex align-items-center p-1 gap-1 justify-content-sm-end">
+                      <button class="fs-12 border" nz-button nzType="text" nzSize="small"
+                        style="background-color: lightyellow">
+                        Sắp hết hạn
+                      </button>
+                      <button class="fs-12 text-white" nz-button nzType="text" nzSize="small"
+                        style="background-color: orange">
+                        Chậm
+                      </button>
+                      <button class="fs-12 text-white" nz-button nzType="text" nzSize="small"
+                        style="background-color: red">
+                        Failed
+                      </button>
+                    </div>
+                    <div id="grid-container-agv-workreport" style="width: 100%; height: 78vh;">
+                      <angular-slickgrid *ngIf="activeTab === 'workreport'" gridId="grvAgvWorkReport" [columns]="columnDefinitionsWorkReport"
+                        [options]="gridOptionsWorkReport" [dataset]="datasetWorkReport"
+                        (onAngularGridCreated)="angularGridWorkReportReady($event.detail)">
+                      </angular-slickgrid>
+                    </div>
+                  </nz-tab>
+                  <nz-tab nzTitle="Kiểu dự án">
+                    <div id="grid-container-agv-typelink" style="width: 100%; height: 80vh;">
+                      <angular-slickgrid *ngIf="activeTab === 'typelink'" gridId="grvAgvTypeLink" [columns]="columnDefinitionsTypeLink"
+                        [options]="gridOptionsTypeLink" [dataset]="datasetTypeLink"
+                        (onAngularGridCreated)="angularGridTypeLinkReady($event.detail)">
+                      </angular-slickgrid>
+                    </div>
+                  </nz-tab>
+                </nz-tabset>
+              </nz-splitter-panel>
+            </nz-splitter>
+          </nz-spin>
+        </div>
+      </div>
+    </nz-splitter-panel>
+  </nz-splitter>
+</ng-container>

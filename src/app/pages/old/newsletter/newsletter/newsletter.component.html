@@ -1,0 +1,159 @@
+<ng-container class="w-100">
+  <nz-splitter style="height: 100vh">
+    <nz-splitter-panel *ngIf="isSearchVisible" [nzSize]="'20%'" [nzResizable]="false">
+      <div class="card h-100 border-0 rounded-0">
+        <!-- Header -->
+        <div class="card-header bg-white p-1">
+          <div class="d-flex justify-content-between align-items-center">
+            <h6 class="m-0 ms-2">Tìm kiếm</h6>
+            <button class="border-0 me-2" nz-button nzSize="small" nzType="default" nzDanger
+              (click)="toggleSearchPanel()">
+              <nz-icon nzType="close" nzTheme="outline"></nz-icon>
+            </button>
+          </div>
+        </div>
+        <!-- Body -->
+        <div class="card-body">
+          <form nz-form nzLayout="vertical">
+            <nz-form-item class="mt-2">
+              <nz-form-label class="fs-12" [nzSpan]="24">Từ ngày</nz-form-label>
+              <nz-form-control [nzSpan]="24">
+                <nz-date-picker [(ngModel)]="dateStart" (ngModelChange)="onDateRangeChange()" nzFormat="dd/MM/yyyy"
+                  nzSize="default" class="w-100" name="dateStart"></nz-date-picker>
+              </nz-form-control>
+            </nz-form-item>
+
+            <nz-form-item class="mt-2">
+              <nz-form-label class="fs-12" [nzSpan]="24">Đến ngày</nz-form-label>
+              <nz-form-control [nzSpan]="24">
+                <nz-date-picker [(ngModel)]="dateEnd" (ngModelChange)="onDateRangeChange()" nzFormat="dd/MM/yyyy"
+                  nzSize="default" class="w-100" name="dateEnd"></nz-date-picker>
+              </nz-form-control>
+            </nz-form-item>
+
+            <nz-form-item class="mt-2">
+              <nz-form-label class="fs-12" [nzSpan]="24">Loại bản tin</nz-form-label>
+              <nz-form-control [nzSpan]="24">
+                <nz-select [(ngModel)]="typeID" (ngModelChange)="onTypeNewsletterChange()" nzSize="default"
+                  class="w-100" name="typeID" nzAllowClear>
+                  <nz-option nzValue="0" nzLabel="Tất cả"></nz-option>
+                  <nz-option *ngFor="let type of newsletterTypes" [nzValue]="type.ID"
+                    [nzLabel]="type.NewsletterTypeName"></nz-option>
+                </nz-select>
+              </nz-form-control>
+            </nz-form-item>
+
+            <nz-form-item class="mt-2">
+              <nz-form-label class="fs-12" [nzSpan]="24">Từ khóa</nz-form-label>
+              <nz-form-control [nzSpan]="24">
+                <input nz-input [(ngModel)]="keyWord" (ngModelChange)="onKeywordChange($event)" nzSize="default"
+                  class="w-100" name="keyWord" placeholder="Nhập từ khóa tìm kiếm">
+              </nz-form-control>
+            </nz-form-item>
+
+            <div class="d-flex justify-content-between align-items-center mt-3">
+              <div>
+                <button nz-button nzType="default" nzSize="small" (click)="resetSearch()">
+                  <span nz-icon nzType="reload" nzTheme="outline"></span>
+                  Làm mới
+                </button>
+              </div>
+              <div>
+                <button nz-button nzType="primary" nzSize="small" (click)="getNewsletter()">
+                  <span nz-icon nzType="search" nzTheme="outline"></span>
+                  Tìm kiếm
+                </button>
+              </div>
+            </div>
+          </form>
+        </div>
+        <!-- Footer -->
+        <div class="card-footer bg-white p-1 d-flex gap-1 justify-content-end flex-wrap">
+          <button nz-button nzType="default" nzSize="small" (click)="resetSearch()">Đặt lại</button>
+          <button nz-button nzType="primary" nzSize="small" (click)="getNewsletter()">Tìm kiếm</button>
+        </div>
+      </div>
+    </nz-splitter-panel>
+    <nz-splitter-panel [nzSize]="isSearchVisible ? '80%' : '100%'">
+      <div class="card border-0 rounded-0 h-100">
+        <div class="card-header bg-white p-2 action-bar">
+          <!-- Desktop: dải nút cuộn ngang -->
+          <div class="d-none d-md-flex h-40 gap-2 align-items-center">
+            <div class="flex-grow-1" style="overflow-x: auto;">
+              <div class="d-flex gap-2 flex-nowrap">
+                <button nz-button nzType="default" nzSize="default" (click)="toggleSearchPanel()"
+                  class="d-flex align-items-center justify-content-center">
+                  <nz-icon nzType="search"></nz-icon>
+                </button>
+                <div class="divider ml-1 me-1" style="border-left: 1px solid #ddd; height: 24px;"></div>
+                <button nz-button nzType="default" nzSize="default" class="btn-add" (click)="onAddNewsletter()">
+                  <img src="assets/icon/action_add_item_16.png" alt="Thêm mới" />Thêm
+                </button>
+                <button nz-button nzType="default" nzSize="default" class="btn-edit" (click)="onEditNewsletter()">
+                  <img src="assets/icon/action_edit_item_16.png" alt="Sửa" />Sửa
+                </button>
+                <button nz-button nzType="default" nzSize="default" class="btn-delete" (click)="onDeleteNewsletter()">
+                  <img src="assets/icon/action_delete_item_16.png" alt="Xóa" />Xóa
+                </button>
+
+                <nz-dropdown-menu #menuPerspnal="nzDropdownMenu">
+                  <ul nz-menu>
+                    <li nz-menu-item>
+                      <img src="assets/icon/action_approved_16.png" />
+                      <span class="ms-1">Cá nhân duyệt</span>
+                    </li>
+                    <li nz-menu-item>
+                      <img src="assets/icon/action_unapproved_16.png" />
+                      <span class="ms-1">Cá nhân hủy duyệt</span>
+                    </li>
+                  </ul>
+                </nz-dropdown-menu>
+
+                <span class="mx-2"
+                  style="display: inline-block; height: 20px; border-left: 1px solid #e5e5e5; align-self: center;"></span>
+
+                <button nz-button nzType="default" nzSize="default" class="me-1" (click)="exportToExcel()">
+                  <img src="assets/icon/action_export_excel_16.png" alt="Xuất Excel" />Xuất Excel
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Mobile: dropdown hành động + nút bật/tắt panel tìm kiếm -->
+          <div class="d-flex d-md-none h-40 gap-1 align-items-center justify-content-between">
+            <button nz-button nzType="default" nzSize="small" (click)="toggleSearchPanel()">
+              <nz-icon nzType="search"></nz-icon>
+            </button>
+
+            <div ngbDropdown class="dropdown ms-auto">
+              <button class="btn btn-primary btn-sm" ngbDropdownToggle>
+                <i class="fa fa-bars"></i>
+              </button>
+              <div ngbDropdownMenu class="dropdown-menu">
+                <button ngbDropdownItem (click)="onAddNewsletter()" class="d-flex align-items-center gap-2">
+                  Thêm
+                </button>
+                <button ngbDropdownItem (click)="onEditNewsletter()" class="d-flex align-items-center gap-2">
+                  Sửa
+                </button>
+                <button ngbDropdownItem (click)="onDeleteNewsletter()" class="d-flex align-items-center gap-2">
+                  Xóa
+                </button>
+
+                <div class="dropdown-divider"></div>
+
+                <button ngbDropdownItem (click)="exportToExcel()" class="d-flex align-items-center gap-2">
+                  Xuất Excel
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="card-body p-0">
+          <div id="newsletter-table"></div>
+        </div>
+      </div>
+    </nz-splitter-panel>
+  </nz-splitter>
+</ng-container>

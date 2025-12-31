@@ -1,0 +1,237 @@
+.newsletter-detail-wrapper {
+    position: relative;
+    max-width: 100%;
+    max-height: 85vh;
+}
+
+.newsletter-detail-container {
+    max-width: 100%;
+    margin: 0;
+    max-height: 85vh;
+    overflow-y: auto;
+    overflow-x: hidden;
+}
+
+.pinned-close-btn {
+    position: absolute !important;
+    top: 15px;
+    right: 25px;
+    /* Offset from the very edge and scrollbar */
+    z-index: 1070;
+    padding: 10px;
+    background-color: white !important;
+    border-radius: 50%;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.15);
+    opacity: 0.8;
+    transition: all 0.2s ease;
+}
+
+.pinned-close-btn:hover {
+    opacity: 1;
+    transform: scale(1.1);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+}
+
+.newsletter-detail-inner {
+    padding: 20px;
+    max-width: 900px;
+    margin: 0 auto;
+}
+
+.newsletter-detail-container::-webkit-scrollbar {
+    width: 8px;
+}
+
+.newsletter-detail-container::-webkit-scrollbar-track {
+    background: #f1f1f1;
+    border-radius: 4px;
+}
+
+.newsletter-detail-container::-webkit-scrollbar-thumb {
+    background: #888;
+    border-radius: 4px;
+}
+
+.newsletter-detail-container::-webkit-scrollbar-thumb:hover {
+    background: #555;
+}
+
+.newsletter-header {
+    border-bottom: 2px solid #e8e8e8;
+    padding-bottom: 20px;
+}
+
+.newsletter-title {
+    font-size: 28px;
+    font-weight: 700;
+    color: #1a1a1a;
+    line-height: 1.4;
+}
+
+.newsletter-meta {
+    font-size: 14px;
+}
+
+.newsletter-meta span {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+}
+
+.newsletter-body {
+    font-size: 16px;
+    line-height: 1.8;
+    color: #333;
+}
+
+.content-html {
+    word-wrap: break-word;
+}
+
+.content-html p {
+    margin-bottom: 1rem;
+}
+
+.content-html img {
+    max-width: 100%;
+    height: auto;
+}
+
+.newsletter-image {
+    text-align: center;
+}
+
+.newsletter-image img {
+    max-height: 600px;
+    object-fit: contain;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.newsletter-image img:hover {
+    transform: scale(1.02);
+    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
+}
+
+.newsletter-files h5 {
+    font-size: 18px;
+    font-weight: 600;
+    color: #1a1a1a;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.file-item {
+    background: #f8f9fa;
+    transition: all 0.3s ease;
+}
+
+.file-item:hover {
+    background: #e9ecef;
+    transform: translateX(5px);
+}
+
+.file-name {
+    font-size: 14px;
+    color: #1a1a1a;
+    max-width: 100%;
+    display: block;
+}
+
+.file-info {
+    min-width: 0;
+    /* Critical for text-truncate in flex */
+    flex: 1;
+    margin-right: 15px;
+    /* Ensure space before buttons */
+}
+
+.file-info>div {
+    min-width: 0;
+    /* Important for children using text-truncate */
+    flex: 1;
+}
+
+.file-item .d-flex.gap-2 {
+    flex-shrink: 0;
+}
+
+.badge {
+    padding: 4px 12px;
+    font-size: 12px;
+    font-weight: 500;
+}
+
+/* Responsive Styles */
+@media (max-width: 991px) {
+    .newsletter-title {
+        font-size: 24px;
+    }
+}
+
+@media (max-width: 768px) {
+    .newsletter-detail-inner {
+        padding: 15px;
+    }
+
+    .newsletter-title {
+        font-size: 20px;
+        margin-bottom: 15px;
+    }
+
+    .pinned-close-btn {
+        top: 10px;
+        right: 15px;
+        padding: 8px;
+        transform: scale(0.9);
+    }
+
+    .pinned-close-btn:hover {
+        transform: scale(1.1);
+    }
+
+    .newsletter-image img {
+        max-height: 400px;
+    }
+
+    .newsletter-meta {
+        flex-direction: column;
+        gap: 10px !important;
+    }
+}
+
+@media (max-width: 576px) {
+    .newsletter-detail-inner {
+        padding: 10px;
+    }
+
+    .newsletter-title {
+        font-size: 18px;
+    }
+
+    .pinned-close-btn {
+        top: 8px;
+        right: 10px;
+        padding: 6px;
+    }
+
+    .file-item {
+        flex-direction: column;
+        align-items: flex-start !important;
+        gap: 15px;
+    }
+
+    .file-item .d-flex.gap-2 {
+        width: 100%;
+        justify-content: flex-end;
+    }
+
+    .newsletter-header {
+        padding-bottom: 15px;
+    }
+
+    .newsletter-body {
+        font-size: 14px;
+        line-height: 1.6;
+    }
+}

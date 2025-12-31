@@ -204,6 +204,8 @@ import { HrmComponent } from './pages/hrm/hrm.component';
 import { ApproveComponent } from './pages/approve/approve.component';
 import { RequestInvoiceSlickgridComponent } from './pages/old/request-invoice-slickgrid/request-invoice-slickgrid.component';
 import { RequestInvoiceSummarySlickgridComponent } from './pages/old/request-invoice-summary-slickgrid/request-invoice-summary-slickgrid.component';
+import { NewsletterComponent } from './pages/old/newsletter/newsletter/newsletter.component';
+import { NewsletterTypeComponent } from './pages/old/newsletter/newsletter/newsletter-type/newsletter-type.component';
 
 export const routes: Routes = [
     {
@@ -910,6 +912,8 @@ export const routes: Routes = [
 
             { path: 'bill-import-qc', component: BillImportQcComponent, canActivate: [authGuard] },
 
+            { path: 'newsletter', component: NewsletterComponent, canActivate: [authGuard] },
+            { path: 'newsletter-type', component: NewsletterTypeComponent, canActivate: [authGuard] },
 
         ],
     },

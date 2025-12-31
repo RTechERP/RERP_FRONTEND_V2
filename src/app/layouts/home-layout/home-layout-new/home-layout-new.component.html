@@ -53,7 +53,7 @@
 
             <div class="card-body p-0">
                 <ul class="list-group list-group-flush">
-                    @for (item of menuQickAcesss.Children; track $index) {
+                    <!-- @for (item of menuQickAcesss.Children; track $index) {
                     <li class="list-group-item border-0 py-1"
                         *ngIf="item.Code =='M79' || item.Code =='M136' || item.Code =='M137' || item.Code =='M139'">
                         <a [attr.href]="item.Router ? item.Router : null"
@@ -74,7 +74,7 @@
                             }
                         </ul>
                     </li>
-                    }
+                    } -->
                 </ul>
             </div>
         </div>
@@ -140,8 +140,11 @@
         </div>
 
         <div class="card">
-            <div class="card-header">
+            <div class="card-header d-flex justify-content-between align-items-center">
                 <h5 class="card-title m-0 text-uppercase fw-bold py-1">Thông báo</h5>
+                <a routerLink="/newsletter" class="small text-primary fw-bold" style="text-decoration: none;">
+                    Xem tất cả <i nz-icon nzType="right" nzTheme="outline"></i>
+                </a>
             </div>
             <div class="card-body p-0">
                 <div class="px-3 py-2 bg-light"
@@ -155,6 +158,41 @@
                             (click)="newTabApprove()">Bấm vào đây để duyệt</span>
                     </small>
                 </div>
+
+                <!-- Newsletter List -->
+                <ul class="list-group list-group-flush">
+                    @for (item of newsletters; track item.ID) {
+                    <li class="list-group-item py-3">
+                        <div class="d-flex w-100 gap-3">
+                            <img [src]="getNewsletterImageUrl(item)" alt="Newsletter thumb"
+                                class="flex-shrink-0 rounded shadow-sm"
+                                style="width: 60px; height: 60px; object-fit: cover; border: 1px solid #eee;">
+                            <div class="flex-grow-1 overflow-hidden">
+                                <div class="d-flex w-100 justify-content-between align-items-start mb-1">
+                                    <h6 class="mb-0 fw-bold text-truncate" [title]="item.Title"
+                                        style="max-width: calc(100% - 90px);">
+                                        {{item.Title}}
+                                    </h6>
+                                    <small class="text-muted flex-shrink-0" style="font-size: 11px;">
+                                        {{item.CreatedDate | date:'dd/MM/yyyy'}}
+                                    </small>
+                                </div>
+                                <div class="mt-2 text-primary cursor-pointer"
+                                    style="font-size: 12px; text-decoration: underline; font-weight: 600;"
+                                    (click)="openNewsletterDetail(item.ID)">
+                                    Xem chi tiết
+                                </div>
+                            </div>
+                        </div>
+                    </li>
+                    }
+
+                    @if (newsletters.length === 0) {
+                    <li class="list-group-item text-center text-muted py-4">
+                        <small>Chưa có thông báo mới</small>
+                    </li>
+                    }
+                </ul>
             </div>
         </div>
 

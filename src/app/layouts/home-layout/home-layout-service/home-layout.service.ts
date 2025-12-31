@@ -18,4 +18,8 @@ export class HomeLayoutService {
       environment.host + 'api/home/employee-onleave-and-wfh'
     );
   }
+
+  getNewsletters(): Observable<any> {
+    return this.http.get<any>(environment.host + 'api/newsletter');
+  }
 }

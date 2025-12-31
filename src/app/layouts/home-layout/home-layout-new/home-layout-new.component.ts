@@ -26,6 +26,8 @@ import { AvatarModule } from 'primeng/avatar';
 import { NzTabsModule } from 'ng-zorro-antd/tabs';
 import { ApproveTpService } from '../../../pages/person/approve-tp/approve-tp-service/approve-tp.service';
 import { HasPermissionDirective } from '../../../directives/has-permission.directive';
+import { NgbModal, NgbModalModule } from '@ng-bootstrap/ng-bootstrap';
+import { NewsletterDetailComponent } from '../../../pages/old/newsletter/newsletter/newsletter-detail/newsletter-detail.component';
 @Component({
     selector: 'app-home-layout-new',
     imports: [
@@ -43,7 +45,8 @@ import { HasPermissionDirective } from '../../../directives/has-permission.direc
         AvatarModule,
         NzTabsModule,
         NgSwitchCase,
-        HasPermissionDirective
+        HasPermissionDirective,
+        NgbModalModule
     ],
     templateUrl: './home-layout-new.component.html',
     styleUrl: './home-layout-new.component.css'
@@ -101,6 +104,8 @@ export class HomeLayoutNewComponent implements OnInit {
 
     activeTab = 0;
 
+    newsletters: any[] = [];
+
 
     constructor(
         private notification: NzNotificationService,
@@ -113,7 +118,8 @@ export class HomeLayoutNewComponent implements OnInit {
         public menuAppService: MenuAppService,
         private permissionService: PermissionService,
         private tabService: TabServiceService,
-        private approveTpService: ApproveTpService
+        private approveTpService: ApproveTpService,
+        private modalService: NgbModal
     ) { }
 
     ngOnInit(): void {
@@ -126,6 +132,7 @@ export class HomeLayoutNewComponent implements OnInit {
         this.getHoliday(this.today.getFullYear(), this.today.getMonth());
         this.getEmployeeOnleaveAndWFH();
         this.getQuantityApprove();
+        this.loadNewsletters();
     }
 
 
@@ -264,6 +271,17 @@ export class HomeLayoutNewComponent implements OnInit {
 
     }
 
+    loadNewsletters(): void {
+        this.homepageService.getNewsletters().subscribe({
+            next: (response) => {
+                this.newsletters = response.data || [];
+            },
+            error: (error: any) => {
+                this.notification.error(NOTIFICATION_TITLE.error, error?.error?.message || error?.message);
+            }
+        });
+    }
+
     onPick(n: NotifyItem) {
         console.log('picked:', n);
     }
@@ -345,5 +363,30 @@ export class HomeLayoutNewComponent implements OnInit {
     onSelectChangeCalendar(value: Date): void {
         // this.calendarDate = value;
         this.getHoliday(value.getFullYear(), value.getMonth());
+    }
+
+    openNewsletterDetail(newsletterId: number): void {
+        const modalRef = this.modalService.open(NewsletterDetailComponent, {
+            centered: true,
+            size: 'xl',
+            backdrop: 'static',
+            keyboard: true,
+            scrollable: true
+        });
+
+        modalRef.componentInstance.newsletterId = newsletterId;
+    }
+
+    getNewsletterImageUrl(item: any): string {
+        const serverPath = item?.ServerImgPath;
+        const imageName = item?.Image; // Keep consistency with item properties
+
+        if (!serverPath && !imageName) return 'assets/images/no-image.png';
+        
+        const host = environment.host + 'api/share/';
+        let urlImage = (serverPath || imageName || '').replace("\\\\192.168.1.190\\", "");
+        urlImage = urlImage.replace(/\\/g, '/');
+        
+        return host + urlImage;
     }
 }

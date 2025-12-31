@@ -1734,6 +1734,7 @@ export class PokhSlickgridComponent implements OnInit, AfterViewInit {
       },
       enableCheckboxSelector: false,
       multiColumnSort: false,
+      frozenColumn: 2
     };
   }
 

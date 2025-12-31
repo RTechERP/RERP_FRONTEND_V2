@@ -746,7 +746,7 @@ export class RequestInvoiceSummarySlickgridComponent implements OnInit, AfterVie
                 name: 'Tờ khai HQ',
                 field: 'IsCustomsDeclared',
                 width: 80,
-                minWidth: 70,   
+                minWidth: 70,
                 sortable: true,
                 filterable: true,
                 formatter: checkboxFormatter,
@@ -1120,6 +1120,7 @@ export class RequestInvoiceSummarySlickgridComponent implements OnInit, AfterVie
             autoEdit: false,
             createPreHeaderPanel: true,
             showPreHeaderPanel: true,
+            frozenColumn: 5,
         };
     }
 
@@ -1177,9 +1178,9 @@ export class RequestInvoiceSummarySlickgridComponent implements OnInit, AfterVie
 
         const grid = this.angularGrid.slickGrid;
         const columns = grid.getColumns();
-        
+
         const groupedColumns: { [key: string]: any[] } = {};
-        
+
         columns.forEach((col: any) => {
             const group = col.columnGroup || 'Default';
             if (!groupedColumns[group]) {
@@ -1189,7 +1190,7 @@ export class RequestInvoiceSummarySlickgridComponent implements OnInit, AfterVie
         });
 
         console.log('Column Groups:', groupedColumns);
-        
+
         // TODO: Implement visual grouping with CSS or custom solution
         // since setPreHeaderColumns doesn't exist in this version
     }

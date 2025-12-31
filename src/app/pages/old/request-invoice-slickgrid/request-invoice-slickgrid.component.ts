@@ -417,6 +417,7 @@ export class RequestInvoiceSlickgridComponent implements OnInit, AfterViewInit {
             enableCheckboxSelector: false,
             createPreHeaderPanel: true,
             showPreHeaderPanel: true,
+            frozenColumn: 3,
         };
     }
 
@@ -598,7 +599,7 @@ export class RequestInvoiceSlickgridComponent implements OnInit, AfterViewInit {
                         ...item,
                         id: `${item.ID}_${index}`
                     }));
-                    
+
                     // Apply distinct filters after data is loaded
                     setTimeout(() => {
                         this.applyDistinctFiltersToGrid(this.angularGridMain, this.columnDefinitionsMain, ['Name']);

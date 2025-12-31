@@ -58,6 +58,8 @@ export class PaymentOrderDetailComponent implements OnInit, AfterViewInit {
     @Input() paymentOrder = new PaymentOrder();
     paymentOrderField = PaymentOrderField;
 
+    //  orderTypeSelectProjects = [19, 22];
+
     angularGrid!: AngularGridInstance;
     angularGrid2!: AngularGridInstance;
     angularGridFile!: AngularGridInstance;
@@ -326,7 +328,7 @@ export class PaymentOrderDetailComponent implements OnInit, AfterViewInit {
 
     initFormGroup() {
 
-        console.log('this.paymentOrder edit:', this.paymentOrder);
+        // console.log('this.paymentOrder edit:', this.paymentOrder);
 
         const dateOrder = this.paymentOrder.DateOrder || new Date();
         this.validateForm = this.fb.group({
@@ -344,6 +346,11 @@ export class PaymentOrderDetailComponent implements OnInit, AfterViewInit {
             DeadlinePayment: this.fb.control(this.paymentOrder.DeadlinePayment),
             ReasonOrder: this.fb.control(this.paymentOrder.ReasonOrder, [Validators.required]),
             ReceiverInfo: this.fb.control(this.paymentOrder.ReceiverInfo, [Validators.required]),
+
+            IsBill: this.fb.control(this.paymentOrder.IsBill),
+            StartLocation: this.fb.control(this.paymentOrder.StartLocation,),
+            EndLocation: this.fb.control(this.paymentOrder.EndLocation,),
+
             TypePayment: this.fb.control(this.paymentOrder.TypePayment, [Validators.required]),
             DatePayment: this.fb.control(this.paymentOrder.DatePayment),
             TypeBankTransfer: this.fb.control(this.paymentOrder.TypeBankTransfer),
@@ -368,8 +375,27 @@ export class PaymentOrderDetailComponent implements OnInit, AfterViewInit {
 
                 this.validateForm.get(this.paymentOrderField.DatePayment.field)?.updateValueAndValidity();
                 this.onChangeTypeOrder(value);
-                console.log('TypeOrder data:', this.dataset);
-                console.log('TypeOrder data2:', this.dataset2);
+                // console.log('TypeOrder data:', this.dataset);
+                // console.log('TypeOrder data2:', this.dataset2);
+            });
+
+        //Sự kiện chọn loại nội dung
+        this.validateForm
+            .get(this.paymentOrderField.PaymentOrderTypeID.field)
+            ?.valueChanges.pipe(takeUntil(this.destroy$))
+            .subscribe((value: number) => {
+                this.paymentOrder.PaymentOrderTypeID = value;
+                if (value == 22) {
+                    this.validateForm.get(this.paymentOrderField.StartLocation.field)?.setValidators([Validators.required]);
+                    this.validateForm.get(this.paymentOrderField.EndLocation.field)?.setValidators([Validators.required]);
+                }
+                else {
+                    this.validateForm.get(this.paymentOrderField.StartLocation.field)?.clearValidators();
+                    this.validateForm.get(this.paymentOrderField.EndLocation.field)?.clearValidators();
+                }
+
+                this.validateForm.get(this.paymentOrderField.StartLocation.field)?.updateValueAndValidity();
+                this.validateForm.get(this.paymentOrderField.EndLocation.field)?.updateValueAndValidity();
             });
 
         //Sự kiện chọn nhà cung cấp
@@ -805,9 +831,9 @@ export class PaymentOrderDetailComponent implements OnInit, AfterViewInit {
         // console.log('this.fileUploads:', this.fileUploads);
         // this.uploadFile(14176);
 
-        console.log('this.validateForm:', this.validateForm.value);
-        console.log('this.validateForm invalid:', this.validateForm.invalid);
-        console.log('this.validateForm valid:', this.validateForm.valid);
+        // console.log('this.validateForm:', this.validateForm.value);
+        // console.log('this.validateForm invalid:', this.validateForm.invalid);
+        // console.log('this.validateForm valid:', this.validateForm.valid);
 
         if (!this.validateForm.valid) {
             Object.values(this.validateForm.controls).forEach(control => {
@@ -829,7 +855,7 @@ export class PaymentOrderDetailComponent implements OnInit, AfterViewInit {
                 PaymentOrderDetails: gridInstance.dataView.getItems(),
                 TotalMoney: parseFloat(columnElement.textContent ?? ''),
             };
-            console.log('submit data', this.paymentOrder);
+            // console.log('submit data', this.paymentOrder);
 
             this.paymentService.save(this.paymentOrder).subscribe({
                 next: (response) => {
@@ -843,13 +869,12 @@ export class PaymentOrderDetailComponent implements OnInit, AfterViewInit {
                 }
             });
 
-
         }
     }
 
     onAddItem(_e: any, args: any) {
 
-        console.log('onAddItem args', args);
+        // console.log('onAddItem args', args);
 
         let gridInstance = this.angularGrid;
         if (this.paymentOrder.TypeOrder == 2) gridInstance = this.angularGrid2;

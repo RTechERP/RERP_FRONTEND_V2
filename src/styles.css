@@ -333,7 +333,7 @@ button[nz-button] img {
 
 /* Sửa lại style của PrimeNG */
 .p-menubar-submenu{
-    z-index: 2 !important;
+    z-index: 99999 !important;
 }
 
 .p-tab{
@@ -353,7 +353,21 @@ button[nz-button] img {
 
 .p-menubar-item-content{
     /* background-color: #f1f5f9; */
+    border: 1px solid #d8d9da;
 }
+
+.p-menubar-submenu >.p-menubar-item-content{
+    border: none !important;
+}
+
+/* .p-menubar > .p-menubar-root-list > .p-menuitem.p-highlight > .p-menubar-item-content {
+    background-color: #e2e8f0;
+} */
+
+.p-menubar-separator{
+    border-block-start: 2px solid #000;
+}
+
 
 .p-menubar-mobile .p-menubar-root-list{
     width: unset;

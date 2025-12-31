@@ -30,6 +30,10 @@ import { environment } from '../../../../../environments/environment';
 import { ReasonDeclineModalComponent } from '../reason-decline-modal/reason-decline-modal.component';
 import { HasPermissionDirective } from '../../../../directives/has-permission.directive';
 import { ActivatedRoute } from '@angular/router';
+import { PrimeIcons } from 'primeng/api';
+import { PermissionService } from '../../../../services/permission.service';
+import { Menubar } from 'primeng/menubar';
+import { style } from '@angular/animations';
 @Component({
     selector: 'app-approve-tp',
     templateUrl: './approve-tp.component.html',
@@ -54,6 +58,7 @@ import { ActivatedRoute } from '@angular/router';
         NzDropDownModule,
         NzMenuModule,
         HasPermissionDirective,
+        Menubar
     ]
 })
 export class ApproveTpComponent implements OnInit, AfterViewInit {
@@ -85,6 +90,9 @@ export class ApproveTpComponent implements OnInit, AfterViewInit {
         this.showSearchBar = !this.showSearchBar;
     } // true: Senior duyệt làm thêm, false: Duyệt công
 
+
+    menuBars: any[] = [];
+
     constructor(
         private fb: FormBuilder,
         private notification: NzNotificationService,
@@ -92,7 +100,8 @@ export class ApproveTpComponent implements OnInit, AfterViewInit {
         private authService: AuthService,
         private projectService: ProjectService,
         private modal: NzModalService,
-        private route: ActivatedRoute
+        private route: ActivatedRoute,
+        private permissionService: PermissionService,
     ) {
         // if (this.tabData) {
         //     this.isSeniorMode = this.tabData.isSeniorMode || false;
@@ -104,6 +113,7 @@ export class ApproveTpComponent implements OnInit, AfterViewInit {
     }
 
     ngOnInit() {
+        this.initMenuBar();
         this.initializeForm();
         this.getCurrentUser();
         this.loadTeams();
@@ -115,6 +125,96 @@ export class ApproveTpComponent implements OnInit, AfterViewInit {
                 this.loadEmployees();
             });
         }
+    }
+
+    initMenuBar() {
+        this.menuBars = [
+            {
+                label: 'Senior xác nhận',
+                icon: 'fa-solid fa-calendar-check fa-lg text-primary',
+                // styleClass: 'bg-success',
+                visible: this.permissionService.hasPermission(""),
+                items: [
+                    {
+                        label: 'Duyệt',
+                        icon: 'fa-solid fa-circle-check fa-lg text-success',
+
+                        command: () => {
+                            this.approvedSenior()
+                        }
+                    },
+                    {
+                        label: 'Hủy duyệt',
+                        icon: 'fa-solid fa-circle-xmark fa-lg text-danger',
+                        command: () => {
+                            this.cancelApprovedSenior();
+                        }
+                    }
+                ]
+            },
+
+            {
+                label: 'TBP xác nhận',
+                icon: 'fa-solid fa-calendar-check fa-lg text-primary',
+                visible: this.permissionService.hasPermission("N57"),
+                items: [
+                    {
+                        label: 'Duyệt',
+                        icon: 'fa-solid fa-circle-check fa-lg text-success',
+                        command: () => {
+                            this.approvedTBP();
+                        }
+                    },
+                    {
+                        label: 'Hủy duyệt',
+                        icon: 'fa-solid fa-circle-xmark fa-lg text-danger',
+                        command: () => {
+                            this.cancelApprovedTBP();
+                        }
+                    }
+                ]
+            },
+
+            {
+                label: 'TBP không duyệt',
+                icon: 'fa-solid fa-ban fa-lg text-warning',
+                command: () => {
+                    this.declineApprove();
+                }
+            },
+
+            {
+                label: 'TBP duyệt hủy đăng ký',
+                icon: 'fa-solid fa-circle-check fa-lg text-success',
+                command: () => {
+                    this.approvedCancelRegister();
+                }
+            },
+
+            {
+                label: 'BGĐ xác nhận',
+                icon: 'fa-solid fa-calendar-check fa-lg text-primary',
+                visible: this.permissionService.hasPermission("N59,N56"),
+                items: [
+                    {
+                        label: 'Duyệt hồ sơ',
+                        icon: 'fa-solid fa-circle-check fa-lg text-success',
+                        visible: this.permissionService.hasPermission("N59"),
+                        command: () => {
+                            this.approvedBGD();
+                        }
+                    },
+                    {
+                        label: 'Hủy duyệt hồ sơ',
+                        icon: 'fa-solid fa-circle-xmark fa-lg text-danger',
+                        visible: this.permissionService.hasPermission("N59"),
+                        command: () => {
+                            this.cancelApprovedBGD();
+                        }
+                    },
+                ]
+            },
+        ]
     }
 
     getCurrentUser() {
@@ -175,7 +275,7 @@ export class ApproveTpComponent implements OnInit, AfterViewInit {
         const firstDay = new Date(today.getFullYear(), today.getMonth(), 1);
         const lastDay = new Date(today.getFullYear(), today.getMonth() + 1, 0);
 
-   
+
         const idApprovedTP = this.isSeniorMode ? 0 : (this.currentUser?.EmployeeID || 0);
 
         this.searchForm.reset({
@@ -186,7 +286,7 @@ export class ApproveTpComponent implements OnInit, AfterViewInit {
             status: 0, // Mặc định: Chờ duyệt
             deleteFlag: 0,
             type: 0,
-            statusSenior:0,
+            statusSenior: 0,
             statusHR: null,
             statusBGD: null,
             keyWord: '',
@@ -422,14 +522,14 @@ export class ApproveTpComponent implements OnInit, AfterViewInit {
                     formatter: (cell: any) => {
                         const rowData = cell.getRow().getData();
                         const value = cell.getValue() || '';
-                        
+
                         // Set background color trực tiếp trên cell element
                         if (rowData.IsNotValid === 1 || rowData.IsNotValid === true) {
                             setTimeout(() => {
                                 cell.getElement().style.backgroundColor = '#ede4baff';
                             }, 0);
                         }
-                        
+
                         // Return HTML string - Tabulator sẽ tự động render nó
                         return `<div style="white-space: normal;">${value}</div>`;
                     }
@@ -958,7 +1058,7 @@ export class ApproveTpComponent implements OnInit, AfterViewInit {
                                 };
                             });
 
-                        if (items.length === 0) {   
+                        if (items.length === 0) {
                             this.notification.warning(
                                 NOTIFICATION_TITLE.warning,
                                 'Không có bản ghi nào phù hợp để xử lý! Vui lòng kiểm tra:\n- Bạn phải là Senior của nhân viên đó'
@@ -1082,12 +1182,12 @@ export class ApproveTpComponent implements OnInit, AfterViewInit {
 
                                     if (notProcessed.length > 0) {
                                         const reasons = notProcessed.map((item: any) =>
-                                            `${item.Item?.FullName || 'N/A'}: ${item.Reason || 'Không xác định'}` 
+                                            `${item.Item?.FullName || 'N/A'}: ${item.Reason || 'Không xác định'}`
                                         ).join('\n');
 
                                         this.notification.warning(
                                             NOTIFICATION_TITLE.warning,
-                                            `Đã ${actionText} thành công ${successCount}/${totalItems} bản ghi. Có ${notProcessed.length} bản ghi không được xử lý:\n${reasons}` 
+                                            `Đã ${actionText} thành công ${successCount}/${totalItems} bản ghi. Có ${notProcessed.length} bản ghi không được xử lý:\n${reasons}`
                                         );
                                     } else {
                                         this.notification.success(NOTIFICATION_TITLE.success, response?.message || `Đã ${actionText} thành công ${totalItems} bản ghi!`);

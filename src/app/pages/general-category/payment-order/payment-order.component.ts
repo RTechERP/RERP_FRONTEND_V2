@@ -254,7 +254,7 @@ export class PaymentOrderComponent implements OnInit {
         this.menuBars = [
             {
                 label: 'Thêm',
-                icon: PrimeIcons.PLUS,
+                icon: 'fa-solid fa-circle-plus fa-lg text-success',
                 visible: this.permissionService.hasPermission(""),
                 command: () => {
                     this.onCreate();
@@ -262,7 +262,7 @@ export class PaymentOrderComponent implements OnInit {
             },
             {
                 label: 'Sửa',
-                icon: PrimeIcons.PENCIL,
+                icon: 'fa-solid fa-file-pen fa-lg text-primary',
                 visible: this.permissionService.hasPermission(""),
                 command: () => {
                     this.onEdit();
@@ -271,7 +271,7 @@ export class PaymentOrderComponent implements OnInit {
 
             {
                 label: 'Xóa',
-                icon: PrimeIcons.TRASH,
+                icon: 'fa-solid fa-trash fa-lg text-danger',
                 visible: this.permissionService.hasPermission(""),
                 command: () => {
                     this.onDelete();
@@ -289,12 +289,12 @@ export class PaymentOrderComponent implements OnInit {
 
             {
                 label: 'TBP xác nhận',
-                icon: PrimeIcons.CHECK,
+                icon: 'fa-solid fa-calendar-check fa-lg text-primary',
                 visible: this.permissionService.hasPermission("N57"),
                 items: [
                     {
                         label: 'Duyệt',
-                        icon: PrimeIcons.CHECK,
+                        icon: 'fa-solid fa-circle-check fa-lg text-success',
                         command: () => {
                             this.onApprovedTBP(1, {
                                 ButtonActionGroup: 'btnTBP', ButtonActionName: 'btnApproveTBP', ButtonActionText: 'Trưởng bộ phận',
@@ -303,7 +303,7 @@ export class PaymentOrderComponent implements OnInit {
                     },
                     {
                         label: 'Hủy duyệt',
-                        icon: PrimeIcons.UNLOCK,
+                        icon: 'fa-solid fa-circle-xmark fa-lg text-danger',
                         command: () => {
                             this.onApprovedTBP(2, {
                                 ButtonActionGroup: 'btnTBP', ButtonActionName: 'btnUnApproveTBP', ButtonActionText: 'Trưởng bộ phận',
@@ -315,12 +315,12 @@ export class PaymentOrderComponent implements OnInit {
 
             {
                 label: 'HR xác nhận',
-                icon: PrimeIcons.CHECK,
+                icon: 'fa-solid fa-calendar-check fa-lg text-primary',
                 visible: this.permissionService.hasPermission("N59,N56"),
                 items: [
                     {
                         label: 'Duyệt hồ sơ',
-                        icon: PrimeIcons.CHECK,
+                        icon: 'fa-solid fa-circle-check fa-lg text-success',
                         visible: this.permissionService.hasPermission("N59"),
                         command: () => {
                             this.onApprovedHR(1, {
@@ -330,7 +330,7 @@ export class PaymentOrderComponent implements OnInit {
                     },
                     {
                         label: 'Hủy duyệt hồ sơ',
-                        icon: PrimeIcons.UNLOCK,
+                        icon: 'fa-solid fa-circle-xmark fa-lg text-danger',
                         visible: this.permissionService.hasPermission("N59"),
                         command: () => {
                             this.onApprovedHR(2, {
@@ -341,7 +341,7 @@ export class PaymentOrderComponent implements OnInit {
 
                     {
                         label: 'Bổ sung chứng từ',
-                        icon: PrimeIcons.UNLOCK,
+                        icon: 'fa-solid fa-file-circle-plus fa-lg text-warning',
                         visible: this.permissionService.hasPermission("N59"),
                         command: () => {
                             this.onApprovedHR(3, {
@@ -354,7 +354,7 @@ export class PaymentOrderComponent implements OnInit {
                     },
                     {
                         label: 'TBP duyệt',
-                        icon: PrimeIcons.UNLOCK,
+                        icon: 'fa-solid fa-circle-check fa-lg text-success',
                         visible: this.permissionService.hasPermission("N56"),
                         command: () => {
                             this.onApprovedHR(1, {
@@ -364,7 +364,7 @@ export class PaymentOrderComponent implements OnInit {
                     },
                     {
                         label: 'TBP hủy duyệt',
-                        icon: PrimeIcons.UNLOCK,
+                        icon: 'fa-solid fa-circle-xmark fa-lg text-danger',
                         visible: this.permissionService.hasPermission("N56"),
                         command: () => {
                             this.onApprovedHR(2, {
@@ -378,12 +378,12 @@ export class PaymentOrderComponent implements OnInit {
 
             {
                 label: 'Kế toán xác nhận',
-                icon: PrimeIcons.CHECK,
+                icon: 'fa-solid fa-calendar-check fa-lg text-primary',
                 visible: this.permissionService.hasPermission("N55,N61"),
                 items: [
                     {
                         label: 'Duyệt hồ sơ',
-                        icon: PrimeIcons.CHECK,
+                        icon: 'fa-solid fa-circle-check fa-lg text-success',
                         visible: this.permissionService.hasPermission("N55,N61"),
                         command: () => {
                             this.onApprovedKTTT(1, {
@@ -393,7 +393,7 @@ export class PaymentOrderComponent implements OnInit {
                     },
                     {
                         label: 'Bổ sung chứng từ',
-                        icon: PrimeIcons.UNLOCK,
+                        icon: 'fa-solid fa-file-circle-plus fa-lg text-warning',
                         visible: this.permissionService.hasPermission("N55,N61"),
                         command: () => {
                             this.onApprovedKTTT(3, {
@@ -403,7 +403,7 @@ export class PaymentOrderComponent implements OnInit {
                     },
                     {
                         label: 'Hủy duyệt hồ sơ',
-                        icon: PrimeIcons.UNLOCK,
+                        icon: 'fa-solid fa-circle-xmark fa-lg text-danger',
                         visible: this.permissionService.hasPermission("N55,N61"),
                         command: () => {
                             this.onApprovedKTTT(2, {
@@ -416,7 +416,7 @@ export class PaymentOrderComponent implements OnInit {
                     },
                     {
                         label: 'TBP duyệt',
-                        icon: PrimeIcons.UNLOCK,
+                        icon: 'fa-solid fa-circle-check fa-lg text-success',
                         visible: this.permissionService.hasPermission("N61"),
                         command: () => {
                             this.onApprovedKTT(1, {
@@ -426,7 +426,7 @@ export class PaymentOrderComponent implements OnInit {
                     },
                     {
                         label: 'TBP hủy duyệt',
-                        icon: PrimeIcons.UNLOCK,
+                        icon: 'fa-solid fa-circle-xmark fa-lg text-danger',
                         visible: this.permissionService.hasPermission("N61"),
                         command: () => {
                             this.onApprovedKTT(2, {
@@ -441,7 +441,7 @@ export class PaymentOrderComponent implements OnInit {
 
                     {
                         label: 'Nhận chứng từ',
-                        icon: PrimeIcons.UNLOCK,
+                        icon: 'fa-solid fa-circle-check fa-lg text-success',
                         visible: this.permissionService.hasPermission("N55,N61"),
                         command: () => {
                             this.onApprovedKTTT(1, {
@@ -451,7 +451,7 @@ export class PaymentOrderComponent implements OnInit {
                     },
                     {
                         label: 'Hủy nhận chứng từ',
-                        icon: PrimeIcons.UNLOCK,
+                        icon: 'fa-solid fa-circle-xmark fa-lg text-danger',
                         visible: this.permissionService.hasPermission("N55,N61"),
                         command: () => {
                             this.onApprovedKTTT(2, {
@@ -466,7 +466,8 @@ export class PaymentOrderComponent implements OnInit {
                     {
                         label: 'Đã thanh toán',
                         visible: this.permissionService.hasPermission("N55,N61"),
-                        icon: PrimeIcons.UNLOCK, command: () => {
+                        icon: 'fa-solid fa-circle-check fa-lg text-success',
+                        command: () => {
                             this.onApprovedKTTT(1, {
                                 ButtonActionGroup: 'btnKTTT', ButtonActionName: 'btnIsPayment', ButtonActionText: 'Kế toán xác nhận',
                             });
@@ -474,7 +475,7 @@ export class PaymentOrderComponent implements OnInit {
                     },
                     {
                         label: 'Hủy thanh toán',
-                        icon: PrimeIcons.UNLOCK,
+                        icon: 'fa-solid fa-circle-xmark fa-lg text-danger',
                         visible: this.permissionService.hasPermission("N55,N61"),
                         command: () => {
                             this.onApprovedKTTT(2, {
@@ -484,7 +485,7 @@ export class PaymentOrderComponent implements OnInit {
                     },
                     {
                         label: 'Đính kèm file Bank slip',
-                        icon: PrimeIcons.UNLOCK,
+                        icon: 'fa-solid fa-paperclip fa-lg text-primary',
                         visible: this.permissionService.hasPermission("N55,N61"),
                         command: () => {
                             this.onAttachFileBankslip();
@@ -504,12 +505,12 @@ export class PaymentOrderComponent implements OnInit {
 
             {
                 label: 'BGĐ xác nhận',
-                icon: PrimeIcons.CHECK,
+                icon: 'fa-solid fa-calendar-check fa-lg text-primary',
                 visible: this.permissionService.hasPermission("N58"),
                 items: [
                     {
                         label: 'Duyệt',
-                        icon: PrimeIcons.CHECK,
+                        icon: 'fa-solid fa-circle-check fa-lg text-success',
                         command: () => {
                             this.onApprovedBGD(1, {
                                 ButtonActionGroup: 'btnBGĐ', ButtonActionName: 'btnApproveBGĐ', ButtonActionText: 'BGĐ xác nhận',
@@ -518,7 +519,7 @@ export class PaymentOrderComponent implements OnInit {
                     },
                     {
                         label: 'Hủy duyệt',
-                        icon: PrimeIcons.UNLOCK,
+                        icon: 'fa-solid fa-circle-xmark fa-lg text-danger',
                         command: () => {
                             this.onApprovedBGD(2, {
                                 ButtonActionGroup: 'btnBGĐ', ButtonActionName: 'btnUnApproveBGĐ', ButtonActionText: 'BGĐ xác nhận',
@@ -534,7 +535,7 @@ export class PaymentOrderComponent implements OnInit {
 
             {
                 label: 'Cây thư mục',
-                icon: PrimeIcons.FOLDER,
+                icon: 'fa-solid fa-folder-open fa-lg text-primary',
                 command: () => {
                     let grid = this.angularGrid;
                     if (this.activeTab == '1') grid = this.angularGridSpecial;
@@ -569,7 +570,7 @@ export class PaymentOrderComponent implements OnInit {
             },
             {
                 label: 'Xuất excel',
-                icon: PrimeIcons.FOLDER,
+                icon: 'fa-solid fa-file-excel fa-lg text-primary',
                 command: () => {
                     const dateStart = DateTime.fromJSDate(this.param.dateStart).toFormat('ddMMyyyy');
                     const dateEnd = DateTime.fromJSDate(this.param.dateEnd).toFormat('ddMMyyyy');
@@ -597,7 +598,7 @@ export class PaymentOrderComponent implements OnInit {
             },
             {
                 label: 'In PO',
-                icon: PrimeIcons.PRINT,
+                icon: 'fa-solid fa-print fa-lg text-primary',
                 command: () => {
                     // this.onPrint();
 

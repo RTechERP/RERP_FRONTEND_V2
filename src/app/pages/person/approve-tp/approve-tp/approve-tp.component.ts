@@ -785,9 +785,14 @@ export class ApproveTpComponent implements OnInit, AfterViewInit {
         }
 
         if (validRows.length === 0) {
+            const preview = skippedMessages.slice(0, 5).join('; ');
+            const isAllSeniorNotApproved = skippedMessages.length > 0 && skippedMessages.every(m => m.includes('senior chưa duyệt'));
+
             this.notification.warning(
                 NOTIFICATION_TITLE.warning,
-                `Không có bản ghi hợp lệ để ${actionText}.`
+                isAllSeniorNotApproved
+                    ? `Senior chưa duyệt nên không thể ${actionText}. ${preview}${skippedMessages.length > 5 ? '...' : ''}`
+                    : `Không có bản ghi hợp lệ để ${actionText}. ${preview}${skippedMessages.length > 5 ? '...' : ''}`
             );
             return;
         }

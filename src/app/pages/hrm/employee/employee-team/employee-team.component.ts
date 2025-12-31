@@ -59,7 +59,7 @@ export class EmployeeTeamComponent implements OnInit {
       Code: ['', [Validators.required]],
       Name: ['', [Validators.required]],
       DepartmentID: [0, [Validators.required]],
-      IsDeleted: [false]
+      IsDeleted: [0]
     });
   }
 
@@ -171,7 +171,7 @@ export class EmployeeTeamComponent implements OnInit {
       Code: '',
       Name: '',
       DepartmentID: null,
-      IsDeleted: false
+      IsDeleted: 0
     });
     
         
@@ -197,7 +197,7 @@ export class EmployeeTeamComponent implements OnInit {
       DepartmentID: this.selectedEmployeeTeam.DepartmentID,
       Code: this.selectedEmployeeTeam.Code,
       Name: this.selectedEmployeeTeam.Name,
-      IsDeleted: false
+      IsDeleted: 0
     });
     
         
@@ -235,7 +235,7 @@ export class EmployeeTeamComponent implements OnInit {
       nzOnOk: () => {
         this.employeeService.saveEmployeeTeam({
           ...selectedEmployeeTeam,
-          IsDeleted: true
+          IsDeleted: 1
         }).subscribe({
           next: (response) => {
             this.notification.success(NOTIFICATION_TITLE.success, 'Xóa team phòng ban thành công');

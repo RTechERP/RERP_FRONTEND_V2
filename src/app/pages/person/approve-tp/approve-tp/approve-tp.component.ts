@@ -68,6 +68,7 @@ export class ApproveTpComponent implements OnInit, AfterViewInit {
     searchForm!: FormGroup;
     employeeList: any[] = [];
     teamList: any[] = [];
+    userTeamLinkList: any[] = [];
     loadingData = false;
     currentUser: any = null;
     isSenior: boolean = false;
@@ -118,6 +119,7 @@ export class ApproveTpComponent implements OnInit, AfterViewInit {
         this.getCurrentUser();
         this.loadTeams();
         this.loadEmployees();
+        this.loadUserTeamLink();
 
         // Subscribe to teamId changes to reload employees
         if (this.searchForm) {
@@ -268,6 +270,87 @@ export class ApproveTpComponent implements OnInit, AfterViewInit {
                 this.employeeList = [];
             }
         });
+    }
+
+    loadUserTeamLink() {
+        this.approveTpService.getUserTeamLinkByLeaderID().subscribe({
+            next: (response: any) => {
+                if (response && response.status === 1 && response.data) {
+                    this.userTeamLinkList = Array.isArray(response.data) ? response.data : [];
+                } else {
+                    this.userTeamLinkList = [];
+                }
+            },
+            error: (error: any) => {
+                this.notification.error(
+                    NOTIFICATION_TITLE.error,
+                    'Lỗi khi tải danh sách user team link: ' + (error?.error?.message || error?.message || '')
+                );
+                this.userTeamLinkList = [];
+            }
+        });
+    }
+
+    private getSeniorIdForEmployee(employeeId: number): number | null {
+        if (!this.userTeamLinkList || this.userTeamLinkList.length === 0) {
+            return null;
+        }
+
+        const candidate = this.userTeamLinkList.find((item: any) => {
+            const eid = Number(item?.EmployeeID ?? item?.EmployeeId ?? item?.employeeId ?? 0);
+            return eid === employeeId;
+        });
+
+        if (!candidate) {
+            return null;
+        }
+
+        const seniorId = Number(
+            candidate?.LeaderID ??
+            candidate?.LeaderId ??
+            candidate?.SeniorID ??
+            candidate?.SeniorId ??
+            candidate?.seniorId ??
+            0
+        );
+
+        return seniorId > 0 ? seniorId : null;
+    }
+
+    hasSenior(employeeId: number): boolean {
+        return this.getSeniorIdForEmployee(employeeId) !== null;
+    }
+
+    private hasSeniorByRow(row: any): boolean {
+        const seniorId = Number(row?.SeniorID ?? row?.SeniorId ?? row?.seniorId ?? 0);
+        if (seniorId > 0) {
+            return true;
+        }
+
+        const employeeId = Number(row?.EmployeeID ?? row?.EmployeeId ?? row?.employeeId ?? 0);
+        if (employeeId > 0) {
+            return this.hasSenior(employeeId);
+        }
+
+        return false;
+    }
+
+    private isSeniorApprovedByRow(row: any): boolean {
+        if (row?.IsSeniorApproved === undefined || row?.IsSeniorApproved === null) {
+            return false;
+        }
+        return Boolean(row.IsSeniorApproved);
+    }
+
+    private requiresSeniorApprovalByRow(row: any): boolean {
+        const seniorId = Number(row?.SeniorID ?? row?.SeniorId ?? row?.seniorId ?? 0);
+        const hasSeniorAssigned = seniorId > 0;
+        if (!hasSeniorAssigned) {
+            return false;
+        }
+
+        const ttype = Number(row?.TType ?? 0);
+        return ttype !== 7 && ttype !== 9;
     }
 
     resetSearch() {
@@ -506,12 +589,8 @@ export class ApproveTpComponent implements OnInit, AfterViewInit {
                         return value ? DateTime.fromISO(value).toFormat('dd/MM/yyyy') : '';
                     }
                 },
-                {
-                    title: 'Tên TBP duyệt', field: 'NguoiDuyet', hozAlign: 'left', headerHozAlign: 'center', width: 120, headerWordWrap: true, headerSort: false,
-                },
-                {
-                    title: 'Tên BGĐ duyệt', field: 'FullNameBGD', hozAlign: 'left', headerHozAlign: 'center', width: 120, headerWordWrap: true, headerSort: false,
-                },
+             
+
                 {
                     title: 'Nội dung',
                     field: 'NoiDung',
@@ -572,11 +651,22 @@ export class ApproveTpComponent implements OnInit, AfterViewInit {
                         }
                     }
                 },
-                {
-                    title: 'Tên Senior duyệt', field: 'ApprovedSeniorName', hozAlign: 'left', headerHozAlign: 'center', width: 300, formatter: 'textarea', headerSort: false,
-                },
+
                 {
                     title: 'Đánh giá công việc', field: 'EvaluateResults', hozAlign: 'left', headerHozAlign: 'center', width: 300, formatter: 'textarea', headerSort: false,
+                },
+                   {
+                    title: 'Người duyệt', columns: [
+                        {
+                            title: 'Tên TBP ', field: 'NguoiDuyet', hozAlign: 'left', headerHozAlign: 'center', width: 120, headerWordWrap: true, headerSort: false,
+                        },
+                        {
+                            title: 'Tên BGĐ ', field: 'FullNameBGD', hozAlign: 'left', headerHozAlign: 'center', width: 120, headerWordWrap: true, headerSort: false,
+                        },
+                        {
+                            title: 'Tên Senior ', field: 'ApprovedSeniorName', hozAlign: 'left', headerHozAlign: 'center', width: 120, formatter: 'textarea', headerSort: false,
+                        },
+                    ]
                 },
                 {
                     title: 'Lý do HR sửa', field: 'ReasonHREdit', hozAlign: 'left', headerHozAlign: 'center', width: 300, formatter: 'textarea', headerSort: false,
@@ -628,146 +718,104 @@ export class ApproveTpComponent implements OnInit, AfterViewInit {
     private approveTBPWithValidation(isApproved: boolean) {
         const selectedRows = this.getSelectedRows();
         const actionText = isApproved ? 'duyệt' : 'hủy duyệt';
-        const isAdmin = this.currentUser?.IsAdmin || false;
+        const validRows: any[] = [];
+        const skippedMessages: string[] = [];
 
-        if (!isAdmin) {
-            for (const row of selectedRows) {
-                const id = row.ID ? Number(row.ID) : 0;
-                if (id <= 0) {
+        for (const row of selectedRows) {
+            const id = row.ID ? Number(row.ID) : 0;
+            if (id <= 0) {
+                continue;
+            }
+
+            const fullname = row.FullName ? String(row.FullName) : '';
+            const table = row.TypeText ? String(row.TypeText) : '';
+            const deleteFlag = row.DeleteFlag !== undefined ? Boolean(row.DeleteFlag) : false;
+            const isApprovedHR = row.IsApprovedHR !== undefined ? Boolean(row.IsApprovedHR) : false;
+            const isCancelRegister = row.IsCancelRegister !== undefined ? Number(row.IsCancelRegister) : 0;
+            const isApprovedTP = row.IsApprovedTP !== undefined ? Boolean(row.IsApprovedTP) : false;
+            // Xử lý IsApprovedBGD: -1 = chưa duyệt, true/1 = đã duyệt, false/0 = không duyệt
+            const bgdValue = row.IsApprovedBGD !== undefined && row.IsApprovedBGD !== null
+                ? (typeof row.IsApprovedBGD === 'boolean' ? (row.IsApprovedBGD ? 1 : 0) : Number(row.IsApprovedBGD))
+                : -1;
+            const isApprovedBGD = bgdValue === 1;
+            const employeeId = row.EmployeeID ? Number(row.EmployeeID) : 0;
+
+            if (deleteFlag) {
+                skippedMessages.push(`${fullname}: đã tự xoá khai báo [${table}]`);
+                continue;
+            }
+
+            if (!isApproved && isApprovedHR) {
+                skippedMessages.push(`${fullname}: đã được HR duyệt`);
+                continue;
+            }
+
+            if (isCancelRegister > 0) {
+                skippedMessages.push(`${fullname}: đã đăng ký hủy`);
+                continue;
+            }
+
+            if (isApproved && isApprovedTP) {
+                skippedMessages.push(`${fullname}: đã được TBP duyệt`);
+                continue;
+            }
+
+            if (!isApproved && !isApprovedTP) {
+                skippedMessages.push(`${fullname}: chưa được TBP duyệt`);
+                continue;
+            }
+
+            if (!isApproved && isApprovedBGD) {
+                skippedMessages.push(`${fullname}: đã được BGĐ duyệt`);
+                continue;
+            }
+
+            // VALIDATION MỚI: Kiểm tra nếu nhân viên có senior thì senior phải duyệt trước
+            if (isApproved && employeeId > 0) {
+                const requiresSeniorApproval = this.requiresSeniorApprovalByRow(row);
+                const isSeniorApproved = this.isSeniorApprovedByRow(row);
+
+                if (requiresSeniorApproval && !isSeniorApproved) {
+                    skippedMessages.push(`${fullname}: senior chưa duyệt`);
                     continue;
                 }
-
-                const fullname = row.FullName ? String(row.FullName) : '';
-                const table = row.TypeText ? String(row.TypeText) : '';
-                const deleteFlag = row.DeleteFlag !== undefined ? Boolean(row.DeleteFlag) : false;
-                const isApprovedHR = row.IsApprovedHR !== undefined ? Boolean(row.IsApprovedHR) : false;
-                const isCancelRegister = row.IsCancelRegister !== undefined ? Number(row.IsCancelRegister) : 0;
-                const isApprovedTP = row.IsApprovedTP !== undefined ? Boolean(row.IsApprovedTP) : false;
-                // Xử lý IsApprovedBGD: -1 = chưa duyệt, true/1 = đã duyệt, false/0 = không duyệt
-                const bgdValue = row.IsApprovedBGD !== undefined && row.IsApprovedBGD !== null
-                    ? (typeof row.IsApprovedBGD === 'boolean' ? (row.IsApprovedBGD ? 1 : 0) : Number(row.IsApprovedBGD))
-                    : -1;
-                const isApprovedBGD = bgdValue === 1;
-
-                if (deleteFlag) {
-                    this.notification.warning(
-                        NOTIFICATION_TITLE.warning,
-                        `Bạn không thể ${actionText} vì nhân viên ${fullname} đã tự xoá khai báo [${table}]!`
-                    );
-                    return;
-                }
-
-                if (!isApproved && isApprovedHR) {
-                    this.notification.warning(
-                        NOTIFICATION_TITLE.warning,
-                        `Bạn không thể ${actionText} vì nhân viên ${fullname} đã được HR duyệt!`
-                    );
-                    return;
-                }
-
-                if (isCancelRegister > 0) {
-                    this.notification.warning(
-                        NOTIFICATION_TITLE.warning,
-                        `Bạn không thể ${actionText} vì nhân viên ${fullname} đã đăng ký hủy!`
-                    );
-                    return;
-                }
-
-                if (isApproved && isApprovedTP) {
-                    this.notification.warning(
-                        NOTIFICATION_TITLE.warning,
-                        `Bạn không thể ${actionText} vì nhân viên ${fullname} đã được TBP duyệt!`
-                    );
-                    return;
-                }
-
-                if (!isApproved && !isApprovedTP) {
-                    this.notification.warning(
-                        NOTIFICATION_TITLE.warning,
-                        `Bạn không thể ${actionText} vì nhân viên ${fullname} chưa được TBP duyệt!`
-                    );
-                    return;
-                }
-
-                if (!isApproved && isApprovedBGD) {
-                    this.notification.warning(
-                        NOTIFICATION_TITLE.warning,
-                        `Bạn không thể ${actionText} vì nhân viên ${fullname} đã được BGĐ duyệt!`
-                    );
-                    return;
-                }
             }
+
+            validRows.push(row);
         }
 
-        // Kiểm tra nếu có bản ghi làm thêm chưa được Senior duyệt
-        const requireSeniorCheck = isApproved; // Chỉ kiểm tra khi duyệt, không kiểm tra khi hủy duyệt
-        let countTType = 0; // Số bản ghi làm thêm có TType = 3
-        let hasUnapprovedSenior = false; // Có bản ghi làm thêm chưa được Senior duyệt
+        if (validRows.length === 0) {
+            this.notification.warning(
+                NOTIFICATION_TITLE.warning,
+                `Không có bản ghi hợp lệ để ${actionText}.`
+            );
+            return;
+        }
 
-        if (requireSeniorCheck) {
-            for (const row of selectedRows) {
-                const tableName = row.TableName ? String(row.TableName) : '';
-                const ttype = row.TType !== undefined ? Number(row.TType) : 0;
-                // Chỉ kiểm tra với TType = 3
-                const isOvertimeType3 = tableName === 'EmployeeOvertime' && ttype === 3;
+        if (skippedMessages.length > 0) {
+            this.notification.warning(
+                NOTIFICATION_TITLE.warning,
+                `Có ${skippedMessages.length} bản ghi không hợp lệ nên không được ${actionText}: ${skippedMessages.slice(0, 5).join('; ')}${skippedMessages.length > 5 ? '...' : ''}`
+            );
+        }
 
-                if (isOvertimeType3) {
-                    countTType++;
-                    const isSeniorApproved = row.IsSeniorApproved !== undefined ? Boolean(row.IsSeniorApproved) : false;
-                    if (!isSeniorApproved) {
-                        hasUnapprovedSenior = true;
-                    }
-                }
+        this.modal.confirm({
+            nzTitle: 'Xác nhận',
+            nzContent: `Bạn có chắc muốn ${actionText} danh sách nhân viên đã chọn không?`,
+            nzOkText: 'Đồng ý',
+            nzCancelText: 'Hủy',
+            nzOnOk: () => {
+                this.processApproveTBP(validRows, isApproved, actionText, false);
             }
-        }
-
-        // Nếu có bản ghi làm thêm chưa được Senior duyệt, hiển thị modal với 3 lựa chọn
-        if (requireSeniorCheck && hasUnapprovedSenior && countTType > 0) {
-            const modalRef = this.modal.create({
-                nzTitle: 'Xác nhận',
-                nzContent: `Senior chưa duyệt làm thêm !\nBạn có chắc muốn ${actionText} danh sách nhân viên đã chọn không?\nYes: Duyệt tất cả bản ghi đã chọn\nNo: Duyệt bản ghi làm thêm đã được senior duyệt\nCancel: Hủy lựa chọn`,
-                nzFooter: [
-                    {
-                        label: 'Cancel',
-                        onClick: () => {
-                            modalRef.destroy();
-                        }
-                    },
-                    {
-                        label: 'No',
-                        type: 'default',
-                        onClick: () => {
-                            modalRef.destroy();
-                            // No: Chỉ duyệt bản ghi làm thêm đã được Senior duyệt
-                            this.processApproveTBP(selectedRows, isApproved, actionText, true);
-                        }
-                    },
-                    {
-                        label: 'Yes',
-                        type: 'primary',
-                        onClick: () => {
-                            modalRef.destroy();
-                            // Yes: Duyệt tất cả bản ghi đã chọn
-                            this.processApproveTBP(selectedRows, isApproved, actionText, false);
-                        }
-                    }
-                ]
-            });
-        } else {
-            // Modal bình thường với Yes/No
-            this.modal.confirm({
-                nzTitle: 'Xác nhận',
-                nzContent: `Bạn có chắc muốn ${actionText} danh sách nhân viên đã chọn không?`,
-                nzOkText: 'Đồng ý',
-                nzCancelText: 'Hủy',
-                nzOnOk: () => {
-                    this.processApproveTBP(selectedRows, isApproved, actionText, false);
-                }
-            });
-        }
+        });
     }
 
     private processApproveTBP(selectedRows: any[], isApproved: boolean, actionText: string, onlyApprovedSenior: boolean) {
+        const seniorAutoRows = selectedRows.filter(r => {
+            const seniorId = Number(r?.SeniorID ?? r?.SeniorId ?? r?.seniorId ?? 0);
+            return seniorId <= 0;
+        });
+
         const items: ApproveItemParam[] = selectedRows
             .filter(row => {
                 const id = row.ID ? Number(row.ID) : 0;
@@ -782,8 +830,9 @@ export class ApproveTpComponent implements OnInit, AfterViewInit {
                     const isOvertime = tableName === 'EmployeeOvertime' || ttype > 0;
 
                     if (isOvertime) {
-                        const isSeniorApproved = row.IsSeniorApproved !== undefined ? Boolean(row.IsSeniorApproved) : false;
-                        if (!isSeniorApproved) {
+                        const requiresSeniorApproval = this.requiresSeniorApprovalByRow(row);
+                        const isSeniorApproved = this.isSeniorApprovedByRow(row);
+                        if (requiresSeniorApproval && !isSeniorApproved) {
                             return false; // Bỏ qua bản ghi làm thêm chưa được Senior duyệt
                         }
                     }
@@ -794,6 +843,11 @@ export class ApproveTpComponent implements OnInit, AfterViewInit {
             .map(row => {
                 const ttype = row.TType !== undefined ? Number(row.TType) : 0;
                 const evaluateResults = row.EvaluateResults ? String(row.EvaluateResults) : '';
+                const currentSeniorApproved = row.IsSeniorApproved !== undefined ? Boolean(row.IsSeniorApproved) : null;
+                const requiresSeniorApproval = this.requiresSeniorApprovalByRow(row);
+                const isSeniorApprovedToSend = isApproved
+                    ? (requiresSeniorApproval ? currentSeniorApproved : true)
+                    : (requiresSeniorApproval ? currentSeniorApproved : false);
 
                 return {
                     Id: row.ID ? Number(row.ID) : null,
@@ -805,7 +859,7 @@ export class ApproveTpComponent implements OnInit, AfterViewInit {
                     IsCancelRegister: row.IsCancelRegister !== undefined ? Number(row.IsCancelRegister) : null,
                     IsApprovedTP: isApproved,
                     IsApprovedBGD: this.convertIsApprovedBGD(row.IsApprovedBGD),
-                    IsSeniorApproved: row.IsSeniorApproved !== undefined ? Boolean(row.IsSeniorApproved) : null,
+                    IsSeniorApproved: isSeniorApprovedToSend,
                     ValueUpdatedDate: new Date().toISOString(),
                     ValueDecilineApprove: isApproved ? '1' : '', // Khi hủy duyệt, set rỗng để tránh conflict với backend
                     EvaluateResults: evaluateResults,
@@ -823,6 +877,39 @@ export class ApproveTpComponent implements OnInit, AfterViewInit {
             next: (response: any) => {
                 if (response && response.status === 1) {
                     this.notification.success(NOTIFICATION_TITLE.success, response?.message || `Đã ${actionText} thành công!`);
+
+                    if (seniorAutoRows.length > 0) {
+                        const seniorItems: ApproveItemParam[] = seniorAutoRows
+                            .filter(r => (r?.ID ? Number(r.ID) : 0) > 0)
+                            .map(r => ({
+                                Id: r.ID ? Number(r.ID) : null,
+                                TableName: r.TableName ? String(r.TableName) : '',
+                                FieldName: r.ColumnNameUpdate ? String(r.ColumnNameUpdate) : '',
+                                FullName: r.FullName ? String(r.FullName) : '',
+                                DeleteFlag: r.DeleteFlag !== undefined ? Boolean(r.DeleteFlag) : null,
+                                IsApprovedHR: r.IsApprovedHR !== undefined ? Boolean(r.IsApprovedHR) : null,
+                                IsCancelRegister: r.IsCancelRegister !== undefined ? Number(r.IsCancelRegister) : null,
+                                IsApprovedTP: r.IsApprovedTP !== undefined ? Boolean(r.IsApprovedTP) : null,
+                                IsApprovedBGD: this.convertIsApprovedBGD(r.IsApprovedBGD),
+                                IsSeniorApproved: isApproved,
+                                ValueUpdatedDate: new Date().toISOString(),
+                                ValueDecilineApprove: isApproved ? '1' : '',
+                                EvaluateResults: r.EvaluateResults ? String(r.EvaluateResults) : '',
+                                EmployeeID: r.EmployeeID ? Number(r.EmployeeID) : null,
+                                TType: r.TType !== undefined ? Number(r.TType) : null
+                            }));
+
+                        const seniorRequest: any = {
+                            Items: seniorItems,
+                            IsApproved: isApproved
+                        };
+
+                        this.approveTpService.approveSenior(seniorRequest).subscribe({
+                            next: () => { },
+                            error: () => { }
+                        });
+                    }
+
                     this.loadData();
                 } else {
                     this.notification.error(NOTIFICATION_TITLE.error, response?.message || `Lỗi khi ${actionText}!`);
@@ -1689,17 +1776,17 @@ export class ApproveTpComponent implements OnInit, AfterViewInit {
             case -1:
                 return '';
             case 0:
-                return '<span class="badge bg-warning text-dark" style="display: inline-block; text-align: center;">Chờ duyệt</span>';
+                return '<span class="fw-semibold text-warning">Chờ duyệt</span>';
             case 1:
-                return '<span class="badge bg-success" style="display: inline-block; text-align: center;">Đã duyệt</span>';
+                return '<span class="fw-semibold text-success">Đã duyệt</span>';
             case 2:
-                return '<span class="badge bg-danger" style="display: inline-block; text-align: center;">Không đồng ý duyệt</span>';
+                return '<span class="fw-semibold text-danger">Không đồng ý duyệt</span>';
             case 3:
-                return '<span class="badge bg-warning text-dark" style="display: inline-block; text-align: center;">Chờ duyệt hủy đăng ký</span>';
+                return '<span class="fw-semibold text-warning">Chờ duyệt hủy đăng ký</span>';
             case 4:
-                return '<span class="badge bg-success" style="display: inline-block; text-align: center;">Đã duyệt hủy đăng ký</span>';
+                return '<span class="fw-semibold text-success">Đã duyệt hủy đăng ký</span>';
             default:
-                return '<span class="badge bg-secondary" style="display: inline-block; text-align: center;">Không xác định</span>';
+                return '<span class="fw-semibold text-secondary">Không xác định</span>';
         }
     }
 }

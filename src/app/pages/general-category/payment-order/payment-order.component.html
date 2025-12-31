@@ -1,5 +1,12 @@
 <!-- <p-menubar [model]="menuBars" ></p-menubar> -->
-<p-menubar [model]="menuBars"> </p-menubar>
+<p-menubar [model]="menuBars">
+    <ng-template pTemplate="item" let-item>
+        <a class="p-menuitem-link" [ngClass]="item.styleClass">
+            <i [class]="item.icon"></i>
+            <span class="p-menuitem-text">{{ item.label }}</span>
+        </a>
+    </ng-template>
+</p-menubar>
 
 <!-- <form class="row g-3 m-0">
     <div class="col-md-6">
@@ -96,7 +103,8 @@
                     <nz-form-label>Từ khóa</nz-form-label>
                     <nz-form-control>
                         <nz-input-group nzSearch [nzAddOnAfter]="suffixIconButton" nzSize="small">
-                            <input type="text" nz-input placeholder="Nhập từ khóa" />
+                            <input type="text" [(ngModel)]="param.keyword" nz-input placeholder="Nhập từ khóa"
+                                [ngModelOptions]="{ standalone: true }" />
                         </nz-input-group>
                         <ng-template #suffixIconButton>
                             <button nz-button nzType="primary" nzSearch nzSize="small"><span nz-icon nzType="search"

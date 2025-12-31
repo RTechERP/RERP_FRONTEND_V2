@@ -831,9 +831,9 @@ export class PaymentOrderDetailComponent implements OnInit, AfterViewInit {
         // console.log('this.fileUploads:', this.fileUploads);
         // this.uploadFile(14176);
 
-        console.log('this.validateForm:', this.validateForm.value);
-        console.log('this.validateForm invalid:', this.validateForm.invalid);
-        console.log('this.validateForm valid:', this.validateForm.valid);
+        // console.log('this.validateForm:', this.validateForm.value);
+        // console.log('this.validateForm invalid:', this.validateForm.invalid);
+        // console.log('this.validateForm valid:', this.validateForm.valid);
 
         if (!this.validateForm.valid) {
             Object.values(this.validateForm.controls).forEach(control => {
@@ -855,7 +855,7 @@ export class PaymentOrderDetailComponent implements OnInit, AfterViewInit {
                 PaymentOrderDetails: gridInstance.dataView.getItems(),
                 TotalMoney: parseFloat(columnElement.textContent ?? ''),
             };
-            console.log('submit data', this.paymentOrder);
+            // console.log('submit data', this.paymentOrder);
 
             this.paymentService.save(this.paymentOrder).subscribe({
                 next: (response) => {
@@ -868,7 +868,6 @@ export class PaymentOrderDetailComponent implements OnInit, AfterViewInit {
                     this.notification.error(NOTIFICATION_TITLE.error, err?.error?.message || err?.message);
                 }
             });
-
 
         }
     }

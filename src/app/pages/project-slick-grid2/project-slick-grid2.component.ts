@@ -71,6 +71,7 @@ import { ProjectPartListSlickGridComponent } from '../project-part-list-slick-gr
 
 import { MenuItem, PrimeIcons } from 'primeng/api';
 import { Menubar } from 'primeng/menubar';
+import { ProjectReportSlickGridComponent } from '../project-report-slick-grid/project-report-slick-grid.component';
 
 @Component({
   selector: 'app-project-slick-grid2',
@@ -106,7 +107,7 @@ import { Menubar } from 'primeng/menubar';
 })
 export class ProjectSlickGrid2Component implements OnInit, AfterViewInit, OnDestroy {
   private searchSubject = new Subject<string>();
-  showSearchBar: boolean = false;
+  showSearchBar: boolean = true;
   isMobile: boolean = false;
   menuBars: MenuItem[] = [];
   isLoading: boolean = false;
@@ -2293,7 +2294,7 @@ export class ProjectSlickGrid2Component implements OnInit, AfterViewInit, OnDest
       return;
     }
 
-    const modalRef = this.modalService.open(ProjectListWorkReportComponent, {
+    const modalRef = this.modalService.open(ProjectReportSlickGridComponent, {
       centered: true,
       windowClass: 'full-screen-modal',
     });
@@ -2346,7 +2347,7 @@ export class ProjectSlickGrid2Component implements OnInit, AfterViewInit, OnDest
       return;
     }
 
-    const modalRef = this.modalService.open(ProjectPartListComponent, {
+    const modalRef = this.modalService.open(ProjectPartListSlickGridComponent, {
       centered: true,
       backdrop: 'static',
       keyboard: false,

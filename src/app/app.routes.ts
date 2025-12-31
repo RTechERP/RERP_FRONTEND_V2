@@ -192,7 +192,8 @@ import { HistoryBorrowSaleNewComponent } from './pages/old/Sale/HistoryBorrowSal
 import { MaterialDetailOfProductRtcComponent } from './pages/old/inventory-demo/material-detail-of-product-rtc/material-detail-of-product-rtc.component';
 import { ChiTietSanPhamSaleComponent } from './pages/old/Sale/chi-tiet-san-pham-sale/chi-tiet-san-pham-sale.component';
 import { PokhSlickgridComponent } from './pages/old/pokh-slickgrid/pokh-slickgrid.component';
-import { CrmComponent } from './pages/crm/crm.component';
+import { ProjectDepartmentSummarySlickGridComponent } from './pages/project-department-summary-slick-grid/project-department-summary-slick-grid.component';
+import { ProjectAgvSummarySlickGirdComponent } from './pages/project-agv-summary-slick-gird/project-agv-summary-slick-gird.component';import { CrmComponent } from './pages/crm/crm.component';
 import { GeneralCategoryComponent } from './pages/general-category/general-category.component';
 import { SystemsComponent } from './pages/systems/systems.component';
 import { WarehouseComponent } from './pages/warehouse/warehouse.component';
@@ -348,7 +349,7 @@ export const routes: Routes = [
             { path: 'project-item-late', component: ProjectItemLateComponent, canActivate: [authGuard] },
             { path: 'project-work-item-timeline', component: ProjectWorkItemTimelineComponent, canActivate: [authGuard] },
             { path: 'synthesis-of-generated-materials', component: SynthesisOfGeneratedMaterialsComponent, canActivate: [authGuard] },
-            { path: 'project-agv-summary', component: ProjectAgvSummaryComponent, canActivate: [authGuard] },
+           // { path: 'project-agv-summary', component: ProjectAgvSummaryComponent, canActivate: [authGuard] },
             { path: 'project-department-summary', component: ProjectDepartmentSummaryComponent, canActivate: [authGuard] },
             { path: 'price-history-partlist', component: PriceHistoryPartlistComponent, canActivate: [authGuard] },
             { path: 'project-type', component: ProjectTypeComponent, canActivate: [authGuard] },
@@ -526,8 +527,12 @@ export const routes: Routes = [
             { path: 'project-itemlate', component: ProjectItemLateComponent, canActivate: [authGuard] },
             { path: 'project-workitem-timeline', component: ProjectWorkItemTimelineComponent, canActivate: [authGuard] },
             { path: 'synthesis-of-generated-materials', component: SynthesisOfGeneratedMaterialsComponent, canActivate: [authGuard] },
-            { path: 'project-agv-summary', component: ProjectAgvSummaryComponent, canActivate: [authGuard] },
-            { path: 'project-dept-summary', component: ProjectDepartmentSummaryComponent, canActivate: [authGuard] },
+            
+            { path: 'project-agv-summary', component: ProjectAgvSummaryComponent , canActivate: [authGuard] },
+           
+            { path: 'project-agv-summary-slick-grid', component:  ProjectAgvSummarySlickGirdComponent, canActivate: [authGuard] },
+            { path: 'project-dept-summary', component: ProjectDepartmentSummaryComponent  , canActivate: [authGuard] },
+            { path: 'project-dept-summary-slick-grid', component: ProjectDepartmentSummarySlickGridComponent , canActivate: [authGuard] },
             { path: 'price-history-partlist', component: PriceHistoryPartlistComponent, canActivate: [authGuard] },
             { path: 'project-type', component: ProjectTypeComponent, canActivate: [authGuard] },
             { path: 'project-field', component: ProjectFieldComponent, canActivate: [authGuard] },

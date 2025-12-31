@@ -6,22 +6,6 @@
   all: revert;
 }
 
-/* Mobile menubar z-index fix */
-::ng-deep .p-menubar {
-  position: relative;
-  z-index: 1050;
-}
-
-::ng-deep .p-menubar-mobile {
-  position: relative;
-  z-index: 1050;
-}
-
-::ng-deep .p-menubar-root-list {
-  position: relative;
-  z-index: 1051;
-}
-
 .ant-splitter-panel {
   position: relative;
 }
@@ -116,12 +100,6 @@
   text-align: right !important;
 }
 
-/* Tab buttons styling */
-.d-flex button.active {
-  color: #1890ff;
-  border-bottom: 2px solid #1890ff;
-}
-
 /* Dropdown menu styling */
 ::ng-deep .ant-dropdown-menu {
   font-size: 0.75rem;
@@ -154,22 +132,7 @@
   box-sizing: border-box;
 }
 
-::ng-deep .slick-multiselect-dropdown .ms-drop ul > li label {
-  display: block;
-  max-width: 100px;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-::ng-deep .slick-multiselect-dropdown .ms-drop ul > li label span {
-  display: block;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-/* Dropdown multipleSelect - tập trung vào class thực tế từ F12 */
+/* Dropdown multipleSelect */
 ::ng-deep .ms-drop.bottom {
   width: auto !important;
   min-width: 350px !important;
@@ -239,7 +202,6 @@
   cursor: pointer !important;
 }
 
-
 /* Hide time picker in date filters */
 ::ng-deep .vc-time {
   display: none !important;
@@ -260,51 +222,9 @@
   background-color: LightYellow !important;
 }
 
-/* Tree data styling */
-::ng-deep .slick-group-toggle {
-  display: inline-block;
-  width: 9px;
-  height: 9px;
-  margin-right: 5px;
-  cursor: pointer;
-  position: relative;
-}
-::ng-deep #grvProjects{
+/* Grid height fix */
+::ng-deep #grvAgvProjects {
   height: 85vh !important;
-}
-
-::ng-deep .slick-group-toggle.collapsed::before {
-  content: '▶';
-  font-size: 8px;
-  color: #666;
-}
-
-::ng-deep .slick-group-toggle.expanded::before {
-  content: '▼';
-  font-size: 8px;
-  color: #666;
-}
-
-::ng-deep .slick-group-toggle:not(.collapsed):not(.expanded)::before {
-  content: '';
-  display: inline-block;
-  width: 9px;
-  height: 9px;
-}
-
-/* Folder icons */
-::ng-deep .mdi {
-  font-family: 'Material Design Icons' !important;
-  font-style: normal;
-  font-weight: normal;
-  font-size: 16px;
-  vertical-align: middle;
-}
-
-::ng-deep .mdi-folder,
-::ng-deep .mdi-folder-open {
-  color: #ffa500;
-  margin-right: 4px;
 }
 
 /* Màu cam cho trễ nhẹ */
@@ -332,8 +252,9 @@
   background-color: inherit !important;
   color: inherit !important;
 }
-/*fix height*/
-.grid-container-projects{
+
+/* Fix height */
+.grid-container-projects {
   height: 100%;
   width: 100%;
 }
@@ -347,4 +268,9 @@ angular-slickgrid,
 
 :host ::ng-deep .slickgrid-container {
   height: 100% !important;
+}
+
+/* Close panel button */
+.btn-close-panel {
+  padding: 0 4px;
 }

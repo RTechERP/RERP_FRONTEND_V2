@@ -11,10 +11,12 @@ export interface ApproveByApproveTPRequestParam {
   Status?: number;
   DeleteFlag?: number;
   EmployeeID?: number;
+  StatusSenior?: number;
   TType?: number;
   StatusHR?: number;
   StatusBGD?: number;
   UserTeamID?: number;
+  SeniorID?: number;
   Page?: number;
   Size?: number;
 }
@@ -34,7 +36,7 @@ export interface ApproveItemParam {
   ValueDecilineApprove?: string | null;
   EvaluateResults?: string | null;
   EmployeeID?: number | null;
-  TType?: number | null;
+  TType?: number | null;  
   ReasonDeciline?: string | null;
 }
 
@@ -139,5 +141,26 @@ export class ApproveTpService {
     });
 
     return this.http.get<any>(`${this.apiUrl}get-user-team`, { headers });
+  }
+
+  getQuantityApprove(request?: ApproveByApproveTPRequestParam): Observable<any> {
+    const headers = new HttpHeaders({
+      'Content-Type': 'application/json',
+      Accept: 'application/json',
+    });
+
+    // Set default dates if not provided
+    const now = new Date();
+    const oneWeekAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+    const firstDayOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+    const lastDayOfMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0);
+
+    const requestBody: ApproveByApproveTPRequestParam = {
+      ...request,
+      DateStart: request?.DateStart || oneWeekAgo,
+      DateEnd: request?.DateEnd || lastDayOfMonth
+    };
+
+    return this.http.post<any>(`${this.apiUrl}get-quantity-approve`, requestBody, { headers });
   }
 }

@@ -17,6 +17,7 @@ import { NzSpinModule } from 'ng-zorro-antd/spin';
 import { WFHService } from '../WFH-service/WFH.service';
 import { NOTIFICATION_TITLE } from '../../../../../app.config';
 import { HasPermissionDirective } from '../../../../../directives/has-permission.directive';
+import { EmployeeService } from '../../../employee/employee-service/employee.service';
 
 
 export interface EmployeeDto {
@@ -29,6 +30,7 @@ export interface EmployeeDto {
 
 export interface ApproverDto {
   ID: number;
+  EmployeeID: number;
   Code: string;
   FullName: string;
   Role?: string;
@@ -235,9 +237,21 @@ export class WFHDetailComponent implements OnInit {
     private message: NzMessageService,
     private notification: NzNotificationService,
     private wfhService: WFHService,
-    private fb: FormBuilder
+    private fb: FormBuilder,
+    private employeeService: EmployeeService
   ) {
     this.initForm();
+  }
+
+  loadApprovers() {
+    this.employeeService.getEmployeeApprove().subscribe({
+      next: (res: any) => {
+        this.approverList = res.data || [];
+      },
+      error: (error: any) => {
+        this.notification.error(NOTIFICATION_TITLE.error, error.error?.message || 'Lỗi khi tải danh sách người duyệt: ' + error.message);
+      }
+    });
   }
 
   // Initialize reactive form
@@ -301,45 +315,20 @@ export class WFHDetailComponent implements OnInit {
               label: `${dept}`,
               options: empGroups[dept],
             }));
-
-          // Group approvers by DepartmentName
-          const apprGroups: { [key: string]: ApproverDto[] } = {};
-          (res.data.approvers || []).forEach((appr: any) => {
-            const dept = appr.DepartmentName || 'Không xác định';
-            if (!apprGroups[dept]) apprGroups[dept] = [];
-            apprGroups[dept].push({
-              ID: appr.EmployeeID,
-              FullName: appr.FullName,
-              DepartmentName: appr.DepartmentName,
-              Code: appr.Code,
-            });
-          });
-
-          // Sort approvers within each group by Code
-          Object.keys(apprGroups).forEach((dept) => {
-            apprGroups[dept].sort((a, b) => (a.Code || '').localeCompare(b.Code || ''));
-          });
-
-          // Sort groups by department name
-          this.approverGroups = Object.keys(apprGroups)
-            .sort((a, b) => a.localeCompare(b))
-            .map((dept) => ({
-              label: `Phòng ban: ${dept}`,
-              options: apprGroups[dept],
-            }));
         } else {
-          this.notification.error(NOTIFICATION_TITLE.error, res?.message || 'Không thể tải dữ liệu');
+          this.notification.error(NOTIFICATION_TITLE.error, res?.message || 'Không thể tải dữ liệu nhân viên');
           this.employeeGroups = [];
-          this.approverGroups = [];
         }
       },
       error: () => {
         this.loading = false;
-        this.notification.error(NOTIFICATION_TITLE.error, 'Lỗi khi tải dữ liệu nhân viên và người duyệt');
+        this.notification.error(NOTIFICATION_TITLE.error, 'Lỗi khi tải dữ liệu nhân viên');
         this.employeeGroups = [];
-        this.approverGroups = [];
       },
     });
+    
+    // Load approvers separately using new API
+    this.loadApprovers();
   }
 
   // Format employees data với debug logs

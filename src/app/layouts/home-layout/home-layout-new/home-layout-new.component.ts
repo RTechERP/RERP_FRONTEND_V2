@@ -24,7 +24,8 @@ import { NzLayoutModule } from 'ng-zorro-antd/layout';
 import { TabServiceService } from '../../tab-service.service';
 import { AvatarModule } from 'primeng/avatar';
 import { NzTabsModule } from 'ng-zorro-antd/tabs';
-
+import { ApproveTpService } from '../../../pages/person/approve-tp/approve-tp-service/approve-tp.service';
+import { HasPermissionDirective } from '../../../directives/has-permission.directive';
 @Component({
     selector: 'app-home-layout-new',
     imports: [
@@ -41,7 +42,8 @@ import { NzTabsModule } from 'ng-zorro-antd/tabs';
         NzLayoutModule,
         AvatarModule,
         NzTabsModule,
-        NgSwitchCase
+        NgSwitchCase,
+        HasPermissionDirective
     ],
     templateUrl: './home-layout-new.component.html',
     styleUrl: './home-layout-new.component.css'
@@ -69,6 +71,7 @@ export class HomeLayoutNewComponent implements OnInit {
     calendarDate = new Date();
     holidays: any[] = [];
     scheduleWorkSaturdays: any[] = [];
+    quantityApprove: any = {};
 
     isHoliday(date: Date): boolean {
         let isHoliday = this.holidays.some(
@@ -109,7 +112,8 @@ export class HomeLayoutNewComponent implements OnInit {
         public menuService: MenuService,
         public menuAppService: MenuAppService,
         private permissionService: PermissionService,
-        private tabService: TabServiceService
+        private tabService: TabServiceService,
+        private approveTpService: ApproveTpService
     ) { }
 
     ngOnInit(): void {
@@ -121,12 +125,50 @@ export class HomeLayoutNewComponent implements OnInit {
 
         this.getHoliday(this.today.getFullYear(), this.today.getMonth());
         this.getEmployeeOnleaveAndWFH();
+        this.getQuantityApprove();
     }
 
 
 
-
-
+    getQuantityApprove() {
+        this.approveTpService.getQuantityApprove().subscribe({
+            next: (res: any) => {
+                console.log('API Response:', res); // Debug log
+                this.quantityApprove = res.data;
+                console.log('Assigned quantityApprove:', this.quantityApprove); // Debug log
+            },
+            error: (err: any) => {
+                this.notification.error(NOTIFICATION_TITLE.error, err?.error?.message || err?.message);
+            }
+        })
+    }
+    newTabApprove() {
+        const approvalType = this.quantityApprove?.Type;
+        // if (!approvalType || !this.quantityApprove || Object.keys(this.quantityApprove).length === 0) {
+        //     this.notification.warning('Thông báo', 'Đang tải dữ liệu, vui lòng thử lại sau vài giây!');
+        //     return;
+        // }
+        let route = '';
+        let title = '';
+        switch(approvalType) {
+            case 'Senior':
+                route = 'senior-approve?isSeniorMode=true';
+                title = 'Senior duyệt';
+                break;
+            case 'TP':
+                route = 'tbp-approve';
+                title = 'TP duyệt';
+                break;
+            case 'BGD':
+                route = 'tbp-approve';
+                title = 'BGD duyệt';
+                break;
+            default:
+                route = 'tbp-approve'; 
+                title = 'Duyệt';
+        }
+        this.newTab(route, title);
+    }
     getMenus() {
         this.menuAppService.getAll().subscribe({
             next: (response) => {

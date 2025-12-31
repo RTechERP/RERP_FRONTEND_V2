@@ -83,11 +83,17 @@
 /* Ensure grid containers don't restrict scrolling */
 #jobRequirementGridContainer,
 #jobRequirementDetailGridContainer,
-#jobRequirementFileGridContainer,
-#jobRequirementApprovedGridContainer {
+#jobRequirementFileGridContainer {
   width: 100% !important;
   height: 100% !important;
   overflow: visible !important;
+}
+
+/* Bảng Approved cần overflow auto để scroll ngang */
+#jobRequirementApprovedGridContainer {
+  width: 100% !important;
+  height: 100% !important;
+  overflow: auto !important;
 }
 
 /* Allow grid canvas to expand horizontally */
@@ -116,5 +122,5 @@
     min-height: 47vh !important;
 }
 ::ng-deep #jobRequirementApprovedGrid {
-    min-height: 40vh !important;
+    min-height: 37vh !important;
 }

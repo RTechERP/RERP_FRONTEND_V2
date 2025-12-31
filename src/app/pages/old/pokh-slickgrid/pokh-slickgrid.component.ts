@@ -1564,7 +1564,7 @@ export class PokhSlickgridComponent implements OnInit, AfterViewInit {
         }
       },
       { id: 'NewAccount', name: 'New Account', field: 'NewAccount', width: 100, minWidth: 70, formatter: this.checkboxFormatter, sortable: true, filterable: true, filter: { model: Filters['singleSelect'], collection: [{ value: null, label: 'Tất cả' }, { value: true, label: 'Có' }, { value: false, label: 'Không' }] } },
-      { id: 'PONumber', name: 'Số POKH', field: 'PONumber', width: 100, minWidth: 100, sortable: true, filterable: true, filter: { model: Filters['compoundInputNumber'] } },
+      { id: 'PONumber', name: 'Số POKH', field: 'PONumber', width: 100, minWidth: 100, sortable: true, filterable: true, filter: { model: Filters['compoundInputText'] } },
       { id: 'POCode', name: 'Mã PO', field: 'POCode', width: 150, minWidth: 150, sortable: true, filterable: true, filter: { model: Filters['compoundInputText'] } },
       { id: 'CustomerName', name: 'Khách hàng', field: 'CustomerName', width: 300, minWidth: 300, sortable: true, filterable: true, filter: { model: Filters['compoundInputText'] } },
       { id: 'FullName', name: 'Người phụ trách', field: 'FullName', width: 150, minWidth: 150, sortable: true, filterable: true, filter: { model: Filters['compoundInputText'] } },
@@ -1734,6 +1734,7 @@ export class PokhSlickgridComponent implements OnInit, AfterViewInit {
       },
       enableCheckboxSelector: false,
       multiColumnSort: false,
+      frozenColumn: 2
     };
   }
 

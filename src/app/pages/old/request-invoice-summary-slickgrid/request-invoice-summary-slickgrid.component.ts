@@ -37,18 +37,16 @@ import { NzSwitchModule } from 'ng-zorro-antd/switch';
 import { NzCheckboxModule } from 'ng-zorro-antd/checkbox';
 import { NzSpinModule } from 'ng-zorro-antd/spin';
 import {
-    TabulatorFull as Tabulator,
-    RowComponent,
-    CellComponent,
-} from 'tabulator-tables';
-import {
     AngularGridInstance,
     AngularSlickgridModule,
     Column,
     FieldType,
+    Filters,
     Formatter,
     Formatters,
     GridOption,
+    MenuCommandItem,
+    MenuCommandItemCallbackArgs,
     OnEventArgs,
     SlickGrid,
 } from 'angular-slickgrid';
@@ -68,7 +66,6 @@ import { NzNotificationService } from 'ng-zorro-antd/notification';
 import { NzMessageService } from 'ng-zorro-antd/message';
 import * as ExcelJS from 'exceljs';
 import { NOTIFICATION_TITLE } from '../../../app.config';
-import { DEFAULT_TABLE_CONFIG } from '../../../tabulator-default.config';
 import { RequestInvoiceService } from '../request-invoice/request-invoice-service/request-invoice-service.service'
 import { RequestInvoiceStatusLinkComponent } from '../request-invoice-status-link/request-invoice-status-link.component';
 import { ViewPokhService } from '../view-pokh/view-pokh/view-pokh.service';
@@ -134,12 +131,19 @@ export class RequestInvoiceSummarySlickgridComponent implements OnInit, AfterVie
     dataset: any[] = [];
     isLoading: boolean = false;
 
-    // File tables still use Tabulator
-    @ViewChild('tb_File', { static: false }) tb_FileElement!: ElementRef;
-    private tb_File!: Tabulator;
+    // SlickGrid properties for File table
+    angularGridFile!: AngularGridInstance;
+    columnDefinitionsFile: Column[] = [];
+    gridOptionsFile: GridOption = {};
+    datasetFile: any[] = [];
 
-    @ViewChild('tb_FilePO', { static: false }) tb_FilePOElement!: ElementRef;
-    private tb_FilePO!: Tabulator;
+    // SlickGrid properties for POFile table
+    angularGridPOFile!: AngularGridInstance;
+    columnDefinitionsPOFile: Column[] = [];
+    gridOptionsPOFile: GridOption = {};
+    datasetPOFile: any[] = [];
+
+    isPOFileGridRendered: boolean = false;
 
     mainData: any[] = [];
     dataFile: any[] = [];
@@ -181,6 +185,25 @@ export class RequestInvoiceSummarySlickgridComponent implements OnInit, AfterVie
         this.sizeSearch = this.sizeSearch == '0' ? '22%' : '0';
     }
 
+    onFilesTabChange(tabIndex: number): void {
+        // Lazy render POFile grid only when user opens the tab
+        if (tabIndex === 1 && !this.isPOFileGridRendered) {
+            setTimeout(() => {
+                this.isPOFileGridRendered = true;
+            }, 0);
+        }
+
+        // Resize grids after tab DOM becomes visible
+        setTimeout(() => {
+            if (tabIndex === 0 && this.angularGridFile?.resizerService) {
+                this.angularGridFile.resizerService.resizeGrid();
+            }
+            if (tabIndex === 1 && this.angularGridPOFile?.resizerService) {
+                this.angularGridPOFile.resizerService.resizeGrid();
+            }
+        }, 150);
+    }
+
     ngOnInit(): void {
         // Set title cho trang
         document.title = 'TỔNG HỢP YÊU CẦU XUẤT HÓA ĐƠN';
@@ -202,13 +225,13 @@ export class RequestInvoiceSummarySlickgridComponent implements OnInit, AfterVie
 
         // Initialize SlickGrid
         this.initGrid();
+        this.initGridFile();
+        this.initGridPOFile();
 
         this.loadMainData();
     }
 
     ngAfterViewInit(): void {
-        this.initFileTable();
-        this.initPOFileTable();
     }
 
     closeModal() {
@@ -239,8 +262,13 @@ export class RequestInvoiceSummarySlickgridComponent implements OnInit, AfterVie
                     // Update dataset for SlickGrid
                     this.dataset = this.mainData.map((item: any, index: number) => ({
                         ...item,
-                        id: item.ID || index  // SlickGrid requires 'id' field
+                        id: `${item.ID1}_${index}`
                     }));
+
+                    // Apply distinct filters after data is loaded
+                    setTimeout(() => {
+                        this.applyDistinctFiltersToGrid(this.angularGrid, this.columnDefinitions, ['Name', 'Unit', 'CompanyText']);
+                    }, 500);
                 } else {
                     this.notification.error(NOTIFICATION_TITLE.error, response.message);
                 }
@@ -258,9 +286,10 @@ export class RequestInvoiceSummarySlickgridComponent implements OnInit, AfterVie
                 if (response.status === 1) {
                     this.dataFile = response.files;
                     this.selectedFile = null; // Reset selected file
-                    if (this.tb_File) {
-                        this.tb_File.setData(this.dataFile);
-                    }
+                    this.datasetFile = this.dataFile.map((item: any, index: number) => ({
+                        ...item,
+                        id: item.ID || `file_${index}`
+                    }));
                 } else {
                     this.notification.error(NOTIFICATION_TITLE.error, response.message);
                 }
@@ -277,9 +306,10 @@ export class RequestInvoiceSummarySlickgridComponent implements OnInit, AfterVie
                 if (response.status === 1) {
                     this.dataFilePO = response.data;
                     this.selectedPOFile = null; // Reset selected PO file
-                    if (this.tb_FilePO) {
-                        this.tb_FilePO.setData(this.dataFilePO);
-                    }
+                    this.datasetPOFile = this.dataFilePO.map((item: any, index: number) => ({
+                        ...item,
+                        id: item.ID || `pofile_${index}`
+                    }));
                 }
             },
             (error) => {
@@ -649,329 +679,426 @@ export class RequestInvoiceSummarySlickgridComponent implements OnInit, AfterVie
     //#region SlickGrid Main Table
     initGrid(): void {
         this.columnDefinitions = [
-            {
-                id: 'ID',
-                name: 'ID',
-                field: 'ID',
-                width: 80,
-                sortable: true,
-                excludeFromExport: true,
-            },
+            // {
+            //     id: 'ID',
+            //     name: 'ID',
+            //     field: 'ID',
+            //     width: 80,
+            //     sortable: true,
+            //     excludeFromExport: true,
+            // },
             {
                 id: 'IsUrgency',
                 name: 'Yêu cầu gấp',
                 field: 'IsUrgency',
+                columnGroup: '',
+                columnGroupKey: '',
                 width: 80,
-                minWidth: 50,
+                minWidth: 80,
                 sortable: true,
+                filterable: true,
                 formatter: checkboxFormatter,
                 cssClass: 'text-center',
+                filter: { model: Filters['singleSelect'], collection: [{ value: null, label: 'Tất cả' }, { value: true, label: 'Có' }, { value: false, label: 'Không' }] }
             },
             {
                 id: 'DealineUrgency',
                 name: 'Deadline',
+                columnGroup: '',
+                columnGroupKey: '',
                 field: 'DealineUrgency',
                 width: 100,
-                minWidth: 80,
+                minWidth: 100,
                 sortable: true,
                 formatter: dateFormatter,
+                cssClass: 'text-center',
             },
             {
                 id: 'StatusText',
                 name: 'Trạng thái',
+                columnGroup: '',
+                columnGroupKey: '',
                 field: 'StatusText',
                 width: 150,
-                minWidth: 100,
+                minWidth: 150,
                 sortable: true,
                 filterable: true,
                 type: FieldType.string,
+                filter: { model: Filters['compoundInputText'] },
             },
             {
                 id: 'Code',
+                columnGroup: '',
+                columnGroupKey: '',
                 name: 'Mã lệnh',
                 field: 'Code',
                 width: 150,
-                minWidth: 100,
+                minWidth: 150,
                 sortable: true,
                 filterable: true,
                 type: FieldType.string,
+                filter: { model: Filters['compoundInputText'] },
             },
             {
                 id: 'IsCustomsDeclared',
+                columnGroup: '',
+                columnGroupKey: '',
                 name: 'Tờ khai HQ',
                 field: 'IsCustomsDeclared',
                 width: 80,
                 minWidth: 70,
                 sortable: true,
+                filterable: true,
                 formatter: checkboxFormatter,
                 cssClass: 'text-center',
-            },
-            {
-                id: 'AmendReason',
-                name: 'Lý do yêu cầu bổ sung',
-                field: 'AmendReason',
-                width: 215,
-                minWidth: 150,
-                sortable: true,
-                filterable: true,
-                type: FieldType.string,
+                filter: { model: Filters['singleSelect'], collection: [{ value: null, label: 'Tất cả' }, { value: true, label: 'Có' }, { value: false, label: 'Không' }] }
             },
             {
                 id: 'FullName',
                 name: 'Người yêu cầu',
                 field: 'FullName',
+                columnGroup: '',
+                columnGroupKey: '',
                 width: 150,
-                minWidth: 100,
+                minWidth: 150,
                 sortable: true,
                 filterable: true,
                 type: FieldType.string,
+                filter: { model: Filters['compoundInputText'] },
             },
             {
                 id: 'CustomerName',
                 name: 'Khách hàng',
                 field: 'CustomerName',
+                columnGroup: '',
+                columnGroupKey: '',
                 width: 250,
                 minWidth: 150,
                 sortable: true,
                 filterable: true,
                 type: FieldType.string,
+                filter: { model: Filters['compoundInputText'] },
             },
             {
                 id: 'Address',
                 name: 'Địa chỉ',
                 field: 'Address',
+                columnGroup: '',
+                columnGroupKey: '',
                 width: 300,
-                minWidth: 150,
+                minWidth: 300,
                 sortable: true,
                 filterable: true,
                 type: FieldType.string,
+                filter: { model: Filters['compoundInputText'] },
             },
             {
                 id: 'Name',
                 name: 'Công ty bán',
                 field: 'Name',
+                columnGroup: '',
+                columnGroupKey: '',
                 width: 140,
-                minWidth: 100,
+                minWidth: 140,
                 sortable: true,
                 filterable: true,
                 type: FieldType.string,
+                filter: { model: Filters['multipleSelect'], collection: [], collectionOptions: { addBlankEntry: true }, filterOptions: { autoAdjustDropHeight: true, filter: true, } as any, }
             },
             {
                 id: 'Note',
                 name: 'Ghi chú',
+                columnGroup: '',
+                columnGroupKey: '',
                 field: 'Note',
                 width: 200,
-                minWidth: 100,
+                minWidth: 200,
                 sortable: true,
                 filterable: true,
                 type: FieldType.string,
+                filter: { model: Filters['compoundInputText'] },
             },
             {
                 id: 'ProductNewCode',
                 name: 'Mã nội bộ',
                 field: 'ProductNewCode',
+                columnGroup: '',
+                columnGroupKey: '',
                 width: 100,
-                minWidth: 80,
+                minWidth: 100,
                 sortable: true,
                 filterable: true,
                 type: FieldType.string,
+                filter: { model: Filters['compoundInputText'] },
             },
             {
                 id: 'ProductCode',
                 name: 'Mã sản phẩm',
                 field: 'ProductCode',
+                columnGroup: '',
+                columnGroupKey: '',
                 width: 150,
-                minWidth: 100,
+                minWidth: 150,
                 sortable: true,
                 filterable: true,
                 type: FieldType.string,
+                filter: { model: Filters['compoundInputText'] },
             },
             {
                 id: 'GuestCode',
                 name: 'Mã theo khách',
                 field: 'GuestCode',
+                columnGroup: '',
+                columnGroupKey: '',
                 width: 150,
-                minWidth: 100,
+                minWidth: 150,
                 sortable: true,
                 filterable: true,
                 type: FieldType.string,
+                filter: { model: Filters['compoundInputText'] },
             },
             {
                 id: 'ProductName',
                 name: 'Tên sản phẩm',
                 field: 'ProductName',
+                columnGroup: '',
+                columnGroupKey: '',
                 width: 200,
-                minWidth: 150,
+                minWidth: 200,
                 sortable: true,
                 filterable: true,
                 type: FieldType.string,
+                filter: { model: Filters['compoundInputText'] },
             },
             {
                 id: 'Unit',
                 name: 'ĐVT',
                 field: 'Unit',
+                columnGroup: '',
+                columnGroupKey: '',
                 width: 100,
-                minWidth: 60,
+                minWidth: 150,
                 sortable: true,
                 filterable: true,
                 type: FieldType.string,
+                filter: { model: Filters['multipleSelect'], collection: [], collectionOptions: { addBlankEntry: true }, filterOptions: { autoAdjustDropHeight: true, filter: true, } as any, }
             },
             {
                 id: 'Quantity',
                 name: 'Số lượng',
                 field: 'Quantity',
+                columnGroup: '',
+                columnGroupKey: '',
                 width: 100,
-                minWidth: 70,
+                minWidth: 150,
                 sortable: true,
                 type: FieldType.number,
-                cssClass: 'text-right',
+                cssClass: 'text-end',
             },
             {
                 id: 'ProjectCode',
                 name: 'Mã dự án',
                 field: 'ProjectCode',
+                columnGroup: '',
+                columnGroupKey: '',
                 width: 150,
-                minWidth: 100,
+                minWidth: 150,
                 sortable: true,
                 filterable: true,
                 type: FieldType.string,
+                filter: { model: Filters['compoundInputText'] },
             },
             {
                 id: 'ProjectName',
                 name: 'Dự án',
                 field: 'ProjectName',
+                columnGroup: '',
+                columnGroupKey: '',
                 width: 150,
-                minWidth: 100,
+                minWidth: 150,
                 sortable: true,
                 filterable: true,
                 type: FieldType.string,
+                filter: { model: Filters['compoundInputText'] },
             },
             {
                 id: 'NotePO',
                 name: 'Ghi chú (PO)',
+                columnGroup: '',
+                columnGroupKey: '',
                 field: 'Note',
                 width: 150,
-                minWidth: 100,
+                minWidth: 150,
                 sortable: true,
                 filterable: true,
                 type: FieldType.string,
+                filter: { model: Filters['compoundInputText'] },
             },
             {
                 id: 'Specifications',
                 name: 'Thông số kỹ thuật',
                 field: 'Specifications',
+                columnGroup: '',
+                columnGroupKey: '',
                 width: 150,
-                minWidth: 100,
+                minWidth: 150,
                 sortable: true,
                 filterable: true,
                 type: FieldType.string,
+                filter: { model: Filters['compoundInputText'] },
             },
             {
                 id: 'InvoiceNumber',
                 name: 'Số hóa đơn',
                 field: 'InvoiceNumber',
+                columnGroup: '',
+                columnGroupKey: '',
                 width: 150,
-                minWidth: 100,
+                minWidth: 150,
                 sortable: true,
                 filterable: true,
                 type: FieldType.string,
+                filter: { model: Filters['compoundInputText'] },
+            },
+            {
+                id: 'AmendReason',
+                name: 'Lý do yêu cầu bổ sung',
+                field: 'AmendReason',
+                columnGroup: '',
+                columnGroupKey: '',
+                width: 215,
+                minWidth: 215,
+                sortable: true,
+                filterable: true,
+                type: FieldType.string,
+                filter: { model: Filters['compoundInputText'] },
             },
             {
                 id: 'InvoiceDate',
                 name: 'Ngày hóa đơn',
                 field: 'InvoiceDate',
+                columnGroup: '',
+                columnGroupKey: '',
                 width: 120,
-                minWidth: 100,
+                minWidth: 150,
                 sortable: true,
                 formatter: dateFormatter,
+                cssClass: 'text-center',
             },
             {
                 id: 'PONumber',
                 name: 'Số PO',
                 field: 'PONumber',
+                columnGroup: '',
+                columnGroupKey: '',
                 width: 150,
-                minWidth: 100,
+                minWidth: 150,
                 sortable: true,
                 filterable: true,
                 type: FieldType.string,
+                filter: { model: Filters['compoundInputText'] },
             },
             {
                 id: 'POCode',
                 name: 'Mã PO',
+                columnGroup: '',
+                columnGroupKey: '',
                 field: 'POCode',
                 width: 150,
-                minWidth: 100,
+                minWidth: 150,
                 sortable: true,
                 filterable: true,
                 type: FieldType.string,
+                filter: { model: Filters['compoundInputText'] },
             },
             // Thông tin đầu vào columns
             {
                 id: 'RequestDate',
                 name: 'Ngày đặt hàng',
                 field: 'RequestDate',
+                columnGroup: 'Thông tin đầu vào',
+                columnGroupKey: 'Thông tin đầu vào',
                 width: 120,
-                minWidth: 100,
+                minWidth: 150,
                 sortable: true,
                 formatter: dateFormatter,
+                cssClass: 'text-center',
             },
             {
                 id: 'DateRequestImport',
                 name: 'Ngày hàng về',
+                columnGroup: 'Thông tin đầu vào',
+                columnGroupKey: 'Thông tin đầu vào',
                 field: 'DateRequestImport',
                 width: 120,
-                minWidth: 100,
+                minWidth: 150,
                 sortable: true,
                 formatter: dateFormatter,
+                cssClass: 'text-center',
             },
             {
                 id: 'SupplierName',
                 name: 'Nhà cung cấp',
+                columnGroup: 'Thông tin đầu vào',
+                columnGroupKey: 'Thông tin đầu vào',
                 field: 'SupplierName',
                 width: 250,
-                minWidth: 150,
+                minWidth: 250,
                 sortable: true,
                 filterable: true,
                 type: FieldType.string,
+                filter: { model: Filters['compoundInputText'] },
             },
             {
                 id: 'SomeBill',
+                columnGroup: 'Thông tin đầu vào',
+                columnGroupKey: 'Thông tin đầu vào',
                 name: 'Hóa đơn đầu vào',
                 field: 'SomeBill',
                 width: 200,
-                minWidth: 100,
+                minWidth: 250,
                 sortable: true,
                 filterable: true,
                 type: FieldType.string,
+                filter: { model: Filters['compoundInputText'] },
             },
             {
                 id: 'ExpectedDate',
                 name: 'Ngày hàng về dự kiến',
+                columnGroup: 'Thông tin đầu vào',
+                columnGroupKey: 'Thông tin đầu vào',
                 field: 'ExpectedDate',
                 width: 150,
-                minWidth: 100,
+                minWidth: 150,
                 sortable: true,
                 formatter: dateFormatter,
+                cssClass: 'text-center',
             },
             {
                 id: 'BillImportCode',
                 name: 'PNK',
+                columnGroup: 'Thông tin đầu vào',
+                columnGroupKey: 'Thông tin đầu vào',
                 field: 'BillImportCode',
                 width: 200,
-                minWidth: 100,
+                minWidth: 250,
                 sortable: true,
                 filterable: true,
                 type: FieldType.string,
+                filter: { model: Filters['compoundInputText'] },
             },
             {
                 id: 'CompanyText',
+                columnGroup: 'Thông tin đầu vào',
+                columnGroupKey: 'Thông tin đầu vào',
                 name: 'Công ty nhập',
                 field: 'CompanyText',
                 width: 120,
-                minWidth: 100,
+                minWidth: 120,
                 sortable: true,
                 filterable: true,
                 type: FieldType.string,
+                filter: { model: Filters['multipleSelect'], collection: [], collectionOptions: { addBlankEntry: true }, filterOptions: { autoAdjustDropHeight: true, filter: true, } as any, }
             },
         ];
 
@@ -991,13 +1118,50 @@ export class RequestInvoiceSummarySlickgridComponent implements OnInit, AfterVie
             enablePagination: false,
             editable: false,
             autoEdit: false,
+            createPreHeaderPanel: true,
+            showPreHeaderPanel: true,
+            frozenColumn: 5,
+        };
+    }
+
+    rowStyleMain(previousItemMetadata: any, angularGrid: AngularGridInstance) {
+        return (rowNumber: number) => {
+            const item = angularGrid.dataView.getItem(rowNumber);
+            let meta: any = {
+                cssClasses: '',
+            };
+
+            if (previousItemMetadata && typeof previousItemMetadata === 'function') {
+                try {
+                    const previousMeta = previousItemMetadata.call(angularGrid.dataView, rowNumber);
+                    if (previousMeta && typeof previousMeta === 'object' && previousMeta !== null) {
+                        meta = { ...previousMeta };
+                    }
+                } catch {
+                    // ignore
+                }
+            }
+
+            if (item && item['IsUrgency'] === true) {
+                meta.cssClasses = (meta.cssClasses || '') + ' urgent-row';
+            }
+
+            return meta;
         };
     }
 
     onAngularGridCreated(angularGrid: AngularGridInstance): void {
         this.angularGrid = angularGrid;
 
-        // Handle row click for selection
+        if (this.angularGrid?.dataView) {
+            this.angularGrid.dataView.getItemMetadata = this.rowStyleMain(
+                this.angularGrid.dataView.getItemMetadata,
+                this.angularGrid
+            );
+        }
+
+        this.setupColumnGrouping();
+
         this.angularGrid.slickGrid?.onClick.subscribe((e: any, args: any) => {
             const grid = args.grid;
             const rowData = grid.getDataItem(args.row);
@@ -1005,19 +1169,178 @@ export class RequestInvoiceSummarySlickgridComponent implements OnInit, AfterVie
                 this.handleMainRowSelection(rowData);
             }
         });
+    }
 
-        // Setup row metadata for urgent row styling
-        const dataView = this.angularGrid.dataView;
-        if (dataView) {
-            dataView.getItemMetadata = (row: number) => {
-                const item = dataView.getItem(row);
-                if (item && item.IsUrgency) {
-                    return {
-                        cssClasses: 'urgent-row'
-                    };
-                }
-                return {};
-            };
+    private setupColumnGrouping(): void {
+        if (!this.angularGrid?.slickGrid) {
+            return;
+        }
+
+        const grid = this.angularGrid.slickGrid;
+        const columns = grid.getColumns();
+
+        const groupedColumns: { [key: string]: any[] } = {};
+
+        columns.forEach((col: any) => {
+            const group = col.columnGroup || 'Default';
+            if (!groupedColumns[group]) {
+                groupedColumns[group] = [];
+            }
+            groupedColumns[group].push(col);
+        });
+
+        console.log('Column Groups:', groupedColumns);
+
+        // TODO: Implement visual grouping with CSS or custom solution
+        // since setPreHeaderColumns doesn't exist in this version
+    }
+    //#endregion
+
+    //#region SlickGrid File Table
+    initGridFile(): void {
+        this.columnDefinitionsFile = [
+            { id: 'FileName', name: 'Tên file', field: 'FileName', width: 150, minWidth: 100, sortable: true },
+        ];
+
+        this.gridOptionsFile = {
+            enableAutoResize: true,
+            autoResize: {
+                container: '.grid-container-file',
+                calculateAvailableSizeBy: 'container',
+                resizeDetection: 'container',
+            },
+            gridWidth: '100%',
+            enableCellNavigation: true,
+            enableFiltering: false,
+            enableRowSelection: true,
+            rowSelectionOptions: {
+                selectActiveRow: true
+            },
+            enableCheckboxSelector: false,
+            enableContextMenu: true,
+            contextMenu: {
+                commandItems: this.getFileContextMenuOptions(),
+                onCommand: (e, args) => this.handleFileContextMenuCommand(e, args),
+            },
+        };
+    }
+
+    angularGridReadyFile(angularGrid: AngularGridInstance): void {
+        this.angularGridFile = angularGrid;
+    }
+
+    private getFileContextMenuOptions(): MenuCommandItem[] {
+        return [
+            {
+                iconCssClass: 'fa fa-download',
+                title: 'Tải xuống',
+                command: 'download',
+                positionOrder: 60,
+            }
+        ];
+    }
+
+    handleFileContextMenuCommand(e: any, args: MenuCommandItemCallbackArgs): void {
+        const command = args.command;
+        const dataContext = args.dataContext;
+
+        switch (command) {
+            case 'download':
+                this.selectedFile = dataContext;
+                this.downloadFile(dataContext);
+                break;
+        }
+    }
+
+    onFileRowClick(e: any, args: any): void {
+        const item = args?.grid?.getDataItem(args?.row);
+        if (item) {
+            this.selectedFile = item;
+        }
+    }
+
+    onFileRowDblClick(e: any, args: any): void {
+        const item = args?.dataContext;
+        if (item) {
+            this.selectedFile = item;
+            this.downloadFile(item);
+        }
+    }
+    //#endregion
+
+    //#region SlickGrid POFile Table
+    initGridPOFile(): void {
+        this.columnDefinitionsPOFile = [
+            { id: 'FileName', name: 'Tên file', field: 'FileName', width: 350, minWidth: 200, sortable: true },
+        ];
+
+        this.gridOptionsPOFile = {
+            enableAutoResize: true,
+            autoResize: {
+                container: '.grid-container-pofile',
+                calculateAvailableSizeBy: 'container',
+                resizeDetection: 'container',
+            },
+            gridWidth: '100%',
+            enableCellNavigation: true,
+            enableFiltering: false,
+            enableRowSelection: true,
+            rowSelectionOptions: {
+                selectActiveRow: true
+            },
+            enableCheckboxSelector: false,
+            enableContextMenu: true,
+            contextMenu: {
+                commandItems: this.getPOFileContextMenuOptions(),
+                onCommand: (e, args) => this.handlePOFileContextMenuCommand(e, args),
+            },
+        };
+    }
+
+    angularGridReadyPOFile(angularGrid: AngularGridInstance): void {
+        this.angularGridPOFile = angularGrid;
+        setTimeout(() => {
+            if (this.angularGridPOFile?.resizerService) {
+                this.angularGridPOFile.resizerService.resizeGrid();
+            }
+        }, 150);
+    }
+
+    private getPOFileContextMenuOptions(): MenuCommandItem[] {
+        return [
+            {
+                iconCssClass: 'fa fa-download',
+                title: 'Tải xuống',
+                command: 'download',
+                positionOrder: 60,
+            }
+        ];
+    }
+
+    handlePOFileContextMenuCommand(e: any, args: MenuCommandItemCallbackArgs): void {
+        const command = args.command;
+        const dataContext = args.dataContext;
+
+        switch (command) {
+            case 'download':
+                this.selectedPOFile = dataContext;
+                this.downloadPOFile(dataContext);
+                break;
+        }
+    }
+
+    onPOFileRowClick(e: any, args: any): void {
+        const item = args?.grid?.getDataItem(args?.row);
+        if (item) {
+            this.selectedPOFile = item;
+        }
+    }
+
+    onPOFileRowDblClick(e: any, args: any): void {
+        const item = args?.dataContext;
+        if (item) {
+            this.selectedPOFile = item;
+            this.downloadPOFile(item);
         }
     }
     //#endregion
@@ -1033,9 +1356,7 @@ export class RequestInvoiceSummarySlickgridComponent implements OnInit, AfterVie
             this.loadFileData(requestInvoiceId);
         } else {
             this.dataFile = [];
-            if (this.tb_File) {
-                this.tb_File.setData(this.dataFile);
-            }
+            this.datasetFile = [];
         }
 
         const pokhId = rowData.POKHID ?? rowData.PokhId ?? rowData.POKHId;
@@ -1043,139 +1364,56 @@ export class RequestInvoiceSummarySlickgridComponent implements OnInit, AfterVie
             this.loadFilePOData(pokhId);
         } else {
             this.dataFilePO = [];
-            if (this.tb_FilePO) {
-                this.tb_FilePO.setData(this.dataFilePO);
-            }
+            this.datasetPOFile = [];
         }
     }
 
-    initFileTable(): void {
-        // Tạo context menu
-        const contextMenuItems: any[] = [
-            {
-                label: 'Tải xuống',
-                action: () => {
-                    if (this.selectedFile) {
-                        this.downloadFile(this.selectedFile);
-                    } else {
-                        this.notification.warning('Thông báo', 'Vui lòng chọn một file để tải xuống!');
-                    }
+    private applyDistinctFiltersToGrid(
+        angularGrid: AngularGridInstance,
+        columnDefinitions: Column[],
+        fieldsToFilter: string[]
+    ): void {
+        if (!angularGrid?.slickGrid || !angularGrid?.dataView) return;
+
+        const data = angularGrid.dataView.getItems();
+        if (!data || data.length === 0) return;
+
+        const getUniqueValues = (dataArray: any[], field: string): Array<{ value: string; label: string }> => {
+            const map = new Map<string, string>();
+            dataArray.forEach((row: any) => {
+                const value = String(row?.[field] ?? '');
+                if (value && !map.has(value)) {
+                    map.set(value, value);
                 }
-            }
-        ];
+            });
+            return Array.from(map.entries())
+                .map(([value, label]) => ({ value, label }))
+                .sort((a, b) => a.label.localeCompare(b.label));
+        };
 
-        this.tb_File = new Tabulator(this.tb_FileElement.nativeElement, {
-            ...DEFAULT_TABLE_CONFIG,
-            data: this.dataFile,
-            layout: 'fitDataFill',
-            height: '100%',
-            selectableRows: 1,
-            pagination: false,
-            rowHeader: false,
-            rowContextMenu: contextMenuItems,
-            columns: [
-                {
-                    title: 'Tên file',
-                    field: 'FileName',
-                    sorter: 'string',
-                    width: '100%',
-                    formatter: (cell: any) => {
-                        const value = cell.getValue();
-                        if (value) {
-                            return `<span style="color: #1890ff; text-decoration: underline; cursor: pointer;">${value}</span>`;
-                        }
-                        return '';
-                    }
-                },
-                {
-                    title: 'Server Path',
-                    field: 'ServerPath',
-                    sorter: 'string',
-                    visible: false,
-                },
-            ],
-        });
+        const columns = angularGrid.slickGrid.getColumns();
+        if (!columns) return;
 
-        // Thêm sự kiện rowSelected để lưu file được chọn
-        this.tb_File.on('rowSelected', (row: RowComponent) => {
-            const rowData = row.getData();
-            this.selectedFile = rowData;
-        });
-
-        this.tb_File.on('rowDeselected', (row: RowComponent) => {
-            const selectedRows = this.tb_File!.getSelectedRows();
-            if (selectedRows.length === 0) {
-                this.selectedFile = null;
+        // Update runtime columns
+        columns.forEach((column: any) => {
+            if (column?.filter && column.filter.model === Filters['multipleSelect']) {
+                const field = column.field;
+                if (!field || !fieldsToFilter.includes(field)) return;
+                column.filter.collection = getUniqueValues(data, field);
             }
         });
 
-        // Double click để tải file
-        this.tb_File.on('rowDblClick', (e: UIEvent, row: RowComponent) => {
-            const rowData = row.getData();
-            this.selectedFile = rowData;
-            this.downloadFile(rowData);
-        });
-    }
-
-    initPOFileTable(): void {
-        // Tạo context menu
-        const contextMenuItems: any[] = [
-            {
-                label: 'Tải xuống',
-                action: () => {
-                    if (this.selectedPOFile) {
-                        this.downloadPOFile(this.selectedPOFile);
-                    } else {
-                        this.notification.warning('Thông báo', 'Vui lòng chọn một file để tải xuống!');
-                    }
-                }
-            }
-        ];
-
-        this.tb_FilePO = new Tabulator(this.tb_FilePOElement.nativeElement, {
-            ...DEFAULT_TABLE_CONFIG,
-            data: this.dataFilePO,
-            layout: 'fitDataFill',
-            height: '100%',
-            selectableRows: 1,
-            pagination: false,
-            rowHeader: false,
-            rowContextMenu: contextMenuItems,
-            columns: [
-                {
-                    title: 'Tên file',
-                    field: 'FileName',
-                    sorter: 'string',
-                    width: '100%',
-                    formatter: (cell: any) => {
-                        const value = cell.getValue();
-                        if (value) {
-                            return `<span style="color: #1890ff; text-decoration: underline; cursor: pointer;">${value}</span>`;
-                        }
-                        return '';
-                    }
-                },
-            ],
-        });
-
-        // Thêm sự kiện rowSelected để lưu file được chọn
-        this.tb_FilePO.on('rowSelected', (row: RowComponent) => {
-            const rowData = row.getData();
-            this.selectedPOFile = rowData;
-        });
-
-        this.tb_FilePO.on('rowDeselected', (row: RowComponent) => {
-            const selectedRows = this.tb_FilePO!.getSelectedRows();
-            if (selectedRows.length === 0) {
-                this.selectedPOFile = null;
+        // Update column definitions
+        columnDefinitions.forEach((colDef: any) => {
+            if (colDef?.filter && colDef.filter.model === Filters['multipleSelect']) {
+                const field = colDef.field;
+                if (!field || !fieldsToFilter.includes(field)) return;
+                colDef.filter.collection = getUniqueValues(data, field);
             }
         });
 
-        // Double click để tải file
-        this.tb_FilePO.on('rowDblClick', (e: UIEvent, row: RowComponent) => {
-            const rowData = row.getData();
-            this.selectedPOFile = rowData;
-            this.downloadPOFile(rowData);
-        });
+        angularGrid.slickGrid.setColumns(angularGrid.slickGrid.getColumns());
+        angularGrid.slickGrid.invalidate();
+        angularGrid.slickGrid.render();
     }
 }

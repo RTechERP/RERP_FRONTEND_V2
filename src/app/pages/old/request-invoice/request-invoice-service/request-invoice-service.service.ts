@@ -11,7 +11,12 @@ export class RequestInvoiceService {
   private _url = environment.host + 'api/RequestInvoice/';
   private _urlSummary = environment.host + 'api/RequestInvoiceSummary/';
   constructor(private http: HttpClient) { }
-
+  private formatLocalDate(date: Date): string {
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
+  }
   getRequestInvoice(
     dateStart: Date,
     dateEnd: Date,
@@ -20,8 +25,8 @@ export class RequestInvoiceService {
   ): Observable<any> {
     return this.http.get<any>(this._url, {
       params: {
-        dateStart: dateStart.toISOString(),
-        dateEnd: dateEnd.toISOString(),
+        dateStart: this.formatLocalDate(dateStart),
+        dateEnd: this.formatLocalDate(dateEnd),
         keyWords: filterText,
         warehouseId: warehouseId.toString(),
       },
@@ -63,8 +68,8 @@ export class RequestInvoiceService {
   getRequestInvoiceSummary(dateStart: Date, dateEnd: Date, customerId: number, userId: number, status: number, keywords: string): Observable<any> {
     return this.http.get<any>(this._urlSummary + 'get-request-invoice-summary', {
       params: {
-        dateStart: dateStart.toISOString(),
-        dateEnd: dateEnd.toISOString(),
+        dateStart: this.formatLocalDate(dateStart),
+        dateEnd: this.formatLocalDate(dateEnd),
         customerId: customerId.toString(),
         userId: userId.toString(),
         status: status.toString(),

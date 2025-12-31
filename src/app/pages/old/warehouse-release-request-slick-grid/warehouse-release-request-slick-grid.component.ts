@@ -353,27 +353,27 @@ export class WarehouseReleaseRequestSlickGridComponent implements OnInit {
               this.isRestoringSelection = true; // Đánh dấu đang restore selection
               const selectedIds = this.selectedRowsAll.map(r => r['POKHDetailID']);
               const rowsToSelect: number[] = [];
-              
+
               // Duyệt qua dataView thay vì dataset để lấy đúng index sau khi tree render
               const dataView = this.angularGrid.dataView;
               const itemCount = dataView?.getLength() || 0;
-              
+
               for (let i = 0; i < itemCount; i++) {
                 const item = dataView?.getItem(i);
                 if (item && selectedIds.includes(item.POKHDetailID)) {
                   rowsToSelect.push(i);
                 }
               }
-              
+
               // Luôn gọi setSelectedRows để reset selection, kể cả khi rowsToSelect rỗng
               this.angularGrid.slickGrid?.setSelectedRows(rowsToSelect);
-              
+
               // Invalidate và render lại để cập nhật checkbox
               this.angularGrid.slickGrid?.invalidate();
               this.angularGrid.slickGrid?.render();
-              
+
               console.log('Restored selection:', rowsToSelect.length, 'rows from', itemCount, 'items');
-              
+
               setTimeout(() => {
                 this.isRestoringSelection = false; // Tắt flag sau khi restore xong
               }, 50);
@@ -956,27 +956,27 @@ export class WarehouseReleaseRequestSlickGridComponent implements OnInit {
               this.isRestoringSelection = true; // Đánh dấu đang restore selection
               const selectedIds = this.selectedRowsAll.map(r => r['POKHDetailID']);
               const rowsToSelect: number[] = [];
-              
+
               // Duyệt qua dataView thay vì dataset để lấy đúng index sau khi tree render
               const dataView = this.angularGrid.dataView;
               const itemCount = dataView?.getLength() || 0;
-              
+
               for (let i = 0; i < itemCount; i++) {
                 const item = dataView?.getItem(i);
                 if (item && selectedIds.includes(item.POKHDetailID)) {
                   rowsToSelect.push(i);
                 }
               }
-              
+
               // Luôn gọi setSelectedRows để reset selection, kể cả khi rowsToSelect rỗng
               this.angularGrid.slickGrid?.setSelectedRows(rowsToSelect);
-              
+
               // Invalidate và render lại để cập nhật checkbox
               this.angularGrid.slickGrid?.invalidate();
               this.angularGrid.slickGrid?.render();
-              
+
               console.log('Restored selection in search:', rowsToSelect.length, 'rows from', itemCount, 'items');
-              
+
               setTimeout(() => {
                 this.isRestoringSelection = false; // Tắt flag sau khi restore xong
               }, 50);
@@ -1036,22 +1036,33 @@ export class WarehouseReleaseRequestSlickGridComponent implements OnInit {
       //   filterable: true,
       // },
       {
+        id: 'STTDetail',
+        name: 'STT',
+        field: 'STTDetail',
+        width: 100,
+        minWidth: 100,
+        sortable: true,
+        filterable: true,
+        type: 'string',
+        formatter: Formatters.tree,  // Thêm tree formatter để hiển thị expand/collapse icons
+      },
+      {
         id: 'PONumber',
         name: 'Số PO',
         field: 'PONumber',
-        width: 250,
-        minWidth: 150,
+        width: 120,
+        minWidth: 120,
         sortable: true,
         filterable: true,
         type: FieldType.string,
-        formatter: Formatters.tree,  // Thêm tree formatter để hiển thị expand/collapse icons
+        // formatter: Formatters.tree,  // Thêm tree formatter để hiển thị expand/collapse icons
       },
       {
         id: 'StatusText',
         name: 'Trạng thái',
         field: 'StatusText',
-        width: 350,
-        minWidth: 250,
+        width: 200,
+        minWidth: 200,
         sortable: true,
         filterable: true,
         type: 'string',
@@ -1060,7 +1071,7 @@ export class WarehouseReleaseRequestSlickGridComponent implements OnInit {
         id: 'CustomerName',
         name: 'Khách hàng',
         field: 'CustomerName',
-        width: 350,
+        width: 300,
         minWidth: 300,
         sortable: true,
         filterable: true,
@@ -1070,8 +1081,8 @@ export class WarehouseReleaseRequestSlickGridComponent implements OnInit {
         id: 'ProjectName',
         name: 'Dự án',
         field: 'ProjectName',
-        width: 350,
-        minWidth: 300,
+        width: 200,
+        minWidth: 200,
         sortable: true,
         filterable: true,
         type: FieldType.string,
@@ -1080,8 +1091,8 @@ export class WarehouseReleaseRequestSlickGridComponent implements OnInit {
         id: 'ProductCode',
         name: 'Mã sản phẩm',
         field: 'ProductCode',
-        width: 350,
-        minWidth: 250,
+        width: 200,
+        minWidth: 200,
         sortable: true,
         filterable: true,
         type: FieldType.string,
@@ -1091,7 +1102,7 @@ export class WarehouseReleaseRequestSlickGridComponent implements OnInit {
         name: 'Mã nội bộ',
         field: 'ProductNewCode',
         width: 350,
-        minWidth: 250,
+        minWidth: 150,
         sortable: true,
         filterable: true,
         type: FieldType.string,
@@ -1214,6 +1225,7 @@ export class WarehouseReleaseRequestSlickGridComponent implements OnInit {
       enableSorting: true,
       multiColumnSort: false, // Required for Tree Data
       enableFiltering: true,
+      enableGrouping: false,
       enableRowSelection: true,
       enableCheckboxSelector: true,
       checkboxSelector: {
@@ -1232,12 +1244,13 @@ export class WarehouseReleaseRequestSlickGridComponent implements OnInit {
       autoCommitEdit: true,
       enableTreeData: true,
       treeDataOptions: {
-        columnId: 'ProductCode',
+        columnId: 'STTDetail',
         parentPropName: 'parentId',
         levelPropName: 'treeLevel',
         indentMarginLeft: 15,
         initiallyCollapsed: false,
       },
+      frozenColumn: 6, 
     };
   }
 
@@ -1268,10 +1281,10 @@ export class WarehouseReleaseRequestSlickGridComponent implements OnInit {
       // Tìm các dòng vừa được chọn (có trong currentSelectedIds nhưng chưa có trong selectedRowsAll)
       selectedRows.forEach((rowIdx: number) => {
         const rowData = grid.getDataItem(rowIdx);
-        if (rowData) {
+        if (rowData && rowData.POKHDetailID !== undefined && rowData.POKHDetailID !== null) {
           const pokhDetailID = rowData.POKHDetailID;
           const index = this.selectedRowsAll.findIndex(r => r['POKHDetailID'] === pokhDetailID);
-          
+
           if (index === -1) {
             // Thêm mới vào selectedRowsAll
             this.selectedRowsAll.push({ ...rowData });
@@ -1283,15 +1296,15 @@ export class WarehouseReleaseRequestSlickGridComponent implements OnInit {
       });
 
       // Tìm các dòng vừa bị bỏ chọn (có trong dataset hiện tại, có trong selectedRowsAll, nhưng không có trong currentSelectedIds)
-      const deselectedIds = datasetIds.filter((id: any) => 
-        !currentSelectedIds.includes(id) && 
+      const deselectedIds = datasetIds.filter((id: any) =>
+        !currentSelectedIds.includes(id) &&
         this.selectedRowsAll.some(r => r['POKHDetailID'] === id)
       );
 
       // Xóa các dòng bị bỏ chọn khỏi selectedRowsAll
       if (deselectedIds.length > 0) {
-        this.selectedRowsAll = this.selectedRowsAll.filter(r => 
-          !deselectedIds.includes(r['POKHDetailID'])
+        this.selectedRowsAll = this.selectedRowsAll.filter(
+          r => !deselectedIds.includes(r['POKHDetailID'])
         );
       }
 

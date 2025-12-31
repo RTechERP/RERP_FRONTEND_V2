@@ -99,15 +99,26 @@
                 </nz-splitter-panel>
                 <nz-splitter-panel nzDefaultSize="20%" [nzCollapsible]="true" nzResizable="true">
                     <div class="card h-100 border-0 rounded-0 d-flex flex-column">
-                        <nz-tabset [nzTabPosition]="'top'" class="flex-grow-1 d-flex flex-column">
+                        <nz-tabset [nzTabPosition]="'top'" class="flex-grow-1 d-flex flex-column"
+                            (nzSelectedIndexChange)="onFilesTabChange($event)">
                             <nz-tab nzTitle="Danh sách file">
-                                <div class="card-body p-0 flex-grow-1" style="overflow: hidden;">
-                                    <div #tb_File id="tb_File" class="h-100"></div>
+                                <div class="grid-container-file h-100">
+                                    <angular-slickgrid gridId="gridFile" [columns]="columnDefinitionsFile"
+                                        [options]="gridOptionsFile" [dataset]="datasetFile"
+                                        (onAngularGridCreated)="angularGridReadyFile($event.detail)"
+                                        (onClick)="onFileRowClick($event.detail.eventData, $event.detail.args)"
+                                        (onDblClick)="onFileRowDblClick($event.detail.eventData, $event.detail.args)">
+                                    </angular-slickgrid>
                                 </div>
                             </nz-tab>
                             <nz-tab nzTitle="File PO">
-                                <div class="card-body p-0 flex-grow-1" style="overflow: hidden;">
-                                    <div #tb_FilePO id="tb_FilePO" class="h-100"></div>
+                                <div class="grid-container-pofile h-100" *ngIf="isPOFileGridRendered">
+                                    <angular-slickgrid gridId="gridPOFile" [columns]="columnDefinitionsPOFile"
+                                        [options]="gridOptionsPOFile" [dataset]="datasetPOFile"
+                                        (onAngularGridCreated)="angularGridReadyPOFile($event.detail)"
+                                        (onClick)="onPOFileRowClick($event.detail.eventData, $event.detail.args)"
+                                        (onDblClick)="onPOFileRowDblClick($event.detail.eventData, $event.detail.args)">
+                                    </angular-slickgrid>
                                 </div>
                             </nz-tab>
                         </nz-tabset>

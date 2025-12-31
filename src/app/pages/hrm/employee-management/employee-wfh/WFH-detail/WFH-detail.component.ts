@@ -30,6 +30,7 @@ export interface EmployeeDto {
 
 export interface ApproverDto {
   ID: number;
+  EmployeeID: number;
   Code: string;
   FullName: string;
   Role?: string;

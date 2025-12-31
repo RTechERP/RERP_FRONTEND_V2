@@ -67,3 +67,59 @@
   border-radius: 0;
 }
 
+/* Search form positioning and z-index fixes */
+.filter-bar {
+  position: relative;
+  z-index: 10;
+  background: #f8f9fa;
+  border-bottom: 1px solid #dee2e6;
+}
+
+/* Ensure buttons stay above search form on desktop */
+.card-header {
+  position: relative;
+  z-index: 20;
+  background: white;
+}
+
+/* Mobile modal styles */
+@media (max-width: 768px) {
+  .filter-bar.mobile-modal {
+    position: fixed;
+    top: 60px;
+    left: 0;
+    right: 0;
+    z-index: 1050;
+    background: white;
+    border-bottom: 1px solid #dee2e6;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+    max-height: 70vh;
+    overflow-y: auto;
+    margin: 16px;
+    border-radius: 8px;
+  }
+  
+  .filter-backdrop {
+    display: block;
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0,0,0,0.3);
+    z-index: 1040;
+  }
+}
+
+/* Desktop - keep search form always visible */
+@media (min-width: 769px) {
+  .filter-backdrop {
+    display: none !important;
+  }
+  
+  .filter-bar {
+    position: static !important;
+    z-index: 1 !important;
+  }
+}
+

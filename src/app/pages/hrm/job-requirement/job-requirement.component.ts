@@ -2194,11 +2194,11 @@ getCurrentUser(): void {
         };
 
         this.columnDefinitionsDetail = [
-            { id: 'STT', name: 'STT', field: 'STT', type: 'number', width: 60, sortable: true, cssClass: 'text-center' },
-            { id: 'Category', name: 'Đề mục', field: 'Category', type: 'string', width: 150, sortable: true, filterable: true, formatter: tooltipFormatter },
-            { id: 'Description', name: 'Diễn giải', field: 'Description', type: 'string', width: 250, sortable: true, filterable: true, formatter: tooltipFormatter },
-            { id: 'Target', name: 'Mục tiêu cần đạt', field: 'Target', type: 'string', width: 200, sortable: true, filterable: true, formatter: tooltipFormatter },
-            { id: 'Note', name: 'Ghi chú', field: 'Note', type: 'string', width: 150, sortable: true, filterable: true, formatter: tooltipFormatter }
+            { id: 'STT', name: 'STT', field: 'STT', type: 'number', width: 80, sortable: true, cssClass: 'text-center' },
+            { id: 'Category', name: 'Đề mục', field: 'Category', type: 'string', width: 200, sortable: true, filterable: true, formatter: tooltipFormatter },
+            { id: 'Description', name: 'Diễn giải', field: 'Description', type: 'string', width: 350, sortable: true, filterable: true, formatter: tooltipFormatter },
+            { id: 'Target', name: 'Mục tiêu cần đạt', field: 'Target', type: 'string', width: 300, sortable: true, filterable: true, formatter: tooltipFormatter },
+            { id: 'Note', name: 'Ghi chú', field: 'Note', type: 'string', width: 250, sortable: true, filterable: true, formatter: tooltipFormatter }
         ];
 
         this.gridOptionsDetail = {
@@ -2214,7 +2214,7 @@ getCurrentUser(): void {
             enableFiltering: true,
             rowHeight: 35,
             headerRowHeight: 40,
-            forceFitColumns: false,
+            forceFitColumns: true,
             enableAutoSizeColumns: false,
             autoFitColumnsOnFirstLoad: false,
             gridWidth: '100%'
@@ -2252,7 +2252,7 @@ getCurrentUser(): void {
             enableSorting: true,
             rowHeight: 35,
             headerRowHeight: 40,
-            forceFitColumns: false,
+            forceFitColumns: true,
             enableAutoSizeColumns: false,
             autoFitColumnsOnFirstLoad: false,
             gridWidth: '100%',
@@ -2306,13 +2306,13 @@ getCurrentUser(): void {
         };
 
         this.columnDefinitionsApproved = [
-            { id: 'Step', name: 'Bước', field: 'Step', type: 'number', width: 60, sortable: true, cssClass: 'text-center' },
-            { id: 'StepName', name: 'Tên bước', field: 'StepName', type: 'string', width: 150, sortable: true, formatter: tooltipFormatter },
-            { id: 'DateApproved', name: 'Ngày duyệt', field: 'DateApproved', type: 'string', width: 130, sortable: true, formatter: formatDateTime },
-            { id: 'IsApprovedText', name: 'Trạng thái', field: 'IsApprovedText', type: 'string', width: 100, sortable: true, formatter: tooltipFormatter },
-            { id: 'EmployeeName', name: 'Người thực hiện', field: 'EmployeeName', type: 'string', width: 150, sortable: true, formatter: tooltipFormatter },
-            { id: 'EmployeeActualName', name: 'Người duyệt', field: 'EmployeeActualName', type: 'string', width: 150, sortable: true, formatter: tooltipFormatter },
-            { id: 'ReasonCancel', name: 'Lý do hủy duyệt', field: 'ReasonCancel', type: 'string', width: 200, sortable: true, formatter: tooltipFormatter }
+            { id: 'Step', name: 'Bước', field: 'Step', type: 'number', width: 80, sortable: true, cssClass: 'text-center' },
+            { id: 'StepName', name: 'Tên bước', field: 'StepName', type: 'string', width: 200, sortable: true, formatter: tooltipFormatter },
+            { id: 'DateApproved', name: 'Ngày duyệt', field: 'DateApproved', type: 'string', width: 150, sortable: true, formatter: formatDateTime },
+            { id: 'IsApprovedText', name: 'Trạng thái', field: 'IsApprovedText', type: 'string', width: 120, sortable: true, formatter: tooltipFormatter },
+            { id: 'EmployeeName', name: 'Người thực hiện', field: 'EmployeeName', type: 'string', width: 180, sortable: true, formatter: tooltipFormatter },
+            { id: 'EmployeeActualName', name: 'Người duyệt', field: 'EmployeeActualName', type: 'string', width: 180, sortable: true, formatter: tooltipFormatter },
+            { id: 'ReasonCancel', name: 'Lý do hủy duyệt', field: 'ReasonCancel', type: 'string', width: 250, sortable: true, formatter: tooltipFormatter }
         ];
 
         this.gridOptionsApproved = {

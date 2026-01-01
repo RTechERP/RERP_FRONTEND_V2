@@ -63,6 +63,8 @@ import { HasPermissionDirective } from '../../../directives/has-permission.direc
 import { HorizontalScrollDirective } from '../../../directives/horizontalScroll.directive';
 import { Subscription } from 'rxjs';
 import { TabulatorPopupService } from '../../../shared/components/tabulator-popup/tabulator-popup.service';
+import { MenubarModule } from 'primeng/menubar';
+import { MenuItem } from 'primeng/api';
 
 @Component({
   selector: 'app-project-partlist-price-request-new',
@@ -98,6 +100,7 @@ import { TabulatorPopupService } from '../../../shared/components/tabulator-popu
     HasPermissionDirective,
     HorizontalScrollDirective,
     AngularSlickgridModule,
+    MenubarModule,
   ],
   templateUrl: './project-partlist-price-request-new.component.html',
   styleUrls: ['./project-partlist-price-request-new.component.css']
@@ -110,6 +113,7 @@ export class ProjectPartlistPriceRequestNewComponent implements OnInit, OnDestro
   @Input() projectPartlistPriceRequestTypeID: number = 0;
   @Input() initialTabId: number = 0;
   @Input() isFromPOKH: boolean = false;
+  @Input() isPriceRequestDemo: boolean = false;
   // Active tab tracking
   sizeSearch: string = '0';
   activeTabId = 2;
@@ -174,6 +178,10 @@ export class ProjectPartlistPriceRequestNewComponent implements OnInit, OnDestro
 
   showCloseButton: boolean = false;
 
+  // PrimeNG MenuBar
+  menuItems: MenuItem[] = [];
+  maxVisibleItems = 9;
+
   private cdr: ChangeDetectorRef = inject(ChangeDetectorRef);
   private ngZone: NgZone = inject(NgZone);
 
@@ -216,6 +224,8 @@ export class ProjectPartlistPriceRequestNewComponent implements OnInit, OnDestro
       this.activeTabId = -2; // HCNS tab
     } else if (this.projectPartlistPriceRequestTypeID === 4) {
       this.activeTabId = -3; // Tab tương ứng với type 4
+    } else if (this.isPriceRequestDemo && this.projectPartlistPriceRequestTypeID === 6) {
+      this.activeTabId = -4; // Tab demo
     }
     if (this.isFromPOKH) {
       this.activeTabId = -1; // Tab thương mại
@@ -246,6 +256,7 @@ export class ProjectPartlistPriceRequestNewComponent implements OnInit, OnDestro
     this.LoadProjectTypes();
     this.GetallProject();
     this.GetAllPOKH();
+    this.initMenuItems();
   }
 
   get restrictedView(): boolean {
@@ -273,6 +284,11 @@ export class ProjectPartlistPriceRequestNewComponent implements OnInit, OnDestro
     return true;
   }
   shouldShowProjectType(id: number): boolean {
+    // Nếu là Price Request Demo (type 6), chỉ hiển thị tab demo (id === -4)
+    if (this.isPriceRequestDemo && this.projectPartlistPriceRequestTypeID === 6) {
+      return id === -4;
+    }
+
     if (this.poKHID > 0 && id !== -1) return false;
     if (this.projectPartlistPriceRequestTypeID === 3) return id === -2;
     if (this.projectPartlistPriceRequestTypeID === 4) return id === -3;
@@ -330,6 +346,7 @@ export class ProjectPartlistPriceRequestNewComponent implements OnInit, OnDestro
       '-1': 2,
       '-2': 3,
       '-3': 4,
+      '-4': 6,
     };
 
     const key = String(projectTypeID);
@@ -476,68 +493,6 @@ export class ProjectPartlistPriceRequestNewComponent implements OnInit, OnDestro
         this.SaveDataCommon(updateData, 'Xóa dữ liệu thành công');
       },
     });
-  }
-  createdControl(
-    component: Type<any>,
-    injector: EnvironmentInjector,
-    appRef: ApplicationRef
-  ) {
-    return (cell: any, onRendered: any, success: any, cancel: any) => {
-      const container = document.createElement('div');
-      const componentRef = createComponent(component, {
-        environmentInjector: injector,
-      });
-
-      // Các tham số truyền vào tùy theo custom select
-      componentRef.instance.value = cell.getValue();
-      componentRef.instance.dataSource = this.dtcurrency;
-
-      // Các tham số trả ra tùy chỉnh
-      componentRef.instance.valueChange.subscribe((val: any) => {
-        success(val);
-      });
-
-      container.appendChild((componentRef.hostView as any).rootNodes[0]);
-      appRef.attachView(componentRef.hostView);
-      onRendered(() => {
-        if (container.firstElementChild) {
-          (container.firstElementChild as HTMLElement).focus();
-        }
-      });
-
-      return container;
-    };
-  }
-  createdControl2(
-    component: Type<any>,
-    injector: EnvironmentInjector,
-    appRef: ApplicationRef
-  ) {
-    return (cell: any, onRendered: any, success: any, cancel: any) => {
-      const container = document.createElement('div');
-      const componentRef = createComponent(component, {
-        environmentInjector: injector,
-      });
-
-      // Các tham số truyền vào tùy theo custom select
-      componentRef.instance.value = cell.getValue();
-      componentRef.instance.dataSource = this.dtSupplierSale;
-
-      // Các tham số trả ra tùy chỉnh
-      componentRef.instance.valueChange.subscribe((val: any) => {
-        success(val);
-      });
-
-      container.appendChild((componentRef.hostView as any).rootNodes[0]);
-      appRef.attachView(componentRef.hostView);
-      onRendered(() => {
-        if (container.firstElementChild) {
-          (container.firstElementChild as HTMLElement).focus();
-        }
-      });
-
-      return container;
-    };
   }
   private GetSupplierSale() {
     this.PriceRequetsService.getSuplierSale()
@@ -713,7 +668,14 @@ export class ProjectPartlistPriceRequestNewComponent implements OnInit, OnDestro
         projectPartlistPriceRequestTypeID = 4;
         isCommercialProduct = 0;
         poKHID = 0; // poKHID = 0 cho các type khác
-      } else if (projectTypeID === 0) {
+      }else if (projectTypeID === -4) {
+        // ✅ Demo
+        projectPartlistPriceRequestTypeID = 6;
+        isCommercialProduct = 0;
+        isJobRequirement = 0;
+        poKHID = 0; // poKHID = 0 cho các type khác
+      }
+      else if (projectTypeID === 0) {
         isCommercialProduct = 0;
         isJobRequirement = 0;
         poKHID = 0; // poKHID = 0 cho các type khác
@@ -1315,7 +1277,15 @@ private applyDistinctFiltersForTab(typeId: number): void {
       return;
     }
 
-    const data = dataView.getItems();
+    // Lấy dữ liệu đã được filter từ view (không phải tất cả data gốc)
+    const data: any[] = [];
+    for (let i = 0; i < dataView.getLength(); i++) {
+      const item = dataView.getItem(i);
+      if (item) {
+        data.push(item);
+      }
+    }
+
     if (!data || data.length === 0) {
       console.warn(`No data for type ${typeId}`);
       // Vẫn cập nhật columns để có empty collection
@@ -1381,6 +1351,17 @@ private updateFilterCollections(columns: any[], data: any[]): void {
           column.filter.collection = filteredCollection;
         } else {
           column.filter.collection = getUniqueValues(data, field);
+        }
+      }
+
+      // Cập nhật collection cho editor multipleSelect
+      if (column.editor && column.editor.model === Editors['multipleSelect']) {
+        const field = column.field;
+        if (!field) return;
+
+        if (field === 'QuoteEmployee') {
+          // Populate collection cho QuoteEmployee từ data
+          column.editor.collection = getUniqueValues(data, field);
         }
       }
     });
@@ -1770,7 +1751,6 @@ private updateFilterCollections(columns: any[], data: any[]): void {
           collection: [],
           filterOptions: { filter: true } as MultipleSelectOption,
         },
-
         formatter: (_row, _cell, value, _column, dataContext) => {
           if (!value) return '';
           return `
@@ -2444,6 +2424,73 @@ private updateFilterCollections(columns: any[], data: any[]): void {
         item[field] = newValue.length > 0 ? newValue[0] : null;
       } else {
         item[field] = newValue;
+      }
+    }
+
+    // Lấy tất cả các dòng đã chọn
+    const selectedRowIndexes = angularGrid.slickGrid.getSelectedRows();
+    const currentEmployeeID = this.appUserService.employeeID;
+
+    // Kiểm tra xem cell được edit có nằm trong các dòng đã chọn không
+    const isEditedRowSelected = selectedRowIndexes && selectedRowIndexes.includes(rowIndex);
+
+    // Nếu có nhiều dòng được chọn VÀ dòng đang edit nằm trong selection
+    // thì fill giá trị cho các dòng đã chọn khác
+    // với điều kiện EmployeeCheckPriceID = người đăng nhập hiện tại
+    if (isEditedRowSelected && selectedRowIndexes && selectedRowIndexes.length > 1 && field) {
+      let hasUpdatedRows = false;
+
+      for (const selectedRowIndex of selectedRowIndexes) {
+        // Bỏ qua dòng đang được edit
+        if (selectedRowIndex === rowIndex) continue;
+
+        const selectedItem = angularGrid.dataView.getItem(selectedRowIndex);
+        if (!selectedItem) continue;
+
+        // Kiểm tra EmployeeCheckPriceID
+        const employeeCheckPriceID = selectedItem['EmployeeCheckPriceID'];
+        if (employeeCheckPriceID !== currentEmployeeID) continue;
+
+        // Fill giá trị vào dòng này
+        // Xử lý đặc biệt cho SupplierSaleID
+        if (field === 'SupplierSaleID' && Array.isArray(newValue)) {
+          selectedItem[field] = newValue.length > 0 ? newValue[0] : null;
+        } else {
+          selectedItem[field] = newValue;
+        }
+
+        // Xử lý các logic đặc biệt cho từng field
+        if (field === 'CurrencyID') {
+          this.OnCurrencyChangedSlickGrid(selectedItem);
+        } else if (field === 'SupplierSaleID') {
+          this.OnSupplierSaleChangedSlickGrid(selectedItem);
+        } else if (['Quantity', 'UnitPrice', 'CurrencyRate', 'UnitImportPrice', 'VAT', 'TotalDayLeadTime'].includes(field)) {
+          this.recalculateRowForSlickGrid(selectedItem);
+        }
+
+        // Track edited row
+        const selectedRowId = selectedItem['ID'];
+        if (selectedRowId) {
+          const tabEditedRows = this.editedRowsMap.get(typeId);
+          if (!tabEditedRows) {
+            this.editedRowsMap.set(typeId, new Map());
+          }
+          const editedRows = this.editedRowsMap.get(typeId);
+          if (editedRows) {
+            editedRows.set(selectedRowId, selectedItem);
+          }
+        }
+
+        // Update item in dataView
+        angularGrid.dataView.updateItem(selectedItem['id'], selectedItem);
+        hasUpdatedRows = true;
+      }
+
+      // Refresh grid nếu có dòng được update
+      if (hasUpdatedRows) {
+        angularGrid.slickGrid.invalidate();
+        angularGrid.slickGrid.render();
+        this.ensureCheckboxSelector(angularGrid);
       }
     }
 
@@ -3934,6 +3981,43 @@ private updateFilterCollections(columns: any[], data: any[]): void {
       );
       return;
     }
+
+    // Kiểm tra thời gian báo giá lịch sử cho tab demo (activeTabId === -4 hoặc projectPartlistPriceRequestTypeID === 4)
+    if (this.activeTabId === -4 || this.projectPartlistPriceRequestTypeID === 4) {
+      const now = DateTime.now();
+      const threeMonthsAgo = now.minus({ months: 3 });
+
+      for (const row of selectedRows) {
+        const dateHistoryPrice = row['DateHistoryPrice'];
+        if (dateHistoryPrice) {
+          let historyDate: DateTime;
+
+          // Parse date từ nhiều format
+          if (typeof dateHistoryPrice === 'string') {
+            historyDate = DateTime.fromISO(dateHistoryPrice);
+            if (!historyDate.isValid) {
+              historyDate = DateTime.fromFormat(dateHistoryPrice, 'dd/MM/yyyy');
+            }
+          } else if (dateHistoryPrice instanceof Date) {
+            historyDate = DateTime.fromJSDate(dateHistoryPrice);
+          } else {
+            continue; // Skip nếu không parse được
+          }
+
+          if (historyDate.isValid) {
+            // Kiểm tra nếu ngày báo giá lịch sử nằm ngoài 3 tháng
+            if (historyDate < threeMonthsAgo) {
+              this.notification.warning(
+                'Thông báo',
+                `Sản phẩm "${row['ProductCode'] || ''}" có ngày báo giá lịch sử (${historyDate.toFormat('dd/MM/yyyy')}) đã quá 3 tháng. Vui lòng chọn sản phẩm có ngày báo giá trong vòng 3 tháng gần đây.`
+              );
+              return;
+            }
+          }
+        }
+      }
+    }
+
     this.lastSelectedRowsForBuy = selectedRows;
     this.requestBuyDeadline = new Date();
     this.requestBuyIsVPP = this.isVPP;
@@ -4071,6 +4155,7 @@ private updateFilterCollections(columns: any[], data: any[]): void {
         this.projectPartlistPriceRequestTypeID > 0
           ? this.projectPartlistPriceRequestTypeID
           : 7,
+       
       Products: products,
     };
 
@@ -5328,6 +5413,273 @@ private updateFilterCollections(columns: any[], data: any[]): void {
     }
   }
 
+  isMobile(): boolean {
+    return typeof window !== 'undefined' && window.innerWidth <= 768;
+  }
+
+  initMenuItems(): void {
+    const allItems: MenuItem[] = [];
+
+    // Nếu là Price Request Demo (type 6), hiển thị các nút cơ bản + Yêu cầu mua, Nhập/Xuất Excel
+    if (this.isPriceRequestDemo && this.projectPartlistPriceRequestTypeID === 6) {
+      allItems.push(
+        {
+          label: 'Thêm',
+          icon: 'fa-solid fa-plus fa-lg text-success',
+          command: () => this.OnAddClick(),
+          visible: true
+        },
+        {
+          label: 'Sửa',
+          icon: 'fa-solid fa-pen-to-square fa-lg text-primary',
+          command: () => this.OnEditClick(),
+          visible: true
+        },
+        {
+          label: 'Xóa',
+          icon: 'fa-solid fa-trash fa-lg text-danger',
+          command: () => this.OnDeleteClick(),
+          visible: true
+        },
+        {
+          label: 'Yêu cầu mua',
+          icon: 'fa-solid fa-shopping-cart fa-lg text-primary',
+          command: () => this.OpenRequestBuyModal(),
+          visible: true
+        },
+        {
+          label: 'Nhập Excel',
+          icon: 'fa-solid fa-file-excel fa-lg text-success',
+          command: () => this.OpenImportExcel(),
+          visible: true
+        },
+        {
+          label: 'Xuất Excel',
+          icon: 'fa-solid fa-file-excel fa-lg text-success',
+          items: [
+            {
+              label: 'Theo dòng đã chọn',
+              icon: 'fa-solid fa-table-rows fa-lg text-primary',
+              command: () => this.ExportToExcelAdvanced()
+            },
+            {
+              label: 'Trang hiện tại',
+              icon: 'fa-solid fa-file fa-lg text-primary',
+              command: () => this.ExportToExcelTab()
+            },
+            {
+              label: 'Tất cả',
+              icon: 'fa-solid fa-files fa-lg text-primary',
+              command: () => this.ExportAllTabsToExcel()
+            }
+          ],
+          visible: true
+        }
+      );
+
+      this.menuItems = allItems;
+      return;
+    }
+
+    // Logic cũ cho các trường hợp khác
+    // Refresh - hiển thị khi !isFromPOKH
+    if (!this.isFromPOKH) {
+      allItems.push({
+        label: 'Làm mới',
+        icon: 'fa-solid fa-refresh fa-lg text-primary',
+        command: () => this.RefreshAll()
+      });
+    }
+
+    // Thêm - hiển thị khi !isFromPOKH và có quyền
+    if (!this.isFromPOKH) {
+      allItems.push({
+        label: 'Thêm',
+        icon: 'fa-solid fa-plus fa-lg text-success',
+        command: () => this.OnAddClick(),
+        visible: true // Will be controlled by *hasPermission in template
+      });
+    }
+
+    // Sửa - hiển thị khi !isFromPOKH và có quyền
+    if (!this.isFromPOKH) {
+      allItems.push({
+        label: 'Sửa',
+        icon: 'fa-solid fa-pen-to-square fa-lg text-primary',
+        command: () => this.OnEditClick(),
+        visible: true // Will be controlled by *hasPermission in template
+      });
+    }
+
+    // Lưu dữ liệu - hiển thị khi !restrictedView && !isFromPOKH
+    if (!this.restrictedView && !this.isFromPOKH) {
+      allItems.push({
+        label: 'Lưu dữ liệu',
+        icon: 'fa-solid fa-save fa-lg text-success',
+        command: () => this.OnSaveData()
+      });
+    }
+
+    // Check giá - hiển thị khi !restrictedView && !isFromPOKH
+    if (!this.restrictedView && !this.isFromPOKH) {
+      allItems.push({
+        label: 'Check giá',
+        icon: 'fa-solid fa-check fa-lg text-success',
+        command: () => this.CheckPrice(true)
+      });
+    }
+
+    // Hủy check giá - hiển thị khi !restrictedView && !isFromPOKH
+    if (!this.restrictedView && !this.isFromPOKH) {
+      allItems.push({
+        label: 'Hủy check giá',
+        icon: 'fa-solid fa-times fa-lg text-danger',
+        command: () => this.CheckPrice(false)
+      });
+    }
+
+    // Báo giá - hiển thị khi !restrictedView && !isFromPOKH
+    if (!this.restrictedView && !this.isFromPOKH) {
+      allItems.push({
+        label: 'Báo giá',
+        icon: 'fa-solid fa-file-invoice-dollar fa-lg text-success',
+        command: () => this.QuotePrice()
+      });
+    }
+
+    // Hủy báo giá - hiển thị khi !restrictedView && !isFromPOKH
+    if (!this.restrictedView && !this.isFromPOKH) {
+      allItems.push({
+        label: 'Hủy báo giá',
+        icon: 'fa-solid fa-ban fa-lg text-danger',
+        command: () => this.QuotePrice(1)
+      });
+    }
+
+    // Từ chối báo giá - hiển thị khi !restrictedView && !isFromPOKH
+    if (!this.restrictedView && !this.isFromPOKH) {
+      allItems.push({
+        label: 'Từ chối báo giá',
+        icon: 'fa-solid fa-thumbs-down fa-lg text-danger',
+        command: () => this.RejectPriceRequest()
+      });
+    }
+
+    // Hủy từ chối báo giá - hiển thị khi !restrictedView && !isFromPOKH
+    if (!this.restrictedView && !this.isFromPOKH) {
+      allItems.push({
+        label: 'Hủy từ chối báo giá',
+        icon: 'fa-solid fa-undo fa-lg text-warning',
+        command: () => this.CancelRejectPriceRequest()
+      });
+    }
+
+    // Hoàn thành - hiển thị khi !restrictedView && !isFromPOKH
+    if (!this.restrictedView && !this.isFromPOKH) {
+      allItems.push({
+        label: 'Hoàn thành',
+        icon: 'fa-solid fa-check-circle fa-lg text-success',
+        command: () => this.QuotePrice(3)
+      });
+    }
+
+    // Chưa hoàn thành - hiển thị khi !restrictedView && !isFromPOKH
+    if (!this.restrictedView && !this.isFromPOKH) {
+      allItems.push({
+        label: 'Chưa hoàn thành',
+        icon: 'fa-solid fa-times-circle fa-lg text-warning',
+        command: () => this.QuotePrice(0)
+      });
+    }
+
+    // Xóa - hiển thị khi có quyền
+    allItems.push({
+      label: 'Xóa',
+      icon: 'fa-solid fa-trash fa-lg text-danger',
+      command: () => this.OnDeleteClick(),
+      visible: true // Will be controlled by *hasPermission in template
+    });
+
+    // Tải xuống - hiển thị khi !restrictedView && !isFromPOKH
+    if (!this.restrictedView && !this.isFromPOKH) {
+      allItems.push({
+        label: 'Tải xuống',
+        icon: 'fa-solid fa-download fa-lg text-primary',
+        command: () => this.DownloadFile()
+      });
+    }
+
+    // Thêm nhà cung cấp - hiển thị khi !restrictedView && !isFromPOKH
+    if (!this.restrictedView && !this.isFromPOKH) {
+      allItems.push({
+        label: 'Thêm nhà cung cấp',
+        icon: 'fa-solid fa-user-plus fa-lg text-success',
+        command: () => this.OpenAddSupplierModal()
+      });
+    }
+
+    // Yêu cầu mua - hiển thị khi (!isHRDept || projectPartlistPriceRequestTypeID === 4) && !isFromPOKH
+    if ((!this.isHRDept || this.projectPartlistPriceRequestTypeID === 4) && !this.isFromPOKH) {
+      allItems.push({
+        label: 'Yêu cầu mua',
+        icon: 'fa-solid fa-shopping-cart fa-lg text-primary',
+        command: () => this.OpenRequestBuyModal()
+      });
+    }
+
+    // Nhập Excel - hiển thị khi (!isHRDept || projectPartlistPriceRequestTypeID === 4) && !isFromPOKH
+    if ((!this.isHRDept || this.projectPartlistPriceRequestTypeID === 4) && !this.isFromPOKH) {
+      allItems.push({
+        label: 'Nhập Excel',
+        icon: 'fa-solid fa-file-excel fa-lg text-success',
+        command: () => this.OpenImportExcel()
+      });
+    }
+
+    // Xuất Excel - hiển thị khi !restrictedView && !isFromPOKH
+    if (!this.restrictedView && !this.isFromPOKH) {
+      allItems.push({
+        label: 'Xuất Excel',
+        icon: 'fa-solid fa-file-excel fa-lg text-success',
+        items: [
+          {
+            label: 'Theo dòng đã chọn',
+            icon: 'fa-solid fa-table-rows fa-lg text-primary',
+            command: () => this.ExportToExcelAdvanced()
+          },
+          {
+            label: 'Trang hiện tại',
+            icon: 'fa-solid fa-file fa-lg text-primary',
+            command: () => this.ExportToExcelTab()
+          },
+          {
+            label: 'Tất cả',
+            icon: 'fa-solid fa-files fa-lg text-primary',
+            command: () => this.ExportAllTabsToExcel()
+          }
+        ]
+      });
+    }
+
+    // Filter visible items
+    const visibleItems = allItems.filter(item => item.visible !== false);
+
+    // Create menu with More if needed
+    if (visibleItems.length <= this.maxVisibleItems) {
+      this.menuItems = visibleItems;
+    } else {
+      const directItems = visibleItems.slice(0, this.maxVisibleItems - 1);
+      const moreItems = visibleItems.slice(this.maxVisibleItems - 1);
+      this.menuItems = [
+        ...directItems,
+        {
+          label: 'More',
+          icon: 'fa-solid fa-ellipsis fa-lg text-secondary',
+          items: moreItems
+        }
+      ];
+    }
+  }
 
   ngAfterViewInit(): void {
     setTimeout(() => {

@@ -363,16 +363,16 @@ export class PonccNewComponent implements OnInit, AfterViewInit {
                     // useRegularTooltipFromCellTextOnly: true,
                 },
             },
-            {
-                id: 'CurrencyRate',
-                name: 'Tỷ giá',
-                field: 'CurrencyRate',
-                width: 100,
-                sortable: false,
-                filterable: true,
-                formatter: (row: number, cell: number, value: any) => this.formatNumberEnUS(value),
-                filter: { model: Filters['compoundInputNumber'] },
-            },
+            // {
+            //     id: 'CurrencyRate',
+            //     name: 'Tỷ giá',
+            //     field: 'CurrencyRate',
+            //     width: 100,
+            //     sortable: false,
+            //     filterable: true,
+            //     formatter: (row: number, cell: number, value: any) => this.formatNumberEnUS(value),
+            //     filter: { model: Filters['compoundInputNumber'] },
+            // },
             {
                 id: 'NameNCC',
                 name: 'Nhà cung cấp',
@@ -1571,51 +1571,73 @@ export class PonccNewComponent implements OnInit, AfterViewInit {
 
         // Update filters for PO Thương mại grid (tab 0)
         if (this.angularGridPoThuongMai && this.angularGridPoThuongMai.slickGrid) {
-            const data = this.datasetsAllMapMaster.get('master-0') || this.datasetPoThuongMai || [];
-            if (data.length > 0) {
-                const columns = this.angularGridPoThuongMai.slickGrid.getColumns();
-                columns.forEach((column: any) => {
-                    if (column.filter && column.filter.model === Filters['multipleSelect']) {
-                        const field = column.field;
-                        if (field && masterTextFields.includes(field)) {
-                            const collection = getUniqueValues(data, field);
-                            if (column.filter) {
-                                column.filter.collection = collection;
+            const dataView = this.angularGridPoThuongMai.dataView;
+            if (dataView) {
+                // Lấy dữ liệu đã được filter từ view (không phải tất cả data gốc)
+                const data: any[] = [];
+                for (let i = 0; i < dataView.getLength(); i++) {
+                    const item = dataView.getItem(i);
+                    if (item) {
+                        data.push(item);
+                    }
+                }
+
+                if (data.length > 0) {
+                    const columns = this.angularGridPoThuongMai.slickGrid.getColumns();
+                    columns.forEach((column: any) => {
+                        if (column.filter && column.filter.model === Filters['multipleSelect']) {
+                            const field = column.field;
+                            if (field && masterTextFields.includes(field)) {
+                                const collection = getUniqueValues(data, field);
+                                if (column.filter) {
+                                    column.filter.collection = collection;
+                                }
                             }
                         }
-                    }
-                });
+                    });
 
-                // Force refresh columns
-                const updatedColumns = this.angularGridPoThuongMai.slickGrid.getColumns();
-                this.angularGridPoThuongMai.slickGrid.setColumns(updatedColumns);
-                this.angularGridPoThuongMai.slickGrid.invalidate();
-                this.angularGridPoThuongMai.slickGrid.render();
+                    // Force refresh columns
+                    const updatedColumns = this.angularGridPoThuongMai.slickGrid.getColumns();
+                    this.angularGridPoThuongMai.slickGrid.setColumns(updatedColumns);
+                    this.angularGridPoThuongMai.slickGrid.invalidate();
+                    this.angularGridPoThuongMai.slickGrid.render();
+                }
             }
         }
 
         // Update filters for PO Mượn grid (tab 1)
         if (this.angularGridPoMuon && this.angularGridPoMuon.slickGrid) {
-            const data = this.datasetsAllMapMaster.get('master-1') || this.datasetPoMuon || [];
-            if (data.length > 0) {
-                const columns = this.angularGridPoMuon.slickGrid.getColumns();
-                columns.forEach((column: any) => {
-                    if (column.filter && column.filter.model === Filters['multipleSelect']) {
-                        const field = column.field;
-                        if (field && masterTextFields.includes(field)) {
-                            const collection = getUniqueValues(data, field);
-                            if (column.filter) {
-                                column.filter.collection = collection;
+            const dataView = this.angularGridPoMuon.dataView;
+            if (dataView) {
+                // Lấy dữ liệu đã được filter từ view (không phải tất cả data gốc)
+                const data: any[] = [];
+                for (let i = 0; i < dataView.getLength(); i++) {
+                    const item = dataView.getItem(i);
+                    if (item) {
+                        data.push(item);
+                    }
+                }
+
+                if (data.length > 0) {
+                    const columns = this.angularGridPoMuon.slickGrid.getColumns();
+                    columns.forEach((column: any) => {
+                        if (column.filter && column.filter.model === Filters['multipleSelect']) {
+                            const field = column.field;
+                            if (field && masterTextFields.includes(field)) {
+                                const collection = getUniqueValues(data, field);
+                                if (column.filter) {
+                                    column.filter.collection = collection;
+                                }
                             }
                         }
-                    }
-                });
+                    });
 
-                // Force refresh columns
-                const updatedColumns = this.angularGridPoMuon.slickGrid.getColumns();
-                this.angularGridPoMuon.slickGrid.setColumns(updatedColumns);
-                this.angularGridPoMuon.slickGrid.invalidate();
-                this.angularGridPoMuon.slickGrid.render();
+                    // Force refresh columns
+                    const updatedColumns = this.angularGridPoMuon.slickGrid.getColumns();
+                    this.angularGridPoMuon.slickGrid.setColumns(updatedColumns);
+                    this.angularGridPoMuon.slickGrid.invalidate();
+                    this.angularGridPoMuon.slickGrid.render();
+                }
             }
         }
 
@@ -1626,26 +1648,37 @@ export class PonccNewComponent implements OnInit, AfterViewInit {
 
         // Update filters for Detail grid
         if (this.angularGridDetail && this.angularGridDetail.slickGrid) {
-            const data = this.datasetsAllMapDetail || this.datasetDetail || [];
-            if (data.length > 0) {
-                const columns = this.angularGridDetail.slickGrid.getColumns();
-                columns.forEach((column: any) => {
-                    if (column.filter && column.filter.model === Filters['multipleSelect']) {
-                        const field = column.field;
-                        if (field && detailTextFields.includes(field)) {
-                            const collection = getUniqueValues(data, field);
-                            if (column.filter) {
-                                column.filter.collection = collection;
+            const dataView = this.angularGridDetail.dataView;
+            if (dataView) {
+                // Lấy dữ liệu đã được filter từ view (không phải tất cả data gốc)
+                const data: any[] = [];
+                for (let i = 0; i < dataView.getLength(); i++) {
+                    const item = dataView.getItem(i);
+                    if (item) {
+                        data.push(item);
+                    }
+                }
+
+                if (data.length > 0) {
+                    const columns = this.angularGridDetail.slickGrid.getColumns();
+                    columns.forEach((column: any) => {
+                        if (column.filter && column.filter.model === Filters['multipleSelect']) {
+                            const field = column.field;
+                            if (field && detailTextFields.includes(field)) {
+                                const collection = getUniqueValues(data, field);
+                                if (column.filter) {
+                                    column.filter.collection = collection;
+                                }
                             }
                         }
-                    }
-                });
+                    });
 
-                // Force refresh columns
-                const updatedColumns = this.angularGridDetail.slickGrid.getColumns();
-                this.angularGridDetail.slickGrid.setColumns(updatedColumns);
-                this.angularGridDetail.slickGrid.invalidate();
-                this.angularGridDetail.slickGrid.render();
+                    // Force refresh columns
+                    const updatedColumns = this.angularGridDetail.slickGrid.getColumns();
+                    this.angularGridDetail.slickGrid.setColumns(updatedColumns);
+                    this.angularGridDetail.slickGrid.invalidate();
+                    this.angularGridDetail.slickGrid.render();
+                }
             }
         }
     }
@@ -1784,6 +1817,7 @@ export class PonccNewComponent implements OnInit, AfterViewInit {
                 modalRef.componentInstance.poncc = selectedPO;
                 modalRef.componentInstance.dtRef = detailResponse.data.dtRef || [];
                 modalRef.componentInstance.ponccDetail = detailResponse.data.data || [];
+                modalRef.componentInstance.isEditMode = true;
 
                 modalRef.result.finally(() => {
                     this.onSearch();
@@ -2151,7 +2185,7 @@ export class PonccNewComponent implements OnInit, AfterViewInit {
         const selectedRows = this.getSelectedMasterRows();
 
         // Validate selection
-        if (!selectedRows || selectedRows.length === 0) {
+        if (!selectedRows || selectedRows.length <= 0) {
             this.notification.warning(
                 NOTIFICATION_TITLE.warning,
                 'Vui lòng chọn PO!'
@@ -2185,12 +2219,21 @@ export class PonccNewComponent implements OnInit, AfterViewInit {
             nzOkType: 'primary',
             nzCancelText: 'Hủy',
             nzOnOk: () => {
+                // Cập nhật masterDetailsMap với các detail đã chọn hiện tại
+                // Nếu có detail được chọn thì chỉ lấy detail đã chọn
+                // Nếu không có detail nào được chọn thì giữ nguyên tất cả detail của master
+                if (this.lastMasterId) {
+                    const currentSelectedDetails = this.getSelectedDetailRows();
+                    if (currentSelectedDetails.length > 0) {
+                        this.masterDetailsMap.set(this.lastMasterId, currentSelectedDetails);
+                    }
+                }
+
                 const ids = selectedRows.map((x) => x.ID).join(',');
-                // Lấy tất cả detail IDs từ masterDetailsMap
                 const idString = Array.from(this.masterDetailsMap.values())
                     .flat()
                     .map((x) => x.ID)
-                    .filter((id) => id != null && id > 0)
+                    .filter((id) => id != null)
                     .join(',');
                 
                 this.srv.getPonccDetail(ids, warehouseID, idString).subscribe((res) => {
@@ -2200,6 +2243,13 @@ export class PonccNewComponent implements OnInit, AfterViewInit {
                     let listDemoDetail = res.data.listDemoDetail || [];
                     let listDemoPonccId = res.data.listDemoPonccId || [];
                     let listSalePonccId = res.data.listSalePonccId || [];
+
+                    //   console.log('dataSale', dataSale);
+                    //   console.log('listSaleDetail', listSaleDetail);
+                    //   console.log('listSalePonccId', listSalePonccId);
+                    //   console.log('dataDemo', dataDemo);
+                    //   console.log('listDemoDetail', listDemoDetail);
+                    //   console.log('listDemoPonccId', listDemoPonccId);
 
                     if (dataSale.length > 0) {
                         this.openBillImportModalSequentially(
@@ -2258,12 +2308,18 @@ export class PonccNewComponent implements OnInit, AfterViewInit {
         }
 
         if (index >= listData.length) {
+            //   console.log('Đã hoàn thành việc mở danh sách modal.');
             return;
         }
 
         let dataMaster = listData[index];
         let dataDetail = listDetail[index];
         let ponccId = listPonccId[index];
+
+        // console.log('Mở modal thứ', index + 1);
+        // console.log('Data master:', dataMaster);
+        // console.log('Data detail:', dataDetail);
+        // console.log('PO NCC ID:', ponccId);
 
         if (type === 0) {
             const modalRef = this.modalService.open(BillImportDetailComponent, {
@@ -2281,6 +2337,8 @@ export class PonccNewComponent implements OnInit, AfterViewInit {
 
             modalRef.result
                 .then((result) => {
+                    //   console.log(`Modal thứ ${index + 1} đã đóng. Kết quả:`, result);
+
                     this.openBillImportModalSequentially(
                         listData,
                         listDetail,
@@ -2291,6 +2349,8 @@ export class PonccNewComponent implements OnInit, AfterViewInit {
                     );
                 })
                 .catch((reason) => {
+                    //   console.log(`Modal thứ ${index + 1} bị tắt (dismiss):`, reason);
+
                     this.openBillImportModalSequentially(
                         listData,
                         listDetail,
@@ -2321,6 +2381,8 @@ export class PonccNewComponent implements OnInit, AfterViewInit {
 
             modalRef.result
                 .then((result) => {
+                    console.log(`Modal thứ ${index + 1} đã đóng. Kết quả:`, result);
+
                     this.openBillImportModalSequentially(
                         listData,
                         listDetail,
@@ -2331,6 +2393,8 @@ export class PonccNewComponent implements OnInit, AfterViewInit {
                     );
                 })
                 .catch((reason) => {
+                    //   console.log(`Modal thứ ${index + 1} bị tắt (dismiss):`, reason);
+
                     this.openBillImportModalSequentially(
                         listData,
                         listDetail,

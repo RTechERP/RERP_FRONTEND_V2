@@ -1,15 +1,1754 @@
-import { Component, OnInit } from '@angular/core';
 
+
+import { Component, OnInit, ViewChild } from '@angular/core';
+import {
+  AngularGridInstance,
+  AngularSlickgridModule,
+  Column,
+  FieldType,
+  Filters,
+  Formatters,
+  GridOption,
+  OnEventArgs,
+} from 'angular-slickgrid';
+import { BillExportService } from './../bill-export-service/bill-export.service';
+import { NzNotificationService } from 'ng-zorro-antd/notification';
+import { NgbModal } from '@ng-bootstrap/ng-bootstrap';
+import { NzModalService } from 'ng-zorro-antd/modal';
+import { NOTIFICATION_TITLE } from '../../../../../app.config';
+import { DateTime } from 'luxon';
+import * as ExcelJS from 'exceljs';
+import { NzFormModule } from 'ng-zorro-antd/form';
+import { NzInputModule } from 'ng-zorro-antd/input';
+import { NzButtonModule } from 'ng-zorro-antd/button';
+import { NzSelectModule } from 'ng-zorro-antd/select';
+import { NzDatePickerModule } from 'ng-zorro-antd/date-picker';
+import { NzCheckboxModule } from 'ng-zorro-antd/checkbox';
+import { NzIconModule } from 'ng-zorro-antd/icon';
+import { NzDropDownModule } from 'ng-zorro-antd/dropdown';
+import { NzMenuModule } from 'ng-zorro-antd/menu';
+import { NzTabsModule } from 'ng-zorro-antd/tabs';
+import { NzSpinModule } from 'ng-zorro-antd/spin';
+import { NzModalModule } from 'ng-zorro-antd/modal';
+import { FormsModule } from '@angular/forms';
+import { CommonModule } from '@angular/common';
+import { HistoryDeleteBillComponent } from '../Modal/history-delete-bill/history-delete-bill.component';
+import { BillExportDetailComponent } from '../Modal/bill-export-detail/bill-export-detail.component';
+import { ActivatedRoute } from '@angular/router';
+import { AppUserService } from '../../../../../services/app-user.service';
+import { HasPermissionDirective } from '../../../../../directives/has-permission.directive';
 @Component({
   selector: 'app-bill-export-new',
   templateUrl: './bill-export-new.component.html',
-  styleUrls: ['./bill-export-new.component.css']
+  styleUrls: ['./bill-export-new.component.css'],
+  standalone: true,
+  imports: [
+    CommonModule,
+    FormsModule,
+    AngularSlickgridModule,
+    NzFormModule,
+    NzInputModule,
+    NzButtonModule,
+    NzSelectModule,
+    NzDatePickerModule,
+    NzCheckboxModule,
+    NzIconModule,
+    NzDropDownModule,
+    NzMenuModule,
+    NzTabsModule,
+    NzSpinModule,
+    NzModalModule,
+    HasPermissionDirective
+  ],
 })
 export class BillExportNewComponent implements OnInit {
+  // ========================================
+  // Grid Instances & Properties
+  // ========================================
+  angularGridMaster!: AngularGridInstance;
+  angularGridDetail!: AngularGridInstance;
+  columnDefinitionsMaster: Column[] = [];
+  columnDefinitionsDetail: Column[] = [];
+  gridOptionsMaster!: GridOption;
+  gridOptionsDetail!: GridOption;
+  datasetMaster: any[] = [];
+  datasetDetail: any[] = [];
 
-  constructor() { }
+  // ========================================
+  // Component State
+  // ========================================
+  id: number = 0;
+  selectedRow: any = null;
+  selectBillExport: any = null;
+  data: any[] = [];
+  isLoadTable: boolean = false;
+  isDetailLoad: boolean = false;
+  isCheckmode: boolean = false;
+  newBillExport: boolean = false;
+  sizeTbDetail: number | string  = '0';
+  warehouseCode: string = '';
+  checked: boolean = false;
+  selectedKhoTypes: number[] = [];
+  dataProductGroup: any[] = [];
+  cbbStatus: any[] = [
+    { ID: -1, Name: '--Tất cả--' },
+    { ID: 0, Name: 'Phiếu xuất kho' },
+    { ID: 1, Name: 'Phiếu trả' },
+    { ID: 2, Name: 'Phiếu mượn' },
+  ];
+
+  // Search parameters
+  searchParams = {
+    listproductgroupID: '',
+    status: -1,
+    dateStart: new Date(new Date().getFullYear(), new Date().getMonth(), 1),
+    dateEnd: new Date(),
+    keyword: '',
+    warehousecode: '',
+    checkAll: false,
+    pageNumber: 1,
+    pageSize: 99999999,
+  };
+
+  constructor(
+    private billExportService: BillExportService,
+    private notification: NzNotificationService,
+    private modalService: NgbModal,
+    private modal: NzModalService,
+    private route: ActivatedRoute,
+    private appUserService: AppUserService
+  ) {}
 
   ngOnInit() {
+    // Đọc wareHouseCode từ query params
+    this.route.queryParams.subscribe(params => {
+      this.warehouseCode = params['warehouseCode'] || 'HN';
+      this.searchParams.warehousecode = this.warehouseCode;
+    });
+
+    this.initMasterGrid();
+    this.initDetailGrid();
+    this.getProductGroup();
   }
 
+  // ========================================
+  // Grid Initialization
+  // ========================================
+
+  initMasterGrid() {
+    this.columnDefinitionsMaster = [
+      {
+        id: 'IsApproved',
+        name: 'Nhận chứng từ',
+        field: 'IsApproved',
+        sortable: true,
+        filterable: true,
+        type: FieldType.boolean,
+        formatter: Formatters.checkmarkMaterial,
+        minWidth: 120,
+        maxWidth: 120,
+      },
+      {
+        id: 'DateStatus',
+        name: 'Ngày nhận',
+        field: 'DateStatus',
+        sortable: true,
+        filterable: true,
+        type: FieldType.dateIso,
+        formatter: Formatters.dateIso,
+        minWidth: 120,
+      },
+      {
+        id: 'nameStatus',
+        name: 'Trạng thái',
+        field: 'nameStatus',
+        sortable: true,
+        filterable: true,
+        filter: {
+          model: Filters['multipleSelect'],
+          collection: []
+        },
+        minWidth: 200,
+      },
+      {
+        id: 'RequestDate',
+        name: 'Ngày yêu cầu xuất kho',
+        field: 'RequestDate',
+        sortable: true,
+        filterable: true,
+        type: FieldType.dateIso,
+        formatter: Formatters.dateIso,
+        minWidth: 150,
+      },
+      {
+        id: 'Code',
+        name: 'Số phiếu',
+        field: 'Code',
+        sortable: true,
+        filterable: true,
+        filter: {
+          model: Filters['multipleSelect'],
+          collection: []
+        },
+        minWidth: 160,
+      },
+      {
+        id: 'DepartmentName',
+        name: 'Phòng ban',
+        field: 'DepartmentName',
+        sortable: true,
+        filterable: true,
+        filter: {
+          model: Filters['multipleSelect'],
+          collection: []
+        },
+        minWidth: 200,
+      },
+      {
+        id: 'EmployeeCode',
+        name: 'Mã NV',
+        field: 'EmployeeCode',
+        sortable: true,
+        filterable: true,
+        filter: {
+          model: Filters['multipleSelect'],
+          collection: []
+        },
+        minWidth: 150,
+      },
+      {
+        id: 'FullName',
+        name: 'Tên NV',
+        field: 'FullName',
+        sortable: true,
+        filterable: true,
+        filter: {
+          model: Filters['multipleSelect'],
+          collection: []
+        },
+        minWidth: 200,
+      },
+      {
+        id: 'CustomerName',
+        name: 'Khách hàng',
+        field: 'CustomerName',
+        sortable: true,
+        filterable: true,
+        filter: {
+          model: Filters['multipleSelect'],
+          collection: []
+        },
+        minWidth: 200,
+      },
+      {
+        id: 'NameNCC',
+        name: 'Nhà cung cấp',
+        field: 'NameNCC',
+        sortable: true,
+        filterable: true,
+        filter: {
+          model: Filters['multipleSelect'],
+          collection: []
+        },
+        minWidth: 200,
+      },
+      {
+        id: 'Address',
+        name: 'Địa chỉ',
+        field: 'Address',
+        sortable: true,
+        filterable: true,
+        filter: { model: Filters['compoundInput'] },
+        minWidth: 200,
+      },
+      {
+        id: 'CreatDate',
+        name: 'Ngày xuất',
+        field: 'CreatDate',
+        sortable: true,
+        filterable: true,
+        type: FieldType.dateIso,
+        formatter: Formatters.dateIso,
+        minWidth: 150,
+      },
+      {
+        id: 'WarehouseType',
+        name: 'Loại vật tư',
+        field: 'WarehouseType',
+        sortable: true,
+        filterable: true,
+        filter: {
+          model: Filters['multipleSelect'],
+          collection: []
+        },
+        minWidth: 200,
+      },
+      {
+        id: 'WarehouseName',
+        name: 'Kho',
+        field: 'WarehouseName',
+        sortable: true,
+        filterable: true,
+        filter: {
+          model: Filters['multipleSelect'],
+          collection: []
+        },
+        minWidth: 200,
+      },
+      {
+        id: 'ProductTypeText',
+        name: 'Loại phiếu',
+        field: 'ProductTypeText',
+        sortable: true,
+        filterable: true,
+        filter: {
+          model: Filters['multipleSelect'],
+          collection: []
+        },
+        minWidth: 120,
+      },
+      {
+        id: 'FullNameSender',
+        name: 'Người giao',
+        field: 'FullNameSender',
+        sortable: true,
+        filterable: true,
+        filter: {
+          model: Filters['multipleSelect'],
+          collection: []
+        },
+        minWidth: 200,
+      },
+    ];
+
+    this.gridOptionsMaster = {
+      enableAutoResize: true,
+      enableSorting: true,
+      enableFiltering: true,
+      enablePagination: false,
+      enableRowSelection: true,
+      enableCheckboxSelector: true,
+      enableRowMoveManager: false,
+      checkboxSelector: {
+        hideSelectAllCheckbox: false,
+      },
+      rowSelectionOptions: {
+        selectActiveRow: true,
+      },
+      multiSelect: false,
+      enableColumnPicker: true,
+      enableGridMenu: true,
+      autoHeight: false,
+      gridHeight: 450,
+
+    };
+  }
+
+  initDetailGrid() {
+    this.columnDefinitionsDetail = [
+      {
+        id: 'ProductNewCode',
+        name: 'Mã nội bộ',
+        field: 'ProductNewCode',
+        sortable: true,
+        filterable: true,
+        filter: {
+          model: Filters['multipleSelect'],
+          collection: []
+        },
+        minWidth: 150,
+      },
+      {
+        id: 'ProductCode',
+        name: 'Mã sản phẩm',
+        field: 'ProductCode',
+        sortable: true,
+        filterable: true,
+        filter: {
+          model: Filters['multipleSelect'],
+          collection: []
+        },
+        minWidth: 150,
+      },
+      {
+        id: 'TotalInventory',
+        name: 'SL tồn',
+        field: 'TotalInventory',
+        sortable: true,
+        filterable: true,
+        type: FieldType.number,
+        minWidth: 100,
+      },
+      {
+        id: 'ProductName',
+        name: 'Chi tiết sản phẩm',
+        field: 'ProductName',
+        sortable: true,
+        filterable: true,
+        filter: {
+          model: Filters['multipleSelect'],
+          collection: []
+        },
+        minWidth: 200,
+      },
+      {
+        id: 'ProductFullName',
+        name: 'Mã sản phẩm theo dự án',
+        field: 'ProductFullName',
+        sortable: true,
+        filterable: true,
+        filter: {
+          model: Filters['multipleSelect'],
+          collection: []
+        },
+        minWidth: 200,
+      },
+      {
+        id: 'Unit',
+        name: 'ĐVT',
+        field: 'Unit',
+        sortable: true,
+        filterable: true,
+        filter: {
+          model: Filters['multipleSelect'],
+          collection: []
+        },
+        minWidth: 100,
+      },
+      {
+        id: 'Qty',
+        name: 'Số lượng',
+        field: 'Qty',
+        sortable: true,
+        filterable: true,
+        type: FieldType.number,
+        minWidth: 100,
+      },
+      {
+        id: 'ProductGroupName',
+        name: 'Loại hàng',
+        field: 'ProductGroupName',
+        sortable: true,
+        filterable: true,
+        filter: {
+          model: Filters['multipleSelect'],
+          collection: []
+        },
+        minWidth: 150,
+      },
+      {
+        id: 'ProductTypeText',
+        name: 'Hàng xuất',
+        field: 'ProductTypeText',
+        sortable: true,
+        filterable: true,
+        filter: {
+          model: Filters['multipleSelect'],
+          collection: []
+        },
+        minWidth: 120,
+      },
+      {
+        id: 'Note',
+        name: 'Ghi chú (PO)',
+        field: 'Note',
+        sortable: true,
+        filterable: true,
+        filter: {
+          model: Filters['multipleSelect'],
+          collection: []
+        },
+        minWidth: 200,
+      },
+      {
+        id: 'UnitPricePOKH',
+        name: 'Đơn giá bán',
+        field: 'UnitPricePOKH',
+        sortable: true,
+        filterable: true,
+        type: FieldType.number,
+        minWidth: 120,
+      },
+      {
+        id: 'UnitPricePurchase',
+        name: 'Đơn giá mua',
+        field: 'UnitPricePurchase',
+        sortable: true,
+        filterable: true,
+        type: FieldType.number,
+        minWidth: 120,
+      },
+      {
+        id: 'BillCode',
+        name: 'Đơn mua hàng',
+        field: 'BillCode',
+        sortable: true,
+        filterable: true,
+        filter: {
+          model: Filters['multipleSelect'],
+          collection: []
+        },
+        minWidth: 150,
+      },
+      {
+        id: 'ProjectCodeExport',
+        name: 'Mã dự án',
+        field: 'ProjectCodeExport',
+        sortable: true,
+        filterable: true,
+        filter: {
+          model: Filters['multipleSelect'],
+          collection: []
+        },
+        minWidth: 120,
+      },
+      {
+        id: 'ProjectNameText',
+        name: 'Dự án',
+        field: 'ProjectNameText',
+        sortable: true,
+        filterable: true,
+        filter: {
+          model: Filters['multipleSelect'],
+          collection: []
+        },
+        minWidth: 200,
+      },
+    ];
+
+    this.gridOptionsDetail = {
+      enableAutoResize: true,
+      enableSorting: true,
+      enableFiltering: true,
+      enablePagination: false,
+      enableRowSelection: true,
+      enableCheckboxSelector: false,
+      rowSelectionOptions: {
+        selectActiveRow: true,
+      },
+      multiSelect: false,
+      enableColumnPicker: true,
+      enableGridMenu: true,
+      autoHeight: false,
+      gridHeight: 300,
+    };
+  }
+
+  // ========================================
+  // Grid Events
+  // ========================================
+
+  angularGridMasterReady(angularGrid: AngularGridInstance) {
+    this.angularGridMaster = angularGrid;
+
+    // Subscribe to row selection changes
+    if (angularGrid?.slickGrid) {
+      angularGrid.slickGrid.onSelectedRowsChanged.subscribe(
+        (e: any, args: any) => {
+          this.onMasterRowSelectionChanged(e, args);
+        }
+      );
+
+      // Subscribe to double click event
+      angularGrid.slickGrid.onDblClick.subscribe(
+        (e: any, args: any) => {
+          this.onMasterDoubleClick(e, args);
+        }
+      );
+    }
+  }
+
+  angularGridDetailReady(angularGrid: AngularGridInstance) {
+    this.angularGridDetail = angularGrid;
+  }
+
+  onMasterRowSelectionChanged(e: Event, args: any) {
+    if (args && Array.isArray(args.rows) && args.rows.length > 0) {
+      const selectedRowIndex = args.rows[0];
+      const selectedData = args.dataContext || this.angularGridMaster?.dataView?.getItem(selectedRowIndex);
+
+      if (selectedData) {
+        this.id = selectedData.ID || 0;
+        this.selectedRow = selectedData;
+        this.data = [selectedData];
+        this.sizeTbDetail = '0';
+        this.updateTabDetailTitle();
+        this.getBillExportDetail(this.id);
+        this.getBillExportByID(this.id);
+      }
+    } else {
+      // Deselected
+      this.id = 0;
+      this.selectedRow = null;
+      this.data = [];
+      this.datasetDetail = [];
+      this.selectBillExport = null;
+      this.updateTabDetailTitle();
+
+      if (this.angularGridDetail) {
+        this.angularGridDetail.dataView?.setItems([]);
+        this.angularGridDetail.slickGrid?.invalidate();
+      }
+    }
+  }
+
+  onMasterCellClick(e: Event, args: OnEventArgs) {
+    // Handle cell click if needed
+  }
+
+  onMasterDoubleClick(e: Event, args: any) {
+    // Open edit modal on double click
+    if (args && args.grid) {
+      const cell = args.grid.getCellFromEvent(e);
+      if (cell) {
+        const item = args.grid.getDataItem(cell.row);
+        if (item) {
+          this.id = item.ID || 0;
+          this.selectedRow = item;
+          this.data = [item];
+          this.openModalBillExportDetail(true);
+        }
+      }
+    }
+  }
+
+  onDetailCellClick(e: Event, args: OnEventArgs) {
+    // Handle detail cell click if needed
+  }
+
+  // ========================================
+  // Product Group & Initialization
+  // ========================================
+
+  getProductGroup() {
+    this.billExportService
+      .getProductGroup(
+        this.appUserService.isAdmin,
+        this.appUserService.departmentID || 0
+      )
+      .subscribe({
+        next: (res) => {
+          if (res?.data && Array.isArray(res.data)) {
+            this.dataProductGroup = res.data;
+            this.selectedKhoTypes = this.dataProductGroup.map(
+              (item) => item.ID
+            );
+            this.searchParams.listproductgroupID =
+              this.selectedKhoTypes.join(',');
+            // Load data sau khi đã có product group
+            this.loadDataBillExport();
+          } else {
+            // Nếu không có data, vẫn load với listproductgroupID rỗng
+            this.searchParams.listproductgroupID = '';
+            this.loadDataBillExport();
+          }
+        },
+        error: (err) => {
+          console.error('Lỗi khi lấy nhóm vật tư', err);
+          // Vẫn load data ngay cả khi lỗi getProductGroup
+          this.searchParams.listproductgroupID = '';
+          this.loadDataBillExport();
+        },
+      });
+  }
+
+  // ========================================
+  // Data Loading
+  // ========================================
+
+  // loadMasterData(query: any): Promise<any> {
+  //   return new Promise((resolve, reject) => {
+  //     this.isLoadTable = true;
+
+  //     const dateStart = DateTime.fromJSDate(
+  //       new Date(this.searchParams.dateStart)
+  //     );
+  //     const dateEnd = DateTime.fromJSDate(
+  //       new Date(this.searchParams.dateEnd)
+  //     );
+
+  //     const params = {
+  //       listproductgroupID: this.searchParams.listproductgroupID,
+  //       status: this.searchParams.status,
+  //       dateStart: dateStart,
+  //       dateEnd: dateEnd,
+  //       keyword: this.searchParams.keyword,
+  //       checked: this.checked,
+  //       pageNumber: query?.pagination?.pageNumber || 1,
+  //       pageSize: query?.pagination?.pageSize || 50,
+  //       warehousecode: this.searchParams.warehousecode,
+  //     };
+
+  //     this.billExportService
+  //       .getBillExport(
+  //         params.listproductgroupID,
+  //         params.status,
+  //         params.dateStart,
+  //         params.dateEnd,
+  //         params.keyword,
+  //         params.checked,
+  //         params.pageNumber,
+  //         params.pageSize,
+  //         params.warehousecode
+  //       )
+  //       .subscribe({
+  //         next: (res) => {
+  //           this.isLoadTable = false;
+  //           if (res.status === 1 && res.data) {
+  //             const totalPage = res.data[0]?.TotalPage || 1;
+  //             this.datasetMaster = res.data;
+  //             this.datasetMaster = this.datasetMaster.map((item: any) => {
+  //               ...item,
+  //               id: item.ID,
+  //             }
+  //             resolve({
+  //               data: res.data,
+  //             });
+  //           } else {
+  //             this.datasetMaster = [];
+  //             resolve({
+  //               data: [],
+  //               totalItems: 0,
+  //             });
+  //           }
+  //         },
+  //         error: (err) => {
+  //           this.isLoadTable = false;
+  //           this.notification.error(
+  //             NOTIFICATION_TITLE.error,
+  //             err?.error?.message || 'Không thể tải dữ liệu phiếu xuất'
+  //           );
+  //           reject(err);
+  //         },
+  //       });
+  //   });
+  // }
+// loadMasterData(): Promise<any> {
+//   return new Promise((resolve, reject) => {
+//     this.isLoadTable = true;
+
+//     const params = {
+//       listproductgroupID: this.searchParams.listproductgroupID,
+//       status: this.searchParams.status,
+//       dateStart: this.searchParams.dateStart,
+//       dateEnd: this.searchParams.dateEnd,
+//       keyword: this.searchParams.keyword,
+//       checked: this.checked,
+//       warehousecode: this.searchParams.warehousecode,
+//     };
+
+//     this.billExportService
+//       .getBillExport(
+//         params.listproductgroupID,
+//         params.status,
+//         params.dateStart,
+//         params.dateEnd,
+//         params.keyword,
+//         params.checked,
+//         params.warehousecode,
+//         params.pageNumber,
+//         99999999
+//       )
+//       .subscribe({
+//         next: (res) => {
+//           this.isLoadTable = false;
+
+//           if (res.status === 1 && res.data?.length) {
+//             this.datasetMaster = res.data.map((item: any, index: number) => ({
+//               ...item,
+//               id: item.ID ?? index + 1, // 🔥 bắt buộc cho SlickGrid
+//             }));
+
+//             resolve({ data: this.datasetMaster });
+//           } else {
+//             this.datasetMaster = [];
+//             resolve({ data: [] });
+//           }
+//         },
+//         error: (err) => {
+//           this.isLoadTable = false;
+//           this.notification.error(
+//             NOTIFICATION_TITLE.error,
+//             err?.error?.message || 'Không thể tải dữ liệu phiếu xuất'
+//           );
+//           reject(err);
+//         },
+//       });
+//   });
+// }
+
+  loadDataBillExport() {
+    this.isLoadTable = true;
+
+    const dateStart = this.searchParams.dateStart instanceof Date
+      ? DateTime.fromJSDate(this.searchParams.dateStart)
+      : this.searchParams.dateStart;
+
+    const dateEnd = this.searchParams.dateEnd instanceof Date
+      ? DateTime.fromJSDate(this.searchParams.dateEnd)
+      : this.searchParams.dateEnd;
+
+    this.billExportService.getBillExport(
+      this.searchParams.listproductgroupID,
+      this.searchParams.status,
+      dateStart,
+      dateEnd,
+      this.searchParams.keyword,
+      this.searchParams.checkAll,
+      this.searchParams.pageNumber,
+      99999999,
+      this.searchParams.warehousecode
+    ).subscribe({
+      next: (res) => {
+        this.isLoadTable = false;
+        if (res.status === 1 && res.data) {
+          this.datasetMaster = res.data;
+          this.datasetMaster = this.datasetMaster.map((item: any) => ({
+            ...item,
+            id: item.ID
+          }));
+          this.applyDistinctFiltersToMaster();
+        }
+        this.id = 0;
+        this.selectedRow = null;
+        this.data = [];
+        this.datasetDetail = [];
+      },
+      error: (err) => {
+        this.isLoadTable = false;
+        this.notification.error(
+          NOTIFICATION_TITLE.error,
+          err?.error?.message
+        );
+      },
+    });
+  }
+
+  getBillExportDetail(billExportID: number) {
+    if (!billExportID || billExportID === 0) {
+      this.datasetDetail = [];
+      if (this.angularGridDetail) {
+        this.angularGridDetail.dataView?.setItems([]);
+        this.angularGridDetail.slickGrid?.invalidate();
+      }
+      return;
+    }
+
+    this.isDetailLoad = true;
+    this.billExportService.getBillExportDetail(billExportID).subscribe({
+      next: (res) => {
+        this.isDetailLoad = false;
+        if (res.status === 1 && res.data) {
+          this.datasetDetail = res.data;
+          this.datasetDetail = this.datasetDetail.map((item: any) => ({
+            ...item,
+            id: item.ID
+          }));
+          this.sizeTbDetail = res.data.length;
+          this.updateTabDetailTitle();
+
+          if (this.angularGridDetail) {
+            this.angularGridDetail.dataView?.setItems(this.datasetDetail);
+            this.angularGridDetail.slickGrid?.invalidate();
+          }
+
+          // Apply distinct filters to detail grid
+          this.applyDistinctFiltersToDetail();
+        } else {
+          this.datasetDetail = [];
+          this.sizeTbDetail = 0;
+          this.updateTabDetailTitle();
+        }
+      },
+      error: (err) => {
+        this.isDetailLoad = false;
+        this.notification.error(
+          NOTIFICATION_TITLE.error,
+          err?.error?.message
+        );
+      },
+    });
+  }
+
+  getBillExportByID(id: number) {
+    if (!id || id === 0) {
+      this.selectBillExport = null;
+      return;
+    }
+
+    this.billExportService.getBillExportByID(id).subscribe({
+      next: (res) => {
+        if (res.status === 1) {
+          this.selectBillExport = res.data;
+        } else {
+          this.notification.warning(
+            NOTIFICATION_TITLE.warning,
+            res.message || 'Lỗi'
+          );
+        }
+      },
+      error: (err) => {
+        this.notification.error(
+          NOTIFICATION_TITLE.error,
+          err?.error?.message
+        );
+      },
+    });
+  }
+
+  // ========================================
+  // Search & Filter
+  // ========================================
+
+  // onSearch() {
+  //   this.loadDataBillExport();
+  // }
+
+  // onDateStartChange(date: Date) {
+  //   this.searchParams.dateStart = date;
+  // }
+
+  // onDateEndChange(date: Date) {
+  //   this.searchParams.dateEnd = date;
+  // }
+
+  // ========================================
+  // Actions
+  // ========================================
+
+  openModalBillExportDetail(isCheckmode: boolean) {
+    this.isCheckmode = isCheckmode;
+    if (this.isCheckmode === true && this.id === 0) {
+      this.notification.info('Thông báo', 'Vui lòng chọn 1 phiếu xuất để sửa');
+      return;
+    }
+
+    // TODO: Open BillExportDetail modal
+    const modalRef = this.modalService.open(BillExportDetailComponent, {
+      centered: true,
+      size: 'xl',
+      backdrop: 'static',
+      keyboard: false,
+    });
+    modalRef.componentInstance.newBillExport = this.newBillExport;
+    modalRef.componentInstance.isCheckmode = this.isCheckmode;
+    modalRef.componentInstance.id = this.id;
+    modalRef.componentInstance.wareHouseCode = this.warehouseCode;
+    modalRef.result.catch((result) => {
+      if (result === true) {
+        this.id = 0;
+        this.loadDataBillExport();
+      }
+    });
+  }
+
+  openModalHistoryDeleteBill() {
+    if (!this.id || this.id === 0) {
+      this.notification.info('Thông báo', 'Vui lòng chọn 1 phiếu xuất!');
+      return;
+    }
+
+    // TODO: Open HistoryDeleteBill modal
+    const modalRef = this.modalService.open(HistoryDeleteBillComponent, {
+      centered: true,
+      size: 'xl',
+      backdrop: 'static',
+      keyboard: false,
+    });
+    modalRef.componentInstance.billExportID = this.id;
+    modalRef.componentInstance.billType = 0;
+  }
+
+  // openModalBillDocumentExport() {
+  //   let exportId = this.id;
+  //   let code = '';
+
+  //   if (!exportId || exportId === 0) {
+  //     const selectedRows = this.getSelectedRows();
+  //     if (selectedRows.length > 0) {
+  //       exportId = selectedRows[0]?.ID || 0;
+  //       code = selectedRows[0]?.Code || '';
+  //     }
+  //   }
+
+  //   if (!exportId || exportId === 0) {
+  //     this.notification.info('Thông báo', 'Vui lòng chọn 1 phiếu xuất!');
+  //     return;
+  //   }
+
+  //   if (!code) {
+  //     const selected = this.data?.find((item) => item.ID === exportId);
+  //     code = selected?.Code || '';
+  //   }
+
+  //   // TODO: Open BillDocumentExport modal
+  //   // const modalRef = this.modalService.open(BillDocumentExportComponent, {
+  //   //   centered: true,
+  //   //   size: 'xl',
+  //   //   backdrop: 'static',
+  //   //   keyboard: false,
+  //   // });
+  //   // modalRef.componentInstance.id = exportId;
+  //   // modalRef.componentInstance.code = code;
+  //   // modalRef.result.catch((result) => {
+  //   //   if (result === true) {
+  //   //     this.id = 0;
+  //   //     this.loadDataBillExport();
+  //   //   }
+  //   // });
+  // }
+
+
+  IsApproved(approve: boolean) {
+    if (!this.data || this.data.length === 0) {
+      this.notification.info(
+        'Thông báo',
+        'Vui lòng chọn 1 phiếu để nhận chứng từ!'
+      );
+      return;
+    }
+
+    if (this.data[0].Approved === false && approve === false) {
+      this.notification.info(
+        'Thông báo',
+        `${this.data[0].Code} chưa nhận chứng từ, không thể hủy!`
+      );
+      return;
+    }
+
+    if (this.data[0].Status === 2 && approve === false) {
+      this.notification.error(
+        'Thông báo',
+        'Phiếu xuất đã xuất kho không thể hủy phiếu!'
+      );
+      return;
+    }
+
+    this.billExportService.approved(this.data[0], approve).subscribe({
+      next: (res) => {
+        if (res.status === 1) {
+          this.notification.success(
+            NOTIFICATION_TITLE.success,
+            res.message || 'Thành công!'
+          );
+          this.data = [];
+          this.loadDataBillExport();
+        } else {
+          this.notification.error(
+            'Thông báo',
+            res.message || 'Có lỗi xảy ra!'
+          );
+        }
+      },
+      error: (err) => {
+        const errorMsg = err?.error?.message;
+        this.notification.error(NOTIFICATION_TITLE.error, errorMsg);
+      },
+    });
+  }
+
+  shippedOut() {
+    if (!this.data || this.data.length === 0) {
+      this.notification.info(
+        'Thông báo',
+        'Vui lòng chọn 1 phiếu để chuyển trạng thái!'
+      );
+      return;
+    }
+
+    this.modal.confirm({
+      nzTitle: 'Xác nhận',
+      nzContent: 'Bạn có chắc chắn muốn chuyển trạng thái phiếu không?',
+      nzOkText: 'Đồng ý',
+      nzCancelText: 'Hủy',
+      nzOnOk: () => {
+        this.billExportService.shippedOut(this.data[0]).subscribe({
+          next: (res: any) => {
+            if (res.status === 1) {
+              this.notification.success(
+                'Thông báo',
+                res.message || 'Thành công!'
+              );
+              this.data = [];
+              this.loadDataBillExport();
+            } else {
+              this.notification.error(
+                'Thông báo',
+                res.message || 'Có lỗi xảy ra!'
+              );
+            }
+          },
+          error: (err) => {
+            const errorMsg = err?.error?.message;
+            this.notification.error(NOTIFICATION_TITLE.error, errorMsg);
+          },
+        });
+      },
+    });
+  }
+
+  // updateDocumentStatus(status: number) {
+  //   if (!this.id || this.id === 0) {
+  //     this.notification.info('Thông báo', 'Vui lòng chọn 1 phiếu xuất!');
+  //     return;
+  //   }
+
+  //   const statusText = this.getStatusText(status);
+  //   this.modal.confirm({
+  //     nzTitle: 'Xác nhận',
+  //     nzContent: `Bạn có chắc chắn muốn chuyển sang trạng thái "${statusText}" không?`,
+  //     nzOkText: 'Đồng ý',
+  //     nzCancelText: 'Hủy',
+  //     nzOnOk: () => {
+  //       this.callApiUpdateDocumentStatus(status);
+  //     },
+  //   });
+  // }
+
+  // callApiUpdateDocumentStatus(status: number) {
+  //   const payload = {
+  //     id: this.id,
+  //     status: status,
+  //   };
+
+  //   this.billExportService.updateDocumentStatus(payload).subscribe({
+  //     next: (res) => {
+  //       if (res.status === 1) {
+  //         this.notification.success(
+  //           NOTIFICATION_TITLE.success,
+  //           res.message || 'Cập nhật trạng thái thành công!'
+  //         );
+  //         this.loadDataBillExport();
+  //       } else {
+  //         this.notification.error(
+  //           NOTIFICATION_TITLE.error,
+  //           res.message || 'Không thể cập nhật trạng thái!'
+  //         );
+  //       }
+  //     },
+  //     error: (err) => {
+  //       this.notification.error(
+  //         NOTIFICATION_TITLE.error,
+  //         err?.error?.message
+  //       );
+  //     },
+  //   });
+  // }
+
+  getStatusText(status: number): string {
+    switch (status) {
+      case 0:
+        return 'Chưa xuất kho';
+      case 1:
+        return 'Đã xuất kho một phần';
+      case 2:
+        return 'Đã xuất kho';
+      default:
+        return 'Không xác định';
+    }
+  }
+
+  // ========================================
+  // Helper Methods
+  // ========================================
+
+  getSelectedRows(): any[] {
+    if (this.angularGridMaster?.slickGrid) {
+      const selectedRowIndexes = this.angularGridMaster.slickGrid.getSelectedRows();
+      if (selectedRowIndexes && selectedRowIndexes.length > 0) {
+        const dataView = this.angularGridMaster.dataView;
+        return selectedRowIndexes.map((index: number) => dataView?.getItem(index));
+      }
+    }
+    return [];
+  }
+
+  // updateTabDetailTitle() {
+  //   // Update tab title with count
+  //   if (this.sizeTbDetail !== null && this.sizeTbDetail > 0) {
+  //     // Tab title update logic here if needed
+  //   }
+  // }
+
+  openFolderPath() {
+    if (!this.id || this.id === 0) {
+      this.notification.info('Thông báo', 'Vui lòng chọn 1 phiếu xuất!');
+      return;
+    }
+
+    // TODO: Implement folder path opening logic
+    // This might need an electron or system-specific API
+  }
+
+  // ========================================
+  // Excel Export
+  // ========================================
+
+  async exportExcel() {
+    if (!this.angularGridMaster?.slickGrid) return;
+
+    const data = this.angularGridMaster.slickGrid.getData() as any[];
+    if (!data || data.length === 0) {
+      this.notification.warning(
+        NOTIFICATION_TITLE.warning,
+        'Không có dữ liệu xuất excel!'
+      );
+      return;
+    }
+
+    const workbook = new ExcelJS.Workbook();
+    const worksheet = workbook.addWorksheet('Danh sách phiếu xuất');
+
+    const columns = this.angularGridMaster.slickGrid.getColumns();
+    const filteredColumns = columns.slice(1); // Skip checkbox column
+    const headers = [
+      'STT',
+      ...filteredColumns.map((col: any) => col.name),
+    ];
+    worksheet.addRow(headers);
+
+    data.forEach((row: any, index: number) => {
+      const rowData = [
+        index + 1,
+        ...filteredColumns.map((col: any) => {
+          const field = col.field;
+          let value = row[field];
+
+          if (typeof value === 'string' && /^\d{4}-\d{2}-\d{2}T/.test(value)) {
+            value = new Date(value);
+          }
+          if (field === 'IsApproved') {
+            value = value === true ? '✓' : '';
+          }
+
+          return value;
+        }),
+      ];
+
+      worksheet.addRow(rowData);
+      worksheet.views = [{ state: 'frozen', ySplit: 1 }];
+    });
+
+    worksheet.eachRow((row, rowNumber) => {
+      if (rowNumber === 1) return;
+      row.eachCell((cell, colNumber) => {
+        if (cell.value instanceof Date) {
+          cell.numFmt = 'dd/mm/yyyy';
+        }
+      });
+    });
+
+    worksheet.columns.forEach((column: any) => {
+      let maxLength = 10;
+      column.eachCell({ includeEmpty: true }, (cell: any) => {
+        const cellValue = cell.value ? cell.value.toString() : '';
+        maxLength = Math.min(Math.max(maxLength, cellValue.length + 2), 50);
+        cell.alignment = { wrapText: true, vertical: 'middle' };
+      });
+      column.width = Math.min(maxLength, 30);
+    });
+
+    worksheet.autoFilter = {
+      from: {
+        row: 1,
+        column: 1,
+      },
+      to: {
+        row: 1,
+        column: filteredColumns.length,
+      },
+    };
+
+    // Xuất file
+    const buffer = await workbook.xlsx.writeBuffer();
+    const blob = new Blob([buffer], {
+      type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+    });
+
+    const formattedDate = new Date()
+      .toISOString()
+      .slice(2, 10)
+      .split('-')
+      .reverse()
+      .join('');
+
+    const link = document.createElement('a');
+    link.href = window.URL.createObjectURL(blob);
+    link.download = `DanhSachPhieuXuat.xlsx`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    window.URL.revokeObjectURL(link.href);
+  }
+
+  // =================================================================
+  // ADDITIONAL UI AND DATA METHODS
+  // =================================================================
+
+  dateFormat = 'dd/MM/yyyy';
+  // checked: any = false;
+  tabDetailTitle = 'Thông tin phiếu xuất';
+
+  // toggleSearchPanel() {
+  //   this.sizeSearch = this.sizeSearch == '0' ? '22%' : '0';
+  // }
+
+  onCheckboxChange() {
+    this.loadDataBillExport();
+  }
+
+  onDateStartChange(date: any) {
+    if (date) {
+      const d = new Date(date);
+      d.setHours(0, 0, 0, 0);
+      this.searchParams.dateStart = d;
+    }
+  }
+
+  onDateEndChange(date: any) {
+    if (date) {
+      const d = new Date(date);
+      d.setHours(23, 59, 59, 999);
+      this.searchParams.dateEnd = d;
+    }
+  }
+
+  resetform(): void {
+    this.selectedKhoTypes = [];
+    const dateStart = new Date();
+    dateStart.setMonth(dateStart.getMonth() - 1);
+    dateStart.setHours(0, 0, 0, 0);
+
+    const dateEnd = new Date();
+    dateEnd.setHours(23, 59, 59, 999);
+
+    this.searchParams = {
+      dateStart: dateStart,
+      dateEnd: dateEnd,
+      listproductgroupID: '',
+      status: -1,
+      warehousecode: this.warehouseCode,
+      keyword: '',
+      checkAll: false,
+      pageNumber: 1,
+      pageSize: 99999999,
+    };
+    this.loadDataBillExport();
+  }
+
+  onSearch() {
+    this.loadDataBillExport();
+  }
+
+  onKhoTypeChange(selected: number[]): void {
+    this.selectedKhoTypes = selected;
+    this.searchParams.listproductgroupID = selected.join(',');
+  }
+
+  closePanel() {
+    this.sizeTbDetail = 0;
+  }
+
+  updateTabDetailTitle(): void {
+    if (this.selectedRow?.Code) {
+      this.tabDetailTitle = `Thông tin phiếu xuất - ${this.selectedRow.Code}`;
+    } else {
+      this.tabDetailTitle = 'Thông tin phiếu xuất';
+    }
+  }
+
+  // =================================================================
+  // EXPORT AND ACTION METHODS
+  // =================================================================
+
+  // shippedOut() {
+  //   if (!this.selectedRow || !this.id) {
+  //     this.notification.info(
+  //       'Thông báo',
+  //       'Vui lòng chọn 1 phiếu để chuyển trạng thái !'
+  //     );
+  //     return;
+  //   }
+
+  //   this.modal.confirm({
+  //     nzTitle: 'Xác nhận',
+  //     nzContent: 'Bạn có chắc chắn muốn chuyển trạng thái phiếu không?',
+  //     nzOkText: 'Đồng ý',
+  //     nzCancelText: 'Hủy',
+  //     nzOnOk: () => {
+  //       this.billExportService.shippedOut(this.selectedRow).subscribe({
+  //         next: (res: any) => {
+  //           if (res.status === 1) {
+  //             this.notification.success(
+  //               'Thông báo',
+  //               res.message || 'Thành công!'
+  //             );
+  //             this.selectedRow = null;
+  //             this.loadDataBillExport();
+  //           } else {
+  //             this.notification.error(
+  //               'Thông báo',
+  //               res.message || 'Có lỗi xảy ra!'
+  //             );
+  //           }
+  //         },
+  //         error: (err) => {
+  //           const errorMsg = err?.error?.message || 'Có lỗi xảy ra!';
+  //           this.notification.error(NOTIFICATION_TITLE.error, errorMsg);
+  //         },
+  //       });
+  //     },
+  //   });
+  // }
+
+  deleteBillExport() {
+    if (!this.selectedRow || !this.id) {
+      this.notification.info('Thông báo', 'Vui lòng chọn 1 phiếu để xóa!');
+      return;
+    }
+
+    if (this.selectedRow?.IsApproved === true) {
+      this.notification.warning(
+        NOTIFICATION_TITLE.warning,
+        'Phiếu đã được duyệt không thể xóa!'
+      );
+      return;
+    }
+
+    const payload = {
+      billExport: {
+        ID: this.selectedRow.ID || 0,
+        IsDeleted: true,
+      },
+    };
+
+    this.modal.confirm({
+      nzTitle: 'Xác nhận xóa',
+      nzContent: `Bạn có chắc chắn muốn xóa phiếu "${this.selectedRow?.Code || ''
+        }" không?`,
+      nzOkText: 'Đồng ý',
+      nzCancelText: 'Hủy',
+      nzOnOk: () => {
+        this.billExportService
+          .deleteBillExport(this.selectedRow)
+          .subscribe({
+            next: (res) => {
+              if (res.status === 1) {
+                this.notification.success(
+                  'Thông báo',
+                  res.message || 'Đã xóa thành công!'
+                );
+                this.loadDataBillExport();
+                if (this.id === this.selectedRow.ID) {
+                  this.datasetDetail = [];
+                }
+              } else {
+                this.notification.warning(
+                  'Thông báo',
+                  res.message || 'Không thể xóa phiếu!'
+                );
+              }
+            },
+            error: (err) => {
+              this.notification.error(
+                NOTIFICATION_TITLE.error,
+                err?.error?.message
+              );
+            },
+          });
+      },
+    });
+  }
+
+  exportExcelKT() {
+    let exportId = this.id;
+
+    if (!exportId || exportId === 0) {
+      const selectedRows = this.getSelectedRows();
+      if (selectedRows.length > 0) {
+        exportId = selectedRows[0]?.ID || 0;
+      }
+    }
+
+    if (!exportId || exportId === 0) {
+      this.notification.warning(
+        NOTIFICATION_TITLE.warning,
+        'Vui lòng chọn 1 phiếu xuất để xuất Excel KT!'
+      );
+      return;
+    }
+
+    // Hiển thị thông báo đang tải
+    const loadingNotification = this.notification.info(
+      'Đang xử lý',
+      'Đang tải file Excel...',
+      { nzDuration: 0 } // Không tự đóng
+    );
+
+    const warehouseCode =
+      this.searchParams.warehousecode || this.warehouseCode || 'HN';
+
+    this.billExportService.exportExcelKT(exportId, warehouseCode).subscribe({
+      next: (res) => {
+        const url = window.URL.createObjectURL(res);
+        const a = document.createElement('a');
+        const now = new Date();
+        const dateString = `${now.getDate().toString().padStart(2, '0')}_${(
+          now.getMonth() + 1
+        )
+          .toString()
+          .padStart(2, '0')}_${now.getFullYear()}_${now
+            .getHours()
+            .toString()
+            .padStart(2, '0')}_${now
+              .getMinutes()
+              .toString()
+              .padStart(2, '0')}_${now.getSeconds().toString().padStart(2, '0')}`;
+
+        const selectedBill = this.datasetMaster?.find?.((item) => item.ID === exportId);
+        const billCode = selectedBill?.Code || 'PhieuXuat';
+        const fileName = `${billCode}_${dateString}.xlsx`;
+
+        a.href = url;
+        a.download = fileName;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        window.URL.revokeObjectURL(url);
+
+        // Đóng notification loading
+        this.notification.remove(loadingNotification.messageId);
+
+        this.notification.success(
+          NOTIFICATION_TITLE.success,
+          'Xuất Excel KT thành công!'
+        );
+      },
+      error: (err) => {
+        // Đóng notification loading
+        this.notification.remove(loadingNotification.messageId);
+
+        const errorMsg =
+          err?.error?.message || 'Có lỗi xảy ra khi xuất Excel KT.';
+        this.notification.error(NOTIFICATION_TITLE.error, errorMsg);
+        console.error(err);
+      },
+    });
+  }
+
+  onExportGroupItem(type: number) {
+    let exportId = this.id;
+
+    if (!exportId || exportId === 0) {
+      const selectedRows = this.getSelectedRows();
+      if (selectedRows.length > 0) {
+        exportId = selectedRows[0]?.ID || 0;
+      }
+    }
+
+    if (!exportId || exportId === 0) {
+      this.notification.error(
+        NOTIFICATION_TITLE.error,
+        'Vui lòng chọn bản ghi cần xuất file'
+      );
+      return;
+    }
+
+    const selectedHandover = this.datasetMaster.find((item) => item.ID === exportId);
+    this.billExportService.export(exportId, type).subscribe({
+      next: (res) => {
+        const url = window.URL.createObjectURL(res);
+        const a = document.createElement('a');
+        const now = new Date();
+        const dateString = `${now.getFullYear().toString().slice(-2)}-${(
+          now.getMonth() + 1
+        )
+          .toString()
+          .padStart(2, '0')}-${now.getDate().toString().padStart(2, '0')}`;
+        const fileName = `${selectedHandover?.Code || 'export'
+          }_${dateString}.xlsx`;
+        a.href = url;
+        a.download = fileName;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        window.URL.revokeObjectURL(url);
+      },
+      error: (err) => {
+        this.notification.error(
+          NOTIFICATION_TITLE.error,
+          err?.error?.message || 'Có lỗi xảy ra khi xuất file.'
+        );
+        console.error(err);
+      },
+    });
+  }
+
+  // =================================================================
+  // MODAL METHODS
+  // =================================================================
+
+  openModalBillDocumentExport() {
+    let exportId = this.id;
+    let code = '';
+
+    if (!exportId || exportId === 0) {
+      const selectedRows = this.getSelectedRows();
+      if (selectedRows.length > 0) {
+        exportId = selectedRows[0]?.ID || 0;
+        code = selectedRows[0]?.Code || '';
+      }
+    }
+
+    if (!exportId || exportId === 0) {
+      this.notification.info('Thông báo', 'Vui lòng chọn 1 phiếu xuất!');
+      return;
+    }
+
+    if (!code && this.selectedRow) {
+      code = this.selectedRow?.Code || '';
+    }
+
+    import('../Modal/bill-document-export/bill-document-export.component').then(m => {
+      const modalRef = this.modalService.open(m.BillDocumentExportComponent, {
+        centered: true,
+        size: 'xl',
+        backdrop: 'static',
+        keyboard: false,
+      });
+      modalRef.componentInstance.id = exportId;
+      modalRef.componentInstance.code = code;
+      modalRef.result.catch((result) => {
+        if (result == true) {
+          this.id = 0;
+          this.loadDataBillExport();
+        }
+      });
+    });
+  }
+
+  openModalBillExportSynthetic() {
+    import('../Modal/bill-export-synthetic/bill-export-synthetic.component').then(m => {
+      const modalRef = this.modalService.open(m.BillExportSyntheticComponent, {
+        centered: true,
+        size: 'xl',
+        backdrop: 'static',
+        keyboard: false,
+      });
+      modalRef.componentInstance.warehouseCode = this.warehouseCode;
+      modalRef.result.catch((result) => {
+        if (result == true) {
+          // this.id=0;
+          // this.loadDataBillExport();
+        }
+      });
+    });
+  }
+
+  openModalBillExportReportNCC() {
+    // TODO: Implement NCC report modal
+    this.notification.info('Thông báo', 'Chức năng đang được phát triển');
+  }
+
+  // =================================================================
+  // DISTINCT FILTERS
+  // =================================================================
+
+  private applyDistinctFiltersToMaster(): void {
+    if (!this.angularGridMaster?.slickGrid || !this.angularGridMaster?.dataView) return;
+
+    const data = this.angularGridMaster.dataView.getItems();
+    if (!data || data.length === 0) return;
+
+    const getUniqueValues = (dataArray: any[], field: string): Array<{ value: string; label: string }> => {
+      const map = new Map<string, string>();
+      dataArray.forEach((row: any) => {
+        const value = String(row?.[field] ?? '');
+        if (value && !map.has(value)) {
+          map.set(value, value);
+        }
+      });
+      return Array.from(map.entries())
+        .map(([value, label]) => ({ value, label }))
+        .sort((a, b) => a.label.localeCompare(b.label));
+    };
+
+    const fieldsToFilter = [
+      'nameStatus', 'Code', 'DepartmentName', 'EmployeeCode', 'FullName',
+      'CustomerName', 'NameNCC', 'WarehouseType', 'WarehouseName',
+      'ProductTypeText', 'FullNameSender'
+    ];
+
+    const columns = this.angularGridMaster.slickGrid.getColumns();
+    if (!columns) return;
+
+    // Update runtime columns
+    columns.forEach((column: any) => {
+      if (column?.filter && column.filter.model === Filters['multipleSelect']) {
+        const field = column.field;
+        if (!field || !fieldsToFilter.includes(field)) return;
+        column.filter.collection = getUniqueValues(data, field);
+      }
+    });
+
+    // Update column definitions
+    this.columnDefinitionsMaster.forEach((colDef: any) => {
+      if (colDef?.filter && colDef.filter.model === Filters['multipleSelect']) {
+        const field = colDef.field;
+        if (!field || !fieldsToFilter.includes(field)) return;
+        colDef.filter.collection = getUniqueValues(data, field);
+      }
+    });
+
+    this.angularGridMaster.slickGrid.setColumns(this.angularGridMaster.slickGrid.getColumns());
+  }
+
+  private applyDistinctFiltersToDetail(): void {
+    if (!this.angularGridDetail?.slickGrid || !this.angularGridDetail?.dataView) return;
+
+    const data = this.angularGridDetail.dataView.getItems();
+    if (!data || data.length === 0) return;
+
+    const getUniqueValues = (dataArray: any[], field: string): Array<{ value: string; label: string }> => {
+      const map = new Map<string, string>();
+      dataArray.forEach((row: any) => {
+        const value = String(row?.[field] ?? '');
+        if (value && !map.has(value)) {
+          map.set(value, value);
+        }
+      });
+      return Array.from(map.entries())
+        .map(([value, label]) => ({ value, label }))
+        .sort((a, b) => a.label.localeCompare(b.label));
+    };
+
+    const fieldsToFilter = [
+      'ProductNewCode', 'ProductCode', 'ProductName', 'ProductFullName', 'Unit',
+      'ProductGroupName', 'ProductTypeText', 'Note', 'BillCode',
+      'ProjectCodeExport', 'ProjectNameText'
+    ];
+
+    const columns = this.angularGridDetail.slickGrid.getColumns();
+    if (!columns) return;
+
+    // Update runtime columns
+    columns.forEach((column: any) => {
+      if (column?.filter && column.filter.model === Filters['multipleSelect']) {
+        const field = column.field;
+        if (!field || !fieldsToFilter.includes(field)) return;
+        column.filter.collection = getUniqueValues(data, field);
+      }
+    });
+
+    // Update column definitions
+    this.columnDefinitionsDetail.forEach((colDef: any) => {
+      if (colDef?.filter && colDef.filter.model === Filters['multipleSelect']) {
+        const field = colDef.field;
+        if (!field || !fieldsToFilter.includes(field)) return;
+        colDef.filter.collection = getUniqueValues(data, field);
+      }
+    });
+
+    this.angularGridDetail.slickGrid.setColumns(this.angularGridDetail.slickGrid.getColumns());
+  }
 }

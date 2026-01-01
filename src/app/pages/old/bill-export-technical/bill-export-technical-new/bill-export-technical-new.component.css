@@ -1,0 +1,4 @@
+::ng-deep div[id^="billExportTechnicalGrid-"] {
+  min-height: 50vh !important;
+  max-height: 80vh !important;
+}

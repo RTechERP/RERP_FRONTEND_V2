@@ -191,15 +191,7 @@ export class AssignWorkComponent implements OnInit, AfterViewInit {
         const newData = [newItem, ...data.data];
         let tree = this.setDataTree(newData, 'ID');
 
-        const root = tree.find((x) => x.ID === 0);
-
-        root._children = root._children.filter((x: any) =>
-          [1, 2, 3].includes(x.ID)
-        );
-
-        const result = [root];
-
-        this.tb_userTeamLink.setData(result);
+        this.tb_userTeamLink.setData(tree);
         this.tb_userTeamLink.selectRow(0);
       },
       error: (error) => {

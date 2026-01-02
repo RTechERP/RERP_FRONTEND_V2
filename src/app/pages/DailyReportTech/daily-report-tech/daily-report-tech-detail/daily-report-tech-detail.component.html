@@ -64,9 +64,9 @@
                     [nzClosable]="mode === 'add' && projectList.length > 1" [nzForceRender]="true">
                     <!-- Nội dung tab dự án -->
                     <!-- Dòng 1: Dropdown chọn dự án -->
-                    <nz-row [nzGutter]="16" class="p-2">
+                    <nz-row [nzGutter]="16">
                         <nz-col [nzSpan]="24">
-                            <nz-form-item>
+                            <nz-form-item class="mt-2">
                                 <nz-form-label class="fs-12 p-0">Dự án<span class="text-danger ps-1">*
                                     </span></nz-form-label>
                                 <nz-form-control [nzSpan]="24">
@@ -86,7 +86,7 @@
                     </nz-row>
 
                     <!-- Dòng 2: Tab hạng mục -->
-                    <fieldset class="mt-2 border p-2" style="border-radius: 4px;">
+                    <fieldset class="mt-2 border" style="border-radius: 4px;">
                         <nz-tabset [nzSelectedIndex]="project.activeItemTab ?? 0"
                             (nzSelectChange)="onProjectItemTabChange($index + 1, $event)"
                             [nzType]="mode === 'edit' ? 'card' : 'editable-card'"
@@ -104,11 +104,12 @@
                                         <nz-form-item>
                                             <nz-form-label class="fs-12 p-0">Hạng mục công việc<span
                                                     class="text-danger ps-1">*
-                                                </span></nz-form-label>
-                                            <button class="p-0 m-0 px-1 fs-12 h-auto" nz-button nzType="text"
+                                                </span><button class="p-0 m-0 px-1 fs-12 h-auto" nz-button nzType="text"
                                                 nzSize="small" title="Thêm loại họp" (click)="onAddProjectItem()">
                                                 <i class="fas fa-plus"></i>
                                             </button>
+                                        </nz-form-label>
+                                            
                                             <nz-form-control [nzSpan]="24">
                                                 <nz-select [(ngModel)]="item.ProjectItemID"
                                                     (ngModelChange)="onProjectItemChange(projectList.indexOf(project) + 1, $index + 1, $event)"
@@ -126,7 +127,7 @@
                                         </nz-form-item>
                                     </nz-col>
                                     <!-- Tổng số giờ: Mobile 12, Desktop 4 -->
-                                    <nz-col [nzXs]="12" [nzSm]="12" [nzMd]="4" [nzLg]="4" [nzXl]="4">
+                                    <nz-col [nzXs]="8" [nzSm]="8" [nzMd]="4" [nzLg]="4" [nzXl]="4">
                                         <nz-form-item>
                                             <nz-form-label class="fs-12 p-0">Tổng số giờ<span class="text-danger ps-1">*
                                                 </span></nz-form-label>
@@ -138,7 +139,7 @@
                                         </nz-form-item>
                                     </nz-col>
                                     <!-- Số giờ OT: Mobile 12, Desktop 4 -->
-                                    <nz-col [nzXs]="12" [nzSm]="12" [nzMd]="4" [nzLg]="4" [nzXl]="4">
+                                    <nz-col [nzXs]="8" [nzSm]="8" [nzMd]="4" [nzLg]="4" [nzXl]="4">
                                         <nz-form-item>
                                             <nz-form-label class="fs-12 p-0">Số giờ OT</nz-form-label>
                                             <nz-form-control [nzSpan]="24">
@@ -149,7 +150,7 @@
                                         </nz-form-item>
                                     </nz-col>
                                     <!-- % Hoàn thành: Mobile 12, Desktop 4 -->
-                                    <nz-col [nzXs]="12" [nzSm]="12" [nzMd]="4" [nzLg]="4" [nzXl]="4">
+                                    <nz-col [nzXs]="8" [nzSm]="8" [nzMd]="4" [nzLg]="4" [nzXl]="4">
                                         <nz-form-item>
                                             <nz-form-label class="fs-12 p-0">% Hoàn thành<span
                                                     class="text-danger ps-1">*
@@ -166,7 +167,7 @@
                                 <!-- Dòng 2: Nội dung công việc, Kết quả -->
                                 <nz-row [nzGutter]="16" class="mt-2 px-2">
                                     <!-- Nội dung công việc: Mobile 12 (2 cột/dòng), Desktop 12 -->
-                                    <nz-col [nzXs]="12" [nzSm]="12" [nzMd]="12" [nzLg]="12" [nzXl]="12">
+                                    <nz-col [nzXs]="24" [nzSm]="24" [nzMd]="12" [nzLg]="12" [nzXl]="12">
                                         <nz-form-item>
                                             <nz-form-label class="fs-12 p-0">Nội dung cv<span class="text-danger ps-1">*
                                                 </span></nz-form-label>
@@ -178,7 +179,7 @@
                                         </nz-form-item>
                                     </nz-col>
                                     <!-- Kết quả: Mobile 12 (2 cột/dòng), Desktop 12 -->
-                                    <nz-col [nzXs]="12" [nzSm]="12" [nzMd]="12" [nzLg]="12" [nzXl]="12">
+                                    <nz-col [nzXs]="24" [nzSm]="24" [nzMd]="12" [nzLg]="12" [nzXl]="12">
                                         <nz-form-item>
                                             <nz-form-label class="fs-12 p-0">Kết quả<span class="text-danger ps-1">*
                                                 </span></nz-form-label>
@@ -246,7 +247,7 @@
                 <!-- Dòng 1: Vấn đề phát sinh, Hướng giải quyết, Tồn đọng -->
                 <nz-row [nzGutter]="16">
                     <!-- Vấn đề phát sinh: Mobile 12, Desktop 8 -->
-                    <nz-col [nzXs]="12" [nzSm]="12" [nzMd]="8" [nzLg]="8" [nzXl]="8">
+                    <nz-col [nzXs]="24" [nzSm]="24" [nzMd]="8" [nzLg]="8" [nzXl]="8">
                         <nz-form-item>
                             <nz-form-label class="fs-12 p-0">Vấn đề phát sinh
                                 <span class="font-italic font-weight-normal">(nếu có)</span></nz-form-label>
@@ -257,7 +258,7 @@
                         </nz-form-item>
                     </nz-col>
                     <!-- Hướng giải quyết: Mobile 12, Desktop 8 -->
-                    <nz-col [nzXs]="12" [nzSm]="12" [nzMd]="8" [nzLg]="8" [nzXl]="8">
+                    <nz-col [nzXs]="24" [nzSm]="24" [nzMd]="8" [nzLg]="8" [nzXl]="8">
                         <nz-form-item>
                             <nz-form-label class="fs-12 p-0">Hướng giải quyết
                                 <span class="font-italic font-weight-normal">(nếu có)</span></nz-form-label>
@@ -268,7 +269,7 @@
                         </nz-form-item>
                     </nz-col>
                     <!-- Tồn đọng: Mobile 12, Desktop 8 -->
-                    <nz-col [nzXs]="12" [nzSm]="12" [nzMd]="8" [nzLg]="8" [nzXl]="8">
+                    <nz-col [nzXs]="24" [nzSm]="24" [nzMd]="8" [nzLg]="8" [nzXl]="8">
                         <nz-form-item>
                             <nz-form-label class="fs-12 p-0">Tồn đọng
                                 <span class="font-italic font-weight-normal">(nếu có)</span></nz-form-label>

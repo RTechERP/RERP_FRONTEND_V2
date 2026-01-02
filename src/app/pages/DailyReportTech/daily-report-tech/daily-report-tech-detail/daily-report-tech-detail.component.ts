@@ -29,6 +29,7 @@ import { NzModalService } from 'ng-zorro-antd/modal';
 import { DailyReportTechService } from '../../DailyReportTechService/daily-report-tech.service';
 import { OverTimePersonFormComponent } from '../../../hrm/over-time/over-time-person/over-time-person-form/over-time-person-form.component';
 import { WorkItemComponent } from '../../../project/work-item/work-item.component';
+import { ProjectItemPersonDetailComponent } from '../../../project/project-item-person/project-item-person-detail/project-item-person-detail.component';
 interface ProjectItem {
   ID: number;
   ProjectID: number;
@@ -1359,26 +1360,25 @@ export class DailyReportTechDetailComponent implements OnInit, AfterViewInit {
     // Lấy project từ tab đang active
     const activeProject = this.projectList[this.activeProjectTab];
     
-    // Kiểm tra xem có project nào được chọn chưa
-    if (!activeProject || !activeProject.ProjectID || activeProject.ProjectID === 0) {
-      this.notification.warning('Thông báo', 'Vui lòng chọn dự án trước khi thêm hạng mục công việc!');
-      return;
-    }
+    // // Kiểm tra xem có project nào được chọn chưa
+    // if (!activeProject || !activeProject.ProjectID || activeProject.ProjectID === 0) {
+    //   this.notification.warning('Thông báo', 'Vui lòng chọn dự án trước khi thêm hạng mục công việc!');
+    //   return;
+    // }
     
-    // Lấy thông tin project từ danh sách projects
-    const selectedProject = this.projects.find(p => p.ID === activeProject.ProjectID);
-    if (!selectedProject) {
-      this.notification.error('Lỗi', 'Không tìm thấy thông tin dự án!');
-      return;
-    }
+    // // Lấy thông tin project từ danh sách projects
+    // const selectedProject = this.projects.find(p => p.ID === activeProject.ProjectID);
+    // if (!selectedProject) {
+    //   this.notification.error('Lỗi', 'Không tìm thấy thông tin dự án!');
+    //   return;
+    // }
     
     try {
-      const modalRef = this.ngbModal.open(WorkItemComponent, {
-        centered: true,
+      const modalRef = this.ngbModal.open(ProjectItemPersonDetailComponent, {
         size: 'xl',
         backdrop: 'static',
-        keyboard: false,
-        windowClass: 'full-screen-modal'
+        keyboard: true,
+        centered: true,
       });
       
       if (!modalRef) {
@@ -1388,8 +1388,7 @@ export class DailyReportTechDetailComponent implements OnInit, AfterViewInit {
       
       // Set properties cho component instance
       if (modalRef.componentInstance) {
-        modalRef.componentInstance.projectId = activeProject.ProjectID;
-        modalRef.componentInstance.projectCode = activeProject.ProjectCode || selectedProject.ProjectCode || '';
+        modalRef.componentInstance.dataInput = null;
       }
       
       // Xử lý khi modal đóng

@@ -1,0 +1,307 @@
+.fs-12 {
+    font-size: 0.75rem;
+}
+
+.reset {
+    all: revert;
+}
+
+/* Mobile menubar z-index fix */
+::ng-deep .p-menubar {
+    position: relative;
+    z-index: 1050;
+}
+
+::ng-deep .p-menubar-mobile {
+    position: relative;
+    z-index: 1050;
+}
+
+::ng-deep .p-menubar-root-list {
+    position: relative;
+    z-index: 1051;
+}
+
+.ant-splitter-panel {
+    position: relative;
+}
+
+/* SlickGrid styling */
+.grid-container {
+    width: 100%;
+    height: 100%;
+}
+
+::ng-deep .slickgrid-container {
+    font-size: 0.75rem !important;
+}
+
+::ng-deep .slick-cell {
+    font-size: 0.75rem !important;
+    padding: 2px 4px !important;
+}
+
+::ng-deep .slick-header-column {
+    font-size: 0.75rem !important;
+    font-weight: 600;
+}
+
+::ng-deep .slick-row {
+    cursor: pointer;
+}
+
+::ng-deep .slick-row:hover {
+    background-color: #f5f5f5;
+}
+
+::ng-deep .slick-row.selected {
+    background-color: #e6f7ff !important;
+}
+
+/* Cell wrap for long text */
+::ng-deep .cell-wrap {
+    white-space: normal !important;
+    line-height: 1.4 !important;
+    overflow: visible !important;
+    text-overflow: clip !important;
+    word-wrap: break-word !important;
+    padding: 4px !important;
+}
+
+/* Đảm bảo row có thể mở rộng chiều cao khi wrap */
+::ng-deep .slick-row {
+    min-height: 35px !important;
+}
+
+/* Cho phép cell tự động mở rộng chiều cao */
+::ng-deep .slick-cell {
+    overflow: visible !important;
+    white-space: normal !important;
+}
+
+/* Cell wrap - tự động tăng chiều cao theo nội dung */
+::ng-deep .cell-wrap {
+    white-space: normal !important;
+    line-height: 1.5 !important;
+    overflow: visible !important;
+    text-overflow: clip !important;
+    word-wrap: break-word !important;
+    word-break: break-word !important;
+    padding: 6px 4px !important;
+    vertical-align: top !important;
+    height: auto !important;
+    min-height: 35px !important;
+}
+
+/* Đảm bảo row height tự động điều chỉnh theo cell cao nhất */
+::ng-deep .slick-row .slick-cell.cell-wrap {
+    display: table-cell !important;
+    vertical-align: top !important;
+}
+
+/* Text alignment */
+::ng-deep .text-center {
+    text-align: center !important;
+}
+
+::ng-deep .text-end {
+    text-align: right !important;
+}
+
+/* Dropdown menu styling */
+::ng-deep .ant-dropdown-menu {
+    font-size: 0.75rem;
+}
+
+::ng-deep .ant-dropdown-menu-item {
+    font-size: 0.75rem;
+    padding: 5px 12px;
+}
+
+::ng-deep .ant-dropdown-menu-item img {
+    width: 16px;
+    height: 16px;
+    vertical-align: middle;
+}
+
+/* Filter row styling */
+::ng-deep .slick-headerrow {
+    background-color: #fafafa;
+}
+
+::ng-deep .slick-headerrow-column {
+    padding: 2px !important;
+}
+
+::ng-deep .slick-headerrow-column input {
+    font-size: 0.7rem;
+    padding: 2px 4px;
+    width: 100%;
+    box-sizing: border-box;
+}
+
+::ng-deep .slick-multiselect-dropdown .ms-drop ul>li label {
+    display: block;
+    max-width: 100px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+::ng-deep .slick-multiselect-dropdown .ms-drop ul>li label span {
+    display: block;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+/* Dropdown multipleSelect - tập trung vào class thực tế từ F12 */
+::ng-deep .ms-drop.bottom {
+    width: auto !important;
+    min-width: 350px !important;
+    max-width: 600px !important;
+}
+
+/* Ô tìm kiếm */
+::ng-deep .ms-drop.bottom .ms-search {
+    padding: 8px !important;
+    border-bottom: 1px solid #e8e8e8 !important;
+}
+
+::ng-deep .ms-drop.bottom .ms-search input {
+    width: 100% !important;
+    padding: 6px 8px !important;
+    border: 1px solid #d9d9d9 !important;
+    border-radius: 4px !important;
+    font-size: 12px !important;
+}
+
+/* Danh sách options */
+::ng-deep .ms-drop.bottom .ms-list {
+    overflow-y: auto !important;
+}
+
+::ng-deep .ms-drop.bottom .ms-list li {
+    padding: 0 !important;
+    border-bottom: none !important;
+}
+
+/* Label và checkbox */
+::ng-deep .ms-drop.bottom .ms-list li label {
+    display: flex !important;
+    align-items: center !important;
+    padding: 8px 12px !important;
+    width: 100% !important;
+    cursor: pointer !important;
+}
+
+/* Text của option - ellipsis cho text dài */
+::ng-deep .ms-drop.bottom .ms-list li label span {
+    flex: 1 !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+    white-space: nowrap !important;
+    font-size: 12px !important;
+    line-height: 1.4 !important;
+}
+
+/* Checkbox container */
+::ng-deep .ms-drop.bottom .ms-list li label .icon-checkbox-container {
+    margin-right: 8px !important;
+    flex-shrink: 0 !important;
+}
+
+/* Select All */
+::ng-deep .ms-drop.bottom .ms-select-all {
+    padding: 8px 12px !important;
+    border-bottom: 1px solid #f0f0f0 !important;
+    background-color: #fafafa !important;
+}
+
+::ng-deep .ms-drop.bottom .ms-select-all label {
+    display: flex !important;
+    align-items: center !important;
+    width: 100% !important;
+    cursor: pointer !important;
+}
+
+angular-slickgrid,
+.angular-slickgrid-container {
+    height: 100% !important;
+    width: 100%;
+    display: flex;
+}
+
+:host ::ng-deep .slickgrid-container {
+    height: 100% !important;
+}
+
+.required-field::after {
+    content: " (*)";
+    color: red;
+}
+
+/* Modern SlickGrid layout fixes */
+.ant-splitter {
+    height: 93vh !important;
+}
+
+.slickgrid-container {
+    height: 100% !important;
+}
+
+::ng-deep #grid-container-project-survey {
+    height: 86vh !important;
+    /* Subtract header row height */
+}
+
+/* Fix for SlickGrid container height */
+.grid-container {
+    height: 100% !important;
+    overflow: hidden;
+}
+
+/* Compact search panel styling */
+.sticky-toggle-btn {
+    position: relative;
+    z-index: 10;
+}
+
+/* Action buttons styling */
+.btn-add {
+    background-color: #52c41a;
+    border-color: #52c41a;
+    color: white;
+}
+
+.btn-add:hover {
+    background-color: #73d13d;
+    border-color: #73d13d;
+}
+
+.btn-edit {
+    background-color: #1890ff;
+    border-color: #1890ff;
+    color: white;
+}
+
+.btn-edit:hover {
+    background-color: #40a9ff;
+    border-color: #40a9ff;
+}
+
+.btn-delete {
+    background-color: #ff4d4f;
+    border-color: #ff4d4f;
+    color: white;
+}
+
+.btn-delete:hover {
+    background-color: #ff7875;
+    border-color: #ff7875;
+}
+
+/* Hide time picker in date filters */
+::ng-deep .vc-time {
+    display: none !important;
+}

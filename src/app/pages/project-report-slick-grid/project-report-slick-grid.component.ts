@@ -260,7 +260,6 @@ export class ProjectReportSlickGridComponent implements OnInit, AfterViewInit, O
         filterable: true,
         cssClass: 'cell-wrap',
         formatter: this.textWrapFormatter,
-        filter: { model: Filters['compoundInputText'] },
       },
       {
         id: 'TimeReality',
@@ -271,7 +270,6 @@ export class ProjectReportSlickGridComponent implements OnInit, AfterViewInit, O
         filterable: true,
         cssClass: 'text-right',
         formatter: this.numberFormatter,
-        filter: { model: Filters['compoundInputNumber'] },
       },
       {
         id: 'Ratio',
@@ -282,7 +280,6 @@ export class ProjectReportSlickGridComponent implements OnInit, AfterViewInit, O
         filterable: true,
         cssClass: 'text-right',
         formatter: this.numberFormatterDefault,
-        filter: { model: Filters['compoundInputNumber'] },
       },
       {
         id: 'TotalHours',
@@ -293,7 +290,6 @@ export class ProjectReportSlickGridComponent implements OnInit, AfterViewInit, O
         filterable: true,
         cssClass: 'text-right',
         formatter: this.numberFormatterDefault,
-        filter: { model: Filters['compoundInputNumber'] },
       },
       {
         id: 'Results',
@@ -304,7 +300,6 @@ export class ProjectReportSlickGridComponent implements OnInit, AfterViewInit, O
         filterable: true,
         cssClass: 'cell-wrap',
         formatter: this.textWrapFormatter,
-        filter: { model: Filters['compoundInputText'] },
       },
       {
         id: 'Problem',
@@ -315,7 +310,6 @@ export class ProjectReportSlickGridComponent implements OnInit, AfterViewInit, O
         filterable: true,
         cssClass: 'cell-wrap',
         formatter: this.textWrapFormatter,
-        filter: { model: Filters['compoundInputText'] },
       },
       {
         id: 'ProblemSolve',
@@ -326,7 +320,6 @@ export class ProjectReportSlickGridComponent implements OnInit, AfterViewInit, O
         filterable: true,
         cssClass: 'cell-wrap',
         formatter: this.textWrapFormatter,
-        filter: { model: Filters['compoundInputText'] },
       },
       {
         id: 'Backlog',
@@ -337,7 +330,6 @@ export class ProjectReportSlickGridComponent implements OnInit, AfterViewInit, O
         filterable: true,
         cssClass: 'cell-wrap',
         formatter: this.textWrapFormatter,
-        filter: { model: Filters['compoundInputText'] },
       },
       {
         id: 'PlanNextDay',
@@ -348,7 +340,6 @@ export class ProjectReportSlickGridComponent implements OnInit, AfterViewInit, O
         filterable: true,
         cssClass: 'cell-wrap',
         formatter: this.textWrapFormatter,
-        filter: { model: Filters['compoundInputText'] },
       },
       {
         id: 'Note',
@@ -359,7 +350,7 @@ export class ProjectReportSlickGridComponent implements OnInit, AfterViewInit, O
         filterable: true,
         cssClass: 'cell-wrap',
         formatter: this.textWrapFormatter,
-        filter: { model: Filters['compoundInputText'] },
+        //filter: { model: Filters['compoundInputText'] },
       },
     ];
 
@@ -377,7 +368,7 @@ export class ProjectReportSlickGridComponent implements OnInit, AfterViewInit, O
       enableFiltering: true,
       autoFitColumnsOnFirstLoad: false,
       enableAutoSizeColumns: false,
-      frozenColumn: 5, // Freeze 6 cột đầu (EmployeeCode, FullName, DepartmentName, TeamName, DateReport, Content)
+      frozenColumn: 4, // Freeze 6 cột đầu (EmployeeCode, FullName, DepartmentName, TeamName, DateReport, Content)
       rowHeight: 80,
       autoHeight: false,
     };
@@ -695,54 +686,155 @@ export class ProjectReportSlickGridComponent implements OnInit, AfterViewInit, O
 
   private applyDistinctFilters(): void {
     const fieldsToFilter = ['EmployeeCode', 'FullName', 'DepartmentName', 'TeamName'];
-    this.applyDistinctFiltersToGrid(this.angularGrid, this.columnDefinitions, fieldsToFilter);
+    this.applyDistinctFiltersToGrid();
   }
 
-  private applyDistinctFiltersToGrid(
-    angularGrid: AngularGridInstance | undefined,
-    columnDefs: Column[],
-    fieldsToFilter: string[]
-  ): void {
-    if (!angularGrid?.slickGrid || !angularGrid?.dataView) return;
+  // private applyDistinctFiltersToGrid(
+  //   angularGrid: AngularGridInstance | undefined,
+  //   columnDefs: Column[],
+  //   fieldsToFilter: string[]
+  // ): void {
+  //   if (!angularGrid?.slickGrid || !angularGrid?.dataView) return;
 
-    const data = angularGrid.dataView.getItems();
+  //   const data = angularGrid.dataView.getItems();
+  //   if (!data || data.length === 0) return;
+
+  //   const getUniqueValues = (dataArray: any[], field: string): Array<{ value: string; label: string }> => {
+  //     const map = new Map<string, string>();
+  //     dataArray.forEach((row: any) => {
+  //       const value = String(row?.[field] ?? '');
+  //       if (value && !map.has(value)) {
+  //         map.set(value, value);
+  //       }
+  //     });
+  //     return Array.from(map.entries())
+  //       .map(([value, label]) => ({ value, label }))
+  //       .sort((a, b) => a.label.localeCompare(b.label));
+  //   };
+
+  //   const columns = angularGrid.slickGrid.getColumns();
+  //   if (!columns) return;
+
+  //   // Update runtime columns
+  //   columns.forEach((column: any) => {
+  //     if (column?.filter && column.filter.model === Filters['multipleSelect']) {
+  //       const field = column.field;
+  //       if (!field || !fieldsToFilter.includes(field)) return;
+  //       column.filter.collection = getUniqueValues(data, field);
+  //     }
+  //   });
+
+  //   // Update column definitions
+  //   columnDefs.forEach((colDef: any) => {
+  //     if (colDef?.filter && colDef.filter.model === Filters['multipleSelect']) {
+  //       const field = colDef.field;
+  //       if (!field || !fieldsToFilter.includes(field)) return;
+  //       colDef.filter.collection = getUniqueValues(data, field);
+  //     }
+  //   });
+
+  //   angularGrid.slickGrid.setColumns(columns);
+  //   angularGrid.slickGrid.invalidate();
+  //   angularGrid.slickGrid.render();
+  // }
+   applyDistinctFiltersToGrid(): void {
+    const angularGrid = this.angularGrid;
+    if (!angularGrid || !angularGrid.slickGrid || !angularGrid.dataView) return;
+
+    const data = angularGrid.dataView.getItems() as any[];
     if (!data || data.length === 0) return;
 
-    const getUniqueValues = (dataArray: any[], field: string): Array<{ value: string; label: string }> => {
-      const map = new Map<string, string>();
-      dataArray.forEach((row: any) => {
-        const value = String(row?.[field] ?? '');
-        if (value && !map.has(value)) {
-          map.set(value, value);
+    const getUniqueValues = (
+      items: any[],
+      field: string
+    ): Array<{ value: any; label: string }> => {
+      const map = new Map<string, { value: any; label: string }>();
+      items.forEach((row: any) => {
+        const value = row?.[field];
+        if (value === null || value === undefined || value === '') return;
+        const key = `${typeof value}:${String(value)}`;
+        if (!map.has(key)) {
+          map.set(key, { value, label: String(value) });
         }
       });
-      return Array.from(map.entries())
-        .map(([value, label]) => ({ value, label }))
-        .sort((a, b) => a.label.localeCompare(b.label));
+      return Array.from(map.values()).sort((a, b) =>
+        a.label.localeCompare(b.label)
+      );
     };
 
+    const booleanCollection = [
+      { value: true, label: 'Có' },
+      { value: false, label: 'Không' },
+    ];
+    const booleanFields = new Set([
+      'IsApprovedPurchase',
+      'IsCheckPrice',
+      'IsApprovedTBPNewCode',
+      'IsNewCode',
+      'IsApprovedTBPText',
+      'IsFix',
+    ]);
+
     const columns = angularGrid.slickGrid.getColumns();
-    if (!columns) return;
+    if (columns) {
+      columns.forEach((column: any) => {
+        if (
+          column.filter &&
+          column.filter.model === Filters['multipleSelect']
+        ) {
+          const field = column.field;
+          if (!field) return;
 
-    // Update runtime columns
-    columns.forEach((column: any) => {
-      if (column?.filter && column.filter.model === Filters['multipleSelect']) {
-        const field = column.field;
-        if (!field || !fieldsToFilter.includes(field)) return;
-        column.filter.collection = getUniqueValues(data, field);
-      }
-    });
+          if (booleanFields.has(field)) {
+            // For boolean fields: only "Có"/"Không" without Select All
+            column.filter.collection = booleanCollection;
+            column.filter.collectionOptions = {
+              addBlankEntry: false, // Không có option trống
+              enableSelectAllOption: false, // Không có Select All
+              maxSelectAllItems: 0 // Không cho phép select all
+            };
+            column.filter.filterOptions = {
+              enableSelectAllOption: false, // Disable Select All trong filter options
+              maxSelectAllItems: 0,
+              selectAllText: null // Không hiển thị text Select All
+            };
+          } else {
+            // For other fields: normal behavior
+            column.filter.collection = getUniqueValues(data, field);
+          }
+        }
+      });
+    }
 
-    // Update column definitions
-    columnDefs.forEach((colDef: any) => {
-      if (colDef?.filter && colDef.filter.model === Filters['multipleSelect']) {
-        const field = colDef.field;
-        if (!field || !fieldsToFilter.includes(field)) return;
-        colDef.filter.collection = getUniqueValues(data, field);
-      }
-    });
+    if (this.columnDefinitions) {
+      this.columnDefinitions.forEach((colDef: any) => {
+        if (
+          colDef.filter &&
+          colDef.filter.model === Filters['multipleSelect']
+        ) {
+          const field = colDef.field;
+          if (!field) return;
 
-    angularGrid.slickGrid.setColumns(columns);
+          if (booleanFields.has(field)) {
+            // For boolean fields: only "Có"/"Không" without Select All
+            colDef.filter.collection = booleanCollection;
+            colDef.filter.collectionOptions = {
+              addBlankEntry: false, // Không có option trống
+              enableSelectAllOption: false // Không có Select All
+            };
+            colDef.filter.filterOptions = {
+              enableSelectAllOption: false // Disable Select All trong filter options
+            };
+          } else {
+            // For other fields: normal behavior
+            colDef.filter.collection = getUniqueValues(data, field);
+          }
+        }
+      });
+    }
+
+    const updatedColumns = angularGrid.slickGrid.getColumns();
+    angularGrid.slickGrid.setColumns(updatedColumns);
     angularGrid.slickGrid.invalidate();
     angularGrid.slickGrid.render();
   }

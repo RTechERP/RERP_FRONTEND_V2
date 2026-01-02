@@ -1,0 +1,44 @@
+.fs-12 {
+  font-size: 0.75rem;
+}
+
+.reset {
+  all: revert;
+}
+
+.tabulator {
+  font-size: 0.75rem;
+  position: absolute;
+  width: 100%;
+}
+
+.tabulator-cell {
+  padding: 0px;
+}
+
+.inner-content {
+  padding: 0 !important;
+}
+
+.ant-tabs-tab-btn {
+  font-size: 0.75rem;
+}
+.ant-splitter {
+  height: 93vh !important;
+}
+  .slickgrid-container {
+    height: 100% !important;
+  }
+  ::ng-deep #grid-container-synthesis-materials {
+    height: 86vh !important; /* Subtract header row height */
+  }
+
+  /* Fix for SlickGrid container height */
+  .grid-container {
+    height: 100% !important;
+    overflow: hidden;
+  }
+  /* Hide time picker in date filters */
+::ng-deep .vc-time {
+  display: none !important;
+}

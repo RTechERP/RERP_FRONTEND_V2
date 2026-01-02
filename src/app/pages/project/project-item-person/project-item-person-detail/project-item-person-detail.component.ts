@@ -488,6 +488,8 @@ onPlanEndDateChange(tab: ProjectItemTab): void {
       if (!tab.ActualStartDate) {
         tab.ActualStartDate = dateChangeStatus;
       }
+      // Reset % về 0 khi chuyển sang trạng thái Đang làm
+      tab.PercentItem = 0;
       return;
     }
 
@@ -500,9 +502,10 @@ onPlanEndDateChange(tab: ProjectItemTab): void {
       return;
     }
 
-    // Status khác (Chưa làm, Pending, ...) → reset dates
+    // Status khác (Chưa làm, Pending, ...) → reset dates và % về 0
     tab.ActualStartDate = null;
     tab.ActualEndDate = null;
+    tab.PercentItem = 0;
   }
 
   private cancelStatusChange(tab: ProjectItemTab): void {

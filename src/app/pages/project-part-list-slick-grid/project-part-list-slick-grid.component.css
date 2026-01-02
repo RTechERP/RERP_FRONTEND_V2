@@ -150,6 +150,65 @@
   /* Cam nhạt */
 }
 
+/* ==================== CÁC GROUP KHÁC - MÀU SẮC PHÂN BIỆT ==================== */
+
+/* Nhóm: Yêu cầu báo giá - Xanh lá nhạt */
+:host ::ng-deep .slick-preheader-panel .slick-header-column[data-group="Yêu cầu báo giá"] {
+  background-color: #f6ffed !important;
+  color: #135200 !important;
+  text-align: center !important;
+  font-weight: bold !important;
+}
+
+/* Nhóm: Yêu cầu mua hàng - Tím nhạt */
+:host ::ng-deep .slick-preheader-panel .slick-header-column[data-group="Yêu cầu mua hàng"] {
+  background-color: #f9f0ff !important;
+  color: #391085 !important;
+  text-align: center !important;
+  font-weight: bold !important;
+}
+
+/* Nhóm: Mua hàng - Hồng nhạt */
+:host ::ng-deep .slick-preheader-panel .slick-header-column[data-group="Mua hàng"] {
+  background-color: #fff1f0 !important;
+  color: #a8071a !important;
+  text-align: center !important;
+  font-weight: bold !important;
+}
+
+/* Nhóm: Nhập kho - Xanh cyan nhạt */
+:host ::ng-deep .slick-preheader-panel .slick-header-column[data-group="Nhập kho"] {
+  background-color: #e6fffb !important;
+  color: #006d75 !important;
+  text-align: center !important;
+  font-weight: bold !important;
+}
+
+/* Nhóm: Xuất kho - Vàng nhạt */
+:host ::ng-deep .slick-preheader-panel .slick-header-column[data-group="Xuất kho"] {
+  background-color: #fffbe6 !important;
+  color: #ad6800 !important;
+  text-align: center !important;
+  font-weight: bold !important;
+}
+
+/* Nhóm: Tồn kho - Xám xanh nhạt */
+:host ::ng-deep .slick-preheader-panel .slick-header-column[data-group="Tồn kho"] {
+  background-color: #f0f5ff !important;
+  color: #002766 !important;
+  text-align: center !important;
+  font-weight: bold !important;
+}
+
+/* Đảm bảo tất cả header groups có text-align center */
+:host ::ng-deep .slick-preheader-panel .slick-header-column {
+  text-align: center !important;
+  font-weight: bold !important;
+  justify-content: center !important;
+  display: flex !important;
+  align-items: center !important;
+}
+
 /* ==================== TEXT ALIGNMENT ==================== */
 :host ::ng-deep .text-center {
   text-align: center !important;
@@ -249,4 +308,15 @@ angular-slickgrid,
   border-right: 1px solid #ddd !important;
   line-height: 30px !important;
   padding: 0 4px !important;
+}
+
+/* ==================== FROZEN COLUMN SCROLLBAR FIX ==================== */
+:host ::ng-deep .slick-viewport-left {
+  overflow-y: hidden !important;
+  /* Hide vertical scrollbar on left frozen pane */
+}
+
+:host ::ng-deep .slick-viewport-right {
+  overflow-y: auto !important;
+  /* Ensure vertical scrollbar is on right pane */
 }

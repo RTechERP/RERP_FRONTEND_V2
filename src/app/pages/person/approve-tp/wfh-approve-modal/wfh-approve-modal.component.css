@@ -103,3 +103,11 @@
 ::ng-deep .tabulator-tableHolder::-webkit-scrollbar-track {
     background: #f1f1f1;
 }
+
+.btn-close,
+.modal-header .btn-close {
+    background-color: #dc3545 !important;
+    /* background-image: none !important; */
+    font-weight: bold;
+    font-size: 1.5rem;
+}

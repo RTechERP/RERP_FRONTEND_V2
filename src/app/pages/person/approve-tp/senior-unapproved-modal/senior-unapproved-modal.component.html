@@ -1,16 +1,15 @@
-<div class="modal-header bg-primary align-items-center p-2" style="border-radius: 4px 4px 0 0;">
+<div class="modal-header bg-primary align-items-center p-2">
     <h6 class="text-light text-uppercase m-0">
         {{ modalTitle }}
     </h6>
     <button type="button" class="btn-close" (click)="onCancel()" aria-label="Close"></button>
 </div>
-
 <div class="senior-unapproved-modal" style="padding: 24px; padding-top: 16px;">
     <div class="alert-info"
-        style="padding: 12px; margin-bottom: 16px; background-color: #e6f7ff; border: 1px solid #91d5ff; border-radius: 4px;">
-        <p style="margin: 0; font-size: 12px;">
-            <i nz-icon nzType="info-circle" nzTheme="outline" style="margin-right: 8px;"></i>
-            Các bản ghi sau chưa được Senior duyệt. Bạn có muốn duyệt cả các bản ghi này không?
+        style="padding: 12px; margin-bottom: 16px; background-color: #f3f0da; border: 1px solid #91d5ff; border-radius: 4px;">
+        <p style="margin: 0; font-size: 12px; color: #ff4d4f; font-weight: 500;">
+            <i nz-icon nzType="exclamation-circle" nzTheme="outline" style="margin-right: 8px;"></i>
+            Các bản ghi sau chưa được Senior duyệt. Bạn có muốn duyệt cả bước của senior không?
         </p>
     </div>
 
@@ -21,10 +20,12 @@
             <i nz-icon nzType="close" nzTheme="outline"></i>
             Hủy
         </button>
-        <button nz-button nzType="default" (click)="handleApproveWithoutSenior()" style="font-size: 12px;">
+
+        <button nz-button nzType="default" (click)="handleApproveSelectedSenior()" style="font-size: 12px;">
             <i nz-icon nzType="check" nzTheme="outline"></i>
-            Chỉ duyệt bản ghi Senior đã duyệt
+            Duyệt các bản ghi đã chọn
         </button>
+
         <button nz-button nzType="primary" (click)="handleApproveWithSenior()" style="font-size: 12px;">
             <i nz-icon nzType="check-circle" nzTheme="outline"></i>
             Duyệt tất cả (bao gồm cả Senior)

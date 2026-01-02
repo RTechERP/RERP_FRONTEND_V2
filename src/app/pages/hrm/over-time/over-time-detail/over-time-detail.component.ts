@@ -147,7 +147,7 @@ export class OverTimeDetailComponent implements OnInit, AfterViewInit {
   }
 
   loadApprover() {
-    this.employeeService.getEmployeeApprove().subscribe({
+    this.employeeService.getEmployeeApproved().subscribe({
       next: (data) => {
         this.approverList = data.data;
       },

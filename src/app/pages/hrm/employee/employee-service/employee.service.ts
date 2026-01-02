@@ -8,13 +8,13 @@ import { environment } from '../../../../../environments/environment';
 })
 export class EmployeeService {
   private _url = environment.host + 'api/'; //'https://localhost:7187/api/';
-  constructor(private http: HttpClient) {}
+  constructor(private http: HttpClient) { }
 
 
   getEmployeesURL(): string {
     return this._url + 'Employee/get-employees';
   }
- 
+
   getAllEmployee(): Observable<any> {
     return this.http.get(this._url + 'Employee/');
   }
@@ -37,7 +37,7 @@ export class EmployeeService {
   ): Observable<any> {
     return this.http.get(
       this._url +
-        `Employee?status=${status}&departmentID=${departmentID}&keyword=${keyword}`
+      `Employee?status=${status}&departmentID=${departmentID}&keyword=${keyword}`
     );
   }
 
@@ -51,6 +51,9 @@ export class EmployeeService {
 
   getEmployeeApprove(): Observable<any> {
     return this.http.get<any>(this._url + `EmployeeApprove?type=1&projectID=0`);
+  }
+  getEmployeeApproved(): Observable<any> {
+    return this.http.get<any>(this._url + `Employee/get-approve`);
   }
 
   addEmployeeApprove(request: { ListEmployeeID: number[] }): Observable<any> {
@@ -70,10 +73,10 @@ export class EmployeeService {
   getEmployeeContract(employeeID: number): Observable<any> {
     return this.http.get<any>(
       this._url +
-        `EmployeeContract?employeeID=${employeeID}&employeeContractTypeID=0&filterText=`
+      `EmployeeContract?employeeID=${employeeID}&employeeContractTypeID=0&filterText=`
     );
   }
-  
+
   filterEmployeeContract(
     employeeID: number,
     employeeContractTypeID: number,
@@ -81,7 +84,7 @@ export class EmployeeService {
   ) {
     return this.http.get<any>(
       this._url +
-        `EmployeeContract?employeeID=${employeeID}&employeeContractTypeID=${employeeContractTypeID}&filterText=${filterText}`
+      `EmployeeContract?employeeID=${employeeID}&employeeContractTypeID=${employeeContractTypeID}&filterText=${filterText}`
     );
   }
 

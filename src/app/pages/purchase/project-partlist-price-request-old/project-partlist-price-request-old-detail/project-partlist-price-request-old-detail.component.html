@@ -1,0 +1,297 @@
+<div style="display: flex; flex-direction: column; height: 92vh">
+  <!-- Modal Header -->
+  <div
+    class="bg-primary align-items-center ps-2 pe-2"
+    style="
+      flex-shrink: 0;
+      display: flex;
+      justify-content: space-between;
+      padding: 0.5rem;
+    "
+  >
+    <h6 class="text-light text-uppercase m-0">Chi tiết yêu cầu báo giá</h6>
+    <button
+      type="button"
+      class="btn-close"
+      (click)="activeModal.dismiss()"
+      aria-label="Close"
+    ></button>
+  </div>
+
+  <!-- Modal Body với Splitter -->
+  <div
+    class="p-0"
+    style="flex: 1; overflow: hidden; display: flex; flex-direction: column"
+  >
+    <div
+      class="card h-100 border-0 rounded-0"
+      style="display: flex; flex-direction: column; height: 100%"
+    >
+      <div class="card-header bg-white p-0 px-1" style="flex-shrink: 0">
+        <p-menubar [model]="projectPartlistPriceRequestOldDetailMenu" class="p-0 border-0"> </p-menubar>
+      </div>
+      <div
+        class="card-body p-0"
+        style="
+          flex: 1;
+          overflow: auto;
+          display: flex;
+          flex-direction: column;
+          min-height: 0;
+        "
+      >
+        <div nz-row [nzGutter]="4" class="mx-2 border">
+          <div nz-col [nzSpan]="24">
+            <div class="project-partlist-price-request-old-detail">
+              <angular-slickgrid
+                gridId="gridProjectPartlistPriceRequestOldDetail"
+                [columns]="columnDefinitions"
+                [options]="gridOptions"
+                [dataset]="dataset"
+                (onAngularGridCreated)="angularGridReady($event.detail)"
+              ></angular-slickgrid>
+            </div>
+          </div>
+        </div>
+        <!-- Dòng 1: Thông tin chung (18 cột) và Hãng (6 cột) -->
+        <div nz-row [nzGutter]="4" class="mx-2">
+          <div nz-col [nzSpan]="24">
+            <fieldset class="reset m-0 mt-1">
+              <legend class="reset fs-12 p-0 mb-2">THÔNG TIN CHUNG</legend>
+              <form
+                nz-form
+                [formGroup]="informationForm"
+                class="container-fluid"
+                nzLayout="vertical"
+              >
+                <div nz-row [nzGutter]="16">
+                  <div nz-col [nzSpan]="6">
+                    <nz-form-item>
+                      <nz-form-label>Ngày báo giá</nz-form-label>
+                      <nz-form-control>
+                        <nz-date-picker
+                          class="w-100"
+                          formControlName="DatePriceQuote"
+                          [nzFormat]="'dd/MM/yyyy'"
+                          nzDisabled
+                        ></nz-date-picker>
+                      </nz-form-control>
+                    </nz-form-item>
+                  </div>
+                  <div nz-col [nzSpan]="6">
+                    <nz-form-item>
+                      <nz-form-label>NV báo giá</nz-form-label>
+                      <nz-form-control nzErrorTip="Vui lòng chọn NV mua hàng!">
+                        <nz-select
+                          name="QuoteEmployeeID"
+                          formControlName="QuoteEmployeeID"
+                          class="w-100"
+                          nzShowSearch
+                          nzPlaceHolder="--Chọn nhân viên--"
+                          nzDisabled
+                        >
+                          <ng-container *ngFor="let group of employeeList">
+                            <nz-option-group [nzLabel]="group.label">
+                              <nz-option
+                                *ngFor="let option of group.options"
+                                [nzLabel]="
+                                  option.item.Code +
+                                  ' - ' +
+                                  option.item.FullName
+                                "
+                                [nzValue]="option.item.EmployeeID"
+                              >
+                              </nz-option>
+                            </nz-option-group>
+                          </ng-container>
+                        </nz-select>
+                      </nz-form-control>
+                    </nz-form-item>
+                  </div>
+                  <div nz-col [nzSpan]="3">
+                    <nz-form-item>
+                      <nz-form-label>Loại tiền</nz-form-label>
+                      <nz-form-control>
+                        <nz-select
+                          name="CurrencyID"
+                          formControlName="CurrencyID"
+                          class="w-100"
+                          nzShowSearch
+                          nzPlaceHolder="Loại tiền"
+                          (ngModelChange)="onCurrencyChange($event)"
+                        >
+                          <nz-option
+                            *ngFor="let item of currencyList"
+                            [nzLabel]="item.Code"
+                            [nzValue]="item.ID"
+                          ></nz-option>
+                        </nz-select>
+                      </nz-form-control>
+                    </nz-form-item>
+                  </div>
+                  <div nz-col [nzSpan]="3">
+                    <nz-form-item>
+                      <nz-form-label>Tỉ giá</nz-form-label>
+                      <nz-form-control>
+                        <nz-input-number
+                          class="w-100"
+                          formControlName="CurrencyRate"
+                          [nzDisabled]="true"
+                          [nzMin]="0"
+                          [nzPrecision]="2"
+                          [nzStep]="0.01"
+                          [nzFormatter]="moneyFormatter"
+                          [nzParser]="moneyParser"
+                        ></nz-input-number>
+                      </nz-form-control>
+                    </nz-form-item>
+                  </div>
+                  <div nz-col [nzSpan]="6">
+                    <nz-form-item>
+                      <nz-form-label>Giá lịch sử</nz-form-label>
+                      <nz-form-control>
+                        <nz-input-number
+                          class="w-100"
+                          formControlName="HistoryPrice"
+                          [nzMin]="0"
+                          [nzPrecision]="2"
+                          [nzStep]="0.01"
+                          [nzFormatter]="moneyFormatter"
+                          [nzParser]="moneyParser"
+                        ></nz-input-number>
+                      </nz-form-control>
+                    </nz-form-item>
+                  </div>
+                  <div nz-col [nzSpan]="6">
+                    <nz-form-item>
+                      <nz-form-label>Đơn giá</nz-form-label>
+                      <nz-form-control>
+                        <nz-input-number
+                          class="w-100"
+                          formControlName="UnitPrice"
+                          [nzMin]="0"
+                          [nzPrecision]="2"
+                          [nzStep]="0.01"
+                          [nzFormatter]="moneyFormatter"
+                          [nzParser]="moneyParser"
+                          (ngModelChange)="onUnitPriceChange($event)"
+                        ></nz-input-number>
+                      </nz-form-control>
+                    </nz-form-item>
+                  </div>
+                  <div nz-col [nzSpan]="6">
+                    <nz-form-item>
+                      <nz-form-label>%VAT</nz-form-label>
+                      <nz-form-control>
+                        <nz-input-number
+                          class="w-100"
+                          formControlName="VAT"
+                          [nzMin]="0"
+                          [nzPrecision]="2"
+                          [nzStep]="0.01"
+                          [nzFormatter]="moneyFormatter"
+                          [nzParser]="moneyParser"
+                          (ngModelChange)="onVATChange($event)"
+                        ></nz-input-number>
+                      </nz-form-control>
+                    </nz-form-item>
+                  </div>
+                  <div nz-col [nzSpan]="6">
+                    <nz-form-item>
+                      <nz-form-label>Lead Time (Ngày làm việc)</nz-form-label>
+                      <nz-form-control>
+                        <nz-input-number
+                          class="w-100"
+                          formControlName="TotalDayLeadTime"
+                          [nzMin]="0"
+                          [nzMax]="999999"
+                          [nzPrecision]="0"
+                          [nzStep]="1"
+                          [nzFormatter]="moneyFormatter"
+                          [nzParser]="moneyParser"
+                          (ngModelChange)="onTotalDayLeadTimeChange($event)"
+                        ></nz-input-number>
+                      </nz-form-control>
+                    </nz-form-item>
+                  </div>
+                  <div nz-col [nzSpan]="6">
+                    <nz-form-item>
+                      <nz-form-label>Ngày dự kiến hàng về</nz-form-label>
+                      <nz-form-control>
+                        <nz-date-picker
+                          class="w-100"
+                          formControlName="DateExpected"
+                          [nzFormat]="'dd/MM/yyyy'"
+                          nzDisabled
+                        ></nz-date-picker>
+                      </nz-form-control>
+                    </nz-form-item>
+                  </div>
+                  <div nz-col [nzSpan]="24">
+                    <nz-form-item>
+                      <nz-form-label
+                        class="fs-12 d-flex align-items-center"
+                        [nzSpan]="24"
+                      >
+                        <div class="d-flex">
+                          Nhà cung cấp
+                          <button
+                            class="p-0 m-0 fs-12 px-1 h-auto"
+                            nz-button
+                            nzSize="small"
+                            title="Thêm nhà cung cấp"
+                            nzType="text"
+                            (click)="OpenAddSupplierModal()"
+                          >
+                            <i class="fas fa-plus"></i>
+                          </button>
+                        </div>
+                      </nz-form-label>
+                      <nz-form-control>
+                        <nz-select
+                          name="SupplierSaleID"
+                          formControlName="SupplierSaleID"
+                          class="w-100"
+                          nzShowSearch
+                          nzPlaceHolder="--Chọn nhà cung cấp--"
+                        >
+                          <nz-option
+                            *ngFor="let item of supplierList"
+                            [nzLabel]="item.CodeNCC + ' - ' + item.NameNCC"
+                            [nzValue]="item.ID"
+                          ></nz-option>
+                        </nz-select>
+                      </nz-form-control>
+                    </nz-form-item>
+                  </div>
+                  <div nz-col [nzSpan]="24">
+                    <nz-form-item>
+                      <nz-form-label>Ghi chú</nz-form-label>
+                      <nz-form-control>
+                        <textarea
+                          nz-input
+                          rows="2"
+                          formControlName="Note"
+                        ></textarea>
+                      </nz-form-control>
+                    </nz-form-item>
+                  </div>
+                </div>
+              </form>
+            </fieldset>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal Footer -->
+  <div class="modal-footer py-1">
+    <button nz-button nzType="default" nzDanger (click)="activeModal.dismiss()">
+      Đóng
+    </button>
+    <button nz-button nzType="primary" (click)="saveData()" *hasPermission="'N35,N1'">
+      <i class="fas fa-save me-1"></i> Lưu
+    </button>
+  </div>
+</div>

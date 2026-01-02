@@ -65,6 +65,7 @@ import { NOTIFICATION_TITLE } from '../../../../app.config';
 import { HasPermissionDirective } from '../../../../directives/has-permission.directive';
 // import { CustomerComponent } from '../../customer/customer.component';
 import { AppUserService } from '../../../../services/app-user.service';
+import { Menubar } from 'primeng/menubar';
 @Component({
   selector: 'app-customer',
   imports: [
@@ -94,6 +95,7 @@ import { AppUserService } from '../../../../services/app-user.service';
     CommonModule,
     NzTreeSelectModule,
     HasPermissionDirective,
+    Menubar,
   ],
   templateUrl: './customer.component.html',
   styleUrl: './customer.component.css',
@@ -119,8 +121,51 @@ export class CustomerComponent implements OnInit, AfterViewInit {
 
   sizeSearch: string = '0';
   showDetail = false; // ← MẶC ĐỊNH ẨN
+
+  menuBars: any[] = [];
+
   toggleSearchPanel() {
     this.sizeSearch = this.sizeSearch == '0' ? '22%' : '0';
+  }
+
+  initMenuBar() {
+    this.menuBars = [
+      {
+        label: 'Thêm',
+        icon: 'fa-solid fa-plus fa-lg text-success',
+        command: () => {
+          this.openModal();
+        }
+      },
+      {
+        label: 'Sửa',
+        icon: 'fa-solid fa-pen fa-lg text-primary',
+        command: () => {
+          this.onEdit();
+        }
+      },
+      {
+        label: 'Xóa',
+        icon: 'fa-solid fa-trash fa-lg text-danger',
+        command: () => {
+          this.onDelete();
+        }
+      },
+      {
+        label: 'Ngành nghề',
+        icon: 'fa-solid fa-industry fa-lg text-info',
+        command: () => {
+          this.openMajorModal();
+        }
+      },
+      {
+        label: 'Xuất Excel',
+        icon: 'fa-solid fa-file-excel fa-lg text-success',
+        command: () => {
+          this.exportExcel();
+        }
+      }
+    ];
   }
 
   constructor(
@@ -148,6 +193,7 @@ export class CustomerComponent implements OnInit, AfterViewInit {
   };
 
   ngOnInit(): void {
+    this.initMenuBar();
     this.getEmployeeData();
     this.getTeamData();
   }
@@ -481,7 +527,7 @@ export class CustomerComponent implements OnInit, AfterViewInit {
       layout: 'fitColumns',
       selectableRows: true,
       paginationMode: 'remote',
-      height: '89vh',
+      height: '87vh',
       //   layout: 'fitDataFill',
       //   height: '90%',
       //   selectableRows: 1,

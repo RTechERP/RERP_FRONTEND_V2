@@ -7,6 +7,7 @@ import { PONCCFilter, PONCCSaveRequest } from './poncc.model';
 @Injectable({ providedIn: 'root' })
 export class PONCCService {
   private baseUrl = environment.host + 'api/PONCC/';
+  private summaryUrl = environment.host + 'api/PONCCHistory/';
   constructor(private http: HttpClient) {}
 
   getAll(filter: PONCCFilter): Observable<any> {
@@ -253,5 +254,14 @@ export class PONCCService {
     return this.http.get<any>(
       `${this.baseUrl}printpo?id=${id}&isMerge=${isMerge}`
     );
+  }
+
+  // Lưu dữ liệu lịch sử PONCC
+  savePonccHistory(data: any[]): Observable<any> {
+    return this.http.post<any>(`${this.summaryUrl}save-data`, data);
+  }
+  // Xóa lịch sử PONCC
+  deletePonccHistory(data: { lsDeleted: number[] }): Observable<any> {
+    return this.http.post<any>(`${this.summaryUrl}deleted`, data);
   }
 }

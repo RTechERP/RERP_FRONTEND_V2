@@ -558,6 +558,12 @@ export const routes: Routes = [
             { path: 'poncc', component: PonccNewComponent, canActivate: [authGuard] },
             { path: 'inventory-project', component: InventoryProjectComponent, canActivate: [authGuard] },
             { path: 'purchase-request', component: ProjectPartListPurchaseRequestSlickGridComponent, canActivate: [authGuard] },
+            {
+                // "N35,N33,N1,N36,N27,N69,N80"
+                path: 'project-partlist-price-request-old',
+                component: ProjectPartlistPriceRequestOldComponent,
+                canActivate: [authGuard],
+            },
 
 
 

@@ -78,8 +78,7 @@ import { NOTIFICATION_TITLE } from '../../../../../app.config';
   ],
 })
 export class EmployeeTimekeepingManagementComponent
-  implements OnInit, AfterViewInit
-{
+  implements OnInit, AfterViewInit {
   constructor(
     private etService: EmployeeTimekeepingService,
     private vehicleRepairService: VehicleRepairService,
@@ -87,7 +86,7 @@ export class EmployeeTimekeepingManagementComponent
     private notification: NzNotificationService,
     private route: ActivatedRoute,
     public activeModal?: NgbActiveModal // Optional - chỉ có khi mở qua modal
-  ) {}
+  ) { }
 
   // size splitter filter
   sizeSearch: string = '0';
@@ -249,7 +248,7 @@ export class EmployeeTimekeepingManagementComponent
           this.loadDTData();
         }
       },
-      error: (e) => {},
+      error: (e) => { },
     });
   }
 
@@ -272,6 +271,24 @@ export class EmployeeTimekeepingManagementComponent
     const params = this.getAjaxParamsMT();
     const month = params.month;
     const year = params.year;
+
+    // Font settings
+    const headerFont: Partial<ExcelJS.Font> = { name: 'Times New Roman', size: 12, bold: true };
+    const dataFont: Partial<ExcelJS.Font> = { name: 'Tahoma', size: 8.5 };
+    const groupFont: Partial<ExcelJS.Font> = { name: 'Tahoma', size: 8.5, bold: true };
+
+    // Helper: lấy tên thứ từ ngày
+    const getDayName = (date: Date): string => {
+      const days = ['CN', 'T2', 'T3', 'T4', 'T5', 'T6', 'T7'];
+      return days[date.getDay()];
+    };
+
+    // Header fill màu xám nhạt
+    const headerFill: ExcelJS.Fill = {
+      type: 'pattern',
+      pattern: 'solid',
+      fgColor: { argb: 'FFE0E0E0' }, // Màu xám nhạt
+    };
 
     // helpers
     const toBool = (v: any) => {
@@ -413,6 +430,14 @@ export class EmployeeTimekeepingManagementComponent
         // ====== TẠO WORKBOOK & SHEETS ======
         const wb = new ExcelJS.Workbook();
 
+        // Border style cho header
+        const thinBorder: Partial<ExcelJS.Borders> = {
+          top: { style: 'thin' },
+          left: { style: 'thin' },
+          bottom: { style: 'thin' },
+          right: { style: 'thin' },
+        };
+
         // -- Sheet MT --
         const wsMT = wb.addWorksheet('Bảng MT');
 
@@ -425,23 +450,72 @@ export class EmployeeTimekeepingManagementComponent
         // gộp ô hàng 1
         wsMT.mergeCells(1, 1, 1, leftTitles.length);
         wsMT.mergeCells(1, leftTitles.length + 1, 1, allTitles.length);
-        wsMT.getRow(1).font = { bold: true, size: 13 };
-        wsMT.getRow(1).alignment = { horizontal: 'center' };
+        wsMT.getRow(1).font = { name: 'Times New Roman', bold: true, size: 13 };
+        wsMT.getRow(1).alignment = { horizontal: 'center', vertical: 'middle' };
+        // Bôi màu và border cho hàng 1
+        for (let c = 1; c <= allTitles.length; c++) {
+          wsMT.getRow(1).getCell(c).fill = headerFill;
+          wsMT.getRow(1).getCell(c).border = thinBorder;
+        }
 
         // Header hàng 2: Công tiêu chuẩn = X (gộp bên trái)
         const h2 = [...new Array(allTitles.length)];
         h2[0] = `Công tiêu chuẩn = ${totalWorkday}`;
         wsMT.addRow(h2);
         wsMT.mergeCells(2, 1, 2, leftTitles.length);
-        wsMT.getRow(2).font = { italic: true };
+        wsMT.getRow(2).font = { name: 'Times New Roman', italic: true, size: 12 };
         wsMT.getRow(2).alignment = { horizontal: 'left' };
+        // Bôi màu và border cho hàng 2
+        for (let c = 1; c <= allTitles.length; c++) {
+          wsMT.getRow(2).getCell(c).fill = headerFill;
+          wsMT.getRow(2).getCell(c).border = thinBorder;
+        }
 
-        // Header hàng 3: tiêu đề cột
-        wsMT.addRow(allTitles);
-        wsMT.getRow(3).font = { bold: true };
+        // Header hàng 3: Hàng THỨ (T2, T3, T4... CN) + tiêu đề cột trái và tổng
+        const h3Thu = [...new Array(allTitles.length)].map(() => '');
+        // Điền tiêu đề cột trái vào hàng 3
+        for (let i = 0; i < leftTitles.length; i++) {
+          h3Thu[i] = leftTitles[i];
+        }
+        // Điền tên thứ cho các cột ngày
+        for (let i = 0; i < daysInMonth; i++) {
+          const date = new Date(year, month - 1, i + 1);
+          h3Thu[leftTitles.length + i] = getDayName(date);
+        }
+        // Điền tiêu đề cột tổng vào hàng 3
+        for (let i = 0; i < totalsTitles.length; i++) {
+          h3Thu[leftTitles.length + daysInMonth + i] = totalsTitles[i];
+        }
+        wsMT.addRow(h3Thu);
+        wsMT.getRow(3).font = headerFont;
         wsMT.getRow(3).alignment = { horizontal: 'center', vertical: 'middle' };
+        // Áp dụng màu xám và border cho header hàng 3
+        for (let c = 1; c <= allTitles.length; c++) {
+          wsMT.getRow(3).getCell(c).fill = headerFill;
+          wsMT.getRow(3).getCell(c).border = thinBorder;
+        }
 
-        // Tô vàng T7/CN trên header ngày
+        // Header hàng 4: tiêu đề cột (STT, Mã NV, Họ tên, Chức vụ, 1, 2, 3..., Tổng...)
+        wsMT.addRow(allTitles);
+        wsMT.getRow(4).font = headerFont;
+        wsMT.getRow(4).alignment = { horizontal: 'center', vertical: 'middle' };
+        // Áp dụng màu xám và border cho header hàng 4
+        for (let c = 1; c <= allTitles.length; c++) {
+          wsMT.getRow(4).getCell(c).fill = headerFill;
+          wsMT.getRow(4).getCell(c).border = thinBorder;
+        }
+
+        // Merge các ô cột trái (STT, Mã NV, Họ tên, Chức vụ) từ hàng 3 đến hàng 4
+        for (let i = 0; i < leftTitles.length; i++) {
+          wsMT.mergeCells(3, i + 1, 4, i + 1);
+        }
+        // Merge các ô cột tổng bên phải từ hàng 3 đến hàng 4
+        for (let i = 0; i < totalsTitles.length; i++) {
+          const colIdx = leftTitles.length + daysInMonth + i + 1;
+          wsMT.mergeCells(3, colIdx, 4, colIdx);
+        }
+
+        // Tô vàng T7/CN trên header ngày (hàng 3 và 4)
         for (let i = 0; i < dayFields.length; i++) {
           const colIdx = leftTitles.length + i + 1; // cột thực tế (1-based)
           const date = new Date(year, month - 1, i + 1);
@@ -452,18 +526,77 @@ export class EmployeeTimekeepingManagementComponent
               pattern: 'solid',
               fgColor: { argb: 'FFFCE699' },
             };
+            wsMT.getRow(4).getCell(colIdx).fill = {
+              type: 'pattern',
+              pattern: 'solid',
+              fgColor: { argb: 'FFFCE699' },
+            };
           }
         }
 
-        // Ghi data MT
-        for (const r of mtData) {
-          const row = allFields.map((f) => r?.[f] ?? '');
-          // ép kiểu số cho các cột tổng
-          for (let i = 0; i < totalsFields.length; i++) {
-            const idx = leftFields.length + dayFields.length + i;
-            row[idx] = num2(row[idx]);
+        // Group MT data theo DepartmentName và ghi dữ liệu
+        const mtGrouped = mtData.reduce((acc: any, item: any) => {
+          const dept = item.DepartmentName || 'Không xác định';
+          if (!acc[dept]) acc[dept] = [];
+          acc[dept].push(item);
+          return acc;
+        }, {});
+
+        // Biến để tính tổng
+        const sumTotals: { [key: string]: number } = {};
+        totalsFields.forEach(f => sumTotals[f] = 0);
+
+        // Ghi data MT với group rows
+        for (const deptName of Object.keys(mtGrouped)) {
+          // Thêm dòng group (phòng ban)
+          const groupRow = wsMT.addRow([`Phòng ban: ${deptName}`]);
+          groupRow.font = groupFont;
+          groupRow.fill = {
+            type: 'pattern',
+            pattern: 'solid',
+            fgColor: { argb: 'FFD9E1F2' }, // Màu xanh nhạt cho group
+          };
+          wsMT.mergeCells(groupRow.number, 1, groupRow.number, allTitles.length);
+
+          // Ghi các dòng dữ liệu trong group
+          for (const r of mtGrouped[deptName]) {
+            const row = allFields.map((f) => r?.[f] ?? '');
+            // ép kiểu số cho các cột tổng và cộng dồn
+            for (let i = 0; i < totalsFields.length; i++) {
+              const idx = leftFields.length + dayFields.length + i;
+              const val = num2(row[idx]);
+              row[idx] = val;
+              sumTotals[totalsFields[i]] += val;
+            }
+            const dataRow = wsMT.addRow(row);
+            dataRow.font = dataFont;
+            // Căn giữa các cột ngày chấm công (D1, D2, ...) và cột tổng
+            for (let i = leftFields.length; i < allFields.length; i++) {
+              dataRow.getCell(i + 1).alignment = { horizontal: 'center', vertical: 'middle' };
+            }
           }
-          wsMT.addRow(row);
+        }
+
+        // Thêm dòng TỔNG CỘNG cuối bảng
+        const totalRow: any[] = [...new Array(allTitles.length)].map(() => '');
+        totalRow[0] = 'TỔNG CỘNG';
+        totalRow[1] = mtData.length; // Số nhân viên
+        // Điền số liệu tổng vào các cột tổng
+        for (let i = 0; i < totalsFields.length; i++) {
+          const idx = leftFields.length + dayFields.length + i;
+          totalRow[idx] = sumTotals[totalsFields[i]];
+        }
+        const sumRow = wsMT.addRow(totalRow);
+        sumRow.font = { name: 'Tahoma', size: 8.5, bold: true };
+        sumRow.fill = {
+          type: 'pattern',
+          pattern: 'solid',
+          fgColor: { argb: 'FFFFD966' }, // Màu vàng đậm cho dòng tổng
+        };
+        // Căn giữa và border cho dòng tổng
+        for (let i = 0; i < allTitles.length; i++) {
+          sumRow.getCell(i + 1).alignment = { horizontal: 'center', vertical: 'middle' };
+          sumRow.getCell(i + 1).border = thinBorder;
         }
 
         // set width
@@ -504,25 +637,58 @@ export class EmployeeTimekeepingManagementComponent
           { title: 'Ăn ca', field: 'TotalLunchText' },
         ];
 
-        wsDT.addRow(dtCols.map((c) => c.title));
-        wsDT.getRow(1).font = { bold: true };
-        wsDT.getRow(1).alignment = { horizontal: 'center' };
+        const dtHeaderRow = wsDT.addRow(dtCols.map((c) => c.title));
+        dtHeaderRow.font = headerFont;
+        dtHeaderRow.alignment = { horizontal: 'center', vertical: 'middle' };
+        // Áp dụng màu xám cho header DT
+        for (let c = 1; c <= dtCols.length; c++) {
+          dtHeaderRow.getCell(c).fill = headerFill;
+        }
 
-        for (const r of dtRows) {
-          const excelRow = dtCols.map((col) => {
-            const val = r?.[col.field];
-            if (col.isBool) return checkMark(val);
-            if (col.isNum) return num2(val);
-            if (col.isBusiness) {
-              if (val) return val;
-              return num2(r?.CostBussiness) > 0 ? 'Có' : '';
-            }
-            if (col.field === 'DayFinger') return fmtDate(val);
-            if (col.field === 'CheckIn' || col.field === 'CheckOut')
-              return fmtTime(val);
-            return val ?? '';
-          });
-          wsDT.addRow(excelRow);
+        // Group DT data theo DepartmentName
+        const dtGrouped = dtRows.reduce((acc: any, item: any) => {
+          const dept = item.DepartmentName || 'Không xác định';
+          if (!acc[dept]) acc[dept] = [];
+          acc[dept].push(item);
+          return acc;
+        }, {});
+
+        // Ghi data DT với group rows
+        for (const deptName of Object.keys(dtGrouped)) {
+          // Thêm dòng group (phòng ban)
+          const groupRow = wsDT.addRow([`Phòng ban: ${deptName}`]);
+          groupRow.font = groupFont;
+          groupRow.fill = {
+            type: 'pattern',
+            pattern: 'solid',
+            fgColor: { argb: 'FFD9E1F2' }, // Màu xanh nhạt cho group
+          };
+          wsDT.mergeCells(groupRow.number, 1, groupRow.number, dtCols.length);
+
+          // Ghi các dòng dữ liệu trong group
+          for (const r of dtGrouped[deptName]) {
+            const excelRow = dtCols.map((col) => {
+              const val = r?.[col.field];
+              if (col.isBool) return checkMark(val);
+              if (col.isNum) return num2(val);
+              if (col.isBusiness) {
+                if (val) return val;
+                return num2(r?.CostBussiness) > 0 ? 'Có' : '';
+              }
+              if (col.field === 'DayFinger') return fmtDate(val);
+              if (col.field === 'CheckIn' || col.field === 'CheckOut')
+                return fmtTime(val);
+              return val ?? '';
+            });
+            const dataRow = wsDT.addRow(excelRow);
+            dataRow.font = dataFont;
+            // Căn giữa các cột boolean, số, ngày, giờ
+            dtCols.forEach((col, idx) => {
+              if (col.isBool || col.isNum || col.field === 'DayFinger' || col.field === 'CheckIn' || col.field === 'CheckOut') {
+                dataRow.getCell(idx + 1).alignment = { horizontal: 'center', vertical: 'middle' };
+              }
+            });
+          }
         }
 
         // width hợp lý
@@ -619,9 +785,9 @@ export class EmployeeTimekeepingManagementComponent
       const filtered =
         this.selectedDepartment && Number(this.selectedDepartment) > 0
           ? this.allEmployees.filter(
-              (x: any) =>
-                Number(x.DepartmentID) === Number(this.selectedDepartment)
-            )
+            (x: any) =>
+              Number(x.DepartmentID) === Number(this.selectedDepartment)
+          )
           : this.allEmployees;
 
       this.employees = this.groupEmployeesByDepartment(filtered);
@@ -827,9 +993,9 @@ export class EmployeeTimekeepingManagementComponent
         const filtered =
           this.selectedDepartment && Number(this.selectedDepartment) > 0
             ? all.filter(
-                (x: any) =>
-                  Number(x.DepartmentID) === Number(this.selectedDepartment)
-              )
+              (x: any) =>
+                Number(x.DepartmentID) === Number(this.selectedDepartment)
+            )
             : all;
 
         // Group employees by department
@@ -1583,8 +1749,8 @@ export class EmployeeTimekeepingManagementComponent
           const text = this.weekdays?.[key]
             ? (this.weekdays[key] as string).split(';')[0]
             : dow === 0
-            ? 'CN'
-            : `T${dow + 1}`;
+              ? 'CN'
+              : `T${dow + 1}`;
           const isWeekend = dow === 0 || dow === 6;
           return `<div class="mt-header-day${isWeekend ? ' weekend' : ''}">
             <div class="dow">${text}</div>

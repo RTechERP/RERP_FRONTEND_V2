@@ -40,6 +40,7 @@ export interface ApproveItemParam {
   TType?: number | null;
   ReasonDeciline?: string | null;
   ForceApproveSenior?: boolean | null;  // TBP can force approve even if Senior hasn't approved
+  ApprovedSeniorID?: number | null;  // ID của Senior đã duyệt
 }
 
 export interface ApproveRequestParam {

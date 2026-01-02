@@ -1,25 +1,25 @@
 <!-- <div style="display: flex; flex-direction: column; height: 99.6vh; position: relative;"> -->
 
 <ng-container class="w-100 h-100 d-flex flex-column">
-    <!-- quotation-kh-detail.component.html -->
-    <!-- <div class="modal-header bg-primary text-uppercase py-2">
-            <h6 class="modal-title text-white">TỔNG HỢP YÊU CẦU XUẤT HÓA ĐƠN</h6>
-            <button type="button" class="btn-close" (click)="closeModal()" aria-label="Close"></button>
-        </div> -->
-    <div class="card-header bg-white p-1" style="overflow-x: auto; flex-shrink: 0;">
-        <div class="d-flex gap-1">
-            <button style="min-width: 25px;" nz-button nzType="default" nzSize="small" (click)="toggleSearchPanel()">
-                <nz-icon nzType="search"></nz-icon>
+    <!-- Header với p-menubar -->
+    <div class="card-header bg-white p-0" style="flex-shrink: 0;">
+      <p-menubar [model]="menuBars">
+        <ng-template pTemplate="item" let-item>
+          <a class="p-menuitem-link" [ngClass]="item.styleClass">
+            <i [class]="item.icon"></i>
+            <span class="p-menuitem-text">{{ item.label }}</span>
+          </a>
+        </ng-template>
+
+        <ng-template #end>
+          <div class="flex items-center gap-2">
+            <button nz-button nzType="text" nzShape="circle"
+              (click)="toggleSearchPanel(); $event.stopPropagation()">
+              <nz-icon [nzType]="sizeSearch == '0' ? 'down' : 'up'" />
             </button>
-            <button class="fs-12" nz-button nzType="default" nzSize="small" title="Xuất Excel"
-                (click)="exportToExcel()">
-                <img src="assets/icon/excel.png" alt="Xuất Excel" /> Xuất Excel
-            </button>
-            <button class="fs-12" nz-button nzType="default" nzSize="small" title="Quản lý trạng thái"
-                (click)="openRequestInvoiceStatusLinkModal()">
-                <img src="assets/icon/summary_check_16.png" alt="Cập nhật trạng thái" /> Quản lý trạng thái
-            </button>
-        </div>
+          </div>
+        </ng-template>
+      </p-menubar>
     </div>
     <nz-splitter>
         <nz-splitter-panel [nzSize]="sizeSearch" nzResizable="false">

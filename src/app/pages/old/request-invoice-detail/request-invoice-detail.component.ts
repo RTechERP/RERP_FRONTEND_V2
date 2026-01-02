@@ -1088,12 +1088,32 @@ export class RequestInvoiceDetailComponent implements OnInit {
               field: 'RequestDate',
               sorter: 'string',
               width: 150,
+              formatter: (cell: any) => {
+                const value = cell.getValue();
+                if (!value) return '';
+                const date = new Date(value);
+                if (isNaN(date.getTime())) return value;
+                const day = String(date.getDate()).padStart(2, '0');
+                const month = String(date.getMonth() + 1).padStart(2, '0');
+                const year = date.getFullYear();
+                return `${day}/${month}/${year}`;
+              },
             },
             {
               title: 'Ngày hàng về',
               field: 'DateRequestImport',
               sorter: 'string',
               width: 150,
+              formatter: (cell: any) => {
+                const value = cell.getValue();
+                if (!value) return '';
+                const date = new Date(value);
+                if (isNaN(date.getTime())) return value;
+                const day = String(date.getDate()).padStart(2, '0');
+                const month = String(date.getMonth() + 1).padStart(2, '0');
+                const year = date.getFullYear();
+                return `${day}/${month}/${year}`;
+              },
             },
             {
               title: 'Nhà cung cấp',
@@ -1113,6 +1133,16 @@ export class RequestInvoiceDetailComponent implements OnInit {
               field: 'ExpectedDate',
               sorter: 'string',
               width: 150,
+              formatter: (cell: any) => {
+                const value = cell.getValue();
+                if (!value) return '';
+                const date = new Date(value);
+                if (isNaN(date.getTime())) return value;
+                const day = String(date.getDate()).padStart(2, '0');
+                const month = String(date.getMonth() + 1).padStart(2, '0');
+                const year = date.getFullYear();
+                return `${day}/${month}/${year}`;
+              },
             },
             {
               title: 'PNK',
@@ -1137,7 +1167,7 @@ export class RequestInvoiceDetailComponent implements OnInit {
     const editedRow = cell.getRow();
     const editedField = cell.getColumn().getField();
     const newValue = cell.getValue();
-    
+
     // Chỉ xử lý cho 3 cột: Số hóa đơn, Ngày hóa đơn và Tồn kho
     if (editedField !== 'InvoiceNumber' && editedField !== 'InvoiceDate' && editedField !== 'IsStock') {
       return;

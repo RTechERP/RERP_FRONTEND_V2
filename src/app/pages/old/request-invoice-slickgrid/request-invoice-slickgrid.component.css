@@ -52,14 +52,10 @@
 }
 
 .filter-bar {
-    position: absolute;
-    top: 30px;
-    left: 0;
-    right: 0;
-    z-index: 100;
+    position: relative;
+    z-index: 1;
     background: white;
     border-bottom: 1px solid #dee2e6;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
 .ant-splitter {
@@ -159,12 +155,12 @@ angular-slickgrid,
 }
 
 .grid-container-file {
-  height: 35vh !important;
-  max-height: 35vh !important;
+  height: 32vh !important;
+  max-height: 32vh !important;
 }
 
 .grid-container-pofile {
-  height: 35vh !important;
-  max-height: 35vh !important;
+  height: 32vh !important;
+  max-height: 32vh !important;
 }
 

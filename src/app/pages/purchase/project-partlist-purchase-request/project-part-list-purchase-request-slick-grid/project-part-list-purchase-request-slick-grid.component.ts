@@ -34,7 +34,6 @@ import {
   SortDirectionNumber,
 } from '@slickgrid-universal/common';
 import { ProjectPartlistPurchaseRequestService } from '../project-partlist-purchase-request.service';
-import { ProjectPartlistPurchaseRequestParam } from '../project-partlist-purchase-request.model';
 import { NzNotificationService } from 'ng-zorro-antd/notification';
 import { NzModalService, NzModalModule } from 'ng-zorro-antd/modal';
 import { NzFormModule } from 'ng-zorro-antd/form';
@@ -46,6 +45,8 @@ import { NzInputModule } from 'ng-zorro-antd/input';
 import { NzTabsModule } from 'ng-zorro-antd/tabs';
 import { NzSpinModule } from 'ng-zorro-antd/spin';
 import { NzDropDownModule } from 'ng-zorro-antd/dropdown';
+import { MenubarModule } from 'primeng/menubar';
+import { MenuItem } from 'primeng/api';
 import { Subscription } from 'rxjs';
 import { HasPermissionDirective } from '../../../../directives/has-permission.directive';
 import {
@@ -474,6 +475,7 @@ class GroupSelectEditor {
     NzDropDownModule,
     NgbModule,
     HasPermissionDirective,
+    MenubarModule,
   ],
   templateUrl: './project-part-list-purchase-request-slick-grid.component.html',
   styleUrls: ['./project-part-list-purchase-request-slick-grid.component.css'],
@@ -579,12 +581,12 @@ export class ProjectPartListPurchaseRequestSlickGridComponent
   @Input() headerText: string = 'YÊU CẦU MUA HÀNG';
   @Input() showCloseButton: boolean = false;
   @Input() isYCMH: boolean = false;
-  showSearchBar: boolean = true;
   @Input() isApprovedTBP: boolean = false;
   @Input() isSelectedPO: boolean = false;
   @Input() isApprovedBGD: boolean = false;
   @Input() listRequestBuySelect: boolean = false;
   shouldShowSearchBar: boolean = true;
+  showSearchBar: boolean = typeof window !== 'undefined' ? window.innerWidth > 768 : true;
   isLoading: boolean = false;
   @Input() isPurchaseRequestDemo: boolean = false;
   WarehouseType: number = 1;
@@ -594,6 +596,23 @@ export class ProjectPartListPurchaseRequestSlickGridComponent
   private pendingReload: boolean = false;
   // Subscriptions
   private subscriptions: Subscription[] = [];
+
+  // Menu items for PrimeNG Menubar
+  menuItems: MenuItem[] = [];
+  maxVisibleItems = 9; // Số nút tối đa hiển thị trực tiếp, còn lại vào More menu
+
+  // Check if mobile
+  isMobile(): boolean {
+    return typeof window !== 'undefined' && window.innerWidth <= 768;
+  }
+
+  // Toggle search panel
+  toggleSearchPanel(event?: Event): void {
+    if (event) {
+      event.stopPropagation();
+    }
+    this.showSearchBar = !this.showSearchBar;
+  }
 
     // Track changes for save functionality
     changedRows: any[] = [];
@@ -643,6 +662,7 @@ export class ProjectPartListPurchaseRequestSlickGridComponent
             this.isApprovedTBP = params['isApprovedTBP'] || false;
             this.isApprovedBGD = params['isApprovedBGD'] || false;
         });
+        this.initMenuItems();
         this.loadMasterData();
         this.getRequestTypes();
         if(this.listRequestBuySelect){
@@ -650,6 +670,209 @@ export class ProjectPartListPurchaseRequestSlickGridComponent
 
           this.onSearch();
         }
+  }
+
+  // Initialize menu items based on current state
+  initMenuItems() {
+    this.menuItems = [];
+
+    // Khi listRequestBuySelect = true, chỉ hiển thị nút xóa
+    if (this.listRequestBuySelect && !this.isYCMH) {
+      if (this.permissionService.hasPermission('N35,N1')) {
+        this.menuItems = [
+          {
+            label: 'Hủy Y/c',
+            icon: 'fa-solid fa-trash fa-lg text-danger',
+            command: () => this.onDeleteRequest(this.activeTabIndex)
+          }
+        ];
+      }
+      return;
+    }
+
+    // Khi isYCMH = true
+    if (this.isYCMH) {
+      this.menuItems = [
+        {
+          label: 'Chọn YCMH',
+          icon: 'fa-solid fa-plus fa-lg text-primary',
+          command: () => this.onSelectYCMH()
+        }
+      ];
+      return;
+    }
+
+    // Khi isApprovedBGD = true, chỉ hiển thị 2 nút BGD
+    if (this.isApprovedBGD && !this.isApprovedTBP && !this.isYCMH && !this.listRequestBuySelect) {
+      if (this.permissionService.hasPermission('N58,N1')) {
+        this.menuItems = [
+          {
+            label: 'BGD duyệt',
+            icon: 'fa-solid fa-circle-check fa-lg text-success',
+            command: () => this.onApproved(this.activeTabIndex, true, false)
+          },
+          {
+            label: 'BGD hủy duyệt',
+            icon: 'fa-solid fa-circle-xmark fa-lg text-danger',
+            command: () => this.onApproved(this.activeTabIndex, false, false)
+          }
+        ];
+      }
+      return;
+    }
+
+    // Khi isApprovedTBP = true, chỉ hiển thị 2 nút TBP
+    if (this.isApprovedTBP && !this.isApprovedBGD && !this.isYCMH && !this.listRequestBuySelect) {
+      if (this.permissionService.hasPermission('N58,N1')) {
+        this.menuItems = [
+          {
+            label: 'TBP duyệt',
+            icon: 'fa-solid fa-circle-check fa-lg text-success',
+            command: () => this.onApproved(this.activeTabIndex, true, true)
+          },
+          {
+            label: 'TBP hủy duyệt',
+            icon: 'fa-solid fa-circle-xmark fa-lg text-danger',
+            command: () => this.onApproved(this.activeTabIndex, false, true)
+          }
+        ];
+      }
+      return;
+    }
+
+    // Khi cả isApprovedTBP và isApprovedBGD đều false, hiển thị tất cả các nút
+    if (!this.isApprovedTBP && !this.isApprovedBGD && !this.isYCMH && !this.listRequestBuySelect) {
+      const allItems: MenuItem[] = [
+        {
+          label: 'Check đặt hàng',
+          icon: 'fa-solid fa-check fa-lg text-success',
+          command: () => this.onCheckOrder(this.activeTabIndex, true)
+        },
+        {
+          label: 'Hủy Check đặt hàng',
+          icon: 'fa-solid fa-xmark fa-lg text-danger',
+          command: () => this.onCheckOrder(this.activeTabIndex, false)
+        }
+      ];
+
+      // Items requiring N35,N1 permission
+      if (this.permissionService.hasPermission('N35,N1')) {
+        allItems.push(
+          {
+            label: 'Lưu thay đổi',
+            icon: 'fa-solid fa-floppy-disk fa-lg text-primary',
+            visible: !this.isSelectedPO,
+            command: () => this.onSaveData(this.activeTabIndex)
+          },
+          {
+            label: 'Sửa',
+            icon: 'fa-solid fa-pen-to-square fa-lg text-warning',
+            command: () => this.onEdit(this.activeTabIndex)
+          },
+          {
+            label: 'Hủy Y/c',
+            icon: 'fa-solid fa-trash fa-lg text-danger',
+            command: () => this.onDeleteRequest(this.activeTabIndex)
+          },
+          {
+            label: 'Thêm NCC',
+            icon: 'fa-solid fa-plus fa-lg text-primary',
+            command: () => this.onAddSupplierSale()
+          },
+          {
+            label: 'Y/C duyệt mua',
+            icon: 'fa-solid fa-circle-check fa-lg text-success',
+            command: () => this.onRequestApproved(this.activeTabIndex, true)
+          },
+          {
+            label: 'Hủy Y/C duyệt mua',
+            icon: 'fa-solid fa-circle-xmark fa-lg text-danger',
+            command: () => this.onRequestApproved(this.activeTabIndex, false)
+          },
+          {
+            label: 'Hoàn thành',
+            icon: 'fa-solid fa-check-circle fa-lg text-success',
+            command: () => this.onCompleteRequest(this.activeTabIndex, 7)
+          },
+          {
+            label: 'Hủy hoàn thành',
+            icon: 'fa-solid fa-times-circle fa-lg text-danger',
+            command: () => this.onCompleteRequest(this.activeTabIndex, 1)
+          }
+        );
+      }
+
+      // Items requiring N58,N1 permission
+      if (this.permissionService.hasPermission('N58,N1')) {
+        allItems.push(
+          {
+            label: 'BGD duyệt',
+            icon: 'fa-solid fa-circle-check fa-lg text-success',
+            visible: !this.isSelectedPO,
+            command: () => this.onApproved(this.activeTabIndex, true, false)
+          },
+          {
+            label: 'BGD hủy duyệt',
+            icon: 'fa-solid fa-circle-xmark fa-lg text-danger',
+            visible: !this.isSelectedPO,
+            command: () => this.onApproved(this.activeTabIndex, false, false)
+          }
+        );
+      }
+
+      // Items requiring N35,N1 permission (continued)
+      if (this.permissionService.hasPermission('N35,N1')) {
+        allItems.push(
+          {
+            label: 'Tạo PO NCC',
+            icon: 'fa-solid fa-file-circle-plus fa-lg text-primary',
+            command: () => this.onAddPoncc()
+          },
+          {
+            label: 'Tải file',
+            icon: 'fa-solid fa-download fa-lg text-primary',
+            command: () => this.onDownloadFile(this.activeTabIndex)
+          },
+          {
+            label: 'Xuất Excel',
+            icon: 'fa-solid fa-file-excel fa-lg text-success',
+            items: [
+              {
+                label: 'Xuất theo dòng đã chọn',
+                icon: 'fa-solid fa-file-excel fa-lg text-success',
+                command: () => this.exportExcelSelectedRows()
+              },
+              {
+                label: 'Xuất tất cả',
+                icon: 'fa-solid fa-file-excel fa-lg text-success',
+                command: () => this.exportExcelAllTabs()
+              }
+            ]
+          }
+        );
+      }
+
+      // Lọc các items có visible = false
+      const visibleItems = allItems.filter(item => item.visible !== false);
+
+      // Nếu số lượng items <= maxVisibleItems, hiển thị tất cả trực tiếp
+      if (visibleItems.length <= this.maxVisibleItems) {
+        this.menuItems = visibleItems;
+      } else {
+        // Nếu vượt quá maxVisibleItems, tách ra: items chính + More menu
+        const directItems = visibleItems.slice(0, this.maxVisibleItems - 1);
+        const moreItems = visibleItems.slice(this.maxVisibleItems - 1);
+
+        this.menuItems = [
+          ...directItems,
+          {
+            label: 'More',
+            icon: 'fa-solid fa-ellipsis fa-lg text-secondary',
+            items: moreItems
+          }
+        ];
+      }
+    }
   }
 
   ngOnDestroy() {
@@ -849,6 +1072,7 @@ export class ProjectPartListPurchaseRequestSlickGridComponent
         width: 120,
         sortable: false,
         filterable: true,
+        hidden: typeId === 3,
         filter: {
           model: Filters['multipleSelect'],
           collection: [],
@@ -938,8 +1162,8 @@ export class ProjectPartListPurchaseRequestSlickGridComponent
         }
 
     // Continue with common columns
-    // Chỉ thêm 2 cột YC duyệt và BGĐ duyệt nếu KHÔNG phải tab "Mua hàng dự án" (typeId !== 1) và KHÔNG phải tab "Mượn demo" (typeId !== 4)
-    if (typeId !== 1 && typeId !== 4) {
+    // Chỉ thêm 2 cột YC duyệt và BGĐ duyệt nếu KHÔNG phải tab "Mua hàng dự án" (typeId !== 1) và KHÔNG phải tab "Mượn demo" (typeId !== 4) và KHÔNG phải tab mua demo (typeId !== 3)
+    if (typeId !== 1 && typeId !== 4 && typeId !== 3) {
       columns.push(
         // IsRequestApproved
         {
@@ -968,8 +1192,8 @@ export class ProjectPartListPurchaseRequestSlickGridComponent
       );
     }
 
-    // Chỉ thêm cột CustomerName nếu KHÔNG phải tab "Mua hàng dự án" (typeId !== 1)
-    if (typeId !== 1) {
+    // Chỉ thêm cột CustomerName nếu KHÔNG phải tab "Mua hàng dự án" (typeId !== 1) và KHÔNG phải tab mua demo (typeId !== 3)
+    if (typeId !== 1 && typeId !== 3) {
       columns.push(
         // CustomerName
         {
@@ -1009,6 +1233,7 @@ export class ProjectPartListPurchaseRequestSlickGridComponent
         width: 100,
         sortable: false,
         filterable: true,
+        hidden: typeId === 3,
         filter: {
           model: Filters['multipleSelect'],
           collection: [],
@@ -1493,6 +1718,24 @@ export class ProjectPartListPurchaseRequestSlickGridComponent
           this.sumTotalsFormatterWithFormat(totals, columnDef),
         params: { groupFormatterPrefix: 'Tổng: ' },
       },
+      // DiscountPercent
+      {
+        id: 'DiscountPercent',
+        field: 'DiscountPercent',
+        name: '% giảm giá',
+        width: 100,
+        sortable: true,
+        filterable: true,
+        cssClass: 'text-right',
+        type: 'number',
+        editor: {
+          model: Editors['float'],
+          decimal: 2,
+        },
+        formatter: (row: number, cell: number, value: any) =>
+          this.formatNumberEnUS(value, 2),
+        filter: { model: Filters['compoundInputNumber'] },
+      },
       // TotalPriceExchange
       {
         id: 'TotalPriceExchange',
@@ -1582,22 +1825,6 @@ export class ProjectPartListPurchaseRequestSlickGridComponent
         field: 'TotalDayLeadTime',
         name: 'Lead time (ngày)',
         width: 100,
-        sortable: true,
-        filterable: true,
-        cssClass: 'text-right',
-        editor: {
-          model: Editors['float'],
-          decimal: 2,
-        },
-        formatter: (row: number, cell: number, value: any) =>
-          this.formatNumberEnUS(value, 2),
-        filter: { model: Filters['compoundInputNumber'] },
-      },
-      {
-        id: 'TargetPrice',
-        field: 'TargetPrice',
-        name: 'Giá Target',
-        width: 120,
         sortable: true,
         filterable: true,
         cssClass: 'text-right',
@@ -1702,6 +1929,23 @@ export class ProjectPartListPurchaseRequestSlickGridComponent
           useRegularTooltip: true,
           // useRegularTooltipFromCellTextOnly: true,
         },
+      },
+      // TargetPrice
+      {
+        id: 'TargetPrice',
+        field: 'TargetPrice',
+        name: 'Giá Target',
+        width: 120,
+        sortable: true,
+        filterable: true,
+        cssClass: 'text-right',
+        editor: {
+          model: Editors['float'],
+          decimal: 2,
+        },
+        formatter: (row: number, cell: number, value: any) =>
+          this.formatNumberEnUS(value, 2),
+        filter: { model: Filters['compoundInputNumber'] },
       },
       // RequestDate
       {
@@ -2682,6 +2926,76 @@ export class ProjectPartListPurchaseRequestSlickGridComponent
         // Update the item with new value
         if (field && newValue !== undefined) {
             item[field] = newValue;
+        }
+
+        // Lấy tất cả các dòng đã chọn
+        const selectedRowIndexes = angularGrid.slickGrid.getSelectedRows();
+        const currentEmployeeID = this.appUserService.employeeID;
+
+        // Kiểm tra xem cell được edit có nằm trong các dòng đã chọn không
+        const isEditedRowSelected = selectedRowIndexes && selectedRowIndexes.includes(rowIndex);
+
+        // Nếu có nhiều dòng được chọn VÀ dòng đang edit nằm trong selection
+        // thì fill giá trị cho các dòng đã chọn khác
+        // với điều kiện EmployeeCheckPriceID = người đăng nhập hiện tại
+        if (isEditedRowSelected && selectedRowIndexes && selectedRowIndexes.length > 1 && field) {
+            let hasUpdatedRows = false;
+
+            for (const selectedRowIndex of selectedRowIndexes) {
+                // Bỏ qua dòng đang được edit
+                if (selectedRowIndex === rowIndex) continue;
+
+                const selectedItem = angularGrid.dataView.getItem(selectedRowIndex);
+                if (!selectedItem) continue;
+
+                // Kiểm tra EmployeeCheckPriceID
+                const employeeCheckPriceID = selectedItem['QuoteEmployeeID'];
+                if (employeeCheckPriceID !== currentEmployeeID) continue;
+
+                // Fill giá trị vào dòng này
+                selectedItem[field] = newValue;
+
+                // Xử lý đặc biệt cho CurrencyID - cập nhật CurrencyRate
+                if (field === 'CurrencyID') {
+                    const currencyId = Number(newValue) || 0;
+                    let newCurrencyRate = 0;
+                    if (currencyId > 0) {
+                        const currency = this.dtcurrency.find((c: any) => c.ID === currencyId);
+                        if (currency) {
+                            newCurrencyRate = currency.CurrencyRate || 0;
+                        }
+                    }
+                    selectedItem.CurrencyRate = newCurrencyRate;
+                }
+
+                // Recalculate totals nếu cần
+                if (['UnitPrice', 'Quantity', 'CurrencyRate', 'VAT', 'CurrencyID'].includes(field)) {
+                    this.recalculateTotals(selectedItem);
+                }
+
+                // Track changes cho dòng này
+                const selectedRowId = Number(selectedItem.ID || 0);
+                if (selectedRowId > 0) {
+                    const existingIndex = this.changedRows.findIndex(
+                        (r: any) => Number(r.ID) === selectedRowId
+                    );
+                    if (existingIndex >= 0) {
+                        this.changedRows[existingIndex] = { ...selectedItem };
+                    } else {
+                        this.changedRows.push({ ...selectedItem });
+                    }
+                }
+
+                // Update item in dataView
+                angularGrid.dataView.updateItem(selectedItem.id, selectedItem);
+                hasUpdatedRows = true;
+            }
+
+            // Refresh grid nếu có dòng được update
+            if (hasUpdatedRows) {
+                angularGrid.slickGrid.invalidate();
+                angularGrid.slickGrid.render();
+            }
         }
 
         // Get the column info from the grid
@@ -3690,86 +4004,33 @@ export class ProjectPartListPurchaseRequestSlickGridComponent
       .map((rowIndex: number) => angularGrid.dataView.getItem(rowIndex))
       .filter((item: any) => item);
 
-        // Validate từng sản phẩm theo logic WinForm
-        for (const row of selectedData) {
-            const id = Number(row.ID || 0);
-            if (id <= 0) continue;
+    // Validate đầu tiên theo logic từ file gốc
+    for (const row of selectedData) {
+      const ticketType = Number(row.TicketType || 0);
+      const isTBPApproved = Boolean(row.IsApprovedTBP);
+      const productCode = String(row.ProductCode || '');
+      const unitPrice = Number(row.UnitPrice || 0);
 
-            const productCode = String(row.ProductCode || '');
-            const productRtcId = Number(row.ProductRTCID || 0);
-            const productSaleId = Number(row.ProductSaleID || 0);
-            const currencyID = Number(row.CurrencyID || 0);
-            const parentProductCode = String(row.ParentProductCodePO || '').trim();
-            const supplierSaleId = Number(row.SupplierSaleID || 0);
-            const unitPrice = Number(row.UnitPrice || 0);
-            const ticketType = Number(row.TicketType || 0); // 0: mua, 1: mượn
-
-      // Lấy IsApprovedTBP từ requestModel (từ database) thay vì từ row
-      const requestModel = this.allData.find(
-        (item: any) => Number(item.ID) === id
-      );
-      const isTBPApproved = Boolean(
-        requestModel?.IsApprovedTBP || row.IsApprovedTBP
-      );
-
-            // Validate: productRtcId <= 0 && productSaleId <= 0
-            if (productRtcId <= 0 && productSaleId <= 0) {
-                this.notify.warning(
-                    NOTIFICATION_TITLE.warning,
-                    `Vui lòng tạo Mã nội bộ cho sản phẩm [${productCode}].\nChọn Loại kho sau đó chọn Lưu thay đổi để tạo Mã nội bộ!`
-                );
-                return;
-            }
-
-            // Validate: currencyID <= 0
-            if (currencyID <= 0) {
-                this.notify.warning(
-                    NOTIFICATION_TITLE.warning,
-                    `Vui lòng chọn loại tiền tệ cho sản phẩm [${productCode}].\nChọn Loại tiền sau đó chọn Lưu thay đổi!`
-                );
-                return;
-            }
-
-            // Nếu có parentProductCode, chỉ cần validate supplierSaleId
-            if (parentProductCode) {
-                if (supplierSaleId <= 0) {
-                    this.notify.warning(
-                        NOTIFICATION_TITLE.warning,
-                        `Vui lòng nhập Nhà cung cấp cho sản phẩm con [${productCode}].\nChọn Nhà cung cấp sau đó chọn Lưu thay đổi!`
-                    );
-                    return;
-                }
-                // Bỏ qua validate khác cho sản phẩm con
-                continue;
-            }
-
-            // Validate: supplierSaleId <= 0
-            if (supplierSaleId <= 0) {
-                this.notify.warning(
-                    NOTIFICATION_TITLE.warning,
-                    `Vui lòng nhập Nhà cung cấp cho sản phẩm [${productCode}].\nChọn Nhà cung cấp sau đó chọn Lưu thay đổi!`
-                );
-                return;
-            }
-
-            // Validate: unitPrice <= 0 && isBorrowProduct == 0
-            if (unitPrice <= 0 && ticketType === 0) {
-                this.notify.warning(
-                    NOTIFICATION_TITLE.warning,
-                    `Vui lòng nhập Đơn giá cho sản phẩm [${productCode}]!`
-                );
-                return;
-            }
-
-            // Validate: !isTBPAprroved && isBorrowProduct == 1
-            if (!isTBPApproved && ticketType === 1) {
-                this.notify.warning(
-                    NOTIFICATION_TITLE.warning,
-                    `Sản phẩm [${productCode}] chưa được TBP duyệt!`
-                );
-                return;
-            }
+      // Hàng mượn phải được TBP duyệt
+      if (ticketType === 1) {
+        if (!isTBPApproved) {
+          this.notify.warning(
+            NOTIFICATION_TITLE.warning,
+            `Sản phẩm ${productCode} (hàng mượn) chưa được TBP duyệt!`
+          );
+          return;
         }
+      }
+
+      // Hàng mua phải có đơn giá
+      if (ticketType === 0 && unitPrice <= 0) {
+        this.notify.warning(
+          NOTIFICATION_TITLE.warning,
+          `Vui lòng nhập Đơn giá cho sản phẩm ${productCode}!`
+        );
+        return;
+      }
+    }
 
         // Check validate: danh sách sản phẩm có cùng nhà cung cấp không
         const listSupplierSale: number[] = [];
@@ -5186,7 +5447,14 @@ export class ProjectPartListPurchaseRequestSlickGridComponent
       const dataView = angularGrid.dataView;
       if (!dataView) return;
 
-      const data = dataView.getItems();
+      // Lấy dữ liệu đã được filter từ view (không phải tất cả data gốc)
+      const data: any[] = [];
+      for (let i = 0; i < dataView.getLength(); i++) {
+        const item = dataView.getItem(i);
+        if (item) {
+          data.push(item);
+        }
+      }
       if (!data || data.length === 0) return;
 
       const columns = angularGrid.slickGrid.getColumns();

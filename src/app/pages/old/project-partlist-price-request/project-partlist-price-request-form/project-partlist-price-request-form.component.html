@@ -140,17 +140,32 @@
 
  <ng-container #vcHost></ng-container> -->
 
- <div *ngIf="showProductPopup" 
+ <div *ngIf="showProductPopup"
      style="position: fixed; z-index: 10000; min-width: 500px; max-width: 700px;"
      [style.top]="productPopupPosition.top"
      [style.left]="productPopupPosition.left">
   <app-tabulator-popup
-    [data]="dtProductSale"
-    [columns]="productColumns"
-    [searchFields]="productSearchFields"
+    [data]="priceRequestTypeID === 6 ? productsRTC : dtProductSale"
+    [columns]="priceRequestTypeID === 6 ? productRTCColumns : productColumns"
+    [searchFields]="priceRequestTypeID === 6 ? productRTCSearchFields : productSearchFields"
     [searchPlaceholder]="'Tìm kiếm sản phẩm...'"
     [height]="'300px'"
     (rowSelected)="onProductSelected($event)"
     (closed)="onPopupClosed()"
+  ></app-tabulator-popup>
+</div>
+
+<div *ngIf="showSupplierPopup"
+     style="position: fixed; z-index: 10000; min-width: 500px; max-width: 700px;"
+     [style.top]="supplierPopupPosition.top"
+     [style.left]="supplierPopupPosition.left">
+  <app-tabulator-popup
+    [data]="dtSupplierSale"
+    [columns]="supplierColumns"
+    [searchFields]="supplierSearchFields"
+    [searchPlaceholder]="'Tìm kiếm nhà cung cấp...'"
+    [height]="'300px'"
+    (rowSelected)="onSupplierSelected($event)"
+    (closed)="onSupplierPopupClosed()"
   ></app-tabulator-popup>
 </div>

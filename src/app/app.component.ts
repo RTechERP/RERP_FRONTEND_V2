@@ -9,6 +9,7 @@ import { NzDropDownModule } from 'ng-zorro-antd/dropdown';
 import { ReactiveFormsModule } from '@angular/forms';
 import { NzGridModule } from 'ng-zorro-antd/grid';
 import { MenuService } from './pages/systems/menus/menu-service/menu.service';
+import { AutocompleteDirectiveDirective } from './directives/autocomplete-directive.directive';
 @Component({
   selector: 'app-root',
   imports: [
@@ -26,6 +27,7 @@ import { MenuService } from './pages/systems/menus/menu-service/menu.service';
     ReactiveFormsModule,
     // HttpClient,
     NzGridModule,
+    AutocompleteDirectiveDirective
   ],
   //   templateUrl: './app.component.html',
   styleUrl: './app.component.css',

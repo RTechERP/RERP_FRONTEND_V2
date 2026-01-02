@@ -1,0 +1,137 @@
+.fs-12 {
+  font-size: 0.75rem;
+}
+
+.reset {
+  all: revert;
+}
+
+.ant-splitter-panel {
+  position: relative;
+}
+
+.tabulator {
+  font-size: 0.75rem !important;
+  width: 100% !important;
+}
+
+.tabulator-cell {
+  padding: 0px;
+}
+
+.inner-content {
+  padding: 0 !important;
+}
+
+.ant-tabs-tab-btn {
+  font-size: 0.75rem;
+}
+
+.ant-splitter {
+  height: 93vh !important;
+}
+
+::ng-deep .full-screen-modal {
+  height: auto !important;
+}
+
+.custom-fieldset {
+  border: 1px solid #d9d9d9;
+  border-radius: 4px;
+  padding: 0;
+  margin: 0;
+  height: 100%;
+}
+
+.custom-legend {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: #1890ff;
+  padding: 0 8px;
+  margin: 0 0 0 8px;
+  width: auto;
+  border: none;
+}
+
+.ant-form-item {
+  margin-bottom: 12px;
+}
+
+.header-legend {
+  color: #0d6efd;
+  font-weight: bold;
+  font-size: 0.875rem;
+}
+
+/* Responsive styles */
+::ng-deep .ant-form-item-label > label {
+  font-size: 0.75rem;
+}
+
+::ng-deep .ant-input,
+::ng-deep .ant-input-number,
+::ng-deep .ant-select-selector,
+::ng-deep .ant-picker {
+  font-size: 0.75rem !important;
+}
+
+::ng-deep .ant-input-number-input {
+  font-size: 0.75rem !important;
+}
+
+/* Responsive cho màn hình nhỏ hơn 1400px */
+@media (max-width: 1400px) {
+  .ant-form-item {
+    margin-bottom: 8px;
+  }
+
+  ::ng-deep .ant-form-item-label {
+    padding-bottom: 2px;
+  }
+}
+
+/* Responsive cho màn hình nhỏ hơn 1200px */
+@media (max-width: 1200px) {
+  .header-legend {
+    font-size: 0.8rem;
+  }
+
+  .ant-form-item {
+    margin-bottom: 6px;
+  }
+}
+
+/* Responsive cho tablet */
+@media (max-width: 992px) {
+  .fs-12 {
+    font-size: 0.7rem;
+  }
+
+  .header-legend {
+    font-size: 0.75rem;
+  }
+
+  ::ng-deep .ant-form-item-label > label {
+    font-size: 0.7rem;
+  }
+
+  ::ng-deep .ant-input,
+  ::ng-deep .ant-input-number,
+  ::ng-deep .ant-select-selector,
+  ::ng-deep .ant-picker {
+    font-size: 0.7rem !important;
+  }
+}
+
+/* Responsive cho mobile */
+@media (max-width: 768px) {
+  .ant-form-item {
+    margin-bottom: 4px;
+  }
+
+  ::ng-deep .ant-form-item-label {
+    padding-bottom: 0;
+  }
+}
+
+

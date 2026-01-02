@@ -356,7 +356,18 @@ button[nz-button] img {
     border: 1px solid #d8d9da;
 }
 
-.p-menubar-submenu >.p-menubar-item-content{
+/* Loại bỏ border cho tất cả items trong submenu */
+.p-menubar-submenu .p-menubar-item-content{
+    border: none !important;
+}
+
+/* Cụ thể hơn: loại bỏ border cho các items con trong dropdown */
+.p-menubar .p-submenu-list .p-menubar-item-content {
+    border: none !important;
+}
+
+/* Loại bỏ border cho items trong tiered menu */
+.p-tieredmenu .p-menuitem-content {
     border: none !important;
 }
 
@@ -376,6 +387,13 @@ button[nz-button] img {
     overflow: auto;
 }
 
+/* Mobile search dropdown styling */
+.mobile-search-dropdown {
+    min-width: 90vw;
+    max-width: 90vw;
+    max-height: 80vh;
+    overflow-y: auto;
+}
 
 /* Style slick-grid */
 

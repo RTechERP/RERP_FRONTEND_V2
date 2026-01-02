@@ -91,10 +91,10 @@
                             <img class="btn-action-icon" src="assets\icon\action_export_excel_24.svg" /> Xuất Phiếu
                         </button>
 
-                        <button class="fs-12" nz-button nzType="default" nzSize="small"
+                        <!-- <button class="fs-12" nz-button nzType="default" nzSize="small"
                             (click)="openSummaryModal()">
                             <nz-icon nzType="file-text" nzTheme="outline"></nz-icon> Tổng hợp
-                        </button>
+                        </button> -->
                     </div>
                 </div>
 
@@ -105,7 +105,7 @@
                             <nz-spin [nzSpinning]="isLoading"></nz-spin>
                         </div>
                         <div class="grid-container" style="height: 100%;">
-                            <angular-slickgrid [gridId]="'billExportTechnicalGrid-' + warehouseID" [columns]="columnDefinitions"
+                            <angular-slickgrid [gridId]="'billExportTechnicalGrid-' + warehouseID + '' + warehouseType" [columns]="columnDefinitions"
                                 [options]="gridOptions" [dataset]="dataset"
                                 (onAngularGridCreated)="angularGridReady($event.detail)"
                                 (onSelectedRowsChanged)="onRowSelectionChanged($event.detail.eventData, $event.detail.args)">
@@ -124,7 +124,7 @@
                             <nz-tab [nzTitle]="tabDetailTitle">
                                 <nz-spin [nzSpinning]="isDetailLoad" nzTip="Đang tải dữ liệu...">
                                     <div class="grid-container-detail" style="height: 100%;">
-                                        <angular-slickgrid [gridId]="'billExportTechnicalDetailGrid-' + warehouseID"
+                                        <angular-slickgrid [gridId]="'billExportTechnicalDetailGrid-' + warehouseID + '' + warehouseType"
                                             [columns]="columnDefinitionsDetail" [options]="gridOptionsDetail"
                                             [dataset]="datasetDetail"
                                             (onAngularGridCreated)="angularGridDetailReady($event.detail)">

@@ -192,6 +192,8 @@ import { HistoryBorrowSaleNewComponent } from './pages/old/Sale/HistoryBorrowSal
 import { MaterialDetailOfProductRtcComponent } from './pages/old/inventory-demo/material-detail-of-product-rtc/material-detail-of-product-rtc.component';
 import { ChiTietSanPhamSaleComponent } from './pages/old/Sale/chi-tiet-san-pham-sale/chi-tiet-san-pham-sale.component';
 import { PokhSlickgridComponent } from './pages/old/pokh-slickgrid/pokh-slickgrid.component';
+import { BillImportNewComponent } from './pages/old/Sale/BillImport/bill-import-new/bill-import-new.component';
+import { BillExportNewComponent } from './pages/old/Sale/BillExport/bill-export-new/bill-export-new.component';
 import { ProjectDepartmentSummarySlickGridComponent } from './pages/project-department-summary-slick-grid/project-department-summary-slick-grid.component';
 import { ProjectAgvSummarySlickGirdComponent } from './pages/project-agv-summary-slick-gird/project-agv-summary-slick-gird.component'; import { CrmComponent } from './pages/crm/crm.component';
 import { GeneralCategoryComponent } from './pages/general-category/general-category.component';
@@ -744,8 +746,8 @@ export const routes: Routes = [
 
             //Kho sale hn
             { path: 'inventory-hn', component: InventoryNewComponent, canActivate: [authGuard] },
-            { path: 'bill-import-hn', component: BillImportComponent, canActivate: [authGuard] },
-            { path: 'bill-export-hn', component: BillExportComponent, canActivate: [authGuard] },
+            { path: 'bill-import-hn', component: BillImportNewComponent, canActivate: [authGuard] },
+            { path: 'bill-export-hn', component: BillExportNewComponent, canActivate: [authGuard] },
             { path: 'history-import-export-hn', component: HistoryImportExportComponent, canActivate: [authGuard] },
             { path: 'history-borrow-hn', component: HistoryBorrowSaleNewComponent, canActivate: [authGuard] },
             { path: 'report-import-export-hn', component: ReportImportExportComponent, canActivate: [authGuard] },
@@ -780,8 +782,8 @@ export const routes: Routes = [
 
             //Sale HCM
             { path: 'inventory-hcm', component: InventoryNewComponent, canActivate: [authGuard] },
-            { path: 'bill-import-hcm', component: BillImportComponent, canActivate: [authGuard] },
-            { path: 'bill-export-hcm', component: BillExportComponent, canActivate: [authGuard] },
+            { path: 'bill-import-hcm', component: BillImportNewComponent, canActivate: [authGuard] },
+            { path: 'bill-export-hcm', component: BillExportNewComponent, canActivate: [authGuard] },
             { path: 'history-import-export-hcm', component: HistoryImportExportComponent, canActivate: [authGuard] },
             { path: 'history-borrow-hcm', component: HistoryBorrowSaleComponent, canActivate: [authGuard] },
             { path: 'report-import-export-hcm', component: ReportImportExportComponent, canActivate: [authGuard] },
@@ -804,8 +806,8 @@ export const routes: Routes = [
 
             //Sale BẮc ning
             { path: 'inventory-bn', component: InventoryNewComponent, canActivate: [authGuard] },
-            { path: 'bill-import-bn', component: BillImportComponent, canActivate: [authGuard] },
-            { path: 'bill-export-bn', component: BillExportComponent, canActivate: [authGuard] },
+            { path: 'bill-import-bn', component: BillImportNewComponent, canActivate: [authGuard] },
+            { path: 'bill-export-bn', component: BillExportNewComponent, canActivate: [authGuard] },
             { path: 'history-import-export-bn', component: HistoryImportExportComponent, canActivate: [authGuard] },
             { path: 'history-borrow-bn', component: HistoryBorrowSaleComponent, canActivate: [authGuard] },
             { path: 'report-import-export-bn', component: ReportImportExportComponent, canActivate: [authGuard] },
@@ -827,8 +829,8 @@ export const routes: Routes = [
 
             //Sale Đan phương
             { path: 'inventory-dp', component: InventoryNewComponent, canActivate: [authGuard] },
-            { path: 'bill-import-dp', component: BillImportComponent, canActivate: [authGuard] },
-            { path: 'bill-export-dp', component: BillExportComponent, canActivate: [authGuard] },
+            { path: 'bill-import-dp', component: BillImportNewComponent, canActivate: [authGuard] },
+            { path: 'bill-export-dp', component: BillExportNewComponent, canActivate: [authGuard] },
             { path: 'history-import-export-dp', component: HistoryImportExportComponent, canActivate: [authGuard] },
             { path: 'history-borrow-dp', component: HistoryBorrowSaleComponent, canActivate: [authGuard] },
             { path: 'report-import-export-dp', component: ReportImportExportComponent, canActivate: [authGuard] },

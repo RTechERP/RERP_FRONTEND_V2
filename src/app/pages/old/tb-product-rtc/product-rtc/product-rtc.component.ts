@@ -30,6 +30,7 @@ import { ActivatedRoute } from '@angular/router';
 import { Subscription } from 'rxjs';
 import { ProductRtcPurchaseRequestComponent } from '../../../../pages/purchase/project-partlist-purchase-request/product-rtc-purchase-request/product-rtc-purchase-request.component';
 import { PurchaseRequestDemoComponent } from '../../../../pages/purchase/project-partlist-purchase-request/purchase-request-demo/purchase-request-demo.component';
+import { ProjectPartlistPriceRequestNewComponent } from '../../../../pages/purchase/project-partlist-price-request-new/project-partlist-price-request-new.component';
 import { AppUserService } from '../../../../services/app-user.service';
 
 @Component({
@@ -53,6 +54,7 @@ import { AppUserService } from '../../../../services/app-user.service';
         NgbDropdownModule,
         ProductRtcPurchaseRequestComponent, // Component để tạo yêu cầu mua hàng ProductRTC
         PurchaseRequestDemoComponent, // Component để xem danh sách yêu cầu mua hàng demo
+        ProjectPartlistPriceRequestNewComponent, // Component để yêu cầu báo giá
     ],
   templateUrl: './product-rtc.component.html',
   styleUrls: ['./product-rtc.component.css']
@@ -806,6 +808,32 @@ export class ProductRtcComponent implements OnInit, AfterViewInit, OnDestroy {
         modalRef.componentInstance.headerText = 'Danh sách yêu cầu mua hàng';
         modalRef.componentInstance.showCloseButton = true;
         modalRef.componentInstance.employeeID = this.appUserService.employeeID || 0;
+
+        modalRef.result.then(
+            (result) => {
+                console.log('Modal closed with result:', result);
+            },
+            (dismissed) => {
+                console.log('Modal dismissed');
+            }
+        );
+    }
+
+    onOpenPriceRequest() {
+        const modalRef = this.modalService.open(ProjectPartlistPriceRequestNewComponent, {
+            size: 'fullscreen',
+            backdrop: 'static',
+            keyboard: false,
+            centered: false,
+            modalDialogClass: 'modal-fullscreen',
+        });
+
+        // Truyền các tham số vào component
+        modalRef.componentInstance.showHeader = true;
+        modalRef.componentInstance.headerText = 'Yêu cầu báo giá';
+        modalRef.componentInstance.showCloseButton = true;
+        modalRef.componentInstance.isPriceRequestDemo = true;
+        modalRef.componentInstance.projectPartlistPriceRequestTypeID = 6;
 
         modalRef.result.then(
             (result) => {

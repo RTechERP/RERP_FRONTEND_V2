@@ -161,7 +161,7 @@ export class ProductRtcPurchaseRequestComponent implements OnInit, AfterViewInit
       UnitCountID: [0, [Validators.required]],
       ProductGroupRTCID: [0, [Validators.required]],
       EmployeeRequestID: [0],
-      EmployeeBuyID: [0, [Validators.required]],
+      EmployeeBuyID: [0],
       DateRequest: [null],
       DateReturnExpected: [null, [Validators.required]],
       UnitPrice: [0],

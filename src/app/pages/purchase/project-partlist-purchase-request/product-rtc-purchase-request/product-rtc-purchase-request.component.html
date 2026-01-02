@@ -35,7 +35,7 @@
                     <nz-form-item>
                         <nz-form-label>Loại phiếu <span class="text-danger">(*)</span></nz-form-label>
                         <nz-form-control>
-                            <nz-select formControlName="TicketType" 
+                            <nz-select formControlName="TicketType"
                                        nzPlaceHolder="Chọn loại phiếu"
                                        name="TicketType">
                                 <nz-option [nzValue]="0" nzLabel="Phiếu mua"></nz-option>
@@ -52,7 +52,7 @@
                     <nz-form-item>
                         <nz-form-label class="fs-12 d-flex align-items-center">
                             <div class="d-flex"> Mã nội bộ
-                                <button class="p-0 m-0 fs-12 px-1 h-auto" nz-button nzSize="small" 
+                                <button class="p-0 m-0 fs-12 px-1 h-auto" nz-button nzSize="small"
                                     title="Thêm sản phẩm RTC"
                                     nzType="text" (click)="onAddProductRTC()">
                                     <i class="fas fa-plus"></i>
@@ -60,13 +60,13 @@
                             </div>
                         </nz-form-label>
                         <nz-form-control>
-                            <nz-select formControlName="ProductRTCID" 
+                            <nz-select formControlName="ProductRTCID"
                                        nzPlaceHolder="Chọn sản phẩm "
-                                       nzShowSearch="true" 
+                                       nzShowSearch="true"
                                        nzAllowClear="true"
                                        name="ProductRTCID"
                                        (ngModelChange)="onProductRTCChange($event)">
-                                <nz-option *ngFor="let item of productsRTC" 
+                                <nz-option *ngFor="let item of productsRTC"
                                            [nzValue]="item.ID"
                                            [nzLabel]="item.ProductCodeRTC || ''"
                                            nzCustomContent>
@@ -102,11 +102,11 @@
                     <nz-form-item>
                         <nz-form-label nzRequired>Hãng</nz-form-label>
                         <nz-form-control nzErrorTip="Vui lòng chọn hãng">
-                            <nz-select formControlName="FirmID" 
+                            <nz-select formControlName="FirmID"
                                        nzPlaceHolder="Chọn hãng"
                                        nzShowSearch="true"
                                        name="FirmID">
-                                <nz-option *ngFor="let item of firms" 
+                                <nz-option *ngFor="let item of firms"
                                            [nzValue]="item.ID"
                                            [nzLabel]="item.FirmName"
                                            nzCustomContent>
@@ -120,11 +120,11 @@
                     <nz-form-item>
                         <nz-form-label nzRequired>Đơn vị</nz-form-label>
                         <nz-form-control nzErrorTip="Vui lòng chọn đơn vị">
-                            <nz-select formControlName="UnitCountID" 
+                            <nz-select formControlName="UnitCountID"
                                        nzPlaceHolder="Chọn đơn vị"
                                        nzShowSearch="true"
                                        name="UnitCountID">
-                                <nz-option *ngFor="let item of unitCounts" 
+                                <nz-option *ngFor="let item of unitCounts"
                                            [nzValue]="item.ID"
                                            [nzLabel]="item.UnitCountName || item.UnitName"
                                            nzCustomContent>
@@ -138,11 +138,11 @@
                     <nz-form-item>
                         <nz-form-label nzRequired>Loại kho <span class="text-danger">(*)</span></nz-form-label>
                         <nz-form-control nzErrorTip="Vui lòng chọn loại kho">
-                            <nz-select class="w-100" 
-                                       nzPlaceHolder="Chọn loại kho" 
+                            <nz-select class="w-100"
+                                       nzPlaceHolder="Chọn loại kho"
                                        name="ProductGroupRTCID"
                                        formControlName="ProductGroupRTCID">
-                                <nz-option *ngFor="let item of productGroupsRTC" 
+                                <nz-option *ngFor="let item of productGroupsRTC"
                                            [nzValue]="item.ID"
                                            [nzLabel]="item.ProductGroupName"
                                            nzCustomContent>
@@ -174,8 +174,8 @@
                 </div>
                 <div nz-col [nzSpan]="8">
                     <nz-form-item>
-                        <label class="form-label mb-2">Nhân viên mua <span class="text-danger">(*)</span></label>
-                        <nz-form-control nzErrorTip="Vui lòng chọn nhân viên mua!">
+                        <label class="form-label mb-2">Nhân viên mua</label>
+                        <nz-form-control >
                             <nz-select name="EmployeeBuyID" formControlName="EmployeeBuyID" class="w-100" nzShowSearch
                                 nzPlaceHolder="Chọn nhân viên mua">
                                 <ng-container *ngFor="let group of employeeBuys">
@@ -225,9 +225,9 @@
                     <nz-form-item>
                         <nz-form-label nzRequired>Người duyệt <span class="text-danger">(*)</span></nz-form-label>
                         <nz-form-control nzErrorTip="Vui lòng chọn người duyệt!">
-                            <nz-select name="EmployeeApproveID" formControlName="EmployeeApproveID" class="w-100" 
+                            <nz-select name="EmployeeApproveID" formControlName="EmployeeApproveID" class="w-100"
                                 nzShowSearch nzPlaceHolder="Chọn người duyệt">
-                                <nz-option *ngFor="let item of employeeApproves" 
+                                <nz-option *ngFor="let item of employeeApproves"
                                            [nzValue]="item.EmployeeID || item.ID"
                                            [nzLabel]="(item.Code || '') + ' - ' + (item.FullName || item.EmployeeName || '')">
                                 </nz-option>

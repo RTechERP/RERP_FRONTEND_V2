@@ -6,22 +6,6 @@
   all: revert;
 }
 
-.tabulator-cell {
-  padding: 0px;
-}
-
-.inner-content {
-  padding: 0 !important;
-}
-
-.ant-tabs-tab-btn {
-  font-size: 0.75rem;
-}
-
-.ant-splitter {
-  height: 93vh !important;
-}
-
 .modal-header {
   border-top-left-radius: 0 !important;
   border-top-right-radius: 0 !important;
@@ -31,88 +15,10 @@
   height: auto !important;
 }
 
-.custom-fieldset {
-  border: 1px solid #d9d9d9;
-  border-radius: 4px;
-  padding: 0;
-  margin: 0;
-  height: 100%;
+::ng-deep #gridSummaryPoncc {
+  height: 86vh !important;
 }
 
-.custom-legend {
-  font-size: 0.875rem;
-  font-weight: 600;
-  color: #1890ff;
-  padding: 0 8px;
-  margin: 0 0 0 8px;
-  width: auto;
-  border: none;
-}
-
-.ant-form-item {
-  margin-bottom: 12px;
-}
-
-/* Tabulator table styling */
-.tabulator {
-  font-size: 0.75rem !important;
-  width: 100% !important;
-}
-
-/* Đảm bảo tabset và tab content có chiều cao đầy đủ */
-:host ::ng-deep .ant-tabs {
-  height: 100%;
-  display: flex;
-  flex-direction: column;
-}
-
-:host ::ng-deep .ant-tabs-content-holder {
-  flex: 1;
-  overflow: hidden;
-}
-
-:host ::ng-deep .ant-tabs-tabpane {
-  height: 100%;
-  overflow: hidden;
-}
-
-:host ::ng-deep .ant-splitter {
-  height: 100% !important;
-}
-
-:host ::ng-deep .ant-splitter-panel {
-  overflow: hidden;
-}
-
-/* Detail table container needs to scroll */
-:host ::ng-deep .tabulator-tableholder {
-  overflow: auto !important;
-}
-
-:host ::ng-deep .search-panel {
-  font-size: 12px;
-}
-
-/* Label trong form */
-:host ::ng-deep .search-panel .ant-form-item-label>label {
-  font-size: 12px !important;
-}
-
-/* Input thường + placeholder */
-:host ::ng-deep .search-panel .ant-input,
-:host ::ng-deep .search-panel .ant-input::placeholder {
-  font-size: 12px !important;
-}
-
-/* DatePicker */
-:host ::ng-deep .search-panel .ant-picker,
-:host ::ng-deep .search-panel .ant-picker-input>input,
-:host ::ng-deep .search-panel .ant-picker-input>input::placeholder {
-  font-size: 12px !important;
-}
-
-/* Select trong ô (không phải dropdown) */
-:host ::ng-deep .search-panel .ant-select-single .ant-select-selector .ant-select-selection-item,
-:host ::ng-deep .search-panel .ant-select-single .ant-select-selector .ant-select-selection-placeholder {
-  font-size: 12px !important;
+::ng-deep .slickgrid-container .slick-footerrow .slick-footerrow-columns .slick-footerrow-column {
+  border-right: 1px solid #ddd !important;
 }

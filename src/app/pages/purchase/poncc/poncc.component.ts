@@ -1591,6 +1591,16 @@ export class PONCCComponent implements OnInit, AfterViewInit {
             nzOkType: 'primary',
             nzCancelText: 'Hủy',
             nzOnOk: () => {
+                // Cập nhật masterDetailsMap với các detail đã chọn hiện tại
+                // Nếu có detail được chọn thì chỉ lấy detail đã chọn
+                // Nếu không có detail nào được chọn thì giữ nguyên tất cả detail của master
+                if (this.lastMasterId) {
+                    const currentSelectedDetails = this.tableDetail?.getSelectedData() || [];
+                    if (currentSelectedDetails.length > 0) {
+                        this.masterDetailsMap.set(this.lastMasterId, currentSelectedDetails);
+                    }
+                }
+
                 const ids = selectedRows.map((x) => x.ID).join(',');
                 const idString = Array.from(this.masterDetailsMap.values())
                     .flat()

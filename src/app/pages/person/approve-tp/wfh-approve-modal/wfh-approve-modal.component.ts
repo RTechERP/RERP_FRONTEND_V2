@@ -46,6 +46,7 @@ export class WfhApproveModalComponent implements OnInit, AfterViewInit {
             ...DEFAULT_TABLE_CONFIG,
             layout: 'fitData',
             height: '60vh',
+            pagination: false,
             data: this.wfhRows,
             columns: [
                 {
@@ -107,7 +108,7 @@ export class WfhApproveModalComponent implements OnInit, AfterViewInit {
                     width: 250,
                     headerSort: false,
 
-                    editor: 'input',
+                    editor: 'textarea',
                     editable: true
                 },
                 {
@@ -135,12 +136,11 @@ export class WfhApproveModalComponent implements OnInit, AfterViewInit {
                 }
             ],
         });
+        // Đảm bảo header tính toán lại height sau khi modal hiển thị
+        setTimeout(() => {
+            this.tabulator?.redraw(true);
+        }, 100);
 
-        this.tabulator.on('tableBuilt', () => {
-            setTimeout(() => {
-                this.tabulator.redraw(true);
-            }, 100);
-        });
     }
 
     onConfirm(): void {

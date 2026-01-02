@@ -1,0 +1,112 @@
+.project-partlist-price-request-old {
+  height: 100%;
+  width: 100%;
+}
+
+/* Highlight cells */
+.cell-overdue {
+  background-color: #ffebee !important;
+  color: #c62828;
+}
+
+.cell-completed {
+  background-color: #e8f5e9 !important;
+  color: #2e7d32;
+}
+
+/* Filter bar styles */
+.filter-bar {
+  transition: all 0.3s ease;
+}
+
+.filter-backdrop {
+  display: none;
+}
+
+/* Mobile responsive */
+@media (max-width: 768px) {
+  .filter-bar.mobile-modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 1000;
+    background: white;
+    overflow-y: auto;
+    padding: 1rem;
+  }
+
+  .filter-backdrop.mobile-only {
+    display: block;
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.5);
+    z-index: 999;
+  }
+}
+
+/* Card body height adjustments - tự động căn theo màn hình */
+.card-body.with-search-bar {
+  height: calc(
+    100vh - 160px
+  ); /* Trừ đi chiều cao menubar (~50px) + search bar (~110px) */
+  overflow: hidden;
+}
+
+.card-body.without-search-bar {
+  height: calc(100vh - 60px); /* Chỉ trừ chiều cao menubar (~50px) */
+  overflow: hidden;
+}
+
+/* Sticky toggle button */
+.sticky-toggle-btn {
+  position: sticky;
+  left: 0;
+  z-index: 10;
+  background: white;
+}
+
+/* Horizontal scroll */
+.horizontal-scroll-container {
+  overflow-x: auto;
+  white-space: nowrap;
+}
+
+/* Grid tự động căn chiều cao theo màn hình */
+/* Khi có search bar */
+.with-search-bar ::ng-deep #gridProjectPartlistPriceRequestOld {
+  height: calc(100vh - 160px) !important;
+}
+
+/* Khi không có search bar */
+.without-search-bar ::ng-deep #gridProjectPartlistPriceRequestOld {
+  height: calc(100vh - 100px) !important;
+}
+
+::ng-deep .project-partlist-price-request-old {
+  height: 100%;
+}
+::ng-deep
+  .slickgrid-container
+  .slick-footerrow
+  .slick-footerrow-columns
+  .slick-footerrow-column {
+  border-right: 1px solid #ddd !important;
+}
+
+/* ::ng-deep .slick-cell {
+  border-bottom: 0.1rem solid #e6e5e5 !important;
+} */
+
+::ng-deep .row-deleted .slick-cell {
+  background-color: #fa3b3b !important;
+  color: #ffffff !important;
+}
+
+::ng-deep .slick-group-totals-hidden {
+  display: none !important;
+}

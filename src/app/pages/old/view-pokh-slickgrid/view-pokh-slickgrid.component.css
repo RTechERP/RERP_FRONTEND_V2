@@ -1,0 +1,207 @@
+/* SlickGrid Container Styles */
+.grid-container-viewpokh {
+  width: 100%;
+  height: 100%;
+}
+
+.export-grid-container {
+  width: 100%;
+  height: 100%;
+}
+
+/* Export Panel */
+.export-panel {
+  background-color: #f8f9fa;
+  border-radius: 4px;
+}
+
+/* Toggle nested button */
+.toggle-nested {
+  cursor: pointer;
+  font-size: 16px;
+  user-select: none;
+  color: #1890ff;
+}
+
+.toggle-nested.disabled {
+  opacity: 0.3;
+  cursor: not-allowed;
+  color: #999;
+}
+
+.toggle-nested:hover:not(.disabled) {
+  color: #40a9ff;
+}
+
+/* Checkbox styling */
+.row-checkbox,
+.export-row-checkbox {
+  cursor: pointer;
+  width: 16px;
+  height: 16px;
+}
+
+/* SlickGrid cell styles */
+.text-center {
+  text-align: center !important;
+}
+
+.text-end {
+  text-align: right !important;
+}
+
+/* Status cell colors */
+.status-pending {
+  background-color: #F2F5A9;
+}
+
+.status-paid {
+  background-color: #F5D0A9;
+}
+
+.status-delivered {
+  background-color: #A9F5F2;
+}
+
+.status-invoiced {
+  background-color: #CEF6CE;
+}
+
+/* Modal styling */
+.modal-header.bg-primary {
+  background-color: #1890ff !important;
+}
+
+/* Button styling */
+.fs-12 {
+  font-size: 12px;
+}
+
+/* Card styling */
+.card.border-0 {
+  border: none !important;
+}
+
+.card.rounded-0 {
+  border-radius: 0 !important;
+}
+
+/* SlickGrid header */
+.slick-header-columns {
+  background: #fafafa;
+}
+
+.slick-header-column {
+  font-weight: 600;
+  font-size: 12px;
+}
+
+/* SlickGrid row hover */
+.slick-row:hover {
+  background-color: #e6f7ff !important;
+}
+
+/* SlickGrid selected row */
+.slick-row.selected {
+  background-color: #bae7ff !important;
+}
+
+/* Form styling */
+nz-form-item {
+  margin-bottom: 8px;
+}
+
+nz-form-label {
+  font-size: 12px !important;
+  padding-bottom: 2px !important;
+}
+
+/* Search panel styling */
+.card-header h6 {
+  font-size: 14px;
+  font-weight: 600;
+}
+
+/* SlickGrid filter row */
+.slick-headerrow {
+  background: #fafafa;
+}
+
+.slick-headerrow-column {
+  padding: 2px 4px;
+}
+
+/* Selected rows counter badge */
+.selected-count-badge {
+  background-color: #1890ff;
+  color: white;
+  padding: 2px 8px;
+  border-radius: 10px;
+  font-size: 11px;
+  margin-left: 8px;
+}
+
+/* Invoice details panel */
+.invoice-panel {
+  background-color: #fff7e6;
+  border: 1px solid #ffd591;
+}
+
+.invoice-panel h6 {
+  color: #d46b08;
+}
+
+/* Nested Tab Styles */
+.nested-panel {
+  background-color: #f8f9fa;
+  border-radius: 4px;
+}
+
+.nested-tab-header {
+  display: flex;
+  gap: 4px;
+  border-bottom: 1px solid #e8e8e8;
+  padding-bottom: 8px;
+}
+
+.nested-tab-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 6px 16px;
+  font-size: 13px;
+  font-weight: 500;
+  color: #595959;
+  background-color: #fff;
+  border: 1px solid #d9d9d9;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.nested-tab-btn:hover {
+  color: #1890ff;
+  border-color: #1890ff;
+  background-color: #f0f7ff;
+}
+
+.nested-tab-btn.active {
+  color: #fff;
+  background-color: #1890ff;
+  border-color: #1890ff;
+}
+
+.nested-tab-btn.active:hover {
+  background-color: #40a9ff;
+  border-color: #40a9ff;
+}
+
+/* Invoice Grid Container */
+.invoice-grid-container {
+  width: 100%;
+  height: 100%;
+}
+
+.ant-splitter {
+  height: 86vh !important;
+}

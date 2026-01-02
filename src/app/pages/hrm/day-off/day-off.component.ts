@@ -104,7 +104,7 @@ export class DayOffComponent implements OnInit, AfterViewInit {
   userPermissions: string = '';
   canEditOthers: boolean = false;
 
-   listParams = {
+  listParams = {
     DepartmentID: 0,
     EmployeeID: 0,
     IsApproved: -1,
@@ -139,13 +139,13 @@ export class DayOffComponent implements OnInit, AfterViewInit {
     this.loadEmployees();
     this.getSummaryEmployee();
 
-      this.authService.getCurrentUser().subscribe((res: any) => {
+    this.authService.getCurrentUser().subscribe((res: any) => {
       const data = res?.data;
       this.currentUser = Array.isArray(data) ? data[0] : data;
       this.currentEmployee = Array.isArray(this.currentUser)
         ? this.currentUser[0]
         : this.currentUser;
-      
+
       this.userPermissions = this.currentUser?.Permissions || this.currentEmployee?.Permissions || '';
       this.canEditOthers = this.hasPermissionN1OrN2(this.userPermissions);
     });
@@ -154,7 +154,7 @@ export class DayOffComponent implements OnInit, AfterViewInit {
   ngAfterViewInit(): void {
     this.initializeTable();
     this.draw_listSummaryTable();
-    
+
   }
 
   toggleSearchPanel() {
@@ -229,26 +229,26 @@ export class DayOffComponent implements OnInit, AfterViewInit {
   }
 
   getSummaryEmployee(): void {
-      this.dayOffService.getEmployeeOnLeaveSummary(
-        this.listParams.DepartmentID,
-        this.listParams.EmployeeID,
-        this.listParams.IsApproved,
-        this.listParams.Type,
-        this.listParams.Keyword,
-        this.listParams.DateStart,
-        this.listParams.DateEnd
+    this.dayOffService.getEmployeeOnLeaveSummary(
+      this.listParams.DepartmentID,
+      this.listParams.EmployeeID,
+      this.listParams.IsApproved,
+      this.listParams.Type,
+      this.listParams.Keyword,
+      this.listParams.DateStart,
+      this.listParams.DateEnd
 
-      ).subscribe((response: any) => {
-        this.listSummaryData = response.data?.data || [];
-        if (this.listSummaryTable) {
-          this.listSummaryTable.setData(this.listSummaryData || []);
-        } else {
-          this.draw_listSummaryTable();
-        }
-      });
-    }
+    ).subscribe((response: any) => {
+      this.listSummaryData = response.data?.data || [];
+      if (this.listSummaryTable) {
+        this.listSummaryTable.setData(this.listSummaryData || []);
+      } else {
+        this.draw_listSummaryTable();
+      }
+    });
+  }
 
-    filterOption = (input: string, option: any): boolean => {
+  filterOption = (input: string, option: any): boolean => {
     if (!input) return true;
     const searchText = input.toLowerCase();
     const label = option.nzLabel?.toLowerCase() || '';
@@ -280,16 +280,16 @@ export class DayOffComponent implements OnInit, AfterViewInit {
     return currentDate < today;
   };
 
-   loadApprovers(): void {
-      this.employeeService.getEmployeeApprove().subscribe({
-        next: (res: any) => {     
-            this.approverList = res.data || [];
-        },
-        error: (res: any) => {
-          this.notification.error(NOTIFICATION_TITLE.error, res.error?.message || 'Không thể tải danh sách người duyệt');
-        },
-      });
-    }
+  loadApprovers(): void {
+    this.employeeService.getEmployeeApproved().subscribe({
+      next: (res: any) => {
+        this.approverList = res.data || [];
+      },
+      error: (res: any) => {
+        this.notification.error(NOTIFICATION_TITLE.error, res.error?.message || 'Không thể tải danh sách người duyệt');
+      },
+    });
+  }
 
   loadDepartments() {
     this.departmentService.getDepartments().subscribe({
@@ -310,9 +310,9 @@ export class DayOffComponent implements OnInit, AfterViewInit {
       paginationMode: 'local',
       layout: 'fitColumns',
       selectableRows: true,
-    
 
-     
+
+
       rowContextMenu: [
         {
           label: "TBP hủy duyệt hủy đăng ký",
@@ -444,59 +444,59 @@ export class DayOffComponent implements OnInit, AfterViewInit {
   }
 
   draw_listSummaryTable() {
-      if (this.listSummaryTable) {
-        this.listSummaryTable.replaceData(
-          this.listSummaryData
-        );
-      } else {
-        this.listSummaryTable = new Tabulator(this.tableRef.nativeElement, {
-          data: this.listSummaryData,
-          ...DEFAULT_TABLE_CONFIG,
-          paginationMode: 'local',
-          height: '200px',
-          selectableRows: 1,
-          columns: [
-            {
-              title: 'STT',
-              hozAlign: 'center',
-              formatter: 'rownum',
-              headerHozAlign: 'center',
-              field: 'STT',
-            },
-            {
-              title: 'Họ tên',
-              field: 'FullName',
-              headerHozAlign: 'center',
-            },
-            {
-              title: 'Tổng số ngày xin nghỉ phép trong tháng',
-              field: 'TotalDay',
-              headerHozAlign: 'center',
-            },
-            {
-              title: 'Số ngày đã duyệt trong tháng',
-              field: 'TotalDayApproved',
-              headerHozAlign: 'center',
-            },
-            {
-              title: 'Số ngày chưa duyệt trong tháng',
-              field: 'TotalDayUnApproved',
-              headerHozAlign: 'center',
-            },
-            {
-              title: 'Số ngày còn lại dự kiến trong tháng',
-              field: 'TotalDayRemain',
-              headerHozAlign: 'center',
-            },
-            {
-              title: 'Số ngày phép còn lại dự kiến trong năm',
-              field: 'TotalDayOnleaveActual',
-              headerHozAlign: 'center',
-            },
-          ],
-        });
-      }
+    if (this.listSummaryTable) {
+      this.listSummaryTable.replaceData(
+        this.listSummaryData
+      );
+    } else {
+      this.listSummaryTable = new Tabulator(this.tableRef.nativeElement, {
+        data: this.listSummaryData,
+        ...DEFAULT_TABLE_CONFIG,
+        paginationMode: 'local',
+        height: '200px',
+        selectableRows: 1,
+        columns: [
+          {
+            title: 'STT',
+            hozAlign: 'center',
+            formatter: 'rownum',
+            headerHozAlign: 'center',
+            field: 'STT',
+          },
+          {
+            title: 'Họ tên',
+            field: 'FullName',
+            headerHozAlign: 'center',
+          },
+          {
+            title: 'Tổng số ngày xin nghỉ phép trong tháng',
+            field: 'TotalDay',
+            headerHozAlign: 'center',
+          },
+          {
+            title: 'Số ngày đã duyệt trong tháng',
+            field: 'TotalDayApproved',
+            headerHozAlign: 'center',
+          },
+          {
+            title: 'Số ngày chưa duyệt trong tháng',
+            field: 'TotalDayUnApproved',
+            headerHozAlign: 'center',
+          },
+          {
+            title: 'Số ngày còn lại dự kiến trong tháng',
+            field: 'TotalDayRemain',
+            headerHozAlign: 'center',
+          },
+          {
+            title: 'Số ngày phép còn lại dự kiến trong năm',
+            field: 'TotalDayOnleaveActual',
+            headerHozAlign: 'center',
+          },
+        ],
+      });
     }
+  }
 
 
   resetSearch() {
@@ -547,7 +547,7 @@ export class DayOffComponent implements OnInit, AfterViewInit {
       }
     }
     this.updateReasonHREditValidation();
-    
+
     const modal = new (window as any).bootstrap.Modal(document.getElementById('addDayOffModal'));
     modal.show();
   }
@@ -579,7 +579,7 @@ export class DayOffComponent implements OnInit, AfterViewInit {
       Reason: this.selectedDayOff.Reason,
       ReasonHREdit: this.selectedDayOff.ReasonHREdit
     });
-    
+
     if (this.canEditOthers) {
       this.dayOffForm.get('EmployeeID')?.enable();
       if (this.employeeIdSubscription) {
@@ -666,7 +666,7 @@ export class DayOffComponent implements OnInit, AfterViewInit {
       return;
     }
 
-    let formData = { ...this.dayOffForm.getRawValue() }; 
+    let formData = { ...this.dayOffForm.getRawValue() };
 
     if (this.shouldShowReasonHREdit()) {
       if (!formData.ReasonHREdit || formData.ReasonHREdit.trim() === '') {
@@ -680,16 +680,16 @@ export class DayOffComponent implements OnInit, AfterViewInit {
 
     const dateNow = new Date();
     const dateRegister = new Date(formData.StartDate);
-    
+
     // Lấy EmployeeID từ form (combobox), không lấy từ currentEmployee
     const employeeId = formData.EmployeeID;
-    
+
     if (!employeeId || employeeId === 0) {
       this.notification.warning(NOTIFICATION_TITLE.warning, 'Vui lòng chọn nhân viên');
       this.dayOffForm.get('EmployeeID')?.markAsTouched();
       return;
     }
-    
+
     const loginName = this.currentUser?.LoginName || '';
     const fullName = this.currentEmployee?.FullName || '';
 

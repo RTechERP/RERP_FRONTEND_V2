@@ -70,6 +70,7 @@ import { RequestInvoiceService } from '../request-invoice/request-invoice-servic
 import { RequestInvoiceStatusLinkComponent } from '../request-invoice-status-link/request-invoice-status-link.component';
 import { ViewPokhService } from '../view-pokh/view-pokh/view-pokh.service';
 import { ActivatedRoute } from '@angular/router';
+import { Menubar } from 'primeng/menubar';
 
 // Custom formatter for checkbox display
 const checkboxFormatter: Formatter = (row, cell, value, columnDef, dataContext) => {
@@ -117,6 +118,7 @@ const dateFormatter: Formatter = (row, cell, value, columnDef, dataContext) => {
         NzSpinModule,
         CommonModule,
         AngularSlickgridModule,
+        Menubar,
     ],
     schemas: [CUSTOM_ELEMENTS_SCHEMA],
     templateUrl: './request-invoice-summary-slickgrid.component.html',
@@ -181,8 +183,31 @@ export class RequestInvoiceSummarySlickgridComponent implements OnInit, AfterVie
     }
 
     sizeSearch: string = '0';
+
+    menuBars: any[] = [];
+
     toggleSearchPanel() {
         this.sizeSearch = this.sizeSearch == '0' ? '22%' : '0';
+    }
+
+    initMenuBar() {
+        this.menuBars = [
+            {
+                label: 'Xuất Excel',
+                icon: 'fa-solid fa-file-excel fa-lg text-success',
+                command: () => {
+                    this.exportToExcel();
+                }
+            },
+            {
+                label: 'Quản lý trạng thái',
+                icon: 'fa-solid fa-list-check fa-lg text-warning',
+                
+                command: () => {
+                    this.openRequestInvoiceStatusLinkModal();
+                }
+            }
+        ];
     }
 
     onFilesTabChange(tabIndex: number): void {
@@ -205,6 +230,7 @@ export class RequestInvoiceSummarySlickgridComponent implements OnInit, AfterVie
     }
 
     ngOnInit(): void {
+        this.initMenuBar();
         // Set title cho trang
         document.title = 'TỔNG HỢP YÊU CẦU XUẤT HÓA ĐƠN';
 

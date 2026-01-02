@@ -22,6 +22,8 @@ import { NzSplitterModule } from 'ng-zorro-antd/splitter';
 import { NzTabsModule } from 'ng-zorro-antd/tabs';
 import { NzModalModule, NzModalService } from 'ng-zorro-antd/modal';
 import { NzDropDownModule } from 'ng-zorro-antd/dropdown';
+import { MenubarModule } from 'primeng/menubar';
+import { MenuItem } from 'primeng/api';
 import { NgbActiveModal, NgbModal, NgbModule } from '@ng-bootstrap/ng-bootstrap';
 import { TabulatorFull as Tabulator, ColumnDefinition, RowComponent, CellComponent } from 'tabulator-tables';
 import { DEFAULT_TABLE_CONFIG } from '../../../tabulator-default.config';
@@ -60,7 +62,8 @@ import { PONCCService } from '../poncc/poncc.service';
     NzModalModule,
     NzDropDownModule,
     NgbModule,
-    HasPermissionDirective
+    HasPermissionDirective,
+    MenubarModule
   ],
   templateUrl: './project-partlist-purchase-request-new.component.html',
   styleUrl: './project-partlist-purchase-request-new.component.css'
@@ -90,8 +93,17 @@ export class ProjectPartlistPurchaseRequestNewComponent implements OnInit, After
   @Input() isPurchaseRequestDemo: any = false;
 
   sizeSearch: string = '0';
-  showSearchBar: boolean = false;
+  showSearchBar: boolean = typeof window !== 'undefined' ? window.innerWidth > 768 : true;
   isLoading = false;
+
+  // Menu items for PrimeNG Menubar
+  menuItems: MenuItem[] = [];
+  maxVisibleItems = 9; // Số nút tối đa hiển thị trực tiếp
+
+  // Check if mobile
+  isMobile(): boolean {
+    return typeof window !== 'undefined' && window.innerWidth <= 768;
+  }
   lstPOKH: any[] = [];
   lstWarehouses: any[] = [];
   requestTypes: any[] = [];
@@ -411,9 +423,140 @@ private validateManufacturerForVision(rows: any[]): boolean {
 
   //#region Hàm chạy khi mở chương trình
   ngOnInit(): void {
+    this.initMenuItems();
     this.getRequestTypes();
     this.loadLookups();
     this.setupCopyToClipboard();
+  }
+
+  // Initialize menu items based on current state
+  initMenuItems() {
+    this.menuItems = [];
+
+    // Khi isYCMH = true
+    if (this.isYCMH) {
+      this.menuItems = [
+        {
+          label: 'Chọn YCMH',
+          icon: 'fa-solid fa-plus fa-lg text-primary',
+          command: () => this.onSelectYCMH()
+        }
+      ];
+      return;
+    }
+
+    // Hiển thị tất cả các nút
+    const allItems: MenuItem[] = [
+      {
+        label: 'Check đặt hàng',
+        icon: 'fa-solid fa-check fa-lg text-success',
+        command: () => this.onCheckOrder(this.activeTabIndex, true)
+      },
+      {
+        label: 'Hủy Check đặt hàng',
+        icon: 'fa-solid fa-xmark fa-lg text-danger',
+        command: () => this.onCheckOrder(this.activeTabIndex, false)
+      }
+    ];
+
+    // Items requiring N35,N1 permission
+    if (this.permissionService.hasPermission('N35,N1')) {
+      allItems.push(
+        {
+          label: 'Lưu thay đổi',
+          icon: 'fa-solid fa-floppy-disk fa-lg text-primary',
+          command: () => this.onSaveData(this.activeTabIndex)
+        },
+        {
+          label: 'Sửa',
+          icon: 'fa-solid fa-pen-to-square fa-lg text-warning',
+          command: () => this.onEdit(this.activeTabIndex)
+        },
+        {
+          label: 'Hủy Y/c',
+          icon: 'fa-solid fa-trash fa-lg text-danger',
+          command: () => this.onDeleteRequest(this.activeTabIndex)
+        },
+        {
+          label: 'Thêm NCC',
+          icon: 'fa-solid fa-plus fa-lg text-primary',
+          command: () => this.onAddSupplierSale()
+        },
+        {
+          label: 'Y/C duyệt mua',
+          icon: 'fa-solid fa-circle-check fa-lg text-success',
+          command: () => this.onRequestApproved(this.activeTabIndex, true)
+        },
+        {
+          label: 'Hủy Y/C duyệt mua',
+          icon: 'fa-solid fa-circle-xmark fa-lg text-danger',
+          command: () => this.onRequestApproved(this.activeTabIndex, false)
+        },
+        {
+          label: 'Hoàn thành',
+          icon: 'fa-solid fa-check-circle fa-lg text-success',
+          command: () => this.onCompleteRequest(this.activeTabIndex, 7)
+        },
+        {
+          label: 'Hủy hoàn thành',
+          icon: 'fa-solid fa-times-circle fa-lg text-danger',
+          command: () => this.onCompleteRequest(this.activeTabIndex, 1)
+        }
+      );
+    }
+
+    // Items requiring N58,N1 permission
+    if (this.permissionService.hasPermission('N58,N1')) {
+      allItems.push(
+        {
+          label: 'BGD duyệt',
+          icon: 'fa-solid fa-circle-check fa-lg text-success',
+          command: () => this.onApproved(this.activeTabIndex, true, false)
+        },
+        {
+          label: 'BGD hủy duyệt',
+          icon: 'fa-solid fa-circle-xmark fa-lg text-danger',
+          command: () => this.onApproved(this.activeTabIndex, false, false)
+        }
+      );
+    }
+
+    // Items requiring N35,N1 permission (continued)
+    if (this.permissionService.hasPermission('N35,N1')) {
+      allItems.push(
+        {
+          label: 'Tạo PO NCC',
+          icon: 'fa-solid fa-file-circle-plus fa-lg text-primary',
+          command: () => this.onAddPoncc()
+        },
+        {
+          label: 'Tải file',
+          icon: 'fa-solid fa-download fa-lg text-primary',
+          command: () => this.onDownloadFile(this.activeTabIndex)
+        }
+      );
+    }
+
+    // Lọc các items có visible = false
+    const visibleItems = allItems.filter(item => item.visible !== false);
+
+    // Nếu số lượng items <= maxVisibleItems, hiển thị tất cả trực tiếp
+    if (visibleItems.length <= this.maxVisibleItems) {
+      this.menuItems = visibleItems;
+    } else {
+      // Nếu vượt quá maxVisibleItems, tách ra: items chính + More menu
+      const directItems = visibleItems.slice(0, this.maxVisibleItems - 1);
+      const moreItems = visibleItems.slice(this.maxVisibleItems - 1);
+
+      this.menuItems = [
+        ...directItems,
+        {
+          label: 'More',
+          icon: 'fa-solid fa-ellipsis fa-lg text-secondary',
+          items: moreItems
+        }
+      ];
+    }
   }
 
   private setupCopyToClipboard(): void {

@@ -1,0 +1,140 @@
+<div style="display: flex; flex-direction: column; height: 99.8vh; position: relative;">
+    <div class="modal-header bg-primary text-uppercase py-2">
+        <h6 class="modal-title text-white">Xem POKH</h6>
+        <button type="button" class="btn-close" (click)="closeModal()" aria-label="Close"></button>
+    </div>
+    <div class="modal-body p-1">
+        <div class="card-header bg-white p-0 mb-2">
+            <p-menubar [model]="menuBars">
+                <ng-template #start>
+                    <button style="min-width: 32px; height: 32px;" nz-button nzType="text" nzShape="circle"
+                        (click)="toggleSearchPanel(); $event.stopPropagation()" class="me-2">
+                        <nz-icon nzType="search" />
+                    </button>
+                </ng-template>
+                <ng-template pTemplate="item" let-item>
+                    <a class="p-menuitem-link" [ngClass]="item.styleClass">
+                        <i [class]="item.icon"></i>
+                        <span class="p-menuitem-text">{{ item.label }}</span>
+                    </a>
+                </ng-template>
+            </p-menubar>
+        </div>
+        <ng-container class="w-100">
+            <nz-splitter>
+                <nz-splitter-panel [nzSize]="sizeSearch" nzResizable="false">
+                    <div class="card h-100 border-0 rounded-0">
+                        <div class="card-header bg-white p-1">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <h6 class="m-0 ms-2">Tìm kiếm</h6>
+                                <button class="border-0 me-2" nz-button nzSize="small" nzType="default" nzDanger
+                                    (click)="toggleSearchPanel()">
+                                    <nz-icon nzType="close" nzTheme="outline" />
+                                </button>
+                            </div>
+                        </div>
+                        <div class="card-body">
+                            <form nz-form nzLayout="vertical">
+                                <nz-form-item>
+                                    <nz-form-label class="fs-12" [nzSpan]="24">Từ ngày</nz-form-label>
+                                    <nz-form-control [nzSpan]="24">
+                                        <nz-date-picker name="startDate" class="w-100" nzSize="small"
+                                            nzFormat="dd-MM-yyyy" [(ngModel)]="filters.startDate"></nz-date-picker>
+                                    </nz-form-control>
+                                </nz-form-item>
+                                <nz-form-item class="mt-1">
+                                    <nz-form-label class="fs-12" [nzSpan]="24">Đến ngày</nz-form-label>
+                                    <nz-form-control [nzSpan]="24">
+                                        <nz-date-picker name="endDate" class="w-100" nzSize="small"
+                                            nzFormat="dd-MM-yyyy" [(ngModel)]="filters.endDate"></nz-date-picker>
+                                    </nz-form-control>
+                                </nz-form-item>
+                                <nz-form-item class="mt-1">
+                                    <nz-form-label class="fs-12" [nzSpan]="24">Khách hàng</nz-form-label>
+                                    <nz-form-control [nzSpan]="24">
+                                        <nz-select name="customerId" class="w-100" nzShowSearch nzAllowClear
+                                            nzSize="small" nzPlaceHolder="Chọn khách hàng"
+                                            [(ngModel)]="filters.customerId">
+                                            <nz-option *ngFor="let customer of customers" [nzValue]="customer.ID"
+                                                [nzLabel]="customer.CustomerName"></nz-option>
+                                        </nz-select>
+                                    </nz-form-control>
+                                </nz-form-item>
+                                <nz-form-item class="mt-1">
+                                    <nz-form-label class="fs-12" [nzSpan]="24">Người phụ trách</nz-form-label>
+                                    <nz-form-control [nzSpan]="24">
+                                        <nz-select name="userId" class="w-100" nzShowSearch nzAllowClear nzSize="small"
+                                            nzPlaceHolder="Chọn người phụ trách" [(ngModel)]="filters.userId">
+                                            <nz-option *ngFor="let user of users" [nzValue]="user.UserID"
+                                                [nzLabel]="user.FullName"></nz-option>
+                                        </nz-select>
+                                    </nz-form-control>
+                                </nz-form-item>
+                                <nz-form-item class="mt-1">
+                                    <nz-form-label class="fs-12" [nzSpan]="24">Lọc</nz-form-label>
+                                    <nz-form-control [nzSpan]="24">
+                                        <nz-select name="status" class="w-100" nzShowSearch nzAllowClear nzSize="small"
+                                            nzPlaceHolder="Lọc" [(ngModel)]="filters.poType">
+                                            <nz-option *ngFor="let item of statuses" [nzValue]="item.ID"
+                                                [nzLabel]="item.MainIndex1"></nz-option>
+                                        </nz-select>
+                                    </nz-form-control>
+                                </nz-form-item>
+                                <nz-form-item class="mt-1">
+                                    <nz-form-label class="fs-12" [nzSpan]="24">Nhóm</nz-form-label>
+                                    <nz-form-control [nzSpan]="24">
+                                        <nz-select name="employeeTeamSaleId" class="w-100" nzShowSearch nzAllowClear
+                                            nzSize="small" nzPlaceHolder="Nhóm" [(ngModel)]="filters.employeeTeamSaleId"
+                                            (ngModelChange)="loadEmployeeByTeamSale($event)">
+                                            <nz-option *ngFor="let item of EmployeeTeamSale" [nzValue]="item.ID"
+                                                [nzLabel]="item.Name"></nz-option>
+                                        </nz-select>
+                                    </nz-form-control>
+                                </nz-form-item>
+                                <nz-form-item class="mt-1">
+                                    <nz-form-label class="fs-12" [nzSpan]="24">Trạng thái</nz-form-label>
+                                    <nz-form-control [nzSpan]="24">
+                                        <nz-select name="status" class="w-100" nzShowSearch nzAllowClear nzSize="small"
+                                            nzPlaceHolder="Chọn trạng thái" [(ngModel)]="filters.status">
+                                            <nz-option [nzValue]="0" [nzLabel]="'Chưa giao , chưa thanh toán'">
+                                            </nz-option>
+                                            <nz-option [nzValue]="1" [nzLabel]="'Đã giao, đã thanh toán'"></nz-option>
+                                            <nz-option [nzValue]="2" [nzLabel]="'Chưa giao, đã thanh toán'"></nz-option>
+                                            <nz-option [nzValue]="3" [nzLabel]="'Đã giao, nhưng chưa thanh toán'">
+                                            </nz-option>
+                                            <nz-option [nzValue]="4"
+                                                [nzLabel]="'Đã thanh toán, GH chưa xuất hóa đơn'"></nz-option>
+                                        </nz-select>
+                                    </nz-form-control>
+                                </nz-form-item>
+                                <nz-form-item class="mt-1">
+                                    <nz-form-label class="fs-12" [nzSpan]="24">Từ khóa</nz-form-label>
+                                    <nz-form-control [nzSpan]="24">
+                                        <nz-input-group nzSize="small">
+                                            <input name="keyword" nz-input nzSize="small" type="text" class="w-100"
+                                                placeholder="Từ khóa" [(ngModel)]="filters.keyword">
+                                        </nz-input-group>
+                                    </nz-form-control>
+                                </nz-form-item>
+                            </form>
+                        </div>
+                        <div class="card-footer bg-white p-1 d-flex gap-1 justify-content-end">
+                            <button nz-button nzType="primary" nzSize="small" (click)="loadData()">
+                                Tìm kiếm
+                            </button>
+                        </div>
+                    </div>
+                </nz-splitter-panel>
+                <nz-splitter-panel nzDefaultSize="100%" class="d-flex flex-column">
+                    <!-- Main SlickGrid with Row Detail View -->
+                    <div class="grid-container-viewpokh flex-grow-1" style="min-height: 0;">
+                        <angular-slickgrid gridId="viewPokhGrid" [columns]="columnDefinitions" [options]="gridOptions"
+                            [dataset]="dataset" (onAngularGridCreated)="angularGridReady($event.detail)">
+                        </angular-slickgrid>
+                    </div>
+                    <!-- Note: Nested tables (Export/Invoice) are now displayed inline using Row Detail View -->
+                </nz-splitter-panel>
+            </nz-splitter>
+        </ng-container>
+    </div>
+</div>

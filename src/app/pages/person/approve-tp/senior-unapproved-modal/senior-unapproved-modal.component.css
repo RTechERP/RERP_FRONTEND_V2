@@ -1,26 +1,7 @@
-/* Senior Unapproved Modal Styles */
-.senior-unapproved-modal {
-    font-size: 12px;
-}
-
-.tabulator-container {
-    border: 1px solid #d9d9d9;
-    border-radius: 4px;
-}
-
-/* Fix Tabulator header height issues */
-::ng-deep .tabulator-header .tabulator-col {
-    height: auto !important;
-    min-height: 40px;
-}
-
-::ng-deep .tabulator-header .tabulator-col .tabulator-col-content {
-    height: 100% !important;
-    white-space: normal !important;
-    padding: 8px !important;
-    /* Add some padding for better look */
-}
-
-::ng-deep .tabulator-row .tabulator-cell {
-    padding: 8px !important;
+.btn-close,
+.modal-header .btn-close {
+    background-color: #dc3545 !important;
+    /* background-image: none !important; */
+    font-weight: bold;
+    font-size: 1.5rem;
 }

@@ -1,0 +1,6 @@
+::ng-deep div[id^="gridMaster-"]{
+  height: 45vh !important;
+}
+::ng-deep div[id^="gridDetail-"]{
+  height: 30vh !important;
+}

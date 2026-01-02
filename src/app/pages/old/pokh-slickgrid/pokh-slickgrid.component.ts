@@ -91,6 +91,8 @@ import { ProjectPartlistPurchaseRequestNewComponent } from '../../purchase/proje
 import { ProjectPartListPurchaseRequestSlickGridComponent } from '../../purchase/project-partlist-purchase-request/project-part-list-purchase-request-slick-grid/project-part-list-purchase-request-slick-grid.component';
 import { WarehouseReleaseRequestSlickGridComponent } from '../warehouse-release-request-slick-grid/warehouse-release-request-slick-grid.component';
 import { PoRequestBuySlickgridComponent } from '../po-request-buy-slickgrid/po-request-buy-slickgrid.component';
+import { ViewPokhSlickgridComponent } from '../view-pokh-slickgrid/view-pokh-slickgrid.component';
+import { Menubar } from 'primeng/menubar';
 @Component({
   selector: 'app-pokh-slickgrid',
   imports: [
@@ -120,6 +122,7 @@ import { PoRequestBuySlickgridComponent } from '../po-request-buy-slickgrid/po-r
     CommonModule,
     HasPermissionDirective,
     AngularSlickgridModule,
+    Menubar,
   ],
   templateUrl: './pokh-slickgrid.component.html',
   styleUrl: './pokh-slickgrid.component.css',
@@ -156,9 +159,116 @@ export class PokhSlickgridComponent implements OnInit, AfterViewInit {
   gridOptionsPOKHFile: GridOption = {};
   datasetPOKHFile: any[] = [];
   sizeSearch: string = '0';
+
+  menuBars: any[] = [];
+
   toggleSearchPanel() {
     this.sizeSearch = this.sizeSearch == '0' ? '22%' : '0';
   }
+
+  initMenuBar() {
+    this.menuBars = [
+      {
+        label: 'Thêm',
+        icon: 'fa-solid fa-plus fa-lg text-success',
+        command: () => {
+          this.onAdd();
+        }
+      },
+      {
+        label: 'Sửa',
+        icon: 'fa-solid fa-pen fa-lg text-primary',
+        command: () => {
+          this.onEdit();
+        }
+      },
+      {
+        label: 'Xóa',
+        icon: 'fa-solid fa-trash fa-lg text-danger',
+        command: () => {
+          this.onDelete();
+        }
+      },
+      {
+        label: 'Duyệt',
+        icon: 'fa-solid fa-check fa-lg text-success',
+        command: () => {
+          this.handlePOKHApproval(true);
+        }
+      },
+      {
+        label: 'Hủy Duyệt',
+        icon: 'fa-solid fa-xmark fa-lg text-warning',
+        command: () => {
+          this.handlePOKHApproval(false);
+        }
+      },
+      {
+        label: 'Xuất PO',
+        icon: 'fa-solid fa-file-excel fa-lg text-success',
+        command: () => {
+          this.exportToExcel();
+        }
+      },
+      {
+        label: 'Xuất phiếu',
+        icon: 'fa-solid fa-file-export fa-lg text-primary',
+        command: () => {
+          this.exportMainTableToExcel();
+        }
+      },
+      {
+        label: 'Chi tiết POKH',
+        icon: 'fa-solid fa-magnifying-glass fa-lg text-info',
+        command: () => {
+          this.openModalViewPOKH();
+        }
+      },
+      {
+        label: 'Lịch sử tiền về',
+        icon: 'fa-solid fa-money-bill-wave fa-lg text-warning',
+        command: () => {
+          this.openHistoryMoneyModal();
+        }
+      },
+      {
+        label: 'Yêu cầu mua hàng',
+        icon: 'fa-solid fa-cart-shopping fa-lg text-primary',
+        command: () => {
+          this.openPORequestBuyModal();
+        }
+      },
+      {
+        label: 'Yêu cầu xuất kho',
+        icon: 'fa-solid fa-box-open fa-lg text-info',
+        command: () => {
+          this.openWarehouseReleaseRequestModal();
+        }
+      },
+      {
+        label: 'Lịch sử bán hàng',
+        icon: 'fa-solid fa-clock-rotate-left fa-lg text-secondary',
+        command: () => {
+          this.openFollowProductReturnModal();
+        }
+      },
+      {
+        label: 'Copy',
+        icon: 'fa-solid fa-copy fa-lg text-primary',
+        command: () => {
+          this.onCopy();
+        }
+      },
+      {
+        label: 'Yêu cầu báo giá',
+        icon: 'fa-solid fa-file-invoice fa-lg text-warning',
+        command: () => {
+          this.openPORequestPriceRTC();
+        }
+      }
+    ];
+  }
+
   constructor(
     private injector: EnvironmentInjector,
     private appRef: ApplicationRef,
@@ -235,6 +345,7 @@ export class PokhSlickgridComponent implements OnInit, AfterViewInit {
   //#endregion
   //#region : Hàm khởi tạo
   ngOnInit(): void {
+    this.initMenuBar();
     // if (this.tabData?.warehouseId) {
     //     this.filters.warehouseId = this.tabData.warehouseId;
     // }
@@ -490,7 +601,7 @@ export class PokhSlickgridComponent implements OnInit, AfterViewInit {
             id: item.ID,
             parentId: item.ParentID === 0 ? null : item.ParentID
           }));
-          
+
           setTimeout(() => {
             this.applyDistinctFiltersToGrid(this.angularGridPOKHProduct, this.columnDefinitionsPOKHProduct, ['Maker', 'Unit']);
           }, 500);
@@ -1133,7 +1244,7 @@ export class PokhSlickgridComponent implements OnInit, AfterViewInit {
   }
 
   openModalViewPOKH() {
-    this.modalRef = this.modalService.open(ViewPokhComponent, {
+    this.modalRef = this.modalService.open(ViewPokhSlickgridComponent, {
       centered: true,
       windowClass: 'full-screen-modal',
       backdrop: 'static',
@@ -1182,7 +1293,7 @@ export class PokhSlickgridComponent implements OnInit, AfterViewInit {
   //           }
   //       );
   // }
-  
+
   openPORequestBuyModal() {
     if (!this.selectedId) {
       this.notification.warning(

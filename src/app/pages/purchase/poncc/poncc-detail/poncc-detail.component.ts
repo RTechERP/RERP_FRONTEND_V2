@@ -230,8 +230,11 @@ export class PonccDetailComponent implements OnInit, AfterViewInit {
   ) { }
 
   ngOnInit(): void {
+    console.log('🔷 ngOnInit started - isEditMode:', this.isEditMode, 'poncc.ID:', this.poncc?.ID);
+
     this.isAdmin = this.appUserService.isAdmin;
     if (this.poncc && this.poncc.ID > 0) {
+      console.log('🔷 Loading existing PO details for ID:', this.poncc.ID);
       this.ponccService.getPoncc(this.poncc.ID).subscribe({
         next: (response: any) => {
           this.rupayId = this.poncc.RulePayID;
@@ -239,15 +242,17 @@ export class PonccDetailComponent implements OnInit, AfterViewInit {
           if (this.isCopy) {
             this.poncc.ID = 0;
           }
+          console.log('🔷 PO data loaded, calling mapDataToForm');
           this.mapDataToForm();
           this.loadReferenceLinks();
         },
         error: (error) => {
-          this.notification.error(NOTIFICATION_TITLE.error, error.error.message);
+            this.notification.error(NOTIFICATION_TITLE.error, error?.error?.message || error?.message);
         },
       });
     }
     else if (this.isAddPoYCMH) {
+      console.log('🔷 Adding PO from YCMH');
       this.getSupplierSale().then(() => {
         this.mapDataToForm();
         // Không gọi getBillCode() ở đây vì BillCode đã được set từ component cha (YCMH)
@@ -258,6 +263,7 @@ export class PonccDetailComponent implements OnInit, AfterViewInit {
       });
     }
 
+    console.log('🔷 Calling initInformationForm');
     this.initInformationForm();
     this.initCompanyForm();
     this.initDiffForm();
@@ -274,6 +280,11 @@ export class PonccDetailComponent implements OnInit, AfterViewInit {
       // Nếu skipBillCodeGeneration = true (đã có BillCode từ YCMH), không generate lại
       if (this.skipBillCodeGeneration) {
         console.log('Skipping BillCode generation - already set from YCMH');
+        return;
+      }
+      // Nếu đang ở chế độ edit, không generate lại BillCode
+      if (this.isEditMode) {
+        console.log('Skipping BillCode generation - in edit mode');
         return;
       }
       // Chỉ tự động generate BillCode khi đang tạo mới (ID = 0 hoặc undefined)
@@ -339,6 +350,8 @@ export class PonccDetailComponent implements OnInit, AfterViewInit {
   private mapDataToForm(): void {
     if (!this.poncc) return;
 
+    console.log('🟢 mapDataToForm called - poncc.BillCode:', this.poncc.BillCode);
+
     // Map data vào informationForm
     this.informationForm.patchValue({
       SupplierSaleID: this.poncc.SupplierSaleID || null,
@@ -361,6 +374,8 @@ export class PonccDetailComponent implements OnInit, AfterViewInit {
       CurrencyID: this.poncc.CurrencyID || null,
       CurrencyRate: this.poncc.CurrencyRate || 0
     }, { emitEvent: false });
+
+    console.log('🟢 mapDataToForm done - companyForm.BillCode:', this.companyForm.get('BillCode')?.value);
 
     // Map data vào diffForm
     this.diffForm.patchValue({
@@ -469,8 +484,8 @@ export class PonccDetailComponent implements OnInit, AfterViewInit {
 
   initInformationForm(): void {
     // Set giá trị mặc định EmployeeID là người đăng nhập hiện tại (chỉ khi tạo mới)
-    const defaultEmployeeID = (!this.poncc || this.poncc.ID === 0 || this.isCopy) 
-      ? (this.appUserService.employeeID || null) 
+    const defaultEmployeeID = (!this.poncc || this.poncc.ID === 0 || this.isCopy)
+      ? (this.appUserService.employeeID || null)
       : null;
 
     this.informationForm = this.fb.group({
@@ -486,7 +501,16 @@ export class PonccDetailComponent implements OnInit, AfterViewInit {
       IsCheckTotalMoneyPO: [false]
     });
 
-    this.getBillCode(0);
+    console.log('🟡 initInformationForm - checking if should call getBillCode(0)');
+    console.log('🟡 State: isEditMode:', this.isEditMode, 'poncc.ID:', this.poncc?.ID, 'isCopy:', this.isCopy);
+
+    // Chỉ gọi getBillCode khi đang tạo mới (không phải edit mode và không có poncc.ID)
+    if (!this.isEditMode && (!this.poncc || this.poncc.ID === 0)) {
+      console.log('🟡 Calling getBillCode(0) for new PO');
+      this.getBillCode(0);
+    } else {
+      console.log('🟡 Skipping getBillCode - edit mode or existing PO');
+    }
   }
 
   initCompanyForm(): void {
@@ -1075,7 +1099,7 @@ export class PonccDetailComponent implements OnInit, AfterViewInit {
         );
       },
       error: (error) => {
-        this.notification.error(NOTIFICATION_TITLE.error, 'Lỗi khi tải danh sách nhân viên: ' + error.message);
+          this.notification.error(NOTIFICATION_TITLE.error, error?.error?.message || error?.message);
       },
     });
   }
@@ -1096,10 +1120,7 @@ export class PonccDetailComponent implements OnInit, AfterViewInit {
         }
       },
       error: (error) => {
-        this.notification.error(
-          NOTIFICATION_TITLE.error,
-          'Không thể tải dữ liệu liên hệ. Vui lòng thử lại sau.'
-        );
+          this.notification.error(NOTIFICATION_TITLE.error, error?.error?.message || error?.message);
       }
     });
   }
@@ -1143,26 +1164,30 @@ export class PonccDetailComponent implements OnInit, AfterViewInit {
           }, 100);
         }
       }, error: (error: any) => {
-        this.notification.error(NOTIFICATION_TITLE.error, 'Lỗi khi tải danh sách tiền tệ: ' + error.message);
+        this.notification.error(NOTIFICATION_TITLE.error, error?.error?.message || error?.message);
       }
     });
   }
 
   getBillCode(poTypeId: number) {
+    console.log('🔵 getBillCode called with poTypeId:', poTypeId);
+    console.log('🔵 Current state - isEditMode:', this.isEditMode, 'skipBillCodeGeneration:', this.skipBillCodeGeneration, 'poncc.ID:', this.poncc?.ID);
+    console.trace('🔵 getBillCode call stack');
+
     // Nếu skipBillCodeGeneration = true (đã có BillCode từ YCMH), không generate lại
     if (this.skipBillCodeGeneration) {
-      console.log('Skipping BillCode generation - already set from YCMH');
+      console.log('⛔ Skipping BillCode generation - already set from YCMH');
       return;
     }
-    
-    debugger;
+
     this.ponccService.getBillCode(poTypeId).subscribe({
       next: (res: any) => {
+        console.log('🔴 OVERWRITING BillCode with:', res.data);
         this.companyForm.patchValue({
           BillCode: res.data
         })
       }, error: (error: any) => {
-        this.notification.error(NOTIFICATION_TITLE.error, 'Lỗi mã po: ' + error.message);
+          this.notification.error(NOTIFICATION_TITLE.error, error?.error?.message || error?.message);
       }
     });
   }
@@ -1176,7 +1201,9 @@ export class PonccDetailComponent implements OnInit, AfterViewInit {
         this.productSales = data || [];
         this.updateEditorLookups();
       },
-      error: (err) => console.error('ProductSale API error:', err)
+      error: (err) =>  {
+        this.notification.error(NOTIFICATION_TITLE.error, err?.error?.message || err?.message); 
+      }
     });
     this.ponccService.getProductRTC().subscribe({
       next: (data) => {
@@ -1192,7 +1219,9 @@ export class PonccDetailComponent implements OnInit, AfterViewInit {
         this.projects = data || [];
         this.updateEditorLookups();
       },
-      error: (err) => console.error('Projects API error:', err)
+      error: (err) => {
+          this.notification.error(NOTIFICATION_TITLE.error, err?.error?.message || err?.message);
+      }
     });
   }
 
@@ -1540,7 +1569,7 @@ export class PonccDetailComponent implements OnInit, AfterViewInit {
                   ponccData.poncc.BillCode = res.data;
                   this.save(ponccData, closeAfterSave);
                 }, error: (error) => {
-                  this.notification.error(NOTIFICATION_TITLE.error, 'Lỗi mã po: ' + error.message);
+                    this.notification.error(NOTIFICATION_TITLE.error, error?.error?.message || error?.message);
                 }
               });
             },
@@ -1578,7 +1607,7 @@ export class PonccDetailComponent implements OnInit, AfterViewInit {
         }
       },
       error: (err) => {
-        this.notification.error(NOTIFICATION_TITLE.error, err.error?.message || 'Có lỗi xảy ra!');
+        this.notification.error(NOTIFICATION_TITLE.error, err.error?.message || err.message);
         // Don't close modal on error
       }
     });
@@ -1594,7 +1623,7 @@ export class PonccDetailComponent implements OnInit, AfterViewInit {
         }
       },
       error: (err) => {
-        console.error('Error loading PONCC detail:', err);
+          this.notification.error(NOTIFICATION_TITLE.error, err?.error?.message || err?.message);
       }
     });
   }

@@ -47,6 +47,11 @@
                             <img src="assets/icon/purchase.png" alt="Danh sách yêu cầu mua hàng"
                                 style="width:16px; height:16px; object-fit:contain" />Danh sách yêu cầu mua hàng
                         </button>
+                        <button nz-button nzType="default" nzSize="small" class="me-1"
+                            (click)="onOpenPriceRequest()">
+                            <img src="assets/icon/purchase.png" alt="Yêu cầu báo giá"
+                                style="width:16px; height:16px; object-fit:contain" />Yêu cầu báo giá
+                        </button>
                     </div>
                 </div>
             </div>
@@ -95,6 +100,10 @@
                         <button ngbDropdownItem (click)="onOpenPurchaseRequestList()"
                             class="d-flex align-items-center gap-2">
                             Danh sách yêu cầu mua hàng
+                        </button>
+                        <button ngbDropdownItem (click)="onOpenPriceRequest()"
+                            class="d-flex align-items-center gap-2">
+                            Yêu cầu báo giá
                         </button>
                     </div>
                 </div>

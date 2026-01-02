@@ -41,67 +41,40 @@
   nz-form-label {
     font-size: 12px !important;
   }
-  
+
   nz-select {
     font-size: 12px !important;
-    
+
     .ant-select-selector {
       font-size: 12px !important;
     }
-    
+
     .ant-select-selection-item {
       font-size: 12px !important;
     }
-    
+
     .ant-select-selection-placeholder {
       font-size: 12px !important;
     }
   }
-  
+
   nz-date-picker {
     font-size: 12px !important;
-    
+
     .ant-picker {
       font-size: 12px !important;
     }
-    
+
     .ant-picker-input input {
       font-size: 12px !important;
     }
   }
-  
+
   input[nz-input] {
     font-size: 12px !important;
   }
 }
 
-/* .ant-tabs-content-holder{
-  height: 100% !important;
-}
-:host ::ng-deep nz-tab-body{
-  height: 100% !important;
-}
-:host ::ng-deep nz-tabset{
-  height: 100% !important;
-}
-:host ::ng-deep nz-tab{
-  height: 100% !important;
-}
-:host ::ng-deep nz-tab-content{
-  height: 100% !important;
-}
-:host ::ng-deep .card-body{
-  height: 85vh !important;
-}
-:host ::ng-deep .card-body .ant-tabs-content-holder{
-  height: 100% !important;
-}
-:host ::ng-deep .card-body .ant-tabs-content{
-  height: 100% !important;
-}
-:host ::ng-deep .card-body .ant-tabs-tabpane{
-  height: 100% !important;
-} */
  ::ng-deep div[id^="grid-"] {
-  height: 81vh!important;
+  height: 79vh!important;
 }

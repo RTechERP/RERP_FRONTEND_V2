@@ -1,3 +1,182 @@
-<p>
-  bill-export-new works!
-</p>
+<ng-container class="w-100">
+  <div class="card h-100 border-0 rounded-0">
+    <!-- Search Panel Above Grid -->
+    <div class="card-header bg-white p-2">
+      <form nz-form nzLayout="inline" (keyup.enter)="onSearch()">
+        <nz-form-item>
+          <nz-form-label class="fs-12">Từ ngày</nz-form-label>
+          <nz-form-control>
+            <nz-date-picker [nzFormat]="dateFormat" nzSize="small"
+              [(ngModel)]="searchParams.dateStart" name="dateStart" [nzDisabled]="checked"
+              (ngModelChange)="onDateStartChange($event)" style="width: 130px;">
+            </nz-date-picker>
+          </nz-form-control>
+        </nz-form-item>
+
+        <nz-form-item>
+          <nz-form-label class="fs-12">Đến ngày</nz-form-label>
+          <nz-form-control>
+            <nz-date-picker [nzFormat]="dateFormat" nzSize="small"
+              [(ngModel)]="searchParams.dateEnd" name="dateEnd" [nzDisabled]="checked"
+              (ngModelChange)="onDateEndChange($event)" style="width: 130px;">
+            </nz-date-picker>
+          </nz-form-control>
+        </nz-form-item>
+
+        <nz-form-item>
+          <nz-form-label class="fs-12">Lọc kho</nz-form-label>
+          <nz-form-control>
+            <nz-select [(ngModel)]="selectedKhoTypes" (ngModelChange)="onKhoTypeChange($event)"
+              [nzMode]="'multiple'" [nzPlaceHolder]="'Chọn nhóm kho'" [nzMaxTagCount]="2"
+              name="selectedKhoTypes" nzSize="small" style="width: 200px;">
+              <nz-option *ngFor="let item of dataProductGroup" [nzLabel]="item.ProductGroupName"
+                [nzValue]="item.ID"></nz-option>
+            </nz-select>
+          </nz-form-control>
+        </nz-form-item>
+
+        <nz-form-item>
+          <nz-form-label class="fs-12">Lọc phiếu</nz-form-label>
+          <nz-form-control>
+            <nz-select nzShowSearch nzAllowClear nzSize="small" [(ngModel)]="searchParams.status"
+              name="status" style="width: 150px;">
+              <nz-option *ngFor="let item of cbbStatus" [nzValue]="item.ID" [nzLabel]="item.Name">
+                <div class="d-flex align-items-center">
+                  <span class="me-2">{{ item.ID }}</span>
+                  <span>{{ item.Name }}</span>
+                </div>
+              </nz-option>
+            </nz-select>
+          </nz-form-control>
+        </nz-form-item>
+
+        <nz-form-item>
+          <nz-form-label class="fs-12">Từ khóa</nz-form-label>
+          <nz-form-control>
+            <input nz-input placeholder="Nhập từ khóa" [(ngModel)]="searchParams.keyword"
+              name="keyword" nzSize="small" (keyup.enter)="onSearch()" style="width: 200px;" />
+          </nz-form-control>
+        </nz-form-item>
+
+        <nz-form-item>
+          <nz-form-control>
+            <label nz-checkbox [(ngModel)]="checked" name="checked" (ngModelChange)="onCheckboxChange()">Tìm kiếm tất cả</label>
+          </nz-form-control>
+        </nz-form-item>
+
+        <nz-form-item>
+          <nz-form-control>
+            <button nz-button nzType="default" nzSize="small" type="button" (click)="resetform()">Đặt lại</button>
+          </nz-form-control>
+        </nz-form-item>
+
+        <nz-form-item>
+          <nz-form-control>
+            <button nz-button nzType="primary" nzSize="small" type="button" (click)="onSearch()">Tìm kiếm</button>
+          </nz-form-control>
+        </nz-form-item>
+      </form>
+    </div>
+
+    <!-- Toolbar -->
+    <div class="card-header bg-white p-1">
+      <div class="d-flex gap-1">
+        <button class="btn-add" nz-button nzType="default" nzSize="small" *hasPermission="'N27,N1,N33,N34,N69'"
+          type="button" (click)="openModalBillExportDetail(false)">
+          <img class="btn-action-icon" src="assets/icon/action_add_item_16.png" alt="Thêm" /> Thêm
+        </button>
+        <button class="btn-edit" nz-button nzType="default" nzSize="small" *hasPermission="'N27,N1,N33,N34,N69'"
+          type="button" (click)="openModalBillExportDetail(true)">
+          <img class="btn-action-icon" src="assets/icon/action_edit_item_16.png" alt="Sửa" /> Sửa
+        </button>
+        <button class="btn-delete" nz-button nzType="default" nzSize="small" *hasPermission="'N27,N1,N33,N34,N69'"
+          type="button" (click)="deleteBillExport()">
+          <img class="btn-action-icon" src="assets/icon/action_delete_item_16.png" alt="Xóa" /> Xóa
+        </button>
+        |
+        <button class="btn fs-12" nz-button nzType="default" nzSize="small" *hasPermission="'N11,N50,N1'"
+          type="button" (click)="IsApproved(true)">
+          <img class="btn-action-icon" src="assets/icon/contract.png" alt="Nhận chứng từ" /> Nhận chứng từ
+        </button>
+        <button class="btn fs-12" nz-button nzType="default" nzSize="small" *hasPermission="'N11,N1,N18'"
+          type="button" (click)="IsApproved(false)">
+          <img class="btn-action-icon" src="assets/icon/reject.png" alt="Hủy chứng từ" /> Hủy chứng từ
+        </button>
+        <button class="fs-12 btn" nz-button nzType="default" nzSize="small" *hasPermission="'N27,N1'"
+          type="button" (click)="shippedOut()">
+          <img class="btn-action-icon" src="assets/icon/export_warehouse.png" alt="Đã xuất kho" /> Đã xuất kho
+        </button>
+        <button class="fs-12 btn" nz-button nzType="default" nzSize="small" type="button"
+          nz-dropdown [nzDropdownMenu]="menu">
+          <img class="btn-action-icon" src="assets/icon/export_document.png" alt="Xuất phiếu" /> Xuất phiếu
+          <nz-icon nzType="down" />
+        </button>
+        <nz-dropdown-menu #menu="nzDropdownMenu">
+          <ul nz-menu>
+            <li nz-menu-item>
+              <a nzType="default" nzSize="small" class="fs-12" (click)="onExportGroupItem(1)">
+                Xuất gộp
+              </a>
+            </li>
+            <li nz-menu-item>
+              <a nzType="default" nzSize="small" class="fs-12" (click)="onExportGroupItem(2)">
+                Xuất tất cả các mã
+              </a>
+            </li>
+          </ul>
+        </nz-dropdown-menu>
+
+        <button class="fs-12 btn" nz-button nzType="default" nzSize="small" *hasPermission="'N10,N11,N27,N29,N1'"
+          type="button" (click)="exportExcelKT()">
+          <img class="btn-action-icon" src="assets/icon/excel.png" alt="Excel KT" /> Excel KT
+        </button>
+        <button class="fs-12 btn" nz-button nzType="default" nzSize="small" type="button" (click)="exportExcel()">
+          <img class="btn-action-icon" src="assets/icon/export_list.png" alt="Xuất danh sách" /> Xuất danh sách
+        </button>
+        <button class="fs-12 btn" nz-button nzType="default" nzSize="small" type="button" (click)="openFolderPath()">
+          <img class="btn-action-icon" src="assets/icon/folder.png" alt="Cây thư mục" /> Cây thư mục
+        </button>
+        <button class="fs-12 btn" nz-button nzType="default" nzSize="small" type="button"
+          (click)="openModalBillDocumentExport()">
+          <img class="btn-action-icon" src="assets/icon/document.png" alt="Hồ sơ chứng từ" /> Hồ sơ chứng từ
+        </button>
+        <button class="fs-12 btn" nz-button nzType="default" nzSize="small" type="button"
+          (click)="openModalBillExportSynthetic()">
+          <img class="btn-action-icon" src="assets/icon/summary.png" alt="Tổng hợp" /> Tổng hợp
+        </button>
+        <button class="fs-12 btn" nz-button nzType="default" nzSize="small" type="button"
+          (click)="openModalBillExportReportNCC()">
+          <img class="btn-action-icon" src="assets/icon/summary.png" alt="Báo cáo nhà cung cấp" /> Báo cáo NCC
+        </button>
+      </div>
+    </div>
+
+    <!-- Grid Content -->
+    <div class="card-body p-0">
+      <!-- Master Grid -->
+      <div class="grid-container-master">
+        <angular-slickgrid [gridId]="'gridMaster-'+ warehouseCode" [columns]="columnDefinitionsMaster"
+          [options]="gridOptionsMaster" [dataset]="datasetMaster"
+          (onAngularGridCreated)="angularGridMasterReady($event.detail)"
+          (onDblClick)="openModalBillExportDetail(true)">
+        </angular-slickgrid>
+      </div>
+
+      <!-- Detail Grid -->
+      <div class="mt-2">
+        <nz-tabset class="main-tab" style="padding-left: 10px !important;">
+          <nz-tab [nzTitle]="tabDetailTitle">
+            <nz-spin [nzSpinning]="isDetailLoad" nzTip="Đang tải dữ liệu...">
+              <div class="grid-container-detail">
+                <angular-slickgrid [gridId]="'gridDetail-'+ warehouseCode" [columns]="columnDefinitionsDetail"
+                  [options]="gridOptionsDetail" [dataset]="datasetDetail"
+                  (onAngularGridCreated)="angularGridDetailReady($event.detail)">
+                </angular-slickgrid>
+              </div>
+            </nz-spin>
+          </nz-tab>
+        </nz-tabset>
+      </div>
+    </div>
+  </div>
+</ng-container>

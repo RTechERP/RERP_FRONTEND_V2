@@ -1,3 +1,4 @@
+import { PONCCDetail } from './../../../../../purchase/poncc/poncc.model';
 import {
   AbstractControl,
   ValidationErrors,
@@ -1303,6 +1304,8 @@ export class BillImportDetailComponent
                 ProjectIDKeep: item.ProjectIDKeep || 0,
                 StatusQCText: item.StatusQCText || '',
                 BillImportQCID: item.BillImportQCID || 0,
+                PONCCDetailID: item.PONCCDetailID || 0,
+                BillExportDetailID: item.BillExportDetailID || 0,
               };
             });
 
@@ -1524,7 +1527,8 @@ export class BillImportDetailComponent
             x !== null
         );
     };
-
+    console.log('tableData', tableData);
+    
     return tableData.map((row: any, index: number) => {
       // Parse POKHList từ POKHDetailQuantity
       const pokhList = parsePOKHList(row.POKHDetailQuantity || '');
@@ -1578,7 +1582,7 @@ export class BillImportDetailComponent
         TaxReduction: row.TaxReduction || 0,
         COFormE: row.COFormE || 0,
         IsNotKeep: row.IsNotKeep || false,
-        Unit: row.Unit || 'PCS',
+        UnitName: row.UnitName || '',
         POKHDetailID: pokhDetailID, // null hoặc number, match với int? trong C#
         POKHDetailQuantity: row.POKHDetailQuantity || null,
         CustomerID:
@@ -1672,6 +1676,8 @@ export class BillImportDetailComponent
     }
 
     const billImportDetailsFromTable = this.table_billImportDetail?.getData();
+    console.log('billImportdetailfromtable:', billImportDetailsFromTable);
+
     if (
       !billImportDetailsFromTable ||
       billImportDetailsFromTable.length === 0
@@ -1736,7 +1742,9 @@ export class BillImportDetailComponent
         ),
         pONCCID: this.poNCCId || 0,
       },
+      
     ];
+    console.log('payload', payload);
 
     this.billImportService.saveBillImport(payload).subscribe({
       next: (res) => {

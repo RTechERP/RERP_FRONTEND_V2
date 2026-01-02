@@ -226,7 +226,7 @@ export class WFHDetailComponent implements OnInit {
     return this.isViewMode || this.saving;
   }
 
-    ngOnInit(): void {
+  ngOnInit(): void {
     this.initializeData();
     this.loadEmployeesAndApprovers();
     this.setupFormData();
@@ -244,7 +244,7 @@ export class WFHDetailComponent implements OnInit {
   }
 
   loadApprovers() {
-    this.employeeService.getEmployeeApprove().subscribe({
+    this.employeeService.getEmployeeApproved().subscribe({
       next: (res: any) => {
         this.approverList = res.data || [];
       },
@@ -285,7 +285,7 @@ export class WFHDetailComponent implements OnInit {
 
   // Initialize component data
   initializeData(): void {
- 
+
   }
 
   // Load employees and approvers from API
@@ -326,7 +326,7 @@ export class WFHDetailComponent implements OnInit {
         this.employeeGroups = [];
       },
     });
-    
+
     // Load approvers separately using new API
     this.loadApprovers();
   }
@@ -362,7 +362,7 @@ export class WFHDetailComponent implements OnInit {
     if (this.isEditMode && this.wfhData?.ID && this.wfhData.ID > 0) {
       const wfhEmployeeID = this.wfhData?.EmployeeID || 0;
       const currentEmpID = this.currentEmployeeId || 0;
-      
+
       // Chỉ require nếu currentEmployeeId khác với EmployeeID trong bảng
       if (currentEmpID !== wfhEmployeeID && currentEmpID > 0 && wfhEmployeeID > 0) {
         reasonEditControl?.setValidators([Validators.required, Validators.minLength(1)]);
@@ -451,7 +451,7 @@ export class WFHDetailComponent implements OnInit {
       return false;
     }
 
-      const contentWork = this.wfhForm.get('contentWork')?.value;
+    const contentWork = this.wfhForm.get('contentWork')?.value;
     if (!contentWork || !contentWork.trim()) {
       this.notification.warning(NOTIFICATION_TITLE.warning, 'Vui lòng nhập đủ thông tin bắt buộc');
       return false;
@@ -461,7 +461,7 @@ export class WFHDetailComponent implements OnInit {
     if (this.wfhData?.ID && this.wfhData.ID > 0) {
       const wfhEmployeeID = this.wfhData?.EmployeeID || 0;
       const currentEmpID = this.currentEmployeeId || 0;
-      
+
       // Chỉ require nếu currentEmployeeId khác với EmployeeID trong bảng
       if (currentEmpID !== wfhEmployeeID && currentEmpID > 0 && wfhEmployeeID > 0) {
         const reasonEdit = this.wfhForm.get('reasonEdit')?.value;

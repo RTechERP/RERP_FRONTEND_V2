@@ -18,8 +18,17 @@ import { NzAutocompleteModule } from 'ng-zorro-antd/auto-complete';
 import { NzInputModule } from 'ng-zorro-antd/input';
 import { NzSelectModule } from 'ng-zorro-antd/select';
 import { NzTableModule } from 'ng-zorro-antd/table';
-import { TabulatorFull as Tabulator, CellComponent, ColumnDefinition, RowComponent } from 'tabulator-tables';
-import 'tabulator-tables/dist/css/tabulator_simple.min.css';
+import {
+  AngularGridInstance,
+  AngularSlickgridModule,
+  Column,
+  Filters,
+  GridOption,
+  OnClickEventArgs,
+  OnSelectedRowsChangedEventArgs
+} from 'angular-slickgrid';
+import { MultipleSelectOption } from '@slickgrid-universal/common';
+import { NzSpinModule } from 'ng-zorro-antd/spin';
 import { NzTabsModule } from 'ng-zorro-antd/tabs';
 import { DateTime } from 'luxon';
 import * as ExcelJS from 'exceljs';
@@ -28,19 +37,15 @@ import { NzNotificationService } from 'ng-zorro-antd/notification'
 import { AssetAllocationService } from '../ts-asset-allocation/ts-asset-allocation-service/ts-asset-allocation.service';
 import { TsAssetRecoveryFormComponent } from './ts-asset-recovery-form/ts-asset-recovery-form.component';
 import { AssetsRecoveryService } from './ts-asset-recovery-service/ts-asset-recovery.service';
-function formatDateCell(cell: CellComponent): string {
-  const val = cell.getValue();
-  return val ? DateTime.fromISO(val).toFormat('dd/MM/yyyy') : '';
-}
 import { NzModalService, NzModalModule } from 'ng-zorro-antd/modal';
 import { NzDropDownModule } from 'ng-zorro-antd/dropdown';
 // @ts-ignore
 import { saveAs } from 'file-saver';
 import { HasPermissionDirective } from '../../../../../directives/has-permission.directive';
 import { NOTIFICATION_TITLE } from '../../../../../app.config';
-import { DEFAULT_TABLE_CONFIG } from '../../../../../tabulator-default.config';
 import { forkJoin } from 'rxjs';
 import { AuthService } from '../../../../../auth/auth.service';
+
 @Component({
   standalone: true,
   imports: [
@@ -65,15 +70,34 @@ import { AuthService } from '../../../../../auth/auth.service';
     NgbModalModule,
     HasPermissionDirective,
     NzDropDownModule,
-    NzModalModule
+    NzModalModule,
+    AngularSlickgridModule,
+    NzSpinModule
   ],
   selector: 'app-ts-asset-recovery',
   templateUrl: './ts-asset-recovery.component.html',
   styleUrls: ['./ts-asset-recovery.component.css']
 })
 export class TsAssetRecoveryComponent implements OnInit, AfterViewInit {
+  // SlickGrid instances
+  angularGrid!: AngularGridInstance;
+  angularGridDetail!: AngularGridInstance;
+  gridData: any;
+  gridDetailData: any;
+
+  // Column definitions
+  columnDefinitions: Column[] = [];
+  columnDefinitionsDetail: Column[] = [];
+
+  // Grid options
+  gridOptions: GridOption = {};
+  gridOptionsDetail: GridOption = {};
+
+  // Datasets
+  dataset: any[] = [];
+  datasetDetail: any[] = [];
+
   emPloyeeLists: any[] = [];
-  // Điều kiện lọc getALL
   employeeRecoveryID = 0;
   employeeReturnID = 0;
   dateStart: string = '';
@@ -83,14 +107,11 @@ export class TsAssetRecoveryComponent implements OnInit, AfterViewInit {
   pageSize: number = 1000000;
   pageNumber: number = 1;
   selectedRow: any = "";
-  // Data AssetRecovery
   public detailTabTitle: string = 'Thông tin biên bản thu hồi:';
   private ngbModal = inject(NgbModal);
   isSearchVisible: boolean = false;
   assetRecoveryData: any[] = [];
   assetRecoveryDetailData: any[] = [];
-  recoveryTable: Tabulator | null = null;
-  recoveryDetailTable: Tabulator | null = null;
   modalData: any = [];
   sizeSearch: string = '0';
   statusData = [
@@ -98,6 +119,7 @@ export class TsAssetRecoveryComponent implements OnInit, AfterViewInit {
     { ID: 1, Name: 'Đã duyệt' }
   ];
   currentUser: any = null;
+  isLoading: boolean = false;
   selectedApproval: number | null = null;
   constructor(private notification: NzNotificationService,
     private assetsRecoveryService: AssetsRecoveryService,
@@ -107,17 +129,13 @@ export class TsAssetRecoveryComponent implements OnInit, AfterViewInit {
   ) { }
 
   ngOnInit() {
-
+    this.initGrid();
+    this.initGridDetail();
   }
   ngAfterViewInit(): void {
     this.getRecovery();
-    this.drawtable();
     this.getListEmployee();
     this.getCurrentUser();
-    // Khởi tạo bảng detail rỗng ngay từ đầu
-    setTimeout(() => {
-      this.drawDetail();
-    }, 100);
   }
   getCurrentUser() {
     this.authService.getCurrentUser().subscribe((res: any) => {
@@ -143,9 +161,25 @@ export class TsAssetRecoveryComponent implements OnInit, AfterViewInit {
       pageNumber: 1
     };
 
-    this.assetsRecoveryService.getAssetsRecovery(request).subscribe((response: any) => {
-      this.assetRecoveryData = response.assetsrecovery;
-      this.drawtable(); // Vẽ lại bảng nếu cần
+    this.isLoading = true;
+    this.assetsRecoveryService.getAssetsRecovery(request).subscribe({
+      next: (response: any) => {
+        this.assetRecoveryData = response.assetsrecovery || [];
+        this.dataset = this.assetRecoveryData.map((item, index) => ({
+          ...item,
+          id: item.ID,
+          STT: index + 1
+        }));
+        setTimeout(() => {
+          this.applyDistinctFilters();
+        }, 100);
+        this.isLoading = false;
+      },
+      error: (err) => {
+        this.isLoading = false;
+        console.error('Lỗi khi lấy dữ liệu thu hồi:', err);
+        this.notification.error(NOTIFICATION_TITLE.error, err?.error?.message || err.message);
+      }
     });
   }
   toggleSearchPanel() {
@@ -170,217 +204,183 @@ export class TsAssetRecoveryComponent implements OnInit, AfterViewInit {
       console.log(this.emPloyeeLists);
     });
   }
-  public drawtable(): void {
-    if (this.recoveryTable) {
-      this.recoveryTable.setData(this.assetRecoveryData)
-    }
-    else {
-      this.recoveryTable = new Tabulator('#datatablerecovery', {
-        data: this.assetRecoveryData,
+  // Khởi tạo SlickGrid cho bảng master
+  initGrid() {
+    const formatDate = (row: number, cell: number, value: any) => {
+      if (!value) return '';
+      try {
+        const dateValue = DateTime.fromISO(value);
+        return dateValue.isValid ? dateValue.toFormat('dd/MM/yyyy') : value;
+      } catch (e) {
+        return value;
+      }
+    };
 
-        ...DEFAULT_TABLE_CONFIG,
-        height: '53vh',
-        paginationMode: 'local',
-        pagination: true,
-        selectableRows: true,
-        layout: 'fitDataFill',
+    const checkboxFormatter = (row: number, cell: number, value: any) => {
+      const checked = ['true', true, 1, '1'].includes(value) ? 'checked' : '';
+      return `<input type="checkbox" ${checked} onclick="return false;">`;
+    };
 
-
-        columns: [
-          {
-            title: 'STT',
-            formatter: 'rownum',
-            hozAlign: 'center',
-            headerHozAlign: 'center',
-            width: 60,
-            frozen: true
-          },
-          {
-            title: 'ID',
-            field: 'ID',
-            visible: false,
-            width: 60,
-          },
-          {
-            title: 'Cá Nhân Duyệt',
-            field: 'IsApprovedPersonalProperty',
-            formatter: (cell) => `<input type="checkbox" ${(['true', true, 1, '1'].includes(cell.getValue()) ? 'checked' : '')} onclick="return false;">`
-            ,
-            width: 100,
-            hozAlign: 'center',
-            headerHozAlign: 'center',
-          },
-          {
-            title: 'HR Duyệt',
-            field: 'Status',
-            formatter: (cell) => `<input type="checkbox" ${(['true', true, 1, '1'].includes(cell.getValue()) ? 'checked' : '')} onclick="return false;">`
-            ,
-            hozAlign: 'center',
-            headerHozAlign: 'center',
-            width: 100,
-          },
-          {
-            title: 'KT Duyệt',
-            field: 'IsApproveAccountant',
-            formatter: (cell) => `<input type="checkbox" ${(['true', true, 1, '1'].includes(cell.getValue()) ? 'checked' : '')} onclick="return false;">`
-            ,
-            hozAlign: 'center',
-            headerHozAlign: 'center',
-            width: 100,
-
-          },
-
-          {
-            title: 'Mã thu hồi',
-            field: 'Code',
-            hozAlign: 'center',
-            headerHozAlign: 'center',
-            width: 160,
-
-          },
-
-          {
-            title: 'Ngày thu hồi',
-            field: 'DateRecovery',
-            headerHozAlign: 'center',
-            formatter: formatDateCell,
-            hozAlign: 'center',
-            width: 160,
-          },
-          {
-            title: 'Ngày duyệt',
-            field: 'DateApprovedHR',
-            headerHozAlign: 'center',
-            formatter: formatDateCell,
-            hozAlign: 'center',
-            width: 160,
-            visible: false
-          },
-          {
-            title: 'Thu hồi từ',
-            field: 'EmployeeReturnName',
-            headerHozAlign: 'center',
-            width: 160,
-          },
-          {
-            title: 'Thu hồi từ',
-            field: 'EmployeeReturnID',
-            headerHozAlign: 'center',
-            visible: false,
-
-            width: 160,
-          },
-          {
-            title: 'Phòng ban',
-            field: 'DepartmentReturn',
-            headerHozAlign: 'center',
-            width: 160,
-          },
-          {
-            title: 'Chức vụ',
-            field: 'PossitionReturn',
-            headerHozAlign: 'center',
-            width: 160,
-          },
-          {
-            title: 'Người thu hồi',
-            field: 'EmployeeRecoveryName',
-            headerHozAlign: 'center',
-            width: 160,
-          },
-          {
-            title: 'Người thu hồi',
-            field: 'EmployeeRecoveryID',
-            visible: false,
-            headerHozAlign: 'center',
-            width: 160,
-          },
-          {
-            title: 'Phòng ban',
-            field: 'DepartmentRecovery',
-            headerHozAlign: 'center',
-            width: 160,
-          },
-          {
-            title: 'Chức vụ',
-            field: 'PossitionRecovery',
-            headerHozAlign: 'center',
-            width: 160,
-          },
-          {
-            title: 'Ghi chú',
-            field: 'Note',
-            headerHozAlign: 'center',
-            width: 360,
-          }
-        ],
-      });
-      this.recoveryTable.on('rowClick', (evt, row: RowComponent) => {
-        const rowData = row.getData();
-        const id = rowData['ID'];
-        this.detailTabTitle = `Thông tin biên bản thu hồi: ${rowData['Code']}`;
-        this.assetsRecoveryService.getAssetsRecoveryDetail(id).subscribe(res => {
-          const details = Array.isArray(res.data.assetsRecoveryDetail)
-            ? res.data.assetsRecoveryDetail
-            : [];
-          this.assetRecoveryDetailData = details;
-          this.drawDetail();
-        });
-      });
-      this.recoveryTable.on('rowClick', (e: UIEvent, row: RowComponent) => {
-        this.selectedRow = row.getData();
-      });
-    }
-  }
-  private drawDetail(): void {
-    const cols: ColumnDefinition[] = [
-      {
-        title: 'ID',
-        field: 'ID',
-        hozAlign: 'center',
-        width: 60
-        , visible: false
+    this.columnDefinitions = [
+      { id: 'STT', name: 'STT', field: 'STT', type: 'number', width: 60, sortable: true, cssClass: 'text-center' },
+      { id: 'ID', name: 'ID', field: 'ID', type: 'number', width: 60, hidden: true },
+      { id: 'IsApprovedPersonalProperty', name: 'Cá Nhân Duyệt', field: 'IsApprovedPersonalProperty', width: 100, sortable: true, cssClass: 'text-center', formatter: checkboxFormatter },
+      { id: 'Status', name: 'HR Duyệt', field: 'Status', width: 100, sortable: true, cssClass: 'text-center', formatter: checkboxFormatter },
+      { id: 'IsApproveAccountant', name: 'KT Duyệt', field: 'IsApproveAccountant', width: 100, sortable: true, cssClass: 'text-center', formatter: checkboxFormatter },
+      { 
+        id: 'Code', name: 'Mã thu hồi', field: 'Code', width: 160, sortable: true, filterable: true, cssClass: 'text-center',
+        filter: { model: Filters['multipleSelect'], collection: [], collectionOptions: { addBlankEntry: true }, filterOptions: { filter: true, autoAdjustDropWidthByTextSize: true } as MultipleSelectOption }
       },
-      { title: 'AssetManagementID', field: 'AssetManagementID', hozAlign: 'center', width: 60, visible: false },
-      { title: 'TSAssetRecoveryID', field: 'TSAssetRecoveryID', visible: false },
-      { title: 'STT', field: 'STT', hozAlign: 'center', width: 60, headerHozAlign: 'center' },
-      { title: 'Mã NCC', field: 'TSCodeNCC', headerHozAlign: 'center' },
-      { title: 'Tên tài sản', field: 'TSAssetName' },
-      { title: 'Số lượng', field: 'Quantity', headerHozAlign: 'center' },
-      { title: 'Đơn vị', field: 'UnitName', headerHozAlign: 'center' },
-      { title: 'Tình trạng', field: 'Status', headerHozAlign: 'center', visible: false },
-      { title: 'Ghi chú', field: 'Note' }
+      { id: 'DateRecovery', name: 'Ngày thu hồi', field: 'DateRecovery', width: 160, sortable: true, cssClass: 'text-center', formatter: formatDate ,  filterable: true,
+        filter: { model: Filters['compoundInputText'] }},
+      { id: 'DateApprovedHR', name: 'Ngày duyệt', field: 'DateApprovedHR', width: 160, sortable: true, cssClass: 'text-center', formatter: formatDate, hidden: true },
+      { 
+        id: 'EmployeeReturnName', name: 'Thu hồi từ', field: 'EmployeeReturnName', width: 160, sortable: true, filterable: true,
+        filter: { model: Filters['multipleSelect'], collection: [], collectionOptions: { addBlankEntry: true }, filterOptions: { filter: true, autoAdjustDropWidthByTextSize: true } as MultipleSelectOption }
+      },
+      { id: 'EmployeeReturnID', name: 'EmployeeReturnID', field: 'EmployeeReturnID', hidden: true },
+      { 
+        id: 'DepartmentReturn', name: 'Phòng ban', field: 'DepartmentReturn', width: 160, sortable: true, filterable: true,
+        filter: { model: Filters['multipleSelect'], collection: [], collectionOptions: { addBlankEntry: true }, filterOptions: { filter: true, autoAdjustDropWidthByTextSize: true } as MultipleSelectOption }
+      },
+      { 
+        id: 'PossitionReturn', name: 'Chức vụ', field: 'PossitionReturn', width: 160, sortable: true, filterable: true,
+        filter: { model: Filters['multipleSelect'], collection: [], collectionOptions: { addBlankEntry: true }, filterOptions: { filter: true, autoAdjustDropWidthByTextSize: true } as MultipleSelectOption }
+      },
+      { 
+        id: 'EmployeeRecoveryName', name: 'Người thu hồi', field: 'EmployeeRecoveryName', width: 160, sortable: true, filterable: true,
+        filter: { model: Filters['multipleSelect'], collection: [], collectionOptions: { addBlankEntry: true }, filterOptions: { filter: true, autoAdjustDropWidthByTextSize: true } as MultipleSelectOption }
+      },
+      { id: 'EmployeeRecoveryID', name: 'EmployeeRecoveryID', field: 'EmployeeRecoveryID', hidden: true },
+      { 
+        id: 'DepartmentRecovery', name: 'Phòng ban NTH', field: 'DepartmentRecovery', width: 160, sortable: true, filterable: true,
+        filter: { model: Filters['multipleSelect'], collection: [], collectionOptions: { addBlankEntry: true }, filterOptions: { filter: true, autoAdjustDropWidthByTextSize: true } as MultipleSelectOption }
+      },
+      { id: 'PossitionRecovery', name: 'Chức vụ NTH', field: 'PossitionRecovery', width: 160, sortable: true ,filterable: true,
+         filter: { model: Filters['multipleSelect'], collection: [], collectionOptions: { addBlankEntry: true }, filterOptions: { filter: true, autoAdjustDropWidthByTextSize: true } as MultipleSelectOption }
+      },
+      { 
+        id: 'Note', name: 'Ghi chú', field: 'Note', width: 360, sortable: true, filterable: true, filter: { model: Filters['compoundInputText'] },
+        
+        formatter: (_row: any, _cell: any, value: any, _column: any, dataContext: any) => {
+          if (!value) return '';
+          return `<span title="${dataContext.Note}" style="display:block; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${value}</span>`;
+        },
+        customTooltip: { useRegularTooltip: true }
+      }
     ];
-    if (this.recoveryDetailTable) {
-      this.recoveryDetailTable.setData(this.assetRecoveryDetailData);
-    } else {
-      this.recoveryDetailTable = new Tabulator('#datablerecoverydetail', {
-        data: this.assetRecoveryDetailData,
-        layout: "fitDataStretch",
-        paginationSize: 5,
-        height: '30vh',
-        paginationMode: 'local',
-        movableColumns: true,
-        reactiveData: true,
 
-        columns: cols,
+    this.gridOptions = {
+      autoResize: { container: '#grid-container-recovery', calculateAvailableSizeBy: 'container' },
+      enableAutoResize: true,
+      gridWidth: '100%',
+      forceFitColumns: false,
+      enableRowSelection: true,
+      rowSelectionOptions: { selectActiveRow: false },
+      checkboxSelector: { hideInFilterHeaderRow: false, hideInColumnTitleRow: true, applySelectOnAllPages: true },
+      enableCheckboxSelector: true,
+      enableCellNavigation: true,
+      enableFiltering: true,
+      autoFitColumnsOnFirstLoad: false,
+      enableAutoSizeColumns: false,
+      frozenColumn: 6
+    };
+  }
+
+  // Khởi tạo SlickGrid cho bảng detail
+  initGridDetail() {
+    this.columnDefinitionsDetail = [
+      { id: 'ID', name: 'ID', field: 'ID', width: 60, hidden: true },
+      { id: 'AssetManagementID', name: 'AssetManagementID', field: 'AssetManagementID', width: 60, hidden: true },
+      { id: 'TSAssetRecoveryID', name: 'TSAssetRecoveryID', field: 'TSAssetRecoveryID', hidden: true },
+      { id: 'STT', name: 'STT', field: 'STT', width: 60, sortable: true, cssClass: 'text-center' },
+      { 
+        id: 'TSCodeNCC', name: 'Mã NCC', field: 'TSCodeNCC', width: 150, sortable: true, filterable: true,
+        filter: { model: Filters['multipleSelect'], collection: [], collectionOptions: { addBlankEntry: true }, filterOptions: { filter: true, autoAdjustDropWidthByTextSize: true } as MultipleSelectOption }
+      },
+      { 
+        id: 'TSAssetName', name: 'Tên tài sản', field: 'TSAssetName', width: 200, sortable: true, filterable: true,
+        filter: { model: Filters['multipleSelect'], collection: [], collectionOptions: { addBlankEntry: true }, filterOptions: { filter: true, autoAdjustDropWidthByTextSize: true } as MultipleSelectOption },
+        formatter: (_row: any, _cell: any, value: any, _column: any, dataContext: any) => {
+          if (!value) return '';
+          return `<span title="${dataContext.TSAssetName}" style="display:block; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${value}</span>`;
+        },
+        customTooltip: { useRegularTooltip: true }
+      },
+      { id: 'Quantity', name: 'Số lượng', field: 'Quantity', width: 100, sortable: true, cssClass: 'text-center' },
+      { id: 'UnitName', name: 'Đơn vị', field: 'UnitName', width: 100, sortable: true, cssClass: 'text-center' },
+      { id: 'Status', name: 'Tình trạng', field: 'Status', width: 100, hidden: true },
+      { 
+        id: 'Note', name: 'Ghi chú', field: 'Note', width: 300, sortable: true, filterable: true, filter: { model: Filters['compoundInputText'] },
+        formatter: (_row: any, _cell: any, value: any, _column: any, dataContext: any) => {
+          if (!value) return '';
+          return `<span title="${dataContext.Note}" style="display:block; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${value}</span>`;
+        },
+        customTooltip: { useRegularTooltip: true }
+      }
+    ];
+
+    this.gridOptionsDetail = {
+      autoResize: { container: '#grid-container-recovery-detail', calculateAvailableSizeBy: 'container' },
+      enableAutoResize: true,
+      forceFitColumns: true,
+      enableRowSelection: true,
+      enableCellNavigation: true,
+      enableFiltering: true,
+      autoFitColumnsOnFirstLoad: false,
+      enableAutoSizeColumns: false
+    };
+  }
+
+  // SlickGrid event handlers
+  angularGridReady(angularGrid: AngularGridInstance) {
+    this.angularGrid = angularGrid;
+    this.gridData = angularGrid?.slickGrid || {};
+  }
+
+  angularGridDetailReady(angularGrid: AngularGridInstance) {
+    this.angularGridDetail = angularGrid;
+    this.gridDetailData = angularGrid?.slickGrid || {};
+  }
+
+  onCellClicked(e: any, args: OnClickEventArgs) {
+    const item = args.grid.getDataItem(args.row);
+    if (item) {
+      this.selectedRow = item;
+      this.detailTabTitle = `Thông tin biên bản thu hồi: ${item['Code']}`;
+      const id = item['ID'];
+      this.assetsRecoveryService.getAssetsRecoveryDetail(id).subscribe(res => {
+        const details = Array.isArray(res.data.assetsRecoveryDetail) ? res.data.assetsRecoveryDetail : [];
+        this.assetRecoveryDetailData = details;
+        this.datasetDetail = this.assetRecoveryDetailData.map((item, index) => ({
+          ...item,
+          id: item.ID || index,
+          STT: index + 1
+        }));
       });
     }
   }
+
+  handleRowSelection(e: any, args: OnSelectedRowsChangedEventArgs) {
+    if (args && args.rows && args.rows.length > 0) {
+      const selectedRow = this.gridData.getDataItem(args.rows[0]);
+      this.selectedRow = selectedRow;
+    }
+  }
+
   getSelectedIds(): number[] {
-    if (this.recoveryTable) {
-      const selectedRows = this.recoveryTable.getSelectedData();
-      return selectedRows.map((row: any) => row.ID);
+    if (this.angularGrid && this.angularGrid.gridService) {
+      const selectedRows = this.angularGrid.gridService.getSelectedRows();
+      return selectedRows.map((index: number) => {
+        const item = this.gridData.getDataItem(index);
+        return item.ID;
+      });
     }
     return [];
   }
   onDeleteRecovery() {
-    if (!this.recoveryTable) {
-      this.notification.warning('Thông báo', 'Lỗi bảng, không thể thao tác');
-      return;
-    }
-
-    const selectedRows = this.recoveryTable.getSelectedData() as any[];
+    const selectedIndexes = this.angularGrid?.gridService?.getSelectedRows() || [];
+    const selectedRows = selectedIndexes.map((index: number) => this.gridData.getDataItem(index)) as any[];
 
     if (!selectedRows || selectedRows.length === 0) {
       this.notification.warning('Thông báo', 'Chưa chọn biên bản để xóa!');
@@ -508,12 +508,8 @@ export class TsAssetRecoveryComponent implements OnInit, AfterViewInit {
   }
 
   updateApprove(action: 1 | 2 | 3 | 4 | 5 | 6) {
-    if (!this.recoveryTable) {
-      this.notification.warning('Thông báo', 'Lỗi bảng, không thể thao tác');
-      return;
-    }
-
-    const selectedRows = this.recoveryTable.getSelectedData() as any[];
+    const selectedIndexes = this.angularGrid?.gridService?.getSelectedRows() || [];
+    const selectedRows = selectedIndexes.map((index: number) => this.gridData.getDataItem(index)) as any[];
     if (!selectedRows || selectedRows.length === 0) {
       this.notification.warning('Thông báo', 'Chọn ít nhất 1 bản ghi để duyệt');
       return;
@@ -712,7 +708,7 @@ export class TsAssetRecoveryComponent implements OnInit, AfterViewInit {
         } else {
           this.getRecovery();
           this.assetRecoveryData = [];
-          this.drawDetail();
+          this.datasetDetail = [];
         }
       },
       error: (err: any) => {
@@ -840,12 +836,8 @@ export class TsAssetRecoveryComponent implements OnInit, AfterViewInit {
   }
 
   onEditRecovery() {
-    if (!this.recoveryTable) {
-      this.notification.warning('Thông báo', 'Bảng chưa khởi tạo, không thể sửa!');
-      return;
-    }
-
-    const selected = this.recoveryTable.getSelectedData();
+    const selectedIndexes = this.angularGrid?.gridService?.getSelectedRows() || [];
+    const selected = selectedIndexes.map((index: number) => this.gridData.getDataItem(index));
     if (!selected || selected.length === 0) {
       this.notification.warning('Thông báo', 'Vui lòng chọn một biên bản để sửa!');
       return;
@@ -886,8 +878,8 @@ export class TsAssetRecoveryComponent implements OnInit, AfterViewInit {
   }
 
   updateOnApprove() {
-    const selectedDetail = this.recoveryDetailTable?.getData();
-    const selectedRecovery = this.recoveryTable?.getSelectedData()?.[0];
+    const selectedDetail = this.datasetDetail;
+    const selectedRecovery = this.selectedRow;
     if (!selectedDetail || selectedDetail.length === 0) {
       this.notification.warning('Cảnh báo', 'Không có dữ liệu để duyệt.');
       return;
@@ -921,32 +913,28 @@ export class TsAssetRecoveryComponent implements OnInit, AfterViewInit {
   }
   //#region xuất excel
   async exportExcel() {
-    const table = this.recoveryTable;
-    if (!table) return;
-
-    const data = table.getData();
+    const data = this.dataset;
     if (!data || data.length === 0) {
-      this.notification.warning('Thông báo', 'Không có dữ liệu xuất Excel!');
+      this.notification.warning(NOTIFICATION_TITLE.warning, 'Không có dữ liệu để xuất Excel!');
       return;
     }
 
     const workbook = new ExcelJS.Workbook();
     const worksheet = workbook.addWorksheet('Danh sách thu hồi tài sản');
 
-    // Lọc ra các cột hiển thị (visible !== false), có field & title rõ ràng
-    const visibleColumns = table.getColumns().filter((col: any) => {
-      const def = col.getDefinition();
-      return def.visible !== false && def.field && def.title;
+    // Lọc ra các cột hiển thị
+    const visibleColumns = this.columnDefinitions.filter((col: any) => {
+      return col.hidden !== true && col.field && col.name;
     });
 
     // Thêm tiêu đề
-    const headers = visibleColumns.map((col: any) => col.getDefinition().title);
+    const headers = visibleColumns.map((col: any) => col.name);
     worksheet.addRow(headers);
 
     // Thêm dữ liệu
     data.forEach((row: any) => {
       const rowData = visibleColumns.map((col: any) => {
-        const field = col.getField();
+        const field = col.field;
         let value = row[field];
 
         if (typeof value === 'string' && /^\d{4}-\d{2}-\d{2}T/.test(value)) {
@@ -1009,8 +997,8 @@ export class TsAssetRecoveryComponent implements OnInit, AfterViewInit {
   //#endregion
 
   exportRecoveryAssetReport() {
-    const selectedMaster = this.recoveryTable?.getSelectedData()[0];
-    const details = this.recoveryDetailTable?.getData();
+    const selectedMaster = this.selectedRow;
+    const details = this.datasetDetail;
 
     if (!selectedMaster || !details || details.length === 0) {
       this.notification.warning('Thông báo', 'Không có dữ liệu để xuất Excel!');
@@ -1052,5 +1040,60 @@ export class TsAssetRecoveryComponent implements OnInit, AfterViewInit {
         console.error(err);
       }
     });
+  }
+
+  // Apply distinct filters for multiple columns after data is loaded
+  private applyDistinctFilters(): void {
+    const fieldsToFilter = ['Code', 'EmployeeReturnName', 'DepartmentReturn', 'PossitionReturn', 'EmployeeRecoveryName', 'DepartmentRecovery'];
+    this.applyDistinctFiltersToGrid(this.angularGrid, this.columnDefinitions, fieldsToFilter);
+  }
+
+  private applyDistinctFiltersToGrid(
+    angularGrid: AngularGridInstance | undefined,
+    columnDefs: Column[],
+    fieldsToFilter: string[]
+  ): void {
+    if (!angularGrid?.slickGrid || !angularGrid?.dataView) return;
+
+    const data = angularGrid.dataView.getItems();
+    if (!data || data.length === 0) return;
+
+    const getUniqueValues = (dataArray: any[], field: string): Array<{ value: string; label: string }> => {
+      const map = new Map<string, string>();
+      dataArray.forEach((row: any) => {
+        const value = String(row?.[field] ?? '');
+        if (value && !map.has(value)) {
+          map.set(value, value);
+        }
+      });
+      return Array.from(map.entries())
+        .map(([value, label]) => ({ value, label }))
+        .sort((a, b) => a.label.localeCompare(b.label));
+    };
+
+    const columns = angularGrid.slickGrid.getColumns();
+    if (!columns) return;
+
+    // Update runtime columns
+    columns.forEach((column: any) => {
+      if (column?.filter && column.filter.model === Filters['multipleSelect']) {
+        const field = column.field;
+        if (!field || !fieldsToFilter.includes(field)) return;
+        column.filter.collection = getUniqueValues(data, field);
+      }
+    });
+
+    // Update column definitions
+    columnDefs.forEach((colDef: any) => {
+      if (colDef?.filter && colDef.filter.model === Filters['multipleSelect']) {
+        const field = colDef.field;
+        if (!field || !fieldsToFilter.includes(field)) return;
+        colDef.filter.collection = getUniqueValues(data, field);
+      }
+    });
+
+    angularGrid.slickGrid.setColumns(angularGrid.slickGrid.getColumns());
+    angularGrid.slickGrid.invalidate();
+    angularGrid.slickGrid.render();
   }
 }

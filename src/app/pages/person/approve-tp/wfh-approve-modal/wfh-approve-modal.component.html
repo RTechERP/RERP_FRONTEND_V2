@@ -1,0 +1,31 @@
+<div class="modal-dialog-scrollable wfh-approve-modal">
+    <div class="modal-header bg-primary align-items-center p-2" style="border-radius: 4px 4px 0 0;">
+        <h6 class="text-light text-uppercase m-0">
+            DUYỆT ĐĂNG KÝ WFH
+        </h6>
+        <button type="button" class="btn-close" (click)="onCancel()" aria-label="Close"></button>
+    </div>
+
+    <div class="modal-body">
+        <div class="alert-info"
+            style="padding: 12px; margin-bottom: 16px; background-color: #e6f7ff; border: 1px solid #91d5ff; border-radius: 4px;">
+            <p style="margin: 0; font-size: 12px;">
+                <i nz-icon nzType="info-circle" nzTheme="outline" style="margin-right: 8px;"></i>
+                Vui lòng nhập đánh giá công việc cho nhân viên WFH trước khi duyệt.
+            </p>
+        </div>
+
+        <div #tbWfhApprove class="tabulator-container"></div>
+    </div>
+
+    <div class="modal-footer bg-white p-2 d-flex justify-content-end gap-2" style="border-top: 1px solid #dee2e6;">
+        <button nz-button nzDanger nzType="default" (click)="onCancel()" style="font-size: 12px;">
+            <i nz-icon nzType="close" nzTheme="outline"></i>
+            Đóng
+        </button>
+        <button nz-button nzType="primary" (click)="onConfirm()" style="font-size: 12px;">
+            <i nz-icon nzType="check" nzTheme="outline"></i>
+            Duyệt
+        </button>
+    </div>
+</div>

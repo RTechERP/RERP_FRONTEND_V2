@@ -18,8 +18,17 @@ import { NzAutocompleteModule } from 'ng-zorro-antd/auto-complete';
 import { NzInputModule } from 'ng-zorro-antd/input';
 import { NzSelectModule } from 'ng-zorro-antd/select';
 import { NzTableModule } from 'ng-zorro-antd/table';
-import { TabulatorFull as Tabulator, CellComponent, ColumnDefinition, RowComponent } from 'tabulator-tables';
-import 'tabulator-tables/dist/css/tabulator_simple.min.css';
+import {
+  AngularGridInstance,
+  AngularSlickgridModule,
+  Column,
+  Filters,
+  GridOption,
+  OnClickEventArgs,
+  OnSelectedRowsChangedEventArgs
+} from 'angular-slickgrid';
+import { MultipleSelectOption } from '@slickgrid-universal/common';
+import { NzSpinModule } from 'ng-zorro-antd/spin';
 import { NzTabsModule } from 'ng-zorro-antd/tabs';
 import { DateTime } from 'luxon';
 declare var bootstrap: any;
@@ -29,17 +38,12 @@ import { NzNotificationService } from 'ng-zorro-antd/notification'
 import { AssetAllocationService } from './ts-asset-allocation-service/ts-asset-allocation.service';
 import { TsAssetManagementPersonalService } from '../../../../old/ts-asset-management-personal/ts-asset-management-personal-service/ts-asset-management-personal.service';
 import { TsAssetAllocationFormComponent } from './ts-asset-allocation-form/ts-asset-allocation-form.component';
-function formatDateCell(cell: CellComponent): string {
-  const val = cell.getValue();
-  return val ? DateTime.fromISO(val).toFormat('dd/MM/yyyy') : '';
-}
 import { forkJoin } from 'rxjs';
 import { AuthService } from '../../../../../auth/auth.service';
 import { Observable } from 'rxjs';
 // @ts-ignore
 import { saveAs } from 'file-saver';
 import { HasPermissionDirective } from '../../../../../directives/has-permission.directive';
-import { DEFAULT_TABLE_CONFIG } from '../../../../../tabulator-default.config';
 import { NOTIFICATION_TITLE } from '../../../../../app.config';
 @Component({
   standalone: true,
@@ -63,18 +67,34 @@ import { NOTIFICATION_TITLE } from '../../../../../app.config';
     NzTableModule,
     NzTabsModule,
     NzDropDownModule,
-    NgbModalModule, HasPermissionDirective
+    NgbModalModule, HasPermissionDirective,
+    AngularSlickgridModule,
+    NzSpinModule
   ],
   selector: 'app-ts-asset-allocation',
   templateUrl: './ts-asset-allocation.component.html',
   styleUrls: ['./ts-asset-allocation.component.css']
 })
 export class TsAssetAllocationComponent implements OnInit, AfterViewInit {
-  @ViewChild('datatableAssetAllocation', { static: false })
-  datatableAssetAllocationRef!: ElementRef;
+  // SlickGrid instances
+  angularGrid!: AngularGridInstance;
+  angularGridDetail!: AngularGridInstance;
+  gridData: any;
+  gridDetailData: any;
+
+  // Column definitions
+  columnDefinitions: Column[] = [];
+  columnDefinitionsDetail: Column[] = [];
+
+  // Grid options
+  gridOptions: GridOption = {};
+  gridOptionsDetail: GridOption = {};
+
+  // Datasets
+  dataset: any[] = [];
+  datasetDetail: any[] = [];
+
   public detailTabTitle: string = 'Thông tin biên bản cấp phát:';
-  @ViewChild('datatableAllocationDetail', { static: false })
-  datatableAllocationDetailRef!: ElementRef;
   constructor(private notification: NzNotificationService,
     private assetAllocationService: AssetAllocationService,
     private TsAssetManagementPersonalService: TsAssetManagementPersonalService,
@@ -92,29 +112,26 @@ export class TsAssetAllocationComponent implements OnInit, AfterViewInit {
   pageSize: number = 1000000;
   pageNumber: number = 1;
   assetAllocationData: any[] = [];
-  allocationTable: Tabulator | null = null;
-  allocationDetailTable: Tabulator | null = null;
   allocationDetailData: any[] = [];
   isSearchVisible: boolean = false;
   statusData = [
     { ID: 0, Name: 'Chưa duyệt' },
     { ID: 1, Name: 'Đã duyệt' }
   ];
-currentUser: any = null;
+  currentUser: any = null;
+  isLoading: boolean = false;
 
-  selectedApproval: number | null = null; // gán từ combobox
+  selectedApproval: number | null = null;
   sizeSearch: string = '0';
 
   ngOnInit() {
+    this.initGrid();
+    this.initGridDetail();
   }
   ngAfterViewInit(): void {
     this.getAllocation();
     this.getListEmployee();
     this.getCurrentUser();
-    // Khởi tạo bảng detail rỗng ngay từ đầu
-    setTimeout(() => {
-      this.drawDetail();
-    }, 100);
   }
   getAllocation(): void {
     let statusString = '-1';
@@ -131,9 +148,25 @@ currentUser: any = null;
       pageNumber: this.pageNumber
     };
 
-    this.assetAllocationService.getAssetAllocation(request).subscribe((data: any) => {
-      this.assetAllocationData = data.assetAllocation || [];
-      this.drawTable();
+    this.isLoading = true;
+    this.assetAllocationService.getAssetAllocation(request).subscribe({
+      next: (data: any) => {
+        this.assetAllocationData = data.assetAllocation || [];
+        this.dataset = this.assetAllocationData.map((item, index) => ({
+          ...item,
+          id: item.ID,
+          STT: index + 1
+        }));
+        setTimeout(() => {
+          this.applyDistinctFilters();
+        }, 100);
+        this.isLoading = false;
+      },
+      error: (err) => {
+        this.isLoading = false;
+        console.error('Lỗi khi lấy dữ liệu cấp phát:', err);
+        this.notification.error(NOTIFICATION_TITLE.error, err?.error?.message || err.message);
+      }
     });
   }
 
@@ -169,147 +202,299 @@ currentUser: any = null;
     this.sizeSearch = this.sizeSearch == '0' ? '22%' : '0';
   }
 
-  //Vẽ bảng master cấp phát
-  public drawTable(): void {
-    // đảm bảo view đã có element
-    if (!this.datatableAssetAllocationRef) {
-      return;
-    }
+  // Khởi tạo SlickGrid cho bảng master
+  initGrid() {
+    const formatDate = (row: number, cell: number, value: any) => {
+      if (!value) return '';
+      try {
+        const dateValue = DateTime.fromISO(value);
+        return dateValue.isValid ? dateValue.toFormat('dd/MM/yyyy') : value;
+      } catch (e) {
+        return value;
+      }
+    };
 
-    if (this.allocationTable) {
-      this.allocationTable.setData(this.assetAllocationData);
-      return;
-    }
+    const checkboxFormatter = (row: number, cell: number, value: any) => {
+      const checked = ['true', true, 1, '1'].includes(value) ? 'checked' : '';
+      return `<input type="checkbox" ${checked} onclick="return false;">`;
+    };
 
-    this.allocationTable = new Tabulator(
-      this.datatableAssetAllocationRef.nativeElement,
-      {
-        data: this.assetAllocationData,
-        ...DEFAULT_TABLE_CONFIG,
-height:'53vh',
-paginationMode: 'local',
-        columns: [
+    this.columnDefinitions = [
+      { id: 'STT', name: 'STT', field: 'STT', type: 'number', width: 60, sortable: true, cssClass: 'text-center' },
+      { id: 'ID', name: 'ID', field: 'ID', type: 'number', width: 60, hidden: true },
+      { 
+        id: 'IsApprovedPersonalProperty', 
+        name: 'Cá Nhân Duyệt', 
+        field: 'IsApprovedPersonalProperty', 
+        width: 100, 
+        sortable: true,
+        cssClass: 'text-center',
+        formatter: checkboxFormatter
+      },
+      { 
+        id: 'Status', 
+        name: 'HR Duyệt', 
+        field: 'Status', 
+        width: 100, 
+        sortable: true,
+        cssClass: 'text-center',
+        formatter: checkboxFormatter
+      },
+      { 
+        id: 'IsApproveAccountant', 
+        name: 'KT Duyệt', 
+        field: 'IsApproveAccountant', 
+        width: 100, 
+        sortable: true,
+        cssClass: 'text-center',
+        formatter: checkboxFormatter
+      },
+      { 
+        id: 'Code', 
+        name: 'Mã', 
+        field: 'Code', 
+        width: 200, 
+        sortable: true, 
+        filterable: true, 
+        filter: { 
+          model: Filters['multipleSelect'],
+          collection: [],
+          collectionOptions: { addBlankEntry: true },
+          filterOptions: {
+            filter: true,
+            autoAdjustDropWidthByTextSize: true,
+          } as MultipleSelectOption
+        }
+      },
+      { 
+        id: 'DateAllocation', 
+        name: 'Ngày cấp phát', 
+        field: 'DateAllocation', 
+        width: 160, 
+        sortable: true,
+        cssClass: 'text-center',
+        formatter: formatDate
+      },
+      { 
+        id: 'DateApprovedHR', 
+        name: 'Ngày HR duyệt', 
+        field: 'DateApprovedHR', 
+        width: 160, 
+        sortable: true,
+        cssClass: 'text-center',
+        formatter: formatDate,
+        hidden: true,
+        filterable: true,
+        filter: { model: Filters['compoundInputText'] }
+      },
+      { 
+        id: 'EmployeeName', 
+        name: 'Cấp phát cho', 
+        field: 'EmployeeName', 
+        width: 260, 
+        sortable: true, 
+        filterable: true, 
+        filter: { 
+          model: Filters['multipleSelect'],
+          collection: [],
+          collectionOptions: { addBlankEntry: true },
+          filterOptions: {
+            filter: true,
+            autoAdjustDropWidthByTextSize: true,
+          } as MultipleSelectOption
+        }
+      },
+      { id: 'EmployeeID', name: 'EmployeeID', field: 'EmployeeID', hidden: true },
+      { 
+        id: 'Department', 
+        name: 'Phòng ban', 
+        field: 'Department', 
+        width: 160, 
+        sortable: true, 
+        filterable: true, 
+        filter: { 
+          model: Filters['multipleSelect'],
+          collection: [],
+          collectionOptions: { addBlankEntry: true },
+          filterOptions: {
+            filter: true,
+            autoAdjustDropWidthByTextSize: true,
+          } as MultipleSelectOption
+        }
+      },
+      { 
+        id: 'Possition', 
+        name: 'Vị trí', 
+        field: 'Possition', 
+        width: 160, 
+        sortable: true, 
+        filterable: true, 
+        filter: { 
+          model: Filters['multipleSelect'],
+          collection: [],
+          collectionOptions: { addBlankEntry: true },
+          filterOptions: {
+            filter: true,
+            autoAdjustDropWidthByTextSize: true,
+          } as MultipleSelectOption
+        }
+      },
+      { 
+        id: 'Note', 
+        name: 'Ghi chú', 
+        field: 'Note', 
+        width: 460, 
+        sortable: true, 
+        filterable: true, 
+        filter: { model: Filters['compoundInputText'] },
+        formatter: (_row: any, _cell: any, value: any, _column: any, dataContext: any) => {
+          if (!value) return '';
+          return `<span title="${dataContext.Note}" style="display:block; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${value}</span>`;
+        },
+        customTooltip: { useRegularTooltip: true }
+      }
+    ];
 
-          {
-            title: 'STT',
-            formatter: 'rownum',
-            hozAlign: 'center',
+    this.gridOptions = {
+      autoResize: {
+        container: '#grid-container-allocation',
+        calculateAvailableSizeBy: 'container'
+      },
+      enableAutoResize: true,
+      gridWidth: '100%',
+      forceFitColumns: false,
+      enableRowSelection: true,
+      rowSelectionOptions: {
+        selectActiveRow: false
+      },
+      checkboxSelector: {
+        hideInFilterHeaderRow: false,
+        hideInColumnTitleRow: true,
+        applySelectOnAllPages: true
+      },
+      enableCheckboxSelector: true,
+      enableCellNavigation: true,
+      enableFiltering: true,
+      autoFitColumnsOnFirstLoad: false,
+      enableAutoSizeColumns: false,
+      frozenColumn: 6 
+    };
+  }
 
-            headerHozAlign: 'center',
-            width: 60,
-            frozen: true,
+  // Khởi tạo SlickGrid cho bảng detail
+  initGridDetail() {
+    this.columnDefinitionsDetail = [
+      { id: 'TSAssetAllocationID', name: 'TSAssetAllocationID', field: 'TSAssetAllocationID', width: 60, hidden: true },
+      { id: 'ID', name: 'ID', field: 'ID', width: 60, hidden: true },
+      { id: 'STT', name: 'STT', field: 'STT', width: 60, sortable: true, cssClass: 'text-center' },
+      { 
+        id: 'TSCodeNCC', 
+        name: 'Mã tài sản', 
+        field: 'TSCodeNCC', 
+        width: 150, 
+        sortable: true, 
+        filterable: true, 
+        filter: { 
+          model: Filters['multipleSelect'],
+          collection: [],
+          collectionOptions: { addBlankEntry: true },
+          filterOptions: {
+            filter: true,
+            autoAdjustDropWidthByTextSize: true,
+          } as MultipleSelectOption
+        }
+      },
+      { id: 'Quantity', name: 'Số lượng', field: 'Quantity', width: 100, sortable: true, cssClass: 'text-center' },
+      { 
+        id: 'TSAssetName', 
+        name: 'Tên tài sản', 
+        field: 'TSAssetName', 
+        width: 200, 
+        sortable: true, 
+        filterable: true, 
+        filter: { 
+          model: Filters['multipleSelect'],
+          collection: [],
+          collectionOptions: { addBlankEntry: true },
+          filterOptions: {
+            filter: true,
+            autoAdjustDropWidthByTextSize: true,
+          } as MultipleSelectOption
+        },
+        formatter: (_row: any, _cell: any, value: any, _column: any, dataContext: any) => {
+          if (!value) return '';
+          return `<span title="${dataContext.TSAssetName}" style="display:block; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${value}</span>`;
+        },
+        customTooltip: { useRegularTooltip: true }
+      },
+      { id: 'UnitName', name: 'Đơn vị', field: 'UnitName', width: 100, sortable: true, cssClass: 'text-center' },
+      { 
+        id: 'Note', 
+        name: 'Ghi chú', 
+        field: 'Note', 
+        width: 300, 
+        sortable: true, 
+        filterable: true, 
+        filter: { model: Filters['compoundInputText'] },
+        formatter: (_row: any, _cell: any, value: any, _column: any, dataContext: any) => {
+          if (!value) return '';
+          return `<span title="${dataContext.Note}" style="display:block; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${value}</span>`;
+        },
+        customTooltip: { useRegularTooltip: true }
+      }
+    ];
 
-          },
-          { title: 'ID', field: 'ID', visible: false, frozen: true, width: 60, },
-          {
-            title: 'Cá Nhân Duyệt',
-            field: 'IsApprovedPersonalProperty',
-            formatter: (cell) => `<input type="checkbox" ${(['true', true, 1, '1'].includes(cell.getValue()) ? 'checked' : '')} onclick="return false;">`
-            ,
-            hozAlign: 'center',
-            headerHozAlign: 'center',
-            frozen: true, width: 100,
-          },
-          {
-            title: 'HR Duyệt',
-            field: 'Status',
-            formatter: (cell) => `<input type="checkbox" ${(['true', true, 1, '1'].includes(cell.getValue()) ? 'checked' : '')} onclick="return false;">`
-            ,
-            hozAlign: 'center',
-            headerHozAlign: 'center',
-            frozen: true, width: 100,
-          },
-          {
-            title: 'KT Duyệt',
-            field: 'IsApproveAccountant',
-            formatter: (cell) => `<input type="checkbox" ${(['true', true, 1, '1'].includes(cell.getValue()) ? 'checked' : '')} onclick="return false;">`
-            ,
-            hozAlign: 'center',
-            headerHozAlign: 'center', width: 100,
-            frozen: true,
+    this.gridOptionsDetail = {
+      autoResize: {
+        container: '#grid-container-allocation-detail',
+        calculateAvailableSizeBy: 'container'
+      },
+      enableAutoResize: true,
+      forceFitColumns: true,
+      enableRowSelection: true,
+      enableCellNavigation: true,
+      enableFiltering: true,
+      autoFitColumnsOnFirstLoad: false,
+      enableAutoSizeColumns: false
+    };
+  }
 
-          },
-          { title: 'Mã', field: 'Code', frozen: true, width: 200, },
-          {
-            title: 'Ngày cấp phát',
-            field: 'DateAllocation',
-            hozAlign: 'center',
-            headerHozAlign: 'center',
+  // SlickGrid event handlers
+  angularGridReady(angularGrid: AngularGridInstance) {
+    this.angularGrid = angularGrid;
+    this.gridData = angularGrid?.slickGrid || {};
+  }
 
-            formatter: formatDateCell, width: 160,
-          },
-             {
-            title: 'Ngày HR duyệt',
-            field: 'DateApprovedHR',
-            hozAlign: 'center',
-            headerHozAlign: 'center',
-            visible:false,
-            formatter: formatDateCell, width: 160,
-          },
-          {
-            title: 'Cấp phát cho', field: 'EmployeeName', width: 260,
-            headerHozAlign: 'center'
-          },
-          {
-            title: 'Cấp phát cho', field: 'EmployeeID',
-            headerHozAlign: 'center',
-            visible: false
-          },
-          { title: 'Phòng ban', width: 160, field: 'Department' },
-          { title: 'Vị trí ', width: 160, field: 'Possition' },
-          { title: 'Ghi chú', width: 460, field: 'Note' }
-        ],
-      });
-    this.allocationTable.on('rowClick', (evt, row: RowComponent) => {
-      const rowData = row.getData();
-      this.selectedRow = rowData;
-      this.detailTabTitle = `Thông tin biên bản cấp phát: ${rowData['Code']}`;
-      const id = rowData['ID'];
+  angularGridDetailReady(angularGrid: AngularGridInstance) {
+    this.angularGridDetail = angularGrid;
+    this.gridDetailData = angularGrid?.slickGrid || {};
+  }
+
+  onCellClicked(e: any, args: OnClickEventArgs) {
+    const item = args.grid.getDataItem(args.row);
+    if (item) {
+      this.selectedRow = item;
+      this.detailTabTitle = `Thông tin biên bản cấp phát: ${item['Code']}`;
+      const id = item['ID'];
       this.assetAllocationService.getAssetAllocationDetail(id).subscribe(res => {
         const details = Array.isArray(res.data.assetsAllocationDetail)
           ? res.data.assetsAllocationDetail
           : [];
         this.allocationDetailData = details;
-        this.drawDetail();
+        this.datasetDetail = this.allocationDetailData.map((item, index) => ({
+          ...item,
+          id: item.ID || index,
+          STT: index + 1
+        }));
       });
-    });
+    }
   }
 
-
-  drawDetail(): void {
-    if (!this.datatableAllocationDetailRef) {
-      return;
+  handleRowSelection(e: any, args: OnSelectedRowsChangedEventArgs) {
+    if (args && args.rows && args.rows.length > 0) {
+      const selectedRow = this.gridData.getDataItem(args.rows[0]);
+      this.selectedRow = selectedRow;
     }
-
-    console.log('drawDetail called, rows:', this.allocationDetailData?.length);
-
-    if (this.allocationDetailTable) {
-      this.allocationDetailTable.setData(this.allocationDetailData);
-      return;
-    }
-
-    this.allocationDetailTable = new Tabulator(
-      this.datatableAllocationDetailRef.nativeElement,
-      {
-        data: this.allocationDetailData,
-        ...DEFAULT_TABLE_CONFIG,
-        layout: 'fitColumns',
-        paginationSize: 5,
-        paginationMode: 'local',
-        height: '30vh',
-        movableColumns: true,
-        reactiveData: true,
-        columns: [
-          { title: 'TSAssetAllocationID', field: 'TSAssetAllocationID', hozAlign: 'center', width: 60, visible: false },
-          { title: 'ID', field: 'ID', hozAlign: 'center', width: 60, visible: false },
-          { title: 'STT', field: 'STT', hozAlign: 'center', width: 60 },
-          { title: 'Mã tài sản', field: 'TSCodeNCC' },
-          { title: 'Số lượng', field: 'Quantity', hozAlign: 'center' },
-          { title: 'Tên tài sản', field: 'TSAssetName' },
-          { title: 'Đơn vị', field: 'UnitName', hozAlign: 'center' },
-          { title: 'Ghi chú', field: 'Note', formatter: 'textarea' }
-        ]
-      });
   }
 
 onAddAllocation() {
@@ -339,19 +524,15 @@ onAddAllocation() {
   );
 }
   onEditAllocation() {
-    if (!this.allocationTable) {
-      this.notification.warning('Thông báo', 'Bảng chưa khởi tạo, không thể sửa!');
-      return;
-    }
+    const selectedRows = this.angularGrid?.gridService?.getSelectedRows() || [];
+    const selectedData = selectedRows.map((index: number) => this.gridData.getDataItem(index));
 
-    const selected = this.allocationTable.getSelectedData();
-
-    if (!selected || selected.length === 0) {
+    if (!selectedData || selectedData.length === 0) {
       this.notification.warning('Thông báo', 'Vui lòng chọn một biên bản để sửa!');
       return;
     }
 
-    const selectedAssets = { ...selected[0] };
+    const selectedAssets = { ...selectedData[0] };
 
     // ✅ CHECK: nếu cá nhân đã duyệt thì không cho sửa
     const isPersonalApproved = ['true', true, 1, '1'].includes(
@@ -385,14 +566,18 @@ onAddAllocation() {
     );
   }
   getSelectedIds(): number[] {
-    if (this.allocationTable) {
-      const selectedRows = this.allocationTable.getSelectedData();
-      return selectedRows.map((row: any) => row.ID);
+    if (this.angularGrid && this.angularGrid.gridService) {
+      const selectedRows = this.angularGrid.gridService.getSelectedRows();
+      return selectedRows.map((index: number) => {
+        const item = this.gridData.getDataItem(index);
+        return item.ID;
+      });
     }
     return [];
   }
   onDeleteAllocation() {
-    const selectedRows = this.allocationTable?.getSelectedData() || [];
+    const selectedIndexes = this.angularGrid?.gridService?.getSelectedRows() || [];
+    const selectedRows = selectedIndexes.map((index: number) => this.gridData.getDataItem(index));
 
     if (selectedRows.length === 0) {
       this.notification.warning('Cảnh báo', 'Chưa chọn biên bản để xóa!');
@@ -442,7 +627,6 @@ onAddAllocation() {
       next: () => {
         this.notification.success(NOTIFICATION_TITLE.success, 'Xóa biên bản thành công!');
         this.getAllocation();
-        this.drawTable();
       },
       error: (err) => {
 
@@ -517,12 +701,8 @@ validateApprove(
 }
 
   updateApprove(action: 1 | 2 | 3 | 4 | 5 | 6) {
-  if (!this.allocationTable) {
-    this.notification.warning('Thông báo', 'Lỗi bảng, không thể thao tác');
-    return;
-  }
-
-  const selectedRows = this.allocationTable.getSelectedData() as any[];
+  const selectedIndexes = this.angularGrid?.gridService?.getSelectedRows() || [];
+  const selectedRows = selectedIndexes.map((index: number) => this.gridData.getDataItem(index)) as any[];
   if (!selectedRows || selectedRows.length === 0) {
     this.notification.warning('Thông báo', 'Chưa chọn biên bản để duyệt');
     return;
@@ -721,7 +901,7 @@ validateApprove(
     } else {
       this.getAllocation();
       this.allocationDetailData = [];
-      this.drawDetail();
+      this.datasetDetail = [];
     }
   },
   error: (err: any) => {
@@ -733,7 +913,7 @@ validateApprove(
 }
 
     saveOnApprove() {
-    const selectedDetail = this.allocationDetailTable?.getData();
+    const selectedDetail = this.datasetDetail;
     console.log(selectedDetail);
     if (!selectedDetail || selectedDetail.length === 0) {
       this.notification.warning(NOTIFICATION_TITLE.warning, 'Không có dữ liệu để duyệt.');
@@ -883,10 +1063,7 @@ validateApprove(
 
   //#region xuất excel
   async exportExcel() {
-    const table = this.allocationTable;
-    if (!table) return;
-
-    const data = table.getData();
+    const data = this.dataset;
     if (!data || data.length === 0) {
       this.notification.warning(NOTIFICATION_TITLE.warning, 'Không có dữ liệu để xuất Excel!');
       return;
@@ -895,20 +1072,19 @@ validateApprove(
     const workbook = new ExcelJS.Workbook();
     const worksheet = workbook.addWorksheet('Danh sách cấp phát');
 
-    // Lọc các cột có title, field và không bị ẩn
-    const visibleColumns = table.getColumns().filter((col: any) => {
-      const def = col.getDefinition();
-      return def.title && def.field && def.visible !== false && def.field !== '';
+    // Lọc các cột có name, field và không bị ẩn
+    const visibleColumns = this.columnDefinitions.filter((col: any) => {
+      return col.name && col.field && col.hidden !== true;
     });
 
     // Lấy tiêu đề cột
-    const headers = visibleColumns.map((col: any) => col.getDefinition().title);
+    const headers = visibleColumns.map((col: any) => col.name);
     worksheet.addRow(headers);
 
     // Lấy dữ liệu từng dòng
     data.forEach((row: any) => {
       const rowData = visibleColumns.map((col: any) => {
-        const field = col.getField();
+        const field = col.field;
         let value = row[field];
 
         // Nếu là chuỗi ngày ISO thì parse thành Date để format về sau
@@ -1018,6 +1194,61 @@ validateApprove(
         console.error(res);
       }
     });
+  }
+
+  // Apply distinct filters for multiple columns after data is loaded
+  private applyDistinctFilters(): void {
+    const fieldsToFilter = ['Code', 'EmployeeName', 'Department', 'Possition'];
+    this.applyDistinctFiltersToGrid(this.angularGrid, this.columnDefinitions, fieldsToFilter);
+  }
+
+  private applyDistinctFiltersToGrid(
+    angularGrid: AngularGridInstance | undefined,
+    columnDefs: Column[],
+    fieldsToFilter: string[]
+  ): void {
+    if (!angularGrid?.slickGrid || !angularGrid?.dataView) return;
+
+    const data = angularGrid.dataView.getItems();
+    if (!data || data.length === 0) return;
+
+    const getUniqueValues = (dataArray: any[], field: string): Array<{ value: string; label: string }> => {
+      const map = new Map<string, string>();
+      dataArray.forEach((row: any) => {
+        const value = String(row?.[field] ?? '');
+        if (value && !map.has(value)) {
+          map.set(value, value);
+        }
+      });
+      return Array.from(map.entries())
+        .map(([value, label]) => ({ value, label }))
+        .sort((a, b) => a.label.localeCompare(b.label));
+    };
+
+    const columns = angularGrid.slickGrid.getColumns();
+    if (!columns) return;
+
+    // Update runtime columns
+    columns.forEach((column: any) => {
+      if (column?.filter && column.filter.model === Filters['multipleSelect']) {
+        const field = column.field;
+        if (!field || !fieldsToFilter.includes(field)) return;
+        column.filter.collection = getUniqueValues(data, field);
+      }
+    });
+
+    // Update column definitions
+    columnDefs.forEach((colDef: any) => {
+      if (colDef?.filter && colDef.filter.model === Filters['multipleSelect']) {
+        const field = colDef.field;
+        if (!field || !fieldsToFilter.includes(field)) return;
+        colDef.filter.collection = getUniqueValues(data, field);
+      }
+    });
+
+    angularGrid.slickGrid.setColumns(angularGrid.slickGrid.getColumns());
+    angularGrid.slickGrid.invalidate();
+    angularGrid.slickGrid.render();
   }
 
 }

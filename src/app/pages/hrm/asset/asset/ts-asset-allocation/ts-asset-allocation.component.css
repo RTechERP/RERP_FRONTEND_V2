@@ -44,3 +44,6 @@
 nz-splitter[nzDirection="vertical"] {
   height: 100%;
 }
+::ng-deep #grvAssetAllocation {
+    min-height: 55vh !important;
+}

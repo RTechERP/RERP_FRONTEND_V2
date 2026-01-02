@@ -192,7 +192,7 @@ export class EarlyLateComponent implements OnInit, AfterViewInit {
   };
 
   loadApprovers(): void {
-    this.employeeService.getEmployeeApprove().subscribe({
+    this.employeeService.getEmployeeApproved().subscribe({
       next: (res: any) => {
         this.approverList = res.data || [];
       },

@@ -202,7 +202,7 @@ export class ENFDetailComponent implements OnInit {
   }
 
   loadApprovers() {
-    this.employeeService.getEmployeeApprove().subscribe({
+    this.employeeService.getEmployeeApproved().subscribe({
       next: (res: any) => {
         this.approverList = res.data || [];
       },

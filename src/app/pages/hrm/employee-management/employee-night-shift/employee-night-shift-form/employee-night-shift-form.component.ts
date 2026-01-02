@@ -415,10 +415,10 @@ export class EmployeeNightShiftFormComponent implements OnInit {
   }
 
   loadApprovers(): void {
-    this.employeeService.getEmployeeApprove().subscribe({
+    this.employeeService.getEmployeeApproved().subscribe({
       next: (res: any) => {
-      
-           this.approverList = res.data || [];
+
+        this.approverList = res.data || [];
       },
       error: (res: any) => {
         this.notification.error(NOTIFICATION_TITLE.error, res.error?.message || 'Không thể tải danh sách người duyệt');
@@ -1052,20 +1052,20 @@ export class EmployeeNightShiftFormComponent implements OnInit {
 
   saveTabData(index: number): void {
     const formValue = this.formGroup.getRawValue();
-    
+
     // Normalize giây về 00 cho DateStart và DateEnd trước khi lưu
     let normalizedDateStart = formValue.DateStart;
     if (normalizedDateStart) {
       normalizedDateStart = new Date(normalizedDateStart);
       normalizedDateStart.setSeconds(0, 0);
     }
-    
+
     let normalizedDateEnd = formValue.DateEnd;
     if (normalizedDateEnd) {
       normalizedDateEnd = new Date(normalizedDateEnd);
       normalizedDateEnd.setSeconds(0, 0);
     }
-    
+
     this.tabFormData[index] = {
       DateRegister: formValue.DateRegister,
       DateStart: normalizedDateStart,
@@ -1089,13 +1089,13 @@ export class EmployeeNightShiftFormComponent implements OnInit {
         normalizedDateStart = new Date(normalizedDateStart);
         normalizedDateStart.setSeconds(0, 0);
       }
-      
+
       let normalizedDateEnd = tabData.DateEnd;
       if (normalizedDateEnd) {
         normalizedDateEnd = new Date(normalizedDateEnd);
         normalizedDateEnd.setSeconds(0, 0);
       }
-      
+
       // Tạm thời tắt valueChanges subscription để tránh vòng lặp
       this.formGroup.patchValue({
         DateRegister: tabData.DateRegister,
@@ -1202,7 +1202,7 @@ export class EmployeeNightShiftFormComponent implements OnInit {
     const hasN1Permission = this.permissionService.hasPermission('N1');
     const hasN2Permission = this.permissionService.hasPermission('N2');
     const isAdmin = this.currentUser?.IsAdmin === true || this.currentUser?.ISADMIN === true;
-    
+
     return hasN1Permission || hasN2Permission || isAdmin;
   }
 }

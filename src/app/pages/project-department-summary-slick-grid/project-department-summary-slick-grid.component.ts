@@ -68,6 +68,8 @@ import { DateTime } from 'luxon';
 
 import { MenuItem, PrimeIcons } from 'primeng/api';
 import { Menubar } from 'primeng/menubar';
+import { ProjectReportSlickGridComponent } from '../project-report-slick-grid/project-report-slick-grid.component';
+import { ProjectPartListSlickGridComponent } from '../project-part-list-slick-grid/project-part-list-slick-grid.component';
 
 @Component({
   selector: 'app-project-department-summary-slick-grid',
@@ -1493,7 +1495,7 @@ export class ProjectDepartmentSummarySlickGridComponent implements OnInit, After
       return;
     }
 
-    const modalRef = this.modalService.open(ProjectListWorkReportComponent, {
+    const modalRef = this.modalService.open(ProjectReportSlickGridComponent, {
       centered: true,
       windowClass: 'full-screen-modal',
     });
@@ -1538,7 +1540,7 @@ export class ProjectDepartmentSummarySlickGridComponent implements OnInit, After
       return;
     }
 
-    const modalRef = this.modalService.open(ProjectPartListComponent, {
+    const modalRef = this.modalService.open(ProjectPartListSlickGridComponent, {
       centered: true,
       backdrop: 'static',
       keyboard: false,
@@ -1732,72 +1734,205 @@ export class ProjectDepartmentSummarySlickGridComponent implements OnInit, After
   //#endregion
 
   //#region Export Excel
-  exportExcel() {
-    if (this.dataset.length === 0) {
-      this.notification.warning('Cảnh báo', 'Không có dữ liệu để xuất');
-      return;
-    }
+  async exportExcel() {
+    try {
+      if (!this.angularGrid || !this.angularGrid.dataView) {
+        this.notification.error('Lỗi', 'Grid chưa sẵn sàng!');
+        return;
+      }
 
-    const workbook = new ExcelJS.Workbook();
-    const worksheet = workbook.addWorksheet('Danh sách dự án');
+      // Use filtered data from DataView
+      const data = this.angularGrid.dataView.getFilteredItems();
+      if (!data || data.length === 0) {
+        this.notification.warning('Cảnh báo', 'Không có dữ liệu đã filter để xuất excel!');
+        return;
+      }
 
-    // Define columns
-    worksheet.columns = [
-      { header: 'STT', key: 'STT', width: 10 },
-      { header: 'Trạng thái', key: 'ProjectStatusName', width: 15 },
-      { header: 'Mức ưu tiên', key: 'PriotityText', width: 12 },
-      { header: 'Mức độ ưu tiên cá nhân', key: 'PersonalPriotity', width: 20 },
-      { header: 'Mã dự án', key: 'ProjectCode', width: 20 },
-      { header: 'Tên dự án', key: 'ProjectName', width: 30 },
-      { header: 'Hiện trạng', key: 'CurrentSituation', width: 30 },
-      { header: 'Người phụ trách(sale)', key: 'FullNameSale', width: 20 },
-      { header: 'Người phụ trách(kỹ thuật)', key: 'FullNameTech', width: 20 },
-      { header: 'PM', key: 'FullNamePM', width: 20 },
-      { header: 'Khách hàng', key: 'CustomerName', width: 25 },
-      { header: 'Dự kiến bắt đầu', key: 'PlanDateStart', width: 15 },
-      { header: 'Dự kiến kết thúc', key: 'PlanDateEnd', width: 15 },
-      { header: 'Thực tế bắt đầu', key: 'ActualDateStart', width: 15 },
-      { header: 'Thực tế kết thúc', key: 'ActualDateEnd', width: 15 },
-    ];
+      const workbook = new ExcelJS.Workbook();
+      const worksheet = workbook.addWorksheet('Tổng hợp dự án theo phòng ban');
 
-    // Add data
-    this.dataset.forEach((item, index) => {
-      worksheet.addRow({
-        STT: index + 1,
-        ProjectStatusName: item.ProjectStatusName || '',
-        PriotityText: item.PriotityText || '',
-        PersonalPriotity: item.PersonalPriotity || '',
-        ProjectCode: item.ProjectCode || '',
-        ProjectName: item.ProjectName || '',
-        CurrentSituation: item.CurrentSituation || '',
-        FullNameSale: item.FullNameSale || '',
-        FullNameTech: item.FullNameTech || '',
-        FullNamePM: item.FullNamePM || '',
-        CustomerName: item.CustomerName || '',
-        PlanDateStart: item.PlanDateStart ? DateTime.fromISO(item.PlanDateStart).toFormat('dd/MM/yyyy') : '',
-        PlanDateEnd: item.PlanDateEnd ? DateTime.fromISO(item.PlanDateEnd).toFormat('dd/MM/yyyy') : '',
-        ActualDateStart: item.ActualDateStart ? DateTime.fromISO(item.ActualDateStart).toFormat('dd/MM/yyyy') : '',
-        ActualDateEnd: item.ActualDateEnd ? DateTime.fromISO(item.ActualDateEnd).toFormat('dd/MM/yyyy') : '',
+      // Use actual visible columns from SlickGrid
+      const visibleCols = this.angularGrid.slickGrid.getColumns().filter(col => !col.excludeFromExport);
+
+      // Safely get header names
+      const headers = visibleCols.map(col => {
+        if (typeof col.name === 'string') return col.name;
+        // Fallback for non-string headers (e.g. HTML) - try specific extracted text or field name
+        return col.field || '';
       });
+
+      // --- 1. Filter Info Row ---
+      const currentFilterInfo = this.getCurrentFilterInfo();
+      if (currentFilterInfo) {
+        worksheet.mergeCells(1, 1, 1, visibleCols.length);
+        const filterCell = worksheet.getCell(1, 1);
+        filterCell.value = currentFilterInfo;
+        filterCell.font = { name: 'Times New Roman', size: 11, italic: true, color: { argb: 'FF333333' } };
+        filterCell.alignment = { horizontal: 'center', vertical: 'middle' };
+        filterCell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFF2F2F2' } };
+      }
+
+      // --- 2. Header Row ---
+      const headerRowIndex = currentFilterInfo ? 2 : 1;
+      const headerRow = worksheet.addRow(headers);
+      headerRow.height = 30;
+      headerRow.eachCell((cell) => {
+        cell.font = { name: 'Times New Roman', size: 12, bold: true, color: { argb: 'FFFFFFFF' } };
+        cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF4F81BD' } };
+        cell.alignment = { horizontal: 'center', vertical: 'middle', wrapText: true };
+        cell.border = {
+          top: { style: 'thin' },
+          left: { style: 'thin' },
+          bottom: { style: 'thin' },
+          right: { style: 'thin' }
+        };
+      });
+
+      // --- 3. Data Rows ---
+      data.forEach((row: any) => {
+        const rowData = visibleCols.map(col => {
+          let value = row[col.field as string];
+          if (typeof value === 'string' && /^\d{4}-\d{2}-\d{2}T/.test(value)) {
+            value = new Date(value);
+          }
+          return value;
+        });
+
+        const addedRow = worksheet.addRow(rowData);
+
+        addedRow.eachCell((cell, colNumber) => {
+          cell.font = { name: 'Times New Roman', size: 11 };
+          cell.border = {
+            top: { style: 'thin' },
+            left: { style: 'thin' },
+            bottom: { style: 'thin' },
+            right: { style: 'thin' }
+          };
+          cell.alignment = { vertical: 'middle', wrapText: true };
+
+          if (cell.value instanceof Date) {
+            cell.numFmt = 'dd/mm/yyyy';
+            cell.alignment = { horizontal: 'center', vertical: 'middle', wrapText: true };
+          } else if (typeof cell.value === 'number') {
+            cell.alignment = { horizontal: 'right', vertical: 'middle', wrapText: true };
+          } else {
+            cell.alignment = { horizontal: 'left', vertical: 'middle', wrapText: true };
+          }
+        });
+      });
+
+      // --- 4. Auto-width ---
+      const columnWidths = this.getColumnWidthsForExcel(visibleCols, data);
+      for (let i = 0; i < visibleCols.length; i++) {
+        const colIndex = i + 1;
+        const column = worksheet.getColumn(colIndex);
+        column.width = columnWidths[i];
+      }
+
+      // --- 5. Row Heights for Data ---
+      const startDataRow = headerRowIndex + 1;
+      for (let i = 0; i < data.length; i++) {
+        const rowIndex = startDataRow + i;
+        const row = worksheet.getRow(rowIndex);
+        row.height = 25; // Tăng chiều cao row để hỗ trợ multi-line text
+      }
+
+      // --- 8. Export ---
+      const buffer = await workbook.xlsx.writeBuffer();
+      const currentDate = new Date();
+      const dateStr = `${currentDate.getDate()}${currentDate.getMonth() + 1}${currentDate.getFullYear()}`;
+      const timeStr = `${currentDate.getHours()}${currentDate.getMinutes()}${currentDate.getSeconds()}`;
+      const blob = new Blob([buffer], {
+        type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+      });
+
+      const link = document.createElement('a');
+      link.href = window.URL.createObjectURL(blob);
+      link.download = `DuAn_TheoPhongBan_${dateStr}_${timeStr}.xlsx`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      window.URL.revokeObjectURL(link.href);
+
+      this.notification.success('Thông báo', 'Xuất Excel thành công!');
+
+    } catch (error) {
+      console.error('Export Error:', error);
+      this.notification.error('Lỗi', 'Có lỗi xảy ra khi xuất Excel');
+    }
+  }
+
+  // Helper methods cho export Excel
+  private getCurrentFilterInfo(): string {
+    const filters: string[] = [];
+    
+    // Lấy filter từ các cột
+    const columns = this.angularGrid?.slickGrid?.getColumns() || [];
+    columns.forEach(col => {
+      if (col.filter && col.filter.model) {
+        const filterValue = this.getFilterValue(col);
+        if (filterValue) {
+          filters.push(`${col.name}: ${filterValue}`);
+        }
+      }
     });
 
-    // Style header
-    worksheet.getRow(1).font = { bold: true };
-    worksheet.getRow(1).fill = {
-      type: 'pattern',
-      pattern: 'solid',
-      fgColor: { argb: 'FFE0E0E0' }
-    };
+    return filters.length > 0 ? `Filter: ${filters.join(' | ')}` : '';
+  }
 
-    // Download file
-    workbook.xlsx.writeBuffer().then((buffer) => {
-      const blob = new Blob([buffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
-      const url = window.URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = `TongHopDuAn_${DateTime.local().toFormat('yyyyMMdd_HHmmss')}.xlsx`;
-      a.click();
-      window.URL.revokeObjectURL(url);
+  private getFilterValue(column: any): string {
+    try {
+      if (column.filter.model === Filters['multipleSelect']) {
+        const selectedItems = column.filter.collection?.filter((item: any) => item.selected);
+        return selectedItems?.map((item: any) => item.label).join(', ') || '';
+      } else if (column.filter.model === Filters['compoundInputText']) {
+        return column.filter.searchTerm || '';
+      } else if (column.filter.model === Filters['compoundInputNumber']) {
+        return column.filter.searchTerm || '';
+      } else if (column.filter.model === Filters['compoundDate']) {
+        return column.filter.searchTerm || '';
+      }
+    } catch (error) {
+      console.warn('Error getting filter value:', error);
+    }
+    return '';
+  }
+
+  private getStatsInfo(): string {
+    const totalItems = this.angularGrid?.dataView?.getItems()?.length || 0;
+    const filteredItems = this.angularGrid?.dataView?.getFilteredItems()?.length || 0;
+    
+    return `Tổng số dự án: ${filteredItems} ${filteredItems < totalItems ? `(trên ${totalItems})` : ''}`;
+  }
+
+  private getColumnWidthsForExcel(columns: any[], data: any[]): number[] {
+    return columns.map(col => {
+      let maxContentLength = 10;
+
+      // Header length
+      if (typeof col.name === 'string') {
+        maxContentLength = Math.max(maxContentLength, col.name.length);
+      } else if (col.field) {
+        maxContentLength = Math.max(maxContentLength, col.field.length);
+      }
+
+      // Data content length (check first 500 rows)
+      const rowCountToCheck = Math.min(data.length, 500);
+      for (let r = 0; r < rowCountToCheck; r++) {
+        const val = data[r][col.field as string];
+        if (val) {
+          const strVal = val.toString();
+          const lines = strVal.split('\n');
+          lines.forEach((line: string) => {
+            maxContentLength = Math.max(maxContentLength, line.length);
+          });
+        }
+      }
+
+      // Capped width with minimum values
+      const minWidth = 15;
+      const maxWidth = 60;
+      return Math.max(minWidth, Math.min(maxWidth, maxContentLength + 3));
     });
   }
   //#endregion
@@ -1889,4 +2024,5 @@ export class ProjectDepartmentSummarySlickGridComponent implements OnInit, After
       });
     }
     //#endregion
+    
 }

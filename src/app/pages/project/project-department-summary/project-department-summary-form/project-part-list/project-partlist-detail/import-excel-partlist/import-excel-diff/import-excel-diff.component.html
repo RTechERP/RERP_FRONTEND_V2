@@ -18,12 +18,11 @@
   
     <!-- Modal Footer -->
     <div class="modal-footer bg-whitesmoke br p-1">
-      <button nz-button nzType="default" nzDanger (click)="onClose()">
+      <button nz-button nzType="default" nzDanger (click)="onClose()" [disabled]="isLoading">
         Đóng
       </button>
-      <button nz-button nzType="primary" style="margin-left: 8px;" (click)="onSave()">
+      <button nz-button nzType="primary" style="margin-left: 8px;" (click)="onSave()" [nzLoading]="isLoading" [disabled]="isLoading">
         Lưu thông tin tích xanh
       </button>
     </div>
   </div>
-  

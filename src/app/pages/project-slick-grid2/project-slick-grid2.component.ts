@@ -36,6 +36,7 @@ import {
   OnSelectedRowsChangedEventArgs
 } from 'angular-slickgrid';
 import { MultipleSelectOption } from '@slickgrid-universal/common';
+import { ExcelExportService } from '@slickgrid-universal/excel-export';
 import { NzTabsModule } from 'ng-zorro-antd/tabs';
 import { NzSpinModule } from 'ng-zorro-antd/spin';
 import { NzTreeSelectModule } from 'ng-zorro-antd/tree-select';
@@ -134,6 +135,7 @@ export class ProjectSlickGrid2Component implements OnInit, AfterViewInit, OnDest
     private authService: AuthService,
     private permissionService: PermissionService,
   ) {
+    this.excelExportService = new ExcelExportService();
     this.searchSubject
       .pipe(debounceTime(1200))
       .subscribe(() => {
@@ -162,6 +164,9 @@ export class ProjectSlickGrid2Component implements OnInit, AfterViewInit, OnDest
   gridData: any;
   gridWorkReportData: any;
   gridTypeLinkData: any;
+
+  // Excel Export Service
+  excelExportService: ExcelExportService;
 
   // Column definitions
   columnDefinitions: Column[] = [];
@@ -243,6 +248,234 @@ export class ProjectSlickGrid2Component implements OnInit, AfterViewInit, OnDest
   onWindowResize(): void {
     this.updateResponsiveState();
   }
+
+  //#region Excel Export
+  exportToExcel(): void {
+    if (!this.angularGrid) {
+      this.notification.error('Lỗi', 'Grid chưa sẵn sàng để export');
+      return;
+    }
+
+    // Lấy dữ liệu đã được filter từ dataView
+    const filteredData = this.angularGrid.dataView.getItems();
+
+    if (!filteredData || filteredData.length === 0) {
+      this.notification.warning('Cảnh báo', 'Không có dữ liệu để export');
+      return;
+    }
+
+    try {
+      // Cấu hình options cho Excel export với design đẹp
+      const exportOptions = {
+        filename: `Danh_sach_du_an_${new Date().toISOString().split('T')[0]}`,
+        sheetName: 'Danh sách dự án',
+        sanitizeDataExport: true,
+        // Chỉ export các cột đang hiển thị (ẩn các cột không cần thiết)
+        exportColumns: this.columnDefinitions
+          .filter(col => !col.excludeFromExport && col.id !== 'sel' && col.id !== 'action')
+          .map(col => col.id),
+        columnHeaderStyle: {
+          font: { color: 'FFFFFFFF', bold: true, size: 11, fontName: 'Calibri' },
+          fill: { type: 'pattern' as const, patternType: 'solid' as const, fgColor: 'FF2E75B6' },
+          alignment: { horizontal: 'center' as const, vertical: 'center' as const, wrapText: true },
+          border: {
+            top: { color: 'FFFFFFFF', style: 'thin' as const },
+            left: { color: 'FFFFFFFF', style: 'thin' as const },
+            right: { color: 'FFFFFFFF', style: 'thin' as const },
+            bottom: { color: 'FFFFFFFF', style: 'thin' as const }
+          }
+        },
+        // Style cho data rows với auto-wrap
+        dataStyle: {
+          font: { size: 10, fontName: 'Calibri', color: 'FF333333' },
+          alignment: {
+            horizontal: 'left' as const,
+            vertical: 'center' as const,
+            wrapText: true,
+            shrinkToFit: false
+          },
+          border: {
+            top: { color: 'FFD1D5DB', style: 'thin' as const },
+            left: { color: 'FFD1D5DB', style: 'thin' as const },
+            right: { color: 'FFD1D5DB', style: 'thin' as const },
+            bottom: { color: 'FFD1D5DB', style: 'thin' as const }
+          }
+        },
+        // Custom header cho Excel với design chuyên nghiệp
+        customExcelHeader: (workbook: any, sheet: any) => {
+          // Format cho title chính
+          const titleFormat = workbook.getStyleSheet().createFormat({
+            font: { size: 18, fontName: 'Calibri', bold: true, color: 'FFFFFFFF' },
+            alignment: { wrapText: true, horizontal: 'center' as const, vertical: 'center' as const },
+            fill: { type: 'pattern' as const, patternType: 'solid' as const, fgColor: 'FF1F497D' },
+            border: {
+              top: { color: 'FF1F497D', style: 'thin' as const },
+              left: { color: 'FF1F497D', style: 'thin' as const },
+              right: { color: 'FF1F497D', style: 'thin' as const },
+              bottom: { color: 'FF1F497D', style: 'thin' as const }
+            }
+          });
+
+          // Format cho thông tin filter
+          const infoFormat = workbook.getStyleSheet().createFormat({
+            font: { size: 11, fontName: 'Calibri', color: 'FF333333', italic: true },
+            alignment: { horizontal: 'left' as const, vertical: 'center' as const },
+            fill: { type: 'pattern' as const, patternType: 'solid' as const, fgColor: 'FFF8F9FA' },
+            border: {
+              top: { color: 'FFD1D5DB', style: 'thin' as const },
+              left: { color: 'FFD1D5DB', style: 'thin' as const },
+              right: { color: 'FFD1D5DB', style: 'thin' as const },
+              bottom: { color: 'FFD1D5DB', style: 'thin' as const }
+            }
+          });
+
+          // Format cho dòng thông tin thống kê
+          const statsFormat = workbook.getStyleSheet().createFormat({
+            font: { size: 12, fontName: 'Calibri', bold: true, color: 'FF495057' },
+            alignment: { horizontal: 'center' as const, vertical: 'center' as const },
+            fill: { type: 'pattern' as const, patternType: 'solid' as const, fgColor: 'FFE9ECEF' },
+            border: {
+              top: { color: 'FFDEE2E6', style: 'thin' as const },
+              left: { color: 'FFDEE2E6', style: 'thin' as const },
+              right: { color: 'FFDEE2E6', style: 'thin' as const },
+              bottom: { color: 'FFDEE2E6', style: 'thin' as const }
+            }
+          });
+
+          // Tính số cột cuối cùng
+          const visibleColumns = this.columnDefinitions.filter(col => !col.excludeFromExport && col.id !== 'sel' && col.id !== 'action');
+          const lastColumnLetter = String.fromCharCode('A'.charCodeAt(0) + visibleColumns.length - 1);
+
+          // Dòng 1: Title chính
+          sheet.setRowInstructions(0, { height: 40 });
+          sheet.mergeCells('A1', `${lastColumnLetter}1`);
+          sheet.data.push([{
+            value: 'DANH SÁCH DỰ ÁN',
+            metadata: { style: titleFormat.id }
+          }]);
+
+          // Dòng 2: Thông tin filter
+          sheet.setRowInstructions(1, { height: 25 });
+          sheet.mergeCells('A2', `${lastColumnLetter}2`);
+          const filterInfo = this.getCurrentFilterInfo();
+          sheet.data.push([{
+            value: `Bộ lọc áp dụng: ${filterInfo}`,
+            metadata: { style: infoFormat.id }
+          }]);
+
+          // Dòng 3: Thông tin thống kê
+          sheet.setRowInstructions(2, { height: 30 });
+          sheet.mergeCells('A3', `${lastColumnLetter}3`);
+          const exportDate = new Date().toLocaleString('vi-VN', {
+            day: '2-digit',
+            month: '2-digit',
+            year: 'numeric',
+            hour: '2-digit',
+            minute: '2-digit'
+          });
+          sheet.data.push([{
+            value: `Tổng số dự án: ${filteredData.length} | Ngày xuất: ${exportDate}`,
+            metadata: { style: statsFormat.id }
+          }]);
+
+          // Set column widths cho các cột chính
+          const columnWidths = this.getColumnWidthsForExcel();
+          columnWidths.forEach((width, index) => {
+            const colLetter = String.fromCharCode('A'.charCodeAt(0) + index);
+            sheet.setColumnInstructions(colLetter, { width });
+          });
+
+          // Set row height cho data rows để hỗ trợ multi-line text
+          // Bắt đầu từ dòng 4 (sau 3 dòng header)
+          const startDataRow = 4;
+          const endDataRow = startDataRow + filteredData.length;
+          for (let i = startDataRow; i <= endDataRow; i++) {
+            sheet.setRowInstructions(i, { height: 25 }); // Height 25 để có không gian cho multi-line
+          }
+        }
+      };
+
+      // Thực hiện export
+      this.excelExportService.exportToExcel(exportOptions);
+
+      this.notification.success('Thành công', `Xuất excel thành công!`);
+
+    } catch (error) {
+      console.error('Excel export error:', error);
+      this.notification.error('Lỗi', 'Không thể export file Excel');
+    }
+  }
+
+  // Lấy thông tin về bộ lọc hiện tại
+  private getCurrentFilterInfo(): string {
+    const filters: string[] = [];
+
+    if (this.keyword) filters.push(`Từ khóa: ${this.keyword}`);
+    if (this.customerId && this.customerId !== 0) {
+      const customer = this.customers.find((c: any) => c.ID === this.customerId);
+      if (customer) filters.push(`Khách hàng: ${customer.CustomerName}`);
+    }
+    if (this.pmId && this.pmId !== 0) {
+      const pm = this.pms.find((p: any) => p.ID === this.pmId);
+      if (pm) filters.push(`PM: ${pm.FullName}`);
+    }
+    if (this.technicalId && this.technicalId !== 0) {
+      const tech = this.users.find((u: any) => u.ID === this.technicalId);
+      if (tech) filters.push(`Kỹ thuật: ${tech.FullName}`);
+    }
+    if (this.businessFieldId && this.businessFieldId !== 0) {
+      const field = this.businessFields.find((f: any) => f.ID === this.businessFieldId);
+      if (field) filters.push(`Lĩnh vực: ${field.BusinessFieldName}`);
+    }
+    if (this.projectTypeIds.length > 0) {
+      const types = this.projectTypes
+        .filter((t: any) => this.projectTypeIds.includes(t.ID))
+        .map((t: any) => t.ProjectTypeName)
+        .join(', ');
+      filters.push(`Loại dự án: ${types}`);
+    }
+
+    return filters.length > 0 ? filters.join(' | ') : 'Tất cả';
+  }
+
+  // Lấy độ rộng cho các cột Excel với auto-wrap
+  private getColumnWidthsForExcel(): number[] {
+    const visibleColumns = this.columnDefinitions.filter(col => !col.excludeFromExport && col.id !== 'sel' && col.id !== 'action');
+
+    // Map column ID to width (in Excel units) - tăng width để có không gian cho wrap text
+    const columnWidthMap: { [key: string]: number } = {
+      'ProjectStatusName': 18,
+      'ProjectCode': 25,
+      'ProjectName': 45,  // Tăng width để wrap text cho tên dài
+      'EndUserName': 35,  // Tăng width cho tên khách hàng dài
+      'FullNameSale': 25,
+      'FullNameTech': 25,
+      'FullNamePM': 25,
+      'BussinessField': 30,
+      'CurrentSituation': 40,  // Tăng width cho mô tả dài
+      'CustomerName': 35,
+      'CreatedBy': 18,
+      'UpdatedBy': 18,
+      'CreatedDate': 22,
+      'UpdatedDate': 22,
+      'PlanDateStart': 18,
+      'PlanDateEnd': 18,
+      'ActualDateStart': 18,
+      'ActualDateEnd': 18,
+      'ProjectType': 25,
+      'Priority': 15,
+      'Budget': 20,
+      'ActualCost': 20,
+      'Progress': 15,
+      'Note': 50  // Tăng width cho ghi chú dài
+    };
+
+    return visibleColumns.map(col => {
+      const width = columnWidthMap[col.id] || 25; // Default width tăng lên 25
+      return width;
+    });
+  }
+  //#endregion
 
   private updateResponsiveState(): void {
     const nextIsMobile = window.innerWidth <= 768;
@@ -326,7 +559,7 @@ export class ProjectSlickGrid2Component implements OnInit, AfterViewInit, OnDest
         width: 100,
         sortable: true,
         filterable: true,
-        filter: { 
+        filter: {
           model: Filters['multipleSelect'],
           collection: [],
           collectionOptions: { addBlankEntry: true },
@@ -358,7 +591,7 @@ export class ProjectSlickGrid2Component implements OnInit, AfterViewInit, OnDest
         width: 150,
         sortable: true,
         filterable: true,
-        filter: { 
+        filter: {
           model: Filters['multipleSelect'],
           collection: [],
           collectionOptions: { addBlankEntry: true },
@@ -375,7 +608,7 @@ export class ProjectSlickGrid2Component implements OnInit, AfterViewInit, OnDest
         width: 200,
         sortable: true,
         filterable: true,
-        filter: { 
+        filter: {
           model: Filters['multipleSelect'],
           collection: [],
           collectionOptions: { addBlankEntry: true },
@@ -408,7 +641,7 @@ export class ProjectSlickGrid2Component implements OnInit, AfterViewInit, OnDest
         width: 200,
         sortable: true,
         filterable: true,
-        filter: { 
+        filter: {
           model: Filters['multipleSelect'],
           collection: [],
           collectionOptions: { addBlankEntry: true },
@@ -441,7 +674,7 @@ export class ProjectSlickGrid2Component implements OnInit, AfterViewInit, OnDest
         width: 150,
         sortable: true,
         filterable: true,
-        filter: { 
+        filter: {
           model: Filters['multipleSelect'],
           collection: [],
           collectionOptions: { addBlankEntry: true },
@@ -473,7 +706,7 @@ export class ProjectSlickGrid2Component implements OnInit, AfterViewInit, OnDest
         width: 150,
         sortable: true,
         filterable: true,
-        filter: { 
+        filter: {
           model: Filters['multipleSelect'],
           collection: [],
           collectionOptions: { addBlankEntry: true },
@@ -505,7 +738,7 @@ export class ProjectSlickGrid2Component implements OnInit, AfterViewInit, OnDest
         width: 150,
         sortable: true,
         filterable: true,
-        filter: { 
+        filter: {
           model: Filters['multipleSelect'],
           collection: [],
           collectionOptions: { addBlankEntry: true },
@@ -554,7 +787,7 @@ export class ProjectSlickGrid2Component implements OnInit, AfterViewInit, OnDest
         width: 150,
         sortable: true,
         filterable: true,
-        filter: { 
+        filter: {
           model: Filters['multipleSelect'],
           collection: [],
           collectionOptions: { addBlankEntry: true },
@@ -571,7 +804,7 @@ export class ProjectSlickGrid2Component implements OnInit, AfterViewInit, OnDest
         width: 200,
         sortable: true,
         filterable: true,
-        filter: { 
+        filter: {
           model: Filters['multipleSelect'],
           collection: [],
           collectionOptions: { addBlankEntry: true },
@@ -589,7 +822,7 @@ export class ProjectSlickGrid2Component implements OnInit, AfterViewInit, OnDest
         width: 200,
         sortable: true,
         filterable: true,
-        filter: { 
+        filter: {
           model: Filters['multipleSelect'],
           collection: [],
           collectionOptions: { addBlankEntry: true },
@@ -714,7 +947,7 @@ export class ProjectSlickGrid2Component implements OnInit, AfterViewInit, OnDest
         width: 100,
         sortable: true,
         filterable: true,
-        filter: { 
+        filter: {
           model: Filters['multipleSelect'],
           collection: [],
           collectionOptions: { addBlankEntry: true },
@@ -731,7 +964,7 @@ export class ProjectSlickGrid2Component implements OnInit, AfterViewInit, OnDest
         width: 100,
         sortable: true,
         filterable: true,
-        filter: { 
+        filter: {
           model: Filters['multipleSelect'],
           collection: [],
           collectionOptions: { addBlankEntry: true },
@@ -761,11 +994,19 @@ export class ProjectSlickGrid2Component implements OnInit, AfterViewInit, OnDest
       enableAutoSizeColumns: false,
       frozenColumn: 3,
       rowHeight: 33, // Base height - sẽ tự động tăng theo nội dung qua CSS
-          };
+      // Thêm Excel Export Service
+      externalResources: [this.excelExportService],
+      enableExcelExport: true,
+      excelExportOptions: {
+        filename: 'Danh_sach_du_an',
+        sanitizeDataExport: true,
+        sheetName: 'Danh sách dự án'
+      }
+    };
   }
 
   initGridWorkReports() {
-    
+
     this.columnDefinitionsWorkReport = [
       { id: 'ID', name: 'ID', field: 'ID', hidden: true },
       {
@@ -1160,7 +1401,7 @@ export class ProjectSlickGrid2Component implements OnInit, AfterViewInit, OnDest
   angularGridReady(angularGrid: AngularGridInstance) {
     this.angularGrid = angularGrid;
     this.gridData = angularGrid?.slickGrid || {};
-    
+
     // Tính và set row height sau khi data được load
     if (angularGrid?.dataView) {
       angularGrid.dataView.onRowsChanged.subscribe(() => {
@@ -1172,11 +1413,11 @@ export class ProjectSlickGrid2Component implements OnInit, AfterViewInit, OnDest
   // Điều chỉnh row height dựa trên nội dung
   adjustRowHeights() {
     if (!this.angularGrid?.slickGrid || !this.angularGrid?.dataView) return;
-    
+
     try {
       const data = this.angularGrid.dataView.getItems();
       if (!Array.isArray(data)) return;
-      
+
       const slickGrid = this.angularGrid.slickGrid;
       data.forEach((item: any, index: number) => {
         if (!item) return;
@@ -1195,14 +1436,14 @@ export class ProjectSlickGrid2Component implements OnInit, AfterViewInit, OnDest
   // Tính row height dựa trên nội dung
   calculateRowHeight(item: any): number {
     if (!item) return 80;
-    
+
     let maxLines = 1;
     const baseLineHeight = 18; // Chiều cao mỗi dòng text
     const padding = 8; // Padding top + bottom
-    
+
     // Kiểm tra các cột có class cell-wrap
     const wrapColumns = ['ProjectName', 'EndUserName', 'CurrentSituation'];
-    
+
     wrapColumns.forEach(field => {
       const value = item[field];
       if (value && typeof value === 'string') {
@@ -1214,16 +1455,21 @@ export class ProjectSlickGrid2Component implements OnInit, AfterViewInit, OnDest
         maxLines = Math.max(maxLines, lines);
       }
     });
-    
+
     return Math.max(80, maxLines * baseLineHeight + padding);
   }
 
   angularGridWorkReportReady(angularGrid: AngularGridInstance) {
     this.angularGridWorkReport = angularGrid;
-    
+
     // Áp dụng tô màu dòng bằng getItemMetadata (giống payment-order)
     angularGrid.dataView.getItemMetadata = this.rowStyleWorkReport(angularGrid.dataView.getItemMetadata, angularGrid);
-    
+
+    // Resize grid immediately upon creation to ensure it fits the container
+    setTimeout(() => {
+      this.angularGridWorkReport.resizerService?.resizeGrid();
+    }, 50);
+
     // Tính và set row height sau khi data được load
     if (angularGrid?.dataView) {
       angularGrid.dataView.onRowsChanged.subscribe(() => {
@@ -1235,11 +1481,11 @@ export class ProjectSlickGrid2Component implements OnInit, AfterViewInit, OnDest
   // Điều chỉnh row height cho work report
   adjustWorkReportRowHeights() {
     if (!this.angularGridWorkReport?.slickGrid || !this.angularGridWorkReport?.dataView) return;
-    
+
     try {
       const data = this.angularGridWorkReport.dataView.getItems();
       if (!Array.isArray(data)) return;
-      
+
       const slickGrid = this.angularGridWorkReport.slickGrid;
       data.forEach((item: any, index: number) => {
         if (!item) return;
@@ -1258,13 +1504,13 @@ export class ProjectSlickGrid2Component implements OnInit, AfterViewInit, OnDest
   // Tính row height dựa trên nội dung cho work report
   calculateWorkReportRowHeight(item: any): number {
     if (!item) return 80;
-    
+
     let maxLines = 1;
     const baseLineHeight = 18;
     const padding = 8;
-    
+
     const wrapColumns = ['Mission', 'Note', 'ProjectEmployeeName'];
-    
+
     wrapColumns.forEach(field => {
       const value = item[field];
       if (value && typeof value === 'string') {
@@ -1276,7 +1522,7 @@ export class ProjectSlickGrid2Component implements OnInit, AfterViewInit, OnDest
         maxLines = Math.max(maxLines, lines);
       }
     });
-    
+
     return Math.max(80, maxLines * baseLineHeight + padding);
   }
 
@@ -1287,7 +1533,7 @@ export class ProjectSlickGrid2Component implements OnInit, AfterViewInit, OnDest
       let meta: any = {
         cssClasses: '',
       };
-      
+
       // Gọi previousItemMetadata với context đúng (bind dataView)
       if (previousItemMetadata && typeof previousItemMetadata === 'function') {
         try {
@@ -1322,6 +1568,11 @@ export class ProjectSlickGrid2Component implements OnInit, AfterViewInit, OnDest
   angularGridTypeLinkReady(angularGrid: AngularGridInstance) {
     this.angularGridTypeLink = angularGrid;
     this.gridTypeLinkData = angularGrid?.slickGrid || {};
+
+    // Resize grid immediately upon creation
+    setTimeout(() => {
+      this.angularGridTypeLink.resizerService?.resizeGrid();
+    }, 50);
   }
 
   handleRowSelection(e: any, args: OnSelectedRowsChangedEventArgs) {
@@ -1340,17 +1591,17 @@ export class ProjectSlickGrid2Component implements OnInit, AfterViewInit, OnDest
       this.projectId = item['ID'];
       this.projectCode = item['ProjectCode'];
       this.activeTab = 'workreport'; // Đặt lại tab đầu tiên
-      
+
       // Khi mở panel: đợi panel có kích thước, render grids, load data
       setTimeout(() => {
         this.detailGridsReady = true;
         this.logSplitSizes('onCellClicked(after detailGridsReady=true)');
-        
+
         // Sau khi render, resize grids và load data
         setTimeout(() => {
           this.getProjectWorkReports();
           this.getProjectTypeLinks();
-          
+
           // Resize grids after panel opens (với delay để đảm bảo columns đã được set)
           setTimeout(() => {
             try {
@@ -1420,19 +1671,19 @@ export class ProjectSlickGrid2Component implements OnInit, AfterViewInit, OnDest
 
       const panelSizes = panels
         ? Array.from(panels)
-            .slice(0, 2)
-            .map((p, i) => {
-              const rect = p.getBoundingClientRect();
-              const style = window.getComputedStyle(p);
-              return {
-                index: i,
-                widthPx: Math.round(rect.width),
-                flexBasis: style.flexBasis,
-                widthStyle: style.width,
-                display: style.display,
-                visibility: style.visibility,
-              };
-            })
+          .slice(0, 2)
+          .map((p, i) => {
+            const rect = p.getBoundingClientRect();
+            const style = window.getComputedStyle(p);
+            return {
+              index: i,
+              widthPx: Math.round(rect.width),
+              flexBasis: style.flexBasis,
+              widthStyle: style.width,
+              display: style.display,
+              visibility: style.visibility,
+            };
+          })
         : [];
 
       // eslint-disable-next-line no-console
@@ -1466,7 +1717,7 @@ export class ProjectSlickGrid2Component implements OnInit, AfterViewInit, OnDest
         setTimeout(() => {
           // Load data nếu chưa có
           this.getProjectTypeLinks();
-          
+
           // Resize và refresh grid sau khi data được load
           setTimeout(() => {
             if (this.angularGridTypeLink) {
@@ -1527,7 +1778,7 @@ export class ProjectSlickGrid2Component implements OnInit, AfterViewInit, OnDest
   searchProjects() {
     const ajaxParams = this.getProjectAjaxParams();
     this.projectService
-      .getProjectsPagination(ajaxParams, 1, 1000)
+      .getProjectsPagination(ajaxParams, 1, 999999)
       .subscribe({
         next: (res) => {
           if (res?.data) {
@@ -1537,7 +1788,7 @@ export class ProjectSlickGrid2Component implements OnInit, AfterViewInit, OnDest
               id: item.ID,
               STT: index + 1
             }));
-            
+
             // Điều chỉnh row height và apply distinct filters sau khi data được load
             setTimeout(() => {
               this.adjustRowHeights();
@@ -1583,16 +1834,16 @@ export class ProjectSlickGrid2Component implements OnInit, AfterViewInit, OnDest
       this.datasetWorkReport = [];
       return;
     }
-  
+
     if (!this.detailGridsReady || !this.angularGridWorkReport) {
       return;
     }
-  
+
     this.projectService.getProjectItemsData(this.projectId).subscribe({
       next: (res) => {
         if (res?.data) {
           const dataArray = Array.isArray(res.data) ? res.data : [];
-  
+
           this.datasetWorkReport = dataArray.map((item: any, index: number) => ({
             ...item,
             id: item.ID || index,
@@ -1641,7 +1892,7 @@ export class ProjectSlickGrid2Component implements OnInit, AfterViewInit, OnDest
         setTimeout(() => {
           this.applyDistinctFiltersTypeLink();
         }, 100);
-        
+
         // Refresh grid sau khi data được load (nếu grid đã được khởi tạo)
         setTimeout(() => {
           if (this.angularGridTypeLink?.dataView && this.angularGridTypeLink?.slickGrid) {
@@ -1953,69 +2204,142 @@ export class ProjectSlickGrid2Component implements OnInit, AfterViewInit, OnDest
 
   //#region Export Excel
   async exportExcel() {
-    if (!this.dataset || this.dataset.length === 0) {
-      this.notification.error('', this.createdText('Không có dữ liệu xuất excel!'), {
-        nzStyle: { fontSize: '0.75rem' },
+    try {
+      if (!this.angularGrid || !this.angularGrid.dataView) {
+        this.notification.error('Lỗi', 'Grid chưa sẵn sàng!');
+        return;
+      }
+
+      // Use filtered data from DataView
+      const data = this.angularGrid.dataView.getItems();
+      if (!data || data.length === 0) {
+        this.notification.warning('Cảnh báo', 'Không có dữ liệu để xuất excel!');
+        return;
+      }
+
+      const workbook = new ExcelJS.Workbook();
+      const worksheet = workbook.addWorksheet('Danh sách dự án');
+
+      // Use actual visible columns from SlickGrid
+      const visibleCols = this.angularGrid.slickGrid.getColumns().filter(col => !col.excludeFromExport);
+
+      // Safely get header names
+      const headers = visibleCols.map(col => {
+        if (typeof col.name === 'string') return col.name;
+        // Fallback for non-string headers (e.g. HTML) - try specific extracted text or field name
+        return col.field || '';
       });
-      return;
-    }
 
-    const workbook = new ExcelJS.Workbook();
-    const worksheet = workbook.addWorksheet('Danh sách dự án');
+      // --- 1. Title Row ---
+      worksheet.mergeCells(1, 1, 1, visibleCols.length);
+      const titleCell = worksheet.getCell(1, 1);
+      titleCell.value = 'DANH SÁCH DỰ ÁN';
+      titleCell.font = { name: 'Times New Roman', size: 16, bold: true, color: { argb: 'FFFFFFFF' } };
+      titleCell.alignment = { horizontal: 'center', vertical: 'middle' };
+      titleCell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF1F497D' } };
 
-    const headers = this.columnDefinitions
-      .filter(col => !col.hidden)
-      .map(col => col.name);
-    worksheet.addRow(headers);
+      // --- 2. Header Row ---
+      const headerRow = worksheet.addRow(headers);
+      headerRow.height = 30;
+      headerRow.eachCell((cell) => {
+        cell.font = { name: 'Times New Roman', size: 12, bold: true, color: { argb: 'FFFFFFFF' } };
+        cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF4F81BD' } };
+        cell.alignment = { horizontal: 'center', vertical: 'middle', wrapText: true };
+        cell.border = {
+          top: { style: 'thin' },
+          left: { style: 'thin' },
+          bottom: { style: 'thin' },
+          right: { style: 'thin' }
+        };
+      });
 
-    this.dataset.forEach((row: any) => {
-      const rowData = this.columnDefinitions
-        .filter(col => !col.hidden)
-        .map(col => {
+      // --- 3. Data Rows ---
+      data.forEach((row: any) => {
+        const rowData = visibleCols.map(col => {
           let value = row[col.field as string];
           if (typeof value === 'string' && /^\d{4}-\d{2}-\d{2}T/.test(value)) {
             value = new Date(value);
           }
           return value;
         });
-      worksheet.addRow(rowData);
-    });
 
-    worksheet.eachRow((row, rowNumber) => {
-      if (rowNumber === 1) return;
-      row.eachCell((cell) => {
-        if (cell.value instanceof Date) {
-          cell.numFmt = 'dd/mm/yyyy';
+        const addedRow = worksheet.addRow(rowData);
+
+        addedRow.eachCell((cell, colNumber) => {
+          cell.font = { name: 'Times New Roman', size: 11 };
+          cell.border = {
+            top: { style: 'thin' },
+            left: { style: 'thin' },
+            bottom: { style: 'thin' },
+            right: { style: 'thin' }
+          };
+          cell.alignment = { vertical: 'middle', wrapText: true };
+
+          if (cell.value instanceof Date) {
+            cell.numFmt = 'dd/mm/yyyy';
+            cell.alignment = { horizontal: 'center', vertical: 'middle', wrapText: true };
+          } else if (typeof cell.value === 'number') {
+            cell.alignment = { horizontal: 'right', vertical: 'middle', wrapText: true };
+          } else {
+            cell.alignment = { horizontal: 'left', vertical: 'middle', wrapText: true };
+          }
+        });
+      });
+
+      // --- 4. Auto-width ---
+      for (let i = 0; i < visibleCols.length; i++) {
+        const colIndex = i + 1;
+        const column = worksheet.getColumn(colIndex);
+        const colDef = visibleCols[i];
+
+        let maxContentLength = 10;
+
+        // Safe check for header name length
+        if (typeof colDef.name === 'string') {
+          maxContentLength = Math.max(maxContentLength, colDef.name.length);
+        } else if (colDef.field) {
+          maxContentLength = Math.max(maxContentLength, colDef.field.length);
         }
+
+        // Check first 500 rows for content length
+        const rowCountToCheck = Math.min(data.length, 500);
+        for (let r = 0; r < rowCountToCheck; r++) {
+          const val = data[r][colDef.field as string];
+          if (val) {
+            const strVal = val.toString();
+            const lines = strVal.split('\n');
+            lines.forEach((line: string) => {
+              maxContentLength = Math.max(maxContentLength, line.length);
+            });
+          }
+        }
+
+        const cappedWidth = Math.min(60, maxContentLength + 3);
+        column.width = cappedWidth;
+      }
+
+      // --- 5. Export ---
+      const buffer = await workbook.xlsx.writeBuffer();
+      const currentDate = new Date();
+      const dateStr = `${currentDate.getDate()}${currentDate.getMonth() + 1}${currentDate.getFullYear()}`;
+      const blob = new Blob([buffer], {
+        type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
       });
-    });
 
-    worksheet.columns.forEach((column: any) => {
-      let maxLength = 10;
-      column.eachCell({ includeEmpty: true }, (cell: any) => {
-        const cellValue = cell.value ? cell.value.toString() : '';
-        maxLength = Math.max(maxLength, cellValue.length + 2);
-      });
-      column.width = maxLength;
-    });
+      const link = document.createElement('a');
+      link.href = window.URL.createObjectURL(blob);
+      link.download = `DanhSachDuAn_${dateStr}.xlsx`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      window.URL.revokeObjectURL(link.href);
 
-    worksheet.autoFilter = {
-      from: { row: 1, column: 1 },
-      to: { row: 1, column: headers.length },
-    };
+      this.notification.success('', this.createdText('Xuất Excel thành công!'));
 
-    const buffer = await workbook.xlsx.writeBuffer();
-    const blob = new Blob([buffer], {
-      type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
-    });
-
-    const link = document.createElement('a');
-    link.href = window.URL.createObjectURL(blob);
-    link.download = `DanhSachDuAn.xlsx`;
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-    window.URL.revokeObjectURL(link.href);
+    } catch (error) {
+      console.error('Export Error:', error);
+      this.notification.error('Lỗi', 'Có lỗi xảy ra khi xuất Excel');
+    }
   }
   //#endregion
 
@@ -2386,14 +2710,14 @@ export class ProjectSlickGrid2Component implements OnInit, AfterViewInit, OnDest
   }
 
   // Apply distinct filters for multiple columns after data is loaded
-  private applyDistinctFilters(): void {
-    const fieldsToFilter = [
-      'ProjectStatusName', 'ProjectCode', 'ProjectName', 'EndUserName',
-      'FullNameSale', 'FullNameTech', 'FullNamePM', 'BussinessField',
-      'CurrentSituation', 'CustomerName', 'CreatedBy', 'UpdatedBy'
-    ];
-    this.applyDistinctFiltersToGrid(this.angularGrid, this.columnDefinitions, fieldsToFilter);
-  }
+  // private applyDistinctFilters(): void {
+  //   const fieldsToFilter = [
+  //     'ProjectStatusName', 'ProjectCode', 'ProjectName', 'EndUserName',
+  //     'FullNameSale', 'FullNameTech', 'FullNamePM', 'BussinessField',
+  //     'CurrentSituation', 'CustomerName', 'CreatedBy', 'UpdatedBy'
+  //   ];
+  //   this.applyDistinctFiltersToGrid(this.angularGrid, this.columnDefinitions, fieldsToFilter);
+  // }
 
   private applyDistinctFiltersWorkReport(): void {
     const fieldsToFilter = [
@@ -2473,4 +2797,77 @@ export class ProjectSlickGrid2Component implements OnInit, AfterViewInit, OnDest
     });
   }
   //#endregion
+
+  applyDistinctFilters(): void {
+    const angularGrid = this.angularGrid;
+    if (!angularGrid || !angularGrid.slickGrid || !angularGrid.dataView) return;
+
+    const data = angularGrid.dataView.getItems() as any[];
+    if (!data || data.length === 0) return;
+
+    const getUniqueValues = (
+      items: any[],
+      field: string
+    ): Array<{ value: any; label: string }> => {
+      const map = new Map<string, { value: any; label: string }>();
+      items.forEach((row: any) => {
+        const value = row?.[field];
+        if (value === null || value === undefined || value === '') return;
+        const key = `${typeof value}:${String(value)}`;
+        if (!map.has(key)) {
+          map.set(key, { value, label: String(value) });
+        }
+      });
+      return Array.from(map.values()).sort((a, b) =>
+        a.label.localeCompare(b.label)
+      );
+    };
+
+    const booleanCollection = [
+      { value: true, label: 'Có' },
+      { value: false, label: 'Không' },
+    ];
+    const booleanFields = new Set([
+      'NCCNew',
+      'DeptSupplier',
+      'IsBill',
+      'OrderQualityNotMet',
+    ]);
+
+    const columns = angularGrid.slickGrid.getColumns();
+    if (columns) {
+      columns.forEach((column: any) => {
+        if (
+          column.filter &&
+          column.filter.model === Filters['multipleSelect']
+        ) {
+          const field = column.field;
+          if (!field) return;
+          column.filter.collection = booleanFields.has(field)
+            ? booleanCollection
+            : getUniqueValues(data, field);
+        }
+      });
+    }
+
+    if (this.columnDefinitions) {
+      this.columnDefinitions.forEach((colDef: any) => {
+        if (
+          colDef.filter &&
+          colDef.filter.model === Filters['multipleSelect']
+        ) {
+          const field = colDef.field;
+          if (!field) return;
+          colDef.filter.collection = booleanFields.has(field)
+            ? booleanCollection
+            : getUniqueValues(data, field);
+        }
+      });
+    }
+
+    const updatedColumns = angularGrid.slickGrid.getColumns();
+    angularGrid.slickGrid.setColumns(updatedColumns);
+    angularGrid.slickGrid.invalidate();
+    angularGrid.slickGrid.render();
+  }
 }

@@ -1,0 +1,78 @@
+<ng-container class="w-100">
+    <nz-splitter style="height: 93vh!important;">
+        <nz-splitter-panel nzDefaultSize="100%">
+            <div class="card h-100 border-0 rounded-0">
+                <div class="card-header bg-white p-1">
+                    <!-- Bên trái: Các nút hành động -->
+                    <div class="d-flex gap-1">
+                        <button nz-button nzType="default" nzSize="small" (click)="toggleSearchPanel()"
+                            class="sticky-toggle-btn"
+                            [attr.aria-label]="showSearchPanel ? 'Ẩn tìm kiếm' : 'Hiện tìm kiếm'"
+                            [attr.aria-expanded]="showSearchPanel" type="button">
+                            <nz-icon [nzType]="showSearchPanel ? 'up' : 'down'" />
+                        </button>
+                        <button class="fs-12" nz-button nzType="default" nzSize="small" (click)="exportExcel()">
+                            <img src="assets/icon/action_export_excel_16.png" alt="Xuất Excel" class="me-1" />Xuất excel
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Compact search panel -->
+                <div class="bg-light border-bottom p-2" *ngIf="showSearchPanel">
+                    <div class="d-flex gap-1 align-items-center flex-wrap">
+                        <nz-form-label class="fs-12" style="font-size: 12px;">Từ ngày</nz-form-label>
+                        <nz-date-picker
+                            [(ngModel)]="dateStart"
+                            [ngModelOptions]="{standalone: true}"
+                            nzSize="small"
+                            nzFormat="dd/MM/yyyy"
+                            style="width: 130px;">
+                        </nz-date-picker>
+
+                        <nz-form-label class="fs-12" style="font-size: 12px;">Đến ngày</nz-form-label>
+                        <nz-date-picker
+                            [(ngModel)]="dateEnd"
+                            [ngModelOptions]="{standalone: true}"
+                            nzSize="small"
+                            nzFormat="dd/MM/yyyy"
+                            style="width: 130px;">
+                        </nz-date-picker>
+
+                        <nz-form-label class="fs-12" style="font-size: 12px;">Dự án</nz-form-label>
+                        <nz-select [(ngModel)]="projectId" [ngModelOptions]="{standalone: true}" nzShowSearch
+                            nzAllowClear nzSize="small" nzPlaceHolder="Dự án" style="width: 250px;">
+                            @for (item of projects; track $index) {
+                            <nz-option nzCustomContent="true"
+                                [nzLabel]="item.ProjectCode + ' - ' + item.ProjectName" [nzValue]="item.ID">
+                                {{ item.ProjectCode + " - " + item.ProjectName }}
+                            </nz-option>
+                            }
+                        </nz-select>
+
+                        <input nz-input nzSize="small" placeholder="Nhập từ khóa..." style="width: 250px"
+                            [(ngModel)]="keyword" [ngModelOptions]="{standalone: true}" (keyup.enter)="getSynthesisOfGeneratedMaterials()" />
+
+                        <button nz-button nzType="primary" nzSize="small" (click)="getSynthesisOfGeneratedMaterials()">
+                            <nz-icon nzType="search" />
+                        </button>
+
+                        <!-- <button nz-button nzType="default" nzSize="small" (click)="resetSearch()">
+                            Đặt lại
+                        </button> -->
+                    </div>
+                </div>
+
+                <div class="card-body p-0" style="flex: 1; display: flex; flex-direction: column; min-height: 0;">
+                    <nz-spin [nzSpinning]="isLoadTable" [nzDelay]="200">
+                        <div class="grid-container" id="grid-container-synthesis-materials" style="height: 100%;">
+                            <angular-slickgrid gridId="grvSynthesisMaterials" [columns]="columnDefinitions"
+                                [options]="gridOptions" [dataset]="dataset"
+                                (onAngularGridCreated)="angularGridReady($event.detail)">
+                            </angular-slickgrid>
+                        </div>
+                    </nz-spin>
+                </div>
+            </div>
+        </nz-splitter-panel>
+    </nz-splitter>
+</ng-container>

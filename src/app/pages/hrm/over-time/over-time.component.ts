@@ -175,7 +175,7 @@ export class OverTimeComponent implements OnInit, AfterViewInit {
     this.tabulator = new Tabulator('#tb_over_time', {
       data: this.overTimeList,
       layout: 'fitColumns',
-      columnCalcs:'both',
+      columnCalcs: 'both',
       selectableRows: true,
       height: '88vh',
       rowHeader: {
@@ -187,7 +187,7 @@ export class OverTimeComponent implements OnInit, AfterViewInit {
         headerHozAlign: "center",
         hozAlign: "center"
       },
-      
+
       groupBy: 'DepartmentName',
       groupHeader: function (value, count, data, group) {
         return "<span style='color:black'>Phòng ban: </span>" + value;
@@ -204,9 +204,28 @@ export class OverTimeComponent implements OnInit, AfterViewInit {
       },
       locale: 'vi',
       columns: [
+         {
+          title: 'Senior duyệt', field: 'IsSeniorApprovedText', hozAlign: 'center', headerHozAlign: 'center', width: 110,
+          formatter: (cell: any) => {
+            const value = cell.getValue();
+            // Nếu là string, convert sang number; nếu là number/null, dùng trực tiếp
+            let numValue = 0;
+            if (value === null || value === undefined) {
+              numValue = 0;
+            } else if (typeof value === 'number') {
+              numValue = value;
+            } else if (typeof value === 'string') {
+              // Map string sang number
+              if (value === 'Đã duyệt') numValue = 1;
+              else if (value === 'Từ chối' || value === 'Không duyệt') numValue = 2;
+              else numValue = 0; // Chưa duyệt hoặc giá trị khác
+            }
+            return this.formatApprovalBadge(numValue);
+          },
+        },
         {
           title: 'TBP duyệt', field: 'StatusText', hozAlign: 'center', headerHozAlign: 'center', width: 110,
-           formatter: (cell: any) => {
+          formatter: (cell: any) => {
             const value = cell.getValue();
             // Nếu là string, convert sang number; nếu là number/null, dùng trực tiếp
             let numValue = 0;
@@ -225,7 +244,7 @@ export class OverTimeComponent implements OnInit, AfterViewInit {
         },
         {
           title: 'HR duyệt', field: 'StatusHRText', hozAlign: 'center', headerHozAlign: 'center', width: 110,
-           formatter: (cell: any) => {
+          formatter: (cell: any) => {
             const value = cell.getValue();
             // Nếu là string, convert sang number; nếu là number/null, dùng trực tiếp
             let numValue = 0;
@@ -244,14 +263,14 @@ export class OverTimeComponent implements OnInit, AfterViewInit {
         },
         {
           title: 'BGD duyệt', field: 'IsApprovedBGD', hozAlign: 'center', headerHozAlign: 'center', width: 110,
-             formatter: function (cell: any) {
+          formatter: function (cell: any) {
             const value = cell.getValue();
             const checked = value === true || value === 'true' || value === 1 || value === '1';
             return `<input type="checkbox" ${checked ? 'checked' : ''} style="pointer-events: none; accent-color: #1677ff;" />`;
           },
         },
         {
-          title: 'Tên', field: 'FullName', hozAlign: 'left', headerHozAlign: 'center', width: 200, bottomCalc:'count'
+          title: 'Tên', field: 'FullName', hozAlign: 'left', headerHozAlign: 'center', width: 200, bottomCalc: 'count'
         },
         {
           title: 'Người duyệt', field: 'NguoiDuyet', hozAlign: 'left', headerHozAlign: 'center', width: 200
@@ -283,6 +302,38 @@ export class OverTimeComponent implements OnInit, AfterViewInit {
           formatter: (cell) => {
             const value = cell.getValue();
             return value ? DateTime.fromISO(value).toFormat(' dd/MM/yyyy HH:mm') : '';
+          }
+        },
+        {
+          title: 'CheckIn', field: 'CheckIn', hozAlign: 'center', headerHozAlign: 'center', width: 100,
+          formatter: (cell) => {
+            const value = cell.getValue();
+            const data = cell.getRow().getData();
+            
+            if (data['IsNotValid'] === 1) {
+              const el = cell.getElement();
+              el.style.backgroundColor = '#fff3cd';
+              el.style.color = '#dc3545';
+              el.style.fontWeight = 'bold';
+            }
+            
+            return value || '';
+          }
+        },
+        {
+          title: 'CheckOut', field: 'CheckOut', hozAlign: 'center', headerHozAlign: 'center', width: 100,
+          formatter: (cell) => {
+            const value = cell.getValue();
+            const data = cell.getRow().getData();
+            
+            if (data['IsNotValid'] === 1) {
+              const el = cell.getElement();
+              el.style.backgroundColor = '#fff3cd';
+              el.style.color = '#dc3545';
+              el.style.fontWeight = 'bold';
+            }
+            
+            return value || '';
           }
         },
         {
@@ -656,10 +707,10 @@ export class OverTimeComponent implements OnInit, AfterViewInit {
     this.initializeForm();
     this.loadEmployeeOverTime();
   }
-   private formatApprovalBadge(status: number): string {
+  private formatApprovalBadge(status: number): string {
     // 0 hoặc null: Chưa duyệt, 1: Đã duyệt, 2: Không duyệt
     const numStatus = status === null || status === undefined ? 0 : Number(status);
-    
+
     switch (numStatus) {
       case 0:
         return '<span class="badge bg-warning text-dark" style="display: inline-block; text-align: center;">Chưa duyệt</span>';

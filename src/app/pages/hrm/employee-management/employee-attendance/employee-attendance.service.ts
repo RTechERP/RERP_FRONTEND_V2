@@ -24,10 +24,10 @@ export interface ImportAttendancePayload {
 export class EmployeeAttendanceService {
   private apiUrl = environment.host + 'api/EmployeeAttendance/';
 
-  constructor(private http: HttpClient) {}
+  constructor(private http: HttpClient) { }
 
-  getDepartment(): Observable<any> {  
-    return this.http.get<any>( this.apiUrl + 'get-department');
+  getDepartment(): Observable<any> {
+    return this.http.get<any>(this.apiUrl + 'get-department');
   }
 
   getEmployee(status: number): Observable<any> {
@@ -85,5 +85,9 @@ export class EmployeeAttendanceService {
   // Method chính để import Excel - gửi payload theo format backend expect
   importExcelWithPayload(payload: ImportAttendancePayload): Observable<any> {
     return this.http.post<any>(this.apiUrl + 'import-excel', payload);
+  }
+
+  delete(ids: number[]): Observable<any> {
+    return this.http.post<any>(this.apiUrl + 'delete-attendance', ids);
   }
 }

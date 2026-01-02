@@ -68,12 +68,12 @@ export class ENFDetailComponent implements OnInit {
 
   // Reactive Form
   enfForm!: FormGroup;
-  
+
   saving = false;
   loading = false;
 
   currentUser: any;
-  @Input()currentEmployeeId: number | null = null;
+  @Input() currentEmployeeId: number | null = null;
   currentEmployee: any;
 
   employeeGroups: { label: string; options: any[] }[] = [];
@@ -140,11 +140,11 @@ export class ENFDetailComponent implements OnInit {
     private permissionService: PermissionService,
     private authService: AuthService,
     private employeeService: EmployeeService
-  ) {}
+  ) { }
 
   private initForm(): void {
     this.enfForm = this.fb.group({
-      selectedEmployeeId: [{value:this.currentEmployeeId, disabled: true}, [Validators.required]],
+      selectedEmployeeId: [{ value: this.currentEmployeeId, disabled: true }, [Validators.required]],
       selectedApprovedId: [null, [Validators.required]],
       dayWork: [null, [Validators.required]],
       selectedType: [1, [Validators.required]],
@@ -158,7 +158,7 @@ export class ENFDetailComponent implements OnInit {
     this.loadEmployeesAndApprovers();
     this.getCurrentUser();
     this.setupFormData();
-    
+
     // Update validation for reasonHREdit based on mode
     this.updateReasonHREditValidation();
   }
@@ -244,7 +244,7 @@ export class ENFDetailComponent implements OnInit {
         this.employeeGroups = [];
       },
     });
-    
+
     // Load approvers separately using new API
     this.loadApprovers();
   }
@@ -265,7 +265,7 @@ export class ENFDetailComponent implements OnInit {
         selectedType: 1
       });
     }
-    
+
     // Disable fields based on mode
     // Chỉ disable EmployeeID nếu không có quyền N1, N2 hoặc IsAdmin
     if (this.isEmployeeDisabled && !this.checkCanEditEmployee()) {
@@ -477,7 +477,7 @@ export class ENFDetailComponent implements OnInit {
     const hasN1Permission = this.permissionService.hasPermission('N1');
     const hasN2Permission = this.permissionService.hasPermission('N2');
     const isAdmin = this.currentUser?.IsAdmin === true || this.currentUser?.ISADMIN === true;
-    
+
     return hasN1Permission || hasN2Permission || isAdmin;
   }
 

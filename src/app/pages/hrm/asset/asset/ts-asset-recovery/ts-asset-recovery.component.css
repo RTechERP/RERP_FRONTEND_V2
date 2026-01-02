@@ -27,3 +27,6 @@
 .ant-tabs-tab-btn {
   font-size: 0.75rem;
 }
+::ng-deep #grvAssetRecovery {
+    min-height: 55vh !important;
+}

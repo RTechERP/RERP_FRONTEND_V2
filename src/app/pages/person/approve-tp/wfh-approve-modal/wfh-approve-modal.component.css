@@ -1,0 +1,105 @@
+/* WFH Approve Modal Styles */
+.wfh-approve-modal {
+    font-size: 12px;
+}
+
+/* Modal Layout similar to employee-register-bussiness-form */
+.modal-dialog-scrollable {
+    display: flex;
+    flex-direction: column;
+    height: 80vh;
+}
+
+.modal-header {
+    flex-shrink: 0;
+}
+
+.modal-body {
+    flex: 1;
+    overflow-y: auto;
+    padding: 16px;
+    display: flex;
+    flex-direction: column;
+}
+
+.modal-footer {
+    flex-shrink: 0;
+}
+
+/* Tabulator container inside modal body */
+.tabulator-container {
+    border: 1px solid #d9d9d9;
+    border-radius: 4px;
+    width: 100%;
+    flex: 1;
+    min-height: 300px;
+}
+
+/* Tabulator styles correction */
+::ng-deep .tabulator {
+    font-size: 12px !important;
+    width: 100%;
+}
+
+::ng-deep .tabulator-tableHolder {
+    overflow-x: auto !important;
+    overflow-y: auto !important;
+}
+
+::ng-deep .tabulator-header {
+    height: auto !important;
+    overflow: hidden;
+}
+
+::ng-deep .tabulator-header .tabulator-col {
+    height: auto !important;
+    min-height: 45px !important;
+    background-color: #f0f2f5;
+    border-right: 1px solid #ddd;
+}
+
+::ng-deep .tabulator-header .tabulator-col .tabulator-col-content {
+    height: 100% !important;
+    padding: 10px 8px !important;
+    white-space: normal !important;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    line-height: 1.4;
+}
+
+::ng-deep .tabulator-header .tabulator-col .tabulator-col-title {
+    white-space: normal !important;
+}
+
+::ng-deep .tabulator-row .tabulator-cell {
+    padding: 8px !important;
+    display: flex;
+    align-items: center;
+}
+
+/* Input style in tabulator */
+::ng-deep .tabulator-cell input {
+    width: 100%;
+    padding: 4px 8px;
+    border: 1px solid #d9d9d9;
+    border-radius: 4px;
+    font-size: 12px;
+    box-shadow: none;
+}
+
+/* Custom Scrollbar */
+::ng-deep .tabulator-tableHolder::-webkit-scrollbar {
+    height: 10px;
+    width: 10px;
+}
+
+::ng-deep .tabulator-tableHolder::-webkit-scrollbar-thumb {
+    background: #bbb;
+    border-radius: 5px;
+    border: 2px solid white;
+}
+
+::ng-deep .tabulator-tableHolder::-webkit-scrollbar-track {
+    background: #f1f1f1;
+}

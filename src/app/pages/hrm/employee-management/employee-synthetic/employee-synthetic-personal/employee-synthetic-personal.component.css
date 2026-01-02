@@ -1,4 +1,12 @@
-.ant-splitter{
+:host {
+  font-size: 12px !important;
+}
+
+:host ::ng-deep * {
+  font-size: 12px !important;
+}
+
+.ant-splitter {
   height: 84vh !important;
 }
 
@@ -125,7 +133,7 @@
 @media (min-width: 768px) {
   ::ng-deep .table-responsive {
     display: block;
-    height: 75vh !important;
+
   }
 }
 

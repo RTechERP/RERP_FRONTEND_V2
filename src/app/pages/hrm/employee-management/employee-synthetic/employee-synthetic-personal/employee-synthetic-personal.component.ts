@@ -54,6 +54,7 @@ export class EmployeeSyntheticPersonalComponent implements OnInit, AfterViewInit
   summaryData: any[] = [];
   fingerprintData: any = null;
   timekeepingData: any = null;
+  timekeepingSummary: any = null;
   payrollData: any[] = [];
   totalWorkdayStandard: number = 0;
 
@@ -61,7 +62,7 @@ export class EmployeeSyntheticPersonalComponent implements OnInit, AfterViewInit
     private fb: FormBuilder,
     private notification: NzNotificationService,
     private syntheticService: EmployeeSyntheticService
-  ) {}
+  ) { }
 
   ngOnInit() {
     this.initializeForm();
@@ -128,9 +129,9 @@ export class EmployeeSyntheticPersonalComponent implements OnInit, AfterViewInit
           }, 50);
         }
         break;
-        case 3: // BẢNG LƯƠNG
-          // Payroll table is HTML table, no initialization needed
-          break;
+      case 3: // BẢNG LƯƠNG
+        // Payroll table is HTML table, no initialization needed
+        break;
     }
   }
 
@@ -168,7 +169,7 @@ export class EmployeeSyntheticPersonalComponent implements OnInit, AfterViewInit
         case 2: // CHẤM CÔNG
           if (this.timekeepingTabulator) {
             this.timekeepingTabulator.redraw(true);
-            this.timekeepingTabulator.setHeight('85vh');
+            this.timekeepingTabulator.setHeight('25vh');
           }
           break;
         case 3: // BẢNG LƯƠNG
@@ -187,7 +188,7 @@ export class EmployeeSyntheticPersonalComponent implements OnInit, AfterViewInit
       next: (res: any) => {
         if (res && res.status === 1 && res.data) {
           const data = res.data;
-          
+
           switch (this.selectedTabIndex) {
             case 0: // TỔNG HỢP
               if (data.listSummary) {
@@ -347,6 +348,16 @@ export class EmployeeSyntheticPersonalComponent implements OnInit, AfterViewInit
     if (!this.tbFingerprintRef?.nativeElement) {
       return;
     }
+    const countTrue = (values: any[], data: any[], calcParams: any) => {
+      let calc = 0;
+      values.forEach((value) => {
+        if (value === true || value === 'true' || value === 1 || value === '1') {
+          calc++;
+        }
+      });
+      return calc;
+    };
+
     this.fingerprintTabulator = new Tabulator(this.tbFingerprintRef.nativeElement, {
       ...DEFAULT_TABLE_CONFIG,
       layout: 'fitDataStretch',
@@ -386,7 +397,7 @@ export class EmployeeSyntheticPersonalComponent implements OnInit, AfterViewInit
         },
         {
           title: 'Đi muộn', field: 'IsLateRegister', hozAlign: 'center', headerHozAlign: 'center',
-          width: 100, headerSort: false,
+          width: 100, headerSort: false, bottomCalc: countTrue,
           formatter: (cell) => {
             const value = cell.getValue();
             const checked = value === true || value === 'true' || value === 1 || value === '1';
@@ -395,7 +406,7 @@ export class EmployeeSyntheticPersonalComponent implements OnInit, AfterViewInit
         },
         {
           title: 'Về sớm', field: 'IsEarlyRegister', hozAlign: 'center', headerHozAlign: 'center',
-          width: 100, headerSort: false,
+          width: 100, headerSort: false, bottomCalc: countTrue,
           formatter: (cell) => {
             const value = cell.getValue();
             const checked = value === true || value === 'true' || value === 1 || value === '1';
@@ -404,7 +415,7 @@ export class EmployeeSyntheticPersonalComponent implements OnInit, AfterViewInit
         },
         {
           title: 'Làm thêm', field: 'Overtime', hozAlign: 'center', headerHozAlign: 'center',
-          width: 100, headerSort: false,
+          width: 100, headerSort: false, bottomCalc: countTrue,
           formatter: (cell) => {
             const value = cell.getValue();
             const checked = value === true || value === 'true' || value === 1 || value === '1';
@@ -413,7 +424,7 @@ export class EmployeeSyntheticPersonalComponent implements OnInit, AfterViewInit
         },
         {
           title: 'Công tác', field: 'Bussiness', hozAlign: 'center', headerHozAlign: 'center',
-          width: 100, headerSort: false,
+          width: 100, headerSort: false, bottomCalc: countTrue,
           formatter: (cell) => {
             const value = cell.getValue();
             const checked = value === true || value === 'true' || value === 1 || value === '1';
@@ -422,7 +433,7 @@ export class EmployeeSyntheticPersonalComponent implements OnInit, AfterViewInit
         },
         {
           title: 'Khai báo quên chấm công', field: 'NoFingerprint', hozAlign: 'center', headerHozAlign: 'center',
-          width: 150, headerWordWrap: true, headerSort: false,
+          width: 150, headerWordWrap: true, headerSort: false, bottomCalc: countTrue,
           formatter: (cell) => {
             const value = cell.getValue();
             const checked = value === true || value === 'true' || value === 1 || value === '1';
@@ -431,7 +442,7 @@ export class EmployeeSyntheticPersonalComponent implements OnInit, AfterViewInit
         },
         {
           title: 'Nghỉ', field: 'OnLeave', hozAlign: 'center', headerHozAlign: 'center',
-          width: 100, headerSort: false,
+          width: 100, headerSort: false, bottomCalc: countTrue,
           formatter: (cell) => {
             const value = cell.getValue();
             const checked = value === true || value === 'true' || value === 1 || value === '1';
@@ -440,7 +451,7 @@ export class EmployeeSyntheticPersonalComponent implements OnInit, AfterViewInit
         },
         {
           title: 'WFH', field: 'WFH', hozAlign: 'center', headerHozAlign: 'center',
-          width: 100, headerSort: false,
+          width: 100, headerSort: false, bottomCalc: countTrue,
           formatter: (cell) => {
             const value = cell.getValue();
             const checked = value === true || value === 'true' || value === 1 || value === '1';
@@ -449,7 +460,7 @@ export class EmployeeSyntheticPersonalComponent implements OnInit, AfterViewInit
         },
         {
           title: 'Quên chấm công', field: 'IsNoFinger', hozAlign: 'center', headerHozAlign: 'center',
-          width: 120, headerWordWrap: true, headerSort: false,
+          width: 120, headerWordWrap: true, headerSort: false, bottomCalc: countTrue,
           formatter: (cell) => {
             const value = cell.getValue();
             const checked = value === true || value === 'true' || value === 1 || value === '1';
@@ -468,7 +479,9 @@ export class EmployeeSyntheticPersonalComponent implements OnInit, AfterViewInit
     this.timekeepingTabulator = new Tabulator(this.tbTimekeepingRef.nativeElement, {
       ...DEFAULT_TABLE_CONFIG,
       layout: 'fitColumns',
-      height: '85vh',
+      height: '25vh',
+      pagination: false,
+      rowHeader: false,
       paginationMode: 'local',
       data: [],
       columns: [
@@ -486,13 +499,67 @@ export class EmployeeSyntheticPersonalComponent implements OnInit, AfterViewInit
   }
 
   onConfirmPayroll() {
-    // TODO: Implement confirm payroll logic
-    this.notification.info('Thông báo', 'Chức năng Confirm đang được phát triển');
+    if (!this.payrollData || this.payrollData.length === 0) {
+      this.notification.warning(NOTIFICATION_TITLE.warning, 'Không có dữ liệu bảng lương.');
+      return;
+    }
+
+    const payroll = this.payrollData[0];
+    if (payroll.Sign) {
+      this.notification.warning(NOTIFICATION_TITLE.warning, 'Bảng lương đã được xác nhận.');
+      return;
+    }
+
+    if (!payroll.ID) {
+      this.notification.error(NOTIFICATION_TITLE.error, 'Không tìm thấy ID bảng lương.');
+      return;
+    }
+
+    this.syntheticService.confirmPayroll(payroll.ID, true).subscribe({
+      next: (res: any) => {
+        if (res && res.status === 1) {
+          this.notification.success(NOTIFICATION_TITLE.success, 'Xác nhận bảng lương thành công');
+          this.loadData();
+        } else {
+          this.notification.error(NOTIFICATION_TITLE.error, res?.message || 'Có lỗi xảy ra');
+        }
+      },
+      error: (err: any) => {
+        this.notification.error(NOTIFICATION_TITLE.error, 'Lỗi: ' + (err?.error?.message || err.message));
+      }
+    });
   }
 
   onCancelPayroll() {
-    // TODO: Implement cancel payroll logic
-    this.notification.info('Thông báo', 'Chức năng Cancel đang được phát triển');
+    if (!this.payrollData || this.payrollData.length === 0) {
+      this.notification.warning(NOTIFICATION_TITLE.warning, 'Không có dữ liệu bảng lương.');
+      return;
+    }
+
+    const payroll = this.payrollData[0];
+    if (!payroll.Sign) {
+      this.notification.warning(NOTIFICATION_TITLE.warning, 'Bảng lương chưa được xác nhận, không thể hủy.');
+      return;
+    }
+
+    if (!payroll.ID) {
+      this.notification.error(NOTIFICATION_TITLE.error, 'Không tìm thấy ID bảng lương.');
+      return;
+    }
+
+    this.syntheticService.confirmPayroll(payroll.ID, false).subscribe({
+      next: (res: any) => {
+        if (res && res.status === 1) {
+          this.notification.success(NOTIFICATION_TITLE.success, 'Hủy xác nhận bảng lương thành công');
+          this.loadData();
+        } else {
+          this.notification.error(NOTIFICATION_TITLE.error, res?.message || 'Có lỗi xảy ra');
+        }
+      },
+      error: (err: any) => {
+        this.notification.error(NOTIFICATION_TITLE.error, 'Lỗi: ' + (err?.error?.message || err.message));
+      }
+    });
   }
 
   loadData() {
@@ -511,7 +578,7 @@ export class EmployeeSyntheticPersonalComponent implements OnInit, AfterViewInit
         if (res && res.status === 1 && res.data) {
           // API returns: { listSummary, fingers, payroll, listChamcong }
           const data = res.data;
-          
+
           // Load summary data
           if (data.listSummary) {
             // Handle both array and nested array structure
@@ -589,7 +656,7 @@ export class EmployeeSyntheticPersonalComponent implements OnInit, AfterViewInit
     const columns: any[] = [
       {
         title: 'Họ tên', field: 'FullName', hozAlign: 'left', headerHozAlign: 'center',
-        width: 200, headerWordWrap: true, formatter: 'textarea', headerSort: false, frozen: true
+        width: 120, headerWordWrap: true, formatter: 'textarea', headerSort: false, frozen: true
       }
     ];
 
@@ -600,7 +667,7 @@ export class EmployeeSyntheticPersonalComponent implements OnInit, AfterViewInit
           field: headerItem.fieldname || '',
           hozAlign: 'center',
           headerHozAlign: 'center',
-          width: 80,
+          width: 30,
           headerWordWrap: true,
           headerSort: false,
           formatter: (cell: any) => {
@@ -623,10 +690,20 @@ export class EmployeeSyntheticPersonalComponent implements OnInit, AfterViewInit
 
     this.timekeepingTabulator.setColumns(columns);
 
-    // Set data
+    // Set data after setting columns
     if (data.data) {
       const rowData = Array.isArray(data.data) ? data.data : [data.data];
       this.timekeepingTabulator.setData(rowData);
+
+      // Extract summary data (assuming it's the first record for personal view)
+      if (rowData.length > 0) {
+        this.timekeepingSummary = rowData[0];
+      } else {
+        this.timekeepingSummary = null;
+      }
+    } else {
+      this.timekeepingTabulator.setData([]);
+      this.timekeepingSummary = null;
     }
   }
 

@@ -16,7 +16,7 @@ export interface EmployeeSyntheticRequestParam {
 export class EmployeeSyntheticService {
   private apiUrl = `${environment.host}api/EmployeeSynthetic/`;
 
-  constructor(private http: HttpClient) {}
+  constructor(private http: HttpClient) { }
 
   // Lấy danh sách tổng hợp công nhân viên
   getEmployeeSynthetic(params: EmployeeSyntheticRequestParam): Observable<any> {
@@ -37,6 +37,13 @@ export class EmployeeSyntheticService {
 
     const homeApiUrl = `${environment.host}api/Home/`;
     return this.http.get<any>(homeApiUrl + 'get-personal-synthetic-by-month', { params: httpParams });
+  }
+
+  // Xác nhận/Hủy xác nhận bảng lương
+  confirmPayroll(id: number, sign: boolean): Observable<any> {
+    const homeApiUrl = `${environment.host}api/Home/`;
+    const params = new HttpParams().set('sign', sign.toString());
+    return this.http.post<any>(homeApiUrl + 'confirm-payroll', id, { params });
   }
 
   // Gom nhóm theo field, dùng cho dropdown nhân viên

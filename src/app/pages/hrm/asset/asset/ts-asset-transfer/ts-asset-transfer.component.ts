@@ -19,8 +19,17 @@ import { NzInputModule } from 'ng-zorro-antd/input';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { NzSelectModule } from 'ng-zorro-antd/select';
 import { NzTableModule } from 'ng-zorro-antd/table';
-import { TabulatorFull as Tabulator, CellComponent, ColumnDefinition, RowComponent } from 'tabulator-tables';
-import 'tabulator-tables/dist/css/tabulator_simple.min.css';
+import {
+  AngularGridInstance,
+  AngularSlickgridModule,
+  Column,
+  Filters,
+  GridOption,
+  OnClickEventArgs,
+  OnSelectedRowsChangedEventArgs
+} from 'angular-slickgrid';
+import { MultipleSelectOption } from '@slickgrid-universal/common';
+import { NzSpinModule } from 'ng-zorro-antd/spin';
 import { NzTabsModule } from 'ng-zorro-antd/tabs';
 import { DateTime } from 'luxon';
 declare var bootstrap: any;
@@ -34,15 +43,10 @@ import { NzNotificationService } from 'ng-zorro-antd/notification'
 import { TsAssetTransferFormComponent } from './ts-asset-transfer-form/ts-asset-transfer-form.component';
 import { TsAssetTransferService } from './ts-asset-transfer-service/ts-asset-transfer.service';
 import { HasPermissionDirective } from '../../../../../directives/has-permission.directive';
-import { DEFAULT_TABLE_CONFIG } from '../../../../../tabulator-default.config';
 import { forkJoin } from 'rxjs';
 import { AuthService } from '../../../../../auth/auth.service';
 import { NzModalModule, NzModalService } from 'ng-zorro-antd/modal';
 import { NOTIFICATION_TITLE } from '../../../../../app.config';
-function formatDateCell(cell: CellComponent): string {
-  const val = cell.getValue();
-  return val ? DateTime.fromISO(val).toFormat('dd/MM/yyyy') : '';
-}
 @Component({
   standalone: true,
   selector: 'app-ts-asset-transfer',
@@ -68,10 +72,30 @@ function formatDateCell(cell: CellComponent): string {
     NzTableModule,
     NzTabsModule,
     NzDropDownModule,
-    NgbModalModule, HasPermissionDirective, NzModalModule
+    NgbModalModule, HasPermissionDirective, NzModalModule,
+    AngularSlickgridModule,
+    NzSpinModule
   ]
 })
 export class TsAssetTransferComponent implements OnInit, AfterViewInit {
+  // SlickGrid instances
+  angularGrid!: AngularGridInstance;
+  angularGridDetail!: AngularGridInstance;
+  gridData: any;
+  gridDetailData: any;
+
+  // Column definitions
+  columnDefinitions: Column[] = [];
+  columnDefinitionsDetail: Column[] = [];
+
+  // Grid options
+  gridOptions: GridOption = {};
+  gridOptionsDetail: GridOption = {};
+
+  // Datasets
+  dataset: any[] = [];
+  datasetDetail: any[] = [];
+
   constructor(
     private notification: NzNotificationService,
     private tsAssetTransferService: TsAssetTransferService,
@@ -79,11 +103,7 @@ export class TsAssetTransferComponent implements OnInit, AfterViewInit {
     private authService: AuthService,
     private modal: NzModalService,
   ) { }
-  @ViewChild('dataAssetTranfer', { static: false })
-  dataAssetTranferEl!: ElementRef<HTMLDivElement>;
   public detailTabTitle: string = 'Thông tin biên bản điều chuyển:';
-  @ViewChild('dataAssetTranferDetail', { static: false })
-  dataAssetTranferDetailEl!: ElementRef<HTMLDivElement>;
   private ngbModal = inject(NgbModal);
   emPloyeeLists: any[] = [];
   deletedDetailIds: number[] = [];
@@ -100,25 +120,23 @@ export class TsAssetTransferComponent implements OnInit, AfterViewInit {
   assetTranferData: any[] = [];
   assetTranferDetailData: any[] = [];
   isSearchVisible: boolean = false;
-  assetTranferTable: Tabulator | null = null;
-  assetTranferDetailTable: Tabulator | null = null;
   currentUser: any = null;
   EmployeeID: any;
+  isLoading: boolean = false;
+  sizeSearch: string = '0';
   statusData = [
     { ID: 0, Name: 'Chưa duyệt' },
     { ID: 1, Name: 'Đã duyệt' }
   ];
   selectedApproval: number | null = null;
   ngOnInit() {
+    this.initGrid();
+    this.initGridDetail();
   }
   ngAfterViewInit(): void {
     this.getTranferAsset();
     this.getListEmployee();
     this.getCurrentUser();
-    // Khởi tạo bảng detail rỗng ngay từ đầu
-    setTimeout(() => {
-      this.drawDetail();
-    }, 100);
   }
   getCurrentUser() {
     this.authService.getCurrentUser().subscribe((res: any) => {
@@ -145,10 +163,26 @@ export class TsAssetTransferComponent implements OnInit, AfterViewInit {
       PageNumber: 1
     };
 
-    this.tsAssetTransferService.getAssetTranfer(request).subscribe((data: any) => {
-      this.assetTranferData = data.assetTranfer || [];
-      console.log("Dữ liệu lấy về:", this.assetTranferData);
-      this.drawTable(); // Gọi hàm vẽ lại bảng
+    this.isLoading = true;
+    this.tsAssetTransferService.getAssetTranfer(request).subscribe({
+      next: (data: any) => {
+        this.assetTranferData = data.assetTranfer || [];
+        console.log("Dữ liệu lấy về:", this.assetTranferData);
+        this.dataset = this.assetTranferData.map((item, index) => ({
+          ...item,
+          id: item.ID,
+          STT: index + 1
+        }));
+        setTimeout(() => {
+          this.applyDistinctFilters();
+        }, 100);
+        this.isLoading = false;
+      },
+      error: (err) => {
+        this.isLoading = false;
+        console.error('Lỗi khi lấy dữ liệu điều chuyển:', err);
+        this.notification.error(NOTIFICATION_TITLE.error, err?.error?.message || err.message);
+      }
     });
   }
   getListEmployee() {
@@ -171,196 +205,179 @@ export class TsAssetTransferComponent implements OnInit, AfterViewInit {
     this.TextFilter = '';
     this.getTranferAsset();
   }
-  sizeSearch: string = '0';
   toggleSearchPanel() {
     this.sizeSearch = this.sizeSearch == '0' ? '22%' : '0';
   }
-  public drawTable(): void {
-    if (this.assetTranferTable) {
-      this.assetTranferTable.setData(this.assetTranferData)
-    }
-    else {
-      this.assetTranferTable = new Tabulator(this.dataAssetTranferEl.nativeElement, {
-        data: this.assetTranferData,
-        ...DEFAULT_TABLE_CONFIG,
-        height: '53vh',
-        paginationMode: 'local',
-        layout: "fitDataFill",
 
-        selectableRows: true,
+  // Khởi tạo SlickGrid cho bảng master
+  initGrid() {
+    const formatDate = (row: number, cell: number, value: any) => {
+      if (!value) return '';
+      try {
+        const dateValue = DateTime.fromISO(value);
+        return dateValue.isValid ? dateValue.toFormat('dd/MM/yyyy') : value;
+      } catch (e) {
+        return value;
+      }
+    };
 
+    const checkboxFormatter = (row: number, cell: number, value: any) => {
+      const checked = ['true', true, 1, '1'].includes(value) ? 'checked' : '';
+      return `<input type="checkbox" ${checked} onclick="return false;">`;
+    };
 
-        columns: [
+    this.columnDefinitions = [
+      { id: 'STT', name: 'STT', field: 'STT', type: 'number', width: 60, sortable: true, cssClass: 'text-center' },
+      { id: 'ID', name: 'ID', field: 'ID', type: 'number', width: 60, hidden: true },
+      { id: 'IsApprovedPersonalProperty', name: 'Cá nhân duyệt', field: 'IsApprovedPersonalProperty', width: 100, sortable: true, cssClass: 'text-center', formatter: checkboxFormatter },
+      { id: 'IsApproved', name: 'HR duyệt', field: 'IsApproved', width: 100, sortable: true, cssClass: 'text-center', formatter: checkboxFormatter },
+      { id: 'IsApproveAccountant', name: 'KT duyệt', field: 'IsApproveAccountant', width: 100, sortable: true, cssClass: 'text-center', formatter: checkboxFormatter },
+      { 
+        id: 'CodeReport', name: 'Mã điều chuyển', field: 'CodeReport', width: 160, sortable: true, filterable: true,
+        filter: { model: Filters['multipleSelect'], collection: [], collectionOptions: { addBlankEntry: true }, filterOptions: { filter: true, autoAdjustDropWidthByTextSize: true } as MultipleSelectOption }
+      },
+      { id: 'TranferDate', name: 'Ngày chuyển', field: 'TranferDate', width: 160, sortable: true, cssClass: 'text-center', formatter: formatDate, filterable: true,
+        filter: { model: Filters['compoundInputText'] } },
+      { id: 'DateApprovedHR', name: 'Ngày duyệt', field: 'DateApprovedHR', width: 160, sortable: true, cssClass: 'text-center', formatter: formatDate, hidden: true },
+      { id: 'DateApprovedPersonalProperty', name: 'Ngày cá nhân duyệt', field: 'DateApprovedPersonalProperty', width: 160, sortable: true, cssClass: 'text-center', formatter: formatDate, hidden: true },
+      { 
+        id: 'DeliverName', name: 'Người giao', field: 'DeliverName', width: 160, sortable: true, filterable: true,
+        filter: { model: Filters['multipleSelect'], collection: [], collectionOptions: { addBlankEntry: true }, filterOptions: { filter: true, autoAdjustDropWidthByTextSize: true } as MultipleSelectOption }
+      },
+      { 
+        id: 'ReceiverName', name: 'Người nhận', field: 'ReceiverName', width: 160, sortable: true, filterable: true,
+        filter: { model: Filters['multipleSelect'], collection: [], collectionOptions: { addBlankEntry: true }, filterOptions: { filter: true, autoAdjustDropWidthByTextSize: true } as MultipleSelectOption }
+      },
+      { id: 'ReceiverID', name: 'ReceiverID', field: 'ReceiverID', hidden: true },
+      { 
+        id: 'DepartmentDeliver', name: 'Phòng giao', field: 'DepartmentDeliver', width: 160, sortable: true, filterable: true,
+        filter: { model: Filters['multipleSelect'], collection: [], collectionOptions: { addBlankEntry: true }, filterOptions: { filter: true, autoAdjustDropWidthByTextSize: true } as MultipleSelectOption }
+      },
+      { 
+        id: 'DepartmentReceiver', name: 'Phòng nhận', field: 'DepartmentReceiver', width: 160, sortable: true, filterable: true,
+        filter: { model: Filters['multipleSelect'], collection: [], collectionOptions: { addBlankEntry: true }, filterOptions: { filter: true, autoAdjustDropWidthByTextSize: true } as MultipleSelectOption }
+      },
+      { id: 'PossitionDeliver', name: 'Vị trí giao', field: 'PossitionDeliver', width: 160, sortable: true },
+      { id: 'PossitionReceiver', name: 'Vị trí nhận', field: 'PossitionReceiver', width: 160, sortable: true },
+      { 
+        id: 'Reason', name: 'Lý do', field: 'Reason', width: 300, sortable: true, filterable: true, filter: { model: Filters['compoundInputText'] },
+        formatter: (_row: any, _cell: any, value: any, _column: any, dataContext: any) => {
+          if (!value) return '';
+          return `<span title="${dataContext.Reason}" style="display:block; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${value}</span>`;
+        },
+        customTooltip: { useRegularTooltip: true }
+      }
+    ];
 
-          {
-            title: 'STT',
-            formatter: 'rownum',
-            hozAlign: 'center',
-            headerHozAlign: 'center',
-            width: 60,
-            frozen: true
-          },
-          { title: 'ID', field: 'ID', visible: false, frozen: true },
-          {
-            title: 'Cá nhân duyệt',
-            field: 'IsApprovedPersonalProperty',
-            formatter: (cell) => `<input type="checkbox" ${(['true', true, 1, '1'].includes(cell.getValue()) ? 'checked' : '')} onclick="return false;">`
-            ,
-            hozAlign: 'center',
-            headerHozAlign: 'center',
-            width: 100,
-            frozen: true
-          },
-          {
-            title: 'HR duyệt',
-            field: 'IsApproved',
-            formatter: (cell) => `<input type="checkbox" ${(['true', true, 1, '1'].includes(cell.getValue()) ? 'checked' : '')} onclick="return false;">`
-            ,
-            hozAlign: 'center',
-            headerHozAlign: 'center',
-            width: 100,
-            frozen: true
-          },
-          {
-            title: 'KT duyệt',
-            field: 'IsApproveAccountant',
-            formatter: (cell) => `<input type="checkbox" ${(['true', true, 1, '1'].includes(cell.getValue()) ? 'checked' : '')} onclick="return false;">`
-            ,
-            hozAlign: 'center',
-            headerHozAlign: 'center',
-            width: 100,
-            frozen: true
-          },
-          { title: 'Mã điều chuyển', field: 'CodeReport', width: 160, frozen: true },
-          {
-            title: 'Ngày chuyển',
-            field: 'TranferDate',
-            hozAlign: 'center',
-            headerHozAlign: 'center',
-            formatter: formatDateCell,
-            width: 160
-          },
-          {
-            title: 'Ngày duyệt',
-            field: 'DateApprovedHR',
-            hozAlign: 'center',
-            headerHozAlign: 'center',
-            formatter: formatDateCell,
-            width: 160,
-            visible: false
-          },
-          {
-            title: 'Ngày cá nhân duyệt',
-            field: 'DateApprovedPersonalProperty',
-            hozAlign: 'center',
-            headerHozAlign: 'center',
-            formatter: formatDateCell,
-            width: 160,
-            visible: false
-          },
-          {
-            title: 'Người giao',
-            field: 'DeliverName',
-            headerHozAlign: 'center',
-            width: 160
-          },
-          {
-            title: 'Người nhận',
-            field: 'ReceiverName',
-            headerHozAlign: 'center',
-            width: 160
-          },
-          {
-            title: 'Người nhận',
-            field: 'ReceiverID',
-            headerHozAlign: 'center',
-            visible: false
-          },
-          {
-            title: 'Phòng giao',
-            field: 'DepartmentDeliver',
-            width: 160
-          },
-          {
-            title: 'Phòng nhận',
-            field: 'DepartmentReceiver',
-            width: 160
-          },
-          {
-            title: 'Vị trí giao',
-            field: 'PossitionDeliver',
-            width: 160
-          },
-          {
-            title: 'Vị trí nhận',
-            field: 'PossitionReceiver',
-            width: 160
-          },
-          {
-            title: 'Lý do',
-            field: 'Reason',
-            width: 300
-          }
-        ],
-      });
-      this.assetTranferTable.on('rowClick', (evt, row: RowComponent) => {
-        const rowData = row.getData();
-        const id = rowData['ID'];
-        this.detailTabTitle = `Thông tin biên bản điều chuyển: ${rowData['CodeReport']}`;
-        // set row đang chọn
-        this.selectedRow = rowData;
+    this.gridOptions = {
+      autoResize: { container: '#grid-container-transfer', calculateAvailableSizeBy: 'container' },
+      enableAutoResize: true,
+      gridWidth: '100%',
+      forceFitColumns: false,
+      enableRowSelection: true,
+      rowSelectionOptions: { selectActiveRow: false },
+      checkboxSelector: { hideInFilterHeaderRow: false, hideInColumnTitleRow: true, applySelectOnAllPages: true },
+      enableCheckboxSelector: true,
+      enableCellNavigation: true,
+      enableFiltering: true,
+      autoFitColumnsOnFirstLoad: false,
+      enableAutoSizeColumns: false,
+      frozenColumn: 6
+    };
+  }
 
-        // load detail
-        this.tsAssetTransferService.getAssetTranferDetail(id).subscribe(res => {
-          const details = Array.isArray(res.data.assetTransferDetail)
-            ? res.data.assetTransferDetail
-            : [];
-          this.assetTranferDetailData = details;
-          this.drawDetail();
-        });
+  // Khởi tạo SlickGrid cho bảng detail
+  initGridDetail() {
+    this.columnDefinitionsDetail = [
+      { id: 'AssetManagementID', name: 'AssetManagementID', field: 'AssetManagementID', width: 60, hidden: true },
+      { id: 'TSTranferAssetID', name: 'TSTranferAssetID', field: 'TSTranferAssetID', width: 60, hidden: true },
+      { id: 'ID', name: 'ID', field: 'ID', width: 60, hidden: true },
+      { id: 'STT', name: 'STT', field: 'STT', width: 60, sortable: true, cssClass: 'text-center' },
+      { 
+        id: 'TSCodeNCC', name: 'Mã tài sản', field: 'TSCodeNCC', width: 150, sortable: true, filterable: true,
+        filter: { model: Filters['multipleSelect'], collection: [], collectionOptions: { addBlankEntry: true }, filterOptions: { filter: true, autoAdjustDropWidthByTextSize: true } as MultipleSelectOption }
+      },
+      { id: 'Quantity', name: 'Số lượng', field: 'Quantity', width: 100, sortable: true, cssClass: 'text-center' },
+      { 
+        id: 'TSAssetName', name: 'Tên tài sản', field: 'TSAssetName', width: 200, sortable: true, filterable: true,
+        filter: { model: Filters['multipleSelect'], collection: [], collectionOptions: { addBlankEntry: true }, filterOptions: { filter: true, autoAdjustDropWidthByTextSize: true } as MultipleSelectOption },
+        formatter: (_row: any, _cell: any, value: any, _column: any, dataContext: any) => {
+          if (!value) return '';
+          return `<span title="${dataContext.TSAssetName}" style="display:block; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${value}</span>`;
+        },
+        customTooltip: { useRegularTooltip: true }
+      },
+      { id: 'UnitName', name: 'Đơn vị', field: 'UnitName', width: 100, sortable: true, cssClass: 'text-center' },
+      { 
+        id: 'Note', name: 'Ghi chú', field: 'Note', width: 300, sortable: true, filterable: true, filter: { model: Filters['compoundInputText'] },
+        formatter: (_row: any, _cell: any, value: any, _column: any, dataContext: any) => {
+          if (!value) return '';
+          return `<span title="${dataContext.Note}" style="display:block; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${value}</span>`;
+        },
+        customTooltip: { useRegularTooltip: true }
+      }
+    ];
+
+    this.gridOptionsDetail = {
+      autoResize: { container: '#grid-container-transfer-detail', calculateAvailableSizeBy: 'container' },
+      enableAutoResize: true,
+      forceFitColumns: true,
+      enableRowSelection: true,
+      enableCellNavigation: true,
+      enableFiltering: true,
+      autoFitColumnsOnFirstLoad: false,
+      enableAutoSizeColumns: false
+    };
+  }
+
+  // SlickGrid event handlers
+  angularGridReady(angularGrid: AngularGridInstance) {
+    this.angularGrid = angularGrid;
+    this.gridData = angularGrid?.slickGrid || {};
+  }
+
+  angularGridDetailReady(angularGrid: AngularGridInstance) {
+    this.angularGridDetail = angularGrid;
+    this.gridDetailData = angularGrid?.slickGrid || {};
+  }
+
+  onCellClicked(e: any, args: OnClickEventArgs) {
+    const item = args.grid.getDataItem(args.row);
+    if (item) {
+      this.selectedRow = item;
+      this.detailTabTitle = `Thông tin biên bản điều chuyển: ${item['CodeReport']}`;
+      const id = item['ID'];
+      this.tsAssetTransferService.getAssetTranferDetail(id).subscribe(res => {
+        const details = Array.isArray(res.data.assetTransferDetail) ? res.data.assetTransferDetail : [];
+        this.assetTranferDetailData = details;
+        this.datasetDetail = this.assetTranferDetailData.map((item, index) => ({
+          ...item,
+          id: item.ID || index,
+          STT: index + 1
+        }));
       });
     }
   }
-  private drawDetail(): void {
-    if (this.assetTranferDetailTable) {
-      this.assetTranferDetailTable.setData(this.assetTranferDetailData);
-    } else {
-      this.assetTranferDetailTable = new Tabulator(this.dataAssetTranferDetailEl.nativeElement, {
-        data: this.assetTranferDetailData,
-        layout: "fitDataStretch",
-        paginationSize: 5,
-        height: '30vh',
-        paginationMode: 'local',
-        movableColumns: true,
-        reactiveData: true,
-        columns: [
-          { title: 'AssetManagementID', field: 'AssetManagementID', hozAlign: 'center', width: 60, visible: false },
-          { title: 'TSTranferAssetID', field: 'TSTranferAssetID', hozAlign: 'center', width: 60, visible: false },
-          { title: 'ID', field: 'ID', hozAlign: 'center', width: 60, visible: false },
-          { title: 'STT', field: 'STT', hozAlign: 'center', width: 60 },
-          { title: 'Mã tài sản', field: 'TSCodeNCC' },
-          { title: 'Số lượng', field: 'Quantity', hozAlign: 'center' },
-          { title: 'Tên tài sản', field: 'TSAssetName' },
-          { title: 'Đơn vị', field: 'UnitName', hozAlign: 'center' },
-          { title: 'Ghi chú', field: 'Note' }
-        ]
-      });
+
+  handleRowSelection(e: any, args: OnSelectedRowsChangedEventArgs) {
+    if (args && args.rows && args.rows.length > 0) {
+      const selectedRow = this.gridData.getDataItem(args.rows[0]);
+      this.selectedRow = selectedRow;
     }
   }
   getSelectedIds(): number[] {
-    if (this.assetTranferTable) {
-      const selectedRows = this.assetTranferTable.getSelectedData();
-      return selectedRows.map((row: any) => row.ID);
+    if (this.angularGrid && this.angularGrid.gridService) {
+      const selectedRows = this.angularGrid.gridService.getSelectedRows();
+      return selectedRows.map((index: number) => {
+        const item = this.gridData.getDataItem(index);
+        return item.ID;
+      });
     }
     return [];
   }
   onDeleteAssetTranfer() {
-    if (!this.assetTranferTable) {
-      this.notification.warning(NOTIFICATION_TITLE.warning, 'Lỗi bảng, không thể thao tác');
-      return;
-    }
-
-    const selectedRows = this.assetTranferTable.getSelectedData() as any[];
+    const selectedIndexes = this.angularGrid?.gridService?.getSelectedRows() || [];
+    const selectedRows = selectedIndexes.map((index: number) => this.gridData.getDataItem(index)) as any[];
 
     if (!selectedRows || selectedRows.length === 0) {
       this.notification.warning(NOTIFICATION_TITLE.warning, 'Chưa chọn biên bản để xóa!');
@@ -422,7 +439,6 @@ export class TsAssetTransferComponent implements OnInit, AfterViewInit {
             `Đã xóa thành công các biên bản: ${codesText}`
           );
           this.getTranferAsset();
-          this.drawTable();
         }).catch(err => {
           console.error('Lỗi khi xóa nhiều:', err);
           this.notification.warning('Lỗi', 'Lỗi kết nối máy chủ!');
@@ -485,12 +501,8 @@ export class TsAssetTransferComponent implements OnInit, AfterViewInit {
     return null; // hợp lệ
   }
   updateApprove(action: 1 | 2 | 3 | 4 | 5 | 6) {
-    if (!this.assetTranferTable) {
-      this.notification.warning('Thông báo', 'Lỗi bảng, không thể thao tác');
-      return;
-    }
-
-    const selectedRows = this.assetTranferTable.getSelectedData() as any[];
+    const selectedIndexes = this.angularGrid?.gridService?.getSelectedRows() || [];
+    const selectedRows = selectedIndexes.map((index: number) => this.gridData.getDataItem(index)) as any[];
     if (!selectedRows || selectedRows.length === 0) {
       this.notification.warning('Thông báo', 'Chưa chọn biên bản để duyệt');
       return;
@@ -692,8 +704,8 @@ export class TsAssetTransferComponent implements OnInit, AfterViewInit {
           this.updateOnApproveMultiple(validRows);
         } else {
           this.getTranferAsset();
-          this.assetTranferData = [];
-          this.drawDetail();
+          this.assetTranferDetailData = [];
+          this.datasetDetail = [];
         }
       },
       error: (err: any) => {
@@ -791,8 +803,8 @@ export class TsAssetTransferComponent implements OnInit, AfterViewInit {
   }
 
   updateOnApprove() {
-    const selectedDetail = this.assetTranferDetailTable?.getData();
-    const selectedTranfer = this.assetTranferTable?.getSelectedData()?.[0];
+    const selectedDetail = this.datasetDetail;
+    const selectedTranfer = this.selectedRow;
     if (!selectedDetail || selectedDetail.length === 0) {
       this.notification.warning('Cảnh báo', 'Không có dữ liệu để duyệt.');
       return;
@@ -860,12 +872,8 @@ export class TsAssetTransferComponent implements OnInit, AfterViewInit {
     );
   }
   onEditTranfer() {
-    if (!this.assetTranferTable) {
-      this.notification.warning('Thông báo', 'Bảng chưa khởi tạo, không thể sửa!');
-      return;
-    }
-
-    const selected = this.assetTranferTable.getSelectedData();
+    const selectedIndexes = this.angularGrid?.gridService?.getSelectedRows() || [];
+    const selected = selectedIndexes.map((index: number) => this.gridData.getDataItem(index));
     if (!selected || selected.length === 0) {
       this.notification.warning('Thông báo', 'Vui lòng chọn một biên bản để sửa!');
       return;
@@ -906,10 +914,7 @@ export class TsAssetTransferComponent implements OnInit, AfterViewInit {
 
   //#region xuất excel
   async exportExcel() {
-    const table = this.assetTranferTable;
-    if (!table) return;
-
-    const data = table.getData();
+    const data = this.dataset;
     if (!data || data.length === 0) {
       this.notification.warning(NOTIFICATION_TITLE.warning, 'Không có dữ liệu để xuất Excel!');
       return;
@@ -918,20 +923,19 @@ export class TsAssetTransferComponent implements OnInit, AfterViewInit {
     const workbook = new ExcelJS.Workbook();
     const worksheet = workbook.addWorksheet('Danh sách điều chuyển tài sản');
 
-    // Lọc các cột hiển thị, có field và title
-    const visibleColumns = table.getColumns().filter((col: any) => {
-      const def = col.getDefinition();
-      return def.visible !== false && def.field && def.title;
+    // Lọc các cột hiển thị
+    const visibleColumns = this.columnDefinitions.filter((col: any) => {
+      return col.hidden !== true && col.field && col.name;
     });
 
     // Thêm dòng tiêu đề
-    const headers = visibleColumns.map((col: any) => col.getDefinition().title);
+    const headers = visibleColumns.map((col: any) => col.name);
     worksheet.addRow(headers);
 
     // Thêm dữ liệu
     data.forEach((row: any) => {
       const rowData = visibleColumns.map((col: any) => {
-        const field = col.getField();
+        const field = col.field;
         let value = row[field];
 
         if (typeof value === 'string' && /^\d{4}-\d{2}-\d{2}T/.test(value)) {
@@ -988,8 +992,8 @@ export class TsAssetTransferComponent implements OnInit, AfterViewInit {
   }
   //#endregion
   exportTransferAssetReport() {
-    const selectedMaster = this.assetTranferTable?.getSelectedData()[0];
-    const details = this.assetTranferDetailTable?.getData();
+    const selectedMaster = this.selectedRow;
+    const details = this.datasetDetail;
 
     if (!selectedMaster || !details || details.length === 0) {
       this.notification.warning(NOTIFICATION_TITLE.warning, 'Không có dữ liệu để xuất Excel!');
@@ -1030,6 +1034,61 @@ export class TsAssetTransferComponent implements OnInit, AfterViewInit {
         console.error(err);
       }
     });
+  }
+
+  // Apply distinct filters for multiple columns after data is loaded
+  private applyDistinctFilters(): void {
+    const fieldsToFilter = ['CodeReport', 'DeliverName', 'ReceiverName', 'DepartmentDeliver', 'DepartmentReceiver'];
+    this.applyDistinctFiltersToGrid(this.angularGrid, this.columnDefinitions, fieldsToFilter);
+  }
+
+  private applyDistinctFiltersToGrid(
+    angularGrid: AngularGridInstance | undefined,
+    columnDefs: Column[],
+    fieldsToFilter: string[]
+  ): void {
+    if (!angularGrid?.slickGrid || !angularGrid?.dataView) return;
+
+    const data = angularGrid.dataView.getItems();
+    if (!data || data.length === 0) return;
+
+    const getUniqueValues = (dataArray: any[], field: string): Array<{ value: string; label: string }> => {
+      const map = new Map<string, string>();
+      dataArray.forEach((row: any) => {
+        const value = String(row?.[field] ?? '');
+        if (value && !map.has(value)) {
+          map.set(value, value);
+        }
+      });
+      return Array.from(map.entries())
+        .map(([value, label]) => ({ value, label }))
+        .sort((a, b) => a.label.localeCompare(b.label));
+    };
+
+    const columns = angularGrid.slickGrid.getColumns();
+    if (!columns) return;
+
+    // Update runtime columns
+    columns.forEach((column: any) => {
+      if (column?.filter && column.filter.model === Filters['multipleSelect']) {
+        const field = column.field;
+        if (!field || !fieldsToFilter.includes(field)) return;
+        column.filter.collection = getUniqueValues(data, field);
+      }
+    });
+
+    // Update column definitions
+    columnDefs.forEach((colDef: any) => {
+      if (colDef?.filter && colDef.filter.model === Filters['multipleSelect']) {
+        const field = colDef.field;
+        if (!field || !fieldsToFilter.includes(field)) return;
+        colDef.filter.collection = getUniqueValues(data, field);
+      }
+    });
+
+    angularGrid.slickGrid.setColumns(angularGrid.slickGrid.getColumns());
+    angularGrid.slickGrid.invalidate();
+    angularGrid.slickGrid.render();
   }
 
 }

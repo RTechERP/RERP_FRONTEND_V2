@@ -146,7 +146,7 @@
                     Xem tất cả <i nz-icon nzType="right" nzTheme="outline"></i>
                 </a>
             </div>
-            <div class="card-body p-0">
+            <div class="card-body p-0" *ngIf="quantityApprove?.Count > 0">
                 <div class="px-3 py-2 bg-light"
                     style="background-color: #fff3cd !important; border-left: 4px solid #ffc107;"
                     *hasPermission="'N1,N32,N85'">

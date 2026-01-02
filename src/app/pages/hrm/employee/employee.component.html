@@ -234,7 +234,8 @@
                     <nz-form-label [nzSpan]="24">Team</nz-form-label>
                     <nz-select formControlName="EmployeeTeamID" nzPlaceHolder="Chọn team" style="width: 100%"
                       nzAllowClear nzShowSearch>
-                      <nz-option *ngFor="let te of employeeTeam; trackBy: trackByTeamId" [nzValue]="te.ID" [nzLabel]="te.Name"></nz-option>
+                      <nz-option *ngFor="let te of employeeTeam; trackBy: trackByTeamId" [nzValue]="te.ID"
+                        [nzLabel]="te.Name"></nz-option>
                     </nz-select>
                     <!-- <button nz-button nzType="default" nzSize="default" style="
                         font-size: 0.75rem;
@@ -858,7 +859,8 @@
         <button type="button" class="btn-close me-1" data-bs-dismiss="modal" aria-label="Close"></button>
       </div>
       <div class="modal-body fs-12 p-0">
-        <app-employee-login-manager [selectedEmployee]="selectedEmployee" (onSaveSuccess)="loadEmployees()"></app-employee-login-manager>
+        <app-employee-login-manager [selectedEmployee]="selectedEmployee"
+          (onSaveSuccess)="loadEmployees()"></app-employee-login-manager>
       </div>
     </div>
   </div>
@@ -928,7 +930,8 @@
             <nz-form-label [nzSpan]="24">Người giữ sổ </nz-form-label>
             <nz-select formControlName="NguoiGiuSoBHXHText" nzPlaceHolder="Nhập người giữ sổ" style="width: 100%"
               nzAllowClear nzShowSearch>
-              <nz-option *ngFor="let e of employees; trackBy: trackByEmployeeId" [nzValue]="e.FullName" [nzLabel]="e.FullName"></nz-option>
+              <nz-option *ngFor="let e of employees; trackBy: trackByEmployeeId" [nzValue]="e.FullName"
+                [nzLabel]="e.FullName"></nz-option>
             </nz-select>
           </nz-form-item>
         </form>
@@ -1004,7 +1007,8 @@
         <button type="button" class="btn-close me-1" data-bs-dismiss="modal" aria-label="Close"></button>
       </div>
       <div class="modal-body fs-12">
-        <app-employee-login-manager [selectedEmployee]="selectedEmployee" (onSaveSuccess)="loadEmployees()"></app-employee-login-manager>
+        <app-employee-login-manager [selectedEmployee]="selectedEmployee"
+          (onSaveSuccess)="loadEmployees()"></app-employee-login-manager>
       </div>
     </div>
   </div>

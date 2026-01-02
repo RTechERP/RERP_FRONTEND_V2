@@ -42,6 +42,7 @@ import { EmployeeNofingerprintService } from './employee-no-fingerprint-service/
 import { ENFDetailComponent } from './ENF-detail/ENF-detail.component';
 import { DEFAULT_TABLE_CONFIG } from '../../../../tabulator-default.config';
 import { AuthService } from '../../../../auth/auth.service';
+import { PermissionService } from '../../../../services/permission.service';
 
 @Component({
   selector: 'app-enf',
@@ -68,8 +69,7 @@ import { AuthService } from '../../../../auth/auth.service';
   styleUrls: ['./employee-no-fingerprint.component.css'],
 })
 export class EmployeeNoFingerprintComponent
-  implements OnInit, AfterViewInit, OnDestroy
-{
+  implements OnInit, AfterViewInit, OnDestroy {
   // #region ViewChild and Properties
   @ViewChild('tb_ENF', { static: false }) tb_ENFRef!: ElementRef;
 
@@ -129,8 +129,9 @@ export class EmployeeNoFingerprintComponent
     private enfService: EmployeeNofingerprintService,
     private ngbModal: NgbModal,
     private nzModal: NzModalService,
-    private authService: AuthService
-  ) {}
+    private authService: AuthService,
+    private permissionService: PermissionService
+  ) { }
 
   // #region Lifecycle Hooks
   ngOnInit(): void {
@@ -208,7 +209,7 @@ export class EmployeeNoFingerprintComponent
 
     this.tb_ENF = new Tabulator(container, {
       ...DEFAULT_TABLE_CONFIG,
-      layout:'fitDataStretch',
+      layout: 'fitDataStretch',
       ajaxURL: this.enfService.getENFListURL(),
       ajaxConfig: 'POST',
       ajaxRequestFunc: (url: any, config: any, params: any) => {
@@ -219,11 +220,11 @@ export class EmployeeNoFingerprintComponent
           DateEnd: this.toISODate(this.dateEnd),
           KeyWord: this.searchValue?.trim() || '',
           DepartmentID: this.selectedDepartmentFilter || 0,
-          EmployeeID:  0,
+          EmployeeID: 0,
           IDApprovedTP: 0,
           Status:
             this.selectedTBPStatusFilter === null ||
-            this.selectedTBPStatusFilter === undefined
+              this.selectedTBPStatusFilter === undefined
               ? -1
               : this.selectedTBPStatusFilter,
         };
@@ -507,7 +508,7 @@ export class EmployeeNoFingerprintComponent
       IDApprovedTP: 0,
       Status:
         this.selectedTBPStatusFilter === null ||
-        this.selectedTBPStatusFilter === undefined
+          this.selectedTBPStatusFilter === undefined
           ? -1
           : this.selectedTBPStatusFilter,
     };
@@ -1107,8 +1108,7 @@ export class EmployeeNoFingerprintComponent
         ) {
           this.notification.warning(
             'Thông báo',
-            `Nhân viên ${
-              item.FullName
+            `Nhân viên ${item.FullName
             } không thuộc phòng ${this.currentDepartmentName.toUpperCase()}. Vui lòng kiểm tra lại!`
           );
           cancelNext(index + 1);
@@ -1307,18 +1307,29 @@ export class EmployeeNoFingerprintComponent
   private isApproved(item: any): boolean {
     // Kiểm tra trạng thái duyệt TBP
     const statusTBP = item.StatusText;
-    const isTBPApproved = 
-      statusTBP === 'Đã duyệt' || 
-      item.IsApprovedTP === true || 
+    const isTBPApproved =
+      statusTBP === 'Đã duyệt' ||
+      item.IsApprovedTP === true ||
       item.Status === 1;
-    
+
     // Kiểm tra trạng thái duyệt HR
     const statusHR = item.StatusHRText;
-    const isHRApproved = 
-      statusHR === 'Đã duyệt' || 
-      item.IsApprovedHR === true || 
+    const isHRApproved =
+      statusHR === 'Đã duyệt' ||
+      item.IsApprovedHR === true ||
       item.StatusHR === 1;
-    
+
+    // Kiểm tra quyền đặc biệt (Admin, N1, N2)
+    const hasPrivilege =
+      this.isAdmin ||
+      this.permissionService.hasPermission('N1') ||
+      this.permissionService.hasPermission('N2');
+
+    // Nếu có quyền đặc biệt, bỏ qua check TBP (trừ khi HR đã duyệt)
+    if (hasPrivilege) {
+      return isHRApproved;
+    }
+
     // Nếu TBP hoặc HR đã duyệt thì không cho sửa
     return isTBPApproved || isHRApproved;
   }

@@ -158,23 +158,43 @@
         </div>
 
         <div class="card-body p-0" style="height: calc(100vh - 150px); display: flex; flex-direction: column;">
+          <nz-spin [nzSpinning]="isLoading" nzTip="Đang tải dữ liệu..." style="height: 100%;">
           <nz-splitter nzLayout="vertical" style="height: 100%; flex: 1;">
             <!-- Bảng Master - Cấp phát (ở trên) - 60% -->
             <nz-splitter-panel [nzCollapsible]="false" [nzResizable]="false" nzSize="60%">
-              <div #datatableAssetAllocation style="height: 100%; width: 100%; overflow: auto;"></div>
+              <div class="grid-container" id="grid-container-allocation" style="height: 100%;">
+                <angular-slickgrid
+                  gridId="grvAssetAllocation"
+                  [columns]="columnDefinitions"
+                  [options]="gridOptions"
+                  [dataset]="dataset"
+                  (onAngularGridCreated)="angularGridReady($event.detail)"
+                  (onSelectedRowsChanged)="handleRowSelection($event.detail.eventData, $event.detail.args)"
+                  (onClick)="onCellClicked($event.detail.eventData, $event.detail.args)">
+                </angular-slickgrid>
+              </div>
             </nz-splitter-panel>
 
             <!-- Bảng Detail - Chi tiết cấp phát (ở dưới) - 40% -->
             <nz-splitter-panel [nzCollapsible]="false" [nzResizable]="false" nzSize="40%">
               <div style="height: 100%; display: flex; flex-direction: column;">
-                <nz-tabset style="padding-left: 10px; flex: 1; height: 0;">
-                  <nz-tab [nzTitle]="detailTabTitle">
-                    <div #datatableAllocationDetail style="height: 100%; width: 100%; overflow: auto;"></div>
+                <nz-tabset style="padding-left: 10px; flex: 1; display: flex; flex-direction: column; min-height: 0;">
+                  <nz-tab [nzTitle]="detailTabTitle" style="height: 100%;">
+                    <div id="grid-container-allocation-detail" style="height: 100%; width: 100%;">
+                      <angular-slickgrid
+                        gridId="grvAllocationDetail"
+                        [columns]="columnDefinitionsDetail"
+                        [options]="gridOptionsDetail"
+                        [dataset]="datasetDetail"
+                        (onAngularGridCreated)="angularGridDetailReady($event.detail)">
+                      </angular-slickgrid>
+                    </div>
                   </nz-tab>
                 </nz-tabset>
               </div>
             </nz-splitter-panel>
           </nz-splitter>
+        </nz-spin>
         </div>
       </div>
     </nz-splitter-panel>

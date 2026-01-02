@@ -55,8 +55,7 @@ import { EmployeeTimekeepingManagementComponent } from './employee-timekeeping-m
   styleUrls: ['./employee-timekeeping.component.css'],
 })
 export class EmployeeTimekeepingComponent
-  implements OnInit, AfterViewInit, OnDestroy
-{
+  implements OnInit, AfterViewInit, OnDestroy {
   // #region ViewChild and Properties
   @ViewChild('tb_ET', { static: false }) tb_ETRef!: ElementRef;
 
@@ -84,10 +83,10 @@ export class EmployeeTimekeepingComponent
     private etService: EmployeeTimekeepingService,
     private ngbModal: NgbModal,
     private nzModal: NzModalService
-  ) {}
+  ) { }
 
   // #region Lifecycle Hooks
-  ngOnInit(): void {}
+  ngOnInit(): void { }
 
   ngAfterViewInit(): void {
     setTimeout(() => {
@@ -339,7 +338,7 @@ export class EmployeeTimekeepingComponent
     });
   }
   private getETAjaxParams(): any {
-    const y = this.year ? this.year.getFullYear() : new Date().getFullYear();
+    const y = this.year ? this.year.getFullYear() : null;
     const kw = (this.searchValue || '').trim();
     return { year: y, keyword: kw };
   }
@@ -349,9 +348,10 @@ export class EmployeeTimekeepingComponent
       console.log('Table not ready yet');
       return;
     }
-    console.log('Searching ET with params:', this.getETAjaxParams());
-    // Sử dụng replaceData() để trigger ajax với params mới
-    this.tb_ET.replaceData();
+    const params = this.getETAjaxParams();
+    console.log('Searching ET with params:', params);
+    // Cập nhật ajaxParams trước khi gọi replaceData()
+    this.tb_ET.setData(this.etService.getETListURL(), params);
   }
 
   resetSearch(): void {

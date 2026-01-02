@@ -18,9 +18,9 @@ import { NzSelectModule } from 'ng-zorro-antd/select';
 import { NzInputModule } from 'ng-zorro-antd/input';
 import { NzSpinModule } from 'ng-zorro-antd/spin';
 import { NzFormModule } from 'ng-zorro-antd/form';
-import { NzModalModule, NzModalService } from 'ng-zorro-antd/modal'; 
+import { NzModalModule, NzModalService } from 'ng-zorro-antd/modal';
 import * as XLSX from 'xlsx';
-import { saveAs } from 'file-saver'; 
+import { saveAs } from 'file-saver';
 
 import { NzNotificationService } from 'ng-zorro-antd/notification';
 import { TabulatorFull as Tabulator } from 'tabulator-tables';
@@ -62,7 +62,8 @@ export class EmployeeAttendanceComponent implements OnInit, AfterViewInit {
     private notification: NzNotificationService,
     private ngbModal: NgbModal,
     private vehicleRepairService: VehicleRepairService,
-  ) {}
+    private modal: NzModalService
+  ) { }
 
   @ViewChild('tb_EA', { static: false }) tbEAContainer!: ElementRef;
   tb_EA!: Tabulator;
@@ -138,8 +139,8 @@ export class EmployeeAttendanceComponent implements OnInit, AfterViewInit {
         const filtered =
           this.departmentId && this.departmentId > 0
             ? all.filter(
-                (x: any) => Number(x.DepartmentID) === Number(this.departmentId)
-              )
+              (x: any) => Number(x.DepartmentID) === Number(this.departmentId)
+            )
             : all;
 
         this.employees = this.eas.createdDataGroup(filtered, 'DepartmentName');
@@ -295,18 +296,18 @@ export class EmployeeAttendanceComponent implements OnInit, AfterViewInit {
     if (!this.tbEAContainer?.nativeElement) return;
 
     this.tb_EA = new Tabulator(this.tbEAContainer.nativeElement, {
-      height: '100%',
+      height: '70vh',
       layout: 'fitDataStretch',
       locale: 'vi',
       data: [],
-      selectableRows: 1,
+      selectable: true,
       placeholder: 'Không có dữ liệu để hiển thị',
       groupBy: 'DepartmentName',
       groupStartOpen: true,
       groupHeader: (value: string, count: number) =>
         `<span style="font-weight:600">Phòng ban: ${value} (${count})</span>`,
       columns: this.buildColumnsAttendance(),
-    });
+    } as any);
   }
 
   private buildColumnsAttendance(): ColumnDefinition[] {
@@ -342,8 +343,8 @@ export class EmployeeAttendanceComponent implements OnInit, AfterViewInit {
       const style = isOverLate
         ? 'background-color: yellow; color:#000;'
         : isLate
-        ? 'background-color: rgb(255, 0, 0); color:#fff;'
-        : '';
+          ? 'background-color: rgb(255, 0, 0); color:#fff;'
+          : '';
 
       return `<div style="${style}">${v}</div>`;
     };
@@ -368,8 +369,8 @@ export class EmployeeAttendanceComponent implements OnInit, AfterViewInit {
       const style = isOverEarly
         ? 'background-color: yellow; color:#000;'
         : isEarly
-        ? 'background-color: rgb(255, 0, 0); color:#fff;'
-        : '';
+          ? 'background-color: rgb(255, 0, 0); color:#fff;'
+          : '';
 
       return `<div style="${style}">${v}</div>`;
     };
@@ -378,6 +379,15 @@ export class EmployeeAttendanceComponent implements OnInit, AfterViewInit {
       this.highlightTable(String(cell.getValue() ?? ''));
 
     const cols: ColumnDefinition[] = [
+      {
+        formatter: 'rowSelection',
+        titleFormatter: 'rowSelection',
+        title: '',
+        width: 30,
+        hozAlign: ALIGN_CENTER,
+        headerHozAlign: ALIGN_CENTER,
+        frozen: true,
+      },
       {
         title: 'Thông tin nhân viên',
         headerHozAlign: ALIGN_CENTER,
@@ -593,6 +603,45 @@ export class EmployeeAttendanceComponent implements OnInit, AfterViewInit {
     }
   }
 
+  deleteItems(): void {
+    if (!this.tb_EA) return;
+    const selected = this.tb_EA.getSelectedData();
+    if (!selected || selected.length === 0) {
+      this.notification.warning('Thông báo', 'Vui lòng chọn dòng cần xóa');
+      return;
+    }
+
+    this.modal.confirm({
+      nzTitle: 'Xác nhận xóa',
+      nzContent: `Bạn có chắc chắn muốn xóa ${selected.length} dòng đã chọn?`,
+      nzOkText: 'Đồng ý',
+      nzCancelText: 'Hủy',
+      nzOnOk: () => {
+        const ids = selected.map((x: any) => x.ID).filter((id: any) => id > 0);
+        if (ids.length === 0) {
+          this.notification.warning('Thông báo', 'Không tìm thấy ID hợp lệ để xóa');
+          return;
+        }
+
+        this.eas.delete(ids).subscribe({
+          next: (res: any) => {
+            if (res?.status === 1) {
+              this.notification.success('Thông báo', res?.message || 'Xóa thành công');
+              this.getEmployeeAttendace();
+              // Clear selection
+              this.tb_EA.deselectRow();
+            } else {
+              this.notification.error('Lỗi', res?.message || 'Xóa thất bại');
+            }
+          },
+          error: (err: any) => {
+            this.notification.error('Lỗi', err?.error?.message || err.message || 'Có lỗi xảy ra khi xóa');
+          },
+        });
+      },
+    });
+  }
+
   /** Chuẩn bị dữ liệu theo đúng thứ tự cột & kèm raw để tô màu */
   private prepareExportRows(): Array<{
     exportRow: any;
@@ -794,7 +843,7 @@ export class EmployeeAttendanceComponent implements OnInit, AfterViewInit {
 
 
 
- 
+
 
 
 
@@ -821,7 +870,7 @@ export class EmployeeAttendanceComponent implements OnInit, AfterViewInit {
       (res) => {
         if (res?.success) this.getEmployeeAttendace();
       },
-      () => {} // dismissed
+      () => { } // dismissed
     );
   }
 }

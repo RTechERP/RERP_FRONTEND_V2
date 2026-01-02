@@ -27,17 +27,19 @@ export interface ApproveItemParam {
   FieldName?: string | null;
   FullName?: string | null;
   DeleteFlag?: boolean | null;
-  IsApprovedHR?: boolean | null;
+  IsApprovedHR?: boolean | null;  // Changed back to boolean
   IsCancelRegister?: number | null;
-  IsApprovedTP?: boolean | null;
-  IsApprovedBGD?: boolean | null;
-  IsSeniorApproved?: boolean | null;
+  IsApprovedTP?: boolean | null;  // Changed back to boolean
+  IsApprovedBGD?: boolean | null;  // Changed back to boolean
+  IsSeniorApproved?: boolean | null;  // Changed back to boolean
   ValueUpdatedDate?: string | null;
   ValueDecilineApprove?: string | null;
+  DecilineApprove?: number | null;  // Trạng thái không duyệt: 2 = Không đồng ý duyệt
   EvaluateResults?: string | null;
   EmployeeID?: number | null;
-  TType?: number | null;  
+  TType?: number | null;
   ReasonDeciline?: string | null;
+  ForceApproveSenior?: boolean | null;  // TBP can force approve even if Senior hasn't approved
 }
 
 export interface ApproveRequestParam {
@@ -55,6 +57,7 @@ export interface NotProcessedApprovalItem {
 })
 export class ApproveTpService {
   private apiUrl = environment.host + 'api/home/';
+  private apiUrlApprove = environment.host + 'api/Approve/';
 
   constructor(private http: HttpClient) { }
 
@@ -73,7 +76,7 @@ export class ApproveTpService {
       Accept: 'application/json',
     });
 
-    return this.http.post<any>(`${this.apiUrl}approve-tbp`, request, { headers });
+    return this.http.post<any>(`${this.apiUrlApprove}approve-tbp-new`, request, { headers });
   }
 
   unApproveTBP(request: ApproveRequestParam): Observable<any> {
@@ -82,7 +85,7 @@ export class ApproveTpService {
       Accept: 'application/json',
     });
 
-    return this.http.post<any>(`${this.apiUrl}un-approve-tbp`, request, { headers });
+    return this.http.post<any>(`${this.apiUrlApprove}approve-tbp-new`, request, { headers });
   }
 
   approveBGD(request: ApproveRequestParam): Observable<any> {
@@ -91,7 +94,7 @@ export class ApproveTpService {
       Accept: 'application/json',
     });
 
-    return this.http.post<any>(`${this.apiUrl}approve-bgd`, request, { headers });
+    return this.http.post<any>(`${this.apiUrlApprove}approve-bgd-new`, request, { headers });
   }
 
   approveSenior(request: ApproveRequestParam): Observable<any> {
@@ -100,7 +103,7 @@ export class ApproveTpService {
       Accept: 'application/json',
     });
 
-    return this.http.post<any>(`${this.apiUrl}approve-senior`, request, { headers });
+    return this.http.post<any>(`${this.apiUrlApprove}approve-senior-new`, request, { headers });
   }
 
   getApproveByApproveTPAjax(): string {

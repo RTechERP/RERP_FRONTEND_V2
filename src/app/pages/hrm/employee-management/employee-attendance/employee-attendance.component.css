@@ -22,7 +22,7 @@
   flex-direction: column;
 }
 
-.card-body > div {
+.card-body>div {
   flex: 1 1 auto;
   min-height: 0;
   overflow: hidden;
@@ -43,4 +43,72 @@
   word-break: break-word !important;
 }
 
+/* ========================================= */
+/* Search Bar / Filter Responsive Styles */
+/* ========================================= */
 
+.filter-bar {
+  /* Default Mobile-first or base styles */
+  background: #f8f9fa;
+  /* bg-light */
+}
+
+/* On Desktop (or > 768px), keep it static flow */
+@media (min-width: 769px) {
+  .filter-bar {
+    position: static !important;
+    z-index: 1;
+    margin: 0 !important;
+    border-bottom: 1px solid #dee2e6;
+  }
+
+  .filter-backdrop {
+    display: none !important;
+  }
+
+  /* Override any mobile-modal effects */
+  .mobile-modal {
+    position: static !important;
+    top: auto !important;
+    left: auto !important;
+    right: auto !important;
+    width: auto !important;
+    height: auto !important;
+    max-height: none !important;
+    box-shadow: none !important;
+    transform: none !important;
+    border-radius: 0 !important;
+  }
+}
+
+/* On Mobile (< 768px), make it a modal/popup if needed */
+@media (max-width: 768px) {
+  .mobile-modal {
+    position: fixed;
+    top: 50px;
+    /* Adjust to be below header if possible */
+    left: 10px;
+    right: 10px;
+    z-index: 1001;
+    /* Above table */
+    background: white;
+    border: 1px solid #ccc;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    border-radius: 4px;
+    padding: 10px;
+  }
+
+  .mobile-modal.ng-star-inserted {
+    /* Animation support could go here */
+  }
+
+  .filter-backdrop {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background: rgba(0, 0, 0, 0.3);
+    z-index: 1000;
+  }
+}

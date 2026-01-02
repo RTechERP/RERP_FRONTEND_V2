@@ -145,7 +145,10 @@ export class ProjectAgvSummarySlickGirdComponent implements OnInit, AfterViewIni
   projectTypeIds: number[] = [];
   projecStatusIds: string[] = [];
   activeTab: string = 'workreport';
+
+  gridsReady: boolean = false;
   detailGridsReady: boolean = false;
+  detailTabsVisible: boolean = false;
   userId: any;
   pmId: any;
   businessFieldId: any;
@@ -195,7 +198,12 @@ export class ProjectAgvSummarySlickGirdComponent implements OnInit, AfterViewIni
     this.getCustomers();
     this.getProjectTypes();
     this.getProjectStatus();
+
     this.searchProjects();
+    setTimeout(() => {
+      this.gridsReady = true;
+      this.angularGrid?.resizerService?.resizeGrid();
+    }, 800); // Tăng lên 800ms để đảm bảo DOM đã ready
   }
 
   ngOnDestroy(): void {
@@ -1183,6 +1191,10 @@ export class ProjectAgvSummarySlickGirdComponent implements OnInit, AfterViewIni
     this.cdr.detectChanges();
 
 
+    this.detailTabsVisible = true;
+    this.detailGridsReady = false;
+    this.cdr.detectChanges();
+
     setTimeout(() => {
       // Reinforce state right before rendering
       this.activeTab = 'workreport';
@@ -1201,7 +1213,7 @@ export class ProjectAgvSummarySlickGirdComponent implements OnInit, AfterViewIni
         console.log('[OPEN PROJECT] Loading typelink data immediately');
         setTimeout(() => this.getProjectTypeLinks(), 100);
       }
-    }, 300);
+    }, 600);
   }
 
   handleRowSelection(e: any, args: OnSelectedRowsChangedEventArgs) {
@@ -1278,6 +1290,7 @@ export class ProjectAgvSummarySlickGirdComponent implements OnInit, AfterViewIni
         this.sizeTbMaster = '100%';
         this.sizeTbDetail = '0';
         this.detailGridsReady = false;
+        this.detailTabsVisible = false;
         this.projectId = 0;
         this.datasetWorkReport = [];
         this.datasetTypeLink = [];
@@ -1505,6 +1518,7 @@ export class ProjectAgvSummarySlickGirdComponent implements OnInit, AfterViewIni
     this.sizeTbMaster = '100%';
     this.sizeTbDetail = '0';
     this.detailGridsReady = false;
+    this.detailTabsVisible = false;
     this.angularGridWorkReport = undefined!;
     this.angularGridTypeLink = undefined!;
     setTimeout(() => {

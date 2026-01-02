@@ -209,6 +209,7 @@ import { ProjectSurveySlickGridComponent } from './pages/project-survey-slick-gr
 import { RequestInvoiceSummarySlickgridComponent } from './pages/old/request-invoice-summary-slickgrid/request-invoice-summary-slickgrid.component';
 import { NewsletterComponent } from './pages/old/newsletter/newsletter/newsletter.component';
 import { NewsletterTypeComponent } from './pages/old/newsletter/newsletter/newsletter-type/newsletter-type.component';
+import { MeetingMinuteSlickGridComponent } from './pages/meeting-minute-slick-grid/meeting-minute-slick-grid.component';
 
 export const routes: Routes = [
     {
@@ -351,7 +352,7 @@ export const routes: Routes = [
             { path: 'project-work-propress', component: ProjectWorkPropressComponent, canActivate: [authGuard] },
             { path: 'project-work-timeline', component: ProjectWorkTimelineComponent, canActivate: [authGuard] },
             //{ path: 'project-survey', component: ProjectSurveyComponent, canActivate: [authGuard] },
-            { path: 'meeting-minute', component: MeetingMinuteComponent, canActivate: [authGuard] },
+            //{ path: 'meeting-minute', component: MeetingMinuteComponent, canActivate: [authGuard] },
             { path: 'project-item-late', component: ProjectItemLateComponent, canActivate: [authGuard] },
             { path: 'project-work-item-timeline', component: ProjectWorkItemTimelineComponent, canActivate: [authGuard] },
             //{ path: 'synthesis-of-generated-materials', component: SynthesisOfGeneratedMaterialsComponent, canActivate: [authGuard] },
@@ -531,7 +532,8 @@ export const routes: Routes = [
             { path: 'project-worktimeline', component: ProjectWorkTimelineComponent, canActivate: [authGuard] },
             { path: 'project-survey', component:ProjectSurveySlickGridComponent   , canActivate: [authGuard] },
             { path: 'project-survey-slick-grid', component: ProjectSurveyComponent, canActivate: [authGuard] },
-            { path: 'meeting-minute', component: MeetingMinuteComponent, canActivate: [authGuard] },
+            { path: 'meeting-minute', component: MeetingMinuteComponent , canActivate: [authGuard] },
+            { path: 'meeting-minute-slick-grid', component: MeetingMinuteSlickGridComponent, canActivate: [authGuard] },
             { path: 'project-itemlate', component: ProjectItemLateComponent, canActivate: [authGuard] },
             { path: 'project-workitem-timeline', component: ProjectWorkItemTimelineComponent, canActivate: [authGuard] },
             { path: 'synthesis-of-generated-materials', component:  SynthesisOfGeneratedMaterialsSlickGridComponent, canActivate: [authGuard] },

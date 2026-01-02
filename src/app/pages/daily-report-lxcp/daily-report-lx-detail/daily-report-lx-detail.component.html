@@ -56,8 +56,8 @@
                             <button nz-button nzType="primary" nzSize="default" (click)="openOverTimeModal()"
                                 [class.flex-grow-1]="currentUser?.PositionID !== 7 && currentUser?.PositionID !== 72"
                                 [class.w-100]="currentUser?.PositionID !== 7 && currentUser?.PositionID !== 72 && mode" 
-                                [class.flex-grow-1]="currentUser?.PositionID === 7 || currentUser?.PositionID === 72 && mode != 'add'"
-                                [class.w-100]="currentUser?.PositionID === 7 || currentUser?.PositionID === 72 && mode != 'add'">
+                                [class.flex-grow-1]="currentUser?.PositionID === 7 || currentUser?.PositionID === 72 && mode != 'add'"`
+                                [class.w-100]="currentUser?.PositionID !== 7 || currentUser?.PositionID !== 72 && mode != 'add'">
                                 Làm thêm
                             </button>
                         </div>

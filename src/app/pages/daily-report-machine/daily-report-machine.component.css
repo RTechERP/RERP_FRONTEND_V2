@@ -82,57 +82,57 @@
     padding: 16px !important;
 }
 
-  .filter-bar.mobile-modal form.mobile-filter-form {
+.filter-bar.mobile-modal form.mobile-filter-form {
     width: 100%;
-  }
+}
 
-  .filter-bar.mobile-modal nz-form-item {
+.filter-bar.mobile-modal nz-form-item {
     width: 100% !important;
     margin-bottom: 0 !important;
-  }
+}
 
-  .filter-bar.mobile-modal nz-form-label {
+.filter-bar.mobile-modal nz-form-label {
     display: block !important;
     margin-bottom: 2px !important;
-  }
+}
 
-  /* Giảm padding của label trên mobile */
-  :host ::ng-deep .filter-bar.mobile-modal .ant-form-item-label {
+/* Giảm padding của label trên mobile */
+:host ::ng-deep .filter-bar.mobile-modal .ant-form-item-label {
     padding-bottom: 0 !important;
-  }
+}
 
-  .filter-bar.mobile-modal nz-form-control {
+.filter-bar.mobile-modal nz-form-control {
     width: 100% !important;
-  }
+}
 
-  .filter-bar.mobile-modal nz-date-picker,
-  .filter-bar.mobile-modal nz-select,
-  .filter-bar.mobile-modal input[nz-input] {
+.filter-bar.mobile-modal nz-date-picker,
+.filter-bar.mobile-modal nz-select,
+.filter-bar.mobile-modal input[nz-input] {
     width: 100% !important;
-  }
+}
 
-  /* Đảm bảo input và button trong d-flex có cùng height */
-  .filter-bar.mobile-modal .d-flex {
+/* Đảm bảo input và button trong d-flex có cùng height */
+.filter-bar.mobile-modal .d-flex {
     align-items: center;
-  }
+}
 
-  .filter-bar.mobile-modal .d-flex input[nz-input] {
+.filter-bar.mobile-modal .d-flex input[nz-input] {
     height: 24px;
-  }
+}
 
-  .filter-bar.mobile-modal .d-flex button {
+.filter-bar.mobile-modal .d-flex button {
     height: 24px;
     display: flex;
     align-items: center;
     justify-content: center;
-  }
+}
 
-  .filter-bar.mobile-modal .ant-picker,
-  .filter-bar.mobile-modal .ant-select-selector {
+.filter-bar.mobile-modal .ant-picker,
+.filter-bar.mobile-modal .ant-select-selector {
     width: 100% !important;
-  }
+}
 
-  /* .filter-bar.mobile-modal nz-col {
+/* .filter-bar.mobile-modal nz-col {
     margin-bottom: 8px;
   } */
 
@@ -188,7 +188,8 @@
         width: auto !important;
         min-height: auto !important;
         margin-bottom: 0 !important;
-        height: 24px; /* Match với input small size */
+        height: 24px;
+        /* Match với input small size */
     }
 
     .filter-bar.mobile-modal button:last-child {
@@ -274,45 +275,51 @@
 .mobile-filter-form {
     gap: 4px;
 }
+
 .ant-form-inline .ant-form-item {
     margin-right: 0px !important;
-  }
-  /* Fix dropdown width - không co dãn theo text */
+}
+
+/* Fix dropdown width - không co dãn theo text */
 :host ::ng-deep .ant-select-dropdown {
     min-width: 200px !important;
     max-width: 400px !important;
-  }
-  
-  /* Đảm bảo option text xuống dòng nếu quá dài */
-  :host ::ng-deep .ant-select-item-option-content {
+}
+
+/* Đảm bảo option text xuống dòng nếu quá dài */
+:host ::ng-deep .ant-select-item-option-content {
     white-space: normal !important;
     word-wrap: break-word !important;
     word-break: break-word !important;
     line-height: 1.4 !important;
     padding: 4px 0 !important;
-  }
-  
-  /* Hoặc nếu muốn cắt text với ... */
-  :host ::ng-deep .ant-select-item-option-content {
+}
+
+/* Hoặc nếu muốn cắt text với ... */
+:host ::ng-deep .ant-select-item-option-content {
     white-space: nowrap !important;
     overflow: hidden !important;
     text-overflow: ellipsis !important;
-  }
-  
-  /* Fix cho select box không bị giãn */
-  :host ::ng-deep .filter-bar .ant-select-selector {
+}
+
+/* Fix cho select box không bị giãn */
+:host ::ng-deep .filter-bar .ant-select-selector {
     min-width: 150px;
-  }
+}
 
-  /* Đảm bảo các input trong filter bar hiển thị tốt */
-  :host ::ng-deep .filter-bar .ant-picker {
+/* Đảm bảo các input trong filter bar hiển thị tốt */
+:host ::ng-deep .filter-bar .ant-picker {
     width: 100%;
-  }
+}
 
-  :host ::ng-deep .filter-bar .ant-select {
+:host ::ng-deep .filter-bar .ant-select {
     width: 100%;
-  }
+}
 
-  :host ::ng-deep .filter-bar input[nz-input] {
+:host ::ng-deep .filter-bar input[nz-input] {
     width: 100%;
-  }
+}
+
+:host ::ng-deep .ant-form-item {
+    margin-bottom: 12px !important;
+}

@@ -55,4 +55,6 @@
 ::ng-deep .daily-report-hr-modal .modal-footer {
   flex-shrink: 0;
 }
-
+:host ::ng-deep .ant-form-item  {
+  margin-bottom: 12px !important;
+}

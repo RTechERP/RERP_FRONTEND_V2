@@ -326,8 +326,8 @@
               <!-- Master Grid -->
               <nz-splitter-panel [nzCollapsible]="true" nzResizable="true" [nzSize]="sizeTbMaster">
                 <div class="grid-container" id="grid-container-agv-projects" style="height: 100%;">
-                  <angular-slickgrid gridId="grvAgvProjects" [columns]="columnDefinitions" [options]="gridOptions"
-                    [dataset]="dataset" (onAngularGridCreated)="angularGridReady($event.detail)"
+                  <angular-slickgrid *ngIf="gridsReady" gridId="grvAgvProjects" [columns]="columnDefinitions"
+                    [options]="gridOptions" [dataset]="dataset" (onAngularGridCreated)="angularGridReady($event.detail)"
                     (onSelectedRowsChanged)="handleRowSelection($event.detail.eventData, $event.detail.args)"
                     (onClick)="onCellClicked($event.detail.eventData, $event.detail.args)">
                   </angular-slickgrid>
@@ -341,8 +341,8 @@
                     <i nz-icon nzType="close"></i>
                   </button>
                 </ng-template>
-                <nz-tabset *ngIf="detailGridsReady" style="padding-left: 10px !important;"
-                  [nzTabBarExtraContent]="tabClose"
+                <nz-tabset *ngIf="detailTabsVisible" style="padding-left: 10px !important;"
+                  [nzTabBarExtraContent]="tabClose" [(nzSelectedIndex)]="selectedTabIndex"
                   (nzSelectedIndexChange)="switchTab($event === 0 ? 'workreport' : 'typelink')">
                   <nz-tab nzTitle="Danh sách hạng mục">
                     <div class="d-flex align-items-center p-1 gap-1 justify-content-sm-end">
@@ -360,16 +360,16 @@
                       </button>
                     </div>
                     <div id="grid-container-agv-workreport" style="width: 100%; height: 78vh;">
-                      <angular-slickgrid *ngIf="activeTab === 'workreport'" gridId="grvAgvWorkReport"
-                        [columns]="columnDefinitionsWorkReport" [options]="gridOptionsWorkReport"
-                        [dataset]="datasetWorkReport"
+                      <angular-slickgrid *ngIf="detailGridsReady && activeTab === 'workreport'"
+                        gridId="grvAgvWorkReport" [columns]="columnDefinitionsWorkReport"
+                        [options]="gridOptionsWorkReport" [dataset]="datasetWorkReport"
                         (onAngularGridCreated)="angularGridWorkReportReady($event.detail)">
                       </angular-slickgrid>
                     </div>
                   </nz-tab>
                   <nz-tab nzTitle="Kiểu dự án">
                     <div id="grid-container-agv-typelink" style="width: 100%; height: 80vh;">
-                      <angular-slickgrid *ngIf="activeTab === 'typelink'" gridId="grvAgvTypeLink"
+                      <angular-slickgrid *ngIf="detailGridsReady && activeTab === 'typelink'" gridId="grvAgvTypeLink"
                         [columns]="columnDefinitionsTypeLink" [options]="gridOptionsTypeLink"
                         [dataset]="datasetTypeLink" (onAngularGridCreated)="angularGridTypeLinkReady($event.detail)">
                       </angular-slickgrid>

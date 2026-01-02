@@ -73,6 +73,8 @@ import { RequestInvoiceSummaryComponent } from '../request-invoice-summary/reque
 import { MenuEventService } from '../../systems/menus/menu-service/menu-event.service';
 import { RequestInvoiceStatusLinkService } from '../request-invoice-status-link/request-invoice-status-link-service/request-invoice-status-link.service';
 import { ActivatedRoute } from '@angular/router';
+import { environment } from '../../../../environments/environment';
+import { Menubar } from 'primeng/menubar';
 
 @Component({
     selector: 'app-request-invoice-slickgrid',
@@ -104,6 +106,7 @@ import { ActivatedRoute } from '@angular/router';
         CommonModule,
         HasPermissionDirective,
         AngularSlickgridModule,
+        Menubar,
     ],
     templateUrl: './request-invoice-slickgrid.component.html',
     styleUrl: './request-invoice-slickgrid.component.css',
@@ -167,10 +170,62 @@ export class RequestInvoiceSlickgridComponent implements OnInit, AfterViewInit {
         endDate: new Date(),
     };
 
-    showSearchBar: boolean = false;
     isPOFileGridRendered: boolean = false;
-    toggleSearchPanel(event?: Event) {
-        this.showSearchBar = !this.showSearchBar;
+
+    menuBars: any[] = [];
+
+    initMenuBar() {
+        this.menuBars = [
+            {
+                label: 'Thêm',
+                icon: 'fa-solid fa-plus fa-lg text-success',
+                command: () => {
+                    this.openModal();
+                }
+            },
+            {
+                label: 'Sửa',
+                icon: 'fa-solid fa-pen-to-square fa-lg text-primary',
+                command: () => {
+                    this.onEdit();
+                }
+            },
+            {
+                label: 'Xóa',
+                icon: 'fa-solid fa-trash fa-lg text-danger',
+                command: () => {
+                    this.onDelete();
+                }
+            },
+            {
+                label: 'Cây thư mục',
+                icon: 'fa-solid fa-folder-tree fa-lg text-info',
+                command: () => {
+                    this.openTreeFolder();
+                }
+            },
+            {
+                label: 'Tổng hợp',
+                icon: 'fa-solid fa-list-check fa-lg text-warning',
+                command: () => {
+                    this.openRequestInvoiceSummary();
+                }
+            },
+            {
+                label: 'Cập nhật trạng thái',
+                icon: 'fa-solid fa-rotate fa-lg text-secondary',
+                command: () => {
+                    this.openRequestInvoiceStatusLinkModal();
+                }
+            },
+            {
+                label: 'Xuất Excel',
+                icon: 'fa-solid fa-file-excel fa-lg text-success',
+                command: () => {
+                    this.exportTableToExcel();
+                }
+            }
+        ];
     }
 
     onFilesTabChange(tabIndex: number): void {
@@ -193,6 +248,7 @@ export class RequestInvoiceSlickgridComponent implements OnInit, AfterViewInit {
     }
 
     ngOnInit(): void {
+        this.initMenuBar();
         this.route.queryParams.subscribe(params => {
             this.warehouseId = params['warehouseId'] || 0;
         });
@@ -378,19 +434,19 @@ export class RequestInvoiceSlickgridComponent implements OnInit, AfterViewInit {
     // Initialize Detail Table
     initGridDetail(): void {
         this.columnDefinitionsDetail = [
-            { id: 'STT', name: 'STT', field: 'STT', width: 70, minWidth: 70, sortable: true, filterable: true, filter: { model: Filters['compoundInputNumber'] }, columnGroup: '', columnGroupKey: '' },
-            { id: 'ProductNewCode', name: 'Mã nội bộ', field: 'ProductNewCode', width: 100, minWidth: 100, sortable: true, filterable: true, filter: { model: Filters['compoundInputText'] }, columnGroup: '', columnGroupKey: '' },
-            { id: 'ProductCode', name: 'Mã sản phẩm', field: 'ProductCode', width: 150, minWidth: 150, sortable: true, filterable: true, filter: { model: Filters['compoundInputText'] }, columnGroup: '', columnGroupKey: '' },
-            { id: 'GuestCode', name: 'Mã theo khách', field: 'GuestCode', width: 150, minWidth: 150, sortable: true, filterable: true, filter: { model: Filters['compoundInputText'] }, columnGroup: '', columnGroupKey: '' },
-            { id: 'ProductName', name: 'Tên sản phẩm', field: 'ProductName', width: 150, minWidth: 150, sortable: true, filterable: true, filter: { model: Filters['compoundInputText'] }, columnGroup: '', columnGroupKey: '' },
-            { id: 'Unit', name: 'ĐVT', field: 'Unit', width: 100, minWidth: 100, sortable: true, filterable: true, filter: { model: Filters['multipleSelect'], collection: [], collectionOptions: { addBlankEntry: true }, filterOptions: { autoAdjustDropHeight: true, filter: true, } as any, }, columnGroup: '', columnGroupKey: '' },
-            { id: 'Quantity', name: 'Số lượng', field: 'Quantity', width: 100, minWidth: 100, sortable: true, formatter: this.moneyFormatter, cssClass: 'text-end', filterable: true, filter: { model: Filters['compoundInputNumber'] }, columnGroup: '', columnGroupKey: '' },
-            { id: 'ProjectCode', name: 'Mã dự án', field: 'ProjectCode', width: 150, minWidth: 150, sortable: true, filterable: true, filter: { model: Filters['compoundInputText'] }, columnGroup: '', columnGroupKey: '' },
-            { id: 'ProjectName', name: 'Dự án', field: 'ProjectName', width: 150, minWidth: 150, sortable: true, filterable: true, filter: { model: Filters['compoundInputText'] }, columnGroup: '', columnGroupKey: '' },
-            { id: 'Note', name: 'Ghi chú', field: 'Note', width: 150, minWidth: 150, sortable: true, filterable: true, filter: { model: Filters['compoundInputText'] }, columnGroup: '', columnGroupKey: '' },
-            { id: 'Specifications', name: 'Thông số kỹ thuật', field: 'Specifications', width: 150, minWidth: 150, sortable: true, filterable: true, filter: { model: Filters['compoundInputText'] }, columnGroup: '', columnGroupKey: '' },
-            { id: 'InvoiceNumber', name: 'Số hóa đơn', field: 'InvoiceNumber', width: 150, minWidth: 150, sortable: true, filterable: true, filter: { model: Filters['compoundInputText'] }, columnGroup: '', columnGroupKey: '' },
-            { id: 'InvoiceDate', name: 'Ngày hóa đơn', field: 'InvoiceDate', width: 150, minWidth: 150, sortable: true, formatter: this.dateFormatter, cssClass: 'text-center', columnGroup: '', columnGroupKey: '' },
+            { id: 'STT', name: 'STT', field: 'STT', width: 70, minWidth: 70, sortable: true, filterable: true, filter: { model: Filters['compoundInputNumber'] }, columnGroup: 'Chung', columnGroupKey: 'Chung' },
+            { id: 'ProductNewCode', name: 'Mã nội bộ', field: 'ProductNewCode', width: 100, minWidth: 100, sortable: true, filterable: true, filter: { model: Filters['compoundInputText'] }, columnGroup: 'Chung', columnGroupKey: 'Chung' },
+            { id: 'ProductCode', name: 'Mã sản phẩm', field: 'ProductCode', width: 150, minWidth: 150, sortable: true, filterable: true, filter: { model: Filters['compoundInputText'] }, columnGroup: 'Chung', columnGroupKey: 'Chung' },
+            { id: 'GuestCode', name: 'Mã theo khách', field: 'GuestCode', width: 150, minWidth: 150, sortable: true, filterable: true, filter: { model: Filters['compoundInputText'] }, columnGroup: 'Chung', columnGroupKey: 'Chung' },
+            { id: 'ProductName', name: 'Tên sản phẩm', field: 'ProductName', width: 150, minWidth: 150, sortable: true, filterable: true, filter: { model: Filters['compoundInputText'] }, columnGroup: 'Chung', columnGroupKey: 'Chung' },
+            { id: 'Unit', name: 'ĐVT', field: 'Unit', width: 100, minWidth: 100, sortable: true, filterable: true, filter: { model: Filters['multipleSelect'], collection: [], collectionOptions: { addBlankEntry: true }, filterOptions: { autoAdjustDropHeight: true, filter: true, } as any, }, columnGroup: 'Chung', columnGroupKey: 'Chung' },
+            { id: 'Quantity', name: 'Số lượng', field: 'Quantity', width: 100, minWidth: 100, sortable: true, formatter: this.moneyFormatter, cssClass: 'text-end', filterable: true, filter: { model: Filters['compoundInputNumber'] }, columnGroup: 'Chung', columnGroupKey: 'Chung' },
+            { id: 'ProjectCode', name: 'Mã dự án', field: 'ProjectCode', width: 150, minWidth: 150, sortable: true, filterable: true, filter: { model: Filters['compoundInputText'] }, columnGroup: 'Chung', columnGroupKey: 'Chung' },
+            { id: 'ProjectName', name: 'Dự án', field: 'ProjectName', width: 150, minWidth: 150, sortable: true, filterable: true, filter: { model: Filters['compoundInputText'] }, columnGroup: 'Chung', columnGroupKey: 'Chung' },
+            { id: 'Note', name: 'Ghi chú', field: 'Note', width: 150, minWidth: 150, sortable: true, filterable: true, filter: { model: Filters['compoundInputText'] }, columnGroup: 'Chung', columnGroupKey: 'Chung' },
+            { id: 'Specifications', name: 'Thông số kỹ thuật', field: 'Specifications', width: 150, minWidth: 150, sortable: true, filterable: true, filter: { model: Filters['compoundInputText'] }, columnGroup: 'Chung', columnGroupKey: 'Chung' },
+            { id: 'InvoiceNumber', name: 'Số hóa đơn', field: 'InvoiceNumber', width: 150, minWidth: 150, sortable: true, filterable: true, filter: { model: Filters['compoundInputText'] }, columnGroup: 'Chung', columnGroupKey: 'Chung' },
+            { id: 'InvoiceDate', name: 'Ngày hóa đơn', field: 'InvoiceDate', width: 150, minWidth: 150, sortable: true, formatter: this.dateFormatter, cssClass: 'text-center', columnGroup: 'Chung', columnGroupKey: 'Chung' },
             { id: 'RequestDate', name: 'Ngày đặt hàng', field: 'RequestDate', width: 150, minWidth: 150, sortable: true, formatter: this.dateFormatter, cssClass: 'text-center', filterable: true, filter: { model: Filters['compoundInputText'] }, columnGroup: 'Thông tin đầu vào', columnGroupKey: 'Thông tin đầu vào' },
             { id: 'DateRequestImport', name: 'Ngày hàng về', field: 'DateRequestImport', width: 150, minWidth: 150, sortable: true, formatter: this.dateFormatter, cssClass: 'text-center', filterable: true, filter: { model: Filters['compoundInputText'] }, columnGroup: 'Thông tin đầu vào', columnGroupKey: 'Thông tin đầu vào' },
             { id: 'SupplierName', name: 'Nhà cung cấp', field: 'SupplierName', width: 250, minWidth: 250, sortable: true, filterable: true, filter: { model: Filters['compoundInputText'] }, columnGroup: 'Thông tin đầu vào', columnGroupKey: 'Thông tin đầu vào' },
@@ -469,10 +525,16 @@ export class RequestInvoiceSlickgridComponent implements OnInit, AfterViewInit {
     private getFileContextMenuOptions(): MenuCommandItem[] {
         return [
             {
+                iconCssClass: 'fa fa-eye',
+                title: 'Xem file',
+                command: 'view',
+                positionOrder: 60,
+            },
+            {
                 iconCssClass: 'fa fa-download',
                 title: 'Tải xuống',
                 command: 'download',
-                positionOrder: 60,
+                positionOrder: 61,
             }
         ];
     }
@@ -482,6 +544,10 @@ export class RequestInvoiceSlickgridComponent implements OnInit, AfterViewInit {
         const dataContext = args.dataContext;
 
         switch (command) {
+            case 'view':
+                this.selectedFile = dataContext;
+                this.viewFile(dataContext);
+                break;
             case 'download':
                 this.selectedFile = dataContext;
                 this.downloadFile(dataContext);
@@ -545,10 +611,16 @@ export class RequestInvoiceSlickgridComponent implements OnInit, AfterViewInit {
     private getPOFileContextMenuOptions(): MenuCommandItem[] {
         return [
             {
+                iconCssClass: 'fa fa-eye',
+                title: 'Xem file',
+                command: 'view',
+                positionOrder: 60,
+            },
+            {
                 iconCssClass: 'fa fa-download',
                 title: 'Tải xuống',
                 command: 'download',
-                positionOrder: 60,
+                positionOrder: 61,
             }
         ];
     }
@@ -558,6 +630,10 @@ export class RequestInvoiceSlickgridComponent implements OnInit, AfterViewInit {
         const dataContext = args.dataContext;
 
         switch (command) {
+            case 'view':
+                this.selectedPOFile = dataContext;
+                this.viewPOFile(dataContext);
+                break;
             case 'download':
                 this.selectedPOFile = dataContext;
                 this.downloadPOFile(dataContext);
@@ -1112,6 +1188,56 @@ export class RequestInvoiceSlickgridComponent implements OnInit, AfterViewInit {
                 }
             },
         });
+    }
+
+    viewFile(file: any): void {
+        if (!file || !file.ServerPath) {
+            this.notification.warning('Thông báo', 'Vui lòng chọn một file để xem!');
+            return;
+        }
+
+        const filePath = file.ServerPath || '';
+        if (filePath) {
+            const host = environment.host + 'api/share';
+            let urlImg = filePath.replace("\\\\192.168.1.190", host) + `/${file.FileName}`;
+            
+            const newWindow = window.open(
+                urlImg,
+                '_blank',
+                'width=1000,height=700'
+            );
+
+            if (newWindow) {
+                newWindow.onload = () => {
+                    newWindow.document.title = file.FileName;
+                };
+            }
+        }
+    }
+
+    viewPOFile(file: any): void {
+        if (!file || !file.ServerPath) {
+            this.notification.warning('Thông báo', 'Vui lòng chọn một file để xem!');
+            return;
+        }
+
+        const filePath = file.ServerPath || '';
+        if (filePath) {
+            const host = environment.host + 'api/share';
+            let urlImg = filePath.replace("\\\\192.168.1.190", host) + `/${file.FileName}`;
+            
+            const newWindow = window.open(
+                urlImg,
+                '_blank',
+                'width=1000,height=700'
+            );
+
+            if (newWindow) {
+                newWindow.onload = () => {
+                    newWindow.document.title = file.FileName;
+                };
+            }
+        }
     }
 
     private applyDistinctFiltersToGrid(

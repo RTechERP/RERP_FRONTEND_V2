@@ -193,7 +193,7 @@ import { MaterialDetailOfProductRtcComponent } from './pages/old/inventory-demo/
 import { ChiTietSanPhamSaleComponent } from './pages/old/Sale/chi-tiet-san-pham-sale/chi-tiet-san-pham-sale.component';
 import { PokhSlickgridComponent } from './pages/old/pokh-slickgrid/pokh-slickgrid.component';
 import { ProjectDepartmentSummarySlickGridComponent } from './pages/project-department-summary-slick-grid/project-department-summary-slick-grid.component';
-import { ProjectAgvSummarySlickGirdComponent } from './pages/project-agv-summary-slick-gird/project-agv-summary-slick-gird.component';import { CrmComponent } from './pages/crm/crm.component';
+import { ProjectAgvSummarySlickGirdComponent } from './pages/project-agv-summary-slick-gird/project-agv-summary-slick-gird.component'; import { CrmComponent } from './pages/crm/crm.component';
 import { GeneralCategoryComponent } from './pages/general-category/general-category.component';
 import { SystemsComponent } from './pages/systems/systems.component';
 import { WarehouseComponent } from './pages/warehouse/warehouse.component';
@@ -352,7 +352,7 @@ export const routes: Routes = [
             { path: 'project-item-late', component: ProjectItemLateComponent, canActivate: [authGuard] },
             { path: 'project-work-item-timeline', component: ProjectWorkItemTimelineComponent, canActivate: [authGuard] },
             { path: 'synthesis-of-generated-materials', component: SynthesisOfGeneratedMaterialsComponent, canActivate: [authGuard] },
-           // { path: 'project-agv-summary', component: ProjectAgvSummaryComponent, canActivate: [authGuard] },
+            // { path: 'project-agv-summary', component: ProjectAgvSummaryComponent, canActivate: [authGuard] },
             { path: 'project-department-summary', component: ProjectDepartmentSummaryComponent, canActivate: [authGuard] },
             { path: 'price-history-partlist', component: PriceHistoryPartlistComponent, canActivate: [authGuard] },
             { path: 'project-type', component: ProjectTypeComponent, canActivate: [authGuard] },
@@ -360,7 +360,7 @@ export const routes: Routes = [
             { path: 'project-field', component: ProjectFieldComponent, canActivate: [authGuard] },
             { path: 'leader-project', component: LeaderProjectComponent, canActivate: [authGuard] },
             { path: 'meeting-minute-type', component: MeetingMinuteTypeComponent, canActivate: [authGuard] },
-            { path: 'pokh', component: PokhComponent, canActivate: [authGuard] },
+            { path: 'pokh', component: PokhSlickgridComponent, canActivate: [authGuard] },
             { path: 'quotation-kh', component: QuotationKhComponent, canActivate: [authGuard] },
             { path: 'pokh-kpi', component: PokhKpiComponent, canActivate: [authGuard] },
             { path: 'pokh-history', component: PokhHistoryComponent, canActivate: [authGuard] },
@@ -372,8 +372,8 @@ export const routes: Routes = [
             { path: 'daily-report-sale-admin', component: DailyReportSaleAdminComponent, canActivate: [authGuard] },
             { path: 'request-invoice-old', component: RequestInvoiceComponent, canActivate: [authGuard] },
             { path: 'request-invoice', component: RequestInvoiceSlickgridComponent, canActivate: [authGuard] },
-            { path: 'request-invoice-summary', component: RequestInvoiceSummaryComponent, canActivate: [authGuard] },
-            { path: 'request-invoice-summary-new', component: RequestInvoiceSummarySlickgridComponent, canActivate: [authGuard] },
+            { path: 'request-invoice-summary-old', component: RequestInvoiceSummaryComponent, canActivate: [authGuard] },
+            { path: 'request-invoice-summary', component: RequestInvoiceSummarySlickgridComponent, canActivate: [authGuard] },
             { path: 'history-export-accountant', component: HistoryExportAccountantComponent, canActivate: [authGuard] },
             { path: 'history-approved-bill-log', component: HistoryApprovedBillLogComponent, canActivate: [authGuard] },
             { path: 'inventory-by-date', component: InventoryByDateComponent, canActivate: [authGuard] },
@@ -487,7 +487,7 @@ export const routes: Routes = [
             { path: 'history-approved-bill', component: HistoryApprovedBillLogComponent, canActivate: [authGuard] },
             { path: 'accounting-contract-type', component: AccountingContractTypeMasterComponent, canActivate: [authGuard] },
             { path: 'accounting-contract', component: AccountingContractComponent, canActivate: [authGuard] },
-            { path: 'request-invoice-kt', component: RequestInvoiceComponent, canActivate: [authGuard] },
+            { path: 'request-invoice-kt', component: RequestInvoiceSlickgridComponent, canActivate: [authGuard] },
             { path: 'payment-order-kt', component: PaymentOrderComponent, canActivate: [authGuard] },
             { path: 'document-import-export', component: DocumentImportExportComponent, canActivate: [authGuard] },
             { path: 'bill-document-import-type', component: BillDocumentImportTypeComponent, canActivate: [authGuard] },
@@ -511,12 +511,12 @@ export const routes: Routes = [
             { path: 'employee-sale-hn', component: EmployeeSaleManagerComponent, canActivate: [authGuard] },
             { path: 'daily-report-sale-hn', component: DailyReportSaleComponent, canActivate: [authGuard] },
             { path: 'daily-report-saleadmin-hn', component: DailyReportSaleAdminComponent, canActivate: [authGuard] },
-            { path: 'request-invoice-hn', component: RequestInvoiceComponent, canActivate: [authGuard] },
+            { path: 'request-invoice-hn', component: RequestInvoiceSlickgridComponent, canActivate: [authGuard] },
 
 
             //HCM
-            { path: 'request-invoice-hcm', component: RequestInvoiceComponent, canActivate: [authGuard] },
-            { path: 'pokh-hcm', component: PokhComponent, canActivate: [authGuard] },
+            { path: 'request-invoice-hcm', component: RequestInvoiceSlickgridComponent, canActivate: [authGuard] },
+            { path: 'pokh-hcm', component: PokhSlickgridComponent, canActivate: [authGuard] },
             { path: 'follow-project-base-hcm', component: FollowProjectBaseComponent, canActivate: [authGuard] },
 
 
@@ -531,12 +531,12 @@ export const routes: Routes = [
             { path: 'project-itemlate', component: ProjectItemLateComponent, canActivate: [authGuard] },
             { path: 'project-workitem-timeline', component: ProjectWorkItemTimelineComponent, canActivate: [authGuard] },
             { path: 'synthesis-of-generated-materials', component: SynthesisOfGeneratedMaterialsComponent, canActivate: [authGuard] },
-            
-            { path: 'project-agv-summary', component: ProjectAgvSummaryComponent , canActivate: [authGuard] },
-           
-            { path: 'project-agv-summary-slick-grid', component:  ProjectAgvSummarySlickGirdComponent, canActivate: [authGuard] },
-            { path: 'project-dept-summary', component: ProjectDepartmentSummaryComponent  , canActivate: [authGuard] },
-            { path: 'project-dept-summary-slick-grid', component: ProjectDepartmentSummarySlickGridComponent , canActivate: [authGuard] },
+
+            { path: 'project-agv-summary', component: ProjectAgvSummaryComponent, canActivate: [authGuard] },
+
+            { path: 'project-agv-summary-slick-grid', component: ProjectAgvSummarySlickGirdComponent, canActivate: [authGuard] },
+            { path: 'project-dept-summary', component: ProjectDepartmentSummaryComponent, canActivate: [authGuard] },
+            { path: 'project-dept-summary-slick-grid', component: ProjectDepartmentSummarySlickGridComponent, canActivate: [authGuard] },
             { path: 'price-history-partlist', component: PriceHistoryPartlistComponent, canActivate: [authGuard] },
             { path: 'project-type', component: ProjectTypeComponent, canActivate: [authGuard] },
             { path: 'project-field', component: ProjectFieldComponent, canActivate: [authGuard] },

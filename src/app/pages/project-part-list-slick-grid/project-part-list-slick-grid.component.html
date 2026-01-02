@@ -1,4 +1,4 @@
-<div style="display: flex; flex-direction: column; position: relative;" [style.height]="tbp ? '93vh' : '100vh'">
+<div style="display: flex; flex-direction: column; position: relative;" [style.height]="tbp ? '95vh' : '100vh'">
   <!-- Modal Header -->
   <div class="modal-header bg-primary align-items-center ps-2" style="flex-shrink: 0" *ngIf="!tbp">
     <h6 class="text-light text-uppercase m-0" style="padding: 0 0.5rem">
@@ -349,30 +349,30 @@
           <div class="card-header bg-white p-3 d-flex gap-1">
             <div style="width: 100%;" class="d-flex gap-1 align-items-center">
               <ng-container>
-                <label class="fs-12 font-weight-bold">Dự án:</label>
-                <nz-select name="projectId" nzShowSearch nzAllowClear nzPlaceHolder="Chọn dự án" nzSize="small"
+                <label class="fs-12 font-weight-bold" style="font-size: 0.75rem !important;">Dự án:</label>
+                <nz-select style="font-size: 0.75rem !important;" name="projectId" nzShowSearch nzAllowClear nzPlaceHolder="Chọn dự án" nzSize="small"
                   [(ngModel)]="projectId" (ngModelChange)="onProjectIdChange($event)" style="width: 350px;">
                   @for (item of projects; track $index) {
                   <nz-option [nzValue]="item.ID" [nzLabel]="item.ProjectCode + ' - ' + item.ProjectName"></nz-option>
                   }
                 </nz-select>
-                <label class="fs-12 mb-0">Trạng thái TBP</label>
-                <nz-select name="IsLateActual" nzShowSearch nzAllowClear nzPlaceHolder="Chọn trạng thái" nzSize="small"
+                <label class="fs-12 mb-0" style="font-size: 0.75rem !important;">Trạng thái TBP</label>
+                <nz-select style="font-size: 0.75rem !important;" name="IsLateActual" nzShowSearch nzAllowClear nzPlaceHolder="Chọn trạng thái" nzSize="small"
                   [(ngModel)]="isApprovedTBP" nzAllowClear="false" class="fs-12">
                   <nz-option [nzValue]="-1" nzLabel="--Tất cả--"></nz-option>
                   <nz-option [nzValue]="0" nzLabel="Chưa duyệt"></nz-option>
                   <nz-option [nzValue]="1" nzLabel="Đã duyệt"></nz-option>
                 </nz-select>
 
-                <label class="fs-12 mb-0">Trạng thái Y/c mua</label>
-                <nz-select name="IsApprovedPurchase" nzShowSearch nzAllowClear nzPlaceHolder="Chọn trạng thái"
+                <label class="fs-12 mb-0" style="font-size: 0.75rem !important;">Trạng thái Y/c mua</label>
+                <nz-select style="font-size: 0.75rem !important;" name="IsApprovedPurchase" nzShowSearch nzAllowClear nzPlaceHolder="Chọn trạng thái"
                   nzSize="small" [(ngModel)]="isApprovedPurchase" nzAllowClear="false" class="fs-12">
                   <nz-option [nzValue]="-1" nzLabel="--Tất cả-- " class="fs-12"></nz-option>
                   <nz-option [nzValue]="0" nzLabel="Chưa Y/c mua" class="fs-12"></nz-option>
                   <nz-option [nzValue]="1" nzLabel="Đã yêu cầu mua" class="fs-12"></nz-option>
                 </nz-select>
-                <label class="fs-12 mb-0">Trạng thái</label>
-                <nz-select name="IsDeleted" nzShowSearch nzAllowClear nzPlaceHolder="Chọn trạng thái" nzSize="small"
+                <label class="fs-12 mb-0" style="font-size: 0.75rem !important;">Trạng thái</label>
+                <nz-select style="font-size: 0.75rem !important;" name="IsDeleted" nzShowSearch nzAllowClear nzPlaceHolder="Chọn trạng thái" nzSize="small"
                   [(ngModel)]="isDeleted" nzAllowClear="false" class="fs-12">
                   <nz-option [nzValue]="-1" nzLabel="--Tất cả--" class="fs-12"></nz-option>
                   <nz-option [nzValue]="0" nzLabel="Chưa xóa" class="fs-12"></nz-option>
@@ -380,7 +380,7 @@
                 </nz-select>
                 <input nz-input nzSize="small" placeholder="Nhập từ khóa" style="width: 150px" [(ngModel)]="keyword"
                   (keyup.enter)="searchDataProjectWorker()" class="fs-12" />
-                <button type="button" nz-button nzType="primary" nzSize="small" (click)="searchDataProjectWorker()">
+                <button style="font-size: 0.75rem !important;" type="button" nz-button nzType="primary" nzSize="small" (click)="searchDataProjectWorker()">
                   <i nz-icon nzType="search"></i>
                   Tìm kiếm
                 </button>

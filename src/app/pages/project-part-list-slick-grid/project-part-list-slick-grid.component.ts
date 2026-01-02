@@ -13,6 +13,7 @@ import {
   Optional,
   OnDestroy,
 } from '@angular/core';
+import { ActivatedRoute } from '@angular/router'; //nhận param
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import {
@@ -212,12 +213,22 @@ export class ProjectPartListSlickGridComponent implements OnInit, AfterViewInit,
     private appUserService: AppUserService,
     private billExportService: BillExportService,
     private authService: AuthService,
+    private route: ActivatedRoute,  //nhận param
     @Optional() private translateService?: TranslateService,
     @Optional() @Inject('tabData') private tabData?: any
   ) { }
 
   ngOnInit(): void {
     console.log('=== [LIFECYCLE] ngOnInit START ===');
+    
+    // Đọc query parameter tbp
+    this.route.queryParams.subscribe((params: any) => {
+      if (params['tbp'] !== undefined) {
+        this.tbp = params['tbp'] === 'true';
+        console.log('[LIFECYCLE] tbp from query params:', this.tbp);
+      }
+    });
+    
     console.log('[LIFECYCLE] Input params:', {
       projectId: this.projectId,
       isPOKH: this.isPOKH,
@@ -512,7 +523,7 @@ export class ProjectPartListSlickGridComponent implements OnInit, AfterViewInit,
     // Helper: checkbox formatter
     const checkboxFormatter = (row: number, cell: number, value: any) => {
       const checked = value === true || value === 'true' || value === 1 || value === '1';
-      return `<input type="checkbox" ${checked ? 'checked' : ''} disabled style="pointer-events: none; accent-color: #1677ff;" />`;
+      return `<input type="checkbox" ${checked ? 'checked' : ''} disabled style="pointer-events: none; accent-color: #1677ff !important;" />`;
     };
 
     // Helper: money formatter
@@ -755,7 +766,7 @@ export class ProjectPartListSlickGridComponent implements OnInit, AfterViewInit,
         }
       },
       {
-        id: 'IsFix', field: 'IsFix', name: 'Tích xanh', width: 50, columnGroup: ' ', formatter: checkboxFormatter, cssClass: 'text-center',
+        id: 'IsFix', field: 'IsFix', name: 'Tích xanh', width: 50, columnGroup: ' ', formatter: Formatters.iconBoolean, params: { cssClass: "mdi mdi-check" }, cssClass: 'text-center',
         filterable: true,
         filter: {
           model: Filters['multipleSelect'],
@@ -772,10 +783,7 @@ export class ProjectPartListSlickGridComponent implements OnInit, AfterViewInit,
       },
       {
         id: 'IsApprovedTBPText', field: 'IsApprovedTBPText', name: 'TBP duyệt', width: 50, columnGroup: ' ',
-        formatter: (row: number, cell: number, value: any) => {
-          const checked = value === 'Đã duyệt';
-          return `<input type="checkbox" ${checked ? 'checked' : ''} disabled style="pointer-events: none; accent-color: #1677ff;" />`;
-        }, cssClass: 'text-center',
+        formatter: Formatters.iconBoolean, params: { cssClass: "mdi mdi-check" }, cssClass: 'text-center',
         filterable: true,
         filter: {
           model: Filters['multipleSelect'],
@@ -788,23 +796,23 @@ export class ProjectPartListSlickGridComponent implements OnInit, AfterViewInit,
         }
       },
       {
-        id: 'IsNewCode', field: 'IsNewCode', name: 'Hàng mới', width: 50, columnGroup: ' ', formatter: checkboxFormatter, cssClass: 'text-center',
+        id: 'IsNewCode', field: 'IsNewCode', name: 'Hàng mới', width: 50, columnGroup: ' ', formatter: Formatters.iconBoolean, params: { cssClass: "mdi mdi-check" }, cssClass: 'text-center',
         filterable: true,
         filter: {
-          model: Filters['multipleSelect'],
           collection: [
-            { value: 'true', label: 'Có' },
-            { value: 'false', label: 'Không' }
+            { value: '', label: '' },
+            { value: true, label: 'Hàng mới' },
+            // { value: false, label: 'Không có' },
           ],
-          collectionOptions: { addBlankEntry: true },
+          model: Filters['singleSelect'],
           filterOptions: {
+            autoAdjustDropHeight: true,
             filter: true,
-            autoAdjustDropWidthByTextSize: true,
-          } as MultipleSelectOption
-        }
+          } as MultipleSelectOption,
+        },
       },
       {
-        id: 'IsApprovedTBPNewCode', field: 'IsApprovedTBPNewCode', name: 'TBP duyệt SP mới', width: 80, columnGroup: ' ', formatter: checkboxFormatter, cssClass: 'text-center',
+        id: 'IsApprovedTBPNewCode', field: 'IsApprovedTBPNewCode', name: 'TBP duyệt SP mới', width: 80, columnGroup: ' ', formatter: Formatters.iconBoolean, params: { cssClass: "mdi mdi-check" }, cssClass: 'text-center',
         filterable: true,
         filter: {
           model: Filters['multipleSelect'],
@@ -878,7 +886,7 @@ export class ProjectPartListSlickGridComponent implements OnInit, AfterViewInit,
       },
       { id: 'CreatedDate', field: 'CreatedDate', name: 'Ngày tạo', width: 100, columnGroup: ' ', formatter: Formatters.dateIso, cssClass: 'text-center', filterable: true, filter: { model: Filters['compoundDate'] } },
       {
-        id: 'Note', field: 'Note', name: 'Ghi chú', width: 200, columnGroup: ' ',
+        id: 'Note', field: 'Note', name: 'Ghi chú', width: 200, columnGroup: ' ', filterable: true,filter: { model: Filters['compoundInputText']},
         formatter: (_row: any, _cell: any, value: any, _column: any, dataContext: any) => {
           if (!value) return '';
           return `
@@ -904,7 +912,7 @@ export class ProjectPartListSlickGridComponent implements OnInit, AfterViewInit,
         },
       },
       {
-        id: 'ReasonProblem', field: 'ReasonProblem', name: 'Lý do phát sinh', width: 200, columnGroup: ' ',
+        id: 'ReasonProblem', field: 'ReasonProblem', name: 'Lý do phát sinh', width: 200, columnGroup: ' ',filterable: true,filter: { model: Filters['compoundInputText']},
         formatter: (_row: any, _cell: any, value: any, _column: any, dataContext: any) => {
           if (!value) return '';
           return `
@@ -930,7 +938,7 @@ export class ProjectPartListSlickGridComponent implements OnInit, AfterViewInit,
         },
       },
       {
-        id: 'ReasonDeleted', field: 'ReasonDeleted', name: 'Lý do xóa', width: 150, columnGroup: ' ',
+        id: 'ReasonDeleted', field: 'ReasonDeleted', name: 'Lý do xóa', width: 150, columnGroup: ' ',filterable: true,filter: { model: Filters['compoundInputText']},
         formatter: (_row: any, _cell: any, value: any, _column: any, dataContext: any) => {
           if (!value) return '';
           return `
@@ -958,7 +966,7 @@ export class ProjectPartListSlickGridComponent implements OnInit, AfterViewInit,
 
       // ==================== NHÓM: Yêu cầu báo giá ====================
       {
-        id: 'IsCheckPrice', field: 'IsCheckPrice', name: 'Check giá', width: 70, columnGroup: 'Yêu cầu báo giá', formatter: checkboxFormatter, cssClass: 'text-center',
+        id: 'IsCheckPrice', field: 'IsCheckPrice', name: 'Check giá', width: 70, columnGroup: 'Yêu cầu báo giá', formatter: Formatters.iconBoolean, params: { cssClass: "mdi mdi-check" }, cssClass: 'text-center',
         filterable: true,
         filter: {
           model: Filters['multipleSelect'],
@@ -1146,7 +1154,7 @@ export class ProjectPartListSlickGridComponent implements OnInit, AfterViewInit,
       },
       { id: 'DateExpectedQuote', field: 'DateExpectedQuote', name: 'Ngày về dự kiến', width: 110, columnGroup: 'Yêu cầu báo giá', formatter: Formatters.dateIso, cssClass: 'text-center', filterable: true, filter: { model: Filters['compoundDate'] } },
       {
-        id: 'NoteQuote', field: 'NoteQuote', name: 'Ghi chú báo giá', width: 200, columnGroup: 'Yêu cầu báo giá',
+        id: 'NoteQuote', field: 'NoteQuote', name: 'Ghi chú báo giá', width: 200, columnGroup: 'Yêu cầu báo giá',filterable: true,filter: { model: Filters['compoundInputText']},
         formatter: (_row: any, _cell: any, value: any, _column: any, dataContext: any) => {
           if (!value) return '';
           return `
@@ -1175,10 +1183,7 @@ export class ProjectPartListSlickGridComponent implements OnInit, AfterViewInit,
       // ==================== NHÓM: Yêu cầu mua hàng ====================
       {
         id: 'IsApprovedPurchase', field: 'IsApprovedPurchase', name: 'Yêu cầu mua', width: 90, columnGroup: 'Yêu cầu mua hàng',
-        formatter: (row: number, cell: number, value: any) => {
-          const checked = value === 'Đã ' || value === true || value === 'true' || value === 1 || value === '1';
-          return `<input type="checkbox" ${checked ? 'checked' : ''} disabled style="pointer-events: none; accent-color: #1677ff;" />`;
-        }, cssClass: 'text-center',
+        formatter: Formatters.iconBoolean, params: { cssClass: "mdi mdi-check" }, cssClass: 'text-center',
         filterable: true,
         filter: {
           model: Filters['multipleSelect'],
@@ -1227,6 +1232,7 @@ export class ProjectPartListSlickGridComponent implements OnInit, AfterViewInit,
         customTooltip: {
           useRegularTooltip: true,
         },
+        filterable: true,
       },
       {
         id: 'StatusText', field: 'StatusText', name: 'Tình trạng', width: 100, columnGroup: 'Yêu cầu mua hàng', cssClass: 'text-center',
@@ -1243,6 +1249,7 @@ export class ProjectPartListSlickGridComponent implements OnInit, AfterViewInit,
       },
       {
         id: 'FullNamePurchase', field: 'FullNamePurchase', name: 'NV mua hàng', width: 120, columnGroup: 'Yêu cầu mua hàng',
+        filterable: true,
         filter: {
           model: Filters['multipleSelect'],
           collection: [],
@@ -1441,7 +1448,7 @@ export class ProjectPartListSlickGridComponent implements OnInit, AfterViewInit,
         filter: { model: Filters['compoundDate'] }
       },
       {
-        id: 'NotePurchase', field: 'NotePurchase', name: 'Ghi chú mua', width: 200, columnGroup: 'Yêu cầu mua hàng',
+        id: 'NotePurchase', field: 'NotePurchase', name: 'Ghi chú mua', width: 200, columnGroup: 'Yêu cầu mua hàng',filterable: true,filter: { model: Filters['compoundInputText']},
         formatter: (_row: any, _cell: any, value: any, _column: any, dataContext: any) => {
           if (!value) return '';
           return `
@@ -1610,8 +1617,8 @@ export class ProjectPartListSlickGridComponent implements OnInit, AfterViewInit,
       multiColumnSort: false,
       enablePagination: false,
       // Row height - tăng để text wrap không bị đè
-      rowHeight: 50,
-      headerRowHeight: 40,
+      // rowHeight: 50,
+      // headerRowHeight: 40,
       // Checkbox Selector - thêm cột dấu tích ở đầu
       enableCheckboxSelector: true,
       checkboxSelector: {
@@ -4495,66 +4502,66 @@ export class ProjectPartListSlickGridComponent implements OnInit, AfterViewInit,
   }
 
   // Apply distinct filters to PartList grid (tham khảo project-slick-grid2)
-  private applyDistinctFiltersToPartList(): void {
-    if (!this.angularGridPartList?.slickGrid || !this.angularGridPartList?.dataView) return;
+  // private applyDistinctFiltersToPartList(): void {
+  //   if (!this.angularGridPartList?.slickGrid || !this.angularGridPartList?.dataView) return;
 
-    const data = this.angularGridPartList.dataView.getItems();
-    if (!data || data.length === 0) return;
+  //   const data = this.angularGridPartList.dataView.getItems();
+  //   if (!data || data.length === 0) return;
 
-    const getUniqueValues = (dataArray: any[], field: string): Array<{ value: string; label: string }> => {
-      const map = new Map<string, string>();
-      dataArray.forEach((row: any) => {
-        const value = String(row?.[field] ?? '');
-        if (value && !map.has(value)) {
-          map.set(value, value);
-        }
-      });
-      return Array.from(map.entries())
-        .map(([value, label]) => ({ value, label }))
-        .sort((a, b) => a.label.localeCompare(b.label));
-    };
+  //   const getUniqueValues = (dataArray: any[], field: string): Array<{ value: string; label: string }> => {
+  //     const map = new Map<string, string>();
+  //     dataArray.forEach((row: any) => {
+  //       const value = String(row?.[field] ?? '');
+  //       if (value && !map.has(value)) {
+  //         map.set(value, value);
+  //       }
+  //     });
+  //     return Array.from(map.entries())
+  //       .map(([value, label]) => ({ value, label }))
+  //       .sort((a, b) => a.label.localeCompare(b.label));
+  //   };
 
-    const fieldsToFilter = [
-      'TT', 'GroupMaterial', 'ProductCode', 'Model', 'QtyMin', 'QtyFull',
-      'SpecialCode', 'Manufacturer', 'Unit', 'IsFix', 'IsApprovedTBPText', 'IsNewCode', 'IsApprovedTBPNewCode',
-      'Price', 'Amount', 'UnitPriceHistory', 'CurrencyCode', 'Quality', 'FullNameCreated', 'CreatedDate',
-      'Note', 'ReasonProblem', 'ReasonDeleted', 'IsCheckPrice', 'StatusPriceRequestText', 'FullNameQuote',
-      'DatePriceRequest', 'FullNameRequestPrice', 'DeadlinePriceRequest', 'DatePriceQuote',
-      'UnitPriceQuote', 'TotalPriceQuote', 'CurrencyQuote', 'CurrencyRateQuote', 'TotalPriceExchangeQuote',
-      'NameNCCPriceQuote', 'LeadTimeQuote', 'DateExpectedQuote', 'NoteQuote', 'IsApprovedPurchase',
-      'FullNameRequestPurchase', 'StatusText', 'FullNamePurchase', 'ExpectedReturnDate', 'RequestDate',
-      'RequestDatePurchase', 'ExpectedDatePurchase', 'ExpectedArrivalDate', 'BillCodePurchase',
-      'UnitPricePurchase', 'TotalPricePurchase', 'CurrencyPurchase', 'CurrencyRatePurchase',
-      'TotalPriceExchangePurchase', 'SupplierNamePurchase', 'LeadTimePurchase', 'QuantityReturn',
-      'TotalExport', 'RemainQuantity', 'ProductNewCode', 'BillExportCode', 'DateImport', 'NotePurchase',
-      'DateImport2', 'BillImportCode', 'Reciver', 'KhoType', 'TotalHN', 'TotalHCM', 'TotalDP', 'TotalHP', 'TotalBN'
-    ];
+  //   const fieldsToFilter = [
+  //     'TT', 'GroupMaterial', 'ProductCode', 'Model', 'QtyMin', 'QtyFull',
+  //     'SpecialCode', 'Manufacturer', 'Unit', 'IsFix', 'IsApprovedTBPText', 'IsNewCode', 'IsApprovedTBPNewCode',
+  //     'Price', 'Amount', 'UnitPriceHistory', 'CurrencyCode', 'Quality', 'FullNameCreated', 'CreatedDate',
+  //     'Note', 'ReasonProblem', 'ReasonDeleted', 'IsCheckPrice', 'StatusPriceRequestText', 'FullNameQuote',
+  //     'DatePriceRequest', 'FullNameRequestPrice', 'DeadlinePriceRequest', 'DatePriceQuote',
+  //     'UnitPriceQuote', 'TotalPriceQuote', 'CurrencyQuote', 'CurrencyRateQuote', 'TotalPriceExchangeQuote',
+  //     'NameNCCPriceQuote', 'LeadTimeQuote', 'DateExpectedQuote', 'NoteQuote', 'IsApprovedPurchase',
+  //     'FullNameRequestPurchase', 'StatusText', 'FullNamePurchase', 'ExpectedReturnDate', 'RequestDate',
+  //     'RequestDatePurchase', 'ExpectedDatePurchase', 'ExpectedArrivalDate', 'BillCodePurchase',
+  //     'UnitPricePurchase', 'TotalPricePurchase', 'CurrencyPurchase', 'CurrencyRatePurchase',
+  //     'TotalPriceExchangePurchase', 'SupplierNamePurchase', 'LeadTimePurchase', 'QuantityReturn',
+  //     'TotalExport', 'RemainQuantity', 'ProductNewCode', 'BillExportCode', 'DateImport', 'NotePurchase',
+  //     'DateImport2', 'BillImportCode', 'Reciver', 'KhoType', 'TotalHN', 'TotalHCM', 'TotalDP', 'TotalHP', 'TotalBN'
+  //   ];
 
-    const columns = this.angularGridPartList.slickGrid.getColumns();
-    if (!columns) return;
+  //   const columns = this.angularGridPartList.slickGrid.getColumns();
+  //   if (!columns) return;
 
-    // Update runtime columns
-    columns.forEach((column: any) => {
-      if (column?.filter && column.filter.model === Filters['multipleSelect']) {
-        const field = column.field;
-        if (!field || !fieldsToFilter.includes(field)) return;
-        column.filter.collection = getUniqueValues(data, field);
-      }
-    });
+  //   // Update runtime columns
+  //   columns.forEach((column: any) => {
+  //     if (column?.filter && column.filter.model === Filters['multipleSelect']) {
+  //       const field = column.field;
+  //       if (!field || !fieldsToFilter.includes(field)) return;
+  //       column.filter.collection = getUniqueValues(data, field);
+  //     }
+  //   });
 
-    // Update column definitions
-    this.partListColumns.forEach((colDef: any) => {
-      if (colDef?.filter && colDef.filter.model === Filters['multipleSelect']) {
-        const field = colDef.field;
-        if (!field || !fieldsToFilter.includes(field)) return;
-        colDef.filter.collection = getUniqueValues(data, field);
-      }
-    });
+  //   // Update column definitions
+  //   this.partListColumns.forEach((colDef: any) => {
+  //     if (colDef?.filter && colDef.filter.model === Filters['multipleSelect']) {
+  //       const field = colDef.field;
+  //       if (!field || !fieldsToFilter.includes(field)) return;
+  //       colDef.filter.collection = getUniqueValues(data, field);
+  //     }
+  //   });
 
-    this.angularGridPartList.slickGrid.setColumns(this.angularGridPartList.slickGrid.getColumns());
-    this.angularGridPartList.slickGrid.invalidate();
-    this.angularGridPartList.slickGrid.render();
-  }
+  //   this.angularGridPartList.slickGrid.setColumns(this.angularGridPartList.slickGrid.getColumns());
+  //   this.angularGridPartList.slickGrid.invalidate();
+  //   this.angularGridPartList.slickGrid.render();
+  // }
 
   // Utility methods
   /**
@@ -4590,6 +4597,107 @@ export class ProjectPartListSlickGridComponent implements OnInit, AfterViewInit,
       return `${integerPart},${decimalPart}`;
     }
     return integerPart;
+  }
+  applyDistinctFiltersToPartList(): void {
+    const angularGrid = this.angularGridPartList;
+    if (!angularGrid || !angularGrid.slickGrid || !angularGrid.dataView) return;
+
+    const data = angularGrid.dataView.getItems() as any[];
+    if (!data || data.length === 0) return;
+
+    const getUniqueValues = (
+      items: any[],
+      field: string
+    ): Array<{ value: any; label: string }> => {
+      const map = new Map<string, { value: any; label: string }>();
+      items.forEach((row: any) => {
+        const value = row?.[field];
+        if (value === null || value === undefined || value === '') return;
+        const key = `${typeof value}:${String(value)}`;
+        if (!map.has(key)) {
+          map.set(key, { value, label: String(value) });
+        }
+      });
+      return Array.from(map.values()).sort((a, b) =>
+        a.label.localeCompare(b.label)
+      );
+    };
+
+    const booleanCollection = [
+      { value: true, label: 'Có' },
+      { value: false, label: 'Không' },
+    ];
+    const booleanFields = new Set([
+      'IsApprovedPurchase',
+      'IsCheckPrice',
+      'IsApprovedTBPNewCode',
+      'IsNewCode',
+      'IsApprovedTBPText',
+      'IsFix',
+    ]);
+
+    const columns = angularGrid.slickGrid.getColumns();
+    if (columns) {
+      columns.forEach((column: any) => {
+        if (
+          column.filter &&
+          column.filter.model === Filters['multipleSelect']
+        ) {
+          const field = column.field;
+          if (!field) return;
+
+          if (booleanFields.has(field)) {
+            // For boolean fields: only "Có"/"Không" without Select All
+            column.filter.collection = booleanCollection;
+            column.filter.collectionOptions = {
+              addBlankEntry: false, // Không có option trống
+              enableSelectAllOption: false, // Không có Select All
+              maxSelectAllItems: 0 // Không cho phép select all
+            };
+            column.filter.filterOptions = {
+              enableSelectAllOption: false, // Disable Select All trong filter options
+              maxSelectAllItems: 0,
+              selectAllText: null // Không hiển thị text Select All
+            };
+          } else {
+            // For other fields: normal behavior
+            column.filter.collection = getUniqueValues(data, field);
+          }
+        }
+      });
+    }
+
+    if (this.partListColumns) {
+      this.partListColumns.forEach((colDef: any) => {
+        if (
+          colDef.filter &&
+          colDef.filter.model === Filters['multipleSelect']
+        ) {
+          const field = colDef.field;
+          if (!field) return;
+
+          if (booleanFields.has(field)) {
+            // For boolean fields: only "Có"/"Không" without Select All
+            colDef.filter.collection = booleanCollection;
+            colDef.filter.collectionOptions = {
+              addBlankEntry: false, // Không có option trống
+              enableSelectAllOption: false // Không có Select All
+            };
+            colDef.filter.filterOptions = {
+              enableSelectAllOption: false // Disable Select All trong filter options
+            };
+          } else {
+            // For other fields: normal behavior
+            colDef.filter.collection = getUniqueValues(data, field);
+          }
+        }
+      });
+    }
+
+    const updatedColumns = angularGrid.slickGrid.getColumns();
+    angularGrid.slickGrid.setColumns(updatedColumns);
+    angularGrid.slickGrid.invalidate();
+    angularGrid.slickGrid.render();
   }
 }
 

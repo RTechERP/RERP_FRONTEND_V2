@@ -145,7 +145,10 @@ export class ProjectAgvSummarySlickGirdComponent implements OnInit, AfterViewIni
   projectTypeIds: number[] = [];
   projecStatusIds: string[] = [];
   activeTab: string = 'workreport';
+
+  gridsReady: boolean = false;
   detailGridsReady: boolean = false;
+  detailTabsVisible: boolean = false;
   userId: any;
   pmId: any;
   businessFieldId: any;
@@ -195,7 +198,12 @@ export class ProjectAgvSummarySlickGirdComponent implements OnInit, AfterViewIni
     this.getCustomers();
     this.getProjectTypes();
     this.getProjectStatus();
+
     this.searchProjects();
+    setTimeout(() => {
+      this.gridsReady = true;
+      this.angularGrid?.resizerService?.resizeGrid();
+    }, 800); // Tăng lên 800ms để đảm bảo DOM đã ready
   }
 
   ngOnDestroy(): void {
@@ -1066,6 +1074,25 @@ export class ProjectAgvSummarySlickGirdComponent implements OnInit, AfterViewIni
       angularGrid
     );
 
+    // Fix: Resize grid immediately upon creation
+    setTimeout(() => {
+      const container = this.angularGridWorkReport?.slickGrid?.getContainerNode();
+      console.log('[WORKREPORT] Resizing grid (initial load). Container size:',
+        container ? `${container.offsetWidth}x${container.offsetHeight}` : 'N/A');
+
+      this.angularGridWorkReport.resizerService?.resizeGrid();
+    }, 50);
+
+    // Fail-safe check 2 seconds later
+    setTimeout(() => {
+      const container = this.angularGridWorkReport?.slickGrid?.getContainerNode();
+      console.log('[WORKREPORT] 2s Check. Container size:',
+        container ? `${container.offsetWidth}x${container.offsetHeight}` : 'N/A');
+      if (container && (container.offsetWidth === 0 || container.offsetHeight === 0)) {
+        console.warn('[WORKREPORT] Container has 0 dimension!');
+      }
+    }, 2000);
+
     // Load data ngay khi grid ready (chỉ khi đang ở tab workreport)
     if (this.projectId && this.projectId > 0 && this.activeTab === 'workreport') {
       console.log('[WORKREPORT] Loading data after grid ready...');
@@ -1076,6 +1103,12 @@ export class ProjectAgvSummarySlickGirdComponent implements OnInit, AfterViewIni
   angularGridTypeLinkReady(angularGrid: AngularGridInstance) {
     this.angularGridTypeLink = angularGrid;
     console.log('[TYPELINK] Grid ready, instance:', !!this.angularGridTypeLink);
+
+    // Fix: Resize grid immediately upon creation
+    setTimeout(() => {
+      console.log('[TYPELINK] Resizing grid (initial load)');
+      this.angularGridTypeLink.resizerService?.resizeGrid();
+    }, 50);
 
     // Load data ngay khi grid ready (chỉ khi đang ở tab typelink)
     if (this.projectId && this.projectId > 0 && this.activeTab === 'typelink') {
@@ -1149,13 +1182,25 @@ export class ProjectAgvSummarySlickGirdComponent implements OnInit, AfterViewIni
     this.projectCode = item['ProjectCode'];
     this.activeTab = 'workreport';
     this.selectedTabIndex = 0; // Reset về tab đầu tiên
+
+    // Clear stale instances to avoid confusion
+    this.angularGridWorkReport = undefined!;
+    this.angularGridTypeLink = undefined!;
+
     // Trigger change detection
     this.cdr.detectChanges();
 
 
+    this.detailTabsVisible = true;
+    this.detailGridsReady = false;
+    this.cdr.detectChanges();
+
     setTimeout(() => {
+      // Reinforce state right before rendering
+      this.activeTab = 'workreport';
+      this.selectedTabIndex = 0;
       this.detailGridsReady = true;
-      console.log('[OPEN PROJECT] Detail grids ready');
+      console.log('[OPEN PROJECT] Detail grids ready. activeTab:', this.activeTab, 'selectedTabIndex:', this.selectedTabIndex);
 
       // Load data cho workreport grid (nếu đang ở tab workreport và grid đã ready)
       if (this.activeTab === 'workreport' && this.angularGridWorkReport) {
@@ -1168,18 +1213,18 @@ export class ProjectAgvSummarySlickGirdComponent implements OnInit, AfterViewIni
         console.log('[OPEN PROJECT] Loading typelink data immediately');
         setTimeout(() => this.getProjectTypeLinks(), 100);
       }
-    }, 100);
+    }, 600);
   }
 
   handleRowSelection(e: any, args: OnSelectedRowsChangedEventArgs) {
     if (args && args.rows && args.rows.length > 0) {
       const selectedRow = this.gridData.getDataItem(args.rows[0]);
       this.selectedRow = selectedRow;
-      
-      // Mở detail khi chọn dòng (giống như onCellClicked)
-      if (selectedRow) {
-        this.openProjectDetail(selectedRow);
-      }
+
+      // Mở detail khi chọn dòng (giống như onCellClicked) - DONE: Disable to prevent double call
+      // if (selectedRow) {
+      //   this.openProjectDetail(selectedRow);
+      // }
     }
   }
 
@@ -1224,7 +1269,7 @@ export class ProjectAgvSummarySlickGirdComponent implements OnInit, AfterViewIni
     this.isLoading = true;
     const params = this.getProjectAjaxParams();
 
-    this.projectService.getProjectsPagination(params, 1, 1000).subscribe({
+    this.projectService.getProjectsPagination(params, 1, 999999).subscribe({
       next: (response: any) => {
         if (response && response.data && response.data.project) {
           this.dataset = response.data.project.map((item: any, index: number) => ({
@@ -1245,6 +1290,7 @@ export class ProjectAgvSummarySlickGirdComponent implements OnInit, AfterViewIni
         this.sizeTbMaster = '100%';
         this.sizeTbDetail = '0';
         this.detailGridsReady = false;
+        this.detailTabsVisible = false;
         this.projectId = 0;
         this.datasetWorkReport = [];
         this.datasetTypeLink = [];
@@ -1280,16 +1326,31 @@ export class ProjectAgvSummarySlickGirdComponent implements OnInit, AfterViewIni
             STT: index + 1,
           }));
 
+          // Fix: Explicitly set items to DataView to ensure grid updates
+          if (this.angularGridWorkReport?.dataView) {
+            this.angularGridWorkReport.dataView.setItems(this.datasetWorkReport);
+          }
+
           setTimeout(() => {
             if (this.angularGridWorkReport?.dataView && this.angularGridWorkReport?.slickGrid) {
               this.angularGridWorkReport.dataView.refresh();
               this.angularGridWorkReport.slickGrid.invalidate();
               this.angularGridWorkReport.slickGrid.render();
+
+              const container = this.angularGridWorkReport.slickGrid.getContainerNode();
+              console.log('[WORKREPORT] Data rendering complete. Container size:',
+                container ? `${container.offsetWidth}x${container.offsetHeight}` : 'N/A');
+
+              console.log('[WORKREPORT] Data rendering complete, resizing grid...');
+              this.angularGridWorkReport.resizerService?.resizeGrid();
               this.applyDistinctFiltersWorkReport();
             }
           }, 100);
         } else {
           this.datasetWorkReport = [];
+          if (this.angularGridWorkReport?.dataView) {
+            this.angularGridWorkReport.dataView.setItems([]);
+          }
         }
       },
       error: (err) => {
@@ -1457,6 +1518,9 @@ export class ProjectAgvSummarySlickGirdComponent implements OnInit, AfterViewIni
     this.sizeTbMaster = '100%';
     this.sizeTbDetail = '0';
     this.detailGridsReady = false;
+    this.detailTabsVisible = false;
+    this.angularGridWorkReport = undefined!;
+    this.angularGridTypeLink = undefined!;
     setTimeout(() => {
       try {
         this.angularGrid?.resizerService?.resizeGrid();
@@ -1467,8 +1531,9 @@ export class ProjectAgvSummarySlickGirdComponent implements OnInit, AfterViewIni
   }
 
   switchTab(tab: string) {
+    console.log('[SWITCH TAB] Switching to:', tab, 'selectedTabIndex:', this.selectedTabIndex);
     this.activeTab = tab;
-    
+
     setTimeout(() => {
       if (tab === 'workreport' && this.angularGridWorkReport) {
         this.angularGridWorkReport.resizerService?.resizeGrid();

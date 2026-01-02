@@ -205,9 +205,13 @@ import { PurchaseComponent } from './pages/purchase/purchase.component';
 import { HrmComponent } from './pages/hrm/hrm.component';
 import { ApproveComponent } from './pages/approve/approve.component';
 import { RequestInvoiceSlickgridComponent } from './pages/old/request-invoice-slickgrid/request-invoice-slickgrid.component';
+import { PriceHistoryPartlistSlickGridComponent } from './pages/price-history-partlist-slick-grid/price-history-partlist-slick-grid.component';
+import { SynthesisOfGeneratedMaterialsSlickGridComponent } from './pages/synthesis-of-generated-materials-slick-grid/synthesis-of-generated-materials-slick-grid.component';
+import { ProjectSurveySlickGridComponent } from './pages/project-survey-slick-grid/project-survey-slick-grid.component';
 import { RequestInvoiceSummarySlickgridComponent } from './pages/old/request-invoice-summary-slickgrid/request-invoice-summary-slickgrid.component';
 import { NewsletterComponent } from './pages/old/newsletter/newsletter/newsletter.component';
 import { NewsletterTypeComponent } from './pages/old/newsletter/newsletter/newsletter-type/newsletter-type.component';
+import { MeetingMinuteSlickGridComponent } from './pages/meeting-minute-slick-grid/meeting-minute-slick-grid.component';
 
 export const routes: Routes = [
     {
@@ -349,14 +353,14 @@ export const routes: Routes = [
             { path: 'project-part-list-purchase-request-slick-grid', component: ProjectPartListPurchaseRequestSlickGridComponent, canActivate: [authGuard] },
             { path: 'project-work-propress', component: ProjectWorkPropressComponent, canActivate: [authGuard] },
             { path: 'project-work-timeline', component: ProjectWorkTimelineComponent, canActivate: [authGuard] },
-            { path: 'project-survey', component: ProjectSurveyComponent, canActivate: [authGuard] },
-            { path: 'meeting-minute', component: MeetingMinuteComponent, canActivate: [authGuard] },
+            //{ path: 'project-survey', component: ProjectSurveyComponent, canActivate: [authGuard] },
+            //{ path: 'meeting-minute', component: MeetingMinuteComponent, canActivate: [authGuard] },
             { path: 'project-item-late', component: ProjectItemLateComponent, canActivate: [authGuard] },
             { path: 'project-work-item-timeline', component: ProjectWorkItemTimelineComponent, canActivate: [authGuard] },
             { path: 'synthesis-of-generated-materials', component: SynthesisOfGeneratedMaterialsComponent, canActivate: [authGuard] },
             // { path: 'project-agv-summary', component: ProjectAgvSummaryComponent, canActivate: [authGuard] },
             { path: 'project-department-summary', component: ProjectDepartmentSummaryComponent, canActivate: [authGuard] },
-            { path: 'price-history-partlist', component: PriceHistoryPartlistComponent, canActivate: [authGuard] },
+            // { path: 'price-history-partlist', component: PriceHistoryPartlistComponent, canActivate: [authGuard] },
             { path: 'project-type', component: ProjectTypeComponent, canActivate: [authGuard] },
             { path: 'project-leader-project-type', component: ProjectLeaderProjectTypeComponent, canActivate: [authGuard] },
             { path: 'project-field', component: ProjectFieldComponent, canActivate: [authGuard] },
@@ -416,7 +420,7 @@ export const routes: Routes = [
             //TBP duyệt
             { path: 'tbp-payment-order', component: PaymentOrderComponent, canActivate: [authGuard] },
             { path: 'tbp-job-requirement', component: JobRequirementComponent, canActivate: [authGuard] },
-            { path: 'tbp-project-partlist', component: ProjectPartListComponent, canActivate: [authGuard] },
+            { path: 'tbp-project-partlist', component: ProjectPartListSlickGridComponent, canActivate: [authGuard] },
             { path: 'tbp-project-partlist-purchase-request', component: ProjectPartListPurchaseRequestSlickGridComponent, canActivate: [authGuard] },
 
             //HR duyệt
@@ -528,18 +532,21 @@ export const routes: Routes = [
             { path: 'project-slick-grid2', component: ProjectComponent, canActivate: [authGuard] },
             { path: 'project-workpropress', component: ProjectWorkPropressComponent, canActivate: [authGuard] },
             { path: 'project-worktimeline', component: ProjectWorkTimelineComponent, canActivate: [authGuard] },
-            { path: 'project-survey', component: ProjectSurveyComponent, canActivate: [authGuard] },
-            { path: 'meeting-minute', component: MeetingMinuteComponent, canActivate: [authGuard] },
+            { path: 'project-survey', component:ProjectSurveySlickGridComponent   , canActivate: [authGuard] },
+            { path: 'project-survey-slick-grid', component: ProjectSurveyComponent, canActivate: [authGuard] },
+            { path: 'meeting-minute', component: MeetingMinuteComponent , canActivate: [authGuard] },
+            { path: 'meeting-minute-slick-grid', component: MeetingMinuteSlickGridComponent, canActivate: [authGuard] },
             { path: 'project-itemlate', component: ProjectItemLateComponent, canActivate: [authGuard] },
             { path: 'project-workitem-timeline', component: ProjectWorkItemTimelineComponent, canActivate: [authGuard] },
-            { path: 'synthesis-of-generated-materials', component: SynthesisOfGeneratedMaterialsComponent, canActivate: [authGuard] },
-
-            { path: 'project-agv-summary', component: ProjectAgvSummaryComponent, canActivate: [authGuard] },
-
-            { path: 'project-agv-summary-slick-grid', component: ProjectAgvSummarySlickGirdComponent, canActivate: [authGuard] },
-            { path: 'project-dept-summary', component: ProjectDepartmentSummaryComponent, canActivate: [authGuard] },
-            { path: 'project-dept-summary-slick-grid', component: ProjectDepartmentSummarySlickGridComponent, canActivate: [authGuard] },
-            { path: 'price-history-partlist', component: PriceHistoryPartlistComponent, canActivate: [authGuard] },
+            { path: 'synthesis-of-generated-materials', component:  SynthesisOfGeneratedMaterialsSlickGridComponent, canActivate: [authGuard] },
+            { path: 'synthesis-of-generated-materials-slick-grid', component: SynthesisOfGeneratedMaterialsComponent, canActivate: [authGuard] },
+            
+            { path: 'project-agv-summary', component:ProjectAgvSummarySlickGirdComponent , canActivate: [authGuard] },
+            { path: 'project-agv-summary-slick-grid', component:  ProjectAgvSummaryComponent, canActivate: [authGuard] },
+            { path: 'project-dept-summary', component: ProjectDepartmentSummarySlickGridComponent  , canActivate: [authGuard] },
+            { path: 'project-dept-summary-slick-grid', component: ProjectDepartmentSummaryComponent  , canActivate: [authGuard] },
+            { path: 'price-history-partlist-slick-grid', component: PriceHistoryPartlistComponent, canActivate: [authGuard] },
+            { path: 'price-history-partlist', component: PriceHistoryPartlistSlickGridComponent, canActivate: [authGuard] },
             { path: 'project-type', component: ProjectTypeComponent, canActivate: [authGuard] },
             { path: 'project-field', component: ProjectFieldComponent, canActivate: [authGuard] },
             { path: 'meeting-minute-type', component: MeetingMinuteTypeComponent, canActivate: [authGuard] },

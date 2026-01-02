@@ -18,6 +18,7 @@ export class ImportExcelDiffComponent implements OnInit, AfterViewInit {
   
   @ViewChild('partlistTableDiff', { static: false }) partlistTableDiffContainer!: ElementRef;
   tableDiff: any;
+  isLoading: boolean = false;
 
   constructor(public activeModal: NgbActiveModal) {}
 

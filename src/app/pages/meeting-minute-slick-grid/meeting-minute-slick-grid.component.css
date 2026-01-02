@@ -1,0 +1,276 @@
+
+/**/
+.meeting-minute-container {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  width: 100%;
+  overflow: hidden;
+}
+
+.header-actions {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px 12px;
+  background: #fff;
+  border-bottom: 1px solid #e8e8e8;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.left-actions {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.right-actions {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.search-panel {
+  padding: 8px 12px;
+  background: #fafafa;
+  border-bottom: 1px solid #e8e8e8;
+}
+
+.search-panel label {
+  display: block;
+  font-size: 12px;
+  margin-bottom: 4px;
+  color: #666;
+}
+
+.main-splitter {
+  flex: 1;
+  height: calc(100vh - 180px);
+  min-height: 400px;
+}
+
+.grid-container {
+  height: 100%;
+  min-height: 250px;
+  width: 100%;
+}
+
+/* SlickGrid styling */
+:host ::ng-deep .slick-header-column {
+  font-size: 12px;
+  font-weight: 600;
+  background: #fafafa;
+}
+
+:host ::ng-deep .slick-cell {
+  font-size: 12px;
+  padding: 4px 8px;
+}
+
+:host ::ng-deep .slick-row.odd {
+  background: #fafafa;
+}
+
+:host ::ng-deep .slick-row:hover {
+  background: #e6f7ff;
+}
+
+:host ::ng-deep .slick-row.selected {
+  background: #bae7ff !important;
+}
+
+:host ::ng-deep .text-center {
+  text-align: center;
+}
+
+:host ::ng-deep .cell-wrap {
+  white-space: normal;
+  word-wrap: break-word;
+}
+
+/* Tab styling */
+:host ::ng-deep .ant-tabs {
+  height: 100%;
+}
+
+:host ::ng-deep .ant-tabs-content {
+  height: calc(100% - 40px);
+}
+
+:host ::ng-deep .ant-tabs-tabpane {
+  height: 100%;
+}
+
+/* Filter dropdown styling */
+:host ::ng-deep .ms-drop {
+  max-height: 300px !important;
+  overflow-y: auto;
+}
+
+:host ::ng-deep .ms-search input {
+  font-size: 12px;
+}
+
+:host ::ng-deep .ms-choice {
+  font-size: 12px;
+}
+
+/* Splitter styling */
+:host ::ng-deep .ant-splitter-bar {
+  background: #e8e8e8;
+}
+
+:host ::ng-deep .ant-splitter-bar:hover {
+  background: #1890ff;
+}
+
+/* Spin loading */
+:host ::ng-deep .ant-spin-nested-loading {
+  height: 100%;
+}
+
+:host ::ng-deep .ant-spin-container {
+  height: 100%;
+}
+
+/* Card styling */
+:host ::ng-deep .ant-card-small>.ant-card-body {
+  padding: 8px 12px;
+}
+
+/* Button styling */
+button[nz-button] {
+  font-size: 12px;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .header-actions {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .right-actions {
+    width: 100%;
+  }
+
+  .right-actions nz-input-group {
+    width: 100% !important;
+  }
+
+  .main-splitter {
+    height: calc(100vh - 220px);
+  }
+}
+
+angular-slickgrid,
+.angular-slickgrid-container {
+  height: 100% !important;
+  width: 100%;
+  display: flex;
+}
+
+:host ::ng-deep .slickgrid-container {
+  height: 100% !important;
+}
+
+
+/* Responsive adjustments */
+
+.fs-12 {
+  font-size: 0.75rem;
+}
+
+.reset {
+  all: revert;
+}
+
+.ant-splitter-panel {
+  position: relative;
+}
+.ant-tabs-tab-btn {
+  font-size: 0.75rem;
+}
+/* Filter bar styles */
+.filter-bar {
+  transition: all 0.3s ease;
+}
+
+.filter-backdrop {
+  display: none;
+}
+
+.filter-backdrop.mobile-only {
+  display: block;
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.5);
+  z-index: 999;
+}
+
+.filter-bar.mobile-modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  background-color: #f5f5f5;
+  z-index: 1000;
+  max-height: 90vh;
+  overflow-y: auto;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  padding: 16px !important;
+}
+
+.filter-bar.mobile-modal form.mobile-filter-form {
+  width: 100%;
+}
+
+.filter-bar.mobile-modal nz-form-item {
+  width: 100% !important;
+  margin-bottom: 0 !important;
+}
+
+.filter-bar.mobile-modal nz-form-label {
+  display: block !important;
+  margin-bottom: 2px !important;
+}
+
+/* Giảm padding của label trên mobile */
+:host ::ng-deep .filter-bar.mobile-modal .ant-form-item-label {
+  padding-bottom: 0 !important;
+}
+
+.filter-bar.mobile-modal nz-form-control {
+  width: 100% !important;
+}
+
+.filter-bar.mobile-modal nz-date-picker,
+.filter-bar.mobile-modal nz-select,
+.filter-bar.mobile-modal input[nz-input] {
+  width: 100% !important;
+}
+
+/* Đảm bảo input và button trong d-flex có cùng height */
+.filter-bar.mobile-modal .d-flex {
+  align-items: center;
+}
+
+.filter-bar.mobile-modal .d-flex input[nz-input] {
+  height: 24px;
+}
+
+.filter-bar.mobile-modal .d-flex button {
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.filter-bar.mobile-modal .ant-picker,
+.filter-bar.mobile-modal .ant-select-selector {
+  width: 100% !important;
+}

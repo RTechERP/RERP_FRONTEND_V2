@@ -126,8 +126,8 @@
                                     </nz-form-label>
                                     <nz-form-control [nzSpan]="24">
                                         <nz-select [ngModel]="tab.ParentID" [ngModelOptions]="{ standalone: true }"
-                                            (ngModelChange)="onParentIDChange(tab, $event)"
-                                            class="w-100" nzPlaceHolder="Chọn hạng mục cha" nzShowSearch nzAllowClear>
+                                            (ngModelChange)="onParentIDChange(tab, $event)" class="w-100"
+                                            nzPlaceHolder="Chọn hạng mục cha" nzShowSearch nzAllowClear>
                                             @for (parent of ParentList; track $index) {
                                             <nz-option [nzLabel]="parent.Code + ' - ' + parent.Mission"
                                                 [nzValue]="parent.ID"></nz-option>
@@ -195,86 +195,92 @@
                             <!-- Bên phải: Fieldset Kế hoạch -->
                             <nz-col [nzXs]="24" [nzSm]="24" [nzMd]="12" [nzLg]="12" [nzXl]="12">
                                 <fieldset class="reset h-100">
-                                    <legend class="reset">Kế hoạch</legend>
+                                    <fieldset>
+                                        <legend class="reset">Dự kiến</legend>
+                                        <!-- Dòng trên: Kế hoạch - Ngày bắt đầu, Số ngày, Ngày kết thúc -->
+                                        <nz-row [nzGutter]="8">
+                                            <nz-col [nzXs]="24" [nzSm]="8" [nzMd]="8">
+                                                <nz-form-item>
+                                                    <nz-form-label class="fs-12 p-0">
+                                                        Ngày bắt đầu<span class="text-danger ps-1">*</span>
+                                                    </nz-form-label>
+                                                    <nz-form-control [nzSpan]="24">
+                                                        <nz-date-picker [(ngModel)]="tab.PlanStartDate"
+                                                            [ngModelOptions]="{ standalone: true }" class="w-100"
+                                                            nzFormat="dd/MM/yyyy" nzPlaceHolder="Chọn ngày"
+                                                            (ngModelChange)="onPlanStartDateChange(tab)"></nz-date-picker>
+                                                    </nz-form-control>
+                                                </nz-form-item>
+                                            </nz-col>
+                                            <nz-col [nzXs]="24" [nzSm]="8" [nzMd]="8">
+                                                <nz-form-item>
+                                                    <nz-form-label class="fs-12 p-0">Số ngày</nz-form-label>
+                                                    <nz-form-control [nzSpan]="24">
+                                                        <nz-input-number [(ngModel)]="tab.TotalDayPlan"
+                                                            [ngModelOptions]="{ standalone: true }" [nzMin]="0"
+                                                            [nzStep]="1" class="w-100" nzPlaceHolder="Số ngày"
+                                                            (ngModelChange)="onTotalDayPlanChange(tab)"></nz-input-number>
+                                                    </nz-form-control>
+                                                </nz-form-item>
+                                            </nz-col>
+                                            <nz-col [nzXs]="24" [nzSm]="8" [nzMd]="8">
+                                                <nz-form-item>
+                                                    <nz-form-label class="fs-12 p-0">
+                                                        Ngày kết thúc<span class="text-danger ps-1">*</span>
+                                                    </nz-form-label>
+                                                    <nz-form-control [nzSpan]="24">
+                                                        <nz-date-picker [(ngModel)]="tab.PlanEndDate"
+                                                            [ngModelOptions]="{ standalone: true }" class="w-100"
+                                                            nzFormat="dd/MM/yyyy" nzPlaceHolder="Chọn ngày"
+                                                            (ngModelChange)="onPlanEndDateChange(tab)"></nz-date-picker>
+                                                    </nz-form-control>
+                                                </nz-form-item>
+                                            </nz-col>
 
-                                    <!-- Dòng trên: Kế hoạch - Ngày bắt đầu, Số ngày, Ngày kết thúc -->
-                                    <nz-row [nzGutter]="8">
-                                        <nz-col [nzXs]="24" [nzSm]="8" [nzMd]="8">
-                                            <nz-form-item>
-                                                <nz-form-label class="fs-12 p-0">
-                                                    Ngày bắt đầu<span class="text-danger ps-1">*</span>
-                                                </nz-form-label>
-                                                <nz-form-control [nzSpan]="24">
-                                                    <nz-date-picker [(ngModel)]="tab.PlanStartDate"
-                                                        [ngModelOptions]="{ standalone: true }" class="w-100"
-                                                        nzFormat="dd/MM/yyyy" nzPlaceHolder="Chọn ngày"
-                                                        (ngModelChange)="onPlanStartDateChange(tab)"></nz-date-picker>
-                                                </nz-form-control>
-                                            </nz-form-item>
-                                        </nz-col>
-                                        <nz-col [nzXs]="24" [nzSm]="8" [nzMd]="8">
-                                            <nz-form-item>
-                                                <nz-form-label class="fs-12 p-0">Số ngày</nz-form-label>
-                                                <nz-form-control [nzSpan]="24">
-                                                    <nz-input-number [(ngModel)]="tab.TotalDayPlan"
-                                                        [ngModelOptions]="{ standalone: true }" [nzMin]="0" [nzStep]="1"
-                                                        class="w-100" nzPlaceHolder="Số ngày"
-                                                        (ngModelChange)="onTotalDayPlanChange(tab)"></nz-input-number>
-                                                </nz-form-control>
-                                            </nz-form-item>
-                                        </nz-col>
-                                        <nz-col [nzXs]="24" [nzSm]="8" [nzMd]="8">
-                                            <nz-form-item>
-                                                <nz-form-label class="fs-12 p-0">
-                                                    Ngày kết thúc<span class="text-danger ps-1">*</span>
-                                                </nz-form-label>
-                                                <nz-form-control [nzSpan]="24">
-                                                    <nz-date-picker [(ngModel)]="tab.PlanEndDate"
-                                                        [ngModelOptions]="{ standalone: true }" class="w-100"
-                                                        nzFormat="dd/MM/yyyy" nzPlaceHolder="Chọn ngày"
-                                                        (ngModelChange)="onPlanEndDateChange(tab)"></nz-date-picker>
-                                                </nz-form-control>
-                                            </nz-form-item>
-                                        </nz-col>
-                                    </nz-row>
 
-                                    <!-- Dòng dưới: Thực tế - Ngày bắt đầu, Ngày kết thúc, % -->
-                                    <nz-row [nzGutter]="8" class="mt-1">
-                                        <nz-col [nzXs]="24" [nzSm]="8" [nzMd]="8">
-                                            <nz-form-item>
-                                                <nz-form-label class="fs-12 p-0">Thực tế bắt đầu</nz-form-label>
-                                                <nz-form-control [nzSpan]="24">
-                                                    <nz-date-picker [(ngModel)]="tab.ActualStartDate"
-                                                        [ngModelOptions]="{ standalone: true }" class="w-100"
-                                                        nzFormat="dd/MM/yyyy" nzPlaceHolder="Chọn ngày"
-                                                        (ngModelChange)="onActualStartDateChange(tab)"></nz-date-picker>
-                                                </nz-form-control>
-                                            </nz-form-item>
-                                        </nz-col>
-                                        <nz-col [nzXs]="24" [nzSm]="8" [nzMd]="8">
-                                            <nz-form-item>
-                                                <nz-form-label class="fs-12 p-0">Thực tế kết thúc</nz-form-label>
-                                                <nz-form-control [nzSpan]="24">
-                                                    <nz-date-picker [(ngModel)]="tab.ActualEndDate"
-                                                        [ngModelOptions]="{ standalone: true }" class="w-100"
-                                                        nzFormat="dd/MM/yyyy" nzPlaceHolder="Chọn ngày"
-                                                        (ngModelChange)="onActualEndDateChange(tab)"></nz-date-picker>
-                                                </nz-form-control>
-                                            </nz-form-item>
-                                        </nz-col>
-                                        <nz-col [nzXs]="24" [nzSm]="8" [nzMd]="8">
-                                            <nz-form-item>
-                                                <nz-form-label class="fs-12 p-0">% Hoàn thành</nz-form-label>
-                                                <nz-form-control [nzSpan]="24">
-                                                    <nz-input-number [(ngModel)]="tab.PercentItem"
-                                                        [ngModelOptions]="{ standalone: true }" [nzMin]="0"
-                                                        [nzMax]="100" [nzStep]="1" [nzFormatter]="percentFormatter"
-                                                        [nzParser]="percentParser" class="w-100"
-                                                        nzPlaceHolder="%"></nz-input-number>
-                                                </nz-form-control>
-                                            </nz-form-item>
-                                        </nz-col>
-                                    </nz-row>
+                                        </nz-row>
+                                    </fieldset>
+
+                                    <fieldset>
+                                        <legend class="reset">Thực tế</legend>
+                                        <!-- Dòng dưới: Thực tế - Ngày bắt đầu, Ngày kết thúc, % -->
+                                        <nz-row [nzGutter]="8" class="mt-1">
+                                            <nz-col [nzXs]="24" [nzSm]="8" [nzMd]="8">
+                                                <nz-form-item>
+                                                    <nz-form-label class="fs-12 p-0">Ngày bắt đầu</nz-form-label>
+                                                    <nz-form-control [nzSpan]="24">
+                                                        <nz-date-picker [(ngModel)]="tab.ActualStartDate"
+                                                            [ngModelOptions]="{ standalone: true }" class="w-100"
+                                                            nzFormat="dd/MM/yyyy" nzPlaceHolder="Chọn ngày"
+                                                            (ngModelChange)="onActualStartDateChange(tab)"></nz-date-picker>
+                                                    </nz-form-control>
+                                                </nz-form-item>
+                                            </nz-col>
+                                            <nz-col [nzXs]="24" [nzSm]="8" [nzMd]="8">
+                                                <nz-form-item>
+                                                    <nz-form-label class="fs-12 p-0">Ngày kết thúc</nz-form-label>
+                                                    <nz-form-control [nzSpan]="24">
+                                                        <nz-date-picker [(ngModel)]="tab.ActualEndDate"
+                                                            [ngModelOptions]="{ standalone: true }" class="w-100"
+                                                            nzFormat="dd/MM/yyyy" nzPlaceHolder="Chọn ngày"
+                                                            (ngModelChange)="onActualEndDateChange(tab)"></nz-date-picker>
+                                                    </nz-form-control>
+                                                </nz-form-item>
+                                            </nz-col>
+                                            <nz-col [nzXs]="24" [nzSm]="8" [nzMd]="8">
+                                                <nz-form-item>
+                                                    <nz-form-label class="fs-12 p-0">% Hoàn thành</nz-form-label>
+                                                    <nz-form-control [nzSpan]="24">
+                                                        <nz-input-number [(ngModel)]="tab.PercentItem"
+                                                            [ngModelOptions]="{ standalone: true }" [nzMin]="0"
+                                                            [nzMax]="100" [nzStep]="1" [nzFormatter]="percentFormatter"
+                                                            [nzParser]="percentParser" class="w-100"
+                                                            nzPlaceHolder="%"></nz-input-number>
+                                                    </nz-form-control>
+                                                </nz-form-item>
+                                            </nz-col>
+                                        </nz-row>
+                                    </fieldset>
                                 </fieldset>
                             </nz-col>
                         </nz-row>

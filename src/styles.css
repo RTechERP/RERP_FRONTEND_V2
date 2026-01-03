@@ -482,3 +482,18 @@ body .slickgrid-container .grid-canvas .slick-cell{
 .tabulator-row.row-focused {
   background-color: #67afe2 !important;
 }
+
+
+
+.spinner{
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(255, 255, 255, 0.4);
+    z-index: 999999;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}

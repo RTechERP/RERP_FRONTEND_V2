@@ -349,6 +349,11 @@ export class MeetingMinuteFormComponent implements OnInit, AfterViewInit {
             CreatedByID: meetingMinute.CreatorID ||0,
           });
 
+          // Update selectedGroupId based on MeetingTypeID
+          if (meetingMinute.MeetingTypeID) {
+            this.onMeetingTypeChange(meetingMinute.MeetingTypeID);
+          }
+
           // Initialize place options with current value
           const currentPlace = meetingMinute.Place || '';
           this.placeOptions = this.getPlaceOptions(currentPlace);
@@ -490,7 +495,7 @@ export class MeetingMinuteFormComponent implements OnInit, AfterViewInit {
             // Force resize to maintain size
             setTimeout(() => {
               this.tb_EmployeeDetailTable.redraw(true);
-              this.tb_EmployeeDetailTable.setHeight('450px');
+              this.tb_EmployeeDetailTable.setHeight('350px');
             }, 50);
           }
           if (this.tb_CustomerDetailTable) {
@@ -498,7 +503,7 @@ export class MeetingMinuteFormComponent implements OnInit, AfterViewInit {
             this.tb_CustomerDetailTable.redraw(true);
             setTimeout(() => {
               this.tb_CustomerDetailTable.redraw(true);
-              this.tb_CustomerDetailTable.setHeight('450px');
+              this.tb_CustomerDetailTable.setHeight('350px');
             }, 50);
           }
         }
@@ -512,7 +517,7 @@ export class MeetingMinuteFormComponent implements OnInit, AfterViewInit {
             this.tb_EmployeeDetailContentTable.redraw(true);
             setTimeout(() => {
               this.tb_EmployeeDetailContentTable.redraw(true);
-              this.tb_EmployeeDetailContentTable.setHeight('450px');
+              this.tb_EmployeeDetailContentTable.setHeight('350px');
             }, 50);
           }
           if (this.tb_CustomerDetailContentTable) {
@@ -522,7 +527,7 @@ export class MeetingMinuteFormComponent implements OnInit, AfterViewInit {
             this.tb_CustomerDetailContentTable.redraw(true);
             setTimeout(() => {
               this.tb_CustomerDetailContentTable.redraw(true);
-              this.tb_CustomerDetailContentTable.setHeight('450px');
+              this.tb_CustomerDetailContentTable.setHeight('350px');
             }, 50);
           }
         }
@@ -534,7 +539,7 @@ export class MeetingMinuteFormComponent implements OnInit, AfterViewInit {
             this.tb_FileTable.redraw(true);
             setTimeout(() => {
               this.tb_FileTable.redraw(true);
-              this.tb_FileTable.setHeight('450px');
+              this.tb_FileTable.setHeight('350px');
             }, 50);
           }
         }

@@ -1,7 +1,9 @@
 <ng-container class="w-100">
     <div class="card border-0 rounded-0 h-100">
-        <div class="card-header bg-white p-1" style="overflow-x: auto;">
-            <div class="d-flex gap-1">
+        <div class="card-header bg-white p-1">
+            <p-menubar *ngIf="isMobile" [model]="menuBars" style="width: 100%;"></p-menubar>
+
+            <div class="d-flex gap-1" *ngIf="!isMobile">
                 <button nz-button nzType="default" nzSize="small"
                     (click)="ToggleSearchPanelNew($event); $event.stopPropagation()"
                     (mousedown)="$event.stopPropagation()" (touchstart)="$event.stopPropagation()"
@@ -33,11 +35,6 @@
                     danh sách
                 </button>
             </div>
-        </div>
-
-        <!-- Backdrop overlay cho mobile -->
-        <div class="filter-backdrop" *ngIf="shouldShowSearchBar" (click)="ToggleSearchPanelNew()"
-            [class.mobile-only]="true">
         </div>
 
         <!-- Filter bar - hiển thị dạng hàng ngang trên desktop, modal trên mobile -->

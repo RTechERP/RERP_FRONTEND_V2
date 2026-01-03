@@ -1,7 +1,25 @@
 :host {
     font-size: 12px !important;
   }
-  
+
+/* Mobile menubar z-index fix */
+::ng-deep .p-menubar {
+  position: relative;
+  z-index: 1050;
+}
+
+::ng-deep .p-menubar-mobile {
+  position: relative;
+  z-index: 1050;
+}
+
+::ng-deep .p-menubar-root-list {
+  position: relative;
+  z-index: 1051;
+}
+
+/* Fix card header z-index */
+
   .tabulator {
     font-size: 12px;
   }

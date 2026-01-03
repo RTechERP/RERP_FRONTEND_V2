@@ -201,5 +201,18 @@
 }
 
 ::ng-deep #tbl_employee_payroll tbody tr.bg-success {
-  background-color: #d4edda !important;
+  background-color: #56dd76 !important;
+}
+
+/* Payroll table confirmed state - green background */
+::ng-deep #tbl_employee_payroll.payroll-confirmed {
+  background-color: #56dd76 !important;
+}
+
+::ng-deep #tbl_employee_payroll.payroll-confirmed tbody tr {
+  background-color: #56dd76 !important;
+}
+
+::ng-deep #tbl_employee_payroll.payroll-confirmed tbody td {
+  background-color: #56dd76 !important;
 }

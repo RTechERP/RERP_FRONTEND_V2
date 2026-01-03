@@ -45,6 +45,9 @@ import { EmployeeNightShiftSummaryComponent } from '../employee-night-shift-summ
 import { EmployeeNightShiftFormComponent } from '../employee-night-shift-form/employee-night-shift-form.component';
 import { NzDropDownModule } from 'ng-zorro-antd/dropdown';
 import { PermissionService } from '../../../../../services/permission.service';
+import { NzFormModule } from 'ng-zorro-antd/form';
+import { Menubar } from 'primeng/menubar';
+
 (window as any).luxon = { DateTime };
 
 @Component({
@@ -69,6 +72,8 @@ import { PermissionService } from '../../../../../services/permission.service';
     HasPermissionDirective,
     NgbDropdownModule,
     NzDropDownModule,
+    NzFormModule,
+    Menubar
   ],
   selector: 'app-employee-night-shift',
   templateUrl: './employee-night-shift.component.html',
@@ -81,11 +86,31 @@ export class EmployeeNightShiftComponent implements OnInit, AfterViewInit, OnDes
     private modal: NzModalService,
     private employeeAttendanceService: EmployeeAttendanceService,
     private vehicleRepairService: VehicleRepairService,
-    private permissionService: PermissionService
+    private permissionService: PermissionService,
+
   ) { }
 
   nightShiftTable: Tabulator | null = null;
   isSearchVisible: boolean = false;
+  showSearchBar: boolean = typeof window !== 'undefined' ? window.innerWidth > 768 : true;
+
+  // Menu bars
+  menuBars: any[] = [];
+
+  get shouldShowSearchBar(): boolean {
+    return this.showSearchBar;
+  }
+
+  isMobile(): boolean {
+    return typeof window !== 'undefined' && window.innerWidth <= 768;
+  }
+
+  ToggleSearchPanelNew(event?: Event): void {
+    if (event) {
+      event.stopPropagation();
+    }
+    this.showSearchBar = !this.showSearchBar;
+  }
 
   // Master data
   departments: any[] = [];
@@ -101,7 +126,7 @@ export class EmployeeNightShiftComponent implements OnInit, AfterViewInit, OnDes
   keyWord: string = '';
 
   private ngbModal = inject(NgbModal);
-  
+
   // Debounce subjects
   private keywordSearchSubject = new Subject<string>();
   private filterChangeSubject = new Subject<void>();
@@ -135,6 +160,7 @@ export class EmployeeNightShiftComponent implements OnInit, AfterViewInit, OnDes
   }
 
   ngOnInit() {
+    this.initMenuBar();
     // Set đầu tháng và cuối tháng làm mặc định
     this.dateStart = this.getFirstDayOfMonth();
     this.dateEnd = this.getLastDayOfMonth();
@@ -158,7 +184,76 @@ export class EmployeeNightShiftComponent implements OnInit, AfterViewInit, OnDes
     ).subscribe(() => {
       this.getNightShift();
     });
-    
+
+  }
+
+  initMenuBar(): void {
+    this.menuBars = [
+      {
+        label: 'Thêm',
+        icon: 'fa-solid fa-plus fa-lg text-success',
+        command: () => this.onAddNightShift()
+      },
+      {
+        label: 'Sửa',
+        icon: 'fa-solid fa-pen-to-square fa-lg text-primary',
+        command: () => this.onEditNightShift()
+      },
+      {
+        label: 'Xóa',
+        icon: 'fa-solid fa-trash fa-lg text-danger',
+        command: () => this.onDeleteNightShift()
+      },
+      {
+        label: 'TBP xác nhận',
+        visible: this.permissionService.hasPermission("N1"),
+        icon: 'fa-solid fa-calendar-check fa-lg text-primary',
+        items: [
+          {
+            visible: this.permissionService.hasPermission("N1"),
+            label: 'TBP duyệt',
+            icon: 'fa-solid fa-circle-check fa-lg text-success',
+            command: () => this.onTBPApprove()
+          },
+          {
+            visible: this.permissionService.hasPermission("N1"),
+            label: 'TBP hủy duyệt',
+            icon: 'fa-solid fa-circle-xmark fa-lg text-danger',
+            command: () => this.onTBPCancel()
+          }
+        ]
+      },
+      {
+        label: 'HR xác nhận',
+        visible: this.permissionService.hasPermission("N1,N2"),
+        icon: 'fa-solid fa-calendar-check fa-lg text-info',
+        items: [
+          {
+            visible: this.permissionService.hasPermission("N1,N2"),
+            label: 'HR duyệt',
+            icon: 'fa-solid fa-circle-check fa-lg text-success',
+            command: () => this.onHRApprove()
+          },
+          {
+            visible: this.permissionService.hasPermission("N1,N2"),
+            label: 'HR hủy duyệt',
+            icon: 'fa-solid fa-circle-xmark fa-lg text-danger',
+            command: () => this.onHRCancel()
+          }
+        ]
+      },
+      {
+        label: 'Xuất Excel',
+        icon: 'fa-solid fa-file-excel fa-lg text-success',
+        command: () => this.exportToExcel()
+      },
+      {
+        visible: this.permissionService.hasPermission("N1,N2"),
+        label: 'Tổng hợp làm đêm',
+        icon: 'fa-solid fa-chart-column fa-lg text-primary',
+        command: () => this.onOpenSummary()
+      }
+    ];
   }
 
   ngOnDestroy(): void {
@@ -469,7 +564,7 @@ export class EmployeeNightShiftComponent implements OnInit, AfterViewInit, OnDes
     }
 
     const dataInput = selectedRows[0];
-    
+
     // Kiểm tra trạng thái duyệt (trừ N1, N2)
     if (!this.hasAdminPermission() && this.isItemApproved(dataInput)) {
       const fullName = dataInput.FullName || dataInput.EmployeeName || 'Không xác định';
@@ -850,11 +945,11 @@ export class EmployeeNightShiftComponent implements OnInit, AfterViewInit, OnDes
     // Tách thành 2 nhóm: đã duyệt (TBP hoặc HR) và chưa duyệt
     // Nếu có quyền N1 hoặc N2 thì không chặn
     const hasAdmin = this.hasAdminPermission();
-    const lockedRows = hasAdmin 
-      ? [] 
+    const lockedRows = hasAdmin
+      ? []
       : selectedRows.filter((row: any) => this.isItemApproved(row));
-    const deletableRows = hasAdmin 
-      ? selectedRows 
+    const deletableRows = hasAdmin
+      ? selectedRows
       : selectedRows.filter((row: any) => !this.isItemApproved(row));
 
     // Nếu tất cả đều đã được duyệt (TBP hoặc HR)
@@ -876,7 +971,7 @@ export class EmployeeNightShiftComponent implements OnInit, AfterViewInit, OnDes
         .join(', ');
       this.notification.warning(
         NOTIFICATION_TITLE.warning,
-          `Bản ghi đã được duyệt, không thể xóa. Vui lòng hủy duyệt trước.`
+        `Bản ghi đã được duyệt, không thể xóa. Vui lòng hủy duyệt trước.`
       );
     }
 

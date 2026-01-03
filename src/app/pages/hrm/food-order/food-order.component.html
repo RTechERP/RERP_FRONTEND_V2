@@ -1,150 +1,127 @@
-<ng-container class="w-100">
+<p-menubar [model]="menuBars">
+    <ng-template pTemplate="item" let-item>
+        <a class="p-menuitem-link" [ngClass]="item.styleClass">
+            <i [class]="item.icon"></i>
+            <span class="p-menuitem-text">{{ item.label }}</span>
+        </a>
+    </ng-template>
 
-    <nz-splitter>
-        <nz-splitter-panel [nzSize]="sizeSearch" nzResizable="false">
-            <div class="card h-100 border-0 rounded-0">
-                <div class="card-header bg-white p-1">
-                    <div class="d-flex justify-content-between align-items-center">
-                        <h6 class="m-0 ms-2">Tìm kiếm</h6>
-                        <button class="border-0 me-2" nz-button nzSize="default" nzType="default" nzDanger
-                            (click)="toggleSearchPanel()">
-                            <nz-icon nzType="close" nzTheme="outline" />
-                        </button>
-                    </div>
-                </div>
-                <div class="card-body">
-                    <form nz-form [formGroup]="searchForm" nzLayout="vertical">
-                        <nz-form-item>
-                            <nz-form-label class="fs-12" [nzSpan]="24">Từ ngày</nz-form-label>
-                            <nz-form-control [nzSpan]="24">
-                                <nz-date-picker formControlName="dateStart" nzFormat="dd/MM/yyyy" nzAllowClear="false"
-                                    style="width: 100%;"></nz-date-picker>
-                            </nz-form-control>
-                        </nz-form-item>
-                        <nz-form-item>
-                            <nz-form-label class="fs-12" [nzSpan]="24">Đến ngày</nz-form-label>
-                            <nz-form-control [nzSpan]="24">
-                                <nz-date-picker formControlName="dateEnd" nzFormat="dd/MM/yyyy" nzAllowClear="false"
-                                    style="width: 100%;"></nz-date-picker>
-                            </nz-form-control>
-                        </nz-form-item>
-                        <nz-form-item class="mb-3">
-                            <nz-form-label [nzSpan]="24" class="fs-12 p-0">
-                                Nhân viên
-                            </nz-form-label>
-                            <nz-form-control [nzSpan]="24">
-                                <nz-select formControlName="employeeId" class="w-100" nzShowSearch nzAllowClear
-                                    nzPlaceHolder="--Chọn nhân viên--">
-                                    <ng-container *ngFor="let group of employeeList">
-                                        <nz-option-group [nzLabel]="group.label">
-                                            <nz-option *ngFor="let option of group.options"
-                                                [nzLabel]="option.item.Code +' - '+ option.item.FullName"
-                                                [nzValue]="option.item.EmployeeID">
-                                            </nz-option>
-                                        </nz-option-group>
-                                    </ng-container>
-                                </nz-select>
-                            </nz-form-control>
-                        </nz-form-item>
-                        <nz-form-item>
-                            <nz-form-label class="fs-12" [nzSpan]="24">Từ khóa</nz-form-label>
-                            <nz-form-control [nzSpan]="24">
-                                <input nz-input formControlName="keyWord" placeholder="Nhập từ khóa" (keyup.enter)="loadFoodOrder()" />
-                            </nz-form-control>
-                        </nz-form-item>
-                    </form>
-                </div>
-                <div class="card-footer bg-white p-1 d-flex gap-1 justify-content-end">
-                    <button nz-button nzType="default" nzSize="small" (click)="resetSearch()">Đặt lại</button>
-                    <button nz-button nzType="primary" nzSize="small" (click)="loadFoodOrder()">Tìm kiếm</button>
-                </div>
-            </div>
-        </nz-splitter-panel>
-        <nz-splitter-panel>
-            <div class="card h-100 border-0 rounded-0">
-                <div class="card-header bg-white p-2">
-                    <div class="d-flex justify-content-between align-items-center">
-                        <div class="food-order-actions-scroll">
-                            <div class="d-flex gap-2 food-order-actions">
-                            <button nz-button nzType="default" nzSize="small" (click)="toggleSearchPanel()">
-                                <nz-icon nzType="search" />
-                            </button>
-                            <button class="fs-12 btn-add" nz-button nzType="default" nzSize="small"
-                                (click)="openAddModal()" >
-                                <img src="assets/icon/action_add_item_16.png" alt="Thêm " /> Thêm
-                            </button>
-                            <button class="fs-12 btn-edit" nz-button nzType="default" nzSize="small"
-                                (click)="openEditModal()" >
-                                <img src="assets/icon/action_edit_item_16.png" alt="Sửa" />Sửa
-                            </button>
-                            <button class="fs-12 btn-delete" nz-button nzType="default" nzSize="small"
-                                (click)="deleteFoodOrder()">
-                                <img src="assets/icon/action_delete_item_16.png" alt="Xóa " />Xóa
-                            </button>
-                            <button class="fs-12" nz-button nzType="default" nzSize="small" (click)="approved(true)"
-                                *hasPermission="'N2,N23,N34,N1'">
-                                <img src="assets/icon/action_approved_16.png" alt="Duyệt" />Duyệt
-                            </button>
-                            <button class="fs-12" nz-button nzType="default" nzSize="small" (click)="approved(false)"
-                                *hasPermission="'N2,N23,N34,N1'">
-                                <img src="assets/icon/action_unapproved_16.png" alt="Hủy duyệt" />Hủy Duyệt
-                            </button>
-                            <button class="fs-12" nz-button nzType="default" nzSize="small"
-                                (click)="openSummaryFoodOrderModal()" *hasPermission="'N34,N1,N2'">
-                                <img src="assets/icon/action_food_order_16.png" alt="Báo cáo ăn ca" />Báo cáo ăn ca
-                            </button>
-                            <button class="fs-12" nz-button nzType="default" nzSize="small" (click)="exportToExcel()">
-                                <img src="assets/icon/action_export_excel_16.png" alt="Xuất excel" />Xuất excel
-                            </button>
+    <ng-template #end>
+        <div class="flex items-center gap-2">
+            <button nz-button nzType="text" nzShape="circle" *ngIf="isMobile()"
+                (click)="ToggleSearchPanelNew($event); $event.stopPropagation()">
+                <nz-icon nzType="search" />
+            </button>
+        </div>
+    </ng-template>
+</p-menubar>
+
+<ng-container class="w-100">
+    <div class="card border-0 rounded-0" style="height: 89vh !important;">
+        <!-- Backdrop overlay cho mobile -->
+        <div class="filter-backdrop" *ngIf="shouldShowSearchBar && isMobile()" (click)="ToggleSearchPanelNew()"></div>
+
+        <!-- Filter bar - inline layout -->
+        <div class="filter-bar bg-light border-bottom p-2" *ngIf="shouldShowSearchBar" [class.mobile-modal]="true">
+            <form nz-form [formGroup]="searchForm" nzLayout="inline">
+                <div class="d-flex flex-wrap gap-2 align-items-center">
+                    <!-- Từ ngày -->
+                    <nz-form-item class="mb-0">
+                        <nz-form-label class="fs-12">Từ ngày</nz-form-label>
+                        <nz-form-control>
+                            <nz-date-picker formControlName="dateStart" nzFormat="dd/MM/yyyy" nzAllowClear="false"
+                                nzSize="small" style="width: 120px;"></nz-date-picker>
+                        </nz-form-control>
+                    </nz-form-item>
+
+                    <!-- Đến ngày -->
+                    <nz-form-item class="mb-0">
+                        <nz-form-label class="fs-12">Đến ngày</nz-form-label>
+                        <nz-form-control>
+                            <nz-date-picker formControlName="dateEnd" nzFormat="dd/MM/yyyy" nzAllowClear="false"
+                                nzSize="small" style="width: 120px;"></nz-date-picker>
+                        </nz-form-control>
+                    </nz-form-item>
+
+                    <!-- Nhân viên -->
+                    <nz-form-item class="mb-0">
+                        <nz-form-label class="fs-12">Nhân viên</nz-form-label>
+                        <nz-form-control>
+                            <nz-select formControlName="employeeId" nzShowSearch nzAllowClear
+                                nzPlaceHolder="--Chọn nhân viên--" nzSize="small" style="width: 180px;">
+                                <ng-container *ngFor="let group of employeeList">
+                                    <nz-option-group [nzLabel]="group.label">
+                                        <nz-option *ngFor="let option of group.options"
+                                            [nzLabel]="option.item.Code +' - '+ option.item.FullName"
+                                            [nzValue]="option.item.EmployeeID">
+                                        </nz-option>
+                                    </nz-option-group>
+                                </ng-container>
+                            </nz-select>
+                        </nz-form-control>
+                    </nz-form-item>
+
+                    <!-- Từ khóa -->
+                    <nz-form-item class="mb-0">
+                        <nz-form-label class="fs-12">Từ khóa</nz-form-label>
+                        <nz-form-control>
+                            <div class="d-flex gap-1">
+                                <input nz-input formControlName="keyWord" placeholder="Nhập từ khóa"
+                                    (keyup.enter)="loadFoodOrder()" nzSize="small" style="width: 150px;" />
+                                <button nz-button nzType="primary" nzSize="small" (click)="loadFoodOrder()">
+                                    <nz-icon nzType="search" />
+                                </button>
                             </div>
+                        </nz-form-control>
+                    </nz-form-item>
+                </div>
+            </form>
+        </div>
+
+        <!-- Content với tabs và bảng -->
+        <div class="card-body p-0 fs-12">
+            <nz-tabset class="ms-2">
+                <nz-tab nzTitle="VP Hà Nội">
+                    <div class="card-body p-0 position-relative mt-1">
+                        <div *ngIf="isLoading">
+                            <nz-spin [nzSpinning]="isLoading" nzSimple [style]="{
+                                position: 'absolute',
+                                top: '0',
+                                left: '0',
+                                width: '100%',
+                                height: '100%',
+                                background: 'rgba(255,255,255,0.4)',
+                                zIndex: '999',
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center'
+                                }"></nz-spin>
                         </div>
+                        <div #tb_foodOrder_HN></div>
                     </div>
-                </div>
-                <div class="card-body p-0 fs-12">
-                    <nz-tabset class="ms-2">
-                        <nz-tab nzTitle="VP Hà Nội">
-                            <div class="card-body p-0 position-relative mt-1">
-                                <div *ngIf="isLoading">
-                                    <nz-spin [nzSpinning]="isLoading" nzSimple [style]="{
-                                        position: 'absolute',
-                                        top: '0',
-                                        left: '0',
-                                        width: '100%',
-                                        height: '100%',
-                                        background: 'rgba(255,255,255,0.4)',
-                                        zIndex: '999',
-                                        display: 'flex',
-                                        alignItems: 'center',
-                                        justifyContent: 'center'
-                                        }"></nz-spin>
-                                </div>
-                                <div #tb_foodOrder_HN></div>
-                            </div>
-                        </nz-tab>
-                        <nz-tab nzTitle="Xưởng Đan Phượng">
-                            <div class="card-body p-0 position-relative mt-1">
-                                <div *ngIf="isLoading">
-                                    <nz-spin [nzSpinning]="isLoading" nzSimple [style]="{
-                                        position: 'absolute',
-                                        top: '0',
-                                        left: '0',
-                                        width: '100%',
-                                        height: '100%',
-                                        background: 'rgba(255,255,255,0.4)',
-                                        zIndex: '999',
-                                        display: 'flex',
-                                        alignItems: 'center',
-                                        justifyContent: 'center'
-                                        }"></nz-spin>
-                                </div>
-                                <div #tb_foodOrder_ĐP></div>
-                            </div>
-                        </nz-tab>
-                    </nz-tabset>
-                </div>
-            </div>
-        </nz-splitter-panel>
-    </nz-splitter>
+                </nz-tab>
+                <nz-tab nzTitle="Xưởng Đan Phượng">
+                    <div class="card-body p-0 position-relative mt-1">
+                        <div *ngIf="isLoading">
+                            <nz-spin [nzSpinning]="isLoading" nzSimple [style]="{
+                                position: 'absolute',
+                                top: '0',
+                                left: '0',
+                                width: '100%',
+                                height: '100%',
+                                background: 'rgba(255,255,255,0.4)',
+                                zIndex: '999',
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center'
+                                }"></nz-spin>
+                        </div>
+                        <div #tb_foodOrder_ĐP></div>
+                    </div>
+                </nz-tab>
+            </nz-tabset>
+        </div>
+    </div>
 </ng-container>
 
 
@@ -184,8 +161,7 @@
                                 class="fs-12 text-danger ps-1">*</span></nz-form-label>
                         <nz-form-control [nzSpan]="24" nzErrorTip="Vui lòng chọn ngày đặt">
                             <nz-date-picker formControlName="DateOrder" nzPlaceHolder="Chọn ngày đặt"
-                                nzFormat="dd/MM/yyyy" [nzSize]="'default'" style="width: 100%"
-                            ></nz-date-picker>
+                                nzFormat="dd/MM/yyyy" [nzSize]="'default'" style="width: 100%"></nz-date-picker>
                         </nz-form-control>
                     </nz-form-item>
 
@@ -199,13 +175,15 @@
                     </nz-form-item>
 
                     <nz-form-item class="mb-1">
-                        <nz-form-label [nzSpan]="24" class="fs-12 p-0">Địa điểm<span class="text-danger ps-1">*</span></nz-form-label>
+                        <nz-form-label [nzSpan]="24" class="fs-12 p-0">Địa điểm<span
+                                class="text-danger ps-1">*</span></nz-form-label>
                         <nz-form-control [nzSpan]="24" nzErrorTip="Vui lòng chọn địa điểm">
                             <nz-radio-group formControlName="Location">
                                 <label nz-radio nzValue="1">VP Hà Nội</label>
-                                <label nz-radio nzValue="2" [nzDisabled]="!canSelectDanPhuong()">Xưởng Đan Phượng</label>
+                                <label nz-radio nzValue="2" [nzDisabled]="!canSelectDanPhuong()">Xưởng Đan
+                                    Phượng</label>
                             </nz-radio-group>
-                     
+
                         </nz-form-control>
                     </nz-form-item>
 
@@ -218,10 +196,11 @@
                 </form>
             </div>
             <div class="modal-footer py-0">
-                <button type="button" class="btn btn-outline-danger" style="border: 1px solid; border-radius: 0;" data-bs-dismiss="modal">
+                <button type="button" class="btn btn-outline-danger" style="border: 1px solid; border-radius: 0;"
+                    data-bs-dismiss="modal">
                     Đóng
                 </button>
-                <button type="button" style="border-radius: 0;" class="btn btn-primary" (click)="onSubmit()" >
+                <button type="button" style="border-radius: 0;" class="btn btn-primary" (click)="onSubmit()">
                     Lưu
                 </button>
             </div>

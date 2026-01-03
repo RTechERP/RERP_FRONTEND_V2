@@ -43,6 +43,7 @@ import { ENFDetailComponent } from './ENF-detail/ENF-detail.component';
 import { DEFAULT_TABLE_CONFIG } from '../../../../tabulator-default.config';
 import { AuthService } from '../../../../auth/auth.service';
 import { PermissionService } from '../../../../services/permission.service';
+import { Menubar } from 'primeng/menubar';
 
 @Component({
   selector: 'app-enf',
@@ -64,6 +65,7 @@ import { PermissionService } from '../../../../services/permission.service';
     // ENFDetailComponent,
     HasPermissionDirective,
     NzDropDownModule,
+    Menubar
   ],
   templateUrl: './employee-no-fingerprint.component.html',
   styleUrls: ['./employee-no-fingerprint.component.css'],
@@ -84,8 +86,15 @@ export class EmployeeNoFingerprintComponent
   sizeSearch: string = '0';
   showSearchBar: boolean = typeof window !== 'undefined' ? window.innerWidth > 768 : true;
 
+  // Menu bars
+  menuBars: any[] = [];
+
   get shouldShowSearchBar(): boolean {
     return this.showSearchBar;
+  }
+
+  isMobile(): boolean {
+    return typeof window !== 'undefined' && window.innerWidth <= 768;
   }
 
   ToggleSearchPanelNew(event?: Event): void {
@@ -135,8 +144,59 @@ export class EmployeeNoFingerprintComponent
 
   // #region Lifecycle Hooks
   ngOnInit(): void {
+    this.initMenuBar();
     this.loadDepartments();
     this.getCurrentUser();
+  }
+
+  initMenuBar(): void {
+    this.menuBars = [
+      {
+        label: 'Thêm',
+        icon: 'fa-solid fa-plus fa-lg text-success',
+        command: () => this.addenf()
+      },
+      {
+        label: 'Sửa',
+        icon: 'fa-solid fa-pen-to-square fa-lg text-primary',
+        command: () => this.editenf()
+      },
+      {
+        label: 'Xóa',
+        icon: 'fa-solid fa-trash fa-lg text-danger',
+        command: () => this.deleteenf()
+      },
+      {
+        visible: this.permissionService.hasPermission("N1"),
+        label: 'TBP xác nhận',
+        icon: 'fa-solid fa-calendar-check fa-lg text-primary',
+        command: () => this.approvedTBP()
+      },
+      {
+        label: 'HR xác nhận',
+        visible: this.permissionService.hasPermission("N1,N2"),
+        icon: 'fa-solid fa-calendar-check fa-lg text-info',
+        items: [
+          {
+            visible: this.permissionService.hasPermission("N1,N2"),
+            label: 'HR duyệt',
+            icon: 'fa-solid fa-circle-check fa-lg text-success',
+            command: () => this.approvedHR()
+          },
+          {
+            visible: this.permissionService.hasPermission("N1,N2"),
+            label: 'HR hủy duyệt',
+            icon: 'fa-solid fa-circle-xmark fa-lg text-danger',
+            command: () => this.cancelApprovedHR()
+          }
+        ]
+      },
+      {
+        label: 'Xuất Excel',
+        icon: 'fa-solid fa-file-excel fa-lg text-success',
+        command: () => this.exportExcel()
+      }
+    ];
   }
 
   getCurrentUser(): void {

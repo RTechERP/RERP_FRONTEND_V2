@@ -96,7 +96,8 @@
 
       <!-- Tab: BẢNG LƯƠNG (Payroll) -->
       <div [hidden]="selectedTabIndex !== 3" class="w-100 payroll-tab-container">
-        <div id="group_btn_action_payroll" class="p-2 " style="border:none !important">
+        <div id="group_btn_action_payroll" class="p-2" style="border:none !important"
+          *ngIf="payrollData && payrollData.length > 0">
           <button nz-button nzType="default" nzSize="small" class="me-1" (click)="onConfirmPayroll()">
             <span nz-icon nzType="check"></span> Confirm
           </button>
@@ -105,7 +106,8 @@
           </button>
         </div>
         <div class="table-responsive-xl">
-          <table class="table table-bordered table-sm m-0" id="tbl_employee_payroll">
+          <table class="table table-bordered table-sm m-0" id="tbl_employee_payroll"
+            [class.payroll-confirmed]="payrollData && payrollData.length > 0 && payrollData[0]?.Sign">
             <thead class="text-center">
               <tr>
                 <th colspan="6" class="group-standard">CÔNG TIÊU CHUẨN (F4)</th>

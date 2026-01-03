@@ -74,12 +74,15 @@ import { CancelApproveReasonFormComponent } from './cancel-approve-reason-form/c
 import { AuthService } from '../../../auth/auth.service';
 import { NoteFormComponent } from './note-form/note-form.component';
 import { ProjectPartlistPriceRequestFormComponent } from '../../old/project-partlist-price-request/project-partlist-price-request-form/project-partlist-price-request-form.component';
+import { ProjectPartlistPriceRequestNewComponent } from '../../purchase/project-partlist-price-request-new/project-partlist-price-request-new.component';
 import { JobRequirementPurchaseRequestViewComponent } from './job-requirement-purchase-request-view/job-requirement-purchase-request-view.component';
 import { JobRequirementSummaryComponent } from './job-requirement-summary/job-requirement-summary.component';
 import pdfMake from 'pdfmake/build/pdfmake';
 import vfs from '../../../shared/pdf/vfs_fonts_custom.js';
 import { environment } from '../../../../environments/environment';
 import { ActivatedRoute } from '@angular/router';
+import { Menubar } from 'primeng/menubar';
+import { PermissionService } from '../../../services/permission.service';
 
 (pdfMake as any).vfs = vfs;
 (pdfMake as any).fonts = {
@@ -123,6 +126,7 @@ import { ActivatedRoute } from '@angular/router';
         NzSpinModule,
         HasPermissionDirective,
         AngularSlickgridModule,
+        Menubar,
     ],
     templateUrl: './job-requirement.component.html',
     styleUrl: './job-requirement.component.css',
@@ -181,43 +185,242 @@ export class JobRequirementComponent implements OnInit, AfterViewInit {
     isHCNSApproved: boolean = false; // Trạng thái đã duyệt HCNS hay chưa
 
     sizeSearch: string = '0';
-    showSearchBar: boolean = true;
+    showSearchBar: boolean = typeof window !== 'undefined' ? window.innerWidth > 768 : true;
     isCheckmode: boolean = false;
     isLoading: boolean = false;
     dateFormat = 'dd/MM/yyyy';
+
+    // Menu bars
+    menuBars: any[] = [];
 
     get shouldShowSearchBar(): boolean {
         return this.showSearchBar;
     }
 
+    isMobile(): boolean {
+        return typeof window !== 'undefined' && window.innerWidth <= 768;
+    }
+
     dataInput: any = {};
 
-   ngOnInit(): void {
-  // Initialize grids first to ensure columns are defined before view renders
-  this.initGrid();
-  this.initGridDetail();
-  this.initGridFile();
-  this.initGridApproved();
+    ngOnInit(): void {
+        // Initialize grids first to ensure columns are defined before view renders
+        this.initGrid();
+        this.initGridDetail();
+        this.initGridFile();
+        this.initGridApproved();
 
-  this.route.queryParams.subscribe(params => {
-    const typeApprove = params['typeApprove'] || 0;
+        this.route.queryParams.subscribe(params => {
+            const typeApprove = params['typeApprove'] || 0;
 
-    if (typeApprove === '2') {
-      this.approvalMode = 1;
-      this.searchParams.Step = 1;
-    } else if (typeApprove === '1') {
-      this.approvalMode = 2;
-    } else if (typeApprove === '3') {
-      this.approvalMode = 3;
+            if (typeApprove === '2') {
+                this.approvalMode = 1;
+                this.searchParams.Step = 1;
+            } else if (typeApprove === '1') {
+                this.approvalMode = 2;
+            } else if (typeApprove === '3') {
+                this.approvalMode = 3;
+            }
+
+            // Call getCurrentUser AFTER approvalMode is set
+            this.getCurrentUser();
+            // Initialize menubar after approvalMode is set
+            this.initMenuBar();
+        });
+
+        this.getdataEmployee();
+        this.getdataDepartment();
     }
-    
-    // Call getCurrentUser AFTER approvalMode is set
-    this.getCurrentUser();
-  });
 
-  this.getdataEmployee();
-  this.getdataDepartment();
-}
+    initMenuBar(): void {
+        this.menuBars = [];
+
+        // Thêm/Sửa/Xóa - only when not in approval mode
+        if (!this.approvalMode) {
+            this.menuBars.push(
+                {
+                    label: 'Thêm',
+                    icon: 'fa-solid fa-plus fa-lg text-success',
+                    command: () => this.onAddJobRequirement(false)
+                },
+                {
+                    label: 'Sửa',
+                    icon: 'fa-solid fa-pen-to-square fa-lg text-primary',
+                    command: () => this.onAddJobRequirement(true)
+                },
+                {
+                    label: 'Xóa',
+                    icon: 'fa-solid fa-trash fa-lg text-danger',
+                    command: () => this.onDeleteJobRequirement()
+                }
+            );
+        }
+
+        // Xuất Excel - always available
+        this.menuBars.push({
+            label: 'Xuất Excel',
+            icon: 'fa-solid fa-file-excel fa-lg text-success',
+            command: () => this.exportToExcel()
+        });
+
+        // TBP Menu - approval mode 1
+        if (this.approvalMode === 1) {
+            this.menuBars.push({
+                label: 'Trưởng Bộ Phận',
+                visible: this.permissionService.hasPermission("N56,N32,N1"),
+                icon: 'fa-solid fa-calendar-check fa-lg text-primary',
+                items: [
+                    {
+                        label: 'Duyệt',
+                        icon: 'fa-solid fa-circle-check fa-lg text-success',
+                        visible: this.permissionService.hasPermission("N56,N32,N1"),
+                        command: () => this.onApproveJobRequirement('btnApproveTBP_New')
+                    },
+                    {
+                        label: 'Hủy duyệt',
+                        icon: 'fa-solid fa-circle-xmark fa-lg text-danger',
+                        visible: this.permissionService.hasPermission("N56,N32,N1"),
+                        command: () => this.onApproveJobRequirement('btnUnApproveTBP_New')
+                    }
+                ]
+            });
+        }
+
+        // HR Menu - no approval mode or approval mode 2
+        if (!this.approvalMode || this.approvalMode === 2) {
+            this.menuBars.push({
+                label: 'Nhân sự',
+                visible: this.permissionService.hasPermission("N56,N34,N1"),
+                icon: 'fa-solid fa-calendar-check fa-lg text-info',
+                items: [
+                    {
+                        label: 'Duyệt yêu cầu',
+                        icon: 'fa-solid fa-check fa-lg text-success',
+                        command: () => this.onApproveJobRequirement('btnApproveDocumentHR')
+                    },
+                    {
+                        label: 'Hủy yêu cầu',
+                        icon: 'fa-solid fa-xmark fa-lg text-danger',
+                        command: () => this.onApproveJobRequirement('btnUnApproveDocumentHR')
+                    },
+                    { separator: true },
+                    {
+                        label: 'TBP Duyệt',
+                        visible: this.permissionService.hasPermission("N56,N1"),
+                        icon: 'fa-solid fa-circle-check fa-lg text-success',
+                        command: () => this.onApproveJobRequirement('btnApproveHR')
+                    },
+                    {
+                        label: 'TBP hủy duyệt',
+                        icon: 'fa-solid fa-circle-xmark fa-lg text-danger',
+                        visible: this.permissionService.hasPermission("N56,N1"),
+                        command: () => this.onApproveJobRequirement('btnUnApproveHR')
+                    },
+                    { separator: true },
+                    {
+                        label: 'Yêu cầu BGD duyệt',
+                        icon: 'fa-solid fa-paper-plane fa-lg text-warning',
+                        command: () => this.onRequestBGDApprove(true)
+                    },
+                    {
+                        label: 'Hủy yêu cầu BGD duyệt',
+                        icon: 'fa-solid fa-circle-xmark fa-lg text-danger',
+                        command: () => this.onRequestBGDApprove(false)
+                    },
+                    {
+                        label: 'Hoàn thành duyệt',
+                        icon: 'fa-solid fa-check-double fa-lg text-success',
+                        command: () => this.onApproveJobRequirement('btnSuccessApproved')
+                    },
+                    { separator: true },
+                    {
+                        label: 'Thêm đề xuất',
+                        icon: 'fa-solid fa-plus fa-lg text-success',
+                        command: () => this.onAddSupplier(false),
+                        disabled: !this.canAddOrEdit()
+                    },
+                    {
+                        label: 'Sửa đề xuất',
+                        icon: 'fa-solid fa-pen-to-square fa-lg text-primary',
+                        command: () => this.onAddSupplier(true),
+                        disabled: !this.canAddOrEdit() || this.JobrequirementID === 0
+                    },
+                    {
+                        label: 'Xem chi tiết đề xuất',
+                        icon: 'fa-solid fa-eye fa-lg text-info',
+                        command: () => this.onOpenDepartmentRequired()
+                    },
+                    { separator: true },
+                    {
+                        label: 'Ghi chú',
+                        icon: 'fa-solid fa-note-sticky fa-lg text-warning',
+                        command: () => this.onOpenNoteModal()
+                    }
+                ]
+            });
+        }
+
+        // BGD Menu - no approval mode or approval mode 3
+        if (!this.approvalMode || this.approvalMode === 3) {
+            this.menuBars.push({
+                label: 'Ban Giám Đốc',
+                visible: this.permissionService.hasPermission("N58,N1"),
+                icon: 'fa-solid fa-user-tie fa-lg text-primary',
+                items: [
+                    {
+                        label: 'Duyệt',
+                        icon: 'fa-solid fa-circle-check fa-lg text-success',
+                        command: () => this.onApproveJobRequirement('btnSuccessApproved')
+                    },
+                    {
+                        label: 'Hủy duyệt',
+                        icon: 'fa-solid fa-circle-xmark fa-lg text-danger',
+                        command: () => this.onApproveJobRequirement('btnUnApproveBGĐ')
+                    }
+                ]
+            });
+        }
+
+        // Bộ phận phối hợp - only when not in approval mode
+        if (!this.approvalMode) {
+            this.menuBars.push({
+                label: 'Bộ phận phối hợp',
+                visible: this.permissionService.hasPermission("N34,N56,N1,N80"),
+                icon: 'fa-solid fa-users fa-lg text-info',
+                items: [
+                    {
+                        label: 'Nhân sự',
+                        icon: 'fa-solid fa-circle-check fa-lg text-success',
+                        command: () => this.onConfirmComplete()
+                    },
+                    {
+                        label: 'Yêu cầu báo giá',
+                        icon: 'fa-solid fa-file-invoice-dollar fa-lg text-warning',
+                        command: () => this.onRequestPriceQuote()
+                    }
+                ]
+            });
+        }
+
+        // View buttons - always available
+        this.menuBars.push(
+            {
+                label: 'Xem yêu cầu mua',
+                icon: 'fa-solid fa-eye fa-lg text-info',
+                command: () => this.onViewPurchaseRequest()
+            },
+            {
+                label: 'Tổng hợp',
+                icon: 'fa-solid fa-chart-bar fa-lg text-primary',
+                command: () => this.onOpenSummary()
+            },
+            {
+                label: 'In Phiếu',
+                icon: 'fa-solid fa-print fa-lg text-secondary',
+                command: () => this.onPrintJobRequirement()
+            }
+        );
+    }
     ngAfterViewInit(): void {
         // Grid initialization moved to ngOnInit
     }
@@ -233,24 +436,25 @@ export class JobRequirementComponent implements OnInit, AfterViewInit {
         private message: NzMessageService,
         private menuEventService: MenuEventService,
         private authService: AuthService,
-        private route: ActivatedRoute
+        private route: ActivatedRoute,
+        private permissionService: PermissionService,
     ) {
     }
-getCurrentUser(): void {
-  this.authService.getCurrentUser().subscribe({
-    next: (res: any) => {
-      const data = res?.data;
-      this.currentUser = Array.isArray(data) ? data[0] : data;
-      if (this.approvalMode === 1 && this.currentUser?.EmployeeID) {
-        this.searchParams.ApprovedTBPID = this.currentUser.EmployeeID;
-      }
-      this.getJobrequirement(); 
-    },
-    error: (err) => {
-      this.notification.error("Lỗi", err.error.message);
+    getCurrentUser(): void {
+        this.authService.getCurrentUser().subscribe({
+            next: (res: any) => {
+                const data = res?.data;
+                this.currentUser = Array.isArray(data) ? data[0] : data;
+                if (this.approvalMode === 1 && this.currentUser?.EmployeeID) {
+                    this.searchParams.ApprovedTBPID = this.currentUser.EmployeeID;
+                }
+                this.getJobrequirement();
+            },
+            error: (err) => {
+                this.notification.error("Lỗi", err.error.message);
+            }
+        });
     }
-  });
-}
 
     //search
     filterOption = (input: string, option: any): boolean => {
@@ -291,7 +495,7 @@ getCurrentUser(): void {
         ).subscribe({
             next: (response: any) => {
                 this.JobrequirementData = response.data || [];
-                
+
                 // Map data with id for SlickGrid
                 this.dataset = this.JobrequirementData.map((item: any, index: number) => ({
                     ...item,
@@ -302,7 +506,7 @@ getCurrentUser(): void {
                 // Apply distinct filters after data is loaded
                 setTimeout(() => {
                     this.applyDistinctFilters();
-                    
+
                     // Select first row if data exists
                     if (this.dataset.length > 0 && this.angularGrid?.slickGrid) {
                         this.JobrequirementID = this.dataset[0].ID;
@@ -1047,7 +1251,7 @@ getCurrentUser(): void {
     }
 
     /**
-     * Yêu cầu báo giá - mở form ProjectPartlistPriceRequestFormComponent
+     * Yêu cầu báo giá - mở form ProjectPartlistPriceRequestNewComponent
      */
     onRequestPriceQuote(): void {
         const selected = this.getSelectedData() || [];
@@ -1055,17 +1259,15 @@ getCurrentUser(): void {
         if (selected.length === 0) {
             this.notification.warning(
                 NOTIFICATION_TITLE.warning,
-                'Vui lòng chọn một bản ghi!'
+                'Vui lòng chọn một bản ghi để yêu cầu báo giá!'
             );
             return;
         }
 
         const rowData = selected[0];
-        const id = rowData?.ID || 0;
-        const noteJobRequirement = rowData?.Note || '';
-        const numberRequest = rowData?.NumberRequest || rowData?.Code || '';
+        const jobRequirementID = rowData?.ID || this.JobrequirementID || 0;
 
-        if (id <= 0) {
+        if (jobRequirementID <= 0) {
             this.notification.warning(
                 NOTIFICATION_TITLE.warning,
                 'Không tìm thấy ID của bản ghi!'
@@ -1073,88 +1275,23 @@ getCurrentUser(): void {
             return;
         }
 
-        // Kiểm tra BGĐ đã duyệt chưa (Step 5, IsApproved = 1)
-        const bgdApproved = this.JobrequirementApprovedData.find((item: any) =>
-            item.JobRequirementID === id &&
-            item.Step === 5 &&
-            (item.IsApproved === 1 || item.IsApproved === '1')
-        );
-
-        if (!bgdApproved) {
-            this.notification.warning(
-                NOTIFICATION_TITLE.warning,
-                `Yêu cầu công việc [${numberRequest}] cần được BGĐ duyệt trước khi yêu cầu báo giá!`
-            );
-            return;
-        }
-
-        // Tìm detail có STT = 4
-        const detail = this.JobrequirementDetailData.find((item: any) => item.STT === 4);
-        const qty = detail?.Description ? parseInt(detail.Description) || 0 : 0;
-
-        // Mở modal form
-        const modalRef = this.modalService.open(ProjectPartlistPriceRequestFormComponent, {
-            size: 'xl',
-            backdrop: 'static',
-            keyboard: false,
+        const modalRef = this.modalService.open(ProjectPartlistPriceRequestNewComponent, {
             centered: true,
+            windowClass: 'full-screen-modal',
+            backdrop: 'static',
         });
+        modalRef.componentInstance.jobRequirementID = jobRequirementID;
 
-        // Truyền dữ liệu vào form
-        modalRef.componentInstance.jobRequirementID = id;
-        modalRef.componentInstance.projectTypeID = 3; // Hàng HR
-        modalRef.componentInstance.noteJobRequirement = noteJobRequirement;
-        modalRef.componentInstance.qty = qty;
-        modalRef.componentInstance.dataInput = [];
-
-        // Xử lý kết quả khi form đóng
-        modalRef.result
-            .then((result: any) => {
-                if (result === 'saved' || result === true) {
-                    // Cập nhật trạng thái: IsRequestPriceQuote = true, Status = 2
-                    const model = {
-                        ID: id,
-                        IsRequestPriceQuote: true,
-                        Status: 2, // Chưa hoàn thành
-                        UpdatedBy: this.currentUser?.LoginName || this.currentUser?.Code || '',
-                        UpdatedDate: new Date().toISOString()
-                    };
-
-                    // Gọi API cập nhật
-                    this.JobRequirementService.saveRequestBGDApprove(model).subscribe({
-                        next: (response: any) => {
-                            if (response && response.status === 1) {
-                                this.notification.success(
-                                    NOTIFICATION_TITLE.success,
-                                    'Yêu cầu báo giá đã được tạo thành công!'
-                                );
-                                // Refresh lại table
-                                this.getJobrequirement();
-                                // Refresh lại details nếu có JobRequirementID
-                                if (this.JobrequirementID) {
-                                    this.getJobrequirementDetails(this.JobrequirementID);
-                                }
-                            } else {
-                                const errorMessage = response?.message || 'Không thể cập nhật trạng thái!';
-                                this.notification.error(
-                                    NOTIFICATION_TITLE.error,
-                                    errorMessage
-                                );
-                            }
-                        },
-                        error: (error: any) => {
-                            const errorMessage = error?.error?.message || error?.error?.Message || error?.message || 'Lỗi khi cập nhật trạng thái!';
-                            this.notification.error(
-                                NOTIFICATION_TITLE.error,
-                                errorMessage
-                            );
-                        }
-                    });
+        modalRef.result.then(
+            (result) => {
+                if (result) {
+                    this.getJobrequirement();
                 }
-            })
-            .catch(() => {
-                // User cancelled, do nothing
-            });
+            },
+            () => {
+                // Modal dismissed
+            }
+        );
     }
 
     /**
@@ -1845,7 +1982,7 @@ getCurrentUser(): void {
                 const rowData = columnFields.map(field => {
                     const value = row[field];
                     // Format date fields
-                    if (field === 'DateRequest' || field === 'DeadlineRequest' || field === 'DateApprovedTBP' || 
+                    if (field === 'DateRequest' || field === 'DeadlineRequest' || field === 'DateApprovedTBP' ||
                         field === 'DateApprovedHR' || field === 'DateApprovedBGD') {
                         if (value) {
                             return DateTime.fromISO(value).toFormat('dd/MM/yyyy');
@@ -1867,10 +2004,10 @@ getCurrentUser(): void {
                     row.height = 25;
                     row.eachCell((cell: ExcelJS.Cell) => {
                         cell.font = { name: 'Times New Roman', size: 10 };
-                        cell.alignment = { 
-                            vertical: 'middle', 
+                        cell.alignment = {
+                            vertical: 'middle',
                             horizontal: 'left',
-                            wrapText: true 
+                            wrapText: true
                         };
                         cell.border = {
                             top: { style: 'thin' },
@@ -1929,6 +2066,22 @@ getCurrentUser(): void {
 
     angularGridApprovedReady(angularGrid: AngularGridInstance): void {
         this.angularGridApproved = angularGrid;
+
+        // Cấu hình bôi màu dòng dựa trên trạng thái duyệt
+        if (this.angularGridApproved?.dataView) {
+            this.angularGridApproved.dataView.getItemMetadata = (row: number) => {
+                const item = this.angularGridApproved.dataView.getItem(row);
+                if (item) {
+                    // IsApproved: 1 - Đã duyệt, 2 - Không duyệt/Hủy duyệt
+                    if (item.IsApproved === 1 || item.IsApproved === '1') {
+                        return { cssClasses: 'row-approved' };
+                    } else if (item.IsApproved === 2 || item.IsApproved === '2') {
+                        return { cssClasses: 'row-cancelled' };
+                    }
+                }
+                return null;
+            };
+        }
     }
 
     // Initialize main grid
@@ -2155,7 +2308,7 @@ getCurrentUser(): void {
                 rightPadding: 0,
                 bottomPadding: 0,
                 calculateAvailableSizeBy: 'container'
-                
+
             },
             enableAutoResize: true,
             enableCellNavigation: true,

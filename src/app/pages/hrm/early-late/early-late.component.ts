@@ -36,6 +36,8 @@ import { DEFAULT_TABLE_CONFIG } from '../../../tabulator-default.config';
 import { AuthService } from '../../../auth/auth.service';
 import { WFHService } from '../employee-management/employee-wfh/WFH-service/WFH.service';
 import { PermissionService } from '../../../services/permission.service';
+import { Menubar } from 'primeng/menubar';
+
 @Component({
   selector: 'app-early-late',
   templateUrl: './early-late.component.html',
@@ -65,7 +67,8 @@ import { PermissionService } from '../../../services/permission.service';
     NgIf,
     HasPermissionDirective,
     NzDropDownModule,
-    FormsModule
+    FormsModule,
+    Menubar
   ]
 })
 export class EarlyLateComponent implements OnInit, AfterViewInit {
@@ -74,8 +77,15 @@ export class EarlyLateComponent implements OnInit, AfterViewInit {
   sizeSearch: string = '0';
   showSearchBar: boolean = typeof window !== 'undefined' ? window.innerWidth > 768 : true;
 
+  // Menu bars
+  menuBars: any[] = [];
+
   get shouldShowSearchBar(): boolean {
     return this.showSearchBar;
+  }
+
+  isMobile(): boolean {
+    return typeof window !== 'undefined' && window.innerWidth <= 768;
   }
 
   ToggleSearchPanelNew(event?: Event): void {
@@ -115,6 +125,7 @@ export class EarlyLateComponent implements OnInit, AfterViewInit {
   ) { }
 
   ngOnInit() {
+    this.initMenuBar();
     this.initializeForm();
     this.loadDepartment();
     this.loadEarlyLate();
@@ -129,6 +140,70 @@ export class EarlyLateComponent implements OnInit, AfterViewInit {
         : this.currentUser;
     });
   }
+
+  initMenuBar(): void {
+    this.menuBars = [
+      {
+        label: 'Thêm',
+        icon: 'fa-solid fa-plus fa-lg text-success',
+        command: () => this.openAddModal()
+      },
+      {
+        label: 'Sửa',
+        icon: 'fa-solid fa-pen-to-square fa-lg text-primary',
+        command: () => this.openEditModal()
+      },
+      {
+        label: 'Xóa',
+        icon: 'fa-solid fa-trash fa-lg text-danger',
+        command: () => this.openDeleteModal()
+      },
+      {
+        label: 'TBP xác nhận',
+        visible: this.permissionService.hasPermission("N1"),
+        icon: 'fa-solid fa-calendar-check fa-lg text-primary',
+        items: [
+          {
+            label: 'TBP duyệt',
+            visible: this.permissionService.hasPermission("N1"),
+            icon: 'fa-solid fa-circle-check fa-lg text-success',
+            command: () => this.isApproveTBP(true)
+          },
+          {
+            label: 'TBP hủy duyệt',
+            visible: this.permissionService.hasPermission("N1"),
+            icon: 'fa-solid fa-circle-xmark fa-lg text-danger',
+            command: () => this.isApproveTBP(false)
+          }
+        ]
+      },
+      {
+        label: 'HR xác nhận',
+        visible: this.permissionService.hasPermission("N1,N2"),
+        icon: 'fa-solid fa-calendar-check fa-lg text-info',
+        items: [
+          {
+            label: 'HR duyệt',
+            visible: this.permissionService.hasPermission("N1,N2"),
+            icon: 'fa-solid fa-circle-check fa-lg text-success',
+            command: () => this.isApproveHR()
+          },
+          {
+            label: 'HR hủy duyệt',
+            visible: this.permissionService.hasPermission("N1,N2"),
+            icon: 'fa-solid fa-circle-xmark fa-lg text-danger',
+            command: () => this.isDisapproveHR()
+          }
+        ]
+      },
+      {
+        label: 'Xuất Excel',
+        icon: 'fa-solid fa-file-excel fa-lg text-success',
+        command: () => this.exportToExcel()
+      }
+    ];
+  }
+
   ngAfterViewInit(): void {
     this.initializeTable();
   }

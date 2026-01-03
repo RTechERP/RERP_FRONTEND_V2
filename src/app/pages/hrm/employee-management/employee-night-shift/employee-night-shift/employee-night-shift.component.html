@@ -1,193 +1,94 @@
+<p-menubar [model]="menuBars">
+  <ng-template pTemplate="item" let-item>
+    <a class="p-menuitem-link" [ngClass]="item.styleClass">
+      <i [class]="item.icon"></i>
+      <span class="p-menuitem-text">{{ item.label }}</span>
+    </a>
+  </ng-template>
+
+  <ng-template #end>
+    <div class="flex items-center gap-2">
+      <button nz-button nzType="text" nzShape="circle" *ngIf="isMobile()"
+        (click)="ToggleSearchPanelNew($event); $event.stopPropagation()">
+        <nz-icon nzType="search" />
+      </button>
+    </div>
+  </ng-template>
+</p-menubar>
+
 <ng-container class="w-100">
-  <nz-splitter style="height: 94vh">
-    <nz-splitter-panel *ngIf="isSearchVisible" [nzSize]="'20%'" [nzResizable]="false">
-      <div class="card h-100 border-0 rounded-0">
-        <!-- Header -->
-        <div class="card-header bg-white p-1">
-          <div class="d-flex justify-content-between align-items-center">
-            <h6 class="m-0 ms-2">Tìm kiếm</h6>
-            <button class="border-0 me-2" nz-button nzSize="small" nzType="default" nzDanger
-              (click)="toggleSearchPanel()">
-              <nz-icon nzType="close" nzTheme="outline"></nz-icon>
-            </button>
-          </div>
-        </div>
-        <!-- Body -->
-        <div class="card-body">
-          <form nz-form nzLayout="vertical">
-            <nz-form-item class="mt-2">
-              <nz-form-label class="fs-12" [nzSpan]="24">Từ ngày</nz-form-label>
-              <nz-form-control [nzSpan]="24">
-                <nz-date-picker [(ngModel)]="dateStart" (ngModelChange)="onDateRangeChange()" nzFormat="dd/MM/yyyy"
-                  nzSize="default" class="w-100" name="dateStart"></nz-date-picker>
-              </nz-form-control>
-            </nz-form-item>
+  <div class="card border-0 rounded-0" style="height: 89vh !important;">
+    <!-- Backdrop overlay cho mobile -->
+    <div class="filter-backdrop" *ngIf="shouldShowSearchBar && isMobile()" (click)="ToggleSearchPanelNew()"></div>
 
-            <nz-form-item class="mt-2">
-              <nz-form-label class="fs-12" [nzSpan]="24">Đến ngày</nz-form-label>
-              <nz-form-control [nzSpan]="24">
-                <nz-date-picker [(ngModel)]="dateEnd" (ngModelChange)="onDateRangeChange()" nzFormat="dd/MM/yyyy"
-                  nzSize="default" class="w-100" name="dateEnd"></nz-date-picker>
-              </nz-form-control>
-            </nz-form-item>
-            <nz-form-item class="mt-2">
-              <nz-form-label class="fs-12" [nzSpan]="24">Phòng ban</nz-form-label>
-              <nz-form-control [nzSpan]="24">
-                <nz-select class="w-100 fs-12" nzSize="default" nzShowSearch nzAllowClear
-                  nzPlaceHolder="Chọn phòng ban..." [(ngModel)]="departmentID" (ngModelChange)="onDepartmentChange()"
-                  name="departmentID">
-                  <nz-option *ngFor="let dept of departments" [nzLabel]="dept.Name" [nzValue]="dept.ID"></nz-option>
-                </nz-select>
-              </nz-form-control>
-            </nz-form-item>
+    <!-- Filter bar - inline layout -->
+    <div class="filter-bar bg-light border-bottom p-2" *ngIf="shouldShowSearchBar" [class.mobile-modal]="true">
+      <form nz-form nzLayout="inline">
+        <div class="d-flex flex-wrap gap-2 align-items-center">
+          <!-- Từ ngày -->
+          <nz-form-item class="mb-0">
+            <nz-form-label class="fs-12">Từ ngày</nz-form-label>
+            <nz-form-control>
+              <nz-date-picker [(ngModel)]="dateStart" (ngModelChange)="onDateRangeChange()" nzFormat="dd/MM/yyyy"
+                nzSize="small" name="dateStart" style="width: 120px;"></nz-date-picker>
+            </nz-form-control>
+          </nz-form-item>
 
-            <nz-form-item class="mt-2">
-              <nz-form-label class="fs-12" [nzSpan]="24">Trạng thái duyệt</nz-form-label>
-              <nz-form-control [nzSpan]="24">
-                <nz-select class="w-100 fs-12" nzSize="default" nzAllowClear nzPlaceHolder="Tất cả..."
-                  [(ngModel)]="isApproved" (ngModelChange)="onIsApprovedChange()" name="isApproved">
-                  <nz-option [nzValue]="1" nzLabel="Đã duyệt"></nz-option>
-                  <nz-option [nzValue]="0" nzLabel="Chưa duyệt"></nz-option>
-                </nz-select>
-              </nz-form-control>
-            </nz-form-item>
+          <!-- Đến ngày -->
+          <nz-form-item class="mb-0">
+            <nz-form-label class="fs-12">Đến ngày</nz-form-label>
+            <nz-form-control>
+              <nz-date-picker [(ngModel)]="dateEnd" (ngModelChange)="onDateRangeChange()" nzFormat="dd/MM/yyyy"
+                nzSize="small" name="dateEnd" style="width: 120px;"></nz-date-picker>
+            </nz-form-control>
+          </nz-form-item>
 
-            <!-- Từ khóa -->
-            <nz-form-item class="mt-2">
-              <nz-form-label class="fs-12" [nzSpan]="24">Từ khóa</nz-form-label>
-              <nz-form-control [nzSpan]="24">
+          <!-- Phòng ban -->
+          <nz-form-item class="mb-0">
+            <nz-form-label class="fs-12">Phòng ban</nz-form-label>
+            <nz-form-control>
+              <nz-select nzSize="small" nzShowSearch nzAllowClear nzPlaceHolder="Chọn phòng ban..."
+                [(ngModel)]="departmentID" (ngModelChange)="onDepartmentChange()" name="departmentID"
+                style="width: 150px;">
+                <nz-option *ngFor="let dept of departments" [nzLabel]="dept.Name" [nzValue]="dept.ID"></nz-option>
+              </nz-select>
+            </nz-form-control>
+          </nz-form-item>
+
+          <!-- Trạng thái duyệt -->
+          <nz-form-item class="mb-0">
+            <nz-form-label class="fs-12">Trạng thái</nz-form-label>
+            <nz-form-control>
+              <nz-select nzSize="small" nzAllowClear nzPlaceHolder="Tất cả..." [(ngModel)]="isApproved"
+                (ngModelChange)="onIsApprovedChange()" name="isApproved" style="width: 120px;">
+                <nz-option [nzValue]="1" nzLabel="Đã duyệt"></nz-option>
+                <nz-option [nzValue]="0" nzLabel="Chưa duyệt"></nz-option>
+              </nz-select>
+            </nz-form-control>
+          </nz-form-item>
+
+          <!-- Từ khóa và nút tìm kiếm -->
+          <nz-form-item class="mb-0">
+            <nz-form-label class="fs-12">Từ khóa</nz-form-label>
+            <nz-form-control>
+              <div class="d-flex gap-1">
                 <input nz-input placeholder="Nhập từ khóa" [(ngModel)]="keyWord"
-                  (ngModelChange)="onKeywordChange($event)" (keyup.enter)="getNightShift()" nzSize="default" name="keyWord" />
-              </nz-form-control>
-            </nz-form-item>
-          </form>
-        </div>
-        <!-- Footer -->
-        <div class="card-footer bg-white p-1 d-flex gap-1 justify-content-end flex-wrap">
-          <button nz-button nzType="default" nzSize="small" (click)="resetSearch()">Đặt lại</button>
-          <button nz-button nzType="primary" nzSize="small" (click)="getNightShift()">Tìm kiếm</button>
-        </div>
-      </div>
-    </nz-splitter-panel>
-    <nz-splitter-panel [nzSize]="isSearchVisible ? '80%' : '100%'">
-      <div class="card border-0 rounded-0">
-        <div class="card-header bg-white p-1 action-bar">
-          <!-- Desktop: dải nút cuộn ngang -->
-          <div class="d-none d-md-flex h-40 gap-1 align-items-center">
-            <div class="flex-grow-1" style="overflow-x: auto;">
-              <div class="d-flex gap-1 flex-nowrap">
-                <button nz-button nzType="default" nzSize="small" (click)="toggleSearchPanel()">
-                  <nz-icon nzType="search"></nz-icon>
-                </button>
-                <button nz-button nzType="default" nzSize="small" class="btn-add" (click)="onAddNightShift()">
-                  <img src="assets/icon/action_add_item_16.png" alt="Thêm mới" />Thêm
-                </button>
-                <button nz-button nzType="default" nzSize="small" class="btn-edit" (click)="onEditNightShift()">
-                  <img src="assets/icon/action_edit_item_16.png" alt="Sửa" />Sửa
-                </button>
-                <button nz-button nzType="default" nzSize="small" class="btn-delete" (click)="onDeleteNightShift()">
-                  <img src="assets/icon/action_delete_item_16.png" alt="Xóa" />Xóa
-                </button>
-                <button class="fs-12" nz-button nzType="default" nzSize="small" nz-dropdown [nzDropdownMenu]="menuTBP"
-                  *hasPermission="'N1,N2'">
-                  <img src="assets/icon/action_confirm_tbp_16.png" />TBP xác nhận
-                  <i nz-icon nzType="down"></i>
-                </button>
-                <button class="fs-12" nz-button nzType="default" nzSize="small" nz-dropdown [nzDropdownMenu]="menuHR"
-                    *hasPermission="'N1,N2'">
-                  <img src="assets/icon/action_confirm_tbp_16.png" />HR xác nhận
-                  <i nz-icon nzType="down"></i>
-                </button>
-
-                <nz-dropdown-menu #menuPerspnal="nzDropdownMenu">
-                  <ul nz-menu>
-                    <li nz-menu-item>
-                      <img src="assets/icon/action_approved_16.png" />
-                      <span class="ms-1">Cá nhân duyệt</span>
-                    </li>
-                    <li nz-menu-item>
-                      <img src="assets/icon/action_unapproved_16.png" />
-                      <span class="ms-1">Cá nhân hủy duyệt</span>
-                    </li>
-
-                  </ul>
-
-                </nz-dropdown-menu>
-                <nz-dropdown-menu #menuTBP="nzDropdownMenu">
-                  <ul nz-menu>
-                    <li nz-menu-item (click)="onTBPApprove()">
-                      <img src="assets/icon/action_approved_16.png" />
-                      <span class="ms-1">TBP duyệt</span>
-                    </li>
-                    <li nz-menu-item (click)="onTBPCancel()">
-                      <img src="assets/icon/action_unapproved_16.png" />
-                      <span class="ms-1">TBP hủy duyệt</span>
-                    </li>
-                  </ul>
-                </nz-dropdown-menu>
-                <nz-dropdown-menu #menuHR="nzDropdownMenu">
-                  <ul nz-menu>
-                    <li nz-menu-item (click)="onHRApprove()">
-                      <img src="assets/icon/action_approved_16.png" />
-                      <span class="ms-1">HR duyệt</span>
-                    </li>
-                    <li nz-menu-item (click)="onHRCancel()">
-                      <img src="assets/icon/action_unapproved_16.png" />
-                      <span class="ms-1">HR hủy duyệt</span>
-                    </li>
-                  </ul>
-                </nz-dropdown-menu>
-
-                <span class="mx-2"
-                  style="display: inline-block; height: 20px; border-left: 1px solid #e5e5e5; align-self: center;"></span>
-
-                <button nz-button nzType="default" nzSize="small" class="me-1" (click)="exportToExcel()">
-                  <img src="assets/icon/action_export_excel_16.png" alt="Xuất Excel" />Xuất Excel
-                </button>
-                <button nz-button nzType="default" nzSize="small" class="me-1" (click)="onOpenSummary()"  *hasPermission="'N1,N2'">
-                  <img src="assets/icon/employee_night_shift_summary_16.png" alt="Tổng hợp làm đêm" />Tổng hợp làm đêm
+                  (ngModelChange)="onKeywordChange($event)" (keyup.enter)="getNightShift()" nzSize="small"
+                  name="keyWord" style="width: 150px;" />
+                <button nz-button nzType="primary" nzSize="small" (click)="getNightShift()">
+                  <nz-icon nzType="search" />
                 </button>
               </div>
-            </div>
-          </div>
-
-          <!-- Mobile: dropdown hành động + nút bật/tắt panel tìm kiếm -->
-          <div class="d-flex d-md-none h-40 gap-1 align-items-center justify-content-between">
-            <button nz-button nzType="default" nzSize="small" (click)="toggleSearchPanel()">
-              <nz-icon nzType="search"></nz-icon>
-            </button>
-
-            <div ngbDropdown class="dropdown ms-auto">
-              <button class="btn btn-primary btn-sm" ngbDropdownToggle>
-                <i class="fa fa-bars"></i>
-              </button>
-              <div ngbDropdownMenu class="dropdown-menu">
-                <button ngbDropdownItem (click)="onAddNightShift()"
-                  class="d-flex align-items-center gap-2">
-                  Thêm
-                </button>
-                <button ngbDropdownItem (click)="onEditNightShift()"
-                  class="d-flex align-items-center gap-2">
-                  Sửa
-                </button>
-                <button ngbDropdownItem (click)="onDeleteNightShift()"
-                  class="d-flex align-items-center gap-2">
-                  Xóa
-                </button>
-
-                <div class="dropdown-divider"></div>
-
-                <button ngbDropdownItem (click)="exportToExcel()" class="d-flex align-items-center gap-2">
-                  Xuất Excel
-                </button>
-              </div>
-            </div>
-          </div>
+            </nz-form-control>
+          </nz-form-item>
         </div>
+      </form>
+    </div>
 
-        <!-- phần nội dung splitter ở dưới giữ nguyên -->
-        <div id="dataTableNightShift" style="height: 100%;"></div>
-      </div>
-    </nz-splitter-panel>
-  </nz-splitter>
+    <!-- Content với bảng -->
+    <div class="card-body p-0 position-relative" [class.with-search-bar]="shouldShowSearchBar"
+      [class.without-search-bar]="!shouldShowSearchBar">
+      <div id="dataTableNightShift" style="height: 100%;"></div>
+    </div>
+  </div>
 </ng-container>

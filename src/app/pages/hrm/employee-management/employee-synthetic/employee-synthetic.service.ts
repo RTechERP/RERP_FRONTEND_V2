@@ -42,8 +42,8 @@ export class EmployeeSyntheticService {
   // Xác nhận/Hủy xác nhận bảng lương
   confirmPayroll(id: number, sign: boolean): Observable<any> {
     const homeApiUrl = `${environment.host}api/Home/`;
-    const params = new HttpParams().set('sign', sign.toString());
-    return this.http.post<any>(homeApiUrl + 'confirm-payroll', id, { params });
+    const dto = { Id: id, Sign: sign };
+    return this.http.post<any>(homeApiUrl + 'confirm-payroll', dto);
   }
 
   // Gom nhóm theo field, dùng cho dropdown nhân viên

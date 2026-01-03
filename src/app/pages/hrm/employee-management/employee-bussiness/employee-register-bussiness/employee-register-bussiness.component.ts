@@ -12,6 +12,7 @@ import { NzInputModule } from 'ng-zorro-antd/input';
 import { NzSelectModule } from 'ng-zorro-antd/select';
 import { NzDatePickerModule } from 'ng-zorro-antd/date-picker';
 import { NzModalModule, NzModalService } from 'ng-zorro-antd/modal';
+import { NzGridModule } from 'ng-zorro-antd/grid';
 import { TabulatorFull as Tabulator } from 'tabulator-tables';
 import 'tabulator-tables/dist/css/tabulator_simple.min.css';
 import { DateTime } from 'luxon';
@@ -24,6 +25,7 @@ import { DEFAULT_TABLE_CONFIG } from '../../../../../tabulator-default.config';
 import { NgbModal } from '@ng-bootstrap/ng-bootstrap';
 import { EmployeeRegisterBussinessFormComponent } from './employee-register-bussiness-form/employee-register-bussiness-form.component';
 import { VehicleSelectModalComponent } from './employee-register-bussiness-form/vehicle-select-modal/vehicle-select-modal.component';
+import { Menubar } from 'primeng/menubar';
 
 @Component({
   selector: 'app-employee-register-bussiness',
@@ -45,6 +47,8 @@ import { VehicleSelectModalComponent } from './employee-register-bussiness-form/
     NzModalModule,
     NzSpinModule,
     NgIf,
+    NzGridModule,
+    Menubar,
   ]
 })
 export class EmployeeRegisterBussinessComponent implements OnInit, AfterViewInit {
@@ -55,6 +59,7 @@ export class EmployeeRegisterBussinessComponent implements OnInit, AfterViewInit
   exportingExcel = false;
   sizeSearch: string = '0';
   isLoading = false;
+  showSearchBar: boolean = typeof window !== 'undefined' ? window.innerWidth > 768 : true;
 
   // Dropdown data for search
   typeList: any[] = [];
@@ -63,6 +68,24 @@ export class EmployeeRegisterBussinessComponent implements OnInit, AfterViewInit
 
   // Data
   employeeBussinessList: any[] = [];
+
+  // Menu bars
+  menuBars: any[] = [];
+
+  get shouldShowSearchBar(): boolean {
+    return this.showSearchBar;
+  }
+
+  isMobile(): boolean {
+    return typeof window !== 'undefined' && window.innerWidth <= 768;
+  }
+
+  ToggleSearchPanelNew(event?: Event): void {
+    if (event) {
+      event.stopPropagation();
+    }
+    this.showSearchBar = !this.showSearchBar;
+  }
 
   constructor(
     private fb: FormBuilder,
@@ -75,8 +98,56 @@ export class EmployeeRegisterBussinessComponent implements OnInit, AfterViewInit
   }
 
   ngOnInit() {
+    this.initMenuBar();
     this.loadTypes();
     this.loadVehicles();
+  }
+
+  initMenuBar() {
+    this.menuBars = [
+      {
+        label: 'Thêm',
+        icon: 'fa-solid fa-plus fa-lg text-success',
+        command: () => {
+          this.openAddModal();
+        }
+      },
+      {
+        label: 'Sửa',
+        icon: 'fa-solid fa-pen-to-square fa-lg text-primary',
+        command: () => {
+          this.openEditModal();
+        }
+      },
+      {
+        label: 'Xem phương tiện',
+        icon: 'fa-solid fa-eye fa-lg text-info',
+        command: () => {
+          this.openViewVehicleModal();
+        }
+      },
+      {
+        label: 'Xóa',
+        icon: 'fa-solid fa-trash fa-lg text-danger',
+        command: () => {
+          this.openDeleteModal();
+        }
+      },
+      {
+        label: 'Sao chép',
+        icon: 'fa-solid fa-copy fa-lg text-info',
+        command: () => {
+          this.openCopyModal();
+        }
+      },
+      {
+        label: 'Xuất Excel',
+        icon: 'fa-solid fa-file-excel fa-lg text-success',
+        command: () => {
+          this.exportToExcel();
+        }
+      }
+    ];
   }
 
   ngAfterViewInit(): void {
@@ -236,7 +307,7 @@ export class EmployeeRegisterBussinessComponent implements OnInit, AfterViewInit
           formatter: 'textarea', bottomCalc: 'count'
         },
         {
-          title: 'ID', field: 'ID', width: 150, visible: false,hozAlign: 'left', headerHozAlign: 'center', headerSort: false,
+          title: 'ID', field: 'ID', width: 150, visible: false, hozAlign: 'left', headerHozAlign: 'center', headerSort: false,
           formatter: 'textarea', bottomCalc: 'count'
         },
         {
@@ -253,7 +324,7 @@ export class EmployeeRegisterBussinessComponent implements OnInit, AfterViewInit
             const value = cell.getValue() || '';
             if (!value) return '<p class="m-0" style="white-space:pre-wrap;line-height: normal;font-weight: unset;"></p>';
             try {
-              const formatted = DateTime.fromISO(value).isValid 
+              const formatted = DateTime.fromISO(value).isValid
                 ? DateTime.fromISO(value).toFormat('dd/MM/yyyy')
                 : DateTime.fromJSDate(new Date(value)).toFormat('dd/MM/yyyy');
               return `<p class="m-0" style="white-space:pre-wrap;line-height: normal;font-weight: unset;">${formatted}</p>`;
@@ -316,7 +387,7 @@ export class EmployeeRegisterBussinessComponent implements OnInit, AfterViewInit
             const value = cell.getValue() || '';
             if (!value) return '<p class="m-0" style="white-space:pre-wrap;line-height: normal;font-weight: unset;"></p>';
             try {
-              const formatted = DateTime.fromISO(value).isValid 
+              const formatted = DateTime.fromISO(value).isValid
                 ? DateTime.fromISO(value).toFormat('dd/MM/yyyy HH:mm')
                 : DateTime.fromJSDate(new Date(value)).toFormat('dd/MM/yyyy HH:mm');
               return `<p class="m-0" style="white-space:pre-wrap;line-height: normal;font-weight: unset;">${formatted}</p>`;
@@ -382,7 +453,7 @@ export class EmployeeRegisterBussinessComponent implements OnInit, AfterViewInit
       backdrop: 'static',
       keyboard: false
     });
-    
+
     modalRef.componentInstance.data = null;
     modalRef.componentInstance.isEditMode = false;
 
@@ -416,7 +487,7 @@ export class EmployeeRegisterBussinessComponent implements OnInit, AfterViewInit
       this.notification.warning(NOTIFICATION_TITLE.warning, 'Bản ghi đã được duyệt, không thể chỉnh sửa');
       return;
     }
-    
+
     const bussinessID = selectedData['ID'] || selectedData['Id'] || 0;
     if (!bussinessID || bussinessID === 0) {
       this.notification.warning(NOTIFICATION_TITLE.warning, 'Không tìm thấy ID bản ghi');
@@ -457,7 +528,7 @@ export class EmployeeRegisterBussinessComponent implements OnInit, AfterViewInit
 
     const selectedData = selectedRows[0].getData();
     const bussinessID = selectedData['ID'] || selectedData['Id'] || 0;
-    
+
     if (!bussinessID || bussinessID <= 0) {
       this.notification.warning(NOTIFICATION_TITLE.warning, 'Bản ghi chưa được lưu, không thể xem phương tiện');
       return;
@@ -470,7 +541,7 @@ export class EmployeeRegisterBussinessComponent implements OnInit, AfterViewInit
         this.isLoading = false;
         if (response && response.status === 1 && response.data) {
           const vehicles = Array.isArray(response.data) ? response.data : [response.data];
-          
+
           // Chuyển đổi dữ liệu từ API sang format của VehicleItem
           // Format từ stored procedure: ID, EmployeeBussinesID, EmployeeVehicleBussinessID, VehicleName, VehicleID, Cost, BillImage, Note
           const vehicleItems = vehicles.map((v: any, index: number) => ({
@@ -543,13 +614,13 @@ export class EmployeeRegisterBussinessComponent implements OnInit, AfterViewInit
   // Cập nhật phương tiện và tính lại chi phí
   private updateVehiclesAndRecalculate(bussinessID: number, vehicles: any[], deletedVehicles: any[], selectedData: any): void {
     this.isLoading = true;
-    
+
     const totalVehicleCost = vehicles.reduce((sum, v) => sum + (v.cost || 0), 0);
     const costBussiness = selectedData['CostBussiness'] || selectedData['CostType'] || 0;
     const costWorkEarly = selectedData['CostWorkEarly'] || 0;
     const costOvernight = selectedData['CostOvernight'] || 0;
     const totalMoney = Number(costBussiness) + Number(totalVehicleCost) + Number(costWorkEarly) + Number(costOvernight);
-    
+
     const updateData: any = {
       employeeBussiness: {
         ID: bussinessID,
@@ -733,17 +804,17 @@ export class EmployeeRegisterBussinessComponent implements OnInit, AfterViewInit
     }
 
     const selectedData = selectedRows[0].getData();
-    
+
     // Kiểm tra nếu đã duyệt thì không cho sao chép
     const statusTBP = selectedData['StatusTBP'];
     const statusHR = selectedData['StatusHR'];
-    
+
     // Nếu TBP hoặc HR đã duyệt (status = 1) thì không cho sao chép
     if (statusTBP === 1 || statusHR === 1) {
       this.notification.warning(NOTIFICATION_TITLE.warning, 'Bản ghi đã được duyệt, không thể sao chép');
       return;
     }
-    
+
     const bussinessID = selectedData['ID'] || selectedData['Id'] || 0;
     if (!bussinessID || bussinessID === 0) {
       this.notification.warning(NOTIFICATION_TITLE.warning, 'Không tìm thấy ID bản ghi');
@@ -755,7 +826,7 @@ export class EmployeeRegisterBussinessComponent implements OnInit, AfterViewInit
       next: (response: any) => {
         if (response && response.data) {
           const result = response.data;
-          
+
           // Tạo bản copy với ID = 0 và ngày mới
           const copyData = {
             ID: 0,
@@ -844,7 +915,7 @@ export class EmployeeRegisterBussinessComponent implements OnInit, AfterViewInit
 
     try {
       const allData = this.employeeBussinessList;
-      
+
       if (allData.length === 0) {
         this.notification.error(NOTIFICATION_TITLE.error, 'Không có dữ liệu để xuất excel!');
         this.exportingExcel = false;

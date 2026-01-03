@@ -321,7 +321,7 @@ export class ProjectPartlistPriceRequestNewComponent implements OnInit, OnDestro
       }
     );
     modalRef.componentInstance.dataInput = this.modalData;
-    modalRef.componentInstance.jobRequirementID = 0;
+    modalRef.componentInstance.jobRequirementID = this.jobRequirementID;
     modalRef.componentInstance.projectTypeID = this.activeTabId;
     modalRef.componentInstance.initialPriceRequestTypeID =
       projectPartlistPriceRequestTypeID;
@@ -428,7 +428,7 @@ export class ProjectPartlistPriceRequestNewComponent implements OnInit, OnDestro
       }
     );
     modalRef.componentInstance.dataInput = processedRows;
-    modalRef.componentInstance.jobRequirementID = 0;
+    modalRef.componentInstance.jobRequirementID = this.jobRequirementID;
     modalRef.componentInstance.projectTypeID = this.activeTabId;
     modalRef.componentInstance.initialPriceRequestTypeID =
       this.getProjectPartlistPriceRequestTypeID(this.activeTabId);
@@ -583,7 +583,7 @@ export class ProjectPartlistPriceRequestNewComponent implements OnInit, OnDestro
         ? this.filters.dateEnd
         : DateTime.fromJSDate(this.filters.dateEnd).toFormat('yyyy/MM/dd');
 
-    const statusRequest = this.filters.statusRequest ;
+    const statusRequest = this.filters.statusRequest;
     const projectId = this.filters.projectId || 0;
     const keyword = (this.filters.keyword || '').trim();
     const isDeleted = this.filters.isDeleted || 0;
@@ -645,7 +645,7 @@ export class ProjectPartlistPriceRequestNewComponent implements OnInit, OnDestro
       }
     };
 
-          this.projectTypes.forEach((type, index) => {
+    this.projectTypes.forEach((type, index) => {
       const projectTypeID = type.ProjectTypeID;
 
       // Map projectTypeID sang các tham số API theo logic WinForm
@@ -772,14 +772,14 @@ export class ProjectPartlistPriceRequestNewComponent implements OnInit, OnDestro
 
               setTimeout(retrySetData, retryInterval);
             }
-            } catch (e) {
-              console.warn(`[Request ${currentRequestId}] Error setting data for type ${projectTypeID}:`, e);
-              // Vẫn cố set data rỗng để đảm bảo grid được tạo
-              try {
-                this.setGridData(projectTypeID, []);
-              } catch (e2) {
-                console.error(`[Request ${currentRequestId}] Failed to set empty data for type ${projectTypeID}:`, e2);
-              }
+          } catch (e) {
+            console.warn(`[Request ${currentRequestId}] Error setting data for type ${projectTypeID}:`, e);
+            // Vẫn cố set data rỗng để đảm bảo grid được tạo
+            try {
+              this.setGridData(projectTypeID, []);
+            } catch (e2) {
+              console.error(`[Request ${currentRequestId}] Failed to set empty data for type ${projectTypeID}:`, e2);
+            }
           }
 
           // Sau khi load xong tất cả types
@@ -1014,19 +1014,19 @@ export class ProjectPartlistPriceRequestNewComponent implements OnInit, OnDestro
       this.loading = true;
       this.LoadAllDataOnce();
 
-    // Tự động ẩn filter bar trên mobile sau khi tìm kiếm
-    const isMobile = window.innerWidth <= 768;
-    if (isMobile && this.showSearchBar) {
-      // Khôi phục body scroll trước khi đóng modal
-      document.body.style.overflow = '';
-      document.body.style.position = '';
-      document.body.style.width = '';
+      // Tự động ẩn filter bar trên mobile sau khi tìm kiếm
+      const isMobile = window.innerWidth <= 768;
+      if (isMobile && this.showSearchBar) {
+        // Khôi phục body scroll trước khi đóng modal
+        document.body.style.overflow = '';
+        document.body.style.position = '';
+        document.body.style.width = '';
 
-      // Đóng modal với animation
-      setTimeout(() => {
-        this.showSearchBar = false;
-      }, 100);
-    }
+        // Đóng modal với animation
+        setTimeout(() => {
+          this.showSearchBar = false;
+        }, 100);
+      }
     }, 0);
   }
 
@@ -1260,11 +1260,11 @@ export class ProjectPartlistPriceRequestNewComponent implements OnInit, OnDestro
         angularGrid.resizerService.resizeGrid();
       }, 150);
     }
-}
-/**
- * Apply distinct filters cho một tab cụ thể
- */
-private applyDistinctFiltersForTab(typeId: number): void {
+  }
+  /**
+   * Apply distinct filters cho một tab cụ thể
+   */
+  private applyDistinctFiltersForTab(typeId: number): void {
     const angularGrid = this.angularGrids.get(typeId);
     if (!angularGrid || !angularGrid.slickGrid) {
       console.warn(`Grid for type ${typeId} not found`);
@@ -1314,12 +1314,12 @@ private applyDistinctFiltersForTab(typeId: number): void {
     angularGrid.slickGrid.render();
 
     console.log(`✓ Filters updated for tab ${typeId}`);
-}
+  }
 
-/**
- * Helper method để update filter collections
- */
-private updateFilterCollections(columns: any[], data: any[]): void {
+  /**
+   * Helper method để update filter collections
+   */
+  private updateFilterCollections(columns: any[], data: any[]): void {
     // Helper function to get unique values
     const getUniqueValues = (data: any[], field: string): Array<{ value: string; label: string }> => {
       const map = new Map<string, string>();
@@ -1365,7 +1365,7 @@ private updateFilterCollections(columns: any[], data: any[]): void {
         }
       }
     });
-}
+  }
   // Initialize grid columns for Angular SlickGrid
   // Helper methods để tạo collection cho single select
   private getCurrencyCollection(): Array<{ value: number; label: string; currencyRate: number }> {
@@ -1821,7 +1821,7 @@ private updateFilterCollections(columns: any[], data: any[]): void {
           collectionOptions: {
             addBlankEntry: true
           },
-            editorOptions: {
+          editorOptions: {
             filter: true,
           } as MultipleSelectOption,
         },
@@ -1970,7 +1970,7 @@ private updateFilterCollections(columns: any[], data: any[]): void {
           collectionOptions: {
             addBlankEntry: true
           },
-            editorOptions: {
+          editorOptions: {
             filter: true,
           } as MultipleSelectOption,
         },
@@ -2378,22 +2378,22 @@ private updateFilterCollections(columns: any[], data: any[]): void {
     }
 
 
-      // Resize grid after initialization và đảm bảo checkbox selector vẫn hiển thị
-      setTimeout(() => {
-        angularGrid.resizerService.resizeGrid();
-        // Đảm bảo checkbox selector vẫn được enable sau khi resize
-        this.ensureCheckboxSelector(angularGrid);
-        if (angularGrid.slickGrid) {
-          angularGrid.slickGrid.render();
-        }
-      }, 100);
+    // Resize grid after initialization và đảm bảo checkbox selector vẫn hiển thị
+    setTimeout(() => {
+      angularGrid.resizerService.resizeGrid();
+      // Đảm bảo checkbox selector vẫn được enable sau khi resize
+      this.ensureCheckboxSelector(angularGrid);
+      if (angularGrid.slickGrid) {
+        angularGrid.slickGrid.render();
+      }
+    }, 100);
   }
 
   // Handler khi cell được click
   onCellClicked(typeId: number, e: Event, args: OnClickEventArgs): void {
     // Lưu cell đang được click để có thể copy khi nhấn Ctrl+C
     // CurrencyID và SupplierSaleID giờ dùng single select editor nên không cần xử lý click riêng
-      const angularGrid = this.angularGrids.get(typeId);
+    const angularGrid = this.angularGrids.get(typeId);
     if (!angularGrid) return;
 
     // Lấy column từ cell index
@@ -2521,16 +2521,16 @@ private updateFilterCollections(columns: any[], data: any[]): void {
     }
 
     // Refresh grid
-        angularGrid.slickGrid.invalidate();
-        angularGrid.slickGrid.render();
-        // Đảm bảo checkbox selector vẫn được enable sau khi render
-        this.ensureCheckboxSelector(angularGrid);
-      }
+    angularGrid.slickGrid.invalidate();
+    angularGrid.slickGrid.render();
+    // Đảm bảo checkbox selector vẫn được enable sau khi render
+    this.ensureCheckboxSelector(angularGrid);
+  }
 
   // Handler khi row selection thay đổi
   handleRowSelection(typeId: number, e: Event, args: OnSelectedRowsChangedEventArgs): void {
     // Có thể thêm logic xử lý khi selection thay đổi
-        const angularGrid = this.angularGrids.get(typeId);
+    const angularGrid = this.angularGrids.get(typeId);
     if (!angularGrid) return;
 
     const selectedRows = args.rows || [];
@@ -3328,9 +3328,9 @@ private updateFilterCollections(columns: any[], data: any[]): void {
       // Track edited row
       const rowId = Number(item['ID']);
       if (rowId > 0) {
-            if (!this.editedRowsMap.has(this.activeTabId)) {
-              this.editedRowsMap.set(this.activeTabId, new Map());
-            }
+        if (!this.editedRowsMap.has(this.activeTabId)) {
+          this.editedRowsMap.set(this.activeTabId, new Map());
+        }
         this.editedRowsMap.get(this.activeTabId)!.set(rowId, item);
       }
     }
@@ -4269,106 +4269,106 @@ private updateFilterCollections(columns: any[], data: any[]): void {
 
       // Thêm các dòng dữ liệu trong nhóm
       groupRows.forEach((row: any) => {
-      const rowData = columns.map((col: any) => {
-        const value = row[col.field];
+        const rowData = columns.map((col: any) => {
+          const value = row[col.field];
 
-        // Xử lý null/undefined thành khoảng trống
-        if (value === null || value === undefined) {
-          return '';
-        }
+          // Xử lý null/undefined thành khoảng trống
+          if (value === null || value === undefined) {
+            return '';
+          }
 
-        // Xử lý object rỗng
-        if (
-          typeof value === 'object' &&
-          value !== null &&
-          Object.keys(value).length === 0
-        ) {
-          return '';
-        }
+          // Xử lý object rỗng
+          if (
+            typeof value === 'object' &&
+            value !== null &&
+            Object.keys(value).length === 0
+          ) {
+            return '';
+          }
 
-        // Xử lý checkbox: true -> "X", false -> ""
-        const fieldName = col.field || '';
-        if (fieldName === 'IsCheckPrice') {
-          return value ? 'X' : '';
-        }
+          // Xử lý checkbox: true -> "X", false -> ""
+          const fieldName = col.field || '';
+          if (fieldName === 'IsCheckPrice') {
+            return value ? 'X' : '';
+          }
 
-        // Format tiền cho các cột số tiền
-        if (
-          ['TotalPrice', 'UnitPrice', 'TotaMoneyVAT', 'TotalPriceExchange', 'TotalImportPrice'].includes(
-            col.field
-          )
-        ) {
-          const numValue = Number(value) || 0;
-          return numValue === 0 ? 0 : new Intl.NumberFormat('vi-VN', {
-            minimumFractionDigits: 0,
-            maximumFractionDigits: 0,
-          }).format(numValue);
-        }
+          // Format tiền cho các cột số tiền
+          if (
+            ['TotalPrice', 'UnitPrice', 'TotaMoneyVAT', 'TotalPriceExchange', 'TotalImportPrice'].includes(
+              col.field
+            )
+          ) {
+            const numValue = Number(value) || 0;
+            return numValue === 0 ? 0 : new Intl.NumberFormat('vi-VN', {
+              minimumFractionDigits: 0,
+              maximumFractionDigits: 0,
+            }).format(numValue);
+          }
 
-        // Format date columns thành dd/MM/yyyy
-        if (
-          ['DatePriceQuote', 'DateRequest', 'Deadline', 'DateExpected', 'DateHistoryPrice', 'LeadTime'].includes(fieldName)
-        ) {
-          if (!value) return '';
-          // Xử lý nhiều kiểu dữ liệu date
-          let dateValue: DateTime | null = null;
-          if (value instanceof Date) {
-            dateValue = DateTime.fromJSDate(value);
-          } else if (typeof value === 'string') {
-            dateValue = DateTime.fromISO(value);
-            if (!dateValue.isValid) {
-              // Thử các format khác
-              const formats = ['yyyy/MM/dd', 'dd/MM/yyyy', 'yyyy-MM-dd', 'MM/dd/yyyy'];
-              for (const format of formats) {
-                dateValue = DateTime.fromFormat(value, format);
-                if (dateValue.isValid) break;
+          // Format date columns thành dd/MM/yyyy
+          if (
+            ['DatePriceQuote', 'DateRequest', 'Deadline', 'DateExpected', 'DateHistoryPrice', 'LeadTime'].includes(fieldName)
+          ) {
+            if (!value) return '';
+            // Xử lý nhiều kiểu dữ liệu date
+            let dateValue: DateTime | null = null;
+            if (value instanceof Date) {
+              dateValue = DateTime.fromJSDate(value);
+            } else if (typeof value === 'string') {
+              dateValue = DateTime.fromISO(value);
+              if (!dateValue.isValid) {
+                // Thử các format khác
+                const formats = ['yyyy/MM/dd', 'dd/MM/yyyy', 'yyyy-MM-dd', 'MM/dd/yyyy'];
+                for (const format of formats) {
+                  dateValue = DateTime.fromFormat(value, format);
+                  if (dateValue.isValid) break;
+                }
               }
             }
+            return dateValue && dateValue.isValid ? dateValue.toFormat('dd/MM/yyyy') : '';
           }
-          return dateValue && dateValue.isValid ? dateValue.toFormat('dd/MM/yyyy') : '';
-        }
 
-        // Format VAT và TotalDayLeadTime theo en-US
-        if (fieldName === 'VAT' || fieldName === 'TotalDayLeadTime') {
-          if (value === null || value === undefined || value === '') return '';
-          const numValue = Number(value) || 0;
-          return new Intl.NumberFormat('en-US', {
-            minimumFractionDigits: 0,
-            maximumFractionDigits: col.field === 'VAT' ? 2 : 0,
-          }).format(numValue);
-        }
+          // Format VAT và TotalDayLeadTime theo en-US
+          if (fieldName === 'VAT' || fieldName === 'TotalDayLeadTime') {
+            if (value === null || value === undefined || value === '') return '';
+            const numValue = Number(value) || 0;
+            return new Intl.NumberFormat('en-US', {
+              minimumFractionDigits: 0,
+              maximumFractionDigits: col.field === 'VAT' ? 2 : 0,
+            }).format(numValue);
+          }
 
-        // Xử lý trường select với lookup
-        if (col.field === 'CurrencyID') {
-          const currency = this.dtcurrency?.find((c: any) => c.ID === value);
-          return currency ? currency.Code : '';
-        }
+          // Xử lý trường select với lookup
+          if (col.field === 'CurrencyID') {
+            const currency = this.dtcurrency?.find((c: any) => c.ID === value);
+            return currency ? currency.Code : '';
+          }
 
-        if (col.field === 'SupplierSaleID') {
-          const supplier = this.dtSupplierSale?.find(
-            (s: any) => s.ID === value
-          );
-          return supplier ? supplier.NameNCC : '';
-        }
+          if (col.field === 'SupplierSaleID') {
+            const supplier = this.dtSupplierSale?.find(
+              (s: any) => s.ID === value
+            );
+            return supplier ? supplier.NameNCC : '';
+          }
 
-        if (col.field === 'CodeNCC') {
-          // Lấy CodeNCC từ SupplierSaleID
-          const supplierId = row['SupplierSaleID'];
-          const supplier = this.dtSupplierSale?.find(
-            (s: any) => s.ID === supplierId
-          );
-          return supplier ? (supplier.CodeNCC || '') : '';
-        }
+          if (col.field === 'CodeNCC') {
+            // Lấy CodeNCC từ SupplierSaleID
+            const supplierId = row['SupplierSaleID'];
+            const supplier = this.dtSupplierSale?.find(
+              (s: any) => s.ID === supplierId
+            );
+            return supplier ? (supplier.CodeNCC || '') : '';
+          }
 
-        // Xử lý chuỗi rỗng
-        if (value === '') {
-          return '';
-        }
+          // Xử lý chuỗi rỗng
+          if (value === '') {
+            return '';
+          }
 
-        // Return giá trị bình thường
-        return value;
-      });
-      worksheet.addRow(rowData);
+          // Return giá trị bình thường
+          return value;
+        });
+        worksheet.addRow(rowData);
       });
 
       // Thêm dòng trống giữa các group
@@ -4506,10 +4506,10 @@ private updateFilterCollections(columns: any[], data: any[]): void {
     // Lấy dữ liệu từ Map (local pagination) thay vì gọi API
     const rawData = this.allDataByType.get(this.activeTabId) || [];
 
-      if (rawData.length === 0) {
-        this.notification.info('Thông báo', 'Không có dữ liệu để xuất Excel.');
-        return;
-      }
+    if (rawData.length === 0) {
+      this.notification.info('Thông báo', 'Không có dữ liệu để xuất Excel.');
+      return;
+    }
 
     try {
       let columns = this.columnDefinitionsMap.get(this.activeTabId) || [];
@@ -4845,14 +4845,14 @@ private updateFilterCollections(columns: any[], data: any[]): void {
 
         // Add header row
         if (columns.length > 0) {
-        const headerRow = sheet.addRow(columns.map((col: Column) => col.name || col.field || ''));
-        headerRow.font = { bold: true, name: 'Tahoma' };
-        headerRow.fill = {
-          type: 'pattern',
-          pattern: 'solid',
-          fgColor: { argb: 'FFE0E0E0' },
-        };
-        headerRow.alignment = { vertical: 'middle', horizontal: 'center', wrapText: true };
+          const headerRow = sheet.addRow(columns.map((col: Column) => col.name || col.field || ''));
+          headerRow.font = { bold: true, name: 'Tahoma' };
+          headerRow.fill = {
+            type: 'pattern',
+            pattern: 'solid',
+            fgColor: { argb: 'FFE0E0E0' },
+          };
+          headerRow.alignment = { vertical: 'middle', horizontal: 'center', wrapText: true };
         }
 
         // Nếu không có dữ liệu, thêm dòng thông báo
@@ -4866,116 +4866,155 @@ private updateFilterCollections(columns: any[], data: any[]): void {
             sheet.mergeCells(`A${noDataRow.number}:${lastColumnLetter}${noDataRow.number}`);
           }
         } else {
-        // Group dữ liệu theo ProjectFullName
-        const grouped = rawData.reduce((acc: any, item: any) => {
-          const groupKey = item.ProjectFullName || 'Không rõ dự án';
-          if (!acc[groupKey]) acc[groupKey] = [];
-          acc[groupKey].push(item);
-          return acc;
-        }, {});
+          // Group dữ liệu theo ProjectFullName
+          const grouped = rawData.reduce((acc: any, item: any) => {
+            const groupKey = item.ProjectFullName || 'Không rõ dự án';
+            if (!acc[groupKey]) acc[groupKey] = [];
+            acc[groupKey].push(item);
+            return acc;
+          }, {});
 
-        for (const groupName of Object.keys(grouped)) {
-          const groupRows = grouped[groupName];
+          for (const groupName of Object.keys(grouped)) {
+            const groupRows = grouped[groupName];
 
-          // Group header
-          const groupHeader = sheet.addRow([
-            `${groupName} (${groupRows.length})`,
-          ]);
-          groupHeader.font = { bold: true, name: 'Tahoma' };
-          groupHeader.fill = {
-            type: 'pattern',
-            pattern: 'solid',
-            fgColor: { argb: 'FFd9edf7' },
-          };
-          groupHeader.alignment = { wrapText: true };
-          // Merge cells từ cột A đến cột cuối cùng
-          const lastColumnLetter = this.getColumnLetter(columns.length);
-          sheet.mergeCells(
-            `A${groupHeader.number}:${lastColumnLetter}${groupHeader.number}`
-          );
+            // Group header
+            const groupHeader = sheet.addRow([
+              `${groupName} (${groupRows.length})`,
+            ]);
+            groupHeader.font = { bold: true, name: 'Tahoma' };
+            groupHeader.fill = {
+              type: 'pattern',
+              pattern: 'solid',
+              fgColor: { argb: 'FFd9edf7' },
+            };
+            groupHeader.alignment = { wrapText: true };
+            // Merge cells từ cột A đến cột cuối cùng
+            const lastColumnLetter = this.getColumnLetter(columns.length);
+            sheet.mergeCells(
+              `A${groupHeader.number}:${lastColumnLetter}${groupHeader.number}`
+            );
 
-          // Dữ liệu trong group
-          groupRows.forEach((row: any) => {
-            const rowData = columns.map((col: any) => {
-              const value = row[col.field];
+            // Dữ liệu trong group
+            groupRows.forEach((row: any) => {
+              const rowData = columns.map((col: any) => {
+                const value = row[col.field];
 
-              if (
-                value == null ||
-                (typeof value === 'object' && Object.keys(value).length === 0)
-              )
-                return '';
-
-              // Xử lý checkbox: true -> "X", false -> ""
-              if (col.field === 'IsCheckPrice' || col.field === 'IsImport') return value ? 'X' : '';
-
-              // Format tiền cho các cột số tiền
-              if (
-                ['TotalPrice', 'UnitPrice', 'TotaMoneyVAT', 'TotalPriceExchange', 'TotalImportPrice'].includes(
-                  col.field
+                if (
+                  value == null ||
+                  (typeof value === 'object' && Object.keys(value).length === 0)
                 )
-              ) {
-                const numValue = Number(value) || 0;
-                return numValue === 0 ? 0 : new Intl.NumberFormat('vi-VN', {
-                  minimumFractionDigits: 0,
-                  maximumFractionDigits: 0,
-                }).format(numValue);
-              }
+                  return '';
 
-              // Format date columns thành dd/MM/yyyy
-              if (
-                ['DatePriceQuote', 'DateRequest', 'Deadline', 'DateExpected', 'DateHistoryPrice', 'LeadTime'].includes(
-                  col.field
-                )
-              ) {
-                if (!value) return '';
-                // Xử lý nhiều kiểu dữ liệu date
-                let dateValue: DateTime | null = null;
-                if (value instanceof Date) {
-                  dateValue = DateTime.fromJSDate(value);
-                } else if (typeof value === 'string') {
-                  dateValue = DateTime.fromISO(value);
-                  if (!dateValue.isValid) {
-                    // Thử các format khác
-                    const formats = ['yyyy/MM/dd', 'dd/MM/yyyy', 'yyyy-MM-dd', 'MM/dd/yyyy'];
-                    for (const format of formats) {
-                      dateValue = DateTime.fromFormat(value, format);
-                      if (dateValue.isValid) break;
+                // Xử lý checkbox: true -> "X", false -> ""
+                if (col.field === 'IsCheckPrice' || col.field === 'IsImport') return value ? 'X' : '';
+
+                // Format tiền cho các cột số tiền
+                if (
+                  ['TotalPrice', 'UnitPrice', 'TotaMoneyVAT', 'TotalPriceExchange', 'TotalImportPrice'].includes(
+                    col.field
+                  )
+                ) {
+                  const numValue = Number(value) || 0;
+                  return numValue === 0 ? 0 : new Intl.NumberFormat('vi-VN', {
+                    minimumFractionDigits: 0,
+                    maximumFractionDigits: 0,
+                  }).format(numValue);
+                }
+
+                // Format date columns thành dd/MM/yyyy
+                if (
+                  ['DatePriceQuote', 'DateRequest', 'Deadline', 'DateExpected', 'DateHistoryPrice', 'LeadTime'].includes(
+                    col.field
+                  )
+                ) {
+                  if (!value) return '';
+                  // Xử lý nhiều kiểu dữ liệu date
+                  let dateValue: DateTime | null = null;
+                  if (value instanceof Date) {
+                    dateValue = DateTime.fromJSDate(value);
+                  } else if (typeof value === 'string') {
+                    dateValue = DateTime.fromISO(value);
+                    if (!dateValue.isValid) {
+                      // Thử các format khác
+                      const formats = ['yyyy/MM/dd', 'dd/MM/yyyy', 'yyyy-MM-dd', 'MM/dd/yyyy'];
+                      for (const format of formats) {
+                        dateValue = DateTime.fromFormat(value, format);
+                        if (dateValue.isValid) break;
+                      }
                     }
                   }
+                  return dateValue && dateValue.isValid ? dateValue.toFormat('dd/MM/yyyy') : '';
                 }
-                return dateValue && dateValue.isValid ? dateValue.toFormat('dd/MM/yyyy') : '';
-              }
 
-              // Format VAT và TotalDayLeadTime theo en-US
-              if (col.field === 'VAT' || col.field === 'TotalDayLeadTime') {
-                if (value === null || value === undefined || value === '') return '';
-                const numValue = Number(value) || 0;
-                return new Intl.NumberFormat('en-US', {
-                  minimumFractionDigits: 0,
-                  maximumFractionDigits: col.field === 'VAT' ? 2 : 0,
-                }).format(numValue);
-              }
+                // Format VAT và TotalDayLeadTime theo en-US
+                if (col.field === 'VAT' || col.field === 'TotalDayLeadTime') {
+                  if (value === null || value === undefined || value === '') return '';
+                  const numValue = Number(value) || 0;
+                  return new Intl.NumberFormat('en-US', {
+                    minimumFractionDigits: 0,
+                    maximumFractionDigits: col.field === 'VAT' ? 2 : 0,
+                  }).format(numValue);
+                }
 
-              if (col.field === 'CurrencyID') {
-                const cur = this.dtcurrency?.find((c) => c.ID === value);
-                return cur ? cur.Code : '';
-              }
-              if (col.field === 'SupplierSaleID') {
-                const sup = this.dtSupplierSale?.find((s) => s.ID === value);
-                return sup ? sup.NameNCC : '';
-              }
-              return value;
+                if (col.field === 'CurrencyID') {
+                  const cur = this.dtcurrency?.find((c) => c.ID === value);
+                  return cur ? cur.Code : '';
+                }
+                if (col.field === 'SupplierSaleID') {
+                  const sup = this.dtSupplierSale?.find((s) => s.ID === value);
+                  return sup ? sup.NameNCC : '';
+                }
+                return value;
+              });
+
+              sheet.addRow(rowData);
             });
 
-            sheet.addRow(rowData);
-          });
+            // Footer bottomCalc
+            const footerRowData = columns.map((col: Column) => {
+              // Kiểm tra xem cột có cần tính tổng không
+              if (!this.shouldCalculateSum(col)) return '';
 
-          // Footer bottomCalc
-          const footerRowData = columns.map((col: Column) => {
+              const values = groupRows.map((r: any) => Number(r[col.field]) || 0);
+              const result = values.reduce((a: number, b: number) => a + b, 0);
+
+              // Format tiền cho các cột tiền
+              if (
+                ['TotalPrice', 'UnitPrice', 'TotaMoneyVAT', 'TotalPriceExchange', 'TotalImportPrice'].includes(
+                  col.field || ''
+                ) && typeof result === 'number'
+              ) {
+                return result === 0 ? 0 : new Intl.NumberFormat('vi-VN', {
+                  minimumFractionDigits: 0,
+                  maximumFractionDigits: 0,
+                }).format(result);
+              }
+
+              // Format số cho các cột số khác
+              if (col.field === 'Quantity' || col.field === 'TotalDayLeadTime') {
+                return this.formatNumberEnUS(result, col.field === 'Quantity' ? 2 : 0);
+              }
+
+              return result;
+            });
+
+            const footerRow = sheet.addRow(footerRowData);
+            footerRow.font = { bold: true, name: 'Tahoma' };
+            footerRow.fill = {
+              type: 'pattern',
+              pattern: 'solid',
+              fgColor: { argb: 'FFF9F9F9' },
+            };
+            footerRow.alignment = { wrapText: true };
+            sheet.addRow([]); // dòng trống giữa nhóm
+          }
+
+          // Footer tổng cho toàn bảng
+          const totalFooterRowData = columns.map((col: Column) => {
             // Kiểm tra xem cột có cần tính tổng không
             if (!this.shouldCalculateSum(col)) return '';
 
-            const values = groupRows.map((r: any) => Number(r[col.field]) || 0);
+            const values = rawData.map((r: any) => Number(r[col.field]) || 0);
             const result = values.reduce((a: number, b: number) => a + b, 0);
 
             // Format tiền cho các cột tiền
@@ -4998,56 +5037,17 @@ private updateFilterCollections(columns: any[], data: any[]): void {
             return result;
           });
 
-          const footerRow = sheet.addRow(footerRowData);
-          footerRow.font = { bold: true, name: 'Tahoma' };
-          footerRow.fill = {
-            type: 'pattern',
-            pattern: 'solid',
-            fgColor: { argb: 'FFF9F9F9' },
-          };
-          footerRow.alignment = { wrapText: true };
-          sheet.addRow([]); // dòng trống giữa nhóm
-        }
-
-        // Footer tổng cho toàn bảng
-        const totalFooterRowData = columns.map((col: Column) => {
-          // Kiểm tra xem cột có cần tính tổng không
-          if (!this.shouldCalculateSum(col)) return '';
-
-          const values = rawData.map((r: any) => Number(r[col.field]) || 0);
-          const result = values.reduce((a: number, b: number) => a + b, 0);
-
-          // Format tiền cho các cột tiền
-          if (
-            ['TotalPrice', 'UnitPrice', 'TotaMoneyVAT', 'TotalPriceExchange', 'TotalImportPrice'].includes(
-              col.field || ''
-            ) && typeof result === 'number'
-          ) {
-            return result === 0 ? 0 : new Intl.NumberFormat('vi-VN', {
-              minimumFractionDigits: 0,
-              maximumFractionDigits: 0,
-            }).format(result);
-          }
-
-          // Format số cho các cột số khác
-          if (col.field === 'Quantity' || col.field === 'TotalDayLeadTime') {
-            return this.formatNumberEnUS(result, col.field === 'Quantity' ? 2 : 0);
-          }
-
-          return result;
-        });
-
-        // Thêm label "Tổng cộng" vào cột đầu tiên
-        if (totalFooterRowData.some((val: any) => val !== '')) {
-          totalFooterRowData[0] = 'Tổng cộng';
-          const totalFooterRow = sheet.addRow(totalFooterRowData);
-          totalFooterRow.font = { bold: true, name: 'Tahoma' };
-          totalFooterRow.fill = {
-            type: 'pattern',
-            pattern: 'solid',
-            fgColor: { argb: 'FFD3D3D3' },
-          };
-          totalFooterRow.alignment = { vertical: 'middle', horizontal: 'left', wrapText: true };
+          // Thêm label "Tổng cộng" vào cột đầu tiên
+          if (totalFooterRowData.some((val: any) => val !== '')) {
+            totalFooterRowData[0] = 'Tổng cộng';
+            const totalFooterRow = sheet.addRow(totalFooterRowData);
+            totalFooterRow.font = { bold: true, name: 'Tahoma' };
+            totalFooterRow.fill = {
+              type: 'pattern',
+              pattern: 'solid',
+              fgColor: { argb: 'FFD3D3D3' },
+            };
+            totalFooterRow.alignment = { vertical: 'middle', horizontal: 'left', wrapText: true };
           }
         }
 
@@ -5212,7 +5212,7 @@ private updateFilterCollections(columns: any[], data: any[]): void {
     //   angularGrid.slickGrid.invalidate();
     //   angularGrid.slickGrid.render();
     // });
-     this.projectTypes.forEach(projectType => {
+    this.projectTypes.forEach(projectType => {
       const typeId = projectType.ProjectTypeID;
       this.applyDistinctFiltersForTab(typeId);
     });

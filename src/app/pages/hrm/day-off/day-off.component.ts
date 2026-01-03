@@ -35,6 +35,8 @@ import { DEFAULT_TABLE_CONFIG } from '../../../tabulator-default.config';
 import { AuthService } from '../../../auth/auth.service';
 import { WFHService } from '../employee-management/employee-wfh/WFH-service/WFH.service';
 import { NzDropDownModule } from 'ng-zorro-antd/dropdown';
+import { Menubar } from 'primeng/menubar';
+import { PermissionService } from '../../../services/permission.service';
 
 
 @Component({
@@ -64,8 +66,8 @@ import { NzDropDownModule } from 'ng-zorro-antd/dropdown';
     DeclareDayOffComponent,
     NgIf,
     NzSpinModule,
-    HasPermissionDirective,
-    NzDropDownModule
+    NzDropDownModule,
+    Menubar
   ]
 })
 export class DayOffComponent implements OnInit, AfterViewInit {
@@ -84,8 +86,15 @@ export class DayOffComponent implements OnInit, AfterViewInit {
   sizeTbDetail: any = '0';
   showSearchBar: boolean = typeof window !== 'undefined' ? window.innerWidth > 768 : true;
 
+  // Menu bars
+  menuBars: any[] = [];
+
   get shouldShowSearchBar(): boolean {
     return this.showSearchBar;
+  }
+
+  isMobile(): boolean {
+    return typeof window !== 'undefined' && window.innerWidth <= 768;
   }
 
   ToggleSearchPanelNew(event?: Event): void {
@@ -128,10 +137,12 @@ export class DayOffComponent implements OnInit, AfterViewInit {
     private dayOffService: DayOffService,
     private employeeService: EmployeeService,
     private authService: AuthService,
-    private wfhService: WFHService
+    private wfhService: WFHService,
+    private permissionService: PermissionService
   ) { }
 
   ngOnInit() {
+    this.initMenuBar();
     this.initializeForm();
     this.loadEmployeeOnLeave();
     this.loadDepartments();
@@ -149,6 +160,93 @@ export class DayOffComponent implements OnInit, AfterViewInit {
       this.userPermissions = this.currentUser?.Permissions || this.currentEmployee?.Permissions || '';
       this.canEditOthers = this.hasPermissionN1OrN2(this.userPermissions);
     });
+  }
+
+  initMenuBar(): void {
+    this.menuBars = [
+      {
+        label: 'Thêm',
+        icon: 'fa-solid fa-plus fa-lg text-success',
+        command: () => this.openAddModal()
+      },
+      {
+        label: 'Sửa',
+        icon: 'fa-solid fa-pen-to-square fa-lg text-primary',
+        command: () => this.openEditModal()
+      },
+      {
+        label: 'Xóa',
+        icon: 'fa-solid fa-trash fa-lg text-danger',
+        command: () => this.openDeleteModal()
+      },
+      {
+        label: 'TBP xác nhận',
+        visible: this.permissionService.hasPermission("N1"),
+        icon: 'fa-solid fa-calendar-check fa-lg text-primary',
+        items: [
+          {
+            label: 'TBP duyệt',
+            visible: this.permissionService.hasPermission("N1"),
+            icon: 'fa-solid fa-circle-check fa-lg text-success',
+            command: () => this.approved(true, true)
+          },
+          {
+            label: 'TBP hủy duyệt',
+            visible: this.permissionService.hasPermission("N1"),
+            icon: 'fa-solid fa-circle-xmark fa-lg text-danger',
+            command: () => this.approved(false, true)
+          },
+          {
+            visible: this.permissionService.hasPermission("N1"),
+            label: 'TBP duyệt hủy đăng ký',
+            icon: 'fa-solid fa-circle-check fa-lg text-warning',
+            command: () => this.isApproveCancelTP()
+          }
+        ]
+      },
+      {
+        label: 'HR xác nhận',
+        visible: this.permissionService.hasPermission("N1,N2"),
+        icon: 'fa-solid fa-calendar-check fa-lg text-info',
+        items: [
+          {
+            label: 'HR duyệt',
+            visible: this.permissionService.hasPermission("N1,N2"),
+            icon: 'fa-solid fa-circle-check fa-lg text-success',
+            command: () => this.approved(true, false)
+          },
+          {
+            visible: this.permissionService.hasPermission("N1,N2"),
+            label: 'HR hủy duyệt',
+            icon: 'fa-solid fa-circle-xmark fa-lg text-danger',
+            command: () => this.approved(false, false)
+          },
+          {
+            visible: this.permissionService.hasPermission("N1,N2"),
+            label: 'HR duyệt hủy đăng ký',
+            icon: 'fa-solid fa-circle-check fa-lg text-warning',
+            command: () => this.isApproveCancelHR()
+          }
+        ]
+      },
+      {
+        label: 'Khai báo ngày phép',
+        visible: this.permissionService.hasPermission("N1,N2"),
+        icon: 'fa-solid fa-calendar-days fa-lg text-info',
+        command: () => this.openDeclareDayOffModal()
+      },
+      {
+        label: 'Báo cáo ngày nghỉ',
+        visible: this.permissionService.hasPermission("N1,N2"),
+        icon: 'fa-solid fa-chart-column fa-lg text-primary',
+        command: () => this.openSummaryDayOffModal()
+      },
+      {
+        label: 'Xuất Excel',
+        icon: 'fa-solid fa-file-excel fa-lg text-success',
+        command: () => this.exportToExcel()
+      }
+    ];
   }
 
   ngAfterViewInit(): void {

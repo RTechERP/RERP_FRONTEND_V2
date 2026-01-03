@@ -23,6 +23,13 @@
 
         <!-- Filter bar - inline layout -->
         <div class="filter-bar bg-light border-bottom p-2" *ngIf="shouldShowSearchBar" [class.mobile-modal]="true">
+            <div class="filter-bar-header d-flex justify-content-between align-items-center mb-2" *ngIf="isMobile()">
+                <span class="fw-bold" style="font-size: 12px;">Tìm kiếm</span>
+                <button nz-button nzType="text" nzShape="circle" nzSize="small" nzDanger
+                    (click)="ToggleSearchPanelNew()">
+                    <nz-icon nzType="close" />
+                </button>
+            </div>
             <form nz-form [formGroup]="searchForm" nzLayout="inline">
                 <div class="d-flex flex-wrap gap-2 align-items-center">
                     <!-- Từ ngày -->

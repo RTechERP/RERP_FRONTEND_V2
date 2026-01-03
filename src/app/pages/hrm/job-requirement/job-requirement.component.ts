@@ -2307,8 +2307,8 @@ export class JobRequirementComponent implements OnInit, AfterViewInit {
                 container: '#jobRequirementGridContainer',
                 rightPadding: 0,
                 bottomPadding: 0,
-                calculateAvailableSizeBy: 'container'
-
+                calculateAvailableSizeBy: 'container',
+                resizeDetection: "container"
             },
             enableAutoResize: true,
             enableCellNavigation: true,
@@ -2359,7 +2359,8 @@ export class JobRequirementComponent implements OnInit, AfterViewInit {
                 container: '#jobRequirementDetailGridContainer',
                 rightPadding: 0,
                 bottomPadding: 0,
-                calculateAvailableSizeBy: 'container'
+                calculateAvailableSizeBy: 'container',
+                resizeDetection: "container"
             },
             enableAutoResize: true,
             enableCellNavigation: true,

@@ -212,58 +212,58 @@ export class MeetingMinuteSlickGridComponent implements OnInit, AfterViewInit {
     this.columnsMeetingMinutes = [
       { id: 'STT', name: 'STT', field: 'STT', sortable: true, width: 60, filterable: true, filter: { model: Filters['compoundInputNumber'] }, cssClass: 'text-center', headerCssClass: 'text-center' },
       { id: 'ProjectCode', name: 'Mã dự án', field: 'ProjectCode', sortable: true, minWidth: 80, filterable: true, filter: { model: Filters['multipleSelect'], collection: [], filterOptions: { filter: true, maxHeight: 300 } as MultipleSelectOption } },
-      { id: 'ProjectName', name: 'Tên dự án', field: 'ProjectName', sortable: true, minWidth: 150, filterable: true, filter: { model: Filters['compoundInputText'] }, cssClass: 'cell-wrap' },
+      { id: 'ProjectName', name: 'Tên dự án', field: 'ProjectName', sortable: true, minWidth: 150, filterable: true, filter: { model: Filters['multipleSelect'], collection: [], filterOptions: { filter: true, maxHeight: 300 } as MultipleSelectOption }, cssClass: 'cell-wrap' },
       { id: 'Title', name: 'Tiêu đề', field: 'Title', sortable: true, minWidth: 150, filterable: true, filter: { model: Filters['compoundInputText'] }, cssClass: 'cell-wrap' },
       { id: 'TypeName', name: 'Loại cuộc họp', field: 'TypeName', sortable: true, minWidth: 100, filterable: true, filter: { model: Filters['multipleSelect'], collection: [], filterOptions: { filter: true, maxHeight: 300 } as MultipleSelectOption } },
       { id: 'CreatorName', name: 'Người tạo', field: 'CreatorName', sortable: true, minWidth: 100, filterable: true, filter: { model: Filters['multipleSelect'], collection: [], filterOptions: { filter: true, maxHeight: 300 } as MultipleSelectOption } },
       { id: 'DateStart', name: 'Ngày bắt đầu', field: 'DateStart', sortable: true, minWidth: 100, filterable: true, filter: { model: Filters['compoundDate'] }, formatter: Formatters.dateIso, type: 'date', cssClass: 'text-center', headerCssClass: 'text-center' },
       { id: 'DateEnd', name: 'Ngày kết thúc', field: 'DateEnd', sortable: true, minWidth: 100, filterable: true, filter: { model: Filters['compoundDate'] }, formatter: Formatters.dateIso, type: 'date', cssClass: 'text-center', headerCssClass: 'text-center' },
-      { id: 'Place', name: 'Địa điểm', field: 'Place', sortable: true, minWidth: 100, filterable: true, filter: { model: Filters['compoundInputText'] } },
+      { id: 'Place', name: 'Địa điểm', field: 'Place', sortable: true, minWidth: 100, filterable: true, filter: { model: Filters['multipleSelect'], collection: [], filterOptions: { filter: true, maxHeight: 300 } as MultipleSelectOption } },
     ];
     this.gridOptionsMeetingMinutes = this.getDefaultGridOptions('#grid-meeting-minutes');
   }
 
   private initGridEmployee(): void {
     this.columnsEmployee = [
-      { id: 'EmployeeCode', name: 'Mã nhân viên', field: 'EmployeeCode', sortable: true, minWidth: 80, filterable: true, filter: { model: Filters['compoundInputText'] }, cssClass: 'text-center', headerCssClass: 'text-center' },
-      { id: 'FullName', name: 'Tên nhân viên', field: 'FullName', sortable: true, minWidth: 150, filterable: true, filter: { model: Filters['compoundInputText'] } },
+      { id: 'EmployeeCode', name: 'Mã nhân viên', field: 'EmployeeCode', sortable: true, minWidth: 80, filterable: true, filter: { model: Filters['multipleSelect'], collection: [], filterOptions: { filter: true, maxHeight: 300 } as MultipleSelectOption }, cssClass: 'text-center', headerCssClass: 'text-center' },
+      { id: 'FullName', name: 'Tên nhân viên', field: 'FullName', sortable: true, minWidth: 150, filterable: true, filter: { model: Filters['multipleSelect'], collection: [], filterOptions: { filter: true, maxHeight: 300 } as MultipleSelectOption } },
       { id: 'UserTeamName', name: 'Team', field: 'UserTeamName', sortable: true, minWidth: 100, filterable: true, filter: { model: Filters['multipleSelect'], collection: [], filterOptions: { filter: true, maxHeight: 300 } as MultipleSelectOption } },
-      { id: 'Section', name: 'Chức vụ', field: 'Section', sortable: true, minWidth: 100, filterable: true, filter: { model: Filters['compoundInputText'] } },
+      { id: 'Section', name: 'Chức vụ', field: 'Section', sortable: true, minWidth: 100, filterable: true, filter: { model: Filters['multipleSelect'], collection: [], filterOptions: { filter: true, maxHeight: 300 } as MultipleSelectOption } },
     ];
     this.gridOptionsEmployee = this.getDefaultGridOptions('#grid-employee');
   }
 
   private initGridEmployeeContent(): void {
     this.columnsEmployeeContent = [
-      { id: 'DetailContent', name: 'Nội dung', field: 'DetailContent', sortable: true, minWidth: 150, filterable: true, filter: { model: Filters['compoundInputText'] }, cssClass: 'cell-wrap' },
-      { id: 'DetailResult', name: 'Kết quả', field: 'DetailResult', sortable: true, minWidth: 150, filterable: true, filter: { model: Filters['compoundInputText'] }, cssClass: 'cell-wrap' },
-      { id: 'EmployeeCode', name: 'Mã nhân viên', field: 'EmployeeCode', sortable: true, minWidth: 80, filterable: true, filter: { model: Filters['compoundInputText'] }, cssClass: 'text-center', headerCssClass: 'text-center' },
-      { id: 'CustomerName', name: 'Người phụ trách', field: 'CustomerName', sortable: true, minWidth: 100, filterable: true, filter: { model: Filters['compoundInputText'] } },
-      { id: 'PhoneNumber', name: 'Số điện thoại', field: 'PhoneNumber', sortable: true, minWidth: 100, filterable: true, filter: { model: Filters['compoundInputText'] }, cssClass: 'text-center', headerCssClass: 'text-center' },
+      { id: 'DetailContent', name: 'Nội dung', field: 'DetailContent', sortable: true, minWidth: 150, filterable: true, filter: { model: Filters['multipleSelect'], collection: [], filterOptions: { filter: true, maxHeight: 300 } as MultipleSelectOption }, cssClass: 'cell-wrap' },
+      { id: 'DetailResult', name: 'Kết quả', field: 'DetailResult', sortable: true, minWidth: 150, filterable: true, filter: { model: Filters['multipleSelect'], collection: [], filterOptions: { filter: true, maxHeight: 300 } as MultipleSelectOption }, cssClass: 'cell-wrap' },
+      { id: 'EmployeeCode', name: 'Mã nhân viên', field: 'EmployeeCode', sortable: true, minWidth: 80, filterable: true, filter: { model: Filters['multipleSelect'], collection: [], filterOptions: { filter: true, maxHeight: 300 } as MultipleSelectOption }, cssClass: 'text-center', headerCssClass: 'text-center' },
+      { id: 'CustomerName', name: 'Người phụ trách', field: 'CustomerName', sortable: true, minWidth: 100, filterable: true, filter: { model: Filters['multipleSelect'], collection: [], filterOptions: { filter: true, maxHeight: 300 } as MultipleSelectOption } },
+      { id: 'PhoneNumber', name: 'Số điện thoại', field: 'PhoneNumber', sortable: true, minWidth: 100, filterable: true, filter: { model: Filters['multipleSelect'], collection: [], filterOptions: { filter: true, maxHeight: 300 } as MultipleSelectOption }, cssClass: 'text-center', headerCssClass: 'text-center' },
       { id: 'PlanDate', name: 'Kế hoạch', field: 'PlanDate', sortable: true, minWidth: 100, filterable: true, filter: { model: Filters['compoundDate'] }, formatter: Formatters.dateIso, type: 'date', cssClass: 'text-center', headerCssClass: 'text-center' },
-      { id: 'Note', name: 'Ghi chú', field: 'Note', sortable: true, minWidth: 150, filterable: true, filter: { model: Filters['compoundInputText'] }, cssClass: 'cell-wrap' },
+      { id: 'Note', name: 'Ghi chú', field: 'Note', sortable: true, minWidth: 150, filterable: true, filter: { model: Filters['multipleSelect'], collection: [], filterOptions: { filter: true, maxHeight: 300 } as MultipleSelectOption }, cssClass: 'cell-wrap' },
     ];
     this.gridOptionsEmployeeContent = this.getDefaultGridOptions('#grid-employee-content');
   }
 
   private initGridCustomer(): void {
     this.columnsCustomer = [
-      { id: 'FullName', name: 'Tên khách hàng', field: 'FullName', sortable: true, minWidth: 150, filterable: true, filter: { model: Filters['compoundInputText'] } },
-      { id: 'PhoneNumber', name: 'Số điện thoại', field: 'PhoneNumber', sortable: true, minWidth: 100, filterable: true, filter: { model: Filters['compoundInputText'] }, cssClass: 'text-center', headerCssClass: 'text-center' },
-      { id: 'EmailCustomer', name: 'Email', field: 'EmailCustomer', sortable: true, minWidth: 150, filterable: true, filter: { model: Filters['compoundInputText'] } },
-      { id: 'AddressCustomer', name: 'Địa chỉ', field: 'AddressCustomer', sortable: true, minWidth: 200, filterable: true, filter: { model: Filters['compoundInputText'] }, cssClass: 'cell-wrap' },
+      { id: 'FullName', name: 'Tên khách hàng', field: 'FullName', sortable: true, minWidth: 150, filterable: true, filter: { model: Filters['multipleSelect'], collection: [], filterOptions: { filter: true, maxHeight: 300 } as MultipleSelectOption } },
+      { id: 'PhoneNumber', name: 'Số điện thoại', field: 'PhoneNumber', sortable: true, minWidth: 100, filterable: true, filter: { model: Filters['multipleSelect'], collection: [], filterOptions: { filter: true, maxHeight: 300 } as MultipleSelectOption }, cssClass: 'text-center', headerCssClass: 'text-center' },
+      { id: 'EmailCustomer', name: 'Email', field: 'EmailCustomer', sortable: true, minWidth: 150, filterable: true, filter: { model: Filters['multipleSelect'], collection: [], filterOptions: { filter: true, maxHeight: 300 } as MultipleSelectOption } },
+      { id: 'AddressCustomer', name: 'Địa chỉ', field: 'AddressCustomer', sortable: true, minWidth: 200, filterable: true, filter: { model: Filters['multipleSelect'], collection: [], filterOptions: { filter: true, maxHeight: 300 } as MultipleSelectOption }, cssClass: 'cell-wrap' },
     ];
     this.gridOptionsCustomer = this.getDefaultGridOptions('#grid-customer');
   }
 
   private initGridCustomerContent(): void {
     this.columnsCustomerContent = [
-      { id: 'DetailContent', name: 'Nội dung', field: 'DetailContent', sortable: true, minWidth: 150, filterable: true, filter: { model: Filters['compoundInputText'] }, cssClass: 'cell-wrap' },
-      { id: 'DetailResult', name: 'Kết quả', field: 'DetailResult', sortable: true, minWidth: 150, filterable: true, filter: { model: Filters['compoundInputText'] }, cssClass: 'cell-wrap' },
-      { id: 'CustomerName', name: 'Họ tên', field: 'CustomerName', sortable: true, minWidth: 100, filterable: true, filter: { model: Filters['compoundInputText'] } },
-      { id: 'PhoneNumber', name: 'Số điện thoại', field: 'PhoneNumber', sortable: true, minWidth: 100, filterable: true, filter: { model: Filters['compoundInputText'] }, cssClass: 'text-center', headerCssClass: 'text-center' },
+      { id: 'DetailContent', name: 'Nội dung', field: 'DetailContent', sortable: true, minWidth: 150, filterable: true, filter: { model: Filters['multipleSelect'], collection: [], filterOptions: { filter: true, maxHeight: 300 } as MultipleSelectOption }, cssClass: 'cell-wrap' },
+      { id: 'DetailResult', name: 'Kết quả', field: 'DetailResult', sortable: true, minWidth: 150, filterable: true, filter: { model: Filters['multipleSelect'], collection: [], filterOptions: { filter: true, maxHeight: 300 } as MultipleSelectOption }, cssClass: 'cell-wrap' },
+      { id: 'CustomerName', name: 'Họ tên', field: 'CustomerName', sortable: true, minWidth: 100, filterable: true, filter: { model: Filters['multipleSelect'], collection: [], filterOptions: { filter: true, maxHeight: 300 } as MultipleSelectOption } },
+      { id: 'PhoneNumber', name: 'Số điện thoại', field: 'PhoneNumber', sortable: true, minWidth: 100, filterable: true, filter: { model: Filters['multipleSelect'], collection: [], filterOptions: { filter: true, maxHeight: 300 } as MultipleSelectOption }, cssClass: 'text-center', headerCssClass: 'text-center' },
       { id: 'PlanDate', name: 'Kế hoạch', field: 'PlanDate', sortable: true, minWidth: 100, filterable: true, filter: { model: Filters['compoundDate'] }, formatter: Formatters.dateIso, type: 'date', cssClass: 'text-center', headerCssClass: 'text-center' },
-      { id: 'Note', name: 'Ghi chú', field: 'Note', sortable: true, minWidth: 150, filterable: true, filter: { model: Filters['compoundInputText'] }, cssClass: 'cell-wrap' },
+      { id: 'Note', name: 'Ghi chú', field: 'Note', sortable: true, minWidth: 150, filterable: true, filter: { model: Filters['multipleSelect'], collection: [], filterOptions: { filter: true, maxHeight: 300 } as MultipleSelectOption }, cssClass: 'cell-wrap' },
     ];
     this.gridOptionsCustomerContent = this.getDefaultGridOptions('#grid-customer-content');
   }
@@ -272,7 +272,36 @@ export class MeetingMinuteSlickGridComponent implements OnInit, AfterViewInit {
     this.columnsFile = [
       { id: 'FileName', name: 'Tên File', field: 'FileName', sortable: true, minWidth: 200, filterable: true, filter: { model: Filters['compoundInputText'] }, cssClass: 'cell-wrap' },
     ];
-    this.gridOptionsFile = this.getDefaultGridOptions('#grid-file');
+    this.gridOptionsFile = {
+      ...this.getDefaultGridOptions('#grid-file'),
+      enableContextMenu: true,
+      contextMenu: {
+        commandItems: [
+          {
+            command: 'download',
+            title: 'Tải file',
+            iconCssClass: 'fa fa-download',
+            positionOrder: 1,
+          },
+        ],
+        onCommand: (e, args: any) => {
+          if (args?.command === 'download') {
+            let rowIndex: number | undefined;
+            if (typeof args === 'number') {
+              rowIndex = args;
+            } else if (args?.row !== undefined) {
+              rowIndex = args.row;
+            }
+            if (rowIndex !== undefined) {
+              const rowData = this.angularGridFile?.dataView?.getItem(rowIndex);
+              if (rowData?.ServerPath) {
+                this.downloadFile(rowData.ServerPath);
+              }
+            }
+          }
+        },
+      },
+    };
   }
 
   private getDefaultGridOptions(containerId: string): GridOption {
@@ -396,7 +425,10 @@ export class MeetingMinuteSlickGridComponent implements OnInit, AfterViewInit {
           ...item,
           id: item.ID || `meeting_${index + 1}`,
         }));
-        this.updateFilterCollections();
+        if (this.angularGridMeetingMinutes?.dataView) {
+          this.angularGridMeetingMinutes.dataView.setItems(this.datasetMeetingMinutes);
+        }
+        this.applyDistinctFilters(this.angularGridMeetingMinutes, this.columnsMeetingMinutes);
         if (this.datasetMeetingMinutes.length > 0) {
           this.MeetingMinutesID = this.datasetMeetingMinutes[0].ID;
           this.getMeetingMinutesDetailsByID(this.MeetingMinutesID);
@@ -417,22 +449,41 @@ export class MeetingMinuteSlickGridComponent implements OnInit, AfterViewInit {
         // Employee data
         const empDetail = response.data?.empDetail || [];
         this.datasetEmployee = empDetail.map((item: any, index: number) => ({ ...item, id: item.ID || `emp_${index + 1}` }));
+        if (this.angularGridEmployee?.dataView) {
+          this.angularGridEmployee.dataView.setItems(this.datasetEmployee);
+          setTimeout(() => this.applyDistinctFilters(this.angularGridEmployee, this.columnsEmployee), 50);
+        }
 
         // Employee content data
         const empContent = response.data?.empContent || [];
         this.datasetEmployeeContent = empContent.map((item: any, index: number) => ({ ...item, id: item.ID || `emp_content_${index + 1}` }));
+        if (this.angularGridEmployeeContent?.dataView) {
+          this.angularGridEmployeeContent.dataView.setItems(this.datasetEmployeeContent);
+          setTimeout(() => this.applyDistinctFilters(this.angularGridEmployeeContent, this.columnsEmployeeContent), 50);
+        }
 
         // Customer data
         const cusDetail = response.data?.cusDetail || [];
         this.datasetCustomer = cusDetail.map((item: any, index: number) => ({ ...item, id: item.ID || `cus_${index + 1}` }));
+        if (this.angularGridCustomer?.dataView) {
+          this.angularGridCustomer.dataView.setItems(this.datasetCustomer);
+          setTimeout(() => this.applyDistinctFilters(this.angularGridCustomer, this.columnsCustomer), 50);
+        }
 
         // Customer content data
         const cusContent = response.data?.cusContent || [];
         this.datasetCustomerContent = cusContent.map((item: any, index: number) => ({ ...item, id: item.ID || `cus_content_${index + 1}` }));
+        if (this.angularGridCustomerContent?.dataView) {
+          this.angularGridCustomerContent.dataView.setItems(this.datasetCustomerContent);
+          setTimeout(() => this.applyDistinctFilters(this.angularGridCustomerContent, this.columnsCustomerContent), 50);
+        }
 
         // File data
         const fileData = response.data?.file || [];
         this.datasetFile = fileData.map((item: any, index: number) => ({ ...item, id: item.ID || `file_${index + 1}` }));
+        if (this.angularGridFile?.dataView) {
+          this.angularGridFile.dataView.setItems(this.datasetFile);
+        }
       },
       error: (error) => console.error('Error loading meeting details:', error),
     });
@@ -455,6 +506,57 @@ export class MeetingMinuteSlickGridComponent implements OnInit, AfterViewInit {
     }
   }
 
+  applyDistinctFilters(angularGrid: AngularGridInstance, columnDefinitions: Column[]): void {
+    if (!angularGrid || !angularGrid.slickGrid || !angularGrid.dataView) return;
+
+    const data = angularGrid.dataView.getItems() as any[];
+    if (!data || data.length === 0) return;
+
+    const getUniqueValues = (
+      items: any[],
+      field: string
+    ): Array<{ value: any; label: string }> => {
+      const map = new Map<string, { value: any; label: string }>();
+      items.forEach((row: any) => {
+        const value = row?.[field];
+        if (value === null || value === undefined || value === '') return;
+        const key = `${typeof value}:${String(value)}`;
+        if (!map.has(key)) {
+          map.set(key, { value, label: String(value) });
+        }
+      });
+      return Array.from(map.values()).sort((a, b) =>
+        a.label.localeCompare(b.label)
+      );
+    };
+
+    const columns = angularGrid.slickGrid.getColumns();
+    if (columns) {
+      columns.forEach((column: any) => {
+        if (column.filter && column.filter.model === Filters['multipleSelect']) {
+          const field = column.field;
+          if (!field) return;
+          column.filter.collection = getUniqueValues(data, field);
+        }
+      });
+    }
+
+    if (columnDefinitions) {
+      columnDefinitions.forEach((colDef: any) => {
+        if (colDef.filter && colDef.filter.model === Filters['multipleSelect']) {
+          const field = colDef.field;
+          if (!field) return;
+          colDef.filter.collection = getUniqueValues(data, field);
+        }
+      });
+    }
+
+    const updatedColumns = angularGrid.slickGrid.getColumns();
+    angularGrid.slickGrid.setColumns(updatedColumns);
+    angularGrid.slickGrid.invalidate();
+    angularGrid.slickGrid.render();
+  }
+
   downloadFile(serverPath: string): void {
     this.meetingMinuteService.downloadFile(serverPath).subscribe((res: any) => {
       const url = window.URL.createObjectURL(new Blob([res]));
@@ -462,7 +564,6 @@ export class MeetingMinuteSlickGridComponent implements OnInit, AfterViewInit {
       a.href = url;
       a.download = serverPath;
       a.click();
-      window.URL.revokeObjectURL(url);
     });
   }
   //#endregion

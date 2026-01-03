@@ -36,6 +36,7 @@ import { AuthService } from '../../../auth/auth.service';
 import { WFHService } from '../employee-management/employee-wfh/WFH-service/WFH.service';
 import { NzDropDownModule } from 'ng-zorro-antd/dropdown';
 import { Menubar } from 'primeng/menubar';
+import { PermissionService } from '../../../services/permission.service';
 
 
 @Component({
@@ -65,7 +66,6 @@ import { Menubar } from 'primeng/menubar';
     DeclareDayOffComponent,
     NgIf,
     NzSpinModule,
-    HasPermissionDirective,
     NzDropDownModule,
     Menubar
   ]
@@ -137,7 +137,8 @@ export class DayOffComponent implements OnInit, AfterViewInit {
     private dayOffService: DayOffService,
     private employeeService: EmployeeService,
     private authService: AuthService,
-    private wfhService: WFHService
+    private wfhService: WFHService,
+    private permissionService: PermissionService
   ) { }
 
   ngOnInit() {
@@ -180,19 +181,23 @@ export class DayOffComponent implements OnInit, AfterViewInit {
       },
       {
         label: 'TBP xác nhận',
+        visible: this.permissionService.hasPermission("N1"),
         icon: 'fa-solid fa-calendar-check fa-lg text-primary',
         items: [
           {
             label: 'TBP duyệt',
+            visible: this.permissionService.hasPermission("N1"),
             icon: 'fa-solid fa-circle-check fa-lg text-success',
             command: () => this.approved(true, true)
           },
           {
             label: 'TBP hủy duyệt',
+            visible: this.permissionService.hasPermission("N1"),
             icon: 'fa-solid fa-circle-xmark fa-lg text-danger',
             command: () => this.approved(false, true)
           },
           {
+            visible: this.permissionService.hasPermission("N1"),
             label: 'TBP duyệt hủy đăng ký',
             icon: 'fa-solid fa-circle-check fa-lg text-warning',
             command: () => this.isApproveCancelTP()
@@ -201,19 +206,23 @@ export class DayOffComponent implements OnInit, AfterViewInit {
       },
       {
         label: 'HR xác nhận',
+        visible: this.permissionService.hasPermission("N1,N2"),
         icon: 'fa-solid fa-calendar-check fa-lg text-info',
         items: [
           {
             label: 'HR duyệt',
+            visible: this.permissionService.hasPermission("N1,N2"),
             icon: 'fa-solid fa-circle-check fa-lg text-success',
             command: () => this.approved(true, false)
           },
           {
+            visible: this.permissionService.hasPermission("N1,N2"),
             label: 'HR hủy duyệt',
             icon: 'fa-solid fa-circle-xmark fa-lg text-danger',
             command: () => this.approved(false, false)
           },
           {
+            visible: this.permissionService.hasPermission("N1,N2"),
             label: 'HR duyệt hủy đăng ký',
             icon: 'fa-solid fa-circle-check fa-lg text-warning',
             command: () => this.isApproveCancelHR()
@@ -222,11 +231,13 @@ export class DayOffComponent implements OnInit, AfterViewInit {
       },
       {
         label: 'Khai báo ngày phép',
+        visible: this.permissionService.hasPermission("N1,N2"),
         icon: 'fa-solid fa-calendar-days fa-lg text-info',
         command: () => this.openDeclareDayOffModal()
       },
       {
         label: 'Báo cáo ngày nghỉ',
+        visible: this.permissionService.hasPermission("N1,N2"),
         icon: 'fa-solid fa-chart-column fa-lg text-primary',
         command: () => this.openSummaryDayOffModal()
       },

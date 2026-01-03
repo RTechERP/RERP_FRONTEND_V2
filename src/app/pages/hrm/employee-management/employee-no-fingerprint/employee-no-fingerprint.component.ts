@@ -167,20 +167,24 @@ export class EmployeeNoFingerprintComponent
         command: () => this.deleteenf()
       },
       {
+        visible: this.permissionService.hasPermission("N1"),
         label: 'TBP xác nhận',
         icon: 'fa-solid fa-calendar-check fa-lg text-primary',
         command: () => this.approvedTBP()
       },
       {
         label: 'HR xác nhận',
+        visible: this.permissionService.hasPermission("N1,N2"),
         icon: 'fa-solid fa-calendar-check fa-lg text-info',
         items: [
           {
+            visible: this.permissionService.hasPermission("N1,N2"),
             label: 'HR duyệt',
             icon: 'fa-solid fa-circle-check fa-lg text-success',
             command: () => this.approvedHR()
           },
           {
+            visible: this.permissionService.hasPermission("N1,N2"),
             label: 'HR hủy duyệt',
             icon: 'fa-solid fa-circle-xmark fa-lg text-danger',
             command: () => this.cancelApprovedHR()

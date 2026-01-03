@@ -36,6 +36,7 @@ import { NOTIFICATION_TITLE } from '../../../app.config';
 import { NzDropDownModule } from 'ng-zorro-antd/dropdown';
 import { AuthService } from '../../../auth/auth.service';
 import { Menubar } from 'primeng/menubar';
+import { PermissionService } from '../../../services/permission.service';
 
 
 @Component({
@@ -103,7 +104,9 @@ export class OverTimeComponent implements OnInit, AfterViewInit {
     private modal: NzModalService,
     private departmentService: DepartmentServiceService,
     private overTimeService: OverTimeService,
-    private authService: AuthService
+    private authService: AuthService,
+    private permissionService: PermissionService,
+
   ) { }
 
   ngOnInit() {
@@ -149,6 +152,7 @@ export class OverTimeComponent implements OnInit, AfterViewInit {
         items: [
           {
             label: 'TBP duyệt',
+            visible: this.permissionService.hasPermission("N1"),
             icon: 'fa-solid fa-circle-check fa-lg text-success',
             command: () => {
               this.approved(true, true);
@@ -156,6 +160,7 @@ export class OverTimeComponent implements OnInit, AfterViewInit {
           },
           {
             label: 'TBP hủy duyệt',
+            visible: this.permissionService.hasPermission("N1"),
             icon: 'fa-solid fa-circle-xmark fa-lg text-danger',
             command: () => {
               this.approved(false, true);
@@ -170,6 +175,7 @@ export class OverTimeComponent implements OnInit, AfterViewInit {
         items: [
           {
             label: 'HR duyệt',
+            visible: this.permissionService.hasPermission("N2,N1"),
             icon: 'fa-solid fa-circle-check fa-lg text-success',
             command: () => {
               this.approved(true, false);

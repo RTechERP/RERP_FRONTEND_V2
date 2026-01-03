@@ -86,7 +86,8 @@ export class EmployeeNightShiftComponent implements OnInit, AfterViewInit, OnDes
     private modal: NzModalService,
     private employeeAttendanceService: EmployeeAttendanceService,
     private vehicleRepairService: VehicleRepairService,
-    private permissionService: PermissionService
+    private permissionService: PermissionService,
+
   ) { }
 
   nightShiftTable: Tabulator | null = null;
@@ -205,14 +206,17 @@ export class EmployeeNightShiftComponent implements OnInit, AfterViewInit, OnDes
       },
       {
         label: 'TBP xác nhận',
+        visible: this.permissionService.hasPermission("N1"),
         icon: 'fa-solid fa-calendar-check fa-lg text-primary',
         items: [
           {
+            visible: this.permissionService.hasPermission("N1"),
             label: 'TBP duyệt',
             icon: 'fa-solid fa-circle-check fa-lg text-success',
             command: () => this.onTBPApprove()
           },
           {
+            visible: this.permissionService.hasPermission("N1"),
             label: 'TBP hủy duyệt',
             icon: 'fa-solid fa-circle-xmark fa-lg text-danger',
             command: () => this.onTBPCancel()
@@ -221,14 +225,17 @@ export class EmployeeNightShiftComponent implements OnInit, AfterViewInit, OnDes
       },
       {
         label: 'HR xác nhận',
+        visible: this.permissionService.hasPermission("N1,N2"),
         icon: 'fa-solid fa-calendar-check fa-lg text-info',
         items: [
           {
+            visible: this.permissionService.hasPermission("N1,N2"),
             label: 'HR duyệt',
             icon: 'fa-solid fa-circle-check fa-lg text-success',
             command: () => this.onHRApprove()
           },
           {
+            visible: this.permissionService.hasPermission("N1,N2"),
             label: 'HR hủy duyệt',
             icon: 'fa-solid fa-circle-xmark fa-lg text-danger',
             command: () => this.onHRCancel()
@@ -241,6 +248,7 @@ export class EmployeeNightShiftComponent implements OnInit, AfterViewInit, OnDes
         command: () => this.exportToExcel()
       },
       {
+        visible: this.permissionService.hasPermission("N1,N2"),
         label: 'Tổng hợp làm đêm',
         icon: 'fa-solid fa-chart-column fa-lg text-primary',
         command: () => this.onOpenSummary()

@@ -160,15 +160,18 @@ export class EarlyLateComponent implements OnInit, AfterViewInit {
       },
       {
         label: 'TBP xác nhận',
+        visible: this.permissionService.hasPermission("N1"),
         icon: 'fa-solid fa-calendar-check fa-lg text-primary',
         items: [
           {
             label: 'TBP duyệt',
+            visible: this.permissionService.hasPermission("N1"),
             icon: 'fa-solid fa-circle-check fa-lg text-success',
             command: () => this.isApproveTBP(true)
           },
           {
             label: 'TBP hủy duyệt',
+            visible: this.permissionService.hasPermission("N1"),
             icon: 'fa-solid fa-circle-xmark fa-lg text-danger',
             command: () => this.isApproveTBP(false)
           }
@@ -176,15 +179,18 @@ export class EarlyLateComponent implements OnInit, AfterViewInit {
       },
       {
         label: 'HR xác nhận',
+        visible: this.permissionService.hasPermission("N1,N2"),
         icon: 'fa-solid fa-calendar-check fa-lg text-info',
         items: [
           {
             label: 'HR duyệt',
+            visible: this.permissionService.hasPermission("N1,N2"),
             icon: 'fa-solid fa-circle-check fa-lg text-success',
             command: () => this.isApproveHR()
           },
           {
             label: 'HR hủy duyệt',
+            visible: this.permissionService.hasPermission("N1,N2"),
             icon: 'fa-solid fa-circle-xmark fa-lg text-danger',
             command: () => this.isDisapproveHR()
           }

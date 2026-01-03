@@ -82,6 +82,7 @@ import vfs from '../../../shared/pdf/vfs_fonts_custom.js';
 import { environment } from '../../../../environments/environment';
 import { ActivatedRoute } from '@angular/router';
 import { Menubar } from 'primeng/menubar';
+import { PermissionService } from '../../../services/permission.service';
 
 (pdfMake as any).vfs = vfs;
 (pdfMake as any).fonts = {
@@ -271,11 +272,13 @@ export class JobRequirementComponent implements OnInit, AfterViewInit {
                     {
                         label: 'Duyệt',
                         icon: 'fa-solid fa-circle-check fa-lg text-success',
+                        visible: this.permissionService.hasPermission("N56,N32,N1"),
                         command: () => this.onApproveJobRequirement('btnApproveTBP_New')
                     },
                     {
                         label: 'Hủy duyệt',
                         icon: 'fa-solid fa-circle-xmark fa-lg text-danger',
+                        visible: this.permissionService.hasPermission("N56,N32,N1"),
                         command: () => this.onApproveJobRequirement('btnUnApproveTBP_New')
                     }
                 ]
@@ -286,6 +289,7 @@ export class JobRequirementComponent implements OnInit, AfterViewInit {
         if (!this.approvalMode || this.approvalMode === 2) {
             this.menuBars.push({
                 label: 'Nhân sự',
+                visible: this.permissionService.hasPermission("N56,N34,N1"),
                 icon: 'fa-solid fa-calendar-check fa-lg text-info',
                 items: [
                     {
@@ -301,12 +305,14 @@ export class JobRequirementComponent implements OnInit, AfterViewInit {
                     { separator: true },
                     {
                         label: 'TBP Duyệt',
+                        visible: this.permissionService.hasPermission("N56,N1"),
                         icon: 'fa-solid fa-circle-check fa-lg text-success',
                         command: () => this.onApproveJobRequirement('btnApproveHR')
                     },
                     {
                         label: 'TBP hủy duyệt',
                         icon: 'fa-solid fa-circle-xmark fa-lg text-danger',
+                        visible: this.permissionService.hasPermission("N56,N1"),
                         command: () => this.onApproveJobRequirement('btnUnApproveHR')
                     },
                     { separator: true },
@@ -357,6 +363,7 @@ export class JobRequirementComponent implements OnInit, AfterViewInit {
         if (!this.approvalMode || this.approvalMode === 3) {
             this.menuBars.push({
                 label: 'Ban Giám Đốc',
+                visible: this.permissionService.hasPermission("N58,N1"),
                 icon: 'fa-solid fa-user-tie fa-lg text-primary',
                 items: [
                     {
@@ -377,6 +384,7 @@ export class JobRequirementComponent implements OnInit, AfterViewInit {
         if (!this.approvalMode) {
             this.menuBars.push({
                 label: 'Bộ phận phối hợp',
+                visible: this.permissionService.hasPermission("N34,N56,N1,N80"),
                 icon: 'fa-solid fa-users fa-lg text-info',
                 items: [
                     {
@@ -427,7 +435,8 @@ export class JobRequirementComponent implements OnInit, AfterViewInit {
         private message: NzMessageService,
         private menuEventService: MenuEventService,
         private authService: AuthService,
-        private route: ActivatedRoute
+        private route: ActivatedRoute,
+        private permissionService: PermissionService,
     ) {
     }
     getCurrentUser(): void {

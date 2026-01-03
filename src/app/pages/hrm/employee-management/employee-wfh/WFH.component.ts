@@ -33,6 +33,7 @@ import { NOTIFICATION_TITLE } from '../../../../app.config';
 import { AuthService } from '../../../../auth/auth.service';
 import { HasPermissionDirective } from '../../../../directives/has-permission.directive';
 import { Menubar } from 'primeng/menubar';
+import { PermissionService } from '../../../../services/permission.service';
 
 @Component({
   selector: 'app-wfh',
@@ -106,7 +107,8 @@ export class WFHComponent implements OnInit, AfterViewInit, OnDestroy {
     private wfhService: WFHService,
     private ngbModal: NgbModal,
     private nzModal: NzModalService,
-    private authService: AuthService
+    private authService: AuthService,
+    private permissionService: PermissionService
   ) { }
 
   ngOnInit(): void {
@@ -134,15 +136,18 @@ export class WFHComponent implements OnInit, AfterViewInit, OnDestroy {
       },
       {
         label: 'TBP xác nhận',
+        visible: this.permissionService.hasPermission("N1"),
         icon: 'fa-solid fa-calendar-check fa-lg text-primary',
         items: [
           {
             label: 'TBP duyệt',
+            visible: this.permissionService.hasPermission("N1"),
             icon: 'fa-solid fa-circle-check fa-lg text-success',
             command: () => this.approvedTBP()
           },
           {
             label: 'TBP hủy duyệt',
+            visible: this.permissionService.hasPermission("N1"),
             icon: 'fa-solid fa-circle-xmark fa-lg text-danger',
             command: () => this.cancelApprovedTBP()
           }
@@ -150,14 +155,17 @@ export class WFHComponent implements OnInit, AfterViewInit, OnDestroy {
       },
       {
         label: 'HR xác nhận',
+        visible: this.permissionService.hasPermission("N1,N2"),
         icon: 'fa-solid fa-calendar-check fa-lg text-info',
         items: [
           {
+            visible: this.permissionService.hasPermission("N1,N2"),
             label: 'HR duyệt',
             icon: 'fa-solid fa-circle-check fa-lg text-success',
             command: () => this.approvedHR()
           },
           {
+            visible: this.permissionService.hasPermission("N1,N2"),
             label: 'HR hủy duyệt',
             icon: 'fa-solid fa-circle-xmark fa-lg text-danger',
             command: () => this.cancelApprovedHR()

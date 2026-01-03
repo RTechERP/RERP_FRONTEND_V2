@@ -205,6 +205,7 @@ export class MainLayoutComponent implements OnInit, AfterViewInit, OnDestroy {
         // console.log(this.menus);
         // this.setOpenMenu(saved || null);
 
+        // this.isCollapsed = !this.isCollapsed;
         this.getMenus();
 
         // console.log(' this.menuKey :', this.menuKey);
@@ -411,6 +412,7 @@ export class MainLayoutComponent implements OnInit, AfterViewInit, OnDestroy {
 
 
     getMenus() {
+        console.log('this.is getMenus:', this.isCollapsed);
         this.menuAppService.getAll().subscribe({
             next: (response) => {
 
@@ -418,6 +420,7 @@ export class MainLayoutComponent implements OnInit, AfterViewInit, OnDestroy {
 
                 this.menuService.menuKey$.subscribe((x) => {
                     this.menuKey = x;
+                    this.isCollapsed = x == '';
                 });
 
                 const map = new Map<number, any>();
@@ -620,7 +623,18 @@ export class MainLayoutComponent implements OnInit, AfterViewInit, OnDestroy {
             return;
         }
 
-        this.dynamicTabs = [];
+        // this.dynamicTabs = [];
+
+
+        if (this.dynamicTabs.length) {
+            for (let i = 0; i < this.dynamicTabs.length; i++) {
+                this.closeTab(i);
+            }
+        }
+
+        this.isCollapsed = true;
+
+        // console.log('this.isCollapsed newtab:', this.isCollapsed);
 
         // console.log(this.dynamicTabs);
 
@@ -871,6 +885,7 @@ export class MainLayoutComponent implements OnInit, AfterViewInit, OnDestroy {
             if (m) m.isOpen = !m.isOpen;
 
             if (m?.isOpen) this.menuKey = key;
+            this.isCollapsed = false;
 
         }
     }

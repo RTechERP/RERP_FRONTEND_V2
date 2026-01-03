@@ -31,7 +31,9 @@ import { WFHDetailComponent } from './WFH-detail/WFH-detail.component';
 import { DEFAULT_TABLE_CONFIG } from '../../../../tabulator-default.config';
 import { NOTIFICATION_TITLE } from '../../../../app.config';
 import { AuthService } from '../../../../auth/auth.service';
-import{HasPermissionDirective} from '../../../../directives/has-permission.directive';
+import { HasPermissionDirective } from '../../../../directives/has-permission.directive';
+import { Menubar } from 'primeng/menubar';
+
 @Component({
   selector: 'app-wfh',
   standalone: true,
@@ -50,7 +52,8 @@ import{HasPermissionDirective} from '../../../../directives/has-permission.direc
     NzModalModule,
     NzDropDownModule,
     NzMenuModule,
-    HasPermissionDirective
+    HasPermissionDirective,
+    Menubar
   ],
   templateUrl: './WFH.component.html',
   styleUrls: ['./WFH.component.css'],
@@ -64,8 +67,15 @@ export class WFHComponent implements OnInit, AfterViewInit, OnDestroy {
   sizeSearch: string = '0';
   showSearchBar: boolean = typeof window !== 'undefined' ? window.innerWidth > 768 : true;
 
+  // Menu bars
+  menuBars: any[] = [];
+
   get shouldShowSearchBar(): boolean {
     return this.showSearchBar;
+  }
+
+  isMobile(): boolean {
+    return typeof window !== 'undefined' && window.innerWidth <= 768;
   }
 
   ToggleSearchPanelNew(event?: Event): void {
@@ -97,13 +107,71 @@ export class WFHComponent implements OnInit, AfterViewInit, OnDestroy {
     private ngbModal: NgbModal,
     private nzModal: NzModalService,
     private authService: AuthService
-  ) {}
+  ) { }
 
   ngOnInit(): void {
+    this.initMenuBar();
     this.loadDepartments();
     this.getCurrentUser();
   }
-  
+
+  initMenuBar(): void {
+    this.menuBars = [
+      {
+        label: 'Thêm',
+        icon: 'fa-solid fa-plus fa-lg text-success',
+        command: () => this.addWFH()
+      },
+      {
+        label: 'Sửa',
+        icon: 'fa-solid fa-pen-to-square fa-lg text-primary',
+        command: () => this.editWFH()
+      },
+      {
+        label: 'Xóa',
+        icon: 'fa-solid fa-trash fa-lg text-danger',
+        command: () => this.deleteWFH()
+      },
+      {
+        label: 'TBP xác nhận',
+        icon: 'fa-solid fa-calendar-check fa-lg text-primary',
+        items: [
+          {
+            label: 'TBP duyệt',
+            icon: 'fa-solid fa-circle-check fa-lg text-success',
+            command: () => this.approvedTBP()
+          },
+          {
+            label: 'TBP hủy duyệt',
+            icon: 'fa-solid fa-circle-xmark fa-lg text-danger',
+            command: () => this.cancelApprovedTBP()
+          }
+        ]
+      },
+      {
+        label: 'HR xác nhận',
+        icon: 'fa-solid fa-calendar-check fa-lg text-info',
+        items: [
+          {
+            label: 'HR duyệt',
+            icon: 'fa-solid fa-circle-check fa-lg text-success',
+            command: () => this.approvedHR()
+          },
+          {
+            label: 'HR hủy duyệt',
+            icon: 'fa-solid fa-circle-xmark fa-lg text-danger',
+            command: () => this.cancelApprovedHR()
+          }
+        ]
+      },
+      {
+        label: 'Xuất Excel',
+        icon: 'fa-solid fa-file-excel fa-lg text-success',
+        command: () => this.exportExcel()
+      }
+    ];
+  }
+
   getCurrentUser(): void {
     this.authService.getCurrentUser().subscribe((res: any) => {
       if (res && res.status === 1 && res.data) {
@@ -173,7 +241,7 @@ export class WFHComponent implements OnInit, AfterViewInit, OnDestroy {
           IdApprovedTP: 0,
           Status:
             this.selectedTBPStatusFilter === null ||
-            this.selectedTBPStatusFilter === undefined
+              this.selectedTBPStatusFilter === undefined
               ? -1
               : this.selectedTBPStatusFilter,
         };
@@ -188,7 +256,7 @@ export class WFHComponent implements OnInit, AfterViewInit, OnDestroy {
           } else if (typeof res.data.totalPage === 'number') {
             totalPage = res.data.totalPage;
           }
-        return {
+          return {
             data: data,
             last_page: totalPage,
           };
@@ -200,7 +268,7 @@ export class WFHComponent implements OnInit, AfterViewInit, OnDestroy {
       },
 
       rowContextMenu: this.getContextMenu(),
-     
+
       selectableRows: true,
       selectableRowsRangeMode: 'click',
       groupBy: ['DepartmentName'],
@@ -230,7 +298,7 @@ export class WFHComponent implements OnInit, AfterViewInit, OnDestroy {
   private getTableColumns(isMobile: boolean = false): any[] {
     const frozenOn = !isMobile;
     return [
-     
+
       {
         title: 'TBP Duyệt',
         field: 'StatusText',
@@ -307,7 +375,7 @@ export class WFHComponent implements OnInit, AfterViewInit, OnDestroy {
       },
       {
         title: 'Tên TBP Duyệt',
-        field: 'ApprovedName',   
+        field: 'ApprovedName',
         minWidth: 140,
         headerHozAlign: 'center',
       },
@@ -436,7 +504,7 @@ export class WFHComponent implements OnInit, AfterViewInit, OnDestroy {
       IdApprovedTP: 0,
       Status:
         this.selectedTBPStatusFilter === null ||
-        this.selectedTBPStatusFilter === undefined
+          this.selectedTBPStatusFilter === undefined
           ? -1
           : this.selectedTBPStatusFilter,
     };
@@ -532,7 +600,7 @@ export class WFHComponent implements OnInit, AfterViewInit, OnDestroy {
     modalRef.componentInstance.userRole = 'employee';
     modalRef.componentInstance.currentEmployeeId = this.currentEmployeeId;
 
-   
+
   }
 
   editWFH(): void {
@@ -622,7 +690,7 @@ export class WFHComponent implements OnInit, AfterViewInit, OnDestroy {
       }
 
       const item = deletableRows[index];
-      
+
       if (item.StatusText === 'Đã duyệt') {
         deleteNext(index + 1);
         return;
@@ -685,7 +753,7 @@ export class WFHComponent implements OnInit, AfterViewInit, OnDestroy {
   approvedTBP(): void {
     const selectedRows = this.getSelectedRows();
     const rowCount = selectedRows.length;
-    
+
     if (rowCount === 0) {
       this.notification.error(
         NOTIFICATION_TITLE.error,
@@ -693,18 +761,18 @@ export class WFHComponent implements OnInit, AfterViewInit, OnDestroy {
       );
       return;
     }
-    
+
     // Lấy tên nhân viên đầu tiên (focused row)
     const focusedRow = this.tb_WFH?.getSelectedRows()[0];
     const employeeName = focusedRow ? focusedRow.getData()['EmployeeName'] : selectedRows[0]?.['EmployeeName'] || '';
-    
+
     let confirmMessage = '';
     if (rowCount === 1) {
       confirmMessage = `Bạn có chắc muốn duyệt cho nhân viên [${employeeName}] hay không!`;
     } else {
       confirmMessage = `Bạn có chắc muốn duyệt cho những nhân viên này hay không!`;
     }
-    
+
     this.nzModal.confirm({
       nzTitle: 'Xác nhận duyệt TBP',
       nzContent: confirmMessage,
@@ -737,7 +805,7 @@ export class WFHComponent implements OnInit, AfterViewInit, OnDestroy {
         this.clearSelection();
         return;
       }
-      
+
       const item = selectedRows[index];
       const departmentId = item.DepartmentID || 0;
       const employeeName = item.EmployeeName || '';
@@ -791,14 +859,14 @@ export class WFHComponent implements OnInit, AfterViewInit, OnDestroy {
         },
       });
     };
-    
+
     approveNext(0);
   }
 
   approvedHR(): void {
     const selectedRows = this.getSelectedRows();
     const rowCount = selectedRows.length;
-    
+
     if (rowCount === 0) {
       this.notification.error(
         NOTIFICATION_TITLE.error,
@@ -806,18 +874,18 @@ export class WFHComponent implements OnInit, AfterViewInit, OnDestroy {
       );
       return;
     }
-    
+
     // Lấy tên nhân viên đầu tiên (focused row)
     const focusedRow = this.tb_WFH?.getSelectedRows()[0];
     const employeeName = focusedRow ? focusedRow.getData()['EmployeeName'] : selectedRows[0]?.['EmployeeName'] || '';
-    
+
     let confirmMessage = '';
     if (rowCount === 1) {
       confirmMessage = `Bạn có chắc muốn duyệt nhân viên [${employeeName}]?`;
     } else {
       confirmMessage = `Bạn có chắc muốn duyệt những nhân viên này không?`;
     }
-    
+
     this.nzModal.confirm({
       nzTitle: 'Xác nhận duyệt HR',
       nzContent: confirmMessage,
@@ -851,7 +919,7 @@ export class WFHComponent implements OnInit, AfterViewInit, OnDestroy {
         this.clearSelection();
         return;
       }
-      
+
       const item = selectedRows[index];
       const departmentId = item.DepartmentID || 0;
       const approvedTP = item.ApprovedID || 0;
@@ -878,10 +946,10 @@ export class WFHComponent implements OnInit, AfterViewInit, OnDestroy {
         return;
       }
 
-      const approveData = { 
-        ...item, 
-        StatusHR: isApproved ? 1 : 0, 
-        IsApprovedHR: isApproved 
+      const approveData = {
+        ...item,
+        StatusHR: isApproved ? 1 : 0,
+        IsApprovedHR: isApproved
       };
       this.wfhService.saveApproveHR(approveData).subscribe({
         next: (res: any) => {
@@ -895,7 +963,7 @@ export class WFHComponent implements OnInit, AfterViewInit, OnDestroy {
         },
       });
     };
-    
+
     approveNext(0);
   }
 
@@ -1075,7 +1143,7 @@ export class WFHComponent implements OnInit, AfterViewInit, OnDestroy {
         IdApprovedTP: 0,
         Status:
           this.selectedTBPStatusFilter === null ||
-          this.selectedTBPStatusFilter === undefined
+            this.selectedTBPStatusFilter === undefined
             ? -1
             : this.selectedTBPStatusFilter,
       };
@@ -1085,7 +1153,7 @@ export class WFHComponent implements OnInit, AfterViewInit, OnDestroy {
           this.message.remove();
           if (res && res.status === 1 && res.data) {
             const allData = res.data.data || [];
-            
+
             if (allData.length === 0) {
               this.notification.warning(NOTIFICATION_TITLE.warning, 'Không có dữ liệu để xuất!');
               return;
@@ -1120,7 +1188,7 @@ export class WFHComponent implements OnInit, AfterViewInit, OnDestroy {
           this.notification.error(
             NOTIFICATION_TITLE.error,
             'Lỗi khi tải dữ liệu để xuất Excel: ' +
-              (error instanceof Error ? error.message : 'Lỗi không xác định')
+            (error instanceof Error ? error.message : 'Lỗi không xác định')
           );
         });
     } catch (error) {
@@ -1128,7 +1196,7 @@ export class WFHComponent implements OnInit, AfterViewInit, OnDestroy {
       this.notification.error(
         NOTIFICATION_TITLE.error,
         'Lỗi khi xuất file Excel: ' +
-          (error instanceof Error ? error.message : 'Lỗi không xác định')
+        (error instanceof Error ? error.message : 'Lỗi không xác định')
       );
     }
   }
@@ -1252,7 +1320,7 @@ export class WFHComponent implements OnInit, AfterViewInit, OnDestroy {
 
   private formatApprovalBadge(status: number): string {
     const numStatus = status === null || status === undefined ? 0 : Number(status);
-    
+
     switch (numStatus) {
       case 0:
         return '<span class="badge bg-warning text-dark" style="display: inline-block; text-align: center;">Chưa duyệt</span>';

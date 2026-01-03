@@ -267,6 +267,7 @@ export class JobRequirementComponent implements OnInit, AfterViewInit {
         if (this.approvalMode === 1) {
             this.menuBars.push({
                 label: 'Trưởng Bộ Phận',
+                visible: this.permissionService.hasPermission("N56,N32,N1"),
                 icon: 'fa-solid fa-calendar-check fa-lg text-primary',
                 items: [
                     {

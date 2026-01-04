@@ -1,0 +1,159 @@
+/* Set font-size 12px cho tất cả các bảng SlickGrid (trừ badge) */
+#documentGridContainer,
+#documentGridContainer *:not(.badge):not(.badge *),
+#documentFileGridContainer,
+#documentFileGridContainer *:not(.badge):not(.badge *) {
+    font-size: 12px !important;
+}
+
+/* Đảm bảo tất cả text trong bảng đều 12px */
+#documentGridContainer .slick-cell,
+#documentGridContainer .slick-header-column,
+#documentFileGridContainer .slick-cell,
+#documentFileGridContainer .slick-header-column {
+    font-size: 12px !important;
+}
+
+:host {
+    font-size: 12px !important;
+}
+
+.card {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    max-height: 93vh;
+    overflow: hidden;
+}
+
+.card-body {
+    flex: 1 1 auto;
+    min-height: 0;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+}
+
+.card-body>div {
+    flex: 1 1 auto;
+    min-height: 0;
+    overflow: hidden;
+}
+
+/* Set font-size 10px cho các badge duyệt - độ ưu tiên cao nhất */
+#documentGridContainer .badge,
+#documentGridContainer .slick-cell .badge,
+#documentGridContainer .badge span,
+#documentGridContainer .badge *,
+#documentFileGridContainer .badge,
+#documentFileGridContainer .slick-cell .badge,
+#documentFileGridContainer .badge span,
+#documentFileGridContainer .badge * {
+    font-size: 10px !important;
+    padding: 2px 6px !important;
+    line-height: 1.2 !important;
+}
+
+/* Enable proper horizontal scrolling for slickgrid */
+#documentGridContainer .slick-viewport,
+#documentFileGridContainer .slick-viewport {
+    overflow-x: auto !important;
+    overflow-y: auto !important;
+    width: 100% !important;
+}
+
+/* Ensure grid containers don't restrict scrolling */
+#documentGridContainer,
+#documentFileGridContainer {
+    width: 100% !important;
+    height: 100% !important;
+    overflow: visible !important;
+}
+
+/* Allow grid canvas to expand horizontally */
+#documentGridContainer .slick-grid,
+#documentFileGridContainer .slick-grid {
+    width: auto !important;
+    min-width: 100% !important;
+}
+
+/* Prevent text truncation but allow scrolling */
+#documentGridContainer .slick-cell,
+#documentFileGridContainer .slick-cell {
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+    white-space: nowrap !important;
+}
+
+::ng-deep #documentGrid {
+    min-height: 83vh !important;
+}
+
+::ng-deep #documentFileGrid {
+    min-height: 83vh !important;
+}
+
+/* Search form positioning and z-index fixes */
+.filter-bar {
+    position: relative;
+    z-index: 10;
+    background: #f8f9fa;
+    border-bottom: 1px solid #dee2e6;
+}
+
+/* Ensure buttons stay above search form on desktop */
+.card-header {
+    position: relative;
+    z-index: 20;
+    background: white;
+}
+
+/* Mobile modal styles */
+@media (max-width: 768px) {
+    .filter-bar.mobile-modal {
+        position: fixed;
+        top: 60px;
+        left: 0;
+        right: 0;
+        z-index: 1050;
+        background: white;
+        border-bottom: 1px solid #dee2e6;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+        max-height: 70vh;
+        overflow-y: auto;
+        margin: 16px;
+        border-radius: 8px;
+    }
+
+    .filter-backdrop {
+        display: block;
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: rgba(0, 0, 0, 0.3);
+        z-index: 1040;
+    }
+}
+
+/* Desktop - keep search form always visible */
+@media (min-width: 769px) {
+    .filter-backdrop {
+        display: none !important;
+    }
+
+    .filter-bar {
+        position: static !important;
+        z-index: 1 !important;
+    }
+}
+
+/* Splitter full width */
+nz-splitter {
+    width: 100% !important;
+}
+
+nz-splitter-panel {
+    width: 100% !important;
+}

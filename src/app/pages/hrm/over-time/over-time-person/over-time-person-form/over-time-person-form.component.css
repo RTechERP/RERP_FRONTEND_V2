@@ -1,2 +1,82 @@
 /* Styles for over-time-person-form component */
+.time-full-width .ant-picker-panel {
+    width: 100vw;
+    max-width: 360px;
+}
 
+/* Styling for datetime-local inputs */
+input[type="datetime-local"].form-control {
+    height: 32px;
+    padding: 4px 11px;
+    border: 1px solid #d9d9d9;
+    border-radius: 2px;
+    transition: all 0.3s;
+    font-size: 12px;
+}
+
+input[type="datetime-local"].form-control:hover {
+    border-color: #40a9ff;
+}
+
+input[type="datetime-local"].form-control:focus {
+    border-color: #40a9ff;
+    box-shadow: 0 0 0 2px rgba(24, 144, 255, 0.2);
+    outline: none;
+}
+
+/* PrimeNG DatePicker Styles for Overtime Form */
+:host ::ng-deep .prime-datepicker-overtime {
+    width: 100%;
+}
+
+:host ::ng-deep .prime-datepicker-overtime .p-datepicker-input,
+:host ::ng-deep .prime-datepicker-overtime input {
+    width: 100%;
+    height: 32px;
+    padding: 4px 11px;
+    border: 1px solid #d9d9d9;
+    border-radius: 2px;
+    font-size: 12px;
+    transition: all 0.3s;
+}
+
+:host ::ng-deep .prime-datepicker-overtime .p-datepicker-input:hover,
+:host ::ng-deep .prime-datepicker-overtime input:hover {
+    border-color: #40a9ff;
+}
+
+:host ::ng-deep .prime-datepicker-overtime .p-datepicker-input:focus,
+:host ::ng-deep .prime-datepicker-overtime input:focus {
+    border-color: #40a9ff;
+    box-shadow: 0 0 0 2px rgba(24, 144, 255, 0.2);
+    outline: none;
+}
+
+:host ::ng-deep .prime-datepicker-overtime .p-datepicker-dropdown {
+    height: 32px;
+    width: 32px;
+    border: 1px solid #d9d9d9;
+    border-left: none;
+    border-radius: 0 2px 2px 0;
+    background: #fff;
+}
+
+:host ::ng-deep .prime-datepicker-overtime .p-datepicker-dropdown:hover {
+    border-color: #40a9ff;
+    background: #fff;
+}
+
+/* Force z-index cao cho DatePicker overlay panel khi append to body */
+::ng-deep .p-datepicker {
+    z-index: 99999 !important;
+}
+
+::ng-deep .p-datepicker-panel {
+    z-index: 99999 !important;
+}
+
+/* Đảm bảo overlay hiển thị trên NgbModal */
+::ng-deep body>.p-datepicker,
+::ng-deep body>.p-overlay {
+    z-index: 99999 !important;
+}

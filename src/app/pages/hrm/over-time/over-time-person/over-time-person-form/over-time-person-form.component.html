@@ -1,5 +1,5 @@
 <div class="modal-dialog-scrollable">
-  <div class="modal-header bg-primary align-items-center p-2">
+  <div class="modal-header bg-primary align-items-center py-2">
     <h6 class="text-light text-uppercase m-0">
       {{ isEditMode ? 'SỬA KHAI BÁO LÀM THÊM' : ' KHAI BÁO LÀM THÊM' }}
     </h6>
@@ -144,10 +144,13 @@
                   <nz-form-item>
                     <nz-form-label>Từ<span class="text-danger ps-2 me-1"> (*)</span></nz-form-label>
                     <nz-form-control [nzErrorTip]="'Vui lòng chọn thời gian bắt đầu'">
-                      <nz-date-picker [formControl]="$any(tab.form.get('TimeStart'))"
-                        nzPlaceHolder="Chọn thời gian bắt đầu" [nzShowTime]="{ nzFormat: 'HH:mm' }"
-                        [nzFormat]="'dd/MM/yyyy HH:mm'" [nzShowToday]="false"
-                        [nzDisabledDate]="disabledDateForTimeStart" style="width: 100%"></nz-date-picker>
+                      <p-datepicker [formControl]="$any(tab.form.get('TimeStart'))" [showTime]="true"
+                        [hourFormat]="'24'" dateFormat="dd/mm/yy" [showIcon]="true" [minDate]="getMinDateForTimeStart()"
+                        [maxDate]="getMaxDateForTimeStart()" appendTo="body" placeholder="Chọn thời gian bắt đầu"
+                        styleClass="prime-datepicker-overtime" [baseZIndex]="99999"
+                        (onSelect)="onTimeStartSelect($event, tab.form)"
+                        (onInput)="onTimeStartSelect($event, tab.form)">
+                      </p-datepicker>
                     </nz-form-control>
                   </nz-form-item>
                 </nz-col>
@@ -156,10 +159,12 @@
                   <nz-form-item>
                     <nz-form-label>Đến<span class="text-danger ps-1 me-1"> (*)</span></nz-form-label>
                     <nz-form-control [nzErrorTip]="'Vui lòng chọn thời gian kết thúc'">
-                      <nz-date-picker [formControl]="$any(tab.form.get('EndTime'))"
-                        nzPlaceHolder="Chọn thời gian kết thúc" [nzShowTime]="{ nzFormat: 'HH:mm' }"
-                        [nzFormat]="'dd/MM/yyyy HH:mm'" [nzShowToday]="false" [nzDisabledDate]="disabledDateForEndTime"
-                        style="width: 100%"></nz-date-picker>
+                      <p-datepicker [formControl]="$any(tab.form.get('EndTime'))" [showTime]="true" [hourFormat]="'24'"
+                        dateFormat="dd/mm/yy" [showIcon]="true" [minDate]="getMinDateForEndTime(tab.form)"
+                        [maxDate]="getMaxDateForEndTime()" appendTo="body" placeholder="Chọn thời gian kết thúc"
+                        styleClass="prime-datepicker-overtime" [baseZIndex]="99999"
+                        (onSelect)="onEndTimeSelect($event, tab.form)" (onInput)="onEndTimeSelect($event, tab.form)">
+                      </p-datepicker>
                     </nz-form-control>
                   </nz-form-item>
                 </nz-col>

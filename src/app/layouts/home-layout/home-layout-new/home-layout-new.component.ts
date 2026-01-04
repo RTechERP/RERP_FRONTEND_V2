@@ -140,9 +140,9 @@ export class HomeLayoutNewComponent implements OnInit {
     getQuantityApprove() {
         this.approveTpService.getQuantityApprove().subscribe({
             next: (res: any) => {
-                console.log('API Response:', res); // Debug log
+                // console.log('API Response:', res); // Debug log
                 this.quantityApprove = res.data;
-                console.log('Assigned quantityApprove:', this.quantityApprove); // Debug log
+                // console.log('Assigned quantityApprove:', this.quantityApprove); // Debug log
             },
             error: (err: any) => {
                 this.notification.error(NOTIFICATION_TITLE.error, err?.error?.message || err?.message);
@@ -157,7 +157,7 @@ export class HomeLayoutNewComponent implements OnInit {
         // }
         let route = '';
         let title = '';
-        switch(approvalType) {
+        switch (approvalType) {
             case 'Senior':
                 route = 'senior-approve?isSeniorMode=true';
                 title = 'Senior duyệt';
@@ -171,7 +171,7 @@ export class HomeLayoutNewComponent implements OnInit {
                 title = 'BGD duyệt';
                 break;
             default:
-                route = 'tbp-approve'; 
+                route = 'tbp-approve';
                 title = 'Duyệt';
         }
         this.newTab(route, title);
@@ -219,7 +219,7 @@ export class HomeLayoutNewComponent implements OnInit {
 
                 var pesons = this.menus.find((x) => x.Code == 'person');
                 this.menuPersons = pesons.Children.filter((x: any) => x.Code == 'registerpayroll' || x.Code == 'dailyreport' || x.Code == 'registercommon');
-                console.log('this.menuPersons', this.menuPersons);
+                // console.log('this.menuPersons', this.menuPersons);
                 this.menuWeekplans = pesons.Children.find((x: any) => x.Code == 'planweek');
 
                 this.menuQickAcesss = this.menus.find((x) => x.Code == 'M4');
@@ -288,7 +288,6 @@ export class HomeLayoutNewComponent implements OnInit {
 
 
     openModule(event: MouseEvent, route: string, key: string) {
-
 
         if (route == '') return;
         if (event.button === 0 && !event.ctrlKey && !event.metaKey) {
@@ -382,11 +381,11 @@ export class HomeLayoutNewComponent implements OnInit {
         const imageName = item?.Image; // Keep consistency with item properties
 
         if (!serverPath && !imageName) return 'assets/images/no-image.png';
-        
+
         const host = environment.host + 'api/share/';
         let urlImage = (serverPath || imageName || '').replace("\\\\192.168.1.190\\", "");
         urlImage = urlImage.replace(/\\/g, '/');
-        
+
         return host + urlImage;
     }
 }

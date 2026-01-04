@@ -527,7 +527,7 @@ body>.p-datepicker-overlay,
 body>p-datepicker,
 body>.p-component {
   z-index: 99999 !important;
-
+}
 
 .spinner{
     position: absolute;

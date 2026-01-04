@@ -187,18 +187,18 @@
 
     <!-- PHẦN DƯỚI (Tab + Splitter) -->
     <div class="mt-2">
-      <nz-splitter style="max-height: 75vh; min-height: 500px;">
+      <nz-splitter style="max-height: 75vh; min-height: 400px;">
         <nz-splitter-panel  [nzCollapsible]="true" nzResizable="true">
           <nz-tabset>
             <nz-tab nzTitle="Nhân viên tham gia">
-              <nz-splitter nzLayout="vertical" style="height: 450px;">
-                <nz-splitter-panel nzDefaultSize="50%" nzMin="20%" nzMax="100%">
-                  <div #tb_EmployeeDetailTable id="tb_EmployeeDetailTable" style="height: 450px;"></div>
+              <nz-splitter nzLayout="vertical" style="height: 350px;">
+                <nz-splitter-panel nzDefaultSize="50%" nzMin="20%" nzMax="100%" [nzSize]="(selectedGroupId === 2) ? '100%' : '50%'">
+                  <div #tb_EmployeeDetailTable id="tb_EmployeeDetailTable" style="height: 350px;"></div>
                 </nz-splitter-panel>
-                <nz-splitter-panel>
-                  <div #tb_CustomerDetailTable 
+                <nz-splitter-panel [nzSize]="(selectedGroupId === 1 || selectedGroupId === null) ? '50%' : '0%'">
+                  <div #tb_CustomerDetailTable
                        id="tb_CustomerDetailTable"
-                       style="height: 450px;"
+                       style="height: 350px;"
                        [style.display]="(selectedGroupId === 1 || selectedGroupId === null) ? 'block' : 'none'">
                   </div>
                 </nz-splitter-panel>
@@ -206,22 +206,22 @@
             </nz-tab>
             <!-- TAB: Nội dung -->
             <nz-tab nzTitle="Nội dung">
-              <nz-splitter nzLayout="vertical" style="height: 450px;">
-                <nz-splitter-panel nzDefaultSize="50%" nzMin="20%" nzMax="100%">
-                  <div #tb_EmployeeDetailContentTable id="tb_EmployeeDetailContentTable" style="height: 450px;"></div>
+              <nz-splitter nzLayout="vertical" style="height: 350px;">
+                <nz-splitter-panel nzDefaultSize="50%" nzMin="20%" nzMax="100%" [nzSize]="(selectedGroupId === 2) ? '100%' : '50%'">
+                  <div #tb_EmployeeDetailContentTable id="tb_EmployeeDetailContentTable" style="height: 350px;"></div>
                 </nz-splitter-panel>
-                <nz-splitter-panel>
-                  <div #tb_CustomerDetailContentTable 
+                <nz-splitter-panel [nzSize]="(selectedGroupId === 1 || selectedGroupId === null) ? '50%' : '0%'">
+                  <div #tb_CustomerDetailContentTable
                        id="tb_CustomerDetailContentTable"
-                       style="height: 450px;"
+                       style="height: 350px;"
                        [style.display]="(selectedGroupId === 1 || selectedGroupId === null) ? 'block' : 'none'">
                   </div>
                 </nz-splitter-panel>
               </nz-splitter>
             </nz-tab>
-            
+
             <nz-tab nzTitle="File đính kèm">
-              <div #tb_FileTable id="tb_FileTable" style="height: 450px;"></div>
+              <div #tb_FileTable id="tb_FileTable" style="height: 350px;"></div>
             </nz-tab>
           </nz-tabset>
         </nz-splitter-panel>

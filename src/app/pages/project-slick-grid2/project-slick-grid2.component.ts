@@ -73,6 +73,7 @@ import { ProjectPartListSlickGridComponent } from '../project-part-list-slick-gr
 import { MenuItem, PrimeIcons } from 'primeng/api';
 import { Menubar } from 'primeng/menubar';
 import { ProjectReportSlickGridComponent } from '../project-report-slick-grid/project-report-slick-grid.component';
+import { ProjectWokerSlickGridComponent } from '../project-woker-slick-grid/project-woker-slick-grid.component';
 
 @Component({
   selector: 'app-project-slick-grid2',

@@ -294,7 +294,7 @@ export class EmployeeContactComponent implements OnInit, AfterViewInit {
                     getter: 'EmployeeTeamName',
                     comparer: () => 0,
                     formatter: (g: any) => {
-                        const teamName = g.value || 'Không có team';
+                        const teamName = (g.value || '') != '' ? `Team: <strong>${g.value}</strong>` : '';
 
                         // Lấy phòng ban từ các rows trong group để lấy màu của phòng ban cha
                         let deptName = '';
@@ -310,7 +310,7 @@ export class EmployeeContactComponent implements OnInit, AfterViewInit {
                         }
                         const colorIndex = departmentColorMap.get(deptName)!;
 
-                        return `<span class="group-color-${colorIndex}" data-level="1">Team: <strong>${teamName}</strong>
+                        return `<span class="group-color-${colorIndex}" data-level="1">${teamName}
                                 <span style="margin-left:10px;">
                                 (${g.count} NS)
                                 </span></span>`;

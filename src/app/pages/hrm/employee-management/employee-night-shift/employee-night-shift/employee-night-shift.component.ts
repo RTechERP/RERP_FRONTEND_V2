@@ -45,6 +45,7 @@ import { EmployeeNightShiftSummaryComponent } from '../employee-night-shift-summ
 import { EmployeeNightShiftFormComponent } from '../employee-night-shift-form/employee-night-shift-form.component';
 import { NzDropDownModule } from 'ng-zorro-antd/dropdown';
 import { PermissionService } from '../../../../../services/permission.service';
+import { AuthService } from '../../../../../auth/auth.service';
 import { NzFormModule } from 'ng-zorro-antd/form';
 import { Menubar } from 'primeng/menubar';
 
@@ -87,7 +88,7 @@ export class EmployeeNightShiftComponent implements OnInit, AfterViewInit, OnDes
     private employeeAttendanceService: EmployeeAttendanceService,
     private vehicleRepairService: VehicleRepairService,
     private permissionService: PermissionService,
-
+    private authService: AuthService,
   ) { }
 
   nightShiftTable: Tabulator | null = null;
@@ -127,6 +128,9 @@ export class EmployeeNightShiftComponent implements OnInit, AfterViewInit, OnDes
 
   private ngbModal = inject(NgbModal);
 
+  // Current user info
+  currentUser: any = null;
+
   // Debounce subjects
   private keywordSearchSubject = new Subject<string>();
   private filterChangeSubject = new Subject<void>();
@@ -154,13 +158,30 @@ export class EmployeeNightShiftComponent implements OnInit, AfterViewInit, OnDes
     return isApprovedTBP || isApprovedHR;
   }
 
-  // Helper function để kiểm tra có quyền admin (N1 hoặc N2)
+  // Helper function để kiểm tra có quyền admin (N1, N2 hoặc IsAdmin)
   private hasAdminPermission(): boolean {
-    return this.permissionService.hasPermission('N1') || this.permissionService.hasPermission('N2');
+    const hasN1Permission = this.permissionService.hasPermission('N1');
+    const hasN2Permission = this.permissionService.hasPermission('N2');
+    const isAdmin = this.currentUser?.IsAdmin === true || this.currentUser?.ISADMIN === true;
+    return hasN1Permission || hasN2Permission || isAdmin;
+  }
+
+  // Lấy thông tin user hiện tại
+  getCurrentUser(): void {
+    this.authService.getCurrentUser().subscribe({
+      next: (res: any) => {
+        const data = res?.data;
+        this.currentUser = Array.isArray(data) ? data[0] : data;
+      },
+      error: (err: any) => {
+        console.error('Lỗi lấy thông tin người dùng:', err);
+      }
+    });
   }
 
   ngOnInit() {
     this.initMenuBar();
+    this.getCurrentUser();
     // Set đầu tháng và cuối tháng làm mặc định
     this.dateStart = this.getFirstDayOfMonth();
     this.dateEnd = this.getLastDayOfMonth();

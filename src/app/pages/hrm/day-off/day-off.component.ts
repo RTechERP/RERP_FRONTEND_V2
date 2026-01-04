@@ -752,7 +752,7 @@ export class DayOffComponent implements OnInit, AfterViewInit {
           let selectedDayOff = row.getData();
           this.dayOffService.saveEmployeeOnLeave({
             ...selectedDayOff,
-            DeleteFlag: true
+            IsDeleted: true
           }).subscribe({
             next: (response) => {
               this.notification.success(NOTIFICATION_TITLE.success, 'Xóa ngày nghỉ đã đăng ký thành công');

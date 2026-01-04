@@ -608,7 +608,16 @@ export class WFHComponent implements OnInit, AfterViewInit, OnDestroy {
     modalRef.componentInstance.userRole = 'employee';
     modalRef.componentInstance.currentEmployeeId = this.currentEmployeeId;
 
-
+    modalRef.result.then(
+      (result) => {
+        if (result?.action === 'save') {
+          this.searchWFH();
+        }
+      },
+      () => {
+        // Modal dismissed
+      }
+    );
   }
 
   editWFH(): void {
@@ -630,6 +639,17 @@ export class WFHComponent implements OnInit, AfterViewInit, OnDestroy {
     modalRef.componentInstance.mode = 'edit';
     modalRef.componentInstance.userRole = 'employee';
     modalRef.componentInstance.currentEmployeeId = this.currentEmployeeId;
+
+    modalRef.result.then(
+      (result) => {
+        if (result?.action === 'save') {
+          this.searchWFH();
+        }
+      },
+      () => {
+        // Modal dismissed
+      }
+    );
   }
 
   deleteWFH(): void {

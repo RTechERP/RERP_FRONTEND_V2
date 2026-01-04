@@ -237,6 +237,30 @@ export class EmployeeContactComponent implements OnInit, AfterViewInit {
         };
     }
 
+    // Mảng màu cho các nhóm phòng ban
+    colors = [
+        '#EF9A9A',
+        '#F48FB1',
+        '#CE93D8',
+        '#9FA8DA',
+        '#90CAF9',
+        '#4FC3F7',
+        '#80DEEA',
+        '#80CBC4',
+        '#A5D6A7',
+        '#9CCC65',
+        '#FFCC80',
+        '#BCAAA4',
+        '#FFD600',
+        '#FFAB00',
+        '#00BFA5',
+        '#AEEA00',
+        '#ECEFF1',
+        '#B388FF',
+        '#EA80FC',
+        '#FF8A80',
+    ];
+
     angularGridReady(angularGrid: AngularGridInstance): void {
         this.angularGrid = angularGrid;
 
@@ -255,10 +279,10 @@ export class EmployeeContactComponent implements OnInit, AfterViewInit {
 
                         // Gán màu cho phòng ban nếu chưa có
                         if (!departmentColorMap.has(deptName)) {
-                            departmentColorMap.set(deptName, deptColorIndex % 10);
+                            departmentColorMap.set(deptName, deptColorIndex % this.colors.length);
                             deptColorIndex++;
                         }
-                        const colorIndex = departmentColorMap.get(deptName);
+                        const colorIndex = departmentColorMap.get(deptName)!;
 
                         return `<span class="group-color-${colorIndex}" data-level="0">Phòng ban: <strong>${deptName}</strong>
                                 <span style="margin-left:10px;">
@@ -281,10 +305,10 @@ export class EmployeeContactComponent implements OnInit, AfterViewInit {
                         // Sử dụng CÙNG màu với phòng ban cha
                         // Nếu phòng ban chưa có trong map, gán màu mới
                         if (!departmentColorMap.has(deptName)) {
-                            departmentColorMap.set(deptName, deptColorIndex % 10);
+                            departmentColorMap.set(deptName, deptColorIndex % this.colors.length);
                             deptColorIndex++;
                         }
-                        const colorIndex = departmentColorMap.get(deptName);
+                        const colorIndex = departmentColorMap.get(deptName)!;
 
                         return `<span class="group-color-${colorIndex}" data-level="1">Team: <strong>${teamName}</strong>
                                 <span style="margin-left:10px;">

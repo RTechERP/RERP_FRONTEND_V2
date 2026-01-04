@@ -8,53 +8,83 @@
 
 /* Màu sắc chung cho phòng ban và các team thuộc phòng ban đó (dùng chung class group-color-X) */
 :host ::ng-deep .slick-group:has(.group-color-0) {
-  background-color: #E3F2FD !important;
-  /* Light Blue */
+  background-color: #EF9A9A !important;
 }
 
 :host ::ng-deep .slick-group:has(.group-color-1) {
-  background-color: #E8F5E9 !important;
-  /* Light Green */
+  background-color: #F48FB1 !important;
 }
 
 :host ::ng-deep .slick-group:has(.group-color-2) {
-  background-color: #FFF3E0 !important;
-  /* Light Orange */
+  background-color: #CE93D8 !important;
 }
 
 :host ::ng-deep .slick-group:has(.group-color-3) {
-  background-color: #F3E5F5 !important;
-  /* Light Purple */
+  background-color: #9FA8DA !important;
 }
 
 :host ::ng-deep .slick-group:has(.group-color-4) {
-  background-color: #E0F7FA !important;
-  /* Light Cyan */
+  background-color: #90CAF9 !important;
 }
 
 :host ::ng-deep .slick-group:has(.group-color-5) {
-  background-color: #FBE9E7 !important;
-  /* Light Deep Orange */
+  background-color: #4FC3F7 !important;
 }
 
 :host ::ng-deep .slick-group:has(.group-color-6) {
-  background-color: #E8EAF6 !important;
-  /* Light Indigo */
+  background-color: #80DEEA !important;
 }
 
 :host ::ng-deep .slick-group:has(.group-color-7) {
-  background-color: #F1F8E9 !important;
-  /* Light Light Green */
+  background-color: #80CBC4 !important;
 }
 
 :host ::ng-deep .slick-group:has(.group-color-8) {
-  background-color: #FCE4EC !important;
-  /* Light Pink */
+  background-color: #A5D6A7 !important;
 }
 
 :host ::ng-deep .slick-group:has(.group-color-9) {
-  background-color: #FFFDE7 !important;
-  /* Light Yellow */
+  background-color: #9CCC65 !important;
+}
+
+:host ::ng-deep .slick-group:has(.group-color-10) {
+  background-color: #FFCC80 !important;
+}
+
+:host ::ng-deep .slick-group:has(.group-color-11) {
+  background-color: #BCAAA4 !important;
+}
+
+:host ::ng-deep .slick-group:has(.group-color-12) {
+  background-color: #FFD600 !important;
+}
+
+:host ::ng-deep .slick-group:has(.group-color-13) {
+  background-color: #FFAB00 !important;
+}
+
+:host ::ng-deep .slick-group:has(.group-color-14) {
+  background-color: #00BFA5 !important;
+}
+
+:host ::ng-deep .slick-group:has(.group-color-15) {
+  background-color: #AEEA00 !important;
+}
+
+:host ::ng-deep .slick-group:has(.group-color-16) {
+  background-color: #ECEFF1 !important;
+}
+
+:host ::ng-deep .slick-group:has(.group-color-17) {
+  background-color: #B388FF !important;
+}
+
+:host ::ng-deep .slick-group:has(.group-color-18) {
+  background-color: #EA80FC !important;
+}
+
+:host ::ng-deep .slick-group:has(.group-color-19) {
+  background-color: #FF8A80 !important;
 }
 
 /* Title font size */

@@ -139,7 +139,7 @@ export class ApproveTpComponent implements OnInit, AfterViewInit {
                 label: 'Senior xác nhận',
                 icon: 'fa-solid fa-calendar-check fa-lg text-primary',
                 // styleClass: 'bg-success',
-                visible: this.permissionService.hasPermission(""),
+                visible: this.permissionService.hasPermission("N85"),
                 items: [
                     {
                         label: 'Duyệt',
@@ -162,7 +162,7 @@ export class ApproveTpComponent implements OnInit, AfterViewInit {
             {
                 label: 'TBP xác nhận',
                 icon: 'fa-solid fa-calendar-check fa-lg text-primary',
-                visible: this.permissionService.hasPermission("N57,N32"),
+                visible: this.permissionService.hasPermission("N32"),
                 items: [
                     {
                         label: 'Duyệt',
@@ -183,7 +183,7 @@ export class ApproveTpComponent implements OnInit, AfterViewInit {
 
             {
                 label: 'TBP không duyệt',
-                visible: this.permissionService.hasPermission("N57,N32"),
+                visible: this.permissionService.hasPermission("N32"),
                 icon: 'fa-solid fa-ban fa-lg text-warning',
                 command: () => {
                     this.declineApprove();
@@ -192,7 +192,7 @@ export class ApproveTpComponent implements OnInit, AfterViewInit {
 
             {
                 label: 'TBP duyệt hủy đăng ký',
-                visible: this.permissionService.hasPermission("N57,N32"),
+                visible: this.permissionService.hasPermission("N32"),
                 icon: 'fa-solid fa-circle-check fa-lg text-success',
                 command: () => {
                     this.approvedCancelRegister();
@@ -202,12 +202,12 @@ export class ApproveTpComponent implements OnInit, AfterViewInit {
             {
                 label: 'BGĐ xác nhận',
                 icon: 'fa-solid fa-calendar-check fa-lg text-primary',
-                visible: this.permissionService.hasPermission("N59,N56,N1"),
+                visible: this.permissionService.hasPermission("N32"),
                 items: [
                     {
                         label: 'Duyệt hồ sơ',
                         icon: 'fa-solid fa-circle-check fa-lg text-success',
-                        visible: this.permissionService.hasPermission("N59,N1"),
+                        visible: this.permissionService.hasPermission("N32"),
                         command: () => {
                             this.approvedBGD();
                         }
@@ -215,7 +215,7 @@ export class ApproveTpComponent implements OnInit, AfterViewInit {
                     {
                         label: 'Hủy duyệt hồ sơ',
                         icon: 'fa-solid fa-circle-xmark fa-lg text-danger',
-                        visible: this.permissionService.hasPermission("N59,N1"),
+                        visible: this.permissionService.hasPermission("N32"),
                         command: () => {
                             this.cancelApprovedBGD();
                         }

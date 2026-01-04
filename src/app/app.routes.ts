@@ -213,7 +213,7 @@ import { NewsletterComponent } from './pages/old/newsletter/newsletter/newslette
 import { NewsletterTypeComponent } from './pages/old/newsletter/newsletter/newsletter-type/newsletter-type.component';
 import { ProjectPartlistPriceRequestOldComponent } from './pages/purchase/project-partlist-price-request-old/project-partlist-price-request-old.component';
 import { MeetingMinuteSlickGridComponent } from './pages/meeting-minute-slick-grid/meeting-minute-slick-grid.component';
-
+import { DocumentSaleAdminComponent } from './pages/hrm/document/document-sale-admin/document-sale-admin.component';
 export const routes: Routes = [
     {
         path: '',
@@ -930,6 +930,8 @@ export const routes: Routes = [
 
             { path: 'newsletter', component: NewsletterComponent, canActivate: [authGuard] },
             { path: 'newsletter-type', component: NewsletterTypeComponent, canActivate: [authGuard] },
+            { path: 'document-sale-admin', component: DocumentSaleAdminComponent, canActivate: [authGuard] },
+
 
         ],
     },

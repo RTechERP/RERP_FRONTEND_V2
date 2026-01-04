@@ -26,7 +26,7 @@ import { AuthService } from '../../../../../auth/auth.service';
 import { ProjectService } from '../../../../project/project-service/project.service';
 import { WFHService } from '../../../employee-management/employee-wfh/WFH-service/WFH.service';
 import { ProjectItemSelectModalComponent } from './project-item-select-modal/project-item-select-modal.component';
-
+import { DatePickerModule } from 'primeng/datepicker';
 @Component({
   selector: 'app-over-time-person-form',
   templateUrl: './over-time-person-form.component.html',
@@ -48,6 +48,7 @@ import { ProjectItemSelectModalComponent } from './project-item-select-modal/pro
     NzUploadModule,
     NzMessageModule,
     NzModalModule,
+    DatePickerModule
   ]
 })
 export class OverTimePersonFormComponent implements OnInit {
@@ -499,6 +500,159 @@ export class OverTimePersonFormComponent implements OnInit {
     const minutes = String(dateObj.getMinutes()).padStart(2, '0');
 
     return `${year}-${month}-${day}T${hours}:${minutes}`;
+  }
+
+  // Handler cho input datetime-local
+  onDateTimeChange(event: Event, form: FormGroup, controlName: string): void {
+    const input = event.target as HTMLInputElement;
+    const value = input.value;
+    if (value) {
+      const date = new Date(value);
+      if (!isNaN(date.getTime())) {
+        form.patchValue({ [controlName]: date });
+        this.calculateTotalHour(form);
+
+        // Auto check Overnight nếu EndTime >= 20:00
+        if (controlName === 'EndTime') {
+          const hours = date.getHours();
+          if (hours >= 20) {
+            form.patchValue({ Overnight: true }, { emitEvent: false });
+          }
+        }
+      }
+    } else {
+      form.patchValue({ [controlName]: null });
+    }
+  }
+
+  // Lấy min datetime cho TimeStart dựa trên IsProblem
+  getMinDateTimeForTimeStart(): string {
+    const isProblem = this.commonForm.get('IsProblem')?.value;
+
+    if (isProblem) {
+      // Nếu là đăng ký bổ sung, cho phép chọn từ 30 ngày trước
+      const minDate = new Date();
+      minDate.setDate(minDate.getDate() - 30);
+      minDate.setHours(0, 0, 0, 0);
+      return this.formatDateTimeLocal(minDate);
+    } else {
+      // Không phải đăng ký bổ sung: chỉ cho chọn từ hôm qua
+      const yesterday = new Date();
+      yesterday.setDate(yesterday.getDate() - 1);
+      yesterday.setHours(0, 0, 0, 0);
+      return this.formatDateTimeLocal(yesterday);
+    }
+  }
+
+  // Lấy max datetime cho TimeStart
+  getMaxDateTimeForTimeStart(): string {
+    // Cho phép chọn đến cuối ngày mai
+    const tomorrow = new Date();
+    tomorrow.setDate(tomorrow.getDate() + 1);
+    tomorrow.setHours(23, 59, 0, 0);
+    return this.formatDateTimeLocal(tomorrow);
+  }
+
+  // Lấy min datetime cho EndTime (phải >= TimeStart)
+  getMinDateTimeForEndTime(form: FormGroup): string {
+    const timeStart = form.get('TimeStart')?.value;
+    if (timeStart) {
+      const startDate = new Date(timeStart);
+      if (!isNaN(startDate.getTime())) {
+        return this.formatDateTimeLocal(startDate);
+      }
+    }
+    return this.getMinDateTimeForTimeStart();
+  }
+
+  // Lấy max datetime cho EndTime
+  getMaxDateTimeForEndTime(): string {
+    // Cho phép chọn đến cuối ngày kia (2 ngày sau)
+    const dayAfterTomorrow = new Date();
+    dayAfterTomorrow.setDate(dayAfterTomorrow.getDate() + 2);
+    dayAfterTomorrow.setHours(23, 59, 0, 0);
+    return this.formatDateTimeLocal(dayAfterTomorrow);
+  }
+
+  // ========== PrimeNG DatePicker Methods ==========
+
+  // Lấy min Date cho TimeStart (PrimeNG)
+  getMinDateForTimeStart(): Date {
+    const isProblem = this.commonForm.get('IsProblem')?.value;
+
+    if (isProblem) {
+      // Nếu là đăng ký bổ sung, cho phép chọn từ 30 ngày trước
+      const minDate = new Date();
+      minDate.setDate(minDate.getDate() - 30);
+      minDate.setHours(0, 0, 0, 0);
+      return minDate;
+    } else {
+      // Không phải đăng ký bổ sung: chỉ cho chọn từ hôm qua
+      const yesterday = new Date();
+      yesterday.setDate(yesterday.getDate() - 1);
+      yesterday.setHours(0, 0, 0, 0);
+      return yesterday;
+    }
+  }
+
+  // Lấy max Date cho TimeStart (PrimeNG)
+  getMaxDateForTimeStart(): Date {
+    // Cho phép chọn đến cuối ngày mai
+    const tomorrow = new Date();
+    tomorrow.setDate(tomorrow.getDate() + 1);
+    tomorrow.setHours(23, 59, 0, 0);
+    return tomorrow;
+  }
+
+  // Lấy min Date cho EndTime (PrimeNG) - phải >= TimeStart
+  getMinDateForEndTime(form: FormGroup): Date {
+    const timeStart = form.get('TimeStart')?.value;
+    if (timeStart) {
+      const startDate = new Date(timeStart);
+      if (!isNaN(startDate.getTime())) {
+        return startDate;
+      }
+    }
+    return this.getMinDateForTimeStart();
+  }
+
+  // Lấy max Date cho EndTime (PrimeNG)
+  getMaxDateForEndTime(): Date {
+    // Cho phép chọn đến cuối ngày kia (2 ngày sau)
+    const dayAfterTomorrow = new Date();
+    dayAfterTomorrow.setDate(dayAfterTomorrow.getDate() + 2);
+    dayAfterTomorrow.setHours(23, 59, 0, 0);
+    return dayAfterTomorrow;
+  }
+
+  // Handler khi chọn TimeStart từ PrimeNG DatePicker
+  onTimeStartSelect(event: any, form: FormGroup): void {
+    const date = event instanceof Date ? event : new Date(event);
+    if (!isNaN(date.getTime())) {
+      const normalized = this.normalizeToMinute(date);
+      if (normalized) {
+        form.patchValue({ TimeStart: normalized }, { emitEvent: false });
+        this.calculateTotalHour(form);
+      }
+    }
+  }
+
+  // Handler khi chọn EndTime từ PrimeNG DatePicker
+  onEndTimeSelect(event: any, form: FormGroup): void {
+    const date = event instanceof Date ? event : new Date(event);
+    if (!isNaN(date.getTime())) {
+      const normalized = this.normalizeToMinute(date);
+      if (normalized) {
+        form.patchValue({ EndTime: normalized }, { emitEvent: false });
+        this.calculateTotalHour(form);
+
+        // Auto check Overnight nếu EndTime >= 20:00
+        const hours = date.getHours();
+        if (hours >= 20) {
+          form.patchValue({ Overnight: true }, { emitEvent: false });
+        }
+      }
+    }
   }
 
   toLocalISOString(date: Date | string | null): string | null {

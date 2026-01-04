@@ -46,6 +46,7 @@ import { TabulatorFull as Tabulator, ColumnDefinition } from 'tabulator-tables';
         <button *ngIf="multiSelect" class="confirm-button" (click)="confirmSelection()" title="Xác nhận">
           <i class="fas fa-check"></i> Xác nhận
         </button>
+        <button *ngIf="showClearButton" class="clear-button" (click)="clearSelection()" title="Xóa giá trị">Clear</button>
         <button class="close-button" (click)="close()" title="Đóng">
           <i class="fas fa-times"></i>
         </button>
@@ -134,6 +135,28 @@ import { TabulatorFull as Tabulator, ColumnDefinition } from 'tabulator-tables';
       background: #389e0d;
     }
 
+    .clear-button {
+      padding: 4px 10px;
+      background: #faad14;
+      color: white;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: background 0.2s;
+    }
+
+    .clear-button:hover {
+      background: #ffc53d;
+    }
+
+    .clear-button:active {
+      background: #d48806;
+    }
+
     .tabulator-table {
       width: 100%;
     }
@@ -152,11 +175,13 @@ export class TabulatorPopupComponent implements OnInit, OnChanges, AfterViewInit
   @Input() selectableRows: number | boolean = 1;
   @Input() layout: 'fitData' | 'fitColumns' | 'fitDataFill' | 'fitDataStretch' | 'fitDataTable' = 'fitColumns';
   @Input() multiSelect: boolean = false; // Enable multi-select mode
+  @Input() showClearButton: boolean = false; // Show clear button to clear selection
 
   // Output events
   @Output() rowSelected = new EventEmitter<any>();
   @Output() multiRowsSelected = new EventEmitter<any[]>(); // Emit multiple selected rows
   @Output() closed = new EventEmitter<void>();
+  @Output() cleared = new EventEmitter<void>(); // Emit when clear button is clicked
 
   private tabulatorInstance: Tabulator | null = null;
   private scrollListener: ((event: Event) => void) | null = null;
@@ -326,6 +351,14 @@ export class TabulatorPopupComponent implements OnInit, OnChanges, AfterViewInit
    */
   public close(): void {
     this.closed.emit();
+  }
+
+  /**
+   * Clear selection and emit cleared event
+   */
+  public clearSelection(): void {
+    this.cleared.emit();
+    this.close();
   }
 
   /**

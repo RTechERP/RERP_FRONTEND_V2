@@ -1437,17 +1437,6 @@ export class ProjectPartlistPriceRequestNewComponent implements OnInit, OnDestro
 
     const columns: Column[] = [
       {
-        id: 'ID',
-        field: 'ID',
-        name: 'ID',
-        width: 0,
-        hidden: true,
-        excludeFromHeaderMenu: true,
-        excludeFromGridMenu: true,
-        excludeFromColumnPicker: true,
-        excludeFromQuery: true,
-      },
-      {
         id: 'TT',
         field: 'TT',
         name: 'TT',
@@ -1591,12 +1580,12 @@ export class ProjectPartlistPriceRequestNewComponent implements OnInit, OnDestro
         sortable: true,
         filterable: true,
         type: 'number',
+        cssClass: 'text-right',
         editor: {
           model: Editors['float'], decimal: 2,
         },
         filter: { model: Filters['compoundInputNumber'] },
         groupTotalsFormatter: (totals: any, columnDef: any) => this.sumTotalsFormatterWithFormat(totals, columnDef),
-        params: { groupFormatterPrefix: 'Tổng: ' },
 
         formatter: (_row, _cell, value, _column, dataContext) => {
           if (!value) return '';
@@ -1775,7 +1764,9 @@ export class ProjectPartlistPriceRequestNewComponent implements OnInit, OnDestro
         width: 100,
         sortable: true,
         filterable: true,
-        formatter: Formatters.date,
+formatter: Formatters.date,
+        exportCustomFormatter: Formatters.date,
+        type: 'date',
         params: { dateFormat: 'DD/MM/YYYY' },
         filter: { model: Filters['compoundDate'] },
       },
@@ -1838,6 +1829,7 @@ export class ProjectPartlistPriceRequestNewComponent implements OnInit, OnDestro
         sortable: true,
         filterable: true,
         type: 'number',
+        cssClass: 'text-right',
         formatter: (row: number, cell: number, value: any) => this.formatNumberEnUS(value, 2),
         filter: { model: Filters['compoundInputNumber'] },
       },
@@ -1849,6 +1841,7 @@ export class ProjectPartlistPriceRequestNewComponent implements OnInit, OnDestro
         sortable: true,
         filterable: true,
         type: 'number',
+        cssClass: 'text-right',
         editor: {
           model: Editors['float'],
           decimal: 0,
@@ -1864,6 +1857,7 @@ export class ProjectPartlistPriceRequestNewComponent implements OnInit, OnDestro
         sortable: true,
         filterable: true,
         type: 'number',
+        cssClass: 'text-right',
         editor: {
           model: Editors['float'],
           decimal: 0,
@@ -1878,7 +1872,9 @@ export class ProjectPartlistPriceRequestNewComponent implements OnInit, OnDestro
         width: 120,
         sortable: true,
         filterable: true,
-        formatter: Formatters.date,
+formatter: Formatters.date,
+        exportCustomFormatter: Formatters.date,
+        type: 'date',
         params: { dateFormat: 'DD/MM/YYYY' },
         filter: { model: Filters['compoundDate'] },
       },
@@ -1890,10 +1886,10 @@ export class ProjectPartlistPriceRequestNewComponent implements OnInit, OnDestro
         sortable: true,
         filterable: true,
         type: 'number',
+        cssClass: 'text-right',
         formatter: (row: number, cell: number, value: any) => this.formatNumberEnUS(value, 0),
         filter: { model: Filters['compoundInputNumber'] },
         groupTotalsFormatter: (totals: any, columnDef: any) => this.sumTotalsFormatterWithFormat(totals, columnDef),
-        params: { groupFormatterPrefix: 'Tổng: ' },
       },
       {
         id: 'TotalPriceExchange',
@@ -1903,10 +1899,10 @@ export class ProjectPartlistPriceRequestNewComponent implements OnInit, OnDestro
         sortable: true,
         filterable: true,
         type: 'number',
+        cssClass: 'text-right',
         formatter: (row: number, cell: number, value: any) => this.formatNumberEnUS(value, 0),
         filter: { model: Filters['compoundInputNumber'] },
         groupTotalsFormatter: (totals: any, columnDef: any) => this.sumTotalsFormatterWithFormat(totals, columnDef),
-        params: { groupFormatterPrefix: 'Tổng: ' },
       },
       {
         id: 'VAT',
@@ -1916,6 +1912,7 @@ export class ProjectPartlistPriceRequestNewComponent implements OnInit, OnDestro
         sortable: true,
         filterable: true,
         type: 'number',
+        cssClass: 'text-right',
         editor: {
           model: Editors['float'],
           decimal: 2,
@@ -1931,10 +1928,10 @@ export class ProjectPartlistPriceRequestNewComponent implements OnInit, OnDestro
         sortable: true,
         filterable: true,
         type: 'number',
-        formatter: (row: number, cell: number, value: any) => this.formatNumberEnUS(value, 0),
+        cssClass: 'text-right',
+        formatter: (row: number, cell: number, value: any) => this.formatNumberEnUS(value, 2),
         filter: { model: Filters['compoundInputNumber'] },
         groupTotalsFormatter: (totals: any, columnDef: any) => this.sumTotalsFormatterWithFormat(totals, columnDef),
-        params: { groupFormatterPrefix: 'Tổng: ' },
       },
       {
         id: 'CodeNCC',
@@ -1989,10 +1986,11 @@ export class ProjectPartlistPriceRequestNewComponent implements OnInit, OnDestro
         sortable: true,
         filterable: true,
         type: 'number',
+        cssClass: 'text-right',
         editor: {
           model: Editors['integer'],
         },
-        formatter: (row: number, cell: number, value: any) => this.formatNumberEnUS(value, 0),
+        formatter: (row: number, cell: number, value: any) => this.formatNumberEnUS(value, 2),
         filter: { model: Filters['compoundInputNumber'] },
         customTooltip: {
           useRegularTooltip: true,
@@ -2006,7 +2004,9 @@ export class ProjectPartlistPriceRequestNewComponent implements OnInit, OnDestro
         width: 150,
         sortable: true,
         filterable: true,
-        formatter: Formatters.date,
+formatter: Formatters.date,
+        exportCustomFormatter: Formatters.date,
+        type: 'date',
         params: { dateFormat: 'DD/MM/YYYY' },
         filter: { model: Filters['compoundDate'] },
       },
@@ -2180,7 +2180,6 @@ export class ProjectPartlistPriceRequestNewComponent implements OnInit, OnDestro
         formatter: (row: number, cell: number, value: any) => this.formatNumberEnUS(value, 0),
         filter: { model: Filters['compoundInputNumber'] },
         groupTotalsFormatter: GroupTotalFormatters['sumTotalsFormatter'],
-        params: { groupFormatterPrefix: 'Tổng: ' },
       },
       {
         id: 'LeadTime',
@@ -2189,7 +2188,9 @@ export class ProjectPartlistPriceRequestNewComponent implements OnInit, OnDestro
         width: 100,
         sortable: true,
         filterable: true,
-        formatter: Formatters.date,
+formatter: Formatters.date,
+        exportCustomFormatter: Formatters.date,
+        type: 'date',
         params: { dateFormat: 'DD/MM/YYYY' },
         filter: { model: Filters['compoundDate'] },
       },
@@ -2265,7 +2266,27 @@ export class ProjectPartlistPriceRequestNewComponent implements OnInit, OnDestro
       enablePagination: false,
       enableHeaderMenu: false, // Disable default header dropdown menu
       autoCommitEdit: true,
-    };
+    } as any; // Use 'as any' to bypass TypeScript error for custom properties
+  }
+
+  // Get row metadata for styling based on row data
+  private getRowMetadata(item: any, typeId: number): any {
+    const metadata: any = { cssClasses: '' };
+
+    // Rule 1: IsDeleted = true → row-deleted (màu đỏ)
+    if (item.IsDeleted === true || item.IsDeleted === 1) {
+      metadata.cssClasses += 'row-deleted ';
+    }
+
+    // Rule 2: Tab HCNS (typeId = 7) hoặc MARKETING (typeId = 8) + StatusRequestID = 2 → row-quoted (màu xanh lục)
+    const isHCNSOrMarketing = typeId === 7 || typeId === 8;
+    const isQuoted = item.StatusRequestID === 2;
+
+    if (isHCNSOrMarketing && isQuoted && !item.IsDeleted) {
+      metadata.cssClasses += 'row-quoted ';
+    }
+
+    return metadata;
   }
 
   // Helper method to ensure checkbox selector is always enabled
@@ -2369,12 +2390,63 @@ export class ProjectPartlistPriceRequestNewComponent implements OnInit, OnDestro
         collapsed: false, // Groups expanded by default
       });
 
+      // Store original getItemMetadata from grouping
+      const originalGetItemMetadata = (angularGrid.dataView as any).getItemMetadata?.bind(angularGrid.dataView);
+
+      // Override getItemMetadata to merge grouping metadata with row styling metadata
+      (angularGrid.dataView as any).getItemMetadata = (row: number) => {
+        const item = angularGrid.dataView.getItem(row);
+
+        // Get group metadata first (if this row is a group or group totals)
+        // This is important to preserve group row formatting
+        if (originalGetItemMetadata) {
+          const groupMetadata = originalGetItemMetadata(row);
+
+          // If this is a group row or group totals row, return the group metadata as-is
+          if (item && (item.__group || item.__groupTotals)) {
+            return groupMetadata;
+          }
+
+          // For data rows, merge custom styling with any existing metadata
+          if (item && !item.__group && !item.__groupTotals) {
+            const customMetadata = this.getRowMetadata(item, typeId);
+
+            if (groupMetadata) {
+              // Merge cssClasses
+              return {
+                ...groupMetadata,
+                cssClasses: ((groupMetadata.cssClasses || '') + ' ' + (customMetadata.cssClasses || '')).trim()
+              };
+            } else if (customMetadata.cssClasses) {
+              return customMetadata;
+            }
+          }
+
+          return groupMetadata;
+        }
+
+        // No original metadata, just return custom metadata for data rows
+        if (item && !item.__group && !item.__groupTotals) {
+          const customMetadata = this.getRowMetadata(item, typeId);
+          if (customMetadata.cssClasses) {
+            return customMetadata;
+          }
+        }
+
+        return null;
+      };
+
       // Refresh the grid to show grouping
       angularGrid.dataView.refresh();
       angularGrid.slickGrid.render();
 
       // Đảm bảo checkbox selector vẫn được enable sau khi refresh/render (với delay nhỏ)
       this.ensureCheckboxSelector(angularGrid, 50);
+
+      // Subscribe to dataView.onRowCountChanged để update filter collections khi data thay đổi (bao gồm filter)
+      angularGrid.dataView.onRowCountChanged.subscribe(() => {
+        setTimeout(() => this.applyDistinctFilters(), 100);
+      });
     }
 
 
@@ -2386,6 +2458,8 @@ export class ProjectPartlistPriceRequestNewComponent implements OnInit, OnDestro
       if (angularGrid.slickGrid) {
         angularGrid.slickGrid.render();
       }
+      // Apply distinct filters after grid is ready
+      this.applyDistinctFilters();
     }, 100);
   }
 
@@ -2529,12 +2603,8 @@ export class ProjectPartlistPriceRequestNewComponent implements OnInit, OnDestro
 
   // Handler khi row selection thay đổi
   handleRowSelection(typeId: number, e: Event, args: OnSelectedRowsChangedEventArgs): void {
-    // Có thể thêm logic xử lý khi selection thay đổi
-    const angularGrid = this.angularGrids.get(typeId);
-    if (!angularGrid) return;
-
-    const selectedRows = args.rows || [];
-    // Có thể thêm logic xử lý selected rows nếu cần
+    // Row selection is handled directly in onCellChange using getSelectedRows()
+    // No additional tracking needed here
   }
 
   // Helper method to format numbers
@@ -3982,6 +4052,77 @@ export class ProjectPartlistPriceRequestNewComponent implements OnInit, OnDestro
       return;
     }
 
+    // Kiểm tra trạng thái StatusRequest = 1 (Yêu cầu báo giá) thì không cho phép yêu cầu mua
+    for (const row of selectedRows) {
+      const statusRequest = Number(row['StatusRequest'] || 0);
+      const productCode = String(row['ProductCode'] || '');
+
+      if (statusRequest === 1) {
+        this.notification.warning(
+          'Thông báo',
+          `Sản phẩm [${productCode}] đang ở trạng thái Yêu cầu báo giá.không thể yêu cầu mua.`
+        );
+        return;
+      }
+    }
+
+    // // Kiểm tra Deadline
+    // // Deadline phải cách ngày yêu cầu ít nhất 2 ngày
+    // // Nếu yêu cầu sau 15h thì tính từ ngày hôm sau
+    // // Deadline phải là ngày làm việc (không tính thứ 7, chủ nhật)
+    // const now = DateTime.now();
+    // const currentHour = now.hour;
+
+    // // Tính ngày bắt đầu tính (nếu sau 15h thì tính từ ngày mai)
+    // let startDate = now.startOf('day');
+    // if (currentHour >= 15) {
+    //   startDate = startDate.plus({ days: 1 });
+    // }
+
+    // // Ngày deadline tối thiểu (phải cách ít nhất 2 ngày từ startDate)
+    // const minDeadline = startDate.plus({ days: 2 });
+
+    // for (const row of selectedRows) {
+    //   const deadlineValue = row['Deadline'];
+    //   const productCode = String(row['ProductCode'] || '');
+
+    //   if (deadlineValue) {
+    //     let deadline: DateTime | null = null;
+
+    //     // Parse date từ nhiều format
+    //     if (typeof deadlineValue === 'string') {
+    //       deadline = DateTime.fromISO(deadlineValue);
+    //       if (!deadline.isValid) {
+    //         deadline = DateTime.fromFormat(deadlineValue, 'dd/MM/yyyy');
+    //       }
+    //     } else if (deadlineValue instanceof Date) {
+    //       deadline = DateTime.fromJSDate(deadlineValue);
+    //     }
+
+    //     if (deadline && deadline.isValid) {
+    //       // Kiểm tra nếu deadline là thứ 7 hoặc chủ nhật
+    //       const dayOfWeek = deadline.weekday; // 1 = Monday, 6 = Saturday, 7 = Sunday
+    //       if (dayOfWeek === 6 || dayOfWeek === 7) {
+    //         this.notification.warning(
+    //           'Thông báo',
+    //           `Sản phẩm [${productCode}] có deadline (${deadline.toFormat('dd/MM/yyyy')}) là ngày cuối tuần. Deadline phải là ngày làm việc (T2 - T6).`
+    //         );
+    //         return;
+    //       }
+
+    //       // Kiểm tra nếu deadline không đủ 2 ngày
+    //       if (deadline < minDeadline) {
+    //         const errorMsg = currentHour >= 15
+    //           ? 'Yêu cầu từ sau 15h nên ngày Deadline tối thiểu là 2 ngày tính từ ngày hôm sau!'
+    //           : 'Deadline tối thiểu là 2 ngày từ ngày hiện tại!';
+
+    //         this.notification.warning('Thông báo', errorMsg);
+    //         return;
+    //       }
+    //     }
+    //   }
+    // }
+
     // Kiểm tra thời gian báo giá lịch sử cho tab demo (activeTabId === -4 hoặc projectPartlistPriceRequestTypeID === 4)
     if (this.activeTabId === -4 || this.projectPartlistPriceRequestTypeID === 4) {
       const now = DateTime.now();
@@ -4060,7 +4201,31 @@ export class ProjectPartlistPriceRequestNewComponent implements OnInit, OnDestro
     });
   }
 
-  private validateRequestBuyDeadline(deadline: Date): string | null {
+  private validateRequestBuyDeadline(deadline: Date): boolean {
+    const now = new Date();
+    const d = new Date(
+      deadline.getFullYear(),
+      deadline.getMonth(),
+      deadline.getDate()
+    );
+    const start = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+    const timeSpan =
+      Math.floor((d.getTime() - start.getTime()) / (24 * 3600 * 1000)) + 1;
+
+    if (now.getHours() < 15 && timeSpan < 2) {
+      return false;
+    }
+    if (now.getHours() >= 15 && timeSpan < 3) {
+      return false;
+    }
+    const dow = d.getDay();
+    if (dow === 6 || dow === 0) {
+      return false;
+    }
+    return true;
+  }
+
+  private getRequestBuyDeadlineErrorMessage(deadline: Date): string {
     const now = new Date();
     const d = new Date(
       deadline.getFullYear(),
@@ -4081,7 +4246,7 @@ export class ProjectPartlistPriceRequestNewComponent implements OnInit, OnDestro
     if (dow === 6 || dow === 0) {
       return 'Deadline phải là ngày làm việc (T2 - T6)!';
     }
-    return null;
+    return '';
   }
 
   private PerformRequestBuy(): boolean {
@@ -4093,9 +4258,9 @@ export class ProjectPartlistPriceRequestNewComponent implements OnInit, OnDestro
       );
       return false;
     }
-    const deadlineMsg = this.validateRequestBuyDeadline(deadline as Date);
-    if (deadlineMsg) {
-      this.notification.warning(NOTIFICATION_TITLE.warning, deadlineMsg);
+    if (!this.validateRequestBuyDeadline(deadline as Date)) {
+      const errorMsg = this.getRequestBuyDeadlineErrorMessage(deadline as Date);
+      this.notification.warning(NOTIFICATION_TITLE.warning, errorMsg);
       return false;
     }
 
@@ -4155,7 +4320,7 @@ export class ProjectPartlistPriceRequestNewComponent implements OnInit, OnDestro
         this.projectPartlistPriceRequestTypeID > 0
           ? this.projectPartlistPriceRequestTypeID
           : 7,
-       
+
       Products: products,
     };
 

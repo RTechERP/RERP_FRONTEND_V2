@@ -33,6 +33,7 @@ import {
     GridOption,
     MultipleSelectOption,
     OnSelectedRowsChangedEventArgs,
+    MenuCommandItemCallbackArgs
 } from 'angular-slickgrid';
 import * as ExcelJS from 'exceljs';
 import { Subscription } from 'rxjs';
@@ -592,6 +593,22 @@ export class InventoryNewComponent implements OnInit, AfterViewInit, OnDestroy {
             enableAutoSizeColumns: false,
             frozenColumn: 4,
             enableHeaderMenu: false,
+            enableContextMenu: true,
+            contextMenu: {
+                commandItems: [
+                    {
+                        command: 'view-detail',
+                        title: 'Xem chi tiết',
+                        iconCssClass: 'fa fa-external-link',
+                        action: (_e: any, args: MenuCommandItemCallbackArgs) => {
+                            const dataContext = args.dataContext;
+                            if (dataContext) {
+                                this.openChiTietSanPhamSale(dataContext);
+                            }
+                        },
+                    },
+                ],
+            },
         };
     }
 
@@ -1221,7 +1238,7 @@ export class InventoryNewComponent implements OnInit, AfterViewInit, OnDestroy {
         });
 
         window.open(
-            `/chi-tiet-san-pham?${params.toString()}`,
+            `/chi-tiet-san-pham-sale?${params.toString()}`,
             '_blank',
             'width=1400,height=900,scrollbars=yes,resizable=yes'
         );

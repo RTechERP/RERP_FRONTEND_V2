@@ -144,6 +144,8 @@ export class MenuAppDetailComponent {
     angularGridReady(angularGrid: AngularGridInstance) {
         this.angularGrid = angularGrid;
         this.grdData = angularGrid?.slickGrid || {};
+
+        this.grdData.setSelectedRows([1, 2, 3]);
     }
 
     getMenus() {

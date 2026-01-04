@@ -20,6 +20,8 @@ import { AppUserService } from '../../../../services/app-user.service';
 import { NzUploadChangeParam, NzUploadFile, NzUploadModule } from 'ng-zorro-antd/upload';
 import { ChiTieitSanPhamSaleService } from '../../../old/Sale/chi-tiet-san-pham-sale/chi-tieit-san-pham-sale.service';
 import { NzIconModule } from 'ng-zorro-antd/icon';
+import { DatePickerModule } from 'primeng/datepicker';
+// import flatpickr from "flatpickr";
 
 @Component({
     selector: 'app-payment-order-detail',
@@ -37,7 +39,8 @@ import { NzIconModule } from 'ng-zorro-antd/icon';
         NzUploadModule,
         FormsModule,
         AngularSlickgridModule,
-        NzIconModule
+        NzIconModule,
+        DatePickerModule
     ],
     templateUrl: './payment-order-detail.component.html',
     styleUrl: './payment-order-detail.component.css'
@@ -56,6 +59,7 @@ export class PaymentOrderDetailComponent implements OnInit, AfterViewInit {
     units: any[] = [];
     @Input() ponccID: number = 0;
     @Input() paymentOrder = new PaymentOrder();
+    @Input() isCopy = false;
     paymentOrderField = PaymentOrderField;
 
     //  orderTypeSelectProjects = [19, 22];
@@ -329,6 +333,12 @@ export class PaymentOrderDetailComponent implements OnInit, AfterViewInit {
     initFormGroup() {
 
         // console.log('this.paymentOrder edit:', this.paymentOrder);
+
+        // flatpickr('#dt', {
+        //     enableTime: true,
+        //     dateFormat: 'd/m/Y H:i',
+        //     allowInput: true   // 👈 BẮT BUỘC
+        // });
 
         const dateOrder = this.paymentOrder.DateOrder || new Date();
         this.validateForm = this.fb.group({
@@ -782,11 +792,15 @@ export class PaymentOrderDetailComponent implements OnInit, AfterViewInit {
                         }));
                     }
 
-                    this.dataFiles = response.data.files;
-                    this.dataFiles = this.dataFiles.map((x, i) => ({
-                        ...x,
-                        id: i + 1
-                    }));
+                    if (!this.isCopy) {
+                        this.dataFiles = response.data.files;
+                        this.dataFiles = this.dataFiles.map((x, i) => ({
+                            ...x,
+                            id: i + 1
+                        }));
+                    }
+
+
                 }
             })
         }
@@ -849,11 +863,18 @@ export class PaymentOrderDetailComponent implements OnInit, AfterViewInit {
 
             const columnId = gridInstance.slickGrid?.getColumns().findIndex(x => x.id == PaymentOrderDetailField.TotalPaymentAmount.field);
             const columnElement = gridInstance.slickGrid?.getFooterRowColumn(columnId);
+
+            const details = gridInstance.dataView.getItems().map(x => ({
+                ...x,
+                ID: this.isCopy ? 0 : x.ID,
+            }))
             this.paymentOrder = {
                 ...this.paymentOrder,
                 ...this.validateForm.getRawValue(),
-                PaymentOrderDetails: gridInstance.dataView.getItems(),
+                PaymentOrderDetails: details,
                 TotalMoney: parseFloat(columnElement.textContent ?? ''),
+                ID: this.isCopy ? 0 : this.paymentOrder.ID,
+                id: this.isCopy ? 0 : this.paymentOrder.ID,
             };
             // console.log('submit data', this.paymentOrder);
 

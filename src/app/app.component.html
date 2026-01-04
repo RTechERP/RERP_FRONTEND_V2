@@ -1,16 +1,21 @@
 <nz-layout class="app-layout">
-    <nz-sider class="menu-sidebar" nzCollapsible nzWidth="270px" nzBreakpoint="md" [(nzCollapsed)]="isCollapsed"
-        [nzCollapsedWidth]="isMobile ? 0:80" [nzTrigger]="null" nzTheme="light">
+    <nz-sider class="menu-sidebar" nzWidth="300px" [(nzCollapsed)]="isCollapsed" [nzCollapsedWidth]="0"
+        [nzTrigger]="null" nzTheme="light">
         <div class="sidebar-logo d-flex justify-content-center align-items-center" nzTheme="light">
-            <a routerLink="/home" class="text-center">
-                <!-- <img [src]="" alt="logo" class="img-logo" /> -->
-                <img [src]="isCollapsed ? 'assets/images/icon-logo-RTC-2023.png' : 'assets/images/logo-RTC-2023-1200-banchuan.png'"
-                    alt="" class="p-1">
+            <a routerLink="/home" class="text-center p-3">
+                <img src="assets/images/logo-RTC-2023-1200-banchuan.png" alt="logo" class="img-logo " />
+                <!-- <img [src]="isCollapsed ? 'assets/images/icon-logo-RTC-2023.png' : 'assets/images/logo-RTC-2023-1200-banchuan.png'"
+                    alt="" class="p-1"> -->
                 <!-- <h1>RTC</h1> -->
             </a>
         </div>
 
         <ul nz-menu nzMode="inline">
+            <li nz-menu-item nzMatchRouter class="m-0 fw-bold">
+                <img src="assets/icon/home.svg" class="menu-icon m-1" width="24px" />
+                <a routerLink="/home">Trang chủ</a>
+                <!-- <p>{{c1.isPermission }}- {{c1.isOpen}} - {{c1.children.length}}</p> -->
+            </li>
             @for (m of menus; track m.id) {
 
             <ng-template #nzTitle style="padding: 0 16px;">

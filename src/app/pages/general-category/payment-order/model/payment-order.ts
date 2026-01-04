@@ -253,9 +253,9 @@ export const PaymentOrderField = {
 
 
 export const PaymentOrderDetailField = {
-    ID: { name: '', field: 'ID', type: 'number' },
-    PaymentOrderID: { name: '', field: 'PaymentOrderID', type: 'number' },
-    STT: { name: 'STT', field: 'STT', type: 'string' },
+    ID: { name: '', field: 'Id', type: 'number' },
+    PaymentOrderID: { name: '', field: 'PaymentOrderId', type: 'number' },
+    STT: { name: 'STT', field: 'Stt', type: 'string' },
     ContentPayment: { name: 'Nội dung thanh toán', field: 'ContentPayment', type: 'string' },
     Unit: { name: 'ĐVT', field: 'Unit', type: 'string' },
     Quantity: { name: 'Số lượng', field: 'Quantity', type: 'number' },

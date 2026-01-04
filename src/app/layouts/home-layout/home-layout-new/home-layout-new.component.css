@@ -165,7 +165,7 @@
 
 
 .list-group-item a:not([href]){
-    text-transform: uppercase;
+    /* text-transform: uppercase; */
     /* color: #6777ef; */
     /* font-size: 12px; */
 }

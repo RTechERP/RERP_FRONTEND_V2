@@ -84,7 +84,7 @@ export class EmployeeBussinessDetailComponent implements OnInit, AfterViewInit, 
   vehicleList: any[] = []; // Danh sách phương tiện
   listId: number[] = []; // Danh sách ID cần xóa
   hasDataChanges = false; // Flag để kiểm tra có thay đổi không
-  
+
   // Đăng ký bổ sung và upload file
   isProblem = false;
   selectedFile: File | null = null;
@@ -170,7 +170,7 @@ export class EmployeeBussinessDetailComponent implements OnInit, AfterViewInit, 
   loadDetailData() {
     this.listId = []; // Reset list ID cần xóa
     this.hasDataChanges = false; // Reset flag thay đổi
-    
+
     // Reset file data
     this.existingFiles = [];
     this.existingFileRecord = null;
@@ -186,7 +186,7 @@ export class EmployeeBussinessDetailComponent implements OnInit, AfterViewInit, 
     if (firstItem != null) {
       // Set IsProblem từ dữ liệu
       this.isProblem = firstItem['IsProblem'] || false;
-      
+
       this.searchForm.patchValue({
         employeeId: firstItem['EmployeeID'] ?? 0,
         approverId: firstItem['ApprovedID'] ?? 0,
@@ -197,7 +197,7 @@ export class EmployeeBussinessDetailComponent implements OnInit, AfterViewInit, 
       // Disable employee và approver khi có dữ liệu
       this.searchForm.get('employeeId')?.disable();
       this.searchForm.get('approverId')?.disable();
-      
+
       // Load file đính kèm nếu có ID
       if (firstItem['ID'] && firstItem['ID'] > 0) {
         this.loadFilesByBussinessID(firstItem['ID']);
@@ -304,14 +304,14 @@ export class EmployeeBussinessDetailComponent implements OnInit, AfterViewInit, 
           this.currentUser = Array.isArray(data) ? data[0] : data;
         }
       },
-      error: () => {}
+      error: () => { }
     });
   }
 
   onIsProblemChange(checked: boolean) {
     this.isProblem = checked;
     this.searchForm.patchValue({ isProblem: checked });
-    
+
     if (!checked) {
       // Khi bỏ chọn đăng ký bổ sung, xóa file đã chọn
       this.selectedFile = null;
@@ -339,7 +339,7 @@ export class EmployeeBussinessDetailComponent implements OnInit, AfterViewInit, 
       this.existingFiles = [];
       this.existingFileRecord = null;
     }
-    
+
     this.selectedFile = null;
     this.tempFileRecord = null;
     this.uploadedFileData = null;
@@ -371,11 +371,11 @@ export class EmployeeBussinessDetailComponent implements OnInit, AfterViewInit, 
         IsDeleted: true
       });
     }
-    
+
     this.existingFiles = this.existingFiles.filter(f => f.ID !== fileId);
-    
+
     const remainingFiles = this.existingFiles.filter(f => f.ID && !this.deletedFileIds.includes(f.ID));
-    
+
     if (remainingFiles.length === 0) {
       this.existingFileRecord = null;
       this.attachFileName = '';
@@ -403,7 +403,7 @@ export class EmployeeBussinessDetailComponent implements OnInit, AfterViewInit, 
       next: (response: any) => {
         if (response && response.status === 1 && response.data) {
           this.existingFiles = Array.isArray(response.data) ? response.data : [response.data];
-          
+
           if (this.existingFiles.length > 0) {
             const firstFile = this.existingFiles[0];
             this.existingFileRecord = {
@@ -483,7 +483,7 @@ export class EmployeeBussinessDetailComponent implements OnInit, AfterViewInit, 
   loadApprover() {
     this.employeeBussinessService.getEmployeeApprove().subscribe({
       next: (res) => {
-          this.approverList = res.data || [];
+        this.approverList = res.data || [];
       },
       error: (error: any) => {
         this.notification.warning(NOTIFICATION_TITLE.error, error.error?.message || "Lỗi khi lấy danh sách người duyệt");
@@ -501,9 +501,9 @@ export class EmployeeBussinessDetailComponent implements OnInit, AfterViewInit, 
     const employee = this.employeeGroups
       .flatMap(g => g.options)
       .find(e => e.ID === optionValue);
-    
+
     if (!employee) return false;
-    
+
     return (
       (employee.Code || '').toLowerCase().includes(searchText) ||
       (employee.FullName || '').toLowerCase().includes(searchText) ||
@@ -517,9 +517,9 @@ export class EmployeeBussinessDetailComponent implements OnInit, AfterViewInit, 
     const searchText = input.toLowerCase();
     const optionValue = option.nzValue;
     const approver = this.approverList.find(a => a.EmployeeID === optionValue);
-    
+
     if (!approver) return false;
-    
+
     return (
       (approver.Code || '').toLowerCase().includes(searchText) ||
       (approver.FullName || '').toLowerCase().includes(searchText) ||
@@ -657,289 +657,289 @@ export class EmployeeBussinessDetailComponent implements OnInit, AfterViewInit, 
 
     try {
       this.tabulator = new Tabulator('#tb_employee_bussiness_detail', {
-      data: this.employeeBussinessDetail, // Initialize with empty array
-      layout: 'fitDataStretch',
-      height: '82vh',
-      columns: [
-        {
-          title: '',
-          field: 'addRow',
-          headerSort: false,
-          width: 40,
-          hozAlign: 'center',
-          headerHozAlign: 'center',
-          titleFormatter: () =>
-            `<div style="display: flex; justify-content: center; align-items: center; height: 100%;"><i class="fas fa-plus text-success cursor-pointer" title="Thêm dòng"></i></div>`,
-          headerClick: (e: any, column: any) => {
-            this.addRow();
+        data: this.employeeBussinessDetail, // Initialize with empty array
+        layout: 'fitDataStretch',
+        height: '82vh',
+        columns: [
+          {
+            title: '',
+            field: 'addRow',
+            headerSort: false,
+            width: 40,
+            hozAlign: 'center',
+            headerHozAlign: 'center',
+            titleFormatter: () =>
+              `<div style="display: flex; justify-content: center; align-items: center; height: 100%;"><i class="fas fa-plus text-success cursor-pointer" title="Thêm dòng"></i></div>`,
+            headerClick: (e: any, column: any) => {
+              this.addRow();
+            },
+            formatter: (cell: any) => {
+              const data = cell.getRow().getData();
+              let id = data['ID'];
+              return id <= 0 || id == null
+                ? `<button id="btn-header-click" class="btn text-danger p-0 border-0" style="font-size: 0.75rem;"><i class="fas fa-trash"></i></button>`
+                : '';
+            },
+
+            cellClick: (e: any, cell: any) => {
+              const rowData = cell.getRow().getData();
+              const id = rowData.ID || 0;
+              if (id > 0) {
+                // Thêm vào listId để xóa sau
+                if (!this.listId.includes(id)) {
+                  this.listId.push(id);
+                }
+              }
+              cell.getRow().delete();
+              this.resetSTT();
+              this.hasDataChanges = true;
+            }
+          } as any,
+          { title: 'STT', field: 'STT', editor: 'input', hozAlign: 'center', headerHozAlign: 'center', width: 80 },
+          {
+            title: 'Địa điểm',
+            field: 'Location',
+            editor: 'textarea',
+            hozAlign: 'left',
+            headerHozAlign: 'center',
+            width: 200,
+            headerSort: false,
+            variableHeight: true,
+            formatter: 'textarea'
           },
-          formatter: (cell: any) => {
-            const data = cell.getRow().getData();
-            let id = data['ID'];
-            return id <= 0 || id == null
-              ? `<button id="btn-header-click" class="btn text-danger p-0 border-0" style="font-size: 0.75rem;"><i class="fas fa-trash"></i></button>`
-              : '';
+          {
+            title: 'Loại',
+            field: 'TypeBusiness',
+            editor: 'list',
+            headerSort: false,
+            editorParams: {
+              values: this.employeeTypeBussinessList
+            },
+            formatter: (cell: any) => {
+
+              const value = parseInt(cell.getValue());
+              const type = this.employeeTypeBussinessList.find((emp: any) => emp.value === value);
+              return type ? type.label : '--Chọn loại--';
+            },
+            cellEdited: (cell: any) => {
+              const row = cell.getRow();
+              // Sử dụng setTimeout để đảm bảo giá trị đã được cập nhật vào row data
+              setTimeout(() => {
+                this.setTotalCost(row);
+              }, 10);
+            },
+            hozAlign: 'left',
+            headerHozAlign: 'center',
+            width: 350
+          },
+          {
+            title: 'Xuất phát trước 7h15',
+            field: 'WorkEarly',
+            hozAlign: 'center',
+            headerHozAlign: 'center',
+            width: 200,
+            headerSort: false,
+            formatter: (cell: any) => {
+              const value = cell.getValue();
+              const checked = value === true || value === 'true' || value === 1 || value === '1';
+              const input = document.createElement('input');
+              input.type = 'checkbox';
+              input.checked = checked;
+
+              // Add event listener to update cell value when checkbox changes
+              input.addEventListener('change', () => {
+                cell.setValue(input.checked);
+                const row = cell.getRow();
+                this.setTotalCost(row);
+              });
+
+              return input;
+            },
+            // Ensure the cell's value is always a boolean
+            mutator: function (value) {
+              return value === true || value === 'true' || value === 1 || value === '1';
+            }
+          },
+          {
+            title: 'Phụ cấp ăn tối',
+            field: 'OvernightType',
+            hozAlign: 'left',
+            headerHozAlign: 'center',
+            width: 300,
+            editor: 'list',
+            editorParams: {
+              values: this.overNightTypeList
+            },
+            headerSort: false,
+            formatter: (cell: any) => {
+              const value = cell.getValue();
+              const type = this.overNightTypeList.find((ov: any) => ov.value === value);
+              return type ? type.label : value;
+            },
+            cellEdited: (cell: any) => {
+              const row = cell.getRow();
+              // Sử dụng setTimeout để đảm bảo giá trị đã được cập nhật vào row data
+              setTimeout(() => {
+                this.setTotalCost(row);
+              }, 10);
+            }
+          },
+          {
+            title: 'Không chấm công tại VP',
+            field: 'NotChekIn',
+            hozAlign: 'center',
+            headerHozAlign: 'center',
+            width: 180,
+            headerSort: false,
+            formatter: function (cell) {
+              const value = cell.getValue();
+              const checked = value === true || value === 'true' || value === 1 || value === '1';
+              const input = document.createElement('input');
+              input.type = 'checkbox';
+              input.checked = checked;
+
+              input.addEventListener('change', () => {
+                cell.setValue(input.checked);
+              });
+
+              return input;
+            },
+            headerWordWrap: true,
+            // Ensure the cell's value is always a boolean
+            mutator: function (value) {
+              return value === true || value === 'true' || value === 1 || value === '1';
+            }
           },
 
-          cellClick: (e: any, cell: any) => {
-            const rowData = cell.getRow().getData();
-            const id = rowData.ID || 0;
-            if (id > 0) {
-              // Thêm vào listId để xóa sau
-              if (!this.listId.includes(id)) {
-                this.listId.push(id);
+          {
+            title: 'Phương tiện',
+            field: 'VehicleID',
+            hozAlign: 'left',
+            headerHozAlign: 'center',
+            width: 200,
+            headerSort: false,
+            editor: 'list',
+            editorParams: {
+              values: this.vehicleList
+            },
+            formatter: (cell: any) => {
+              const value = parseInt(cell.getValue()) || 0;
+              const vehicle = this.vehicleList.find((v: any) => v.value === value);
+              return vehicle ? vehicle.vehicleData?.VehicleName || vehicle.label : '--Chọn phương tiện--';
+            },
+            cellEdited: (cell: any) => {
+              const row = cell.getRow();
+              const vehicleID = parseInt(cell.getValue()) || 0;
+              const vehicle = this.vehicleList.find((v: any) => v.value === vehicleID);
+
+              if (vehicle && vehicle.vehicleData) {
+                const vehicleName = vehicle.vehicleData.VehicleName || '';
+                const vehicleCost = parseFloat(vehicle.vehicleData.Cost) || 0;
+
+                row.update({
+                  VehicleID: vehicleID,
+                  VehicleName: vehicleName,
+                  TotalCostVehicle: vehicleCost
+                });
+
+                // Tính lại tổng chi phí
+                this.setTotalCost(row);
+              } else {
+                // Nếu không chọn hoặc chọn "Không chọn"
+                row.update({
+                  VehicleID: 0,
+                  VehicleName: '',
+                  TotalCostVehicle: 0
+                });
+                this.setTotalCost(row);
               }
             }
-            cell.getRow().delete();
-            this.resetSTT();
-            this.hasDataChanges = true;
-          }
-        } as any,
-        { title: 'STT', field: 'STT', editor: 'input', hozAlign: 'center', headerHozAlign: 'center', width: 80 },
-        {
-          title: 'Địa điểm',
-          field: 'Location',
-          editor: 'textarea',
-          hozAlign: 'left',
-          headerHozAlign: 'center',
-          width: 200, 
-          headerSort: false,
-          variableHeight: true,
-          formatter: 'textarea'
-        },
-        {
-          title: 'Loại',
-          field: 'TypeBusiness',
-          editor: 'list',
-          headerSort: false,
-          editorParams: {
-            values: this.employeeTypeBussinessList
           },
-          formatter: (cell: any) => {
-
-            const value = parseInt(cell.getValue());
-            const type = this.employeeTypeBussinessList.find((emp: any) => emp.value === value);
-            return type ? type.label : '--Chọn loại--';
+          {
+            title: 'Lý do công tác',
+            field: 'Reason',
+            editor: 'textarea',
+            hozAlign: 'left',
+            headerHozAlign: 'center',
+            width: 500,
+            headerSort: false,
+            variableHeight: true,
+            formatter: 'textarea'
           },
-          cellEdited: (cell: any) => {
-            const row = cell.getRow();
-            // Sử dụng setTimeout để đảm bảo giá trị đã được cập nhật vào row data
-            setTimeout(() => {
-              this.setTotalCost(row);
-            }, 10);
-          },
-          hozAlign: 'left',
-          headerHozAlign: 'center',
-          width: 350
-        },
-        {
-          title: 'Xuất phát trước 7h15',
-          field: 'WorkEarly',
-          hozAlign: 'center',
-          headerHozAlign: 'center',
-          width: 200,
-          headerSort: false,
-          formatter: (cell: any) => {
-            const value = cell.getValue();
-            const checked = value === true || value === 'true' || value === 1 || value === '1';
-            const input = document.createElement('input');
-            input.type = 'checkbox';
-            input.checked = checked;
-
-            // Add event listener to update cell value when checkbox changes
-            input.addEventListener('change', () => {
-              cell.setValue(input.checked); 
-              const row = cell.getRow();
-              this.setTotalCost(row);
-            });
-
-            return input;
-          },
-          // Ensure the cell's value is always a boolean
-          mutator: function (value) {
-            return value === true || value === 'true' || value === 1 || value === '1';
-          }
-        },
-        {
-          title: 'Phụ cấp ăn tối',
-          field: 'OvernightType',
-          hozAlign: 'left',
-          headerHozAlign: 'center',
-          width: 300,
-          editor: 'list',
-          editorParams: {
-            values: this.overNightTypeList
-          },
-          headerSort: false,
-          formatter: (cell: any) => {
-            const value = cell.getValue();
-            const type = this.overNightTypeList.find((ov: any) => ov.value === value);
-            return type ? type.label : value;
-          },
-          cellEdited: (cell: any) => {
-            const row = cell.getRow();
-            // Sử dụng setTimeout để đảm bảo giá trị đã được cập nhật vào row data
-            setTimeout(() => {
-              this.setTotalCost(row);
-            }, 10);
-          }
-        },
-        {
-          title: 'Không chấm công tại VP',
-          field: 'NotChekIn',
-          hozAlign: 'center',
-          headerHozAlign: 'center',
-          width: 180,
-          headerSort: false,
-          formatter: function (cell) {
-            const value = cell.getValue();
-            const checked = value === true || value === 'true' || value === 1 || value === '1';
-            const input = document.createElement('input');
-            input.type = 'checkbox';
-            input.checked = checked;
-
-            input.addEventListener('change', () => {
-              cell.setValue(input.checked);
-            });
-
-            return input;
-          },
-          headerWordWrap: true,
-          // Ensure the cell's value is always a boolean
-          mutator: function (value) {
-            return value === true || value === 'true' || value === 1 || value === '1';
-          }
-        },
-
-        {
-          title: 'Phương tiện',
-          field: 'VehicleID',
-          hozAlign: 'left',
-          headerHozAlign: 'center',
-          width: 200,
-          headerSort: false,
-          editor: 'list',
-          editorParams: {
-            values: this.vehicleList
-          },
-          formatter: (cell: any) => {
-            const value = parseInt(cell.getValue()) || 0;
-            const vehicle = this.vehicleList.find((v: any) => v.value === value);
-            return vehicle ? vehicle.vehicleData?.VehicleName || vehicle.label : '--Chọn phương tiện--';
-          },
-          cellEdited: (cell: any) => {
-            const row = cell.getRow();
-            const vehicleID = parseInt(cell.getValue()) || 0;
-            const vehicle = this.vehicleList.find((v: any) => v.value === vehicleID);
-
-            if (vehicle && vehicle.vehicleData) {
-              const vehicleName = vehicle.vehicleData.VehicleName || '';
-              const vehicleCost = parseFloat(vehicle.vehicleData.Cost) || 0;
-
-              row.update({
-                VehicleID: vehicleID,
-                VehicleName: vehicleName,
-                TotalCostVehicle: vehicleCost
-              });
-
-              // Tính lại tổng chi phí
-              this.setTotalCost(row);
-            } else {
-              // Nếu không chọn hoặc chọn "Không chọn"
-              row.update({
-                VehicleID: 0,
-                VehicleName: '',
-                TotalCostVehicle: 0
-              });
-              this.setTotalCost(row);
+          {
+            title: 'Tổng chi phí phương tiện',
+            field: 'TotalCostVehicle',
+            hozAlign: 'right',
+            headerHozAlign: 'center',
+            width: 200,
+            headerSort: false,
+            editor: false,
+            formatter: (cell: any) => {
+              const value = cell.getValue();
+              if (typeof value === 'number' && !isNaN(value)) {
+                return value.toLocaleString('vi-VN', { style: 'currency', currency: 'VND' });
+              }
+              return '0 ₫';
             }
-          }
-        },
-          { 
-          title: 'Lý do công tác', 
-          field: 'Reason', 
-          editor: 'textarea', 
-          hozAlign: 'left', 
-          headerHozAlign: 'center', 
-          width: 500, 
-          headerSort: false,
-          variableHeight: true,
-          formatter: 'textarea'
-        },
-        {
-          title: 'Tổng chi phí phương tiện',
-          field: 'TotalCostVehicle',
-          hozAlign: 'right',
-          headerHozAlign: 'center',
-          width: 200,
-          headerSort: false,
-          editor: false,
-          formatter: (cell: any) => {
-            const value = cell.getValue();
-            if (typeof value === 'number' && !isNaN(value)) {
-              return value.toLocaleString('vi-VN', { style: 'currency', currency: 'VND' });
+          },
+          {
+            title: 'Tổng chi phí',
+            field: 'TotalCost',
+            hozAlign: 'right',
+            headerHozAlign: 'center',
+            width: 200,
+            headerSort: false,
+            editor: false,
+            formatter: (cell: any) => {
+              const value = cell.getValue();
+              if (typeof value === 'number' && !isNaN(value)) {
+                return value.toLocaleString('vi-VN', { style: 'currency', currency: 'VND' });
+              }
+              return '0 ₫';
             }
-            return '0 ₫';
-          }
-        },
-        {
-          title: 'Tổng chi phí',
-          field: 'TotalCost',
-          hozAlign: 'right',
-          headerHozAlign: 'center',
-          width: 200,
-          headerSort: false,
-          editor: false,
-          formatter: (cell: any) => {
-            const value = cell.getValue();
-            if (typeof value === 'number' && !isNaN(value)) {
-              return value.toLocaleString('vi-VN', { style: 'currency', currency: 'VND' });
-            }
-            return '0 ₫';
-          }
-        },
-        // {
-        //   title: 'Thêm phương tiện',
-        //   field: 'openModal',
-        //   hozAlign: 'center',
-        //   headerHozAlign: 'center',
-        //   headerWordWrap: true,
-        //   headerSort: false,
-        //   width: 60,
-        //   formatter: (cell: any) => {
-        //     return `<div style="display: flex; justify-content: center; align-items: center; height: 100%;">
-        //     <i class="fas fa-plus text-success cursor-pointer" title="Thêm phương tiện"></i></div>`;
-        //   },
+          },
+          // {
+          //   title: 'Thêm phương tiện',
+          //   field: 'openModal',
+          //   hozAlign: 'center',
+          //   headerHozAlign: 'center',
+          //   headerWordWrap: true,
+          //   headerSort: false,
+          //   width: 60,
+          //   formatter: (cell: any) => {
+          //     return `<div style="display: flex; justify-content: center; align-items: center; height: 100%;">
+          //     <i class="fas fa-plus text-success cursor-pointer" title="Thêm phương tiện"></i></div>`;
+          //   },
 
-        //   cellClick: (e: any, cell: any) => {
-        //     const rowData = cell.getRow().getData();
-        //     this.editVehiceDetail(rowData);
-        //   }
-        // },
-        { 
-          title: 'Lý do sửa', 
-          field: 'ReasonHREdit', 
-          editor: 'textarea', 
-          hozAlign: 'left', 
-          headerHozAlign: 'center', 
-          width: 500, 
-          headerSort: false,
-          variableHeight: true,
-          formatter: 'textarea'
-        },
-        { 
-          title: 'Ghi chú', 
-          field: 'Note', 
-          editor: 'textarea', 
-          hozAlign: 'left', 
-          headerHozAlign: 'center', 
-          width: 500, 
-          headerSort: false,
-          variableHeight: true,
-          formatter: 'textarea'
-        },
+          //   cellClick: (e: any, cell: any) => {
+          //     const rowData = cell.getRow().getData();
+          //     this.editVehiceDetail(rowData);
+          //   }
+          // },
+          {
+            title: 'Lý do sửa',
+            field: 'ReasonHREdit',
+            editor: 'textarea',
+            hozAlign: 'left',
+            headerHozAlign: 'center',
+            width: 500,
+            headerSort: false,
+            variableHeight: true,
+            formatter: 'textarea'
+          },
+          {
+            title: 'Ghi chú',
+            field: 'Note',
+            editor: 'textarea',
+            hozAlign: 'left',
+            headerHozAlign: 'center',
+            width: 500,
+            headerSort: false,
+            variableHeight: true,
+            formatter: 'textarea'
+          },
 
-      ]
+        ]
       });
     } catch (error) {
       console.error('Error initializing Tabulator:', error);
@@ -952,7 +952,7 @@ export class EmployeeBussinessDetailComponent implements OnInit, AfterViewInit, 
         const field = cell.getField();
         const row = cell.getRow();
         const rowData = row.getData();
-        
+
         // Nếu là dòng đã tồn tại (ID > 0) và không phải đang edit field ReasonHREdit
         // thì kiểm tra lý do sửa
         if (rowData.ID > 0 && field !== 'ReasonHREdit') {
@@ -962,7 +962,7 @@ export class EmployeeBussinessDetailComponent implements OnInit, AfterViewInit, 
             if (!reasonHREdit || reasonHREdit.trim() === '') {
               const stt = rowData.STT || row.getPosition() + 1;
               this.notification.warning(
-                NOTIFICATION_TITLE.error, 
+                NOTIFICATION_TITLE.error,
                 `Vui lòng nhập Lý do sửa cho dòng [STT: ${stt}]!`
               );
               // Focus vào cell ReasonHREdit
@@ -975,7 +975,7 @@ export class EmployeeBussinessDetailComponent implements OnInit, AfterViewInit, 
             }
           }
         }
-        
+
         this.hasDataChanges = true;
         this.employeeBussinessDetail = this.tabulator!.getData();
       });
@@ -983,7 +983,7 @@ export class EmployeeBussinessDetailComponent implements OnInit, AfterViewInit, 
       this.tabulator.on('dataChanged', () => {
         this.hasDataChanges = true;
         this.employeeBussinessDetail = this.tabulator!.getData();
-        
+
         // Kiểm tra các dòng đã tồn tại (ID > 0) có lý do sửa chưa
         const allData = this.tabulator.getData();
         allData.forEach((rowData: any, index: number) => {
@@ -994,7 +994,7 @@ export class EmployeeBussinessDetailComponent implements OnInit, AfterViewInit, 
               // Chỉ hiển thị warning một lần, không spam
               setTimeout(() => {
                 this.notification.warning(
-                  NOTIFICATION_TITLE.error, 
+                  NOTIFICATION_TITLE.error,
                   `Vui lòng nhập Lý do sửa cho dòng [STT: ${stt}]!`
                 );
               }, 100);
@@ -1186,8 +1186,10 @@ export class EmployeeBussinessDetailComponent implements OnInit, AfterViewInit, 
           TotalMoney: totalMoney,
           Overnight: item.OvernightType > 0,
           DecilineApprove: item.ID > 0 ? undefined : 1, // Chỉ set khi insert mới
-          IsApproved: item.ID > 0 ? false : undefined, // Reset khi update
-          IsApprovedHR: item.ID > 0 ? false : undefined // Reset khi update
+          IsApproved: item.ID > 0 ? false : undefined, // Reset trạng thái duyệt TBP khi update
+          IsApprovedHR: item.ID > 0 ? false : undefined, // Reset trạng thái duyệt HR khi update
+          Status: item.ID > 0 ? 0 : undefined, // Reset Status TBP khi update
+          StatusHR: item.ID > 0 ? 0 : undefined // Reset Status HR khi update
         };
       })
     };
@@ -1225,7 +1227,7 @@ export class EmployeeBussinessDetailComponent implements OnInit, AfterViewInit, 
         if (res?.status === 1 && res?.data?.length > 0) {
           const uploadedFile = res.data[0];
           this.uploadedFileData = uploadedFile;
-          
+
           const fileRecord: any = {
             ID: this.existingFileRecord?.ID || 0,
             EmployeeBussinessID: 0,
@@ -1256,7 +1258,7 @@ export class EmployeeBussinessDetailComponent implements OnInit, AfterViewInit, 
     this.employeeBussinessService.saveEmployeeBussiness(data).subscribe({
       next: (response: any) => {
         const savedIds = response?.data || [];
-        
+
         // Nếu có file mới hoặc file đã tồn tại, lưu file cho từng bản ghi
         if (this.tempFileRecord || this.existingFileRecord) {
           this.saveFilesForRecords(savedIds, data);
@@ -1280,7 +1282,7 @@ export class EmployeeBussinessDetailComponent implements OnInit, AfterViewInit, 
     }
 
     const fileRecord = this.tempFileRecord || this.existingFileRecord;
-    
+
     // Lưu file cho bản ghi đầu tiên (hoặc tất cả nếu cần)
     if (savedIds && savedIds.length > 0) {
       const firstSavedId = savedIds[0]?.ID || savedIds[0] || data[0]?.ID || 0;
@@ -1289,7 +1291,7 @@ export class EmployeeBussinessDetailComponent implements OnInit, AfterViewInit, 
           ...fileRecord,
           EmployeeBussinessID: firstSavedId
         };
-        
+
         this.employeeBussinessService.saveEmployeeBussinessFile(filePayload).subscribe({
           next: () => {
             this.processDeletedFiles();
@@ -1311,14 +1313,14 @@ export class EmployeeBussinessDetailComponent implements OnInit, AfterViewInit, 
     if (this.deletedFiles.length > 0) {
       let completedCount = 0;
       const totalFiles = this.deletedFiles.length;
-      
+
       this.deletedFiles.forEach((deletedFile) => {
         const filePayload = {
           ...deletedFile,
           IsDeleted: true,
           UpdatedBy: this.currentUser?.UserName || 'admin'
         };
-        
+
         this.employeeBussinessService.saveEmployeeBussinessFile(filePayload).subscribe({
           next: () => {
             completedCount++;
@@ -1368,7 +1370,7 @@ export class EmployeeBussinessDetailComponent implements OnInit, AfterViewInit, 
   setTotalCost(row: any) {
     const rowData = row.getData();
 
-    
+
     const typeBussinessID = parseInt(rowData.TypeBusiness) || 0;
 
     // Tìm loại công tác với so sánh chính xác cả number và string

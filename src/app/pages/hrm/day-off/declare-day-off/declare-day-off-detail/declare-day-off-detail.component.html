@@ -1,0 +1,77 @@
+<form [formGroup]="declareDayOffForm" nz-form nzLayout="vertical">
+    <div class="modal-dialog-scrollable">
+
+        <div class="modal-header bg-primary p-2">
+            <h6 class="modal-title text-white m-0">
+                {{ modalTitle }}
+            </h6>
+            <button type="button" class="btn-close" aria-label="Close" (click)="closeModal()"></button>
+        </div>
+
+        <div class="modal-body">
+            <div class="container-fluid">
+                <div class="row g-3">
+                    <!-- Họ và tên -->
+                    <div class="col-12">
+                        <nz-form-item class="pt-1 mb-2">
+                            <nz-form-label class="fs-12 d-flex align-items-center p-0">
+                                Họ và tên <span class="text-danger ps-1">(*)</span>
+                            </nz-form-label>
+                            <nz-form-control [nzErrorTip]="getEmployeeErrorTip()">
+                                <nz-select formControlName="EmployeeID" class="w-100" nzShowSearch nzAllowClear
+                                    nzPlaceHolder="Chọn họ tên nhân viên" [nzFilterOption]="filterEmployeeOption">
+                                    <nz-option *ngFor="let item of employeeList"
+                                        [nzLabel]="item.Code + ' - ' + item.FullName" [nzValue]="item.ID">
+                                    </nz-option>
+                                </nz-select>
+                            </nz-form-control>
+                        </nz-form-item>
+                    </div>
+
+                    <!-- Năm -->
+                    <div class="col-12">
+                        <nz-form-item class="pt-1 mb-2">
+                            <nz-form-label class="fs-12 d-flex align-items-center p-0">
+                                Năm <span class="text-danger ps-1">(*)</span>
+                            </nz-form-label>
+                            <nz-form-control [nzErrorTip]="getYearErrorTip()">
+                                <input nz-input type="number" formControlName="YearOnleave" placeholder="Nhập năm"
+                                    min="2000" max="3000" class="w-100" />
+                            </nz-form-control>
+                        </nz-form-item>
+                    </div>
+
+                    <!-- Tổng số ngày phép -->
+                    <div class="col-12">
+                        <nz-form-item class="pt-1 mb-2">
+                            <nz-form-label class="fs-12 d-flex align-items-center p-0">
+                                Tổng số ngày phép
+                            </nz-form-label>
+                            <nz-form-control>
+                                <input nz-input type="number" formControlName="TotalDayInYear"
+                                    placeholder="Nhập số ngày phép" min="0" max="24" class="w-100"
+                                    (input)="onTotalDayInput($event)" />
+                            </nz-form-control>
+                        </nz-form-item>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="modal-footer br p-1 d-flex align-items-center">
+            <div class="d-flex align-items-center flex-wrap gap-1">
+                <div *ngIf="loading" class="d-flex align-items-center me-2">
+                    <nz-spin nzSimple nzSize="small" class="me-2"></nz-spin>
+                    <span class="fs-12">Đang tải...</span>
+                </div>
+                <button nz-button nzType="default" nzDanger (click)="closeModal()" [disabled]="saving">
+                    Đóng
+                </button>
+                <button nz-button nzType="primary" (click)="save()" [disabled]="saving">
+                    <span *ngIf="saving" class="spinner-border spinner-border-sm me-2"></span>
+                    {{ saving ? "Đang lưu..." : "Lưu" }}
+                </button>
+            </div>
+        </div>
+    </div>
+</form>

@@ -218,6 +218,9 @@ export class DocumentSaleAdminComponent implements OnInit, AfterViewInit {
                 command: () => this.exportExcel()
             },
             {
+                separator: true,
+            },
+            {
                 label: 'Upload File',
                 icon: 'fa-solid fa-upload fa-lg text-info',
                 visible: this.permissionService.hasPermission('N2,N34,N1'),
@@ -258,14 +261,10 @@ export class DocumentSaleAdminComponent implements OnInit, AfterViewInit {
         this.columnDefinitions = [
             {
                 id: 'STT', name: 'STT', field: 'STT', width: 60, sortable: true, filterable: true,
-                filter: {
-                    model: Filters['multipleSelect'],
-                    collection: [],
-                    filterOptions: { autoAdjustDropHeight: true, autoAdjustDropPosition: true } as MultipleSelectOption
-                }
+
             },
             {
-                id: 'NameDocumentType'  , name: 'Loại văn bản', field: 'NameDocumentType', width: 150, sortable: true, filterable: true,
+                id: 'NameDocumentType', name: 'Loại văn bản', field: 'NameDocumentType', width: 150, sortable: true, filterable: true,
                 filter: {
                     model: Filters['multipleSelect'],
                     collection: [],
@@ -402,7 +401,11 @@ export class DocumentSaleAdminComponent implements OnInit, AfterViewInit {
     angularGridReady(angularGrid: AngularGridInstance): void {
         this.angularGrid = angularGrid;
 
-        // Setup grouping by DepartmentName
+        // Map để track index màu của mỗi phòng ban
+        const departmentColorMap = new Map<string, number>();
+        let deptColorIndex = 0;
+
+        // Setup grouping by DepartmentName và NameDocumentType
         if (angularGrid && angularGrid.dataView) {
             angularGrid.dataView.setGrouping([
                 {
@@ -410,7 +413,43 @@ export class DocumentSaleAdminComponent implements OnInit, AfterViewInit {
                     comparer: () => 0,
                     formatter: (g: any) => {
                         const deptName = g.value || 'Văn bản chung';
-                        return `Phòng ban: ${deptName} <span style="margin-left:10px;">(${g.count} VB)</span>`;
+
+                        // Gán màu cho phòng ban nếu chưa có
+                        if (!departmentColorMap.has(deptName)) {
+                            departmentColorMap.set(deptName, deptColorIndex % 10);
+                            deptColorIndex++;
+                        }
+                        const colorIndex = departmentColorMap.get(deptName);
+
+                        return `<span class="group-color-${colorIndex}" data-level="0">Phòng ban: <strong>${deptName}</strong>
+                                <span style="margin-left:10px;">
+                                (${g.count} VB)
+                                </span></span>`;
+                    }
+                },
+                {
+                    getter: 'NameDocumentType',
+                    comparer: () => 0,
+                    formatter: (g: any) => {
+                        const docTypeName = g.value || 'Không phân loại';
+
+                        // Lấy phòng ban từ các rows trong group để lấy màu của phòng ban cha
+                        let deptName = '';
+                        if (g.rows && g.rows.length > 0) {
+                            deptName = g.rows[0].DepartmentName || 'Văn bản chung';
+                        }
+
+                        // Sử dụng CÙNG màu với phòng ban cha
+                        if (!departmentColorMap.has(deptName)) {
+                            departmentColorMap.set(deptName, deptColorIndex % 10);
+                            deptColorIndex++;
+                        }
+                        const colorIndex = departmentColorMap.get(deptName);
+
+                        return `<span class="group-color-${colorIndex}" data-level="1">Loại VB: <strong>${docTypeName}</strong>
+                                <span style="margin-left:10px;">
+                                (${g.count} VB)
+                                </span></span>`;
                     }
                 }
             ]);

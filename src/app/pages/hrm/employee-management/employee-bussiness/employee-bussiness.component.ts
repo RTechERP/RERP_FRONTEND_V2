@@ -39,6 +39,7 @@ import { EmployeeBussinessSummaryComponent } from './employee-bussiness-summary/
 import { DEFAULT_TABLE_CONFIG } from '../../../../tabulator-default.config';
 import { NzDropDownModule } from 'ng-zorro-antd/dropdown';
 import { AuthService } from '../../../../auth/auth.service';
+import { PermissionService } from '../../../../services/permission.service';
 
 @Component({
   selector: 'app-employee-bussiness',
@@ -102,6 +103,7 @@ export class EmployeeBussinessComponent implements OnInit, AfterViewInit, OnChan
     private projectService: ProjectService,
     private modalService: NgbModal,
     private authService: AuthService,
+    private permissionService: PermissionService,
   ) { }
 
   ngOnInit() {
@@ -198,12 +200,12 @@ export class EmployeeBussinessComponent implements OnInit, AfterViewInit, OnChan
       layout: 'fitColumns',
       selectableRows: true,
       paginationMode: 'local',
-    
+
       groupBy: 'DepartmentName',
       groupHeader: function (value, count, data, group) {
         return "<span style='color:black'>Phòng ban: </span>" + value;
       },
-     
+
       columns: [
         {
           title: 'TBP duyệt', field: 'StatusText', hozAlign: 'center', headerHozAlign: 'center', width: 110, headerSort: false,
@@ -252,13 +254,13 @@ export class EmployeeBussinessComponent implements OnInit, AfterViewInit, OnChan
           },
         },
         {
-          title: 'Mã nhân viên', field: 'Code', hozAlign: 'left', headerHozAlign: 'center', width: 90, headerSort: false, formatter:'textarea'
+          title: 'Mã nhân viên', field: 'Code', hozAlign: 'left', headerHozAlign: 'center', width: 90, headerSort: false, formatter: 'textarea'
         },
         {
-          title: 'Tên nhân viên', field: 'FullName', hozAlign: 'left', headerHozAlign: 'center', width: 140, headerSort: false, bottomCalc:'count', formatter:'textarea'
+          title: 'Tên nhân viên', field: 'FullName', hozAlign: 'left', headerHozAlign: 'center', width: 140, headerSort: false, bottomCalc: 'count', formatter: 'textarea'
         },
         {
-          title: 'Người duyệt', field: 'ApFullName', hozAlign: 'left', headerHozAlign: 'center', width: 140, headerSort: false, formatter:'textarea'
+          title: 'Người duyệt', field: 'ApFullName', hozAlign: 'left', headerHozAlign: 'center', width: 140, headerSort: false, formatter: 'textarea'
         },
         {
           title: 'Bổ sung', field: 'IsProblem', hozAlign: 'center', headerHozAlign: 'center', width: 90, headerSort: false,
@@ -278,7 +280,7 @@ export class EmployeeBussinessComponent implements OnInit, AfterViewInit, OnChan
         {
           title: 'Nơi công tác', field: 'Location', hozAlign: 'left', headerHozAlign: 'center', width: 300, headerSort: false,
         },
-           {
+        {
           title: 'Lý do công tác', field: 'Reason', hozAlign: 'left', headerHozAlign: 'center', width: 300, headerSort: false,
         },
         {
@@ -344,17 +346,17 @@ export class EmployeeBussinessComponent implements OnInit, AfterViewInit, OnChan
           }
         },
         {
-          title: 'Ghi chú', field: 'Note', hozAlign: 'left', headerHozAlign: 'center', width: 250, headerSort: false,formatter:'textarea'
+          title: 'Ghi chú', field: 'Note', hozAlign: 'left', headerHozAlign: 'center', width: 250, headerSort: false, formatter: 'textarea'
         },
         {
-          title: 'Lý do sửa', field: 'ReasonHREdit', hozAlign: 'left', headerHozAlign: 'center', width: 500, headerSort: false,formatter:'textarea'
+          title: 'Lý do sửa', field: 'ReasonHREdit', hozAlign: 'left', headerHozAlign: 'center', width: 500, headerSort: false, formatter: 'textarea'
         },
         {
-          title: 'Lý do không đồng ý duyệt', field: 'ReasonDeciline', hozAlign: 'left', headerHozAlign: 'center', width: 500, headerSort: false,formatter:'textarea'
+          title: 'Lý do không đồng ý duyệt', field: 'ReasonDeciline', hozAlign: 'left', headerHozAlign: 'center', width: 500, headerSort: false, formatter: 'textarea'
         },
 
       ],
-     
+
     });
   }
 
@@ -387,17 +389,18 @@ export class EmployeeBussinessComponent implements OnInit, AfterViewInit, OnChan
   }
 
   openEditModal() {
-    
+
     const selectedRows = this.tabulator.getSelectedRows();
     if (selectedRows.length === 0) {
       this.notification.warning(NOTIFICATION_TITLE.warning, 'Vui lòng chọn đăng ký công tác cần chỉnh sửa');
       return;
     }
 
-    if (
-      (selectedRows.length > 0 && selectedRows[0].getData()['IsApprovedHR'] === true && selectedRows[0].getData()['IsApproved'] === true)
-    ) {
-      this.notification.warning(NOTIFICATION_TITLE.warning, 'Đăng ký đã được duyệt. Vui lòng hủy duyệt trước khi sửa!');
+    const selectedData = selectedRows[0].getData();
+
+    // Kiểm tra trạng thái duyệt - cho phép người có quyền sửa bất kể đã duyệt
+    if (this.isApproved(selectedData) && !this.checkCanEditApproved()) {
+      this.notification.warning(NOTIFICATION_TITLE.warning, 'Đăng ký đã được duyệt. Bạn không có quyền sửa!');
       return;
     }
 
@@ -542,7 +545,7 @@ export class EmployeeBussinessComponent implements OnInit, AfterViewInit, OnChan
   approvedTBP(): void {
     const selectedRows = this.tabulator.getSelectedRows();
     const rowCount = selectedRows.length;
-    
+
     if (rowCount === 0) {
       this.notification.error(
         NOTIFICATION_TITLE.error,
@@ -550,17 +553,17 @@ export class EmployeeBussinessComponent implements OnInit, AfterViewInit, OnChan
       );
       return;
     }
-    
+
     const selectedData = selectedRows.map(row => row.getData());
-    
+
     // Kiểm tra nghiệp vụ trước khi hiển thị confirm
     for (const item of selectedData) {
       const departmentId = item['DepartmentID'] || 0;
       const employeeId = item['EmployeeID'] || 0;
       const employeeName = item['FullName'] || '';
-      
+
       if (employeeId === 0) continue;
-      
+
       // Kiểm tra quyền nếu không phải admin
       if (!this.isAdmin) {
         if (departmentId !== this.currentDepartmentId && this.currentDepartmentId !== 1) {
@@ -571,7 +574,7 @@ export class EmployeeBussinessComponent implements OnInit, AfterViewInit, OnChan
           return;
         }
       }
-      
+
       // Không được duyệt cho chính mình
       if (employeeId === this.currentEmployeeId) {
         this.notification.warning(
@@ -581,7 +584,7 @@ export class EmployeeBussinessComponent implements OnInit, AfterViewInit, OnChan
         return;
       }
     }
-    
+
     this.modal.confirm({
       nzTitle: 'Xác nhận duyệt TBP',
       nzContent: `Bạn có chắc muốn duyệt danh sách nhân viên đã chọn không?`,
@@ -599,9 +602,9 @@ export class EmployeeBussinessComponent implements OnInit, AfterViewInit, OnChan
     selectedData.forEach(item => {
       const employeeId = item['EmployeeID'] || 0;
       const id = item['ID'] || 0;
-      
+
       if (employeeId === 0 || id === 0) return;
-      
+
       // Thêm tất cả ID vào list (theo logic C#: listID.Add cho tất cả khi duyệt TBP)
       listID.push(id);
     });
@@ -668,7 +671,7 @@ export class EmployeeBussinessComponent implements OnInit, AfterViewInit, OnChan
     selectedData.forEach(item => {
       const id = item['ID'] || 0;
       if (id === 0) return;
-      
+
       // Chỉ thêm ID nếu HR chưa duyệt (theo logic C#: if (!IsApprovedHR))
       if (!item['IsApprovedHR']) {
         listID.push(id);
@@ -712,7 +715,7 @@ export class EmployeeBussinessComponent implements OnInit, AfterViewInit, OnChan
   approvedHR(): void {
     const selectedRows = this.tabulator.getSelectedRows();
     const rowCount = selectedRows.length;
-    
+
     if (rowCount === 0) {
       this.notification.error(
         NOTIFICATION_TITLE.error,
@@ -720,17 +723,17 @@ export class EmployeeBussinessComponent implements OnInit, AfterViewInit, OnChan
       );
       return;
     }
-    
+
     const selectedData = selectedRows.map(row => row.getData());
-    
+
     // Kiểm tra nghiệp vụ trước khi hiển thị confirm
     for (const item of selectedData) {
       const employeeId = item['EmployeeID'] || 0;
       const employeeName = item['FullName'] || '';
       const isApprovedTP = item['IsApproved'] || false;
-      
+
       if (employeeId === 0) continue;
-      
+
       // Kiểm tra TBP đã duyệt chưa
       if (!isApprovedTP) {
         this.notification.warning(
@@ -740,7 +743,7 @@ export class EmployeeBussinessComponent implements OnInit, AfterViewInit, OnChan
         return;
       }
     }
-    
+
     this.modal.confirm({
       nzTitle: 'Xác nhận duyệt HR',
       nzContent: `Bạn có chắc muốn duyệt danh sách nhân viên đã chọn không?`,
@@ -753,7 +756,7 @@ export class EmployeeBussinessComponent implements OnInit, AfterViewInit, OnChan
 
   private confirmApproveHR(selectedData: any[], isApproved: boolean = true): void {
     const approved = isApproved ? 'duyệt' : 'hủy duyệt';
-    
+
     // Lọc và chuẩn bị dữ liệu hợp lệ - chỉ lấy ID
     const listID: number[] = [];
     const itemsToUpdate: any[] = [];
@@ -763,9 +766,9 @@ export class EmployeeBussinessComponent implements OnInit, AfterViewInit, OnChan
       const item = selectedData[i];
       const id = item['ID'] || 0;
       const isApprovedTP = item['IsApproved'] || false;
-      
+
       if (id === 0) continue;
-      
+
       if (isApproved) {
         // HR duyệt: chỉ thêm ID nếu TBP đã duyệt
         if (isApprovedTP) {
@@ -834,15 +837,15 @@ export class EmployeeBussinessComponent implements OnInit, AfterViewInit, OnChan
       return;
     }
     const selectedData = selectedRows.map(row => row.getData());
-    
+
     // Kiểm tra nghiệp vụ trước khi hiển thị confirm
     for (const item of selectedData) {
       const employeeId = item['EmployeeID'] || 0;
       const employeeName = item['FullName'] || '';
       const isApprovedTP = item['IsApproved'] || false;
-      
+
       if (employeeId === 0) continue;
-      
+
       // Kiểm tra TBP đã duyệt chưa
       if (!isApprovedTP) {
         this.notification.warning(
@@ -870,7 +873,7 @@ export class EmployeeBussinessComponent implements OnInit, AfterViewInit, OnChan
     selectedData.forEach(item => {
       const id = item['ID'] || 0;
       if (id === 0) return;
-      
+
       // Thêm tất cả ID (theo logic C#: listID.Add cho tất cả khi HR hủy duyệt)
       itemsToUpdate.push({
         ...item,
@@ -1016,7 +1019,7 @@ export class EmployeeBussinessComponent implements OnInit, AfterViewInit, OnChan
   private formatApprovalBadge(status: number): string {
     // 0 hoặc null: Chưa duyệt, 1: Đã duyệt, 2: Không duyệt
     const numStatus = status === null || status === undefined ? 0 : Number(status);
-    
+
     switch (numStatus) {
       case 0:
         return '<span class="badge bg-warning text-dark" style="display: inline-block; text-align: center;">Chưa duyệt</span>';
@@ -1027,6 +1030,38 @@ export class EmployeeBussinessComponent implements OnInit, AfterViewInit, OnChan
       default:
         return '<span class="badge bg-secondary" style="display: inline-block; text-align: center;">Không xác định</span>';
     }
+  }
+
+  // Helper method để kiểm tra bản ghi đã được duyệt chưa
+  private isApproved(item: any): boolean {
+    // Kiểm tra trạng thái duyệt TBP
+    const isTBPApproved =
+      item.IsApproved === true ||
+      item.IsApproved === 1 ||
+      item.IsApproved === '1';
+
+    // Kiểm tra trạng thái duyệt HR
+    const isHRApproved =
+      item.IsApprovedHR === true ||
+      item.IsApprovedHR === 1 ||
+      item.IsApprovedHR === '1';
+
+    // Nếu TBP hoặc HR đã duyệt thì coi như đã duyệt
+    return isTBPApproved || isHRApproved;
+  }
+
+  // Helper method để kiểm tra user có quyền chỉnh sửa nhân viên (N1, N2 hoặc IsAdmin)
+  private canEditEmployee(): boolean {
+    const hasN1Permission = this.permissionService.hasPermission('N1');
+    const hasN2Permission = this.permissionService.hasPermission('N2');
+    const isAdminCheck = this.currentUser?.IsAdmin === true || this.currentUser?.ISADMIN === true || this.isAdmin;
+
+    return hasN1Permission || hasN2Permission || isAdminCheck;
+  }
+
+  // Kiểm tra user có quyền sửa/xóa bản ghi đã duyệt (N1, N2 hoặc IsAdmin)
+  checkCanEditApproved(): boolean {
+    return this.canEditEmployee();
   }
 
 }

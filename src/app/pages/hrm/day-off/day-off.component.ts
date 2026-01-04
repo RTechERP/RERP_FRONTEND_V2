@@ -158,7 +158,7 @@ export class DayOffComponent implements OnInit, AfterViewInit {
         : this.currentUser;
 
       this.userPermissions = this.currentUser?.Permissions || this.currentEmployee?.Permissions || '';
-      this.canEditOthers = this.hasPermissionN1OrN2(this.userPermissions);
+      this.canEditOthers = this.hasPermissionN1OrN2(this.userPermissions) || this.checkIsAdmin();
     });
   }
 
@@ -357,6 +357,19 @@ export class DayOffComponent implements OnInit, AfterViewInit {
     if (!permissions) return false;
     const permissionList = permissions.split(',').map(p => p.trim());
     return permissionList.includes('N1') || permissionList.includes('N2');
+  }
+
+  // Kiểm tra user có quyền sửa bản ghi đã duyệt (N1, N2 hoặc IsAdmin)
+  checkCanEditApproved(): boolean {
+    const hasN1Permission = this.permissionService.hasPermission('N1');
+    const hasN2Permission = this.permissionService.hasPermission('N2');
+    const isAdmin = this.checkIsAdmin();
+    return hasN1Permission || hasN2Permission || isAdmin;
+  }
+
+  // Kiểm tra user có phải là Admin không
+  checkIsAdmin(): boolean {
+    return this.currentUser?.IsAdmin === true || this.currentUser?.ISADMIN === true;
   }
 
   isEditingForOthers(): boolean {
@@ -659,14 +672,16 @@ export class DayOffComponent implements OnInit, AfterViewInit {
       return;
     }
 
-    if (
-      (selectedRows.length > 0 && selectedRows[0].getData()['IsApprovedTP'] === true && selectedRows[0].getData()['IsApprovedHR'] === true)
-    ) {
-      this.notification.warning(NOTIFICATION_TITLE.warning, 'Đăng ký nghỉ đã được duyệt. Vui lòng hủy duyệt trước khi sửa!');
+    const selectedData = selectedRows[0].getData();
+    const isApproved = selectedData['IsApprovedTP'] === true && selectedData['IsApprovedHR'] === true;
+
+    // Nếu đã duyệt và người dùng không có quyền sửa, thông báo lỗi
+    if (isApproved && !this.checkCanEditApproved()) {
+      this.notification.warning(NOTIFICATION_TITLE.warning, 'Đăng ký nghỉ đã được duyệt. Bạn không có quyền sửa!');
       return;
     }
 
-    this.selectedDayOff = selectedRows[0].getData();
+    this.selectedDayOff = selectedData;
     this.dayOffForm.patchValue({
       ID: this.selectedDayOff.ID,
       EmployeeID: this.selectedDayOff.EmployeeID,
@@ -717,10 +732,12 @@ export class DayOffComponent implements OnInit, AfterViewInit {
       return;
     }
 
-    if (
-      (selectedRows.length > 0 && selectedRows[0].getData()['IsApprovedTP'] === true && selectedRows[0].getData()['IsApprovedHR'] === true)
-    ) {
-      this.notification.warning(NOTIFICATION_TITLE.warning, 'Đăng ký nghỉ đã được duyệt. Vui lòng hủy duyệt trước khi xóa!');
+    const selectedData = selectedRows[0].getData();
+    const isApproved = selectedData['IsApprovedTP'] === true && selectedData['IsApprovedHR'] === true;
+
+    // Nếu đã duyệt và người dùng không có quyền xóa, thông báo lỗi
+    if (isApproved && !this.checkCanEditApproved()) {
+      this.notification.warning(NOTIFICATION_TITLE.warning, 'Đăng ký nghỉ đã được duyệt. Bạn không có quyền xóa!');
       return;
     }
 

@@ -50,8 +50,7 @@ import { DEFAULT_TABLE_CONFIG } from '../../../../../tabulator-default.config';
   styleUrl: './employee-bussiness-summary.component.css',
 })
 export class EmployeeBussinessSummaryComponent
-  implements OnInit, AfterViewInit, OnDestroy
-{
+  implements OnInit, AfterViewInit, OnDestroy {
   @ViewChild('tb_work', { static: false }) tbWorkContainer!: ElementRef;
   @ViewChild('tb_early', { static: false }) tbEarlyContainer!: ElementRef;
   @ViewChild('tb_vehicle', { static: false }) tbVehicleContainer!: ElementRef;
@@ -80,7 +79,7 @@ export class EmployeeBussinessSummaryComponent
     private departmentService: DepartmentServiceService,
     private vehicleRepairService: VehicleRepairService,
     private projectService: ProjectService
-  ) {}
+  ) { }
 
   ngOnInit(): void {
     this.loadDepartments();
@@ -165,12 +164,12 @@ export class EmployeeBussinessSummaryComponent
 
     this.bussinessService.getWorkManagement(params).subscribe({
       next: (res: any) => {
-    
+
 
         if (res?.status === 1) {
           // Check if data is directly in res.data or nested
           const responseData = res.data;
-      
+
 
           this.workData = responseData?.workData || [];
           this.earlyData = responseData?.earlyData || [];
@@ -190,7 +189,7 @@ export class EmployeeBussinessSummaryComponent
             );
           }
         } else {
-        
+
           this.notification.warning(
             NOTIFICATION_TITLE.warning,
             res?.message || 'Không có dữ liệu'
@@ -198,12 +197,12 @@ export class EmployeeBussinessSummaryComponent
         }
         this.isLoading = false;
       },
-      error: (err:any) => {
-      
+      error: (err: any) => {
+
         this.isLoading = false;
         this.notification.error(
-          NOTIFICATION_TITLE.error,err.error.message||
-          'Không thể tải dữ liệu báo cáo công tác'
+          NOTIFICATION_TITLE.error, err.error.message ||
+        'Không thể tải dữ liệu báo cáo công tác'
         );
       },
     });
@@ -235,9 +234,9 @@ export class EmployeeBussinessSummaryComponent
         layout: 'fitDataStretch',
         height: '80vh',
         placeholder: 'Không có dữ liệu',
-        groupBy:"DepartmentName",
-    
-      
+        groupBy: "DepartmentName",
+
+
         groupHeader: (value, count, data, group) => {
           return `<span>Phòng ban: ${value} (${count})</span>`;
         },
@@ -245,7 +244,7 @@ export class EmployeeBussinessSummaryComponent
         locale: 'vi',
         columns: this.buildWorkColumns(),
       });
-      
+
     } else {
 
     }
@@ -528,7 +527,7 @@ export class EmployeeBussinessSummaryComponent
         headerHozAlign: 'center',
         formatter: 'textarea',
       },
-    
+
       {
         title: 'Ngày',
         field: 'DayBussiness',
@@ -575,7 +574,7 @@ export class EmployeeBussinessSummaryComponent
         hozAlign: 'center',
         formatter: 'tickCross',
       },
-     
+
     ];
   }
 
@@ -709,16 +708,35 @@ export class EmployeeBussinessSummaryComponent
     const year = this.selectedMonthYear?.getFullYear() || DateTime.now().year;
     const monthStr = String(month).padStart(2, '0');
 
+    // Font settings (tham khảo từ employee-timekeeping-management)
+    const headerFont: Partial<ExcelJS.Font> = { name: 'Times New Roman', size: 12, bold: true };
+    const dataFont: Partial<ExcelJS.Font> = { name: 'Tahoma', size: 8.5 };
+    const groupFont: Partial<ExcelJS.Font> = { name: 'Tahoma', size: 8.5, bold: true };
+
+    // Header fill màu xám nhạt
+    const headerFill: ExcelJS.Fill = {
+      type: 'pattern',
+      pattern: 'solid',
+      fgColor: { argb: 'FFE0E0E0' },
+    };
+
+    // Group fill màu xanh nhạt
+    const groupFill: ExcelJS.Fill = {
+      type: 'pattern',
+      pattern: 'solid',
+      fgColor: { argb: 'FFD9E1F2' },
+    };
+
     const workbook = new ExcelJS.Workbook();
 
     // Sheet 1: Chấm công
-    this.createWorkSheet(workbook, this.workData, 'Chấm công');
+    this.createWorkSheet(workbook, this.workData, 'Chấm công', month, year, headerFont, dataFont, groupFont, headerFill, groupFill);
 
     // Sheet 2: Đi làm sớm
-    this.createEarlySheet(workbook, this.earlyData, 'Đi làm sớm');
+    this.createEarlySheet(workbook, this.earlyData, 'Đi làm sớm', headerFont, dataFont, groupFont, headerFill, groupFill);
 
     // Sheet 3: Tiền xe
-    this.createVehicleSheet(workbook, this.vehicleData, 'Tiền xe đi công tác');
+    this.createVehicleSheet(workbook, this.vehicleData, 'Tiền xe đi công tác', headerFont, dataFont, groupFont, headerFill, groupFill);
 
     workbook.xlsx.writeBuffer().then((buffer) => {
       const blob = new Blob([buffer], {
@@ -732,138 +750,312 @@ export class EmployeeBussinessSummaryComponent
     });
   }
 
+  private groupByDepartment(data: any[]): { [key: string]: any[] } {
+    return data.reduce((acc: any, item: any) => {
+      const dept = item.DepartmentName || 'Không xác định';
+      if (!acc[dept]) acc[dept] = [];
+      acc[dept].push(item);
+      return acc;
+    }, {});
+  }
+
   private createWorkSheet(
     workbook: ExcelJS.Workbook,
     data: any[],
-    sheetName: string
+    sheetName: string,
+    month: number,
+    year: number,
+    headerFont: Partial<ExcelJS.Font>,
+    dataFont: Partial<ExcelJS.Font>,
+    groupFont: Partial<ExcelJS.Font>,
+    headerFill: ExcelJS.Fill,
+    groupFill: ExcelJS.Fill
   ): void {
     const worksheet = workbook.addWorksheet(sheetName);
 
-    worksheet.columns = [
-      { header: 'STT', key: 'STT', width: 10 },
-      { header: 'Mã nhân viên', key: 'Code', width: 15 },
-      { header: 'Tên nhân viên', key: 'FullName', width: 25 },
-      { header: 'Chức vụ', key: 'Name', width: 30 },
-      { header: 'Ngày', key: 'DayBussiness', width: 15 },
-      { header: 'Công tác ngày', key: 'countCTN', width: 15 },
-      { header: 'Công tác đêm', key: 'countCTD', width: 15 },
-      { header: 'Công tác gần', key: 'countCTG', width: 15 },
-      { header: 'Công tác xa', key: 'countCTX', width: 15 },
-      { header: 'Công tác nước ngoài', key: 'countCTNN', width: 18 },
-      { header: 'Công tác', key: 'countCT', width: 15 },
-      { header: 'Ghi chú', key: 'Note', width: 30 },
+    // Tính số ngày trong tháng
+    const daysInMonth = new Date(year, month, 0).getDate();
+    const firstDayOfMonth = new Date(year, month - 1, 1).getDay();
+    const dayNames = ['CN', 'T2', 'T3', 'T4', 'T5', 'T6', 'T7'];
+
+    // Helper lấy tên thứ
+    const getDayName = (day: number): string => {
+      const dayOfWeek = (firstDayOfMonth + day - 1) % 7;
+      return dayNames[dayOfWeek];
+    };
+
+    // Cấu hình cột cơ bản
+    const baseColumns = [
+      { key: 'STT', width: 6 },
+      { key: 'Code', width: 14 },
+      { key: 'FullName', width: 22 },
+      { key: 'Name', width: 22 },
     ];
 
-    data.forEach((item, index) => {
-      worksheet.addRow({
-        STT: item.STT || index + 1,
-        Code: item.Code || '',
-        FullName: item.FullName || '',
-        Name: item.Name || '',
-        DayBussiness: item.DayBussiness
-          ? DateTime.fromISO(item.DayBussiness).toFormat('dd/MM/yyyy')
-          : '',
-        countCTN: item.countCTN || 0,
-        countCTD: item.countCTD || 0,
-        countCTG: item.countCTG || 0,
-        countCTX: item.countCTX || 0,
-        countCTNN: item.countCTNN || 0,
-        countCT: item.countCT || 0,
-        Note: item.Note || '',
-      });
-    });
+    // Thêm các cột ngày
+    for (let i = 1; i <= daysInMonth; i++) {
+      baseColumns.push({ key: `D${i}`, width: 10 });
+    }
 
-    // Style header
-    worksheet.getRow(1).font = { bold: true };
-    worksheet.getRow(1).fill = {
-      type: 'pattern',
-      pattern: 'solid',
-      fgColor: { argb: 'FFD9D9D9' },
-    };
+    // Thêm các cột tổng
+    baseColumns.push(
+      { key: 'countCTN', width: 12 },
+      { key: 'countCTD', width: 12 },
+      { key: 'countCTG', width: 12 },
+      { key: 'countCTX', width: 12 },
+      { key: 'countCTNN', width: 15 },
+      { key: 'countCT', width: 12 },
+      { key: 'Note', width: 20 }
+    );
+
+    worksheet.columns = baseColumns as any;
+
+    // Tiêu đề chính (dòng 1)
+    const titleRow = worksheet.addRow([`BÁO CÁO CHẤM CÔNG THÁNG ${month}/${year}`]);
+    titleRow.font = { name: 'Times New Roman', size: 14, bold: true };
+    titleRow.alignment = { horizontal: 'center', vertical: 'middle' };
+    titleRow.getCell(1).fill = headerFill;
+    worksheet.mergeCells(1, 1, 1, baseColumns.length);
+    worksheet.getRow(1).height = 35;
+
+    // Dòng 2: Thứ trong tuần (với header cột trái và cột tổng)
+    const dayOfWeekValues: any[] = ['STT', 'Mã NV', 'Tên nhân viên', 'Chức vụ'];
+    for (let i = 1; i <= daysInMonth; i++) {
+      dayOfWeekValues.push(getDayName(i));
+    }
+    dayOfWeekValues.push('CT ngày', 'CT đêm', 'CT gần', 'CT xa', 'CT NN', 'Tổng CT', 'Ghi chú');
+    const dayOfWeekRow = worksheet.addRow(dayOfWeekValues);
+    dayOfWeekRow.font = headerFont;
+    dayOfWeekRow.alignment = { horizontal: 'center', vertical: 'middle' };
+    for (let c = 1; c <= baseColumns.length; c++) {
+      dayOfWeekRow.getCell(c).fill = headerFill;
+    }
+
+    // Tô màu vàng cho T7/CN
+    for (let i = 1; i <= daysInMonth; i++) {
+      const dayOfWeek = (firstDayOfMonth + i - 1) % 7;
+      if (dayOfWeek === 0 || dayOfWeek === 6) {
+        dayOfWeekRow.getCell(4 + i).fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFFCE699' } };
+      }
+    }
+
+    // Dòng 3: Header số ngày
+    const headerValues = ['', '', '', ''];
+    for (let i = 1; i <= daysInMonth; i++) {
+      headerValues.push(String(i));
+    }
+    headerValues.push('', '', '', '', '', '', '');
+    const headerRow = worksheet.addRow(headerValues);
+    headerRow.font = headerFont;
+    headerRow.alignment = { horizontal: 'center', vertical: 'middle' };
+    for (let c = 1; c <= baseColumns.length; c++) {
+      headerRow.getCell(c).fill = headerFill;
+    }
+    headerRow.height = 25;
+
+    // Tô màu vàng cho T7/CN ở dòng header
+    for (let i = 1; i <= daysInMonth; i++) {
+      const dayOfWeek = (firstDayOfMonth + i - 1) % 7;
+      if (dayOfWeek === 0 || dayOfWeek === 6) {
+        headerRow.getCell(4 + i).fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFFCE699' } };
+      }
+    }
+
+    // Merge các ô STT, Mã NV, Tên, Chức vụ từ hàng 2 đến 3
+    for (let i = 1; i <= 4; i++) {
+      worksheet.mergeCells(2, i, 3, i);
+    }
+    // Merge các cột tổng từ hàng 2 đến 3
+    for (let i = 0; i < 7; i++) {
+      worksheet.mergeCells(2, 5 + daysInMonth + i, 3, 5 + daysInMonth + i);
+    }
+
+    // Ghi dữ liệu theo phòng ban
+    const grouped = this.groupByDepartment(data);
+    for (const deptName of Object.keys(grouped)) {
+      // Dòng group (phòng ban)
+      const groupRow = worksheet.addRow([`Phòng ban: ${deptName}`]);
+      groupRow.font = groupFont;
+      groupRow.fill = groupFill;
+      worksheet.mergeCells(groupRow.number, 1, groupRow.number, baseColumns.length);
+
+      // Dữ liệu nhân viên trong phòng ban
+      for (const item of grouped[deptName]) {
+        const rowData: any[] = [
+          item.STT || '',
+          item.Code || '',
+          item.FullName || '',
+          item.Name || '',
+        ];
+        for (let i = 1; i <= daysInMonth; i++) {
+          rowData.push(item[`D${i}`] || '');
+        }
+        rowData.push(
+          item.countCTN || 0,
+          item.countCTD || 0,
+          item.countCTG || 0,
+          item.countCTX || 0,
+          item.countCTNN || 0,
+          item.countCT || 0,
+          item.Note || ''
+        );
+
+        const dataRow = worksheet.addRow(rowData);
+        dataRow.font = dataFont;
+        // Căn giữa các cột ngày và số
+        for (let c = 5; c <= baseColumns.length - 1; c++) {
+          dataRow.getCell(c).alignment = { horizontal: 'center', vertical: 'middle' };
+        }
+      }
+    }
   }
 
   private createEarlySheet(
     workbook: ExcelJS.Workbook,
     data: any[],
-    sheetName: string
+    sheetName: string,
+    headerFont: Partial<ExcelJS.Font>,
+    dataFont: Partial<ExcelJS.Font>,
+    groupFont: Partial<ExcelJS.Font>,
+    headerFill: ExcelJS.Fill,
+    groupFill: ExcelJS.Fill
   ): void {
     const worksheet = workbook.addWorksheet(sheetName);
 
-    worksheet.columns = [
-      { header: 'STT', key: 'STT', width: 10 },
-      { header: 'Mã NV', key: 'Code', width: 15 },
-      { header: 'Tên nhân viên', key: 'FullName', width: 25 },
-      { header: 'Phòng ban', key: 'DepartmentName', width: 20 },
-      { header: 'Ngày', key: 'DayBussiness', width: 15 },
-      { header: 'Phụ cấp đi làm sớm', key: 'CostWorkEarly', width: 20 },
-      { header: 'Xuất phát sớm', key: 'IsEarly', width: 20 },
-      { header: 'Ghi chú', key: 'Note', width: 30 },
+    const columns = [
+      { key: 'STT', width: 6 },
+      { key: 'Code', width: 14 },
+      { key: 'FullName', width: 22 },
+      { key: 'DayBussiness', width: 15 },
+      { key: 'Location', width: 40 },
+      { key: 'CostWorkEarly', width: 18 },
+      { key: 'IsEarly', width: 12 },
+      { key: 'Note', width: 25 },
     ];
 
-    data.forEach((item, index) => {
-      worksheet.addRow({
-        STT: index + 1,
-        Code: item.Code,
-        FullName: item.FullName,
-        DepartmentName: item.DepartmentName,
-        DayBussiness: item.DayBussiness
-          ? DateTime.fromISO(item.DayBussiness).toFormat('dd/MM/yyyy')
-          : '',
-        CostWorkEarly: item.CostWorkEarly,
-        IsEarly: item.IsEarly ? '✓' : 'x',
-        Note: item.Note,
-      });
-    });
+    worksheet.columns = columns as any;
 
-    worksheet.getRow(1).font = { bold: true };
-    worksheet.getRow(1).fill = {
-      type: 'pattern',
-      pattern: 'solid',
-      fgColor: { argb: 'FFD9D9D9' },
-    };
+    // Tiêu đề chính
+    const titleRow = worksheet.addRow(['BÁO CÁO PHỤ CẤP ĐI LÀM SỚM']);
+    titleRow.font = { name: 'Times New Roman', size: 14, bold: true };
+    titleRow.alignment = { horizontal: 'center', vertical: 'middle' };
+    titleRow.getCell(1).fill = headerFill;
+    worksheet.mergeCells(1, 1, 1, columns.length);
+    worksheet.getRow(1).height = 35;
+
+    // Header
+    const headerRow = worksheet.addRow(['STT', 'Mã NV', 'Tên nhân viên', 'Ngày', 'Địa điểm', 'Số tiền', 'Xuất phát sớm', 'Ghi chú']);
+    headerRow.font = headerFont;
+    headerRow.alignment = { horizontal: 'center', vertical: 'middle' };
+    for (let c = 1; c <= columns.length; c++) {
+      headerRow.getCell(c).fill = headerFill;
+    }
+    headerRow.height = 25;
+
+    // Ghi dữ liệu theo phòng ban
+    const grouped = this.groupByDepartment(data);
+    for (const deptName of Object.keys(grouped)) {
+      // Dòng group (phòng ban)
+      const groupRow = worksheet.addRow([`Phòng ban: ${deptName}`]);
+      groupRow.font = groupFont;
+      groupRow.fill = groupFill;
+      worksheet.mergeCells(groupRow.number, 1, groupRow.number, columns.length);
+
+      // Dữ liệu
+      grouped[deptName].forEach((item: any, index: number) => {
+        const dataRow = worksheet.addRow([
+          index + 1,
+          item.Code || '',
+          item.FullName || '',
+          item.DayBussiness ? DateTime.fromISO(item.DayBussiness).toFormat('dd/MM/yyyy') : '',
+          item.Location || '',
+          item.CostWorkEarly || 0,
+          item.IsEarly ? '✓' : '',
+          item.Note || '',
+        ]);
+        dataRow.font = dataFont;
+        dataRow.getCell(1).alignment = { horizontal: 'center' };
+        dataRow.getCell(4).alignment = { horizontal: 'center' };
+        dataRow.getCell(6).alignment = { horizontal: 'right' };
+        dataRow.getCell(7).alignment = { horizontal: 'center' };
+      });
+    }
   }
 
   private createVehicleSheet(
     workbook: ExcelJS.Workbook,
     data: any[],
-    sheetName: string
+    sheetName: string,
+    headerFont: Partial<ExcelJS.Font>,
+    dataFont: Partial<ExcelJS.Font>,
+    groupFont: Partial<ExcelJS.Font>,
+    headerFill: ExcelJS.Fill,
+    groupFill: ExcelJS.Fill
   ): void {
     const worksheet = workbook.addWorksheet(sheetName);
 
-    worksheet.columns = [
-      { header: 'STT', key: 'STT', width: 10 },
-      { header: 'Mã NV', key: 'Code', width: 15 },
-      { header: 'Tên nhân viên', key: 'FullName', width: 25 },
-      { header: 'Phòng ban', key: 'DepartmentName', width: 20 },
-      { header: 'Ngày', key: 'DayBussiness', width: 15 },
-      { header: 'Phương tiện', key: 'VehicleName', width: 20 },
-      { header: 'Phụ cấp phương tiện', key: 'Cost', width: 20 },
-      { header: 'Đặt xe', key: 'IsVehicleBooking', width: 20 },
-      { header: 'Ghi chú', key: 'Note', width: 30 },
+    const columns = [
+      { key: 'STT', width: 6 },
+      { key: 'Code', width: 14 },
+      { key: 'FullName', width: 22 },
+      { key: 'DayBussiness', width: 15 },
+      { key: 'TypeName', width: 25 },
+      { key: 'Location', width: 35 },
+      { key: 'VehicleName', width: 15 },
+      { key: 'Cost', width: 15 },
+      { key: 'IsVehicleBooking', width: 10 },
+      { key: 'Note', width: 20 },
     ];
 
-    data.forEach((item, index) => {
-      worksheet.addRow({
-        STT: index + 1,
-        Code: item.Code,
-        FullName: item.FullName,
-        DepartmentName: item.DepartmentName,
-        DayBussiness: item.DayBussiness
-          ? DateTime.fromISO(item.DayBussiness).toFormat('dd/MM/yyyy')
-          : '',
-        VehicleName: item.VehicleName,
-        Cost: item.Cost,
-        IsVehicleBooking: item.IsVehicleBooking ? '✓' : 'x',
-        Note: item.Note,
-      });
-    });
+    worksheet.columns = columns as any;
 
-    worksheet.getRow(1).font = { bold: true };
-    worksheet.getRow(1).fill = {
-      type: 'pattern',
-      pattern: 'solid',
-      fgColor: { argb: 'FFD9D9D9' },
-    };
+    // Tiêu đề chính
+    const titleRow = worksheet.addRow(['BÁO CÁO TIỀN XE ĐI CÔNG TÁC']);
+    titleRow.font = { name: 'Times New Roman', size: 14, bold: true };
+    titleRow.alignment = { horizontal: 'center', vertical: 'middle' };
+    titleRow.getCell(1).fill = headerFill;
+    worksheet.mergeCells(1, 1, 1, columns.length);
+    worksheet.getRow(1).height = 35;
+
+    // Header
+    const headerRow = worksheet.addRow(['STT', 'Mã NV', 'Tên nhân viên', 'Ngày', 'Loại công tác', 'Địa điểm', 'Phương tiện', 'Số tiền', 'Đặt xe', 'Ghi chú']);
+    headerRow.font = headerFont;
+    headerRow.alignment = { horizontal: 'center', vertical: 'middle' };
+    for (let c = 1; c <= columns.length; c++) {
+      headerRow.getCell(c).fill = headerFill;
+    }
+    headerRow.height = 25;
+
+    // Ghi dữ liệu theo phòng ban
+    const grouped = this.groupByDepartment(data);
+    for (const deptName of Object.keys(grouped)) {
+      // Dòng group (phòng ban)
+      const groupRow = worksheet.addRow([`Phòng ban: ${deptName}`]);
+      groupRow.font = groupFont;
+      groupRow.fill = groupFill;
+      worksheet.mergeCells(groupRow.number, 1, groupRow.number, columns.length);
+
+      // Dữ liệu
+      grouped[deptName].forEach((item: any, index: number) => {
+        const dataRow = worksheet.addRow([
+          index + 1,
+          item.Code || '',
+          item.FullName || '',
+          item.DayBussiness ? DateTime.fromISO(item.DayBussiness).toFormat('dd/MM/yyyy') : '',
+          item.TypeName || '',
+          item.Location || '',
+          item.VehicleName || '',
+          item.Cost || 0,
+          item.IsVehicleBooking ? '✓' : '',
+          item.Note || '',
+        ]);
+        dataRow.font = dataFont;
+        dataRow.getCell(1).alignment = { horizontal: 'center' };
+        dataRow.getCell(4).alignment = { horizontal: 'center' };
+        dataRow.getCell(8).alignment = { horizontal: 'right' };
+        dataRow.getCell(9).alignment = { horizontal: 'center' };
+      });
+    }
   }
 
   closeModal(): void {

@@ -280,7 +280,7 @@ export class DocumentSaleAdminFormComponent implements OnInit, AfterViewInit {
             ID: this.dataInput?.ID ?? 0,
             STT: formValue.STT,
             Code: formValue.Code,
-            DocumentTypeID: 47, // Luôn = 47
+            DocumentTypeID: formValue.DocumentTypeID || 47, // Lấy từ form, mặc định = 47 nếu không có
             DepartmentID: departmentID,
             NameDocument: formValue.NameDocument,
             DatePromulgate: formValue.DatePromulgate,

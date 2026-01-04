@@ -1,3 +1,53 @@
+/* Group text alignment */
+:host ::ng-deep .slick-group {
+    text-align: left !important;
+}
+
+:host ::ng-deep .slick-group-title {
+    text-align: left !important;
+}
+
+/* Màu sắc chung cho phòng ban và loại văn bản thuộc phòng ban đó */
+:host ::ng-deep .slick-group:has(.group-color-0) {
+    background-color: #E3F2FD !important;
+}
+
+:host ::ng-deep .slick-group:has(.group-color-1) {
+    background-color: #E8F5E9 !important;
+}
+
+:host ::ng-deep .slick-group:has(.group-color-2) {
+    background-color: #FFF3E0 !important;
+}
+
+:host ::ng-deep .slick-group:has(.group-color-3) {
+    background-color: #F3E5F5 !important;
+}
+
+:host ::ng-deep .slick-group:has(.group-color-4) {
+    background-color: #E0F7FA !important;
+}
+
+:host ::ng-deep .slick-group:has(.group-color-5) {
+    background-color: #FBE9E7 !important;
+}
+
+:host ::ng-deep .slick-group:has(.group-color-6) {
+    background-color: #E8EAF6 !important;
+}
+
+:host ::ng-deep .slick-group:has(.group-color-7) {
+    background-color: #F1F8E9 !important;
+}
+
+:host ::ng-deep .slick-group:has(.group-color-8) {
+    background-color: #FCE4EC !important;
+}
+
+:host ::ng-deep .slick-group:has(.group-color-9) {
+    background-color: #FFFDE7 !important;
+}
+
 /* Set font-size 12px cho tất cả các bảng SlickGrid (trừ badge) */
 #documentGridContainer,
 #documentGridContainer *:not(.badge):not(.badge *),

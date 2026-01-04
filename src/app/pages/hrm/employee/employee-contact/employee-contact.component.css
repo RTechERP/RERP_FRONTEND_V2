@@ -1,9 +1,60 @@
-.slick-group {
+:host ::ng-deep .slick-group {
   text-align: left !important;
 }
 
-.slick-group-title {
+:host ::ng-deep .slick-group-title {
   text-align: left !important;
+}
+
+/* Màu sắc chung cho phòng ban và các team thuộc phòng ban đó (dùng chung class group-color-X) */
+:host ::ng-deep .slick-group:has(.group-color-0) {
+  background-color: #E3F2FD !important;
+  /* Light Blue */
+}
+
+:host ::ng-deep .slick-group:has(.group-color-1) {
+  background-color: #E8F5E9 !important;
+  /* Light Green */
+}
+
+:host ::ng-deep .slick-group:has(.group-color-2) {
+  background-color: #FFF3E0 !important;
+  /* Light Orange */
+}
+
+:host ::ng-deep .slick-group:has(.group-color-3) {
+  background-color: #F3E5F5 !important;
+  /* Light Purple */
+}
+
+:host ::ng-deep .slick-group:has(.group-color-4) {
+  background-color: #E0F7FA !important;
+  /* Light Cyan */
+}
+
+:host ::ng-deep .slick-group:has(.group-color-5) {
+  background-color: #FBE9E7 !important;
+  /* Light Deep Orange */
+}
+
+:host ::ng-deep .slick-group:has(.group-color-6) {
+  background-color: #E8EAF6 !important;
+  /* Light Indigo */
+}
+
+:host ::ng-deep .slick-group:has(.group-color-7) {
+  background-color: #F1F8E9 !important;
+  /* Light Light Green */
+}
+
+:host ::ng-deep .slick-group:has(.group-color-8) {
+  background-color: #FCE4EC !important;
+  /* Light Pink */
+}
+
+:host ::ng-deep .slick-group:has(.group-color-9) {
+  background-color: #FFFDE7 !important;
+  /* Light Yellow */
 }
 
 /* Title font size */
@@ -16,11 +67,13 @@
 #grid-container-contact {
   overflow-x: auto;
   overflow-y: auto;
-  -webkit-overflow-scrolling: touch; /* Smooth scrolling on iOS */
+  -webkit-overflow-scrolling: touch;
+  /* Smooth scrolling on iOS */
 }
 
 .slickgrid-container {
-  min-width: max-content; /* Ensure grid takes full width of content */
+  min-width: max-content;
+  /* Ensure grid takes full width of content */
 }
 
 /* Ensure grid doesn't shrink columns on small screens */
@@ -28,57 +81,57 @@
   .card-body {
     overflow-x: auto !important;
   }
-  
+
   #grid-container-contact {
     width: 100%;
     overflow-x: auto !important;
     min-width: 800px !important;
   }
-  
+
   .slickgrid-container {
     width: max-content !important;
     min-width: 800px !important;
   }
-  
+
   /* Force grid to maintain width */
   .slickgrid-container .slick-grid {
     width: auto !important;
     min-width: 800px !important;
   }
-  
+
   /* Center title only on mobile */
   .card-header h6 {
     text-align: center !important;
     width: 100%;
   }
-  
+
   /* Mobile form layout */
   .card-header form {
     width: 100%;
   }
-  
+
   /* Department select - full width on mobile */
   .card-header nz-select {
     flex: 0 0 100%;
     width: 100% !important;
     min-width: 100% !important;
   }
-  
+
   /* Search input group - takes remaining space */
   .card-header .input-group {
     flex: 1 1 0;
     min-width: 0;
   }
-  
+
   .card-header .input-group input {
     flex: 1;
   }
-  
+
   /* Download button - fixed width, same row as search */
-  .card-header form > button[type="button"] {
+  .card-header form>button[type="button"] {
     flex: 0 0 auto;
   }
-  
+
   /* View mode buttons - same row as search and download */
   .card-header .btn-group {
     flex: 0 0 auto;

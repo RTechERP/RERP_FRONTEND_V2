@@ -240,6 +240,10 @@ export class EmployeeContactComponent implements OnInit, AfterViewInit {
     angularGridReady(angularGrid: AngularGridInstance): void {
         this.angularGrid = angularGrid;
 
+        // Map để track index màu của mỗi phòng ban
+        const departmentColorMap = new Map<string, number>();
+        let deptColorIndex = 0;
+
         // Setup grouping by DepartmentName và EmployeeTeamName
         if (angularGrid && angularGrid.dataView) {
             angularGrid.dataView.setGrouping([
@@ -247,22 +251,45 @@ export class EmployeeContactComponent implements OnInit, AfterViewInit {
                     getter: 'DepartmentName',
                     comparer: () => 0,
                     formatter: (g: any) => {
-                        const deptName = g.value || '';
-                        return `Phòng ban: ${deptName}
-                                <span margin-left:10px;">
+                        const deptName = g.value || 'Không xác định';
+
+                        // Gán màu cho phòng ban nếu chưa có
+                        if (!departmentColorMap.has(deptName)) {
+                            departmentColorMap.set(deptName, deptColorIndex % 10);
+                            deptColorIndex++;
+                        }
+                        const colorIndex = departmentColorMap.get(deptName);
+
+                        return `<span class="group-color-${colorIndex}" data-level="0">Phòng ban: <strong>${deptName}</strong>
+                                <span style="margin-left:10px;">
                                 (${g.count} NS)
-                                </span>`;
+                                </span></span>`;
                     }
                 },
                 {
                     getter: 'EmployeeTeamName',
                     comparer: () => 0,
                     formatter: (g: any) => {
-                        const teamName = g.value || '';
-                        return `Team: ${teamName}
-                                <span margin-left:10px;">
+                        const teamName = g.value || 'Không có team';
+
+                        // Lấy phòng ban từ các rows trong group để lấy màu của phòng ban cha
+                        let deptName = '';
+                        if (g.rows && g.rows.length > 0) {
+                            deptName = g.rows[0].DepartmentName || '';
+                        }
+
+                        // Sử dụng CÙNG màu với phòng ban cha
+                        // Nếu phòng ban chưa có trong map, gán màu mới
+                        if (!departmentColorMap.has(deptName)) {
+                            departmentColorMap.set(deptName, deptColorIndex % 10);
+                            deptColorIndex++;
+                        }
+                        const colorIndex = departmentColorMap.get(deptName);
+
+                        return `<span class="group-color-${colorIndex}" data-level="1">Team: <strong>${teamName}</strong>
+                                <span style="margin-left:10px;">
                                 (${g.count} NS)
-                                </span>`;
+                                </span></span>`;
                     }
                 }
             ]);

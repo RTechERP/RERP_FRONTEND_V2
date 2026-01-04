@@ -494,9 +494,9 @@ export class OverTimeComponent implements OnInit, AfterViewInit {
       this.notification.warning(NOTIFICATION_TITLE.warning, 'Vui lòng chọn đăng ký làm thêm cần chỉnh sửa');
       return;
     }
-    if (
-      (selectedRows.length > 0 && selectedRows[0].getData()['IsApprovedHR'] === true && selectedRows[0].getData()['IsApproved'] === true)
-    ) {
+    // Kiểm tra trạng thái duyệt - cho phép người có quyền sửa bất kể đã duyệt
+    const selectedData = selectedRows[0].getData();
+    if (this.isApproved(selectedData) && !this.checkCanEditApproved()) {
       this.notification.warning(NOTIFICATION_TITLE.warning, 'Đăng ký đã được duyệt. Vui lòng hủy duyệt trước khi sửa!');
       return;
     }
@@ -536,15 +536,13 @@ export class OverTimeComponent implements OnInit, AfterViewInit {
 
     const selectedData = selectedRows.map(row => row.getData());
 
-    // Kiểm tra xem có bản ghi nào đã được duyệt không
-    const approvedRecords = selectedData.filter(data =>
-      (data['IsApproved'] == true && data['IsApprovedHR'] == true)
-    );
+    // Kiểm tra xem có bản ghi nào đã được duyệt không - cho phép người có quyền xóa bất kể đã duyệt
+    const approvedRecords = selectedData.filter(data => this.isApproved(data));
 
-    if (approvedRecords.length > 0) {
+    if (approvedRecords.length > 0 && !this.checkCanEditApproved()) {
       this.notification.warning(
         'Cảnh báo',
-        `Có ${approvedRecords.length}/${selectedData.length} đăng ký đã được duyệt. Vui lòng hủy duyệt trước khi xóa!`
+        `Có ${approvedRecords.length}/${selectedData.length} đăng ký đã được duyệt. Bạn không có quyền xóa!`
       );
       return;
     }
@@ -831,6 +829,38 @@ export class OverTimeComponent implements OnInit, AfterViewInit {
       default:
         return '<span class="badge bg-secondary" style="display: inline-block; text-align: center;">Không xác định</span>';
     }
+  }
+
+  // Helper method để kiểm tra bản ghi đã được duyệt chưa
+  private isApproved(item: any): boolean {
+    // Kiểm tra trạng thái duyệt TBP
+    const isTBPApproved =
+      item.IsApproved === true ||
+      item.IsApproved === 1 ||
+      item.IsApproved === '1';
+
+    // Kiểm tra trạng thái duyệt HR
+    const isHRApproved =
+      item.IsApprovedHR === true ||
+      item.IsApprovedHR === 1 ||
+      item.IsApprovedHR === '1';
+
+    // Nếu TBP hoặc HR đã duyệt thì không cho sửa
+    return isTBPApproved || isHRApproved;
+  }
+
+  // Helper method để kiểm tra user có quyền chỉnh sửa nhân viên (N1, N2 hoặc IsAdmin)
+  private canEditEmployee(): boolean {
+    const hasN1Permission = this.permissionService.hasPermission('N1');
+    const hasN2Permission = this.permissionService.hasPermission('N2');
+    const isAdmin = this.currentUser?.IsAdmin === true || this.currentUser?.ISADMIN === true;
+
+    return hasN1Permission || hasN2Permission || isAdmin;
+  }
+
+  // Kiểm tra user có quyền sửa/xóa bản ghi đã duyệt (N1, N2 hoặc IsAdmin)
+  checkCanEditApproved(): boolean {
+    return this.canEditEmployee();
   }
 
 }

@@ -3,19 +3,24 @@
     <div class="card-header bg-white p-2 px-0">
       <div class="d-flex justify-content-between align-items-center">
         <div class="d-flex gap-2">
-          <button class="fs-12 btn-add" nz-button nzType="default" nzSize="small" (click)="openAddModal()" *hasPermission="'N2,N1'">
+          <button class="fs-12 btn-add" nz-button nzType="default" nzSize="small" (click)="openAddModal()"
+            *hasPermission="'N2,N1'">
             <img src="assets/icon/action_add_item_16.png" alt="Thêm " /> Thêm
           </button>
-          <button class="fs-12 btn-edit" nz-button nzType="default" nzSize="small" (click)="openEditModal()" *hasPermission="'N2,N1'">
+          <button class="fs-12 btn-edit" nz-button nzType="default" nzSize="small" (click)="openEditModal()"
+            *hasPermission="'N2,N1'">
             <img src="assets/icon/action_edit_item_16.png" alt="Sửa" />Sửa
           </button>
-          <button class="fs-12 btn-delete" nz-button nzType="default" nzSize="small" (click)="openDeleteModal()" *hasPermission="'N2,N1'">
+          <button class="fs-12 btn-delete" nz-button nzType="default" nzSize="small" (click)="openDeleteModal()"
+            *hasPermission="'N2,N1'">
             <img src="assets/icon/action_delete_item_16.png" alt="Xóa " />Xóa
           </button>
-          <button class="fs-12" nz-button nzType="default" nzSize="small" (click)="openImportExcelForm()" *hasPermission="'N2,N1'">
+          <button class="fs-12" nz-button nzType="default" nzSize="small" (click)="openImportExcelForm()"
+            *hasPermission="'N2,N1'">
             <img src="assets/icon/action_import_16.png" alt="Xuất excel" />Nhập excel
           </button>
-          <button class="fs-12" nz-button nzType="default" nzSize="small" (click)="exportToExcel()" *hasPermission="'N2,N1'">
+          <button class="fs-12" nz-button nzType="default" nzSize="small" (click)="exportToExcel()"
+            *hasPermission="'N2,N1'">
             <img src="assets/icon/action_export_excel_16.png" alt="Xuất excel" />Xuất excel
           </button>
         </div>
@@ -45,65 +50,9 @@
   </div>
 </ng-container>
 
-
-<div class="modal fade" id="addDeclareDayOffModal" tabindex="-1" aria-labelledby="addDeclareDayOffModalLabel"
-  aria-hidden="true">
-  <div class="modal-dialog modal-dialog-centered fs-12">
-    <div class="modal-content">
-      <div class="modal-header bg-primary">
-        <h6 class="modal-title text-uppercase text-white" id="addDeclareDayOffModalLabel">
-          CHI TIẾT NGÀY NGHỈ PHÉP
-        </h6>
-        <button type="button" class="btn-close me-2" data-bs-dismiss="modal" aria-label="Close"></button>
-      </div>
-      <div class="modal-body">
-        <form nz-form [formGroup]="declareDayOffForm">
-          <nz-form-item class="mb-2">
-            <nz-form-label [nzSpan]="24" class="fs-12 p-0">Họ và tên<span
-                class="text-danger ps-1">*</span></nz-form-label>
-            <nz-form-control [nzSpan]="24" nzErrorTip="Vui lòng chọn tên nhân viên">
-              <nz-select class="w-100" nzShowSearch nzAllowClear nzSize="default" formControlName="EmployeeID"
-                nzPlaceHolder="Chọn họ tên nhân viên">
-                @for (item of employeeList; track $index) {
-                <nz-option nzCustomContent="true" [nzLabel]="item.FullName" [nzValue]="item.ID">{{ item.Code + " - " +
-                  item.FullName }}</nz-option>
-                }
-              </nz-select>
-            </nz-form-control>
-          </nz-form-item>
-
-          <nz-form-item class="mb-2">
-            <nz-form-label [nzSpan]="24" class="fs-12 p-0">Năm<span class="text-danger ps-1">*</span></nz-form-label>
-            <nz-form-control [nzSpan]="24" nzErrorTip="Vui lòng nhập năm">
-              <nz-input-number nzMin="2000" nzMax="3000" nzSize="default" style="width: 100%"
-                formControlName="YearOnleave" />
-            </nz-form-control>
-          </nz-form-item>
-          <nz-form-item class="mb-2">
-            <nz-form-label [nzSpan]="24" class="fs-12 p-0">Tổng số ngày phép</nz-form-label>
-            <nz-form-control [nzSpan]="24">
-              <nz-input-number nzMin="0" nzMax="24" nzSize="default" style="width: 100%"
-                formControlName="TotalDayInYear" />
-            </nz-form-control>
-          </nz-form-item>
-        </form>
-      </div>
-      <div class="modal-footer py-1">
-        <button type="button" class="btn btn-outline-danger" (click)="closeModal()"
-          style=" border: 1px solid; border-radius: 0;">
-          Đóng
-        </button>
-        <button type="button" class="btn btn-primary" (click)="onSubmit()" style=" border-radius: 0;">
-          Lưu
-        </button>
-      </div>
-    </div>
-  </div>
-</div>
-
-
-
-<div class="modal fade" id="importExcelForm" tabindex="-1" aria-labelledby="importExcelModalLabel" aria-hidden="true">
+<!-- Import Excel Modal - giữ lại Bootstrap Modal vì component con cần -->
+<div class="modal fade" id="importExcelForm" tabindex="-1" aria-labelledby="importExcelModalLabel" aria-hidden="true"
+  data-bs-backdrop="static" data-bs-keyboard="false">
   <div class="modal-dialog modal-xl modal-dialog-centered">
     <div class="modal-content">
       <div class="modal-header bg-primary">

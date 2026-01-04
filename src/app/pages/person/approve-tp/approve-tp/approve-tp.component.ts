@@ -36,6 +36,7 @@ import { PrimeIcons } from 'primeng/api';
 import { PermissionService } from '../../../../services/permission.service';
 import { Menubar } from 'primeng/menubar';
 import { style } from '@angular/animations';
+import { AppUserService } from '../../../../services/app-user.service';
 @Component({
     selector: 'app-approve-tp',
     templateUrl: './approve-tp.component.html',
@@ -107,6 +108,7 @@ export class ApproveTpComponent implements OnInit, AfterViewInit {
         private modal: NzModalService,
         private route: ActivatedRoute,
         private permissionService: PermissionService,
+        private appUserService: AppUserService
     ) {
         // if (this.tabData) {
         //     this.isSeniorMode = this.tabData.isSeniorMode || false;
@@ -202,7 +204,7 @@ export class ApproveTpComponent implements OnInit, AfterViewInit {
             {
                 label: 'BGĐ xác nhận',
                 icon: 'fa-solid fa-calendar-check fa-lg text-primary',
-                visible: this.permissionService.hasPermission("N32"),
+                visible: (this.permissionService.hasPermission("N32") && this.appUserService.currentUser?.DepartmentID === 1) || this.appUserService.currentUser?.IsAdmin,
                 items: [
                     {
                         label: 'Duyệt hồ sơ',

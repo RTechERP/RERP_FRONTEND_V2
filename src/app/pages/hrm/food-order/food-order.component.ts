@@ -134,17 +134,18 @@ export class FoodOrderComponent implements OnInit, AfterViewInit {
     const currentHour = now.getHours();
     return currentHour < 19;
   }
-
-  // Kiểm tra quyền admin: N1, N2, N34 hoặc IsAdmin === true
+  // những n có quền
   hasAdminPermission(): boolean {
     // Kiểm tra IsAdmin trước
     if (this.currentUser?.IsAdmin === true) {
       return true;
     }
-    // Kiểm tra quyền N1, N2, N34
+    // Kiểm tra quyền N1, N2, N23, N34, N80
     return this.permissionService.hasPermission('N1') ||
-      this.permissionService.hasPermission('N80') ||
-      this.permissionService.hasPermission('N34');
+      this.permissionService.hasPermission('N2') ||
+      this.permissionService.hasPermission('N23') ||
+      this.permissionService.hasPermission('N34') ||
+      this.permissionService.hasPermission('N80');
   }
 
   private isSameLocalDate(a: Date, b: Date): boolean {
@@ -738,7 +739,8 @@ export class FoodOrderComponent implements OnInit, AfterViewInit {
     const location = parseInt(formData.Location);
     const dateOrder = formData.DateOrder ? new Date(formData.DateOrder) : null;
 
-    if (location === 2 && dateOrder) {
+    // Kiểm tra thời gian 19h cho Xưởng Đan Phượng - chỉ áp dụng cho người không có quyền đặc biệt
+    if (!hasPermission && location === 2 && dateOrder) {
       const now = new Date();
       const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
       const orderDate = new Date(dateOrder.getFullYear(), dateOrder.getMonth(), dateOrder.getDate());

@@ -794,9 +794,10 @@ export class EmployeeNightShiftFormComponent implements OnInit {
         IsProblem: tabData.IsProblem || false,
         ReasonHREdit: reasonHREdit,
         IsDeleted: false,
-        IsApprovedTBP: this.isEditMode ? undefined : 0,
-        IsApprovedHR: this.isEditMode ? undefined : 0,
-        ApprovedHR: this.isEditMode ? undefined : 0,
+        // Khi sửa, reset trạng thái duyệt về chưa duyệt
+        IsApprovedTBP: 0,
+        IsApprovedHR: 0,
+        ApprovedHR: 0,
       });
     }
 

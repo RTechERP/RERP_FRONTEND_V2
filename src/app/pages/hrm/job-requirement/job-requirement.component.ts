@@ -1266,11 +1266,27 @@ export class JobRequirementComponent implements OnInit, AfterViewInit {
 
         const rowData = selected[0];
         const jobRequirementID = rowData?.ID || this.JobrequirementID || 0;
+        const numberRequest = rowData?.NumberRequest || rowData?.Code || '';
 
         if (jobRequirementID <= 0) {
             this.notification.warning(
                 NOTIFICATION_TITLE.warning,
                 'Không tìm thấy ID của bản ghi!'
+            );
+            return;
+        }
+
+        // Kiểm tra BGĐ đã duyệt chưa (Step 5, IsApproved = 1)
+        const bgdApproved = this.JobrequirementApprovedData.find((item: any) =>
+            item.JobRequirementID === jobRequirementID &&
+            item.Step === 5 &&
+            (item.IsApproved === 1 || item.IsApproved === '1')
+        );
+
+        if (!bgdApproved) {
+            this.notification.warning(
+                NOTIFICATION_TITLE.warning,
+                `Yêu cầu công việc [${numberRequest}] chưa được BGĐ duyệt nên không thể yêu cầu báo giá!`
             );
             return;
         }

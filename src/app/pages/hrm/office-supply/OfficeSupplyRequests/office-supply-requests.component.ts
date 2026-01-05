@@ -68,6 +68,7 @@ import { DateTime } from 'luxon';
 import { DEFAULT_TABLE_CONFIG } from '../../../../tabulator-default.config';
 import { HasPermissionDirective } from '../../../../directives/has-permission.directive';
 import { MenuService } from '../../../systems/menus/menu-service/menu.service';
+import { AuthService } from '../../../../auth/auth.service';
 import { NgbModal } from '@ng-bootstrap/ng-bootstrap';
 import { OfficeSupplyRequestAdminDetailComponent } from './office-supply-request-admin-detail/office-supply-request-admin-detail.component';
 
@@ -158,6 +159,7 @@ export class OfficeSupplyRequestsComponent implements OnInit {
   sizeSearch = '0';
   isVisible = false;
   monthFormat = 'MM/yyyy';
+  currentUser: any;
 
   newUnit: Unit = {
     Code: '',
@@ -186,8 +188,11 @@ export class OfficeSupplyRequestsComponent implements OnInit {
     private notification: NzNotificationService,
     private modal: NzModalService,
     private ngbModal: NgbModal,
-    public menuService: MenuService
-  ) {}
+    public menuService: MenuService,
+    private authService: AuthService
+  ) {
+    this.currentUser = this.authService.getCurrentUser();
+  }
 
   ngOnInit(): void {
     this.getDataDeparment();
@@ -208,6 +213,10 @@ export class OfficeSupplyRequestsComponent implements OnInit {
       next: (res) => {
         if (res && Array.isArray(res.data)) {
           this.dataDeparment = res.data;
+          // Set departmentId mặc định từ currentUser
+          if (this.currentUser?.DepartmentID) {
+            this.searchParams.departmentId = this.currentUser.DepartmentID;
+          }
         } else {
           this.dataDeparment = [];
           this.notification.warning(
@@ -231,7 +240,7 @@ export class OfficeSupplyRequestsComponent implements OnInit {
 
     const deptId =
       this.searchParams.departmentId === null ||
-      this.searchParams.departmentId === undefined
+        this.searchParams.departmentId === undefined
         ? 0
         : this.searchParams.departmentId;
 
@@ -307,8 +316,7 @@ export class OfficeSupplyRequestsComponent implements OnInit {
           hozAlign: 'center',
           headerHozAlign: 'center',
           formatter: (cell) =>
-            `<input type="checkbox" ${
-              ['true', true, 1, '1'].includes(cell.getValue()) ? 'checked' : ''
+            `<input type="checkbox" ${['true', true, 1, '1'].includes(cell.getValue()) ? 'checked' : ''
             } onclick="return false;">`,
         },
         {
@@ -317,8 +325,7 @@ export class OfficeSupplyRequestsComponent implements OnInit {
           hozAlign: 'center',
           headerHozAlign: 'center',
           formatter: (cell) =>
-            `<input type="checkbox" ${
-              ['true', true, 1, '1'].includes(cell.getValue()) ? 'checked' : ''
+            `<input type="checkbox" ${['true', true, 1, '1'].includes(cell.getValue()) ? 'checked' : ''
             } onclick="return false;">`,
         },
         {
@@ -714,7 +721,7 @@ export class OfficeSupplyRequestsComponent implements OnInit {
     const canDeleteItems = this.selectedList.filter(
       (item) => !item.IsApproved && !item.IsAdminApproved
     );
-    
+
     // Lọc các bản ghi đã duyệt (không thể xóa)
     const cannotDeleteItems = this.selectedList.filter(
       (item) => item.IsApproved || item.IsAdminApproved
@@ -781,7 +788,7 @@ export class OfficeSupplyRequestsComponent implements OnInit {
           if (deleteCount + errorCount === totalItems) {
             this.getOfficeSupplyRequest();
             this.selectedList = [];
-            
+
             if (deleteCount > 0) {
               this.notification.success('Thông báo', `Đã xóa thành công ${deleteCount} bản ghi!`);
             }
@@ -792,12 +799,12 @@ export class OfficeSupplyRequestsComponent implements OnInit {
         },
         error: (error: any) => {
           errorCount++;
-          
+
           // Kiểm tra xem đã xử lý xong tất cả items chưa
           if (deleteCount + errorCount === totalItems) {
             this.getOfficeSupplyRequest();
             this.selectedList = [];
-            
+
             if (deleteCount > 0) {
               this.notification.success('Thông báo', `Đã xóa thành công ${deleteCount} bản ghi!`);
             }
@@ -819,11 +826,11 @@ export class OfficeSupplyRequestsComponent implements OnInit {
     }
 
     const selectedRow = selectedData[0];
-    
+
     // Kiểm tra điều kiện chưa duyệt
     const isApproved = selectedRow['IsApproved'] === true || selectedRow['IsApproved'] === 1 || selectedRow['IsApproved'] === 'true' || selectedRow['IsApproved'] === '1';
     const isAdminApproved = selectedRow['IsAdminApproved'] === true || selectedRow['IsAdminApproved'] === 1 || selectedRow['IsAdminApproved'] === 'true' || selectedRow['IsAdminApproved'] === '1';
-    
+
     if (isApproved || isAdminApproved) {
       this.notification.warning('Thông báo', 'Không thể sửa bản ghi đã được duyệt');
       return;
@@ -839,7 +846,7 @@ export class OfficeSupplyRequestsComponent implements OnInit {
     this.lstDKVPP.getOfficeSupplyRequestsDetail(requestId).subscribe({
       next: (res) => {
         const detailData = res.data || [];
-        
+
         // Mở modal với dữ liệu
         const modalRef = this.ngbModal.open(OfficeSupplyRequestAdminDetailComponent, {
           size: 'xl',

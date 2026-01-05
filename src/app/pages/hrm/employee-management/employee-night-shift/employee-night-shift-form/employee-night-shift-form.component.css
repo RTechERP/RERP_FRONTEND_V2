@@ -69,3 +69,69 @@ legend.reset {
   transform: none;
 }
 
+/* Styling for Flatpickr datetime inputs */
+.flatpickr-datetime {
+  height: 32px;
+  padding: 4px 11px;
+  border: 1px solid #d9d9d9;
+  border-radius: 2px;
+  transition: all 0.3s;
+  font-size: 12px;
+  background-color: #fff;
+  cursor: pointer;
+}
+
+.flatpickr-datetime:hover {
+  border-color: #40a9ff;
+}
+
+.flatpickr-datetime:focus {
+  border-color: #40a9ff;
+  box-shadow: 0 0 0 2px rgba(24, 144, 255, 0.2);
+  outline: none;
+}
+
+/* Flatpickr Calendar Styling */
+::ng-deep .flatpickr-calendar {
+  z-index: 99999 !important;
+  font-size: 12px;
+  box-shadow: 0 6px 16px 0 rgba(0, 0, 0, 0.08), 0 3px 6px -4px rgba(0, 0, 0, 0.12), 0 9px 28px 8px rgba(0, 0, 0, 0.05);
+  border-radius: 8px;
+  border: 1px solid #f0f0f0;
+}
+
+::ng-deep .flatpickr-calendar.open {
+  z-index: 99999 !important;
+}
+
+/* Style cho các ngày trong calendar */
+::ng-deep .flatpickr-day {
+  border-radius: 4px;
+  font-size: 12px;
+}
+
+::ng-deep .flatpickr-day.selected,
+::ng-deep .flatpickr-day.startRange,
+::ng-deep .flatpickr-day.endRange {
+  background: #1890ff;
+  border-color: #1890ff;
+}
+
+::ng-deep .flatpickr-day:hover:not(.selected):not(.disabled) {
+  background: #e6f7ff;
+  border-color: #e6f7ff;
+}
+
+/* Time picker styling */
+::ng-deep .flatpickr-time {
+  border-top: 1px solid #f0f0f0;
+}
+
+::ng-deep .flatpickr-time input {
+  font-size: 12px;
+}
+
+/* Today highlight */
+::ng-deep .flatpickr-day.today:not(.selected) {
+  border-color: #1890ff;
+}

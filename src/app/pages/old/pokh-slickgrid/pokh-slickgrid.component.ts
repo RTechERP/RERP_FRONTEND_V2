@@ -17,6 +17,7 @@ import { NzSpaceModule } from 'ng-zorro-antd/space';
 import { NzLayoutModule } from 'ng-zorro-antd/layout';
 import { NzFlexModule, NzWrap } from 'ng-zorro-antd/flex';
 import { NzDrawerModule, NzDrawerPlacement } from 'ng-zorro-antd/drawer';
+import { NzDropDownModule } from 'ng-zorro-antd/dropdown';
 import { NzSplitterModule } from 'ng-zorro-antd/splitter';
 import { NzGridModule } from 'ng-zorro-antd/grid';
 import { NzDatePickerModule } from 'ng-zorro-antd/date-picker';
@@ -106,6 +107,7 @@ import { Menubar } from 'primeng/menubar';
     NzLayoutModule,
     NzFlexModule,
     NzDrawerModule,
+    NzDropDownModule,
     NzSplitterModule,
     NzGridModule,
     NzDatePickerModule,
@@ -158,26 +160,21 @@ export class PokhSlickgridComponent implements OnInit, AfterViewInit {
   columnDefinitionsPOKHFile: Column[] = [];
   gridOptionsPOKHFile: GridOption = {};
   datasetPOKHFile: any[] = [];
-  sizeSearch: string = '0';
 
   menuBars: any[] = [];
-
-  toggleSearchPanel() {
-    this.sizeSearch = this.sizeSearch == '0' ? '22%' : '0';
-  }
 
   initMenuBar() {
     this.menuBars = [
       {
         label: 'Thêm',
-        icon: 'fa-solid fa-plus fa-lg text-success',
+        icon: 'fa-solid fa-circle-plus fa-lg text-success',
         command: () => {
           this.onAdd();
         }
       },
       {
         label: 'Sửa',
-        icon: 'fa-solid fa-pen fa-lg text-primary',
+        icon: 'fa-solid fa-file-pen fa-lg text-primary',
         command: () => {
           this.onEdit();
         }
@@ -191,14 +188,14 @@ export class PokhSlickgridComponent implements OnInit, AfterViewInit {
       },
       {
         label: 'Duyệt',
-        icon: 'fa-solid fa-check fa-lg text-success',
+        icon: 'fa-solid fa-circle-check fa-lg text-success',
         command: () => {
           this.handlePOKHApproval(true);
         }
       },
       {
         label: 'Hủy Duyệt',
-        icon: 'fa-solid fa-xmark fa-lg text-warning',
+        icon: 'fa-solid fa-circle-xmark fa-lg text-danger',
         command: () => {
           this.handlePOKHApproval(false);
         }
@@ -211,24 +208,10 @@ export class PokhSlickgridComponent implements OnInit, AfterViewInit {
         }
       },
       {
-        label: 'Xuất phiếu',
-        icon: 'fa-solid fa-file-export fa-lg text-primary',
-        command: () => {
-          this.exportMainTableToExcel();
-        }
-      },
-      {
         label: 'Chi tiết POKH',
         icon: 'fa-solid fa-magnifying-glass fa-lg text-info',
         command: () => {
           this.openModalViewPOKH();
-        }
-      },
-      {
-        label: 'Lịch sử tiền về',
-        icon: 'fa-solid fa-money-bill-wave fa-lg text-warning',
-        command: () => {
-          this.openHistoryMoneyModal();
         }
       },
       {
@@ -246,25 +229,45 @@ export class PokhSlickgridComponent implements OnInit, AfterViewInit {
         }
       },
       {
-        label: 'Lịch sử bán hàng',
-        icon: 'fa-solid fa-clock-rotate-left fa-lg text-secondary',
-        command: () => {
-          this.openFollowProductReturnModal();
-        }
-      },
-      {
-        label: 'Copy',
-        icon: 'fa-solid fa-copy fa-lg text-primary',
-        command: () => {
-          this.onCopy();
-        }
-      },
-      {
-        label: 'Yêu cầu báo giá',
-        icon: 'fa-solid fa-file-invoice fa-lg text-warning',
-        command: () => {
-          this.openPORequestPriceRTC();
-        }
+        label: 'More',
+        icon: 'fa-solid fa-ellipsis fa-lg text-secondary',
+        items: [
+          {
+            label: 'Xuất phiếu',
+            icon: 'fa-solid fa-file-export fa-lg text-primary',
+            command: () => {
+              this.exportMainTableToExcel();
+            }
+          },
+          {
+            label: 'Lịch sử tiền về',
+            icon: 'fa-solid fa-money-bill-wave fa-lg text-warning',
+            command: () => {
+              this.openHistoryMoneyModal();
+            }
+          },
+          {
+            label: 'Lịch sử bán hàng',
+            icon: 'fa-solid fa-clock-rotate-left fa-lg text-secondary',
+            command: () => {
+              this.openFollowProductReturnModal();
+            }
+          },
+          {
+            label: 'Copy',
+            icon: 'fa-solid fa-copy fa-lg text-primary',
+            command: () => {
+              this.onCopy();
+            }
+          },
+          {
+            label: 'Yêu cầu báo giá',
+            icon: 'fa-solid fa-file-invoice fa-lg text-warning',
+            command: () => {
+              this.openPORequestPriceRTC();
+            }
+          }
+        ]
       }
     ];
   }

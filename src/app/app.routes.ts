@@ -424,6 +424,7 @@ export const routes: Routes = [
             { path: 'tbp-job-requirement', component: JobRequirementComponent, canActivate: [authGuard] },
             { path: 'tbp-project-partlist', component: ProjectPartListSlickGridComponent, canActivate: [authGuard] },
             { path: 'tbp-project-partlist-purchase-request', component: ProjectPartListPurchaseRequestSlickGridComponent, canActivate: [authGuard] },
+            { path: 'project-partlist-purchase-request', component: ProjectPartListPurchaseRequestSlickGridComponent, canActivate: [authGuard] },
 
             //HR duyệt
             { path: 'hr-payment-order', component: PaymentOrderComponent, canActivate: [authGuard] },

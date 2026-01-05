@@ -413,6 +413,15 @@ export class BillImportNewComponent implements OnInit {
         width: 300,
         filter: { model: Filters['compoundInputText'] }
       },
+            {
+        id: 'SerialNumber',
+        name: 'Serial Number',
+        field: 'SerialNumber',
+        sortable: true,
+        filterable: true,
+        width: 300,
+        filter: { model: Filters['compoundInputText'] }
+      },
       {
         id: 'Unit',
         name: 'ĐVT',
@@ -460,7 +469,10 @@ export class BillImportNewComponent implements OnInit {
         sortable: true,
         filterable: true,
         width: 130,
-        formatter: Formatters.dateIso,
+        formatter: Formatters.date,
+        exportCustomFormatter: Formatters.date,
+        type: 'date',
+        params: { dateFormat: 'DD/MM/YYYY' },
         filter: { model: Filters['compoundDate'] },
         cssClass: 'text-center'
       },
@@ -500,10 +512,41 @@ export class BillImportNewComponent implements OnInit {
         width: 200,
         filter: { model: Filters['compoundInputText'] }
       },
+       {
+        id: 'BillCode',
+        name: 'Đơn mua hàng',
+        field: 'BillCodePO',
+        sortable: true,
+        filterable: true,
+        width: 150,
+        filter: { model: Filters['compoundInputText'] }
+      },
       {
-        id: 'PONumber',
-        name: 'Số POKH',
-        field: 'PONumber',
+        id: 'Note',
+        name: 'Ghi chú (PO)',
+        field: 'Note',
+        sortable: true,
+        filterable: true,
+        width: 150,
+        filter: { model: Filters['compoundInputText'] }
+      },
+            {
+        id: 'DealineQC',
+        name: 'Hạn QC',
+        field: 'DealineQC',
+        sortable: true,
+        filterable: true,
+        formatter: Formatters.date,
+        exportCustomFormatter: Formatters.date,
+        type: 'date',
+        params: { dateFormat: 'DD/MM/YYYY' },
+        filter: { model: Filters['compoundDate'] },
+        cssClass: 'text-center'
+      },
+            {
+        id: 'StatusQCText',
+        name: 'Trạng thái QC',
+        field: 'StatusQCText',
         sortable: true,
         filterable: true,
         width: 150,

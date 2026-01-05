@@ -505,6 +505,8 @@ export class ProjectPartListPurchaseRequestSlickGridComponent
   datasetsMap: Map<number, any[]> = new Map();
   // Store original data for each tab (before filters)
   datasetsAllMap: Map<number, any[]> = new Map();
+  // Store selected row IDs for each tab
+  selectedRowIdsSetMap: Map<number, Set<number>> = new Map();
 
   // Tabs
   tabs: Tab[] = [];
@@ -3091,6 +3093,7 @@ export class ProjectPartListPurchaseRequestSlickGridComponent
     // Lấy tất cả các dòng đã chọn
     const selectedRowIndexes = angularGrid.slickGrid.getSelectedRows();
     const currentEmployeeID = this.appUserService.employeeID;
+    const isAdmin = this.appUserService.isAdmin || false;
 
     // Kiểm tra xem cell được edit có nằm trong các dòng đã chọn không
     const isEditedRowSelected =
@@ -3098,7 +3101,7 @@ export class ProjectPartListPurchaseRequestSlickGridComponent
 
     // Nếu có nhiều dòng được chọn VÀ dòng đang edit nằm trong selection
     // thì fill giá trị cho các dòng đã chọn khác
-    // với điều kiện EmployeeCheckPriceID = người đăng nhập hiện tại
+    // với điều kiện QuoteEmployeeID = người đăng nhập hiện tại hoặc là Admin
     if (
       isEditedRowSelected &&
       selectedRowIndexes &&
@@ -3114,9 +3117,9 @@ export class ProjectPartListPurchaseRequestSlickGridComponent
         const selectedItem = angularGrid.dataView.getItem(selectedRowIndex);
         if (!selectedItem) continue;
 
-        // Kiểm tra EmployeeCheckPriceID
-        const employeeCheckPriceID = selectedItem['QuoteEmployeeID'];
-        if (employeeCheckPriceID !== currentEmployeeID) continue;
+        // Kiểm tra QuoteEmployeeID - chỉ cho phép sửa nếu là admin hoặc là người quản lý dòng đó
+        const quoteEmployeeID = Number(selectedItem['QuoteEmployeeID'] || 0);
+        if (!isAdmin && quoteEmployeeID !== currentEmployeeID) continue;
 
         // Fill giá trị vào dòng này
         selectedItem[field] = newValue;
@@ -3163,7 +3166,9 @@ export class ProjectPartListPurchaseRequestSlickGridComponent
         }
 
         // Update item in dataView
-        angularGrid.dataView.updateItem(selectedItem.id, selectedItem);
+        if (selectedItem.id) {
+          angularGrid.dataView.updateItem(selectedItem.id, selectedItem);
+        }
         hasUpdatedRows = true;
       }
 
@@ -3171,6 +3176,7 @@ export class ProjectPartListPurchaseRequestSlickGridComponent
       if (hasUpdatedRows) {
         angularGrid.slickGrid.invalidate();
         angularGrid.slickGrid.render();
+        this.ensureCheckboxSelector(angularGrid);
       }
     }
 
@@ -3257,10 +3263,20 @@ export class ProjectPartListPurchaseRequestSlickGridComponent
     if (!angularGrid || !angularGrid.slickGrid) return;
 
     const rows = args.rows || [];
+
+    // Initialize Set for this typeId if not exists
+    if (!this.selectedRowIdsSetMap.has(typeId)) {
+      this.selectedRowIdsSetMap.set(typeId, new Set<number>());
+    }
+
+    const selectedRowIdsSet = this.selectedRowIdsSetMap.get(typeId)!;
+    selectedRowIdsSet.clear();
+
     rows.forEach((rowIndex: number) => {
       const item: any = angularGrid.dataView.getItem(rowIndex);
       if (item?.ID !== undefined && item?.ID !== null) {
         this.selectedRowIds.push(Number(item.ID));
+        selectedRowIdsSet.add(Number(item.ID));
       }
     });
   }

@@ -141,6 +141,8 @@ export class ProjectPartlistPriceRequestNewComponent implements OnInit, OnDestro
   allDataByType: Map<number, any[]> = new Map();
   // Store original data for each tab (before filters)
   datasetsAllMap: Map<number, any[]> = new Map();
+  // Store selected row IDs for each tab
+  selectedRowIdsSetMap: Map<number, Set<number>> = new Map();
   // Quản lý subscriptions để có thể hủy khi cần
   private dataLoadingSubscriptions: Subscription[] = [];
   // Request ID để đảm bảo chỉ xử lý response từ request hiện tại
@@ -2478,6 +2480,132 @@ formatter: Formatters.date,
   }
 
   // Handler khi cell được thay đổi
+  // onCellChange(typeId: number, e: Event, args: OnCellChangeEventArgs): void {
+  //   const angularGrid = this.angularGrids.get(typeId);
+  //   if (!angularGrid) return;
+
+  //   const rowIndex = args.row;
+  //   const item = angularGrid.dataView.getItem(rowIndex);
+  //   const column = args.column;
+  //   const field = column?.field || '';
+  //   const newValue = args.item?.[field];
+
+  //   if (!item) return;
+
+  //   // Cập nhật giá trị mới vào item
+  //   if (field && newValue !== undefined) {
+  //     // Xử lý đặc biệt cho SupplierSaleID: chuyển từ array (multiselect) sang giá trị đơn
+  //     if (field === 'SupplierSaleID' && Array.isArray(newValue)) {
+  //       // Lấy giá trị đầu tiên từ array (vì chỉ cho phép chọn 1)
+  //       item[field] = newValue.length > 0 ? newValue[0] : null;
+  //     } else {
+  //       item[field] = newValue;
+  //     }
+  //   }
+
+  //   // Fill giá trị vào các dòng đã chọn (nếu có nhiều dòng được chọn)
+  //   // Lấy selected rows trực tiếp từ grid (vì selectedRowIdsSetMap có thể bị clear khi click cell)
+  //   const selectedRowIndexes = angularGrid.slickGrid.getSelectedRows();
+  //   const selectedRowIds = new Set<number>();
+  //   selectedRowIndexes.forEach((idx: number) => {
+  //     const selectedItem = angularGrid.dataView.getItem(idx);
+  //     if (selectedItem?.ID) {
+  //       selectedRowIds.add(Number(selectedItem.ID));
+  //     }
+  //   });
+
+  //   // Chỉ fill khi dòng đang edit CŨNG nằm trong các dòng được chọn
+  //   const isEditedRowSelected = selectedRowIds.has(Number(item.ID));
+  //   if (isEditedRowSelected && selectedRowIds.size > 1 && field) {
+  //     let hasUpdatedRows = false;
+
+  //     // Lấy tất cả dữ liệu của tab hiện tại
+  //     const allData = this.datasetsAllMap.get(typeId) || [];
+
+  //     // Cập nhật tất cả các dòng đã chọn
+  //     allData.forEach((rowData: any) => {
+  //       if (
+  //         selectedRowIds.has(Number(rowData.ID)) &&
+  //         Number(rowData.ID) !== Number(item.ID)
+  //       ) {
+  //         // Fill giá trị vào dòng này
+  //         // Xử lý đặc biệt cho SupplierSaleID
+  //         if (field === 'SupplierSaleID' && Array.isArray(newValue)) {
+  //           rowData[field] = newValue.length > 0 ? newValue[0] : null;
+  //         } else {
+  //           rowData[field] = newValue;
+  //         }
+
+  //         // Xử lý các logic đặc biệt cho từng field
+  //         if (field === 'CurrencyID') {
+  //           this.OnCurrencyChangedSlickGrid(rowData);
+  //         } else if (field === 'SupplierSaleID') {
+  //           this.OnSupplierSaleChangedSlickGrid(rowData);
+  //         } else if (['Quantity', 'UnitPrice', 'CurrencyRate', 'UnitImportPrice', 'VAT', 'TotalDayLeadTime'].includes(field)) {
+  //           this.recalculateRowForSlickGrid(rowData);
+  //         }
+
+  //         // Track edited row
+  //         const rowId = rowData['ID'];
+  //         if (rowId) {
+  //           const tabEditedRows = this.editedRowsMap.get(typeId);
+  //           if (!tabEditedRows) {
+  //             this.editedRowsMap.set(typeId, new Map());
+  //           }
+  //           const editedRows = this.editedRowsMap.get(typeId);
+  //           if (editedRows) {
+  //             editedRows.set(rowId, rowData);
+  //           }
+  //         }
+
+  //         // Update item in dataView
+  //         if (rowData.id) {
+  //           angularGrid.dataView.updateItem(rowData.id, rowData);
+  //         }
+  //         hasUpdatedRows = true;
+  //       }
+  //     });
+
+  //     // Refresh grid nếu có dòng được update
+  //     if (hasUpdatedRows) {
+  //       angularGrid.slickGrid.invalidate();
+  //       angularGrid.slickGrid.render();
+  //       this.ensureCheckboxSelector(angularGrid);
+  //     }
+  //   }
+
+  //   // Xử lý thay đổi cell
+  //   if (field === 'CurrencyID') {
+  //     this.OnCurrencyChangedSlickGrid(item);
+  //   } else if (field === 'SupplierSaleID') {
+  //     this.OnSupplierSaleChangedSlickGrid(item);
+  //   } else if (['Quantity', 'UnitPrice', 'CurrencyRate', 'UnitImportPrice', 'VAT', 'TotalDayLeadTime'].includes(field)) {
+  //     // Tính toán lại các giá trị phụ thuộc
+  //     this.recalculateRowForSlickGrid(item);
+  //   }
+
+  //   // Cập nhật lại item trong dataView
+  //   angularGrid.dataView.updateItem(item['id'], item);
+
+  //   // Track edited row
+  //   const rowId = item['ID'];
+  //   if (rowId) {
+  //     const tabEditedRows = this.editedRowsMap.get(typeId);
+  //     if (!tabEditedRows) {
+  //       this.editedRowsMap.set(typeId, new Map());
+  //     }
+  //     const editedRows = this.editedRowsMap.get(typeId);
+  //     if (editedRows) {
+  //       editedRows.set(rowId, item);
+  //     }
+  //   }
+
+  //   // Refresh grid
+  //   angularGrid.slickGrid.invalidate();
+  //   angularGrid.slickGrid.render();
+  //   // Đảm bảo checkbox selector vẫn được enable sau khi render
+  //   this.ensureCheckboxSelector(angularGrid);
+  // }
   onCellChange(typeId: number, e: Event, args: OnCellChangeEventArgs): void {
     const angularGrid = this.angularGrids.get(typeId);
     if (!angularGrid) return;
@@ -2504,14 +2632,21 @@ formatter: Formatters.date,
     // Lấy tất cả các dòng đã chọn
     const selectedRowIndexes = angularGrid.slickGrid.getSelectedRows();
     const currentEmployeeID = this.appUserService.employeeID;
+    const isAdmin = this.appUserService.isAdmin || false;
 
     // Kiểm tra xem cell được edit có nằm trong các dòng đã chọn không
-    const isEditedRowSelected = selectedRowIndexes && selectedRowIndexes.includes(rowIndex);
+    const isEditedRowSelected =
+      selectedRowIndexes && selectedRowIndexes.includes(rowIndex);
 
     // Nếu có nhiều dòng được chọn VÀ dòng đang edit nằm trong selection
     // thì fill giá trị cho các dòng đã chọn khác
     // với điều kiện EmployeeCheckPriceID = người đăng nhập hiện tại
-    if (isEditedRowSelected && selectedRowIndexes && selectedRowIndexes.length > 1 && field) {
+    if (
+      isEditedRowSelected &&
+      selectedRowIndexes &&
+      selectedRowIndexes.length > 1 &&
+      field
+    ) {
       let hasUpdatedRows = false;
 
       for (const selectedRowIndex of selectedRowIndexes) {
@@ -2522,8 +2657,8 @@ formatter: Formatters.date,
         if (!selectedItem) continue;
 
         // Kiểm tra EmployeeCheckPriceID
-        const employeeCheckPriceID = selectedItem['EmployeeCheckPriceID'];
-        if (employeeCheckPriceID !== currentEmployeeID) continue;
+        const quoteEmployeeID = Number(selectedItem['QuoteEmployeeID'] || 0);
+        if (!isAdmin && quoteEmployeeID !== currentEmployeeID) continue;
 
         // Fill giá trị vào dòng này
         // Xử lý đặc biệt cho SupplierSaleID
@@ -2538,7 +2673,16 @@ formatter: Formatters.date,
           this.OnCurrencyChangedSlickGrid(selectedItem);
         } else if (field === 'SupplierSaleID') {
           this.OnSupplierSaleChangedSlickGrid(selectedItem);
-        } else if (['Quantity', 'UnitPrice', 'CurrencyRate', 'UnitImportPrice', 'VAT', 'TotalDayLeadTime'].includes(field)) {
+        } else if (
+          [
+            'Quantity',
+            'UnitPrice',
+            'CurrencyRate',
+            'UnitImportPrice',
+            'VAT',
+            'TotalDayLeadTime',
+          ].includes(field)
+        ) {
           this.recalculateRowForSlickGrid(selectedItem);
         }
 
@@ -2556,7 +2700,9 @@ formatter: Formatters.date,
         }
 
         // Update item in dataView
-        angularGrid.dataView.updateItem(selectedItem['id'], selectedItem);
+        if (selectedItem.id) {
+          angularGrid.dataView.updateItem(selectedItem.id, selectedItem);
+        }
         hasUpdatedRows = true;
       }
 
@@ -2573,13 +2719,24 @@ formatter: Formatters.date,
       this.OnCurrencyChangedSlickGrid(item);
     } else if (field === 'SupplierSaleID') {
       this.OnSupplierSaleChangedSlickGrid(item);
-    } else if (['Quantity', 'UnitPrice', 'CurrencyRate', 'UnitImportPrice', 'VAT', 'TotalDayLeadTime'].includes(field)) {
+    } else if (
+      [
+        'Quantity',
+        'UnitPrice',
+        'CurrencyRate',
+        'UnitImportPrice',
+        'VAT',
+        'TotalDayLeadTime',
+      ].includes(field)
+    ) {
       // Tính toán lại các giá trị phụ thuộc
       this.recalculateRowForSlickGrid(item);
     }
 
     // Cập nhật lại item trong dataView
-    angularGrid.dataView.updateItem(item['id'], item);
+    if (item.id) {
+      angularGrid.dataView.updateItem(item.id, item);
+    }
 
     // Track edited row
     const rowId = item['ID'];
@@ -2603,8 +2760,27 @@ formatter: Formatters.date,
 
   // Handler khi row selection thay đổi
   handleRowSelection(typeId: number, e: Event, args: OnSelectedRowsChangedEventArgs): void {
-    // Row selection is handled directly in onCellChange using getSelectedRows()
-    // No additional tracking needed here
+    // Tracking selected row IDs
+    const angularGrid = this.angularGrids.get(typeId);
+    if (!angularGrid) return;
+
+    const selectedRowIndexes = args.rows || [];
+
+    // Initialize Set for this typeId if not exists
+    if (!this.selectedRowIdsSetMap.has(typeId)) {
+      this.selectedRowIdsSetMap.set(typeId, new Set<number>());
+    }
+
+    const selectedRowIdsSet = this.selectedRowIdsSetMap.get(typeId)!;
+    selectedRowIdsSet.clear();
+
+    // Lưu ID của các dòng được chọn
+    selectedRowIndexes.forEach((rowIndex: number) => {
+      const item = angularGrid.dataView.getItem(rowIndex);
+      if (item && item.ID) {
+        selectedRowIdsSet.add(Number(item.ID));
+      }
+    });
   }
 
   // Helper method to format numbers

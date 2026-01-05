@@ -1100,7 +1100,10 @@ export class ProductRtcPurchaseRequestComponent implements OnInit, AfterViewInit
       this.notification.error(NOTIFICATION_TITLE.error, 'Vui lòng nhập mã sản phẩm!');
       return;
     }
-
+    if (!data.Quantity || data.Quantity <= 0) {
+      this.notification.error(NOTIFICATION_TITLE.error, 'Vui lòng nhập số lượng sản phẩm!');
+      return;
+    }
     if (data.FirmID <= 0) {
       this.notification.error(NOTIFICATION_TITLE.error, 'Vui lòng chọn hãng!');
       return;

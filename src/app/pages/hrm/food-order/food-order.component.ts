@@ -226,19 +226,19 @@ export class FoodOrderComponent implements OnInit, AfterViewInit {
       {
         label: 'Duyệt',
         icon: 'fa-solid fa-circle-check fa-lg text-success',
-        visible: this.permissionService.hasPermission("N2,N23,N34,N1"),
+        visible: this.permissionService.hasPermission("N2,N23,N34,N1,N80"),
         command: () => this.approved(true)
       },
       {
         label: 'Hủy duyệt',
         icon: 'fa-solid fa-circle-xmark fa-lg text-danger',
-        visible: this.permissionService.hasPermission("N2,N23,N34,N1"),
+        visible: this.permissionService.hasPermission("N2,N23,N34,N1,N80"),
         command: () => this.approved(false)
       },
       {
         label: 'Báo cáo ăn ca',
         icon: 'fa-solid fa-chart-column fa-lg text-primary',
-        visible: this.permissionService.hasPermission("N34,N1,N2"),
+        visible: this.permissionService.hasPermission("N34,N1,N2,N80"),
         command: () => this.openSummaryFoodOrderModal()
       },
       {
@@ -596,6 +596,7 @@ export class FoodOrderComponent implements OnInit, AfterViewInit {
   openAddModal() {
     const today = new Date();
     today.setHours(0, 0, 0, 0);
+    const defaultLocation = this.currentUser?.EmployeeID === 586 ? '2' : '1';
 
     this.foodOrderForm.reset({
       ID: 0,
@@ -603,7 +604,7 @@ export class FoodOrderComponent implements OnInit, AfterViewInit {
       DateOrder: today,
       Quantity: 1,
       IsApproved: false,
-      Location: '1',
+      Location: defaultLocation,
       Note: '',
       FullName: '',
       IsDeleted: false,

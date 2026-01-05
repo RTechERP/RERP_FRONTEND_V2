@@ -3596,6 +3596,17 @@ export class ProjectPartListComponent implements OnInit, AfterViewInit {
                                 }
                             },
                             {
+                                title: 'TBP duyệt cột',
+                                field: 'IsApprovedTBP',  // Sửa: dùng text thay vì boolean
+                                hozAlign: 'center',
+                                headerHozAlign: 'center',
+                                width: 70,
+                                formatter: (cell: any) => {
+                                    const value = cell.getValue();
+                                    return `<input type="checkbox" ${(value === true ? 'checked' : '')} onclick="return false;">`;
+                                }
+                            },
+                            {
                                 title: 'Hàng mới',
                                 headerHozAlign: 'center',
                                 hozAlign: 'center',

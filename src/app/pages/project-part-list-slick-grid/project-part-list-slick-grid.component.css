@@ -311,12 +311,22 @@ angular-slickgrid,
 }
 
 /* ==================== FROZEN COLUMN SCROLLBAR FIX ==================== */
+/* Không cần CSS đặc biệt - để SlickGrid tự xử lý frozen columns */
+
+/* Đảm bảo row height đồng bộ như project-slick-grid2 */
+:host ::ng-deep .slick-row {
+  min-height: 33px !important;
+}
+
+:host ::ng-deep .slick-cell {
+  min-height: 33px !important;
+}
 :host ::ng-deep .slick-viewport-left {
   overflow-y: hidden !important;
-  /* Hide vertical scrollbar on left frozen pane */
+  overflow-x: auto !important;
 }
 
 :host ::ng-deep .slick-viewport-right {
   overflow-y: auto !important;
-  /* Ensure vertical scrollbar is on right pane */
+  overflow-x: auto !important;
 }

@@ -2653,7 +2653,7 @@ export class ProjectSlickGrid2Component implements OnInit, AfterViewInit, OnDest
       return;
     }
 
-    const modalRef = this.modalService.open(ProjectWorkerComponent, {
+    const modalRef = this.modalService.open(ProjectWokerSlickGridComponent, {
       centered: true,
       backdrop: 'static',
       keyboard: false,

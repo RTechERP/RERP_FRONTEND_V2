@@ -56,7 +56,7 @@ import { ProjectPartListService } from '../project/project-department-summary/pr
 import { AppUserService } from '../../services/app-user.service';
 import { BillExportService } from '../old/Sale/BillExport/bill-export-service/bill-export.service';
 import { AuthService } from '../../auth/auth.service';
-import { NOTIFICATION_TITLE } from '../../app.config';
+import { appConfig, NOTIFICATION_TITLE, USER_ALL_REPORT_TECH } from '../../app.config';
 import { ProjectSolutionDetailComponent } from '../project/project-department-summary/project-department-summary-form/project-solution-detail/project-solution-detail.component';
 import { ProjectSolutionVersionDetailComponent } from '../project/project-department-summary/project-department-summary-form/project-solution-version-detail/project-solution-version-detail.component';
 import { ProjectPartlistDetailComponent } from '../project/project-department-summary/project-department-summary-form/project-part-list/project-partlist-detail/project-partlist-detail.component';
@@ -2633,6 +2633,11 @@ export class ProjectPartListSlickGridComponent implements OnInit, AfterViewInit,
     console.log('[BOTTOM CALC] Total columns in grid:', columns.length);
 
     columns.forEach((column: any) => {
+      if (!column || !column.field) {
+        console.warn('[BOTTOM CALC] Column is null or missing field property:', column);
+        return;
+      }
+      
       const field = column.field;
       if (totals.hasOwnProperty(field)) {
         const footerCol = slickGrid.getFooterRowColumn(column.id);
@@ -3132,8 +3137,8 @@ export class ProjectPartListSlickGridComponent implements OnInit, AfterViewInit,
       // Kiểm tra các điều kiện không cho phép sửa
       const currentUser = this.appUserService.currentUser;
       const isAdmin = currentUser?.IsAdmin || false;
-
-      // 1. Kiểm tra IsDeleted
+   
+        // 1. Kiểm tra IsDeleted
       if (item.IsDeleted === true || item.IsDeleted === 1) {
         this.notification.warning('Thông báo', 'Vật tư đã bị xóa, không thể sửa!');
         return;
@@ -3170,23 +3175,25 @@ export class ProjectPartListSlickGridComponent implements OnInit, AfterViewInit,
         this.notification.warning('Thông báo', 'Bạn không thể sửa vật tư do người khác tạo!');
         return;
       }
+      
+      
 
-      // 7. Kiểm tra phiên bản có đang active không
-      if (this.type === 1) {
-        // Solution version
-        const selectedVersion = this.dataSolutionVersion.find(v => v.ID === this.versionID);
-        if (!selectedVersion || selectedVersion.StatusVersion !== 1 || !selectedVersion.IsActive) {
-          this.notification.warning('Thông báo', 'Phiên bản không ở trạng thái hoạt động, không thể sửa vật tư!');
-          return;
-        }
-      } else if (this.type === 2) {
-        // PO version
-        const selectedVersion = this.dataPOVersion.find(v => v.ID === this.versionPOID);
-        if (!selectedVersion || selectedVersion.StatusVersion !== 1 || !selectedVersion.IsActive) {
-          this.notification.warning('Thông báo', 'Phiên bản không ở trạng thái hoạt động, không thể sửa vật tư!');
-          return;
-        }
-      }
+      // // 7. Kiểm tra phiên bản có đang active không
+      // if (this.type === 1) {
+      //   // Solution version
+      //   const selectedVersion = this.dataSolutionVersion.find(v => v.ID === this.versionID);
+      //   if (!selectedVersion || selectedVersion.StatusVersion !== 1 || !selectedVersion.IsActive) {
+      //     this.notification.warning('Thông báo', 'Phiên bản không ở trạng thái hoạt động, không thể sửa vật tư!');
+      //     return;
+      //   }
+      // } else if (this.type === 2) {
+      //   // PO version
+      //   const selectedVersion = this.dataPOVersion.find(v => v.ID === this.versionPOID);
+      //   if (!selectedVersion || selectedVersion.StatusVersion !== 1 || !selectedVersion.IsActive) {
+      //     this.notification.warning('Thông báo', 'Phiên bản không ở trạng thái hoạt động, không thể sửa vật tư!');
+      //     return;
+      //   }
+      // }
     }
     const modalRef = this.ngbModal.open(ProjectPartlistDetailComponent, {
       centered: true,

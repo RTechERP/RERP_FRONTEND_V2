@@ -9,22 +9,22 @@
 
 /* Row Coloring */
 :host ::ng-deep .slick-row.row-deleted {
-  background-color: #ff4d4f !important;
+  background-color: red !important;
   color: white !important;
 }
 
 :host ::ng-deep .slick-row.row-deleted .slick-cell {
-  background-color: #ff4d4f !important;
+  background-color: red !important;
   color: white !important;
 }
 
 :host ::ng-deep .slick-row.row-parent {
-  background-color: #fffbe6 !important;
+  background-color: lightyellow !important;
   font-weight: bold !important;
 }
 
 :host ::ng-deep .slick-row.row-parent .slick-cell {
-  background-color: #fffbe6 !important;
+  background-color: lightyellow !important;
   font-weight: bold !important;
 }
 
@@ -129,4 +129,26 @@
   padding: 0 4px;
   height: 24px;
   line-height: 24px;
+}
+
+/*fix tràn viền*/
+.grid-sparepartgroup-container,
+.grid-sparepart-container,
+.grid-solution-container,
+.grid-solution-version-container,
+.grid-po-version-container,
+.grid-project-worker-container {
+  height: 100%;
+  width: 100%;
+}
+
+angular-slickgrid,
+.angular-slickgrid-container {
+  height: 100% !important;
+  width: 100%;
+  display: flex;
+}
+
+:host ::ng-deep .slickgrid-container {
+  height: 100% !important;
 }

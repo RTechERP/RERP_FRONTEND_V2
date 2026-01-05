@@ -114,8 +114,36 @@ export class OfficeSupplyRequestAdminDetailComponent implements OnInit, AfterVie
     this.authService.getCurrentUser().subscribe((res) => {
       this.currentUser = res.data;
       console.log(this.currentUser);
-    });
 
+      // Auto bind ngày đăng ký = ngày hôm nay nếu hợp lệ (ngày 1-5 của tháng)
+      // Chỉ bind nếu đang thêm mới (không có editData)
+      if (!this.editData) {
+        const today = new Date();
+        const currentDay = today.getDate();
+
+        // Kiểm tra có phải Admin hoặc EmployeeID = 395 không (được phép đăng ký bất kỳ ngày nào)
+        const isAdmin = this.currentUser?.IsAdmin || false;
+        const isSpecialUser = this.currentUser?.EmployeeID === 395;
+
+        if (currentDay <= 5 || isAdmin || isSpecialUser) {
+          this.dateRequest = today;
+        }
+
+        // Auto bind người đăng ký = currentUser
+        if (this.currentUser?.EmployeeID) {
+          this.requesterId = this.currentUser.EmployeeID;
+        }
+
+        // Auto bind phòng ban từ currentUser
+        if (this.currentUser?.DepartmentID) {
+          this.departmentId = this.currentUser.DepartmentID;
+          // Trigger filter nhân viên theo phòng ban
+          setTimeout(() => {
+            this.filterEmployeesByDepartment();
+          }, 500);
+        }
+      }
+    });
   }
 
   // Disable các ngày ngoài khoảng 1-5 cho user thường (không phải Admin và không phải EmployeeID 395)
@@ -1067,8 +1095,10 @@ export class OfficeSupplyRequestAdminDetailComponent implements OnInit, AfterVie
             const row = cell.getRow();
             const rowData = row.getData();
 
-            // Kiểm tra vượt định mức: nếu số lượng đăng ký > 1 thì tự động tích vượt định mức
-            if (quantity > 1) {
+
+            const requestLimit = parseFloat(rowData['RequestLimit']) || 0;// check số luowg
+            const limitToCompare = requestLimit > 0 ? requestLimit : 1;
+            if (quantity > limitToCompare) {
               row.update({
                 ExceedsLimit: true
               });
@@ -1309,15 +1339,19 @@ export class OfficeSupplyRequestAdminDetailComponent implements OnInit, AfterVie
       const quantity = parseFloat(rowData['Quantity']) || 0;
       const exceedsLimit = rowData['ExceedsLimit'] === true || rowData['ExceedsLimit'] === 1 || rowData['ExceedsLimit'] === 'true' || rowData['ExceedsLimit'] === '1';
 
-      // Kiểm tra: nếu số lượng đăng ký > 1 thì phải tích vượt định mức và nhập lý do
-      if (quantity > 1) {
+      // Lấy RequestLimit, nếu = 0 hoặc không có thì dùng 1 để so sánh
+      const requestLimit = parseFloat(rowData['RequestLimit']) || 0;
+      const limitToCompare = requestLimit > 0 ? requestLimit : 1;
+
+      // Kiểm tra: nếu số lượng đăng ký > limit thì phải tích vượt định mức và nhập lý do
+      if (quantity > limitToCompare) {
         if (!exceedsLimit) {
-          this.notification.warning(NOTIFICATION_TITLE.warning, `Số lượng đăng ký lớn hơn 1 ở dòng ${i + 1}. Vui lòng tích "Vượt định mức" và nhập lý do`);
+          this.notification.warning(NOTIFICATION_TITLE.warning, `Số lượng đăng ký lớn hơn định mức ở dòng ${i + 1}. Vui lòng tích "Vượt định mức" và nhập lý do`);
           return false;
         }
         const reason = rowData['Reason'] || '';
         if (!reason || reason.trim() === '') {
-          this.notification.warning(NOTIFICATION_TITLE.warning, `Số lượng đăng ký lớn hơn 1 ở dòng ${i + 1}. Vui lòng nhập lý do vượt định mức`);
+          this.notification.warning(NOTIFICATION_TITLE.warning, `Số lượng đăng ký lớn hơn định mức ở dòng ${i + 1}. Vui lòng nhập lý do vượt định mức`);
           return false;
         }
       }
@@ -1515,8 +1549,12 @@ export class OfficeSupplyRequestAdminDetailComponent implements OnInit, AfterVie
         const quantityReceived = parseFloat(rowData['QuantityReceived']) || 0;
         const exceedsLimit = rowData['ExceedsLimit'] === true || rowData['ExceedsLimit'] === 1 || rowData['ExceedsLimit'] === 'true' || rowData['ExceedsLimit'] === '1';
 
-        // Nếu số lượng đăng ký > 1 thì tự động set vượt định mức
-        const actualExceedsLimit = quantity > 1;
+        // Lấy RequestLimit, nếu = 0 hoặc không có thì dùng 1 để so sánh
+        const requestLimit = parseFloat(rowData['RequestLimit']) || 0;
+        const limitToCompare = requestLimit > 0 ? requestLimit : 1;
+
+        // Nếu số lượng đăng ký > limit thì tự động set vượt định mức
+        const actualExceedsLimit = quantity > limitToCompare;
         const reason = actualExceedsLimit ? (rowData['Reason'] || '') : '';
 
         // Tìm DetailID từ mapping nếu đang edit

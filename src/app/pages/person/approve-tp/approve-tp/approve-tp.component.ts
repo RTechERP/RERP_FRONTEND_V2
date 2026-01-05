@@ -561,9 +561,10 @@ export class ApproveTpComponent implements OnInit, AfterViewInit {
                                     numValue = 0;
                                 }
 
-                                // Nếu SeniorID = 0 thì mặc định là đã duyệt
+                                // Nếu SeniorID = 0 hoặc EmployeeID = SeniorID thì mặc định là đã duyệt
                                 const seniorId = Number(rowData?.SeniorID ?? rowData?.SeniorId ?? rowData?.seniorId ?? 0);
-                                if (seniorId === 0) {
+                                const employeeId = Number(rowData?.EmployeeID ?? rowData?.EmployeeId ?? rowData?.employeeId ?? 0);
+                                if (seniorId === 0 || (employeeId > 0 && employeeId === seniorId)) {
                                     numValue = 1;
                                 }
 

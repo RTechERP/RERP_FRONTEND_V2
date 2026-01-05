@@ -123,21 +123,22 @@ export class BillImportAddSerialComponent implements OnInit, AfterViewInit {
         this.serialData = res.data.map((x: any, index: number) => ({
           ...x,
           STT: index + 1,
+          ID: index--,
         }));
 
-        const currentCount = this.serialData.length;
-        const requiredQty = this.dataBillDetail.Qty || 0;
+        // const currentCount = this.serialData.length;
+        // const requiredQty = this.dataBillDetail.Qty || 0;
 
-        if (currentCount < requiredQty) {
-          for (let i = currentCount; i < requiredQty; i++) {
-            this.serialData.push({
-              ID: -(i + 1),
-              STT: i + 1,
-              SerialNumber: '',
-              SerialNumberRTC: '',
-            });
-          }
-        }
+        // if (currentCount < requiredQty) {
+        //   for (let i = currentCount; i < requiredQty; i++) {
+        //     this.serialData.push({
+        //       ID: -(i + 1),
+        //       STT: i + 1,
+        //       SerialNumber: '',
+        //       SerialNumberRTC: '',
+        //     });
+        //   }
+        // }
       });
   }
 
@@ -245,18 +246,18 @@ export class BillImportAddSerialComponent implements OnInit, AfterViewInit {
 
   initGridColumns() {
     this.columnDefinitionsAddSerial = [
-      {
-        id: 'action',
-        name: '<i class="fas fa-plus" style="cursor:pointer; color:#1890ff;" title="Thêm"></i>',
-        field: 'action',
-        width: 60,
-        sortable: false,
-        filterable: false,
-        excludeFromHeaderMenu: true,
-        formatter: (_row, _cell, _value, _column, _dataContext) => {
-          return `<div style="text-align:center;"><i class="fas fa-trash" style="cursor:pointer; color:#ff4d4f;" title="Xóa file"></i></div>`;
-        },
-      },
+      // {
+      //   id: 'action',
+      //   name: '<i class="fas fa-plus" style="cursor:pointer; color:#1890ff;" title="Thêm"></i>',
+      //   field: 'action',
+      //   width: 60,
+      //   sortable: false,
+      //   filterable: false,
+      //   excludeFromHeaderMenu: true,
+      //   formatter: (_row, _cell, _value, _column, _dataContext) => {
+      //     return `<div style="text-align:center;"><i class="fas fa-trash" style="cursor:pointer; color:#ff4d4f;" title="Xóa file"></i></div>`;
+      //   },
+      // },
       {
         id: 'STT',
         name: 'STT',

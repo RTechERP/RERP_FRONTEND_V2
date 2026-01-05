@@ -65,6 +65,7 @@ import { BillExportDetailComponent } from '../old/Sale/BillExport/Modal/bill-exp
 import { ImportExcelPartlistComponent } from '../project/project-department-summary/project-department-summary-form/project-part-list/project-partlist-detail/import-excel-partlist/import-excel-partlist.component';
 import { FormExportExcelPartlistComponent } from '../project/project-department-summary/project-department-summary-form/project-part-list/project-partlist-detail/form-export-excel-partlist/form-export-excel-partlist.component';
 import { ProjectPartlistPurchaseRequestDetailComponent } from '../purchase/project-partlist-purchase-request/project-partlist-purchase-request-detail/project-partlist-purchase-request-detail.component';
+import { environment } from '../../../environments/environment';
 import * as ExcelJS from 'exceljs';
 
 @Component({
@@ -4180,7 +4181,6 @@ export class ProjectPartListSlickGridComponent implements OnInit, AfterViewInit,
     console.log('[REQUEST TRANSFER] Payload:', request);
     this.startLoading();
 
-    // TODO: Thêm requestTransfer API vào ProjectPartListService
     this.projectPartListService.requestExport(request).subscribe({
       next: (response: any) => {
         this.stopLoading();
@@ -4196,10 +4196,8 @@ export class ProjectPartListSlickGridComponent implements OnInit, AfterViewInit,
             this.notification.warning('Thông báo', 'Không có dữ liệu để xuất kho!');
             return;
           }
-          // TODO: Mở modal BillExportDetail tuần tự cho từng bill
-          // this.openBillExportDetailModals(billsData, 0, true);
-          this.notification.success('Thành công', `Yêu cầu chuyển kho thành công! Đã tạo ${billsData.length} phiếu xuất kho.`);
-          this.loadDataProjectPartList();
+          // Mở modal BillExportDetail tuần tự cho từng bill
+          this.openBillExportDetailModals(billsData, 0, true);
         } else {
           this.notification.error('Lỗi', response.message || 'Không thể yêu cầu chuyển kho!');
         }
@@ -4306,10 +4304,8 @@ export class ProjectPartListSlickGridComponent implements OnInit, AfterViewInit,
             this.notification.warning('Thông báo', 'Không có dữ liệu để xuất kho!');
             return;
           }
-          // TODO: Mở modal BillExportDetail tuần tự cho từng bill
-          // this.openBillExportDetailModals(billsData, 0, false);
-          this.notification.success('Thành công', `Yêu cầu xuất kho thành công! Đã tạo ${billsData.length} phiếu xuất kho.`);
-          this.loadDataProjectPartList();
+          // Mở modal BillExportDetail tuần tự cho từng bill
+          this.openBillExportDetailModals(billsData, 0, false);
         } else {
           this.notification.error('Lỗi', response.message || 'Không thể yêu cầu xuất kho!');
         }
@@ -4321,6 +4317,120 @@ export class ProjectPartListSlickGridComponent implements OnInit, AfterViewInit,
         this.notification.error('Lỗi', errorMessage);
       }
     });
+  }
+
+  // Mở modal BillExportDetail tuần tự cho từng bill
+  private openBillExportDetailModals(billsData: any[], index: number, isTransfer: boolean): void {
+    if (index >= billsData.length) {
+      // Đã mở hết tất cả modal → reload data
+      this.loadDataProjectPartList();
+      return;
+    }
+    const billData = billsData[index];
+    const bill = billData.Bill || {};
+    const details = billData.Details || [];
+    const billExportForModal = {
+      TypeBill: false,
+      Code: bill.Code || '',
+      Address: bill.Address || '',
+      CustomerID: bill.CustomerID || 0,
+      UserID: bill.UserID || 0,
+      SenderID: bill.SenderID || 0,
+      WarehouseType: bill.WarehouseType || '',
+      GroupID: bill.GroupID || '',
+      KhoTypeID: bill.KhoTypeID || 0,
+      ProductType: bill.ProductType || 0,
+      AddressStockID: bill.AddressStockID || 0,
+      WarehouseID: bill.WarehouseID || 0,
+      Status: bill.Status || 6,
+      SupplierID: bill.SupplierID || 0,
+      CreatDate: bill.CreatDate || bill.RequestDate || new Date(),
+      RequestDate: bill.RequestDate || new Date(),
+    };
+    // Map details cho modal theo BillExportDetailRQPDTO structure
+    const detailsForModal = details.map((detail: any) => ({
+      ID: 0,
+      STT: detail.STT || 0,
+      ChildID: detail.ChildID || 0,
+      ParentID: detail.ParentID || 0,
+      ProductID: detail.ProductID || 0,
+      ProductCode: detail.ProductCode || '',
+      ProductNewCode: detail.ProductNewCode || '',
+      ProductName: detail.ProductName || '',
+      ProductFullName: detail.ProductFullName || '',
+      Unit: detail.Unit || '',
+      Qty: detail.Qty || 0,
+      TotalQty: detail.TotalQty || 0,
+      QuantityRemain: detail.Qty || 0,
+      ProjectID: detail.ProjectID || 0,
+      ProjectName: detail.ProjectName || '',
+      ProjectCodeText: detail.ProjectCodeText || '',
+      ProjectCodeExport: detail.ProjectCodeExport || '',
+      ProjectPartListID: detail.ProjectPartListID || 0,
+      Note: detail.Note || '',
+      SerialNumber: detail.SerialNumber || '',
+      ProjectNameText: detail.ProjectName || '',
+      IsTransfer: isTransfer,
+      TotalInventory: 0
+    }));
+    const modalRef = this.ngbModal.open(BillExportDetailComponent, {
+      centered: true,
+      size: 'xl',
+      backdrop: 'static',
+      keyboard: false,
+    });
+    // Truyền dữ liệu vào modal
+    modalRef.componentInstance.newBillExport = billExportForModal;
+    modalRef.componentInstance.isCheckmode = false;
+    modalRef.componentInstance.id = 0;
+    modalRef.componentInstance.isAddExport = true;
+    modalRef.componentInstance.wareHouseCode = bill.WarehouseCode || '';
+    modalRef.componentInstance.isPOKH = bill.IsPOKH || false;
+    modalRef.componentInstance.isFromProjectPartList = true;
+    // Set detail data sau khi modal mở
+    setTimeout(() => {
+      modalRef.componentInstance.dataTableBillExportDetail = detailsForModal;
+      if (modalRef.componentInstance.table_billExportDetail) {
+        modalRef.componentInstance.table_billExportDetail.replaceData(detailsForModal);
+      }
+    }, 200);
+    // Xử lý khi modal đóng
+    modalRef.result.then(
+      (result) => {
+        // Modal đóng thành công → mở modal tiếp theo
+        if (result === true && index < billsData.length - 1) {
+          this.openBillExportDetailModals(billsData, index + 1, isTransfer);
+        } else if (result === true && index === billsData.length - 1) {
+          // Modal cuối cùng đóng → reload data và gọi API thông báo
+          const text = (isTransfer ? "Mã phiếu chuyển kho: " : "Mã phiếu xuất: ") + bill.Code + "\nNgười yêu cầu: " + (this.currentUser?.FullName || '');
+          const employeeID = this.currentUser?.ID || this.currentUser?.EmployeeID || 0;
+          const departmentID = 0;
+          // Gọi API thông báo
+          this.projectPartListService.addNotify(text, employeeID, departmentID).subscribe({
+            next: (response: any) => {
+              if (response.status === 1) {
+                console.log('Thông báo đã được gửi thành công:', response);
+              } else {
+                console.warn('Có lỗi khi gửi thông báo:', response.message);
+              }
+            },
+            error: (error: any) => {
+              console.error('Lỗi khi gọi API thông báo:', error);
+            }
+          });
+          this.loadDataProjectPartList();
+        }
+      },
+      (dismissed) => {
+        // Modal bị dismiss → vẫn tiếp tục mở modal tiếp theo nếu có
+        if (index < billsData.length - 1) {
+          this.openBillExportDetailModals(billsData, index + 1, isTransfer);
+        } else {
+          // Modal cuối cùng bị dismiss → reload data
+          this.loadDataProjectPartList();
+        }
+      }
+    );
   }
 
   // Mở form xuất Excel
@@ -4697,7 +4807,455 @@ export class ProjectPartListSlickGridComponent implements OnInit, AfterViewInit,
     const updatedColumns = angularGrid.slickGrid.getColumns();
     angularGrid.slickGrid.setColumns(updatedColumns);
     angularGrid.slickGrid.invalidate();
-    angularGrid.slickGrid.render();
   }
-}
 
+  openProjectPartListHistory(productCode?: string): void {
+    let finalProductCode = '';
+    if (this.lastClickedPartListRow) {
+      finalProductCode = this.lastClickedPartListRow.ProductCode || '';
+    } else if (productCode) {
+      finalProductCode = productCode;
+    }
+    if (!finalProductCode || finalProductCode.trim() === '') {
+      this.notification.warning('Thông báo', 'Không tìm thấy mã sản phẩm!');
+      return;
+    }
+    const modalRef = this.ngbModal.open(ProjectPartListHistoryComponent, {
+      centered: true,
+      windowClass: 'full-screen-modal',
+      keyboard: false,
+    });
+    modalRef.componentInstance.productCode = finalProductCode;
+    modalRef.result.then(
+      (result: any) => {},
+      (reason: any) => {}
+    );
+  }
+
+  getPriceHistory(): void {
+    if (!this.angularGridPartList) {
+      this.notification.warning('Thông báo', 'Bảng dữ liệu chưa được khởi tạo!');
+      return;
+    }
+    const selectedRows = this.angularGridPartList?.slickGrid?.getSelectedRows() || [];
+    if (selectedRows.length === 0) {
+      this.notification.warning('Thông báo', 'Vui lòng chọn vật tư!');
+      return;
+    }
+    const requestItems: any[] = [];
+    for (let rowIndex of selectedRows) {
+      const row = this.angularGridPartList?.dataView?.getItem(rowIndex);
+      if (!row || !row.ID || row.ID <= 0) continue;
+      if (row.UnitPriceHistory == null || row.UnitPriceHistory === '') continue;
+      const isLeaf = !row._children || row._children.length === 0;
+      requestItems.push({
+        ID: row.ID,
+        IsLeaf: isLeaf,
+        UnitPriceHistory: row.UnitPriceHistory || 0,
+        QtyFull: row.QtyFull || 0
+      });
+    }
+    if (requestItems.length === 0) {
+      this.notification.warning('Thông báo', 'Không có dòng nào được chọn hoặc các dòng được chọn không có giá lịch sử!');
+      return;
+    }
+    this.modal.confirm({
+      nzTitle: 'Xác nhận lấy giá lịch sử',
+      nzContent: `Bạn có chắc muốn lấy giá lịch sử cho ${requestItems.length} vật tư không? Hành động này sẽ cập nhật giá và thành tiền của các vật tư.`,
+      nzOkText: 'Xác nhận',
+      nzCancelText: 'Hủy',
+      nzOkType: 'primary',
+      nzOnOk: () => {
+        this.isLoading = true;
+        this.projectPartListService.getPriceHistory(requestItems).subscribe({
+          next: (response: any) => {
+            this.isLoading = false;
+            if (response.status === 1) {
+              this.notification.success('Thành công', response.message || 'Lấy giá lịch sử thành công!');
+              this.loadDataProjectPartList();
+            } else {
+              this.notification.error('Lỗi', response.message || 'Có lỗi xảy ra khi lấy giá lịch sử!');
+            }
+          },
+          error: (error: any) => {
+            this.isLoading = false;
+            const errorMessage = error?.error?.message || error?.message || 'Có lỗi xảy ra khi lấy giá lịch sử!';
+            this.notification.error('Lỗi', errorMessage);
+          }
+        });
+      }
+    });
+  }
+
+  restoreDelete(): void {
+    if (!this.angularGridPartList) {
+      this.notification.warning('Thông báo', 'Bảng dữ liệu chưa được khởi tạo!');
+      return;
+    }
+    const selectedRows = this.angularGridPartList?.slickGrid?.getSelectedRows() || [];
+    if (selectedRows.length === 0) {
+      this.notification.warning('Thông báo', 'Không có dòng nào được chọn!');
+      return;
+    }
+    const requestItems: any[] = [];
+    const selectedData: any[] = [];
+    for (let rowIndex of selectedRows) {
+      const row = this.angularGridPartList?.dataView?.getItem(rowIndex);
+      if (!row || !row.ID || row.ID <= 0) continue;
+      const isLeaf = !row._children || row._children.length === 0;
+      requestItems.push({
+        ID: row.ID,
+        IsLeaf: isLeaf
+      });
+      selectedData.push(row);
+    }
+    if (requestItems.length === 0) {
+      this.notification.warning('Thông báo', 'Không có dòng nào được chọn!');
+      return;
+    }
+    const itemCount = requestItems.length;
+    const sttList = selectedData
+      .filter((row: any) => row.IsDeleted === true && row.ID > 0)
+      .map((row: any) => row.TT || row.STT)
+      .join(', ');
+    this.modal.confirm({
+      nzTitle: 'Xác nhận khôi phục',
+      nzContent: `Bạn có chắc chắn muốn khôi phục ${itemCount} dòng đã xóa (Stt: ${sttList})?`,
+      nzOkText: 'Xác nhận',
+      nzCancelText: 'Hủy',
+      nzOkType: 'primary',
+      nzOnOk: () => {
+        this.isLoading = true;
+        this.projectPartListService.restoreDelete(requestItems).subscribe({
+          next: (response: any) => {
+            this.isLoading = false;
+            if (response.status === 1) {
+              this.notification.success('Thành công', response.message || 'Khôi phục thành công!');
+              this.loadDataProjectPartList();
+            } else {
+              this.notification.error('Lỗi', response.message || 'Có lỗi xảy ra khi khôi phục!');
+            }
+          },
+          error: (error: any) => {
+            this.isLoading = false;
+            const errorMessage = error?.error?.message || error?.message || 'Có lỗi xảy ra khi khôi phục!';
+            this.notification.error('Lỗi', errorMessage);
+          }
+        });
+      }
+    });
+  }
+
+  additionalPartListPO(): void {
+    const selectedRows = this.angularGridPartList?.slickGrid?.getSelectedRows() || [];
+    if (selectedRows.length === 0) {
+      this.notification.warning('Thông báo', 'Vui lòng chọn vật tư cần bổ sung vào PO');
+      return;
+    }
+    if (this.type !== 1) {
+      this.notification.warning('Thông báo', 'Chức năng này chỉ áp dụng cho phiên bản giải pháp (GP)');
+      return;
+    }
+    let selectedVersion: any = null;
+    const versionRows = this.angularGridSolutionVersion?.slickGrid?.getSelectedRows() || [];
+    if (versionRows.length === 0) {
+      this.notification.warning('Thông báo', 'Vui lòng chọn phiên bản giải pháp để bổ sung vào PO');
+      return;
+    }
+    selectedVersion = this.angularGridSolutionVersion?.dataView?.getItem(versionRows[0]);
+    if (!selectedVersion || selectedVersion['IsActive'] == false || selectedVersion['IsActive'] == null) {
+      this.notification.warning('Thông báo', `Vui lòng chọn sử dụng phiên bản [${selectedVersion?.Code}] trước!`);
+      return;
+    }
+    const requestItems: any[] = [];
+    for (let rowIndex of selectedRows) {
+      const row = this.angularGridPartList?.dataView?.getItem(rowIndex);
+      if (!row || !row.ID || row.ID <= 0) {
+        this.notification.warning('Thông báo', 'Vui lòng chọn vật tư hợp lệ!');
+        return;
+      }
+      if (row.IsDeleted == true) {
+        this.notification.warning('Thông báo', `Không thể bổ sung vì vật tư thứ tự [${row.TT || row.ID}] đã bị xóa!`);
+        return;
+      }
+      const isLeaf = !row._children || row._children.length === 0;
+      requestItems.push({
+        ID: row.ID || 0,
+        TT: row.TT || '',
+        IsLeaf: isLeaf
+      });
+    }
+    if (requestItems.length === 0) {
+      this.notification.warning('Thông báo', 'Không có vật tư hợp lệ để bổ sung vào PO');
+      return;
+    }
+    this.reasonProblem = '';
+    this.isGeneratedItem = false;
+    this.showAdditionalPartListPOModal(requestItems, selectedVersion);
+  }
+
+  showAdditionalPartListPOModal(requestItems: any[], selectedVersion: any): void {
+    const itemCount = requestItems.length;
+    const sttList = requestItems.map((item: any) => item.TT).filter((tt: string) => tt).join(', ');
+    this.modal.confirm({
+      nzTitle: 'Bổ sung vật tư vào PO',
+      nzContent: this.additionalPartListPOModalContent,
+      nzOkText: 'Xác nhận',
+      nzCancelText: 'Hủy',
+      nzOkType: 'primary',
+      nzWidth: 500,
+      nzOnOk: () => {
+        return this.validateAndConfirmAdditionalPartListPO(requestItems, selectedVersion);
+      },
+      nzOnCancel: () => {
+        this.reasonProblem = '';
+        this.isGeneratedItem = false;
+      }
+    });
+    setTimeout(() => {
+      this.cdr.detectChanges();
+    }, 0);
+  }
+
+  validateAndConfirmAdditionalPartListPO(requestItems: any[], selectedVersion: any): Promise<boolean> {
+    return new Promise((resolve, reject) => {
+      if (this.isGeneratedItem) {
+        if (!this.reasonProblem || this.reasonProblem.trim() === '') {
+          this.notification.warning('Thông báo', 'Vui lòng nhập lý do phát sinh!');
+          resolve(false);
+          return;
+        }
+      }
+      this.confirmAdditionalPartListPO(requestItems, selectedVersion);
+      resolve(true);
+    });
+  }
+
+  confirmAdditionalPartListPO(requestItems: any[], selectedVersion: any): void {
+    const payload = {
+      ListItem: requestItems,
+      VersionID: selectedVersion.ID || 0,
+      ProjectTypeID: selectedVersion.ProjectTypeID || 0,
+      ProjectTypeName: selectedVersion.ProjectTypeName || '',
+      ProjectSolutionID: this.projectSolutionId || 0,
+      projectID: this.projectId || 0,
+      ReasonProblem: this.reasonProblem.trim()
+    };
+    console.log('=== SENDING ADDITIONAL PARTLIST PO TO API ===');
+    console.log('Payload:', JSON.stringify(payload, null, 2));
+    this.startLoading();
+    this.projectPartListService.additionalPartListPO(payload).subscribe({
+      next: (response: any) => {
+        this.stopLoading();
+        console.log('API Response:', response);
+        if (response.status === 1) {
+          this.notification.success('Thành công', response.message || 'Bổ sung vật tư vào PO thành công!');
+          this.loadDataProjectPartList();
+          this.loadDataProjectPartListVersionPO();
+          this.reasonProblem = '';
+          this.isGeneratedItem = false;
+        } else if (response.status === 2) {
+          this.notification.warning('Thông báo', response.message || 'Không thể bổ sung vật tư vào PO');
+        } else {
+          this.notification.error('Lỗi', response.message || 'Không thể bổ sung vật tư vào PO');
+        }
+      },
+      error: (error: any) => {
+        const errorMessage = error?.error?.message || error?.message || 'Không thể bổ sung vật tư vào PO';
+        this.notification.error('Lỗi', errorMessage);
+      }
+    });
+  }
+
+  downloadDrawing(): void {
+    const selectedSolutionRows = this.angularGridSolution?.slickGrid?.getSelectedRows() || [];
+    if (selectedSolutionRows.length === 0) {
+      this.notification.warning('Thông báo', 'Vui lòng chọn giải pháp!');
+      return;
+    }
+    const solutionData = this.angularGridSolution?.dataView?.getItem(selectedSolutionRows[0]);
+    const solutionCode = solutionData?.CodeSolution?.trim();
+    if (!solutionCode) {
+      this.notification.warning('Thông báo', 'Không tìm thấy mã giải pháp!');
+      return;
+    }
+    const selectedProducts = this.angularGridPartList?.slickGrid?.getSelectedRows() || [];
+    if (selectedProducts.length === 0) {
+      this.notification.warning('Thông báo', 'Vui lòng chọn sản phẩm muốn tải file!');
+      return;
+    }
+    const getAllSelectedRows = (): any[] => {
+      const allRows: any[] = [];
+      for (let rowIndex of selectedProducts) {
+        const rowData = this.angularGridPartList?.dataView?.getItem(rowIndex);
+        if (rowData && rowData.ProductCode && rowData.ProductCode.trim()) {
+          allRows.push(rowData);
+        }
+        if (rowData && rowData._children && rowData._children.length > 0) {
+          const getChildrenRecursive = (children: any[]) => {
+            children.forEach((child: any) => {
+              if (child.ProductCode && child.ProductCode.trim()) {
+                allRows.push(child);
+              }
+              if (child._children && child._children.length > 0) {
+                getChildrenRecursive(child._children);
+              }
+            });
+          };
+          getChildrenRecursive(rowData._children);
+        }
+      }
+      return allRows;
+    };
+    const allSelectedProducts = getAllSelectedRows();
+    if (allSelectedProducts.length === 0) {
+      this.notification.warning('Thông báo', 'Không tìm thấy sản phẩm hợp lệ để tải file!');
+      return;
+    }
+    this.notification.info('Thông báo', 'Đang tải xuống file...');
+    let downloadCount = 0;
+    let errorCount = 0;
+    const totalFiles = allSelectedProducts.length;
+    let completedCount = 0;
+    this.projectService.getProjectById(this.projectId).subscribe({
+      next: (projectResponse: any) => {
+        if (projectResponse.status !== 1 || !projectResponse.data) {
+          this.notification.error('Thông báo', `Không tìm thấy thông tin dự án ID: ${this.projectId}`);
+          return;
+        }
+        const project = projectResponse.data;
+        if (!project.CreatedDate) {
+          this.notification.error('Thông báo', `Dự án ${project.ProjectCode} không có ngày tạo!`);
+          return;
+        }
+        const createdDate = new Date(project.CreatedDate);
+        const year = createdDate.getFullYear();
+        const projectCode = project.ProjectCode?.trim() || this.projectCodex?.trim();
+        if (!projectCode) {
+          this.notification.error('Thông báo', `Dự án ID ${this.projectId} không có mã dự án!`);
+          return;
+        }
+        const pathPattern = `${year}/${projectCode}/THIETKE.Co/${solutionCode}/2D/GC/DH`;
+        allSelectedProducts.forEach((product: any) => {
+          const productCode = product.ProductCode?.trim();
+          if (!productCode) {
+            completedCount++;
+            if (completedCount === totalFiles) {
+              if (downloadCount > 0) {
+                this.notification.success('Thông báo', `Đã tải xuống thành công ${downloadCount}/${totalFiles} file!`);
+              }
+            }
+            return;
+          }
+          const fileName = `${productCode}.pdf`;
+          const url = `  ${environment.host}api/share/duan/projects/${pathPattern}/${fileName}`;
+          this.projectPartListService.downloadDrawingFile(url).subscribe({
+            next: (blob: Blob) => {
+              completedCount++;
+              if (blob && blob.size > 0) {
+                const downloadUrl = window.URL.createObjectURL(blob);
+                const link = document.createElement('a');
+                link.href = downloadUrl;
+                link.download = fileName;
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+                window.URL.revokeObjectURL(downloadUrl);
+                downloadCount++;
+              } else {
+                errorCount++;
+                this.notification.warning('Thông báo', `File [${fileName}] không tồn tại hoặc rỗng!`);
+              }
+              if (completedCount === totalFiles) {
+                if (downloadCount > 0) {
+                  this.notification.success('Thông báo', `Đã tải xuống thành công ${downloadCount}/${totalFiles} file!`);
+                }
+                if (errorCount > 0 && downloadCount === 0) {
+                  this.notification.error('Thông báo', `Không thể tải xuống file nào! (${errorCount} lỗi)`);
+                }
+              }
+            },
+            error: (error: any) => {
+              completedCount++;
+              errorCount++;
+              console.error(`Error downloading file ${fileName}:`, error);
+              this.notification.error('Thông báo', `File [${fileName}] không tồn tại!\n${error?.message || error?.error?.message || 'Lỗi không xác định'}`);
+              if (completedCount === totalFiles) {
+                if (downloadCount > 0) {
+                  this.notification.success('Thông báo', `Đã tải xuống thành công ${downloadCount}/${totalFiles} file!`);
+                }
+              }
+            }
+          });
+        });
+      }
+    });
+  }
+
+  techBought(): void {
+    const selectedRows = this.angularGridPartList?.slickGrid?.getSelectedRows() || [];
+    if (selectedRows.length === 0) {
+      this.notification.warning('Thông báo', 'Vui lòng chọn vật tư mua!');
+      return;
+    }
+    const selectedRow = this.angularGridPartList?.dataView?.getItem(selectedRows[0]);
+    if (selectedRow && selectedRow.BillCodePurchase && selectedRow.BillCodePurchase.length > 0) {
+      this.notification.warning('Thông báo', `Mã sản phẩm ${selectedRow.ProductCode} đã được có đơn mua ${selectedRow.BillCodePurchase}, bạn không thể mua!`);
+      return;
+    }
+    const modalRef = this.ngbModal.open(ProjectPartlistPurchaseRequestDetailComponent, {
+      centered: true,
+      size: 'xl',
+      backdrop: 'static',
+      keyboard: false
+    });
+    const projectPartlistDetail: any = {
+      ID: 0,
+      IsTechBought: false,
+      ProjectPartListID: selectedRow.ID,
+      ProductSaleID: selectedRow.ProductSaleID || 0,
+      ProductCode: selectedRow.ProductCode || '',
+      ProductName: selectedRow.GroupMaterial || '',
+      UnitName: selectedRow.Unit || '',
+      Manufacturer: selectedRow.Maker || '',
+      Quantity: selectedRow.QtyFull || 0,
+      EmployeeID: selectedRow.EmployeeID || 0
+    };
+    modalRef.componentInstance.projectPartlistDetail = projectPartlistDetail;
+    modalRef.result.finally(() => {
+      this.loadDataProjectPartList();
+    });
+  }
+
+  unTechBought(): void {
+    const selectedRows = this.angularGridPartList?.slickGrid?.getSelectedRows() || [];
+    if (selectedRows.length === 0) {
+      this.notification.warning('Thông báo', 'Vui lòng chọn vật tư mua!');
+      return;
+    }
+    const selectedRow = this.angularGridPartList?.dataView?.getItem(selectedRows[0]);
+    if (selectedRow && selectedRow.BillCodePurchase && selectedRow.BillCodePurchase.length > 0) {
+      this.notification.warning('Thông báo', `Mã sản phẩm ${selectedRow.ProductCode} đã được có đơn mua ${selectedRow.BillCodePurchase}, bạn không thể hủy!`);
+      return;
+    }
+    this.modal.confirm({
+      nzTitle: 'Xác nhận hủy đã mua',
+      nzContent: `Bạn có chắc muốn hủy đã mua mã sản phẩm ${selectedRow.ProductCode} không?`,
+      nzOkText: 'Xác nhận',
+      nzCancelText: 'Hủy',
+      nzOkType: 'primary',
+      nzOkDanger: true,
+      nzOnOk: () => {
+        this.projectPartListService.cancelTechBought(selectedRow.ID).subscribe({
+          next: (response: any) => {
+            if (response.status === 1) {
+              this.notification.success('Thành công', 'Hủy đã mua thành công!');
+              this.loadDataProjectPartList();
+            }
+          }
+        });
+      }
+    });
+  }
+  //#endregion
+}

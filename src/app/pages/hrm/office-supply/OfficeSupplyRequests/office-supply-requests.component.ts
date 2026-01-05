@@ -248,7 +248,7 @@ export class OfficeSupplyRequestsComponent implements OnInit {
       .getOfficeSupplyRequests(
         this.searchParams.keyword,
         this.searchParams.month,
-        0
+        deptId
       )
       .subscribe({
         next: (res) => {

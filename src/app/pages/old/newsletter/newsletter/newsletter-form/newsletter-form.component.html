@@ -1,6 +1,6 @@
 <div class="modal-dialog-scrollable">
   <div class="modal-header bg-primary align-items-center p-2">
-    <h6 class="text-light text-uppercase m-0">
+    <h6 class="text-light text-uppercase m-0 text-center flex-grow-1 ps-4">
       {{ isEditMode ? 'SỬA BẢN TIN' : 'THÊM BẢN TIN MỚI' }}
     </h6>
     <button type="button" class="btn-close" (click)="onCancel()" aria-label="Close"></button>
@@ -9,7 +9,7 @@
   <div class="modal-body p-3" style="max-height: 85vh; overflow-y: auto; overflow-x: hidden;">
     <form nz-form [formGroup]="newsletterForm" nzLayout="vertical">
       <nz-row [nzGutter]="16">
-        <nz-col [nzXs]="24" [nzSm]="24" [nzMd]="12" [nzLg]="8" [nzXl]="6">
+        <nz-col [nzXs]="24" [nzSm]="24" [nzMd]="12" [nzLg]="8" [nzXl]="6" *ngIf="isEditMode">
           <nz-form-item>
             <nz-form-label>Mã bản tin</nz-form-label>
             <nz-form-control>
@@ -20,8 +20,8 @@
 
         <nz-col [nzXs]="24" [nzSm]="24" [nzMd]="12" [nzLg]="8" [nzXl]="6">
           <nz-form-item>
-            <nz-form-label>Loại bản tin</nz-form-label>
-            <nz-form-control>
+            <nz-form-label>Loại bản tin<span class="text-danger ps-1"> (*)</span></nz-form-label>
+            <nz-form-control [nzErrorTip]="'Vui lòng chọn loại bản tin'">
               <nz-select formControlName="Type" placeholder="Chọn loại bản tin" [nzLoading]="typeList.length === 0">
                 <nz-option *ngFor="let type of typeList" [nzValue]="type.ID"
                   [nzLabel]="type.NewsletterTypeName"></nz-option>
@@ -37,8 +37,8 @@
             <nz-form-label>Tiêu đề<span class="text-danger ps-1"> (*)</span></nz-form-label>
             <nz-form-control [nzErrorTip]="'Vui lòng nhập tiêu đề'">
               <textarea formControlName="Title" placeholder="Nhập tiêu đề bản tin"
-                style="width: 100%; min-height: 32px; height: auto; resize: none; overflow-y: hidden;" rows="2"
-                (input)="autoResizeTextarea($event)"></textarea>
+                style="width: 100%; min-height: 40px; height: auto; resize: none; padding: 10px; border-radius: 4px; border: 1px solid #d9d9d9;"
+                rows="2" (input)="autoResizeTextarea($event)"></textarea>
             </nz-form-control>
           </nz-form-item>
         </nz-col>

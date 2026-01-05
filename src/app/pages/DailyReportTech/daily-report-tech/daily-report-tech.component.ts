@@ -1,4 +1,4 @@
-import { Component, OnInit, AfterViewInit, ViewChild, ElementRef } from '@angular/core';
+import { Component, OnInit, AfterViewInit, ViewChild, ElementRef, HostListener } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { NzCardModule } from 'ng-zorro-antd/card';
@@ -29,6 +29,8 @@ import { Subject } from 'rxjs';
 import { DailyReportTechDetailComponent } from './daily-report-tech-detail/daily-report-tech-detail.component';
 import { DailyReportExcelComponent } from '../daily-report-excel/daily-report-excel.component';
 import { USER_ALL_REPORT_TECH } from '../../../app.config';
+import { MenuItem, PrimeIcons } from 'primeng/api';
+import { Menubar } from 'primeng/menubar';
 
 @Component({
   selector: 'app-daily-report-tech',
@@ -49,6 +51,7 @@ import { USER_ALL_REPORT_TECH } from '../../../app.config';
     NzNotificationModule,
     NzModalModule,
     NzDropDownModule,
+    Menubar,
   ],
   templateUrl: './daily-report-tech.component.html',
   styleUrl: './daily-report-tech.component.css'
@@ -62,7 +65,9 @@ export class DailyReportTechComponent implements OnInit, AfterViewInit {
 
   // Search panel state
   sizeSearch: string = '22%';
-  showSearchBar: boolean = false; // Mặc định ẩn, sẽ được set trong ngOnInit
+  showSearchBar: boolean = true; // Mặc định ẩn, sẽ được set trong ngOnInit
+  isMobile: boolean = false;
+  menuBars: MenuItem[] = [];
   
   // Search filters
   dateStart: any = DateTime.local().minus({ days: 1 }).set({ hour: 0, minute: 0, second: 0 }).toISO();
@@ -103,10 +108,14 @@ export class DailyReportTechComponent implements OnInit, AfterViewInit {
       });
   }
 
+  @HostListener('window:resize')
+  onResize() {
+    this.updateResponsiveState();
+  }
+
   ngOnInit(): void {
-    // Kiểm tra nếu là mobile thì ẩn filter bar, desktop thì hiển thị
-    const isMobile = window.innerWidth <= 768;
-    this.showSearchBar = !isMobile;
+    this.updateResponsiveState();
+    this.initMenuBar();
     
     this.getCurrentUser();
     this.loadDepartments();
@@ -1278,6 +1287,56 @@ export class DailyReportTechComponent implements OnInit, AfterViewInit {
 
   createdText(text: string): string {
     return `<span class="fs-12">${text}</span>`;
+  }
+
+  private updateResponsiveState(): void {
+    const nextIsMobile = window.innerWidth <= 768;
+    const modeChanged = this.isMobile !== nextIsMobile;
+    this.isMobile = nextIsMobile;
+
+    if (modeChanged) {
+      this.showSearchBar = !this.isMobile;
+    }
+  }
+
+  private initMenuBar(): void {
+    this.menuBars = [
+      {
+        label: 'Tìm kiếm',
+        icon: PrimeIcons.SEARCH,
+        command: () => this.ToggleSearchPanelNew(),
+      },
+      {
+        label: 'Thêm',
+        icon: PrimeIcons.PLUS,
+        command: () => this.addDailyReport(),
+      },
+      {
+        label: 'Sửa',
+        icon: PrimeIcons.PENCIL,
+        command: () => this.editDailyReport(),
+      },
+      {
+        label: 'Xóa',
+        icon: PrimeIcons.TRASH,
+        command: () => this.deleteDailyReport(),
+      },
+      {
+        label: 'Copy',
+        icon: PrimeIcons.COPY,
+        command: () => this.copyDailyReport(),
+      },
+      {
+        label: 'Xuất báo cáo',
+        icon: PrimeIcons.FILE_EXCEL,
+        command: () => this.exportReportTeam(),
+      },
+      {
+        label: 'Xuất danh sách',
+        icon: PrimeIcons.FILE_EXCEL,
+        command: () => this.exportList(),
+      },
+    ];
   }
 }
 

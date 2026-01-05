@@ -1,7 +1,42 @@
 :host {
     font-size: 12px !important;
   }
-  
+
+/* Mobile menubar z-index fix */
+::ng-deep .p-menubar {
+  position: relative;
+  z-index: 1050;
+}
+
+::ng-deep .p-menubar-mobile {
+  position: relative;
+  z-index: 1050;
+}
+
+::ng-deep .p-menubar-root-list {
+  position: relative;
+  z-index: 1051;
+}
+
+/* Fix menu overlay z-index */
+::ng-deep .p-menu {
+  z-index: 1055 !important;
+}
+
+::ng-deep .p-menu-overlay {
+  z-index: 1055 !important;
+}
+
+::ng-deep .p-menubar-overlay {
+  z-index: 1055 !important;
+}
+
+/* Fix card header z-index */
+.card-header {
+  position: relative;
+  z-index: 1050;
+}
+
   .tabulator {
     font-size: 12px;
   }

@@ -13,6 +13,7 @@ export class MenuApp {
     UpdatedBy?: string | null = null;
     IsDeleted?: boolean | null = null;
     MenuAppUserGroupLinks?: MenuAppUserGroupLink[] = [];
+    PermissionCodes?: string | null = '';
 
     constructor(init?: Partial<MenuApp>) {
         Object.assign(this, init);

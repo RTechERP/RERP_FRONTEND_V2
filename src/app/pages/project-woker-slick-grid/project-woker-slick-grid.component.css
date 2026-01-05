@@ -1,0 +1,132 @@
+/* Grid Container Styles */
+.grid-solution-container,
+.grid-solution-version-container,
+.grid-po-version-container,
+.grid-project-worker-container {
+  height: 100%;
+  width: 100%;
+}
+
+/* Row Coloring */
+:host ::ng-deep .slick-row.row-deleted {
+  background-color: #ff4d4f !important;
+  color: white !important;
+}
+
+:host ::ng-deep .slick-row.row-deleted .slick-cell {
+  background-color: #ff4d4f !important;
+  color: white !important;
+}
+
+:host ::ng-deep .slick-row.row-parent {
+  background-color: #fffbe6 !important;
+  font-weight: bold !important;
+}
+
+:host ::ng-deep .slick-row.row-parent .slick-cell {
+  background-color: #fffbe6 !important;
+  font-weight: bold !important;
+}
+
+/* Text Alignment */
+:host ::ng-deep .text-center {
+  text-align: center !important;
+}
+
+:host ::ng-deep .text-right {
+  text-align: right !important;
+}
+
+:host ::ng-deep .text-left {
+  text-align: left !important;
+}
+
+/* Header Styles */
+:host ::ng-deep .slick-header-column {
+  font-weight: bold;
+  font-size: 12px;
+}
+
+/* Footer Row */
+:host ::ng-deep .slick-footerrow-column {
+  font-weight: bold;
+  background-color: #f5f5f5;
+  text-align: right;
+}
+
+/* Tree Data Expand/Collapse Icons */
+:host ::ng-deep .slick-group-toggle {
+  cursor: pointer;
+}
+
+/* Checkbox Selector */
+:host ::ng-deep .slick-cell-checkboxsel {
+  text-align: center;
+}
+
+/* Cell Padding */
+:host ::ng-deep .slick-cell {
+  padding: 4px 6px;
+  font-size: 12px;
+}
+
+/* Filter Row */
+:host ::ng-deep .slick-headerrow-column {
+  background-color: #fafafa;
+}
+
+/* Selected Row Highlight */
+:host ::ng-deep .slick-row.selected {
+  background-color: #e6f7ff !important;
+}
+
+/* Button Styles */
+.btn-add {
+  background-color: #52c41a;
+  color: white;
+  border: none;
+}
+
+.btn-add:hover {
+  background-color: #73d13d;
+  color: white;
+}
+
+.btn-edit {
+  background-color: #1890ff;
+  color: white;
+  border: none;
+}
+
+.btn-edit:hover {
+  background-color: #40a9ff;
+  color: white;
+}
+
+.btn-delete {
+  background-color: #ff4d4f;
+  color: white;
+  border: none;
+}
+
+.btn-delete:hover {
+  background-color: #ff7875;
+  color: white;
+}
+
+/* Card Header */
+.card-header {
+  border-bottom: 1px solid #f0f0f0;
+}
+
+/* Font Size */
+.fs-12 {
+  font-size: 12px;
+}
+
+/* Close Panel Button */
+.btn-close-panel {
+  padding: 0 4px;
+  height: 24px;
+  line-height: 24px;
+}

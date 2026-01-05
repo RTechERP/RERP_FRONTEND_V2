@@ -54,6 +54,7 @@ import { DateTime } from 'luxon';
 import { AppUserService } from '../../../services/app-user.service';
 import { NzSpinModule } from 'ng-zorro-antd/spin';
 import { NzModalModule } from 'ng-zorro-antd/modal';
+import { HttpClient } from '@angular/common/http';
 // import { SlickGlobalEditorLock } from 'angular-slickgrid';
 
 // (SlickGlobalEditorLock as any).Logger = {
@@ -205,6 +206,7 @@ export class PaymentOrderComponent implements OnInit {
         private employeeService: EmployeeService,
         private paymentOrderTypeService: PaymentOrderTypeService,
         private appUserService: AppUserService,
+        private http: HttpClient
 
     ) { }
 
@@ -1679,28 +1681,26 @@ export class PaymentOrderComponent implements OnInit {
             },
             gridWidth: '100%',
             // datasetIdPropertyName: 'Id',
-            enableRowSelection: true,
 
+            enableRowSelection: true,
+            rowSelectionOptions: {
+                selectActiveRow: false// True (Single Selection), False (Multiple Selections)
+            },
+            checkboxSelector: {
+                // you can toggle these 2 properties to show the "select all" checkbox in different location
+                hideInFilterHeaderRow: false,
+                hideInColumnTitleRow: true,
+                applySelectOnAllPages: true, // when clicking "Select All", should we apply it to all pages (defaults to true)
+            },
+            enableCheckboxSelector: true,
             contextMenu: {
                 hideCloseButton: false,
                 commandTitle: '', // optional, add title
                 commandItems: [
-                    // 'divider',
-                    // { divider: true, command: '', positionOrder: 60 },
-                    // {
-                    //     command: 'command1', title: 'Command 1', positionOrder: 61,
-                    //     // you can use the "action" callback and/or use "onCommand" callback from the grid options, they both have the same arguments
-                    //     action: (e, args) => {
-                    //         console.log(args.dataContext, args.column); // action callback.. do something
-                    //     }
-                    // },
+
                     {
                         command: '', title: 'Xem file', iconCssClass: 'mdi mdi-help-circle', positionOrder: 62,
                         action: (e, args) => {
-                            // console.log('args.dataContext:', args.dataContext);
-                            // this.handleRowSelection(e, args);
-
-
                             const filePath = args.dataContext?.ServerPath || '';
                             if (filePath) {
                                 const host = environment.host + 'api/share';
@@ -1723,12 +1723,33 @@ export class PaymentOrderComponent implements OnInit {
                         }
                     },
 
-                    // {
-                    //     command: '', title: 'Tải file', iconCssClass: 'mdi mdi-help-circle', positionOrder: 62,
-                    //     action: (e, args) => {
-                    //         console.log('args.dataContext:', args.dataContext);
-                    //     }
-                    // },
+                    {
+                        command: '', title: 'Tải file', iconCssClass: 'mdi mdi-help-circle', positionOrder: 62,
+                        action: (e, args) => {
+                            let selectedItems = args.grid.getSelectedRows()
+                                .map(i => this.angularGridFile.dataView?.getItem(i));
+
+
+                            selectedItems.forEach(item => {
+                                const filePath = item?.ServerPath || '';
+                                if (filePath) {
+                                    const host = environment.host + 'api/share';
+                                    let url = filePath.replace("\\\\192.168.1.190", host) + `/${item?.FileName}`;
+
+                                    this.http.get(url, { responseType: 'blob' }).subscribe(blob => {
+                                        const a = document.createElement('a');
+                                        const objectUrl = URL.createObjectURL(blob);
+
+                                        a.href = objectUrl;
+                                        a.download = item?.FileName;
+                                        a.click();
+
+                                        URL.revokeObjectURL(objectUrl);
+                                    });
+                                }
+                            });
+                        }
+                    },
 
                 ],
             }
@@ -1757,6 +1778,76 @@ export class PaymentOrderComponent implements OnInit {
             gridWidth: '100%',
             // datasetIdPropertyName: 'Id',
             enableRowSelection: true,
+            rowSelectionOptions: {
+                selectActiveRow: false// True (Single Selection), False (Multiple Selections)
+            },
+            checkboxSelector: {
+                // you can toggle these 2 properties to show the "select all" checkbox in different location
+                hideInFilterHeaderRow: false,
+                hideInColumnTitleRow: true,
+                applySelectOnAllPages: true, // when clicking "Select All", should we apply it to all pages (defaults to true)
+            },
+            enableCheckboxSelector: true,
+
+            contextMenu: {
+                hideCloseButton: false,
+                commandTitle: '', // optional, add title
+                commandItems: [
+
+                    {
+                        command: '', title: 'Xem file', iconCssClass: 'mdi mdi-help-circle', positionOrder: 62,
+                        action: (e, args) => {
+                            const filePath = args.dataContext?.ServerPath || '';
+                            if (filePath) {
+                                const host = environment.host + 'api/share';
+                                let urlImg = filePath.replace("\\\\192.168.1.190", host) + `/${args.dataContext?.FileName}`;
+                                // window.open(urlImg, '_blank', 'width=1000,height=700,left=200,top=100');
+
+                                const newWindow = window.open(
+                                    urlImg,
+                                    '_blank',
+                                    'width=1000,height=700'
+                                );
+
+                                if (newWindow) {
+                                    newWindow.onload = () => {
+                                        newWindow.document.title = args.dataContext?.FileName;
+                                        // newWindow.document.icon = args.dataContext?.FileName;
+                                    };
+                                }
+                            }
+                        }
+                    },
+
+                    {
+                        command: '', title: 'Tải file', iconCssClass: 'mdi mdi-help-circle', positionOrder: 62,
+                        action: (e, args) => {
+                            let selectedItems = args.grid.getSelectedRows()
+                                .map(i => this.angularGridFileBankslip.dataView?.getItem(i));
+
+                            selectedItems.forEach(item => {
+                                const filePath = item?.ServerPath || '';
+                                if (filePath) {
+                                    const host = environment.host + 'api/share';
+                                    let url = filePath.replace("\\\\192.168.1.190", host) + `/${item?.FileName}`;
+
+                                    this.http.get(url, { responseType: 'blob' }).subscribe(blob => {
+                                        const a = document.createElement('a');
+                                        const objectUrl = URL.createObjectURL(blob);
+
+                                        a.href = objectUrl;
+                                        a.download = item?.FileName;
+                                        a.click();
+
+                                        URL.revokeObjectURL(objectUrl);
+                                    });
+                                }
+                            });
+                        }
+                    },
+
+                ],
+            }
         }
 
         this.loadData();

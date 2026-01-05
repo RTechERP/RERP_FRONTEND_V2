@@ -28,7 +28,7 @@ import { NzSpinModule } from 'ng-zorro-antd/spin';
 import { NOTIFICATION_TITLE } from '../../../../app.config';
 import { HasPermissionDirective } from '../../../../directives/has-permission.directive';
 import { AppUserService } from '../../../../services/app-user.service';
-import { NgbModal } from '@ng-bootstrap/ng-bootstrap';
+import { NgbActiveModal, NgbModal } from '@ng-bootstrap/ng-bootstrap';
 import { DeclareDayOffDetailComponent } from './declare-day-off-detail/declare-day-off-detail.component';
 
 @Component({
@@ -76,7 +76,8 @@ export class DeclareDayOffComponent implements OnInit {
     private dayOffService: DayOffService,
     private employeeService: EmployeeService,
     private appUserService: AppUserService,
-    private ngbModal: NgbModal
+    private ngbModal: NgbModal,
+    public activeModal: NgbActiveModal
   ) { }
 
   ngOnInit() {
@@ -120,7 +121,7 @@ export class DeclareDayOffComponent implements OnInit {
       layout: 'fitColumns',
       responsiveLayout: true,
       selectableRows: 1,
-      height: '80vh',
+      height: '100%',
       groupBy: 'DepartmentName',
       groupHeader: function (value, count, data, group) {
         return value + "<span style='color:#d00; margin-left:10px;'>(" + count + " nhân viên)</span>";

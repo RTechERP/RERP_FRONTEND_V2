@@ -144,13 +144,8 @@
                   <nz-form-item>
                     <nz-form-label>Từ<span class="text-danger ps-2 me-1"> (*)</span></nz-form-label>
                     <nz-form-control [nzErrorTip]="'Vui lòng chọn thời gian bắt đầu'">
-                      <p-datepicker [formControl]="$any(tab.form.get('TimeStart'))" [showTime]="true"
-                        [hourFormat]="'24'" dateFormat="dd/mm/yy" [showIcon]="true" [minDate]="getMinDateForTimeStart()"
-                        [maxDate]="getMaxDateForTimeStart()" appendTo="body" placeholder="Chọn thời gian bắt đầu"
-                        styleClass="prime-datepicker-overtime" [baseZIndex]="99999"
-                        (onSelect)="onTimeStartSelect($event, tab.form)"
-                        (onInput)="onTimeStartSelect($event, tab.form)">
-                      </p-datepicker>
+                      <input nz-input class="flatpickr-datetime form-control" [attr.data-input-type]="'TimeStart'"
+                        [attr.data-tab-index]="i" [id]="'timestart-' + tab.id" placeholder="Chọn thời gian bắt đầu" />
                     </nz-form-control>
                   </nz-form-item>
                 </nz-col>
@@ -159,12 +154,8 @@
                   <nz-form-item>
                     <nz-form-label>Đến<span class="text-danger ps-1 me-1"> (*)</span></nz-form-label>
                     <nz-form-control [nzErrorTip]="'Vui lòng chọn thời gian kết thúc'">
-                      <p-datepicker [formControl]="$any(tab.form.get('EndTime'))" [showTime]="true" [hourFormat]="'24'"
-                        dateFormat="dd/mm/yy" [showIcon]="true" [minDate]="getMinDateForEndTime(tab.form)"
-                        [maxDate]="getMaxDateForEndTime()" appendTo="body" placeholder="Chọn thời gian kết thúc"
-                        styleClass="prime-datepicker-overtime" [baseZIndex]="99999"
-                        (onSelect)="onEndTimeSelect($event, tab.form)" (onInput)="onEndTimeSelect($event, tab.form)">
-                      </p-datepicker>
+                      <input nz-input class="flatpickr-datetime form-control" [attr.data-input-type]="'EndTime'"
+                        [attr.data-tab-index]="i" [id]="'endtime-' + tab.id" placeholder="Chọn thời gian kết thúc" />
                     </nz-form-control>
                   </nz-form-item>
                 </nz-col>

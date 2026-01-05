@@ -80,6 +80,8 @@ export class TsAssetChooseAssetsComponent implements OnInit {
   allData: any[] = [];
   selectedCount = 0;
   totalAssets = 0;
+  // Lưu các ID đã chọn để duy trì selection khi filter
+  selectedIds: Set<number> = new Set();
 
   ngOnInit(): void {
     this.initGrid();
@@ -348,7 +350,40 @@ export class TsAssetChooseAssetsComponent implements OnInit {
     // Lắng nghe sự kiện thay đổi selection
     if (angularGrid.slickGrid) {
       angularGrid.slickGrid.onSelectedRowsChanged.subscribe((e: any, args: any) => {
-        this.selectedCount = args.rows?.length || 0;
+        const selectedRowIndices = args.rows || [];
+
+        // Lấy tất cả IDs hiện đang được chọn trong view
+        const currentViewSelectedIds = new Set<number>();
+        selectedRowIndices.forEach((rowIndex: number) => {
+          const item = this.angularGrid.dataView.getItem(rowIndex);
+          if (item && item.ID) {
+            currentViewSelectedIds.add(item.ID);
+          }
+        });
+
+        // Lấy tất cả IDs hiện đang hiển thị trong view
+        const visibleIds = new Set<number>();
+        const totalRows = this.angularGrid.dataView.getLength();
+        for (let i = 0; i < totalRows; i++) {
+          const item = this.angularGrid.dataView.getItem(i);
+          if (item && item.ID) {
+            visibleIds.add(item.ID);
+          }
+        }
+
+        // Xóa các ID hiện đang hiển thị nhưng không được chọn
+        visibleIds.forEach((id) => {
+          if (!currentViewSelectedIds.has(id)) {
+            this.selectedIds.delete(id);
+          }
+        });
+
+        // Thêm các ID mới được chọn
+        currentViewSelectedIds.forEach((id) => {
+          this.selectedIds.add(id);
+        });
+
+        this.selectedCount = this.selectedIds.size;
       });
     }
   }
@@ -361,6 +396,7 @@ export class TsAssetChooseAssetsComponent implements OnInit {
     if (!kw) {
       this.angularGrid.dataView.setFilter(() => true);
       this.angularGrid.dataView.refresh();
+      this.restoreSelection();
       return;
     }
 
@@ -386,6 +422,25 @@ export class TsAssetChooseAssetsComponent implements OnInit {
     });
 
     this.angularGrid.dataView.refresh();
+    this.restoreSelection();
+  }
+
+  // Khôi phục selection sau khi filter
+  private restoreSelection(): void {
+    if (!this.angularGrid?.slickGrid || !this.angularGrid?.dataView) return;
+
+    const rowsToSelect: number[] = [];
+    const dataView = this.angularGrid.dataView;
+    const totalRows = dataView.getLength();
+
+    for (let i = 0; i < totalRows; i++) {
+      const item = dataView.getItem(i);
+      if (item && this.selectedIds.has(item.ID)) {
+        rowsToSelect.push(i);
+      }
+    }
+
+    this.angularGrid.slickGrid.setSelectedRows(rowsToSelect);
   }
 
   selectAssets(): void {
@@ -394,19 +449,14 @@ export class TsAssetChooseAssetsComponent implements OnInit {
       return;
     }
 
-    const selectedRows = this.angularGrid.slickGrid.getSelectedRows();
-    if (selectedRows.length === 0) {
+    // Lấy tất cả các item đã chọn từ selectedIds
+    if (this.selectedIds.size === 0) {
       this.notification.warning(NOTIFICATION_TITLE.warning, 'Vui lòng chọn ít nhất một tài sản.');
       return;
     }
 
-    const selectedData: any[] = [];
-    selectedRows.forEach((rowIndex: number) => {
-      const item = this.angularGrid.dataView.getItemByIdx(rowIndex);
-      if (item) {
-        selectedData.push(item);
-      }
-    });
+    // Lấy data từ allData dựa trên selectedIds
+    const selectedData = this.allData.filter((item: any) => this.selectedIds.has(item.ID));
 
     // Bỏ những cái đã có ở cha (double check)
     const filtered = selectedData.filter((r) => !this.existingIds.includes(r.ID));

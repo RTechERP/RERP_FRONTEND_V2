@@ -49,6 +49,9 @@ export class ImportExcelProjectWorkerComponent implements OnInit, AfterViewInit 
   @Input() dataSolution: any[] = [];
   @Input() dataSolutionVersion: any[] = [];
   @Input() dataPOVersion: any[] = [];
+  @Input() selectedVersionID: number = 0;
+  @Input() selectedVersionCode: string = '';
+  @Input() type: number = 0;
 
   filePath: string = '';
   excelSheets: string[] = [];
@@ -84,7 +87,26 @@ export class ImportExcelProjectWorkerComponent implements OnInit, AfterViewInit 
 
   // Xác định versionID và projectTypeID từ các bảng đã chọn
   determineVersionAndType(): void {
-    // Kiểm tra bảng solutionVersion (Tabulator)
+    // Ưu tiên sử dụng inputs từ parent component (SlickGrid)
+    if (this.selectedVersionID > 0) {
+      this.versionID = this.selectedVersionID;
+      
+      // Tìm projectTypeID từ data tương ứng
+      if (this.type === 1 && this.dataSolutionVersion.length > 0) {
+        const versionData = this.dataSolutionVersion.find((v: any) => v.ID === this.selectedVersionID);
+        if (versionData) {
+          this.projectTypeID = versionData.ProjectTypeID || 0;
+        }
+      } else if (this.type === 2 && this.dataPOVersion.length > 0) {
+        const versionData = this.dataPOVersion.find((v: any) => v.ID === this.selectedVersionID);
+        if (versionData) {
+          this.projectTypeID = versionData.ProjectTypeID || 0;
+        }
+      }
+      return;
+    }
+
+    // Fallback: Kiểm tra bảng solutionVersion (Tabulator)
     if (this.tb_solutionVersion) {
       const selectedData = this.tb_solutionVersion.getSelectedData();
       if (selectedData && selectedData.length > 0) {
@@ -94,7 +116,7 @@ export class ImportExcelProjectWorkerComponent implements OnInit, AfterViewInit 
       }
     }
 
-    // Kiểm tra bảng POVersion (Tabulator)
+    // Fallback: Kiểm tra bảng POVersion (Tabulator)
     if (this.tb_POVersion) {
       const selectedData = this.tb_POVersion.getSelectedData();
       if (selectedData && selectedData.length > 0) {

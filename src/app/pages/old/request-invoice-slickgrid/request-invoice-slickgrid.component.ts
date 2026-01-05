@@ -178,14 +178,14 @@ export class RequestInvoiceSlickgridComponent implements OnInit, AfterViewInit {
         this.menuBars = [
             {
                 label: 'Thêm',
-                icon: 'fa-solid fa-plus fa-lg text-success',
+                icon: 'fa-solid fa-circle-plus fa-lg text-success',
                 command: () => {
                     this.openModal();
                 }
             },
             {
                 label: 'Sửa',
-                icon: 'fa-solid fa-pen-to-square fa-lg text-primary',
+                icon: 'fa-solid fa-file-pen fa-lg text-primary',
                 command: () => {
                     this.onEdit();
                 }
@@ -199,7 +199,7 @@ export class RequestInvoiceSlickgridComponent implements OnInit, AfterViewInit {
             },
             {
                 label: 'Cây thư mục',
-                icon: 'fa-solid fa-folder-tree fa-lg text-info',
+                icon: 'fa-solid fa-folder-open fa-lg text-info',
                 command: () => {
                     this.openTreeFolder();
                 }
@@ -213,7 +213,7 @@ export class RequestInvoiceSlickgridComponent implements OnInit, AfterViewInit {
             },
             {
                 label: 'Cập nhật trạng thái',
-                icon: 'fa-solid fa-rotate fa-lg text-secondary',
+                icon: 'fa-solid fa-arrows-rotate fa-lg text-secondary',
                 command: () => {
                     this.openRequestInvoiceStatusLinkModal();
                 }
@@ -352,13 +352,15 @@ export class RequestInvoiceSlickgridComponent implements OnInit, AfterViewInit {
                 sortable: true,
                 filterable: true,
                 filter: {
-                    model: Filters['compoundInputText'],
-                    filterOptions: { placeholder: 'Tìm trạng thái...' }
+                    model: Filters['multipleSelect'],
+                    collection: [],
+                    collectionOptions: { addBlankEntry: true },
+                    filterOptions: { autoAdjustDropHeight: true, filter: true } as any
                 }
             },
-            { id: 'DealineUrgency', name: 'Deadline', field: 'DealineUrgency', width: 100, minWidth: 100, sortable: true, filterable: false, formatter: this.dateFormatter, cssClass: 'text-center' },
+            { id: 'DealineUrgency', name: 'Deadline', field: 'DealineUrgency', width: 100, minWidth: 100, sortable: true, filterable: true, filter: { model: Filters['compoundDate'], filterOptions: { format: 'DD/MM/YYYY' } }, formatter: this.dateFormatter, cssClass: 'text-center' },
             { id: 'Code', name: 'Mã lệnh', field: 'Code', width: 200, minWidth: 200, sortable: true, filterable: true, filter: { model: Filters['compoundInputText'] } },
-            { id: 'DateRequest', name: 'Ngày yêu cầu', field: 'DateRequest', width: 150, minWidth: 150, sortable: true, filterable: false, formatter: this.dateFormatter, cssClass: 'text-center' },
+            { id: 'DateRequest', name: 'Ngày yêu cầu', field: 'DateRequest', width: 150, minWidth: 150, sortable: true, filterable: true, filter: { model: Filters['compoundDate'], filterOptions: { format: 'DD/MM/YYYY' } }, formatter: this.dateFormatter, cssClass: 'text-center' },
             { id: 'FullName', name: 'Người yêu cầu', field: 'FullName', width: 150, minWidth: 150, sortable: true, filterable: true, filter: { model: Filters['compoundInputText'] } },
             {
                 id: 'IsCustomsDeclared',
@@ -446,12 +448,12 @@ export class RequestInvoiceSlickgridComponent implements OnInit, AfterViewInit {
             { id: 'Note', name: 'Ghi chú', field: 'Note', width: 150, minWidth: 150, sortable: true, filterable: true, filter: { model: Filters['compoundInputText'] }, columnGroup: 'Chung', columnGroupKey: 'Chung' },
             { id: 'Specifications', name: 'Thông số kỹ thuật', field: 'Specifications', width: 150, minWidth: 150, sortable: true, filterable: true, filter: { model: Filters['compoundInputText'] }, columnGroup: 'Chung', columnGroupKey: 'Chung' },
             { id: 'InvoiceNumber', name: 'Số hóa đơn', field: 'InvoiceNumber', width: 150, minWidth: 150, sortable: true, filterable: true, filter: { model: Filters['compoundInputText'] }, columnGroup: 'Chung', columnGroupKey: 'Chung' },
-            { id: 'InvoiceDate', name: 'Ngày hóa đơn', field: 'InvoiceDate', width: 150, minWidth: 150, sortable: true, formatter: this.dateFormatter, cssClass: 'text-center', columnGroup: 'Chung', columnGroupKey: 'Chung' },
-            { id: 'RequestDate', name: 'Ngày đặt hàng', field: 'RequestDate', width: 150, minWidth: 150, sortable: true, formatter: this.dateFormatter, cssClass: 'text-center', filterable: true, filter: { model: Filters['compoundInputText'] }, columnGroup: 'Thông tin đầu vào', columnGroupKey: 'Thông tin đầu vào' },
-            { id: 'DateRequestImport', name: 'Ngày hàng về', field: 'DateRequestImport', width: 150, minWidth: 150, sortable: true, formatter: this.dateFormatter, cssClass: 'text-center', filterable: true, filter: { model: Filters['compoundInputText'] }, columnGroup: 'Thông tin đầu vào', columnGroupKey: 'Thông tin đầu vào' },
+            { id: 'InvoiceDate', name: 'Ngày hóa đơn', field: 'InvoiceDate', width: 150, minWidth: 150, sortable: true, filterable: true, filter: { model: Filters['compoundDate'], filterOptions: { format: 'DD/MM/YYYY' } }, formatter: this.dateFormatter, cssClass: 'text-center', columnGroup: 'Chung', columnGroupKey: 'Chung' },
+            { id: 'RequestDate', name: 'Ngày đặt hàng', field: 'RequestDate', width: 150, minWidth: 150, sortable: true, formatter: this.dateFormatter, cssClass: 'text-center', filterable: true, filter: { model: Filters['compoundDate'], filterOptions: { format: 'DD/MM/YYYY' } }, columnGroup: 'Thông tin đầu vào', columnGroupKey: 'Thông tin đầu vào' },
+            { id: 'DateRequestImport', name: 'Ngày hàng về', field: 'DateRequestImport', width: 150, minWidth: 150, sortable: true, formatter: this.dateFormatter, cssClass: 'text-center', filterable: true, filter: { model: Filters['compoundDate'], filterOptions: { format: 'DD/MM/YYYY' } }, columnGroup: 'Thông tin đầu vào', columnGroupKey: 'Thông tin đầu vào' },
             { id: 'SupplierName', name: 'Nhà cung cấp', field: 'SupplierName', width: 250, minWidth: 250, sortable: true, filterable: true, filter: { model: Filters['compoundInputText'] }, columnGroup: 'Thông tin đầu vào', columnGroupKey: 'Thông tin đầu vào' },
             { id: 'SomeBill', name: 'Hóa đơn đầu vào', field: 'SomeBill', width: 200, minWidth: 200, sortable: true, filterable: true, filter: { model: Filters['compoundInputText'] }, columnGroup: 'Thông tin đầu vào', columnGroupKey: 'Thông tin đầu vào' },
-            { id: 'ExpectedDate', name: 'Ngày hàng về dự kiến', field: 'ExpectedDate', width: 150, minWidth: 150, sortable: true, formatter: this.dateFormatter, cssClass: 'text-center', filterable: true, filter: { model: Filters['compoundInputText'] }, columnGroup: 'Thông tin đầu vào', columnGroupKey: 'Thông tin đầu vào' },
+            { id: 'ExpectedDate', name: 'Ngày hàng về dự kiến', field: 'ExpectedDate', width: 150, minWidth: 150, sortable: true, formatter: this.dateFormatter, cssClass: 'text-center', filterable: true, filter: { model: Filters['compoundDate'], filterOptions: { format: 'DD/MM/YYYY' } }, columnGroup: 'Thông tin đầu vào', columnGroupKey: 'Thông tin đầu vào' },
             { id: 'BillImportCode', name: 'PNK', field: 'BillImportCode', width: 200, minWidth: 200, sortable: true, filterable: true, filter: { model: Filters['compoundInputText'] }, columnGroup: 'Thông tin đầu vào', columnGroupKey: 'Thông tin đầu vào' },
             { id: 'CompanyText', name: 'Công ty nhập', field: 'CompanyText', width: 120, minWidth: 120, sortable: true, filterable: true, filter: { model: Filters['multipleSelect'], collection: [], collectionOptions: { addBlankEntry: true }, filterOptions: { autoAdjustDropHeight: true, filter: true, } as any, }, columnGroup: 'Thông tin đầu vào', columnGroupKey: 'Thông tin đầu vào' },
         ];
@@ -678,7 +680,7 @@ export class RequestInvoiceSlickgridComponent implements OnInit, AfterViewInit {
 
                     // Apply distinct filters after data is loaded
                     setTimeout(() => {
-                        this.applyDistinctFiltersToGrid(this.angularGridMain, this.columnDefinitionsMain, ['Name']);
+                        this.applyDistinctFiltersToGrid(this.angularGridMain, this.columnDefinitionsMain, ['Name', 'StatusText']);
                     }, 500);
                 } else {
                     this.notification.error(NOTIFICATION_TITLE.error, response.message);
@@ -837,8 +839,9 @@ export class RequestInvoiceSlickgridComponent implements OnInit, AfterViewInit {
     }
 
     openRequestInvoiceSummary() {
-        const url = `${window.location.origin}/rerpweb/request-invoice-summary-new?warehouseId=${this.warehouseId}`;
-        window.open(url, '_blank', 'width=1280,height=960,scrollbars=yes,resizable=yes');
+        // const url = `${window.location.origin}/rerpweb/request-invoice-summary?warehouseId=${this.warehouseId}`;
+        // window.open(url, '_blank', 'width=1280,height=960,scrollbars=yes,resizable=yes');
+        window.open(`/rerpweb/request-invoice-summary?warehouseId=${this.warehouseId}`, '_blank', 'width=1280,height=960,scrollbars=yes,resizable=yes');
     }
 
     openRequestInvoiceStatusLinkModal(): void {
@@ -1200,7 +1203,7 @@ export class RequestInvoiceSlickgridComponent implements OnInit, AfterViewInit {
         if (filePath) {
             const host = environment.host + 'api/share';
             let urlImg = filePath.replace("\\\\192.168.1.190", host) + `/${file.FileName}`;
-            
+
             const newWindow = window.open(
                 urlImg,
                 '_blank',
@@ -1225,7 +1228,7 @@ export class RequestInvoiceSlickgridComponent implements OnInit, AfterViewInit {
         if (filePath) {
             const host = environment.host + 'api/share';
             let urlImg = filePath.replace("\\\\192.168.1.190", host) + `/${file.FileName}`;
-            
+
             const newWindow = window.open(
                 urlImg,
                 '_blank',

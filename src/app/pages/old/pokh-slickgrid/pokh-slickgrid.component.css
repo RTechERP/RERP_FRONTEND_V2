@@ -90,3 +90,25 @@ label[nz-checkbox] {
 .ant-tabs-tab-btn {
   font-size: 0.75rem;
 }
+
+/* SlickGrid trong grid-container-pokh-product chiếm 100% chiều cao */
+.grid-container-pokh-product {
+  height: 100%;
+}
+
+:host ::ng-deep .grid-container-pokh-product angular-slickgrid,
+:host ::ng-deep .grid-container-pokh-product .slickgrid-container,
+:host ::ng-deep .grid-container-pokh-product .gridPane {
+  height: 100% !important;
+}
+
+/* SlickGrid trong grid-container-pokh-file chiếm 100% chiều cao */
+.grid-container-pokh-file {
+  height: 100%;
+}
+
+:host ::ng-deep .grid-container-pokh-file angular-slickgrid,
+:host ::ng-deep .grid-container-pokh-file .slickgrid-container,
+:host ::ng-deep .grid-container-pokh-file .gridPane {
+  height: 100% !important;
+}

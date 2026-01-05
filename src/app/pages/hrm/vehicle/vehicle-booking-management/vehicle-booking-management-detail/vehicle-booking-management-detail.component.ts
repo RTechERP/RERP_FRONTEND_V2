@@ -821,13 +821,16 @@ export class VehicleBookingManagementDetailComponent implements OnInit {
     // Build payload
     const payloads: any[] = [];
 
+    // Khi lưu mới, lấy EmployeeID từ AppUserService
+    const employeeIdToSave = this.isEdit ? this.employeeId : (this.appUserService.employeeID || 0);
+
     if (this.category == 1 || this.category == 4 || this.category == 5) {
       // Create payload for each passenger
       for (let i = 0; i < this.passengers.length; i++) {
         const passenger = this.passengers[i];
         const payload: any = {
           ID: i === 0 ? this.id : 0,
-          EmployeeID: this.employeeId,
+          EmployeeID: employeeIdToSave,
           BookerVehicles: this.bookerVehicles,
           PhoneNumber: '',
           CompanyNameArrives: this.companyNameArrives,
@@ -871,7 +874,7 @@ export class VehicleBookingManagementDetailComponent implements OnInit {
         const goods = this.attachedGoods[i];
         const payload: any = {
           ID: i === 0 ? this.id : 0,
-          EmployeeID: this.employeeId,
+          EmployeeID: employeeIdToSave,
           BookerVehicles: this.bookerVehicles,
           PhoneNumber: '',
           CompanyNameArrives: this.companyNameArrives,

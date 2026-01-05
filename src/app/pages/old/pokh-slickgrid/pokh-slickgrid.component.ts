@@ -402,7 +402,7 @@ export class PokhSlickgridComponent implements OnInit, AfterViewInit {
         }
 
         setTimeout(() => {
-          this.applyDistinctFiltersToGrid(this.angularGridPOKH, this.columnDefinitionsPOKH, ['MainIndex', 'CurrencyCode']);
+          this.applyDistinctFiltersToGrid(this.angularGridPOKH, this.columnDefinitionsPOKH, ['MainIndex', 'CurrencyCode', 'AccountTypeText']);
         }, 0);
       },
       error: (error: any) => {
@@ -1678,6 +1678,9 @@ export class PokhSlickgridComponent implements OnInit, AfterViewInit {
         }
       },
       { id: 'NewAccount', name: 'New Account', field: 'NewAccount', width: 100, minWidth: 70, formatter: this.checkboxFormatter, sortable: true, filterable: true, filter: { model: Filters['singleSelect'], collection: [{ value: null, label: 'Tất cả' }, { value: true, label: 'Có' }, { value: false, label: 'Không' }] } },
+      
+      { id: 'AccountTypeText', name: 'Loại Account', field: 'AccountTypeText', width: 100, minWidth: 100, sortable: true, filterable: true, filter: { model: Filters['multipleSelect'], collection: [], collectionOptions: { addBlankEntry: true }, filterOptions: { autoAdjustDropHeight: true, filter: true } as MultipleSelectOption } },
+
       { id: 'PONumber', name: 'Số POKH', field: 'PONumber', width: 100, minWidth: 100, sortable: true, filterable: true, filter: { model: Filters['compoundInputText'] } },
       { id: 'POCode', name: 'Mã PO', field: 'POCode', width: 150, minWidth: 150, sortable: true, filterable: true, filter: { model: Filters['compoundInputText'] } },
       { id: 'CustomerName', name: 'Khách hàng', field: 'CustomerName', width: 300, minWidth: 300, sortable: true, filterable: true, filter: { model: Filters['compoundInputText'] } },
@@ -1705,8 +1708,10 @@ export class PokhSlickgridComponent implements OnInit, AfterViewInit {
           } as MultipleSelectOption,
         }
       },
-      { id: 'TotalMoneyKoVAT', name: 'Tổng tiền Xuất VAT', field: 'TotalMoneyKoVAT', width: 150, minWidth: 150, sortable: true, filterable: true, formatter: this.moneyFormatter, cssClass: 'text-end', filter: { model: Filters['compoundInputNumber'] } },
+      { id: 'TotalMoneyKoVAT', name: 'Tổng tiền trước VAT', field: 'TotalMoneyKoVAT', width: 150, minWidth: 150, sortable: true, filterable: true, formatter: this.moneyFormatter, cssClass: 'text-end', filter: { model: Filters['compoundInputNumber'] } },
       { id: 'TotalMoneyPO', name: 'Tổng tiền nhận PO', field: 'TotalMoneyPO', width: 150, minWidth: 150, sortable: true, filterable: true, formatter: this.moneyFormatter, cssClass: 'text-end', filter: { model: Filters['compoundInputNumber'] } },
+      { id: 'Discount', name: '% Chiết khấu', field: 'Discount', width: 150, minWidth: 150, sortable: true, filterable: true, formatter: this.moneyFormatter, cssClass: 'text-end', filter: { model: Filters['compoundInputNumber'] } },
+      { id: 'TotalMoneyDiscount', name: 'Tổng tiền sau chiết khấu', field: 'TotalMoneyDiscount', width: 150, minWidth: 150, sortable: true, filterable: true, formatter: this.moneyFormatter, cssClass: 'text-end', filter: { model: Filters['compoundInputNumber'] } },
       { id: 'ReceiveMoney', name: 'Tiền về', field: 'ReceiveMoney', width: 150, minWidth: 150, sortable: true, filterable: true, formatter: this.moneyFormatter, cssClass: 'text-end', filter: { model: Filters['compoundInputNumber'] } },
       { id: 'DeliveryStatusText', name: 'Tình trạng tiến độ giao hàng', field: 'DeliveryStatusText', width: 150, minWidth: 150, sortable: true, filterable: true },
       { id: 'ExportStatusText', name: 'Tình trạng xuất kho', field: 'ExportStatusText', width: 150, minWidth: 150, sortable: true, filterable: true },
@@ -1714,6 +1719,7 @@ export class PokhSlickgridComponent implements OnInit, AfterViewInit {
       { id: 'Note', name: 'Ghi chú', field: 'Note', width: 120, minWidth: 120, sortable: true, filterable: true, filter: { model: Filters['compoundInputText'] } },
       { id: 'Debt', name: 'Công nợ', field: 'Debt', width: 120, minWidth: 120, sortable: true, filterable: true },
       { id: 'ImportStatus', name: 'Hóa đơn', field: 'ImportStatus', width: 150, minWidth: 150, sortable: true, filterable: true, filter: { model: Filters['compoundInputText'] } },
+      { id: 'IsOder', name: 'Đặt hàng', field: 'IsOder', width: 150, minWidth: 150, sortable: true, filterable: true, filter: { model: Filters['compoundInputText'] } },
     ];
 
     this.gridOptionsPOKH = {

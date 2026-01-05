@@ -23,7 +23,7 @@
           </ul>
         </nz-dropdown-menu>
       </div>
-      <!-- <div class="btn-group">
+      <div class="btn-group ms-3">
         <button nz-button nz-dropdown [nzDropdownMenu]="menuTransfer">
           <nz-icon nzType="export">
           </nz-icon>
@@ -37,7 +37,7 @@
             </li>
           </ul>
         </nz-dropdown-menu>
-      </div> -->
+      </div>
     </div>
 
     <!-- Search Panel -->
@@ -82,11 +82,8 @@
     <!-- Data Grid -->
     <div class="grid-container" id="gridContainer">
       <nz-spin [nzSpinning]="isLoading">
-        <angular-slickgrid gridId="warehouseReleaseGrid" 
-          [columns]="columnDefinitions"
-          [options]="gridOptions" 
-          [dataset]="dataset"
-          (onAngularGridCreated)="onAngularGridCreated($event.detail)">
+        <angular-slickgrid gridId="warehouseReleaseGrid" [columns]="columnDefinitions" [options]="gridOptions"
+          [dataset]="dataset" (onAngularGridCreated)="onAngularGridCreated($event.detail)">
         </angular-slickgrid>
       </nz-spin>
     </div>

@@ -433,7 +433,7 @@ export class MainLayoutComponent implements OnInit, AfterViewInit, OnDestroy {
                         key: item.Code,
                         title: item.Title,
                         router: item.Router == '' ? '#' : `${item.Router}`,
-                        icon: `${environment.hostapi}api/share/software/icon/${item.Icon}`,
+                        icon: `${environment.host}api/share/software/icon/${item.Icon}`,
                         isPermission: item.IsPermission,
                         ParentID: item.ParentID,
                         children: [],

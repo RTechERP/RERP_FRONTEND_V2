@@ -7,6 +7,4 @@ export const environment = {
     hostwebold: 'https://localhost:19028/',
     baseHref: '/rerpweb',
     title: 'R-ERP',
-    hostapi: 'http://192.168.1.2:8088/api/'
-
 };

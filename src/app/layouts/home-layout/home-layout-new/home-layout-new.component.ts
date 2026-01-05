@@ -269,7 +269,7 @@ export class HomeLayoutNewComponent implements OnInit {
                         Code: item.Code,
                         Title: item.Title,
                         Router: item.Router == '' ? '' : `${environment.baseHref}/${item.Router}`,
-                        Icon: `${environment.hostapi}api/share/software/icon/${item.Icon}`,
+                        Icon: `${environment.host}api/share/software/icon/${item.Icon}`,
                         IsPermission: isPermission,
                         IsOpen: true,
                         ParentID: item.ParentID,

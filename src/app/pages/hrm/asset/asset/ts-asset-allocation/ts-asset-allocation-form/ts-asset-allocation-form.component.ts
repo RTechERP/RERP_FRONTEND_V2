@@ -186,10 +186,10 @@ export class TsAssetAllocationFormComponent implements OnInit, AfterViewInit {
           headerSort: false,
           titleFormatter: () => `
     <div style="display: flex; justify-content: center; align-items: center; height: 100%;">
-      <i class="fas fa-plus text-success cursor-pointer" title="Thêm dòng"></i>
+      <i class="fa-solid fa-plus text-success cursor-pointer" title="Thêm dòng"></i>
     </div>`,
           formatter: () => `
-    <i class="fas fa-times text-danger cursor-pointer" title="Xóa dòng"></i>`,
+    <i class="fa-solid fa-xmark text-danger cursor-pointer" title="Xóa dòng"></i>`,
           cellClick: (e, cell) => {
             const row = cell.getRow();
             const data = row.getData();
@@ -206,11 +206,11 @@ export class TsAssetAllocationFormComponent implements OnInit, AfterViewInit {
 
         { title: 'AssetManagementID', field: 'AssetManagementID', hozAlign: 'center', width: 60, visible: false },
         { title: 'ID', field: 'ID', hozAlign: 'center', visible: false, headerHozAlign: 'center' },
-        { title: 'STT', formatter: 'rownum', hozAlign: 'center', width: 60 },
+        { title: 'STT', field: 'STT', formatter: 'rownum', hozAlign: 'center', headerHozAlign: 'center', width: 60, headerSort: false },
         { title: "Mã tài sản", field: "TSCodeNCC", editor: "input", headerHozAlign: 'center' },
-        { title: "Tên tài sản", field: "TSAssetName", editor: "input", headerHozAlign: 'center', width:300,formatter:'textarea' },
+        { title: "Tên tài sản", field: "TSAssetName", editor: "input", headerHozAlign: 'center', width: 300, formatter: 'textarea' },
         { title: "Số Lượng", field: "Quantity", editor: "input", headerHozAlign: 'center', hozAlign: "right" },
-        { title: "Ghi chú", field: "Note", editor: "input", headerHozAlign: 'center',formatter:'textarea' }
+        { title: "Ghi chú", field: "Note", editor: "input", headerHozAlign: 'center', formatter: 'textarea' }
       ]
     });
   }

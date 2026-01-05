@@ -52,6 +52,16 @@ import { environment } from '../../../../environments/environment';
 import { ExcelExportService } from '@slickgrid-universal/excel-export';
 import { DateTime } from 'luxon';
 import { AppUserService } from '../../../services/app-user.service';
+import { NzSpinModule } from 'ng-zorro-antd/spin';
+import { NzModalModule } from 'ng-zorro-antd/modal';
+import { HttpClient } from '@angular/common/http';
+// import { SlickGlobalEditorLock } from 'angular-slickgrid';
+
+// (SlickGlobalEditorLock as any).Logger = {
+//     warn: () => { },
+//     info: () => { },
+//     error: console.error
+// };
 
 (pdfMake as any).vfs = vfs;
 (pdfMake as any).fonts = {
@@ -78,7 +88,9 @@ import { AppUserService } from '../../../services/app-user.service';
         FormsModule,
         NzSelectModule,
         NzDatePickerModule,
-        NzIconModule
+        NzIconModule,
+        NzSpinModule,
+        NzModalModule,
     ],
     templateUrl: './payment-order.component.html',
     styleUrl: './payment-order.component.css',
@@ -114,6 +126,10 @@ export class PaymentOrderComponent implements OnInit {
         statuslog: 0,
         isDelete: 0
     };
+
+    isLoading = false;
+    isMobile = window.innerWidth <= 768;
+    isShowModal = false;
 
     activeTab = '0';
     defaultSizeSplit = '100%';
@@ -190,10 +206,12 @@ export class PaymentOrderComponent implements OnInit {
         private employeeService: EmployeeService,
         private paymentOrderTypeService: PaymentOrderTypeService,
         private appUserService: AppUserService,
+        private http: HttpClient
 
     ) { }
 
     ngOnInit(): void {
+        // console.log('this.isMobile:', this.isMobile);
         this.loadDataCombo();
         this.initMenuBar();
 
@@ -241,8 +259,6 @@ export class PaymentOrderComponent implements OnInit {
                 this.param.approvedTBPID = 0;
                 this.param.step = 0;
             }
-
-
         }
 
         this.initGrid();
@@ -278,14 +294,14 @@ export class PaymentOrderComponent implements OnInit {
                 }
             },
 
-            // {
-            //     label: 'Copy',
-            //     icon: PrimeIcons.CLONE,
-            //     visible: this.permissionService.hasPermission(""),
-            //     command: () => {
-            //         // this.onCopy();
-            //     }
-            // },
+            {
+                label: 'Copy',
+                icon: 'fa-solid fa-clone fa-lg text-primary',
+                visible: this.permissionService.hasPermission(""),
+                command: () => {
+                    this.onCopy();
+                }
+            },
 
             {
                 label: 'TBP xác nhận',
@@ -492,14 +508,21 @@ export class PaymentOrderComponent implements OnInit {
                         }
 
                     },
-                    // {
-                    //     separator: true,
-                    // },
-                    // {
-                    //     label: 'Hợp đồng',
-                    //     icon: PrimeIcons.UNLOCK,
-                    //     visible: this.permissionService.hasPermission("N55,N61"),
-                    // }
+                    {
+                        separator: true,
+                    },
+                    {
+                        label: 'Hợp đồng',
+                        icon: 'fa-solid fa-file-contract fa-lg text-primary',
+                        visible: this.permissionService.hasPermission("N55,N61"),
+                        command: () => {
+                            window.open(
+                                `${environment.baseHref}/register-contract`,
+                                '_blank',
+                                `width=${window.screen.width},height=${window.screen.height}`
+                            );
+                        }
+                    }
                 ]
             },
 
@@ -535,7 +558,7 @@ export class PaymentOrderComponent implements OnInit {
 
             {
                 label: 'Cây thư mục',
-                icon: 'fa-solid fa-folder-open fa-lg text-primary',
+                icon: 'fa-solid fa-folder-open fa-lg text-warning',
                 command: () => {
                     let grid = this.angularGrid;
                     if (this.activeTab == '1') grid = this.angularGridSpecial;
@@ -570,18 +593,12 @@ export class PaymentOrderComponent implements OnInit {
             },
             {
                 label: 'Xuất excel',
-                icon: 'fa-solid fa-file-excel fa-lg text-primary',
+                icon: 'fa-solid fa-file-excel fa-lg text-success',
                 command: () => {
                     const dateStart = DateTime.fromJSDate(this.param.dateStart).toFormat('ddMMyyyy');
                     const dateEnd = DateTime.fromJSDate(this.param.dateEnd).toFormat('ddMMyyyy');
                     const now = DateTime.fromJSDate(new Date()).toFormat('HHmmss');
                     if (this.activeTab == '0') {
-                        // this.columnDefinitions = this.angularGrid.slickGrid?.getColumns().map(col => ({
-                        //     ...col,
-                        //     exportColumnWidth: col.width
-                        // }));
-
-                        // console.log(this.columnDefinitions);
 
                         this.excelExportService.exportToExcel({
                             filename: `TheoDoiChiPhiVP_${dateStart}_${dateEnd}_${now}`,
@@ -596,14 +613,14 @@ export class PaymentOrderComponent implements OnInit {
 
                 }
             },
-            {
-                label: 'In PO',
-                icon: 'fa-solid fa-print fa-lg text-primary',
-                command: () => {
-                    // this.onPrint();
+            // {
+            //     label: 'In',
+            //     icon: 'fa-solid fa-print fa-lg text-primary',
+            //     command: () => {
+            //         // this.onPrint();
 
-                }
-            }
+            //     }
+            // }
         ]
     }
 
@@ -1447,7 +1464,7 @@ export class PaymentOrderComponent implements OnInit {
             autoFitColumnsOnFirstLoad: false,
             enableAutoSizeColumns: false,
 
-            frozenColumn: 5,
+            frozenColumn: this.isMobile ? 0 : 5,
 
             createPreHeaderPanel: true,
             showPreHeaderPanel: true,
@@ -1628,7 +1645,7 @@ export class PaymentOrderComponent implements OnInit {
                 exportIndentMarginLeft: 4,   // similar to `indentMarginLeft` but represent a space instead of pixels for the Export CSV/Excel
             },
             multiColumnSort: false,
-            frozenColumn: 2,
+            frozenColumn: this.isMobile ? 0 : 2,
 
             formatterOptions: {
                 // dateSeparator: '.',
@@ -1664,28 +1681,26 @@ export class PaymentOrderComponent implements OnInit {
             },
             gridWidth: '100%',
             // datasetIdPropertyName: 'Id',
-            enableRowSelection: true,
 
+            enableRowSelection: true,
+            rowSelectionOptions: {
+                selectActiveRow: false// True (Single Selection), False (Multiple Selections)
+            },
+            checkboxSelector: {
+                // you can toggle these 2 properties to show the "select all" checkbox in different location
+                hideInFilterHeaderRow: false,
+                hideInColumnTitleRow: true,
+                applySelectOnAllPages: true, // when clicking "Select All", should we apply it to all pages (defaults to true)
+            },
+            enableCheckboxSelector: true,
             contextMenu: {
                 hideCloseButton: false,
                 commandTitle: '', // optional, add title
                 commandItems: [
-                    // 'divider',
-                    // { divider: true, command: '', positionOrder: 60 },
-                    // {
-                    //     command: 'command1', title: 'Command 1', positionOrder: 61,
-                    //     // you can use the "action" callback and/or use "onCommand" callback from the grid options, they both have the same arguments
-                    //     action: (e, args) => {
-                    //         console.log(args.dataContext, args.column); // action callback.. do something
-                    //     }
-                    // },
+
                     {
                         command: '', title: 'Xem file', iconCssClass: 'mdi mdi-help-circle', positionOrder: 62,
                         action: (e, args) => {
-                            // console.log('args.dataContext:', args.dataContext);
-                            // this.handleRowSelection(e, args);
-
-
                             const filePath = args.dataContext?.ServerPath || '';
                             if (filePath) {
                                 const host = environment.host + 'api/share';
@@ -1708,12 +1723,33 @@ export class PaymentOrderComponent implements OnInit {
                         }
                     },
 
-                    // {
-                    //     command: '', title: 'Tải file', iconCssClass: 'mdi mdi-help-circle', positionOrder: 62,
-                    //     action: (e, args) => {
-                    //         console.log('args.dataContext:', args.dataContext);
-                    //     }
-                    // },
+                    {
+                        command: '', title: 'Tải file', iconCssClass: 'mdi mdi-help-circle', positionOrder: 62,
+                        action: (e, args) => {
+                            let selectedItems = args.grid.getSelectedRows()
+                                .map(i => this.angularGridFile.dataView?.getItem(i));
+
+
+                            selectedItems.forEach(item => {
+                                const filePath = item?.ServerPath || '';
+                                if (filePath) {
+                                    const host = environment.host + 'api/share';
+                                    let url = filePath.replace("\\\\192.168.1.190", host) + `/${item?.FileName}`;
+
+                                    this.http.get(url, { responseType: 'blob' }).subscribe(blob => {
+                                        const a = document.createElement('a');
+                                        const objectUrl = URL.createObjectURL(blob);
+
+                                        a.href = objectUrl;
+                                        a.download = item?.FileName;
+                                        a.click();
+
+                                        URL.revokeObjectURL(objectUrl);
+                                    });
+                                }
+                            });
+                        }
+                    },
 
                 ],
             }
@@ -1742,6 +1778,76 @@ export class PaymentOrderComponent implements OnInit {
             gridWidth: '100%',
             // datasetIdPropertyName: 'Id',
             enableRowSelection: true,
+            rowSelectionOptions: {
+                selectActiveRow: false// True (Single Selection), False (Multiple Selections)
+            },
+            checkboxSelector: {
+                // you can toggle these 2 properties to show the "select all" checkbox in different location
+                hideInFilterHeaderRow: false,
+                hideInColumnTitleRow: true,
+                applySelectOnAllPages: true, // when clicking "Select All", should we apply it to all pages (defaults to true)
+            },
+            enableCheckboxSelector: true,
+
+            contextMenu: {
+                hideCloseButton: false,
+                commandTitle: '', // optional, add title
+                commandItems: [
+
+                    {
+                        command: '', title: 'Xem file', iconCssClass: 'mdi mdi-help-circle', positionOrder: 62,
+                        action: (e, args) => {
+                            const filePath = args.dataContext?.ServerPath || '';
+                            if (filePath) {
+                                const host = environment.host + 'api/share';
+                                let urlImg = filePath.replace("\\\\192.168.1.190", host) + `/${args.dataContext?.FileName}`;
+                                // window.open(urlImg, '_blank', 'width=1000,height=700,left=200,top=100');
+
+                                const newWindow = window.open(
+                                    urlImg,
+                                    '_blank',
+                                    'width=1000,height=700'
+                                );
+
+                                if (newWindow) {
+                                    newWindow.onload = () => {
+                                        newWindow.document.title = args.dataContext?.FileName;
+                                        // newWindow.document.icon = args.dataContext?.FileName;
+                                    };
+                                }
+                            }
+                        }
+                    },
+
+                    {
+                        command: '', title: 'Tải file', iconCssClass: 'mdi mdi-help-circle', positionOrder: 62,
+                        action: (e, args) => {
+                            let selectedItems = args.grid.getSelectedRows()
+                                .map(i => this.angularGridFileBankslip.dataView?.getItem(i));
+
+                            selectedItems.forEach(item => {
+                                const filePath = item?.ServerPath || '';
+                                if (filePath) {
+                                    const host = environment.host + 'api/share';
+                                    let url = filePath.replace("\\\\192.168.1.190", host) + `/${item?.FileName}`;
+
+                                    this.http.get(url, { responseType: 'blob' }).subscribe(blob => {
+                                        const a = document.createElement('a');
+                                        const objectUrl = URL.createObjectURL(blob);
+
+                                        a.href = objectUrl;
+                                        a.download = item?.FileName;
+                                        a.click();
+
+                                        URL.revokeObjectURL(objectUrl);
+                                    });
+                                }
+                            });
+                        }
+                    },
+
+                ],
+            }
         }
 
         this.loadData();
@@ -2098,7 +2204,7 @@ export class PaymentOrderComponent implements OnInit {
             autoFitColumnsOnFirstLoad: false,
             enableAutoSizeColumns: false,
 
-            frozenColumn: 5,
+            frozenColumn: this.isMobile ? 0 : 5,
 
             createPreHeaderPanel: true,
             showPreHeaderPanel: true,
@@ -2258,7 +2364,7 @@ export class PaymentOrderComponent implements OnInit {
             // },
             // multiColumnSort: false,
 
-            frozenColumn: 2,
+            frozenColumn: this.isMobile ? 0 : 2,
             formatterOptions: {
                 // dateSeparator: '.',
                 decimalSeparator: '.',
@@ -2363,7 +2469,7 @@ export class PaymentOrderComponent implements OnInit {
     }
 
     loadDataNormal() {
-
+        this.isLoading = true;
         const p = {
             ...this.param,
             isSpecialOrder: 0,
@@ -2387,9 +2493,12 @@ export class PaymentOrderComponent implements OnInit {
                 if (columnElement) {
                     columnElement.textContent = `${this.formatNumber(this.dataset.length, 0)}`;
                 }
+
+                this.isLoading = false;
             },
             error: (err) => {
                 this.notification.error(NOTIFICATION_TITLE.error, err.error.message);
+                this.isLoading = false;
             }
         })
     }
@@ -2621,7 +2730,7 @@ export class PaymentOrderComponent implements OnInit {
     //     }
     // }
 
-    initModal(paymentOrder: any = new PaymentOrder()) {
+    initModal(paymentOrder: any = new PaymentOrder(), isCopy: boolean = false) {
         paymentOrder.IsSpecialOrder = this.activeTab == '1';
         if (!paymentOrder.IsSpecialOrder) {
             const modalRef = this.modalService.open(PaymentOrderDetailComponent, {
@@ -2634,6 +2743,7 @@ export class PaymentOrderComponent implements OnInit {
             });
 
             modalRef.componentInstance.paymentOrder = paymentOrder;
+            modalRef.componentInstance.isCopy = isCopy;
         } else {
             const modalRef = this.modalService.open(PaymentOrderSpecialComponent, {
                 centered: true,
@@ -2644,6 +2754,7 @@ export class PaymentOrderComponent implements OnInit {
                 fullscreen: true,
             });
             modalRef.componentInstance.paymentOrder = paymentOrder;
+            modalRef.componentInstance.isCopy = isCopy;
         }
 
     }
@@ -2655,8 +2766,6 @@ export class PaymentOrderComponent implements OnInit {
     }
 
     onEdit() {
-
-
         let grid = this.angularGrid;
         if (this.activeTab == '1') grid = this.angularGridSpecial;
 
@@ -2709,6 +2818,29 @@ export class PaymentOrderComponent implements OnInit {
                     })
                 }
             });
+        }
+    }
+
+
+    onCopy() {
+        let grid = this.angularGrid;
+        if (this.activeTab == '1') grid = this.angularGridSpecial;
+
+        let activeCell = grid.slickGrid.getActiveCell();
+        if (activeCell) {
+            const rowIndex = activeCell.row;        // index trong grid
+            let item = grid.dataView.getItem(rowIndex); // data object
+
+            // item.ID = 0;
+            // item.id = 0;
+            item.DateOrder = new Date();
+            item.FullName = this.appUserService.currentUser?.FullName || '';
+            item.DepartmentName = this.appUserService.currentUser?.DepartmentName || '';
+            item.Code = '';
+
+            item = item as PaymentOrder;
+            // console.log('onCopy item:', item);
+            this.initModal(item, true);
         }
     }
 
@@ -3547,9 +3679,9 @@ export class PaymentOrderComponent implements OnInit {
         }
 
 
-        console.log('signHR:', signHR);
-        console.log('signKT:', signKT);
-        console.log('signBGD:', signBGD);
+        // console.log('signHR:', signHR);
+        // console.log('signKT:', signKT);
+        // console.log('signBGD:', signBGD);
 
 
 
@@ -3559,7 +3691,7 @@ export class PaymentOrderComponent implements OnInit {
         const dateApprovedKT = (signKT?.DateApproved || '') != '' ? DateTime.fromISO(signKT?.DateApproved).toFormat('dd/MM/yyyy HH:mm') : '';
         const dateApprovedBGD = (signBGD?.DateApproved || '') != '' ? DateTime.fromISO(signBGD?.DateApproved).toFormat('dd/MM/yyyy HH:mm') : '';
 
-        console.log('signTBP?.DateApproved', signTBP?.DateApproved || '');
+        // console.log('signTBP?.DateApproved', signTBP?.DateApproved || '');
         let signFooter: any = [
             {
                 alignment: 'justify',

@@ -106,6 +106,28 @@ export class HomeLayoutNewComponent implements OnInit {
 
     newsletters: any[] = [];
 
+    departmentTechs: any[] = [2, 11, 12, 13];
+    departmentAgvCokhis = [9, 10];
+    departmentLapraps = [23];
+    departmentSales = [3, 12];
+    departmentHRs = [6, 22];
+    employeeHRs = [586];
+
+    positinLXs = [6]; //List chức vụ NV lái xe
+    positinCPs = [7, 72]; //List chức vụ NV cắt phim
+    marketings = [8];
+
+    userAllReportTechs = [
+        1, 23, 24, 78, 88, 1221, 1313, 1434, 1431, 53, 51, 1534,
+    ];
+
+
+    id = 0;
+    employeeID = 0;
+    departmentID = 0;
+    positionID = 0;
+    isHR = false;
+    isAdmin = false;
 
     constructor(
         private notification: NzNotificationService,
@@ -123,11 +145,23 @@ export class HomeLayoutNewComponent implements OnInit {
     ) { }
 
     ngOnInit(): void {
-        this.getMenus();
         this.appUserService.user$.subscribe(() => {
             this.permissionService.refreshPermissions();
             this.cdr.markForCheck?.();
+
+            this.id = this.appUserService.currentUser?.ID || 0;
+            this.employeeID = this.appUserService.currentUser?.EmployeeID || 0;
+            this.departmentID = this.appUserService.currentUser?.DepartmentID || 0;
+            this.positionID = this.appUserService.currentUser?.PositionID || 0;
+            this.isHR =
+                (this.employeeHRs.includes(this.employeeID) ||
+                    this.departmentHRs.includes(this.departmentID)) || false;
+
+            this.isAdmin = (this.appUserService.currentUser?.IsAdmin &&
+                this.appUserService.currentUser?.EmployeeID <= 0) || false;
         });
+
+        this.getMenus();
 
         this.getHoliday(this.today.getFullYear(), this.today.getMonth());
         this.getEmployeeOnleaveAndWFH();
@@ -140,9 +174,9 @@ export class HomeLayoutNewComponent implements OnInit {
     getQuantityApprove() {
         this.approveTpService.getQuantityApprove().subscribe({
             next: (res: any) => {
-                console.log('API Response:', res); // Debug log
+                // console.log('API Response:', res); // Debug log
                 this.quantityApprove = res.data;
-                console.log('Assigned quantityApprove:', this.quantityApprove); // Debug log
+                // console.log('Assigned quantityApprove:', this.quantityApprove); // Debug log
             },
             error: (err: any) => {
                 this.notification.error(NOTIFICATION_TITLE.error, err?.error?.message || err?.message);
@@ -157,7 +191,7 @@ export class HomeLayoutNewComponent implements OnInit {
         // }
         let route = '';
         let title = '';
-        switch(approvalType) {
+        switch (approvalType) {
             case 'Senior':
                 route = 'senior-approve?isSeniorMode=true';
                 title = 'Senior duyệt';
@@ -171,12 +205,16 @@ export class HomeLayoutNewComponent implements OnInit {
                 title = 'BGD duyệt';
                 break;
             default:
-                route = 'tbp-approve'; 
+                route = 'tbp-approve';
                 title = 'Duyệt';
         }
         this.newTab(route, title);
     }
     getMenus() {
+
+        console.log('this.appUserService.currentUser:', this.appUserService.currentUser);
+
+
         this.menuAppService.getAll().subscribe({
             next: (response) => {
 
@@ -184,13 +222,55 @@ export class HomeLayoutNewComponent implements OnInit {
                 // this.nodes = [];
                 // Tạo map trước
                 response.data.menus.forEach((item: any) => {
+
+                    let isPermission = item.IsPermission;
+
+                    //Nếu là AGV-Cơ khí
+                    if (item.Router == 'daily-report-machine') {
+                        isPermission = this.isAdmin ||
+                            this.departmentAgvCokhis.includes(this.departmentID) ||
+                            this.userAllReportTechs.includes(this.id);
+                    }
+
+                    //nếu là sale
+                    if (item.Router == 'daily-report-sale-admin' || item.Router == 'daily-report-sale' || item.Code == 'M66') {
+                        isPermission = this.isAdmin || this.departmentSales.includes(this.departmentID);
+                    }
+
+                    //Nếu là Kỹ thuật
+                    if (item.Router == 'daily-report-tech') {
+                        isPermission = this.isAdmin ||
+                            this.departmentTechs.includes(this.departmentID) ||
+                            this.userAllReportTechs.includes(this.id);
+                    }
+
+                    //Nếu là HR
+                    if (item.Router == 'daily-report-thr' || item.Router == 'daily-report-lxcp' || item.Code == 'M70') {
+                        isPermission = this.isAdmin ||
+                            this.isHR ||
+                            this.positinCPs.includes(this.positionID) ||
+                            this.positinLXs.includes(this.positionID);
+                    }
+
+                    //Nếu là lắp rap
+                    if (item.Router == 'daily-report-lr') {
+                        isPermission = this.isAdmin ||
+                            this.departmentLapraps.includes(this.departmentID) ||
+                            this.userAllReportTechs.includes(this.id);
+                    }
+
+                    //Nếu là MKT
+                    if (item.Router == 'daily-report-mkt') {
+                        isPermission = this.isAdmin || this.marketings.includes(this.departmentID);
+                    }
+
                     map.set(item.ID, {
                         STT: item.STT,
                         Code: item.Code,
                         Title: item.Title,
                         Router: item.Router == '' ? '' : `${environment.baseHref}/${item.Router}`,
                         Icon: `${environment.host}api/share/software/icon/${item.Icon}`,
-                        IsPermission: item.IsPermission,
+                        IsPermission: isPermission,
                         IsOpen: true,
                         ParentID: item.ParentID,
                         Children: [],
@@ -219,7 +299,26 @@ export class HomeLayoutNewComponent implements OnInit {
 
                 var pesons = this.menus.find((x) => x.Code == 'person');
                 this.menuPersons = pesons.Children.filter((x: any) => x.Code == 'registerpayroll' || x.Code == 'dailyreport' || x.Code == 'registercommon');
-                console.log('this.menuPersons', this.menuPersons);
+
+                // this.menuPersons = pesons.Children
+                //     .filter((x: any) =>
+                //         ['registerpayroll', 'dailyreport', 'registercommon'].includes(x.Code)
+                //     )
+                //     .map((item: any) => {
+                //         if (item.Code === 'dailyreport' && item.Children?.length) {
+                //             return {
+                //                 ...item,
+                //                 Children: item.Children.map((c: any) => ({
+                //                     ...c,
+                //                     IsPermission: false
+                //                 }))
+                //             };
+                //         }
+                //         return item;
+                //     });
+
+                // console.log('this.menuPersons', this.menuPersons);
+
                 this.menuWeekplans = pesons.Children.find((x: any) => x.Code == 'planweek');
 
                 this.menuQickAcesss = this.menus.find((x) => x.Code == 'M4');
@@ -288,7 +387,6 @@ export class HomeLayoutNewComponent implements OnInit {
 
 
     openModule(event: MouseEvent, route: string, key: string) {
-
 
         if (route == '') return;
         if (event.button === 0 && !event.ctrlKey && !event.metaKey) {
@@ -382,11 +480,11 @@ export class HomeLayoutNewComponent implements OnInit {
         const imageName = item?.Image; // Keep consistency with item properties
 
         if (!serverPath && !imageName) return 'assets/images/no-image.png';
-        
+
         const host = environment.host + 'api/share/';
         let urlImage = (serverPath || imageName || '').replace("\\\\192.168.1.190\\", "");
         urlImage = urlImage.replace(/\\/g, '/');
-        
+
         return host + urlImage;
     }
 }

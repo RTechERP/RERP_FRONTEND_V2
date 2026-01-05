@@ -1,116 +1,121 @@
+<p-menubar [model]="menuBars">
+  <ng-template pTemplate="item" let-item>
+    <a class="p-menuitem-link" [ngClass]="item.styleClass">
+      <i [class]="item.icon"></i>
+      <span class="p-menuitem-text">{{ item.label }}</span>
+    </a>
+  </ng-template>
+
+  <ng-template #end>
+    <div class="flex items-center gap-2">
+      <button nz-button nzType="text" nzShape="circle" *ngIf="isMobile()"
+        (click)="ToggleSearchPanelNew($event); $event.stopPropagation()">
+        <nz-icon nzType="search" />
+      </button>
+    </div>
+  </ng-template>
+</p-menubar>
+
 <ng-container class="w-100">
-  <div class="card h-100 border-0 rounded-0">
-    <div class="card-header bg-white p-2">
-      <form nz-form [formGroup]="searchForm" (ngSubmit)="loadOverTimeByEmployee(); $event.preventDefault()">
-        <div class="d-flex flex-column flex-md-row gap-2 align-items-start align-items-md-center flex-wrap">
-          <div class="d-flex gap-1 align-items-center flex-wrap">
-            <button type="button" nz-button class="btn-add" nzType="default" nzSize="small" (click)="openAddModal()">
-              <img src="assets/icon/action_add_item_16.png" alt="Thêm" />
-              <span class="d-none d-sm-inline">Thêm</span>
-            </button>
-            <button type="button" nz-button class="btn-edit" nzType="default" nzSize="small" (click)="openEditModal()">
-              <img src="assets/icon/action_edit_item_16.png" alt="Sửa" />
-              <span class="d-none d-sm-inline">Sửa</span>
-            </button>
-            <button type="button" nz-button class="btn-delete" nzType="default" nzSize="small" (click)="openDeleteModal()">
-              <img src="assets/icon/action_delete_item_16.png" alt="Xóa" />
-              <span class="d-none d-sm-inline">Xóa</span>
-            </button>
-          </div>
-          <div class="d-flex flex-wrap gap-1 align-items-center ms-auto" style="min-width: 0;">
-            <div class="d-flex align-items-center">
-              <label class="mb-0 me-1 d-none d-lg-inline" style="font-size: 12px; white-space: nowrap;">Từ ngày:</label>
-              <nz-date-picker
-                formControlName="startDate"
-                nzFormat="dd/MM/yyyy"
-                nzPlaceHolder="Từ ngày"
-                nzSize="small"
-                style="width: 140px; min-width: 120px;"
-              ></nz-date-picker>
-            </div>
-            <div class="d-flex align-items-center">
-              <label class="mb-0 me-1 d-none d-lg-inline" style="font-size: 12px; white-space: nowrap;">Đến ngày:</label>
-              <nz-date-picker
-                formControlName="endDate"
-                nzFormat="dd/MM/yyyy"
-                nzPlaceHolder="Đến ngày"
-                nzSize="small"
-                style="width: 140px; min-width: 120px;"
-              ></nz-date-picker>
-            </div>
-            <div class="d-flex align-items-center">
-              <label class="mb-0 me-1 d-none d-xl-inline" style="font-size: 12px; white-space: nowrap;">Trạng thái:</label>
-              <nz-select 
-                nzShowSearch 
-                nzAllowClear 
-                nzSize="small"
-                nzPlaceHolder="Trạng thái" 
-                formControlName="status"
-                style="width: 130px; min-width: 110px;"
-              >
-                <nz-option [nzValue]="-1" nzLabel="Tất cả"></nz-option>
-                <nz-option [nzValue]="0" nzLabel="Chờ duyệt"></nz-option>
-                <nz-option [nzValue]="1" nzLabel="Đã duyệt"></nz-option>
-                <nz-option [nzValue]="2" nzLabel="Không đồng ý duyệt"></nz-option>
-              </nz-select>
-            </div>
-            <div class="d-flex align-items-center">
-              <label class="mb-0 me-1 d-none d-xl-inline" style="font-size: 12px; white-space: nowrap;">Loại:</label>
-              <nz-select 
-                nzShowSearch 
-                nzAllowClear 
-                nzSize="small"
-                nzPlaceHolder="Loại" 
-                formControlName="type"
-                style="width: 150px; min-width: 120px;"
-              >
-                <nz-option *ngFor="let type of typeList" [nzValue]="type.ID"
-                  [nzLabel]="type.Type"></nz-option>
-              </nz-select>
-            </div>
-            <div class="d-flex align-items-center">
-              <label class="mb-0 me-1 d-none d-lg-inline" style="font-size: 12px; white-space: nowrap;">Từ khóa:</label>
-              <input
-                nz-input
-                nzSize="small"
-                placeholder="Từ khóa..."
-                formControlName="keyWord"
-                (keyup.enter)="loadOverTimeByEmployee(); $event.preventDefault()"
-                style="width: 180px; min-width: 120px;"
-              />
-            </div>
-            <div class="d-flex gap-1 align-items-center">
-              <button type="button" nz-button nzType="default" nzSize="small" (click)="resetSearch()">
-                <span class="d-none d-md-inline">Đặt lại</span>
-                <span class="d-md-none">Reset</span>
-              </button>
-              <button type="button" nz-button nzType="primary" nzSize="small" (click)="loadOverTimeByEmployee()">
-                <nz-icon nzType="search" />
-                <span class="d-none d-sm-inline">Tìm kiếm</span>
-              </button>
-            </div>
-          </div>
-        </div>
+  <div class="card border-0 rounded-0" style="height: 89vh !important;">
+    <!-- Backdrop overlay cho mobile -->
+    <div class="filter-backdrop" *ngIf="shouldShowSearchBar && isMobile()" (click)="ToggleSearchPanelNew()"></div>
+
+    <!-- Filter bar -->
+    <div class="filter-bar bg-light border-bottom p-2" *ngIf="shouldShowSearchBar" [class.mobile-modal]="true">
+      <div class="filter-bar-header d-flex justify-content-between align-items-center mb-2" *ngIf="isMobile()">
+        <span class="fw-bold" style="font-size: 12px;">Tìm kiếm</span>
+        <button nz-button nzType="text" nzShape="circle" nzSize="small" nzDanger (click)="ToggleSearchPanelNew()">
+          <nz-icon nzType="close" />
+        </button>
+      </div>
+      <form nz-form [formGroup]="searchForm" class="mobile-filter-form">
+        <nz-row [nzGutter]="[8, 8]" nzAlign="bottom">
+          <nz-col [nzXs]="12" [nzSm]="12" [nzMd]="6" [nzLg]="4" [nzXl]="3">
+            <nz-form-item class="mb-0">
+              <nz-form-label class="fs-12" style="font-size: 12px;">Từ ngày</nz-form-label>
+              <nz-form-control>
+                <nz-date-picker formControlName="startDate" nzFormat="dd/MM/yyyy" class="w-100" nzSize="small"
+                  nzAllowClear="false"></nz-date-picker>
+              </nz-form-control>
+            </nz-form-item>
+          </nz-col>
+
+          <nz-col [nzXs]="12" [nzSm]="12" [nzMd]="6" [nzLg]="4" [nzXl]="3">
+            <nz-form-item class="mb-0">
+              <nz-form-label class="fs-12" style="font-size: 12px;">Đến ngày</nz-form-label>
+              <nz-form-control>
+                <nz-date-picker formControlName="endDate" nzFormat="dd/MM/yyyy" class="w-100" nzSize="small"
+                  nzAllowClear="false"></nz-date-picker>
+              </nz-form-control>
+            </nz-form-item>
+          </nz-col>
+
+          <nz-col [nzXs]="12" [nzSm]="12" [nzMd]="6" [nzLg]="4" [nzXl]="4">
+            <nz-form-item class="mb-0">
+              <nz-form-label class="fs-12" style="font-size: 12px;">Trạng thái</nz-form-label>
+              <nz-form-control>
+                <nz-select formControlName="status" nzShowSearch nzAllowClear nzSize="small"
+                  nzPlaceHolder="Chọn trạng thái" class="w-100">
+                  <nz-option [nzValue]="-1" nzLabel="Tất cả"></nz-option>
+                  <nz-option [nzValue]="0" nzLabel="Chờ duyệt"></nz-option>
+                  <nz-option [nzValue]="1" nzLabel="Đã duyệt"></nz-option>
+                  <nz-option [nzValue]="2" nzLabel="Không đồng ý duyệt"></nz-option>
+                </nz-select>
+              </nz-form-control>
+            </nz-form-item>
+          </nz-col>
+
+          <nz-col [nzXs]="12" [nzSm]="12" [nzMd]="6" [nzLg]="5" [nzXl]="6">
+            <nz-form-item class="mb-0">
+              <nz-form-label class="fs-12" style="font-size: 12px;">Loại</nz-form-label>
+              <nz-form-control>
+                <nz-select formControlName="type" nzShowSearch nzAllowClear nzSize="small" nzPlaceHolder="Chọn loại"
+                  class="w-100">
+                  <nz-option *ngFor="let type of typeList" [nzValue]="type.ID" [nzLabel]="type.Type"></nz-option>
+                </nz-select>
+              </nz-form-control>
+            </nz-form-item>
+          </nz-col>
+
+          <!-- Từ khóa và nút tìm kiếm -->
+          <nz-col [nzXs]="24" [nzSm]="24" [nzMd]="12" [nzLg]="6" [nzXl]="8">
+            <nz-form-item class="mb-0">
+              <nz-form-label class="fs-12" style="font-size: 12px;">Từ khóa</nz-form-label>
+              <nz-form-control>
+                <div class="d-flex gap-1">
+                  <input nz-input placeholder="Nhập từ khóa..." nzSize="small" formControlName="keyWord"
+                    class="flex-grow-1" (keyup.enter)="loadOverTimeByEmployee()" />
+                  <button nz-button nzType="primary" style="width: 40px;" nzSize="small"
+                    (click)="loadOverTimeByEmployee()">
+                    <nz-icon nzType="search" />
+                  </button>
+                </div>
+              </nz-form-control>
+            </nz-form-item>
+          </nz-col>
+        </nz-row>
       </form>
     </div>
 
-    <div class="card-body p-0 d-flex align-items-center justify-content-center" style="position: relative">
-      <div *ngIf="isLoading"> 
+    <!-- Content với bảng -->
+    <div class="card-body p-0 " [class.with-search-bar]="shouldShowSearchBar"
+      [class.without-search-bar]="!shouldShowSearchBar">
+      <div *ngIf="isLoading">
         <nz-spin [nzSpinning]="isLoading" nzSimple [style]="{
-            position: 'absolute',
-            top: '0',
-            left: '0',
-            width: '100%',
-            height: '100%',
-            background: 'rgba(255,255,255,0.4)',
-            zIndex: '999',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center'
-          }"></nz-spin>
+          position: 'absolute',
+          top: '0',
+          left: '0',
+          width: '100%',
+          height: '100%',
+          background: 'rgba(255,255,255,0.4)',
+          zIndex: '999',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center'
+        }"></nz-spin>
       </div>
       <div class="w-100" id="tb_over_time_person" #tb_over_time_person></div>
     </div>
   </div>
 </ng-container>
-

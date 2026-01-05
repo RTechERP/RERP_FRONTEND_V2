@@ -305,148 +305,153 @@ button[nz-button] img {
 .bell-icon:hover {
   animation: ring 0.5s ease-in-out infinite;
 }
-.btn-action-icon{
-  width:1.5rem;
+
+.btn-action-icon {
+  width: 1.5rem;
   padding: 0.25rem;
 }
 
 .tabulator-page-size {
-    background-color: transparent !important;
+  background-color: transparent !important;
 }
 
 .btn-close,
 .modal-header .btn-close {
-  background-color:#dc3545 !important;
+  background-color: #dc3545 !important;
   /* background-image: none !important; */
   font-weight: bold;
 }
+
 /* Sửa lại style nz-zorro card */
-.ant-card-head{
-    min-height: unset !important;
+.ant-card-head {
+  min-height: unset !important;
 }
-.ant-card-head-title{
-    padding: 0.5rem;
-    font-weight: bold;
-    font-size: 12px;
+
+.ant-card-head-title {
+  padding: 0.5rem;
+  font-weight: bold;
+  font-size: 12px;
 }
+
 /* end */
 
 /* Sửa lại style của PrimeNG */
-.p-menubar-submenu{
-    z-index: 99999 !important;
+.p-menubar-submenu {
+  z-index: 99999 !important;
 }
 
-.p-tab{
-    padding: 0.5rem 0.5rem !important;
-    font-size: 12px;
+.p-tab {
+  padding: 0.5rem 0.5rem !important;
+  font-size: 12px;
 }
 
-.p-tab-active{
-    color: #ef4723;
-    border: #ef4723;
+.p-tab-active {
+  color: #ef4723;
+  border: #ef4723;
 }
 
-.p-menubar-item-label{
-    font-size: 12px;
-    font-weight: bold;
+.p-menubar-item-label {
+  font-size: 12px;
+  font-weight: bold;
 }
 
-.p-menubar-item-content{
-    /* background-color: #f1f5f9; */
-    border: 1px solid #d8d9da;
+.p-menubar-item-content {
+  /* background-color: #f1f5f9; */
+  border: 1px solid #d8d9da;
 }
 
 /* Loại bỏ border cho tất cả items trong submenu */
-.p-menubar-submenu .p-menubar-item-content{
-    border: none !important;
+.p-menubar-submenu .p-menubar-item-content {
+  border: none !important;
 }
 
 /* Cụ thể hơn: loại bỏ border cho các items con trong dropdown */
 .p-menubar .p-submenu-list .p-menubar-item-content {
-    border: none !important;
+  border: none !important;
 }
 
 /* Loại bỏ border cho items trong tiered menu */
 .p-tieredmenu .p-menuitem-content {
-    border: none !important;
+  border: none !important;
 }
 
 /* .p-menubar > .p-menubar-root-list > .p-menuitem.p-highlight > .p-menubar-item-content {
     background-color: #e2e8f0;
 } */
 
-.p-menubar-separator{
-    border-block-start: 2px solid #000;
+.p-menubar-separator {
+  border-block-start: 2px solid #000;
 }
 
 
-.p-menubar-mobile .p-menubar-root-list{
-    width: unset;
-    flex-direction: row;
-    max-height: 50vh;
-    overflow: auto;
+.p-menubar-mobile .p-menubar-root-list {
+  width: unset;
+  flex-direction: row;
+  max-height: 50vh;
+  overflow: auto;
 }
 
 /* Mobile search dropdown styling */
 .mobile-search-dropdown {
-    min-width: 90vw;
-    max-width: 90vw;
-    max-height: 80vh;
-    overflow-y: auto;
+  min-width: 90vw;
+  max-width: 90vw;
+  max-height: 80vh;
+  overflow-y: auto;
 }
 
 /* Style slick-grid */
 
-.slickgrid-container .slick-header{
-    border-left: 1px solid #ddd !important;
-    border-top: 1px solid #ddd !important;
-    border-bottom: 1px solid #ddd !important;
+.slickgrid-container .slick-header {
+  border-left: 1px solid #ddd !important;
+  border-top: 1px solid #ddd !important;
+  border-bottom: 1px solid #ddd !important;
 }
 
-body .slickgrid-container .slick-header-columns .slick-header-column.slick-state-default{
-    border: 1px solid #ddd;
-    display: flex;
-    justify-content: center;
-    align-content: center;
-    line-height: normal !important;
-    padding-top: 5px;
-    background-color: #f4f4f4;
-    flex-wrap: wrap;
-    font-size: 12px !important;
+body .slickgrid-container .slick-header-columns .slick-header-column.slick-state-default {
+  border: 1px solid #ddd;
+  display: flex;
+  justify-content: center;
+  align-content: center;
+  line-height: normal !important;
+  padding-top: 5px;
+  background-color: #f4f4f4;
+  flex-wrap: wrap;
+  font-size: 12px !important;
 }
 
-body .slickgrid-container .slick-header-columns .slick-header-column.slick-state-default >.slick-column-name{
-    margin-bottom: 0;
-}
-.slickgrid-container .slick-pane-header{
-    background-color: #f4f4f4 !important;
+body .slickgrid-container .slick-header-columns .slick-header-column.slick-state-default>.slick-column-name {
+  margin-bottom: 0;
 }
 
-body .slickgrid-container .grid-canvas .slick-cell{
-    line-height: normal #ddd !important;
-    border-left: 1px solid #ddd !important;
-    font-size: 12px !important;
+.slickgrid-container .slick-pane-header {
+  background-color: #f4f4f4 !important;
 }
 
-.slickgrid-container .slick-headerrow .slick-headerrow-columns .slick-headerrow-column{
-    border-left: 1px solid #ddd !important;
-    border-bottom: 1px solid  #ddd !important;
+body .slickgrid-container .grid-canvas .slick-cell {
+  line-height: normal #ddd !important;
+  border-left: 1px solid #ddd !important;
+  font-size: 12px !important;
+}
+
+.slickgrid-container .slick-headerrow .slick-headerrow-columns .slick-headerrow-column {
+  border-left: 1px solid #ddd !important;
+  border-bottom: 1px solid #ddd !important;
 }
 
 /* .slickgrid-container .slick-row.odd{
     background-color: transparent !important;
 } */
 
-.slick-header-button{
-    float: left !important;
-    margin-bottom: 0 !important;
+.slick-header-button {
+  float: left !important;
+  margin-bottom: 0 !important;
 }
 
 
-.slickgrid-container .slick-group{
-    background-color: #b3b3b3 !important;
-    font-weight: bold !important;
-    text-transform: uppercase !important;
+.slickgrid-container .slick-group {
+  background-color: #b3b3b3 !important;
+  font-weight: bold !important;
+  text-transform: uppercase !important;
 }
 
 /* end style slick grid */
@@ -466,6 +471,7 @@ body .slickgrid-container .grid-canvas .slick-cell{
   background-color: #0f88a7;
   color: #fff;
 }
+
 .second-modal-window {
   z-index: 1060 !important;
 }
@@ -475,10 +481,63 @@ body .slickgrid-container .grid-canvas .slick-cell{
     opacity: 0.5;
   }
 
-  + .modal-backdrop {
+  +.modal-backdrop {
     z-index: 1055 !important;
   }
 }
+
 .tabulator-row.row-focused {
   background-color: #67afe2 !important;
+}
+
+/* PrimeNG DatePicker Overlay - Đảm bảo hiển thị trên modal */
+/* NgbModal có z-index mặc định là 1050-1055, nên cần z-index cao hơn nhiều */
+.p-datepicker,
+.p-datepicker-overlay,
+.p-overlay,
+.p-datepicker-panel,
+.p-component-overlay,
+.p-connected-overlay,
+p-datepicker .p-datepicker,
+p-datepicker-panel {
+  z-index: 99999 !important;
+}
+
+/* Đảm bảo overlay container của PrimeNG có z-index cao */
+.p-overlay-container,
+.p-dynamic-dialog-mask,
+.p-dialog-mask {
+  z-index: 99998 !important;
+}
+
+/* Fix cho DatePicker trong NgbModal */
+.modal .p-datepicker,
+.modal-content .p-datepicker,
+.modal-body .p-datepicker,
+.ngb-modal-window .p-datepicker,
+ngb-modal-window .p-datepicker,
+.modal-dialog .p-datepicker {
+  z-index: 99999 !important;
+}
+
+/* Fix đặc biệt cho calendar panel khi append to body */
+body>.p-datepicker,
+body>.p-overlay,
+body>.p-datepicker-overlay,
+body>p-datepicker,
+body>.p-component {
+  z-index: 99999 !important;
+}
+
+.spinner{
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(255, 255, 255, 0.4);
+    z-index: 999999;
+    display: flex;
+    justify-content: center;
+    align-items: center;
 }

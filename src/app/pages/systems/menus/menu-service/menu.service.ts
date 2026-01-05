@@ -2179,7 +2179,7 @@ export class MenuService {
                         title: 'PO NCC',
                         isOpen: true,
                         isPermission: this.permissionService.hasPermission(
-                            'N33,N35,N36,N1,N52,N38,N54' 
+                            'N33,N35,N36,N1,N52,N38,N54'
                         ),
                         comp: PonccNewComponent,
                         //   icon: 'assets/icon/layers.png',

@@ -28,6 +28,8 @@ import { NzSpinModule } from 'ng-zorro-antd/spin';
 import { NOTIFICATION_TITLE } from '../../../../app.config';
 import { HasPermissionDirective } from '../../../../directives/has-permission.directive';
 import { AppUserService } from '../../../../services/app-user.service';
+import { NgbActiveModal, NgbModal } from '@ng-bootstrap/ng-bootstrap';
+import { DeclareDayOffDetailComponent } from './declare-day-off-detail/declare-day-off-detail.component';
 
 @Component({
   selector: 'app-declare-day-off',
@@ -61,12 +63,10 @@ export class DeclareDayOffComponent implements OnInit {
 
   declareDayOff: any[] = [];
   employeeList: any[] = [];
-  declareDayOffForm!: FormGroup;
   selectedDeclare: any = null;
-  isEditMode = false;
   isLoading = false;
 
-    currentUser: any;
+  currentUser: any;
   currentEmployee: any;
 
   constructor(
@@ -75,17 +75,18 @@ export class DeclareDayOffComponent implements OnInit {
     private notification: NzNotificationService,
     private dayOffService: DayOffService,
     private employeeService: EmployeeService,
-    private appUserService: AppUserService
+    private appUserService: AppUserService,
+    private ngbModal: NgbModal,
+    public activeModal: NgbActiveModal
   ) { }
 
   ngOnInit() {
     this.loadDeclareDayOff();
     this.initializeTable();
-    this.initializeForm();
     this.loadEmployees();
 
-      this.currentEmployee = this.appUserService.currentUser
-      console.log('Current Employee:', this.currentEmployee);
+    this.currentEmployee = this.appUserService.currentUser
+    console.log('Current Employee:', this.currentEmployee);
   }
 
   loadEmployees() {
@@ -109,6 +110,7 @@ export class DeclareDayOffComponent implements OnInit {
       },
       error: (error) => {
         this.notification.error(NOTIFICATION_TITLE.error, 'Lỗi khi tải danh sách khai báo ngày phép');
+        this.isLoading = false;
       }
     })
   }
@@ -119,7 +121,7 @@ export class DeclareDayOffComponent implements OnInit {
       layout: 'fitColumns',
       responsiveLayout: true,
       selectableRows: 1,
-      height: '80vh',
+      height: '100%',
       groupBy: 'DepartmentName',
       groupHeader: function (value, count, data, group) {
         return value + "<span style='color:#d00; margin-left:10px;'>(" + count + " nhân viên)</span>";
@@ -133,49 +135,56 @@ export class DeclareDayOffComponent implements OnInit {
     });
   }
 
-  private initializeForm(): void {
-    this.declareDayOffForm = this.fb.group({
-      ID: [0],
-      EmployeeID: [null, Validators.required],
-      TotalDayInYear: [0, Validators.required],
-      TotalDayNoOnLeave: [0, Validators.required],
-      TotalDayOnLeave: [0, Validators.required],
-      TotalDayRemain: [0, Validators.required],
-      YearOnleave: [0, Validators.required]
-    })
-  }
-
-  openAddModal() {
-    this.isEditMode = false;
-    const currentDate = new Date();
-    const currentYear = currentDate.getFullYear();
-    this.declareDayOffForm.reset({
-      ID: 0,
-      EmployeeID: null,
-      TotalDayInYear: 1,
-      TotalDayNoOnLeave: 0,
-      TotalDayOnLeave: 0,
-      TotalDayRemain: 0,
-      YearOnleave: currentYear,
-      IsDeleted: 0
+  openAddModal(): void {
+    const modalRef = this.ngbModal.open(DeclareDayOffDetailComponent, {
+      size: 'md',
+      backdrop: 'static',
+      keyboard: false,
+      centered: true,
     });
-    const modal = new (window as any).bootstrap.Modal(document.getElementById('addDeclareDayOffModal'));
-    modal.show();
+
+    modalRef.componentInstance.declareDayOffData = null;
+    modalRef.componentInstance.mode = 'add';
+
+    modalRef.result.then(
+      (result) => {
+        if (result?.action === 'save') {
+          this.notification.success(NOTIFICATION_TITLE.success, 'Lưu khai báo ngày phép thành công');
+          this.loadDeclareDayOff();
+        }
+      },
+      () => { }
+    );
   }
 
-  openEditModal() {
+  openEditModal(): void {
     const selectedRows = this.tabulator.getSelectedRows();
     if (selectedRows.length === 0) {
       this.notification.warning(NOTIFICATION_TITLE.warning, 'Vui lòng chọn khai báo cần sửa');
       return;
     }
-    this.isEditMode = true;
+
     this.selectedDeclare = selectedRows[0].getData();
-    this.declareDayOffForm.patchValue({
-      ...this.selectedDeclare
+
+    const modalRef = this.ngbModal.open(DeclareDayOffDetailComponent, {
+      size: 'md',
+      backdrop: 'static',
+      keyboard: false,
+      centered: true,
     });
-    const modal = new (window as any).bootstrap.Modal(document.getElementById('addDeclareDayOffModal'));
-    modal.show();
+
+    modalRef.componentInstance.declareDayOffData = this.selectedDeclare;
+    modalRef.componentInstance.mode = 'edit';
+
+    modalRef.result.then(
+      (result) => {
+        if (result?.action === 'save') {
+          this.notification.success(NOTIFICATION_TITLE.success, 'Lưu khai báo ngày phép thành công');
+          this.loadDeclareDayOff();
+        }
+      },
+      () => { }
+    );
   }
 
   openDeleteModal() {
@@ -211,41 +220,6 @@ export class DeclareDayOffComponent implements OnInit {
       }
     });
   }
-
-  onSubmit() {
-    if (this.declareDayOffForm.invalid) {
-      Object.values(this.declareDayOffForm.controls).forEach(control => {
-        if (control.invalid) {
-          control.markAsTouched();
-          control.updateValueAndValidity({ onlySelf: true });
-        }
-      });
-      this.notification.warning(NOTIFICATION_TITLE.warning, 'Vui lòng điền đầy đủ thông tin bắt buộc');
-      return;
-    }
-    const formData = {
-      ...this.declareDayOffForm.value
-    };
-    this.dayOffService.saveEmployeeOnLeaveMaster(formData).subscribe({
-      next: () => {
-        this.notification.success(NOTIFICATION_TITLE.success, 'Lưu khai báo ngày phép thành công');
-        this.closeModal();
-        this.loadDeclareDayOff();
-      },
-      error: (response) => {
-        this.notification.error(NOTIFICATION_TITLE.error, 'Lưu khai báo ngày phép thất bại: ' + (response.error?.message || ''));
-      }
-    });
-  }
-
-  closeModal() {
-    const modal = document.getElementById('addDeclareDayOffModal');
-    if (modal) {
-      (window as any).bootstrap.Modal.getInstance(modal).hide();
-    }
-    this.declareDayOffForm.reset();
-  }
-
 
   async exportToExcel() {
     // Nhóm dữ liệu theo phòng ban
@@ -293,8 +267,6 @@ export class DeclareDayOffComponent implements OnInit {
         fgColor: { argb: 'FFF0F0F0' }
       };
       deptRow.height = 25;
-      // worksheet.mergeCells(`A${rowIndex}:D${rowIndex}`);
-      // rowIndex++;
 
       // Thêm dữ liệu nhân viên
       grouped[dept].forEach((item: any) => {
@@ -322,7 +294,8 @@ export class DeclareDayOffComponent implements OnInit {
 
   @ViewChild(DayOffImportExcelComponent) dayOffImportExcelComponent!: DayOffImportExcelComponent;
   openImportExcelForm() {
-    const modal = new (window as any).bootstrap.Modal(document.getElementById('importExcelForm'));
+    const modalEl = document.getElementById('importExcelForm');
+    const modal = (window as any).bootstrap.Modal.getOrCreateInstance(modalEl);
     modal.show();
 
     this.dayOffImportExcelComponent.ngOnInit();

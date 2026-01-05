@@ -82,7 +82,7 @@ export class SummaryFoodOrderComponent implements OnInit, AfterViewInit {
     private fb: FormBuilder,
     private modal: NzModalService,
     private notification: NzNotificationService,
-    private projectService:ProjectService,
+    private projectService: ProjectService,
   ) {
     this.initializeForm();
   }
@@ -286,13 +286,13 @@ export class SummaryFoodOrderComponent implements OnInit, AfterViewInit {
       groupBy: 'DepartmentName',
       groupHeader(value, count, data, group) {
         let val = value ?? '';
-        return "<span style='color:black'>Phòng ban: </span>" + val ;
+        return "<span style='color:black'>Phòng ban: </span>" + val;
       },
       columns: [
         { title: 'STT', field: 'STT', hozAlign: 'left', headerHozAlign: 'center' },
         { title: 'Mã nhân viên', field: 'Code', hozAlign: 'left', headerHozAlign: 'center' },
         { title: 'Tên nhân viên', field: 'FullName', hozAlign: 'left', headerHozAlign: 'center' },
-        { title: 'Chức vụ', field: 'PositionName', hozAlign: 'left', headerHozAlign: 'center', minWidth:200, formatter:'textarea' },
+        { title: 'Chức vụ', field: 'PositionName', hozAlign: 'left', headerHozAlign: 'center', minWidth: 200, formatter: 'textarea' },
         {
           title: `BÁO CÁO ĐẶT CƠM THÁNG ${month}`,
           headerHozAlign: 'center',
@@ -320,7 +320,7 @@ export class SummaryFoodOrderComponent implements OnInit, AfterViewInit {
         { title: 'STT', field: 'STT', hozAlign: 'left', headerHozAlign: 'center' },
         { title: 'Mã nhân viên', field: 'Code', hozAlign: 'left', headerHozAlign: 'center' },
         { title: 'Tên nhân viên', field: 'FullName', hozAlign: 'left', headerHozAlign: 'center' },
-        { title: 'Chức vụ', field: 'PositionName', hozAlign: 'left', headerHozAlign: 'center', minWidth:200, formatter:'textarea' },
+        { title: 'Chức vụ', field: 'PositionName', hozAlign: 'left', headerHozAlign: 'center', minWidth: 200, formatter: 'textarea' },
         {
           title: `BẢNG CHẤM CÔNG ĂN CA THÁNG ${month}`, headerHozAlign: 'center',
           columns: dynamicColumns
@@ -372,6 +372,32 @@ export class SummaryFoodOrderComponent implements OnInit, AfterViewInit {
     const month = this.searchForm.get('month')?.value;
     const year = this.searchForm.get('year')?.value;
 
+    // Font settings (tham khảo từ employee-timekeeping-management)
+    const headerFont: Partial<ExcelJS.Font> = { name: 'Times New Roman', size: 12, bold: true };
+    const dataFont: Partial<ExcelJS.Font> = { name: 'Tahoma', size: 8.5 };
+    const groupFont: Partial<ExcelJS.Font> = { name: 'Tahoma', size: 8.5, bold: true };
+
+    // Header fill màu xám nhạt
+    const headerFill: ExcelJS.Fill = {
+      type: 'pattern',
+      pattern: 'solid',
+      fgColor: { argb: 'FFE0E0E0' },
+    };
+
+    // Group fill màu xanh nhạt
+    const groupFill: ExcelJS.Fill = {
+      type: 'pattern',
+      pattern: 'solid',
+      fgColor: { argb: 'FFD9E1F2' },
+    };
+
+    // Border style
+    const thinBorder: Partial<ExcelJS.Borders> = {
+      top: { style: 'thin' },
+      left: { style: 'thin' },
+      bottom: { style: 'thin' },
+      right: { style: 'thin' },
+    };
 
     // Hàm lấy thứ trong tuần từ ngày cụ thể
     const getDayOfWeek = (day: number, month: number, year: number) => {
@@ -380,234 +406,234 @@ export class SummaryFoodOrderComponent implements OnInit, AfterViewInit {
       return days[date.getDay()];
     };
 
-    // Dữ liệu cho sheet Báo cáo đặt cơm
-    const exportDataFoodOrder = this.foodOrderList.map((item, idx) => {
-      const safe = (val: any) => (val && typeof val === 'object' && Object.keys(val).length === 0 ? '' : val);
-      const row: any = {
-        'STT': safe(item.STT),
-        'Mã nhân viên': safe(item.Code),
-        'Tên nhân viên': safe(item.FullName),
-        'Chức vụ': safe(item.PositionName),
-      };
+    const safe = (val: any) => (val && typeof val === 'object' && Object.keys(val).length === 0 ? '' : val);
 
-      for (let i = 1; i <= 31; i++) {
-        const dayKey = `D${i}`;
-        row[`Ngày ${i}`] = safe(item[dayKey]);
-      }
-
-      row['Tổng'] = safe(item.TotalOrder);
-      return row;
-    });
-
-    // Dữ liệu cho sheet Báo cáo ăn ca
-    const exportDataMealReport = this.reportOrderList.map((item, idx) => {
-      const safe = (val: any) => (val && typeof val === 'object' && Object.keys(val).length === 0 ? '' : val);
-      const row: any = {
-        'STT': safe(item.STT),
-        'Mã nhân viên': safe(item.Code),
-        'Tên nhân viên': safe(item.FullName),
-        'Chức vụ': safe(item.PositionName),
-      };
-
-      for (let i = 1; i <= 31; i++) {
-        const dayKey = `D${i}`;
-        row[`Ngày ${i}`] = safe(item[dayKey]);
-      }
-
-      row['Ăn ca ngày'] = safe(item.TotalLunch);
-      row['Ăn ca đêm'] = safe(item.TotalDinner);
-      row['Tổng số ăn ca được hưởng'] = safe(item.TotalMeal);
-      row['Số ăn ca tại công ty trong tháng'] = safe(item.TotalOrder);
-      row['Số ăn ca thực tế được hưởng'] = safe(item.TotalMealGet);
-      row['Ghi chú'] = safe(item.Note);
-      return row;
-    });
-
+    // Group dữ liệu theo phòng ban
+    const groupByDepartment = (data: any[]) => {
+      return data.reduce((acc: any, item: any) => {
+        const dept = item.DepartmentName || 'Không xác định';
+        if (!acc[dept]) acc[dept] = [];
+        acc[dept].push(item);
+        return acc;
+      }, {});
+    };
 
     const workbook = new ExcelJS.Workbook();
+
+    // ============= SHEET BÁO CÁO ĐẶT CƠM =============
     const worksheetFoodOrder = workbook.addWorksheet('Báo cáo đặt cơm');
+
+    // Tiêu đề chính
+    worksheetFoodOrder.mergeCells('A1:AI1');
+    worksheetFoodOrder.getCell('A1').value = `BÁO CÁO ĐẶT CƠM THÁNG ${month}/${year}`;
+    worksheetFoodOrder.getCell('A1').font = { name: 'Times New Roman', size: 14, bold: true };
+    worksheetFoodOrder.getCell('A1').alignment = { horizontal: 'center', vertical: 'middle' };
+    worksheetFoodOrder.getCell('A1').fill = headerFill;
+    worksheetFoodOrder.getRow(1).height = 40;
+
+    // Cấu hình cột
+    const foodOrderColumnDefs = [
+      { key: 'STT', width: 6 },
+      { key: 'Mã nhân viên', width: 14 },
+      { key: 'Tên nhân viên', width: 22 },
+      { key: 'Chức vụ', width: 22 },
+    ];
+    const daysInMonth = new Date(year, month, 0).getDate();
+    for (let i = 1; i <= daysInMonth; i++) {
+      foodOrderColumnDefs.push({ key: `D${i}`, width: 4 });
+    }
+    foodOrderColumnDefs.push({ key: 'Tổng', width: 8 });
+    worksheetFoodOrder.columns = foodOrderColumnDefs as any;
+
+    // Dòng 2: Thứ trong tuần (với header cột trái và cột tổng)
+    const dayOfWeekRowFood = worksheetFoodOrder.getRow(2);
+    dayOfWeekRowFood.values = ['STT', 'Mã NV', 'Tên nhân viên', 'Chức vụ', ...Array.from({ length: daysInMonth }, (_, i) => getDayOfWeek(i + 1, month, year)), 'Tổng'];
+    dayOfWeekRowFood.font = headerFont;
+    dayOfWeekRowFood.alignment = { horizontal: 'center', vertical: 'middle' };
+    for (let c = 1; c <= foodOrderColumnDefs.length; c++) {
+      dayOfWeekRowFood.getCell(c).fill = headerFill;
+      dayOfWeekRowFood.getCell(c).border = thinBorder;
+    }
+
+    // Dòng 3: Header số ngày (cột trái và tổng để trống vì sẽ merge)
+    const headerRowFood = worksheetFoodOrder.getRow(3);
+    headerRowFood.values = ['', '', '', '', ...Array.from({ length: daysInMonth }, (_, i) => i + 1), ''];
+    headerRowFood.font = headerFont;
+    headerRowFood.alignment = { horizontal: 'center', vertical: 'middle' };
+    for (let c = 1; c <= foodOrderColumnDefs.length; c++) {
+      headerRowFood.getCell(c).fill = headerFill;
+      headerRowFood.getCell(c).border = thinBorder;
+    }
+    headerRowFood.height = 25;
+
+    // Merge cột STT, Mã NV, Tên, Chức vụ từ hàng 2 đến 3
+    for (let i = 1; i <= 4; i++) {
+      worksheetFoodOrder.mergeCells(2, i, 3, i);
+    }
+    // Merge cột Tổng từ hàng 2 đến 3
+    worksheetFoodOrder.mergeCells(2, foodOrderColumnDefs.length, 3, foodOrderColumnDefs.length);
+
+    // Tô màu vàng cho T7/CN
+    for (let i = 0; i < daysInMonth; i++) {
+      const colIdx = 5 + i;
+      const date = new Date(year, month - 1, i + 1);
+      const dow = date.getDay();
+      if (dow === 0 || dow === 6) {
+        dayOfWeekRowFood.getCell(colIdx).fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFFCE699' } };
+        headerRowFood.getCell(colIdx).fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFFCE699' } };
+      }
+    }
+
+    // Ghi dữ liệu theo phòng ban
+    const foodOrderGrouped = groupByDepartment(this.foodOrderList);
+    for (const deptName of Object.keys(foodOrderGrouped)) {
+      // Dòng group (phòng ban)
+      const groupRow = worksheetFoodOrder.addRow([`Phòng ban: ${deptName}`]);
+      groupRow.font = groupFont;
+      groupRow.fill = groupFill;
+      worksheetFoodOrder.mergeCells(groupRow.number, 1, groupRow.number, foodOrderColumnDefs.length);
+
+      // Dữ liệu nhân viên trong phòng ban
+      for (const item of foodOrderGrouped[deptName]) {
+        const rowData: any[] = [
+          safe(item.STT),
+          safe(item.Code),
+          safe(item.FullName),
+          safe(item.PositionName),
+        ];
+        for (let i = 1; i <= daysInMonth; i++) {
+          rowData.push(safe(item[`D${i}`]));
+        }
+        rowData.push(safe(item.TotalOrder));
+
+        const dataRow = worksheetFoodOrder.addRow(rowData);
+        dataRow.font = dataFont;
+        // Căn giữa các cột ngày
+        for (let c = 5; c <= foodOrderColumnDefs.length; c++) {
+          dataRow.getCell(c).alignment = { horizontal: 'center', vertical: 'middle' };
+        }
+      }
+    }
+
+    // ============= SHEET BÁO CÁO ĂN CA =============
     const worksheetMealReport = workbook.addWorksheet('Báo cáo ăn ca');
 
-    // ============= CẤU HÌNH SHEET BÁO CÁO ĂN CA =============
-    // Thêm tiêu đề chính
-    worksheetMealReport.mergeCells('E1:AI1');
-    worksheetMealReport.getCell('E1').value = `BÁO CÁO ĂN CA THÁNG ${month}`;
-    worksheetMealReport.getCell('E1').font = { name: 'Arial', size: 14, bold: true };
-    worksheetMealReport.getCell('E1').alignment = { horizontal: 'center', vertical: 'middle' };
+    // Tiêu đề chính
+    worksheetMealReport.mergeCells('A1:AO1');
+    worksheetMealReport.getCell('A1').value = `BÁO CÁO ĂN CA THÁNG ${month}/${year}`;
+    worksheetMealReport.getCell('A1').font = { name: 'Times New Roman', size: 14, bold: true };
+    worksheetMealReport.getCell('A1').alignment = { horizontal: 'center', vertical: 'middle' };
+    worksheetMealReport.getCell('A1').fill = headerFill;
     worksheetMealReport.getRow(1).height = 40;
 
     // Cấu hình cột
-    const mealReportColumns = [
-      { header: '', key: 'STT', width: 10 },
-      { header: '', key: 'Mã nhân viên', width: 15 },
-      { header: '', key: 'Tên nhân viên', width: 30 },
-      { header: '', key: 'Chức vụ', width: 25 },
+    const mealReportColumnDefs = [
+      { key: 'STT', width: 6 },
+      { key: 'Mã nhân viên', width: 14 },
+      { key: 'Tên nhân viên', width: 22 },
+      { key: 'Chức vụ', width: 22 },
     ];
-    for (let i = 1; i <= 31; i++) {
-      mealReportColumns.push({
-        header: `BÁO CÁO ĂN CA THÁNG ${month}`,
-        key: `Ngày ${i}`,
-        width: 8,
-      });
+    for (let i = 1; i <= daysInMonth; i++) {
+      mealReportColumnDefs.push({ key: `D${i}`, width: 4 });
     }
-    mealReportColumns.push(
-      { header: '', key: 'Ăn ca ngày', width: 15 },
-      { header: '', key: 'Ăn ca đêm', width: 15 },
-      { header: '', key: 'Tổng số ăn ca được hưởng', width: 20 },
-      { header: '', key: 'Số ăn ca tại công ty trong tháng', width: 20 },
-      { header: '', key: 'Số ăn ca thực tế được hưởng', width: 20 },
-      { header: '', key: 'Ghi chú', width: 20 }
+    mealReportColumnDefs.push(
+      { key: 'Ăn ca ngày', width: 12 },
+      { key: 'Ăn ca đêm', width: 12 },
+      { key: 'Tổng số ăn ca', width: 14 },
+      { key: 'Ăn ca tại CTY', width: 14 },
+      { key: 'Thực tế hưởng', width: 14 },
+      { key: 'Ghi chú', width: 15 }
     );
+    worksheetMealReport.columns = mealReportColumnDefs as any;
 
-    worksheetMealReport.columns = mealReportColumns;
+    // Dòng 2: Thứ trong tuần (với header cột trái và cột tổng)
+    const dayOfWeekRowMeal = worksheetMealReport.getRow(2);
+    const dayOfWeekValues: any[] = ['STT', 'Mã NV', 'Tên nhân viên', 'Chức vụ'];
+    for (let i = 1; i <= daysInMonth; i++) {
+      dayOfWeekValues.push(getDayOfWeek(i, month, year));
+    }
+    dayOfWeekValues.push('Ăn ca ngày', 'Ăn ca đêm', 'Tổng ăn ca', 'Ăn ca CTY', 'Thực tế', 'Ghi chú');
+    dayOfWeekRowMeal.values = dayOfWeekValues;
+    dayOfWeekRowMeal.font = headerFont;
+    dayOfWeekRowMeal.alignment = { horizontal: 'center', vertical: 'middle' };
+    for (let c = 1; c <= mealReportColumnDefs.length; c++) {
+      dayOfWeekRowMeal.getCell(c).fill = headerFill;
+      dayOfWeekRowMeal.getCell(c).border = thinBorder;
+    }
 
-    // Thêm dòng thứ trong tuần (dòng 2)
-    const dayOfWeekRow = worksheetMealReport.getRow(2);
-    dayOfWeekRow.getCell(1).value = '';
-    dayOfWeekRow.getCell(1).font = { name: 'Tahoma', size: 9, bold: true };
-    dayOfWeekRow.getCell(1).alignment = { horizontal: 'center', vertical: 'middle' };
+    // Dòng 3: Header số ngày (cột trái và tổng để trống vì sẽ merge)
+    const headerRowMeal = worksheetMealReport.getRow(3);
+    const headerValues: any[] = ['', '', '', ''];
+    for (let i = 1; i <= daysInMonth; i++) {
+      headerValues.push(i);
+    }
+    headerValues.push('', '', '', '', '', '');
+    headerRowMeal.values = headerValues;
+    headerRowMeal.font = headerFont;
+    headerRowMeal.alignment = { horizontal: 'center', vertical: 'middle' };
+    for (let c = 1; c <= mealReportColumnDefs.length; c++) {
+      headerRowMeal.getCell(c).fill = headerFill;
+      headerRowMeal.getCell(c).border = thinBorder;
+    }
+    headerRowMeal.height = 25;
 
+    // Merge cột STT, Mã NV, Tên, Chức vụ từ hàng 2 đến 3
+    for (let i = 1; i <= 4; i++) {
+      worksheetMealReport.mergeCells(2, i, 3, i);
+    }
+    // Merge các cột tổng từ hàng 2 đến 3
+    for (let i = 0; i < 6; i++) {
+      worksheetMealReport.mergeCells(2, 5 + daysInMonth + i, 3, 5 + daysInMonth + i);
+    }
 
-    // Bỏ qua 3 cột đầu (STT, Mã NV, Tên NV, Chức vụ)
-    for (let i = 5; i <= 35; i++) {
-      const day = i - 4;
-      if (day <= mealReportColumns.length) {
-        const dayOfWeek = getDayOfWeek(day, month, year);
-        dayOfWeekRow.getCell(i).value = dayOfWeek;
-        dayOfWeekRow.getCell(i).font = { name: 'Tahoma', size: 9, bold: true };
-        dayOfWeekRow.getCell(i).alignment = { horizontal: 'center', vertical: 'middle' };
+    // Tô màu vàng cho T7/CN
+    for (let i = 0; i < daysInMonth; i++) {
+      const colIdx = 5 + i;
+      const date = new Date(year, month - 1, i + 1);
+      const dow = date.getDay();
+      if (dow === 0 || dow === 6) {
+        dayOfWeekRowMeal.getCell(colIdx).fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFFCE699' } };
+        headerRowMeal.getCell(colIdx).fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFFCE699' } };
       }
     }
 
-    // Header chính của bảng (dòng 3)
-    const headerRow = worksheetMealReport.getRow(3);
-    headerRow.values = [
-      'STT', 'Mã NV', 'Tên nhân viên', 'Chức vụ',
-      ...Array.from({ length: 31 }, (_, i) => i + 1),
-      'Ăn ca ngày', 'Ăn ca đêm', 'Tổng số ăn ca',
-      'Ăn ca tại công ty', 'Thực tế được hưởng', 'Ghi chú'
-    ];
+    // Ghi dữ liệu theo phòng ban
+    const mealReportGrouped = groupByDepartment(this.reportOrderList);
+    for (const deptName of Object.keys(mealReportGrouped)) {
+      // Dòng group (phòng ban)
+      const groupRow = worksheetMealReport.addRow([`Phòng ban: ${deptName}`]);
+      groupRow.font = groupFont;
+      groupRow.fill = groupFill;
+      worksheetMealReport.mergeCells(groupRow.number, 1, groupRow.number, mealReportColumnDefs.length);
 
-    // Định dạng header (dòng 3)
-    headerRow.eachCell((cell: ExcelJS.Cell) => {
-      cell.font = { name: 'Tahoma', size: 10, bold: true };
-      cell.alignment = { horizontal: 'center', vertical: 'middle', wrapText: true };
-      cell.fill = {
-        type: 'pattern',
-        pattern: 'solid',
-        fgColor: { argb: 'FFD9D9D9' }
-      };
-    });
-    headerRow.height = 30;
+      // Dữ liệu nhân viên trong phòng ban
+      for (const item of mealReportGrouped[deptName]) {
+        const rowData: any[] = [
+          safe(item.STT),
+          safe(item.Code),
+          safe(item.FullName),
+          safe(item.PositionName),
+        ];
+        for (let i = 1; i <= daysInMonth; i++) {
+          rowData.push(safe(item[`D${i}`]));
+        }
+        rowData.push(
+          safe(item.TotalLunch),
+          safe(item.TotalDinner),
+          safe(item.TotalMeal),
+          safe(item.TotalOrder),
+          safe(item.TotalMealGet),
+          safe(item.Note)
+        );
 
-    // Thêm dữ liệu (bắt đầu từ dòng 4)
-    exportDataMealReport.forEach(row => {
-      const newRow = worksheetMealReport.addRow(row);
-      newRow.height = 25;
-    });
-
-    // Định dạng các dòng dữ liệu
-    worksheetMealReport.eachRow((row: ExcelJS.Row, rowNumber: number) => {
-      if (rowNumber > 3) {
-        row.eachCell((cell: ExcelJS.Cell) => {
-          cell.font = { name: 'Tahoma', size: 9 };
-          cell.alignment = { horizontal: 'center', vertical: 'middle', wrapText: true };
-        });
-      }
-    });
-
-    // Thêm tổng cộng
-    const lastRow = worksheetMealReport.rowCount + 1;
-    worksheetMealReport.getCell(`E${lastRow}`).value = 'TỔNG CỘNG';
-    worksheetMealReport.getCell(`E${lastRow}`).font = { name: 'Tahoma', size: 10, bold: true };
-    worksheetMealReport.getCell(`E${lastRow}`).alignment = { horizontal: 'center', vertical: 'middle' };
-
-    // Tính tổng các cột số
-    const totalColumns = ['Ăn ca ngày', 'Ăn ca đêm', 'Tổng số ăn ca', 'Ăn ca tại công ty', 'Thực tế được hưởng'];
-    totalColumns.forEach((colKey, index) => {
-      const colLetter = String.fromCharCode(69 + index); // Bắt đầu từ cột E
-      const cell = worksheetMealReport.getCell(`${colLetter}${lastRow}`);
-      cell.value = { formula: `SUM(${colLetter}4:${colLetter}${lastRow - 1})` };
-      cell.font = { name: 'Tahoma', size: 10, bold: true };
-      cell.alignment = { horizontal: 'center', vertical: 'middle' };
-    });
-
-
-
-    // ============= CẤU HÌNH SHEET BÁO CÁO ĐẶT CƠM =============
-    // Thêm tiêu đề chính
-    worksheetFoodOrder.mergeCells('E1:AI1');
-    worksheetFoodOrder.getCell('E1').value = `BÁO CÁO ĐẶT CƠM THÁNG ${month}`;
-    worksheetFoodOrder.getCell('E1').font = { name: 'Arial', size: 14, bold: true };
-    worksheetFoodOrder.getCell('E1').alignment = { horizontal: 'center', vertical: 'middle' };
-    worksheetFoodOrder.getRow(1).height = 40;
-
-
-    // Cấu hình cột
-    const foodOrderColumns = [
-      { header: '', key: 'STT', width: 10 },
-      { header: '', key: 'Mã nhân viên', width: 15 },
-      { header: '', key: 'Tên nhân viên', width: 30 },
-      { header: '', key: 'Chức vụ', width: 25 },
-    ];
-    for (let i = 1; i <= 31; i++) {
-      foodOrderColumns.push({
-        header: `BÁO CÁO ĐẶT CƠM THÁNG ${month}`,
-        key: `Ngày ${i}`,
-        width: 8
-      });
-    }
-    foodOrderColumns.push({ header: '', key: 'Tổng', width: 15 });
-    worksheetFoodOrder.columns = foodOrderColumns;
-
-    // Thêm dòng thứ trong tuần (dòng 2)
-    const dayOfWeekRowFood = worksheetFoodOrder.getRow(2);
-    dayOfWeekRowFood.getCell(1).value = '';
-    dayOfWeekRowFood.getCell(1).font = { name: 'Tahoma', size: 9, bold: true };
-    dayOfWeekRowFood.getCell(1).alignment = { horizontal: 'center', vertical: 'middle' };
-    for (let i = 5; i <= 35; i++) {
-      const day = i - 4;
-      if (day <= 31) {
-        const dayOfWeek = getDayOfWeek(day, month, year);
-        dayOfWeekRowFood.getCell(i).value = dayOfWeek;
-        dayOfWeekRowFood.getCell(i).font = { name: 'Tahoma', size: 9, bold: true };
-        dayOfWeekRowFood.getCell(i).alignment = { horizontal: 'center', vertical: 'middle' };
+        const dataRow = worksheetMealReport.addRow(rowData);
+        dataRow.font = dataFont;
+        // Căn giữa các cột ngày và số
+        for (let c = 5; c <= mealReportColumnDefs.length; c++) {
+          dataRow.getCell(c).alignment = { horizontal: 'center', vertical: 'middle' };
+        }
       }
     }
-
-    // Header chính của bảng (dòng 3)
-    const headerRowFood = worksheetFoodOrder.getRow(3);
-    headerRowFood.values = [
-      'STT', 'Mã NV', 'Tên nhân viên', 'Chức vụ',
-      ...Array.from({ length: 31 }, (_, i) => i + 1),
-      'Tổng'
-    ];
-    headerRowFood.eachCell((cell: ExcelJS.Cell) => {
-      cell.font = { name: 'Tahoma', size: 10, bold: true };
-      cell.alignment = { horizontal: 'center', vertical: 'middle', wrapText: true };
-      cell.fill = {
-        type: 'pattern',
-        pattern: 'solid',
-        fgColor: { argb: 'FFD9D9D9' }
-      };
-    });
-    headerRowFood.height = 30;
-
-    // Thêm dữ liệu (bắt đầu từ dòng 4)
-    exportDataFoodOrder.forEach(row => {
-      const newRow = worksheetFoodOrder.addRow(row);
-      newRow.height = 25;
-    });
-
-    // Định dạng các dòng dữ liệu cho sheet Báo cáo đặt cơm
-    worksheetFoodOrder.eachRow((row: ExcelJS.Row, rowNumber: number) => {
-      if (rowNumber > 3) {
-        row.eachCell((cell: ExcelJS.Cell) => {
-          cell.font = { name: 'Tahoma', size: 9 };
-          cell.alignment = { horizontal: 'center', vertical: 'middle', wrapText: true };
-        });
-      }
-    });
 
     // Xuất file
     const buffer = await workbook.xlsx.writeBuffer();

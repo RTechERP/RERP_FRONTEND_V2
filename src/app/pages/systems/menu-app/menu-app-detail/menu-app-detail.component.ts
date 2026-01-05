@@ -189,6 +189,24 @@ export class MenuAppDetailComponent {
                         this.nodes.push(node);
                     }
                 });
+
+
+
+                if (this.menu.PermissionCodes != '') {
+                    const permissionCodes = this.menu.PermissionCodes || '';
+                    const codes = permissionCodes.split(',').map(x => x.trim());
+                    const rows: number[] = [];
+
+
+                    // console.log('this.userGroups:', this.userGroups);
+
+                    this.userGroups.forEach((item, idx) => {
+                        if (codes.includes(item.Code)) {
+                            rows.push(idx);
+                        }
+                    });
+                    this.grdData.setSelectedRows(rows);
+                }
             },
             error: (err) => {
                 this.notification.error(NOTIFICATION_TITLE.error, err?.error?.message || err?.message);
@@ -206,7 +224,7 @@ export class MenuAppDetailComponent {
             });
         } else {
 
-            console.log(this.angularGrid);
+            // console.log(this.angularGrid);
             const selectedData = this.angularGrid.gridService.getSelectedRows();
             const userGroupSelecteds = selectedData.map((idx: number) => {
                 const item = this.grdData.getDataItem(idx);
@@ -220,6 +238,8 @@ export class MenuAppDetailComponent {
                     UserGroupID: x.ID
                 }))
             };
+
+            console.log('menu:', menu);
 
             this.menuService.saveData(menu).subscribe({
                 next: (response) => {

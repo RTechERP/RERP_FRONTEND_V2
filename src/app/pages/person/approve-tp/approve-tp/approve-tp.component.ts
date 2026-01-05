@@ -31,12 +31,12 @@ import { environment } from '../../../../../environments/environment';
 import { ReasonDeclineModalComponent } from '../reason-decline-modal/reason-decline-modal.component';
 import { SeniorUnapprovedModalComponent } from '../senior-unapproved-modal/senior-unapproved-modal.component';
 import { WfhApproveModalComponent } from '../wfh-approve-modal/wfh-approve-modal.component';
-import { HasPermissionDirective } from '../../../../directives/has-permission.directive';
 import { ActivatedRoute } from '@angular/router';
 import { PrimeIcons } from 'primeng/api';
 import { PermissionService } from '../../../../services/permission.service';
 import { Menubar } from 'primeng/menubar';
 import { style } from '@angular/animations';
+import { AppUserService } from '../../../../services/app-user.service';
 @Component({
     selector: 'app-approve-tp',
     templateUrl: './approve-tp.component.html',
@@ -60,7 +60,7 @@ import { style } from '@angular/animations';
         NzModalModule,
         NzDropDownModule,
         NzMenuModule,
-        HasPermissionDirective,
+
         Menubar,
         NzTreeSelectModule
     ]
@@ -108,6 +108,7 @@ export class ApproveTpComponent implements OnInit, AfterViewInit {
         private modal: NzModalService,
         private route: ActivatedRoute,
         private permissionService: PermissionService,
+        private appUserService: AppUserService
     ) {
         // if (this.tabData) {
         //     this.isSeniorMode = this.tabData.isSeniorMode || false;
@@ -140,7 +141,7 @@ export class ApproveTpComponent implements OnInit, AfterViewInit {
                 label: 'Senior xác nhận',
                 icon: 'fa-solid fa-calendar-check fa-lg text-primary',
                 // styleClass: 'bg-success',
-                visible: this.permissionService.hasPermission(""),
+                visible: this.permissionService.hasPermission("N85"),
                 items: [
                     {
                         label: 'Duyệt',
@@ -163,7 +164,7 @@ export class ApproveTpComponent implements OnInit, AfterViewInit {
             {
                 label: 'TBP xác nhận',
                 icon: 'fa-solid fa-calendar-check fa-lg text-primary',
-                visible: this.permissionService.hasPermission("N57"),
+                visible: this.permissionService.hasPermission("N32"),
                 items: [
                     {
                         label: 'Duyệt',
@@ -184,6 +185,7 @@ export class ApproveTpComponent implements OnInit, AfterViewInit {
 
             {
                 label: 'TBP không duyệt',
+                visible: this.permissionService.hasPermission("N32"),
                 icon: 'fa-solid fa-ban fa-lg text-warning',
                 command: () => {
                     this.declineApprove();
@@ -192,6 +194,7 @@ export class ApproveTpComponent implements OnInit, AfterViewInit {
 
             {
                 label: 'TBP duyệt hủy đăng ký',
+                visible: this.permissionService.hasPermission("N32"),
                 icon: 'fa-solid fa-circle-check fa-lg text-success',
                 command: () => {
                     this.approvedCancelRegister();
@@ -201,12 +204,12 @@ export class ApproveTpComponent implements OnInit, AfterViewInit {
             {
                 label: 'BGĐ xác nhận',
                 icon: 'fa-solid fa-calendar-check fa-lg text-primary',
-                visible: this.permissionService.hasPermission("N59,N56"),
+                visible: (this.permissionService.hasPermission("N32") && this.appUserService.currentUser?.DepartmentID === 1) || this.appUserService.currentUser?.IsAdmin,
                 items: [
                     {
                         label: 'Duyệt hồ sơ',
                         icon: 'fa-solid fa-circle-check fa-lg text-success',
-                        visible: this.permissionService.hasPermission("N59"),
+                        visible: this.permissionService.hasPermission("N32"),
                         command: () => {
                             this.approvedBGD();
                         }
@@ -214,7 +217,7 @@ export class ApproveTpComponent implements OnInit, AfterViewInit {
                     {
                         label: 'Hủy duyệt hồ sơ',
                         icon: 'fa-solid fa-circle-xmark fa-lg text-danger',
-                        visible: this.permissionService.hasPermission("N59"),
+                        visible: this.permissionService.hasPermission("N32"),
                         command: () => {
                             this.cancelApprovedBGD();
                         }
@@ -240,6 +243,8 @@ export class ApproveTpComponent implements OnInit, AfterViewInit {
                         type: isRealBGD ? 5 : 0
                     });
                 }
+                // Auto bind team nếu teamList đã được load
+                this.bindDefaultTeam();
                 if (this.tabulator) {
                     this.loadData();
                 }
@@ -252,11 +257,32 @@ export class ApproveTpComponent implements OnInit, AfterViewInit {
             next: (response: any) => {
                 this.teamList = response.data || [];
                 this.teamTreeNodes = this.buildTeamTree(this.teamList);
+                // Auto bind team nếu currentUser đã được load
+                this.bindDefaultTeam();
             },
             error: (error: any) => {
                 this.notification.error(NOTIFICATION_TITLE.error, 'Lỗi khi tải danh sách team: ' + error.error.message);
             }
         });
+    }
+
+    private bindDefaultTeam(): void {
+        if (!this.currentUser || !this.teamList || this.teamList.length === 0) {
+            return;
+        }
+
+        const employeeId = this.currentUser.EmployeeID;
+        if (!employeeId) {
+            return;
+        }
+
+        // Tìm team mà currentUser là LeaderID
+        const myTeam = this.teamList.find(team => team.LeaderID === employeeId);
+        if (myTeam && this.searchForm) {
+            this.searchForm.patchValue({
+                teamId: myTeam.ID
+            });
+        }
     }
 
     private buildTeamTree(data: any[]): any[] {
@@ -404,12 +430,12 @@ export class ApproveTpComponent implements OnInit, AfterViewInit {
             endDate: lastDay,
             employeeId: null,
             teamId: 0,
-            status: 0, // Mặc định: Chờ duyệt
+            status: -1, // null = tất cả
             deleteFlag: 0,
             type: 0,
-            statusSenior: 0,
-            statusHR: null,
-            statusBGD: null,
+            statusSenior: -1, // null = tất cả
+            statusHR: -1,
+            statusBGD: -1,
             keyWord: '',
             IDApprovedTP: idApprovedTP
         });
@@ -461,13 +487,13 @@ export class ApproveTpComponent implements OnInit, AfterViewInit {
             DateStart: startDate,
             DateEnd: endDate,
             IDApprovedTP: this.isSeniorMode ? 0 : (formValue.IDApprovedTP || 0),
-            Status: this.isSeniorMode ? -1 : (formValue.status ?? 0),
+            Status: formValue.status ?? -1, // null = -1 (tất cả)
             DeleteFlag: formValue.deleteFlag ?? 0,
             EmployeeID: formValue.employeeId || 0,
             TType: ttype,
-            StatusSenior: this.isSeniorMode ? formValue.statusSenior : -1,
-            StatusHR: formValue.statusHR || -1,
-            StatusBGD: -1,
+            StatusSenior: formValue.statusSenior ?? -1, // null = -1 (tất cả)
+            StatusHR: formValue.statusHR ?? -1, // null = -1 (tất cả)
+            StatusBGD: formValue.statusBGD ?? -1, // null = -1 (tất cả)
             UserTeamID: formValue.teamId || 0,
             SeniorID: this.isSeniorMode ? (this.currentUser?.EmployeeID || 0) : 0
         };

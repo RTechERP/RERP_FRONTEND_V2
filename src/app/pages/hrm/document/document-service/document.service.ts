@@ -94,4 +94,9 @@ export class DocumentService {
             .set('groupType', groupType.toString());
         return this.http.get<any>(environment.host + `api/document/get-document-common`, { params });
     }
+
+    getDocumentAdminSale(departID: number): Observable<any> {
+        const params = new HttpParams().set('departID', departID.toString());
+        return this.http.get<any>(environment.host + `api/document/get-document-admin-sale`, { params });
+    }
 }

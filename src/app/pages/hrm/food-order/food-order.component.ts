@@ -45,6 +45,7 @@ import { ProjectService } from '../../project/project-service/project.service';
 import { AuthService } from '../../../auth/auth.service';
 
 import { PermissionService } from '../../../services/permission.service';
+import { Menubar } from 'primeng/menubar';
 
 @Component({
   selector: 'app-food-order',
@@ -73,6 +74,7 @@ import { PermissionService } from '../../../services/permission.service';
     NgIf,
     NzSpinModule,
     HasPermissionDirective,
+    Menubar
   ],
 })
 export class FoodOrderComponent implements OnInit, AfterViewInit {
@@ -85,6 +87,25 @@ export class FoodOrderComponent implements OnInit, AfterViewInit {
   searchForm!: FormGroup;
   foodOrderForm!: FormGroup;
   sizeSearch: string = '0';
+  showSearchBar: boolean = typeof window !== 'undefined' ? window.innerWidth > 768 : true;
+
+  // Menu bars
+  menuBars: any[] = [];
+
+  get shouldShowSearchBar(): boolean {
+    return this.showSearchBar;
+  }
+
+  isMobile(): boolean {
+    return typeof window !== 'undefined' && window.innerWidth <= 768;
+  }
+
+  ToggleSearchPanelNew(event?: Event): void {
+    if (event) {
+      event.stopPropagation();
+    }
+    this.showSearchBar = !this.showSearchBar;
+  }
 
   selectedFoodOrderHN: any = null;
   selectedFoodOrderĐP: any = null;
@@ -113,17 +134,18 @@ export class FoodOrderComponent implements OnInit, AfterViewInit {
     const currentHour = now.getHours();
     return currentHour < 19;
   }
-
-  // Kiểm tra quyền admin: N1, N2, N34 hoặc IsAdmin === true
+  // những n có quền
   hasAdminPermission(): boolean {
     // Kiểm tra IsAdmin trước
     if (this.currentUser?.IsAdmin === true) {
       return true;
     }
-    // Kiểm tra quyền N1, N2, N34
-    return this.permissionService.hasPermission('N1') || 
-           this.permissionService.hasPermission('N80') || 
-           this.permissionService.hasPermission('N34');
+    // Kiểm tra quyền N1, N2, N23, N34, N80
+    return this.permissionService.hasPermission('N1') ||
+      this.permissionService.hasPermission('N2') ||
+      this.permissionService.hasPermission('N23') ||
+      this.permissionService.hasPermission('N34') ||
+      this.permissionService.hasPermission('N80');
   }
 
   private isSameLocalDate(a: Date, b: Date): boolean {
@@ -169,6 +191,7 @@ export class FoodOrderComponent implements OnInit, AfterViewInit {
   }
 
   ngOnInit() {
+    this.initMenuBar();
     this.loadFoodOrder();
     this.loadEmployees();
     this.authService.getCurrentUser().subscribe((res: any) => {
@@ -181,6 +204,49 @@ export class FoodOrderComponent implements OnInit, AfterViewInit {
 
     // Setup listener cho Location để tự động cập nhật DateOrder
     this.setupLocationChangeListener();
+  }
+
+  initMenuBar(): void {
+    this.menuBars = [
+      {
+        label: 'Thêm',
+        icon: 'fa-solid fa-plus fa-lg text-success',
+        command: () => this.openAddModal()
+      },
+      {
+        label: 'Sửa',
+        icon: 'fa-solid fa-pen-to-square fa-lg text-primary',
+        command: () => this.openEditModal()
+      },
+      {
+        label: 'Xóa',
+        icon: 'fa-solid fa-trash fa-lg text-danger',
+        command: () => this.deleteFoodOrder()
+      },
+      {
+        label: 'Duyệt',
+        icon: 'fa-solid fa-circle-check fa-lg text-success',
+        visible: this.permissionService.hasPermission("N2,N23,N34,N1"),
+        command: () => this.approved(true)
+      },
+      {
+        label: 'Hủy duyệt',
+        icon: 'fa-solid fa-circle-xmark fa-lg text-danger',
+        visible: this.permissionService.hasPermission("N2,N23,N34,N1"),
+        command: () => this.approved(false)
+      },
+      {
+        label: 'Báo cáo ăn ca',
+        icon: 'fa-solid fa-chart-column fa-lg text-primary',
+        visible: this.permissionService.hasPermission("N34,N1,N2"),
+        command: () => this.openSummaryFoodOrderModal()
+      },
+      {
+        label: 'Xuất Excel',
+        icon: 'fa-solid fa-file-excel fa-lg text-success',
+        command: () => this.exportToExcel()
+      }
+    ];
   }
 
   private initForm() {
@@ -212,7 +278,7 @@ export class FoodOrderComponent implements OnInit, AfterViewInit {
       // Chỉ tự động cập nhật khi không phải edit mode (ID = 0) và user không có quyền admin
       const currentID = this.foodOrderForm.get('ID')?.value;
       const hasAdminPermission = this.hasAdminPermission();
-      
+
       if ((currentID === 0 || currentID === null || currentID === undefined) && !hasAdminPermission) {
         if (location === '2') {
           // Xưởng Đan Phượng: set ngày mai
@@ -312,7 +378,7 @@ export class FoodOrderComponent implements OnInit, AfterViewInit {
         startDate = DateTime.fromJSDate(formValue.dateStart).set({ hour: 0, minute: 0, second: 0, millisecond: 0 });
       } else if (typeof formValue.dateStart === 'string') {
         const parsed = DateTime.fromISO(formValue.dateStart);
-        startDate = parsed.isValid 
+        startDate = parsed.isValid
           ? parsed.set({ hour: 0, minute: 0, second: 0, millisecond: 0 })
           : DateTime.local().set({ hour: 0, minute: 0, second: 0, millisecond: 0 });
       } else {
@@ -327,7 +393,7 @@ export class FoodOrderComponent implements OnInit, AfterViewInit {
         endDate = DateTime.fromJSDate(formValue.dateEnd).set({ hour: 23, minute: 59, second: 59, millisecond: 999 });
       } else if (typeof formValue.dateEnd === 'string') {
         const parsed = DateTime.fromISO(formValue.dateEnd);
-        endDate = parsed.isValid 
+        endDate = parsed.isValid
           ? parsed.set({ hour: 23, minute: 59, second: 59, millisecond: 999 })
           : DateTime.local().set({ hour: 23, minute: 59, second: 59, millisecond: 999 });
       } else {
@@ -542,7 +608,7 @@ export class FoodOrderComponent implements OnInit, AfterViewInit {
       FullName: '',
       IsDeleted: false,
     });
-    
+
 
     const modal = new (window as any).bootstrap.Modal(
       document.getElementById('addFoodOrderModal')
@@ -623,7 +689,7 @@ export class FoodOrderComponent implements OnInit, AfterViewInit {
         IsDeleted: this.selectedFoodOrderĐP.IsDeleted,
       });
     }
-   
+
     const modal = new (window as any).bootstrap.Modal(
       document.getElementById('addFoodOrderModal')
     );
@@ -673,7 +739,8 @@ export class FoodOrderComponent implements OnInit, AfterViewInit {
     const location = parseInt(formData.Location);
     const dateOrder = formData.DateOrder ? new Date(formData.DateOrder) : null;
 
-    if (location === 2 && dateOrder) {
+    // Kiểm tra thời gian 19h cho Xưởng Đan Phượng - chỉ áp dụng cho người không có quyền đặc biệt
+    if (!hasPermission && location === 2 && dateOrder) {
       const now = new Date();
       const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
       const orderDate = new Date(dateOrder.getFullYear(), dateOrder.getMonth(), dateOrder.getDate());
@@ -697,7 +764,7 @@ export class FoodOrderComponent implements OnInit, AfterViewInit {
     if (formData.DateOrder) {
       const now = DateTime.local(); // Thời gian hiện tại
       let selectedDate: DateTime;
-      
+
       if (formData.DateOrder instanceof Date) {
         selectedDate = DateTime.fromJSDate(formData.DateOrder);
       } else if (typeof formData.DateOrder === 'string') {
@@ -706,7 +773,7 @@ export class FoodOrderComponent implements OnInit, AfterViewInit {
       } else {
         selectedDate = DateTime.local();
       }
-      
+
       if (selectedDate.isValid) {
         // Lấy ngày từ form, nhưng giờ phút giây từ thời gian hiện tại
         dateOrderFormatted = selectedDate.set({
@@ -898,7 +965,7 @@ export class FoodOrderComponent implements OnInit, AfterViewInit {
       nzTitle: `Bạn có chắc muốn ${approvedText} danh sách đặt cơm không?`,
       nzOnOk: () => {
         this.isLoading = true;
-        
+
         // Cập nhật IsApproved cho tất cả các đơn đã chọn
         const foodOrdersToApprove = selectedRows.map((row) => ({
           ...row,
@@ -1099,7 +1166,7 @@ export class FoodOrderComponent implements OnInit, AfterViewInit {
       const today = new Date();
       today.setHours(0, 0, 0, 0);
       dateStart = today;
-      
+
       const todayEnd = new Date();
       todayEnd.setHours(23, 59, 59, 999);
       dateEnd = todayEnd;

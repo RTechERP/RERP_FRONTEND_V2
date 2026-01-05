@@ -35,6 +35,8 @@ import { HasPermissionDirective } from '../../../directives/has-permission.direc
 import { NOTIFICATION_TITLE } from '../../../app.config';
 import { NzDropDownModule } from 'ng-zorro-antd/dropdown';
 import { AuthService } from '../../../auth/auth.service';
+import { Menubar } from 'primeng/menubar';
+import { PermissionService } from '../../../services/permission.service';
 
 
 @Component({
@@ -67,14 +69,15 @@ import { AuthService } from '../../../auth/auth.service';
     OverTimeTypeComponent,
     SummaryOverTimeComponent,
     HasPermissionDirective,
-    NzDropDownModule
+    NzDropDownModule,
+    Menubar
   ]
 })
 export class OverTimeComponent implements OnInit, AfterViewInit {
 
   private tabulator!: Tabulator;
   sizeSearch: string = '0';
-  showSearchBar: boolean = true;
+  showSearchBar: boolean = typeof window !== 'undefined' ? window.innerWidth > 768 : true;
   searchForm!: FormGroup;
   overTimeForm!: FormGroup;
   departmentList: any[] = [];
@@ -84,8 +87,15 @@ export class OverTimeComponent implements OnInit, AfterViewInit {
   isLoading = false;
   currentUser: any = null;
 
+  // Menu bars
+  menuBars: any[] = [];
+
   get shouldShowSearchBar(): boolean {
     return this.showSearchBar;
+  }
+
+  isMobile(): boolean {
+    return typeof window !== 'undefined' && window.innerWidth <= 768;
   }
 
   constructor(
@@ -94,16 +104,117 @@ export class OverTimeComponent implements OnInit, AfterViewInit {
     private modal: NzModalService,
     private departmentService: DepartmentServiceService,
     private overTimeService: OverTimeService,
-    private authService: AuthService
+    private authService: AuthService,
+    private permissionService: PermissionService,
+
   ) { }
 
   ngOnInit() {
+    this.initMenuBar();
     this.initializeForm();
     this.loadDepartment();
     this.loadEmployeeOverTime();
     this.loadDepartment();
     this.loadEmployeeOverTime();
     this.getCurrentUser();
+  }
+
+  initMenuBar() {
+    this.menuBars = [
+      {
+        label: 'Thêm',
+        icon: 'fa-solid fa-plus fa-lg text-success',
+        visible: true,
+        command: () => {
+          this.openAddModal();
+        }
+      },
+      {
+        label: 'Sửa',
+        icon: 'fa-solid fa-pen-to-square fa-lg text-primary',
+        visible: true,
+        command: () => {
+          this.openEditModal();
+        }
+      },
+      {
+        label: 'Xóa',
+        icon: 'fa-solid fa-trash fa-lg text-danger',
+        visible: true,
+        command: () => {
+          this.openDeleteModal();
+        }
+      },
+      {
+        label: 'TBP xác nhận',
+        icon: 'fa-solid fa-calendar-check fa-lg text-primary',
+        visible: true,
+        items: [
+          {
+            label: 'TBP duyệt',
+            visible: this.permissionService.hasPermission("N1"),
+            icon: 'fa-solid fa-circle-check fa-lg text-success',
+            command: () => {
+              this.approved(true, true);
+            }
+          },
+          {
+            label: 'TBP hủy duyệt',
+            visible: this.permissionService.hasPermission("N1"),
+            icon: 'fa-solid fa-circle-xmark fa-lg text-danger',
+            command: () => {
+              this.approved(false, true);
+            }
+          }
+        ]
+      },
+      {
+        label: 'HR xác nhận',
+        icon: 'fa-solid fa-calendar-check fa-lg text-info',
+        visible: true,
+        items: [
+          {
+            label: 'HR duyệt',
+            visible: this.permissionService.hasPermission("N2,N1"),
+            icon: 'fa-solid fa-circle-check fa-lg text-success',
+            command: () => {
+              this.approved(true, false);
+            }
+          },
+          {
+            label: 'HR hủy duyệt',
+            icon: 'fa-solid fa-circle-xmark fa-lg text-danger',
+            command: () => {
+              this.approved(false, false);
+            }
+          }
+        ]
+      },
+      {
+        label: 'Kiểu làm thêm',
+        icon: 'fa-solid fa-info-circle fa-lg text-primary',
+        visible: true,
+        command: () => {
+          this.openOverTimeTypeModal();
+        }
+      },
+      {
+        label: 'Báo cáo làm thêm',
+        icon: 'fa-solid fa-file-alt fa-lg text-warning',
+        visible: true,
+        command: () => {
+          this.openSummaryOverTimeModal();
+        }
+      },
+      {
+        label: 'Xuất Excel',
+        icon: 'fa-solid fa-file-excel fa-lg text-success',
+        visible: true,
+        command: () => {
+          this.exportToExcel();
+        }
+      }
+    ];
   }
 
   getCurrentUser() {
@@ -119,11 +230,10 @@ export class OverTimeComponent implements OnInit, AfterViewInit {
   }
 
   private initializeForm(): void {
-    const dateEnd = new Date();
-    const dateStart = new Date(dateEnd);
+    const today = new Date();
+    const dateStart = new Date(today.getFullYear(), today.getMonth(), 1);
+    const dateEnd = new Date(today.getFullYear(), today.getMonth() + 1, 0);
 
-    dateStart.setMonth(dateEnd.getMonth() - 1);
-    dateEnd.setMonth(dateStart.getMonth() + 1);
     this.searchForm = this.fb.group({
       dateStart: dateStart,
       dateEnd: dateEnd,
@@ -204,7 +314,7 @@ export class OverTimeComponent implements OnInit, AfterViewInit {
       },
       locale: 'vi',
       columns: [
-         {
+        {
           title: 'Senior duyệt', field: 'IsSeniorApprovedText', hozAlign: 'center', headerHozAlign: 'center', width: 110,
           formatter: (cell: any) => {
             const value = cell.getValue();
@@ -309,14 +419,14 @@ export class OverTimeComponent implements OnInit, AfterViewInit {
           formatter: (cell) => {
             const value = cell.getValue();
             const data = cell.getRow().getData();
-            
+
             if (data['IsNotValid'] === 1) {
               const el = cell.getElement();
               el.style.backgroundColor = '#fff3cd';
               el.style.color = '#dc3545';
               el.style.fontWeight = 'bold';
             }
-            
+
             return value || '';
           }
         },
@@ -325,14 +435,14 @@ export class OverTimeComponent implements OnInit, AfterViewInit {
           formatter: (cell) => {
             const value = cell.getValue();
             const data = cell.getRow().getData();
-            
+
             if (data['IsNotValid'] === 1) {
               const el = cell.getElement();
               el.style.backgroundColor = '#fff3cd';
               el.style.color = '#dc3545';
               el.style.fontWeight = 'bold';
             }
-            
+
             return value || '';
           }
         },
@@ -384,9 +494,9 @@ export class OverTimeComponent implements OnInit, AfterViewInit {
       this.notification.warning(NOTIFICATION_TITLE.warning, 'Vui lòng chọn đăng ký làm thêm cần chỉnh sửa');
       return;
     }
-    if (
-      (selectedRows.length > 0 && selectedRows[0].getData()['IsApprovedHR'] === true && selectedRows[0].getData()['IsApproved'] === true)
-    ) {
+    // Kiểm tra trạng thái duyệt - cho phép người có quyền sửa bất kể đã duyệt
+    const selectedData = selectedRows[0].getData();
+    if (this.isApproved(selectedData) && !this.checkCanEditApproved()) {
       this.notification.warning(NOTIFICATION_TITLE.warning, 'Đăng ký đã được duyệt. Vui lòng hủy duyệt trước khi sửa!');
       return;
     }
@@ -426,15 +536,13 @@ export class OverTimeComponent implements OnInit, AfterViewInit {
 
     const selectedData = selectedRows.map(row => row.getData());
 
-    // Kiểm tra xem có bản ghi nào đã được duyệt không
-    const approvedRecords = selectedData.filter(data =>
-      (data['IsApproved'] == true && data['IsApprovedHR'] == true)
-    );
+    // Kiểm tra xem có bản ghi nào đã được duyệt không - cho phép người có quyền xóa bất kể đã duyệt
+    const approvedRecords = selectedData.filter(data => this.isApproved(data));
 
-    if (approvedRecords.length > 0) {
+    if (approvedRecords.length > 0 && !this.checkCanEditApproved()) {
       this.notification.warning(
         'Cảnh báo',
-        `Có ${approvedRecords.length}/${selectedData.length} đăng ký đã được duyệt. Vui lòng hủy duyệt trước khi xóa!`
+        `Có ${approvedRecords.length}/${selectedData.length} đăng ký đã được duyệt. Bạn không có quyền xóa!`
       );
       return;
     }
@@ -721,6 +829,38 @@ export class OverTimeComponent implements OnInit, AfterViewInit {
       default:
         return '<span class="badge bg-secondary" style="display: inline-block; text-align: center;">Không xác định</span>';
     }
+  }
+
+  // Helper method để kiểm tra bản ghi đã được duyệt chưa
+  private isApproved(item: any): boolean {
+    // Kiểm tra trạng thái duyệt TBP
+    const isTBPApproved =
+      item.IsApproved === true ||
+      item.IsApproved === 1 ||
+      item.IsApproved === '1';
+
+    // Kiểm tra trạng thái duyệt HR
+    const isHRApproved =
+      item.IsApprovedHR === true ||
+      item.IsApprovedHR === 1 ||
+      item.IsApprovedHR === '1';
+
+    // Nếu TBP hoặc HR đã duyệt thì không cho sửa
+    return isTBPApproved || isHRApproved;
+  }
+
+  // Helper method để kiểm tra user có quyền chỉnh sửa nhân viên (N1, N2 hoặc IsAdmin)
+  private canEditEmployee(): boolean {
+    const hasN1Permission = this.permissionService.hasPermission('N1');
+    const hasN2Permission = this.permissionService.hasPermission('N2');
+    const isAdmin = this.currentUser?.IsAdmin === true || this.currentUser?.ISADMIN === true;
+
+    return hasN1Permission || hasN2Permission || isAdmin;
+  }
+
+  // Kiểm tra user có quyền sửa/xóa bản ghi đã duyệt (N1, N2 hoặc IsAdmin)
+  checkCanEditApproved(): boolean {
+    return this.canEditEmployee();
   }
 
 }

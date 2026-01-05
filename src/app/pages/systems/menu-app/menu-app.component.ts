@@ -22,12 +22,18 @@ import { MenuItem, PrimeIcons } from 'primeng/api';
 import { Menubar } from 'primeng/menubar';
 import Swal from 'sweetalert2';
 import { NOTIFICATION_TITLE } from '../../../app.config';
+import { NzIconModule } from 'ng-zorro-antd/icon';
 
 @Component({
     selector: 'app-menu-app',
     imports: [
+        CommonModule,
         Menubar,
-        AngularSlickgridModule
+        AngularSlickgridModule,
+        FormsModule,
+        NzFormModule,
+        NzInputModule,
+        NzIconModule
     ],
     templateUrl: './menu-app.component.html',
     styleUrl: './menu-app.component.css'
@@ -37,7 +43,7 @@ export class MenuAppComponent implements OnInit {
     menuBars: MenuItem[] = [
         {
             label: 'Thêm',
-            icon: PrimeIcons.PLUS,
+            icon: 'fa-solid fa-circle-plus fa-lg text-success',
             // visible: this.permissionService.hasPermission(""),
             command: () => {
                 this.onCreate();
@@ -46,7 +52,7 @@ export class MenuAppComponent implements OnInit {
 
         {
             label: 'Sửa',
-            icon: PrimeIcons.PENCIL,
+            icon: 'fa-solid fa-file-pen fa-lg text-primary',
             // visible: this.permissionService.hasPermission(""),
             command: () => {
                 this.onEdit();
@@ -54,13 +60,25 @@ export class MenuAppComponent implements OnInit {
         },
         {
             label: 'Xóa',
-            icon: PrimeIcons.TRASH,
+            icon: 'fa-solid fa-trash fa-lg text-danger',
             // visible: this.permissionService.hasPermission(""),
             command: () => {
                 this.onDelete();
             },
         },
+        { separator: true },
+
+        {
+            label: 'Refresh',
+            icon: 'fa-solid fa-arrows-rotate fa-lg text-info',
+            // visible: this.permissionService.hasPermission(""),
+            command: () => {
+                this.loadData();
+            },
+        },
     ];
+
+    keyword = '';
 
     //Khai báo biến slickgrid
     angularGrid!: AngularGridInstance;
@@ -148,7 +166,7 @@ export class MenuAppComponent implements OnInit {
             {
                 id: 'Permission',
                 name: 'Mã quyền',
-                field: 'Permission',
+                field: 'PermissionCodes',
                 type: 'string',
                 sortable: true, filterable: true,
                 // formatter: Formatters.icon, params: { iconCssClass: 'mdi mdi-trash-can pointer' },
@@ -223,7 +241,7 @@ export class MenuAppComponent implements OnInit {
     }
 
     loadData() {
-        this.menuService.getAll().subscribe({
+        this.menuService.getAll(this.keyword).subscribe({
             next: (response) => {
                 this.dataset = response.data.menus;
                 this.dataset = this.dataset.map((x) => ({

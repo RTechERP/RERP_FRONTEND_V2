@@ -104,7 +104,7 @@
   grid-template-columns: repeat(3, 1fr);
   gap: 12px;
   padding: 12px;
-  /* max-height: 330px; */
+  /* max-height: 130px; */
   overflow-y: auto;
   /* chỉ lớp con scroll */
 }
@@ -165,7 +165,7 @@
 
 
 .list-group-item a:not([href]){
-    text-transform: uppercase;
+    /* text-transform: uppercase; */
     /* color: #6777ef; */
     /* font-size: 12px; */
 }
@@ -235,7 +235,7 @@
   grid-template-columns: repeat(3, 1fr);
   gap: 12px;
   padding: 12px;
-  max-height: 330px;
+  /* max-height: 330px; */
   overflow-y: auto;
   /* chỉ lớp con scroll */
 }

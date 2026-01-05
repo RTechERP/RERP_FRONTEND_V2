@@ -25,10 +25,6 @@
                     </div>
                 </div>
 
-                <!-- Content -->
-                <div class="newsletter-body mb-4">
-                    <div class="content-html" [innerHTML]="sanitizedContent"></div>
-                </div>
 
                 <!-- Main Image -->
                 <div *ngIf="newsletter.ServerImgPath" class="newsletter-image mb-4">
@@ -36,6 +32,13 @@
                         style="max-width: 100%; height: auto; cursor: pointer;" (click)="viewImage()"
                         title="Click để xem ảnh">
                 </div>
+
+                <!-- Content -->
+                <div class="newsletter-body mb-4">
+                    <div class="content-html" [innerHTML]="sanitizedContent"></div>
+                </div>
+
+
 
                 <!-- Attached Files -->
                 <div *ngIf="newsletterFiles.length > 0" class="newsletter-files">

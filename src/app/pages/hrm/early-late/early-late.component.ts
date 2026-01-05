@@ -36,6 +36,8 @@ import { DEFAULT_TABLE_CONFIG } from '../../../tabulator-default.config';
 import { AuthService } from '../../../auth/auth.service';
 import { WFHService } from '../employee-management/employee-wfh/WFH-service/WFH.service';
 import { PermissionService } from '../../../services/permission.service';
+import { Menubar } from 'primeng/menubar';
+
 @Component({
   selector: 'app-early-late',
   templateUrl: './early-late.component.html',
@@ -65,7 +67,8 @@ import { PermissionService } from '../../../services/permission.service';
     NgIf,
     HasPermissionDirective,
     NzDropDownModule,
-    FormsModule
+    FormsModule,
+    Menubar
   ]
 })
 export class EarlyLateComponent implements OnInit, AfterViewInit {
@@ -74,8 +77,15 @@ export class EarlyLateComponent implements OnInit, AfterViewInit {
   sizeSearch: string = '0';
   showSearchBar: boolean = typeof window !== 'undefined' ? window.innerWidth > 768 : true;
 
+  // Menu bars
+  menuBars: any[] = [];
+
   get shouldShowSearchBar(): boolean {
     return this.showSearchBar;
+  }
+
+  isMobile(): boolean {
+    return typeof window !== 'undefined' && window.innerWidth <= 768;
   }
 
   ToggleSearchPanelNew(event?: Event): void {
@@ -115,6 +125,7 @@ export class EarlyLateComponent implements OnInit, AfterViewInit {
   ) { }
 
   ngOnInit() {
+    this.initMenuBar();
     this.initializeForm();
     this.loadDepartment();
     this.loadEarlyLate();
@@ -129,6 +140,70 @@ export class EarlyLateComponent implements OnInit, AfterViewInit {
         : this.currentUser;
     });
   }
+
+  initMenuBar(): void {
+    this.menuBars = [
+      {
+        label: 'Thêm',
+        icon: 'fa-solid fa-plus fa-lg text-success',
+        command: () => this.openAddModal()
+      },
+      {
+        label: 'Sửa',
+        icon: 'fa-solid fa-pen-to-square fa-lg text-primary',
+        command: () => this.openEditModal()
+      },
+      {
+        label: 'Xóa',
+        icon: 'fa-solid fa-trash fa-lg text-danger',
+        command: () => this.openDeleteModal()
+      },
+      {
+        label: 'TBP xác nhận',
+        visible: this.permissionService.hasPermission("N1"),
+        icon: 'fa-solid fa-calendar-check fa-lg text-primary',
+        items: [
+          {
+            label: 'TBP duyệt',
+            visible: this.permissionService.hasPermission("N1"),
+            icon: 'fa-solid fa-circle-check fa-lg text-success',
+            command: () => this.isApproveTBP(true)
+          },
+          {
+            label: 'TBP hủy duyệt',
+            visible: this.permissionService.hasPermission("N1"),
+            icon: 'fa-solid fa-circle-xmark fa-lg text-danger',
+            command: () => this.isApproveTBP(false)
+          }
+        ]
+      },
+      {
+        label: 'HR xác nhận',
+        visible: this.permissionService.hasPermission("N1,N2"),
+        icon: 'fa-solid fa-calendar-check fa-lg text-info',
+        items: [
+          {
+            label: 'HR duyệt',
+            visible: this.permissionService.hasPermission("N1,N2"),
+            icon: 'fa-solid fa-circle-check fa-lg text-success',
+            command: () => this.isApproveHR()
+          },
+          {
+            label: 'HR hủy duyệt',
+            visible: this.permissionService.hasPermission("N1,N2"),
+            icon: 'fa-solid fa-circle-xmark fa-lg text-danger',
+            command: () => this.isDisapproveHR()
+          }
+        ]
+      },
+      {
+        label: 'Xuất Excel',
+        icon: 'fa-solid fa-file-excel fa-lg text-success',
+        command: () => this.exportToExcel()
+      }
+    ];
+  }
+
   ngAfterViewInit(): void {
     this.initializeTable();
   }
@@ -364,7 +439,7 @@ export class EarlyLateComponent implements OnInit, AfterViewInit {
       },
       columns: [
         {
-          title: 'Senior duyệt', field: 'IsSeniorApproved', hozAlign: 'center', headerHozAlign: 'center', width: 60,
+          title: 'Senior duyệt', field: 'IsSeniorApproved', hozAlign: 'center', headerHozAlign: 'center', width: 60, frozen: frozenOn,
           formatter: function (cell: any) {
             const value = cell.getValue();
             const checked = value === true || value === 'true' || value === 1 || value === '1';
@@ -523,9 +598,9 @@ export class EarlyLateComponent implements OnInit, AfterViewInit {
 
     const selectedData = selectedRows[0].getData();
 
-    // Kiểm tra trạng thái duyệt
-    if (this.isApproved(selectedData)) {
-      this.notification.warning(NOTIFICATION_TITLE.warning, 'Bản ghi đã duyệt không thể sửa. Vui lòng hủy duyệt trước');
+    // Kiểm tra trạng thái duyệt - cho phép người có quyền sửa bất kể đã duyệt
+    if (this.isApproved(selectedData) && !this.checkCanEditApproved()) {
+      this.notification.warning(NOTIFICATION_TITLE.warning, 'Bản ghi đã được duyệt. Vui lòng hủy duyệt trước!');
       return;
     }
 
@@ -576,15 +651,15 @@ export class EarlyLateComponent implements OnInit, AfterViewInit {
       return;
     }
 
-    // Kiểm tra trạng thái duyệt cho tất cả các bản ghi đã chọn
+    // Kiểm tra trạng thái duyệt cho tất cả các bản ghi đã chọn - cho phép người có quyền xóa bất kể đã duyệt
     const selectedData = selectedRows.map(row => row.getData());
     const approvedItems = selectedData.filter(item => this.isApproved(item));
 
-    if (approvedItems.length > 0) {
+    if (approvedItems.length > 0 && !this.checkCanEditApproved()) {
       const fullNames = approvedItems.map(item => item['FullName'] || 'N/A').join(', ');
       this.notification.warning(
         NOTIFICATION_TITLE.warning,
-        `Bản ghi đã duyệt không thể xóa. Vui lòng hủy duyệt trước:\n${fullNames}`
+        `Bản ghi đã duyệt. Bạn không có quyền xóa:\n${fullNames}`
       );
       return;
     }
@@ -601,12 +676,12 @@ export class EarlyLateComponent implements OnInit, AfterViewInit {
         for (let row of selectedRows) {
           let selectedEarlyLate = row.getData();
 
-          // Kiểm tra lại trạng thái duyệt trước khi xóa
-          if (this.isApproved(selectedEarlyLate)) {
+          // Kiểm tra lại trạng thái duyệt trước khi xóa - cho phép người có quyền xóa bất kể đã duyệt
+          if (this.isApproved(selectedEarlyLate) && !this.checkCanEditApproved()) {
             const fullName = selectedEarlyLate['FullName'] || 'N/A';
             this.notification.warning(
               NOTIFICATION_TITLE.warning,
-              `Bản ghi đã duyệt không thể xóa. Vui lòng hủy duyệt trước: ${fullName}`
+              `Bản ghi đã duyệt. Bạn không có quyền xóa: ${fullName}`
             );
             continue;
           }
@@ -800,8 +875,9 @@ export class EarlyLateComponent implements OnInit, AfterViewInit {
     }
 
     if (formData.ID && formData.ID > 0) {
-      formData.IsApprovedHR = false;
-      formData.IsApprovedTP = false;
+      formData.IsApproved = false;    // Reset trạng thái duyệt HR
+      formData.IsApprovedHR = false;  // Reset trạng thái duyệt HR (backup field)
+      formData.IsApprovedTP = false;  // Reset trạng thái duyệt TBP
     }
 
     if (formData.ID && formData.ID > 0) {
@@ -921,6 +997,11 @@ export class EarlyLateComponent implements OnInit, AfterViewInit {
     const isAdmin = this.currentUser?.IsAdmin === true || this.currentUser?.ISADMIN === true;
 
     return hasN1Permission || hasN2Permission || isAdmin;
+  }
+
+  // Kiểm tra user có quyền sửa/xóa bản ghi đã duyệt (N1, N2 hoặc IsAdmin)
+  checkCanEditApproved(): boolean {
+    return this.canEditEmployee();
   }
 
   isApproveHR() {

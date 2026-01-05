@@ -51,9 +51,9 @@
                 <h5 class="card-title m-0 text-uppercase fw-bold py-1">truy cập nhanh</h5>
             </div>
 
-             <div class="card-body p-0">
+            <div class="card-body p-0">
                 <ul class="list-group list-group-flush">
-                    <!-- @for (item of menuQickAcesss.Children; track $index) {
+                    @for (item of menuQickAcesss.Children; track $index) {
                     <li class="list-group-item border-0 py-1"
                         *ngIf="item.Code =='M79' || item.Code =='M136' || item.Code =='M137' || item.Code =='M139'">
                         <a [attr.href]="item.Router ? item.Router : null"
@@ -74,9 +74,9 @@
                             }
                         </ul>
                     </li>
-                    } -->
+                    }
                 </ul>
-            </div> 
+            </div>
         </div>
 
         <div class="card">
@@ -115,7 +115,7 @@
             <div class="card-body p-0">
                 <ul class="list-group list-group-flush">
                     @for (item of menuApproves.Children; track $index) {
-                    <li class="list-group-item border-0 border-bottom py-1">
+                    <li class="list-group-item border-0 border-bottom py-1" *ngIf="item.IsPermission">
                         <a class=" text-dark" [attr.href]="item.Router ? item.Router : null"
                             (click)="handleClickLink($event, item.Router, item.Title)">
                             <img [src]="item.Icon">
@@ -123,7 +123,7 @@
                         </a>
                         <ul class="list-group">
                             @for (c of item.Children; track $index) {
-                            <li class="list-group-item border-0 py-1"
+                            <li class="list-group-item border-0 py-1" *ngIf="item.IsPermission"
                                 [ngClass]="{'border-bottom':$index < item.Children.length - 1,'':$index == item.Children.length - 1}">
                                 <a [attr.href]="c.Router ? c.Router : null"
                                     (click)="handleClickLink($event, c.Router, c.Title)">
@@ -142,21 +142,24 @@
         <div class="card">
             <div class="card-header d-flex justify-content-between align-items-center">
                 <h5 class="card-title m-0 text-uppercase fw-bold py-1">Thông báo</h5>
-                <a routerLink="/newsletter" class="small text-primary fw-bold" style="text-decoration: none;">
+                <!-- <a routerLink="/newsletter" class="small text-primary fw-bold" style="text-decoration: none;">
                     Xem tất cả <i nz-icon nzType="right" nzTheme="outline"></i>
-                </a>
+                </a> -->
             </div>
-            <div class="card-body p-0" *ngIf="quantityApprove?.Count > 0">
-                <div class="px-3 py-2 bg-light"
-                    style="background-color: #fff3cd !important; border-left: 4px solid #ffc107;"
-                    *hasPermission="'N1,N32,N85'">
-                    <small class="text-muted fw-bold">
-                        Bạn đang có <span class="text-danger fw-bold">{{quantityApprove?.Count || 0}}</span> đơn đăng kí
-                        công chưa duyệt!
-                        <span class="text-primary cursor-pointer fw-bold"
-                            style="color: #007bff !important; text-decoration: underline; cursor: pointer; font-weight: 600;"
-                            (click)="newTabApprove()">Bấm vào đây để duyệt</span>
-                    </small>
+            <div class="card-body p-0">
+                <div *ngIf="quantityApprove?.Count > 0">
+                    <div class="px-3 py-2 bg-light"
+                        style="background-color: #fff3cd !important; border-left: 4px solid #ffc107;"
+                        *hasPermission="'N1,N32,N85'">
+                        <small class="text-muted fw-bold">
+                            Bạn đang có <span class="text-danger fw-bold">{{quantityApprove?.Count || 0}}</span> đơn
+                            đăng kí
+                            công chưa duyệt!
+                            <span class="text-primary cursor-pointer fw-bold"
+                                style="color: #007bff !important; text-decoration: underline; cursor: pointer; font-weight: 600;"
+                                (click)="newTabApprove()">Bấm vào đây để duyệt</span>
+                        </small>
+                    </div>
                 </div>
 
                 <!-- Newsletter List -->
@@ -212,7 +215,7 @@
                         <ul class="list-group">
                             @for (c1 of item.Children; track $index) {
 
-                            <li class="list-group-item border-0 border-bottom py-1">
+                            <li class="list-group-item border-0 border-bottom py-1" *ngIf="c1.IsPermission">
                                 <a class=" text-dark" [attr.href]="c1.Router ? c1.Router : null"
                                     (click)="handleClickLink($event, c1.Router, c1.Title)">
                                     <img [src]="c1.Icon">
@@ -220,7 +223,7 @@
                                 </a>
                                 <ul class="list-group">
                                     @for (c2 of c1.Children; track $index) {
-                                    <li class="list-group-item border-0 py-1"
+                                    <li class="list-group-item border-0 py-1" *ngIf="c2.IsPermission"
                                         [ngClass]="{'border-bottom':$index < c1.Children.length - 1,'':$index == c1.Children.length - 1}">
                                         <a [attr.href]="c2.Router ? c2.Router : null"
                                             (click)="handleClickLink($event, c2.Router, c2.Title)">

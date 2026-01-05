@@ -1,4 +1,4 @@
-import { Component, OnInit, AfterViewInit, ViewChild, ElementRef } from '@angular/core';
+import { Component, OnInit, AfterViewInit, ViewChild, ElementRef, HostListener } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { NzCardModule } from 'ng-zorro-antd/card';
@@ -26,6 +26,8 @@ import * as ExcelJS from 'exceljs';
 import { debounceTime } from 'rxjs/operators';
 import { Subject } from 'rxjs';
 import { DailyReportHrDetailComponent } from '../DailyReportTech/daily-report-hr-detail/daily-report-hr-detail.component';
+import { MenuItem, PrimeIcons } from 'primeng/api';
+import { Menubar } from 'primeng/menubar';
 
 @Component({
   selector: 'app-daily-report-hr',
@@ -45,6 +47,7 @@ import { DailyReportHrDetailComponent } from '../DailyReportTech/daily-report-hr
     NzNotificationModule,
     NzModalModule,
     NzDropDownModule,
+    Menubar,
   ],
   templateUrl: './daily-report-thr.component.html',
   styleUrl: './daily-report-thr.component.css'
@@ -58,6 +61,8 @@ export class DailyReportThrComponent implements OnInit, AfterViewInit {
   // Search panel state
   sizeSearch: string = '22%';
   showSearchBar: boolean = false; // Mặc định ẩn, sẽ được set trong ngOnInit
+  isMobile: boolean = false;
+  menuBars: MenuItem[] = [];
   
   // Search filters
   dateStart: any = DateTime.local().minus({ days: 1 }).set({ hour: 0, minute: 0, second: 0 }).toISO();
@@ -93,10 +98,14 @@ export class DailyReportThrComponent implements OnInit, AfterViewInit {
       });
   }
 
+  @HostListener('window:resize')
+  onResize() {
+    this.updateResponsiveState();
+  }
+
   ngOnInit(): void {
-    // Kiểm tra nếu là mobile thì ẩn filter bar, desktop thì hiển thị
-    const isMobile = window.innerWidth <= 768;
-    this.showSearchBar = !isMobile;
+    this.updateResponsiveState();
+    this.initMenuBar();
     
     // Load theo thứ tự: getCurrentUser -> loadDepartments -> set departmentId -> loadTeams -> loadUsers -> getDailyReportHrData
     this.getCurrentUser();
@@ -1018,5 +1027,50 @@ export class DailyReportThrComponent implements OnInit, AfterViewInit {
     window.URL.revokeObjectURL(link.href);
 
     this.notification.success('Thông báo', `Xuất excel thành công!`);
+  }
+
+  private updateResponsiveState(): void {
+    const nextIsMobile = window.innerWidth <= 768;
+    const modeChanged = this.isMobile !== nextIsMobile;
+    this.isMobile = nextIsMobile;
+
+    if (modeChanged) {
+      this.showSearchBar = !this.isMobile;
+    }
+  }
+
+  private initMenuBar(): void {
+    this.menuBars = [
+      {
+        label: 'Tìm kiếm',
+        icon: PrimeIcons.SEARCH,
+        command: () => this.ToggleSearchPanelNew(),
+      },
+      {
+        label: 'Thêm',
+        icon: PrimeIcons.PLUS,
+        command: () => this.addDailyReport(),
+      },
+      {
+        label: 'Sửa',
+        icon: PrimeIcons.PENCIL,
+        command: () => this.editDailyReport(),
+      },
+      {
+        label: 'Xóa',
+        icon: PrimeIcons.TRASH,
+        command: () => this.deleteDailyReport(),
+      },
+      {
+        label: 'Copy',
+        icon: PrimeIcons.COPY,
+        command: () => this.copyDailyReport(),
+      },
+      {
+        label: 'Xuất danh sách',
+        icon: PrimeIcons.FILE_EXCEL,
+        command: () => this.exportReport(),
+      },
+    ];
   }
 }

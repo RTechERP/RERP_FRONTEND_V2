@@ -1697,10 +1697,11 @@ export class ProjectPartListSlickGridComponent implements OnInit, AfterViewInit,
     }
 
     // Tạo column metadata cho tô màu cell cụ thể
+    // Màu cell sẽ đè lên màu dòng (giống logic Tabulator gốc)
     const columns: Record<string, { cssClass?: string }> = {};
 
-    // Chỉ áp dụng màu cell khi không có màu row-level (deleted, problem, return, parent)
-    if (!isDeleted && !isProblem && quantityReturn === 0 && !hasChildren) {
+    // Chỉ áp dụng màu cell cho node lá (không phải parent)
+    if (!hasChildren) {
       // === Logic màu HỒNG: IsNewCode = true VÀ totalSame = 0 ===
       if (isNewCode) {
         // Cột GroupMaterial - màu hồng nếu IsSameProductName = 0
@@ -1733,7 +1734,10 @@ export class ProjectPartListSlickGridComponent implements OnInit, AfterViewInit,
       }
     }
 
-    console.log(`[ROW METADATA] Row ${row}: TT=${item.TT}, IsNewCode=${isNewCode}, IsFix=${isFix}, hasChildren=${hasChildren}, rowClass=${rowCssClass}, columns=`, Object.keys(columns));
+    // Chỉ log khi có cell coloring thực sự để giảm noise
+    if (Object.keys(columns).length > 0) {
+      console.log(`[ROW METADATA] Row ${row}: TT=${item.TT}, IsNewCode=${isNewCode}, IsFix=${isFix}, hasChildren=${hasChildren}, rowClass=${rowCssClass}, columns=`, Object.keys(columns));
+    }
 
     return {
       cssClasses: rowCssClass,
@@ -2033,22 +2037,34 @@ export class ProjectPartListSlickGridComponent implements OnInit, AfterViewInit,
       if (dataView) {
         console.log('[GRID READY] PartList - Configuring dataView for row coloring');
         const originalGetItemMetadata = dataView.getItemMetadata;
+        const self = this;
         dataView.getItemMetadata = (row: number) => {
           const item = dataView.getItem(row);
-          const cssClass = this.getPartListRowClass(item);
+          // Sử dụng getPartListRowMetadata để lấy cả cssClass cho row và columns
+          const metadata = self.getPartListRowMetadata(item, row);
 
-          // Gọi metadata gốc nếu có
-          let metadata = originalGetItemMetadata ? originalGetItemMetadata.call(dataView, row) : null;
+          // Merge với metadata gốc nếu có
+          let originalMetadata = originalGetItemMetadata ? originalGetItemMetadata.call(dataView, row) : null;
 
-          if (cssClass) {
-            if (!metadata) {
-              metadata = { cssClasses: cssClass };
-            } else {
-              metadata.cssClasses = metadata.cssClasses ? `${metadata.cssClasses} ${cssClass}` : cssClass;
+          if (metadata) {
+            if (!originalMetadata) {
+              originalMetadata = {};
+            }
+            // Merge row cssClasses
+            if (metadata.cssClasses) {
+              originalMetadata.cssClasses = originalMetadata.cssClasses
+                ? `${originalMetadata.cssClasses} ${metadata.cssClasses}`
+                : metadata.cssClasses;
+            }
+            // Merge column metadata cho cell coloring
+            if (metadata.columns) {
+              originalMetadata.columns = originalMetadata.columns
+                ? { ...originalMetadata.columns, ...metadata.columns }
+                : metadata.columns;
             }
           }
 
-          return metadata;
+          return originalMetadata;
         };
 
         // Invalidate grid để áp dụng changes
@@ -4434,17 +4450,330 @@ export class ProjectPartListSlickGridComponent implements OnInit, AfterViewInit,
   }
 
   // Mở form xuất Excel
-  openFormExportExcelPartlist(): void {
-    const modalRef = this.ngbModal.open(FormExportExcelPartlistComponent, {
-      centered: true,
-      windowClass: 'full-screen-modal',
-      keyboard: false,
+  async openFormExportExcelPartlist(): Promise<void> {
+    // Xuất Excel trước
+    const exportSuccess = await this.exportExcelPartlist();
+    // Sau khi xuất thành công, mở modal
+    if (exportSuccess) {
+      const modalRef = this.ngbModal.open(FormExportExcelPartlistComponent, {
+        centered: true,
+        windowClass: 'full-screen-modal',
+        keyboard: false,
+      });
+      modalRef.componentInstance.projectId = this.projectId;
+      modalRef.componentInstance.projectCode = this.projectCodex || '';
+      modalRef.componentInstance.projectName = this.projectNameX || '';
+      modalRef.componentInstance.versionPOID = this.versionPOID;
+      modalRef.componentInstance.partListData = this.dataProjectPartList || [];
+    }
+  }
+
+  /**
+   * Flatten tree data to array (recursive)
+   */
+  private flattenTreeDataForExport(treeData: any[]): any[] {
+    const result: any[] = [];
+    const flatten = (nodes: any[]) => {
+      nodes.forEach((node: any) => {
+        result.push(node);
+        if (node._children && node._children.length > 0) {
+          flatten(node._children);
+        }
+      });
+    };
+    flatten(treeData);
+    return result;
+  }
+
+  /**
+   * Xuất Excel danh mục vật tư
+   * @returns Promise<boolean> - true nếu xuất thành công, false nếu thất bại
+   */
+  async exportExcelPartlist(): Promise<boolean> {
+    if (!this.dataProjectPartList) return false;
+
+    // Lấy toàn bộ dữ liệu tree (cả node cha và node con) từ dữ liệu gốc
+    const treeData = this.dataProjectPartList || [];
+    // Flatten tree data để export tất cả các node
+    const data = this.flattenTreeDataForExport(treeData);
+
+    if (!data || data.length === 0) {
+      this.notification.warning(
+        'Thông báo',
+        'Không có dữ liệu để xuất Excel!'
+      );
+      return false;
+    }
+
+    const workbook = new ExcelJS.Workbook();
+    const worksheet = workbook.addWorksheet('Danh mục vật tư');
+
+    // ===== HEADER SECTION (Rows 1-6) =====
+    // Row 1: Title "DANH MỤC VẬT TƯ"
+    // ===== MERGE CELLS (HEADER) =====
+    worksheet.mergeCells('A1:A3');
+    worksheet.mergeCells('B1:B3');
+    worksheet.mergeCells('A4:B4');
+    worksheet.mergeCells('A5:B5');
+
+    worksheet.mergeCells('C1:F1');
+    worksheet.mergeCells('G2:I2');
+    worksheet.mergeCells('G3:I3');
+
+    // ===== HEADER VALUES =====
+    worksheet.getCell('C1').value = 'DANH MỤC VẬT TƯ';
+    worksheet.getCell('C1').font = { bold: true, size: 14 };
+    worksheet.getCell('C1').alignment = { horizontal: 'center', vertical: 'middle' };
+
+    worksheet.getCell('C2').value = 'Mã dự án:';
+    worksheet.getCell('C2').alignment = { horizontal: 'right' };
+    worksheet.getCell('D2').value = this.projectCodex || '';
+
+    worksheet.getCell('C3').value = 'Tên dự án';
+    worksheet.getCell('C3').alignment = { horizontal: 'right' };
+    worksheet.getCell('D3').value = this.projectNameX || '';
+
+    worksheet.getCell('G3').value = 'BM03-RTC.TE-QT01\nBan hành lần: 02';
+    worksheet.getCell('G3').alignment = { horizontal: 'center', vertical: 'middle', wrapText: true };
+
+    worksheet.getCell('A4').value = 'Người lập:';
+    worksheet.getCell('E4').value = 'Kiểm tra:';
+    worksheet.getCell('H4').value = 'Phê duyệt:';
+
+    worksheet.getCell('A6').value = 'Ngày:';
+    worksheet.getCell('G6').value = DateTime.now().toFormat('dd/MM/yyyy');
+    worksheet.getCell('E6').value = 'Ngày:';
+    worksheet.getCell('H6').value = 'Ngày:';
+
+    // ===== DATA HEADER (Row 7) =====
+    const exportColumns = [
+      { header: 'TT', field: 'TT', width: 10 },
+      { header: 'Tên vật tư', field: 'GroupMaterial', width: 35 },
+      { header: 'Mã thiết bị', field: 'ProductCode', width: 18 },
+      { header: 'Mã đặt hàng', field: 'BillCodePurchase', width: 18 },
+      { header: 'Hãng SX', field: 'Manufacturer', width: 15 },
+      { header: 'Thông số kỹ thuật', field: 'Model', width: 30 },
+      { header: 'Số lượng/1 máy', field: 'QtyMin', width: 15, isNumber: true },
+      { header: 'Số lượng tổng', field: 'QtyFull', width: 15, isNumber: true },
+      { header: 'Đơn vị', field: 'Unit', width: 10 },
+      { header: 'Đơn giá KT nhập', field: 'Price', width: 15, isNumber: true },
+      { header: 'Thành tiền KT nhập', field: 'Amount', width: 18, isNumber: true },
+      { header: 'Tiến độ', field: 'LeadTime', width: 15 },
+      { header: 'Nhà cung cấp', field: 'NameNCCPriceQuote', width: 20 },
+      { header: 'Ngày yêu cầu đặt hàng', field: 'RequestDate', width: 20, isDate: true },
+      { header: 'Tiến độ yêu cầu', field: 'LeadTimePurchase', width: 18 },
+      { header: 'SL đặt thực tế', field: 'QtyOrderActual', width: 15, isNumber: true },
+      { header: 'NCC mua hàng', field: 'SupplierNamePurchase', width: 18 },
+      { header: 'Giá đặt mua', field: 'PriceOrder', width: 15, isNumber: true },
+      { header: 'Ngày đặt hàng thực tế', field: 'RequestDatePurchase', width: 18, isDate: true },
+      { header: 'Dự kiến hàng về', field: 'ExpectedReturnDate', width: 18, isDate: true },
+      { header: 'Tình trạng', field: 'StatusText', width: 12 },
+      { header: 'Chất lượng', field: 'Quality', width: 12 },
+      { header: 'Note', field: 'Note', width: 20 },
+      { header: 'Lý do phát sinh', field: 'ReasonProblem', width: 20 },
+      { header: 'Mã đặc biệt', field: 'SpecialCode', width: 15 },
+      { header: 'Đơn giá Pur báo', field: 'UnitPriceQuote', width: 15, isNumber: true },
+      { header: 'Thành tiền Pur báo', field: 'TotalPriceQuote1', width: 18, isNumber: true },
+      { header: 'Loại tiền Pur báo', field: 'CurrencyQuote', width: 18 },
+      { header: 'Tỷ giá báo', field: 'CurrencyRateQuote', width: 12, isNumber: true },
+      { header: 'Thành tiền quy đổi báo giá (VNĐ)', field: 'TotalPriceExchangeQuote', width: 25, isNumber: true },
+      { header: 'Đơn giá Pur mua', field: 'UnitPricePurchase', width: 18, isNumber: true },
+      { header: 'Thành tiền Pur mua', field: 'TotalPricePurchase', width: 18, isNumber: true },
+      { header: 'Loại tiền Pur mua', field: 'CurrencyPurchase', width: 18 },
+      { header: 'Tỷ giá mua', field: 'CurrencyRatePurchase', width: 12, isNumber: true },
+      { header: 'Thành tiền quy đổi mua (VNĐ)', field: 'TotalPriceExchangePurchase', width: 25, isNumber: true },
+      { header: 'Leadtime Pur báo giá', field: 'LeadTimeQuote', width: 20 },
+      { header: 'Leadtime Pur đặt mua', field: 'LeadTimePurchase', width: 20 },
+      { header: 'SL đã về', field: 'QuantityReturn', width: 12, isNumber: true },
+      { header: 'Mã nội bộ', field: 'ProductNewCode', width: 15 },
+      { header: 'Số HĐ đầu vào', field: 'SomeBill', width: 18 },
+      { header: 'SL đã xuất', field: 'TotalExport', width: 12, isNumber: true },
+      { header: 'SL còn lại', field: 'RemainQuantity', width: 12, isNumber: true },
+    ];
+
+    // Set column widths
+    worksheet.columns = exportColumns.map((col, index) => ({
+      key: col.field,
+      width: col.width,
+    }));
+
+    // Add header row (Row 7 - tự động là row 7 vì đã có 6 dòng trước đó)
+    const headerRowData = exportColumns.map((col) => col.header);
+    const excelHeaderRow = worksheet.addRow(headerRowData);
+    excelHeaderRow.eachCell((cell) => {
+      cell.font = { bold: true, size: 10 };
+      cell.fill = {
+        type: 'pattern',
+        pattern: 'solid',
+        fgColor: { argb: 'FFD3D3D3' }, // Light grey background
+      };
+      cell.border = {
+        top: { style: 'thin' },
+        left: { style: 'thin' },
+        bottom: { style: 'thin' },
+        right: { style: 'thin' },
+      };
+      cell.alignment = { horizontal: 'center', vertical: 'middle', wrapText: true };
     });
-    modalRef.componentInstance.projectId = this.projectId;
-    modalRef.componentInstance.projectCode = this.projectCodex || '';
-    modalRef.componentInstance.projectName = this.projectNameX || '';
-    modalRef.componentInstance.versionPOID = this.versionPOID;
-    modalRef.componentInstance.partListData = this.dataProjectPartList || [];
+
+    // Add data rows
+    data.forEach((row: any, rowIndex: number) => {
+      const rowData = exportColumns.map((col) => {
+        let value = row[col.field];
+
+        // Format dates
+        if (col.isDate && value) {
+          const dateTime = DateTime.fromISO(value);
+          value = dateTime.isValid ? dateTime.toFormat('dd/MM/yyyy') : '';
+        }
+
+        // Format numbers
+        if (col.isNumber && value !== null && value !== undefined && value !== '') {
+          const num = parseFloat(value);
+          if (!isNaN(num)) {
+            value = num;
+          } else {
+            value = '';
+          }
+        }
+
+        return value ?? '';
+      });
+
+      const excelRow = worksheet.addRow(rowData);
+
+      // === LOGIC VẼ MÀU GIỐNG WINFORM NodeCellStyle ===
+      const hasChildren = row._children && row._children.length > 0;
+      const isDeleted = row.IsDeleted === true;
+      const isProblem = row.IsProblem === true;
+      // Parse QuantityReturn - giống logic trong rowFormatter
+      const quantityReturn = Number(row.QuantityReturn) || 0;
+
+      // Xác định màu nền cho toàn bộ dòng (ưu tiên theo thứ tự)
+      let rowFillColor: ExcelJS.Fill | null = null;
+      let rowFont: Partial<ExcelJS.Font> | null = null;
+
+      // Áp dụng màu theo thứ tự ưu tiên (giống WinForm)
+      // 1. Ưu tiên cao nhất: Dòng bị xóa → Red
+      if (isDeleted) {
+        rowFillColor = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFFF0000' } } as ExcelJS.Fill; // Đỏ
+        rowFont = { name: 'Times New Roman', size: 11, color: { argb: 'FFFFFFFF' } }; // Trắng
+      }
+      // 2. Dòng có vấn đề → Orange
+      else if (isProblem) {
+        rowFillColor = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFFFA500' } } as ExcelJS.Fill; // Cam
+      }
+      // 3. Số lượng trả về > 0 → LightGreen (hàng đã về)
+      else if (quantityReturn > 0) {
+        rowFillColor = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF90EE90' } } as ExcelJS.Fill; // Xanh lá
+      }
+      // 4. Node cha (có children) → Light yellow
+      else if (hasChildren) {
+        rowFillColor = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFFFFACD' } } as ExcelJS.Fill; // Light yellow
+        rowFont = { name: 'Times New Roman', size: 11, bold: true };
+      }
+
+      // Style data rows
+      excelRow.eachCell((cell, colNumber) => {
+        cell.border = {
+          top: { style: 'thin' },
+          left: { style: 'thin' },
+          bottom: { style: 'thin' },
+          right: { style: 'thin' },
+        };
+        cell.alignment = { vertical: 'middle', wrapText: true };
+
+        // Right-align number columns
+        const colDef = exportColumns[colNumber - 1];
+        if (colDef && colDef.isNumber) {
+          cell.alignment = { horizontal: 'right', vertical: 'middle' };
+          if (typeof cell.value === 'number') {
+            cell.numFmt = '#,##0.00';
+          }
+        }
+
+        // Áp dụng màu nền cho toàn bộ dòng (nếu có)
+        if (rowFillColor) {
+          cell.fill = rowFillColor;
+        }
+        if (rowFont) {
+          cell.font = { ...cell.font, ...rowFont };
+        }
+      });
+
+      excelRow.eachCell((cell, colNumber) => {
+        const colDef = exportColumns[colNumber - 1];
+        cell.alignment = {
+          vertical: 'middle',
+          wrapText: true,
+          horizontal: colDef?.isNumber ? 'right' : 'left'
+        };
+      });
+    });
+
+    // Generate and download file
+    try {
+      const buffer = await workbook.xlsx.writeBuffer();
+      const blob = new Blob([buffer], {
+        type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+      });
+
+      // Lấy thông tin loại phiên bản, tên phiên bản và tên danh mục phiên bản
+      let versionType = ''; // GP hoặc PO
+      let versionName = ''; // Tên phiên bản (Code)
+      let projectTypeName = ''; // Tên danh mục phiên bản (ProjectTypeName)
+
+      if (this.type === 1) {
+        // Giải pháp (GP)
+        versionType = 'GP';
+        versionName = this.CodeName || '';
+        projectTypeName = this.projectTypeName || '';
+      } else if (this.type === 2) {
+        // PO
+        versionType = 'PO';
+        versionName = this.CodeName || '';
+        projectTypeName = this.projectTypeName || '';
+      } else {
+        // Mặc định nếu không có type
+        versionType = '';
+        versionName = this.CodeName || '';
+        projectTypeName = this.projectTypeName || '';
+      }
+
+      // Tạo tên file: DanhMucVatTu_ProjectCode_Loại phiên bản_tên danh mục phiên bản
+      const projectCode = (this.projectCodex);
+      const versionTypeClean = versionType;
+      const versionNameClean = (versionName);
+      const projectTypeNameClean = (projectTypeName);
+
+      let fileName = `DanhMucVatTu_${projectCode}`;
+      if (versionTypeClean) {
+        fileName += `_${versionTypeClean}`;
+      }
+      if (versionNameClean) {
+        fileName += `_${versionNameClean}`;
+      }
+      fileName += '.xlsx';
+
+      const link = document.createElement('a');
+      link.href = window.URL.createObjectURL(blob);
+      link.download = fileName;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      window.URL.revokeObjectURL(link.href);
+
+      this.notification.success(
+        'Thành công',
+        'Xuất Excel thành công!'
+      );
+
+      return true;
+    } catch (error) {
+      console.error('Error exporting Excel:', error);
+      this.notification.error('Lỗi', 'Không thể xuất file Excel!');
+      return false;
+    }
   }
 
   // Mở form nhập Excel

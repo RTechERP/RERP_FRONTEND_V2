@@ -366,8 +366,7 @@
                                   <nz-form-control [nzSpan]="24" [nzErrorTip]="getFieldError('projectTypeId')">
                                       <nz-select formControlName="projectTypeId" class="w-100" nzShowSearch nzAllowClear
                                           nzPlaceHolder="Chọn kiểu dự án"
-                                        
-                                          
+                                        (ngModelChange)="getProjectCode()"
                                           >
                                           <nz-option [nzValue]="1" nzLabel="Dự án"></nz-option>
                                           <nz-option [nzValue]="2" nzLabel="Thương mại"></nz-option>

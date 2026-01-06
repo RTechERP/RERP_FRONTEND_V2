@@ -115,6 +115,7 @@ export class ProjectWokerSlickGridComponent implements OnInit, AfterViewInit, On
   lastClickedWorkerRow: any = null;
   isTogglingChildren: boolean = false;
   previousSelectedRows: Set<number> = new Set();
+  isInitialLoad: boolean = false;
 
   // Loading management
   private loadingCounter: number = 0;
@@ -189,6 +190,7 @@ export class ProjectWokerSlickGridComponent implements OnInit, AfterViewInit, On
       rowSelectionOptions: { selectActiveRow: true },
       enableSorting: true,
       enablePagination: false,
+      enableGrouping: true,
       autoFitColumnsOnFirstLoad: false,
       enableAutoSizeColumns: false,
     };
@@ -234,6 +236,7 @@ export class ProjectWokerSlickGridComponent implements OnInit, AfterViewInit, On
       rowSelectionOptions: { selectActiveRow: true },
       enableSorting: true,
       enablePagination: false,
+      enableGrouping: true,
       autoFitColumnsOnFirstLoad: false,
       enableAutoSizeColumns: false,
       contextMenu: {
@@ -306,6 +309,7 @@ export class ProjectWokerSlickGridComponent implements OnInit, AfterViewInit, On
       rowSelectionOptions: { selectActiveRow: true },
       enableSorting: true,
       enablePagination: false,
+      enableGrouping: true,
       autoFitColumnsOnFirstLoad: false,
       enableAutoSizeColumns: false,
       contextMenu: {
@@ -413,12 +417,18 @@ export class ProjectWokerSlickGridComponent implements OnInit, AfterViewInit, On
         cssClass: 'text-right', formatter: moneyFormatter,
         filterable: true,
         filter: { model: Filters['compoundInputNumber'] },
+        resizable: true,   // tự động fill độ rộng khi resize màn hình
       },
     ];
 
     this.projectWorkerGridOptions = {
       enableAutoResize: true,
-      autoResize: { container: '.grid-project-worker-container', calculateAvailableSizeBy: 'container' },
+      // tự động fill độ rộng khi resize màn hình
+      autoResize: {
+        container: '.grid-project-worker-container',
+        calculateAvailableSizeBy: 'container',
+      },
+      //end
       gridWidth: '100%',
       datasetIdPropertyName: 'id',
       enableRowSelection: true,
@@ -435,7 +445,7 @@ export class ProjectWokerSlickGridComponent implements OnInit, AfterViewInit, On
       enablePagination: false,
       autoFitColumnsOnFirstLoad: true,
       enableAutoSizeColumns: true,
-      forceFitColumns: true,
+      forceFitColumns: false,   // tự động fill độ rộng khi resize màn hình
       enableTreeData: true,
       treeDataOptions: {
         columnId: 'TT',
@@ -456,9 +466,29 @@ export class ProjectWokerSlickGridComponent implements OnInit, AfterViewInit, On
   onSolutionGridReady(event: any): void {
     this.angularGridSolution = event.detail;
 
+    // Setup grouping by ProjectCode
+    if (this.angularGridSolution && this.angularGridSolution.dataView) {
+      this.angularGridSolution.dataView.setGrouping([
+        {
+          getter: 'CodeRequest',
+          comparer: () => 0,
+          formatter: (g: any) => {
+            const projectCode = g.value;
+            return `Mã yêu cầu: ${projectCode}`;
+          }
+        }
+      ]);
+    }
+
     // Subscribe to row selection changed event
     if (this.angularGridSolution?.slickGrid) {
       this.angularGridSolution.slickGrid.onSelectedRowsChanged.subscribe((e: any, args: any) => {
+        // Skip if this is initial load (data already loaded from loadDataSolution)
+        if (this.isInitialLoad) {
+          this.isInitialLoad = false;
+          return;
+        }
+
         const selectedRows = this.angularGridSolution.slickGrid.getSelectedRows();
         if (selectedRows && selectedRows.length > 0) {
           const row = selectedRows[0];
@@ -478,24 +508,32 @@ export class ProjectWokerSlickGridComponent implements OnInit, AfterViewInit, On
   onSolutionVersionGridReady(event: any): void {
     this.angularGridSolutionVersion = event.detail;
 
+    // Setup grouping by CodeSolution
+    if (this.angularGridSolutionVersion && this.angularGridSolutionVersion.dataView) {
+      this.angularGridSolutionVersion.dataView.setGrouping([
+        {
+          getter: 'ProjectTypeName',
+          comparer: () => 0,
+          formatter: (g: any) => {
+            const solutionCode = g.value;
+            return `Danh mục: ${solutionCode}`;
+          }
+        }
+      ]);
+    }
+
     // Subscribe to row selection changed event
     if (this.angularGridSolutionVersion?.slickGrid) {
       this.angularGridSolutionVersion.slickGrid.onSelectedRowsChanged.subscribe((e: any, args: any) => {
-        console.log('[SolutionVersion] onSelectedRowsChanged - type:', this.type);
-        console.log('[SolutionVersion] selectedRows:', this.angularGridSolutionVersion.slickGrid.getSelectedRows());
-        console.log('[SolutionVersion] previousSelectedRows:', args.previousSelectedRows);
-
         const selectedRows = this.angularGridSolutionVersion.slickGrid.getSelectedRows();
         if (selectedRows && selectedRows.length > 0) {
           const row = selectedRows[0];
           const rowData = this.angularGridSolutionVersion.dataView?.getItem(row);
           if (rowData) {
-            console.log('[SolutionVersion] Selected row:', rowData);
             this.selectionCode = rowData.Code;
             this.versionID = rowData.ID || 0;
             this.type = 1;
             // Clear selection của PO Version grid
-            console.log('[SolutionVersion] Clearing PO Version selection...');
             if (this.angularGridPOVersion?.slickGrid) {
               // Disable selectActiveRow tạm thời để tránh auto-select lại
               const currentSelectActiveRow = this.angularGridPOVersion.slickGrid.getOptions().rowSelectionOptions?.selectActiveRow;
@@ -504,14 +542,12 @@ export class ProjectWokerSlickGridComponent implements OnInit, AfterViewInit, On
               setTimeout(() => {
                 this.angularGridPOVersion.slickGrid.setOptions({ rowSelectionOptions: { selectActiveRow: currentSelectActiveRow } });
               }, 0);
-              console.log('[SolutionVersion] PO Version selection cleared');
             }
             this.toggleTBPColumn();
             this.loadDataProjectWorker();
           }
         } else {
           // Row deselected - clear worker table
-          console.log('[SolutionVersion] Row deselected, clearing worker table');
           this.versionID = 0;
           this.clearWorkerTable();
         }
@@ -522,19 +558,28 @@ export class ProjectWokerSlickGridComponent implements OnInit, AfterViewInit, On
   onPOVersionGridReady(event: any): void {
     this.angularGridPOVersion = event.detail;
 
+    // Setup grouping by CodeSolution
+    if (this.angularGridPOVersion && this.angularGridPOVersion.dataView) {
+      this.angularGridPOVersion.dataView.setGrouping([
+        {
+          getter: 'ProjectTypeName',
+          comparer: () => 0,
+          formatter: (g: any) => {
+            const solutionCode = g.value;
+            return `Danh mục: ${solutionCode}`;
+          }
+        }
+      ]);
+    }
+
     // Subscribe to row selection changed event
     if (this.angularGridPOVersion?.slickGrid) {
       this.angularGridPOVersion.slickGrid.onSelectedRowsChanged.subscribe((e: any, args: any) => {
-        console.log('[POVersion] onSelectedRowsChanged - type:', this.type);
-        console.log('[POVersion] selectedRows:', this.angularGridPOVersion.slickGrid.getSelectedRows());
-        console.log('[POVersion] previousSelectedRows:', args.previousSelectedRows);
-
         const selectedRows = this.angularGridPOVersion.slickGrid.getSelectedRows();
         if (selectedRows && selectedRows.length > 0) {
           const row = selectedRows[0];
           const rowData = this.angularGridPOVersion.dataView?.getItem(row);
           if (rowData) {
-            console.log('[POVersion] Selected row:', rowData);
             this.selectionCode = rowData.Code;
             this.projectTypeID = rowData.ProjectTypeID;
             this.projectTypeName = rowData.ProjectTypeName;
@@ -542,7 +587,6 @@ export class ProjectWokerSlickGridComponent implements OnInit, AfterViewInit, On
             this.versionID = rowData.ID || 0;
             this.type = 2;
             // Clear selection của Solution Version grid
-            console.log('[POVersion] Clearing Solution Version selection...');
             if (this.angularGridSolutionVersion?.slickGrid) {
               // Disable selectActiveRow tạm thời để tránh auto-select lại
               const currentSelectActiveRow = this.angularGridSolutionVersion.slickGrid.getOptions().rowSelectionOptions?.selectActiveRow;
@@ -551,14 +595,12 @@ export class ProjectWokerSlickGridComponent implements OnInit, AfterViewInit, On
               setTimeout(() => {
                 this.angularGridSolutionVersion.slickGrid.setOptions({ rowSelectionOptions: { selectActiveRow: currentSelectActiveRow } });
               }, 0);
-              console.log('[POVersion] Solution Version selection cleared');
             }
             this.toggleTBPColumn();
             this.loadDataProjectWorker();
           }
         } else {
           // Row deselected - clear worker table
-          console.log('[POVersion] Row deselected, clearing worker table');
           this.versionID = 0;
           this.clearWorkerTable();
         }
@@ -757,8 +799,9 @@ export class ProjectWokerSlickGridComponent implements OnInit, AfterViewInit, On
         if (response.status === 1) {
           this.dataSolution = (response.data || []).map((item: any, index: number) => ({
             ...item,
-            id: item.ID || `sol_${index}`,
+            id: item.ID ? item.ID : `sol_${index}_${Date.now()}`,
           }));
+
           this.clearVersionTables();
           this.clearWorkerTable();
           this.projectSolutionId = 0;
@@ -766,7 +809,30 @@ export class ProjectWokerSlickGridComponent implements OnInit, AfterViewInit, On
           // Auto-select first row and load version data
           if (this.dataSolution.length > 0 && this.angularGridSolution?.slickGrid) {
             setTimeout(() => {
-              this.angularGridSolution.slickGrid.setSelectedRows([0]);
+              // Set flag để ngăn event handler gọi lại loadDataSolutionVersion()
+              this.isInitialLoad = true;
+
+              const grid = this.angularGridSolution.slickGrid;
+              const dataView = this.angularGridSolution.dataView;
+
+              // Loop qua grid rows để tìm data row đầu tiên (bỏ qua group header)
+              let firstDataRowIndex = -1;
+              const gridLength = grid.getDataLength();
+
+              for (let i = 0; i < gridLength; i++) {
+                const item = dataView.getItem(i);
+                // Check nếu không phải group header (group header có __group = true)
+                if (item && !item.__group) {
+                  firstDataRowIndex = i;
+                  break;
+                }
+              }
+
+              if (firstDataRowIndex >= 0) {
+                grid.setSelectedRows([firstDataRowIndex]);
+                grid.render();
+              }
+
               // Trigger row selection event manually
               const firstRowData = this.dataSolution[0];
               this.projectSolutionId = firstRowData.ID;
@@ -774,7 +840,7 @@ export class ProjectWokerSlickGridComponent implements OnInit, AfterViewInit, On
               // Load cả 2 bảng phiên bản nhưng KHÔNG focus vào dòng nào
               this.loadDataSolutionVersion();
               this.loadDataPOVersion();
-            }, 100);
+            }, 300);
           }
         } else {
           this.notification.error('Lỗi', response.message);
@@ -807,7 +873,7 @@ export class ProjectWokerSlickGridComponent implements OnInit, AfterViewInit, On
         if (response.status === 1) {
           this.dataSolutionVersion = (response.data || []).map((item: any, index: number) => ({
             ...item,
-            id: item.ID || `sv_${index}`,
+            id: item.ID ? item.ID : `sol_ver_${index}_${Date.now()}`,
           }));
 
           // KHÔNG auto-select dòng nào, chỉ load dữ liệu
@@ -834,7 +900,7 @@ export class ProjectWokerSlickGridComponent implements OnInit, AfterViewInit, On
         if (response.status === 1) {
           this.dataPOVersion = (response.data || []).map((item: any, index: number) => ({
             ...item,
-            id: item.ID || `po_${index}`,
+            id: item.ID ? item.ID : `po_ver_${index}_${Date.now()}`,
           }));
 
           // KHÔNG auto-select dòng nào, chỉ load dữ liệu

@@ -42,6 +42,10 @@ export class DailyReportTechService {
   saveReportHr(report: any): Observable<any> {
     return this.http.post<any>(this.apiUrlLXCP + 'save-report-hr', report);
   }
+   saveReportTHr(report: any): Observable<any> {
+    return this.http.post<any>(this.apiUrl + 'save-report-hr', report);
+  }
+
 
   saveReportMar(report: any): Observable<any> {
     return this.http.post<any>(this.apiUrl + 'save-report-mar', report);

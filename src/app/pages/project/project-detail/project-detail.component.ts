@@ -559,8 +559,8 @@ export class ProjectDetailComponent implements OnInit, AfterViewInit {
       this.formGroup.patchValue({ projectCode: '' });
       return;
     }
-
-    if (this.customers.length > 0) {
+    if(this.projectId ==0){
+        if (this.customers.length > 0) {
       this.projectService
         .getProjectCodeModal(
           this.projectId,
@@ -583,6 +583,7 @@ export class ProjectDetailComponent implements OnInit, AfterViewInit {
             console.error('Lỗi:', error.error);
           },
         });
+    }
     }
   }
 

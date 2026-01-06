@@ -35,7 +35,8 @@ import { HasPermissionDirective } from '../../../directives/has-permission.direc
 import { PermissionService } from '../../../services/permission.service';
 import { CourseCatalogDetailComponent } from '../course_management-form/course-catalog-detail/course-catalog-detail.component';
 import { CourseDetailComponent } from '../course_management-form/course-detail/course-detail.component';
-
+import { MenuItem, PrimeIcons } from 'primeng/api';
+import { Menubar } from 'primeng/menubar';
 interface Category {
   ID: number;
   Code: string;
@@ -67,7 +68,8 @@ interface Lesson {
     NzModalModule,
     NgbModalModule,
     NzFormModule,
-    HasPermissionDirective
+    HasPermissionDirective,
+    Menubar,
   ],
   templateUrl: './course-management.component.html',
   styleUrl: './course-management.component.css',
@@ -76,6 +78,93 @@ export class CourseManagementComponent implements OnInit, AfterViewInit {
   @ViewChild('CategoryTable') categoryTableRef!: ElementRef;
   @ViewChild('CourseTable') courseTableRef!: ElementRef;
   @ViewChild('LessonTable') lessonTableRef!: ElementRef;
+
+      categoryMenuBars: MenuItem[] = [
+        {
+            label: 'Thêm',
+            icon: 'fa-solid fa-circle-plus fa-lg text-success',
+            //visible: this.permissionService.hasPermission(""),
+            command: () => {
+                this.onAddCategory();
+            },
+        },
+
+        {
+            label: 'Sửa',
+            icon: 'fa-solid fa-file-pen fa-lg text-primary',
+            // visible: this.permissionService.hasPermission(""),
+            command: () => {
+                this.onEditCategory();
+            },
+        },
+        {
+            label: 'Xóa',
+            icon: 'fa-solid fa-trash fa-lg text-danger',
+            // visible: this.permissionService.hasPermission(""),
+            command: () => {
+                this.onDeleteCategory();
+            },
+        },
+        { separator: true },
+    ];
+
+    courseMenuBars: MenuItem[] = [
+        {
+            label: 'Thêm',
+            icon: 'fa-solid fa-circle-plus fa-lg text-success',
+            //visible: this.permissionService.hasPermission(""),
+            command: () => {
+                this.onAddCourse();
+            },
+        },
+
+        {
+            label: 'Sửa',
+            icon: 'fa-solid fa-file-pen fa-lg text-primary',
+            // visible: this.permissionService.hasPermission(""),
+            command: () => {
+                this.onEditCourse();
+            },
+        },
+        {
+            label: 'Xóa',
+            icon: 'fa-solid fa-trash fa-lg text-danger',
+            // visible: this.permissionService.hasPermission(""),
+            command: () => {
+                this.onDeleteCourse();
+            },
+        },
+        { separator: true },
+    ];
+
+        lessonMenuBars: MenuItem[] = [
+        {
+            label: 'Thêm',
+            icon: 'fa-solid fa-circle-plus fa-lg text-success',
+            //visible: this.permissionService.hasPermission(""),
+            command: () => {
+                this.onAddLesson();
+            },
+        },
+
+        {
+            label: 'Sửa',
+            icon: 'fa-solid fa-file-pen fa-lg text-primary',
+            // visible: this.permissionService.hasPermission(""),
+            command: () => {
+                this.onEditLesson();
+            },
+        },
+        {
+            label: 'Xóa',
+            icon: 'fa-solid fa-trash fa-lg text-danger',
+            // visible: this.permissionService.hasPermission(""),
+            command: () => {
+                this.onDeleteLesson();
+            },
+        },
+        { separator: true },
+    ];
 
   splitterLayout: 'horizontal' | 'vertical' = 'horizontal';
 
@@ -244,7 +333,7 @@ export class CourseManagementComponent implements OnInit, AfterViewInit {
 
   onAddCategory() {
     // Lấy STT lớn nhất từ bảng danh mục
-    const maxSTT = this.categoryData.length > 0 
+    const maxSTT = this.categoryData.length > 0
       ? Math.max(...this.categoryData.map(c => c.STT || 0))
       : 0;
 
@@ -581,7 +670,7 @@ export class CourseManagementComponent implements OnInit, AfterViewInit {
             columns: [
               {
                 title: 'Thực hành',
-                field: 'IsPractice',  
+                field: 'IsPractice',
                 hozAlign: 'center',
                 headerHozAlign: 'center',
                 width: 50,
@@ -725,11 +814,11 @@ export class CourseManagementComponent implements OnInit, AfterViewInit {
         const selectedRows = this.courseTable!.getSelectedRows();
         this.courseID = 0;
         this.lessonData = [];
-     
+
           if (this.lessonTable) {
             this.lessonTable.setData(this.lessonData);
           }
-        
+
       });
     }
   }

@@ -84,73 +84,8 @@
     word-break: break-word !important;
   }
 
-  /* Filter bar styles */
-  .filter-bar {
-    transition: all 0.3s ease;
-  }
-
-  .filter-backdrop {
-    display: none;
-  }
-
-  .filter-backdrop.mobile-only {
-    display: block;
-    position: fixed;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background-color: rgba(0, 0, 0, 0.5);
-    z-index: 999;
-  }
-
-  .filter-bar.mobile-modal {
-    position: fixed;
-    top: 0;
-    left: 0;
-    right: 0;
-    background-color: #f5f5f5;
-    z-index: 1000;
-    max-height: 90vh;
-    overflow-y: auto;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-    padding: 16px !important;
-  }
-
-  .filter-bar.mobile-modal form.mobile-filter-form {
-    flex-direction: column !important;
-    gap: 12px !important;
-    align-items: stretch !important;
-  }
-
-  .filter-bar.mobile-modal nz-form-item {
-    width: 100% !important;
-    margin-bottom: 0 !important;
-  }
-
-  .filter-bar.mobile-modal nz-form-label {
-    display: block !important;
-    margin-bottom: 4px !important;
-  }
-
-  .filter-bar.mobile-modal nz-form-control {
-    width: 100% !important;
-  }
-
-  .filter-bar.mobile-modal nz-date-picker,
-  .filter-bar.mobile-modal nz-select,
-  .filter-bar.mobile-modal input[nz-input] {
-    width: 100% !important;
-  }
-
-  .filter-bar.mobile-modal .ant-picker,
-  .filter-bar.mobile-modal .ant-select-selector {
-    width: 100% !important;
-  }
-
   /* Card header responsive */
   .card-header {
-    overflow-x: auto;
     -webkit-overflow-scrolling: touch;
   }
 
@@ -186,68 +121,6 @@
       z-index: 10;
       background-color: white;
       min-width: 40px;
-    }
-
-    .filter-bar.mobile-modal button {
-      width: 100%;
-      margin-bottom: 8px;
-      min-height: 40px;
-      touch-action: manipulation;
-    }
-
-    .filter-bar.mobile-modal button:last-child {
-      margin-bottom: 0;
-    }
-
-    .filter-bar.mobile-modal .d-flex.gap-2 {
-      flex-direction: column;
-      gap: 8px !important;
-    }
-
-    .filter-bar.mobile-modal .d-flex.gap-2 button {
-      width: 100%;
-    }
-
-    .filter-bar.mobile-modal .filter-actions {
-      width: 100% !important;
-    }
-
-    .filter-bar.mobile-modal .filter-actions .d-flex {
-      flex-direction: column;
-      width: 100%;
-    }
-
-    .filter-bar.mobile-modal .filter-actions button {
-      width: 100%;
-      margin-bottom: 8px;
-    }
-
-    .filter-bar.mobile-modal .filter-actions button:last-child {
-      margin-bottom: 0;
-    }
-  }
-
-  @media (min-width: 769px) {
-    .filter-backdrop.mobile-only {
-      display: none;
-    }
-
-    .filter-bar.mobile-modal {
-      position: relative;
-      max-height: none;
-      overflow-y: visible;
-      box-shadow: none;
-      padding: 8px 16px !important;
-      flex-shrink: 0;
-    }
-
-    .filter-bar.mobile-modal form.mobile-filter-form {
-      flex-direction: row !important;
-      align-items: flex-end !important;
-    }
-
-    .filter-bar.mobile-modal nz-form-item {
-      width: auto !important;
     }
 
     /* Đảm bảo card không tăng chiều cao khi filter bar hiển thị */
@@ -363,24 +236,4 @@
     word-break: break-word !important;
   }
 
-  /* Thêm CSS cho mobile specifically */
-  @media (max-width: 767px) {
-    ::ng-deep .p-menubar .p-menubar-button {
-      z-index: 1051;
-    }
-
-    ::ng-deep .p-menubar-mobile-active .p-menubar-root-list {
-      position: fixed !important; /* Sử dụng fixed thay vì absolute */
-      top: 50px; /* Điều chỉnh tùy vào chiều cao header */
-      left: 0;
-      right: 0;
-      background: white;
-      box-shadow: 0 4px 12px rgba(0,0,0,0.15);
-    }
-
-    /* Overlay backdrop khi menu mở */
-    ::ng-deep .p-component-overlay-enter {
-      z-index: 1049 !important;
-    }
-  }
   

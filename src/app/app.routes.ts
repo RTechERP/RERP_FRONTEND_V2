@@ -215,6 +215,7 @@ import { ProjectPartlistPriceRequestOldComponent } from './pages/purchase/projec
 import { MeetingMinuteSlickGridComponent } from './pages/meeting-minute-slick-grid/meeting-minute-slick-grid.component';
 import { DocumentSaleAdminComponent } from './pages/hrm/document/document-sale-admin/document-sale-admin.component';
 import { InventoryBorrowNCCComponent } from './pages/old/Sale/Inventory/Modal/inventory-borrow-ncc/inventory-borrow-ncc.component';
+import { NewsletterFormViewAllComponent } from './pages/old/newsletter/newsletter/newsletter-form-view-all/newsletter-form-view-all.component';
 // import { CustomerSlickgridComponent } from './pages/crm/customers/customer-slickgrid/customer-slickgrid.component';
 export const routes: Routes = [
     {
@@ -381,8 +382,8 @@ export const routes: Routes = [
             { path: 'daily-report-sale-admin', component: DailyReportSaleAdminComponent, canActivate: [authGuard] },
             { path: 'request-invoice-old', component: RequestInvoiceComponent, canActivate: [authGuard] },
             { path: 'request-invoice', component: RequestInvoiceSlickgridComponent, canActivate: [authGuard] },
-            { path: 'request-invoice-summary-old', component: RequestInvoiceSummaryComponent, canActivate: [authGuard] },
-            { path: 'request-invoice-summary', component: RequestInvoiceSummarySlickgridComponent, canActivate: [authGuard] },
+            { path: 'request-invoice-summary', component: RequestInvoiceSummaryComponent, canActivate: [authGuard] },
+            { path: 'request-invoice-summary-old', component: RequestInvoiceSummarySlickgridComponent, canActivate: [authGuard] },
             { path: 'history-export-accountant', component: HistoryExportAccountantComponent, canActivate: [authGuard] },
             { path: 'history-approved-bill-log', component: HistoryApprovedBillLogComponent, canActivate: [authGuard] },
             { path: 'inventory-by-date', component: InventoryByDateComponent, canActivate: [authGuard] },
@@ -544,11 +545,11 @@ export const routes: Routes = [
             { path: 'project-workitem-timeline', component: ProjectWorkItemTimelineComponent, canActivate: [authGuard] },
             { path: 'synthesis-of-generated-materials', component: SynthesisOfGeneratedMaterialsComponent, canActivate: [authGuard] },
 
-            { path: 'project-agv-summary', component: ProjectAgvSummaryComponent , canActivate: [authGuard] },
+            { path: 'project-agv-summary', component: ProjectAgvSummaryComponent, canActivate: [authGuard] },
 
-            { path: 'project-agv-summary-slick-grid', component:  ProjectAgvSummarySlickGirdComponent, canActivate: [authGuard] },
-            { path: 'project-dept-summary', component: ProjectDepartmentSummaryComponent  , canActivate: [authGuard] },
-            { path: 'project-dept-summary-slick-grid', component: ProjectDepartmentSummarySlickGridComponent , canActivate: [authGuard] },
+            { path: 'project-agv-summary-slick-grid', component: ProjectAgvSummarySlickGirdComponent, canActivate: [authGuard] },
+            { path: 'project-dept-summary', component: ProjectDepartmentSummaryComponent, canActivate: [authGuard] },
+            { path: 'project-dept-summary-slick-grid', component: ProjectDepartmentSummarySlickGridComponent, canActivate: [authGuard] },
             { path: 'price-history-partlist', component: PriceHistoryPartlistComponent, canActivate: [authGuard] },
             { path: 'synthesis-of-generated-materials', component: SynthesisOfGeneratedMaterialsSlickGridComponent, canActivate: [authGuard] },
             { path: 'synthesis-of-generated-materials-slick-grid', component: SynthesisOfGeneratedMaterialsComponent, canActivate: [authGuard] },

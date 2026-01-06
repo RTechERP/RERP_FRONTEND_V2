@@ -723,26 +723,6 @@ export class ProjectAgvSummarySlickGirdComponent implements OnInit, AfterViewIni
       enableAutoSizeColumns: false,
       frozenColumn: 5,
       rowHeight: 33,
-      // Context menu cho SlickGrid
-      enableContextMenu: true,
-      contextMenu: {
-        commandTitle: 'Thao tác',
-        commandItems: [
-          {
-            command: 'showDetail',
-            title: 'Thông tin thêm',
-            iconCssClass: 'fa fa-info',
-            positionOrder: 1,
-            action: (e: Event, args: any) => {
-              const rowData = args?.dataContext || args?.item;
-              if (rowData) {
-                this.selectedRow = rowData;
-                this.openProjectDetail(rowData);
-              }
-            },
-          },
-        ],
-      },
     };
   }
 
@@ -1249,11 +1229,9 @@ export class ProjectAgvSummarySlickGirdComponent implements OnInit, AfterViewIni
   }
 
   onCellClicked(e: any, args: OnClickEventArgs) {
-    // Không tự động mở panel detail khi click vào dòng
-    // Chỉ set selected row để context menu có thể sử dụng
     const item = args.grid.getDataItem(args.row);
     if (item) {
-      this.selectedRow = item;
+      this.openProjectDetail(item);
     }
   }
   //#endregion

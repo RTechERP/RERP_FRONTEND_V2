@@ -700,26 +700,6 @@ export class ProjectDepartmentSummarySlickGridComponent implements OnInit, After
       frozenColumn: 3,
       rowHeight: 33, // Base height - sẽ tự động tăng theo nội dung qua CSS
       enableAutoTooltip: true,
-      // Context menu cho SlickGrid
-      enableContextMenu: true,
-      contextMenu: {
-        commandTitle: 'Thao tác',
-        commandItems: [
-          {
-            command: 'showDetail',
-            title: 'Thông tin thêm',
-            iconCssClass: 'fa fa-info',
-            positionOrder: 1,
-            action: (e: Event, args: any) => {
-              const rowData = args?.dataContext || args?.item;
-              if (rowData) {
-                this.selectedRow = rowData;
-                this.showProjectDetail();
-              }
-            },
-          },
-        ],
-      },
     };
   }
 
@@ -1136,20 +1116,12 @@ export class ProjectDepartmentSummarySlickGridComponent implements OnInit, After
   }
 
   onCellClicked(e: any, args: OnClickEventArgs) {
-    // Không tự động mở panel detail khi click vào dòng
-    // Chỉ set selected row để context menu có thể sử dụng
     const item = args.grid.getDataItem(args.row);
     if (item) {
-      this.selectedRow = item;
-    }
-  }
-
-  showProjectDetail() {
-    if (this.selectedRow) {
       this.sizeTbMaster = '60%';
       this.sizeTbDetail = '40%';
-      this.projectId = this.selectedRow['ID'];
-      this.projectCode = this.selectedRow['ProjectCode'];
+      this.projectId = item['ID'];
+      this.projectCode = item['ProjectCode'];
       this.activeTab = 'workreport';
 
       setTimeout(() => {

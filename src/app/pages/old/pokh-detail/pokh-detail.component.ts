@@ -2314,6 +2314,9 @@ export class PokhDetailComponent implements OnInit, AfterViewInit {
             sorter: 'number',
             width: 80,
             editor: 'number',
+            editorParams: {
+              verticalNavigation: 'table',
+            },
             bottomCalc: (values, data) => {
               return this.accumulateTreeValues(data, 'Qty');
             },
@@ -2345,6 +2348,9 @@ export class PokhDetailComponent implements OnInit, AfterViewInit {
             sorter: 'number',
             width: 150,
             editor: 'number',
+            editorParams: {
+              verticalNavigation: 'table',
+            },
             formatter: 'money',
             formatterParams: {
               precision: 0,
@@ -2360,6 +2366,9 @@ export class PokhDetailComponent implements OnInit, AfterViewInit {
             sorter: 'number',
             width: 150,
             editor: 'number',
+            editorParams: {
+              verticalNavigation: 'table',
+            },
             formatter: 'money',
             formatterParams: {
               precision: 0,
@@ -2387,6 +2396,9 @@ export class PokhDetailComponent implements OnInit, AfterViewInit {
             sorter: 'number',
             width: 150,
             editor: 'number',
+            editorParams: {
+              verticalNavigation: 'table',
+            },
             formatter: 'money',
             formatterParams: {
               precision: 0,
@@ -2413,6 +2425,9 @@ export class PokhDetailComponent implements OnInit, AfterViewInit {
             sorter: 'number',
             width: 100,
             editor: 'number',
+            editorParams: {
+              verticalNavigation: 'table',
+            },
             formatter: function (cell, formatterParams, onRendered) {
               const value = cell.getValue();
               if (
@@ -2431,6 +2446,9 @@ export class PokhDetailComponent implements OnInit, AfterViewInit {
             sorter: 'number',
             width: 150,
             editor: 'number',
+            editorParams: {
+              verticalNavigation: 'table',
+            },
             formatter: 'money',
             formatterParams: {
               precision: 0,
@@ -2481,6 +2499,9 @@ export class PokhDetailComponent implements OnInit, AfterViewInit {
             sorter: 'number',
             width: 150,
             editor: 'number',
+            editorParams: {
+              verticalNavigation: 'table',
+            },
           },
           {
             title: 'Ngày hóa đơn',
@@ -2512,6 +2533,9 @@ export class PokhDetailComponent implements OnInit, AfterViewInit {
             sorter: 'number',
             width: 150,
             editor: 'number',
+            editorParams: {
+              verticalNavigation: 'table',
+            },
           },
           {
             title: 'Ngày yêu cầu thanh toán',

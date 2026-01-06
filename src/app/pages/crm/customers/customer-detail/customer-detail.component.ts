@@ -236,7 +236,7 @@ export class CustomerDetailComponent implements OnInit, AfterViewInit {
           this.formGroup.patchValue({
             fullName: response.data.model.CustomerName,
             address: response.data.model.Address,
-            businessField: response.data.business.BusinessFieldID,
+            businessField: response.data.business?.BusinessFieldID ?? 0,
             provinceCode: response.data.provinceCode,
             customerCode: response.data.customerCode,
             province: province?.ProvinceName,
@@ -260,7 +260,7 @@ export class CustomerDetailComponent implements OnInit, AfterViewInit {
           this.formData = {
             fullName: response.data.model.CustomerName,
             address: response.data.model.Address,
-            businessField: response.data.business.BusinessFieldID,
+            businessField: response.data.business?.BusinessFieldID ?? 0,
             provinceCode: response.data.provinceCode,
             customerCode: response.data.customerCode,
             province: province?.ProvinceName,

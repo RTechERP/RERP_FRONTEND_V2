@@ -369,7 +369,7 @@ export class PaymentOrderComponent implements OnInit {
                         separator: true,
                     },
                     {
-                        label: 'TBP duyệt',
+                        label: 'TBP HR duyệt',
                         icon: 'fa-solid fa-circle-check fa-lg text-success',
                         visible: this.permissionService.hasPermission("N56"),
                         command: () => {
@@ -379,7 +379,7 @@ export class PaymentOrderComponent implements OnInit {
                         }
                     },
                     {
-                        label: 'TBP hủy duyệt',
+                        label: 'TBP HR hủy duyệt',
                         icon: 'fa-solid fa-circle-xmark fa-lg text-danger',
                         visible: this.permissionService.hasPermission("N56"),
                         command: () => {

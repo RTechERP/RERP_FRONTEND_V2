@@ -28,6 +28,33 @@
   font-weight: bold !important;
 }
 
+/* Grouping Styles */
+:host ::ng-deep .slick-group {
+  text-align: left !important;
+}
+
+:host ::ng-deep .slick-group-title {
+  text-align: left !important;
+  justify-content: flex-start !important;
+}
+
+:host ::ng-deep .slick-group-toggle {
+  float: left !important;
+}
+
+:host ::ng-deep .slick-group-title span {
+  text-align: left !important;
+}
+
+/* Force left alignment for grouped cells - override text-center */
+:host ::ng-deep .slick-row.slick-group .slick-cell {
+  text-align: left !important;
+}
+
+:host ::ng-deep .slick-row.slick-group .slick-cell.text-center {
+  text-align: left !important;
+}
+
 /* Text Alignment */
 :host ::ng-deep .text-center {
   text-align: center !important;

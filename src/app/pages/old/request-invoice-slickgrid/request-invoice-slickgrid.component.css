@@ -124,6 +124,23 @@
     background-color: #FFA500 !important;
 }
 
+/* Footer row styling */
+:host ::ng-deep .slick-footerrow {
+    background-color: #f8f9fa;
+    border-top: 2px solid #dee2e6;
+}
+
+:host ::ng-deep .slick-footerrow-column {
+    border-right: 1px solid #dee2e6;
+    font-size: 0.75rem;
+    padding: 2px 4px;
+    font-weight: bold;
+}
+
+:host ::ng-deep .slick-footerrow-column:last-child {
+    border-right: none;
+}
+
 /* Tab content styles */
 :host ::ng-deep .ant-tabs-content-holder {
     flex: 1;

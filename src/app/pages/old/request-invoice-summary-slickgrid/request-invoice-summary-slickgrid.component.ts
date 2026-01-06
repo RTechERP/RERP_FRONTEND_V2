@@ -182,13 +182,7 @@ export class RequestInvoiceSummarySlickgridComponent implements OnInit, AfterVie
         }
     }
 
-    sizeSearch: string = '0';
-
     menuBars: any[] = [];
-
-    toggleSearchPanel() {
-        this.sizeSearch = this.sizeSearch == '0' ? '22%' : '0';
-    }
 
     initMenuBar() {
         this.menuBars = [
@@ -245,7 +239,7 @@ export class RequestInvoiceSummarySlickgridComponent implements OnInit, AfterVie
         const startDate = new Date();
         startDate.setDate(startDate.getDate() - 1); // Lấy dữ liệu 1 ngày trước
         startDate.setHours(0, 0, 0, 0);
-        endDate.setHours(23, 59, 59, 999);
+        endDate.setHours(23, 59, 59, 0);
         this.dateStart = startDate;
         this.dateEnd = endDate;
 
@@ -270,7 +264,7 @@ export class RequestInvoiceSummarySlickgridComponent implements OnInit, AfterVie
         const start = new Date(this.dateStart);
         start.setHours(0, 0, 0, 0);
         const end = new Date(this.dateEnd);
-        end.setHours(23, 59, 59, 999);
+        end.setHours(23, 59, 59, 0);
 
         this.isLoading = true;
         this.requestInvoiceService.getRequestInvoiceSummary(

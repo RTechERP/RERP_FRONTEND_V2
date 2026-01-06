@@ -1002,32 +1002,7 @@ export class ProjectSlickGrid2Component implements OnInit, AfterViewInit, OnDest
         filename: 'Danh_sach_du_an',
         sanitizeDataExport: true,
         sheetName: 'Danh sách dự án'
-      },
-      // Context menu cho SlickGrid
-      enableContextMenu: true,
-      contextMenu: {
-        commandTitle: 'Thao tác',
-        commandItems: [
-          {
-            command: 'showDetail',
-            title: 'Thông tin thêm',
-            iconCssClass: 'fa fa-info',
-            positionOrder: 1,
-            action: (e: Event, args: any) => {
-              const rowData = args?.dataContext || args?.item;
-              if (rowData) {
-                this.selectedRow = rowData;
-                this.showProjectDetail();
-              }
-            },
-          },
-          {
-            command: 'divider',
-            divider: true,
-            positionOrder: 2,
-          },
-        ],
-      },
+      }
     };
   }
 
@@ -1608,19 +1583,20 @@ export class ProjectSlickGrid2Component implements OnInit, AfterViewInit, OnDest
     }
   }
 
-  showProjectDetail() {
-    if (this.selectedRow) {
+  onCellClicked(e: any, args: OnClickEventArgs) {
+    const item = args.grid.getDataItem(args.row);
+    if (item) {
       this.sizeTbMaster = '60%';
       this.sizeTbDetail = '40%';
-      this.logSplitSizes('showProjectDetail(before render)');
-      this.projectId = this.selectedRow['ID'];
-      this.projectCode = this.selectedRow['ProjectCode'];
+      this.logSplitSizes('onCellClicked(before render)');
+      this.projectId = item['ID'];
+      this.projectCode = item['ProjectCode'];
       this.activeTab = 'workreport'; // Đặt lại tab đầu tiên
 
       // Khi mở panel: đợi panel có kích thước, render grids, load data
       setTimeout(() => {
         this.detailGridsReady = true;
-        this.logSplitSizes('showProjectDetail(after detailGridsReady=true)');
+        this.logSplitSizes('onCellClicked(after detailGridsReady=true)');
 
         // Sau khi render, resize grids và load data
         setTimeout(() => {
@@ -1652,18 +1628,9 @@ export class ProjectSlickGrid2Component implements OnInit, AfterViewInit, OnDest
             } catch (error) {
               console.error('Error resizing grids:', error);
             }
-          }, 200);
-        }, 100);
-      }, 50);
-    }
-  }
-
-  onCellClicked(e: any, args: OnClickEventArgs) {
-    // Không tự động mở panel detail khi click vào dòng
-    // Chỉ set selected row để context menu có thể sử dụng
-    const item = args.grid.getDataItem(args.row);
-    if (item) {
-      this.selectedRow = item;
+          }, 100);
+        }, 200); // Đợi grids render và có kích thước
+      }, 300); // Đợi panel animation hoàn thành
     }
   }
   //#endregion

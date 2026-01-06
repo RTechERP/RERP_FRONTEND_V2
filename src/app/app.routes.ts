@@ -955,6 +955,8 @@ export const routes: Routes = [
             // COURSE
             { path: 'course-management', component: CourseManagementComponent, canActivate: [authGuard] },
 
+            { path: 'chi-tiet-san-pham-sale', component: ChiTietSanPhamSaleComponent, canActivate: [authGuard] },
+
         ],
     },
 ];

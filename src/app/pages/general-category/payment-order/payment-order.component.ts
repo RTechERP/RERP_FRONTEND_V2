@@ -3052,7 +3052,7 @@ export class PaymentOrderComponent implements OnInit {
                 showCancelButton: true,
                 confirmButtonColor: '#28a745 ',
                 cancelButtonColor: '#dc3545 ',
-                confirmButtonText: 'Hủy duyệt',
+                confirmButtonText: 'Lưu',
                 cancelButtonText: 'Hủy',
             });
             if (reason) {

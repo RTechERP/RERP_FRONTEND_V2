@@ -1532,9 +1532,9 @@ export class PaymentOrderComponent implements OnInit {
                 commandItems: [
 
                     {
-                        command: '', title: 'Xem file', iconCssClass: 'mdi mdi-help-circle', positionOrder: 62,
+                        command: '', title: 'Bổ sung file', iconCssClass: 'mdi mdi-help-circle', positionOrder: 62,
                         action: (e, args) => {
-
+                            this.onAttachFileExtend();
                         }
                     },
                 ],
@@ -2873,6 +2873,10 @@ export class PaymentOrderComponent implements OnInit {
 
     handleApproved(data: any) {
 
+        if (data.length <= 0) {
+            this.notification.warning(NOTIFICATION_TITLE.warning, "Vui lòng chọn đề nghị!");
+        }
+
         const action = data[0].Action.ButtonActionGroup || '';
 
         if (action == 'btnTBP') {
@@ -2939,6 +2943,8 @@ export class PaymentOrderComponent implements OnInit {
 
         const rowIndexes = grid.getSelectedRows();
 
+
+
         let selectedItems = rowIndexes
             .map(i => dataView.getItem(i));
 
@@ -2990,7 +2996,7 @@ export class PaymentOrderComponent implements OnInit {
                     ReasonCancel: reasonUnApprove
                 }));
 
-                console.log('hủy duyêt:', selectedItems);
+                // console.log('hủy duyêt:', selectedItems);
                 this.handleApproved(selectedItems);
             }
         }
@@ -3526,7 +3532,12 @@ export class PaymentOrderComponent implements OnInit {
 
                 this.paymentService.uploadFile(files, item.ID, JSON.stringify(fileDeletes)).subscribe({
                     next: (reponse) => {
-                        console.log(reponse);
+                        // console.log(reponse);
+
+                        if (reponse.status == 1) {
+                            this.notification.success(NOTIFICATION_TITLE.success, 'Bổ sung file thành công!');
+                            this.loadDetail(item.ID);
+                        }
                     },
                     error: (err) => {
                         this.notification.error(NOTIFICATION_TITLE.error, err?.error?.message || err?.message);

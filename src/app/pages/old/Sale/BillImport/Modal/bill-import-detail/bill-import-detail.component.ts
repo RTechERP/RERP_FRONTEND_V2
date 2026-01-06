@@ -688,6 +688,8 @@ export class BillImportDetailComponent
         if (index === 0) {
           console.log('🔍 Cấu trúc item đầu tiên từ PONCC:', item);
           console.log('🔍 Các keys có sẵn:', Object.keys(item));
+          console.log('🔍 item.ID:', item.ID);
+          console.log('🔍 item.PONCCDetailID:', item.PONCCDetailID);
         }
 
         // Tìm thông tin sản phẩm từ productOptions dựa trên ProductSaleID
@@ -704,7 +706,7 @@ export class BillImportDetailComponent
 
         return {
           ID: 0, // Mới tạo, chưa có ID
-          PONCCDetailID: item.ID || 0, // Lưu ID của PO detail để trace back
+          PONCCDetailID: item.PONCCDetailID || item.ID || 0, // Lưu ID của PO detail để trace back
 
           // ProductID map từ ProductSaleID trong data PONCC
           ProductID: item.ProductSaleID || null,
@@ -1528,7 +1530,7 @@ export class BillImportDetailComponent
         );
     };
     console.log('tableData', tableData);
-    
+
     return tableData.map((row: any, index: number) => {
       // Parse POKHList từ POKHDetailQuantity
       const pokhList = parsePOKHList(row.POKHDetailQuantity || '');
@@ -1742,7 +1744,7 @@ export class BillImportDetailComponent
         ),
         pONCCID: this.poNCCId || 0,
       },
-      
+
     ];
     console.log('payload', payload);
 
@@ -2319,6 +2321,12 @@ export class BillImportDetailComponent
                 this.recheckTotalQty();
               },
             },
+            {
+              title: 'SL PO',
+              field: 'QtyPODetail',
+              hozAlign: 'right',
+              headerHozAlign: 'center',
+            },
             // {
             //   title: 'Tổng SL',
             //   field: 'TotalQty',
@@ -2375,14 +2383,14 @@ export class BillImportDetailComponent
             //   visible: false,
             //   tooltip: 'ID phiếu mượn để theo dõi trả hàng',
             // },
-            // {
-            //   title: 'ID PO NCC',
-            //   field: 'PONCCDetailID',
-            //   hozAlign: 'center',
-            //   headerHozAlign: 'center',
-            //   visible: false,
-            //   tooltip: 'ID chi tiết đơn mua hàng NCC',
-            // },
+            {
+              title: 'ID PO NCC',
+              field: 'PONCCDetailID',
+              hozAlign: 'center',
+              headerHozAlign: 'center',
+              visible: false,
+              tooltip: 'ID chi tiết đơn mua hàng NCC',
+            },
             // {
             //   title: 'ID POKH',
             //   field: 'POKHDetailID',

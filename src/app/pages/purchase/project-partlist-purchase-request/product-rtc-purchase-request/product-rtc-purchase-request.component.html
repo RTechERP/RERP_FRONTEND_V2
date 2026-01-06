@@ -38,7 +38,7 @@
                             <nz-select formControlName="TicketType"
                                        nzPlaceHolder="Chọn loại phiếu"
                                        name="TicketType">
-                                <nz-option [nzValue]="0" nzLabel="Phiếu mua"></nz-option>
+                                <!-- <nz-option [nzValue]="0" nzLabel="Phiếu mua"></nz-option> -->
                                 <nz-option [nzValue]="1" nzLabel="Phiếu mượn"></nz-option>
                             </nz-select>
                         </nz-form-control>
@@ -351,7 +351,7 @@
             <div nz-row [nzGutter]="16">
                 <div nz-col [nzSpan]="8">
                     <nz-form-item>
-                        <nz-form-label>Nhà cung cấp</nz-form-label>
+                        <nz-form-label>Nhà cung cấp <span class="text-danger">*</span></nz-form-label>
                         <nz-form-control nzErrorTip="Vui lòng chọn NCC!">
                             <nz-select name="SupplierSaleID" formControlName="SupplierSaleID" nzPlaceHolder="Chọn NCC" nzShowSearch="true" nzAllowClear="true">
                                 <nz-option *ngFor="let item of supplierSales" [nzValue]="item.ID"

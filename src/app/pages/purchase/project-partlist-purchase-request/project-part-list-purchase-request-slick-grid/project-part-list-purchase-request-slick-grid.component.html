@@ -54,7 +54,7 @@
                     justifyContent: 'center'
                     }"></nz-spin>
             </div>
-            <nz-tabset class="ms-2 h-100" [nzSelectedIndex]="activeTabIndex" (nzSelectedIndexChange)="onTabChange($event)"> 
+            <nz-tabset class="ms-2 h-100" [nzSelectedIndex]="activeTabIndex" (nzSelectedIndexChange)="onTabChange($event)">
                 <nz-tab class="purchase-tab h-100" *ngFor="let tab of filteredTabs; let i = index"
                     [nzTitle]="tab.title">
                     <div class="table-container mt-1 grid-container h-100" [class]="'grid-container-' + tab.id"
@@ -187,10 +187,11 @@
             <nz-form-item class="mt-1">
                 <nz-form-label class="fs-12">Trạng thái BGĐ</nz-form-label>
                 <nz-form-control>
-                    <nz-select style="width: 100%" nzShowSearch nzAllowClear name="approvedBGD" nzAllowClear="false"
-                        [(ngModel)]="isApprovedBGDFilter" nzPlaceHolder="--Tất cả--">
-                        <nz-option *ngFor="let a of approvalOptions" [nzValue]="a.value"
-                            [nzLabel]="a.label"></nz-option>
+                    <nz-select style="width: 100%" nzShowSearch nzAllowClear name="approvedBGD"
+                        [(ngModel)]="isApprovedBGDFilter" >
+                        <nz-option [nzValue]="-1" nzLabel="--Tất cả--"></nz-option>
+                        <nz-option [nzValue]="0" nzLabel="Chưa duyệt"></nz-option>
+                        <nz-option [nzValue]="1" nzLabel="Đã duyệt"></nz-option>
                     </nz-select>
                 </nz-form-control>
             </nz-form-item>

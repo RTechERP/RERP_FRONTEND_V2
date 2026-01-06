@@ -214,6 +214,7 @@ import { NewsletterTypeComponent } from './pages/old/newsletter/newsletter/newsl
 import { ProjectPartlistPriceRequestOldComponent } from './pages/purchase/project-partlist-price-request-old/project-partlist-price-request-old.component';
 import { MeetingMinuteSlickGridComponent } from './pages/meeting-minute-slick-grid/meeting-minute-slick-grid.component';
 import { DocumentSaleAdminComponent } from './pages/hrm/document/document-sale-admin/document-sale-admin.component';
+import { InventoryBorrowNCCComponent } from './pages/old/Sale/Inventory/Modal/inventory-borrow-ncc/inventory-borrow-ncc.component';
 // import { CustomerSlickgridComponent } from './pages/crm/customers/customer-slickgrid/customer-slickgrid.component';
 export const routes: Routes = [
     {
@@ -424,6 +425,7 @@ export const routes: Routes = [
             { path: 'tbp-job-requirement', component: JobRequirementComponent, canActivate: [authGuard] },
             { path: 'tbp-project-partlist', component: ProjectPartListSlickGridComponent, canActivate: [authGuard] },
             { path: 'tbp-project-partlist-purchase-request', component: ProjectPartListPurchaseRequestSlickGridComponent, canActivate: [authGuard] },
+            { path: 'project-partlist-purchase-request', component: ProjectPartListPurchaseRequestSlickGridComponent, canActivate: [authGuard] },
 
             //HR duyệt
             { path: 'hr-payment-order', component: PaymentOrderComponent, canActivate: [authGuard] },
@@ -540,6 +542,14 @@ export const routes: Routes = [
             { path: 'meeting-minute-slick-grid', component: MeetingMinuteComponent, canActivate: [authGuard] },
             { path: 'project-itemlate', component: ProjectItemLateComponent, canActivate: [authGuard] },
             { path: 'project-workitem-timeline', component: ProjectWorkItemTimelineComponent, canActivate: [authGuard] },
+            { path: 'synthesis-of-generated-materials', component: SynthesisOfGeneratedMaterialsComponent, canActivate: [authGuard] },
+
+            { path: 'project-agv-summary', component: ProjectAgvSummaryComponent , canActivate: [authGuard] },
+
+            { path: 'project-agv-summary-slick-grid', component:  ProjectAgvSummarySlickGirdComponent, canActivate: [authGuard] },
+            { path: 'project-dept-summary', component: ProjectDepartmentSummaryComponent  , canActivate: [authGuard] },
+            { path: 'project-dept-summary-slick-grid', component: ProjectDepartmentSummarySlickGridComponent , canActivate: [authGuard] },
+            { path: 'price-history-partlist', component: PriceHistoryPartlistComponent, canActivate: [authGuard] },
             { path: 'synthesis-of-generated-materials', component: SynthesisOfGeneratedMaterialsSlickGridComponent, canActivate: [authGuard] },
             { path: 'synthesis-of-generated-materials-slick-grid', component: SynthesisOfGeneratedMaterialsComponent, canActivate: [authGuard] },
 
@@ -560,6 +570,7 @@ export const routes: Routes = [
 
             //Mua hàng
             { path: 'employee-purchase', component: EmployeePurchaseComponent, canActivate: [authGuard] },
+            { path: 'purchase', component: PurchaseComponent, canActivate: [authGuard] },
             { path: 'rulepay', component: RulePayComponent, canActivate: [authGuard] },
             { path: 'currency', component: CurrencyListComponent, canActivate: [authGuard] },
             { path: 'supplier', component: SupplierSaleComponent, canActivate: [authGuard] },
@@ -932,6 +943,7 @@ export const routes: Routes = [
             { path: 'newsletter', component: NewsletterComponent, canActivate: [authGuard] },
             { path: 'newsletter-type', component: NewsletterTypeComponent, canActivate: [authGuard] },
             { path: 'document-sale-admin', component: DocumentSaleAdminComponent, canActivate: [authGuard] },
+            { path: 'inventory-borrow-ncc', component: InventoryBorrowNCCComponent, canActivate: [authGuard] },
 
 
         ],

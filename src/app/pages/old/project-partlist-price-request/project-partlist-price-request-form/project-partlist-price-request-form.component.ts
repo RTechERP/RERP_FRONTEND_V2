@@ -1,3 +1,4 @@
+import { AppUserService } from './../../../../services/app-user.service';
 import {
   Component,
   OnInit,
@@ -185,7 +186,10 @@ export class ProjectPartlistPriceRequestFormComponent
   ];
   supplierSearchFields: string[] = ['CodeNCC', 'NameNCC'];
 
-  constructor(public activeModal: NgbActiveModal) {}
+  constructor(
+    public activeModal: NgbActiveModal,
+    private appUserService: AppUserService
+  ) {}
 
   get isEditMode(): boolean {
     return !!(this.dataInput && this.dataInput.length > 0);
@@ -232,6 +236,7 @@ export class ProjectPartlistPriceRequestFormComponent
       ) {
         this.priceRequestTypeID = this.initialPriceRequestTypeID;
       }
+      this.requester = this.appUserService.employeeID??0;
       this.requestDate = new Date();
       this.tableData = [];
       return;
@@ -485,7 +490,7 @@ export class ProjectPartlistPriceRequestFormComponent
         console.error('Error loading ProductRTC:', error);
         this.notification.error(
           NOTIFICATION_TITLE.error,
-          error.error?.message || 'Lỗi khi tải danh sách sản phẩm RTC'
+          error.error?.message
         );
       },
     });
@@ -977,11 +982,11 @@ export class ProjectPartlistPriceRequestFormComponent
           headerHozAlign: 'center',
           hozAlign: 'left',
           width: 200,
-          editable: (cell: any) => {
-            const rowData = cell.getRow().getData();
-            if (this.jobRequirementID > 0) return false;
-            return this.canEditCell(rowData);
-          },
+          // editable: (cell: any) => {
+          //   const rowData = cell.getRow().getData();
+          //   if (this.jobRequirementID > 0) return false;
+          //   return this.canEditCell(rowData);
+          // },
         },
       ],
       height: '30vh',
@@ -1234,45 +1239,46 @@ export class ProjectPartlistPriceRequestFormComponent
   }
 
   checkDeadline(deadline: Date): boolean {
-    const now = new Date();
-    const fifteenPM = new Date(now);
-    fifteenPM.setHours(15, 0, 0, 0);
+    // Kiểm tra Deadline
+    // Deadline phải cách ngày yêu cầu ít nhất 2 ngày
+    // Nếu yêu cầu sau 15h thì tính từ ngày hôm sau
+    // Deadline phải là ngày làm việc (không tính thứ 7, chủ nhật)
+    const now = DateTime.now();
+    const currentHour = now.hour;
 
-    let dateRequest = new Date(now);
-
-    if (now >= fifteenPM) {
-      dateRequest.setDate(dateRequest.getDate() + 1);
+    // Tính ngày bắt đầu tính (nếu sau 15h thì tính từ ngày mai)
+    let startDate = now.startOf('day');
+    if (currentHour >= 15) {
+      startDate = startDate.plus({ days: 1 });
     }
 
-    if (dateRequest.getDay() === 6) {
-      dateRequest.setDate(dateRequest.getDate() + 2);
-    } else if (dateRequest.getDay() === 0) {
-      dateRequest.setDate(dateRequest.getDate() + 1);
+    // Ngày deadline tối thiểu (phải cách ít nhất 2 ngày từ startDate)
+    const minDeadline = startDate.plus({ days: 2 });
+
+    // Parse deadline
+    const deadlineDate = DateTime.fromJSDate(deadline);
+
+    if (!deadlineDate || !deadlineDate.isValid) {
+      return true; // Nếu deadline không hợp lệ thì return true để validate khác xử lý
     }
 
-    let workDays: Date[] = [];
-    const dateReq = new Date(dateRequest.toDateString());
-    const dateDL = new Date(deadline.toDateString());
-    const totalDays = Math.floor(
-      (dateDL.getTime() - dateReq.getTime()) / (1000 * 3600 * 24)
-    );
-
-    for (let i = 0; i <= totalDays; i++) {
-      const d = new Date(dateReq);
-      d.setDate(d.getDate() + i);
-      const day = d.getDay();
-      if (day !== 0 && day !== 6) {
-        workDays.push(d);
-      }
-    }
-
-    if (workDays.length < 2 && !this.currentUser?.IsAdmin) {
+    // Kiểm tra nếu deadline là thứ 7 hoặc chủ nhật
+    const dayOfWeek = deadlineDate.weekday; // 1 = Monday, 6 = Saturday, 7 = Sunday
+    if (dayOfWeek === 6 || dayOfWeek === 7) {
       this.notification.warning(
         'Thông báo',
-        `Deadline phải ít nhất là 2 ngày làm việc tính từ [${dateRequest.toLocaleDateString(
-          'vi-VN'
-        )}] (không tính Thứ 7 & Chủ nhật).`
+        `Deadline (${deadlineDate.toFormat('dd/MM/yyyy')}) là ngày cuối tuần. Deadline phải là ngày làm việc (T2 - T6).`
       );
+      return false;
+    }
+
+    // Kiểm tra nếu deadline không đủ 2 ngày
+    if (deadlineDate < minDeadline) {
+      const errorMsg = currentHour >= 15
+        ? 'Yêu cầu từ sau 15h nên ngày Deadline tối thiểu là 2 ngày tính từ ngày hôm sau!'
+        : 'Deadline tối thiểu là 2 ngày từ ngày hiện tại!';
+
+      this.notification.warning('Thông báo', errorMsg);
       return false;
     }
 

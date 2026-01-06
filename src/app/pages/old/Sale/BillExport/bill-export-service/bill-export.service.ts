@@ -355,4 +355,11 @@ getBillImportDetail(billIDs: number[]): Observable<any> {
       responseType: 'blob',
     });
   }
+
+  // Get Bill Import by Bill Export ID (for transfer reference links)
+  getBillImportByBillExportID(billExportID: number): Observable<any> {
+    return this.http.get<any>(
+      environment.host + `api/billexport/by-billexport/${billExportID}`
+    );
+  }
 }

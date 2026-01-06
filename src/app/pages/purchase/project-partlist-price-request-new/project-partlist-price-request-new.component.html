@@ -188,6 +188,17 @@
                     </nz-select>
                 </nz-form-control>
             </nz-form-item>
+            <nz-form-item>
+                <nz-form-label class="fs-12">Tình trạng</nz-form-label>
+                <nz-form-control>
+                    <nz-select style="width: 100%" [(ngModel)]="filters.isDeleted" name="isDeleted" nzShowSearch
+                        nzAllowClear nzSize="small">
+                        <nz-option nzLabel="Tất cả" [nzValue]="-1"></nz-option>
+                        <nz-option nzLabel="Chưa xóa" [nzValue]="0"></nz-option>
+                        <nz-option nzLabel="Đã xóa" [nzValue]="1"></nz-option>
+                    </nz-select>
+                </nz-form-control>
+            </nz-form-item>
 
             <nz-form-item *ngIf="activeTabId == -1" class="mt-1">
                 <nz-form-label class="fs-12">PO</nz-form-label>

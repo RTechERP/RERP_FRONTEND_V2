@@ -137,7 +137,7 @@ export class BorrowProductHistoryEditPersonComponent implements OnInit {
       next: (data) => {
         if (data.status == 1) {
           this.oldEmployees = data.data.map((item: any) => ({
-            title: item.FullName,
+            title: item.Code + ' - ' + item.FullName,
             value: item.ID
           }));
 

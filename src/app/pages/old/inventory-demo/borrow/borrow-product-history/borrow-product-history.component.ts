@@ -351,6 +351,27 @@ export class BorrowProductHistoryComponent implements OnInit {
                                         );
                                         return; // Stop processing on validation error, matching C# behavior
                                     }
+                                }else {
+                                    // Non-admin 
+                                    // Check condition: modulaLocationDetailID > 0 && StatusPerson <= 0
+                                    if(model.PeopleID > 0 && model.PeopleID!==employeeID){
+                                        this.notification.error(
+                                            'Thông báo',
+                                            'Bạn không có quyền trả sản phẩm này!'
+                                        );
+                                        return; 
+                                    }
+                                    if (
+                                        modulaLocationDetailID > 0 &&
+                                        statusPerson <= 0
+                                    ) {
+                                        this.notification.error(
+                                            'Thông báo',
+                                            'Bạn chưa hoàn thành thao tác trả hàng.\nBạn không thể trả!'
+                                        );
+                                        return; 
+                                    }
+
                                 }
 
                                 // Nếu pass validation thì thêm vào danh sách để gọi API

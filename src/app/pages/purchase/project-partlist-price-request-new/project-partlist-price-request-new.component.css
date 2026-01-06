@@ -76,5 +76,44 @@
 }
 
  ::ng-deep div[id^="grid-"] {
-  height: 79vh!important;
+  height: 75vh!important;
+}
+
+/* Căn phải các cột số */
+::ng-deep .slick-cell.text-right {
+  text-align: right !important;
+  padding-right: 8px !important;
+}
+
+::ng-deep .slick-header-column.text-right .slick-column-name {
+  text-align: right !important;
+  justify-content: flex-end !important;
+  padding-right: 8px !important;
+}
+
+::ng-deep .slick-group-totals .slick-cell.text-right {
+  text-align: right !important;
+  padding-right: 8px !important;
+}
+
+/* Bôi màu đỏ cho dòng đã xóa (IsDeleted = true hoặc IsDeleted = 1) */
+::ng-deep .slick-row.row-deleted {
+  background-color: #FEE3E2 !important;
+  color: #DA342E !important;
+}
+
+::ng-deep .slick-row.row-deleted .slick-cell {
+  background-color: #FEE3E2 !important;
+  color: #DA342E !important;
+}
+
+/* Bôi màu xanh lục cho dòng đã báo giá ở tab HCNS/MARKETING */
+::ng-deep .slick-row.row-quoted {
+  background-color: #D4EDDA !important;
+  color: #155724 !important;
+}
+
+::ng-deep .slick-row.row-quoted .slick-cell {
+  background-color: #D4EDDA !important;
+  color: #34ff63 !important;
 }

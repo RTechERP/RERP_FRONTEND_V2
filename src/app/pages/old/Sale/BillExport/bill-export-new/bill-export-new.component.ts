@@ -37,6 +37,8 @@ import { BillExportDetailComponent } from '../Modal/bill-export-detail/bill-expo
 import { ActivatedRoute } from '@angular/router';
 import { AppUserService } from '../../../../../services/app-user.service';
 import { HasPermissionDirective } from '../../../../../directives/has-permission.directive';
+import { MenubarModule } from 'primeng/menubar';
+import { MenuItem } from 'primeng/api';
 @Component({
   selector: 'app-bill-export-new',
   templateUrl: './bill-export-new.component.html',
@@ -58,7 +60,8 @@ import { HasPermissionDirective } from '../../../../../directives/has-permission
     NzTabsModule,
     NzSpinModule,
     NzModalModule,
-    HasPermissionDirective
+    HasPermissionDirective,
+    MenubarModule
   ],
 })
 export class BillExportNewComponent implements OnInit {
@@ -85,6 +88,7 @@ export class BillExportNewComponent implements OnInit {
   isDetailLoad: boolean = false;
   isCheckmode: boolean = false;
   newBillExport: boolean = false;
+  isModalOpening: boolean = false; // Flag để ngăn mở modal 2 lần
   sizeTbDetail: number | string  = '0';
   warehouseCode: string = '';
   checked: boolean = false;
@@ -110,6 +114,10 @@ export class BillExportNewComponent implements OnInit {
     pageSize: 99999999,
   };
 
+  // PrimeNG MenuBar
+  menuItems: MenuItem[] = [];
+  maxVisibleItems = 9;
+
   constructor(
     private billExportService: BillExportService,
     private notification: NzNotificationService,
@@ -126,6 +134,7 @@ export class BillExportNewComponent implements OnInit {
       this.searchParams.warehousecode = this.warehouseCode;
     });
 
+    this.initializeMenu();
     this.initMasterGrid();
     this.initDetailGrid();
     this.getProductGroup();
@@ -154,8 +163,11 @@ export class BillExportNewComponent implements OnInit {
         field: 'DateStatus',
         sortable: true,
         filterable: true,
-        type: FieldType.dateIso,
-        formatter: Formatters.dateIso,
+        formatter: Formatters.date,
+        exportCustomFormatter: Formatters.date,
+        type: 'date',
+        params: { dateFormat: 'DD/MM/YYYY' },
+        filter: { model: Filters['compoundDate'] },
         minWidth: 120,
       },
       {
@@ -176,8 +188,11 @@ export class BillExportNewComponent implements OnInit {
         field: 'RequestDate',
         sortable: true,
         filterable: true,
-        type: FieldType.dateIso,
-        formatter: Formatters.dateIso,
+        formatter: Formatters.date,
+        exportCustomFormatter: Formatters.date,
+        type: 'date',
+        params: { dateFormat: 'DD/MM/YYYY' },
+        filter: { model: Filters['compoundDate'] },
         minWidth: 150,
       },
       {
@@ -267,8 +282,11 @@ export class BillExportNewComponent implements OnInit {
         field: 'CreatDate',
         sortable: true,
         filterable: true,
-        type: FieldType.dateIso,
-        formatter: Formatters.dateIso,
+        formatter: Formatters.date,
+        exportCustomFormatter: Formatters.date,
+        type: 'date',
+        params: { dateFormat: 'DD/MM/YYYY' },
+        filter: { model: Filters['compoundDate'] },
         minWidth: 150,
       },
       {
@@ -548,13 +566,7 @@ export class BillExportNewComponent implements OnInit {
           this.onMasterRowSelectionChanged(e, args);
         }
       );
-
-      // Subscribe to double click event
-      angularGrid.slickGrid.onDblClick.subscribe(
-        (e: any, args: any) => {
-          this.onMasterDoubleClick(e, args);
-        }
-      );
+      // Double click đã được xử lý qua (onDblClick) trong HTML template
     }
   }
 
@@ -596,19 +608,21 @@ export class BillExportNewComponent implements OnInit {
     // Handle cell click if needed
   }
 
-  onMasterDoubleClick(e: Event, args: any) {
-    // Open edit modal on double click
-    if (args && args.grid) {
-      const cell = args.grid.getCellFromEvent(e);
-      if (cell) {
-        const item = args.grid.getDataItem(cell.row);
-        if (item) {
-          this.id = item.ID || 0;
-          this.selectedRow = item;
-          this.data = [item];
-          this.openModalBillExportDetail(true);
-        }
-      }
+  onMasterDoubleClick(event: any) {
+    // Ngăn mở modal 2 lần khi double click
+    if (this.isModalOpening) {
+      return;
+    }
+
+    // Lấy data từ event của Angular SlickGrid
+    const args = event?.detail?.args;
+    if (args && args.dataContext) {
+      const item = args.dataContext;
+      this.isModalOpening = true;
+      this.id = item.ID || 0;
+      this.selectedRow = item;
+      this.data = [item];
+      this.openModalBillExportDetail(true);
     }
   }
 
@@ -917,24 +931,27 @@ export class BillExportNewComponent implements OnInit {
   // ========================================
 
   openModalBillExportDetail(isCheckmode: boolean) {
+ 
     this.isCheckmode = isCheckmode;
     if (this.isCheckmode === true && this.id === 0) {
       this.notification.info('Thông báo', 'Vui lòng chọn 1 phiếu xuất để sửa');
       return;
     }
 
-    // TODO: Open BillExportDetail modal
     const modalRef = this.modalService.open(BillExportDetailComponent, {
       centered: true,
-      size: 'xl',
       backdrop: 'static',
       keyboard: false,
+      fullscreen: true,
     });
     modalRef.componentInstance.newBillExport = this.newBillExport;
     modalRef.componentInstance.isCheckmode = this.isCheckmode;
     modalRef.componentInstance.id = this.id;
     modalRef.componentInstance.wareHouseCode = this.warehouseCode;
-    modalRef.result.catch((result) => {
+    modalRef.result.then(() => {
+      this.isModalOpening = false;
+    }).catch((result) => {
+      this.isModalOpening = false;
       if (result === true) {
         this.id = 0;
         this.loadDataBillExport();
@@ -1750,5 +1767,134 @@ export class BillExportNewComponent implements OnInit {
     });
 
     this.angularGridDetail.slickGrid.setColumns(this.angularGridDetail.slickGrid.getColumns());
+  }
+
+  // Initialize PrimeNG MenuBar
+  initializeMenu(): void {
+    const allItems: MenuItem[] = [];
+
+    // Thêm
+    allItems.push({
+      label: 'Thêm',
+      icon: 'fa-solid fa-plus fa-lg text-success',
+      command: () => this.openModalBillExportDetail(false),
+      visible: true
+    });
+
+    // Sửa
+    allItems.push({
+      label: 'Sửa',
+      icon: 'fa-solid fa-pen-to-square fa-lg text-primary',
+      command: () => this.openModalBillExportDetail(true),
+      visible: true
+    });
+
+    // Xóa
+    allItems.push({
+      label: 'Xóa',
+      icon: 'fa-solid fa-trash fa-lg text-danger',
+      command: () => this.deleteBillExport(),
+      visible: true
+    });
+
+    // Nhận chứng từ
+    allItems.push({
+      label: 'Nhận chứng từ',
+      icon: 'fa-solid fa-file-contract fa-lg text-primary',
+      command: () => this.IsApproved(true)
+    });
+
+    // Hủy chứng từ
+    allItems.push({
+      label: 'Hủy chứng từ',
+      icon: 'fa-solid fa-ban fa-lg text-danger',
+      command: () => this.IsApproved(false)
+    });
+
+    // Đã xuất kho
+    allItems.push({
+      label: 'Đã xuất kho',
+      icon: 'fa-solid fa-warehouse fa-lg text-primary',
+      command: () => this.shippedOut()
+    });
+
+    // Xuất phiếu
+    allItems.push({
+      label: 'Xuất phiếu',
+      icon: 'fa-solid fa-file-export fa-lg text-primary',
+      items: [
+        {
+          label: 'Xuất gộp',
+          icon: 'fa-solid fa-layer-group fa-lg text-primary',
+          command: () => this.onExportGroupItem(1)
+        },
+        {
+          label: 'Xuất tất cả các mã',
+          icon: 'fa-solid fa-list fa-lg text-primary',
+          command: () => this.onExportGroupItem(2)
+        }
+      ]
+    });
+
+    // Excel KT
+    allItems.push({
+      label: 'Excel KT',
+      icon: 'fa-solid fa-file-excel fa-lg text-success',
+      command: () => this.exportExcelKT()
+    });
+
+    // Xuất danh sách
+    allItems.push({
+      label: 'Xuất danh sách',
+      icon: 'fa-solid fa-list-alt fa-lg text-primary',
+      command: () => this.exportExcel()
+    });
+
+    // Cây thư mục
+    allItems.push({
+      label: 'Cây thư mục',
+      icon: 'fa-solid fa-folder-tree fa-lg text-warning',
+      command: () => this.openFolderPath()
+    });
+
+    // Hồ sơ chứng từ
+    allItems.push({
+      label: 'Hồ sơ chứng từ',
+      icon: 'fa-solid fa-folder-open fa-lg text-primary',
+      command: () => this.openModalBillDocumentExport()
+    });
+
+    // Tổng hợp
+    allItems.push({
+      label: 'Tổng hợp',
+      icon: 'fa-solid fa-chart-bar fa-lg text-info',
+      command: () => this.openModalBillExportSynthetic()
+    });
+
+    // Báo cáo NCC
+    allItems.push({
+      label: 'Báo cáo NCC',
+      icon: 'fa-solid fa-file-invoice fa-lg text-primary',
+      command: () => this.openModalBillExportReportNCC()
+    });
+
+    // Filter visible items
+    const visibleItems = allItems.filter(item => item.visible !== false);
+
+    // Create menu with More if needed
+    if (visibleItems.length <= this.maxVisibleItems) {
+      this.menuItems = visibleItems;
+    } else {
+      const directItems = visibleItems.slice(0, this.maxVisibleItems - 1);
+      const moreItems = visibleItems.slice(this.maxVisibleItems - 1);
+      this.menuItems = [
+        ...directItems,
+        {
+          label: 'More',
+          icon: 'fa-solid fa-ellipsis fa-lg text-secondary',
+          items: moreItems
+        }
+      ];
+    }
   }
 }

@@ -142,3 +142,6 @@
   overflow: hidden;
 }
 
+::ng-deep .text-right {
+  text-align: right !important;
+}

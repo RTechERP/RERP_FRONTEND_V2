@@ -212,7 +212,7 @@ export class HomeLayoutNewComponent implements OnInit {
     }
     getMenus() {
 
-        console.log('this.appUserService.currentUser:', this.appUserService.currentUser);
+        // console.log('this.appUserService.currentUser:', this.appUserService.currentUser);
 
 
         this.menuAppService.getAll().subscribe({

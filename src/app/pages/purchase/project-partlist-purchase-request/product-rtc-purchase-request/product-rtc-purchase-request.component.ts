@@ -119,7 +119,8 @@ export class ProductRtcPurchaseRequestComponent implements OnInit, AfterViewInit
     private firmService: FirmService,
     private employeeService: EmployeeService,
     private projectPartListService: ProjectPartListService,
-    private appUserService: AppUserService
+    private appUserService: AppUserService,
+    private modal: NzModalService
   ) {
   }
 
@@ -127,7 +128,7 @@ export class ProductRtcPurchaseRequestComponent implements OnInit, AfterViewInit
   @Input() productRTCID?: number; // Nhận productRTCID để auto select sản phẩm khi mở form
   @Input() warehouseID?: number; // Nhận warehouseID từ component cha
   @Input() warehouseType?: number; // Nhận warehouseType từ component cha
-  
+
   validateForm!: FormGroup;
   customers: any[] = [];
   employees: any[] = [];
@@ -140,7 +141,7 @@ export class ProductRtcPurchaseRequestComponent implements OnInit, AfterViewInit
   isLoadingData: boolean = false; // Flag để tránh trigger valueChanges khi đang load data
   isSaving: boolean = false; // Flag để hiển thị spinner khi đang lưu
   private isEditingMode: boolean = false; // Flag để biết khi nào đang edit và đã load data
-  
+
   // ProductRTC specific data
   productsRTC: any[] = [];
   firms: any[] = [];
@@ -185,7 +186,7 @@ export class ProductRtcPurchaseRequestComponent implements OnInit, AfterViewInit
       IsImport: [false],
 
       // ProductRTC specific fields
-      TicketType: [0], // 0: Phiếu mua, 1: Phiếu mượn
+      TicketType: [1], // 0: Phiếu mua, 1: Phiếu mượn
       DateReturnEstimated: [null],
       EmployeeApproveID: [0],
     });
@@ -249,30 +250,30 @@ export class ProductRtcPurchaseRequestComponent implements OnInit, AfterViewInit
 
   ngOnInit(): void {
     this.initForm();
-    
+
     // Disable các field không được phép chỉnh sửa
     this.disableReadOnlyFields();
-    
+
     // Set EmployeeRequestID = nhân viên đăng nhập hiện tại (chỉ khi form mới, không có projectPartlistDetail)
     if (!this.projectPartlistDetail && this.appUserService.employeeID) {
       this.validateForm.patchValue({
         EmployeeRequestID: this.appUserService.employeeID
       });
     }
-    
+
     // Load common data
     this.getCustomer();
     this.getEmployee();
     this.getCurrency();
     this.getSupplierSale();
-    
+
     // Load ProductRTC specific data
     this.getProductsRTC();
     this.getFirms();
     this.getUnitCounts();
     this.getProductGroupsRTC();
     this.getEmployeeApproves();
-    
+
     // Wait a bit for data to load, then load form data
     setTimeout(() => {
     this.loadData();
@@ -282,13 +283,13 @@ export class ProductRtcPurchaseRequestComponent implements OnInit, AfterViewInit
   ngAfterViewInit(): void { }
 
   // Disable các field không được phép chỉnh sửa
-  // Chỉ cho phép chỉnh sửa: TicketType, ProductRTCID, EmployeeBuyID, EmployeeRequestID, 
+  // Chỉ cho phép chỉnh sửa: TicketType, ProductRTCID, EmployeeBuyID, EmployeeRequestID,
   // DateReturnExpected, DateRequest, UnitPrice, CurrencyID, Quantity, SupplierSaleID, Note
   // CustomerID luôn luôn disable
   private disableReadOnlyFields() {
     // Disable CustomerID luôn luôn
     this.validateForm.get('CustomerID')?.disable();
-    
+
     // Danh sách các field được phép chỉnh sửa
     const allowedFields = [
       'TicketType',
@@ -324,7 +325,7 @@ export class ProductRtcPurchaseRequestComponent implements OnInit, AfterViewInit
         });
       }
     }
-    
+
     if (this.projectPartlistDetail != null) {
       let data = this.projectPartlistDetail;
       const id = data.ID ? Number(data.ID) : 0;
@@ -332,7 +333,7 @@ export class ProductRtcPurchaseRequestComponent implements OnInit, AfterViewInit
       this.isEditingMode = true; // Set flag để biết đang edit mode
 
       this.IsTechBought = data.IsTechBought;
-      
+
       // Set flag để tránh trigger valueChanges khi đang load
       this.isLoadingData = true;
 
@@ -368,7 +369,7 @@ export class ProductRtcPurchaseRequestComponent implements OnInit, AfterViewInit
         LeadTime: data.TotalDayLeadTime ?? '',
 
         IsImport: data.IsImport ?? false,
-        
+
         // ProductRTC specific fields
         ProductRTCID: data.ProductRTCID ?? 0,
         ProductCode: data.ProductCode ?? '',
@@ -378,7 +379,7 @@ export class ProductRtcPurchaseRequestComponent implements OnInit, AfterViewInit
         DateReturnEstimated: data.DateReturnEstimated ?? null,
         EmployeeApproveID: data.EmployeeApproveID ?? 0,
       };
-      
+
       // Map Maker/FirmName to FirmID
       let makerName = '';
       if (data.Maker || data.FirmName) {
@@ -389,7 +390,7 @@ export class ProductRtcPurchaseRequestComponent implements OnInit, AfterViewInit
       } else {
         formValue.FirmID = 0;
       }
-      
+
       // Map UnitName to UnitCountID
       const unitName = data.UnitName || '';
       if (unitName) {
@@ -398,17 +399,17 @@ export class ProductRtcPurchaseRequestComponent implements OnInit, AfterViewInit
       } else {
         formValue.UnitCountID = 0;
       }
-      
+
       this.validateForm.setValue(formValue);
 
       // Reset flag sau khi setValue xong
       setTimeout(() => {
         this.isLoadingData = false;
         // Giữ isEditingMode = true để tránh getProductRTC() tự động gọi từ valueChanges
-        
+
         // Đảm bảo các field read-only vẫn bị disable sau khi load data
         this.disableReadOnlyFields();
-        
+
         // Nếu các dropdown data chưa load xong khi setValue, map lại sau khi data đã load
         if (makerName && formValue.FirmID === 0 && this.firms.length > 0) {
           const firm = this.firms.find(f => f.FirmName === makerName);
@@ -416,7 +417,7 @@ export class ProductRtcPurchaseRequestComponent implements OnInit, AfterViewInit
             this.validateForm.patchValue({ FirmID: firm.ID });
           }
         }
-        
+
         if (unitName && formValue.UnitCountID === 0 && this.unitCounts.length > 0) {
           const unit = this.unitCounts.find(u => u.UnitCountName === unitName || u.UnitName === unitName);
           if (unit) {
@@ -424,7 +425,7 @@ export class ProductRtcPurchaseRequestComponent implements OnInit, AfterViewInit
           }
         }
       }, 100);
-      
+
       // Khi edit, không cần gọi getProductRTC() vì dữ liệu đã có sẵn từ projectPartlistDetail
       // getProductRTC() sẽ được gọi tự động khi user thay đổi ProductRTCID (qua valueChanges listener)
 
@@ -485,10 +486,10 @@ export class ProductRtcPurchaseRequestComponent implements OnInit, AfterViewInit
         TicketType: 0,
         StatusRequest: 'Yêu cầu mua hàng',
       });
-      
+
       // Disable StatusRequest
       this.validateForm.get('StatusRequest')?.disable();
-      
+
       // Nếu có productRTCID, auto select sản phẩm
       if (this.productRTCID && this.productRTCID > 0) {
         this.validateForm.patchValue({
@@ -587,7 +588,7 @@ export class ProductRtcPurchaseRequestComponent implements OnInit, AfterViewInit
       next: (response: any) => {
         // Xử lý response từ API ProductRTC
         let productsArray: any[] = [];
-        
+
         if (response?.data) {
           if (Array.isArray(response.data)) {
             productsArray = response.data;
@@ -597,9 +598,9 @@ export class ProductRtcPurchaseRequestComponent implements OnInit, AfterViewInit
         } else if (Array.isArray(response)) {
           productsArray = response;
         }
-        
+
         this.productsRTC = productsArray;
-        
+
         // Nếu có productRTCID từ input, set selected value và trigger getProductRTC() để fill các field
         if (this.productRTCID && this.productRTCID > 0 && !this.projectPartlistDetail) {
           // Set giá trị selected, getProductRTC() sẽ được trigger khi valueChanges và sẽ fill các field
@@ -671,7 +672,7 @@ export class ProductRtcPurchaseRequestComponent implements OnInit, AfterViewInit
       const unit = this.unitCounts.find(u => u.ID === formData.UnitCountID);
       if (!unit) {
         // Nếu không tìm thấy UnitCountID, thử tìm theo UnitCountName
-        const unitByName = this.unitCounts.find(u => 
+        const unitByName = this.unitCounts.find(u =>
           (u.UnitCountName || u.UnitName) === productData.UnitCountName
         );
         if (unitByName) {
@@ -692,7 +693,7 @@ export class ProductRtcPurchaseRequestComponent implements OnInit, AfterViewInit
 
     // Fill form data - chỉ fill các field còn thiếu, không overwrite các field đã có giá trị
     const currentFormValues = this.validateForm.getRawValue();
-    
+
     // Chỉ fill các field nếu chúng chưa có giá trị hoặc đang rỗng
     const formDataToPatch: any = {};
     if (!currentFormValues.ProductName || currentFormValues.ProductName === '') {
@@ -716,15 +717,15 @@ export class ProductRtcPurchaseRequestComponent implements OnInit, AfterViewInit
     if (!currentFormValues.Maker || currentFormValues.Maker === '') {
       formDataToPatch.Maker = formData.Maker;
     }
-    
+
     // Luôn update ProductRTCID để đảm bảo sync
     formDataToPatch.ProductRTCID = formData.ProductRTCID;
-    
+
     this.validateForm.patchValue(formDataToPatch);
-    
+
     // Disable các field sau khi fill
     this.disableProductRTCFields(formData.ProductRTCID);
-    
+
     // Reset flag sau khi fill xong
     setTimeout(() => {
       this.isLoadingData = false;
@@ -814,7 +815,7 @@ export class ProductRtcPurchaseRequestComponent implements OnInit, AfterViewInit
     if (this.isLoadingData) {
       return; // Tránh tính toán khi đang load data
     }
-    
+
     const data = this.validateForm.getRawValue(); // Dùng getRawValue() để lấy cả disabled fields
 
     const unitPrice = parseFloat(data.UnitPrice) || 0;
@@ -824,42 +825,42 @@ export class ProductRtcPurchaseRequestComponent implements OnInit, AfterViewInit
 
     // Thành tiền chưa VAT = Đơn giá * Số lượng
     const totalPrice = unitPrice * quantity;
-    
+
     // Thành tiền quy đổi (VNĐ) = Thành tiền chưa VAT * Tỷ giá
     const totalPriceExchange = totalPrice * currencyRate;
-    
+
     // Thành tiền có VAT = Thành tiền chưa VAT + (Thành tiền chưa VAT * VAT%)
     const totalMoneyVAT = totalPrice + (totalPrice * vat) / 100;
 
     // Set flag để tránh trigger valueChanges khi đang update
     this.isLoadingData = true;
-    
+
     // Enable tạm thời các field để có thể update giá trị
     const totalPriceControl = this.validateForm.get('TotalPrice');
     const totalPriceExchangeControl = this.validateForm.get('TotalPriceExchange');
     const totalMoneyVATControl = this.validateForm.get('TotalMoneyVAT');
-    
+
     const wasTotalPriceDisabled = totalPriceControl?.disabled;
     const wasTotalPriceExchangeDisabled = totalPriceExchangeControl?.disabled;
     const wasTotalMoneyVATDisabled = totalMoneyVATControl?.disabled;
-    
+
     // Enable tạm thời để update giá trị
     if (wasTotalPriceDisabled) totalPriceControl?.enable({ emitEvent: false });
     if (wasTotalPriceExchangeDisabled) totalPriceExchangeControl?.enable({ emitEvent: false });
     if (wasTotalMoneyVATDisabled) totalMoneyVATControl?.enable({ emitEvent: false });
-    
+
     // Update giá trị
     this.validateForm.patchValue({
       TotalPrice: totalPrice,
       TotalPriceExchange: totalPriceExchange,
       TotalMoneyVAT: totalMoneyVAT,
     }, { emitEvent: false });
-    
+
     // Disable lại nếu trước đó đã bị disable
     if (wasTotalPriceDisabled) totalPriceControl?.disable({ emitEvent: false });
     if (wasTotalPriceExchangeDisabled) totalPriceExchangeControl?.disable({ emitEvent: false });
     if (wasTotalMoneyVATDisabled) totalMoneyVATControl?.disable({ emitEvent: false });
-    
+
     // Reset flag sau khi update
     setTimeout(() => {
       this.isLoadingData = false;
@@ -930,7 +931,7 @@ export class ProductRtcPurchaseRequestComponent implements OnInit, AfterViewInit
 
     // Tìm product trong productsRTC array
     const selectedProduct = this.productsRTC.find(p => p.ID === productRTCId);
-    
+
     if (selectedProduct) {
       // Fill dữ liệu từ product đã có trong array
       this.fillProductRTCData(selectedProduct);
@@ -980,11 +981,11 @@ export class ProductRtcPurchaseRequestComponent implements OnInit, AfterViewInit
       this.validateForm.get('ProductGroupRTCID')?.enable();
       // Không enable SupplierSaleID ở đây - để TicketType quản lý
     }
-    
+
     if (productRTCId > 0) {
       // Kiểm tra xem product đã có trong productsRTC array chưa (từ getProductsRTC)
       const existingProduct = this.productsRTC.find(p => p.ID === productRTCId);
-      
+
       if (existingProduct) {
         // Nếu đã có dữ liệu từ getProductsRTC, dùng dữ liệu đó thay vì gọi API
         this.fillProductRTCData(existingProduct);
@@ -995,7 +996,7 @@ export class ProductRtcPurchaseRequestComponent implements OnInit, AfterViewInit
       .subscribe({
         next: (response: any) => {
               const productData = response.data || response;
-              
+
               if (productData) {
                 this.fillProductRTCData(productData);
           }
@@ -1099,22 +1100,25 @@ export class ProductRtcPurchaseRequestComponent implements OnInit, AfterViewInit
       this.notification.error(NOTIFICATION_TITLE.error, 'Vui lòng nhập mã sản phẩm!');
       return;
     }
-    
+    if (!data.Quantity || data.Quantity <= 0) {
+      this.notification.error(NOTIFICATION_TITLE.error, 'Vui lòng nhập số lượng sản phẩm!');
+      return;
+    }
     if (data.FirmID <= 0) {
       this.notification.error(NOTIFICATION_TITLE.error, 'Vui lòng chọn hãng!');
       return;
     }
-    
+
     if (data.UnitCountID <= 0) {
       this.notification.error(NOTIFICATION_TITLE.error, 'Vui lòng chọn đơn vị tính!');
       return;
     }
-    
+
     if (data.ProductGroupRTCID <= 0) {
       this.notification.error(NOTIFICATION_TITLE.error, 'Vui lòng chọn loại kho!');
       return;
     }
-    
+
     // Validate Phiếu mượn
     if (data.TicketType === 1) {
       if (data.EmployeeApproveID <= 0) {
@@ -1141,7 +1145,7 @@ export class ProductRtcPurchaseRequestComponent implements OnInit, AfterViewInit
     }
 
     if (!this.IsTechBought) {
-      const deadline = new Date(data.DateReturnExpected);
+      const deadline = new Date(data.DeadLine);
       const dateNow = new Date();
 
       // Reset time to start of day for accurate day calculation
@@ -1200,15 +1204,25 @@ export class ProductRtcPurchaseRequestComponent implements OnInit, AfterViewInit
       }
 
       // Cảnh báo nếu có ngày cuối tuần trong khoảng thời gian
-      if (countWeekday > 0) {
-        const formattedDeadline = deadline.toLocaleDateString('vi-VN');
-        const confirmed = confirm(
-          `Deadline sẽ không tính Thứ 7 và Chủ nhật.\nBạn có chắc muốn chọn Deadline là ngày [${formattedDeadline}] không?`
-        );
-        if (!confirmed) {
-          return;
-        }
-      }
+if (countWeekday > 0) {
+  const formattedDeadline = deadline.toLocaleDateString('vi-VN');
+
+  this.modal.confirm({
+    nzTitle: 'Xác nhận Deadline',
+    nzContent: `Deadline sẽ không tính <b>Thứ 7</b> và <b>Chủ nhật</b>.<br/>
+                Bạn có chắc muốn chọn Deadline là ngày <b>[${formattedDeadline}]</b> không?`,
+    nzOkText: 'Xác nhận',
+    nzCancelText: 'Hủy',
+    nzOnOk: () => {
+
+    },
+    nzOnCancel: () => {
+      return;
+    }
+  });
+  return;
+
+}
     }
     // Kiểm tra Deadline - end
 
@@ -1216,7 +1230,7 @@ export class ProductRtcPurchaseRequestComponent implements OnInit, AfterViewInit
     if (this.IsTechBought && (!data.Note || data.Note.trim() === '')) {
       this.notification.error(
         NOTIFICATION_TITLE.error,
-        'Vui lòng chọn ghi chú!'
+        'Vui lòng nhập ghi chú!'
       );
       return;
     }
@@ -1249,7 +1263,7 @@ export class ProductRtcPurchaseRequestComponent implements OnInit, AfterViewInit
     const selectedFirm = this.firms.find(f => f.ID === data.FirmID);
     const selectedUnit = this.unitCounts.find(u => u.ID === data.UnitCountID);
     const selectedCurrency = this.currencys.find(c => c.ID === data.CurrencyID);
-    
+
     const model: any = {
       ID: this.projectPartlistDetail?.ID ?? 0,
       StatusRequest: 1, // Set StatusRequest = 1 khi lưu
@@ -1258,68 +1272,68 @@ export class ProductRtcPurchaseRequestComponent implements OnInit, AfterViewInit
       ProductName: data.ProductName || '',
       ProductCode: data.ProductCode || selectedProduct?.ProductCode || '',
       ProductGroupRTCID: data.ProductGroupRTCID || 0,
-      
+
       // Maker (Hãng) - chưa lưu, chỉ gửi text
       Maker: selectedFirm?.FirmName || data.Maker || '',
-      
+
       // UnitName (Đơn vị) - chưa lưu, chỉ gửi text
       UnitName: selectedUnit?.UnitCountName || selectedUnit?.UnitName || '',
-      
+
       // Employee fields
       EmployeeID: data.EmployeeRequestID || 0,
       EmployeeIDRequestApproved: data.EmployeeBuyID || 0,
-      
+
       // Date fields
       DateRequest: data.DateRequest || null,
       DateReturnExpected: data.DateReturnExpected || null,
-      
+
       // Quantity
       Quantity: data.Quantity || 0,
-      
+
       // Currency fields
       CurrencyID: data.CurrencyID || 0,
       UnitMoney: selectedCurrency?.Code || '', // UnitMoney từ Currency Code
       CurrencyRate: data.CurrencyRate || 0,
-      
+
       // Price fields
       UnitPrice: data.UnitPrice || 0,
       TotalPrice: data.TotalPrice || 0,
       HistoryPrice: data.HistoryPrice || 0,
       TotalPriceExchange: data.TotalPriceExchange || 0,
-      
+
       // VAT
       VAT: data.VAT || 0,
       TotaMoneyVAT: data.TotalMoneyVAT || 0,
-      
+
       // Supplier
       SupplierSaleID: data.SupplierSaleID || 0,
-      
+
       // Import fields
       UnitFactoryExportPrice: data.UnitFactoryExportPrice || 0,
       TotalImportPrice: data.TotalImportPrice || 0,
-      
+
       // Lead time
       TotalDayLeadTime: data.LeadTime || 0,
-      
+
       // Other fields
       IsImport: data.IsImport || false,
       Note: data.Note || '',
-      
+
       // ProductRTC specific fields
       TicketType: data.TicketType || 0,
       DateReturnEstimated: data.DateReturnEstimated || null,
       EmployeeApproveID: data.EmployeeApproveID || 0,
       ApprovedTBP: data.EmployeeApproveID || 0, // Cùng giá trị với EmployeeApproveID
-      
+
       // IsTechBought - chỉ truyền, backend sẽ xử lý logic
       IsTechBought: this.IsTechBought || false,
       ProjectPartListID: this.projectPartlistDetail?.ProjectPartListID ?? 0,
-      
+
       // Clear ProductSale fields
       ProductSaleID: null,
       ProductGroupID: null,
     };
-    
+
     return model;
   }
 

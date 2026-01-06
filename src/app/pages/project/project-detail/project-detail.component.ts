@@ -559,8 +559,8 @@ export class ProjectDetailComponent implements OnInit, AfterViewInit {
       this.formGroup.patchValue({ projectCode: '' });
       return;
     }
-
-    if (this.customers.length > 0) {
+    if(this.projectId ==0){
+        if (this.customers.length > 0) {
       this.projectService
         .getProjectCodeModal(
           this.projectId,
@@ -584,7 +584,32 @@ export class ProjectDetailComponent implements OnInit, AfterViewInit {
           },
         });
     }
+    }else{
+      let currentCode = this.formGroup.get('projectCode')?.value || '';
+      if (!currentCode) return;
+
+      // Xử lý prefix dựa trên projectTypeId
+      let newCode = this.updateProjectCodePrefix(currentCode, projectTypeId);
+      
+      this.projectCode = newCode;
+      this.formGroup.patchValue({ projectCode: newCode });
+    }
   }
+  // Hàm xử lý thêm/bỏ prefix
+private updateProjectCodePrefix(currentCode: string, projectTypeId: number): string {
+    // Loại bỏ các prefix hiện có (TM. hoặc F.)
+    let coreCode = currentCode.replace(/^(TM\.|F\.)/, '');
+    
+    // Thêm prefix mới dựa trên projectTypeId
+    switch (projectTypeId) {
+      case 2: // Loại TM
+        return `TM.${coreCode}`;
+      case 3: // Loại F
+        return `F.${coreCode}`;
+      default: // Loại thường (1 hoặc các giá trị khác)
+        return coreCode;
+    }
+}
 
   getDayChange() {
     const projectStatusId = this.formGroup.get('projectStatusId')?.value;

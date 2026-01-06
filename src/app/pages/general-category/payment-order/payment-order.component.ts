@@ -780,71 +780,15 @@ export class PaymentOrderComponent implements OnInit {
                 width: 250,
                 // formatter: Formatters.icon,
                 filter: {
-                    collection: [],
-                    model: Filters['multipleSelect'],
-                    filterOptions: {
-                        autoAdjustDropHeight: true,
-                        filter: true,
-                    } as MultipleSelectOption,
+                    // collection: [],
+                    model: Filters['compoundInputText'],
+                    // filterOptions: {
+                    //     autoAdjustDropHeight: true,
+                    //     filter: true,
+                    // } as MultipleSelectOption,
                 },
             },
-            {
-                id: PaymentOrderField.IsBill.field,
-                name: 'Có hóa đơn',
-                field: PaymentOrderField.IsBill.field,
-                type: PaymentOrderField.IsBill.type,
-                sortable: true, filterable: true,
-                width: 80,
-                formatter: Formatters.iconBoolean, params: { cssClass: "mdi mdi-check" },
-                exportCustomFormatter: this.excelBooleanFormatter,
-                filter: {
-                    collection: [
-                        { value: '', label: '' },
-                        { value: true, label: 'Có hóa đơn' },
-                        // { value: false, label: 'Không có' },
-                    ],
-                    model: Filters['singleSelect'],
-                    filterOptions: {
-                        autoAdjustDropHeight: true,
-                        filter: true,
-                    } as MultipleSelectOption,
-                },
-                cssClass: 'text-center'
-            },
-            {
-                id: PaymentOrderField.StartLocation.field,
-                name: 'Điểm đi',
-                field: PaymentOrderField.StartLocation.field,
-                type: PaymentOrderField.StartLocation.type,
-                sortable: true, filterable: true,
-                width: 200,
-                // formatter: Formatters.icon,
-                filter: {
-                    collection: [],
-                    model: Filters['multipleSelect'],
-                    filterOptions: {
-                        autoAdjustDropHeight: true,
-                        filter: true,
-                    } as MultipleSelectOption,
-                },
-            },
-            {
-                id: PaymentOrderField.EndLocation.field,
-                name: 'Điểm đến',
-                field: PaymentOrderField.EndLocation.field,
-                type: PaymentOrderField.EndLocation.type,
-                sortable: true, filterable: true,
-                width: 200,
-                // formatter: Formatters.icon,
-                filter: {
-                    collection: [],
-                    model: Filters['multipleSelect'],
-                    filterOptions: {
-                        autoAdjustDropHeight: true,
-                        filter: true,
-                    } as MultipleSelectOption,
-                },
-            },
+
             {
                 id: PaymentOrderField.TotalMoney.field,
                 name: 'Số tiền',
@@ -905,6 +849,23 @@ export class PaymentOrderComponent implements OnInit {
                 cssClass: 'text-end'
             },
             {
+                id: PaymentOrderField.StepName.field,
+                name: 'Tình trạng phiếu',
+                field: PaymentOrderField.StepName.field,
+                type: PaymentOrderField.StepName.type,
+                sortable: true, filterable: true,
+                width: 200,
+                // formatter: Formatters.icon,
+                filter: {
+                    collection: [],
+                    model: Filters['multipleSelect'],
+                    filterOptions: {
+                        autoAdjustDropHeight: true,
+                        filter: true,
+                    } as MultipleSelectOption,
+                },
+            },
+            {
                 id: PaymentOrderField.Unit.field,
                 name: 'ĐVT',
                 field: PaymentOrderField.Unit.field,
@@ -921,6 +882,30 @@ export class PaymentOrderComponent implements OnInit {
                     } as MultipleSelectOption,
                 },
                 cssClass: 'text-uppercase'
+            },
+            {
+                id: PaymentOrderField.IsIgnoreHR.field,
+                name: 'Bỏ qua HR',
+                field: PaymentOrderField.IsIgnoreHR.field,
+                type: PaymentOrderField.IsIgnoreHR.type,
+                sortable: true, filterable: true,
+                width: 150,
+                formatter: Formatters.iconBoolean, params: { cssClass: "mdi mdi-check" },
+                // filter: { model: Filters['compoundInputText'] },
+                exportCustomFormatter: this.excelBooleanFormatter,
+                filter: {
+                    collection: [
+                        { value: '', label: '' },
+                        { value: true, label: 'Bỏ qua HR' },
+                        // { value: false, label: 'Không có' },
+                    ],
+                    model: Filters['singleSelect'],
+                    filterOptions: {
+                        autoAdjustDropHeight: true,
+                        filter: true,
+                    } as MultipleSelectOption,
+                },
+                cssClass: 'text-center'
             },
             {
                 id: PaymentOrderField.TypeBankTransferText.field,
@@ -956,7 +941,57 @@ export class PaymentOrderComponent implements OnInit {
                     } as MultipleSelectOption,
                 },
             },
-
+            {
+                id: PaymentOrderField.SuplierName.field,
+                name: 'Nhà cung cấp',
+                field: PaymentOrderField.SuplierName.field,
+                type: PaymentOrderField.SuplierName.type,
+                sortable: true, filterable: true,
+                width: 200,
+                // formatter: Formatters.icon,
+                filter: {
+                    collection: [],
+                    model: Filters['multipleSelect'],
+                    filterOptions: {
+                        autoAdjustDropHeight: true,
+                        filter: true,
+                    } as MultipleSelectOption,
+                },
+            },
+            {
+                id: PaymentOrderField.StatusContractText.field,
+                name: 'Trạng thái hợp đồng',
+                field: PaymentOrderField.StatusContractText.field,
+                type: PaymentOrderField.StatusContractText.type,
+                sortable: true, filterable: true,
+                width: 200,
+                // formatter: Formatters.icon,
+                filter: {
+                    collection: [],
+                    model: Filters['multipleSelect'],
+                    filterOptions: {
+                        autoAdjustDropHeight: true,
+                        filter: true,
+                    } as MultipleSelectOption,
+                },
+            },
+            {
+                id: PaymentOrderField.DocumentName.field,
+                name: 'Số hợp đồng',
+                field: PaymentOrderField.DocumentName.field,
+                type: PaymentOrderField.DocumentName.type,
+                sortable: true, filterable: true,
+                width: 200,
+                // formatter: Formatters.icon,
+                filter: {
+                    collection: [],
+                    model: Filters['multipleSelect'],
+                    filterOptions: {
+                        autoAdjustDropHeight: true,
+                        filter: true,
+                    } as MultipleSelectOption,
+                },
+            },
             {
                 id: PaymentOrderField.ProjectFullName.field,
                 name: 'Dự án',
@@ -975,11 +1010,36 @@ export class PaymentOrderComponent implements OnInit {
                 },
             },
 
+
+
             {
-                id: PaymentOrderField.StepName.field,
-                name: 'Tình trạng phiếu',
-                field: PaymentOrderField.StepName.field,
-                type: PaymentOrderField.StepName.type,
+                id: PaymentOrderField.IsBill.field,
+                name: 'Có hóa đơn',
+                field: PaymentOrderField.IsBill.field,
+                type: PaymentOrderField.IsBill.type,
+                sortable: true, filterable: true,
+                width: 80,
+                formatter: Formatters.iconBoolean, params: { cssClass: "mdi mdi-check" },
+                exportCustomFormatter: this.excelBooleanFormatter,
+                filter: {
+                    collection: [
+                        { value: '', label: '' },
+                        { value: true, label: 'Có hóa đơn' },
+                        // { value: false, label: 'Không có' },
+                    ],
+                    model: Filters['singleSelect'],
+                    filterOptions: {
+                        autoAdjustDropHeight: true,
+                        filter: true,
+                    } as MultipleSelectOption,
+                },
+                cssClass: 'text-center'
+            },
+            {
+                id: PaymentOrderField.StartLocation.field,
+                name: 'Điểm đi',
+                field: PaymentOrderField.StartLocation.field,
+                type: PaymentOrderField.StartLocation.type,
                 sortable: true, filterable: true,
                 width: 200,
                 // formatter: Formatters.icon,
@@ -992,6 +1052,30 @@ export class PaymentOrderComponent implements OnInit {
                     } as MultipleSelectOption,
                 },
             },
+            {
+                id: PaymentOrderField.EndLocation.field,
+                name: 'Điểm đến',
+                field: PaymentOrderField.EndLocation.field,
+                type: PaymentOrderField.EndLocation.type,
+                sortable: true, filterable: true,
+                width: 200,
+                // formatter: Formatters.icon,
+                filter: {
+                    collection: [],
+                    model: Filters['multipleSelect'],
+                    filterOptions: {
+                        autoAdjustDropHeight: true,
+                        filter: true,
+                    } as MultipleSelectOption,
+                },
+            },
+
+
+
+
+
+
+
 
             {
                 id: PaymentOrderField.StatusBankSlip.field,
@@ -1082,23 +1166,7 @@ export class PaymentOrderComponent implements OnInit {
                 },
             },
 
-            {
-                id: PaymentOrderField.SuplierName.field,
-                name: 'Nhà cung cấp',
-                field: PaymentOrderField.SuplierName.field,
-                type: PaymentOrderField.SuplierName.type,
-                sortable: true, filterable: true,
-                width: 200,
-                // formatter: Formatters.icon,
-                filter: {
-                    collection: [],
-                    model: Filters['multipleSelect'],
-                    filterOptions: {
-                        autoAdjustDropHeight: true,
-                        filter: true,
-                    } as MultipleSelectOption,
-                },
-            },
+
 
             {
                 id: PaymentOrderField.POCode.field,
@@ -1118,66 +1186,10 @@ export class PaymentOrderComponent implements OnInit {
                 },
             },
 
-            {
-                id: PaymentOrderField.DocumentName.field,
-                name: 'Số hợp đồng',
-                field: PaymentOrderField.DocumentName.field,
-                type: PaymentOrderField.DocumentName.type,
-                sortable: true, filterable: true,
-                width: 200,
-                // formatter: Formatters.icon,
-                filter: {
-                    collection: [],
-                    model: Filters['multipleSelect'],
-                    filterOptions: {
-                        autoAdjustDropHeight: true,
-                        filter: true,
-                    } as MultipleSelectOption,
-                },
-            },
 
-            {
-                id: PaymentOrderField.StatusContractText.field,
-                name: 'Trạng thái hợp đồng',
-                field: PaymentOrderField.StatusContractText.field,
-                type: PaymentOrderField.StatusContractText.type,
-                sortable: true, filterable: true,
-                width: 200,
-                // formatter: Formatters.icon,
-                filter: {
-                    collection: [],
-                    model: Filters['multipleSelect'],
-                    filterOptions: {
-                        autoAdjustDropHeight: true,
-                        filter: true,
-                    } as MultipleSelectOption,
-                },
-            },
 
-            {
-                id: PaymentOrderField.IsIgnoreHR.field,
-                name: 'Bỏ qua HR',
-                field: PaymentOrderField.IsIgnoreHR.field,
-                type: PaymentOrderField.IsIgnoreHR.type,
-                sortable: true, filterable: true,
-                width: 150,
-                formatter: Formatters.iconBoolean, params: { cssClass: "mdi mdi-check" },
-                // filter: { model: Filters['compoundInputText'] },
-                exportCustomFormatter: this.excelBooleanFormatter,
-                filter: {
-                    collection: [
-                        { value: '', label: '' },
-                        { value: true, label: 'Bỏ qua HR' },
-                        // { value: false, label: 'Không có' },
-                    ],
-                    model: Filters['singleSelect'],
-                    filterOptions: {
-                        autoAdjustDropHeight: true,
-                        filter: true,
-                    } as MultipleSelectOption,
-                },
-                cssClass: 'text-center'
-            },
+
+
 
             {
                 id: PaymentOrderField.ReasonRequestAppendFileAC.field,

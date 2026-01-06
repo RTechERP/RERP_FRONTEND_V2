@@ -1140,6 +1140,9 @@ export class ProjectPartListPurchaseRequestSlickGridComponent
         hidden: typeId === 3,
         filter: {
           model: Filters['multipleSelect'],
+          collectionOptions: {
+            addBlankEntry: true
+          },
           collection: [],
           filterOptions: {
             filter: true,
@@ -1147,6 +1150,9 @@ export class ProjectPartListPurchaseRequestSlickGridComponent
         },
         editor: {
           model: Editors['singleSelect'],
+          collectionOptions: {
+            addBlankEntry: true
+          },
           collection: this.getWarehouseCollection(),
           editorOptions: {
             filter: true,
@@ -1178,6 +1184,9 @@ export class ProjectPartListPurchaseRequestSlickGridComponent
               { value: false, label: 'Chưa duyệt' },
             ],
             model: Filters['multipleSelect'],
+            collectionOptions: {
+              addBlankEntry: true
+            },
             options: {
               offsetLeft: 14,
               width: 100,
@@ -1303,6 +1312,9 @@ export class ProjectPartListPurchaseRequestSlickGridComponent
         hidden: typeId === 3,
         filter: {
           model: Filters['multipleSelect'],
+          collectionOptions: {
+            addBlankEntry: true
+          },
           collection: [],
           filterOptions: {
             filter: true,
@@ -1334,6 +1346,9 @@ export class ProjectPartListPurchaseRequestSlickGridComponent
         filterable: true,
         filter: {
           model: Filters['multipleSelect'],
+          collectionOptions: {
+            addBlankEntry: true
+          },
           collection: [],
           filterOptions: {
             filter: true,
@@ -1363,6 +1378,9 @@ export class ProjectPartListPurchaseRequestSlickGridComponent
         filterable: true,
         filter: {
           model: Filters['multipleSelect'],
+          collectionOptions: {
+            addBlankEntry: true
+          },
           collection: [],
           filterOptions: {
             filter: true,
@@ -1397,6 +1415,9 @@ export class ProjectPartListPurchaseRequestSlickGridComponent
         filterable: true,
         filter: {
           model: Filters['multipleSelect'],
+          collectionOptions: {
+            addBlankEntry: true
+          },
           collection: [],
           filterOptions: {
             filter: true,
@@ -1428,6 +1449,9 @@ export class ProjectPartListPurchaseRequestSlickGridComponent
         filterable: true,
         filter: {
           model: Filters['multipleSelect'],
+          collectionOptions: {
+            addBlankEntry: true
+          },
           collection: [],
           filterOptions: {
             filter: true,
@@ -1483,6 +1507,9 @@ export class ProjectPartListPurchaseRequestSlickGridComponent
         filterable: true,
         filter: {
           model: Filters['multipleSelect'],
+          collectionOptions: {
+            addBlankEntry: true
+          },
           collection: [],
           filterOptions: {
             filter: true,
@@ -1575,6 +1602,9 @@ export class ProjectPartListPurchaseRequestSlickGridComponent
         filterable: true,
         filter: {
           model: Filters['multipleSelect'],
+          collectionOptions: {
+            addBlankEntry: true
+          },
           collection: [],
           filterOptions: {
             filter: true,
@@ -1606,6 +1636,9 @@ export class ProjectPartListPurchaseRequestSlickGridComponent
         filterable: true,
         filter: {
           model: Filters['multipleSelect'],
+          collectionOptions: {
+            addBlankEntry: true
+          },
           collection: [],
           filterOptions: {
             filter: true,
@@ -1635,7 +1668,16 @@ export class ProjectPartListPurchaseRequestSlickGridComponent
         width: 120,
         sortable: true,
         filterable: true,
-        filter: { model: Filters['compoundInputText'] },
+        filter: {
+          model: Filters['multipleSelect'],
+          collectionOptions: {
+            addBlankEntry: true
+          },
+          collection: [],
+          filterOptions: {
+            filter: true,
+          } as MultipleSelectOption,
+        },
         formatter: (_row, _cell, value, _column, dataContext) => {
           if (!value) return '';
           return `
@@ -1690,6 +1732,9 @@ export class ProjectPartListPurchaseRequestSlickGridComponent
         filterable: true,
         filter: {
           model: Filters['multipleSelect'],
+          collectionOptions: {
+            addBlankEntry: true
+          },
           collection: [],
           filterOptions: {
             filter: true,
@@ -1865,6 +1910,9 @@ export class ProjectPartListPurchaseRequestSlickGridComponent
         filterable: true,
         filter: {
           model: Filters['multipleSelect'],
+          collectionOptions: {
+            addBlankEntry: true
+          },
           collection: [],
           filterOptions: {
             filter: true,
@@ -3018,7 +3066,7 @@ export class ProjectPartListPurchaseRequestSlickGridComponent
       label: c.Code || '',
       currencyRate: c.CurrencyRate || 0,
     }));
-    return [{ value: 0, label: '', currencyRate: 0 }, ...currencies];
+    return [...currencies];
   }
 
   private getSupplierCollection(): Array<{ value: number; label: string }> {
@@ -5735,6 +5783,7 @@ export class ProjectPartListPurchaseRequestSlickGridComponent
               'Manufacturer',
               'StatusRequestText',
               'FullName',
+              'UpdatedName',
               'ProductNewCode',
               'ProductCodeRTC',
             ].includes(field)
@@ -5811,6 +5860,7 @@ export class ProjectPartListPurchaseRequestSlickGridComponent
                 'Manufacturer',
                 'StatusRequestText',
                 'FullName',
+                'UpdatedName',
                 'ProductNewCode',
                 'ProductCodeRTC',
               ].includes(field)

@@ -178,6 +178,9 @@ export class BillExportNewComponent implements OnInit {
         filterable: true,
         filter: {
           model: Filters['multipleSelect'],
+          collectionOptions: {
+            addBlankEntry: true
+          },
           collection: []
         },
         minWidth: 200,
@@ -203,6 +206,9 @@ export class BillExportNewComponent implements OnInit {
         filterable: true,
         filter: {
           model: Filters['multipleSelect'],
+          collectionOptions: {
+            addBlankEntry: true
+          },
           collection: []
         },
         minWidth: 160,
@@ -215,6 +221,9 @@ export class BillExportNewComponent implements OnInit {
         filterable: true,
         filter: {
           model: Filters['multipleSelect'],
+          collectionOptions: {
+            addBlankEntry: true
+          },
           collection: []
         },
         minWidth: 200,
@@ -227,6 +236,9 @@ export class BillExportNewComponent implements OnInit {
         filterable: true,
         filter: {
           model: Filters['multipleSelect'],
+          collectionOptions: {
+            addBlankEntry: true
+          },
           collection: []
         },
         minWidth: 150,
@@ -239,6 +251,9 @@ export class BillExportNewComponent implements OnInit {
         filterable: true,
         filter: {
           model: Filters['multipleSelect'],
+          collectionOptions: {
+            addBlankEntry: true
+          },
           collection: []
         },
         minWidth: 200,
@@ -251,6 +266,9 @@ export class BillExportNewComponent implements OnInit {
         filterable: true,
         filter: {
           model: Filters['multipleSelect'],
+          collectionOptions: {
+            addBlankEntry: true
+          },
           collection: []
         },
         minWidth: 200,
@@ -263,6 +281,9 @@ export class BillExportNewComponent implements OnInit {
         filterable: true,
         filter: {
           model: Filters['multipleSelect'],
+          collectionOptions: {
+            addBlankEntry: true
+          },
           collection: []
         },
         minWidth: 200,
@@ -297,6 +318,9 @@ export class BillExportNewComponent implements OnInit {
         filterable: true,
         filter: {
           model: Filters['multipleSelect'],
+          collectionOptions: {
+            addBlankEntry: true
+          },
           collection: []
         },
         minWidth: 200,
@@ -309,6 +333,9 @@ export class BillExportNewComponent implements OnInit {
         filterable: true,
         filter: {
           model: Filters['multipleSelect'],
+          collectionOptions: {
+            addBlankEntry: true
+          },
           collection: []
         },
         minWidth: 200,
@@ -321,6 +348,9 @@ export class BillExportNewComponent implements OnInit {
         filterable: true,
         filter: {
           model: Filters['multipleSelect'],
+          collectionOptions: {
+            addBlankEntry: true
+          },
           collection: []
         },
         minWidth: 120,
@@ -333,6 +363,9 @@ export class BillExportNewComponent implements OnInit {
         filterable: true,
         filter: {
           model: Filters['multipleSelect'],
+          collectionOptions: {
+            addBlankEntry: true
+          },
           collection: []
         },
         minWidth: 200,

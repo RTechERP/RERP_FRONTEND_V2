@@ -1615,6 +1615,9 @@ export class ProjectPartlistPriceRequestNewComponent implements OnInit, OnDestro
         filterable: true,
         filter: {
           model: Filters['multipleSelect'],
+          collectionOptions: {
+            addBlankEntry: true
+          },
           collection: [],
           filterOptions: { filter: true } as MultipleSelectOption,
         },
@@ -1645,6 +1648,9 @@ export class ProjectPartlistPriceRequestNewComponent implements OnInit, OnDestro
         filterable: true,
         filter: {
           model: Filters['multipleSelect'],
+          collectionOptions: {
+            addBlankEntry: true
+          },
           collection: [],
           filterOptions: {
             filter: true,
@@ -1677,6 +1683,9 @@ export class ProjectPartlistPriceRequestNewComponent implements OnInit, OnDestro
         filterable: true,
         filter: {
           model: Filters['multipleSelect'],
+          collectionOptions: {
+            addBlankEntry: true
+          },
           collection: [],
           filterOptions: {
             filter: true,
@@ -1709,6 +1718,9 @@ export class ProjectPartlistPriceRequestNewComponent implements OnInit, OnDestro
         filterable: true,
         filter: {
           model: Filters['multipleSelect'],
+          collectionOptions: {
+            addBlankEntry: true
+          },
           collection: [],
           filterOptions: { filter: true } as MultipleSelectOption,
         },
@@ -1739,6 +1751,9 @@ export class ProjectPartlistPriceRequestNewComponent implements OnInit, OnDestro
         filterable: true,
         filter: {
           model: Filters['multipleSelect'],
+          collectionOptions: {
+            addBlankEntry: true
+          },
           collection: [],
           filterOptions: { filter: true } as MultipleSelectOption,
         },
@@ -1803,6 +1818,9 @@ formatter: Formatters.date,
         filterable: true,
         filter: {
           model: Filters['multipleSelect'],
+          collectionOptions: {
+            addBlankEntry: true
+          },
           collection: [],
           filterOptions: {
             filter: true,
@@ -1945,6 +1963,9 @@ formatter: Formatters.date,
         hidden: true,
         filter: {
           model: Filters['multipleSelect'],
+          collectionOptions: {
+            addBlankEntry: true
+          },
           collection: [],
           filterOptions: { filter: true } as MultipleSelectOption,
         },
@@ -1958,6 +1979,9 @@ formatter: Formatters.date,
         filterable: true,
         filter: {
           model: Filters['multipleSelect'],
+          collectionOptions: {
+            addBlankEntry: true
+          },
           collection: [],
           filterOptions: {
             filter: true,
@@ -2102,6 +2126,9 @@ formatter: Formatters.date,
         filterable: true,
         filter: {
           model: Filters['multipleSelect'],
+          collectionOptions: {
+            addBlankEntry: true
+          },
           collection: [],
           filterOptions: { filter: true } as MultipleSelectOption,
         },

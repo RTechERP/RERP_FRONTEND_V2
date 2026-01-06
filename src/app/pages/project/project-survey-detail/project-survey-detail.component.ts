@@ -801,7 +801,7 @@ export class ProjectSurveyDetailComponent implements OnInit, AfterViewInit {
 
             this.validateForm.patchValue({
               projectId: this.projectId || '',
-              leaderId: data.ApprovedUrgentID || '',
+              leaderId: data.ApprovedUrgentID || 0,
               reasonUrgent: data.ReasonUrgent || '',
               address: data.Address || '',
               customerName: data.PIC || '',
@@ -996,13 +996,13 @@ export class ProjectSurveyDetailComponent implements OnInit, AfterViewInit {
           }
         }
       }
-
+      debugger
       // Dữ liệu lưu master
       let projectSurvey = {
         ID: this.projectSurveyId ?? 0,
         ProjectID: this.projectId,
         EmployeeID: this.userRequestId ?? 0,
-        ApprovedUrgentID: formValue.leaderId ?? 0,
+        ApprovedUrgentID: formValue.leaderId === '' ? 0 : Number(formValue.leaderId),
         IsUrgent: formValue.isUrgent,
         ReasonUrgent: formValue.reasonUrgent ?? '',
         Address: formValue.address ?? '',

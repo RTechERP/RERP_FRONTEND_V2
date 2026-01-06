@@ -1,4 +1,4 @@
-import { Component, OnInit, Input, ChangeDetectorRef } from '@angular/core';
+import { Component, OnInit, Input, ChangeDetectorRef, AfterViewInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { NzFormModule } from 'ng-zorro-antd/form';
@@ -26,7 +26,9 @@ import { AuthService } from '../../../../../auth/auth.service';
 import { ProjectService } from '../../../../project/project-service/project.service';
 import { WFHService } from '../../../employee-management/employee-wfh/WFH-service/WFH.service';
 import { ProjectItemSelectModalComponent } from './project-item-select-modal/project-item-select-modal.component';
-import { DatePickerModule } from 'primeng/datepicker';
+import flatpickr from 'flatpickr';
+import { Vietnamese } from 'flatpickr/dist/l10n/vn.js';
+
 @Component({
   selector: 'app-over-time-person-form',
   templateUrl: './over-time-person-form.component.html',
@@ -47,11 +49,10 @@ import { DatePickerModule } from 'primeng/datepicker';
     NzGridModule,
     NzUploadModule,
     NzMessageModule,
-    NzModalModule,
-    DatePickerModule
+    NzModalModule
   ]
 })
-export class OverTimePersonFormComponent implements OnInit {
+export class OverTimePersonFormComponent implements OnInit, AfterViewInit, OnDestroy {
   @Input() data: any = null;
   @Input() isEditMode: boolean = false;
 
@@ -71,6 +72,8 @@ export class OverTimePersonFormComponent implements OnInit {
     deletedFileIds: number[];
     deletedFiles: any[];
     attachFileName: string;
+    flatpickrTimeStart?: flatpickr.Instance;
+    flatpickrEndTime?: flatpickr.Instance;
   }> = [];
   activeTabIndex = 0;
   isLoading = false;
@@ -93,6 +96,9 @@ export class OverTimePersonFormComponent implements OnInit {
   attachFileName: string = '';
   isProblemValue: boolean = false;
   datePickerKey: number = 0;
+
+  // Flatpickr instances map
+  private flatpickrInstances: Map<string, flatpickr.Instance> = new Map();
 
   private normalizeToMinute(value: any): Date | null {
     if (!value) return null;
@@ -268,6 +274,13 @@ export class OverTimePersonFormComponent implements OnInit {
 
       this.datePickerKey++;
       this.cdr.detectChanges();
+
+      // Cập nhật min/max dates cho Flatpickr
+      this.updateFlatpickrMinMaxDates();
+      // Cập nhật giá trị hiển thị trong Flatpickr
+      this.formTabs.forEach((tab) => {
+        this.setFlatpickrValue(tab);
+      });
     });
 
     // Đăng ký subscriptions cho form đầu tiên
@@ -362,6 +375,152 @@ export class OverTimePersonFormComponent implements OnInit {
         this.cdr.detectChanges();
       }
     });
+  }
+
+  ngAfterViewInit(): void {
+    // Khởi tạo Flatpickr cho tất cả các tabs sau khi view đã render
+    setTimeout(() => {
+      this.initializeFlatpickrForAllTabs();
+    }, 100);
+  }
+
+  ngOnDestroy(): void {
+    // Cleanup tất cả flatpickr instances
+    this.flatpickrInstances.forEach((instance) => {
+      instance.destroy();
+    });
+    this.flatpickrInstances.clear();
+  }
+
+  // Khởi tạo Flatpickr cho tất cả các tabs
+  private initializeFlatpickrForAllTabs(): void {
+    this.formTabs.forEach((tab, index) => {
+      this.initializeFlatpickrForTab(tab, index);
+    });
+  }
+
+  // Khởi tạo Flatpickr cho một tab cụ thể
+  private initializeFlatpickrForTab(tab: any, tabIndex: number): void {
+    const timeStartId = `timestart-${tab.id}`;
+    const endTimeId = `endtime-${tab.id}`;
+
+    // Destroy existing instances if any
+    if (this.flatpickrInstances.has(timeStartId)) {
+      this.flatpickrInstances.get(timeStartId)?.destroy();
+    }
+    if (this.flatpickrInstances.has(endTimeId)) {
+      this.flatpickrInstances.get(endTimeId)?.destroy();
+    }
+
+    const timeStartElement = document.getElementById(timeStartId);
+    const endTimeElement = document.getElementById(endTimeId);
+
+    if (timeStartElement) {
+      const minDate = this.getMinDateForTimeStart();
+      const maxDate = this.getMaxDateForTimeStart();
+
+      const fpTimeStart = flatpickr(timeStartElement, {
+        enableTime: true,
+        time_24hr: true,
+        dateFormat: 'd/m/Y H:i',
+        locale: Vietnamese,
+        minDate: minDate,
+        maxDate: maxDate,
+        defaultDate: tab.form.get('TimeStart')?.value || undefined,
+        allowInput: true,
+        disableMobile: false,
+        onChange: (selectedDates: Date[]) => {
+          if (selectedDates.length > 0) {
+            const date = this.normalizeToMinute(selectedDates[0]);
+            if (date) {
+              tab.form.patchValue({ TimeStart: date });
+              this.calculateTotalHour(tab.form);
+              // Update EndTime minDate
+              this.updateEndTimeFlatpickr(tab);
+            }
+          }
+        }
+      });
+
+      this.flatpickrInstances.set(timeStartId, fpTimeStart);
+      tab.flatpickrTimeStart = fpTimeStart;
+    }
+
+    if (endTimeElement) {
+      const minDate = this.getMinDateForEndTime(tab.form);
+      const maxDate = this.getMaxDateForEndTime();
+
+      const fpEndTime = flatpickr(endTimeElement, {
+        enableTime: true,
+        time_24hr: true,
+        dateFormat: 'd/m/Y H:i',
+        locale: Vietnamese,
+        minDate: minDate,
+        maxDate: maxDate,
+        defaultDate: tab.form.get('EndTime')?.value || undefined,
+        allowInput: true,
+        disableMobile: false,
+        onChange: (selectedDates: Date[]) => {
+          if (selectedDates.length > 0) {
+            const date = this.normalizeToMinute(selectedDates[0]);
+            if (date) {
+              tab.form.patchValue({ EndTime: date });
+              this.calculateTotalHour(tab.form);
+              // Auto check Overnight nếu EndTime >= 20:00
+              const hours = date.getHours();
+              if (hours >= 20) {
+                tab.form.patchValue({ Overnight: true }, { emitEvent: false });
+              }
+            }
+          }
+        }
+      });
+
+      this.flatpickrInstances.set(endTimeId, fpEndTime);
+      tab.flatpickrEndTime = fpEndTime;
+    }
+  }
+
+  // Cập nhật minDate cho EndTime flatpickr khi TimeStart thay đổi
+  private updateEndTimeFlatpickr(tab: any): void {
+    if (tab.flatpickrEndTime) {
+      const timeStart = tab.form.get('TimeStart')?.value;
+      if (timeStart) {
+        tab.flatpickrEndTime.set('minDate', new Date(timeStart));
+      }
+    }
+  }
+
+  // Cập nhật tất cả Flatpickr instances khi IsProblem thay đổi
+  private updateFlatpickrMinMaxDates(): void {
+    const minDate = this.getMinDateForTimeStart();
+    const maxDate = this.getMaxDateForTimeStart();
+    const maxEndDate = this.getMaxDateForEndTime();
+
+    this.formTabs.forEach((tab) => {
+      if (tab.flatpickrTimeStart) {
+        tab.flatpickrTimeStart.set('minDate', minDate);
+        tab.flatpickrTimeStart.set('maxDate', maxDate);
+      }
+      if (tab.flatpickrEndTime) {
+        const minEndDate = this.getMinDateForEndTime(tab.form);
+        tab.flatpickrEndTime.set('minDate', minEndDate);
+        tab.flatpickrEndTime.set('maxDate', maxEndDate);
+      }
+    });
+  }
+
+  // Set giá trị cho Flatpickr từ form value
+  private setFlatpickrValue(tab: any): void {
+    const timeStartValue = tab.form.get('TimeStart')?.value;
+    const endTimeValue = tab.form.get('EndTime')?.value;
+
+    if (tab.flatpickrTimeStart && timeStartValue) {
+      tab.flatpickrTimeStart.setDate(new Date(timeStartValue), false);
+    }
+    if (tab.flatpickrEndTime && endTimeValue) {
+      tab.flatpickrEndTime.setDate(new Date(endTimeValue), false);
+    }
   }
 
   loadDataByID(id: number) {
@@ -486,6 +645,13 @@ export class OverTimePersonFormComponent implements OnInit {
     this.resizeAllTextareas();
 
     this.cdr.detectChanges();
+
+    // Cập nhật giá trị Flatpickr cho tab đầu tiên
+    setTimeout(() => {
+      if (this.formTabs.length > 0) {
+        this.setFlatpickrValue(this.formTabs[0]);
+      }
+    }, 150);
   }
 
   formatDateTimeLocal(date: any): string {
@@ -1755,7 +1921,7 @@ export class OverTimePersonFormComponent implements OnInit {
 
     const newTabId = this.formTabs.length + 1;
     const newForm = this.createNewForm();
-    this.formTabs.push({
+    const newTab = {
       id: newTabId,
       title: ` ${newTabId}`,
       form: newForm,
@@ -1769,7 +1935,8 @@ export class OverTimePersonFormComponent implements OnInit {
       deletedFileIds: [],
       deletedFiles: [],
       attachFileName: ''
-    });
+    };
+    this.formTabs.push(newTab as any);
     this.activeTabIndex = this.formTabs.length - 1;
     // Không cần gán this.overTimeForm = newForm vì HTML đã bind trực tiếp tab.form
     // Reset trạng thái file cho tab mới
@@ -1783,6 +1950,11 @@ export class OverTimePersonFormComponent implements OnInit {
     this.deletedFiles = [];
     this.attachFileName = '';
     this.cdr.detectChanges();
+
+    // Khởi tạo Flatpickr cho tab mới sau khi DOM render
+    setTimeout(() => {
+      this.initializeFlatpickrForTab(newTab, this.formTabs.length - 1);
+    }, 50);
   }
 
   removeTab(event: { index: number }) {
@@ -1822,6 +1994,20 @@ export class OverTimePersonFormComponent implements OnInit {
       nzOkText: 'Đồng ý',
       nzCancelText: 'Hủy',
       nzOnOk: () => {
+        // Cleanup Flatpickr instances cho tab bị xóa
+        const tabToRemove = this.formTabs[index];
+        const timeStartId = `timestart-${tabToRemove.id}`;
+        const endTimeId = `endtime-${tabToRemove.id}`;
+
+        if (this.flatpickrInstances.has(timeStartId)) {
+          this.flatpickrInstances.get(timeStartId)?.destroy();
+          this.flatpickrInstances.delete(timeStartId);
+        }
+        if (this.flatpickrInstances.has(endTimeId)) {
+          this.flatpickrInstances.get(endTimeId)?.destroy();
+          this.flatpickrInstances.delete(endTimeId);
+        }
+
         this.formTabs.splice(index, 1);
         // Cập nhật activeTabIndex nếu cần
         if (this.activeTabIndex >= this.formTabs.length) {

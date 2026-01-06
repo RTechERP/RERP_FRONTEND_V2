@@ -26,15 +26,15 @@
 }
 
 /* ==================== CELL COLORING STYLES ==================== */
-/* Cell có IsFix = true → Xanh nước biển */
+/* Cell có IsFix = true → Xanh nước biển (steelblue) - giống WinForm */
 :host ::ng-deep .slick-cell.cell-is-fix {
-  background-color: #1890ff !important;
+  background-color: #4682B4 !important;
   color: white !important;
 }
 
-/* Cell có IsProductSale → Light yellow */
+/* Cell có IsProductSale → Light yellow - giống WinForm */
 :host ::ng-deep .slick-cell.cell-product-sale {
-  background-color: #fffbe6 !important;
+  background-color: #FFFFE0 !important;
 }
 
 /* Cell có giá trị trùng → Màu đỏ */
@@ -311,12 +311,22 @@ angular-slickgrid,
 }
 
 /* ==================== FROZEN COLUMN SCROLLBAR FIX ==================== */
+/* Không cần CSS đặc biệt - để SlickGrid tự xử lý frozen columns */
+
+/* Đảm bảo row height đồng bộ như project-slick-grid2 */
+:host ::ng-deep .slick-row {
+  min-height: 33px !important;
+}
+
+:host ::ng-deep .slick-cell {
+  min-height: 33px !important;
+}
 :host ::ng-deep .slick-viewport-left {
   overflow-y: hidden !important;
-  /* Hide vertical scrollbar on left frozen pane */
+  overflow-x: auto !important;
 }
 
 :host ::ng-deep .slick-viewport-right {
   overflow-y: auto !important;
-  /* Ensure vertical scrollbar is on right pane */
+  overflow-x: auto !important;
 }

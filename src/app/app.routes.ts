@@ -215,6 +215,7 @@ import { ProjectPartlistPriceRequestOldComponent } from './pages/purchase/projec
 import { MeetingMinuteSlickGridComponent } from './pages/meeting-minute-slick-grid/meeting-minute-slick-grid.component';
 import { DocumentSaleAdminComponent } from './pages/hrm/document/document-sale-admin/document-sale-admin.component';
 import { InventoryBorrowNCCComponent } from './pages/old/Sale/Inventory/Modal/inventory-borrow-ncc/inventory-borrow-ncc.component';
+// import { CustomerSlickgridComponent } from './pages/crm/customers/customer-slickgrid/customer-slickgrid.component';
 export const routes: Routes = [
     {
         path: '',
@@ -537,7 +538,7 @@ export const routes: Routes = [
             { path: 'project-worktimeline', component: ProjectWorkTimelineComponent, canActivate: [authGuard] },
             { path: 'project-survey', component: ProjectSurveySlickGridComponent, canActivate: [authGuard] },
             { path: 'project-survey-slick-grid', component: ProjectSurveyComponent, canActivate: [authGuard] },
-            { path: 'meeting-minute', component:   MeetingMinuteSlickGridComponent, canActivate: [authGuard] },
+            { path: 'meeting-minute', component: MeetingMinuteSlickGridComponent, canActivate: [authGuard] },
             { path: 'meeting-minute-slick-grid', component: MeetingMinuteComponent, canActivate: [authGuard] },
             { path: 'project-itemlate', component: ProjectItemLateComponent, canActivate: [authGuard] },
             { path: 'project-workitem-timeline', component: ProjectWorkItemTimelineComponent, canActivate: [authGuard] },

@@ -37,6 +37,7 @@ import { WFHService } from '../employee-management/employee-wfh/WFH-service/WFH.
 import { NzDropDownModule } from 'ng-zorro-antd/dropdown';
 import { Menubar } from 'primeng/menubar';
 import { PermissionService } from '../../../services/permission.service';
+import { NgbModal } from '@ng-bootstrap/ng-bootstrap';
 
 
 @Component({
@@ -63,7 +64,6 @@ import { PermissionService } from '../../../services/permission.service';
     NzSplitterModule,
     NzGridModule,
     SummaryDayOffComponent,
-    DeclareDayOffComponent,
     NgIf,
     NzSpinModule,
     NzDropDownModule,
@@ -138,7 +138,8 @@ export class DayOffComponent implements OnInit, AfterViewInit {
     private employeeService: EmployeeService,
     private authService: AuthService,
     private wfhService: WFHService,
-    private permissionService: PermissionService
+    private permissionService: PermissionService,
+    private ngbModal: NgbModal
   ) { }
 
   ngOnInit() {
@@ -1245,11 +1246,20 @@ export class DayOffComponent implements OnInit, AfterViewInit {
     this.summaryDayOffComponent.ngOnInit();
   }
 
-  @ViewChild(DeclareDayOffComponent) declareDayOffComponent!: DeclareDayOffComponent;
   openDeclareDayOffModal() {
-    const modal = new (window as any).bootstrap.Modal(document.getElementById('declareDayOffModal'));
-    modal.show();
-    this.declareDayOffComponent.ngOnInit();
+    const modalRef = this.ngbModal.open(DeclareDayOffComponent, {
+      size: 'xl',
+      backdrop: 'static',
+      keyboard: false,
+      centered: true,
+    });
+
+    modalRef.result.then(
+      (result) => {
+        // Modal closed successfully
+      },
+      () => { }
+    );
   }
 
 }

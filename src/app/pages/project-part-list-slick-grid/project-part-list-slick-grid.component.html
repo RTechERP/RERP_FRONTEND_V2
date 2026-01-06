@@ -345,6 +345,9 @@
             <button class="fs-12" nz-button nzType="default" nzSize="small" (click)="openFormExportExcelPartlist()">
               <img src="assets/icon/action_export_excel_16.png" /> Xuất Excel
             </button>
+            <button nz-button nzType="default" nzSize="small" nz-dropdown [nzDropdownMenu]="partListContextMenu">
+              <nz-icon nzType="more"></nz-icon>
+            </button>
           </div>
           <div class="card-header bg-white p-3 d-flex gap-1">
             <div style="width: 100%;" class="d-flex gap-1 align-items-center">
@@ -404,6 +407,33 @@
   </div>
   <!-- Modal Footer -->
 </div>
+
+<!-- Context Menu Template -->
+<nz-dropdown-menu #partListContextMenu="nzDropdownMenu">
+    <ul nz-menu>
+        <li nz-menu-item (click)="openProjectPartListHistory()">
+            <img src="assets/icon/price_history_16.png" class="me-1" /> Xem sản phẩm trong kho, lịch sử giá
+        </li>
+        <li nz-menu-item (click)="getPriceHistory()">
+            <img src="assets/icon/money_16.png" class="me-1" /> Lấy giá lịch sử
+        </li>
+        <li nz-menu-item (click)="restoreDelete()">
+            <img src="assets/icon/revert_16.png" class="me-1" /> Khôi phục
+        </li>
+        <li nz-menu-item (click)="additionalPartListPO()">
+            <img src="assets/icon/add_PO_16.png" class="me-1" /> Bổ sung vào PO
+        </li>
+        <li nz-menu-item (click)="downloadDrawing()">
+            <img src="assets/icon/download_draw_16.png" class="me-1" /> Tải bản vẽ
+        </li>
+        <li nz-menu-item (click)="techBought()" *ngIf="type === 2">
+            <img src="assets/icon/buy_16.png" class="me-1" /> Đã mua
+        </li>
+        <li nz-menu-item (click)="unTechBought()" *ngIf="type === 2">
+            <img src="assets/icon/unbuy_16.png" class="me-1" /> Hủy đã mua
+        </li>
+    </ul>
+</nz-dropdown-menu>
 
 <!-- Template cho modal yêu cầu báo giá -->
 <ng-template #priceRequestModalContent>

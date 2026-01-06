@@ -589,7 +589,7 @@ export class ProjectPartListSlickGridComponent implements OnInit, AfterViewInit,
               title="${dataContext.GroupMaterial}"
               style="
                 display: -webkit-box;
-                -webkit-line-clamp: 5;
+                -webkit-line-clamp: 3;
                 -webkit-box-orient: vertical;
                 overflow: hidden;
                 text-overflow: ellipsis;
@@ -604,7 +604,6 @@ export class ProjectPartListSlickGridComponent implements OnInit, AfterViewInit,
         },
         customTooltip: {
           useRegularTooltip: true,
-          // useRegularTooltipFromCellTextOnly: true,
         },
       },
       {
@@ -620,7 +619,7 @@ export class ProjectPartListSlickGridComponent implements OnInit, AfterViewInit,
             autoAdjustDropWidthByTextSize: true,
           } as MultipleSelectOption
         },
-        formatter: (_row: any, _cell: any, value: any, _column: any, dataContext: any) => {
+         formatter: (_row: any, _cell: any, value: any, _column: any, dataContext: any) => {
           if (!value) return '';
           return `
             <span
@@ -640,10 +639,13 @@ export class ProjectPartListSlickGridComponent implements OnInit, AfterViewInit,
             </span>
           `;
         },
+        customTooltip: {
+          useRegularTooltip: true,
+        },
       },
       {
         id: 'Model', field: 'Model', name: 'Thông số kỹ thuật', width: 200, columnGroup: 'Vật tư dự án',
-        formatter: (_row: any, _cell: any, value: any, _column: any, dataContext: any) => {
+         formatter: (_row: any, _cell: any, value: any, _column: any, dataContext: any) => {
           if (!value) return '';
           return `
             <span
@@ -1617,7 +1619,7 @@ export class ProjectPartListSlickGridComponent implements OnInit, AfterViewInit,
       gridWidth: '100%',
       // Freeze 6 columns (Checkbox + first 5 defined columns)
       frozenColumn: 6,
-      rowHeight: 33, // Base height - sẽ tự động tăng theo nội dung qua CSS
+      // rowHeight: 33, // Base height - sẽ tự động tăng theo nội dung qua CSS
       datasetIdPropertyName: 'id',
       enableRowSelection: true,
       enableCellNavigation: true,
@@ -1629,7 +1631,7 @@ export class ProjectPartListSlickGridComponent implements OnInit, AfterViewInit,
       multiColumnSort: false,
       enablePagination: false,
       // Row height - tăng để text wrap không bị đè
-      // rowHeight: 50,
+      rowHeight: 50,
       // headerRowHeight: 40,
       // Checkbox Selector - thêm cột dấu tích ở đầu
       enableCheckboxSelector: true,
@@ -4181,7 +4183,7 @@ export class ProjectPartListSlickGridComponent implements OnInit, AfterViewInit,
     const itemCount = selectedNodes.length;
     const ttList = selectedNodes.map((node: any) => node.TT || node.STT).join(', ');
     this.modal.confirm({
-      nzTitle: 'Xác nhận yêu cầu xuất kho',
+      nzTitle: 'Xác nhận yêu cầu chuyển kho',
       nzContent: `Bạn có chắc muốn yêu cầu chuyển kho ${itemCount} sản phẩm (TT: ${ttList}) không?`,
       nzOkText: 'Xác nhận',
       nzCancelText: 'Hủy',

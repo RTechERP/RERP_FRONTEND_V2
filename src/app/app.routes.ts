@@ -941,6 +941,7 @@ export const routes: Routes = [
             { path: 'bill-import-qc', component: BillImportQcComponent, canActivate: [authGuard] },
 
             { path: 'newsletter', component: NewsletterComponent, canActivate: [authGuard] },
+            { path: 'newsletter-view-all', component: NewsletterFormViewAllComponent, canActivate: [authGuard] },
             { path: 'newsletter-type', component: NewsletterTypeComponent, canActivate: [authGuard] },
             { path: 'document-sale-admin', component: DocumentSaleAdminComponent, canActivate: [authGuard] },
             { path: 'inventory-borrow-ncc', component: InventoryBorrowNCCComponent, canActivate: [authGuard] },

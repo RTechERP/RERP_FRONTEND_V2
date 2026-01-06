@@ -1525,6 +1525,20 @@ export class PaymentOrderComponent implements OnInit {
                 maxDecimal: 2,
                 thousandSeparator: ','
             },
+
+            contextMenu: {
+                hideCloseButton: false,
+                commandTitle: '', // optional, add title
+                commandItems: [
+
+                    {
+                        command: '', title: 'Bổ sung file', iconCssClass: 'mdi mdi-help-circle', positionOrder: 62,
+                        action: (e, args) => {
+                            this.onAttachFileExtend();
+                        }
+                    },
+                ],
+            }
         };
 
         this.columnDefinitionDetails = [
@@ -2859,6 +2873,10 @@ export class PaymentOrderComponent implements OnInit {
 
     handleApproved(data: any) {
 
+        if (data.length <= 0) {
+            this.notification.warning(NOTIFICATION_TITLE.warning, "Vui lòng chọn đề nghị!");
+        }
+
         const action = data[0].Action.ButtonActionGroup || '';
 
         if (action == 'btnTBP') {
@@ -2925,6 +2943,8 @@ export class PaymentOrderComponent implements OnInit {
 
         const rowIndexes = grid.getSelectedRows();
 
+
+
         let selectedItems = rowIndexes
             .map(i => dataView.getItem(i));
 
@@ -2976,7 +2996,7 @@ export class PaymentOrderComponent implements OnInit {
                     ReasonCancel: reasonUnApprove
                 }));
 
-                console.log('hủy duyêt:', selectedItems);
+                // console.log('hủy duyêt:', selectedItems);
                 this.handleApproved(selectedItems);
             }
         }
@@ -3451,8 +3471,6 @@ export class PaymentOrderComponent implements OnInit {
             if (files && files.length > 0) {
 
                 let fileUpdloads: any[] = [];
-                // console.log('files:', files);
-                // console.log('item.ID.toString():', item.ID.toString());
 
                 this.paymentService.uploadFileBankslip(files, item.ID.toString()).subscribe({
                     next: (response) => {
@@ -3463,22 +3481,69 @@ export class PaymentOrderComponent implements OnInit {
                         this.notification.error(NOTIFICATION_TITLE.error, err.error.message);
                     }
                 })
-                // [...files].forEach(file => {
-                //     const reader = new FileReader();
-                //     reader.onload = (e) => {
 
-                //         let fileUpload = {
-                //             title: file.name,
-                //             imageUrl: e.target!.result as string,
-                //             imageAlt: 'Uploaded image'
-                //         }
-                //         fileUpdloads.push(fileUpload);
-                //     };
-                //     reader.readAsDataURL(file);
-                //     console.log('reader.readAsDataURL(file):', reader.readAsDataURL(file));
-                // });
 
-                // console.log('fileUpdloads:', fileUpdloads);
+
+            }
+        }
+    }
+
+    async onAttachFileExtend() {
+        let gridInstance = this.angularGrid;
+        if (this.activeTab == '1') gridInstance = this.angularGridSpecial;
+        const activeCell = gridInstance.slickGrid.getActiveCell();
+
+        if (activeCell) {
+            const rowIndex = activeCell.row;        // index trong grid
+            const item = gridInstance.dataView.getItem(rowIndex) as PaymentOrder; // data object
+
+            const { value: files } = await Swal.fire({
+                input: 'file',
+                inputLabel: 'File bổ sung',
+                inputAttributes: {
+                    accept: `
+                        image/*,
+                        application/pdf,
+                        text/plain,
+                        application/msword,
+                        application/vnd.openxmlformats-officedocument.wordprocessingml.document,
+                        application/vnd.ms-excel,
+                        application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,
+                        application/vnd.ms-powerpoint,
+                        application/vnd.openxmlformats-officedocument.presentationml.presentation
+                        `,
+                    multiple: 'multiple',
+                    'aria-label': 'Upload files'
+                },
+                showCancelButton: true,
+                confirmButtonColor: '#28a745 ',
+                cancelButtonColor: '#dc3545 ',
+                confirmButtonText: 'Lưu',
+                cancelButtonText: 'Hủy',
+            });
+
+            if (files && files.length > 0) {
+
+                // let fileUpdloads: any[] = [];
+                // console.log('files:', files);
+                // console.log('item.ID.toString():', item.ID.toString());
+
+                let fileDeletes: any[] = [];
+
+                this.paymentService.uploadFile(files, item.ID, JSON.stringify(fileDeletes)).subscribe({
+                    next: (reponse) => {
+                        // console.log(reponse);
+
+                        if (reponse.status == 1) {
+                            this.notification.success(NOTIFICATION_TITLE.success, 'Bổ sung file thành công!');
+                            this.loadDetail(item.ID);
+                        }
+                    },
+                    error: (err) => {
+                        this.notification.error(NOTIFICATION_TITLE.error, err?.error?.message || err?.message);
+                    }
+                })
+
             }
         }
 

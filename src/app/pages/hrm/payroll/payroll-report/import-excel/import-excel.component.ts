@@ -380,17 +380,17 @@ export class ImportExcelComponent implements OnInit, AfterViewInit {
                             TotalDeduction: row.getCell(42).value || 0,
 
                             // TotalDeduction: row.getCell(43).value || 0,
-                            TaxSalaryOT: row.getCell(44).value || 0,
-                            TaxSalaryMeal: row.getCell(45).value || 0,
-                            TaxSalaryPhone: row.getCell(46).value || 0,
-                            TaxPersonalDeduction: row.getCell(47).value || 0,
-                            TaxDependentsDeduction: row.getCell(48).value || 0,
-                            TotalTaxDeduction: row.getCell(49).value || 0,
-                            TaxAbleIncome: row.getCell(50).value || 0,
-                            TaxDeduction: row.getCell(51).value || 0,
+                            TaxSalaryOT: row.getCell(45).value || 0,
+                            TaxSalaryMeal: row.getCell(46).value || 0,
+                            TaxSalaryPhone: row.getCell(47).value || 0,
+                            TaxPersonalDeduction: row.getCell(48).value || 0,
+                            TaxDependentsDeduction: row.getCell(49).value || 0,
+                            TotalTaxDeduction: row.getCell(50).value || 0,
+                            TaxAbleIncome: row.getCell(51).value || 0,
+                            TaxDeduction: row.getCell(52).value || 0,
 
-                            ActualAmountReceived: row.getCell(52).value || 0,
-                            Note: row.getCell(53).value?.toString() || '',
+                            ActualAmountReceived: row.getCell(53).value || 0,
+                            Note: row.getCell(54).value?.toString() || '',
                         };
 
                         data.push(rowData);

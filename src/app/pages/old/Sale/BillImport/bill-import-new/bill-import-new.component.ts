@@ -293,8 +293,8 @@ export class BillImportNewComponent implements OnInit {
         },
       },
       {
-        label: '...More',
-        icon: 'fa-solid fa-toolbox fa-lg text-secondary',
+        label: 'More',
+        icon: 'fa-solid fa-ellipsis fa-lg text-secondary',
         items: [
           {
             label: 'Cây thư mục',
@@ -1216,6 +1216,7 @@ export class BillImportNewComponent implements OnInit {
         );
         return;
       }
+      
 
       if (bill.BillTypeNew === 4) {
         this.notification.info(
@@ -1667,8 +1668,8 @@ export class BillImportNewComponent implements OnInit {
   }
 
   openModalBillImportSynthetic() {
-    import('../Modal/bill-import-synthetic/bill-import-synthetic.component').then(m => {
-      const modalRef = this.modalService.open(m.BillImportSyntheticComponent, {
+    import('../Modal/bill-import-synthetic-new/bill-import-synthetic-new.component').then(m => {
+      const modalRef = this.modalService.open(m.BillImportSyntheticNewComponent, {
         centered: true,
         backdrop: 'static',
         keyboard: false,

@@ -4585,7 +4585,7 @@ export class ProjectPartListPurchaseRequestSlickGridComponent
         ...row,
         STT: stt,
         ID: 0,
-        ProductCodeOfSupplier: String(row.GuestCode || ''),
+        ProductCodeOfSupplier: String(row.ProductName+'-'+row.ProductCode || ''),
         ProductGroupName: ProductGroupName,
         PriceHistory: Number(row.HistoryPrice || 0),
         VATMoney: totaMoneyVAT,

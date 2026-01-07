@@ -673,7 +673,7 @@ export class BillExportTechnicalFormComponent implements OnInit, AfterViewInit {
             width: 40,
             headerSort: false,
             titleFormatter: () => `
-  <div style="display: flex; justify-content: center; align-items: center; height: 100%;"><i class="fas fa-plus text-success cursor-pointer" title="Thêm dòng"></i> </div>`,
+            <div style="display: flex; justify-content: center; align-items: center; height: 100%;"><i class="fas fa-plus text-success cursor-pointer" title="Thêm dòng"></i> </div>`,
             headerClick: () => {
               if (!this.IsApproved) this.addRow();
             },
@@ -1529,6 +1529,9 @@ export class BillExportTechnicalFormComponent implements OnInit, AfterViewInit {
     modalRef.componentInstance.dataInput = null;
   }
   onReceiverChange(selectedId: number) {
+    if(this.formDeviceInfo.get('Receiver')?.value){
+      return;
+    }
     const selected = this.emPloyeeLists.find((e) => e.ID === selectedId);
     if (selected) {
       this.formDeviceInfo.patchValue({

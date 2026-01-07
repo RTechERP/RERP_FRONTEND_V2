@@ -153,6 +153,12 @@ export class BillExportNewComponent implements OnInit {
         sortable: true,
         filterable: true,
         type: FieldType.boolean,
+        filter: { model: Filters['singleSelect'], 
+          collection:[{value:'true', label:'Đã nhận'}, {value:'false', label:'Chưa nhận'}],
+          collectionOptions:{
+            addBlankEntry:true
+          }
+        },
         formatter: Formatters.checkmarkMaterial,
         minWidth: 120,
         maxWidth: 120,
@@ -171,17 +177,13 @@ export class BillExportNewComponent implements OnInit {
         minWidth: 120,
       },
       {
-        id: 'nameStatus',
+        id: 'NameStatus',
         name: 'Trạng thái',
-        field: 'nameStatus',
+        field: 'NameStatus',
         sortable: true,
         filterable: true,
         filter: {
-          model: Filters['multipleSelect'],
-          collectionOptions: {
-            addBlankEntry: true
-          },
-          collection: []
+          model: Filters['compoundInput'],
         },
         minWidth: 200,
       },
@@ -205,11 +207,7 @@ export class BillExportNewComponent implements OnInit {
         sortable: true,
         filterable: true,
         filter: {
-          model: Filters['multipleSelect'],
-          collectionOptions: {
-            addBlankEntry: true
-          },
-          collection: []
+          model: Filters['compoundInput'],
         },
         minWidth: 160,
       },
@@ -220,11 +218,7 @@ export class BillExportNewComponent implements OnInit {
         sortable: true,
         filterable: true,
         filter: {
-          model: Filters['multipleSelect'],
-          collectionOptions: {
-            addBlankEntry: true
-          },
-          collection: []
+          model: Filters['compoundInput'],
         },
         minWidth: 200,
       },
@@ -235,11 +229,7 @@ export class BillExportNewComponent implements OnInit {
         sortable: true,
         filterable: true,
         filter: {
-          model: Filters['multipleSelect'],
-          collectionOptions: {
-            addBlankEntry: true
-          },
-          collection: []
+          model: Filters['compoundInput'],
         },
         minWidth: 150,
       },
@@ -250,11 +240,7 @@ export class BillExportNewComponent implements OnInit {
         sortable: true,
         filterable: true,
         filter: {
-          model: Filters['multipleSelect'],
-          collectionOptions: {
-            addBlankEntry: true
-          },
-          collection: []
+          model: Filters['compoundInput'],
         },
         minWidth: 200,
       },
@@ -265,11 +251,7 @@ export class BillExportNewComponent implements OnInit {
         sortable: true,
         filterable: true,
         filter: {
-          model: Filters['multipleSelect'],
-          collectionOptions: {
-            addBlankEntry: true
-          },
-          collection: []
+          model: Filters['compoundInput'],
         },
         minWidth: 200,
       },
@@ -280,11 +262,7 @@ export class BillExportNewComponent implements OnInit {
         sortable: true,
         filterable: true,
         filter: {
-          model: Filters['multipleSelect'],
-          collectionOptions: {
-            addBlankEntry: true
-          },
-          collection: []
+          model: Filters['compoundInput'],
         },
         minWidth: 200,
       },
@@ -317,11 +295,7 @@ export class BillExportNewComponent implements OnInit {
         sortable: true,
         filterable: true,
         filter: {
-          model: Filters['multipleSelect'],
-          collectionOptions: {
-            addBlankEntry: true
-          },
-          collection: []
+          model: Filters['compoundInput'],
         },
         minWidth: 200,
       },
@@ -332,11 +306,7 @@ export class BillExportNewComponent implements OnInit {
         sortable: true,
         filterable: true,
         filter: {
-          model: Filters['multipleSelect'],
-          collectionOptions: {
-            addBlankEntry: true
-          },
-          collection: []
+          model: Filters['compoundInput'],
         },
         minWidth: 200,
       },
@@ -347,11 +317,7 @@ export class BillExportNewComponent implements OnInit {
         sortable: true,
         filterable: true,
         filter: {
-          model: Filters['multipleSelect'],
-          collectionOptions: {
-            addBlankEntry: true
-          },
-          collection: []
+          model: Filters['compoundInput'],
         },
         minWidth: 120,
       },
@@ -362,11 +328,7 @@ export class BillExportNewComponent implements OnInit {
         sortable: true,
         filterable: true,
         filter: {
-          model: Filters['multipleSelect'],
-          collectionOptions: {
-            addBlankEntry: true
-          },
-          collection: []
+          model: Filters['compoundInput'],
         },
         minWidth: 200,
       },
@@ -404,8 +366,7 @@ export class BillExportNewComponent implements OnInit {
         sortable: true,
         filterable: true,
         filter: {
-          model: Filters['multipleSelect'],
-          collection: []
+          model: Filters['compoundInput'],
         },
         minWidth: 150,
       },
@@ -416,8 +377,7 @@ export class BillExportNewComponent implements OnInit {
         sortable: true,
         filterable: true,
         filter: {
-          model: Filters['multipleSelect'],
-          collection: []
+          model: Filters['compoundInput'],
         },
         minWidth: 150,
       },
@@ -428,6 +388,9 @@ export class BillExportNewComponent implements OnInit {
         sortable: true,
         filterable: true,
         type: FieldType.number,
+        filter: {
+          model: Filters['compoundInputNumber'],
+        },
         minWidth: 100,
       },
       {
@@ -437,8 +400,7 @@ export class BillExportNewComponent implements OnInit {
         sortable: true,
         filterable: true,
         filter: {
-          model: Filters['multipleSelect'],
-          collection: []
+          model: Filters['compoundInput'],
         },
         minWidth: 200,
       },
@@ -449,8 +411,7 @@ export class BillExportNewComponent implements OnInit {
         sortable: true,
         filterable: true,
         filter: {
-          model: Filters['multipleSelect'],
-          collection: []
+          model: Filters['compoundInput'],
         },
         minWidth: 200,
       },
@@ -461,8 +422,7 @@ export class BillExportNewComponent implements OnInit {
         sortable: true,
         filterable: true,
         filter: {
-          model: Filters['multipleSelect'],
-          collection: []
+          model: Filters['compoundInput'],
         },
         minWidth: 100,
       },
@@ -482,8 +442,7 @@ export class BillExportNewComponent implements OnInit {
         sortable: true,
         filterable: true,
         filter: {
-          model: Filters['multipleSelect'],
-          collection: []
+          model: Filters['compoundInput'],
         },
         minWidth: 150,
       },
@@ -494,8 +453,7 @@ export class BillExportNewComponent implements OnInit {
         sortable: true,
         filterable: true,
         filter: {
-          model: Filters['multipleSelect'],
-          collection: []
+          model: Filters['compoundInput'],
         },
         minWidth: 120,
       },
@@ -506,8 +464,7 @@ export class BillExportNewComponent implements OnInit {
         sortable: true,
         filterable: true,
         filter: {
-          model: Filters['multipleSelect'],
-          collection: []
+          model: Filters['compoundInput'],
         },
         minWidth: 200,
       },
@@ -536,8 +493,7 @@ export class BillExportNewComponent implements OnInit {
         sortable: true,
         filterable: true,
         filter: {
-          model: Filters['multipleSelect'],
-          collection: []
+          model: Filters['compoundInput'],
         },
         minWidth: 150,
       },
@@ -548,8 +504,7 @@ export class BillExportNewComponent implements OnInit {
         sortable: true,
         filterable: true,
         filter: {
-          model: Filters['multipleSelect'],
-          collection: []
+          model: Filters['compoundInput'],
         },
         minWidth: 120,
       },
@@ -560,8 +515,7 @@ export class BillExportNewComponent implements OnInit {
         sortable: true,
         filterable: true,
         filter: {
-          model: Filters['multipleSelect'],
-          collection: []
+          model: Filters['compoundInput'],
         },
         minWidth: 200,
       },
@@ -1062,14 +1016,6 @@ export class BillExportNewComponent implements OnInit {
       this.notification.info(
         'Thông báo',
         `${this.data[0].Code} chưa nhận chứng từ, không thể hủy!`
-      );
-      return;
-    }
-
-    if (this.data[0].Status === 2 && approve === false) {
-      this.notification.error(
-        'Thông báo',
-        'Phiếu xuất đã xuất kho không thể hủy phiếu!'
       );
       return;
     }
@@ -1705,52 +1651,45 @@ export class BillExportNewComponent implements OnInit {
   // =================================================================
 
   private applyDistinctFiltersToMaster(): void {
-    if (!this.angularGridMaster?.slickGrid || !this.angularGridMaster?.dataView) return;
-
-    const data = this.angularGridMaster.dataView.getItems();
+    // Use this.datasetMaster directly since this method is called 
+    // before Angular updates the dataView
+    const data = this.datasetMaster;
     if (!data || data.length === 0) return;
 
-    const getUniqueValues = (dataArray: any[], field: string): Array<{ value: string; label: string }> => {
-      const map = new Map<string, string>();
-      dataArray.forEach((row: any) => {
-        const value = String(row?.[field] ?? '');
-        if (value && !map.has(value)) {
-          map.set(value, value);
-        }
-      });
-      return Array.from(map.entries())
-        .map(([value, label]) => ({ value, label }))
-        .sort((a, b) => a.label.localeCompare(b.label));
-    };
+    // Wait for grid to be ready
+    if (!this.angularGridMaster?.slickGrid) {
+      // If grid not ready, retry after a short delay
+      setTimeout(() => this.applyDistinctFiltersToMaster(), 100);
+      return;
+    }
 
-    const fieldsToFilter = [
-      'nameStatus', 'Code', 'DepartmentName', 'EmployeeCode', 'FullName',
-      'CustomerName', 'NameNCC', 'WarehouseType', 'WarehouseName',
-      'ProductTypeText', 'FullNameSender'
-    ];
+    // Lấy các giá trị unique của nameStatus
+    const statusMap = new Map<string, string>();
+    data.forEach((row: any) => {
+      const value = String(row?.NameStatus ?? '');
+      if (value && !statusMap.has(value)) {
+        statusMap.set(value, value);
+      }
+    });
+    
+    const statusCollection = Array.from(statusMap.entries())
+      .map(([value, label]) => ({ value, label }))
+      .sort((a, b) => a.label.localeCompare(b.label));
 
+    // Cập nhật filter collection cho cột nameStatus
     const columns = this.angularGridMaster.slickGrid.getColumns();
-    if (!columns) return;
+    const statusColumn = columns.find((col: any) => col.id === 'nameStatus');
+    if (statusColumn?.filter) {
+      statusColumn.filter.collection = statusCollection;
+    }
 
-    // Update runtime columns
-    columns.forEach((column: any) => {
-      if (column?.filter && column.filter.model === Filters['multipleSelect']) {
-        const field = column.field;
-        if (!field || !fieldsToFilter.includes(field)) return;
-        column.filter.collection = getUniqueValues(data, field);
-      }
-    });
+    // Cập nhật trong columnDefinitions
+    const statusColDef = this.columnDefinitionsMaster.find((col) => col.id === 'nameStatus');
+    if (statusColDef?.filter) {
+      statusColDef.filter.collection = statusCollection;
+    }
 
-    // Update column definitions
-    this.columnDefinitionsMaster.forEach((colDef: any) => {
-      if (colDef?.filter && colDef.filter.model === Filters['multipleSelect']) {
-        const field = colDef.field;
-        if (!field || !fieldsToFilter.includes(field)) return;
-        colDef.filter.collection = getUniqueValues(data, field);
-      }
-    });
-
-    this.angularGridMaster.slickGrid.setColumns(this.angularGridMaster.slickGrid.getColumns());
+    this.angularGridMaster.slickGrid.setColumns(columns);
   }
 
   private applyDistinctFiltersToDetail(): void {
@@ -1930,4 +1869,6 @@ export class BillExportNewComponent implements OnInit {
       ];
     }
   }
+
+
 }

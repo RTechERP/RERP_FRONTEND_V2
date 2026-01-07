@@ -475,6 +475,7 @@ export class BillImportChoseSerialComponent implements OnInit, AfterViewInit {
   @Input() dataBillDetail: any = 0; // data thay đổi theo loại phiếu
   @Input() isTechBill: boolean = false; // true phiếu nhập, false phiếu xuất
   @Input() warehouseId: any = null; // true phiếu nhập, false phiếu xuất
+  @Input() isBillImport: boolean = false; // true phiếu nhập, false phiếu xuất
   modularGrid: any = [];
   isAddSerial: boolean = true;
   serialData: any = [];
@@ -818,20 +819,24 @@ export class BillImportChoseSerialComponent implements OnInit, AfterViewInit {
 
     const data = this.serialData;
 
-    // Validate: kiểm tra SerialNumber không được rỗng
-    const isValid = data.every(
-      (row: any) => row.SerialNumber && row.SerialNumber.trim() !== ''
-    );
-    if (!isValid) {
-      this.notification.error(
-        NOTIFICATION_TITLE.error,
-        'Vui lòng nhập đầy đủ Serial cho tất cả dòng!'
-      );
-      return;
-    }
+    // // Validate: kiểm tra SerialNumber không được rỗng
+    // const isValid = data.every(
+    //   (row: any) => row.SerialNumber && row.SerialNumber.trim() !== ''
+    // );
+    // if (!isValid) {
+    //   this.notification.error(
+    //     NOTIFICATION_TITLE.error,
+    //     'Vui lòng nhập đầy đủ Serial cho tất cả dòng!'
+    //   );
+    //   return;
+    // }
 
-    // Check trùng serial
-    const serialList = data.map((r: any) => r.SerialNumber.trim());
+    // Lấy danh sách serial hợp lệ
+    const serialList = data
+      .map((r: any) => (r.SerialNumberRTC || '').trim())
+      .filter((s: string) => s !== '');
+
+    // Check trùng
     const duplicateSerials = serialList.filter(
       (s: string, i: number) => serialList.indexOf(s) !== i
     );
@@ -840,24 +845,79 @@ export class BillImportChoseSerialComponent implements OnInit, AfterViewInit {
       const uniqueDup = [...new Set(duplicateSerials)];
       this.notification.error(
         NOTIFICATION_TITLE.error,
-        `Serial bị trùng: ${uniqueDup.join(', ')}`
+        `Serial RTC bị trùng: ${uniqueDup.join(', ')}`
       );
       return;
     }
 
+    if (this.isBillImport) {
+      this.billImportChoseSerialService
+        .getSerialProduct(this.dataBillDetail.ProductID ?? 0)
+        .subscribe((res: any) => {
+          if (res.data?.length > 0) {
+            const duplicateWithDB = data.filter((fe: any) => {
+              const feSerial = (fe.SerialNumberRTC || '').trim();
+              if (!feSerial) return false;
+
+              return res.data.some(
+                (db: any) =>
+                  feSerial === (db.SerialNumberRTC || '').trim() &&
+                  fe.ID !== db.ID // 🔥 điều kiện quan trọng
+              );
+            });
+
+            if (duplicateWithDB.length > 0) {
+              const uniqueDup = [
+                ...new Set(
+                  duplicateWithDB.map((x: any) => x.SerialNumberRTC.trim())
+                ),
+              ];
+
+              this.notification.error(
+                NOTIFICATION_TITLE.error,
+                `Serial RTC đã tồn tại: ${uniqueDup.join(', ')}`
+              );
+              return;
+            }
+          }
+
+          this.SaveDataBill(data);
+        });
+    } else {
+      this.SaveDataBill(data);
+    }
+  }
+
+  async SaveDataBill(data: any[]) {
     // Chuẩn bị data để save
-    const serials = data.map((row: any, index: number) => ({
-      BillImportDetailID: this.dataBillDetail.ID ?? 0,
-      BillExportDetailID: this.dataBillDetail.ID ?? 0,
-      BillExportTechDetailID: this.dataBillDetail.ID ?? 0,
-      BillImportTechDetailID: this.dataBillDetail.ID ?? 0,
-      ID: row.ID > 0 ? row.ID : 0,
-      STT: index + 1,
-      SerialNumber: row.SerialNumber.trim(),
-      SerialNumberRTC: row.SerialNumberRTC?.trim() || '',
-      ModulaLocationDetailID: row.ModulaLocationDetailID ?? 0,
-      WarehouseID: this.warehouseId ?? 1,
-    }));
+    const serials = data
+      .filter((row: any) => {
+        const serial = row.SerialNumber?.trim() || '';
+        const serialRTC = row.SerialNumberRTC?.trim() || '';
+        const locationId = row.ModulaLocationDetailID ?? 0;
+
+        return serial !== '' || serialRTC !== '' || locationId > 0;
+      })
+      .map((row: any, index: number) => ({
+        BillImportDetailID: this.dataBillDetail.ID ?? 0,
+        BillExportDetailID: this.dataBillDetail.ID ?? 0,
+        BillExportTechDetailID: this.dataBillDetail.ID ?? 0,
+        BillImportTechDetailID: this.dataBillDetail.ID ?? 0,
+        ID: row.ID > 0 ? row.ID : 0,
+        STT: index + 1,
+        SerialNumber: row.SerialNumber?.trim() || '',
+        SerialNumberRTC: row.SerialNumberRTC?.trim() || '',
+        ModulaLocationDetailID: row.ModulaLocationDetailID,
+        WarehouseID: this.warehouseId ?? 1,
+      }));
+
+    if (serials.length === 0) {
+      this.notification.error(
+        NOTIFICATION_TITLE.error,
+        'Không có dữ liệu serial để lưu!'
+      );
+      return;
+    }
 
     let payload = {};
 
@@ -883,7 +943,7 @@ export class BillImportChoseSerialComponent implements OnInit, AfterViewInit {
 
     try {
       if (!this.isTechBill) {
-        await this.billImportChoseSerialService.saveData(payload).subscribe({
+        this.billImportChoseSerialService.saveData(payload).subscribe({
           next: (res) => {
             this.notification.success(
               NOTIFICATION_TITLE.success,
@@ -899,23 +959,21 @@ export class BillImportChoseSerialComponent implements OnInit, AfterViewInit {
           },
         });
       } else {
-        await this.billImportChoseSerialService
-          .saveDataTech(payload)
-          .subscribe({
-            next: (res) => {
-              this.notification.success(
-                NOTIFICATION_TITLE.success,
-                'Lưu serial thành công!'
-              );
-              this.activeModal.close();
-            },
-            error: (err) => {
-              this.notification.error(
-                NOTIFICATION_TITLE.error,
-                'Lưu serial thất bại!'
-              );
-            },
-          });
+        this.billImportChoseSerialService.saveDataTech(payload).subscribe({
+          next: (res) => {
+            this.notification.success(
+              NOTIFICATION_TITLE.success,
+              'Lưu serial thành công!'
+            );
+            this.activeModal.close();
+          },
+          error: (err) => {
+            this.notification.error(
+              NOTIFICATION_TITLE.error,
+              'Lưu serial thất bại!'
+            );
+          },
+        });
       }
     } catch (error) {
       this.notification.error(NOTIFICATION_TITLE.error, 'Lỗi khi lưu serial!');

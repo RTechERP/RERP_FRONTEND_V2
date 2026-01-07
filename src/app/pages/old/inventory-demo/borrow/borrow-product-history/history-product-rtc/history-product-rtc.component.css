@@ -1,3 +1,7 @@
 ::ng-deep div[id^="historyProductRtcGrid-"] {
-       height: 90vh!important;
+  height: 86.5vh !important;
+}
+
+.fs-12 {
+  font-size: 0.75rem !important;
 }

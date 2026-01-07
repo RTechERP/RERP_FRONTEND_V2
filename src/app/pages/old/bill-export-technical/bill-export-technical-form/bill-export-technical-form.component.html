@@ -131,11 +131,11 @@
           </nz-form-control>
         </nz-form-item>
       </nz-col>
-      <nz-col [nzSpan]="8" >
+      <nz-col [nzSpan]="4" >
         <nz-form-item>
           <nz-form-label required>Người nhận<span style="color: red">(*)</span></nz-form-label>
           <nz-form-control [nzErrorTip]="'Vui lòng chọn người nhận'">
-            <nz-select formControlName="ReceiverID" nzPlaceHolder="Chọn người nhận" name="ReceiverID" nzShowSearch nzAllowClear>
+            <nz-select formControlName="ReceiverID" nzPlaceHolder="Chọn người nhận" name="ReceiverID" nzShowSearch nzAllowClear (ngModelChange)="onReceiverChange($event)">
               <nz-option
                 *ngFor="let item of emPloyeeLists"
                 [nzValue]="item.ID"
@@ -144,6 +144,14 @@
                 {{ item.EmployeeCode }} - {{ item.FullName }}
               </nz-option>
             </nz-select>
+          </nz-form-control>
+        </nz-form-item>
+      </nz-col>
+            <nz-col [nzSpan]="4" >
+        <nz-form-item>
+          <nz-form-label required>Tên người nhận<span style="color: red">(*)</span></nz-form-label>
+          <nz-form-control [nzErrorTip]="'Vui lòng nhập tên người nhận'">
+            <input nz-input formControlName="Receiver" name="Receiver" />
           </nz-form-control>
         </nz-form-item>
       </nz-col>

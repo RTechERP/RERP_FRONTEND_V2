@@ -19,7 +19,7 @@ import { NzInputModule } from 'ng-zorro-antd/input';
 import { NzSpinModule } from 'ng-zorro-antd/spin';
 import { NzFormModule } from 'ng-zorro-antd/form';
 import { NzModalModule, NzModalService } from 'ng-zorro-antd/modal';
-import * as XLSX from 'xlsx';
+import * as ExcelJS from 'exceljs';
 import { saveAs } from 'file-saver';
 
 import { NzNotificationService } from 'ng-zorro-antd/notification';
@@ -562,12 +562,10 @@ export class EmployeeAttendanceComponent implements OnInit, AfterViewInit {
     this.tb_EA.setData(this.attendanceData);
   }
 
-  // import * as XLSX from 'xlsx';  // đã có đầu file
-
-  // ======================= EXPORT EXCEL (new) =======================
+  // ======================= EXPORT EXCEL với ExcelJS =======================
 
   // Gọi từ nút Export
-  exportExcel(): void {
+  async exportExcel(): Promise<void> {
     if (!this.attendanceData?.length) {
       this.notification.warning('Thông báo', 'Không có dữ liệu để xuất');
       return;
@@ -583,9 +581,9 @@ export class EmployeeAttendanceComponent implements OnInit, AfterViewInit {
     this.isExporting = true;
 
     try {
-      const rows = this.prepareExportRows(); // dữ liệu + raw để tô màu
-      const wb = this.createWorkbookWithStyles(rows); // tạo workbook + style
-      XLSX.writeFile(wb, filename);
+      const workbook = await this.createExcelWorkbook();
+      const buffer = await workbook.xlsx.writeBuffer();
+      saveAs(new Blob([buffer]), filename);
 
       this.notification.success('Thành công', `Đã xuất file: ${filename}`);
       setTimeout(() => {
@@ -603,6 +601,274 @@ export class EmployeeAttendanceComponent implements OnInit, AfterViewInit {
     }
   }
 
+  /** Tạo workbook ExcelJS với đầy đủ styling */
+  private async createExcelWorkbook(): Promise<ExcelJS.Workbook> {
+    const workbook = new ExcelJS.Workbook();
+    workbook.creator = 'RERP System';
+    workbook.created = new Date();
+
+    const worksheet = workbook.addWorksheet('DanhSachVanTay', {
+      views: [{ state: 'frozen', xSplit: 4, ySplit: 1 }]
+    });
+
+    // Định nghĩa các cột
+    const headers = [
+      'STT',
+      'Phòng ban',
+      'ID Người',
+      'Mã NV',
+      'Tên Nhân Viên',
+      'Tổ chức',
+      'Ngày',
+      'Ngày trong tuần',
+      'Khoảng thời gian',
+      'Giờ vào',
+      'Giờ ra',
+      'Đi muộn (ĐK)',
+      'Về sớm (ĐK)',
+      'Làm thêm',
+      'Công tác',
+      'ĐK quên vân tay',
+      'Nghỉ',
+      'WFH',
+      'Ngoại khóa',
+      'Quên vân tay thực tế'
+    ];
+
+    // Set column widths
+    worksheet.columns = [
+      { width: 6 },   // STT
+      { width: 20 },  // Phòng ban
+      { width: 12 },  // ID Người
+      { width: 12 },  // Mã NV
+      { width: 25 },  // Tên Nhân Viên
+      { width: 12 },  // Tổ chức
+      { width: 12 },  // Ngày
+      { width: 15 },  // Ngày trong tuần
+      { width: 15 },  // Khoảng thời gian
+      { width: 10 },  // Giờ vào
+      { width: 10 },  // Giờ ra
+      { width: 12 },  // Đi muộn (ĐK)
+      { width: 12 },  // Về sớm (ĐK)
+      { width: 10 },  // Làm thêm
+      { width: 10 },  // Công tác
+      { width: 15 },  // ĐK quên vân tay
+      { width: 8 },   // Nghỉ
+      { width: 8 },   // WFH
+      { width: 12 },  // Ngoại khóa
+      { width: 18 }   // Quên vân tay thực tế
+    ];
+
+    // Thêm header row
+    const headerRow = worksheet.addRow(headers);
+
+    // Style cho header: font size 12, bold, Times New Roman, màu nền xanh
+    headerRow.eachCell((cell) => {
+      cell.font = {
+        name: 'Times New Roman',
+        size: 12,
+        bold: true,
+        color: { argb: 'FFFFFFFF' }
+      };
+      cell.fill = {
+        type: 'pattern',
+        pattern: 'solid',
+        fgColor: { argb: 'FF366092' }
+      };
+      cell.alignment = {
+        horizontal: 'center',
+        vertical: 'middle',
+        wrapText: true
+      };
+      cell.border = {
+        top: { style: 'thin', color: { argb: 'FF000000' } },
+        bottom: { style: 'thin', color: { argb: 'FF000000' } },
+        left: { style: 'thin', color: { argb: 'FF000000' } },
+        right: { style: 'thin', color: { argb: 'FF000000' } }
+      };
+    });
+    headerRow.height = 25;
+
+    // Sắp xếp dữ liệu theo phòng ban
+    const sortedData = [...this.attendanceData].sort((a, b) => {
+      const deptA = (a.DepartmentName || '').toLowerCase();
+      const deptB = (b.DepartmentName || '').toLowerCase();
+      if (deptA !== deptB) return deptA.localeCompare(deptB);
+      return (Number(a.DepartmentSTT) || 0) - (Number(b.DepartmentSTT) || 0);
+    });
+
+    // Nhóm dữ liệu theo phòng ban
+    const groupedData: { [key: string]: any[] } = {};
+    sortedData.forEach(d => {
+      const dept = d.DepartmentName || 'Không xác định';
+      if (!groupedData[dept]) {
+        groupedData[dept] = [];
+      }
+      groupedData[dept].push(d);
+    });
+
+    // Cột checkbox để căn giữa
+    const checkboxCols = [12, 13, 14, 15, 16, 17, 18, 19, 20]; // index 1-based
+
+    let stt = 0;
+    // Thêm dữ liệu theo từng phòng ban (group)
+    Object.keys(groupedData).forEach(deptName => {
+      const deptData = groupedData[deptName];
+
+      // Thêm dòng tiêu đề nhóm (group header)
+      const groupRow = worksheet.addRow([`Phòng ban: ${deptName} (${deptData.length})`]);
+      groupRow.getCell(1).font = {
+        name: 'Tahoma',
+        size: 10,
+        bold: true,
+        color: { argb: 'FF333333' }
+      };
+      groupRow.getCell(1).fill = {
+        type: 'pattern',
+        pattern: 'solid',
+        fgColor: { argb: 'FFE0E0E0' }
+      };
+      // Merge cells cho group header
+      worksheet.mergeCells(groupRow.number, 1, groupRow.number, headers.length);
+      groupRow.getCell(1).alignment = { horizontal: 'left', vertical: 'middle' };
+
+      // Thêm dữ liệu của nhóm
+      deptData.forEach((d: any) => {
+        stt++;
+        const rowData = [
+          stt,
+          d.DepartmentName || '',
+          d.IDChamCongMoi || '',
+          d.Code || '',
+          d.FullName || '',
+          d.ToChuc || '',
+          this.fmtDate(d.AttendanceDate),
+          d.DayWeek || '',
+          d.Interval || '',
+          this.timeDisplay(d?.CheckInDate, d?.CheckIn),
+          this.timeDisplay(d?.CheckOutDate, d?.CheckOut),
+          this.toBool(d.IsLateRegister) ? 'X' : '',
+          this.toBool(d.IsEarlyRegister) ? 'X' : '',
+          this.toBool(d.Overtime) ? 'X' : '',
+          this.toBool(d.Bussiness) ? 'X' : '',
+          this.toBool(d.NoFingerprint) ? 'X' : '',
+          this.toBool(d.OnLeave) ? 'X' : '',
+          this.toBool(d.WFH) ? 'X' : '',
+          this.toBool(d.Curricular) ? 'X' : '',
+          this.toBool(d.IsNoFinger) ? 'X' : ''
+        ];
+
+        const dataRow = worksheet.addRow(rowData);
+
+        // Style cho data rows: font Tahoma size 8.5
+        dataRow.eachCell((cell, colNumber) => {
+          cell.font = {
+            name: 'Tahoma',
+            size: 8.5,
+            color: { argb: 'FF000000' }
+          };
+          cell.border = {
+            top: { style: 'thin', color: { argb: 'FFCCCCCC' } },
+            bottom: { style: 'thin', color: { argb: 'FFCCCCCC' } },
+            left: { style: 'thin', color: { argb: 'FFCCCCCC' } },
+            right: { style: 'thin', color: { argb: 'FFCCCCCC' } }
+          };
+
+          // Căn giữa các cột checkbox
+          if (checkboxCols.includes(colNumber)) {
+            cell.alignment = { horizontal: 'center', vertical: 'middle' };
+          } else if (colNumber === 1) {
+            // STT căn giữa
+            cell.alignment = { horizontal: 'center', vertical: 'middle' };
+          } else {
+            cell.alignment = { vertical: 'middle' };
+          }
+        });
+
+        // Xử lý tô màu cho "Giờ vào" (cột 10) và "Giờ ra" (cột 11)
+        const isOnLeave = this.toBool(d?.OnLeave);
+        const isBusiness = this.toBool(d?.Bussiness);
+        const isNoFinger = this.toBool(d?.NoFingerprint);
+        const isWFH = this.toBool(d?.WFH);
+        const holidayDay = Number(d?.HolidayDay) || 0;
+
+        const paintable = !(isOnLeave || isBusiness || isNoFinger || isWFH) && holidayDay === 0;
+
+        if (paintable) {
+          // Giờ vào - cột 10
+          const checkInCell = dataRow.getCell(10);
+          const isOverLate = this.toBool(d?.IsOverLate);
+          const isLate = this.toBool(d?.IsLate);
+
+          if (isOverLate) {
+            // Vàng - đi muộn > 1h
+            checkInCell.fill = {
+              type: 'pattern',
+              pattern: 'solid',
+              fgColor: { argb: 'FFFFFF00' }
+            };
+            checkInCell.font = { ...checkInCell.font as any, color: { argb: 'FF000000' } };
+          } else if (isLate) {
+            // Đỏ - đi muộn
+            checkInCell.fill = {
+              type: 'pattern',
+              pattern: 'solid',
+              fgColor: { argb: 'FFFF0000' }
+            };
+            checkInCell.font = {
+              name: 'Tahoma',
+              size: 8.5,
+              bold: true,
+              color: { argb: 'FFFFFFFF' }
+            };
+          }
+
+          // Giờ ra - cột 11
+          const checkOutCell = dataRow.getCell(11);
+          const isOverEarly = this.toBool(d?.IsOverEarly);
+          const isEarly = this.toBool(d?.IsEarly);
+
+          if (isOverEarly) {
+            // Vàng - về sớm > 1h
+            checkOutCell.fill = {
+              type: 'pattern',
+              pattern: 'solid',
+              fgColor: { argb: 'FFFFFF00' }
+            };
+            checkOutCell.font = { ...checkOutCell.font as any, color: { argb: 'FF000000' } };
+          } else if (isEarly) {
+            // Đỏ - về sớm
+            checkOutCell.fill = {
+              type: 'pattern',
+              pattern: 'solid',
+              fgColor: { argb: 'FFFF0000' }
+            };
+            checkOutCell.font = {
+              name: 'Tahoma',
+              size: 8.5,
+              bold: true,
+              color: { argb: 'FFFFFFFF' }
+            };
+          }
+        }
+
+        // Căn giữa cột ngày
+        dataRow.getCell(7).alignment = { horizontal: 'center', vertical: 'middle' };
+        dataRow.getCell(10).alignment = { horizontal: 'center', vertical: 'middle' };
+        dataRow.getCell(11).alignment = { horizontal: 'center', vertical: 'middle' };
+      });
+    });
+
+    return workbook;
+  }
+
+
+
+
+
+
+
+  // ======================= DELETE ITEMS =======================
   deleteItems(): void {
     if (!this.tb_EA) return;
     const selected = this.tb_EA.getSelectedData();
@@ -642,213 +908,7 @@ export class EmployeeAttendanceComponent implements OnInit, AfterViewInit {
     });
   }
 
-  /** Chuẩn bị dữ liệu theo đúng thứ tự cột & kèm raw để tô màu */
-  private prepareExportRows(): Array<{
-    exportRow: any;
-    raw: any;
-    sortDept: number;
-    sortStt: number;
-  }> {
-    return (this.attendanceData || []).map((d: any, idx: number) => {
-      const exportRow = {
-        STT: idx + 1,
-        'ID Người': d.IDChamCongMoi || '',
-        'Mã NV': d.Code || '',
-        'Tên Nhân Viên': d.FullName || '',
-
-        'Tổ chức': d.ToChuc || '',
-        Ngày: this.fmtDate(d.AttendanceDate),
-        'Ngày trong tuần': d.DayWeek || '',
-        'Khoảng thời gian': d.Interval || '',
-
-        'Giờ vào': this.timeDisplay(d?.CheckInDate, d?.CheckIn),
-        'Giờ ra': this.timeDisplay(d?.CheckOutDate, d?.CheckOut),
-
-        'Đi muộn (ĐK)': this.toBool(d.IsLateRegister) ? 'X' : '',
-        'Về sớm (ĐK)': this.toBool(d.IsEarlyRegister) ? 'X' : '',
-        'Làm thêm': this.toBool(d.Overtime) ? 'X' : '',
-        'Công tác': this.toBool(d.Bussiness) ? 'X' : '',
-        'ĐK quên vân tay': this.toBool(d.NoFingerprint) ? 'X' : '',
-        Nghỉ: this.toBool(d.OnLeave) ? 'X' : '',
-        WFH: this.toBool(d.WFH) ? 'X' : '',
-        'Ngoại khóa': this.toBool(d.Curricular) ? 'X' : '',
-        'Quên vân tay thực tế': this.toBool(d.IsNoFinger) ? 'X' : '',
-
-        // phụ trợ để sort giống màn hình
-        DepartmentSTT: Number(d?.DepartmentSTT) || 0,
-        'Phòng ban': d.DepartmentName || '',
-      };
-
-      return {
-        exportRow,
-        raw: d,
-        sortDept: Number(d?.DepartmentSTT) || 0,
-        sortStt: idx + 1,
-      };
-    });
-  }
-
-  /** Tạo workbook + style (header, border, freeze, tô màu giờ vào/ra) */
-  private createWorkbookWithStyles(
-    rows: Array<{ exportRow: any; raw: any; sortDept: number; sortStt: number }>
-  ): XLSX.WorkBook {
-    // sort theo DepartmentSTT rồi theo STT
-    const sorted = [...rows].sort(
-      (a, b) => a.sortDept - b.sortDept || a.sortStt - b.sortStt
-    );
-
-    // loại bỏ DepartmentSTT khỏi export
-    const exportData = sorted.map((x) => {
-      const { DepartmentSTT, ...r } = x.exportRow;
-      return r;
-    });
-    const rawSorted = sorted.map((x) => x.raw);
-
-    // tạo sheet
-    const ws = XLSX.utils.json_to_sheet(exportData, {
-      cellDates: false,
-      dateNF: 'dd/mm/yyyy',
-    });
-
-    // width cột tự động
-    const headers = Object.keys(exportData[0] || {});
-    ws['!cols'] = headers.map((h) => {
-      const headerLen = h.length;
-      const maxLen = Math.max(
-        ...exportData.map((r) => (r[h] ? String(r[h]).length : 0))
-      );
-      return {
-        wch: Math.min(Math.max(Math.max(headerLen, maxLen) + 2, 10), 50),
-      };
-    });
-
-    // freeze: 4 cột đầu + header
-    (ws as any)['!freeze'] = { xSplit: 4, ySplit: 1, xTopLeft: 4, yTopLeft: 1 };
-
-    // style header
-    const range = XLSX.utils.decode_range(ws['!ref']!);
-    for (let c = range.s.c; c <= range.e.c; c++) {
-      const cellRef = XLSX.utils.encode_cell({ r: 0, c });
-      if (!ws[cellRef]) continue;
-      (ws[cellRef] as any).s = {
-        font: { bold: true, color: { rgb: 'FFFFFF' } },
-        fill: { fgColor: { rgb: '366092' } },
-        alignment: { horizontal: 'center', vertical: 'center' },
-        border: {
-          top: { style: 'thin', color: { rgb: '000000' } },
-          bottom: { style: 'thin', color: { rgb: '000000' } },
-          left: { style: 'thin', color: { rgb: '000000' } },
-          right: { style: 'thin', color: { rgb: '000000' } },
-        },
-      };
-    }
-
-    // border + căn giữa các cột checkbox
-    const checkboxHeaders = [
-      'Đi muộn (ĐK)',
-      'Về sớm (ĐK)',
-      'Làm thêm',
-      'Công tác',
-      'ĐK quên vân tay',
-      'Nghỉ',
-      'WFH',
-      'Ngoại khóa',
-      'Quên vân tay thực tế',
-    ];
-    for (let r = 1; r <= range.e.r; r++) {
-      for (let c = range.s.c; c <= range.e.c; c++) {
-        const ref = XLSX.utils.encode_cell({ r, c });
-        if (!ws[ref]) continue;
-        const h = headers[c];
-        (ws[ref] as any).s = {
-          ...(ws[ref] as any).s,
-          border: {
-            top: { style: 'thin', color: { rgb: 'CCCCCC' } },
-            bottom: { style: 'thin', color: { rgb: 'CCCCCC' } },
-            left: { style: 'thin', color: { rgb: 'CCCCCC' } },
-            right: { style: 'thin', color: { rgb: 'CCCCCC' } },
-          },
-          ...(checkboxHeaders.includes(h)
-            ? { alignment: { horizontal: 'center', vertical: 'center' } }
-            : {}),
-        };
-      }
-    }
-
-    // ===== TÔ MÀU "Giờ vào" & "Giờ ra" =====
-    // Vị trí cột theo prepareExportRows (đếm từ 0):
-    const colCheckIn = headers.indexOf('Giờ vào'); // thường = 8
-    const colCheckOut = headers.indexOf('Giờ ra'); // thường = 9
-
-    for (let i = 0; i < rawSorted.length; i++) {
-      const d = rawSorted[i];
-      const isOnLeave = this.toBool(d?.OnLeave);
-      const isBusiness = this.toBool(d?.Bussiness);
-      const isNoFinger = this.toBool(d?.NoFingerprint);
-      const isWFH = this.toBool(d?.WFH);
-      const holidayDay = Number(d?.HolidayDay) || 0;
-
-      const paintable =
-        !(isOnLeave || isBusiness || isNoFinger || isWFH) && holidayDay === 0;
-
-      // ==> Giờ vào
-      if (colCheckIn >= 0) {
-        const cellRef = XLSX.utils.encode_cell({ r: i + 1, c: colCheckIn });
-        const over = this.toBool(d?.IsOverLate);
-        const late = this.toBool(d?.IsLate); // “đi muộn thực tế”
-        if (paintable) {
-          if (over) {
-            (ws[cellRef] as any).s = {
-              ...(ws[cellRef] as any).s,
-              fill: { fgColor: { rgb: 'FFFF00' } },
-              font: { color: { rgb: '000000' } },
-            };
-          } else if (late) {
-            (ws[cellRef] as any).s = {
-              ...(ws[cellRef] as any).s,
-              fill: { fgColor: { rgb: 'FF0000' } },
-              font: { color: { rgb: 'FFFFFF' } },
-            };
-          }
-        }
-      }
-
-      // ==> Giờ ra
-      if (colCheckOut >= 0) {
-        const cellRef = XLSX.utils.encode_cell({ r: i + 1, c: colCheckOut });
-        const over = this.toBool(d?.IsOverEarly);
-        const early = this.toBool(d?.IsEarly);
-        if (paintable) {
-          if (over) {
-            (ws[cellRef] as any).s = {
-              ...(ws[cellRef] as any).s,
-              fill: { fgColor: { rgb: 'FFFF00' } },
-              font: { color: { rgb: '000000' } },
-            };
-          } else if (early) {
-            (ws[cellRef] as any).s = {
-              ...(ws[cellRef] as any).s,
-              fill: { fgColor: { rgb: 'FF0000' } },
-              font: { color: { rgb: 'FFFFFF' } },
-            };
-          }
-        }
-      }
-    }
-
-    const wb = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(wb, ws, 'DanhSachVanTay');
-    return wb;
-  }
-
-
-
-
-
-
-
-  // import * as XLSX from 'xlsx';  // đã có đầu file
-
+  // ======================= IMPORT EXCEL =======================
   importExcel(): void {
     const modalRef = this.ngbModal.open(
       EmployeeAttendanceImportExcelComponent,

@@ -20,6 +20,7 @@ import { NzInputNumberModule } from 'ng-zorro-antd/input-number';
 import { NgbActiveModal, NgbModal } from '@ng-bootstrap/ng-bootstrap';
 import { PayrollService } from '../../payroll.service';
 import { NOTIFICATION_TITLE } from '../../../../../app.config';
+import { ka_GE } from 'ng-zorro-antd/i18n';
 
 function formatDateCell(cell: CellComponent): string {
     const val = cell.getValue();
@@ -311,17 +312,30 @@ export class ImportExcelComponent implements OnInit, AfterViewInit {
             const data: any[] = [];
             let validRecords = 0;
             let foundFirstDataRow = false;
+
+            const totalWorkday = worksheet.getRow(1).getCell(12).value;
+            // console.log('totalWorkday:', totalWorkday);
             worksheet.eachRow((row, rowNumber) => {
+
+                // console.log('row:', row);
+
                 if (rowNumber > 5) {
                     const firstCell = row.getCell(1).value;
                     const isEmptyRow = !firstCell || !row.getCell(2).value || !row.getCell(3).value;
 
-                    if (!isEmptyRow) {
+
+                    const stt = parseInt(row.getCell(3).value?.toString() || '') || 0;
+
+                    console.log('isEmptyRow:', row.getCell(3).value);
+
+                    // if (!isEmptyRow) {
+                    if (stt > 0) {
                         const rowData: any = {
+                            TotalWorkday: totalWorkday,
                             IsPublish: row.getCell(1).value?.toString() || '', // Công bố
                             Sign: row.getCell(2).value?.toString() || '', // Ký nhận
                             STT: row.getCell(3).value?.toString() || '',
-                            TaxCompanyName: row.getCell(3).value?.toString() || '',//Công ty
+                            TaxCompanyName: row.getCell(4).value?.toString() || '',//Công ty
                             Code: row.getCell(5).value?.toString() || '', // Mã NV
                             FullName: row.getCell(6).value?.toString() || '',
                             PositionName: row.getCell(7).value?.toString() || '',
@@ -352,7 +366,6 @@ export class ImportExcelComponent implements OnInit, AfterViewInit {
                             Bonus: row.getCell(29).value || 0,
                             Other: row.getCell(30).value || 0,
                             TotalBonus: row.getCell(31).value || 0,
-
                             RealSalary: row.getCell(32).value || 0,
 
                             SocialInsurance: row.getCell(33).value || 0,
@@ -372,11 +385,12 @@ export class ImportExcelComponent implements OnInit, AfterViewInit {
                             TaxSalaryPhone: row.getCell(46).value || 0,
                             TaxPersonalDeduction: row.getCell(47).value || 0,
                             TaxDependentsDeduction: row.getCell(48).value || 0,
-                            TaxAbleIncome: row.getCell(49).value || 0,
-                            TaxDeduction: row.getCell(50).value || 0,
+                            TotalTaxDeduction: row.getCell(49).value || 0,
+                            TaxAbleIncome: row.getCell(50).value || 0,
+                            TaxDeduction: row.getCell(51).value || 0,
 
-                            ActualAmountReceived: row.getCell(51).value || 0,
-                            Note: row.getCell(52).value?.toString() || '',
+                            ActualAmountReceived: row.getCell(52).value || 0,
+                            Note: row.getCell(53).value?.toString() || '',
                         };
 
                         data.push(rowData);
@@ -932,6 +946,15 @@ export class ImportExcelComponent implements OnInit, AfterViewInit {
                                                         bottomCalcFormatter: "money", bottomCalc: "sum"
                                                     },
                                                     {
+                                                        title: "Tổng các khoản giảm trừ thuế TNCN", field: "TotalTaxDeduction", hozAlign: "right", headerHozAlign: "center", formatter: "money",
+                                                        formatterParams: {
+                                                            decimal: ".",
+                                                            thousand: ",",
+                                                            precision: false
+                                                        },
+                                                        bottomCalcFormatter: "money", bottomCalc: "sum"
+                                                    },
+                                                    {
                                                         title: "Thu nhập tính thuế", field: "TaxAbleIncome", hozAlign: "right", headerHozAlign: "center", formatter: "money",
                                                         formatterParams: {
                                                             decimal: ".",
@@ -941,7 +964,7 @@ export class ImportExcelComponent implements OnInit, AfterViewInit {
                                                         bottomCalcFormatter: "money", bottomCalc: "sum"
                                                     },
                                                     {
-                                                        title: "Khấu trừ Thuế TNCN ", field: "TaxDeduction", hozAlign: "right", headerHozAlign: "center", formatter: "money",
+                                                        title: "THUẾ THU NHẬP CÁ NHÂN PHẢI KHẤU TRỪ", field: "TaxDeduction", hozAlign: "right", headerHozAlign: "center", formatter: "money",
                                                         formatterParams: {
                                                             decimal: ".",
                                                             thousand: ",",

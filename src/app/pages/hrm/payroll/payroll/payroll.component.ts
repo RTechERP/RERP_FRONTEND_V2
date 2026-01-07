@@ -217,6 +217,7 @@ export class PayrollComponent implements OnInit, AfterViewInit {
 
     handlePayrollAction(type: string) {
         let selected = this.tb_Payroll.getSelectedData();
+        console.log('selected:', selected);
         if (type === 'create') {
             const modalRef = this.modalService.open(PayrollDetailComponent, {
                 backdrop: 'static',
@@ -428,7 +429,7 @@ export class PayrollComponent implements OnInit, AfterViewInit {
             }
             // báo cáo bảng lương
             case 'payrollReport': {
-                this.payrollReport(last.ID);
+                this.payrollReport(selected[0].ID);
                 return;
             }
             // chi tiết thưởng phạt
@@ -471,6 +472,7 @@ export class PayrollComponent implements OnInit, AfterViewInit {
             windowClass: 'full-screen-modal',
         });
 
+        console.log('payrollId:', payrollId);
         modalRef.componentInstance.payrollId = payrollId;
 
         modalRef.result.catch((reason) => {

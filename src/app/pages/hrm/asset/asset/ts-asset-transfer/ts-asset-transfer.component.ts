@@ -47,6 +47,10 @@ import { forkJoin } from 'rxjs';
 import { AuthService } from '../../../../../auth/auth.service';
 import { NzModalModule, NzModalService } from 'ng-zorro-antd/modal';
 import { NOTIFICATION_TITLE } from '../../../../../app.config';
+import { NzFormModule } from 'ng-zorro-antd/form';
+import { Menubar } from 'primeng/menubar';
+import { PermissionService } from '../../../../../services/permission.service';
+
 @Component({
   standalone: true,
   selector: 'app-ts-asset-transfer',
@@ -74,7 +78,9 @@ import { NOTIFICATION_TITLE } from '../../../../../app.config';
     NzDropDownModule,
     NgbModalModule, HasPermissionDirective, NzModalModule,
     AngularSlickgridModule,
-    NzSpinModule
+    NzSpinModule,
+    NzFormModule,
+    Menubar
   ]
 })
 export class TsAssetTransferComponent implements OnInit, AfterViewInit {
@@ -102,6 +108,7 @@ export class TsAssetTransferComponent implements OnInit, AfterViewInit {
     private TsAssetManagementPersonalService: TsAssetManagementPersonalService,
     private authService: AuthService,
     private modal: NzModalService,
+    private permissionService: PermissionService,
   ) { }
   public detailTabTitle: string = 'Thông tin biên bản điều chuyển:';
   private ngbModal = inject(NgbModal);
@@ -109,8 +116,8 @@ export class TsAssetTransferComponent implements OnInit, AfterViewInit {
   deletedDetailIds: number[] = [];
   modalData: any = [];
   selectedRow: any = "";
-  DateStart: string = '';
-  DateEnd: string = '';
+  DateStart: Date = new Date();
+  DateEnd: Date = new Date();
   IsApproved: number | null = null;
   DeliverID: number | null = null;
   ReceiverID: number | null = null;
@@ -120,19 +127,132 @@ export class TsAssetTransferComponent implements OnInit, AfterViewInit {
   assetTranferData: any[] = [];
   assetTranferDetailData: any[] = [];
   isSearchVisible: boolean = false;
+  showSearchBar: boolean = typeof window !== 'undefined' ? window.innerWidth > 768 : true;
   currentUser: any = null;
   EmployeeID: any;
   isLoading: boolean = false;
-  sizeSearch: string = '0';
   statusData = [
     { ID: 0, Name: 'Chưa duyệt' },
     { ID: 1, Name: 'Đã duyệt' }
   ];
   selectedApproval: number | null = null;
+  menuBars: any[] = [];
+
+  get shouldShowSearchBar(): boolean {
+    return this.showSearchBar;
+  }
+
+  isMobile(): boolean {
+    return typeof window !== 'undefined' && window.innerWidth <= 768;
+  }
+
+  ToggleSearchPanelNew(event?: Event): void {
+    if (event) {
+      event.stopPropagation();
+    }
+    this.showSearchBar = !this.showSearchBar;
+  }
+  private getFirstDayOfMonth(): Date {
+    const now = new Date();
+    return new Date(now.getFullYear(), now.getMonth(), 1);
+  }
+
+  private getLastDayOfMonth(): Date {
+    const now = new Date();
+    return new Date(now.getFullYear(), now.getMonth() + 1, 0);
+  }
+
   ngOnInit() {
+    this.DateStart = this.getFirstDayOfMonth();
+    this.DateEnd = this.getLastDayOfMonth();
+    this.initMenuBar();
     this.initGrid();
     this.initGridDetail();
   }
+
+  initMenuBar(): void {
+    this.menuBars = [
+      {
+        label: 'Thêm',
+        icon: 'fa-solid fa-plus fa-lg text-success',
+        command: () => this.onAddATranfer(),
+        visible: this.permissionService.hasPermission("N23,N1"),
+      },
+      {
+        label: 'Sửa',
+        icon: 'fa-solid fa-pen-to-square fa-lg text-primary',
+        command: () => this.onEditTranfer(),
+        visible: this.permissionService.hasPermission("N23,N1"),
+      },
+      {
+        label: 'Xóa',
+        icon: 'fa-solid fa-trash fa-lg text-danger',
+        command: () => this.onDeleteAssetTranfer(),
+        visible: this.permissionService.hasPermission("N23,N1"),
+      },
+      {
+        label: 'Cá nhân xác nhận',
+        icon: 'fa-solid fa-user-check fa-lg text-primary',
+        items: [
+          {
+            label: 'Cá nhân duyệt',
+            icon: 'fa-solid fa-circle-check fa-lg text-success',
+            command: () => this.updateApprove(1)
+          },
+          {
+            label: 'Cá nhân hủy duyệt',
+            icon: 'fa-solid fa-circle-xmark fa-lg text-danger',
+            command: () => this.updateApprove(2)
+          }
+        ]
+      },
+      {
+        label: 'HR xác nhận',
+        icon: 'fa-solid fa-id-card fa-lg text-info',
+        visible: this.permissionService.hasPermission("N23,N1"),
+        items: [
+          {
+            label: 'HR duyệt',
+            icon: 'fa-solid fa-circle-check fa-lg text-success',
+            command: () => this.updateApprove(3)
+          },
+          {
+            label: 'HR hủy duyệt',
+            icon: 'fa-solid fa-circle-xmark fa-lg text-danger',
+            command: () => this.updateApprove(4)
+          }
+        ]
+      },
+      {
+        label: 'KT xác nhận',
+        icon: 'fa-solid fa-calculator fa-lg text-warning',
+        visible: this.permissionService.hasPermission("N67,N1"),
+        items: [
+          {
+            label: 'Kế toán duyệt',
+            icon: 'fa-solid fa-circle-check fa-lg text-success',
+            command: () => this.updateApprove(5)
+          },
+          {
+            label: 'Kế toán hủy duyệt',
+            icon: 'fa-solid fa-circle-xmark fa-lg text-danger',
+            command: () => this.updateApprove(6)
+          }
+        ]
+      },
+      {
+        label: 'Xuất phiếu',
+        icon: 'fa-solid fa-file-excel fa-lg text-success',
+        command: () => this.exportTransferAssetReport()
+      },
+      {
+        label: 'Refresh',
+        icon: 'fa-solid fa-rotate fa-lg text-primary',
+        command: () => this.getTranferAsset()
+      }
+    ];
+  }
+
   ngAfterViewInit(): void {
     this.getTranferAsset();
     this.getListEmployee();
@@ -197,16 +317,34 @@ export class TsAssetTransferComponent implements OnInit, AfterViewInit {
     });
   }
   resetSearch(): void {
-    this.DateStart = '';
-    this.DateEnd = '';
-    this.IsApproved = -1;
-    this.DeliverID = 0;
-    this.ReceiverID = 0;
+    this.DateStart = this.getFirstDayOfMonth();
+    this.DateEnd = this.getLastDayOfMonth();
+    this.IsApproved = null;
+    this.DeliverID = null;
+    this.ReceiverID = null;
     this.TextFilter = '';
+    this.selectedApproval = null;
     this.getTranferAsset();
   }
-  toggleSearchPanel() {
-    this.sizeSearch = this.sizeSearch == '0' ? '22%' : '0';
+
+  onDateRangeChange(): void {
+    this.getTranferAsset();
+  }
+
+  onDeliverChange(): void {
+    this.getTranferAsset();
+  }
+
+  onReceiverChange(): void {
+    this.getTranferAsset();
+  }
+
+  onApprovalChange(): void {
+    this.getTranferAsset();
+  }
+
+  onKeywordChange(value: string): void {
+    this.TextFilter = value;
   }
 
   // Khởi tạo SlickGrid cho bảng master
@@ -232,34 +370,36 @@ export class TsAssetTransferComponent implements OnInit, AfterViewInit {
       { id: 'IsApprovedPersonalProperty', name: 'Cá nhân duyệt', field: 'IsApprovedPersonalProperty', width: 100, sortable: true, cssClass: 'text-center', formatter: checkboxFormatter },
       { id: 'IsApproved', name: 'HR duyệt', field: 'IsApproved', width: 100, sortable: true, cssClass: 'text-center', formatter: checkboxFormatter },
       { id: 'IsApproveAccountant', name: 'KT duyệt', field: 'IsApproveAccountant', width: 100, sortable: true, cssClass: 'text-center', formatter: checkboxFormatter },
-      { 
+      {
         id: 'CodeReport', name: 'Mã điều chuyển', field: 'CodeReport', width: 160, sortable: true, filterable: true,
         filter: { model: Filters['multipleSelect'], collection: [], collectionOptions: { addBlankEntry: true }, filterOptions: { filter: true, autoAdjustDropWidthByTextSize: true } as MultipleSelectOption }
       },
-      { id: 'TranferDate', name: 'Ngày chuyển', field: 'TranferDate', width: 160, sortable: true, cssClass: 'text-center', formatter: formatDate, filterable: true,
-        filter: { model: Filters['compoundInputText'] } },
+      {
+        id: 'TranferDate', name: 'Ngày chuyển', field: 'TranferDate', width: 160, sortable: true, cssClass: 'text-center', formatter: formatDate, filterable: true,
+        filter: { model: Filters['compoundInputText'] }
+      },
       { id: 'DateApprovedHR', name: 'Ngày duyệt', field: 'DateApprovedHR', width: 160, sortable: true, cssClass: 'text-center', formatter: formatDate, hidden: true },
       { id: 'DateApprovedPersonalProperty', name: 'Ngày cá nhân duyệt', field: 'DateApprovedPersonalProperty', width: 160, sortable: true, cssClass: 'text-center', formatter: formatDate, hidden: true },
-      { 
+      {
         id: 'DeliverName', name: 'Người giao', field: 'DeliverName', width: 160, sortable: true, filterable: true,
         filter: { model: Filters['multipleSelect'], collection: [], collectionOptions: { addBlankEntry: true }, filterOptions: { filter: true, autoAdjustDropWidthByTextSize: true } as MultipleSelectOption }
       },
-      { 
+      {
         id: 'ReceiverName', name: 'Người nhận', field: 'ReceiverName', width: 160, sortable: true, filterable: true,
         filter: { model: Filters['multipleSelect'], collection: [], collectionOptions: { addBlankEntry: true }, filterOptions: { filter: true, autoAdjustDropWidthByTextSize: true } as MultipleSelectOption }
       },
       { id: 'ReceiverID', name: 'ReceiverID', field: 'ReceiverID', hidden: true },
-      { 
+      {
         id: 'DepartmentDeliver', name: 'Phòng giao', field: 'DepartmentDeliver', width: 160, sortable: true, filterable: true,
         filter: { model: Filters['multipleSelect'], collection: [], collectionOptions: { addBlankEntry: true }, filterOptions: { filter: true, autoAdjustDropWidthByTextSize: true } as MultipleSelectOption }
       },
-      { 
+      {
         id: 'DepartmentReceiver', name: 'Phòng nhận', field: 'DepartmentReceiver', width: 160, sortable: true, filterable: true,
         filter: { model: Filters['multipleSelect'], collection: [], collectionOptions: { addBlankEntry: true }, filterOptions: { filter: true, autoAdjustDropWidthByTextSize: true } as MultipleSelectOption }
       },
       { id: 'PossitionDeliver', name: 'Vị trí giao', field: 'PossitionDeliver', width: 160, sortable: true },
       { id: 'PossitionReceiver', name: 'Vị trí nhận', field: 'PossitionReceiver', width: 160, sortable: true },
-      { 
+      {
         id: 'Reason', name: 'Lý do', field: 'Reason', width: 300, sortable: true, filterable: true, filter: { model: Filters['compoundInputText'] },
         formatter: (_row: any, _cell: any, value: any, _column: any, dataContext: any) => {
           if (!value) return '';
@@ -273,16 +413,15 @@ export class TsAssetTransferComponent implements OnInit, AfterViewInit {
       autoResize: { container: '#grid-container-transfer', calculateAvailableSizeBy: 'container' },
       enableAutoResize: true,
       gridWidth: '100%',
-      forceFitColumns: false,
+      forceFitColumns: true,
       enableRowSelection: true,
       rowSelectionOptions: { selectActiveRow: false },
       checkboxSelector: { hideInFilterHeaderRow: false, hideInColumnTitleRow: true, applySelectOnAllPages: true },
       enableCheckboxSelector: true,
       enableCellNavigation: true,
       enableFiltering: true,
-      autoFitColumnsOnFirstLoad: false,
-      enableAutoSizeColumns: false,
-      frozenColumn: 6
+      autoFitColumnsOnFirstLoad: true,
+      enableAutoSizeColumns: true
     };
   }
 
@@ -293,12 +432,12 @@ export class TsAssetTransferComponent implements OnInit, AfterViewInit {
       { id: 'TSTranferAssetID', name: 'TSTranferAssetID', field: 'TSTranferAssetID', width: 60, hidden: true },
       { id: 'ID', name: 'ID', field: 'ID', width: 60, hidden: true },
       { id: 'STT', name: 'STT', field: 'STT', width: 60, sortable: true, cssClass: 'text-center' },
-      { 
+      {
         id: 'TSCodeNCC', name: 'Mã tài sản', field: 'TSCodeNCC', width: 150, sortable: true, filterable: true,
         filter: { model: Filters['multipleSelect'], collection: [], collectionOptions: { addBlankEntry: true }, filterOptions: { filter: true, autoAdjustDropWidthByTextSize: true } as MultipleSelectOption }
       },
       { id: 'Quantity', name: 'Số lượng', field: 'Quantity', width: 100, sortable: true, cssClass: 'text-center' },
-      { 
+      {
         id: 'TSAssetName', name: 'Tên tài sản', field: 'TSAssetName', width: 200, sortable: true, filterable: true,
         filter: { model: Filters['multipleSelect'], collection: [], collectionOptions: { addBlankEntry: true }, filterOptions: { filter: true, autoAdjustDropWidthByTextSize: true } as MultipleSelectOption },
         formatter: (_row: any, _cell: any, value: any, _column: any, dataContext: any) => {
@@ -308,7 +447,7 @@ export class TsAssetTransferComponent implements OnInit, AfterViewInit {
         customTooltip: { useRegularTooltip: true }
       },
       { id: 'UnitName', name: 'Đơn vị', field: 'UnitName', width: 100, sortable: true, cssClass: 'text-center' },
-      { 
+      {
         id: 'Note', name: 'Ghi chú', field: 'Note', width: 300, sortable: true, filterable: true, filter: { model: Filters['compoundInputText'] },
         formatter: (_row: any, _cell: any, value: any, _column: any, dataContext: any) => {
           if (!value) return '';
@@ -321,12 +460,13 @@ export class TsAssetTransferComponent implements OnInit, AfterViewInit {
     this.gridOptionsDetail = {
       autoResize: { container: '#grid-container-transfer-detail', calculateAvailableSizeBy: 'container' },
       enableAutoResize: true,
+      gridWidth: '100%',
       forceFitColumns: true,
       enableRowSelection: true,
       enableCellNavigation: true,
       enableFiltering: true,
-      autoFitColumnsOnFirstLoad: false,
-      enableAutoSizeColumns: false
+      autoFitColumnsOnFirstLoad: true,
+      enableAutoSizeColumns: true
     };
   }
 
@@ -612,7 +752,7 @@ export class TsAssetTransferComponent implements OnInit, AfterViewInit {
         messages.join('\n')
       );
     }
-      const currentDate = new Intl.DateTimeFormat('sv-SE', {
+    const currentDate = new Intl.DateTimeFormat('sv-SE', {
       timeZone: 'Asia/Bangkok',
       year: 'numeric',
       month: '2-digit',

@@ -43,6 +43,7 @@ import { InventoryService } from '../inventory-service/inventory.service';
 import { ProductGroupDetailComponent } from '../../ProductSale/product-group-detail/product-group-detail.component';
 import { BillExportDetailComponent } from '../../BillExport/Modal/bill-export-detail/bill-export-detail.component';
 import { NOTIFICATION_TITLE } from '../../../../../app.config';
+import { environment } from '../../../../../../environments/environment';
 
 interface ProductGroup {
     ID?: number;
@@ -136,7 +137,7 @@ export class InventoryNewComponent implements OnInit, AfterViewInit, OnDestroy {
         private zone: NgZone,
         private route: ActivatedRoute,
         private cdr: ChangeDetectorRef
-    ) {}
+    ) { }
 
     ngOnInit(): void {
         this.route.queryParams.subscribe((params) => {
@@ -1122,7 +1123,7 @@ export class InventoryNewComponent implements OnInit, AfterViewInit, OnDestroy {
                     this.getAllProductSale();
                 }
             })
-            .catch((error) => {});
+            .catch((error) => { });
     }
 
     //#endregion
@@ -1238,7 +1239,7 @@ export class InventoryNewComponent implements OnInit, AfterViewInit, OnDestroy {
         });
 
         window.open(
-            `/chi-tiet-san-pham-sale?${params.toString()}`,
+            `${environment.baseHref}/chi-tiet-san-pham-sale?${params.toString()}`,
             '_blank',
             'width=1400,height=900,scrollbars=yes,resizable=yes'
         );

@@ -941,7 +941,6 @@ export const routes: Routes = [
             { path: 'phase-allocation-hr', component: PhaseAllocationPersonComponent, canActivate: [authGuard] },
             { path: 'workplan-summary', component: WorkplanSummaryComponent, canActivate: [authGuard] },
 
-
             { path: 'bill-import-qc', component: BillImportQcComponent, canActivate: [authGuard] },
 
             { path: 'newsletter', component: NewsletterComponent, canActivate: [authGuard] },
@@ -954,6 +953,8 @@ export const routes: Routes = [
 
             // COURSE
             { path: 'course-management', component: CourseManagementComponent, canActivate: [authGuard] },
+
+            { path: 'chi-tiet-san-pham-sale', component: ChiTietSanPhamSaleComponent, canActivate: [authGuard] },
 
         ],
     },

@@ -297,7 +297,15 @@ export class TsAssetAllocationFormComponent implements OnInit, AfterViewInit {
       EmployeeID: this.dataInput.EmployeeID,
       IsDeleted: false
     }));
+    const assetManagements = rows.map(item => ({
+      ID: item.AssetManagementID,
+      IsAllocation: true,
+      StatusID: 1,
+      Status: "Chưa sử dụng",
+      DepartmentID: item.DepartmentID || 0,
+      EmployeeID: this.dataInput.EmployeeID,
 
+    }));
     // Thêm các dòng cần xóa (chỉ cần ID + IsDelete = true, các field khác backend có thể bỏ qua)
     const deletedDetailsPayload = this.deletedDetailIds.map(id => ({
       ID: id,
@@ -321,6 +329,7 @@ export class TsAssetAllocationFormComponent implements OnInit, AfterViewInit {
         Status: 0,
         IsApprovedPersonalProperty: false
       },
+      tSAssetManagements: assetManagements,
       tSAssetAllocationDetails: [
         ...detailPayload,
         ...deletedDetailsPayload

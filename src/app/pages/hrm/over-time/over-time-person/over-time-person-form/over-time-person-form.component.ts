@@ -373,6 +373,13 @@ export class OverTimePersonFormComponent implements OnInit, AfterViewInit, OnDes
         // Force update date picker validation
         this.datePickerKey++;
         this.cdr.detectChanges();
+
+        // Cập nhật min/max dates cho Flatpickr khi DateRegister thay đổi
+        this.updateFlatpickrMinMaxDates();
+        // Cập nhật giá trị hiển thị trong Flatpickr
+        this.formTabs.forEach((tab) => {
+          this.setFlatpickrValue(tab);
+        });
       }
     });
   }
@@ -742,18 +749,29 @@ export class OverTimePersonFormComponent implements OnInit, AfterViewInit, OnDes
 
   // ========== PrimeNG DatePicker Methods ==========
 
-  // Lấy min Date cho TimeStart (PrimeNG)
+  // Lấy min Date cho TimeStart - dựa vào DateRegister
   getMinDateForTimeStart(): Date {
-    const isProblem = this.commonForm.get('IsProblem')?.value;
+    const dateRegisterValue = this.commonForm?.get('DateRegister')?.value;
 
+    if (dateRegisterValue) {
+      // Nếu có DateRegister, minDate = DateRegister lúc 00:00
+      const registerDate = dateRegisterValue instanceof Date
+        ? new Date(dateRegisterValue)
+        : new Date(dateRegisterValue);
+      if (!isNaN(registerDate.getTime())) {
+        registerDate.setHours(0, 0, 0, 0);
+        return registerDate;
+      }
+    }
+
+    // Fallback: nếu không có DateRegister
+    const isProblem = this.commonForm.get('IsProblem')?.value;
     if (isProblem) {
-      // Nếu là đăng ký bổ sung, cho phép chọn từ 30 ngày trước
       const minDate = new Date();
       minDate.setDate(minDate.getDate() - 30);
       minDate.setHours(0, 0, 0, 0);
       return minDate;
     } else {
-      // Không phải đăng ký bổ sung: chỉ cho chọn từ hôm qua
       const yesterday = new Date();
       yesterday.setDate(yesterday.getDate() - 1);
       yesterday.setHours(0, 0, 0, 0);
@@ -761,16 +779,31 @@ export class OverTimePersonFormComponent implements OnInit, AfterViewInit, OnDes
     }
   }
 
-  // Lấy max Date cho TimeStart (PrimeNG)
+  // Lấy max Date cho TimeStart - dựa vào DateRegister
   getMaxDateForTimeStart(): Date {
-    // Cho phép chọn đến cuối ngày mai
+    const dateRegisterValue = this.commonForm?.get('DateRegister')?.value;
+
+    if (dateRegisterValue) {
+      // Nếu có DateRegister, maxDate = DateRegister + 1 ngày lúc 23:59
+      const registerDate = dateRegisterValue instanceof Date
+        ? new Date(dateRegisterValue)
+        : new Date(dateRegisterValue);
+      if (!isNaN(registerDate.getTime())) {
+        const maxDate = new Date(registerDate);
+        maxDate.setDate(maxDate.getDate() + 1);
+        maxDate.setHours(23, 59, 0, 0);
+        return maxDate;
+      }
+    }
+
+    // Fallback: nếu không có DateRegister, cho phép đến cuối ngày mai
     const tomorrow = new Date();
     tomorrow.setDate(tomorrow.getDate() + 1);
     tomorrow.setHours(23, 59, 0, 0);
     return tomorrow;
   }
 
-  // Lấy min Date cho EndTime (PrimeNG) - phải >= TimeStart
+  // Lấy min Date cho EndTime - dựa vào DateRegister và TimeStart
   getMinDateForEndTime(form: FormGroup): Date {
     const timeStart = form.get('TimeStart')?.value;
     if (timeStart) {
@@ -779,12 +812,28 @@ export class OverTimePersonFormComponent implements OnInit, AfterViewInit, OnDes
         return startDate;
       }
     }
+    // Fallback về minDate của TimeStart (dựa vào DateRegister)
     return this.getMinDateForTimeStart();
   }
 
-  // Lấy max Date cho EndTime (PrimeNG)
+  // Lấy max Date cho EndTime - dựa vào DateRegister
   getMaxDateForEndTime(): Date {
-    // Cho phép chọn đến cuối ngày kia (2 ngày sau)
+    const dateRegisterValue = this.commonForm?.get('DateRegister')?.value;
+
+    if (dateRegisterValue) {
+      // Nếu có DateRegister, maxDate = DateRegister + 1 ngày lúc 23:59
+      const registerDate = dateRegisterValue instanceof Date
+        ? new Date(dateRegisterValue)
+        : new Date(dateRegisterValue);
+      if (!isNaN(registerDate.getTime())) {
+        const maxDate = new Date(registerDate);
+        maxDate.setDate(maxDate.getDate() + 1);
+        maxDate.setHours(23, 59, 0, 0);
+        return maxDate;
+      }
+    }
+
+    // Fallback: cho phép đến cuối ngày kia (2 ngày sau)
     const dayAfterTomorrow = new Date();
     dayAfterTomorrow.setDate(dayAfterTomorrow.getDate() + 2);
     dayAfterTomorrow.setHours(23, 59, 0, 0);

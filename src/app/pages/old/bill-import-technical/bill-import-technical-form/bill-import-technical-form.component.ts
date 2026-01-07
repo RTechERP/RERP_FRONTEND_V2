@@ -370,7 +370,10 @@ export class BillImportTechnicalFormComponent implements OnInit, AfterViewInit {
       console.log('Warehouse List:', list);
 
       // Ưu tiên dùng warehouseID từ input nếu đã được truyền vào
-      let currentId = inputWarehouseID && inputWarehouseID > 0 ? inputWarehouseID : this.warehouseID;
+      let currentId =
+        inputWarehouseID && inputWarehouseID > 0
+          ? inputWarehouseID
+          : this.warehouseID;
 
       // Nếu không có warehouseID hoặc = 0, tìm theo WarehouseCode
       if (!currentId || currentId === 0) {
@@ -392,7 +395,10 @@ export class BillImportTechnicalFormComponent implements OnInit, AfterViewInit {
         // Sử dụng setTimeout để đảm bảo form đã được khởi tạo và dataEdit đã được patch (nếu có)
         setTimeout(() => {
           // Luôn ưu tiên warehouseID từ input nếu có
-          const finalWarehouseID = inputWarehouseID && inputWarehouseID > 0 ? inputWarehouseID : currentId;
+          const finalWarehouseID =
+            inputWarehouseID && inputWarehouseID > 0
+              ? inputWarehouseID
+              : currentId;
           this.formDeviceInfo.patchValue({ WarehouseID: finalWarehouseID });
           // Lưu giá trị WarehouseID vào biến instance để sử dụng khi lưu
           this.warehouseID = finalWarehouseID;
@@ -596,7 +602,10 @@ export class BillImportTechnicalFormComponent implements OnInit, AfterViewInit {
           ? DateTime.fromISO(this.dataEdit.DateRequestImport).toJSDate()
           : null,
         // Ưu tiên warehouseID từ input nếu có, nếu không thì dùng từ dataEdit
-        WarehouseID: inputWarehouseID && inputWarehouseID > 0 ? inputWarehouseID : (this.dataEdit.WarehouseID || this.warehouseID),
+        WarehouseID:
+          inputWarehouseID && inputWarehouseID > 0
+            ? inputWarehouseID
+            : this.dataEdit.WarehouseID || this.warehouseID,
       });
 
       // Restore warehouseID từ input để getWarehouse() sử dụng
@@ -1202,6 +1211,13 @@ export class BillImportTechnicalFormComponent implements OnInit, AfterViewInit {
     productCode: string,
     existingSerials: { ID: number; Serial: string }[]
   ) {
+    if (rowData.ID == null || rowData.ID <= 0) {
+      this.notification.warning(
+        NOTIFICATION_TITLE.warning,
+        'Các mã sản phẩm thêm mới cần lưu trước khi chọn serial!'
+      );
+      return;
+    }
     const modalRef = this.ngbModal.open(BillImportChoseSerialComponent, {
       size: 'md',
       centered: true,
@@ -1212,6 +1228,7 @@ export class BillImportTechnicalFormComponent implements OnInit, AfterViewInit {
     modalRef.componentInstance.type = 1;
     modalRef.componentInstance.isTechBill = true;
     modalRef.componentInstance.warehouseId = this.warehouseID;
+    modalRef.componentInstance.isBillImport = true;
     modalRef.result
       .then((serials: { ID: number; Serial: string }[]) => {
         const newSerial = serials.map((s) => s.Serial).join(', ');

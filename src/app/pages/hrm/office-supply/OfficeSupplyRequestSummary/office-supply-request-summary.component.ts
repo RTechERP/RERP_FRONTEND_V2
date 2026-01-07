@@ -144,7 +144,7 @@ export class OfficeSupplyRequestSummaryComponent implements OnInit, AfterViewIni
         }
       },
       error: (err) => {
-        console.error('Lỗi khi lấy đơn vị tính:', err);
+        console.error(err.message || err.error.message);
         this.message.error('Có lỗi xảy ra khi lấy danh sách phòng ban');
       }
     });
@@ -161,20 +161,96 @@ export class OfficeSupplyRequestSummaryComponent implements OnInit, AfterViewIni
     }
 
     const workbook = new ExcelJS.Workbook();
-    const worksheet = workbook.addWorksheet('Danh sách dự án');
+    const worksheet = workbook.addWorksheet('Danh sách tổng hợp VPP');
 
-    const columns = table.getColumns();
-    // Bỏ qua cột đầu tiên
-    const filteredColumns = columns.slice(1);
-    const headers = filteredColumns.map(
-      (col: any) => col.getDefinition().title
-    );
-    worksheet.addRow(headers);
+    // Định nghĩa các cột số lượng
+    const quantityFields = ['GD', 'HR', 'KT', 'MH', 'MKT', 'KD', 'KYTHUAT', 'TKCK', 'AGV', 'BN', 'HP', 'HCM', 'LR', 'TotalQuantity'];
 
+    // Định nghĩa headers thủ công với cột Đơn vị tính
+    const headers = [
+      'STT',
+      'Tên sản phẩm',
+      'Đơn vị tính',
+      'Ban giám đốc',
+      'HCNS',
+      'Kế toán',
+      'Mua hàng',
+      'Phòng Marketing',
+      'Kinh doanh',
+      'Kỹ thuật',
+      'Cơ khí- Thiết kế',
+      'AGV',
+      'Văn Phòng BN',
+      'Văn Phòng HP',
+      'Văn Phòng HCM',
+      'Lắp ráp',
+      'Tổng',
+      'Đơn giá (VND)',
+      'Thành tiền (VND)',
+      'Ghi chú'
+    ];
+
+    // Định nghĩa fields tương ứng
+    const fields = [
+      'STT',
+      'OfficeSupplyName',
+      'OfficeSupplyUnit',
+      'GD',
+      'HR',
+      'KT',
+      'MH',
+      'MKT',
+      'KD',
+      'KYTHUAT',
+      'TKCK',
+      'AGV',
+      'BN',
+      'HP',
+      'HCM',
+      'LR',
+      'TotalQuantity',
+      'UnitPrice',
+      'TotalPrice',
+      'Note'
+    ];
+
+    // Thêm header row
+    const headerRow = worksheet.addRow(headers);
+
+    // Style cho header: màu xám, font Tahoma 8.5
+    headerRow.eachCell((cell) => {
+      cell.fill = {
+        type: 'pattern',
+        pattern: 'solid',
+        fgColor: { argb: 'FFC0C0C0' } // Màu xám
+      };
+      cell.font = {
+        name: 'Tahoma',
+        size: 8.5,
+        bold: true
+      };
+      cell.alignment = {
+        horizontal: 'center',
+        vertical: 'middle',
+        wrapText: true
+      };
+      cell.border = {
+        top: { style: 'thin' },
+        left: { style: 'thin' },
+        bottom: { style: 'thin' },
+        right: { style: 'thin' }
+      };
+    });
+
+    // Thêm data rows
     data.forEach((row: any) => {
-      const rowData = filteredColumns.map((col: any) => {
-        const field = col.getField();
+      const rowData = fields.map((field) => {
         let value = row[field];
+
+        // Nếu là cột số lượng và giá trị = 0 thì trả về ""
+        if (quantityFields.includes(field) && (value === 0 || value === '0' || value === null || value === undefined)) {
+          return '';
+        }
 
         if (typeof value === 'string' && /^\d{4}-\d{2}-\d{2}T/.test(value)) {
           value = new Date(value);
@@ -183,29 +259,54 @@ export class OfficeSupplyRequestSummaryComponent implements OnInit, AfterViewIni
         return value;
       });
 
-      worksheet.addRow(rowData);
-    });
+      const dataRow = worksheet.addRow(rowData);
 
-    // Format cột có giá trị là Date
-    worksheet.eachRow((row, rowNumber) => {
-      if (rowNumber === 1) return; // bỏ qua tiêu đề
-      row.eachCell((cell, colNumber) => {
-        if (cell.value instanceof Date) {
-          cell.numFmt = 'dd/mm/yyyy'; // hoặc 'yyyy-mm-dd'
+      // Style cho data row: font Tahoma 8.5, căn giữa các số
+      dataRow.eachCell((cell, colNumber) => {
+        cell.font = {
+          name: 'Tahoma',
+          size: 8.5
+        };
+        cell.border = {
+          top: { style: 'thin' },
+          left: { style: 'thin' },
+          bottom: { style: 'thin' },
+          right: { style: 'thin' }
+        };
+
+        const field = fields[colNumber - 1];
+        // Căn giữa cho các cột số lượng và STT
+        if (quantityFields.includes(field) || field === 'STT') {
+          cell.alignment = {
+            horizontal: 'center',
+            vertical: 'middle'
+          };
+        } else if (field === 'UnitPrice' || field === 'TotalPrice') {
+          // Căn phải cho cột tiền
+          cell.alignment = {
+            horizontal: 'right',
+            vertical: 'middle'
+          };
+          // Format số có dấu phẩy phân cách hàng nghìn
+          if (typeof cell.value === 'number') {
+            cell.numFmt = '#,##0';
+          }
+        } else {
+          cell.alignment = {
+            vertical: 'middle',
+            wrapText: true
+          };
         }
       });
     });
 
     // Tự động căn chỉnh độ rộng cột
-    worksheet.columns.forEach((column: any) => {
+    worksheet.columns.forEach((column: any, index: number) => {
       let maxLength = 10;
       column.eachCell({ includeEmpty: true }, (cell: any) => {
         const cellValue = cell.value ? cell.value.toString() : '';
-        // Giới hạn độ dài tối đa của cell là 50 ký tự
         maxLength = Math.min(Math.max(maxLength, cellValue.length + 2), 50);
-        cell.alignment = { wrapText: true, vertical: 'middle' };
       });
-      // Giới hạn độ rộng cột tối đa là 30
       column.width = Math.min(maxLength, 30);
     });
 
@@ -217,7 +318,7 @@ export class OfficeSupplyRequestSummaryComponent implements OnInit, AfterViewIni
       },
       to: {
         row: 1,
-        column: filteredColumns.length,
+        column: headers.length,
       },
     };
 
@@ -226,13 +327,6 @@ export class OfficeSupplyRequestSummaryComponent implements OnInit, AfterViewIni
     const blob = new Blob([buffer], {
       type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
     });
-
-    const formattedDate = new Date()
-      .toISOString()
-      .slice(2, 10)
-      .split('-')
-      .reverse()
-      .join('');
 
     const link = document.createElement('a');
     link.href = window.URL.createObjectURL(blob);
@@ -312,6 +406,15 @@ export class OfficeSupplyRequestSummaryComponent implements OnInit, AfterViewIni
                   formatter: "textarea",
                   // frozen: true
                 },
+                {
+                  title: "Đơn vị",
+                  field: "OfficeSupplyUnit",
+                  resizable: true,
+                  variableHeight: true,
+                  bottomCalc: "count",
+                  formatter: "textarea",
+                  // frozen: true
+                }
               ]
             },
             {
@@ -498,14 +601,14 @@ export class OfficeSupplyRequestSummaryComponent implements OnInit, AfterViewIni
         Quantity: totalQuantity - quantityHCM,
         Unit: rowData['OfficeSupplyUnit'] || rowData['Unit'] || rowData['UnitCount'] || '',
         UnitCount: rowData['OfficeSupplyUnit'] || rowData['Unit'] || rowData['UnitCount'] || '',
-        ProjectPartlistID:0,
-        UnitPrice:0,
-        TotalPrice:0,
-        SupplyUnitID:0,
-        Note:'',
-        JobRequirementID:0,
-        IsJobRequirement:true,
-        IsCommercialProduct:false
+        ProjectPartlistID: 0,
+        UnitPrice: 0,
+        TotalPrice: 0,
+        SupplyUnitID: 0,
+        Note: '',
+        JobRequirementID: 0,
+        IsJobRequirement: true,
+        IsCommercialProduct: false
       };
 
       dataToSend.push(record);
@@ -534,7 +637,7 @@ export class OfficeSupplyRequestSummaryComponent implements OnInit, AfterViewIni
     modalRef.result.then(
       (result) => {
         if (result === 'saved') {
-       
+
         }
       },
       (dismissed) => {

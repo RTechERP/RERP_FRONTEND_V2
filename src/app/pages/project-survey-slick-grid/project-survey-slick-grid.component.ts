@@ -980,14 +980,14 @@ export class ProjectSurveySlickGridComponent implements OnInit, AfterViewInit, O
         this.notification.warning('Thông báo', 'Vui lòng chọn 1 yêu cầu để sửa!');
         return;
       }
-
+      debugger;
       if (
         selectedRows[0].EmployeeID != this.currentUser.EmployeeID &&
         !this.currentUser.IsAdmin
       ) {
         canEdit = false;
       }
-      if (
+      else if (  selectedRows[0].EmployeeID1 !=null &&
         selectedRows[0].EmployeeID1 != this.currentUser.EmployeeID &&
         !this.currentUser.IsAdmin
       ) {
@@ -1040,7 +1040,11 @@ export class ProjectSurveySlickGridComponent implements OnInit, AfterViewInit, O
             this.notification.success('Thông báo', 'Xóa thành công');
             this.getDataProjectSurvey();
           },
-          error: (err) => console.error(err)
+        error: (error: any) => {
+            console.error('Error deleting version:', error);
+            const errorMessage = error?.error?.message || error?.message || 'Không thể xóa!';
+            this.notification.error('Lỗi', errorMessage);
+          }
         });
       }
     });

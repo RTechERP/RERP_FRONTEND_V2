@@ -83,6 +83,7 @@ export class BillExportTechnicalFormComponent implements OnInit, AfterViewInit {
   public activeModal = inject(NgbActiveModal);
   deviceTempTable: Tabulator | null = null;
   selectedDevices: any[] = [];
+  deletedDevices: any[] = []; // Lưu các dòng đã xóa có ID > 0 để gửi về BE với IsDeleted=true
   @ViewChild('childTableTemplate', { static: true })
   childTableTemplate!: TemplateRef<any>;
   @ViewChild('vcHost', { read: ViewContainerRef, static: true })
@@ -679,7 +680,18 @@ export class BillExportTechnicalFormComponent implements OnInit, AfterViewInit {
             formatter: () =>
               `<i class="fas fa-times text-danger cursor-pointer" title="Xóa dòng"></i>`,
             cellClick: (e, cell) => {
-              if (!this.IsApproved) cell.getRow().delete();
+              if (!this.IsApproved) {
+                const rowData = cell.getRow().getData();
+                // Nếu dòng có ID > 0, lưu vào deletedDevices với IsDeleted=true để gửi về BE
+                if (rowData['ID'] && rowData['ID'] > 0) {
+                  this.deletedDevices.push({ ...rowData, IsDeleted: true });
+                }
+                cell.getRow().delete();
+                // Đồng bộ selectedDevices sau khi xóa dòng
+                if (this.deviceTempTable) {
+                  this.selectedDevices = this.deviceTempTable.getData();
+                }
+              }
             },
           },
           { title: 'STT', formatter: 'rownum', hozAlign: 'center', width: 60 },
@@ -1353,6 +1365,14 @@ export class BillExportTechnicalFormComponent implements OnInit, AfterViewInit {
     productCode: string,
     existingSerials: { ID: number; Serial: string }[]
   ) {
+    if (rowData.ID == null || rowData.ID <= 0) {
+      this.notification.warning(
+        NOTIFICATION_TITLE.warning,
+        'Các mã sản phẩm thêm mới cần lưu trước khi chọn serial!'
+      );
+      return;
+    }
+    console.log(rowData);
     const modalRef = this.ngbModal.open(BillImportChoseSerialComponent, {
       size: 'md',
       centered: true,
@@ -1467,6 +1487,12 @@ export class BillExportTechnicalFormComponent implements OnInit, AfterViewInit {
       };
     });
 
+    // IMPORTANT: Đồng bộ selectedDevices với dữ liệu thực tế trong Tabulator
+    // để tránh trường hợp bị double bản ghi
+    if (this.deviceTempTable) {
+      this.selectedDevices = this.deviceTempTable.getData();
+    }
+
     // Thêm vào selectedDevices
     this.selectedDevices = [...this.selectedDevices, ...mappedProducts];
 
@@ -1478,11 +1504,14 @@ export class BillExportTechnicalFormComponent implements OnInit, AfterViewInit {
   // Thêm dòng trống vào bảng
   addRow() {
     if (this.deviceTempTable) {
+      // IMPORTANT: Đồng bộ selectedDevices với dữ liệu thực tế trong Tabulator
+      // để tránh trường hợp các dòng đã xóa trong grid lại xuất hiện khi thêm dòng mới
+      this.selectedDevices = this.deviceTempTable.getData();
+      
       const newRow = {
         ProductCode: '',
         ProductName: '',
         Quantity: 1,
-
         Note: '',
       };
       this.selectedDevices.push(newRow);
@@ -1503,7 +1532,7 @@ export class BillExportTechnicalFormComponent implements OnInit, AfterViewInit {
     const selected = this.emPloyeeLists.find((e) => e.ID === selectedId);
     if (selected) {
       this.formDeviceInfo.patchValue({
-        ReceiverName: selected.FullName,
+        Receiver: selected.FullName,
       });
     }
   }
@@ -1682,7 +1711,7 @@ export class BillExportTechnicalFormComponent implements OnInit, AfterViewInit {
         Addres: '',
         Note: '',
         Image: '',
-        Receiver: this.getReceiverNameById(formValue.ReceiverID),
+        Receiver: formValue.Receiver || this.getReceiverNameById(formValue.ReceiverID),
         DeliverID: 0,
         SupplierID: 0,
         CustomerNam: '',
@@ -1691,9 +1720,10 @@ export class BillExportTechnicalFormComponent implements OnInit, AfterViewInit {
         WarehouseTypeBill: this.warehouseType,
         WarehouseID: this.warehouseID,
       },
-      billExportDetailTechnicals: tableData.map(
-        (device: any, index: number) => ({
-          ID: 0,
+      billExportDetailTechnicals: [
+        // Các dòng còn lại (không bị xóa)
+        ...tableData.map((device: any, index: number) => ({
+          ID: device.ID || 0,
           STT: index + 1,
           UnitID: device.UnitCountID || 0,
           UnitName: device.UnitCountName || '',
@@ -1704,8 +1734,24 @@ export class BillExportTechnicalFormComponent implements OnInit, AfterViewInit {
           WarehouseID: 1,
           TotalQuantity: device.Quantity || 0,
           BillImportDetailTechnicalID: device.BillImportDetailTechnicalID || 0,
-        })
-      ),
+          IsDeleted: false,
+        })),
+        // Các dòng đã xóa có ID > 0
+        ...this.deletedDevices.map((device: any) => ({
+          ID: device.ID,
+          STT: 0,
+          UnitID: device.UnitCountID || 0,
+          UnitName: device.UnitCountName || '',
+          ProjectID: device.ProjectID || 0,
+          ProductID: device.ProductID || 0,
+          Quantity: device.Quantity || 0,
+          Note: device.Note || '',
+          WarehouseID: 1,
+          TotalQuantity: device.Quantity || 0,
+          BillImportDetailTechnicalID: device.BillImportDetailTechnicalID || 0,
+          IsDeleted: true,
+        })),
+      ],
       billExportTechDetailSerials: tableData.flatMap((device: any) => {
         const detailID = device.ID || 0;
         const serialIDs = (device.SerialIDs || '')

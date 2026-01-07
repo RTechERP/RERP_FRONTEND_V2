@@ -31,7 +31,7 @@
                   nzPlaceHolder="Chọn dự án"
                   formControlName="projectId">
                   @for (item of projects; track $index) {
-                  <nz-option nzCustomContent="true" [nzLabel]="item.ProjectCode" [nzValue]="item.ID">
+                  <nz-option nzCustomContent="true" [nzLabel]="item.ProjectCode + ' - ' + item.ProjectName" [nzValue]="item.ID">
                     {{ item.ProjectCode + " - " + item.ProjectName }}
                   </nz-option>
                   }
@@ -54,7 +54,7 @@
                   [(ngModel)]="customerId"
                   nzDisabled="">
                   @for (item of customers; track $index) {
-                  <nz-option nzCustomContent="true" [nzLabel]="item.CustomerName" [nzValue]="item.ID">
+                  <nz-option nzCustomContent="true" [nzLabel]="item.CustomerName + ' - ' + item.CustomerCode" [nzValue]="item.ID">
                     {{ item.CustomerCode + " - " + item.CustomerName }}
                   </nz-option>
                   }
@@ -460,7 +460,7 @@
       <button nz-button nzType="default" nzDanger (click)="activeModal.dismiss()">
         Đóng
       </button>
-      <button nz-button nzType="primary" *ngIf="canEdit && !isDisSave" (click)="save()">
+      <button nz-button nzType="primary" *ngIf="canEdit && isDisSave" (click)="save()">
         Lưu
       </button>
     </div>

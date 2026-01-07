@@ -69,6 +69,10 @@ export class ProjectPartListService {
   approveNewCode(payload: any[], isApprovedNew: boolean): Observable<any> {
     return this.http.post<any>(`${this.urlProjectPartList}/approved-newcode?isApprovedNew=${isApprovedNew}`, payload);
   }
+  //check duyệt mới
+  checkApproveNewCode(payload: any[]): Observable<any> {
+    return this.http.post<any>(`${this.urlProjectPartList}/check-approve-newcode`, payload);
+  }
   //duyệt/hủy duyệt tích xanh sản phẩm
   approveIsFix(payload: any[], isFix: boolean): Observable<any> {
     return this.http.post<any>(`${this.urlProjectPartList}/approved-fix?isFix=${isFix}`, payload);

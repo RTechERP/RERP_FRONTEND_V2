@@ -55,8 +55,7 @@ import { PhaseAllocationPersonFormComponent } from './phase-allocation-person-fo
   styleUrls: ['./phase-allocation-person.component.css'],
 })
 export class PhaseAllocationPersonComponent
-  implements OnInit, AfterViewInit, OnDestroy
-{
+  implements OnInit, AfterViewInit, OnDestroy {
   @ViewChild('masterTableRef', { static: true })
   masterTableRef!: ElementRef<HTMLDivElement>;
   @ViewChild('detailTableRef', { static: true })
@@ -304,7 +303,9 @@ export class PhaseAllocationPersonComponent
       ...DEFAULT_TABLE_CONFIG,
       height: '85vh',
       data: this.detailData,
+
       paginationMode: 'local',
+      pagination: false,
       layout: 'fitDataStretch',
       columns: [
         {
@@ -312,7 +313,7 @@ export class PhaseAllocationPersonComponent
           formatter: 'rownum',
           hozAlign: 'right',
           headerHozAlign: 'center',
-          width: 70,
+          width: 50,
         },
         {
           title: 'Mã nhân viên',
@@ -320,6 +321,7 @@ export class PhaseAllocationPersonComponent
           headerHozAlign: 'center',
           hozAlign: 'left',
           formatter: 'textarea',
+          bottomCalc: 'count'
         },
         {
           title: 'Tên nhân viên',
@@ -341,6 +343,7 @@ export class PhaseAllocationPersonComponent
           headerHozAlign: 'center',
           hozAlign: 'right',
           formatter: 'textarea',
+          width: 50
         },
         {
           title: 'Đơn vị',
@@ -354,19 +357,27 @@ export class PhaseAllocationPersonComponent
           field: 'DateReceive',
           headerHozAlign: 'center',
           hozAlign: 'center',
-
+          width: 130,
           formatter: (cell) => {
             const value = cell.getValue();
             if (!value) return '';
+
+            let dt;
             try {
-              return DateTime.fromISO(value).toFormat('dd/MM/yyyy ');
+              dt = DateTime.fromISO(value);
             } catch {
-              const date = new Date(value);
-              return isNaN(date.getTime())
-                ? ''
-                : DateTime.fromJSDate(date).toFormat('dd/MM/yyyy ');
+              const d = new Date(value);
+              if (isNaN(d.getTime())) return '';
+              dt = DateTime.fromJSDate(d);
             }
-          },
+
+            return `
+    <div style="line-height:1.2">
+      <div>${dt.toFormat('dd/MM/yyyy')}</div>
+      <div style="font-size:12px; color:#666">${dt.toFormat('HH:mm')}</div>
+    </div>
+  `;
+          }
         },
         {
           title: 'Trạng thái nhận',
@@ -374,7 +385,7 @@ export class PhaseAllocationPersonComponent
 
           headerHozAlign: 'center',
           hozAlign: 'center',
-
+          width: 70,
           formatter: (cell) => {
             const value = cell.getValue();
             const checked =
@@ -382,9 +393,16 @@ export class PhaseAllocationPersonComponent
               value === 'true' ||
               value === 1 ||
               value === '1';
-            return `<input type="checkbox" ${
-              checked ? 'checked' : ''
-            } style="pointer-events: none; accent-color: #1677ff;" />`;
+            return `<input type="checkbox" ${checked ? 'checked' : ''
+              } style="pointer-events: none; accent-color: #1677ff;" />`;
+          },
+          bottomCalc: (values) => {
+            return values.filter(v =>
+              v === true || v === 'true' || v === 1 || v === '1'
+            ).length;
+          },
+          bottomCalcFormatter: (cell) => {
+            return `Đã nhận: ${cell.getValue()}`;
           },
         },
       ],
@@ -544,7 +562,7 @@ export class PhaseAllocationPersonComponent
       });
   }
 
-  onCopyAllocation(){
+  onCopyAllocation() {
     if (!this.selectedRow || this.selectedRow === null) {
       this.notification.warning('Cảnh báo', 'Vui lòng chọn cấp phát cần copy!');
       return;
@@ -560,7 +578,7 @@ export class PhaseAllocationPersonComponent
           masterCopy.ID = 0;
           masterCopy.Code = masterCopy.Code + ' - COPY';
           masterCopy.ContentAllocation = masterCopy.ContentAllocation + ' - COPY';
-          const detailCopy = detailData.map((row:any) => ({
+          const detailCopy = detailData.map((row: any) => ({
             ...row,
             ID: 0
           }));

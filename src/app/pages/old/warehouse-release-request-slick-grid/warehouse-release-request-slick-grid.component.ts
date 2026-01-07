@@ -41,6 +41,7 @@ import {
   FieldType,
   Formatters,
   GridOption,
+  Grouping,
   OnEventArgs,
   SlickGrid,
 } from 'angular-slickgrid';
@@ -91,6 +92,7 @@ interface BillExportDetail {
   POKHDetailIDActual?: string;
   PONumber?: string;
   POCode?: string;
+
 }
 
 interface BillExport {
@@ -764,6 +766,7 @@ export class WarehouseReleaseRequestSlickGridComponent implements OnInit {
         RequestDate: new Date(),
         WarehouseCode: warehouse.WarehouseCode,
         Details: groupDetails,
+        IsTransfer: isTransfer,
       };
     });
 
@@ -841,6 +844,7 @@ export class WarehouseReleaseRequestSlickGridComponent implements OnInit {
       SupplierID: 0,
       CreatDate: billExport.RequestDate,
       RequestDate: billExport.RequestDate,
+      IsTransfer: isTransfer,
     };
 
     const modalRef = this.modalService.open(BillExportDetailComponent, {
@@ -858,7 +862,6 @@ export class WarehouseReleaseRequestSlickGridComponent implements OnInit {
     modalRef.componentInstance.id = 0;
     modalRef.componentInstance.wareHouseCode = billExport.WarehouseCode;
     modalRef.componentInstance.isFromWarehouseRelease = true; // FLAG RIÊNG cho luồng Warehouse Release Request
-    modalRef.componentInstance.IsTransfer = isTransfer;
 
     const detailsForModal = billExport.Details.map((detail: any) => ({
       ID: 0,
@@ -1230,7 +1233,7 @@ export class WarehouseReleaseRequestSlickGridComponent implements OnInit {
       enableSorting: true,
       multiColumnSort: false, // Required for Tree Data
       enableFiltering: true,
-      enableGrouping: false,
+      enableGrouping: true,
       enableRowSelection: true,
       enableCheckboxSelector: true,
       checkboxSelector: {
@@ -1261,6 +1264,16 @@ export class WarehouseReleaseRequestSlickGridComponent implements OnInit {
 
   onAngularGridCreated(angularGrid: AngularGridInstance): void {
     this.angularGrid = angularGrid;
+
+    // Grouping theo số PO
+    if (this.angularGrid.dataView) {
+      this.angularGrid.dataView.setGrouping({
+        getter: 'PONumber',
+        formatter: (g) => `PO: ${g.value || 'Không có PO'} <span style="color:green">(${g.count} items)</span>`,
+        collapsed: false,
+        lazyTotalsCalculation: true,
+      } as Grouping);
+    }
 
     // Xử lý sự kiện khi selected rows thay đổi
     this.angularGrid.slickGrid?.onSelectedRowsChanged.subscribe((e: any, args: any) => {

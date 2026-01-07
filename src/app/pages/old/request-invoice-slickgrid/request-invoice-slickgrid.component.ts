@@ -872,7 +872,7 @@ export class RequestInvoiceSlickgridComponent implements OnInit, AfterViewInit {
     openRequestInvoiceSummary() {
         // const url = `${window.location.origin}/rerpweb/request-invoice-summary?warehouseId=${this.warehouseId}`;
         // window.open(url, '_blank', 'width=1280,height=960,scrollbars=yes,resizable=yes');
-        window.open(`'/rerpweb/request-invoice-summary?warehouseId=${this.warehouseId}`, '_blank', 'width=1280,height=960,scrollbars=yes,resizable=yes');
+        window.open(`/rerpweb/request-invoice-summary?warehouseId=${this.warehouseId}`, '_blank', 'width=1280,height=960,scrollbars=yes,resizable=yes');
     }
 
     openRequestInvoiceStatusLinkModal(): void {

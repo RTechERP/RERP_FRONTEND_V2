@@ -152,15 +152,8 @@ export class TsAssetTransferFormComponent implements OnInit {
         { title: 'ID', field: 'ID', hozAlign: 'center', width: 60, visible: false },
         {
           title: 'STT',
-          field: 'STT',
-          hozAlign: 'center',
-          headerHozAlign: 'center',
-          width: 60,
-          headerSort: false,
-          formatter: (cell) => {
-            const row = cell.getRow();
-            return String((row.getPosition() || 0) + 1);
-          }
+
+          formatter: "rownum",
         },
         { title: 'Mã tài sản', field: 'TSCodeNCC', headerHozAlign: 'center' },
         { title: 'Số lượng', field: 'Quantity', hozAlign: 'center', headerHozAlign: 'center' },

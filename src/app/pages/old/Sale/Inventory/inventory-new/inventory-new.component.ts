@@ -29,6 +29,7 @@ import {
     AngularSlickgridModule,
     Column,
     Filters,
+    Formatter,
     Formatters,
     GridOption,
     MultipleSelectOption,
@@ -161,6 +162,19 @@ export class InventoryNewComponent implements OnInit, AfterViewInit, OnDestroy {
 
     //#region Grid Initialization
 
+    // Formatter cho phép wrap text tối đa 3 dòng với tooltip
+    wrapTextFormatter: Formatter = (_row, _cell, value, _column, dataContext) => {
+        if (!value) return '';
+        return `
+            <span
+                title="${String(value).replace(/"/g, '&quot;')}"
+                style="display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; text-overflow: ellipsis; white-space: normal; line-height: 1.3;"
+            >
+                ${value}
+            </span>
+        `;
+    };
+
     private initGridColumns(): void {
         // Product Group columns
         this.columnDefinitionsProductGroup = [
@@ -224,11 +238,7 @@ export class InventoryNewComponent implements OnInit, AfterViewInit, OnDestroy {
                 sortable: true,
                 filterable: true,
                 filter: {
-                    model: Filters['multipleSelect'],
-                    collection: [],
-                    filterOptions: {
-                        filter: true,
-                    } as MultipleSelectOption,
+                    model: Filters['compoundInput'],
                 },
             },
             {
@@ -259,11 +269,7 @@ export class InventoryNewComponent implements OnInit, AfterViewInit, OnDestroy {
                 sortable: true,
                 filterable: true,
                 filter: {
-                    model: Filters['multipleSelect'],
-                    collection: [],
-                    filterOptions: {
-                        filter: true,
-                    } as MultipleSelectOption,
+                    model: Filters['compoundInput'],
                 },
             },
             {
@@ -273,12 +279,12 @@ export class InventoryNewComponent implements OnInit, AfterViewInit, OnDestroy {
                 width: 200,
                 sortable: true,
                 filterable: true,
+                formatter: this.wrapTextFormatter,
+                customTooltip: {
+                    useRegularTooltip: true,
+                },
                 filter: {
-                    model: Filters['multipleSelect'],
-                    collection: [],
-                    filterOptions: {
-                        filter: true,
-                    } as MultipleSelectOption,
+                    model: Filters['compoundInput'],
                 },
             },
             {
@@ -289,11 +295,7 @@ export class InventoryNewComponent implements OnInit, AfterViewInit, OnDestroy {
                 sortable: true,
                 filterable: true,
                 filter: {
-                    model: Filters['multipleSelect'],
-                    collection: [],
-                    filterOptions: {
-                        filter: true,
-                    } as MultipleSelectOption,
+                    model: Filters['compoundInput'],
                 },
             },
             {
@@ -303,12 +305,12 @@ export class InventoryNewComponent implements OnInit, AfterViewInit, OnDestroy {
                 width: 150,
                 sortable: true,
                 filterable: true,
+                formatter: this.wrapTextFormatter,
+                customTooltip: {
+                    useRegularTooltip: true,
+                },
                 filter: {
-                    model: Filters['multipleSelect'],
-                    collection: [],
-                    filterOptions: {
-                        filter: true,
-                    } as MultipleSelectOption,
+                    model: Filters['compoundInput'],
                 },
             },
             {
@@ -319,11 +321,7 @@ export class InventoryNewComponent implements OnInit, AfterViewInit, OnDestroy {
                 sortable: true,
                 filterable: true,
                 filter: {
-                    model: Filters['multipleSelect'],
-                    collection: [],
-                    filterOptions: {
-                        filter: true,
-                    } as MultipleSelectOption,
+                    model: Filters['compoundInput'],
                 },
             },
             {
@@ -334,11 +332,7 @@ export class InventoryNewComponent implements OnInit, AfterViewInit, OnDestroy {
                 sortable: true,
                 filterable: true,
                 filter: {
-                    model: Filters['multipleSelect'],
-                    collection: [],
-                    filterOptions: {
-                        filter: true,
-                    } as MultipleSelectOption,
+                    model: Filters['compoundInput'],
                 },
             },
             {
@@ -349,11 +343,7 @@ export class InventoryNewComponent implements OnInit, AfterViewInit, OnDestroy {
                 sortable: true,
                 filterable: true,
                 filter: {
-                    model: Filters['multipleSelect'],
-                    collection: [],
-                    filterOptions: {
-                        filter: true,
-                    } as MultipleSelectOption,
+                    model: Filters['compoundInput'],
                 },
             },
             {
@@ -363,6 +353,9 @@ export class InventoryNewComponent implements OnInit, AfterViewInit, OnDestroy {
                 width: 100,
                 sortable: true,
                 filterable: true,
+                filter: {
+                    model: Filters['compoundInputNumber'],
+                },
                 type: 'number',
             },
             {
@@ -372,6 +365,9 @@ export class InventoryNewComponent implements OnInit, AfterViewInit, OnDestroy {
                 width: 80,
                 sortable: true,
                 filterable: true,
+                filter: {
+                    model: Filters['compoundInputNumber'],
+                },
                 type: 'number',
             },
             {
@@ -381,6 +377,9 @@ export class InventoryNewComponent implements OnInit, AfterViewInit, OnDestroy {
                 width: 80,
                 sortable: true,
                 filterable: true,
+                filter: {
+                    model: Filters['compoundInputNumber'],
+                },
                 type: 'number',
             },
             {
@@ -390,6 +389,9 @@ export class InventoryNewComponent implements OnInit, AfterViewInit, OnDestroy {
                 width: 120,
                 sortable: true,
                 filterable: true,
+                filter: {
+                    model: Filters['compoundInputNumber'],
+                },
                 type: 'number',
             },
             {
@@ -399,6 +401,9 @@ export class InventoryNewComponent implements OnInit, AfterViewInit, OnDestroy {
                 width: 120,
                 sortable: true,
                 filterable: true,
+                filter: {
+                    model: Filters['compoundInputNumber'],
+                },
                 type: 'number',
             },
             {
@@ -408,6 +413,9 @@ export class InventoryNewComponent implements OnInit, AfterViewInit, OnDestroy {
                 width: 80,
                 sortable: true,
                 filterable: true,
+                filter: {
+                    model: Filters['compoundInputNumber'],
+                },
                 type: 'number',
             },
             {
@@ -417,6 +425,9 @@ export class InventoryNewComponent implements OnInit, AfterViewInit, OnDestroy {
                 width: 150,
                 sortable: true,
                 filterable: true,
+                filter: {
+                    model: Filters['compoundInputNumber'],
+                },
                 type: 'number',
             },
             {
@@ -426,6 +437,9 @@ export class InventoryNewComponent implements OnInit, AfterViewInit, OnDestroy {
                 width: 100,
                 sortable: true,
                 filterable: true,
+                filter: {
+                    model: Filters['compoundInputNumber'],
+                },
                 type: 'number',
             },
             {
@@ -435,6 +449,9 @@ export class InventoryNewComponent implements OnInit, AfterViewInit, OnDestroy {
                 width: 130,
                 sortable: true,
                 filterable: true,
+                filter: {
+                    model: Filters['compoundInputNumber'],
+                },
                 type: 'number',
             },
             {
@@ -444,6 +461,9 @@ export class InventoryNewComponent implements OnInit, AfterViewInit, OnDestroy {
                 width: 150,
                 sortable: true,
                 filterable: true,
+                filter: {
+                    model: Filters['compoundInputNumber'],
+                },
                 type: 'number',
             },
             {
@@ -453,6 +473,9 @@ export class InventoryNewComponent implements OnInit, AfterViewInit, OnDestroy {
                 width: 120,
                 sortable: true,
                 filterable: true,
+                filter: {
+                    model: Filters['compoundInputNumber'],
+                },
                 type: 'number',
             },
             {
@@ -462,6 +485,9 @@ export class InventoryNewComponent implements OnInit, AfterViewInit, OnDestroy {
                 width: 100,
                 sortable: true,
                 filterable: true,
+                filter: {
+                    model: Filters['compoundInputNumber'],
+                },
                 type: 'number',
             },
             {
@@ -471,6 +497,9 @@ export class InventoryNewComponent implements OnInit, AfterViewInit, OnDestroy {
                 width: 90,
                 sortable: true,
                 filterable: true,
+                filter: {
+                    model: Filters['compoundInputNumber'],
+                },
                 type: 'number',
             },
             {
@@ -480,6 +509,9 @@ export class InventoryNewComponent implements OnInit, AfterViewInit, OnDestroy {
                 width: 100,
                 sortable: true,
                 filterable: true,
+                filter: {
+                    model: Filters['compoundInput'],
+                },
                 type: 'number',
             },
             {
@@ -504,12 +536,12 @@ export class InventoryNewComponent implements OnInit, AfterViewInit, OnDestroy {
                 width: 200,
                 sortable: true,
                 filterable: true,
+                formatter: this.wrapTextFormatter,
+                customTooltip: {
+                    useRegularTooltip: true,
+                },
                 filter: {
-                    model: Filters['multipleSelect'],
-                    collection: [],
-                    filterOptions: {
-                        filter: true,
-                    } as MultipleSelectOption,
+                    model: Filters['compoundInput'],
                 },
             },
             {
@@ -519,12 +551,12 @@ export class InventoryNewComponent implements OnInit, AfterViewInit, OnDestroy {
                 width: 200,
                 sortable: true,
                 filterable: true,
+                formatter: this.wrapTextFormatter,
+                customTooltip: {
+                    useRegularTooltip: true,
+                },
                 filter: {
-                    model: Filters['multipleSelect'],
-                    collection: [],
-                    filterOptions: {
-                        filter: true,
-                    } as MultipleSelectOption,
+                    model: Filters['compoundInput'],
                 },
             },
         ];
@@ -595,6 +627,7 @@ export class InventoryNewComponent implements OnInit, AfterViewInit, OnDestroy {
             frozenColumn: 4,
             enableHeaderMenu: false,
             enableContextMenu: true,
+            rowHeight: 55, // Điều chỉnh row height cho 3 dòng text (khoảng 18px/dòng + padding)
             contextMenu: {
                 commandItems: [
                     {

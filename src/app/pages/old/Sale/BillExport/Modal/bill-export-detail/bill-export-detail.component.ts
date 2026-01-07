@@ -101,6 +101,7 @@ interface BillExport {
   CreatDate: Date | string | null;
   RequestDate: Date | string | null;
   IsApproved?: boolean; // C# form line 114-117: Disable buttons when approved
+  IsTransfer: boolean;
 }
 
 @Component({
@@ -223,6 +224,7 @@ export class BillExportDetailComponent
     SupplierID: 0,
     CreatDate: new Date(),
     RequestDate: new Date(),
+    IsTransfer: false,
   };
   validateForm: FormGroup;
   private destroy$ = new Subject<void>();
@@ -496,6 +498,7 @@ private productInventoryDetailMap: Map<number, {
         SupplierID: 0,
         CreatDate: new Date(),
         RequestDate: new Date(),
+        IsTransfer: false,
       };
       this.validateForm.patchValue(this.newBillExport);
     }
@@ -558,6 +561,7 @@ private productInventoryDetailMap: Map<number, {
         RequestDate: this.newBillExport.RequestDate || new Date(), // dtpRequestDate.EditValue = billExport.RequestDate
         CreatDate: this.newBillExport.CreatDate || new Date(),
         WarehouseID: this.newBillExport.WarehouseID || 0,
+        IsTransfer: this.newBillExport.IsTransfer || false,
       });
 
       // Sync back to model (important!)
@@ -612,6 +616,7 @@ private productInventoryDetailMap: Map<number, {
         RequestDate: this.newBillExport.RequestDate || new Date(), // dtpRequestDate.EditValue
         CreatDate: this.newBillExport.CreatDate || new Date(),
         WarehouseID: this.newBillExport.WarehouseID || 0,
+        IsTransfer: this.newBillExport.IsTransfer || false,
       });
 
       // Sync back to model
@@ -1086,6 +1091,7 @@ private productInventoryDetailMap: Map<number, {
             CreatDate: new Date(data.CreatDate),
             RequestDate: new Date(data.RequestDate),
             IsApproved: data.IsApproved || false,
+            IsTransfer: data.IsTransfer || false,
           };
           this.validateForm.patchValue(this.newBillExport);
 

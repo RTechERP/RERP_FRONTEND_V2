@@ -241,7 +241,6 @@ export class PonccDetailComponent implements OnInit, AfterViewInit {
           if (this.isCopy) {
             this.poncc.ID = 0;
           }
-          console.log('🔷 PO data loaded, calling mapDataToForm');
           this.mapDataToForm();
           this.loadReferenceLinks();
         },
@@ -403,7 +402,7 @@ export class PonccDetailComponent implements OnInit, AfterViewInit {
       ReasonForFailure: this.poncc.ReasonForFailure || '',
       OrderQualityNotMet: this.poncc.OrderQualityNotMet || false,
       NCCNew: this.poncc.NCCNew || false,
-      DeptSupplier: this.poncc.DeptSupplier || false
+      DeptSupplier: this.poncc.DeptSupplier || true
     });
 
     // Sau khi map xong, trigger các sự kiện để load thông tin đầy đủ
@@ -470,7 +469,7 @@ export class PonccDetailComponent implements OnInit, AfterViewInit {
       OrderQualityNotMet: [false],
       ReasonForFailure: [{ value: '', disabled: true }],
       NCCNew: [false],
-      DeptSupplier: [false]
+      DeptSupplier: [true]
     });
   }
 

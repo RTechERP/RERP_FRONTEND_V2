@@ -126,9 +126,9 @@
                                        name="UnitCountID">
                                 <nz-option *ngFor="let item of unitCounts"
                                            [nzValue]="item.ID"
-                                           [nzLabel]="item.UnitCountName || item.UnitName"
+                                           [nzLabel]="item.UnitCountName"
                                            nzCustomContent>
-                                    <span>{{ (item.UnitCode || '') + ' - ' + (item.UnitCountName || item.UnitName || '') }}</span>
+                                    <span>{{ item.UnitCountName ||'' }}</span>
                                 </nz-option>
                             </nz-select>
                         </nz-form-control>

@@ -96,7 +96,7 @@ export class TsAssetChooseAssetsComponent implements OnInit {
       dateStart: '2022-05-22T00:00:00',
       dateEnd: '2027-05-22T23:59:59',
       status: '1',
-      department: '0,1,2,3,4,5,6,7,8,9',
+      department: '0,1,2,3,4,5,6,7,8,9,10,11,12,13,22,23',
     };
     this.assetManagementService.getAsset(request).subscribe({
       next: (response: any) => {

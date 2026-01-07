@@ -116,6 +116,7 @@ export class PayrollReportComponent implements OnInit, AfterViewInit {
         this.getEmployee();
         this.getDepartment();
 
+        console.log('ngOnInit:,', this.payrollId);
 
     }
 
@@ -187,7 +188,7 @@ export class PayrollReportComponent implements OnInit, AfterViewInit {
                     if (res.status === 1) {
 
                         this.totalWorkday = res.data.totalWorkday;
-                        this.payrollId = res.data.payrollId;
+                        // this.payrollId = res.data.payrollId;
                         this.drawTbEmployeePayrollReport(this.tb_payrollReportContainer.nativeElement);
                         this.tb_payrollReport.on("tableBuilt", () => {
                             this.tb_payrollReport.setData(res.data.data);
@@ -399,6 +400,8 @@ export class PayrollReportComponent implements OnInit, AfterViewInit {
       Vui lòng thêm mới trước khi nhập excel!`);
             return;
         }
+
+        console.log('this.payrollId:', this.payrollId);
 
         const modalRef = this.modalService.open(ImportExcelComponent, {
             centered: true,
@@ -955,6 +958,15 @@ export class PayrollReportComponent implements OnInit, AfterViewInit {
                                                     },
                                                     {
                                                         title: "Giảm trừ người phụ thuộc", field: "TaxDependentsDeduction", hozAlign: "right", headerHozAlign: "center", formatter: "money",
+                                                        formatterParams: {
+                                                            decimal: ".",
+                                                            thousand: ",",
+                                                            precision: false
+                                                        },
+                                                        bottomCalcFormatter: "money", bottomCalc: "sum"
+                                                    },
+                                                    {
+                                                        title: "Tổng các khoản giảm trừ thuế TNCN", field: "TotalTaxDeduction", hozAlign: "right", headerHozAlign: "center", formatter: "money",
                                                         formatterParams: {
                                                             decimal: ".",
                                                             thousand: ",",

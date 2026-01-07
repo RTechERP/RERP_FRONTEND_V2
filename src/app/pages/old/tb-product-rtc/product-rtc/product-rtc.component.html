@@ -1,6 +1,6 @@
 <ng-container class="w-100">
-    <div class="card border-0 rounded-0" style="height: 94vh;">
-        <div class="card-header bg-white p-1 action-bar">
+    <div class="card border-0 rounded-0 d-flex flex-column" style="height: 94vh;">
+        <div class="card-header bg-white p-1 action-bar flex-shrink-0">
             <!-- Desktop: dải nút cuộn ngang -->
             <div class="d-none d-md-flex h-40 gap-1 align-items-center">
                 <div class="flex-grow-1" style="overflow-x: auto;">
@@ -56,59 +56,7 @@
                 </div>
             </div>
 
-            <!-- Mobile: dropdown hành động -->
-            <div class="d-flex d-md-none h-40 gap-1 align-items-center justify-content-between">
-                <div ngbDropdown class="dropdown ms-auto">
-                    <button class="btn btn-primary btn-sm" ngbDropdownToggle>
-                        <i class="fa fa-bars"></i>
-                    </button>
-                    <div ngbDropdownMenu class="dropdown-menu">
-                        <button ngbDropdownItem (click)="onAddGroupProduct()"
-                            *hasPermission="'N26,N38,N1,N73,N80'" class="d-flex align-items-center gap-2">
-                            Tạo nhóm TB
-                        </button>
-                        <button ngbDropdownItem (click)="onEditGroup()" *hasPermission="'N26,N38,N1,N73,N80'"
-                            class="d-flex align-items-center gap-2">
-                            Sửa nhóm TB
-                        </button>
-                        <button ngbDropdownItem (click)="onDeleteProductGroup()"
-                            *hasPermission="'N26,N1,N73,N80'" class="d-flex align-items-center gap-2">
-                            Xóa nhóm TB
-                        </button>
-
-                        <div class="dropdown-divider"></div>
-
-                        <button ngbDropdownItem (click)="onAddProducRTC()" *hasPermission="'N26,N38,N1,N73,N80'"
-                            class="d-flex align-items-center gap-2">
-                            Tạo thiết bị
-                        </button>
-                        <button ngbDropdownItem (click)="onEditProduct()" *hasPermission="'N26,N38,N1,N73,N80'"
-                            class="d-flex align-items-center gap-2">
-                            Sửa thiết bị
-                        </button>
-                        <button ngbDropdownItem (click)="onDeleteProduct()" *hasPermission="'N26,N1,N73,N80'"
-                            class="d-flex align-items-center gap-2">
-                            Xóa thiết bị
-                        </button>
-
-                        <div class="dropdown-divider"></div>
-
-                        <button ngbDropdownItem *ngIf="warehouseType !== 2" (click)="onRequestPurchase()"
-                            class="d-flex align-items-center gap-2">
-                            Yêu cầu mua hàng
-                        </button>
-                        <button ngbDropdownItem (click)="onOpenPurchaseRequestList()"
-                            class="d-flex align-items-center gap-2">
-                            Danh sách yêu cầu mua hàng
-                        </button>
-                        <button ngbDropdownItem (click)="onOpenPriceRequest()"
-                            class="d-flex align-items-center gap-2">
-                            Yêu cầu báo giá
-                        </button>
-                    </div>
-                </div>
-            </div>
-
+            
             <!-- Dòng lọc dữ liệu -->
             <div class="border-top pt-2 mt-2">
                 <div class="d-flex gap-2 align-items-end flex-wrap">
@@ -153,7 +101,7 @@
         </div>
 
         <!-- phần nội dung ở dưới -->
-        <div class="card-body p-0" style="height: 100%;">
+        <div class="card-body p-0 flex-grow-1 overflow-hidden" style="min-height: 0;">
             <div *ngIf="isLoading" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(255,255,255,0.4); z-index: 999; display: flex; align-items: center; justify-content: center;">
                 <nz-spin [nzSpinning]="isLoading"></nz-spin>
             </div>

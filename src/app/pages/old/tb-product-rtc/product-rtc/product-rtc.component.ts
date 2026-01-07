@@ -161,6 +161,27 @@ export class ProductRtcComponent implements OnInit, AfterViewInit, OnDestroy {
                     } as MultipleSelectOption,
                 },
             },
+            // Spec columns - visible will be controlled by showSpec()
+            { id: 'Resolution', field: 'Resolution', name: 'Resolution', width: 120, sortable: true, hidden: true },
+            { id: 'MonoColor', field: 'MonoColor', name: 'Mono/Color', width: 100, sortable: true, hidden: true },
+            { id: 'SensorSize', field: 'SensorSize', name: 'Sensor Size (")', width: 120, sortable: true, hidden: true },
+            { id: 'SensorSizeMax', field: 'SensorSizeMax', name: 'Sensor Size Max (")', width: 140, sortable: true, hidden: true },
+            { id: 'DataInterface', field: 'DataInterface', name: 'Data Interface', width: 130, sortable: true, hidden: true },
+            { id: 'LensMount', field: 'LensMount', name: 'Lens Mount', width: 110, sortable: true, hidden: true },
+            { id: 'ShutterMode', field: 'ShutterMode', name: 'Shutter Mode', width: 120, sortable: true, hidden: true },
+            { id: 'PixelSize', field: 'PixelSize', name: 'Pixel Size', width: 100, sortable: true, hidden: true },
+            { id: 'LampType', field: 'LampType', name: 'Lamp Type', width: 110, sortable: true, hidden: true },
+            { id: 'LampPower', field: 'LampPower', name: 'Lamp Power', width: 110, sortable: true, hidden: true },
+            { id: 'LampWattage', field: 'LampWattage', name: 'Lamp Wattage', width: 110, sortable: true, hidden: true },
+            { id: 'LampColor', field: 'LampColor', name: 'Lamp Color', width: 100, sortable: true, hidden: true },
+            { id: 'MOD', field: 'MOD', name: 'MOD', width: 80, sortable: true, hidden: true },
+            { id: 'FNo', field: 'FNo', name: 'FNo', width: 80, sortable: true, hidden: true },
+            { id: 'WD', field: 'WD', name: 'WD', width: 80, sortable: true, hidden: true },
+            { id: 'Magnification', field: 'Magnification', name: 'Magnification', width: 120, sortable: true, hidden: true },
+            { id: 'FocalLength', field: 'FocalLength', name: 'Focal Length', width: 110, sortable: true, hidden: true },
+            { id: 'InputValue', field: 'InputValue', name: 'Input Value', width: 110, sortable: true, hidden: true },
+            { id: 'OutputValue', field: 'OutputValue', name: 'Output Value', width: 110, sortable: true, hidden: true },
+            { id: 'CurrentIntensityMax', field: 'CurrentIntensityMax', name: 'Rated Current (A)', width: 130, sortable: true, hidden: true },
             {
                 id: 'ProductGroupName',
                 field: 'ProductGroupName',
@@ -448,7 +469,122 @@ export class ProductRtcComponent implements OnInit, AfterViewInit, OnDestroy {
 
     onGroupChange(groupID: number): void {
         this.productGroupID = groupID;
+        this.showSpec();
         this.getProduct();
+    }
+
+    /**
+     * Hiển thị/ẩn các cột spec dựa trên ProductGroupID
+     * Tương ứng với logic ShowSpec() trong WinForm và tb-product-rtc.component.ts
+     */
+    showSpec(): void {
+        if (!this.angularGrid || !this.angularGrid.slickGrid) return;
+
+        const groupId = this.productGroupID || 0;
+
+        // Tất cả các cột spec
+        const allSpecColumns = [
+            'Resolution',
+            'MonoColor',
+            'SensorSize',
+            'SensorSizeMax',
+            'DataInterface',
+            'LensMount',
+            'ShutterMode',
+            'PixelSize',
+            'LampType',
+            'LampPower',
+            'LampWattage',
+            'LampColor',
+            'MOD',
+            'FNo',
+            'WD',
+            'Magnification',
+            'FocalLength',
+            'InputValue',
+            'OutputValue',
+            'CurrentIntensityMax',
+        ];
+
+        // Map columns cần hiển thị theo ProductGroupID
+        const columnConfigs: { [key: number]: Array<{ field: string; title?: string }> } = {
+            74: [ // Camera
+                { field: 'Resolution', title: 'Resolution (pixel)' },
+                { field: 'MonoColor' },
+                { field: 'SensorSize', title: 'Sensor Size (")' },
+                { field: 'DataInterface' },
+                { field: 'LensMount' },
+                { field: 'ShutterMode' },
+            ],
+            75: [ // Light
+                { field: 'LampType' },
+                { field: 'LampColor' },
+                { field: 'LampPower' },
+                { field: 'LampWattage' },
+            ],
+            78: [ // Telecentric Lens
+                { field: 'Resolution', title: 'Resolution (µm)' },
+                { field: 'SensorSizeMax', title: 'Sensor Size Max (")' },
+                { field: 'WD' },
+                { field: 'LensMount' },
+                { field: 'FNo' },
+                { field: 'Magnification' },
+            ],
+            79: [ // Line Scan Camera
+                { field: 'Resolution' },
+                { field: 'MonoColor' },
+                { field: 'PixelSize' },
+                { field: 'DataInterface' },
+                { field: 'LensMount' },
+            ],
+            81: [ // FA Lens
+                { field: 'Resolution', title: 'Resolution (µm)' },
+                { field: 'SensorSizeMax', title: 'Sensor Size Max (")' },
+                { field: 'MOD' },
+                { field: 'LensMount' },
+                { field: 'FNo' },
+                { field: 'FocalLength' },
+            ],
+            139: [ // Lens Adapter
+                { field: 'Resolution' },
+                { field: 'SensorSizeMax' },
+                { field: 'MOD' },
+                { field: 'LensMount' },
+                { field: 'FNo' },
+                { field: 'FocalLength' },
+            ],
+            92: [ // Power Supply
+                { field: 'InputValue' },
+                { field: 'OutputValue' },
+                { field: 'CurrentIntensityMax' },
+            ],
+        };
+
+        const columns = this.angularGrid.slickGrid.getColumns();
+        const configs = columnConfigs[groupId] || [];
+        const visibleSpecFields = configs.map((c) => c.field);
+
+        // Update visibility và title cho các cột
+        columns.forEach((column: any) => {
+            if (allSpecColumns.includes(column.id)) {
+                const config = configs.find((c) => c.field === column.id);
+                if (config) {
+                    // Show column
+                    column.hidden = false;
+                    // Update title if specified
+                    if (config.title) {
+                        column.name = config.title;
+                    }
+                } else {
+                    // Hide column
+                    column.hidden = true;
+                }
+            }
+        });
+
+        // Update grid columns
+        this.angularGrid.slickGrid.setColumns(columns);
+        this.angularGrid.slickGrid.render();
     }
 
     onKeywordChange(value: string): void {

@@ -10,7 +10,7 @@ export class ProjectPartListService {
   private url = `${environment.host}`;
   private urlProjectPartListVersion = `${this.url}api/ProjectPartListVersion`;
   private urlProjectPartList = `${this.url}api/ProjectPartList`;
-  private urlUnitCount = `${this.url}api/UnitCount`;
+  private urlUnitCount = `${this.url}api/UnitCountKT/get-all`;
   constructor() { }
   getProjectPartListVersion(projectSolutionId: number, isPO: boolean): Observable<any> {
     return this.http.get<any>(`${this.urlProjectPartListVersion}/get-all?projectSolutionId=${projectSolutionId}&isPO=${isPO}`

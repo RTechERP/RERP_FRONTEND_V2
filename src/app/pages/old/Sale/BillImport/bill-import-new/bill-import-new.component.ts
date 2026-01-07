@@ -1668,8 +1668,8 @@ export class BillImportNewComponent implements OnInit {
   }
 
   openModalBillImportSynthetic() {
-    import('../Modal/bill-import-synthetic-new/bill-import-synthetic-new.component').then(m => {
-      const modalRef = this.modalService.open(m.BillImportSyntheticNewComponent, {
+    import('../Modal/bill-import-synthetic/bill-import-synthetic.component').then(m => {
+      const modalRef = this.modalService.open(m.BillImportSyntheticComponent, {
         centered: true,
         backdrop: 'static',
         keyboard: false,

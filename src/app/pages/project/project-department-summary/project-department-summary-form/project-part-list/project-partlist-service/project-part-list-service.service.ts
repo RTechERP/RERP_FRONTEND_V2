@@ -10,7 +10,8 @@ export class ProjectPartListService {
   private url = `${environment.host}`;
   private urlProjectPartListVersion = `${this.url}api/ProjectPartListVersion`;
   private urlProjectPartList = `${this.url}api/ProjectPartList`;
-  private urlUnitCount = `${this.url}api/UnitCountKT/get-all`;
+ // private urlUnitCount = `${this.url}api/UnitCountKT/get-all`;
+  private urlUnitCount = `${this.url}api/UnitCount`;
   constructor() { }
   getProjectPartListVersion(projectSolutionId: number, isPO: boolean): Observable<any> {
     return this.http.get<any>(`${this.urlProjectPartListVersion}/get-all?projectSolutionId=${projectSolutionId}&isPO=${isPO}`
@@ -46,6 +47,10 @@ export class ProjectPartListService {
   // Apply diff - áp dụng diff và lưu dữ liệu
   applyDiff(payload: any): Observable<any> {
     return this.http.post<any>(`${this.urlProjectPartList}/apply-diff2`, payload);
+  }
+  //check-exist-đơn vị / hãng khi import excel
+  checkExistImport(payload: any): Observable<any> {
+    return this.http.post<any>(`${this.urlProjectPartList}/check-exits-import`, payload);
   }
   approveProjectPartList(projectpartlistID: number[], approved: boolean): Observable<any> {
     return this.http.post<any>(`${this.urlProjectPartList}/approvedTBP`, {

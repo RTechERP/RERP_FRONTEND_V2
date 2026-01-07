@@ -403,14 +403,14 @@ export class SynthesisOfGeneratedMaterialsSlickGridComponent implements OnInit, 
         width: 200,
         sortable: true,
         filterable: true,
-        filter: {
-          model: Filters['multipleSelect'],
-          collection: [],
-          filterOptions: {
-            filter: true,
-            autoAdjustDropWidthByTextSize: true,
-          } as MultipleSelectOption,
-        },
+        // filter: {
+        //   model: Filters['multipleSelect'],
+        //   collection: [],
+        //   filterOptions: {
+        //     filter: true,
+        //     autoAdjustDropWidthByTextSize: true,
+        //   } as MultipleSelectOption,
+        // },
         formatter: (_row: any, _cell: any, value: any, _column: any, dataContext: any) => {
           if (!value) return '';
           return `<span title="${dataContext.ReasonProblem}" style="display:block; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${value}</span>`;
@@ -445,14 +445,14 @@ export class SynthesisOfGeneratedMaterialsSlickGridComponent implements OnInit, 
         width: 200,
         sortable: true,
         filterable: true,
-        filter: {
-          model: Filters['multipleSelect'],
-          collection: [],
-          filterOptions: {
-            filter: true,
-            autoAdjustDropWidthByTextSize: true,
-          } as MultipleSelectOption,
-        },
+        // filter: {
+        //   model: Filters['multipleSelect'],
+        //   collection: [],
+        //   filterOptions: {
+        //     filter: true,
+        //     autoAdjustDropWidthByTextSize: true,
+        //   } as MultipleSelectOption,
+        // },
         formatter: (_row: any, _cell: any, value: any, _column: any, dataContext: any) => {
           if (!value) return '';
           return `<span title="${dataContext.note}" style="display:block; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${value}</span>`;

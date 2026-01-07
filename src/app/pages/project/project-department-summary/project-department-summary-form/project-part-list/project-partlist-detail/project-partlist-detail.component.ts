@@ -499,6 +499,7 @@ export class ProjectPartlistDetailComponent implements OnInit, AfterViewInit {
   }
 
   getUnitCount(): void {
+    debugger;
     this.projectPartListService.getUnitCount().subscribe({
       next: (response: any) => {
         // Handle response structure - check if it's wrapped in data property

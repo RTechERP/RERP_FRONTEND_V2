@@ -548,10 +548,10 @@ export const routes: Routes = [
             { path: 'project-workitem-timeline', component: ProjectWorkItemTimelineComponent, canActivate: [authGuard] },
             // { path: 'synthesis-of-generated-materials', component: SynthesisOfGeneratedMaterialsComponent, canActivate: [authGuard] },
 
-            { path: 'project-agv-summary', component: ProjectAgvSummaryComponent, canActivate: [authGuard] },
+            // { path: 'project-agv-summary', component: ProjectAgvSummaryComponent, canActivate: [authGuard] },
 
             { path: 'project-agv-summary-slick-grid', component: ProjectAgvSummarySlickGirdComponent, canActivate: [authGuard] },
-            { path: 'project-dept-summary', component: ProjectDepartmentSummaryComponent, canActivate: [authGuard] },
+            // { path: 'project-dept-summary', component: ProjectDepartmentSummaryComponent, canActivate: [authGuard] },
             { path: 'project-dept-summary-slick-grid', component: ProjectDepartmentSummarySlickGridComponent, canActivate: [authGuard] },
             // { path: 'price-history-partlist', component: PriceHistoryPartlistComponent, canActivate: [authGuard] },
             { path: 'synthesis-of-generated-materials', component: SynthesisOfGeneratedMaterialsSlickGridComponent, canActivate: [authGuard] },

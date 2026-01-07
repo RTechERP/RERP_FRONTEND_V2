@@ -89,6 +89,11 @@
                   <img src="assets/icon/action_delete_item_16.png" alt="Xóa " />
                   Xóa
                 </button>
+                <button class="fs-12" nz-button nzType="default" nzSize="small"
+                  (click)="convertVersionToPO()" *hasPermission="'N38,N62,N1,N27,N28'">
+                  <img src="assets/icon/convert_po_16.png" alt="Chuyển thành PO" />
+                  Chuyển thành PO
+                </button>
               </div>
               <div class="card-body p-0 flex-grow-1 overflow-hidden grid-solution-version-container"
                 style="min-height: 0; height: 100%;">

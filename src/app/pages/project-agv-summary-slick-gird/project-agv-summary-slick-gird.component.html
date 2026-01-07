@@ -163,6 +163,11 @@
             <button class="fs-12" nz-button nzType="default" nzSize="small" (click)="exportExcel()">
               <img src="assets/icon/action_export_excel_16.png" /> Xuất Excel
             </button>
+            <!-- Nút toggle thông tin thêm -->
+            <button class="fs-12" nz-button [nzType]="showDetailPanel ? 'primary' : 'default'" nzSize="small" (click)="toggleDetailPanel()">
+              <nz-icon [nzType]="showDetailPanel ? 'eye' : 'eye-invisible'" nzTheme="outline"></nz-icon>
+              Thông tin thêm
+            </button>
           </div>
         </div>
 
@@ -335,7 +340,7 @@
               </nz-splitter-panel>
 
               <!-- Detail Panel -->
-              <nz-splitter-panel [nzCollapsible]="true" nzResizable="true" [nzSize]="sizeTbDetail">
+              <nz-splitter-panel *ngIf="showDetailPanel" [nzCollapsible]="true" nzResizable="true" [nzSize]="sizeTbDetail">
                 <ng-template #tabClose>
                   <button nz-button nzType="text" class="btn-close-panel" style="color: red;" (click)="closePanel()">
                     <i nz-icon nzType="close"></i>

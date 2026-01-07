@@ -1123,6 +1123,12 @@ export class RequestInvoiceSummarySlickgridComponent implements OnInit, AfterVie
         ];
 
         this.gridOptions = {
+            enableAutoResize: true,
+            autoResize: {
+                container: '.grid-container',
+                calculateAvailableSizeBy: 'container',
+                resizeDetection: 'container',
+            },
             gridWidth: '100%',
             enableCellNavigation: true,
             enableColumnReorder: true,

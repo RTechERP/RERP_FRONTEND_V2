@@ -41,6 +41,7 @@ import {
   FieldType,
   Formatters,
   GridOption,
+  Grouping,
   OnEventArgs,
   SlickGrid,
 } from 'angular-slickgrid';
@@ -1230,7 +1231,7 @@ export class WarehouseReleaseRequestSlickGridComponent implements OnInit {
       enableSorting: true,
       multiColumnSort: false, // Required for Tree Data
       enableFiltering: true,
-      enableGrouping: false,
+      enableGrouping: true,
       enableRowSelection: true,
       enableCheckboxSelector: true,
       checkboxSelector: {
@@ -1261,6 +1262,16 @@ export class WarehouseReleaseRequestSlickGridComponent implements OnInit {
 
   onAngularGridCreated(angularGrid: AngularGridInstance): void {
     this.angularGrid = angularGrid;
+
+    // Grouping theo số PO
+    if (this.angularGrid.dataView) {
+      this.angularGrid.dataView.setGrouping({
+        getter: 'PONumber',
+        formatter: (g) => `PO: ${g.value || 'Không có PO'} <span style="color:green">(${g.count} items)</span>`,
+        collapsed: false,
+        lazyTotalsCalculation: true,
+      } as Grouping);
+    }
 
     // Xử lý sự kiện khi selected rows thay đổi
     this.angularGrid.slickGrid?.onSelectedRowsChanged.subscribe((e: any, args: any) => {

@@ -765,6 +765,7 @@ export class WarehouseReleaseRequestSlickGridComponent implements OnInit {
         RequestDate: new Date(),
         WarehouseCode: warehouse.WarehouseCode,
         Details: groupDetails,
+        IsTransfer: isTransfer,
       };
     });
 

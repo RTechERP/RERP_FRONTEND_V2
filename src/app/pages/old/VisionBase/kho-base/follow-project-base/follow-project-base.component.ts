@@ -277,7 +277,7 @@ export class FollowProjectBaseComponent implements OnInit {
     drawTbFollowProject(container: HTMLElement) {
         const token = localStorage.getItem('token');
         this.tb_followProjectBody = new Tabulator(container, {
-            height: '88vh',
+            height: '100%',
             layout: 'fitDataStretch',
             selectableRows: 1,
             pagination: true,
@@ -536,7 +536,10 @@ export class FollowProjectBaseComponent implements OnInit {
     }
     drawTbFollowProjectForSale(container: HTMLElement) {
         this.tb_followProjectForSaleBody = new Tabulator(container, {
-            height: '100%',
+            // paginationMode: 'local',
+            // pagination: true,
+            // paginationSize: 10,
+            height: 'calc(100% - 35px)',
             layout: 'fitDataStretch',
             selectableRows: 1,
             columns: [
@@ -577,7 +580,10 @@ export class FollowProjectBaseComponent implements OnInit {
     }
     drawTbFollowProjectForPM(container: HTMLElement) {
         this.tb_followProjectForPMBody = new Tabulator(container, {
-            height: '100%',
+            // paginationMode: 'local',
+            // pagination: true,
+            // paginationSize: 10,
+            height: 'calc(100% - 35px)',
             layout: 'fitDataStretch',
             selectableRows: 1,
             columns: [

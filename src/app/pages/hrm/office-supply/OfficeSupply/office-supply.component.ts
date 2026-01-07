@@ -119,8 +119,8 @@ export class OfficeSupplyComponent implements OnInit, AfterViewInit, OnDestroy {
     this.getAll();
 
     this.searchSubject.pipe(
-      debounceTime(500), 
-      distinctUntilChanged() 
+      debounceTime(500),
+      distinctUntilChanged()
     ).subscribe(() => {
       this.getAll();
     });
@@ -143,7 +143,7 @@ export class OfficeSupplyComponent implements OnInit, AfterViewInit, OnDestroy {
         data: this.dataTable,
         ...DEFAULT_TABLE_CONFIG,
         layout: 'fitDataStretch',
-       
+
         paginationMode: 'local',
 
         columns: [
@@ -188,10 +188,7 @@ export class OfficeSupplyComponent implements OnInit, AfterViewInit, OnDestroy {
             hozAlign: 'left',
             headerHozAlign: 'center',
             width: 80,
-            formatter: (cell) => {
-              const val = cell.getValue();
-              return val === 1 ? 'Cá nhân' : val === 2 ? 'Dùng chung' : '';
-            }
+
           }],
       });
     }

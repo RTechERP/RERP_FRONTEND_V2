@@ -1255,6 +1255,15 @@ export class PokhDetailComponent implements OnInit, AfterViewInit {
           !row.ReceiveMoney || Object.keys(row.ReceiveMoney).length === 0
             ? 0
             : row.ReceiveMoney,
+        // Handle numeric fields that may be empty strings
+        Qty: row.Qty === '' || row.Qty === null || row.Qty === undefined ? null : Number(row.Qty),
+        IntoMoney: row.IntoMoney === '' || row.IntoMoney === null || row.IntoMoney === undefined ? null : Number(row.IntoMoney),
+        UnitPrice: row.UnitPrice === '' || row.UnitPrice === null || row.UnitPrice === undefined ? null : Number(row.UnitPrice),
+        VAT: row.VAT === '' || row.VAT === null || row.VAT === undefined ? null : Number(row.VAT),
+        NetUnitPrice: row.NetUnitPrice === '' || row.NetUnitPrice === null || row.NetUnitPrice === undefined ? null : Number(row.NetUnitPrice),
+        EstimatedPay: row.EstimatedPay === '' || row.EstimatedPay === null || row.EstimatedPay === undefined ? null : Number(row.EstimatedPay),
+        Debt: row.Debt === '' || row.Debt === null || row.Debt === undefined ? null : Number(row.Debt),
+        TotalPriceIncludeVAT: row.TotalPriceIncludeVAT === '' || row.TotalPriceIncludeVAT === null || row.TotalPriceIncludeVAT === undefined ? null : Number(row.TotalPriceIncludeVAT),
       };
       dataTree.push(processedRow);
 
@@ -1919,9 +1928,9 @@ export class PokhDetailComponent implements OnInit, AfterViewInit {
     });
 
     modalRef.result.catch((result) => {
-        if (result == true) {
-            this.loadProducts();
-        }
+      if (result == true) {
+        this.loadProducts();
+      }
     });
   }
 
@@ -2305,6 +2314,9 @@ export class PokhDetailComponent implements OnInit, AfterViewInit {
             sorter: 'number',
             width: 80,
             editor: 'number',
+            editorParams: {
+              verticalNavigation: 'table',
+            },
             bottomCalc: (values, data) => {
               return this.accumulateTreeValues(data, 'Qty');
             },
@@ -2336,6 +2348,9 @@ export class PokhDetailComponent implements OnInit, AfterViewInit {
             sorter: 'number',
             width: 150,
             editor: 'number',
+            editorParams: {
+              verticalNavigation: 'table',
+            },
             formatter: 'money',
             formatterParams: {
               precision: 0,
@@ -2351,6 +2366,9 @@ export class PokhDetailComponent implements OnInit, AfterViewInit {
             sorter: 'number',
             width: 150,
             editor: 'number',
+            editorParams: {
+              verticalNavigation: 'table',
+            },
             formatter: 'money',
             formatterParams: {
               precision: 0,
@@ -2378,6 +2396,9 @@ export class PokhDetailComponent implements OnInit, AfterViewInit {
             sorter: 'number',
             width: 150,
             editor: 'number',
+            editorParams: {
+              verticalNavigation: 'table',
+            },
             formatter: 'money',
             formatterParams: {
               precision: 0,
@@ -2404,6 +2425,9 @@ export class PokhDetailComponent implements OnInit, AfterViewInit {
             sorter: 'number',
             width: 100,
             editor: 'number',
+            editorParams: {
+              verticalNavigation: 'table',
+            },
             formatter: function (cell, formatterParams, onRendered) {
               const value = cell.getValue();
               if (
@@ -2422,6 +2446,9 @@ export class PokhDetailComponent implements OnInit, AfterViewInit {
             sorter: 'number',
             width: 150,
             editor: 'number',
+            editorParams: {
+              verticalNavigation: 'table',
+            },
             formatter: 'money',
             formatterParams: {
               precision: 0,
@@ -2472,6 +2499,9 @@ export class PokhDetailComponent implements OnInit, AfterViewInit {
             sorter: 'number',
             width: 150,
             editor: 'number',
+            editorParams: {
+              verticalNavigation: 'table',
+            },
           },
           {
             title: 'Ngày hóa đơn',
@@ -2503,6 +2533,9 @@ export class PokhDetailComponent implements OnInit, AfterViewInit {
             sorter: 'number',
             width: 150,
             editor: 'number',
+            editorParams: {
+              verticalNavigation: 'table',
+            },
           },
           {
             title: 'Ngày yêu cầu thanh toán',

@@ -10,6 +10,7 @@ import {
   ViewEncapsulation,
   ViewChild,
   ElementRef,
+  TemplateRef,
 } from '@angular/core';
 import { Subject } from 'rxjs';
 import { debounceTime, distinctUntilChanged, takeUntil } from 'rxjs/operators';
@@ -46,7 +47,11 @@ import { NewsletterDetailComponent } from './newsletter-detail/newsletter-detail
 import { NewsletterService } from './newsletter.service';
 import { HttpClient } from '@angular/common/http';
 import { environment } from '../../../../../environments/environment';
-import { PrimeIcons } from 'primeng/api';
+import { PrimeIcons, MenuItem } from 'primeng/api';
+import { MenubarModule } from 'primeng/menubar';
+import * as ExcelJS from 'exceljs';
+import { saveAs } from 'file-saver';
+
 (window as any).luxon = { DateTime };
 
 @Component({
@@ -69,9 +74,10 @@ import { PrimeIcons } from 'primeng/api';
     NzMessageModule,
     NgbModalModule,
     NzModalModule,
-    HasPermissionDirective,
+    // HasPermissionDirective,
     NgbDropdownModule,
     NzDropDownModule,
+    MenubarModule,
   ],
   templateUrl: './newsletter.component.html',
   styleUrl: './newsletter.component.css'
@@ -87,8 +93,8 @@ export class NewsletterComponent implements OnInit, AfterViewInit, OnDestroy {
   ) { }
 
     nightShiftTable: Tabulator | null = null;
-  isSearchVisible: boolean = false;
-
+  isSearchVisible: boolean = true;
+  exportingExcel: boolean = false;
   // Master data
   departments: any[] = [];
   allEmployees: any[] = [];
@@ -102,7 +108,46 @@ export class NewsletterComponent implements OnInit, AfterViewInit, OnDestroy {
   typeID: number = 0;
 
   private ngbModal = inject(NgbModal);
+  @ViewChild('fileListTemplate') fileListTemplate!: TemplateRef<any>;
+  currentFileList: any[] = [];
+  currentNewsletterTitle: string = '';
 
+    menuBars: MenuItem[] = [
+        {
+            label: 'Thêm',
+            icon: 'fa-solid fa-circle-plus fa-lg text-success',
+            // visible: this.permissionService.hasPermission(""),
+            command: () => {
+                this.onAddNewsletter();
+            },
+        },
+
+        {
+            label: 'Sửa',
+            icon: 'fa-solid fa-file-pen fa-lg text-primary',
+            // visible: this.permissionService.hasPermission(""),
+            command: () => {
+                this.onEditNewsletter();
+            },
+        },
+        {
+            label: 'Xóa',
+            icon: 'fa-solid fa-trash fa-lg text-danger',
+            // visible: this.permissionService.hasPermission(""),
+            command: () => {
+                this.onDeleteNewsletter();
+            },
+        },
+        { separator: true },
+
+        {
+            label: 'Xuất Excel',
+            icon: 'fa-solid fa-file-excel fa-lg text-success',
+            command: () => {
+              this.exportToExcel();
+            }
+        },
+    ];
   // Debounce subjects
   private keywordSearchSubject = new Subject<string>();
   private filterChangeSubject = new Subject<void>();
@@ -113,11 +158,11 @@ export class NewsletterComponent implements OnInit, AfterViewInit, OnDestroy {
     ngOnInit() {
     // Load newsletter types
     this.loadNewsletterTypes();
-    
+
     // Set đầu tháng và cuối tháng làm mặc định
     this.dateStart = this.getFirstDayOfMonth();
     this.dateEnd = this.getLastDayOfMonth();
-    
+
     // Setup debounce
     this.keywordSearchSubject
       .pipe(debounceTime(500), distinctUntilChanged(), takeUntil(this.destroy$))
@@ -130,7 +175,42 @@ export class NewsletterComponent implements OnInit, AfterViewInit, OnDestroy {
       .subscribe(() => {
         this.getNewsletter();
       });
+
+    // this.initMenu();
   }
+
+  // private initMenu() {
+  //   this.menuBars = [
+  //     {
+  //       label: 'Tìm kiếm',
+  //       icon: 'pi pi-search',
+  //       command: () => this.toggleSearchPanel()
+  //     },
+  //     {
+  //       label: 'Thêm',
+  //       icon: 'pi pi-plus',
+  //       styleClass: 'btn-add',
+  //       command: () => this.onAddNewsletter()
+  //     },
+  //     {
+  //       label: 'Sửa',
+  //       icon: 'pi pi-pencil',
+  //       styleClass: 'btn-edit',
+  //       command: () => this.onEditNewsletter()
+  //     },
+  //     {
+  //       label: 'Xóa',
+  //       icon: 'pi pi-trash',
+  //       styleClass: 'btn-delete',
+  //       command: () => this.onDeleteNewsletter()
+  //     },
+  //     {
+  //       label: 'Xuất excel',
+  //       icon: 'pi pi-file-excel',
+  //       command: () => this.exportToExcel()
+  //     }
+  //   ];
+  // }
   ngAfterViewInit() {
     this.initTable();
     // Load initial data after table is initialized
@@ -161,7 +241,7 @@ export class NewsletterComponent implements OnInit, AfterViewInit, OnDestroy {
   private initTable(): void {
     const tableElement = document.getElementById('newsletter-table');
     console.log('Table element found:', !!tableElement);
-    
+
     if (!tableElement) {
       console.error('Newsletter table element not found');
       return;
@@ -174,12 +254,11 @@ export class NewsletterComponent implements OnInit, AfterViewInit, OnDestroy {
       pagination: true,
       paginationSize: 20,
       paginationSizeSelector: [10, 20, 50, 100],
-      height: "calc(100vh - 150px)", // Fit to full viewport
       layout: "fitColumns", // Auto-fit columns to table width
       responsiveLayout: "hide", // Hide columns on small screens
       selectableRows: true, // Allow row selection on click
     });
-    
+
     console.log('Newsletter table initialized successfully');
   }
 
@@ -264,36 +343,45 @@ export class NewsletterComponent implements OnInit, AfterViewInit, OnDestroy {
       return;
     }
 
-    // Create modal content
-    const modalContent = `
-      <div class="file-list-modal">
-        <h5>Danh sách files - ${newsletter.Title}</h5>
-        <div class="file-list">
-          ${files.map((file: any, index: number) => `
-            <div class="file-item" data-file='${JSON.stringify(file)}'>
-              <span class="file-icon">📄</span>
-              <span class="file-name">${file.FileName}</span>
-              <button class="download-btn" onclick="downloadFile('${file.ServerPath}', '${file.FileName}')">
-                <i class="fas fa-download"></i>
-              </button>
-            </div>
-          `).join('')}
-        </div>
-      </div>
-    `;
+    this.currentFileList = files;
+    this.currentNewsletterTitle = newsletter.Title;
 
-    // Show modal
-    const modal = this.modal.create({
-      nzTitle: 'Danh sách Files',
-      nzContent: modalContent,
-      nzWidth: 600,
+    // Show modal using TemplateRef
+    this.modal.create({
+      nzTitle: `Danh sách files - ${this.currentNewsletterTitle}`,
+      nzContent: this.fileListTemplate,
+      nzWidth: 500,
       nzFooter: null,
     });
+  }
 
-    // Add download function to window
-    (window as any).downloadFile = (serverPath: string, fileName: string) => {
-      this.downloadFile(serverPath, fileName);
-    };
+  viewFileFromList(file: any): void {
+    this.viewFile(file.ServerPath, file.FileName);
+  }
+
+  downloadFileFromList(file: any): void {
+    this.downloadFile(file.ServerPath, file.FileName);
+  }
+
+  viewFile(serverPath: string, fileName: string): void {
+    if (!serverPath) {
+      this.notification.error(NOTIFICATION_TITLE.error, 'Đường dẫn file không hợp lệ');
+      return;
+    }
+
+    const host = environment.host + 'api/share/';
+    let urlFile = serverPath.replace("\\\\192.168.1.190\\", "");
+    urlFile = urlFile.replace(/\\/g, '/');
+    urlFile = host + urlFile;
+
+    const newWindow = window.open(urlFile, '_blank', 'width=1000,height=700');
+    if (newWindow) {
+      newWindow.onload = () => {
+        newWindow.document.title = fileName || 'File';
+      };
+    } else {
+      this.notification.warning(NOTIFICATION_TITLE.warning, 'Popup bị chặn! Vui lòng cho phép popup trong trình duyệt.');
+    }
   }
 
   downloadFile(serverPath: string, fileName: string): void {
@@ -302,17 +390,22 @@ export class NewsletterComponent implements OnInit, AfterViewInit, OnDestroy {
       return;
     }
 
-    // Tạo URL để download file
-    const downloadUrl = `${environment.host}api/share/Newsletter/${encodeURIComponent(serverPath)}`;
-    
-    // Tạo link download và click
-    const link = document.createElement('a');
-    link.href = downloadUrl;
-    link.download = fileName;
-    link.target = '_blank';
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
+    this.newsletterService.downloadFile(serverPath).subscribe({
+      next: (blob: Blob) => {
+        const url = window.URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = fileName;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        window.URL.revokeObjectURL(url);
+      },
+      error: (error: any) => {
+        console.error('Error downloading file:', error);
+        this.notification.error(NOTIFICATION_TITLE.error, 'Lỗi tải xuống file');
+      }
+    });
   }
     toggleSearchPanel(): void {
     this.isSearchVisible = !this.isSearchVisible;
@@ -327,7 +420,7 @@ export class NewsletterComponent implements OnInit, AfterViewInit, OnDestroy {
       dateStart: this.dateStart,
       dateEnd: this.dateEnd
     });
-    
+
     // Trigger filter change immediately for date changes
     this.filterChangeSubject.next();
   }
@@ -368,7 +461,7 @@ export class NewsletterComponent implements OnInit, AfterViewInit, OnDestroy {
         console.log('Newsletter API response:', response);
         const data = response.data || [];
         console.log('Newsletter data:', data);
-        
+
         if (this.nightShiftTable) {
           this.nightShiftTable.setData(data);
           setTimeout(() => {
@@ -470,7 +563,7 @@ export class NewsletterComponent implements OnInit, AfterViewInit, OnDestroy {
         // Delete all selected newsletters
         for (let row of selectedRows) {
           const selectedData = row.getData();
-          
+
           // Use saveNewsletter with NewsletterDTO structure
           const deleteDTO = {
             Newsletter: {
@@ -509,7 +602,183 @@ export class NewsletterComponent implements OnInit, AfterViewInit, OnDestroy {
     modalRef.componentInstance.newsletterId = newsletter.ID;
   }
 
-  async exportToExcel() {}
+  async exportToExcel() {
+    const table = this.nightShiftTable;
+    if (!table) return;
+
+    const data = table.getData();
+    if (!data || data.length === 0) {
+      this.notification.error(NOTIFICATION_TITLE.error, 'Không có dữ liệu để xuất!');
+      return;
+    }
+
+    this.exportingExcel = true;
+
+    // Hiển thị notification đang chuẩn bị file
+    const loadingNotification = this.notification.create(
+      'info',
+      'Đang chuẩn bị file để xuất',
+      'Vui lòng đợi trong giây lát...',
+      {
+        nzDuration: 0,
+        nzStyle: { fontSize: '0.75rem' }
+      }
+    );
+
+    try {
+      const workbook = new ExcelJS.Workbook();
+      const worksheet = workbook.addWorksheet('Bản tin');
+
+      const headers = ['STT', 'Mã bản tin', 'Tiêu đề', 'Loại bản tin', 'Người tạo', 'Ngày tạo', 'Link ảnh', 'Link danh sách file'];
+      const headerRow = worksheet.addRow(headers);
+
+      headerRow.eachCell((cell) => {
+        cell.fill = {
+          type: 'pattern',
+          pattern: 'solid',
+          fgColor: { argb: 'FF4472C4' },
+        };
+        cell.font = {
+          bold: true,
+          color: { argb: 'FFFFFFFF' },
+          size: 11,
+        };
+        cell.alignment = {
+          vertical: 'middle',
+          horizontal: 'center',
+        };
+        cell.border = {
+          top: { style: 'thin', color: { argb: 'FF000000' } },
+          left: { style: 'thin', color: { argb: 'FF000000' } },
+          bottom: { style: 'thin', color: { argb: 'FF000000' } },
+          right: { style: 'thin', color: { argb: 'FF000000' } },
+        };
+      });
+
+      const host = environment.host + 'api/share/';
+
+      data.forEach((item: any, index: number) => {
+        // Construct Image URL
+        let imageUrl = '';
+        if (item.ServerImgPath || item.Image) {
+          imageUrl = (item.ServerImgPath || item.Image || '').replace("\\\\192.168.1.190\\", "");
+          imageUrl = host + imageUrl.replace(/\\/g, '/');
+        }
+
+        // Construct Files URLs
+        const fileLinks: any[] = [];
+        if (item.NewsletterFiles && Array.isArray(item.NewsletterFiles)) {
+          item.NewsletterFiles.forEach((file: any) => {
+            if (file.ServerPath) {
+              let urlFile = file.ServerPath.replace("\\\\192.168.1.190\\", "");
+              urlFile = host + urlFile.replace(/\\/g, '/');
+              fileLinks.push({
+                text: file.FileName || 'Download',
+                hyperlink: urlFile
+              });
+            }
+          });
+        }
+
+        const rowCountNeeded = Math.max(1, fileLinks.length);
+        const startRowNumber = worksheet.rowCount + 1;
+
+        for (let i = 0; i < rowCountNeeded; i++) {
+          const rowData = [
+            i === 0 ? index + 1 : '',
+            i === 0 ? item.Code || '' : '',
+            i === 0 ? item.Title || '' : '',
+            i === 0 ? item.NewsletterTypeName || '' : '',
+            i === 0 ? item.CreatedBy || '' : '',
+            i === 0 ? (item.CreatedDate ? DateTime.fromISO(item.CreatedDate).toFormat('dd/MM/yyyy HH:mm') : '') : '',
+            i === 0 ? (imageUrl ? { text: 'Xem ảnh', hyperlink: imageUrl } : '') : '',
+            fileLinks[i] ? { text: fileLinks[i].text, hyperlink: fileLinks[i].hyperlink } : ''
+          ];
+
+          const row = worksheet.addRow(rowData);
+
+          row.eachCell((cell, colNumber) => {
+            cell.border = {
+              top: { style: 'thin', color: { argb: 'FFD3D3D3' } },
+              left: { style: 'thin', color: { argb: 'FFD3D3D3' } },
+              bottom: { style: 'thin', color: { argb: 'FFD3D3D3' } },
+              right: { style: 'thin', color: { argb: 'FFD3D3D3' } },
+            };
+            cell.alignment = {
+              vertical: 'middle',
+              horizontal: 'left',
+              wrapText: true
+            };
+
+            // Image Link styling
+            if (colNumber === 7 && i === 0 && imageUrl) {
+              cell.value = { text: 'Xem ảnh', hyperlink: imageUrl };
+              cell.font = { color: { argb: 'FF0000FF' }, underline: true };
+            }
+
+            // File Link styling (only if there's a file at this sub-row index)
+            if (colNumber === 8 && fileLinks[i]) {
+              cell.value = { text: fileLinks[i].text, hyperlink: fileLinks[i].hyperlink };
+              cell.font = { color: { argb: 'FF0000FF' }, underline: true };
+            }
+          });
+        }
+
+        // Merge common info cells if there are multiple files
+        if (rowCountNeeded > 1) {
+          for (let col = 1; col <= 7; col++) {
+            worksheet.mergeCells(startRowNumber, col, startRowNumber + rowCountNeeded - 1, col);
+          }
+        }
+      });
+
+      // Auto size columns
+      worksheet.columns.forEach((column: any, i) => {
+        let maxLength = headers[i].length + 5;
+        column.eachCell({ includeEmpty: true }, (cell: any) => {
+          const val = cell.value;
+          let columnLength = 0;
+          if (val) {
+            if (typeof val === 'object' && val.text) {
+              columnLength = val.text.toString().length;
+            } else {
+              columnLength = val.toString().length;
+            }
+          }
+          if (columnLength > maxLength) {
+            maxLength = columnLength;
+          }
+        });
+        column.width = Math.min(Math.max(maxLength + 2, 10), 80);
+      });
+
+      const buffer = await workbook.xlsx.writeBuffer();
+      const blob = new Blob([buffer], {
+        type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+      });
+
+      const now = DateTime.local();
+      const formattedDate = now.toFormat('dd-MM-yyyy');
+      const fileName = `Bản_tin_${formattedDate}.xlsx`;
+
+      const link = document.createElement('a');
+      link.href = window.URL.createObjectURL(blob);
+      link.download = fileName;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      window.URL.revokeObjectURL(link.href);
+
+      this.notification.remove(loadingNotification.messageId);
+      this.notification.success('Thông báo', 'Xuất Excel thành công!');
+    } catch (error) {
+      console.error('Lỗi khi xuất Excel:', error);
+      this.notification.remove(loadingNotification.messageId);
+      this.notification.error('Thông báo', 'Lỗi khi xuất file Excel!');
+    } finally {
+      this.exportingExcel = false;
+    }
+  }
 
   onTypeNewsletterChange(): void {
     this.filterChangeSubject.next();

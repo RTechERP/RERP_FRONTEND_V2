@@ -1,7 +1,7 @@
-<nav class="navbar sticky-top" style="background-color: #ffffff;">
+<nav class="navbar sticky-top p-0" style="background-color: #23458a;">
     <div class="container-fluid">
-        <a class="navbar-brand p-0" href="#" style="width: 5%;" routerLink="/home">
-            <img src="assets/images/logo-RTC-2023-1200-banchuan.png" alt="" width="100%"
+        <a class="navbar-brand p-0" href="#" style="width: 6%;" routerLink="/home">
+            <img src="assets/images/logo-RTC-2023-1200-red-white.png" alt="" width="100%"
                 class="d-inline-block align-text-top">
 
         </a>
@@ -9,7 +9,7 @@
         <div class="">
             <button nz-button nz-dropdown [nzDropdownMenu]="appmenu" nzPlacement="bottomRight" nzType="text"
                 style="border: none !important; background-color:transparent;" nzTrigger="click">
-                <img src="assets/icon/app_store - Copy.svg">
+                <img src="assets/icon/app_store.svg">
             </button>
 
             <nz-dropdown-menu #appmenu="nzDropdownMenu">
@@ -30,14 +30,14 @@
                 <button style="border: none !important;background-color: transparent; margin:0 5px;" nz-button
                     nzType="text" class=" fs-7" trigger>
                     <nz-badge [nzOverflowCount]="9" [nzCount]="notifItems.length" class="fs-7">
-                        <img src="assets/icon/notification_home - Copy.svg" class="bell-icon">
+                        <img src="assets/icon/notification_home.svg" class="bell-icon">
                     </nz-badge>
                 </button>
             </app-app-notifycation-dropdown>
 
             <app-app-user-dropdown>
                 <button nz-button nzType="text" trigger style="border: none !important;background-color: transparent;">
-                    <img src="assets/icon/user - Copy.svg">
+                    <img src="assets/icon/user.svg">
                 </button>
             </app-app-user-dropdown>
         </div>
@@ -142,9 +142,9 @@
         <div class="card">
             <div class="card-header d-flex justify-content-between align-items-center">
                 <h5 class="card-title m-0 text-uppercase fw-bold py-1">Thông báo</h5>
-                <!-- <a routerLink="/newsletter" class="small text-primary fw-bold" style="text-decoration: none;">
+                <a routerLink="/newsletter-view-all" class="small text-primary fw-bold" style="text-decoration: none;">
                     Xem tất cả <i nz-icon nzType="right" nzTheme="outline"></i>
-                </a> -->
+                </a>
             </div>
             <div class="card-body p-0">
                 <div *ngIf="quantityApprove?.Count > 0">
@@ -180,8 +180,8 @@
                                         {{item.CreatedDate | date:'dd/MM/yyyy'}}
                                     </small>
                                 </div>
-                                <div class="mt-2 text-primary cursor-pointer"
-                                    style="font-size: 12px; text-decoration: underline; font-weight: 600;"
+                                <div class="text-primary cursor-pointer fw-bold"
+                                    style="font-size: 12px; color: #007bff !important; text-decoration: underline; cursor: pointer; font-weight: 600;"
                                     (click)="openNewsletterDetail(item.ID)">
                                     Xem chi tiết
                                 </div>

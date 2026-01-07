@@ -146,7 +146,7 @@
                                 <nz-select formControlName="teamId" nzAllowClear nzShowSearch nzSize="small"
                                     nzPlaceHolder="Chọn Team" class="w-100">
                                     <nz-option *ngFor="let team of teamList" [nzValue]="team.ID"
-                                        [nzLabel]="team.LeaderName || team.Name"></nz-option>
+                                        [nzLabel]="team.Name"></nz-option>
                                 </nz-select>
                             </nz-form-control>
                         </nz-form-item>

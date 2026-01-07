@@ -156,7 +156,7 @@ export class NewsletterFormComponent implements OnInit, AfterViewInit {
       Code: [''],
       Title: [null, Validators.required],
       NewsletterContent: [null, Validators.required],
-      Type: [null],
+      Type: [null, Validators.required],
       Image: [''],
       OriginImgPath: [''],
       ServerImgPath: [''],

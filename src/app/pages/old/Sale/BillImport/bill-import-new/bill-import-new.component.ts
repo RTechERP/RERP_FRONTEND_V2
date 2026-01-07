@@ -1,4 +1,7 @@
 import { Component, OnInit } from '@angular/core';
+import * as ExcelJS from 'exceljs';
+import { MenuItem } from 'primeng/api';
+import { Menubar } from 'primeng/menubar';
 import { CommonModule } from '@angular/common';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { NgbModal, NgbModule } from '@ng-bootstrap/ng-bootstrap';
@@ -25,9 +28,11 @@ import {
   Filters,
   Formatters,
   GridOption,
+  MultipleSelectOption,
   OnClickEventArgs,
   OnSelectedRowsChangedEventArgs,
 } from 'angular-slickgrid';
+import { ExcelExportService } from '@slickgrid-universal/excel-export';
 import { BillImportServiceService } from '../bill-import-service/bill-import-service.service';
 import { AppUserService } from '../../../../../services/app-user.service';
 import { PermissionService } from '../../../../../services/permission.service';
@@ -82,6 +87,7 @@ interface BillImport {
     NzTabsModule,
     HasPermissionDirective,
     AngularSlickgridModule,
+    Menubar,
   ],
   templateUrl: './bill-import-new.component.html',
   styleUrls: ['./bill-import-new.component.css']
@@ -102,6 +108,12 @@ export class BillImportNewComponent implements OnInit {
   // Datasets
   datasetMaster: any[] = [];
   datasetDetail: any[] = [];
+
+  // Excel Export Service for SlickGrid
+  excelExportService = new ExcelExportService();
+
+  // PrimeNG Menubar items
+  menuBars: MenuItem[] = [];
 
   // Component state
   wareHouseCode: string = 'HN';
@@ -180,7 +192,134 @@ export class BillImportNewComponent implements OnInit {
     });
 
     this.initGrids();
+    this.initMenuBar();
     this.getProductGroup();
+  }
+
+  // =================================================================
+  // MENUBAR INITIALIZATION
+  // =================================================================
+
+  initMenuBar(): void {
+    this.menuBars = [
+      {
+        label: 'Thêm',
+        icon: 'fa-solid fa-circle-plus fa-lg text-success',
+        visible: this.permissionService.hasPermission('N27,N1,N33,N34,N69'),
+        command: () => {
+          this.openModalBillImportDetail(false);
+        },
+      },
+      {
+        label: 'Sửa',
+        icon: 'fa-solid fa-file-pen fa-lg text-primary',
+        visible: this.permissionService.hasPermission('N27,N1,N33,N34,N69'),
+        command: () => {
+          this.openModalBillImportDetail(true);
+        },
+      },
+      {
+        label: 'Xóa',
+        icon: 'fa-solid fa-trash fa-lg text-danger',
+        visible: this.permissionService.hasPermission('N27,N1,N33,N34,N69'),
+        command: () => {
+          this.deleteBillImport();
+        },
+      },
+      {
+        label: 'Chứng từ',
+        icon: 'fa-solid fa-file-circle-check fa-lg text-primary',
+        visible: this.permissionService.hasPermission('N11,N50,N1,N18'),
+        items: [
+          {
+            label: 'Nhận chứng từ',
+            icon: 'fa-solid fa-circle-check fa-lg text-success',
+            visible: this.permissionService.hasPermission('N11,N50,N1'),
+            command: () => {
+              this.IsApproved(true);
+            },
+          },
+          {
+            label: 'Hủy chứng từ',
+            icon: 'fa-solid fa-circle-xmark fa-lg text-danger',
+            visible: this.permissionService.hasPermission('N11,N1,N18'),
+            command: () => {
+              this.IsApproved(false);
+            },
+          },
+        ],
+      },
+      {
+        label: 'Xuất Excel',
+        icon: 'fa-solid fa-file-excel fa-lg text-success',
+        items: [
+          {
+            label: 'Xuất phiếu',
+            icon: 'fa-solid fa-file-export fa-lg text-primary',
+            command: () => {
+              this.onExportExcel();
+            },
+          },
+          {
+            label: 'Excel KT',
+            icon: 'fa-solid fa-calculator fa-lg text-info',
+            command: () => {
+              this.onExportExcelKT();
+            },
+          },
+          {
+            label: 'Xuất danh sách',
+            icon: 'fa-solid fa-list fa-lg text-secondary',
+            command: () => {
+              this.exportExcel();
+            },
+          },
+        ],
+      },
+      {
+        label: 'Xuất hàng',
+        icon: 'fa-solid fa-truck fa-lg text-warning',
+        visible: this.permissionService.hasPermission('N27,N1,N33,N34,N69'),
+        command: () => {
+          this.convertExport();
+        },
+      },
+      {
+        label: 'Hồ sơ chứng từ',
+        icon: 'fa-solid fa-folder-open fa-lg text-info',
+        visible: this.permissionService.hasPermission('N52,N36,N1,N34'),
+        command: () => {
+          this.openModalBillDocumentImport();
+        },
+      },
+      {
+        label: '...More',
+        icon: 'fa-solid fa-toolbox fa-lg text-secondary',
+        items: [
+          {
+            label: 'Cây thư mục',
+            icon: 'fa-solid fa-folder-tree fa-lg text-warning',
+            command: () => {
+              this.openFolderTree();
+            },
+          },
+          {
+            label: 'QR Code Phiếu',
+            icon: 'fa-solid fa-qrcode fa-lg text-dark',
+            command: () => {
+              this.openModalScanBill();
+            },
+          },
+          {
+            label: 'Tổng hợp',
+            icon: 'fa-solid fa-chart-pie fa-lg text-primary',
+            command: () => {
+              this.openModalBillImportSynthetic();
+            },
+          },
+        ],
+      },
+    ];
   }
 
   // =================================================================
@@ -202,10 +341,11 @@ export class BillImportNewComponent implements OnInit {
         filterable: true,
         width: 120,
         formatter: Formatters.checkmarkMaterial,
-        filter: { model: Filters['singleSelect'], collection: [
-          { value: '', label: '' },
+        filter: { model: Filters['singleSelect'], collectionOptions: {
+          addBlankEntry: true
+        }, collection: [
           { value: true, label: 'Đã nhận' },
-          { value: false, label: 'Chưa nhận' }
+          { value: false, label: 'Chưa nhận' },
         ]},
         cssClass: 'text-center'
       },
@@ -216,7 +356,10 @@ export class BillImportNewComponent implements OnInit {
         sortable: true,
         filterable: true,
         width: 130,
-        formatter: Formatters.dateIso,
+        formatter: Formatters.date,
+        exportCustomFormatter: Formatters.date,
+        type: 'date',
+        params: { dateFormat: 'DD/MM/YYYY' },
         filter: { model: Filters['compoundDate'] },
         cssClass: 'text-center'
       },
@@ -227,7 +370,17 @@ export class BillImportNewComponent implements OnInit {
         sortable: true,
         filterable: true,
         width: 150,
-        filter: { model: Filters['compoundInputText'] }
+        filter: {
+          collection: [],
+          model: Filters['multipleSelect'],
+          collectionOptions: {
+            addBlankEntry: true
+          },
+          filterOptions: {
+            autoAdjustDropHeight: true,
+            filter: true,
+          } as MultipleSelectOption,
+        },
       },
       {
         id: 'DateRequestImport',
@@ -235,9 +388,14 @@ export class BillImportNewComponent implements OnInit {
         field: 'DateRequestImport',
         sortable: true,
         filterable: true,
-        width: 130,
-        formatter: Formatters.dateIso,
-        filter: { model: Filters['compoundDate'] },
+            width: 130,
+            formatter: Formatters.date,
+            exportCustomFormatter: Formatters.date,
+            type: 'date',
+            params: { dateFormat: 'DD/MM/YYYY' },
+            filter: { model: Filters['compoundDate' ], collectionOptions: {
+              addBlankEntry: true
+            } },
         cssClass: 'text-center'
       },
       {
@@ -247,7 +405,17 @@ export class BillImportNewComponent implements OnInit {
         sortable: true,
         filterable: true,
         width: 180,
-        filter: { model: Filters['compoundInputText'] }
+        filter: {
+          collection: [],
+          model: Filters['multipleSelect'],
+          collectionOptions: {
+            addBlankEntry: true
+          },
+          filterOptions: {
+            autoAdjustDropHeight: true,
+            filter: true,
+          } as MultipleSelectOption,
+        },
       },
       {
         id: 'Suplier',
@@ -256,7 +424,17 @@ export class BillImportNewComponent implements OnInit {
         sortable: true,
         filterable: true,
         width: 200,
-        filter: { model: Filters['compoundInputText'] }
+        filter: {
+          collection: [],
+          model: Filters['multipleSelect'],
+          collectionOptions: {
+            addBlankEntry: true
+          },
+          filterOptions: {
+            autoAdjustDropHeight: true,
+            filter: true,
+          } as MultipleSelectOption,
+        },
       },
       {
         id: 'DepartmentName',
@@ -265,7 +443,17 @@ export class BillImportNewComponent implements OnInit {
         sortable: true,
         filterable: true,
         width: 150,
-        filter: { model: Filters['compoundInputText'] }
+        filter: {
+          collection: [],
+          model: Filters['multipleSelect'],
+          collectionOptions: {
+            addBlankEntry: true
+          },
+          filterOptions: {
+            autoAdjustDropHeight: true,
+            filter: true,
+          } as MultipleSelectOption,
+        },
       },
       {
         id: 'Code',
@@ -274,7 +462,17 @@ export class BillImportNewComponent implements OnInit {
         sortable: true,
         filterable: true,
         width: 100,
-        filter: { model: Filters['compoundInputText'] }
+        filter: {
+          collection: [],
+          model: Filters['multipleSelect'],
+          collectionOptions: {
+            addBlankEntry: true
+          },
+          filterOptions: {
+            autoAdjustDropHeight: true,
+            filter: true,
+          } as MultipleSelectOption,
+        },
       },
       {
         id: 'Deliver',
@@ -283,7 +481,17 @@ export class BillImportNewComponent implements OnInit {
         sortable: true,
         filterable: true,
         width: 180,
-        filter: { model: Filters['compoundInputText'] }
+        filter: {
+          collection: [],
+          model: Filters['multipleSelect'],
+          collectionOptions: {
+            addBlankEntry: true
+          },
+          filterOptions: {
+            autoAdjustDropHeight: true,
+            filter: true,
+          } as MultipleSelectOption,
+        },
       },
       {
         id: 'Reciver',
@@ -292,7 +500,17 @@ export class BillImportNewComponent implements OnInit {
         sortable: true,
         filterable: true,
         width: 150,
-        filter: { model: Filters['compoundInputText'] }
+        filter: {
+          collection: [],
+          model: Filters['multipleSelect'],
+          collectionOptions: {
+            addBlankEntry: true
+          },
+          filterOptions: {
+            autoAdjustDropHeight: true,
+            filter: true,
+          } as MultipleSelectOption,
+        },
       },
       {
         id: 'KhoType',
@@ -301,7 +519,17 @@ export class BillImportNewComponent implements OnInit {
         sortable: true,
         filterable: true,
         width: 150,
-        filter: { model: Filters['compoundInputText'] }
+        filter: {
+          collection: [],
+          model: Filters['multipleSelect'],
+          collectionOptions: {
+            addBlankEntry: true
+          },
+          filterOptions: {
+            autoAdjustDropHeight: true,
+            filter: true,
+          } as MultipleSelectOption,
+        },
       },
       {
         id: 'WarehouseName',
@@ -310,7 +538,17 @@ export class BillImportNewComponent implements OnInit {
         sortable: true,
         filterable: true,
         width: 150,
-        filter: { model: Filters['compoundInputText'] }
+        filter: {
+          collection: [],
+          model: Filters['multipleSelect'],
+          collectionOptions: {
+            addBlankEntry: true
+          },
+          filterOptions: {
+            autoAdjustDropHeight: true,
+            filter: true,
+          } as MultipleSelectOption,
+        },
       },
       {
         id: 'IsSuccessText',
@@ -319,7 +557,17 @@ export class BillImportNewComponent implements OnInit {
         sortable: true,
         filterable: true,
         width: 150,
-        filter: { model: Filters['compoundInputText'] }
+        filter: {
+          collection: [],
+          model: Filters['multipleSelect'],
+          collectionOptions: {
+            addBlankEntry: true
+          },
+          filterOptions: {
+            autoAdjustDropHeight: true,
+            filter: true,
+          } as MultipleSelectOption,
+        },
       },
       {
         id: 'CreatedDate',
@@ -328,8 +576,10 @@ export class BillImportNewComponent implements OnInit {
         sortable: true,
         filterable: true,
         width: 150,
-        formatter: Formatters.dateIso,
-        params: { parseDateFormat: 'YYYY-MM-DD HH:mm:ss', displayFormat: 'DD/MM/YYYY HH:mm' },
+        formatter: Formatters.date,
+        exportCustomFormatter: Formatters.date,
+        type: 'date',
+        params: { dateFormat: 'DD/MM/YYYY' },
         filter: { model: Filters['compoundDate'] },
         cssClass: 'text-center'
       },
@@ -340,7 +590,18 @@ export class BillImportNewComponent implements OnInit {
         sortable: true,
         filterable: true,
         width: 150,
-        filter: { model: Filters['compoundInputText'] }
+        filter: {
+          collection: [],
+          model: Filters['multipleSelect'],
+          collectionOptions: {
+            addBlankEntry: true
+          },
+          filterOptions: {
+            autoAdjustDropHeight: true,
+            filter: true,
+            
+          } as MultipleSelectOption,
+        },
       },
       {
         id: 'DoccumentReceiver',
@@ -349,7 +610,17 @@ export class BillImportNewComponent implements OnInit {
         sortable: true,
         filterable: true,
         width: 180,
-        filter: { model: Filters['compoundInputText'] }
+        filter: {
+          collection: [],
+          model: Filters['multipleSelect'],
+          collectionOptions: {
+            addBlankEntry: true
+          },
+          filterOptions: {
+            autoAdjustDropHeight: true,
+            filter: true,
+          } as MultipleSelectOption,
+        },
       },
     ];
 
@@ -368,11 +639,19 @@ export class BillImportNewComponent implements OnInit {
       },
       enableRowSelection: true,
       rowSelectionOptions: {
-        selectActiveRow: true,
+        selectActiveRow: false,
       },
       enablePagination: false,
 
       frozenColumn: 2,
+
+      // Excel export configuration
+      externalResources: [this.excelExportService],
+      enableExcelExport: true,
+      excelExportOptions: {
+        sanitizeDataExport: true,
+        exportWithFormatter: true,
+      },
     };
   }
 
@@ -400,6 +679,15 @@ export class BillImportNewComponent implements OnInit {
         id: 'ProductName',
         name: 'Chi tiết sản phẩm',
         field: 'ProductName',
+        sortable: true,
+        filterable: true,
+        width: 300,
+        filter: { model: Filters['compoundInputText'] }
+      },
+            {
+        id: 'SerialNumber',
+        name: 'Serial Number',
+        field: 'SerialNumber',
         sortable: true,
         filterable: true,
         width: 300,
@@ -452,7 +740,10 @@ export class BillImportNewComponent implements OnInit {
         sortable: true,
         filterable: true,
         width: 130,
-        formatter: Formatters.dateIso,
+        formatter: Formatters.date,
+        exportCustomFormatter: Formatters.date,
+        type: 'date',
+        params: { dateFormat: 'DD/MM/YYYY' },
         filter: { model: Filters['compoundDate'] },
         cssClass: 'text-center'
       },
@@ -492,10 +783,41 @@ export class BillImportNewComponent implements OnInit {
         width: 200,
         filter: { model: Filters['compoundInputText'] }
       },
+       {
+        id: 'BillCode',
+        name: 'Đơn mua hàng',
+        field: 'BillCodePO',
+        sortable: true,
+        filterable: true,
+        width: 150,
+        filter: { model: Filters['compoundInputText'] }
+      },
       {
-        id: 'PONumber',
-        name: 'Số POKH',
-        field: 'PONumber',
+        id: 'Note',
+        name: 'Ghi chú (PO)',
+        field: 'Note',
+        sortable: true,
+        filterable: true,
+        width: 150,
+        filter: { model: Filters['compoundInputText'] }
+      },
+            {
+        id: 'DealineQC',
+        name: 'Hạn QC',
+        field: 'DealineQC',
+        sortable: true,
+        filterable: true,
+        formatter: Formatters.date,
+        exportCustomFormatter: Formatters.date,
+        type: 'date',
+        params: { dateFormat: 'DD/MM/YYYY' },
+        filter: { model: Filters['compoundDate'] },
+        cssClass: 'text-center'
+      },
+            {
+        id: 'StatusQCText',
+        name: 'Trạng thái QC',
+        field: 'StatusQCText',
         sortable: true,
         filterable: true,
         width: 150,
@@ -522,6 +844,13 @@ export class BillImportNewComponent implements OnInit {
 
   angularGridMasterReady(angularGrid: AngularGridInstance): void {
     this.angularGridMaster = angularGrid;
+
+    // Subscribe to filter changed event to update distinct filters based on visible data
+    // Use dataView's onRowCountChanged which fires after filtering
+    this.angularGridMaster.dataView.onRowCountChanged.subscribe(() => {
+      this.applyDistinctFiltersToMaster(true); // true = use filtered data
+    });
+
     // Load data on init
     setTimeout(() => {
       this.loadDataBillImport();
@@ -1033,10 +1362,172 @@ export class BillImportNewComponent implements OnInit {
     ).filter((item: any) => item);
   }
 
-  // TODO: Implement export Excel functionality using ExcelJS or SlickGrid export
+  // Export master grid data to Excel using ExcelJS
   async exportExcel(): Promise<void> {
-    this.notification.info(NOTIFICATION_TITLE.warning, 'Chức năng đang được phát triển!');
-    // Implement ExcelJS export logic here
+    if (!this.angularGridMaster || !this.angularGridMaster.slickGrid) {
+      this.notification.warning(
+        NOTIFICATION_TITLE.warning,
+        'Không có dữ liệu để xuất excel!'
+      );
+      return;
+    }
+
+    const data = this.datasetMaster;
+    if (!data || data.length === 0) {
+      this.notification.warning(
+        NOTIFICATION_TITLE.warning,
+        'Không có dữ liệu xuất excel!'
+      );
+      return;
+    }
+
+    const workbook = new ExcelJS.Workbook();
+    const worksheet = workbook.addWorksheet('Danh sách phiếu nhập');
+
+    // Get visible columns from SlickGrid
+    const columns = this.angularGridMaster.slickGrid.getColumns();
+    const filteredColumns = columns.filter(
+      (col: any, index: number) =>
+        index !== 0 && // Skip checkbox column
+        col.id !== '_checkbox_selector' &&
+        !col.hidden
+    );
+
+    // Add headers
+    const headers = [
+      'STT',
+      ...filteredColumns.map((col: any) => col.name || col.id),
+    ];
+    worksheet.addRow(headers);
+
+    // Add data rows
+    data.forEach((row: any, index: number) => {
+      const rowData = [
+        index + 1,
+        ...filteredColumns.map((col: any) => {
+          const field = col.field;
+          let value = row[field];
+
+          // Handle date values
+          if (
+            typeof value === 'string' &&
+            /^\d{4}-\d{2}-\d{2}T/.test(value)
+          ) {
+            value = new Date(value);
+          }
+          // Handle boolean values
+          if (field === 'IsApproved' || field === 'Status') {
+            value = value === true ? '✓' : '';
+          }
+
+          return value;
+        }),
+      ];
+      worksheet.addRow(rowData);
+    });
+
+    // Freeze header row
+    worksheet.views = [{ state: 'frozen', ySplit: 1 }];
+
+    // Format date columns
+    worksheet.eachRow((row, rowNumber) => {
+      if (rowNumber === 1) return; // Skip header
+      row.eachCell((cell, colNumber) => {
+        if (cell.value instanceof Date) {
+          cell.numFmt = 'dd/mm/yyyy';
+        }
+      });
+    });
+
+    // Auto-fit column widths
+    worksheet.columns.forEach((column: any) => {
+      let maxLength = 10;
+      column.eachCell({ includeEmpty: true }, (cell: any) => {
+        const cellValue = cell.value ? cell.value.toString() : '';
+        maxLength = Math.min(Math.max(maxLength, cellValue.length + 2), 50);
+        cell.alignment = { wrapText: true, vertical: 'middle' };
+      });
+      column.width = Math.min(maxLength, 30);
+    });
+
+    // Add auto-filter
+    worksheet.autoFilter = {
+      from: { row: 1, column: 1 },
+      to: { row: 1, column: filteredColumns.length + 1 },
+    };
+
+    // Export file
+    const buffer = await workbook.xlsx.writeBuffer();
+    const blob = new Blob([buffer], {
+      type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+    });
+
+    const formattedDate = new Date()
+      .toISOString()
+      .slice(2, 10)
+      .split('-')
+      .reverse()
+      .join('');
+
+    const link = document.createElement('a');
+    link.href = window.URL.createObjectURL(blob);
+    link.download = `DanhSachPhieuNhap_${formattedDate}.xlsx`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    window.URL.revokeObjectURL(link.href);
+
+    this.notification.success(
+      NOTIFICATION_TITLE.success,
+      'Xuất file Excel thành công!'
+    );
+  }
+
+  // Export Excel using SlickGrid's ExcelExportService
+  exportExcelSlickGrid(): void {
+    if (!this.angularGridMaster) {
+      this.notification.warning(
+        NOTIFICATION_TITLE.warning,
+        'Grid chưa sẵn sàng!'
+      );
+      return;
+    }
+
+    if (!this.datasetMaster || this.datasetMaster.length === 0) {
+      this.notification.warning(
+        NOTIFICATION_TITLE.warning,
+        'Không có dữ liệu để xuất Excel!'
+      );
+      return;
+    }
+
+    try {
+      const now = new Date();
+      const dateString =
+        now.getDate().toString().padStart(2, '0') +
+        now.getMonth().toString().padStart(2, '0') +
+        now.getFullYear() +
+        '_' +
+        now.getHours().toString().padStart(2, '0') +
+        now.getMinutes().toString().padStart(2, '0') +
+        now.getSeconds().toString().padStart(2, '0');
+
+      this.excelExportService.exportToExcel({
+        filename: `DanhSachPhieuNhap_${dateString}`,
+        format: 'xlsx',
+      });
+
+      this.notification.success(
+        NOTIFICATION_TITLE.success,
+        'Xuất file Excel thành công!'
+      );
+    } catch (error: any) {
+      console.error('Lỗi khi xuất Excel:', error);
+      this.notification.error(
+        NOTIFICATION_TITLE.error,
+        error?.message || 'Có lỗi xảy ra khi xuất file Excel!'
+      );
+    }
   }
 
   // =================================================================
@@ -1466,10 +1957,26 @@ export class BillImportNewComponent implements OnInit {
   // DISTINCT FILTERS
   // =================================================================
 
-  private applyDistinctFiltersToMaster(): void {
+  private applyDistinctFiltersToMaster(useFilteredData: boolean = false): void {
     if (!this.angularGridMaster?.slickGrid || !this.angularGridMaster?.dataView) return;
 
-    const data = this.angularGridMaster.dataView.getItems();
+    // Get data based on whether we want filtered or all items
+    let data: any[];
+    if (useFilteredData) {
+      // Get only the filtered/visible rows
+      const dataView = this.angularGridMaster.dataView;
+      data = [];
+      for (let i = 0; i < dataView.getLength(); i++) {
+        const item = dataView.getItem(i);
+        if (item) {
+          data.push(item);
+        }
+      }
+    } else {
+      // Get all items
+      data = this.angularGridMaster.dataView.getItems();
+    }
+
     if (!data || data.length === 0) return;
 
     const getUniqueValues = (dataArray: any[], field: string): Array<{ value: string; label: string }> => {
@@ -1513,5 +2020,7 @@ export class BillImportNewComponent implements OnInit {
     });
 
     this.angularGridMaster.slickGrid.setColumns(this.angularGridMaster.slickGrid.getColumns());
+    this.angularGridMaster.slickGrid.invalidate();
+    this.angularGridMaster.slickGrid.render();
   }
 }

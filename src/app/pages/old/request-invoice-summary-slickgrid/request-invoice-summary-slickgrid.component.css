@@ -23,7 +23,7 @@
 }
 
 .ant-splitter {
-    height: 87.5vh !important;
+    height: 84vh !important;
 }
 
 /* SlickGrid Styles */
@@ -44,14 +44,13 @@
     color: #000000 !important;
     width: 100%;
     box-sizing: border-box;
-} */
+}
 
-
-:host ::ng-deep .slickgrid-container {
-  height: 100% !important;
+*/:host ::ng-deep .slickgrid-container {
+    height: 100% !important;
 }
 
 /* Urgent row styling */
 :host ::ng-deep .slick-row.urgent-row {
-  background-color: #FFA500 !important;
+    background-color: #FFA500 !important;
 }

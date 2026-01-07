@@ -92,6 +92,7 @@ interface BillExportDetail {
   POKHDetailIDActual?: string;
   PONumber?: string;
   POCode?: string;
+
 }
 
 interface BillExport {
@@ -843,6 +844,7 @@ export class WarehouseReleaseRequestSlickGridComponent implements OnInit {
       SupplierID: 0,
       CreatDate: billExport.RequestDate,
       RequestDate: billExport.RequestDate,
+      IsTransfer: isTransfer,
     };
 
     const modalRef = this.modalService.open(BillExportDetailComponent, {
@@ -860,7 +862,6 @@ export class WarehouseReleaseRequestSlickGridComponent implements OnInit {
     modalRef.componentInstance.id = 0;
     modalRef.componentInstance.wareHouseCode = billExport.WarehouseCode;
     modalRef.componentInstance.isFromWarehouseRelease = true; // FLAG RIÊNG cho luồng Warehouse Release Request
-    modalRef.componentInstance.IsTransfer = isTransfer;
 
     const detailsForModal = billExport.Details.map((detail: any) => ({
       ID: 0,

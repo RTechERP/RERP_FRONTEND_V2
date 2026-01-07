@@ -2099,6 +2099,13 @@ export class BillImportDetailComponent
     productCode: string,
     existingSerials: { ID: number; Serial: string }[]
   ) {
+    if (rowData.ID == null || rowData.ID <= 0) {
+      this.notification.warning(
+        NOTIFICATION_TITLE.warning,
+        'Các mã sản phẩm thêm mới cần lưu trước khi chọn serial!'
+      );
+      return;
+    }
     const modalRef = this.modalService.open(BillImportChoseSerialComponent, {
       size: 'md',
       centered: true,
@@ -2110,6 +2117,7 @@ export class BillImportDetailComponent
     modalRef.componentInstance.existingSerials = existingSerials;
     modalRef.componentInstance.type = 1;
     modalRef.componentInstance.dataBillDetail = rowData;
+    modalRef.componentInstance.isBillImport = true;
     console.log('3', rowData);
 
     // modalRef.result.then(

@@ -17,8 +17,9 @@
           <form nz-form nzLayout="vertical">
             <nz-form-item>
               <nz-form-label class="fs-12" [nzSpan]="24">Từ ngày</nz-form-label>
-              <nz-form-control [nzSpan]="24"><nz-date-picker nzSize="small" name="dateStart" class="w-100" nzFormat="dd/MM/yyyy"
-                  [(ngModel)]="dateStart" nzAllowClear="false" (ngModelChange)="getDay()"></nz-date-picker>
+              <nz-form-control [nzSpan]="24"><nz-date-picker nzSize="small" name="dateStart" class="w-100"
+                  nzFormat="dd/MM/yyyy" [(ngModel)]="dateStart" nzAllowClear="false"
+                  (ngModelChange)="getDay()"></nz-date-picker>
               </nz-form-control>
             </nz-form-item>
             <nz-form-item class="mt-2">
@@ -60,8 +61,7 @@
               <nz-form-control [nzSpan]="24">
                 <nz-select class="w-100 fs-12" nzSize="small" nzShowSearch nzAllowClear
                   nzPlaceHolder="Chọn nhân viên đăng ký..." [(ngModel)]="employeeId"
-                  [nzDisabled]="isEmployeeSelectDisabled"
-                  name="employeeId">
+                  [nzDisabled]="isEmployeeSelectDisabled" name="employeeId">
                   <nz-option *ngFor="let emp of employees" [nzLabel]="emp.Code + ' - ' + emp.FullName"
                     [nzValue]="emp.ID"></nz-option>
                 </nz-select>
@@ -72,8 +72,7 @@
               <nz-form-label class="fs-12" [nzSpan]="24">Nhân viên lái xe</nz-form-label>
               <nz-form-control [nzSpan]="24">
                 <nz-select class="w-100 fs-12" nzSize="small" nzShowSearch nzAllowClear
-                  nzPlaceHolder="Chọn nhân viên lái xe..." [(ngModel)]="driverEmployeeId"
-                  name="driverEmployeeId">
+                  nzPlaceHolder="Chọn nhân viên lái xe..." [(ngModel)]="driverEmployeeId" name="driverEmployeeId">
                   <nz-option *ngFor="let emp of employeesDriver" [nzLabel]="emp.Code + ' - ' + emp.FullName"
                     [nzValue]="emp.ID"></nz-option>
                 </nz-select>
@@ -115,11 +114,15 @@
             <button nz-button nzType="default" nzSize="small" (click)="toggleSearchPanel()">
               <nz-icon nzType="search" />
             </button>
-            <button nz-button nzType="default" nzSize="small" class="fs-12 btn-add" (click)="openVehicleBookingManagementDetailModal()">
+            <button nz-button nzType="default" nzSize="small" class="fs-12 btn-add"
+              (click)="openVehicleBookingManagementDetailModal()">
               <img src="assets/icon/action_add_item_16.png" alt="Thêm" />Thêm
             </button>
             <button class="fs-12 btn-edit" nz-button nzType="default" nzSize="small" (click)="onEdit()">
               <img src="assets/icon/action_edit_item_16.png" alt="Sửa" /> Sửa
+            </button>
+            <button class="fs-12 btn-copy" nz-button nzType="default" nzSize="small" (click)="onCopy()">
+              <img src="assets/icon/action_edit_item_16.png" alt="Copy" /> Copy
             </button>
             <button class="fs-12 btn-delete" nz-button nzType="default" nzSize="small" (click)="onCancelBooking()">
               <img src="assets/icon/action_delete_item_16.png" alt="Đăng ký hủy" /> Đăng ký hủy
@@ -152,20 +155,15 @@
               *hasPermission="'N34,N71,N1'">
               <img src="assets/icon/action_unapproved_16.png" />Hủy duyệt
             </button>
-            <button class="fs-12" nz-button nzType="default" nzSize="small" (click)="exportToExcel()" [nzLoading]="exportingExcel">
+            <button class="fs-12" nz-button nzType="default" nzSize="small" (click)="exportToExcel()"
+              [nzLoading]="exportingExcel">
               <img src="assets/icon/action_export_excel_16.png" />Xuất excel
             </button>
             <button class="fs-12" nz-button nzType="default" nzSize="small" (click)="onExportVehicleSchedule()">
               <img src="assets/icon/btn_vehicle_schedule_16.png" />Lịch trình xe
             </button>
-            <button 
-              *ngIf="hasPendingChanges" 
-              class="fs-12" 
-              nz-button 
-              nzType="primary" 
-              nzSize="small" 
-              (click)="saveAllChanges()"
-              [nzLoading]="savingChanges">
+            <button *ngIf="hasPendingChanges" class="fs-12" nz-button nzType="primary" nzSize="small"
+              (click)="saveAllChanges()" [nzLoading]="savingChanges">
               <nz-icon nzType="save" nzTheme="outline" />Lưu thay đổi
             </button>
 

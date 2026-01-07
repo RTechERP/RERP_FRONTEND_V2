@@ -1,0 +1,45 @@
+:host {
+  display: block;
+  height: 99.8vh;
+}
+
+.pokh-modal-content {
+  flex: 1;
+  overflow-y: auto;
+  overflow-x: hidden;
+}
+
+.modal-header,
+.modal-footer {
+  flex-shrink: 0;
+}
+
+/* SlickGrid trong grid-container-pokh-detail-file */
+.grid-container-pokh-detail-file {
+  height: 100%;
+  overflow: hidden;
+  position: relative;
+  min-height: 0;
+}
+
+:host ::ng-deep .grid-container-pokh-detail-file angular-slickgrid,
+:host ::ng-deep .grid-container-pokh-detail-file .slickgrid-container,
+:host ::ng-deep .grid-container-pokh-detail-file .gridPane {
+  height: 100% !important;
+  width: 100% !important;
+}
+
+/* SlickGrid trong grid-container-pokh-detail-product */
+.grid-container-pokh-detail-product {
+  height: 100%;
+  overflow: hidden;
+  position: relative;
+  min-height: 0;
+}
+
+:host ::ng-deep .grid-container-pokh-detail-product angular-slickgrid,
+:host ::ng-deep .grid-container-pokh-detail-product .slickgrid-container,
+:host ::ng-deep .grid-container-pokh-detail-product .gridPane {
+  height: 100% !important;
+  width: 100% !important;
+}

@@ -530,8 +530,10 @@ export class FoodOrderComponent implements OnInit, AfterViewInit {
       data: this.foodOrderĐPList,
       layout: 'fitDataStretch',
       selectableRows: true,
+      pagination: true,
       paginationMode: 'local',
-
+      paginationSize: 10000,
+      height: '82vh',
       columns: [
         {
           title: 'Duyệt',

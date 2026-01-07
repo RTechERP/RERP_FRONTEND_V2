@@ -445,7 +445,7 @@ export class OfficeSupplyRequestAdminDetailComponent implements OnInit, AfterVie
   updateOfficeSupplyListForSelect(): void {
     this.officeSupplyListForSelect = this.officeSupplyList.map((vpp: any) => ({
       value: vpp.ID,
-      label: vpp.NameRTC || vpp.NameNCC || ''
+      label: vpp.NameNCC || vpp.NameRTC || ''
     }));
   }
 

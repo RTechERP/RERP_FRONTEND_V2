@@ -1,0 +1,61 @@
+/* Modal container - full width */
+.modal-content {
+    width: 100%;
+    max-width: 100%;
+}
+
+.modal-body {
+    overflow-x: auto;
+}
+
+/* Grid container - cho phép scroll ngang */
+#grid-container-transfer-asset {
+    overflow-x: auto;
+    overflow-y: hidden;
+    width: 100%;
+}
+
+/* Đảm bảo SlickGrid có min-width để scroll được */
+:host ::ng-deep .slickgrid-container {
+    min-width: 1200px !important;
+}
+
+:host ::ng-deep .grid-canvas {
+    min-width: 1200px !important;
+}
+
+:host ::ng-deep .slick-viewport {
+    overflow-x: auto !important;
+    overflow-y: auto !important;
+}
+
+:host ::ng-deep .slick-pane-left,
+:host ::ng-deep .slick-pane-right {
+    overflow-x: visible !important;
+}
+
+/* Row styling */
+:host ::ng-deep .slick-row {
+    font-size: 12px;
+}
+
+/* Header styling */
+:host ::ng-deep .slick-header-column {
+    font-size: 12px;
+    font-weight: 600;
+}
+
+/* Checkbox column */
+:host ::ng-deep .slick-cell-checkboxsel {
+    text-align: center;
+}
+
+/* Selected row highlight */
+:host ::ng-deep .slick-row.selected {
+    background-color: #e3f2fd !important;
+}
+
+/* Filter row */
+:host ::ng-deep .slick-headerrow {
+    font-size: 12px;
+}

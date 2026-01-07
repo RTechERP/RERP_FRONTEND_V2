@@ -6,9 +6,7 @@ import {
   Output,
   EventEmitter,
   inject,
-  AfterViewInit,
-  ViewChild,
-  ElementRef
+  AfterViewInit
 } from '@angular/core';
 import { DateTime } from 'luxon';
 import { CommonModule } from '@angular/common';
@@ -57,16 +55,15 @@ import { NOTIFICATION_TITLE } from '../../../../../../app.config';
 export class TsAssetTransferFormComponent implements OnInit {
   @Input() dataInput: any;
   modalData: any = [];
-    deletedDetailIds: number[] = [];
-  @ViewChild('assetTranferTable', { static: false })
-  assetTranferTableRef!: ElementRef;
+  deletedDetailIds: number[] = [];
+
   private ngbModal = inject(NgbModal);
   @Output() closeModal = new EventEmitter<void>();
   @Output() formSubmitted = new EventEmitter<void>();
   constructor(private notification: NzNotificationService) { }
   public activeModal = inject(NgbActiveModal);
   assetTranferData: any[] = [];
-  private isViewInitialized = false;
+
   assetTranferDetailData: any[] = [];
   assetTranferDetailTable: Tabulator | null = null;
   emPloyeeLists: any[] = [];
@@ -84,8 +81,6 @@ export class TsAssetTransferFormComponent implements OnInit {
   }
 
   ngAfterViewInit(): void {
-    this.isViewInitialized = true;
-    // nếu data đã về rồi thì vẽ luôn
     this.drawDetail();
   }
   getTranferAsset() {
@@ -119,58 +114,56 @@ export class TsAssetTransferFormComponent implements OnInit {
     });
   }
   private drawDetail(): void {
-    if (!this.isViewInitialized || !this.assetTranferTableRef) {
+    if (this.assetTranferDetailTable) {
+      this.assetTranferDetailTable.setData(this.assetTranferDetailData);
       return;
     }
 
-    if (this.assetTranferDetailTable) {
-      this.assetTranferDetailTable.setData(this.assetTranferDetailData);
-    } else {
-      this.assetTranferDetailTable = new Tabulator(
-        this.assetTranferTableRef.nativeElement,
+    this.assetTranferDetailTable = new Tabulator('#tableAssetTranfer', {
+      data: this.assetTranferDetailData,
+      layout: 'fitDataStretch',
+      height: '23vh',
+      movableColumns: true,
+      reactiveData: true,
+      columns: [
         {
-          data: this.assetTranferDetailData,
-          layout: 'fitDataStretch',
-          paginationSize: 5,
-          height: '23vh',
-          movableColumns: true,
-          reactiveData: true,
-          columns: [
-          {
-  title: "",
-  field: "addRow",
-  hozAlign: "center",
-  width: 40,
-  headerSort: false,
-  formatter: () =>
-    `<i class="fas fa-times text-danger cursor-pointer" title="Xóa dòng"></i>`,
-  cellClick: (e, cell) => {
-    const row = cell.getRow();
-    const data = row.getData();
+          title: "",
+          field: "addRow",
+          hozAlign: "center",
+          width: 40,
+          headerSort: false,
+          titleFormatter: () => `<i class="fas fa-plus text-success" style="cursor: pointer;" title="Thêm dòng"></i>`,
+          formatter: () => `<i class="fas fa-times text-danger" style="cursor: pointer;" title="Xóa dòng"></i>`,
+          cellClick: (e, cell) => {
+            const row = cell.getRow();
+            const data = row.getData();
 
-    // Nếu là dòng cũ trong DB thì lưu lại ID để gửi IsDeleted = true
-    if (data['ID']) {
-      this.deletedDetailIds.push(data['ID']);
-    }
+            // Nếu là dòng cũ trong DB thì lưu lại ID để gửi IsDeleted = true
+            if (data['ID']) {
+              this.deletedDetailIds.push(data['ID']);
+            }
 
-    // Xóa trên UI
-    row.delete();
-  },
-},
-            { title: 'AssetManagementID', field: 'AssetManagementID', hozAlign: 'center', width: 60, visible: false },
-            { title: 'TSTranferAssetID', field: 'TSTranferAssetID', hozAlign: 'center', width: 60, visible: false },
-            { title: 'ID', field: 'ID', hozAlign: 'center', width: 60, visible: false },
-            { title: 'STT', hozAlign: 'center', width: 60, formatter: 'rownum' },
-            { title: 'Mã tài sản', field: 'TSCodeNCC' },
-            { title: 'Số lượng', field: 'Quantity', hozAlign: 'center' },
-            { title: 'Tên tài sản', field: 'TSAssetName' , width:300,formatter:'textarea'  },
-            //   { title: 'Đơn vị tính ', field: 'UnitName', hozAlign: 'center' },
-            { title: 'Ghi chú', field: 'Note', editor: 'input' ,formatter:'textarea' }
-          ]
-        }
-      );
-    }
+            // Xóa trên UI
+            row.delete();
+          },
+        },
+        { title: 'AssetManagementID', field: 'AssetManagementID', hozAlign: 'center', width: 60, visible: false },
+        { title: 'TSTranferAssetID', field: 'TSTranferAssetID', hozAlign: 'center', width: 60, visible: false },
+        { title: 'ID', field: 'ID', hozAlign: 'center', width: 60, visible: false },
+        {
+          title: 'STT',
+
+          formatter: "rownum",
+        },
+        { title: 'Mã tài sản', field: 'TSCodeNCC', headerHozAlign: 'center' },
+        { title: 'Số lượng', field: 'Quantity', hozAlign: 'center', headerHozAlign: 'center' },
+        { title: 'Tên tài sản', field: 'TSAssetName', width: 300, formatter: 'textarea', headerHozAlign: 'center' },
+        { title: 'Ghi chú', field: 'Note', editor: 'input', formatter: 'textarea', headerHozAlign: 'center' }
+      ]
+    });
   }
+
+
 
   close() {
     this.closeModal.emit();
@@ -307,72 +300,81 @@ export class TsAssetTransferFormComponent implements OnInit {
     }
 
     const selectedAssets = this.assetTranferDetailTable.getData();
- const rows = this.assetTranferDetailTable.getData();
-  if (rows.length === 0) {
-    this.notification.warning('Thông báo', 'Chưa có tài sản trong danh sách.');
-    return;
-  }
-    const detailPayload = rows.map((item: any, index: number) => ({
-    ID: item.ID || 0,
-    STT: index + 1,
-    TSTranferAssetID: item.TSTranferAssetID || (this.dataInput.ID || 0),
-    AssetManagementID: item.AssetManagementID || 0,
-    Quantity: item.Quantity || 1,
-    Note: item.Note || "",
-    IsDeleted: false       // <-- CỜ ĐÁNH LÀ ĐANG ACTIVE
-  }));
-
-  // Những detail đã bấm X: chỉ cần ID + IsDeleted = true
-  const deletedDetailsPayload = this.deletedDetailIds.map(id => ({
-    ID: id,
-    STT: 0,
-    TSTranferAssetID: this.dataInput.ID || 0,
-    AssetManagementID: 0,
-    Quantity: 0,
-    Note: "",
-    IsDeleted: true        // <-- ĐÁNH CỜ XÓA
-  }));
-
-  const payloadTransfer = {
-    tSTranferAsset: {
-      ID: this.dataInput.ID || 0,
-      AssetManagementID: 0,
-      CodeReport: this.dataInput.CodeReport,
-      TranferDate: this.dataInput.TranferDate,
-      DeliverID: this.dataInput.DeliverID,
-      ReceiverID: this.dataInput.ReceiverID,
-      FromDepartmentID: this.dataInput.FromDepartmentID,
-      ToDepartmentID: this.dataInput.ToDepartmentID,
-      FromChucVuID: this.dataInput.FromChucVuID,
-      ToChucVuID: this.dataInput.ToChucVuID,
-      Reason: this.dataInput.Reason,
-      IsApproveAccountant: false,
-      IsApprovedPersonalProperty: false,
-      IsApproved: false
-    },
-    tSTranferAssetDetails: [
-      ...detailPayload,
-      ...deletedDetailsPayload
-    ]
-  };
-
-  console.log(payloadTransfer);
-
-  this.tsAssetTransferService.saveData(payloadTransfer).subscribe({
-    next: () => {
-      this.notification.success("Thông báo", "Thành công");
-      this.getTranferAsset();
-      this.resetModal();
-      this.formSubmitted.emit();
-      this.activeModal.close(true);
-      this.deletedDetailIds = [];   
-    },
-    error: () => {
-      this.notification.success("Thông báo", "Lỗi");
-      console.error('Lỗi khi lưu đơn vị!');
+    const rows = this.assetTranferDetailTable.getData();
+    if (rows.length === 0) {
+      this.notification.warning('Thông báo', 'Chưa có tài sản trong danh sách.');
+      return;
     }
-  });
-}
+    const detailPayload = rows.map((item: any, index: number) => ({
+      ID: item.ID || 0,
+      STT: index + 1,
+      TSTranferAssetID: item.TSTranferAssetID || (this.dataInput.ID || 0),
+      AssetManagementID: item.AssetManagementID || 0,
+      Quantity: item.Quantity || 1,
+      Note: item.Note || "",
+      IsDeleted: false       // <-- CỜ ĐÁNH LÀ ĐANG ACTIVE
+    }));
+    const assetManagements = rows.map(item => ({
+      ID: item.AssetManagementID,
+      IsAllocation: true,
+      StatusID: 1,
+      Status: "Chưa sử dụng",
+      DepartmentID: this.dataInput.ToDepartmentID,
+      EmployeeID: this.dataInput.ReceiverID,
+
+    }));
+    // Những detail đã bấm X: chỉ cần ID + IsDeleted = true
+    const deletedDetailsPayload = this.deletedDetailIds.map(id => ({
+      ID: id,
+      STT: 0,
+      TSTranferAssetID: this.dataInput.ID || 0,
+      AssetManagementID: 0,
+      Quantity: 0,
+      Note: "",
+      IsDeleted: true        // <-- ĐÁNH CỜ XÓA
+    }));
+
+    const payloadTransfer = {
+      tSTranferAsset: {
+        ID: this.dataInput.ID || 0,
+        AssetManagementID: 0,
+        CodeReport: this.dataInput.CodeReport,
+        TranferDate: this.dataInput.TranferDate,
+        DeliverID: this.dataInput.DeliverID,
+        ReceiverID: this.dataInput.ReceiverID,
+        FromDepartmentID: this.dataInput.FromDepartmentID,
+        ToDepartmentID: this.dataInput.ToDepartmentID,
+        FromChucVuID: this.dataInput.FromChucVuID,
+        ToChucVuID: this.dataInput.ToChucVuID,
+        Reason: this.dataInput.Reason,
+        IsApproveAccountant: false,
+        IsApprovedPersonalProperty: false,
+        IsApproved: false
+      },
+      tSAssetManagements: assetManagements,
+      tSTranferAssetDetails: [
+        ...detailPayload,
+        ...deletedDetailsPayload
+      ]
+    };
+
+    console.log(payloadTransfer);
+
+    this.tsAssetTransferService.saveData(payloadTransfer).subscribe({
+      next: () => {
+        this.notification.success("Thông báo", "Thành công");
+        this.getTranferAsset();
+        this.resetModal();
+        this.formSubmitted.emit();
+        this.activeModal.close(true);
+        this.deletedDetailIds = [];
+      },
+      error: () => {
+        this.notification.success("Thông báo", "Lỗi");
+        console.error('Lỗi khi lưu đơn vị!');
+      }
+    });
+  }
   resetModal() { }
   private resetDetails(): void {
     this.assetTranferDetailData = [];

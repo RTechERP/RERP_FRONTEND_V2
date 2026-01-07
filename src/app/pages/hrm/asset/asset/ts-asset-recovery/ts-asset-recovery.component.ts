@@ -45,6 +45,9 @@ import { HasPermissionDirective } from '../../../../../directives/has-permission
 import { NOTIFICATION_TITLE } from '../../../../../app.config';
 import { forkJoin } from 'rxjs';
 import { AuthService } from '../../../../../auth/auth.service';
+import { NzFormModule } from 'ng-zorro-antd/form';
+import { Menubar } from 'primeng/menubar';
+import { PermissionService } from '../../../../../services/permission.service';
 
 @Component({
   standalone: true,
@@ -72,7 +75,9 @@ import { AuthService } from '../../../../../auth/auth.service';
     NzDropDownModule,
     NzModalModule,
     AngularSlickgridModule,
-    NzSpinModule
+    NzSpinModule,
+    NzFormModule,
+    Menubar
   ],
   selector: 'app-ts-asset-recovery',
   templateUrl: './ts-asset-recovery.component.html',
@@ -100,8 +105,8 @@ export class TsAssetRecoveryComponent implements OnInit, AfterViewInit {
   emPloyeeLists: any[] = [];
   employeeRecoveryID = 0;
   employeeReturnID = 0;
-  dateStart: string = '';
-  dateEnd: string = '';
+  dateStart: Date = new Date();
+  dateEnd: Date = new Date();
   status: number = -1;
   filterText: string = '';
   pageSize: number = 1000000;
@@ -110,10 +115,10 @@ export class TsAssetRecoveryComponent implements OnInit, AfterViewInit {
   public detailTabTitle: string = 'Thông tin biên bản thu hồi:';
   private ngbModal = inject(NgbModal);
   isSearchVisible: boolean = false;
+  showSearchBar: boolean = typeof window !== 'undefined' ? window.innerWidth > 768 : true;
   assetRecoveryData: any[] = [];
   assetRecoveryDetailData: any[] = [];
   modalData: any = [];
-  sizeSearch: string = '0';
   statusData = [
     { ID: 0, Name: 'Chưa duyệt' },
     { ID: 1, Name: 'Đã duyệt' }
@@ -121,16 +126,134 @@ export class TsAssetRecoveryComponent implements OnInit, AfterViewInit {
   currentUser: any = null;
   isLoading: boolean = false;
   selectedApproval: number | null = null;
+  menuBars: any[] = [];
+
   constructor(private notification: NzNotificationService,
     private assetsRecoveryService: AssetsRecoveryService,
     private TsAssetManagementPersonalService: TsAssetManagementPersonalService,
     private modal: NzModalService,
     private authService: AuthService,
+    private permissionService: PermissionService
   ) { }
 
+  get shouldShowSearchBar(): boolean {
+    return this.showSearchBar;
+  }
+
+  isMobile(): boolean {
+    return typeof window !== 'undefined' && window.innerWidth <= 768;
+  }
+
+  ToggleSearchPanelNew(event?: Event): void {
+    if (event) {
+      event.stopPropagation();
+    }
+    this.showSearchBar = !this.showSearchBar;
+  }
+
+  private getFirstDayOfMonth(): Date {
+    const now = new Date();
+    return new Date(now.getFullYear(), now.getMonth(), 1);
+  }
+
+  private getLastDayOfMonth(): Date {
+    const now = new Date();
+    return new Date(now.getFullYear(), now.getMonth() + 1, 0);
+  }
+
   ngOnInit() {
+    this.dateStart = this.getFirstDayOfMonth();
+    this.dateEnd = this.getLastDayOfMonth();
+    this.initMenuBar();
     this.initGrid();
     this.initGridDetail();
+  }
+
+  initMenuBar(): void {
+    this.menuBars = [
+      {
+        label: 'Thêm',
+        icon: 'fa-solid fa-plus fa-lg text-success',
+        command: () => this.onAddRecovery(),
+        visible: this.permissionService.hasPermission("N23,N1"),
+
+      },
+      {
+        label: 'Sửa',
+        icon: 'fa-solid fa-pen-to-square fa-lg text-primary',
+        command: () => this.onEditRecovery(),
+        visible: this.permissionService.hasPermission("N23,N1"),
+
+      },
+      {
+        label: 'Xóa',
+        icon: 'fa-solid fa-trash fa-lg text-danger',
+        command: () => this.onDeleteRecovery(),
+        visible: this.permissionService.hasPermission("N23,N1"),
+      },
+      {
+        label: 'Cá nhân xác nhận',
+        icon: 'fa-solid fa-user-check fa-lg text-primary',
+        items: [
+          {
+            label: 'Cá nhân duyệt',
+            icon: 'fa-solid fa-circle-check fa-lg text-success',
+            command: () => this.updateApprove(1)
+          },
+          {
+            label: 'Cá nhân hủy duyệt',
+            icon: 'fa-solid fa-circle-xmark fa-lg text-danger',
+            command: () => this.updateApprove(2)
+          }
+        ]
+      },
+      {
+        label: 'HR xác nhận',
+        visible: this.permissionService.hasPermission("N23,N1"),
+
+        icon: 'fa-solid fa-id-card fa-lg text-info',
+        items: [
+          {
+            label: 'HR duyệt',
+            icon: 'fa-solid fa-circle-check fa-lg text-success',
+            command: () => this.updateApprove(3)
+          },
+          {
+            label: 'HR hủy duyệt',
+            icon: 'fa-solid fa-circle-xmark fa-lg text-danger',
+            command: () => this.updateApprove(4)
+          }
+        ]
+      },
+      {
+        label: 'KT xác nhận',
+        visible: this.permissionService.hasPermission("N67,N1"),
+
+        icon: 'fa-solid fa-calculator fa-lg text-warning',
+        items: [
+          {
+            label: 'Kế toán duyệt',
+            icon: 'fa-solid fa-circle-check fa-lg text-success',
+            command: () => this.updateApprove(5)
+          },
+          {
+            label: 'Kế toán hủy duyệt',
+            icon: 'fa-solid fa-circle-xmark fa-lg text-danger',
+            command: () => this.updateApprove(6)
+          }
+        ]
+      },
+      {
+        label: 'Xuất phiếu',
+        icon: 'fa-solid fa-file-excel fa-lg text-success',
+        command: () => this.exportRecoveryAssetReport()
+      },
+      {
+        label: 'Refresh',
+        icon: 'fa-solid fa-rotate fa-lg text-primary',
+        command: () => this.getRecovery()
+      }
+    ];
   }
   ngAfterViewInit(): void {
     this.getRecovery();
@@ -182,16 +305,35 @@ export class TsAssetRecoveryComponent implements OnInit, AfterViewInit {
       }
     });
   }
-  toggleSearchPanel() {
-    this.sizeSearch = this.sizeSearch == '0' ? '22%' : '0';
-  }
+
   resetSearch(): void {
-    this.dateStart = '2020-01-01';
-    this.dateEnd = '2035-12-31';
+    this.dateStart = this.getFirstDayOfMonth();
+    this.dateEnd = this.getLastDayOfMonth();
     this.employeeReturnID = 0;
     this.employeeRecoveryID = 0;
     this.filterText = '';
+    this.selectedApproval = null;
     this.getRecovery();
+  }
+
+  onDateRangeChange(): void {
+    this.getRecovery();
+  }
+
+  onEmployeeReturnChange(): void {
+    this.getRecovery();
+  }
+
+  onEmployeeRecoveryChange(): void {
+    this.getRecovery();
+  }
+
+  onApprovalChange(): void {
+    this.getRecovery();
+  }
+
+  onKeywordChange(value: string): void {
+    this.filterText = value;
   }
   getListEmployee() {
     const request = {
@@ -227,41 +369,44 @@ export class TsAssetRecoveryComponent implements OnInit, AfterViewInit {
       { id: 'IsApprovedPersonalProperty', name: 'Cá Nhân Duyệt', field: 'IsApprovedPersonalProperty', width: 100, sortable: true, cssClass: 'text-center', formatter: checkboxFormatter },
       { id: 'Status', name: 'HR Duyệt', field: 'Status', width: 100, sortable: true, cssClass: 'text-center', formatter: checkboxFormatter },
       { id: 'IsApproveAccountant', name: 'KT Duyệt', field: 'IsApproveAccountant', width: 100, sortable: true, cssClass: 'text-center', formatter: checkboxFormatter },
-      { 
+      {
         id: 'Code', name: 'Mã thu hồi', field: 'Code', width: 160, sortable: true, filterable: true, cssClass: 'text-center',
         filter: { model: Filters['multipleSelect'], collection: [], collectionOptions: { addBlankEntry: true }, filterOptions: { filter: true, autoAdjustDropWidthByTextSize: true } as MultipleSelectOption }
       },
-      { id: 'DateRecovery', name: 'Ngày thu hồi', field: 'DateRecovery', width: 160, sortable: true, cssClass: 'text-center', formatter: formatDate ,  filterable: true,
-        filter: { model: Filters['compoundInputText'] }},
+      {
+        id: 'DateRecovery', name: 'Ngày thu hồi', field: 'DateRecovery', width: 160, sortable: true, cssClass: 'text-center', formatter: formatDate, filterable: true,
+        filter: { model: Filters['compoundInputText'] }
+      },
       { id: 'DateApprovedHR', name: 'Ngày duyệt', field: 'DateApprovedHR', width: 160, sortable: true, cssClass: 'text-center', formatter: formatDate, hidden: true },
-      { 
+      {
         id: 'EmployeeReturnName', name: 'Thu hồi từ', field: 'EmployeeReturnName', width: 160, sortable: true, filterable: true,
         filter: { model: Filters['multipleSelect'], collection: [], collectionOptions: { addBlankEntry: true }, filterOptions: { filter: true, autoAdjustDropWidthByTextSize: true } as MultipleSelectOption }
       },
       { id: 'EmployeeReturnID', name: 'EmployeeReturnID', field: 'EmployeeReturnID', hidden: true },
-      { 
+      {
         id: 'DepartmentReturn', name: 'Phòng ban', field: 'DepartmentReturn', width: 160, sortable: true, filterable: true,
         filter: { model: Filters['multipleSelect'], collection: [], collectionOptions: { addBlankEntry: true }, filterOptions: { filter: true, autoAdjustDropWidthByTextSize: true } as MultipleSelectOption }
       },
-      { 
+      {
         id: 'PossitionReturn', name: 'Chức vụ', field: 'PossitionReturn', width: 160, sortable: true, filterable: true,
         filter: { model: Filters['multipleSelect'], collection: [], collectionOptions: { addBlankEntry: true }, filterOptions: { filter: true, autoAdjustDropWidthByTextSize: true } as MultipleSelectOption }
       },
-      { 
+      {
         id: 'EmployeeRecoveryName', name: 'Người thu hồi', field: 'EmployeeRecoveryName', width: 160, sortable: true, filterable: true,
         filter: { model: Filters['multipleSelect'], collection: [], collectionOptions: { addBlankEntry: true }, filterOptions: { filter: true, autoAdjustDropWidthByTextSize: true } as MultipleSelectOption }
       },
       { id: 'EmployeeRecoveryID', name: 'EmployeeRecoveryID', field: 'EmployeeRecoveryID', hidden: true },
-      { 
+      {
         id: 'DepartmentRecovery', name: 'Phòng ban NTH', field: 'DepartmentRecovery', width: 160, sortable: true, filterable: true,
         filter: { model: Filters['multipleSelect'], collection: [], collectionOptions: { addBlankEntry: true }, filterOptions: { filter: true, autoAdjustDropWidthByTextSize: true } as MultipleSelectOption }
       },
-      { id: 'PossitionRecovery', name: 'Chức vụ NTH', field: 'PossitionRecovery', width: 160, sortable: true ,filterable: true,
-         filter: { model: Filters['multipleSelect'], collection: [], collectionOptions: { addBlankEntry: true }, filterOptions: { filter: true, autoAdjustDropWidthByTextSize: true } as MultipleSelectOption }
+      {
+        id: 'PossitionRecovery', name: 'Chức vụ NTH', field: 'PossitionRecovery', width: 160, sortable: true, filterable: true,
+        filter: { model: Filters['multipleSelect'], collection: [], collectionOptions: { addBlankEntry: true }, filterOptions: { filter: true, autoAdjustDropWidthByTextSize: true } as MultipleSelectOption }
       },
-      { 
+      {
         id: 'Note', name: 'Ghi chú', field: 'Note', width: 360, sortable: true, filterable: true, filter: { model: Filters['compoundInputText'] },
-        
+
         formatter: (_row: any, _cell: any, value: any, _column: any, dataContext: any) => {
           if (!value) return '';
           return `<span title="${dataContext.Note}" style="display:block; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${value}</span>`;
@@ -274,16 +419,15 @@ export class TsAssetRecoveryComponent implements OnInit, AfterViewInit {
       autoResize: { container: '#grid-container-recovery', calculateAvailableSizeBy: 'container' },
       enableAutoResize: true,
       gridWidth: '100%',
-      forceFitColumns: false,
+      forceFitColumns: true,
       enableRowSelection: true,
       rowSelectionOptions: { selectActiveRow: false },
       checkboxSelector: { hideInFilterHeaderRow: false, hideInColumnTitleRow: true, applySelectOnAllPages: true },
       enableCheckboxSelector: true,
       enableCellNavigation: true,
       enableFiltering: true,
-      autoFitColumnsOnFirstLoad: false,
-      enableAutoSizeColumns: false,
-      frozenColumn: 6
+      autoFitColumnsOnFirstLoad: true,
+      enableAutoSizeColumns: true
     };
   }
 
@@ -294,11 +438,11 @@ export class TsAssetRecoveryComponent implements OnInit, AfterViewInit {
       { id: 'AssetManagementID', name: 'AssetManagementID', field: 'AssetManagementID', width: 60, hidden: true },
       { id: 'TSAssetRecoveryID', name: 'TSAssetRecoveryID', field: 'TSAssetRecoveryID', hidden: true },
       { id: 'STT', name: 'STT', field: 'STT', width: 60, sortable: true, cssClass: 'text-center' },
-      { 
+      {
         id: 'TSCodeNCC', name: 'Mã NCC', field: 'TSCodeNCC', width: 150, sortable: true, filterable: true,
         filter: { model: Filters['multipleSelect'], collection: [], collectionOptions: { addBlankEntry: true }, filterOptions: { filter: true, autoAdjustDropWidthByTextSize: true } as MultipleSelectOption }
       },
-      { 
+      {
         id: 'TSAssetName', name: 'Tên tài sản', field: 'TSAssetName', width: 200, sortable: true, filterable: true,
         filter: { model: Filters['multipleSelect'], collection: [], collectionOptions: { addBlankEntry: true }, filterOptions: { filter: true, autoAdjustDropWidthByTextSize: true } as MultipleSelectOption },
         formatter: (_row: any, _cell: any, value: any, _column: any, dataContext: any) => {
@@ -310,7 +454,7 @@ export class TsAssetRecoveryComponent implements OnInit, AfterViewInit {
       { id: 'Quantity', name: 'Số lượng', field: 'Quantity', width: 100, sortable: true, cssClass: 'text-center' },
       { id: 'UnitName', name: 'Đơn vị', field: 'UnitName', width: 100, sortable: true, cssClass: 'text-center' },
       { id: 'Status', name: 'Tình trạng', field: 'Status', width: 100, hidden: true },
-      { 
+      {
         id: 'Note', name: 'Ghi chú', field: 'Note', width: 300, sortable: true, filterable: true, filter: { model: Filters['compoundInputText'] },
         formatter: (_row: any, _cell: any, value: any, _column: any, dataContext: any) => {
           if (!value) return '';
@@ -323,12 +467,13 @@ export class TsAssetRecoveryComponent implements OnInit, AfterViewInit {
     this.gridOptionsDetail = {
       autoResize: { container: '#grid-container-recovery-detail', calculateAvailableSizeBy: 'container' },
       enableAutoResize: true,
+      gridWidth: '100%',
       forceFitColumns: true,
       enableRowSelection: true,
       enableCellNavigation: true,
       enableFiltering: true,
-      autoFitColumnsOnFirstLoad: false,
-      enableAutoSizeColumns: false
+      autoFitColumnsOnFirstLoad: true,
+      enableAutoSizeColumns: true
     };
   }
 

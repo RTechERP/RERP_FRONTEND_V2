@@ -633,6 +633,22 @@ export class DocumentComponent implements OnInit, AfterViewInit {
 
     const file = this.data[0];
 
+    // Nếu FilePath rỗng thì dùng URL trực tiếp để tải
+    if (!file.FilePath && file.FileName) {
+      const directUrl = `http://192.168.1.2:8083/api/Upload/RTCDocument/${encodeURIComponent(file.FileName)}`;
+
+      // Mở URL trong tab mới để tải file
+      const link = document.createElement('a');
+      link.href = directUrl;
+      link.download = file.FileName || file.FileNameOrigin || 'downloaded_file';
+      link.target = '_blank';
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      this.notification.success('Thông báo', 'Đang tải xuống file...');
+      return;
+    }
+
     if (!file.FilePath) {
       this.notification.error('Thông báo', 'Không có đường dẫn file để tải xuống!');
       return;
@@ -842,7 +858,7 @@ export class DocumentComponent implements OnInit, AfterViewInit {
           },
           {
             title: 'Loại văn bản',
-            field: 'NameDocumentType',  
+            field: 'NameDocumentType',
             hozAlign: 'left',
             headerHozAlign: 'center',
           },

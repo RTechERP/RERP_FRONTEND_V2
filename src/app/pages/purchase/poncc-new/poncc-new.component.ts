@@ -1273,6 +1273,11 @@ export class PonccNewComponent implements OnInit, AfterViewInit {
       frozenColumn: 5,
       enableHeaderMenu: true,
       enableExcelExport: true,
+      // Footer row configuration
+      rowHeight: 30,
+      createFooterRow: true,
+      showFooterRow: true,
+      footerRowHeight: 28,
       excelExportOptions: {
         filename: 'poncc',
         sanitizeDataExport: true,
@@ -1329,7 +1334,13 @@ export class PonccNewComponent implements OnInit, AfterViewInit {
       enableAutoSizeColumns: false,
       frozenColumn: 3,
       enableHeaderMenu: false,
+      // Footer row configuration
+      rowHeight: 30,
+      createFooterRow: true,
+      showFooterRow: true,
+      footerRowHeight: 28,
     };
+
   }
 
   loadLookups() {
@@ -1521,12 +1532,14 @@ export class PonccNewComponent implements OnInit, AfterViewInit {
         currentGrid.resizerService.resizeGrid();
       }
       this.onSearch();
-      // Apply distinct filters when switching tabs
+      // Apply distinct filters when switching tabs (updateMasterFooterRow is called inside)
       setTimeout(() => {
         this.applyDistinctFilters();
       }, 100);
     }, 150);
   }
+
+
 
   /**
    * Handle master table selection changes
@@ -1659,6 +1672,8 @@ export class PonccNewComponent implements OnInit, AfterViewInit {
         this.angularGridDetail.resizerService.resizeGrid();
         // Apply distinct filters after detail data is loaded
         this.applyDistinctFilters();
+        // Update footer row for detail grid
+        this.updateDetailFooterRow();
 
         // Tự động select all các dòng detail
         if (details.length > 0) {
@@ -1671,6 +1686,7 @@ export class PonccNewComponent implements OnInit, AfterViewInit {
       }, 100);
     }
   }
+
 
   private getSelectedDetailRows(): any[] {
     if (!this.angularGridDetail) return [];
@@ -1866,7 +1882,14 @@ export class PonccNewComponent implements OnInit, AfterViewInit {
         }
       }
     }
+
+    // Update footer row sau khi grid đã được refresh
+    setTimeout(() => {
+      this.updateMasterFooterRow();
+    }, 200);
   }
+
+
 
   private formatNumberEnUS(v: any, digits: number = 2): string {
     const n = Number(v);
@@ -1882,6 +1905,133 @@ export class PonccNewComponent implements OnInit, AfterViewInit {
     const p2 = (n: number) => String(n).padStart(2, '0');
     const d = new Date(val);
     return `${p2(d.getDate())}/${p2(d.getMonth() + 1)}/${d.getFullYear()}`;
+  }
+
+  /**
+   * Update footer row với count cho Số PO, Số đơn hàng và sum cho Tổng tiền
+   */
+  updateMasterFooterRow(): void {
+    // Lấy grid hiện tại dựa trên tab đang active
+    const currentGrid =
+      this.activeTabIndex === 0
+        ? this.angularGridPoThuongMai
+        : this.angularGridPoMuon;
+
+    if (currentGrid && currentGrid.slickGrid) {
+      // Lấy dữ liệu đã lọc trên view thay vì toàn bộ dữ liệu
+      const items =
+        (currentGrid.dataView?.getFilteredItems?.() as any[]) ||
+        (this.activeTabIndex === 0
+          ? this.datasetPoThuongMai
+          : this.datasetPoMuon);
+
+      // Đếm số lượng POCode
+      const poCodeCount = (items || []).filter((item) => item.POCode).length;
+
+      // Đếm số lượng BillCode
+      const billCodeCount = (items || []).filter(
+        (item) => item.BillCode
+      ).length;
+
+      // Tính tổng cho cột TotalMoneyPO
+      const totalMoneySum = (items || []).reduce(
+        (sum, item) => sum + (Number(item.TotalMoneyPO) || 0),
+        0
+      );
+
+      currentGrid.slickGrid.setFooterRowVisibility(true);
+
+      // Set footer values cho từng column
+      const columns = currentGrid.slickGrid.getColumns();
+      columns.forEach((col: any) => {
+        const footerCell = currentGrid.slickGrid.getFooterRowColumn(col.id);
+        if (!footerCell) return;
+
+        // Đếm cho cột POCode (Số PO)
+        if (col.id === 'POCode') {
+          footerCell.innerHTML = `<b style="display:block;text-align:right;">${poCodeCount}</b>`;
+        }
+        // Đếm cho cột BillCode (Số đơn hàng)
+        else if (col.id === 'BillCode') {
+          footerCell.innerHTML = `<b style="display:block;text-align:right;">${billCodeCount}</b>`;
+        }
+        // Tổng tiền cho cột TotalMoneyPO
+        else if (col.id === 'TotalMoneyPO') {
+          const formattedValue = new Intl.NumberFormat('en-US', {
+            minimumFractionDigits: 2,
+            maximumFractionDigits: 2,
+          }).format(totalMoneySum);
+          footerCell.innerHTML = `<b style="display:block;text-align:right;">${formattedValue}</b>`;
+        } else {
+          footerCell.innerHTML = '';
+        }
+      });
+    }
+  }
+
+  /**
+   * Update footer row cho bảng detail với sum cho các cột số
+   */
+  updateDetailFooterRow(): void {
+    if (this.angularGridDetail && this.angularGridDetail.slickGrid) {
+      // Lấy dữ liệu đã lọc trên view thay vì toàn bộ dữ liệu
+      const items =
+        (this.angularGridDetail.dataView?.getFilteredItems?.() as any[]) ||
+        this.datasetDetail;
+
+      // Danh sách các cột cần tính sum
+      const sumColumns = [
+        'QtyRequest',         // SL yêu cầu
+        'QuantityRequested',  // SL đã yêu cầu
+        'QuantityReturn',     // SL đã về
+        'QuantityRemain',     // SL còn lại
+        'UnitPrice',          // Đơn giá
+        'ThanhTien',          // Thành tiền
+        'VAT',                // %VAT
+        'VATMoney',           // Tổng tiền VAT
+        'DiscountPercent',    // %Chiết khấu
+        'Discount',           // Chiết khấu
+        'FeeShip',            // Phí vận chuyển
+        'TotalPrice',         // Tổng tiền
+        'PriceSale',          // Giá bán
+        'PriceHistory',       // Giá lịch sử
+        'BiddingPrice',       // Giá chào thầu
+      ];
+
+      // Tính tổng cho từng cột
+      const totals: { [key: string]: number } = {};
+      sumColumns.forEach((field) => {
+        totals[field] = (items || []).reduce(
+          (sum, item) => sum + (Number(item[field]) || 0),
+          0
+        );
+      });
+
+      this.angularGridDetail.slickGrid.setFooterRowVisibility(true);
+
+      // Set footer values cho từng column
+      const columns = this.angularGridDetail.slickGrid.getColumns();
+      columns.forEach((col: any) => {
+        const footerCell = this.angularGridDetail.slickGrid.getFooterRowColumn(
+          col.id
+        );
+        if (!footerCell) return;
+
+        // Nếu là cột cần sum
+        if (sumColumns.includes(col.id)) {
+          const value = totals[col.id];
+          // Format số với 2 chữ số thập phân cho các cột tiền, 0 chữ số cho SL
+          const isQuantityColumn = ['QtyRequest', 'QuantityRequested', 'QuantityReturn', 'QuantityRemain'].includes(col.id);
+          const formattedValue = new Intl.NumberFormat('en-US', {
+            minimumFractionDigits: isQuantityColumn ? 0 : 2,
+            maximumFractionDigits: isQuantityColumn ? 0 : 2,
+          }).format(value);
+          footerCell.innerHTML = `<b style="display:block;text-align:right;">${formattedValue}</b>`;
+        } else {
+          footerCell.innerHTML = '';
+        }
+      });
+    }
   }
 
   resetSearch(): void {
@@ -1908,17 +2058,29 @@ export class PonccNewComponent implements OnInit, AfterViewInit {
     // Resize grid sau khi container đã render
     setTimeout(() => {
       angularGrid.resizerService.resizeGrid();
-      // Apply distinct filters for this grid after it's ready
+      // Apply distinct filters for this grid after it's ready (updateMasterFooterRow is called inside)
       this.applyDistinctFilters();
     }, 100);
 
     // Subscribe to dataView.onRowCountChanged để update filter collections khi data thay đổi (bao gồm filter)
     if (angularGrid.dataView) {
       angularGrid.dataView.onRowCountChanged.subscribe(() => {
-        setTimeout(() => this.applyDistinctFilters(), 100);
+        setTimeout(() => {
+          this.applyDistinctFilters();
+        }, 100);
+      });
+    }
+
+    // Đăng ký sự kiện onRendered để đảm bảo footer luôn được render lại sau mỗi lần grid render
+    if (angularGrid.slickGrid) {
+      angularGrid.slickGrid.onRendered.subscribe(() => {
+        setTimeout(() => {
+          this.updateMasterFooterRow();
+        }, 50);
       });
     }
   }
+
 
   angularGridPoMuonReady(angularGrid: AngularGridInstance) {
     this.angularGridPoMuon = angularGrid;
@@ -1926,17 +2088,29 @@ export class PonccNewComponent implements OnInit, AfterViewInit {
     // Resize grid sau khi container đã render
     setTimeout(() => {
       angularGrid.resizerService.resizeGrid();
-      // Apply distinct filters for this grid after it's ready
+      // Apply distinct filters for this grid after it's ready (updateMasterFooterRow is called inside)
       this.applyDistinctFilters();
     }, 100);
 
     // Subscribe to dataView.onRowCountChanged để update filter collections khi data thay đổi (bao gồm filter)
     if (angularGrid.dataView) {
       angularGrid.dataView.onRowCountChanged.subscribe(() => {
-        setTimeout(() => this.applyDistinctFilters(), 100);
+        setTimeout(() => {
+          this.applyDistinctFilters();
+        }, 100);
+      });
+    }
+
+    // Đăng ký sự kiện onRendered để đảm bảo footer luôn được render lại sau mỗi lần grid render
+    if (angularGrid.slickGrid) {
+      angularGrid.slickGrid.onRendered.subscribe(() => {
+        setTimeout(() => {
+          this.updateMasterFooterRow();
+        }, 50);
       });
     }
   }
+
 
   angularGridDetailReady(angularGrid: AngularGridInstance) {
     this.angularGridDetail = angularGrid;
@@ -1946,15 +2120,30 @@ export class PonccNewComponent implements OnInit, AfterViewInit {
       angularGrid.resizerService.resizeGrid();
       // Apply distinct filters for this grid after it's ready
       this.applyDistinctFilters();
+      // Update footer row
+      this.updateDetailFooterRow();
     }, 100);
 
     // Subscribe to dataView.onRowCountChanged để update filter collections khi data thay đổi (bao gồm filter)
     if (angularGrid.dataView) {
       angularGrid.dataView.onRowCountChanged.subscribe(() => {
-        setTimeout(() => this.applyDistinctFilters(), 100);
+        setTimeout(() => {
+          this.applyDistinctFilters();
+          this.updateDetailFooterRow();
+        }, 100);
+      });
+    }
+
+    // Đăng ký sự kiện onRendered để đảm bảo footer luôn được render lại sau mỗi lần grid render
+    if (angularGrid.slickGrid) {
+      angularGrid.slickGrid.onRendered.subscribe(() => {
+        setTimeout(() => {
+          this.updateDetailFooterRow();
+        }, 50);
       });
     }
   }
+
 
   // Handle row selection changes from master grids
   onMasterRowSelectionChanged(
@@ -3581,12 +3770,12 @@ export class PonccNewComponent implements OnInit, AfterViewInit {
       },
       {
         label: 'Duyệt',
-        icon: 'fa-solid fa-check fa-lg text-success',
+        icon: 'fa-solid fa-circle-check fa-lg text-success',
         command: () => this.onApprovePoncc(true),
       },
       {
         label: 'Hủy duyệt',
-        icon: 'fa-solid fa-times fa-lg text-danger',
+        icon: 'fa-solid fa-circle-xmark fa-lg text-danger',
         command: () => this.onApprovePoncc(false),
       },
       {
@@ -3607,7 +3796,7 @@ export class PonccNewComponent implements OnInit, AfterViewInit {
       },
       {
         label: 'Copy',
-        icon: 'fa-solid fa-copy fa-lg text-info',
+        icon: 'fa-solid fa-clone fa-lg text-primary',
         command: () => this.onCopyPO(),
       },
       {

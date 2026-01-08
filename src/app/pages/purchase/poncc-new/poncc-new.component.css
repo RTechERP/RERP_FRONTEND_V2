@@ -145,3 +145,14 @@
 ::ng-deep .text-right {
   text-align: right !important;
 }
+
+/* Footer row styling */
+::ng-deep
+  .slickgrid-container
+  .slick-footerrow
+  .slick-footerrow-columns
+  .slick-footerrow-column {
+  border-right: 1px solid #ddd !important;
+  padding: 4px 6px;
+  font-size: 0.75rem;
+}

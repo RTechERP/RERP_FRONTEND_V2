@@ -395,23 +395,23 @@ export class BillImportAddSerialComponent implements OnInit, AfterViewInit {
     });
 
     // Kiểm tra có lỗi trong quá trình validate không
-    if (listSerials.length !== selectedCount) {
-      return;
-    }
+    // if (listSerials.length !== selectedCount) {
+    //   return;
+    // }
 
-    const serialNumbers = listSerials.map((s) => s.SerialNumber);
-    const duplicates = serialNumbers.filter(
-      (s: string, i: number) => serialNumbers.indexOf(s) !== i
-    );
+    // const serialNumbers = listSerials.map((s) => s.SerialNumber);
+    // const duplicates = serialNumbers.filter(
+    //   (s: string, i: number) => serialNumbers.indexOf(s) !== i
+    // );
 
-    if (duplicates.length > 0) {
-      const uniqueDup = [...new Set(duplicates)];
-      this.notification.error(
-        NOTIFICATION_TITLE.error,
-        `Serial bị trùng: ${uniqueDup.join(', ')}`
-      );
-      return;
-    }
+    // if (duplicates.length > 0) {
+    //   const uniqueDup = [...new Set(duplicates)];
+    //   this.notification.error(
+    //     NOTIFICATION_TITLE.error,
+    //     `Serial bị trùng: ${uniqueDup.join(', ')}`
+    //   );
+    //   return;
+    // }
 
     // Đóng modal và trả về data
     this.activeModal.close(listSerials);

@@ -177,9 +177,9 @@ export class BillExportNewComponent implements OnInit {
         minWidth: 120,
       },
       {
-        id: 'NameStatus',
+        id: 'nameStatus',
         name: 'Trạng thái',
-        field: 'NameStatus',
+        field: 'nameStatus',
         sortable: true,
         filterable: true,
         filter: {
@@ -1666,7 +1666,7 @@ export class BillExportNewComponent implements OnInit {
     // Lấy các giá trị unique của nameStatus
     const statusMap = new Map<string, string>();
     data.forEach((row: any) => {
-      const value = String(row?.NameStatus ?? '');
+      const value = String(row?.nameStatus ?? '');
       if (value && !statusMap.has(value)) {
         statusMap.set(value, value);
       }

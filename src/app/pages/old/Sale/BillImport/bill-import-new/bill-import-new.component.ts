@@ -226,11 +226,7 @@ export class BillImportNewComponent implements OnInit {
           this.deleteBillImport();
         },
       },
-      {
-        label: 'Chứng từ',
-        icon: 'fa-solid fa-file-circle-check fa-lg text-primary',
-        visible: this.permissionService.hasPermission('N11,N50,N1,N18'),
-        items: [
+
           {
             label: 'Nhận chứng từ',
             icon: 'fa-solid fa-circle-check fa-lg text-success',
@@ -247,8 +243,7 @@ export class BillImportNewComponent implements OnInit {
               this.IsApproved(false);
             },
           },
-        ],
-      },
+
       {
         label: 'Xuất Excel',
         icon: 'fa-solid fa-file-excel fa-lg text-success',

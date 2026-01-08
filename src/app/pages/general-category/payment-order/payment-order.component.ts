@@ -303,30 +303,34 @@ export class PaymentOrderComponent implements OnInit {
                 }
             },
 
+            // {
+            //     label: 'TBP xác nhận',
+            //     icon: 'fa-solid fa-calendar-check fa-lg text-primary',
+            //     visible: this.permissionService.hasPermission("N57"),
+            //     items: [
+
+            //     ]
+            // },
+
             {
-                label: 'TBP xác nhận',
-                icon: 'fa-solid fa-calendar-check fa-lg text-primary',
+                label: 'TBP duyệt',
+                icon: 'fa-solid fa-circle-check fa-lg text-success',
                 visible: this.permissionService.hasPermission("N57"),
-                items: [
-                    {
-                        label: 'Duyệt',
-                        icon: 'fa-solid fa-circle-check fa-lg text-success',
-                        command: () => {
-                            this.onApprovedTBP(1, {
-                                ButtonActionGroup: 'btnTBP', ButtonActionName: 'btnApproveTBP', ButtonActionText: 'Trưởng bộ phận',
-                            });
-                        }
-                    },
-                    {
-                        label: 'Hủy duyệt',
-                        icon: 'fa-solid fa-circle-xmark fa-lg text-danger',
-                        command: () => {
-                            this.onApprovedTBP(2, {
-                                ButtonActionGroup: 'btnTBP', ButtonActionName: 'btnUnApproveTBP', ButtonActionText: 'Trưởng bộ phận',
-                            });
-                        }
-                    }
-                ]
+                command: () => {
+                    this.onApprovedTBP(1, {
+                        ButtonActionGroup: 'btnTBP', ButtonActionName: 'btnApproveTBP', ButtonActionText: 'Trưởng bộ phận',
+                    });
+                }
+            },
+            {
+                label: 'TBP hủy duyệt',
+                icon: 'fa-solid fa-circle-xmark fa-lg text-danger',
+                visible: this.permissionService.hasPermission("N57"),
+                command: () => {
+                    this.onApprovedTBP(2, {
+                        ButtonActionGroup: 'btnTBP', ButtonActionName: 'btnUnApproveTBP', ButtonActionText: 'Trưởng bộ phận',
+                    });
+                }
             },
 
             {
@@ -526,34 +530,38 @@ export class PaymentOrderComponent implements OnInit {
                 ]
             },
 
+            // {
+            //     label: 'BGĐ xác nhận',
+            //     icon: 'fa-solid fa-calendar-check fa-lg text-primary',
+            //     visible: this.permissionService.hasPermission("N58"),
+            //     items: [
+
+            //         // {
+            //         //     label: 'Duyệt đặc biệt (ko cần check những bước trước)',
+            //         //     icon: PrimeIcons.UNLOCK
+            //         // }
+            //     ]
+            // },
+
             {
-                label: 'BGĐ xác nhận',
-                icon: 'fa-solid fa-calendar-check fa-lg text-primary',
+                label: 'BGĐ Duyệt',
+                icon: 'fa-solid fa-circle-check fa-lg text-success',
                 visible: this.permissionService.hasPermission("N58"),
-                items: [
-                    {
-                        label: 'Duyệt',
-                        icon: 'fa-solid fa-circle-check fa-lg text-success',
-                        command: () => {
-                            this.onApprovedBGD(1, {
-                                ButtonActionGroup: 'btnBGĐ', ButtonActionName: 'btnApproveBGĐ', ButtonActionText: 'BGĐ xác nhận',
-                            });
-                        }
-                    },
-                    {
-                        label: 'Hủy duyệt',
-                        icon: 'fa-solid fa-circle-xmark fa-lg text-danger',
-                        command: () => {
-                            this.onApprovedBGD(2, {
-                                ButtonActionGroup: 'btnBGĐ', ButtonActionName: 'btnUnApproveBGĐ', ButtonActionText: 'BGĐ xác nhận',
-                            });
-                        }
-                    },
-                    // {
-                    //     label: 'Duyệt đặc biệt (ko cần check những bước trước)',
-                    //     icon: PrimeIcons.UNLOCK
-                    // }
-                ]
+                command: () => {
+                    this.onApprovedBGD(1, {
+                        ButtonActionGroup: 'btnBGĐ', ButtonActionName: 'btnApproveBGĐ', ButtonActionText: 'BGĐ xác nhận',
+                    });
+                }
+            },
+            {
+                label: 'BGĐ hủy duyệt',
+                icon: 'fa-solid fa-circle-xmark fa-lg text-danger',
+                visible: this.permissionService.hasPermission("N58"),
+                command: () => {
+                    this.onApprovedBGD(2, {
+                        ButtonActionGroup: 'btnBGĐ', ButtonActionName: 'btnUnApproveBGĐ', ButtonActionText: 'BGĐ xác nhận',
+                    });
+                }
             },
 
             {
@@ -673,10 +681,10 @@ export class PaymentOrderComponent implements OnInit {
                 cssClass: 'text-center'
             },
             {
-                id: PaymentOrderField.DatePayment.field,
-                name: PaymentOrderField.DatePayment.name,
-                field: PaymentOrderField.DatePayment.field,
-                type: PaymentOrderField.DatePayment.type,
+                id: PaymentOrderField.DeadlinePayment.field,
+                name: PaymentOrderField.DeadlinePayment.name,
+                field: PaymentOrderField.DeadlinePayment.field,
+                type: PaymentOrderField.DeadlinePayment.type,
                 sortable: true, filterable: true,
                 width: 150,
                 formatter: Formatters.date, params: { dateFormat: 'DD/MM/YYYY HH:mm' },
@@ -1931,10 +1939,10 @@ export class PaymentOrderComponent implements OnInit {
                 cssClass: 'text-center'
             },
             {
-                id: PaymentOrderField.DatePayment.field,
+                id: PaymentOrderField.DeadlinePayment.field,
                 name: 'Deadline thanh toán',
-                field: PaymentOrderField.DatePayment.field,
-                type: PaymentOrderField.DatePayment.type,
+                field: PaymentOrderField.DeadlinePayment.field,
+                type: PaymentOrderField.DeadlinePayment.type,
                 sortable: true, filterable: true,
                 width: 150,
                 formatter: Formatters.date, params: { dateFormat: 'DD/MM/YYYY HH:mm' },

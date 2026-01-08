@@ -2759,6 +2759,22 @@ export class ProjectSlickGrid2Component implements OnInit, AfterViewInit, OnDest
     modalRef.componentInstance.projectCodex = selectedRows[0]?.ProjectCode;
     modalRef.componentInstance.tbp = false;
   }
+  openProjectPartListWindow() {
+    const selectedIDs = this.getSelectedIds();
+    const selectedRows = this.getSelectedRows();
+
+    if (selectedIDs.length != 1) {
+      this.notification.error('Thông báo', 'Vui lòng chọn 1 dự án!');
+      return;
+    }
+
+    const projectId = this.projectId;
+    const projectName = selectedRows[0]?.ProjectName;
+    const projectCode = selectedRows[0]?.ProjectCode;
+
+    const url = `/rerpweb/tbp-project-partlist?projectId=${projectId}&projectName=${encodeURIComponent(projectName)}&projectCode=${encodeURIComponent(projectCode)}&tbp=false`;
+    window.open(url, '_blank', 'width=1280,height=960,resizable=yes');
+  }
 
   openProjectHistoryProblemModal() {
     const selectedIDs = this.getSelectedIds();

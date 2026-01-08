@@ -177,9 +177,9 @@ export class BillExportNewComponent implements OnInit {
         minWidth: 120,
       },
       {
-        id: 'NameStatus',
+        id: 'nameStatus',
         name: 'Trạng thái',
-        field: 'NameStatus',
+        field: 'nameStatus',
         sortable: true,
         filterable: true,
         filter: {
@@ -1666,7 +1666,7 @@ export class BillExportNewComponent implements OnInit {
     // Lấy các giá trị unique của nameStatus
     const statusMap = new Map<string, string>();
     data.forEach((row: any) => {
-      const value = String(row?.NameStatus ?? '');
+      const value = String(row?.nameStatus ?? '');
       if (value && !statusMap.has(value)) {
         statusMap.set(value, value);
       }
@@ -1748,7 +1748,7 @@ export class BillExportNewComponent implements OnInit {
     // Thêm
     allItems.push({
       label: 'Thêm',
-      icon: 'fa-solid fa-plus fa-lg text-success',
+      icon: 'fa-solid fa-circle-plus fa-lg text-success',
       command: () => this.openModalBillExportDetail(false),
       visible: true
     });
@@ -1756,7 +1756,7 @@ export class BillExportNewComponent implements OnInit {
     // Sửa
     allItems.push({
       label: 'Sửa',
-      icon: 'fa-solid fa-pen-to-square fa-lg text-primary',
+      icon: 'fa-solid fa-file-pen fa-lg text-primary',
       command: () => this.openModalBillExportDetail(true),
       visible: true
     });
@@ -1772,14 +1772,14 @@ export class BillExportNewComponent implements OnInit {
     // Nhận chứng từ
     allItems.push({
       label: 'Nhận chứng từ',
-      icon: 'fa-solid fa-file-contract fa-lg text-primary',
+      icon: 'fa-solid fa-circle-check fa-lg text-success',
       command: () => this.IsApproved(true)
     });
 
     // Hủy chứng từ
     allItems.push({
       label: 'Hủy chứng từ',
-      icon: 'fa-solid fa-ban fa-lg text-danger',
+      icon: 'fa-solid fa-circle-xmark fa-lg text-danger',
       command: () => this.IsApproved(false)
     });
 

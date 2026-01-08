@@ -3175,67 +3175,6 @@ export class ProjectPartListSlickGridComponent implements OnInit, AfterViewInit,
         this.notification.warning('Thông báo', 'Vui lòng focus vào dòng vật tư để sửa!');
         return;
       }
-
-      // Kiểm tra các điều kiện không cho phép sửa
-      const currentUser = this.appUserService.currentUser;
-      const isAdmin = currentUser?.IsAdmin || false;
-
-      // 1. Kiểm tra IsDeleted
-      if (item.IsDeleted === true || item.IsDeleted === 1) {
-        this.notification.warning('Thông báo', 'Vật tư đã bị xóa, không thể sửa!');
-        return;
-      }
-
-      // 2. Kiểm tra IsApprovedTBP
-      if (item.IsApprovedTBP === true || item.IsApprovedTBP === 1) {
-        this.notification.warning('Thông báo', 'Vật tư đã được TBP duyệt, không thể sửa!');
-        return;
-      }
-
-      // 3. Kiểm tra IsApprovedTBPNewCode (cho hàng mới)
-      if (item.IsNewCode === true || item.IsNewCode === 1) {
-        if (item.IsApprovedTBPNewCode === true || item.IsApprovedTBPNewCode === 1) {
-          this.notification.warning('Thông báo', 'Hàng mới đã được TBP duyệt, không thể sửa!');
-          return;
-        }
-      }
-
-      // 4. Kiểm tra StatusPriceRequest (đã yêu cầu báo giá)
-      if (item.StatusPriceRequest && item.StatusPriceRequest > 0) {
-        this.notification.warning('Thông báo', 'Vật tư đã được yêu cầu báo giá, không thể sửa!');
-        return;
-      }
-
-      // 5. Kiểm tra IsApprovedPurchase (đã yêu cầu mua hàng)
-      if (item.IsApprovedPurchase === true || item.IsApprovedPurchase === 1) {
-        this.notification.warning('Thông báo', 'Vật tư đã được yêu cầu mua hàng, không thể sửa!');
-        return;
-      }
-
-      // 6. Kiểm tra quyền người tạo (nếu không phải admin)
-      if (!isAdmin && item.EmployeeIDCreated && item.EmployeeIDCreated !== currentUser?.EmployeeID) {
-        this.notification.warning('Thông báo', 'Bạn không thể sửa vật tư do người khác tạo!');
-        return;
-      }
-
-
-
-      // // 7. Kiểm tra phiên bản có đang active không
-      // if (this.type === 1) {
-      //   // Solution version
-      //   const selectedVersion = this.dataSolutionVersion.find(v => v.ID === this.versionID);
-      //   if (!selectedVersion || selectedVersion.StatusVersion !== 1 || !selectedVersion.IsActive) {
-      //     this.notification.warning('Thông báo', 'Phiên bản không ở trạng thái hoạt động, không thể sửa vật tư!');
-      //     return;
-      //   }
-      // } else if (this.type === 2) {
-      //   // PO version
-      //   const selectedVersion = this.dataPOVersion.find(v => v.ID === this.versionPOID);
-      //   if (!selectedVersion || selectedVersion.StatusVersion !== 1 || !selectedVersion.IsActive) {
-      //     this.notification.warning('Thông báo', 'Phiên bản không ở trạng thái hoạt động, không thể sửa vật tư!');
-      //     return;
-      //   }
-      // }
     }
     const modalRef = this.ngbModal.open(ProjectPartlistDetailComponent, {
       centered: true,
@@ -4460,6 +4399,8 @@ export class ProjectPartListSlickGridComponent implements OnInit, AfterViewInit,
       SupplierID: bill.SupplierID || 0,
       CreatDate: bill.CreatDate || bill.RequestDate || new Date(),
       RequestDate: bill.RequestDate || new Date(),
+      IsTransfer: isTransfer,
+      
     };
     // Map details cho modal theo BillExportDetailRQPDTO structure
     const detailsForModal = details.map((detail: any) => ({
@@ -4484,7 +4425,7 @@ export class ProjectPartListSlickGridComponent implements OnInit, AfterViewInit,
       Note: detail.Note || '',
       SerialNumber: detail.SerialNumber || '',
       ProjectNameText: detail.ProjectName || '',
-      IsTransfer: isTransfer,
+    
       TotalInventory: 0
     }));
     const modalRef = this.ngbModal.open(BillExportDetailComponent, {
@@ -5511,6 +5452,44 @@ export class ProjectPartListSlickGridComponent implements OnInit, AfterViewInit,
       error: (error: any) => {
         const errorMessage = error?.error?.message || error?.message || 'Không thể bổ sung vật tư vào PO';
         this.notification.error('Lỗi', errorMessage);
+      }
+    });
+  }
+
+  convertVersionToPO(): void {
+    const selectedRows = this.angularGridSolutionVersion?.slickGrid?.getSelectedRows() || [];
+    if (selectedRows.length === 0) {
+      this.notification.warning('Thông báo', 'Vui lòng chọn phiên bản giải pháp để chuyển thành PO!');
+      return;
+    }
+    const rowData = this.angularGridSolutionVersion?.dataView?.getItem(selectedRows[0]);
+    if (!rowData || !rowData.ID) {
+      this.notification.warning('Thông báo', 'Vui lòng chọn phiên bản hợp lệ!');
+      return;
+    }
+    if (rowData.StatusVersion === 2) {
+      this.notification.info('Thông báo', 'Phiên bản này đã là PO.');
+      return;
+    }
+    const payload = {
+      ID: rowData.ID,
+      ProjectTypeID: rowData.ProjectTypeID,
+      ProjectSolutionID: rowData.ProjectSolutionID,
+      ProjectTypeName: rowData.ProjectTypeName,
+      ProjectID: this.projectId,
+    };
+    this.startLoading();
+    (this.projectPartListService as any).convertVersionPO(payload).subscribe({
+      next: (res: any) => {
+        this.stopLoading();
+        this.notification.success('Thành công','Đã chuyển phiên bản thành PO')
+        this.loadDataProjectPartListVersion();
+        this.loadDataProjectPartListVersionPO();
+      },
+      error: (err: any) => {
+        this.stopLoading();
+        const msg = err?.error?.message || err?.message || 'Chuyển phiên bản thất bại';
+        this.notification.error('Lỗi', msg);
       }
     });
   }

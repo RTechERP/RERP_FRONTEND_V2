@@ -179,7 +179,7 @@ export class TsAssetRecoveryFormComponent implements OnInit, AfterViewInit {
           hozAlign: "center",
           width: 40,
           headerSort: false,
-          formatter: () => `<i class="fas fa-times text-danger cursor-pointer" title="Xóa dòng"></i>`,
+          formatter: () => `<span style="color: #dc3545; font-weight: bold; font-size: 14px; cursor: pointer;" title="Xóa dòng">X</span>`,
           cellClick: (e, cell) => {
             const row = cell.getRow();
             const data = row.getData();

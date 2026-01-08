@@ -62,8 +62,7 @@ import { BillExportService } from '../../Sale/BillExport/bill-export-service/bil
   styleUrls: ['./project-partlist-price-request-form.component.css'],
 })
 export class ProjectPartlistPriceRequestFormComponent
-  implements OnInit, AfterViewInit
-{
+  implements OnInit, AfterViewInit {
   private priceRequestService = inject(ProjectPartlistPriceRequestService);
   private purchaseRequestService = inject(
     ProjectPartlistPurchaseRequestService
@@ -189,7 +188,7 @@ export class ProjectPartlistPriceRequestFormComponent
   constructor(
     public activeModal: NgbActiveModal,
     private appUserService: AppUserService
-  ) {}
+  ) { }
 
   get isEditMode(): boolean {
     return !!(this.dataInput && this.dataInput.length > 0);
@@ -209,9 +208,9 @@ export class ProjectPartlistPriceRequestFormComponent
 
           this.isAdmin = Boolean(
             this.currentUser.IsAdmin ??
-              this.currentUser.isAdmin ??
-              this.currentUser.IsSystemAdmin ??
-              false
+            this.currentUser.isAdmin ??
+            this.currentUser.IsSystemAdmin ??
+            false
           );
         }
       },
@@ -236,7 +235,7 @@ export class ProjectPartlistPriceRequestFormComponent
       ) {
         this.priceRequestTypeID = this.initialPriceRequestTypeID;
       }
-      this.requester = this.appUserService.employeeID??0;
+      this.requester = this.appUserService.employeeID ?? 0;
       this.requestDate = new Date();
       this.tableData = [];
       return;
@@ -259,8 +258,8 @@ export class ProjectPartlistPriceRequestFormComponent
     // Lưu tạm giá trị, sẽ bind lại sau khi priceRequestTypes load xong
     const tempTypeID = Number(
       this.dataInput[0]['ProjectPartlistPriceRequestTypeID'] ||
-        this.dataInput[0]['PriceRequestTypeID'] ||
-        0
+      this.dataInput[0]['PriceRequestTypeID'] ||
+      0
     );
 
     // Chỉ set ngay nếu có giá trị, sẽ được bind lại chính xác trong getPriceRequestType
@@ -330,8 +329,8 @@ export class ProjectPartlistPriceRequestFormComponent
             // Khi sửa: bind từ dataInput, đảm bảo giá trị tồn tại trong danh sách
             const typeId = Number(
               this.dataInput[0]['ProjectPartlistPriceRequestTypeID'] ||
-                this.dataInput[0]['PriceRequestTypeID'] ||
-                0
+              this.dataInput[0]['PriceRequestTypeID'] ||
+              0
             );
 
             if (typeId > 0) {
@@ -438,7 +437,7 @@ export class ProjectPartlistPriceRequestFormComponent
           this.drawTable();
         }, 0);
       },
-      error: (err) => {},
+      error: (err) => { },
     });
   }
 
@@ -521,7 +520,7 @@ export class ProjectPartlistPriceRequestFormComponent
   //   });
   // }
 
-  ngAfterViewInit(): void {}
+  ngAfterViewInit(): void { }
   createdControl1(
     component: Type<any>,
     injector: EnvironmentInjector,
@@ -712,6 +711,7 @@ export class ProjectPartlistPriceRequestFormComponent
       ...DEFAULT_TABLE_CONFIG,
       paginationMode: 'local',
       data: this.tableData,
+
       rowHeader: {
         headerSort: false,
         resizable: false,
@@ -726,7 +726,7 @@ export class ProjectPartlistPriceRequestFormComponent
         },
       },
       layout: 'fitDataStretch',
-      selectableRows: true,
+      selectableRows: false,
       pagination: false,
 
       columns: [
@@ -823,12 +823,10 @@ export class ProjectPartlistPriceRequestFormComponent
             }
 
             return `
-              <button class="btn-toggle-detail w-100 h-100" title="${
-                productCode || 'Chọn sản phẩm'
+              <button class="btn-toggle-detail w-100 h-100" title="${productCode || 'Chọn sản phẩm'
               }">
-                <span class="product-code-text">${
-                  productCode || 'Chọn SP'
-                }</span>
+                <span class="product-code-text">${productCode || 'Chọn SP'
+              }</span>
                 <span class="arrow">&#9662;</span>
               </button>
             `;
@@ -944,12 +942,10 @@ export class ProjectPartlistPriceRequestFormComponent
             );
             const supplierName = supplier ? supplier.NameNCC : '';
             return `
-              <button class="btn-toggle-detail w-100 h-100" title="${
-                supplierName || 'Chọn nhà cung cấp'
+              <button class="btn-toggle-detail w-100 h-100" title="${supplierName || 'Chọn nhà cung cấp'
               }">
-                <span class="product-code-text">${
-                  supplierName || 'Chọn NCC'
-                }</span>
+                <span class="product-code-text">${supplierName || 'Chọn NCC'
+              }</span>
                 <span class="arrow">&#9662;</span>
               </button>
             `;

@@ -643,8 +643,13 @@ export class InventoryNewComponent implements OnInit, AfterViewInit, OnDestroy {
                     },
                 ],
             },
+            // Footer row configuration
+            createFooterRow: true,
+            showFooterRow: true,
+            footerRowHeight: 28,
         };
     }
+
 
     //#endregion
 
@@ -668,8 +673,25 @@ export class InventoryNewComponent implements OnInit, AfterViewInit, OnDestroy {
         this.angularGridInventory = angularGrid;
         setTimeout(() => {
             angularGrid.resizerService.resizeGrid();
+            // Update footer row
+            this.updateInventoryFooterRow();
         }, 100);
+
+        // Subscribe to dataView.onRowCountChanged để update footer khi data thay đổi (bao gồm filter)
+        if (angularGrid.dataView) {
+            angularGrid.dataView.onRowCountChanged.subscribe(() => {
+                setTimeout(() => this.updateInventoryFooterRow(), 100);
+            });
+        }
+
+        // Đăng ký sự kiện onRendered để đảm bảo footer luôn được render lại sau mỗi lần grid render
+        if (angularGrid.slickGrid) {
+            angularGrid.slickGrid.onRendered.subscribe(() => {
+                setTimeout(() => this.updateInventoryFooterRow(), 50);
+            });
+        }
     }
+
 
     //#endregion
 
@@ -837,9 +859,12 @@ export class InventoryNewComponent implements OnInit, AfterViewInit, OnDestroy {
                         setTimeout(() => {
                             if (this.angularGridInventory) {
                                 this.angularGridInventory.resizerService.resizeGrid();
+                                // Update footer row sau khi dữ liệu được load
+                                this.updateInventoryFooterRow();
                             }
                         }, 100);
                     }
+
                 },
                 error: (err) => {
                     this.isLoadingInventory = false;
@@ -902,7 +927,76 @@ export class InventoryNewComponent implements OnInit, AfterViewInit, OnDestroy {
         angularGrid.slickGrid.render();
     }
 
+    /**
+     * Update footer row cho inventory grid
+     * Các cột: ProductName:count, và sum cho các cột số
+     */
+    updateInventoryFooterRow(): void {
+        if (!this.angularGridInventory || !this.angularGridInventory.slickGrid) return;
+
+        // Lấy dữ liệu đã lọc trên view
+        const items =
+            (this.angularGridInventory.dataView?.getFilteredItems?.() as any[]) ||
+            this.datasetInventory ||
+            [];
+
+        // Đếm số lượng sản phẩm (ProductName)
+        const productCount = items.length;
+
+        // Các cột cần tính tổng
+        const sumFields = [
+            'TotalQuantityFirst',    // Tồn đầu kỳ
+            'Import',                // Nhập
+            'Export',                // Xuất
+            'TotalQuantityLastActual', // SL tồn thực tế
+            'QuantityRequestExport', // SL yêu cầu xuất
+            'TotalQuantityKeep',     // SL giữ
+            'TotalQuantityLast',     // Tồn CK(được sử dụng)
+            'QuantityUse',           // Tồn sử dụng
+            'MinQuantity',           // Tồn tối thiểu Y/c
+            'MinQuantityActual',     // Tồn tối thiểu thực tế
+            'TotalQuantityReturnNCC', // SL phải trả NCC
+            'ImportPT',              // Tổng mượn
+            'ExportPM',              // Tổng trả
+            'StillBorrowed',         // Đang mượn
+        ];
+
+        // Tính tổng cho từng cột
+        const sums: { [key: string]: number } = {};
+        sumFields.forEach(field => {
+            sums[field] = items.reduce(
+                (sum, item) => sum + (Number(item[field]) || 0),
+                0
+            );
+        });
+
+        this.angularGridInventory.slickGrid.setFooterRowVisibility(true);
+
+        // Set footer values cho từng column
+        const columns = this.angularGridInventory.slickGrid.getColumns();
+        columns.forEach((col: any) => {
+            const footerCell = this.angularGridInventory.slickGrid.getFooterRowColumn(col.id);
+            if (!footerCell) return;
+
+            // Count cho cột ProductName (Tên sản phẩm)
+            if (col.id === 'ProductName') {
+                footerCell.innerHTML = `<b style="display:block;text-align:right;">${productCount}</b>`;
+            }
+            // Sum cho các cột số
+            else if (sumFields.includes(col.id)) {
+                const formattedValue = new Intl.NumberFormat('en-US', {
+                    minimumFractionDigits: 0,
+                    maximumFractionDigits: 0,
+                }).format(sums[col.id]);
+                footerCell.innerHTML = `<b style="display:block;text-align:right;">${formattedValue}</b>`;
+            } else {
+                footerCell.innerHTML = '';
+            }
+        });
+    }
+
     //#endregion
+
 
     //#region Search and Filter Functions
 

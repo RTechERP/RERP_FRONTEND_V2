@@ -249,11 +249,17 @@ export class PaymentOrderComponent implements OnInit {
                 this.param.step = 1;
             }
 
+            if (this.appUserService.currentUser?.Permissions.includes(permissionCodeBGD)) {
+                this.param.departmentID = 0;
+                this.param.approvedTBPID = 0;
+                this.param.step = 6;
+            }
+
             if (this.appUserService.currentUser?.Permissions.includes(permissionCodeHR) ||
                 this.appUserService.currentUser?.Permissions.includes(permissionCodeTbpHR) ||
                 this.appUserService.currentUser?.Permissions.includes(permissionCodeKT) ||
                 this.appUserService.currentUser?.Permissions.includes(permissionCodeKTT) ||
-                this.appUserService.currentUser?.Permissions.includes(permissionCodeBGD) ||
+                // this.appUserService.currentUser?.Permissions.includes(permissionCodeBGD) ||
                 this.appUserService.currentUser?.IsAdmin) {
                 this.param.departmentID = 0;
                 this.param.approvedTBPID = 0;
@@ -691,6 +697,7 @@ export class PaymentOrderComponent implements OnInit {
                 filter: { model: Filters['compoundDate'] },
                 cssClass: 'text-center'
             },
+
             {
                 id: PaymentOrderField.Code.field,
                 name: PaymentOrderField.Code.name,
@@ -700,6 +707,26 @@ export class PaymentOrderComponent implements OnInit {
                 width: 170,
                 // formatter: Formatters.icon,
                 // filter: { model: Filters['compoundInputText'] },
+                filter: {
+                    collection: [],
+                    model: Filters['multipleSelect'],
+                    collectionOptions: {
+                        addBlankEntry: true
+                    },
+                    filterOptions: {
+                        autoAdjustDropHeight: true,
+                        filter: true,
+                    } as MultipleSelectOption,
+                },
+            },
+            {
+                id: PaymentOrderField.StepName.field,
+                name: 'Tình trạng phiếu',
+                field: PaymentOrderField.StepName.field,
+                type: PaymentOrderField.StepName.type,
+                sortable: true, filterable: true,
+                width: 200,
+                // formatter: Formatters.icon,
                 filter: {
                     collection: [],
                     model: Filters['multipleSelect'],
@@ -856,23 +883,7 @@ export class PaymentOrderComponent implements OnInit {
                 // },
                 cssClass: 'text-end'
             },
-            {
-                id: PaymentOrderField.StepName.field,
-                name: 'Tình trạng phiếu',
-                field: PaymentOrderField.StepName.field,
-                type: PaymentOrderField.StepName.type,
-                sortable: true, filterable: true,
-                width: 200,
-                // formatter: Formatters.icon,
-                filter: {
-                    collection: [],
-                    model: Filters['multipleSelect'],
-                    filterOptions: {
-                        autoAdjustDropHeight: true,
-                        filter: true,
-                    } as MultipleSelectOption,
-                },
-            },
+
             {
                 id: PaymentOrderField.Unit.field,
                 name: 'ĐVT',
@@ -1471,11 +1482,12 @@ export class PaymentOrderComponent implements OnInit {
             },
             checkboxSelector: {
                 // you can toggle these 2 properties to show the "select all" checkbox in different location
-                hideInFilterHeaderRow: false,
-                hideInColumnTitleRow: true,
+                hideInFilterHeaderRow: true,
+                hideInColumnTitleRow: false,
                 applySelectOnAllPages: true, // when clicking "Select All", should we apply it to all pages (defaults to true)
             },
             enableCheckboxSelector: true,
+
 
             enableCellNavigation: true,
 
@@ -1723,7 +1735,7 @@ export class PaymentOrderComponent implements OnInit {
             checkboxSelector: {
                 // you can toggle these 2 properties to show the "select all" checkbox in different location
                 hideInFilterHeaderRow: false,
-                hideInColumnTitleRow: true,
+                hideInColumnTitleRow: false,
                 applySelectOnAllPages: true, // when clicking "Select All", should we apply it to all pages (defaults to true)
             },
             enableCheckboxSelector: true,
@@ -1818,7 +1830,7 @@ export class PaymentOrderComponent implements OnInit {
             checkboxSelector: {
                 // you can toggle these 2 properties to show the "select all" checkbox in different location
                 hideInFilterHeaderRow: false,
-                hideInColumnTitleRow: true,
+                hideInColumnTitleRow: false,
                 applySelectOnAllPages: true, // when clicking "Select All", should we apply it to all pages (defaults to true)
             },
             enableCheckboxSelector: true,
@@ -2519,7 +2531,9 @@ export class PaymentOrderComponent implements OnInit {
                     id: x.ID   // dành riêng cho SlickGrid
                 }));
 
-                this.updateFilterCollections(this.angularGrid, this.dataset);
+                setTimeout(() => {
+                    this.applyDistinctFilters(this.angularGrid);
+                }, 100);
                 this.rowStyle(this.angularGrid);
 
 
@@ -2556,8 +2570,12 @@ export class PaymentOrderComponent implements OnInit {
                     id: x.ID   // dành riêng cho SlickGrid
                 }));
 
-                this.updateFilterCollections(this.angularGridSpecial, this.datasetSpecial);
+
                 this.rowStyle(this.angularGridSpecial);
+
+                setTimeout(() => {
+                    this.applyDistinctFilters(this.angularGridSpecial);
+                }, 100);
 
                 const columnElement = this.angularGridSpecial.slickGrid?.getFooterRowColumn('Code');
                 if (columnElement) {
@@ -2619,47 +2637,108 @@ export class PaymentOrderComponent implements OnInit {
     }
 
 
-    private updateFilterCollections(angularGrid: AngularGridInstance, data: any[]): void {
-        if (!angularGrid || !angularGrid.slickGrid) return;
+    // private updateFilterCollections(angularGrid: AngularGridInstance, data: any[]): void {
+    //     if (!angularGrid || !angularGrid.slickGrid) return;
 
-        // console.log('angularGrid',angularGrid);
+    //     // console.log('angularGrid',angularGrid);
 
-        const columns = angularGrid.slickGrid.getColumns();
-        // const allData = angularGrid.dataView?.getItems();
-        const allData = data;
+    //     const columns = angularGrid.slickGrid.getColumns();
+    //     const allData = angularGrid.dataView?.getItems() as any[];
+    //     // const allData = data;
 
-        // Helper function to get unique values for a field
-        const getUniqueValues = (field: string): Array<{ value: string; label: string }> => {
-            const map = new Map<string, string>();
-            allData.forEach((row: any) => {
-                const value = String(row?.[field] ?? '');
-                if (value && !map.has(value)) {
-                    map.set(value, value);
-                }
-            });
-            return Array.from(map.entries())
-                .map(([value, label]) => ({ value, label }))
-                .sort((a, b) => a.label.localeCompare(b.label));
-        };
+    //     // Helper function to get unique values for a field
+    //     const getUniqueValues = (field: string): Array<{ value: string; label: string }> => {
+    //         const map = new Map<string, string>();
+    //         allData.forEach((row: any) => {
+    //             const value = String(row?.[field] ?? '');
+    //             if (value && !map.has(value)) {
+    //                 map.set(value, value);
+    //             }
+    //         });
+    //         return Array.from(map.entries())
+    //             .map(([value, label]) => ({ value, label }))
+    //             .sort((a, b) => a.label.localeCompare(b.label));
+    //     };
 
-        // Update collections for each filterable column
-        columns.forEach((column: any) => {
-            if (column.filter && column.filter.model === Filters['multipleSelect']) {
-                const field = column.field;
-                if (field && field !== 'BorrowCustomer') {
-                    const collection = getUniqueValues(field);
-                    if (column.filter) {
-                        column.filter.collection = collection;
-                    }
-                }
-            }
+    //     // Update collections for each filterable column
+    //     columns.forEach((column: any) => {
+    //         if (column.filter && column.filter.model === Filters['multipleSelect']) {
+    //             const field = column.field;
+    //             if (field && field !== 'BorrowCustomer') {
+    //                 const collection = getUniqueValues(field);
+    //                 if (column.filter) {
+    //                     column.filter.collection = collection;
+    //                 }
+    //             }
+    //         }
+    //     });
+
+
+    //     // Update grid columns
+    //     angularGrid.slickGrid.setColumns(columns);
+    //     angularGrid.slickGrid.render();
+    // }
+
+
+    applyDistinctFilters(angularGrid: AngularGridInstance): void {
+        // const angularGrid = this.angularGrid;
+        console.log('angularGrid:', angularGrid);
+        if (!angularGrid || !angularGrid.slickGrid || !angularGrid.dataView) return;
+
+        const data: any[] = [];
+        setTimeout(() => {
+            const data = angularGrid.dataView.getFilteredItems();
+            console.log('angularGrid data:', data);;
         });
 
+        if (!data || data.length === 0) return;
 
-        // Update grid columns
-        angularGrid.slickGrid.setColumns(columns);
+
+        const getUniqueValues = (
+            items: any[],
+            field: string
+        ): Array<{ value: any; label: string }> => {
+            const map = new Map<string, { value: any; label: string }>();
+            items.forEach((row: any) => {
+                const value = row?.[field];
+                if (value === null || value === undefined || value === '') return;
+                const key = `${typeof value}:${String(value)}`;
+                if (!map.has(key)) {
+                    map.set(key, { value, label: String(value) });
+                }
+            });
+            return Array.from(map.values()).sort((a, b) =>
+                a.label.localeCompare(b.label)
+            );
+        };
+
+        const columns = angularGrid.slickGrid.getColumns();
+        if (columns) {
+            columns.forEach((column: any) => {
+                if (column.filter && column.filter.model === Filters['multipleSelect']) {
+                    const field = column.field;
+                    if (!field) return;
+                    column.filter.collection = getUniqueValues(data, field);
+                }
+            });
+        }
+
+        if (this.columnDefinitions) {
+            this.columnDefinitions.forEach((colDef: any) => {
+                if (colDef.filter && colDef.filter.model === Filters['multipleSelect']) {
+                    const field = colDef.field;
+                    if (!field) return;
+                    colDef.filter.collection = getUniqueValues(data, field);
+                }
+            });
+        }
+
+        const updatedColumns = angularGrid.slickGrid.getColumns();
+        angularGrid.slickGrid.setColumns(updatedColumns);
+        angularGrid.slickGrid.invalidate();
         angularGrid.slickGrid.render();
     }
+    //#endregion
 
 
     rowStyle(angularGrid: AngularGridInstance) {
@@ -3060,7 +3139,7 @@ export class PaymentOrderComponent implements OnInit {
                 showCancelButton: true,
                 confirmButtonColor: '#28a745 ',
                 cancelButtonColor: '#dc3545 ',
-                confirmButtonText: 'Lưu',
+                confirmButtonText: 'Duyệt',
                 cancelButtonText: 'Hủy',
             });
             if (reason) {
@@ -3218,7 +3297,7 @@ export class PaymentOrderComponent implements OnInit {
                 showCancelButton: true,
                 confirmButtonColor: '#28a745 ',
                 cancelButtonColor: '#dc3545 ',
-                confirmButtonText: 'Hủy duyệt',
+                confirmButtonText: 'Duyệt',
                 cancelButtonText: 'Hủy',
             });
             if (reason) {

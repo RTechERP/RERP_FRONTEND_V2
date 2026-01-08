@@ -1,15 +1,4 @@
 /* ==================== ROW COLORING STYLES ==================== */
-/* Dòng được chọn (selected) → Xanh dương */
-:host ::ng-deep .slick-row.selected,
-:host ::ng-deep .slick-row.active {
-  background-color: #e6f7ff !important;
-  border: 2px solid #1890ff !important;
-}
-
-:host ::ng-deep .slick-row.selected .slick-cell,
-:host ::ng-deep .slick-row.active .slick-cell {
-  background-color: transparent !important;
-}
 
 /* Dòng bị xóa → Red background */
 :host ::ng-deep .slick-row.row-deleted,

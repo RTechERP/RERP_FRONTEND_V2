@@ -1,53 +1,263 @@
-.search-form-card {
-  background: #fff;
-  border-radius: 8px;
-  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.1);
-  margin-bottom: 20px;
-  border: 1px solid #e8e8e8;
+:host {
+  font-size: 12px;
 }
 
-.card-body-custom {
-  padding: 24px 20px;
-  background: #fafafa;
+:host ::ng-deep {
+  font-size: 12px;
 }
 
-.form-label-custom {
-  font-size: 13px;
+:host ::ng-deep * {
+  font-size: 12px;
+}
+
+:host ::ng-deep .card {
+  font-size: 12px;
+}
+
+:host ::ng-deep .card-header,
+:host ::ng-deep .card-body,
+:host ::ng-deep .card-footer {
+  font-size: 12px;
+}
+
+:host ::ng-deep button {
+  font-size: 12px;
+}
+
+:host ::ng-deep input,
+:host ::ng-deep select,
+:host ::ng-deep .ant-select-selector {
+  font-size: 12px;
+}
+
+:host ::ng-deep .ant-form-item-label>label {
+  font-size: 12px;
+}
+
+.fs-12 {
+  font-size: 12px;
+}
+
+/* Card styles */
+.card {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  max-height: 93vh;
+  overflow: hidden;
+}
+
+.card-body {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Grid container */
+.grid-container {
+  width: 100% !important;
+}
+
+::ng-deep .slickgrid-container {
+  width: 100% !important;
+}
+
+::ng-deep .slick-viewport {
+  width: 100% !important;
+}
+
+::ng-deep .slick-header {
+  width: 100% !important;
+}
+
+::ng-deep .slick-headerrow {
+  width: 100% !important;
+}
+
+/* Tab styles */
+.ant-tabs-tab-btn {
+  font-size: 12px;
+}
+
+::ng-deep .ant-tabs-card>.ant-tabs-nav .ant-tabs-tab {
+  padding: 6px 12px;
+  font-size: 12px;
+}
+
+::ng-deep .ant-tabs-content {
+  height: 100%;
+}
+
+::ng-deep .ant-tabs-tabpane {
+  height: 100%;
+}
+
+/* Summary tabs styles - similar to approval-tabs */
+:host ::ng-deep nz-tabset.summary-tabs .ant-tabs-tab-btn {
+  color: #141a24 !important;
+  opacity: 1 !important;
+  padding: 4px !important;
+  padding-left: 12px !important;
+  font-size: 12px;
+}
+
+:host ::ng-deep nz-tabset.summary-tabs .ant-tabs-tab.ant-tabs-tab-active .ant-tabs-tab-btn {
+  color: #0e1114 !important;
   font-weight: 600;
-  color: #262626;
-  margin-bottom: 8px;
 }
 
-.search-button {
-  min-width: 120px;
-  height: 36px;
-  box-shadow: 0 2px 6px rgba(24, 144, 255, 0.25);
+:host ::ng-deep nz-tabset.summary-tabs .ant-tabs-ink-bar {
+  background: #1677ff !important;
 }
 
-.search-button span[nz-icon] {
-  margin-right: 6px;
+:host ::ng-deep nz-tabset.summary-tabs .ant-tabs-tab {
+  padding: 8px 16px;
+  margin: 0 2px;
+  background: #f5f5f5;
+  border-radius: 4px 4px 0 0;
+  border: 1px solid #d9d9d9;
+  border-bottom: none;
 }
 
-::ng-deep .search-form-card .ant-form-item {
+:host ::ng-deep nz-tabset.summary-tabs .ant-tabs-tab.ant-tabs-tab-active {
+  background: #fff;
+  border-color: #1677ff;
+  border-bottom: 1px solid #fff;
+}
+
+:host ::ng-deep nz-tabset.summary-tabs .ant-tabs-nav {
   margin-bottom: 0;
 }
 
-::ng-deep .search-form-card .ant-input,
-::ng-deep .search-form-card .ant-picker,
-::ng-deep .search-form-card .ant-select-selector {
-  min-height: 36px;
-  border-radius: 5px !important;
+/* Tab icon styles */
+:host ::ng-deep nz-tabset.summary-tabs .ant-tabs-tab i {
+  font-size: 14px;
+  margin-right: 6px;
 }
 
+/* Custom color classes */
+.text-purple {
+  color: #722ed1;
+}
 
+/* Search form positioning and z-index fixes */
+.filter-bar {
+  position: relative;
+  z-index: 10;
+  background: #f8f9fa;
+  border-bottom: 1px solid #dee2e6;
+}
 
+/* Ensure buttons stay above search form on desktop */
+.card-header {
+  position: relative;
+  z-index: 20;
+  background: white;
+}
+
+/* Mobile search toggle */
+.mobile-search-toggle {
+  background: #fff;
+  border-bottom: 1px solid #dee2e6;
+}
+
+/* Mobile modal styles */
 @media (max-width: 768px) {
-  .card-body-custom {
-    padding: 16px 12px;
+  .filter-bar.mobile-modal {
+    position: fixed;
+    top: 60px;
+    left: 0;
+    right: 0;
+    z-index: 1050;
+    background: white;
+    border-bottom: 1px solid #dee2e6;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+    max-height: 70vh;
+    overflow-y: auto;
+    margin: 16px;
+    border-radius: 8px;
   }
-  
-  .search-button {
-    width: 100%;
+
+  .filter-backdrop {
+    display: block;
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.3);
+    z-index: 1040;
   }
-  
+
+  .grid-container {
+    height: 60vh !important;
+  }
+
+  ::ng-deep .ant-tabs-nav-list {
+    flex-wrap: wrap;
+  }
+
+  ::ng-deep .ant-tabs-tab {
+    margin: 2px !important;
+  }
+}
+
+/* Desktop - keep search form always visible */
+@media (min-width: 769px) {
+  .filter-backdrop {
+    display: none !important;
+  }
+
+  .filter-bar {
+    position: static !important;
+    z-index: 1 !important;
+  }
+
+  .mobile-search-toggle {
+    display: none !important;
+  }
+}
+
+/* Slickgrid specific styles */
+::ng-deep #grvOnLeave,
+::ng-deep #grvEarlyLate,
+::ng-deep #grvOverTime,
+::ng-deep #grvBussiness,
+::ng-deep #grvWFH,
+::ng-deep #grvENF,
+::ng-deep #grvNightShift {
+  width: 100% !important;
+  min-height: 81vh !important;
+}
+
+/* Responsive adjustments */
+@media (max-width: 576px) {
+  .filter-bar {
+    padding: 8px !important;
+  }
+
+  ::ng-deep .ant-form-item-label {
+    padding-bottom: 2px !important;
+  }
+
+  ::ng-deep .ant-tabs-card>.ant-tabs-nav .ant-tabs-tab {
+    padding: 4px 8px;
+    font-size: 11px;
+  }
+}
+
+/* Multiselect dropdown styles - auto width */
+::ng-deep .ms-drop {
+  min-width: 150px !important;
+  max-width: none !important;
+}
+
+::ng-deep .ms-parent {
+  max-width: none !important;
+}
+
+::ng-deep .slick-header-column .ms-choice {
+  max-width: none !important;
 }

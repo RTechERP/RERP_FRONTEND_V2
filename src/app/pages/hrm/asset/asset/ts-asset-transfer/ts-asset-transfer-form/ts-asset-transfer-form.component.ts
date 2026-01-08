@@ -133,7 +133,7 @@ export class TsAssetTransferFormComponent implements OnInit {
           width: 40,
           headerSort: false,
           titleFormatter: () => `<i class="fas fa-plus text-success" style="cursor: pointer;" title="Thêm dòng"></i>`,
-          formatter: () => `<i class="fas fa-times text-danger" style="cursor: pointer;" title="Xóa dòng"></i>`,
+          formatter: () => `<span style="color: #dc3545; font-weight: bold; font-size: 14px; cursor: pointer;" title="Xóa dòng">X</span>`,
           cellClick: (e, cell) => {
             const row = cell.getRow();
             const data = row.getData();

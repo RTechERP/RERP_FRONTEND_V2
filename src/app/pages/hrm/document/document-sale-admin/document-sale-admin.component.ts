@@ -139,6 +139,8 @@ export class DocumentSaleAdminComponent implements OnInit, AfterViewInit {
     isLoading: boolean = false;
 
     selectedDocumentId: number = 0;
+    selectedDocumentName: string = '';
+    selectedDocumentTypeID: number = 0;
     documentFileID: number = 0;
 
     currentUser: any = null;
@@ -464,6 +466,8 @@ export class DocumentSaleAdminComponent implements OnInit, AfterViewInit {
         const rowData = this.angularGrid?.dataView?.getItem(args.row);
         if (rowData) {
             this.selectedDocumentId = rowData.ID;
+            this.selectedDocumentName = rowData.NameDocument || rowData.Code || '';
+            this.selectedDocumentTypeID = rowData.DocumentTypeID || 0;
             this.getDocumentFileByID(this.selectedDocumentId);
         }
     }
@@ -488,6 +492,8 @@ export class DocumentSaleAdminComponent implements OnInit, AfterViewInit {
             const rowData = this.angularGrid?.dataView?.getItem(args.rows[0]);
             if (rowData) {
                 this.selectedDocumentId = rowData.ID;
+                this.selectedDocumentName = rowData.NameDocument || rowData.Code || '';
+                this.selectedDocumentTypeID = rowData.DocumentTypeID || 0;
                 this.getDocumentFileByID(this.selectedDocumentId);
             }
         }
@@ -778,13 +784,15 @@ export class DocumentSaleAdminComponent implements OnInit, AfterViewInit {
             return;
         }
 
-        const subPath = `Documents/${this.selectedDocumentId}`;
+        // Tạo subPath dùng tên văn bản để dễ hiểu
+        const safeName = this.selectedDocumentName.replace(/[\\/:*?"<>|]/g, '_'); // Loại bỏ ký tự không hợp lệ
+        const subPath = `Documents/${safeName}`;
 
         const loadingMsg = this.message.loading(`Đang tải lên ${file.name}...`, {
             nzDuration: 0,
         }).messageId;
 
-        this.documentService.uploadMultipleFiles([file], subPath).subscribe({
+        this.documentService.uploadMultipleFiles([file], this.selectedDocumentTypeID, subPath).subscribe({
             next: (res) => {
                 this.message.remove(loadingMsg);
 
@@ -916,7 +924,7 @@ export class DocumentSaleAdminComponent implements OnInit, AfterViewInit {
             nzDuration: 0,
         }).messageId;
 
-        this.documentService.downloadFile(file.FilePath).subscribe({
+        this.documentService.downloadFile(file.FilePath, this.selectedDocumentTypeID).subscribe({
             next: (blob: Blob) => {
                 this.message.remove(loadingMsg);
 

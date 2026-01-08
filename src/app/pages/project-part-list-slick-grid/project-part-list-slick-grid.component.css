@@ -278,5 +278,9 @@ angular-slickgrid,
   text-align: center;
 }
 
-
+/* Fix font for dropdown menus */
+nz-dropdown-menu ul {
+  font-family: inherit;
+  font-size: inherit;
+}
 

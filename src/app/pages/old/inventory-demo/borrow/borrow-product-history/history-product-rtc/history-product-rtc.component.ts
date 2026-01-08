@@ -1418,7 +1418,6 @@ export class HistoryProductRtcComponent
       {
         label: 'Thêm mới',
         icon: 'fa fa-plus text-success',
-        visible: this.permissionService.hasPermission('N26,N1,N80'),
         command: () => {
           this.productHistoryDetail();
         },
@@ -1426,7 +1425,6 @@ export class HistoryProductRtcComponent
       {
         label: 'Trả thiết bị',
         icon: 'fa fa-recycle text-primary',
-        visible: this.permissionService.hasPermission('N26,N1,N80'),
         command: () => {
           this.returnProduct();
         },

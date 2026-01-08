@@ -2295,6 +2295,12 @@ formatter: Formatters.date,
       enablePagination: false,
       enableHeaderMenu: false, // Disable default header dropdown menu
       autoCommitEdit: true,
+
+      // Footer row configuration
+      rowHeight: 30,
+      createFooterRow: true,
+      showFooterRow: true,
+      footerRowHeight: 28,
     } as any; // Use 'as any' to bypass TypeScript error for custom properties
   }
 
@@ -2318,7 +2324,84 @@ formatter: Formatters.date,
     return metadata;
   }
 
+  /**
+   * Update footer row với count cho ProductName và sum cho Quantity, UnitPrice, TotalPrice
+   */
+  updateFooterRow(typeId: number): void {
+    const angularGrid = this.angularGrids.get(typeId);
+    if (!angularGrid || !angularGrid.slickGrid) return;
+
+    // Lấy dữ liệu đã lọc trên view thay vì toàn bộ dữ liệu
+    const items =
+      (angularGrid.dataView?.getFilteredItems?.() as any[]) ||
+      this.datasetsMap.get(typeId) ||
+      [];
+
+    // Lọc bỏ các group row, chỉ lấy data rows
+    const dataItems = (items || []).filter(
+      (item: any) => !item.__group && !item.__groupTotals
+    );
+
+    // Đếm số lượng sản phẩm (ProductName)
+    const productCount = dataItems.length;
+
+    // Tính tổng cho các cột số
+    const quantitySum = dataItems.reduce(
+      (sum, item) => sum + (Number(item.Quantity) || 0),
+      0
+    );
+    const unitPriceSum = dataItems.reduce(
+      (sum, item) => sum + (Number(item.UnitPrice) || 0),
+      0
+    );
+    const totalPriceSum = dataItems.reduce(
+      (sum, item) => sum + (Number(item.TotalPrice) || 0),
+      0
+    );
+
+    angularGrid.slickGrid.setFooterRowVisibility(true);
+
+    // Set footer values cho từng column
+    const columns = angularGrid.slickGrid.getColumns();
+    columns.forEach((col: any) => {
+      const footerCell = angularGrid.slickGrid.getFooterRowColumn(col.id);
+      if (!footerCell) return;
+
+      // Count cho cột ProductName (Tên sản phẩm)
+      if (col.id === 'ProductName') {
+        footerCell.innerHTML = `<b style="display:block;text-align:right;">${productCount}</b>`;
+      }
+      // Sum cho cột Quantity (Số lượng)
+      else if (col.id === 'Quantity') {
+        const formattedValue = new Intl.NumberFormat('en-US', {
+          minimumFractionDigits: 0,
+          maximumFractionDigits: 0,
+        }).format(quantitySum);
+        footerCell.innerHTML = `<b style="display:block;text-align:right;">${formattedValue}</b>`;
+      }
+      // Sum cho cột UnitPrice (Đơn giá)
+      else if (col.id === 'UnitPrice') {
+        const formattedValue = new Intl.NumberFormat('en-US', {
+          minimumFractionDigits: 2,
+          maximumFractionDigits: 2,
+        }).format(unitPriceSum);
+        footerCell.innerHTML = `<b style="display:block;text-align:right;">${formattedValue}</b>`;
+      }
+      // Sum cho cột TotalPrice (Thành tiền chưa VAT)
+      else if (col.id === 'TotalPrice') {
+        const formattedValue = new Intl.NumberFormat('en-US', {
+          minimumFractionDigits: 0,
+          maximumFractionDigits: 0,
+        }).format(totalPriceSum);
+        footerCell.innerHTML = `<b style="display:block;text-align:right;">${formattedValue}</b>`;
+      } else {
+        footerCell.innerHTML = '';
+      }
+    });
+  }
+
   // Helper method to ensure checkbox selector is always enabled
+
   private ensureCheckboxSelector(angularGrid: AngularGridInstance | undefined, delay: number = 0): void {
     if (!angularGrid || !angularGrid.slickGrid) return;
 
@@ -2474,10 +2557,21 @@ formatter: Formatters.date,
 
       // Subscribe to dataView.onRowCountChanged để update filter collections khi data thay đổi (bao gồm filter)
       angularGrid.dataView.onRowCountChanged.subscribe(() => {
-        setTimeout(() => this.applyDistinctFilters(), 100);
+        setTimeout(() => {
+          this.applyDistinctFilters();
+          this.updateFooterRow(typeId);
+        }, 100);
       });
     }
 
+    // Đăng ký sự kiện onRendered để đảm bảo footer luôn được render lại sau mỗi lần grid render
+    if (angularGrid.slickGrid) {
+      angularGrid.slickGrid.onRendered.subscribe(() => {
+        setTimeout(() => {
+          this.updateFooterRow(typeId);
+        }, 50);
+      });
+    }
 
     // Resize grid after initialization và đảm bảo checkbox selector vẫn hiển thị
     setTimeout(() => {
@@ -2489,8 +2583,11 @@ formatter: Formatters.date,
       }
       // Apply distinct filters after grid is ready
       this.applyDistinctFilters();
+      // Update footer row
+      this.updateFooterRow(typeId);
     }, 100);
   }
+
 
   // Handler khi cell được click
   onCellClicked(typeId: number, e: Event, args: OnClickEventArgs): void {

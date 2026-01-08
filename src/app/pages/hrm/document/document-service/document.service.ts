@@ -59,20 +59,41 @@ export class DocumentService {
         return this.http.get<any>(environment.host + `api/document/get-document-file`);
     }
 
-    uploadMultipleFiles(files: File[], subPath?: string): Observable<any> {
+    uploadMultipleFiles(files: File[], typeID?: number, subPath?: string): Observable<any> {
         const formData = new FormData();
         files.forEach((file) => {
             formData.append('files', file);
         });
-        formData.append('key', 'TrainingRegistration');
+
+        // Set key based on typeID: 57=Certificate, 58=Critical, default=TrainingRegistration
+        let key = 'TrainingRegistration';
+        if (typeID === 57) {
+            key = 'Certificate';
+        } else if (typeID === 58) {
+            key = 'Critical';
+        }
+        formData.append('key', key);
+
         if (subPath && subPath.trim()) {
             formData.append('subPath', subPath.trim());
         }
         return this.http.post<any>(`${this.apiUrl}/home/upload-multiple`, formData);
     }
 
-    downloadFile(filePath: string): Observable<Blob> {
-        const params = new HttpParams().set('path', filePath);
+    downloadFile(filePath: string, typeID?: number): Observable<Blob> {
+        // Set key based on typeID: 57=Certificate, 58=Critical, default=TrainingRegistration
+        let key = 'TrainingRegistration';
+        if (typeID === 57) {
+            key = 'Certificate';
+        } else if (typeID === 58) {
+            key = 'Critical';
+        }
+
+        // Encode path to handle Unicode characters properly
+        const encodedPath = encodeURIComponent(filePath);
+        const params = new HttpParams()
+            .set('path', encodedPath)
+            .set('key', key);
         return this.http.get(`${this.apiUrl}/home/download`, {
             params,
             responseType: 'blob',

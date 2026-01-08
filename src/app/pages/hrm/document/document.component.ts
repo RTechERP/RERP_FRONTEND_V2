@@ -162,6 +162,7 @@ export class DocumentComponent implements OnInit, AfterViewInit {
   uploadUrl: string = '';
 
   selectedDocumentId: number = 0;
+  selectedDocumentName: string = '';
 
   selectedFileId: number | null = null;
   selectedFileName: string = '';
@@ -537,14 +538,16 @@ export class DocumentComponent implements OnInit, AfterViewInit {
       return;
     }
 
-    const subPath = `Documents/${this.selectedDocumentId}`;
+    // Tạo subPath dùng tên văn bản để dễ hiểu
+    const safeName = this.selectedDocumentName.replace(/[\\/:*?"<>|]/g, '_'); // Loại bỏ ký tự không hợp lệ
+    const subPath = `Documents/${safeName}`;
 
     // Hiển thị loading
     const loadingMsg = this.message.loading(`Đang tải lên ${file.name}...`, {
       nzDuration: 0,
     }).messageId;
 
-    this.documentService.uploadMultipleFiles([file], subPath).subscribe({
+    this.documentService.uploadMultipleFiles([file], this.searchParams.idDocumentType, subPath).subscribe({
       next: (res) => {
         this.message.remove(loadingMsg);
 
@@ -659,7 +662,7 @@ export class DocumentComponent implements OnInit, AfterViewInit {
       nzDuration: 0,
     }).messageId;
 
-    this.documentService.downloadFile(file.FilePath).subscribe({
+    this.documentService.downloadFile(file.FilePath, this.searchParams.idDocumentType).subscribe({
       next: (blob: Blob) => {
         this.message.remove(loadingMsg);
 
@@ -957,6 +960,7 @@ export class DocumentComponent implements OnInit, AfterViewInit {
       this.documentTable.on('rowSelected', (row: any) => {
         const rowData = row.getData();
         this.selectedDocumentId = rowData.ID;
+        this.selectedDocumentName = rowData.NameDocument || rowData.Code || '';
 
         // Load file list của dòng đó
         this.getDocumentFileByID(this.selectedDocumentId);

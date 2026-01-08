@@ -189,7 +189,7 @@ export class TsAssetAllocationFormComponent implements OnInit, AfterViewInit {
       <i class="fa-solid fa-plus text-success cursor-pointer" title="Thêm dòng"></i>
     </div>`,
           formatter: () => `
-    <i class="fa-solid fa-xmark text-danger cursor-pointer" title="Xóa dòng"></i>`,
+    <span style="color: #dc3545; font-weight: bold; font-size: 14px; cursor: pointer;" title="Xóa dòng">X</span>`,
           cellClick: (e, cell) => {
             const row = cell.getRow();
             const data = row.getData();

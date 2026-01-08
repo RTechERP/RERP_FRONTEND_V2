@@ -102,8 +102,7 @@ import { DEFAULT_TABLE_CONFIG } from '../../../../../../tabulator-default.config
   styleUrl: './propose-vehicle-repair-form.component.css',
 })
 export class ProposeVehicleRepairFormComponent
-  implements OnInit, AfterViewInit
-{
+  implements OnInit, AfterViewInit {
   @ViewChild('tblNcc', { static: false })
   tblNccRef!: ElementRef<HTMLDivElement>;
   private nccTable!: Tabulator;
@@ -124,6 +123,8 @@ export class ProposeVehicleRepairFormComponent
       VehicleRepairTypeID: ['', [Validators.required]],
       TimeStartRepair: ['', [Validators.required]],
       TimeEndRepair: [''],
+      KmPreviousPeriod: [0],
+      KmCurrentPeriod: [0],
       Reason: ['', [Validators.required, Validators.maxLength(500)]],
       ProposeContent: ['', [Validators.required, Validators.maxLength(500)]],
       EmployeeID: ['', [Validators.required]],
@@ -158,6 +159,13 @@ export class ProposeVehicleRepairFormComponent
   vehicleList: any[] = [];
   TypeList: any[] = [];
   fathSever: string = 'D:/RTC_Sw/RTC/VehicleRepair/';
+
+  // Getter để tính số KM trong kỳ (hiển thị, không lưu DB)
+  get kmDifference(): number {
+    const kmCurrent = Number(this.formGroup?.get('KmCurrentPeriod')?.value) || 0;
+    const kmPrevious = Number(this.formGroup?.get('KmPreviousPeriod')?.value) || 0;
+    return kmCurrent - kmPrevious;
+  }
   private syncEmployeeFields(id?: number) {
     if (!id) return;
     const emp = this.employeeList.find((x) => x.ID === id);
@@ -524,7 +532,7 @@ export class ProposeVehicleRepairFormComponent
   ngOnDestroy(): void {
     try {
       this.nccTable?.destroy();
-    } catch {}
+    } catch { }
   }
   private mapDetail(raw: any[]): ProposeDetail[] {
     return (raw || []).map((x: any, i: number) => {
@@ -732,6 +740,8 @@ export class ProposeVehicleRepairFormComponent
         VehicleRepairTypeID: formValue.VehicleRepairTypeID,
         TimeStartRepair: formValue.TimeStartRepair,
         TimeEndRepair: formValue.TimeEndRepair || null,
+        KmPreviousPeriod: Number(formValue.KmPreviousPeriod) || 0,
+        KmCurrentPeriod: Number(formValue.KmCurrentPeriod) || 0,
         Reason: formValue.Reason,
         CostRepairEstimate: Number(
           formValue.CostRepairEstimate.toString().replace(/\D/g, '')

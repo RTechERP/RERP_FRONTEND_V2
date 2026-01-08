@@ -145,6 +145,13 @@ export class TsAssetTranferChoseAssetComponent implements OnInit {
 
     this.columnDefinitions = [
       {
+        id: 'ID',
+        name: 'ID',
+        field: 'ID',
+        width: 60,
+        hidden: true,
+      },
+      {
         id: 'STT',
         name: 'STT',
         field: 'STT',

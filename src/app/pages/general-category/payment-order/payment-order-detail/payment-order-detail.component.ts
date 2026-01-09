@@ -422,6 +422,16 @@ export class PaymentOrderDetailComponent implements OnInit, AfterViewInit {
             ?.valueChanges.pipe(takeUntil(this.destroy$))
             .subscribe((value: number) => {
                 this.poNCCs = this.poNCCs.filter(x => x.SupplierSaleID == value);
+
+                const supplierSale = this.supplierSales.find(x => x.ID == value);
+                // console.log('supplierSale:', supplierSale);
+                if (supplierSale) {
+                    // const accountNumber = this.validateForm.get(this.paymentOrderField.AccountNumber.field)?.value;
+                    // console.log('accountNumber:', accountNumber);
+                    this.validateForm.get(this.paymentOrderField.AccountNumber.field)?.setValue(supplierSale.SoTK);
+                    this.validateForm.get(this.paymentOrderField.ReceiverInfo.field)?.setValue(supplierSale.NameNCC);
+                    this.validateForm.get(this.paymentOrderField.Bank.field)?.setValue(supplierSale.NganHang);
+                }
             });
 
         //Sự kiện chọn thanh toán gấp

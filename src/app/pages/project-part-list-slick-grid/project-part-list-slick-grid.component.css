@@ -1,4 +1,5 @@
 /* ==================== ROW COLORING STYLES ==================== */
+
 /* Dòng bị xóa → Red background */
 :host ::ng-deep .slick-row.row-deleted,
 :host ::ng-deep .slick-row .row-deleted {
@@ -277,5 +278,9 @@ angular-slickgrid,
   text-align: center;
 }
 
-
+/* Fix font for dropdown menus */
+nz-dropdown-menu ul {
+  font-family: inherit;
+  font-size: inherit;
+}
 

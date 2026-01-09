@@ -47,6 +47,7 @@ import { NzCardModule } from 'ng-zorro-antd/card';
 import { NzSplitterModule } from 'ng-zorro-antd/splitter';
 import { NzGridModule } from 'ng-zorro-antd/grid';
 import { NzTreeSelectModule } from 'ng-zorro-antd/tree-select';
+import { NzDividerModule } from 'ng-zorro-antd/divider';
 import { NgbActiveModal, NgbModal, NgbModule } from '@ng-bootstrap/ng-bootstrap';
 import { Subscription } from 'rxjs';
 import { HasPermissionDirective } from '../../directives/has-permission.directive';
@@ -90,6 +91,7 @@ import * as ExcelJS from 'exceljs';
     NzSplitterModule,
     NzGridModule,
     NzTreeSelectModule,
+    NzDividerModule,
     NgbModule,
     HasPermissionDirective
   ],
@@ -127,18 +129,21 @@ export class ProjectPartListSlickGridComponent implements OnInit, AfterViewInit,
   angularGridSolution!: AngularGridInstance;
   angularGridSolutionVersion!: AngularGridInstance;
   angularGridPOVersion!: AngularGridInstance;
+  angularGridVersion!: AngularGridInstance; // Merged Version grid
   angularGridPartList!: AngularGridInstance;
 
   // Column definitions
   solutionColumns: Column[] = [];
   solutionVersionColumns: Column[] = [];
   poVersionColumns: Column[] = [];
+  versionColumns: Column[] = []; // Merged Version columns
   partListColumns: Column[] = [];
 
   // Grid options
   solutionGridOptions!: GridOption;
   solutionVersionGridOptions!: GridOption;
   poVersionGridOptions!: GridOption;
+  versionGridOptions!: GridOption; // Merged Version options
   partListGridOptions!: GridOption;
 
   // Grid ready flags
@@ -148,6 +153,7 @@ export class ProjectPartListSlickGridComponent implements OnInit, AfterViewInit,
   dataSolution: any[] = [];
   dataSolutionVersion: any[] = [];
   dataPOVersion: any[] = [];
+  dataVersion: any[] = []; // Merged Version data
   dataProjectPartList: any[] = [];
   projects: any[] = [];
   warehouses: any[] = [];
@@ -219,15 +225,33 @@ export class ProjectPartListSlickGridComponent implements OnInit, AfterViewInit,
     @Optional() @Inject('tabData') private tabData?: any
   ) { }
 
-  ngOnInit(): void {
-    console.log('=== [LIFECYCLE] ngOnInit START ===');
+  updatePageTitle(): void {
+    const typeText = this.type === 1 ? '-Giải pháp-' : this.type === 2 ? '-PO-' : '';
+    const title = `Danh mục vật tư dự án ${this.projectCodex} ${typeText} ${this.projectTypeName} -${this.CodeName}`;
+    document.title = title.trim();
+  }
 
-    // Đọc query parameter tbp
+  ngOnInit(): void {
+
+    // Đọc query parameter tbp, projectId, projectName, projectCode
     this.route.queryParams.subscribe((params: any) => {
       if (params['tbp'] !== undefined) {
         this.tbp = params['tbp'] === 'true';
         console.log('[LIFECYCLE] tbp from query params:', this.tbp);
       }
+      if (params['projectId'] !== undefined) {
+        this.projectId = Number(params['projectId']);
+        console.log('[LIFECYCLE] projectId from query params:', this.projectId);
+      }
+      if (params['projectName'] !== undefined) {
+        this.projectNameX = decodeURIComponent(params['projectName']);
+        console.log('[LIFECYCLE] projectNameX from query params:', this.projectNameX);
+      }
+      if (params['projectCode'] !== undefined) {
+        this.projectCodex = decodeURIComponent(params['projectCode']);
+        console.log('[LIFECYCLE] projectCodex from query params:', this.projectCodex);
+      }
+      this.updatePageTitle();
     });
 
     console.log('[LIFECYCLE] Input params:', {
@@ -299,6 +323,10 @@ export class ProjectPartListSlickGridComponent implements OnInit, AfterViewInit,
     console.log('[INIT] Initializing PO Version Grid');
     this.initPOVersionGrid();
     console.log('[INIT] PO Version Grid columns:', this.poVersionColumns?.length);
+
+    console.log('[INIT] Initializing Merged Version Grid');
+    this.initVersionGrid();
+    console.log('[INIT] Merged Version Grid columns:', this.versionColumns?.length);
 
     console.log('[INIT] Initializing PartList Grid');
     this.initPartListGrid();
@@ -499,6 +527,62 @@ export class ProjectPartListSlickGridComponent implements OnInit, AfterViewInit,
       enableAutoResize: true,
       autoResize: {
         container: '.grid-po-version-container',
+        calculateAvailableSizeBy: 'container',
+        resizeDetection: 'container',
+      },
+      gridWidth: '100%',
+      datasetIdPropertyName: 'id',
+      enableRowSelection: true,
+      enableCellNavigation: true,
+      rowSelectionOptions: {
+        selectActiveRow: true,
+      },
+      enableSorting: true,
+      enablePagination: false,
+      enableGrouping: true,
+      autoFitColumnsOnFirstLoad: false,
+      enableAutoSizeColumns: false,
+    };
+  }
+
+  // Initialize Merged Version Grid (combines Solution Version and PO Version)
+  initVersionGrid(): void {
+    this.versionColumns = [
+      {
+        id: 'STT',
+        field: 'STT',
+        name: 'STT',
+        width: 50,
+      },
+      {
+        id: 'IsActive',
+        field: 'IsActive',
+        name: 'Sử dụng',
+        width: 80,
+        formatter: (row: number, cell: number, value: any) => {
+          const checked = value === true || value === 'true' || value === 1 || value === '1';
+          return `<input type="checkbox" ${checked ? 'checked' : ''} disabled style="pointer-events: none; accent-color: #1677ff;" />`;
+        },
+        cssClass: 'text-center',
+      },
+      {
+        id: 'Code',
+        field: 'Code',
+        name: 'Mã',
+        width: 100,
+      },
+      {
+        id: 'DescriptionVersion',
+        field: 'DescriptionVersion',
+        name: 'Mô tả',
+        width: 300,
+      },
+    ];
+
+    this.versionGridOptions = {
+      enableAutoResize: true,
+      autoResize: {
+        container: '.grid-version-container',
         calculateAvailableSizeBy: 'container',
         resizeDetection: 'container',
       },
@@ -797,10 +881,10 @@ export class ProjectPartListSlickGridComponent implements OnInit, AfterViewInit,
         filter: {
           model: Filters['multipleSelect'],
           collection: [
-            { value: 'true', label: 'Có' },
-            { value: 'false', label: 'Không' }
+            { value: true, label: 'Có' },
+            { value: false, label: 'Không' }
           ],
-          collectionOptions: { addBlankEntry: true },
+          collectionOptions: { addBlankEntry: false },
           filterOptions: {
             filter: true,
             autoAdjustDropWidthByTextSize: true,
@@ -858,10 +942,10 @@ export class ProjectPartListSlickGridComponent implements OnInit, AfterViewInit,
         filter: {
           model: Filters['multipleSelect'],
           collection: [
-            { value: 'true', label: 'Có' },
-            { value: 'false', label: 'Không' }
+            { value: true, label: 'Có' },
+            { value: false, label: 'Không' }
           ],
-          collectionOptions: { addBlankEntry: true },
+          collectionOptions: { addBlankEntry: false },
           filterOptions: {
             filter: true,
             autoAdjustDropWidthByTextSize: true,
@@ -1012,10 +1096,10 @@ export class ProjectPartListSlickGridComponent implements OnInit, AfterViewInit,
         filter: {
           model: Filters['multipleSelect'],
           collection: [
-            { value: 'true', label: 'Có' },
-            { value: 'false', label: 'Không' }
+            { value: true, label: 'Có' },
+            { value: false, label: 'Không' }
           ],
-          collectionOptions: { addBlankEntry: true },
+          collectionOptions: { addBlankEntry: false },
           filterOptions: {
             filter: true,
             autoAdjustDropWidthByTextSize: true,
@@ -1229,10 +1313,10 @@ export class ProjectPartListSlickGridComponent implements OnInit, AfterViewInit,
         filter: {
           model: Filters['multipleSelect'],
           collection: [
-            { value: 'true', label: 'Có' },
-            { value: 'false', label: 'Không' }
+            { value: true, label: 'Có' },
+            { value: false, label: 'Không' }
           ],
-          collectionOptions: { addBlankEntry: true },
+          collectionOptions: { addBlankEntry: false },
           filterOptions: {
             filter: true,
             autoAdjustDropWidthByTextSize: true,
@@ -1658,10 +1742,10 @@ export class ProjectPartListSlickGridComponent implements OnInit, AfterViewInit,
       // headerRowHeight: 40,
       // Checkbox Selector - thêm cột dấu tích ở đầu
       enableCheckboxSelector: true,
-      checkboxSelector: {
-        hideInFilterHeaderRow: false,
-        hideInColumnTitleRow: true,
-      },
+      // checkboxSelector: {
+      //   hideInFilterHeaderRow: false,
+      //   hideInColumnTitleRow: true,
+      // },
       // Tree Data Configuration - Đơn giản như project-slick-grid2
       enableTreeData: true,
       treeDataOptions: {
@@ -1681,6 +1765,11 @@ export class ProjectPartListSlickGridComponent implements OnInit, AfterViewInit,
       createFooterRow: true,
       showFooterRow: true,
       footerRowHeight: 30,
+      checkboxSelector: {
+        hideInFilterHeaderRow: true,
+        hideInColumnTitleRow: false,
+        applySelectOnAllPages: false,
+      },
       // Frozen Columns - Freeze all columns in "Vật tư dự án" group (6 columns)
       //frozenColumn: 6,
       // Row Metadata Provider cho tô màu dòng/cell
@@ -2051,6 +2140,45 @@ export class ProjectPartListSlickGridComponent implements OnInit, AfterViewInit,
     }
   }
 
+  onVersionGridReady(event: any): void {
+    console.log('[GRID READY] Merged Version Grid ready');
+    this.angularGridVersion = event.detail;
+    console.log('[GRID READY] Merged Version Grid instance:', !!this.angularGridVersion);
+
+    // Setup 2-level grouping: first by VersionTypeName, then by ProjectTypeName
+    if (this.angularGridVersion && this.angularGridVersion.dataView) {
+      this.angularGridVersion.dataView.setGrouping([
+        {
+          getter: 'VersionTypeName',
+          comparer: (a: any, b: any) => {
+            // Phiên bản giải pháp trước, Phiên bản PO sau
+            if (a.value === 'Phiên bản giải pháp' && b.value === 'Phiên bản PO') return -1;
+            if (a.value === 'Phiên bản PO' && b.value === 'Phiên bản giải pháp') return 1;
+            return 0;
+          },
+          formatter: (g: any) => {
+            return `<strong>${g.value}</strong> <span style="color: #666;">(${g.count} phiên bản)</span>`;
+          },
+          aggregateCollapsed: false,
+          lazyTotalsCalculation: true
+        },
+        {
+          getter: 'ProjectTypeName',
+          comparer: () => 0,
+          formatter: (g: any) => {
+            return `Danh mục: ${g.value}`;
+          }
+        }
+      ]);
+    }
+
+    // Load data nếu đã có projectSolutionId
+    if (this.dataVersion.length === 0 && this.projectSolutionId > 0) {
+      console.log('[GRID READY] Scheduling Merged Version data load');
+      setTimeout(() => this.loadDataVersion(), 100);
+    }
+  }
+
   onPartListGridReady(event: any): void {
     console.log('[GRID READY] ========== PartList Grid ready ==========');
     this.angularGridPartList = event.detail;
@@ -2218,24 +2346,68 @@ export class ProjectPartListSlickGridComponent implements OnInit, AfterViewInit,
 
             // Tự động chọn dòng đầu tiên nếu có dữ liệu
             if (this.dataSolution.length > 0) {
-              console.log('[DATA LOAD] Automatically selecting first solution row...');
-              // Đưa về dòng đầu tiên (index 0)
-              this.angularGridSolution.slickGrid.setSelectedRows([0]);
+              // Sử dụng setTimeout để đảm bảo grid đã render xong
+              setTimeout(() => {
+                // Lấy tất cả items từ dataView (bao gồm cả group rows)
+                const allItems = this.angularGridSolution.dataView.getItems();
+
+                // Tìm dòng dữ liệu thực sự đầu tiên (không phải group row)
+                const firstDataRow = allItems.find((item: any) => !item.__group && !item.__groupTotals);
+
+                if (firstDataRow) {
+                  // Tìm index trong mảng allItems (đúng vị trí trong grid sau grouping)
+                  const rowIdx = allItems.findIndex((item: any) => item.id === firstDataRow.id);
+
+                  if (rowIdx >= 0) {
+                    this.angularGridSolution.slickGrid.setActiveRow(rowIdx);
+                    this.angularGridSolution.slickGrid.setSelectedRows([rowIdx]);
+                    this.angularGridSolution.slickGrid.scrollRowIntoView(rowIdx, false);
+
+                    // Thêm class selected thủ công vào DOM - tìm row trong canvas bằng cách so sánh data
+                    setTimeout(() => {
+                      const canvasNode = this.angularGridSolution.slickGrid.getCanvasNode();
+                      if (canvasNode) {
+                        const rows = canvasNode.querySelectorAll('.slick-row');
+
+                        // Xóa class selected khỏi tất cả rows
+                        rows.forEach((row: any) => {
+                          row.classList.remove('selected');
+                        });
+
+                        // Tìm row trong canvas có data.id khớp với id của data row
+                        let targetRow: any = null;
+                        for (let i = 0; i < rows.length; i++) {
+                          const data = this.angularGridSolution.slickGrid.getDataItem(i);
+                          if (data && data.id === firstDataRow.id) {
+                            targetRow = rows[i];
+                            break;
+                          }
+                        }
+
+                        // Thêm class selected vào row được chọn
+                        if (targetRow) {
+                          targetRow.classList.add('selected');
+                        }
+                      }
+                    }, 50);
+
+                    this.angularGridSolution.dataView.refresh();
+                    this.angularGridSolution.slickGrid.invalidate();
+                    this.angularGridSolution.slickGrid.render();
+                  }
+                }
+              }, 200);
 
               const firstItem = this.dataSolution[0];
               if (firstItem) {
                 this.projectSolutionId = firstItem.ID;
                 this.selectionProjectSolutionName = firstItem.CodeSolution;
-                console.log('[DATA LOAD] Automatically set projectSolutionId to:', this.projectSolutionId);
 
-                if (!this.isPOKH) {
-                  this.loadDataProjectPartListVersion();
-                }
-                this.loadDataProjectPartListVersionPO();
+                // Load merged version data
+                this.loadDataVersion();
                 this.resetPartlistTable();
               }
             } else {
-              console.log('[DATA LOAD] No solution data found, resetting tables...');
               this.projectSolutionId = 0;
               this.resetVersionAndPartlistTables();
             }
@@ -2254,6 +2426,7 @@ export class ProjectPartListSlickGridComponent implements OnInit, AfterViewInit,
   private resetVersionAndPartlistTables(): void {
     this.dataSolutionVersion = [];
     this.dataPOVersion = [];
+    this.dataVersion = []; // Reset merged version data
     this.dataProjectPartList = [];
     if (this.angularGridSolutionVersion) {
       this.angularGridSolutionVersion.dataView.setItems([]);
@@ -2266,6 +2439,13 @@ export class ProjectPartListSlickGridComponent implements OnInit, AfterViewInit,
       this.angularGridPOVersion.dataView.refresh();
       this.angularGridPOVersion.slickGrid.invalidate();
       this.angularGridPOVersion.slickGrid.render();
+    }
+    // Reset merged Version grid
+    if (this.angularGridVersion) {
+      this.angularGridVersion.dataView.setItems([]);
+      this.angularGridVersion.dataView.refresh();
+      this.angularGridVersion.slickGrid.invalidate();
+      this.angularGridVersion.slickGrid.render();
     }
     if (this.angularGridPartList) {
       this.angularGridPartList.dataView.setItems([]);
@@ -2315,9 +2495,9 @@ export class ProjectPartListSlickGridComponent implements OnInit, AfterViewInit,
                 this.projectTypeID = firstItem.ProjectTypeID || 0;
                 this.projectTypeName = firstItem.ProjectTypeName || '';
                 this.CodeName = firstItem.Code || '';
+                this.updatePageTitle();
 
-                console.log('[DATA LOAD] Automatically loading PartList for versionID:', this.versionID);
-                this.loadDataProjectPartList();
+                console.log('[DATA LOAD] Solution version selected, waiting for user to load PartList');
               }
             }
           }
@@ -2361,6 +2541,8 @@ export class ProjectPartListSlickGridComponent implements OnInit, AfterViewInit,
             if (this.dataPOVersion.length > 0 && this.versionID === 0 && this.versionPOID === 0) {
               console.log('[DATA LOAD] Automatically selecting first PO version...');
               this.angularGridPOVersion.slickGrid.setSelectedRows([0]);
+              this.angularGridPOVersion.slickGrid.invalidate();
+              this.angularGridPOVersion.slickGrid.render();
 
               const firstItem = this.dataPOVersion[0];
               if (firstItem) {
@@ -2372,9 +2554,9 @@ export class ProjectPartListSlickGridComponent implements OnInit, AfterViewInit,
                 this.projectTypeName = firstItem.ProjectTypeName || '';
                 this.projectCode = firstItem.ProjectCode || '';
                 this.CodeName = firstItem.Code || '';
+                this.updatePageTitle();
 
-                console.log('[DATA LOAD] Automatically loading PartList for versionPOID:', this.versionPOID);
-                this.loadDataProjectPartList();
+                console.log('[DATA LOAD] PO version selected, waiting for user to load PartList');
               }
             }
           }
@@ -2385,6 +2567,102 @@ export class ProjectPartListSlickGridComponent implements OnInit, AfterViewInit,
         console.error('Error loading PO version:', error);
         this.stopLoading();
       },
+    });
+  }
+
+  // Load merged version data (combines Solution Version and PO Version)
+  loadDataVersion(): void {
+    if (!this.projectSolutionId || this.projectSolutionId === 0) {
+      return;
+    }
+    if (!this.angularGridVersion) {
+      setTimeout(() => this.loadDataVersion(), 100);
+      return;
+    }
+    this.startLoading();
+
+    // Load both Solution Version and PO Version data using forkJoin
+    const solutionVersion$ = this.projectPartListService.getProjectPartListVersion(this.projectSolutionId, false);
+    const poVersion$ = this.projectPartListService.getProjectPartListVersion(this.projectSolutionId, true);
+
+    import('rxjs').then(({ forkJoin }) => {
+      forkJoin([solutionVersion$, poVersion$]).subscribe({
+        next: ([solutionResponse, poResponse]: any[]) => {
+          let mergedData: any[] = [];
+
+          // Process Solution Version data
+          if (solutionResponse && solutionResponse.status === 1) {
+            const solutionData = (solutionResponse.data || []).map((item: any) => ({
+              ...item,
+              STT: item.STT,
+              id: `solution_${item.ID}`,
+              originalId: item.ID,
+              VersionType: 1,
+              VersionTypeName: 'Phiên bản giải pháp'
+            }));
+            mergedData = [...mergedData, ...solutionData];
+            this.dataSolutionVersion = solutionResponse.data || [];
+          }
+
+          // Process PO Version data
+          if (poResponse && poResponse.status === 1) {
+            const poData = (poResponse.data || []).map((item: any) => ({
+              ...item,
+              STT: item.STT,
+              id: `po_${item.ID}`,
+              originalId: item.ID,
+              VersionType: 2,
+              VersionTypeName: 'Phiên bản PO'
+            }));
+            mergedData = [...mergedData, ...poData];
+            this.dataPOVersion = poResponse.data || [];
+          }
+
+          this.dataVersion = mergedData;
+
+          if (this.angularGridVersion) {
+            this.angularGridVersion.dataView.setItems(this.dataVersion);
+            this.angularGridVersion.dataView.refresh();
+            this.angularGridVersion.slickGrid.invalidate();
+            this.angularGridVersion.slickGrid.render();
+
+            // Tự động chọn phiên bản đầu tiên nếu có dữ liệu và chưa có version nào được chọn
+            if (this.dataVersion.length > 0 && this.versionID === 0 && this.versionPOID === 0) {
+              // Tìm dòng dữ liệu đầu tiên (không phải group row)
+              const allItems = this.angularGridVersion.dataView.getItems();
+              const firstDataRow = allItems.find((item: any) => !item.__group && !item.__groupTotals);
+
+              if (firstDataRow) {
+                const rowIdx = allItems.findIndex((item: any) => item.id === firstDataRow.id);
+                if (rowIdx >= 0) {
+                  this.angularGridVersion.slickGrid.setSelectedRows([rowIdx]);
+
+                  // Set version based on type
+                  if (firstDataRow.VersionType === 1) {
+                    this.versionID = firstDataRow.originalId;
+                    this.versionPOID = 0;
+                    this.type = 1;
+                  } else {
+                    this.versionPOID = firstDataRow.originalId;
+                    this.versionID = 0;
+                    this.type = 2;
+                  }
+                  this.selectionCode = firstDataRow.Code || '';
+                  this.projectTypeID = firstDataRow.ProjectTypeID || 0;
+                  this.projectTypeName = firstDataRow.ProjectTypeName || '';
+                  this.CodeName = firstDataRow.Code || '';
+                  this.updatePageTitle();
+                }
+              }
+            }
+          }
+          this.stopLoading();
+        },
+        error: (error: any) => {
+          console.error('Error loading merged version data:', error);
+          this.stopLoading();
+        }
+      });
     });
   }
 
@@ -2482,8 +2760,40 @@ export class ProjectPartListSlickGridComponent implements OnInit, AfterViewInit,
   convertToTreeData(flatData: any[]): any[] {
     console.log('[TREE CONVERT] Converting flat data to tree structure (correct logic)');
 
+    const normalizeBool = (v: any): boolean => {
+      return v === true || v === 1 || v === '1' || v === 'true';
+    };
+
+    const normalizedFlatData = (flatData || []).map((item: any) => {
+      const normalized = {
+        ...item,
+        IsApprovedPurchase: normalizeBool(item.IsApprovedPurchase),
+        IsCheckPrice: normalizeBool(item.IsCheckPrice),
+        IsApprovedTBPNewCode: normalizeBool(item.IsApprovedTBPNewCode),
+        IsNewCode: normalizeBool(item.IsNewCode),
+        IsFix: normalizeBool(item.IsFix),
+      };
+
+      // Log sample data để debug
+      if (item.ID === 176796 || item.ID === 176797) {
+        console.log('[normalizeBool] Sample item:', {
+          ID: item.ID,
+          original: {
+            IsApprovedPurchase: item.IsApprovedPurchase,
+            IsCheckPrice: item.IsCheckPrice,
+          },
+          normalized: {
+            IsApprovedPurchase: normalized.IsApprovedPurchase,
+            IsCheckPrice: normalized.IsCheckPrice,
+          }
+        });
+      }
+
+      return normalized;
+    });
+
     // ========== BƯỚC 1: Tính tổng từ node con lên node cha (giống WinForm CalculatorData) ==========
-    const calculatedData = this.calculateParentTotals(flatData);
+    const calculatedData = this.calculateParentTotals(normalizedFlatData);
 
     // ========== BƯỚC 2: Convert sang format cho SlickGrid ==========
     // Logic đúng: ParentID = 0 → root, ParentID != 0 → con của ID = ParentID
@@ -2898,6 +3208,7 @@ export class ProjectPartListSlickGridComponent implements OnInit, AfterViewInit,
         this.projectTypeID = data.ProjectTypeID || 0;
         this.projectTypeName = data.ProjectTypeName || '';
         this.CodeName = data.Code || '';
+        this.updatePageTitle();
         console.log('[ROW SELECT] versionID set to:', this.versionID, '| type:', this.type);
         console.log('[ROW SELECT] projectTypeName:', this.projectTypeName, '| CodeName:', this.CodeName);
 
@@ -2924,6 +3235,7 @@ export class ProjectPartListSlickGridComponent implements OnInit, AfterViewInit,
         this.CodeName = '';
         this.projectTypeName = '';
         this.projectTypeID = 0; // Reset projectTypeID
+        this.updatePageTitle();
         this.resetPartlistTable();
       }
     }
@@ -2953,6 +3265,7 @@ export class ProjectPartListSlickGridComponent implements OnInit, AfterViewInit,
         this.projectTypeName = data.ProjectTypeName || '';
         this.projectCode = data.ProjectCode || '';
         this.CodeName = data.Code || '';
+        this.updatePageTitle();
         console.log('[ROW SELECT] versionPOID set to:', this.versionPOID, '| type:', this.type);
         console.log('[ROW SELECT] projectTypeName:', this.projectTypeName, '| CodeName:', this.CodeName);
 
@@ -2978,7 +3291,57 @@ export class ProjectPartListSlickGridComponent implements OnInit, AfterViewInit,
         this.type = 0;
         this.CodeName = '';
         this.projectTypeName = '';
-        this.projectTypeID = 0; // Reset projectTypeID
+        this.projectTypeID = 0;
+        this.updatePageTitle();
+        this.resetPartlistTable();
+      }
+    }
+  }
+
+  // Row selection handler for merged Version grid
+  onVersionRowSelectionChanged(event: any): void {
+    // Skip if we're clearing selection to avoid recursive calls
+    if (this.clearingSelection) {
+      return;
+    }
+
+    const selectedRows = event.detail.args.rows || [];
+    if (selectedRows.length > 0) {
+      const rowIndex = selectedRows[0];
+      const data = this.angularGridVersion?.dataView?.getItem(rowIndex);
+
+      if (data && !data.__group && !data.__groupTotals) {
+        // Set version based on VersionType
+        if (data.VersionType === 1) {
+          this.versionID = data.originalId;
+          this.versionPOID = 0;
+          this.type = 1;
+        } else {
+          this.versionPOID = data.originalId;
+          this.versionID = 0;
+          this.type = 2;
+        }
+
+        this.selectionCode = data.Code || '';
+        this.projectTypeID = data.ProjectTypeID || 0;
+        this.projectTypeName = data.ProjectTypeName || '';
+        this.CodeName = data.Code || '';
+        this.updatePageTitle();
+
+        // Load PartList table
+        this.loadDataProjectPartList();
+      }
+    } else {
+      // No rows selected, reset
+      const allSelectedRows = this.angularGridVersion?.slickGrid?.getSelectedRows() || [];
+      if (allSelectedRows.length === 0) {
+        this.versionID = 0;
+        this.versionPOID = 0;
+        this.type = 0;
+        this.CodeName = '';
+        this.projectTypeName = '';
+        this.projectTypeID = 0;
+        this.updatePageTitle();
         this.resetPartlistTable();
       }
     }
@@ -3070,35 +3433,24 @@ export class ProjectPartListSlickGridComponent implements OnInit, AfterViewInit,
 
     let selectedData: any = null;
     if (isEdit) {
-      if (typenumber === 1) {
-        // Solution Version grid
-        const activeCell = this.angularGridSolutionVersion?.slickGrid?.getActiveCell();
-        if (activeCell && activeCell.row >= 0) {
-          selectedData = this.angularGridSolutionVersion?.dataView?.getItem(activeCell.row);
-        } else {
-          const selectedRows = this.angularGridSolutionVersion?.slickGrid?.getSelectedRows() || [];
-          if (selectedRows.length > 0) {
-            selectedData = this.angularGridSolutionVersion?.dataView?.getItem(selectedRows[0]);
-          }
-        }
+      // Use merged Version grid
+      const activeCell = this.angularGridVersion?.slickGrid?.getActiveCell();
+      if (activeCell && activeCell.row >= 0) {
+        selectedData = this.angularGridVersion?.dataView?.getItem(activeCell.row);
       } else {
-        // PO Version grid
-        const activeCell = this.angularGridPOVersion?.slickGrid?.getActiveCell();
-        if (activeCell && activeCell.row >= 0) {
-          selectedData = this.angularGridPOVersion?.dataView?.getItem(activeCell.row);
-        } else {
-          const selectedRows = this.angularGridPOVersion?.slickGrid?.getSelectedRows() || [];
-          if (selectedRows.length > 0) {
-            selectedData = this.angularGridPOVersion?.dataView?.getItem(selectedRows[0]);
-          }
+        const selectedRows = this.angularGridVersion?.slickGrid?.getSelectedRows() || [];
+        if (selectedRows.length > 0) {
+          selectedData = this.angularGridVersion?.dataView?.getItem(selectedRows[0]);
         }
       }
 
-      if (!selectedData) {
-        const gridName = typenumber === 1 ? 'phiên bản giải pháp' : 'phiên bản PO';
-        this.notification.warning('Thông báo', `Vui lòng focus vào dòng ${gridName} để sửa!`);
+      if (!selectedData || selectedData.__group || selectedData.__groupTotals) {
+        this.notification.warning('Thông báo', 'Vui lòng chọn dòng phiên bản để sửa!');
         return;
       }
+
+      // For edit mode, use the current type from selection, not typenumber parameter
+      typenumber = selectedData.VersionType;
     }
 
     const modalRef = this.ngbModal.open(ProjectSolutionVersionDetailComponent, {
@@ -3116,14 +3468,14 @@ export class ProjectPartListSlickGridComponent implements OnInit, AfterViewInit,
     modalRef.componentInstance.SolutionTypeID = typenumber; // 1: giải pháp, 2: PO
 
     // Truyền toàn bộ dataset để tính STT
-    modalRef.componentInstance.versionData = typenumber === 1 ? this.dataSolutionVersion : this.dataPOVersion;
+    modalRef.componentInstance.versionData = this.dataVersion;
 
     if (isEdit && selectedData) {
-      modalRef.componentInstance.ProjectworkerID = selectedData.ID;
+      modalRef.componentInstance.ProjectworkerID = selectedData.originalId;
       modalRef.componentInstance.VersionCode = selectedData.Code;
       modalRef.componentInstance.ProjectTypeID = selectedData.ProjectTypeID;
       modalRef.componentInstance.ProjectTypeName = selectedData.ProjectTypeName;
-      modalRef.componentInstance.STT = typenumber === 1 ? selectedData.STT : selectedData.TT;
+      modalRef.componentInstance.STT = selectedData.STT;
       modalRef.componentInstance.IsActive = selectedData.IsActive;
       modalRef.componentInstance.DescriptionVersion = selectedData.DescriptionVersion;
 
@@ -3132,11 +3484,8 @@ export class ProjectPartListSlickGridComponent implements OnInit, AfterViewInit,
 
     modalRef.result.then((result: any) => {
       if (result && result.success) {
-        if (typenumber === 1) {
-          this.loadDataProjectPartListVersion();
-        } else {
-          this.loadDataProjectPartListVersionPO();
-        }
+        // Reload merged version data
+        this.loadDataVersion();
       }
     }).catch(() => { });
   }
@@ -3303,6 +3652,7 @@ export class ProjectPartListSlickGridComponent implements OnInit, AfterViewInit,
     this.projectTypeName = '';
     this.projectCode = '';
     this.CodeName = '';
+    this.updatePageTitle();
     if (this.projectId > 0) {
       const selectedProject = this.projects.find(p => p.ID === this.projectId);
       if (selectedProject) {
@@ -3359,11 +3709,16 @@ export class ProjectPartListSlickGridComponent implements OnInit, AfterViewInit,
         this.notification.warning('Thông báo', `Không thể ${isApprovedText} vì vật tư thứ tự [${row.TT || row.ID}] đã bị xóa!`);
         return;
       }
+      if (row.IsLeaf === false) continue;
       if (!isApproved && row.IsApprovedPurchase == true) {
         this.notification.warning('Thông báo', `Không thể ${isApprovedText} vì vật tư thứ tự [${row.TT || row.ID}] đã được Yêu cầu mua!`);
         return;
       }
       projectpartlistIDs.push(row.ID);
+    }
+    if (projectpartlistIDs.length === 0) {
+      this.notification.warning('Thông báo', 'Vui lòng chọn ít nhất một vật tư!');
+      return;
     }
     this.projectPartListService.approveProjectPartList(projectpartlistIDs, isApproved).subscribe({
       next: (response: any) => {
@@ -4074,23 +4429,24 @@ export class ProjectPartListSlickGridComponent implements OnInit, AfterViewInit,
   // Xóa phiên bản
   deleteProjectPartListVersion(typenumber: number): void {
     let selectedVersion: any = null;
-    if (typenumber === 1) {
-      const selectedRows = this.angularGridSolutionVersion?.slickGrid?.getSelectedRows() || [];
-      if (selectedRows.length === 0) {
-        this.notification.warning('Thông báo', 'Vui lòng chọn phiên bản để xóa!');
-        return;
-      }
-      selectedVersion = this.angularGridSolutionVersion?.dataView?.getItem(selectedRows[0]);
-    } else {
-      const selectedRows = this.angularGridPOVersion?.slickGrid?.getSelectedRows() || [];
-      if (selectedRows.length === 0) {
-        this.notification.warning('Thông báo', 'Vui lòng chọn phiên bản PO để xóa!');
-        return;
-      }
-      selectedVersion = this.angularGridPOVersion?.dataView?.getItem(selectedRows[0]);
+
+    // Use merged Version grid
+    const selectedRows = this.angularGridVersion?.slickGrid?.getSelectedRows() || [];
+    if (selectedRows.length === 0) {
+      this.notification.warning('Thông báo', 'Vui lòng chọn phiên bản để xóa!');
+      return;
+    }
+    selectedVersion = this.angularGridVersion?.dataView?.getItem(selectedRows[0]);
+
+    if (!selectedVersion || selectedVersion.__group || selectedVersion.__groupTotals) {
+      this.notification.warning('Thông báo', 'Vui lòng chọn dòng phiên bản để xóa!');
+      return;
     }
 
-    if (!selectedVersion || !selectedVersion.ID) {
+    // Use the actual version type from selection
+    typenumber = selectedVersion.VersionType;
+
+    if (!selectedVersion || !selectedVersion.originalId) {
       this.notification.warning('Thông báo', 'Vui lòng chọn phiên bản!');
       return;
     }
@@ -4126,7 +4482,21 @@ export class ProjectPartListSlickGridComponent implements OnInit, AfterViewInit,
         }
 
         const payload: any = {
-          ...selectedVersion,
+          ID: selectedVersion.originalId || 0,
+          ProjectID: selectedVersion.ProjectID || null,
+          STT: selectedVersion.STT || null,
+          Code: selectedVersion.Code || '',
+          DescriptionVersion: selectedVersion.DescriptionVersion || '',
+          IsActive: selectedVersion.IsActive || false,
+          CreatedDate: selectedVersion.CreatedDate || null,
+          CreatedBy: selectedVersion.CreatedBy || '',
+          UpdatedDate: selectedVersion.UpdatedDate || null,
+          UpdatedBy: selectedVersion.UpdatedBy || '',
+          ProjectSolutionID: selectedVersion.ProjectSolutionID || null,
+          ProjectTypeID: selectedVersion.ProjectTypeID || null,
+          StatusVersion: selectedVersion.StatusVersion || null,
+          IsApproved: selectedVersion.IsApproved || false,
+          ApprovedID: selectedVersion.ApprovedID || null,
           IsDeleted: true,
           ReasonDeleted: this.reasonDeletedVersion.trim()
         };
@@ -4135,10 +4505,9 @@ export class ProjectPartListSlickGridComponent implements OnInit, AfterViewInit,
           next: (response: any) => {
             if (response.status === 1) {
               this.notification.success('Thành công', response.message || 'Xóa phiên bản thành công!');
-              // Refresh data
+              // Refresh merged version data
               if (this.projectSolutionId) {
-                this.loadDataProjectPartListVersion();
-                this.loadDataProjectPartListVersionPO();
+                this.loadDataVersion();
               }
               this.reasonDeletedVersion = '';
             } else {
@@ -4428,6 +4797,8 @@ export class ProjectPartListSlickGridComponent implements OnInit, AfterViewInit,
     
       TotalInventory: 0
     }));
+    console.log('[OPEN BILL EXPORT DETAIL] BillExportForModal:', billExportForModal);
+    console.log('[OPEN BILL EXPORT DETAIL] DetailsForModal:', detailsForModal);
     const modalRef = this.ngbModal.open(BillExportDetailComponent, {
       centered: true,
       size: 'xl',
@@ -5457,14 +5828,18 @@ export class ProjectPartListSlickGridComponent implements OnInit, AfterViewInit,
   }
 
   convertVersionToPO(): void {
-    const selectedRows = this.angularGridSolutionVersion?.slickGrid?.getSelectedRows() || [];
+    const selectedRows = this.angularGridVersion?.slickGrid?.getSelectedRows() || [];
     if (selectedRows.length === 0) {
       this.notification.warning('Thông báo', 'Vui lòng chọn phiên bản giải pháp để chuyển thành PO!');
       return;
     }
-    const rowData = this.angularGridSolutionVersion?.dataView?.getItem(selectedRows[0]);
-    if (!rowData || !rowData.ID) {
-      this.notification.warning('Thông báo', 'Vui lòng chọn phiên bản hợp lệ!');
+    const rowData = this.angularGridVersion?.dataView?.getItem(selectedRows[0]);
+    if (!rowData || rowData.__group || rowData.__groupTotals) {
+      this.notification.warning('Thông báo', 'Vui lòng chọn dòng phiên bản hợp lệ!');
+      return;
+    }
+    if (rowData.VersionType !== 1) {
+      this.notification.warning('Thông báo', 'Vui lòng chọn phiên bản giải pháp để chuyển thành PO!');
       return;
     }
     if (rowData.StatusVersion === 2) {
@@ -5472,7 +5847,7 @@ export class ProjectPartListSlickGridComponent implements OnInit, AfterViewInit,
       return;
     }
     const payload = {
-      ID: rowData.ID,
+      ID: rowData.originalId,
       ProjectTypeID: rowData.ProjectTypeID,
       ProjectSolutionID: rowData.ProjectSolutionID,
       ProjectTypeName: rowData.ProjectTypeName,
@@ -5482,9 +5857,9 @@ export class ProjectPartListSlickGridComponent implements OnInit, AfterViewInit,
     (this.projectPartListService as any).convertVersionPO(payload).subscribe({
       next: (res: any) => {
         this.stopLoading();
-        this.notification.success('Thành công','Đã chuyển phiên bản thành PO')
-        this.loadDataProjectPartListVersion();
-        this.loadDataProjectPartListVersionPO();
+        this.notification.success('Thành công','Đã chuyển phiên bản thành PO');
+        // Refresh merged version data
+        this.loadDataVersion();
       },
       error: (err: any) => {
         this.stopLoading();

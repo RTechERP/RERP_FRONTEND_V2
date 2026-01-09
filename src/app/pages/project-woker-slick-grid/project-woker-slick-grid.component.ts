@@ -343,6 +343,28 @@ export class ProjectWokerSlickGridComponent implements OnInit, AfterViewInit, On
   }
 
   initProjectWorkerGrid(): void {
+    // Helper: natural sorting for hierarchy strings (1.1.1, 1.1.10, etc.)
+    const naturalSortComparer = (value1: any, value2: any) => {
+      const a = String(value1 || '');
+      const b = String(value2 || '');
+
+      if (a === b) return 0;
+
+      const aParts = a.split('.');
+      const bParts = b.split('.');
+      const maxLength = Math.max(aParts.length, bParts.length);
+
+      for (let i = 0; i < maxLength; i++) {
+        const aPart = parseInt(aParts[i] || '0', 10);
+        const bPart = parseInt(bParts[i] || '0', 10);
+
+        if (aPart < bPart) return -1;
+        if (aPart > bPart) return 1;
+      }
+
+      return 0;
+    };
+
     const moneyFormatter = (row: number, cell: number, value: any) => {
       if (value == null || value === '') return '';
       return Number(value).toLocaleString('vi-VN');
@@ -352,6 +374,7 @@ export class ProjectWokerSlickGridComponent implements OnInit, AfterViewInit, On
       {
         id: 'TT', field: 'TT', name: 'TT', width: 150, formatter: Formatters.tree,
         sortable: true, filterable: true, filter: { model: Filters['compoundInputText'] },
+        sortComparer: naturalSortComparer
       },
       {
         id: 'IsApprovedTBPText', field: 'IsApprovedTBPText', name: 'TBP duyệt', width: 90,

@@ -4692,7 +4692,7 @@ export class ProjectPartListPurchaseRequestSlickGridComponent
         IsBill: totaMoneyVAT > 0 ? true : false,
         IsPurchase: false,
         ProjectPartlistPurchaseRequestID: id,
-        PONCCDetailRequestBuyID:id
+        PONCCDetailRequestBuyID:id.toString()
       };
 
       listRequest.push(request);

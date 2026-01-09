@@ -365,17 +365,9 @@ export class BillImportNewComponent implements OnInit {
         sortable: true,
         filterable: true,
         width: 150,
-        filter: {
-          collection: [],
-          model: Filters['multipleSelect'],
-          collectionOptions: {
-            addBlankEntry: true
-          },
-          filterOptions: {
-            autoAdjustDropHeight: true,
-            filter: true,
-          } as MultipleSelectOption,
-        },
+                filter: {
+                  model: Filters['compoundInput'],
+                },
       },
       {
         id: 'DateRequestImport',
@@ -400,16 +392,8 @@ export class BillImportNewComponent implements OnInit {
         sortable: true,
         filterable: true,
         width: 180,
-        filter: {
-          collection: [],
-          model: Filters['multipleSelect'],
-          collectionOptions: {
-            addBlankEntry: true
-          },
-          filterOptions: {
-            autoAdjustDropHeight: true,
-            filter: true,
-          } as MultipleSelectOption,
+               filter: {
+          model: Filters['compoundInput'],
         },
       },
       {
@@ -419,16 +403,8 @@ export class BillImportNewComponent implements OnInit {
         sortable: true,
         filterable: true,
         width: 200,
-        filter: {
-          collection: [],
-          model: Filters['multipleSelect'],
-          collectionOptions: {
-            addBlankEntry: true
-          },
-          filterOptions: {
-            autoAdjustDropHeight: true,
-            filter: true,
-          } as MultipleSelectOption,
+               filter: {
+          model: Filters['compoundInput'],
         },
       },
       {
@@ -438,16 +414,8 @@ export class BillImportNewComponent implements OnInit {
         sortable: true,
         filterable: true,
         width: 150,
-        filter: {
-          collection: [],
-          model: Filters['multipleSelect'],
-          collectionOptions: {
-            addBlankEntry: true
-          },
-          filterOptions: {
-            autoAdjustDropHeight: true,
-            filter: true,
-          } as MultipleSelectOption,
+               filter: {
+          model: Filters['compoundInput'],
         },
       },
       {
@@ -457,16 +425,8 @@ export class BillImportNewComponent implements OnInit {
         sortable: true,
         filterable: true,
         width: 100,
-        filter: {
-          collection: [],
-          model: Filters['multipleSelect'],
-          collectionOptions: {
-            addBlankEntry: true
-          },
-          filterOptions: {
-            autoAdjustDropHeight: true,
-            filter: true,
-          } as MultipleSelectOption,
+                filter: {
+          model: Filters['compoundInput'],
         },
       },
       {
@@ -594,7 +554,7 @@ export class BillImportNewComponent implements OnInit {
           filterOptions: {
             autoAdjustDropHeight: true,
             filter: true,
-            
+
           } as MultipleSelectOption,
         },
       },
@@ -955,7 +915,7 @@ export class BillImportNewComponent implements OnInit {
         this.datasetDetail = this.datasetDetail.map((item: any) => ({
           ...item,
           id: item.ID
-        }));    
+        }));
         this.isDetailLoad = false;
       },
       error: (err) => {
@@ -1211,7 +1171,7 @@ export class BillImportNewComponent implements OnInit {
         );
         return;
       }
-      
+
 
       if (bill.BillTypeNew === 4) {
         this.notification.info(

@@ -143,6 +143,7 @@ export class BillExportDetailComponent
   private productAvailableInventoryMap: Map<number, number> = new Map();
 
   isLoading: boolean = false;
+  isSaving: boolean = false;
   isFormDisabled: boolean = false;
 
   dataCbbUser: any[] = [];
@@ -1598,7 +1599,10 @@ private productInventoryDetailMap: Map<number, {
   }
 
   changeStatus() {
-    this.getNewCode();
+    // Chỉ lấy mã mới khi thêm mới, không lấy khi sửa phiếu
+    if (!this.isCheckmode && (!this.newBillExport.Id || this.newBillExport.Id <= 0)) {
+      this.getNewCode();
+    }
   }
 
   /**
@@ -4155,7 +4159,7 @@ private productInventoryDetailMap: Map<number, {
   }
 
   // --- 3. NẠP TỒN KHO BẤT ĐỒNG BỘ (TRỌNG TÂM SỬA LỖI) ---
-  this.isLoading = true; // Hiện loading spinner
+  this.isSaving = true; // Hiện loading spinner và disable nút lưu
   try {
     const status = formValues.Status || this.newBillExport.Status || 0;
 
@@ -4175,7 +4179,7 @@ const uniqueProductIds: number[] = [...new Set<number>(
     const inventoryValidation = this.validateInventoryStock();
     if (!inventoryValidation.isValid) {
       this.showErrorNotification(inventoryValidation.message);
-      this.isLoading = false;
+      this.isSaving = false;
       return; // Dừng lại không cho lưu
     }
 
@@ -4195,18 +4199,18 @@ const uniqueProductIds: number[] = [...new Set<number>(
         } else {
           this.notification.warning(NOTIFICATION_TITLE.warning, res.message || 'Lỗi khi lưu phiếu');
         }
-        this.isLoading = false;
+        this.isSaving = false;
       },
       error: (err: any) => {
         this.showErrorNotification(err?.error?.message || 'Có lỗi xảy ra khi lưu!');
-        this.isLoading = false;
+        this.isSaving = false;
       },
     });
 
   } catch (error) {
     console.error('Lỗi quy trình lưu:', error);
     this.notification.error('Lỗi', 'Không thể kiểm tra tồn kho');
-    this.isLoading = false;
+    this.isSaving = false;
   }
 }
 

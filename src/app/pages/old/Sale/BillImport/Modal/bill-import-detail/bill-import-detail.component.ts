@@ -150,6 +150,7 @@ export class BillImportDetailComponent
   dataTableDocumnetImport: any[] = [];
 
   isLoading: boolean = false;
+  isSaving: boolean = false;
   deletedDetailIds: number[] = [];
 
   dataCbbReciver: any[] = [];
@@ -852,30 +853,31 @@ export class BillImportDetailComponent
     // Cập nhật label theo loại phiếu
     this.updateLabels(billTypeNew);
 
-    // Cập nhật ngày tháng theo loại phiếu
-    if (billTypeNew === 1) {
-      // Phiếu trả: CreatDate = ngày hiện tại, DateRequestImport = null
-      this.validateForm.patchValue({
-        CreatDate: new Date(),
-        DateRequestImport: null,
-        DateRequest: null,
-      });
-    } else if (billTypeNew === 4) {
-      // Loại phiếu 4: CreatDate = null, DateRequestImport = ngày hiện tại
-      this.validateForm.patchValue({
-        CreatDate: null,
-        DateRequestImport: new Date(),
-        DateRequest: null,
-      });
-    } else {
-      // Các loại phiếu khác: DateRequest = null, DateRequestImport = ngày hiện tại
-      this.validateForm.patchValue({
-        DateRequest: null,
-        DateRequestImport: new Date(),
-      });
-    }
-    // Chỉ lấy mã phiếu mới khi tạo mới (id = 0), không lấy khi đang sửa phiếu (id > 0)
-    if (this.id === 0) {
+    // Chỉ cập nhật ngày tháng khi thêm mới, không cập nhật khi sửa phiếu
+    if (!this.isCheckmode && this.id === 0) {
+      // Cập nhật ngày tháng theo loại phiếu
+      if (billTypeNew === 1) {
+        // Phiếu trả: CreatDate = ngày hiện tại, DateRequestImport = null
+        this.validateForm.patchValue({
+          CreatDate: new Date(),
+          DateRequestImport: null,
+          DateRequest: null,
+        });
+      } else if (billTypeNew === 4) {
+        // Loại phiếu 4: CreatDate = null, DateRequestImport = ngày hiện tại
+        this.validateForm.patchValue({
+          CreatDate: null,
+          DateRequestImport: new Date(),
+          DateRequest: null,
+        });
+      } else {
+        // Các loại phiếu khác: DateRequest = null, DateRequestImport = ngày hiện tại
+        this.validateForm.patchValue({
+          DateRequest: null,
+          DateRequestImport: new Date(),
+        });
+      }
+      // Chỉ lấy mã phiếu mới khi tạo mới
       this.getNewCode();
     }
   }
@@ -1723,8 +1725,8 @@ export class BillImportDetailComponent
           DeliverID: formValues.DeliverID,
           KhoTypeID: formValues.KhoTypeID,
           WarehouseID: formValues.WarehouseID || this.newBillImport.WarehouseID,
-          CreatDate: formValues.CreatDate,
-          DateRequestImport: formValues.DateRequestImport,
+          CreatDate: this.formatDateForServer(formValues.CreatDate),
+          DateRequestImport: this.formatDateForServer(formValues.DateRequestImport),
           BillTypeNew: formValues.BillTypeNew,
           BillDocumentImportType: 2,
           Status: false,
@@ -1745,6 +1747,7 @@ export class BillImportDetailComponent
     ];
     console.log('payload', payload);
 
+    this.isSaving = true;
     this.billImportService.saveBillImport(payload).subscribe({
       next: (res) => {
         if (res.status === 1) {
@@ -1765,6 +1768,7 @@ export class BillImportDetailComponent
               (this.isCheckmode ? 'Cập nhật thất bại!' : 'Thêm mới thất bại!')
           );
         }
+        this.isSaving = false;
       },
       error: (err: any) => {
         console.error('Save error:', err);
@@ -1774,8 +1778,20 @@ export class BillImportDetailComponent
           errorMessage += ' Chi tiết: ' + err.error.message;
         }
         this.notification.error(NOTIFICATION_TITLE.error, errorMessage);
+        this.isSaving = false;
       },
     });
+  }
+
+  // Format ngày thành yyyy-MM-dd để gửi lên server
+  private formatDateForServer(date: Date | string | null): string | null {
+    if (!date) return null;
+    const d = new Date(date);
+    if (isNaN(d.getTime())) return null;
+    const year = d.getFullYear();
+    const month = String(d.getMonth() + 1).padStart(2, '0');
+    const day = String(d.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
   }
 
   openModalBillExportDetail(ischeckmode: boolean) {

@@ -2772,7 +2772,7 @@ export class ProjectSlickGrid2Component implements OnInit, AfterViewInit, OnDest
     const projectName = selectedRows[0]?.ProjectName;
     const projectCode = selectedRows[0]?.ProjectCode;
 
-    const url = `/rerpweb/tbp-project-partlist?projectId=${projectId}&projectName=${encodeURIComponent(projectName)}&projectCode=${encodeURIComponent(projectCode)}&tbp=false`;
+    const url = `/rerpweb/project-part-list?projectId=${projectId}&projectName=${encodeURIComponent(projectName)}&projectCode=${encodeURIComponent(projectCode)}&tbp=false`;
     window.open(url, '_blank', 'width=1280,height=960,resizable=yes');
   }
 

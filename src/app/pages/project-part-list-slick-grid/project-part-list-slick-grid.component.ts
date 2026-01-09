@@ -3161,13 +3161,9 @@ export class ProjectPartListSlickGridComponent implements OnInit, AfterViewInit,
         this.projectSolutionId = data.ID;
         this.selectionProjectSolutionName = data.CodeSolution;
         console.log('[ROW SELECT] projectSolutionId set to:', this.projectSolutionId);
-        // Load phiên bản giải pháp và PO
-        if (!this.isPOKH) {
-          console.log('[ROW SELECT] Loading Solution Version table');
-          this.loadDataProjectPartListVersion();
-        }
-        console.log('[ROW SELECT] Loading PO Version table');
-        this.loadDataProjectPartListVersionPO();
+        // Load merged version data (combines Solution Version and PO Version)
+        console.log('[ROW SELECT] Loading merged Version table');
+        this.loadDataVersion();
         // Reset bảng partlist vì chưa chọn phiên bản nào
         this.resetPartlistTable();
       } else {
@@ -3934,29 +3930,29 @@ export class ProjectPartListSlickGridComponent implements OnInit, AfterViewInit,
     }
 
     // Kiểm tra phiên bản đang sử dụng
+    if (this.type == 0 || (this.type == 1 && this.versionID == 0) || (this.type == 2 && this.versionPOID == 0)) {
+      this.notification.warning('Thông báo', 'Vui lòng chọn phiên bản để yêu cầu báo giá');
+      return;
+    }
+
+    // Lấy thông tin phiên bản từ dữ liệu đã lưu
     let selectedVersion: any = null;
     if (this.type == 1) {
-      const versionRows = this.angularGridSolutionVersion?.slickGrid.getSelectedRows().map((rowIdx: number) =>
-        this.angularGridSolutionVersion.dataView.getItem(rowIdx)
-      ) || [];
-      if (!versionRows || versionRows.length === 0) {
-        this.notification.warning('Thông báo', 'Vui lòng chọn phiên bản để yêu cầu báo giá');
+      selectedVersion = this.dataSolutionVersion.find((v: any) => v.ID === this.versionID);
+      if (!selectedVersion) {
+        this.notification.warning('Thông báo', 'Không tìm thấy phiên bản giải pháp đã chọn');
         return;
       }
-      selectedVersion = versionRows[0];
       if (selectedVersion['StatusVersion'] == 2) {
         this.notification.warning('Thông báo', `Phiên bản [${selectedVersion.Code}] đã bị PO. Bạn không thể yêu cầu báo giá!`);
         return;
       }
     } else {
-      const versionRows = this.angularGridPOVersion?.slickGrid.getSelectedRows().map((rowIdx: number) =>
-        this.angularGridPOVersion.dataView.getItem(rowIdx)
-      ) || [];
-      if (!versionRows || versionRows.length === 0) {
-        this.notification.warning('Thông báo', 'Vui lòng chọn phiên bản PO để yêu cầu báo giá');
+      selectedVersion = this.dataPOVersion.find((v: any) => v.ID === this.versionPOID);
+      if (!selectedVersion) {
+        this.notification.warning('Thông báo', 'Không tìm thấy phiên bản PO đã chọn');
         return;
       }
-      selectedVersion = versionRows[0];
       if (selectedVersion['IsActive'] == false || selectedVersion['IsActive'] == null) {
         this.notification.warning('Thông báo', `Vui lòng chọn sử dụng phiên bản PO [${selectedVersion.Code}] trước!`);
         return;
@@ -4174,31 +4170,31 @@ export class ProjectPartListSlickGridComponent implements OnInit, AfterViewInit,
     }
 
     // Kiểm tra phiên bản đang sử dụng
+    if (this.type == 0 || (this.type == 1 && this.versionID == 0) || (this.type == 2 && this.versionPOID == 0)) {
+      this.notification.warning('Thông báo', 'Vui lòng chọn phiên bản để yêu cầu mua hàng');
+      return;
+    }
+
+    // Lấy thông tin phiên bản từ dữ liệu đã lưu
     let selectedVersion: any = null;
     let projectTypeID: number = 0;
     if (this.type == 1) {
-      const versionRows = this.angularGridSolutionVersion?.slickGrid.getSelectedRows().map((rowIdx: number) =>
-        this.angularGridSolutionVersion.dataView.getItem(rowIdx)
-      ) || [];
-      if (!versionRows || versionRows.length === 0) {
-        this.notification.warning('Thông báo', 'Vui lòng chọn phiên bản để yêu cầu mua hàng');
+      selectedVersion = this.dataSolutionVersion.find((v: any) => v.ID === this.versionID);
+      if (!selectedVersion) {
+        this.notification.warning('Thông báo', 'Không tìm thấy phiên bản giải pháp đã chọn');
         return;
       }
-      selectedVersion = versionRows[0];
       projectTypeID = selectedVersion.ProjectTypeID || 0;
       if (selectedVersion['IsActive'] == false || selectedVersion['IsActive'] == null) {
         this.notification.warning('Thông báo', `Vui lòng chọn sử dụng phiên bản [${selectedVersion.Code}] trước!`);
         return;
       }
     } else {
-      const versionRows = this.angularGridPOVersion?.slickGrid.getSelectedRows().map((rowIdx: number) =>
-        this.angularGridPOVersion.dataView.getItem(rowIdx)
-      ) || [];
-      if (!versionRows || versionRows.length === 0) {
-        this.notification.warning('Thông báo', 'Vui lòng chọn phiên bản PO để yêu cầu mua hàng');
+      selectedVersion = this.dataPOVersion.find((v: any) => v.ID === this.versionPOID);
+      if (!selectedVersion) {
+        this.notification.warning('Thông báo', 'Không tìm thấy phiên bản PO đã chọn');
         return;
       }
-      selectedVersion = versionRows[0];
       projectTypeID = selectedVersion.ProjectTypeID || 0;
       if (selectedVersion['IsActive'] == false || selectedVersion['IsActive'] == null) {
         this.notification.warning('Thông báo', `Vui lòng chọn sử dụng phiên bản PO [${selectedVersion.Code}] trước!`);

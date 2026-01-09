@@ -133,7 +133,7 @@
                                 [formControlName]="paymentOrderField.ProjectID.field">
                                 @for (item of projects; track item) {
                                 <nz-option nzLabel="{{item.ProjectCode}} - {{item.ProjectName}}"
-                                    nzValue="{{item.ID}}"></nz-option>
+                                    [nzValue]="item.ID"></nz-option>
                                 }
                             </nz-select>
                         </nz-form-control>

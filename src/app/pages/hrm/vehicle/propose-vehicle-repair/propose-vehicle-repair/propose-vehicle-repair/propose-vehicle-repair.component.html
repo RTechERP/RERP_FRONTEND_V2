@@ -17,9 +17,10 @@
 </p-menubar>
 
 <ng-container class="w-100">
-    <div class="card border-0 rounded-0" style="height: 89vh !important;">
+    <div class="card border-0 rounded-0" style="height: 88vh !important;">
         <!-- Backdrop overlay cho mobile -->
-        <div class="filter-backdrop" *ngIf="shouldShowSearchBar && isMobile()" (click)="ToggleSearchPanelNew()"></div>
+        <div class="filter-backdrop" style="height: 84vh !important;" *ngIf="shouldShowSearchBar && isMobile()"
+            (click)="ToggleSearchPanelNew()"></div>
 
         <!-- Filter bar - inline layout -->
         <div class="filter-bar bg-light border-bottom p-2" *ngIf="shouldShowSearchBar" [class.mobile-modal]="true">
@@ -56,7 +57,7 @@
                     </nz-col>
 
                     <!-- Nhân viên -->
-                    <nz-col [nzXs]="12" [nzSm]="12" [nzMd]="6" [nzLg]="4" [nzXl]="3">
+                    <nz-col [nzXs]="12" [nzSm]="12" [nzMd]="6" [nzLg]="4" [nzXl]="6">
                         <nz-form-item class="mb-0">
                             <nz-form-label class="fs-12" style="font-size: 12px;">Chọn nhân viên</nz-form-label>
                             <nz-form-control>
@@ -73,13 +74,13 @@
                     </nz-col>
 
                     <!-- Phương tiện -->
-                    <nz-col [nzXs]="12" [nzSm]="12" [nzMd]="6" [nzLg]="4" [nzXl]="3">
+                    <nz-col [nzXs]="12" [nzSm]="12" [nzMd]="6" [nzLg]="4" [nzXl]="5">
                         <nz-form-item class="mb-0">
                             <nz-form-label class="fs-12" style="font-size: 12px;">Chọn phương tiện</nz-form-label>
                             <nz-form-control>
-                                <nz-select class="w-100" [(ngModel)]="VehicleID" (ngModelChange)="onVehicleChange()"
-                                    name="vehicleID" nzAllowClear nzSize="small" nzShowSearch
-                                    nzPlaceHolder="Chọn phương tiện...">
+                                <nz-select class="w-100" [(ngModel)]="VehicleID"
+                                    (ngModelChange)="onVehicleChange($event)" name="vehicleID" nzAllowClear
+                                    nzSize="small" nzShowSearch nzPlaceHolder="Chọn phương tiện...">
                                     <nz-option *ngFor="let item of vehicleList" [nzValue]="item.ID"
                                         [nzLabel]="item.STT + ' - ' + item.VehicleName"></nz-option>
                                 </nz-select>
@@ -114,10 +115,9 @@
 
         <!-- Content với bảng -->
         <div class="card-body p-0 position-relative" [class.with-search-bar]="shouldShowSearchBar"
-            [class.without-search-bar]="!shouldShowSearchBar"
-            style="height: calc(100vh - 150px); display: flex; flex-direction: column;">
+            [class.without-search-bar]="!shouldShowSearchBar" style=" display: flex; flex-direction: column;">
             <nz-spin [nzSpinning]="isLoading" nzTip="Đang tải dữ liệu..." style="height: 100%;">
-                <nz-splitter nzLayout="horizontal" style="height: 100%; flex: 1;">
+                <nz-splitter nzLayout="horizontal" style="height: 83vh !important; flex: 1;">
                     <!-- Bảng Master - Đề xuất sửa xe (ở trên) - 60% -->
                     <nz-splitter-panel [nzCollapsible]="false" [nzResizable]="false" nzSize="60%">
                         <div class="grid-container" id="grid-container-propose-vehicle" style="height: 100%;">
@@ -135,7 +135,9 @@
                         <div style="height: 100%; width: 100%; display: flex; flex-direction: column;">
                             <nz-tabset
                                 style="padding-left: 10px; flex: 1; display: flex; flex-direction: column; min-height: 0; width: 100%;">
-                                <nz-tab nzTitle="Chi tiết đề xuất" style="height: 100%; width: 100%;">
+                                <nz-tab
+                                    [nzTitle]="'Chi tiết đề xuất' + (selectedRow?.VehicleName ? ' - ' + selectedRow.VehicleName : '')"
+                                    style="height: 100%; width: 100%;">
                                     <div class="grid-container" id="grid-container-propose-vehicle-detail"
                                         style="height: 100%; width: 100%;">
                                         <angular-slickgrid gridId="grvProposeVehicleRepairDetail"

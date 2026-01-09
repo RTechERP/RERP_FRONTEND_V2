@@ -1,21 +1,27 @@
+<!-- Modal Chọn tài sản cho thu hồi -->
+
 <div class="modal-content">
   <div class="modal-header bg-primary p-2">
-    <h6 class="modal-title text-white" id="assetModalLabel">CHỌN TÀI SẢN</h6>
+    <h6 class="modal-title text-white" id="assetModalLabel">CHỌN TÀI SẢN (Đã chọn: {{ selectedCount }} / {{ totalAssets
+      }})</h6>
     <button type="button" class="btn-close" aria-label="Close" (click)="close()"></button>
   </div>
 
-   <div class="modal-body">
-
+  <div class="modal-body p-2">
     <div class="mb-2">
       <input nz-input class="w-100" [(ngModel)]="searchText" (ngModelChange)="applyFilter()"
         placeholder="Tìm theo mã, tên tài sản, phòng ban, người quản lý..." />
     </div>
-    <div class="card-body" style="margin-top:0.5rem;">
-      <div class="mb-2" id="dataTbRecoveryByEmployee"></div>
+
+    <div id="grid-container-recovery-by-employee" style="height: 55vh; width: 100%;">
+      <angular-slickgrid gridId="recoveryByEmployeeGrid" [columns]="columnDefinitions" [options]="gridOptions"
+        [dataset]="dataset" (onAngularGridCreated)="angularGridReady($event.detail)">
+      </angular-slickgrid>
     </div>
   </div>
+
   <div class="modal-footer">
     <button nz-button nzDanger nzType="default" (click)="close()">Đóng</button>
-    <button nz-button nzType="primary" (click)="selectAssets()">Chọn và đóng</button>
+    <button nz-button nzType="primary" (click)="selectAssets()">Chọn và đóng ({{ selectedCount }})</button>
   </div>
 </div>

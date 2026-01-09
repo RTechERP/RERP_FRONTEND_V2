@@ -60,6 +60,7 @@ export class PaymentOrderDetailComponent implements OnInit, AfterViewInit {
     @Input() ponccID: number = 0;
     @Input() paymentOrder = new PaymentOrder();
     @Input() isCopy = false;
+    @Input() initialContentPayment: string = ''; // ContentPayment cho dòng chi tiết đầu tiên
     paymentOrderField = PaymentOrderField;
 
     //  orderTypeSelectProjects = [19, 22];
@@ -231,6 +232,13 @@ export class PaymentOrderDetailComponent implements OnInit, AfterViewInit {
         // Thêm xử lý khi ponccID > 0
         if (this.ponccID > 0) {
             this.loadDataFromPONCC();
+        }
+        // Set ContentPayment cho dòng chi tiết đầu tiên (ParentID: 2) nếu có initialContentPayment
+        if (this.initialContentPayment) {
+            const detailRow = this.dataset2.find(x => x.ParentID === 2 && x._id === 6);
+            if (detailRow) {
+                detailRow.ContentPayment = this.initialContentPayment;
+            }
         }
     }
     loadDataFromPONCC() {

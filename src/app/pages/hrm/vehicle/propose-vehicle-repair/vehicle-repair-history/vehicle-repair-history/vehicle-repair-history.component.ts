@@ -106,7 +106,7 @@ export class VehicleRepairHistoryComponent implements AfterViewInit {
     private vehicleRepairHistoryService: VehicleRepairHistoryService,
     private VehicleRepairService: VehicleRepairService,
     private cdr: ChangeDetectorRef
-  ) {}
+  ) { }
   @ViewChild('tbVehicleManagement', { static: false })
   tbVehicleManagementEl!: ElementRef;
   @ViewChild('vehicleRepairHistoryTable', { static: false })
@@ -386,6 +386,42 @@ export class VehicleRepairHistoryComponent implements AfterViewInit {
               cssClass: 'group-info',
               title: 'THÔNG TIN HẠNG MỤC',
               columns: [
+                {
+                  title: 'Km kỳ trước',
+                  field: 'KmPreviousPeriod',
+                  hozAlign: 'right',
+                  width: 100,
+                  formatter: (cell) => {
+                    const v = cell.getValue();
+                    if (v == null) return '';
+                    return Number(v).toLocaleString('vi-VN');
+                  },
+                },
+                {
+                  title: 'Km kỳ này',
+                  field: 'KmCurrentPeriod',
+                  hozAlign: 'right',
+                  width: 100,
+                  formatter: (cell) => {
+                    const v = cell.getValue();
+                    if (v == null) return '';
+                    return Number(v).toLocaleString('vi-VN');
+                  },
+                },
+                {
+                  title: 'Km trong kỳ',
+                  field: 'KmInPeriod',
+                  hozAlign: 'right',
+                  width: 100,
+                  formatter: (cell) => {
+                    const row = cell.getRow().getData();
+                    const current = Number(row['KmCurrentPeriod']) || 0;
+                    const previous = Number(row['KmPreviousPeriod']) || 0;
+                    const diff = current - previous;
+                    if (current === 0 && previous === 0) return '';
+                    return diff.toLocaleString('vi-VN');
+                  },
+                },
                 { title: 'Đơn vị tính', field: 'Unit', width: 100 },
                 {
                   title: 'Số lượng',
@@ -433,7 +469,12 @@ export class VehicleRepairHistoryComponent implements AfterViewInit {
                     return d.toLocaleDateString('vi-VN');
                   },
                 },
-                { title: 'Thời gian bảo hành' },
+                {
+                  title: 'Bảo hành (tháng)',
+                  field: 'WarrantyPeriod',
+                  width: 120,
+                  hozAlign: 'right',
+                },
               ],
             },
             {
@@ -572,7 +613,7 @@ export class VehicleRepairHistoryComponent implements AfterViewInit {
     });
 
     modalRef.result.then(
-      (result) => {},
+      (result) => { },
       () => {
         console.log('Modal dismissed');
       }
@@ -731,7 +772,7 @@ export class VehicleRepairHistoryComponent implements AfterViewInit {
 
     modalRef.result.then(
       () => this.getVehicleManagement(),
-      () => {}
+      () => { }
     );
   }
   private detailCache = new Map<number, any[]>();
@@ -772,7 +813,7 @@ export class VehicleRepairHistoryComponent implements AfterViewInit {
               this.drawTableDetail();
               this.drawTableFile();
             })
-            .catch(() => {});
+            .catch(() => { });
         },
         error: () =>
           this.notification.error(
@@ -800,6 +841,7 @@ export class VehicleRepairHistoryComponent implements AfterViewInit {
     }
 
     const outWb = new ExcelJS.Workbook();
+    const usedSheetNames = new Set<string>();
 
     for (const v of vehicles) {
       const res = await firstValueFrom(
@@ -830,10 +872,23 @@ export class VehicleRepairHistoryComponent implements AfterViewInit {
       }
 
       // gom file theo ID history
-      // sheet theo xe
-      const wsName = this.safeSheetName(
+      // sheet theo xe - đảm bảo tên duy nhất
+      let wsName = this.safeSheetName(
         `${v?.VehicleName || 'Xe'} - ${v?.LicensePlate || v?.ID}`
       );
+
+      // Nếu tên đã tồn tại, thêm số thứ tự vào sau
+      let counter = 1;
+      let originalName = wsName;
+      while (usedSheetNames.has(wsName)) {
+        // Cắt bớt tên gốc nếu quá dài để có chỗ cho số thứ tự
+        const suffix = ` (${counter})`;
+        const maxBaseLength = 31 - suffix.length;
+        wsName = originalName.slice(0, maxBaseLength) + suffix;
+        counter++;
+      }
+      usedSheetNames.add(wsName);
+
       const ws = outWb.addWorksheet(wsName);
       this.cloneTemplateInto(tmpl, ws);
 
@@ -862,12 +917,15 @@ export class VehicleRepairHistoryComponent implements AfterViewInit {
         { key: 'ProposeContent' },
         { key: 'Reason' },
         { key: 'DateApprove', type: COL.date },
+        { key: 'KmPreviousPeriod', type: COL.number },
+        { key: 'KmCurrentPeriod', type: COL.number },
+        { key: 'KmInPeriod', type: COL.number },
         { key: 'Unit' },
         { key: 'Quantity', type: COL.number },
         { key: 'UnitPrice', type: COL.money },
         { key: 'TotalPrice', type: COL.money },
         { key: 'TimeEndRepair', type: COL.date },
-        { key: 'WarrantyPeriod' },
+        { key: 'WarrantyPeriod', type: COL.number },
         { key: 'LinkChungTu', type: COL.multiline },
         { key: 'GaraName' },
         { key: 'AddressGara' },
@@ -882,6 +940,10 @@ export class VehicleRepairHistoryComponent implements AfterViewInit {
           .map((f, idx) => `${idx + 1}) ${f.path}`)
           .join('\n');
 
+        const kmPrev = Number(r?.KmPreviousPeriod) || 0;
+        const kmCurr = Number(r?.KmCurrentPeriod) || 0;
+        const kmIn = kmCurr - kmPrev;
+
         return {
           STT: i + 1,
           DateReport: r?.DateReport,
@@ -890,12 +952,15 @@ export class VehicleRepairHistoryComponent implements AfterViewInit {
             r?.ProposeContent ?? r?.Content ?? r?.VehicleRepairTypeName ?? '',
           Reason: r?.Reason ?? '',
           DateApprove: r?.DateApprove ?? r?.DateReportApprove ?? '',
+          KmPreviousPeriod: kmPrev || null,
+          KmCurrentPeriod: kmCurr || null,
+          KmInPeriod: (kmPrev === 0 && kmCurr === 0) ? null : kmIn,
           Unit: r?.Unit ?? '',
           Quantity: r?.Quantity ?? null,
           UnitPrice: r?.UnitPrice ?? null,
           TotalPrice: r?.TotalPrice ?? null,
           TimeEndRepair: r?.TimeEndRepair ?? r?.DateImplement ?? '',
-          WarrantyPeriod: r?.WarrantyPeriod ?? '',
+          WarrantyPeriod: r?.WarrantyPeriod ?? r?.Warranty ?? null,
           LinkChungTu: fileLinks, // <-- toàn bộ ServerPath
           GaraName: r?.GaraName ?? '',
           AddressGara: r?.AddressGara ?? '',
@@ -1050,7 +1115,8 @@ export class VehicleRepairHistoryComponent implements AfterViewInit {
           } else cell.value = '';
         } else if (col.type === COL.number) {
           const n = Number(raw);
-          cell.value = isNaN(n) ? null : n;
+          cell.value = isNaN(n) || raw == null ? null : n;
+          cell.numFmt = '#,##0';
         } else if (col.type === COL.money) {
           const n = Number(raw);
           cell.value = isNaN(n) ? null : n;

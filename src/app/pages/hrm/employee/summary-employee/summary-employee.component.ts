@@ -277,6 +277,7 @@ export class SummaryEmployeeComponent implements OnInit, AfterViewInit, OnDestro
           // Apply distinct filters after data is loaded
           setTimeout(() => {
             this.applyDistinctFiltersForAllGrids();
+            this.updateAllFooterRows();
           }, 100);
         } else {
           this.notification.error(NOTIFICATION_TITLE.error, response.message || 'Lỗi lấy dữ liệu');
@@ -450,6 +451,10 @@ export class SummaryEmployeeComponent implements OnInit, AfterViewInit, OnDestro
       enableFiltering: true,
       autoFitColumnsOnFirstLoad: true,
       enableAutoSizeColumns: true,
+      rowHeight: 30,
+      createFooterRow: true,
+      showFooterRow: true,
+      footerRowHeight: 28,
     };
   }
 
@@ -478,12 +483,12 @@ export class SummaryEmployeeComponent implements OnInit, AfterViewInit, OnDestro
         id: 'TimeOnLeaveText', name: 'Thời gian nghỉ', field: 'TimeOnLeaveText', width: 120, sortable: true, filterable: true,
         filter: { model: Filters['multipleSelect'], collection: [], collectionOptions: { addBlankEntry: true }, filterOptions: { filter: true, autoAdjustDropWidthByTextSize: true } as MultipleSelectOption }
       },
-      { id: 'StartDate', name: 'Ngày bắt đầu', field: 'StartDate', width: 140, sortable: true, formatter: this.formatDate },
-      { id: 'EndDate', name: 'Ngày kết thúc', field: 'EndDate', width: 140, sortable: true, formatter: this.formatDate },
+      { id: 'StartDate', name: 'Ngày bắt đầu', field: 'StartDate', width: 140, sortable: true, formatter: this.formatDate, filterable: true, filter: { model: Filters['compoundDate'] } },
+      { id: 'EndDate', name: 'Ngày kết thúc', field: 'EndDate', width: 140, sortable: true, formatter: this.formatDate, filterable: true, filter: { model: Filters['compoundDate'] } },
       { id: 'Reason', name: 'Lý do nghỉ', field: 'Reason', width: 250, sortable: true, filterable: true, filter: { model: Filters['compoundInputText'] } },
       { id: 'ReasonDeciline', name: 'Lý do không duyệt', field: 'ReasonDeciline', width: 200, sortable: true, filterable: true, filter: { model: Filters['compoundInputText'] } },
-      { id: 'ReasonCancel', name: 'Lý do hủy', field: 'ReasonCancel', width: 200, sortable: true },
-      { id: 'DateCancel', name: 'Ngày hủy', field: 'DateCancel', width: 140, sortable: true, formatter: this.formatDate },
+      { id: 'ReasonCancel', name: 'Lý do hủy', field: 'ReasonCancel', width: 200, sortable: true, filterable: true, filter: { model: Filters['compoundInputText'] } },
+      { id: 'DateCancel', name: 'Ngày hủy', field: 'DateCancel', width: 140, sortable: true, formatter: this.formatDate, filterable: true, filter: { model: Filters['compoundDate'] } },
     ];
     this.gridOptionsOnLeave = this.getDefaultGridOptions('#grid-on-leave');
   }
@@ -508,10 +513,10 @@ export class SummaryEmployeeComponent implements OnInit, AfterViewInit, OnDestro
         id: 'TypeText', name: 'Loại', field: 'TypeText', width: 150, sortable: true, filterable: true,
         filter: { model: Filters['multipleSelect'], collection: [], collectionOptions: { addBlankEntry: true }, filterOptions: { filter: true, autoAdjustDropWidthByTextSize: true } as MultipleSelectOption }
       },
-      { id: 'DateRegister', name: 'Ngày', field: 'DateRegister', width: 120, sortable: true, formatter: this.formatDateOnly },
-      { id: 'DateStart', name: 'Thời gian bắt đầu', field: 'DateStart', width: 140, sortable: true, formatter: this.formatDate },
-      { id: 'DateEnd', name: 'Thời gian kết thúc', field: 'DateEnd', width: 140, sortable: true, formatter: this.formatDate },
-      { id: 'TimeRegister', name: 'Tổng thời gian (Phút)', field: 'TimeRegister', width: 130, sortable: true, cssClass: 'text-right' },
+      { id: 'DateRegister', name: 'Ngày', field: 'DateRegister', width: 120, sortable: true, formatter: this.formatDateOnly, filterable: true, filter: { model: Filters['compoundDate'] } },
+      { id: 'DateStart', name: 'Thời gian bắt đầu', field: 'DateStart', width: 140, sortable: true, formatter: this.formatDate, filterable: true, filter: { model: Filters['compoundDate'] } },
+      { id: 'DateEnd', name: 'Thời gian kết thúc', field: 'DateEnd', width: 140, sortable: true, formatter: this.formatDate, filterable: true, filter: { model: Filters['compoundDate'] } },
+      { id: 'TimeRegister', name: 'Tổng thời gian (Phút)', field: 'TimeRegister', width: 130, sortable: true, cssClass: 'text-right', filterable: true, filter: { model: Filters['compoundInputNumber'] } },
       { id: 'Reason', name: 'Lý do', field: 'Reason', width: 250, sortable: true, filterable: true, filter: { model: Filters['compoundInputText'] } },
       { id: 'ReasonDeciline', name: 'Lý do không duyệt', field: 'ReasonDeciline', width: 200, sortable: true, filterable: true, filter: { model: Filters['compoundInputText'] } },
     ];
@@ -544,10 +549,10 @@ export class SummaryEmployeeComponent implements OnInit, AfterViewInit, OnDestro
         id: 'TypeName', name: 'Loại', field: 'TypeName', width: 120, sortable: true, filterable: true,
         filter: { model: Filters['multipleSelect'], collection: [], collectionOptions: { addBlankEntry: true }, filterOptions: { filter: true, autoAdjustDropWidthByTextSize: true } as MultipleSelectOption }
       },
-      { id: 'DateRegister', name: 'Ngày', field: 'DateRegister', width: 120, sortable: true, formatter: this.formatDateOnly },
-      { id: 'TimeStart', name: 'Từ', field: 'TimeStart', width: 140, sortable: true, formatter: this.formatDate },
-      { id: 'EndTime', name: 'Đến', field: 'EndTime', width: 140, sortable: true, formatter: this.formatDate },
-      { id: 'TotalTime', name: 'Số giờ', field: 'TotalTime', width: 80, sortable: true, cssClass: 'text-right' },
+      { id: 'DateRegister', name: 'Ngày', field: 'DateRegister', width: 120, sortable: true, formatter: this.formatDateOnly, filterable: true, filter: { model: Filters['compoundDate'] } },
+      { id: 'TimeStart', name: 'Từ', field: 'TimeStart', width: 140, sortable: true, formatter: this.formatDate, filterable: true, filter: { model: Filters['compoundDate'] } },
+      { id: 'EndTime', name: 'Đến', field: 'EndTime', width: 140, sortable: true, formatter: this.formatDate, filterable: true, filter: { model: Filters['compoundDate'] } },
+      { id: 'TotalTime', name: 'Số giờ', field: 'TotalTime', width: 80, sortable: true, cssClass: 'text-right', filterable: true, filter: { model: Filters['compoundInputNumber'] } },
       { id: 'ProjectName', name: 'Dự án', field: 'ProjectName', width: 150, sortable: true, filterable: true, filter: { model: Filters['compoundInputText'] } },
       {
         id: 'LocationText', name: 'Địa điểm', field: 'LocationText', width: 150, sortable: true, filterable: true,
@@ -555,7 +560,7 @@ export class SummaryEmployeeComponent implements OnInit, AfterViewInit, OnDestro
       },
       { id: 'Reason', name: 'Lý do', field: 'Reason', width: 250, sortable: true, filterable: true, filter: { model: Filters['compoundInputText'] } },
       { id: 'ReasonDeciline', name: 'Lý do không duyệt', field: 'ReasonDeciline', width: 200, sortable: true, filterable: true, filter: { model: Filters['compoundInputText'] } },
-      { id: 'Overnight', name: 'Ăn tối', field: 'Overnight', width: 80, sortable: true, cssClass: 'text-center', formatter: checkboxFormatter },
+      { id: 'Overnight', name: 'Ăn tối', field: 'Overnight', width: 80, sortable: true, cssClass: 'text-center', formatter: checkboxFormatter, filterable: true, filter: { model: Filters['compoundInputText'] } },
     ];
     this.gridOptionsOverTime = this.getDefaultGridOptions('#grid-over-time');
   }
@@ -587,21 +592,21 @@ export class SummaryEmployeeComponent implements OnInit, AfterViewInit, OnDestro
       { id: 'EmployeeName', name: 'Họ tên', field: 'EmployeeName', width: 160, minWidth: 160, sortable: true, filterable: true, filter: { model: Filters['compoundInputText'] } },
       { id: 'ApprovedName', name: 'Trưởng phòng', field: 'ApprovedName', width: 150, minWidth: 150, sortable: true, filterable: true, filter: { model: Filters['compoundInputText'] } },
       { id: 'ApprovedHR', name: 'Nhân sự', field: 'ApprovedHR', width: 150, minWidth: 150, sortable: true, filterable: true, filter: { model: Filters['compoundInputText'] } },
-      { id: 'DayBussiness', name: 'Ngày', field: 'DayBussiness', width: 110, minWidth: 110, sortable: true, formatter: this.formatDateOnly },
+      { id: 'DayBussiness', name: 'Ngày', field: 'DayBussiness', width: 110, minWidth: 110, sortable: true, formatter: this.formatDateOnly, filterable: true, filter: { model: Filters['compoundDate'] } },
       { id: 'Location', name: 'Địa điểm', field: 'Location', width: 200, minWidth: 200, sortable: true, filterable: true, filter: { model: Filters['compoundInputText'] } },
       {
         id: 'TypeName', name: 'Loại', field: 'TypeName', width: 130, minWidth: 130, sortable: true, filterable: true,
         filter: { model: Filters['multipleSelect'], collection: [], collectionOptions: { addBlankEntry: true }, filterOptions: { filter: true, autoAdjustDropWidthByTextSize: true } as MultipleSelectOption }
       },
-      { id: 'CostType', name: 'Phí công tác', field: 'CostType', width: 130, minWidth: 130, sortable: true, cssClass: 'text-right', formatter: currencyFormatter },
-      { id: 'CostVehicle', name: 'Phương tiện', field: 'CostVehicle', width: 130, minWidth: 130, sortable: true, cssClass: 'text-right', formatter: currencyFormatter },
-      { id: 'Overnight', name: 'Ăn tối', field: 'Overnight', width: 80, minWidth: 80, sortable: true, cssClass: 'text-center', formatter: checkboxFormatter },
-      { id: 'CostWorkEarly', name: 'Phí xuất phát trước 7H15', field: 'CostWorkEarly', width: 180, minWidth: 180, sortable: true, cssClass: 'text-right', formatter: currencyFormatter },
-      { id: 'TotalMoney', name: 'Tổng chi phí', field: 'TotalMoney', width: 130, minWidth: 130, sortable: true, cssClass: 'text-right', formatter: currencyFormatter },
+      { id: 'CostType', name: 'Phí công tác', field: 'CostType', width: 130, minWidth: 130, sortable: true, cssClass: 'text-right', formatter: currencyFormatter, filterable: true, filter: { model: Filters['compoundInputNumber'] } },
+      { id: 'CostVehicle', name: 'Phương tiện', field: 'CostVehicle', width: 130, minWidth: 130, sortable: true, cssClass: 'text-right', formatter: currencyFormatter, filterable: true, filter: { model: Filters['compoundInputNumber'] } },
+      { id: 'Overnight', name: 'Ăn tối', field: 'Overnight', width: 80, minWidth: 80, sortable: true, cssClass: 'text-center', formatter: checkboxFormatter, filterable: true, filter: { model: Filters['compoundInputText'] } },
+      { id: 'CostWorkEarly', name: 'Phí xuất phát trước 7H15', field: 'CostWorkEarly', width: 180, minWidth: 180, sortable: true, cssClass: 'text-right', formatter: currencyFormatter, filterable: true, filter: { model: Filters['compoundInputNumber'] } },
+      { id: 'TotalMoney', name: 'Tổng chi phí', field: 'TotalMoney', width: 130, minWidth: 130, sortable: true, cssClass: 'text-right', formatter: currencyFormatter, filterable: true, filter: { model: Filters['compoundInputNumber'] } },
       { id: 'NotChekInText', name: 'Chấm công', field: 'NotChekInText', width: 120, minWidth: 120, sortable: true },
       { id: 'ReasonDeciline', name: 'Lý do không duyệt', field: 'ReasonDeciline', width: 200, minWidth: 200, sortable: true, filterable: true, filter: { model: Filters['compoundInputText'] } },
       { id: 'Note', name: 'Ghi chú', field: 'Note', width: 200, minWidth: 200, sortable: true, filterable: true, filter: { model: Filters['compoundInputText'] } },
-      { id: 'CreatedDate', name: 'Ngày tạo', field: 'CreatedDate', width: 150, minWidth: 150, sortable: true, formatter: this.formatDate },
+      { id: 'CreatedDate', name: 'Ngày tạo', field: 'CreatedDate', width: 150, minWidth: 150, sortable: true, formatter: this.formatDate, filterable: true, filter: { model: Filters['compoundDate'] } },
     ];
     // Grid Công tác dùng forceFitColumns: false để cho phép scroll ngang
     this.gridOptionsBussiness = {
@@ -630,7 +635,7 @@ export class SummaryEmployeeComponent implements OnInit, AfterViewInit, OnDestro
       { id: 'EmployeeName', name: 'Họ tên', field: 'EmployeeName', width: 150, sortable: true, filterable: true, filter: { model: Filters['compoundInputText'] } },
       { id: 'ApprovedName', name: 'Người duyệt', field: 'ApprovedName', width: 150, sortable: true, filterable: true, filter: { model: Filters['compoundInputText'] } },
       { id: 'ApprovedHR', name: 'Nhân sự', field: 'ApprovedHR', width: 150, sortable: true, filterable: true, filter: { model: Filters['compoundInputText'] } },
-      { id: 'DateRegister', name: 'Ngày', field: 'DateRegister', width: 120, sortable: true, formatter: this.formatDateOnly },
+      { id: 'DateRegister', name: 'Ngày', field: 'DateRegister', width: 120, sortable: true, formatter: this.formatDateOnly, filterable: true, filter: { model: Filters['compoundDate'] } },
       {
         id: 'TimeWFHText', name: 'Khoảng thời gian', field: 'TimeWFHText', width: 130, sortable: true, filterable: true,
         filter: { model: Filters['multipleSelect'], collection: [], collectionOptions: { addBlankEntry: true }, filterOptions: { filter: true, autoAdjustDropWidthByTextSize: true } as MultipleSelectOption }
@@ -659,7 +664,7 @@ export class SummaryEmployeeComponent implements OnInit, AfterViewInit, OnDestro
       { id: 'EmployeeName', name: 'Họ tên', field: 'EmployeeName', width: 150, sortable: true, filterable: true, filter: { model: Filters['compoundInputText'] } },
       { id: 'ApprovedTPName', name: 'Trưởng bộ phận', field: 'ApprovedTPName', width: 150, sortable: true, filterable: true, filter: { model: Filters['compoundInputText'] } },
       { id: 'ApprovedHRName', name: 'Nhân sự', field: 'ApprovedHRName', width: 150, sortable: true, filterable: true, filter: { model: Filters['compoundInputText'] } },
-      { id: 'DayWork', name: 'Ngày', field: 'DayWork', width: 120, sortable: true, formatter: this.formatDateOnly },
+      { id: 'DayWork', name: 'Ngày', field: 'DayWork', width: 120, sortable: true, formatter: this.formatDateOnly, filterable: true, filter: { model: Filters['compoundDate'] } },
       {
         id: 'TypeText', name: 'Loại', field: 'TypeText', width: 120, sortable: true, filterable: true,
         filter: { model: Filters['multipleSelect'], collection: [], collectionOptions: { addBlankEntry: true }, filterOptions: { filter: true, autoAdjustDropWidthByTextSize: true } as MultipleSelectOption }
@@ -686,10 +691,10 @@ export class SummaryEmployeeComponent implements OnInit, AfterViewInit, OnDestro
       },
       { id: 'FullName', name: 'Họ tên', field: 'FullName', width: 150, sortable: true, filterable: true, filter: { model: Filters['compoundInputText'] } },
       { id: 'ApprovedTBPName', name: 'TBP', field: 'ApprovedTBPName', width: 150, sortable: true, filterable: true, filter: { model: Filters['compoundInputText'] } },
-      { id: 'DateRegister', name: 'Ngày', field: 'DateRegister', width: 120, sortable: true, formatter: this.formatDateOnly },
-      { id: 'DateStart', name: 'Từ', field: 'DateStart', width: 140, sortable: true, formatter: this.formatDate },
-      { id: 'DateEnd', name: 'Đến', field: 'DateEnd', width: 140, sortable: true, formatter: this.formatDate },
-      { id: 'TotalHours', name: 'Số giờ', field: 'TotalHours', width: 80, sortable: true, cssClass: 'text-right' },
+      { id: 'DateRegister', name: 'Ngày', field: 'DateRegister', width: 120, sortable: true, formatter: this.formatDateOnly, filterable: true, filter: { model: Filters['compoundDate'] } },
+      { id: 'DateStart', name: 'Từ', field: 'DateStart', width: 140, sortable: true, formatter: this.formatDate, filterable: true, filter: { model: Filters['compoundDate'] } },
+      { id: 'DateEnd', name: 'Đến', field: 'DateEnd', width: 140, sortable: true, formatter: this.formatDate, filterable: true, filter: { model: Filters['compoundDate'] } },
+      { id: 'TotalHours', name: 'Số giờ', field: 'TotalHours', width: 80, sortable: true, cssClass: 'text-right', filterable: true, filter: { model: Filters['compoundInputNumber'] } },
       { id: 'Location', name: 'Địa điểm', field: 'Location', width: 200, sortable: true, filterable: true, filter: { model: Filters['compoundInputText'] } },
       { id: 'Note', name: 'Ghi chú', field: 'Note', width: 200, sortable: true, filterable: true, filter: { model: Filters['compoundInputText'] } },
       { id: 'ReasonDeciline', name: 'Lý do không duyệt', field: 'ReasonDeciline', width: 200, sortable: true, filterable: true, filter: { model: Filters['compoundInputText'] } },
@@ -700,29 +705,102 @@ export class SummaryEmployeeComponent implements OnInit, AfterViewInit, OnDestro
   // Grid ready handlers
   angularGridOnLeaveReady(angularGrid: AngularGridInstance): void {
     this.angularGridOnLeave = angularGrid;
+    this.setupFooterRowUpdate(angularGrid, 'EmployeeLeave', []);
   }
 
   angularGridEarlyLateReady(angularGrid: AngularGridInstance): void {
     this.angularGridEarlyLate = angularGrid;
+    this.setupFooterRowUpdate(angularGrid, 'EmployeeEarlyLate', ['TimeRegister']);
   }
 
   angularGridOverTimeReady(angularGrid: AngularGridInstance): void {
     this.angularGridOverTime = angularGrid;
+    this.setupFooterRowUpdate(angularGrid, 'EmployeeFullName', ['TotalTime']);
   }
 
   angularGridBussinessReady(angularGrid: AngularGridInstance): void {
     this.angularGridBussiness = angularGrid;
+    this.setupFooterRowUpdate(angularGrid, 'EmployeeName', ['TotalMoney']);
   }
 
   angularGridWFHReady(angularGrid: AngularGridInstance): void {
     this.angularGridWFH = angularGrid;
+    this.setupFooterRowUpdate(angularGrid, 'EmployeeName', []);
   }
 
   angularGridENFReady(angularGrid: AngularGridInstance): void {
     this.angularGridENF = angularGrid;
+    this.setupFooterRowUpdate(angularGrid, 'EmployeeName', []);
   }
 
   angularGridNightShiftReady(angularGrid: AngularGridInstance): void {
     this.angularGridNightShift = angularGrid;
+    this.setupFooterRowUpdate(angularGrid, 'FullName', ['TotalHours']);
+  }
+
+  // Setup footer row update with filter change listener
+  private setupFooterRowUpdate(gridInstance: AngularGridInstance, countField: string, sumFields: string[] = []): void {
+    if (!gridInstance?.slickGrid) return;
+
+    // Subscribe to filter changes
+    gridInstance.dataView?.onRowCountChanged.subscribe(() => {
+      this.updateFooterRow(gridInstance, countField, sumFields);
+    });
+
+    // Initial footer update
+    setTimeout(() => {
+      this.updateFooterRow(gridInstance, countField, sumFields);
+    }, 100);
+  }
+
+  // Update footer row with count and sum
+  private updateFooterRow(gridInstance: AngularGridInstance, countField: string, sumFields: string[] = []): void {
+    if (!gridInstance?.slickGrid) return;
+
+    // Get filtered items from dataView
+    const items = (gridInstance.dataView?.getFilteredItems?.() as any[]) || [];
+
+    // Count items based on countField
+    const count = (items || []).filter(item => item[countField]).length;
+
+    gridInstance.slickGrid.setFooterRowVisibility(true);
+
+    // Set footer values for each column
+    const columns = gridInstance.slickGrid.getColumns();
+    columns.forEach((col: any) => {
+      const footerCell = gridInstance.slickGrid.getFooterRowColumn(col.id);
+      if (!footerCell) return;
+
+      footerCell.style.textAlign = 'center';
+      footerCell.style.verticalAlign = 'middle';
+      footerCell.style.fontWeight = 'bold';
+      footerCell.style.fontSize = '12px';
+
+      if (col.field === countField) {
+        footerCell.innerHTML = `${count}`;
+      } else if (sumFields.includes(col.field)) {
+        const sum = items.reduce((acc, item) => {
+          const val = parseFloat(item[col.field]);
+          return acc + (isNaN(val) ? 0 : val);
+        }, 0);
+        // Display sum, formatted
+        const displaySum = Number.isInteger(sum) ? sum : sum.toFixed(1);
+        footerCell.innerHTML = `${displaySum}`;
+      } else {
+        footerCell.innerHTML = '';
+      }
+    });
+  }
+
+  // Update all footer rows after data load
+  private updateAllFooterRows(): void {
+    this.updateFooterRow(this.angularGridOnLeave, 'EmployeeLeave', []);
+    this.updateFooterRow(this.angularGridEarlyLate, 'EmployeeEarlyLate', ['TimeRegister']);
+    this.updateFooterRow(this.angularGridOverTime, 'EmployeeFullName', ['TotalTime']);
+    this.updateFooterRow(this.angularGridBussiness, 'EmployeeName', ['TotalMoney']);
+    this.updateFooterRow(this.angularGridWFH, 'EmployeeName', []);
+    this.updateFooterRow(this.angularGridENF, 'EmployeeName', []);
+    this.updateFooterRow(this.angularGridNightShift, 'FullName', ['TotalHours']);
   }
 }
+

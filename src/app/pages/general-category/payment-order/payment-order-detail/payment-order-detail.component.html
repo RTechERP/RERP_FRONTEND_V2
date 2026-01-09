@@ -8,10 +8,10 @@
             <div nz-row [nzGutter]="16">
                 <div nz-col nzXs="24" nzSm="12" nzMd="6" nzLg="4">
                     <nz-form-item>
-                        <nz-form-label>Loại đề nghị<span class="text-danger ps-1">(*)</span></nz-form-label>
+                        <nz-form-label class="p-0">Loại đề nghị<span class="text-danger ps-1">(*)</span></nz-form-label>
                         <nz-form-control nzErrorTip="Chọn loại đề nghị">
                             <nz-select nzShowSearch nzAllowClear nzPlaceHolder="Chọn loại"
-                                [formControlName]="paymentOrderField.TypeOrder.field">
+                                [formControlName]="paymentOrderField.TypeOrder.field" nzSize="small">
                                 <nz-option nzLabel="Đề nghị tạm ứng" [nzValue]="1"></nz-option>
                                 <nz-option nzLabel="Đề nghị thanh toán / Quyết toán" [nzValue]="2"></nz-option>
                                 <nz-option nzLabel="Đề nghị thu tiền" [nzValue]="3"></nz-option>
@@ -25,7 +25,7 @@
                         <nz-form-label>Loại nội dung đề nghị<span class="text-danger ps-1">(*)</span></nz-form-label>
                         <nz-form-control nzErrorTip="Chọn loại nội dung đề nghị">
                             <nz-select nzShowSearch nzAllowClear nzPlaceHolder="Chọn nội dung"
-                                [formControlName]="paymentOrderField.PaymentOrderTypeID.field">
+                                [formControlName]="paymentOrderField.PaymentOrderTypeID.field" nzSize="small">
                                 @for (item of paymentOrderTypes; track item) {
                                 <nz-option nzLabel="{{item.TypeName}}" [nzValue]="item.ID"></nz-option>
                                 }
@@ -40,7 +40,7 @@
                         <nz-form-label>Ngày đề nghị<span class="text-danger ps-1">(*)</span></nz-form-label>
                         <nz-form-control nzErrorTip="Chọn ngày">
                             <nz-date-picker class="w-100" [formControlName]="paymentOrderField.DateOrder.field"
-                                nzFormat="dd/MM/yyyy" nzInputReadOnly="false">
+                                nzFormat="dd/MM/yyyy" nzInputReadOnly="false" nzSize="small">
                             </nz-date-picker>
                             <!-- <p-datepicker [formControlName]="paymentOrderField.DateOrder.field" size="small"
                                 [showTime]="true" [hourFormat]="'24'" [showButtonBar]="true" [iconDisplay]="'input'"
@@ -55,7 +55,7 @@
                     <nz-form-item>
                         <nz-form-label>Người đề nghị</nz-form-label>
                         <nz-form-control nzErrorTip="">
-                            <input nz-input [formControlName]="paymentOrderField.FullName.field">
+                            <input nz-input [formControlName]="paymentOrderField.FullName.field" nzSize="small">
                         </nz-form-control>
                     </nz-form-item>
                 </div>
@@ -63,7 +63,7 @@
                     <nz-form-item>
                         <nz-form-label>Bộ phận</nz-form-label>
                         <nz-form-control nzErrorTip="">
-                            <input nz-input [formControlName]="paymentOrderField.DepartmentName.field">
+                            <input nz-input [formControlName]="paymentOrderField.DepartmentName.field" nzSize="small">
                         </nz-form-control>
                     </nz-form-item>
                 </div>
@@ -75,7 +75,7 @@
                         <nz-form-label>TBP duyệt<span class="text-danger ps-1">(*)</span></nz-form-label>
                         <nz-form-control nzErrorTip="Vui lòng chọn Trưởng bộ phận">
                             <nz-select nzShowSearch nzAllowClear nzPlaceHolder="Chọn loại"
-                                [formControlName]="paymentOrderField.ApprovedTBPID.field">
+                                [formControlName]="paymentOrderField.ApprovedTBPID.field" nzSize="small">
                                 @for (item of approvedTBPs; track item) {
                                 <nz-option nzLabel="{{item.FullName}}" [nzValue]="item.EmployeeID"></nz-option>
                                 }
@@ -89,7 +89,7 @@
                         <nz-form-label>Nhà cung cấp</nz-form-label>
                         <nz-form-control nzErrorTip="Chọn nhà cung cấp">
                             <nz-select nzShowSearch nzAllowClear nzPlaceHolder="Chọn loại"
-                                [formControlName]="paymentOrderField.SupplierSaleID.field">
+                                [formControlName]="paymentOrderField.SupplierSaleID.field" nzSize="small">
                                 @for (item of supplierSales; track item) {
                                 <nz-option nzLabel="{{item.NameNCC}}" nzValue="{{item.ID}}"></nz-option>
                                 }
@@ -102,8 +102,8 @@
                     <nz-form-item>
                         <nz-form-label>PO NCC</nz-form-label>
                         <nz-form-control nzErrorTip="Chọn po">
-                            <nz-select nzShowSearch nzAllowClear nzPlaceHolder="Chọn loại"
-                                [formControlName]="paymentOrderField.PONCCID.field">
+                            <nz-select nzShowSearch nzAllowClear nzPlaceHolder="Chọn PO"
+                                [formControlName]="paymentOrderField.PONCCID.field" nzSize="small">
                                 @for (item of poNCCs; track item) {
                                 <nz-option nzLabel="{{item.BillCode}}" nzValue="{{item.ID}}"></nz-option>
                                 }
@@ -116,8 +116,8 @@
                     <nz-form-item>
                         <nz-form-label>Hợp đồng</nz-form-label>
                         <nz-form-control nzErrorTip="">
-                            <nz-select nzShowSearch nzAllowClear nzPlaceHolder="Chọn loại"
-                                [formControlName]="paymentOrderField.RegisterContractID.field">
+                            <nz-select nzShowSearch nzAllowClear nzPlaceHolder="Chọn hợp đồng"
+                                [formControlName]="paymentOrderField.RegisterContractID.field" nzSize="small">
                                 @for (item of registerContracts; track item) {
                                 <nz-option nzLabel="{{item.DocumentName}}" nzValue="{{item.ID}}"></nz-option>
                                 }
@@ -130,7 +130,7 @@
                         <nz-form-label>Dự án</nz-form-label>
                         <nz-form-control nzErrorTip="">
                             <nz-select nzShowSearch nzAllowClear nzPlaceHolder="Chọn dự án"
-                                [formControlName]="paymentOrderField.ProjectID.field">
+                                [formControlName]="paymentOrderField.ProjectID.field" nzSize="small">
                                 @for (item of projects; track item) {
                                 <nz-option nzLabel="{{item.ProjectCode}} - {{item.ProjectName}}"
                                     [nzValue]="item.ID"></nz-option>
@@ -146,12 +146,13 @@
                         <nz-form-control nzErrorTip="Chọn thời gian">
                             <nz-input-group nzSearch [nzAddOnBefore]="suffixIconButton">
                                 <nz-date-picker class="w-100"
-                                    [formControlName]="paymentOrderField.DeadlinePayment.field"
+                                    [formControlName]="paymentOrderField.DeadlinePayment.field" nzSize="small"
                                     [nzShowTime]="{ nzFormat: 'HH:mm' }" nzFormat="dd/MM/yyyy HH:mm">
                                 </nz-date-picker>
                             </nz-input-group>
                             <ng-template #suffixIconButton>
-                                <label nz-checkbox [formControlName]="paymentOrderField.IsUrgent.field"></label>
+                                <label nz-checkbox [formControlName]="paymentOrderField.IsUrgent.field"
+                                    nzSize="small"></label>
                             </ng-template>
                         </nz-form-control>
                     </nz-form-item>
@@ -167,7 +168,7 @@
                                 <textarea rows="4" [formControlName]="paymentOrderField.ReasonOrder.field"
                                     nz-input></textarea>
                             </nz-textarea-count> -->
-                            <textarea rows="4" [formControlName]="paymentOrderField.ReasonOrder.field"
+                            <textarea rows="4" [formControlName]="paymentOrderField.ReasonOrder.field" nzSize="small"
                                 nz-input></textarea>
 
                         </nz-form-control>
@@ -183,7 +184,7 @@
                                 <textarea rows="4" [formControlName]="paymentOrderField.ReceiverInfo.field"
                                     nz-input></textarea>
                             </nz-textarea-count> -->
-                            <textarea rows="4" [formControlName]="paymentOrderField.ReceiverInfo.field"
+                            <textarea rows="4" [formControlName]="paymentOrderField.ReceiverInfo.field" nzSize="small"
                                 nz-input></textarea>
                         </nz-form-control>
                     </nz-form-item>
@@ -214,10 +215,10 @@
                         <nz-form-label>Điểm đi<span class="text-danger ps-1">(*)</span></nz-form-label>
                         <nz-form-control nzErrorTip="Nhập điểm đến">
                             <nz-input-group nzSearch [nzAddOnBefore]="isBill">
-                                <input nz-input [formControlName]="'StartLocation'">
+                                <input nz-input [formControlName]="'StartLocation'" nzSize="small">
                             </nz-input-group>
                             <ng-template #isBill>
-                                <label nz-checkbox [formControlName]="'IsBill'">Có hóa đơn</label>
+                                <label nz-checkbox [formControlName]="'IsBill'" nzSize="small">Có hóa đơn</label>
                             </ng-template>
                         </nz-form-control>
                     </nz-form-item>
@@ -235,7 +236,7 @@
                     <nz-form-item>
                         <nz-form-label>Điểm đến<nav></nav><span class="text-danger ps-1">(*)</span></nz-form-label>
                         <nz-form-control nzErrorTip="Nhập điểm đến">
-                            <input nz-input [formControlName]="'EndLocation'">
+                            <input nz-input [formControlName]="'EndLocation'" nzSize="small">
                         </nz-form-control>
                     </nz-form-item>
                 </div>
@@ -260,7 +261,7 @@
                                 class="text-danger ps-1">(*)</span></nz-form-label>
                         <nz-form-control nzErrorTip="Chọn ngày">
                             <nz-date-picker class="w-100" [formControlName]="paymentOrderField.DatePayment.field"
-                                nzFormat="dd/MM/yyyy">
+                                nzSize="small" nzFormat="dd/MM/yyyy">
                             </nz-date-picker>
                         </nz-form-control>
                     </nz-form-item>
@@ -271,7 +272,7 @@
                         <nz-form-label>Hình thức chuyển khoản</nz-form-label>
                         <nz-form-control nzErrorTip="Vui lòng chọn hình thức chuyển khoản">
                             <nz-select nzShowSearch nzAllowClear nzPlaceHolder="Chọn hình thức"
-                                [formControlName]="paymentOrderField.TypeBankTransfer.field">
+                                [formControlName]="paymentOrderField.TypeBankTransfer.field" nzSize="small">
                                 @for (item of typeBankTransfers; track item) {
                                 <nz-option nzLabel="{{item.Text}}" [nzValue]="item.ID"></nz-option>
                                 }
@@ -286,7 +287,7 @@
                     <nz-form-item>
                         <nz-form-label>Số tài khoản<span class="text-danger ps-1">(*)</span></nz-form-label>
                         <nz-form-control nzErrorTip="Nhập số tài khoản">
-                            <input nz-input [formControlName]="paymentOrderField.AccountNumber.field">
+                            <input nz-input [formControlName]="paymentOrderField.AccountNumber.field" nzSize="small">
                         </nz-form-control>
                     </nz-form-item>
                 </div>
@@ -295,7 +296,7 @@
                     <nz-form-item>
                         <nz-form-label>Ngân hàng<span class="text-danger ps-1">(*)</span></nz-form-label>
                         <nz-form-control nzErrorTip="Nhập ngân hàng">
-                            <input nz-input [formControlName]="paymentOrderField.Bank.field">
+                            <input nz-input [formControlName]="paymentOrderField.Bank.field" nzSize="small">
                         </nz-form-control>
                     </nz-form-item>
                 </div>
@@ -304,7 +305,8 @@
                     <nz-form-item>
                         <nz-form-label>Nội dung chuyển khoản<span class="text-danger ps-1">(*)</span></nz-form-label>
                         <nz-form-control nzErrorTip="Nhập nội dung chuyển khoản">
-                            <input nz-input [formControlName]="paymentOrderField.ContentBankTransfer.field">
+                            <input nz-input [formControlName]="paymentOrderField.ContentBankTransfer.field"
+                                nzSize="small">
                         </nz-form-control>
                     </nz-form-item>
                 </div>
@@ -322,7 +324,7 @@
                         <nz-form-label>Loại tiền<span class="text-danger ps-1">(*)</span></nz-form-label>
                         <nz-form-control nzErrorTip="Chọn loại tiền">
                             <nz-select nzShowSearch nzAllowClear nzPlaceHolder="Chọn loại tiền"
-                                [formControlName]="paymentOrderField.Unit.field">
+                                [formControlName]="paymentOrderField.Unit.field" nzSize="small">
                                 @for (item of units; track item) {
                                 <nz-option nzLabel="{{item.text}}" [nzValue]="item.id"></nz-option>
                                 }

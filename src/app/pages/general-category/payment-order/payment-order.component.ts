@@ -55,6 +55,7 @@ import { AppUserService } from '../../../services/app-user.service';
 import { NzSpinModule } from 'ng-zorro-antd/spin';
 import { NzModalModule } from 'ng-zorro-antd/modal';
 import { HttpClient } from '@angular/common/http';
+import { ActivatedRoute } from '@angular/router';
 // import { SlickGlobalEditorLock } from 'angular-slickgrid';
 
 // (SlickGlobalEditorLock as any).Logger = {
@@ -206,12 +207,20 @@ export class PaymentOrderComponent implements OnInit {
         private employeeService: EmployeeService,
         private paymentOrderTypeService: PaymentOrderTypeService,
         private appUserService: AppUserService,
-        private http: HttpClient
+        private http: HttpClient,
+        private route: ActivatedRoute,
 
     ) { }
 
     ngOnInit(): void {
-        // console.log('this.isMobile:', this.isMobile);
+
+        console.log('this.route.queryParams:', this.route.queryParams);
+        this.route.queryParams.subscribe(params => {
+
+            console.log('this.route.queryParams params:', params);
+            this.activeTab = params['activeTab'] || '0';
+        });
+
         this.loadDataCombo();
         this.initMenuBar();
 
@@ -697,6 +706,23 @@ export class PaymentOrderComponent implements OnInit {
                 filter: { model: Filters['compoundDate'] },
                 cssClass: 'text-center'
             },
+            {
+                id: PaymentOrderField.StepName.field,
+                name: 'Tình trạng phiếu',
+                field: PaymentOrderField.StepName.field,
+                type: PaymentOrderField.StepName.type,
+                sortable: true, filterable: true,
+                width: 200,
+                // formatter: Formatters.icon,
+                filter: {
+                    collection: [],
+                    model: Filters['multipleSelect'],
+                    filterOptions: {
+                        autoAdjustDropHeight: true,
+                        filter: true,
+                    } as MultipleSelectOption,
+                },
+            },
 
             {
                 id: PaymentOrderField.Code.field,
@@ -719,23 +745,7 @@ export class PaymentOrderComponent implements OnInit {
                     } as MultipleSelectOption,
                 },
             },
-            {
-                id: PaymentOrderField.StepName.field,
-                name: 'Tình trạng phiếu',
-                field: PaymentOrderField.StepName.field,
-                type: PaymentOrderField.StepName.type,
-                sortable: true, filterable: true,
-                width: 200,
-                // formatter: Formatters.icon,
-                filter: {
-                    collection: [],
-                    model: Filters['multipleSelect'],
-                    filterOptions: {
-                        autoAdjustDropHeight: true,
-                        filter: true,
-                    } as MultipleSelectOption,
-                },
-            },
+
             {
                 id: PaymentOrderField.FullName.field,
                 name: PaymentOrderField.FullName.name,
@@ -1496,7 +1506,7 @@ export class PaymentOrderComponent implements OnInit {
             autoFitColumnsOnFirstLoad: false,
             enableAutoSizeColumns: false,
 
-            frozenColumn: this.isMobile ? 0 : 5,
+            frozenColumn: this.isMobile ? 0 : 6,
 
             createPreHeaderPanel: true,
             showPreHeaderPanel: true,

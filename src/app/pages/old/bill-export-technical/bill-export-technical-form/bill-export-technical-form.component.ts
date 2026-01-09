@@ -1788,29 +1788,29 @@ export class BillExportTechnicalFormComponent implements OnInit, AfterViewInit {
   }
 
   async checkSerial(): Promise<boolean> {
-    const tableData = this.deviceTempTable?.getData() || this.selectedDevices;
+    // const tableData = this.deviceTempTable?.getData() || this.selectedDevices;
 
-    for (const detail of tableData) {
-      const qty = detail.Quantity || detail.Qty || 0;
-      const detailId = detail.ID;
+    // for (const detail of tableData) {
+    //   const qty = detail.Quantity || detail.Qty || 0;
+    //   const detailId = detail.ID;
 
-      if (!detailId || detailId <= 0) {
-        continue;
-      }
+    //   if (!detailId || detailId <= 0) {
+    //     continue;
+    //   }
 
-      try {
-        const result = await this.billImportChoseSerialService
-          .countSerialBillExportTech(detailId)
-          .toPromise();
+    //   try {
+    //     const result = await this.billImportChoseSerialService
+    //       .countSerialBillExportTech(detailId)
+    //       .toPromise();
 
-        if (qty < (result?.data || 0)) {
-          return false;
-        }
-      } catch (error) {
-        console.error('Lỗi check serial', detailId, error);
-        return false;
-      }
-    }
+    //     if (qty < (result?.data || 0)) {
+    //       return false;
+    //     }
+    //   } catch (error) {
+    //     console.error('Lỗi check serial', detailId, error);
+    //     return false;
+    //   }
+    // }
 
     return true;
   }

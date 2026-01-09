@@ -4313,29 +4313,29 @@ console.log('tableData', tableData);
   }
 
   async checkSerial(): Promise<boolean> {
-    const tableData = this.table_billExportDetail?.getData();
+    // const tableData = this.table_billExportDetail?.getData();
 
-    for (const detail of tableData) {
-      const qty = detail.Quantity || detail.Qty || 0;
-      const detailId = detail.ID;
+    // for (const detail of tableData) {
+    //   const qty = detail.Quantity || detail.Qty || 0;
+    //   const detailId = detail.ID;
 
-      if (!detailId || detailId <= 0) {
-        continue;
-      }
+    //   if (!detailId || detailId <= 0) {
+    //     continue;
+    //   }
 
-      try {
-        const result = await this.billImportChoseSerialService
-          .countSerialBillExport(detailId)
-          .toPromise();
+    //   try {
+    //     const result = await this.billImportChoseSerialService
+    //       .countSerialBillExport(detailId)
+    //       .toPromise();
 
-        if (qty < (result?.data || 0)) {
-          return false;
-        }
-      } catch (error) {
-        console.error('Lỗi check serial', detailId, error);
-        return false;
-      }
-    }
+    //     if (qty < (result?.data || 0)) {
+    //       return false;
+    //     }
+    //   } catch (error) {
+    //     console.error('Lỗi check serial', detailId, error);
+    //     return false;
+    //   }
+    // }
 
     return true;
   }

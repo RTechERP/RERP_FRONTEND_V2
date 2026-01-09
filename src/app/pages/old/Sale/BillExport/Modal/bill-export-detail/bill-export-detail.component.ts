@@ -307,10 +307,10 @@ private productInventoryDetailMap: Map<number, {
 }> = new Map();
 
   private hasInventoryRelatedChange: boolean = false;
-  
+
   // Flag để ngăn việc gọi lặp changeProductGroup khi đang load data edit
   private isLoadingEditData: boolean = false;
-  
+
   // Flag để ngăn việc gọi lặp getBillExportDetailID
   private hasBillExportDetailLoaded: boolean = false;
   constructor(
@@ -1105,7 +1105,7 @@ private productInventoryDetailMap: Map<number, {
           this.isLoadingEditData = true;
           this.changeProductGroup(this.newBillExport.KhoTypeID);
           this.isLoadingEditData = false;
-          
+
           this.changeCustomer();
 
           // Load reference links cho phiếu chuyển kho
@@ -1708,7 +1708,7 @@ private productInventoryDetailMap: Map<number, {
     this.billExportService.getWarehouses().subscribe({
       next: (res: any) => {
         const list = res.data || [];
-        this.dataCbbWareHouseTransfer = list.map((item: any) => ({
+        this.dataCbbWareHouseTransfer = list.filter((item:any) => item.WarehouseCode !== this.wareHouseCode).map((item: any) => ({
           ID: item.ID,
           Name: item.WarehouseName|| '',
           Code: item.WarehouseCode|| '',

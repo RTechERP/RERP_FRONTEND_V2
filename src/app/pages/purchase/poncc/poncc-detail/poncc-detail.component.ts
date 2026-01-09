@@ -1701,6 +1701,7 @@ export class PonccDetailComponent implements OnInit, AfterViewInit {
       YCMHCode: row.YCMHCode || '',
       PONCCDetailRequestBuyID: row.PONCCDetailRequestBuyID || '',
       ProjectPartlistPurchaseRequestID: row.ProjectPartlistPurchaseRequestID || 0,
+      ProjectPartlistID: row.ProjectPartListID || 0,
     }));
 
     // Kết hợp tất cả dữ liệu

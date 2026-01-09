@@ -27,7 +27,7 @@ import { TypeAssetsService } from '../../ts-asset-type/ts-asset-type-service/ts-
 import { AssetsService } from '../../ts-asset-source/ts-asset-source-service/ts-asset-source.service';
 import { AssetAllocationService } from '../../ts-asset-allocation/ts-asset-allocation-service/ts-asset-allocation.service';
 import { log } from 'ng-zorro-antd/core/logger';
-import { Tabulator } from 'tabulator-tables';
+import { TabulatorFull as Tabulator } from 'tabulator-tables';
 import { NgbModal, NgbModalModule } from '@ng-bootstrap/ng-bootstrap';
 import { TsAssetChooseAssetsComponent } from '../../ts-asset-allocation/ts-asset-choose-assets/ts-asset-choose-assets.component';
 import { right } from '@popperjs/core';

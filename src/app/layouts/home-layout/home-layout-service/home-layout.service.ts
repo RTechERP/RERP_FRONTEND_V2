@@ -20,6 +20,6 @@ export class HomeLayoutService {
   }
 
   getNewsletters(): Observable<any> {
-    return this.http.get<any>(environment.host + 'api/newsletter');
+    return this.http.get<any>(environment.host + 'api/newsletter/get-limit-newsletter');
   }
 }

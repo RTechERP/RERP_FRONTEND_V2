@@ -299,8 +299,7 @@
                             (onClick)="onCellClicked($event.detail.eventData, $event.detail.args)"
                             (onBeforeExportToExcel)="processingExport = true"
                             (onAfterExportToExcel)="processingExport = false"
-                            (onDblClick)="onPrint($event.detail.eventData, $event.detail.args)"
-                            (onFilterChanged)="applyDistinctFilters(angularGrid)">
+                            (onDblClick)="onPrint($event.detail.eventData, $event.detail.args)">
                         </angular-slickgrid>
                     </div>
                 </p-tabpanel>

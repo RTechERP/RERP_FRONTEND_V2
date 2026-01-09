@@ -214,10 +214,10 @@ export class PaymentOrderComponent implements OnInit {
 
     ngOnInit(): void {
 
-        console.log('this.route.queryParams:', this.route.queryParams);
+        // console.log('this.route.queryParams:', this.route.queryParams);
         this.route.queryParams.subscribe(params => {
 
-            console.log('this.route.queryParams params:', params);
+            // console.log('this.route.queryParams params:', params);
             this.activeTab = params['activeTab'] || '0';
         });
 
@@ -2541,8 +2541,8 @@ export class PaymentOrderComponent implements OnInit {
                     id: x.ID   // dành riêng cho SlickGrid
                 }));
 
+                this.applyDistinctFilters(this.angularGrid);
                 setTimeout(() => {
-                    this.applyDistinctFilters(this.angularGrid);
                 }, 100);
                 this.rowStyle(this.angularGrid);
 
@@ -2583,8 +2583,8 @@ export class PaymentOrderComponent implements OnInit {
 
                 this.rowStyle(this.angularGridSpecial);
 
+                this.applyDistinctFilters(this.angularGridSpecial);
                 setTimeout(() => {
-                    this.applyDistinctFilters(this.angularGridSpecial);
                 }, 100);
 
                 const columnElement = this.angularGridSpecial.slickGrid?.getFooterRowColumn('Code');
@@ -2695,11 +2695,11 @@ export class PaymentOrderComponent implements OnInit {
         console.log('angularGrid:', angularGrid);
         if (!angularGrid || !angularGrid.slickGrid || !angularGrid.dataView) return;
 
-        const data: any[] = [];
-        setTimeout(() => {
-            const data = angularGrid.dataView.getFilteredItems();
-            console.log('angularGrid data:', data);;
-        });
+        // const data: any[] = [];
+        const data = angularGrid.dataView.getFilteredItems();
+        // setTimeout(() => {
+        //     console.log('angularGrid data:', data);;
+        // });
 
         if (!data || data.length === 0) return;
 

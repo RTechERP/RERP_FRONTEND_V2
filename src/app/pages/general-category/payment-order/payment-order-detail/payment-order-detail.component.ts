@@ -83,7 +83,7 @@ export class PaymentOrderDetailComponent implements OnInit, AfterViewInit {
         {
             ID: 0,
             PaymentOrderID: 0,
-            STT: '1',
+            Stt: '1',
             ContentPayment: '',
             Unit: '',
             Quantity: 0,
@@ -102,7 +102,7 @@ export class PaymentOrderDetailComponent implements OnInit, AfterViewInit {
         {
             ID: 0,
             PaymentOrderID: 0,
-            STT: 'I',
+            Stt: 'I',
             ContentPayment: 'Số tiền tạm ứng',
             Unit: '',
             Quantity: 0,
@@ -120,7 +120,7 @@ export class PaymentOrderDetailComponent implements OnInit, AfterViewInit {
         {
             ID: 0,
             PaymentOrderID: 0,
-            STT: 'II',
+            Stt: 'II',
             ContentPayment: 'Số tiền thanh toán',
             Unit: '',
             Quantity: 0,
@@ -138,7 +138,7 @@ export class PaymentOrderDetailComponent implements OnInit, AfterViewInit {
         {
             ID: 0,
             PaymentOrderID: 0,
-            STT: '1',
+            Stt: '1',
             ContentPayment: '',
             Unit: '',
             Quantity: 0,
@@ -156,7 +156,7 @@ export class PaymentOrderDetailComponent implements OnInit, AfterViewInit {
         {
             ID: 0,
             PaymentOrderID: 0,
-            STT: 'III',
+            Stt: 'III',
             ContentPayment: 'Chênh lệch',
             Unit: '',
             Quantity: 0,
@@ -174,7 +174,7 @@ export class PaymentOrderDetailComponent implements OnInit, AfterViewInit {
         {
             ID: 0,
             PaymentOrderID: 0,
-            STT: '1',
+            Stt: '1',
             ContentPayment: 'Tạm ứng chi không hết (I-II)',
             Unit: '',
             Quantity: 0,
@@ -192,7 +192,7 @@ export class PaymentOrderDetailComponent implements OnInit, AfterViewInit {
         {
             ID: 0,
             PaymentOrderID: 0,
-            STT: '2',
+            Stt: '2',
             ContentPayment: 'Số chi quá tạm ứng (II-I)',
             Unit: '',
             Quantity: 0,
@@ -910,20 +910,20 @@ export class PaymentOrderDetailComponent implements OnInit, AfterViewInit {
 
         let data = gridInstance.dataView.getItems();
         let _id = data.length <= 0 ? 0 : Math.max(...data.map(x => x._id || 0));
-        let stt = data.length <= 0 ? 0 : Math.max(...data.map((x: any) => Number(x.STT) || 0));
+        let stt = data.length <= 0 ? 0 : Math.max(...data.map((x: any) => Number(x.Stt) || 0));
         const parent = gridInstance.dataView.getItemById(2);
 
         const isParent = parent && parent.__hasChildren;
         if (isParent) {
             const detailPayment = data.filter(x => x.ParentID == 2);
-            stt = detailPayment.length <= 0 ? 0 : Math.max(...detailPayment.map((x: any) => Number(x.STT) || 0));
+            stt = detailPayment.length <= 0 ? 0 : Math.max(...detailPayment.map((x: any) => Number(x.Stt) || 0));
         }
 
         const newItem = {
             _id: _id + 1,
             ID: 0,
             PaymentOrderID: 0,
-            STT: `${stt + 1}`,
+            Stt: `${stt + 1}`,
             ContentPayment: '',
             Unit: '',
             Quantity: 0,

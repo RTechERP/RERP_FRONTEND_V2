@@ -1,73 +1,41 @@
 <div class="modal-header bg-primary p-2">
   <h6 class="modal-title text-white  text-uppercase" id="courseCatalogModalLabel">Danh mục khóa học</h6>
-  <button
-    type="button"
-    class="btn-close"
-    aria-label="Close"
-    (click)="close()"
-  ></button>
+  <button type="button" class="btn-close" aria-label="Close" (click)="close()"></button>
 </div>
 <div class="modal-body">
   <form nz-form [formGroup]="formGroup" nzLayout="vertical" class="fs-7 mt-2">
     <nz-row [nzGutter]="24">
       <nz-col [nzSpan]="12">
         <nz-form-item>
-          <nz-form-label class="fs-12 p-0" [nzSpan]="24"
-            >Loại<span class="text-danger ps-1">(*) </span></nz-form-label
-          >
-          <nz-form-control
-            [nzSpan]="24"
-            [nzErrorTip]="
+          <nz-form-label class="fs-12 p-0" [nzSpan]="24">Loại<span class="text-danger ps-1">(*) </span></nz-form-label>
+          <nz-form-control [nzSpan]="24" [nzErrorTip]="
               formGroup.get('TypeID')?.hasError('required') &&
               (formGroup.get('TypeID')?.dirty || formGroup.get('TypeID')?.touched)
                 ? 'Vui lòng chọn loại!'
                 : undefined
-            "
-          >
-            <nz-select
-              formControlName="TypeID"
-              [nzPlaceHolder]="'Chọn loại'"
-              style="width: 100%"
-              name="TypeID"
-              nzAllowClear
-              nzShowSearch
-            >
-              <nz-option
-                *ngFor="let item of typeData"
-                [nzLabel]="item.Name"
-                [nzValue]="item.ID"
-              ></nz-option>
+            ">
+            <nz-select formControlName="TypeID" [nzPlaceHolder]="'Chọn loại'" style="width: 100%" name="TypeID"
+              nzAllowClear nzShowSearch>
+              <nz-option *ngFor="let item of typeData" [nzLabel]="item.standardizedLabel"
+                [nzValue]="item.standardizedID"></nz-option>
             </nz-select>
           </nz-form-control>
         </nz-form-item>
       </nz-col>
       <nz-col [nzSpan]="12">
         <nz-form-item>
-          <nz-form-label class="fs-12 p-0" [nzSpan]="24"
-            >Phòng ban<span class="text-danger ps-1">(*) </span></nz-form-label
-          >
-          <nz-form-control
-            [nzSpan]="24"
-            [nzErrorTip]="
+          <nz-form-label class="fs-12 p-0" [nzSpan]="24">Phòng ban<span class="text-danger ps-1">(*)
+            </span></nz-form-label>
+          <nz-form-control [nzSpan]="24" [nzErrorTip]="
               formGroup.get('DepartmentID')?.hasError('required') &&
               (formGroup.get('DepartmentID')?.dirty || formGroup.get('DepartmentID')?.touched)
                 ? 'Vui lòng chọn phòng ban!'
                 : undefined
-            "
-          >
-            <nz-select
-              formControlName="DepartmentID"
-              [nzPlaceHolder]="'Chọn phòng ban'"
-              style="width: 100%"
-              name="DepartmentID"
-              nzAllowClear
-              nzShowSearch
-            >
-              <nz-option
-                *ngFor="let item of dataDepartment"
-                [nzLabel]="item.Name"
-                [nzValue]="item.ID"
-              ></nz-option>
+            ">
+            <nz-select formControlName="DepartmentID" [nzPlaceHolder]="'Chọn phòng ban'" style="width: 100%"
+              name="DepartmentID" nzAllowClear nzShowSearch>
+              <nz-option *ngFor="let item of dataDepartment" [nzLabel]="item.standardizedLabel"
+                [nzValue]="item.standardizedID"></nz-option>
             </nz-select>
           </nz-form-control>
         </nz-form-item>
@@ -77,27 +45,17 @@
     <nz-row [nzGutter]="24">
       <nz-col [nzSpan]="12">
         <nz-form-item>
-          <nz-form-label for="codeInput" class="fs-12 p-0"
-            >Mã danh mục<span class="text-danger ps-1">(*) </span></nz-form-label
-          >
-          <nz-form-control
-            [nzSpan]="24"
-            [nzErrorTip]="
+          <nz-form-label for="codeInput" class="fs-12 p-0">Mã danh mục<span class="text-danger ps-1">(*)
+            </span></nz-form-label>
+          <nz-form-control [nzSpan]="24" [nzErrorTip]="
               formGroup.get('Code')?.hasError('required') &&
               (formGroup.get('Code')?.dirty || formGroup.get('Code')?.touched)
                 ? 'Vui lòng nhập mã danh mục!'
                 : formGroup.get('Code')?.hasError('maxlength')
                 ? 'Mã danh mục tối đa 100 ký tự!'
                 : undefined
-            "
-          >
-            <input
-              id="codeInput"
-              nz-input
-              name="Code"
-              placeholder="Nhập mã danh mục"
-              formControlName="Code"
-            />
+            ">
+            <input id="codeInput" nz-input name="Code" placeholder="Nhập mã danh mục" formControlName="Code" />
           </nz-form-control>
         </nz-form-item>
       </nz-col>
@@ -105,20 +63,13 @@
         <nz-form-item>
           <nz-form-label for="sttInput" class="fs-12 p-0">STT</nz-form-label>
           <nz-form-control [nzSpan]="24">
-            <input
-              id="sttInput"
-              nz-input
-              name="STT"
-              placeholder="STT"
-              formControlName="STT"
-              readonly
-            />
+            <input id="sttInput" nz-input name="STT" placeholder="STT" formControlName="STT" readonly />
           </nz-form-control>
         </nz-form-item>
       </nz-col>
       <nz-col [nzSpan]="6">
         <nz-form-item>
-            <nz-form-label class="fs-12 p-0" [style.visibility]="'hidden'">.</nz-form-label>
+          <nz-form-label class="fs-12 p-0" [style.visibility]="'hidden'">.</nz-form-label>
           <nz-form-control [nzSpan]="24">
             <label nz-checkbox formControlName="IsActive"> Hoạt động</label>
           </nz-form-control>
@@ -127,49 +78,27 @@
     </nz-row>
 
     <nz-form-item>
-      <nz-form-label for="nameInput" class="fs-12 p-0"
-        >Tên danh mục<span class="text-danger ps-1">(*) </span></nz-form-label
-      >
-      <nz-form-control
-        [nzSpan]="24"
-        [nzErrorTip]="
+      <nz-form-label for="nameInput" class="fs-12 p-0">Tên danh mục<span class="text-danger ps-1">(*)
+        </span></nz-form-label>
+      <nz-form-control [nzSpan]="24" [nzErrorTip]="
           formGroup.get('Name')?.hasError('required') &&
           (formGroup.get('Name')?.dirty || formGroup.get('Name')?.touched)
             ? 'Vui lòng nhập tên danh mục!'
             : formGroup.get('Name')?.hasError('maxlength')
             ? 'Tên danh mục tối đa 200 ký tự!'
             : undefined
-        "
-      >
-        <input
-          id="nameInput"
-          nz-input
-          name="Name"
-          placeholder="Nhập tên danh mục"
-          formControlName="Name"
-        />
+        ">
+        <input id="nameInput" nz-input name="Name" placeholder="Nhập tên danh mục" formControlName="Name" />
       </nz-form-control>
     </nz-form-item>
 
     <nz-form-item>
       <nz-form-label class="fs-12 p-0" [nzSpan]="24">Team</nz-form-label>
       <nz-form-control [nzSpan]="24">
-        <nz-select
-          formControlName="TeamIDs"
-          [nzPlaceHolder]="'Chọn team'"
-          style="width: 100%"
-          name="TeamIDs"
-          nzMode="multiple"
-          nzAllowClear
-          nzShowSearch
-          [nzMaxTagCount]="3"
-          [nzMaxTagPlaceholder]="tagPlaceHolder"
-        >
-          <nz-option
-            *ngFor="let item of teamData"
-            [nzLabel]="item.Name"
-            [nzValue]="item.ID"
-          ></nz-option>
+        <nz-select formControlName="TeamIDs" [nzPlaceHolder]="'Chọn team'" style="width: 100%" name="TeamIDs"
+          nzMode="multiple" nzAllowClear nzShowSearch [nzMaxTagCount]="3" [nzMaxTagPlaceholder]="tagPlaceHolder">
+          <nz-option *ngFor="let item of dataTeam" [nzLabel]="item.standardizedLabel"
+            [nzValue]="item.standardizedID"></nz-option>
         </nz-select>
         <ng-template #tagPlaceHolder let-selectedList>
           +{{ selectedList.length - 3 }} khác

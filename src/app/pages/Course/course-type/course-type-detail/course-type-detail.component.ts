@@ -77,6 +77,7 @@ interface CourseType {
 export class CourseTypeDetailComponent implements OnInit, AfterViewInit {
   @Input() isEditMode: boolean = false;
   @Input() courseType: any = null;
+  @Input() maxSTT: number = 0;
   constructor(
     private notification: NzNotificationService,
     private projectService: ProjectService,
@@ -109,6 +110,9 @@ export class CourseTypeDetailComponent implements OnInit, AfterViewInit {
       this.form.patchValue(this.courseType);
     } else {
       this.form.patchValue(this.newCourseType);
+    }
+    if(this.maxSTT > 0) {
+      this.form.patchValue({ STT: this.maxSTT });
     }
     console.log('ngOnInit');
   }
@@ -151,7 +155,7 @@ export class CourseTypeDetailComponent implements OnInit, AfterViewInit {
           this.notification.success('Thông báo', res.message);
           this.form.markAsPristine(); // optional
           this.activeModal.close(true);
-        } 
+        }
       },
       error: (err: any) => {
         this.notification.error('Thông báo', err.error.message || 'Có lỗi xảy ra khi lưu!');

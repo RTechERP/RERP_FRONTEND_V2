@@ -375,13 +375,7 @@ export class HomeLayoutNewComponent implements OnInit {
             next: (response) => {
                 const data = response.data || [];
                 // Sort by CreatedDate descending and take top 10
-                this.newsletters = data
-                    .sort((a: any, b: any) => {
-                        const dateA = a.CreatedDate ? new Date(a.CreatedDate).getTime() : 0;
-                        const dateB = b.CreatedDate ? new Date(b.CreatedDate).getTime() : 0;
-                        return dateB - dateA;
-                    })
-                    .slice(0, 5);
+                this.newsletters = data;
             },
             error: (error: any) => {
                 this.notification.error(NOTIFICATION_TITLE.error, error?.error?.message || error?.message);

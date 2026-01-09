@@ -119,7 +119,7 @@
 
 ::ng-deep .ant-card-body {
     flex-grow: 1;
-    padding: 16px !important;
+    padding: 10px !important;
 }
 
 ::ng-deep .ant-splitter-panel {

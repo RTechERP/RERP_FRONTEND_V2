@@ -2,7 +2,8 @@ import {
   Component,
   OnInit,
   Input,
-  AfterViewInit
+  AfterViewInit,
+  ChangeDetectorRef
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
@@ -68,14 +69,42 @@ export class CourseCatalogDetailComponent implements OnInit, AfterViewInit {
     IsActive: true
   };
 
+  private _dataInput: any;
+  @Input() set dataInput(value: any) {
+    this._dataInput = value;
+    this.initFormData();
+  }
+  get dataInput() { return this._dataInput; }
+
+  private _dataDepartment: any[] = [];
+  @Input() set dataDepartment(value: any[]) {
+    this._dataDepartment = (value || []).map(item => ({
+      ...item,
+      standardizedID: this.ensureNumber(item.STT),
+      standardizedLabel: item.Name
+    }));
+    this.initFormData();
+  }
+  get dataDepartment() { return this._dataDepartment; }
+
+  private _dataTeam: any[] = [];
+  @Input() set dataTeam(value: any[]) {
+    this._dataTeam = (value || []).map(item => ({
+      ...item,
+      standardizedID: this.ensureNumber(item.ID ),
+      standardizedLabel: item.ProjectTypeName
+    }));
+    this.initFormData();
+  }
+  get dataTeam() { return this._dataTeam; }
+
   @Input() catalogID: number = 0;
-  @Input() dataInput: any;
   @Input() mode: 'add' | 'edit' = 'add';
-  @Input() maxSTT: number = 0; // STT lớn nhất từ bảng danh mục
-  @Input() dataDepartment: any[] = []; // Data phòng ban từ component cha
+  @Input() maxSTT: number = 0; 
 
   formGroup: FormGroup;
   saving: boolean = false;
+  private patchTimeout: any;
 
   // Data for dropdowns
   typeData: any[] = [];
@@ -86,6 +115,7 @@ export class CourseCatalogDetailComponent implements OnInit, AfterViewInit {
     private notification: NzNotificationService,
     private courseService: CourseManagementService,
     private activeModal: NgbActiveModal,
+    private cdr: ChangeDetectorRef,
   ) {
     this.formGroup = this.fb.group({
       TypeID: [null, [Validators.required]],
@@ -99,43 +129,58 @@ export class CourseCatalogDetailComponent implements OnInit, AfterViewInit {
   }
 
   ngOnInit(): void {
-    this.newCourseCatalog = {
-      TypeID: 0,
-      DepartmentID: 0,
-      Code: '',
-      STT: 0,
-      Name: '',
-      TeamIDs: [],
-      IsActive: true
-    };
-
-    // Load dữ liệu dropdown
+    // Load dữ liệu dropdown cố định
     this.loadTypeData();
-    this.loadTeamData();
-    // departmentData được truyền từ component cha qua @Input
+    this.initFormData();
 
-    // Load dữ liệu nếu là chế độ edit
-    if (this.mode === 'edit' && this.dataInput) {
-      this.formGroup.patchValue({
-        TypeID: this.dataInput.TypeID || null,
-        DepartmentID: this.dataInput.DepartmentID || null,
-        Code: this.dataInput.Code || '',
-        STT: this.dataInput.STT || 0,
-        IsActive: this.dataInput.IsActive !== undefined ? this.dataInput.IsActive : true,
-        Name: this.dataInput.Name || '',
-        TeamIDs: this.dataInput.TeamIDs || [],
+    // Backup fetch if data is not provided by parent
+    if (!this.dataDepartment || this.dataDepartment.length === 0) {
+      this.courseService.getDataDepartment().subscribe((response: any) => {
+        this.dataDepartment = response.data || response || [];
       });
-    } else if (this.mode === 'add') {
-      // Set STT = maxSTT + 1 cho trường hợp tạo mới
-      this.formGroup.patchValue({
-        STT: (this.maxSTT || 0) + 1,
-        IsActive: true
+    }
+    if (!this.dataTeam || this.dataTeam.length === 0) {
+      this.courseService.getDataTeams().subscribe((response: any) => {
+        this.dataTeam = response.data || response || [];
       });
     }
   }
 
+  private initFormData() {
+    if (!this.formGroup) return;
+
+    const data = this.dataInput;
+    if (data && (this.mode === 'edit' || (this.ensureNumber(data?.ID ?? data?.Id ?? data?.id) ?? 0) > 0)) {
+      
+      const typeID = this.ensureNumber(data.CatalogType ?? data.catalogType ?? data.TypeID ?? data.typeID ?? data.ID_CatalogType ?? data.IdCatalogType ?? data.idCatalogType ?? data.LoaiID ?? data.ID_Loai);
+      const deptID = this.ensureNumber(data.DepartmentSTT);
+      const teamIDs = this.ensureNumberArray(data.ProjectTypeID);
+
+      if (this.patchTimeout) clearTimeout(this.patchTimeout);
+      this.patchTimeout = setTimeout(() => {
+        if (!this.formGroup) return;
+        this.formGroup.patchValue({
+          TypeID: typeID,
+          DepartmentID: deptID,
+          Code: data.Code ?? data.code ?? data.MaDanhMuoc ?? '',
+          STT: data.STT ?? data.stt ?? 0,
+          IsActive: data.Status,
+          Name: data.Name ?? data.name ?? data.TenDanhMuc ?? '',
+          TeamIDs: teamIDs,
+        }, { emitEvent: false });
+        this.cdr.markForCheck();
+        this.cdr.detectChanges();
+      }, 200);
+    } else if (this.mode === 'add') {
+      this.formGroup.patchValue({
+        STT: (this.maxSTT || 0) + 1,
+      }, { emitEvent: false });
+      this.cdr.detectChanges();
+    }
+  }
+
   ngAfterViewInit(): void {
-    
+
   }
 
   private trimAllStringControls() {
@@ -147,17 +192,39 @@ export class CourseCatalogDetailComponent implements OnInit, AfterViewInit {
   }
 
   loadTypeData() {
-    // Dữ liệu cố định cho dropdown Loại
     this.typeData = [
-      { ID: 1, Name: 'Cơ bản' },
-      { ID: 2, Name: 'Nâng cao' }
+      { standardizedID: 1, standardizedLabel: 'Cơ bản' },
+      { standardizedID: 2, standardizedLabel: 'Nâng cao' }
     ];
   }
 
 
-  loadTeamData() {  
-    // Mock data for now
-    this.teamData = [];
+  loadTeamData() {
+    this.teamData = this.dataTeam || [];
+    // Force change detection or redraw if necessary, but usually @Input is enough
+  }
+
+  private ensureNumber(value: any): number | null {
+    if (value === null || value === undefined || value === '') return null;
+    if (typeof value === 'object') return this.ensureNumber(value.ID ?? value.Id ?? value.id);
+    const num = Number(value);
+    return isNaN(num) ? null : num;
+  }
+
+  private ensureNumberArray(value: any): number[] {
+    if (!value) return [];
+    if (typeof value === 'string') {
+      return value.split(',').map(v => Number(v.trim())).filter(v => !isNaN(v));
+    }
+    if (Array.isArray(value)) {
+      return value.map(item => {
+        if (typeof item === 'object' && item !== null) {
+          return Number(item.ID ?? item.Id ?? item.id ?? item.ProjectTypeID ?? item.projectTypeID ?? item.ProjectTypeId ?? item.ID_ProjectType ?? item.id_project_type ?? 0);
+        }
+        return Number(item);
+      }).filter(v => !isNaN(v) && v !== 0);
+    }
+    return [];
   }
 
   saveCourseCatalog() {
@@ -170,45 +237,38 @@ export class CourseCatalogDetailComponent implements OnInit, AfterViewInit {
       this.formGroup.markAllAsTouched();
       return;
     }
-
     this.saving = true; // Bắt đầu lưu
 
     const formValue = this.formGroup.value;
     const payload = {
       ID: this.dataInput?.ID || 0,
-      TypeID: formValue.TypeID,
-      DepartmentID: formValue.DepartmentID,
       Code: formValue.Code,
-      STT: formValue.STT,
-      IsActive: formValue.IsActive !== undefined ? formValue.IsActive : true,
       Name: formValue.Name,
-      TeamIDs: formValue.TeamIDs || [],
+      DepartmentSTT: formValue.DepartmentID,
+      DeleteFlag: formValue.IsActive,
+      STT: formValue.STT,
+      CatalogType: formValue.TypeID,
+      ProjectTypeIDs: formValue.TeamIDs || [],
+      IsDeleted: false
     };
 
-    // TODO: Implement API call
-    // this.courseService.saveCourseCatalog(payload).subscribe({
-    //   next: (res) => {
-    //     this.saving = false; // Kết thúc lưu
-    //     if (res.status === 1) {
-    //       const message = this.mode === 'edit' ? 'Sửa thành công!' : 'Thêm mới thành công!';
-    //       this.notification.success('Thông báo', message);
-    //       this.close();
-    //     } else {
-    //       this.notification.warning('Thông báo', res.message || 'Không thể lưu danh mục!');
-    //     }
-    //   },
-    //   error: (err) => {
-    //     this.saving = false; // Kết thúc lưu khi có lỗi
-    //     this.notification.error('Thông báo', 'Có lỗi xảy ra khi lưu!');
-    //     console.error(err);
-    //   }
-    // });
-
-    // Mock response for now
-    setTimeout(() => {
-      this.saving = false;
-      this.notification.info('Thông báo', 'Chức năng lưu đang được phát triển');
-    }, 500);
+    this.courseService.saveCourseCatalog(payload).subscribe({
+      next: (res) => {
+        this.saving = false;
+        if (res && res.status === 1) {
+          const message = this.mode === 'edit' ? 'Cập nhật danh mục thành công!' : 'Thê mới danh mục thành công!';
+          this.notification.success('Thông báo', message);
+          this.close();
+        } else {
+          this.notification.warning('Thông báo', res?.message || 'Không thể lưu danh mục!');
+        }
+      },
+      error: (err) => {
+        this.saving = false;
+        this.notification.error('Thông báo', 'Có lỗi xảy ra khi lưu danh mục!');
+        console.error('Error saving course catalog:', err);
+      }
+    });
   }
 
   close() {

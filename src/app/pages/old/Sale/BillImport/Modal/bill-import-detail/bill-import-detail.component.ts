@@ -874,7 +874,10 @@ export class BillImportDetailComponent
         DateRequestImport: new Date(),
       });
     }
-    this.getNewCode();
+    // Chỉ lấy mã phiếu mới khi tạo mới (id = 0), không lấy khi đang sửa phiếu (id > 0)
+    if (this.id === 0) {
+      this.getNewCode();
+    }
   }
 
   changeSuplierSale() {
@@ -1722,18 +1725,13 @@ export class BillImportDetailComponent
           WarehouseID: formValues.WarehouseID || this.newBillImport.WarehouseID,
           CreatDate: formValues.CreatDate,
           DateRequestImport: formValues.DateRequestImport,
-          UpdatedDate: new Date(),
           BillTypeNew: formValues.BillTypeNew,
           BillDocumentImportType: 2,
-          CreatedDate: formValues.CreatDate,
           Status: false,
           PTNB: false,
           UnApprove: 1,
           RulePayID: formValues.RulePayID,
           IsDeleted: false,
-          // Loại bỏ các trường không có trong BillImport entity:
-          // DPO, DueDate, TaxReduction, COFormE, IsNotKeep
-          // Các trường này chỉ có trong BillImportDetail
         },
         billImportDetail: this.mapTableDataToBillImportDetails(
           billImportDetailsFromTable

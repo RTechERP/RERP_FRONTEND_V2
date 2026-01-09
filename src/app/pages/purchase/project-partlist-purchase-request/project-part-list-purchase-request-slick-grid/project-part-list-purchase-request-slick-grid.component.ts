@@ -4691,6 +4691,8 @@ export class ProjectPartListPurchaseRequestSlickGridComponent
         QtyRequest: Number(row.Quantity || 0),
         IsBill: totaMoneyVAT > 0 ? true : false,
         IsPurchase: false,
+        ProjectPartlistPurchaseRequestID: id,
+        PONCCDetailRequestBuyID:id
       };
 
       listRequest.push(request);

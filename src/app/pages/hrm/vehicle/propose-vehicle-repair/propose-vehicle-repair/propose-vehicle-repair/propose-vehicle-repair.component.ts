@@ -183,7 +183,8 @@ export class ProposeVehicleRepairComponent implements OnInit, AfterViewInit {
     this.loadData();
   }
 
-  onVehicleChange() {
+  onVehicleChange(value?: any) {
+    this.VehicleID = value ?? 0;
     this.loadData();
   }
 
@@ -388,6 +389,8 @@ export class ProposeVehicleRepairComponent implements OnInit, AfterViewInit {
         sortable: true,
         cssClass: 'text-center',
         formatter: formatDate,
+        filterable: true,
+        filter: { model: Filters['compoundDate'] },
       },
       {
         id: 'TimeEndRepair',
@@ -397,6 +400,8 @@ export class ProposeVehicleRepairComponent implements OnInit, AfterViewInit {
         sortable: true,
         cssClass: 'text-center',
         formatter: formatDate,
+        filterable: true,
+        filter: { model: Filters['compoundDate'] },
       },
       {
         id: 'KmPreviousPeriod',
@@ -406,6 +411,8 @@ export class ProposeVehicleRepairComponent implements OnInit, AfterViewInit {
         sortable: true,
         cssClass: 'text-right',
         type: 'number',
+        filterable: true,
+        filter: { model: Filters['compoundInputNumber'] },
       },
       {
         id: 'KmCurrentPeriod',
@@ -415,6 +422,8 @@ export class ProposeVehicleRepairComponent implements OnInit, AfterViewInit {
         sortable: true,
         cssClass: 'text-right',
         type: 'number',
+        filterable: true,
+        filter: { model: Filters['compoundInputNumber'] },
       },
       {
         id: 'KMDifference',
@@ -424,6 +433,8 @@ export class ProposeVehicleRepairComponent implements OnInit, AfterViewInit {
         sortable: true,
         cssClass: 'text-right',
         type: 'number',
+        filterable: true,
+        filter: { model: Filters['compoundInputNumber'] },
       },
       {
         id: 'Note',
@@ -454,7 +465,7 @@ export class ProposeVehicleRepairComponent implements OnInit, AfterViewInit {
       },
       checkboxSelector: {
         hideInFilterHeaderRow: false,
-        hideInColumnTitleRow: true,
+        hideInColumnTitleRow: false,
         applySelectOnAllPages: true,
       },
       enableCheckboxSelector: true,
@@ -462,9 +473,6 @@ export class ProposeVehicleRepairComponent implements OnInit, AfterViewInit {
       enableFiltering: true,
       autoFitColumnsOnFirstLoad: false,
       enableAutoSizeColumns: false,
-      multiSelect: true,
-      rowHeight: 35,
-      headerRowHeight: 40,
     };
   }
 
@@ -527,6 +535,18 @@ export class ProposeVehicleRepairComponent implements OnInit, AfterViewInit {
         cssClass: 'text-right',
         formatter: moneyFormatter,
       },
+      {
+        id: 'WarrantyPeriod',
+        name: 'Bảo hành (tháng)',
+        field: 'WarrantyPeriod',
+        width: 120,
+        sortable: true,
+        cssClass: 'text-right',
+        formatter: (row: number, cell: number, value: any) => {
+          if (value == null || value === 0) return '';
+          return Number(value).toLocaleString('vi-VN') + ' tháng';
+        },
+      },
       { id: 'Note', name: 'Ghi chú', field: 'Note', width: 250, sortable: true },
     ];
 
@@ -544,17 +564,14 @@ export class ProposeVehicleRepairComponent implements OnInit, AfterViewInit {
       },
       checkboxSelector: {
         hideInFilterHeaderRow: false,
-        hideInColumnTitleRow: true,
+        hideInColumnTitleRow: false,
         applySelectOnAllPages: true,
       },
       enableCheckboxSelector: true,
       enableCellNavigation: true,
-      enableFiltering: true,
+      enableFiltering: false,
       autoFitColumnsOnFirstLoad: false,
       enableAutoSizeColumns: false,
-      multiSelect: true,
-      rowHeight: 35,
-      headerRowHeight: 40,
     };
   }
 
@@ -979,6 +996,9 @@ export class ProposeVehicleRepairComponent implements OnInit, AfterViewInit {
               DateApprove: detail?.DateApprove || new Date().toISOString(),
               TotalPrice: detail?.TotalPrice ?? (detail?.Quantity ?? 0) * (detail?.UnitPrice ?? 0),
               Note: detail?.Note || '',
+              KmPreviousPeriod: master?.KmPreviousPeriod ?? null,
+              KmCurrentPeriod: master?.KmCurrentPeriod ?? null,
+              WarrantyPeriod: detail?.WarrantyPeriod ?? null,
               CreatedDate: new Date().toISOString(),
               CreatedBy: this.currentUser?.LoginName || null,
               UpdatedDate: null,

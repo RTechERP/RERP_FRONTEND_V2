@@ -158,6 +158,7 @@
                                 <nz-form-label [nzSpan]="24">Km kỳ trước</nz-form-label>
                                 <nz-form-control [nzSpan]="24">
                                     <nz-input-number formControlName="KmPreviousPeriod" [nzMin]="0" [nzStep]="1"
+                                        [nzFormatter]="kmFormatter" [nzParser]="kmParser"
                                         class="w-100"></nz-input-number>
                                 </nz-form-control>
                             </nz-form-item>
@@ -167,6 +168,7 @@
                                 <nz-form-label [nzSpan]="24">Km kỳ này</nz-form-label>
                                 <nz-form-control [nzSpan]="24">
                                     <nz-input-number formControlName="KmCurrentPeriod" [nzMin]="0" [nzStep]="1"
+                                        [nzFormatter]="kmFormatter" [nzParser]="kmParser"
                                         class="w-100"></nz-input-number>
                                 </nz-form-control>
                             </nz-form-item>
@@ -175,7 +177,8 @@
                             <nz-form-item class="col-md-12">
                                 <nz-form-label [nzSpan]="24">Số KM trong kỳ</nz-form-label>
                                 <nz-form-control [nzSpan]="24">
-                                    <input nz-input [value]="kmDifference" readonly class="w-100 text-right"
+                                    <input nz-input [value]="kmDifference | number:'1.0-0':'vi'" readonly
+                                        class="w-100 text-right"
                                         style="background-color: #f5f5f5; font-weight: bold;" />
                                 </nz-form-control>
                             </nz-form-item>

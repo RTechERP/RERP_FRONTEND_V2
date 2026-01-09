@@ -71,7 +71,7 @@ export class TsAssetAllocationFormComponent implements OnInit, AfterViewInit {
     this.drawTbSelectAsset();
   }
   ngOnInit() {
-    this.dataInput.DateRecovery = this.formatDateForInput(this.dataInput.DateRecovery);//fomat lại ngày
+    this.dataInput.DateAllocation = this.formatDateForInput(this.dataInput.DateAllocation);//fomat lại ngày cấp phát
     this.getAllocation();
     this.getCurrentUser();
     this.getListEmployee();
@@ -183,27 +183,19 @@ export class TsAssetAllocationFormComponent implements OnInit, AfterViewInit {
           field: "addRow",
           hozAlign: "center",
           width: 40,
-          headerSort: false,
-          titleFormatter: () => `
-    <div style="display: flex; justify-content: center; align-items: center; height: 100%;">
-      <i class="fa-solid fa-plus text-success cursor-pointer" title="Thêm dòng"></i>
-    </div>`,
           formatter: () => `
     <span style="color: #dc3545; font-weight: bold; font-size: 14px; cursor: pointer;" title="Xóa dòng">X</span>`,
           cellClick: (e, cell) => {
             const row = cell.getRow();
             const data = row.getData();
-
             // Nếu là dòng cũ đã có trong DB (có ID) thì lưu lại ID để gửi lên API
             if (data['ID']) {
               this.deletedDetailIds.push(data['ID']);
             }
-
             // Xóa khỏi bảng UI
             row.delete();
           },
         },
-
         { title: 'AssetManagementID', field: 'AssetManagementID', hozAlign: 'center', width: 60, visible: false },
         { title: 'ID', field: 'ID', hozAlign: 'center', visible: false, headerHozAlign: 'center' },
         { title: 'STT', field: 'STT', formatter: 'rownum', hozAlign: 'center', headerHozAlign: 'center', width: 60, headerSort: false },

@@ -50,6 +50,9 @@ import { NzInputNumberModule } from 'ng-zorro-antd/input-number';
 import { VehicleBookingManagementDetailComponent } from './vehicle-booking-management-detail/vehicle-booking-management-detail.component';
 import { AppUserService } from '../../../../services/app-user.service';
 import { PermissionService } from '../../../../services/permission.service';
+import { PaymentOrder } from '../../../general-category/payment-order/model/payment-order';
+import { PaymentOrderDetailComponent } from '../../../general-category/payment-order/payment-order-detail/payment-order-detail.component';
+import { PaymentOrderSpecialComponent } from '../../../general-category/payment-order/payment-order-special/payment-order-special.component';
 @Component({
   selector: 'app-vehicle-booking-management',
   imports: [
@@ -1268,6 +1271,8 @@ export class VehicleBookingManagementComponent
                   },
                 },
                 { title: 'Dự án', field: 'ProjectFullName', width: 300, formatter: 'textarea' },
+                { title: 'Dự án', field: 'ProjectID', width: 300, formatter: 'textarea', visible: false },
+
               ],
             },
             { title: 'Tên TBP duyệt', field: 'FullNameTBP', width: 120 },
@@ -1846,5 +1851,53 @@ export class VehicleBookingManagementComponent
         });
       },
     });
+  }
+  initModal(paymentOrder: any = new PaymentOrder(), isCopy: boolean = false, initialContentPayment: string = '') {
+    const modalRef = this.modalService.open(PaymentOrderDetailComponent, {
+      centered: true,
+      size: 'xl',
+      backdrop: 'static',
+      keyboard: false,
+      scrollable: true,
+      fullscreen: true,
+    });
+    modalRef.componentInstance.paymentOrder = paymentOrder;
+    modalRef.componentInstance.isCopy = isCopy;
+    modalRef.componentInstance.initialContentPayment = initialContentPayment;
+  }
+  openPaymentOrderFromRow() {
+    if (this.vehicleBookingListId.length === 0 || this.vehicleBookingListId.length > 1) {
+      this.notification.warning('Thông báo', 'Vui lòng chọn 1 dòng để đề nghị thanh toán chuyến xe!');
+      return;
+    }
+    const selectedItem = this.vehicleBookingListId[0];
+    console.log('Selected row data:', selectedItem);
+    if (!selectedItem.VehicleInformation || !selectedItem.VehicleInformation.includes('Chủ động phương tiện')) {
+      this.notification.warning('Thông báo', 'Chỉ đề nghị thanh toán với những chuyến xe chủ động phương tiện!');
+      return;
+    }
+    const paymentOrder = new PaymentOrder();
+    paymentOrder.ID = 0;
+    paymentOrder.TypeOrder = 2;
+    paymentOrder.PaymentOrderTypeID = 22;
+    paymentOrder.ReceiverInfo = selectedItem.FullName;
+    const formatDate = (dateStr: string): string => {
+      if (!dateStr) return '';
+      const d = new Date(dateStr);
+      return `${String(d.getDate()).padStart(2, '0')}/${String(d.getMonth() + 1).padStart(2, '0')}/${d.getFullYear()}`;
+    };
+    paymentOrder.ReasonOrder = "Đề nghị thanh toán tiền phương tiện ngày " + formatDate(selectedItem.DepartureDate);
+    paymentOrder.StartLocation = selectedItem.DepartureAddress;
+    paymentOrder.EndLocation = selectedItem.CompanyNameArrives + " - " + selectedItem.SpecificDestinationAddress;
+    paymentOrder.ProjectID = selectedItem.ProjectID;
+    paymentOrder.ApprovedTBPID = selectedItem.ApprovedTBP;
+    paymentOrder.EmployeeID = selectedItem.EmployeeID || null;
+    paymentOrder.FullName = selectedItem.FullName || '';
+    paymentOrder.DepartmentName = selectedItem.DepartmentName || '';
+    paymentOrder.Note = selectedItem.Note || '';
+    paymentOrder.ProjectID = selectedItem.ProjectID || null;
+    paymentOrder.ProjectFullName = selectedItem.ProjectFullName || '';
+    const contentPayment = "Đề nghị thanh toán tiền phương tiện ngày " + formatDate(selectedItem.DepartureDate);
+    this.initModal(paymentOrder, false, contentPayment);
   }
 }

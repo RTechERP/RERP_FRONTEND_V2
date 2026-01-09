@@ -483,7 +483,7 @@ export class OfficeSupplyRequestAdminDetailComponent implements OnInit, AfterVie
       ...DEFAULT_TABLE_CONFIG,
       data: this.employeeTableData,
       layout: 'fitDataStretch',
-      height: '100%',
+      height: '35vh',
       selectableRows: true, // Cho phép chọn nhiều dòng
       selectableRowsRangeMode: "click",
       rowHeader: {
@@ -937,7 +937,7 @@ export class OfficeSupplyRequestAdminDetailComponent implements OnInit, AfterVie
       ...DEFAULT_TABLE_CONFIG,
       data: [],
 
-      height: '100%',
+      height: '35vh',
       selectableRows: false,
       rowHeader: false,
       columns: [

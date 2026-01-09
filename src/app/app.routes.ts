@@ -569,6 +569,7 @@ export const routes: Routes = [
             { path: 'leader-project', component: LeaderProjectComponent, canActivate: [authGuard] },
             { path: 'project-item-person', component: ProjectItemPersonComponent, canActivate: [authGuard] },
             { path: 'summary-project-join', component: SummaryProjectJoinComponent, canActivate: [authGuard] },
+            { path: 'project-part-list', component: ProjectPartListSlickGridComponent, canActivate: [authGuard] },
 
 
 

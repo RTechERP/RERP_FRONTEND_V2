@@ -385,6 +385,29 @@ export class ProjectWokerSlickGridComponent implements OnInit, AfterViewInit, On
           collection: [{ value: 'Đã duyệt', label: 'Đã duyệt' }, { value: 'Chưa duyệt', label: 'Chưa duyệt' }],
           filterOptions: { filter: true } as MultipleSelectOption,
         },
+        formatter: (_row: any, _cell: any, value: any, _column: any, dataContext: any) => {
+          if (!value) return '';
+          return `
+            <span
+              title="${dataContext.IsApprovedTBPText}"
+              style="
+                display: -webkit-box;
+                -webkit-line-clamp: 3;
+                -webkit-box-orient: vertical;
+                overflow: hidden;
+                text-overflow: ellipsis;
+                word-wrap: break-word;
+                word-break: break-word;
+                line-height: 1.4;
+              "
+            >
+              ${value}
+            </span>
+          `;
+        },
+        customTooltip: {
+          useRegularTooltip: true,
+        },
       },
       {
         id: 'WorkContent', field: 'WorkContent', name: 'Nội dung công việc', width: 500,
@@ -450,6 +473,7 @@ export class ProjectWokerSlickGridComponent implements OnInit, AfterViewInit, On
       autoResize: {
         container: '.grid-project-worker-container',
         calculateAvailableSizeBy: 'container',
+        rightPadding: 0,
       },
       //end
       gridWidth: '100%',
@@ -468,7 +492,10 @@ export class ProjectWokerSlickGridComponent implements OnInit, AfterViewInit, On
       enablePagination: false,
       autoFitColumnsOnFirstLoad: true,
       enableAutoSizeColumns: true,
-      forceFitColumns: false,   // tự động fill độ rộng khi resize màn hình
+      forceFitColumns: true,
+      fullWidthRows: true,
+      syncColumnCellResize: true,
+      explicitInitialization: false,
       enableTreeData: true,
       treeDataOptions: {
         columnId: 'TT',
@@ -977,6 +1004,7 @@ export class ProjectWokerSlickGridComponent implements OnInit, AfterViewInit, On
           setTimeout(() => {
             this.applyRowStyling();
             this.updateFooterTotals();
+            this.angularGridProjectWorker?.resizerService?.resizeGrid();
             this.stopLoading();
           }, 100);
         } else {
@@ -1151,7 +1179,7 @@ export class ProjectWokerSlickGridComponent implements OnInit, AfterViewInit, On
     const workbook = new ExcelJS.Workbook();
     const worksheet = workbook.addWorksheet('Nhân công');
 
-    const headers = ['TT', 'TBP duyệt', 'Nội dung công việc', 'Số người', 'Số ngày', 'Tổng nhân công', 'Đơn giá', 'Thành tiền'];
+    const headers = ['TT', 'Nội dung công việc', 'Số người', 'Số ngày', 'Tổng nhân công', 'Đơn giá', 'Thành tiền'];
     const headerRow = worksheet.addRow(headers);
     headerRow.font = { bold: true, color: { argb: 'FFFFFF' } };
     headerRow.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFD700' } };
@@ -1160,7 +1188,6 @@ export class ProjectWokerSlickGridComponent implements OnInit, AfterViewInit, On
     const addNodeToSheet = (node: any, level: number = 0) => {
       const row = worksheet.addRow([
         '  '.repeat(level * 2) + (node.TT || ''),
-        node.IsApprovedTBPText || '',
         node.WorkContent || '',
         node._children?.length > 0 ? '' : node.AmountPeople,
         node._children?.length > 0 ? '' : node.NumberOfDay,
@@ -1169,7 +1196,7 @@ export class ProjectWokerSlickGridComponent implements OnInit, AfterViewInit, On
         node.TotalPrice,
       ]);
 
-      [5, 6, 7, 8].forEach((idx) => {
+      [4, 5, 6, 7].forEach((idx) => {
         const cell = row.getCell(idx);
         if (cell.value) {
           cell.numFmt = '#,##0';

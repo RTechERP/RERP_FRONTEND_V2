@@ -3161,13 +3161,9 @@ export class ProjectPartListSlickGridComponent implements OnInit, AfterViewInit,
         this.projectSolutionId = data.ID;
         this.selectionProjectSolutionName = data.CodeSolution;
         console.log('[ROW SELECT] projectSolutionId set to:', this.projectSolutionId);
-        // Load phiên bản giải pháp và PO
-        if (!this.isPOKH) {
-          console.log('[ROW SELECT] Loading Solution Version table');
-          this.loadDataProjectPartListVersion();
-        }
-        console.log('[ROW SELECT] Loading PO Version table');
-        this.loadDataProjectPartListVersionPO();
+        // Load merged version data (combines Solution Version and PO Version)
+        console.log('[ROW SELECT] Loading merged Version table');
+        this.loadDataVersion();
         // Reset bảng partlist vì chưa chọn phiên bản nào
         this.resetPartlistTable();
       } else {

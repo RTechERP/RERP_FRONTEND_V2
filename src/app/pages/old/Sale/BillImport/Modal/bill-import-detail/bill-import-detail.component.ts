@@ -1744,7 +1744,6 @@ export class BillImportDetailComponent
         ),
         pONCCID: this.poNCCId || 0,
       },
-
     ];
     console.log('payload', payload);
 
@@ -3088,7 +3087,7 @@ export class BillImportDetailComponent
     const lsProductID: number[] = [];
     const dtDetails: any[] = [];
     let stt = 1;
-    let productNames = '';
+
     for (let i = 0; i < selectedRows.length; i++) {
       const rowData = selectedRows[i].getData();
       console.log(rowData);
@@ -3097,7 +3096,14 @@ export class BillImportDetailComponent
       const productName = rowData['ProductName'] || '';
       const billImportQCId = rowData['BillImportQCID'] || 0;
 
-      productNames += productName + ', ' || '';
+      // Kiểm tra sản phẩm đã được QC chưa
+      if (billImportQCId > 0) {
+        this.notification.warning(
+          NOTIFICATION_TITLE.warning,
+          `Sản phẩm thứ [${i + 1}] đã được QC!`
+        );
+        return;
+      }
 
       // Thêm ProductID vào danh sách nếu chưa tồn tại
       if (!lsProductID.includes(productSaleID) && productSaleID > 0) {
@@ -3123,14 +3129,6 @@ export class BillImportDetailComponent
       dtDetails.push(detailRow);
     }
 
-    // Kiểm tra sản phẩm đã được QC chưa
-    if (productNames != '') {
-      this.notification.warning(
-        NOTIFICATION_TITLE.warning,
-        `Sản phẩm ${productNames} đã được QC!`
-      );
-      return;
-    }
     // Mở modal với dữ liệu đã chuẩn bị
     const modalRef = this.modalService.open(BillImportQcDetailComponent, {
       backdrop: 'static',

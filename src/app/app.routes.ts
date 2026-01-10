@@ -218,6 +218,7 @@ import { InventoryBorrowNCCComponent } from './pages/old/Sale/Inventory/Modal/in
 
 import { NewsletterFormViewAllComponent } from './pages/old/newsletter/newsletter/newsletter-form-view-all/newsletter-form-view-all.component';
 import { CourseManagementComponent } from './pages/Course/course-management/course-management.component';
+import { InventoryProjectProductSaleLinkComponent } from './pages/purchase/inventory-project-product-sale-link/inventory-project-product-sale-link.component';
 
 // import { CustomerSlickgridComponent } from './pages/crm/customers/customer-slickgrid/customer-slickgrid.component';
 export const routes: Routes = [
@@ -589,6 +590,11 @@ export const routes: Routes = [
                 // "N35,N33,N1,N36,N27,N69,N80"
                 path: 'project-partlist-price-request-old',
                 component: ProjectPartlistPriceRequestOldComponent,
+                canActivate: [authGuard],
+            },
+            {
+                path: 'inventory-project-product-sale-link',
+                component: InventoryProjectProductSaleLinkComponent,
                 canActivate: [authGuard],
             },
 

@@ -1,0 +1,8 @@
+.fs-12 {
+  font-size: 0.75rem;
+}
+
+::ng-deep #gridInventoryDetail {
+  height: 50vh !important;
+  border: 1px solid #ddd;
+}

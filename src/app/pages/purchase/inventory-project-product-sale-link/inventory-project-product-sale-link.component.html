@@ -1,0 +1,103 @@
+<ng-container class="w-100">
+  <div class="card h-100 border-0 rounded-0" style="background: transparent">
+    <div class="card-header bg-white p-1">
+      <div class="d-flex gap-1 align-items-center">
+        <p-menubar
+          [model]="inventoryProjectProductSaleLinkMenu"
+          class="p-0 border-0"
+        >
+        </p-menubar>
+      </div>
+    </div>
+    <div
+      class="filter-bar bg-light border-bottom p-2 py-0"
+      *ngIf="true"
+      [class.mobile-modal]="true"
+    >
+      <form
+        nz-form
+        nzLayout="inline"
+        class="d-flex flex-wrap gap-2 align-items-center"
+      >
+        <nz-form-item>
+          <nz-form-label class="fs-12">Nhóm vật tư</nz-form-label>
+          <nz-form-control>
+            <nz-select
+              [(ngModel)]="productGroupId"
+              nzAllowClear
+              nzShowSearch
+              [nzPlaceHolder]="'Chọn nhóm'"
+              style="width: 230px"
+              name="productGroupId"
+              nzSize="small"
+            >
+              <nz-option
+                *ngFor="let option of productGroups"
+                [nzLabel]="option.ProductGroupName"
+                [nzValue]="option.ID"
+              >
+              </nz-option>
+            </nz-select>
+          </nz-form-control>
+        </nz-form-item>
+        <nz-form-item>
+          <nz-form-label class="fs-12">Từ khóa</nz-form-label>
+          <nz-form-control>
+            <input
+              name="keyword"
+              nz-input
+              placeholder="Nhập từ khóa"
+              [(ngModel)]="keyWords"
+              nzSize="small"
+            />
+          </nz-form-control>
+        </nz-form-item>
+
+        <!-- Nút tìm kiếm với dropdown cho filter bổ sung -->
+        <nz-form-item class="mb-0">
+          <nz-form-control>
+            <div class="btn-group">
+              <button
+                nz-button
+                nzType="primary"
+                nzSize="small"
+                (click)="onSearch()"
+              >
+                Tìm kiếm
+              </button>
+            </div>
+          </nz-form-control>
+        </nz-form-item>
+      </form>
+    </div>
+    <div class="card-body p-0 w-100" style="height: calc(100vh - 200px)">
+      <div
+        *ngIf="isLoading"
+        style="
+          position: absolute;
+          top: 0;
+          left: 0;
+          width: 100%;
+          height: 100%;
+          background: rgba(255, 255, 255, 0.4);
+          z-index: 999;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+        "
+      >
+        <nz-spin [nzSpinning]="isLoading"></nz-spin>
+      </div>
+      <div class="grid-container" style="height: 100%">
+        <angular-slickgrid
+          [gridId]="'inventoryProjectProductSaleLinkGrid'"
+          [columns]="columnDefinitions"
+          [options]="gridOptions"
+          [dataset]="dataset"
+          (onAngularGridCreated)="angularGridReady($event.detail)"
+        >
+        </angular-slickgrid>
+      </div>
+    </div>
+  </div>
+</ng-container>

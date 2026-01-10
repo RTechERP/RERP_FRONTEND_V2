@@ -33,6 +33,7 @@ import {
 } from 'angular-slickgrid';
 import { NgbActiveModal, NgbModal } from '@ng-bootstrap/ng-bootstrap';
 import {
+  MultipleSelectOption,
   OnEventArgs,
   OperatorType,
   SortDirectionNumber,
@@ -732,46 +733,56 @@ export class BillImportQcDetailComponent
   }
 
   buildEmployeeGroupCollection(employeeRequests: any[]) {
-    const map = new Map<string, Array<{ value: string; label: string }>>();
+    // const map = new Map<string, Array<{ value: string; label: string }>>();
 
-    employeeRequests.forEach((e) => {
-      const dept = e.DepartmentName ?? 'Khác';
+    // employeeRequests.forEach((e) => {
+    //   const dept = e.DepartmentName ?? 'Khác';
 
-      if (!map.has(dept)) {
-        map.set(dept, []);
-      }
+    //   if (!map.has(dept)) {
+    //     map.set(dept, []);
+    //   }
 
-      map.get(dept)!.push({
-        value: e.EmployeeID,
-        label: `${e.Code} - ${e.FullName}`,
-      });
-    });
+    //   map.get(dept)!.push({
+    //     value: e.EmployeeID,
+    //     label: `${e.Code} - ${e.FullName}`,
+    //   });
+    // });
 
-    return Array.from(map.entries()).map(([label, options]) => ({
-      label,
-      options,
+    // return Array.from(map.entries()).map(([label, options]) => ({
+    //   label,
+    //   options,
+    // }));
+
+    return employeeRequests.map((l) => ({
+      value: l.EmployeeID,
+      label: `${l.Code} - ${l.FullName}`,
     }));
   }
 
   buildLeaderGroupCollection(leaders: any[]) {
-    const map = new Map<string, Array<{ value: string; label: string }>>();
+    // const map = new Map<string, Array<{ value: string; label: string }>>();
 
-    leaders.forEach((l) => {
-      const dept = l.DepartmentName ?? 'Khác';
+    // leaders.forEach((l) => {
+    //   const dept = l.DepartmentName ?? 'Khác';
 
-      if (!map.has(dept)) {
-        map.set(dept, []);
-      }
+    //   if (!map.has(dept)) {
+    //     map.set(dept, []);
+    //   }
 
-      map.get(dept)!.push({
-        value: l.EmployeeID,
-        label: `${l.Code} - ${l.FullName}`,
-      });
-    });
+    //   map.get(dept)!.push({
+    //     value: l.EmployeeID,
+    //     label: `${l.Code} - ${l.FullName}`,
+    //   });
+    // });
 
-    return Array.from(map.entries()).map(([label, options]) => ({
-      label,
-      options,
+    // return Array.from(map.entries()).map(([label, options]) => ({
+    //   label,
+    //   options,
+    // }));
+
+    return leaders.map((l) => ({
+      value: l.EmployeeID,
+      label: `${l.Code} - ${l.FullName}`,
     }));
   }
 
@@ -1493,12 +1504,22 @@ export class BillImportQcDetailComponent
 
           return found?.label ?? '';
         },
+        // editor: {
+        //   model: GroupSelectEditor,
+        //   collection: this.productSaleGrid,
+        //   collectionOptions: {
+        //     addBlankEntry: false,
+        //   },
+        // },
         editor: {
-          model: GroupSelectEditor,
-          collection: this.productSaleGrid,
+          model: Editors['singleSelect'],
           collectionOptions: {
-            addBlankEntry: false,
+            addBlankEntry: true
           },
+          collection: this.productSaleGrid,
+          editorOptions: {
+            filter: true,
+          } as MultipleSelectOption,
         },
 
         customTooltip: {
@@ -1572,21 +1593,40 @@ export class BillImportQcDetailComponent
         filterable: true,
         filter: { model: Filters['compoundInputText'] },
 
+        // formatter: (_row, _cell, value) => {
+        //   if (value == null) return '';
+
+        //   const flatOptions = this.leadersGrid.flatMap((g: any) => g.options);
+
+        //   const found = flatOptions.find((x: any) => x.value === Number(value));
+
+        //   return found?.label ?? '';
+        // },
+        // editor: {
+        //   model: GroupSelectEditor,
+        //   collection: this.leadersGrid,
+        //   collectionOptions: {
+        //     addBlankEntry: false,
+        //   },
+        // },
         formatter: (_row, _cell, value) => {
           if (value == null) return '';
 
-          const flatOptions = this.leadersGrid.flatMap((g: any) => g.options);
-
-          const found = flatOptions.find((x: any) => x.value === Number(value));
+          const found = this.leadersGrid.find(
+            (x: any) => x.value === Number(value)
+          );
 
           return found?.label ?? '';
         },
         editor: {
-          model: GroupSelectEditor,
-          collection: this.leadersGrid,
+          model: Editors['singleSelect'],
           collectionOptions: {
-            addBlankEntry: false,
+            addBlankEntry: true
           },
+          collection: this.leadersGrid,
+          editorOptions: {
+            filter: true,
+          } as MultipleSelectOption,
         },
 
         customTooltip: {
@@ -1602,23 +1642,42 @@ export class BillImportQcDetailComponent
         filterable: true,
         filter: { model: Filters['compoundInputText'] },
 
+        // formatter: (_row, _cell, value) => {
+        //   if (value == null) return '';
+
+        //   const flatOptions = this.employeeRequestsGrid.flatMap(
+        //     (g: any) => g.options
+        //   );
+
+        //   const found = flatOptions.find((x: any) => x.value === Number(value));
+
+        //   return found?.label ?? '';
+        // },
+        // editor: {
+        //   model: GroupSelectEditor,
+        //   collection: this.employeeRequestsGrid,
+        //   collectionOptions: {
+        //     addBlankEntry: false,
+        //   },
+        // },
         formatter: (_row, _cell, value) => {
           if (value == null) return '';
 
-          const flatOptions = this.employeeRequestsGrid.flatMap(
-            (g: any) => g.options
+          const found = this.employeeRequestsGrid.find(
+            (x: any) => x.value === Number(value)
           );
-
-          const found = flatOptions.find((x: any) => x.value === Number(value));
 
           return found?.label ?? '';
         },
         editor: {
-          model: GroupSelectEditor,
-          collection: this.employeeRequestsGrid,
+          model: Editors['singleSelect'],
           collectionOptions: {
-            addBlankEntry: false,
+            addBlankEntry: true
           },
+          collection: this.employeeRequestsGrid,
+          editorOptions: {
+            filter: true,
+          } as MultipleSelectOption,
         },
 
         customTooltip: {
@@ -1643,12 +1702,23 @@ export class BillImportQcDetailComponent
 
           return found?.label ?? '';
         },
+        // editor: {
+        //   model: GroupSelectEditor,
+        //   collection: this.projectsGrid,
+        //   collectionOptions: {
+        //     addBlankEntry: false,
+        //   },
+        // },
+
         editor: {
-          model: GroupSelectEditor,
-          collection: this.projectsGrid,
+          model: Editors['singleSelect'],
           collectionOptions: {
-            addBlankEntry: false,
+            addBlankEntry: true
           },
+          collection: this.projectsGrid,
+          editorOptions: {
+            filter: true,
+          } as MultipleSelectOption,
         },
 
         customTooltip: {
@@ -2044,17 +2114,17 @@ export class BillImportQcDetailComponent
     // Chuẩn bị data detail (master grid)
     const detailData = this.dataMasterAll.map((item) => ({
       ID: item.ID,
-      BillImportQCID: item.BillImportQCID ?? 0,
-      ProductSaleID: item.ProductSaleID ?? 0,
-      LeaderTechID: item.LeaderTechID ?? 0,
-      Status: item.Status ?? 0,
-      EmployeeTechID: item.EmployeeTechID ?? 0,
-      Note: item.Note ?? '',
-      BillImportDetailID: item.BillImportDetailID ?? 0,
-      IsDeleted: item.IsDeleted ?? false,
-      ProjectID: item.ProjectID ?? 0,
-      POKHCode: item.POKHCode ?? '',
-      Quantity: item.Quantity ?? 0,
+      BillImportQCID: item.BillImportQCID || 0,
+      ProductSaleID: item.ProductSaleID || 0,
+      LeaderTechID: item.LeaderTechID || 0,
+      Status: item.Status || 0,
+      EmployeeTechID: item.EmployeeTechID || 0,
+      Note: item.Note || '',
+      BillImportDetailID: item.BillImportDetailID || 0,
+      IsDeleted: item.IsDeleted || false,
+      ProjectID: item.ProjectID || 0,
+      POKHCode: item.POKHCode || '',
+      Quantity: item.Quantity || 0,
     }));
 
     // Chỉ lấy file mới (có FileObject) để upload

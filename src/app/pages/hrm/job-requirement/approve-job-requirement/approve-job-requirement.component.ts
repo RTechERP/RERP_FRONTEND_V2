@@ -377,13 +377,25 @@ export class ApproveJobRequirementComponent implements OnInit, AfterViewInit {
 
     const { step, status } = stepStatus;
 
-    // Nếu là hủy duyệt (status = 2), cần nhập lý do
-    if (status === 2) {
-      this.showCancelReasonModal(selected, step);
-    } else {
-      // Duyệt (status = 1), gọi API trực tiếp
-      this.processApprove(selected, step, status, '');
-    }
+    // Xác định action text cho hộp thoại xác nhận
+    const actionText = status === 1 ? 'duyệt' : 'hủy duyệt';
+
+    // Hiển thị hộp thoại xác nhận
+    this.modal.confirm({
+      nzTitle: 'Xác nhận',
+      nzContent: `Bạn có chắc muốn ${actionText} ${selected.length} yêu cầu công việc đã chọn không?`,
+      nzOkText: 'Đồng ý',
+      nzCancelText: 'Hủy',
+      nzOnOk: () => {
+        // Nếu là hủy duyệt (status = 2), cần nhập lý do
+        if (status === 2) {
+          this.showCancelReasonModal(selected, step);
+        } else {
+          // Duyệt (status = 1), gọi API trực tiếp
+          this.processApprove(selected, step, status, '');
+        }
+      }
+    });
   }
 
   /**
@@ -449,24 +461,18 @@ export class ApproveJobRequirementComponent implements OnInit, AfterViewInit {
           });
 
           // Hiển thị thông báo kết quả
-          if (successCount > 0 && failCount === 0) {
+          const totalCount = results.length;
+          if (successCount > 0) {
             this.notification.success(
               NOTIFICATION_TITLE.success,
-              `Duyệt thành công ${successCount} bản ghi!`
-            );
-            // Refresh lại table
-            this.getJobrequirement();
-          } else if (successCount > 0 && failCount > 0) {
-            this.notification.warning(
-              NOTIFICATION_TITLE.warning,
-              `Duyệt thành công ${successCount} bản ghi, thất bại ${failCount} bản ghi. ${errorMessages.join('; ')}`
+              `Duyệt thành công ${successCount}/${totalCount} bản ghi`
             );
             // Refresh lại table
             this.getJobrequirement();
           } else {
             this.notification.error(
               NOTIFICATION_TITLE.error,
-              errorMessages.length > 0 ? errorMessages.join('; ') : 'Duyệt thất bại!'
+              `Duyệt thất bại ${failCount}/${totalCount} bản ghi`
             );
           }
         } else {

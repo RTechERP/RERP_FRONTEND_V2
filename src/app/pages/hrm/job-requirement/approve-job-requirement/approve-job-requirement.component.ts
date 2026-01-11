@@ -205,19 +205,19 @@ export class ApproveJobRequirementComponent implements OnInit, AfterViewInit {
     if (this.approvalMode === 1) {
       this.menuBars.push({
         label: 'Trưởng Bộ Phận',
-        //   visible: this.permissionService.hasPermission("N56,N32,N1"),
+        visible: this.permissionService.hasPermission("N56,N32,N1"),
         icon: 'fa-solid fa-calendar-check fa-lg text-primary',
         items: [
           {
             label: 'Duyệt',
             icon: 'fa-solid fa-circle-check fa-lg text-success',
-            // visible: this.permissionService.hasPermission("N56,N32,N1"),
+            visible: this.permissionService.hasPermission("N56,N32,N1"),
             command: () => this.onApproveJobRequirement('btnApproveTBP_New')
           },
           {
             label: 'Hủy duyệt',
             icon: 'fa-solid fa-circle-xmark fa-lg text-danger',
-            //        visible: this.permissionService.hasPermission("N56,N32,N1"),
+            visible: this.permissionService.hasPermission("N56,N32,N1"),
             command: () => this.onApproveJobRequirement('btnUnApproveTBP_New')
           }
         ]
@@ -228,7 +228,7 @@ export class ApproveJobRequirementComponent implements OnInit, AfterViewInit {
     if (this.approvalMode === 3) {
       this.menuBars.push({
         label: 'Ban Giám Đốc',
-        //   visible: this.permissionService.hasPermission("N58,N1"),
+        visible: this.permissionService.hasPermission("N58,N1"),
         icon: 'fa-solid fa-user-tie fa-lg text-primary',
         items: [
           {

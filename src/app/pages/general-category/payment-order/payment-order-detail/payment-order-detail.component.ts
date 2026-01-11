@@ -794,19 +794,22 @@ export class PaymentOrderDetailComponent implements OnInit, AfterViewInit {
         if (this.paymentOrder.ID > 0) {
             this.paymentService.getDetail(this.paymentOrder.ID).subscribe({
                 next: (response) => {
-                    // console.log(response);
+                    console.log(response);
 
                     if (this.paymentOrder.TypeOrder != 2) {
                         this.dataset = response.data.details;
                         this.dataset = this.dataset.map((x, i) => ({
                             ...x,
-                            _id: x.Id   // dành riêng cho SlickGrid
+                            _id: i + 1,
+                            ParentID: x.ParentId == 0 ? null : x.ParentId
+
                         }));
                     } else {
                         this.dataset2 = response.data.details;
                         this.dataset2 = this.dataset2.map((x, i) => ({
                             ...x,
-                            _id: x.Id   // dành riêng cho SlickGrid
+                            _id: i + 1,   // dành riêng cho SlickGrid
+                            ParentID: x.ParentId == 0 ? null : x.ParentId
                         }));
                     }
 
@@ -1076,6 +1079,8 @@ export class PaymentOrderDetailComponent implements OnInit, AfterViewInit {
             }
         } else {
 
+
+            console.log('data:', data);
             //Tính Thành tiền
             const totalMoney1 = data.filter(x => x._id == 1).reduce((total, item) => total + (item.TotalMoney || 0), 0);
             const totalMoney2 = data.filter(x => x.ParentID == 2).reduce((total, item) => total + (item.TotalMoney || 0), 0);

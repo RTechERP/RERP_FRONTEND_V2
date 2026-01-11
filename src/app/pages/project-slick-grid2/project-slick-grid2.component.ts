@@ -69,6 +69,7 @@ import { debounceTime } from 'rxjs/operators';
 import { Subject } from 'rxjs';
 import { DateTime } from 'luxon';
 import { ProjectPartListSlickGridComponent } from '../project-part-list-slick-grid/project-part-list-slick-grid.component';
+import { FolderPathModalComponent } from './folder-path-modal.component';
 
 import { MenuItem, PrimeIcons } from 'primeng/api';
 import { Menubar } from 'primeng/menubar';
@@ -103,6 +104,7 @@ import { ProjectWokerSlickGridComponent } from '../project-woker-slick-grid/proj
     CommonModule,
     HasPermissionDirective,
     Menubar,
+    FolderPathModalComponent,
   ],
   templateUrl: './project-slick-grid2.component.html',
   styleUrls: ['./project-slick-grid2.component.css']
@@ -593,15 +595,15 @@ export class ProjectSlickGrid2Component implements OnInit, AfterViewInit, OnDest
         width: 150,
         sortable: true,
         filterable: true,
-        filter: {
-          model: Filters['multipleSelect'],
-          collection: [],
-          collectionOptions: { addBlankEntry: true },
-          filterOptions: {
-            filter: true,
-            autoAdjustDropWidthByTextSize: true,
-          } as MultipleSelectOption
-        }
+        // filter: {
+        //   model: Filters['multipleSelect'],
+        //   collection: [],
+        //   collectionOptions: { addBlankEntry: true },
+        //   filterOptions: {
+        //     filter: true,
+        //     autoAdjustDropWidthByTextSize: true,
+        //   } as MultipleSelectOption
+        // }
       },
       {
         id: 'ProjectName',
@@ -610,15 +612,15 @@ export class ProjectSlickGrid2Component implements OnInit, AfterViewInit, OnDest
         width: 200,
         sortable: true,
         filterable: true,
-        filter: {
-          model: Filters['multipleSelect'],
-          collection: [],
-          collectionOptions: { addBlankEntry: true },
-          filterOptions: {
-            filter: true,
-            autoAdjustDropWidthByTextSize: true,
-          } as MultipleSelectOption
-        },
+        // filter: {
+        //   model: Filters['multipleSelect'],
+        //   collection: [],
+        //   collectionOptions: { addBlankEntry: true },
+        //   filterOptions: {
+        //     filter: true,
+        //     autoAdjustDropWidthByTextSize: true,
+        //   } as MultipleSelectOption
+        // },
         cssClass: 'cell-wrap',
         formatter: (_row: any, _cell: any, value: any, _column: any, dataContext: any) => {
           if (!value) return '';
@@ -792,15 +794,15 @@ export class ProjectSlickGrid2Component implements OnInit, AfterViewInit, OnDest
         width: 150,
         sortable: true,
         filterable: true,
-        filter: {
-          model: Filters['multipleSelect'],
-          collection: [],
-          collectionOptions: { addBlankEntry: true },
-          filterOptions: {
-            filter: true,
-            autoAdjustDropWidthByTextSize: true,
-          } as MultipleSelectOption
-        }
+        // filter: {
+        //   model: Filters['multipleSelect'],
+        //   collection: [],
+        //   collectionOptions: { addBlankEntry: true },
+        //   filterOptions: {
+        //     filter: true,
+        //     autoAdjustDropWidthByTextSize: true,
+        //   } as MultipleSelectOption
+        // }
       },
       {
         id: 'CurrentSituation',
@@ -809,15 +811,15 @@ export class ProjectSlickGrid2Component implements OnInit, AfterViewInit, OnDest
         width: 200,
         sortable: true,
         filterable: true,
-        filter: {
-          model: Filters['multipleSelect'],
-          collection: [],
-          collectionOptions: { addBlankEntry: true },
-          filterOptions: {
-            filter: true,
-            autoAdjustDropWidthByTextSize: true,
-          } as MultipleSelectOption
-        },
+        // filter: {
+        //   model: Filters['multipleSelect'],
+        //   collection: [],
+        //   collectionOptions: { addBlankEntry: true },
+        //   filterOptions: {
+        //     filter: true,
+        //     autoAdjustDropWidthByTextSize: true,
+        //   } as MultipleSelectOption
+        // },
         cssClass: 'cell-wrap'
       },
       {
@@ -2448,35 +2450,16 @@ export class ProjectSlickGrid2Component implements OnInit, AfterViewInit, OnDest
           const url = response.data.url || '';
           const urlOnl = response.data.urlOnl || '';
 
-          this.modal.create({
+          const modalRef = this.modal.create({
             nzTitle: 'Đường dẫn hệ thống',
-            nzContent: `
-              <div style="padding: 16px;">
-                <div style="margin-bottom: 20px;">
-                  <div style="margin-bottom: 8px; font-weight: 600; color: #333;">
-                    <i class="anticon anticon-folder" style="margin-right: 8px;"></i>Đường dẫn hệ thống:
-                  </div>
-                  <div style="margin-top: 8px; padding: 12px; background-color: #f5f5f5; border: 1px solid #d9d9d9; border-radius: 4px; word-break: break-all; font-family: 'Courier New', monospace; font-size: 13px; cursor: text; user-select: text;">
-                    ${url}
-                  </div>
-                </div>
-                <div>
-                  <div style="margin-bottom: 8px; font-weight: 600; color: #333;">
-                    <i class="anticon anticon-cloud" style="margin-right: 8px;"></i>Đường dẫn online:
-                  </div>
-                  <div style="margin-top: 8px; padding: 12px; background-color: #f5f5f5; border: 1px solid #d9d9d9; border-radius: 4px; word-break: break-all; font-family: 'Courier New', monospace; font-size: 13px; cursor: text; user-select: text;">
-                    ${urlOnl}
-                  </div>
-                </div>
-                <div style="margin-top: 16px; padding: 8px; background-color: #e6f7ff; border-left: 3px solid #1890ff; border-radius: 2px; font-size: 12px; color: #666;">
-                  <i class="anticon anticon-info-circle" style="margin-right: 6px;"></i>
-                  Bạn có thể chọn và copy (Ctrl+C) đường dẫn để sử dụng
-                </div>
-              </div>
-            `,
+            nzContent: FolderPathModalComponent,
             nzWidth: 700,
             nzOkText: 'Đóng',
-            nzOnOk: () => true
+            nzOnOk: () => true,
+            nzData: {
+              url: url,
+              urlOnl: urlOnl
+            }
           });
         } else {
           this.notification.error('Thông báo', response.message || 'Không thể tạo cây thư mục dự án!');

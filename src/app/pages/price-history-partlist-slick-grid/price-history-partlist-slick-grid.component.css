@@ -169,3 +169,16 @@
 ::ng-deep .vc-time {
   display: none !important;
 }
+  ::ng-deep #grid-container-price-history {
+    height: 80vh !important; /* Subtract header row height */
+  }
+angular-slickgrid,
+.grvPriceHistory{
+  height: 100% !important;
+  width: 100%;
+  display: flex;
+}
+
+:host ::ng-deep .slickgrid-container {
+  height: 100% !important;
+}

@@ -218,6 +218,8 @@ import { InventoryBorrowNCCComponent } from './pages/old/Sale/Inventory/Modal/in
 
 import { NewsletterFormViewAllComponent } from './pages/old/newsletter/newsletter/newsletter-form-view-all/newsletter-form-view-all.component';
 import { CourseManagementComponent } from './pages/Course/course-management/course-management.component';
+import { KPIEvaluationEmployeeComponent } from './pages/KPITech/kpievaluation-employee/kpievaluation-employee.component';
+import { KPIEvaluationFactorScoringComponent } from './pages/KPITech/kpievaluation-factor-scoring/kpievaluation-factor-scoring.component';
 import { InventoryProjectProductSaleLinkComponent } from './pages/purchase/inventory-project-product-sale-link/inventory-project-product-sale-link.component';
 
 // import { CustomerSlickgridComponent } from './pages/crm/customers/customer-slickgrid/customer-slickgrid.component';
@@ -571,7 +573,8 @@ export const routes: Routes = [
             { path: 'project-item-person', component: ProjectItemPersonComponent, canActivate: [authGuard] },
             { path: 'summary-project-join', component: SummaryProjectJoinComponent, canActivate: [authGuard] },
             { path: 'project-part-list', component: ProjectPartListSlickGridComponent, canActivate: [authGuard] },
-
+            { path: 'kpi-tech', component: KPIEvaluationEmployeeComponent, canActivate: [authGuard] },
+            { path: 'kpi-tech-factor-scoring', component: KPIEvaluationFactorScoringComponent, canActivate: [authGuard] },
 
 
             //Mua hàng

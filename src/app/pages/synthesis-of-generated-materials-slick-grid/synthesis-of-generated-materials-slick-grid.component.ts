@@ -209,14 +209,14 @@ export class SynthesisOfGeneratedMaterialsSlickGridComponent implements OnInit, 
         sortable: true,
         filterable: true,
         cssClass: 'text-center',
-        filter: {
-          model: Filters['multipleSelect'],
-          collection: [],
-          filterOptions: {
-            filter: true,
-            autoAdjustDropWidthByTextSize: true,
-          } as MultipleSelectOption,
-        },
+        // filter: {
+        //   model: Filters['multipleSelect'],
+        //   collection: [],
+        //   filterOptions: {
+        //     filter: true,
+        //     autoAdjustDropWidthByTextSize: true,
+        //   } as MultipleSelectOption,
+        // },
       },
       {
         id: 'GroupMaterial',
@@ -225,14 +225,14 @@ export class SynthesisOfGeneratedMaterialsSlickGridComponent implements OnInit, 
         width: 200,
         sortable: true,
         filterable: true,
-        filter: {
-          model: Filters['multipleSelect'],
-          collection: [],
-          filterOptions: {
-            filter: true,
-            autoAdjustDropWidthByTextSize: true,
-          } as MultipleSelectOption,
-        },
+        // filter: {
+        //   model: Filters['multipleSelect'],
+        //   collection: [],
+        //   filterOptions: {
+        //     filter: true,
+        //     autoAdjustDropWidthByTextSize: true,
+        //   } as MultipleSelectOption,
+        // },
         formatter: (_row: any, _cell: any, value: any, _column: any, dataContext: any) => {
           if (!value) return '';
           return `<span title="${dataContext.GroupMaterial}" style="display:block; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${value}</span>`;
@@ -246,14 +246,14 @@ export class SynthesisOfGeneratedMaterialsSlickGridComponent implements OnInit, 
         width: 150,
         sortable: true,
         filterable: true,
-        filter: {
-          model: Filters['multipleSelect'],
-          collection: [],
-          filterOptions: {
-            filter: true,
-            autoAdjustDropWidthByTextSize: true,
-          } as MultipleSelectOption,
-        },
+        // filter: {
+        //   model: Filters['multipleSelect'],
+        //   collection: [],
+        //   filterOptions: {
+        //     filter: true,
+        //     autoAdjustDropWidthByTextSize: true,
+        //   } as MultipleSelectOption,
+        // },
         formatter: (_row: any, _cell: any, value: any, _column: any, dataContext: any) => {
           if (!value) return '';
           return `<span title="${dataContext.ProductCode}" style="display:block; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${value}</span>`;
@@ -267,14 +267,14 @@ export class SynthesisOfGeneratedMaterialsSlickGridComponent implements OnInit, 
         width: 100,
         sortable: true,
         filterable: true,
-        filter: {
-          model: Filters['multipleSelect'],
-          collection: [],
-          filterOptions: {
-            filter: true,
-            autoAdjustDropWidthByTextSize: true,
-          } as MultipleSelectOption,
-        },
+        // filter: {
+        //   model: Filters['multipleSelect'],
+        //   collection: [],
+        //   filterOptions: {
+        //     filter: true,
+        //     autoAdjustDropWidthByTextSize: true,
+        //   } as MultipleSelectOption,
+        // },
         formatter: (_row: any, _cell: any, value: any, _column: any, dataContext: any) => {
           if (!value) return '';
           return `<span title="${dataContext.ProductNewCode}" style="display:block; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${value}</span>`;
@@ -317,14 +317,14 @@ export class SynthesisOfGeneratedMaterialsSlickGridComponent implements OnInit, 
         sortable: true,
         filterable: true,
         cssClass: 'text-center',
-        filter: {
-          model: Filters['multipleSelect'],
-          collection: [],
-          filterOptions: {
-            filter: true,
-            autoAdjustDropWidthByTextSize: true,
-          } as MultipleSelectOption,
-        },
+        // filter: {
+        //   model: Filters['multipleSelect'],
+        //   collection: [],
+        //   filterOptions: {
+        //     filter: true,
+        //     autoAdjustDropWidthByTextSize: true,
+        //   } as MultipleSelectOption,
+        // },
       },
       {
         id: 'UnitPriceQuote',
@@ -424,14 +424,14 @@ export class SynthesisOfGeneratedMaterialsSlickGridComponent implements OnInit, 
         width: 120,
         sortable: true,
         filterable: true,
-        filter: {
-          model: Filters['multipleSelect'],
-          collection: [],
-          filterOptions: {
-            filter: true,
-            autoAdjustDropWidthByTextSize: true,
-          } as MultipleSelectOption,
-        },
+        // filter: {
+        //   model: Filters['multipleSelect'],
+        //   collection: [],
+        //   filterOptions: {
+        //     filter: true,
+        //     autoAdjustDropWidthByTextSize: true,
+        //   } as MultipleSelectOption,
+        // },
         formatter: (_row: any, _cell: any, value: any, _column: any, dataContext: any) => {
           if (!value) return '';
           return `<span title="${dataContext.ProjectCode}" style="display:block; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${value}</span>`;

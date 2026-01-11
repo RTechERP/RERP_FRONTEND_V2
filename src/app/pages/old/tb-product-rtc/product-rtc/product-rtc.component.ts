@@ -19,6 +19,7 @@ import { NzSelectModule } from 'ng-zorro-antd/select';
 import { NzRadioModule } from 'ng-zorro-antd/radio';
 import { NzModalModule, NzModalService } from 'ng-zorro-antd/modal';
 import { NzSpinModule } from 'ng-zorro-antd/spin';
+import { SplitterModule } from 'primeng/splitter';
 import { AngularGridInstance, AngularSlickgridModule, Column, Filters, Formatters, GridOption, MultipleSelectOption, OnSelectedRowsChangedEventArgs } from 'angular-slickgrid';
 import { TbProductRtcService } from '../tb-product-rtc-service/tb-product-rtc.service';
 import { NgbModal, NgbModalModule, NgbDropdownModule } from '@ng-bootstrap/ng-bootstrap';
@@ -48,6 +49,7 @@ import { AppUserService } from '../../../../services/app-user.service';
         NzRadioModule,
         NzModalModule,
         NzSpinModule,
+        SplitterModule,
         AngularSlickgridModule,
         HasPermissionDirective,
         NgbModalModule,
@@ -72,11 +74,17 @@ export class ProductRtcComponent implements OnInit, AfterViewInit, OnDestroy {
     productGroupData: any[] = [];
     productData: any[] = [];
 
-    // AngularSlickGrid
+    // AngularSlickGrid - Master grid (products)
     angularGrid!: AngularGridInstance;
     columnDefinitions: Column[] = [];
     gridOptions: GridOption = {};
     dataset: any[] = [];
+
+    // AngularSlickGrid - Product Group grid (left panel)
+    angularGridGroup!: AngularGridInstance;
+    columnDefinitionsGroup: Column[] = [];
+    gridOptionsGroup: GridOption = {};
+    datasetGroup: any[] = [];
 
     isLoading: boolean = false;
     private subscriptions: Subscription[] = [];
@@ -92,21 +100,40 @@ export class ProductRtcComponent implements OnInit, AfterViewInit, OnDestroy {
     ) { }
 
   ngOnInit() {
-        this.route.queryParams.subscribe(params => {
-            this.warehouseID = params['warehouseID'] || 1;
-            this.warehouseCode = params['warehouseCode'] || 'HN';
-            this.warehouseType = params['warehouseType'] || 1;
-        });
-
-        this.loadProductGroups();
         this.initGridColumns();
         this.initGridOptions();
+        this.initGroupGridColumns();
+        this.initGroupGridOptions();
+
+        // Subscribe to queryParams để reload data khi params thay đổi
+        const sub = this.route.queryParams.subscribe(params => {
+            const newWarehouseID = params['warehouseID'] || 1;
+            const newWarehouseCode = params['warehouseCode'] || 'HN';
+            const newWarehouseType = params['warehouseType'] || 1;
+
+            // Kiểm tra xem params có thay đổi không
+            const paramsChanged = this.warehouseID !== newWarehouseID ||
+                                  this.warehouseCode !== newWarehouseCode ||
+                                  this.warehouseType !== newWarehouseType;
+
+            this.warehouseID = newWarehouseID;
+            this.warehouseCode = newWarehouseCode;
+            this.warehouseType = newWarehouseType;
+
+            // Reset productGroupID khi params thay đổi
+            if (paramsChanged) {
+                this.productGroupID = 0;
+            }
+
+            // Load data mỗi khi params thay đổi
+            this.loadProductGroups();
+            this.getProduct();
+        });
+        this.subscriptions.push(sub);
     }
 
     ngAfterViewInit(): void {
-        setTimeout(() => {
-            this.getProduct();
-        }, 100);
+        // Data đã được load trong ngOnInit qua queryParams subscribe
     }
 
     ngOnDestroy(): void {
@@ -118,6 +145,11 @@ export class ProductRtcComponent implements OnInit, AfterViewInit, OnDestroy {
             next: (response: any) => {
                 const data = response.data || [];
                 this.productGroupData = data;
+                // Set data for group grid
+                this.datasetGroup = data.map((item: any, index: number) => ({
+                    ...item,
+                    id: item.ID || `group_${index}`,
+                }));
             },
             error: (error: any) => {
                 this.notification.error(
@@ -338,6 +370,52 @@ export class ProductRtcComponent implements OnInit, AfterViewInit, OnDestroy {
                 },
             },
         ];
+    }
+
+    private initGroupGridColumns(): void {
+        this.columnDefinitionsGroup = [
+            {
+                id: 'NumberOrder',
+                field: 'NumberOrder',
+                name: 'STT',
+                width: 60,
+                sortable: true,
+                filterable: true,
+            },
+            {
+                id: 'ProductGroupName',
+                field: 'ProductGroupName',
+                name: 'Tên nhóm sản phẩm',
+                width: 200,
+                sortable: true,
+                filterable: true,
+            },
+        ];
+    }
+
+    private initGroupGridOptions(): void {
+        this.gridOptionsGroup = {
+            enableAutoResize: true,
+            autoResize: {
+                container: '.group-grid-container',
+                calculateAvailableSizeBy: 'container',
+                resizeDetection: 'container',
+            },
+            gridWidth: '100%',
+            datasetIdPropertyName: 'ID',
+            enableRowSelection: true,
+            rowSelectionOptions: {
+                selectActiveRow: true,
+            },
+            enableCellNavigation: true,
+            enableFiltering: true,
+            autoFitColumnsOnFirstLoad: true,
+            enableAutoSizeColumns: true,
+            enableHeaderMenu: false,
+            enableContextMenu: false,
+            enableCellMenu: false,
+            rowHeight: 35,
+        };
     }
 
     private initGridOptions(): void {
@@ -618,6 +696,29 @@ export class ProductRtcComponent implements OnInit, AfterViewInit, OnDestroy {
         setTimeout(() => {
             angularGrid.resizerService.resizeGrid();
         }, 100);
+    }
+
+    angularGridGroupReady(angularGrid: AngularGridInstance): void {
+        this.angularGridGroup = angularGrid;
+
+        // Handle click event on group grid
+        this.angularGridGroup.slickGrid.onClick.subscribe((_e: any, args: any) => {
+            const row = args.row;
+            const item = this.angularGridGroup.dataView.getItem(row);
+            if (item) {
+                this.onGroupRowClick(item);
+            }
+        });
+
+        setTimeout(() => {
+            angularGrid.resizerService.resizeGrid();
+        }, 100);
+    }
+
+    onGroupRowClick(item: any): void {
+        this.productGroupID = item.ID;
+        this.showSpec();
+        this.getProduct();
     }
 
     onRowSelectionChanged(eventData: any, args: OnSelectedRowsChangedEventArgs) {

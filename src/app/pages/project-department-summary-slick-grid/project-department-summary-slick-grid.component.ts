@@ -335,15 +335,15 @@ export class ProjectDepartmentSummarySlickGridComponent implements OnInit, After
         width: 150,
         sortable: true,
         filterable: true,
-        filter: {
-          model: Filters['multipleSelect'],
-          collection: [],
-          collectionOptions: { addBlankEntry: true },
-          filterOptions: {
-            filter: true,
-            autoAdjustDropWidthByTextSize: true,
-          } as MultipleSelectOption
-        }
+        // filter: {
+        //   model: Filters['multipleSelect'],
+        //   collection: [],
+        //   collectionOptions: { addBlankEntry: true },
+        //   filterOptions: {
+        //     filter: true,
+        //     autoAdjustDropWidthByTextSize: true,
+        //   } as MultipleSelectOption
+        // }
       },
       {
         id: 'ProjectName',
@@ -352,15 +352,15 @@ export class ProjectDepartmentSummarySlickGridComponent implements OnInit, After
         width: 200,
         sortable: true,
         filterable: true,
-        filter: {
-          model: Filters['multipleSelect'],
-          collection: [],
-          collectionOptions: { addBlankEntry: true },
-          filterOptions: {
-            filter: true,
-            autoAdjustDropWidthByTextSize: true,
-          } as MultipleSelectOption
-        },
+        // filter: {
+        //   model: Filters['multipleSelect'],
+        //   collection: [],
+        //   collectionOptions: { addBlankEntry: true },
+        //   filterOptions: {
+        //     filter: true,
+        //     autoAdjustDropWidthByTextSize: true,
+        //   } as MultipleSelectOption
+        // },
         cssClass: 'cell-wrap',
         formatter: (_row: any, _cell: any, value: any, _column: any, dataContext: any) => {
           if (!value) return '';
@@ -384,15 +384,15 @@ export class ProjectDepartmentSummarySlickGridComponent implements OnInit, After
         width: 200,
         sortable: true,
         filterable: true,
-        filter: {
-          model: Filters['multipleSelect'],
-          collection: [],
-          collectionOptions: { addBlankEntry: true },
-          filterOptions: {
-            filter: true,
-            autoAdjustDropWidthByTextSize: true,
-          } as MultipleSelectOption
-        },
+        // filter: {
+        //   model: Filters['multipleSelect'],
+        //   collection: [],
+        //   collectionOptions: { addBlankEntry: true },
+        //   filterOptions: {
+        //     filter: true,
+        //     autoAdjustDropWidthByTextSize: true,
+        //   } as MultipleSelectOption
+        // },
         cssClass: 'cell-wrap',
         formatter: (_row: any, _cell: any, value: any, _column: any, dataContext: any) => {
           if (!value) return '';
@@ -1582,6 +1582,22 @@ export class ProjectDepartmentSummarySlickGridComponent implements OnInit, After
     modalRef.componentInstance.projectId = this.projectId;
     modalRef.componentInstance.projectCodex = this.projectCode;
     modalRef.componentInstance.tbp = false;
+  }
+  openProjectPartListWindow() {
+    const selectedIDs = this.getSelectedIds();
+    const selectedRows = this.getSelectedRows();
+
+    if (selectedIDs.length != 1) {
+      this.notification.error('Thông báo', 'Vui lòng chọn 1 dự án!');
+      return;
+    }
+
+    const projectId = this.projectId;
+    const projectName = selectedRows[0]?.ProjectName;
+    const projectCode = selectedRows[0]?.ProjectCode;
+
+    const url = `/rerpweb/project-part-list?projectId=${projectId}&projectName=${encodeURIComponent(projectName)}&projectCode=${encodeURIComponent(projectCode)}&tbp=false`;
+    window.open(url, '_blank', 'width=1280,height=960,resizable=yes');
   }
 
   openProjectEmployee() {

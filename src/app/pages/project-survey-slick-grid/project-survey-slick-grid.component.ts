@@ -58,6 +58,7 @@ import { DateTime } from 'luxon';
 import { NOTIFICATION_TITLE } from '../../app.config';
 import { ProjectSurveyService } from '../project/project-survey/project-survey-service/project-survey.service';
 import { ProjectSurveyDetailComponent } from '../project/project-survey-detail/project-survey-detail.component';
+import { FolderPathModalComponent } from '../project-slick-grid2/folder-path-modal.component';
 
 import { MenuItem, PrimeIcons } from 'primeng/api';
 import { Menubar } from 'primeng/menubar';
@@ -92,7 +93,8 @@ import { NzFormModule } from 'ng-zorro-antd/form';
     HasPermissionDirective,
     Menubar,
     NzFormModule,
-    ReactiveFormsModule
+    ReactiveFormsModule,
+    FolderPathModalComponent
   ],
   templateUrl: './project-survey-slick-grid.component.html',
   styleUrls: ['./project-survey-slick-grid.component.css']
@@ -502,14 +504,14 @@ export class ProjectSurveySlickGridComponent implements OnInit, AfterViewInit, O
         width: 120,
         sortable: true,
         filterable: true,
-        filter: {
-          model: Filters['multipleSelect'],
-          collection: [],
-          filterOptions: {
-            filter: true,
-            autoAdjustDropWidthByTextSize: true,
-          } as MultipleSelectOption,
-        },
+        // filter: {
+        //   model: Filters['multipleSelect'],
+        //   collection: [],
+        //   filterOptions: {
+        //     filter: true,
+        //     autoAdjustDropWidthByTextSize: true,
+        //   } as MultipleSelectOption,
+        // },
       },
       {
         id: 'DateStart',
@@ -546,14 +548,14 @@ export class ProjectSurveySlickGridComponent implements OnInit, AfterViewInit, O
         width: 200,
         sortable: true,
         filterable: true,
-        filter: {
-          model: Filters['multipleSelect'],
-          collection: [],
-          filterOptions: {
-            filter: true,
-            autoAdjustDropWidthByTextSize: true,
-          } as MultipleSelectOption,
-        },
+        // filter: {
+        //   model: Filters['multipleSelect'],
+        //   collection: [],
+        //   filterOptions: {
+        //     filter: true,
+        //     autoAdjustDropWidthByTextSize: true,
+        //   } as MultipleSelectOption,
+        // },
         formatter: (_row: any, _cell: any, value: any, _column: any, dataContext: any) => {
           if (!value) return '';
           return `<span title="${dataContext.CustomerName}" style="display:block; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${value}</span>`;
@@ -567,14 +569,14 @@ export class ProjectSurveySlickGridComponent implements OnInit, AfterViewInit, O
         width: 250,
         sortable: true,
         filterable: true,
-        filter: {
-          model: Filters['multipleSelect'],
-          collection: [],
-          filterOptions: {
-            filter: true,
-            autoAdjustDropWidthByTextSize: true,
-          } as MultipleSelectOption,
-        },
+        // filter: {
+        //   model: Filters['multipleSelect'],
+        //   collection: [],
+        //   filterOptions: {
+        //     filter: true,
+        //     autoAdjustDropWidthByTextSize: true,
+        //   } as MultipleSelectOption,
+        // },
         formatter: (_row: any, _cell: any, value: any, _column: any, dataContext: any) => {
           if (!value) return '';
           return `<span title="${dataContext.Address}" style="display:block; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${value}</span>`;
@@ -651,14 +653,14 @@ export class ProjectSurveySlickGridComponent implements OnInit, AfterViewInit, O
         width: 150,
         sortable: true,
         filterable: true,
-        filter: {
-          model: Filters['multipleSelect'],
-          collection: [],
-          filterOptions: {
-            filter: true,
-            autoAdjustDropWidthByTextSize: true,
-          } as MultipleSelectOption,
-        },
+        // filter: {
+        //   model: Filters['multipleSelect'],
+        //   collection: [],
+        //   filterOptions: {
+        //     filter: true,
+        //     autoAdjustDropWidthByTextSize: true,
+        //   } as MultipleSelectOption,
+        // },
         formatter: (_row: any, _cell: any, value: any, _column: any, dataContext: any) => {
           if (!value) return '';
           return `<span title="${dataContext.PIC}" style="display:block; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${value}</span>`;
@@ -673,14 +675,14 @@ export class ProjectSurveySlickGridComponent implements OnInit, AfterViewInit, O
         sortable: true,
         filterable: true,
         cssClass: 'cell-wrap',
-        filter: {
-          model: Filters['multipleSelect'],
-          collection: [],
-          filterOptions: {
-            filter: true,
-            autoAdjustDropWidthByTextSize: true,
-          } as MultipleSelectOption,
-        },
+        // filter: {
+        //   model: Filters['multipleSelect'],
+        //   collection: [],
+        //   filterOptions: {
+        //     filter: true,
+        //     autoAdjustDropWidthByTextSize: true,
+        //   } as MultipleSelectOption,
+        // },
         formatter: (_row, _cell, value, _column, dataContext) => `<span title="${value || ''}" style="display:block; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${value || ''}</span>`,
         customTooltip: { useRegularTooltip: true },
       },
@@ -712,14 +714,14 @@ export class ProjectSurveySlickGridComponent implements OnInit, AfterViewInit, O
         width: 200,
         sortable: true,
         filterable: true,
-        filter: {
-          model: Filters['multipleSelect'],
-          collection: [],
-          filterOptions: {
-            filter: true,
-            autoAdjustDropWidthByTextSize: true,
-          } as MultipleSelectOption,
-        },
+        // filter: {
+        //   model: Filters['multipleSelect'],
+        //   collection: [],
+        //   filterOptions: {
+        //     filter: true,
+        //     autoAdjustDropWidthByTextSize: true,
+        //   } as MultipleSelectOption,
+        // },
         formatter: (_row: any, _cell: any, value: any, _column: any, dataContext: any) => {
           if (!value) return '';
           return `<span title="${dataContext.ReasonUrgent}" style="display:block; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${value}</span>`;
@@ -754,14 +756,14 @@ export class ProjectSurveySlickGridComponent implements OnInit, AfterViewInit, O
         width: 120,
         sortable: true,
         filterable: true,
-        filter: {
-          model: Filters['multipleSelect'],
-          collection: [],
-          filterOptions: {
-            filter: true,
-            autoAdjustDropWidthByTextSize: true,
-          } as MultipleSelectOption,
-        },
+        // filter: {
+        //   model: Filters['multipleSelect'],
+        //   collection: [],
+        //   filterOptions: {
+        //     filter: true,
+        //     autoAdjustDropWidthByTextSize: true,
+        //   } as MultipleSelectOption,
+        // },
       },
       {
         id: 'DateSurvey',
@@ -784,14 +786,14 @@ export class ProjectSurveySlickGridComponent implements OnInit, AfterViewInit, O
         width: 100,
         sortable: true,
         filterable: true,
-        filter: {
-          model: Filters['multipleSelect'],
-          collection: [],
-          filterOptions: {
-            filter: true,
-            autoAdjustDropWidthByTextSize: true,
-          } as MultipleSelectOption,
-        },
+        // filter: {
+        //   model: Filters['multipleSelect'],
+        //   collection: [],
+        //   filterOptions: {
+        //     filter: true,
+        //     autoAdjustDropWidthByTextSize: true,
+        //   } as MultipleSelectOption,
+        // },
       },
       {
         id: 'Result',
@@ -800,14 +802,14 @@ export class ProjectSurveySlickGridComponent implements OnInit, AfterViewInit, O
         width: 200,
         sortable: true,
         filterable: true,
-        filter: {
-          model: Filters['multipleSelect'],
-          collection: [],
-          filterOptions: {
-            filter: true,
-            autoAdjustDropWidthByTextSize: true,
-          } as MultipleSelectOption,
-        },
+        // filter: {
+        //   model: Filters['multipleSelect'],
+        //   collection: [],
+        //   filterOptions: {
+        //     filter: true,
+        //     autoAdjustDropWidthByTextSize: true,
+        //   } as MultipleSelectOption,
+        // },
         formatter: (_row: any, _cell: any, value: any, _column: any, dataContext: any) => {
           if (!value) return '';
           return `<span title="${dataContext.Result}" style="display:block; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${value}</span>`;
@@ -821,14 +823,14 @@ export class ProjectSurveySlickGridComponent implements OnInit, AfterViewInit, O
         width: 200,
         sortable: true,
         filterable: true,
-        filter: {
-          model: Filters['multipleSelect'],
-          collection: [],
-          filterOptions: {
-            filter: true,
-            autoAdjustDropWidthByTextSize: true,
-          } as MultipleSelectOption,
-        },
+        // filter: {
+        //   model: Filters['multipleSelect'],
+        //   collection: [],
+        //   filterOptions: {
+        //     filter: true,
+        //     autoAdjustDropWidthByTextSize: true,
+        //   } as MultipleSelectOption,
+        // },
         formatter: (_row: any, _cell: any, value: any, _column: any, dataContext: any) => {
           if (!value) return '';
           return `<span title="${dataContext.ReasonCancel}" style="display:block; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${value}</span>`;
@@ -842,14 +844,14 @@ export class ProjectSurveySlickGridComponent implements OnInit, AfterViewInit, O
         width: 200,
         sortable: true,
         filterable: true,
-        filter: {
-          model: Filters['multipleSelect'],
-          collection: [],
-          filterOptions: {
-            filter: true,
-            autoAdjustDropWidthByTextSize: true,
-          } as MultipleSelectOption,
-        },
+        // filter: {
+        //   model: Filters['multipleSelect'],
+        //   collection: [],
+        //   filterOptions: {
+        //     filter: true,
+        //     autoAdjustDropWidthByTextSize: true,
+        //   } as MultipleSelectOption,
+        // },
         formatter: (_row: any, _cell: any, value: any, _column: any, dataContext: any) => {
           if (!value) return '';
           return `<span title="${dataContext.Note}" style="display:block; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${value}</span>`;
@@ -1185,7 +1187,32 @@ export class ProjectSurveySlickGridComponent implements OnInit, AfterViewInit, O
     const selectedRows = selectedIndices.map(idx => this.angularGrid.dataView.getItem(idx));
     if (selectedRows.length === 1) {
       const projectId = selectedRows[0].ProjectID;
-      this.projectSurveyService.openSurveyFolder(projectId).subscribe();
+      this.projectService.openSurveyFolder(projectId).subscribe({
+        next: (response: any) => {
+          if (response.status == 1 && response.data) {
+            const url = response.data.url || '';
+            const urlOnl = response.data.urlOnl || '';
+
+            const modalRef = this.modal.create({
+              nzTitle: 'Đường dẫn thư mục khảo sát',
+              nzContent: FolderPathModalComponent,
+              nzWidth: 700,
+              nzOkText: 'Đóng',
+              nzOnOk: () => true,
+              nzData: {
+                url: url,
+                urlOnl: urlOnl
+              }
+            });
+          } else {
+            this.notification.error('Thông báo', response.message || 'Không thể tạo thư mục khảo sát!');
+          }
+        },
+        error: (error) => {
+          this.notification.error('Thông báo', error.error?.message || 'Lỗi khi tạo thư mục khảo sát!');
+          console.error('Lỗi:', error);
+        }
+      });
     }
   }
 
@@ -1243,9 +1270,9 @@ export class ProjectSurveySlickGridComponent implements OnInit, AfterViewInit, O
             column.filter.collection = this.projectTypes.map((t: any) => ({ value: t.ProjectTypeName, label: t.ProjectTypeName }));
           } else if (field === 'StatusText') {
             column.filter.collection = [
-              { value: 'Mới', label: 'Mới' },
-              { value: 'Đang xử lý', label: 'Đang xử lý' },
-              { value: 'Hoàn thành', label: 'Hoàn thành' }
+              { value: '', label: '' },
+              { value: 'Chờ duyệt', label: 'Chờ duyệt' },
+              { value: 'Duyệt', label: 'Duyệt' },
             ];
           } else {
             column.filter.collection = getUniqueValues(data, field);
@@ -1267,13 +1294,8 @@ export class ProjectSurveySlickGridComponent implements OnInit, AfterViewInit, O
             colDef.filter.collection = this.customers.map((c: any) => ({ value: c.CustomerName, label: c.CustomerName }));
           } else if (field === 'ProjectTypeName') {
             colDef.filter.collection = this.projectTypes.map((t: any) => ({ value: t.ProjectTypeName, label: t.ProjectTypeName }));
-          } else if (field === 'StatusText') {
-            colDef.filter.collection = [
-              { value: 'Mới', label: 'Mới' },
-              { value: 'Đang xử lý', label: 'Đang xử lý' },
-              { value: 'Hoàn thành', label: 'Hoàn thành' }
-            ];
-          } else {
+          } 
+          else {
             colDef.filter.collection = getUniqueValues(data, field);
           }
         }

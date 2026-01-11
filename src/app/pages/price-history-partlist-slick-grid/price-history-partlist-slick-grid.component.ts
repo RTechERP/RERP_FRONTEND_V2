@@ -14,6 +14,7 @@ import { NzGridModule } from 'ng-zorro-antd/grid';
 import { NzDatePickerModule } from 'ng-zorro-antd/date-picker';
 import { NzAutocompleteModule } from 'ng-zorro-antd/auto-complete';
 import { NzInputModule } from 'ng-zorro-antd/input';
+import { NzInputNumberModule } from 'ng-zorro-antd/input-number';
 import { NzSelectModule } from 'ng-zorro-antd/select';
 import { NzTableModule } from 'ng-zorro-antd/table';
 import {
@@ -62,6 +63,7 @@ import { ProjectService } from '../project/project-service/project.service';
     NzDatePickerModule,
     NzAutocompleteModule,
     NzInputModule,
+    NzInputNumberModule,
     NzSelectModule,
     NzTableModule,
     AngularSlickgridModule,
@@ -102,6 +104,10 @@ export class PriceHistoryPartlistSlickGridComponent implements OnInit, AfterView
   projectId: any;
   supplierId: any;
   keyword: any;
+  pageNumber: number = 1;
+  pageSize: number = 50;
+  totalPage: number = 1;
+  readonly pageSizeOptions: number[] = [10, 20, 50, 100];
   //#endregion
 
   //#region Load dữ liệu
@@ -112,54 +118,7 @@ export class PriceHistoryPartlistSlickGridComponent implements OnInit, AfterView
     this.getSupplierSales();
   }
   ngAfterViewInit(): void {
-    console.log('[PRICE-HISTORY] ngAfterViewInit called');
-
-    // Log all card-body elements (there might be multiple)
-    const cardBodies = document.querySelectorAll('.card-body') as NodeListOf<HTMLElement>;
-    console.log('[PRICE-HISTORY] Found card bodies:', cardBodies.length);
-    cardBodies.forEach((cardBody, index) => {
-      console.log(`[PRICE-HISTORY] Card body ${index} dimensions:`, {
-        height: cardBody.offsetHeight,
-        width: cardBody.offsetWidth,
-        clientHeight: cardBody.clientHeight,
-        scrollHeight: cardBody.scrollHeight,
-        computedHeight: getComputedStyle(cardBody).height
-      });
-    });
-
-    // Log splitter dimensions
-    const splitter = document.querySelector('nz-splitter') as HTMLElement;
-    if (splitter) {
-      console.log('[PRICE-HISTORY] Splitter dimensions:', {
-        height: splitter.offsetHeight,
-        width: splitter.offsetWidth,
-        computedHeight: getComputedStyle(splitter).height
-      });
-    }
-
-    // Log all card dimensions
-    const cards = document.querySelectorAll('.card') as NodeListOf<HTMLElement>;
-    console.log('[PRICE-HISTORY] Found cards:', cards.length);
-    cards.forEach((card, index) => {
-      console.log(`[PRICE-HISTORY] Card ${index} dimensions:`, {
-        height: card.offsetHeight,
-        width: card.offsetWidth,
-        computedHeight: getComputedStyle(card).height
-      });
-    });
-
-    // Log all splitter panel dimensions
-    const splitterPanels = document.querySelectorAll('nz-splitter-panel') as NodeListOf<HTMLElement>;
-    console.log('[PRICE-HISTORY] Found splitter panels:', splitterPanels.length);
-    splitterPanels.forEach((panel, index) => {
-      console.log(`[PRICE-HISTORY] Splitter panel ${index} dimensions:`, {
-        height: panel.offsetHeight,
-        width: panel.offsetWidth,
-        computedHeight: getComputedStyle(panel).height
-      });
-    });
-
-    this.getPriceHistoryPartlist();
+    setTimeout(() => this.getPriceHistoryPartlist(), 0);
   }
   //#endregion
 
@@ -176,12 +135,39 @@ export class PriceHistoryPartlistSlickGridComponent implements OnInit, AfterView
     this.projectId = null;
     this.supplierId = null;
     this.keyword = '';
+    this.pageNumber = 1;
+    this.getPriceHistoryPartlist();
+  }
+
+  prevPage(): void {
+    if (this.pageNumber <= 1) return;
+    this.pageNumber--;
+    this.getPriceHistoryPartlist();
+  }
+
+  nextPage(): void {
+    if (this.pageNumber >= this.totalPage) return;
+    this.pageNumber++;
+    this.getPriceHistoryPartlist();
+  }
+
+  goToPage(page: number): void {
+    const next = Math.min(Math.max(Number(page) || 1, 1), this.totalPage || 1);
+    this.pageNumber = next;
+    this.getPriceHistoryPartlist();
+  }
+
+  onPageSizeChange(size: number): void {
+    this.pageSize = Number(size) || 50;
+    this.pageNumber = 1;
     this.getPriceHistoryPartlist();
   }
 
   async getPriceHistoryPartlist() {
     this.isLoadTable = true;
-    let data = {
+    const data = {
+      pageNumber: this.pageNumber || 1,
+      pageSize: this.pageSize || 50,
       projectId: this.projectId ?? 0,
       supplierSaleId: this.supplierId ?? 0,
       employeeRequestId: this.employeeRequestId ?? 0,
@@ -190,21 +176,40 @@ export class PriceHistoryPartlistSlickGridComponent implements OnInit, AfterView
 
     this.projectService.getPriceHistoryPartlist(data).subscribe({
       next: (response: any) => {
-        this.dataset = (response.data || []).map((item: any, index: number) => ({
+        let rawData = response.data || [];
+        if (!Array.isArray(rawData) && rawData.dt && Array.isArray(rawData.dt)) {
+          rawData = rawData.dt;
+        }
+
+        const newData = rawData.map((item: any, index: number) => ({
           ...item,
           id: item.ID || item.id || index + 1
         }));
+        this.dataset = newData;
+
+        if (this.angularGrid?.dataView) {
+          this.angularGrid.dataView.setItems(newData);
+          this.angularGrid.dataView.refresh();
+        }
+
+        // Parse TotalPage from response.data.totalpage[0].TotalPage
+        const apiTotalPage = Number(response?.data?.totalpage?.[0]?.TotalPage) || 1;
+        this.totalPage = Number.isFinite(apiTotalPage) && apiTotalPage > 0 ? apiTotalPage : 1;
+
+        const currentPage = Number(this.pageNumber) || 1;
+        if (currentPage > this.totalPage) {
+          this.pageNumber = this.totalPage;
+        } else if (currentPage < 1) {
+          this.pageNumber = 1;
+        }
+
         this.isLoadTable = false;
         this.cdr.detectChanges();
 
-        // Apply distinct filters after data is loaded
-        setTimeout(() => {
-          this.applyDistinctFilters();
-        }, 100);
+        setTimeout(() => this.applyDistinctFilters(), 100);
       },
       error: (error) => {
-        this.notification.error('Lỗi', error.error.message);
-        console.error('Lỗi:', error);
+        this.notification.error('Lỗi', error.error?.message || 'Có lỗi xảy ra');
         this.isLoadTable = false;
       },
     });
@@ -270,24 +275,24 @@ export class PriceHistoryPartlistSlickGridComponent implements OnInit, AfterView
         id: 'ProductCode',
         name: 'Mã sản phẩm',
         field: 'ProductCode',
-        width: 150,
+        width: 200,
         sortable: true,
         filterable: true,
-      
-        filter: {
-          model: Filters['multipleSelect'],
-          collection: [],
-          filterOptions: {
-            filter: true,
-            autoAdjustDropWidthByTextSize: true,
-          } as MultipleSelectOption,
-        },
-        formatter: (_row: any, _cell: any, value: any, _column: any, dataContext: any) => {
+         formatter: (_row: any, _cell: any, value: any, _column: any, dataContext: any) => {
           if (!value) return '';
           return `
             <span
               title="${dataContext.ProductCode}"
-              style="display:block; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;"
+              style="
+                display: -webkit-box;
+                -webkit-line-clamp: 2;
+                -webkit-box-orient: vertical;
+                overflow: hidden;
+                text-overflow: ellipsis;
+                word-wrap: break-word;
+                word-break: break-word;
+                line-height: 1.4;
+              "
             >
               ${value}
             </span>
@@ -295,31 +300,30 @@ export class PriceHistoryPartlistSlickGridComponent implements OnInit, AfterView
         },
         customTooltip: {
           useRegularTooltip: true,
-          // useRegularTooltipFromCellTextOnly: true,
         },
       },
       {
         id: 'ProductName',
         name: 'Tên sản phẩm',
         field: 'ProductName',
-        width: 200,
+        width: 250,
         sortable: true,
         filterable: true,
-      
-        filter: {
-          model: Filters['multipleSelect'],
-          collection: [],
-          filterOptions: {
-            filter: true,
-            autoAdjustDropWidthByTextSize: true,
-          } as MultipleSelectOption,
-        },
-        formatter: (_row: any, _cell: any, value: any, _column: any, dataContext: any) => {
+         formatter: (_row: any, _cell: any, value: any, _column: any, dataContext: any) => {
           if (!value) return '';
           return `
             <span
               title="${dataContext.ProductName}"
-              style="display:block; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;"
+              style="
+                display: -webkit-box;
+                -webkit-line-clamp: 2;
+                -webkit-box-orient: vertical;
+                overflow: hidden;
+                text-overflow: ellipsis;
+                word-wrap: break-word;
+                word-break: break-word;
+                line-height: 1.4;
+              "
             >
               ${value}
             </span>
@@ -327,7 +331,6 @@ export class PriceHistoryPartlistSlickGridComponent implements OnInit, AfterView
         },
         customTooltip: {
           useRegularTooltip: true,
-          // useRegularTooltipFromCellTextOnly: true,
         },
       },
       {
@@ -337,15 +340,6 @@ export class PriceHistoryPartlistSlickGridComponent implements OnInit, AfterView
         width: 300,
         sortable: true,
         filterable: true,
-        filter: {
-          model: Filters['multipleSelect'],
-          collection: [],
-          filterOptions: {
-            filter: true,
-            autoAdjustDropWidthByTextSize: true,
-          } as MultipleSelectOption,
-        },
-      
         formatter: (_row: any, _cell: any, value: any, _column: any, dataContext: any) => {
           if (!value) return '';
           return `
@@ -359,9 +353,7 @@ export class PriceHistoryPartlistSlickGridComponent implements OnInit, AfterView
         },
         customTooltip: {
           useRegularTooltip: true,
-          // useRegularTooltipFromCellTextOnly: true,
         },
-
       },
       {
         id: 'Maker',
@@ -370,15 +362,6 @@ export class PriceHistoryPartlistSlickGridComponent implements OnInit, AfterView
         width: 150,
         sortable: true,
         filterable: true,
-        filter: {
-          model: Filters['multipleSelect'],
-          collection: [],
-          filterOptions: {
-            filter: true,
-            autoAdjustDropWidthByTextSize: true,
-          } as MultipleSelectOption,
-        },
-      
         formatter: (_row: any, _cell: any, value: any, _column: any, dataContext: any) => {
           if (!value) return '';
           return `
@@ -392,7 +375,6 @@ export class PriceHistoryPartlistSlickGridComponent implements OnInit, AfterView
         },
         customTooltip: {
           useRegularTooltip: true,
-          // useRegularTooltipFromCellTextOnly: true,
         },
       },
       {
@@ -402,7 +384,7 @@ export class PriceHistoryPartlistSlickGridComponent implements OnInit, AfterView
         width: 90,
         sortable: true,
         filterable: true,
-        cssClass:'text-center',
+        cssClass: 'text-center',
         filter: {
           model: Filters['multipleSelect'],
           collection: [],
@@ -411,7 +393,6 @@ export class PriceHistoryPartlistSlickGridComponent implements OnInit, AfterView
             autoAdjustDropWidthByTextSize: true,
           } as MultipleSelectOption,
         },
-      
         formatter: (_row: any, _cell: any, value: any, _column: any, dataContext: any) => {
           if (!value) return '';
           return `
@@ -425,7 +406,6 @@ export class PriceHistoryPartlistSlickGridComponent implements OnInit, AfterView
         },
         customTooltip: {
           useRegularTooltip: true,
-          // useRegularTooltipFromCellTextOnly: true,
         },
       },
       {
@@ -439,7 +419,7 @@ export class PriceHistoryPartlistSlickGridComponent implements OnInit, AfterView
           const dateTime = DateTime.fromISO(value);
           return dateTime.isValid ? dateTime.toFormat('dd/MM/yyyy') : '';
         },
-        cssClass:'text-center',
+        cssClass: 'text-center',
         filter: { model: Filters['compoundDate'] }
       },
       {
@@ -463,7 +443,7 @@ export class PriceHistoryPartlistSlickGridComponent implements OnInit, AfterView
         id: 'CurrencyCode',
         name: 'Loại tiền',
         field: 'CurrencyCode',
-        cssClass:'text-center',
+        cssClass: 'text-center',
         width: 90,
         sortable: true,
         filterable: true,
@@ -483,7 +463,7 @@ export class PriceHistoryPartlistSlickGridComponent implements OnInit, AfterView
         width: 100,
         sortable: true,
         filterable: true,
-        cssClass:'text-end',
+        cssClass: 'text-end',
         formatter: (_row: any, _cell: any, value: any, _column: any, dataContext: any) => {
           if (!value) return '';
           return `
@@ -497,7 +477,6 @@ export class PriceHistoryPartlistSlickGridComponent implements OnInit, AfterView
         },
         customTooltip: {
           useRegularTooltip: true,
-          // useRegularTooltipFromCellTextOnly: true,
         },
         filter: { model: Filters['compoundInputNumber'] }
       },
@@ -525,16 +504,6 @@ export class PriceHistoryPartlistSlickGridComponent implements OnInit, AfterView
         width: 100,
         sortable: true,
         filterable: true,
-        
-        filter: {
-          model: Filters['multipleSelect'],
-          collection: [],
-          filterOptions: {
-            filter: true,
-            autoAdjustDropWidthByTextSize: true,
-          } as MultipleSelectOption,
-        },
-        
         formatter: (_row: any, _cell: any, value: any, _column: any, dataContext: any) => {
           if (!value) return '';
           return `
@@ -548,7 +517,6 @@ export class PriceHistoryPartlistSlickGridComponent implements OnInit, AfterView
         },
         customTooltip: {
           useRegularTooltip: true,
-          // useRegularTooltipFromCellTextOnly: true,
         },
       },
       {
@@ -558,15 +526,7 @@ export class PriceHistoryPartlistSlickGridComponent implements OnInit, AfterView
         width: 200,
         sortable: true,
         filterable: true,
-        filter: {
-          model: Filters['multipleSelect'],
-          collection: [],
-          filterOptions: {
-            filter: true,
-            autoAdjustDropWidthByTextSize: true,
-          } as MultipleSelectOption,
-        },
-        cssClass:'cell-wrap',
+        cssClass: 'cell-wrap',
         formatter: (_row: any, _cell: any, value: any, _column: any, dataContext: any) => {
           if (!value) return '';
           return `
@@ -580,7 +540,6 @@ export class PriceHistoryPartlistSlickGridComponent implements OnInit, AfterView
         },
         customTooltip: {
           useRegularTooltip: true,
-          // useRegularTooltipFromCellTextOnly: true,
         },
       },
       {
@@ -590,15 +549,7 @@ export class PriceHistoryPartlistSlickGridComponent implements OnInit, AfterView
         width: 120,
         sortable: true,
         filterable: true,
-        filter: {
-          model: Filters['multipleSelect'],
-          collection: [],
-          filterOptions: {
-            filter: true,
-            autoAdjustDropWidthByTextSize: true,
-          } as MultipleSelectOption,
-        },
-        cssClass:'cell-wrap',
+        cssClass: 'cell-wrap',
         formatter: (_row: any, _cell: any, value: any, _column: any, dataContext: any) => {
           if (!value) return '';
           return `
@@ -612,7 +563,6 @@ export class PriceHistoryPartlistSlickGridComponent implements OnInit, AfterView
         },
         customTooltip: {
           useRegularTooltip: true,
-          // useRegularTooltipFromCellTextOnly: true,
         },
       },
       {
@@ -622,15 +572,7 @@ export class PriceHistoryPartlistSlickGridComponent implements OnInit, AfterView
         width: 200,
         sortable: true,
         filterable: true,
-        filter: {
-          model: Filters['multipleSelect'],
-          collection: [],
-          filterOptions: {
-            filter: true,
-            autoAdjustDropWidthByTextSize: true,
-          } as MultipleSelectOption,
-        },
-        cssClass:'cell-wrap',
+        cssClass: 'cell-wrap',
         formatter: (_row: any, _cell: any, value: any, _column: any, dataContext: any) => {
           if (!value) return '';
           return `
@@ -644,7 +586,6 @@ export class PriceHistoryPartlistSlickGridComponent implements OnInit, AfterView
         },
         customTooltip: {
           useRegularTooltip: true,
-          // useRegularTooltipFromCellTextOnly: true,
         },
       },
       {
@@ -655,7 +596,7 @@ export class PriceHistoryPartlistSlickGridComponent implements OnInit, AfterView
         sortable: true,
         filterable: true,
         filter: { model: Filters['compoundInputNumber'] },
-        cssClass:'cell-wrap',
+        cssClass: 'cell-wrap',
         formatter: (_row: any, _cell: any, value: any, _column: any, dataContext: any) => {
           if (!value) return '';
           return `
@@ -669,7 +610,6 @@ export class PriceHistoryPartlistSlickGridComponent implements OnInit, AfterView
         },
         customTooltip: {
           useRegularTooltip: true,
-          // useRegularTooltipFromCellTextOnly: true,
         },
       },
     ];
@@ -681,7 +621,7 @@ export class PriceHistoryPartlistSlickGridComponent implements OnInit, AfterView
       },
       enableAutoResize: true,
       gridWidth: '100%',
-      forceFitColumns: false,  // ✅ Giữ nguyên để width được áp dụng
+      forceFitColumns: false,
       enableRowSelection: true,
       enableCellNavigation: true,
       enableExcelCopyBuffer: true,
@@ -691,42 +631,26 @@ export class PriceHistoryPartlistSlickGridComponent implements OnInit, AfterView
       enablePagination: false,
       showHeaderRow: true,
       headerRowHeight: 35,
-      rowHeight: 35,
+      rowHeight: 40,
       frozenColumn: 1,
-      // ✅ Thêm options để đảm bảo width được áp dụng
       explicitInitialization: true,
-      autoFitColumnsOnFirstLoad: false,  // ✅ Thêm từ project-slick-grid2
-      enableAutoSizeColumns: false,     // ✅ Thêm từ project-slick-grid2
+      autoFitColumnsOnFirstLoad: false,
+      enableAutoSizeColumns: false,
     };
   }
 
   angularGridReady(angularGrid: AngularGridInstance) {
     this.angularGrid = angularGrid;
-    console.log('[PRICE-HISTORY] Grid ready, instance:', !!this.angularGrid);
 
     setTimeout(() => {
-      console.log('[PRICE-HISTORY] Resizing grid (initial load)');
       this.angularGrid.resizerService?.resizeGrid();
 
-      // Force grid to use full height
       const gridContainer = document.getElementById('grid-container-price-history') as HTMLElement;
       if (gridContainer) {
         const slickViewport = gridContainer.querySelector('.slick-viewport') as HTMLElement;
         if (slickViewport) {
-          const containerHeight = gridContainer.offsetHeight;
-          slickViewport.style.height = `${containerHeight - 35}px`; // Subtract header row
-          console.log('[PRICE-HISTORY] Set slick-viewport height to:', slickViewport.style.height);
+          slickViewport.style.height = `${gridContainer.offsetHeight - 35}px`;
         }
-      }
-
-      // Log grid dimensions
-      if (gridContainer) {
-        console.log('[PRICE-HISTORY] Grid container dimensions:', {
-          height: gridContainer.offsetHeight,
-          width: gridContainer.offsetWidth,
-          clientHeight: gridContainer.clientHeight,
-          scrollHeight: gridContainer.scrollHeight
-        });
       }
     }, 100);
   }

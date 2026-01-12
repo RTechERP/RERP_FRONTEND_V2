@@ -8,7 +8,7 @@ import { environment } from '../../../../environments/environment';
   providedIn: 'root',
 })
 export class HomeLayoutService {
-  constructor(private http: HttpClient) {}
+  constructor(private http: HttpClient) { }
   getMenuParents(): Observable<any> {
     return this.http.get<any>(environment.host + `api/menu/menus/parent`);
   }
@@ -21,5 +21,9 @@ export class HomeLayoutService {
 
   getNewsletters(): Observable<any> {
     return this.http.get<any>(environment.host + 'api/newsletter/get-limit-newsletter');
+  }
+
+  getConfigSystemHR(): Observable<any> {
+    return this.http.get<any>(environment.host + 'api/home/get-config-system-hr');
   }
 }

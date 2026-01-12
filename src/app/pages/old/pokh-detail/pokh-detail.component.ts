@@ -182,7 +182,7 @@ export class PokhDetailComponent implements OnInit, AfterViewInit {
     {
       title: 'Tên sản phẩm',
       field: 'ProductName',
-      width: 200,
+      width: 250,
     },
     {
       title: 'Mã nội bộ',
@@ -2089,16 +2089,18 @@ export class PokhDetailComponent implements OnInit, AfterViewInit {
         {
           title: '',
           field: 'actions',
+          frozen: true,
           formatter: (cell) => {
             return `<button id="btn-header-click" class="btn text-danger p-0 border-0" style="font-size: 0.75rem;"><i class="fas fa-trash"></i></button>`;
           },
-          width: '1px',
+          width: '5%',
           hozAlign: 'center',
           cellClick: (e, cell) => {
             const target = e.target as HTMLElement;
             if (
-              target.classList.contains('delete-btn') ||
-              target.tagName === 'IMG'
+              target.tagName === 'BUTTON' ||
+              target.tagName === 'I' ||
+              target.closest('button')
             ) {
               this.modal.confirm({
                 nzTitle: 'Xác nhận xóa',
@@ -2153,6 +2155,9 @@ export class PokhDetailComponent implements OnInit, AfterViewInit {
     // };
   }
   initProductDetailTreeList(): void {
+    if (this.tb_ProductDetailTreeList) {
+      this.tb_ProductDetailTreeList.destroy();
+    }
     this.tb_ProductDetailTreeList = new Tabulator(
       this.tbProductDetailTreeListElement.nativeElement,
       {
@@ -2202,8 +2207,9 @@ export class PokhDetailComponent implements OnInit, AfterViewInit {
             cellClick: (e, cell) => {
               const target = e.target as HTMLElement;
               if (
-                target.classList.contains('delete-btn') ||
-                target.tagName === 'IMG'
+                target.tagName === 'BUTTON' ||
+                target.tagName === 'I' ||
+                target.closest('button')
               ) {
                 this.modal.confirm({
                   nzTitle: 'Xác nhận xóa',
@@ -2674,7 +2680,7 @@ export class PokhDetailComponent implements OnInit, AfterViewInit {
           frozen: true,
           headerSort: false,
           titleFormatter: () =>
-            `<div style="display: flex; justify-content: center; align-items: center; height: 100%;"><i class="fas fa-plus text-success cursor-pointer" title="Thêm dòng"></i></div>`,
+            `<div style="display: flex; justify-content: center; align-items: center; height: 100%;"><i class="fas fa-plus text-warning cursor-pointer" title="Thêm dòng"></i></div>`,
           headerClick: () => {
             this.addRowDetailUser();
           },

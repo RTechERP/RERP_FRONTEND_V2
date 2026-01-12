@@ -335,6 +335,12 @@ export class BillExportNewComponent implements OnInit {
     ];
 
     this.gridOptionsMaster = {
+      autoResize: {
+        container: '.grid-container-master',
+        calculateAvailableSizeBy: 'container',
+        resizeDetection: 'container',
+      },
+      gridWidth: '100%',
       enableAutoResize: true,
       enableSorting: true,
       enableFiltering: true,
@@ -522,6 +528,12 @@ export class BillExportNewComponent implements OnInit {
     ];
 
     this.gridOptionsDetail = {
+      autoResize: {
+        container: '.grid-container-detail',
+        calculateAvailableSizeBy: 'container',
+        resizeDetection: 'container',
+      },
+      gridWidth: '100%',
       enableAutoResize: true,
       enableSorting: true,
       enableFiltering: true,
@@ -1580,6 +1592,84 @@ export class BillExportNewComponent implements OnInit {
     });
   }
 
+  /**
+   * Export multiple selected bill exports as a ZIP file
+   * @param type 1 = Xuất gộp, 2 = Xuất tất cả các mã
+   */
+  onExportExcelMultiple(type: number) {
+    const selectedRows = this.getSelectedRows();
+
+    if (!selectedRows || selectedRows.length === 0) {
+      this.notification.warning(
+        NOTIFICATION_TITLE.warning,
+        'Vui lòng chọn ít nhất 1 phiếu xuất để xuất file!'
+      );
+      return;
+    }
+
+    // Get list of IDs from selected rows
+    const listId: number[] = selectedRows.map((row: any) => row.ID).filter((id: number) => id && id > 0);
+
+    if (listId.length === 0) {
+      this.notification.warning(
+        NOTIFICATION_TITLE.warning,
+        'Không tìm thấy ID phiếu xuất hợp lệ!'
+      );
+      return;
+    }
+
+    // Show loading notification
+    const loadingNotification = this.notification.info(
+      'Đang xử lý',
+      `Đang xuất ${listId.length} phiếu...`,
+      { nzDuration: 0 }
+    );
+
+    this.billExportService.exportExcelMultiple(listId, type).subscribe({
+      next: (res) => {
+        const url = window.URL.createObjectURL(res);
+        const a = document.createElement('a');
+        const now = new Date();
+        const dateString = `${now.getDate().toString().padStart(2, '0')}_${(
+          now.getMonth() + 1
+        )
+          .toString()
+          .padStart(2, '0')}_${now.getFullYear()}_${now
+            .getHours()
+            .toString()
+            .padStart(2, '0')}_${now
+              .getMinutes()
+              .toString()
+              .padStart(2, '0')}_${now.getSeconds().toString().padStart(2, '0')}`;
+
+        const fileName = `PhieuXuat_${dateString}.zip`;
+
+        a.href = url;
+        a.download = fileName;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        window.URL.revokeObjectURL(url);
+
+        // Close loading notification
+        this.notification.remove(loadingNotification.messageId);
+
+        this.notification.success(
+          NOTIFICATION_TITLE.success,
+          `Xuất ${listId.length} phiếu thành công!`
+        );
+      },
+      error: (err) => {
+        // Close loading notification
+        this.notification.remove(loadingNotification.messageId);
+
+        const errorMsg = err?.error?.message || 'Có lỗi xảy ra khi xuất file.';
+        this.notification.error(NOTIFICATION_TITLE.error, errorMsg);
+        console.error(err);
+      },
+    });
+  }
+
   // =================================================================
   // MODAL METHODS
   // =================================================================
@@ -1798,13 +1888,24 @@ export class BillExportNewComponent implements OnInit {
         {
           label: 'Xuất gộp',
           icon: 'fa-solid fa-layer-group fa-lg text-primary',
-          command: () => this.onExportGroupItem(1)
+          command: () => this.onExportExcelMultiple(1)
         },
         {
           label: 'Xuất tất cả các mã',
           icon: 'fa-solid fa-list fa-lg text-primary',
-          command: () => this.onExportGroupItem(2)
-        }
+          command: () => this.onExportExcelMultiple(2)
+        },
+        // { separator: true },
+        // {
+        //   label: 'Xuất nhiều phiếu (Gộp)',
+        //   icon: 'fa-solid fa-file-zipper fa-lg text-warning',
+        //   command: () => 
+        // },
+        // {
+        //   label: 'Xuất nhiều phiếu (Tất cả mã)',
+        //   icon: 'fa-solid fa-file-zipper fa-lg text-warning',
+        //   command: () => 
+        // }
       ]
     });
 

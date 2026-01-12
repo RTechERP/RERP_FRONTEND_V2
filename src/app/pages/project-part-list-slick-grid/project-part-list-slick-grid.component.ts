@@ -27,7 +27,8 @@ import {
   OnCellChangeEventArgs,
   OnSelectedRowsChangedEventArgs,
   AngularSlickgridModule,
-  MultipleSelectOption
+  MultipleSelectOption,
+  SortDirectionNumber
 } from 'angular-slickgrid';
 import { DateTime } from 'luxon';
 import { TranslateService } from '@ngx-translate/core';
@@ -666,7 +667,7 @@ export class ProjectPartListSlickGridComponent implements OnInit, AfterViewInit,
     };
 
     // Helper: natural sorting for hierarchy strings (1.1.1, 1.1.10, etc.)
-    const naturalSortHierarchy = (value1: any, value2: any) => {
+    const naturalSortHierarchy = (value1: any, value2: any, sortDirection?: SortDirectionNumber) => {
       const a = String(value1 || '');
       const b = String(value2 || '');
 
@@ -676,12 +677,15 @@ export class ProjectPartListSlickGridComponent implements OnInit, AfterViewInit,
       const bParts = b.split('.');
       const maxLength = Math.max(aParts.length, bParts.length);
 
+      // Xác định hướng sort: 1 = tăng dần, -1 = giảm dần
+      const direction = sortDirection || 1;
+
       for (let i = 0; i < maxLength; i++) {
         const aPart = parseInt(aParts[i] || '0', 10);
         const bPart = parseInt(bParts[i] || '0', 10);
 
-        if (aPart < bPart) return -1;
-        if (aPart > bPart) return 1;
+        if (aPart < bPart) return -1 * direction;
+        if (aPart > bPart) return 1 * direction;
       }
 
       return 0;

@@ -1,5 +1,18 @@
-import { NzNotificationService } from 'ng-zorro-antd/notification'
-import { Component, OnInit, Input, Output, EventEmitter, inject, AfterViewInit, Optional, Inject, ViewChild, ElementRef, ChangeDetectorRef } from '@angular/core';
+import { NzNotificationService } from 'ng-zorro-antd/notification';
+import {
+  Component,
+  OnInit,
+  Input,
+  Output,
+  EventEmitter,
+  inject,
+  AfterViewInit,
+  Optional,
+  Inject,
+  ViewChild,
+  ElementRef,
+  ChangeDetectorRef,
+} from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
 import { DateTime } from 'luxon';
 import { CommonModule } from '@angular/common';
@@ -17,8 +30,14 @@ import { ReactiveFormsModule } from '@angular/forms';
 import { NzCheckboxModule } from 'ng-zorro-antd/checkbox';
 import { NzFormModule } from 'ng-zorro-antd/form'; //
 import { FormGroup, FormBuilder, Validators } from '@angular/forms';
-import { AngularSlickgridModule, AngularGridInstance, Column, GridOption, Formatters } from 'angular-slickgrid';
-
+import {
+  AngularSlickgridModule,
+  AngularGridInstance,
+  Column,
+  GridOption,
+  Formatters,
+} from 'angular-slickgrid';
+import { NzSplitterModule } from 'ng-zorro-antd/splitter';
 import { SplitterModule } from 'primeng/splitter';
 import { CardModule } from 'primeng/card';
 import { BillImportTechnicalService } from '../../bill-import-technical/bill-import-technical-service/bill-import-technical.service';
@@ -28,6 +47,8 @@ import { NgbModal } from '@ng-bootstrap/ng-bootstrap';
 import { BillImportTechnicalFormComponent } from '../../bill-import-technical/bill-import-technical-form/bill-import-technical-form.component';
 import { BillExportTechnicalFormComponent } from '../../bill-export-technical/bill-export-technical-form/bill-export-technical-form.component';
 import { BillExportTechnicalService } from '../../bill-export-technical/bill-export-technical-service/bill-export-technical.service';
+import { NzCardModule } from 'ng-zorro-antd/card';
+
 @Component({
   standalone: true,
   imports: [
@@ -47,14 +68,16 @@ import { BillExportTechnicalService } from '../../bill-export-technical/bill-exp
     NzButtonModule,
     NzModalModule,
     NzFormModule,
-    NgbModalModule
-
+    NgbModalModule,
+    NzSplitterModule,
+    NzCardModule
   ],
   selector: 'app-material-detail-of-product-rtc',
   templateUrl: './material-detail-of-product-rtc.component.html',
-  styleUrls: ['./material-detail-of-product-rtc.component.css']
+  styleUrls: ['./material-detail-of-product-rtc.component.css'],
 })
-export class MaterialDetailOfProductRtcComponent implements OnInit, AfterViewInit {
+export class MaterialDetailOfProductRtcComponent
+  implements OnInit, AfterViewInit {
   @Output() closeModal = new EventEmitter<void>();
   @Input() productRTCID1!: number;
   @Input() warehouseID1!: number;
@@ -69,32 +92,32 @@ export class MaterialDetailOfProductRtcComponent implements OnInit, AfterViewIni
   //ds sản phẩm
   productData: any[] = [];
   //requet gọi store
-@Input() warehouseID: number = 0;
- @Input() productRTCID: number = 0;
-@Input() ProductCode: string = '';
-@Input() ProductName: string = '';
- @Input() NumberBegin: number = 0;
- @Input() InventoryLatest: number = 0;
- @Input() NumberImport: number = 0;
- @Input() NumberExport: number = 0;
- @Input() NumberBorrowing: number = 0;
- @Input() InventoryReal: number = 0;
-  
+  @Input() warehouseID: number = 0;
+  @Input() productRTCID: number = 0;
+  @Input() ProductCode: string = '';
+  @Input() ProductName: string = '';
+  @Input() NumberBegin: number = 0;
+  @Input() InventoryLatest: number = 0;
+  @Input() NumberImport: number = 0;
+  @Input() NumberExport: number = 0;
+  @Input() NumberBorrowing: number = 0;
+  @Input() InventoryReal: number = 0;
+
   // Angular SlickGrid instances
   angularGridBorrow!: AngularGridInstance;
   angularGridImport!: AngularGridInstance;
   angularGridExport!: AngularGridInstance;
-  
+
   // Column definitions
   columnDefinitionsBorrow: Column[] = [];
   columnDefinitionsImport: Column[] = [];
   columnDefinitionsExport: Column[] = [];
-  
+
   // Grid options
   gridOptionsBorrow: GridOption = {};
   gridOptionsImport: GridOption = {};
   gridOptionsExport: GridOption = {};
-  
+
   // Datasets
   datasetBorrow: any[] = [];
   datasetImport: any[] = [];
@@ -148,12 +171,8 @@ export class MaterialDetailOfProductRtcComponent implements OnInit, AfterViewIni
       this.NumberBorrowing = this.tabData.NumberBorrowing || 0;
       this.InventoryReal = this.tabData.InventoryReal || 0;
     }
-
-    this.getBorrowImportExportProductRTC();
-    console.log("Received productRTCID:", this.productRTCID1);
-    console.log("Received warehouseID:", this.warehouseID1);
-    console.log("Received tabData:", this.tabData);
     this.initForm();
+    this.initColumns();
   }
 
   close() {
@@ -161,10 +180,8 @@ export class MaterialDetailOfProductRtcComponent implements OnInit, AfterViewIni
     this.activeModal?.dismiss('cancel');
   }
   ngAfterViewInit() {
-    // Initialize columns and grid options
-    this.initColumns();
-    // Không cần gọi getProduct() nữa vì dữ liệu đã được truyền từ parent qua tabData
-     this.getProduct();
+    this.getBorrowImportExportProductRTC();
+    this.getProduct();
   }
 
   initColumns() {
@@ -182,41 +199,39 @@ export class MaterialDetailOfProductRtcComponent implements OnInit, AfterViewIni
         },
       },
       {
-        id: 'ID',
-        field: 'ID',
-        name: 'ID',
-        width: 0,
-        hidden: true,
-      },
-      {
         id: 'DateBorrow',
         field: 'DateBorrow',
         name: 'Ngày mượn',
-        width: 150,
+        width: 120,
         sortable: true,
         filterable: true,
         formatter: Formatters.date,
         params: { dateFormat: 'DD/MM/YYYY' },
       },
       {
-        id: 'DateReturnExpected',
-        field: 'DateReturnExpected',
-        name: 'Ngày trả dự kiến',
-        width: 150,
+        id: 'FullName',
+        field: 'FullName',
+        name: 'Người mượn',
+        width: 200,
         sortable: true,
         filterable: true,
-        formatter: Formatters.date,
-        params: { dateFormat: 'DD/MM/YYYY' },
       },
       {
-        id: 'DateReturn',
-        field: 'DateReturn',
-        name: 'Ngày trả',
-        width: 150,
+        id: 'StatusText',
+        field: 'StatusText',
+        name: 'Trạng thái',
+        width: 100,
         sortable: true,
         filterable: true,
-        formatter: Formatters.date,
-        params: { dateFormat: 'DD/MM/YYYY' },
+      },
+      {
+        id: 'NumberBorrow',
+        field: 'NumberBorrow',
+        name: 'Số mượn',
+        width: 60,
+        sortable: true,
+        filterable: true,
+        type: 'number',
       },
       {
         id: 'Project',
@@ -227,6 +242,26 @@ export class MaterialDetailOfProductRtcComponent implements OnInit, AfterViewIni
         filterable: true,
       },
       {
+        id: 'DateReturnExpected',
+        field: 'DateReturnExpected',
+        name: 'Ngày trả dự kiến',
+        width: 120,
+        sortable: true,
+        filterable: true,
+        formatter: Formatters.date,
+        params: { dateFormat: 'DD/MM/YYYY' },
+      },
+      {
+        id: 'DateReturn',
+        field: 'DateReturn',
+        name: 'Ngày trả',
+        width: 120,
+        sortable: true,
+        filterable: true,
+        formatter: Formatters.date,
+        params: { dateFormat: 'DD/MM/YYYY' },
+      },
+      {
         id: 'Note',
         field: 'Note',
         name: 'Ghi chú',
@@ -234,31 +269,7 @@ export class MaterialDetailOfProductRtcComponent implements OnInit, AfterViewIni
         sortable: true,
         filterable: true,
       },
-      {
-        id: 'NumberBorrow',
-        field: 'NumberBorrow',
-        name: 'Số mượn',
-        width: 150,
-        sortable: true,
-        filterable: true,
-        type: 'number',
-      },
-      {
-        id: 'StatusText',
-        field: 'StatusText',
-        name: 'Trạng thái',
-        width: 150,
-        sortable: true,
-        filterable: true,
-      },
-      {
-        id: 'FullName',
-        field: 'FullName',
-        name: 'Người mượn',
-        width: 200,
-        sortable: true,
-        filterable: true,
-      },
+
     ];
 
     // Import columns
@@ -267,7 +278,7 @@ export class MaterialDetailOfProductRtcComponent implements OnInit, AfterViewIni
         id: 'TT',
         field: 'TT',
         name: 'TT',
-        width: 60,
+        width: 30,
         sortable: false,
         filterable: false,
         formatter: (row, _cell, _value, _column, _dataContext) => {
@@ -275,17 +286,10 @@ export class MaterialDetailOfProductRtcComponent implements OnInit, AfterViewIni
         },
       },
       {
-        id: 'ID',
-        field: 'ID',
-        name: 'ID',
-        width: 0,
-        hidden: true,
-      },
-      {
         id: 'BillCode',
         field: 'BillCode',
         name: 'Mã phiếu nhập',
-        width: 150,
+        width: 100,
         sortable: true,
         filterable: true,
       },
@@ -293,7 +297,7 @@ export class MaterialDetailOfProductRtcComponent implements OnInit, AfterViewIni
         id: 'CreatDate',
         field: 'CreatDate',
         name: 'Ngày tạo',
-        width: 150,
+        width: 120,
         sortable: true,
         filterable: true,
         formatter: Formatters.date,
@@ -303,7 +307,7 @@ export class MaterialDetailOfProductRtcComponent implements OnInit, AfterViewIni
         id: 'Quantity',
         field: 'Quantity',
         name: 'Số lượng',
-        width: 150,
+        width: 80,
         sortable: true,
         filterable: true,
         type: 'number',
@@ -312,7 +316,7 @@ export class MaterialDetailOfProductRtcComponent implements OnInit, AfterViewIni
         id: 'Deliver',
         field: 'Deliver',
         name: 'Người giao',
-        width: 200,
+        width: 120,
         sortable: true,
         filterable: true,
       },
@@ -332,7 +336,7 @@ export class MaterialDetailOfProductRtcComponent implements OnInit, AfterViewIni
         id: 'TT',
         field: 'TT',
         name: 'TT',
-        width: 60,
+        width: 30,
         sortable: false,
         filterable: false,
         formatter: (row, _cell, _value, _column, _dataContext) => {
@@ -340,17 +344,10 @@ export class MaterialDetailOfProductRtcComponent implements OnInit, AfterViewIni
         },
       },
       {
-        id: 'ID',
-        field: 'ID',
-        name: 'ID',
-        width: 0,
-        hidden: true,
-      },
-      {
         id: 'Code',
         field: 'Code',
         name: 'Mã phiếu xuất',
-        width: 150,
+        width: 100,
         sortable: true,
         filterable: true,
       },
@@ -358,7 +355,7 @@ export class MaterialDetailOfProductRtcComponent implements OnInit, AfterViewIni
         id: 'CreatedDate',
         field: 'CreatedDate',
         name: 'Ngày tạo',
-        width: 150,
+        width: 120,
         sortable: true,
         filterable: true,
         formatter: Formatters.date,
@@ -368,7 +365,7 @@ export class MaterialDetailOfProductRtcComponent implements OnInit, AfterViewIni
         id: 'Quantity',
         field: 'Quantity',
         name: 'Số lượng',
-        width: 150,
+        width: 80,
         sortable: true,
         filterable: true,
         type: 'number',
@@ -377,7 +374,7 @@ export class MaterialDetailOfProductRtcComponent implements OnInit, AfterViewIni
         id: 'Receiver',
         field: 'Receiver',
         name: 'Người nhận',
-        width: 200,
+        width: 120,
         sortable: true,
         filterable: true,
       },
@@ -393,7 +390,7 @@ export class MaterialDetailOfProductRtcComponent implements OnInit, AfterViewIni
         id: 'BillTypeText',
         field: 'BillTypeText',
         name: 'Loại phiếu',
-        width: 150,
+        width: 80,
         sortable: true,
         filterable: true,
       },
@@ -405,16 +402,18 @@ export class MaterialDetailOfProductRtcComponent implements OnInit, AfterViewIni
       autoResize: {
         container: '.grid-container-borrow',
         calculateAvailableSizeBy: 'container',
+        resizeDetection: 'container',
       },
       gridWidth: '100%',
-      gridHeight: '78vh',
-      enableFiltering: false,
+      enableEmptyDataWarningMessage: false,
+      enableFiltering: true,
       enableSorting: true,
       enableCellNavigation: true,
       enableRowSelection: false,
       datasetIdPropertyName: 'id',
       autoFitColumnsOnFirstLoad: false,
       enableAutoSizeColumns: false,
+      forceFitColumns: true,
     };
 
     this.gridOptionsImport = {
@@ -422,16 +421,18 @@ export class MaterialDetailOfProductRtcComponent implements OnInit, AfterViewIni
       autoResize: {
         container: '.grid-container-import',
         calculateAvailableSizeBy: 'container',
+        resizeDetection: 'container',
       },
       gridWidth: '100%',
-      gridHeight: '41vh',
-      enableFiltering: false,
+      enableEmptyDataWarningMessage: false,
+      enableFiltering: true,
       enableSorting: true,
       enableCellNavigation: true,
       enableRowSelection: false,
       datasetIdPropertyName: 'id',
       autoFitColumnsOnFirstLoad: false,
       enableAutoSizeColumns: false,
+      forceFitColumns: true,
     };
 
     this.gridOptionsExport = {
@@ -439,71 +440,75 @@ export class MaterialDetailOfProductRtcComponent implements OnInit, AfterViewIni
       autoResize: {
         container: '.grid-container-export',
         calculateAvailableSizeBy: 'container',
+        resizeDetection: 'container',
       },
       gridWidth: '100%',
-      gridHeight: '41vh',
-      enableFiltering: false,
+      enableEmptyDataWarningMessage: false,
+      enableFiltering: true,
       enableSorting: true,
       enableCellNavigation: true,
       enableRowSelection: false,
       datasetIdPropertyName: 'id',
       autoFitColumnsOnFirstLoad: false,
       enableAutoSizeColumns: false,
+      forceFitColumns: true,
     };
   }
   getProduct() {
     const request = {
       productGroupID: 0,
-      keyWord: "",
+      keyWord: '',
       checkAll: 1,
       warehouseID: this.warehouseID1 || 1,
       productRTCID: this.productRTCID1 || 1,
     };
-    console.log("request", request);
-    this.inventoryDemoService.getInventoryDemo(request).subscribe((response: any) => {
-      this.productData = response.products || [];
-      this.ProductCode = response.products?.[0]?.ProductCode || '';
-      this.ProductName = response.products?.[0]?.ProductName || '';
-      this.NumberBegin = response.products?.[0]?.Number || 0;
-      this.InventoryLatest = response.products?.[0]?.InventoryLatest || 0;
-      this.NumberImport = response.products?.[0]?.NumberImport || 0;
-      this.NumberExport = response.products?.[0]?.NumberExport || 0;
-      this.NumberBorrowing = response.products?.[0]?.NumberBorrowing || 0;
-      this.InventoryReal = response.products?.[0]?.InventoryReal || 0;
-    });
+    console.log('request', request);
+    this.inventoryDemoService
+      .getInventoryDemo(request)
+      .subscribe((response: any) => {
+        this.productData = response.products || [];
+        this.ProductCode = response.products?.[0]?.ProductCode || '';
+        this.ProductName = response.products?.[0]?.ProductName || '';
+        this.NumberBegin = response.products?.[0]?.Number || 0;
+        this.InventoryLatest = response.products?.[0]?.InventoryLatest || 0;
+        this.NumberImport = response.products?.[0]?.NumberImport || 0;
+        this.NumberExport = response.products?.[0]?.NumberExport || 0;
+        this.NumberBorrowing = response.products?.[0]?.NumberBorrowing || 0;
+        this.InventoryReal = response.products?.[0]?.InventoryReal || 0;
+      });
   }
-  getBorrowImportExportProductRTC(ProductID?: number, WarehouseID?: number): void {
-    this.inventoryDemoService.getBorrowImportExportProductRTC(this.productRTCID1, this.warehouseID1).subscribe((response: any) => {
-      this.listImport = response.listImport || [];
-      this.listExport = response.listExport || [];
-      this.listBorrow = response.listBorrow || [];
-      console.log('listImport', this.listImport);
-      console.log('listExport', this.listExport);
-      console.log('listBorrow', this.listBorrow);
-      
-      // Format date fields and add unique IDs - tạo array mới để Angular detect thay đổi
-      const formattedImport = this.formatDataWithIds(this.listImport);
-      const formattedExport = this.formatDataWithIds(this.listExport);
-      const formattedBorrow = this.formatDataWithIds(this.listBorrow);
-      
-      // Tạo array mới để Angular detect thay đổi
-      this.datasetImport = [...formattedImport];
-      this.datasetExport = [...formattedExport];
-      this.datasetBorrow = [...formattedBorrow];
-      
-      // Force change detection trước
-      this.cdr.detectChanges();
-      
-      // Refresh grids nếu đã ready - đợi một chút để đảm bảo Angular đã update dataset
-      setTimeout(() => {
-        this.refreshAllGrids();
-      }, 200);
-    });
+  getBorrowImportExportProductRTC(
+    ProductID?: number,
+    WarehouseID?: number
+  ): void {
+    this.inventoryDemoService
+      .getBorrowImportExportProductRTC(this.productRTCID1, this.warehouseID1)
+      .subscribe((response: any) => {
+        this.listImport = response.listImport || [];
+        this.listExport = response.listExport || [];
+        this.listBorrow = response.listBorrow || [];
+
+        // Format date fields and add unique IDs - tạo array mới để Angular detect thay đổi
+        this.datasetImport = this.formatDataWithIds(this.listImport);
+        this.datasetExport = this.formatDataWithIds(this.listExport);
+        this.datasetBorrow = this.formatDataWithIds(this.listBorrow);
+
+        // Force change detection trước
+        this.cdr.detectChanges();
+
+        // Refresh grids nếu đã ready - đợi một chút để đảm bảo Angular đã update dataset
+        setTimeout(() => {
+          this.refreshAllGrids();
+        }, 200);
+      });
   }
 
   private refreshAllGrids(): void {
-    if (this.angularGridBorrow && this.angularGridBorrow.dataView && this.angularGridBorrow.slickGrid) {
-      this.angularGridBorrow.dataView.setItems(this.datasetBorrow || []);
+    if (
+      this.angularGridBorrow &&
+      this.angularGridBorrow.dataView &&
+      this.angularGridBorrow.slickGrid
+    ) {
       this.angularGridBorrow.dataView.refresh();
       this.angularGridBorrow.slickGrid.invalidate();
       this.angularGridBorrow.slickGrid.render();
@@ -511,7 +516,11 @@ export class MaterialDetailOfProductRtcComponent implements OnInit, AfterViewIni
         this.angularGridBorrow.resizerService.resizeGrid();
       }
     }
-    if (this.angularGridImport && this.angularGridImport.dataView && this.angularGridImport.slickGrid) {
+    if (
+      this.angularGridImport &&
+      this.angularGridImport.dataView &&
+      this.angularGridImport.slickGrid
+    ) {
       this.angularGridImport.dataView.setItems(this.datasetImport || []);
       this.angularGridImport.dataView.refresh();
       this.angularGridImport.slickGrid.invalidate();
@@ -520,7 +529,11 @@ export class MaterialDetailOfProductRtcComponent implements OnInit, AfterViewIni
         this.angularGridImport.resizerService.resizeGrid();
       }
     }
-    if (this.angularGridExport && this.angularGridExport.dataView && this.angularGridExport.slickGrid) {
+    if (
+      this.angularGridExport &&
+      this.angularGridExport.dataView &&
+      this.angularGridExport.slickGrid
+    ) {
       this.angularGridExport.dataView.setItems(this.datasetExport || []);
       this.angularGridExport.dataView.refresh();
       this.angularGridExport.slickGrid.invalidate();
@@ -536,7 +549,7 @@ export class MaterialDetailOfProductRtcComponent implements OnInit, AfterViewIni
   private formatDataWithIds(data: any[]): any[] {
     return data.map((item: any, index: number) => ({
       ...item,
-      id: item.ID ? `id_${item.ID}_${index}` : `idx_${index}_${Date.now()}`,
+      id: index++,
     }));
   }
   // Double click handlers
@@ -587,7 +600,6 @@ export class MaterialDetailOfProductRtcComponent implements OnInit, AfterViewIni
     }, 150);
   }
 
-
   // Open Bill Import Technical Detail Modal (matching C# grvDataImport_DoubleClick)
   openBillImportTechnicalDetail(importID: number): void {
     if (!importID || importID <= 0) {
@@ -612,7 +624,8 @@ export class MaterialDetailOfProductRtcComponent implements OnInit, AfterViewIni
         modalRef.componentInstance.masterId = importID;
         modalRef.componentInstance.warehouseID = this.warehouseID1;
         modalRef.componentInstance.warehouseType = this.warehouseType;
-        modalRef.componentInstance.WarehouseCode = billMaster.WarehouseCode || 'HN';
+        modalRef.componentInstance.WarehouseCode =
+          billMaster.WarehouseCode || 'HN';
         modalRef.componentInstance.dataEdit = billMaster; // Truyền master data để form tự fill
         modalRef.componentInstance.dtDetails = billDetail; // Truyền detail data
 
@@ -632,8 +645,11 @@ export class MaterialDetailOfProductRtcComponent implements OnInit, AfterViewIni
       },
       error: (error) => {
         console.error('Error loading bill import detail:', error);
-        this.notification.error('Thông báo', 'Không thể tải thông tin phiếu nhập!');
-      }
+        this.notification.error(
+          'Thông báo',
+          'Không thể tải thông tin phiếu nhập!'
+        );
+      },
     });
   }
 
@@ -681,8 +697,11 @@ export class MaterialDetailOfProductRtcComponent implements OnInit, AfterViewIni
       },
       error: (error) => {
         console.error('Error loading bill export detail:', error);
-        this.notification.error('Thông báo', 'Không thể tải thông tin phiếu xuất!');
-      }
+        this.notification.error(
+          'Thông báo',
+          'Không thể tải thông tin phiếu xuất!'
+        );
+      },
     });
   }
 }

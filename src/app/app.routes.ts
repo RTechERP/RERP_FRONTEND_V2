@@ -61,6 +61,7 @@ import { HolidayComponent } from './pages/hrm/holiday/holiday.component';
 import { HrPurchaseProposalComponent } from './pages/hrm/hr-purchase-proposal/hr-purchase-proposal.component';
 import { HrhiringRequestComponent } from './pages/hrm/hrhiring-request/hrhiring-request.component';
 import { JobRequirementComponent } from './pages/hrm/job-requirement/job-requirement.component';
+import { ApproveJobRequirementComponent } from './pages/hrm/job-requirement/approve-job-requirement/approve-job-requirement.component';
 import { OfficeSupplyComponent } from './pages/hrm/office-supply/OfficeSupply/office-supply.component';
 import { OfficeSupplyRequestsComponent } from './pages/hrm/office-supply/OfficeSupplyRequests/office-supply-requests.component';
 import { OfficeSupplyRequestSummaryComponent } from './pages/hrm/office-supply/OfficeSupplyRequestSummary/office-supply-request-summary.component';
@@ -218,8 +219,16 @@ import { InventoryBorrowNCCComponent } from './pages/old/Sale/Inventory/Modal/in
 
 import { NewsletterFormViewAllComponent } from './pages/old/newsletter/newsletter/newsletter-form-view-all/newsletter-form-view-all.component';
 import { CourseManagementComponent } from './pages/Course/course-management/course-management.component';
+import { EconimicContractTermComponent } from './pages/hrm/economic-contract/econimic-contract-term/econimic-contract-term.component';
+import { EconomicContractTypeComponent } from './pages/hrm/economic-contract/economic-contract-type/economic-contract-type.component';
+import { EconomicContractComponent } from './pages/hrm/economic-contract/economic-contract.component';
 import { KPIEvaluationEmployeeComponent } from './pages/KPITech/kpievaluation-employee/kpievaluation-employee.component';
 import { KPIEvaluationFactorScoringComponent } from './pages/KPITech/kpievaluation-factor-scoring/kpievaluation-factor-scoring.component';
+import { SettingHrConfigComponent } from './pages/hrm/setting/setting-hr-config/setting-hr-config.component';
+import { KpiErrorComponent } from './pages/old/Technical/kpi-error/kpi-error.component';
+import { KpiErrorEmployeeComponent } from './pages/old/Technical/kpi-error-employee/kpi-error-employee.component';
+import { KpiErrorEmployeeSummaryMaxComponent } from './pages/old/Technical/kpi-error-employee-summary-max/kpi-error-employee-summary-max.component';
+import { SummaryKpiErrorEmployeeMonthComponent } from './pages/old/Technical/summary-kpi-error-employee-month/summary-kpi-error-employee-month.component';
 import { InventoryProjectProductSaleLinkComponent } from './pages/purchase/inventory-project-product-sale-link/inventory-project-product-sale-link.component';
 
 // import { CustomerSlickgridComponent } from './pages/crm/customers/customer-slickgrid/customer-slickgrid.component';
@@ -303,6 +312,8 @@ export const routes: Routes = [
             { path: 'tb-product-rtc', component: TbProductRtcComponent, canActivate: [authGuard] },
             { path: 'hrhiring-request', component: HrhiringRequestComponent, canActivate: [authGuard] },
             { path: 'job-requirement', component: JobRequirementComponent, canActivate: [authGuard] },
+            { path: 'approve-job-requirement', component: ApproveJobRequirementComponent, canActivate: [authGuard] },
+            { path: 'job-requirement-bgd', component: ApproveJobRequirementComponent, canActivate: [authGuard] },
             { path: 'hr-purchase-proposal', component: HrPurchaseProposalComponent, canActivate: [authGuard] },
             { path: 'document', component: DocumentComponent, canActivate: [authGuard] },
             { path: 'ts-asset-management', component: TsAssetManagementComponent, canActivate: [authGuard] },
@@ -423,6 +434,11 @@ export const routes: Routes = [
             { path: 'project-partlist', component: ProjectPartListComponent, canActivate: [authGuard] },
             { path: 'org-chart-rtc', component: OrgChartRtcComponent, canActivate: [authGuard] },
             { path: 'org-chart-rtc-management', component: OrgChartRtcManagementComponent, canActivate: [authGuard] },
+            { path: 'economic-contract-term', component: EconimicContractTermComponent, canActivate: [authGuard] },
+            { path: 'economic-contract-type', component: EconomicContractTypeComponent, canActivate: [authGuard] },
+            { path: 'economic-contract', component: EconomicContractComponent, canActivate: [authGuard] },
+            { path: 'setting-hr-config', component: SettingHrConfigComponent, canActivate: [authGuard] },
+
 
 
 
@@ -965,6 +981,12 @@ export const routes: Routes = [
             { path: 'course-management', component: CourseManagementComponent, canActivate: [authGuard] },
 
             { path: 'chi-tiet-san-pham-sale', component: ChiTietSanPhamSaleComponent, canActivate: [authGuard] },
+
+            //Quản lý lỗi phòng Kỹ thuật
+            { path: 'kpi-error', component: KpiErrorComponent, canActivate: [authGuard] },
+            { path: 'kpi-error-employee', component: KpiErrorEmployeeComponent, canActivate: [authGuard] },
+            { path: 'kpi-error-employee-summary-max', component: KpiErrorEmployeeSummaryMaxComponent, canActivate: [authGuard] },
+            { path: 'summary-kpi-error-employee-month', component: SummaryKpiErrorEmployeeMonthComponent, canActivate: [authGuard] },
 
         ],
     },

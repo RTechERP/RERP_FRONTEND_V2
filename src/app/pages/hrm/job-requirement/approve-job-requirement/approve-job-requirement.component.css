@@ -1,0 +1,176 @@
+/* Set font-size 12px cho tất cả các bảng SlickGrid (trừ badge) */
+#approveJobRequirementGridContainer,
+#approveJobRequirementGridContainer *:not(.badge):not(.badge *) {
+    font-size: 12px !important;
+}
+
+/* Đảm bảo tất cả text trong bảng đều 12px */
+#approveJobRequirementGridContainer .slick-cell,
+#approveJobRequirementGridContainer .slick-header-column {
+    font-size: 12px !important;
+}
+
+/* Đảm bảo Header dàn đều và không bị cắt bằng dấu ... */
+#approveJobRequirementGridContainer .slick-header-column {
+    white-space: normal !important;
+    text-overflow: clip !important;
+    line-height: 1.2 !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center;
+    text-align: center;
+}
+
+#approveJobRequirementGridContainer .slick-header-column .slick-column-name {
+    white-space: normal !important;
+    display: block !important;
+}
+
+:host {
+    font-size: 12px !important;
+}
+
+.card {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    max-height: 93vh;
+    overflow: hidden;
+}
+
+.card-body {
+    flex: 1 1 auto;
+    min-height: 0;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+}
+
+.card-body>div {
+    flex: 1 1 auto;
+    min-height: 0;
+    overflow: hidden;
+}
+
+/* Set font-size 10px cho các badge duyệt - độ ưu tiên cao nhất */
+#approveJobRequirementGridContainer .badge,
+#approveJobRequirementGridContainer .slick-cell .badge,
+#approveJobRequirementGridContainer .badge span,
+#approveJobRequirementGridContainer .badge * {
+    font-size: 10px !important;
+    padding: 2px 6px !important;
+    line-height: 1.2 !important;
+}
+
+/* Prevent text truncation but allow scrolling */
+#approveJobRequirementGridContainer .slick-cell {
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+    white-space: nowrap !important;
+}
+
+::ng-deep #approveJobRequirementGrid {
+    height: 90vh !important;
+}
+
+/* Màu dòng dựa trên trạng thái duyệt */
+::ng-deep .row-approved .slick-cell {
+    background-color: #afe7bc !important;
+    color: #313131 !important;
+}
+
+::ng-deep .row-cancelled .slick-cell {
+    background-color: #db989e !important;
+    color: #232323 !important;
+}
+
+/* SlickGrid Row Detail styles */
+::ng-deep .slick-row-detail {
+    background: #f8f9fa !important;
+}
+
+::ng-deep .slick-row-detail-container {
+    padding: 0 !important;
+}
+
+/* Detail view inner table styles */
+.detail-body table {
+    font-size: 11px !important;
+}
+
+.detail-body table thead th {
+    background: #f5f5f5;
+    font-weight: 600;
+    white-space: nowrap;
+    padding: 4px 8px;
+    border-bottom: 2px solid #dee2e6;
+}
+
+.detail-body table tbody td {
+    padding: 4px 8px;
+    vertical-align: middle;
+}
+
+
+/* Search form positioning and z-index fixes */
+.filter-bar {
+    position: relative;
+    z-index: 10;
+    background: #f8f9fa;
+    border-bottom: 1px solid #dee2e6;
+}
+
+/* Ensure buttons stay above search form on desktop */
+.card-header {
+    position: relative;
+    z-index: 20;
+    background: white;
+}
+
+/* Mobile modal styles */
+@media (max-width: 768px) {
+    .filter-bar.mobile-modal {
+        position: fixed;
+        top: 60px;
+        left: 0;
+        right: 0;
+        z-index: 1050;
+        background: white;
+        border-bottom: 1px solid #dee2e6;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+        max-height: 70vh;
+        overflow-y: auto;
+        margin: 16px;
+        border-radius: 8px;
+    }
+
+    .filter-backdrop {
+        display: block;
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: rgba(0, 0, 0, 0.3);
+        z-index: 1040;
+    }
+}
+
+/* Desktop - keep search form always visible */
+@media (min-width: 769px) {
+    .filter-backdrop {
+        display: none !important;
+    }
+
+    .filter-bar {
+        position: static !important;
+        z-index: 1 !important;
+    }
+}
+
+/* Ensure nz-spin propagates height to grid */
+::ng-deep .master-grid-container nz-spin,
+::ng-deep .master-grid-container .ant-spin-container,
+::ng-deep .master-grid-container .ant-spin-nested-loading {
+    height: 100% !important;
+}

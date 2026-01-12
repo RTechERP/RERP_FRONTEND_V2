@@ -15,6 +15,7 @@ export interface ProjectPartlistPurchaseRequestParam {
   IsTechBought?: number;
   IsJobRequirement?: number;
   EmployeeID?: number;
+  IsRequestApproved?: number;
 }
 
 export interface RequestType {

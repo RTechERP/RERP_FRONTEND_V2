@@ -2867,6 +2867,14 @@ export class PaymentOrderComponent implements OnInit {
 
             modalRef.componentInstance.paymentOrder = paymentOrder;
             modalRef.componentInstance.isCopy = isCopy;
+            modalRef.result.then(
+                (result) => {
+                    this.loadData();
+                },
+                () => {
+                    // Modal dismissed
+                }
+            );
         } else {
             const modalRef = this.modalService.open(PaymentOrderSpecialComponent, {
                 centered: true,
@@ -2878,6 +2886,15 @@ export class PaymentOrderComponent implements OnInit {
             });
             modalRef.componentInstance.paymentOrder = paymentOrder;
             modalRef.componentInstance.isCopy = isCopy;
+
+            modalRef.result.then(
+                (result) => {
+                    this.loadData();
+                },
+                () => {
+                    // Modal dismissed
+                }
+            );
         }
 
     }
@@ -2904,18 +2921,29 @@ export class PaymentOrderComponent implements OnInit {
     }
 
     onDelete() {
-        let grid = this.angularGrid;
-        if (this.activeTab == '1') grid = this.angularGridSpecial;
+        // let grid = this.angularGrid;
+        // if (this.activeTab == '1') grid = this.angularGridSpecial;
 
-        const activeCell = grid.slickGrid.getActiveCell();
+        // const activeCell = grid.slickGrid.getActiveCell();
 
-        if (activeCell) {
-            const rowIndex = activeCell.row;        // index trong grid
-            const item = grid.dataView.getItem(rowIndex) as PaymentOrder; // data object
+        let gridInstance = this.angularGrid;
+        if (this.activeTab == '1') gridInstance = this.angularGridSpecial;
+
+        const grid = gridInstance.slickGrid;
+        const dataView = gridInstance.dataView;
+
+        const rowIndexes = grid.getSelectedRows();
+
+        let selectedItems = rowIndexes
+            .map(i => dataView.getItem(i));
+
+        if (selectedItems.length > 0) {
+            // const rowIndex = activeCell.row;        // index trong grid
+            // const item = grid.dataView.getItem(rowIndex) as PaymentOrder; // data object
 
             Swal.fire({
-                title: 'Xác nhận duyệt?',
-                text: `Bạn có chắc muốn xóa ĐNTT [${item.Code}] đã chọn không?`,
+                title: 'Xác nhận xóa?',
+                text: `Bạn có chắc muốn xóa ${selectedItems.length} đã chọn không?`,
                 icon: 'question',
                 showCancelButton: true,
                 confirmButtonColor: '#28a745 ',
@@ -2924,21 +2952,31 @@ export class PaymentOrderComponent implements OnInit {
                 cancelButtonText: 'Hủy',
             }).then((result: any) => {
                 if (result.isConfirmed) {
-                    const paymentDeleted = {
-                        ID: item.ID,
-                        IsDelete: true,
-                        Code: item.Code
+
+                    // selectedItems = selectedItems.map((x, i) => ({
+                    //     ID: x.ID,
+                    //     IsDelete: true,
+                    //     Code: x.Code
+                    // }));
+
+                    for (let i = 0; i < selectedItems.length; i++) {
+                        const paymentDeleted = {
+                            ID: selectedItems[i].ID,
+                            IsDelete: true,
+                            Code: selectedItems[i].Code
+                        }
+                        this.paymentService.save(paymentDeleted).subscribe({
+                            next: (response) => {
+                                console.log(response);
+                                this.loadData();
+                            },
+                            error: (err) => {
+                                this.notification.error(NOTIFICATION_TITLE.error, err.error.message);
+                            }
+                        })
                     }
 
-                    this.paymentService.save(paymentDeleted).subscribe({
-                        next: (response) => {
-                            console.log(response);
-                            this.loadData();
-                        },
-                        error: (err) => {
-                            this.notification.error(NOTIFICATION_TITLE.error, err.error.message);
-                        }
-                    })
+                    this.loadData();
                 }
             });
         }
@@ -3039,8 +3077,6 @@ export class PaymentOrderComponent implements OnInit {
         const dataView = gridInstance.dataView;
 
         const rowIndexes = grid.getSelectedRows();
-
-
 
         let selectedItems = rowIndexes
             .map(i => dataView.getItem(i));

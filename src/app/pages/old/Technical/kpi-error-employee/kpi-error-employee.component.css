@@ -1,0 +1,77 @@
+:host {
+    display: block;
+    height: 100%;
+    width: 100%;
+}
+
+.card {
+    height: 100%;
+    min-height: 0;
+}
+
+.card-body {
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
+}
+
+.filter-bar {
+    flex-shrink: 0;
+}
+
+/* NZ-Splitter styles */
+:host ::ng-deep nz-splitter {
+    height: 100% !important;
+}
+
+:host ::ng-deep nz-splitter-panel {
+    height: 100% !important;
+    overflow: hidden;
+}
+
+/* Grid container styles */
+.grid-container-main,
+.grid-container-file {
+    height: 100%;
+    position: relative;
+}
+
+:host ::ng-deep .grid-container-main angular-slickgrid,
+:host ::ng-deep .grid-container-main .slickgrid-container,
+:host ::ng-deep .grid-container-main .gridPane,
+:host ::ng-deep .grid-container-file angular-slickgrid,
+:host ::ng-deep .grid-container-file .slickgrid-container,
+:host ::ng-deep .grid-container-file .gridPane {
+    height: 100% !important;
+}
+
+/* Override slickgrid styles */
+:host ::ng-deep .slick-header-column {
+    font-weight: bold;
+    font-size: 12px;
+}
+
+:host ::ng-deep .slick-cell {
+    font-size: 12px;
+}
+
+:host ::ng-deep .slick-group {
+    background-color: #f5f5f5;
+}
+
+:host ::ng-deep .slick-group-title {
+    font-weight: bold;
+}
+
+/* Select dropdown styles */
+:host ::ng-deep .ant-select-selection-item {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 200px;
+}
+
+/* Font size */
+.fs-12 {
+    font-size: 0.75rem;
+}

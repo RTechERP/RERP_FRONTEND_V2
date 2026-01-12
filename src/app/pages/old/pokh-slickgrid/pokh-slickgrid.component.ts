@@ -55,14 +55,14 @@ import {
 // import 'tabulator-tables/dist/css/tabulator_simple.min.css';
 // import 'bootstrap-icons/font/bootstrap-icons.css';
 import { NgModule, CUSTOM_ELEMENTS_SCHEMA } from '@angular/core';
-import { OnInit, AfterViewInit } from '@angular/core';
+import { OnInit, AfterViewInit, OnDestroy } from '@angular/core';
 import { ApplicationRef, createComponent, Type } from '@angular/core';
 import { setThrowInvalidWriteToSignalError } from '@angular/core/primitives/signals';
 import { EnvironmentInjector } from '@angular/core';
 import { NzTabsModule } from 'ng-zorro-antd/tabs';
 import { DateTime } from 'luxon';
 import { FormGroup, FormBuilder } from '@angular/forms';
-import { Observable } from 'rxjs';
+import { Observable, Subscription } from 'rxjs';
 import { CommonModule } from '@angular/common';
 import { NgbModal } from '@ng-bootstrap/ng-bootstrap';
 import { map, catchError, of, forkJoin } from 'rxjs';
@@ -130,7 +130,7 @@ import { Menubar } from 'primeng/menubar';
   styleUrl: './pokh-slickgrid.component.css',
   schemas: [CUSTOM_ELEMENTS_SCHEMA],
 })
-export class PokhSlickgridComponent implements OnInit, AfterViewInit {
+export class PokhSlickgridComponent implements OnInit, AfterViewInit, OnDestroy {
   @ViewChild('addModalContent') addModalContent!: TemplateRef<any>;
   // @ViewChild('tbProductDetailTreeList', { static: false })
   // tbProductDetailTreeListElement!: ElementRef;
@@ -162,6 +162,8 @@ export class PokhSlickgridComponent implements OnInit, AfterViewInit {
   datasetPOKHFile: any[] = [];
 
   menuBars: any[] = [];
+  private queryParamsSubscription?: Subscription;
+  private isInitialized: boolean = false;
 
   initMenuBar() {
     this.menuBars = [
@@ -353,10 +355,6 @@ export class PokhSlickgridComponent implements OnInit, AfterViewInit {
     //     this.filters.warehouseId = this.tabData.warehouseId;
     // }
 
-    this.route.queryParams.subscribe(params => {
-      this.filters.warehouseId = params['warehouseId'] || 1
-      // this.warehouseType = params['warehouseType'] || 1;
-    });
     const endDate = new Date();
     endDate.setHours(23, 59, 59, 999);
 
@@ -367,23 +365,50 @@ export class PokhSlickgridComponent implements OnInit, AfterViewInit {
     this.filters.startDate = startDate;
     this.filters.endDate = endDate;
 
-    // Initialize SlickGrid tables (like payment-order)
+    // Initialize SlickGrid tables trước
     this.initGridPOKH();
     this.initGridPOKHProduct();
     this.initGridPOKHFile();
 
-    // Load lookup data
-    this.loadCustomers();
-    this.loadUser();
-    this.loadEmployeeTeamSale();
-    this.loadProjects();
-    this.loadTypePO();
-    this.loadFilterMainIndexes();
-    this.loadCurrencies();
-    this.loadProducts();
+    // Subscribe vào queryParams để nhận update từ layout
+    this.queryParamsSubscription = this.route.queryParams.subscribe(params => {
+      const warehouseId = params['warehouseId'];
+
+      // Nếu chưa init và không có warehouseId trong params, bỏ qua - đợi layout thêm queryParams
+      if (!this.isInitialized && !warehouseId) {
+        return;
+      }
+
+      const newWarehouseId = warehouseId || 1;
+
+      // Chỉ load data nếu warehouseId thay đổi hoặc lần đầu tiên
+      if (!this.isInitialized || this.filters.warehouseId !== newWarehouseId) {
+        this.filters.warehouseId = newWarehouseId;
+
+        if (!this.isInitialized) {
+          // Lần đầu tiên: load lookup data
+          this.loadCustomers();
+          this.loadUser();
+          this.loadEmployeeTeamSale();
+          this.loadProjects();
+          this.loadTypePO();
+          this.loadFilterMainIndexes();
+          this.loadCurrencies();
+          this.loadProducts();
+          this.isInitialized = true;
+        } else {
+          // Các lần sau: chỉ reload data POKH
+          this.loadPOKH();
+        }
+      }
+    });
   }
 
   ngAfterViewInit(): void {
+  }
+
+  ngOnDestroy(): void {
+    this.queryParamsSubscription?.unsubscribe();
   }
   //#endregion
 
@@ -1678,7 +1703,7 @@ export class PokhSlickgridComponent implements OnInit, AfterViewInit {
         }
       },
       { id: 'NewAccount', name: 'New Account', field: 'NewAccount', width: 100, minWidth: 70, formatter: this.checkboxFormatter, sortable: true, filterable: true, filter: { model: Filters['singleSelect'], collection: [{ value: null, label: 'Tất cả' }, { value: true, label: 'Có' }, { value: false, label: 'Không' }] } },
-      
+
       { id: 'AccountTypeText', name: 'Loại Account', field: 'AccountTypeText', width: 100, minWidth: 100, sortable: true, filterable: true, filter: { model: Filters['multipleSelect'], collection: [], collectionOptions: { addBlankEntry: true }, filterOptions: { autoAdjustDropHeight: true, filter: true } as MultipleSelectOption } },
 
       { id: 'PONumber', name: 'Số POKH', field: 'PONumber', width: 100, minWidth: 100, sortable: true, filterable: true, filter: { model: Filters['compoundInputText'] } },
@@ -1929,672 +1954,6 @@ export class PokhSlickgridComponent implements OnInit, AfterViewInit {
     });
   }
 
-  //#endregion
-
-  //#region : OLD TABULATOR CODE (commented out)
-  /*
-  drawPOKHTable(): void {
-    const token = localStorage.getItem('token');
-    this.tb_POKH = new Tabulator(this.tb_POKHElement.nativeElement, {
-      layout: 'fitColumns',
-      height: '100%',
-      selectableRows: 1,
-      pagination: true,
-      paginationMode: 'remote',
-      paginationSize: 50,
-      paginationSizeSelector: [10, 30, 50, 100, 300, 500, 99999999],
-      ajaxURL: this.POKHService.getPOKHAjax(),
-      ajaxParams: this.getPOKHAjaxParams(),
-      ajaxConfig: {
-        method: 'GET',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${token}`,
-        },
-      },
-      ajaxResponse: (url, params, res) => {
-        console.log('total', res.totalPages[0].TotalPage);
-        console.log('data', res.data);
-        return {
-          data: res.data,
-          last_page: res.totalPages[0].TotalPage,
-        };
-      },
-      langs: {
-        vi: {
-          pagination: {
-            first: '<<',
-            last: '>>',
-            prev: '<',
-            next: '>',
-          },
-        },
-      },
-      locale: 'vi',
-      movableColumns: true,
-      resizableRows: true,
-      reactiveData: true,
-      columnDefaults: {
-        headerWordWrap: true,
-        headerVertical: false,
-        headerHozAlign: 'center',
-        minWidth: 60,
-        hozAlign: 'left',
-        vertAlign: 'middle',
-        resizable: true,
-      },
-      rowContextMenu: this.getContextMenu(),
-      columns: [
-        {
-          title: 'Duyệt',
-          field: 'IsApproved',
-          sorter: 'boolean',
-          width: 80,
-          hozAlign: 'center',
-          formatter: (cell) => {
-            const checked = cell.getValue() ? 'checked' : '';
-            return `<div style="text-align: center;">
-            <input type="checkbox" ${checked} disabled style="opacity: 1; pointer-events: none; cursor: default; width: 16px; height: 16px;"/>
-          </div>`;
-          },
-        },
-        {
-          title: 'ID',
-          field: 'ID',
-          sorter: 'number',
-          visible: false,
-        },
-        {
-          title: 'Trạng thái',
-          field: 'StatusTextNew',
-          sorter: 'string',
-          width: 150,
-          headerFilter: 'input',
-          headerFilterPlaceholder: 'Lọc trạng thái',
-        },
-        {
-          title: 'Loại',
-          field: 'MainIndex',
-          sorter: 'string',
-          width: 200,
-          headerFilter: 'input',
-          headerFilterPlaceholder: 'Lọc loại',
-        },
-        {
-          title: 'New Account',
-          field: 'NewAccount',
-          sorter: 'boolean',
-          width: 100,
-          hozAlign: 'center',
-          formatter: (cell) => {
-            const checked = cell.getValue() ? 'checked' : '';
-            return `<div style="text-align: center;">
-            <input type="checkbox" ${checked} disabled style="opacity: 1; pointer-events: none; cursor: default; width: 16px; height: 16px;"/>
-          </div>`;
-          },
-        },
-        {
-          title: 'Số POKH',
-          field: 'PONumber',
-          sorter: 'number',
-          width: 100,
-          headerFilter: 'input',
-          headerFilterPlaceholder: 'Lọc số POKH',
-        },
-        {
-          title: 'Mã PO',
-          field: 'POCode',
-          sorter: 'string',
-          width: 150,
-          headerFilter: 'input',
-          headerFilterPlaceholder: 'Lọc mã PO',
-        },
-        {
-          title: 'Khách hàng',
-          field: 'CustomerName',
-          sorter: 'string',
-          formatter: 'textarea',
-          width: 300,
-          headerFilter: 'input',
-          headerFilterPlaceholder: 'Lọc khách hàng',
-        },
-        {
-          title: 'Người phụ trách',
-          field: 'FullName',
-          sorter: 'string',
-          width: 150,
-          headerFilter: 'input',
-          headerFilterPlaceholder: 'Lọc người phụ trách',
-        },
-        {
-          title: 'Dự án',
-          field: 'ProjectName',
-          sorter: 'string',
-          width: 200,
-          headerFilter: 'input',
-          headerFilterPlaceholder: 'Lọc dự án',
-        },
-        {
-          title: 'Ngày nhận PO',
-          field: 'ReceivedDatePO',
-          sorter: 'date',
-          width: 150,
-          formatter: (cell: any) => {
-            const value = cell.getValue();
-            if (!value) return '';
-            const date = new Date(value);
-            if (isNaN(date.getTime())) return value;
-            const day = String(date.getDate()).padStart(2, '0');
-            const month = String(date.getMonth() + 1).padStart(2, '0');
-            const year = date.getFullYear();
-            return `${day}/${month}/${year}`;
-          },
-        },
-        {
-          title: 'Loại tiền',
-          field: 'CurrencyCode',
-          sorter: 'string',
-          width: 80,
-        },
-        {
-          title: 'Tổng tiền Xuất VAT',
-          field: 'TotalMoneyKoVAT',
-          sorter: 'number',
-          width: 150,
-          formatter: 'money',
-          hozAlign: 'right',
-        },
-        {
-          title: 'Tổng tiền nhận PO',
-          field: 'TotalMoneyPO',
-          sorter: 'number',
-          width: 150,
-          formatter: 'money',
-          hozAlign: 'right',
-          formatterParams: {
-            precision: 0,
-            decimal: '.',
-            thousand: ',',
-            symbol: '',
-            symbolAfter: true,
-          },
-          bottomCalc: 'sum',
-          bottomCalcFormatter: 'money',
-          bottomCalcFormatterParams: {
-            precision: 0,
-            decimal: '.',
-            thousand: ',',
-            symbol: '',
-            symbolAfter: true,
-          },
-        },
-        {
-          title: 'Tiền về',
-          field: 'ReceiveMoney',
-          sorter: 'number',
-          width: 150,
-          formatter: 'money',
-          hozAlign: 'right',
-        },
-        {
-          title: 'Tình trạng tiến độ giao hàng',
-          field: 'DeliveryStatusText',
-          sorter: 'string',
-          width: 150,
-        },
-        {
-          title: 'Tình trạng xuất kho',
-          field: 'ExportStatusText',
-          sorter: 'string',
-          width: 150,
-        },
-        {
-          title: 'End User',
-          field: 'EndUser',
-          sorter: 'string',
-          width: 150,
-          headerFilter: 'input',
-          headerFilterPlaceholder: 'Lọc end user',
-        },
-        {
-          title: 'Ghi chú',
-          field: 'Note',
-          sorter: 'string',
-          formatter: 'textarea',
-          width: 120,
-          headerFilter: 'input',
-          headerFilterPlaceholder: 'Lọc ghi chú',
-        },
-        {
-          title: 'Công nợ',
-          field: 'Debt',
-          sorter: 'number',
-          width: 120,
-          formatter: 'money',
-        },
-        {
-          title: 'Hóa đơn',
-          field: 'ImportStatus',
-          sorter: 'string',
-          width: 150,
-          headerFilter: 'input',
-          headerFilterPlaceholder: 'Lọc hóa đơn',
-        },
-        {
-          title: 'Đặt hàng',
-          field: 'PONumber',
-          sorter: 'string',
-          width: 150,
-          headerFilter: 'input',
-          headerFilterPlaceholder: 'Lọc đặt hàng',
-        },
-      ],
-    });
-
-    // Thêm sự kiện khi chuyển trang
-    this.tb_POKH.on('pageLoaded', (pageno: number) => {
-      this.filters.pageNumber = pageno;
-      console.log('Trang hiện tại:', pageno);
-    });
-
-    // Thêm sự kiện khi thay đổi kích thước trang
-    this.tb_POKH.on('pageSizeChanged', (size: number) => {
-      this.filters.pageSize = size;
-      console.log('Kích thước trang:', size);
-    });
-
-    this.tb_POKH.on('rowDblClick', (e: UIEvent, row: RowComponent) => {
-      const id = row.getData()['ID'];
-      this.selectedId = id;
-      console.log('selectedId: ', this.selectedId);
-      this.onEdit();
-    });
-    this.tb_POKH.on('rowClick', (e: UIEvent, row: RowComponent) => {
-      const rowData = row.getData();
-      this.selectedId = rowData['ID'];
-      this.selectedRow = rowData;
-      this.loadPOKHProducts(this.selectedId);
-      this.loadPOKHFiles(this.selectedId);
-    });
-  }
-
-  initProductTable(): void {
-    this.tb_POKHProduct = new Tabulator(
-      this.tb_POKHProductElement.nativeElement,
-      {
-        data: this.dataPOKHProduct,
-        dataTree: true,
-        layout: 'fitColumns',
-        dataTreeStartExpanded: true,
-        pagination: true,
-        paginationSize: 10,
-        height: '100%',
-        movableColumns: true,
-        resizableRows: true,
-        langs: {
-          vi: {
-            pagination: {
-              first: '<<',
-              last: '>>',
-              prev: '<',
-              next: '>',
-            },
-          },
-        },
-        locale: 'vi',
-        columnDefaults: {
-          headerWordWrap: true,
-          headerVertical: false,
-          headerHozAlign: 'center',
-          minWidth: 60,
-          hozAlign: 'left',
-          vertAlign: 'middle',
-          resizable: true,
-        },
-        columns: [
-          {
-            title: 'STT',
-            field: 'STT',
-            sorter: 'number',
-            width: 70,
-            frozen: true,
-          },
-          {
-            title: 'Mã Nội Bộ',
-            field: 'ProductNewCode',
-            sorter: 'string',
-            width: 100,
-            frozen: true,
-          },
-          {
-            title: 'Mã Sản Phẩm (Cũ)',
-            field: 'ProductCode',
-            sorter: 'string',
-            width: 150,
-          },
-          {
-            title: 'Tên sản phẩm',
-            field: 'ProductName',
-            sorter: 'string',
-            width: 200,
-          },
-          {
-            title: 'Mã theo khách',
-            field: 'GuestCode',
-            sorter: 'string',
-            width: 200,
-          },
-          { title: 'Hãng', field: 'Maker', sorter: 'string', width: 100 },
-          {
-            title: 'Số lượng',
-            field: 'Qty',
-            sorter: 'number',
-            width: 100,
-            formatter: 'money',
-            formatterParams: {
-              precision: 0,
-              decimal: '.',
-              thousand: ',',
-              symbol: '',
-              symbolAfter: true,
-            },
-            bottomCalc: function (values, data, calcParams) {
-              let total = 0;
-              const processRow = (row: any) => {
-                if (row.Qty) {
-                  total += Number(row.Qty);
-                }
-                if (row._children) {
-                  row._children.forEach(processRow);
-                }
-              };
-              data.forEach(processRow);
-              return total;
-            },
-            bottomCalcFormatter: 'money',
-            bottomCalcFormatterParams: {
-              precision: 0,
-              decimal: '.',
-              thousand: ',',
-              symbol: '',
-              symbolAfter: true,
-            },
-          },
-          {
-            title: 'SL đã về',
-            field: 'QuantityReturn',
-            sorter: 'number',
-            width: 100,
-            formatter: 'money',
-            formatterParams: {
-              precision: 0,
-              decimal: '.',
-              thousand: ',',
-              symbol: '',
-              symbolAfter: true,
-            },
-            bottomCalc: function (values, data, calcParams) {
-              let total = 0;
-              const processRow = (row: any) => {
-                if (row.QuantityReturn) {
-                  total += Number(row.QuantityReturn);
-                }
-                if (row._children) {
-                  row._children.forEach(processRow);
-                }
-              };
-              data.forEach(processRow);
-              return total;
-            },
-            bottomCalcFormatter: 'money',
-            bottomCalcFormatterParams: {
-              precision: 0,
-              decimal: '.',
-              thousand: ',',
-              symbol: '',
-              symbolAfter: true,
-            },
-          },
-          {
-            title: 'SL đã xuất',
-            field: 'QuantityExport',
-            sorter: 'number',
-            width: 100,
-          },
-          {
-            title: 'SL còn lại',
-            field: 'QuantityRemain',
-            sorter: 'number',
-            width: 100,
-          },
-          {
-            title: 'Kích thước phim cắt/Model',
-            field: 'FilmSize',
-            sorter: 'string',
-            width: 150,
-          },
-          { title: 'ĐVT', field: 'Unit', sorter: 'string', width: 100 },
-          {
-            title: 'Đơn giá trước VAT',
-            field: 'UnitPrice',
-            sorter: 'number',
-            width: 200,
-            formatter: 'money',
-            hozAlign: 'right',
-            formatterParams: {
-              precision: 0,
-              decimal: '.',
-              thousand: ',',
-              symbol: '',
-              symbolAfter: true,
-            },
-          },
-          {
-            title: 'Tổng tiền trước VAT',
-            field: 'IntoMoney',
-            sorter: 'number',
-            width: 200,
-            formatter: 'money',
-            hozAlign: 'right',
-            formatterParams: {
-              precision: 0,
-              decimal: '.',
-              thousand: ',',
-              symbol: '',
-              symbolAfter: true,
-            },
-            bottomCalc: function (values, data, calcParams) {
-              let total = 0;
-              const processRow = (row: any) => {
-                if (row.IntoMoney) {
-                  total += Number(row.IntoMoney);
-                }
-                if (row._children) {
-                  row._children.forEach(processRow);
-                }
-              };
-              data.forEach(processRow);
-              return total;
-            },
-            bottomCalcFormatter: 'money',
-            bottomCalcFormatterParams: {
-              precision: 0,
-              decimal: '.',
-              thousand: ',',
-              symbol: '',
-              symbolAfter: true,
-            },
-          },
-          {
-            title: 'VAT (%)',
-            field: 'VAT',
-            sorter: 'number',
-            width: 150,
-            formatter: function (cell) {
-              return cell.getValue() + '%';
-            },
-          },
-          {
-            title: 'Tổng tiền sau VAT',
-            field: 'TotalPriceIncludeVAT',
-            sorter: 'number',
-            width: 200,
-            formatter: 'money',
-            hozAlign: 'right',
-            formatterParams: {
-              precision: 0,
-              decimal: '.',
-              thousand: ',',
-              symbol: '',
-              symbolAfter: true,
-            },
-            bottomCalc: function (values, data, calcParams) {
-              let total = 0;
-              const processRow = (row: any) => {
-                if (row.TotalPriceIncludeVAT) {
-                  total += Number(row.TotalPriceIncludeVAT);
-                }
-                if (row._children) {
-                  row._children.forEach(processRow);
-                }
-              };
-              data.forEach(processRow);
-              return total;
-            },
-            bottomCalcFormatter: 'money',
-            bottomCalcFormatterParams: {
-              precision: 0,
-              decimal: '.',
-              thousand: ',',
-              symbol: '',
-              symbolAfter: true,
-            },
-          },
-          {
-            title: 'Người nhận',
-            field: 'UserReceiver',
-            sorter: 'string',
-            width: 200,
-          },
-          {
-            title: 'Ngày yêu cầu giao hàng',
-            field: 'DeliveryRequestedDate',
-            sorter: 'string',
-            width: 200,
-            formatter: (cell: any) => {
-              const value = cell.getValue();
-              if (!value) return '';
-              const date = new Date(value);
-              if (isNaN(date.getTime())) return value;
-              const day = String(date.getDate()).padStart(2, '0');
-              const month = String(date.getMonth() + 1).padStart(2, '0');
-              const year = date.getFullYear();
-              return `${day}/${month}/${year}`;
-            },
-          },
-          {
-            title: 'Thanh toán dự kiến',
-            field: 'EstimatedPay',
-            sorter: 'number',
-            width: 200,
-          },
-          {
-            title: 'Ngày hóa đơn',
-            field: 'BillDate',
-            sorter: 'string',
-            width: 200,
-            formatter: (cell: any) => {
-              const value = cell.getValue();
-              if (!value) return '';
-              const date = new Date(value);
-              if (isNaN(date.getTime())) return value;
-              const day = String(date.getDate()).padStart(2, '0');
-              const month = String(date.getMonth() + 1).padStart(2, '0');
-              const year = date.getFullYear();
-              return `${day}/${month}/${year}`;
-            },
-          },
-          {
-            title: 'Số hóa đơn',
-            field: 'BillNumber',
-            sorter: 'string',
-            width: 200,
-          },
-          { title: 'Công nợ', field: 'Debt', sorter: 'number', width: 200 },
-          {
-            title: 'Ngày yêu cầu thanh toán',
-            field: 'PayDate',
-            sorter: 'string',
-            width: 200,
-            formatter: (cell: any) => {
-              const value = cell.getValue();
-              if (!value) return '';
-              const date = new Date(value);
-              if (isNaN(date.getTime())) return value;
-              const day = String(date.getDate()).padStart(2, '0');
-              const month = String(date.getMonth() + 1).padStart(2, '0');
-              const year = date.getFullYear();
-              return `${day}/${month}/${year}`;
-            },
-          },
-          { title: 'Nhóm', field: 'GroupPO', sorter: 'string', width: 100 },
-          {
-            title: 'Ngày giao hàng thực tế',
-            field: 'ActualDeliveryDate',
-            sorter: 'string',
-            width: 200,
-            formatter: (cell: any) => {
-              const value = cell.getValue();
-              if (!value) return '';
-              const date = new Date(value);
-              if (isNaN(date.getTime())) return value;
-              const day = String(date.getDate()).padStart(2, '0');
-              const month = String(date.getMonth() + 1).padStart(2, '0');
-              const year = date.getFullYear();
-              return `${day}/${month}/${year}`;
-            },
-          },
-          {
-            title: 'Ngày tiền về',
-            field: 'RecivedMoneyDate',
-            sorter: 'string',
-            width: 200,
-          },
-        ],
-      }
-    );
-  }
-  initFileTable(): void {
-    this.tb_POKHFile = new Tabulator(this.tb_POKHFileElement.nativeElement, {
-      data: this.dataPOKHFiles,
-      layout: 'fitDataFill',
-      height: '100%',
-      movableColumns: true,
-      resizableRows: true,
-      rowContextMenu: this.getContextFileMenu(),
-      columns: [
-        {
-          title: 'ID',
-          field: 'ID',
-          visible: false,
-        },
-        {
-          title: 'STT',
-          formatter: 'rownum',
-          width: '10%',
-          hozAlign: 'center',
-          headerSort: false,
-        },
-        {
-          title: 'Tên file',
-          field: 'FileName',
-          sorter: 'string',
-          width: '83%',
-        },
-      ],
-    });
-  }
-  */
   //#endregion
 
   // Hàm flatten dữ liệu chi tiết sản phẩm (tree -> flat array)

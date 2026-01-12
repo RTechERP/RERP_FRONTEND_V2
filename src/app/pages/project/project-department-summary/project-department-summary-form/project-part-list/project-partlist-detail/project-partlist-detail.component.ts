@@ -150,12 +150,8 @@ export class ProjectPartlistDetailComponent implements OnInit, AfterViewInit {
       this.makerOptions = this.getMakerOptions(value || '');
     });
 
-    // Listen to productCode changes để update isParentNode
-    // Node cha: không có ProductCode - bỏ qua validate mã TB, hãng SX, đơn vị
-    // Node con: có ProductCode - validate đầy đủ
-    this.formGroup.get('productCode')?.valueChanges.subscribe((value: string) => {
-      this.isParentNode = !(value && value.trim() !== '');
-    });
+    // Không cần auto-detect isParentNode nữa
+    // isParentNode được xác định từ data.__hasChildren khi loadSelectedData
 
     // Listen to isProblem checkbox changes để update qtyMin/qtyFull state
     this.formGroup.get('isProblem')?.valueChanges.subscribe((isProblem: boolean) => {
@@ -294,10 +290,10 @@ export class ProjectPartlistDetailComponent implements OnInit, AfterViewInit {
     // Lưu ID của partlist đang edit
     this.currentPartListId = data.ID || 0;
 
-    // Xác định node cha hay node con dựa vào ProductCode
-    // Node cha: không có ProductCode - bỏ qua validate mã TB, hãng SX, đơn vị
-    const hasProductCode = !!(data.ProductCode && data.ProductCode.trim() !== '');
-    this.isParentNode = !hasProductCode;
+    // Xác định node cha hay node con dựa vào __hasChildren
+    // Node cha: có __hasChildren = true - KHÔNG validate productCode/maker/unit
+    // Node con: không có __hasChildren hoặc = false - VALIDATE đầy đủ
+    this.isParentNode = !!(data.__hasChildren === true);
 
     this.formGroup.patchValue({
       projectId: this.projectId || null, // mã dự án
@@ -313,42 +309,40 @@ export class ProjectPartlistDetailComponent implements OnInit, AfterViewInit {
       technicalInfo: data.Model || '', // thông tin kỹ thuật
       unit: data.Unit || '', // đơn vị
       employeeId: data.EmployeeID || null, // mã nhân viên
-      isProblem: data.IsProblem || false, // trạng thái vấn đề
+      isProblem: data.IsProblem || false, // có vấn đề
       reasonProblem: data.ReasonProblem || '', // lý do vấn đề
       note: data.Note || '', // ghi chú
-      // Tab 2: Thông tin báo giá
-      supplierQuoteId: data.SupplierSaleID || null, // nhà cung cấp
-      ncc: data.NCC || '', // tên nhà cung cấp (báo giá)
-      unitPriceQuote: data.Price || 0, // đơn giá
-      totalPriceQuote: data.Amount || 0, // thành tiền
-      currencyQuote: data.UnitMoney || null, // loại tiền
-      leadTimeQuote: data.LeadTime || "", // thời gian giao hàng
-      // Tab 3: Thông tin đặt mua
-      billCodePurchase: data.OrderCode || '', // mã đơn hàng
-      supplierPurchaseId: data.SupplierSaleID || null, // nhà cung cấp
-      nccFinal: data.NCCFinal || '', // tên nhà cung cấp (đặt mua)
-      unitPricePurchase: data.PriceOrder || "", // đơn giá
-      totalPricePurchase: data.TotalPriceOrder || 0, // thành tiền
-      currencyPurchase: data.UnitMoney || null, // loại tiền
-      leadTimePurchase: data.LeadTime || "", // thời gian giao hàng
-      requestDate: data.RequestDate || null, // ngày yêu cầu
-      expectedDateReturn: data.ExpectedReturnDateDate || null, // ngày dự kiến trả hàng
-      startPurchaseDate: data.OrderDate || null, // ngày bắt đầu đặt hàng
-      receiveDate: data.RequestDate || null, // ngày nhận hàng
-      // quantityReturn: data.QuantityReturn || 0, // số lượng trả hàng
-      statusId: data.Status || null, // trạng thái
-      quality: data.Quality || '' // chất lượng
+
+      // Thông tin báo giá
+      supplierQuoteId: data.SupplierQuoteID || null,
+      ncc: data.Supplier || '',
+      unitPriceQuote: data.UnitPriceQuote || 0,
+      totalPriceQuote: data.TotalPriceQuote || 0,
+      currencyQuote: data.CurrencyIDQuote || null,
+      leadTimeQuote: data.LeadTimeQuote || '',
+
+      // Thông tin đặt mua
+      billCodePurchase: data.BillCode || '',
+      supplierPurchaseId: data.SupplierPurchaseID || null,
+      nccFinal: data.SupplierFinal || '',
+      unitPricePurchase: data.UnitPrice || 0,
+      totalPricePurchase: data.TotalPrice || 0,
+      currencyPurchase: data.CurrencyID || null,
+      leadTimePurchase: data.LeadTime || '',
+      requestDate: data.RequestDate ? new Date(data.RequestDate) : null,
+      expectedDateReturn: data.ExpectedDateReturn ? new Date(data.ExpectedDateReturn) : null,
+      startPurchaseDate: data.StartPurchaseDate ? new Date(data.StartPurchaseDate) : null,
+      receiveDate: data.ReceiveDate ? new Date(data.ReceiveDate) : null,
+      quantityReturn: data.QuantityReturn || 0,
+      statusId: data.StatusID || null,
+      quality: data.Quality || ''
     });
 
-    // Load versions based on projectSolutionId
-    if (this.projectSolutionId > 0) {
-      this.loadVersions(this.projectSolutionId);
-    }
+    // Cập nhật validators dựa trên loại node
+    this.updateValidatorsBasedOnNodeType();
 
-    // Lưu trữ giá trị IsApprovedTBP để dùng khi isProblem thay đổi
-    this.currentIsApprovedTBP = data.IsApprovedTBP === true || data.IsApprovedTBP === 1;
-
-    // Logic enable/disable qtyMin and qtyFull theo WinForm
+    // Cập nhật trạng thái của các trường qty
+    this.currentIsApprovedTBP = data.IsApprovedTBP || false;
     this.updateQtyFieldsState(data.IsProblem || false, this.currentIsApprovedTBP);
 
     // Logic disable button Save theo WinForm: !(IsApprovedTBP == true || IsApprovedTBPNewCode == true)
@@ -413,6 +407,30 @@ export class ProjectPartlistDetailComponent implements OnInit, AfterViewInit {
       this.formGroup.get('qtyMin')?.enable();
       this.formGroup.get('qtyFull')?.enable();
     }
+  }
+
+  // Method để update validators dựa trên loại node (cha/con)
+  updateValidatorsBasedOnNodeType(): void {
+    const productCodeControl = this.formGroup.get('productCode');
+    const makerControl = this.formGroup.get('maker');
+    const unitControl = this.formGroup.get('unit');
+
+    if (this.isParentNode) {
+      // Node cha: Xóa validators cho productCode, maker, unit
+      productCodeControl?.clearValidators();
+      makerControl?.clearValidators();
+      unitControl?.clearValidators();
+    } else {
+      // Node con: Thêm validators required
+      productCodeControl?.setValidators([Validators.required]);
+      makerControl?.setValidators([Validators.required]);
+      unitControl?.setValidators([Validators.required]);
+    }
+
+    // Update validity để form nhận biết thay đổi
+    productCodeControl?.updateValueAndValidity({ emitEvent: false });
+    makerControl?.updateValueAndValidity({ emitEvent: false });
+    unitControl?.updateValueAndValidity({ emitEvent: false });
   }
 
   getProjects(): void {
@@ -695,11 +713,9 @@ export class ProjectPartlistDetailComponent implements OnInit, AfterViewInit {
     if (this.currentTab === 0) {
       const formValue = this.formGroup.getRawValue();
 
-      // Xác định node cha hay node con:
-      // Node con (leaf): Có ProductCode
-      // Node cha: Không có ProductCode hoặc ProductCode rỗng
-      const hasProductCode = !!(formValue.productCode && formValue.productCode.trim() !== '');
-      const isParentNode = !hasProductCode;
+      // Sử dụng this.isParentNode đã được set từ __hasChildren
+      // KHÔNG check lại productCode ở đây
+      const isParentNode = this.isParentNode;
 
       // Validate tab 1
       // Node cha: Chỉ cần projectId, versionId, tt

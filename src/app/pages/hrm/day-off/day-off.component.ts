@@ -753,7 +753,7 @@ export class DayOffComponent implements OnInit, AfterViewInit {
           let selectedDayOff = row.getData();
           this.dayOffService.saveEmployeeOnLeave({
             ...selectedDayOff,
-            IsDeleted: true
+            DeleteFlag: true
           }).subscribe({
             next: (response) => {
               this.notification.success(NOTIFICATION_TITLE.success, 'Xóa ngày nghỉ đã đăng ký thành công');
@@ -846,8 +846,19 @@ export class DayOffComponent implements OnInit, AfterViewInit {
       totalDay = 1;
     }
 
-    formData.StartDate = startDate;
-    formData.EndDate = endDate;
+    // Convert to local ISO string to prevent timezone conversion
+    const toLocalISOString = (date: Date): string => {
+      const year = date.getFullYear();
+      const month = String(date.getMonth() + 1).padStart(2, '0');
+      const day = String(date.getDate()).padStart(2, '0');
+      const hours = String(date.getHours()).padStart(2, '0');
+      const minutes = String(date.getMinutes()).padStart(2, '0');
+      const seconds = String(date.getSeconds()).padStart(2, '0');
+      return `${year}-${month}-${day}T${hours}:${minutes}:${seconds}`;
+    };
+
+    formData.StartDate = toLocalISOString(startDate);
+    formData.EndDate = toLocalISOString(endDate);
     formData.TotalTime = totalTime;
     formData.TotalDay = totalDay;
 
@@ -907,13 +918,18 @@ export class DayOffComponent implements OnInit, AfterViewInit {
   }
 
   private saveEmployeeOnLeave(formData: any): void {
+    if (this.isLoading) return; // Prevent spam click
+    this.isLoading = true;
+
     this.dayOffService.saveEmployeeOnLeave(formData).subscribe({
       next: () => {
+        this.isLoading = false;
         this.notification.success(NOTIFICATION_TITLE.success, 'Lưu ngày nghỉ thành công');
         this.closeModal();
         this.loadEmployeeOnLeave();
       },
       error: (response) => {
+        this.isLoading = false;
         this.notification.error(NOTIFICATION_TITLE.error, 'Lưu ngày nghỉ thất bại: ' + (response.error?.message || response.message || ''));
       },
     });

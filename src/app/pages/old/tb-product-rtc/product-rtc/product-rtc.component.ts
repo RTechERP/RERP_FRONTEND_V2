@@ -107,23 +107,55 @@ export class ProductRtcComponent implements OnInit, AfterViewInit, OnDestroy {
 
         // Subscribe to queryParams để reload data khi params thay đổi
         const sub = this.route.queryParams.subscribe(params => {
-            const newWarehouseID = params['warehouseID'] || 1;
+            const newWarehouseID = Number(params['warehouseID']) || 1;
             const newWarehouseCode = params['warehouseCode'] || 'HN';
-            const newWarehouseType = params['warehouseType'] || 1;
+            const newWarehouseType = Number(params['warehouseType']) || 1;
 
             // Kiểm tra xem params có thay đổi không
             const paramsChanged = this.warehouseID !== newWarehouseID ||
                                   this.warehouseCode !== newWarehouseCode ||
                                   this.warehouseType !== newWarehouseType;
 
+            // Nếu params thay đổi, reset và clear data trước
+            if (paramsChanged) {
+                // Reset productGroupID và keyword
+                this.productGroupID = 0;
+                this.keyWord = '';
+
+                // Clear existing data
+                this.dataset = [];
+                this.datasetGroup = [];
+                this.productData = [];
+                this.productGroupData = [];
+
+                // Clear grid selections, filters và force refresh data
+                if (this.angularGrid && this.angularGrid.slickGrid) {
+                    this.angularGrid.slickGrid.setSelectedRows([]);
+                    this.angularGrid.filterService?.clearFilters();
+                    // Force refresh grid data
+                    this.angularGrid.dataView?.setItems([], 'id');
+                    this.angularGrid.slickGrid.invalidate();
+                    this.angularGrid.slickGrid.render();
+                    this.angularGrid.slickGrid.scrollRowToTop(0);
+                }
+                if (this.angularGridGroup && this.angularGridGroup.slickGrid) {
+                    this.angularGridGroup.slickGrid.setSelectedRows([]);
+                    this.angularGridGroup.filterService?.clearFilters();
+                    // Force refresh grid data
+                    this.angularGridGroup.dataView?.setItems([], 'id');
+                    this.angularGridGroup.slickGrid.invalidate();
+                    this.angularGridGroup.slickGrid.render();
+                    this.angularGridGroup.slickGrid.scrollRowToTop(0);
+                }
+
+                // Trigger change detection
+                this.cdr.detectChanges();
+            }
+
+            // Update parameters after clearing
             this.warehouseID = newWarehouseID;
             this.warehouseCode = newWarehouseCode;
             this.warehouseType = newWarehouseType;
-
-            // Reset productGroupID khi params thay đổi
-            if (paramsChanged) {
-                this.productGroupID = 0;
-            }
 
             // Load data mỗi khi params thay đổi
             this.loadProductGroups();

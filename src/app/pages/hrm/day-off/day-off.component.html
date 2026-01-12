@@ -278,12 +278,14 @@
         </form>
       </div>
       <div class="modal-footer py-1">
-        <button type="button" class="btn btn-outline-danger" (click)="closeModal()"
+        <button type="button" class="btn btn-outline-danger" (click)="closeModal()" [disabled]="isLoading"
           style="border: 1px solid; border-radius: 0">
           Đóng
         </button>
-        <button type="button" class="btn btn-primary" (click)="onSubmit()" style="border-radius: 0">
-          Lưu
+        <button type="button" class="btn btn-primary" (click)="onSubmit()" [disabled]="isLoading"
+          style="border-radius: 0">
+          <span *ngIf="isLoading" class="spinner-border spinner-border-sm me-1" role="status"></span>
+          {{ isLoading ? 'Đang lưu...' : 'Lưu' }}
         </button>
       </div>
     </div>

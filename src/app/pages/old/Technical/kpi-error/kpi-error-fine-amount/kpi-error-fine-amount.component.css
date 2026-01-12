@@ -1,0 +1,12 @@
+#grid-container {
+    width: 100%;
+    height: 350px;
+}
+
+:host ::ng-deep .slick-cell {
+    padding: 4px 8px;
+}
+
+:host ::ng-deep .slick-header-column {
+    font-weight: bold;
+}

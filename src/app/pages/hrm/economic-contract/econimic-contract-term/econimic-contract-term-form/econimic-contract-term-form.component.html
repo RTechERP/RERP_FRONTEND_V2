@@ -1,0 +1,47 @@
+<div class="modal-header bg-primary p-2">
+    <h6 class="modal-title text-white">ĐIỀU KHOẢN HỢP ĐỒNG KINH TẾ</h6>
+    <button type="button" class="btn-close" aria-label="Close" (click)="close()"></button>
+</div>
+
+<div class="modal-body">
+    <form [formGroup]="formGroup">
+        <nz-row [nzGutter]="24">
+            <nz-col [nzSpan]="8">
+                <nz-form-item>
+                    <nz-form-label [nzSpan]="24">STT</nz-form-label>
+                    <nz-form-control [nzErrorTip]="'Nhập STT'">
+                        <input nz-input type="number" formControlName="STT" (keydown)="blockE($event)" />
+                    </nz-form-control>
+                </nz-form-item>
+            </nz-col>
+
+            <nz-col [nzSpan]="16">
+                <nz-form-item>
+                    <nz-form-label [nzSpan]="24">Mã điều khoản<span class="text-danger ps-1 me-1"> (*)</span>
+                    </nz-form-label>
+                    <nz-form-control [nzErrorTip]="'Nhập mã điều khoản'">
+                        <input nz-input type="text" formControlName="TermCode" />
+                    </nz-form-control>
+                </nz-form-item>
+            </nz-col>
+        </nz-row>
+
+        <nz-row [nzGutter]="24">
+            <nz-col [nzSpan]="24">
+                <nz-form-item>
+                    <nz-form-label [nzSpan]="24">Tên điều khoản<span class="text-danger ps-1 me-1"> (*)</span>
+                    </nz-form-label>
+                    <nz-form-control [nzSpan]="24" [nzErrorTip]="'Nhập tên điều khoản'">
+                        <textarea nz-input formControlName="TermName" rows="3" style="resize: vertical;"></textarea>
+                    </nz-form-control>
+                </nz-form-item>
+            </nz-col>
+        </nz-row>
+    </form>
+</div>
+
+<div class="modal-footer">
+    <button nz-button nzType="default" nzDanger (click)="close()">Đóng</button>
+    <button nz-button nzType="primary" (click)="save(false)">Lưu</button>
+    <button nz-button nzType="primary" (click)="save(true)">Lưu và Đóng</button>
+</div>

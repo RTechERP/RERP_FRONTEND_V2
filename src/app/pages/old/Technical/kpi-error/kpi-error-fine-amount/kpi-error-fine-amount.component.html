@@ -1,0 +1,38 @@
+<div class="modal-header bg-primary text-uppercase py-2">
+    <h6 class="modal-title text-white">QUẢN LÝ ĐÁNH GIÁ LỖI</h6>
+    <button type="button" class="btn-close" (click)="cancel()" aria-label="Close"></button>
+</div>
+
+<div class="modal-body p-2" style="max-height: 500px; overflow-y: auto; overflow-x: hidden;">
+    <!-- KPI Error Dropdown -->
+    <div class="row g-2 mb-2">
+        <div class="col-12">
+            <div class="form-group">
+                <label class="m-0 fw-bold">Tên lỗi</label>
+                <nz-select nzSize="small" nzShowSearch nzAllowClear nzPlaceHolder="Chọn lỗi"
+                    [(ngModel)]="selectedKpiErrorId" (ngModelChange)="onKpiErrorChange($event)" class="w-100">
+                    <nz-option-group *ngFor="let group of kpiErrorGroups" [nzLabel]="group.typeName">
+                        <nz-option *ngFor="let error of group.errors" [nzValue]="error.ID"
+                            [nzLabel]="error.Code + ' - ' + error.Name"></nz-option>
+                    </nz-option-group>
+                </nz-select>
+            </div>
+        </div>
+    </div>
+
+    <!-- SlickGrid Table -->
+    <div id="grid-container" style="height: 350px;">
+        <angular-slickgrid gridId="kpiErrorFineAmountGrid" [columns]="columnDefinitions" [options]="gridOptions"
+            [dataset]="dataset" (onAngularGridCreated)="angularGridReady($event.detail)">
+        </angular-slickgrid>
+    </div>
+</div>
+
+<div class="modal-footer p-1">
+    <button nz-button nzType="default" nzSize="default" (click)="cancel()">
+        <i class="fas fa-times"></i> Đóng
+    </button>
+    <button nz-button nzType="primary" nzSize="default" (click)="save()">
+        <i class="fas fa-save"></i> Lưu
+    </button>
+</div>

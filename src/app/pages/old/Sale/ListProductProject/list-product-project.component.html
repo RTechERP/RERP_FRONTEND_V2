@@ -1,40 +1,56 @@
 <ng-container class="w-100">
-    <nz-splitter>
-      <nz-splitter-panel nzDefaultSize="100%">
-        <div class="card h-100 border-0 rounded-0">
-          
-          <!-- Toolbar -->
-          <div class="card-header bg-white p-2" style="overflow-x: auto;">
-            <div class="d-flex justify-content-between align-items-center flex-wrap gap-2">
-                <!-- Trái -->
-                <div class="d-flex align-items-center gap-2 flex-wrap">
-
-                  <nz-select class="fs-12" style="width: 350px;;" nzSize="small"
-                  [(ngModel)]="sreachParam.selectedProject" nzShowSearch nzAllowClear nzPlaceHolder="Chọn dự án" name="projectID"  (ngModelChange)="loadData()">
-                    <nz-option style=" width: 500px;" *ngFor="let id of cbbProject" 
-                    [nzValue]="id"
-                    [nzLabel]="id.ProjectCode + ' - ' + id.ProjectName"
-                    >
-                </nz-option>
-                  </nz-select>
-              
-                  <button nz-button nzType="primary" nzSize="small" class="fs-12"(click)="loadData()">Xem danh sách</button>
-                  <button nz-button nzType="default" nzSize="small" class="fs-12" (click)="exportExcel()">Xuất Excel</button>
-                </div>
-              </div>
-              
-          </div>
-          
-  
-          <!-- Body chứa 2 bảng -->
-          <div class="card-body p-0 w-100">
-              <nz-spin [nzSpinning]="isLoading" nzTip="Đang tải dữ liệu...">
-                  <div #tableListProductProjectRef></div>
-              </nz-spin>
-          </div>
-          
-        </div>
-      </nz-splitter-panel>
-    </nz-splitter>
-  </ng-container>
-  
+  <div class="card h-100 border-0 rounded-0" style="background: transparent">
+    <div class="card-header bg-white p-1">
+      <div class="d-flex gap-1 align-items-center">
+        <nz-select
+          class="fs-12"
+          style="width: 500px"
+          [(ngModel)]="sreachParam.selectedProject"
+          nzShowSearch
+          nzAllowClear
+          nzPlaceHolder="Chọn dự án"
+          name="projectID"
+          (ngModelChange)="loadData()"
+        >
+          <nz-option
+            style="width: 500px"
+            *ngFor="let id of cbbProject"
+            [nzValue]="id"
+            [nzLabel]="id.ProjectCode + ' - ' + id.ProjectName"
+          >
+          </nz-option>
+        </nz-select>
+        <p-menubar [model]="listProductMenu" class="p-0 border-0"> </p-menubar>
+      </div>
+    </div>
+    <div class="card-body p-0 w-100" style="height: calc(100vh - 200px)">
+      <div
+        *ngIf="isLoading"
+        style="
+          position: absolute;
+          top: 0;
+          left: 0;
+          width: 100%;
+          height: 100%;
+          background: rgba(255, 255, 255, 0.4);
+          z-index: 999;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+        "
+      >
+        <nz-spin [nzSpinning]="isLoading"></nz-spin>
+      </div>
+      <div class="grid-container" style="height: 100%">
+        <angular-slickgrid
+          [gridId]="'listProductProjectGrid'"
+          [columns]="columnDefinitions"
+          [options]="gridOptions"
+          [dataset]="dataset"
+          (onAngularGridCreated)="angularGridReady($event.detail)"
+        >
+        </angular-slickgrid>
+      </div>
+    </div>
+  </div>
+</ng-container>

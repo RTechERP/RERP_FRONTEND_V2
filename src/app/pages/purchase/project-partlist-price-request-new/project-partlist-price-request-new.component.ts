@@ -361,13 +361,13 @@ export class ProjectPartlistPriceRequestNewComponent implements OnInit, OnDestro
   }
 
   OnEditClick() {
-    const lstTypeAccept = [-1, -2];
+    const lstTypeAccept = [-1, -2,-3,-4];
     const angularGrid = this.angularGrids.get(this.activeTabId);
 
     if (!lstTypeAccept.includes(this.activeTabId)) {
       this.notification.info(
-        'Thông báo',
-        'Chỉ được sửa những sản phẩm thương mại hoặc của yêu cầu công việc!'
+        NOTIFICATION_TITLE.warning,
+        'Chỉ được sửa những sản phẩm của hàng thương mại, yêu cầu công việc, marketing, demo!'
       );
       return;
     }

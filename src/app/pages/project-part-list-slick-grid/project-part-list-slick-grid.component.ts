@@ -359,7 +359,7 @@ export class ProjectPartListSlickGridComponent implements OnInit, AfterViewInit,
         id: 'id',
         field: 'ID',
         name: 'ID',
-        hidden:true,
+        hidden: true,
         sortable: false,
         filterable: false,
       },
@@ -445,7 +445,7 @@ export class ProjectPartListSlickGridComponent implements OnInit, AfterViewInit,
         id: 'id',
         field: 'ID',
         name: 'ID',
-        hidden:true,
+        hidden: true,
         sortable: false,
         filterable: false,
       },
@@ -583,7 +583,7 @@ export class ProjectPartListSlickGridComponent implements OnInit, AfterViewInit,
         id: 'id',
         field: 'ID',
         name: 'ID',
-        hidden:true,
+        hidden: true,
         sortable: false,
         filterable: false,
       },
@@ -3420,7 +3420,7 @@ export class ProjectPartListSlickGridComponent implements OnInit, AfterViewInit,
 
     // Nếu không có color filter nào được chọn, load lại toàn bộ data
     if (!this.filterDeleted && !this.filterProblem && !this.filterNewCode &&
-        !this.filterFix && !this.filterReturn && !this.filterProductSale) {
+      !this.filterFix && !this.filterReturn && !this.filterProductSale) {
       // Load lại data từ API để header filter hoạt động bình thường
       if (this.versionID > 0 || this.versionPOID > 0) {
         this.loadDataProjectPartList();
@@ -3728,6 +3728,7 @@ export class ProjectPartListSlickGridComponent implements OnInit, AfterViewInit,
           IsApprovedPurchase: partListData.IsApprovedPurchase ?? null,
           IsRequestPurchase: partListData.IsRequestPurchase ?? null,
           IsApprovedWarehouseExport: partListData.IsApprovedWarehouseExport ?? null,
+          __hasChildren: partListData.__hasChildren ?? false, // Flag xác định node cha (có children) hay node con
         }];
         console.log('[EDIT] Modal selectedData:', modalRef.componentInstance.selectedData);
       }
@@ -3944,27 +3945,27 @@ export class ProjectPartListSlickGridComponent implements OnInit, AfterViewInit,
       this.notification.warning('Thông báo', `Không có vật tư hợp lệ để ${isApprovedText} mã mới`);
       return;
     }
-    if(isApproved){
-    let message = '';
-    this.projectPartListService.checkApproveNewCode(requestItems).subscribe({
-      next: (response: any) => {
-        if (response.data) {
-          // Kiểm tra nếu có lỗi (có hãng không tồn tại)
-          if (response.data && response.data.length > 0) {
-            message = `\n\n ${response.message}`;
-          }
+    if (isApproved) {
+      let message = '';
+      this.projectPartListService.checkApproveNewCode(requestItems).subscribe({
+        next: (response: any) => {
+          if (response.data) {
+            // Kiểm tra nếu có lỗi (có hãng không tồn tại)
+            if (response.data && response.data.length > 0) {
+              message = `\n\n ${response.message}`;
+            }
 
-          // Sau khi check xong, hiển thị modal confirm
-          this.showConfirmModal(requestItems, isApproved, isApprovedText, message);
+            // Sau khi check xong, hiển thị modal confirm
+            this.showConfirmModal(requestItems, isApproved, isApprovedText, message);
+          }
+        },
+        error: (error: any) => {
+          this.notification.error('Lỗi', error?.error?.message || error?.message || 'Có lỗi khi kiểm tra mã mới!');
         }
-      },
-      error: (error: any) => {
-        this.notification.error('Lỗi', error?.error?.message || error?.message || 'Có lỗi khi kiểm tra mã mới!');
-      }
-    });
-  }else{
-    this.showConfirmModal(requestItems, isApproved, isApprovedText, '');
-  }
+      });
+    } else {
+      this.showConfirmModal(requestItems, isApproved, isApprovedText, '');
+    }
     // this.modal.confirm({
     //   nzTitle: `Xác nhận ${isApprovedText} mã mới`,
     //   nzContent: `Bạn có chắc chắn muốn ${isApprovedText} mã mới cho ${requestItems.length} vật tư? ${message}`,
@@ -4887,7 +4888,7 @@ export class ProjectPartListSlickGridComponent implements OnInit, AfterViewInit,
       CreatDate: bill.CreatDate || bill.RequestDate || new Date(),
       RequestDate: bill.RequestDate || new Date(),
       IsTransfer: isTransfer,
-      
+
     };
     // Map details cho modal theo BillExportDetailRQPDTO structure
     const detailsForModal = details.map((detail: any) => ({
@@ -4912,7 +4913,7 @@ export class ProjectPartListSlickGridComponent implements OnInit, AfterViewInit,
       Note: detail.Note || '',
       SerialNumber: detail.SerialNumber || '',
       ProjectNameText: detail.ProjectName || '',
-    
+
       TotalInventory: 0
     }));
     console.log('[OPEN BILL EXPORT DETAIL] BillExportForModal:', billExportForModal);
@@ -5975,7 +5976,7 @@ export class ProjectPartListSlickGridComponent implements OnInit, AfterViewInit,
     (this.projectPartListService as any).convertVersionPO(payload).subscribe({
       next: (res: any) => {
         this.stopLoading();
-        this.notification.success('Thành công','Đã chuyển phiên bản thành PO');
+        this.notification.success('Thành công', 'Đã chuyển phiên bản thành PO');
         // Refresh merged version data
         this.loadDataVersion();
       },

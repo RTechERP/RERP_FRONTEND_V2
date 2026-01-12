@@ -1,0 +1,75 @@
+:host {
+    font-size: 12px;
+    display: block;
+    height: 100%;
+    width: 100%;
+}
+
+:host ::ng-deep {
+    font-size: 12px;
+}
+
+:host ::ng-deep * {
+    font-size: 12px;
+}
+
+.card {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    max-height: 93vh;
+    overflow: hidden;
+}
+
+.card-body {
+    flex: 1 1 auto;
+    min-height: 0;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+}
+
+.card-body>div {
+    flex: 1 1 auto;
+    min-height: 0;
+    overflow: hidden;
+}
+
+#grid-container-type {
+    height: 100%;
+    min-height: 90vh;
+    width: 100%;
+}
+
+::ng-deep .slickgrid-container {
+    width: 100% !important;
+}
+
+::ng-deep .slick-viewport {
+    width: 100% !important;
+}
+
+::ng-deep .slick-header {
+    width: 100% !important;
+}
+
+::ng-deep .slick-headerrow {
+    width: 100% !important;
+}
+
+.grid-sale-container {
+    height: 100%;
+    width: 100%;
+}
+
+angular-slickgrid,
+.angular-slickgrid-container {
+    height: 100% !important;
+    width: 100%;
+    display: flex;
+    font-size: 12px;
+}
+
+:host ::ng-deep .slickgrid-container {
+    height: 100% !important;
+}

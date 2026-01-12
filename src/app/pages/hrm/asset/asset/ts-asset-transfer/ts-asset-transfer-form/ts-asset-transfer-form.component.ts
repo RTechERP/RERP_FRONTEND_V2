@@ -171,7 +171,7 @@ export class TsAssetTransferFormComponent implements OnInit {
   }
   getListEmployee() {
     const request = {
-      status: 0,
+      status: -1,
       departmentid: 0,
       keyword: ''
     };

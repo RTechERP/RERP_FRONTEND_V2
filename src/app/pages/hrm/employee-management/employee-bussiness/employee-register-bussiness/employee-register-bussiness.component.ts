@@ -758,6 +758,14 @@ export class EmployeeRegisterBussinessComponent implements OnInit, AfterViewInit
     }
 
     const selectedData = selectedRows.map(row => row.getData());
+
+    // Kiểm tra các bản ghi đã duyệt
+    const approvedRecords = selectedData.filter(item => item['StatusTBP'] === 1 || item['StatusHR'] === 1);
+    if (approvedRecords.length > 0) {
+      this.notification.warning(NOTIFICATION_TITLE.warning, `Có ${approvedRecords.length} bản ghi đã được duyệt, không thể xóa`);
+      return;
+    }
+
     const ids = selectedData.map(item => item['ID']).filter(id => id > 0);
 
     if (ids.length === 0) {
@@ -805,15 +813,7 @@ export class EmployeeRegisterBussinessComponent implements OnInit, AfterViewInit
 
     const selectedData = selectedRows[0].getData();
 
-    // Kiểm tra nếu đã duyệt thì không cho sao chép
-    const statusTBP = selectedData['StatusTBP'];
-    const statusHR = selectedData['StatusHR'];
-
-    // Nếu TBP hoặc HR đã duyệt (status = 1) thì không cho sao chép
-    if (statusTBP === 1 || statusHR === 1) {
-      this.notification.warning(NOTIFICATION_TITLE.warning, 'Bản ghi đã được duyệt, không thể sao chép');
-      return;
-    }
+    // Cho phép sao chép cả bản ghi đã duyệt - sẽ reset trạng thái duyệt về Chờ duyệt
 
     const bussinessID = selectedData['ID'] || selectedData['Id'] || 0;
     if (!bussinessID || bussinessID === 0) {

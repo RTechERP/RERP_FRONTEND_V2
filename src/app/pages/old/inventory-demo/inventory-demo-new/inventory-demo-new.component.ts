@@ -41,6 +41,7 @@ import { ProductLocationTechnicalService } from '../../Technical/product-locatio
 import { UpdateQrcodeFormComponent } from '../update-qrcode-form/update-qrcode-form.component';
 import { InventoryBorrowSupplierDemoComponent } from '../inventory-borrow-supplier-demo/inventory-borrow-supplier-demo.component';
 import { HasPermissionDirective } from '../../../../directives/has-permission.directive';
+import { environment } from '../../../../../environments/environment';
 
 @Component({
     selector: 'app-inventory-demo-new',
@@ -169,7 +170,7 @@ export class InventoryDemoNewComponent implements OnInit, AfterViewInit, OnDestr
         private ngbModal: NgbModal,
         private route: ActivatedRoute,
         private cdr: ChangeDetectorRef
-    ) {}
+    ) { }
 
     ngOnInit(): void {
         this.initGridColumns();
@@ -187,7 +188,7 @@ export class InventoryDemoNewComponent implements OnInit, AfterViewInit, OnDestr
 
             // Kiểm tra xem params có thay đổi không (so sánh number với number)
             const paramsChanged = this.warehouseID !== newWarehouseID ||
-                                  this.warehouseType !== newWarehouseType;
+                this.warehouseType !== newWarehouseType;
 
             console.log('Params changed:', paramsChanged);
 
@@ -687,7 +688,7 @@ export class InventoryDemoNewComponent implements OnInit, AfterViewInit, OnDestr
             },
             enableCellNavigation: true,
             enableFiltering: true,
-            forceFitColumns:true,
+            forceFitColumns: true,
             autoFitColumnsOnFirstLoad: true,
             enableAutoSizeColumns: true,
             enableHeaderMenu: false,
@@ -1258,7 +1259,7 @@ export class InventoryDemoNewComponent implements OnInit, AfterViewInit, OnDestr
         });
 
         window.open(
-            `/material-detail-of-product-rtc?${params.toString()}`,
+            `${environment.baseHref}/material-detail-of-product-rtc?${params.toString()}`,
             '_blank',
             'width=1200,height=800,scrollbars=yes,resizable=yes'
         );

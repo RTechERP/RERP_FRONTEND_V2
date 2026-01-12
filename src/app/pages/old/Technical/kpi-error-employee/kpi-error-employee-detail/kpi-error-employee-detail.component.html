@@ -1,0 +1,143 @@
+<div class="modal-header bg-primary text-uppercase py-2">
+    <h6 class="modal-title text-white">CHI TIẾT NHÂN VIÊN VI PHẠM LỖI - KPI</h6>
+    <button type="button" class="btn-close" (click)="cancel()" aria-label="Close"></button>
+</div>
+
+<div class="modal-body p-2" style="max-height: 600px; overflow-y: auto; overflow-x: hidden;">
+    <form>
+        <!-- Row 1: Mã lỗi vi phạm + Số vi phạm + Tiền phạt -->
+        <div class="row g-2">
+            <div class="col-sm-5">
+                <div class="form-group mb-2">
+                    <label class="m-0">
+                        Mã lỗi vi phạm
+                        <span class="text-danger">(*)</span>
+                    </label>
+                    <nz-select nzSize="small" nzShowSearch nzAllowClear nzPlaceHolder="Chọn lỗi vi phạm"
+                        [(ngModel)]="model.KPIErrorID" name="kpiErrorId" (ngModelChange)="onKPIErrorChange()"
+                        class="w-100">
+                        <nz-option-group *ngFor="let group of groupedKpiErrors" [nzLabel]="group.key">
+                            <nz-option *ngFor="let error of group.value" [nzValue]="error.ID"
+                                [nzLabel]="error.Code + ' - ' + error.Content"></nz-option>
+                        </nz-option-group>
+                    </nz-select>
+                    <span class="text-danger" style="font-size: 0.75rem;" *ngIf="errors.kpiErrorId">{{ errors.kpiErrorId
+                        }}</span>
+                </div>
+            </div>
+
+            <div class="col-sm-3">
+                <div class="form-group mb-2">
+                    <label class="m-0">Số vi phạm</label>
+                    <nz-input-number nzSize="small" [(ngModel)]="quantity" name="quantity" [nzDisabled]="true"
+                        class="w-100"></nz-input-number>
+                </div>
+            </div>
+
+            <div class="col-sm-4">
+                <div class="form-group mb-2">
+                    <label class="m-0">Tiền phạt</label>
+                    <nz-input-number nzSize="small" [(ngModel)]="model.TotalMoney" name="monney" [nzMin]="0"
+                        [nzFormatter]="formatterNumber" [nzParser]="parserNumber" class="w-100"
+                        [nzDisabled]="isMoneyReadOnly"></nz-input-number>
+                </div>
+            </div>
+        </div>
+
+        <!-- Row 2: Loại lỗi vi phạm (read-only) -->
+        <div class="form-group mb-2">
+            <label class="m-0">Loại lỗi vi phạm</label>
+            <input nz-input type="text" nzSize="small" [ngModel]="errorName" name="errorName" [disabled]="true" />
+        </div>
+
+        <!-- Row 3: Nội dung lỗi vi phạm (read-only) -->
+        <div class="form-group mb-2">
+            <label class="m-0">Nội dung lỗi vi phạm</label>
+            <textarea nz-input nzSize="small" [ngModel]="errorContent" name="errorContent" rows="3"
+                [disabled]="true"></textarea>
+        </div>
+
+        <!-- Row 4: Nhân viên vi phạm + Số lần + Ngày vi phạm -->
+        <div class="row g-2">
+            <div class="col-sm-5">
+                <div class="form-group mb-2">
+                    <label class="m-0">
+                        Nhân viên vi phạm
+                        <span class="text-danger">(*)</span>
+                    </label>
+                    <nz-select nzSize="small" nzShowSearch nzAllowClear nzPlaceHolder="Chọn nhân viên"
+                        [(ngModel)]="model.EmployeeID" name="employeeId" (ngModelChange)="errors.employeeId = ''"
+                        class="w-100">
+                        <nz-option *ngFor="let emp of employees" [nzValue]="emp.ID"
+                            [nzLabel]="emp.Code + ' - ' + emp.FullName"></nz-option>
+                    </nz-select>
+                    <span class="text-danger" style="font-size: 0.75rem;" *ngIf="errors.employeeId">{{ errors.employeeId
+                        }}</span>
+                </div>
+            </div>
+
+            <div class="col-sm-3">
+                <div class="form-group mb-2">
+                    <label class="m-0">Số lần</label>
+                    <nz-input-number nzSize="small" [(ngModel)]="model.ErrorNumber" name="errorNumber" [nzMin]="1"
+                        class="w-100"></nz-input-number>
+                </div>
+            </div>
+
+            <div class="col-sm-4">
+                <div class="form-group mb-2">
+                    <label class="m-0">Ngày vi phạm</label>
+                    <nz-date-picker nzSize="small" [(ngModel)]="model.ErrorDate" name="errorDate" nzFormat="dd/MM/yyyy"
+                        class="w-100"></nz-date-picker>
+                    <span class="text-danger" style="font-size: 0.75rem;" *ngIf="errors.errorDate">{{ errors.errorDate
+                        }}</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Row 5: File Upload -->
+        <div class="form-group mb-2">
+            <label class="m-0 d-flex align-items-center justify-content-between">
+                <span>Danh sách file ảnh</span>
+                <label class="btn btn-sm btn-outline-primary mb-0" style="cursor: pointer;">
+                    <i class="fas fa-upload"></i> Chọn file ảnh
+                    <input type="file" multiple accept="image/*" (change)="onFileSelect($event)"
+                        style="display: none;" />
+                </label>
+            </label>
+            <div class="border rounded p-2" style="max-height: 150px; overflow-y: auto; min-height: 80px;">
+                <table class="table table-sm table-bordered mb-0" *ngIf="files.length > 0">
+                    <tbody>
+                        <tr *ngFor="let file of files; let i = index">
+                            <td style="width: 30px;">
+                                <button type="button" class="btn btn-sm btn-link text-danger p-0"
+                                    (click)="removeFile(i)">
+                                    <i class="fas fa-times"></i>
+                                </button>
+                            </td>
+                            <td>{{ file.FileName }}</td>
+                        </tr>
+                    </tbody>
+                </table>
+                <div *ngIf="files.length === 0" class="text-muted text-center py-3">
+                    Chưa có file nào được chọn
+                </div>
+            </div>
+        </div>
+
+        <!-- Row 6: Ghi chú -->
+        <div class="form-group mb-2">
+            <label class="m-0">Ghi chú</label>
+            <textarea nz-input nzSize="small" [(ngModel)]="model.Note" name="note" rows="3"></textarea>
+        </div>
+    </form>
+</div>
+
+<div class="modal-footer p-1">
+    <button nz-button nzType="default" nzSize="default" (click)="cancel()">
+        <i class="fas fa-times"></i> Đóng
+    </button>
+    <button nz-button nzType="primary" nzSize="default" (click)="save()">
+        <i class="fas fa-save"></i> Lưu
+    </button>
+</div>

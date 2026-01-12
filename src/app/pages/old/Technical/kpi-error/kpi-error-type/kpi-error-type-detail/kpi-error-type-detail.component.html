@@ -1,0 +1,51 @@
+<div class="modal-header bg-primary text-uppercase py-2">
+    <h6 class="modal-title text-white">{{ mode === 'add' ? 'THÊM LOẠI LỖI' : 'SỬA LOẠI LỖI' }}</h6>
+    <button type="button" class="btn-close" (click)="cancel()" aria-label="Close"></button>
+</div>
+
+<div class="modal-body p-2">
+    <form>
+        <div class="row g-2">
+            <!-- STT -->
+            <div class="col-sm-4">
+                <div class="form-group mb-2">
+                    <label class="m-0">STT</label>
+                    <nz-input-number nzSize="small" [(ngModel)]="stt" name="stt" [nzMin]="1" class="w-100">
+                    </nz-input-number>
+                </div>
+            </div>
+
+            <!-- Mã loại lỗi -->
+            <div class="col-sm-8">
+                <div class="form-group mb-2">
+                    <label class="m-0">
+                        Mã loại lỗi
+                        <span class="text-danger">(*)</span>
+                    </label>
+                    <input nz-input type="text" nzSize="small" [(ngModel)]="code" name="code"
+                        (blur)="errors.code = ''" />
+                    <span class="text-danger" style="font-size: 0.75rem;" *ngIf="errors.code">{{ errors.code }}</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tên loại lỗi -->
+        <div class="form-group mb-2">
+            <label class="m-0">
+                Tên loại lỗi
+                <span class="text-danger">(*)</span>
+            </label>
+            <input nz-input type="text" nzSize="small" [(ngModel)]="name" name="name" (blur)="errors.name = ''" />
+            <span class="text-danger" style="font-size: 0.75rem;" *ngIf="errors.name">{{ errors.name }}</span>
+        </div>
+    </form>
+</div>
+
+<div class="modal-footer p-1">
+    <button nz-button nzType="default" nzSize="default" (click)="cancel()">
+        <i class="fas fa-times"></i> Đóng
+    </button>
+    <button nz-button nzType="primary" nzSize="default" (click)="save()">
+        <i class="fas fa-save"></i> Lưu
+    </button>
+</div>

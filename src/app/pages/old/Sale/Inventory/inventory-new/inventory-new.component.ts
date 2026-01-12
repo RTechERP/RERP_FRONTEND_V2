@@ -141,19 +141,72 @@ export class InventoryNewComponent implements OnInit, AfterViewInit, OnDestroy {
     ) { }
 
     ngOnInit(): void {
-        this.route.queryParams.subscribe((params) => {
-            this.warehouseCode = params['warehouseCode'] || 'HN';
-        });
-
         this.initGridColumns();
         this.initGridOptions();
+
+        // Subscribe to queryParams để reload data khi params thay đổi
+        const sub = this.route.queryParams.subscribe((params) => {
+            const newWarehouseCode = params['warehouseCode'] || 'HN';
+
+            // Kiểm tra xem params có thay đổi không
+            const paramsChanged = this.warehouseCode !== newWarehouseCode;
+
+            // Nếu params thay đổi, reset và clear data trước
+            if (paramsChanged) {
+                // Reset productGroupID
+                this.productGroupID = 0;
+                this.searchParam.Find = '';
+
+                // Clear existing data
+                this.datasetProductGroup = [];
+                this.datasetPGWarehouse = [];
+                this.datasetInventory = [];
+                this.dataProductGroup = [];
+                this.dataPGWareHouse = [];
+                this.dataInventory = [];
+
+                // Clear grid selections, filters và force refresh data
+                if (this.angularGridProductGroup && this.angularGridProductGroup.slickGrid) {
+                    this.angularGridProductGroup.slickGrid.setSelectedRows([]);
+                    this.angularGridProductGroup.filterService?.clearFilters();
+                    this.angularGridProductGroup.dataView?.setItems([], 'id');
+                    this.angularGridProductGroup.slickGrid.invalidate();
+                    this.angularGridProductGroup.slickGrid.render();
+                    this.angularGridProductGroup.slickGrid.scrollRowToTop(0);
+                }
+                if (this.angularGridPGWarehouse && this.angularGridPGWarehouse.slickGrid) {
+                    this.angularGridPGWarehouse.slickGrid.setSelectedRows([]);
+                    this.angularGridPGWarehouse.filterService?.clearFilters();
+                    this.angularGridPGWarehouse.dataView?.setItems([], 'id');
+                    this.angularGridPGWarehouse.slickGrid.invalidate();
+                    this.angularGridPGWarehouse.slickGrid.render();
+                    this.angularGridPGWarehouse.slickGrid.scrollRowToTop(0);
+                }
+                if (this.angularGridInventory && this.angularGridInventory.slickGrid) {
+                    this.angularGridInventory.slickGrid.setSelectedRows([]);
+                    this.angularGridInventory.filterService?.clearFilters();
+                    this.angularGridInventory.dataView?.setItems([], 'id');
+                    this.angularGridInventory.slickGrid.invalidate();
+                    this.angularGridInventory.slickGrid.render();
+                    this.angularGridInventory.slickGrid.scrollRowToTop(0);
+                }
+
+                // Trigger change detection
+                this.cdr.detectChanges();
+            }
+
+            // Update parameters after clearing
+            this.warehouseCode = newWarehouseCode;
+
+            // Load data mỗi khi params thay đổi
+            this.getProductGroup();
+            this.getDataProductGroupWareHouse(this.productGroupID);
+        });
+        this.subscriptions.push(sub);
     }
 
     ngAfterViewInit(): void {
-        setTimeout(() => {
-            this.getProductGroup();
-            this.getDataProductGroupWareHouse(this.productGroupID);
-        }, 100);
+        // Data đã được load trong ngOnInit qua queryParams subscribe
     }
 
     ngOnDestroy(): void {

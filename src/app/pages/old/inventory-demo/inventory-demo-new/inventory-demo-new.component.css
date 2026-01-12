@@ -36,3 +36,6 @@
 ::ng-deep div[id^="inventoryDemoGrid-"] {
   height: 85vh!important;
 }
+::ng-deep div[id^="productGroupGrid-"] {
+  height: 90vh!important;
+}

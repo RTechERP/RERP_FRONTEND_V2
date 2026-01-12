@@ -19,7 +19,7 @@
                         <nz-select formControlName="ProjectID" class="w-100" nzPlaceHolder="Chọn dự án" nzShowSearch
                             nzAllowClear>
                             @for (project of projects; track $index) {
-                            <nz-option [nzLabel]="project.ProjectName + ' - ' + project.ProjectCode"
+                            <nz-option [nzLabel]="project.ProjectCode + ' - ' + project.ProjectName"
                                 [nzValue]="project.ID"></nz-option>
                             }
                         </nz-select>

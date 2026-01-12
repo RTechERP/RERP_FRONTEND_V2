@@ -27,7 +27,8 @@ import {
   OnCellChangeEventArgs,
   OnSelectedRowsChangedEventArgs,
   AngularSlickgridModule,
-  MultipleSelectOption
+  MultipleSelectOption,
+  SortDirectionNumber
 } from 'angular-slickgrid';
 import { DateTime } from 'luxon';
 import { TranslateService } from '@ngx-translate/core';
@@ -359,7 +360,7 @@ export class ProjectPartListSlickGridComponent implements OnInit, AfterViewInit,
         id: 'id',
         field: 'ID',
         name: 'ID',
-        hidden:true,
+        hidden: true,
         sortable: false,
         filterable: false,
       },
@@ -445,7 +446,7 @@ export class ProjectPartListSlickGridComponent implements OnInit, AfterViewInit,
         id: 'id',
         field: 'ID',
         name: 'ID',
-        hidden:true,
+        hidden: true,
         sortable: false,
         filterable: false,
       },
@@ -583,7 +584,7 @@ export class ProjectPartListSlickGridComponent implements OnInit, AfterViewInit,
         id: 'id',
         field: 'ID',
         name: 'ID',
-        hidden:true,
+        hidden: true,
         sortable: false,
         filterable: false,
       },
@@ -666,7 +667,7 @@ export class ProjectPartListSlickGridComponent implements OnInit, AfterViewInit,
     };
 
     // Helper: natural sorting for hierarchy strings (1.1.1, 1.1.10, etc.)
-    const naturalSortHierarchy = (value1: any, value2: any) => {
+    const naturalSortHierarchy = (value1: any, value2: any, sortDirection?: SortDirectionNumber) => {
       const a = String(value1 || '');
       const b = String(value2 || '');
 
@@ -676,12 +677,15 @@ export class ProjectPartListSlickGridComponent implements OnInit, AfterViewInit,
       const bParts = b.split('.');
       const maxLength = Math.max(aParts.length, bParts.length);
 
+      // Xác định hướng sort: 1 = tăng dần, -1 = giảm dần
+      const direction = sortDirection || 1;
+
       for (let i = 0; i < maxLength; i++) {
         const aPart = parseInt(aParts[i] || '0', 10);
         const bPart = parseInt(bParts[i] || '0', 10);
 
-        if (aPart < bPart) return -1;
-        if (aPart > bPart) return 1;
+        if (aPart < bPart) return -1 * direction;
+        if (aPart > bPart) return 1 * direction;
       }
 
       return 0;
@@ -3420,7 +3424,7 @@ export class ProjectPartListSlickGridComponent implements OnInit, AfterViewInit,
 
     // Nếu không có color filter nào được chọn, load lại toàn bộ data
     if (!this.filterDeleted && !this.filterProblem && !this.filterNewCode &&
-        !this.filterFix && !this.filterReturn && !this.filterProductSale) {
+      !this.filterFix && !this.filterReturn && !this.filterProductSale) {
       // Load lại data từ API để header filter hoạt động bình thường
       if (this.versionID > 0 || this.versionPOID > 0) {
         this.loadDataProjectPartList();
@@ -3728,6 +3732,7 @@ export class ProjectPartListSlickGridComponent implements OnInit, AfterViewInit,
           IsApprovedPurchase: partListData.IsApprovedPurchase ?? null,
           IsRequestPurchase: partListData.IsRequestPurchase ?? null,
           IsApprovedWarehouseExport: partListData.IsApprovedWarehouseExport ?? null,
+          __hasChildren: partListData.__hasChildren ?? false, // Flag xác định node cha (có children) hay node con
         }];
         console.log('[EDIT] Modal selectedData:', modalRef.componentInstance.selectedData);
       }
@@ -3944,27 +3949,27 @@ export class ProjectPartListSlickGridComponent implements OnInit, AfterViewInit,
       this.notification.warning('Thông báo', `Không có vật tư hợp lệ để ${isApprovedText} mã mới`);
       return;
     }
-    if(isApproved){
-    let message = '';
-    this.projectPartListService.checkApproveNewCode(requestItems).subscribe({
-      next: (response: any) => {
-        if (response.data) {
-          // Kiểm tra nếu có lỗi (có hãng không tồn tại)
-          if (response.data && response.data.length > 0) {
-            message = `\n\n ${response.message}`;
-          }
+    if (isApproved) {
+      let message = '';
+      this.projectPartListService.checkApproveNewCode(requestItems).subscribe({
+        next: (response: any) => {
+          if (response.data) {
+            // Kiểm tra nếu có lỗi (có hãng không tồn tại)
+            if (response.data && response.data.length > 0) {
+              message = `\n\n ${response.message}`;
+            }
 
-          // Sau khi check xong, hiển thị modal confirm
-          this.showConfirmModal(requestItems, isApproved, isApprovedText, message);
+            // Sau khi check xong, hiển thị modal confirm
+            this.showConfirmModal(requestItems, isApproved, isApprovedText, message);
+          }
+        },
+        error: (error: any) => {
+          this.notification.error('Lỗi', error?.error?.message || error?.message || 'Có lỗi khi kiểm tra mã mới!');
         }
-      },
-      error: (error: any) => {
-        this.notification.error('Lỗi', error?.error?.message || error?.message || 'Có lỗi khi kiểm tra mã mới!');
-      }
-    });
-  }else{
-    this.showConfirmModal(requestItems, isApproved, isApprovedText, '');
-  }
+      });
+    } else {
+      this.showConfirmModal(requestItems, isApproved, isApprovedText, '');
+    }
     // this.modal.confirm({
     //   nzTitle: `Xác nhận ${isApprovedText} mã mới`,
     //   nzContent: `Bạn có chắc chắn muốn ${isApprovedText} mã mới cho ${requestItems.length} vật tư? ${message}`,
@@ -4152,44 +4157,157 @@ export class ProjectPartListSlickGridComponent implements OnInit, AfterViewInit,
       });
     }
 
+
     this.deadlinePriceRequest = null;
+    this.showPriceRequestModal(requestItems);
+  }
+
+  // Hiển thị modal chọn deadline báo giá
+  showPriceRequestModal(requestItems: any[]): void {
     this.modal.confirm({
       nzTitle: 'Yêu cầu báo giá',
       nzContent: this.priceRequestModalContent,
       nzOkText: 'Xác nhận',
       nzCancelText: 'Hủy',
+      nzOkType: 'primary',
       nzWidth: 500,
       nzOnOk: () => {
-        if (!this.deadlinePriceRequest) {
-          this.notification.warning('Thông báo', 'Vui lòng chọn deadline báo giá!');
-          return false;
+        return this.validateAndConfirmDeadline(requestItems);
+      },
+      nzOnCancel: () => {
+        this.deadlinePriceRequest = null;
+      }
+    });
+  }
+
+  // Validate và xác nhận deadline (có thể trả về Promise để xử lý modal lồng nhau)
+  validateAndConfirmDeadline(requestItems: any[]): Promise<boolean> {
+    return new Promise((resolve, reject) => {
+      // Validate deadline đã chọn
+      if (!this.deadlinePriceRequest) {
+        this.notification.warning('Thông báo', 'Vui lòng chọn deadline báo giá!');
+        resolve(false); // Không đóng modal
+        return;
+      }
+
+      // Kiểm tra deadline có hợp lệ không
+      const minDate = this.getMinDeadlineDate();
+      minDate.setHours(0, 0, 0, 0);
+      let selectedDate = new Date(this.deadlinePriceRequest);
+      selectedDate.setHours(0, 0, 0, 0);
+
+      if (selectedDate < minDate) {
+        this.notification.warning('Thông báo', 'Deadline phải từ ' + minDate.toLocaleDateString('vi-VN') + ' trở đi!');
+        resolve(false);
+        return;
+      }
+
+      // Nếu chọn Thứ 7 hoặc Chủ nhật, tự động chuyển thành Thứ 2 tuần sau
+      const day = selectedDate.getDay();
+      const originalDate = new Date(selectedDate);
+      let wasConverted = false;
+      let convertedDate = new Date(selectedDate);
+
+      if (day === 0 || day === 6) {
+        convertedDate = this.convertWeekendToMonday(new Date(selectedDate));
+        wasConverted = true;
+      }
+
+      // Lưu ngày đã chuyển đổi vào biến để đảm bảo dữ liệu gửi API là đúng
+      const finalDeadlineDate = wasConverted ? convertedDate : selectedDate;
+
+      // Đếm số ngày cuối tuần giữa hôm nay và deadline
+      const now = new Date();
+      now.setHours(0, 0, 0, 0);
+      const countWeekend = this.countWeekendDays(now, finalDeadlineDate);
+
+      // Nếu có ngày cuối tuần hoặc đã chuyển đổi từ Thứ 7/CN, hiển thị thông báo xác nhận
+      if (countWeekend > 0 || wasConverted) {
+        let message = '';
+        if (wasConverted) {
+          const originalStr = originalDate.toLocaleDateString('vi-VN');
+          const convertedStr = finalDeadlineDate.toLocaleDateString('vi-VN');
+          const dayName = day === 0 ? 'Chủ nhật' : 'Thứ 7';
+          message = `Bạn đã chọn ngày ${dayName} [${originalStr}].\nDeadline sẽ được chuyển thành Thứ 2 tuần sau [${convertedStr}].\nBạn có chắc muốn tiếp tục không?`;
+        } else {
+          const deadlineStr = finalDeadlineDate.toLocaleDateString('vi-VN');
+          message = `Deadline sẽ không tính Thứ 7 và Chủ nhật (có ${countWeekend} ngày cuối tuần).\nBạn có chắc muốn chọn Deadline là ngày [${deadlineStr}] không?`;
         }
 
-        const deadlineFixed = new Date(this.deadlinePriceRequest);
-        deadlineFixed.setHours(12, 0, 0, 0);
-        const deadlineISO = deadlineFixed.toISOString();
-
-        requestItems.forEach(item => {
-          item.DeadlinePriceRequest = deadlineISO;
-        });
-
-        this.projectPartListService.requestPrice(requestItems).subscribe({
-          next: (response: any) => {
-            if (response.status === 1) {
-              this.notification.success('Thành công', response.message || 'Yêu cầu báo giá thành công!');
-              this.loadDataProjectPartList();
-              this.deadlinePriceRequest = null;
-            } else if (response.status === 2) {
-              this.notification.warning('Thông báo', response.message || 'Không thể yêu cầu báo giá');
-            } else {
-              this.notification.error('Lỗi', response.message || 'Không thể yêu cầu báo giá');
-            }
+        this.modal.confirm({
+          nzTitle: 'Xác nhận Deadline',
+          nzContent: message,
+          nzOkText: 'Có',
+          nzCancelText: 'Không',
+          nzOkType: 'primary',
+          nzOnOk: () => {
+            // Cập nhật deadline với giá trị đã chuyển đổi (đảm bảo là thứ 2 nếu chọn cuối tuần)
+            this.deadlinePriceRequest = finalDeadlineDate;
+            // Người dùng xác nhận → Gán deadline và gọi API (truyền trực tiếp finalDeadlineDate)
+            this.assignDeadlineToItems(requestItems, finalDeadlineDate);
+            this.confirmPriceRequest(requestItems);
+            resolve(true); // Đóng modal đầu tiên
           },
-          error: (error: any) => {
-            this.notification.error('Lỗi', error?.error?.message || error?.message || 'Không thể yêu cầu báo giá');
+          nzOnCancel: () => {
+            // Người dùng không xác nhận → Không đóng modal đầu tiên
+            // Reset về ngày ban đầu nếu đã chuyển đổi
+            if (wasConverted) {
+              this.deadlinePriceRequest = originalDate;
+            }
+            resolve(false);
           }
         });
-        return true;
+      } else {
+        // Không có ngày cuối tuần → Cập nhật deadline và gọi API trực tiếp
+        this.deadlinePriceRequest = finalDeadlineDate;
+        this.assignDeadlineToItems(requestItems, finalDeadlineDate);
+        this.confirmPriceRequest(requestItems);
+        resolve(true); // Đóng modal
+      }
+    });
+  }
+
+  // Hàm gán deadline vào các items trong payload
+  assignDeadlineToItems(requestItems: any[], deadline?: Date): void {
+    // Ưu tiên sử dụng deadline được truyền vào, nếu không có thì lấy từ this.deadlinePriceRequest
+    const finalDeadline = deadline || this.deadlinePriceRequest;
+
+    if (!finalDeadline) {
+      console.error('Deadline is null or undefined');
+      return;
+    }
+
+    // Fix timezone issue: Set giờ về 12:00:00 (giữa ngày) để tránh lệch ngày khi convert sang UTC
+    const deadlineFixed = new Date(finalDeadline);
+    deadlineFixed.setHours(12, 0, 0, 0);
+
+    // Convert Date sang ISO string để gửi lên API
+    // Backend ASP.NET Core sẽ tự động parse ISO string thành DateTime
+    const deadlineISO = deadlineFixed.toISOString();
+
+    requestItems.forEach((item: any) => {
+      // Gán deadline vào đúng trường DeadlinePriceRequest
+      item.DeadlinePriceRequest = deadlineISO;
+    });
+  }
+
+  // Hàm xác nhận và gọi API
+  confirmPriceRequest(requestItems: any[]): void {
+    this.projectPartListService.requestPrice(requestItems).subscribe({
+      next: (response: any) => {
+        if (response.status === 1) {
+          this.notification.success('Thành công', response.message || 'Yêu cầu báo giá thành công!');
+          this.loadDataProjectPartList();
+          this.deadlinePriceRequest = null;
+        } else if (response.status === 2) {
+          this.notification.warning('Thông báo', response.message || 'Không thể yêu cầu báo giá');
+        } else {
+          this.notification.error('Lỗi', response.message || 'Không thể yêu cầu báo giá');
+        }
+      },
+      error: (error: any) => {
+        const errorMessage = error?.error?.message || error?.message || 'Không thể yêu cầu báo giá';
+        this.notification.error('Lỗi', errorMessage);
       }
     });
   }
@@ -4399,42 +4517,153 @@ export class ProjectPartListSlickGridComponent implements OnInit, AfterViewInit,
       return;
     }
 
+
     this.deadlinePurchaseRequest = null;
+    this.showPurchaseRequestModal(requestItems, projectTypeID);
+  }
+
+  // Hiển thị modal chọn deadline mua hàng
+  showPurchaseRequestModal(requestItems: any[], projectTypeID: number): void {
     this.modal.confirm({
       nzTitle: 'Yêu cầu mua hàng',
       nzContent: this.purchaseRequestModalContent,
       nzOkText: 'Xác nhận',
       nzCancelText: 'Hủy',
+      nzOkType: 'primary',
       nzWidth: 500,
       nzOnOk: () => {
-        if (!this.deadlinePurchaseRequest) {
-          this.notification.warning('Thông báo', 'Vui lòng chọn deadline hàng về!');
-          return false;
+        return this.validateAndConfirmPurchaseDeadline(requestItems, projectTypeID);
+      },
+      nzOnCancel: () => {
+        this.deadlinePurchaseRequest = null;
+      }
+    });
+  }
+
+  // Validate và xác nhận deadline mua hàng
+  validateAndConfirmPurchaseDeadline(requestItems: any[], projectTypeID: number): Promise<boolean> {
+    return new Promise((resolve, reject) => {
+      // Validate deadline đã chọn
+      if (!this.deadlinePurchaseRequest) {
+        this.notification.warning('Thông báo', 'Vui lòng chọn deadline hàng về!');
+        resolve(false);
+        return;
+      }
+
+      // Kiểm tra deadline có hợp lệ không
+      const minDate = this.getMinDeadlineDate();
+      minDate.setHours(0, 0, 0, 0);
+      let selectedDate = new Date(this.deadlinePurchaseRequest);
+      selectedDate.setHours(0, 0, 0, 0);
+
+      if (selectedDate < minDate) {
+        this.notification.warning('Thông báo', 'Deadline phải từ ' + minDate.toLocaleDateString('vi-VN') + ' trở đi!');
+        resolve(false);
+        return;
+      }
+
+      // Nếu chọn Thứ 7 hoặc Chủ nhật, tự động chuyển thành Thứ 2 tuần sau
+      const day = selectedDate.getDay();
+      const originalDate = new Date(selectedDate);
+      let wasConverted = false;
+      let convertedDate = new Date(selectedDate);
+
+      if (day === 0 || day === 6) {
+        convertedDate = this.convertWeekendToMonday(new Date(selectedDate));
+        wasConverted = true;
+      }
+
+      // Lưu ngày đã chuyển đổi vào biến để đảm bảo dữ liệu gửi API là đúng
+      const finalDeadlineDate = wasConverted ? convertedDate : selectedDate;
+
+      // Đếm số ngày cuối tuần giữa hôm nay và deadline
+      const now = new Date();
+      now.setHours(0, 0, 0, 0);
+      const countWeekend = this.countWeekendDays(now, finalDeadlineDate);
+
+      // Nếu có ngày cuối tuần hoặc đã chuyển đổi từ Thứ 7/CN, hiển thị thông báo xác nhận
+      if (countWeekend > 0 || wasConverted) {
+        let message = '';
+        if (wasConverted) {
+          const originalStr = originalDate.toLocaleDateString('vi-VN');
+          const convertedStr = finalDeadlineDate.toLocaleDateString('vi-VN');
+          const dayName = day === 0 ? 'Chủ nhật' : 'Thứ 7';
+          message = `Bạn đã chọn ngày ${dayName} [${originalStr}].\nDeadline sẽ được chuyển thành Thứ 2 tuần sau [${convertedStr}].\nBạn có chắc muốn tiếp tục không?`;
+        } else {
+          const deadlineStr = finalDeadlineDate.toLocaleDateString('vi-VN');
+          message = `Deadline sẽ không tính Thứ 7 và Chủ nhật (có ${countWeekend} ngày cuối tuần).\nBạn có chắc muốn chọn Deadline là ngày [${deadlineStr}] không?`;
         }
 
-        const deadlineFixed = new Date(this.deadlinePurchaseRequest);
-        deadlineFixed.setHours(12, 0, 0, 0);
-        const deadlineISO = deadlineFixed.toISOString();
-
-        requestItems.forEach(item => {
-          item.DeadlinePur = deadlineISO;
-        });
-
-        this.projectPartListService.approvePurchaseRequest(requestItems, true, projectTypeID, this.projectSolutionId, this.projectId).subscribe({
-          next: (response: any) => {
-            if (response.status === 1) {
-              this.notification.success('Thành công', response.message || 'Yêu cầu mua hàng thành công!');
-              this.loadDataProjectPartList();
-              this.deadlinePurchaseRequest = null;
-            } else {
-              this.notification.error('Lỗi', response.message || 'Không thể yêu cầu mua hàng');
-            }
+        this.modal.confirm({
+          nzTitle: 'Xác nhận Deadline',
+          nzContent: message,
+          nzOkText: 'Có',
+          nzCancelText: 'Không',
+          nzOkType: 'primary',
+          nzOnOk: () => {
+            // Cập nhật deadline với giá trị đã chuyển đổi (đảm bảo là thứ 2 nếu chọn cuối tuần)
+            this.deadlinePurchaseRequest = finalDeadlineDate;
+            // Người dùng xác nhận → Gán deadline và gọi API (truyền trực tiếp finalDeadlineDate)
+            this.assignDeadlineToPurchaseItems(requestItems, finalDeadlineDate);
+            this.confirmPurchaseRequest(requestItems, projectTypeID);
+            resolve(true); // Đóng modal đầu tiên
           },
-          error: (error: any) => {
-            this.notification.error('Lỗi', error?.error?.message || error?.message || 'Không thể yêu cầu mua hàng');
+          nzOnCancel: () => {
+            // Người dùng không xác nhận → Không đóng modal đầu tiên
+            // Reset về ngày ban đầu nếu đã chuyển đổi
+            if (wasConverted) {
+              this.deadlinePurchaseRequest = originalDate;
+            }
+            resolve(false);
           }
         });
-        return true;
+      } else {
+        // Không có ngày cuối tuần → Cập nhật deadline và gọi API trực tiếp
+        this.deadlinePurchaseRequest = finalDeadlineDate;
+        this.assignDeadlineToPurchaseItems(requestItems, finalDeadlineDate);
+        this.confirmPurchaseRequest(requestItems, projectTypeID);
+        resolve(true); // Đóng modal
+      }
+    });
+  }
+
+  // Hàm gán deadline vào các items trong payload mua hàng
+  assignDeadlineToPurchaseItems(requestItems: any[], deadline?: Date): void {
+    // Ưu tiên sử dụng deadline được truyền vào, nếu không có thì lấy từ this.deadlinePurchaseRequest
+    const finalDeadline = deadline || this.deadlinePurchaseRequest;
+
+    if (!finalDeadline) {
+      console.error('Deadline is null or undefined');
+      return;
+    }
+
+    // Fix timezone issue: Set giờ về 12:00:00 (giữa ngày) để tránh lệch ngày khi convert sang UTC
+    const deadlineFixed = new Date(finalDeadline);
+    deadlineFixed.setHours(12, 0, 0, 0);
+
+    // Convert Date sang ISO string để gửi lên API
+    const deadlineISO = deadlineFixed.toISOString();
+
+    requestItems.forEach(item => {
+      item.DeadlinePur = deadlineISO;
+    });
+  }
+
+  // Hàm xác nhận và gọi API yêu cầu mua hàng
+  confirmPurchaseRequest(requestItems: any[], projectTypeID: number): void {
+    this.projectPartListService.approvePurchaseRequest(requestItems, true, projectTypeID, this.projectSolutionId, this.projectId).subscribe({
+      next: (response: any) => {
+        if (response.status === 1) {
+          this.notification.success('Thành công', response.message || 'Yêu cầu mua hàng thành công!');
+          this.loadDataProjectPartList();
+          this.deadlinePurchaseRequest = null;
+        } else {
+          this.notification.error('Lỗi', response.message || 'Không thể yêu cầu mua hàng');
+        }
+      },
+      error: (error: any) => {
+        const errorMessage = error?.error?.message || error?.message || 'Không thể yêu cầu mua hàng';
+        this.notification.error('Lỗi', errorMessage);
       }
     });
   }
@@ -4887,7 +5116,7 @@ export class ProjectPartListSlickGridComponent implements OnInit, AfterViewInit,
       CreatDate: bill.CreatDate || bill.RequestDate || new Date(),
       RequestDate: bill.RequestDate || new Date(),
       IsTransfer: isTransfer,
-      
+
     };
     // Map details cho modal theo BillExportDetailRQPDTO structure
     const detailsForModal = details.map((detail: any) => ({
@@ -4912,7 +5141,7 @@ export class ProjectPartListSlickGridComponent implements OnInit, AfterViewInit,
       Note: detail.Note || '',
       SerialNumber: detail.SerialNumber || '',
       ProjectNameText: detail.ProjectName || '',
-    
+
       TotalInventory: 0
     }));
     console.log('[OPEN BILL EXPORT DETAIL] BillExportForModal:', billExportForModal);
@@ -5351,27 +5580,79 @@ export class ProjectPartListSlickGridComponent implements OnInit, AfterViewInit,
   // Disable ngày trong date picker
   disabledDate = (current: Date): boolean => {
     if (!current) return false;
-    const minDate = new Date();
-    minDate.setHours(0, 0, 0, 0);
-    if (new Date().getHours() >= 15) {
-      minDate.setDate(minDate.getDate() + 2);
-    } else {
-      minDate.setDate(minDate.getDate() + 1);
-    }
+    const minDate = this.getMinDeadlineDate();
     return current < minDate;
   };
 
   disabledDatePurchase = (current: Date): boolean => {
     if (!current) return false;
-    const minDate = new Date();
+    const minDate = this.getMinDeadlineDate();
+    return current < minDate;
+  };
+
+  // Hàm tính ngày deadline tối thiểu (chỉ để disable ngày quá khứ)
+  getMinDeadlineDate(): Date {
+    const now = new Date();
+    const currentHour = now.getHours();
+    let minDate = new Date(now);
     minDate.setHours(0, 0, 0, 0);
-    if (new Date().getHours() >= 15) {
+    // Nếu sau 15h: ngày đầu tiên có thể chọn là 2 ngày tới (ngày kia)
+    // Nếu trước 15h: ngày đầu tiên có thể chọn là 1 ngày tới (ngày mai)
+    if (currentHour >= 15) {
       minDate.setDate(minDate.getDate() + 2);
     } else {
       minDate.setDate(minDate.getDate() + 1);
     }
-    return current < minDate;
-  };
+    return minDate;
+  }
+
+  // Hàm chuyển Thứ 7/Chủ nhật thành Thứ 2 tuần sau
+  convertWeekendToMonday(date: Date): Date {
+    const result = new Date(date);
+    const day = result.getDay();
+    // 0 = Chủ nhật, 6 = Thứ 7 -> chuyển sang Thứ 2 tuần sau
+    if (day === 0) { // Chủ nhật -> chuyển sang Thứ 2 tuần sau
+      result.setDate(result.getDate() + 1);
+    } else if (day === 6) { // Thứ 7 -> chuyển sang Thứ 2 tuần sau
+      result.setDate(result.getDate() + 2);
+    }
+    return result;
+  }
+
+  // Hàm lấy ngày làm việc tiếp theo (T2-T6)
+  getNextWorkingDay(date: Date): Date {
+    const result = new Date(date);
+    const day = result.getDay();
+    // 0 = CN, 6 = T7
+    if (day === 0) { // Chủ nhật -> chuyển sang thứ 2
+      result.setDate(result.getDate() + 1);
+    } else if (day === 6) { // Thứ 7 -> chuyển sang thứ 2
+      result.setDate(result.getDate() + 2);
+    }
+    return result;
+  }
+
+  // Hàm đếm số ngày cuối tuần giữa ngày hiện tại và deadline
+  countWeekendDays(startDate: Date, endDate: Date): number {
+    let count = 0;
+    const start = new Date(startDate);
+    const end = new Date(endDate);
+    start.setHours(0, 0, 0, 0);
+    end.setHours(0, 0, 0, 0);
+    // Tính số ngày giữa start và end
+    const timeSpan = Math.ceil((end.getTime() - start.getTime()) / (1000 * 60 * 60 * 24));
+    // Đếm số ngày cuối tuần
+    for (let i = 0; i <= timeSpan; i++) {
+      const dateValue = new Date(start);
+      dateValue.setDate(dateValue.getDate() + i);
+      const dayOfWeek = dateValue.getDay();
+      // 0 = Chủ nhật, 6 = Thứ 7
+      if (dayOfWeek === 0 || dayOfWeek === 6) {
+        count++;
+      }
+    }
+    return count;
+  }
 
   onIsGeneratedItemChange(): void {
     if (!this.isGeneratedItem) {
@@ -5975,7 +6256,7 @@ export class ProjectPartListSlickGridComponent implements OnInit, AfterViewInit,
     (this.projectPartListService as any).convertVersionPO(payload).subscribe({
       next: (res: any) => {
         this.stopLoading();
-        this.notification.success('Thành công','Đã chuyển phiên bản thành PO');
+        this.notification.success('Thành công', 'Đã chuyển phiên bản thành PO');
         // Refresh merged version data
         this.loadDataVersion();
       },

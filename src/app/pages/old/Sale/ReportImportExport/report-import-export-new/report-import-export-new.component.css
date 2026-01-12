@@ -1,0 +1,72 @@
+.report-container {
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+}
+
+.header-section {
+    flex-shrink: 0;
+}
+
+.content-section {
+    flex-grow: 1;
+    overflow: hidden;
+}
+
+.productgroup-panel {
+    flex-shrink: 0;
+    display: flex;
+    flex-direction: column;
+}
+
+.report-panel {
+    display: flex;
+    flex-direction: column;
+}
+
+.fs-12 {
+    font-size: 12px !important;
+}
+
+.btn-action-icon {
+    width: 16px;
+    height: 16px;
+    margin-right: 4px;
+}
+
+/* SlickGrid text-right styling */
+::ng-deep .slick-cell.text-right {
+    text-align: right !important;
+    padding-right: 8px !important;
+}
+
+::ng-deep .slick-header-column.text-right .slick-column-name {
+    text-align: right !important;
+    justify-content: flex-end !important;
+    padding-right: 8px !important;
+}
+
+/* Footer row styling */
+::ng-deep .slickgrid-container .slick-footerrow .slick-footerrow-columns .slick-footerrow-column {
+    border-right: 1px solid #ddd !important;
+    padding: 4px 6px;
+    font-size: 0.75rem;
+    text-align: right !important;
+}
+
+/* Grid container styling */
+::ng-deep div[id^="productGroup-"],
+::ng-deep div[id^="report-"] {
+    height: 91vh !important;
+}
+
+/* Row highlight for invisible product groups */
+::ng-deep .slick-row.row-invisible {
+    background-color: #990011FF !important;
+    color: #D9D9D9 !important;
+}
+
+::ng-deep .slick-row.row-invisible .slick-cell {
+    background-color: #990011FF !important;
+    color: #D9D9D9 !important;
+}

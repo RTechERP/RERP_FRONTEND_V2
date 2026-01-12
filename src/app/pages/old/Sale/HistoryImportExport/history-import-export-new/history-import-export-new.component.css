@@ -1,0 +1,32 @@
+.history-container {
+    display: flex;
+    flex-direction: column;
+}
+
+.header-section {
+    flex-shrink: 0;
+}
+
+.content-section {
+    flex: 1;
+    overflow: hidden;
+}
+
+.date-picker-input {
+    width: 120px;
+}
+
+.keyword-input {
+    width: 150px;
+}
+
+.status-select {
+    width: 120px;
+}
+
+.grid-wrapper {
+    height: 100%;
+}
+::ng-deep div[id^="historyImportExport-"] {
+    height: 91vh !important;
+}

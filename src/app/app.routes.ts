@@ -224,6 +224,7 @@ import { EconomicContractTypeComponent } from './pages/hrm/economic-contract/eco
 import { EconomicContractComponent } from './pages/hrm/economic-contract/economic-contract.component';
 import { KPIEvaluationEmployeeComponent } from './pages/KPITech/kpievaluation-employee/kpievaluation-employee.component';
 import { KPIEvaluationFactorScoringComponent } from './pages/KPITech/kpievaluation-factor-scoring/kpievaluation-factor-scoring.component';
+import { SettingHrConfigComponent } from './pages/hrm/setting/setting-hr-config/setting-hr-config.component';
 
 // import { CustomerSlickgridComponent } from './pages/crm/customers/customer-slickgrid/customer-slickgrid.component';
 export const routes: Routes = [
@@ -431,6 +432,7 @@ export const routes: Routes = [
             { path: 'economic-contract-term', component: EconimicContractTermComponent, canActivate: [authGuard] },
             { path: 'economic-contract-type', component: EconomicContractTypeComponent, canActivate: [authGuard] },
             { path: 'economic-contract', component: EconomicContractComponent, canActivate: [authGuard] },
+            { path: 'setting-hr-config', component: SettingHrConfigComponent, canActivate: [authGuard] },
 
 
 

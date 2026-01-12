@@ -33,6 +33,7 @@ import { ActivatedRoute } from '@angular/router';
 import { ExcelExportService } from '@slickgrid-universal/excel-export';
 import { MenubarModule } from 'primeng/menubar';
 import { MenuItem } from 'primeng/api';
+import { BillExportDetailNewComponent } from '../../BillExport/bill-export-detail-new/bill-export-detail-new.component';
 
 @Component({
     selector: 'app-history-borrow-sale-new',
@@ -906,7 +907,7 @@ export class HistoryBorrowSaleNewComponent implements OnInit {
             return;
         }
 
-        const modalRef = this.modalService.open(BillExportDetailComponent, {
+        const modalRef = this.modalService.open(BillExportDetailNewComponent, {
             backdrop: 'static',
             keyboard: false,
             windowClass: 'full-screen-modal',

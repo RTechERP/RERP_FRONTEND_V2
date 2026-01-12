@@ -69,6 +69,7 @@ import { FormExportExcelPartlistComponent } from '../project/project-department-
 import { ProjectPartlistPurchaseRequestDetailComponent } from '../purchase/project-partlist-purchase-request/project-partlist-purchase-request-detail/project-partlist-purchase-request-detail.component';
 import { environment } from '../../../environments/environment';
 import * as ExcelJS from 'exceljs';
+import { BillExportDetailNewComponent } from '../old/Sale/BillExport/bill-export-detail-new/bill-export-detail-new.component';
 
 @Component({
   selector: 'app-project-part-list-slick-grid',
@@ -5146,13 +5147,14 @@ export class ProjectPartListSlickGridComponent implements OnInit, AfterViewInit,
     }));
     console.log('[OPEN BILL EXPORT DETAIL] BillExportForModal:', billExportForModal);
     console.log('[OPEN BILL EXPORT DETAIL] DetailsForModal:', detailsForModal);
-    const modalRef = this.ngbModal.open(BillExportDetailComponent, {
+    const modalRef = this.ngbModal.open(BillExportDetailNewComponent, {
       centered: true,
       size: 'xl',
       backdrop: 'static',
       keyboard: false,
     });
-    // Truyền dữ liệu vào modal
+    // CRITICAL: Set selectedList FIRST after opening modal (before other properties)
+    modalRef.componentInstance.selectedList = detailsForModal;
     modalRef.componentInstance.newBillExport = billExportForModal;
     modalRef.componentInstance.isCheckmode = false;
     modalRef.componentInstance.id = 0;
@@ -5160,13 +5162,6 @@ export class ProjectPartListSlickGridComponent implements OnInit, AfterViewInit,
     modalRef.componentInstance.wareHouseCode = bill.WarehouseCode || '';
     modalRef.componentInstance.isPOKH = bill.IsPOKH || false;
     modalRef.componentInstance.isFromProjectPartList = true;
-    // Set detail data sau khi modal mở
-    setTimeout(() => {
-      modalRef.componentInstance.dataTableBillExportDetail = detailsForModal;
-      if (modalRef.componentInstance.table_billExportDetail) {
-        modalRef.componentInstance.table_billExportDetail.replaceData(detailsForModal);
-      }
-    }, 200);
     // Xử lý khi modal đóng
     modalRef.result.then(
       (result) => {

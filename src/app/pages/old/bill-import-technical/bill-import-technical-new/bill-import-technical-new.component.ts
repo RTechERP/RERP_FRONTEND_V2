@@ -33,6 +33,7 @@ import { DateTime } from 'luxon';
 // @ts-ignore
 import { saveAs } from 'file-saver';
 import { BillImportTechnicalSummaryComponent } from '../../bill-export-technical/bill-import-technical-summary/bill-import-technical-summary.component';
+import { CheckHistoryTechSlickGridComponent } from '../check-history-tech-slick-grid/check-history-tech-slick-grid.component';
 
 function formatDateCell(value: any): string {
     if (!value) return '';
@@ -376,6 +377,14 @@ export class BillImportTechnicalNewComponent implements OnInit, AfterViewInit, O
     }
     private initDetailGridColumns(): void {
         this.columnDefinitionsDetail = [
+            {
+                id: 'ProductCode',
+                field: 'ProductCode',
+                name: 'Mã sản phẩm',
+                width: 300,
+                sortable: true,
+                filterable: true,
+            },
             {
                 id: 'ProductName',
                 field: 'ProductName',
@@ -1032,7 +1041,7 @@ export class BillImportTechnicalNewComponent implements OnInit, AfterViewInit, O
     }
 
     openCheckHistoryTech() {
-        const modalRef = this.ngbModal.open(CheckHistoryTechComponent, {
+        const modalRef = this.ngbModal.open(CheckHistoryTechSlickGridComponent, {
             centered: false,
             fullscreen: true,
             backdrop: 'static',

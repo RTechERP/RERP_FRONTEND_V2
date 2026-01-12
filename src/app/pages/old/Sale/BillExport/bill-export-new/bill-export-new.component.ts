@@ -1,6 +1,6 @@
 
 
-import { Component, OnInit, ViewChild } from '@angular/core';
+import { Component, OnInit, OnDestroy, ViewChild } from '@angular/core';
 import {
   AngularGridInstance,
   AngularSlickgridModule,
@@ -35,10 +35,13 @@ import { CommonModule } from '@angular/common';
 import { HistoryDeleteBillComponent } from '../Modal/history-delete-bill/history-delete-bill.component';
 import { BillExportDetailComponent } from '../Modal/bill-export-detail/bill-export-detail.component';
 import { ActivatedRoute } from '@angular/router';
+import { Subject } from 'rxjs';
+import { takeUntil } from 'rxjs/operators';
 import { AppUserService } from '../../../../../services/app-user.service';
 import { HasPermissionDirective } from '../../../../../directives/has-permission.directive';
 import { MenubarModule } from 'primeng/menubar';
 import { MenuItem } from 'primeng/api';
+import { BillExportDetailNewComponent } from '../bill-export-detail-new/bill-export-detail-new.component';
 @Component({
   selector: 'app-bill-export-new',
   templateUrl: './bill-export-new.component.html',
@@ -64,7 +67,7 @@ import { MenuItem } from 'primeng/api';
     MenubarModule
   ],
 })
-export class BillExportNewComponent implements OnInit {
+export class BillExportNewComponent implements OnInit, OnDestroy {
   // ========================================
   // Grid Instances & Properties
   // ========================================
@@ -118,6 +121,10 @@ export class BillExportNewComponent implements OnInit {
   menuItems: MenuItem[] = [];
   maxVisibleItems = 9;
 
+  // Để cleanup subscriptions
+  private destroy$ = new Subject<void>();
+  private isInitialized = false;
+
   constructor(
     private billExportService: BillExportService,
     private notification: NzNotificationService,
@@ -128,16 +135,49 @@ export class BillExportNewComponent implements OnInit {
   ) {}
 
   ngOnInit() {
-    // Đọc wareHouseCode từ query params
-    this.route.queryParams.subscribe(params => {
-      this.warehouseCode = params['warehouseCode'] || 'HN';
-      this.searchParams.warehousecode = this.warehouseCode;
-    });
+    // Đọc wareHouseCode từ query params và reinit khi thay đổi
+    this.route.queryParams.pipe(takeUntil(this.destroy$)).subscribe(params => {
+      const newWarehouseCode = params['warehouseCode'] || 'HN';
 
-    this.initializeMenu();
+      // Nếu warehouseCode thay đổi và đã được init trước đó, cần destroy grid cũ và reinit
+      if (this.isInitialized && this.warehouseCode !== newWarehouseCode) {
+        this.destroyGrids();
+      }
+
+      this.warehouseCode = newWarehouseCode;
+      this.searchParams.warehousecode = this.warehouseCode;
+
+      // Init hoặc reinit
+      this.initializeComponent();
+    });
+  }
+
+  ngOnDestroy() {
+    this.destroy$.next();
+    this.destroy$.complete();
+    this.destroyGrids();
+  }
+
+  private initializeComponent() {
     this.initMasterGrid();
     this.initDetailGrid();
+    this.initializeMenu();
     this.getProductGroup();
+    this.isInitialized = true;
+  }
+
+  private destroyGrids() {
+    // Destroy master grid
+    if (this.angularGridMaster) {
+      this.angularGridMaster.destroy();
+    }
+    // Destroy detail grid
+    if (this.angularGridDetail) {
+      this.angularGridDetail.destroy();
+    }
+    // Clear datasets
+    this.datasetMaster = [];
+    this.datasetDetail = [];
   }
 
   // ========================================
@@ -153,7 +193,7 @@ export class BillExportNewComponent implements OnInit {
         sortable: true,
         filterable: true,
         type: FieldType.boolean,
-        filter: { model: Filters['singleSelect'], 
+        filter: { model: Filters['singleSelect'],
           collection:[{value:'true', label:'Đã nhận'}, {value:'false', label:'Chưa nhận'}],
           collectionOptions:{
             addBlankEntry:true
@@ -254,6 +294,11 @@ export class BillExportNewComponent implements OnInit {
           model: Filters['compoundInput'],
         },
         minWidth: 200,
+        formatter: (_row, _cell, value) => {
+          if (!value) return '';
+          const text = String(value);
+          return `<div class="cell-multiline" title="${text.replace(/"/g, '&quot;')}">${text}</div>`;
+        },
       },
       {
         id: 'NameNCC',
@@ -273,7 +318,12 @@ export class BillExportNewComponent implements OnInit {
         sortable: true,
         filterable: true,
         filter: { model: Filters['compoundInput'] },
-        minWidth: 200,
+        minWidth: 250,
+        formatter: (_row, _cell, value) => {
+          if (!value) return '';
+          const text = String(value);
+          return `<div class="cell-multiline" title="${text.replace(/"/g, '&quot;')}">${text}</div>`;
+        },
       },
       {
         id: 'CreatDate',
@@ -359,8 +409,9 @@ export class BillExportNewComponent implements OnInit {
       enableGridMenu: true,
       autoHeight: false,
       gridHeight: 450,
-
+      rowHeight: 66, // Height for 3 lines: 12px * 1.5 * 3 + padding
     };
+
   }
 
   initDetailGrid() {
@@ -930,14 +981,14 @@ export class BillExportNewComponent implements OnInit {
   // ========================================
 
   openModalBillExportDetail(isCheckmode: boolean) {
- 
+
     this.isCheckmode = isCheckmode;
     if (this.isCheckmode === true && this.id === 0) {
       this.notification.info('Thông báo', 'Vui lòng chọn 1 phiếu xuất để sửa');
       return;
     }
 
-    const modalRef = this.modalService.open(BillExportDetailComponent, {
+    const modalRef = this.modalService.open(BillExportDetailNewComponent, {
       centered: true,
       backdrop: 'static',
       keyboard: false,
@@ -1741,7 +1792,7 @@ export class BillExportNewComponent implements OnInit {
   // =================================================================
 
   private applyDistinctFiltersToMaster(): void {
-    // Use this.datasetMaster directly since this method is called 
+    // Use this.datasetMaster directly since this method is called
     // before Angular updates the dataView
     const data = this.datasetMaster;
     if (!data || data.length === 0) return;
@@ -1761,7 +1812,7 @@ export class BillExportNewComponent implements OnInit {
         statusMap.set(value, value);
       }
     });
-    
+
     const statusCollection = Array.from(statusMap.entries())
       .map(([value, label]) => ({ value, label }))
       .sort((a, b) => a.label.localeCompare(b.label));

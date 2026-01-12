@@ -41,6 +41,7 @@ import { ProductLocationTechnicalService } from '../../Technical/product-locatio
 import { UpdateQrcodeFormComponent } from '../update-qrcode-form/update-qrcode-form.component';
 import { InventoryBorrowSupplierDemoComponent } from '../inventory-borrow-supplier-demo/inventory-borrow-supplier-demo.component';
 import { HasPermissionDirective } from '../../../../directives/has-permission.directive';
+import { environment } from '../../../../../environments/environment';
 
 @Component({
     selector: 'app-inventory-demo-new',
@@ -1258,7 +1259,7 @@ export class InventoryDemoNewComponent implements OnInit, AfterViewInit, OnDestr
         });
 
         window.open(
-            `/material-detail-of-product-rtc?${params.toString()}`,
+            `${environment.baseHref}/material-detail-of-product-rtc?${params.toString()}`,
             '_blank',
             'width=1200,height=800,scrollbars=yes,resizable=yes'
         );

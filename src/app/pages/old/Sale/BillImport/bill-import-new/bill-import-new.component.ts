@@ -1050,9 +1050,9 @@ export class BillImportNewComponent implements OnInit {
     }
     const modalRef = this.modalService.open(BillImportDetailComponent, {
       centered: true,
-      size: 'xl',
       backdrop: 'static',
       keyboard: false,
+      fullscreen: true,
     });
     modalRef.componentInstance.newBillImport = this.newBillImport;
     modalRef.componentInstance.isCheckmode = this.isCheckmode;
@@ -1630,7 +1630,7 @@ export class BillImportNewComponent implements OnInit {
         keyboard: false,
         fullscreen: true,
       });
-
+      modalRef.componentInstance.warehouseCode = this.wareHouseCode;
       modalRef.result.catch((result) => {
         if (result == true) {
           // this.id=0;
@@ -1853,14 +1853,14 @@ export class BillImportNewComponent implements OnInit {
 
     // Import BillExportDetailComponent dynamically
     import(
-      '../../BillExport/Modal/bill-export-detail/bill-export-detail.component'
+      '../../BillExport/bill-export-detail-new/bill-export-detail-new.component'
     )
       .then((m) => {
-        const modalRef = this.modalService.open(m.BillExportDetailComponent, {
+        const modalRef = this.modalService.open(m.BillExportDetailNewComponent, {
           centered: true,
-          size: 'xl',
           backdrop: 'static',
           keyboard: false,
+          fullscreen:true
         });
 
         // Pass data to the modal matching the C# form logic

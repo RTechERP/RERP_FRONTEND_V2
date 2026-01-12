@@ -73,6 +73,7 @@ import { PokhDetailComponent } from '../../../../old/pokh-detail/pokh-detail.com
 import { FormExportExcelPartlistComponent } from './project-partlist-detail/form-export-excel-partlist/form-export-excel-partlist.component';
 import { ProjectPartlistPurchaseRequestDetailComponent } from '../../../../purchase/project-partlist-purchase-request/project-partlist-purchase-request-detail/project-partlist-purchase-request-detail.component';
 import { environment } from '../../../../../../environments/environment';
+import { BillExportDetailNewComponent } from '../../../../old/Sale/BillExport/bill-export-detail-new/bill-export-detail-new.component';
 
 @Component({
     selector: 'app-project-worker',
@@ -6294,7 +6295,7 @@ export class ProjectPartListComponent implements OnInit, AfterViewInit {
             // TotalInventory sẽ được fill từ productOptions trong updateTotalInventoryForExistingRows()
             TotalInventory: 0
         }));
-        const modalRef = this.ngbModal.open(BillExportDetailComponent, {
+        const modalRef = this.ngbModal.open(BillExportDetailNewComponent, {
             centered: true,
             size: 'xl',
             backdrop: 'static',
@@ -6311,13 +6312,8 @@ export class ProjectPartListComponent implements OnInit, AfterViewInit {
         modalRef.componentInstance.wareHouseCode = bill.WarehouseCode || '';
         modalRef.componentInstance.isPOKH = bill.IsPOKH || false;
         modalRef.componentInstance.isFromProjectPartList = true; // FLAG RIÊNG cho luồng ProjectPartList
-        // Set detail data sau khi modal mở
-        setTimeout(() => {
-            modalRef.componentInstance.dataTableBillExportDetail = detailsForModal;
-            if (modalRef.componentInstance.table_billExportDetail) {
-                modalRef.componentInstance.table_billExportDetail.replaceData(detailsForModal);
-            }
-        }, 200);
+        // Truyền data chi tiết vào selectedList (dành cho BillExportDetailNewComponent với SlickGrid)
+        modalRef.componentInstance.selectedList = detailsForModal;
         // Xử lý khi modal đóng
         modalRef.result.then(
             (result) => {

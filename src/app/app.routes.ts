@@ -224,11 +224,9 @@ import { EconomicContractTypeComponent } from './pages/hrm/economic-contract/eco
 import { EconomicContractComponent } from './pages/hrm/economic-contract/economic-contract.component';
 import { KPIEvaluationEmployeeComponent } from './pages/KPITech/kpievaluation-employee/kpievaluation-employee.component';
 import { KPIEvaluationFactorScoringComponent } from './pages/KPITech/kpievaluation-factor-scoring/kpievaluation-factor-scoring.component';
-import { SettingHrConfigComponent } from './pages/hrm/setting/setting-hr-config/setting-hr-config.component';
-import { KpiErrorComponent } from './pages/old/Technical/kpi-error/kpi-error.component';
-import { KpiErrorEmployeeComponent } from './pages/old/Technical/kpi-error-employee/kpi-error-employee.component';
-import { KpiErrorEmployeeSummaryMaxComponent } from './pages/old/Technical/kpi-error-employee-summary-max/kpi-error-employee-summary-max.component';
-import { SummaryKpiErrorEmployeeMonthComponent } from './pages/old/Technical/summary-kpi-error-employee-month/summary-kpi-error-employee-month.component';
+import { ReportImportExportNewComponent } from './pages/old/Sale/ReportImportExport/report-import-export-new/report-import-export-new.component';
+import { HistoryImportExportNewComponent } from './pages/old/Sale/HistoryImportExport/history-import-export-new/history-import-export-new.component';
+import { InventoryProjectNewComponent } from './pages/purchase/inventory-project/inventory-project-new/inventory-project-new.component';
 
 // import { CustomerSlickgridComponent } from './pages/crm/customers/customer-slickgrid/customer-slickgrid.component';
 export const routes: Routes = [
@@ -289,9 +287,9 @@ export const routes: Routes = [
             { path: 'inventory', component: InventoryNewComponent, canActivate: [authGuard] },
             { path: 'bill-import', component: BillImportComponent, canActivate: [authGuard] },
             { path: 'bill-export', component: BillExportComponent, canActivate: [authGuard] },
-            { path: 'history-import-export', component: HistoryImportExportComponent, canActivate: [authGuard] },
+            { path: 'history-import-export', component: HistoryImportExportNewComponent, canActivate: [authGuard] },
             { path: 'history-borrow-sale', component: HistoryBorrowSaleComponent, canActivate: [authGuard] },
-            { path: 'report-import-export', component: ReportImportExportComponent, canActivate: [authGuard] },
+            { path: 'report-import-export', component: ReportImportExportNewComponent, canActivate: [authGuard] },
             { path: 'list-product-project', component: ListProductProjectComponent, canActivate: [authGuard] },
             { path: 'search-product-serial-number', component: SearchProductSerialNumberComponent, canActivate: [authGuard] },
             { path: 'inventory-demo', component: InventoryDemoComponent, canActivate: [authGuard] },
@@ -300,7 +298,7 @@ export const routes: Routes = [
             { path: 'product-report-new', component: ProductReportNewComponent, canActivate: [authGuard] },
             { path: 'product-export-and-borrow', component: ProductExportAndBorrowComponent, canActivate: [authGuard] },
             { path: 'borrow-report', component: BorrowReportComponent, canActivate: [authGuard] },
-            { path: 'borrow-product-history', component: BorrowProductHistoryComponent, canActivate: [authGuard] },
+            // { path: 'borrow-product-history', component: BorrowProductHistoryComponent, canActivate: [authGuard] },
             { path: 'product-location-technical', component: ProductLocationTechnicalComponent, canActivate: [authGuard] },
             { path: 'product-rtc-qr-code', component: ProductRtcQrCodeComponent, canActivate: [authGuard] },
             { path: 'unit-count-kt', component: UnitCountKtComponent, canActivate: [authGuard] },
@@ -369,7 +367,7 @@ export const routes: Routes = [
             { path: 'project-partlist-price-request-new', component: ProjectPartlistPriceRequestNewComponent, canActivate: [authGuard] },
             { path: 'assign-work', component: AssignWorkComponent, canActivate: [authGuard] },
             { path: 'poncc-new', component: PonccNewComponent, canActivate: [authGuard] },
-            { path: 'inventory-project', component: InventoryProjectComponent, canActivate: [authGuard] },
+            { path: 'inventory-project', component: InventoryProjectNewComponent, canActivate: [authGuard] },
             { path: 'project-part-list-purchase-request-slick-grid', component: ProjectPartListPurchaseRequestSlickGridComponent, canActivate: [authGuard] },
             { path: 'project-work-propress', component: ProjectWorkPropressComponent, canActivate: [authGuard] },
             { path: 'project-work-timeline', component: ProjectWorkTimelineComponent, canActivate: [authGuard] },
@@ -436,7 +434,7 @@ export const routes: Routes = [
             { path: 'economic-contract-term', component: EconimicContractTermComponent, canActivate: [authGuard] },
             { path: 'economic-contract-type', component: EconomicContractTypeComponent, canActivate: [authGuard] },
             { path: 'economic-contract', component: EconomicContractComponent, canActivate: [authGuard] },
-            { path: 'setting-hr-config', component: SettingHrConfigComponent, canActivate: [authGuard] },
+            // { path: 'setting-hr-config', component: SettingHrConfigComponent, canActivate: [authGuard] },
 
 
 
@@ -792,9 +790,9 @@ export const routes: Routes = [
             { path: 'inventory-hn', component: InventoryNewComponent, canActivate: [authGuard] },
             { path: 'bill-import-hn', component: BillImportNewComponent, canActivate: [authGuard] },
             { path: 'bill-export-hn', component: BillExportNewComponent, canActivate: [authGuard] },
-            { path: 'history-import-export-hn', component: HistoryImportExportComponent, canActivate: [authGuard] },
+            { path: 'history-import-export-hn', component: HistoryImportExportNewComponent, canActivate: [authGuard] },
             { path: 'history-borrow-hn', component: HistoryBorrowSaleNewComponent, canActivate: [authGuard] },
-            { path: 'report-import-export-hn', component: ReportImportExportComponent, canActivate: [authGuard] },
+            { path: 'report-import-export-hn', component: ReportImportExportNewComponent, canActivate: [authGuard] },
             { path: 'product-project-hn', component: ListProductProjectComponent, canActivate: [authGuard] },
             { path: 'search-serialnumber-hn', component: SearchProductSerialNumberComponent, canActivate: [authGuard] },
 
@@ -805,7 +803,7 @@ export const routes: Routes = [
             { path: 'product-report-hn', component: ProductReportNewComponent, canActivate: [authGuard] },
             { path: 'product-export-borrow-hn', component: ProductExportAndBorrowComponent, canActivate: [authGuard] },
             { path: 'borrow-report-hn', component: BorrowReportComponent, canActivate: [authGuard] },
-            { path: 'borrow-product-history-hn', component: HistoryProductRtcComponent, canActivate: [authGuard] },
+            // { path: 'borrow-product-history-hn', component: HistoryProductRtcComponent, canActivate: [authGuard] },
             { path: 'search-serialnumber-tech-hn', component: SearchProductTechSerialComponent, canActivate: [authGuard] },
             { path: 'product-location-hn', component: ProductLocationTechnicalComponent, canActivate: [authGuard] },
             { path: 'unit-count-hn', component: UnitCountKtComponent, canActivate: [authGuard] },
@@ -818,7 +816,7 @@ export const routes: Routes = [
             { path: 'product-report-agv-hn', component: ProductReportNewComponent, canActivate: [authGuard] },
             // { path: 'product-export-borrow-hn', component: ProductExportAndBorrowComponent, canActivate: [authGuard] },
             { path: 'borrow-report-agv-hn', component: BorrowReportComponent, canActivate: [authGuard] },
-            { path: 'borrow-product-history-agv-hn', component: HistoryProductRtcComponent, canActivate: [authGuard] },
+            // { path: 'borrow-product-history-agv-hn', component: HistoryProductRtcComponent, canActivate: [authGuard] },
             // { path: 'search-serialnumber-tech-hn', component: SearchProductTechSerialComponent, canActivate: [authGuard] },
             { path: 'product-location-agv-hn', component: ProductLocationTechnicalComponent, canActivate: [authGuard] },
             // { path: 'unit-count-hn', component: UnitCountKtComponent, canActivate: [authGuard] },
@@ -828,9 +826,9 @@ export const routes: Routes = [
             { path: 'inventory-hcm', component: InventoryNewComponent, canActivate: [authGuard] },
             { path: 'bill-import-hcm', component: BillImportNewComponent, canActivate: [authGuard] },
             { path: 'bill-export-hcm', component: BillExportNewComponent, canActivate: [authGuard] },
-            { path: 'history-import-export-hcm', component: HistoryImportExportComponent, canActivate: [authGuard] },
+            { path: 'history-import-export-hcm', component: HistoryImportExportNewComponent, canActivate: [authGuard] },
             { path: 'history-borrow-hcm', component: HistoryBorrowSaleComponent, canActivate: [authGuard] },
-            { path: 'report-import-export-hcm', component: ReportImportExportComponent, canActivate: [authGuard] },
+            { path: 'report-import-export-hcm', component: ReportImportExportNewComponent, canActivate: [authGuard] },
             { path: 'product-project-hcm', component: ListProductProjectComponent, canActivate: [authGuard] },
             { path: 'search-serialnumber-hcm', component: SearchProductSerialNumberComponent, canActivate: [authGuard] },
 
@@ -842,7 +840,7 @@ export const routes: Routes = [
             { path: 'product-report-hcm', component: ProductReportNewComponent, canActivate: [authGuard] },
             { path: 'product-export-borrow-hcm', component: ProductExportAndBorrowComponent, canActivate: [authGuard] },
             { path: 'borrow-report-hcm', component: BorrowReportComponent, canActivate: [authGuard] },
-            { path: 'borrow-product-history-hcm', component: HistoryProductRtcComponent, canActivate: [authGuard] },
+            // { path: 'borrow-product-history-hcm', component: HistoryProductRtcComponent, canActivate: [authGuard] },
             { path: 'search-serialnumber-tech-hcm', component: SearchProductTechSerialComponent, canActivate: [authGuard] },
             // { path: 'product-location-hn', component: ProductLocationTechnicalComponent, canActivate: [authGuard] },
             // { path: 'unit-count-hn', component: UnitCountKtComponent, canActivate: [authGuard] },
@@ -852,9 +850,9 @@ export const routes: Routes = [
             { path: 'inventory-bn', component: InventoryNewComponent, canActivate: [authGuard] },
             { path: 'bill-import-bn', component: BillImportNewComponent, canActivate: [authGuard] },
             { path: 'bill-export-bn', component: BillExportNewComponent, canActivate: [authGuard] },
-            { path: 'history-import-export-bn', component: HistoryImportExportComponent, canActivate: [authGuard] },
+            { path: 'history-import-export-bn', component: HistoryImportExportNewComponent, canActivate: [authGuard] },
             { path: 'history-borrow-bn', component: HistoryBorrowSaleComponent, canActivate: [authGuard] },
-            { path: 'report-import-export-bn', component: ReportImportExportComponent, canActivate: [authGuard] },
+            { path: 'report-import-export-bn', component: ReportImportExportNewComponent, canActivate: [authGuard] },
             { path: 'product-project-bn', component: ListProductProjectComponent, canActivate: [authGuard] },
             { path: 'search-serialnumber-bn', component: SearchProductSerialNumberComponent, canActivate: [authGuard] },
 
@@ -865,7 +863,7 @@ export const routes: Routes = [
             { path: 'product-report-bn', component: ProductReportNewComponent, canActivate: [authGuard] },
             { path: 'product-export-borrow-bn', component: ProductExportAndBorrowComponent, canActivate: [authGuard] },
             { path: 'borrow-report-bn', component: BorrowReportComponent, canActivate: [authGuard] },
-            { path: 'borrow-product-history-bn', component: HistoryProductRtcComponent, canActivate: [authGuard] },
+            // { path: 'borrow-product-history-bn', component: HistoryProductRtcComponent, canActivate: [authGuard] },
             { path: 'search-serialnumber-tech-bn', component: SearchProductTechSerialComponent, canActivate: [authGuard] },
             // { path: 'product-location-hn', component: ProductLocationTechnicalComponent, canActivate: [authGuard] },
             // { path: 'unit-count-hn', component: UnitCountKtComponent, canActivate: [authGuard] },
@@ -875,9 +873,9 @@ export const routes: Routes = [
             { path: 'inventory-dp', component: InventoryNewComponent, canActivate: [authGuard] },
             { path: 'bill-import-dp', component: BillImportNewComponent, canActivate: [authGuard] },
             { path: 'bill-export-dp', component: BillExportNewComponent, canActivate: [authGuard] },
-            { path: 'history-import-export-dp', component: HistoryImportExportComponent, canActivate: [authGuard] },
+            { path: 'history-import-export-dp', component: HistoryImportExportNewComponent, canActivate: [authGuard] },
             { path: 'history-borrow-dp', component: HistoryBorrowSaleComponent, canActivate: [authGuard] },
-            { path: 'report-import-export-dp', component: ReportImportExportComponent, canActivate: [authGuard] },
+            { path: 'report-import-export-dp', component: ReportImportExportNewComponent, canActivate: [authGuard] },
             { path: 'product-project-dp', component: ListProductProjectComponent, canActivate: [authGuard] },
             { path: 'search-serialnumber-dp', component: SearchProductSerialNumberComponent, canActivate: [authGuard] },
 
@@ -888,7 +886,7 @@ export const routes: Routes = [
             { path: 'product-report-dp', component: ProductReportNewComponent, canActivate: [authGuard] },
             { path: 'product-export-borrow-dp', component: ProductExportAndBorrowComponent, canActivate: [authGuard] },
             { path: 'borrow-report-dp', component: BorrowReportComponent, canActivate: [authGuard] },
-            { path: 'borrow-product-history-dp', component: HistoryProductRtcComponent, canActivate: [authGuard] },
+            // { path: 'borrow-product-history-dp', component: HistoryProductRtcComponent, canActivate: [authGuard] },
             { path: 'search-serialnumber-tech-dp', component: SearchProductTechSerialComponent, canActivate: [authGuard] },
             // { path: 'product-location-hn', component: ProductLocationTechnicalComponent, canActivate: [authGuard] },
             // { path: 'unit-count-hn', component: UnitCountKtComponent, canActivate: [authGuard] },
@@ -976,11 +974,11 @@ export const routes: Routes = [
 
             { path: 'chi-tiet-san-pham-sale', component: ChiTietSanPhamSaleComponent, canActivate: [authGuard] },
 
-            //Quản lý lỗi phòng Kỹ thuật
-            { path: 'kpi-error', component: KpiErrorComponent, canActivate: [authGuard] },
-            { path: 'kpi-error-employee', component: KpiErrorEmployeeComponent, canActivate: [authGuard] },
-            { path: 'kpi-error-employee-summary-max', component: KpiErrorEmployeeSummaryMaxComponent, canActivate: [authGuard] },
-            { path: 'summary-kpi-error-employee-month', component: SummaryKpiErrorEmployeeMonthComponent, canActivate: [authGuard] },
+            // //Quản lý lỗi phòng Kỹ thuật
+            // { path: 'kpi-error', component: KpiErrorComponent, canActivate: [authGuard] },
+            // { path: 'kpi-error-employee', component: KpiErrorEmployeeComponent, canActivate: [authGuard] },
+            // { path: 'kpi-error-employee-summary-max', component: KpiErrorEmployeeSummaryMaxComponent, canActivate: [authGuard] },
+            // { path: 'summary-kpi-error-employee-month', component: SummaryKpiErrorEmployeeMonthComponent, canActivate: [authGuard] },
 
         ],
     },

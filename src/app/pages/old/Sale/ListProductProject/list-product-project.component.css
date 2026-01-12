@@ -1,4 +1,4 @@
-::ng-deep #listProductProjectGrid {
+::ng-deep div[id^="listProductProjectGrid-"] {
   height: 85vh !important;
 }
 

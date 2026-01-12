@@ -6,8 +6,6 @@ import {
   Input,
   Output,
   EventEmitter,
-  inject,
-  ChangeDetectorRef,
 } from '@angular/core';
 
 import { CommonModule } from '@angular/common';
@@ -79,7 +77,7 @@ import { ListProductProjectService } from './list-product-project-service/list-p
   templateUrl: './list-product-project.component.html',
   styleUrl: './list-product-project.component.css',
 })
-export class ListProductProjectComponent implements OnInit, AfterViewInit {
+export class ListProductProjectComponent implements OnInit, AfterViewInit, OnDestroy {
   constructor(
     private listproductprojectService: ListProductProjectService,
     private notification: NzNotificationService,
@@ -108,8 +106,12 @@ export class ListProductProjectComponent implements OnInit, AfterViewInit {
 
   dataset: any[] = [];
 
+  private queryParamsSub?: Subscription;
+
   ngOnInit(): void {
-    this.route.queryParams.subscribe((params) => {
+    // Get warehouseCode from query params
+    // Note: RouteReuseStrategy will recreate component when queryParams change
+    this.queryParamsSub = this.route.queryParams.subscribe((params) => {
       this.warehouseCode = params['warehouseCode'] || 'HN';
       this.sreachParam.WareHouseCode = this.warehouseCode;
     });
@@ -118,6 +120,25 @@ export class ListProductProjectComponent implements OnInit, AfterViewInit {
     this.getProject();
     this.initAngularGrid();
     this.loadData();
+  }
+
+  ngOnDestroy(): void {
+    // Cleanup subscription
+    if (this.queryParamsSub) {
+      this.queryParamsSub.unsubscribe();
+    }
+    
+    // Cleanup SlickGrid
+    if (this.angularGrid) {
+      try {
+        if (this.angularGrid.slickGrid) {
+          this.angularGrid.slickGrid.destroy();
+        }
+      } catch (e) {
+        // Ignore errors during cleanup
+      }
+      this.angularGrid = undefined as any;
+    }
   }
   ngAfterViewInit(): void {}
 

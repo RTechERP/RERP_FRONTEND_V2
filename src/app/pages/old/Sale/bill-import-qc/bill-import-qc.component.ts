@@ -123,6 +123,11 @@ export class BillImportQcComponent implements OnInit, AfterViewInit {
 
   QCCode: any = '';
 
+  // Unique gridId để tránh conflict khi mở nhiều instance
+  uniqueId: string = Date.now().toString();
+  gridIdMaster: string = '';
+  gridIdDetail: string = '';
+
   // Khai báo biến tìm kiếm
   dateStart: Date = new Date(
     new Date().getFullYear(),
@@ -166,6 +171,10 @@ export class BillImportQcComponent implements OnInit, AfterViewInit {
 
   //#region Chạy khi mở chương trình
   ngOnInit(): void {
+    // Tạo unique gridId
+    this.gridIdMaster = 'gridQC-' + this.uniqueId;
+    this.gridIdDetail = 'gridQCDetail-' + this.uniqueId;
+
     this.loadLookups();
     this.initGridColumns();
     this.initGridOptions();

@@ -1,0 +1,56 @@
+<ng-container class="w-100">
+    <div class="card h-100 border-0 rounded-0 d-flex flex-column">
+
+        <!-- Header với p-menubar -->
+        <div class="card-header bg-white p-0" style="flex-shrink: 0;">
+            <p-menubar [model]="menuBars">
+                <ng-template pTemplate="item" let-item>
+                    <a class="p-menuitem-link" [ngClass]="item.styleClass">
+                        <i [class]="item.icon"></i>
+                        <span class="p-menuitem-text">{{ item.label }}</span>
+                    </a>
+                </ng-template>
+            </p-menubar>
+        </div>
+
+        <!-- Filter bar - hiển thị dạng hàng ngang -->
+        <div class="filter-bar bg-light border-bottom p-2">
+            <form nz-form nzLayout="inline" class="d-flex flex-wrap gap-2 align-items-center">
+                <nz-form-item class="mb-0">
+                    <nz-form-label class="fs-12" style="font-size: 12px; display: flex; align-items: center;">Từ
+                        khóa</nz-form-label>
+                    <nz-form-control>
+                        <input nz-input placeholder="Nhập từ khóa" nzSize="small" [(ngModel)]="keyword" name="keyword"
+                            style="width: 200px; font-size: 12px;" (keyup.enter)="search()" />
+                    </nz-form-control>
+                </nz-form-item>
+
+                <nz-form-item class="mb-0">
+                    <nz-form-control>
+                        <button nz-button nzType="primary" nzSize="small" (click)="search()">
+                            <nz-icon nzType="search"></nz-icon>
+                            Tìm kiếm
+                        </button>
+                    </nz-form-control>
+                </nz-form-item>
+
+                <nz-form-item class="mb-0">
+                    <nz-form-control>
+                        <button nz-button nzType="default" nzSize="small" (click)="openKPIErrorFineAmount()">
+                            <nz-icon nzType="setting"></nz-icon>
+                            Quản lý đánh giá
+                        </button>
+                    </nz-form-control>
+                </nz-form-item>
+            </form>
+        </div>
+
+        <!-- Content - SlickGrid -->
+        <div class="card-body p-0 flex-grow-1 grid-container" style="min-height: 0; overflow: hidden;">
+            <angular-slickgrid gridId="gridKPIError" [columns]="columnDefinitions" [options]="gridOptions"
+                [dataset]="dataset" (onAngularGridCreated)="angularGridReady($event.detail)"
+                (onClick)="onRowClick($event.detail.eventData, $event.detail.args)">
+            </angular-slickgrid>
+        </div>
+    </div>
+</ng-container>

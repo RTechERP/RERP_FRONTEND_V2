@@ -1,0 +1,55 @@
+:host {
+    font-size: 12px;
+}
+
+:host ::ng-deep * {
+    font-size: 12px;
+}
+
+.modal-header {
+    border-bottom: 1px solid #e8e8e8;
+    padding: 12px 16px;
+}
+
+.modal-header .modal-title {
+    font-size: 14px;
+    font-weight: 600;
+}
+
+.modal-body {
+    padding: 16px;
+    max-height: 70vh;
+    overflow-y: auto;
+}
+
+.modal-footer {
+    border-top: 1px solid #e8e8e8;
+    padding: 12px 16px;
+    display: flex;
+    justify-content: flex-end;
+    gap: 8px;
+}
+
+:host ::ng-deep .ant-form-item {
+    margin-bottom: 12px;
+}
+
+:host ::ng-deep .ant-form-item-label>label {
+    font-size: 12px;
+    height: auto;
+    line-height: 1.5;
+}
+
+:host ::ng-deep .ant-divider-horizontal.ant-divider-with-text {
+    margin: 16px 0 12px 0;
+}
+
+:host ::ng-deep .ant-divider-inner-text {
+    font-size: 13px;
+    font-weight: 600;
+    color: #1890ff;
+}
+
+.w-100 {
+    width: 100%;
+}

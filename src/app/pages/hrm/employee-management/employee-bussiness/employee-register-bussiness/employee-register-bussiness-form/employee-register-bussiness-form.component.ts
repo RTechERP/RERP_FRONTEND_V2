@@ -25,6 +25,7 @@ import { WFHService } from '../../../employee-wfh/WFH-service/WFH.service';
 import { AuthService } from '../../../../../../auth/auth.service';
 import { EmployeeService } from '../../../../employee/employee-service/employee.service';
 import { VehicleSelectModalComponent } from './vehicle-select-modal/vehicle-select-modal.component';
+import { HomeLayoutService } from '../../../../../../layouts/home-layout/home-layout-service/home-layout.service';
 
 @Component({
   selector: 'app-employee-register-bussiness-form',
@@ -77,6 +78,7 @@ export class EmployeeRegisterBussinessFormComponent implements OnInit {
   deletedFiles: any[] = []; // Danh sách thông tin đầy đủ của file đã xóa (để gửi về API với IsDeleted = true)
   selectedVehicles: any[] = []; // Danh sách phương tiện đã chọn
   vehicleDisplayText: string = ''; // Text hiển thị trong input phương tiện
+  isSupplementaryRegistrationOpen: boolean = false; // Trạng thái mở đăng ký bổ sung
 
   constructor(
     private fb: FormBuilder,
@@ -88,7 +90,8 @@ export class EmployeeRegisterBussinessFormComponent implements OnInit {
     private authService: AuthService,
     private employeeService: EmployeeService,
     private message: NzMessageService,
-    private modalService: NgbModal
+    private modalService: NgbModal,
+    private homeLayoutService: HomeLayoutService
   ) {
     this.initializeForm();
   }
@@ -99,6 +102,7 @@ export class EmployeeRegisterBussinessFormComponent implements OnInit {
     this.loadApprovers();
     this.loadEmployees();
     this.getCurrentUser();
+    this.loadConfigSystem();
 
     if (this.isEditMode && this.id > 0) {
       this.loadDataById();
@@ -343,6 +347,16 @@ export class EmployeeRegisterBussinessFormComponent implements OnInit {
     this.bussinessForm.get('WorkEarly')?.valueChanges.subscribe((value) => this.onWorkEarlyChange(value));
     this.bussinessForm.get('Overnight')?.valueChanges.subscribe((value) => this.onOvernightTypeChange(value));
     this.bussinessForm.get('IsProblem')?.valueChanges.subscribe((value) => {
+      // Kiểm tra nếu đang bật checkbox nhưng chưa mở đăng ký bổ sung
+      if (value && !this.isSupplementaryRegistrationOpen) {
+        this.notification.warning(NOTIFICATION_TITLE.warning, 'Nhân sự chưa mở đăng ký bổ sung');
+        // Reset lại checkbox về false
+        this.bussinessForm.patchValue({ IsProblem: false }, { emitEvent: false });
+        this.isProblemValue = false;
+        this.cdr.detectChanges();
+        return;
+      }
+
       this.isProblemValue = value || false;
 
       if (!value) {
@@ -383,6 +397,26 @@ export class EmployeeRegisterBussinessFormComponent implements OnInit {
 
       this.datePickerKey++;
       this.cdr.detectChanges();
+    });
+  }
+
+  // Load config hệ thống để kiểm tra có mở đăng ký bổ sung không
+  loadConfigSystem() {
+    this.homeLayoutService.getConfigSystemHR().subscribe({
+      next: (response: any) => {
+        if (response && response.status === 1 && response.data && response.data.data) {
+          const configs = response.data.data;
+          const bussinessConfig = configs.find((c: any) => c.KeyName === 'EmployeeBussiness');
+          if (bussinessConfig && bussinessConfig.KeyValue2 === '1') {
+            this.isSupplementaryRegistrationOpen = true;
+          } else {
+            this.isSupplementaryRegistrationOpen = false;
+          }
+        }
+      },
+      error: () => {
+        this.isSupplementaryRegistrationOpen = false;
+      }
     });
   }
 

@@ -1,0 +1,111 @@
+<div class="modal-header bg-primary text-uppercase py-2">
+    <h6 class="modal-title text-white">CHI TIẾT LỖI</h6>
+    <button type="button" class="btn-close" (click)="cancel()" aria-label="Close"></button>
+</div>
+
+<div class="modal-body p-2" style="max-height: 500px; overflow-y: auto; overflow-x: hidden;">
+    <form>
+        <div class="row g-2">
+            <!-- Mã lỗi vi phạm -->
+            <div class="col-sm-6">
+                <div class="form-group mb-2">
+                    <label class="m-0">
+                        Mã lỗi vi phạm
+                        <span class="text-danger">(*)</span>
+                    </label>
+                    <input nz-input type="text" nzSize="small" [(ngModel)]="code" name="code"
+                        (blur)="errors.code = ''" />
+                    <span class="text-danger" style="font-size: 0.75rem;" *ngIf="errors.code">{{ errors.code }}</span>
+                </div>
+            </div>
+
+            <!-- Phòng ban -->
+            <div class="col-sm-6">
+                <div class="form-group mb-2">
+                    <label class="m-0">Phòng ban</label>
+                    <nz-select nzSize="small" nzShowSearch nzAllowClear nzPlaceHolder="Chọn phòng ban"
+                        [(ngModel)]="departmentId" name="departmentId" class="w-100">
+                        <nz-option *ngFor="let dept of departments" [nzValue]="dept.ID"
+                            [nzLabel]="dept.Name"></nz-option>
+                    </nz-select>
+                </div>
+            </div>
+        </div>
+
+        <div class="row g-2">
+            <!-- Loại vi phạm -->
+            <div class="col-12">
+                <div class="form-group mb-2">
+                    <label class="m-0">
+                        Loại vi phạm
+                        <span class="text-danger">(*)</span>
+                    </label>
+                    <nz-select nzSize="small" nzShowSearch nzAllowClear nzPlaceHolder="Chọn loại vi phạm"
+                        [(ngModel)]="typeId" name="typeId" (ngModelChange)="errors.typeId = ''" class="w-100">
+                        <nz-option *ngFor="let type of errorTypes" [nzValue]="type.ID"
+                            [nzLabel]="type.Code + ' - ' + type.Name"></nz-option>
+                    </nz-select>
+                    <span class="text-danger" style="font-size: 0.75rem;" *ngIf="errors.typeId">{{ errors.typeId
+                        }}</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="row g-2">
+            <!-- Số vi phạm -->
+            <div class="col-sm-3">
+                <div class="form-group mb-2">
+                    <label class="m-0">Số vi phạm</label>
+                    <nz-input-number nzSize="small" [(ngModel)]="quantity" name="quantity" [nzMin]="1" class="w-100">
+                    </nz-input-number>
+                </div>
+            </div>
+
+            <!-- Đơn vị -->
+            <div class="col-sm-4">
+                <div class="form-group mb-2">
+                    <label class="m-0">Đơn vị</label>
+                    <nz-select nzSize="small" [(ngModel)]="unit" name="unit" class="w-100">
+                        <nz-option *ngFor="let u of unitOptions" [nzValue]="u.value" [nzLabel]="u.label"></nz-option>
+                    </nz-select>
+                </div>
+            </div>
+
+            <!-- Tiền phạt -->
+            <div class="col-sm-5">
+                <div class="form-group mb-2">
+                    <label class="m-0">Tiền phạt</label>
+                    <nz-input-number nzSize="small" [(ngModel)]="monney" name="monney" [nzMin]="0"
+                        [nzFormatter]="formatterNumber" [nzParser]="parserNumber" class="w-100">
+                    </nz-input-number>
+                </div>
+            </div>
+        </div>
+
+        <!-- Nội dung lỗi vi phạm -->
+        <div class="form-group mb-2">
+            <label class="m-0">
+                Nội dung lỗi vi phạm
+                <span class="text-danger">(*)</span>
+            </label>
+            <textarea nz-input nzSize="small" [(ngModel)]="content" name="content" rows="3"
+                (blur)="errors.content = ''"></textarea>
+            <span class="text-danger" style="font-size: 0.75rem;" *ngIf="errors.content">{{ errors.content }}</span>
+        </div>
+
+        <!-- Ghi chú -->
+        <div class="form-group mb-2">
+            <label class="m-0">Ghi chú</label>
+            <textarea nz-input nzSize="small" [(ngModel)]="note" name="note" rows="3"></textarea>
+        </div>
+    </form>
+</div>
+
+<div class="modal-footer p-1">
+    <button nz-button nzType="default" nzSize="default" (click)="cancel()">
+        <i class="fas fa-times"></i> Đóng
+    </button>
+    <button nz-button nzType="primary" nzSize="default" (click)="save()">
+        <i class="fas fa-save"></i> Lưu
+    </button>
+</div>

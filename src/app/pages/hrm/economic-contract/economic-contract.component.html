@@ -1,0 +1,125 @@
+<p-menubar [model]="menuBars">
+    <ng-template pTemplate="item" let-item>
+        <a class="p-menuitem-link" [ngClass]="item.styleClass">
+            <i [class]="item.icon"></i>
+            <span class="p-menuitem-text">{{ item.label }}</span>
+        </a>
+    </ng-template>
+
+    <ng-template #end>
+        <div class="flex items-center gap-2">
+            <button nz-button nzType="text" nzShape="circle" *ngIf="isMobile()"
+                (click)="ToggleSearchPanelNew($event); $event.stopPropagation()">
+                <nz-icon nzType="search" />
+            </button>
+        </div>
+    </ng-template>
+</p-menubar>
+
+<ng-container class="w-100">
+    <div class="card border-0 rounded-0" style="height: 89vh !important;">
+        <!-- Backdrop overlay cho mobile -->
+        <div class="filter-backdrop" *ngIf="shouldShowSearchBar && isMobile()" (click)="ToggleSearchPanelNew()"></div>
+
+        <!-- Filter bar -->
+        <div class="filter-bar bg-light border-bottom p-2" *ngIf="shouldShowSearchBar" [class.mobile-modal]="true">
+            <div class="filter-bar-header d-flex justify-content-between align-items-center mb-2" *ngIf="isMobile()">
+                <span class="fw-bold" style="font-size: 12px;">Tìm kiếm</span>
+                <button nz-button nzType="text" nzShape="circle" nzSize="small" nzDanger
+                    (click)="ToggleSearchPanelNew()">
+                    <nz-icon nzType="close" />
+                </button>
+            </div>
+            <form nz-form [formGroup]="searchForm" nzLayout="inline" class="mobile-filter-form">
+                <nz-row [nzGutter]="[8, 8]" nzAlign="middle" class="w-100">
+                    <nz-col [nzXs]="12" [nzSm]="12" [nzMd]="6" [nzLg]="4" [nzXl]="3">
+                        <nz-form-item class="mb-0 w-100">
+                            <nz-form-label nzNoColon style="font-size: 12px;">Từ ngày</nz-form-label>
+                            <nz-form-control class="flex-grow-1">
+                                <nz-date-picker formControlName="dateStart" nzFormat="dd/MM/yyyy" class="w-100"
+                                    nzSize="small" [nzAllowClear]="false"></nz-date-picker>
+                            </nz-form-control>
+                        </nz-form-item>
+                    </nz-col>
+
+                    <nz-col [nzXs]="12" [nzSm]="12" [nzMd]="6" [nzLg]="4" [nzXl]="3">
+                        <nz-form-item class="mb-0 w-100">
+                            <nz-form-label nzNoColon style="font-size: 12px;">Đến ngày</nz-form-label>
+                            <nz-form-control class="flex-grow-1">
+                                <nz-date-picker formControlName="dateEnd" nzFormat="dd/MM/yyyy" class="w-100"
+                                    nzSize="small" [nzAllowClear]="false"></nz-date-picker>
+                            </nz-form-control>
+                        </nz-form-item>
+                    </nz-col>
+
+                    <nz-col [nzXs]="12" [nzSm]="12" [nzMd]="6" [nzLg]="4" [nzXl]="3">
+                        <nz-form-item class="mb-0 w-100">
+                            <nz-form-label nzNoColon style="font-size: 12px;">Loại NCC/KH</nz-form-label>
+                            <nz-form-control class="flex-grow-1">
+                                <nz-select formControlName="typeNCC" nzShowSearch nzAllowClear nzSize="small"
+                                    nzPlaceHolder="Chọn loại" class="w-100">
+                                    <nz-option *ngFor="let item of typeNCCOptions" [nzValue]="item.value"
+                                        [nzLabel]="item.label"></nz-option>
+                                </nz-select>
+                            </nz-form-control>
+                        </nz-form-item>
+                    </nz-col>
+
+                    <nz-col [nzXs]="12" [nzSm]="12" [nzMd]="6" [nzLg]="5" [nzXl]="4">
+                        <nz-form-item class="mb-0 w-100">
+                            <nz-form-label nzNoColon style="font-size: 12px;">Loại hợp đồng</nz-form-label>
+                            <nz-form-control class="flex-grow-1">
+                                <nz-select formControlName="type" nzShowSearch nzAllowClear nzSize="small"
+                                    nzPlaceHolder="Chọn loại hợp đồng" class="w-100">
+                                    <nz-option *ngFor="let item of contractTypes" [nzValue]="item.ID"
+                                        [nzLabel]="item.TypeName"></nz-option>
+                                </nz-select>
+                            </nz-form-control>
+                        </nz-form-item>
+                    </nz-col>
+
+                    <!-- Từ khóa và nút tìm kiếm -->
+                    <nz-col [nzXs]="24" [nzSm]="24" [nzMd]="12" [nzLg]="7" [nzXl]="11">
+                        <nz-form-item class="mb-0 w-100">
+                            <nz-form-label nzNoColon style="font-size: 12px;">Từ khóa</nz-form-label>
+                            <nz-form-control class="flex-grow-1">
+                                <div class="d-flex gap-1">
+                                    <input nz-input placeholder="Số HĐ, nội dung, tên NCC/KH..." nzSize="small"
+                                        formControlName="keyword" class="flex-grow-1" (keyup.enter)="loadData()" />
+                                    <button nz-button nzType="primary" style="width: 40px;" nzSize="small"
+                                        (click)="loadData()">
+                                        <nz-icon nzType="search" />
+                                    </button>
+                                </div>
+                            </nz-form-control>
+                        </nz-form-item>
+                    </nz-col>
+                </nz-row>
+            </form>
+        </div>
+
+        <!-- Content với bảng -->
+        <div class="card-body p-0" [class.with-search-bar]="shouldShowSearchBar"
+            [class.without-search-bar]="!shouldShowSearchBar">
+            <div *ngIf="isLoading">
+                <nz-spin [nzSpinning]="isLoading" nzSimple [style]="{
+                    position: 'absolute',
+                    top: '0',
+                    left: '0',
+                    width: '100%',
+                    height: '100%',
+                    background: 'rgba(255,255,255,0.4)',
+                    zIndex: '999',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center'
+                }"></nz-spin>
+            </div>
+            <div class="w-100 h-100" id="grid-container-economic-contract">
+                <angular-slickgrid gridId="gridEconomicContract" [columns]="columnDefinitions" [options]="gridOptions"
+                    [dataset]="dataset" (onAngularGridCreated)="angularGridReady($event.detail)">
+                </angular-slickgrid>
+            </div>
+        </div>
+    </div>
+</ng-container>

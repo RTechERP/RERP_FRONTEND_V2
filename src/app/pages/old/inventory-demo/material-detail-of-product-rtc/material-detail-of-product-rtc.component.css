@@ -1,8 +1,35 @@
-
-/* Nút X để đóng modal - căn phải trên */
-.btn-close.position-absolute {
-  top: 10px;
-  right: 10px;
-  z-index: 1000;
+.full-card {
+  height: 100%;
 }
 
+.full-card ::ng-deep .ant-card-body {
+  height: calc(100% - 42px); /* trừ chiều cao header */
+  overflow: auto;
+}
+
+::ng-deep .ant-card-head {
+  min-height: unset !important;
+  padding-left: 0 !important;
+}
+
+.ant-splitter {
+  height: 84vh !important;
+}
+
+::ng-deep .ant-card-head {
+  padding-left: 12px;
+  text-transform: uppercase;
+}
+
+::ng-deep .ant-card-body {
+  padding: 0px !important;
+}
+::ng-deep #gridBorrow {
+  height: 79vh !important;
+}
+::ng-deep #gridExport {
+  height: 37vh !important;
+}
+::ng-deep #gridImport {
+  height: 37vh !important;
+}

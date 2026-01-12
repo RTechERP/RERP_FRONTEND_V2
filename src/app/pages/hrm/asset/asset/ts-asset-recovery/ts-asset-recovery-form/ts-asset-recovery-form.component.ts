@@ -108,7 +108,7 @@ export class TsAssetRecoveryFormComponent implements OnInit, AfterViewInit {
   }
   getListEmployee() {
     const request = {
-      status: 0,
+      status: -1,
       departmentid: 0,
       keyword: ''
     };

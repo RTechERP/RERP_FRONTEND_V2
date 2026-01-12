@@ -469,7 +469,7 @@ export class BillImportChoseSerialComponent implements OnInit, AfterViewInit {
     private notification: NzNotificationService,
     private billImportChoseSerialService: BillImportChoseSerialService,
     private billImportTechnicalService: BillImportTechnicalService
-  ) {}
+  ) { }
 
   @Input() type: any = 0; // 1 phiếu nhập, 2 phiếu xuất
   @Input() dataBillDetail: any = 0; // data thay đổi theo loại phiếu
@@ -499,7 +499,7 @@ export class BillImportChoseSerialComponent implements OnInit, AfterViewInit {
     this.initGridOptions();
   }
 
-  ngAfterViewInit(): void {}
+  ngAfterViewInit(): void { }
 
   loadLookUpData() {
     if (this.isTechBill) {
@@ -895,7 +895,7 @@ export class BillImportChoseSerialComponent implements OnInit, AfterViewInit {
         const serial = row.SerialNumber?.trim() || '';
         const serialRTC = row.SerialNumberRTC?.trim() || '';
         const locationId = row.ModulaLocationDetailID ?? 0;
-
+        if (row.ID > 0) return true;
         return serial !== '' || serialRTC !== '' || locationId > 0;
       })
       .map((row: any, index: number) => ({
@@ -970,14 +970,13 @@ export class BillImportChoseSerialComponent implements OnInit, AfterViewInit {
           error: (err) => {
             this.notification.error(
               NOTIFICATION_TITLE.error,
-              'Lưu serial thất bại!'
+              err?.error?.message || err?.message
             );
           },
         });
       }
     } catch (error) {
       this.notification.error(NOTIFICATION_TITLE.error, 'Lỗi khi lưu serial!');
-      console.error('Lỗi API:', error);
     }
   }
 
@@ -1029,8 +1028,7 @@ export class BillImportChoseSerialComponent implements OnInit, AfterViewInit {
 
         this.notification.success(
           NOTIFICATION_TITLE.success,
-          `Đã gán ${
-            listSerials.length - serialsToAssign.length
+          `Đã gán ${listSerials.length - serialsToAssign.length
           } serial vào bảng!`
         );
       },

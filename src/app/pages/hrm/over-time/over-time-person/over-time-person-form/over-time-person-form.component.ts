@@ -26,6 +26,7 @@ import { AuthService } from '../../../../../auth/auth.service';
 import { ProjectService } from '../../../../project/project-service/project.service';
 import { WFHService } from '../../../employee-management/employee-wfh/WFH-service/WFH.service';
 import { ProjectItemSelectModalComponent } from './project-item-select-modal/project-item-select-modal.component';
+import { HomeLayoutService } from '../../../../../layouts/home-layout/home-layout-service/home-layout.service';
 import flatpickr from 'flatpickr';
 import { Vietnamese } from 'flatpickr/dist/l10n/vn.js';
 
@@ -96,6 +97,7 @@ export class OverTimePersonFormComponent implements OnInit, AfterViewInit, OnDes
   attachFileName: string = '';
   isProblemValue: boolean = false;
   datePickerKey: number = 0;
+  isSupplementaryRegistrationOpen: boolean = false; // Trạng thái mở đăng ký bổ sung
 
   // Flatpickr instances map
   private flatpickrInstances: Map<string, flatpickr.Instance> = new Map();
@@ -170,7 +172,8 @@ export class OverTimePersonFormComponent implements OnInit, AfterViewInit, OnDes
     private wfhService: WFHService,
     private message: NzMessageService,
     private modalService: NgbModal,
-    private nzModal: NzModalService
+    private nzModal: NzModalService,
+    private homeLayoutService: HomeLayoutService
   ) {
     this.initializeForm();
     this.attachMinutePrecisionForForm(this.overTimeForm);
@@ -196,6 +199,7 @@ export class OverTimePersonFormComponent implements OnInit, AfterViewInit, OnDes
     this.loadApprovers();
     this.loadProjects();
     this.getCurrentUser();
+    this.loadConfigSystem();
     if (this.isEditMode && this.data && this.data.ID && this.data.ID > 0) {
       this.loadDataByID(this.data.ID);
     } else if (this.data) {
@@ -211,6 +215,16 @@ export class OverTimePersonFormComponent implements OnInit, AfterViewInit, OnDes
     }
 
     this.commonForm.get('IsProblem')?.valueChanges.subscribe((value) => {
+      // Kiểm tra nếu đang bật checkbox nhưng chưa mở đăng ký bổ sung
+      if (value && !this.isSupplementaryRegistrationOpen) {
+        this.notification.warning(NOTIFICATION_TITLE.warning, 'Nhân sự chưa mở đăng ký bổ sung');
+        // Reset lại checkbox về false
+        this.commonForm.patchValue({ IsProblem: false }, { emitEvent: false });
+        this.isProblemValue = false;
+        this.cdr.detectChanges();
+        return;
+      }
+
       this.isProblemValue = value || false;
 
       // Khi bỏ tích đăng ký bổ sung (IsProblem = false)
@@ -383,7 +397,6 @@ export class OverTimePersonFormComponent implements OnInit, AfterViewInit, OnDes
       }
     });
   }
-
   ngAfterViewInit(): void {
     // Khởi tạo Flatpickr cho tất cả các tabs sau khi view đã render
     setTimeout(() => {
@@ -971,6 +984,26 @@ export class OverTimePersonFormComponent implements OnInit, AfterViewInit, OnDes
       error: (error: any) => {
         const errorMessage = error?.error?.Message || error?.error?.message || error?.message || 'Lỗi không xác định';
         this.notification.error(NOTIFICATION_TITLE.error, 'Lỗi khi tải danh sách loại làm thêm: ' + errorMessage);
+      }
+    });
+  }
+
+  // Load config hệ thống để kiểm tra có mở đăng ký bổ sung không
+  loadConfigSystem() {
+    this.homeLayoutService.getConfigSystemHR().subscribe({
+      next: (response: any) => {
+        if (response && response.status === 1 && response.data && response.data.data) {
+          const configs = response.data.data;
+          const overtimeConfig = configs.find((c: any) => c.KeyName === 'EmployeeOvertime');
+          if (overtimeConfig && overtimeConfig.KeyValue2 === '1') {
+            this.isSupplementaryRegistrationOpen = true;
+          } else {
+            this.isSupplementaryRegistrationOpen = false;
+          }
+        }
+      },
+      error: () => {
+        this.isSupplementaryRegistrationOpen = false;
       }
     });
   }

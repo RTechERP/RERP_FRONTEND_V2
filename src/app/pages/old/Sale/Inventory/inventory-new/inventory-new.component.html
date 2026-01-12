@@ -40,7 +40,7 @@
                                             <nz-spin nzSimple [nzSize]="'large'"></nz-spin>
                                         </div>
                                         <angular-slickgrid
-                                            gridId="grid-product-group"
+                                            [gridId]="'grid-product-group-'+warehouseCode"
                                             [columns]="columnDefinitionsProductGroup"
                                             [options]="gridOptionsProductGroup"
                                             [dataset]="datasetProductGroup"
@@ -54,7 +54,7 @@
                                 <nz-splitter-panel>
                                     <div class="position-relative grid-container-pg-warehouse" style="height: 100%;">
                                         <angular-slickgrid
-                                            gridId="grid-pg-warehouse"
+                                            [gridId]="'grid-pg-warehouse-'+warehouseCode"
                                             [columns]="columnDefinitionsPGWarehouse"
                                             [options]="gridOptionsPGWarehouse"
                                             [dataset]="datasetPGWarehouse"
@@ -70,7 +70,7 @@
                                     <nz-spin nzSimple [nzSize]="'large'"></nz-spin>
                                 </div>
                                 <angular-slickgrid
-                                    gridId="grid-inventory"
+                                    [gridId]="'grid-inventory-'+warehouseCode"
                                     [columns]="columnDefinitionsInventory"
                                     [options]="gridOptionsInventory"
                                     [dataset]="datasetInventory"

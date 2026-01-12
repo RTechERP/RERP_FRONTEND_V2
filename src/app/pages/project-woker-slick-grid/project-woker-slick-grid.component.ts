@@ -16,6 +16,7 @@ import {
   Formatters,
   MultipleSelectOption,
   AngularSlickgridModule,
+  SortDirectionNumber,
 } from 'angular-slickgrid';
 import { DateTime } from 'luxon';
 import * as ExcelJS from 'exceljs';
@@ -344,7 +345,7 @@ export class ProjectWokerSlickGridComponent implements OnInit, AfterViewInit, On
 
   initProjectWorkerGrid(): void {
     // Helper: natural sorting for hierarchy strings (1.1.1, 1.1.10, etc.)
-    const naturalSortComparer = (value1: any, value2: any) => {
+    const naturalSortComparer = (value1: any, value2: any, sortDirection?: SortDirectionNumber) => {
       const a = String(value1 || '');
       const b = String(value2 || '');
 
@@ -354,12 +355,15 @@ export class ProjectWokerSlickGridComponent implements OnInit, AfterViewInit, On
       const bParts = b.split('.');
       const maxLength = Math.max(aParts.length, bParts.length);
 
+      // Xác định hướng sort: 1 = tăng dần, -1 = giảm dần
+      const direction = sortDirection || 1;
+
       for (let i = 0; i < maxLength; i++) {
         const aPart = parseInt(aParts[i] || '0', 10);
         const bPart = parseInt(bParts[i] || '0', 10);
 
-        if (aPart < bPart) return -1;
-        if (aPart > bPart) return 1;
+        if (aPart < bPart) return -1 * direction;
+        if (aPart > bPart) return 1 * direction;
       }
 
       return 0;
@@ -372,7 +376,7 @@ export class ProjectWokerSlickGridComponent implements OnInit, AfterViewInit, On
 
     this.projectWorkerColumns = [
       {
-        id: 'TT', field: 'TT', name: 'TT', width: 150, formatter: Formatters.tree,
+        id: 'TT', field: 'TT', name: 'TT', width: 80, formatter: Formatters.tree,
         sortable: true, filterable: true, filter: { model: Filters['compoundInputText'] },
         sortComparer: naturalSortComparer
       },
@@ -1641,22 +1645,7 @@ export class ProjectWokerSlickGridComponent implements OnInit, AfterViewInit, On
   }
   //#endregion
 
-  //#region Panel Controls
-  closeLeftPanel(): void {
-    this.sizeLeftPanel = '0';
-    this.sizeRightPanel = '100%';
-  }
 
-  toggleLeftPanel(): void {
-    if (this.sizeLeftPanel === '0') {
-      this.sizeLeftPanel = '';
-      this.sizeRightPanel = '';
-    } else {
-      this.sizeLeftPanel = '0';
-      this.sizeRightPanel = '100%';
-    }
-  }
-  //#endregion
   private applyDistinctFilters(): void {
     const fieldsToFilter = [
       'ProjectStatusName', 'ProjectCode', 'ProjectName', 'EndUserName',
@@ -1729,4 +1718,39 @@ export class ProjectWokerSlickGridComponent implements OnInit, AfterViewInit, On
       }
     });
   }
+
+  // Handler khi user kéo resize splitter thủ công
+  onSplitterResizeEnd(sizes: number[]): void {
+    console.log('[SPLITTER] Resize ended, panel sizes:', sizes);
+    this.resizeWorkerGrid();
+  }
+
+  // #region Panel Toggle
+  closeLeftPanel(): void {
+    this.sizeLeftPanel = '0';
+    this.sizeRightPanel = '100%';
+    this.resizeWorkerGrid();
+  }
+
+  toggleLeftPanel(): void {
+    if (this.sizeLeftPanel === '0') {
+      this.sizeLeftPanel = '25%';
+      this.sizeRightPanel = '75%';
+    } else {
+      this.sizeLeftPanel = '0';
+      this.sizeRightPanel = '100%';
+    }
+    this.resizeWorkerGrid();
+  }
+
+  private resizeWorkerGrid(): void {
+    // Give time for panel animation to complete, then resize grid
+    setTimeout(() => {
+      if (this.angularGridProjectWorker?.slickGrid) {
+        this.angularGridProjectWorker.slickGrid.autosizeColumns();
+        this.angularGridProjectWorker.resizerService?.resizeGrid();
+      }
+    }, 300);
+  }
+  // #endregion
 }

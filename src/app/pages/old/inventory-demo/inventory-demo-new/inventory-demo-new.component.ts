@@ -179,20 +179,57 @@ export class InventoryDemoNewComponent implements OnInit, AfterViewInit, OnDestr
 
         // Subscribe to queryParams để reload data khi params thay đổi
         const sub = this.route.queryParams.subscribe((params) => {
-            const newWarehouseID = params['warehouseID'] || 1;
-            const newWarehouseType = params['warehouseType'] || 1;
+            // Parse string params to numbers (queryParams values are always strings)
+            const newWarehouseID = Number(params['warehouseID']) || 1;
+            const newWarehouseType = Number(params['warehouseType']) || 1;
 
-            // Kiểm tra xem params có thay đổi không
+            console.log('QueryParams changed:', { newWarehouseID, newWarehouseType, currentWarehouseID: this.warehouseID, currentWarehouseType: this.warehouseType });
+
+            // Kiểm tra xem params có thay đổi không (so sánh number với number)
             const paramsChanged = this.warehouseID !== newWarehouseID ||
                                   this.warehouseType !== newWarehouseType;
 
+            console.log('Params changed:', paramsChanged);
+
+            // Nếu params thay đổi, reset và clear data trước
+            if (paramsChanged) {
+                // Reset productGroupID
+                this.productGroupID = 0;
+                this.keyWord = '';
+
+                // Clear existing data để trigger grid refresh
+                this.dataset = [];
+                this.datasetGroup = [];
+                this.productData = [];
+                this.productGroupData = [];
+
+                // Clear grid selections, filters và force refresh data cho inventoryDemoGrid
+                if (this.angularGrid && this.angularGrid.slickGrid) {
+                    this.angularGrid.slickGrid.setSelectedRows([]);
+                    this.angularGrid.filterService?.clearFilters();
+                    // Force refresh grid data
+                    this.angularGrid.dataView?.setItems([], 'id');
+                    this.angularGrid.slickGrid.invalidate();
+                    this.angularGrid.slickGrid.render();
+                    this.angularGrid.slickGrid.scrollRowToTop(0);
+                }
+                if (this.angularGridGroup && this.angularGridGroup.slickGrid) {
+                    this.angularGridGroup.slickGrid.setSelectedRows([]);
+                    this.angularGridGroup.filterService?.clearFilters();
+                    // Force refresh grid data
+                    this.angularGridGroup.dataView?.setItems([], 'id');
+                    this.angularGridGroup.slickGrid.invalidate();
+                    this.angularGridGroup.slickGrid.render();
+                    this.angularGridGroup.slickGrid.scrollRowToTop(0);
+                }
+
+                // Trigger change detection
+                this.cdr.detectChanges();
+            }
+
+            // Update parameters after clearing
             this.warehouseID = newWarehouseID;
             this.warehouseType = newWarehouseType;
-
-            // Reset productGroupID khi params thay đổi
-            if (paramsChanged) {
-                this.productGroupID = 0;
-            }
 
             // Load data mỗi khi params thay đổi
             this.loadProductGroups();
@@ -650,6 +687,7 @@ export class InventoryDemoNewComponent implements OnInit, AfterViewInit, OnDestr
             },
             enableCellNavigation: true,
             enableFiltering: true,
+            forceFitColumns:true,
             autoFitColumnsOnFirstLoad: true,
             enableAutoSizeColumns: true,
             enableHeaderMenu: false,

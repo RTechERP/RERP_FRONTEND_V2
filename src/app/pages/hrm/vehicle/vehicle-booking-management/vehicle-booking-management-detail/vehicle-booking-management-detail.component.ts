@@ -79,7 +79,7 @@ export class VehicleBookingManagementDetailComponent implements OnInit {
   timeNeedPresent: Date | null = null;
   timeReturn: Date | null = null;
   companyNameArrives: string = '';
-  province: string = '';
+  province: string | null = null;
   specificDestinationAddress: string = '';
   departureDate: Date | null = null;
   departureAddressSelect: number = 0;

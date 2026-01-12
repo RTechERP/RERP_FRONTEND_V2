@@ -1,0 +1,174 @@
+<div class="card h-100 border-0 rounded-0 d-flex flex-column">
+    <nz-tabset class="h-100 d-flex flex-column custom-tabs" (nzSelectChange)="onTabSelect($event)">
+        <!-- TAB 1: THỐNG KÊ CHI TIẾT -->
+        <nz-tab nzTitle="THỐNG KÊ LỖI VI PHẠM THEO CÁC THÁNG">
+            <div class="d-flex flex-column h-100">
+                <!-- Filter Bar -->
+                <div class="filter-bar bg-light border-bottom p-2 d-flex justify-content-between align-items-center">
+                    <!-- Left Filters -->
+                    <form nz-form nzLayout="inline" class="d-flex flex-wrap gap-2 align-items-center">
+                        <nz-form-item class="mb-0">
+                            <nz-form-label class="fs-12">Từ ngày</nz-form-label>
+                            <nz-form-control>
+                                <nz-date-picker [(ngModel)]="startDate_TK" name="startDate_TK" nzSize="small"
+                                    nzFormat="dd/MM/yyyy" style="width: 120px;"></nz-date-picker>
+                            </nz-form-control>
+                        </nz-form-item>
+
+                        <nz-form-item class="mb-0">
+                            <nz-form-label class="fs-12">Đến ngày</nz-form-label>
+                            <nz-form-control>
+                                <nz-date-picker [(ngModel)]="endDate_TK" name="endDate_TK" nzSize="small"
+                                    nzFormat="dd/MM/yyyy" style="width: 120px;"></nz-date-picker>
+                            </nz-form-control>
+                        </nz-form-item>
+
+                        <nz-form-item class="mb-0">
+                            <nz-form-label class="fs-12">Loại lỗi</nz-form-label>
+                            <nz-form-control>
+                                <nz-select [(ngModel)]="kpiErrorTypeId_TK" name="kpiErrorTypeId_TK" nzSize="small"
+                                    nzPlaceHolder="Chọn loại lỗi" nzAllowClear style="width: 150px;">
+                                    <nz-option *ngFor="let item of kpiErrorTypes" [nzValue]="item.Code"
+                                        [nzLabel]="item.Name"></nz-option>
+                                </nz-select>
+                            </nz-form-control>
+                        </nz-form-item>
+
+                        <nz-form-item class="mb-0">
+                            <nz-form-label class="fs-12">Phòng ban</nz-form-label>
+                            <nz-form-control>
+                                <nz-select [(ngModel)]="departmentId_TK" name="departmentId_TK" nzSize="small"
+                                    nzPlaceHolder="Chọn phòng ban" nzAllowClear style="width: 150px;">
+                                    <nz-option *ngFor="let item of departments" [nzValue]="item.Code"
+                                        [nzLabel]="item.Name"></nz-option>
+                                </nz-select>
+                            </nz-form-control>
+                        </nz-form-item>
+
+                        <nz-form-item class="mb-0">
+                            <nz-form-label class="fs-12">Từ khoá</nz-form-label>
+                            <nz-form-control>
+                                <input nz-input placeholder="Nhập từ khóa" nzSize="small" [(ngModel)]="keyword_TK"
+                                    name="keyword_TK" style="width: 150px;" (keyup.enter)="search_TK()" />
+                            </nz-form-control>
+                        </nz-form-item>
+
+                        <nz-form-item class="mb-0">
+                            <nz-form-control>
+                                <button nz-button nzType="primary" nzSize="small" (click)="search_TK()">
+                                    <nz-icon nzType="search"></nz-icon> Tìm kiếm
+                                </button>
+                                <button nz-button nzType="default" nzSize="small" class="ms-2"
+                                    (click)="exportExcel_TK()">
+                                    <nz-icon nzType="file-excel" nzTheme="outline"></nz-icon> Xuất Excel
+                                </button>
+                            </nz-form-control>
+                        </nz-form-item>
+                    </form>
+
+                    <!-- Right Legends -->
+                    <div class="d-flex gap-3 align-items-center">
+                        <div class="d-flex align-items-center gap-1">
+                            <div style="width: 20px; height: 15px; background-color: #FFFF4A; border: 1px solid #ccc;">
+                            </div>
+                            <span class="fs-12">>= 5 lỗi vi phạm</span>
+                        </div>
+                        <div class="d-flex align-items-center gap-1">
+                            <div style="width: 20px; height: 15px; background-color: #EF1F3E; border: 1px solid #ccc;">
+                            </div>
+                            <span class="fs-12">>= 10 lỗi vi phạm</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Grid Content -->
+                <div class="grid-container flex-grow-1"
+                    style="min-height: 0; overflow: hidden; display: flex; flex-direction: column;">
+                    <angular-slickgrid gridId="gridKPIErrorTK" [columns]="columnDefinitions_TK"
+                        [options]="gridOptions_TK" [dataset]="dataset_TK"
+                        (onAngularGridCreated)="angularGridReady_TK($event.detail)">
+                    </angular-slickgrid>
+                </div>
+            </div>
+        </nz-tab>
+
+        <!-- TAB 2: BIỂU ĐỒ THỐNG KÊ -->
+        <nz-tab nzTitle="BIỂU ĐỒ THỐNG KÊ THEO CÁC THÁNG" [nzForceRender]="true">
+            <div class="d-flex flex-column h-100">
+                <!-- Filter Bar -->
+                <div class="filter-bar bg-light border-bottom p-2">
+                    <form nz-form nzLayout="inline" class="d-flex flex-wrap gap-2 align-items-center">
+                        <nz-form-item class="mb-0">
+                            <nz-form-label class="fs-12">Từ ngày</nz-form-label>
+                            <nz-form-control>
+                                <nz-date-picker [(ngModel)]="startDate_BD" name="startDate_BD" nzSize="small"
+                                    nzFormat="dd/MM/yyyy" style="width: 120px;"></nz-date-picker>
+                            </nz-form-control>
+                        </nz-form-item>
+
+                        <nz-form-item class="mb-0">
+                            <nz-form-label class="fs-12">Đến ngày</nz-form-label>
+                            <nz-form-control>
+                                <nz-date-picker [(ngModel)]="endDate_BD" name="endDate_BD" nzSize="small"
+                                    nzFormat="dd/MM/yyyy" style="width: 120px;"></nz-date-picker>
+                            </nz-form-control>
+                        </nz-form-item>
+
+                        <nz-form-item class="mb-0">
+                            <nz-form-label class="fs-12">Loại lỗi</nz-form-label>
+                            <nz-form-control>
+                                <nz-select [(ngModel)]="kpiErrorTypeId_BD" name="kpiErrorTypeId_BD" nzSize="small"
+                                    nzPlaceHolder="Chọn loại lỗi" nzAllowClear style="width: 150px;">
+                                    <nz-option *ngFor="let item of kpiErrorTypes" [nzValue]="item.ID"
+                                        [nzLabel]="item.Name"></nz-option>
+                                </nz-select>
+                            </nz-form-control>
+                        </nz-form-item>
+
+                        <nz-form-item class="mb-0">
+                            <nz-form-label class="fs-12">Phòng ban</nz-form-label>
+                            <nz-form-control>
+                                <nz-select [(ngModel)]="departmentId_BD" name="departmentId_BD" nzSize="small"
+                                    nzPlaceHolder="Chọn phòng ban" nzAllowClear style="width: 150px;">
+                                    <nz-option *ngFor="let item of departments" [nzValue]="item.ID"
+                                        [nzLabel]="item.Name"></nz-option>
+                                </nz-select>
+                            </nz-form-control>
+                        </nz-form-item>
+
+                        <nz-form-item class="mb-0">
+                            <nz-form-control>
+                                <div class="btn-group">
+                                    <button nz-button nzType="primary" nzSize="small" (click)="search_BD()">
+                                        <nz-icon nzType="search"></nz-icon> Tìm kiếm
+                                    </button>
+                                </div>
+                            </nz-form-control>
+                        </nz-form-item>
+                    </form>
+                </div>
+
+                <!-- Content Split with Splitter -->
+                <nz-splitter class="flex-grow-1" style="min-height: 0;">
+                    <!-- Left: Chart Placeholder -->
+                    <nz-splitter-panel nzDefaultSize="65%" [nzMin]="'30%'" [nzMax]="'80%'">
+                        <div
+                            class="chart-container p-3 d-flex flex-column justify-content-center align-items-center bg-white h-100 w-100">
+                            <p-chart type="bar" [data]="data" [options]="options" class="h-100 w-100" />
+                        </div>
+                    </nz-splitter-panel>
+
+                    <!-- Right: Grid -->
+                    <nz-splitter-panel [nzMin]="'20%'">
+                        <div class="grid-container h-100" style="display: flex; flex-direction: column;">
+                            <angular-slickgrid gridId="gridKPIErrorBD" [columns]="columnDefinitions_BD"
+                                [options]="gridOptions_BD" [dataset]="dataset_BD"
+                                (onAngularGridCreated)="angularGridReady_BD($event.detail)">
+                            </angular-slickgrid>
+                        </div>
+                    </nz-splitter-panel>
+                </nz-splitter>
+            </div>
+        </nz-tab>
+    </nz-tabset>
+</div>

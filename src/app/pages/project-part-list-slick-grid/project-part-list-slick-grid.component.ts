@@ -202,6 +202,15 @@ export class ProjectPartListSlickGridComponent implements OnInit, AfterViewInit,
   reasonProblem: string = '';
   isGeneratedItem: boolean = false;
 
+  // Color filter toggles
+  filterDeleted: boolean = false;
+  filterProblem: boolean = false;
+  filterNewCode: boolean = false;
+  filterFix: boolean = false;
+  filterReturn: boolean = false;
+  filterProductSale: boolean = false;
+  headerFilterFunction: any = null; // Lưu header filter function gốc
+
   // Subscriptions
   private subscriptions: Subscription[] = [];
 
@@ -347,6 +356,14 @@ export class ProjectPartListSlickGridComponent implements OnInit, AfterViewInit,
         filterable: false,
       },
       {
+        id: 'id',
+        field: 'ID',
+        name: 'ID',
+        hidden:true,
+        sortable: false,
+        filterable: false,
+      },
+      {
         id: 'StatusSolution',
         field: 'StatusSolution',
         name: 'Trạng thái',
@@ -423,6 +440,14 @@ export class ProjectPartListSlickGridComponent implements OnInit, AfterViewInit,
         field: 'STT',
         name: 'STT',
         width: 50,
+      },
+      {
+        id: 'id',
+        field: 'ID',
+        name: 'ID',
+        hidden:true,
+        sortable: false,
+        filterable: false,
       },
       // {
       //   id: 'ID',
@@ -555,6 +580,14 @@ export class ProjectPartListSlickGridComponent implements OnInit, AfterViewInit,
         width: 50,
       },
       {
+        id: 'id',
+        field: 'ID',
+        name: 'ID',
+        hidden:true,
+        sortable: false,
+        filterable: false,
+      },
+      {
         id: 'IsActive',
         field: 'IsActive',
         name: 'Sử dụng',
@@ -621,6 +654,17 @@ export class ProjectPartListSlickGridComponent implements OnInit, AfterViewInit,
       return value != null && value !== '' ? parseFloat(value).toFixed(1) : '';
     };
 
+    // Helper: date formatter dd/mm/yyyy
+    const dateFormatter = (row: number, cell: number, value: any) => {
+      if (!value) return '';
+      const date = new Date(value);
+      if (isNaN(date.getTime())) return value;
+      const day = String(date.getDate()).padStart(2, '0');
+      const month = String(date.getMonth() + 1).padStart(2, '0');
+      const year = date.getFullYear();
+      return `${day}/${month}/${year}`;
+    };
+
     // Helper: natural sorting for hierarchy strings (1.1.1, 1.1.10, etc.)
     const naturalSortHierarchy = (value1: any, value2: any) => {
       const a = String(value1 || '');
@@ -654,18 +698,27 @@ export class ProjectPartListSlickGridComponent implements OnInit, AfterViewInit,
         filter: { model: Filters['compoundInputNumber'] }
       },
       {
+        id: 'id',
+        field: 'ID',
+        name: 'ID',
+        hidden: true,
+        sortable: false,
+        filterable: false,
+        columnGroup: 'Vật tư dự án',
+      },
+      {
         id: 'GroupMaterial', field: 'GroupMaterial', name: 'Tên vật tư', width: 200, columnGroup: 'Vật tư dự án',
         sortable: true,
         filterable: true,
-        filter: {
-          model: Filters['multipleSelect'],
-          collection: [],
-          collectionOptions: { addBlankEntry: true },
-          filterOptions: {
-            filter: true,
-            autoAdjustDropWidthByTextSize: true,
-          } as MultipleSelectOption
-        },
+        // filter: {
+        //   model: Filters['multipleSelect'],
+        //   collection: [],
+        //   collectionOptions: { addBlankEntry: true },
+        //   filterOptions: {
+        //     filter: true,
+        //     autoAdjustDropWidthByTextSize: true,
+        //   } as MultipleSelectOption
+        // },
         formatter: (_row: any, _cell: any, value: any, _column: any, dataContext: any) => {
           if (!value) return '';
           return `
@@ -694,15 +747,15 @@ export class ProjectPartListSlickGridComponent implements OnInit, AfterViewInit,
         id: 'ProductCode', field: 'ProductCode', name: 'Mã thiết bị', width: 150, columnGroup: 'Vật tư dự án',
         sortable: true,
         filterable: true,
-        filter: {
-          model: Filters['multipleSelect'],
-          collection: [],
-          collectionOptions: { addBlankEntry: true },
-          filterOptions: {
-            filter: true,
-            autoAdjustDropWidthByTextSize: true,
-          } as MultipleSelectOption
-        },
+        // filter: {
+        //   model: Filters['multipleSelect'],
+        //   collection: [],
+        //   collectionOptions: { addBlankEntry: true },
+        //   filterOptions: {
+        //     filter: true,
+        //     autoAdjustDropWidthByTextSize: true,
+        //   } as MultipleSelectOption
+        // },
         formatter: (_row: any, _cell: any, value: any, _column: any, dataContext: any) => {
           if (!value) return '';
           return `
@@ -1009,7 +1062,7 @@ export class ProjectPartListSlickGridComponent implements OnInit, AfterViewInit,
           } as MultipleSelectOption
         }
       },
-      { id: 'CreatedDate', field: 'CreatedDate', name: 'Ngày tạo', width: 100, columnGroup: ' ', formatter: Formatters.dateIso, cssClass: 'text-center', filterable: true, filter: { model: Filters['compoundDate'] } },
+      { id: 'CreatedDate', field: 'CreatedDate', name: 'Ngày tạo', width: 100, columnGroup: ' ', formatter: dateFormatter, cssClass: 'text-center', filterable: true, filter: { model: Filters['compoundDate'] } },
       {
         id: 'Note', field: 'Note', name: 'Ghi chú', width: 200, columnGroup: ' ', filterable: true, filter: { model: Filters['compoundInputText'] },
         formatter: (_row: any, _cell: any, value: any, _column: any, dataContext: any) => {
@@ -1157,7 +1210,7 @@ export class ProjectPartListSlickGridComponent implements OnInit, AfterViewInit,
         },
       },
       {
-        id: 'DatePriceRequest', field: 'DatePriceRequest', name: 'Ngày yêu cầu', width: 100, columnGroup: 'Yêu cầu báo giá', formatter: Formatters.dateIso, cssClass: 'text-center', filterable: true, filter: { model: Filters['compoundDate'] },
+        id: 'DatePriceRequest', field: 'DatePriceRequest', name: 'Ngày yêu cầu', width: 100, columnGroup: 'Yêu cầu báo giá', formatter: dateFormatter, cssClass: 'text-center', filterable: true, filter: { model: Filters['compoundDate'] },
       },
       {
         id: 'FullNameRequestPrice', field: 'FullNameRequestPrice', name: 'Người yêu cầu', width: 120, columnGroup: 'Yêu cầu báo giá',
@@ -1196,12 +1249,12 @@ export class ProjectPartListSlickGridComponent implements OnInit, AfterViewInit,
         }
       },
       {
-        id: 'DeadlinePriceRequest', field: 'DeadlinePriceRequest', name: 'Deadline Báo giá', width: 110, columnGroup: 'Yêu cầu báo giá', formatter: Formatters.dateIso, cssClass: 'text-center',
+        id: 'DeadlinePriceRequest', field: 'DeadlinePriceRequest', name: 'Deadline Báo giá', width: 110, columnGroup: 'Yêu cầu báo giá', formatter: dateFormatter, cssClass: 'text-center',
         filterable: true,
         filter: { model: Filters['compoundDate'] }
       },
       {
-        id: 'DatePriceQuote', field: 'DatePriceQuote', name: 'Ngày báo giá', width: 100, columnGroup: 'Yêu cầu báo giá', formatter: Formatters.dateIso, cssClass: 'text-center',
+        id: 'DatePriceQuote', field: 'DatePriceQuote', name: 'Ngày báo giá', width: 100, columnGroup: 'Yêu cầu báo giá', formatter: dateFormatter, cssClass: 'text-center',
         filterable: true, filter: { model: Filters['compoundDate'] }
       },
       {
@@ -1277,7 +1330,7 @@ export class ProjectPartListSlickGridComponent implements OnInit, AfterViewInit,
         filterable: true,
         filter: { model: Filters['compoundInputNumber'] }
       },
-      { id: 'DateExpectedQuote', field: 'DateExpectedQuote', name: 'Ngày về dự kiến', width: 110, columnGroup: 'Yêu cầu báo giá', formatter: Formatters.dateIso, cssClass: 'text-center', filterable: true, filter: { model: Filters['compoundDate'] } },
+      { id: 'DateExpectedQuote', field: 'DateExpectedQuote', name: 'Ngày về dự kiến', width: 110, columnGroup: 'Yêu cầu báo giá', formatter: dateFormatter, cssClass: 'text-center', filterable: true, filter: { model: Filters['compoundDate'] } },
       {
         id: 'NoteQuote', field: 'NoteQuote', name: 'Ghi chú báo giá', width: 200, columnGroup: 'Yêu cầu báo giá', filterable: true, filter: { model: Filters['compoundInputText'] },
         formatter: (_row: any, _cell: any, value: any, _column: any, dataContext: any) => {
@@ -1408,14 +1461,14 @@ export class ProjectPartListSlickGridComponent implements OnInit, AfterViewInit,
           useRegularTooltip: true,
         },
       },
-      { id: 'ExpectedReturnDate', field: 'ExpectedReturnDate', name: 'Deadline mua hàng', width: 120, columnGroup: 'Yêu cầu mua hàng', formatter: Formatters.dateIso, cssClass: 'text-center', filterable: true, filter: { model: Filters['compoundDate'] } },
+      { id: 'ExpectedReturnDate', field: 'ExpectedReturnDate', name: 'Deadline mua hàng', width: 120, columnGroup: 'Yêu cầu mua hàng', formatter: dateFormatter, cssClass: 'text-center', filterable: true, filter: { model: Filters['compoundDate'] } },
       {
-        id: 'RequestDate', field: 'RequestDate', name: 'Ngày yêu cầu đặt hàng', width: 130, columnGroup: 'Yêu cầu mua hàng', formatter: Formatters.dateIso, cssClass: 'text-center',
+        id: 'RequestDate', field: 'RequestDate', name: 'Ngày yêu cầu đặt hàng', width: 130, columnGroup: 'Yêu cầu mua hàng', formatter: dateFormatter, cssClass: 'text-center',
         filterable: true, filter: { model: Filters['compoundDate'] }
       },
-      { id: 'RequestDatePurchase', field: 'RequestDatePurchase', name: 'Ngày bắt đầu đặt hàng', width: 140, columnGroup: 'Yêu cầu mua hàng', formatter: Formatters.dateIso, cssClass: 'text-center', filterable: true, filter: { model: Filters['compoundDate'] } },
-      { id: 'ExpectedDatePurchase', field: 'ExpectedDatePurchase', name: 'Ngày dự kiến đặt hàng', width: 140, columnGroup: 'Yêu cầu mua hàng', formatter: Formatters.dateIso, cssClass: 'text-center', filterable: true, filter: { model: Filters['compoundDate'] } },
-      { id: 'ExpectedArrivalDate', field: 'ExpectedArrivalDate', name: 'Ngày dự kiến hàng về', width: 140, columnGroup: 'Yêu cầu mua hàng', formatter: Formatters.dateIso, cssClass: 'text-center', filterable: true, filter: { model: Filters['compoundDate'] } },
+      { id: 'RequestDatePurchase', field: 'RequestDatePurchase', name: 'Ngày bắt đầu đặt hàng', width: 140, columnGroup: 'Yêu cầu mua hàng', formatter: dateFormatter, cssClass: 'text-center', filterable: true, filter: { model: Filters['compoundDate'] } },
+      { id: 'ExpectedDatePurchase', field: 'ExpectedDatePurchase', name: 'Ngày dự kiến đặt hàng', width: 140, columnGroup: 'Yêu cầu mua hàng', formatter: dateFormatter, cssClass: 'text-center', filterable: true, filter: { model: Filters['compoundDate'] } },
+      { id: 'ExpectedArrivalDate', field: 'ExpectedArrivalDate', name: 'Ngày dự kiến hàng về', width: 140, columnGroup: 'Yêu cầu mua hàng', formatter: dateFormatter, cssClass: 'text-center', filterable: true, filter: { model: Filters['compoundDate'] } },
       {
         id: 'BillCodePurchase', field: 'BillCodePurchase', name: 'Mã đặt hàng', width: 120, columnGroup: 'Yêu cầu mua hàng',
         filterable: true,
@@ -1568,7 +1621,7 @@ export class ProjectPartListSlickGridComponent implements OnInit, AfterViewInit,
         }
       },
       {
-        id: 'DateImport', field: 'DateImport', name: 'Ngày nhận hàng', width: 110, columnGroup: 'Yêu cầu mua hàng', formatter: Formatters.dateIso, cssClass: 'text-center',
+        id: 'DateImport', field: 'DateImport', name: 'Ngày nhận hàng', width: 110, columnGroup: 'Yêu cầu mua hàng', formatter: dateFormatter, cssClass: 'text-center',
         filterable: true,
         filter: { model: Filters['compoundDate'] }
       },
@@ -1600,7 +1653,7 @@ export class ProjectPartListSlickGridComponent implements OnInit, AfterViewInit,
       },
 
       // ==================== NHÓM: Nhập kho ====================
-      { id: 'DateImport2', field: 'DateImport', name: 'Ngày nhập kho', width: 110, columnGroup: 'Nhập kho', formatter: Formatters.dateIso, cssClass: 'text-center', filterable: true, filter: { model: Filters['compoundDate'] } },
+      { id: 'DateImport2', field: 'DateImport', name: 'Ngày nhập kho', width: 110, columnGroup: 'Nhập kho', formatter: dateFormatter, cssClass: 'text-center', filterable: true, filter: { model: Filters['compoundDate'] } },
       {
         id: 'BillImportCode', field: 'BillImportCode', name: 'Mã phiếu nhập', width: 120, columnGroup: 'Nhập kho', cssClass: 'text-center',
         filterable: true,
@@ -1725,7 +1778,7 @@ export class ProjectPartListSlickGridComponent implements OnInit, AfterViewInit,
       },
       gridWidth: '100%',
       // Freeze 6 columns (Checkbox + first 5 defined columns)
-      frozenColumn: 6,
+      frozenColumn: 7,
       // rowHeight: 33, // Base height - sẽ tự động tăng theo nội dung qua CSS
       datasetIdPropertyName: 'id',
       enableRowSelection: true,
@@ -3355,6 +3408,75 @@ export class ProjectPartListSlickGridComponent implements OnInit, AfterViewInit,
       this.angularGridPartList.slickGrid.invalidate();
       this.angularGridPartList.slickGrid.render();
     }
+  }
+
+  // Apply color filters based on toggle buttons
+  applyColorFilters(): void {
+    if (!this.angularGridPartList) {
+      return;
+    }
+
+    const dataView = this.angularGridPartList.dataView;
+
+    // Nếu không có color filter nào được chọn, load lại toàn bộ data
+    if (!this.filterDeleted && !this.filterProblem && !this.filterNewCode &&
+        !this.filterFix && !this.filterReturn && !this.filterProductSale) {
+      // Load lại data từ API để header filter hoạt động bình thường
+      if (this.versionID > 0 || this.versionPOID > 0) {
+        this.loadDataProjectPartList();
+      }
+      return;
+    }
+
+    // Lọc data dựa trên color filters
+    const filteredData = this.dataProjectPartList.filter((item: any) => {
+      const isDeleted = item.IsDeleted === true;
+      const isProblem = item.IsProblem === true;
+      const quantityReturn = Number(item.QuantityReturn) || 0;
+      const isFix = item.IsFix === true;
+      const isNewCode = item.IsNewCode === true;
+      const isProductSale = item.IsProductSale && item.IsProductSale !== '';
+
+      // Kiểm tra nếu item khớp với bất kỳ filter nào được chọn
+      if (this.filterDeleted && isDeleted) return true;
+      if (this.filterProblem && isProblem) return true;
+      if (this.filterNewCode && isNewCode) return true;
+      if (this.filterFix && isFix) return true;
+      if (this.filterReturn && quantityReturn > 0) return true;
+      if (this.filterProductSale && isProductSale) return true;
+
+      return false;
+    });
+
+    // Set filtered data vào dataView
+    dataView.setItems(filteredData);
+    dataView.refresh();
+    this.updatePartListBottomCalculations();
+  }
+
+  // Toggle color filter
+  toggleColorFilter(filterType: string): void {
+    switch (filterType) {
+      case 'deleted':
+        this.filterDeleted = !this.filterDeleted;
+        break;
+      case 'problem':
+        this.filterProblem = !this.filterProblem;
+        break;
+      case 'newCode':
+        this.filterNewCode = !this.filterNewCode;
+        break;
+      case 'fix':
+        this.filterFix = !this.filterFix;
+        break;
+      case 'return':
+        this.filterReturn = !this.filterReturn;
+        break;
+      case 'productSale':
+        this.filterProductSale = !this.filterProductSale;
+        break;
+    }
+    this.applyColorFilters();
   }
 
   // Mở modal giải pháp

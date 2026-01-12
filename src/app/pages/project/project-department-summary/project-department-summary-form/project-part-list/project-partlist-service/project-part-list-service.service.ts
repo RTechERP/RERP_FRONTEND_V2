@@ -10,7 +10,7 @@ export class ProjectPartListService {
   private url = `${environment.host}`;
   private urlProjectPartListVersion = `${this.url}api/ProjectPartListVersion`;
   private urlProjectPartList = `${this.url}api/ProjectPartList`;
- // private urlUnitCount = `${this.url}api/UnitCountKT/get-all`;
+  // private urlUnitCount = `${this.url}api/UnitCountKT/get-all`;
   private urlUnitCount = `${this.url}api/UnitCount`;
   constructor() { }
   getProjectPartListVersion(projectSolutionId: number, isPO: boolean): Observable<any> {
@@ -90,9 +90,19 @@ export class ProjectPartListService {
   getSuggestions(): Observable<any> {
     return this.http.get<any>(`${this.urlProjectPartList}/get-suggestion-name-maker`);
   }
-  // Save ProjectPartList
+  // Save ProjectPartList (backward compatible)
   saveProjectPartListData(payload: any, overrideFix: boolean = false): Observable<any> {
     return this.http.post<any>(`${this.urlProjectPartList}/save-projectpartlist?overrideFix=${overrideFix}`, payload);
+  }
+
+  // Update ProjectPartList with isLeaf parameter
+  // isLeaf = true: validate with ValidateUpdate (skip some validation for parent nodes)
+  // isLeaf = false: validate with full Validate
+  updateProjectPartList(payload: any, overrideFix: boolean = false, isLeaf: boolean = false): Observable<any> {
+    return this.http.post<any>(
+      `${this.urlProjectPartList}/update-projectpartlist?overrideFix=${overrideFix}&isLeaf=${isLeaf}`,
+      payload
+    );
   }
   // Get PartList by ID
   getPartListByID(partlistID: number): Observable<any> {
@@ -150,8 +160,8 @@ export class ProjectPartListService {
   saveImport(payload: any[], status: number): Observable<any> {
     return this.http.post<any>(`${this.urlProjectPartList}/save-import?status=${status}`, payload);
   }
-   //LƯU MẪU EXCEL
-   downloadTemplate(fileName: string): Observable<Blob> {
+  //LƯU MẪU EXCEL
+  downloadTemplate(fileName: string): Observable<Blob> {
     const url = `${environment.host}api/share/software/Template/ImportExcel/${fileName}`;
     return this.http.get(url, {
       responseType: 'blob',

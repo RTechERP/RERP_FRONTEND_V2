@@ -47,8 +47,7 @@ import { NzModalService } from 'ng-zorro-antd/modal';
   styleUrl: './phase-allocation-person-form.component.css',
 })
 export class PhaseAllocationPersonFormComponent
-  implements OnInit, AfterViewInit
-{
+  implements OnInit, AfterViewInit {
   @Input() dataInput: any;
 
   public activeModal = inject(NgbActiveModal);
@@ -111,6 +110,7 @@ export class PhaseAllocationPersonFormComponent
         PhasedAllocationPersonID: d.PhasedAllocationPersonID || 0,
         DateReceive: d.DateReceive || null,
         StatusReceive: d.StatusReceive || 0,
+        OriginalStatusReceive: d.StatusReceive || 0, // Lưu trạng thái ban đầu
         IsDeleted: d.IsDeleted || false,
         Quantity: d.Quantity || 1,
         UnitName: d.UnitName || '',
@@ -218,6 +218,12 @@ export class PhaseAllocationPersonFormComponent
       movableColumns: true,
       resizableRows: true,
       reactiveData: true,
+      headerFilterLiveFilterDelay: 300,
+      groupBy: 'DepartmentName',
+      groupHeader: (value: string, count: number) => {
+        return `<span style="color: #1890ff; font-weight: bold;">${value || 'Chưa có phòng ban'}</span> <span style="color: #888;">(${count} nhân viên)</span>`;
+      },
+      groupStartOpen: true,
       rowHeader: {
         formatter: 'rowSelection',
         titleFormatter: 'rowSelection',
@@ -355,6 +361,8 @@ export class PhaseAllocationPersonFormComponent
           field: 'EmployeeName',
           hozAlign: 'left',
           headerHozAlign: 'center',
+          headerFilter: 'input',
+          headerFilterPlaceholder: 'Tìm tên NV...',
         },
         {
           title: 'Phòng ban',
@@ -440,10 +448,23 @@ export class PhaseAllocationPersonFormComponent
           field: 'StatusReceive',
           hozAlign: 'center',
           formatter: (cell) => {
+            const rowData = cell.getRow().getData();
             const checked = cell.getValue() === 1 ? 'checked' : '';
-            return `<input type="checkbox" ${checked} />`;
+            // Nếu đã được tích sẵn từ DB thì disable checkbox
+            const disabled = rowData['OriginalStatusReceive'] === 1 ? 'disabled' : '';
+            return `<input type="checkbox" ${checked} ${disabled} />`;
           },
           cellClick: (e, cell) => {
+            e.preventDefault();
+            e.stopPropagation();
+
+            const rowData = cell.getRow().getData();
+
+            // Nếu đã được tích sẵn từ DB (OriginalStatusReceive === 1) thì không cho thay đổi
+            if (rowData['OriginalStatusReceive'] === 1) {
+              return; // Không cho thay đổi
+            }
+
             const newVal = cell.getValue() === 1 ? 0 : 1;
             cell.setValue(newVal, true);
           },
@@ -451,11 +472,21 @@ export class PhaseAllocationPersonFormComponent
             const table = cell.getTable();
             const selectedRows = table.getSelectedRows();
             const newUnit = cell.getValue();
+            const rowData = cell.getRow().getData();
+
+            // Nếu đã được tích sẵn từ DB thì không cho bulk update
+            if (rowData['OriginalStatusReceive'] === 1) {
+              return;
+            }
 
             // 👉 CHỈ bulk update khi có checkbox được tick
             if (selectedRows.length > 0) {
               selectedRows.forEach((row) => {
-                row.update({ StatusReceive: newUnit });
+                const data = row.getData();
+                // Chỉ update những row chưa được tích sẵn từ DB
+                if (data['OriginalStatusReceive'] !== 1) {
+                  row.update({ StatusReceive: newUnit });
+                }
               });
               table.deselectRow();
             }

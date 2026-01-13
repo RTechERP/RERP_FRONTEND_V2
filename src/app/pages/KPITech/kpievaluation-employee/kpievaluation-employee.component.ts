@@ -1,6 +1,8 @@
-import { Component, OnInit, AfterViewInit, ViewChild, TemplateRef, inject, ChangeDetectorRef } from '@angular/core';
+import { Component, OnInit, AfterViewInit, OnDestroy, ViewChild, TemplateRef, inject, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { Subject, forkJoin } from 'rxjs';
+import { takeUntil, finalize } from 'rxjs/operators';
 import {
   AngularGridInstance,
   Column,
@@ -48,7 +50,7 @@ import { AuthService } from '../../../auth/auth.service';
   templateUrl: './kpievaluation-employee.component.html',
   styleUrl: './kpievaluation-employee.component.css'
 })
-export class KPIEvaluationEmployeeComponent implements OnInit, AfterViewInit {
+export class KPIEvaluationEmployeeComponent implements OnInit, AfterViewInit, OnDestroy {
   // Grid instances
   angularGridSession!: AngularGridInstance;
   angularGridExam!: AngularGridInstance;
@@ -108,6 +110,22 @@ export class KPIEvaluationEmployeeComponent implements OnInit, AfterViewInit {
   // Selected row IDs
   selectedSessionID: number = 0;
   selectedExamID: number = 0;
+
+  // Tab loading state - Priority Loading Strategy
+  loadingTab1 = false;
+  loadingOtherTabs = false;
+  isTab1Loaded = false;  // Tab Kỹ năng
+  isTab2Loaded = false;  // Tab Chung
+  isTab3Loaded = false;  // Tab Chuyên môn
+  isTab4Loaded = false;  // Tab Tổng hợp (calculated from tab 1,2,3 data)
+  isTab5Loaded = false;  // Tab Rule & Team
+
+  // isPublic flag - matches WinForm logic: isTBPView || empPoint.IsPublish == true
+  isPublic: boolean = true; // Default to true, will be determined based on user context
+  isTBPView: boolean = false; // View as TBP/Manager
+
+  // Subject for cleanup on destroy
+  private destroy$ = new Subject<void>();
 
   // Inject services
   private kpiService = inject(KPIService);
@@ -208,14 +226,14 @@ export class KPIEvaluationEmployeeComponent implements OnInit, AfterViewInit {
     this.examColumns = [
       {
         id: 'ExamCode',
-        field: 'Code',
+        field: 'ExamCode',
         name: 'Mã bài đánh giá',
         width: 120,
         sortable: true
       },
       {
         id: 'ExamName',
-        field: 'Name',
+        field: 'ExamName',
         name: 'Tên bài đánh giá',
         width: 200,
         sortable: true
@@ -269,16 +287,16 @@ export class KPIEvaluationEmployeeComponent implements OnInit, AfterViewInit {
         id: 'STT',
         field: 'STT',
         name: 'STT',
-        width: 27,
-        maxWidth: 50,
-        formatter: Formatters.tree,
-        cssClass: 'text-center'
+        width: 80,
+        minWidth: 60,
+        cssClass: 'text-left'
       },
       {
         id: 'EvaluationContent',
         field: 'EvaluationContent',
         name: 'Yếu tố đánh giá',
-        width: 467
+        width: 467,
+        formatter: Formatters.tree  // Tree formatter on content column for proper tree display
       },
       {
         id: 'StandardPoint',
@@ -381,7 +399,7 @@ export class KPIEvaluationEmployeeComponent implements OnInit, AfterViewInit {
       gridWidth: '100%',
       enableTreeData: true,
       treeDataOptions: {
-        columnId: 'STT',
+        columnId: 'EvaluationContent',
         parentPropName: 'parentId',
         identifierPropName: 'id',
         initiallyCollapsed: false
@@ -408,7 +426,7 @@ export class KPIEvaluationEmployeeComponent implements OnInit, AfterViewInit {
         resizeDetection: 'container'
       },
       treeDataOptions: {
-        columnId: 'STT',
+        columnId: 'EvaluationContent',
         parentPropName: 'parentId',
         identifierPropName: 'id',
         initiallyCollapsed: false
@@ -427,7 +445,7 @@ export class KPIEvaluationEmployeeComponent implements OnInit, AfterViewInit {
         resizeDetection: 'container'
       },
       treeDataOptions: {
-        columnId: 'STT',
+        columnId: 'EvaluationContent',
         parentPropName: 'parentId',
         identifierPropName: 'id',
         initiallyCollapsed: false
@@ -880,14 +898,15 @@ export class KPIEvaluationEmployeeComponent implements OnInit, AfterViewInit {
     });
   }
 
+
   onExamRowSelectionChanged(event: any): void {
     const args = event.detail?.args ?? event;
     if (args?.grid?.getSelectedRows().length > 0) {
       const selectedRow = args.grid.getDataItem(args.grid.getSelectedRows()[0]);
       if (selectedRow) {
         this.selectedExamID = selectedRow.ID;
-        // Future: Load grid details for specific tabs
-        // this.loadDataDetails(this.selectedExamID);
+        // Load data details for all tabs - matches WinForm grvExam_FocusedRowChanged
+        this.loadDataDetails();
       }
     }
   }
@@ -994,29 +1013,44 @@ export class KPIEvaluationEmployeeComponent implements OnInit, AfterViewInit {
     this.angularGridTeam?.resizerService?.resizeGrid();
   }
 
+
   // Tab change handler
   onTabChange(index: number): void {
     this.selectedTabIndex = index;
-    // Resize grid when tab changes
+
+    // Resize and refresh grid when tab changes
+    // Data is already loaded in background, just need to update grid display
     setTimeout(() => {
       switch (index) {
         case 0:
-          this.angularGridEvaluation?.resizerService?.resizeGrid();
+          if (this.isTab1Loaded) {
+            this.refreshGrid(this.angularGridEvaluation, this.dataEvaluation);
+          }
           break;
         case 1:
-          this.angularGridEvaluation4?.resizerService?.resizeGrid();
+          if (this.isTab2Loaded) {
+            this.refreshGrid(this.angularGridEvaluation2, this.dataEvaluation2);
+          }
           break;
         case 2:
-          this.angularGridEvaluation2?.resizerService?.resizeGrid();
+          if (this.isTab3Loaded) {
+            this.refreshGrid(this.angularGridEvaluation4, this.dataEvaluation4);
+          }
           break;
         case 3:
-          this.angularGridMaster?.resizerService?.resizeGrid();
+          if (this.isTab4Loaded) {
+            this.refreshGrid(this.angularGridMaster, this.dataMaster);
+          }
           break;
         case 4:
-          this.angularGridRule?.resizerService?.resizeGrid();
+          if (this.isTab5Loaded) {
+            this.refreshGrid(this.angularGridRule, this.dataRule);
+          }
           break;
         case 5:
-          this.angularGridTeam?.resizerService?.resizeGrid();
+          if (this.isTab5Loaded) {
+            this.refreshGrid(this.angularGridTeam, this.dataTeam);
+          }
           break;
       }
     }, 100);
@@ -1051,4 +1085,425 @@ export class KPIEvaluationEmployeeComponent implements OnInit, AfterViewInit {
   //     { id: 2, PositionCode: 'MKT', PositionName: 'Marketing', TypePositionName: 'Team' }
   //   ];
   // }
+
+  // ==================== Priority Loading Strategy ====================
+  // Tab 1 loads first, other tabs load in background
+  // User can interact with Tab 1 while other tabs are loading
+
+  /**
+   * Main entry point for loading tab data
+   * Called when user selects an Exam row
+   * Matches WinForm LoadDataDetails() logic
+   */
+  loadDataDetails(): void {
+    if (this.selectedExamID <= 0) {
+      return;
+    }
+
+    // Reset loading state
+    this.resetLoadingState();
+
+    // STEP 1: Load Tab 1 (Kỹ năng) FIRST - Highest Priority
+    this.loadingTab1 = true;
+    this.kpiService.loadKPIKyNang(this.selectedExamID, this.isPublic, this.employeeID)
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: (res) => {
+          if (res.data) {
+            // Transform and calculate data like WinForm CalculatorAvgPointNew
+            this.dataEvaluation = this.transformToTreeData(res.data);
+            this.dataEvaluation = this.calculatorAvgPoint(this.dataEvaluation);
+            this.updateGrid(this.angularGridEvaluation, this.dataEvaluation);
+          }
+          this.isTab1Loaded = true;
+          this.loadingTab1 = false;
+          this.cdr.detectChanges();
+
+          // STEP 2: When Tab 1 done -> Start loading remaining tabs in background
+          this.loadRemainingTabsInBackground();
+        },
+        error: (err) => {
+          this.loadingTab1 = false;
+          console.error('Error loading KPI Kỹ năng:', err);
+          this.notification.error('Lỗi', 'Không thể tải dữ liệu Kỹ năng');
+        }
+      });
+  }
+
+  /**
+   * Load remaining tabs (2-5) in parallel in background
+   * Does NOT block UI - user can still interact with Tab 1
+   */
+  private loadRemainingTabsInBackground(): void {
+    if (this.selectedExamID <= 0) return;
+
+    this.loadingOtherTabs = true;
+
+    // Create observables for each tab
+    const tabChung$ = this.kpiService.loadKPIChung(this.selectedExamID, this.isPublic, this.employeeID);
+    const tabChuyenMon$ = this.kpiService.loadKPIChuyenMon(this.selectedExamID, this.isPublic, this.employeeID);
+    const tabRuleTeam$ = this.kpiService.loadKPIRuleAndTeam(this.selectedExamID, this.isPublic, this.employeeID);
+
+    // Load all in parallel
+    forkJoin({
+      chung: tabChung$,
+      chuyenMon: tabChuyenMon$,
+      ruleTeam: tabRuleTeam$
+    }).pipe(
+      takeUntil(this.destroy$),
+      finalize(() => {
+        this.loadingOtherTabs = false;
+        this.cdr.detectChanges();
+      })
+    ).subscribe({
+      next: (results) => {
+        // Tab 2 - Chung (EvaluationType = 3 in backend)
+        if (results.chung?.data) {
+          this.dataEvaluation2 = this.transformToTreeData(results.chung.data);
+          this.dataEvaluation2 = this.calculatorAvgPoint(this.dataEvaluation2);
+          this.isTab2Loaded = true;
+        }
+
+        // Tab 3 - Chuyên môn (EvaluationType = 2 in backend)
+        if (results.chuyenMon?.data) {
+          this.dataEvaluation4 = this.transformToTreeData(results.chuyenMon.data);
+          this.dataEvaluation4 = this.calculatorAvgPoint(this.dataEvaluation4);
+          this.isTab3Loaded = true;
+        }
+
+        // Tab 4 - Tổng hợp (Master) - Calculated from Tab 1,2,3 data
+        this.calculateTotalAVG();
+        this.isTab4Loaded = true;
+
+        // Tab 5 & 6 - Rule and Team
+        if (results.ruleTeam?.data) {
+          // Handle dtKpiRule
+          if (results.ruleTeam.data.dtKpiRule) {
+            this.dataRule = this.transformToTreeData(results.ruleTeam.data.dtKpiRule);
+          }
+          // Handle dtTeam
+          if (results.ruleTeam.data.dtTeam) {
+            this.dataTeam = results.ruleTeam.data.dtTeam.map((item: any, index: number) => ({
+              ...item,
+              id: item.ID || index + 1
+            }));
+          }
+          this.isTab5Loaded = true;
+        }
+
+        this.cdr.detectChanges();
+      },
+      error: (err) => {
+        console.error('Error loading background tabs:', err);
+        // Don't show error notification for background loading to avoid interrupting user
+      }
+    });
+  }
+
+  /**
+   * Reset loading state - called before loading new data
+   */
+  private resetLoadingState(): void {
+    this.isTab1Loaded = false;
+    this.isTab2Loaded = false;
+    this.isTab3Loaded = false;
+    this.isTab4Loaded = false;
+    this.isTab5Loaded = false;
+    this.dataEvaluation = [];
+    this.dataEvaluation2 = [];
+    this.dataEvaluation4 = [];
+    this.dataMaster = [];
+    this.dataRule = [];
+    this.dataTeam = [];
+  }
+
+  /**
+   * Update grid with new data
+   */
+  private updateGrid(grid: AngularGridInstance, data: any[]): void {
+    if (grid?.dataView) {
+      grid.dataView.setItems(data);
+      grid.slickGrid?.invalidate();
+    }
+  }
+
+  /**
+   * Refresh grid - resize and re-render
+   */
+  private refreshGrid(grid: AngularGridInstance, data: any[]): void {
+    if (grid) {
+      if (grid.dataView && data.length > 0) {
+        grid.dataView.setItems(data);
+      }
+      grid.resizerService?.resizeGrid();
+      grid.slickGrid?.invalidate();
+      grid.slickGrid?.render();
+    }
+  }
+
+  // ==================== Data Transformation & Calculation ====================
+  // Matches WinForm CalculatorAvgPointNew, CalculatorTotalPointNew logic
+
+  /**
+   * Transform flat data to tree structure for SlickGrid TreeData
+   * Handles API field mapping and calculates tree levels
+   * API returns: ID, ParentID, Stt (or STT)
+   * SlickGrid needs: id (lowercase), parentId (lowercase), __treeLevel
+   * IMPORTANT: Data must be sorted with parents before children!
+   */
+  private transformToTreeData(data: any[]): any[] {
+    if (!data || data.length === 0) return [];
+
+    // Add summary row like WinForm (ID = -1, ParentID = 0)
+    const hasParentRow = data.some((item: any) => item.ID === -1);
+    if (!hasParentRow) {
+      data.push({
+        ID: -1,
+        ParentID: 0,
+        Stt: '',
+        STT: '',
+        EvaluationContent: 'TỔNG HỆ SỐ',
+        VerificationToolsContent: 'TỔNG ĐIỂM TRUNG BÌNH'
+      });
+    }
+
+    // First normalize data - handle Stt vs STT
+    const normalizedData = data.map((item: any) => ({
+      ...item,
+      STT: item.Stt ?? item.STT ?? ''
+    }));
+
+    // Sort data by STT to ensure parents come before children
+    // e.g., "1" before "1.1" before "1.1.1"
+    normalizedData.sort((a, b) => {
+      const sttA = a.STT?.toString() || '';
+      const sttB = b.STT?.toString() || '';
+
+      // Empty STT (summary row) goes last
+      if (!sttA) return 1;
+      if (!sttB) return -1;
+
+      // Split by dots and compare numerically
+      const partsA = sttA.split('.').map((n: string) => parseInt(n, 10) || 0);
+      const partsB = sttB.split('.').map((n: string) => parseInt(n, 10) || 0);
+
+      const maxLen = Math.max(partsA.length, partsB.length);
+      for (let i = 0; i < maxLen; i++) {
+        const numA = partsA[i] ?? 0;
+        const numB = partsB[i] ?? 0;
+        if (numA !== numB) {
+          return numA - numB;
+        }
+      }
+      return partsA.length - partsB.length;
+    });
+
+    // Transform to SlickGrid tree format
+    return normalizedData.map((item: any) => {
+      const sttValue = item.STT?.toString() || '';
+
+      // Calculate tree level from STT (dots count)
+      const dotCount = sttValue ? (sttValue.match(/\./g) || []).length : 0;
+      const treeLevel = sttValue ? dotCount : 0;
+
+      // Check if this item has children
+      const hasChildren = normalizedData.some(
+        (child: any) => child.ParentID === item.ID && child.ID !== item.ID
+      );
+
+      return {
+        ...item,
+        // Map to uppercase STT for column display
+        STT: sttValue,
+        // SlickGrid tree requires lowercase id and parentId
+        id: item.ID,
+        parentId: item.ParentID === 0 || item.ParentID === null ? null : item.ParentID,
+        // Tree level for proper indentation
+        __treeLevel: treeLevel,
+        // Has children flag for expand/collapse
+        __hasChildren: hasChildren,
+        // Collapsed state
+        __collapsed: false
+      };
+    });
+  }
+
+  /**
+   * Calculate average points for tree data
+   * Matches WinForm CalculatorAvgPointNew logic
+   */
+  private calculatorAvgPoint(dataTable: any[]): any[] {
+    if (!dataTable || dataTable.length === 0) return dataTable;
+
+    // Find list of parent STT values
+    const listFatherID: string[] = [];
+    for (const row of dataTable) {
+      const stt = row.STT?.toString() || '';
+      if (!stt) continue;
+      const lastDotIndex = stt.lastIndexOf('.');
+      const fatherID = lastDotIndex > 0 ? stt.substring(0, lastDotIndex) : stt.substring(0, 1);
+      if (!listFatherID.includes(fatherID)) {
+        listFatherID.push(fatherID);
+      }
+    }
+
+    // Process from bottom to top (reverse order)
+    for (let i = listFatherID.length - 1; i >= 0; i--) {
+      const fatherId = listFatherID[i];
+      let fatherRowIndex = -1;
+      let coefficient = 0;
+
+      let count = 0;
+      let totalEmpPoint = 0;
+      let totalTbpPoint = 0;
+      let totalBgdPoint = 0;
+      let totalCoefficient = 0;
+      const startStt = fatherId + '.';
+
+      for (let j = 0; j < dataTable.length; j++) {
+        const row = dataTable[j];
+        const stt = row.STT?.toString() || '';
+        const isCheck = listFatherID.includes(stt);
+
+        if (!stt) continue;
+
+        if (stt === fatherId) {
+          fatherRowIndex = j;
+          coefficient = parseFloat(row.Coefficient) || 0;
+        } else if (stt.startsWith(startStt)) {
+          if (isCheck) continue;
+          count++;
+          totalEmpPoint += this.formatDecimalNumber(parseFloat(row.EmployeeCoefficient) || 0, 1);
+          totalTbpPoint += this.formatDecimalNumber(parseFloat(row.TBPCoefficient) || 0, 1);
+          totalBgdPoint += this.formatDecimalNumber(parseFloat(row.BGDCoefficient) || 0, 1);
+          totalCoefficient += this.formatDecimalNumber(parseFloat(row.Coefficient) || 0, 1);
+        }
+      }
+
+      if (fatherRowIndex === -1 || count === 0) continue;
+
+      // Update evaluation points
+      if (totalCoefficient === 0) {
+        dataTable[fatherRowIndex].EmployeeEvaluation = totalEmpPoint / count;
+        dataTable[fatherRowIndex].BGDEvaluation = totalBgdPoint / count;
+        dataTable[fatherRowIndex].TBPEvaluation = totalTbpPoint / count;
+      } else {
+        dataTable[fatherRowIndex].EmployeeEvaluation = totalEmpPoint / totalCoefficient;
+        dataTable[fatherRowIndex].BGDEvaluation = totalBgdPoint / totalCoefficient;
+        dataTable[fatherRowIndex].TBPEvaluation = totalTbpPoint / totalCoefficient;
+      }
+
+      // Update coefficient points
+      const empEval = dataTable[fatherRowIndex].EmployeeEvaluation || 0;
+      const tbpEval = dataTable[fatherRowIndex].TBPEvaluation || 0;
+      const bgdEval = dataTable[fatherRowIndex].BGDEvaluation || 0;
+      const coef = dataTable[fatherRowIndex].Coefficient || 0;
+
+      dataTable[fatherRowIndex].EmployeeCoefficient = empEval * coef;
+      dataTable[fatherRowIndex].TBPCoefficient = tbpEval * coef;
+      dataTable[fatherRowIndex].BGDCoefficient = bgdEval * coef;
+    }
+
+    // Calculate total points for parent rows (ID = -1 or ParentID = 0)
+    dataTable = this.calculatorTotalPoint(dataTable);
+
+    return dataTable;
+  }
+
+  /**
+   * Calculate total points for parent rows
+   * Matches WinForm CalculatorTotalPointNew logic
+   */
+  private calculatorTotalPoint(dataTable: any[]): any[] {
+    const parentRows = dataTable.filter(row => row.ParentID === 0 || row.parentId === null);
+
+    for (const parentRow of parentRows) {
+      const rowIndex = dataTable.indexOf(parentRow);
+      const childrenRows = dataTable.filter(row => row.ParentID === parentRow.ID);
+
+      let totalCoefficient = 0;
+      let totalEmpAVGPoint = 0;
+      let totalTBPAVGPoint = 0;
+      let totalBGDAVGPoint = 0;
+
+      for (const child of childrenRows) {
+        totalCoefficient += this.formatDecimalNumber(parseFloat(child.Coefficient) || 0, 1);
+        totalEmpAVGPoint += this.formatDecimalNumber(parseFloat(child.EmployeeCoefficient) || 0, 1);
+        totalTBPAVGPoint += this.formatDecimalNumber(parseFloat(child.TBPCoefficient) || 0, 1);
+        totalBGDAVGPoint += this.formatDecimalNumber(parseFloat(child.BGDCoefficient) || 0, 1);
+      }
+
+      dataTable[rowIndex].Coefficient = totalCoefficient;
+      dataTable[rowIndex].VerificationToolsContent = 'TỔNG ĐIỂM TRUNG BÌNH';
+
+      const divCoef = totalCoefficient > 0 ? totalCoefficient : 1;
+
+      dataTable[rowIndex].EmployeeCoefficient = totalEmpAVGPoint;
+      dataTable[rowIndex].TBPCoefficient = totalTBPAVGPoint;
+      dataTable[rowIndex].BGDCoefficient = totalBGDAVGPoint;
+
+      dataTable[rowIndex].EmployeeEvaluation = totalEmpAVGPoint / divCoef;
+      dataTable[rowIndex].BGDEvaluation = totalBGDAVGPoint / divCoef;
+      dataTable[rowIndex].TBPEvaluation = totalTBPAVGPoint / divCoef;
+    }
+
+    return dataTable;
+  }
+
+  /**
+   * Calculate Total AVG for Master grid (Tab 4)
+   * Matches WinForm LoadTotalAVGNew logic
+   * Uses data from Tab 1, 2, 3 to calculate summary
+   */
+  private calculateTotalAVG(): void {
+    // Get summary rows (ID = -1) from each tab
+    const skillPoint = this.dataEvaluation.find(row => row.ID === -1) || {};
+    const generalPoint = this.dataEvaluation2.find(row => row.ID === -1) || {};
+    const specializationPoint = this.dataEvaluation4.find(row => row.ID === -1) || {};
+
+    // Calculate counts
+    const countSkill = this.dataEvaluation.filter(row => row.ID === -1).length || 1;
+    const countGeneral = this.dataEvaluation2.filter(row => row.ID === -1).length || 1;
+    const countSpecialization = this.dataEvaluation4.filter(row => row.ID === -1).length || 1;
+
+    this.dataMaster = [
+      {
+        id: 1,
+        EvaluatedType: 'Tự đánh giá',
+        SkillPoint: this.formatDecimalNumber((skillPoint.EmployeeEvaluation || 0) / countSkill, 1),
+        GeneralPoint: this.formatDecimalNumber((generalPoint.EmployeeEvaluation || 0) / countGeneral, 1),
+        SpecializationPoint: this.formatDecimalNumber((specializationPoint.EmployeeEvaluation || 0) / countSpecialization, 1)
+      },
+      {
+        id: 2,
+        EvaluatedType: 'Đánh giá của Trưởng/Phó BP',
+        SkillPoint: this.formatDecimalNumber((skillPoint.TBPEvaluation || 0) / countSkill, 1),
+        GeneralPoint: this.formatDecimalNumber((generalPoint.TBPEvaluation || 0) / countGeneral, 1),
+        SpecializationPoint: this.formatDecimalNumber((specializationPoint.TBPEvaluation || 0) / countSpecialization, 1)
+      },
+      {
+        id: 3,
+        EvaluatedType: 'Đánh giá của GĐ',
+        SkillPoint: this.formatDecimalNumber((skillPoint.BGDEvaluation || 0) / countSkill, 1),
+        GeneralPoint: this.formatDecimalNumber((generalPoint.BGDEvaluation || 0) / countGeneral, 1),
+        SpecializationPoint: this.formatDecimalNumber((specializationPoint.BGDEvaluation || 0) / countSpecialization, 1)
+      }
+    ];
+  }
+
+  /**
+   * Format decimal number with specified precision
+   * Matches WinForm TextUtils.FormatDecimalNumber
+   */
+  private formatDecimalNumber(value: number, precision: number): number {
+    return Math.round(value * Math.pow(10, precision)) / Math.pow(10, precision);
+  }
+
+  /**
+   * Cleanup on component destroy
+   */
+  ngOnDestroy(): void {
+    this.destroy$.next();
+    this.destroy$.complete();
+  }
 }

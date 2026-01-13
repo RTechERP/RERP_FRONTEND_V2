@@ -317,8 +317,6 @@ export class TsAssetTransferFormComponent implements OnInit {
     const assetManagements = rows.map(item => ({
       ID: item.AssetManagementID,
       IsAllocation: true,
-      StatusID: 1,
-      Status: "Chưa sử dụng",
       DepartmentID: this.dataInput.ToDepartmentID,
       EmployeeID: this.dataInput.ReceiverID,
 

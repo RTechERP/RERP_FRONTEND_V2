@@ -72,7 +72,7 @@ export class DayOffImportExcelComponent implements OnInit, AfterViewInit {
     this.processedRowsForSave = 0;
     this.filePath = '';
     this.selectedSheet = '';
-    if(this.tableExcel) this.tableExcel.replaceData([]);
+    if (this.tableExcel) this.tableExcel.replaceData([]);
     this.loadEmployee();
   }
 

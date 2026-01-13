@@ -9,7 +9,7 @@
     font-size: 12px;
 }
 
-:host ::ng-deep * {
+:host ::ng-deep *:not(p-menubar):not(p-menubar *) {
     font-size: 12px;
 }
 
@@ -72,4 +72,31 @@ angular-slickgrid,
 
 :host ::ng-deep .slickgrid-container {
     height: 100% !important;
+}
+
+/* Menubar style matching payment order */
+:host ::ng-deep p-menubar {
+    width: 100%;
+}
+
+:host ::ng-deep p-menubar .p-menubar {
+    width: 100%;
+    padding: 0.25rem 0.5rem !important;
+}
+
+:host ::ng-deep p-menubar .p-menuitem-link {
+    padding: 0.5rem 0.75rem !important;
+    display: flex !important;
+    align-items: center !important;
+    gap: 8px !important;
+}
+
+:host ::ng-deep p-menubar .p-menuitem-text {
+    font-size: 12px !important;
+    font-weight: 600 !important;
+}
+
+:host ::ng-deep p-menubar .p-menuitem-icon,
+:host ::ng-deep p-menubar .fa-solid {
+    font-size: 18px !important;
 }

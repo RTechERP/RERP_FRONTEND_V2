@@ -396,6 +396,7 @@ export class PokhSlickgridComponent implements OnInit, AfterViewInit, OnDestroy 
           this.loadCurrencies();
           this.loadProducts();
           this.isInitialized = true;
+          this.loadPOKH();
         } else {
           // Các lần sau: chỉ reload data POKH
           this.loadPOKH();
@@ -632,6 +633,7 @@ export class PokhSlickgridComponent implements OnInit, AfterViewInit, OnDestroy 
 
           setTimeout(() => {
             this.applyDistinctFiltersToGrid(this.angularGridPOKHProduct, this.columnDefinitionsPOKHProduct, ['Maker', 'Unit']);
+            this.updateProductFooterRow();
           }, 500);
         } else {
           this.notification.error(
@@ -1774,7 +1776,7 @@ export class PokhSlickgridComponent implements OnInit, AfterViewInit, OnDestroy 
 
   angularGridReadyPOKH(angularGrid: AngularGridInstance): void {
     this.angularGridPOKH = angularGrid;
-    this.loadPOKH();
+    // this.loadPOKH();
   }
 
   updateMainIndexFilter(): void {
@@ -1879,12 +1881,47 @@ export class PokhSlickgridComponent implements OnInit, AfterViewInit, OnDestroy 
       },
       enableCheckboxSelector: false,
       multiColumnSort: false,
-      frozenColumn: 2
+      frozenColumn: 2,
+      createFooterRow: true,
+      showFooterRow: true,
+      footerRowHeight: 30,
     };
   }
 
   angularGridReadyPOKHProduct(angularGrid: AngularGridInstance): void {
     this.angularGridPOKHProduct = angularGrid;
+
+    setTimeout(() => {
+      this.updateProductFooterRow();
+    }, 100);
+  }
+
+  updateProductFooterRow(): void {
+    if (!this.angularGridPOKHProduct || !this.angularGridPOKHProduct.slickGrid) return;
+
+    const items = this.angularGridPOKHProduct.dataView.getItems();
+    const totalQty = items.reduce((sum: number, item: any) => {
+      return sum + (Number(item.Qty) || 0);
+    }, 0);
+    const totalQuantityReturn = items.reduce((sum: number, item: any) => {
+      return sum + (Number(item.QuantityReturn) || 0);
+    }, 0);
+
+    this.angularGridPOKHProduct.slickGrid.setFooterRowVisibility(true);
+
+    const columns = this.angularGridPOKHProduct.slickGrid.getColumns();
+    columns.forEach((col: any) => {
+      const footerCell = this.angularGridPOKHProduct.slickGrid.getFooterRowColumn(col.id);
+      if (!footerCell) return;
+
+      if (col.id === 'Qty') {
+        footerCell.innerHTML = `<div style="text-align: right; padding-right: 4px;"><b>${totalQty.toLocaleString('vi-VN')}</b></div>`;
+      } else if (col.id === 'QuantityReturn') {
+        footerCell.innerHTML = `<div style="text-align: right; padding-right: 4px;"><b>${totalQuantityReturn.toLocaleString('vi-VN')}</b></div>`;
+      } else {
+        footerCell.innerHTML = '';
+      }
+    });
   }
 
   initGridPOKHFile(): void {

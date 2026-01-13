@@ -163,6 +163,14 @@ export class DailyReportSaleComponent implements OnInit, AfterViewInit {
             }
         }
 
+        // Nếu là AdminSale, tự động load team của nhân viên đang đăng nhập
+        if (currentUser?.IsAdminSale === 1) {
+            const currentEmployeeId = this.appUserService.employeeID;
+            if (currentEmployeeId) {
+                this.loadTeamSaleByEmployee(currentEmployeeId);
+            }
+        }
+
         this.loadProjects();
         this.loadCustomers();
         this.loadEmployees();
@@ -246,6 +254,19 @@ export class DailyReportSaleComponent implements OnInit, AfterViewInit {
             (error) => {
                 this.notification.error('Lỗi', 'Lỗi kết nối khi tải danh sách team sale');
                 console.error('Error loading employee team sale:', error);
+            }
+        );
+    }
+
+    loadTeamSaleByEmployee(employeeId: number): void {
+        this.dailyReportSaleService.getTeamSaleByEmployee(employeeId).subscribe(
+            (response) => {
+                if (response.status === 1 && response.data) {
+                    this.filters.teamId = response.data.TeamSaleID || 0;
+                }
+            },
+            (error) => {
+                console.error('Error loading team sale by employee:', error);
             }
         );
     }
@@ -424,10 +445,10 @@ export class DailyReportSaleComponent implements OnInit, AfterViewInit {
             paginationSizeSelector: [10, 30, 50, 100, 200, 300, 500],
             ajaxURL: 'dummy',
             ajaxRequestFunc: (url, config, params) => {
-                // Nếu là admin hoặc admin sale thì userId = 0, nếu không thì lấy userId của user đăng nhập
+                // Nếu là admin hoặc admin sale thì dùng filters.employeeId (nếu có chọn), nếu không thì lấy userId của user đăng nhập
                 const currentUser = this.appUserService.currentUser;
                 const isAdminOrAdminSale = this.appUserService.isAdmin || (currentUser?.IsAdminSale === 1);
-                const userId = isAdminOrAdminSale ? 0 : (this.appUserService.id || 0);
+                const userId = isAdminOrAdminSale ? (this.filters.employeeId || 0) : (this.appUserService.id || 0);
                 const page = params.page || 1;
                 const size = params.size || 50;
 

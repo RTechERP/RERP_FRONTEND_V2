@@ -17,6 +17,7 @@ import { NzInputModule } from 'ng-zorro-antd/input';
 import { NzInputNumberModule } from 'ng-zorro-antd/input-number';
 import { NzSelectModule } from 'ng-zorro-antd/select';
 import { NzFormModule } from 'ng-zorro-antd/form';
+import { NzDropDownModule } from 'ng-zorro-antd/dropdown';
 import {
   AngularGridInstance,
   AngularSlickgridModule,
@@ -67,6 +68,7 @@ interface GroupedData {
     NzCardModule,
     NzSplitterModule,
     NzFormModule,
+    NzDropDownModule,
     NzDatePickerModule,
     NzInputModule,
     NzInputNumberModule,
@@ -79,7 +81,6 @@ interface GroupedData {
 })
 export class ViewPokhSlickgridComponent implements OnInit, AfterViewInit, OnDestroy {
   @Input() warehouseId: number = 0;
-  sizeSearch: string = '0';
   private modifiedRows: Set<number> = new Set();
   public modifiedInvoiceRows: Set<number> = new Set();
   private skipChildUpdate: boolean = false;
@@ -110,10 +111,6 @@ export class ViewPokhSlickgridComponent implements OnInit, AfterViewInit, OnDest
   private nestedExportGrids: Map<number, AngularGridInstance> = new Map();
   // Track row detail view components for refreshing nested grids
   public nestedRowDetailViews: Map<number, any> = new Map();
-
-  toggleSearchPanel() {
-    this.sizeSearch = this.sizeSearch === '0' ? '22%' : '0';
-  }
 
   menuBars: any[] = [];
 
@@ -280,12 +277,14 @@ export class ViewPokhSlickgridComponent implements OnInit, AfterViewInit, OnDest
         },
         excludeFromExport: true,
       },
-      // { id: 'ID', name: 'ID', field: 'ID', width: 100, minWidth: 100, sortable: true, filterable: true, filter: { model: Filters['compoundInputText'] }, excludeFromExport: true },
+      { id: 'ID', name: 'ID', field: 'ID', width: 100, minWidth: 100, sortable: true, filterable: true, filter: { model: Filters['compoundInputText'] }, excludeFromExport: true, hidden: true },
       { id: 'ProjectCode', name: 'Mã dự án', field: 'ProjectCode', width: 120, minWidth: 120, sortable: true, filterable: true, filter: { model: Filters['compoundInputText'] } },
       { id: 'PONumber', name: 'Số POKH', field: 'PONumber', width: 150, minWidth: 150, sortable: true, filterable: true, filter: { model: Filters['compoundInputText'] } },
       { id: 'StatusText', name: 'Trạng thái', field: 'StatusText', width: 200, minWidth: 200, sortable: true, filterable: true, formatter: this.statusFormatter, filter: { model: Filters['compoundInputText'] } },
       { id: 'ReceivedDatePO', name: 'Ngày PO', field: 'ReceivedDatePO', width: 100, minWidth: 100, sortable: true, filterable: true, filter: { model: Filters['compoundInputText'] }, formatter: this.dateFormatter, cssClass: 'text-center' },
       { id: 'FullName', name: 'Sale phụ trách', field: 'FullName', width: 150, minWidth: 150, sortable: true, filterable: true, filter: { model: Filters['compoundInputText'] } },
+      { id: 'CustomerCode', name: 'Mã khách hàng', field: 'CustomerCode', width: 150, minWidth: 150, sortable: true, filterable: true, filter: { model: Filters['compoundInputText'] } },
+      { id: 'CustomerName', name: 'Tên khách hàng', field: 'CustomerName', width: 250, minWidth: 250, sortable: true, filterable: true, filter: { model: Filters['compoundInputText'] } },
       { id: 'Maker', name: 'Hãng', field: 'Maker', width: 100, minWidth: 100, sortable: true, filterable: true, filter: { model: Filters['compoundInputText'] } },
       { id: 'ProductNewCode', name: 'Mã nội bộ', field: 'ProductNewCode', width: 120, minWidth: 120, sortable: true, filterable: true, filter: { model: Filters['compoundInputText'] } },
       { id: 'GuestCode', name: 'Mã theo khách', field: 'GuestCode', width: 200, minWidth: 200, sortable: true, filterable: true, filter: { model: Filters['compoundInputText'] } },
@@ -1014,7 +1013,8 @@ export class ViewPokhSlickgridComponent implements OnInit, AfterViewInit, OnDest
     this.viewPokhSlickgridService.loadUser().subscribe(
       (response) => {
         if (response.status === 1) {
-          this.users = response.data;
+          // Lọc bỏ user có UserID = 0
+          this.users = response.data.filter((user: any) => user.UserID !== 0);
         }
       }
     );
@@ -1025,7 +1025,8 @@ export class ViewPokhSlickgridComponent implements OnInit, AfterViewInit, OnDest
     this.viewPokhSlickgridService.loadEmployeeByTeamSale(teamId || 0).subscribe(
       (response) => {
         if (response.status === 1) {
-          this.users = response.data;
+          // Lọc bỏ user có UserID = 0
+          this.users = response.data.filter((user: any) => user.UserID !== 0);
         }
       }
     );

@@ -34,8 +34,12 @@
                         </nz-col>
                         <nz-col [nzXs]="24" [nzSm]="12" [nzMd]="8">
                             <nz-form-item class="col-md-12">
-                                <nz-form-label [nzSpan]="24">Loại hợp đồng<span class="text-danger ps-1 me-1">
-                                        (*)</span></nz-form-label>
+                                <nz-form-label [nzSpan]="24">Loại hợp đồng<span class="text-danger p-0 me-1">
+                                        (*)</span> <button nz-button nzSize="small"
+                                        style="width: 20px !important; height: 20px !important"
+                                        class="fs-12 button button-succes" title="Thêm loại hợp đồng"
+                                        (click)="addContractType()"><nz-icon nzType="plus" />
+                                    </button></nz-form-label>
                                 <nz-form-control [nzSpan]="24" nzErrorTip="Vui lòng chọn loại hợp đồng">
                                     <nz-select formControlName="EconomicContractTypeID"
                                         nzPlaceHolder="Chọn loại hợp đồng" nzShowSearch nzAllowClear class="w-100">
@@ -48,22 +52,8 @@
                         </nz-col>
                     </nz-row>
                     <nz-row [nzGutter]="16" class="mt-2">
-                        <nz-col [nzXs]="24" [nzSm]="12" [nzMd]="8">
-                            <nz-form-item class="col-md-12">
-                                <nz-form-label [nzSpan]="24">Điều khoản<span class="text-danger ps-1 me-1">
-                                        (*)</span></nz-form-label>
-                                <nz-form-control [nzSpan]="24" nzErrorTip="Vui lòng chọn điều khoản">
-                                    <nz-select formControlName="EconomicContractTermID" nzPlaceHolder="Chọn điều khoản"
-                                        nzShowSearch nzAllowClear class="w-100">
-                                        @for (item of contractTerms; track item.ID) {
-                                        <nz-option [nzLabel]="item.TermCode + ' - ' + item.TermName"
-                                            [nzValue]="item.ID"></nz-option>
-                                        }
-                                    </nz-select>
-                                </nz-form-control>
-                            </nz-form-item>
-                        </nz-col>
-                        <nz-col [nzXs]="24" [nzSm]="24" [nzMd]="16">
+
+                        <nz-col [nzXs]="24" [nzSm]="24" [nzMd]="24">
                             <nz-form-item class="col-md-12">
                                 <nz-form-label [nzSpan]="24">Nội dung hợp đồng<span class="text-danger ps-1 me-1">
                                         (*)</span></nz-form-label>
@@ -186,9 +176,8 @@
                     <nz-row [nzGutter]="16" class="mt-2">
                         <nz-col [nzXs]="24" [nzSm]="12" [nzMd]="6">
                             <nz-form-item class="col-md-12">
-                                <nz-form-label [nzSpan]="24">Hiệu lực từ<span class="text-danger ps-1 me-1">
-                                        (*)</span></nz-form-label>
-                                <nz-form-control [nzSpan]="24" nzErrorTip="Vui lòng chọn ngày hiệu lực từ">
+                                <nz-form-label [nzSpan]="24">Hiệu lực từ</nz-form-label>
+                                <nz-form-control [nzSpan]="24">
                                     <nz-date-picker class="w-100" formControlName="EffectDateFrom"
                                         nzFormat="dd/MM/yyyy"></nz-date-picker>
                                 </nz-form-control>
@@ -196,9 +185,8 @@
                         </nz-col>
                         <nz-col [nzXs]="24" [nzSm]="12" [nzMd]="6">
                             <nz-form-item class="col-md-12">
-                                <nz-form-label [nzSpan]="24">Hiệu lực đến<span class="text-danger ps-1 me-1">
-                                        (*)</span></nz-form-label>
-                                <nz-form-control [nzSpan]="24" nzErrorTip="Vui lòng chọn ngày hiệu lực đến">
+                                <nz-form-label [nzSpan]="24">Hiệu lực đến</nz-form-label>
+                                <nz-form-control [nzSpan]="24">
                                     <nz-date-picker class="w-100" formControlName="EffectDateTo"
                                         nzFormat="dd/MM/yyyy"></nz-date-picker>
                                 </nz-form-control>
@@ -218,7 +206,29 @@
                                 </nz-form-control>
                             </nz-form-item>
                         </nz-col>
+
+
                         <nz-col [nzXs]="24" [nzSm]="12" [nzMd]="6">
+                            <nz-form-item class="col-md-12">
+                                <nz-form-label [nzSpan]="24">Điều khoản<span class="text-danger ps-1 me-1">
+                                        (*)</span> <button nz-button nzSize="small"
+                                        style="width: 20px !important; height: 20px !important"
+                                        class="fs-12 button button-succes me-2" title="Thêm điều khoản"
+                                        (click)="addContractTerm()"><nz-icon nzType="plus" />
+                                    </button></nz-form-label>
+                                <nz-form-control [nzSpan]="24" nzErrorTip="Vui lòng chọn điều khoản">
+                                    <nz-select formControlName="EconomicContractTermID" nzPlaceHolder="Chọn điều khoản"
+                                        nzShowSearch nzAllowClear class="w-100">
+                                        @for (item of contractTerms; track item.ID) {
+                                        <nz-option [nzLabel]=" item.TermName" [nzValue]="item.ID"></nz-option>
+                                        }
+                                    </nz-select>
+                                </nz-form-control>
+                            </nz-form-item>
+                        </nz-col>
+                    </nz-row>
+                    <nz-row>
+                        <nz-col [nzXs]="24" [nzSm]="12" [nzMd]="24">
                             <nz-form-item class="col-md-12">
                                 <nz-form-label [nzSpan]="24">Điều chỉnh</nz-form-label>
                                 <nz-form-control [nzSpan]="24">
@@ -226,6 +236,7 @@
                                 </nz-form-control>
                             </nz-form-item>
                         </nz-col>
+
                     </nz-row>
                     <nz-row [nzGutter]="16" class="mt-2">
                         <nz-col [nzXs]="24" [nzSm]="24" [nzMd]="24">

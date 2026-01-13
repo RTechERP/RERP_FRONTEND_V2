@@ -146,14 +146,14 @@ export class EconomicContractImportExcelComponent implements OnInit, AfterViewIn
         this.economicContractService.getEconomicContractTypes().subscribe({
             next: (res) => {
                 if (res?.status === 1) {
-                    this.contractTypes = res.data || [];
+                    this.contractTypes = res.data?.data || [];
                 }
             }
         });
         this.economicContractService.getEconomicContractTerms().subscribe({
             next: (res) => {
                 if (res?.status === 1) {
-                    this.contractTerms = res.data || [];
+                    this.contractTerms = res.data?.data || [];
                 }
             }
         });

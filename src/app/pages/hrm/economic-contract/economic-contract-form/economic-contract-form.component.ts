@@ -1,7 +1,7 @@
 import { Component, OnInit, Input, Output, EventEmitter } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule, ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
-import { NgbActiveModal } from '@ng-bootstrap/ng-bootstrap';
+import { NgbActiveModal, NgbModal } from '@ng-bootstrap/ng-bootstrap';
 import { NzFormModule } from 'ng-zorro-antd/form';
 import { NzInputModule } from 'ng-zorro-antd/input';
 import { NzSelectModule } from 'ng-zorro-antd/select';
@@ -13,6 +13,8 @@ import { NzIconModule } from 'ng-zorro-antd/icon';
 import { NzDividerModule } from 'ng-zorro-antd/divider';
 import { EconomicContractService } from '../economic-contract-service/economic-contract.service';
 import { NOTIFICATION_TITLE } from '../../../../app.config';
+import { EconomicContractTypeFormComponent } from '../economic-contract-type/economic-contract-type-form/economic-contract-type-form.component';
+import { EconimicContractTermFormComponent } from '../econimic-contract-term/econimic-contract-term-form/econimic-contract-term-form.component';
 
 @Component({
     standalone: true,
@@ -62,6 +64,9 @@ export class EconomicContractFormComponent implements OnInit {
         { value: 'Ngày', label: 'Ngày' }
     ];
 
+    maxSTTType = 1;
+    maxSTTTerm = 1;
+
     // Number formatter for currency
     formatterNumber = (value: number): string => {
         if (value == null) return '';
@@ -77,7 +82,8 @@ export class EconomicContractFormComponent implements OnInit {
         public activeModal: NgbActiveModal,
         private fb: FormBuilder,
         private economicContractService: EconomicContractService,
-        private notification: NzNotificationService
+        private notification: NzNotificationService,
+        private modalService: NgbModal
     ) { }
 
     ngOnInit(): void {
@@ -90,20 +96,29 @@ export class EconomicContractFormComponent implements OnInit {
     }
 
     loadDropdownData() {
-        // Load contract types
+        this.loadContractTypes();
+        this.loadContractTerms();
+    }
+
+    loadContractTypes(callback?: () => void) {
         this.economicContractService.getEconomicContractTypes().subscribe({
             next: (res) => {
                 if (res?.status === 1) {
-                    this.contractTypes = res.data || [];
+                    this.contractTypes = res.data?.data || [];
+                    this.maxSTTType = res.data?.maxSTT || 1;
+                    if (callback) callback();
                 }
             }
         });
+    }
 
-        // Load contract terms
+    loadContractTerms(callback?: () => void) {
         this.economicContractService.getEconomicContractTerms().subscribe({
             next: (res) => {
                 if (res?.status === 1) {
-                    this.contractTerms = res.data || [];
+                    this.contractTerms = res.data?.data || [];
+                    this.maxSTTTerm = res.data?.maxSTT || 1;
+                    if (callback) callback();
                 }
             }
         });
@@ -126,8 +141,8 @@ export class EconomicContractFormComponent implements OnInit {
             SignedAmount: [0, Validators.required],
             MoneyType: ['VND'],
             SignDate: [null, Validators.required],
-            EffectDateFrom: [null, Validators.required],
-            EffectDateTo: [null, Validators.required],
+            EffectDateFrom: [null],
+            EffectDateTo: [null],
             TimeUnit: ['', Validators.required],
             Adjustment: [''],
             Note: [''],
@@ -212,5 +227,59 @@ export class EconomicContractFormComponent implements OnInit {
 
     onCancel() {
         this.activeModal.dismiss('cancel');
+    }
+
+    addContractType() {
+        const modalRef = this.modalService.open(EconomicContractTypeFormComponent, {
+            size: 'md',
+            backdrop: 'static',
+            keyboard: false,
+            centered: true,
+        });
+        modalRef.componentInstance.dataInput = null;
+        modalRef.componentInstance.nextSTT = this.maxSTTType;
+
+        modalRef.result.then(
+            (result) => {
+                // Luôn load lại để cập nhật danh sách mới nhất kể cả khi dismiss
+                this.loadContractTypes(() => {
+                    if (result === 'save' && this.contractTypes.length > 0) {
+                        const latest = this.contractTypes.reduce((prev, current) => (prev.ID > current.ID) ? prev : current);
+                        this.form.get('EconomicContractTypeID')?.setValue(latest.ID);
+                    }
+                });
+            },
+            () => {
+                // Trường hợp bấm ra ngoài hoặc nhấn dấu X (dismiss)
+                this.loadContractTypes();
+            }
+        );
+    }
+
+    addContractTerm() {
+        const modalRef = this.modalService.open(EconimicContractTermFormComponent, {
+            size: 'md',
+            backdrop: 'static',
+            keyboard: false,
+            centered: true,
+        });
+        modalRef.componentInstance.dataInput = null;
+        modalRef.componentInstance.nextSTT = this.maxSTTTerm;
+
+        modalRef.result.then(
+            (result) => {
+                // Luôn load lại để cập nhật danh sách mới nhất kể cả khi dismiss
+                this.loadContractTerms(() => {
+                    if (result === 'save' && this.contractTerms.length > 0) {
+                        const latest = this.contractTerms.reduce((prev, current) => (prev.ID > current.ID) ? prev : current);
+                        this.form.get('EconomicContractTermID')?.setValue(latest.ID);
+                    }
+                });
+            },
+            () => {
+                // Trường hợp bấm ra ngoài hoặc nhấn dấu X (dismiss)
+                this.loadContractTerms();
+            }
+        );
     }
 }

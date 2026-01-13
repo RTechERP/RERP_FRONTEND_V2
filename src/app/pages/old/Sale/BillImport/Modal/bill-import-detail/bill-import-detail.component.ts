@@ -133,8 +133,7 @@ interface BillImport {
   styleUrl: './bill-import-detail.component.css',
 })
 export class BillImportDetailComponent
-  implements OnInit, AfterViewInit, OnDestroy
-{
+  implements OnInit, AfterViewInit, OnDestroy {
   cbbStatusPur: any = [
     { ID: 1, Name: 'Đã bàn giao' },
     { ID: 2, Name: 'Hủy bàn giao' },
@@ -1765,7 +1764,7 @@ export class BillImportDetailComponent
           this.notification.warning(
             NOTIFICATION_TITLE.warning,
             res.message ||
-              (this.isCheckmode ? 'Cập nhật thất bại!' : 'Thêm mới thất bại!')
+            (this.isCheckmode ? 'Cập nhật thất bại!' : 'Thêm mới thất bại!')
           );
         }
         this.isSaving = false;
@@ -1872,9 +1871,8 @@ export class BillImportDetailComponent
       let data = getData();
       data = data.map((p: any) => ({
         ...p,
-        productLabel: `${p.ProductNewCode || ''} | ${p.ProductCode || ''} | ${
-          p.ProductName || ''
-        }`,
+        productLabel: `${p.ProductNewCode || ''} | ${p.ProductCode || ''} | ${p.ProductName || ''
+          }`,
       }));
       componentRef.instance.id = cell.getValue();
       componentRef.instance.data = data;
@@ -1892,7 +1890,7 @@ export class BillImportDetailComponent
 
       container.appendChild((componentRef.hostView as any).rootNodes[0]);
       appRef.attachView(componentRef.hostView);
-      onRendered(() => {});
+      onRendered(() => { });
 
       return container;
     };
@@ -1977,7 +1975,7 @@ export class BillImportDetailComponent
 
     row.update({
       ProjectID: projectValue,
-      ProjectCodeExport: selectedProject.ProjectCode,
+      //ProjectCodeExport: selectedProject.ProjectCode,
       ProjectName: selectedProject.label,
       ProjectNameText: selectedProject.label,
       InventoryProjectIDs: [projectValue],
@@ -2320,7 +2318,7 @@ export class BillImportDetailComponent
             },
             {
               title: 'Mã theo dự án',
-              field: 'ProjectCodeExport',
+              field: 'ProjectCode',
               hozAlign: 'left',
               headerHozAlign: 'center',
               editor: 'input',
@@ -3023,9 +3021,8 @@ export class BillImportDetailComponent
                 const st = this.cbbStatusPur.find(
                   (p: any) => p.ID === parseInt(val) || p.ID === val
                 );
-                return `<div class="d-flex justify-content-between align-items-center"><p class="w-100 m-0">${
-                  st ? st.Name : val
-                }</p><i class="fas fa-angle-down"></i></div>`;
+                return `<div class="d-flex justify-content-between align-items-center"><p class="w-100 m-0">${st ? st.Name : val
+                  }</p><i class="fas fa-angle-down"></i></div>`;
               },
             },
             {
@@ -3159,7 +3156,7 @@ export class BillImportDetailComponent
       (result: any) => {
         this.getBillImportDetailID();
       },
-      (reason) => {}
+      (reason) => { }
     );
   }
 

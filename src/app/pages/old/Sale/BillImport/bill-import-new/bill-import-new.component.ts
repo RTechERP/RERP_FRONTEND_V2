@@ -43,6 +43,7 @@ import { BillImportDetailComponent } from '../Modal/bill-import-detail/bill-impo
 import { HistoryDeleteBillComponent } from '../../BillExport/Modal/history-delete-bill/history-delete-bill.component';
 import { ScanBillImportComponent } from '../Modal/scan-bill-import/scan-bill-import.component';
 import { environment } from '../../../../../../environments/environment';
+import { NzMessageService } from 'ng-zorro-antd/message';
 
 interface BillImport {
   Id?: number;
@@ -97,6 +98,10 @@ export class BillImportNewComponent implements OnInit {
   angularGridMaster!: AngularGridInstance;
   angularGridDetail!: AngularGridInstance;
 
+  // Export progress tracking
+  exportProgress = { current: 0, total: 0, fileName: '' };
+  private exportModalRef: any = null;
+
   // Column definitions
   columnDefinitionsMaster: Column[] = [];
   columnDefinitionsDetail: Column[] = [];
@@ -128,6 +133,8 @@ export class BillImportNewComponent implements OnInit {
   isCheckmode: boolean = false;
   id: number = 0;
   selectBillImport: any[] = [];
+
+  isLoading: boolean = false;
 
   searchParams = {
     dateStart: (() => {
@@ -182,8 +189,9 @@ export class BillImportNewComponent implements OnInit {
     private modalService: NgbModal,
     private appUserService: AppUserService,
     private permissionService: PermissionService,
-    private route: ActivatedRoute
-  ) {}
+    private route: ActivatedRoute,
+    private message: NzMessageService
+  ) { }
 
   ngOnInit(): void {
     this.route.queryParams.subscribe(params => {
@@ -227,22 +235,22 @@ export class BillImportNewComponent implements OnInit {
         },
       },
 
-          {
-            label: 'Nhận chứng từ',
-            icon: 'fa-solid fa-circle-check fa-lg text-success',
-            visible: this.permissionService.hasPermission('N11,N50,N1'),
-            command: () => {
-              this.IsApproved(true);
-            },
-          },
-          {
-            label: 'Hủy chứng từ',
-            icon: 'fa-solid fa-circle-xmark fa-lg text-danger',
-            visible: this.permissionService.hasPermission('N11,N1,N18'),
-            command: () => {
-              this.IsApproved(false);
-            },
-          },
+      {
+        label: 'Nhận chứng từ',
+        icon: 'fa-solid fa-circle-check fa-lg text-success',
+        visible: this.permissionService.hasPermission('N11,N50,N1'),
+        command: () => {
+          this.IsApproved(true);
+        },
+      },
+      {
+        label: 'Hủy chứng từ',
+        icon: 'fa-solid fa-circle-xmark fa-lg text-danger',
+        visible: this.permissionService.hasPermission('N11,N1,N18'),
+        command: () => {
+          this.IsApproved(false);
+        },
+      },
 
       {
         label: 'Xuất Excel',
@@ -336,12 +344,14 @@ export class BillImportNewComponent implements OnInit {
         filterable: true,
         width: 120,
         formatter: Formatters.checkmarkMaterial,
-        filter: { model: Filters['singleSelect'], collectionOptions: {
-          addBlankEntry: true
-        }, collection: [
-          { value: true, label: 'Đã nhận' },
-          { value: false, label: 'Chưa nhận' },
-        ]},
+        filter: {
+          model: Filters['singleSelect'], collectionOptions: {
+            addBlankEntry: true
+          }, collection: [
+            { value: true, label: 'Đã nhận' },
+            { value: false, label: 'Chưa nhận' },
+          ]
+        },
         cssClass: 'text-center'
       },
       {
@@ -365,9 +375,9 @@ export class BillImportNewComponent implements OnInit {
         sortable: true,
         filterable: true,
         width: 150,
-                filter: {
-                  model: Filters['compoundInput'],
-                },
+        filter: {
+          model: Filters['compoundInput'],
+        },
       },
       {
         id: 'DateRequestImport',
@@ -375,14 +385,16 @@ export class BillImportNewComponent implements OnInit {
         field: 'DateRequestImport',
         sortable: true,
         filterable: true,
-            width: 130,
-            formatter: Formatters.date,
-            exportCustomFormatter: Formatters.date,
-            type: 'date',
-            params: { dateFormat: 'DD/MM/YYYY' },
-            filter: { model: Filters['compoundDate' ], collectionOptions: {
-              addBlankEntry: true
-            } },
+        width: 130,
+        formatter: Formatters.date,
+        exportCustomFormatter: Formatters.date,
+        type: 'date',
+        params: { dateFormat: 'DD/MM/YYYY' },
+        filter: {
+          model: Filters['compoundDate'], collectionOptions: {
+            addBlankEntry: true
+          }
+        },
         cssClass: 'text-center'
       },
       {
@@ -392,7 +404,7 @@ export class BillImportNewComponent implements OnInit {
         sortable: true,
         filterable: true,
         width: 180,
-               filter: {
+        filter: {
           model: Filters['compoundInput'],
         },
       },
@@ -403,7 +415,7 @@ export class BillImportNewComponent implements OnInit {
         sortable: true,
         filterable: true,
         width: 200,
-               filter: {
+        filter: {
           model: Filters['compoundInput'],
         },
       },
@@ -414,7 +426,7 @@ export class BillImportNewComponent implements OnInit {
         sortable: true,
         filterable: true,
         width: 150,
-               filter: {
+        filter: {
           model: Filters['compoundInput'],
         },
       },
@@ -425,7 +437,7 @@ export class BillImportNewComponent implements OnInit {
         sortable: true,
         filterable: true,
         width: 100,
-                filter: {
+        filter: {
           model: Filters['compoundInput'],
         },
       },
@@ -584,6 +596,7 @@ export class BillImportNewComponent implements OnInit {
       autoResize: {
         container: '.grid-container-master',
         calculateAvailableSizeBy: 'container',
+        resizeDetection: 'container',
       },
       enableFiltering: true,
       enableCellNavigation: true,
@@ -639,7 +652,7 @@ export class BillImportNewComponent implements OnInit {
         width: 300,
         filter: { model: Filters['compoundInputText'] }
       },
-            {
+      {
         id: 'SerialNumber',
         name: 'Serial Number',
         field: 'SerialNumber',
@@ -738,7 +751,7 @@ export class BillImportNewComponent implements OnInit {
         width: 200,
         filter: { model: Filters['compoundInputText'] }
       },
-       {
+      {
         id: 'BillCode',
         name: 'Đơn mua hàng',
         field: 'BillCodePO',
@@ -756,7 +769,7 @@ export class BillImportNewComponent implements OnInit {
         width: 150,
         filter: { model: Filters['compoundInputText'] }
       },
-            {
+      {
         id: 'DealineQC',
         name: 'Hạn QC',
         field: 'DealineQC',
@@ -769,7 +782,7 @@ export class BillImportNewComponent implements OnInit {
         filter: { model: Filters['compoundDate'] },
         cssClass: 'text-center'
       },
-            {
+      {
         id: 'StatusQCText',
         name: 'Trạng thái QC',
         field: 'StatusQCText',
@@ -785,6 +798,7 @@ export class BillImportNewComponent implements OnInit {
       autoResize: {
         container: '.grid-container-detail',
         calculateAvailableSizeBy: 'container',
+        resizeDetection: 'container',
       },
       enableFiltering: true,
       enableCellNavigation: true,
@@ -885,10 +899,10 @@ export class BillImportNewComponent implements OnInit {
   }
 
   loadDataBillImport(): void {
-    this.isLoadTable = true;
+    this.isLoading = true;
     this.billImportService.getBillImport(this.searchParams).subscribe({
       next: (res) => {
-        this.isLoadTable = false;
+        this.isLoading = false;
         if (res.status === 1 && res.data) {
           this.datasetMaster = res.data.map((item: any) => ({
             ...item,
@@ -898,7 +912,7 @@ export class BillImportNewComponent implements OnInit {
         }
       },
       error: (err) => {
-        this.isLoadTable = false;
+        this.isLoading = false;
         this.notification.error(
           NOTIFICATION_TITLE.error,
           err?.error?.message || 'Không thể tải dữ liệu phiếu nhập'
@@ -1060,8 +1074,9 @@ export class BillImportNewComponent implements OnInit {
     modalRef.componentInstance.WarehouseCode = this.wareHouseCode;
 
     modalRef.result.finally(() => {
-      this.id = 0;
       this.loadDataBillImport();
+      this.getBillImportDetail(this.id);
+      this.id = 0;
     });
   }
 
@@ -1721,53 +1736,157 @@ export class BillImportNewComponent implements OnInit {
     });
   }
 
-  onExportExcel() {
-    if (!this.id || this.id === 0) {
-      this.notification.error(
-        NOTIFICATION_TITLE.error,
-        'Vui lòng chọn bản ghi cần xuất file'
+  //#region Xử lý tải nhiều file
+  async onExportExcel() {
+    const angularGrid = this.angularGridMaster;
+    if (!angularGrid) return;
+
+    const selectedRowIndexes = angularGrid.slickGrid.getSelectedRows();
+    const selectedRows = selectedRowIndexes
+      .map((rowIndex: number) => angularGrid.dataView.getItem(rowIndex))
+      .filter((item: any) => item);
+
+    if (selectedRows.length <= 0) {
+      this.notification.info('Thông báo', 'Vui lòng chọn sản phẩm cần xuất file!');
+      return;
+    }
+
+    const ids = selectedRows.filter((row: any) => row.ID > 0).map((row: any) => row.ID);
+    if (ids.length <= 0) {
+      this.notification.info(
+        'Thông báo',
+        'Không có sản phẩm hợp lệ để xuất file!'
       );
       return;
     }
 
-    const selectedHandover = this.datasetMaster.find((item) => item.ID === this.id);
-    if (!selectedHandover) {
-      this.notification.error(
-        NOTIFICATION_TITLE.error,
-        'Không tìm thấy bản ghi được chọn'
+    // Kiểm tra nếu trình duyệt hỗ trợ File System Access API
+    if (!('showDirectoryPicker' in window)) {
+      this.notification.warning(
+        NOTIFICATION_TITLE.warning,
+        'Trình duyệt không hỗ trợ tính năng này!'
       );
       return;
     }
 
-    this.billImportService.export(this.id).subscribe({
-      next: (res) => {
-        const url = window.URL.createObjectURL(res);
-        const a = document.createElement('a');
-        const now = new Date();
-        const dateString = `${now.getDate().toString().padStart(2, '0')}_${(
-          now.getMonth() + 1
-        )
-          .toString()
-          .padStart(2, '0')}_${now.getFullYear()}`;
-        const fileName = `Phiếu nhập - ${selectedHandover.BillImportCode || 'export'
-          }_${dateString}.xlsx`;
-        a.href = url;
-        a.download = fileName;
-        document.body.appendChild(a);
-        a.click();
-        document.body.removeChild(a);
-        window.URL.revokeObjectURL(url);
-      },
-      error: (err) => {
+    try {
+      // Chỉ gọi showDirectoryPicker() một lần duy nhất
+      const dirHandle = await (window as any).showDirectoryPicker();
+
+      // Request permission ngay bằng cách tạo file test
+      try {
+        const testFileHandle = await dirHandle.getFileHandle('.export_test', { create: true });
+        const testWritable = await testFileHandle.createWritable();
+        await testWritable.write('test');
+        await testWritable.close();
+        // Xóa file test
+        await dirHandle.removeEntry('.export_test');
+      } catch (permErr: any) {
         this.notification.error(
           NOTIFICATION_TITLE.error,
-          'Có lỗi xảy ra khi xuất file.'
+          'Không có quyền ghi vào thư mục này!'
         );
-        console.error(err);
-      },
-    });
+        return;
+      }
+
+      this.isLoading = true;
+
+      if (ids.length >= 10) {
+        this.notification.warning(
+          NOTIFICATION_TITLE.warning,
+          'Do lượng file lớn vui lòng chờ ít phút để hoàn tất tải file!'
+        );
+      }
+
+      await this.exportSequentiallyToFolder(ids, 0, dirHandle);
+
+    } catch (err: any) {
+      if (err.name === 'AbortError') {
+        this.notification.info('Thông báo', 'Bạn đã hủy chọn thư mục!');
+      } else {
+        this.notification.error(
+          NOTIFICATION_TITLE.error,
+          `Lỗi: ${err.message || 'Có lỗi xảy ra khi chọn thư mục'}`
+        );
+      }
+      this.isLoading = false;
+    }
   }
 
+  private async exportSequentiallyToFolder(
+    ids: number[],
+    index: number,
+    dirHandle: any
+  ): Promise<void> {
+    // Tạo modal lần đầu
+    if (index === 0) {
+      this.exportProgress = { current: 0, total: ids.length, fileName: '' };
+      this.exportModalRef = this.modal.info({
+        nzTitle: 'Đang xuất file',
+        nzContent: `Đang xuất file 0/${ids.length}...`,
+        nzClosable: false,
+        nzMaskClosable: false,
+        nzKeyboard: false,
+        nzOkText: null,
+        nzCancelText: null,
+        nzMask: false
+      });
+    }
+
+    if (index >= ids.length) {
+      // Đóng modal và hiển thị thành công
+      if (this.exportModalRef) {
+        this.exportModalRef.close();
+        this.exportModalRef = null;
+      }
+      this.message.success(`Xuất thành công ${ids.length} file!`);
+      this.isLoading = false;
+      return;
+    }
+
+    const id = ids[index];
+    const selectedRows = this.datasetMaster.find((item) => item.ID === id);
+
+    // Cập nhật nội dung modal
+    this.exportProgress.current = index + 1;
+    this.exportProgress.fileName = selectedRows?.BillImportCode || `ID ${id}`;
+
+    if (this.exportModalRef) {
+      this.exportModalRef.updateConfig({
+        nzContent: `Đang xuất file ${index + 1}/${ids.length}: ${this.exportProgress.fileName}`
+      });
+    }
+
+    try {
+      const res = await this.billImportService.export(id).toPromise();
+      const now = new Date();
+
+      const dateString = `${now.getDate().toString().padStart(2, '0')}_${(now.getMonth() + 1).toString().padStart(2, '0')}_${now.getFullYear()}`;
+      const tick = Date.now().toString(36);
+
+      const fileName = `${selectedRows?.BillImportCode || 'export'}_${dateString}_${tick}.xlsx`;
+
+      const fileHandle = await dirHandle.getFileHandle(fileName, { create: true });
+      const writable = await fileHandle.createWritable();
+      await writable.write(res);
+      await writable.close();
+
+      // Tiếp tục với file tiếp theo
+      await this.exportSequentiallyToFolder(ids, index + 1, dirHandle);
+
+    } catch (err: any) {
+      // Đóng modal khi có lỗi
+      if (this.exportModalRef) {
+        this.exportModalRef.close();
+        this.exportModalRef = null;
+      }
+      this.message.error(
+        `Lỗi xuất file ${index + 1}/${ids.length} (ID ${id}): ${err.message || 'Có lỗi xảy ra'}`
+      );
+      this.isLoading = false;
+    }
+  }
+  //#endregion
   onExportExcelKT() {
     if (!this.id || this.id === 0) {
       this.notification.error(

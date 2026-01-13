@@ -136,7 +136,7 @@ export class ProductSaleDetailComponent implements OnInit, AfterViewInit {
   ) {
     this.formGroup = this.fb.group({
       ProductGroupID: [null, [Validators.required]],
-      Unit: ['', [Validators.required, inStringListValidator(() => this.listUnitCount, 'UnitCode')]],
+      Unit: ['', [Validators.required, inStringListValidator(() => this.listUnitCount, 'UnitName')]],
       ProductCode: ['', [Validators.required, noVietnameseValidator]],
       ProductName: ['', [Validators.required]],
       NumberInStoreDauky: [{ value: 0, disabled: true }],
@@ -257,8 +257,8 @@ export class ProductSaleDetailComponent implements OnInit, AfterViewInit {
     const addressbox = location ? location.LocationName : '';
 
     // Tìm UnitName dựa trên UnitCode được chọn
-    const selectedUnit = this.listUnitCount.find((u: any) => u.UnitCode === formValue.Unit);
-    const unitName = selectedUnit ? selectedUnit.UnitName : '';
+    //const selectedUnit = this.listUnitCount.find((u: any) => u.UnitName === formValue.Unit);
+    const unitName = formValue.Unit || '';
 
     // Đảm bảo IsFix có giá trị mặc định là false nếu không có
     const isFix = formValue.IsFix !== null && formValue.IsFix !== undefined ? formValue.IsFix : false;

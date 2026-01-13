@@ -656,12 +656,19 @@ export class ProposeVehicleRepairComponent implements OnInit, AfterViewInit {
 
     const fieldsToFilter = ['VehicleName', 'LicensePlate', 'RepairTypeName', 'DriverName', 'EmployeeRepairName'];
 
+    // Lấy tất cả columns hiện tại từ grid (bao gồm cả checkbox selector column)
+    const currentColumns = this.angularGrid.slickGrid.getColumns();
+
     fieldsToFilter.forEach((field) => {
-      const colIndex = this.columnDefinitions.findIndex((c) => c.field === field);
-      if (colIndex >= 0) {
+      // Tìm trong columnDefinitions để update
+      const defIndex = this.columnDefinitions.findIndex((c) => c.field === field);
+      // Tìm trong currentColumns để update
+      const colIndex = currentColumns.findIndex((c: any) => c.field === field);
+
+      if (defIndex >= 0) {
         const distinctValues = [...new Set(this.dataset.map((item) => item[field]).filter((v) => v))];
         const collection = distinctValues.map((val) => ({ value: val, label: val }));
-        this.columnDefinitions[colIndex].filter = {
+        const filterConfig = {
           model: Filters['multipleSelect'],
           collection: collection,
           collectionOptions: { addBlankEntry: true },
@@ -670,10 +677,19 @@ export class ProposeVehicleRepairComponent implements OnInit, AfterViewInit {
             autoAdjustDropWidthByTextSize: true,
           } as MultipleSelectOption,
         };
+
+        // Update trong columnDefinitions
+        this.columnDefinitions[defIndex].filter = filterConfig;
+
+        // Update trong currentColumns nếu tìm thấy
+        if (colIndex >= 0) {
+          currentColumns[colIndex].filter = filterConfig;
+        }
       }
     });
 
-    this.angularGrid.slickGrid.setColumns(this.columnDefinitions);
+    // Set lại columns đã có checkbox selector
+    this.angularGrid.slickGrid.setColumns(currentColumns);
   }
 
   getCurrentUser() {

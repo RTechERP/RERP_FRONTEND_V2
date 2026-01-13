@@ -64,4 +64,17 @@ export class EconomicContractService {
     deleteEconomicContract(ids: number[]): Observable<any> {
         return this.http.post<any>(`${this.baseUrl}api/EconomicContract/delete-contract`, ids);
     }
+
+    // Upload multiple files
+    uploadMultipleFiles(files: File[], subPath?: string): Observable<any> {
+        const formData = new FormData();
+        files.forEach(file => {
+            formData.append('files', file);
+        });
+        formData.append('key', 'EconomicContract');
+        if (subPath && subPath.trim()) {
+            formData.append('subPath', subPath.trim());
+        }
+        return this.http.post<any>(`${this.baseUrl}api/Home/upload-multiple`, formData);
+    }
 }

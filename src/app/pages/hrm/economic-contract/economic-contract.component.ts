@@ -116,7 +116,6 @@ export class EconomicContractComponent implements OnInit {
   // Selected rows
   selectedRow: any = null;
   selectedFileRow: any = null;
-  detailTabTitle: string = 'File đính kèm:';
 
   // File upload
   @ViewChild('fileUploadInput') fileUploadInput!: ElementRef<HTMLInputElement>;
@@ -222,7 +221,7 @@ export class EconomicContractComponent implements OnInit {
         width: 60,
         sortable: true,
         filterable: true,
-        columnGroup: '',
+        //  columnGroup: 'Thông tin hợp đồng',
         filter: { model: Filters['compoundInputNumber'] },
         cssClass: 'text-center',
       },
@@ -235,7 +234,7 @@ export class EconomicContractComponent implements OnInit {
         width: 80,
         sortable: true,
         filterable: true,
-        columnGroup: '',
+        //  columnGroup: 'Thông tin hợp đồng',
         filter: {
           collection: [],
           model: Filters['multipleSelect'],
@@ -254,7 +253,7 @@ export class EconomicContractComponent implements OnInit {
         width: 150,
         sortable: true,
         filterable: true,
-        columnGroup: '',
+        //  columnGroup: 'Thông tin hợp đồng',
         filter: {
           collection: [],
           model: Filters['multipleSelect'],
@@ -272,7 +271,7 @@ export class EconomicContractComponent implements OnInit {
         width: 150,
         sortable: true,
         filterable: true,
-        columnGroup: '',
+        //  columnGroup: 'Thông tin hợp đồng',
         filter: {
           collection: [],
           model: Filters['multipleSelect'],
@@ -290,7 +289,7 @@ export class EconomicContractComponent implements OnInit {
         minWidth: 300,
         sortable: true,
         filterable: true,
-        columnGroup: '',
+        //  columnGroup: 'Thông tin hợp đồng',
         filter: { model: Filters['compoundInputText'] },
       },
       {
@@ -301,7 +300,7 @@ export class EconomicContractComponent implements OnInit {
         width: 150,
         sortable: true,
         filterable: true,
-        columnGroup: '',
+        //   columnGroup: 'Thông tin hợp đồng',
         filter: {
           collection: [],
           model: Filters['multipleSelect'],
@@ -319,7 +318,7 @@ export class EconomicContractComponent implements OnInit {
         width: 200,
         sortable: true,
         filterable: true,
-        columnGroup: 'NCC/KH',
+        //  columnGroup: 'NCC/KH',
         filter: {
           collection: [],
           model: Filters['multipleSelect'],
@@ -337,7 +336,7 @@ export class EconomicContractComponent implements OnInit {
         width: 200,
         sortable: true,
         filterable: true,
-        columnGroup: 'NCC/KH',
+        //   columnGroup: 'NCC/KH',
         filter: {
           collection: [],
           model: Filters['multipleSelect'],
@@ -355,7 +354,7 @@ export class EconomicContractComponent implements OnInit {
         width: 120,
         sortable: true,
         filterable: true,
-        columnGroup: 'NCC/KH',
+        // columnGroup: 'NCC/KH',
         filter: { model: Filters['compoundInputText'] },
       },
       {
@@ -366,7 +365,7 @@ export class EconomicContractComponent implements OnInit {
         width: 200,
         sortable: true,
         filterable: true,
-        columnGroup: 'NCC/KH',
+        /// columnGroup: 'NCC/KH',
         filter: { model: Filters['compoundInputText'] },
       },
       {
@@ -377,7 +376,7 @@ export class EconomicContractComponent implements OnInit {
         width: 120,
         sortable: true,
         filterable: true,
-        columnGroup: 'NCC/KH',
+        //   columnGroup: 'NCC/KH',
         filter: { model: Filters['compoundInputText'] },
       },
       {
@@ -388,7 +387,7 @@ export class EconomicContractComponent implements OnInit {
         width: 150,
         sortable: true,
         filterable: true,
-        columnGroup: 'NCC/KH',
+        // columnGroup: 'NCC/KH',
         filter: { model: Filters['compoundInputText'] },
       },
       {
@@ -399,7 +398,7 @@ export class EconomicContractComponent implements OnInit {
         width: 150,
         sortable: true,
         filterable: true,
-        columnGroup: '',
+        //   columnGroup: 'Chi tiết hợp đồng',
         filter: { model: Filters['compoundInputNumber'] },
         cssClass: 'text-right',
         formatter: (_row, _cell, value) => {
@@ -415,7 +414,7 @@ export class EconomicContractComponent implements OnInit {
         width: 80,
         sortable: true,
         filterable: true,
-        columnGroup: '',
+        //  columnGroup: 'Chi tiết hợp đồng',
         filter: {
           collection: [],
           model: Filters['multipleSelect'],
@@ -434,7 +433,7 @@ export class EconomicContractComponent implements OnInit {
         width: 120,
         sortable: true,
         filterable: true,
-        columnGroup: '',
+        //  columnGroup: 'Chi tiết hợp đồng',
         formatter: Formatters.dateEuro,
         params: { dateFormat: 'DD/MM/YYYY' },
         filter: { model: Filters['compoundDate'] },
@@ -448,7 +447,7 @@ export class EconomicContractComponent implements OnInit {
         width: 120,
         sortable: true,
         filterable: true,
-        columnGroup: '',
+        // columnGroup: 'Chi tiết hợp đồng',
         formatter: Formatters.dateEuro,
         params: { dateFormat: 'DD/MM/YYYY' },
         filter: { model: Filters['compoundDate'] },
@@ -462,7 +461,7 @@ export class EconomicContractComponent implements OnInit {
         width: 120,
         sortable: true,
         filterable: true,
-        columnGroup: '',
+        //  columnGroup: 'Chi tiết hợp đồng',
         formatter: Formatters.dateEuro,
         params: { dateFormat: 'DD/MM/YYYY' },
         filter: { model: Filters['compoundDate'] },
@@ -476,7 +475,7 @@ export class EconomicContractComponent implements OnInit {
         width: 120,
         sortable: true,
         filterable: true,
-        columnGroup: '',
+        //  columnGroup: 'Chi tiết hợp đồng',
         filter: { model: Filters['compoundInputText'] },
       },
       {
@@ -487,7 +486,7 @@ export class EconomicContractComponent implements OnInit {
         width: 150,
         sortable: true,
         filterable: true,
-        columnGroup: '',
+        //columnGroup: 'Chi tiết hợp đồng',
         filter: { model: Filters['compoundInputText'] },
       },
       {
@@ -498,7 +497,7 @@ export class EconomicContractComponent implements OnInit {
         width: 150,
         sortable: true,
         filterable: true,
-        columnGroup: '',
+        //  columnGroup: 'Chi tiết hợp đồng',
         filter: {
           collection: [],
           model: Filters['multipleSelect'],
@@ -517,7 +516,7 @@ export class EconomicContractComponent implements OnInit {
         width: 200,
         sortable: true,
         filterable: true,
-        columnGroup: '',
+        //    columnGroup: 'Chi tiết hợp đồng',
         filter: { model: Filters['compoundInputText'] },
       },
       {
@@ -528,7 +527,7 @@ export class EconomicContractComponent implements OnInit {
         width: 120,
         sortable: true,
         filterable: true,
-        columnGroup: '',
+        //    columnGroup: 'Chi tiết hợp đồng',
         formatter: Formatters.dateIso,
         params: { dateFormat: 'DD/MM/YYYY' },
         filter: { model: Filters['compoundDate'] },
@@ -543,7 +542,7 @@ export class EconomicContractComponent implements OnInit {
         width: 150,
         sortable: true,
         filterable: true,
-        columnGroup: '',
+        //    columnGroup: 'Chi tiết hợp đồng',
         filter: { model: Filters['compoundInputText'] },
         hidden: true,
       },
@@ -579,8 +578,8 @@ export class EconomicContractComponent implements OnInit {
       enableAutoSizeColumns: false,
       rowHeight: 30,
       headerRowHeight: 35,
-      createPreHeaderPanel: true,
-      showPreHeaderPanel: true,
+      createPreHeaderPanel: false,
+      showPreHeaderPanel: false,
       preHeaderPanelHeight: 28,
 
       // Excel Export
@@ -673,6 +672,7 @@ export class EconomicContractComponent implements OnInit {
     ];
 
     this.gridOptionsFile = {
+      datasetIdPropertyName: 'id',
       autoResize: {
         container: '#grid-container-contract-file',
         calculateAvailableSizeBy: 'container'
@@ -685,7 +685,7 @@ export class EconomicContractComponent implements OnInit {
         selectActiveRow: true
       },
       enableCellNavigation: true,
-      enableFiltering: true,
+      enableFiltering: false,
       autoFitColumnsOnFirstLoad: true,
       enableAutoSizeColumns: true,
       rowHeight: 30,
@@ -702,8 +702,12 @@ export class EconomicContractComponent implements OnInit {
   onCellClicked(e: Event, args: OnClickEventArgs) {
     const item = args.grid.getDataItem(args.row);
     if (item) {
+      // Tránh gọi lại nếu click vào cùng 1 row
+      if (this.selectedRow?.ID === item.ID) {
+        return;
+      }
       this.selectedRow = item;
-      this.detailTabTitle = `File đính kèm: ${item.ContractNumber || ''}`;
+      this.selectedFileRow = null; // Reset selected file khi đổi contract
       this.loadFilesByContractId(item.ID);
     }
   }
@@ -720,7 +724,19 @@ export class EconomicContractComponent implements OnInit {
   onFileDoubleClick(e: Event, args: OnClickEventArgs) {
     const item = args.grid.getDataItem(args.row);
     if (item && item.ServerPath) {
-      const fileUrl = environment.host + 'api/share/' + item.ServerPath.replace(/\\\\/g, '/');
+      // ServerPath format: \\192.168.1.190\Software\Teast\...
+      // Cần lấy phần từ Software trở đi: Software/Teast/...
+      const serverPath = item.ServerPath.replace(/\\/g, '/'); // Replace all \ with /
+
+      // Tìm vị trí của 'Software' và lấy từ đó
+      const softwareIndex = serverPath.indexOf('Software');
+      if (softwareIndex === -1) {
+        console.error('Không tìm thấy "Software" trong đường dẫn:', serverPath);
+        return;
+      }
+
+      const path = serverPath.substring(softwareIndex);
+      const fileUrl = environment.host + 'api/share/' + path;
       window.open(fileUrl, '_blank');
     }
   }
@@ -734,6 +750,7 @@ export class EconomicContractComponent implements OnInit {
 
     this.economicContractService.getFileByContractId(contractId).subscribe({
       next: (res) => {
+        console.log('File response:', res);
         if (res?.status === 1) {
           const files = res.data || [];
           this.datasetFile = files.map((item: any, index: number) => ({
@@ -741,6 +758,14 @@ export class EconomicContractComponent implements OnInit {
             id: item.ID,
             STT: index + 1
           }));
+          console.log('datasetFile:', this.datasetFile);
+
+          // Trigger grid resize after data is loaded
+          setTimeout(() => {
+            if (this.angularGridFile?.resizerService) {
+              this.angularGridFile.resizerService.resizeGrid();
+            }
+          }, 100);
         } else {
           this.datasetFile = [];
         }
@@ -785,21 +810,9 @@ export class EconomicContractComponent implements OnInit {
 
     this.isLoading = true;
 
-    // Upload từng file
-    const formData = new FormData();
-    files.forEach(file => {
-      formData.append('files', file);
-    });
-    formData.append('key', 'TrainingRegistration');
-    formData.append('subPath', subPath);
-
-    // Gọi API upload
-    fetch(environment.host + 'api/Upload/upload-multiple-files', {
-      method: 'POST',
-      body: formData
-    })
-      .then(res => res.json())
-      .then((uploadRes: any) => {
+    // Sử dụng service thay vì fetch native để có Authorization header
+    this.economicContractService.uploadMultipleFiles(files, subPath).subscribe({
+      next: (uploadRes: any) => {
         if (uploadRes?.status !== 1 || !uploadRes?.data?.length) {
           this.notification.error(NOTIFICATION_TITLE.error, uploadRes?.message || 'Upload file thất bại');
           this.isLoading = false;
@@ -829,11 +842,13 @@ export class EconomicContractComponent implements OnInit {
             this.notification.error(NOTIFICATION_TITLE.error, 'Lưu thông tin file thất bại');
             this.isLoading = false;
           });
-      })
-      .catch(err => {
-        this.notification.error(NOTIFICATION_TITLE.error, 'Upload file thất bại');
+      },
+      error: (err) => {
+        console.error('Upload error:', err);
+        this.notification.error(NOTIFICATION_TITLE.error, err?.error?.message || 'Upload file thất bại');
         this.isLoading = false;
-      });
+      }
+    });
   }
 
   // Delete file

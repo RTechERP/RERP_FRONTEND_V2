@@ -256,4 +256,68 @@ export class KPIService {
       responseType: 'blob'
     });
   }
+
+  // ==================== KPI Tab Data Loading APIs ====================
+  // These APIs support the priority loading strategy: Tab1 first, others in background
+
+  /**
+   * Load KPI Kỹ năng (Skills Evaluation) - Tab 1
+   * API: GET api/KPIEvaluationEmployee/load-kpi-kynang
+   * @param kpiExamID - KPI Exam ID
+   * @param isPublic - Whether the data is public
+   * @param employeeID - Employee ID
+   */
+  loadKPIKyNang(kpiExamID: number, isPublic: boolean, employeeID: number): Observable<any> {
+    const params = new HttpParams()
+      .set('kpiExamID', kpiExamID.toString())
+      .set('isPublic', isPublic.toString())
+      .set('employeeID', employeeID.toString());
+    return this.http.get<any>(this.apiUrl + 'load-kpi-kynang', { params });
+  }
+
+  /**
+   * Load KPI Chung (General Evaluation) - Tab 2
+   * API: GET api/KPIEvaluationEmployee/load-kpi-chung
+   * @param kpiExamID - KPI Exam ID
+   * @param isPublic - Whether the data is public
+   * @param employeeID - Employee ID
+   */
+  loadKPIChung(kpiExamID: number, isPublic: boolean, employeeID: number): Observable<any> {
+    const params = new HttpParams()
+      .set('kpiExamID', kpiExamID.toString())
+      .set('isPublic', isPublic.toString())
+      .set('employeeID', employeeID.toString());
+    return this.http.get<any>(this.apiUrl + 'load-kpi-chung', { params });
+  }
+
+  /**
+   * Load KPI Chuyên môn (Professional Evaluation) - Tab 3
+   * API: GET api/KPIEvaluationEmployee/load-kpi-chuyenmon
+   * @param kpiExamID - KPI Exam ID
+   * @param isPublic - Whether the data is public
+   * @param employeeID - Employee ID
+   */
+  loadKPIChuyenMon(kpiExamID: number, isPublic: boolean, employeeID: number): Observable<any> {
+    const params = new HttpParams()
+      .set('kpiExamID', kpiExamID.toString())
+      .set('isPublic', isPublic.toString())
+      .set('employeeID', employeeID.toString());
+    return this.http.get<any>(this.apiUrl + 'load-kpi-chuyenmon', { params });
+  }
+
+  /**
+   * Load KPI Rule and Team data - Tab 5 & 6
+   * API: GET api/KPIEvaluationEmployee/load-kpi-rule-and-team
+   * Returns: { dtTeam: [], dtKpiRule: [] }
+   * @param kpiExamID - KPI Exam ID
+   * @param isPublic - Whether the data is public
+   * @param employeeID - Employee ID
+   */
+  loadKPIRuleAndTeam(kpiExamID: number, isPublic: boolean, employeeID: number): Observable<any> {
+    const params = new HttpParams()
+      .set('kpiExamID', kpiExamID.toString())
+      .set('isPublic', isPublic.toString())
+      .set('employeeID', employeeID.toString());
+    return this.http.get<any>(this.apiUrl + 'load-kpi-rule-and-team', { params });
+  }
 }

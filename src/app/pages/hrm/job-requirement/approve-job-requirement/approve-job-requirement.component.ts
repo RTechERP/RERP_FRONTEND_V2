@@ -825,7 +825,7 @@ export class ApproveJobRequirementComponent implements OnInit, AfterViewInit {
       autoResize: {
         container: '#approveJobRequirementGridContainer',
         rightPadding: 0,
-        bottomPadding: 0,
+        bottomPadding: 35,
         calculateAvailableSizeBy: 'container',
         resizeDetection: "container"
       },
@@ -850,7 +850,9 @@ export class ApproveJobRequirementComponent implements OnInit, AfterViewInit {
           // The RowDetailViewComponent will handle its own data fetching
           return Promise.resolve(item);
         },
-        loadOnce: false,
+        loadOnce: true,
+        singleRowExpand: true,
+        collapseAllOnSort: true,
         preloadComponent: RowDetailViewComponent,
         viewComponent: RowDetailViewComponent,
         // Optional: you can adjust the row height when expanded
@@ -870,9 +872,7 @@ export class ApproveJobRequirementComponent implements OnInit, AfterViewInit {
       item = this.angularGrid.dataView.getItem(rowNumber);
     }
 
-    console.log('onCellClicked fired', { cellIndex, rowNumber, item, args });
-
-    // Lấy column từ angularGrid instance
+    // Lấy column ID từ cell index
     let columnId = '';
     if (this.angularGrid?.slickGrid && cellIndex !== undefined) {
       const columns = this.angularGrid.slickGrid.getColumns();
@@ -881,41 +881,16 @@ export class ApproveJobRequirementComponent implements OnInit, AfterViewInit {
       }
     }
 
-    console.log('columnId:', columnId);
-
     if (item) {
       this.JobrequirementID = item.ID || 0;
-      this.data = [item];
 
-      // Mở Row Detail khi click vào cột "Mã yêu cầu" (NumberRequest)
+      // Nếu click vào cột NumberRequest, toggle row detail
       if (columnId === 'NumberRequest') {
-        console.log('NumberRequest column clicked, rowNumber:', rowNumber);
-
-        if (rowNumber !== undefined && this.angularGrid?.slickGrid) {
-          // Simulate clicking the expand/collapse icon (+/-)
-          const gridEl = document.getElementById('approveJobRequirementGrid');
-          if (gridEl) {
-            // Find the row and the expand toggle icon
-            const rows = gridEl.querySelectorAll('.slick-row');
-            const targetRow = rows[rowNumber] as HTMLElement;
-            if (targetRow) {
-              // Find the expand icon - typically in the first cell with class containing 'detail' or 'toggle'
-              const expandIcon = targetRow.querySelector('.detailView-toggle, .slick-row-detail-icon, [class*="detail-view-toggle"]') as HTMLElement;
-              if (expandIcon) {
-                console.log('Clicking expand icon:', expandIcon);
-                expandIcon.click();
-              } else {
-                // Try the first cell
-                const firstCell = targetRow.querySelector('.slick-cell:first-child') as HTMLElement;
-                if (firstCell) {
-                  const toggleIcon = firstCell.querySelector('span, i, div') as HTMLElement;
-                  if (toggleIcon) {
-                    console.log('Clicking toggle in first cell:', toggleIcon);
-                    toggleIcon.click();
-                  }
-                }
-              }
-            }
+        if (this.angularGrid?.extensionService) {
+          const rowDetailExtension = this.angularGrid.extensionService.getExtensionByName(ExtensionName.rowDetailView);
+          if (rowDetailExtension && rowDetailExtension.instance) {
+            const rowDetailViewPlugin = rowDetailExtension.instance as SlickRowDetailView;
+            rowDetailViewPlugin.expandDetailView(item);
           }
         }
       }

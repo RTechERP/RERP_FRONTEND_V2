@@ -54,8 +54,8 @@ export class EconomicContractFormComponent implements OnInit {
     ];
     statusOptions = [
         { value: 1, label: 'Còn hiệu lực' },
-        { value: 2, label: 'Hết hiệu lực' },
-        { value: 3, label: 'Đã hủy' }
+        { value: 2, label: 'Đã thanh lý' },
+
     ];
 
     // Number formatter for currency
@@ -111,23 +111,23 @@ export class EconomicContractFormComponent implements OnInit {
             STT: [null],
             ContractNumber: ['', Validators.required],
             TypeNCC: [1, Validators.required],
-            EconomicContractTypeID: [null],
-            EconomicContractTermID: [null],
-            ContractContent: [''],
+            EconomicContractTypeID: [null, Validators.required],
+            EconomicContractTermID: [null, Validators.required],
+            ContractContent: ['', Validators.required],
             NameNcc: ['', Validators.required],
             MSTNcc: [''],
             AddressNcc: [''],
             SDTNcc: [''],
             EmailNcc: ['', Validators.email],
-            SignedAmount: [0],
+            SignedAmount: [0, Validators.required],
             MoneyType: ['VND'],
-            SignDate: [null],
-            EffectDateFrom: [null],
-            EffectDateTo: [null],
-            TimeUnit: [''],
+            SignDate: [null, Validators.required],
+            EffectDateFrom: [null, Validators.required],
+            EffectDateTo: [null, Validators.required],
+            TimeUnit: ['', Validators.required],
             Adjustment: [''],
             Note: [''],
-            StatusContract: [1],
+            StatusContract: [1, Validators.required],
             IsDeleted: [false]
         });
     }

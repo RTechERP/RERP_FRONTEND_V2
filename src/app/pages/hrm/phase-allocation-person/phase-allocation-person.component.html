@@ -25,6 +25,10 @@
                 [nzLoading]="exportingExcel">
                 <img src="assets/icon/action_export_excel_16.png" /> Xuất Excel
               </button>
+              <button class="fs-12" nz-button nzType="default" nzSize="small" (click)="exportDetailToExcel()"
+                [nzLoading]="exportingExcelDetail">
+                <img src="assets/icon/action_export_excel_16.png" /> Xuất Excel Chi Tiết
+              </button>
             </div>
 
             <!-- Phần filter và tìm kiếm bên phải -->

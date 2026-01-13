@@ -160,6 +160,7 @@ export class ListProductProjectComponent implements OnInit, AfterViewInit {
             };
           });
 
+          console.log(this.dataset);
           setTimeout(() => {
             this.angularGrid?.resizerService.resizeGrid();
             this.applyGrouping();
@@ -197,17 +198,17 @@ export class ListProductProjectComponent implements OnInit, AfterViewInit {
         lazyTotalsCalculation: true,
         collapsed: false,
       },
-      //   {
-      //     getter: 'StoreName',
-      //     comparer: () => 0,
-      //     formatter: (g: any) => {
-      //       const warehouseName = g.value || 'HN';
-      //       return `Kho: <strong>${warehouseName}</strong> <span style="color:#2b4387; margin-left:0.5rem;">(${g.count} SP)</span>`;
-      //     },
-      //     aggregateCollapsed: false,
-      //     lazyTotalsCalculation: true,
-      //     collapsed: false,
-      //   },
+        {
+          getter: 'WarehouseName',
+          comparer: () => 0,
+          formatter: (g: any) => {
+            const warehouseName = g.value || 'Kho: HN';
+            return `<strong>${warehouseName}</strong> <span style="color:#2b4387; margin-left:0.5rem;">(${g.count} SP)</span>`;
+          },
+          aggregateCollapsed: false,
+          lazyTotalsCalculation: true,
+          collapsed: false,
+        },
     ]);
 
     // Reset pagination về trang 1 và refresh

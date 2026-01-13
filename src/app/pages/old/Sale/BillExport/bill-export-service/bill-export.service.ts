@@ -217,6 +217,14 @@ getBillImportDetail(billIDs: number[]): Observable<any> {
       responseType: 'blob',
     });
   }
+
+  // Export Excel Multiple - Returns ZIP file containing multiple Excel files
+  exportExcelMultiple(listId: number[], type: number): Observable<Blob> {
+    const url = `${environment.host}api/billexport/export-excel?type=${type}`;
+    return this.http.post(url, listId, {
+      responseType: 'blob',
+    });
+  }
   getBillExportQR(warehouseID: number, code: string): Observable<any> {
     return this.http.get<any>(
       environment.host +

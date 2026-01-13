@@ -51,6 +51,7 @@ export class EconomicContractTypeComponent implements OnInit {
     columnDefinitions: Column[] = [];
     gridOptions: GridOption = {};
     dataset: any[] = [];
+    maxSTT: number = 1;
 
     private excelExportService = new ExcelExportService();
 
@@ -281,7 +282,9 @@ export class EconomicContractTypeComponent implements OnInit {
         this.economicContractService.getEconomicContractTypes().subscribe({
             next: (res) => {
                 if (res?.status === 1) {
-                    this.dataset = (res.data || []).map((item: any) => ({ ...item, id: item.ID }));
+                    const data = res.data?.data || [];
+                    this.maxSTT = res.data?.maxSTT || 1;
+                    this.dataset = data.map((item: any) => ({ ...item, id: item.ID }));
                     this.updateFilterCollections();
                 } else {
                     this.notification.error(NOTIFICATION_TITLE.error, res?.message || 'Lấy dữ liệu thất bại');
@@ -303,8 +306,7 @@ export class EconomicContractTypeComponent implements OnInit {
             centered: true,
         });
         modalRef.componentInstance.dataInput = null;
-        const maxSTT = this.dataset.length > 0 ? Math.max(...this.dataset.map(x => x.STT || 0)) : 0;
-        modalRef.componentInstance.nextSTT = maxSTT + 1;
+        modalRef.componentInstance.nextSTT = this.maxSTT;
         modalRef.componentInstance.formSubmitted.subscribe(() => {
             this.loadData();
         });

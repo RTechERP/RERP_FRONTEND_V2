@@ -110,7 +110,6 @@ export class PhaseAllocationPersonFormComponent
         PhasedAllocationPersonID: d.PhasedAllocationPersonID || 0,
         DateReceive: d.DateReceive || null,
         StatusReceive: d.StatusReceive || 0,
-        OriginalStatusReceive: d.StatusReceive || 0, // Lưu trạng thái ban đầu
         IsDeleted: d.IsDeleted || false,
         Quantity: d.Quantity || 1,
         UnitName: d.UnitName || '',
@@ -448,22 +447,12 @@ export class PhaseAllocationPersonFormComponent
           field: 'StatusReceive',
           hozAlign: 'center',
           formatter: (cell) => {
-            const rowData = cell.getRow().getData();
             const checked = cell.getValue() === 1 ? 'checked' : '';
-            // Nếu đã được tích sẵn từ DB thì disable checkbox
-            const disabled = rowData['OriginalStatusReceive'] === 1 ? 'disabled' : '';
-            return `<input type="checkbox" ${checked} ${disabled} />`;
+            return `<input type="checkbox" ${checked} />`;
           },
           cellClick: (e, cell) => {
             e.preventDefault();
             e.stopPropagation();
-
-            const rowData = cell.getRow().getData();
-
-            // Nếu đã được tích sẵn từ DB (OriginalStatusReceive === 1) thì không cho thay đổi
-            if (rowData['OriginalStatusReceive'] === 1) {
-              return; // Không cho thay đổi
-            }
 
             const newVal = cell.getValue() === 1 ? 0 : 1;
             cell.setValue(newVal, true);
@@ -472,21 +461,11 @@ export class PhaseAllocationPersonFormComponent
             const table = cell.getTable();
             const selectedRows = table.getSelectedRows();
             const newUnit = cell.getValue();
-            const rowData = cell.getRow().getData();
-
-            // Nếu đã được tích sẵn từ DB thì không cho bulk update
-            if (rowData['OriginalStatusReceive'] === 1) {
-              return;
-            }
 
             // 👉 CHỈ bulk update khi có checkbox được tick
             if (selectedRows.length > 0) {
               selectedRows.forEach((row) => {
-                const data = row.getData();
-                // Chỉ update những row chưa được tích sẵn từ DB
-                if (data['OriginalStatusReceive'] !== 1) {
-                  row.update({ StatusReceive: newUnit });
-                }
+                row.update({ StatusReceive: newUnit });
               });
               table.deselectRow();
             }

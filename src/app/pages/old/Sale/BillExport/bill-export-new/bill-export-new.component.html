@@ -7,13 +7,24 @@
 
     <!-- Filter bar -->
     <div class="filter-bar bg-light border-bottom p-2">
-      <form nz-form nzLayout="inline" (keyup.enter)="onSearch()" class="d-flex flex-wrap gap-2 align-items-end">
+      <form
+        nz-form
+        nzLayout="inline"
+        (keyup.enter)="onSearch()"
+        class="d-flex flex-wrap gap-2 align-items-end"
+      >
         <nz-form-item class="mb-0">
           <nz-form-label class="fs-12">Từ ngày</nz-form-label>
           <nz-form-control>
-            <nz-date-picker [nzFormat]="dateFormat" nzSize="small"
-              [(ngModel)]="searchParams.dateStart" name="dateStart" [nzDisabled]="checked"
-              (ngModelChange)="onDateStartChange($event)" style="width: 130px;">
+            <nz-date-picker
+              [nzFormat]="dateFormat"
+              nzSize="small"
+              [(ngModel)]="searchParams.dateStart"
+              name="dateStart"
+              [nzDisabled]="checked"
+              (ngModelChange)="onDateStartChange($event)"
+              style="width: 130px"
+            >
             </nz-date-picker>
           </nz-form-control>
         </nz-form-item>
@@ -21,9 +32,15 @@
         <nz-form-item class="mb-0">
           <nz-form-label class="fs-12">Đến ngày</nz-form-label>
           <nz-form-control>
-            <nz-date-picker [nzFormat]="dateFormat" nzSize="small"
-              [(ngModel)]="searchParams.dateEnd" name="dateEnd" [nzDisabled]="checked"
-              (ngModelChange)="onDateEndChange($event)" style="width: 130px;">
+            <nz-date-picker
+              [nzFormat]="dateFormat"
+              nzSize="small"
+              [(ngModel)]="searchParams.dateEnd"
+              name="dateEnd"
+              [nzDisabled]="checked"
+              (ngModelChange)="onDateEndChange($event)"
+              style="width: 130px"
+            >
             </nz-date-picker>
           </nz-form-control>
         </nz-form-item>
@@ -31,11 +48,22 @@
         <nz-form-item class="mb-0">
           <nz-form-label class="fs-12">Lọc kho</nz-form-label>
           <nz-form-control>
-            <nz-select [(ngModel)]="selectedKhoTypes" (ngModelChange)="onKhoTypeChange($event)"
-              [nzMode]="'multiple'" [nzPlaceHolder]="'Chọn nhóm kho'" [nzMaxTagCount]="3"
-              name="selectedKhoTypes" nzSize="small" style="width: 20vw;" nzAllowClear>
-              <nz-option *ngFor="let item of dataProductGroup" [nzLabel]="item.ProductGroupName"
-                [nzValue]="item.ID"></nz-option>
+            <nz-select
+              [(ngModel)]="selectedKhoTypes"
+              (ngModelChange)="onKhoTypeChange($event)"
+              [nzMode]="'multiple'"
+              [nzPlaceHolder]="'Chọn nhóm kho'"
+              [nzMaxTagCount]="2"
+              name="selectedKhoTypes"
+              nzSize="small"
+              style="width: 200px"
+              nzAllowClear
+            >
+              <nz-option
+                *ngFor="let item of dataProductGroup"
+                [nzLabel]="item.ProductGroupName"
+                [nzValue]="item.ID"
+              ></nz-option>
             </nz-select>
           </nz-form-control>
         </nz-form-item>
@@ -43,9 +71,19 @@
         <nz-form-item class="mb-0">
           <nz-form-label class="fs-12">Lọc phiếu</nz-form-label>
           <nz-form-control>
-            <nz-select nzShowSearch nzAllowClear nzSize="small" [(ngModel)]="searchParams.status"
-              name="status" style="width: 150px;">
-              <nz-option *ngFor="let item of cbbStatus" [nzValue]="item.ID" [nzLabel]="item.Name">
+            <nz-select
+              nzShowSearch
+              nzAllowClear
+              nzSize="small"
+              [(ngModel)]="searchParams.status"
+              name="status"
+              style="width: 150px"
+            >
+              <nz-option
+                *ngFor="let item of cbbStatus"
+                [nzValue]="item.ID"
+                [nzLabel]="item.Name"
+              >
                 <div class="d-flex align-items-center">
                   <span class="me-2">{{ item.ID }}</span>
                   <span>{{ item.Name }}</span>
@@ -58,20 +96,41 @@
         <nz-form-item class="mb-0">
           <nz-form-label class="fs-12">Từ khóa</nz-form-label>
           <nz-form-control>
-            <input nz-input placeholder="Nhập từ khóa" [(ngModel)]="searchParams.keyword"
-              name="keyword" nzSize="small" (keyup.enter)="onSearch()" style="width: 200px;" />
+            <input
+              nz-input
+              placeholder="Nhập từ khóa"
+              [(ngModel)]="searchParams.keyword"
+              name="keyword"
+              nzSize="small"
+              (keyup.enter)="onSearch()"
+              style="width: 200px"
+            />
           </nz-form-control>
         </nz-form-item>
 
         <nz-form-item class="mb-0">
           <nz-form-control>
-            <label nz-checkbox [(ngModel)]="checked" name="checked" (ngModelChange)="onCheckboxChange()">Tìm kiếm tất cả</label>
+            <label
+              nz-checkbox
+              [(ngModel)]="checked"
+              name="checked"
+              (ngModelChange)="onCheckboxChange()"
+              >Tìm kiếm tất cả</label
+            >
           </nz-form-control>
         </nz-form-item>
 
         <nz-form-item class="mb-0">
           <nz-form-control>
-            <button nz-button nzType="primary" nzSize="small" type="button" (click)="onSearch()">Tìm kiếm</button>
+            <button
+              nz-button
+              nzType="primary"
+              nzSize="small"
+              type="button"
+              (click)="onSearch()"
+            >
+              Tìm kiếm
+            </button>
           </nz-form-control>
         </nz-form-item>
       </form>
@@ -81,22 +140,30 @@
     <div class="card-body p-0">
       <!-- Master Grid -->
       <div class="grid-container-master">
-        <angular-slickgrid [gridId]="'gridMaster-'+ warehouseCode" [columns]="columnDefinitionsMaster"
-          [options]="gridOptionsMaster" [dataset]="datasetMaster"
+        <angular-slickgrid
+          [gridId]="'gridMaster-' + warehouseCode"
+          [columns]="columnDefinitionsMaster"
+          [options]="gridOptionsMaster"
+          [dataset]="datasetMaster"
           (onAngularGridCreated)="angularGridMasterReady($event.detail)"
-          (onDblClick)="onMasterDoubleClick($event)">
+          (onDblClick)="onMasterDoubleClick($event)"
+        >
         </angular-slickgrid>
       </div>
 
       <!-- Detail Grid -->
       <div class="mt-2">
-        <nz-tabset class="main-tab" style="padding-left: 10px !important;">
+        <nz-tabset class="main-tab" style="padding-left: 10px !important">
           <nz-tab [nzTitle]="tabDetailTitle">
             <nz-spin [nzSpinning]="isDetailLoad" nzTip="Đang tải dữ liệu...">
               <div class="grid-container-detail">
-                <angular-slickgrid [gridId]="'gridDetail-'+ warehouseCode" [columns]="columnDefinitionsDetail"
-                  [options]="gridOptionsDetail" [dataset]="datasetDetail"
-                  (onAngularGridCreated)="angularGridDetailReady($event.detail)">
+                <angular-slickgrid
+                  [gridId]="'gridDetail-' + warehouseCode"
+                  [columns]="columnDefinitionsDetail"
+                  [options]="gridOptionsDetail"
+                  [dataset]="datasetDetail"
+                  (onAngularGridCreated)="angularGridDetailReady($event.detail)"
+                >
                 </angular-slickgrid>
               </div>
             </nz-spin>

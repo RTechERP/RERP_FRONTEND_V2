@@ -45,6 +45,7 @@ import { ProductGroupDetailComponent } from '../../ProductSale/product-group-det
 import { BillExportDetailComponent } from '../../BillExport/Modal/bill-export-detail/bill-export-detail.component';
 import { NOTIFICATION_TITLE } from '../../../../../app.config';
 import { environment } from '../../../../../../environments/environment';
+import { BillExportDetailNewComponent } from '../../BillExport/bill-export-detail-new/bill-export-detail-new.component';
 
 interface ProductGroup {
     ID?: number;
@@ -1274,7 +1275,7 @@ export class InventoryNewComponent implements OnInit, AfterViewInit, OnDestroy {
         warehouseID: number,
         khoTypeID: number
     ) {
-        const modalRef = this.modalService.open(BillExportDetailComponent, {
+        const modalRef = this.modalService.open(BillExportDetailNewComponent, {
             centered: true,
             size: 'xl',
             backdrop: 'static',

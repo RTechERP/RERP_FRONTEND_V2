@@ -370,4 +370,36 @@ getBillImportDetail(billIDs: number[]): Observable<any> {
       environment.host + `api/billexport/by-billexport/${billExportID}`
     );
   }
+
+  // Get POKH Files by PO Number
+  getPOKHFiles(poNumber: string): Observable<any> {
+    return this.http.get<any>(
+      environment.host + `api/BillExport/get-pokh-files/${encodeURIComponent(poNumber)}`
+    );
+  }
+
+  // Download POKH File
+  downloadPOKHFile(poNumber: string, fileName: string): Observable<Blob> {
+    const url = `${environment.host}api/BillExport/download-pokh-file/${encodeURIComponent(poNumber)}/${encodeURIComponent(fileName)}`;
+    return this.http.get(url, {
+      responseType: 'blob',
+    });
+  }
+  getInventoryProjectImportExport(
+  warehouseID: number,
+  productID: number,
+  projectID: number,
+  pokhDetailID: number,
+  billExportDetailIds: string  // ✅ Nhận CSV: "123,456,789"
+): Observable<any> {
+  return this.http.get(`${environment.host}api/billexport/get-inventory-project-import-export`, {
+    params: {
+      warehouseId: warehouseID.toString(),
+      productId: productID.toString(),
+      projectId: projectID.toString(),
+      pokhDetailId: pokhDetailID.toString(),
+      billExportDetailIds: billExportDetailIds || ''  // ✅ Truyền empty string nếu null
+    }
+  });
+}
 }

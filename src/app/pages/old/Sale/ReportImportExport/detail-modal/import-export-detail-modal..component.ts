@@ -22,6 +22,7 @@ import { NzI18nModule } from 'ng-zorro-antd/i18n';
 import { ReportImportExportService } from '../report-import-export-service/report-import-export.service';
 import { BillExportDetailComponent } from '../../BillExport/Modal/bill-export-detail/bill-export-detail.component';
 import { BillImportDetailComponent } from '../../BillImport/Modal/bill-import-detail/bill-import-detail.component';
+import { BillExportDetailNewComponent } from '../../BillExport/bill-export-detail-new/bill-export-detail-new.component';
 
 @Component({
   selector: 'app-history-modal',
@@ -131,7 +132,7 @@ export class ImportExportModalComponent implements OnInit, AfterViewInit {
   }
   openModalBillExportDetail(ischeckmode: boolean) {
   
-    const modalRef = this.modalService.open(BillExportDetailComponent, {
+    const modalRef = this.modalService.open(BillExportDetailNewComponent, {
       centered: true,
       // windowClass: 'full-screen-modal',
       size: 'xl',

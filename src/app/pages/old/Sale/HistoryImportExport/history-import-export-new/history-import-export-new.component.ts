@@ -34,6 +34,7 @@ import { ExcelExportService } from '@slickgrid-universal/excel-export';
 import { NgbModal } from '@ng-bootstrap/ng-bootstrap';
 import { BillImportDetailComponent } from '../../BillImport/Modal/bill-import-detail/bill-import-detail.component';
 import { BillExportDetailComponent } from '../../BillExport/Modal/bill-export-detail/bill-export-detail.component';
+import { BillExportDetailNewComponent } from '../../BillExport/bill-export-detail-new/bill-export-detail-new.component';
 
 @Component({
     selector: 'app-history-import-export-new',
@@ -491,7 +492,7 @@ export class HistoryImportExportNewComponent implements OnInit, AfterViewInit, O
     }
 
     openBillExportDetail(rowData: any): void {
-        const modalRef = this.modalService.open(BillExportDetailComponent, {
+        const modalRef = this.modalService.open(BillExportDetailNewComponent, {
             centered: true,
             windowClass: 'full-screen-modal',
             size: 'xl',

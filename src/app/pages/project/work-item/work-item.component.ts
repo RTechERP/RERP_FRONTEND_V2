@@ -1774,7 +1774,6 @@ export class WorkItemComponent implements OnInit, AfterViewInit {
           field: 'UserID',
           hozAlign: 'center',
           width: 150,
-          headerFilter: 'input',
           editor: this.createdControl(
             SelectControlComponent,
             this.injector,

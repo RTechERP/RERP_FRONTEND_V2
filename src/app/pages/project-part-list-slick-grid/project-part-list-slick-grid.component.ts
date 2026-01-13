@@ -215,6 +215,9 @@ export class ProjectPartListSlickGridComponent implements OnInit, AfterViewInit,
   // Subscriptions
   private subscriptions: Subscription[] = [];
 
+  // Request ID tracking to prevent race conditions
+  private partListRequestId: number = 0;
+
   // Callback data
   private selectProductPOData: { listIDInsert: number[], processedData: any[] } | null = null;
 
@@ -1795,7 +1798,7 @@ export class ProjectPartListSlickGridComponent implements OnInit, AfterViewInit,
       multiColumnSort: false,
       enablePagination: false,
       // Row height - tăng để text wrap không bị đè
-      rowHeight: 50,
+      // rowHeight: 40,
       // headerRowHeight: 40,
       // Checkbox Selector - thêm cột dấu tích ở đầu
       enableCheckboxSelector: true,
@@ -2738,6 +2741,10 @@ export class ProjectPartListSlickGridComponent implements OnInit, AfterViewInit,
     }
     this.startLoading();
 
+    // Increment request ID to track this specific request
+    const currentRequestId = ++this.partListRequestId;
+    console.log('[DATA LOAD] Request ID:', currentRequestId);
+
     // Lấy versionID và projectTypeID theo logic component cũ
     let selectedVersionID: number = 0;
     let projectTypeID: number = 0;
@@ -2770,14 +2777,18 @@ export class ProjectPartListSlickGridComponent implements OnInit, AfterViewInit,
 
     this.projectPartListService.getProjectPartList(params).subscribe({
       next: (response: any) => {
+        // Check if this is still the latest request
+        if (currentRequestId !== this.partListRequestId) {
+          console.log(`[DATA LOAD] Request ${currentRequestId} ignored (latest is ${this.partListRequestId})`);
+          return;
+        }
 
         if (response && response.status === 1) {
           const flatData = response.data || [];
-
+          console.log(`[DATA LOAD] Request ${currentRequestId} - Received ${flatData.length} items`);
 
           // For SlickGrid tree data, we use convertToTreeData to prepare items
           this.dataProjectPartList = this.convertToTreeData(flatData);
-
 
           // Update bottom calculations after data load
           setTimeout(() => {
@@ -2785,7 +2796,6 @@ export class ProjectPartListSlickGridComponent implements OnInit, AfterViewInit,
           }, 100);
 
           if (this.angularGridPartList) {
-
             if (params.Keywords) {
               this.angularGridPartList.filterService.clearFilters();
             }
@@ -2796,9 +2806,6 @@ export class ProjectPartListSlickGridComponent implements OnInit, AfterViewInit,
 
             // Apply distinct filters after data is loaded
             this.applyDistinctFiltersToPartList();
-          } else {
-            // Dữ liệu đã được lưu vào this.dataProjectPartList, 
-            // nó sẽ được load trong onPartListGridReady khi grid sẵn sàng.
           }
         } else {
           console.log('[DATA LOAD] API returned non-success status:', response?.message);
@@ -2806,6 +2813,11 @@ export class ProjectPartListSlickGridComponent implements OnInit, AfterViewInit,
         this.stopLoading();
       },
       error: (error: any) => {
+        // Only handle error if this is still the latest request
+        if (currentRequestId !== this.partListRequestId) {
+          console.log(`[DATA LOAD] Error for request ${currentRequestId} ignored (latest is ${this.partListRequestId})`);
+          return;
+        }
         console.error('[DATA LOAD] Error loading part list:', error);
         this.notification.error(NOTIFICATION_TITLE.error, error.message || 'Lỗi khi tải dữ liệu vật tư');
         this.stopLoading();
@@ -3359,9 +3371,15 @@ export class ProjectPartListSlickGridComponent implements OnInit, AfterViewInit,
     }
 
     const selectedRows = event.detail.args.rows || [];
+    console.log('[VERSION SELECT] selectedRows:', selectedRows);
+
     if (selectedRows.length > 0) {
       const rowIndex = selectedRows[0];
       const data = this.angularGridVersion?.dataView?.getItem(rowIndex);
+
+      console.log('[VERSION SELECT] rowIndex:', rowIndex);
+      console.log('[VERSION SELECT] data:', data);
+      console.log('[VERSION SELECT] data.ID:', data?.ID, '| data.originalId:', data?.originalId, '| data.VersionType:', data?.VersionType);
 
       if (data && !data.__group && !data.__groupTotals) {
         // Set version based on VersionType
@@ -3369,19 +3387,24 @@ export class ProjectPartListSlickGridComponent implements OnInit, AfterViewInit,
           this.versionID = data.originalId;
           this.versionPOID = 0;
           this.type = 1;
+          console.log('[VERSION SELECT] Set versionID:', this.versionID, '(Solution)');
         } else {
           this.versionPOID = data.originalId;
           this.versionID = 0;
           this.type = 2;
+          console.log('[VERSION SELECT] Set versionPOID:', this.versionPOID, '(PO)');
         }
 
         this.selectionCode = data.Code || '';
         this.projectTypeID = data.ProjectTypeID || 0;
         this.projectTypeName = data.ProjectTypeName || '';
         this.CodeName = data.Code || '';
+        console.log('[VERSION SELECT] projectTypeID:', this.projectTypeID, '| CodeName:', this.CodeName);
+
         this.updatePageTitle();
 
         // Load PartList table
+        console.log('[VERSION SELECT] Calling loadDataProjectPartList...');
         this.loadDataProjectPartList();
       }
     } else {
@@ -5243,16 +5266,76 @@ export class ProjectPartListSlickGridComponent implements OnInit, AfterViewInit,
   }
 
   /**
+   * Sort tree data by TT using natural sort (1.1.1, 1.1.10, etc.)
+   */
+  private sortTreeDataByTT(data: any[]): any[] {
+    const sortNodes = (nodes: any[]): any[] => {
+      // Sort current level
+      nodes.sort((a, b) => {
+        const aVal = String(a.TT || '');
+        const bVal = String(b.TT || '');
+
+        if (aVal === bVal) return 0;
+
+        const aParts = aVal.split('.');
+        const bParts = bVal.split('.');
+        const maxLength = Math.max(aParts.length, bParts.length);
+
+        for (let i = 0; i < maxLength; i++) {
+          const aPart = parseInt(aParts[i] || '0', 10);
+          const bPart = parseInt(bParts[i] || '0', 10);
+
+          if (aPart < bPart) return -1;
+          if (aPart > bPart) return 1;
+        }
+
+        return 0;
+      });
+
+      // Recursively sort children
+      nodes.forEach(node => {
+        if (node._children && node._children.length > 0) {
+          node._children = sortNodes(node._children);
+        }
+      });
+
+      return nodes;
+    };
+
+    return sortNodes([...data]);
+  }
+
+  /**
    * Xuất Excel danh mục vật tư
    * @returns Promise<boolean> - true nếu xuất thành công, false nếu thất bại
    */
   async exportExcelPartlist(): Promise<boolean> {
     if (!this.dataProjectPartList) return false;
 
-    // Lấy toàn bộ dữ liệu tree (cả node cha và node con) từ dữ liệu gốc
-    const treeData = this.dataProjectPartList || [];
-    // Flatten tree data để export tất cả các node
-    const data = this.flattenTreeDataForExport(treeData);
+    // Lấy dữ liệu theo thứ tự hiển thị hiện tại trên grid (đã sort theo user)
+    let data: any[] = [];
+
+    if (this.angularGridPartList && this.angularGridPartList.dataView) {
+      // Lấy dữ liệu từ dataView theo thứ tự hiển thị (đã được sort)
+      const dataView = this.angularGridPartList.dataView;
+      const rowCount = dataView.getLength();
+
+      for (let i = 0; i < rowCount; i++) {
+        const item = dataView.getItem(i);
+        if (item) {
+          data.push(item);
+        }
+      }
+      console.log(`[EXPORT] Lấy ${data.length} dòng từ dataView theo thứ tự hiển thị hiện tại`);
+    } else {
+      // Fallback: Sử dụng dữ liệu gốc với default sort
+      let treeData = this.dataProjectPartList || [];
+      // Sort data by TT using natural sort before flattening
+      treeData = this.sortTreeDataByTT(treeData);
+      // Flatten tree data để export tất cả các node
+      data = this.flattenTreeDataForExport(treeData);
+      console.log(`[EXPORT] Fallback: Lấy ${data.length} dòng từ dataProjectPartList`);
+    }
 
     if (!data || data.length === 0) {
       this.notification.warning(

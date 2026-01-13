@@ -1,0 +1,319 @@
+<div class="modal-header bg-primary p-2">
+    <h6 class="modal-title text-white" id="lessonModalLabel">{{ mode === 'edit' ? 'SỬA BÀI HỌC' : 'THÊM BÀI HỌC MỚI' }}
+    </h6>
+    <button type="button" class="btn-close" aria-label="Close" (click)="close()"></button>
+</div>
+
+<div class="modal-body modal-body-scrollable" style="max-height: 83vh !important; overflow-y: auto;">
+    <form nz-form [formGroup]="formGroup" nzLayout="vertical" class="fs-7 mt-2">
+
+        <nz-tabset>
+            <!-- Fieldset 1: Copy -->
+            <nz-tab nzTitle="Thông tin bài học">
+                <fieldset class="reset m-0 mb-3">
+                    <legend class="reset fs-12 p-0 d-flex align-items-center gap-2">Copy
+                        <nz-switch [(ngModel)]="isCopyEnabled" [ngModelOptions]="{standalone: true}"
+                            nzCheckedChildren="Hiện" nzUnCheckedChildren="Ẩn" (ngModelChange)="onCopyToggle()">
+                        </nz-switch>
+                    </legend>
+                    <nz-row [nzGutter]="24">
+                        <nz-col [nzSpan]="12">
+                            <nz-form-item>
+                                <nz-form-label class="fs-12 p-0" [nzSpan]="24">Danh mục<span
+                                        class="text-danger ps-1">(*)</span></nz-form-label>
+                                <nz-form-control [nzSpan]="24">
+                                    <nz-select formControlName="CopyCategoryID" [nzPlaceHolder]="'Chọn danh mục'"
+                                        style="width: 100%" name="CopyCategoryID" nzAllowClear nzShowSearch
+                                        [nzDisabled]="!isCopyEnabled" (ngModelChange)="onCopyCategoryChange()">
+                                        <nz-option *ngFor="let item of dataCourseCatalog"
+                                            [nzLabel]="item.Code + ' - ' + item.Name" [nzValue]="item.ID"></nz-option>
+                                    </nz-select>
+                                </nz-form-control>
+                            </nz-form-item>
+                        </nz-col>
+                        <nz-col [nzSpan]="12">
+                            <nz-form-item>
+                                <nz-form-label class="fs-12 p-0" [nzSpan]="24">Bài học<span
+                                        class="text-danger ps-1">(*)</span></nz-form-label>
+                                <nz-form-control [nzSpan]="24">
+                                    <nz-select formControlName="CopyLessonID" [nzPlaceHolder]="'Chọn bài học'"
+                                        style="width: 100%" name="CopyLessonID" nzAllowClear nzShowSearch
+                                        [nzDisabled]="!isCopyEnabled" (ngModelChange)="onCopyLessonChange()">
+                                        <nz-option *ngFor="let item of lessonListForCopy"
+                                            [nzLabel]="item.Code + ' - ' + item.LessonTitle"
+                                            [nzValue]="item.ID"></nz-option>
+                                    </nz-select>
+                                </nz-form-control>
+                            </nz-form-item>
+                        </nz-col>
+                    </nz-row>
+                </fieldset>
+
+                <!-- Fieldset 2: Thông tin bài học -->
+                <fieldset class="reset m-0 mb-3">
+                    <legend class="reset fs-12 p-0">Thông tin bài học</legend>
+                    <nz-row [nzGutter]="24">
+                        <nz-col [nzSpan]="24">
+                            <nz-form-item>
+                                <nz-form-label class="fs-12 p-0" [nzSpan]="24">Khóa học<span
+                                        class="text-danger ps-1">(*)
+                                    </span></nz-form-label>
+                                <nz-form-control [nzSpan]="24">
+                                    <nz-select formControlName="CourseID" [nzPlaceHolder]="'Chọn khóa học'"
+                                        style="width: 100%" name="CourseID" nzAllowClear nzShowSearch>
+                                        <nz-option *ngFor="let item of dataCourse" [nzLabel]="item.NameCourse"
+                                            [nzValue]="item.ID"></nz-option>
+                                    </nz-select>
+                                </nz-form-control>
+                            </nz-form-item>
+                        </nz-col>
+                    </nz-row>
+                    <nz-row [nzGutter]="24">
+                        <nz-col [nzSpan]="12">
+                            <nz-form-item>
+                                <nz-form-label for="codeInput" class="fs-12 p-0">Mã bài học<span
+                                        class="text-danger ps-1">(*)</span></nz-form-label>
+                                <nz-form-control [nzSpan]="24" [nzErrorTip]="
+                formGroup.get('Code')?.hasError('required') &&
+                (formGroup.get('Code')?.dirty || formGroup.get('Code')?.touched)
+                  ? 'Vui lòng nhập mã bài học!'
+                  : formGroup.get('Code')?.hasError('maxlength')
+                  ? 'Mã bài học tối đa 100 ký tự!'
+                  : undefined
+              ">
+                                    <input id="codeInput" nz-input name="Code" placeholder="Nhập mã bài học"
+                                        formControlName="Code" />
+                                </nz-form-control>
+                            </nz-form-item>
+                        </nz-col>
+                        <nz-col [nzSpan]="6">
+                            <nz-form-item>
+                                <nz-form-label for="sttInput" class="fs-12 p-0">STT</nz-form-label>
+                                <nz-form-control [nzSpan]="24">
+                                    <nz-input-number id="sttInput" formControlName="STT" [nzMin]="0" [nzStep]="1"
+                                        style="width: 100%" placeholder="STT"></nz-input-number>
+                                </nz-form-control>
+                            </nz-form-item>
+                        </nz-col>
+                    </nz-row>
+
+                    <nz-row [nzGutter]="24">
+                        <nz-col [nzSpan]="24">
+                            <nz-form-item>
+                                <nz-form-label for="titleInput" class="fs-12 p-0">Tên bài học<span
+                                        class="text-danger ps-1">(*)</span></nz-form-label>
+                                <nz-form-control [nzSpan]="24" [nzErrorTip]="
+                formGroup.get('LessonTitle')?.hasError('required') &&
+                (formGroup.get('LessonTitle')?.dirty || formGroup.get('LessonTitle')?.touched)
+                  ? 'Vui lòng nhập tên bài học!'
+                  : formGroup.get('LessonTitle')?.hasError('maxlength')
+                  ? 'Tên bài học tối đa 200 ký tự!'
+                  : undefined
+              ">
+                                    <input id="titleInput" nz-input name="LessonTitle" placeholder="Nhập tên bài học"
+                                        formControlName="LessonTitle" />
+                                </nz-form-control>
+                            </nz-form-item>
+                        </nz-col>
+                    </nz-row>
+
+                    <nz-row [nzGutter]="24">
+                        <nz-col [nzSpan]="24">
+                            <nz-form-item>
+                                <nz-form-label for="videoUrlInput" class="fs-12 p-0">Đường dẫn video</nz-form-label>
+                                <nz-form-control [nzSpan]="24">
+                                    <input id="videoUrlInput" nz-input name="VideoUrl" placeholder="Nhập URL video"
+                                        formControlName="VideoUrl" />
+                                </nz-form-control>
+                            </nz-form-item>
+                        </nz-col>
+                    </nz-row>
+
+                    <nz-row [nzGutter]="24">
+                        <nz-col [nzSpan]="24">
+                            <nz-form-item>
+                                <nz-form-label class="fs-12 p-0">File PDF đính kèm</nz-form-label>
+                                <nz-form-control>
+                                    <div class="d-flex flex-column gap-2">
+                                        <div class="d-flex flex-column flex-sm-row gap-2">
+                                            <nz-upload nzAccept="application/pdf" [nzFileList]="[]"
+                                                [nzBeforeUpload]="beforeUploadPDF" [nzShowUploadList]="false"
+                                                [nzMultiple]="false">
+                                                <button nz-button nzBlock class="w-100 w-sm-auto">
+                                                    <span nz-icon nzType="upload"></span>
+                                                    Chọn PDF
+                                                </button>
+                                            </nz-upload>
+                                            <input nz-input [value]="attachPDFName || ''" placeholder="Chưa chọn PDF"
+                                                readonly style="flex: 1" />
+                                            <button *ngIf="attachPDFName" nz-button nzType="default" nzSize="small"
+                                                (click)="removePDF()">
+                                                <span nz-icon nzType="delete" nzTheme="outline"></span>
+                                            </button>
+                                        </div>
+                                    </div>
+                                </nz-form-control>
+                            </nz-form-item>
+                        </nz-col>
+                    </nz-row>
+
+                    <nz-row [nzGutter]="24">
+                        <nz-col [nzSpan]="24">
+                            <nz-form-item>
+                                <nz-form-label class="fs-12 p-0">Người phụ trách training</nz-form-label>
+                                <nz-form-control [nzSpan]="24">
+                                    <nz-select formControlName="EmployeeID" [nzPlaceHolder]="'Chọn người phụ trách'"
+                                        style="width: 100%" name="EmployeeID" nzAllowClear nzShowSearch>
+                                        <nz-option *ngFor="let item of employeeList"
+                                            [nzLabel]="item.Code + ' - ' + item.FullName"
+                                            [nzValue]="item.ID"></nz-option>
+                                    </nz-select>
+                                </nz-form-control>
+                            </nz-form-item>
+                        </nz-col>
+                    </nz-row>
+                </fieldset>
+            </nz-tab>
+            <!-- Fieldset 3: File đính kèm -->
+            <nz-tab nzTitle="File đính kèm">
+                <fieldset class="reset m-0 mb-3">
+                    <legend class="reset fs-12 p-0">File đính kèm</legend>
+                    <nz-row [nzGutter]="24">
+                        <nz-col [nzSpan]="24">
+                            <nz-form-item>
+                                <nz-form-label class="fs-12 p-0">Chọn file đính kèm</nz-form-label>
+                                <nz-form-control>
+                                    <div class="d-flex flex-column gap-2">
+                                        <div class="d-flex flex-column flex-sm-row gap-2">
+                                            <nz-upload [nzFileList]="[]" [nzBeforeUpload]="beforeUploadFiles"
+                                                [nzShowUploadList]="false" [nzMultiple]="true">
+                                                <button nz-button nzBlock class="w-100 w-sm-auto">
+                                                    <span nz-icon nzType="upload"></span>
+                                                    Chọn file
+                                                </button>
+                                            </nz-upload>
+                                            <input nz-input [value]="attachFileNames || ''" placeholder="Chưa chọn file"
+                                                readonly style="flex: 1" />
+                                            <button *ngIf="attachFileNames" nz-button nzType="default" nzSize="small"
+                                                (click)="removeFiles()">
+                                                <span nz-icon nzType="delete" nzTheme="outline"></span>
+                                            </button>
+                                        </div>
+
+                                        <!-- Danh sách file hiện có (khi edit mode) -->
+                                        <div *ngIf="existingFiles.length > 0" class="mt-2">
+                                            <small class="text-muted fw-bold">Duyệt danh sách file:</small>
+                                            <div class="existing-files-list mt-1"
+                                                style="max-height: 150px; overflow-y: auto;">
+                                                <div *ngFor="let file of existingFiles"
+                                                    class="d-flex align-items-center gap-2 mb-1 p-2 border rounded bg-light"
+                                                    [style.opacity]="deletedFileIds.includes(file.ID!) ? '0.5' : '1'">
+                                                    <i nz-icon nzType="file" nzTheme="outline" class="text-primary"></i>
+                                                    <span class="flex-grow-1 text-truncate"
+                                                        [style.text-decoration]="deletedFileIds.includes(file.ID!) ? 'line-through' : 'none'"
+                                                        [title]="file.NameFile">
+                                                        {{ file.NameFile }}
+                                                    </span>
+                                                    <div class="d-flex gap-1">
+                                                        <button *ngIf="!deletedFileIds.includes(file.ID!)" nz-button
+                                                            nzType="text" nzSize="small" (click)="viewFile(file)"
+                                                            title="Xem file">
+                                                            <i nz-icon nzType="eye" nzTheme="outline"></i>
+                                                        </button>
+                                                        <button *ngIf="!deletedFileIds.includes(file.ID!)" nz-button
+                                                            nzType="text" nzSize="small" nzDanger
+                                                            (click)="deleteExistingFile(file)" title="Xóa file">
+                                                            <span nz-icon nzType="delete" nzTheme="outline"></span>
+                                                        </button>
+                                                        <button *ngIf="deletedFileIds.includes(file.ID!)" nz-button
+                                                            nzType="text" nzSize="small"
+                                                            (click)="deleteExistingFile(file)" title="Hoàn tác">
+                                                            <span nz-icon nzType="undo" nzTheme="outline"></span>
+                                                        </button>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </nz-form-control>
+                            </nz-form-item>
+                        </nz-col>
+                    </nz-row>
+                </fieldset>
+            </nz-tab>
+            <!-- Fieldset 4: Nội dung -->
+            <nz-tab nzTitle="Nội dung bài học">
+                <fieldset class="reset m-0 mb-3">
+                    <legend class="reset fs-12 p-0">Nội dung bài học</legend>
+                    <nz-row [nzGutter]="24">
+                        <nz-col [nzSpan]="24">
+                            <nz-form-item>
+                                <nz-form-label class="fs-12 p-0">Nội dung</nz-form-label>
+                                <nz-form-control [nzSpan]="24">
+                                    <p-editor #editor formControlName="Content"
+                                        [style]="{'height': '400px', 'margin-bottom': '10px'}"
+                                        [modules]="editorModules">
+                                        <ng-template pTemplate="header">
+                                            <span class="ql-formats">
+                                                <select class="ql-header">
+                                                    <option value="1">Heading 1</option>
+                                                    <option value="2">Heading 2</option>
+                                                    <option selected>Normal</option>
+                                                </select>
+                                                <select class="ql-font">
+                                                    <option value="arial" selected>Arial</option>
+                                                    <option value="times-new-roman">Times New Roman</option>
+                                                    <option value="courier-new">Courier New</option>
+                                                    <option value="tahoma">Tahoma</option>
+                                                    <option value="verdana">Verdana</option>
+                                                    <option value="georgia">Georgia</option>
+                                                    <option value="comic-sans-ms">Comic Sans MS</option>
+                                                    <option value="impact">Impact</option>
+                                                    <option value="arial-black">Arial Black</option>
+                                                </select>
+                                            </span>
+                                            <span class="ql-formats">
+                                                <button class="ql-bold"></button>
+                                                <button class="ql-italic"></button>
+                                                <button class="ql-underline"></button>
+                                                <button class="ql-strike"></button>
+                                            </span>
+                                            <span class="ql-formats">
+                                                <select class="ql-color"></select>
+                                                <select class="ql-background"></select>
+                                            </span>
+                                            <span class="ql-formats">
+                                                <button class="ql-list" value="ordered"></button>
+                                                <button class="ql-list" value="bullet"></button>
+                                                <button class="ql-indent" value="-1"></button>
+                                                <button class="ql-indent" value="+1"></button>
+                                            </span>
+                                            <span class="ql-formats">
+                                                <button class="ql-link"></button>
+                                                <button class="ql-image"></button>
+                                                <button class="ql-video"></button>
+                                            </span>
+                                            <span class="ql-formats">
+                                                <button class="ql-clean"></button>
+                                            </span>
+                                        </ng-template>
+                                    </p-editor>
+                                </nz-form-control>
+                            </nz-form-item>
+                        </nz-col>
+                    </nz-row>
+                </fieldset>
+            </nz-tab>
+        </nz-tabset>
+    </form>
+</div>
+
+<div class="modal-footer">
+    <button nz-button nzDanger nzType="default" (click)="close()" [disabled]="saving">
+        Đóng
+    </button>
+    <button nz-button nzType="primary" (click)="saveLesson()" [disabled]="saving">
+        <i *ngIf="saving" nz-icon nzType="loading" class="me-2"></i>
+        {{ saving ? 'Đang lưu...' : 'Lưu' }}
+    </button>
+</div>

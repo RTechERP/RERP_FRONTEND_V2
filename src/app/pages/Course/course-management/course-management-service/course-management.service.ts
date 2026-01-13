@@ -8,6 +8,7 @@ import { environment } from '../../../../../environments/environment';
 })
 export class CourseManagementService {
   private apiUrl = environment.host + 'api/Course/';
+  private _url = environment.host + 'api/'; //'https://localhost:7187/api/';
 
   constructor(private http: HttpClient) { }
 
@@ -48,7 +49,7 @@ export class CourseManagementService {
   // Lấy danh sách khóa học theo danh mục
   getCourse(courseCatalogID: number): Observable<any> {
     const params = new HttpParams().set('courseCatalogID', courseCatalogID.toString());
-    return this.http.get<any>(this.apiUrl + 'load-dataCourse', { params });
+    return this.http.get<any>(this.apiUrl + 'load-data-course', { params });
   }
 
   // Lấy ý tưởng khóa học theo Khóa học
@@ -72,5 +73,65 @@ export class CourseManagementService {
   // Save data course
   saveCourse(data: any): Observable<any> {
     return this.http.post<any>(this.apiUrl + 'save-data-course', data);
+  }
+
+
+  // === LESSON MANAGEMENT METHODS ===
+
+  // Lấy danh sách bài học theo danh mục (để copy)
+  getLessonsByCatalog(courseCatalogID: number): Observable<any> {
+    const params = new HttpParams().set('courseID', courseCatalogID.toString());
+    return this.http.get<any>(this.apiUrl + 'load-lessons-by-catalog', { params });
+  }
+
+
+  // Lấy bài học theo id
+  getLessonByid(lessonID: number): Observable<any> {
+    const params = new HttpParams().set('id', lessonID.toString());
+    return this.http.get<any>(this.apiUrl + 'get-lesson-by-id', { params });
+  }
+
+  // Lưu bài học
+  saveLesson(data: any): Observable<any> {
+    return this.http.post<any>(this.apiUrl + 'save-data-lesson', data);
+  }
+
+  // EDIT FILE
+
+  // Upload PDF cho bài học
+  uploadLessonPDF(file: File): Observable<any> {
+    return this.uploadMultipleFiles([file], 'CourseLesson', 'pdfs');
+  }
+
+  // Upload file đính kèm cho bài học
+  uploadLessonFiles(files: File[]): Observable<any> {
+    return this.uploadMultipleFiles(files, 'CourseLesson', 'files');
+  }
+
+  uploadMultipleFiles(files: File[], key?: string, subPath?: string): Observable<any> {
+    const formData = new FormData();
+    files.forEach((file) => {
+      formData.append('files', file);
+    });
+    formData.append('key', key || 'CourseLesson');
+    if (subPath && subPath.trim()) {
+      formData.append('subPath', subPath.trim());
+    }
+    return this.http.post<any>(this._url + 'home/upload-multiple', formData);
+  }
+
+  // Xóa file bài học theo ID
+  deleteLessonFile(ids: string): Observable<any> {
+    return this.http.post<any>(
+      this.apiUrl + 'delete-course-lesson-file-by-lessonid',
+      null,
+      { params: new HttpParams().set('ids', ids) }
+    );
+  }
+
+  // Lấy danh sách file của bài học
+  getLessonFilesByLessonID(lessonID: number): Observable<any> {
+    const params = new HttpParams().set('lessonId', lessonID.toString());
+    return this.http.post<any>(this.apiUrl + 'get-course-lesson-file-by-lessonid?lessonId=' + lessonID, {});
   }
 }

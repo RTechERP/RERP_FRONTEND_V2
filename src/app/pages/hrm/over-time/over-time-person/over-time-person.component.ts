@@ -123,13 +123,7 @@ export class OverTimePersonComponent implements OnInit, AfterViewInit {
           this.openDeleteModal();
         }
       },
-      {
-        label: 'Sao chép',
-        icon: 'fa-solid fa-copy fa-lg text-info',
-        command: () => {
-          this.openCopyModal();
-        }
-      },
+
       {
         label: 'Xuất Excel',
         icon: 'fa-solid fa-file-excel fa-lg text-success',
@@ -705,13 +699,6 @@ export class OverTimePersonComponent implements OnInit, AfterViewInit {
     }
 
     const selectedData = selectedRows[0].getData();
-
-    // Kiểm tra trạng thái duyệt
-    if (this.isApproved(selectedData)) {
-      this.notification.warning(NOTIFICATION_TITLE.warning, 'Bản ghi đã được duyệt, không thể sao chép');
-      return;
-    }
-
     // Map dữ liệu từ table sang format của form
     const formData = this.mapTableDataToFormData(selectedData);
 

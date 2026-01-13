@@ -70,7 +70,7 @@
 }
 
 ::ng-deep #approveJobRequirementGrid {
-    height: 90vh !important;
+    height: 85vh !important;
 }
 
 /* Màu dòng dựa trên trạng thái duyệt */

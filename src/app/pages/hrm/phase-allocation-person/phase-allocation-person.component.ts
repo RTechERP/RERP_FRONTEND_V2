@@ -304,7 +304,7 @@ export class PhaseAllocationPersonComponent
       ...DEFAULT_TABLE_CONFIG,
       height: '85vh',
       data: this.detailData,
-
+      groupBy: 'DepartmentName',
       paginationMode: 'local',
       pagination: false,
       layout: 'fitDataStretch',

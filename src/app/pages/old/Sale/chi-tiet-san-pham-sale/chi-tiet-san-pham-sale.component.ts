@@ -8,11 +8,12 @@ import {
   SimpleChanges,
   Inject,
   Optional,
+  HostListener,
 } from '@angular/core';
 import { NgbModal, NgbModule } from '@ng-bootstrap/ng-bootstrap';
 import { TabulatorFull as Tabulator } from 'tabulator-tables';
 import 'tabulator-tables/dist/css/tabulator_simple.min.css';
-import { RowComponent } from 'tabulator-tables';
+import { RowComponent, CellComponent } from 'tabulator-tables';
 import * as ExcelJS from 'exceljs';
 import { NzNotificationService } from 'ng-zorro-antd/notification';
 import { NzSelectModule } from 'ng-zorro-antd/select';
@@ -44,6 +45,7 @@ import { BillImportDetailComponent } from '../BillImport/Modal/bill-import-detai
 import { BillExportDetailComponent } from '../BillExport/Modal/bill-export-detail/bill-export-detail.component';
 import { MenuEventService } from '../../../systems/menus/menu-service/menu-event.service';
 import { NgZone } from '@angular/core';
+import { BillExportDetailNewComponent } from '../BillExport/bill-export-detail-new/bill-export-detail-new.component';
 @Component({
   selector: 'app-chi-tiet-san-pham-sale',
   imports: [
@@ -129,6 +131,40 @@ export class ChiTietSanPhamSaleComponent
   table_DataRequestExport!: Tabulator;
   table_Data!: Tabulator;
   title: string = 'LỊCH SỬ NHẬP XUẤT SẢN PHẨM';
+
+  // Selected cell for copy functionality
+  private selectedCellValue: string | null = null;
+
+  // HostListener for Ctrl+C to copy selected cell value
+  @HostListener('document:keydown', ['$event'])
+  handleKeyboardEvent(event: KeyboardEvent) {
+    if (event.ctrlKey && event.key === 'c' && this.selectedCellValue !== null) {
+      // Prevent default browser copy behavior only if we have a selected cell
+      event.preventDefault();
+      this.copyToClipboard(this.selectedCellValue);
+    }
+  }
+
+  // Copy text to clipboard
+  private copyToClipboard(text: string) {
+    navigator.clipboard.writeText(text).then(
+      () => {
+      },
+      (err) => {
+        console.error('Could not copy text: ', err);
+        this.notificationService.error('Lỗi', 'Không thể copy vào clipboard');
+      }
+    );
+  }
+
+  // Setup cellClick event for a table to track selected cell
+  private setupCellClickHandler(table: Tabulator) {
+    table.on('cellClick', (_e: UIEvent, cell: CellComponent) => {
+      const value = cell.getValue();
+      // Convert value to string, handle null/undefined
+      this.selectedCellValue = value !== null && value !== undefined ? String(value) : '';
+    });
+  }
 
   // Calculated totals
   totalImport: number = 0;
@@ -329,7 +365,7 @@ export class ChiTietSanPhamSaleComponent
   }
 
   openBillExportDetail(rowData: any) {
-    const modalRef = this.modalService.open(BillExportDetailComponent, {
+    const modalRef = this.modalService.open(BillExportDetailNewComponent, {
       centered: true,
       windowClass: 'full-screen-modal',
       size: 'xl',
@@ -481,6 +517,9 @@ export class ChiTietSanPhamSaleComponent
         const rowData = row.getData();
         this.openBillImportDetail(rowData);
       });
+
+      // Setup cell click handler for copy functionality
+      this.setupCellClickHandler(this.table_DataImport);
     }
 
     // Table 2: Phiếu xuất
@@ -617,6 +656,9 @@ export class ChiTietSanPhamSaleComponent
         const rowData = row.getData();
         this.openBillExportDetail(rowData);
       });
+
+      // Setup cell click handler for copy functionality
+      this.setupCellClickHandler(this.table_DataExport);
     }
 
     // Table 3: Phiếu yêu cầu xuất
@@ -751,6 +793,9 @@ export class ChiTietSanPhamSaleComponent
           this.openBillExportDetail(rowData);
         }
       );
+
+      // Setup cell click handler for copy functionality
+      this.setupCellClickHandler(this.table_DataRequestExport);
     }
 
     // Table 4: Phiếu yêu cầu nhập
@@ -871,6 +916,9 @@ export class ChiTietSanPhamSaleComponent
           this.openBillImportDetail(rowData);
         }
       );
+
+      // Setup cell click handler for copy functionality
+      this.setupCellClickHandler(this.table_DataRequestImport);
     }
 
     // Table 5: Hàng giữ
@@ -999,6 +1047,9 @@ export class ChiTietSanPhamSaleComponent
           },
         ],
       });
+
+      // Setup cell click handler for copy functionality
+      this.setupCellClickHandler(this.table_Data);
     }
   }
 }

@@ -47,3 +47,31 @@
 ::ng-deep div[id^="gridDetail-"]{
   height: 30vh !important;
 }
+
+/* Multiline cell - wrap up to 3 lines with ellipsis */
+::ng-deep .cell-multiline {
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: normal;
+  line-height: 1.4;
+  max-height: calc(1.4em * 3);
+  word-wrap: break-word;
+  word-break: break-word;
+}
+
+/* Increase row height for master grid to accommodate multiline (3 lines) */
+/* Calculation: 12px font * 1.5 line-height * 3 lines + 12px padding = ~66px */
+::ng-deep div[id^="gridMaster-"] .slick-row {
+  height: auto !important;
+  min-height: 66px !important;
+}
+
+::ng-deep div[id^="gridMaster-"] .slick-cell {
+  padding: 6px 8px !important;
+  line-height: 1.5 !important;
+  overflow: visible !important;
+}

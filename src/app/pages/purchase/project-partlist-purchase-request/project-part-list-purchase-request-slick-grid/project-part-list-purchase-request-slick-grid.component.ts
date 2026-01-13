@@ -623,7 +623,7 @@ export class ProjectPartListPurchaseRequestSlickGridComponent
 
   // Menu items for PrimeNG Menubar
   menuItems: MenuItem[] = [];
-  maxVisibleItems = 9; // Số nút tối đa hiển thị trực tiếp, còn lại vào More menu
+  maxVisibleItems = 14; // Số nút tối đa hiển thị trực tiếp, còn lại vào More menu
 
   // Check if mobile
   isMobile(): boolean {

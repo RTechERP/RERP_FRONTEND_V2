@@ -492,7 +492,7 @@ export class ProjectWokerSlickGridComponent implements OnInit, AfterViewInit, On
       enableFiltering: true,
       showHeaderRow: true,
       headerRowHeight: 35,
-      rowHeight: 35,
+      //rowHeight: 35,
       enablePagination: false,
       autoFitColumnsOnFirstLoad: true,
       enableAutoSizeColumns: true,

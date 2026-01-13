@@ -1,4 +1,4 @@
-import { Component, OnInit, inject, CUSTOM_ELEMENTS_SCHEMA } from '@angular/core';
+import { Component, OnInit, inject, CUSTOM_ELEMENTS_SCHEMA, ViewChild, ElementRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule, ReactiveFormsModule, FormBuilder, FormGroup } from '@angular/forms';
 import { NgbModal, NgbModalModule } from '@ng-bootstrap/ng-bootstrap';
@@ -14,6 +14,7 @@ import { NzButtonModule } from 'ng-zorro-antd/button';
 import { NzIconModule } from 'ng-zorro-antd/icon';
 import { NzSpinModule } from 'ng-zorro-antd/spin';
 import { NzGridModule } from 'ng-zorro-antd/grid';
+import { NzTabsModule } from 'ng-zorro-antd/tabs';
 import { MenuItem } from 'primeng/api';
 import { Menubar } from 'primeng/menubar';
 import {
@@ -24,12 +25,17 @@ import {
   Formatters,
   GridOption,
   MultipleSelectOption,
+  OnClickEventArgs,
 } from 'angular-slickgrid';
 import { ExcelExportService } from '@slickgrid-universal/excel-export';
 import { NOTIFICATION_TITLE } from '../../../app.config';
 import { EconomicContractService } from './economic-contract-service/economic-contract.service';
 import { EconomicContractFormComponent } from './economic-contract-form/economic-contract-form.component';
+import { EconomicContractImportExcelComponent } from './economic-contract-import-excel/economic-contract-import-excel.component';
 import { DateTime } from 'luxon';
+import { saveAs } from 'file-saver';
+import { NzMessageService } from 'ng-zorro-antd/message';
+import { environment } from '../../../../environments/environment';
 
 @Component({
   standalone: true,
@@ -53,6 +59,8 @@ import { DateTime } from 'luxon';
     NzGridModule,
     Menubar,
     AngularSlickgridModule,
+    EconomicContractImportExcelComponent,
+    NzTabsModule
   ],
   schemas: [CUSTOM_ELEMENTS_SCHEMA],
   templateUrl: './economic-contract.component.html',
@@ -91,12 +99,27 @@ export class EconomicContractComponent implements OnInit {
   ];
   contractTypes: any[] = [];
 
-  // SlickGrid
+  // SlickGrid Master
   angularGrid!: AngularGridInstance;
   gridData: any;
   columnDefinitions: Column[] = [];
   gridOptions: GridOption = {};
   dataset: any[] = [];
+
+  // SlickGrid Detail - File
+  angularGridFile!: AngularGridInstance;
+  gridDataFile: any;
+  columnDefinitionsFile: Column[] = [];
+  gridOptionsFile: GridOption = {};
+  datasetFile: any[] = [];
+
+  // Selected rows
+  selectedRow: any = null;
+  selectedFileRow: any = null;
+  detailTabTitle: string = 'File đính kèm:';
+
+  // File upload
+  @ViewChild('fileUploadInput') fileUploadInput!: ElementRef<HTMLInputElement>;
 
   private excelExportService = new ExcelExportService();
 
@@ -104,15 +127,18 @@ export class EconomicContractComponent implements OnInit {
     private fb: FormBuilder,
     private economicContractService: EconomicContractService,
     private notification: NzNotificationService,
-    private nzModal: NzModalService
+    private nzModal: NzModalService,
+    private message: NzMessageService
   ) {
     this.initializeForm();
   }
+
 
   ngOnInit(): void {
     this.loadContractTypes();
     this.initMenuBar();
     this.initGrid();
+    this.initGridFile();
     this.loadData();
   }
 
@@ -196,34 +222,20 @@ export class EconomicContractComponent implements OnInit {
         width: 60,
         sortable: true,
         filterable: true,
+        columnGroup: '',
         filter: { model: Filters['compoundInputNumber'] },
         cssClass: 'text-center',
       },
+
       {
-        id: 'ContractNumber',
-        name: 'Số hợp đồng',
-        field: 'ContractNumber',
-        type: 'string',
-        width: 150,
-        sortable: true,
-        filterable: true,
-        filter: {
-          collection: [],
-          model: Filters['multipleSelect'],
-          filterOptions: {
-            autoAdjustDropHeight: true,
-            filter: true,
-          } as MultipleSelectOption,
-        },
-      },
-      {
-        id: 'TypeNCCText',
-        name: 'Loại',
-        field: 'TypeNCCText',
+        id: 'TypeName',
+        name: 'Mã loại',
+        field: 'TypeCode',
         type: 'string',
         width: 80,
         sortable: true,
         filterable: true,
+        columnGroup: '',
         filter: {
           collection: [],
           model: Filters['multipleSelect'],
@@ -236,12 +248,13 @@ export class EconomicContractComponent implements OnInit {
       },
       {
         id: 'TypeName',
-        name: 'Loại hợp đồng',
+        name: 'Tên loại',
         field: 'TypeName',
         type: 'string',
         width: 150,
         sortable: true,
         filterable: true,
+        columnGroup: '',
         filter: {
           collection: [],
           model: Filters['multipleSelect'],
@@ -252,13 +265,14 @@ export class EconomicContractComponent implements OnInit {
         },
       },
       {
-        id: 'TermName',
-        name: 'Điều khoản',
-        field: 'TermName',
+        id: 'ContractNumber',
+        name: 'Số hợp đồng',
+        field: 'ContractNumber',
         type: 'string',
         width: 150,
         sortable: true,
         filterable: true,
+        columnGroup: '',
         filter: {
           collection: [],
           model: Filters['multipleSelect'],
@@ -276,7 +290,44 @@ export class EconomicContractComponent implements OnInit {
         minWidth: 300,
         sortable: true,
         filterable: true,
+        columnGroup: '',
         filter: { model: Filters['compoundInputText'] },
+      },
+      {
+        id: 'TermName',
+        name: 'Điều khoản',
+        field: 'TermName',
+        type: 'string',
+        width: 150,
+        sortable: true,
+        filterable: true,
+        columnGroup: '',
+        filter: {
+          collection: [],
+          model: Filters['multipleSelect'],
+          filterOptions: {
+            autoAdjustDropHeight: true,
+            filter: true,
+          } as MultipleSelectOption,
+        },
+      },
+      {
+        id: 'TypeNCCText',
+        name: 'Loại NCC/KH',
+        field: 'TypeNCCText',
+        type: 'string',
+        width: 200,
+        sortable: true,
+        filterable: true,
+        columnGroup: 'NCC/KH',
+        filter: {
+          collection: [],
+          model: Filters['multipleSelect'],
+          filterOptions: {
+            autoAdjustDropHeight: true,
+            filter: true,
+          } as MultipleSelectOption,
+        },
       },
       {
         id: 'NameNcc',
@@ -286,6 +337,7 @@ export class EconomicContractComponent implements OnInit {
         width: 200,
         sortable: true,
         filterable: true,
+        columnGroup: 'NCC/KH',
         filter: {
           collection: [],
           model: Filters['multipleSelect'],
@@ -303,6 +355,7 @@ export class EconomicContractComponent implements OnInit {
         width: 120,
         sortable: true,
         filterable: true,
+        columnGroup: 'NCC/KH',
         filter: { model: Filters['compoundInputText'] },
       },
       {
@@ -313,6 +366,7 @@ export class EconomicContractComponent implements OnInit {
         width: 200,
         sortable: true,
         filterable: true,
+        columnGroup: 'NCC/KH',
         filter: { model: Filters['compoundInputText'] },
       },
       {
@@ -323,6 +377,7 @@ export class EconomicContractComponent implements OnInit {
         width: 120,
         sortable: true,
         filterable: true,
+        columnGroup: 'NCC/KH',
         filter: { model: Filters['compoundInputText'] },
       },
       {
@@ -333,6 +388,7 @@ export class EconomicContractComponent implements OnInit {
         width: 150,
         sortable: true,
         filterable: true,
+        columnGroup: 'NCC/KH',
         filter: { model: Filters['compoundInputText'] },
       },
       {
@@ -343,6 +399,7 @@ export class EconomicContractComponent implements OnInit {
         width: 150,
         sortable: true,
         filterable: true,
+        columnGroup: '',
         filter: { model: Filters['compoundInputNumber'] },
         cssClass: 'text-right',
         formatter: (_row, _cell, value) => {
@@ -358,6 +415,7 @@ export class EconomicContractComponent implements OnInit {
         width: 80,
         sortable: true,
         filterable: true,
+        columnGroup: '',
         filter: {
           collection: [],
           model: Filters['multipleSelect'],
@@ -376,7 +434,8 @@ export class EconomicContractComponent implements OnInit {
         width: 120,
         sortable: true,
         filterable: true,
-        formatter: Formatters.dateIso,
+        columnGroup: '',
+        formatter: Formatters.dateEuro,
         params: { dateFormat: 'DD/MM/YYYY' },
         filter: { model: Filters['compoundDate'] },
         cssClass: 'text-center',
@@ -389,7 +448,8 @@ export class EconomicContractComponent implements OnInit {
         width: 120,
         sortable: true,
         filterable: true,
-        formatter: Formatters.dateIso,
+        columnGroup: '',
+        formatter: Formatters.dateEuro,
         params: { dateFormat: 'DD/MM/YYYY' },
         filter: { model: Filters['compoundDate'] },
         cssClass: 'text-center',
@@ -402,7 +462,8 @@ export class EconomicContractComponent implements OnInit {
         width: 120,
         sortable: true,
         filterable: true,
-        formatter: Formatters.dateIso,
+        columnGroup: '',
+        formatter: Formatters.dateEuro,
         params: { dateFormat: 'DD/MM/YYYY' },
         filter: { model: Filters['compoundDate'] },
         cssClass: 'text-center',
@@ -415,6 +476,7 @@ export class EconomicContractComponent implements OnInit {
         width: 120,
         sortable: true,
         filterable: true,
+        columnGroup: '',
         filter: { model: Filters['compoundInputText'] },
       },
       {
@@ -425,7 +487,27 @@ export class EconomicContractComponent implements OnInit {
         width: 150,
         sortable: true,
         filterable: true,
+        columnGroup: '',
         filter: { model: Filters['compoundInputText'] },
+      },
+      {
+        id: 'StatusContractText',
+        name: 'Trạng thái',
+        field: 'StatusContractText',
+        type: 'string',
+        width: 150,
+        sortable: true,
+        filterable: true,
+        columnGroup: '',
+        filter: {
+          collection: [],
+          model: Filters['multipleSelect'],
+          filterOptions: {
+            autoAdjustDropHeight: true,
+            filter: true,
+          } as MultipleSelectOption,
+        },
+        cssClass: 'text-center',
       },
       {
         id: 'Note',
@@ -435,6 +517,7 @@ export class EconomicContractComponent implements OnInit {
         width: 200,
         sortable: true,
         filterable: true,
+        columnGroup: '',
         filter: { model: Filters['compoundInputText'] },
       },
       {
@@ -445,6 +528,7 @@ export class EconomicContractComponent implements OnInit {
         width: 120,
         sortable: true,
         filterable: true,
+        columnGroup: '',
         formatter: Formatters.dateIso,
         params: { dateFormat: 'DD/MM/YYYY' },
         filter: { model: Filters['compoundDate'] },
@@ -459,6 +543,7 @@ export class EconomicContractComponent implements OnInit {
         width: 150,
         sortable: true,
         filterable: true,
+        columnGroup: '',
         filter: { model: Filters['compoundInputText'] },
         hidden: true,
       },
@@ -494,6 +579,9 @@ export class EconomicContractComponent implements OnInit {
       enableAutoSizeColumns: false,
       rowHeight: 30,
       headerRowHeight: 35,
+      createPreHeaderPanel: true,
+      showPreHeaderPanel: true,
+      preHeaderPanelHeight: 28,
 
       // Excel Export
       externalResources: [this.excelExportService],
@@ -529,6 +617,263 @@ export class EconomicContractComponent implements OnInit {
     this.angularGrid = angularGrid;
     this.gridData = angularGrid.dataView;
   }
+
+  // Grid File initialization
+  initGridFile() {
+    this.columnDefinitionsFile = [
+      {
+        id: 'STT',
+        name: 'STT',
+        field: 'STT',
+        type: 'number',
+        width: 60,
+        sortable: true,
+        cssClass: 'text-center',
+      },
+      {
+        id: 'FileName',
+        name: 'Tên file',
+        field: 'FileName',
+        type: 'string',
+        width: 250,
+        sortable: true,
+        filterable: true,
+        filter: { model: Filters['compoundInputText'] },
+      },
+      {
+        id: 'OriginPath',
+        name: 'Tên file gốc',
+        field: 'OriginPath',
+        type: 'string',
+        width: 200,
+        sortable: true,
+        filterable: true,
+        filter: { model: Filters['compoundInputText'] },
+      },
+      {
+        id: 'CreatedDate',
+        name: 'Ngày tạo',
+        field: 'CreatedDate',
+        type: 'dateIso',
+        width: 120,
+        sortable: true,
+        cssClass: 'text-center',
+        formatter: Formatters.dateEuro,
+      },
+      {
+        id: 'CreatedBy',
+        name: 'Người tạo',
+        field: 'CreatedBy',
+        type: 'string',
+        width: 120,
+        sortable: true,
+        filterable: true,
+        filter: { model: Filters['compoundInputText'] },
+      }
+    ];
+
+    this.gridOptionsFile = {
+      autoResize: {
+        container: '#grid-container-contract-file',
+        calculateAvailableSizeBy: 'container'
+      },
+      enableAutoResize: true,
+      gridWidth: '100%',
+      forceFitColumns: true,
+      enableRowSelection: true,
+      rowSelectionOptions: {
+        selectActiveRow: true
+      },
+      enableCellNavigation: true,
+      enableFiltering: true,
+      autoFitColumnsOnFirstLoad: true,
+      enableAutoSizeColumns: true,
+      rowHeight: 30,
+      headerRowHeight: 35,
+    };
+  }
+
+  angularGridFileReady(angularGrid: AngularGridInstance) {
+    this.angularGridFile = angularGrid;
+    this.gridDataFile = angularGrid.dataView;
+  }
+
+  // Master grid cell click - load file detail
+  onCellClicked(e: Event, args: OnClickEventArgs) {
+    const item = args.grid.getDataItem(args.row);
+    if (item) {
+      this.selectedRow = item;
+      this.detailTabTitle = `File đính kèm: ${item.ContractNumber || ''}`;
+      this.loadFilesByContractId(item.ID);
+    }
+  }
+
+  // File grid cell click
+  onFileCellClicked(e: Event, args: OnClickEventArgs) {
+    const item = args.grid.getDataItem(args.row);
+    if (item) {
+      this.selectedFileRow = item;
+    }
+  }
+
+  // File double click - download/view file
+  onFileDoubleClick(e: Event, args: OnClickEventArgs) {
+    const item = args.grid.getDataItem(args.row);
+    if (item && item.ServerPath) {
+      const fileUrl = environment.host + 'api/share/' + item.ServerPath.replace(/\\\\/g, '/');
+      window.open(fileUrl, '_blank');
+    }
+  }
+
+  // Load files by contract ID
+  loadFilesByContractId(contractId: number) {
+    if (!contractId) {
+      this.datasetFile = [];
+      return;
+    }
+
+    this.economicContractService.getFileByContractId(contractId).subscribe({
+      next: (res) => {
+        if (res?.status === 1) {
+          const files = res.data || [];
+          this.datasetFile = files.map((item: any, index: number) => ({
+            ...item,
+            id: item.ID,
+            STT: index + 1
+          }));
+        } else {
+          this.datasetFile = [];
+        }
+      },
+      error: () => {
+        this.datasetFile = [];
+      }
+    });
+  }
+
+  // Upload file button click
+  onUploadFile() {
+    if (!this.selectedRow) {
+      this.notification.warning(NOTIFICATION_TITLE.warning, 'Vui lòng chọn một hợp đồng trước');
+      return;
+    }
+    this.fileUploadInput.nativeElement.click();
+  }
+
+  // File input change - upload files
+  onFileSelected(event: Event) {
+    const input = event.target as HTMLInputElement;
+    if (!input.files || input.files.length === 0) return;
+
+    const files = Array.from(input.files);
+    this.uploadFiles(files);
+    input.value = ''; // Reset input
+  }
+
+  // Upload files to server
+  private uploadFiles(files: File[]) {
+    if (!this.selectedRow) return;
+
+    const contract = this.selectedRow;
+    // Build subPath: TypeCode/ContractNumber/SignDate
+    const typeCode = contract.TypeCode || 'Unknown';
+    const contractNumber = contract.ContractNumber || 'Unknown';
+    const signDate = contract.SignDate
+      ? DateTime.fromISO(contract.SignDate).toFormat('yyyy-MM-dd')
+      : 'UnknownDate';
+    const subPath = `${typeCode}/${contractNumber}/${signDate}`;
+
+    this.isLoading = true;
+
+    // Upload từng file
+    const formData = new FormData();
+    files.forEach(file => {
+      formData.append('files', file);
+    });
+    formData.append('key', 'TrainingRegistration');
+    formData.append('subPath', subPath);
+
+    // Gọi API upload
+    fetch(environment.host + 'api/Upload/upload-multiple-files', {
+      method: 'POST',
+      body: formData
+    })
+      .then(res => res.json())
+      .then((uploadRes: any) => {
+        if (uploadRes?.status !== 1 || !uploadRes?.data?.length) {
+          this.notification.error(NOTIFICATION_TITLE.error, uploadRes?.message || 'Upload file thất bại');
+          this.isLoading = false;
+          return;
+        }
+
+        // Save metadata for each uploaded file
+        const savePromises = uploadRes.data.map((fileInfo: any) => {
+          const payload = {
+            ID: 0,
+            EconomicContractID: contract.ID,
+            FileName: fileInfo.SavedFileName,
+            OriginPath: fileInfo.OriginalFileName,
+            ServerPath: fileInfo.FilePath,
+            IsDeleted: false
+          };
+          return this.economicContractService.saveContractFile(payload).toPromise();
+        });
+
+        Promise.all(savePromises)
+          .then(() => {
+            this.notification.success(NOTIFICATION_TITLE.success, `Upload ${files.length} file thành công!`);
+            this.loadFilesByContractId(contract.ID);
+            this.isLoading = false;
+          })
+          .catch(err => {
+            this.notification.error(NOTIFICATION_TITLE.error, 'Lưu thông tin file thất bại');
+            this.isLoading = false;
+          });
+      })
+      .catch(err => {
+        this.notification.error(NOTIFICATION_TITLE.error, 'Upload file thất bại');
+        this.isLoading = false;
+      });
+  }
+
+  // Delete file
+  onDeleteFile() {
+    if (!this.selectedFileRow) {
+      this.notification.warning(NOTIFICATION_TITLE.warning, 'Vui lòng chọn một file để xóa');
+      return;
+    }
+
+    this.nzModal.confirm({
+      nzTitle: 'Xác nhận xóa',
+      nzContent: `Bạn có chắc muốn xóa file "${this.selectedFileRow.FileName}"?`,
+      nzOkText: 'Xóa',
+      nzOkType: 'primary',
+      nzOkDanger: true,
+      nzCancelText: 'Hủy',
+      nzOnOk: () => {
+        const payload = {
+          ID: this.selectedFileRow.ID,
+          IsDeleted: true
+        };
+
+        this.economicContractService.saveContractFile(payload).subscribe({
+          next: (res) => {
+            if (res?.status === 1) {
+              this.notification.success(NOTIFICATION_TITLE.success, 'Xóa file thành công!');
+              this.loadFilesByContractId(this.selectedRow.ID);
+              this.selectedFileRow = null;
+            } else {
+              this.notification.error(NOTIFICATION_TITLE.error, res?.message || 'Xóa file thất bại');
+            }
+          },
+          error: (err) => {
+            this.notification.error(NOTIFICATION_TITLE.error, err?.error?.message || 'Xóa file thất bại');
+          }
+        });
+      }
+    });
+  }
+
 
   loadData() {
     this.isLoading = true;
@@ -672,93 +1017,119 @@ export class EconomicContractComponent implements OnInit {
     });
   }
 
-  exportToExcel() {
-    const dateStart = DateTime.fromJSDate(this.searchForm.value.dateStart).toFormat('ddMMyyyy');
-    const dateEnd = DateTime.fromJSDate(this.searchForm.value.dateEnd).toFormat('ddMMyyyy');
+  async exportToExcel() {
+    const formValue = this.searchForm.value;
+    const dateStart = DateTime.fromJSDate(formValue.dateStart).toFormat('ddMMyyyy');
+    const dateEnd = DateTime.fromJSDate(formValue.dateEnd).toFormat('ddMMyyyy');
     const now = DateTime.fromJSDate(new Date()).toFormat('HHmmss');
-    this.excelExportService.exportToExcel({
-      filename: `HopDongKinhTe_${dateStart}_${dateEnd}_${now}`,
-      format: 'xlsx',
+    const fileName = `HopDongKinhTe_${dateStart}_${dateEnd}_${now}.xlsx`;
+
+    // Kiểm tra có dữ liệu không
+    if (!this.dataset || this.dataset.length === 0) {
+      this.notification.warning(NOTIFICATION_TITLE.warning, 'Không có dữ liệu để xuất Excel!');
+      return;
+    }
+
+    // Hiển thị loading
+    const loadingMsg = this.message.loading('Đang xuất Excel...', {
+      nzDuration: 0,
+    }).messageId;
+
+    try {
+      // Lấy template từ API share
+      const templateUrl = environment.host + 'api/share/Software/Template/ExportExcel/TemplateExportExcelEconomicContract.xlsx';
+
+      const response = await fetch(templateUrl);
+      if (!response.ok) {
+        throw new Error('Không thể tải template Excel');
+      }
+
+      const templateBlob = await response.arrayBuffer();
+
+      // Load template bằng ExcelJS
+      const ExcelJS = await import('exceljs');
+      const workbook = new ExcelJS.Workbook();
+      await workbook.xlsx.load(templateBlob);
+
+      const worksheet = workbook.worksheets[0];
+      if (!worksheet) {
+        this.message.remove(loadingMsg);
+        this.notification.error(NOTIFICATION_TITLE.error, 'Template Excel không hợp lệ!');
+        return;
+      }
+
+      // Đổ dữ liệu từ dòng 4
+      const startRow = 4;
+      this.dataset.forEach((item, index) => {
+        const rowIndex = startRow + index;
+        const row = worksheet.getRow(rowIndex);
+
+        // Map dữ liệu vào các cột theo template
+        row.getCell(1).value = index + 1; // STT
+        row.getCell(2).value = item.TypeCode || '';
+        row.getCell(3).value = item.TypeName || '';
+        row.getCell(4).value = item.ContractNumber || '';
+        row.getCell(5).value = item.ContractContent || '';
+        row.getCell(6).value = item.TypeNCCText || '';
+        row.getCell(7).value = item.NameNcc || '';
+        row.getCell(8).value = item.MSTNcc || '';
+        row.getCell(9).value = item.AddressNcc || '';
+        row.getCell(10).value = item.SDTNcc || '';
+        row.getCell(11).value = item.EmailNcc || '';
+        row.getCell(12).value = item.SignedAmount || 0;
+        row.getCell(13).value = item.MoneyType || '';
+        row.getCell(14).value = item.TimeUnit || '';
+        row.getCell(15).value = item.Adjustment || '';
+        row.getCell(16).value = item.Note || '';
+        row.getCell(17).value = item.SignDate ? DateTime.fromISO(item.SignDate).toFormat('dd/MM/yyyy') : '';
+        row.getCell(18).value = item.EffectDateFrom ? DateTime.fromISO(item.EffectDateFrom).toFormat('dd/MM/yyyy') : '';
+        row.getCell(19).value = item.EffectDateFrom ? DateTime.fromISO(item.EffectDateFrom).toFormat('dd/MM/yyyy') : '';
+        row.getCell(20).value = item.EffectDateTo ? DateTime.fromISO(item.EffectDateTo).toFormat('dd/MM/yyyy') : '';
+        row.getCell(21).value = item.TermCode || '';
+        row.getCell(22).value = item.TermName || '';
+        row.getCell(23).value = item.StatusContractText || '';
+        row.commit();
+      });
+
+      // Xuất file
+      const buffer = await workbook.xlsx.writeBuffer();
+      const blob = new Blob([buffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+
+      this.message.remove(loadingMsg);
+      saveAs(blob, fileName);
+      this.notification.success(NOTIFICATION_TITLE.success, 'Xuất Excel thành công!');
+
+    } catch (err) {
+      this.message.remove(loadingMsg);
+      console.error('Lỗi xuất Excel:', err);
+      this.notification.error(NOTIFICATION_TITLE.error, 'Xuất Excel thất bại! Vui lòng thử lại.');
+    }
+  }
+
+
+
+  openModalImportExcel() {
+    const modalRef = this.ngbModal.open(EconomicContractImportExcelComponent, {
+      size: 'xl',
+      backdrop: 'static',
+      keyboard: false,
+      centered: true,
     });
+
+    modalRef.result.then(
+      (result) => {
+        // Reload data after modal closes
+        this.loadData();
+      },
+      (dismissed) => {
+        // Reload data even when dismissed
+        this.loadData();
+      }
+    );
   }
 
   importExcel() {
-    // Create file input element
-    const input = document.createElement('input');
-    input.type = 'file';
-    input.accept = '.xlsx,.xls';
-    input.onchange = async (e: any) => {
-      const file = e.target.files[0];
-      if (!file) return;
-
-      try {
-        const ExcelJS = await import('exceljs');
-        const workbook = new ExcelJS.Workbook();
-        await workbook.xlsx.load(await file.arrayBuffer());
-
-        const worksheet = workbook.worksheets[0];
-        if (!worksheet) {
-          this.notification.error(NOTIFICATION_TITLE.error, 'File Excel không có sheet nào');
-          return;
-        }
-
-        const data: any[] = [];
-        worksheet.eachRow((row, rowNumber) => {
-          if (rowNumber === 1) return; // Skip header row
-
-          const rowData = {
-            ContractNumber: row.getCell(1).value?.toString() || '',
-            TypeNCC: row.getCell(2).value === 'NCC' ? 1 : (row.getCell(2).value === 'KH' ? 2 : 0),
-            ContractContent: row.getCell(3).value?.toString() || '',
-            NameNcc: row.getCell(4).value?.toString() || '',
-            MSTNcc: row.getCell(5).value?.toString() || '',
-            AddressNcc: row.getCell(6).value?.toString() || '',
-            SDTNcc: row.getCell(7).value?.toString() || '',
-            EmailNcc: row.getCell(8).value?.toString() || '',
-            SignedAmount: Number(row.getCell(9).value) || 0,
-            MoneyType: row.getCell(10).value?.toString() || 'VND',
-            Note: row.getCell(11).value?.toString() || '',
-          };
-          if (rowData.ContractNumber) {
-            data.push(rowData);
-          }
-        });
-
-        if (data.length === 0) {
-          this.notification.warning(NOTIFICATION_TITLE.warning, 'Không có dữ liệu để nhập');
-          return;
-        }
-
-        let successCount = 0;
-        let errorCount = 0;
-
-        for (const item of data) {
-          try {
-            const res = await this.economicContractService.saveEconomicContract(item).toPromise();
-            if (res?.status === 1) {
-              successCount++;
-            } else {
-              errorCount++;
-            }
-          } catch {
-            errorCount++;
-          }
-        }
-
-        if (successCount > 0) {
-          this.notification.success(NOTIFICATION_TITLE.success, `Đã nhập thành công ${successCount} hợp đồng`);
-          this.loadData();
-        }
-        if (errorCount > 0) {
-          this.notification.warning(NOTIFICATION_TITLE.warning, `${errorCount} hợp đồng nhập thất bại`);
-        }
-
-      } catch (err) {
-        console.error('Error importing Excel:', err);
-        this.notification.error(NOTIFICATION_TITLE.error, 'Lỗi khi đọc file Excel');
-      }
-    };
-    input.click();
+    this.openModalImportExcel();
   }
 
   updateFilterCollections() {

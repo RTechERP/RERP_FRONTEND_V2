@@ -91,6 +91,7 @@ export class PhaseAllocationPersonComponent
   ];
 
   exportingExcel = false;
+  exportingExcelDetail = false;
   allMasterData: any[] = []; // Lưu tất cả dữ liệu để filter local
 
   formData: any = {
@@ -303,7 +304,7 @@ export class PhaseAllocationPersonComponent
       ...DEFAULT_TABLE_CONFIG,
       height: '85vh',
       data: this.detailData,
-
+      groupBy: 'DepartmentName',
       paginationMode: 'local',
       pagination: false,
       layout: 'fitDataStretch',
@@ -846,6 +847,294 @@ export class PhaseAllocationPersonComponent
       );
     } finally {
       this.exportingExcel = false;
+    }
+  }
+
+  async exportDetailToExcel() {
+    if (!this.selectedRow || !this.selectedRow.ID) {
+      this.notification.warning(
+        NOTIFICATION_TITLE.warning,
+        'Vui lòng chọn một dòng để xuất chi tiết!'
+      );
+      return;
+    }
+
+    if (!this.detailData || this.detailData.length === 0) {
+      this.notification.warning(
+        NOTIFICATION_TITLE.warning,
+        'Không có dữ liệu chi tiết để xuất!'
+      );
+      return;
+    }
+
+    this.exportingExcelDetail = true;
+
+    try {
+      const workbook = new ExcelJS.Workbook();
+      const worksheet = workbook.addWorksheet('Chi tiết phân bổ');
+
+      // Helper format date
+      const formatDate = (val: any) => {
+        if (!val) return '';
+        try {
+          return DateTime.fromISO(val).toFormat('dd/MM/yyyy HH:mm');
+        } catch {
+          const date = new Date(val);
+          return isNaN(date.getTime())
+            ? ''
+            : DateTime.fromJSDate(date).toFormat('dd/MM/yyyy HH:mm');
+        }
+      };
+
+      // Thêm thông tin master
+      worksheet.addRow(['Mã cấp phát:', this.selectedRow.Code || '']);
+      worksheet.addRow(['Nội dung cấp phát:', this.selectedRow.ContentAllocation || '']);
+      worksheet.addRow(['Năm:', this.selectedRow.YearValue || '']);
+      worksheet.addRow(['Tháng:', this.selectedRow.MontValue || '']);
+      worksheet.addRow([]); // Dòng trống
+
+      // Style cho thông tin master
+      for (let i = 1; i <= 4; i++) {
+        const row = worksheet.getRow(i);
+        row.getCell(1).font = { name: 'Times New Roman', size: 12, bold: true };
+        row.getCell(2).font = { name: 'Tahoma', size: 8.5 };
+      }
+
+      // Header chi tiết - dòng 6
+      const headerRow = worksheet.addRow([
+        'STT',
+        'Mã nhân viên',
+        'Tên nhân viên',
+        'Số lượng',
+        'Đơn vị',
+        'Ngày nhận',
+        'Trạng thái nhận'
+      ]);
+
+      // Style header: Font 12 Times New Roman, background xanh lá nhạt, border
+      headerRow.eachCell((cell: ExcelJS.Cell) => {
+        cell.font = {
+          name: 'Times New Roman',
+          size: 12,
+          bold: true,
+        };
+        cell.alignment = {
+          horizontal: 'center',
+          vertical: 'middle',
+          wrapText: true,
+        };
+        cell.fill = {
+          type: 'pattern',
+          pattern: 'solid',
+          fgColor: { argb: 'FF90EE90' }, // Light green
+        };
+        cell.border = {
+          top: { style: 'thin' },
+          left: { style: 'thin' },
+          bottom: { style: 'thin' },
+          right: { style: 'thin' },
+        };
+      });
+      headerRow.height = 25;
+
+      // Nhóm dữ liệu theo phòng ban
+      const groupedData: { [key: string]: any[] } = {};
+      this.detailData.forEach((detail: any) => {
+        const deptName = detail.DepartmentName || 'Chưa xác định';
+        if (!groupedData[deptName]) {
+          groupedData[deptName] = [];
+        }
+        groupedData[deptName].push(detail);
+      });
+
+      // Thêm dữ liệu chi tiết theo nhóm phòng ban
+      let totalReceivedCount = 0;
+      let globalIndex = 0;
+
+      Object.keys(groupedData).sort().forEach((deptName: string) => {
+        const deptEmployees = groupedData[deptName];
+        let deptReceivedCount = 0;
+
+        // Dòng tiêu đề phòng ban
+        const deptHeaderRow = worksheet.addRow([
+          'Phòng ban: ' + deptName,
+          '',
+          '',
+          '',
+          '',
+          '',
+          ''
+        ]);
+        // Merge cells cho tên phòng ban
+        worksheet.mergeCells(deptHeaderRow.number, 1, deptHeaderRow.number, 7);
+        deptHeaderRow.getCell(1).font = {
+          name: 'Tahoma',
+          size: 10,
+          bold: true,
+        };
+        deptHeaderRow.getCell(1).alignment = {
+          horizontal: 'left',
+          vertical: 'middle',
+        };
+        deptHeaderRow.getCell(1).fill = {
+          type: 'pattern',
+          pattern: 'solid',
+          fgColor: { argb: 'FFB0E0E6' }, // Light blue (Powder Blue)
+        };
+        deptHeaderRow.getCell(1).border = {
+          top: { style: 'thin' },
+          left: { style: 'thin' },
+          bottom: { style: 'thin' },
+          right: { style: 'thin' },
+        };
+        deptHeaderRow.height = 22;
+
+        // Thêm nhân viên trong phòng ban
+        deptEmployees.forEach((detail: any) => {
+          globalIndex++;
+          const statusReceive = detail.StatusReceive === true ||
+            detail.StatusReceive === 'true' ||
+            detail.StatusReceive === 1 ||
+            detail.StatusReceive === '1';
+
+          if (statusReceive) {
+            deptReceivedCount++;
+            totalReceivedCount++;
+          }
+
+          const dataRow = worksheet.addRow([
+            globalIndex,
+            detail.EmployeeCode || '',
+            detail.EmployeeFullName || '',
+            detail.Quantity || '',
+            detail.UnitName || '',
+            formatDate(detail.DateReceive),
+            statusReceive ? '✓' : ''
+          ]);
+
+          // Style dữ liệu: Font 8.5 Tahoma, border
+          dataRow.eachCell((cell: ExcelJS.Cell, colNumber: number) => {
+            cell.font = {
+              name: 'Tahoma',
+              size: 8.5,
+            };
+            cell.alignment = {
+              horizontal: colNumber === 1 || colNumber === 4 || colNumber === 6 || colNumber === 7 ? 'center' : 'left',
+              vertical: 'middle',
+              wrapText: true,
+            };
+            cell.border = {
+              top: { style: 'thin' },
+              left: { style: 'thin' },
+              bottom: { style: 'thin' },
+              right: { style: 'thin' },
+            };
+            // Màu xanh lá cho dấu tích ở cột trạng thái
+            if (colNumber === 7 && statusReceive) {
+              cell.font = {
+                name: 'Tahoma',
+                size: 12,
+                bold: true,
+                color: { argb: 'FF008000' }, // Green
+              };
+            }
+          });
+        });
+
+        // Dòng tổng kết phòng ban
+        const deptCountRow = worksheet.addRow([
+          '',
+          'Số lượng: ' + deptEmployees.length,
+          '',
+          '',
+          '',
+          '',
+          'Đã nhận: ' + deptReceivedCount + '/' + deptEmployees.length
+        ]);
+        deptCountRow.eachCell((cell: ExcelJS.Cell) => {
+          cell.font = {
+            name: 'Tahoma',
+            size: 8.5,
+            italic: true,
+          };
+          cell.alignment = {
+            horizontal: 'left',
+            vertical: 'middle',
+          };
+          cell.border = {
+            top: { style: 'thin' },
+            left: { style: 'thin' },
+            bottom: { style: 'thin' },
+            right: { style: 'thin' },
+          };
+        });
+      });
+
+      // Thêm dòng tổng cộng cuối cùng
+      const countRow = worksheet.addRow([
+        'TỔNG CỘNG:',
+        this.detailData.length + ' nhân viên',
+        '',
+        '',
+        '',
+        '',
+        'Đã nhận: ' + totalReceivedCount + '/' + this.detailData.length
+      ]);
+      countRow.eachCell((cell: ExcelJS.Cell) => {
+        cell.font = {
+          name: 'Times New Roman',
+          size: 12,
+          bold: true,
+        };
+        cell.alignment = {
+          horizontal: 'left',
+          vertical: 'middle',
+        };
+        cell.fill = {
+          type: 'pattern',
+          pattern: 'solid',
+          fgColor: { argb: 'FFFFD700' }, // Gold
+        };
+        cell.border = {
+          top: { style: 'thin' },
+          left: { style: 'thin' },
+          bottom: { style: 'thin' },
+          right: { style: 'thin' },
+        };
+      });
+      countRow.height = 22;
+
+      // Set column widths
+      worksheet.columns = [
+        { width: 8 },   // STT
+        { width: 15 },  // Mã NV
+        { width: 35 },  // Tên NV
+        { width: 12 },  // Số lượng
+        { width: 12 },  // Đơn vị
+        { width: 18 },  // Ngày nhận
+        { width: 15 },  // Trạng thái
+      ];
+
+      // Xuất file
+      const buffer = await workbook.xlsx.writeBuffer();
+      const blob = new Blob([buffer], {
+        type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+      });
+      const fileName = `ChiTietPhanBo_${this.selectedRow.Code || 'NoCode'}_${DateTime.now().toFormat('yyyyMMdd_HHmmss')}.xlsx`;
+      saveAs(blob, fileName);
+
+      this.notification.success(
+        NOTIFICATION_TITLE.success,
+        'Xuất Excel chi tiết thành công!'
+      );
+    } catch (error: any) {
+      console.error('Lỗi xuất Excel chi tiết:', error);
+      this.notification.error(
+        NOTIFICATION_TITLE.error,
+        'Lỗi khi xuất Excel chi tiết: ' + error.message
+      );
+    } finally {
+      this.exportingExcelDetail = false;
     }
   }
 }

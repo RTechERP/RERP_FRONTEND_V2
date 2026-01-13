@@ -1,6 +1,6 @@
 <div class="modal-header bg-primary p-2">
     <h6 class="modal-title text-white">{{ isEdit ? 'SỬA HỢP ĐỒNG KINH TẾ' : 'THÊM HỢP ĐỒNG KINH TẾ' }}</h6>
-    <button type="button" class="btn-close btn-close-white" aria-label="Close" (click)="onCancel()"></button>
+    <button type="button" class="btn-close" aria-label="Close" (click)="onCancel()"></button>
 </div>
 
 <div class="modal-body p-1" style="max-height: 70vh; overflow-y: auto; overflow-x: hidden;">
@@ -208,8 +208,13 @@
                             <nz-form-item class="col-md-12">
                                 <nz-form-label [nzSpan]="24">Đơn vị thời gian<span class="text-danger ps-1 me-1">
                                         (*)</span></nz-form-label>
-                                <nz-form-control [nzSpan]="24" nzErrorTip="Vui lòng nhập đơn vị thời gian">
-                                    <input nz-input formControlName="TimeUnit" placeholder="VD: 1 năm, 6 tháng..." />
+                                <nz-form-control [nzSpan]="24" nzErrorTip="Vui lòng chọn đơn vị thời gian">
+                                    <nz-select formControlName="TimeUnit" nzPlaceHolder="Chọn đơn vị thời gian"
+                                        class="w-100">
+                                        @for (item of timeUnitOptions; track item.value) {
+                                        <nz-option [nzLabel]="item.label" [nzValue]="item.value"></nz-option>
+                                        }
+                                    </nz-select>
                                 </nz-form-control>
                             </nz-form-item>
                         </nz-col>

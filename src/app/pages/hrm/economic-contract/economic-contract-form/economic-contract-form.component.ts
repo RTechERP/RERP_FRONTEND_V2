@@ -50,12 +50,16 @@ export class EconomicContractFormComponent implements OnInit {
     moneyTypes = [
         { value: 'VND', label: 'VND' },
         { value: 'USD', label: 'USD' },
-        { value: 'EUR', label: 'EUR' }
+
     ];
     statusOptions = [
         { value: 1, label: 'Còn hiệu lực' },
         { value: 2, label: 'Đã thanh lý' },
-
+    ];
+    timeUnitOptions = [
+        { value: 'Năm', label: 'Năm' },
+        { value: 'Tháng', label: 'Tháng' },
+        { value: 'Ngày', label: 'Ngày' }
     ];
 
     // Number formatter for currency

@@ -2318,7 +2318,7 @@ export class BillImportDetailComponent
             },
             {
               title: 'Mã theo dự án',
-              field: 'ProjectCodeExport',
+              field: 'ProjectCode',
               hozAlign: 'left',
               headerHozAlign: 'center',
               editor: 'input',

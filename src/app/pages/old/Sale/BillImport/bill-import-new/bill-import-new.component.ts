@@ -43,6 +43,7 @@ import { BillImportDetailComponent } from '../Modal/bill-import-detail/bill-impo
 import { HistoryDeleteBillComponent } from '../../BillExport/Modal/history-delete-bill/history-delete-bill.component';
 import { ScanBillImportComponent } from '../Modal/scan-bill-import/scan-bill-import.component';
 import { environment } from '../../../../../../environments/environment';
+import { NzMessageService } from 'ng-zorro-antd/message';
 
 interface BillImport {
   Id?: number;
@@ -97,6 +98,10 @@ export class BillImportNewComponent implements OnInit {
   angularGridMaster!: AngularGridInstance;
   angularGridDetail!: AngularGridInstance;
 
+  // Export progress tracking
+  exportProgress = { current: 0, total: 0, fileName: '' };
+  private exportModalRef: any = null;
+
   // Column definitions
   columnDefinitionsMaster: Column[] = [];
   columnDefinitionsDetail: Column[] = [];
@@ -128,6 +133,8 @@ export class BillImportNewComponent implements OnInit {
   isCheckmode: boolean = false;
   id: number = 0;
   selectBillImport: any[] = [];
+
+  isLoading: boolean = false;
 
   searchParams = {
     dateStart: (() => {
@@ -182,7 +189,8 @@ export class BillImportNewComponent implements OnInit {
     private modalService: NgbModal,
     private appUserService: AppUserService,
     private permissionService: PermissionService,
-    private route: ActivatedRoute
+    private route: ActivatedRoute,
+    private message: NzMessageService
   ) { }
 
   ngOnInit(): void {
@@ -1066,8 +1074,9 @@ export class BillImportNewComponent implements OnInit {
     modalRef.componentInstance.WarehouseCode = this.wareHouseCode;
 
     modalRef.result.finally(() => {
-      this.id = 0;
       this.loadDataBillImport();
+      this.getBillImportDetail(this.id);
+      this.id = 0;
     });
   }
 
@@ -1728,9 +1737,7 @@ export class BillImportNewComponent implements OnInit {
   }
 
   //#region Xử lý tải nhiều file
-  isLoading: boolean = false;
   async onExportExcel() {
-
     const angularGrid = this.angularGridMaster;
     if (!angularGrid) return;
 
@@ -1745,7 +1752,6 @@ export class BillImportNewComponent implements OnInit {
     }
 
     const ids = selectedRows.filter((row: any) => row.ID > 0).map((row: any) => row.ID);
-    console.log(ids);
     if (ids.length <= 0) {
       this.notification.info(
         'Thông báo',
@@ -1754,65 +1760,57 @@ export class BillImportNewComponent implements OnInit {
       return;
     }
 
-    this.isLoading = true;
     // Kiểm tra nếu trình duyệt hỗ trợ File System Access API
-    if ('showDirectoryPicker' in window && ids.length > 1) {
-      try {
-        const dirHandle = await (window as any).showDirectoryPicker();
-        await this.exportSequentiallyToFolder(ids, 0, dirHandle);
-
-      } catch (err: any) {
-        if (err.name !== 'AbortError') {
-          this.notification.warning('Thông báo', 'Không chọn thư mục, sẽ tải file bình thường');
-        }
-        this.exportSequentially(ids, 0);
-
-      }
-    } else {
-      this.exportSequentially(ids, 0);
-
-    }
-  }
-
-  private exportSequentially(ids: number[], index: number): void {
-    if (index >= ids.length) {
-      this.notification.success('Thông báo', 'Xuất file thành công!');
-      this.isLoading = false;
+    if (!('showDirectoryPicker' in window)) {
+      this.notification.warning(
+        NOTIFICATION_TITLE.warning,
+        'Trình duyệt không hỗ trợ tính năng này!'
+      );
       return;
     }
 
-    const id = ids[index];
-    const selectedRows = this.datasetMaster.find((item) => item.ID === id);
-    this.billImportService.export(id).subscribe({
-      next: (res) => {
-        const url = window.URL.createObjectURL(res);
-        const a = document.createElement('a');
-        const now = new Date();
-        const dateString = `${now.getDate().toString().padStart(2, '0')}_${(
-          now.getMonth() + 1
-        )
-          .toString()
-          .padStart(2, '0')}_${now.getFullYear()}`;
-        const fileName = `Phiếu nhập - ${selectedRows.BillImportCode || 'export'
-          }_${dateString}.xlsx`;
-        a.href = url;
-        a.download = fileName;
-        document.body.appendChild(a);
-        a.click();
-        document.body.removeChild(a);
-        window.URL.revokeObjectURL(url);
+    try {
+      // Chỉ gọi showDirectoryPicker() một lần duy nhất
+      const dirHandle = await (window as any).showDirectoryPicker();
 
-        this.exportSequentially(ids, index + 1);
-      },
-      error: (err) => {
+      // Request permission ngay bằng cách tạo file test
+      try {
+        const testFileHandle = await dirHandle.getFileHandle('.export_test', { create: true });
+        const testWritable = await testFileHandle.createWritable();
+        await testWritable.write('test');
+        await testWritable.close();
+        // Xóa file test
+        await dirHandle.removeEntry('.export_test');
+      } catch (permErr: any) {
         this.notification.error(
           NOTIFICATION_TITLE.error,
-          'Có lỗi xảy ra khi xuất file.'
+          'Không có quyền ghi vào thư mục này!'
         );
-        this.exportSequentially(ids, index + 1);
-        this.isLoading = false;
-      },
-    });
+        return;
+      }
+
+      this.isLoading = true;
+
+      if (ids.length >= 10) {
+        this.notification.warning(
+          NOTIFICATION_TITLE.warning,
+          'Do lượng file lớn vui lòng chờ ít phút để hoàn tất tải file!'
+        );
+      }
+
+      await this.exportSequentiallyToFolder(ids, 0, dirHandle);
+
+    } catch (err: any) {
+      if (err.name === 'AbortError') {
+        this.notification.info('Thông báo', 'Bạn đã hủy chọn thư mục!');
+      } else {
+        this.notification.error(
+          NOTIFICATION_TITLE.error,
+          `Lỗi: ${err.message || 'Có lỗi xảy ra khi chọn thư mục'}`
+        );
+      }
+      this.isLoading = false;
+    }
   }
 
   private async exportSequentiallyToFolder(
@@ -1820,8 +1818,28 @@ export class BillImportNewComponent implements OnInit {
     index: number,
     dirHandle: any
   ): Promise<void> {
+    // Tạo modal lần đầu
+    if (index === 0) {
+      this.exportProgress = { current: 0, total: ids.length, fileName: '' };
+      this.exportModalRef = this.modal.info({
+        nzTitle: 'Đang xuất file',
+        nzContent: `Đang xuất file 0/${ids.length}...`,
+        nzClosable: false,
+        nzMaskClosable: false,
+        nzKeyboard: false,
+        nzOkText: null,
+        nzCancelText: null,
+        nzMask: false
+      });
+    }
+
     if (index >= ids.length) {
-      this.notification.success('Thông báo', 'Xuất file thành công!');
+      // Đóng modal và hiển thị thành công
+      if (this.exportModalRef) {
+        this.exportModalRef.close();
+        this.exportModalRef = null;
+      }
+      this.message.success(`Xuất thành công ${ids.length} file!`);
       this.isLoading = false;
       return;
     }
@@ -1829,30 +1847,42 @@ export class BillImportNewComponent implements OnInit {
     const id = ids[index];
     const selectedRows = this.datasetMaster.find((item) => item.ID === id);
 
+    // Cập nhật nội dung modal
+    this.exportProgress.current = index + 1;
+    this.exportProgress.fileName = selectedRows?.BillImportCode || `ID ${id}`;
+
+    if (this.exportModalRef) {
+      this.exportModalRef.updateConfig({
+        nzContent: `Đang xuất file ${index + 1}/${ids.length}: ${this.exportProgress.fileName}`
+      });
+    }
+
     try {
       const res = await this.billImportService.export(id).toPromise();
       const now = new Date();
 
-      const dateString = `${now.getDate().toString().padStart(2, '0')}_${(now.getMonth() + 1).toString().padStart(2, '0')
-        }_${now.getFullYear()}`;
+      const dateString = `${now.getDate().toString().padStart(2, '0')}_${(now.getMonth() + 1).toString().padStart(2, '0')}_${now.getFullYear()}`;
       const tick = Date.now().toString(36);
 
-      const fileName = `Phiếu nhập - ${selectedRows?.BillImportCode || 'export'
-        }_${dateString}_${tick}.xlsx`;
+      const fileName = `${selectedRows?.BillImportCode || 'export'}_${dateString}_${tick}.xlsx`;
 
       const fileHandle = await dirHandle.getFileHandle(fileName, { create: true });
       const writable = await fileHandle.createWritable();
       await writable.write(res);
       await writable.close();
 
+      // Tiếp tục với file tiếp theo
       await this.exportSequentiallyToFolder(ids, index + 1, dirHandle);
 
     } catch (err: any) {
-      this.notification.error(
-        NOTIFICATION_TITLE.error,
-        `Lỗi xuất file ID ${id}: ${err.message || 'Có lỗi xảy ra'}`
+      // Đóng modal khi có lỗi
+      if (this.exportModalRef) {
+        this.exportModalRef.close();
+        this.exportModalRef = null;
+      }
+      this.message.error(
+        `Lỗi xuất file ${index + 1}/${ids.length} (ID ${id}): ${err.message || 'Có lỗi xảy ra'}`
       );
-      await this.exportSequentiallyToFolder(ids, index + 1, dirHandle);
       this.isLoading = false;
     }
   }

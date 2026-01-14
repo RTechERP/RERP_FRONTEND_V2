@@ -312,12 +312,14 @@ export class KPIService {
    * @param kpiExamID - KPI Exam ID
    * @param isPublic - Whether the data is public
    * @param employeeID - Employee ID
+   * @param sessionID - KPI Session ID
    */
-  loadKPIRuleAndTeam(kpiExamID: number, isPublic: boolean, employeeID: number): Observable<any> {
+  loadKPIRuleAndTeam(kpiExamID: number, isPublic: boolean, employeeID: number, sessionID: number): Observable<any> {
     const params = new HttpParams()
       .set('kpiExamID', kpiExamID.toString())
       .set('isPublic', isPublic.toString())
-      .set('employeeID', employeeID.toString());
+      .set('employeeID', employeeID.toString())
+      .set('sessionID', sessionID.toString());
     return this.http.get<any>(this.apiUrl + 'load-kpi-rule-and-team', { params });
   }
 }

@@ -239,6 +239,17 @@ export class ProjectPartListSlickGridComponent implements OnInit, AfterViewInit,
     @Optional() @Inject('tabData') private tabData?: any
   ) { }
 
+  // Helper function to escape HTML special characters for title attributes
+  private escapeHtml(text: string | null | undefined): string {
+    if (!text) return '';
+    return String(text)
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;')
+      .replace(/'/g, '&#39;');
+  }
+
   updatePageTitle(): void {
     const typeText = this.type === 1 ? '-Giải pháp-' : this.type === 2 ? '-PO-' : '';
     const title = `Danh mục vật tư dự án ${this.projectCodex} ${typeText} ${this.projectTypeName} -${this.CodeName}`;
@@ -729,9 +740,10 @@ export class ProjectPartListSlickGridComponent implements OnInit, AfterViewInit,
         // },
         formatter: (_row: any, _cell: any, value: any, _column: any, dataContext: any) => {
           if (!value) return '';
+          const escaped = this.escapeHtml(dataContext.GroupMaterial);
           return `
             <span
-              title="${dataContext.GroupMaterial}"
+              title="${escaped}"
               style="
                 display: -webkit-box;
                 -webkit-line-clamp: 3;
@@ -766,9 +778,10 @@ export class ProjectPartListSlickGridComponent implements OnInit, AfterViewInit,
         // },
         formatter: (_row: any, _cell: any, value: any, _column: any, dataContext: any) => {
           if (!value) return '';
+          const escaped = this.escapeHtml(dataContext.ProductCode);
           return `
             <span
-              title="${dataContext.ProductCode}"
+              title="${escaped}"
               style="
                 display: -webkit-box;
                 -webkit-line-clamp: 3;
@@ -792,9 +805,10 @@ export class ProjectPartListSlickGridComponent implements OnInit, AfterViewInit,
         id: 'Model', field: 'Model', name: 'Thông số kỹ thuật', width: 200, columnGroup: 'Vật tư dự án',
         formatter: (_row: any, _cell: any, value: any, _column: any, dataContext: any) => {
           if (!value) return '';
+          const escaped = this.escapeHtml(dataContext.Model);
           return `
             <span
-              title="${dataContext.Model}"
+              title="${escaped}"
               style="
                 display: -webkit-box;
                 -webkit-line-clamp: 3;
@@ -840,9 +854,10 @@ export class ProjectPartListSlickGridComponent implements OnInit, AfterViewInit,
         },
         formatter: (_row: any, _cell: any, value: any, _column: any, dataContext: any) => {
           if (!value) return '';
+          const escaped = this.escapeHtml(dataContext.SpecialCode);
           return `
             <span
-              title="${dataContext.SpecialCode}"
+              title="${escaped}"
               style="
                 display: -webkit-box;
                 -webkit-line-clamp: 3;
@@ -877,9 +892,10 @@ export class ProjectPartListSlickGridComponent implements OnInit, AfterViewInit,
         },
         formatter: (_row: any, _cell: any, value: any, _column: any, dataContext: any) => {
           if (!value) return '';
+          const escaped = this.escapeHtml(dataContext.Manufacturer);
           return `
             <span
-              title="${dataContext.Manufacturer}"
+              title="${escaped}"
               style="
                 display: -webkit-box;
                 -webkit-line-clamp: 3;
@@ -914,9 +930,10 @@ export class ProjectPartListSlickGridComponent implements OnInit, AfterViewInit,
         },
         formatter: (_row: any, _cell: any, value: any, _column: any, dataContext: any) => {
           if (!value) return '';
+          const escaped = this.escapeHtml(dataContext.Unit);
           return `
             <span
-              title="${dataContext.Unit}"
+              title="${escaped}"
               style="
                 display: -webkit-box;
                 -webkit-line-clamp: 3;
@@ -1075,9 +1092,10 @@ export class ProjectPartListSlickGridComponent implements OnInit, AfterViewInit,
         id: 'Note', field: 'Note', name: 'Ghi chú', width: 200, columnGroup: ' ', filterable: true, filter: { model: Filters['compoundInputText'] },
         formatter: (_row: any, _cell: any, value: any, _column: any, dataContext: any) => {
           if (!value) return '';
+          const escaped = this.escapeHtml(dataContext.Note);
           return `
             <span
-              title="${dataContext.Note}"
+              title="${escaped}"
               style="
                 display: -webkit-box;
                 -webkit-line-clamp: 3;
@@ -1101,9 +1119,10 @@ export class ProjectPartListSlickGridComponent implements OnInit, AfterViewInit,
         id: 'ReasonProblem', field: 'ReasonProblem', name: 'Lý do phát sinh', width: 200, columnGroup: ' ', filterable: true, filter: { model: Filters['compoundInputText'] },
         formatter: (_row: any, _cell: any, value: any, _column: any, dataContext: any) => {
           if (!value) return '';
+          const escaped = this.escapeHtml(dataContext.ReasonProblem);
           return `
             <span
-              title="${dataContext.ReasonProblem}"
+              title="${escaped}"
               style="
                 display: -webkit-box;
                 -webkit-line-clamp: 3;

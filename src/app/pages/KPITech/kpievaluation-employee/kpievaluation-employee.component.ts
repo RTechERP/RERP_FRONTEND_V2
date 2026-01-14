@@ -399,8 +399,10 @@ export class KPIEvaluationEmployeeComponent implements OnInit, AfterViewInit, On
         id: 'BGDCoefficient',
         field: 'BGDCoefficient',
         name: 'Điểm theo hệ số',
+        minWidth: 100,
         cssClass: 'text-right',
-        sortable: true
+        sortable: true,
+        resizable: true
       }
     ];
 
@@ -503,8 +505,10 @@ export class KPIEvaluationEmployeeComponent implements OnInit, AfterViewInit, On
         field: 'SpecializationPoint',
         name: 'Chuyên môn',
         width: 144,
+        minWidth: 100,
         cssClass: 'text-right',
-        sortable: true
+        sortable: true,
+        resizable: true
       }
     ];
 
@@ -519,7 +523,9 @@ export class KPIEvaluationEmployeeComponent implements OnInit, AfterViewInit, On
       enableCellNavigation: true,
       enableSorting: true,
       enablePagination: false,
-      forceFitColumns: true,
+      forceFitColumns: false,
+      autoFitColumnsOnFirstLoad: false,
+      enableAutoSizeColumns: false,
       headerRowHeight: 60
     };
   }
@@ -534,23 +540,22 @@ export class KPIEvaluationEmployeeComponent implements OnInit, AfterViewInit, On
         id: 'STT',
         field: 'STT',
         name: 'STT',
-        width: 27,
-        maxWidth: 50,
-        formatter: Formatters.tree,
+        width: 60,
         sortable: true
       },
       {
         id: 'RuleContent',
         field: 'RuleContent',
         name: 'Nội dung đánh giá',
-        width: 613,
-        sortable: true
+        width: 800,
+        sortable: true,
+        formatter: Formatters.tree,
       },
       {
         id: 'FirstMonth',
         field: 'FirstMonth',
         name: 'Tháng 1',
-        width: 76,
+        width: 70,
         cssClass: 'text-right',
         sortable: true
       },
@@ -558,7 +563,7 @@ export class KPIEvaluationEmployeeComponent implements OnInit, AfterViewInit, On
         id: 'SecondMonth',
         field: 'SecondMonth',
         name: 'Tháng 2',
-        width: 27,
+        width: 70,
         cssClass: 'text-right',
         sortable: true
       },
@@ -566,7 +571,7 @@ export class KPIEvaluationEmployeeComponent implements OnInit, AfterViewInit, On
         id: 'ThirdMonth',
         field: 'ThirdMonth',
         name: 'Tháng 3',
-        width: 27,
+        width: 70,
         cssClass: 'text-right',
         sortable: true
       },
@@ -582,7 +587,7 @@ export class KPIEvaluationEmployeeComponent implements OnInit, AfterViewInit, On
         id: 'MaxPercent',
         field: 'MaxPercent',
         name: 'Tổng % thưởng tối đa',
-        width: 100,
+        width: 150,
         cssClass: 'text-right',
         sortable: true
       },
@@ -590,7 +595,7 @@ export class KPIEvaluationEmployeeComponent implements OnInit, AfterViewInit, On
         id: 'PercentageAdjustment',
         field: 'PercentageAdjustment',
         name: 'Số % trừ (cộng) 1 lần',
-        width: 100,
+        width: 150,
         cssClass: 'text-right',
         sortable: true
       },
@@ -598,7 +603,7 @@ export class KPIEvaluationEmployeeComponent implements OnInit, AfterViewInit, On
         id: 'MaxPercentageAdjustment',
         field: 'MaxPercentageAdjustment',
         name: 'Số % trừ (cộng) lớn nhất',
-        width: 100,
+        width: 150,
         cssClass: 'text-right',
         sortable: true
       },
@@ -606,7 +611,7 @@ export class KPIEvaluationEmployeeComponent implements OnInit, AfterViewInit, On
         id: 'PercentBonus',
         field: 'PercentBonus',
         name: 'Tổng số % trừ(cộng)',
-        width: 100,
+        width: 150,
         cssClass: 'text-right',
         sortable: true
       },
@@ -614,7 +619,7 @@ export class KPIEvaluationEmployeeComponent implements OnInit, AfterViewInit, On
         id: 'PercentRemaining',
         field: 'PercentRemaining',
         name: '% thưởng còn lại',
-        width: 100,
+        width: 130,
         cssClass: 'text-right',
         sortable: true
       },
@@ -629,8 +634,9 @@ export class KPIEvaluationEmployeeComponent implements OnInit, AfterViewInit, On
         id: 'Note',
         field: 'Note',
         name: 'Ghi chú',
-        width: 433,
-        sortable: true
+        minWidth: 150,
+        sortable: true,
+        resizable: true
       }
     ];
 
@@ -644,7 +650,7 @@ export class KPIEvaluationEmployeeComponent implements OnInit, AfterViewInit, On
       gridWidth: '100%',
       enableTreeData: true,
       treeDataOptions: {
-        columnId: 'STT',
+        columnId: 'RuleContent',
         parentPropName: 'parentId',
         identifierPropName: 'id',
         initiallyCollapsed: false
@@ -655,8 +661,12 @@ export class KPIEvaluationEmployeeComponent implements OnInit, AfterViewInit, On
       enableCellNavigation: true,
       enableSorting: true,
       enablePagination: false,
-      forceFitColumns: true,
-      headerRowHeight: 60
+      forceFitColumns: false,
+      autoFitColumnsOnFirstLoad: false,
+      enableAutoSizeColumns: false,
+      headerRowHeight: 60,
+      // Last column will auto-fill remaining space via resizer
+      resizeByContentOnlyOnFirstLoad: false,
     };
   }
 
@@ -799,8 +809,10 @@ export class KPIEvaluationEmployeeComponent implements OnInit, AfterViewInit, On
         field: 'KPISoftware',
         name: 'KPI Software',
         width: 100,
+        minWidth: 80,
         cssClass: 'text-right',
-        sortable: true
+        sortable: true,
+        resizable: true
       }
     ];
 
@@ -815,9 +827,37 @@ export class KPIEvaluationEmployeeComponent implements OnInit, AfterViewInit, On
       enableCellNavigation: true,
       enableSorting: true,
       enablePagination: false,
-      forceFitColumns: true,
+      forceFitColumns: false,
+      autoFitColumnsOnFirstLoad: false,
+      enableAutoSizeColumns: false,
       headerRowHeight: 60
     };
+  }
+  // Helper function to auto-fill last column to remaining width
+  private autoFillLastColumn(angularGrid: any): void {
+    setTimeout(() => {
+      if (angularGrid?.slickGrid) {
+        const grid = angularGrid.slickGrid;
+        const columns = grid.getColumns();
+        const gridWidth = grid.getGridPosition()?.width || 0;
+
+        // Calculate total width of all columns except the last one
+        let totalFixedWidth = 0;
+        for (let i = 0; i < columns.length - 1; i++) {
+          totalFixedWidth += columns[i].width || 0;
+        }
+
+        // Set last column width to fill remaining space
+        const lastColumn = columns[columns.length - 1];
+        const remainingWidth = gridWidth - totalFixedWidth - 20; // 20px for scrollbar
+        if (remainingWidth > (lastColumn.minWidth || 100)) {
+          lastColumn.width = remainingWidth;
+          grid.setColumns(columns);
+        }
+
+        angularGrid.resizerService?.resizeGrid();
+      }
+    }, 200);
   }
 
   // Grid ready handlers
@@ -831,26 +871,32 @@ export class KPIEvaluationEmployeeComponent implements OnInit, AfterViewInit, On
 
   onEvaluationGridReady(angularGrid: any): void {
     this.angularGridEvaluation = angularGrid.detail ?? angularGrid;
+    this.autoFillLastColumn(this.angularGridEvaluation);
   }
 
   onEvaluation2GridReady(angularGrid: any): void {
     this.angularGridEvaluation2 = angularGrid.detail ?? angularGrid;
+    this.autoFillLastColumn(this.angularGridEvaluation2);
   }
 
   onEvaluation4GridReady(angularGrid: any): void {
     this.angularGridEvaluation4 = angularGrid.detail ?? angularGrid;
+    this.autoFillLastColumn(this.angularGridEvaluation4);
   }
 
   onMasterGridReady(angularGrid: any): void {
     this.angularGridMaster = angularGrid.detail ?? angularGrid;
+    this.autoFillLastColumn(this.angularGridMaster);
   }
 
   onRuleGridReady(angularGrid: any): void {
     this.angularGridRule = angularGrid.detail ?? angularGrid;
+    this.autoFillLastColumn(this.angularGridRule);
   }
 
   onTeamGridReady(angularGrid: any): void {
     this.angularGridTeam = angularGrid.detail ?? angularGrid;
+    this.autoFillLastColumn(this.angularGridTeam);
   }
 
   // Selection handlers
@@ -1038,6 +1084,10 @@ export class KPIEvaluationEmployeeComponent implements OnInit, AfterViewInit, On
     // Resize all grids after panel size changes
     setTimeout(() => {
       this.resizeAllGrids();
+      // After resize, auto-fill last columns again
+      setTimeout(() => {
+        this.autoFillAllGridsLastColumn();
+      }, 100);
     }, 300); // Wait for animation to complete
   }
 
@@ -1047,6 +1097,10 @@ export class KPIEvaluationEmployeeComponent implements OnInit, AfterViewInit, On
     // Resize all grids after panel size changes
     setTimeout(() => {
       this.resizeAllGrids();
+      // After resize, auto-fill last columns again
+      setTimeout(() => {
+        this.autoFillAllGridsLastColumn();
+      }, 100);
     }, 300); // Wait for animation to complete
   }
 
@@ -1060,6 +1114,16 @@ export class KPIEvaluationEmployeeComponent implements OnInit, AfterViewInit, On
     this.angularGridMaster?.resizerService?.resizeGrid();
     this.angularGridRule?.resizerService?.resizeGrid();
     this.angularGridTeam?.resizerService?.resizeGrid();
+  }
+
+  // Helper to auto-fill last column for all grids
+  private autoFillAllGridsLastColumn(): void {
+    this.autoFillLastColumn(this.angularGridEvaluation);
+    this.autoFillLastColumn(this.angularGridEvaluation2);
+    this.autoFillLastColumn(this.angularGridEvaluation4);
+    this.autoFillLastColumn(this.angularGridMaster);
+    this.autoFillLastColumn(this.angularGridRule);
+    this.autoFillLastColumn(this.angularGridTeam);
   }
 
 
@@ -1191,7 +1255,7 @@ export class KPIEvaluationEmployeeComponent implements OnInit, AfterViewInit, On
     // Create observables for each tab
     const tabChung$ = this.kpiService.loadKPIChung(this.selectedExamID, this.isPublic, this.employeeID);
     const tabChuyenMon$ = this.kpiService.loadKPIChuyenMon(this.selectedExamID, this.isPublic, this.employeeID);
-    const tabRuleTeam$ = this.kpiService.loadKPIRuleAndTeam(this.selectedExamID, this.isPublic, this.employeeID);
+    const tabRuleTeam$ = this.kpiService.loadKPIRuleAndTeam(this.selectedExamID, this.isPublic, this.employeeID, this.selectedSessionID);
 
     // Load all in parallel
     forkJoin({

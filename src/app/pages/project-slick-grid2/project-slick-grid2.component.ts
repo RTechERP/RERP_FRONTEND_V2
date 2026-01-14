@@ -211,6 +211,17 @@ export class ProjectSlickGrid2Component implements OnInit, AfterViewInit, OnDest
     .toISO();
   //#endregion
 
+  // Helper function to escape HTML special characters for title attributes
+  private escapeHtml(text: string | null | undefined): string {
+    if (!text) return '';
+    return String(text)
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;')
+      .replace(/'/g, '&#39;');
+  }
+
   //#region Lifecycle hooks
   ngOnInit(): void {
     this.updateResponsiveState();
@@ -1044,9 +1055,10 @@ export class ProjectSlickGrid2Component implements OnInit, AfterViewInit, OnDest
         },
         formatter: (_row: any, _cell: any, value: any, _column: any, dataContext: any) => {
           if (!value) return '';
+          const escaped = this.escapeHtml(dataContext.Code);
           return `
             <span
-              title="${dataContext.Code}"
+              title="${escaped}"
               style="display:block; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;"
             >
               ${value}
@@ -1075,9 +1087,10 @@ export class ProjectSlickGrid2Component implements OnInit, AfterViewInit, OnDest
         },
         formatter: (_row: any, _cell: any, value: any, _column: any, dataContext: any) => {
           if (!value) return '';
+          const escaped = this.escapeHtml(dataContext.StatusText);
           return `
             <span
-              title="${dataContext.StatusText}"
+              title="${escaped}"
               style="display:block; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;"
             >
               ${value}
@@ -1122,9 +1135,10 @@ export class ProjectSlickGrid2Component implements OnInit, AfterViewInit, OnDest
         },
         formatter: (_row: any, _cell: any, value: any, _column: any, dataContext: any) => {
           if (!value) return '';
+          const escaped = this.escapeHtml(dataContext.FullName);
           return `
             <span
-              title="${dataContext.FullName}"
+              title="${escaped}"
               style="display:block; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;"
             >
               ${value}
@@ -1164,9 +1178,10 @@ export class ProjectSlickGrid2Component implements OnInit, AfterViewInit, OnDest
         cssClass: 'cell-wrap',
         formatter: (_row: any, _cell: any, value: any, _column: any, dataContext: any) => {
           if (!value) return '';
+          const escaped = this.escapeHtml(dataContext.Mission);
           return `
             <span
-              title="${dataContext.Mission}"
+              title="${escaped}"
               style="display:block; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;"
             >
               ${value}

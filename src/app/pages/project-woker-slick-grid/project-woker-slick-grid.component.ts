@@ -376,8 +376,8 @@ export class ProjectWokerSlickGridComponent implements OnInit, AfterViewInit, On
 
     this.projectWorkerColumns = [
       {
-        id: 'TT', field: 'TT', name: 'TT', width: 80, formatter: Formatters.tree,
-        sortable: true, filterable: true, filter: { model: Filters['compoundInputText'] },
+        id: 'TT', field: 'TT', name: 'TT', width: 60, formatter: Formatters.tree,
+        sortable: true, filterable: true,
         sortComparer: naturalSortComparer
       },
       {
@@ -415,42 +415,30 @@ export class ProjectWokerSlickGridComponent implements OnInit, AfterViewInit, On
       },
       {
         id: 'WorkContent', field: 'WorkContent', name: 'Nội dung công việc', width: 500,
-        filterable: true, filter: { model: Filters['compoundInputText'], },
-        formatter: (_row: any, _cell: any, value: any, _column: any, dataContext: any) => {
+        filterable: true,
+        cssClass: 'cell-wrap',
+        formatter: (_row, _cell, value) => {
           if (!value) return '';
-          return `
-            <span
-              title="${dataContext.WorkContent}"
-              style="display:block; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;"
-            >
-              ${value}
-            </span>
-          `;
-        },
-        customTooltip: {
-          useRegularTooltip: true,
-          // useRegularTooltipFromCellTextOnly: true,
+          return `<div class="wrap-text">${value}</div>`;
         },
       },
       {
-        id: 'AmountPeople', field: 'AmountPeople', name: 'Số người', width: 70,
+        id: 'AmountPeople', field: 'AmountPeople', name: 'Số người', width: 50,
         cssClass: 'text-center',
         filterable: true,
-        filter: { model: Filters['compoundInputNumber'] },
+
         formatter: (row, cell, value, col, dataContext) => dataContext.__hasChildren ? '' : (value ?? ''),
       },
       {
-        id: 'NumberOfDay', field: 'NumberOfDay', name: 'Số ngày', width: 70,
+        id: 'NumberOfDay', field: 'NumberOfDay', name: 'Số ngày', width: 50,
         cssClass: 'text-center',
         filterable: true,
-        filter: { model: Filters['compoundInputNumber'] },
         formatter: (row, cell, value, col, dataContext) => dataContext.__hasChildren ? '' : (value ?? ''),
       },
       {
-        id: 'TotalWorkforce', field: 'TotalWorkforce', name: 'Tổng nhân công', width: 110,
+        id: 'TotalWorkforce', field: 'TotalWorkforce', name: 'Tổng nhân công', width: 70,
         cssClass: 'text-right', formatter: moneyFormatter,
         filterable: true,
-        filter: { model: Filters['compoundInputNumber'] },
       },
       {
         id: 'Price', field: 'Price', name: 'Đơn giá', width: 100,
@@ -460,13 +448,11 @@ export class ProjectWokerSlickGridComponent implements OnInit, AfterViewInit, On
           return value ? Number(value).toLocaleString('vi-VN') : '';
         },
         filterable: true,
-        filter: { model: Filters['compoundInputNumber'] },
       },
       {
         id: 'TotalPrice', field: 'TotalPrice', name: 'Thành tiền',
         cssClass: 'text-right', formatter: moneyFormatter,
         filterable: true,
-        filter: { model: Filters['compoundInputNumber'] },
         resizable: true,   // tự động fill độ rộng khi resize màn hình
       },
     ];
@@ -492,15 +478,16 @@ export class ProjectWokerSlickGridComponent implements OnInit, AfterViewInit, On
       enableFiltering: true,
       showHeaderRow: true,
       headerRowHeight: 35,
-      //rowHeight: 35,
+      rowHeight: 40,
       enablePagination: false,
       autoFitColumnsOnFirstLoad: true,
       enableAutoSizeColumns: true,
-      forceFitColumns: true,
+      forceFitColumns: false,
       fullWidthRows: true,
       syncColumnCellResize: true,
-      explicitInitialization: false,
+      //explicitInitialization: false,
       enableTreeData: true,
+      explicitInitialization: true,
       treeDataOptions: {
         columnId: 'TT',
         parentPropName: 'ParentID',

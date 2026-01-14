@@ -59,7 +59,7 @@ export class WorkplanService {
         let httpParams = new HttpParams()
             .set('dateStart', params.dateStart)
             .set('dateEnd', params.dateEnd);
-        
+
         if (params.departmentID) httpParams = httpParams.set('departmentID', params.departmentID.toString());
         if (params.teamID) httpParams = httpParams.set('teamID', params.teamID.toString());
         if (params.userID) httpParams = httpParams.set('userID', params.userID.toString());
@@ -76,6 +76,10 @@ export class WorkplanService {
     // Lấy danh sách team theo phòng ban
     getTeamsByDepartment(departmentId: number): Observable<any> {
         return this.http.get<any>(`${environment.host}api/team/by-department/${departmentId}`);
+    }
+
+    getTeamByDepartmentId(departmentID: number): Observable<any> {
+        return this.http.get(this.url + '/get-team-by-department-id?departmentID=' + departmentID);
     }
 
     // Lấy danh sách nhân viên theo team

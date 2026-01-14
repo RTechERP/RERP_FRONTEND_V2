@@ -158,7 +158,8 @@ export class EconomicContractComponent implements OnInit {
     this.economicContractService.getEconomicContractTypes().subscribe({
       next: (res) => {
         if (res?.status === 1) {
-          this.contractTypes = [{ ID: 0, TypeName: 'Tất cả' }, ...(res.data || [])];
+          const data = res.data?.data || [];
+          this.contractTypes = [{ ID: 0, TypeName: 'Tất cả' }, ...data];
         }
       }
     });

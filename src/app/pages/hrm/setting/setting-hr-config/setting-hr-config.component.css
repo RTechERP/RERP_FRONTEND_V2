@@ -83,3 +83,12 @@
         gap: 8px;
     }
 }
+
+/* Menubar full width */
+:host ::ng-deep p-menubar {
+    width: 100%;
+}
+
+:host ::ng-deep p-menubar .p-menubar {
+    width: 100%;
+}

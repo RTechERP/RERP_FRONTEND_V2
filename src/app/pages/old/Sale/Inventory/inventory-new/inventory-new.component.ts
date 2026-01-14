@@ -36,7 +36,7 @@ import {
     OnSelectedRowsChangedEventArgs,
     MenuCommandItemCallbackArgs
 } from 'angular-slickgrid';
-import * as ExcelJS from 'exceljs';
+import { ExcelExportService } from '@slickgrid-universal/excel-export';
 import { Subscription } from 'rxjs';
 
 import { ProductsaleServiceService } from '../../ProductSale/product-sale-service/product-sale-service.service';
@@ -112,6 +112,9 @@ export class InventoryNewComponent implements OnInit, AfterViewInit, OnDestroy {
     // Loading states
     isLoadingProductGroup: boolean = false;
     isLoadingInventory: boolean = false;
+
+    // Excel Export Service
+    excelExportService = new ExcelExportService();
 
     // Search parameters
     searchParam = {
@@ -701,6 +704,14 @@ export class InventoryNewComponent implements OnInit, AfterViewInit, OnDestroy {
             createFooterRow: true,
             showFooterRow: true,
             footerRowHeight: 28,
+
+            // Excel export configuration
+            enableExcelExport: true,
+            externalResources: [this.excelExportService],
+            excelExportOptions: {
+                sanitizeDataExport: true,
+                exportWithFormatter: true,
+            },
         };
     }
 
@@ -816,7 +827,7 @@ export class InventoryNewComponent implements OnInit, AfterViewInit, OnDestroy {
                         // Map data với id unique cho SlickGrid
                         const mappedData = this.dataProductGroup.map((item: any, index: number) => ({
                             ...item,
-                            id: item.ID || `pg_${index}_${Date.now()}`,
+                            id: item.ID,
                         }));
 
                         this.datasetProductGroup = mappedData;
@@ -861,7 +872,7 @@ export class InventoryNewComponent implements OnInit, AfterViewInit, OnDestroy {
                     // Map data với id unique cho SlickGrid
                     const mappedData = this.dataPGWareHouse.map((item: any, index: number) => ({
                         ...item,
-                        id: item.ID || `pgwh_${index}_${Date.now()}`,
+                        id: item.ID,
                     }));
 
                     this.datasetPGWarehouse = mappedData;
@@ -900,7 +911,7 @@ export class InventoryNewComponent implements OnInit, AfterViewInit, OnDestroy {
                         // Map data với id unique cho SlickGrid
                         const mappedData = this.dataInventory.map((item: any, index: number) => ({
                             ...item,
-                            id: item.ProductSaleID || `inv_${index}_${Date.now()}`,
+                            id: item.ID ,
                         }));
 
                         this.datasetInventory = mappedData;
@@ -1311,7 +1322,7 @@ export class InventoryNewComponent implements OnInit, AfterViewInit, OnDestroy {
 
     //#region Export Excel
 
-    async exportExcel() {
+    exportExcel() {
         const today = new Date();
         const formattedDatee = `${today.getDate().toString().padStart(2, '0')}${(
             today.getMonth() + 1
@@ -1319,8 +1330,7 @@ export class InventoryNewComponent implements OnInit, AfterViewInit, OnDestroy {
             .toString()
             .padStart(2, '0')}${today.getFullYear().toString().slice(-2)}`;
 
-        const data = this.datasetInventory;
-        if (!data || data.length === 0) {
+        if (!this.angularGridInventory || !this.datasetInventory || this.datasetInventory.length === 0) {
             this.notification.warning(
                 NOTIFICATION_TITLE.warning,
                 'Không có dữ liệu xuất excel!'
@@ -1328,78 +1338,22 @@ export class InventoryNewComponent implements OnInit, AfterViewInit, OnDestroy {
             return;
         }
 
-        const workbook = new ExcelJS.Workbook();
-        const worksheet = workbook.addWorksheet(`DanhSachTonKhoHN_${formattedDatee}`);
-
-        // Get headers from column definitions
-        const headers = ['STT', ...this.columnDefinitionsInventory.map((col) => col.name)];
-        worksheet.addRow(headers);
-
-        // Add data rows
-        data.forEach((row: any, index: number) => {
-            const rowData = [
-                index + 1,
-                ...this.columnDefinitionsInventory.map((col) => {
-                    const field = col.field;
-                    let value = row[field];
-
-                    if (typeof value === 'string' && /^\d{4}-\d{2}-\d{2}T/.test(value)) {
-                        value = new Date(value);
-                    }
-                    if (field === 'IsFix') {
-                        value = value === true ? '✓' : '';
-                    }
-
-                    return value;
-                }),
-            ];
-
-            worksheet.addRow(rowData);
-        });
-
-        worksheet.views = [{ state: 'frozen', ySplit: 1 }];
-
-        // Format date columns
-        worksheet.eachRow((row, rowNumber) => {
-            if (rowNumber === 1) return;
-            row.eachCell((cell) => {
-                if (cell.value instanceof Date) {
-                    cell.numFmt = 'dd/mm/yyyy';
-                }
+        try {
+            this.excelExportService.exportToExcel({
+                filename: `DanhSachTonKhoHN_${formattedDatee}`,
+                format: 'xlsx',
             });
-        });
-
-        // Auto-adjust column widths
-        worksheet.columns.forEach((column: any) => {
-            let maxLength = 10;
-            column.eachCell({ includeEmpty: true }, (cell: any) => {
-                const cellValue = cell.value ? cell.value.toString() : '';
-                maxLength = Math.min(Math.max(maxLength, cellValue.length + 2), 50);
-                cell.alignment = { wrapText: true, vertical: 'middle' };
-            });
-            column.width = Math.min(maxLength, 30);
-        });
-
-        // Add auto filter
-        worksheet.autoFilter = {
-            from: { row: 1, column: 1 },
-            to: { row: 1, column: headers.length },
-        };
-
-        // Export file
-        const buffer = await workbook.xlsx.writeBuffer();
-        const blob = new Blob([buffer], {
-            type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
-        });
-
-        const link = document.createElement('a');
-        link.href = window.URL.createObjectURL(blob);
-        link.download = `DanhSachTonKhoHn_${formattedDatee}.xlsx`;
-
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
-        window.URL.revokeObjectURL(link.href);
+            this.notification.success(
+                NOTIFICATION_TITLE.success,
+                'Xuất file Excel thành công!'
+            );
+        } catch (error) {
+            console.error('Lỗi khi xuất Excel:', error);
+            this.notification.error(
+                NOTIFICATION_TITLE.error,
+                'Có lỗi xảy ra khi xuất file Excel'
+            );
+        }
     }
 
     //#endregion

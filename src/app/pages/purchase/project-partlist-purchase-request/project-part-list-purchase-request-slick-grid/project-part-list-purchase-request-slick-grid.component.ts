@@ -701,7 +701,6 @@ export class ProjectPartListPurchaseRequestSlickGridComponent
 
     // Khi isFromMarketing = true, chỉ hiển thị nút xóa
     if (this.isFromMarketing) {
-      if (this.permissionService.hasPermission('N35,N1')) {
         this.menuItems = [
           {
             label: 'Hủy Y/c',
@@ -709,13 +708,13 @@ export class ProjectPartListPurchaseRequestSlickGridComponent
             command: () => this.onDeleteRequest(this.activeTabIndex),
           },
         ];
-      }
+
       return;
     }
 
     // Khi listRequestBuySelect = true, chỉ hiển thị nút xóa
     if (this.listRequestBuySelect && !this.isYCMH) {
-      if (this.permissionService.hasPermission('N35,N1')) {
+
         this.menuItems = [
           {
             label: 'Hủy Y/c',
@@ -723,7 +722,7 @@ export class ProjectPartListPurchaseRequestSlickGridComponent
             command: () => this.onDeleteRequest(this.activeTabIndex),
           },
         ];
-      }
+
       return;
     }
 
@@ -3801,9 +3800,9 @@ export class ProjectPartListPurchaseRequestSlickGridComponent
       IsDeleted: this.isDeletedFilter,
       IsTechBought: -1,
       IsJobRequirement: -1,
-      IsRequestApproved: this.isApprovedBGD ? 1 : 0,
+      IsRequestApproved: this.isApprovedBGD ? 1 : -1,
       Page: 1,
-      Size: 5000,
+      Size: 100000,
     };
 
     const sub = this.srv.getAll(filter).subscribe({

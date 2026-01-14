@@ -169,6 +169,7 @@ import { HistoryApprovedBillLogComponent } from '../../../old/KETOAN/history-app
 import { InventoryByDateComponent } from '../../../old/KETOAN/inventory-by-date/inventory-by-date.component';
 import { AccountingContractTypeMasterComponent } from '../../../old/KETOAN/accounting-contract-type-master/accounting-contract-type-master.component';
 import { AccountingContractComponent } from '../../../old/KETOAN/accounting-contract/accounting-contract.component';
+import { MenuAppService } from '../../menu-app/menu-app.service';
 
 @Injectable({
     providedIn: 'root',
@@ -180,7 +181,8 @@ export class MenuService {
         private http: HttpClient,
         private permissionService: PermissionService,
         private appUserService: AppUserService,
-        private notification: NzNotificationService
+        private notification: NzNotificationService,
+        public menuAppService: MenuAppService,
     ) { }
 
     private menuKeySource = new BehaviorSubject<string>('');
@@ -3638,48 +3640,101 @@ export class MenuService {
         return menus;
     }
 
-    // goToOldLink(router: string, param: any) {
-    //     let data: any = {
-    //         UserName: this.appUserService.loginName,
-    //         Password: this.appUserService.password,
-    //         Router: router,
-    //     };
-    //     // console.log('window.location:', window.location);
-
-    //     let params = new URLSearchParams(param).toString();
-
-    //     let urlTo = `http://localhost:19028${router}`;
-    //     if (params) urlTo = `${urlTo}?${params}`;
-    //     let urlLogin = 'http://localhost:19028/Home/LoginNew';
-
-    //     const urlOld = 'http://113.190.234.64:8081';
-    //     if (window.location.hostname != 'localhost') {
-    //         urlTo =
-    //             window.location.origin.replace(window.location.port, '8081') + router;
-    //         urlLogin =
-    //             window.location.origin.replace(window.location.port, '8081') +
-    //             '/Home/LoginNew';
-    //     }
-
-    //     // console.log('url redirect to:', urlTo);
-    //     // console.log('url login:', urlLogin);
-
-    //     return this.http
-    //         .post<any>(urlLogin, data, { withCredentials: true })
-    //         .subscribe({
-    //             next: (response) => {
-    //                 window.open(urlTo, '_blank');
-    //             },
-    //             error: (err) => {
-    //                 // console.log('err:', err);
-    //                 this.notification.error(NOTIFICATION_TITLE.error, err.message);
-    //             },
-    //         });
-    // }
 
     setMenuKey(value: string) {
         // console.log(value);
         this.menuKeySource.next(value);
+    }
+
+
+    getCompMenus(): MenuItem[] {
+        let menus: MenuItem[] = [];
+        this.menuAppService.getAll().subscribe({
+            next: (response) => {
+
+                // console.log(response);
+
+                const map = new Map<number, any>();
+                // this.nodes = [];
+                // Tạo map trước
+                response.data.menus.forEach((item: any) => {
+                    const menuItem = {
+                        id: item.ID,
+                        stt: item.STT,
+                        key: item.Code,
+                        title: item.Title,
+                        router: item.Router == '' ? '#' : `${item.Router}`,
+                        icon: `${environment.host}api/share/software/icon/${item.Icon}`,
+                        isPermission: item.IsPermission,
+                        ParentID: item.ParentID,
+                        children: [],
+                        isOpen: item.ParentID > 0,
+                        queryParams: (item.QueryParam || ''),
+                    };
+
+                    // Log để debug queryParams từ database
+                    if (item.QueryParam && item.QueryParam !== '') {
+                        // console.log(`Menu item [${item.Code}] - QueryParam from DB:`, item.QueryParam, 'Type:', typeof item.QueryParam);
+                    }
+
+                    map.set(item.ID, menuItem);
+                });
+
+                // Gắn cha – con
+                response.data.menus.forEach((item: any) => {
+                    const node = map.get(item.ID);
+
+                    if (item.ParentID && map.has(item.ParentID)) {
+                        const parent = map.get(item.ParentID);
+                        parent.children.push(node);
+                    } else {
+                        menus.push(node);
+                    }
+                });
+
+                // console.log(this.menus);
+
+                menus = this.menuAppService.sortBySTTImmutable(menus, i => i.STT ?? i.stt ?? 0);
+
+                // console.log('response.data.menus:', this.router.url.split('?')[0]);
+
+                // const router = this.router.url.split('?')[0].replace('/', '');
+                // this.rootMenuKey = this.findRootKeyByRouter(this.menus, router) || '';
+                // if (this.rootMenuKey) {
+                //     this.menus.forEach(item => {
+                //         item.isOpen = item.key === this.rootMenuKey
+                //     });
+                // }
+
+                // Sau khi menus đã load, check current route và tự động tạo tab nếu cần
+                // (khi paste URL trực tiếp)
+                // setTimeout(() => {
+                //     this.checkAndCreateTabFromCurrentRoute();
+                // }, 0);
+
+                // Subscribe vào router events để tự động tạo tab khi navigate trực tiếp
+                // if (!this.routerSubscription) {
+                //     this.routerSubscription = this.router.events
+                //         .pipe(filter(event => event instanceof NavigationEnd))
+                //         .subscribe((event: any) => {
+                //             if (event instanceof NavigationEnd) {
+                //                 // Delay một chút để đảm bảo menus đã load
+                //                 setTimeout(() => {
+                //                     this.handleDirectNavigation(event.url);
+                //                 }, 100);
+                //             }
+                //         });
+                // }
+
+
+            },
+            error: (err) => {
+                this.notification.error(NOTIFICATION_TITLE.error, err?.error?.message || err?.message);
+            },
+        })
+
+
+        return menus;
     }
 }
 type BaseItem = {

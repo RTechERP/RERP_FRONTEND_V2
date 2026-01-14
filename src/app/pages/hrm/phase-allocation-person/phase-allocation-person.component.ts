@@ -256,12 +256,13 @@ export class PhaseAllocationPersonComponent
         { title: 'ID', field: 'ID', visible: false },
         {
           title: 'STT',
-          field: 'STT',
-          hozAlign: 'right',
+          formatter: 'rownum',
+          hozAlign: 'center',
           headerHozAlign: 'center',
           width: 70,
           sorter: 'number',
           bottomCalc: 'count',
+
         },
         {
           title: 'Mã cấp phát',
@@ -269,15 +270,18 @@ export class PhaseAllocationPersonComponent
           hozAlign: 'left',
           headerHozAlign: 'center',
           formatter: 'textarea',
+          headerFilter: 'input',
+          headerFilterPlaceholder: 'Tìm mã cấp phát...',
 
         },
         {
-          title: 'Nội dung cấp phát',
+          title: 'Nội dung ',
           field: 'ContentAllocation',
           hozAlign: 'left',
           headerHozAlign: 'center',
           formatter: 'textarea',
-
+          headerFilter: 'input',
+          headerFilterPlaceholder: 'Tìm nội dung cấp phát...',
         },
         {
           title: 'Loại',
@@ -306,8 +310,8 @@ export class PhaseAllocationPersonComponent
           hozAlign: 'center',
           headerHozAlign: 'center',
           formatter: 'textarea',
-          headerFilter: 'input',
-          headerFilterPlaceholder: 'Tìm trạng thái...',
+
+
         },
       ],
     });

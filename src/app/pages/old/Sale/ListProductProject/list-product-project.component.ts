@@ -11,21 +11,17 @@ import {
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute } from '@angular/router';
-import { Subscription, firstValueFrom } from 'rxjs';
-import { DateTime } from 'luxon';
+import { Subscription } from 'rxjs';
 
 import {
   AngularGridInstance,
   AngularSlickgridModule,
   Column,
-  FieldType,
   Filters,
-  Formatter,
-  Formatters,
   GridOption,
   MultipleSelectOption,
-  OnSelectedRowsChangedEventArgs,
 } from 'angular-slickgrid';
+import { ExcelExportService } from '@slickgrid-universal/excel-export';
 
 // ng-zorro
 import { NzButtonModule } from 'ng-zorro-antd/button';
@@ -54,6 +50,7 @@ import { NOTIFICATION_TITLE } from '../../../../app.config';
 import { MenuItem } from 'primeng/api';
 import { Menubar } from 'primeng/menubar';
 import { ListProductProjectService } from './list-product-project-service/list-product-project.service';
+import { ClipboardService } from '../../../../services/clipboard.service';
 
 @Component({
   selector: 'app-list-product-project',
@@ -83,7 +80,8 @@ export class ListProductProjectComponent implements OnInit, AfterViewInit, OnDes
     private notification: NzNotificationService,
     private modal: NzModalService,
     private modalService: NgbModal,
-    private route: ActivatedRoute
+    private route: ActivatedRoute,
+    private clipboardService: ClipboardService
   ) {}
 
   listProductMenu: MenuItem[] = [];
@@ -106,6 +104,9 @@ export class ListProductProjectComponent implements OnInit, AfterViewInit, OnDes
 
   dataset: any[] = [];
 
+  // Excel Export Service
+  excelExportService = new ExcelExportService();
+
   private queryParamsSub?: Subscription;
 
   ngOnInit(): void {
@@ -115,7 +116,7 @@ export class ListProductProjectComponent implements OnInit, AfterViewInit, OnDes
       this.warehouseCode = params['warehouseCode'] || 'HN';
       this.sreachParam.WareHouseCode = this.warehouseCode;
     });
-    
+
     this.loadMenu();
     this.getProject();
     this.initAngularGrid();
@@ -127,7 +128,7 @@ export class ListProductProjectComponent implements OnInit, AfterViewInit, OnDes
     if (this.queryParamsSub) {
       this.queryParamsSub.unsubscribe();
     }
-    
+
     // Cleanup SlickGrid
     if (this.angularGrid) {
       try {
@@ -466,6 +467,7 @@ export class ListProductProjectComponent implements OnInit, AfterViewInit, OnDes
             addBlankEntry: true,
           },
         },
+        excelExportOptions: { width: 15 },
       },
       {
         id: 'ProductCode',
@@ -484,6 +486,7 @@ export class ListProductProjectComponent implements OnInit, AfterViewInit, OnDes
             addBlankEntry: true,
           },
         },
+        excelExportOptions: { width: 18 },
       },
       {
         id: 'ProductNewCode',
@@ -502,6 +505,19 @@ export class ListProductProjectComponent implements OnInit, AfterViewInit, OnDes
             addBlankEntry: true,
           },
         },
+        excelExportOptions: { width: 15 },
+      },
+      {
+        id: 'ProductName',
+        field: 'ProductName',
+        name: 'Tên sản phẩm',
+        width: 200,
+        sortable: true,
+        filterable: true,
+        filter: {
+          model: Filters['compoundInput'],
+        },
+        excelExportOptions: { width: 40 },
       },
       {
         id: 'NumberInStoreDauky',
@@ -515,6 +531,7 @@ export class ListProductProjectComponent implements OnInit, AfterViewInit, OnDes
           model: Filters['compoundInputNumber'],
         },
         type: 'number',
+        excelExportOptions: { width: 12 },
       },
       {
         id: 'Import',
@@ -528,6 +545,7 @@ export class ListProductProjectComponent implements OnInit, AfterViewInit, OnDes
           model: Filters['compoundInputNumber'],
         },
         type: 'number',
+        excelExportOptions: { width: 12 },
       },
       {
         id: 'Export',
@@ -541,6 +559,7 @@ export class ListProductProjectComponent implements OnInit, AfterViewInit, OnDes
           model: Filters['compoundInputNumber'],
         },
         type: 'number',
+        excelExportOptions: { width: 12 },
       },
       {
         id: 'QuantityImportExport',
@@ -554,6 +573,7 @@ export class ListProductProjectComponent implements OnInit, AfterViewInit, OnDes
           model: Filters['compoundInputNumber'],
         },
         type: 'number',
+        excelExportOptions: { width: 12 },
       },
       {
         id: 'NumberInStoreCuoiKy',
@@ -567,6 +587,7 @@ export class ListProductProjectComponent implements OnInit, AfterViewInit, OnDes
           model: Filters['compoundInputNumber'],
         },
         type: 'number',
+        excelExportOptions: { width: 12 },
       },
     ];
 
@@ -591,14 +612,48 @@ export class ListProductProjectComponent implements OnInit, AfterViewInit, OnDes
       enableCheckboxSelector: true,
       enableCellNavigation: true,
       enableFiltering: true,
+      enableCellMenu: true,
+      cellMenu: {
+        commandItems: [
+          {
+            command: 'copy',
+            title: 'Sao chép (Copy)',
+            iconCssClass: 'fa fa-copy',
+            positionOrder: 1,
+            action: (_e, args) => {
+              this.clipboardService.copy(args.value);
+            },
+          },
+        ],
+      },
       autoFitColumnsOnFirstLoad: true,
       enableAutoSizeColumns: true,
       forceFitColumns: true,
       enableHeaderMenu: false,
       enableExcelExport: true,
+      externalResources: [this.excelExportService],
       excelExportOptions: {
         sanitizeDataExport: true,
         exportWithFormatter: true,
+        addGroupIndentation: true,
+        groupingColumnHeaderTitle: '',
+        columnHeaderStyle: {
+          font: { bold: true, color: 'FFFFFFFF' },
+          fill: { type: 'pattern', patternType: 'solid', fgColor: 'FF4D94FF' },
+        },
+        customExcelHeader: (workbook: any, sheet: any) => {
+          const titleFormat = workbook.getStyleSheet().createFormat({
+            font: { size: 16, fontName: 'Calibri', bold: true, color: 'FFFFFFFF' },
+            alignment: { wrapText: true, horizontal: 'center', vertical: 'center' },
+            fill: { type: 'pattern', patternType: 'solid', fgColor: 'FF1F497D' },
+          });
+          sheet.setRowInstructions(0, { height: 35 });
+          const customTitle = `DANH SÁCH SẢN PHẨM THEO DỰ ÁN - ${this.sreachParam.selectedProject?.ProjectCode || 'Tất cả'}`;
+          sheet.mergeCells('A1', 'J1');
+          sheet.data.push([
+            { value: customTitle, metadata: { style: titleFormat.id } },
+          ]);
+        },
       },
       formatterOptions: {
         decimalSeparator: '.',
@@ -621,260 +676,28 @@ export class ListProductProjectComponent implements OnInit, AfterViewInit, OnDes
     };
   }
 
-  async exportExcel() {
+  exportExcel() {
     if (!this.angularGrid || !this.angularGrid.dataView) {
       this.notification.warning('Thông báo', 'Chưa có dữ liệu để xuất!');
       return;
     }
 
-    const dataView = this.angularGrid.dataView;
-    const slickGrid = this.angularGrid.slickGrid;
-    const filteredItems = (dataView.getFilteredItems?.() as any[]) || [];
+    const filteredItems = (this.angularGrid.dataView.getFilteredItems?.() as any[]) || [];
 
     if (!filteredItems || filteredItems.length === 0) {
       this.notification.info('Thông báo', 'Không có dữ liệu để xuất Excel.');
       return;
     }
 
-    this.isLoading = true;
     try {
-      const ExcelJS = await import('exceljs');
-      const workbook = new (ExcelJS as any).Workbook();
-      const worksheet = workbook.addWorksheet('Danh sách SP theo dự án');
-
-      // Lấy columns hiển thị
-      const runtimeColumns = (slickGrid?.getColumns?.() as any[]) || [];
-      const columns = runtimeColumns.filter(
-        (col: any) => col?.id !== '_checkbox_selector' && col?.hidden !== true
-      );
-
-      const headers = columns.map((col: any) => col?.name || col?.id);
-
-      // Header row
-      const headerRow = worksheet.addRow(headers);
-      headerRow.height = 25;
-      headerRow.eachCell((cell: any) => {
-        cell.fill = {
-          type: 'pattern',
-          pattern: 'solid',
-          fgColor: { argb: 'FF4D94FF' },
-        };
-        cell.font = {
-          name: 'Times New Roman',
-          size: 11,
-          bold: true,
-          color: { argb: 'FFFFFFFF' },
-        };
-        cell.alignment = {
-          horizontal: 'center',
-          vertical: 'middle',
-          wrapText: true,
-        };
-        cell.border = {
-          top: { style: 'thin' },
-          left: { style: 'thin' },
-          bottom: { style: 'thin' },
-          right: { style: 'thin' },
-        };
+      this.excelExportService.exportToExcel({
+        filename: `DanhSachSPTheoDuAn_${this.sreachParam.selectedProject?.ProjectCode || ''}`,
+        format: 'xlsx',
       });
-
-      // Lấy tất cả items bao gồm cả group headers
-      const totalRows = (dataView as any).getLength?.() ?? 0;
-      const dataRowsForFooter: any[] = []; // Lưu data rows để tính footer
-
-      for (let i = 0; i < totalRows; i++) {
-        const item = (dataView as any).getItem?.(i);
-        if (!item) continue;
-
-        // Kiểm tra nếu là group header
-        if (item.__group) {
-          const groupValue = item.value || 'Không xác định';
-          const groupCount = item.count || 0;
-
-          // Lấy ProjectFullName từ rows
-          const projectFullName = item.rows?.[0]?.ProjectFullName || groupValue;
-          const groupText = `Dự án: ${projectFullName} (${groupCount} SP)`;
-
-          const groupRow = worksheet.addRow([groupText]);
-          groupRow.font = {
-            name: 'Times New Roman',
-            size: 11,
-            bold: true,
-            color: { argb: 'FFED502F' },
-          };
-          groupRow.alignment = { horizontal: 'left', vertical: 'middle' };
-
-          // Merge cells cho group header
-          worksheet.mergeCells(
-            groupRow.number,
-            1,
-            groupRow.number,
-            headers.length
-          );
-
-          groupRow.eachCell((cell: any) => {
-            cell.border = {
-              top: { style: 'thin' },
-              left: { style: 'thin' },
-              bottom: { style: 'thin' },
-              right: { style: 'thin' },
-            };
-          });
-
-          continue;
-        }
-
-        // Bỏ qua group totals
-        if (item.__groupTotals) {
-          continue;
-        }
-
-        // Lưu data row để tính footer
-        dataRowsForFooter.push(item);
-
-        // Data row thông thường
-        const rowData = columns.map((col: any) => {
-          const field = col?.field;
-          const value = field ? item[field] : undefined;
-
-          // Format số cho các cột số
-          if (
-            [
-              'NumberInStoreDauky',
-              'Import',
-              'Export',
-              'QuantityImportExport',
-              'NumberInStoreCuoiKy',
-            ].includes(field)
-          ) {
-            return Number(value) || 0;
-          }
-
-          return value ?? '';
-        });
-
-        const dataRow = worksheet.addRow(rowData);
-        dataRow.eachCell((cell: any, colNumber: number) => {
-          cell.font = { name: 'Times New Roman', size: 11 };
-          cell.alignment = { vertical: 'middle', wrapText: true };
-          cell.border = {
-            top: { style: 'thin' },
-            left: { style: 'thin' },
-            bottom: { style: 'thin' },
-            right: { style: 'thin' },
-          };
-
-          // Căn phải cho cột số
-          const col = columns[colNumber - 1];
-          if (
-            col &&
-            [
-              'NumberInStoreDauky',
-              'Import',
-              'Export',
-              'QuantityImportExport',
-              'NumberInStoreCuoiKy',
-            ].includes(col.field)
-          ) {
-            cell.alignment = { horizontal: 'right', vertical: 'middle' };
-            cell.numFmt = '#,##0';
-          }
-        });
-      }
-
-      // Tính footer từ data rows đã export
-      const totals = dataRowsForFooter.reduce(
-        (acc, item) => {
-          acc.NumberInStoreDauky += item.NumberInStoreDauky || 0;
-          acc.Import += item.Import || 0;
-          acc.Export += item.Export || 0;
-          acc.QuantityImportExport += item.QuantityImportExport || 0;
-          acc.NumberInStoreCuoiKy += item.NumberInStoreCuoiKy || 0;
-          return acc;
-        },
-        {
-          NumberInStoreDauky: 0,
-          Import: 0,
-          Export: 0,
-          QuantityImportExport: 0,
-          NumberInStoreCuoiKy: 0,
-        }
-      );
-
-      const footerData = columns.map((col: any) => {
-        if (col.field === 'ProjectCode') {
-          return dataRowsForFooter.length;
-        } else if (totals[col.field] !== undefined) {
-          return totals[col.field];
-        }
-        return '';
-      });
-
-      const footerRow = worksheet.addRow(footerData);
-      footerRow.font = {
-        name: 'Times New Roman',
-        size: 11,
-        bold: true,
-      };
-      footerRow.eachCell((cell: any, colNumber: number) => {
-        cell.fill = {
-          type: 'pattern',
-          pattern: 'solid',
-          fgColor: { argb: 'FFFFEB3B' },
-        };
-        cell.border = {
-          top: { style: 'thin' },
-          left: { style: 'thin' },
-          bottom: { style: 'thin' },
-          right: { style: 'thin' },
-        };
-
-        const col = columns[colNumber - 1];
-        if (
-          col &&
-          [
-            'NumberInStoreDauky',
-            'Import',
-            'Export',
-            'QuantityImportExport',
-            'NumberInStoreCuoiKy',
-          ].includes(col.field)
-        ) {
-          cell.alignment = { horizontal: 'right', vertical: 'middle' };
-          cell.numFmt = '#,##0';
-        } else {
-          cell.alignment = { horizontal: 'center', vertical: 'middle' };
-        }
-      });
-
-      // Auto width
-      worksheet.columns.forEach((column: any, index: number) => {
-        const col = columns[index];
-        if (col) {
-          column.width = col.width ? col.width / 10 : 15;
-        }
-      });
-
-      // Export file
-      const buffer = await workbook.xlsx.writeBuffer();
-      const blob = new Blob([buffer], {
-        type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
-      });
-      const url = window.URL.createObjectURL(blob);
-      const link = document.createElement('a');
-      link.href = url;
-      link.download = `DanhSachSPTheoDuAn_${
-        this.sreachParam.selectedProject?.ProjectCode || ''
-      }.xlsx`;
-      link.click();
-      window.URL.revokeObjectURL(url);
-
       this.notification.success('Thành công', 'Xuất Excel thành công!');
     } catch (error) {
       console.error('Export error:', error);
       this.notification.error('Lỗi', 'Có lỗi khi xuất Excel!');
-    } finally {
-      this.isLoading = false;
     }
   }
 }

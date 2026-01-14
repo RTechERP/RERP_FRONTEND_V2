@@ -40,8 +40,8 @@
                     </button>
                   </label>
                   <nz-select nzShowSearch name="customerId" nzPlaceHolder="Chọn khách hàng" nzAllowClear
-                    nzSize="default" class="w-100" [(ngModel)]="selectedCustomer" required
-                    #customerId="ngModel" (ngModelChange)="onCustomerChange($event)">
+                    nzSize="default" class="w-100" [(ngModel)]="selectedCustomer" required #customerId="ngModel"
+                    (ngModelChange)="onCustomerChange($event)">
                     <nz-option *ngFor="let customer of dataCustomers" [nzValue]="customer"
                       [nzLabel]="customer.CustomerShortName + ' - ' + customer.CustomerName">
                     </nz-option>
@@ -82,7 +82,8 @@
                 <!-- Row 3 -->
                 <div class="col-md-4">
                   <label class="mb-1 fs-12">Dự án <span class="text-danger">*</span>
-                    <button class="p-0 m-0 px-1 fs-12 h-auto" nz-button nzType="text" nzSize="small" title="Thêm dự án">
+                    <button class="p-0 m-0 px-1 fs-12 h-auto" nz-button nzType="text" nzSize="small" title="Thêm dự án"
+                      (click)="openProjectDetailModal()">
                       <i class="fas fa-plus"></i>
                     </button>
                   </label>

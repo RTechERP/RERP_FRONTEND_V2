@@ -96,7 +96,7 @@
                             <nz-form-control [nzSpan]="24">
                                 <nz-select name="employeeId" class="w-100" nzShowSearch nzAllowClear nzSize="small"
                                     nzPlaceHolder="Nhân viên" [(ngModel)]="filters.employeeId" [nzDisabled]="isEmployeeIdDisabled">
-                                    <nz-option *ngFor="let item of employees" [nzValue]="item.ID"
+                                    <nz-option *ngFor="let item of employees" [nzValue]="item.UserID"
                                         [nzLabel]="item.Code + ' - ' + item.FullName"></nz-option>
                                 </nz-select>
                             </nz-form-control>

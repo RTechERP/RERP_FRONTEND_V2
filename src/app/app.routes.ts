@@ -235,6 +235,13 @@ import { ReportImportExportNewComponent } from './pages/old/Sale/ReportImportExp
 // import { ReportImportExportNewComponent } from './pages/old/Sale/ReportImportExport/report-import-export-new/report-import-export-new.component';
 // import { HistoryImportExportNewComponent } from './pages/old/Sale/HistoryImportExport/history-import-export-new/history-import-export-new.component';
 import { InventoryProjectNewComponent } from './pages/purchase/inventory-project/inventory-project-new/inventory-project-new.component';
+import { SettingHrConfigComponent } from './pages/hrm/setting/setting-hr-config/setting-hr-config.component';
+import { KpiErrorComponent } from './pages/old/Technical/kpi-error/kpi-error.component';
+import { KpiErrorEmployeeComponent } from './pages/old/Technical/kpi-error-employee/kpi-error-employee.component';
+import { KpiErrorEmployeeSummaryMaxComponent } from './pages/old/Technical/kpi-error-employee-summary-max/kpi-error-employee-summary-max.component';
+import { SummaryKpiErrorEmployeeMonthComponent } from './pages/old/Technical/summary-kpi-error-employee-month/summary-kpi-error-employee-month.component';
+import { SummaryKpiErrorEmployeeComponent } from './pages/old/Technical/summary-kpi-error-employee/summary-kpi-error-employee.component';
+import { DailyReportSaleSlickgridComponent } from './pages/old/KPISale/daily-report-sale-slickgrid/daily-report-sale-slickgrid.component';
 
 // import { CustomerSlickgridComponent } from './pages/crm/customers/customer-slickgrid/customer-slickgrid.component';
 export const routes: Routes = [
@@ -400,7 +407,7 @@ export const routes: Routes = [
             { path: 'follow-project-base', component: FollowProjectBaseComponent, canActivate: [authGuard] },
             { path: 'bonus-coefficient', component: BonusCoefficientComponent, canActivate: [authGuard] },
             { path: 'employee-sale-manager', component: EmployeeSaleManagerComponent, canActivate: [authGuard] },
-            { path: 'daily-report-sale', component: DailyReportSaleComponent, canActivate: [authGuard] },
+            { path: 'daily-report-sale', component: DailyReportSaleSlickgridComponent, canActivate: [authGuard] },
             { path: 'daily-report-sale-admin', component: DailyReportSaleAdminComponent, canActivate: [authGuard] },
             { path: 'request-invoice-old', component: RequestInvoiceComponent, canActivate: [authGuard] },
             { path: 'request-invoice', component: RequestInvoiceSlickgridComponent, canActivate: [authGuard] },
@@ -511,7 +518,7 @@ export const routes: Routes = [
             //Báo cáo công việc
             { path: 'daily-report-machine', component: DailyReportMachineComponent, canActivate: [authGuard] },
             { path: 'daily-report-sale-admin', component: DailyReportSaleAdminComponent, canActivate: [authGuard] },
-            { path: 'daily-report-sale', component: DailyReportSaleComponent, canActivate: [authGuard] },
+            { path: 'daily-report-sale', component: DailyReportSaleSlickgridComponent, canActivate: [authGuard] },
             { path: 'daily-report-tech', component: DailyReportTechComponent, canActivate: [authGuard] },
             { path: 'daily-report-thr', component: DailyReportThrComponent, canActivate: [authGuard] },
             { path: 'daily-report-lxcp', component: DailyReportLXCPComponent, canActivate: [authGuard] },
@@ -547,7 +554,7 @@ export const routes: Routes = [
             //KPI
             { path: 'bonus-coefficient-hn', component: BonusCoefficientComponent, canActivate: [authGuard] },
             { path: 'employee-sale-hn', component: EmployeeSaleManagerComponent, canActivate: [authGuard] },
-            { path: 'daily-report-sale-hn', component: DailyReportSaleComponent, canActivate: [authGuard] },
+            { path: 'daily-report-sale-hn', component: DailyReportSaleSlickgridComponent, canActivate: [authGuard] },
             { path: 'daily-report-saleadmin-hn', component: DailyReportSaleAdminComponent, canActivate: [authGuard] },
             { path: 'request-invoice-hn', component: RequestInvoiceSlickgridComponent, canActivate: [authGuard] },
 
@@ -993,6 +1000,7 @@ export const routes: Routes = [
             { path: 'kpi-error-employee', component: KpiErrorEmployeeComponent, canActivate: [authGuard] },
             { path: 'kpi-error-employee-summary-max', component: KpiErrorEmployeeSummaryMaxComponent, canActivate: [authGuard] },
             { path: 'summary-kpi-error-employee-month', component: SummaryKpiErrorEmployeeMonthComponent, canActivate: [authGuard] },
+            // { path: 'summary-kpi-error-employee', component: SummaryKpiErrorEmployeeComponent, canActivate: [authGuard] },
 
         ],
     },

@@ -60,6 +60,14 @@ type TabItem = {
     key: string;
     // outlet: string; // 👈 RẤT QUAN TRỌNG
 };
+
+type TabItemComp = {
+    title: string;
+    comp: Type<any>;
+    injector?: Injector;
+    data?: any; // Lưu data để so sánh unique key
+};
+
 // export type BaseItem = {
 //   key: string;
 //   title: string;
@@ -133,7 +141,7 @@ export class MainLayoutComponent implements OnInit, AfterViewInit, OnDestroy {
         private route: ActivatedRoute,
         // private tabService: TabServiceService
     ) {
-        // this.menus = this.menuService.getMenus();
+        this.menuComps = this.menuService.getMenus();
     }
     notificationComponent = AppNotifycationDropdownComponent;
     //#region Khai báo biến
@@ -142,8 +150,7 @@ export class MainLayoutComponent implements OnInit, AfterViewInit, OnDestroy {
     isDatcom = false;
     selectedIndex = 0;
     trackKey = (_: number, x: any) => x?.key ?? x?.title ?? _;
-    // isGroup = (m: MenuItem): m is GroupItem => m.kind === 'group';
-    // isLeaf = (m: MenuItem): m is LeafItem => m.kind === 'leaf';
+
     menus: any[] = [];
     dynamicTabs: TabItem[] = [];
     private isNavigatingFromNewTab = false; // Flag để biết navigation có phải từ newTab không
@@ -200,37 +207,27 @@ export class MainLayoutComponent implements OnInit, AfterViewInit, OnDestroy {
 
     rootMenuKey: string = '';
 
-    ngOnInit(): void {
-        // const saved = localStorage.getItem('openMenuKey') || '';
-        // console.log(this.menus);
-        // this.setOpenMenu(saved || null);
 
-        // this.isCollapsed = !this.isCollapsed;
+    menuComps: MenuItem[] = [];
+    dynamicTabComps: TabItemComp[] = [];
+    menuCompKey: string = '';
+    selectedCompIndex = 0;
+    isGroup = (m: MenuItem): m is GroupItem => m.kind === 'group';
+    isLeaf = (m: MenuItem): m is LeafItem => m.kind === 'leaf';
+
+    ngOnInit(): void {
         this.getMenus();
 
-        // console.log(' this.menuKey :', this.menuKey);
 
-        // this.menuService.menuKey$.subscribe((x) => {
-        //     this.menuKey = x;
-        //     console.log('menuKey$:', this.menuKey);
+        this.menuService.menuKey$.subscribe((x) => {
+            this.menuCompKey = x;
+        });
+        this.setOpenMenuComp(this.menuCompKey);
 
-        //     this.setOpenMenu(this.menuKey);
-        //     this.toggleMenu(this.menuKey);
-        // });
-        // console.log('menuKey ngOnInit:', this.menuKey);
-        // this.setOpenMenu(this.menuKey);
-        // this.toggleMenu(this.menuKey);
-
-        // Khôi phục các tabs đã mở từ localStorage
-        // this.restoreTabs();
-
-        // // Subscribe vào event mở tab từ các component con
-        // this.menuEventService.onOpenTab$.subscribe((tabData) => {
-        //     // this.newTab(tabData.comp, tabData.title, tabData.data);
-        // });
-
-        // Subscribe vào router events để tự động tạo tab khi paste URL trực tiếp
-        // Subscribe sau khi menus đã load (sẽ được setup trong getMenus)
+        // Subscribe vào event mở tab từ các component con
+        this.menuEventService.onOpenTab$.subscribe((tabData) => {
+            this.newTabComp(tabData.comp, tabData.title, tabData.data);
+        });
     }
 
     ngOnDestroy(): void {
@@ -238,6 +235,75 @@ export class MainLayoutComponent implements OnInit, AfterViewInit, OnDestroy {
             this.routerSubscription.unsubscribe();
         }
     }
+
+
+    newTabComp(comp: Type<any>, title: string, data?: any) {
+        // if (this.isMobile) {
+        //     this.isCollapsed = !this.isCollapsed;
+        // }
+
+        this.isCollapsed = true;
+
+        // Tạo unique key dựa trên component và data để phân biệt các tab cùng component nhưng khác data
+        const getTabKey = (tab: TabItemComp): string => {
+            const compName = tab.comp?.name || '';
+            const dataKey = tab.data ? JSON.stringify(tab.data) : '';
+            return `${compName}_${dataKey}`;
+        };
+
+        const currentTabKey = `${comp?.name || ''}_${data ? JSON.stringify(data) : ''}`;
+
+
+        // console.log('this.selectedCompIndex:', this.selectedCompIndex);
+
+        const injector = Injector.create({
+            providers: [{ provide: 'tabData', useValue: data }],
+            parent: this.injector,
+        });
+
+        this.dynamicTabComps = [...this.dynamicTabComps, { title, comp, injector, data }];
+        setTimeout(() => (this.selectedIndex = this.dynamicTabComps.length - 1));
+
+        // Lưu tabs vào localStorage
+        // this.saveTabs();
+
+        const idx = this.dynamicTabComps.findIndex((t) => getTabKey(t) === currentTabKey);
+
+        // console.log('currentTabKey:', currentTabKey);
+        // console.log('this.dynamicTabComps:', this.dynamicTabComps);
+        // console.log('idx:', idx);
+
+        if (idx >= 0) {
+            this.selectedCompIndex = idx;
+            return;
+        }
+    }
+
+    closeTabComp({ index }: { index: number }) {
+        this.dynamicTabComps.splice(index, 1);
+        if (this.selectedCompIndex >= this.dynamicTabComps.length)
+            this.selectedCompIndex = this.dynamicTabComps.length - 1;
+
+        // Lưu tabs vào localStorage sau khi đóng
+        // this.saveTabs();
+    }
+
+    private setOpenMenuComp(key: string | null) {
+        this.menuComps.forEach((m) => (m.isOpen = key !== null && m.key === key));
+        // localStorage.setItem('openMenuKey', key ?? '');
+    }
+
+    isMenuCompOpen = (key: string) =>
+        this.menuComps.some((m) => m.key === key && m.isOpen);
+    toggleMenuComp(key: string) {
+        // this.menus.forEach((x) => (x.isOpen = false));
+        const m = this.menuComps.find((x) => x.key === key);
+        if (m) m.isOpen = !m.isOpen;
+
+        if (m?.isOpen) this.menuCompKey = key;
+    }
+
+
 
     // Hàm check và tạo tab từ current route (khi paste URL trực tiếp lần đầu)
     private checkAndCreateTabFromCurrentRoute(): void {
@@ -412,7 +478,7 @@ export class MainLayoutComponent implements OnInit, AfterViewInit, OnDestroy {
 
 
     getMenus() {
-        console.log('this.is getMenus:', this.isCollapsed);
+        // console.log('this.is getMenus:', this.isCollapsed);
         this.menuAppService.getAll().subscribe({
             next: (response) => {
 

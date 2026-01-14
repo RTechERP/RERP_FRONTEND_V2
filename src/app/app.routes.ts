@@ -224,8 +224,16 @@ import { EconomicContractTypeComponent } from './pages/hrm/economic-contract/eco
 import { EconomicContractComponent } from './pages/hrm/economic-contract/economic-contract.component';
 import { KPIEvaluationEmployeeComponent } from './pages/KPITech/kpievaluation-employee/kpievaluation-employee.component';
 import { KPIEvaluationFactorScoringComponent } from './pages/KPITech/kpievaluation-factor-scoring/kpievaluation-factor-scoring.component';
-import { ReportImportExportNewComponent } from './pages/old/Sale/ReportImportExport/report-import-export-new/report-import-export-new.component';
+import { SettingHrConfigComponent } from './pages/hrm/setting/setting-hr-config/setting-hr-config.component';
+import { KpiErrorComponent } from './pages/old/Technical/kpi-error/kpi-error.component';
+import { KpiErrorEmployeeComponent } from './pages/old/Technical/kpi-error-employee/kpi-error-employee.component';
+import { KpiErrorEmployeeSummaryMaxComponent } from './pages/old/Technical/kpi-error-employee-summary-max/kpi-error-employee-summary-max.component';
+import { SummaryKpiErrorEmployeeMonthComponent } from './pages/old/Technical/summary-kpi-error-employee-month/summary-kpi-error-employee-month.component';
+import { InventoryProjectProductSaleLinkComponent } from './pages/purchase/inventory-project-product-sale-link/inventory-project-product-sale-link.component';
 import { HistoryImportExportNewComponent } from './pages/old/Sale/HistoryImportExport/history-import-export-new/history-import-export-new.component';
+import { ReportImportExportNewComponent } from './pages/old/Sale/ReportImportExport/report-import-export-new/report-import-export-new.component';
+// import { ReportImportExportNewComponent } from './pages/old/Sale/ReportImportExport/report-import-export-new/report-import-export-new.component';
+// import { HistoryImportExportNewComponent } from './pages/old/Sale/HistoryImportExport/history-import-export-new/history-import-export-new.component';
 import { InventoryProjectNewComponent } from './pages/purchase/inventory-project/inventory-project-new/inventory-project-new.component';
 import { SettingHrConfigComponent } from './pages/hrm/setting/setting-hr-config/setting-hr-config.component';
 import { KpiErrorComponent } from './pages/old/Technical/kpi-error/kpi-error.component';
@@ -615,6 +623,11 @@ export const routes: Routes = [
                 component: ProjectPartlistPriceRequestOldComponent,
                 canActivate: [authGuard],
             },
+            {
+                path: 'inventory-project-product-sale-link',
+                component: InventoryProjectProductSaleLinkComponent,
+                canActivate: [authGuard],
+            },
 
 
 
@@ -882,6 +895,7 @@ export const routes: Routes = [
             { path: 'bill-export-dp', component: BillExportNewComponent, canActivate: [authGuard] },
             { path: 'history-import-export-dp', component: HistoryImportExportNewComponent, canActivate: [authGuard] },
             { path: 'history-borrow-dp', component: HistoryBorrowSaleComponent, canActivate: [authGuard] },
+            // { path: 'report-import-export-dp', component: ReportImportExportComponent, canActivate: [authGuard] },
             { path: 'report-import-export-dp', component: ReportImportExportNewComponent, canActivate: [authGuard] },
             { path: 'product-project-dp', component: ListProductProjectComponent, canActivate: [authGuard] },
             { path: 'search-serialnumber-dp', component: SearchProductSerialNumberComponent, canActivate: [authGuard] },

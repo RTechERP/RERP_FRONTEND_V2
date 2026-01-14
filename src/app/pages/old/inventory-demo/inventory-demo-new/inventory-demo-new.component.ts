@@ -170,7 +170,7 @@ export class InventoryDemoNewComponent implements OnInit, AfterViewInit, OnDestr
         private ngbModal: NgbModal,
         private route: ActivatedRoute,
         private cdr: ChangeDetectorRef
-    ) {}
+    ) { }
 
     ngOnInit(): void {
         this.initGridColumns();
@@ -188,7 +188,7 @@ export class InventoryDemoNewComponent implements OnInit, AfterViewInit, OnDestr
 
             // Kiểm tra xem params có thay đổi không (so sánh number với number)
             const paramsChanged = this.warehouseID !== newWarehouseID ||
-                                  this.warehouseType !== newWarehouseType;
+                this.warehouseType !== newWarehouseType;
 
             console.log('Params changed:', paramsChanged);
 
@@ -688,7 +688,7 @@ export class InventoryDemoNewComponent implements OnInit, AfterViewInit, OnDestr
             },
             enableCellNavigation: true,
             enableFiltering: true,
-            forceFitColumns:true,
+            forceFitColumns: true,
             autoFitColumnsOnFirstLoad: true,
             enableAutoSizeColumns: true,
             enableHeaderMenu: false,

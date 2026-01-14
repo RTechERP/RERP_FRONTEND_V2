@@ -399,7 +399,7 @@ export const routes: Routes = [
             { path: 'follow-project-base', component: FollowProjectBaseComponent, canActivate: [authGuard] },
             { path: 'bonus-coefficient', component: BonusCoefficientComponent, canActivate: [authGuard] },
             { path: 'employee-sale-manager', component: EmployeeSaleManagerComponent, canActivate: [authGuard] },
-            { path: 'daily-report-sale', component: DailyReportSaleComponent, canActivate: [authGuard] },
+            { path: 'daily-report-sale', component: DailyReportSaleSlickgridComponent, canActivate: [authGuard] },
             { path: 'daily-report-sale-admin', component: DailyReportSaleAdminComponent, canActivate: [authGuard] },
             { path: 'request-invoice-old', component: RequestInvoiceComponent, canActivate: [authGuard] },
             { path: 'request-invoice', component: RequestInvoiceSlickgridComponent, canActivate: [authGuard] },
@@ -510,7 +510,7 @@ export const routes: Routes = [
             //Báo cáo công việc
             { path: 'daily-report-machine', component: DailyReportMachineComponent, canActivate: [authGuard] },
             { path: 'daily-report-sale-admin', component: DailyReportSaleAdminComponent, canActivate: [authGuard] },
-            { path: 'daily-report-sale', component: DailyReportSaleComponent, canActivate: [authGuard] },
+            { path: 'daily-report-sale', component: DailyReportSaleSlickgridComponent, canActivate: [authGuard] },
             { path: 'daily-report-tech', component: DailyReportTechComponent, canActivate: [authGuard] },
             { path: 'daily-report-thr', component: DailyReportThrComponent, canActivate: [authGuard] },
             { path: 'daily-report-lxcp', component: DailyReportLXCPComponent, canActivate: [authGuard] },
@@ -982,10 +982,11 @@ export const routes: Routes = [
             { path: 'chi-tiet-san-pham-sale', component: ChiTietSanPhamSaleComponent, canActivate: [authGuard] },
 
             // //Quản lý lỗi phòng Kỹ thuật
-            // { path: 'kpi-error', component: KpiErrorComponent, canActivate: [authGuard] },
-            // { path: 'kpi-error-employee', component: KpiErrorEmployeeComponent, canActivate: [authGuard] },
-            // { path: 'kpi-error-employee-summary-max', component: KpiErrorEmployeeSummaryMaxComponent, canActivate: [authGuard] },
-            // { path: 'summary-kpi-error-employee-month', component: SummaryKpiErrorEmployeeMonthComponent, canActivate: [authGuard] },
+            { path: 'kpi-error', component: KpiErrorComponent, canActivate: [authGuard] },
+            { path: 'kpi-error-employee', component: KpiErrorEmployeeComponent, canActivate: [authGuard] },
+            { path: 'kpi-error-employee-summary-max', component: KpiErrorEmployeeSummaryMaxComponent, canActivate: [authGuard] },
+            { path: 'summary-kpi-error-employee-month', component: SummaryKpiErrorEmployeeMonthComponent, canActivate: [authGuard] },
+            // { path: 'summary-kpi-error-employee', component: SummaryKpiErrorEmployeeComponent, canActivate: [authGuard] },
 
         ],
     },

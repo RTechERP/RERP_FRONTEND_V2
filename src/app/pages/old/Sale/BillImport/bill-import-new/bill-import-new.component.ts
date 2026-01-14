@@ -1798,132 +1798,32 @@ export class BillImportNewComponent implements OnInit {
       );
       return;
     }
+    this.isLoading = true;
+    this.billImportService.exportFiles(ids).subscribe({
+      next: (blob: Blob) => {
+        const url = window.URL.createObjectURL(blob);
 
-    // Kiểm tra nếu trình duyệt hỗ trợ File System Access API
-    if (!('showDirectoryPicker' in window)) {
-      this.notification.warning(
-        NOTIFICATION_TITLE.warning,
-        'Trình duyệt không hỗ trợ tính năng này!'
-      );
-      return;
-    }
+        const a = document.createElement('a');
+        a.href = url;
+        const now = new Date();
+        const fileName =
+          `PhieuNhap_${now.getDate().toString().padStart(2, '0')}_` +
+          `${(now.getMonth() + 1).toString().padStart(2, '0')}_` +
+          `${now.getFullYear()}_` +
+          `${now.getHours().toString().padStart(2, '0')}_` +
+          `${now.getMinutes().toString().padStart(2, '0')}_` +
+          `${now.getSeconds().toString().padStart(2, '0')}.zip`;
+        a.download = fileName;
+        a.click();
 
-    try {
-      // Chỉ gọi showDirectoryPicker() một lần duy nhất
-      const dirHandle = await (window as any).showDirectoryPicker();
-
-      // Request permission ngay bằng cách tạo file test
-      try {
-        const testFileHandle = await dirHandle.getFileHandle('.export_test', { create: true });
-        const testWritable = await testFileHandle.createWritable();
-        await testWritable.write('test');
-        await testWritable.close();
-        // Xóa file test
-        await dirHandle.removeEntry('.export_test');
-      } catch (permErr: any) {
-        this.notification.error(
-          NOTIFICATION_TITLE.error,
-          'Không có quyền ghi vào thư mục này!'
-        );
-        return;
+        window.URL.revokeObjectURL(url);
+        this.isLoading = false;
+      },
+      error: (err) => {
+        this.notification.error('Lỗi', err?.error?.message || err?.message);
+        this.isLoading = false;
       }
-
-      this.isLoading = true;
-
-      if (ids.length >= 10) {
-        this.notification.warning(
-          NOTIFICATION_TITLE.warning,
-          'Do lượng file lớn vui lòng chờ ít phút để hoàn tất tải file!'
-        );
-      }
-
-      await this.exportSequentiallyToFolder(ids, 0, dirHandle);
-
-    } catch (err: any) {
-      if (err.name === 'AbortError') {
-        this.notification.info('Thông báo', 'Bạn đã hủy chọn thư mục!');
-      } else {
-        this.notification.error(
-          NOTIFICATION_TITLE.error,
-          `Lỗi: ${err.message || 'Có lỗi xảy ra khi chọn thư mục'}`
-        );
-      }
-      this.isLoading = false;
-    }
-  }
-
-  private async exportSequentiallyToFolder(
-    ids: number[],
-    index: number,
-    dirHandle: any
-  ): Promise<void> {
-    // Tạo modal lần đầu
-    if (index === 0) {
-      this.exportProgress = { current: 0, total: ids.length, fileName: '' };
-      this.exportModalRef = this.modal.info({
-        nzTitle: 'Đang xuất file',
-        nzContent: `Đang xuất file 0/${ids.length}...`,
-        nzClosable: false,
-        nzMaskClosable: false,
-        nzKeyboard: false,
-        nzOkText: null,
-        nzCancelText: null,
-        nzMask: false
-      });
-    }
-
-    if (index >= ids.length) {
-      // Đóng modal và hiển thị thành công
-      if (this.exportModalRef) {
-        this.exportModalRef.close();
-        this.exportModalRef = null;
-      }
-      this.message.success(`Xuất thành công ${ids.length} file!`);
-      this.isLoading = false;
-      return;
-    }
-
-    const id = ids[index];
-    const selectedRows = this.datasetMaster.find((item) => item.ID === id);
-
-    // Cập nhật nội dung modal
-    this.exportProgress.current = index + 1;
-    this.exportProgress.fileName = selectedRows?.BillImportCode || `ID ${id}`;
-
-    if (this.exportModalRef) {
-      this.exportModalRef.updateConfig({
-        nzContent: `Đang xuất file ${index + 1}/${ids.length}: ${this.exportProgress.fileName}`
-      });
-    }
-
-    try {
-      const res = await this.billImportService.export(id).toPromise();
-      const now = new Date();
-
-      const dateString = `${now.getDate().toString().padStart(2, '0')}_${(now.getMonth() + 1).toString().padStart(2, '0')}_${now.getFullYear()}`;
-      const tick = Date.now().toString(36);
-
-      const fileName = `${selectedRows?.BillImportCode || 'export'}_${dateString}_${tick}.xlsx`;
-
-      const fileHandle = await dirHandle.getFileHandle(fileName, { create: true });
-      const writable = await fileHandle.createWritable();
-      await writable.write(res);
-      await writable.close();
-
-      // Tiếp tục với file tiếp theo
-      await this.exportSequentiallyToFolder(ids, index + 1, dirHandle);
-
-    } catch (err: any) {
-      // Đóng modal khi có lỗi
-      if (this.exportModalRef) {
-        this.exportModalRef.close();
-        this.exportModalRef = null;
-      }
-      this.message.error(
-        `Lỗi xuất file ${index + 1}/${ids.length} (ID ${id}): ${err.message || 'Có lỗi xảy ra'}`
-      );
-      this.isLoading = false;
-    }
+    });
   }
   //#endregion
   onExportExcelKT() {

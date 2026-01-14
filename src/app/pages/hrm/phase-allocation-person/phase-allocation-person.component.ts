@@ -32,6 +32,8 @@ import { HasPermissionDirective } from '../../../directives/has-permission.direc
 import * as ExcelJS from 'exceljs';
 import { saveAs } from 'file-saver';
 import { PhaseAllocationPersonFormComponent } from './phase-allocation-person-form/phase-allocation-person-form.component';
+import { ChooseEmployeeComponent } from './choose-employee/choose-employee.component';
+import { EmployeeService } from '../employee/employee-service/employee.service';
 
 @Component({
   standalone: true,
@@ -93,6 +95,7 @@ export class PhaseAllocationPersonComponent
   exportingExcel = false;
   exportingExcelDetail = false;
   allMasterData: any[] = []; // Lưu tất cả dữ liệu để filter local
+  allDetailData: any[] = []; // Lưu tất cả dữ liệu detail để filter local
 
   formData: any = {
     master: { ID: 0, Year: this.currentYear, Month: this.currentMonth },
@@ -100,10 +103,32 @@ export class PhaseAllocationPersonComponent
   };
   activeRowId: number | null = null;
 
+  // Filter cho Master table
+  masterFilterStatus: number | null = null;
+  masterStatusOptions: { value: number | null; label: string }[] = [
+    { value: null, label: 'Tất cả' },
+    { value: 0, label: 'Chưa hoàn thành' },
+    { value: 1, label: 'Đã hoàn thành' },
+  ];
+
+  // Filter cho Detail table
+  detailFilterCode: string = '';
+  detailFilterName: string = '';
+  detailFilterStatus: number | null = null;
+  detailStatusOptions: { value: number | null; label: string }[] = [
+    { value: null, label: 'Tất cả' },
+    { value: 0, label: 'Chưa nhận' },
+    { value: 1, label: 'Đã nhận' },
+  ];
+
+  // Employee list để add nhân viên
+  employeeList: any[] = [];
+
   constructor(
     private notification: NzNotificationService,
     private phaseAllocationService: PhaseAllocationPersonService,
-    private modal: NzModalService
+    private modal: NzModalService,
+    private employeeService: EmployeeService
   ) {
     // Tạo danh sách năm (từ năm hiện tại - 5 đến năm hiện tại + 5)
     const currentYear = new Date().getFullYear();
@@ -115,10 +140,27 @@ export class PhaseAllocationPersonComponent
   ngAfterViewInit(): void {
     this.drawTable();
     this.loadData();
+    this.loadEmployees();
   }
 
   ngOnInit() {
     // Không cần debounce nữa vì chỉ tìm kiếm khi nhấn Enter
+  }
+
+  loadEmployees() {
+    this.employeeService.getEmployees().subscribe({
+      next: (response: any) => {
+        if (response && response.data) {
+          this.employeeList = Array.isArray(response.data) ? response.data : [];
+        } else {
+          this.employeeList = [];
+        }
+      },
+      error: (error: any) => {
+        console.error('Lỗi khi tải danh sách nhân viên:', error);
+        this.employeeList = [];
+      },
+    });
   }
 
   loadData() {
@@ -157,6 +199,13 @@ export class PhaseAllocationPersonComponent
 
     let filteredData = [...this.allMasterData];
 
+    // Filter theo trạng thái
+    if (this.masterFilterStatus !== null) {
+      filteredData = filteredData.filter((item: any) => {
+        return item.StatusAllocation === this.masterFilterStatus;
+      });
+    }
+
     // Filter theo từ khóa tìm kiếm
     if (this.filterText && this.filterText.trim() !== '') {
       const keyword = this.filterText.toLowerCase().trim();
@@ -175,7 +224,16 @@ export class PhaseAllocationPersonComponent
     }
 
     // Set dữ liệu đã filter vào table
-    this.masterTable.setData(filteredData);
+    this.masterTable.setData(filteredData).then(() => {
+      // Auto select dòng đầu tiên sau khi load dữ liệu
+      if (filteredData.length > 0 && this.masterTable) {
+        const rows = this.masterTable.getRows();
+        if (rows.length > 0) {
+          const firstRow = rows[0];
+          firstRow.getElement().click();
+        }
+      }
+    });
   }
 
   ngOnDestroy() {
@@ -211,6 +269,7 @@ export class PhaseAllocationPersonComponent
           hozAlign: 'left',
           headerHozAlign: 'center',
           formatter: 'textarea',
+
         },
         {
           title: 'Nội dung cấp phát',
@@ -218,6 +277,7 @@ export class PhaseAllocationPersonComponent
           hozAlign: 'left',
           headerHozAlign: 'center',
           formatter: 'textarea',
+
         },
         {
           title: 'Loại',
@@ -240,13 +300,14 @@ export class PhaseAllocationPersonComponent
           headerHozAlign: 'center',
           formatter: 'textarea',
         },
-
         {
           title: 'Trạng thái',
           field: 'StatusAllocationText',
           hozAlign: 'center',
           headerHozAlign: 'center',
           formatter: 'textarea',
+          headerFilter: 'input',
+          headerFilterPlaceholder: 'Tìm trạng thái...',
         },
       ],
     });
@@ -271,9 +332,12 @@ export class PhaseAllocationPersonComponent
               this.detailData = Array.isArray(response.data)
                 ? response.data
                 : [];
+              this.allDetailData = [...this.detailData];
+              this.resetDetailFilters();
               this.drawDetailTable();
             } else {
               this.detailData = [];
+              this.allDetailData = [];
               this.drawDetailTable();
             }
           },
@@ -284,6 +348,7 @@ export class PhaseAllocationPersonComponent
               'Lỗi khi tải chi tiết phân bổ'
             );
             this.detailData = [];
+            this.allDetailData = [];
             this.drawDetailTable();
           },
         });
@@ -302,10 +367,11 @@ export class PhaseAllocationPersonComponent
 
     this.detailTable = new Tabulator(this.detailTableRef.nativeElement, {
       ...DEFAULT_TABLE_CONFIG,
-      height: '85vh',
+      height: '81vh',
       data: this.detailData,
       groupBy: 'DepartmentName',
       paginationMode: 'local',
+
       pagination: false,
       layout: 'fitDataStretch',
       columns: [
@@ -322,6 +388,8 @@ export class PhaseAllocationPersonComponent
           headerHozAlign: 'center',
           hozAlign: 'left',
           formatter: 'textarea',
+          headerFilter: 'input',
+          headerFilterPlaceholder: 'Tìm mã...',
           bottomCalc: 'count'
         },
         {
@@ -330,6 +398,8 @@ export class PhaseAllocationPersonComponent
           headerHozAlign: 'center',
           hozAlign: 'left',
           formatter: 'textarea',
+          headerFilter: 'input',
+          headerFilterPlaceholder: 'Tìm tên...',
         },
         {
           title: 'Phòng ban',
@@ -337,6 +407,8 @@ export class PhaseAllocationPersonComponent
           headerHozAlign: 'center',
           hozAlign: 'left',
           formatter: 'textarea',
+          headerFilter: 'input',
+          headerFilterPlaceholder: 'Tìm phòng ban...',
         },
         {
           title: 'Số lượng',
@@ -375,7 +447,7 @@ export class PhaseAllocationPersonComponent
             return `
     <div style="line-height:1.2">
       <div>${dt.toFormat('dd/MM/yyyy')}</div>
-      <div style="font-size:12px; color:#666">${dt.toFormat('HH:mm')}</div>
+      <div style="font-size:12px; color:#666">${dt.toFormat('HH:mm:ss')}</div>
     </div>
   `;
           }
@@ -383,10 +455,9 @@ export class PhaseAllocationPersonComponent
         {
           title: 'Trạng thái nhận',
           field: 'StatusReceive',
-
           headerHozAlign: 'center',
           hozAlign: 'center',
-          width: 70,
+          width: 100,
           formatter: (cell) => {
             const value = cell.getValue();
             const checked =
@@ -629,10 +700,257 @@ export class PhaseAllocationPersonComponent
   closePanel() {
     this.sizeTbDetail = '0';
     this.detailData = [];
+    this.allDetailData = [];
     this.detailTabTitle = 'Chi tiết phân bổ';
     if (this.detailTable) {
       this.detailTable.setData([]);
     }
+  }
+
+  // Reset các filter cho detail table
+  resetDetailFilters() {
+    this.detailFilterCode = '';
+    this.detailFilterName = '';
+    this.detailFilterStatus = null;
+  }
+
+  // Filter dữ liệu detail theo các tiêu chí
+  filterDetailData() {
+    if (!this.detailTable) return;
+
+    let filteredData = [...this.allDetailData];
+
+    // Filter theo mã nhân viên
+    if (this.detailFilterCode && this.detailFilterCode.trim() !== '') {
+      const keyword = this.detailFilterCode.toLowerCase().trim();
+      filteredData = filteredData.filter((item: any) => {
+        const code = (item.EmployeeCode || '').toLowerCase();
+        return code.includes(keyword);
+      });
+    }
+
+    // Filter theo tên nhân viên
+    if (this.detailFilterName && this.detailFilterName.trim() !== '') {
+      const keyword = this.detailFilterName.toLowerCase().trim();
+      filteredData = filteredData.filter((item: any) => {
+        const name = (item.EmployeeFullName || '').toLowerCase();
+        return name.includes(keyword);
+      });
+    }
+
+    // Filter theo trạng thái nhận
+    if (this.detailFilterStatus !== null) {
+      filteredData = filteredData.filter((item: any) => {
+        const status = item.StatusReceive === 1 || item.StatusReceive === true || item.StatusReceive === '1' || item.StatusReceive === 'true';
+        return this.detailFilterStatus === 1 ? status : !status;
+      });
+    }
+
+    this.detailData = filteredData;
+    this.detailTable.setData(this.detailData);
+  }
+
+  // Xử lý thay đổi filter detail
+  onDetailFilterChange() {
+    this.filterDetailData();
+  }
+
+  // Xử lý thay đổi filter master theo trạng thái
+  onMasterFilterChange() {
+    this.closePanel();
+    this.filterData();
+  }
+
+  // Thêm nhân viên vào detail (giống form sửa đợt cấp phát)
+  onAddEmployee() {
+    if (!this.selectedRow || !this.selectedRow.ID) {
+      this.notification.warning(NOTIFICATION_TITLE.warning, 'Vui lòng chọn đợt cấp phát trước!');
+      return;
+    }
+
+    if (!this.detailTable) {
+      this.notification.warning(NOTIFICATION_TITLE.warning, 'Bảng chi tiết chưa được khởi tạo!');
+      return;
+    }
+
+    // Lấy danh sách EmployeeID đã có trong detail
+    const selectedEmployeeIds = new Set(
+      this.allDetailData
+        .map((r: any) => r.EmployeeID)
+        .filter((id: number) => id > 0)
+    );
+
+    // Lọc employee chưa được chọn
+    const availableEmployees = this.employeeList.filter(
+      (emp) => !selectedEmployeeIds.has(emp.ID)
+    );
+
+    const modalRef = this.ngbModal.open(ChooseEmployeeComponent, {
+      size: 'lg',
+      backdrop: 'static',
+      centered: true,
+    });
+
+    modalRef.componentInstance.employeeList = availableEmployees;
+
+    modalRef.result.then(
+      (selectedEmployees: any[]) => {
+        if (!this.detailTable || !selectedEmployees?.length) return;
+
+        const masterID = this.selectedRow.ID;
+
+        // Lấy danh sách EmployeeID đã có
+        const existingIds = new Set(
+          this.allDetailData
+            .map((r: any) => r.EmployeeID)
+            .filter((id: number) => id > 0)
+        );
+
+        // Map employee được chọn → row detail để lưu
+        const newDetails = selectedEmployees
+          .filter((emp) => !existingIds.has(emp.ID))
+          .map((emp) => ({
+            ID: 0,
+            EmployeeID: emp.ID,
+            EmployeeCode: emp.Code || '',
+            PhasedAllocationPersonID: masterID,
+            StatusReceive: 0,
+            Quantity: 1,
+            UnitName: '',
+            ContentReceive: '',
+            IsDeleted: false,
+          }));
+
+        if (newDetails.length === 0) {
+          this.notification.info('Thông báo', 'Không có nhân viên mới để thêm!');
+          return;
+        }
+
+        // Gọi API lưu detail
+        this.phaseAllocationService.saveDataDetail(newDetails).subscribe({
+          next: (response) => {
+            if (response && response.status === 1) {
+              this.notification.success(
+                NOTIFICATION_TITLE.success,
+                `Đã thêm ${newDetails.length} nhân viên thành công!`
+              );
+              // Reload lại detail
+              this.phaseAllocationService
+                .getPhasedAllocationPersonDetail(masterID)
+                .subscribe((res) => {
+                  if (res && res.status === 1 && res.data) {
+                    this.detailData = Array.isArray(res.data) ? res.data : [];
+                    this.allDetailData = [...this.detailData];
+                    this.detailTable?.setData?.(this.detailData);
+                  }
+                });
+            } else {
+              this.notification.error(
+                NOTIFICATION_TITLE.error,
+                response?.message || 'Lỗi khi thêm nhân viên'
+              );
+            }
+          },
+          error: (err) => {
+            console.error('Lỗi khi thêm nhân viên:', err);
+            this.notification.error(
+              NOTIFICATION_TITLE.error,
+              err.error?.message || 'Lỗi khi thêm nhân viên'
+            );
+          },
+        });
+      },
+      () => {
+        // dismissed
+      }
+    );
+  }
+
+  // Update trạng thái đã nhận cho các nhân viên được tick
+  onUpdateReceived() {
+    if (!this.detailTable) {
+      this.notification.warning(NOTIFICATION_TITLE.warning, 'Bảng chi tiết chưa được khởi tạo!');
+      return;
+    }
+
+    const selectedRows = this.detailTable.getSelectedData();
+    if (!selectedRows || selectedRows.length === 0) {
+      this.notification.warning(NOTIFICATION_TITLE.warning, 'Vui lòng chọn nhân viên cần cập nhật!');
+      return;
+    }
+
+    // Lọc chỉ những row chưa nhận
+    const rowsToUpdate = selectedRows.filter((row: any) => {
+      const status = row.StatusReceive === 1 || row.StatusReceive === true || row.StatusReceive === '1' || row.StatusReceive === 'true';
+      return !status;
+    });
+
+    if (rowsToUpdate.length === 0) {
+      this.notification.info('Thông báo', 'Tất cả nhân viên đã chọn đều đã nhận!');
+      return;
+    }
+
+    const count = rowsToUpdate.length;
+    const content = `Bạn có chắc muốn cập nhật trạng thái "Đã nhận" cho ${count} nhân viên?`;
+
+    this.modal.confirm({
+      nzTitle: 'Xác nhận cập nhật',
+      nzContent: content,
+      nzOkText: 'Đồng ý',
+      nzCancelText: 'Hủy',
+      nzOnOk: () => {
+        const masterID = this.selectedRow?.ID;
+        if (!masterID) return;
+
+        // Tạo payload để update
+        const updatePayload = rowsToUpdate.map((row: any) => ({
+          ID: row.ID,
+          EmployeeID: row.EmployeeID,
+          EmployeeCode: row.EmployeeCode || '',
+          PhasedAllocationPersonID: masterID,
+          StatusReceive: 1,
+          DateReceive: new Date().toISOString(),
+          Quantity: row.Quantity || 1,
+          UnitName: row.UnitName || '',
+          ContentReceive: row.ContentReceive || '',
+          IsDeleted: false,
+        }));
+
+        this.phaseAllocationService.saveDataDetail(updatePayload).subscribe({
+          next: (response) => {
+            if (response && response.status === 1) {
+              this.notification.success(
+                NOTIFICATION_TITLE.success,
+                `Đã cập nhật ${count} nhân viên thành công!`
+              );
+              // Reload lại detail
+              this.phaseAllocationService
+                .getPhasedAllocationPersonDetail(masterID)
+                .subscribe((res) => {
+                  if (res && res.status === 1 && res.data) {
+                    this.detailData = Array.isArray(res.data) ? res.data : [];
+                    this.allDetailData = [...this.detailData];
+                    this.detailTable?.setData?.(this.detailData);
+                    this.detailTable?.deselectRow();
+                  }
+                });
+            } else {
+              this.notification.error(
+                NOTIFICATION_TITLE.error,
+                response?.message || 'Lỗi khi cập nhật trạng thái'
+              );
+            }
+          },
+          error: (err) => {
+            console.error('Lỗi khi cập nhật trạng thái:', err);
+            this.notification.error(
+              NOTIFICATION_TITLE.error,
+              err.error?.message || 'Lỗi khi cập nhật trạng thái'
+            );
+          },
+        });
+      },
+    });
   }
 
   searchPhaseAllocation() {

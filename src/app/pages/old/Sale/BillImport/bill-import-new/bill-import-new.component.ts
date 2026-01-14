@@ -43,6 +43,8 @@ import { BillImportDetailComponent } from '../Modal/bill-import-detail/bill-impo
 import { HistoryDeleteBillComponent } from '../../BillExport/Modal/history-delete-bill/history-delete-bill.component';
 import { ScanBillImportComponent } from '../Modal/scan-bill-import/scan-bill-import.component';
 import { environment } from '../../../../../../environments/environment';
+import { ClipboardService } from '../../../../../services/clipboard.service';
+import { BillImportDetailNewComponent } from './bill-import-detail-new/bill-import-detail-new.component';
 import { NzMessageService } from 'ng-zorro-antd/message';
 
 interface BillImport {
@@ -190,18 +192,21 @@ export class BillImportNewComponent implements OnInit {
     private appUserService: AppUserService,
     private permissionService: PermissionService,
     private route: ActivatedRoute,
+    private clipboardService: ClipboardService,
     private message: NzMessageService
   ) { }
 
   ngOnInit(): void {
+    this.initGrids();
+    this.initMenuBar();
+
     this.route.queryParams.subscribe(params => {
       this.wareHouseCode = params['warehouseCode'] || 'HN';
       this.searchParams.warehousecode = this.wareHouseCode;
-    });
 
-    this.initGrids();
-    this.initMenuBar();
-    this.getProductGroup();
+      this.getProductGroup();
+      this.loadDataBillImport();
+    });
   }
 
   // =================================================================
@@ -329,6 +334,20 @@ export class BillImportNewComponent implements OnInit {
   // GRID INITIALIZATION
   // =================================================================
 
+  // Helper function to format text with max 3 lines, ellipsis and tooltip
+  private formatTextWithTooltip(
+    _row: number,
+    _cell: number,
+    value: any
+  ): string {
+    if (!value) return '';
+    const escapedValue = String(value)
+      .replace(/"/g, '&quot;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;');
+    return `<div class="cell-multiline" title="${escapedValue}">${escapedValue}</div>`;
+  }
+
   initGrids(): void {
     this.initMasterGrid();
     this.initDetailGrid();
@@ -414,7 +433,8 @@ export class BillImportNewComponent implements OnInit {
         field: 'Suplier',
         sortable: true,
         filterable: true,
-        width: 200,
+        width: 400,
+        formatter: this.formatTextWithTooltip.bind(this),
         filter: {
           model: Filters['compoundInput'],
         },
@@ -426,6 +446,7 @@ export class BillImportNewComponent implements OnInit {
         sortable: true,
         filterable: true,
         width: 150,
+        formatter: this.formatTextWithTooltip.bind(this),
         filter: {
           model: Filters['compoundInput'],
         },
@@ -448,6 +469,7 @@ export class BillImportNewComponent implements OnInit {
         sortable: true,
         filterable: true,
         width: 180,
+        formatter: this.formatTextWithTooltip.bind(this),
         filter: {
           collection: [],
           model: Filters['multipleSelect'],
@@ -467,6 +489,7 @@ export class BillImportNewComponent implements OnInit {
         sortable: true,
         filterable: true,
         width: 150,
+        formatter: this.formatTextWithTooltip.bind(this),
         filter: {
           collection: [],
           model: Filters['multipleSelect'],
@@ -598,6 +621,7 @@ export class BillImportNewComponent implements OnInit {
         calculateAvailableSizeBy: 'container',
         resizeDetection: 'container',
       },
+      rowHeight: 55,
       enableFiltering: true,
       enableCellNavigation: true,
       enableCheckboxSelector: true,
@@ -612,6 +636,20 @@ export class BillImportNewComponent implements OnInit {
       enablePagination: false,
 
       frozenColumn: 2,
+      enableCellMenu: true,
+      cellMenu: {
+        commandItems: [
+          {
+            command: 'copy',
+            title: 'Sao chép (Copy)',
+            iconCssClass: 'fa fa-copy',
+            positionOrder: 1,
+            action: (_e, args) => {
+              this.clipboardService.copy(args.value);
+            },
+          },
+        ],
+      },
 
       // Excel export configuration
       externalResources: [this.excelExportService],
@@ -1063,6 +1101,7 @@ export class BillImportNewComponent implements OnInit {
       return;
     }
     const modalRef = this.modalService.open(BillImportDetailComponent, {
+    // const modalRef = this.modalService.open(BillImportDetailNewComponent, {
       centered: true,
       backdrop: 'static',
       keyboard: false,

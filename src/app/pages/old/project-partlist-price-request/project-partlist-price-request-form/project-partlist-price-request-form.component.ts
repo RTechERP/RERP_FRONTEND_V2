@@ -39,6 +39,8 @@ import { SelectControlComponent } from '../../select-control/select-control.comp
 import { TabulatorPopupComponent } from '../../../../shared/components/tabulator-popup/tabulator-popup.component';
 import { DEFAULT_TABLE_CONFIG } from '../../../../tabulator-default.config';
 import { BillExportService } from '../../Sale/BillExport/bill-export-service/bill-export.service';
+import { UnitCountKtService } from '../../inventory-demo/unit-count-kt/unit-count-kt-service/unit-count-kt.service';
+import { ProjectPartListService } from '../../../project/project-department-summary/project-department-summary-form/project-part-list/project-partlist-service/project-part-list-service.service';
 
 @Component({
   standalone: true,
@@ -71,6 +73,8 @@ export class ProjectPartlistPriceRequestFormComponent
   private authService = inject(AuthService);
   private firmService = inject(FirmService);
   private billExportService = inject(BillExportService);
+  private unitCountKtService = inject(UnitCountKtService);
+  private projectPartListService = inject(ProjectPartListService);
   injector = inject(EnvironmentInjector);
   appRef = inject(ApplicationRef);
 
@@ -101,6 +105,7 @@ export class ProjectPartlistPriceRequestFormComponent
   dtSupplierSale: any[] = [];
   firms: any[] = [];
   customers: any[] = [];
+  units: any[] = [];
   lstSave: any[] = [];
   requesterLoading: boolean = false;
   priceRequestTypeLoading: boolean = false;
@@ -379,6 +384,8 @@ export class ProjectPartlistPriceRequestFormComponent
               this.onPriceRequestTypeChange(this.priceRequestTypeID);
             }
           }, 200);
+
+          this.getUnits();
         }, 0);
       },
       error: (err: any) => {
@@ -506,6 +513,30 @@ export class ProjectPartlistPriceRequestFormComponent
     });
   }
 
+  getUnits() {
+    if (this.priceRequestTypeID === 6) {
+      // Hàng demo
+      this.unitCountKtService.getUnitCountKT().subscribe({
+        next: (res: any) => {
+          this.units = res.data || [];
+        },
+        error: (err: any) => {
+          console.error('Lỗi lấy ĐVT:', err);
+        },
+      });
+    } else {
+      // Các loại khác
+      this.projectPartListService.getUnitCount().subscribe({
+        next: (res: any) => {
+          this.units = res.data || [];
+        },
+        error: (err: any) => {
+          console.error('Lỗi lấy ĐVT:', err);
+        },
+      });
+    }
+  }
+
   // getCustomers() {
   //   this.billExportService.getCbbCustomer().subscribe({
   //     next: (res: any) => {
@@ -560,6 +591,55 @@ export class ProjectPartlistPriceRequestFormComponent
       }
       container.appendChild(hostEl);
       appRef.attachView(componentRef.hostView);
+
+      onRendered(() => {
+        setTimeout(() => {
+          const selectEl = container.querySelector('nz-select');
+          if (selectEl) {
+            (selectEl as HTMLElement).focus();
+          }
+        }, 100);
+      });
+
+      return container;
+    };
+  }
+
+  createUnitEditor() {
+    return (cell: any, onRendered: any, success: any, cancel: any) => {
+      const container = document.createElement('div');
+      container.style.width = '100%';
+      container.style.height = '100%';
+      container.style.display = 'block';
+
+      const componentRef = createComponent(SelectControlComponent, {
+        environmentInjector: this.injector,
+      });
+
+      const cellValue = cell.getValue();
+      const unitsData = this.units.map((u: any) => ({
+        value: u.UnitCountName || u.Name || u.UnitName || u.name,
+        label: u.UnitCountName || u.Name || u.UnitName || u.name,
+        ...u,
+      }));
+
+      componentRef.instance.id = cellValue;
+      componentRef.instance.data = unitsData;
+      componentRef.instance.valueField = 'value';
+      componentRef.instance.labelField = 'label';
+      componentRef.instance.placeholder = 'Chọn ĐVT';
+
+      componentRef.instance.valueChange.subscribe((val: any) => {
+        success(val);
+      });
+
+      const hostEl = (componentRef.hostView as any).rootNodes[0];
+      if (hostEl && hostEl.style) {
+        hostEl.style.width = '100%';
+        hostEl.style.display = 'block';
+      }
+      container.appendChild(hostEl);
+      this.appRef.attachView(componentRef.hostView);
 
       onRendered(() => {
         setTimeout(() => {
@@ -918,7 +998,7 @@ export class ProjectPartlistPriceRequestFormComponent
           title: 'ĐVT (*)',
           headerSort: false,
           field: 'Unit',
-          editor: 'input',
+          editor: this.createUnitEditor(),
           headerHozAlign: 'center',
           hozAlign: 'left',
           width: '100',
@@ -1423,14 +1503,14 @@ export class ProjectPartlistPriceRequestFormComponent
         Deadline: data['Deadline']
           ? DateTime.fromJSDate(new Date(data['Deadline'])).toJSDate()
           : null,
-        Note: note,
+        Note: note || '',
         DateRequest: this.requestDate ? new Date(this.requestDate) : null,
         EmployeeID: Number(this.requester) || null,
         // CustomerID: Number(this.customerID) || null,
-        IsJobRequirement: isJobRequirement,
-        IsCommercialProduct: isCommercialProduct,
-        ProjectPartlistID: projectPartlistId,
-        JobRequirementID: jobRequirementId,
+        IsJobRequirement: isJobRequirement || false,
+        IsCommercialProduct: isCommercialProduct || false,
+        ProjectPartlistID: projectPartlistId ||0,
+        JobRequirementID: jobRequirementId ||0,
         ProjectPartlistPriceRequestTypeID: this.priceRequestTypeID || null,
         StatusRequest: isNew ? 1 : oldStatus,
         NoteHR: data['NoteHR'] || null,

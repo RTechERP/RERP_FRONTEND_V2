@@ -287,105 +287,120 @@ export class KPIEvaluationEmployeeComponent implements OnInit, AfterViewInit, On
         id: 'STT',
         field: 'STT',
         name: 'STT',
-        width: 80,
-        minWidth: 60,
-        cssClass: 'text-left'
+        width: 45,
+        minWidth: 45,
+        cssClass: 'text-left',
+        sortable: true
       },
       {
         id: 'EvaluationContent',
         field: 'EvaluationContent',
         name: 'Yếu tố đánh giá',
         width: 467,
-        formatter: Formatters.tree  // Tree formatter on content column for proper tree display
+        formatter: Formatters.tree,
+        sortable: true
       },
       {
         id: 'StandardPoint',
         field: 'StandardPoint',
         name: 'Điểm chuẩn',
         width: 67,
-        cssClass: 'text-right'
+        cssClass: 'text-right',
+        sortable: true
       },
       {
         id: 'Coefficient',
         field: 'Coefficient',
         name: 'Hệ số điểm',
         width: 67,
-        cssClass: 'text-right'
+        cssClass: 'text-right',
+        sortable: true
       },
       {
         id: 'EmployeePoint',
         field: 'EmployeePoint',
         name: 'Mức tự đánh giá',
         width: 93,
-        cssClass: 'text-right'
+        cssClass: 'text-right',
+        sortable: true
       },
       {
         id: 'TBPPoint',
         field: 'TBPPoint',
         name: 'TBP/PBP đánh giá',
         width: 93,
-        cssClass: 'text-right'
+        cssClass: 'text-right',
+        sortable: true
       },
       {
         id: 'BGDPoint',
         field: 'BGDPoint',
         name: 'Đánh giá của BGĐ',
         width: 93,
-        cssClass: 'text-right'
+        cssClass: 'text-right',
+        sortable: true
       },
       {
         id: 'VerificationToolsContent',
         field: 'VerificationToolsContent',
         name: 'Phương tiện xác minh tiêu chí',
-        width: 533
+        width: 533,
+        sortable: true
       },
       {
         id: 'Unit',
         field: 'Unit',
         name: 'ĐVT',
         width: 53,
-        cssClass: 'text-center'
+        cssClass: 'text-center',
+        sortable: true
       },
       {
         id: 'EmployeeEvaluation',
         field: 'EmployeeEvaluation',
         name: 'Điểm đánh giá',
         width: 100,
-        cssClass: 'text-right'
+        cssClass: 'text-right',
+        sortable: true
       },
       {
         id: 'EmployeeCoefficient',
         field: 'EmployeeCoefficient',
         name: 'Điểm theo hệ số',
         width: 100,
-        cssClass: 'text-right'
+        cssClass: 'text-right',
+        sortable: true
       },
       {
         id: 'TBPEvaluation',
         field: 'TBPEvaluation',
         name: 'Điểm đánh giá',
         width: 100,
-        cssClass: 'text-right'
+        cssClass: 'text-right',
+        sortable: true
       },
       {
         id: 'TBPCoefficient',
         field: 'TBPCoefficient',
         name: 'Điểm theo hệ số',
         width: 100,
-        cssClass: 'text-right'
+        cssClass: 'text-right',
+        sortable: true
       },
       {
         id: 'BGDEvaluation',
         field: 'BGDEvaluation',
         name: 'Điểm đánh giá',
         width: 100,
-        cssClass: 'text-right'
+        cssClass: 'text-right',
+        sortable: true
       },
       {
         id: 'BGDCoefficient',
         field: 'BGDCoefficient',
         name: 'Điểm theo hệ số',
-        cssClass: 'text-right'
+        cssClass: 'text-right',
+        sortable: true
       }
     ];
 
@@ -408,9 +423,9 @@ export class KPIEvaluationEmployeeComponent implements OnInit, AfterViewInit, On
       enableFiltering: true,
       showHeaderRow: false,
       enableCellNavigation: true,
-      enableSorting: false,
+      enableSorting: true,
       enablePagination: false,
-      forceFitColumns: true,
+      forceFitColumns: false,
       headerRowHeight: 60
     };
   }
@@ -464,28 +479,32 @@ export class KPIEvaluationEmployeeComponent implements OnInit, AfterViewInit, On
         id: 'EvaluatedType',
         field: 'EvaluatedType',
         name: 'Người đánh giá',
-        width: 429
+        width: 429,
+        sortable: true
       },
       {
         id: 'SkillPoint',
         field: 'SkillPoint',
         name: 'Kỹ năng',
         width: 160,
-        cssClass: 'text-right'
+        cssClass: 'text-right',
+        sortable: true
       },
       {
         id: 'GeneralPoint',
         field: 'GeneralPoint',
         name: 'Chung',
         width: 160,
-        cssClass: 'text-right'
+        cssClass: 'text-right',
+        sortable: true
       },
       {
         id: 'SpecializationPoint',
         field: 'SpecializationPoint',
         name: 'Chuyên môn',
         width: 144,
-        cssClass: 'text-right'
+        cssClass: 'text-right',
+        sortable: true
       }
     ];
 
@@ -517,88 +536,101 @@ export class KPIEvaluationEmployeeComponent implements OnInit, AfterViewInit, On
         name: 'STT',
         width: 27,
         maxWidth: 50,
-        formatter: Formatters.tree
+        formatter: Formatters.tree,
+        sortable: true
       },
       {
         id: 'RuleContent',
         field: 'RuleContent',
         name: 'Nội dung đánh giá',
-        width: 613
+        width: 613,
+        sortable: true
       },
       {
         id: 'FirstMonth',
         field: 'FirstMonth',
         name: 'Tháng 1',
         width: 76,
-        cssClass: 'text-right'
+        cssClass: 'text-right',
+        sortable: true
       },
       {
         id: 'SecondMonth',
         field: 'SecondMonth',
         name: 'Tháng 2',
         width: 27,
-        cssClass: 'text-right'
+        cssClass: 'text-right',
+        sortable: true
       },
       {
         id: 'ThirdMonth',
         field: 'ThirdMonth',
         name: 'Tháng 3',
         width: 27,
-        cssClass: 'text-right'
+        cssClass: 'text-right',
+        sortable: true
       },
       {
         id: 'TotalError',
         field: 'TotalError',
         name: 'Tổng',
         width: 67,
-        cssClass: 'text-right'
+        cssClass: 'text-right',
+        sortable: true
       },
       {
         id: 'MaxPercent',
         field: 'MaxPercent',
         name: 'Tổng % thưởng tối đa',
         width: 100,
-        cssClass: 'text-right'
+        cssClass: 'text-right',
+        sortable: true
       },
       {
         id: 'PercentageAdjustment',
         field: 'PercentageAdjustment',
         name: 'Số % trừ (cộng) 1 lần',
         width: 100,
-        cssClass: 'text-right'
+        cssClass: 'text-right',
+        sortable: true
       },
       {
         id: 'MaxPercentageAdjustment',
         field: 'MaxPercentageAdjustment',
         name: 'Số % trừ (cộng) lớn nhất',
         width: 100,
-        cssClass: 'text-right'
+        cssClass: 'text-right',
+        sortable: true
       },
       {
         id: 'PercentBonus',
         field: 'PercentBonus',
         name: 'Tổng số % trừ(cộng)',
         width: 100,
-        cssClass: 'text-right'
+        cssClass: 'text-right',
+        sortable: true
       },
       {
         id: 'PercentRemaining',
         field: 'PercentRemaining',
         name: '% thưởng còn lại',
         width: 100,
-        cssClass: 'text-right'
+        cssClass: 'text-right',
+        sortable: true
       },
       {
         id: 'Rule',
         field: 'Rule',
         name: 'Rule',
-        width: 408
+        width: 408,
+        sortable: true
       },
       {
         id: 'Note',
         field: 'Note',
         name: 'Ghi chú',
-        width: 433
+        width: 433,
+        sortable: true
       }
     ];
 
@@ -621,7 +653,7 @@ export class KPIEvaluationEmployeeComponent implements OnInit, AfterViewInit, On
       enableFiltering: true,
       showHeaderRow: false,
       enableCellNavigation: true,
-      enableSorting: false,
+      enableSorting: true,
       enablePagination: false,
       forceFitColumns: true,
       headerRowHeight: 60
@@ -641,117 +673,134 @@ export class KPIEvaluationEmployeeComponent implements OnInit, AfterViewInit, On
         id: 'STT',
         field: 'STT',
         name: 'STT',
-        width: 99,
-        cssClass: 'text-center'
+        width: 45,
+        cssClass: 'text-left',
+        sortable: true
       },
       {
         id: 'FullName',
         field: 'FullName',
         name: 'Thành viên',
-        width: 300
+        width: 300,
+        sortable: true
       },
       {
         id: 'Position',
         field: 'Position',
         name: 'Chức vụ',
-        width: 100
+        width: 100,
+        sortable: true
       },
       {
         id: 'Group',
         field: 'Group',
         name: 'Nhóm',
-        width: 100
+        width: 100,
+        sortable: true
       },
       {
         id: 'TimeWork',
         field: 'TimeWork',
         name: 'Chấm công',
         width: 80,
-        cssClass: 'text-right'
+        cssClass: 'text-right',
+        sortable: true
       },
       {
         id: 'FiveS',
         field: 'FiveS',
         name: '5S',
         width: 70,
-        cssClass: 'text-right'
+        cssClass: 'text-right',
+        sortable: true
       },
       {
         id: 'ReportWork',
         field: 'ReportWork',
         name: 'Báo cáo công việc',
         width: 120,
-        cssClass: 'text-right'
+        cssClass: 'text-right',
+        sortable: true
       },
       {
         id: 'CustomerComplaint',
         field: 'CustomerComplaint',
         name: 'Khiếu nại KH',
         width: 100,
-        cssClass: 'text-right'
+        cssClass: 'text-right',
+        sortable: true
       },
       {
         id: 'Error4',
         field: 'Error4',
         name: 'Lỗi 4',
         width: 80,
-        cssClass: 'text-right'
+        cssClass: 'text-right',
+        sortable: true
       },
       {
         id: 'ComplaneAndMissing',
         field: 'ComplaneAndMissing',
         name: 'Thiếu sót & Than phiền',
         width: 140,
-        cssClass: 'text-right'
+        cssClass: 'text-right',
+        sortable: true
       },
       {
         id: 'DeadlineDelay',
         field: 'DeadlineDelay',
         name: 'Trễ deadline',
         width: 100,
-        cssClass: 'text-right'
+        cssClass: 'text-right',
+        sortable: true
       },
       {
         id: 'KPIKyNang',
         field: 'KPIKyNang',
         name: 'KPI Kỹ năng',
         width: 100,
-        cssClass: 'text-right'
+        cssClass: 'text-right',
+        sortable: true
       },
       {
         id: 'KPIChung',
         field: 'KPIChung',
         name: 'KPI Chung',
         width: 100,
-        cssClass: 'text-right'
+        cssClass: 'text-right',
+        sortable: true
       },
       {
         id: 'KPIChuyenMon',
         field: 'KPIChuyenMon',
         name: 'KPI Chuyên môn',
         width: 120,
-        cssClass: 'text-right'
+        cssClass: 'text-right',
+        sortable: true
       },
       {
         id: 'KPIPLC_Robot',
         field: 'KPIPLC_Robot',
         name: 'KPI PLC/Robot',
         width: 110,
-        cssClass: 'text-right'
+        cssClass: 'text-right',
+        sortable: true
       },
       {
         id: 'KPIVision',
         field: 'KPIVision',
         name: 'KPI Vision',
         width: 100,
-        cssClass: 'text-right'
+        cssClass: 'text-right',
+        sortable: true
       },
       {
         id: 'KPISoftware',
         field: 'KPISoftware',
         name: 'KPI Software',
         width: 100,
-        cssClass: 'text-right'
+        cssClass: 'text-right',
+        sortable: true
       }
     ];
 

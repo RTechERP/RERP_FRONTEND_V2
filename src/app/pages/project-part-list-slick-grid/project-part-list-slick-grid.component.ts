@@ -2959,15 +2959,72 @@ export class ProjectPartListSlickGridComponent implements OnInit, AfterViewInit,
       }
     });
 
-    // Bước 3: Hàm đệ quy tính tổng từ dưới lên (bottom-up)
-    const calculateNodeTotals = (nodeId: number): void => {
+    // Bước 3: Kiểm tra và loại bỏ circular references + self-referencing
+    // Trước tiên, xử lý self-referencing (ParentID = ID)
+    flatData.forEach(item => {
+      if (item.ParentID === item.ID) {
+        console.warn(`[CALC TOTALS] Self-referencing detected: ID=${item.ID} has ParentID=${item.ParentID}, fixing...`);
+        const node = dataMap.get(item.ID);
+        if (node) {
+          node.ParentID = 0; // Fix by making it root
+        }
+      }
+    });
+
+    // Rebuild childrenMap sau khi sửa self-referencing
+    childrenMap.clear();
+    dataMap.forEach((item, id) => {
+      const parentId = item.ParentID || 0;
+      if (parentId !== 0 && parentId !== id) { // Skip self-referencing
+        if (!childrenMap.has(parentId)) {
+          childrenMap.set(parentId, []);
+        }
+        childrenMap.get(parentId)!.push(item);
+      }
+    });
+
+    // Sau đó kiểm tra circular chain (A→B→A)
+    const hasCircularRef = (nodeId: number, visited: Set<number> = new Set()): boolean => {
+      if (visited.has(nodeId)) return true;
+      visited.add(nodeId);
+
+      const node = dataMap.get(nodeId);
+      if (!node || !node.ParentID || node.ParentID === 0) return false;
+
+      return hasCircularRef(node.ParentID, visited);
+    };
+
+    // Tìm và xử lý các node có circular reference
+    dataMap.forEach((item, id) => {
+      if (item.ParentID && item.ParentID !== 0 && hasCircularRef(id)) {
+        console.warn(`[CALC TOTALS] Circular chain detected for ID=${id}, breaking chain`);
+        item.ParentID = 0;
+      }
+    });
+
+    // Bước 4: Hàm đệ quy tính tổng từ dưới lên (bottom-up) với bảo vệ circular
+    const calculatedNodes = new Set<number>();
+
+    const calculateNodeTotals = (nodeId: number, depth: number = 0): void => {
+      // Giới hạn độ sâu đệ quy để tránh stack overflow
+      if (depth > 100) {
+        console.warn(`[CALC TOTALS] Max depth exceeded for nodeId=${nodeId}`);
+        return;
+      }
+
+      // Skip nếu đã tính rồi
+      if (calculatedNodes.has(nodeId)) return;
+
       const children = childrenMap.get(nodeId) || [];
       if (children.length === 0) return;
 
       // Đệ quy tính con trước
       children.forEach(child => {
-        calculateNodeTotals(child.ID);
+        calculateNodeTotals(child.ID, depth + 1);
       });
+
+      // Đánh dấu đã tính
+      calculatedNodes.add(nodeId);
 
       // Tính tổng từ tất cả children
       let totalAmount = 0;
@@ -2998,14 +3055,12 @@ export class ProjectPartListSlickGridComponent implements OnInit, AfterViewInit,
         parentNode.IsNewCode = false;
         parentNode.IsApprovedTBPNewCode = false;
         parentNode.IsFix = false;
-
-        console.log(`[CALC TOTALS] Parent ID=${nodeId}: Amount=${totalAmount}, TotalPriceExchangePurchase=${totalPriceExchangePurchase}`);
       }
     };
 
-    // Bước 4: Tính toán cho tất cả parent nodes (những node có children)
+    // Bước 5: Tính toán cho tất cả parent nodes (những node có children)
     childrenMap.forEach((_, parentId) => {
-      calculateNodeTotals(parentId);
+      calculateNodeTotals(parentId, 0);
     });
 
     // Trả về mảng kết quả
